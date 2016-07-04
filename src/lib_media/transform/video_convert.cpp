@@ -56,6 +56,7 @@ void VideoConvert::process(Data data) {
 	switch (dstFormat.format) {
 	case YUV420P:
 	case YUYV422:
+	case NV12:
 	case RGB24: {
 		auto pic = DataPicture::create(output, dstFormat.res, dstFormat.format);
 		for (size_t i=0; i<pic->getNumPlanes(); ++i) {

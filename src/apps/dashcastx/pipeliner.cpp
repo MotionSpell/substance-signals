@@ -13,7 +13,7 @@ void declarePipeline(Pipeline &pipeline, const dashcastXOptions &opt) {
 		pipeline.connect(src, 0, dst, 0);
 	};
 
-	auto createEncoder = [&](std::shared_ptr<const IMetadata> metadata, const dashcastXOptions &opt, size_t i)->IModule* {
+	auto createEncoder = [&](std::shared_ptr<const IMetadata> metadata, const dashcastXOptions &opt, PixelFormat &pf, size_t i)->IModule* {
 		auto const codecType = metadata->getStreamType();
 		if (codecType == VIDEO_PKT) {
 			Log::msg(Info, "[Encoder] Found video stream");
@@ -21,7 +21,9 @@ void declarePipeline(Pipeline &pipeline, const dashcastXOptions &opt) {
 			p.isLowLatency = opt.isLive;
 			p.res = opt.v[i].res;
 			p.bitrate_v = opt.v[i].bitrate;
-			return pipeline.addModule<Encode::LibavEncode>(Encode::LibavEncode::Video, p);
+			auto m = pipeline.addModule<Encode::LibavEncode>(Encode::LibavEncode::Video, p);
+			pf = p.pixelFormat;
+			return m;
 		}
 		else if (codecType == AUDIO_PKT) {
 			Log::msg(Info, "[Encoder] Found audio stream");
@@ -33,12 +35,11 @@ void declarePipeline(Pipeline &pipeline, const dashcastXOptions &opt) {
 		}
 	};
 
-	auto createConverter = [&](std::shared_ptr<const IMetadata> metadata, const Resolution &dstRes)->IModule* {
+	auto createConverter = [&](std::shared_ptr<const IMetadata> metadata, const PictureFormat &dstFmt)->IModule* {
 		auto const codecType = metadata->getStreamType();
 		if (codecType == VIDEO_PKT) {
 			Log::msg(Info, "[Converter] Found video stream");
-			auto dstFormat = PictureFormat(dstRes, YUV420P);
-			return pipeline.addModule<Transform::VideoConvert>(dstFormat);
+			return pipeline.addModule<Transform::VideoConvert>(dstFmt);
 		} else if (codecType == AUDIO_PKT) {
 			Log::msg(Info, "[Converter] Found audio stream");
 			auto format = PcmFormat(44100, 2, AudioLayout::Stereo, AudioSampleFormat::F32, AudioStruct::Planar);
@@ -76,7 +77,12 @@ void declarePipeline(Pipeline &pipeline, const dashcastXOptions &opt) {
 		for (size_t r = 0; r < numRes; ++r) {
 			IModule *encoder = nullptr;
 			if (transcode) {
-				auto converter = createConverter(metadata, opt.v[r].res);
+				PictureFormat picFmt(opt.v[r].res, UNKNOWN_PF);
+				encoder = createEncoder(metadata, opt, picFmt.format, r);
+				if (!encoder)
+					continue;
+
+				auto converter = createConverter(metadata, picFmt);
 				if (!converter)
 					continue;
 
@@ -88,11 +94,6 @@ void declarePipeline(Pipeline &pipeline, const dashcastXOptions &opt) {
 #endif
 
 				connect(decode, converter);
-
-				encoder = createEncoder(metadata, opt, r);
-				if (!encoder)
-					continue;
-
 				connect(converter, encoder);
 			}
 

@@ -40,20 +40,33 @@ auto g_InitAvLog = runAtStartup(&av_log_set_callback, avLog);
 
 namespace Encode {
 
-LibavEncode::LibavEncode(Type type, const LibavEncodeParams &params)
+LibavEncode::LibavEncode(Type type, LibavEncodeParams &params)
 	: pcmFormat(new PcmFormat()), avFrame(new ffpp::Frame), frameNum(-1) {
 	std::string codecOptions, generalOptions, codecName;
 	switch (type) {
 	case Video:
-		codecOptions = format("-b %s -g %s -keyint_min %s -bf 0", params.bitrate_v, params.GOPSize, params.GOPSize);
-		generalOptions = format("-vcodec libx264 -r %s -pass 1", params.frameRate);
-		if (params.isLowLatency)
-			codecOptions += " -preset ultrafast -tune zerolatency";
+		switch (params.codecType) {
+		case LibavEncodeParams::Software:
+			generalOptions = " -vcodec libx264";
+			if (params.isLowLatency)
+				codecOptions += " -preset ultrafast -tune zerolatency";
+			break;
+		case LibavEncodeParams::Hardware_qsv:
+			generalOptions = " -vcodec h264_qsv";
+			break;
+		case LibavEncodeParams::Hardware_nvenc:
+			generalOptions = " -vcodec nvenc_h264";
+			break;
+		default:
+			throw error("Unknown video encoder type. Failed.");
+		}
+		generalOptions += format(" -r %s -pass 1", params.frameRate);
+		codecOptions += format(" -b %s -g %s -keyint_min %s -bf 0", params.bitrate_v, params.GOPSize, params.GOPSize);
 		codecName = "vcodec";
 		break;
 	case Audio:
-		codecOptions = format("-b %s", params.bitrate_a);
-		generalOptions = "-acodec aac";
+		codecOptions = format(" -b %s", params.bitrate_a);
+		generalOptions = " -acodec aac";
 		codecName = "acodec";
 		break;
 	default:
@@ -86,11 +99,14 @@ LibavEncode::LibavEncode(Type type, const LibavEncodeParams &params)
 	case Video: {
 		codecCtx->width = params.res.width;
 		codecCtx->height = params.res.height;
-		if (strcmp(generalDict.get("vcodec")->value, "mjpeg")) {
-			codecCtx->pix_fmt = AV_PIX_FMT_YUV420P;
-		} else {
+		if (!strcmp(generalDict.get("vcodec")->value, "mjpeg")) {
 			codecCtx->pix_fmt = AV_PIX_FMT_YUVJ420P;
+		} else if (!strcmp(generalDict.get("vcodec")->value, "h264_qsv")) {
+			codecCtx->pix_fmt = AV_PIX_FMT_NV12;
+		} else {
+			codecCtx->pix_fmt = AV_PIX_FMT_YUV420P;
 		}
+		params.pixelFormat = libavPixFmt2PixelFormat(codecCtx->pix_fmt);
 
 		double fr = atof(generalDict.get("r")->value);
 		AVRational fps;
@@ -226,7 +242,7 @@ bool LibavEncode::processVideo(const DataPicture *pic) {
 		f->get()->pict_type = AV_PICTURE_TYPE_NONE;
 		f->get()->pts = ++frameNum;
 		pixelFormat2libavPixFmt(pic->getFormat().format, (AVPixelFormat&)f->get()->format);
-		for (int i = 0; i < 3; ++i) {
+		for (size_t i = 0; i < pic->getNumPlanes(); ++i) {
 			f->get()->width = pic->getFormat().res.width;
 			f->get()->height = pic->getFormat().res.height;
 			f->get()->data[i] = (uint8_t*)pic->getPlane(i);

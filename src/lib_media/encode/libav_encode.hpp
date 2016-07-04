@@ -4,6 +4,7 @@
 #include "../common/libav.hpp"
 #include "../common/picture.hpp"
 #include "lib_signals/utils/queue.hpp"
+#include <string>
 
 struct AVStream;
 
@@ -15,12 +16,20 @@ namespace Modules {
 namespace Encode {
 
 struct LibavEncodeParams {
+	enum VideoCodecType {
+		Software,
+		Hardware_qsv,
+		Hardware_nvenc
+	};
+
 	//video only
 	Resolution res = VIDEO_RESOLUTION;
 	int bitrate_v = 300000;
 	int GOPSize = 25;
 	int frameRate = 25;
 	bool isLowLatency = false;
+	VideoCodecType codecType = Software;
+	PixelFormat pixelFormat = UNKNOWN_PF; //set by the encoder
 
 	//audio only
 	int bitrate_a = 128000;
@@ -34,7 +43,7 @@ class LibavEncode : public ModuleS {
 			Unknown
 		};
 
-		LibavEncode(Type type, const LibavEncodeParams &params = *uptr(new LibavEncodeParams));
+		LibavEncode(Type type, LibavEncodeParams &params = *uptr(new LibavEncodeParams));
 		~LibavEncode();
 		void process(Data data) override;
 		void flush() override;

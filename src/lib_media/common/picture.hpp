@@ -32,6 +32,7 @@ enum PixelFormat {
 	UNKNOWN_PF = -1,
 	YUV420P,
 	YUYV422,
+	NV12,
 	RGB24
 };
 
@@ -56,6 +57,7 @@ class PictureFormat {
 			switch (format) {
 			case YUV420P: return res.width * res.height * 3 / 2;
 			case YUYV422: return res.width * res.height * 2;
+			case NV12: return res.width * res.height * 3 / 2;
 			case RGB24: return res.width * res.height * 3;
 			default: throw std::runtime_error("Unknown pixel format. Please contact your vendor.");
 			}
@@ -162,6 +164,41 @@ class PictureYUYV422 : public DataPicture {
 			m_format.res = res;
 			resize(m_format.getSize());
 		}
+};
+
+class PictureNV12 : public DataPicture {
+public:
+	PictureNV12(size_t unused) : DataPicture(0) {
+		m_format.format = NV12;
+	}
+	PictureNV12(const Resolution &res)
+		: DataPicture(res, NV12) {
+		setResolution(res);
+	}
+	size_t getNumPlanes() const override {
+		return 2;
+	}
+	const uint8_t* getPlane(size_t planeIdx) const override {
+		return m_planes[planeIdx];
+	}
+	uint8_t* getPlane(size_t planeIdx) override {
+		return m_planes[planeIdx];
+	}
+	size_t getPitch(size_t planeIdx) const override {
+		return m_pitch[planeIdx];
+	}
+	void setResolution(const Resolution &res) override {
+		m_format.res = res;
+		resize(m_format.getSize());
+		auto const numPixels = res.width * res.height;
+		m_planes[0] = data();
+		m_planes[1] = data() + numPixels;
+		m_pitch[0] = m_pitch[1] = res.width;
+	}
+
+private:
+	size_t m_pitch[2];
+	uint8_t* m_planes[2];
 };
 
 class PictureRGB24 : public DataPicture {
