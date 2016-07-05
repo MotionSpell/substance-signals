@@ -12,7 +12,8 @@ CFLAGS+=-Wno-write-strings
 CFLAGS+=-D__STDC_CONSTANT_MACROS
 
 BIN?=bin
-SRC=src
+SRC?=src
+EXTRA?=./extra
 
 # default to debug mode
 DEBUG?=1
@@ -28,8 +29,8 @@ endif
 
 CFLAGS += -I$(SRC) -I$(SRC)/lib_modules
 
-CFLAGS += -I./extra/include
-LDFLAGS += -L./extra/lib
+CFLAGS += -I$(EXTRA)/include
+LDFLAGS += -L$(EXTRA)/lib
 
 LDFLAGS += $(LDLIBS)
 
@@ -39,7 +40,7 @@ $(BIN)/config.mk:
 	@echo "Configuring ..."
 	@set -e ; \
 	mkdir -p $(BIN)
-	export PKG_CONFIG_PATH=./extra/lib/pkgconfig:$$PKG_CONFIG_PATH ; \
+	export PKG_CONFIG_PATH=$(EXTRA)/lib/pkgconfig:$$PKG_CONFIG_PATH ; \
 	/bin/echo '# config file' > $(BIN)/config.mk.tmp ; \
 	/bin/echo -n 'CFLAGS+=' >> $(BIN)/config.mk.tmp ; \
 	pkg-config --cflags libavcodec libavdevice libavformat libswresample libswscale x264 sdl2 >> $(BIN)/config.mk.tmp ; \
@@ -48,7 +49,7 @@ $(BIN)/config.mk:
 	/bin/echo -n 'LDFLAGS+=' >> $(BIN)/config.mk.tmp ; \
 	pkg-config --libs --static libavcodec libavdevice libavformat libswresample libswscale x264 gpac >> $(BIN)/config.mk.tmp ; \
 	sed -i "s/-lgpac/-lgpac_static/" $(BIN)/config.mk.tmp ; \
-	/bin/echo 'CFLAGS+=-I./extra/include/asio -Wno-unused-local-typedefs' >> $(BIN)/config.mk.tmp
+	/bin/echo 'CFLAGS+=-I$(EXTRA)/include/asio -Wno-unused-local-typedefs' >> $(BIN)/config.mk.tmp
 	/bin/echo 'LDFLAGS+=-lturbojpeg' >> $(BIN)/config.mk.tmp ; \
 	mv $(BIN)/config.mk.tmp $(BIN)/config.mk ; \
 
