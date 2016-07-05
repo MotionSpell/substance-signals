@@ -6,6 +6,8 @@
 using namespace Modules;
 using namespace Pipelines;
 
+extern const char *g_appName;
+
 #define DEBUG_MONITOR
 
 void declarePipeline(Pipeline &pipeline, const dashcastXOptions &opt) {
@@ -24,12 +26,10 @@ void declarePipeline(Pipeline &pipeline, const dashcastXOptions &opt) {
 			auto m = pipeline.addModule<Encode::LibavEncode>(Encode::LibavEncode::Video, p);
 			pf = p.pixelFormat;
 			return m;
-		}
-		else if (codecType == AUDIO_PKT) {
+		} else if (codecType == AUDIO_PKT) {
 			Log::msg(Info, "[Encoder] Found audio stream");
 			return pipeline.addModule<Encode::LibavEncode>(Encode::LibavEncode::Audio);
-		}
-		else {
+		} else {
 			Log::msg(Info, "[Encoder] Found unknown stream");
 			return nullptr;
 		}
@@ -51,19 +51,19 @@ void declarePipeline(Pipeline &pipeline, const dashcastXOptions &opt) {
 	};
 
 	auto demux = pipeline.addModule<Demux::LibavDemux>(opt.url);
-	auto dasher = pipeline.addModule<Modules::Stream::MPEG_DASH>("dashcastx.mpd",
+	auto dasher = pipeline.addModule<Modules::Stream::MPEG_DASH>(format("%s.mpd", g_appName),
 	                                 opt.isLive ? Modules::Stream::MPEG_DASH::Live : Modules::Stream::MPEG_DASH::Static, opt.segmentDuration);
 
 	const bool transcode = opt.v.size() > 0 ? true : false;
 	if (!transcode) {
-		Log::msg(Warning, "[DashcastX] No transcode. Make passthru.");
+		Log::msg(Warning, "[%s] No transcode. Make passthru.", g_appName);
 	}
 
 	int numDashInputs = 0;
 	for (size_t i = 0; i < demux->getNumOutputs(); ++i) {
 		auto const metadata = getMetadataFromOutput<MetadataPktLibav>(demux->getOutput(i));
 		if (!metadata) {
-			Log::msg(Warning, "[DashcastX] Unknown metadata for stream %s. Ignoring.", i);
+			Log::msg(Warning, "[%s] Unknown metadata for stream %s. Ignoring.", g_appName, i);
 			break;
 		}
 

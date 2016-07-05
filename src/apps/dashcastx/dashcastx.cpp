@@ -5,6 +5,7 @@
 using namespace Pipelines;
 
 Pipeline *g_Pipeline = nullptr;
+extern const char *g_appName;
 
 #ifdef _MSC_VER
 BOOL WINAPI signalHandler(_In_ DWORD dwCtrlType) {
@@ -45,14 +46,14 @@ int safeMain(int argc, char const* argv[]) {
 
 	dashcastXOptions opt = processArgs(argc, argv);
 
-	Tools::Profiler profilerGlobal("DashcastX");
+	Tools::Profiler profilerGlobal(g_appName);
 
 	auto pipeline = uptr(new Pipeline(opt.isLive));
 	declarePipeline(*pipeline, opt);
 	g_Pipeline = pipeline.get();
 
-	Tools::Profiler profilerProcessing("DashcastX - processing time");
-	std::cerr << "DashcastX - close window or ctrl-c to exit cleanly." << std::endl;
+	Tools::Profiler profilerProcessing(format("%s - processing time", g_appName));
+	std::cerr << g_appName << " - close window or ctrl-c to exit cleanly." << std::endl;
 	pipeline->start();
 	pipeline->waitForCompletion();
 	g_Pipeline = nullptr;

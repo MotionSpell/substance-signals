@@ -1,6 +1,8 @@
 #include <iostream>
 #include <stdexcept>
 
+const char *g_appName = "dashcastx";
+
 extern int safeMain(int argc, char const* argv[]);
 
 int main(int argc, char const* argv[]) {
