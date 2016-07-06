@@ -20,10 +20,10 @@ auto g_InitAvLog = runAtStartup(&av_log_set_callback, avLog);
 
 namespace Mux {
 
-LibavMux::LibavMux(const std::string &baseName)
+LibavMux::LibavMux(const std::string &baseName, const std::string &fmt)
 	: m_headerWritten(false) {
 	/* parse the format optionsDict */
-	std::string optionsStr = "-format mp4";
+	std::string optionsStr = "-format " + fmt;
 	AVDictionary *optionsDict = nullptr;
 	buildAVDictionary(typeid(*this).name(), &optionsDict, optionsStr.c_str(), "format");
 
@@ -77,7 +77,7 @@ void LibavMux::declareStream(Data data) {
 		if (!avStream)
 			throw error("Stream creation failed (1).");
 
-		m_formatCtx->streams[0]->codec->time_base = metadata->getAVCodecContext()->time_base; //FIXME: [0]: not a mux yet...
+		m_formatCtx->streams[0]->time_base = metadata->getAVCodecContext()->time_base; //FIXME: [0]: not a mux yet...
 		m_formatCtx->streams[0]->codec->width = metadata->getAVCodecContext()->width;
 		m_formatCtx->streams[0]->codec->height = metadata->getAVCodecContext()->height;
 		if (m_formatCtx->oformat->flags & AVFMT_GLOBALHEADER)

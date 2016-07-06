@@ -9,7 +9,7 @@ namespace Mux {
 
 class LibavMux : public ModuleDynI {
 	public:
-		LibavMux(const std::string &baseName);
+		LibavMux(const std::string &baseName, const std::string &fmt);
 		~LibavMux();
 		void process() override;
 

@@ -27,7 +27,7 @@ unittest("remux test: GPAC mp4 mux") {
 
 unittest("remux test: libav mp4 mux") {
 	auto demux = uptr(create<Demux::LibavDemux>("data/beepbop.mp4"));
-	auto mux = uptr(create<Mux::LibavMux>("output_video_libav"));
+	auto mux = uptr(create<Mux::LibavMux>("output_video_libav", "mp4"));
 	for (size_t i = 0; i < demux->getNumOutputs(); ++i) {
 		ConnectModules(demux.get(), i, mux.get(), i);
 		break; //FIXME

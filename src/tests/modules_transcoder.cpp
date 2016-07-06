@@ -39,7 +39,7 @@ unittest("transcoder: video simple (libav mux)") {
 	auto metadata = getMetadataFromOutput<MetadataPktLibav>(demux->getOutput(videoIndex));
 	auto decode = uptr(create<Decode::LibavDecode>(*metadata));
 	auto encode = uptr(create<Encode::LibavEncode>(Encode::LibavEncode::Video));
-	auto mux = uptr(create<Mux::LibavMux>("output_video_libav"));
+	auto mux = uptr(create<Mux::LibavMux>("output_video_libav", "mp4"));
 
 	ConnectOutputToInput(demux->getOutput(videoIndex), decode);
 	ConnectOutputToInput(decode->getOutput(0), encode);
