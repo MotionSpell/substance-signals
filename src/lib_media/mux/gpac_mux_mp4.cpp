@@ -394,9 +394,8 @@ void GPACMuxMP4::flush() {
 }
 
 GPACMuxMP4::~GPACMuxMP4() {
-	GF_Err e;
-	e = gf_isom_close(m_iso);
-	if (e != GF_OK)
+	GF_Err e = gf_isom_close(m_iso);
+	if (e != GF_OK && e != GF_ISOM_INVALID_FILE)
 		throw error(format("%s: gf_isom_close", gf_error_to_string(e)));
 }
 

@@ -52,7 +52,7 @@ void declarePipeline(Pipeline &pipeline, const appOptions &opt) {
 
 	auto demux = pipeline.addModule<Demux::LibavDemux>(opt.url);
 	auto dasher = pipeline.addModule<Modules::Stream::MPEG_DASH>(format("%s.mpd", g_appName),
-	                                 opt.isLive ? Modules::Stream::MPEG_DASH::Live : Modules::Stream::MPEG_DASH::Static, opt.segmentDuration);
+	                                 opt.isLive ? Modules::Stream::MPEG_DASH::Live : Modules::Stream::MPEG_DASH::Static, opt.segmentDurationInMs);
 
 	const bool transcode = opt.v.size() > 0 ? true : false;
 	if (!transcode) {
@@ -99,7 +99,7 @@ void declarePipeline(Pipeline &pipeline, const appOptions &opt) {
 
 			std::stringstream filename;
 			filename << numDashInputs;
-			auto muxer = pipeline.addModule<Mux::GPACMuxMP4>(filename.str(), opt.segmentDuration, true);
+			auto muxer = pipeline.addModule<Mux::GPACMuxMP4>(filename.str(), opt.segmentDurationInMs, true);
 			if (transcode) {
 				connect(encoder, muxer);
 			} else {

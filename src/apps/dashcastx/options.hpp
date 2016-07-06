@@ -11,7 +11,7 @@ struct Video {
 struct appOptions {
 	std::string url;
 	std::vector<Video> v;
-	uint64_t segmentDuration = 2000;
+	uint64_t segmentDurationInMs = 2000;
 	bool isLive = false;
 };
 
