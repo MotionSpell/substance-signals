@@ -104,7 +104,7 @@ void printDetectedOptions(option::Parser &parse, option::Option * const options)
 
 }
 
-dashcastXOptions processArgs(int argc, char const* argv[]) {
+appOptions processArgs(int argc, char const* argv[]) {
 	argc -= (argc > 0); argv += (argc > 0);
 	option::Stats  stats(usage, argc, argv);
 	std::unique_ptr<option::Option[]> options(new option::Option[stats.options_max]);
@@ -121,7 +121,7 @@ dashcastXOptions processArgs(int argc, char const* argv[]) {
 		printDetectedOptions(parse, options.get());
 	}
 
-	dashcastXOptions opt;
+	appOptions opt;
 	opt.url = parse.nonOption(0);
 	if (options[OPT].first()->desc && options[OPT].first()->desc->shortopt == std::string("l"))
 		opt.isLive = true;

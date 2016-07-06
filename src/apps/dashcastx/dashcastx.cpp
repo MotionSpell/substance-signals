@@ -44,7 +44,7 @@ int safeMain(int argc, char const* argv[]) {
 	std::signal(SIGTERM, sigTermHandler);
 #endif
 
-	dashcastXOptions opt = processArgs(argc, argv);
+	appOptions opt = processArgs(argc, argv);
 
 	Tools::Profiler profilerGlobal(g_appName);
 

@@ -10,12 +10,12 @@ extern const char *g_appName;
 
 #define DEBUG_MONITOR
 
-void declarePipeline(Pipeline &pipeline, const dashcastXOptions &opt) {
+void declarePipeline(Pipeline &pipeline, const appOptions &opt) {
 	auto connect = [&](auto* src, auto* dst) {
 		pipeline.connect(src, 0, dst, 0);
 	};
 
-	auto createEncoder = [&](std::shared_ptr<const IMetadata> metadata, const dashcastXOptions &opt, PixelFormat &pf, size_t i)->IModule* {
+	auto createEncoder = [&](std::shared_ptr<const IMetadata> metadata, const appOptions &opt, PixelFormat &pf, size_t i)->IModule* {
 		auto const codecType = metadata->getStreamType();
 		if (codecType == VIDEO_PKT) {
 			Log::msg(Info, "[Encoder] Found video stream");

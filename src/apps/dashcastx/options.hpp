@@ -8,11 +8,11 @@ struct Video {
 	unsigned bitrate;
 };
 
-struct dashcastXOptions {
+struct appOptions {
 	std::string url;
 	std::vector<Video> v;
 	uint64_t segmentDuration = 2000;
 	bool isLive = false;
 };
 
-dashcastXOptions processArgs(int argc, char const* argv[]);
+appOptions processArgs(int argc, char const* argv[]);
