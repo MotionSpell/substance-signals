@@ -9,5 +9,5 @@ EXE_DASHCASTX_OBJS:=\
  	$(OUTDIR)/main.o\
  	$(OUTDIR)/options.o\
  	$(OUTDIR)/pipeliner.o
-$(OUTDIR)/dashcastx.exe:  $(EXE_DASHCASTX_OBJS)
+$(OUTDIR)/dashcastx.exe: $(EXE_DASHCASTX_OBJS)
 DEPS+=$(EXE_DASHCASTX_OBJS:%.o=%.deps)

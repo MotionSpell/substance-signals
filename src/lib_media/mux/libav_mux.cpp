@@ -20,8 +20,7 @@ auto g_InitAvLog = runAtStartup(&av_log_set_callback, avLog);
 
 namespace Mux {
 
-LibavMux::LibavMux(const std::string &baseName, const std::string &fmt)
-	: m_headerWritten(false) {
+LibavMux::LibavMux(const std::string &baseName, const std::string &fmt) {
 	/* parse the format optionsDict */
 	std::string optionsStr = "-format " + fmt;
 	AVDictionary *optionsDict = nullptr;
@@ -56,10 +55,14 @@ LibavMux::LibavMux(const std::string &baseName, const std::string &fmt)
 		}
 		strncpy(m_formatCtx->filename, fileName.str().c_str(), sizeof(m_formatCtx->filename));
 	}
+
+	if (fmt == "mpegts" || !fmt.compare(0, 3, "hls")) {
+		m_inbandMetadata = true;
+	}
 }
 
 LibavMux::~LibavMux() {
-	if (m_formatCtx) {
+	if (m_formatCtx && m_headerWritten) {
 		av_write_trailer(m_formatCtx); //write the trailer if any
 	}
 	if (m_formatCtx && !(m_formatCtx->flags & AVFMT_NOFILE)) {
@@ -77,7 +80,7 @@ void LibavMux::declareStream(Data data) {
 		if (!avStream)
 			throw error("Stream creation failed (1).");
 
-		m_formatCtx->streams[0]->time_base = metadata->getAVCodecContext()->time_base; //FIXME: [0]: not a mux yet...
+		m_formatCtx->streams[0]->codec->time_base = metadata->getAVCodecContext()->time_base; //FIXME: [0]: not a mux yet...
 		m_formatCtx->streams[0]->codec->width = metadata->getAVCodecContext()->width;
 		m_formatCtx->streams[0]->codec->height = metadata->getAVCodecContext()->height;
 		if (m_formatCtx->oformat->flags & AVFMT_GLOBALHEADER)
@@ -105,6 +108,9 @@ void LibavMux::ensureHeader() {
 			for (unsigned i = 0; i < m_formatCtx->nb_streams; i++) {
 				if (m_formatCtx->streams[i]->codec && m_formatCtx->streams[i]->codec->codec) {
 					log(Debug, "codec[%s] is \"%s\" (%s)", i, m_formatCtx->streams[i]->codec->codec->name, m_formatCtx->streams[i]->codec->codec->long_name);
+					if (!m_formatCtx->streams[i]->codec->extradata) {
+						throw error("Bitstream format is not raw. Check your encoder settings.");
+					}
 				}
 			}
 		} else {
@@ -113,17 +119,37 @@ void LibavMux::ensureHeader() {
 	}
 }
 
+AVPacket * LibavMux::getFormattedPkt(Data data) {
+	auto pkt = safe_cast<const DataAVPacket>(data)->getPacket();
+	auto videoMetadata = std::dynamic_pointer_cast<const MetadataPktLibavVideo>(data->getMetadata()); //video only ATM
+	if (m_inbandMetadata && videoMetadata && (pkt->flags & AV_PKT_FLAG_KEY)) {
+		auto const eSize = videoMetadata->getAVCodecContext()->extradata_size;
+		auto const outSize = pkt->size + eSize;
+		auto newPkt = av_packet_alloc();
+		av_init_packet(newPkt);
+		av_new_packet(newPkt, outSize);
+		memcpy(newPkt->data, videoMetadata->getAVCodecContext()->extradata, eSize);
+		memcpy(newPkt->data + eSize, pkt->data, pkt->size);
+		newPkt->size = outSize;
+		newPkt->flags = pkt->flags;
+		newPkt->dts = pkt->dts;
+		newPkt->pts = pkt->pts;
+		return newPkt;
+	} else {
+		return av_packet_clone(pkt);
+	}
+}
+
 void LibavMux::process() {
 	//FIXME: reimplement with multiple inputs
 	Data data = inputs[0]->pop();
 	if (inputs[0]->updateMetadata(data))
 		declareStream(data);
-	auto encoderData = safe_cast<const DataAVPacket>(data);
-	auto pkt = encoderData->getPacket();
 
 	ensureHeader();
+	auto pkt = getFormattedPkt(data);
 
-	/* Timestamps */
+	/* timestamps */
 	assert(pkt->pts != (int64_t)AV_NOPTS_VALUE);
 	AVStream *avStream = m_formatCtx->streams[0]; //FIXME: fixed '0' for stream num: this is not a mux yet ;)
 	pkt->dts = av_rescale_q(pkt->dts, avStream->codec->time_base, avStream->time_base);
@@ -136,6 +162,7 @@ void LibavMux::process() {
 		log(Warning, "can't write video frame.");
 		return;
 	}
+	av_packet_free(&pkt);
 }
 
 }

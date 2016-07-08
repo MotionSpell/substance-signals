@@ -143,7 +143,7 @@ LibavEncode::LibavEncode(Type type, LibavEncodeParams &params)
 #endif
 
 	/* open it */
-	codecCtx->flags |= CODEC_FLAG_GLOBAL_HEADER; //gives access to the extradata (e.g. H264 SPS/PPS, etc.)
+	codecCtx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER; //gives access to the extradata (e.g. H264 SPS/PPS, etc.)
 	if (avcodec_open2(codecCtx, codec, &codecDict) < 0)
 		throw error("could not open codec, disable output.");
 

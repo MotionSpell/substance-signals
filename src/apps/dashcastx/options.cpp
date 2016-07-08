@@ -81,7 +81,7 @@ void printDetectedOptions(option::Parser &parse, option::Option * const options)
 
 }
 
-appOptions processArgs(int argc, char const* argv[]) {
+AppOptions processArgs(int argc, char const* argv[]) {
 	auto const usage0 = format("Usage: %s [options] <URL>\n\nOptions:", g_appName);
 	auto const examples = format(
 		"\nExamples:\n"
@@ -120,7 +120,7 @@ appOptions processArgs(int argc, char const* argv[]) {
 		printDetectedOptions(parse, options.get());
 	}
 
-	appOptions opt;
+	AppOptions opt;
 	opt.url = parse.nonOption(0);
 	if (options[OPT].first()->desc && options[OPT].first()->desc->shortopt == std::string("l"))
 		opt.isLive = true;

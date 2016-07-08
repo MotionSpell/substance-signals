@@ -8,11 +8,11 @@ struct Video {
 	unsigned bitrate;
 };
 
-struct appOptions {
+struct AppOptions {
 	std::string url;
 	std::vector<Video> v;
 	uint64_t segmentDurationInMs = 2000;
 	bool isLive = false;
 };
 
-appOptions processArgs(int argc, char const* argv[]);
+AppOptions processArgs(int argc, char const* argv[]);
