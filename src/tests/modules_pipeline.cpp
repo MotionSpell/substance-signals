@@ -136,9 +136,7 @@ unittest("pipeline: connect incompatible i/o") {
 	ASSERT(thrown);
 }
 
-/*FIXME: these test fails because the pipeline is now async and cannot stop while running - see #58*/
-#ifdef ENABLE_FAILING_TESTS
-unittest("pipeline: source only and destroy while running") {
+unittest("pipeline: source only") {
 	bool thrown = false;
 	try {
 		Pipeline p;
@@ -157,6 +155,22 @@ unittest("pipeline: sink only") {
 	try {
 		Pipeline p;
 		p.addModule<Out::Null>();
+		p.start();
+		p.waitForCompletion();
+	}
+	catch (...) {
+		thrown = true;
+	}
+	ASSERT(!thrown);
+}
+
+/*FIXME: these test fails because the pipeline is now async and cannot stop while running - see #58*/
+#ifdef ENABLE_FAILING_TESTS
+unittest("pipeline: source only and destroy while running") {
+	bool thrown = false;
+	try {
+		Pipeline p;
+		p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
 		p.start();
 		p.waitForCompletion();
 	}

@@ -10,6 +10,16 @@
 
 using namespace Modules;
 
+namespace {
+	class FakeOutput : public ModuleS {
+	public:
+		FakeOutput() {
+			addInput(new Input<DataBase>(this));
+		}
+		void process(Data data) override {}
+	};
+}
+
 namespace Pipelines {
 
 namespace {
@@ -61,6 +71,9 @@ public:
 		: delegate(module), localExecutor(new EXECUTOR), executor(*localExecutor), m_notify(notify) {
 	}
 	~PipelinedModule() noexcept(false) {}
+	std::string getDelegateName() const {
+		return typeid(*delegate).name();
+	}
 
 	size_t getNumInputs() const override {
 		return delegate->getNumInputs();
@@ -70,7 +83,7 @@ public:
 	}
 	IOutput* getOutput(size_t i) const override {
 		if (i >= delegate->getNumOutputs())
-			throw std::runtime_error(format("PipelinedModule %s: no output %s.", typeid(delegate).name(), i));
+			throw std::runtime_error(format("PipelinedModule %s: no output %s.", getDelegateName(), i));
 		return delegate->getOutput(i);
 	}
 
@@ -106,13 +119,13 @@ private:
 	IInput* getInput(size_t i) override {
 		mimicInputs();
 		if (i >= inputs.size())
-			throw std::runtime_error(format("PipelinedModule %s: no input %s.", typeid(delegate).name(), i));
+			throw std::runtime_error(format("PipelinedModule %s: no input %s.", getDelegateName(), i));
 		return inputs[i].get();
 	}
 
 	/* uses the executor (i.e. may defer the call) */
 	void process() override {
-		Log::msg(Debug, format("Module %s: dispatch data", typeid(delegate).name()));
+		Log::msg(Debug, format("Module %s: dispatch data", getDelegateName()));
 
 		if (isSource()) {
 			if (getNumInputs() == 0) {
@@ -173,6 +186,17 @@ void Pipeline::connect(IModule *prev, size_t outputIdx, IModule *n, size_t input
 
 void Pipeline::start() {
 	Log::msg(Info, "Pipeline: starting");
+	Log::msg(Debug, "Pipeline: check for unconnected outputs");
+	for (size_t m = 0; m < modules.size(); ++m) {
+		for (size_t i = 0; i < modules[m]->getNumOutputs(); ++i) {
+			auto output = modules[m]->getOutput(i);
+			if (output->getSignal().getNumConnections() == 0) {
+				Log::msg(Debug, format("Pipeline: connecting fake input to output %s of module %s", i, safe_cast<PipelinedModule>(modules[m].get())->getDelegateName()));
+				connect(modules[m].get(), i, addModule<FakeOutput>(), 0);
+			}
+		}
+	}
+	Log::msg(Debug, "Pipeline: start sources");
 	for (auto &m : modules) {
 		if (m->isSource())
 			m->process();
@@ -181,9 +205,10 @@ void Pipeline::start() {
 }
 
 void Pipeline::waitForCompletion() {
-	Log::msg(Info, "Pipeline: waiting for completion (remaning: %s)", (int)numRemainingNotifications);
+	Log::msg(Info, "Pipeline: waiting for completion");
 	std::unique_lock<std::mutex> lock(mutex);
 	while (numRemainingNotifications > 0) {
+		Log::msg(Debug, "Pipeline: completion (remaining: %s) (%s modules in the pipeline)", (int)numRemainingNotifications, modules.size());
 		condition.wait(lock);
 	}
 	Log::msg(Info, "Pipeline: completed");

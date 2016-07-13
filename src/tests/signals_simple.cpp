@@ -43,6 +43,9 @@ unittest("signals_simple") {
 	ASSERT((*val)[2] == Util::dummy(input));
 	ASSERT((*val)[3] == dummy2(input));
 
+	Test("test connections count");
+	ASSERT(sig.getNumConnections() == 4);
+
 	Test("multiple connections: ask results again");
 	auto val2 = sig.results();
 	ASSERT(numVal == val2->size());
