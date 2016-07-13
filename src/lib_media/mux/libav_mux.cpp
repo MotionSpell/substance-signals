@@ -23,7 +23,6 @@ namespace Mux {
 LibavMux::LibavMux(const std::string &baseName, const std::string &fmt) {
 	/* parse the format optionsDict */
 	std::string optionsStr = "-format " + fmt;
-	AVDictionary *optionsDict = nullptr;
 	buildAVDictionary(typeid(*this).name(), &optionsDict, optionsStr.c_str(), "format");
 
 	/* setup container */
@@ -32,7 +31,6 @@ LibavMux::LibavMux(const std::string &baseName, const std::string &fmt) {
 		av_dict_free(&optionsDict);
 		throw error("couldn't guess container from file extension");
 	}
-	av_dict_free(&optionsDict);
 
 	/* output format context */
 	m_formatCtx = avformat_alloc_context();
@@ -48,24 +46,28 @@ LibavMux::LibavMux(const std::string &baseName, const std::string &fmt) {
 	fileName << "." << fileNameExt;
 
 	/* open the output file, if needed */
-	if (!(m_formatCtx->flags & AVFMT_NOFILE)) {
+	if (!(m_formatCtx->oformat->flags & AVFMT_NOFILE)) {
 		if (avio_open(&m_formatCtx->pb, fileName.str().c_str(), AVIO_FLAG_READ_WRITE) < 0) {
 			avformat_free_context(m_formatCtx);
 			throw error(format("could not open %s, disable output.", baseName));
+
 		}
 		strncpy(m_formatCtx->filename, fileName.str().c_str(), sizeof(m_formatCtx->filename));
 	}
 
-	if (fmt == "mpegts" || !fmt.compare(0, 3, "hls")) {
+	if (!fmt.compare(0, 5, "mpegts") || !fmt.compare(0, 3, "hls")) {
 		m_inbandMetadata = true;
 	}
 }
 
 LibavMux::~LibavMux() {
+	if (optionsDict) {
+		av_dict_free(&optionsDict);
+	}
 	if (m_formatCtx && m_headerWritten) {
 		av_write_trailer(m_formatCtx); //write the trailer if any
 	}
-	if (m_formatCtx && !(m_formatCtx->flags & AVFMT_NOFILE)) {
+	if (m_formatCtx && !(m_formatCtx->oformat->flags & AVFMT_NOFILE)) {
 		avio_close(m_formatCtx->pb); //close output file
 	}
 	if (m_formatCtx) {
@@ -103,7 +105,7 @@ void LibavMux::declareStream(Data data) {
 
 void LibavMux::ensureHeader() {
 	if (!m_headerWritten) {
-		if (avformat_write_header(m_formatCtx, nullptr) != 0) {
+		if (avformat_write_header(m_formatCtx, &optionsDict) != 0) {
 			log(Warning, "fatal error: can't write the container header");
 			for (unsigned i = 0; i < m_formatCtx->nb_streams; i++) {
 				if (m_formatCtx->streams[i]->codec && m_formatCtx->streams[i]->codec->codec) {
