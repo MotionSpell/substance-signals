@@ -21,6 +21,7 @@ class ISignal<Callback(Args...)> {
 		virtual size_t connect(const std::function<Callback(Args...)> &cb, IExecutor<Callback(Args...)> &executor) = 0;
 		virtual size_t connect(const std::function<Callback(Args...)> &cb) = 0;
 		virtual bool disconnect(size_t connectionId) = 0;
+		virtual size_t getNumConnections() const = 0;
 		virtual size_t emit(Args... args) = 0;
 
 		virtual IExecutor<Callback(Args...)>& getExecutor() const = 0;
@@ -64,6 +65,11 @@ class PSignal<Result, Callback(Args...)> : public ISignal<Callback(Args...)> {
 		bool disconnect(size_t connectionId) {
 			std::lock_guard<std::mutex> lg(callbacksMutex);
 			return disconnectUnsafe(connectionId);
+		}
+
+		size_t getNumConnections() const {
+			std::lock_guard<std::mutex> lg(callbacksMutex);
+			return callbacks.size();
 		}
 
 		size_t emit(Args... args) {
@@ -135,7 +141,7 @@ class PSignal<Result, Callback(Args...)> : public ISignal<Callback(Args...)> {
 			}
 		}
 
-		std::mutex callbacksMutex;
+		mutable std::mutex callbacksMutex;
 		ConnectionManager callbacks; //protected by callbacksMutex
 		Result result;               //protected by callbacksMutex
 		size_t uid = 0;              //protected by callbacksMutex
