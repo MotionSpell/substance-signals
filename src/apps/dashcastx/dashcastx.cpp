@@ -37,7 +37,7 @@ void sigTermHandler(int sig) {
 }
 #endif
 
-int safeMain(int argc, char const* argv[]) {
+int safeMain(int argc, char const* argv[], const FormatFlags formats) {
 #ifdef _MSC_VER
 	SetConsoleCtrlHandler(signalHandler, TRUE);
 #else
@@ -49,7 +49,7 @@ int safeMain(int argc, char const* argv[]) {
 	Tools::Profiler profilerGlobal(g_appName);
 
 	auto pipeline = uptr(new Pipeline(opt.isLive));
-	declarePipeline(*pipeline, opt);
+	declarePipeline(*pipeline, opt, formats);
 	g_Pipeline = pipeline.get();
 
 	Tools::Profiler profilerProcessing(format("%s - processing time", g_appName));

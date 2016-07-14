@@ -8,9 +8,9 @@ using namespace Pipelines;
 
 extern const char *g_appName;
 
-#define DEBUG_MONITOR
+//#define DEBUG_MONITOR
 
-void declarePipeline(Pipeline &pipeline, const AppOptions &opt) {
+void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlags formats) {
 	auto connect = [&](auto* src, auto* dst) {
 		pipeline.connect(src, 0, dst, 0);
 	};
@@ -51,6 +51,7 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt) {
 	};
 
 	auto demux = pipeline.addModule<Demux::LibavDemux>(opt.url);
+	auto HLSer = pipeline.addModule<Mux::LibavMux>(g_appName, format("hls -hls_time %s", opt.segmentDurationInMs/1000));
 	auto dasher = pipeline.addModule<Modules::Stream::MPEG_DASH>(format("%s.mpd", g_appName),
 	                                 opt.isLive ? Modules::Stream::MPEG_DASH::Live : Modules::Stream::MPEG_DASH::Static, opt.segmentDurationInMs);
 
@@ -59,7 +60,6 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt) {
 		Log::msg(Warning, "[%s] No transcode. Make passthru.", g_appName);
 	}
 
-	int numDashInputs = 0;
 	for (size_t i = 0; i < demux->getNumOutputs(); ++i) {
 		auto const metadata = getMetadataFromOutput<MetadataPktLibav>(demux->getOutput(i));
 		if (!metadata) {
@@ -97,17 +97,21 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt) {
 				connect(converter, encoder);
 			}
 
-			std::stringstream filename;
-			filename << numDashInputs;
-			auto muxer = pipeline.addModule<Mux::GPACMuxMP4>(filename.str(), opt.segmentDurationInMs, true);
-			if (transcode) {
-				connect(encoder, muxer);
-			} else {
-				pipeline.connect(demux, i, muxer, 0);
+			if (formats & APPLE_HLS) {
+				pipeline.connect(encoder, 0, HLSer, r);
 			}
+			if (formats & MPEG_DASH) {
+				std::stringstream filename;
+				filename << r;
+				auto muxer = pipeline.addModule<Mux::GPACMuxMP4>(filename.str(), opt.segmentDurationInMs, true);
+				if (transcode) {
+					connect(encoder, muxer);
+				} else {
+					pipeline.connect(demux, i, muxer, 0);
+				}
 
-			pipeline.connect(muxer, 0, dasher, numDashInputs);
-			numDashInputs++;
+				pipeline.connect(muxer, 0, dasher, r);
+			}
 		}
 	}
 }

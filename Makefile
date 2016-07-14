@@ -123,13 +123,13 @@ CFLAGS+=-I$(ProjectName)
 
 #------------------------------------------------------------------------------
 
-ProjectName:=$(SRC)/apps/player
+ProjectName:=$(SRC)/apps/dashcastx
 include $(ProjectName)/project.mk
 CFLAGS+=-I$(ProjectName)
 
 #------------------------------------------------------------------------------
 
-ProjectName:=$(SRC)/apps/dashcastx
+ProjectName:=$(SRC)/apps/player
 include $(ProjectName)/project.mk
 CFLAGS+=-I$(ProjectName)
 
