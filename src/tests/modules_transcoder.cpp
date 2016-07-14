@@ -19,7 +19,7 @@ using namespace Modules;
 
 namespace {
 
-unittest("transcoder: video simple (libav mux)") {
+void libav_mux(std::string format) {
 	auto demux = uptr(create<Demux::LibavDemux>("data/beepbop.mp4"));
 	auto null = uptr(create<Out::Null>());
 
@@ -39,7 +39,7 @@ unittest("transcoder: video simple (libav mux)") {
 	auto metadata = getMetadataFromOutput<MetadataPktLibav>(demux->getOutput(videoIndex));
 	auto decode = uptr(create<Decode::LibavDecode>(*metadata));
 	auto encode = uptr(create<Encode::LibavEncode>(Encode::LibavEncode::Video));
-	auto mux = uptr(create<Mux::LibavMux>("output_video_libav", "mp4"));
+	auto mux = uptr(create<Mux::LibavMux>("output_video_libav", format));
 
 	ConnectOutputToInput(demux->getOutput(videoIndex), decode);
 	ConnectOutputToInput(decode->getOutput(0), encode);
@@ -48,7 +48,15 @@ unittest("transcoder: video simple (libav mux)") {
 	demux->process(nullptr);
 }
 
-unittest("transcoder: video simple (gpac mux)") {
+unittest("transcoder: video simple (libav mux MP4)") {
+	libav_mux("mp4");
+}
+
+unittest("transcoder: video simple (libav mux TS)") {
+	libav_mux("mpegts");
+}
+
+unittest("transcoder: video simple (gpac mux MP4)") {
 	auto demux = uptr(create<Demux::LibavDemux>("data/beepbop.mp4"));
 
 	//create stub output (for unused demuxer's outputs)

@@ -212,6 +212,7 @@ enum PixelFormat libavPixFmt2PixelFormat(const AVPixelFormat &avPixfmt) {
 //DataAVPacket
 void AVPacketDeleter::operator()(AVPacket *p) {
 	av_free_packet(p);
+	delete(p);
 }
 
 DataAVPacket::DataAVPacket(size_t size)

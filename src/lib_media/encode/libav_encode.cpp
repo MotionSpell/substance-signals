@@ -197,6 +197,7 @@ void LibavEncode::flush() {
 LibavEncode::~LibavEncode() {
 	if (codecCtx) {
 		avcodec_close(codecCtx);
+		avcodec_free_context(&codecCtx);
 	}
 }
 

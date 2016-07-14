@@ -55,7 +55,8 @@ LibavDecode::LibavDecode(const MetadataPktLibav &metadata)
 
 LibavDecode::~LibavDecode() {
 	avcodec_close(codecCtx);
-	av_free(codecCtx);
+	auto codecCtxCopy = codecCtx;
+	avcodec_free_context(&codecCtxCopy);
 }
 
 bool LibavDecode::processAudio(const DataAVPacket *data) {

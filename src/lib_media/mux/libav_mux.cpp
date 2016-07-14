@@ -64,13 +64,19 @@ LibavMux::~LibavMux() {
 	if (optionsDict) {
 		av_dict_free(&optionsDict);
 	}
-	if (m_formatCtx && m_headerWritten) {
-		av_write_trailer(m_formatCtx); //write the trailer if any
-	}
-	if (m_formatCtx && !(m_formatCtx->oformat->flags & AVFMT_NOFILE)) {
-		avio_close(m_formatCtx->pb); //close output file
-	}
 	if (m_formatCtx) {
+		if (m_headerWritten) {
+			av_write_trailer(m_formatCtx); //write the trailer if any
+		}
+
+		if (!(m_formatCtx->oformat->flags & AVFMT_NOFILE)) {
+			avio_close(m_formatCtx->pb); //close output file
+		}
+
+		for (unsigned i = 0; i < m_formatCtx->nb_streams; ++i) {
+			avcodec_close(m_formatCtx->streams[i]->codec);
+		}
+
 		avformat_free_context(m_formatCtx);
 	}
 }
@@ -110,9 +116,8 @@ void LibavMux::ensureHeader() {
 			for (unsigned i = 0; i < m_formatCtx->nb_streams; i++) {
 				if (m_formatCtx->streams[i]->codec && m_formatCtx->streams[i]->codec->codec) {
 					log(Debug, "codec[%s] is \"%s\" (%s)", i, m_formatCtx->streams[i]->codec->codec->name, m_formatCtx->streams[i]->codec->codec->long_name);
-					if (!m_formatCtx->streams[i]->codec->extradata) {
+					if (!m_formatCtx->streams[i]->codec->extradata)
 						throw error("Bitstream format is not raw. Check your encoder settings.");
-					}
 				}
 			}
 		} else {
