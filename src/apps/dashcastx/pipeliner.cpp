@@ -51,9 +51,10 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 	};
 
 	auto demux = pipeline.addModule<Demux::LibavDemux>(opt.url);
-	auto HLSer = pipeline.addModule<Mux::LibavMux>(g_appName, format("hls -hls_time %s", opt.segmentDurationInMs/1000));
-	auto dasher = pipeline.addModule<Modules::Stream::MPEG_DASH>(format("%s.mpd", g_appName),
-	                                 opt.isLive ? Modules::Stream::MPEG_DASH::Live : Modules::Stream::MPEG_DASH::Static, opt.segmentDurationInMs);
+	auto hlser = pipeline.addModule<Stream::Apple_HLS>(format("%s.m3u8", g_appName),
+	                                 opt.isLive ? Stream::Apple_HLS::Live : Stream::Apple_HLS::Static, opt.segmentDurationInMs);
+	auto dasher = pipeline.addModule<Stream::MPEG_DASH>(format("%s.mpd", g_appName),
+	                                 opt.isLive ? Stream::MPEG_DASH::Live : Stream::MPEG_DASH::Static, opt.segmentDurationInMs);
 
 	const bool transcode = opt.v.size() > 0 ? true : false;
 	if (!transcode) {
@@ -97,12 +98,19 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 				connect(converter, encoder);
 			}
 
+			std::stringstream filename;
+			filename << r;
 			if (formats & APPLE_HLS) {
-				pipeline.connect(encoder, 0, HLSer, r);
+				auto muxer = pipeline.addModule<Mux::LibavMux>(filename.str(), format("hls -hls_time %s", opt.segmentDurationInMs / 1000));
+				if (transcode) {
+					connect(encoder, muxer);
+				} else {
+					pipeline.connect(demux, i, muxer, 0);
+				}
+
+				pipeline.connect(muxer, 0, hlser, r);
 			}
 			if (formats & MPEG_DASH) {
-				std::stringstream filename;
-				filename << r;
 				auto muxer = pipeline.addModule<Mux::GPACMuxMP4>(filename.str(), opt.segmentDurationInMs, true);
 				if (transcode) {
 					connect(encoder, muxer);
