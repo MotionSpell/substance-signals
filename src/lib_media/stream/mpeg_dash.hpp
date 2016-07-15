@@ -24,8 +24,9 @@ class MPEG_DASH : public ModuleDynI, public gpacpp::Init {
 		int numDataQueueNotify = 0;
 		std::thread workingThread;
 
-		void generateMPD();
 		void ensureMPD();
+		void generateMPD();
+		void finalizeMPD();
 		std::string mpdPath;
 		Type type;
 		uint64_t segDurationInMs, totalDurationInMs;

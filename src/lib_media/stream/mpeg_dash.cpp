@@ -1,7 +1,4 @@
 #include "mpeg_dash.hpp"
-#include "lib_modules/core/clock.hpp"
-#include "lib_utils/tools.hpp"
-#include "../out/file.hpp"
 #include "../common/libav.hpp"
 #include <fstream>
 
@@ -41,8 +38,9 @@ MPEG_DASH::MPEG_DASH(const std::string &mpdPath, Type type, uint64_t segDuration
 
 void MPEG_DASH::endOfStream() {
 	if (workingThread.joinable()) {
-		for (size_t i = 0; i < inputs.size(); ++i)
+		for (size_t i = 0; i < inputs.size(); ++i) {
 			inputs[i]->push(nullptr);
+		}
 		workingThread.join();
 	}
 }
@@ -72,14 +70,11 @@ void MPEG_DASH::DASHThread() {
 				qualities[i].bitrate_in_bps = (qualities[i].meta->getSize() * 8 + qualities[i].bitrate_in_bps * numSeg) / (numSeg + 1);
 			}
 		}
-		if (!data)
+		if (!data) {
 			break;
+		}
 
 		generateMPD();
-		if (type == Live) {
-			if (!mpd->write(mpdPath))
-				log(Warning, "Can't write MPD at %s (1). Check you have sufficient rights.", mpdPath);
-		}
 		log(Info, "Processes segment (total processed: %ss, UTC: %s (deltaAST=%s).", (double)totalDurationInMs / 1000, gf_net_get_utc(), gf_net_get_utc() - mpd->mpd->availabilityStartTime);
 
 		if (type == Live) {
@@ -90,12 +85,7 @@ void MPEG_DASH::DASHThread() {
 	}
 
 	/*final rewrite of MPD in static mode*/
-	mpd->mpd->type = GF_MPD_TYPE_STATIC;
-	mpd->mpd->minimum_update_period = 0;
-	mpd->mpd->media_presentation_duration = totalDurationInMs;
-	generateMPD();
-	if (!mpd->write(mpdPath))
-		log(Warning, "Can't write MPD at %s (2). Check you have sufficient rights.", mpdPath);
+	finalizeMPD();
 }
 
 void MPEG_DASH::process() {
@@ -105,7 +95,11 @@ void MPEG_DASH::process() {
 	}
 }
 
-void  MPEG_DASH::ensureMPD() {
+void MPEG_DASH::ensureMPD() {
+	if (!mpd->mpd->availabilityStartTime) {
+		mpd->mpd->availabilityStartTime = gf_net_get_utc() - segDurationInMs;
+	}
+
 	if (!gf_list_count(mpd->mpd->periods)) {
 		mpd->mpd->publishTime = mpd->mpd->availabilityStartTime;
 
@@ -139,22 +133,39 @@ void  MPEG_DASH::ensureMPD() {
 }
 
 void MPEG_DASH::generateMPD() {
-	if (!mpd->mpd->availabilityStartTime) {
-		mpd->mpd->availabilityStartTime = gf_net_get_utc() - segDurationInMs;
-	}
 	ensureMPD();
+
 	for (size_t i = 0; i < getNumInputs() - 1; ++i) {
 		if (qualities[i].rep->width) { /*video only*/
 			qualities[i].rep->starts_with_sap = (qualities[i].rep->starts_with_sap == GF_TRUE && qualities[i].meta->getStartsWithRAP()) ? GF_TRUE : GF_FALSE;
 		}
 	}
 	totalDurationInMs += segDurationInMs;
+
+	if (type == Live) {
+		if (!mpd->write(mpdPath)) {
+			log(Warning, "Can't write MPD at %s (1). Check you have sufficient rights.", mpdPath);
+		}
+	}
+}
+
+void MPEG_DASH::finalizeMPD() {
+	mpd->mpd->type = GF_MPD_TYPE_STATIC;
+	mpd->mpd->minimum_update_period = 0;
+	mpd->mpd->media_presentation_duration = totalDurationInMs;
+
+	generateMPD();
+
+	if (!mpd->write(mpdPath)) {
+		log(Warning, "Can't write MPD at %s (2). Check you have sufficient rights.", mpdPath);
+	}
 }
 
 void MPEG_DASH::flush() {
 	numDataQueueNotify--;
-	if ((type == Live) && (numDataQueueNotify == 0))
+	if ((type == Live) && (numDataQueueNotify == 0)) {
 		endOfStream();
+	}
 }
 
 }
