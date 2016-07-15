@@ -43,6 +43,7 @@
     <ClInclude Include="render\render_common.hpp" />
     <ClInclude Include="render\sdl_audio.hpp" />
     <ClInclude Include="render\sdl_video.hpp" />
+    <ClInclude Include="stream\adaptive_streaming_common.hpp" />
     <ClInclude Include="stream\apple_hls.hpp" />
     <ClInclude Include="stream\mpeg_dash.hpp" />
     <ClInclude Include="transform\audio_convert.hpp" />
@@ -73,6 +74,7 @@
     <ClCompile Include="render\sdl_audio.cpp" />
     <ClCompile Include="render\sdl_common.cpp" />
     <ClCompile Include="render\sdl_video.cpp" />
+    <ClCompile Include="stream\adaptive_streaming_common.cpp" />
     <ClCompile Include="stream\apple_hls.cpp" />
     <ClCompile Include="stream\mpeg_dash.cpp" />
     <ClCompile Include="transform\audio_convert.cpp" />

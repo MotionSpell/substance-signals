@@ -51,10 +51,10 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 	};
 
 	auto demux = pipeline.addModule<Demux::LibavDemux>(opt.url);
-	auto hlser = pipeline.addModule<Stream::Apple_HLS>(format("%s.m3u8", g_appName),
-	                                 opt.isLive ? Stream::Apple_HLS::Live : Stream::Apple_HLS::Static, opt.segmentDurationInMs);
-	auto dasher = pipeline.addModule<Stream::MPEG_DASH>(format("%s.mpd", g_appName),
-	                                 opt.isLive ? Stream::MPEG_DASH::Live : Stream::MPEG_DASH::Static, opt.segmentDurationInMs);
+
+	auto const type = opt.isLive ? Stream::AdaptiveStreamingCommon::Live : Stream::AdaptiveStreamingCommon::Static;
+	auto hlser = pipeline.addModule<Stream::Apple_HLS>(format("%s.m3u8", g_appName), type, opt.segmentDurationInMs); //Romain: set extensions automatically
+	auto dasher = pipeline.addModule<Stream::MPEG_DASH>(format("%s.mpd", g_appName), type, opt.segmentDurationInMs);
 
 	const bool transcode = opt.v.size() > 0 ? true : false;
 	if (!transcode) {

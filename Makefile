@@ -95,6 +95,7 @@ MEDIA_SRCS:=\
   $(ProjectName)/render/sdl_video.cpp\
   $(ProjectName)/stream/apple_hls.cpp\
   $(ProjectName)/stream/mpeg_dash.cpp\
+  $(ProjectName)/stream/adaptive_streaming_common.cpp\
   $(ProjectName)/transform/audio_convert.cpp\
   $(ProjectName)/transform/restamp.cpp\
   $(ProjectName)/transform/video_convert.cpp\

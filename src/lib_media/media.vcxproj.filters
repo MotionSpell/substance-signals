@@ -130,6 +130,9 @@
     <ClInclude Include="render\render_common.hpp">
       <Filter>src\render</Filter>
     </ClInclude>
+    <ClInclude Include="stream\adaptive_streaming_common.hpp">
+      <Filter>src\stream</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="common\libav.cpp">
@@ -215,6 +218,9 @@
     </ClCompile>
     <ClCompile Include="transform\restamp.cpp">
       <Filter>src\transform</Filter>
+    </ClCompile>
+    <ClCompile Include="stream\adaptive_streaming_common.cpp">
+      <Filter>src\stream</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

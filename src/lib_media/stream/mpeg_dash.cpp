@@ -30,74 +30,14 @@ GF_MPD_AdaptationSet *createAS(uint64_t segDurationInMs, GF_MPD_Period *period, 
 namespace Stream {
 
 MPEG_DASH::MPEG_DASH(const std::string &mpdPath, Type type, uint64_t segDurationInMs)
-	: mpdPath(mpdPath), type(type), segDurationInMs(segDurationInMs), totalDurationInMs(0),
+	: AdaptiveStreamingCommon(type, segDurationInMs),
 	  mpd(type == Live ? new gpacpp::MPD(GF_MPD_TYPE_DYNAMIC, MIN_BUFFER_TIME_IN_MS_LIVE)
-	  : new gpacpp::MPD(GF_MPD_TYPE_STATIC, MIN_BUFFER_TIME_IN_MS_VOD)) {
-	addInput(new Input<DataAVPacket>(this));
+	  : new gpacpp::MPD(GF_MPD_TYPE_STATIC, MIN_BUFFER_TIME_IN_MS_VOD)), mpdPath(mpdPath) {
 }
 
-void MPEG_DASH::endOfStream() {
-	if (workingThread.joinable()) {
-		for (size_t i = 0; i < inputs.size(); ++i) {
-			inputs[i]->push(nullptr);
-		}
-		workingThread.join();
-	}
-}
-
-MPEG_DASH::~MPEG_DASH() {
-	endOfStream();
-}
-
-//needed because of the use of system time for live - otherwise awake on data as for any multi-input module
-//TODO: add clock to the scheduler, see #14
-void MPEG_DASH::DASHThread() {
-	log(Info, "start processing at UTC: %s.", gf_net_get_utc());
-
-	Data data;
-	for (;;) {
-		auto const numInputs = getNumInputs() - 1;
-		qualities.resize(numInputs);
-		for (size_t i = 0; i < numInputs; ++i) {
-			data = inputs[i]->pop();
-			if (!data) {
-				break;
-			} else {
-				qualities[i].meta = safe_cast<const MetadataFile>(data->getMetadata());
-				if (!qualities[i].meta)
-					throw error(format("Unknown data received on input %s", i).c_str());
-				auto const numSeg = totalDurationInMs / segDurationInMs;
-				qualities[i].bitrate_in_bps = (qualities[i].meta->getSize() * 8 + qualities[i].bitrate_in_bps * numSeg) / (numSeg + 1);
-			}
-		}
-		if (!data) {
-			break;
-		}
-
-		generateMPD();
-		log(Info, "Processes segment (total processed: %ss, UTC: %s (deltaAST=%s).", (double)totalDurationInMs / 1000, gf_net_get_utc(), gf_net_get_utc() - mpd->mpd->availabilityStartTime);
-
-		if (type == Live) {
-			auto dur = std::chrono::milliseconds(mpd->mpd->availabilityStartTime + totalDurationInMs - gf_net_get_utc());
-			log(Info, "Going to sleep for %s ms.", std::chrono::duration_cast<std::chrono::milliseconds>(dur).count());
-			std::this_thread::sleep_for(dur);
-		}
-	}
-
-	/*final rewrite of MPD in static mode*/
-	finalizeMPD();
-}
-
-void MPEG_DASH::process() {
-	if (!workingThread.joinable()) {
-		numDataQueueNotify = (int)getNumInputs() - 1; //FIXME: connection/disconnection cannot occur dynamically. Lock inputs?
-		workingThread = std::thread(&MPEG_DASH::DASHThread, this);
-	}
-}
-
-void MPEG_DASH::ensureMPD() {
+void MPEG_DASH::ensureManifest() {
 	if (!mpd->mpd->availabilityStartTime) {
-		mpd->mpd->availabilityStartTime = gf_net_get_utc() - segDurationInMs;
+		mpd->mpd->availabilityStartTime = startTimeInMs;
 	}
 
 	if (!gf_list_count(mpd->mpd->periods)) {
@@ -132,8 +72,8 @@ void MPEG_DASH::ensureMPD() {
 	}
 }
 
-void MPEG_DASH::generateMPD() {
-	ensureMPD();
+void MPEG_DASH::generateManifest() {
+	ensureManifest();
 
 	for (size_t i = 0; i < getNumInputs() - 1; ++i) {
 		if (qualities[i].rep->width) { /*video only*/
@@ -149,22 +89,15 @@ void MPEG_DASH::generateMPD() {
 	}
 }
 
-void MPEG_DASH::finalizeMPD() {
+void MPEG_DASH::finalizeManifest() {
 	mpd->mpd->type = GF_MPD_TYPE_STATIC;
 	mpd->mpd->minimum_update_period = 0;
 	mpd->mpd->media_presentation_duration = totalDurationInMs;
 
-	generateMPD();
+	generateManifest();
 
 	if (!mpd->write(mpdPath)) {
 		log(Warning, "Can't write MPD at %s (2). Check you have sufficient rights.", mpdPath);
-	}
-}
-
-void MPEG_DASH::flush() {
-	numDataQueueNotify--;
-	if ((type == Live) && (numDataQueueNotify == 0)) {
-		endOfStream();
 	}
 }
 
