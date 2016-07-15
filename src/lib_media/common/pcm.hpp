@@ -125,7 +125,7 @@ class DataPcm : public DataRaw {
 		~DataPcm() {
 			freePlanes();
 		}
-		virtual bool isRecyclable() const override {
+		bool isRecyclable() const override {
 			return false;
 		}
 
@@ -157,7 +157,7 @@ class DataPcm : public DataRaw {
 			return size;
 		}
 
-		virtual void resize(size_t size) override {
+		void resize(size_t size) override {
 			throw std::runtime_error("Forbidden operation. You cannot resize PCM data.");
 		}
 

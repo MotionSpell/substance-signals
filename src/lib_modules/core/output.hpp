@@ -92,10 +92,10 @@ class OutputCap : public virtual IOutputCap {
 		}
 		virtual ~OutputCap() noexcept(false) {}
 
-		virtual size_t getNumOutputs() const override {
+		size_t getNumOutputs() const override {
 			return outputs.size();
 		}
-		virtual IOutput* getOutput(size_t i) const override {
+		IOutput* getOutput(size_t i) const override {
 			return outputs[i].get();
 		}
 };

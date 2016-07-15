@@ -38,11 +38,11 @@ class Input : public IInput {
 	public:
 		Input(ModuleType * const module) : module(module) {}
 
-		virtual void process() override {
+		void process() override {
 			module->process();
 		}
 
-		virtual void push(Data data) override {
+		void push(Data data) override {
 			if (typeid(DataType) == typeid(DataLoose))
 				Signals::Queue<Data>::push(data);
 			else
@@ -65,14 +65,14 @@ class InputCap : public virtual IInputCap {
 		virtual ~InputCap() noexcept(false) {}
 
 		//Takes ownership
-		virtual IInput* addInput(IInput* p) override {
+		IInput* addInput(IInput* p) override {
 			inputs.push_back(uptr(p));
 			return p;
 		}
-		virtual size_t getNumInputs() const override {
+		size_t getNumInputs() const override {
 			return inputs.size();
 		}
-		virtual IInput* getInput(size_t i) override {
+		IInput* getInput(size_t i) override {
 			return inputs[i].get();
 		}
 

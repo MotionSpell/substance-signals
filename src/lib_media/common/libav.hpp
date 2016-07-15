@@ -63,7 +63,7 @@ class DataAVPacket : public DataBase {
 	public:
 		DataAVPacket(size_t size = 0);
 		~DataAVPacket();
-		virtual bool isRecyclable() const override {
+		bool isRecyclable() const override {
 			return false;
 		}
 		uint8_t* data() override;

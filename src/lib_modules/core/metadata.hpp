@@ -57,7 +57,7 @@ class MetadataFile : public IMetadata {
 		std::string getCodecName() const {
 			return codecName;
 		}
-		virtual StreamType getStreamType() const override {
+		StreamType getStreamType() const override {
 			return streamType;
 		}
 		uint64_t getDuration() const {
@@ -84,13 +84,13 @@ class MetadataFile : public IMetadata {
 
 //TODO: should be picture and Pcm and return the same fields as MetadataPkt
 struct MetadataRawVideo : public IMetadata {
-	virtual StreamType getStreamType() const override {
+	StreamType getStreamType() const override {
 		return VIDEO_RAW;
 	}
 };
 
 struct MetadataRawAudio : public IMetadata {
-	virtual StreamType getStreamType() const override {
+	StreamType getStreamType() const override {
 		return AUDIO_RAW;
 	}
 };
@@ -99,13 +99,13 @@ struct MetadataPkt : public IMetadata {
 };
 
 struct MetadataPktVideo : public MetadataPkt {
-	virtual StreamType getStreamType() const override {
+	StreamType getStreamType() const override {
 		return VIDEO_PKT;
 	}
 };
 
 struct MetadataPktAudio : public MetadataPkt {
-	virtual StreamType getStreamType() const override {
+	StreamType getStreamType() const override {
 		return AUDIO_PKT;
 	}
 };

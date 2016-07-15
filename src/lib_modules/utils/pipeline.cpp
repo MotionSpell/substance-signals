@@ -16,7 +16,7 @@ namespace {
 		FakeOutput() {
 			addInput(new Input<DataBase>(this));
 		}
-		void process(Data data) override {}
+		void process(Data data) override final {}
 	};
 }
 
@@ -38,7 +38,7 @@ class PipelinedInput : public IInput {
 		virtual ~PipelinedInput() noexcept(false) {}
 
 		/* receiving nullptr stops the execution */
-		virtual void process() override {
+		void process() override {
 			auto data = pop();
 			if (data) {
 				Log::msg(Debug, format("Module %s: dispatch data for time %s", typeid(delegate).name(), data->getTime() / (double)IClock::Rate));
@@ -50,10 +50,10 @@ class PipelinedInput : public IInput {
 			}
 		}
 
-		virtual size_t getNumConnections() const override {
+		size_t getNumConnections() const override {
 			return delegate->getNumConnections();
 		}
-		virtual void connect() override {
+		void connect() override {
 			delegate->connect();
 		}
 

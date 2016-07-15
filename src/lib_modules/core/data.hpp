@@ -54,7 +54,7 @@ class DataRaw : public DataBase {
 		uint8_t* data() override {
 			return buffer.data();
 		}
-		virtual bool isRecyclable() const override {
+		bool isRecyclable() const override {
 			return true;
 		}
 		const uint8_t* data() const override {

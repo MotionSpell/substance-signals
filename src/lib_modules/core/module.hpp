@@ -35,7 +35,7 @@ class ModuleS : public IModule, public ErrorCap, public LogCap, public InputCap 
 		ModuleS() = default;
 		virtual ~ModuleS() noexcept(false) {}
 		virtual void process(Data data) = 0;
-		virtual void process() override {
+		void process() override {
 			process(getInput(0)->pop());
 		}
 };
@@ -63,7 +63,7 @@ class ModuleDynI : public IModule, public ErrorCap, public LogCap, public InputC
 				inputs.push_back(std::move(pEx));
 			return p;
 		}
-		virtual size_t getNumInputs() const override {
+		size_t getNumInputs() const override {
 			if (inputs.size() == 0)
 				return 1;
 			else if (inputs[inputs.size() - 1]->getNumConnections() == 0)
