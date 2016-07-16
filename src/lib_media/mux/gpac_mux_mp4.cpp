@@ -651,7 +651,7 @@ void GPACMuxMP4::sendOutput() {
 	if (e) throw error(format("Could not compute codec name (RFC 6381)"));
 
 	auto out = output->getBuffer(0);
-	auto metadata = std::make_shared<MetadataFile>(m_chunkName, streamType, mimeType, gf_strdup(codecName), m_curFragDur, m_lastChunkSize, m_chunkStartsWithRAP);
+	auto metadata = std::make_shared<MetadataFile>(m_chunkName, streamType, mimeType, codecName, m_curFragDur, m_lastChunkSize, m_chunkStartsWithRAP);
 	out->setMetadata(metadata);
 	auto const mediaTimescale = gf_isom_get_media_timescale(m_iso, gf_isom_get_track_by_id(m_iso, m_trackId));
 	switch (gf_isom_get_media_type(m_iso, gf_isom_get_track_by_id(m_iso, m_trackId))) {
