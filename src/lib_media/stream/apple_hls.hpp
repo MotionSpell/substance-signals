@@ -1,32 +1,33 @@
 #pragma once
 
-#include "lib_modules/core/module.hpp"
-#include "lib_gpacpp/gpacpp.hpp"
+#include "adaptive_streaming_common.hpp"
+#include <sstream>
 
 namespace Modules {
 namespace Stream {
 
-class Apple_HLS : public ModuleDynI {
+class Apple_HLS : public AdaptiveStreamingCommon {
 	public:
-		enum Type {
-			Live,
-			Static
-		};
-
-		Apple_HLS(Type type, uint64_t segDurationInMs);
-		~Apple_HLS();
-		void process() override;
-		void flush() override;
+		Apple_HLS(const std::string &m3u8Path, Type type, uint64_t segDurationInMs);
+		virtual ~Apple_HLS() {}
 
 	private:
-		void HLSThread();
-		u32 GenerateM3U8();
-		void endOfStream();
+		std::unique_ptr<Quality> createQuality() const override;
+		void generateManifest() override;
+		void finalizeManifest() override;
 
-		int numDataQueueNotify = 0;
-		std::thread workingThread;
-		Type type;
-		uint64_t segDurationInMs;
+		void updateManifestVoDVariants();
+		void generateManifestVariant();
+		struct HLSQuality : public Quality {
+			HLSQuality() {}
+			std::stringstream playlistVariant;
+			std::vector<std::string> segmentPaths;
+		};
+
+		void generateManifestMaster();
+		std::stringstream playlistMaster;
+		std::string playlistMasterPath;
+
 };
 
 }

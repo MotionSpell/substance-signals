@@ -23,26 +23,29 @@ void AdaptiveStreamingCommon::endOfStream() {
 	}
 }
 
-
 //needed because of the use of system time for live - otherwise awake on data as for any multi-input module
 //TODO: add clock to the scheduler, see #14
 void AdaptiveStreamingCommon::threadProc() {
 	log(Info, "start processing at UTC: %s.", gf_net_get_utc());
 
+	auto const numInputs = getNumInputs() - 1;
+	qualities.resize(numInputs);
+	for (size_t i = 0; i < numInputs; ++i) {
+		qualities[i] = std::move(createQuality());
+	}
+
 	Data data;
 	for (;;) {
-		auto const numInputs = getNumInputs() - 1;
-		qualities.resize(numInputs);
 		for (size_t i = 0; i < numInputs; ++i) {
 			data = inputs[i]->pop();
 			if (!data) {
 				break;
 			} else {
-				qualities[i].meta = safe_cast<const MetadataFile>(data->getMetadata());
-				if (!qualities[i].meta)
+				qualities[i]->meta = safe_cast<const MetadataFile>(data->getMetadata());
+				if (!qualities[i]->meta)
 					throw error(format("Unknown data received on input %s", i).c_str());
 				auto const numSeg = totalDurationInMs / segDurationInMs;
-				qualities[i].bitrate_in_bps = (qualities[i].meta->getSize() * 8 + qualities[i].bitrate_in_bps * numSeg) / (numSeg + 1);
+				qualities[i]->avg_bitrate_in_bps = (qualities[i]->meta->getSize() * 8 + qualities[i]->avg_bitrate_in_bps * numSeg) / (numSeg + 1);
 			}
 		}
 		if (!data) {
@@ -52,8 +55,8 @@ void AdaptiveStreamingCommon::threadProc() {
 		if (!startTimeInMs) {
 			startTimeInMs = gf_net_get_utc() - segDurationInMs;
 		}
-
 		generateManifest();
+		totalDurationInMs += segDurationInMs;
 		log(Info, "Processes segment (total processed: %ss, UTC: %s (deltaAST=%s).", (double)totalDurationInMs / 1000, gf_net_get_utc(), gf_net_get_utc() - startTimeInMs);
 
 		if (type == Live) {

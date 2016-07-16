@@ -12,10 +12,16 @@ class MPEG_DASH : public AdaptiveStreamingCommon, public gpacpp::Init {
 		virtual ~MPEG_DASH() {}
 
 	private:
-		virtual void ensureManifest();
-		virtual void generateManifest() override;
-		virtual void finalizeManifest() override;
+		std::unique_ptr<Quality> createQuality() const override;
+		void generateManifest() override;
+		void finalizeManifest() override;
 
+		struct DASHQuality : public Quality {
+			DASHQuality() : rep(nullptr) {}
+			GF_MPD_Representation *rep;
+		};
+
+		void ensureManifest();
 		std::unique_ptr<gpacpp::MPD> mpd;
 		std::string mpdPath;
 };

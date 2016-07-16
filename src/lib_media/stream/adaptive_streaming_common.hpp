@@ -1,13 +1,25 @@
 #pragma once
 
 #include "lib_modules/core/module.hpp"
-#include "lib_gpacpp/gpacpp.hpp" //Romain
+#include "lib_gpacpp/gpacpp.hpp"
+#include <memory>
 
 namespace Modules {
 namespace Stream {
 
+struct Quality {
+	Quality() : meta(nullptr), avg_bitrate_in_bps(0) {}
+	virtual ~Quality() {}
+	std::shared_ptr<const MetadataFile> meta;
+	double avg_bitrate_in_bps;
+};
+
 struct IAdaptiveStreamingCommon {
+	/*created each quality private data*/
+	virtual std::unique_ptr<Quality> createQuality() const = 0;
+	/*called each time segments are ready*/
 	virtual void generateManifest() = 0;
+	/*last manifest to be written: usually the VoD one*/
 	virtual void finalizeManifest() = 0;
 };
 
@@ -26,15 +38,8 @@ public:
 
 protected:
 	Type type;
-	uint64_t startTimeInMs, segDurationInMs, totalDurationInMs; //Romain: initializers
-
-	struct Quality {
-		Quality() : meta(nullptr), bitrate_in_bps(0), rep(nullptr) {}
-		std::shared_ptr<const MetadataFile> meta;
-		double bitrate_in_bps;
-		GF_MPD_Representation *rep;
-	};
-	std::vector<Quality> qualities;
+	uint64_t startTimeInMs, segDurationInMs, totalDurationInMs;
+	std::vector<std::unique_ptr<Quality>> qualities;
 
 private:
 	void threadProc();

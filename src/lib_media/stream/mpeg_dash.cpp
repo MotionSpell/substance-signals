@@ -1,6 +1,5 @@
 #include "mpeg_dash.hpp"
 #include "../common/libav.hpp"
-#include <fstream>
 
 
 #define MIN_BUFFER_TIME_IN_MS_VOD  3000
@@ -35,6 +34,10 @@ MPEG_DASH::MPEG_DASH(const std::string &mpdPath, Type type, uint64_t segDuration
 	  : new gpacpp::MPD(GF_MPD_TYPE_STATIC, MIN_BUFFER_TIME_IN_MS_VOD)), mpdPath(mpdPath) {
 }
 
+std::unique_ptr<Quality> MPEG_DASH::createQuality() const {
+	return uptr<Quality>(safe_cast<Quality>(new DASHQuality));
+}
+
 void MPEG_DASH::ensureManifest() {
 	if (!mpd->mpd->availabilityStartTime) {
 		mpd->mpd->availabilityStartTime = startTimeInMs;
@@ -48,24 +51,25 @@ void MPEG_DASH::ensureManifest() {
 		GF_MPD_AdaptationSet *audioAS = nullptr, *videoAS = nullptr;
 		for (size_t i = 0; i < getNumInputs() - 1; ++i) {
 			GF_MPD_AdaptationSet *as = nullptr;
-			switch (qualities[i].meta->getStreamType()) {
+			auto quality = safe_cast<DASHQuality>(qualities[i].get());
+			switch (quality->meta->getStreamType()) {
 			case AUDIO_PKT: audioAS ? as = audioAS : as = audioAS = createAS(segDurationInMs, period, mpd.get()); break;
 			case VIDEO_PKT: videoAS ? as = videoAS : as = videoAS = createAS(segDurationInMs, period, mpd.get()); break;
 			default: assert(0);
 			}
 
-			auto rep = mpd->addRepresentation(as, format("%s", i).c_str(), (u32)qualities[i].bitrate_in_bps);
-			qualities[i].rep = rep;
+			auto rep = mpd->addRepresentation(as, format("%s", i).c_str(), (u32)quality->avg_bitrate_in_bps);
+			quality->rep = rep;
 			GF_SAFEALLOC(rep->segment_template, GF_MPD_SegmentTemplate);
 			rep->segment_template->media = gf_strdup(format("%s.mp4_$Number$", i).c_str());
 			rep->segment_template->initialization = gf_strdup(format("$RepresentationID$.mp4", i).c_str());
 			rep->segment_template->start_number = 1;
-			rep->mime_type = gf_strdup(qualities[i].meta->getMimeType().c_str());
-			rep->codecs = gf_strdup(qualities[i].meta->getCodecName().c_str());
+			rep->mime_type = gf_strdup(quality->meta->getMimeType().c_str());
+			rep->codecs = gf_strdup(quality->meta->getCodecName().c_str());
 			rep->starts_with_sap = GF_TRUE;
-			switch (qualities[i].meta->getStreamType()) {
-			case AUDIO_PKT: rep->samplerate = qualities[i].meta->sampleRate; break;
-			case VIDEO_PKT: rep->width = qualities[i].meta->resolution[0]; rep->height = qualities[i].meta->resolution[1]; break;
+			switch (quality->meta->getStreamType()) {
+			case AUDIO_PKT: rep->samplerate = quality->meta->sampleRate; break;
+			case VIDEO_PKT: rep->width = quality->meta->resolution[0]; rep->height = quality->meta->resolution[1]; break;
 			default: assert(0);
 			}
 		}
@@ -76,11 +80,11 @@ void MPEG_DASH::generateManifest() {
 	ensureManifest();
 
 	for (size_t i = 0; i < getNumInputs() - 1; ++i) {
-		if (qualities[i].rep->width) { /*video only*/
-			qualities[i].rep->starts_with_sap = (qualities[i].rep->starts_with_sap == GF_TRUE && qualities[i].meta->getStartsWithRAP()) ? GF_TRUE : GF_FALSE;
+		auto quality = safe_cast<DASHQuality>(qualities[i].get());
+		if (quality->rep->width) { /*video only*/
+			quality->rep->starts_with_sap = (quality->rep->starts_with_sap == GF_TRUE && quality->meta->getStartsWithRAP()) ? GF_TRUE : GF_FALSE;
 		}
 	}
-	totalDurationInMs += segDurationInMs;
 
 	if (type == Live) {
 		if (!mpd->write(mpdPath)) {
@@ -93,7 +97,6 @@ void MPEG_DASH::finalizeManifest() {
 	mpd->mpd->type = GF_MPD_TYPE_STATIC;
 	mpd->mpd->minimum_update_period = 0;
 	mpd->mpd->media_presentation_duration = totalDurationInMs;
-
 	generateManifest();
 
 	if (!mpd->write(mpdPath)) {
