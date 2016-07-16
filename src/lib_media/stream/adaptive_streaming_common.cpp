@@ -9,10 +9,6 @@ AdaptiveStreamingCommon::AdaptiveStreamingCommon(Type type, uint64_t segDuration
 	: type(type), startTimeInMs(0), segDurationInMs(segDurationInMs), totalDurationInMs(0) {
 	addInput(new Input<DataAVPacket>(this));
 }
-		
-AdaptiveStreamingCommon::~AdaptiveStreamingCommon() {
-	endOfStream();
-}
 
 void AdaptiveStreamingCommon::endOfStream() {
 	if (workingThread.joinable()) {

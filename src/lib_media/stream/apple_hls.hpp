@@ -9,7 +9,7 @@ namespace Stream {
 class Apple_HLS : public AdaptiveStreamingCommon {
 	public:
 		Apple_HLS(const std::string &m3u8Path, Type type, uint64_t segDurationInMs);
-		virtual ~Apple_HLS() {}
+		virtual ~Apple_HLS();
 
 	private:
 		std::unique_ptr<Quality> createQuality() const override;

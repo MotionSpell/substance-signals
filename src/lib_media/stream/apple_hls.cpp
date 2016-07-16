@@ -10,6 +10,10 @@ Apple_HLS::Apple_HLS(const std::string &m3u8Path, Type type, uint64_t segDuratio
 		throw error("segment duration must be an integer number of seconds.");
 }
 
+Apple_HLS::~Apple_HLS() {
+	endOfStream();
+}
+
 std::unique_ptr<Quality> Apple_HLS::createQuality() const {
 	return uptr<Quality>(safe_cast<Quality>(new HLSQuality));
 }

@@ -9,7 +9,7 @@ namespace Stream {
 class MPEG_DASH : public AdaptiveStreamingCommon, public gpacpp::Init {
 	public:
 		MPEG_DASH(const std::string &mpdPath, Type type, uint64_t segDurationInMs);
-		virtual ~MPEG_DASH() {}
+		virtual ~MPEG_DASH();
 
 	private:
 		std::unique_ptr<Quality> createQuality() const override;

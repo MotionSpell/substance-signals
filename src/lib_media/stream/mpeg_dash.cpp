@@ -34,6 +34,10 @@ MPEG_DASH::MPEG_DASH(const std::string &mpdPath, Type type, uint64_t segDuration
 	  : new gpacpp::MPD(GF_MPD_TYPE_STATIC, MIN_BUFFER_TIME_IN_MS_VOD)), mpdPath(mpdPath) {
 }
 
+MPEG_DASH::~MPEG_DASH() {
+	endOfStream();
+}
+
 std::unique_ptr<Quality> MPEG_DASH::createQuality() const {
 	return uptr<Quality>(safe_cast<Quality>(new DASHQuality));
 }

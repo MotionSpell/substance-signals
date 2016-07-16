@@ -15,6 +15,7 @@ struct Quality {
 };
 
 struct IAdaptiveStreamingCommon {
+	virtual ~IAdaptiveStreamingCommon() noexcept(false) {}
 	/*created each quality private data*/
 	virtual std::unique_ptr<Quality> createQuality() const = 0;
 	/*called each time segments are ready*/
@@ -31,19 +32,20 @@ public:
 	};
 
 	AdaptiveStreamingCommon(Type type, uint64_t segDurationInMs);
-	virtual ~AdaptiveStreamingCommon();
+	virtual ~AdaptiveStreamingCommon() {}
 
 	void process() override final;
 	void flush() override final;
 
 protected:
+	void endOfStream();
+
 	Type type;
 	uint64_t startTimeInMs, segDurationInMs, totalDurationInMs;
 	std::vector<std::unique_ptr<Quality>> qualities;
 
 private:
 	void threadProc();
-	void endOfStream();
 	int numDataQueueNotify = 0;
 	std::thread workingThread;
 };
