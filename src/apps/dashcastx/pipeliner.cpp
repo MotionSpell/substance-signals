@@ -53,7 +53,7 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 	auto demux = pipeline.addModule<Demux::LibavDemux>(opt.url);
 
 	auto const type = opt.isLive ? Stream::AdaptiveStreamingCommon::Live : Stream::AdaptiveStreamingCommon::Static;
-	auto hlser = pipeline.addModule<Stream::Apple_HLS>(format("%s.m3u8", g_appName), type, opt.segmentDurationInMs); //Romain: set extensions automatically
+	auto hlser = pipeline.addModule<Stream::Apple_HLS>(format("%s.m3u8", g_appName), type, opt.segmentDurationInMs);
 	auto dasher = pipeline.addModule<Stream::MPEG_DASH>(format("%s.mpd", g_appName), type, opt.segmentDurationInMs);
 
 	const bool transcode = opt.v.size() > 0 ? true : false;
@@ -99,7 +99,7 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 			}
 
 			std::stringstream filename;
-			filename << r;
+			filename << r << "_" << opt.v[r].res.width << "x" << opt.v[r].res.height << "_";
 			if (formats & APPLE_HLS) {
 				auto muxer = pipeline.addModule<Mux::LibavMux>(filename.str(), format("hls -hls_time %s", opt.segmentDurationInMs / 1000));
 				if (transcode) {
