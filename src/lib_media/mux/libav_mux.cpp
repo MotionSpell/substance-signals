@@ -52,8 +52,8 @@ LibavMux::LibavMux(const std::string &baseName, const std::string &fmt) {
 			throw error(format("could not open %s, disable output.", baseName));
 
 		}
-		strncpy(m_formatCtx->filename, fileName.str().c_str(), sizeof(m_formatCtx->filename));
 	}
+	strncpy(m_formatCtx->filename, fileName.str().c_str(), sizeof(m_formatCtx->filename));
 
 	if (!fmt.compare(0, 5, "mpegts") || !fmt.compare(0, 3, "hls")) {
 		m_inbandMetadata = true;
