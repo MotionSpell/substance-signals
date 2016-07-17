@@ -64,7 +64,7 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 	playlistMaster << "#EXTM3U" << std::endl;
 	playlistMaster << "#EXT-X-VERSION:3" << std::endl;
 #else
-	//auto hlser = pipeline.addModule<Stream::Apple_HLS>(format("%s.m3u8", g_appName), type, opt.segmentDurationInMs);
+	auto hlser = pipeline.addModule<Stream::Apple_HLS>(format("%s.m3u8", g_appName), type, opt.segmentDurationInMs);
 #endif
 	auto dasher = pipeline.addModule<Stream::MPEG_DASH>(format("%s.mpd", g_appName), type, opt.segmentDurationInMs);
 
