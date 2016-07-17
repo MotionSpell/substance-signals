@@ -254,19 +254,6 @@ void DataAVPacket::resize(size_t /*size*/) {
 	assert(0);
 }
 
-//misc
-void buildAVDictionary(const std::string &moduleName, AVDictionary **dict, const char *options, const char *type) {
-	auto opt = stringDup(options);
-	char *tok = strtok(opt.data(), "- ");
-	char *tokval = nullptr;
-	while (tok && (tokval = strtok(nullptr, "- "))) {
-		if (av_dict_set(dict, tok, tokval, 0) < 0) {
-			Log::msg(Warning, "[%s] unknown %s option \"%s\" with value \"%s\"", moduleName.c_str(), type, tok, tokval);
-		}
-		tok = strtok(nullptr, "- ");
-	}
-}
-
 void avLog(void* /*avcl*/, int level, const char *fmt, va_list vl) {
 #if defined(__CYGWIN__) // cygwin does not have vsnprintf in std=c++11 mode. To be removed when cygwin is fixed
 	Log::msg(avLogLevel(level), "[libav-log::%s] %s", avlogLevelName(level), fmt);

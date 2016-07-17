@@ -20,17 +20,12 @@ auto g_InitAvLog = runAtStartup(&av_log_set_callback, avLog);
 
 namespace Mux {
 
-LibavMux::LibavMux(const std::string &baseName, const std::string &fmt) {
-	/* parse the format optionsDict */
-	std::string optionsStr = "-format " + fmt;
-	buildAVDictionary(typeid(*this).name(), &optionsDict, optionsStr.c_str(), "format");
-
+LibavMux::LibavMux(const std::string &baseName, const std::string &fmt)
+	: optionsDict(typeid(*this).name(), "format", "-format " + fmt) {
 	/* setup container */
-	AVOutputFormat *of = av_guess_format(av_dict_get(optionsDict, "format", nullptr, 0)->value, nullptr, nullptr);
-	if (!of) {
-		av_dict_free(&optionsDict);
+	AVOutputFormat *of = av_guess_format(optionsDict.get("format")->value, nullptr, nullptr);
+	if (!of)
 		throw error("couldn't guess container from file extension");
-	}
 
 	/* output format context */
 	m_formatCtx = avformat_alloc_context();
@@ -50,7 +45,6 @@ LibavMux::LibavMux(const std::string &baseName, const std::string &fmt) {
 		if (avio_open(&m_formatCtx->pb, fileName.str().c_str(), AVIO_FLAG_READ_WRITE) < 0) {
 			avformat_free_context(m_formatCtx);
 			throw error(format("could not open %s, disable output.", baseName));
-
 		}
 	}
 	strncpy(m_formatCtx->filename, fileName.str().c_str(), sizeof(m_formatCtx->filename));
@@ -61,9 +55,6 @@ LibavMux::LibavMux(const std::string &baseName, const std::string &fmt) {
 }
 
 LibavMux::~LibavMux() {
-	if (optionsDict) {
-		av_dict_free(&optionsDict);
-	}
 	if (m_formatCtx) {
 		if (m_headerWritten) {
 			av_write_trailer(m_formatCtx); //write the trailer if any
@@ -121,6 +112,7 @@ void LibavMux::ensureHeader() {
 				}
 			}
 		} else {
+			optionsDict.ensureAllOptionsConsumed();
 			m_headerWritten = true;
 		}
 	}

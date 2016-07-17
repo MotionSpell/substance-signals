@@ -34,27 +34,55 @@ class Frame {
 
 class Dict {
 	public:
-		Dict() {
-			m_AvDict = nullptr;
+		Dict(const std::string &moduleName, const std::string &dictName, const std::string &options) {
+			avDict = nullptr;
+			buildAVDictionary(moduleName, &avDict, options);
 		}
 
 		~Dict() {
-			av_dict_free(&m_AvDict);
+			ensureAllOptionsConsumed();
+			av_dict_free(&avDict);
 		}
 
-		void set(std::string const& name, std::string const& val) {
-			av_dict_set(&m_AvDict, name.c_str(), val.c_str(), 0);
-		}
-
-		AVDictionaryEntry* get(std::string const name, AVDictionaryEntry* entry = nullptr) {
-			return av_dict_get(m_AvDict, name.c_str(), entry, 0);
+		AVDictionaryEntry* get(std::string const name, AVDictionaryEntry* entry = nullptr) const {
+			return av_dict_get(avDict, name.c_str(), entry, 0);
 		}
 
 		AVDictionary** operator&() {
-			return &m_AvDict;
+			return &avDict;
 		}
+
+		void ensureAllOptionsConsumed() const {
+			auto opt = stringDup(options.c_str());
+			char *tok = strtok(opt.data(), "- ");
+			while (tok && strtok(nullptr, "- ")) {
+				AVDictionaryEntry *avde = nullptr;
+				avde = get(tok, avde);
+				if (avde)
+					std::runtime_error(format("codec option \"%s\", value \"%s\" was ignored.", avde->key, avde->value));
+				tok = strtok(nullptr, "- ");
+			}
+		}
+
 	private:
-		AVDictionary* m_AvDict;
+		void set(std::string const& name, std::string const& val) {
+			if (av_dict_set(&avDict, name.c_str(), val.c_str(), 0) < 0) {
+				Log::msg(Warning, "[%s] unknown %s option \"%s\" with value \"%s\"", moduleName.c_str(), dictName, name, val);
+			}
+		}
+
+		void buildAVDictionary(const std::string &moduleName, AVDictionary **dict, const std::string &options) {
+			auto opt = stringDup(options.c_str());
+			char *tok = strtok(opt.data(), "- ");
+			char *tokval = nullptr;
+			while (tok && (tokval = strtok(nullptr, "- "))) {
+				set(tok, tokval);
+				tok = strtok(nullptr, "- ");
+			}
+		}
+
+		AVDictionary* avDict;
+		std::string options, moduleName, dictName;
 };
 
 class SwResampler {

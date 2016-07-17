@@ -74,17 +74,14 @@ LibavEncode::LibavEncode(Type type, LibavEncodeParams &params)
 	}
 
 	/* parse the codec optionsDict */
-	ffpp::Dict codecDict;
-	buildAVDictionary(typeid(*this).name(), &codecDict, codecOptions.c_str(), "codec");
-	codecDict.set("threads", "auto");
+	ffpp::Dict codecDict(typeid(*this).name(), "codec", codecOptions + "-threads auto");
 
 	/* parse other optionsDict*/
-	ffpp::Dict generalDict;
-	buildAVDictionary(typeid(*this).name(), &generalDict, generalOptions.c_str(), "other");
+	ffpp::Dict generalDict(typeid(*this).name(), "other", generalOptions);
 
 	/* find the encoder */
 	auto entry = generalDict.get(codecName);
-	if(!entry)
+	if (!entry)
 		throw error("Could not get codecName.");
 	AVCodec *codec = avcodec_find_encoder_by_name(entry->value);
 	if (!codec)
@@ -121,43 +118,11 @@ LibavEncode::LibavEncode(Type type, LibavEncodeParams &params)
 		assert(0);
 	}
 
-#if 0 //TODO: how to pass extra data?
-	/* user extra params */
-	std::string extraParams;
-	if (Parse::populateString("LibavOutputWriter", config, "extra_params", extraParams, false) == Parse::PopulateResult_Ok) {
-		log(Debug, "extra_params : " << extraParams.c_str());
-		std::vector<std::string> paramList;
-		Util::split(extraParams.c_str(), ',', &paramList);
-		auto param = paramList.begin();
-		for (; param != paramList.end(); ++param) {
-			std::vector<std::string> paramValue;
-			Util::split(param->c_str(), '=', &paramValue);
-			if (paramValue.size() != 2) {
-				log(Warning, "extra_params :   wrong param (" << paramValue.size() << " value detected, 2 expected) in " << param->c_str());
-			} else {
-				log(Debug, "extra_params :   detected param " << paramValue[0].c_str() << " with value " << paramValue[1].c_str() << " [" << param->c_str() << "]");
-				av_dict_set(&codecDict, paramValue[0].c_str(), paramValue[1].c_str(), 0);
-			}
-		}
-	}
-#endif
-
 	/* open it */
 	codecCtx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER; //gives access to the extradata (e.g. H264 SPS/PPS, etc.)
 	if (avcodec_open2(codecCtx, codec, &codecDict) < 0)
 		throw error("could not open codec, disable output.");
-
-	/* check all optionsDict have been consumed */
-	auto opt = stringDup(codecOptions.c_str());
-	char *tok = strtok(opt.data(), "- ");
-	while (tok && strtok(nullptr, "- ")) {
-		AVDictionaryEntry *avde = nullptr;
-		avde = codecDict.get(tok, avde);
-		if (avde) {
-			log(Warning, "codec option \"%s\", value \"%s\" was ignored.", avde->key, avde->value);
-		}
-		tok = strtok(nullptr, "- ");
-	}
+	codecDict.ensureAllOptionsConsumed();
 
 	output = addOutput<OutputDataDefault<DataAVPacket>>();
 	switch (type) {

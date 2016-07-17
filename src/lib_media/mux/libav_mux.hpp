@@ -1,8 +1,8 @@
 #pragma once
 
 #include "lib_modules/core/module.hpp"
+#include "lib_ffpp/ffpp.hpp"
 
-struct AVDictionary;
 struct AVFormatContext;
 struct AVPacket;
 
@@ -21,7 +21,7 @@ class LibavMux : public ModuleDynI {
 		void declareStream(Data stream);
 
 		struct AVFormatContext *m_formatCtx;
-		struct AVDictionary *optionsDict = nullptr;
+		ffpp::Dict optionsDict;
 		bool m_headerWritten = false;
 		bool m_inbandMetadata = false;
 };
