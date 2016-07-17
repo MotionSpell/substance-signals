@@ -10,6 +10,11 @@ extern const char *g_appName;
 
 //#define DEBUG_MONITOR
 
+#define MANUAL_HLS //FIXME: see https://git.gpac-licensing.com/rbouqueau/fk-encode/issues/17 and https://git.gpac-licensing.com/rbouqueau/fk-encode/issues/18
+#ifdef MANUAL_HLS
+#include <fstream>
+#endif
+
 void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlags formats) {
 	auto connect = [&](auto* src, auto* dst) {
 		pipeline.connect(src, 0, dst, 0);
@@ -53,7 +58,14 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 	auto demux = pipeline.addModule<Demux::LibavDemux>(opt.url);
 
 	auto const type = opt.isLive ? Stream::AdaptiveStreamingCommon::Live : Stream::AdaptiveStreamingCommon::Static;
-	auto hlser = pipeline.addModule<Stream::Apple_HLS>(format("%s.m3u8", g_appName), type, opt.segmentDurationInMs);
+#ifdef MANUAL_HLS
+	std::stringstream playlistMaster;
+	playlistMaster.clear();
+	playlistMaster << "#EXTM3U" << std::endl;
+	playlistMaster << "#EXT-X-VERSION:3" << std::endl;
+#else
+	//auto hlser = pipeline.addModule<Stream::Apple_HLS>(format("%s.m3u8", g_appName), type, opt.segmentDurationInMs);
+#endif
 	auto dasher = pipeline.addModule<Stream::MPEG_DASH>(format("%s.mpd", g_appName), type, opt.segmentDurationInMs);
 
 	const bool transcode = opt.v.size() > 0 ? true : false;
@@ -101,14 +113,19 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 			std::stringstream filename;
 			filename << r << "_" << opt.v[r].res.width << "x" << opt.v[r].res.height << "_";
 			if (formats & APPLE_HLS) {
-				auto muxer = pipeline.addModule<Mux::LibavMux>(filename.str(), format("hls -hls_time %s", opt.segmentDurationInMs / 1000));
+				auto muxer = pipeline.addModule<Mux::LibavMux>(filename.str(), format("hls -hls_time %s -hls_playlist_type event", opt.segmentDurationInMs / 1000));
 				if (transcode) {
 					connect(encoder, muxer);
 				} else {
 					pipeline.connect(demux, i, muxer, 0);
 				}
 
+#ifdef MANUAL_HLS
+				playlistMaster << "#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=" << opt.v[r].bitrate << ",RESOLUTION=" << opt.v[r].res.width << "x" << opt.v[r].res.height << std::endl;
+				playlistMaster << filename.str() << ".m3u8" << std::endl;
+#else
 				pipeline.connect(muxer, 0, hlser, r);
+#endif
 			}
 			if (formats & MPEG_DASH) {
 				auto muxer = pipeline.addModule<Mux::GPACMuxMP4>(filename.str(), opt.segmentDurationInMs, true);
@@ -121,5 +138,12 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 				pipeline.connect(muxer, 0, dasher, r);
 			}
 		}
+
+#ifdef MANUAL_HLS
+		std::ofstream mpl;
+		mpl.open(format("%s.m3u8", g_appName));
+		mpl << playlistMaster.str();
+		mpl.close();
+#endif
 	}
 }
