@@ -70,7 +70,7 @@ LibavDemux::LibavDemux(const std::string &url) {
 		}
 		restamp = uptr(create<Transform::Restamp>(Transform::Restamp::ClockSystem)); /*some webcams timestamps don't start at 0 (based on UTC)*/
 	} else {
-		ffpp::Dict dict(typeid(*this).name(), "demuxer", "-probesize 100M -analyzeduration 100M");
+		ffpp::Dict dict(typeid(*this).name(), "demuxer", "-probesize 100M -analyzeduration 100M -protocol_whitelist file,udp,rtp,http,https,tcp,tls");
 		if (avformat_open_input(&m_formatCtx, url.c_str(), nullptr, &dict)) {
 			if (m_formatCtx) avformat_close_input(&m_formatCtx);
 			throw error(format("Error when opening input '%s'", url));
