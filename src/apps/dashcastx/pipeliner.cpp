@@ -112,9 +112,22 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 			}
 
 			std::stringstream filename;
-			filename << r << "_" << opt.v[r].res.width << "x" << opt.v[r].res.height << "_";
+			unsigned width, height;
+			if (metadata->isVideo()) {
+				if (transcode) {
+					width = opt.v[r].res.width;
+					height = opt.v[r].res.height;
+				} else {
+					auto const resolutionFromDemux = getMetadataFromOutput<MetadataPktLibavVideo>(demux->getOutput(i))->getResolution();
+					width = resolutionFromDemux.width;
+					height = resolutionFromDemux.height;
+				}
+				filename << "video_" << r << "_" << width << "x" << height << "_";
+			} else {
+				filename << "audio_";
+			}
 			if (formats & APPLE_HLS) {
-				auto muxer = pipeline.addModule<Mux::LibavMux>(filename.str(), format("hls -hls_time %s -hls_playlist_type event", opt.segmentDurationInMs / 1000));
+				auto muxer = pipeline.addModule<Mux::LibavMux>(filename.str(), "hls", format("-hls_time %s -hls_playlist_type event", opt.segmentDurationInMs / 1000));
 				if (transcode) {
 					connect(encoder, muxer);
 				} else {
@@ -122,7 +135,13 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 				}
 
 #ifdef MANUAL_HLS
-				playlistMaster << "#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=" << opt.v[r].bitrate << ",RESOLUTION=" << opt.v[r].res.width << "x" << opt.v[r].res.height << std::endl;
+				playlistMaster << "#EXT-X-STREAM-INF:PROGRAM-ID=1";
+				if (!opt.v.empty()) {
+					playlistMaster << ",BANDWIDTH=" << opt.v[r].bitrate;
+				}
+				if (metadata->isVideo()) {
+					playlistMaster << ",RESOLUTION=" << width << "x" << height << std::endl;
+				}
 				playlistMaster << filename.str() << ".m3u8" << std::endl;
 #else
 				pipeline.connect(muxer, 0, hlser, r);
