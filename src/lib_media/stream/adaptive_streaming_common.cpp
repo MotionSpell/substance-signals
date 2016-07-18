@@ -67,7 +67,7 @@ void AdaptiveStreamingCommon::threadProc() {
 }
 
 void AdaptiveStreamingCommon::process() {
-	if (!workingThread.joinable()) {
+	if (!workingThread.joinable() && !startTimeInMs) {
 		numDataQueueNotify = (int)getNumInputs() - 1; //FIXME: connection/disconnection cannot occur dynamically. Lock inputs?
 		workingThread = std::thread(&AdaptiveStreamingCommon::threadProc, this);
 	}
