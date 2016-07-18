@@ -3,9 +3,11 @@
 #include "lib_media/common/picture.hpp"
 
 struct Video {
-	Video(Modules::Resolution res, unsigned bitrate) : res(res), bitrate(bitrate) {}
+	Video(Modules::Resolution res, unsigned bitrate, unsigned type)
+		: res(res), bitrate(bitrate), type(type) {}
 	Modules::Resolution res;
 	unsigned bitrate;
+	unsigned type;
 };
 
 struct AppOptions {

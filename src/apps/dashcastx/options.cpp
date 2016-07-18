@@ -49,8 +49,8 @@ struct Arg : public option::Arg {
 	}
 
 	static option::ArgStatus Video(const option::Option& option, bool msg) {
-		unsigned w, h, bitrate;
-		if (option.arg != 0 && sscanf(option.arg, "%ux%u:%u", &w, &h, &bitrate) == 3)
+		unsigned w, h, bitrate, type = 0;
+		if (option.arg != 0 && sscanf(option.arg, "%ux%u:%u:%u", &w, &h, &bitrate, &type) >= 3)
 			return option::ARG_OK;
 
 		if (msg) printError("Option '", option, "' requires a video (wxh:bitrate) argument\n");
@@ -96,10 +96,10 @@ AppOptions processArgs(int argc, char const* argv[]) {
 		g_appName, g_appName, g_appName, g_appName, g_appName, g_appName);
 	const option::Descriptor usage[] = {
 		{ UNKNOWN, 0, "", "", Arg::Unknown, usage0.c_str() },
-		{ HELP,    0, "h", "help",    Arg::None,    "  --help,          -h         \tPrint usage and exit." },
-		{ OPT,     0, "l", "live",    Arg::None,    "  --live,          -l         \tRun at system clock pace (otherwise runs as fast as possible) with low latency settings (quality may be degraded)." },
-		{ NUMERIC, 0, "s", "seg-dur", Arg::Numeric, "  --seg-dur,       -s         \tSet the segment duration (in ms) (default value: 2000)." },
-		{ VIDEO,   0, "v", "video",   Arg::Video,   "  --video wxh[:b], -v wxh[:b] \tSet a video resolution and optionally bitrate (enables resize and/or transcoding)." },
+		{ HELP,    0, "h", "help",    Arg::None,    "  --help,              -h             \tPrint usage and exit." },
+		{ OPT,     0, "l", "live",    Arg::None,    "  --live,              -l             \tRun at system clock pace (otherwise runs as fast as possible) with low latency settings (quality may be degraded)." },
+		{ NUMERIC, 0, "s", "seg-dur", Arg::Numeric, "  --seg-dur,           -s             \tSet the segment duration (in ms) (default value: 2000)." },
+		{ VIDEO,   0, "v", "video",   Arg::Video,   "  --video wxh[:b[:t]], -v wxh[:b[:t]] \tSet a video resolution and optionally bitrate (enables resize and/or transcoding) and encoder type (supported 0 (software (default)), 1 (QuickSync), 2 (NVEnc)." },
 		{ UNKNOWN, 0, "",  "",        Arg::None, examples.c_str() },
 		{ 0, 0, 0, 0, 0, 0 }
 	};
@@ -127,12 +127,12 @@ AppOptions processArgs(int argc, char const* argv[]) {
 	if (options[NUMERIC].first()->desc && options[NUMERIC].first()->desc->shortopt == std::string("s"))
 		opt.segmentDurationInMs = atol(options[NUMERIC].first()->arg);
 	if (options[VIDEO].first()->desc && options[VIDEO].first()->desc->shortopt == std::string("v")) {
-		unsigned w=0, h=0, bitrate=0;
+		unsigned w=0, h=0, bitrate=0, type=0;
 		for (option::Option* o = options[VIDEO]; o; o = o->next()) {
-			auto const parsed = sscanf(o->arg, "%ux%u:%u", &w, &h, &bitrate);
+			auto const parsed = sscanf(o->arg, "%ux%u:%u:%u", &w, &h, &bitrate, &type);
 			if (parsed < 2) /*bitrate is optional*/
 				throw std::runtime_error("Internal error while retrieving resolution.");
-			opt.v.push_back(Video(Modules::Resolution(w, h), bitrate));
+			opt.v.push_back(Video(Modules::Resolution(w, h), bitrate, type));
 		}
 	}
 

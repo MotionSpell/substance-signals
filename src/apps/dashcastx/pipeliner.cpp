@@ -26,6 +26,7 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 			Log::msg(Info, "[Encoder] Found video stream");
 			Encode::LibavEncodeParams p;
 			p.isLowLatency = opt.isLive;
+			p.codecType = (Encode::LibavEncodeParams::VideoCodecType)opt.v[i].type;
 			p.res = opt.v[i].res;
 			p.bitrate_v = opt.v[i].bitrate;
 			auto m = pipeline.addModule<Encode::LibavEncode>(Encode::LibavEncode::Video, p);
