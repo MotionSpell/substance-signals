@@ -34,9 +34,9 @@ class Frame {
 
 class Dict {
 	public:
-		Dict(const std::string &moduleName, const std::string &dictName, const std::string &options) {
-			avDict = nullptr;
-			buildAVDictionary(moduleName, &avDict, options);
+		Dict(const std::string &moduleName, const std::string &dictName, const std::string &options)
+		: avDict(nullptr), options(options), moduleName(moduleName), dictName(dictName) {
+			buildAVDictionary(moduleName, options);
 		}
 
 		~Dict() {
@@ -58,8 +58,9 @@ class Dict {
 			while (tok && strtok(nullptr, "- ")) {
 				AVDictionaryEntry *avde = nullptr;
 				avde = get(tok, avde);
-				if (avde)
-					std::runtime_error(format("codec option \"%s\", value \"%s\" was ignored.", avde->key, avde->value));
+				if (avde) {
+					Log::msg(Warning, "codec option \"%s\", value \"%s\" was ignored.", avde->key, avde->value);
+				}
 				tok = strtok(nullptr, "- ");
 			}
 		}
@@ -71,7 +72,7 @@ class Dict {
 			}
 		}
 
-		void buildAVDictionary(const std::string &moduleName, AVDictionary **dict, const std::string &options) {
+		void buildAVDictionary(const std::string &moduleName, const std::string &options) {
 			auto opt = stringDup(options.c_str());
 			char *tok = strtok(opt.data(), "- ");
 			char *tokval = nullptr;

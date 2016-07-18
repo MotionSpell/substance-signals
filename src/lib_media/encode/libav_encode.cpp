@@ -141,6 +141,8 @@ LibavEncode::LibavEncode(Type type, LibavEncodeParams &params)
 	default:
 		assert(0);
 	}
+
+	av_dict_free(&generalDict);
 }
 
 void LibavEncode::flush() {
