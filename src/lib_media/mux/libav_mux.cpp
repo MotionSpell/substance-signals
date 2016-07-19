@@ -20,12 +20,14 @@ auto g_InitAvLog = runAtStartup(&av_log_set_callback, avLog);
 
 namespace Mux {
 
-LibavMux::LibavMux(const std::string &baseName, const std::string &fmt)
-	: optionsDict(typeid(*this).name(), "format", "-format " + fmt) {
+LibavMux::LibavMux(const std::string &baseName, const std::string &fmt, const std::string &options)
+	: optionsDict(typeid(*this).name(), "options", options) {
 	/* setup container */
-	AVOutputFormat *of = av_guess_format(optionsDict.get("format")->value, nullptr, nullptr);
+	ffpp::Dict formatDict(typeid(*this).name(), "format", "-format " + fmt);
+	AVOutputFormat *of = av_guess_format(formatDict.get("format")->value, nullptr, nullptr);
 	if (!of)
 		throw error("couldn't guess container from file extension");
+	av_dict_free(&formatDict);
 
 	/* output format context */
 	m_formatCtx = avformat_alloc_context();
@@ -74,29 +76,29 @@ LibavMux::~LibavMux() {
 
 void LibavMux::declareStream(Data data) {
 	auto const metadata_ = data->getMetadata();
-	if (auto metadata = std::dynamic_pointer_cast<const MetadataPktLibavVideo>(metadata_)) {
-		AVStream *avStream = avformat_new_stream(m_formatCtx, metadata->getAVCodecContext()->codec);
-		if (!avStream)
-			throw error("Stream creation failed (1).");
-
-		m_formatCtx->streams[0]->codec->time_base = metadata->getAVCodecContext()->time_base; //FIXME: [0]: not a mux yet...
-		m_formatCtx->streams[0]->codec->width = metadata->getAVCodecContext()->width;
-		m_formatCtx->streams[0]->codec->height = metadata->getAVCodecContext()->height;
-		if (m_formatCtx->oformat->flags & AVFMT_GLOBALHEADER)
-			m_formatCtx->streams[0]->codec->flags |= CODEC_FLAG_GLOBAL_HEADER;
-
-		auto input = addInput(new Input<DataAVPacket>(this));
-		input->setMetadata(new MetadataPktLibavVideo(metadata->getAVCodecContext()));
-	} else if (auto metadata2 = std::dynamic_pointer_cast<const MetadataPktLibavAudio>(metadata_)) {
-		AVStream *avStream = avformat_new_stream(m_formatCtx, metadata2->getAVCodecContext()->codec);
-		if (!avStream)
-			throw error("Stream creation failed (2).");
-
-		m_formatCtx->streams[0]->codec->sample_rate = metadata2->getAVCodecContext()->sample_rate;
-		auto input = addInput(new Input<DataAVPacket>(this));
-		input->setMetadata(new MetadataPktLibavAudio(metadata2->getAVCodecContext()));
+	auto metadataVideo = std::dynamic_pointer_cast<const MetadataPktLibavVideo>(metadata_);
+	auto metadataAudio = std::dynamic_pointer_cast<const MetadataPktLibavAudio>(metadata_);
+	std::shared_ptr<const MetadataPktLibav> metadata;
+	if (metadataVideo) {
+		metadata = metadataVideo;
+	} else if (metadataAudio) {
+		metadata = metadataAudio;
 	} else {
 		throw error("Stream creation failed: unknown type.");
+	}
+
+	AVStream *avStream = avformat_new_stream(m_formatCtx, metadata->getAVCodecContext()->codec);
+	if (!avStream)
+		throw error("Stream creation failed.");
+	if (avcodec_parameters_from_context(avStream->codecpar, metadata->getAVCodecContext()) < 0)
+		throw error("Stream parameters copy failed.");
+	m_formatCtx->streams[0]->codec->time_base = metadata->getAVCodecContext()->time_base;
+
+	auto input = addInput(new Input<DataAVPacket>(this));
+	if (metadataVideo) {
+		input->setMetadata(new MetadataPktLibavVideo(metadataVideo->getAVCodecContext()));
+	} else if (metadataAudio) {
+		input->setMetadata(new MetadataPktLibavAudio(metadataAudio->getAVCodecContext()));
 	}
 }
 

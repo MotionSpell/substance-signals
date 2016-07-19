@@ -136,12 +136,15 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 
 #ifdef MANUAL_HLS
 				playlistMaster << "#EXT-X-STREAM-INF:PROGRAM-ID=1";
-				if (!opt.v.empty()) {
-					playlistMaster << ",BANDWIDTH=" << opt.v[r].bitrate;
-				}
 				if (metadata->isVideo()) {
-					playlistMaster << ",RESOLUTION=" << width << "x" << height << std::endl;
+					playlistMaster << ",RESOLUTION=" << width << "x" << height;
+					if (!opt.v.empty()) {
+						playlistMaster << ",BANDWIDTH=" << opt.v[r].bitrate;
+					}
+				} else {
+					playlistMaster << ",CODECS=\"mp4a.40.5\",BANDWIDTH=128000"; //FIXME: hardcoded
 				}
+				playlistMaster << std::endl;
 				playlistMaster << filename.str() << ".m3u8" << std::endl;
 #else
 				pipeline.connect(muxer, 0, hlser, r);
