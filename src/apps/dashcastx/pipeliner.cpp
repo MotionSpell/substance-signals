@@ -125,9 +125,9 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 					width = resolutionFromDemux.width;
 					height = resolutionFromDemux.height;
 				}
-				filename << "video_" << numDashInputs << "_" << width << "x" << height << "_";
+				filename << "video_" << numDashInputs << "_" << width << "x" << height;
 			} else {
-				filename << "audio_";
+				filename << "audio";
 			}
 			if (formats & APPLE_HLS) {
 				auto muxer = pipeline.addModule<Mux::LibavMux>(filename.str(), "hls", format("-hls_time %s -hls_playlist_type event", opt.segmentDurationInMs / 1000));

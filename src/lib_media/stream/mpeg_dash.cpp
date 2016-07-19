@@ -65,16 +65,24 @@ void MPEG_DASH::ensureManifest() {
 			auto rep = mpd->addRepresentation(as, format("%s", i).c_str(), (u32)quality->avg_bitrate_in_bps);
 			quality->rep = rep;
 			GF_SAFEALLOC(rep->segment_template, GF_MPD_SegmentTemplate);
-			rep->segment_template->media = gf_strdup(format("%s.mp4_$Number$", i).c_str());
-			rep->segment_template->initialization = gf_strdup(format("$RepresentationID$.mp4", i).c_str());
 			rep->segment_template->start_number = 1;
 			rep->mime_type = gf_strdup(quality->meta->getMimeType().c_str());
 			rep->codecs = gf_strdup(quality->meta->getCodecName().c_str());
 			rep->starts_with_sap = GF_TRUE;
 			switch (quality->meta->getStreamType()) {
-			case AUDIO_PKT: rep->samplerate = quality->meta->sampleRate; break;
-			case VIDEO_PKT: rep->width = quality->meta->resolution[0]; rep->height = quality->meta->resolution[1]; break;
-			default: assert(0);
+			case AUDIO_PKT:
+				rep->samplerate = quality->meta->sampleRate;
+				rep->segment_template->initialization = gf_strdup(format("audio.mp4").c_str());
+				rep->segment_template->media = gf_strdup(format("audio.mp4_$Number$").c_str());
+				break;
+			case VIDEO_PKT:
+				rep->width = quality->meta->resolution[0];
+				rep->height = quality->meta->resolution[1];
+				rep->segment_template->initialization = gf_strdup(format("video_$RepresentationID$_%sx%s.mp4", rep->width, rep->height).c_str());
+				rep->segment_template->media = gf_strdup(format("video_%s_%sx%s.mp4_$Number$", i, rep->width, rep->height).c_str());
+				break;
+			default:
+				assert(0);
 			}
 		}
 	}
