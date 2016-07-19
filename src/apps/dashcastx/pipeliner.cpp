@@ -76,6 +76,7 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 		Log::msg(Warning, "[%s] No transcode. Make passthru.", g_appName);
 	}
 
+	int numDashInputs = 0;
 	for (size_t i = 0; i < demux->getNumOutputs(); ++i) {
 		auto const metadata = getMetadataFromOutput<MetadataPktLibav>(demux->getOutput(i));
 		if (!metadata) {
@@ -90,7 +91,7 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 		}
 
 		auto const numRes = metadata->isVideo() ? std::max<size_t>(opt.v.size(), 1) : 1;
-		for (size_t r = 0; r < numRes; ++r) {
+		for (size_t r = 0; r < numRes; ++r, ++numDashInputs) {
 			IModule *encoder = nullptr;
 			if (transcode) {
 				PictureFormat picFmt(opt.v[r].res, UNKNOWN_PF);
@@ -124,7 +125,7 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 					width = resolutionFromDemux.width;
 					height = resolutionFromDemux.height;
 				}
-				filename << "video_" << r << "_" << width << "x" << height << "_";
+				filename << "video_" << numDashInputs << "_" << width << "x" << height << "_";
 			} else {
 				filename << "audio_";
 			}
@@ -151,7 +152,7 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 					playlistMaster << filename.str() << ".m3u8" << std::endl;
 				}
 #else
-				pipeline.connect(muxer, 0, hlser, r);
+				pipeline.connect(muxer, 0, hlser, numDashInputs);
 #endif
 			}
 			if (formats & MPEG_DASH) {
@@ -162,7 +163,7 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 					pipeline.connect(demux, i, muxer, 0);
 				}
 
-				pipeline.connect(muxer, 0, dasher, r);
+				pipeline.connect(muxer, 0, dasher, numDashInputs);
 			}
 		}
 
