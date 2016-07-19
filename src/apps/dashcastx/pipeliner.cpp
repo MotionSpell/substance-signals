@@ -60,10 +60,12 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 
 	auto const type = opt.isLive ? Stream::AdaptiveStreamingCommon::Live : Stream::AdaptiveStreamingCommon::Static;
 #ifdef MANUAL_HLS
-	std::stringstream playlistMaster;
-	playlistMaster.clear();
-	playlistMaster << "#EXTM3U" << std::endl;
-	playlistMaster << "#EXT-X-VERSION:3" << std::endl;
+		std::stringstream playlistMaster;
+	if (formats & APPLE_HLS) {
+		playlistMaster.clear();
+		playlistMaster << "#EXTM3U" << std::endl;
+		playlistMaster << "#EXT-X-VERSION:3" << std::endl;
+	}
 #else
 	auto hlser = pipeline.addModule<Stream::Apple_HLS>(format("%s.m3u8", g_appName), type, opt.segmentDurationInMs);
 #endif
@@ -135,17 +137,19 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 				}
 
 #ifdef MANUAL_HLS
-				playlistMaster << "#EXT-X-STREAM-INF:PROGRAM-ID=1";
-				if (metadata->isVideo()) {
-					playlistMaster << ",RESOLUTION=" << width << "x" << height;
-					if (!opt.v.empty()) {
-						playlistMaster << ",BANDWIDTH=" << opt.v[r].bitrate;
+				if (formats & APPLE_HLS) {
+					playlistMaster << "#EXT-X-STREAM-INF:PROGRAM-ID=1";
+					if (metadata->isVideo()) {
+						playlistMaster << ",RESOLUTION=" << width << "x" << height;
+						if (!opt.v.empty()) {
+							playlistMaster << ",BANDWIDTH=" << opt.v[r].bitrate;
+						}
+					} else {
+						playlistMaster << ",CODECS=\"mp4a.40.5\",BANDWIDTH=128000"; //FIXME: hardcoded
 					}
-				} else {
-					playlistMaster << ",CODECS=\"mp4a.40.5\",BANDWIDTH=128000"; //FIXME: hardcoded
+					playlistMaster << std::endl;
+					playlistMaster << filename.str() << ".m3u8" << std::endl;
 				}
-				playlistMaster << std::endl;
-				playlistMaster << filename.str() << ".m3u8" << std::endl;
 #else
 				pipeline.connect(muxer, 0, hlser, r);
 #endif
@@ -163,10 +167,12 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 		}
 
 #ifdef MANUAL_HLS
-		std::ofstream mpl;
-		mpl.open(format("%s.m3u8", g_appName));
-		mpl << playlistMaster.str();
-		mpl.close();
+		if (formats & APPLE_HLS) {
+			std::ofstream mpl;
+			mpl.open(format("%s.m3u8", g_appName));
+			mpl << playlistMaster.str();
+			mpl.close();
+		}
 #endif
 	}
 }
