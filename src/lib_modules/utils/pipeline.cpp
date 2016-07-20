@@ -103,7 +103,10 @@ public:
 
 private:
 	void connect(IOutput *output, size_t inputIdx) override {
-		ConnectOutputToInput(output, getInput(inputIdx), &g_executorSync);
+		auto input = getInput(inputIdx);
+		ConnectOutputToInput(output, input, &g_executorSync);
+		if (input->getNumConnections() != 1)
+			throw std::runtime_error(format("PipelinedModule %s: input %s has %s connections.", getDelegateName(), inputIdx, input->getNumConnections()));
 	}
 
 	void mimicInputs() {
