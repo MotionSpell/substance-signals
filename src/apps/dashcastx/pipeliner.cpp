@@ -9,8 +9,9 @@ using namespace Pipelines;
 extern const char *g_appName;
 
 //#define DEBUG_MONITOR
-
+#define MP4_MONITOR
 #define MANUAL_HLS //FIXME: see https://git.gpac-licensing.com/rbouqueau/fk-encode/issues/17 and https://git.gpac-licensing.com/rbouqueau/fk-encode/issues/18
+
 #ifdef MANUAL_HLS
 #include <fstream>
 #endif
@@ -20,8 +21,8 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 		pipeline.connect(src, 0, dst, 0);
 	};
 
-	auto createEncoder = [&](std::shared_ptr<const IMetadata> metadata, const AppOptions &opt, size_t optIdx, PixelFormat &pf)->IModule* {
-		auto const codecType = metadata->getStreamType();
+	auto createEncoder = [&](std::shared_ptr<const IMetadata> metadataDemux, const AppOptions &opt, size_t optIdx, PixelFormat &pf)->IModule* {
+		auto const codecType = metadataDemux->getStreamType();
 		if (codecType == VIDEO_PKT) {
 			Log::msg(Info, "[Encoder] Found video stream");
 			Encode::LibavEncodeParams p;
@@ -41,15 +42,20 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 		}
 	};
 
-	auto createConverter = [&](std::shared_ptr<const IMetadata> metadata, const PictureFormat &dstFmt)->IModule* {
-		auto const codecType = metadata->getStreamType();
+	/*video is forced, audio is as paddthru as possible*/
+	auto createConverter = [&](std::shared_ptr<const IMetadata> metadataDemux, std::shared_ptr<const IMetadata> metadataEncoder, const PictureFormat &dstFmt)->IModule* {
+		auto const codecType = metadataDemux->getStreamType();
 		if (codecType == VIDEO_PKT) {
 			Log::msg(Info, "[Converter] Found video stream");
 			return pipeline.addModule<Transform::VideoConvert>(dstFmt);
 		} else if (codecType == AUDIO_PKT) {
 			Log::msg(Info, "[Converter] Found audio stream");
-			auto format = PcmFormat(44100, 2, AudioLayout::Stereo, AudioSampleFormat::F32, AudioStruct::Planar);
-			return pipeline.addModule<Transform::AudioConvert>(format);
+			PcmFormat encFmt, demuxFmt;
+			libavAudioCtxConvert(&demuxFmt, safe_cast<const MetadataPktLibavAudio>(metadataDemux)->getAVCodecContext());
+			auto const metaEnc = safe_cast<const MetadataPktLibavAudio>(metadataEncoder);
+			auto format = PcmFormat(demuxFmt.sampleRate, demuxFmt.numChannels, demuxFmt.layout, encFmt.sampleFormat, (encFmt.numPlanes == 1) ? Interleaved : Planar);
+			libavAudioCtxConvert(&encFmt, metaEnc->getAVCodecContext());
+			return pipeline.addModule<Transform::AudioConvert>(format, metaEnc->getFrameSize());
 		} else {
 			Log::msg(Info, "[Converter] Found unknown stream");
 			return nullptr;
@@ -78,33 +84,34 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 
 	int numDashInputs = 0;
 	for (size_t i = 0; i < demux->getNumOutputs(); ++i) {
-		auto const metadata = getMetadataFromOutput<MetadataPktLibav>(demux->getOutput(i));
-		if (!metadata) {
-			Log::msg(Warning, "[%s] Unknown metadata for stream %s. Ignoring.", g_appName, i);
+		auto const metadataDemux = getMetadataFromOutput<MetadataPktLibav>(demux->getOutput(i));
+		if (!metadataDemux) {
+			Log::msg(Warning, "[%s] Unknown metadataDemux for stream %s. Ignoring.", g_appName, i);
 			break;
 		}
 
 		IModule *decode = nullptr;
 		if (transcode) {
-			decode = pipeline.addModule<Decode::LibavDecode>(*metadata);
+			decode = pipeline.addModule<Decode::LibavDecode>(*metadataDemux);
 			pipeline.connect(demux, i, decode, 0);
 		}
 
-		auto const numRes = metadata->isVideo() ? std::max<size_t>(opt.v.size(), 1) : 1;
+		auto const numRes = metadataDemux->isVideo() ? std::max<size_t>(opt.v.size(), 1) : 1;
 		for (size_t r = 0; r < numRes; ++r, ++numDashInputs) {
 			IModule *encoder = nullptr;
 			if (transcode) {
-				PictureFormat picFmt(opt.v[r].res, UNKNOWN_PF);
-				encoder = createEncoder(metadata, opt, r, picFmt.format);
+				PictureFormat encoderInputPicFmt(opt.v[r].res, UNKNOWN_PF);
+				encoder = createEncoder(metadataDemux, opt, r, encoderInputPicFmt.format);
 				if (!encoder)
 					continue;
 
-				auto converter = createConverter(metadata, picFmt);
+				auto const metadataEncoder = getMetadataFromOutput<MetadataPktLibav>(encoder->getOutput(0));
+				auto converter = createConverter(metadataDemux, metadataEncoder, encoderInputPicFmt);
 				if (!converter)
 					continue;
 
 #ifdef DEBUG_MONITOR
-				if (metadata->isVideo() && r == 0) {
+				if (metadataDemux->isVideo() && r == 0) {
 					auto webcamPreview = pipeline.addModule<Render::SDLVideo>();
 					connect(converter, webcamPreview);
 				}
@@ -116,7 +123,7 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 
 			std::stringstream filename;
 			unsigned width, height;
-			if (metadata->isVideo()) {
+			if (metadataDemux->isVideo()) {
 				if (transcode) {
 					width = opt.v[r].res.width;
 					height = opt.v[r].res.height;
@@ -127,7 +134,7 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 				}
 				filename << "video_" << numDashInputs << "_" << width << "x" << height;
 			} else {
-				filename << "audio";
+				filename << "audio_" << numDashInputs << "_";
 			}
 			if (formats & APPLE_HLS) {
 				auto muxer = pipeline.addModule<Mux::LibavMux>(filename.str(), "hls", format("-hls_time %s -hls_playlist_type event", opt.segmentDurationInMs / 1000));
@@ -140,7 +147,7 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 #ifdef MANUAL_HLS
 				if (formats & APPLE_HLS) {
 					playlistMaster << "#EXT-X-STREAM-INF:PROGRAM-ID=1";
-					if (metadata->isVideo()) {
+					if (metadataDemux->isVideo()) {
 						playlistMaster << ",RESOLUTION=" << width << "x" << height;
 						if (!opt.v.empty()) {
 							playlistMaster << ",BANDWIDTH=" << opt.v[r].bitrate;
@@ -165,6 +172,16 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 
 				pipeline.connect(muxer, 0, dasher, numDashInputs);
 			}
+
+#ifdef MP4_MONITOR
+			//auto muxer = pipeline.addModule<Mux::GPACMuxMP4>("monitor_" + filename.str(), 0, false); //FIXME: see https://git.gpac-licensing.com/rbouqueau/fk-encode/issues/28
+			auto muxer = pipeline.addModule<Mux::LibavMux>("monitor_" + filename.str(), "mp4");
+			if (transcode) {
+				connect(encoder, muxer);
+			} else {
+				pipeline.connect(demux, i, muxer, 0);
+			}
+#endif
 		}
 
 #ifdef MANUAL_HLS

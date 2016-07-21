@@ -7,16 +7,16 @@
 namespace Modules {
 namespace Transform {
 
-AudioConvert::AudioConvert(const PcmFormat &dstFormat)
-	: dstPcmFormat(dstFormat), m_Swr(nullptr), accumulatedTimeInDstSR(0), autoConfigure(true) {
+AudioConvert::AudioConvert(const PcmFormat &dstFormat, int64_t dstNumSamples)
+	: dstPcmFormat(dstFormat), dstNumSamples(dstNumSamples), m_Swr(nullptr), accumulatedTimeInDstSR(0), autoConfigure(true) {
 	memset(&srcPcmFormat, 0, sizeof(srcPcmFormat));
 	auto input = addInput(new Input<DataPcm>(this));
 	input->setMetadata(new MetadataRawAudio);
 	output = addOutput<OutputPcm>();
 }
 
-AudioConvert::AudioConvert(const PcmFormat &srcFormat, const PcmFormat &dstFormat)
-	: srcPcmFormat(srcFormat), dstPcmFormat(dstFormat),
+AudioConvert::AudioConvert(const PcmFormat &srcFormat, const PcmFormat &dstFormat, int64_t dstNumSamples)
+	: srcPcmFormat(srcFormat), dstPcmFormat(dstFormat), dstNumSamples(dstNumSamples),
 	  m_Swr(new ffpp::SwResampler), accumulatedTimeInDstSR(0), autoConfigure(false) {
 	configure(srcPcmFormat);
 	auto input = addInput(new Input<DataPcm>(this));
@@ -56,7 +56,7 @@ void AudioConvert::flush() {
 }
 
 void AudioConvert::process(Data data) {
-	uint64_t srcNumSamples, dstNumSamples;
+	uint64_t srcNumSamples;
 	uint8_t * const * pSrc;
 	auto audioData = safe_cast<const DataPcm>(data);
 	if (audioData) {
@@ -71,7 +71,9 @@ void AudioConvert::process(Data data) {
 		}
 
 		srcNumSamples = audioData->size() / audioData->getFormat().getBytesPerSample();
-		dstNumSamples = divUp(srcNumSamples * dstPcmFormat.sampleRate, (uint64_t)srcPcmFormat.sampleRate); //FIXME: this number depends on the next module (encoder) spec
+		if (dstNumSamples == -1) {
+			dstNumSamples = divUp(srcNumSamples * dstPcmFormat.sampleRate, (uint64_t)srcPcmFormat.sampleRate);
+		}
 		pSrc = audioData->getPlanes();
 	} else {
 		dstNumSamples = m_Swr->getDelay(dstPcmFormat.sampleRate);
