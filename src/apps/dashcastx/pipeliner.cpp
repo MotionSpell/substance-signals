@@ -20,15 +20,15 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 		pipeline.connect(src, 0, dst, 0);
 	};
 
-	auto createEncoder = [&](std::shared_ptr<const IMetadata> metadata, const AppOptions &opt, PixelFormat &pf, size_t i)->IModule* {
+	auto createEncoder = [&](std::shared_ptr<const IMetadata> metadata, const AppOptions &opt, size_t optIdx, PixelFormat &pf)->IModule* {
 		auto const codecType = metadata->getStreamType();
 		if (codecType == VIDEO_PKT) {
 			Log::msg(Info, "[Encoder] Found video stream");
 			Encode::LibavEncodeParams p;
 			p.isLowLatency = opt.isLive;
-			p.codecType = (Encode::LibavEncodeParams::VideoCodecType)opt.v[i].type;
-			p.res = opt.v[i].res;
-			p.bitrate_v = opt.v[i].bitrate;
+			p.codecType = (Encode::LibavEncodeParams::VideoCodecType)opt.v[optIdx].type;
+			p.res = opt.v[optIdx].res;
+			p.bitrate_v = opt.v[optIdx].bitrate;
 			auto m = pipeline.addModule<Encode::LibavEncode>(Encode::LibavEncode::Video, p);
 			pf = p.pixelFormat;
 			return m;
@@ -95,7 +95,7 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 			IModule *encoder = nullptr;
 			if (transcode) {
 				PictureFormat picFmt(opt.v[r].res, UNKNOWN_PF);
-				encoder = createEncoder(metadata, opt, picFmt.format, r);
+				encoder = createEncoder(metadata, opt, r, picFmt.format);
 				if (!encoder)
 					continue;
 
