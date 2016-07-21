@@ -36,7 +36,7 @@ class Dict {
 	public:
 		Dict(const std::string &moduleName, const std::string &dictName, const std::string &options)
 		: avDict(nullptr), options(options), moduleName(moduleName), dictName(dictName) {
-			buildAVDictionary(moduleName, options);
+			buildAVDictionary(options);
 		}
 
 		~Dict() {
@@ -72,7 +72,7 @@ class Dict {
 			}
 		}
 
-		void buildAVDictionary(const std::string &moduleName, const std::string &options) {
+		void buildAVDictionary(const std::string &options) {
 			auto opt = stringDup(options.c_str());
 			char *tok = strtok(opt.data(), "- ");
 			char *tokval = nullptr;
