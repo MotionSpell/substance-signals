@@ -18,7 +18,7 @@ Coding consideration
 
 You need a C++11 compiler. ```ccache``` on unix can accelerate rebuilds: consider aliasing your CXX (e.g. ```CXX="ccache g++"```).
 
-Before committing please execute tests (check.sh will reformat, build, and make tests for you).
+Before committing please execute tests (check.sh will reformat, build, and make tests for you). Test execution should be fast (less than 30s).
 
 Design
 ======================
@@ -26,9 +26,9 @@ Design
 Signals is layered (from bottom to top):
 - signals: a signal-slot system
 - modules: a generic set of module interfaces and connection helpers
-- mm? TODO multimedia consideration (modules would be agnostic)
+- pipeline: pipeline builder and connection helpers (currently in modules/utils) - doesn't know anything about multimedia
+- mm (currently in media/common): multimedia consideration (modules would be agnostic)
 - media: some module implementations based on libmodules
-- pipeline: pipeline builder and connection helpers
 
 Signals include:
  - lib_signals: an agnostic signal/slot mechanism using C++11. May convey any type of data with any type of messaging.
@@ -39,20 +39,78 @@ Signals include:
 Write an application
 ====================
 
-Modules have an easy interface:
+Modules have an easy interface: just implement ```process(Data data)```.
+
+Data is garbage collected.
+
+To declare an input (more likely in the constructor), call ```addInput()```:
 ```
-class Module : public IModule, public InputCap, public OutputCap {
+addInput(new Input<DataBase>(this));
+```
+The type of the input (here DataBase) can be:
+ - DataLoose when the data type is not known (necessary for dynamic inputs (e.g. Muxers) but lazy-typing has some drawbacks.
+ - DataRaw: raw data.
+ - DataPcm: raw audio specialization.
+ - DataPicture: raw video specialization.
+ - PictureYUV420P: picture specialization for YUV420P colospace.
+ - PictureYUYV422: picture specialization for YUYV422 colospace.
+ - PictureNV12: picture specialization for NV12 colospace.
+ - PictureRGB24: picture specialization for RGB24 colospace.
+ - DataAVPacket: libav packet wrapper.
+
+Internals
+=========
+
+```
+class Module : public IModule, public ErrorCap, public LogCap, public InputCap {
 	public:
 		Module() = default;
 		virtual ~Module() noexcept(false) {}
-		virtual void flush() {}
+
 	private:
 		Module(Module const&) = delete;
 		Module const& operator=(Module const&) = delete;
 };
+```
 
-+ PROCESS
+with ErrorCap allowing in modules ```error(string);``` to raise an error.
 
+with LogCap:
+```
+log(Warning, "Stream contains an irrecoverable error - leaving");
+```
+
+with InputCap:
+```
+	size_t getNumInputs() const;
+	IInput* getInput(size_t i);
+	IInput* addInput(IInput* p);
+
+```
+
+with IModule:
+```
+class IModule : public IProcessor, public virtual IInputCap, public virtual IOutputCap {
+public:
+	virtual ~IModule() noexcept(false) {}
+	virtual void flush() {}
+};
+```
+
+with IModule:
+```
+	virtual void process() = 0;
+```
+
+with IOutputCap:
+```
+	size_t getNumOutputs() const;
+	IOutput* getOutput(size_t i) const;
+```
+and an output factory:
+```
+template <typename InstanceType, typename ...Args>
+	InstanceType* addOutput(Args&&... args);
 ```
 
 Optional:
@@ -65,14 +123,10 @@ What about dynamic inputs as e.g. required by muxers:
 How to declare an output:
 
 
-
-
-
-All modules derive from several classes:
-
 ADD DOXYGEN
 
 When developping modules, you should not take care of concurrency (threads or mutex). Signals takes care of the hard part for you. However this is tweakable.
+About parallelism, take care that modules may execute blocking calls when trying to get an output buffer (depends on your allocator policy). This may lead to deadlock if you run on a thread-pool with not enough threads. This may be solved in different ways: 1) one thread per module (```#define EXECUTOR EXECUTOR_ASYNC_THREAD``` in modules/utils/pipeline.cpp) 2) more permissive allocator 3) blocking calls returns cooperatively to the scheduler, see #14.
 
 Use the Pipeline namespace.
 
