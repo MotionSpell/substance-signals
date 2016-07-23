@@ -9,7 +9,7 @@ using namespace Pipelines;
 extern const char *g_appName;
 
 //#define DEBUG_MONITOR
-#define MP4_MONITOR
+//#define MP4_MONITOR
 #define MANUAL_HLS //FIXME: see https://git.gpac-licensing.com/rbouqueau/fk-encode/issues/17 and https://git.gpac-licensing.com/rbouqueau/fk-encode/issues/18
 
 #ifdef MANUAL_HLS
@@ -66,16 +66,22 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 
 	auto const type = opt.isLive ? Stream::AdaptiveStreamingCommon::Live : Stream::AdaptiveStreamingCommon::Static;
 #ifdef MANUAL_HLS
-		std::stringstream playlistMaster;
+	std::stringstream playlistMaster;
 	if (formats & APPLE_HLS) {
 		playlistMaster.clear();
 		playlistMaster << "#EXTM3U" << std::endl;
 		playlistMaster << "#EXT-X-VERSION:3" << std::endl;
 	}
 #else
-	auto hlser = pipeline.addModule<Stream::Apple_HLS>(format("%s.m3u8", g_appName), type, opt.segmentDurationInMs);
+	IPipelinedModule *hlser;
+	if (formats & APPLE_HLS) {
+		hlser = pipeline.addModule<Stream::Apple_HLS>(format("%s.m3u8", g_appName), type, opt.segmentDurationInMs);
+	}
 #endif
-	auto dasher = pipeline.addModule<Stream::MPEG_DASH>(format("%s.mpd", g_appName), type, opt.segmentDurationInMs);
+	IPipelinedModule *dasher = nullptr;
+	if (formats & MPEG_DASH) {
+		dasher = pipeline.addModule<Stream::MPEG_DASH>(format("%s.mpd", g_appName), type, opt.segmentDurationInMs);
+	}
 
 	const bool transcode = opt.v.size() > 0 ? true : false;
 	if (!transcode) {
