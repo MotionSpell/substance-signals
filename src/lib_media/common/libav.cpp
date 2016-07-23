@@ -4,6 +4,7 @@
 #include "lib_utils/tools.hpp"
 #include <cassert>
 #include <cstdio>
+#include <mutex>
 #include <string.h>
 
 extern "C" {
@@ -12,6 +13,44 @@ extern "C" {
 }
 
 namespace {
+
+int av_lockmgr(void **mutex, enum AVLockOp op) {
+	if (NULL == mutex) {
+		return -1;
+	}
+
+	switch (op) {
+	case AV_LOCK_CREATE: {
+		std::mutex *m = new std::mutex();
+		*mutex = static_cast<void*>(m);
+		break;
+	}
+	case AV_LOCK_OBTAIN: {
+		std::mutex *m = static_cast<std::mutex*>(*mutex);
+		m->lock();
+		break;
+	}
+	case AV_LOCK_RELEASE: {
+		std::mutex *m = static_cast<std::mutex*>(*mutex);
+		m->unlock();
+		break;
+	}
+	case AV_LOCK_DESTROY: {
+		std::mutex *m = static_cast<std::mutex*>(*mutex);
+		delete m;
+		break;
+	}
+	default:
+		assert(0);
+		break;
+	}
+	return 0;
+}
+void av_lockmgr_register() {
+	av_lockmgr_register(&av_lockmgr);
+}
+auto g_InitAvLockMgr = runAtStartup(&av_lockmgr_register);
+
 Level avLogLevel(int level) {
 	switch (level) {
 	case AV_LOG_QUIET:
