@@ -1,17 +1,18 @@
 #pragma once
 
+#include "queue.hpp"
 #include <atomic>
 #include <functional>
 #include <future>
 #include <thread>
-#include "queue.hpp"
 
 
 namespace Signals {
 
 class ThreadPool {
 	public:
-		ThreadPool(const unsigned threadCount = std::thread::hardware_concurrency()) {
+		ThreadPool(const std::string &name = "", unsigned threadCount = std::thread::hardware_concurrency())
+		: name(name) {
 			done = false;
 			waitAndExit = false;
 			for (unsigned i = 0; i < threadCount; ++i) {
@@ -62,5 +63,6 @@ class ThreadPool {
 		std::atomic_bool done, waitAndExit;
 		Queue<std::function<void(void)>> workQueue;
 		std::vector<std::thread> threads;
+		std::string name;
 };
 }

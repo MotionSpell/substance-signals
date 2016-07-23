@@ -4,7 +4,7 @@
 #include "helper.hpp"
 
 #define EXECUTOR_SYNC         Signals::ExecutorSync<void()>
-#define EXECUTOR_ASYNC_THREAD Signals::ExecutorThread<void()>
+#define EXECUTOR_ASYNC_THREAD Signals::ExecutorThread<void()>(getDelegateName())
 #define EXECUTOR_ASYNC_POOL   StrandedPoolModuleExecutor
 #define EXECUTOR EXECUTOR_ASYNC_POOL
 

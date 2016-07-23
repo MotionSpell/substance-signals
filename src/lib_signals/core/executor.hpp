@@ -82,7 +82,7 @@ class ExecutorAuto<R(Args...)> : public IExecutor<R(Args...)> {
 template<typename R, typename... Args>
 class ExecutorThread<R(Args...)> : public IExecutor<R(Args...)> {
 	public:
-		ExecutorThread() : threadPool(1) {
+		ExecutorThread(const std::string &name) : threadPool(name, 1) {
 		}
 
 		std::shared_future<NotVoid<R>> operator() (const std::function<R(Args...)> &fn, Args... args) {
