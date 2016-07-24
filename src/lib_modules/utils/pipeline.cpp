@@ -41,11 +41,11 @@ class PipelinedInput : public IInput {
 		void process() override {
 			auto data = pop();
 			if (data) {
-				Log::msg(Debug, format("Module %s: dispatch data for time %s", typeid(delegate).name(), data->getTime() / (double)IClock::Rate));
+				Log::msg(Debug, "Module %s: dispatch data for time %s", typeid(delegate).name(), data->getTime() / (double)IClock::Rate);
 				delegate->push(data);
 				executor(MEMBER_FUNCTOR_PROCESS(delegate));
 			} else {
-				Log::msg(Debug, format("Module %s: notify finished.", typeid(delegate).name()));
+				Log::msg(Debug, "Module %s: notify finished.", typeid(delegate).name());
 				executor(MEMBER_FUNCTOR_NOTIFY_FINISHED(notify));
 			}
 		}
@@ -128,7 +128,7 @@ private:
 
 	/* uses the executor (i.e. may defer the call) */
 	void process() override {
-		Log::msg(Debug, format("Module %s: dispatch data", getDelegateName()));
+		Log::msg(Debug, "Module %s: dispatch data", getDelegateName());
 
 		if (isSource()) {
 			if (getNumInputs() == 0) {
@@ -194,7 +194,7 @@ void Pipeline::start() {
 		for (size_t i = 0; i < modules[m]->getNumOutputs(); ++i) {
 			auto output = modules[m]->getOutput(i);
 			if (output->getSignal().getNumConnections() == 0) {
-				Log::msg(Debug, format("Pipeline: connecting fake input to output %s of module %s", i, safe_cast<PipelinedModule>(modules[m].get())->getDelegateName()));
+				Log::msg(Debug, "Pipeline: connecting fake input to output %s of module %s", i, safe_cast<PipelinedModule>(modules[m].get())->getDelegateName());
 				connect(modules[m].get(), i, addModule<FakeOutput>(), 0);
 			}
 		}
@@ -218,7 +218,7 @@ void Pipeline::waitForCompletion() {
 }
 
 void Pipeline::exitSync() {
-	Log::msg(Warning, format("Pipeline: asked to exit now."));
+	Log::msg(Warning, "Pipeline: asked to exit now.");
 	for (auto &m : modules) {
 		if (m->isSource())
 			m->process();
