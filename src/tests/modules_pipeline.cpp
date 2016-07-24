@@ -165,7 +165,6 @@ unittest("pipeline: sink only") {
 }
 
 /*FIXME: these test fails because the pipeline is now async and cannot stop while running - see #58*/
-#ifdef ENABLE_FAILING_TESTS
 unittest("pipeline: source only and destroy while running") {
 	bool thrown = false;
 	try {
@@ -180,6 +179,7 @@ unittest("pipeline: source only and destroy while running") {
 	ASSERT(!thrown);
 }
 
+#ifdef ENABLE_FAILING_TESTS
 unittest("pipeline: input data is queued while module is running") {
 	try {
 		Pipeline p;
