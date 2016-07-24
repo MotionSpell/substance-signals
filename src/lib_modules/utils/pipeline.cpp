@@ -182,8 +182,9 @@ IPipelinedModule* Pipeline::addModuleInternal(IModule *rawModule) {
 
 void Pipeline::connect(IModule *prev, size_t outputIdx, IModule *n, size_t inputIdx) {
 	auto next = safe_cast<IPipelinedModule>(n);
-	if (next->isSink())
+	if (next->isSink()) {
 		numRemainingNotifications++;
+	}
 	next->connect(prev->getOutput(outputIdx), inputIdx);
 }
 
@@ -201,8 +202,9 @@ void Pipeline::start() {
 	}
 	Log::msg(Debug, "Pipeline: start sources");
 	for (auto &m : modules) {
-		if (m->isSource())
+		if (m->isSource()) {
 			m->process();
+		}
 	}
 	Log::msg(Info, "Pipeline: started");
 }
@@ -220,8 +222,9 @@ void Pipeline::waitForCompletion() {
 void Pipeline::exitSync() {
 	Log::msg(Warning, "Pipeline: asked to exit now.");
 	for (auto &m : modules) {
-		if (m->isSource())
+		if (m->isSource()) {
 			m->process();
+		}
 	}
 }
 

@@ -179,8 +179,52 @@ unittest("pipeline: source only and destroy while running") {
 	ASSERT(!thrown);
 }
 
-#ifdef ENABLE_FAILING_TESTS
-unittest("pipeline: input data is queued while module is running") {
+unittest("pipeline: dynamic module connection of an existing module") {
+	try {
+		Pipeline p;
+		auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
+		auto dualInput = p.addModule<DualInput>();
+		p.connect(demux, 0, dualInput, 0);
+		p.start();
+		p.connect(demux, 0, dualInput, 1);
+		p.waitForCompletion();
+	}
+	catch (std::runtime_error const& /*e*/) {
+	}
+}
+
+unittest("pipeline: dynamic module connection of a new module") {
+	try {
+		Pipeline p;
+		auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
+		auto dualInput = p.addModule<DualInput>();
+		p.connect(demux, 0, dualInput, 0);
+		auto demux2 = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
+		p.start();
+		p.connect(demux2, 0, dualInput, 1);
+		p.waitForCompletion();
+	}
+	catch (std::runtime_error const& /*e*/) {
+	}
+}
+
+unittest("pipeline: dynamic module connection of a new module") {
+	try {
+		Pipeline p;
+		auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
+		auto dualInput = p.addModule<DualInput>();
+		p.connect(demux, 0, dualInput, 0);
+		p.start();
+		auto demux2 = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
+		p.connect(demux2, 0, dualInput, 1);
+		if (demux2->isSource()) demux2->process(); //only sources need to be triggered
+		p.waitForCompletion();
+	}
+	catch (std::runtime_error const& /*e*/) {
+	}
+}
+
+unittest("pipeline: input data is manually queued while module is running") {
 	try {
 		Pipeline p;
 		auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
@@ -189,12 +233,12 @@ unittest("pipeline: input data is queued while module is running") {
 		p.start();
 		auto data = std::make_shared<DataRaw>(0);
 		dualInput->getInput(1)->push(data);
+		dualInput->getInput(1)->process();
 		p.waitForCompletion();
 	}
 	catch (std::runtime_error const& /*e*/) {
 	}
 }
-#endif
 
 #ifdef ENABLE_FAILING_TESTS /*see #55*/
 unittest("pipeline: multiple inputs (send same packets to 2 inputs and check call number)") {
