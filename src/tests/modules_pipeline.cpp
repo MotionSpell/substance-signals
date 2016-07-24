@@ -13,12 +13,32 @@ namespace {
 
 class DualInput : public Module {
 public:
-	DualInput() {
+	DualInput(bool threaded) : threaded(threaded) {
 		addInput(new Input<DataBase>(this));
 		addInput(new Input<DataBase>(this));
+		numCallsMutex.lock();
+		numCalls = 0;
+		if (threaded)
+			workingThread = std::thread(&DualInput::threadProc, this);
+	}
+
+	virtual ~DualInput() {
+		numCallsMutex.unlock();
+		if (workingThread.joinable()) {
+			for (size_t i = 0; i < inputs.size(); ++i) {
+				inputs[i]->push(nullptr);
+			}
+			workingThread.join();
+		}
 	}
 
 	void process() {
+		if (!threaded) {
+			threadProc();
+		}
+	}
+
+	void threadProc() {
 		numCalls++;
 
 		if (!done) {
@@ -31,14 +51,14 @@ public:
 		getInput(1)->clear();
 	}
 
-	uint64_t getNumCalls() const {
-		return numCalls;
-	}
+	static uint64_t numCalls;
 
 private:
-	bool done = false;
-	uint64_t numCalls = 0;
+	bool done = false, threaded;
+	std::thread workingThread;
+	std::mutex numCallsMutex;
 };
+uint64_t DualInput::numCalls = 0;
 
 unittest("pipeline: empty") {
 	{
@@ -183,7 +203,7 @@ unittest("pipeline: dynamic module connection of an existing module") {
 	try {
 		Pipeline p;
 		auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
-		auto dualInput = p.addModule<DualInput>();
+		auto dualInput = p.addModule<DualInput>(false);
 		p.connect(demux, 0, dualInput, 0);
 		p.start();
 		p.connect(demux, 0, dualInput, 1);
@@ -197,7 +217,7 @@ unittest("pipeline: dynamic module connection of a new module") {
 	try {
 		Pipeline p;
 		auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
-		auto dualInput = p.addModule<DualInput>();
+		auto dualInput = p.addModule<DualInput>(false);
 		p.connect(demux, 0, dualInput, 0);
 		auto demux2 = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
 		p.start();
@@ -212,7 +232,7 @@ unittest("pipeline: dynamic module connection of a new module") {
 	try {
 		Pipeline p;
 		auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
-		auto dualInput = p.addModule<DualInput>();
+		auto dualInput = p.addModule<DualInput>(false);
 		p.connect(demux, 0, dualInput, 0);
 		p.start();
 		auto demux2 = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
@@ -228,7 +248,7 @@ unittest("pipeline: input data is manually queued while module is running") {
 	try {
 		Pipeline p;
 		auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
-		auto dualInput = p.addModule<DualInput>();
+		auto dualInput = p.addModule<DualInput>(false);
 		p.connect(demux, 0, dualInput, 0);
 		p.start();
 		auto data = std::make_shared<DataRaw>(0);
@@ -240,17 +260,15 @@ unittest("pipeline: input data is manually queued while module is running") {
 	}
 }
 
-#ifdef ENABLE_FAILING_TESTS /*see #55*/
 unittest("pipeline: multiple inputs (send same packets to 2 inputs and check call number)") {
 	Pipeline p;
 	auto generator = p.addModule<In::VideoGenerator>();
-	auto dualInput = p.addModule<DualInput>();
+	auto dualInput = p.addModule<DualInput>(true);
 	p.connect(generator, 0, dualInput, 0);
 	p.connect(generator, 0, dualInput, 1);
 	p.start();
 	p.waitForCompletion();
-	ASSERT_EQUALS(dualInput->getNumCalls(), 1);
+	ASSERT_EQUALS(DualInput::numCalls, 1);
 }
-#endif
 
 }
