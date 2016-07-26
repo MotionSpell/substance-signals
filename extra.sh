@@ -168,4 +168,32 @@ if [ ! -f extra/include/optionparser/optionparser.h ] ; then
 	cp extra/src/optionparser-1.3/src/optionparser.h extra/include/optionparser/
 fi
 
+#-------------------------------------------------------------------------------
+echo rapidjson
+#-------------------------------------------------------------------------------
+if [ ! -f extra/src/rapidjson/include/rapidjson/rapidjson.h ] ; then
+	mkdir -p extra/src
+	rm -rf extra/src/rapidjson
+	git clone git@github.com:miloyip/rapidjson.git extra/src/rapidjson
+	pushd extra/src/rapidjson
+	git checkout 67d8a99477b4e1b638b920cc9b02f8910dfb05e7
+	git submodule update --init
+	popd
+fi
+
+if [ ! -f extra/build/rapidjson/buildOk ] ; then
+	mkdir -p extra/build/rapidjson
+	pushd extra/build/rapidjson
+	#CC=$CPREFIX-gcc cmake -G "Unix Makefiles" -DCMAKE_CXX_COMPILER=$CPREFIX-gcc -DCMAKE_INSTALL_PREFIX:PATH=$EXTRA_DIR ../../src/rapidjson
+	#CFLAGS="$CFLAGS -I$PWD/include"
+	#$MAKE
+	#$MAKE install
+	popd
+	touch extra/build/rapidjson/buildOk
+fi
+
+if [ ! -f extra/include/rapidjson/rapidjson.h ] ; then
+	cp -r extra/src/rapidjson/include/rapidjson extra/include/
+fi
+
 echo "Done"
