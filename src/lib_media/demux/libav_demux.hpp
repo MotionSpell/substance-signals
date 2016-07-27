@@ -24,8 +24,8 @@ class LibavDemux : public ModuleS {
 		void webcamList();
 		bool webcamOpen(const std::string &options);
 
-		void setTime(std::shared_ptr<DataAVPacket> data);
-		std::unique_ptr<Transform::Restamp> restamp;
+		void setTime(std::shared_ptr<DataAVPacket> data, int streamIdx);
+		std::vector<std::unique_ptr<Transform::Restamp>> restampers;
 
 		struct AVFormatContext *m_formatCtx;
 		std::vector<OutputDataDefault<DataAVPacket>*> outputs;

@@ -68,7 +68,11 @@ LibavDemux::LibavDemux(const std::string &url) {
 			if (m_formatCtx) avformat_close_input(&m_formatCtx);
 			throw error("Webcam init failed.");
 		}
-		restamp = uptr(create<Transform::Restamp>(Transform::Restamp::ClockSystem)); /*some webcams timestamps don't start at 0 (based on UTC)*/
+
+		restampers.resize(m_formatCtx->nb_streams);
+		for (unsigned i = 0; i < m_formatCtx->nb_streams; i++) {
+			restampers[i] = uptr(create<Transform::Restamp>(Transform::Restamp::ClockSystem)); /*some webcams timestamps don't start at 0 (based on UTC)*/
+		}
 	} else {
 		ffpp::Dict dict(typeid(*this).name(), "demuxer", "-probesize 100M -analyzeduration 100M -protocol_whitelist file,udp,rtp,http,https,tcp,tls");
 		if (avformat_open_input(&m_formatCtx, url.c_str(), nullptr, &dict)) {
@@ -83,7 +87,10 @@ LibavDemux::LibavDemux(const std::string &url) {
 			throw error("Couldn't get additional video stream info");
 		}
 
-		restamp = uptr(create<Transform::Restamp>(Transform::Restamp::Reset));
+		restampers.resize(m_formatCtx->nb_streams);
+		for (unsigned i = 0; i < m_formatCtx->nb_streams; i++) {
+			restampers[i] = uptr(create<Transform::Restamp>(Transform::Restamp::Reset));
+		}
 	}
 
 	for (unsigned i = 0; i<m_formatCtx->nb_streams; i++) {
@@ -103,14 +110,13 @@ LibavDemux::~LibavDemux() {
 	avformat_close_input(&m_formatCtx);
 }
 
-void LibavDemux::setTime(std::shared_ptr<DataAVPacket> data) {
+void LibavDemux::setTime(std::shared_ptr<DataAVPacket> data, int streamIdx) {
 	auto pkt = data->getPacket();
 	auto const base = m_formatCtx->streams[pkt->stream_index]->time_base;
 	auto const time = timescaleToClock(pkt->pts * base.num, base.den);
 	data->setTime(time);
 
-	restamp->process(data);
-
+	restampers[streamIdx]->process(data);
 	int64_t offset = data->getTime() - time;
 	if (offset != 0) {
 		/*propagate to AVPacket*/
@@ -134,7 +140,7 @@ void LibavDemux::process(Data data) {
 			return;
 		}
 
-		setTime(out);
+		setTime(out, pkt->stream_index);
 
 		outputs[pkt->stream_index]->emit(out);
 	}
