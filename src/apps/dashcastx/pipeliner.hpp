@@ -4,9 +4,10 @@
 #include "options.hpp"
 
 enum FormatFlags {
-	NONE = 0,
+	NONE      = 0,
 	MPEG_DASH = 1,
 	APPLE_HLS = 1 << 1,
+	RTMP      = 1 << 2,
 };
 inline FormatFlags operator | (FormatFlags a, FormatFlags b) {
 	return static_cast<FormatFlags>(static_cast<int>(a) | static_cast<int>(b));

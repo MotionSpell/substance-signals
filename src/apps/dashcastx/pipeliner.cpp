@@ -42,7 +42,7 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 		}
 	};
 
-	/*video is forced, audio is as paddthru as possible*/
+	/*video is forced, audio is as passthru as possible*/
 	auto createConverter = [&](std::shared_ptr<const IMetadata> metadataDemux, std::shared_ptr<const IMetadata> metadataEncoder, const PictureFormat &dstFmt)->IModule* {
 		auto const codecType = metadataDemux->getStreamType();
 		if (codecType == VIDEO_PKT) {
