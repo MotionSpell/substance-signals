@@ -102,8 +102,8 @@ const char* avlogLevelName(int level) {
 namespace Modules {
 
 //MetadataPktLibav
-MetadataPktLibav::MetadataPktLibav(AVCodecContext *codecCtx)
-	: codecCtx(codecCtx) {
+MetadataPktLibav::MetadataPktLibav(AVCodecContext *codecCtx, int id)
+	: codecCtx(codecCtx), id(id) {
 }
 
 StreamType MetadataPktLibav::getStreamType() const {
@@ -116,6 +116,10 @@ StreamType MetadataPktLibav::getStreamType() const {
 
 AVCodecContext* MetadataPktLibav::getAVCodecContext() const {
 	return codecCtx;
+}
+
+int MetadataPktLibav::getId() const {
+	return id;
 }
 
 PixelFormat MetadataPktLibavVideo::getPixelFormat() const {

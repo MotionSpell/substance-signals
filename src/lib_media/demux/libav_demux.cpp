@@ -96,9 +96,9 @@ LibavDemux::LibavDemux(const std::string &url) {
 	for (unsigned i = 0; i<m_formatCtx->nb_streams; i++) {
 		IMetadata *m;
 		switch (m_formatCtx->streams[i]->codec->codec_type) {
-		case AVMEDIA_TYPE_AUDIO: m = new MetadataPktLibavAudio(m_formatCtx->streams[i]->codec); break;
+		case AVMEDIA_TYPE_AUDIO: m = new MetadataPktLibavAudio(m_formatCtx->streams[i]->codec, m_formatCtx->streams[i]->id); break;
 		case AVMEDIA_TYPE_VIDEO: /*ffpp::isRaw(m_formatCtx->streams[i]->codec) ? m = new MetadataRawVideo :*/
-			m = new MetadataPktLibavVideo(m_formatCtx->streams[i]->codec); break;
+			m = new MetadataPktLibavVideo(m_formatCtx->streams[i]->codec, m_formatCtx->streams[i]->id); break;
 		default: m = nullptr; break;
 		}
 		outputs.push_back(addOutput<OutputDataDefault<DataAVPacket>>(m));

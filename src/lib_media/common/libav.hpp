@@ -25,18 +25,20 @@ namespace Modules {
 class MetadataPktLibav : public IMetadata {
 	public:
 		//Doesn't take codecCtx ownership
-		MetadataPktLibav(AVCodecContext *codecCtx);
+		MetadataPktLibav(AVCodecContext *codecCtx, int id = -1);
 		virtual ~MetadataPktLibav() {}
 		StreamType getStreamType() const override;
 		AVCodecContext* getAVCodecContext() const;
+		int getId() const;
 
 	protected:
 		AVCodecContext *codecCtx;
+		int id; /*format specific id e.g. PID for MPEG2-TS. -1 is uninitialized*/
 };
 
 class MetadataPktLibavVideo : public MetadataPktLibav {
 	public:
-		MetadataPktLibavVideo(AVCodecContext *codecCtx) : MetadataPktLibav(codecCtx) {}
+		MetadataPktLibavVideo(AVCodecContext *codecCtx, int id = -1) : MetadataPktLibav(codecCtx, id) {}
 		PixelFormat getPixelFormat() const;
 		Resolution getResolution() const;
 		uint32_t getTimeScale() const;
@@ -45,7 +47,7 @@ class MetadataPktLibavVideo : public MetadataPktLibav {
 
 class MetadataPktLibavAudio : public MetadataPktLibav {
 	public:
-		MetadataPktLibavAudio(AVCodecContext *codecCtx) : MetadataPktLibav(codecCtx) {}
+		MetadataPktLibavAudio(AVCodecContext *codecCtx, int id = -1) : MetadataPktLibav(codecCtx, id) {}
 		std::string getCodecName() const;
 		uint32_t getNumChannels() const;
 		uint32_t getSampleRate() const;
