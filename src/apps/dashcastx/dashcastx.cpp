@@ -1,6 +1,8 @@
 #include "lib_utils/profiler.hpp"
 #include "pipeliner.hpp"
 #include <csignal>
+#include <direct.h> //chdir
+#include <gpac/tools.h> //gf_mkdir
 
 using namespace Pipelines;
 
@@ -45,6 +47,8 @@ int safeMain(int argc, char const* argv[], const FormatFlags formats) {
 #endif
 
 	AppOptions opt = processArgs(argc, argv);
+	if (chdir(opt.workingDir.c_str()) < 0 && (gf_mkdir((char*)opt.workingDir.c_str()) || chdir(opt.workingDir.c_str()) < 0))
+		throw std::runtime_error(format("%s - couldn't change dir to %s: please check the directory exists and you have sufficient rights", g_appName, opt.workingDir));
 
 	Tools::Profiler profilerGlobal(g_appName);
 

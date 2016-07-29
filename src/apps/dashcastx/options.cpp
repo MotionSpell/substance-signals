@@ -76,6 +76,8 @@ void printDetectedOptions(option::Parser &parse, option::Option * const options)
 		std::cout << "Option: " << opt->name << ", value: " << opt->arg << std::endl;
 	for (option::Option* opt = options[OPT]; opt; opt = opt->next())
 		std::cout << "Option: " << opt->name << std::endl;
+	for (option::Option* opt = options[NONEMPTY]; opt; opt = opt->next())
+		std::cout << "Option: " << opt->name << std::endl;
 	std::cout << std::endl;
 }
 
@@ -95,12 +97,19 @@ AppOptions processArgs(int argc, char const* argv[]) {
 		"  %s --live -v 1280x720:100000 -v 640x360:300000 webcam:video=/dev/video0:audio=/dev/audio1\n",
 		g_appName, g_appName, g_appName, g_appName, g_appName, g_appName);
 	const option::Descriptor usage[] = {
-		{ UNKNOWN, 0, "", "", Arg::Unknown, usage0.c_str() },
-		{ HELP,    0, "h", "help",    Arg::None,    "  --help,              -h             \tPrint usage and exit." },
-		{ OPT,     0, "l", "live",    Arg::None,    "  --live,              -l             \tRun at system clock pace (otherwise runs as fast as possible) with low latency settings (quality may be degraded)." },
-		{ NUMERIC, 0, "s", "seg-dur", Arg::Numeric, "  --seg-dur,           -s             \tSet the segment duration (in ms) (default value: 2000)." },
-		{ VIDEO,   0, "v", "video",   Arg::Video,   "  --video wxh[:b[:t]], -v wxh[:b[:t]] \tSet a video resolution and optionally bitrate (enables resize and/or transcoding) and encoder type (supported 0 (software (default)), 1 (QuickSync), 2 (NVEnc)." },
-		{ UNKNOWN, 0, "",  "",        Arg::None, examples.c_str() },
+		{ UNKNOWN,  0, "" ,  "",
+		Arg::Unknown, usage0.c_str() },
+		{ HELP,     0, "h", "help",        Arg::None,
+			"  --help,              -h             \tPrint usage and exit." },
+		{ OPT,      0, "l", "live",        Arg::None,
+			"  --live,              -l             \tRun at system clock pace (otherwise runs as fast as possible) with low latency settings (quality may be degraded)." },
+		{ NUMERIC,  0, "s", "seg-dur",     Arg::Numeric,
+			"  --seg-dur,           -s             \tSet the segment duration (in ms) (default value: 2000)." },
+		{ VIDEO,    0, "v", "video",       Arg::Video,
+			"  --video wxh[:b[:t]], -v wxh[:b[:t]] \tSet a video resolution and optionally bitrate (enables resize and/or transcoding) and encoder type (supported 0 (software (default)), 1 (QuickSync), 2 (NVEnc)." },
+		{ NONEMPTY, 0, "w", "working-dir", Arg::NonEmpty,
+			"  --working-dir, -w \tSet a working directory." },
+		{ UNKNOWN, 0, ""  ,  "",            Arg::None, examples.c_str() },
 		{ 0, 0, 0, 0, 0, 0 }
 	};
 
@@ -135,6 +144,8 @@ AppOptions processArgs(int argc, char const* argv[]) {
 			opt.v.push_back(Video(Modules::Resolution(w, h), bitrate, type));
 		}
 	}
+	if (options[NONEMPTY].first()->desc && options[NONEMPTY].first()->desc->shortopt == std::string("w"))
+		opt.workingDir = options[NONEMPTY].first()->arg;
 
 	return opt;
 }

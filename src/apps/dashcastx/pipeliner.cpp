@@ -8,6 +8,9 @@ using namespace Pipelines;
 
 extern const char *g_appName;
 
+#define DASH_SUBDIR "dash/"
+#define HLS_SUBDIR  "hls/"
+
 //#define DEBUG_MONITOR
 //#define MP4_MONITOR
 #define MANUAL_HLS //FIXME: see https://git.gpac-licensing.com/rbouqueau/fk-encode/issues/17 and https://git.gpac-licensing.com/rbouqueau/fk-encode/issues/18
@@ -75,12 +78,16 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 #else
 	IPipelinedModule *hlser;
 	if (formats & APPLE_HLS) {
+		if (gf_mkdir(HLS_SUBDIR))
+			throw std::runtime_error(format("%s - couldn't create subdir %s: please check you have sufficient rights", g_appName, HLS_SUBDIR));
 		hlser = pipeline.addModule<Stream::Apple_HLS>(format("%s.m3u8", g_appName), type, opt.segmentDurationInMs);
 	}
 #endif
 	IPipelinedModule *dasher = nullptr;
 	if (formats & MPEG_DASH) {
-		dasher = pipeline.addModule<Stream::MPEG_DASH>(format("%s.mpd", g_appName), type, opt.segmentDurationInMs);
+		if (gf_mkdir(DASH_SUBDIR))
+			throw std::runtime_error(format("%s - couldn't create subdir %s: please check you have sufficient rights", g_appName, DASH_SUBDIR));
+		dasher = pipeline.addModule<Stream::MPEG_DASH>(format("%s%s.mpd", DASH_SUBDIR, g_appName), type, opt.segmentDurationInMs);
 	}
 
 	const bool transcode = opt.v.size() > 0 ? true : false;
@@ -143,7 +150,9 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 				filename << "audio_" << numDashInputs << "_";
 			}
 			if (formats & APPLE_HLS) {
-				auto muxer = pipeline.addModule<Mux::LibavMux>(filename.str(), "hls", format("-hls_time %s -hls_playlist_type event", opt.segmentDurationInMs / 1000));
+				if (gf_mkdir(HLS_SUBDIR))
+					throw std::runtime_error(format("%s - couldn't create subdir %s: please check you have sufficient rights", g_appName, HLS_SUBDIR));
+				auto muxer = pipeline.addModule<Mux::LibavMux>(HLS_SUBDIR + filename.str(), "hls", format("-hls_time %s -hls_playlist_type event", opt.segmentDurationInMs / 1000));
 				if (transcode) {
 					connect(encoder, muxer);
 				} else {
@@ -169,7 +178,7 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 #endif
 			}
 			if (formats & MPEG_DASH) {
-				auto muxer = pipeline.addModule<Mux::GPACMuxMP4>(filename.str(), opt.segmentDurationInMs, true);
+				auto muxer = pipeline.addModule<Mux::GPACMuxMP4>(DASH_SUBDIR + filename.str(), opt.segmentDurationInMs, true);
 				if (transcode) {
 					connect(encoder, muxer);
 				} else {
@@ -193,7 +202,7 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 #ifdef MANUAL_HLS
 		if (formats & APPLE_HLS) {
 			std::ofstream mpl;
-			mpl.open(format("%s.m3u8", g_appName));
+			mpl.open(format("%s%s.m3u8", HLS_SUBDIR, g_appName));
 			mpl << playlistMaster.str();
 			mpl.close();
 		}
