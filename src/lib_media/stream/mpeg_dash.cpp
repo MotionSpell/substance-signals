@@ -72,8 +72,8 @@ void MPEG_DASH::ensureManifest() {
 			switch (quality->meta->getStreamType()) {
 			case AUDIO_PKT:
 				rep->samplerate = quality->meta->sampleRate;
-				rep->segment_template->initialization = gf_strdup(format("audio.mp4").c_str());
-				rep->segment_template->media = gf_strdup(format("audio.mp4_$Number$").c_str());
+				rep->segment_template->initialization = gf_strdup(format("audio_$RepresentationID$_.mp4").c_str());
+				rep->segment_template->media = gf_strdup(format("audio_$RepresentationID$_.mp4_$Number$").c_str());
 				break;
 			case VIDEO_PKT:
 				rep->width = quality->meta->resolution[0];
