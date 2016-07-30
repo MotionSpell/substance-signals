@@ -29,23 +29,24 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 			Resolution oRes;
 			oRes.width = res.height;
 			oRes.height = res.width;
+			Log::msg(Info, "[autoRotate] Switched resolution from %sx%s to %sx%s", res.width, res.height, oRes.width, oRes.height);
 			return oRes;
 		} else {
 			return res;
 		}
 	};
 
-	auto createEncoder = [&](std::shared_ptr<const IMetadata> metadataDemux, const AppOptions &opt, size_t optIdx, PixelFormat &pf, bool verticalize)->IModule* {
+	auto createEncoder = [&](std::shared_ptr<const IMetadata> metadataDemux, bool isLive, Encode::LibavEncodeParams::VideoCodecType videoCodecType, PictureFormat &dstFmt, unsigned bitrate)->IModule* {
 		auto const codecType = metadataDemux->getStreamType();
 		if (codecType == VIDEO_PKT) {
 			Log::msg(Info, "[Encoder] Found video stream");
 			Encode::LibavEncodeParams p;
-			p.isLowLatency = opt.isLive;
-			p.codecType = (Encode::LibavEncodeParams::VideoCodecType)opt.v[optIdx].type;
-			p.res = autoRotate(opt.v[optIdx].res, verticalize);
-			p.bitrate_v = opt.v[optIdx].bitrate;
+			p.isLowLatency = isLive;
+			p.codecType = videoCodecType;
+			p.res = dstFmt.res;
+			p.bitrate_v = bitrate;
 			auto m = pipeline.addModule<Encode::LibavEncode>(Encode::LibavEncode::Video, p);
-			pf = p.pixelFormat;
+			dstFmt.format = p.pixelFormat;
 			return m;
 		} else if (codecType == AUDIO_PKT) {
 			Log::msg(Info, "[Encoder] Found audio stream");
@@ -135,7 +136,7 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 			IModule *encoder = nullptr;
 			if (transcode) {
 				PictureFormat encoderInputPicFmt(autoRotate(opt.v[r].res, isVertical), UNKNOWN_PF);
-				encoder = createEncoder(metadataDemux, opt, r, encoderInputPicFmt.format, isVertical);
+				encoder = createEncoder(metadataDemux, opt.isLive, (Encode::LibavEncodeParams::VideoCodecType)opt.v[r].type, encoderInputPicFmt, opt.v[r].bitrate);
 				if (!encoder)
 					continue;
 
