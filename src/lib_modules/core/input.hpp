@@ -43,10 +43,7 @@ class Input : public IInput {
 		}
 
 		void push(Data data) override {
-			if (typeid(DataType) == typeid(DataLoose))
-				Signals::Queue<Data>::push(data);
-			else
-				Signals::Queue<Data>::push(safe_cast<const DataType>(data));
+			Signals::Queue<Data>::push(data);
 		}
 
 	private:
