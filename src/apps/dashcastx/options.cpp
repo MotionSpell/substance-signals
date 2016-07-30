@@ -92,10 +92,11 @@ AppOptions processArgs(int argc, char const* argv[]) {
 		"  %s file.ts\n"
 		"  %s udp://226.0.0.1:1234?overrun_nonfatal=1\n"
 		"Transcode:\n"
-		"  %s --live --seg-dur 10000 --video 320x180:50000 -v 640x360:300000 http://server.com/file.mp4\n"
-		"  %s --live -v 1280x720:100000 webcam:video=/dev/video0:audio=/dev/audio1\n"
-		"  %s --live -v 1280x720:100000 -v 640x360:300000 webcam:video=/dev/video0:audio=/dev/audio1\n",
-		g_appName, g_appName, g_appName, g_appName, g_appName, g_appName);
+		"  %s --live --seg-dur 10000 --autorotate --video 320x180:50000 --video 640x360:300000 http://server.com/file.mp4\n"
+		"  %s --live -v 1280x720:1000000 webcam:video=/dev/video0:audio=/dev/audio1\n"
+		"  %s --live --working-dir -v 640x360:300000 -v 1280x720:1000000 webcam:video=/dev/video0:audio=/dev/audio1\n",
+		"  %s -l -w -v -r 640x360:300000:0 udp://226.0.0.1:1234\n",
+		g_appName, g_appName, g_appName, g_appName, g_appName, g_appName, g_appName);
 	const option::Descriptor usage[] = {
 		{ UNKNOWN,  0, "" ,  "",
 		Arg::Unknown, usage0.c_str() },
@@ -107,14 +108,16 @@ AppOptions processArgs(int argc, char const* argv[]) {
 			"  --seg-dur,           -s             \tSet the segment duration (in ms) (default value: 2000)." },
 		{ VIDEO,    0, "v", "video",       Arg::Video,
 			"  --video wxh[:b[:t]], -v wxh[:b[:t]] \tSet a video resolution and optionally bitrate (enables resize and/or transcoding) and encoder type (supported 0 (software (default)), 1 (QuickSync), 2 (NVEnc)." },
+		{ OPT,      0, "r", "autorotate",  Arg::None,
+			"  --autorotate,        -r             \tAuto-rotate if the input height is bigger than the width." },
 		{ NONEMPTY, 0, "w", "working-dir", Arg::NonEmpty,
-			"  --working-dir, -w \tSet a working directory." },
-		{ UNKNOWN, 0, ""  ,  "",            Arg::None, examples.c_str() },
+			"  --working-dir,       -w             \tSet a working directory." },
+		{ UNKNOWN,  0, "" ,  "",           Arg::None, examples.c_str() },
 		{ 0, 0, 0, 0, 0, 0 }
 	};
 
 	argc -= (argc > 0); argv += (argc > 0);
-	option::Stats  stats(usage, argc, argv);
+	option::Stats stats(usage, argc, argv);
 	std::unique_ptr<option::Option[]> options(new option::Option[stats.options_max]);
 	std::unique_ptr<option::Option[]>  buffer(new option::Option[stats.buffer_max]);
 	option::Parser parse(usage, argc, argv, options.get(), buffer.get());
@@ -131,8 +134,12 @@ AppOptions processArgs(int argc, char const* argv[]) {
 
 	AppOptions opt;
 	opt.url = parse.nonOption(0);
-	if (options[OPT].first()->desc && options[OPT].first()->desc->shortopt == std::string("l"))
-		opt.isLive = true;
+	for (option::Option *o = options[OPT]; o; o = o->next()) {
+		if (o->desc->shortopt == std::string("l"))
+			opt.isLive = true;
+		if (o->desc->shortopt == std::string("r"))
+			opt.autoRotate = true;
+	}
 	if (options[NUMERIC].first()->desc && options[NUMERIC].first()->desc->shortopt == std::string("s"))
 		opt.segmentDurationInMs = atol(options[NUMERIC].first()->arg);
 	if (options[VIDEO].first()->desc && options[VIDEO].first()->desc->shortopt == std::string("v")) {

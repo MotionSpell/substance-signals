@@ -24,14 +24,25 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 		pipeline.connect(src, 0, dst, 0);
 	};
 
-	auto createEncoder = [&](std::shared_ptr<const IMetadata> metadataDemux, const AppOptions &opt, size_t optIdx, PixelFormat &pf)->IModule* {
+	auto autoRotate = [&](const Resolution &res, bool verticalize)->Resolution {
+		if (verticalize && res.height < res.width) {
+			Resolution oRes;
+			oRes.width = res.height;
+			oRes.height = res.width;
+			return oRes;
+		} else {
+			return res;
+		}
+	};
+
+	auto createEncoder = [&](std::shared_ptr<const IMetadata> metadataDemux, const AppOptions &opt, size_t optIdx, PixelFormat &pf, bool verticalize)->IModule* {
 		auto const codecType = metadataDemux->getStreamType();
 		if (codecType == VIDEO_PKT) {
 			Log::msg(Info, "[Encoder] Found video stream");
 			Encode::LibavEncodeParams p;
 			p.isLowLatency = opt.isLive;
 			p.codecType = (Encode::LibavEncodeParams::VideoCodecType)opt.v[optIdx].type;
-			p.res = opt.v[optIdx].res;
+			p.res = autoRotate(opt.v[optIdx].res, verticalize);
 			p.bitrate_v = opt.v[optIdx].bitrate;
 			auto m = pipeline.addModule<Encode::LibavEncode>(Encode::LibavEncode::Video, p);
 			pf = p.pixelFormat;
@@ -90,9 +101,12 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 		dasher = pipeline.addModule<Stream::MPEG_DASH>(format("%s%s.mpd", DASH_SUBDIR, g_appName), type, opt.segmentDurationInMs);
 	}
 
+	bool isVertical = false;
 	const bool transcode = opt.v.size() > 0 ? true : false;
 	if (!transcode) {
 		Log::msg(Warning, "[%s] No transcode. Make passthru.", g_appName);
+		if (opt.autoRotate)
+			throw std::runtime_error(format("%s - cannot autorotate when no transcoding is enabled", g_appName, DASH_SUBDIR));
 	}
 
 	int numDashInputs = 0;
@@ -107,14 +121,21 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 		if (transcode) {
 			decode = pipeline.addModule<Decode::LibavDecode>(*metadataDemux);
 			pipeline.connect(demux, i, decode, 0);
+
+			if (metadataDemux->isVideo() && opt.autoRotate) {
+				auto const res = getMetadataFromOutput<MetadataPktLibavVideo>(demux->getOutput(i))->getResolution();
+				if (res.height > res.width) {
+					isVertical = true;
+				}
+			}
 		}
 
 		auto const numRes = metadataDemux->isVideo() ? std::max<size_t>(opt.v.size(), 1) : 1;
 		for (size_t r = 0; r < numRes; ++r, ++numDashInputs) {
 			IModule *encoder = nullptr;
 			if (transcode) {
-				PictureFormat encoderInputPicFmt(opt.v[r].res, UNKNOWN_PF);
-				encoder = createEncoder(metadataDemux, opt, r, encoderInputPicFmt.format);
+				PictureFormat encoderInputPicFmt(autoRotate(opt.v[r].res, isVertical), UNKNOWN_PF);
+				encoder = createEncoder(metadataDemux, opt, r, encoderInputPicFmt.format, isVertical);
 				if (!encoder)
 					continue;
 

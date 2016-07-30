@@ -14,7 +14,7 @@ struct AppOptions {
 	std::string url, workingDir = ".";
 	std::vector<Video> v;
 	uint64_t segmentDurationInMs = 2000;
-	bool isLive = false;
+	bool isLive = false, autoRotate = false;
 };
 
 AppOptions processArgs(int argc, char const* argv[]);
