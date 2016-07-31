@@ -181,6 +181,7 @@ IPipelinedModule* Pipeline::addModuleInternal(IModule *rawModule) {
 }
 
 void Pipeline::connect(IModule *prev, size_t outputIdx, IModule *n, size_t inputIdx) {
+	if (!n) return;
 	auto next = safe_cast<IPipelinedModule>(n);
 	if (next->isSink()) {
 		numRemainingNotifications++;

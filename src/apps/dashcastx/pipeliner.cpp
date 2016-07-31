@@ -19,6 +19,22 @@ extern const char *g_appName;
 #include <fstream>
 #endif
 
+class CommandExecutor : public Module {
+public:
+	CommandExecutor(const std::string &cmd) : cmd(cmd) {
+		addInput(new Input<DataBase>(this));
+	}
+	virtual ~CommandExecutor() {}
+	void process() {
+		auto data = getInput(0);
+		auto meta = safe_cast<const MetadataFile>(data->getMetadata());
+		system(format(cmd, meta->getFilename()).c_str());
+	}
+
+private:
+	std::string cmd;
+};
+
 void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlags formats) {
 	auto connect = [&](auto* src, auto* dst) {
 		pipeline.connect(src, 0, dst, 0);
@@ -78,7 +94,10 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 	};
 
 	auto demux = pipeline.addModule<Demux::LibavDemux>(opt.url);
-
+	IPipelinedModule *command = nullptr;
+	if (!opt.postCommand.empty()) {
+		command = pipeline.addModule<CommandExecutor>(opt.postCommand);
+	}
 	auto const type = opt.isLive ? Stream::AdaptiveStreamingCommon::Live : Stream::AdaptiveStreamingCommon::Static;
 #ifdef MANUAL_HLS
 	std::stringstream playlistMaster;
@@ -180,6 +199,7 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 				} else {
 					pipeline.connect(demux, i, muxer, 0);
 				}
+				pipeline.connect(muxer, 1, command, 0);
 
 #ifdef MANUAL_HLS
 				if (formats & APPLE_HLS) {
@@ -197,6 +217,8 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 				}
 #else
 				pipeline.connect(muxer, 0, hlser, numDashInputs);
+				pipeline.connect(hlser, 0, command, 0);
+				pipeline.connect(hlser, 1, command, 0);
 #endif
 			}
 			if (formats & MPEG_DASH) {
@@ -208,6 +230,8 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 				}
 
 				pipeline.connect(muxer, 0, dasher, numDashInputs);
+				pipeline.connect(dasher, 0, command, 0);
+				pipeline.connect(dasher, 1, command, 0);
 			}
 
 #ifdef MP4_MONITOR

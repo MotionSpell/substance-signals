@@ -11,7 +11,7 @@ struct Video {
 };
 
 struct AppOptions {
-	std::string url, workingDir = ".";
+	std::string url, workingDir = ".", postCommand;
 	std::vector<Video> v;
 	uint64_t segmentDurationInMs = 2000;
 	bool isLive = false, autoRotate = false;

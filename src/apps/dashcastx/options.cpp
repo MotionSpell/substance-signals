@@ -112,6 +112,8 @@ AppOptions processArgs(int argc, char const* argv[]) {
 			"  --autorotate,        -r             \tAuto-rotate if the input height is bigger than the width." },
 		{ NONEMPTY, 0, "w", "working-dir", Arg::NonEmpty,
 			"  --working-dir,       -w             \tSet a working directory." },
+		{ NONEMPTY, 0, "p", "post-cmd",    Arg::NonEmpty,
+			"  --post-cmd,          -p             \tExecute a command when a segment or a manifest are created/updated. Shall contain one '%s' to be replaced by the filename." },
 		{ UNKNOWN,  0, "" ,  "",           Arg::None, examples.c_str() },
 		{ 0, 0, 0, 0, 0, 0 }
 	};
@@ -151,8 +153,12 @@ AppOptions processArgs(int argc, char const* argv[]) {
 			opt.v.push_back(Video(Modules::Resolution(w, h), bitrate, type));
 		}
 	}
-	if (options[NONEMPTY].first()->desc && options[NONEMPTY].first()->desc->shortopt == std::string("w"))
-		opt.workingDir = options[NONEMPTY].first()->arg;
+	for (option::Option *o = options[NONEMPTY]; o; o = o->next()) {
+		if (o->desc->shortopt == std::string("w"))
+			opt.workingDir = o->arg;
+		if (o->desc->shortopt == std::string("p"))
+			opt.postCommand = o->arg;
+	}
 
 	return opt;
 }
