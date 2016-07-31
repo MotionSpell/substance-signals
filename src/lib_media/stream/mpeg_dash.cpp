@@ -28,10 +28,10 @@ GF_MPD_AdaptationSet *createAS(uint64_t segDurationInMs, GF_MPD_Period *period, 
 
 namespace Stream {
 
-MPEG_DASH::MPEG_DASH(const std::string &mpdPath, Type type, uint64_t segDurationInMs)
+MPEG_DASH::MPEG_DASH(const std::string &mpdDir, const std::string &mpdName, Type type, uint64_t segDurationInMs)
 	: AdaptiveStreamingCommon(type, segDurationInMs),
 	  mpd(type == Live ? new gpacpp::MPD(GF_MPD_TYPE_DYNAMIC, MIN_BUFFER_TIME_IN_MS_LIVE)
-	  : new gpacpp::MPD(GF_MPD_TYPE_STATIC, MIN_BUFFER_TIME_IN_MS_VOD)), mpdPath(mpdPath) {
+	  : new gpacpp::MPD(GF_MPD_TYPE_STATIC, MIN_BUFFER_TIME_IN_MS_VOD)), mpdDir(mpdDir), mpdPath(format("%s/%s", mpdDir, mpdName)) {
 }
 
 MPEG_DASH::~MPEG_DASH() {
@@ -62,7 +62,8 @@ void MPEG_DASH::ensureManifest() {
 			default: assert(0);
 			}
 
-			auto rep = mpd->addRepresentation(as, format("%s", i).c_str(), (u32)quality->avg_bitrate_in_bps);
+			auto const repId = format("%s", i);
+			auto rep = mpd->addRepresentation(as, repId.c_str(), (u32)quality->avg_bitrate_in_bps);
 			quality->rep = rep;
 			GF_SAFEALLOC(rep->segment_template, GF_MPD_SegmentTemplate);
 			rep->segment_template->start_number = 1;
@@ -70,17 +71,29 @@ void MPEG_DASH::ensureManifest() {
 			rep->codecs = gf_strdup(quality->meta->getCodecName().c_str());
 			rep->starts_with_sap = GF_TRUE;
 			switch (quality->meta->getStreamType()) {
-			case AUDIO_PKT:
+			case AUDIO_PKT: {
 				rep->samplerate = quality->meta->sampleRate;
 				rep->segment_template->initialization = gf_strdup(format("audio_$RepresentationID$_.mp4").c_str());
 				rep->segment_template->media = gf_strdup(format("audio_$RepresentationID$_.mp4_$Number$").c_str());
+
+				auto out = outputSegment->getBuffer(0);
+				auto metadata = std::make_shared<MetadataFile>(format("%s/audio_%s_.mp4", mpdDir, repId), AUDIO_PKT, "", "", 0, 0, false);
+				out->setMetadata(metadata);
+				outputSegment->emit(out);
 				break;
-			case VIDEO_PKT:
+			}
+			case VIDEO_PKT: {
 				rep->width = quality->meta->resolution[0];
 				rep->height = quality->meta->resolution[1];
 				rep->segment_template->initialization = gf_strdup(format("video_$RepresentationID$_%sx%s.mp4", rep->width, rep->height).c_str());
 				rep->segment_template->media = gf_strdup(format("video_%s_%sx%s.mp4_$Number$", i, rep->width, rep->height).c_str());
+
+				auto out = outputSegment->getBuffer(0);
+				auto metadata = std::make_shared<MetadataFile>(format("%s/video_%s_%sx%s.mp4", mpdDir, repId, rep->width, rep->height), VIDEO_PKT, "", "", 0, 0, false);
+				out->setMetadata(metadata);
+				outputSegment->emit(out);
 				break;
+			}
 			default:
 				assert(0);
 			}

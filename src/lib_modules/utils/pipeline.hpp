@@ -15,7 +15,7 @@ InstanceType* createModule(size_t allocatorSize, Args&&... args) {
 struct IPipelinedModule : public Modules::IModule {
 	virtual bool isSource() const = 0;
 	virtual bool isSink() const = 0;
-	virtual void connect(Modules::IOutput *output, size_t inputIdx) = 0;
+	virtual void connect(Modules::IOutput *output, size_t inputIdx, bool inputAcceptMultipleConnections) = 0;
 };
 
 struct ICompletionNotifier {
@@ -35,7 +35,7 @@ class Pipeline : public ICompletionNotifier {
 			}
 		}
 
-		void connect(Modules::IModule *prev, size_t outputIdx, Modules::IModule *next, size_t inputIdx);
+		void connect(Modules::IModule *prev, size_t outputIdx, Modules::IModule *next, size_t inputIdx, bool inputAcceptMultipleConnections = false);
 
 		void start();
 		void waitForCompletion();

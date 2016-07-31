@@ -102,10 +102,10 @@ public:
 	}
 
 private:
-	void connect(IOutput *output, size_t inputIdx) override {
+	void connect(IOutput *output, size_t inputIdx, bool inputAcceptMultipleConnections) {
 		auto input = getInput(inputIdx);
 		ConnectOutputToInput(output, input, &g_executorSync);
-		if (input->getNumConnections() != 1)
+		if (!inputAcceptMultipleConnections && (input->getNumConnections() != 1))
 			throw std::runtime_error(format("PipelinedModule %s: input %s has %s connections.", getDelegateName(), inputIdx, input->getNumConnections()));
 	}
 
@@ -180,13 +180,13 @@ IPipelinedModule* Pipeline::addModuleInternal(IModule *rawModule) {
 	return ret;
 }
 
-void Pipeline::connect(IModule *prev, size_t outputIdx, IModule *n, size_t inputIdx) {
+void Pipeline::connect(IModule *prev, size_t outputIdx, IModule *n, size_t inputIdx, bool inputAcceptMultipleConnections) {
 	if (!n) return;
 	auto next = safe_cast<IPipelinedModule>(n);
 	if (next->isSink()) {
 		numRemainingNotifications++;
 	}
-	next->connect(prev->getOutput(outputIdx), inputIdx);
+	next->connect(prev->getOutput(outputIdx), inputIdx, inputAcceptMultipleConnections);
 }
 
 void Pipeline::start() {

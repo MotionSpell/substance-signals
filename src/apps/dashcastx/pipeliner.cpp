@@ -26,13 +26,71 @@ public:
 	}
 	virtual ~CommandExecutor() {}
 	void process() {
-		auto data = getInput(0);
+		auto data = getInput(0)->pop();
 		auto meta = safe_cast<const MetadataFile>(data->getMetadata());
-		system(format(cmd, meta->getFilename()).c_str());
+		auto const str = format(cmd, meta->getFilename());
+		if (system(str.c_str()) == 1) {
+			Log::msg(Error, "CommandExecutor: couldn't execute '%s'", str);
+		}
 	}
 
 private:
 	std::string cmd;
+};
+
+/*FIXME: this should not even exist but we may need to send event when the libav muxer emits new segments*/
+class LibavMuxHLS : public ModuleDynI {
+public:
+	LibavMuxHLS(bool isLowLatency, uint64_t segDurationInMs, const std::string &baseName, const std::string &fmt, const std::string &options = "")
+	: segDuration(timescaleToClock(segDurationInMs, 1000)), segBasename(baseName) {
+		if (fmt != "hls")
+			error("HLS only!");
+		if (isLowLatency) {
+			delegate = uptr(createModule<Mux::LibavMux>(Modules::ALLOC_NUM_BLOCKS_LOW_LATENCY, baseName, fmt, options));
+		} else {
+			delegate = uptr(createModule<Mux::LibavMux>(Modules::ALLOC_NUM_BLOCKS_DEFAULT, baseName, fmt, options));
+		}
+		addInput(new Input<DataAVPacket>(this));
+		outputSegmentAndManifest = addOutput<OutputDataDefault<DataAVPacket>>();
+	}
+
+	virtual ~LibavMuxHLS() {}
+
+	void process() override {
+		auto data = getInput(0)->pop();
+		delegate->getInput(0)->push(data);
+		delegate->process();
+
+		const int64_t PTS = data->getTime();
+		if (firstPTS == -1) {
+			firstPTS = PTS;
+#ifdef MANUAL_HLS
+			auto out = outputSegmentAndManifest->getBuffer(0);
+			auto metadata = std::make_shared<MetadataFile>(format("%s%s.m3u8", HLS_SUBDIR, g_appName), VIDEO_PKT, "", "", 0, 0, false);
+			out->setMetadata(metadata);
+			outputSegmentAndManifest->emit(out);
+#endif
+		}
+		if (PTS >= (segIdx + 1) * segDuration + firstPTS) {
+			auto out = outputSegmentAndManifest->getBuffer(0);
+			auto metadata = std::make_shared<MetadataFile>(format("%s.m3u8", segBasename), VIDEO_PKT, "", "", 0, 0, false);
+			out->setMetadata(metadata);
+			outputSegmentAndManifest->emit(out);
+
+			out = outputSegmentAndManifest->getBuffer(0);
+			metadata = std::make_shared<MetadataFile>(format("%s%s.ts", segBasename, segIdx), VIDEO_PKT, "", "", segDuration, 0, false);
+			out->setMetadata(metadata);
+			outputSegmentAndManifest->emit(out);
+
+			segIdx++;
+		}
+	}
+
+private:
+	std::unique_ptr<Mux::LibavMux> delegate;
+	OutputDataDefault<DataAVPacket> *outputSegmentAndManifest;
+	int64_t firstPTS = -1, segDuration, segIdx = 0;
+	std::string segBasename;
 };
 
 void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlags formats) {
@@ -116,9 +174,9 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 #endif
 	IPipelinedModule *dasher = nullptr;
 	if (formats & MPEG_DASH) {
-		if (gf_mkdir(DASH_SUBDIR))
+		if ((gf_dir_exists(DASH_SUBDIR) == GF_FALSE) && gf_mkdir(DASH_SUBDIR))
 			throw std::runtime_error(format("%s - couldn't create subdir %s: please check you have sufficient rights", g_appName, DASH_SUBDIR));
-		dasher = pipeline.addModule<Stream::MPEG_DASH>(format("%s%s.mpd", DASH_SUBDIR, g_appName), type, opt.segmentDurationInMs);
+		dasher = pipeline.addModule<Stream::MPEG_DASH>(DASH_SUBDIR, format("%s.mpd", g_appName), type, opt.segmentDurationInMs);
 	}
 
 	bool isVertical = false;
@@ -188,18 +246,18 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 				}
 				filename << "video_" << numDashInputs << "_" << width << "x" << height;
 			} else {
-				filename << "audio_" << numDashInputs << "_";
+				filename << "audio_" << numDashInputs;
 			}
 			if (formats & APPLE_HLS) {
-				if (gf_mkdir(HLS_SUBDIR))
+				if ((gf_dir_exists(HLS_SUBDIR) == GF_FALSE) && gf_mkdir(HLS_SUBDIR))
 					throw std::runtime_error(format("%s - couldn't create subdir %s: please check you have sufficient rights", g_appName, HLS_SUBDIR));
-				auto muxer = pipeline.addModule<Mux::LibavMux>(HLS_SUBDIR + filename.str(), "hls", format("-hls_time %s -hls_playlist_type event", opt.segmentDurationInMs / 1000));
+				auto muxer = pipeline.addModule<LibavMuxHLS>(opt.isLive, opt.segmentDurationInMs, HLS_SUBDIR + filename.str() + "_", "hls", format("-hls_time %s -hls_playlist_type event", opt.segmentDurationInMs / 1000));
 				if (transcode) {
 					connect(encoder, muxer);
 				} else {
 					pipeline.connect(demux, i, muxer, 0);
 				}
-				pipeline.connect(muxer, 1, command, 0);
+				pipeline.connect(muxer, 0, command, 0, true);
 
 #ifdef MANUAL_HLS
 				if (formats & APPLE_HLS) {
@@ -230,8 +288,9 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 				}
 
 				pipeline.connect(muxer, 0, dasher, numDashInputs);
-				pipeline.connect(dasher, 0, command, 0);
-				pipeline.connect(dasher, 1, command, 0);
+				pipeline.connect(muxer, 0, command, 0, true); //FIXME: segment names should be emitted by the DASHer
+				pipeline.connect(dasher, 0, command, 0, true);
+				pipeline.connect(dasher, 1, command, 0, true);
 			}
 
 #ifdef MP4_MONITOR
@@ -248,9 +307,12 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 #ifdef MANUAL_HLS
 		if (formats & APPLE_HLS) {
 			std::ofstream mpl;
-			mpl.open(format("%s%s.m3u8", HLS_SUBDIR, g_appName));
+			auto masterPlaylistPath = format("%s%s.m3u8", HLS_SUBDIR, g_appName);
+			mpl.open(masterPlaylistPath);
 			mpl << playlistMaster.str();
 			mpl.close();
+
+			system(format(opt.postCommand, masterPlaylistPath).c_str()); //FIXME: duplicate of CommandExecutor - streamer should also take care of the muxing
 		}
 #endif
 	}
