@@ -22,6 +22,7 @@ class MPEG_DASH : public AdaptiveStreamingCommon, public gpacpp::Init {
 		};
 
 		void ensureManifest();
+		void writeManifest();
 		std::unique_ptr<gpacpp::MPD> mpd;
 		std::string mpdPath;
 };

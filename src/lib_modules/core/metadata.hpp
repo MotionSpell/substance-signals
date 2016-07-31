@@ -16,10 +16,11 @@ struct IMetadataCap {
 
 enum StreamType {
 	UNKNOWN_ST = -1,
-	AUDIO_RAW, //UNCOMPRESSED_AUDIO
-	VIDEO_RAW, //UNCOMPRESSED_VIDEO
-	AUDIO_PKT, //COMPRESSED_AUDIO
-	VIDEO_PKT  //COMPRESSED_VIDEO
+	AUDIO_RAW, //uncompressed audio
+	VIDEO_RAW, //uncompressed video
+	AUDIO_PKT, //compressed audio
+	VIDEO_PKT, //compressed video
+	PLAYLIST   //playlist and adaptive streaming manifests
 };
 
 struct IMetadata {

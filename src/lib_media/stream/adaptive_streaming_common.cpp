@@ -1,6 +1,4 @@
 #include "adaptive_streaming_common.hpp"
-#include "../common/libav.hpp"
-#include "lib_gpacpp/gpacpp.hpp"
 
 namespace Modules {
 namespace Stream {
@@ -8,6 +6,8 @@ namespace Stream {
 AdaptiveStreamingCommon::AdaptiveStreamingCommon(Type type, uint64_t segDurationInMs)
 	: type(type), startTimeInMs(0), segDurationInMs(segDurationInMs), totalDurationInMs(0) {
 	addInput(new Input<DataAVPacket>(this));
+	outputSegment  = addOutput<OutputDataDefault<DataAVPacket>>();
+	outputManifest = addOutput<OutputDataDefault<DataAVPacket>>();
 }
 
 void AdaptiveStreamingCommon::endOfStream() {

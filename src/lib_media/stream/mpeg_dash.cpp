@@ -88,6 +88,17 @@ void MPEG_DASH::ensureManifest() {
 	}
 }
 
+void MPEG_DASH::writeManifest() {
+	if (!mpd->write(mpdPath)) {
+		log(Warning, "Can't write MPD at %s (1). Check you have sufficient rights.", mpdPath);
+	} else {
+		auto out = outputManifest->getBuffer(0);
+		auto metadata = std::make_shared<MetadataFile>(mpdPath, PLAYLIST, "", "", clockToTimescale(segDurationInMs, 1000), 0, false);
+		out->setMetadata(metadata);
+		outputManifest->emit(out);
+	}
+}
+
 void MPEG_DASH::generateManifest() {
 	ensureManifest();
 
@@ -99,9 +110,7 @@ void MPEG_DASH::generateManifest() {
 	}
 
 	if (type == Live) {
-		if (!mpd->write(mpdPath)) {
-			log(Warning, "Can't write MPD at %s (1). Check you have sufficient rights.", mpdPath);
-		}
+		writeManifest();
 	}
 }
 
@@ -110,10 +119,7 @@ void MPEG_DASH::finalizeManifest() {
 	mpd->mpd->minimum_update_period = 0;
 	mpd->mpd->media_presentation_duration = totalDurationInMs;
 	generateManifest();
-
-	if (!mpd->write(mpdPath)) {
-		log(Warning, "Can't write MPD at %s (2). Check you have sufficient rights.", mpdPath);
-	}
+	writeManifest();
 }
 
 }

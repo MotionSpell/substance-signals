@@ -2,6 +2,7 @@
 
 #include "lib_modules/core/module.hpp"
 #include "lib_gpacpp/gpacpp.hpp"
+#include "../common/libav.hpp"
 #include <memory>
 
 namespace Modules {
@@ -43,6 +44,9 @@ protected:
 	Type type;
 	uint64_t startTimeInMs, segDurationInMs, totalDurationInMs;
 	std::vector<std::unique_ptr<Quality>> qualities;
+
+	OutputDataDefault<DataAVPacket> *outputSegment;  /*handled in AdaptiveStreamingCommon*/
+	OutputDataDefault<DataAVPacket> *outputManifest; /*handled by implementations*/
 
 private:
 	void threadProc();

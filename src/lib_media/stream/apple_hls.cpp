@@ -33,6 +33,11 @@ void Apple_HLS::generateManifestMaster() {
 		mpl.open(playlistMasterPath);
 		mpl << playlistMaster.str();
 		mpl.close();
+
+		auto out = outputManifest->getBuffer(0);
+		auto metadata = std::make_shared<MetadataFile>(playlistMasterPath, PLAYLIST, "", "", clockToTimescale(segDurationInMs, 1000), 0, false);
+		out->setMetadata(metadata);
+		outputManifest->emit(out);
 	}
 }
 
@@ -57,9 +62,15 @@ void Apple_HLS::generateManifestVariant() {
 		quality->playlistVariant << i << ".m3u8" << std::endl;
 
 		std::ofstream vpl;
-		vpl.open(format("%s.m3u8", i));
+		auto playlistCurVariantPath = format("%s.m3u8", i);
+		vpl.open(playlistCurVariantPath);
 		vpl << quality->playlistVariant.str();
 		vpl.close();
+
+		auto out = outputManifest->getBuffer(0);
+		auto metadata = std::make_shared<MetadataFile>(playlistCurVariantPath, PLAYLIST, "", "", clockToTimescale(segDurationInMs, 1000), 0, false);
+		out->setMetadata(metadata);
+		outputManifest->emit(out);
 	}
 }
 
