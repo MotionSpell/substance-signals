@@ -41,7 +41,7 @@ auto g_InitAvLog = runAtStartup(&av_log_set_callback, avLog);
 namespace Encode {
 
 LibavEncode::LibavEncode(Type type, LibavEncodeParams &params)
-	: pcmFormat(new PcmFormat()), avFrame(new ffpp::Frame), frameNum(-1) {
+	: avFrame(new ffpp::Frame), frameNum(-1) {
 	std::string codecOptions, generalOptions, codecName;
 	switch (type) {
 	case Video:
@@ -65,7 +65,7 @@ LibavEncode::LibavEncode(Type type, LibavEncodeParams &params)
 		codecName = "vcodec";
 		break;
 	case Audio:
-		codecOptions = format(" -b %s", params.bitrate_a);
+		codecOptions = format(" -b %s -ar %s -ac %s", params.bitrate_a, params.sampleRate, params.numChannels);
 		generalOptions = " -acodec aac";
 		codecName = "acodec";
 		break;
@@ -112,6 +112,13 @@ LibavEncode::LibavEncode(Type type, LibavEncodeParams &params)
 	}
 	break;
 	case Audio:
+		AudioLayout layout;
+		switch (params.numChannels) {
+		case 1: layout = Modules::Mono; break;
+		case 2: layout = Modules::Stereo; break;
+		default: throw error("Unknown libav audio layout");
+		}
+		pcmFormat = uptr(new PcmFormat(params.sampleRate, params.numChannels, layout));
 		libavAudioCtxConvert(pcmFormat.get(), codecCtx);
 		break;
 	default:
@@ -189,7 +196,7 @@ bool LibavEncode::processAudio(const DataPcm *data) {
 		if (times.tryPop(time)) {
 			out->setTime(time);
 		} else {
-			log(Warning, "error encountered: more output packets than input. Discard", frameNum);
+			log(Warning, "error encountered at frame %s: more output packets than input. Discard", frameNum);
 			return false;
 		}
 		assert(pkt->size);

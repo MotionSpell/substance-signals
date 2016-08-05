@@ -33,6 +33,8 @@ struct LibavEncodeParams {
 
 	//audio only
 	int bitrate_a = 128000;
+	int sampleRate = 44100;
+	int numChannels = 2;
 };
 
 class LibavEncode : public ModuleS {
@@ -53,7 +55,7 @@ class LibavEncode : public ModuleS {
 		bool processVideo(const DataPicture *data);
 
 		AVCodecContext *codecCtx;
-		std::unique_ptr<PcmFormat> pcmFormat;
+		std::unique_ptr<PcmFormat> pcmFormat = nullptr;
 		std::unique_ptr<ffpp::Frame> const avFrame;
 		Signals::Queue<uint64_t> times;
 		int frameNum;

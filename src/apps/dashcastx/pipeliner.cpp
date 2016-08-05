@@ -140,10 +140,10 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 		} else if (codecType == AUDIO_PKT) {
 			Log::msg(Info, "[Converter] Found audio stream");
 			PcmFormat encFmt, demuxFmt;
-			libavAudioCtxConvert(&demuxFmt, safe_cast<const MetadataPktLibavAudio>(metadataDemux)->getAVCodecContext());
+			libavAudioCtx2pcmConvert(safe_cast<const MetadataPktLibavAudio>(metadataDemux)->getAVCodecContext(), &demuxFmt);
 			auto const metaEnc = safe_cast<const MetadataPktLibavAudio>(metadataEncoder);
 			auto format = PcmFormat(demuxFmt.sampleRate, demuxFmt.numChannels, demuxFmt.layout, encFmt.sampleFormat, (encFmt.numPlanes == 1) ? Interleaved : Planar);
-			libavAudioCtxConvert(&encFmt, metaEnc->getAVCodecContext());
+			libavAudioCtx2pcmConvert(metaEnc->getAVCodecContext(), &encFmt);
 			return pipeline.addModule<Transform::AudioConvert>(format, metaEnc->getFrameSize());
 		} else {
 			Log::msg(Info, "[Converter] Found unknown stream");
