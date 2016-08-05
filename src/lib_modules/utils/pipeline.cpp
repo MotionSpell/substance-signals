@@ -35,7 +35,9 @@ class PipelinedInput : public IInput {
 	public:
 		PipelinedInput(IInput *input, IProcessExecutor &executor, ICompletionNotifier * const notify)
 			: delegate(input), notify(notify), executor(executor) {}
-		virtual ~PipelinedInput() noexcept(false) {}
+		virtual ~PipelinedInput() noexcept(false) {
+			assert(isNotified);
+		}
 
 		/* receiving nullptr stops the execution */
 		void process() override {
@@ -45,8 +47,14 @@ class PipelinedInput : public IInput {
 				delegate->push(data);
 				executor(MEMBER_FUNCTOR_PROCESS(delegate));
 			} else {
-				Log::msg(Debug, "Module %s: notify finished.", typeid(delegate).name());
-				executor(MEMBER_FUNCTOR_NOTIFY_FINISHED(notify));
+				if (!isNotified) {
+					Log::msg(Debug, "Module %s: notify finished.", typeid(delegate).name());
+					executor(MEMBER_FUNCTOR_NOTIFY_FINISHED(notify));
+					isNotified = true;
+				} else {
+					//TODO: handle muxes correctly by notifying on the last notification
+					Log::msg(Debug, "Module %s: notify finished again, nothing to do.", typeid(delegate).name());
+				}
 			}
 		}
 
@@ -60,6 +68,7 @@ class PipelinedInput : public IInput {
 	private:
 		IInput *delegate;
 		ICompletionNotifier * const notify;
+		bool isNotified = false;
 		IProcessExecutor &executor;
 };
 
