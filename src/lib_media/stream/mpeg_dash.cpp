@@ -73,8 +73,8 @@ void MPEG_DASH::ensureManifest() {
 			switch (quality->meta->getStreamType()) {
 			case AUDIO_PKT: {
 				rep->samplerate = quality->meta->sampleRate;
-				rep->segment_template->initialization = gf_strdup(format("audio_$RepresentationID$_.mp4").c_str());
-				rep->segment_template->media = gf_strdup(format("audio_$RepresentationID$_.mp4_$Number$").c_str());
+				rep->segment_template->initialization = gf_strdup(format("audio_$RepresentationID$.mp4").c_str());
+				rep->segment_template->media = gf_strdup(format("audio_$RepresentationID$.mp4_$Number$").c_str());
 
 				auto out = outputSegment->getBuffer(0);
 				auto metadata = std::make_shared<MetadataFile>(format("%s/audio_%s_.mp4", mpdDir, repId), AUDIO_PKT, "", "", 0, 0, false);
