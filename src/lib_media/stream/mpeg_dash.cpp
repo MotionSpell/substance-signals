@@ -77,7 +77,7 @@ void MPEG_DASH::ensureManifest() {
 				rep->segment_template->media = gf_strdup(format("audio_$RepresentationID$.mp4_$Number$").c_str());
 
 				auto out = outputSegment->getBuffer(0);
-				auto metadata = std::make_shared<MetadataFile>(format("%s/audio_%s_.mp4", mpdDir, repId), AUDIO_PKT, "", "", 0, 0, false);
+				auto metadata = std::make_shared<MetadataFile>(format("%s/audio_%s.mp4", mpdDir, repId), AUDIO_PKT, "", "", 0, 0, false);
 				out->setMetadata(metadata);
 				outputSegment->emit(out);
 				break;
