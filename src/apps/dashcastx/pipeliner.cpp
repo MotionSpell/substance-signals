@@ -312,7 +312,7 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 			mpl << playlistMaster.str();
 			mpl.close();
 
-			system(format(opt.postCommand, masterPlaylistPath).c_str()); //FIXME: duplicate of CommandExecutor - streamer should also take care of the muxing
+			if (!opt.postCommand.empty()) system(format(opt.postCommand, masterPlaylistPath).c_str()); //FIXME: duplicate of CommandExecutor - streamer should also take care of the muxing
 		}
 #endif
 	}
