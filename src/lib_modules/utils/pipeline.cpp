@@ -107,7 +107,11 @@ public:
 		}
 	}
 	bool isSink() const override {
-		return delegate->getNumOutputs() == 0;
+		for (size_t i = 0; i < getNumOutputs(); ++i) {
+			if (getOutput(i)->getSignal().getNumConnections() > 0)
+				return false;
+		}
+		return true;
 	}
 
 private:
@@ -192,22 +196,15 @@ IPipelinedModule* Pipeline::addModuleInternal(IModule *rawModule) {
 void Pipeline::connect(IModule *prev, size_t outputIdx, IModule *n, size_t inputIdx, bool inputAcceptMultipleConnections) {
 	if (!n) return;
 	auto next = safe_cast<IPipelinedModule>(n);
-	if (next->isSink()) {
-		numRemainingNotifications++;
-	}
 	next->connect(prev->getOutput(outputIdx), inputIdx, inputAcceptMultipleConnections);
 }
 
 void Pipeline::start() {
 	Log::msg(Info, "Pipeline: starting");
-	Log::msg(Debug, "Pipeline: check for unconnected outputs");
+	Log::msg(Debug, "Pipeline: check for sinks");
 	for (size_t m = 0; m < modules.size(); ++m) {
-		for (size_t i = 0; i < modules[m]->getNumOutputs(); ++i) {
-			auto output = modules[m]->getOutput(i);
-			if (output->getSignal().getNumConnections() == 0) {
-				Log::msg(Debug, "Pipeline: connecting fake input to output %s of module %s", i, safe_cast<PipelinedModule>(modules[m].get())->getDelegateName());
-				connect(modules[m].get(), i, addModule<FakeOutput>(), 0);
-			}
+		if (modules[m]->isSink()) {
+			numRemainingNotifications++;
 		}
 	}
 	Log::msg(Debug, "Pipeline: start sources");

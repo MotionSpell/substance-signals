@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../core/module.hpp"
+#include <atomic>
 #include <memory>
 #include <vector>
 
@@ -50,7 +51,7 @@ class Pipeline : public ICompletionNotifier {
 
 		std::mutex mutex;
 		std::condition_variable condition;
-		std::atomic<int> numRemainingNotifications;
+		std::atomic_size_t numRemainingNotifications;
 };
 
 }
