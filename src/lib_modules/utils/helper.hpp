@@ -49,13 +49,10 @@ size_t ConnectOutputToInput(IOutput* prev, ModuleType* next, IProcessExecutor * 
 	}
 
 	next->connect();
-	return prev->getSignal().connect(
-		[=](Data data)
-	{
+	return prev->getSignal().connect([=](Data data) {
 		next->push(data);
 		(*executor)(MEMBER_FUNCTOR_PROCESS(next));
-	}
-	);
+	});
 }
 
 template<typename ModuleType>

@@ -19,11 +19,18 @@ struct IPipelinedModule : public Modules::IModule {
 	virtual void connect(Modules::IOutput *output, size_t inputIdx, bool inputAcceptMultipleConnections) = 0;
 };
 
+struct ITopologyProber {
+	virtual void probe() = 0;
+};
+
 struct ICompletionNotifier {
 	virtual void finished() = 0;
 };
 
-class Pipeline : public ICompletionNotifier {
+struct IPipelineNotifier : public ICompletionNotifier, public ITopologyProber {
+};
+
+class Pipeline : public IPipelineNotifier {
 	public:
 		Pipeline(bool isLowLatency = false);
 
@@ -44,6 +51,9 @@ class Pipeline : public ICompletionNotifier {
 
 	private:
 		void finished() override;
+		void probe() override;
+		void startSources();
+		void computeNotifications();
 		IPipelinedModule* addModuleInternal(Modules::IModule *rawModule);
 
 		std::vector<std::unique_ptr<IPipelinedModule>> modules;

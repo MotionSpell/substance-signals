@@ -10,16 +10,6 @@
 
 using namespace Modules;
 
-namespace {
-	class FakeOutput : public ModuleS {
-	public:
-		FakeOutput() {
-			addInput(new Input<DataBase>(this));
-		}
-		void process(Data data) override final {}
-	};
-}
-
 namespace Pipelines {
 
 namespace {
@@ -28,33 +18,39 @@ Signals::MemberFunctor<void, Class, void(Class::*)()>
 MEMBER_FUNCTOR_NOTIFY_FINISHED(Class* objectPtr) {
 	return Signals::MemberFunctor<void, Class, void(Class::*)()>(objectPtr, &ICompletionNotifier::finished);
 }
+
+class FakeOutput : public ModuleS {
+public:
+	FakeOutput() {
+		addInput(new Input<DataBase>(this));
+	}
+	void process(Data data) override final {}
+};
 }
 
-/* Wrapper around the module's inputs. Data is queued in the calling thread, then always dispatched by the executor. */
+/* Wrapper around the module's inputs.
+   Data is queued in the calling thread, then always dispatched by the executor.
+   Data is nullptr at startup (probing topology) and at completion. */
 class PipelinedInput : public IInput {
 	public:
-		PipelinedInput(IInput *input, IProcessExecutor &executor, ICompletionNotifier * const notify)
+		PipelinedInput(IInput *input, IProcessExecutor &executor, IPipelineNotifier * const notify)
 			: delegate(input), notify(notify), executor(executor) {}
-		virtual ~PipelinedInput() noexcept(false) {
-			assert(isNotified);
-		}
+		virtual ~PipelinedInput() noexcept(false) {}
 
 		/* receiving nullptr stops the execution */
 		void process() override {
 			auto data = pop();
 			if (data) {
+				probeState = false;
 				Log::msg(Debug, "Module %s: dispatch data for time %s", typeid(delegate).name(), data->getTime() / (double)IClock::Rate);
 				delegate->push(data);
 				executor(MEMBER_FUNCTOR_PROCESS(delegate));
+			} else if (probeState && getNumConnections()) {
+				Log::msg(Debug, "Module %s: probing.", typeid(delegate).name());
+				notify->probe();
 			} else {
-				if (!isNotified) {
-					Log::msg(Debug, "Module %s: notify finished.", typeid(delegate).name());
-					executor(MEMBER_FUNCTOR_NOTIFY_FINISHED(notify));
-					isNotified = true;
-				} else {
-					//TODO: handle muxes correctly by notifying on the last notification
-					Log::msg(Debug, "Module %s: notify finished again, nothing to do.", typeid(delegate).name());
-				}
+				Log::msg(Debug, "Module %s: notify finished.", typeid(delegate).name());
+				executor(MEMBER_FUNCTOR_NOTIFY_FINISHED(notify));
 			}
 		}
 
@@ -67,16 +63,16 @@ class PipelinedInput : public IInput {
 
 	private:
 		IInput *delegate;
-		ICompletionNotifier * const notify;
-		bool isNotified = false;
+		IPipelineNotifier * const notify;
+		bool probeState = true;
 		IProcessExecutor &executor;
 };
 
 /* Wrapper around the module. */
-class PipelinedModule : public ICompletionNotifier, public IPipelinedModule, public InputCap {
+class PipelinedModule : public IPipelineNotifier, public IPipelinedModule, public InputCap {
 public:
 	/* take ownership of module */
-	PipelinedModule(IModule *module, ICompletionNotifier *notify)
+	PipelinedModule(IModule *module, IPipelineNotifier *notify)
 		: delegate(module), localExecutor(new EXECUTOR), executor(*localExecutor), m_notify(notify) {
 	}
 	~PipelinedModule() noexcept(false) {}
@@ -166,21 +162,33 @@ private:
 		}
 	}
 
+	void propagate() {
+		for (size_t i = 0; i < delegate->getNumOutputs(); ++i) {
+			delegate->getOutput(i)->emit(nullptr);
+		}
+	}
+
+	void probe() override {
+		if (isSink()) {
+			m_notify->probe();
+		} else {
+			propagate();
+		}
+	}
+
 	void finished() override {
 		delegate->flush();
 		if (isSink()) {
 			m_notify->finished();
 		} else {
-			for (size_t i = 0; i < delegate->getNumOutputs(); ++i) {
-				delegate->getOutput(i)->emit(nullptr);
-			}
+			propagate();
 		}
 	}
 
 	std::unique_ptr<IModule> delegate;
 	std::unique_ptr<IProcessExecutor> const localExecutor;
 	IProcessExecutor &executor;
-	ICompletionNotifier* const m_notify;
+	IPipelineNotifier* const m_notify;
 };
 
 Pipeline::Pipeline(bool isLowLatency) : isLowLatency(isLowLatency), numRemainingNotifications(0) {
@@ -199,20 +207,38 @@ void Pipeline::connect(IModule *prev, size_t outputIdx, IModule *n, size_t input
 	next->connect(prev->getOutput(outputIdx), inputIdx, inputAcceptMultipleConnections);
 }
 
-void Pipeline::start() {
-	Log::msg(Info, "Pipeline: starting");
-	Log::msg(Debug, "Pipeline: check for sinks");
-	for (size_t m = 0; m < modules.size(); ++m) {
-		if (modules[m]->isSink()) {
-			numRemainingNotifications++;
-		}
-	}
+void Pipeline::startSources() {
 	Log::msg(Debug, "Pipeline: start sources");
 	for (auto &m : modules) {
 		if (m->isSource()) {
 			m->process();
 		}
 	}
+	Log::msg(Debug, "Pipeline: sources started");
+}
+
+void Pipeline::computeNotifications() {
+	Log::msg(Debug, "Pipeline: check for sinks by propagation");
+	for (auto &m : modules) {
+		if (m->isSource()) {
+			if (m->isSink()) {
+				numRemainingNotifications++;
+			} else {
+				for (size_t i = 0; i < m->getNumOutputs(); ++i) {
+					m->getOutput(i)->emit(nullptr); //sync
+				}
+			}
+		}
+	}
+	if (modules.size() && !numRemainingNotifications)
+		throw std::runtime_error(format("Pipelined: no notification found. Check the topology of your graph."));
+	Log::msg(Debug, format("Pipeline: %s sinks notifcations needed", numRemainingNotifications));
+}
+
+void Pipeline::start() {
+	Log::msg(Info, "Pipeline: starting");
+	computeNotifications();
+	startSources();
 	Log::msg(Info, "Pipeline: started");
 }
 
@@ -233,6 +259,10 @@ void Pipeline::exitSync() {
 			m->process();
 		}
 	}
+}
+
+void Pipeline::probe() {
+	++numRemainingNotifications;
 }
 
 void Pipeline::finished() {
