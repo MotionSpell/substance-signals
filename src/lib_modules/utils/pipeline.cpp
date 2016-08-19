@@ -18,14 +18,6 @@ Signals::MemberFunctor<void, Class, void(Class::*)()>
 MEMBER_FUNCTOR_NOTIFY_FINISHED(Class* objectPtr) {
 	return Signals::MemberFunctor<void, Class, void(Class::*)()>(objectPtr, &ICompletionNotifier::finished);
 }
-
-class FakeOutput : public ModuleS {
-public:
-	FakeOutput() {
-		addInput(new Input<DataBase>(this));
-	}
-	void process(Data data) override final {}
-};
 }
 
 /* Wrapper around the module's inputs.
