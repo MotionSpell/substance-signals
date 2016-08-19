@@ -96,9 +96,9 @@ void AudioConvert::process(Data data) {
 	for (uint8_t i = 0; i < dstPcmFormat.numPlanes; ++i)
 		out->setPlane(i, out->getPlane(i), outPlaneSize);
 
-	accumulatedTimeInDstSR += outNumSamples;
 	auto const accumulatedTimeIn180k = timescaleToClock(accumulatedTimeInDstSR, dstPcmFormat.sampleRate);
 	out->setTime(accumulatedTimeIn180k);
+	accumulatedTimeInDstSR += outNumSamples;
 
 	output->emit(out);
 }

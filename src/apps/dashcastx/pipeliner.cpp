@@ -124,7 +124,12 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 			return m;
 		} else if (codecType == AUDIO_PKT) {
 			Log::msg(Info, "[Encoder] Found audio stream");
-			return pipeline.addModule<Encode::LibavEncode>(Encode::LibavEncode::Audio);
+			PcmFormat encFmt, demuxFmt;
+			libavAudioCtx2pcmConvert(safe_cast<const MetadataPktLibavAudio>(metadataDemux)->getAVCodecContext(), &demuxFmt);
+			Encode::LibavEncodeParams p;
+			p.sampleRate = demuxFmt.sampleRate;
+			p.numChannels = demuxFmt.numChannels;
+			return pipeline.addModule<Encode::LibavEncode>(Encode::LibavEncode::Audio, p);
 		} else {
 			Log::msg(Info, "[Encoder] Found unknown stream");
 			return nullptr;

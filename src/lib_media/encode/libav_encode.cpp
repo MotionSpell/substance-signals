@@ -41,7 +41,7 @@ auto g_InitAvLog = runAtStartup(&av_log_set_callback, avLog);
 namespace Encode {
 
 LibavEncode::LibavEncode(Type type, LibavEncodeParams &params)
-	: avFrame(new ffpp::Frame), frameNum(-1) {
+	: avFrame(new ffpp::Frame) {
 	std::string codecOptions, generalOptions, codecName;
 	switch (type) {
 	case Video:
@@ -150,6 +150,7 @@ LibavEncode::LibavEncode(Type type, LibavEncodeParams &params)
 	}
 
 	av_dict_free(&generalDict);
+	avFrame->get()->pts = -1;
 }
 
 void LibavEncode::flush() {
@@ -182,21 +183,25 @@ bool LibavEncode::processAudio(const DataPcm *data) {
 	if (data) {
 		f = avFrame->get();
 		libavFrameDataConvert(data, f);
-		avFrame->get()->pts = ++frameNum;
+		f->pts++;
 	}
 
 	int gotPkt = 0;
 	if (avcodec_encode_audio2(codecCtx, pkt, f, &gotPkt)) {
-		log(Warning, "error encountered while encoding audio frame %s.", frameNum);
+		log(Warning, "error encountered while encoding audio frame %s.", f ? f->pts : -1);
 		return false;
 	}
 	if (gotPkt) {
-		pkt->pts = pkt->dts = frameNum * pkt->duration;
+		pkt->pts = pkt->dts = cumulatedPktDuration;
+		cumulatedPktDuration += pkt->duration;
+		if (pkt->duration != codecCtx->frame_size) {
+			log(Warning, "pkt duration %s is different from codec frame size %s - this may cause timing errors", pkt->duration, codecCtx->frame_size);
+		}
 		uint64_t time;
 		if (times.tryPop(time)) {
 			out->setTime(time);
 		} else {
-			log(Warning, "error encountered at frame %s: more output packets than input. Discard", frameNum);
+			log(Warning, "error encountered at input frame %s, output %s (dts: %s): more output packets than input. Discard", f ? f->pts : -1, time, pkt->dts);
 			return false;
 		}
 		assert(pkt->size);
@@ -211,23 +216,23 @@ bool LibavEncode::processVideo(const DataPicture *pic) {
 	auto out = output->getBuffer(0);
 	AVPacket *pkt = out->getPacket();
 
-	std::shared_ptr<ffpp::Frame> f;
+	AVFrame *f = nullptr;
 	if (pic) {
-		f = std::make_shared<ffpp::Frame>();
-		f->get()->pict_type = AV_PICTURE_TYPE_NONE;
-		f->get()->pts = ++frameNum;
-		pixelFormat2libavPixFmt(pic->getFormat().format, (AVPixelFormat&)f->get()->format);
+		f = avFrame->get();
+		f->pict_type = AV_PICTURE_TYPE_NONE;
+		pixelFormat2libavPixFmt(pic->getFormat().format, (AVPixelFormat&)f->format);
 		for (size_t i = 0; i < pic->getNumPlanes(); ++i) {
-			f->get()->width = pic->getFormat().res.width;
-			f->get()->height = pic->getFormat().res.height;
-			f->get()->data[i] = (uint8_t*)pic->getPlane(i);
-			f->get()->linesize[i] = (int)pic->getPitch(i);
+			f->width = pic->getFormat().res.width;
+			f->height = pic->getFormat().res.height;
+			f->data[i] = (uint8_t*)pic->getPlane(i);
+			f->linesize[i] = (int)pic->getPitch(i);
 		}
+		f->pts++;
 	}
 
 	int gotPkt = 0;
-	if (avcodec_encode_video2(codecCtx, pkt, f ? f->get() : nullptr, &gotPkt)) {
-		log(Warning, "error encountered while encoding video frame %s.", frameNum);
+	if (avcodec_encode_video2(codecCtx, pkt, f, &gotPkt)) {
+		log(Warning, "error encountered while encoding video frame %s.", f ? f->pts : -1);
 		return false;
 	} else {
 		if (gotPkt) {
