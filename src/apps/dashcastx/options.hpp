@@ -7,7 +7,7 @@ struct Video {
 		: res(res), bitrate(bitrate), type(type) {}
 	Modules::Resolution res;
 	unsigned bitrate;
-	unsigned type;
+	unsigned type = 0;
 };
 
 struct AppOptions {

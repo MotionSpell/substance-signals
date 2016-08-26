@@ -238,9 +238,7 @@ bool LibavEncode::processVideo(const DataPicture *pic) {
 		if (gotPkt) {
 			assert(pkt->size);
 			if (pkt->duration <= 0) {
-				/*store duration in 180k in case a forward module (e.g. muxer) would need it*/
-				assert(codecCtx->time_base.num >= 0);
-				pkt->duration = (int)timescaleToClock((uint64_t)codecCtx->time_base.num, codecCtx->time_base.den);
+				pkt->duration = 1; /*store duration in case a forward module (e.g. muxer) would need it*/
 			}
 			out->setTime(times.pop());
 			output->emit(out);

@@ -155,7 +155,7 @@ void LibavMux::process() {
 	AVStream *avStream = m_formatCtx->streams[0]; //FIXME: fixed '0' for stream num: this is not a mux yet ;)
 	pkt->dts = av_rescale_q(pkt->dts, avStream->codec->time_base, avStream->time_base);
 	pkt->pts = av_rescale_q(pkt->pts, avStream->codec->time_base, avStream->time_base);
-	pkt->duration = (int)av_rescale_q(pkt->duration, avStream->codec->time_base, avStream->time_base);
+	pkt->duration = (int64_t)av_rescale_q(pkt->duration, avStream->codec->time_base, avStream->time_base);
 
 	/* write the compressed frame to the container output file */
 	pkt->stream_index = avStream->index;
