@@ -5,8 +5,10 @@
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
+#include <libavformat/avio.h>
 #include <libavutil/channel_layout.h>
 #include <libavutil/mathematics.h>
+#include <libavutil/mem.h>
 #include <libavutil/opt.h>
 #include <libswresample/swresample.h>
 #include "libswscale/swscale.h"
@@ -18,7 +20,7 @@ class Frame {
 	public:
 		Frame() {
 			avFrame = av_frame_alloc();
-			if(!avFrame)
+			if (!avFrame)
 				throw std::runtime_error("Frame allocation failed");
 		}
 		~Frame() {
@@ -139,6 +141,53 @@ class SwResampler {
 
 	private:
 		SwrContext* m_SwrContext;
+};
+
+class AvIO {
+public:
+	AvIO(int avioCtxBufferSize = 1024 * 1024, bool isWritable = true)
+	: avioCtxBufferSize(avioCtxBufferSize) {
+		int buffer_size = avioCtxBufferSize;
+		uint8_t *buffer = (uint8_t*)av_malloc(buffer_size);
+		struct buffer_data bd; bd.ptr = buffer; bd.size = buffer_size;
+		avioCtx = avio_alloc_context((unsigned char*)av_malloc(avioCtxBufferSize), avioCtxBufferSize, isWritable, &bd, &read_packet, &write_packet, &seek_packet);
+		if (!avioCtx)
+			throw std::runtime_error("AvIO allocation failed");
+	}
+	~AvIO() {
+		if (avioCtx) {
+			av_freep(&avioCtx->buffer);
+			av_freep(&avioCtx);
+		}
+	}
+	AVIOContext* get() {
+		return avioCtx;
+	}
+
+private:
+	struct buffer_data {
+		uint8_t *ptr;
+		int size; ///< size left in the buffer
+	};
+	static int read_packet(void *opaque, uint8_t *buf, int buf_size) {
+		struct buffer_data *bd = (struct buffer_data *)opaque;
+		buf_size = (int)FFMIN(buf_size, bd->size);
+		memcpy(buf, bd->ptr, buf_size);
+		bd->ptr += buf_size;
+		bd->size -= buf_size;
+		return buf_size;
+	}
+	static int write_packet(void *opaque, uint8_t *buf, int buf_size) {
+		struct buffer_data *bd = (struct buffer_data *)opaque;
+		return 0;
+	}
+	static int64_t seek_packet(void *opaque, int64_t offset, int whence) {
+		struct buffer_data *bd = (struct buffer_data *)opaque;
+		return 0;
+	}
+
+	AVIOContext *avioCtx = nullptr;
+	const int avioCtxBufferSize;
 };
 
 }

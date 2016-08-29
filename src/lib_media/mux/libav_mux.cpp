@@ -44,9 +44,15 @@ LibavMux::LibavMux(const std::string &baseName, const std::string &fmt, const st
 
 	/* open the output file, if needed */
 	if (!(m_formatCtx->oformat->flags & AVFMT_NOFILE)) {
-		if (avio_open(&m_formatCtx->pb, fileName.str().c_str(), AVIO_FLAG_READ_WRITE) < 0) {
-			avformat_free_context(m_formatCtx);
-			throw error(format("could not open %s, disable output.", baseName));
+		if (baseName.compare(0, 7, "http://")) {
+			m_avio = uptr(new ffpp::AvIO);
+			m_formatCtx->pb = m_avio->get();
+			m_formatCtx->flags = AVFMT_FLAG_CUSTOM_IO;
+		} else {
+			if (avio_open(&m_formatCtx->pb, fileName.str().c_str(), AVIO_FLAG_READ_WRITE) < 0) {
+				avformat_free_context(m_formatCtx);
+				throw error(format("could not open %s, disable output.", baseName));
+			}
 		}
 	}
 	strncpy(m_formatCtx->filename, fileName.str().c_str(), sizeof(m_formatCtx->filename));
@@ -63,7 +69,10 @@ LibavMux::~LibavMux() {
 		}
 
 		if (!(m_formatCtx->oformat->flags & AVFMT_NOFILE)) {
-			avio_close(m_formatCtx->pb); //close output file
+			avio_flush(m_formatCtx->pb);
+			if (!(m_formatCtx->flags & AVFMT_FLAG_CUSTOM_IO)) {
+				avio_close(m_formatCtx->pb); //close output file
+			}
 		}
 
 		for (unsigned i = 0; i < m_formatCtx->nb_streams; ++i) {
