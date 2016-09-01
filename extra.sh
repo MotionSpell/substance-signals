@@ -174,7 +174,7 @@ echo rapidjson
 if [ ! -f extra/src/rapidjson/include/rapidjson/rapidjson.h ] ; then
 	mkdir -p extra/src
 	rm -rf extra/src/rapidjson
-	git clone git@github.com:miloyip/rapidjson.git extra/src/rapidjson
+	git clone https://github.com/miloyip/rapidjson.git extra/src/rapidjson
 	pushd extra/src/rapidjson
 	git checkout 67d8a99477b4e1b638b920cc9b02f8910dfb05e7
 	git submodule update --init
