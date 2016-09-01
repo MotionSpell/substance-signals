@@ -1,7 +1,11 @@
 #include "lib_utils/profiler.hpp"
 #include "pipeliner.hpp"
 #include <csignal>
+#ifdef _WIN32
 #include <direct.h> //chdir
+#else
+#include <unistd.h>
+#endif
 #include <gpac/tools.h> //gf_mkdir
 
 using namespace Pipelines;
