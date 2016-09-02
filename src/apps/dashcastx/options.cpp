@@ -135,7 +135,7 @@ AppOptions processArgs(int argc, char const* argv[]) {
 	}
 
 	AppOptions opt;
-	opt.url = parse.nonOption(0);
+	opt.input = parse.nonOption(0);
 	for (option::Option *o = options[OPT]; o; o = o->next()) {
 		if (o->desc->shortopt == std::string("l"))
 			opt.isLive = true;
