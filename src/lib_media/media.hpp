@@ -16,8 +16,10 @@
 #include "out/file.hpp"
 #include "out/null.hpp"
 #include "out/print.hpp"
+#ifdef SIGNALS_HAS_X11
 #include "render/sdl_audio.hpp"
 #include "render/sdl_video.hpp"
+#endif /*SIGNALS_HAS_X11*/
 #include "stream/apple_hls.hpp"
 #include "stream/mpeg_dash.hpp"
 #include "transform/audio_convert.hpp"
