@@ -178,11 +178,11 @@ private:
 		return buf_size;
 	}
 	static int write_packet(void *opaque, uint8_t *buf, int buf_size) {
-		struct buffer_data *bd = (struct buffer_data *)opaque;
+		//struct buffer_data *bd = (struct buffer_data *)opaque;
 		return 0;
 	}
 	static int64_t seek_packet(void *opaque, int64_t offset, int whence) {
-		struct buffer_data *bd = (struct buffer_data *)opaque;
+		//struct buffer_data *bd = (struct buffer_data *)opaque;
 		return 0;
 	}
 
