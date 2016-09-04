@@ -73,6 +73,10 @@ LibavEncode::LibavEncode(Type type, LibavEncodeParams &params)
 		throw error("Unknown encoder type. Failed.");
 	}
 
+	//Romain
+	//QSV + NVENC + SW
+	//(sans B - frames par contre)
+
 	/* parse the codec optionsDict */
 	ffpp::Dict codecDict(typeid(*this).name(), "codec", codecOptions + "-threads auto");
 

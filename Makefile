@@ -50,7 +50,7 @@ $(BIN)/config.mk:
 	pkg-config --libs --static libavcodec libavdevice libavformat libswresample libswscale x264 gpac >> $(BIN)/config.mk.tmp ; \
 	sed -i "s/-lgpac/-lgpac_static/" $(BIN)/config.mk.tmp ; \
 	/bin/echo 'CFLAGS+=-I$(EXTRA)/include/asio -Wno-unused-local-typedefs' >> $(BIN)/config.mk.tmp
-	/bin/echo 'LDFLAGS+=-lturbojpeg' >> $(BIN)/config.mk.tmp ; \
+	/bin/echo 'LDFLAGS+=-lturbojpeg -lcurl' >> $(BIN)/config.mk.tmp ; \
 	mv $(BIN)/config.mk.tmp $(BIN)/config.mk ; \
 
 include $(BIN)/config.mk

@@ -21,7 +21,7 @@ class LibavMux : public ModuleDynI {
 		void declareStream(Data stream);
 
 		struct AVFormatContext *m_formatCtx;
-		std::unique_ptr<ffpp::AvIO> m_avio = nullptr;
+		std::unique_ptr<ffpp::IAvIO> m_avio = nullptr;
 		ffpp::Dict optionsDict;
 		bool m_headerWritten = false;
 		bool m_inbandMetadata = false;

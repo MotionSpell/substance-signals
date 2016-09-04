@@ -143,51 +143,38 @@ class SwResampler {
 		SwrContext* m_SwrContext;
 };
 
-class AvIO {
+struct IAvIO {
+	virtual ~IAvIO() {}
+	virtual AVIOContext* get() = 0;
+};
+
+template <typename PrivateData>
+class AvIO : public IAvIO {
 public:
-	AvIO(int avioCtxBufferSize = 1024 * 1024, bool isWritable = true)
-	: avioCtxBufferSize(avioCtxBufferSize) {
-		int buffer_size = avioCtxBufferSize;
-		uint8_t *buffer = (uint8_t*)av_malloc(buffer_size);
-		struct buffer_data bd; bd.ptr = buffer; bd.size = buffer_size;
-		avioCtx = avio_alloc_context((unsigned char*)av_malloc(avioCtxBufferSize), avioCtxBufferSize, isWritable, &bd, &read_packet, &write_packet, &seek_packet);
+	AvIO(int (*read)(void *opaque, uint8_t *buf, int buf_size),
+		int(*write)(void *opaque, uint8_t *buf, int buf_size),
+		int64_t(*seek)(void *opaque, int64_t offset, int whence),
+		std::unique_ptr<PrivateData> priv,
+		int avioCtxBufferSize = 1024 * 1024, bool isWritable = true)
+	: avioCtxBufferSize(avioCtxBufferSize), priv(std::move(priv)) {
+		avioCtx = avio_alloc_context((unsigned char*)av_malloc(avioCtxBufferSize), avioCtxBufferSize, isWritable, priv.get(), read, write, seek);
 		if (!avioCtx)
 			throw std::runtime_error("AvIO allocation failed");
 	}
-	~AvIO() {
+	virtual ~AvIO() {
 		if (avioCtx) {
 			av_freep(&avioCtx->buffer);
 			av_freep(&avioCtx);
 		}
 	}
-	AVIOContext* get() {
+	AVIOContext* get() override {
 		return avioCtx;
 	}
 
 private:
-	struct buffer_data {
-		uint8_t *ptr;
-		int size; ///< size left in the buffer
-	};
-	static int read_packet(void *opaque, uint8_t *buf, int buf_size) {
-		struct buffer_data *bd = (struct buffer_data *)opaque;
-		buf_size = (int)FFMIN(buf_size, bd->size);
-		memcpy(buf, bd->ptr, buf_size);
-		bd->ptr += buf_size;
-		bd->size -= buf_size;
-		return buf_size;
-	}
-	static int write_packet(void *opaque, uint8_t *buf, int buf_size) {
-		struct buffer_data *bd = (struct buffer_data *)opaque;
-		return 0;
-	}
-	static int64_t seek_packet(void *opaque, int64_t offset, int whence) {
-		struct buffer_data *bd = (struct buffer_data *)opaque;
-		return 0;
-	}
-
 	AVIOContext *avioCtx = nullptr;
 	const int avioCtxBufferSize;
+	std::unique_ptr<PrivateData> priv;
 };
 
 }

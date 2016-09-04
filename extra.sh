@@ -196,4 +196,29 @@ if [ ! -f extra/include/rapidjson/rapidjson.h ] ; then
 	cp -r extra/src/rapidjson/include/rapidjson extra/include/
 fi
 
+#-------------------------------------------------------------------------------
+echo cURL
+#-------------------------------------------------------------------------------
+if [ ! -f extra/src/curl/include/curl/curl.h ] ; then
+	mkdir -p extra/src
+	rm -rf extra/src/curl
+	git clone https://github.com/curl/curl.git extra/src/curl
+	pushd extra/src/curl
+	git checkout curl-7_50_1
+	autoreconf -fiv
+	popd
+fi
+
+if [ ! -f extra/build/curl/buildOk ] ; then
+	mkdir -p extra/build/curl
+	pushd extra/build/curl
+	../../src/curl/configure \
+		--prefix=$EXTRA_DIR \
+		--host=$HOST
+	$MAKE
+	$MAKE install
+	popd
+	touch extra/build/rapidjson/buildOk
+fi
+
 echo "Done"
