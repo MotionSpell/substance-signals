@@ -38,8 +38,8 @@ void AudioConvert::configure(const PcmFormat &srcFormat) {
 	AVSampleFormat avSrcFmt, avDstFmt;
 	uint64_t avSrcChannelLayout, avDstChannelLayout;
 	int avSrcNumChannels, avDstNumChannels, avSrcSampleRate, avDstSampleRate;
-	libavAudioCtxConvertLibav(&srcFormat   , avSrcSampleRate, (int&)avSrcFmt, avSrcNumChannels, avSrcChannelLayout);
-	libavAudioCtxConvertLibav(&dstPcmFormat, avDstSampleRate, (int&)avDstFmt, avDstNumChannels, avDstChannelLayout);
+	libavAudioCtxConvertLibav(&srcFormat   , avSrcSampleRate, avSrcFmt, avSrcNumChannels, avSrcChannelLayout);
+	libavAudioCtxConvertLibav(&dstPcmFormat, avDstSampleRate, avDstFmt, avDstNumChannels, avDstChannelLayout);
 
 	m_Swr->setInputSampleFmt(avSrcFmt);
 	m_Swr->setInputLayout(avSrcChannelLayout);

@@ -12,6 +12,7 @@ struct AVFrame;
 struct AVPacket;
 #ifdef _MSC_VER
 enum AVPixelFormat;
+enum AVSampleFormat;
 #undef PixelFormat
 #else
 extern "C" {
@@ -81,7 +82,7 @@ class DataAVPacket : public DataBase {
 
 class PcmFormat;
 class DataPcm;
-void libavAudioCtxConvertLibav(const PcmFormat *cfg, int &sampleRate, int &format, int &numChannels, uint64_t &layout);
+void libavAudioCtxConvertLibav(const PcmFormat *cfg, int &sampleRate, enum AVSampleFormat &format, int &numChannels, uint64_t &layout);
 void libavAudioCtxConvert(const PcmFormat *cfg, AVCodecContext *codecCtx);
 void libavAudioCtx2pcmConvert(const AVCodecContext *codecCtx, PcmFormat *cfg);
 void libavFrameDataConvert(const DataPcm *data, AVFrame *frame);

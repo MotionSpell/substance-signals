@@ -168,7 +168,7 @@ void MetadataPktLibavAudio::getExtradata(const uint8_t *&extradata, size_t &extr
 }
 
 //conversions
-void libavAudioCtxConvertLibav(const Modules::PcmFormat *cfg, int &sampleRate, int &format, int &numChannels, uint64_t &layout) {
+void libavAudioCtxConvertLibav(const Modules::PcmFormat *cfg, int &sampleRate, AVSampleFormat &format, int &numChannels, uint64_t &layout) {
 	sampleRate = cfg->sampleRate;
 
 	switch (cfg->layout) {
@@ -187,7 +187,7 @@ void libavAudioCtxConvertLibav(const Modules::PcmFormat *cfg, int &sampleRate, i
 }
 
 void libavAudioCtxConvert(const PcmFormat *cfg, AVCodecContext *codecCtx) {
-	libavAudioCtxConvertLibav(cfg, codecCtx->sample_rate, (int&)codecCtx->sample_fmt, codecCtx->channels, codecCtx->channel_layout);
+	libavAudioCtxConvertLibav(cfg, codecCtx->sample_rate, codecCtx->sample_fmt, codecCtx->channels, codecCtx->channel_layout);
 }
 
 void libavAudioCtx2pcmConvert(const AVCodecContext *codecCtx, PcmFormat *cfg) {
@@ -250,7 +250,7 @@ void libavFrame2pcmConvert(const AVFrame *frame, PcmFormat *cfg) {
 
 void libavFrameDataConvert(const DataPcm *pcmData, AVFrame *frame) {
 	auto const& format = pcmData->getFormat();
-	libavAudioCtxConvertLibav(&format, frame->sample_rate, frame->format, frame->channels, frame->channel_layout);
+	AVSampleFormat avsf; libavAudioCtxConvertLibav(&format, frame->sample_rate, avsf, frame->channels, frame->channel_layout); frame->format = (int)avsf;
 	for (size_t i = 0; i < format.numPlanes; ++i) {
 		frame->data[i] = pcmData->getPlane(i);
 		if (i == 0)

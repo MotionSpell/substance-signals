@@ -23,7 +23,7 @@ ifeq ($(DEBUG), 1)
   CFLAGS += -g3
   LDFLAGS += -g
 else
-  CFLAGS += -s -O3 -DNDEBUG -Wno-unused-variable -Wno-deprecated-declarations
+  CFLAGS += -Werror -s -O3 -DNDEBUG -Wno-unused-variable -Wno-deprecated-declarations
   LDFLAGS += -s
 endif
 

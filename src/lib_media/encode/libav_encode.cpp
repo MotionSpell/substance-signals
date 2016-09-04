@@ -205,7 +205,7 @@ bool LibavEncode::processAudio(const DataPcm *data) {
 		if (times.tryPop(time)) {
 			out->setTime(time);
 		} else {
-			log(Warning, "error encountered at input frame %s, output %s (dts: %s): more output packets than input. Discard", f ? f->pts : -1, time, pkt->dts);
+			log(Warning, "error encountered at input frame %s, output dts %s: more output packets than input. Discard", f ? f->pts : -1, pkt->dts);
 			return false;
 		}
 		assert(pkt->size);
@@ -224,7 +224,7 @@ bool LibavEncode::processVideo(const DataPicture *pic) {
 	if (pic) {
 		f = avFrame->get();
 		f->pict_type = AV_PICTURE_TYPE_NONE;
-		pixelFormat2libavPixFmt(pic->getFormat().format, (AVPixelFormat&)f->format);
+		AVPixelFormat avpf; pixelFormat2libavPixFmt(pic->getFormat().format, avpf); f->format = (int)avpf;
 		for (size_t i = 0; i < pic->getNumPlanes(); ++i) {
 			f->width = pic->getFormat().res.width;
 			f->height = pic->getFormat().res.height;

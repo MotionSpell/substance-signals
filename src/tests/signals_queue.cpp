@@ -74,7 +74,7 @@ unittest("thread-safe queue has an optional max size") {
 	res = queue.tryPush(maxSize);
 	ASSERT_EQUALS(false, res);
 
-	int val;
+	int val = -1;
 	res = queue.tryPop(val);
 	ASSERT_EQUALS(true, res);
 	ASSERT_EQUALS(0, val);
