@@ -27,6 +27,13 @@ else
   LDFLAGS += -s
 endif
 
+#default has X11
+SIGNALS_HAS_X11?=1
+
+ifeq ($(SIGNALS_HAS_X11), 1)
+  CFLAGS += -DSIGNALS_HAS_X11
+endif
+
 CFLAGS += -I$(SRC) -I$(SRC)/lib_modules
 
 CFLAGS += -I$(EXTRA)/include
@@ -43,15 +50,22 @@ $(BIN)/config.mk:
 	export PKG_CONFIG_PATH=$(EXTRA)/lib/pkgconfig:$$PKG_CONFIG_PATH ; \
 	/bin/echo '# config file' > $(BIN)/config.mk.tmp ; \
 	/bin/echo -n 'CFLAGS+=' >> $(BIN)/config.mk.tmp ; \
-	pkg-config --cflags libavcodec libavdevice libavformat libswresample libswscale x264 sdl2 >> $(BIN)/config.mk.tmp ; \
+	pkg-config --cflags libavcodec libavdevice libavformat libswresample libswscale x264 >> $(BIN)/config.mk.tmp ; \
 	/bin/echo -n 'LDFLAGS+=' >> $(BIN)/config.mk.tmp ; \
-	pkg-config --libs sdl2 >> $(BIN)/config.mk.tmp ; \
+	pkg-config --libs --static libavcodec libavdevice libavformat libswresample libswscale x264 gpac >> $(BIN)/config.mk.tmp
+	sed -i "s/-lgpac/-lgpac_static/" $(BIN)/config.mk.tmp
+
+ifeq ($(SIGNALS_HAS_X11), 1)
+	export PKG_CONFIG_PATH=$(EXTRA)/lib/pkgconfig:$$PKG_CONFIG_PATH ; \
+	/bin/echo -n 'CFLAGS+=' >> $(BIN)/config.mk.tmp ; \
+	pkg-config --cflags sdl2 >> $(BIN)/config.mk.tmp ; \
 	/bin/echo -n 'LDFLAGS+=' >> $(BIN)/config.mk.tmp ; \
-	pkg-config --libs --static libavcodec libavdevice libavformat libswresample libswscale x264 gpac >> $(BIN)/config.mk.tmp ; \
-	sed -i "s/-lgpac/-lgpac_static/" $(BIN)/config.mk.tmp ; \
+	pkg-config --libs sdl2 >> $(BIN)/config.mk.tmp
+endif
+
 	/bin/echo 'CFLAGS+=-I$(EXTRA)/include/asio -Wno-unused-local-typedefs' >> $(BIN)/config.mk.tmp
-	/bin/echo 'LDFLAGS+=-lturbojpeg -lcurl' >> $(BIN)/config.mk.tmp ; \
-	mv $(BIN)/config.mk.tmp $(BIN)/config.mk ; \
+	/bin/echo 'LDFLAGS+=-lturbojpeg -lcurl' >> $(BIN)/config.mk.tmp ;
+	mv $(BIN)/config.mk.tmp $(BIN)/config.mk
 
 include $(BIN)/config.mk
 
@@ -90,9 +104,6 @@ MEDIA_SRCS:=\
   $(ProjectName)/out/file.cpp\
   $(ProjectName)/out/null.cpp\
   $(ProjectName)/out/print.cpp\
-  $(ProjectName)/render/sdl_audio.cpp\
-  $(ProjectName)/render/sdl_common.cpp\
-  $(ProjectName)/render/sdl_video.cpp\
   $(ProjectName)/stream/apple_hls.cpp\
   $(ProjectName)/stream/mpeg_dash.cpp\
   $(ProjectName)/stream/adaptive_streaming_common.cpp\
@@ -101,7 +112,14 @@ MEDIA_SRCS:=\
   $(ProjectName)/transform/video_convert.cpp\
   $(ProjectName)/utils/comparator.cpp\
   $(ProjectName)/utils/recorder.cpp\
-
+   
+ifeq ($(SIGNALS_HAS_X11), 1)
+MEDIA_SRCS+=\
+  $(ProjectName)/render/sdl_audio.cpp\
+  $(ProjectName)/render/sdl_common.cpp\
+  $(ProjectName)/render/sdl_video.cpp
+endif
+  
 LIB_MEDIA_OBJS:=$(MEDIA_SRCS:%.cpp=$(BIN)/%.o)
 DEPS+=$(LIB_MEDIA_OBJS:%.o=%.deps)
 
@@ -130,9 +148,13 @@ CFLAGS+=-I$(ProjectName)
 
 #------------------------------------------------------------------------------
 
+ifeq ($(SIGNALS_HAS_X11), 1)
+
 ProjectName:=$(SRC)/apps/player
 include $(ProjectName)/project.mk
 CFLAGS+=-I$(ProjectName)
+
+endif
 
 #------------------------------------------------------------------------------
 
