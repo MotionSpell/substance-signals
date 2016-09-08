@@ -182,7 +182,7 @@ void libavAudioCtxConvertLibav(const Modules::PcmFormat *cfg, int &sampleRate, A
 	switch (cfg->sampleFormat) {
 	case Modules::S16: format = av_get_alt_sample_fmt(AV_SAMPLE_FMT_S16, cfg->numPlanes > 1); break;
 	case Modules::F32: format = av_get_alt_sample_fmt(AV_SAMPLE_FMT_FLT, cfg->numPlanes > 1); break;
-	default: throw std::runtime_error("Unknown libav audio format");
+	default: throw std::runtime_error("Unknown libav audio format (1)");
 	}
 }
 
@@ -204,7 +204,7 @@ void libavAudioCtx2pcmConvert(const AVCodecContext *codecCtx, PcmFormat *cfg) {
 		cfg->sampleFormat = Modules::F32;
 		break;
 	default:
-		throw std::runtime_error("Unknown libav audio format");
+		throw std::runtime_error("Unknown libav audio format (2)");
 	}
 
 	switch (codecCtx->channel_layout) {
@@ -233,7 +233,7 @@ void libavFrame2pcmConvert(const AVFrame *frame, PcmFormat *cfg) {
 		cfg->sampleFormat = Modules::F32;
 		break;
 	default:
-		throw std::runtime_error("Unknown libav audio format");
+		throw std::runtime_error("Unknown libav audio format (3)");
 	}
 
 	switch (frame->channel_layout) {
