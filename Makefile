@@ -13,7 +13,7 @@ CFLAGS+=-D__STDC_CONSTANT_MACROS
 
 BIN?=bin
 SRC?=src
-EXTRA?=$(dir $(CURDIR)/(extra))
+EXTRA?=$(CURDIR)/extra
 
 # default to debug mode
 DEBUG?=1
@@ -46,8 +46,9 @@ all: targets
 $(BIN)/config.mk:
 	@echo "Configuring ..."
 	@set -e ; \
-	mkdir -p $(BIN)
+	mkdir -p $(BIN) ; \
 	export PKG_CONFIG_PATH=$(EXTRA)/lib/pkgconfig:$$PKG_CONFIG_PATH ; \
+	echo $(EXTRA); \
 	/bin/echo '# config file' > $(BIN)/config.mk.tmp ; \
 	/bin/echo -n 'CFLAGS+=' >> $(BIN)/config.mk.tmp ; \
 	pkg-config --cflags libavcodec libavdevice libavformat libswresample libswscale x264 >> $(BIN)/config.mk.tmp ; \
