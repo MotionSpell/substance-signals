@@ -39,7 +39,7 @@ class DataBase {
 		}
 
 	private:
-		uint64_t m_TimeIn180k;
+		uint64_t m_TimeIn180k = 0;
 		std::shared_ptr<const IMetadata> m_metadata;
 };
 
