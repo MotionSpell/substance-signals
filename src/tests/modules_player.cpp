@@ -22,7 +22,7 @@ unittest("packet type erasure + multi-output: libav Demux -> libav Decoder (Vide
 	size_t videoIndex = std::numeric_limits<size_t>::max();
 	for (size_t i = 0; i < demux->getNumOutputs(); ++i) {
 		auto metadata = getMetadataFromOutput<MetadataPktLibav>(demux->getOutput(i));
-		if (metadata->getAVCodecContext()->codec_type == AVMEDIA_TYPE_VIDEO) {
+		if (metadata->isVideo()) {
 			videoIndex = i;
 		} else {
 			ConnectOutputToInput(demux->getOutput(i), null);
