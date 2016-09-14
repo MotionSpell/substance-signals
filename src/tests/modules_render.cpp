@@ -13,13 +13,12 @@ using namespace Modules;
 namespace {
 
 unittest("render: A/V sync, one thread") {
-	auto clock = uptr(createSystemClock());
 	auto videoGen = uptr(create<In::VideoGenerator>());
-	auto videoRender = uptr(create<Render::SDLVideo>(clock.get()));
+	auto videoRender = uptr(create<Render::SDLVideo>());
 	ConnectOutputToInput(videoGen->getOutput(0), videoRender);
 
 	auto soundGen = uptr(create<In::SoundGenerator>());
-	auto soundRender = uptr(create<Render::SDLAudio>(clock.get()));
+	auto soundRender = uptr(create<Render::SDLAudio>());
 	ConnectOutputToInput(soundGen->getOutput(0), soundRender);
 
 	for(int i=0; i < 25*5; ++i) {
