@@ -50,47 +50,16 @@ esac
 
 
 #-------------------------------------------------------------------------------
-echo zenbuild
+echo zenbuild extra script
 #-------------------------------------------------------------------------------
-if [ ! -f extra/src/zenbuild/zenbuild.sh ] ; then
-	mkdir -p extra/src
-	rm -rf extra/src/zenbuild
-	git clone https://github.com/gpac/zenbuild extra/src/zenbuild
-	pushd extra/src/zenbuild
-	git checkout ea17c433d4c6
-	patch -p1 < ../../patches/gpac_01_revision.diff
-	patch -p1 < ../../patches/ffmpeg_01_version.diff
+if [ ! -f extra/zenbuild.built ] ; then
+	pushd extra
+	#./zen-extra.sh $CPREFIX
 	popd
-fi
 
-if [ ! -f extra/src/zenbuild/zenbuild.built ] ; then
-	## x264
-	if [ ! -f extra/build/flags/$HOST/x264.built ] ; then
-		pushd extra/src/zenbuild
-		./zenbuild.sh "$PWD/../../../extra/build" x264 $CPREFIX
-		popd
-	fi
-	## FFmpeg
-	if [ ! -f extra/build/flags/$HOST/ffmpeg.built ] ; then
-		pushd extra/src/zenbuild
-		./zenbuild.sh "$PWD/../../../extra/build" ffmpeg $CPREFIX
-		popd
-	fi
-	## GPAC
-	if [ ! -f extra/build/flags/$HOST/gpac.built ] ; then
-		pushd extra/src/zenbuild
-		./zenbuild.sh "$PWD/../../../extra/build" gpac $CPREFIX
-		popd
-	fi
-	## SDL2
-	if [ ! -f extra/build/flags/$HOST/libsdl2.built ] ; then
-		pushd extra/src/zenbuild
-		./zenbuild.sh "$PWD/../../../extra/build" libsdl2 $CPREFIX
-		popd
-	fi
 	## move files
-	rsync -ar extra/build/release/$HOST/* extra/
-	touch extra/src/zenbuild/zenbuild.built
+	rsync -ar extra/release/$HOST/* extra/
+	touch extra/zenbuild.built
 fi
 
 #-------------------------------------------------------------------------------
@@ -124,32 +93,15 @@ if [ ! -f extra/src/libjpeg_turbo_1.3.x/configure.ac ] ; then
 	popd
 fi
 
-if [ ! -f extra/build/libjpeg_turbo_1.3.x/buildOk ] ; then
-	mkdir -p extra/build/libjpeg_turbo_1.3.x
+if [ ! -f extra/release/libjpeg_turbo_1.3.x/releaseOk ] ; then
+	mkdir -p extra/release/libjpeg_turbo_1.3.x
 
-    case $OSTYPE in
-	linux-gnu)
-		pushd extra/build/libjpeg_turbo_1.3.x
-		../../src/libjpeg_turbo_1.3.x/configure \
-			--prefix=$EXTRA_DIR \
-			--host=$HOST
-		;;
-	msys)
 		pushd extra/src/libjpeg_turbo_1.3.x
-		cmake -G "Unix Makefiles" -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_INSTALL_PREFIX:PATH=$EXTRA_DIR ../../src/libjpeg_turbo_1.3.x
-		;;
-	darwin*)
-		pushd extra/build/libjpeg_turbo_1.3.x
-		../../src/libjpeg_turbo_1.3.x/configure \
-			--prefix=$EXTRA_DIR \
-			--host x86_64-apple-darwin
-		;;
-	esac
 
 	$MAKE
 	$MAKE install
 	popd
-	touch extra/build/libjpeg_turbo_1.3.x/buildOk
+	touch extra/release/libjpeg_turbo_1.3.x/releaseOk
 fi
 
 #-------------------------------------------------------------------------------
@@ -181,15 +133,15 @@ if [ ! -f extra/src/rapidjson/include/rapidjson/rapidjson.h ] ; then
 	popd
 fi
 
-if [ ! -f extra/build/rapidjson/buildOk ] ; then
-	mkdir -p extra/build/rapidjson
-	pushd extra/build/rapidjson
+if [ ! -f extra/release/rapidjson/releaseOk ] ; then
+	mkdir -p extra/release/rapidjson
+	pushd extra/release/rapidjson
 	#CC=$CPREFIX-gcc cmake -G "Unix Makefiles" -DCMAKE_CXX_COMPILER=$CPREFIX-gcc -DCMAKE_INSTALL_PREFIX:PATH=$EXTRA_DIR ../../src/rapidjson
 	#CFLAGS="$CFLAGS -I$PWD/include"
 	#$MAKE
 	#$MAKE install
 	popd
-	touch extra/build/rapidjson/buildOk
+	touch extra/release/rapidjson/releaseOk
 fi
 
 if [ ! -f extra/include/rapidjson/rapidjson.h ] ; then
@@ -209,16 +161,16 @@ if [ ! -f extra/src/curl/include/curl/curl.h ] ; then
 	popd
 fi
 
-if [ ! -f extra/build/curl/buildOk ] ; then
-	mkdir -p extra/build/curl
-	pushd extra/build/curl
+if [ ! -f extra/release/curl/releaseOk ] ; then
+	mkdir -p extra/release/curl
+	pushd extra/release/curl
 	../../src/curl/configure \
 		--prefix=$EXTRA_DIR \
 		--host=$HOST
 	$MAKE
 	$MAKE install
 	popd
-	touch extra/build/rapidjson/buildOk
+	touch extra/release/rapidjson/releaseOk
 fi
 
 echo "Done"
