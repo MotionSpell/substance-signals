@@ -502,7 +502,7 @@ void GPACMuxMP4::declareStreamAudio(std::shared_ptr<const MetadataPktLibavAudio>
 	}
 
 	trackNum = gf_isom_new_track(m_iso, esd->ESID, GF_ISOM_MEDIA_AUDIO, metadata->getSampleRate());
-	log(Warning, "TimeScale: %s", metadata->getSampleRate());
+	log(Debug, "TimeScale: %s", metadata->getSampleRate());
 	if (!trackNum)
 		throw error(format("Cannot create new track"));
 
@@ -659,7 +659,8 @@ void GPACMuxMP4::sendOutput() {
 	case GF_ISOM_MEDIA_AUDIO: metadata->sampleRate = sampleRate; break;
 	default: throw error(format("Segment contains neither audio nor video"));
 	}
-	out->setTime(m_DTS, mediaTimescale);
+	out->setTime(m_prevDTS, mediaTimescale);
+	m_prevDTS = m_DTS;
 	output->emit(out);
 }
 

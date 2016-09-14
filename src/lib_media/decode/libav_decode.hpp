@@ -28,6 +28,7 @@ class LibavDecode : public ModuleS {
 
 		AVCodecContext * const codecCtx;
 		std::unique_ptr<ffpp::Frame> const avFrame;
+		int64_t cumulatedDuration = 0;
 		OutputPicture* videoOutput;
 		OutputPcm* audioOutput;
 };
