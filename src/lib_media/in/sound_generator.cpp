@@ -29,7 +29,7 @@ void SoundGenerator::process(Data /*data*/) {
 	out->setFormat(pcmFormat);
 	for (uint8_t i = 0; i < pcmFormat.numPlanes; ++i)
 		out->setPlane(i, nullptr, bufferSize / pcmFormat.numPlanes);
-	out->setTime(timescaleToClock(m_numSamples, pcmFormat.sampleRate));
+	out->setTime(m_numSamples, pcmFormat.sampleRate);
 
 	// generate sound
 	auto const p = out->data();
