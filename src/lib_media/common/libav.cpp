@@ -133,7 +133,7 @@ Resolution MetadataPktLibavVideo::getResolution() const {
 uint32_t MetadataPktLibavVideo::getTimeScale() const {
 	if (codecCtx->time_base.num != 1)
 		throw std::runtime_error("Unsupported video time scale.");
-	return codecCtx->time_base.den / codecCtx->time_base.num;;
+	return codecCtx->time_base.den / codecCtx->time_base.num;
 }
 
 void MetadataPktLibavVideo::getExtradata(const uint8_t *&extradata, size_t &extradataSize) const {
