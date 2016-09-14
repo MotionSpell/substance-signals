@@ -127,7 +127,7 @@ DEPS+=$(LIB_MEDIA_OBJS:%.o=%.deps)
 
 ProjectName:=$(SRC)/lib_modules
 MODULES_SRCS:=\
-  $(ProjectName)/core/system_clock.cpp\
+  $(ProjectName)/core/clock.cpp\
   $(ProjectName)/utils/pipeline.cpp\
   $(ProjectName)/utils/stranded_pool_executor.cpp\
 

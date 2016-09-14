@@ -51,11 +51,11 @@
     <ClCompile Include="utils\stranded_pool_executor.cpp">
       <Filter>utils</Filter>
     </ClCompile>
-    <ClCompile Include="core\system_clock.cpp">
-      <Filter>core</Filter>
-    </ClCompile>
     <ClCompile Include="utils\pipeline.cpp">
       <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="core\clock.cpp">
+      <Filter>core</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
