@@ -116,8 +116,8 @@ bool LibavDecode::processVideo(const DataAVPacket *data) {
 	if (gotPicture) {
 		auto pic = DataPicture::create(videoOutput, Resolution(avFrame->get()->width, avFrame->get()->height), libavPixFmt2PixelFormat((AVPixelFormat)avFrame->get()->format));
 		copyToPicture(avFrame->get(), pic.get());
-		pic->setTime(cumulatedDuration);
-		cumulatedDuration += avFrame->get()->nb_samples;
+		pic->setTime(cumulatedDuration * codecCtx->time_base.num, codecCtx->time_base.den);
+		cumulatedDuration += codecCtx->ticks_per_frame;
 		videoOutput->emit(pic);
 		return true;
 	}
