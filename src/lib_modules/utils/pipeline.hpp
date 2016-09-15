@@ -16,7 +16,7 @@ InstanceType* createModule(size_t allocatorSize, Args&&... args) {
 struct IPipelinedModule : public Modules::IModule {
 	virtual bool isSource() const = 0;
 	virtual bool isSink() const = 0;
-	virtual void connect(Modules::IOutput *output, size_t inputIdx, bool inputAcceptMultipleConnections) = 0;
+	virtual void connect(Modules::IOutput *output, size_t inputIdx, bool forceAsync, bool inputAcceptMultipleConnections) = 0;
 };
 
 struct ITopologyProber {
@@ -32,7 +32,7 @@ struct IPipelineNotifier : public ICompletionNotifier, public ITopologyProber {
 
 class Pipeline : public IPipelineNotifier {
 	public:
-		Pipeline(bool isLowLatency = false);
+		Pipeline(bool isLowLatency = false, double clockSpeed = 0.0);
 
 		template <typename InstanceType, typename ...Args>
 		IPipelinedModule* addModule(Args&&... args) {
@@ -58,6 +58,7 @@ class Pipeline : public IPipelineNotifier {
 
 		std::vector<std::unique_ptr<IPipelinedModule>> modules;
 		bool isLowLatency;
+		std::unique_ptr<const Modules::IClock> const clock;
 
 		std::mutex mutex;
 		std::condition_variable condition;

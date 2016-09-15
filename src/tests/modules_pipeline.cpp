@@ -81,7 +81,7 @@ unittest("pipeline: empty") {
 	}
 }
 
-unittest("pipeline: source and sink") {
+unittest("pipeline: source only") {
 	Pipeline p;
 	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
 	ASSERT(demux->getNumOutputs() > 1);
