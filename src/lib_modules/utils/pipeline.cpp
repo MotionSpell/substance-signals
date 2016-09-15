@@ -9,7 +9,8 @@
 #define EXECUTOR EXECUTOR_ASYNC_THREAD
 
 #define REGULATION_EXECUTOR EXECUTOR_ASYNC_THREAD
-#define PROBE_TIMEOUT_IN_MS 100
+#define REGULATION_TOLERANCE_IN_MS 200
+#define PROBE_TIMEOUT_IN_MS 20
 
 using namespace Modules;
 
@@ -66,11 +67,12 @@ class PipelinedInput : public IInput {
 	private:
 		void regulate(uint64_t dataTime) {
 			if (clock->getSpeed() > 0.0) {
-				auto const delay = std::max<int64_t>(0, dataTime - clock->now());
-				if (delay > 0) {
-					auto dur = clockToTimescale(delay, 1000);
-					Log::msg(dur < 100 ? Debug : Warning, "Module %s: received data for time %s (will sleep %s ms)", typeid(delegate).name(), dataTime / (double)IClock::Rate, dur);
-					std::this_thread::sleep_for(std::chrono::milliseconds(dur));
+				auto const delayInMs = clockToTimescale((int64_t)(dataTime - clock->now()), 1000);
+				if (delayInMs > 0) {
+					Log::msg(delayInMs < REGULATION_TOLERANCE_IN_MS ? Debug : Warning, "Module %s: received data for time %s (will sleep %s ms)", typeid(delegate).name(), dataTime / (double)IClock::Rate, delayInMs);
+					std::this_thread::sleep_for(std::chrono::milliseconds(delayInMs));
+				} else if (delayInMs + REGULATION_TOLERANCE_IN_MS < 0) {
+					Log::msg(Warning, "Module %s: received data for time %s is late from %s", typeid(delegate).name(), dataTime / (double)IClock::Rate, delayInMs);
 				}
 			}
 		}
