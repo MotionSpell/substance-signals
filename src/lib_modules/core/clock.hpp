@@ -1,6 +1,7 @@
 #pragma once
 
 #include "lib_utils/tools.hpp"
+#include <chrono>
 #include <stdint.h>
 
 namespace Modules {
@@ -8,9 +9,19 @@ namespace Modules {
 struct IClock {
 	static auto const Rate = 180000ULL;
 	virtual uint64_t now() const = 0;
+	virtual double getSpeed() const = 0;
 };
 
-IClock* createSystemClock();
+class Clock : public IClock {
+public:
+	Clock(double speed) : timeStart(std::chrono::high_resolution_clock::now()), speed(speed) {}
+	uint64_t now() const override;
+	double getSpeed() const override;
+
+private:
+	std::chrono::time_point<std::chrono::high_resolution_clock> const timeStart;
+	double const speed;
+};
 
 extern IClock* const g_DefaultClock;
 
