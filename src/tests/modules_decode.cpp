@@ -19,6 +19,8 @@ namespace {
 Decode::LibavDecode* createGenericDecoder(enum AVCodecID id) {
 	auto codec = avcodec_find_decoder(id);
 	auto context = avcodec_alloc_context3(codec);
+	context->time_base.num = 1;
+	context->time_base.den = 44100; //HACK needed for FFmpeg 3.1
 	MetadataPktLibav metadata(context);
 	auto decode = create<Decode::LibavDecode>(metadata);
 	avcodec_close(context);
