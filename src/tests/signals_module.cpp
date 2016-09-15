@@ -5,13 +5,11 @@ using namespace Tests;
 using namespace Signals;
 
 namespace {
-class Signaler {
-	public:
+struct Signaler {
 		Signal<int(int)> signal;
 };
 
-class Slot {
-	public:
+struct Slot {
 		int slot(int a) {
 			return 1 + Util::dummyPrint(a);
 		}

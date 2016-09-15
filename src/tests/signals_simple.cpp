@@ -74,6 +74,14 @@ unittest("signals_simple") {
 	}
 }
 
+unittest("signals_simple (void return value)") {
+	Signal<void(int)> sig;
+	size_t id = sig.connect(Util::dummy);
+	const int input = 100;
+	auto numVal = sig.emit(input);
+	auto val = sig.results();
+}
+
 unittest("connect to lambda") {
 	Signal<int(int)> sig;
 	Connect(sig, [](int val) -> int { return val * val; });
