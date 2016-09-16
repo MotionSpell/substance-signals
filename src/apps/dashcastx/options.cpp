@@ -90,7 +90,7 @@ AppOptions processArgs(int argc, char const* argv[]) {
 		"No transcode:\n"
 		"  %s -l -s 10000 file.mp4\n"
 		"  %s file.ts\n"
-		"  %s udp://226.0.0.1:1234?overrun_nonfatal=1\n"
+		"  %s udp://226.0.0.1:1234\n"
 		"Transcode:\n"
 		"  %s --live --seg-dur 10000 --autorotate --video 320x180:50000 --video 640x360:300000 http://server.com/file.mp4\n"
 		"  %s --live -v 1280x720:1000000 webcam:video=/dev/video0:audio=/dev/audio1\n"
