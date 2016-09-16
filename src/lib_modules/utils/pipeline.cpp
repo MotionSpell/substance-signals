@@ -31,8 +31,8 @@ MEMBER_FUNCTOR_NOTIFY_FINISHED(Class* objectPtr) {
    Data is nullptr at startup (probing topology) and at completion. */
 class PipelinedInput : public IInput {
 	public:
-		PipelinedInput(IInput *input, IProcessExecutor &executor, IPipelineNotifier * const notify, IClock const * const clock)
-			: delegate(input), notify(notify), executor(executor), clock(clock) {}
+		PipelinedInput(IInput *input, const std::string &moduleName, IProcessExecutor &executor, IPipelineNotifier * const notify, IClock const * const clock)
+			: delegate(input), delegateName(moduleName), notify(notify), executor(executor), clock(clock) {}
 		virtual ~PipelinedInput() noexcept(false) {}
 
 		/* receiving nullptr stops the execution */
@@ -45,14 +45,14 @@ class PipelinedInput : public IInput {
 					probeState = false;
 				}
 				regulate(dataTime);
-				Log::msg(Debug, "Module %s: dispatch data for time %s", typeid(delegate).name(), dataTime / (double)IClock::Rate);
+				Log::msg(Debug, "Module %s: dispatch data for time %s", delegateName, dataTime / (double)IClock::Rate);
 				delegate->push(data);
 				executor(MEMBER_FUNCTOR_PROCESS(delegate));
 			} else if (probeState && getNumConnections()) {
-				Log::msg(Debug, "Module %s: probing.", typeid(delegate).name());
+				Log::msg(Debug, "Module %s: probing.", delegateName);
 				notify->probe();
 			} else {
-				Log::msg(Debug, "Module %s: notify finished.", typeid(delegate).name());
+				Log::msg(Debug, "Module %s: notify finished.", delegateName);
 				executor(MEMBER_FUNCTOR_NOTIFY_FINISHED(notify));
 			}
 		}
@@ -69,15 +69,16 @@ class PipelinedInput : public IInput {
 			if (clock->getSpeed() > 0.0) {
 				auto const delayInMs = clockToTimescale((int64_t)(dataTime - clock->now()), 1000);
 				if (delayInMs > 0) {
-					Log::msg(delayInMs < REGULATION_TOLERANCE_IN_MS ? Debug : Warning, "Module %s: received data for time %s (will sleep %s ms)", typeid(delegate).name(), dataTime / (double)IClock::Rate, delayInMs);
+					Log::msg(delayInMs < REGULATION_TOLERANCE_IN_MS ? Debug : Warning, "Module %s: received data for time %s (will sleep %s ms)", delegateName, dataTime / (double)IClock::Rate, delayInMs);
 					std::this_thread::sleep_for(std::chrono::milliseconds(delayInMs));
 				} else if (delayInMs + REGULATION_TOLERANCE_IN_MS < 0) {
-					Log::msg(Warning, "Module %s: received data for time %s is late from %s", typeid(delegate).name(), dataTime / (double)IClock::Rate, delayInMs);
+					Log::msg(Warning, "Module %s: received data for time %s is late from %s", delegateName, dataTime / (double)IClock::Rate, delayInMs);
 				}
 			}
 		}
 
 		IInput *delegate;
+		std::string delegateName;
 		IPipelineNotifier * const notify;
 		bool probeState = true;
 		IProcessExecutor &executor;
@@ -143,7 +144,7 @@ private:
 		auto const thisInputs = inputs.size();
 		if (thisInputs < delegateInputs) {
 			for (size_t i = thisInputs; i < delegateInputs; ++i) {
-				addInput(new PipelinedInput(delegate->getInput(i), this->delegateExecutor, this, clock));
+				addInput(new PipelinedInput(delegate->getInput(i), getDelegateName(), this->delegateExecutor, this, clock));
 				inputExecutor.push_back(&g_executorSync);
 			}
 			localInputExecutor.resize(delegateInputs);
