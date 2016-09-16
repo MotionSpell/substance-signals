@@ -159,7 +159,7 @@
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <DebugInformationFormat>None</DebugInformationFormat>
       <MinimalRebuild>false</MinimalRebuild>
-      <DisableSpecificWarnings>4250;</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4250;4996</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -190,7 +190,7 @@
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <DebugInformationFormat>None</DebugInformationFormat>
       <MinimalRebuild>false</MinimalRebuild>
-      <DisableSpecificWarnings>4250;</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4250;4996</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
