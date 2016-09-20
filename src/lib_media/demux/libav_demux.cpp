@@ -116,7 +116,7 @@ LibavDemux::~LibavDemux() {
 void LibavDemux::setTime(std::shared_ptr<DataAVPacket> data, int streamIdx) {
 	auto pkt = data->getPacket();
 	auto const base = m_formatCtx->streams[pkt->stream_index]->time_base;
-	auto const time = timescaleToClock(pkt->pts * base.num, base.den);
+	auto const time = timescaleToClock(pkt->dts * base.num, base.den);
 	data->setTime(time);
 
 	restampers[streamIdx]->process(data);

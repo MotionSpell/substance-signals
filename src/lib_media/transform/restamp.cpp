@@ -36,8 +36,9 @@ namespace Modules {
 				throw error("Unknown mode");
 			}
 
-			log(Debug, "%s -> %sms", (double)data->getTime() / IClock::Rate, (double)(time + offset) / IClock::Rate);
-			const_cast<DataBase*>(data.get())->setTime(time + offset); //FIXME: we should have input&output on the same allocator
+			auto const restampedTime = std::max<int64_t>(0, time + offset);
+			log(time + offset < 0 ? Warning : Debug, "%s -> %sms (time=%s, offset=%s)", (double)data->getTime() / IClock::Rate, (double)(restampedTime) / IClock::Rate, time, offset);
+			const_cast<DataBase*>(data.get())->setTime(restampedTime); //FIXME: we should have input&output on the same allocator
 			getOutput(0)->emit(data);
 		}
 

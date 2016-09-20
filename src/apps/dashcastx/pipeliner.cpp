@@ -300,8 +300,7 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 			}
 
 #ifdef MP4_MONITOR
-			//auto muxer = pipeline.addModule<Mux::GPACMuxMP4>("monitor_" + filename.str(), 0, Mux::GPACMuxMP4::NoSegment); //FIXME: see https://git.gpac-licensing.com/rbouqueau/fk-encode/issues/28
-			auto muxer = pipeline.addModule<Mux::LibavMux>("monitor_" + filename.str(), "mp4");
+			auto muxer = pipeline.addModule<Mux::GPACMuxMP4>("monitor_" + filename.str(), 0, Mux::GPACMuxMP4::NoSegment);
 			if (transcode) {
 				connect(encoder, muxer);
 			} else {
