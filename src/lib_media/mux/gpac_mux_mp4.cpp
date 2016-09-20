@@ -424,7 +424,7 @@ void GPACMuxMP4::setupFragments() {
 				throw error(format("Cannot prepare track for movie fragmentation: %s", gf_error_to_string(e)));
 
 			std::stringstream ss;
-			ss << gf_isom_get_filename(m_iso) << "_" << m_chunkNum+1;
+			ss << gf_isom_get_filename(m_iso) << "_" << m_chunkNum+1 << ".m4s";
 			m_chunkName = ss.str();
 			e = gf_isom_start_segment(m_iso, (char*)m_chunkName.c_str(), GF_TRUE);
 			if (e != GF_OK)

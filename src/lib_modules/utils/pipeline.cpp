@@ -46,7 +46,7 @@ class PipelinedInput : public IInput {
 					assert(dataTime == 0);
 					probeState = false;
 				}
-				if (&executor != &g_executorSync) {
+				if (!dynamic_cast<EXECUTOR_SYNC*>(&executor)) {
 					regulate(dataTime);
 				}
 				Log::msg(Debug, "Module %s: dispatch data for time %ss", delegateName, dataTime / (double)IClock::Rate);

@@ -56,9 +56,14 @@ void AdaptiveStreamingCommon::threadProc() {
 		log(Info, "Processes segment (total processed: %ss, UTC: %s (deltaAST=%s).", (double)totalDurationInMs / 1000, gf_net_get_utc(), gf_net_get_utc() - startTimeInMs);
 
 		if (type == Live) {
-			auto dur = std::chrono::milliseconds(startTimeInMs + totalDurationInMs - gf_net_get_utc());
-			log(Info, "Going to sleep for %s ms.", std::chrono::duration_cast<std::chrono::milliseconds>(dur).count());
-			std::this_thread::sleep_for(dur);
+			const int64_t dur = startTimeInMs + totalDurationInMs - gf_net_get_utc();
+			if (dur > 0) {
+				auto durInMs = std::chrono::milliseconds(dur);
+				log(Info, "Going to sleep for %s ms.", dur);
+				std::this_thread::sleep_for(durInMs);
+			} else {
+				log(Warning, "Late from %s ms.", -dur);
+			}
 		}
 	}
 
