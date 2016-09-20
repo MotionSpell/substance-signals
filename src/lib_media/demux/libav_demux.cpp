@@ -13,6 +13,7 @@ extern "C" {
 #include <libavutil/opt.h>
 }
 
+#define LIBAV_DEFAULT_PKT_IDX 0
 
 namespace Modules {
 
@@ -131,9 +132,8 @@ void LibavDemux::process(Data data) {
 		if (getNumInputs() && getInput(0)->tryPop(data))
 			break;
 
-		auto out = outputs[0]->getBuffer(0);
-		AVPacket *pkt = out->getPacket();
-		int status = av_read_frame(m_formatCtx, pkt);
+		auto pktTmp = tmpPkt.getPacket();
+		int status = av_read_frame(m_formatCtx, pktTmp);
 		if (status < 0) {
 			if (status == (int)AVERROR_EOF || (m_formatCtx->pb && m_formatCtx->pb->eof_reached)) {
 			} else if (m_formatCtx->pb && m_formatCtx->pb->error) {
@@ -142,8 +142,10 @@ void LibavDemux::process(Data data) {
 			return;
 		}
 
+		auto out = outputs[pktTmp->stream_index]->getBuffer(0);
+		AVPacket *pkt = out->getPacket();
+		av_packet_move_ref(pkt, pktTmp);
 		setTime(out, pkt->stream_index);
-
 		outputs[pkt->stream_index]->emit(out);
 	}
 

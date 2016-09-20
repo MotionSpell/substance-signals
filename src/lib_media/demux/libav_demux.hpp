@@ -29,6 +29,7 @@ class LibavDemux : public ModuleS {
 
 		struct AVFormatContext *m_formatCtx;
 		std::vector<OutputDataDefault<DataAVPacket>*> outputs;
+		DataAVPacket tmpPkt;
 };
 
 }
