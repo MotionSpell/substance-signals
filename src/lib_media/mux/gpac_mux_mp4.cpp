@@ -335,17 +335,11 @@ void fillVideoSampleData(const u8 *bufPtr, u32 bufLen, GF_ISOSample &sample) {
 
 namespace Mux {
 
-GPACMuxMP4::GPACMuxMP4(const std::string &baseName, uint64_t chunkDurationInMs, bool useSegments)
-	: m_useFragments(useSegments),
-	  m_useSegments(useSegments), m_chunkDuration(timescaleToClock(chunkDurationInMs, 1000)) {
+GPACMuxMP4::GPACMuxMP4(const std::string &baseName, uint64_t chunkDurationInMs, ChunkPolicy chunkPolicy)
+	: m_chunkPolicy(chunkPolicy), m_chunkDuration(timescaleToClock(chunkDurationInMs, 1000)) {
 	if (m_chunkDuration == 0) {
-		log(Debug, "Configuration: single file.");
-		assert(!useSegments);
-	} else {
-		if (useSegments)
-			log(Debug, "Configuration: segmented.");
-		else
-			log(Info, "Configuration: chunks (independent ISOBMF files, not segmented).");
+		assert(chunkPolicy == NoSegment);
+		chunkPolicy = NoSegment;
 	}
 
 	std::stringstream fileName;
@@ -370,7 +364,7 @@ GPACMuxMP4::GPACMuxMP4(const std::string &baseName, uint64_t chunkDurationInMs, 
 void GPACMuxMP4::closeSegment(bool isLastSeg) {
 	gf_isom_flush_fragments(m_iso, (Bool)isLastSeg);
 
-	if (m_useSegments) {
+	if (m_chunkPolicy >= NoFragment) {
 #ifdef CHROME_DASHJS_2_0_COMPAT
 		GF_Err e = gf_isom_close_segment(m_iso, 0, 0, 0, 0, 0, GF_FALSE, (Bool)isLastSeg, 0, nullptr, nullptr);
 #else
@@ -387,7 +381,7 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 }
 
 void GPACMuxMP4::flush() {
-	if (m_useFragments) {
+	if (m_chunkPolicy >= OneFragmentPerSegment) {
 		gf_isom_flush_fragments(m_iso, GF_TRUE);
 	}
 	closeSegment(true);
@@ -399,19 +393,32 @@ GPACMuxMP4::~GPACMuxMP4() {
 		throw error(format("%s: gf_isom_close", gf_error_to_string(e)));
 }
 
+void GPACMuxMP4::startFragment(uint64_t DTS, uint64_t PTS) {
+	m_curFragmentDur = 0;
+	GF_Err e = gf_isom_start_fragment(m_iso, GF_TRUE);
+	if (e != GF_OK)
+		throw error(format("Impossible to create the moof starting the fragment: %s", gf_error_to_string(e)));
+
+	e = gf_isom_set_traf_base_media_decode_time(m_iso, m_trackId, DTS);
+	if (e != GF_OK)
+		throw error(format("Impossible to create TFDT %s: %s", DTS, gf_error_to_string(e)));
+
+#ifndef CHROME_DASHJS_2_0_COMPAT
+	e = gf_isom_set_fragment_reference_time(m_iso, m_trackId, gf_net_get_ntp_ts(), PTS);
+	if (e != GF_OK)
+		throw error(format("Impossible to create UTC marquer: %s", gf_error_to_string(e)));
+#endif
+}
+
 void GPACMuxMP4::setupFragments() {
 	GF_Err e;
 
-	if (m_useFragments) {
-		e = gf_isom_setup_track_fragment(m_iso, m_trackId, 1, 1, 0, 0, 0, 0);
+	if (m_chunkPolicy >= OneFragmentPerSegment) {
+		e = gf_isom_setup_track_fragment(m_iso, m_trackId, 1, TIMESCALE_MUL, 0, 0, 0, 0);
 		if (e != GF_OK)
 			throw error(format("Cannot setup track as fragmented: %s", gf_error_to_string(e)));
-	}
 
-	//gf_isom_add_track_to_root_od(video_output_file->isof, 1);
-
-	if (m_useFragments) {
-		if (m_useSegments) {
+		if (m_chunkPolicy >= NoFragment) {
 			e = gf_isom_finalize_for_fragment(m_iso, 1);
 			if (e != GF_OK)
 				throw error(format("Cannot prepare track for movie fragmentation: %s", gf_error_to_string(e)));
@@ -428,19 +435,7 @@ void GPACMuxMP4::setupFragments() {
 				throw error(format("Cannot prepare track for movie fragmentation: %s", gf_error_to_string(e)));
 		}
 
-		e = gf_isom_start_fragment(m_iso, GF_TRUE);
-		if (e != GF_OK)
-			throw error(format("Impossible to create the moof: %s", gf_error_to_string(e)));
-
-		e = gf_isom_set_traf_base_media_decode_time(m_iso, m_trackId, m_DTS);
-		if (e != GF_OK)
-			throw error(format("Impossible to create TFDT %s: %s", gf_net_get_ntp_ts(), gf_error_to_string(e)));
-
-#ifndef CHROME_DASHJS_2_0_COMPAT
-		e = gf_isom_set_fragment_reference_time(m_iso, m_trackId, gf_net_get_ntp_ts(), 0);
-		if (e != GF_OK)
-			throw error(format("Impossible to create UTC marquer: %s", gf_error_to_string(e)));
-#endif
+		startFragment(0, 0);
 	}
 }
 
@@ -651,14 +646,17 @@ void GPACMuxMP4::sendOutput() {
 	if (e) throw error(format("Could not compute codec name (RFC 6381)"));
 
 	auto out = output->getBuffer(0);
-	auto metadata = std::make_shared<MetadataFile>(m_chunkName, streamType, mimeType, codecName, m_curFragDur, m_lastChunkSize, m_chunkStartsWithRAP);
-	out->setMetadata(metadata);
+
 	auto const mediaTimescale = gf_isom_get_media_timescale(m_iso, gf_isom_get_track_by_id(m_iso, m_trackId));
+	auto metadata = std::make_shared<MetadataFile>(m_chunkName, streamType, mimeType, codecName, m_curChunkDur, m_lastChunkSize,
+		timescaleToClock(m_curFragmentDur, mediaTimescale), m_chunkStartsWithRAP);
+	out->setMetadata(metadata);
 	switch (gf_isom_get_media_type(m_iso, gf_isom_get_track_by_id(m_iso, m_trackId))) {
 	case GF_ISOM_MEDIA_VISUAL: metadata->resolution[0] = resolution[0]; metadata->resolution[1] = resolution[1]; break;
 	case GF_ISOM_MEDIA_AUDIO: metadata->sampleRate = sampleRate; break;
 	default: throw error(format("Segment contains neither audio nor video"));
 	}
+
 	out->setTime(m_prevDTS, mediaTimescale);
 	m_prevDTS = m_DTS;
 	output->emit(out);
@@ -668,40 +666,31 @@ void GPACMuxMP4::addSample(gpacpp::IsoSample &sample, const uint64_t dataDuratio
 	m_DTS += dataDurationInTs;
 
 	auto const mediaTimescale = gf_isom_get_media_timescale(m_iso, gf_isom_get_track_by_id(m_iso, m_trackId));
-	if (m_useFragments) {
-		m_curFragDur += dataDurationInTs;
+	if (m_chunkPolicy >= OneFragmentPerSegment) {
+		m_curChunkDur += dataDurationInTs;
 
 		GF_Err e;
-		if ((m_curFragDur * IClock::Rate) > (mediaTimescale * m_chunkDuration)) {
+		if ((m_curChunkDur * IClock::Rate) > (mediaTimescale * m_chunkDuration)) {
 			closeSegment(false);
-			if (m_useSegments) {
+			if (m_chunkPolicy >= NoFragment) {
 				m_chunkNum++;
 				m_chunkStartsWithRAP = sample.IsRAP == RAP;
 
 				std::stringstream ss;
-				ss << gf_isom_get_filename(m_iso) << "_" << m_chunkNum+1;
+				ss << gf_isom_get_filename(m_iso) << "_" << m_chunkNum+1 << ".m4s";
 				m_chunkName = ss.str();
 				e = gf_isom_start_segment(m_iso, (char*)m_chunkName.c_str(), GF_TRUE);
 				if (e != GF_OK)
 					throw error(format("Impossible to start the segment %s (%s): %s", m_chunkNum, m_chunkName, gf_error_to_string(e)));
 			}
 
-			e = gf_isom_start_fragment(m_iso, GF_TRUE);
-			if (e != GF_OK)
-				throw error(format("Impossible to start the fragment: %s", gf_error_to_string(e)));
-
-			e = gf_isom_set_traf_base_media_decode_time(m_iso, m_trackId, sample.DTS);
-			if (e != GF_OK)
-				throw error(format("Impossible to create TFDT %s: %s", gf_net_get_ntp_ts(), gf_error_to_string(e)));
-
-#ifndef CHROME_DASHJS_2_0_COMPAT
-			e = gf_isom_set_fragment_reference_time(m_iso, m_trackId, gf_net_get_ntp_ts(), sample.DTS + sample.CTS_Offset);
-			if (e != GF_OK)
-				throw error(format("Impossible to set the UTC marquer %s: %s", m_chunkNum, gf_error_to_string(e)));
-#endif
+			startFragment(sample.DTS, sample.DTS + sample.CTS_Offset);
 
 			const u64 oneFragDurInTimescale = clockToTimescale(m_chunkDuration, mediaTimescale);
-			m_curFragDur = m_DTS - oneFragDurInTimescale * (m_DTS / oneFragDurInTimescale);
+			m_curChunkDur = m_DTS - oneFragDurInTimescale * (m_DTS / oneFragDurInTimescale);
+		} else if ((m_chunkPolicy == OneFragmentPerRAP) && (sample.IsRAP == RAP)) {
+			gf_isom_flush_fragments(m_iso, GF_TRUE);
+			startFragment(sample.DTS, sample.DTS + sample.CTS_Offset);
 		}
 
 		e = gf_isom_fragment_add_sample(m_iso, m_trackId, &sample, 1, (u32)dataDurationInTs, 0, 0, GF_FALSE);
@@ -709,6 +698,11 @@ void GPACMuxMP4::addSample(gpacpp::IsoSample &sample, const uint64_t dataDuratio
 			log(Error, "%s: gf_isom_fragment_add_sample", gf_error_to_string(e));
 			return;
 		}
+		if (m_chunkPolicy == OneFragmentPerFrame) {
+			gf_isom_flush_fragments(m_iso, GF_TRUE);
+			startFragment(sample.DTS, sample.DTS + sample.CTS_Offset);
+		}
+		m_curFragmentDur += dataDurationInTs;
 	} else {
 		GF_Err e = gf_isom_add_sample(m_iso, m_trackId, 1, &sample);
 		if (e != GF_OK) {

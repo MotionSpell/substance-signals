@@ -46,8 +46,8 @@ static bool operator==(const IMetadata &left, const IMetadata &right) {
 
 class MetadataFile : public IMetadata {
 	public:
-		MetadataFile(const std::string& filename, StreamType streamType, const std::string& mimeType, const std::string& codecName, uint64_t durationIn180k, uint64_t filesize, bool startsWithRAP)
-			: streamType(streamType), filename(filename), mimeType(mimeType), codecName(codecName), durationIn180k(durationIn180k), filesize(filesize), startsWithRAP(startsWithRAP) {
+		MetadataFile(const std::string& filename, StreamType streamType, const std::string& mimeType, const std::string& codecName, uint64_t durationIn180k, uint64_t filesize, uint64_t latencyIn180k, bool startsWithRAP)
+			: streamType(streamType), filename(filename), mimeType(mimeType), codecName(codecName), durationIn180k(durationIn180k), filesize(filesize), latencyIn180k(latencyIn180k), startsWithRAP(startsWithRAP) {
 		}
 		std::string getFilename() const {
 			return filename;
@@ -67,6 +67,9 @@ class MetadataFile : public IMetadata {
 		uint64_t getSize() const {
 			return filesize;
 		}
+		uint64_t getLatency() const {
+			return latencyIn180k;
+		}
 		bool getStartsWithRAP() const {
 			return startsWithRAP;
 		}
@@ -79,7 +82,7 @@ class MetadataFile : public IMetadata {
 	private:
 		StreamType streamType;
 		std::string filename, mimeType, codecName/*as per RFC6381*/;
-		uint64_t durationIn180k, filesize;
+		uint64_t durationIn180k, filesize, latencyIn180k;
 		bool startsWithRAP;
 };
 

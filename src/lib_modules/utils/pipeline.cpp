@@ -6,7 +6,9 @@
 #define EXECUTOR_SYNC         Signals::ExecutorSync<void()>
 #define EXECUTOR_ASYNC_THREAD Signals::ExecutorThread<void()>(getDelegateName())
 #define EXECUTOR_ASYNC_POOL   StrandedPoolModuleExecutor
-#define EXECUTOR EXECUTOR_ASYNC_THREAD
+
+#define EXECUTOR             EXECUTOR_ASYNC_THREAD
+#define EXECUTOR_LOW_LATENCY EXECUTOR_SYNC
 
 #define REGULATION_EXECUTOR EXECUTOR_ASYNC_THREAD
 #define REGULATION_TOLERANCE_IN_MS 200
@@ -27,7 +29,7 @@ MEMBER_FUNCTOR_NOTIFY_FINISHED(Class* objectPtr) {
 /* Wrapper around the module's inputs.
    Data is queued in the calling thread, then always dispatched by the executor
        (with a delay if the clock is set: this assumes the connection is made
-       using an asynchronous executor).
+       using an asynchronous executor and the start time is zero).
    Data is nullptr at startup (probing topology) and at completion. */
 class PipelinedInput : public IInput {
 	public:
@@ -44,8 +46,10 @@ class PipelinedInput : public IInput {
 					assert(dataTime == 0);
 					probeState = false;
 				}
-				regulate(dataTime);
-				Log::msg(Debug, "Module %s: dispatch data for time %s", delegateName, dataTime / (double)IClock::Rate);
+				if (&executor != &g_executorSync) {
+					regulate(dataTime);
+				}
+				Log::msg(Debug, "Module %s: dispatch data for time %ss", delegateName, dataTime / (double)IClock::Rate);
 				delegate->push(data);
 				executor(MEMBER_FUNCTOR_PROCESS(delegate));
 			} else if (probeState && getNumConnections()) {
@@ -69,10 +73,10 @@ class PipelinedInput : public IInput {
 			if (clock->getSpeed() > 0.0) {
 				auto const delayInMs = clockToTimescale((int64_t)(dataTime - clock->now()), 1000);
 				if (delayInMs > 0) {
-					Log::msg(delayInMs < REGULATION_TOLERANCE_IN_MS ? Debug : Warning, "Module %s: received data for time %s (will sleep %s ms)", delegateName, dataTime / (double)IClock::Rate, delayInMs);
+					Log::msg(delayInMs < REGULATION_TOLERANCE_IN_MS ? Debug : Warning, "Module %s: received data for time %ss (will sleep %s ms)", delegateName, dataTime / (double)IClock::Rate, delayInMs);
 					std::this_thread::sleep_for(std::chrono::milliseconds(delayInMs));
 				} else if (delayInMs + REGULATION_TOLERANCE_IN_MS < 0) {
-					Log::msg(Warning, "Module %s: received data for time %s is late from %s", delegateName, dataTime / (double)IClock::Rate, delayInMs);
+					Log::msg(Warning, "Module %s: received data for time %ss is late from %sms", delegateName, dataTime / (double)IClock::Rate, -delayInMs);
 				}
 			}
 		}
@@ -88,9 +92,10 @@ class PipelinedInput : public IInput {
 /* Wrapper around the module. */
 class PipelinedModule : public IPipelineNotifier, public IPipelinedModule, public InputCap {
 public:
-	/* take ownership of module */
-	PipelinedModule(IModule *module, IPipelineNotifier *notify, IClock const * const clock)
-		: delegate(module), localDelegateExecutor(new EXECUTOR), delegateExecutor(*localDelegateExecutor), clock(clock), m_notify(notify) {
+	/* take ownership of module and executor */
+	PipelinedModule(IModule *module, bool lowLatency, IPipelineNotifier *notify, IClock const * const clock)
+		: delegate(module), localDelegateExecutor(lowLatency ? (IProcessExecutor*)new EXECUTOR_LOW_LATENCY : (IProcessExecutor*)new EXECUTOR),
+		delegateExecutor(*localDelegateExecutor), clock(clock), m_notify(notify) {
 	}
 	~PipelinedModule() noexcept(false) {}
 	std::string getDelegateName() const {
@@ -224,7 +229,7 @@ Pipeline::Pipeline(bool isLowLatency, double clockSpeed)
 }
 
 IPipelinedModule* Pipeline::addModuleInternal(IModule *rawModule) {
-	auto module = uptr(new PipelinedModule(rawModule, this, clock.get()));
+	auto module = uptr(new PipelinedModule(rawModule, isLowLatency, this, clock.get()));
 	auto ret = module.get();
 	modules.push_back(std::move(module));
 	return ret;

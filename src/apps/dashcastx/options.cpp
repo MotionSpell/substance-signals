@@ -104,6 +104,8 @@ AppOptions processArgs(int argc, char const* argv[]) {
 			"  --help,              -h             \tPrint usage and exit." },
 		{ OPT,      0, "l", "live",        Arg::None,
 			"  --live,              -l             \tRun at system clock pace (otherwise runs as fast as possible) with low latency settings (quality may be degraded)." },
+		{ OPT,      0, "u", "ultra-low-latency", Arg::None,
+			"  --ultra-low-latency, -u             \tLower the latency as much as possible (quality may be degraded). Implies '-l'." },
 		{ NUMERIC,  0, "s", "seg-dur",     Arg::Numeric,
 			"  --seg-dur,           -s             \tSet the segment duration (in ms) (default value: 2000)." },
 		{ VIDEO,    0, "v", "video",       Arg::Video,
@@ -137,10 +139,16 @@ AppOptions processArgs(int argc, char const* argv[]) {
 	AppOptions opt;
 	opt.input = parse.nonOption(0);
 	for (option::Option *o = options[OPT]; o; o = o->next()) {
-		if (o->desc->shortopt == std::string("l"))
+		if (o->desc->shortopt == std::string("l")) {
 			opt.isLive = true;
-		if (o->desc->shortopt == std::string("r"))
+		}
+		if (o->desc->shortopt == std::string("u")) {
+			opt.ultraLowLatency = true;
+			opt.isLive = true;
+		}
+		if (o->desc->shortopt == std::string("r")) {
 			opt.autoRotate = true;
+		}
 	}
 	if (options[NUMERIC].first()->desc && options[NUMERIC].first()->desc->shortopt == std::string("s"))
 		opt.segmentDurationInMs = atol(options[NUMERIC].first()->arg);

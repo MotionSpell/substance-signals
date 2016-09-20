@@ -14,7 +14,15 @@ namespace Mux {
 
 class GPACMuxMP4 : public ModuleDynI {
 	public:
-		GPACMuxMP4(const std::string &baseName, uint64_t chunkDurationInMs = 0, bool useSegments = false);
+		enum ChunkPolicy {
+			NoSegment,  //one file
+			NoFragment, //several files as in HSS
+			OneFragmentPerSegment,
+			OneFragmentPerRAP,
+			OneFragmentPerFrame,
+		};
+
+		GPACMuxMP4(const std::string &baseName, uint64_t chunkDurationInMs = 0, ChunkPolicy chunkPolicy = NoSegment);
 		~GPACMuxMP4();
 		void process() override;
 		void flush() override;
@@ -33,14 +41,12 @@ class GPACMuxMP4 : public ModuleDynI {
 
 		//fragments
 		void setupFragments();
-		bool m_useFragments;
-		uint64_t m_curFragDur = 0;
+		void startFragment(uint64_t DTS, uint64_t PTS);
 
 		//segments
 		void closeSegment(bool isLastSeg);
-		bool m_useSegments;
-		uint64_t m_chunkDuration;
-		uint64_t m_chunkNum = 0, m_lastChunkSize = 0;
+		ChunkPolicy m_chunkPolicy;
+		uint64_t m_chunkDuration, m_curChunkDur = 0, m_curFragmentDur = 0, m_chunkNum = 0, m_lastChunkSize = 0;
 		bool m_chunkStartsWithRAP = true;
 		std::string m_chunkName;
 

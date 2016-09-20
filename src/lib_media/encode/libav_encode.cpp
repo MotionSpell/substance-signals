@@ -48,8 +48,11 @@ LibavEncode::LibavEncode(Type type, LibavEncodeParams &params)
 		switch (params.codecType) {
 		case LibavEncodeParams::Software:
 			generalOptions = " -vcodec libx264";
-			if (params.isLowLatency)
+			if (params.isLowLatency) {
 				codecOptions += " -preset ultrafast -tune zerolatency";
+			} else {
+				codecOptions += " -preset veryfast";
+			}
 			break;
 		case LibavEncodeParams::Hardware_qsv:
 			generalOptions = " -vcodec h264_qsv";
@@ -72,10 +75,6 @@ LibavEncode::LibavEncode(Type type, LibavEncodeParams &params)
 	default:
 		throw error("Unknown encoder type. Failed.");
 	}
-
-	//Romain
-	//QSV + NVENC + SW
-	//(sans B - frames par contre)
 
 	/* parse the codec optionsDict */
 	ffpp::Dict codecDict(typeid(*this).name(), "codec", codecOptions + "-threads auto");

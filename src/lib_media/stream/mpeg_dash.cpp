@@ -46,10 +46,9 @@ void MPEG_DASH::ensureManifest() {
 	if (!mpd->mpd->availabilityStartTime) {
 		mpd->mpd->availabilityStartTime = startTimeInMs;
 	}
+	mpd->mpd->publishTime = gf_net_get_utc();
 
 	if (!gf_list_count(mpd->mpd->periods)) {
-		mpd->mpd->publishTime = mpd->mpd->availabilityStartTime;
-
 		auto period = mpd->addPeriod();
 		period->ID = gf_strdup("p0");
 		GF_MPD_AdaptationSet *audioAS = nullptr, *videoAS = nullptr;
@@ -70,14 +69,17 @@ void MPEG_DASH::ensureManifest() {
 			rep->mime_type = gf_strdup(quality->meta->getMimeType().c_str());
 			rep->codecs = gf_strdup(quality->meta->getCodecName().c_str());
 			rep->starts_with_sap = GF_TRUE;
+			if (quality->meta->getLatency()) {
+				rep->segment_template->availability_time_offset = segDurationInMs * (1.0 - (double)quality->meta->getLatency() / Clock::Rate);
+			}
 			switch (quality->meta->getStreamType()) {
 			case AUDIO_PKT: {
 				rep->samplerate = quality->meta->sampleRate;
 				rep->segment_template->initialization = gf_strdup(format("audio_$RepresentationID$.mp4").c_str());
-				rep->segment_template->media = gf_strdup(format("audio_$RepresentationID$.mp4_$Number$").c_str());
+				rep->segment_template->media = gf_strdup(format("audio_$RepresentationID$.mp4_$Number$.m4s").c_str());
 
 				auto out = outputSegment->getBuffer(0);
-				auto metadata = std::make_shared<MetadataFile>(format("%s/audio_%s.mp4", mpdDir, repId), AUDIO_PKT, "", "", 0, 0, false);
+				auto metadata = std::make_shared<MetadataFile>(format("%s/audio_%s.mp4", mpdDir, repId), AUDIO_PKT, "", "", 0, 0, 1, false);
 				out->setMetadata(metadata);
 				outputSegment->emit(out);
 				break;
@@ -86,10 +88,10 @@ void MPEG_DASH::ensureManifest() {
 				rep->width = quality->meta->resolution[0];
 				rep->height = quality->meta->resolution[1];
 				rep->segment_template->initialization = gf_strdup(format("video_$RepresentationID$_%sx%s.mp4", rep->width, rep->height).c_str());
-				rep->segment_template->media = gf_strdup(format("video_%s_%sx%s.mp4_$Number$", i, rep->width, rep->height).c_str());
+				rep->segment_template->media = gf_strdup(format("video_%s_%sx%s.mp4_$Number$.m4s", i, rep->width, rep->height).c_str());
 
 				auto out = outputSegment->getBuffer(0);
-				auto metadata = std::make_shared<MetadataFile>(format("%s/video_%s_%sx%s.mp4", mpdDir, repId, rep->width, rep->height), VIDEO_PKT, "", "", 0, 0, false);
+				auto metadata = std::make_shared<MetadataFile>(format("%s/video_%s_%sx%s.mp4", mpdDir, repId, rep->width, rep->height), VIDEO_PKT, "", "", 0, 0, 1, false);
 				out->setMetadata(metadata);
 				outputSegment->emit(out);
 				break;
@@ -106,7 +108,7 @@ void MPEG_DASH::writeManifest() {
 		log(Warning, "Can't write MPD at %s (1). Check you have sufficient rights.", mpdPath);
 	} else {
 		auto out = outputManifest->getBuffer(0);
-		auto metadata = std::make_shared<MetadataFile>(mpdPath, PLAYLIST, "", "", clockToTimescale(segDurationInMs, 1000), 0, false);
+		auto metadata = std::make_shared<MetadataFile>(mpdPath, PLAYLIST, "", "", clockToTimescale(segDurationInMs, 1000), 0, 1, false);
 		out->setMetadata(metadata);
 		outputManifest->emit(out);
 	}

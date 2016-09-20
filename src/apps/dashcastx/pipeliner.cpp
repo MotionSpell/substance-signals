@@ -66,19 +66,19 @@ public:
 			firstPTS = PTS;
 #ifdef MANUAL_HLS
 			auto out = outputSegmentAndManifest->getBuffer(0);
-			auto metadata = std::make_shared<MetadataFile>(format("%s%s.m3u8", HLS_SUBDIR, g_appName), VIDEO_PKT, "", "", 0, 0, false);
+			auto metadata = std::make_shared<MetadataFile>(format("%s%s.m3u8", HLS_SUBDIR, g_appName), VIDEO_PKT, "", "", 0, 0, 1, false);
 			out->setMetadata(metadata);
 			outputSegmentAndManifest->emit(out);
 #endif
 		}
 		if (PTS >= (segIdx + 1) * segDuration + firstPTS) {
 			auto out = outputSegmentAndManifest->getBuffer(0);
-			auto metadata = std::make_shared<MetadataFile>(format("%s.m3u8", segBasename), VIDEO_PKT, "", "", 0, 0, false);
+			auto metadata = std::make_shared<MetadataFile>(format("%s.m3u8", segBasename), VIDEO_PKT, "", "", 0, 0, 1, false);
 			out->setMetadata(metadata);
 			outputSegmentAndManifest->emit(out);
 
 			out = outputSegmentAndManifest->getBuffer(0);
-			metadata = std::make_shared<MetadataFile>(format("%s%s.ts", segBasename, segIdx), VIDEO_PKT, "", "", segDuration, 0, false);
+			metadata = std::make_shared<MetadataFile>(format("%s%s.ts", segBasename, segIdx), VIDEO_PKT, "", "", segDuration, 0, 1, false);
 			out->setMetadata(metadata);
 			outputSegmentAndManifest->emit(out);
 
@@ -110,15 +110,16 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 		}
 	};
 
-	auto createEncoder = [&](std::shared_ptr<const IMetadata> metadataDemux, bool isLive, Encode::LibavEncodeParams::VideoCodecType videoCodecType, PictureFormat &dstFmt, unsigned bitrate)->IModule* {
+	auto createEncoder = [&](std::shared_ptr<const IMetadata> metadataDemux, bool ultraLowLatency, Encode::LibavEncodeParams::VideoCodecType videoCodecType, PictureFormat &dstFmt, unsigned bitrate, uint64_t segmentDurationInMs)->IModule* {
 		auto const codecType = metadataDemux->getStreamType();
 		if (codecType == VIDEO_PKT) {
 			Log::msg(Info, "[Encoder] Found video stream");
 			Encode::LibavEncodeParams p;
-			p.isLowLatency = isLive;
+			p.isLowLatency = ultraLowLatency;
 			p.codecType = videoCodecType;
 			p.res = dstFmt.res;
 			p.bitrate_v = bitrate;
+			p.GOPSize = ultraLowLatency ? 1 : (int)(segmentDurationInMs * p.frameRate) / 1000;
 			auto m = pipeline.addModule<Encode::LibavEncode>(Encode::LibavEncode::Video, p);
 			dstFmt.format = p.pixelFormat;
 			return m;
@@ -218,7 +219,7 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 			IModule *encoder = nullptr;
 			if (transcode) {
 				PictureFormat encoderInputPicFmt(autoRotate(opt.v[r].res, isVertical), UNKNOWN_PF);
-				encoder = createEncoder(metadataDemux, opt.isLive, (Encode::LibavEncodeParams::VideoCodecType)opt.v[r].type, encoderInputPicFmt, opt.v[r].bitrate);
+				encoder = createEncoder(metadataDemux, opt.isLive, (Encode::LibavEncodeParams::VideoCodecType)opt.v[r].type, encoderInputPicFmt, opt.v[r].bitrate, opt.segmentDurationInMs);
 				if (!encoder)
 					continue;
 
@@ -285,7 +286,7 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 #endif
 			}
 			if (formats & MPEG_DASH) {
-				auto muxer = pipeline.addModule<Mux::GPACMuxMP4>(DASH_SUBDIR + filename.str(), opt.segmentDurationInMs, true);
+				auto muxer = pipeline.addModule<Mux::GPACMuxMP4>(DASH_SUBDIR + filename.str(), opt.segmentDurationInMs, opt.ultraLowLatency ? Mux::GPACMuxMP4::OneFragmentPerFrame : Mux::GPACMuxMP4::OneFragmentPerSegment);
 				if (transcode) {
 					connect(encoder, muxer);
 				} else {
@@ -299,7 +300,7 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 			}
 
 #ifdef MP4_MONITOR
-			//auto muxer = pipeline.addModule<Mux::GPACMuxMP4>("monitor_" + filename.str(), 0, false); //FIXME: see https://git.gpac-licensing.com/rbouqueau/fk-encode/issues/28
+			//auto muxer = pipeline.addModule<Mux::GPACMuxMP4>("monitor_" + filename.str(), 0, Mux::GPACMuxMP4::NoSegment); //FIXME: see https://git.gpac-licensing.com/rbouqueau/fk-encode/issues/28
 			auto muxer = pipeline.addModule<Mux::LibavMux>("monitor_" + filename.str(), "mp4");
 			if (transcode) {
 				connect(encoder, muxer);
