@@ -8,7 +8,7 @@
 #define EXECUTOR_ASYNC_POOL   StrandedPoolModuleExecutor
 
 #define EXECUTOR             EXECUTOR_ASYNC_THREAD
-#define EXECUTOR_LOW_LATENCY EXECUTOR_SYNC
+#define EXECUTOR_LIVE EXECUTOR_SYNC
 
 #define REGULATION_EXECUTOR EXECUTOR_ASYNC_THREAD
 #define REGULATION_TOLERANCE_IN_MS 200
@@ -33,8 +33,8 @@ MEMBER_FUNCTOR_NOTIFY_FINISHED(Class* objectPtr) {
    Data is nullptr at startup (probing topology) and at completion. */
 class PipelinedInput : public IInput {
 	public:
-		PipelinedInput(IInput *input, const std::string &moduleName, IProcessExecutor &executor, IPipelineNotifier * const notify, IClock const * const clock)
-			: delegate(input), delegateName(moduleName), notify(notify), executor(executor), clock(clock) {}
+		PipelinedInput(IInput *input, const std::string &moduleName, IProcessExecutor *localExecutor, IProcessExecutor &delegateExecutor, IPipelineNotifier * const notify, IClock const * const clock)
+			: delegate(input), delegateName(moduleName), notify(notify), executor(localExecutor), delegateExecutor(delegateExecutor), clock(clock) {}
 		virtual ~PipelinedInput() noexcept(false) {}
 
 		/* receiving nullptr stops the execution */
@@ -46,18 +46,18 @@ class PipelinedInput : public IInput {
 					assert(dataTime == 0);
 					probeState = false;
 				}
-				if (!dynamic_cast<EXECUTOR_SYNC*>(&executor)) {
+				if (!dynamic_cast<EXECUTOR_SYNC*>(executor)) {
 					regulate(dataTime);
 				}
 				Log::msg(Debug, "Module %s: dispatch data for time %ss", delegateName, dataTime / (double)IClock::Rate);
 				delegate->push(data);
-				executor(MEMBER_FUNCTOR_PROCESS(delegate));
+				delegateExecutor(MEMBER_FUNCTOR_PROCESS(delegate));
 			} else if (probeState && getNumConnections()) {
 				Log::msg(Debug, "Module %s: probing.", delegateName);
 				notify->probe();
 			} else {
 				Log::msg(Debug, "Module %s: notify finished.", delegateName);
-				executor(MEMBER_FUNCTOR_NOTIFY_FINISHED(notify));
+				delegateExecutor(MEMBER_FUNCTOR_NOTIFY_FINISHED(notify));
 			}
 		}
 
@@ -66,6 +66,11 @@ class PipelinedInput : public IInput {
 		}
 		void connect() override {
 			delegate->connect();
+		}
+
+		void setLocalExecutor(std::unique_ptr<IProcessExecutor> e) {
+			localExecutor = std::move(e);
+			executor = localExecutor.get();
 		}
 
 	private:
@@ -85,7 +90,8 @@ class PipelinedInput : public IInput {
 		std::string delegateName;
 		IPipelineNotifier * const notify;
 		bool probeState = true;
-		IProcessExecutor &executor;
+		IProcessExecutor *executor, &delegateExecutor;
+		std::unique_ptr<IProcessExecutor> localExecutor;
 		IClock const * const clock;
 };
 
@@ -93,8 +99,8 @@ class PipelinedInput : public IInput {
 class PipelinedModule : public IPipelineNotifier, public IPipelinedModule, public InputCap {
 public:
 	/* take ownership of module and executor */
-	PipelinedModule(IModule *module, bool lowLatency, IPipelineNotifier *notify, IClock const * const clock)
-		: delegate(module), localDelegateExecutor(lowLatency ? (IProcessExecutor*)new EXECUTOR_LOW_LATENCY : (IProcessExecutor*)new EXECUTOR),
+	PipelinedModule(IModule *module, IPipelineNotifier *notify, IClock const * const clock)
+		: delegate(module), localDelegateExecutor(clock->getSpeed() > 0.0 ? (IProcessExecutor*)new EXECUTOR_LIVE : (IProcessExecutor*)new EXECUTOR),
 		delegateExecutor(*localDelegateExecutor), clock(clock), m_notify(notify) {
 	}
 	~PipelinedModule() noexcept(false) {}
@@ -134,10 +140,11 @@ public:
 
 private:
 	void connect(IOutput *output, size_t inputIdx, bool forceAsync, bool inputAcceptMultipleConnections) {
-		auto input = getInput(inputIdx);
+		auto input = safe_cast<PipelinedInput>(getInput(inputIdx));
 		if (forceAsync && inputExecutor[inputIdx] == &g_executorSync) {
-			localInputExecutor[inputIdx] = uptr(new REGULATION_EXECUTOR);
-			inputExecutor[inputIdx] = localInputExecutor[inputIdx].get();
+			auto executor = uptr(new REGULATION_EXECUTOR);
+			inputExecutor[inputIdx] = executor.get();
+			input->setLocalExecutor(std::move(executor));
 		}
 		ConnectOutputToInput(output, input, inputExecutor[inputIdx]);
 		if (!inputAcceptMultipleConnections && (input->getNumConnections() != 1))
@@ -149,10 +156,9 @@ private:
 		auto const thisInputs = inputs.size();
 		if (thisInputs < delegateInputs) {
 			for (size_t i = thisInputs; i < delegateInputs; ++i) {
-				addInput(new PipelinedInput(delegate->getInput(i), getDelegateName(), this->delegateExecutor, this, clock));
 				inputExecutor.push_back(&g_executorSync);
+				addInput(new PipelinedInput(delegate->getInput(i), getDelegateName(), inputExecutor[i], this->delegateExecutor, this, clock));
 			}
-			localInputExecutor.resize(delegateInputs);
 		}
 	}
 
@@ -218,7 +224,6 @@ private:
 	IProcessExecutor &delegateExecutor;
 
 	std::vector<IProcessExecutor*> inputExecutor; /*needed to sleep when using a clock*/
-	std::vector<std::unique_ptr<IProcessExecutor>> localInputExecutor;
 	IClock const * const clock;
 
 	IPipelineNotifier * const m_notify;
@@ -229,7 +234,7 @@ Pipeline::Pipeline(bool isLowLatency, double clockSpeed)
 }
 
 IPipelinedModule* Pipeline::addModuleInternal(IModule *rawModule) {
-	auto module = uptr(new PipelinedModule(rawModule, isLowLatency, this, clock.get()));
+	auto module = uptr(new PipelinedModule(rawModule, this, clock.get()));
 	auto ret = module.get();
 	modules.push_back(std::move(module));
 	return ret;
