@@ -64,7 +64,7 @@ LibavEncode::LibavEncode(Type type, LibavEncodeParams &params)
 			throw error("Unknown video encoder type. Failed.");
 		}
 		generalOptions += format(" -r %s -pass 1", params.frameRate);
-		codecOptions += format(" -b %s -g %s -keyint_min %s -bf 0", params.bitrate_v, params.GOPSize, params.GOPSize);
+		codecOptions += format(" -b %s -g %s -keyint_min %s -bf 0 -sc_threshold 0", params.bitrate_v, params.GOPSize, params.GOPSize);
 		codecName = "vcodec";
 		break;
 	case Audio:
