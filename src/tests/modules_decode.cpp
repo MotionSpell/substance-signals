@@ -120,9 +120,7 @@ unittest("decode: video simple") {
 	decode->process(data);
 }
 
-#ifdef ENABLE_FAILING_TESTS
-//TODO: this test fails because the exception is caught by a Signals future. To be tested when tasks are pushed to an executor
-unittest("decode: failing audio mp3 to AAC") {
+unittest("decode: audio mp3 manual frame to AAC") {
 	auto decode = uptr(createMp3Decoder());
 	auto encoder = uptr(create<Encode::LibavEncode>(Encode::LibavEncode::Audio));
 
@@ -138,17 +136,16 @@ unittest("decode: failing audio mp3 to AAC") {
 	}
 	ASSERT(thrown);
 }
-#endif
 
-#ifdef ENABLE_FAILING_TESTS
-//TODO: fails because the dst number of samples for the resampler is not ok for some AAC encoders
 unittest("decode: audio mp3 to converter to AAC") {
 	auto decode = uptr(createMp3Decoder());
 	auto encoder = uptr(create<Encode::LibavEncode>(Encode::LibavEncode::Audio));
 
-	auto srcFormat = PcmFormat(44100, 1, AudioLayout::Mono, AudioSampleFormat::S16, AudioStruct::Planar);
-	auto dstFormat = PcmFormat(44100, 2, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Interleaved);
-	auto converter = uptr(create<Transform::AudioConvert>(srcFormat, dstFormat));
+	auto const srcFormat = PcmFormat(44100, 1, AudioLayout::Mono, AudioSampleFormat::S16, AudioStruct::Planar);
+	auto const dstFormat = PcmFormat(44100, 2, AudioLayout::Stereo, AudioSampleFormat::F32, AudioStruct::Planar);
+	auto const metadataEncoder = getMetadataFromOutput<MetadataPktLibav>(encoder->getOutput(0));
+	auto const metaEnc = safe_cast<const MetadataPktLibavAudio>(metadataEncoder);
+	auto converter = uptr(create<Transform::AudioConvert>(srcFormat, dstFormat, metaEnc->getFrameSize()));
 
 	ConnectOutputToInput(decode->getOutput(0), converter);
 	ConnectOutputToInput(converter->getOutput(0), encoder);
@@ -156,6 +153,5 @@ unittest("decode: audio mp3 to converter to AAC") {
 	auto frame = getTestMp3Frame();
 	decode->process(frame);
 }
-#endif
 
 

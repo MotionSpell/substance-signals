@@ -81,7 +81,7 @@ unittest("thread-safe queue has an optional max size") {
 	queue.clear();
 }
 
-#ifdef ENABLE_FAILING_TESTS // this test sometimes deadlocks
+#ifdef ENABLE_FAILING_TESTS // this test is broken and sometimes deadlocks
 unittest("thread-safe queue has an optional blocking max size") {
 	const int maxSize = 1;
 	QueueMaxSize<int> queue(maxSize);

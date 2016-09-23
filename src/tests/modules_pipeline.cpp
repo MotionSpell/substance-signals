@@ -104,7 +104,7 @@ unittest("pipeline: interrupted") {
 	tf.join();
 }
 
-#if ENABLE_FAILING_TESTS //TODO: dynamic graphs: we need to recompute the topolgy (see Pipeline::probe())
+#ifdef ENABLE_FAILING_TESTS //TODO: dynamic graphs: we need to recompute the topolgy (see Pipeline::probe())
 unittest("pipeline: connect while running") {
 	Pipeline p;
 	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
@@ -196,7 +196,7 @@ unittest("pipeline: sink only (incorrect topology)") {
 	ASSERT(thrown);
 }
 
-#if ENABLE_FAILING_TESTS //TODO: dynamic graphs: we need to recompute the topolgy (see Pipeline::probe())
+#ifdef ENABLE_FAILING_TESTS //TODO: dynamic graphs: we need to recompute the topolgy (see Pipeline::probe())
 unittest("pipeline: dynamic module connection of an existing module") {
 	try {
 		Pipeline p;
