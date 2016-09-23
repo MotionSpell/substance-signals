@@ -14,41 +14,51 @@ namespace Mux {
 
 class GPACMuxMP4 : public ModuleDynI {
 	public:
-		enum ChunkPolicy {
-			NoSegment,  //one file
-			NoFragment, //several files as in HSS
+		enum SegmentPolicy {
+			NoSegment,
+			SingleSegment,
+			IndependentSegment, //starts with moov, no initialization segment
+			FragmentedSegment, //starts with moof, initialization segment
+		};
+		enum FragmentPolicy {
+			NoFragment,
 			OneFragmentPerSegment,
 			OneFragmentPerRAP,
 			OneFragmentPerFrame,
 		};
 
-		GPACMuxMP4(const std::string &baseName, uint64_t chunkDurationInMs = 0, ChunkPolicy chunkPolicy = NoSegment);
+		GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs = 0, SegmentPolicy segmentPolicy = NoSegment, FragmentPolicy fragmentPolicy = NoFragment);
 		~GPACMuxMP4();
 		void process() override;
 		void flush() override;
 
 	private:
 		void declareStream(Data stream);
-		void declareStreamVideo(std::shared_ptr<const MetadataPktLibavVideo> stream);
-		void declareStreamAudio(std::shared_ptr<const MetadataPktLibavAudio> stream);
+		void declareStreamVideo(std::shared_ptr<const MetadataPktLibavVideo> stream, bool declareInput);
+		void declareStreamAudio(std::shared_ptr<const MetadataPktLibavAudio> stream, bool declareInput);
 		void sendOutput();
+		gpacpp::IsoSample fillSample(Data data);
 		void addSample(gpacpp::IsoSample &sample, const uint64_t dataDurationInTs);
 
-		GF_ISOFile *m_iso;
-		uint32_t m_trackId;
-		uint64_t m_DTS = 0, m_prevDTS = 0, m_lastInputTimeIn180k = 0;
+		GF_ISOFile *isoInit, *isoCur;
+		uint32_t trackId;
+		uint64_t DTS = 0, prevDTS = 0, lastInputTimeIn180k = 0;
 		bool isAnnexB = true;
 
 		//fragments
 		void setupFragments();
 		void startFragment(uint64_t DTS, uint64_t PTS);
+		void closeFragment();
+		FragmentPolicy fragmentPolicy;
+		uint64_t curFragmentDur = 0;
 
 		//segments
+		void startSegment();
 		void closeSegment(bool isLastSeg);
-		ChunkPolicy m_chunkPolicy;
-		uint64_t m_chunkDuration, m_curChunkDur = 0, m_curFragmentDur = 0, m_chunkNum = 0, m_lastChunkSize = 0;
-		bool m_chunkStartsWithRAP = true;
-		std::string m_chunkName;
+		SegmentPolicy segmentPolicy;
+		uint64_t segmentDuration, curSegmentDur = 0, segmentNum = 0, lastSegmentSize = 0;
+		bool segmentStartsWithRAP = true;
+		std::string segmentName;
 
 		OutputDataDefault<DataAVPacket>* output;
 		union {

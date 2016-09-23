@@ -286,7 +286,7 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 #endif
 			}
 			if (formats & MPEG_DASH) {
-				auto muxer = pipeline.addModule<Mux::GPACMuxMP4>(DASH_SUBDIR + filename.str(), opt.segmentDurationInMs, opt.ultraLowLatency ? Mux::GPACMuxMP4::OneFragmentPerFrame : Mux::GPACMuxMP4::OneFragmentPerSegment);
+				auto muxer = pipeline.addModule<Mux::GPACMuxMP4>(DASH_SUBDIR + filename.str(), opt.segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, opt.ultraLowLatency ? Mux::GPACMuxMP4::OneFragmentPerFrame : Mux::GPACMuxMP4::OneFragmentPerSegment);
 				if (transcode) {
 					connect(encoder, muxer);
 				} else {
