@@ -63,7 +63,7 @@ size_t ConnectOutputToInput(IOutput* prev, std::unique_ptr<ModuleType>& next, IP
 template<typename ModuleType1, typename ModuleType2>
 size_t ConnectModules(ModuleType1 *prev, size_t outputIdx, ModuleType2 *next, size_t inputIdx, IProcessExecutor& executor = defaultExecutor) {
 	auto output = prev->getOutput(outputIdx);
-	return ConnectOutputToInput(output, next->getInput(inputIdx), executor);
+	return ConnectOutputToInput(output, next->getInput(inputIdx), &executor);
 }
 
 template <typename T = IMetadata>
