@@ -131,9 +131,7 @@ bool GPACDemuxMP4Full::processSample() {
 						memmove(reader->data.data(), reader->data.data() + offset, newSize);
 						reader->data.resize(newSize);
 					}
-					std::stringstream ss;
-					ss << "gmem://" << reader->data.size() << "@" << (void*)reader->data.data();
-					reader->dataUrl = ss.str();
+					reader->dataUrl = format("gmem://%s@%s", reader->data.size(), (void*)reader->data.data());
 					reader->movie->refreshFragmented(missingBytes, reader->dataUrl);
 
 					/* update the sample count and sample index */
@@ -170,9 +168,7 @@ void GPACDemuxMP4Full::process(Data data_) {
 	reader->data.resize(reader->data.size() + (size_t)data->size());
 	memcpy(reader->data.data() + currSize, data->data(), (size_t)data->size());
 #endif
-	std::stringstream ss;
-	ss << "gmem://" << reader->data.size() << "@" << (void*)reader->data.data();
-	reader->dataUrl = ss.str();
+	reader->dataUrl = format("gmem://%s@%s", reader->data.size(), (void*)reader->data.data());
 
 	if (!reader->movie) {
 		if (!openData()) {

@@ -19,12 +19,10 @@ struct Resolution {
 	Resolution operator/(const int div) const {
 		return Resolution(this->width/2, this->height/2);
 	}
-	unsigned int width, height;
 	std::string toString() const {
-		std::stringstream ss;
-		ss << width << "x" << height;
-		return ss.str();
+		return format("%sx%s", width, height);
 	}
+	unsigned int width, height;
 };
 
 #undef PixelFormat //there are collisions with FFmpeg here
