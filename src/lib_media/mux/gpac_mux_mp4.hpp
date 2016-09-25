@@ -37,7 +37,7 @@ class GPACMuxMP4 : public ModuleDynI {
 		void declareStreamVideo(std::shared_ptr<const MetadataPktLibavVideo> stream, bool declareInput);
 		void declareStreamAudio(std::shared_ptr<const MetadataPktLibavAudio> stream, bool declareInput);
 		void sendOutput();
-		gpacpp::IsoSample fillSample(Data data);
+		std::unique_ptr<gpacpp::IsoSample> fillSample(Data data);
 		void addSample(gpacpp::IsoSample &sample, const uint64_t dataDurationInTs);
 
 		GF_ISOFile *isoInit, *isoCur;

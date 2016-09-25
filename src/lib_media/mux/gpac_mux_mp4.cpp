@@ -761,35 +761,35 @@ void GPACMuxMP4::addSample(gpacpp::IsoSample &sample, const uint64_t dataDuratio
 	}
 }
 
-gpacpp::IsoSample GPACMuxMP4::fillSample(Data data_) {
+std::unique_ptr<gpacpp::IsoSample> GPACMuxMP4::fillSample(Data data_) {
 	auto data = safe_cast<const DataAVPacket>(data_);
-	gpacpp::IsoSample sample;
+	auto sample = uptr(new gpacpp::IsoSample);
 	u32 bufLen = (u32)data->size();
 	const u8 *bufPtr = data->data();
 
 	u32 mediaType = gf_isom_get_media_type(isoCur, 1);
 	if (mediaType == GF_ISOM_MEDIA_VISUAL) {
 		if (isAnnexB) {
-			fillVideoSampleData(bufPtr, bufLen, sample);
+			fillVideoSampleData(bufPtr, bufLen, *sample);
 		} else {
-			sample.data = (char*)bufPtr;
-			sample.dataLength = bufLen;
-			sample.setDataOwnership(false);
+			sample->data = (char*)bufPtr;
+			sample->dataLength = bufLen;
+			sample->setDataOwnership(false);
 		}
 	} else if (mediaType == GF_ISOM_MEDIA_AUDIO) {
-		sample.data = (char*)bufPtr;
-		sample.dataLength = bufLen;
-		sample.setDataOwnership(false);
+		sample->data = (char*)bufPtr;
+		sample->dataLength = bufLen;
+		sample->setDataOwnership(false);
 	} else {
 		throw error("only audio or video supported yet");
 	}
 
 	if (segmentPolicy == IndependentSegment) {
-		sample.DTS = curSegmentDur;
+		sample->DTS = curSegmentDur;
 	} else {
-		sample.DTS = DTS;
+		sample->DTS = DTS;
 	}
-	sample.IsRAP = (SAPType)(data->getPacket()->flags & AV_PKT_FLAG_KEY);
+	sample->IsRAP = (SAPType)(data->getPacket()->flags & AV_PKT_FLAG_KEY);
 	return sample;
 }
 
@@ -828,7 +828,7 @@ void GPACMuxMP4::process() {
 		dataDurationInTs = TIMESCALE_MUL;
 	}
 
-	addSample(sample, dataDurationInTs);
+	addSample(*sample, dataDurationInTs);
 }
 
 }
