@@ -39,7 +39,7 @@ void AdaptiveStreamingCommon::threadProc() {
 			} else {
 				qualities[i]->meta = safe_cast<const MetadataFile>(data->getMetadata());
 				if (!qualities[i]->meta)
-					throw error(format("Unknown data received on input %s", i).c_str());
+					throw error(format("Unknown data received on input %s", i));
 				auto const numSeg = totalDurationInMs / segDurationInMs;
 				qualities[i]->avg_bitrate_in_bps = (qualities[i]->meta->getSize() * 8 + qualities[i]->avg_bitrate_in_bps * numSeg) / (numSeg + 1);
 			}

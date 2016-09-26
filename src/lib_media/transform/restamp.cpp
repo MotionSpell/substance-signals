@@ -37,7 +37,7 @@ namespace Modules {
 			}
 
 			auto const restampedTime = std::max<int64_t>(0, time + offset);
-			log((int64_t)time + offset < 0 ? Info : Debug, "%s -> %sms (time=%s, offset=%s)", (double)data->getTime() / IClock::Rate, (double)(restampedTime) / IClock::Rate, time, offset);
+			log(((time != 0) && ((int64_t)time + offset < 0)) ? Info : Debug, "%s -> %sms (time=%s, offset=%s)", (double)data->getTime() / IClock::Rate, (double)(restampedTime) / IClock::Rate, time, offset);
 			const_cast<DataBase*>(data.get())->setTime(restampedTime); //FIXME: we should have input&output on the same allocator
 			getOutput(0)->emit(data);
 		}
