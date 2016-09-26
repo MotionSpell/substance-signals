@@ -107,6 +107,7 @@ MEDIA_SRCS:=\
   $(ProjectName)/out/print.cpp\
   $(ProjectName)/stream/apple_hls.cpp\
   $(ProjectName)/stream/mpeg_dash.cpp\
+  $(ProjectName)/stream/ms_hss.cpp\
   $(ProjectName)/stream/adaptive_streaming_common.cpp\
   $(ProjectName)/transform/audio_convert.cpp\
   $(ProjectName)/transform/restamp.cpp\

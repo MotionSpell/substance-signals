@@ -46,6 +46,7 @@
     <ClInclude Include="stream\adaptive_streaming_common.hpp" />
     <ClInclude Include="stream\apple_hls.hpp" />
     <ClInclude Include="stream\mpeg_dash.hpp" />
+    <ClInclude Include="stream\ms_hss.hpp" />
     <ClInclude Include="transform\audio_convert.hpp" />
     <ClInclude Include="transform\restamp.hpp" />
     <ClInclude Include="transform\video_convert.hpp" />
@@ -77,6 +78,7 @@
     <ClCompile Include="stream\adaptive_streaming_common.cpp" />
     <ClCompile Include="stream\apple_hls.cpp" />
     <ClCompile Include="stream\mpeg_dash.cpp" />
+    <ClCompile Include="stream\ms_hss.cpp" />
     <ClCompile Include="transform\audio_convert.cpp" />
     <ClCompile Include="transform\restamp.cpp" />
     <ClCompile Include="transform\video_convert.cpp" />

@@ -133,6 +133,9 @@
     <ClInclude Include="stream\adaptive_streaming_common.hpp">
       <Filter>src\stream</Filter>
     </ClInclude>
+    <ClInclude Include="stream\ms_hss.hpp">
+      <Filter>src\stream</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="common\libav.cpp">
@@ -220,6 +223,9 @@
       <Filter>src\transform</Filter>
     </ClCompile>
     <ClCompile Include="stream\adaptive_streaming_common.cpp">
+      <Filter>src\stream</Filter>
+    </ClCompile>
+    <ClCompile Include="stream\ms_hss.cpp">
       <Filter>src\stream</Filter>
     </ClCompile>
   </ItemGroup>

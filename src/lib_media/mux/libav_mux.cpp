@@ -8,7 +8,6 @@ extern "C" {
 #include <libavformat/avformat.h>
 #include <libavutil/mathematics.h>
 #include <libavutil/opt.h>
-#include <curl/curl.h>
 }
 
 namespace Modules {
@@ -17,102 +16,6 @@ namespace {
 auto g_InitAv = runAtStartup(&av_register_all);
 auto g_InitAvcodec = runAtStartup(&avcodec_register_all);
 auto g_InitAvLog = runAtStartup(&av_log_set_callback, avLog);
-
-CURL *curl = nullptr;
-
-struct BufferData {
-	uint8_t *buf;
-	int sizeLeft;
-};
-
-int read(void *opaque, uint8_t *buf, int buf_size) {
-	auto *bd = (BufferData*)opaque;
-	buf_size = (int)FFMIN(buf_size, bd->sizeLeft);
-	memcpy(buf, bd->buf, buf_size);
-	bd->buf += buf_size;
-	bd->sizeLeft -= buf_size;
-	return buf_size;
-}
-
-static int write(void *opaque, uint8_t *buf, int buf_size) {
-	//auto *bd = (BufferData*)opaque;
-	CURLcode res;
-
-	/* get a curl handle */
-	if (!curl) {
-		/* In windows, this will init the winsock stuff */
-		curl_global_init(CURL_GLOBAL_ALL);
-
-		curl = curl_easy_init();
-	}
-
-	{
-		/* First set the URL that is about to receive our POST. This URL can
-		just as well be a https:// URL if that is what should receive the
-		data. */
-		curl_easy_setopt(curl, CURLOPT_URL, "http://192.168.21.128/channel1/channel7.isml/Streams(channel_molotov)");
-
-#define USE_CHUNKED
-#ifdef USE_CHUNKED
-		{
-			struct curl_slist *chunk = NULL;
-
-			chunk = curl_slist_append(chunk, "Transfer-Encoding: chunked");
-			res = curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
-			/* use curl_slist_free_all() after the *perform() call to free this
-			list again */
-		}
-#else
-		/* Set the expected POST size. If you want to POST large amounts of data,
-		consider CURLOPT_POSTFIELDSIZE_LARGE */
-		curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, pooh.sizeleft);
-#endif
-
-#define DISABLE_EXPECT
-#ifdef DISABLE_EXPECT
-		/*
-		Using POST with HTTP 1.1 implies the use of a "Expect: 100-continue"
-		header.  You can disable this header with CURLOPT_HTTPHEADER as usual.
-		NOTE: if you want chunked transfer too, you need to combine these two
-		since you can only set one list of headers with CURLOPT_HTTPHEADER. */
-
-		/* A less good option would be to enforce HTTP 1.0, but that might also
-		have other implications. */
-		{
-			struct curl_slist *chunk = NULL;
-
-			chunk = curl_slist_append(chunk, "Expect:");
-			res = curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
-			/* use curl_slist_free_all() after the *perform() call to free this
-			list again */
-		}
-#endif
-
-		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L); //tell curl to output its progress
-	}
-
-	/* Now specify the POST data */
-	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, buf/*"name=daniel&project=curl"*/);
-	curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, buf_size);
-
-	/* Perform the request, res will get the return code */
-	res = curl_easy_perform(curl);
-	/* Check for errors */
-	if (res != CURLE_OK) {
-		Log::msg(Warning, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
-	}
-
-	/* always cleanup */
-	curl_easy_cleanup(curl);
-
-	curl_global_cleanup();
-	return 0;
-}
-
-static int64_t seek(void *opaque, int64_t offset, int whence) {
-	//auto *bd = (BufferData*)opaque;
-	return 0;
-}
 }
 
 namespace Mux {
@@ -141,19 +44,9 @@ LibavMux::LibavMux(const std::string &baseName, const std::string &fmt, const st
 
 	/* open the output file, if needed */
 	if (!(m_formatCtx->oformat->flags & AVFMT_NOFILE)) {
-#if 0 //TODO
-		if (!baseName.compare(0, 7, "http://")) {
-			auto bd = uptr(new BufferData); //FIXME
-			m_avio = std::unique_ptr<ffpp::IAvIO>(new ffpp::AvIO<BufferData>(nullptr/*read*/, write, nullptr/*seek*/, std::move(bd)));
-			m_formatCtx->pb = m_avio->get();
-			m_formatCtx->flags = AVFMT_FLAG_CUSTOM_IO;
-		} else
-#endif
-		{
-			if (avio_open(&m_formatCtx->pb, fileName.str().c_str(), AVIO_FLAG_READ_WRITE) < 0) {
-				avformat_free_context(m_formatCtx);
-				throw error(format("could not open %s, disable output.", baseName));
-			}
+		if (avio_open(&m_formatCtx->pb, fileName.str().c_str(), AVIO_FLAG_READ_WRITE) < 0) {
+			avformat_free_context(m_formatCtx);
+			throw error(format("could not open %s, disable output.", baseName));
 		}
 	}
 	strncpy(m_formatCtx->filename, fileName.str().c_str(), sizeof(m_formatCtx->filename));
