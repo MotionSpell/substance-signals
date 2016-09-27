@@ -399,6 +399,8 @@ void GPACMuxMP4::startSegment() {
 			} else if (auto audio = std::dynamic_pointer_cast<const MetadataPktLibavAudio>(metadata)) {
 				declareStreamAudio(audio, false);
 			}
+
+			gf_isom_set_next_moof_number(isoCur, (u32)curFragmentNum);
 		} else {
 			throw error("unknown segment policy (2)");
 		}
@@ -430,6 +432,7 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 			log(Info, "Segment %s completed (size %s) (startsWithSAP=%s)", segmentName, lastSegmentSize, segmentStartsWithRAP);
 
 			if (segmentPolicy == IndependentSegment) {
+				curFragmentNum = gf_isom_get_next_moof_number(isoCur);
 				GF_Err e = gf_isom_close(isoCur);
 				if (e != GF_OK && e != GF_ISOM_INVALID_FILE)
 					throw error(format("gf_isom_close (2): %s", gf_error_to_string(e)));
@@ -445,21 +448,25 @@ void GPACMuxMP4::startFragment(uint64_t DTS, uint64_t PTS) {
 		if (e != GF_OK)
 			throw error(format("Impossible to create the moof starting the fragment: %s", gf_error_to_string(e)));
 
-		e = gf_isom_set_traf_base_media_decode_time(isoCur, trackId, DTS);
-		if (e != GF_OK)
-			throw error(format("Impossible to create TFDT %s: %s", DTS, gf_error_to_string(e)));
+		if (segmentPolicy >= IndependentSegment) {
+			e = gf_isom_set_traf_base_media_decode_time(isoCur, trackId, DTS);
+			if (e != GF_OK)
+				throw error(format("Impossible to create TFDT %s: %s", DTS, gf_error_to_string(e)));
 
 #ifndef CHROME_DASHJS_2_0_COMPAT
-		e = gf_isom_set_fragment_reference_time(isoCur, trackId, gf_net_get_ntp_ts(), PTS);
-		if (e != GF_OK)
-			throw error(format("Impossible to create UTC marquer: %s", gf_error_to_string(e)));
+			e = gf_isom_set_fragment_reference_time(isoCur, trackId, gf_net_get_ntp_ts(), PTS);
+			if (e != GF_OK)
+				throw error(format("Impossible to create UTC marquer: %s", gf_error_to_string(e)));
 #endif
+		}
 	}
 }
 
 void GPACMuxMP4::closeFragment() {
 	if (fragmentPolicy > NoFragment) {
-		gf_isom_flush_fragments(isoCur, GF_TRUE);
+		if ((segmentPolicy == FragmentedSegment) || (segmentPolicy == SingleSegment)) {
+			gf_isom_flush_fragments(isoCur, GF_TRUE); //writes a 'styp'
+		}
 	}
 }
 
@@ -469,13 +476,9 @@ void GPACMuxMP4::setupFragments() {
 		if (e != GF_OK)
 			throw error(format("Cannot setup track as fragmented: %s", gf_error_to_string(e)));
 
-#if 0 //TODO
-		int mode = 0;
-		if (segmentPolicy == SingleSegment) mode = 2;
-		else if (segmentPolicy == FragmentedSegment) mode = 1;
-#else
 		int mode = 1;
-#endif
+		if (segmentPolicy == NoSegment || segmentPolicy == IndependentSegment) mode = 0;
+		else if (segmentPolicy == SingleSegment) mode = 2;
 		e = gf_isom_finalize_for_fragment(isoCur, mode);
 		if (e != GF_OK)
 			throw error(format("Cannot prepare track for movie fragmentation: %s", gf_error_to_string(e)));
@@ -737,7 +740,7 @@ void GPACMuxMP4::addSample(gpacpp::IsoSample &sample, const uint64_t dataDuratio
 	}
 
 	if (fragmentPolicy > NoFragment) {
-		if ((fragmentPolicy == OneFragmentPerRAP) && (sample.IsRAP == RAP)) {
+		if ((fragmentPolicy == OneFragmentPerRAP) && (sample.IsRAP == RAP) && sample.DTS) {
 			closeFragment();
 			startFragment(sample.DTS, sample.DTS + sample.CTS_Offset);
 		}
@@ -748,7 +751,7 @@ void GPACMuxMP4::addSample(gpacpp::IsoSample &sample, const uint64_t dataDuratio
 			return;
 		}
 
-		if (fragmentPolicy == OneFragmentPerFrame) {
+		if (fragmentPolicy == OneFragmentPerFrame && sample.DTS) {
 			closeFragment();
 			startFragment(sample.DTS, sample.DTS + sample.CTS_Offset);
 		}

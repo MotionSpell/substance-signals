@@ -17,7 +17,7 @@ class GPACMuxMP4 : public ModuleDynI {
 		enum SegmentPolicy {
 			NoSegment,
 			SingleSegment,
-			IndependentSegment, //starts with moov, no initialization segment
+			IndependentSegment, //starts with moov, no initialization segment, no 'styp'
 			FragmentedSegment, //starts with moof, initialization segment
 		};
 		enum FragmentPolicy {
@@ -50,7 +50,7 @@ class GPACMuxMP4 : public ModuleDynI {
 		void startFragment(uint64_t DTS, uint64_t PTS);
 		void closeFragment();
 		FragmentPolicy fragmentPolicy;
-		uint64_t curFragmentDur = 0;
+		uint64_t curFragmentDur = 0, curFragmentNum = 0;
 
 		//segments
 		void startSegment();
