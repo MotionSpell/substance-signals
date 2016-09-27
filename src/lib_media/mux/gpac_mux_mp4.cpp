@@ -340,6 +340,8 @@ GPACMuxMP4::GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs
 		throw error(format("Inconsistent parameters: segment duration is %sms but no segment.", segmentDurationInMs));
 	if ((segmentPolicy == SingleSegment || segmentPolicy == FragmentedSegment) && (fragmentPolicy == NoFragment))
 		throw error("Inconsistent parameters: segmented policies requires fragmentation to be enabled.");
+	if ((compat == SmoothStreaming) && (segmentPolicy != IndependentSegment))
+		throw error("Inconsistent parameters: SmoothStreaming compatibility requires IndependentSegment policy.");
 
 	std::stringstream fileName;
 	fileName << baseName << ".mp4";
@@ -397,6 +399,13 @@ void GPACMuxMP4::startSegment() {
 				declareStreamVideo(video, false);
 			} else if (auto audio = std::dynamic_pointer_cast<const MetadataPktLibavAudio>(metadata)) {
 				declareStreamAudio(audio, false);
+			}
+
+			if (compat == SmoothStreaming) {
+				GF_Err e = gf_isom_set_brand_info(isoCur, GF_4CC('i', 's', 'm', 'l'), 1);
+				e = gf_isom_modify_alternate_brand(isoCur, GF_ISOM_BRAND_ISOM, 1);
+				e = gf_isom_modify_alternate_brand(isoCur, GF_ISOM_BRAND_ISO2, 1);
+				e = gf_isom_modify_alternate_brand(isoCur, GF_4CC('p', 'i', 'f', 'f'), 1);
 			}
 
 			if (fragmentPolicy > NoFragment) {
