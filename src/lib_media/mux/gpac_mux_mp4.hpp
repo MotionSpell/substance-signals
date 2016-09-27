@@ -26,8 +26,13 @@ class GPACMuxMP4 : public ModuleDynI {
 			OneFragmentPerRAP,
 			OneFragmentPerFrame,
 		};
+		enum Compatibility {
+			None,
+			DashJs,
+			SmoothStreaming,
+		};
 
-		GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs = 0, SegmentPolicy segmentPolicy = NoSegment, FragmentPolicy fragmentPolicy = NoFragment);
+		GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs = 0, SegmentPolicy segmentPolicy = NoSegment, FragmentPolicy fragmentPolicy = NoFragment, Compatibility compat = None);
 		~GPACMuxMP4();
 		void process() override;
 		void flush() override;
@@ -40,6 +45,7 @@ class GPACMuxMP4 : public ModuleDynI {
 		std::unique_ptr<gpacpp::IsoSample> fillSample(Data data);
 		void addSample(gpacpp::IsoSample &sample, const uint64_t dataDurationInTs);
 
+		Compatibility compat;
 		GF_ISOFile *isoInit, *isoCur;
 		uint32_t trackId;
 		uint64_t DTS = 0, prevDTS = 0, lastInputTimeIn180k = 0;

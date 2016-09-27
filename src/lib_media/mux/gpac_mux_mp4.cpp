@@ -13,7 +13,6 @@ extern "C" {
 
 //#define AVC_INBAND_CONFIG
 #define TIMESCALE_MUL 1000
-//#define CHROME_DASHJS_2_0_COMPAT
 
 namespace Modules {
 
@@ -335,8 +334,8 @@ void fillVideoSampleData(const u8 *bufPtr, u32 bufLen, GF_ISOSample &sample) {
 
 namespace Mux {
 
-GPACMuxMP4::GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs, SegmentPolicy segmentPolicy, FragmentPolicy fragmentPolicy)
-	: fragmentPolicy(fragmentPolicy), segmentPolicy(segmentPolicy), segmentDuration(timescaleToClock(segmentDurationInMs, 1000)) {
+GPACMuxMP4::GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs, SegmentPolicy segmentPolicy, FragmentPolicy fragmentPolicy, Compatibility compat)
+	: compat(compat), fragmentPolicy(fragmentPolicy), segmentPolicy(segmentPolicy), segmentDuration(timescaleToClock(segmentDurationInMs, 1000)) {
 	if ((segmentDurationInMs == 0) ^ (segmentPolicy == NoSegment || segmentPolicy == SingleSegment))
 		throw error(format("Inconsistent parameters: segment duration is %sms but no segment.", segmentDurationInMs));
 	if ((segmentPolicy == SingleSegment || segmentPolicy == FragmentedSegment) && (fragmentPolicy == NoFragment))
@@ -416,11 +415,7 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 		return;
 	} else {
 		if (segmentPolicy == FragmentedSegment) {
-#ifdef CHROME_DASHJS_2_0_COMPAT
-			GF_Err e = gf_isom_close_segment(isoCur, 0, 0, 0, 0, 0, GF_FALSE, (Bool)isLastSeg, 0, nullptr, nullptr);
-#else
-			GF_Err e = gf_isom_close_segment(isoCur, 0, 0, 0, 0, 0, GF_FALSE, (Bool)isLastSeg, GF_4CC('e', 'o', 'd', 's'), nullptr, nullptr);
-#endif
+			GF_Err e = gf_isom_close_segment(isoCur, 0, 0, 0, 0, 0, GF_FALSE, (Bool)isLastSeg, compat == DashJs ? 0 : GF_4CC('e', 'o', 'd', 's'), nullptr, nullptr);
 			if (e != GF_OK)
 				throw error(format("gf_isom_close_segment: %s", gf_error_to_string(e)));
 
@@ -455,11 +450,11 @@ void GPACMuxMP4::startFragment(uint64_t DTS, uint64_t PTS) {
 			if (e != GF_OK)
 				throw error(format("Impossible to create TFDT %s: %s", DTS, gf_error_to_string(e)));
 
-#ifndef CHROME_DASHJS_2_0_COMPAT
-			e = gf_isom_set_fragment_reference_time(isoCur, trackId, gf_net_get_ntp_ts(), PTS);
-			if (e != GF_OK)
-				throw error(format("Impossible to create UTC marquer: %s", gf_error_to_string(e)));
-#endif
+			if (compat != DashJs) {
+				e = gf_isom_set_fragment_reference_time(isoCur, trackId, gf_net_get_ntp_ts(), PTS);
+				if (e != GF_OK)
+					throw error(format("Impossible to create UTC marquer: %s", gf_error_to_string(e)));
+			}
 		}
 		if (segmentPolicy == IndependentSegment) {
 			gf_isom_set_next_moof_number(isoCur, (u32)curFragmentNum);
