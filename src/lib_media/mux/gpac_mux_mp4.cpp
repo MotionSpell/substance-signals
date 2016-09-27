@@ -400,7 +400,9 @@ void GPACMuxMP4::startSegment() {
 				declareStreamAudio(audio, false);
 			}
 
-			gf_isom_set_next_moof_number(isoCur, (u32)curFragmentNum);
+			if (fragmentPolicy > NoFragment) {
+				setupFragments();
+			}
 		} else {
 			throw error("unknown segment policy (2)");
 		}
@@ -448,7 +450,7 @@ void GPACMuxMP4::startFragment(uint64_t DTS, uint64_t PTS) {
 		if (e != GF_OK)
 			throw error(format("Impossible to create the moof starting the fragment: %s", gf_error_to_string(e)));
 
-		if (segmentPolicy >= IndependentSegment) {
+		if (segmentPolicy == FragmentedSegment) {
 			e = gf_isom_set_traf_base_media_decode_time(isoCur, trackId, DTS);
 			if (e != GF_OK)
 				throw error(format("Impossible to create TFDT %s: %s", DTS, gf_error_to_string(e)));
@@ -458,6 +460,9 @@ void GPACMuxMP4::startFragment(uint64_t DTS, uint64_t PTS) {
 			if (e != GF_OK)
 				throw error(format("Impossible to create UTC marquer: %s", gf_error_to_string(e)));
 #endif
+		}
+		if (segmentPolicy == IndependentSegment) {
+			gf_isom_set_next_moof_number(isoCur, (u32)curFragmentNum);
 		}
 	}
 }
