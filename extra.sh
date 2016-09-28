@@ -54,7 +54,7 @@ echo zenbuild extra script
 #-------------------------------------------------------------------------------
 if [ ! -f extra/zenbuild.built ] ; then
 	pushd extra
-	#./zen-extra.sh $CPREFIX
+	./zen-extra.sh $CPREFIX
 	popd
 
 	## move files
@@ -95,9 +95,10 @@ fi
 
 if [ ! -f extra/release/libjpeg_turbo_1.3.x/releaseOk ] ; then
 	mkdir -p extra/release/libjpeg_turbo_1.3.x
-
-		pushd extra/src/libjpeg_turbo_1.3.x
-
+	pushd extra/src/libjpeg_turbo_1.3.x
+	../../src/libjpeg_turbo_1.3.x/configure \
+		--prefix=$EXTRA_DIR \
+		--host=$HOST
 	$MAKE
 	$MAKE install
 	popd
