@@ -24,10 +24,13 @@ class AudioConvert : public ModuleS {
 	private:
 		void configure(const PcmFormat &srcFormat);
 		void reconfigure(const PcmFormat &srcFormat);
-		PcmFormat srcPcmFormat, dstPcmFormat;
-		int64_t dstNumSamples;
+
+		PcmFormat srcPcmFormat;
+		PcmFormat const dstPcmFormat;
+		int64_t dstNumSamples, curNumSamples = 0;
+		std::shared_ptr<DataPcm> curOut;
 		std::unique_ptr<ffpp::SwResampler> m_Swr;
-		uint64_t accumulatedTimeInDstSR;
+		uint64_t accumulatedTimeInDstSR = 0;
 		OutputPcm* output;
 		bool autoConfigure;
 };

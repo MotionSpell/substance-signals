@@ -8,7 +8,7 @@ namespace Modules {
 namespace Transform {
 
 AudioConvert::AudioConvert(const PcmFormat &dstFormat, int64_t dstNumSamples)
-	: dstPcmFormat(dstFormat), dstNumSamples(dstNumSamples), m_Swr(nullptr), accumulatedTimeInDstSR(0), autoConfigure(true) {
+	: dstPcmFormat(dstFormat), dstNumSamples(dstNumSamples), m_Swr(nullptr), autoConfigure(true) {
 	memset(&srcPcmFormat, 0, sizeof(srcPcmFormat));
 	auto input = addInput(new Input<DataPcm>(this));
 	input->setMetadata(new MetadataRawAudio);
@@ -17,7 +17,7 @@ AudioConvert::AudioConvert(const PcmFormat &dstFormat, int64_t dstNumSamples)
 
 AudioConvert::AudioConvert(const PcmFormat &srcFormat, const PcmFormat &dstFormat, int64_t dstNumSamples)
 	: srcPcmFormat(srcFormat), dstPcmFormat(dstFormat), dstNumSamples(dstNumSamples),
-	  m_Swr(new ffpp::SwResampler), accumulatedTimeInDstSR(0), autoConfigure(false) {
+	  m_Swr(new ffpp::SwResampler), autoConfigure(false) {
 	configure(srcPcmFormat);
 	auto input = addInput(new Input<DataPcm>(this));
 	input->setMetadata(new MetadataRawAudio);
@@ -83,24 +83,45 @@ void AudioConvert::process(Data data) {
 		srcNumSamples = 0;
 	}
 
-	auto const dstBufferSize = dstNumSamples * dstPcmFormat.getBytesPerSample();
-	auto out = output->getBuffer(0);
-	out->setFormat(dstPcmFormat);
-	for (uint8_t i=0; i < dstPcmFormat.numPlanes; ++i)
-		out->setPlane(i, nullptr, dstBufferSize / dstPcmFormat.numPlanes);
+	std::shared_ptr<DataPcm> out;
+	if (curNumSamples) {
+		out = curOut;
+	} else {
+		auto const dstBufferSize = dstNumSamples * dstPcmFormat.getBytesPerSample();
+		out = output->getBuffer(0);
+		out->setFormat(dstPcmFormat);
+		for (uint8_t i = 0; i < dstPcmFormat.numPlanes; ++i) {
+			out->setPlane(i, nullptr, dstBufferSize / dstPcmFormat.numPlanes);
+		}
+	}
 
-	auto pDst = (uint8_t**)out->getPlanes();
-	auto const outNumSamples = m_Swr->convert(pDst, (int)dstNumSamples, (const uint8_t**)pSrc, (int)srcNumSamples);
+	uint8_t* dstPlanes[AUDIO_PCM_PLANES_MAX];
+	for (int i=0; i<AUDIO_PCM_PLANES_MAX; ++i) {
+		dstPlanes[i] = out->getPlanes()[i] + curNumSamples * dstPcmFormat.getBytesPerSample();
+	}
+	auto targetNumSamples = dstNumSamples - curNumSamples;
 
-	auto const outPlaneSize = outNumSamples * dstPcmFormat.getBytesPerSample() / dstPcmFormat.numPlanes;
-	for (uint8_t i = 0; i < dstPcmFormat.numPlanes; ++i)
-		out->setPlane(i, out->getPlane(i), outPlaneSize);
+	auto const outNumSamples = m_Swr->convert(dstPlanes, (int)targetNumSamples, (const uint8_t**)pSrc, (int)srcNumSamples);
 
-	auto const accumulatedTimeIn180k = timescaleToClock(accumulatedTimeInDstSR, dstPcmFormat.sampleRate);
-	out->setTime(accumulatedTimeIn180k);
-	accumulatedTimeInDstSR += outNumSamples;
+	if (outNumSamples == targetNumSamples) {
+		curNumSamples = 0;
+		curOut = nullptr;
+		targetNumSamples = dstNumSamples;
 
-	output->emit(out);
+		auto const outPlaneSize = dstNumSamples * dstPcmFormat.getBytesPerSample() / dstPcmFormat.numPlanes;
+		for (uint8_t i = 0; i < dstPcmFormat.numPlanes; ++i)
+			out->setPlane(i, out->getPlane(i), outPlaneSize);
+
+		auto const accumulatedTimeIn180k = timescaleToClock(accumulatedTimeInDstSR, dstPcmFormat.sampleRate);
+		out->setTime(accumulatedTimeIn180k);
+		accumulatedTimeInDstSR += dstNumSamples;
+
+		output->emit(out);
+	} else if (outNumSamples < targetNumSamples) {
+		curNumSamples += outNumSamples;
+		curOut = out;
+	} else
+		throw error(format("Unexpected case: output %s samples when %s was requested (frame size = %s)", outNumSamples, targetNumSamples, dstNumSamples));
 }
 
 }
