@@ -70,7 +70,7 @@ void MPEG_DASH::ensureManifest() {
 			rep->codecs = gf_strdup(quality->meta->getCodecName().c_str());
 			rep->starts_with_sap = GF_TRUE;
 			if (quality->meta->getLatency()) {
-				rep->segment_template->availability_time_offset = segDurationInMs * (1.0 - (double)quality->meta->getLatency() / Clock::Rate);
+				rep->segment_template->availability_time_offset = std::max<double>(0.0, segDurationInMs * (1.0 - (double)quality->meta->getLatency() / Clock::Rate));
 			}
 			switch (quality->meta->getStreamType()) {
 			case AUDIO_PKT: {
