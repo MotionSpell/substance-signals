@@ -7,12 +7,12 @@
 #define EXECUTOR_ASYNC_THREAD Signals::ExecutorThread<void()>(getDelegateName())
 #define EXECUTOR_ASYNC_POOL   StrandedPoolModuleExecutor
 
-#define EXECUTOR             EXECUTOR_ASYNC_THREAD
-#define EXECUTOR_LIVE EXECUTOR_SYNC
+#define EXECUTOR              EXECUTOR_ASYNC_THREAD
+#define EXECUTOR_LIVE         EXECUTOR_SYNC
 
-#define REGULATION_EXECUTOR EXECUTOR_ASYNC_THREAD
+#define REGULATION_EXECUTOR   EXECUTOR_ASYNC_THREAD
 #define REGULATION_TOLERANCE_IN_MS 200
-#define PROBE_TIMEOUT_IN_MS 20
+#define PROBE_TIMEOUT_IN_MS   20
 
 using namespace Modules;
 
