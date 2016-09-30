@@ -300,7 +300,7 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 			}
 
 #ifdef MP4_MONITOR
-			auto muxer = pipeline.addModule<Mux::GPACMuxMP4>("monitor_" + filename.str(), 0, Mux::GPACMuxMP4::NoSegment);
+			auto muxer = pipeline.addModule<Mux::GPACMuxMP4>("monitor_" + filename.str());
 			if (transcode) {
 				connect(encoder, muxer);
 			} else {
