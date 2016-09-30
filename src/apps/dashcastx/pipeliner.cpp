@@ -219,7 +219,7 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 			IModule *encoder = nullptr;
 			if (transcode) {
 				PictureFormat encoderInputPicFmt(autoRotate(opt.v[r].res, isVertical), UNKNOWN_PF);
-				encoder = createEncoder(metadataDemux, opt.isLive, (Encode::LibavEncodeParams::VideoCodecType)opt.v[r].type, encoderInputPicFmt, opt.v[r].bitrate, opt.segmentDurationInMs);
+				encoder = createEncoder(metadataDemux, opt.ultraLowLatency, (Encode::LibavEncodeParams::VideoCodecType)opt.v[r].type, encoderInputPicFmt, opt.v[r].bitrate, opt.segmentDurationInMs);
 				if (!encoder)
 					continue;
 
