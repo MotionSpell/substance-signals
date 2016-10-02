@@ -99,7 +99,19 @@ void AudioConvert::process(Data data) {
 	for (int i=0; i<AUDIO_PCM_PLANES_MAX; ++i) {
 		dstPlanes[i] = out->getPlanes()[i] + curNumSamples * dstPcmFormat.getBytesPerSample();
 	}
-	auto targetNumSamples = dstNumSamples - curNumSamples;
+	int64_t targetNumSamples;
+	if (audioData) {
+		targetNumSamples = dstNumSamples - curNumSamples;
+	} else {
+		targetNumSamples = dstNumSamples;
+		dstNumSamples += curNumSamples;
+		const int64_t maxTargetNumSamples = out->getPlaneSize(0) / dstPcmFormat.getBytesPerSample();
+		if (targetNumSamples + curNumSamples > maxTargetNumSamples) {
+			log(Warning, "Truncating last samples.");
+			targetNumSamples = maxTargetNumSamples;
+		}
+	}
+	assert(targetNumSamples >= 0);
 
 	auto const outNumSamples = m_Swr->convert(dstPlanes, (int)targetNumSamples, (const uint8_t**)pSrc, (int)srcNumSamples);
 

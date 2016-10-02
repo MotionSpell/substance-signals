@@ -51,12 +51,14 @@ unittest("audio converter: 44100 to 48000") {
 	auto converter1 = uptr(create<Transform::AudioConvert>(baseFormat, otherFormat));
 	auto converter2 = uptr(create<Transform::AudioConvert>(otherFormat, baseFormat));
 
-	ConnectOutputToInput(soundGen->getOutput(0), converter1);
-	ConnectOutputToInput(converter1->getOutput(0), converter2);
+	ConnectOutputToInput(soundGen->getOutput(0), converter1, g_executorSync);
+	ConnectOutputToInput(converter1->getOutput(0), converter2, g_executorSync);
 	Connect(converter2->getOutput(0)->getSignal(), comparator.get(), &Utils::PcmComparator::pushOther);
 
 	soundGen->process(nullptr);
-	SLEEP_IN_MS(200); // HACK: allow time for the data to reach the comparator ...
+
+	converter1->flush();
+	converter2->flush();
 	bool thrown = false;
 	try {
 		comparator->process(nullptr);
