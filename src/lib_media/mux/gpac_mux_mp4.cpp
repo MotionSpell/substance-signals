@@ -402,10 +402,10 @@ void GPACMuxMP4::startSegment() {
 			}
 
 			if (compat == SmoothStreaming) {
-				GF_Err e = gf_isom_set_brand_info(isoCur, GF_4CC('i', 's', 'm', 'l'), 1);
-				e = gf_isom_modify_alternate_brand(isoCur, GF_ISOM_BRAND_ISOM, 1);
-				e = gf_isom_modify_alternate_brand(isoCur, GF_ISOM_BRAND_ISO2, 1);
-				e = gf_isom_modify_alternate_brand(isoCur, GF_4CC('p', 'i', 'f', 'f'), 1);
+				gf_isom_set_brand_info(isoCur, GF_4CC('i', 's', 'm', 'l'), 1);
+				gf_isom_modify_alternate_brand(isoCur, GF_ISOM_BRAND_ISOM, 1);
+				gf_isom_modify_alternate_brand(isoCur, GF_ISOM_BRAND_ISO2, 1);
+				gf_isom_modify_alternate_brand(isoCur, GF_4CC('p', 'i', 'f', 'f'), 1);
 			}
 
 			if (fragmentPolicy > NoFragment) {
