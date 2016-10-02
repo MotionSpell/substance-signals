@@ -130,10 +130,16 @@ Resolution MetadataPktLibavVideo::getResolution() const {
 	return Resolution(codecCtx->width, codecCtx->height);
 }
 
-uint32_t MetadataPktLibavVideo::getTimeScale() const {
-	if (codecCtx->time_base.num != 1)
-		throw std::runtime_error("Unsupported video time scale.");
-	return codecCtx->time_base.den / codecCtx->time_base.num;
+uint32_t MetadataPktLibavVideo::getTimeScaleNum() const {
+	if (codecCtx->time_base.num == 0)
+		throw std::runtime_error("Unsupported video time scale numerator.");
+	return codecCtx->ticks_per_frame * codecCtx->time_base.num;
+}
+
+uint32_t MetadataPktLibavVideo::getTimeScaleDen() const {
+	if (codecCtx->time_base.den == 0)
+		throw std::runtime_error("Unsupported video time scale denumerator.");
+	return codecCtx->time_base.den;
 }
 
 void MetadataPktLibavVideo::getExtradata(const uint8_t *&extradata, size_t &extradataSize) const {

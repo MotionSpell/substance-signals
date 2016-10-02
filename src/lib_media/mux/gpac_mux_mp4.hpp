@@ -48,7 +48,7 @@ class GPACMuxMP4 : public ModuleDynI {
 		Compatibility compat;
 		GF_ISOFile *isoInit, *isoCur;
 		uint32_t trackId;
-		uint64_t DTS = 0, prevDTS = 0, lastInputTimeIn180k = 0;
+		uint64_t DTS = 0, prevDTS = 0, lastInputTimeIn180k = 0, defaultSampleIncInTs = 0;
 		bool isAnnexB = true;
 
 		//fragments
