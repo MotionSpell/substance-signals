@@ -21,20 +21,20 @@ MS_HSS::MS_HSS(const std::string &url, uint64_t segDurationInMs) {
 	if (!curl)
 		throw error("couldn't init the HTTP stack.");
 
-	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-	curl_easy_setopt(curl, CURLOPT_POST, 1L);
+	//curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+	//curl_easy_setopt(curl, CURLOPT_POST, 1L);
 #ifdef CURL_DEBUG
-	curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+	//curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 #endif
 
 	//make an empty POST to check the end point exists :
-	curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, 0);
-	CURLcode res = curl_easy_perform(curl);
-	if (res != CURLE_OK) {
-		Log::msg(Warning, "curl_easy_perform() failed: %s", curl_easy_strerror(res));
-		throw error("curl_easy_perform() failed");
-	}
-	curl_easy_reset(curl);
+	//curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, 0);
+	//CURLcode res = curl_easy_perform(curl);
+	//if (res != CURLE_OK) {
+	//	Log::msg(Warning, "curl_easy_perform() failed: %s", curl_easy_strerror(res));
+	//	throw error("curl_easy_perform() failed");
+	//}
+	//curl_easy_reset(curl);
 
 	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 	curl_easy_setopt(curl, CURLOPT_POST, 1L);
@@ -104,25 +104,29 @@ size_t MS_HSS::curlCallback(void *ptr, size_t size, size_t nmemb) {
 		std::shared_ptr<const MetadataFile> meta = safe_cast<const MetadataFile>(curTransferedData->getMetadata());
 		if (!meta)
 			throw error(format("Unknown data received on input %s", curTransferedDataInputIndex));
-		curTransferedDataRemainingSize = meta->getSize();
-		curTransferedFile = fopen(meta->getFilename().c_str(), "rb");
+		curTransferedFile = fopen("channel_molotov9.ismv"/*Romain: meta->getFilename().c_str()*/, "rb");
 	}
 
-	auto transferSize = std::min<uint64_t>(size*nmemb, curTransferedDataRemainingSize);
+	auto transferSize = size*nmemb;
 	auto const read = fread(ptr, 1, transferSize, curTransferedFile);
-	curTransferedDataRemainingSize -= read;
 
-	if (curTransferedDataRemainingSize == 0 || read == 0) {
-		fclose(curTransferedFile);
-		gf_delete_file(safe_cast<const MetadataFile>(curTransferedData->getMetadata())->getFilename().c_str());
-		curTransferedData = nullptr;
-		curTransferedDataInputIndex = (curTransferedDataInputIndex + 1) % inputs.size();
-		if (read == 0) { //in case the filesize was approximative
-			return curlCallback(ptr, size, nmemb);
+	if (read == 0) {//Romain: let's close the transfer for now:     < transferSize) {
+		if (curTransferedFile) {
+			fclose(curTransferedFile);
+			curTransferedFile = nullptr;
+			//gf_delete_file(safe_cast<const MetadataFile>(curTransferedData->getMetadata())->getFilename().c_str()); //Romain: not all are deleted...
+			curTransferedData = nullptr;
+			curTransferedDataInputIndex = (curTransferedDataInputIndex + 1) % inputs.size();
 		}
+#if 1 //Romain
 	}
-
-	return transferSize;
+	return read;
+#else
+		return curlCallback((void*)((u8*)ptr + read), transferSize - read, 1) + read;
+	} else {
+		return read;
+	}
+#endif
 }
 
 void MS_HSS::threadProc() {

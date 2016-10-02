@@ -26,13 +26,14 @@ class GPACMuxMP4 : public ModuleDynI {
 			OneFragmentPerRAP,
 			OneFragmentPerFrame,
 		};
-		enum Compatibility {
-			None,
-			DashJs,
-			SmoothStreaming,
+
+		enum CompatibilityFlag {
+			None			= 0,
+			DashJs			= 1,
+			SmoothStreaming	= 1 << 1,
 		};
 
-		GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs = 0, SegmentPolicy segmentPolicy = NoSegment, FragmentPolicy fragmentPolicy = NoFragment, Compatibility compat = None);
+		GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs = 0, SegmentPolicy segmentPolicy = NoSegment, FragmentPolicy fragmentPolicy = NoFragment, CompatibilityFlag compatFlags = None);
 		~GPACMuxMP4();
 		void process() override;
 		void flush() override;
@@ -45,7 +46,7 @@ class GPACMuxMP4 : public ModuleDynI {
 		std::unique_ptr<gpacpp::IsoSample> fillSample(Data data);
 		void addSample(gpacpp::IsoSample &sample, const uint64_t dataDurationInTs);
 
-		Compatibility compat;
+		CompatibilityFlag compatFlags;
 		GF_ISOFile *isoInit, *isoCur;
 		uint32_t trackId;
 		uint64_t DTS = 0, prevDTS = 0, lastInputTimeIn180k = 0;
@@ -66,12 +67,19 @@ class GPACMuxMP4 : public ModuleDynI {
 		bool segmentStartsWithRAP = true;
 		std::string segmentName;
 
+		//smooth streaming specific
+		std::string writeISMLManifest();
+
 		OutputDataDefault<DataAVPacket>* output;
 		union {
 			unsigned int resolution[2];
 			unsigned int sampleRate;
 		};
 };
+
+inline GPACMuxMP4::CompatibilityFlag operator | (GPACMuxMP4::CompatibilityFlag a, GPACMuxMP4::CompatibilityFlag b) {
+	return static_cast<GPACMuxMP4::CompatibilityFlag>(static_cast<int>(a) | static_cast<int>(b));
+}
 
 }
 }

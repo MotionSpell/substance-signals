@@ -1,5 +1,6 @@
 #include "gpac_mux_mp4.hpp"
 #include "lib_utils/tools.hpp"
+#include <sstream>
 
 extern "C" {
 #include <gpac/constants.h>
@@ -334,14 +335,14 @@ void fillVideoSampleData(const u8 *bufPtr, u32 bufLen, GF_ISOSample &sample) {
 
 namespace Mux {
 
-GPACMuxMP4::GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs, SegmentPolicy segmentPolicy, FragmentPolicy fragmentPolicy, Compatibility compat)
-	: compat(compat), fragmentPolicy(fragmentPolicy), segmentPolicy(segmentPolicy), segmentDuration(timescaleToClock(segmentDurationInMs, 1000)) {
+GPACMuxMP4::GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs, SegmentPolicy segmentPolicy, FragmentPolicy fragmentPolicy, CompatibilityFlag compatFlags)
+	: compatFlags(compatFlags), fragmentPolicy(fragmentPolicy), segmentPolicy(segmentPolicy), segmentDuration(timescaleToClock(segmentDurationInMs, 1000)) {
 	if ((segmentDurationInMs == 0) ^ (segmentPolicy == NoSegment || segmentPolicy == SingleSegment))
 		throw error(format("Inconsistent parameters: segment duration is %sms but no segment.", segmentDurationInMs));
 	if ((segmentPolicy == SingleSegment || segmentPolicy == FragmentedSegment) && (fragmentPolicy == NoFragment))
 		throw error("Inconsistent parameters: segmented policies requires fragmentation to be enabled.");
-	if ((compat == SmoothStreaming) && (segmentPolicy != IndependentSegment))
-		throw error("Inconsistent parameters: SmoothStreaming compatibility requires IndependentSegment policy.");
+	//Romain: if ((compatFlags & SmoothStreaming) && (segmentPolicy != IndependentSegment))
+	//	throw error("Inconsistent parameters: SmoothStreaming compatibility requires IndependentSegment policy.");
 
 	std::stringstream fileName;
 	fileName << baseName << ".mp4";
@@ -357,6 +358,20 @@ GPACMuxMP4::GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs
 	GF_Err e = gf_isom_set_storage_mode(isoCur, GF_ISOM_STORE_INTERLEAVED);
 	if (e != GF_OK)
 		throw error(format("Cannot make iso file %s interleaved", fileName.str()));
+
+	//Romain: duplicated code
+	if (compatFlags & SmoothStreaming) {
+		gf_isom_set_brand_info(isoCur, GF_4CC('i', 's', 'm', 'l'), 1);
+		gf_isom_modify_alternate_brand(isoCur, GF_ISOM_BRAND_ISOM, 1);
+		gf_isom_modify_alternate_brand(isoCur, GF_ISOM_BRAND_ISO2, 1);
+		gf_isom_modify_alternate_brand(isoCur, GF_4CC('p', 'i', 'f', 'f'), 1);
+
+		bin128 uuid = { 0xa5, 0xd4, 0x0b, 0x30, 0xe8, 0x14, 0x11, 0xdd, 0xba, 0x2f, 0x08, 0x00, 0x20, 0x0c, 0x9a, 0x66 };
+		auto const ISMLManifest = writeISMLManifest();
+		auto ptr = (u32*)ISMLManifest.c_str();
+		ptr[0] = 0;
+		gf_isom_add_uuid(isoCur, -1, uuid, (char*)ISMLManifest.c_str(), (u32)ISMLManifest.size());
+	}
 
 	output = addOutput<OutputDataDefault<DataAVPacket>>();
 }
@@ -401,18 +416,24 @@ void GPACMuxMP4::startSegment() {
 				declareStreamAudio(audio, false);
 			}
 
-			if (compat == SmoothStreaming) {
-				GF_Err e = gf_isom_set_brand_info(isoCur, GF_4CC('i', 's', 'm', 'l'), 1);
-				e = gf_isom_modify_alternate_brand(isoCur, GF_ISOM_BRAND_ISOM, 1);
-				e = gf_isom_modify_alternate_brand(isoCur, GF_ISOM_BRAND_ISO2, 1);
-				e = gf_isom_modify_alternate_brand(isoCur, GF_4CC('p', 'i', 'f', 'f'), 1);
+			if (compatFlags & SmoothStreaming) {
+				gf_isom_set_brand_info(isoCur, GF_4CC('i', 's', 'm', 'l'), 1);
+				gf_isom_modify_alternate_brand(isoCur, GF_ISOM_BRAND_ISOM, 1);
+				gf_isom_modify_alternate_brand(isoCur, GF_ISOM_BRAND_ISO2, 1);
+				gf_isom_modify_alternate_brand(isoCur, GF_4CC('p', 'i', 'f', 'f'), 1);
+
+				bin128 uuid = { 0xa5, 0xd4, 0x0b, 0x30, 0xe8, 0x14, 0x11, 0xdd, 0xba, 0x2f, 0x08, 0x00, 0x20, 0x0c, 0x9a, 0x66 };
+				auto const ISMLManifest = writeISMLManifest();
+				auto ptr = (u32*)ISMLManifest.c_str();
+				ptr[0] = 0;
+				gf_isom_add_uuid(isoCur, -1, uuid, (char*)ISMLManifest.c_str(), (u32)ISMLManifest.size());
 			}
 
 			if (fragmentPolicy > NoFragment) {
 				setupFragments();
 			}
 		} else {
-			throw error("unknown segment policy (2)");
+			throw error("Unknown segment policy (2)");
 		}
 	}
 }
@@ -424,7 +445,7 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 		return;
 	} else {
 		if (segmentPolicy == FragmentedSegment) {
-			GF_Err e = gf_isom_close_segment(isoCur, 0, 0, 0, 0, 0, GF_FALSE, (Bool)isLastSeg, compat == DashJs ? 0 : GF_4CC('e', 'o', 'd', 's'), nullptr, nullptr);
+			GF_Err e = gf_isom_close_segment(isoCur, 0, 0, 0, 0, 0, GF_FALSE, (Bool)isLastSeg, compatFlags & DashJs ? 0 : GF_4CC('e', 'o', 'd', 's'), nullptr, nullptr);
 			if (e != GF_OK)
 				throw error(format("gf_isom_close_segment: %s", gf_error_to_string(e)));
 
@@ -454,12 +475,14 @@ void GPACMuxMP4::startFragment(uint64_t DTS, uint64_t PTS) {
 		if (e != GF_OK)
 			throw error(format("Impossible to create the moof starting the fragment: %s", gf_error_to_string(e)));
 
+		//Romain: gf_isom_set_fragment_option(isoCur, trackId)
+
 		if (segmentPolicy == FragmentedSegment) {
 			e = gf_isom_set_traf_base_media_decode_time(isoCur, trackId, DTS);
 			if (e != GF_OK)
 				throw error(format("Impossible to create TFDT %s: %s", DTS, gf_error_to_string(e)));
 
-			if (compat != DashJs) {
+			if (!(compatFlags & DashJs)) {
 				e = gf_isom_set_fragment_reference_time(isoCur, trackId, gf_net_get_ntp_ts(), PTS);
 				if (e != GF_OK)
 					throw error(format("Impossible to create UTC marquer: %s", gf_error_to_string(e)));
@@ -793,7 +816,7 @@ std::unique_ptr<gpacpp::IsoSample> GPACMuxMP4::fillSample(Data data_) {
 		sample->dataLength = bufLen;
 		sample->setDataOwnership(false);
 	} else {
-		throw error("only audio or video supported yet");
+		throw error("Only audio or video supported yet");
 	}
 
 	if (segmentPolicy == IndependentSegment) {
@@ -841,6 +864,95 @@ void GPACMuxMP4::process() {
 	}
 
 	addSample(*sample, dataDurationInTs);
+}
+
+std::string GPACMuxMP4::writeISMLManifest() {
+	std::stringstream ss;
+	ss << "    ";//Romain: see GPAC local fix: ss << "\0\0\0\0";
+	ss << "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
+	ss << "<smil xmlns=\"http://www.w3.org/2001/SMIL20/Language\">\n";
+	ss << "  <head>\n";
+	ss << "    <meta name=\"creator\" content=\"" << "GPAC Licensing Signals, using GPAC " << GPAC_FULL_VERSION << "\" />\n";
+	ss << "  </head>\n";
+	ss << "  <body>\n";
+	ss << "    <switch>\n";
+	//TODO: multiple tracks for (i = 0; i < mov->nb_streams; i++)
+	{
+		std::string type;
+#if 0 //Romain
+		if (inputs[0]->getMetadata()->isAudio()) type = "audio";
+		else if (inputs[0]->getMetadata()->isVideo()) type = "video";
+		else throw error("Only audio or video supported yet (2)");
+#else
+		type = "video";
+#endif
+
+		//ss << "      <" << type << " systemBitrate=\"" << 1500000/*Romain (int64_t)track->par->bit_rate)*/ << "\">\n";
+		//ss << "        <param name=\"trackID\" value=\"" << trackId << "\" valuetype=\"data\"/>\n";
+
+		if (type == "audio") {
+		} else if (type == "video") {
+
+#if 0
+			if (track->par->codec_type == AVMEDIA_TYPE_VIDEO) {
+				if (track->par->codec_id == AV_CODEC_ID_H264) {
+					uint8_t *ptr;
+					int size = track->par->extradata_size;
+					if (!ff_avc_write_annexb_extradata(track->par->extradata, &ptr, &size)) {
+						param_write_hex(pb, "CodecPrivateData", ptr ? ptr : track->par->extradata, size);
+						av_free(ptr);
+					}
+					param_write_string(pb, "FourCC", "H264");
+				}
+				else if (track->par->codec_id == AV_CODEC_ID_VC1) {
+					param_write_string(pb, "FourCC", "WVC1");
+					param_write_hex(pb, "CodecPrivateData", track->par->extradata, track->par->extradata_size);
+				}
+				param_write_int(pb, "MaxWidth", track->par->width);
+				param_write_int(pb, "MaxHeight", track->par->height);
+				param_write_int(pb, "DisplayWidth", track->par->width);
+				param_write_int(pb, "DisplayHeight", track->par->height);
+			}
+			else {
+				if (track->par->codec_id == AV_CODEC_ID_AAC) {
+					switch (track->par->profile) {
+					case FF_PROFILE_AAC_HE_V2:
+						param_write_string(pb, "FourCC", "AACP");
+						break;
+					case FF_PROFILE_AAC_HE:
+						param_write_string(pb, "FourCC", "AACH");
+						break;
+					default:
+						param_write_string(pb, "FourCC", "AACL");
+					}
+				}
+				param_write_hex(pb, "CodecPrivateData", track->par->extradata, track->par->extradata_size);
+				param_write_int(pb, "AudioTag", ff_codec_get_tag(ff_codec_wav_tags, track->par->codec_id));
+				param_write_int(pb, "Channels", track->par->channels);
+				param_write_int(pb, "SamplingRate", track->par->sample_rate);
+				param_write_int(pb, "BitsPerSample", 16);
+				param_write_int(pb, "PacketSize", track->par->block_align ? track->par->block_align : 4);
+#else
+			ss << "      <video src=\"Stream\" systemBitrate=\"150000\">\n";
+			ss << "        <param name=\"trackID\" value=\"1\" valuetype=\"data\"/>\n";
+			ss << "        <param name=\"FourCC\" value=\"H264\" valuetype=\"data\"/>\n";
+			ss << "        <param name=\"CodecPrivateData\" value=\"000000012742C01EB910363FC9E02200000300020000030065C0000493800249FDEF701F08846A0000000128DE3C80\" valuetype=\"data\"/>\n";
+			ss << "        <param name=\"MaxWidth\" value=\"426\" valuetype=\"data\"/>\n";
+			ss << "        <param name=\"MaxHeight\" value=\"240\" valuetype=\"data\"/>\n";
+			ss << "        <param name=\"DisplayWidth\" value=\"426\" valuetype=\"data\"/>\n";
+			ss << "        <param name=\"DisplayHeight\" value=\"240\" valuetype=\"data\"/>\n";
+#endif
+		}
+		else
+			throw error("Only audio or video supported yet (3)");
+
+		ss << "      </" << type << ">\n";
+	}
+	ss << "    </switch>\n";
+	ss << "  </body>\n";
+	ss << "</smil>\n";
+
+	return ss.str();
 }
 
 }
