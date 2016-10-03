@@ -13,8 +13,6 @@ extern "C" {
 #include <libavutil/opt.h>
 }
 
-#define LIBAV_DEFAULT_PKT_IDX 0
-
 namespace Modules {
 
 namespace {
