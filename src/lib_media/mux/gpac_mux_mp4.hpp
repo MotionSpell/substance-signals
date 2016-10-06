@@ -17,8 +17,8 @@ class GPACMuxMP4 : public ModuleDynI {
 		enum SegmentPolicy {
 			NoSegment,
 			SingleSegment,
-			IndependentSegment, //starts with moov, no initialization segment, no 'styp'
-			FragmentedSegment, //starts with moof, initialization segment
+			IndependentSegment, //starts with moov, no init segment, no 'styp', moof with contiguous seq_nb
+			FragmentedSegment,  //starts with moof, initialization segment
 		};
 		enum FragmentPolicy {
 			NoFragment,
@@ -57,13 +57,14 @@ class GPACMuxMP4 : public ModuleDynI {
 		void startFragment(uint64_t DTS, uint64_t PTS);
 		void closeFragment();
 		FragmentPolicy fragmentPolicy;
-		uint64_t curFragmentDur = 0, curFragmentNum = 0;
+		uint64_t curFragmentDurInTs = 0;
+		uint64_t nextFragmentNum = 1; /*used with IndependentSegment and SmoothStreaming compat only*/
 
 		//segments
 		void startSegment();
 		void closeSegment(bool isLastSeg);
 		SegmentPolicy segmentPolicy;
-		uint64_t segmentDuration, curSegmentDur = 0, segmentNum = 0, lastSegmentSize = 0;
+		uint64_t segmentDurationIn180k, curSegmentDurInTs = 0, segmentNum = 0, lastSegmentSize = 0;
 		bool segmentStartsWithRAP = true;
 		std::string segmentName;
 

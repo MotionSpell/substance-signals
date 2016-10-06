@@ -32,6 +32,8 @@ class MS_HSS : public ModuleDynI {
 		uint64_t /*curTransferedDataRemainingSize, */curTransferedDataInputIndex = 0;
 		static size_t staticCurlCallback(void *ptr, size_t size, size_t nmemb, void *userp);
 		size_t curlCallback(void *ptr, size_t size, size_t nmemb);
+
+		std::string url;
 		CURL *curl;
 		State state = Init;
 };

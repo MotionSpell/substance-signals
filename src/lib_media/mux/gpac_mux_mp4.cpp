@@ -336,7 +336,7 @@ void fillVideoSampleData(const u8 *bufPtr, u32 bufLen, GF_ISOSample &sample) {
 namespace Mux {
 
 GPACMuxMP4::GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs, SegmentPolicy segmentPolicy, FragmentPolicy fragmentPolicy, CompatibilityFlag compatFlags)
-	: compatFlags(compatFlags), fragmentPolicy(fragmentPolicy), segmentPolicy(segmentPolicy), segmentDuration(timescaleToClock(segmentDurationInMs, 1000)) {
+	: compatFlags(compatFlags), fragmentPolicy(fragmentPolicy), segmentPolicy(segmentPolicy), segmentDurationIn180k(timescaleToClock(segmentDurationInMs, 1000)) {
 	if ((segmentDurationInMs == 0) ^ (segmentPolicy == NoSegment || segmentPolicy == SingleSegment))
 		throw error(format("Inconsistent parameters: segment duration is %sms but no segment.", segmentDurationInMs));
 	if ((segmentPolicy == SingleSegment || segmentPolicy == FragmentedSegment) && (fragmentPolicy == NoFragment))
@@ -432,6 +432,8 @@ void GPACMuxMP4::startSegment() {
 			if (fragmentPolicy > NoFragment) {
 				setupFragments();
 			}
+
+			gf_isom_set_next_moof_number(isoCur, (u32)nextFragmentNum);
 		} else {
 			throw error("Unknown segment policy (2)");
 		}
@@ -455,11 +457,14 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 		}
 
 		if (lastSegmentSize) {
+			if (segmentPolicy == IndependentSegment) {
+				nextFragmentNum = gf_isom_get_next_moof_number(isoCur);
+			}
+
 			sendOutput();
 			log(Info, "Segment %s completed (size %s) (startsWithSAP=%s)", segmentName, lastSegmentSize, segmentStartsWithRAP);
 
 			if (segmentPolicy == IndependentSegment) {
-				curFragmentNum = gf_isom_get_next_moof_number(isoCur);
 				GF_Err e = gf_isom_close(isoCur);
 				if (e != GF_OK && e != GF_ISOM_INVALID_FILE)
 					throw error(format("gf_isom_close (2): %s", gf_error_to_string(e)));
@@ -471,6 +476,8 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 
 void GPACMuxMP4::startFragment(uint64_t DTS, uint64_t PTS) {
 	if (fragmentPolicy > NoFragment) {
+		curFragmentDurInTs = 0;
+
 		GF_Err e = gf_isom_start_fragment(isoCur, GF_TRUE);
 		if (e != GF_OK)
 			throw error(format("Impossible to create the moof starting the fragment: %s", gf_error_to_string(e)));
@@ -488,17 +495,22 @@ void GPACMuxMP4::startFragment(uint64_t DTS, uint64_t PTS) {
 					throw error(format("Impossible to create UTC marquer: %s", gf_error_to_string(e)));
 			}
 		}
-		if (segmentPolicy == IndependentSegment) {
-			gf_isom_set_next_moof_number(isoCur, (u32)curFragmentNum);
-		}
 	}
 }
 
 void GPACMuxMP4::closeFragment() {
 	if (fragmentPolicy > NoFragment) {
+		if (compatFlags & SmoothStreaming) {
+			GF_Err e = gf_isom_set_traf_mss_timeext(isoCur, trackId, gf_net_get_utc() * 10000,
+				convertToTimescale(curFragmentDurInTs, gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId)), 10000000));
+			if (e != GF_OK)
+				throw error(format("Impossible to create UTC marquer: %s", gf_error_to_string(e)));
+		}
 		if ((segmentPolicy == FragmentedSegment) || (segmentPolicy == SingleSegment)) {
 			gf_isom_flush_fragments(isoCur, GF_TRUE); //writes a 'styp'
 		}
+
+		curFragmentDurInTs = 0;
 	}
 }
 
@@ -734,8 +746,8 @@ void GPACMuxMP4::sendOutput() {
 		throw error(format("Could not compute codec name (RFC 6381)"));
 
 	auto const mediaTimescale = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
-	auto metadata = std::make_shared<MetadataFile>(segmentName, streamType, mimeType, codecName, curSegmentDur, lastSegmentSize,
-		timescaleToClock(curSegmentDur, mediaTimescale), segmentStartsWithRAP);
+	auto metadata = std::make_shared<MetadataFile>(segmentName, streamType, mimeType, codecName, curSegmentDurInTs, lastSegmentSize,
+		timescaleToClock(curSegmentDurInTs, mediaTimescale), segmentStartsWithRAP);
 	switch (gf_isom_get_media_type(isoCur, gf_isom_get_track_by_id(isoCur, trackId))) {
 	case GF_ISOM_MEDIA_VISUAL: metadata->resolution[0] = resolution[0]; metadata->resolution[1] = resolution[1]; break;
 	case GF_ISOM_MEDIA_AUDIO: metadata->sampleRate = sampleRate; break;
@@ -755,15 +767,15 @@ void GPACMuxMP4::addSample(gpacpp::IsoSample &sample, const uint64_t dataDuratio
 
 	GF_Err e;
 	if (segmentPolicy > SingleSegment) {
-		curSegmentDur += dataDurationInTs;
-		if ((curSegmentDur * IClock::Rate) > (mediaTimescale * segmentDuration)) {
+		curSegmentDurInTs += dataDurationInTs;
+		if ((curSegmentDurInTs * IClock::Rate) > (mediaTimescale * segmentDurationIn180k)) {
 			closeSegment(false);
 			segmentNum++;
 			segmentStartsWithRAP = sample.IsRAP == RAP;
 			startSegment();
 
-			const u64 oneFragDurInTimescale = clockToTimescale(segmentDuration, mediaTimescale);
-			curSegmentDur = DTS - oneFragDurInTimescale * (DTS / oneFragDurInTimescale);
+			const u64 oneFragDurInTimescale = clockToTimescale(segmentDurationIn180k, mediaTimescale);
+			curSegmentDurInTs = DTS - oneFragDurInTimescale * (DTS / oneFragDurInTimescale);
 			if (segmentPolicy == IndependentSegment) {
 				sample.DTS = 0;
 			}
@@ -782,6 +794,7 @@ void GPACMuxMP4::addSample(gpacpp::IsoSample &sample, const uint64_t dataDuratio
 			log(Error, "gf_isom_fragment_add_sample: %s", gf_error_to_string(e));
 			return;
 		}
+		curFragmentDurInTs += dataDurationInTs;
 
 		if (fragmentPolicy == OneFragmentPerFrame && sample.DTS) {
 			closeFragment();
@@ -820,7 +833,7 @@ std::unique_ptr<gpacpp::IsoSample> GPACMuxMP4::fillSample(Data data_) {
 	}
 
 	if (segmentPolicy == IndependentSegment) {
-		sample->DTS = curSegmentDur;
+		sample->DTS = curSegmentDurInTs;
 	} else {
 		sample->DTS = DTS;
 	}

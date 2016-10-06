@@ -7,12 +7,14 @@ extern "C" {
 }
 
 #define CURL_DEBUG
+//#define CURL_CHUNKED
 
 namespace Modules {
 
 namespace Stream {
 
-MS_HSS::MS_HSS(const std::string &url, uint64_t segDurationInMs) {
+MS_HSS::MS_HSS(const std::string &url, uint64_t segDurationInMs)
+: url(url) {
 	if (url.compare(0, 7, "http://"))
 		throw error(format("can only handle URLs startint with 'http://', not %s.", url));
 
@@ -21,6 +23,7 @@ MS_HSS::MS_HSS(const std::string &url, uint64_t segDurationInMs) {
 	if (!curl)
 		throw error("couldn't init the HTTP stack.");
 
+#ifdef CURL_CHUNKED
 	//curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 	//curl_easy_setopt(curl, CURLOPT_POST, 1L);
 #ifdef CURL_DEBUG
@@ -53,6 +56,7 @@ MS_HSS::MS_HSS(const std::string &url, uint64_t segDurationInMs) {
 		chunk = curl_slist_append(chunk, "Expect:");
 		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
 	}
+#endif
 
 	addInput(new Input<DataAVPacket>(this));
 }
@@ -104,7 +108,7 @@ size_t MS_HSS::curlCallback(void *ptr, size_t size, size_t nmemb) {
 		std::shared_ptr<const MetadataFile> meta = safe_cast<const MetadataFile>(curTransferedData->getMetadata());
 		if (!meta)
 			throw error(format("Unknown data received on input %s", curTransferedDataInputIndex));
-		curTransferedFile = fopen("channel_molotov9.ismv"/*Romain: meta->getFilename().c_str()*/, "rb");
+		curTransferedFile = fopen(meta->getFilename().c_str(), "rb");
 	}
 
 	auto transferSize = size*nmemb;
@@ -130,12 +134,44 @@ size_t MS_HSS::curlCallback(void *ptr, size_t size, size_t nmemb) {
 }
 
 void MS_HSS::threadProc() {
+#ifndef CURL_CHUNKED
+	const int transferSize = 1000000;
+	void *ptr = (void*)malloc(transferSize); //Romain: to be freed
 	while (state == Run) {
 		//TODO: with the additional requirement that the encoder MUST resend the previous two MP4 fragments for each track in the stream, and resume without introducing discontinuities in the media timeline. Resending the last two MP4 fragments for each track ensures that there is no data loss.
+		auto curTransferedData = inputs[curTransferedDataInputIndex]->pop();
+		if (!curTransferedData) {
+			state = Stop;
+			break;
+		}
+		std::shared_ptr<const MetadataFile> meta = safe_cast<const MetadataFile>(curTransferedData->getMetadata());
+		if (!meta)
+			throw error(format("Unknown data received on input %s", curTransferedDataInputIndex));
+		curTransferedFile = fopen(meta->getFilename().c_str(), "rb");
+		auto const read = fread(ptr, 1, transferSize, curTransferedFile);
+		fclose(curTransferedFile);
+		curTransferedFile = nullptr;
+		//gf_delete_file(safe_cast<const MetadataFile>(curTransferedData->getMetadata())->getFilename().c_str()); //Romain: not all are deleted...
+		curTransferedData = nullptr;
+		curTransferedDataInputIndex = (curTransferedDataInputIndex + 1) % inputs.size();
+
+		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, ptr);
+		curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)read);
+#else
+	while (state == Run) {
+		//TODO: with the additional requirement that the encoder MUST resend the previous two MP4 fragments for each track in the stream, and resume without introducing discontinuities in the media timeline. Resending the last two MP4 fragments for each track ensures that there is no data loss.
+#endif
 		CURLcode res = curl_easy_perform(curl);
 		if (res != CURLE_OK) {
 			throw error(format("curl_easy_perform() failed: %s", curl_easy_strerror(res)));
 		}
+
+#if 0 //Romain
+		curl_easy_cleanup(curl);
+		curl_global_cleanup();
+		exit(1); //Romain: first segment only
+#endif
 	}
 }
 
