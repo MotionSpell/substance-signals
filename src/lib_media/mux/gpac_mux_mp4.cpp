@@ -3,6 +3,7 @@
 #include <sstream>
 
 extern "C" {
+#include <gpac/base_coding.h>
 #include <gpac/constants.h>
 #include <gpac/isomedia.h>
 #include <gpac/internal/media_dev.h>
@@ -341,8 +342,8 @@ GPACMuxMP4::GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs
 		throw error(format("Inconsistent parameters: segment duration is %sms but no segment.", segmentDurationInMs));
 	if ((segmentPolicy == SingleSegment || segmentPolicy == FragmentedSegment) && (fragmentPolicy == NoFragment))
 		throw error("Inconsistent parameters: segmented policies requires fragmentation to be enabled.");
-	//Romain: if ((compatFlags & SmoothStreaming) && (segmentPolicy != IndependentSegment))
-	//	throw error("Inconsistent parameters: SmoothStreaming compatibility requires IndependentSegment policy.");
+	if ((compatFlags & SmoothStreaming) && (segmentPolicy != IndependentSegment))
+		throw error("Inconsistent parameters: SmoothStreaming compatibility requires IndependentSegment policy.");
 
 	std::stringstream fileName;
 	fileName << baseName << ".mp4";
@@ -358,20 +359,6 @@ GPACMuxMP4::GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs
 	GF_Err e = gf_isom_set_storage_mode(isoCur, GF_ISOM_STORE_INTERLEAVED);
 	if (e != GF_OK)
 		throw error(format("Cannot make iso file %s interleaved", fileName.str()));
-
-	//Romain: duplicated code
-	if (compatFlags & SmoothStreaming) {
-		gf_isom_set_brand_info(isoCur, GF_4CC('i', 's', 'm', 'l'), 1);
-		gf_isom_modify_alternate_brand(isoCur, GF_ISOM_BRAND_ISOM, 1);
-		gf_isom_modify_alternate_brand(isoCur, GF_ISOM_BRAND_ISO2, 1);
-		gf_isom_modify_alternate_brand(isoCur, GF_4CC('p', 'i', 'f', 'f'), 1);
-
-		bin128 uuid = { 0xa5, 0xd4, 0x0b, 0x30, 0xe8, 0x14, 0x11, 0xdd, 0xba, 0x2f, 0x08, 0x00, 0x20, 0x0c, 0x9a, 0x66 };
-		auto const ISMLManifest = writeISMLManifest();
-		auto ptr = (u32*)ISMLManifest.c_str();
-		ptr[0] = 0;
-		gf_isom_add_uuid(isoCur, -1, uuid, (char*)ISMLManifest.c_str(), (u32)ISMLManifest.size());
-	}
 
 	output = addOutput<OutputDataDefault<DataAVPacket>>();
 }
@@ -423,9 +410,6 @@ void GPACMuxMP4::startSegment() {
 				gf_isom_modify_alternate_brand(isoCur, GF_4CC('p', 'i', 'f', 'f'), 1);
 
 				bin128 uuid = { 0xa5, 0xd4, 0x0b, 0x30, 0xe8, 0x14, 0x11, 0xdd, 0xba, 0x2f, 0x08, 0x00, 0x20, 0x0c, 0x9a, 0x66 };
-				auto const ISMLManifest = writeISMLManifest();
-				auto ptr = (u32*)ISMLManifest.c_str();
-				ptr[0] = 0;
 				gf_isom_add_uuid(isoCur, -1, uuid, (char*)ISMLManifest.c_str(), (u32)ISMLManifest.size());
 			}
 
@@ -457,19 +441,8 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 		}
 
 		if (lastSegmentSize) {
-			if (segmentPolicy == IndependentSegment) {
-				nextFragmentNum = gf_isom_get_next_moof_number(isoCur);
-			}
-
 			sendOutput();
 			log(Info, "Segment %s completed (size %s) (startsWithSAP=%s)", segmentName, lastSegmentSize, segmentStartsWithRAP);
-
-			if (segmentPolicy == IndependentSegment) {
-				GF_Err e = gf_isom_close(isoCur);
-				if (e != GF_OK && e != GF_ISOM_INVALID_FILE)
-					throw error(format("gf_isom_close (2): %s", gf_error_to_string(e)));
-				isoCur = nullptr;
-			}
 		}
 	}
 }
@@ -482,12 +455,12 @@ void GPACMuxMP4::startFragment(uint64_t DTS, uint64_t PTS) {
 		if (e != GF_OK)
 			throw error(format("Impossible to create the moof starting the fragment: %s", gf_error_to_string(e)));
 
-		//Romain: gf_isom_set_fragment_option(isoCur, trackId)
-
 		if (segmentPolicy == FragmentedSegment) {
-			e = gf_isom_set_traf_base_media_decode_time(isoCur, trackId, DTS);
-			if (e != GF_OK)
-				throw error(format("Impossible to create TFDT %s: %s", DTS, gf_error_to_string(e)));
+			if (!(compatFlags & SmoothStreaming)) {
+				e = gf_isom_set_traf_base_media_decode_time(isoCur, trackId, DTS);
+				if (e != GF_OK)
+					throw error(format("Impossible to create TFDT %s: %s", DTS, gf_error_to_string(e)));
+			}
 
 			if (!(compatFlags & DashJs)) {
 				e = gf_isom_set_fragment_reference_time(isoCur, trackId, gf_net_get_ntp_ts(), PTS);
@@ -501,8 +474,12 @@ void GPACMuxMP4::startFragment(uint64_t DTS, uint64_t PTS) {
 void GPACMuxMP4::closeFragment() {
 	if (fragmentPolicy > NoFragment) {
 		if (compatFlags & SmoothStreaming) {
-			GF_Err e = gf_isom_set_traf_mss_timeext(isoCur, trackId, gf_net_get_utc() * 10000,
-				convertToTimescale(curFragmentDurInTs, gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId)), 10000000));
+			auto const mediaTs = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
+			//Romain: if (!absTimeInTs) {
+				//absTimeInTs = convertToTimescale(gf_net_get_utc() + 10*1000/*Romain*/, 1000, mediaTs);
+			//}
+			auto const oneFragDurInTimescale = clockToTimescale(segmentDurationIn180k, mediaTs);
+			GF_Err e = gf_isom_set_traf_mss_timeext(isoCur, trackId, absTimeInTs + oneFragDurInTimescale * (DTS / oneFragDurInTimescale), curFragmentDurInTs);
 			if (e != GF_OK)
 				throw error(format("Impossible to create UTC marquer: %s", gf_error_to_string(e)));
 		}
@@ -538,10 +515,15 @@ void GPACMuxMP4::declareStreamAudio(std::shared_ptr<const MetadataPktLibavAudio>
 	if (!esd)
 		throw error(format("Cannot create GF_ESD"));
 
+	std::string codec4CC;
+	const uint8_t *extradata;
+	size_t extradataSize;
+	metadata->getExtradata(extradata, extradataSize);
 	esd->decoderConfig = (GF_DecoderConfig *)gf_odf_desc_new(GF_ODF_DCD_TAG);
 	esd->slConfig = (GF_SLConfig *)gf_odf_desc_new(GF_ODF_SLC_TAG);
 	esd->decoderConfig->streamType = GF_STREAM_AUDIO;
 	if (metadata->getCodecName() == "aac") { //TODO: find an automatic table, we only know about MPEG1 Layer 2 and AAC-LC
+		codec4CC = "AACL";
 		esd->decoderConfig->objectTypeIndication = GPAC_OTI_AUDIO_AAC_MPEG4;
 
 		esd->decoderConfig->bufferSizeDB = 20;
@@ -549,9 +531,6 @@ void GPACMuxMP4::declareStreamAudio(std::shared_ptr<const MetadataPktLibavAudio>
 		esd->decoderConfig->decoderSpecificInfo = (GF_DefaultDescriptor *)gf_odf_desc_new(GF_ODF_DSI_TAG);
 		esd->ESID = 1;
 
-		const uint8_t *extradata;
-		size_t extradataSize;
-		metadata->getExtradata(extradata, extradataSize);
 		esd->decoderConfig->decoderSpecificInfo->dataLength = (u32)extradataSize;
 		esd->decoderConfig->decoderSpecificInfo->data = (char*)gf_malloc(extradataSize);
 		memcpy(esd->decoderConfig->decoderSpecificInfo->data, extradata, extradataSize);
@@ -604,7 +583,8 @@ void GPACMuxMP4::declareStreamAudio(std::shared_ptr<const MetadataPktLibavAudio>
 	gf_odf_desc_del((GF_Descriptor *)esd);
 	esd = nullptr;
 
-	e = gf_isom_set_audio_info(isoCur, trackNum, di, metadata->getSampleRate(), metadata->getNumChannels(), metadata->getBitsPerSample());
+	auto const bitsPerSample = metadata->getBitsPerSample() >= 16 ? 16 : metadata->getBitsPerSample();
+	e = gf_isom_set_audio_info(isoCur, trackNum, di, metadata->getSampleRate(), metadata->getNumChannels(), bitsPerSample);
 	if (e != GF_OK)
 		throw error(format("gf_isom_set_audio_info: %s", gf_error_to_string(e)));
 
@@ -613,8 +593,15 @@ void GPACMuxMP4::declareStreamAudio(std::shared_ptr<const MetadataPktLibavAudio>
 		throw error(format("Container format import failed: %s", gf_error_to_string(e)));
 
 	sampleRate = metadata->getSampleRate();
-	
+
+	//Romain: this block is duplicated between audio and video
 	if (declareInput) {
+		if (compatFlags & SmoothStreaming) {
+			ISMLManifest = writeISMLManifest(codec4CC, string2hex(extradata, extradataSize), metadata->getBitrate(), 0, 0, metadata->getSampleRate(), metadata->getNumChannels(), bitsPerSample);
+			auto ptr = (u32*)ISMLManifest.c_str();
+			ptr[0] = 0;
+		}
+
 		setupFragments();
 		startSegment();
 		startFragment(0, 0);
@@ -638,8 +625,10 @@ void GPACMuxMP4::declareStreamVideo(std::shared_ptr<const MetadataPktLibavVideo>
 	size_t extradataSize;
 	metadata->getExtradata(extradata, extradataSize);
 
+	std::string codec4CC;
 	u32 di;
 	if (metadata->getAVCodecContext()->codec_id == AV_CODEC_ID_H264) {
+		codec4CC = "H264";
 		GF_AVCConfig *avccfg = gf_odf_avc_cfg_new();
 		if (!avccfg)
 			throw error(format("Container format import failed (AVC)"));
@@ -652,6 +641,7 @@ void GPACMuxMP4::declareStreamVideo(std::shared_ptr<const MetadataPktLibavVideo>
 			gf_odf_avc_cfg_del(avccfg);
 		}
 	} else if (metadata->getAVCodecContext()->codec_id == AV_CODEC_ID_H265) {
+		codec4CC = "H265";
 		GF_HEVCConfig *hevccfg = gf_odf_hevc_cfg_new();
 		if (!hevccfg)
 			throw error(format("Container format import failed (HEVC)"));
@@ -706,6 +696,12 @@ void GPACMuxMP4::declareStreamVideo(std::shared_ptr<const MetadataPktLibavVideo>
 #endif
 
 	if (declareInput) {
+		if (compatFlags & SmoothStreaming) {
+			ISMLManifest = writeISMLManifest(codec4CC, string2hex(extradata, extradataSize), metadata->getBitrate(), res.width, res.height, 0, 0, 0);
+			auto ptr = (u32*)ISMLManifest.c_str();
+			ptr[0] = 0;
+		}
+
 		setupFragments();
 		startSegment();
 		startFragment(0, 0);
@@ -745,36 +741,44 @@ void GPACMuxMP4::sendOutput() {
 	if (e)
 		throw error(format("Could not compute codec name (RFC 6381)"));
 
-	auto const mediaTimescale = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
+	auto const mediaTs = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
 	auto metadata = std::make_shared<MetadataFile>(segmentName, streamType, mimeType, codecName, curSegmentDurInTs, lastSegmentSize,
-		timescaleToClock(curSegmentDurInTs, mediaTimescale), segmentStartsWithRAP);
+		timescaleToClock(curSegmentDurInTs, mediaTs), segmentStartsWithRAP);
 	switch (gf_isom_get_media_type(isoCur, gf_isom_get_track_by_id(isoCur, trackId))) {
 	case GF_ISOM_MEDIA_VISUAL: metadata->resolution[0] = resolution[0]; metadata->resolution[1] = resolution[1]; break;
 	case GF_ISOM_MEDIA_AUDIO: metadata->sampleRate = sampleRate; break;
 	default: throw error(format("Segment contains neither audio nor video"));
 	}
 
+	if (segmentPolicy == IndependentSegment) {
+		nextFragmentNum = gf_isom_get_next_moof_number(isoCur);
+		GF_Err e = gf_isom_close(isoCur);
+		if (e != GF_OK && e != GF_ISOM_INVALID_FILE)
+			throw error(format("gf_isom_close (2): %s", gf_error_to_string(e)));
+		isoCur = nullptr;
+	}
+
 	auto out = output->getBuffer(0);
 	out->setMetadata(metadata);
-	out->setTime(prevDTS, mediaTimescale);
+	out->setTime(prevDTS, mediaTs);
 	prevDTS = DTS;
 	output->emit(out);
 }
 
 void GPACMuxMP4::addSample(gpacpp::IsoSample &sample, const uint64_t dataDurationInTs) {
 	DTS += dataDurationInTs;
-	auto const mediaTimescale = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
+	auto const mediaTs = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
 
 	GF_Err e;
 	if (segmentPolicy > SingleSegment) {
 		curSegmentDurInTs += dataDurationInTs;
-		if ((curSegmentDurInTs * IClock::Rate) > (mediaTimescale * segmentDurationIn180k)) {
+		if ((curSegmentDurInTs * IClock::Rate) > (mediaTs * segmentDurationIn180k)) {
 			closeSegment(false);
 			segmentNum++;
 			segmentStartsWithRAP = sample.IsRAP == RAP;
 			startSegment();
 
-			const u64 oneFragDurInTimescale = clockToTimescale(segmentDurationIn180k, mediaTimescale);
+			const u64 oneFragDurInTimescale = clockToTimescale(segmentDurationIn180k, mediaTs);
 			curSegmentDurInTs = DTS - oneFragDurInTimescale * (DTS / oneFragDurInTimescale);
 			if (segmentPolicy == IndependentSegment) {
 				sample.DTS = 0;
@@ -848,24 +852,24 @@ void GPACMuxMP4::process() {
 		declareStream(data);
 	auto sample = fillSample(data);	
 
-	auto const mediaTimescale = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
-	int64_t dataDurationInTs = clockToTimescale(data->getTime() - lastInputTimeIn180k, mediaTimescale);
+	auto const mediaTs = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
+	int64_t dataDurationInTs = clockToTimescale(data->getTime() - lastInputTimeIn180k, mediaTs);
 	lastInputTimeIn180k = data->getTime();
 	//TODO: make tests and integrate in a module, see #18
 #if 1
 	if (dataDurationInTs - DTS != 0) {
 		/*VFR: computing current sample duration from previous*/
-		dataDurationInTs = clockToTimescale(data->getTime(), mediaTimescale) - DTS + dataDurationInTs;
+		dataDurationInTs = clockToTimescale(data->getTime(), mediaTs) - DTS + dataDurationInTs;
 		if (dataDurationInTs <= 0) {
 			dataDurationInTs = 1;
 		}
-		log(Debug, "VFR: adding sample with duration %ss", dataDurationInTs / (double)mediaTimescale);
+		log(Debug, "VFR: adding sample with duration %ss", dataDurationInTs / (double)mediaTs);
 	}
 #else
 	/*wait to have two samples - FIXME: should be in a separate class + mast segment is never processed (should be in flush())*/
 	static std::shared_ptr<const DataAVPacket> lastData = nullptr;
 	if (lastData) {
-		dataDurationInTs = clockToTimescale(data->getTime()-lastData->getTime(), mediaTimescale);
+		dataDurationInTs = clockToTimescale(data->getTime()-lastData->getTime(), mediaTs);
 	} else {
 		lastData = data;
 		return;
@@ -879,9 +883,9 @@ void GPACMuxMP4::process() {
 	addSample(*sample, dataDurationInTs);
 }
 
-std::string GPACMuxMP4::writeISMLManifest() {
+std::string GPACMuxMP4::writeISMLManifest(std::string codec4CC, std::string codecPrivate, int64_t bitrate, int width, int height, uint32_t sampleRate, uint32_t channels, uint16_t bitsPerSample) {
 	std::stringstream ss;
-	ss << "    ";//Romain: see GPAC local fix: ss << "\0\0\0\0";
+	ss << "    "; //four random chars - don't remove!
 	ss << "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
 	ss << "<smil xmlns=\"http://www.w3.org/2001/SMIL20/Language\">\n";
 	ss << "  <head>\n";
@@ -889,72 +893,35 @@ std::string GPACMuxMP4::writeISMLManifest() {
 	ss << "  </head>\n";
 	ss << "  <body>\n";
 	ss << "    <switch>\n";
-	//TODO: multiple tracks for (i = 0; i < mov->nb_streams; i++)
+	//TODO: multiple tracks for (i=0; i<nbTracks; ++i)
 	{
 		std::string type;
-#if 0 //Romain
 		if (inputs[0]->getMetadata()->isAudio()) type = "audio";
 		else if (inputs[0]->getMetadata()->isVideo()) type = "video";
 		else throw error("Only audio or video supported yet (2)");
-#else
-		type = "video";
-#endif
 
-		//ss << "      <" << type << " systemBitrate=\"" << 1500000/*Romain (int64_t)track->par->bit_rate)*/ << "\">\n";
-		//ss << "        <param name=\"trackID\" value=\"" << trackId << "\" valuetype=\"data\"/>\n";
+		ss << "      <" << type << " src=\"Stream\" systemBitrate=\"" << bitrate << "\">\n";
+		ss << "        <param name=\"trackID\" value=\"" << trackId << "\" valuetype=\"data\"/>\n";
 
 		if (type == "audio") {
-		} else if (type == "video") {
-
-#if 0
-			if (track->par->codec_type == AVMEDIA_TYPE_VIDEO) {
-				if (track->par->codec_id == AV_CODEC_ID_H264) {
-					uint8_t *ptr;
-					int size = track->par->extradata_size;
-					if (!ff_avc_write_annexb_extradata(track->par->extradata, &ptr, &size)) {
-						param_write_hex(pb, "CodecPrivateData", ptr ? ptr : track->par->extradata, size);
-						av_free(ptr);
-					}
-					param_write_string(pb, "FourCC", "H264");
-				}
-				else if (track->par->codec_id == AV_CODEC_ID_VC1) {
-					param_write_string(pb, "FourCC", "WVC1");
-					param_write_hex(pb, "CodecPrivateData", track->par->extradata, track->par->extradata_size);
-				}
-				param_write_int(pb, "MaxWidth", track->par->width);
-				param_write_int(pb, "MaxHeight", track->par->height);
-				param_write_int(pb, "DisplayWidth", track->par->width);
-				param_write_int(pb, "DisplayHeight", track->par->height);
-			}
-			else {
-				if (track->par->codec_id == AV_CODEC_ID_AAC) {
-					switch (track->par->profile) {
-					case FF_PROFILE_AAC_HE_V2:
-						param_write_string(pb, "FourCC", "AACP");
-						break;
-					case FF_PROFILE_AAC_HE:
-						param_write_string(pb, "FourCC", "AACH");
-						break;
-					default:
-						param_write_string(pb, "FourCC", "AACL");
-					}
-				}
-				param_write_hex(pb, "CodecPrivateData", track->par->extradata, track->par->extradata_size);
-				param_write_int(pb, "AudioTag", ff_codec_get_tag(ff_codec_wav_tags, track->par->codec_id));
-				param_write_int(pb, "Channels", track->par->channels);
-				param_write_int(pb, "SamplingRate", track->par->sample_rate);
-				param_write_int(pb, "BitsPerSample", 16);
-				param_write_int(pb, "PacketSize", track->par->block_align ? track->par->block_align : 4);
-#else
-			ss << "      <video src=\"Stream\" systemBitrate=\"150000\">\n";
-			ss << "        <param name=\"trackID\" value=\"1\" valuetype=\"data\"/>\n";
-			ss << "        <param name=\"FourCC\" value=\"H264\" valuetype=\"data\"/>\n";
-			ss << "        <param name=\"CodecPrivateData\" value=\"000000012742C01EB910363FC9E02200000300020000030065C0000493800249FDEF701F08846A0000000128DE3C80\" valuetype=\"data\"/>\n";
-			ss << "        <param name=\"MaxWidth\" value=\"426\" valuetype=\"data\"/>\n";
-			ss << "        <param name=\"MaxHeight\" value=\"240\" valuetype=\"data\"/>\n";
-			ss << "        <param name=\"DisplayWidth\" value=\"426\" valuetype=\"data\"/>\n";
-			ss << "        <param name=\"DisplayHeight\" value=\"240\" valuetype=\"data\"/>\n";
+			ss << "        <param name=\"FourCC\" value=\"" << codec4CC << "\" valuetype=\"data\"/>\n";
+			ss << "        <param name=\"CodecPrivateData\" value=\"" << codecPrivate << "\" valuetype=\"data\"/>\n";
+#if 0 //TODO
+			< param name = "trackName" value = "audio1fr" valuetype = "data" / >
+				<param name = "systemLanguage" value = "fra" valuetype = "data" / >
 #endif
+			ss << "        <param name=\"AudioTag\"      value=\"" << 255 << "\" valuetype=\"data\"/>\n";
+			ss << "        <param name=\"Channels\"      value=\"" << channels << "\" valuetype=\"data\"/>\n";
+			ss << "        <param name=\"SamplingRate\"  value=\"" << sampleRate << "\" valuetype=\"data\"/>\n";
+			ss << "        <param name=\"BitsPerSample\" value=\"" << bitsPerSample << "\" valuetype=\"data\"/>\n";
+			ss << "        <param name=\"PacketSize\"    value=\"" << 4 << "\" valuetype=\"data\"/>\n";
+		} else if (type == "video") {
+			ss << "        <param name=\"FourCC\" value=\"" << codec4CC << "\" valuetype=\"data\"/>\n";
+			ss << "        <param name=\"CodecPrivateData\" value=\"" << codecPrivate << "\" valuetype=\"data\"/>\n";
+			ss << "        <param name=\"MaxWidth\"      value=\"" << width  << "\" valuetype=\"data\"/>\n";
+			ss << "        <param name=\"MaxHeight\"     value=\"" << height << "\" valuetype=\"data\"/>\n";
+			ss << "        <param name=\"DisplayWidth\"  value=\"" << width  << "\" valuetype=\"data\"/>\n";
+			ss << "        <param name=\"DisplayHeight\" value=\"" << height << "\" valuetype=\"data\"/>\n";
 		}
 		else
 			throw error("Only audio or video supported yet (3)");

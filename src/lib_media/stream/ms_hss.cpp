@@ -118,7 +118,7 @@ size_t MS_HSS::curlCallback(void *ptr, size_t size, size_t nmemb) {
 		if (curTransferedFile) {
 			fclose(curTransferedFile);
 			curTransferedFile = nullptr;
-			//gf_delete_file(safe_cast<const MetadataFile>(curTransferedData->getMetadata())->getFilename().c_str()); //Romain: not all are deleted...
+			gf_delete_file(safe_cast<const MetadataFile>(curTransferedData->getMetadata())->getFilename().c_str()); //Romain: not all are deleted...
 			curTransferedData = nullptr;
 			curTransferedDataInputIndex = (curTransferedDataInputIndex + 1) % inputs.size();
 		}
@@ -148,16 +148,20 @@ void MS_HSS::threadProc() {
 		if (!meta)
 			throw error(format("Unknown data received on input %s", curTransferedDataInputIndex));
 		curTransferedFile = fopen(meta->getFilename().c_str(), "rb");
-		auto const read = fread(ptr, 1, transferSize, curTransferedFile);
+		size_t read = fread(ptr, 1, transferSize, curTransferedFile), fileSize = read;
+		while (read) {
+			read = fread(ptr, 1, transferSize, curTransferedFile);
+			fileSize += read;
+		}
 		fclose(curTransferedFile);
 		curTransferedFile = nullptr;
-		//gf_delete_file(safe_cast<const MetadataFile>(curTransferedData->getMetadata())->getFilename().c_str()); //Romain: not all are deleted...
+		//gf_delete_file(safe_cast<const MetadataFile>(curTransferedData->getMetadata())->getFilename().c_str());
 		curTransferedData = nullptr;
 		curTransferedDataInputIndex = (curTransferedDataInputIndex + 1) % inputs.size();
 
 		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, ptr);
-		curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)read);
+		curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)fileSize);
 #else
 	while (state == Run) {
 		//TODO: with the additional requirement that the encoder MUST resend the previous two MP4 fragments for each track in the stream, and resume without introducing discontinuities in the media timeline. Resending the last two MP4 fragments for each track ensures that there is no data loss.

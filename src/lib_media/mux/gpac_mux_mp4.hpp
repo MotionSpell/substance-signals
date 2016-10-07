@@ -58,7 +58,8 @@ class GPACMuxMP4 : public ModuleDynI {
 		void closeFragment();
 		FragmentPolicy fragmentPolicy;
 		uint64_t curFragmentDurInTs = 0;
-		uint64_t nextFragmentNum = 1; /*used with IndependentSegment and SmoothStreaming compat only*/
+		//SmoothStreaming compat only:
+		uint64_t absTimeInTs = 0, nextFragmentNum/*used with IndependentSegment*/ = 1; 
 
 		//segments
 		void startSegment();
@@ -69,7 +70,8 @@ class GPACMuxMP4 : public ModuleDynI {
 		std::string segmentName;
 
 		//smooth streaming specific
-		std::string writeISMLManifest();
+		std::string writeISMLManifest(std::string codec4CC, std::string codecPrivate, int64_t bitrate, int width, int height, uint32_t sampleRate, uint32_t channels, uint16_t bitsPerSample);
+		std::string ISMLManifest;
 
 		OutputDataDefault<DataAVPacket>* output;
 		union {

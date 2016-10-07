@@ -122,6 +122,10 @@ int MetadataPktLibav::getId() const {
 	return id;
 }
 
+int64_t MetadataPktLibav::getBitrate() const {
+	return codecCtx->bit_rate;
+}
+
 PixelFormat MetadataPktLibavVideo::getPixelFormat() const {
 	return libavPixFmt2PixelFormat(codecCtx->pix_fmt);
 }

@@ -29,6 +29,7 @@ class MetadataPktLibav : public IMetadata {
 		MetadataPktLibav(AVCodecContext *codecCtx, int id = -1);
 		virtual ~MetadataPktLibav() {}
 		StreamType getStreamType() const override;
+		int64_t getBitrate() const;
 		AVCodecContext* getAVCodecContext() const;
 		int getId() const;
 
