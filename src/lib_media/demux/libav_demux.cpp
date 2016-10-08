@@ -95,6 +95,13 @@ LibavDemux::LibavDemux(const std::string &url) {
 	}
 
 	for (unsigned i = 0; i<m_formatCtx->nb_streams; i++) {
+		auto parser = av_stream_get_parser(m_formatCtx->streams[i]);
+		if (parser) {
+			m_formatCtx->streams[i]->codec->ticks_per_frame = parser->repeat_pict + 1;
+		} else {
+			log(Warning, "Couldn't fix metadata to get the right timings.");
+		}
+
 		IMetadata *m;
 		switch (m_formatCtx->streams[i]->codec->codec_type) {
 		case AVMEDIA_TYPE_AUDIO: m = new MetadataPktLibavAudio(m_formatCtx->streams[i]->codec, m_formatCtx->streams[i]->id); break;

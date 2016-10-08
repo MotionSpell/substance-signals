@@ -493,7 +493,7 @@ void GPACMuxMP4::closeFragment() {
 
 void GPACMuxMP4::setupFragments() {
 	if (fragmentPolicy > NoFragment) {
-		GF_Err e = gf_isom_setup_track_fragment(isoCur, trackId, 1, TIMESCALE_MUL, 0, 0, 0, 0);
+		GF_Err e = gf_isom_setup_track_fragment(isoCur, trackId, 1, (u32)defaultSampleIncInTs, 0, 0, 0, 0);
 		if (e != GF_OK)
 			throw error(format("Cannot setup track as fragmented: %s", gf_error_to_string(e)));
 
@@ -612,10 +612,11 @@ void GPACMuxMP4::declareStreamAudio(std::shared_ptr<const MetadataPktLibavAudio>
 }
 
 void GPACMuxMP4::declareStreamVideo(std::shared_ptr<const MetadataPktLibavVideo> metadata, bool declareInput) {
-	u32 trackNum = gf_isom_new_track(isoCur, 0, GF_ISOM_MEDIA_VISUAL, metadata->getTimeScale() * TIMESCALE_MUL);
+	u32 trackNum = gf_isom_new_track(isoCur, 0, GF_ISOM_MEDIA_VISUAL, metadata->getTimeScaleDen() * TIMESCALE_MUL);
 	if (!trackNum)
 		throw error(format("Cannot create new track"));
 	trackId = gf_isom_get_track_id(isoCur, trackNum);
+	defaultSampleIncInTs = metadata->getTimeScaleNum() * TIMESCALE_MUL;
 
 	GF_Err e = gf_isom_set_track_enabled(isoCur, trackNum, GF_TRUE);
 	if (e != GF_OK)
@@ -658,7 +659,7 @@ void GPACMuxMP4::declareStreamVideo(std::shared_ptr<const MetadataPktLibavVideo>
 	}
 	if (e) {
 		if (e == GF_NON_COMPLIANT_BITSTREAM) {
-			Log::msg(Debug, "non Annex B: assume this is AVCC");
+			log(Debug, "non Annex B: assume this is AVCC");
 			isAnnexB = false;
 
 			GF_ESD *esd = (GF_ESD *)gf_odf_desc_esd_new(0);
@@ -877,7 +878,7 @@ void GPACMuxMP4::process() {
 	lastData = data;
 #endif
 	if (dataDurationInTs == 0) {
-		dataDurationInTs = TIMESCALE_MUL;
+		dataDurationInTs = defaultSampleIncInTs;
 	}
 
 	addSample(*sample, dataDurationInTs);

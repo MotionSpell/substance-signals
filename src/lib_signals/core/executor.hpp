@@ -47,6 +47,7 @@ class ExecutorSync<R(Args...)> : public IExecutor<R(Args...)> {
 			std::packaged_task<NotVoid<R>(Args...)> task(NotVoidFunction(fn));
 			const std::shared_future<NotVoid<R>> &f = task.get_future();
 			task(args...);
+			f.get();
 			return f;
 		}
 };

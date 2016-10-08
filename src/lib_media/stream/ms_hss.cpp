@@ -33,7 +33,7 @@ MS_HSS::MS_HSS(const std::string &url, uint64_t segDurationInMs)
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, 0);
 	CURLcode res = curl_easy_perform(curl);
 	if (res != CURLE_OK) {
-		Log::msg(Warning, "curl_easy_perform() failed: %s", curl_easy_strerror(res));
+		log(Warning, "curl_easy_perform() failed: %s", curl_easy_strerror(res));
 		throw error("curl_easy_perform() failed");
 	}
 	curl_easy_reset(curl);
