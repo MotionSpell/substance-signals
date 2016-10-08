@@ -7,7 +7,7 @@ extern "C" {
 }
 
 #define CURL_DEBUG
-//#define CURL_CHUNKED
+#define CURL_CHUNKED
 
 namespace Modules {
 
@@ -23,22 +23,22 @@ MS_HSS::MS_HSS(const std::string &url, uint64_t segDurationInMs)
 	if (!curl)
 		throw error("couldn't init the HTTP stack.");
 
-#ifdef CURL_CHUNKED
-	//curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-	//curl_easy_setopt(curl, CURLOPT_POST, 1L);
+	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+	curl_easy_setopt(curl, CURLOPT_POST, 1L);
 #ifdef CURL_DEBUG
-	//curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+	curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 #endif
 
 	//make an empty POST to check the end point exists :
-	//curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, 0);
-	//CURLcode res = curl_easy_perform(curl);
-	//if (res != CURLE_OK) {
-	//	Log::msg(Warning, "curl_easy_perform() failed: %s", curl_easy_strerror(res));
-	//	throw error("curl_easy_perform() failed");
-	//}
-	//curl_easy_reset(curl);
+	curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, 0);
+	CURLcode res = curl_easy_perform(curl);
+	if (res != CURLE_OK) {
+		Log::msg(Warning, "curl_easy_perform() failed: %s", curl_easy_strerror(res));
+		throw error("curl_easy_perform() failed");
+	}
+	curl_easy_reset(curl);
 
+#ifdef CURL_CHUNKED
 	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 	curl_easy_setopt(curl, CURLOPT_POST, 1L);
 #ifdef CURL_DEBUG
