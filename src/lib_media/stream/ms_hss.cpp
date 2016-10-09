@@ -8,6 +8,10 @@ extern "C" {
 
 #define CURL_DEBUG
 #define CURL_CHUNKED
+//#define INIT_POST
+
+//#define SKIP_MOOV
+#define U32LE(p) ((((p)[0]) << 24) | (((p)[1]) << 16) | (((p)[2]) << 8) | ((p)[3]))
 
 namespace Modules {
 
@@ -23,6 +27,7 @@ MS_HSS::MS_HSS(const std::string &url, uint64_t segDurationInMs)
 	if (!curl)
 		throw error("couldn't init the HTTP stack.");
 
+#ifdef INIT_POST
 	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 	curl_easy_setopt(curl, CURLOPT_POST, 1L);
 #ifdef CURL_DEBUG
@@ -37,10 +42,14 @@ MS_HSS::MS_HSS(const std::string &url, uint64_t segDurationInMs)
 		throw error("curl_easy_perform() failed");
 	}
 	curl_easy_reset(curl);
+#endif
 
 #ifdef CURL_CHUNKED
 	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 	curl_easy_setopt(curl, CURLOPT_POST, 1L);
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+		
 #ifdef CURL_DEBUG
 	curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 #endif
@@ -49,11 +58,6 @@ MS_HSS::MS_HSS(const std::string &url, uint64_t segDurationInMs)
 	{
 		struct curl_slist *chunk = nullptr;
 		chunk = curl_slist_append(chunk, "Transfer-Encoding: chunked");
-		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
-	}
-	{
-		struct curl_slist *chunk = nullptr;
-		chunk = curl_slist_append(chunk, "Expect:");
 		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
 	}
 #endif
@@ -86,7 +90,7 @@ void MS_HSS::flush() {
 
 void MS_HSS::process() {
 	if (!workingThread.joinable() && state == Init) {
-		state = Run;
+		state = RunNewConnection;
 		numDataQueueNotify = (int)getNumInputs() - 1; //FIXME: connection/disconnection cannot occur dynamically. Lock inputs?
 		workingThread = std::thread(&MS_HSS::threadProc, this);
 	}
@@ -98,6 +102,12 @@ size_t MS_HSS::staticCurlCallback(void *ptr, size_t size, size_t nmemb, void *us
 }
 
 size_t MS_HSS::curlCallback(void *ptr, size_t size, size_t nmemb) {
+	if (state == RunNewConnection && curTransferedData) {
+		std::shared_ptr<const MetadataFile> meta = safe_cast<const MetadataFile>(curTransferedData->getMetadata());
+		log(Debug, "reconnect: file %s", meta->getFilename());
+		gf_fseek(curTransferedFile, 0, SEEK_SET);
+	}
+
 	if (!curTransferedData) {
 		curTransferedData = inputs[curTransferedDataInputIndex]->pop();
 		if (!curTransferedData) {
@@ -108,26 +118,82 @@ size_t MS_HSS::curlCallback(void *ptr, size_t size, size_t nmemb) {
 		std::shared_ptr<const MetadataFile> meta = safe_cast<const MetadataFile>(curTransferedData->getMetadata());
 		if (!meta)
 			throw error(format("Unknown data received on input %s", curTransferedDataInputIndex));
-		curTransferedFile = fopen(meta->getFilename().c_str(), "rb");
+		curTransferedFile = gf_fopen(meta->getFilename().c_str(), "rb");
+		if (state == RunResume) {
+			state = RunNewFile;
+		}
 	}
 
-	auto transferSize = size*nmemb;
+	if (state == RunNewConnection) { //Romain: we need a more sophisticated to send the two last chunk again
+		state = RunResume;
+		log(Error, "\tFTYP");
+	}
+#ifndef SKIP_MOOV
+	else if (state == RunNewFile) {
+		auto const data = (u8*)ptr;
+		auto read = fread(ptr, 1, 8, curTransferedFile);
+		assert(read == 8);
+		u32 size = U32LE(data);
+		u32 type = U32LE(data + 4);
+		assert(type == GF_4CC('f', 't', 'y', 'p'));
+		read = fread(ptr, 1, size - 8, curTransferedFile);
+		assert(read == size - 8);
+
+		read = fread(ptr, 1, 8, curTransferedFile);
+		assert(read == 8);
+		size = U32LE(data);
+		read = fread(ptr, 1, size - 8, curTransferedFile);
+		assert(read == size - 8);
+
+		read = fread(ptr, 1, 8, curTransferedFile);
+		assert(read == 8);
+		size = U32LE(data);
+		type = U32LE(data + 4);
+		assert(type == GF_4CC('m', 'o', 'o', 'v'));
+		read = fread(ptr, 1, size - 8, curTransferedFile);
+		assert(read == size - 8);
+
+		state = RunResume;
+	}
+#endif
+
+	auto const transferSize = size*nmemb;
 	auto const read = fread(ptr, 1, transferSize, curTransferedFile);
+#if 0
+#ifndef SKIP_MOOV
+	//Romain: if (new file) {
+	if (read >= 8) {
+		auto const data = (u8*)ptr;
+		u32 size = U32LE(data);
+		u32 type = U32LE(data + 4);
+		assert(type == GF_4CC('m', 'o', 'o', 'f'));
+	}
+#endif
+#endif
 
 	if (read == 0) {//Romain: let's close the transfer for now:     < transferSize) {
 		if (curTransferedFile) {
-			fclose(curTransferedFile);
+			gf_fclose(curTransferedFile);
 			curTransferedFile = nullptr;
-			gf_delete_file(safe_cast<const MetadataFile>(curTransferedData->getMetadata())->getFilename().c_str()); //Romain: not all are deleted...
+			gf_delete_file(safe_cast<const MetadataFile>(curTransferedData->getMetadata())->getFilename().c_str());
 			curTransferedData = nullptr;
 			curTransferedDataInputIndex = (curTransferedDataInputIndex + 1) % inputs.size();
 		}
-#if 1 //Romain
+#if 0 //Romain
 	}
 	return read;
 #else
 		return curlCallback((void*)((u8*)ptr + read), transferSize - read, 1) + read;
 	} else {
+#if 0 //Romain:
+		FILE *ff = nullptr;
+		ff = fopen("dump.mp4", "ab");
+		fwrite(ptr, 1, read, ff);
+		fclose(ff);
+#endif
+		//Romain:
+		std::shared_ptr<const MetadataFile> meta = safe_cast<const MetadataFile>(curTransferedData->getMetadata());
+		log(Debug, "transfered: file %s => %s", meta->getFilename(), read);
 		return read;
 	}
 #endif
@@ -137,7 +203,7 @@ void MS_HSS::threadProc() {
 #ifndef CURL_CHUNKED
 	const int transferSize = 1000000;
 	void *ptr = (void*)malloc(transferSize); //Romain: to be freed
-	while (state == Run) {
+	while (state != Stop) {
 		//TODO: with the additional requirement that the encoder MUST resend the previous two MP4 fragments for each track in the stream, and resume without introducing discontinuities in the media timeline. Resending the last two MP4 fragments for each track ensures that there is no data loss.
 		auto curTransferedData = inputs[curTransferedDataInputIndex]->pop();
 		if (!curTransferedData) {
@@ -163,13 +229,28 @@ void MS_HSS::threadProc() {
 		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, ptr);
 		curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)fileSize);
 #else
-	while (state == Run) {
+	while (state != Stop) {
 		//TODO: with the additional requirement that the encoder MUST resend the previous two MP4 fragments for each track in the stream, and resume without introducing discontinuities in the media timeline. Resending the last two MP4 fragments for each track ensures that there is no data loss.
 #endif
 		CURLcode res = curl_easy_perform(curl);
-		if (res != CURLE_OK) {
-			throw error(format("curl_easy_perform() failed: %s", curl_easy_strerror(res)));
+#if 1
+		if (res == CURLE_OK) {
+			//long response_code;
+			//double request_size;
+			//curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+			//curl_easy_getinfo(curl, CURLINFO_SIZE_UPLOAD, &request_size);
+			//printf("Server responeded with %ld, request was %f bytes\n", response_code, request_size);
+		} else {
+			fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
 		}
+#else
+		//if (res != CURLE_OK)
+		//	throw error(format("curl_easy_perform() failed: %s", curl_easy_strerror(res)));
+#endif
+		if (state == Stop)
+			break;
+		else
+			state = RunNewConnection;
 
 #if 0 //Romain
 		curl_easy_cleanup(curl);

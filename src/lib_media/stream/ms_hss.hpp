@@ -18,7 +18,9 @@ class MS_HSS : public ModuleDynI {
 	private:
 		enum State {
 			Init,
-			Run,
+			RunNewConnection, //untouched, send from previous ftyp/moov
+			RunNewFile,       //remove ftyp/moov
+			RunResume,        //untouched
 			Stop,
 		};
 
@@ -29,7 +31,7 @@ class MS_HSS : public ModuleDynI {
 		std::thread workingThread;
 		FILE *curTransferedFile = nullptr;
 		Data curTransferedData;
-		uint64_t /*curTransferedDataRemainingSize, */curTransferedDataInputIndex = 0;
+		uint64_t curTransferedDataInputIndex = 0;
 		static size_t staticCurlCallback(void *ptr, size_t size, size_t nmemb, void *userp);
 		size_t curlCallback(void *ptr, size_t size, size_t nmemb);
 

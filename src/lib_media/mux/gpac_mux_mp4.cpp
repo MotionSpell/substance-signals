@@ -476,10 +476,10 @@ void GPACMuxMP4::closeFragment() {
 		if (compatFlags & SmoothStreaming) {
 			auto const mediaTs = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
 			//Romain: if (!absTimeInTs) {
-				//absTimeInTs = convertToTimescale(gf_net_get_utc() + 10*1000/*Romain*/, 1000, mediaTs);
+				//absTimeInTs = convertToTimescale(gf_net_get_utc() - 10*1000/*Romain*/, 1000, mediaTs);
 			//}
 			auto const oneFragDurInTimescale = clockToTimescale(segmentDurationIn180k, mediaTs);
-			GF_Err e = gf_isom_set_traf_mss_timeext(isoCur, trackId, absTimeInTs + oneFragDurInTimescale * (DTS / oneFragDurInTimescale), curFragmentDurInTs);
+			GF_Err e = gf_isom_set_traf_mss_timeext(isoCur, trackId, absTimeInTs + oneFragDurInTimescale * (DTS / oneFragDurInTimescale - 1), curFragmentDurInTs);
 			if (e != GF_OK)
 				throw error(format("Impossible to create UTC marquer: %s", gf_error_to_string(e)));
 		}
@@ -493,7 +493,7 @@ void GPACMuxMP4::closeFragment() {
 
 void GPACMuxMP4::setupFragments() {
 	if (fragmentPolicy > NoFragment) {
-		GF_Err e = gf_isom_setup_track_fragment(isoCur, trackId, 1, (u32)defaultSampleIncInTs, 0, 0, 0, 0);
+		GF_Err e = gf_isom_setup_track_fragment(isoCur, trackId, 1, (u32)0/*Romain: test to have <TrackRunEntry Duration="400000" defaultSampleIncInTs*/, 0, 0, 0, 0);
 		if (e != GF_OK)
 			throw error(format("Cannot setup track as fragmented: %s", gf_error_to_string(e)));
 
