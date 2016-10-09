@@ -8,9 +8,8 @@ extern "C" {
 
 #define CURL_DEBUG
 #define CURL_CHUNKED
-//#define INIT_POST
-
-//#define SKIP_MOOV
+#define INIT_POST
+#define SKIP_MOOV
 #define U32LE(p) ((((p)[0]) << 24) | (((p)[1]) << 16) | (((p)[2]) << 8) | ((p)[3]))
 
 namespace Modules {
@@ -119,39 +118,46 @@ size_t MS_HSS::curlCallback(void *ptr, size_t size, size_t nmemb) {
 		if (!meta)
 			throw error(format("Unknown data received on input %s", curTransferedDataInputIndex));
 		curTransferedFile = gf_fopen(meta->getFilename().c_str(), "rb");
-		if (state == RunResume) {
-			state = RunNewFile;
+		if (state != RunNewConnection) {
+			state = RunNewFile; //on new connection, don't remove the ftyp/moov
 		}
 	}
 
-	if (state == RunNewConnection) { //Romain: we need a more sophisticated to send the two last chunk again
+	if (state == RunNewConnection) {
 		state = RunResume;
-		log(Error, "\tFTYP");
 	}
-#ifndef SKIP_MOOV
+#ifdef SKIP_MOOV
 	else if (state == RunNewFile) {
 		auto const data = (u8*)ptr;
 		auto read = fread(ptr, 1, 8, curTransferedFile);
-		assert(read == 8);
+		if (read != 8)
+			throw error("I/O error (1)");
 		u32 size = U32LE(data);
 		u32 type = U32LE(data + 4);
-		assert(type == GF_4CC('f', 't', 'y', 'p'));
+		if (type != GF_4CC('f', 't', 'y', 'p'))
+			throw error("ftyp not found");
 		read = fread(ptr, 1, size - 8, curTransferedFile);
-		assert(read == size - 8);
+		if (read != size - 8)
+			throw error("I/O error (2)");
 
 		read = fread(ptr, 1, 8, curTransferedFile);
-		assert(read == 8);
+		if (read != 8)
+			throw error("I/O error (3)");
 		size = U32LE(data);
 		read = fread(ptr, 1, size - 8, curTransferedFile);
-		assert(read == size - 8);
+		if (read != size - 8)
+			throw error("I/O error (4)");
 
 		read = fread(ptr, 1, 8, curTransferedFile);
-		assert(read == 8);
+		if (read != 8)
+			throw error("I/O error (5)");
 		size = U32LE(data);
 		type = U32LE(data + 4);
-		assert(type == GF_4CC('m', 'o', 'o', 'v'));
+		if (type != GF_4CC('m', 'o', 'o', 'v'))
+			throw error("moov not found");
 		read = fread(ptr, 1, size - 8, curTransferedFile);
-		assert(read == size - 8);
+		if (read != size - 8)
+			throw error("I/O error (6)");
 
 		state = RunResume;
 	}
@@ -159,19 +165,7 @@ size_t MS_HSS::curlCallback(void *ptr, size_t size, size_t nmemb) {
 
 	auto const transferSize = size*nmemb;
 	auto const read = fread(ptr, 1, transferSize, curTransferedFile);
-#if 0
-#ifndef SKIP_MOOV
-	//Romain: if (new file) {
-	if (read >= 8) {
-		auto const data = (u8*)ptr;
-		u32 size = U32LE(data);
-		u32 type = U32LE(data + 4);
-		assert(type == GF_4CC('m', 'o', 'o', 'f'));
-	}
-#endif
-#endif
-
-	if (read == 0) {//Romain: let's close the transfer for now:     < transferSize) {
+	if (read == 0) {
 		if (curTransferedFile) {
 			gf_fclose(curTransferedFile);
 			curTransferedFile = nullptr;
@@ -179,30 +173,16 @@ size_t MS_HSS::curlCallback(void *ptr, size_t size, size_t nmemb) {
 			curTransferedData = nullptr;
 			curTransferedDataInputIndex = (curTransferedDataInputIndex + 1) % inputs.size();
 		}
-#if 0 //Romain
-	}
-	return read;
-#else
-		return curlCallback((void*)((u8*)ptr + read), transferSize - read, 1) + read;
+		return curlCallback(ptr, transferSize, 1);
 	} else {
-#if 0 //Romain:
-		FILE *ff = nullptr;
-		ff = fopen("dump.mp4", "ab");
-		fwrite(ptr, 1, read, ff);
-		fclose(ff);
-#endif
-		//Romain:
-		std::shared_ptr<const MetadataFile> meta = safe_cast<const MetadataFile>(curTransferedData->getMetadata());
-		log(Debug, "transfered: file %s => %s", meta->getFilename(), read);
 		return read;
 	}
-#endif
 }
 
 void MS_HSS::threadProc() {
-#ifndef CURL_CHUNKED
+#ifndef CURL_CHUNKED //TODO: this is a test mode only ATM
 	const int transferSize = 1000000;
-	void *ptr = (void*)malloc(transferSize); //Romain: to be freed
+	void *ptr = (void*)malloc(transferSize); //FIXME: to be freed
 	while (state != Stop) {
 		//TODO: with the additional requirement that the encoder MUST resend the previous two MP4 fragments for each track in the stream, and resume without introducing discontinuities in the media timeline. Resending the last two MP4 fragments for each track ensures that there is no data loss.
 		auto curTransferedData = inputs[curTransferedDataInputIndex]->pop();
@@ -233,30 +213,15 @@ void MS_HSS::threadProc() {
 		//TODO: with the additional requirement that the encoder MUST resend the previous two MP4 fragments for each track in the stream, and resume without introducing discontinuities in the media timeline. Resending the last two MP4 fragments for each track ensures that there is no data loss.
 #endif
 		CURLcode res = curl_easy_perform(curl);
-#if 1
 		if (res == CURLE_OK) {
-			//long response_code;
-			//double request_size;
-			//curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
-			//curl_easy_getinfo(curl, CURLINFO_SIZE_UPLOAD, &request_size);
-			//printf("Server responeded with %ld, request was %f bytes\n", response_code, request_size);
-		} else {
 			fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
 		}
-#else
-		//if (res != CURLE_OK)
-		//	throw error(format("curl_easy_perform() failed: %s", curl_easy_strerror(res)));
-#endif
-		if (state == Stop)
-			break;
-		else
-			state = RunNewConnection;
 
-#if 0 //Romain
-		curl_easy_cleanup(curl);
-		curl_global_cleanup();
-		exit(1); //Romain: first segment only
-#endif
+		if (state == Stop) {
+			break;
+		} else {
+			state = RunNewConnection;
+		}
 	}
 }
 

@@ -40,8 +40,9 @@ class GPACMuxMP4 : public ModuleDynI {
 
 	private:
 		void declareStream(Data stream);
-		void declareStreamVideo(std::shared_ptr<const MetadataPktLibavVideo> stream, bool declareInput);
-		void declareStreamAudio(std::shared_ptr<const MetadataPktLibavAudio> stream, bool declareInput);
+		void declareStreamVideo(std::shared_ptr<const MetadataPktLibavVideo> stream);
+		void declareStreamAudio(std::shared_ptr<const MetadataPktLibavAudio> stream);
+		void declareInput(std::shared_ptr<const MetadataPktLibav> metadata);
 		void sendOutput();
 		std::unique_ptr<gpacpp::IsoSample> fillSample(Data data);
 		void addSample(gpacpp::IsoSample &sample, const uint64_t dataDurationInTs);
@@ -58,8 +59,9 @@ class GPACMuxMP4 : public ModuleDynI {
 		void closeFragment();
 		FragmentPolicy fragmentPolicy;
 		uint64_t curFragmentDurInTs = 0;
-		//SmoothStreaming compat only:
-		uint64_t absTimeInTs = 0, nextFragmentNum/*used with IndependentSegment*/ = 1; 
+		//SmoothStreaming compat only, for fragments:
+		static uint64_t absTimeInTs;
+		uint64_t nextFragmentNum/*used with IndependentSegment*/ = 1; 
 
 		//segments
 		void startSegment();

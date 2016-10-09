@@ -336,6 +336,8 @@ void fillVideoSampleData(const u8 *bufPtr, u32 bufLen, GF_ISOSample &sample) {
 
 namespace Mux {
 
+uint64_t GPACMuxMP4::absTimeInTs = 0;
+
 GPACMuxMP4::GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs, SegmentPolicy segmentPolicy, FragmentPolicy fragmentPolicy, CompatibilityFlag compatFlags)
 	: compatFlags(compatFlags), fragmentPolicy(fragmentPolicy), segmentPolicy(segmentPolicy), segmentDurationIn180k(timescaleToClock(segmentDurationInMs, 1000)) {
 	if ((segmentDurationInMs == 0) ^ (segmentPolicy == NoSegment || segmentPolicy == SingleSegment))
@@ -398,9 +400,9 @@ void GPACMuxMP4::startSegment() {
 			
 			auto metadata = inputs[0]->getMetadata();
 			if (auto video = std::dynamic_pointer_cast<const MetadataPktLibavVideo>(metadata)) {
-				declareStreamVideo(video, false);
+				declareStreamVideo(video);
 			} else if (auto audio = std::dynamic_pointer_cast<const MetadataPktLibavAudio>(metadata)) {
-				declareStreamAudio(audio, false);
+				declareStreamAudio(audio);
 			}
 
 			if (compatFlags & SmoothStreaming) {
@@ -475,9 +477,8 @@ void GPACMuxMP4::closeFragment() {
 	if (fragmentPolicy > NoFragment) {
 		if (compatFlags & SmoothStreaming) {
 			auto const mediaTs = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
-			//Romain: if (!absTimeInTs) {
-				//absTimeInTs = convertToTimescale(gf_net_get_utc() - 10*1000/*Romain*/, 1000, mediaTs);
-			//}
+			if (!absTimeInTs)
+				absTimeInTs = convertToTimescale(gf_net_get_utc(), 1000, mediaTs);
 			auto const oneFragDurInTimescale = clockToTimescale(segmentDurationIn180k, mediaTs);
 			GF_Err e = gf_isom_set_traf_mss_timeext(isoCur, trackId, absTimeInTs + oneFragDurInTimescale * (DTS / oneFragDurInTimescale - 1), curFragmentDurInTs);
 			if (e != GF_OK)
@@ -493,7 +494,7 @@ void GPACMuxMP4::closeFragment() {
 
 void GPACMuxMP4::setupFragments() {
 	if (fragmentPolicy > NoFragment) {
-		GF_Err e = gf_isom_setup_track_fragment(isoCur, trackId, 1, (u32)0/*Romain: test to have <TrackRunEntry Duration="400000" defaultSampleIncInTs*/, 0, 0, 0, 0);
+		GF_Err e = gf_isom_setup_track_fragment(isoCur, trackId, 1, compatFlags & SmoothStreaming ? 0 : (u32)defaultSampleIncInTs, 0, 0, 0, 0);
 		if (e != GF_OK)
 			throw error(format("Cannot setup track as fragmented: %s", gf_error_to_string(e)));
 
@@ -506,7 +507,7 @@ void GPACMuxMP4::setupFragments() {
 	}
 }
 
-void GPACMuxMP4::declareStreamAudio(std::shared_ptr<const MetadataPktLibavAudio> metadata, bool declareInput) {
+void GPACMuxMP4::declareStreamAudio(std::shared_ptr<const MetadataPktLibavAudio> metadata) {
 	GF_Err e;
 	u32 di, trackNum;
 	GF_M4ADecSpecInfo acfg;
@@ -592,26 +593,14 @@ void GPACMuxMP4::declareStreamAudio(std::shared_ptr<const MetadataPktLibavAudio>
 	if (e != GF_OK)
 		throw error(format("Container format import failed: %s", gf_error_to_string(e)));
 
-	sampleRate = metadata->getSampleRate();
-
-	//Romain: this block is duplicated between audio and video
-	if (declareInput) {
-		if (compatFlags & SmoothStreaming) {
-			ISMLManifest = writeISMLManifest(codec4CC, string2hex(extradata, extradataSize), metadata->getBitrate(), 0, 0, metadata->getSampleRate(), metadata->getNumChannels(), bitsPerSample);
-			auto ptr = (u32*)ISMLManifest.c_str();
-			ptr[0] = 0;
-		}
-
-		setupFragments();
-		startSegment();
-		startFragment(0, 0);
-
-		auto input = addInput(new Input<DataAVPacket>(this));
-		input->setMetadata(new MetadataPktLibavAudio(metadata->getAVCodecContext()));
+	if (compatFlags & SmoothStreaming) {
+		ISMLManifest = writeISMLManifest(codec4CC, string2hex(extradata, extradataSize), metadata->getBitrate(), 0, 0, metadata->getSampleRate(), metadata->getNumChannels(), bitsPerSample);
+		auto ptr = (u32*)ISMLManifest.c_str();
+		ptr[0] = 0;
 	}
 }
 
-void GPACMuxMP4::declareStreamVideo(std::shared_ptr<const MetadataPktLibavVideo> metadata, bool declareInput) {
+void GPACMuxMP4::declareStreamVideo(std::shared_ptr<const MetadataPktLibavVideo> metadata) {
 	u32 trackNum = gf_isom_new_track(isoCur, 0, GF_ISOM_MEDIA_VISUAL, metadata->getTimeScaleDen() * TIMESCALE_MUL);
 	if (!trackNum)
 		throw error(format("Cannot create new track"));
@@ -696,28 +685,30 @@ void GPACMuxMP4::declareStreamVideo(std::shared_ptr<const MetadataPktLibavVideo>
 	}
 #endif
 
-	if (declareInput) {
-		if (compatFlags & SmoothStreaming) {
-			ISMLManifest = writeISMLManifest(codec4CC, string2hex(extradata, extradataSize), metadata->getBitrate(), res.width, res.height, 0, 0, 0);
-			auto ptr = (u32*)ISMLManifest.c_str();
-			ptr[0] = 0;
-		}
-
-		setupFragments();
-		startSegment();
-		startFragment(0, 0);
-
-		auto input = addInput(new Input<DataAVPacket>(this));
-		input->setMetadata(new MetadataPktLibavVideo(metadata->getAVCodecContext()));
+	if (compatFlags & SmoothStreaming) {
+		ISMLManifest = writeISMLManifest(codec4CC, string2hex(extradata, extradataSize), metadata->getBitrate(), res.width, res.height, 0, 0, 0);
+		auto ptr = (u32*)ISMLManifest.c_str();
+		ptr[0] = 0;
 	}
+}
+
+void GPACMuxMP4::declareInput(std::shared_ptr<const MetadataPktLibav> metadata) {
+	setupFragments();
+	startSegment();
+	startFragment(0, 0);
+
+	auto input = addInput(new Input<DataAVPacket>(this));
+	input->setMetadata(new MetadataPktLibavVideo(metadata->getAVCodecContext()));
 }
 
 void GPACMuxMP4::declareStream(Data data) {
 	auto const metadata = data->getMetadata();
 	if (auto video = std::dynamic_pointer_cast<const MetadataPktLibavVideo>(metadata)) {
-		declareStreamVideo(video, true);
+		declareStreamVideo(video);
+		declareInput(safe_cast<const MetadataPktLibav>(metadata));
 	} else if (auto audio = std::dynamic_pointer_cast<const MetadataPktLibavAudio>(metadata)) {
-		declareStreamAudio(audio, true);
+		declareStreamAudio(audio);
+		declareInput(safe_cast<const MetadataPktLibav>(metadata));
 	} else {
 		throw error(format("Stream creation failed: unknown type."));
 	}
