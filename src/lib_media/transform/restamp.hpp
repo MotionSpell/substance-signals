@@ -9,9 +9,10 @@ namespace Modules {
 		class Restamp : public ModuleS {
 		public:
 			enum Mode {
-				Passthru,    /*offset only*/
-				Reset,       /*set the first received timestamp to 0 - aside from the offsetIn180k param*/
-				ClockSystem, /*the system clock: starts at 0 on first packet*/
+				Passthru,             /*offset only*/
+				Reset,                /*set the first received timestamp to 0 - aside from the offsetIn180k param*/
+				ClockSystem,          /*the system clock: starts at 0 on first packet*/
+				IgnoreFirstTimestamp, /*with RTP input, libavdemux put a wrong first timestamp*/
 			};
 
 			/*offset will be added to the current time*/

@@ -88,7 +88,12 @@ LibavDemux::LibavDemux(const std::string &url) {
 
 		restampers.resize(m_formatCtx->nb_streams);
 		for (unsigned i = 0; i < m_formatCtx->nb_streams; i++) {
-			restampers[i] = uptr(create<Transform::Restamp>(Transform::Restamp::Reset));
+			const std::string format(m_formatCtx->iformat->name);
+			if (format == "rtsp" || format == "sdp") { //HACK
+				restampers[i] = uptr(create<Transform::Restamp>(Transform::Restamp::IgnoreFirstTimestamp));
+			} else {
+				restampers[i] = uptr(create<Transform::Restamp>(Transform::Restamp::Reset));
+			}
 		}
 
 		av_dict_free(&dict);
@@ -127,8 +132,7 @@ void LibavDemux::setTime(std::shared_ptr<DataAVPacket> data, int streamIdx) {
 	restampers[streamIdx]->process(data);
 	int64_t offset = data->getTime() - time;
 	if (offset != 0) {
-		/*propagate to AVPacket*/
-		data->restamp(offset * base.num, base.den);
+		data->restamp(offset * base.num, base.den); /*propagate to AVPacket*/
 	}
 }
 
