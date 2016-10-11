@@ -48,7 +48,7 @@ MS_HSS::MS_HSS(const std::string &url, uint64_t segDurationInMs)
 	curl_easy_setopt(curl, CURLOPT_POST, 1L);
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-		
+
 #ifdef CURL_DEBUG
 	curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 #endif
