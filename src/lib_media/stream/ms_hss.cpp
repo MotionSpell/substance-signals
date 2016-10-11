@@ -153,11 +153,22 @@ size_t MS_HSS::curlCallback(void *ptr, size_t size, size_t nmemb) {
 			throw error("I/O error (5)");
 		size = U32LE(data);
 		type = U32LE(data + 4);
-		if (type != GF_4CC('m', 'o', 'o', 'v'))
+		if (type != GF_4CC('f', 'r', 'e', 'e'))
 			throw error("moov not found");
 		read = fread(ptr, 1, size - 8, curTransferedFile);
 		if (read != size - 8)
 			throw error("I/O error (6)");
+
+		read = fread(ptr, 1, 8, curTransferedFile);
+		if (read != 8)
+			throw error("I/O error (7)");
+		size = U32LE(data);
+		type = U32LE(data + 4);
+		if (type != GF_4CC('m', 'o', 'o', 'v'))
+			throw error("moov not found");
+		read = fread(ptr, 1, size - 8, curTransferedFile);
+		if (read != size - 8)
+			throw error("I/O error (8)");
 
 		state = RunResume;
 	}
