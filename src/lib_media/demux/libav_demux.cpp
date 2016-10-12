@@ -89,7 +89,8 @@ LibavDemux::LibavDemux(const std::string &url) {
 		restampers.resize(m_formatCtx->nb_streams);
 		for (unsigned i = 0; i < m_formatCtx->nb_streams; i++) {
 			const std::string format(m_formatCtx->iformat->name);
-			if (format == "rtsp" || format == "sdp") { //HACK
+			const std::string  fn = m_formatCtx->filename;
+			if (format == "rtsp" || format == "rtp" || format == "sdp" || !fn.compare(0, 4,  "rtp:") || !fn.compare(0, 4, "udp:")) {
 				restampers[i] = uptr(create<Transform::Restamp>(Transform::Restamp::IgnoreFirstTimestamp));
 			} else {
 				restampers[i] = uptr(create<Transform::Restamp>(Transform::Restamp::Reset));
