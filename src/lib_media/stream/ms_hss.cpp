@@ -212,7 +212,7 @@ void MS_HSS::threadProc() {
 		}
 		fclose(curTransferedFile);
 		curTransferedFile = nullptr;
-		//gf_delete_file(safe_cast<const MetadataFile>(curTransferedData->getMetadata())->getFilename().c_str());
+		gf_delete_file(safe_cast<const MetadataFile>(curTransferedData->getMetadata())->getFilename().c_str());
 		curTransferedData = nullptr;
 		curTransferedDataInputIndex = (curTransferedDataInputIndex + 1) % inputs.size();
 
