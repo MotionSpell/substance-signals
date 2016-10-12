@@ -62,8 +62,12 @@ int safeMain(int argc, char const* argv[], const FormatFlags formats) {
 
 	Tools::Profiler profilerProcessing(format("%s - processing time", g_appName));
 	std::cerr << g_appName << " - close window or ctrl-c to exit cleanly." << std::endl;
-	pipeline->start();
-	pipeline->waitForCompletion();
+	try {
+		pipeline->start();
+		pipeline->waitForCompletion();
+	} catch (std::exception const& e) {
+		std::cerr << "Error: " << e.what() << std::endl;
+	}
 	g_Pipeline = nullptr;
 
 	return 0;

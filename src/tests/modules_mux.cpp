@@ -51,8 +51,7 @@ unittest("GPAC mp4 mux outputs combination coverage") {
 	bool thrown = false;
 	try {
 		auto mux01 = uptr(create<Mux::GPACMuxMP4>("output_video_gpac_01", segmentDurationInMs, Mux::GPACMuxMP4::NoSegment, Mux::GPACMuxMP4::NoFragment));
-	}
-	catch (std::exception const& e) {
+	} catch (std::exception const& e) {
 		std::cerr << "Expected error: " << e.what() << std::endl;
 		thrown = true;
 	}
@@ -66,8 +65,7 @@ unittest("GPAC mp4 mux outputs combination coverage") {
 	thrown = false;
 	try {
 		auto mux10 = uptr(create<Mux::GPACMuxMP4>("output_video_gpac_10", 0, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::NoFragment));
-	}
-	catch (std::exception const& e) {
+	} catch (std::exception const& e) {
 		std::cerr << "Expected error: " << e.what() << std::endl;
 		thrown = true;
 	}
@@ -81,8 +79,7 @@ unittest("GPAC mp4 mux outputs combination coverage") {
 	thrown = false;
 	try {
 		auto mux21 = uptr(create<Mux::GPACMuxMP4>("output_video_gpac_21", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::NoFragment));
-	}
-	catch (std::exception const& e) {
+	} catch (std::exception const& e) {
 		std::cerr << "Expected error: " << e.what() << std::endl;
 		thrown = true;
 	}
@@ -92,7 +89,7 @@ unittest("GPAC mp4 mux outputs combination coverage") {
 	auto mux25 = uptr(create<Mux::GPACMuxMP4>("output_video_gpac_25", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerRAP));
 	auto mux27 = uptr(create<Mux::GPACMuxMP4>("output_video_gpac_27", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerFrame));
 
-#if ENABLE_FAILING_TESTS
+#ifdef ENABLE_FAILING_TESTS
 	auto mux31 = uptr(create<Mux::GPACMuxMP4>("output_video_gpac_31", 0, Mux::GPACMuxMP4::SingleSegment, Mux::GPACMuxMP4::NoFragment));
 	auto mux33 = uptr(create<Mux::GPACMuxMP4>("output_video_gpac_33", 0, Mux::GPACMuxMP4::SingleSegment, Mux::GPACMuxMP4::OneFragmentPerSegment));
 	auto mux35 = uptr(create<Mux::GPACMuxMP4>("output_video_gpac_35", 0, Mux::GPACMuxMP4::SingleSegment, Mux::GPACMuxMP4::OneFragmentPerRAP));
@@ -116,7 +113,7 @@ unittest("GPAC mp4 mux outputs combination coverage") {
 			ConnectModules(demux.get(), i, mux25.get(), 0);
 			ConnectModules(demux.get(), i, mux27.get(), 0);
 
-#if ENABLE_FAILING_TESTS
+#ifdef ENABLE_FAILING_TESTS
 			ConnectModules(demux.get(), i, mux31.get(), 0);
 			ConnectModules(demux.get(), i, mux33.get(), 0);
 			ConnectModules(demux.get(), i, mux35.get(), 0);
@@ -140,7 +137,7 @@ unittest("GPAC mp4 mux outputs combination coverage") {
 	mux23->flush();
 	mux25->flush();
 	mux27->flush();
-#if ENABLE_FAILING_TESTS
+#ifdef ENABLE_FAILING_TESTS
 	mux31->flush();
 	mux33->flush();
 	mux35->flush();

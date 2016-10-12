@@ -51,7 +51,13 @@ class PipelinedInput : public IInput {
 				}
 				Log::msg(Debug, "Module %s: dispatch data for time %ss", delegateName, dataTime / (double)IClock::Rate);
 				delegate->push(data);
-				delegateExecutor(MEMBER_FUNCTOR_PROCESS(delegate));
+				try {
+					delegateExecutor(MEMBER_FUNCTOR_PROCESS(delegate));
+				} catch (...) { //stop now
+					auto const &eptr = std::current_exception();
+					notify->exception(eptr);
+					std::rethrow_exception(eptr);
+				}
 			} else if (probeState && getNumConnections()) {
 				Log::msg(Debug, "Module %s: probing.", delegateName);
 				notify->probe();
@@ -219,6 +225,10 @@ private:
 		}
 	}
 
+	void exception(std::exception_ptr eptr) override {
+		m_notify->exception(eptr);
+	}
+
 	std::unique_ptr<IModule> delegate;
 	std::unique_ptr<IProcessExecutor> const localDelegateExecutor;
 	IProcessExecutor &delegateExecutor;
@@ -292,6 +302,10 @@ void Pipeline::waitForCompletion() {
 	while (numRemainingNotifications > 0) {
 		Log::msg(Debug, "Pipeline: completion (remaining: %s) (%s modules in the pipeline)", (int)numRemainingNotifications, modules.size());
 		condition.wait(lock);
+		if (eptr) {
+			//TODO: Pipeline::pause(); + Resume?()
+			//std::rethrow_exception(eptr);
+		}
 	}
 	Log::msg(Info, "Pipeline: completed");
 }
@@ -315,6 +329,12 @@ void Pipeline::finished() {
 	std::unique_lock<std::mutex> lock(mutex);
 	assert(numRemainingNotifications > 0);
 	--numRemainingNotifications;
+	condition.notify_one();
+}
+
+void Pipeline::exception(std::exception_ptr e) {
+	std::unique_lock<std::mutex> lock(mutex);
+	eptr = e;
 	condition.notify_one();
 }
 

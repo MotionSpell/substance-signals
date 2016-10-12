@@ -477,6 +477,10 @@ void GPACMuxMP4::closeFragment() {
 	if (fragmentPolicy > NoFragment) {
 		if (compatFlags & SmoothStreaming) {
 			auto const mediaTs = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
+			if (mediaTs == 0) {
+				log(Warning, "Media timescale is 0. Fragment cannot be closed.");
+				return;
+			}
 			if (!absTimeInTs)
 				absTimeInTs = convertToTimescale(gf_net_get_utc(), 1000, mediaTs);
 			auto const oneFragDurInTimescale = clockToTimescale(segmentDurationIn180k, mediaTs);

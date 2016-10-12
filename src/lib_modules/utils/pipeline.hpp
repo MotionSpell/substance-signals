@@ -3,6 +3,7 @@
 #include "../core/module.hpp"
 #include <atomic>
 #include <memory>
+#include <stdexcept>
 #include <vector>
 
 
@@ -27,7 +28,11 @@ struct ICompletionNotifier {
 	virtual void finished() = 0;
 };
 
-struct IPipelineNotifier : public ICompletionNotifier, public ITopologyProber {
+struct IExceptionNotifier {
+	virtual void exception(std::exception_ptr eptr) = 0;
+};
+
+struct IPipelineNotifier : public ICompletionNotifier, public ITopologyProber, public IExceptionNotifier {
 };
 
 class Pipeline : public IPipelineNotifier {
@@ -52,6 +57,7 @@ class Pipeline : public IPipelineNotifier {
 	private:
 		void finished() override;
 		void probe() override;
+		void exception(std::exception_ptr eptr) override;
 		void startSources();
 		void computeNotifications();
 		IPipelinedModule* addModuleInternal(Modules::IModule *rawModule);
@@ -63,6 +69,7 @@ class Pipeline : public IPipelineNotifier {
 		std::mutex mutex;
 		std::condition_variable condition;
 		std::atomic_size_t numRemainingNotifications;
+		std::exception_ptr eptr;
 };
 
 }

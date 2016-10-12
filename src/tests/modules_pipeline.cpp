@@ -143,8 +143,7 @@ unittest("pipeline: connect inputs to outputs") {
 		}
 		p.start();
 		p.waitForCompletion();
-	}
-	catch (std::runtime_error const& /*e*/) {
+	} catch (std::runtime_error const& /*e*/) {
 		thrown = true;
 	}
 	ASSERT(thrown);
@@ -161,8 +160,7 @@ unittest("pipeline: connect incompatible i/o") {
 		}
 		p.start();
 		p.waitForCompletion();
-	}
-	catch (std::runtime_error const& /*e*/) {
+	} catch (std::runtime_error const& /*e*/) {
 		thrown = true;
 	}
 	ASSERT(thrown);
@@ -175,8 +173,7 @@ unittest("pipeline: source only") {
 		p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
 		p.start();
 		p.waitForCompletion();
-	}
-	catch (...) {
+	} catch (...) {
 		thrown = true;
 	}
 	ASSERT(!thrown);
@@ -189,8 +186,7 @@ unittest("pipeline: sink only (incorrect topology)") {
 		p.addModule<Out::Null>();
 		p.start();
 		p.waitForCompletion();
-	}
-	catch (...) {
+	} catch (...) {
 		thrown = true;
 	}
 	ASSERT(thrown);
@@ -206,8 +202,7 @@ unittest("pipeline: dynamic module connection of an existing module") {
 		p.start();
 		p.connect(demux, 0, dualInput, 1);
 		p.waitForCompletion();
-	}
-	catch (std::runtime_error const& /*e*/) {
+	} catch (std::runtime_error const& /*e*/) {
 	}
 }
 
@@ -221,8 +216,7 @@ unittest("pipeline: dynamic module connection of a new module") {
 		p.start();
 		p.connect(demux2, 0, dualInput, 1);
 		p.waitForCompletion();
-	}
-	catch (std::runtime_error const& /*e*/) {
+	} catch (std::runtime_error const& /*e*/) {
 	}
 }
 
@@ -237,8 +231,7 @@ unittest("pipeline: dynamic module connection of a new module") {
 		p.connect(demux2, 0, dualInput, 1);
 		if (demux2->isSource()) demux2->process(); //only sources need to be triggered
 		p.waitForCompletion();
-	}
-	catch (std::runtime_error const& /*e*/) {
+	} catch (std::runtime_error const& /*e*/) {
 	}
 }
 #endif
@@ -254,8 +247,7 @@ unittest("pipeline: input data is manually queued while module is running") {
 		dualInput->getInput(1)->push(data);
 		dualInput->getInput(1)->process();
 		p.waitForCompletion();
-	}
-	catch (std::runtime_error const& /*e*/) {
+	} catch (std::runtime_error const& /*e*/) {
 	}
 }
 

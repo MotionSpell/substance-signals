@@ -4,6 +4,7 @@
 #include <atomic>
 #include <functional>
 #include <future>
+#include <stdexcept>
 #include <thread>
 
 
@@ -28,17 +29,23 @@ class ThreadPool {
 		void WaitForCompletion() {
 			waitAndExit = true;
 			for (size_t i = 0; i < threads.size(); ++i) {
-				workQueue.push([] {});
+				workQueue.push([]{});
 			}
 			for (size_t i = 0; i < threads.size(); ++i) {
 				if (threads[i].joinable()) {
 					threads[i].join();
 				}
 			}
+			if (eptr)
+				std::rethrow_exception(eptr);
 		}
 
 		template<typename Callback, typename... Args>
 		std::shared_future<Callback> submit(const std::function<Callback(Args...)> &callback, Args... args)	{
+			if (eptr) {
+				std::rethrow_exception(eptr);
+				eptr = nullptr;
+			}
 			const std::shared_future<Callback> &future = std::async(std::launch::deferred, callback, args...);
 			std::function<void(void)> f = [future]() {
 				future.get();
@@ -53,7 +60,11 @@ class ThreadPool {
 		void run() {
 			while (!done) {
 				std::function<void(void)> task = workQueue.pop();
-				task();
+				try {
+					task();
+				} catch (...) {
+					eptr = std::current_exception(); //will be caught by next submit()
+				}
 				if (waitAndExit) {
 					done = true;
 				}
@@ -64,5 +75,6 @@ class ThreadPool {
 		Queue<std::function<void(void)>> workQueue;
 		std::vector<std::thread> threads;
 		std::string name;
+		std::exception_ptr eptr;
 };
 }
