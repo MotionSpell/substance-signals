@@ -527,12 +527,13 @@ void GPACMuxMP4::declareStreamAudio(std::shared_ptr<const MetadataPktLibavAudio>
 	esd->decoderConfig = (GF_DecoderConfig *)gf_odf_desc_new(GF_ODF_DCD_TAG);
 	esd->slConfig = (GF_SLConfig *)gf_odf_desc_new(GF_ODF_SLC_TAG);
 	esd->decoderConfig->streamType = GF_STREAM_AUDIO;
+	sampleRate = metadata->getSampleRate();
 	if (metadata->getCodecName() == "aac") { //TODO: find an automatic table, we only know about MPEG1 Layer 2 and AAC-LC
 		codec4CC = "AACL";
 		esd->decoderConfig->objectTypeIndication = GPAC_OTI_AUDIO_AAC_MPEG4;
 
 		esd->decoderConfig->bufferSizeDB = 20;
-		esd->slConfig->timestampResolution = metadata->getSampleRate();
+		esd->slConfig->timestampResolution = sampleRate;
 		esd->decoderConfig->decoderSpecificInfo = (GF_DefaultDescriptor *)gf_odf_desc_new(GF_ODF_DSI_TAG);
 		esd->ESID = 1;
 
@@ -542,7 +543,7 @@ void GPACMuxMP4::declareStreamAudio(std::shared_ptr<const MetadataPktLibavAudio>
 
 		memset(&acfg, 0, sizeof(GF_M4ADecSpecInfo));
 		acfg.base_object_type = GF_M4A_AAC_LC;
-		acfg.base_sr = metadata->getSampleRate();
+		acfg.base_sr = sampleRate;
 		acfg.nb_chan = metadata->getNumChannels();
 		acfg.sbr_object_type = 0;
 		acfg.audioPL = gf_m4a_get_profile(&acfg);
@@ -555,13 +556,13 @@ void GPACMuxMP4::declareStreamAudio(std::shared_ptr<const MetadataPktLibavAudio>
 		}
 		esd->decoderConfig->objectTypeIndication = GPAC_OTI_AUDIO_MPEG1;
 		esd->decoderConfig->bufferSizeDB = 20;
-		esd->slConfig->timestampResolution = metadata->getSampleRate();
+		esd->slConfig->timestampResolution = sampleRate;
 		esd->decoderConfig->decoderSpecificInfo = (GF_DefaultDescriptor *)gf_odf_desc_new(GF_ODF_DSI_TAG);
 		esd->ESID = 1;
 
 		memset(&acfg, 0, sizeof(GF_M4ADecSpecInfo));
 		acfg.base_object_type = GF_M4A_LAYER2;
-		acfg.base_sr = metadata->getSampleRate();
+		acfg.base_sr = sampleRate;
 		acfg.nb_chan = metadata->getNumChannels();
 		acfg.sbr_object_type = 0;
 		acfg.audioPL = gf_m4a_get_profile(&acfg);
@@ -570,8 +571,8 @@ void GPACMuxMP4::declareStreamAudio(std::shared_ptr<const MetadataPktLibavAudio>
 		assert(e == GF_OK);
 	}
 
-	trackNum = gf_isom_new_track(isoCur, esd->ESID, GF_ISOM_MEDIA_AUDIO, metadata->getSampleRate());
-	log(Debug, "TimeScale: %s", metadata->getSampleRate());
+	trackNum = gf_isom_new_track(isoCur, esd->ESID, GF_ISOM_MEDIA_AUDIO, sampleRate);
+	log(Debug, "TimeScale: %s", sampleRate);
 	if (!trackNum)
 		throw error(format("Cannot create new track"));
 
@@ -589,7 +590,7 @@ void GPACMuxMP4::declareStreamAudio(std::shared_ptr<const MetadataPktLibavAudio>
 	esd = nullptr;
 
 	auto const bitsPerSample = metadata->getBitsPerSample() >= 16 ? 16 : metadata->getBitsPerSample();
-	e = gf_isom_set_audio_info(isoCur, trackNum, di, metadata->getSampleRate(), metadata->getNumChannels(), bitsPerSample);
+	e = gf_isom_set_audio_info(isoCur, trackNum, di, sampleRate, metadata->getNumChannels(), bitsPerSample);
 	if (e != GF_OK)
 		throw error(format("gf_isom_set_audio_info: %s", gf_error_to_string(e)));
 
@@ -598,7 +599,7 @@ void GPACMuxMP4::declareStreamAudio(std::shared_ptr<const MetadataPktLibavAudio>
 		throw error(format("Container format import failed: %s", gf_error_to_string(e)));
 
 	if (compatFlags & SmoothStreaming) {
-		ISMLManifest = writeISMLManifest(codec4CC, string2hex(extradata, extradataSize), metadata->getBitrate(), 0, 0, metadata->getSampleRate(), metadata->getNumChannels(), bitsPerSample);
+		ISMLManifest = writeISMLManifest(codec4CC, string2hex(extradata, extradataSize), metadata->getBitrate(), 0, 0, sampleRate, metadata->getNumChannels(), bitsPerSample);
 		auto ptr = (u32*)ISMLManifest.c_str();
 		ptr[0] = 0;
 	}
