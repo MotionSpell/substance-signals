@@ -10,7 +10,7 @@ struct LogCap {
 
 	template<typename... Arguments>
 	void log(Level level, const std::string& fmt, Arguments... args) {
-		Log::msg(level, format("[%s] %s", typeid(*this).name(), format(fmt, args...)));
+		Log::msg(level, format("[%s %s] %s", this, typeid(*this).name(), format(fmt, args...)));
 	}
 
 	void setLogEnabled(bool enable) {
