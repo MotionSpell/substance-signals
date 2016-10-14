@@ -34,7 +34,6 @@ class GPACMuxMP4 : public ModuleDynI {
 		};
 
 		GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs = 0, SegmentPolicy segmentPolicy = NoSegment, FragmentPolicy fragmentPolicy = NoFragment, CompatibilityFlag compatFlags = None);
-		~GPACMuxMP4();
 		void process() override;
 		void flush() override;
 

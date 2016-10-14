@@ -367,9 +367,7 @@ GPACMuxMP4::GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs
 
 void GPACMuxMP4::flush() {
 	closeSegment(true);
-}
 
-GPACMuxMP4::~GPACMuxMP4() {
 	if (segmentPolicy == IndependentSegment) {
 		std::string fn(gf_isom_get_filename(isoInit));
 		gf_isom_delete(isoInit);
@@ -739,8 +737,9 @@ void GPACMuxMP4::sendOutput() {
 		throw error(format("Could not compute codec name (RFC 6381)"));
 
 	auto const mediaTs = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
-	auto metadata = std::make_shared<MetadataFile>(segmentName, streamType, mimeType, codecName, curSegmentDurInTs, lastSegmentSize,
-		timescaleToClock(curSegmentDurInTs, mediaTs), segmentStartsWithRAP);
+	auto const curSegmentDurIn180k = timescaleToClock(curSegmentDurInTs, mediaTs);
+	auto metadata = std::make_shared<MetadataFile>(segmentName, streamType, mimeType, codecName, curSegmentDurIn180k, lastSegmentSize,
+		curSegmentDurIn180k, segmentStartsWithRAP);
 	switch (gf_isom_get_media_type(isoCur, gf_isom_get_track_by_id(isoCur, trackId))) {
 	case GF_ISOM_MEDIA_VISUAL: metadata->resolution[0] = resolution[0]; metadata->resolution[1] = resolution[1]; break;
 	case GF_ISOM_MEDIA_AUDIO: metadata->sampleRate = sampleRate; break;

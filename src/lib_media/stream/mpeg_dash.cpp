@@ -28,10 +28,11 @@ GF_MPD_AdaptationSet *createAS(uint64_t segDurationInMs, GF_MPD_Period *period, 
 
 namespace Stream {
 
-MPEG_DASH::MPEG_DASH(const std::string &mpdDir, const std::string &mpdName, Type type, uint64_t segDurationInMs)
+MPEG_DASH::MPEG_DASH(const std::string &mpdDir, const std::string &mpdName, Type type, uint64_t segDurationInMs, uint64_t timeShiftBufferDepthInMs)
 	: AdaptiveStreamingCommon(type, segDurationInMs),
 	  mpd(type == Live ? new gpacpp::MPD(GF_MPD_TYPE_DYNAMIC, MIN_BUFFER_TIME_IN_MS_LIVE)
-	  : new gpacpp::MPD(GF_MPD_TYPE_STATIC, MIN_BUFFER_TIME_IN_MS_VOD)), mpdDir(mpdDir), mpdPath(format("%s/%s", mpdDir, mpdName)) {
+	  : new gpacpp::MPD(GF_MPD_TYPE_STATIC, MIN_BUFFER_TIME_IN_MS_VOD)),
+	    mpdDir(mpdDir), mpdPath(format("%s/%s", mpdDir, mpdName)), timeShiftBufferDepthInMs(timeShiftBufferDepthInMs) {
 }
 
 MPEG_DASH::~MPEG_DASH() {
@@ -45,6 +46,7 @@ std::unique_ptr<Quality> MPEG_DASH::createQuality() const {
 void MPEG_DASH::ensureManifest() {
 	if (!mpd->mpd->availabilityStartTime) {
 		mpd->mpd->availabilityStartTime = startTimeInMs;
+		mpd->mpd->time_shift_buffer_depth = (u32)timeShiftBufferDepthInMs;
 	}
 	mpd->mpd->publishTime = gf_net_get_utc();
 
@@ -108,7 +110,7 @@ void MPEG_DASH::writeManifest() {
 		log(Warning, "Can't write MPD at %s (1). Check you have sufficient rights.", mpdPath);
 	} else {
 		auto out = outputManifest->getBuffer(0);
-		auto metadata = std::make_shared<MetadataFile>(mpdPath, PLAYLIST, "", "", clockToTimescale(segDurationInMs, 1000), 0, 1, false);
+		auto metadata = std::make_shared<MetadataFile>(mpdPath, PLAYLIST, "", "", timescaleToClock(segDurationInMs, 1000), 0, 1, false);
 		out->setMetadata(metadata);
 		outputManifest->emit(out);
 	}
@@ -122,6 +124,24 @@ void MPEG_DASH::generateManifest() {
 		if (quality->rep->width) { /*video only*/
 			quality->rep->starts_with_sap = (quality->rep->starts_with_sap == GF_TRUE && quality->meta->getStartsWithRAP()) ? GF_TRUE : GF_FALSE;
 		}
+
+		if (timeShiftBufferDepthInMs) {
+			uint64_t timeShiftSegmentsInMs = 0;
+			auto seg = quality->timeshiftSegments.begin();
+			while (seg != quality->timeshiftSegments.end()) {
+				timeShiftSegmentsInMs += clockToTimescale((*seg)->getDuration(), 1000);
+				if (timeShiftSegmentsInMs > timeShiftBufferDepthInMs) {
+					if (gf_delete_file((*seg)->getFilename().c_str()) != GF_OK) {
+						log(Error, "Couldn't old segment \"%s\".", (*seg)->getFilename());
+					}
+					seg = quality->timeshiftSegments.erase(seg);
+				} else {
+					++seg;
+				}
+			}
+
+			quality->timeshiftSegments.emplace(quality->timeshiftSegments.begin(), quality->meta);
+		}
 	}
 
 	if (type == Live) {
@@ -130,11 +150,37 @@ void MPEG_DASH::generateManifest() {
 }
 
 void MPEG_DASH::finalizeManifest() {
-	mpd->mpd->type = GF_MPD_TYPE_STATIC;
-	mpd->mpd->minimum_update_period = 0;
-	mpd->mpd->media_presentation_duration = totalDurationInMs;
-	generateManifest();
-	writeManifest();
+	if (mpd->mpd->time_shift_buffer_depth) {
+		log(Info, "Manifest was not rewritten for on-demand and all file are being deleted.");
+		if (gf_delete_file(mpdPath.c_str()) != GF_OK) {
+			log(Error, "Couldn't delete MPD: \"%s\".", mpdPath);
+		}
+		for (size_t i = 0; i < getNumInputs() - 1; ++i) {
+			auto quality = safe_cast<DASHQuality>(qualities[i].get());
+			std::string fn;
+			switch (quality->meta->getStreamType()) {
+			case AUDIO_PKT: fn = format("audio_%s.mp4", i); break;
+			case VIDEO_PKT: fn = format("video_%s_%sx%s.mp4", i, quality->meta->resolution[0], quality->meta->resolution[1]); break;
+			default: assert(0);
+			}
+			if (gf_delete_file(fn.c_str()) != GF_OK) {
+				log(Error, "Couldn't delete initialization segment \"%s\".", fn);
+			}
+
+			for (auto &seg : quality->timeshiftSegments) {
+				if (gf_delete_file(seg->getFilename().c_str()) != GF_OK) {
+					log(Error, "Couldn't delete media segment \"%s\".", seg->getFilename());
+				}
+			}
+		}
+	} else {
+		log(Info, "Manifest rewritten for on-demand. Media files untouched.");
+		mpd->mpd->type = GF_MPD_TYPE_STATIC;
+		mpd->mpd->minimum_update_period = 0;
+		mpd->mpd->media_presentation_duration = totalDurationInMs;
+		generateManifest();
+		writeManifest();
+	}
 }
 
 }
