@@ -29,7 +29,7 @@ class GPACMuxMP4 : public ModuleDynI {
 
 		enum CompatibilityFlag {
 			None			= 0,
-			SegmentsAtAny	= 1, //don't wait for a RAP
+			SegmentAtAny	= 1, //don't wait for a RAP
 			DashJs			= 1 << 1,
 			SmoothStreaming	= 1 << 2,
 		};
