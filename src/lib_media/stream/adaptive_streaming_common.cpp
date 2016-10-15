@@ -4,7 +4,7 @@ namespace Modules {
 namespace Stream {
 
 AdaptiveStreamingCommon::AdaptiveStreamingCommon(Type type, uint64_t segDurationInMs)
-	: type(type), startTimeInMs(0), segDurationInMs(segDurationInMs), totalDurationInMs(0) {
+	: type(type), segDurationInMs(segDurationInMs) {
 	addInput(new Input<DataAVPacket>(this));
 	outputSegment  = addOutput<OutputDataDefault<DataAVPacket>>();
 	outputManifest = addOutput<OutputDataDefault<DataAVPacket>>();
@@ -31,6 +31,7 @@ void AdaptiveStreamingCommon::threadProc() {
 	}
 
 	Data data;
+	uint64_t curSegDurInMs = 0;
 	for (;;) {
 		for (size_t i = 0; i < numInputs; ++i) {
 			data = inputs[i]->pop();
@@ -40,19 +41,20 @@ void AdaptiveStreamingCommon::threadProc() {
 				qualities[i]->meta = safe_cast<const MetadataFile>(data->getMetadata());
 				if (!qualities[i]->meta)
 					throw error(format("Unknown data received on input %s", i));
-				auto const numSeg = totalDurationInMs / segDurationInMs;
 				qualities[i]->avg_bitrate_in_bps = (qualities[i]->meta->getSize() * 8 + qualities[i]->avg_bitrate_in_bps * numSeg) / (numSeg + 1);
+				if (!i) curSegDurInMs = segDurationInMs ? segDurationInMs : clockToTimescale(qualities[i]->meta->getDuration(), 1000);
 			}
 		}
 		if (!data) {
 			break;
 		}
 
+		numSeg++;
 		if (!startTimeInMs) {
-			startTimeInMs = gf_net_get_utc() - segDurationInMs;
+			startTimeInMs = gf_net_get_utc() - curSegDurInMs;
 		}
 		generateManifest();
-		totalDurationInMs += segDurationInMs;
+		totalDurationInMs += curSegDurInMs;
 		log(Info, "Processes segment (total processed: %ss, UTC: %s (deltaAST=%s).", (double)totalDurationInMs / 1000, gf_net_get_utc(), gf_net_get_utc() - startTimeInMs);
 
 		if (type == Live) {
@@ -72,7 +74,8 @@ void AdaptiveStreamingCommon::threadProc() {
 }
 
 void AdaptiveStreamingCommon::process() {
-	if (!workingThread.joinable() && !startTimeInMs) {
+	if (!workingThread.joinable() && (startTimeInMs==(uint64_t)-1)) {
+		startTimeInMs = 0;
 		numDataQueueNotify = (int)getNumInputs() - 1; //FIXME: connection/disconnection cannot occur dynamically. Lock inputs?
 		workingThread = std::thread(&AdaptiveStreamingCommon::threadProc, this);
 	}

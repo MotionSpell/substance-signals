@@ -27,6 +27,7 @@ class MPEG_DASH : public AdaptiveStreamingCommon, public gpacpp::Init {
 		void writeManifest();
 		std::unique_ptr<gpacpp::MPD> mpd;
 		std::string mpdDir, mpdPath;
+		bool useSegmentTimeline = false;
 		uint64_t timeShiftBufferDepthInMs;
 };
 
