@@ -13,7 +13,7 @@ struct Video {
 struct AppOptions {
 	std::string input, output = "", workingDir = ".", postCommand;
 	std::vector<Video> v;
-	uint64_t segmentDurationInMs = 2000;
+	uint64_t seekTimeInMs = 0, segmentDurationInMs = 2000;
 	bool isLive = false, ultraLowLatency = false, autoRotate = false;
 };
 

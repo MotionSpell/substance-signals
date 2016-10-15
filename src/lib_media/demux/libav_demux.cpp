@@ -56,7 +56,7 @@ bool LibavDemux::webcamOpen(const std::string &options) {
 	return true;
 }
 
-LibavDemux::LibavDemux(const std::string &url) {
+LibavDemux::LibavDemux(const std::string &url, const uint64_t seekTimeInMs) {
 	if (!(m_formatCtx = avformat_alloc_context()))
 		throw error("Can't allocate format context");
 
@@ -77,6 +77,11 @@ LibavDemux::LibavDemux(const std::string &url) {
 		if (avformat_open_input(&m_formatCtx, url.c_str(), nullptr, &dict)) {
 			if (m_formatCtx) avformat_close_input(&m_formatCtx);
 			throw error(format("Error when opening input '%s'", url));
+		}
+
+		if (seekTimeInMs && avformat_seek_file(m_formatCtx, -1, INT64_MIN, seekTimeInMs * AV_TIME_BASE, INT64_MAX, 0) < 0) {
+			avformat_close_input(&m_formatCtx);
+			throw error(format("Couldn't seek at time %sms", seekTimeInMs));
 		}
 
 		//if you don't call you may miss the first frames
