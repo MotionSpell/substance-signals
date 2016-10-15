@@ -56,7 +56,7 @@ int safeMain(int argc, char const* argv[], const FormatFlags formats) {
 
 	Tools::Profiler profilerGlobal(g_appName);
 
-	auto pipeline = uptr(new Pipeline(opt.ultraLowLatency, opt.isLive ? 1.0 : 0.0));
+	auto pipeline = uptr(new Pipeline(opt.ultraLowLatency, opt.isLive ? 1.0 : 0.0, opt.ultraLowLatency ? Pipeline::Mono : Pipeline::OnePerModule));
 	declarePipeline(*pipeline, opt, formats);
 	g_Pipeline = pipeline.get();
 

@@ -37,15 +37,20 @@ struct IPipelineNotifier : public ICompletionNotifier, public ITopologyProber, p
 
 class Pipeline : public IPipelineNotifier {
 	public:
-		Pipeline(bool isLowLatency = false, double clockSpeed = 0.0);
+		enum Threading {
+			Mono,
+			OnePerModule,
+			RegulationOffFlag = 1 << 10, //disable thread creation for each module connected from a source.
+		};
 
-		template <typename InstanceType, typename ...Args>
+		/* @isLowLatency Controls the default number of buffers.
+		   @clockSpeed   Controls the execution speed (0.0 is "as fast as possible"): this may create threads.
+		   @threading    Controls the threading. */
+		Pipeline(bool isLowLatency = false, double clockSpeed = 0.0, Threading threading = OnePerModule);
+
+		template <typename InstanceType, int NumBlocks = 0, typename ...Args>
 		IPipelinedModule* addModule(Args&&... args) {
-			if (isLowLatency) {
-				return addModuleInternal(createModule<InstanceType>(Modules::ALLOC_NUM_BLOCKS_LOW_LATENCY, std::forward<Args>(args)...));
-			} else {
-				return addModuleInternal(createModule<InstanceType>(Modules::ALLOC_NUM_BLOCKS_DEFAULT, std::forward<Args>(args)...));
-			}
+			return addModuleInternal(createModule<InstanceType>(NumBlocks ? NumBlocks : allocatorNumBlocks, std::forward<Args>(args)...));
 		}
 
 		void connect(Modules::IModule *prev, size_t outputIdx, Modules::IModule *next, size_t inputIdx, bool inputAcceptMultipleConnections = false);
@@ -63,13 +68,18 @@ class Pipeline : public IPipelineNotifier {
 		IPipelinedModule* addModuleInternal(Modules::IModule *rawModule);
 
 		std::vector<std::unique_ptr<IPipelinedModule>> modules;
-		bool isLowLatency;
+		const size_t allocatorNumBlocks;
 		std::unique_ptr<const Modules::IClock> const clock;
+		Threading threading;
 
 		std::mutex mutex;
 		std::condition_variable condition;
 		std::atomic_size_t numRemainingNotifications;
 		std::exception_ptr eptr;
 };
+
+inline Pipeline::Threading operator | (Pipeline::Threading a, Pipeline::Threading b) {
+	return static_cast<Pipeline::Threading>(static_cast<int>(a) | static_cast<int>(b));
+}
 
 }

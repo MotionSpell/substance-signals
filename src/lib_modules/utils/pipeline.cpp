@@ -105,9 +105,9 @@ class PipelinedInput : public IInput {
 class PipelinedModule : public IPipelineNotifier, public IPipelinedModule, public InputCap {
 public:
 	/* take ownership of module and executor */
-	PipelinedModule(IModule *module, IPipelineNotifier *notify, IClock const * const clock)
-		: delegate(module), localDelegateExecutor(clock->getSpeed() > 0.0 ? (IProcessExecutor*)new EXECUTOR_LIVE : (IProcessExecutor*)new EXECUTOR),
-		delegateExecutor(*localDelegateExecutor), clock(clock), m_notify(notify) {
+	PipelinedModule(IModule *module, IPipelineNotifier *notify, IClock const * const clock, Pipeline::Threading threading)
+		: delegate(module), localDelegateExecutor(threading == Pipeline::Mono ? (IProcessExecutor*)new EXECUTOR_LIVE : (IProcessExecutor*)new EXECUTOR),
+		delegateExecutor(*localDelegateExecutor), clock(clock), threading(threading), m_notify(notify) {
 	}
 	~PipelinedModule() noexcept(false) {}
 	std::string getDelegateName() const {
@@ -147,7 +147,7 @@ public:
 private:
 	void connect(IOutput *output, size_t inputIdx, bool forceAsync, bool inputAcceptMultipleConnections) {
 		auto input = safe_cast<PipelinedInput>(getInput(inputIdx));
-		if (forceAsync && inputExecutor[inputIdx] == &g_executorSync) {
+		if (forceAsync && !(threading & Pipeline::RegulationOffFlag) && (inputExecutor[inputIdx] == &g_executorSync)) {
 			auto executor = uptr(new REGULATION_EXECUTOR);
 			inputExecutor[inputIdx] = executor.get();
 			input->setLocalExecutor(std::move(executor));
@@ -235,16 +235,18 @@ private:
 
 	std::vector<IProcessExecutor*> inputExecutor; /*needed to sleep when using a clock*/
 	IClock const * const clock;
+	Pipeline::Threading threading;
 
 	IPipelineNotifier * const m_notify;
 };
 
-Pipeline::Pipeline(bool isLowLatency, double clockSpeed)
-: isLowLatency(isLowLatency), clock(new Modules::Clock(clockSpeed)), numRemainingNotifications(0) {
+Pipeline::Pipeline(bool isLowLatency, double clockSpeed, Threading threading)
+: allocatorNumBlocks(isLowLatency ? Modules::ALLOC_NUM_BLOCKS_LOW_LATENCY : Modules::ALLOC_NUM_BLOCKS_DEFAULT),
+  clock(new Modules::Clock(clockSpeed)), threading(threading), numRemainingNotifications(0) {
 }
 
 IPipelinedModule* Pipeline::addModuleInternal(IModule *rawModule) {
-	auto module = uptr(new PipelinedModule(rawModule, this, clock.get()));
+	auto module = uptr(new PipelinedModule(rawModule, this, clock.get(), threading));
 	auto ret = module.get();
 	modules.push_back(std::move(module));
 	return ret;

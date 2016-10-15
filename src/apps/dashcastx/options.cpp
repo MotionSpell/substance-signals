@@ -103,9 +103,9 @@ AppOptions processArgs(int argc, char const* argv[]) {
 		{ HELP,     0, "h", "help",        Arg::None,
 			"  --help,              -h             \tPrint usage and exit." },
 		{ OPT,      0, "l", "live",        Arg::None,
-			"  --live,              -l             \tRun at system clock pace (otherwise runs as fast as possible) with low latency settings (quality may be degraded)." },
+			"  --live,              -l             \tRun at system clock pace (otherwise runs as fast as possible)." },
 		{ OPT,      0, "u", "ultra-low-latency", Arg::None,
-			"  --ultra-low-latency, -u             \tLower the latency as much as possible (quality may be degraded). Implies '-l'." },
+			"  --ultra-low-latency, -u             \tLower the latency as much as possible (quality may be degraded)." },
 		{ NUMERIC,  0, "s", "seg-dur",     Arg::Numeric,
 			"  --seg-dur,           -s             \tSet the segment duration (in ms) (default value: 2000)." },
 		{ VIDEO,    0, "v", "video",       Arg::Video,
@@ -144,7 +144,6 @@ AppOptions processArgs(int argc, char const* argv[]) {
 		}
 		if (o->desc->shortopt == std::string("u")) {
 			opt.ultraLowLatency = true;
-			opt.isLive = true;
 		}
 		if (o->desc->shortopt == std::string("r")) {
 			opt.autoRotate = true;
