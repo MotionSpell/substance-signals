@@ -863,7 +863,7 @@ void GPACMuxMP4::process() {
 		log(Debug, "VFR: adding sample with duration %ss", dataDurationInTs / (double)mediaTs);
 	}
 #else
-	/*wait to have two samples - FIXME: should be in a separate class + mast segment is never processed (should be in flush())*/
+	/*wait to have two samples - FIXME: should be in a separate class + last segment is never processed (should be in flush())*/
 	static std::shared_ptr<const DataAVPacket> lastData = nullptr;
 	if (lastData) {
 		dataDurationInTs = clockToTimescale(data->getTime()-lastData->getTime(), mediaTs);

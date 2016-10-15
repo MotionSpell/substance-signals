@@ -110,7 +110,7 @@ LibavDemux::LibavDemux(const std::string &url, const uint64_t seekTimeInMs) {
 		if (parser) {
 			m_formatCtx->streams[i]->codec->ticks_per_frame = parser->repeat_pict + 1;
 		} else {
-			log(Warning, "Couldn't fix metadata to get the right timings.");
+			log(Info, format("No parser found for stream %s (%s). Couldn't use full metadata to get the timescale.", i, m_formatCtx->streams[i]->codec->codec_name));
 		}
 
 		IMetadata *m;

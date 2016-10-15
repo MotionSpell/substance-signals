@@ -180,7 +180,7 @@ void MPEG_DASH::generateManifest() {
 			while (seg != quality->timeshiftSegments.end()) {
 				timeShiftSegmentsInMs += clockToTimescale((*seg)->getDuration(), 1000);
 				if (timeShiftSegmentsInMs > timeShiftBufferDepthInMs) {
-					log(Warning, "Delete segment \"%s\".", (*seg)->getFilename());
+					log(Debug, "Delete segment \"%s\".", (*seg)->getFilename());
 					if (gf_delete_file((*seg)->getFilename().c_str()) != GF_OK) {
 						log(Error, "Couldn't delete old segment \"%s\".", (*seg)->getFilename());
 					}
