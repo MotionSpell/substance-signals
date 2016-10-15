@@ -768,17 +768,18 @@ void GPACMuxMP4::addSample(gpacpp::IsoSample &sample, const uint64_t dataDuratio
 	GF_Err e;
 	if (segmentPolicy > SingleSegment) {
 		curSegmentDurInTs += dataDurationInTs;
-		if ((curSegmentDurInTs * IClock::Rate) > (mediaTs * segmentDurationIn180k) && ((sample.IsRAP == RAP) || (compatFlags & SegmentsAtAny))) {
+		if (((curSegmentDurInTs + deltaInTs) * IClock::Rate) > (mediaTs * segmentDurationIn180k) && ((sample.IsRAP == RAP) || (compatFlags & SegmentsAtAny))) {
 			closeSegment(false);
 			segmentNum++;
 			segmentStartsWithRAP = sample.IsRAP == RAP;
 			startSegment();
 
 			const u64 oneFragDurInTimescale = clockToTimescale(segmentDurationIn180k, mediaTs);
-			curSegmentDurInTs = DTS - oneFragDurInTimescale * (DTS / oneFragDurInTimescale);
+			deltaInTs = DTS - oneFragDurInTimescale * (DTS / oneFragDurInTimescale);
 			if (segmentPolicy == IndependentSegment) {
 				sample.DTS = 0;
 			}
+			curSegmentDurInTs = 0;
 			startFragment(sample.DTS, sample.DTS + sample.CTS_Offset);
 		}
 	}

@@ -67,7 +67,7 @@ class GPACMuxMP4 : public ModuleDynI {
 		void startSegment();
 		void closeSegment(bool isLastSeg);
 		SegmentPolicy segmentPolicy;
-		uint64_t segmentDurationIn180k, curSegmentDurInTs = 0, segmentNum = 0, lastSegmentSize = 0;
+		uint64_t segmentDurationIn180k, curSegmentDurInTs = 0, deltaInTs = 0, segmentNum = 0, lastSegmentSize = 0;
 		bool segmentStartsWithRAP = true;
 		std::string segmentName;
 
