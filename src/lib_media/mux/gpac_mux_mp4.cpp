@@ -768,7 +768,7 @@ void GPACMuxMP4::addSample(gpacpp::IsoSample &sample, const uint64_t dataDuratio
 	GF_Err e;
 	if (segmentPolicy > SingleSegment) {
 		curSegmentDurInTs += dataDurationInTs;
-		if ((curSegmentDurInTs * IClock::Rate) > (mediaTs * segmentDurationIn180k)) {
+		if ((curSegmentDurInTs * IClock::Rate) > (mediaTs * segmentDurationIn180k) && ((sample.IsRAP == RAP) || (compatFlags & SegmentsAtAny))) {
 			closeSegment(false);
 			segmentNum++;
 			segmentStartsWithRAP = sample.IsRAP == RAP;

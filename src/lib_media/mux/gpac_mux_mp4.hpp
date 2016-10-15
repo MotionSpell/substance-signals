@@ -29,8 +29,9 @@ class GPACMuxMP4 : public ModuleDynI {
 
 		enum CompatibilityFlag {
 			None			= 0,
-			DashJs			= 1,
-			SmoothStreaming	= 1 << 1,
+			SegmentsAtAny	= 1, //don't wait for a RAP
+			DashJs			= 1 << 1,
+			SmoothStreaming	= 1 << 2,
 		};
 
 		GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs = 0, SegmentPolicy segmentPolicy = NoSegment, FragmentPolicy fragmentPolicy = NoFragment, CompatibilityFlag compatFlags = None);
