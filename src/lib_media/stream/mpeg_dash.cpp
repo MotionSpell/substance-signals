@@ -98,7 +98,7 @@ void MPEG_DASH::ensureManifest() {
 				rep->width = quality->meta->resolution[0];
 				rep->height = quality->meta->resolution[1];
 				rep->segment_template->initialization = gf_strdup(format("video_$RepresentationID$_%sx%s.mp4", rep->width, rep->height).c_str());
-				rep->segment_template->media = gf_strdup(format("video_%s_%sx%s.mp4_%s.m4s", i, rep->width, rep->height, templateName).c_str());
+				rep->segment_template->media = gf_strdup(format("video_$RepresentationID$_%sx%s.mp4_%s.m4s", rep->width, rep->height, templateName).c_str());
 
 				auto out = outputSegment->getBuffer(0);
 				auto metadata = std::make_shared<MetadataFile>(format("%s/video_%s_%sx%s.mp4", mpdDir, repId, rep->width, rep->height), VIDEO_PKT, "", "", 0, 0, 1, false);

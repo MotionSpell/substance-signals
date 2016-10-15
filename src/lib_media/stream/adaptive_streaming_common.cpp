@@ -61,7 +61,7 @@ void AdaptiveStreamingCommon::threadProc() {
 			const int64_t dur = startTimeInMs + totalDurationInMs - gf_net_get_utc();
 			if (dur > 0) {
 				auto durInMs = std::chrono::milliseconds(dur);
-				log(Info, "Going to sleep for %s ms.", dur);
+				log(Debug, "Going to sleep for %s ms.", dur);
 				std::this_thread::sleep_for(durInMs);
 			} else {
 				log(Warning, "Late from %s ms.", -dur);
