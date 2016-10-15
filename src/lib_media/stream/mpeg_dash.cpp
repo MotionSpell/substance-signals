@@ -164,7 +164,14 @@ void MPEG_DASH::generateManifest() {
 			if (!retry) {
 				log(Error, "Couldn't rename segment \"%s\" -> \"%s\". You may encounter playback errors.", quality->meta->getFilename(), fn);
 			}
-			quality->meta = std::make_shared<MetadataFile>(fn, quality->meta->getStreamType(), quality->meta->getMimeType(), quality->meta->getCodecName(), quality->meta->getDuration(), quality->meta->getSize(), quality->meta->getLatency(), quality->meta->getStartsWithRAP());
+
+			auto mf = std::make_shared<MetadataFile>(fn, quality->meta->getStreamType(), quality->meta->getMimeType(), quality->meta->getCodecName(), quality->meta->getDuration(), quality->meta->getSize(), quality->meta->getLatency(), quality->meta->getStartsWithRAP());
+			switch (quality->meta->getStreamType()) {
+			case AUDIO_PKT: mf->sampleRate = quality->meta->sampleRate; break;
+			case VIDEO_PKT: mf->resolution[0] = quality->meta->resolution[0]; mf->resolution[1] = quality->meta->resolution[1]; break;
+			default: assert(0);
+			}
+			quality->meta = mf;
 		}
 
 		if (timeShiftBufferDepthInMs) {
