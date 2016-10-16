@@ -152,7 +152,7 @@ void LibavDemux::process(Data data) {
 		if (status < 0) {
 			if (status == (int)AVERROR_EOF || (m_formatCtx->pb && m_formatCtx->pb->eof_reached)) {
 			} else if (m_formatCtx->pb && m_formatCtx->pb->error) {
-				log(Warning, "Stream contains an irrecoverable error - leaving");
+				log(Error, "Stream contains an irrecoverable error - leaving");
 			}
 			return;
 		}
