@@ -10,6 +10,8 @@
 #define EXECUTOR              EXECUTOR_ASYNC_THREAD
 #define EXECUTOR_LIVE         EXECUTOR_SYNC
 
+#define OPTIMIZE_EXECUTION_UNITS_NUM
+
 #define REGULATION_EXECUTOR   EXECUTOR_ASYNC_THREAD
 #define REGULATION_TOLERANCE_IN_MS 300
 #define PROBE_TIMEOUT_IN_MS   20
@@ -52,7 +54,15 @@ class PipelinedInput : public IInput {
 				Log::msg(Debug, "Module %s: dispatch data for time %ss", delegateName, dataTime / (double)IClock::Rate);
 				delegate->push(data);
 				try {
+#ifdef OPTIMIZE_EXECUTION_UNITS_NUM
+					if (dynamic_cast<EXECUTOR_SYNC*>(executor)) {
+						delegateExecutor(MEMBER_FUNCTOR_PROCESS(delegate));
+					} else {
+						delegate->process(); //hack: do not create more async execution units than needed
+					}
+#else
 					delegateExecutor(MEMBER_FUNCTOR_PROCESS(delegate));
+#endif
 				} catch (...) { //stop now
 					auto const &eptr = std::current_exception();
 					notify->exception(eptr);
