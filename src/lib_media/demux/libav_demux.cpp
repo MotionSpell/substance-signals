@@ -151,6 +151,7 @@ void LibavDemux::process(Data data) {
 		int status = av_read_frame(m_formatCtx, pktTmp);
 		if (status < 0) {
 			if (status == (int)AVERROR_EOF || (m_formatCtx->pb && m_formatCtx->pb->eof_reached)) {
+				log(Info, "End of stream detected - leaving");
 			} else if (m_formatCtx->pb && m_formatCtx->pb->error) {
 				log(Error, "Stream contains an irrecoverable error - leaving");
 			}
