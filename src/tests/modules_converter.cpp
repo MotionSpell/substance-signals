@@ -122,6 +122,89 @@ unittest("audio converter: dynamic formats") {
 	}
 }
 
+namespace {
+void framingTest(const size_t inFrameFrames, const size_t outFrameFrames) {
+	PcmFormat format;
+	const size_t inFrameSize = inFrameFrames * format.getBytesPerSample() / format.numPlanes;
+	auto data = std::make_shared<DataPcm>(0);
+	data->setFormat(format);
+
+	auto input = uptr(new uint8_t[inFrameSize]);
+	auto inputRaw = input.get();
+	const size_t modulo = std::min<size_t>(inFrameSize, 256);
+	for (size_t i = 0; i < inFrameSize; ++i) {
+		inputRaw[i] = (uint8_t)(i % modulo);
+	}
+	for (uint8_t i = 0; i < format.numPlanes; ++i) {
+		data->setPlane(i, input.get(), inFrameSize);
+	}
+
+	auto recorder = uptr(create<Utils::Recorder>());
+	auto converter = uptr(create<Transform::AudioConvert>(format, format, outFrameFrames));
+	ConnectOutputToInput(converter->getOutput(0), recorder);
+
+	auto const numIter = 5;
+	for (size_t i = 0; i < numIter; ++i) {
+		converter->process(data);
+	}
+	converter->flush();
+	converter->getOutput(0)->getSignal().disconnect(0);
+	recorder->process(nullptr);
+
+	Data dataRec;
+	size_t idx = 0;
+	while ((dataRec = recorder->pop())) {
+		auto audioData = safe_cast<const DataPcm>(dataRec);
+		size_t val = 0;
+		for (size_t p = 0; p < audioData->getFormat().numPlanes; ++p) {
+			auto const plane = audioData->getPlane(p);
+			for (size_t s = 0; s < audioData->getPlaneSize(p); ++s) {
+				ASSERT(plane[s] == ((val % inFrameSize) % modulo));
+				++idx;
+				++val;
+			}
+		}
+	}
+	ASSERT(idx == inFrameSize * numIter * format.numPlanes);
+}
+}
+
+unittest("audio converter: same framing size.") {
+	bool thrown = false;
+	try {
+		framingTest(1024, 1024);
+		framingTest(111, 111);
+		framingTest(11, 11);
+		framingTest(1, 1);
+	} catch (std::exception const& e) {
+		std::cerr << "Expected error: " << e.what() << std::endl;
+		thrown = true;
+	}
+	ASSERT(!thrown);
+}
+
+unittest("audio converter: smaller framing size.") {
+	bool thrown = false;
+	try {
+		framingTest(1152, 1024);
+	} catch (std::exception const& e) {
+		std::cerr << "Expected error: " << e.what() << std::endl;
+		thrown = true;
+	}
+	ASSERT(!thrown);
+}
+
+unittest("audio converter: bigger framing size.") {
+	bool thrown = false;
+	try {
+		framingTest(1024, 1152);
+	} catch (std::exception const& e) {
+		std::cerr << "Expected error: " << e.what() << std::endl;
+		thrown = true;
+	}
+	ASSERT(!thrown);
+}
+
 unittest("video converter: pass-through") {
 	auto res = Resolution(16, 32);
 	auto format = PictureFormat(res, YUV420P);

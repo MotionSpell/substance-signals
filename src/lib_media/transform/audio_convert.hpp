@@ -27,7 +27,7 @@ class AudioConvert : public ModuleS {
 
 		PcmFormat srcPcmFormat;
 		PcmFormat const dstPcmFormat;
-		int64_t dstNumSamples, curNumSamples = 0;
+		int64_t dstNumSamples, curDstNumSamples = 0;
 		std::shared_ptr<DataPcm> curOut;
 		std::unique_ptr<ffpp::SwResampler> m_Swr;
 		uint64_t accumulatedTimeInDstSR = 0;

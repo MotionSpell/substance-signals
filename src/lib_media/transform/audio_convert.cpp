@@ -84,7 +84,7 @@ void AudioConvert::process(Data data) {
 	}
 
 	std::shared_ptr<DataPcm> out;
-	if (curNumSamples) {
+	if (curDstNumSamples) {
 		out = curOut;
 	} else {
 		auto const dstBufferSize = dstNumSamples * dstPcmFormat.getBytesPerSample();
@@ -96,17 +96,17 @@ void AudioConvert::process(Data data) {
 	}
 
 	uint8_t* dstPlanes[AUDIO_PCM_PLANES_MAX];
-	for (int i=0; i<AUDIO_PCM_PLANES_MAX; ++i) {
-		dstPlanes[i] = out->getPlanes()[i] + curNumSamples * dstPcmFormat.getBytesPerSample();
+	for (int i=0; i<dstPcmFormat.numPlanes; ++i) {
+		dstPlanes[i] = out->getPlanes()[i] + curDstNumSamples * dstPcmFormat.getBytesPerSample() / dstPcmFormat.numPlanes;
 	}
 	int64_t targetNumSamples;
 	if (audioData) {
-		targetNumSamples = dstNumSamples - curNumSamples;
+		targetNumSamples = dstNumSamples - curDstNumSamples;
 	} else {
 		targetNumSamples = dstNumSamples;
-		dstNumSamples += curNumSamples;
-		const int64_t maxTargetNumSamples = out->getPlaneSize(0) / dstPcmFormat.getBytesPerSample();
-		if (targetNumSamples + curNumSamples > maxTargetNumSamples) {
+		dstNumSamples += curDstNumSamples;
+		const int64_t maxTargetNumSamples = out->getPlaneSize(0) * dstPcmFormat.numPlanes / dstPcmFormat.getBytesPerSample();
+		if (targetNumSamples + curDstNumSamples > maxTargetNumSamples) {
 			log(Warning, "Truncating last samples.");
 			targetNumSamples = maxTargetNumSamples;
 		}
@@ -116,7 +116,7 @@ void AudioConvert::process(Data data) {
 	auto const outNumSamples = m_Swr->convert(dstPlanes, (int)targetNumSamples, (const uint8_t**)pSrc, (int)srcNumSamples);
 
 	if (outNumSamples == targetNumSamples) {
-		curNumSamples = 0;
+		curDstNumSamples = 0;
 		curOut = nullptr;
 		targetNumSamples = dstNumSamples;
 
@@ -129,8 +129,11 @@ void AudioConvert::process(Data data) {
 		accumulatedTimeInDstSR += dstNumSamples;
 
 		output->emit(out);
+		if (m_Swr->getDelay(dstPcmFormat.sampleRate) >= dstNumSamples) { //accumulated more than one output buffer: flush.
+			process(nullptr);
+		}
 	} else if (outNumSamples < targetNumSamples) {
-		curNumSamples += outNumSamples;
+		curDstNumSamples += outNumSamples;
 		curOut = out;
 	} else
 		throw error(format("Unexpected case: output %s samples when %s was requested (frame size = %s)", outNumSamples, targetNumSamples, dstNumSamples));
