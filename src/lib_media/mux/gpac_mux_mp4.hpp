@@ -60,7 +60,7 @@ class GPACMuxMP4 : public ModuleDynI {
 		FragmentPolicy fragmentPolicy;
 		uint64_t curFragmentDurInTs = 0;
 		//SmoothStreaming compat only, for fragments:
-		static uint64_t absTimeInTs;
+		static uint64_t absTimeInMs;
 		uint64_t nextFragmentNum/*used with IndependentSegment*/ = 1; 
 
 		//segments

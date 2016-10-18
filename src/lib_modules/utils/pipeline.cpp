@@ -73,7 +73,15 @@ class PipelinedInput : public IInput {
 				notify->probe();
 			} else {
 				Log::msg(Debug, "Module %s: notify finished.", delegateName);
+#ifdef OPTIMIZE_EXECUTION_UNITS_NUM
+				if (dynamic_cast<EXECUTOR_SYNC*>(executor)) {
+					delegateExecutor(MEMBER_FUNCTOR_NOTIFY_FINISHED(notify));
+				} else {
+					notify->finished();
+				}
+#else
 				delegateExecutor(MEMBER_FUNCTOR_NOTIFY_FINISHED(notify));
+#endif
 			}
 		}
 

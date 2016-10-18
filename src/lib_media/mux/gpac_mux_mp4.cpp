@@ -336,7 +336,7 @@ void fillVideoSampleData(const u8 *bufPtr, u32 bufLen, GF_ISOSample &sample) {
 
 namespace Mux {
 
-uint64_t GPACMuxMP4::absTimeInTs = 0;
+uint64_t GPACMuxMP4::absTimeInMs = 0;
 
 GPACMuxMP4::GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs, SegmentPolicy segmentPolicy, FragmentPolicy fragmentPolicy, CompatibilityFlag compatFlags)
 	: compatFlags(compatFlags), fragmentPolicy(fragmentPolicy), segmentPolicy(segmentPolicy), segmentDurationIn180k(timescaleToClock(segmentDurationInMs, 1000)) {
@@ -479,10 +479,10 @@ void GPACMuxMP4::closeFragment() {
 				log(Warning, "Media timescale is 0. Fragment cannot be closed.");
 				return;
 			}
-			if (!absTimeInTs)
-				absTimeInTs = convertToTimescale(gf_net_get_utc(), 1000, mediaTs);
+			if (!absTimeInMs)
+				absTimeInMs = gf_net_get_utc();
 			auto const oneFragDurInTimescale = clockToTimescale(segmentDurationIn180k, mediaTs);
-			GF_Err e = gf_isom_set_traf_mss_timeext(isoCur, trackId, absTimeInTs + oneFragDurInTimescale * (DTS / oneFragDurInTimescale - 1), curFragmentDurInTs);
+			GF_Err e = gf_isom_set_traf_mss_timeext(isoCur, trackId, convertToTimescale(absTimeInMs, 1000, mediaTs) + oneFragDurInTimescale * (DTS / oneFragDurInTimescale - 1), curFragmentDurInTs);
 			if (e != GF_OK)
 				throw error(format("Impossible to create UTC marquer: %s", gf_error_to_string(e)));
 		}
