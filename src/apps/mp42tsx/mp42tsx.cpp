@@ -24,5 +24,6 @@ int main(int argc, char const* argv[]) {
 		return safeMain(argc, argv);
 	} catch(std::exception const& e) {
 		std::cerr << "Error: " << e.what() << std::endl;
+		return 1;
 	}
 }
