@@ -79,9 +79,13 @@ LibavDemux::LibavDemux(const std::string &url, const uint64_t seekTimeInMs) {
 			throw error(format("Error when opening input '%s'", url));
 		}
 
-		if (seekTimeInMs && avformat_seek_file(m_formatCtx, -1, INT64_MIN, (seekTimeInMs * AV_TIME_BASE) / 1000, INT64_MAX, 0) < 0) {
-			avformat_close_input(&m_formatCtx);
-			throw error(format("Couldn't seek at time %sms", seekTimeInMs));
+		if (seekTimeInMs) {
+			if(avformat_seek_file(m_formatCtx, -1, INT64_MIN, (seekTimeInMs * AV_TIME_BASE) / 1000, INT64_MAX, 0) < 0) {
+				avformat_close_input(&m_formatCtx);
+				throw error(format("Couldn't seek to time %sms", seekTimeInMs));
+			} else {
+				log(Info, "Successful initial seek to %sms", seekTimeInMs);
+			}
 		}
 
 		//if you don't call you may miss the first frames
