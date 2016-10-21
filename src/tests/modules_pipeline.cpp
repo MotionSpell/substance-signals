@@ -132,6 +132,17 @@ unittest("pipeline: connect one input (out of 2) to one output") {
 	p.waitForCompletion();
 }
 
+unittest("pipeline: connect two inputs to one output") {
+	Pipeline p;
+	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
+	ASSERT(demux->getNumOutputs() > 1);
+	auto null = p.addModule<Out::Null>();
+	p.connect(demux, 0, null, 0);
+	p.connect(demux, 1, null, 0, true);
+	p.start();
+	p.waitForCompletion();
+}
+
 unittest("pipeline: connect inputs to outputs") {
 	bool thrown = false;
 	try {

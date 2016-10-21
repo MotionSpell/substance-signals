@@ -21,17 +21,10 @@ class ISignal<Callback(Args...)> {
 		virtual size_t connect(const std::function<Callback(Args...)> &cb, IExecutor<Callback(Args...)> &executor) = 0;
 		virtual size_t connect(const std::function<Callback(Args...)> &cb) = 0;
 		virtual bool disconnect(size_t connectionId) = 0;
+		virtual IExecutor<Callback(Args...)>& getExecutor() const = 0;
 		virtual size_t getNumConnections() const = 0;
 		virtual size_t emit(Args... args) = 0;
-
-		virtual IExecutor<Callback(Args...)>& getExecutor() const = 0;
-
-		/**
-		* When relying on shared_future (i.e. with non-void types), some implementations (such as MSVC std::launch)
-		* don't destroy the copy of 'Args... args' they hold. When using reference counted Args, they would only be
-		* released when calling this function or when getting the results().
-		*/
-		virtual void flushAvailableResults() = 0;
+		virtual void sync() = 0; /*wait for all running operations to end - safe to concurrent calls*/
 };
 
 /**
@@ -81,9 +74,9 @@ class PSignal<Result, Callback(Args...)> : public ISignal<Callback(Args...)> {
 			return callbacks.size();
 		}
 
-		void flushAvailableResults() {
+		void sync() {
 			std::lock_guard<std::mutex> lg(callbacksMutex);
-			fillResultsUnsafe(false, false);
+			fillResultsUnsafe();
 		}
 
 		ResultValue results(bool sync = true, bool single = false) {

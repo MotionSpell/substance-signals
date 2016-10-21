@@ -133,10 +133,10 @@ LibavDemux::~LibavDemux() {
 	avformat_close_input(&m_formatCtx);
 }
 
-void LibavDemux::setTime(std::shared_ptr<DataAVPacket> data, int streamIdx) {
+void LibavDemux::setTime(std::shared_ptr<DataAVPacket> data, int streamIdx, int64_t startTime) {
 	auto pkt = data->getPacket();
 	auto const base = m_formatCtx->streams[pkt->stream_index]->time_base;
-	auto const time = timescaleToClock(pkt->dts * base.num, base.den);
+	auto const time = timescaleToClock(pkt->dts * base.num, base.den) - timescaleToClock(startTime, AV_TIME_BASE);
 	data->setTime(time);
 
 	restampers[streamIdx]->process(data);
@@ -157,7 +157,7 @@ void LibavDemux::process(Data data) {
 			if (status == (int)AVERROR_EOF || (m_formatCtx->pb && m_formatCtx->pb->eof_reached)) {
 				log(Info, "End of stream detected - leaving");
 			} else if (m_formatCtx->pb && m_formatCtx->pb->error) {
-				log(Error, "Stream contains an irrecoverable error - leaving");
+				log(Error, "Stream contains an irrecoverable error (%s) - leaving", status);
 			}
 			return;
 		}
@@ -165,7 +165,7 @@ void LibavDemux::process(Data data) {
 		auto out = outputs[pktTmp->stream_index]->getBuffer(0);
 		AVPacket *pkt = out->getPacket();
 		av_packet_move_ref(pkt, pktTmp);
-		setTime(out, pkt->stream_index);
+		setTime(out, pkt->stream_index, m_formatCtx->start_time);
 		outputs[pkt->stream_index]->emit(out);
 	}
 
