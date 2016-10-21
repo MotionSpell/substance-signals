@@ -432,8 +432,13 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 	} else {
 		if (segmentPolicy == FragmentedSegment) {
 			GF_Err e = gf_isom_close_segment(isoCur, 0, 0, 0, 0, 0, GF_FALSE, (Bool)isLastSeg, compatFlags & DashJs ? 0 : GF_4CC('e', 'o', 'd', 's'), nullptr, nullptr);
-			if (e != GF_OK)
-				throw error(format("gf_isom_close_segment: %s", gf_error_to_string(e)));
+			if (e != GF_OK) {
+				if (DTS == 0) {
+					return;
+				} else {
+					throw error(format("gf_isom_close_segment: %s", gf_error_to_string(e)));
+				}
+			}
 
 			lastSegmentSize = gf_isom_get_file_size(isoCur);
 		} else {
