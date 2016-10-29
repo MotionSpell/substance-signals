@@ -24,7 +24,6 @@ class ISignal<Callback(Args...)> {
 		virtual IExecutor<Callback(Args...)>& getExecutor() const = 0;
 		virtual size_t getNumConnections() const = 0;
 		virtual size_t emit(Args... args) = 0;
-		virtual void sync() = 0; /*wait for all running operations to end - safe to concurrent calls*/
 };
 
 /**
@@ -72,11 +71,6 @@ class PSignal<Result, Callback(Args...)> : public ISignal<Callback(Args...)> {
 				cb.second->futures.push_back(cb.second->executor(cb.second->callback, args...));
 			}
 			return callbacks.size();
-		}
-
-		void sync() {
-			std::lock_guard<std::mutex> lg(callbacksMutex);
-			fillResultsUnsafe();
 		}
 
 		ResultValue results(bool sync = true, bool single = false) {

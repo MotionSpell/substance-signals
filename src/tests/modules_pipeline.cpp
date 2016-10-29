@@ -104,7 +104,6 @@ unittest("pipeline: interrupted") {
 	tf.join();
 }
 
-#ifdef ENABLE_FAILING_TESTS //TODO: dynamic graphs: we need to recompute the topolgy (see Pipeline::probe())
 unittest("pipeline: connect while running") {
 	Pipeline p;
 	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
@@ -120,7 +119,6 @@ unittest("pipeline: connect while running") {
 	p.waitForCompletion();
 	tf.join();
 }
-#endif
 
 unittest("pipeline: connect one input (out of 2) to one output") {
 	Pipeline p;
@@ -132,7 +130,7 @@ unittest("pipeline: connect one input (out of 2) to one output") {
 	p.waitForCompletion();
 }
 
-unittest("pipeline: connect two inputs to one output") {
+unittest("pipeline: connect two outpus to the same output") {
 	Pipeline p;
 	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
 	ASSERT(demux->getNumOutputs() > 1);
@@ -191,19 +189,15 @@ unittest("pipeline: source only") {
 }
 
 unittest("pipeline: sink only (incorrect topology)") {
-	bool thrown = false;
 	try {
 		Pipeline p;
 		p.addModule<Out::Null>();
 		p.start();
 		p.waitForCompletion();
 	} catch (...) {
-		thrown = true;
 	}
-	ASSERT(thrown);
 }
 
-#ifdef ENABLE_FAILING_TESTS //TODO: dynamic graphs: we need to recompute the topolgy (see Pipeline::probe())
 unittest("pipeline: dynamic module connection of an existing module") {
 	try {
 		Pipeline p;
@@ -245,7 +239,6 @@ unittest("pipeline: dynamic module connection of a new module") {
 	} catch (std::runtime_error const& /*e*/) {
 	}
 }
-#endif
 
 unittest("pipeline: input data is manually queued while module is running") {
 	try {

@@ -20,10 +20,6 @@ struct IPipelinedModule : public Modules::IModule {
 	virtual void connect(Modules::IOutput *output, size_t inputIdx, bool forceAsync, bool inputAcceptMultipleConnections) = 0;
 };
 
-struct ITopologyProber {
-	virtual void probe() = 0;
-};
-
 struct ICompletionNotifier {
 	virtual void finished() = 0;
 };
@@ -32,9 +28,10 @@ struct IExceptionNotifier {
 	virtual void exception(std::exception_ptr eptr) = 0;
 };
 
-struct IPipelineNotifier : public ICompletionNotifier, public ITopologyProber, public IExceptionNotifier {
+struct IPipelineNotifier : public ICompletionNotifier, public IExceptionNotifier {
 };
 
+/* not thread-safe */
 class Pipeline : public IPipelineNotifier {
 	public:
 		enum Threading {
@@ -61,10 +58,7 @@ class Pipeline : public IPipelineNotifier {
 
 	private:
 		void finished() override;
-		void probe() override;
 		void exception(std::exception_ptr eptr) override;
-		void startSources();
-		void computeNotifications();
 		IPipelinedModule* addModuleInternal(Modules::IModule *rawModule);
 
 		std::vector<std::unique_ptr<IPipelinedModule>> modules;
@@ -74,7 +68,7 @@ class Pipeline : public IPipelineNotifier {
 
 		std::mutex mutex;
 		std::condition_variable condition;
-		std::atomic_size_t numNotifications, numRemainingNotifications;
+		std::atomic_size_t numRemainingNotifications;
 		std::exception_ptr eptr;
 };
 

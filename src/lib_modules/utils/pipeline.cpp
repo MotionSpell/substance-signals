@@ -3,17 +3,16 @@
 #include <typeinfo>
 #include "helper.hpp"
 
-#define EXECUTOR_SYNC          Signals::ExecutorSync<void()>
-#define EXECUTOR_ASYNC_THREAD  Signals::ExecutorThread<void()>(getDelegateName())
-#define EXECUTOR_ASYNC_POOL    StrandedPoolModuleExecutor
+#define EXECUTOR_SYNC              Signals::ExecutorSync<void()>
+#define EXECUTOR_ASYNC_THREAD      Signals::ExecutorThread<void()>(getDelegateName())
+#define EXECUTOR_ASYNC_POOL        StrandedPoolModuleExecutor
 
-#define EXECUTOR               EXECUTOR_ASYNC_THREAD
-#define EXECUTOR_LIVE          EXECUTOR_SYNC
-#define EXECUTOR_INPUT_DEFAULT (&g_executorSync)
+#define EXECUTOR                   EXECUTOR_ASYNC_THREAD
+#define EXECUTOR_LIVE              EXECUTOR_SYNC
+#define EXECUTOR_INPUT_DEFAULT     (&g_executorSync)
 
-#define REGULATION_EXECUTOR    EXECUTOR_ASYNC_THREAD
+#define REGULATION_EXECUTOR        EXECUTOR_ASYNC_THREAD
 #define REGULATION_TOLERANCE_IN_MS 300
-#define PROBE_TIMEOUT_IN_MS    20
 
 using namespace Modules;
 
@@ -31,7 +30,7 @@ MEMBER_FUNCTOR_NOTIFY_FINISHED(Class* objectPtr) {
    Data is queued in the calling thread, then always dispatched by the executor
        (with a delay if the clock is set: this assumes the connection is made
        using an asynchronous executor and the start time is zero).
-   Data is nullptr at startup (probing topology that happens twice) and at completion. */
+   Data is nullptr at startup and at completion. */
 class PipelinedInput : public IInput {
 	public:
 		PipelinedInput(IInput *input, const std::string &moduleName, IProcessExecutor *localExecutor, IProcessExecutor &delegateExecutor, IPipelineNotifier * const notify, IClock const * const clock)
@@ -42,7 +41,6 @@ class PipelinedInput : public IInput {
 		void process() override {
 			auto data = pop();
 			if (data) {
-				probeCount = 0;
 				auto const dataTime = data->getTime();
 				if (!dynamic_cast<EXECUTOR_SYNC*>(executor)) {
 					regulate(dataTime);
@@ -56,10 +54,6 @@ class PipelinedInput : public IInput {
 					notify->exception(eptr);
 					std::rethrow_exception(eptr);
 				}
-			} else if (probeCount && getNumConnections()) {
-				Log::msg(Debug, "Module %s: probing (%s).", delegateName, probeCount);
-				probeCount--;
-				notify->probe();
 			} else {
 				Log::msg(Debug, "Module %s: notify finished.", delegateName);
 				delegateExecutor(MEMBER_FUNCTOR_NOTIFY_FINISHED(notify));
@@ -71,7 +65,6 @@ class PipelinedInput : public IInput {
 		}
 		void connect() override {
 			delegate->connect();
-			probeCount++;
 		}
 
 		void setLocalExecutor(std::unique_ptr<IProcessExecutor> e) {
@@ -95,7 +88,6 @@ class PipelinedInput : public IInput {
 		IInput *delegate;
 		std::string delegateName;
 		IPipelineNotifier * const notify;
-		size_t probeCount = 0;
 		IProcessExecutor *executor, &delegateExecutor;
 		std::unique_ptr<IProcessExecutor> localExecutor;
 		IClock const * const clock;
@@ -142,14 +134,6 @@ public:
 				return false;
 		}
 		return true;
-	}
-
-	static void propagate(IModule * const m) {
-		for (size_t i = 0; i < m->getNumOutputs(); ++i) {
-			auto &sig = m->getOutput(i)->getSignal();
-			sig.emit(nullptr);
-			sig.sync();
-		}
 	}
 
 private:
@@ -210,20 +194,14 @@ private:
 		}
 	}
 
-	void probe() override {
-		if (isSink()) {
-			m_notify->probe();
-		} else {
-			propagate(delegate.get());
-		}
-	}
-
 	void finished() override {
 		delegate->flush();
 		if (isSink()) {
 			m_notify->finished();
 		} else {
-			propagate(delegate.get());
+			for (size_t i = 0; i < delegate->getNumOutputs(); ++i) {
+				delegate->getOutput(i)->emit(nullptr);
+			}
 		}
 	}
 
@@ -244,7 +222,7 @@ private:
 
 Pipeline::Pipeline(bool isLowLatency, double clockSpeed, Threading threading)
 : allocatorNumBlocks(isLowLatency ? Modules::ALLOC_NUM_BLOCKS_LOW_LATENCY : Modules::ALLOC_NUM_BLOCKS_DEFAULT),
-  clock(new Modules::Clock(clockSpeed)), threading(threading), numNotifications(0), numRemainingNotifications(0) {
+  clock(new Modules::Clock(clockSpeed)), threading(threading), numRemainingNotifications(0) {
 }
 
 IPipelinedModule* Pipeline::addModuleInternal(IModule *rawModule) {
@@ -259,47 +237,17 @@ void Pipeline::connect(IModule *p, size_t outputIdx, IModule *n, size_t inputIdx
 	auto next = safe_cast<IPipelinedModule>(n);
 	auto prev = safe_cast<IPipelinedModule>(p);
 	next->connect(prev->getOutput(outputIdx), inputIdx, prev->isSource(), inputAcceptMultipleConnections);
+	numRemainingNotifications++;
 }
 
-void Pipeline::startSources() {
-	Log::msg(Debug, "Pipeline: start sources");
+void Pipeline::start() {
+	Log::msg(Info, "Pipeline: starting");
 	for (auto &m : modules) {
 		if (m->isSource()) {
 			m->process();
 		}
 	}
-	Log::msg(Debug, "Pipeline: sources started");
-}
-
-void Pipeline::start() {
-	Log::msg(Info, "Pipeline: starting");
-	computeNotifications();
-	startSources();
 	Log::msg(Info, "Pipeline: started");
-}
-
-void Pipeline::computeNotifications() {
-	Log::msg(Debug, "Pipeline: check for sinks by propagation (%s modules)", modules.size());
-	if (modules.empty())
-		return;
-
-	for (auto &m : modules) {
-		if (m->isSource()) {
-			if (m->isSink()) {
-				numNotifications++;
-			} else {
-				PipelinedModule::propagate(m.get()); //start
-				PipelinedModule::propagate(m.get()); //stop
-			}
-		}
-	}
-
-	waitForCompletion();
-	numRemainingNotifications = (size_t)numNotifications;
-
-	if (!numRemainingNotifications)
-		throw std::runtime_error(format("Pipeline probing: no notification found. Check your topology."));
-	Log::msg(Debug, format("Pipeline probing: %s notifications detected", numRemainingNotifications));
 }
 
 void Pipeline::waitForCompletion() {
@@ -323,13 +271,6 @@ void Pipeline::exitSync() {
 			m->process();
 		}
 	}
-}
-
-void Pipeline::probe() {
-	std::unique_lock<std::mutex> lock(mutex);
-	++numRemainingNotifications;
-	++numNotifications;
-	condition.notify_one();
 }
 
 void Pipeline::finished() {
