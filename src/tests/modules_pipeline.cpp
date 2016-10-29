@@ -3,7 +3,7 @@
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/in/video_generator.hpp"
 #include "lib_media/out/null.hpp"
-#include "lib_media/render/sdl_video.hpp"
+#include "lib_media/transform/audio_convert.hpp"
 #include "lib_modules/utils/pipeline.hpp"
 
 
@@ -161,12 +161,11 @@ unittest("pipeline: connect inputs to outputs") {
 unittest("pipeline: connect incompatible i/o") {
 	bool thrown = false;
 	try {
-		Pipeline p;
+		Pipeline p(false, 0.0, Pipeline::Mono | Pipeline::RegulationOffFlag);
 		auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
-		auto render = p.addModule<Render::SDLVideo>();
-		for (int i = 0; i < (int)demux->getNumOutputs(); ++i) {
-			p.connect(demux, i, render, i);
-		}
+		PcmFormat fmt;
+		auto aconv = p.addModule<Transform::AudioConvert>(fmt, fmt);
+		p.connect(demux, 0, aconv, 0);
 		p.start();
 		p.waitForCompletion();
 	} catch (std::runtime_error const& /*e*/) {
