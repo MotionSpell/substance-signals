@@ -35,8 +35,8 @@ struct IPipelineNotifier : public ICompletionNotifier, public IExceptionNotifier
 class Pipeline : public IPipelineNotifier {
 	public:
 		enum Threading {
-			Mono,
-			OnePerModule,
+			Mono              = 1,
+			OnePerModule      = 2,
 			RegulationOffFlag = 1 << 10, //disable thread creation for each module connected from a source.
 		};
 
@@ -74,6 +74,9 @@ class Pipeline : public IPipelineNotifier {
 
 inline Pipeline::Threading operator | (Pipeline::Threading a, Pipeline::Threading b) {
 	return static_cast<Pipeline::Threading>(static_cast<int>(a) | static_cast<int>(b));
+}
+inline Pipeline::Threading operator & (Pipeline::Threading a, Pipeline::Threading b) {
+	return static_cast<Pipeline::Threading>(static_cast<int>(a) & static_cast<int>(b));
 }
 
 }
