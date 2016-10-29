@@ -238,6 +238,9 @@ void Pipeline::connect(IModule *p, size_t outputIdx, IModule *n, size_t inputIdx
 	auto prev = safe_cast<IPipelinedModule>(p);
 	next->connect(prev->getOutput(outputIdx), inputIdx, prev->isSource(), inputAcceptMultipleConnections);
 	numRemainingNotifications++;
+	for (size_t i = 0; i < p->getNumInputs(); ++i) {
+		numRemainingNotifications -= p->getInput(i)->getNumConnections();
+	}
 }
 
 void Pipeline::start() {

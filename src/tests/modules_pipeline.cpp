@@ -1,7 +1,7 @@
 #include "tests.hpp"
+#include "lib_media/decode/libav_decode.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/in/video_generator.hpp"
-#include "lib_media/mux/gpac_mux_mp4.hpp"
 #include "lib_media/out/null.hpp"
 #include "lib_media/render/sdl_video.hpp"
 #include "lib_modules/utils/pipeline.hpp"
@@ -266,4 +266,33 @@ unittest("pipeline: multiple inputs (send same packets to 2 inputs and check cal
 	ASSERT_EQUALS(DualInput::numCalls, 1);
 }
 
+unittest("pipeline: longer pipeline") {
+	Pipeline p;
+	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
+	for (int i = 0; i < (int)demux->getNumOutputs(); ++i) {
+		auto metadata = getMetadataFromOutput<MetadataPktLibav>(demux->getOutput(i));
+		auto decode = p.addModule<Decode::LibavDecode>(*metadata);
+		p.connect(demux, i, decode, 0);
+		auto null = p.addModule<Out::Null>();
+		p.connect(decode, 0, null, 0);
+	}
+
+	p.start();
+	p.waitForCompletion();
+}
+
+unittest("pipeline: longer pipeline with join") {
+	Pipeline p;
+	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
+	auto null = p.addModule<Out::Null>();
+	for (int i = 0; i < (int)demux->getNumOutputs(); ++i) {
+		auto metadata = getMetadataFromOutput<MetadataPktLibav>(demux->getOutput(i));
+		auto decode = p.addModule<Decode::LibavDecode>(*metadata);
+		p.connect(demux, i, decode, 0);
+		p.connect(decode, 0, null, 0, true);
+	}
+
+	p.start();
+	p.waitForCompletion();
+}
 }
