@@ -53,7 +53,7 @@ $(BIN)/config.mk:
 	/bin/echo -n 'CFLAGS+=' >> $(BIN)/config.mk.tmp ; \
 	pkg-config --cflags libavcodec libavdevice libavformat libavutil libswresample libswscale x264 >> $(BIN)/config.mk.tmp ; \
 	/bin/echo -n 'LDFLAGS+=' >> $(BIN)/config.mk.tmp ; \
-	pkg-config --libs libavcodec libavdevice libavformat libavutil libswresample libswscale x264 gpac >> $(BIN)/config.mk.tmp
+	pkg-config --libs libavcodec libavdevice libavfilter libavformat libavutil libswresample libswscale x264 gpac >> $(BIN)/config.mk.tmp
 
 ifeq ($(SIGNALS_HAS_X11), 1)
 	export PKG_CONFIG_PATH=$(EXTRA)/lib/pkgconfig:$$PKG_CONFIG_PATH ; \
@@ -64,7 +64,7 @@ ifeq ($(SIGNALS_HAS_X11), 1)
 endif
 
 	/bin/echo 'CFLAGS+=-I$(EXTRA)/include/asio -Wno-unused-local-typedefs' >> $(BIN)/config.mk.tmp
-	/bin/echo 'LDFLAGS+=-lturbojpeg -lcurl' >> $(BIN)/config.mk.tmp ;
+	/bin/echo 'LDFLAGS+=-lpthread -lturbojpeg -lcurl' >> $(BIN)/config.mk.tmp ;
 	mv $(BIN)/config.mk.tmp $(BIN)/config.mk
 
 include $(BIN)/config.mk
@@ -174,12 +174,12 @@ unit: $(TARGETS)
 $(BIN)/%.exe:
 	@mkdir -p $(dir $@)
 	$(CXX) -o "$@" $^ $(LDFLAGS)
-	
+
 $(BIN)/%.o: %.cpp
 	@mkdir -p $(dir $@)
 	$(CXX) "$<" -c $(CFLAGS) -o "$(BIN)/$*.deps" -MM -MT "$(BIN)/$*.o"
 	$(CXX) "$<" -c $(CFLAGS) -o "$@" 
-	
+
 clean:
 	rm -rf $(BIN)
 	mkdir $(BIN)
