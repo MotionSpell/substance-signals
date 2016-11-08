@@ -104,7 +104,7 @@ public:
 	~PipelinedModule() noexcept(false) {}
 	std::string getDelegateName() const {
 		auto const &dref = *delegate.get();
-    return typeid(dref).name();
+		return typeid(dref).name();
 	}
 
 	size_t getNumInputs() const override {
