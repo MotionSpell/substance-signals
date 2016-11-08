@@ -150,7 +150,7 @@ AppOptions processArgs(int argc, char const* argv[]) {
 		}
 	}
 	if (options[NUMERIC].first()->desc && options[NUMERIC].first()->desc->shortopt == std::string("s"))
-		opt.segmentDurationInMs = atol(options[NUMERIC].first()->arg);
+		opt.segmentDurationInMs = atoll(options[NUMERIC].first()->arg);
 	if (options[VIDEO].first()->desc && options[VIDEO].first()->desc->shortopt == std::string("v")) {
 		unsigned w=0, h=0, bitrate=0, type=0;
 		for (option::Option* o = options[VIDEO]; o; o = o->next()) {
