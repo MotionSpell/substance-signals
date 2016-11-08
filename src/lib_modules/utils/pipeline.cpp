@@ -103,7 +103,8 @@ public:
 	}
 	~PipelinedModule() noexcept(false) {}
 	std::string getDelegateName() const {
-		return typeid(*delegate).name();
+		auto const &dref = *delegate.get();
+    return typeid(dref).name();
 	}
 
 	size_t getNumInputs() const override {
@@ -137,7 +138,7 @@ public:
 	}
 
 private:
-	void connect(IOutput *output, size_t inputIdx, bool forceAsync, bool inputAcceptMultipleConnections) {
+	void connect(IOutput *output, size_t inputIdx, bool forceAsync, bool inputAcceptMultipleConnections) override {
 		auto input = safe_cast<PipelinedInput>(getInput(inputIdx));
 		if (forceAsync && !(threading & Pipeline::RegulationOffFlag) && (inputExecutor[inputIdx] == EXECUTOR_INPUT_DEFAULT)) {
 			auto executor = uptr(new REGULATION_EXECUTOR);

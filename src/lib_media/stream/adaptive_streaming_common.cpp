@@ -27,7 +27,7 @@ void AdaptiveStreamingCommon::threadProc() {
 	auto const numInputs = getNumInputs() - 1;
 	qualities.resize(numInputs);
 	for (size_t i = 0; i < numInputs; ++i) {
-		qualities[i] = std::move(createQuality());
+		qualities[i] = createQuality();
 	}
 
 	Data data;
