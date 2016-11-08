@@ -17,13 +17,16 @@ EXTRA?=$(CURDIR)/extra
 
 # default to debug mode
 DEBUG?=1
-
+UNAME_S := $(shell uname -s)
 ifeq ($(DEBUG), 1)
   CFLAGS += -Werror -Wno-deprecated-declarations
   CFLAGS += -g3
   LDFLAGS += -g
 else
-  CFLAGS += -Werror -s -O3 -DNDEBUG -Wno-unused-variable -Wno-deprecated-declarations
+  CFLAGS += -Werror -O3 -DNDEBUG -Wno-unused-variable -Wno-deprecated-declarations
+	ifneq ($(UNAME_S),Darwin)
+  	CFLAGS += -s
+	endif
   LDFLAGS += -s
 endif
 
