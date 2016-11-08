@@ -27,7 +27,7 @@ MEMBER_FUNCTOR_PROCESS(Class* objectPtr) {
 }
 
 template<typename ModuleType>
-size_t ConnectOutputToInput(IOutput* prev, ModuleType* next, IProcessExecutor * const executor = defaultExecutor) {
+size_t ConnectOutputToInput(IOutput* prev, ModuleType* next, IProcessExecutor * const executor = &defaultExecutor) {
 	auto prevMetadata = safe_cast<const IMetadataCap>(prev)->getMetadata();
 	auto nextMetadata = next->getMetadata();
 	if (prevMetadata && nextMetadata) {
