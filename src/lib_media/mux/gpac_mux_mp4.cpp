@@ -720,6 +720,13 @@ void GPACMuxMP4::declareStream(Data data) {
 	} else {
 		throw error(format("Stream creation failed: unknown type."));
 	}
+
+	lastInputTimeIn180k = data->getTime();
+	if (lastInputTimeIn180k) { /*first timestamp is not zero*/
+		auto const edts = clockToTimescale(lastInputTimeIn180k, gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId)));
+		gf_isom_set_edit_segment(isoCur, gf_isom_get_track_by_id(isoCur, trackId), 0, edts, 0, GF_ISOM_EDIT_EMPTY);
+		gf_isom_set_edit_segment(isoCur, gf_isom_get_track_by_id(isoCur, trackId), edts, edts, 0, GF_ISOM_EDIT_NORMAL);
+	}
 }
 
 void GPACMuxMP4::sendOutput() {
