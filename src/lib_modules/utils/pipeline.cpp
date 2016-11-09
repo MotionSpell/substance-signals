@@ -238,14 +238,11 @@ void Pipeline::connect(IModule *p, size_t outputIdx, IModule *n, size_t inputIdx
 	auto next = safe_cast<IPipelinedModule>(n);
 	auto prev = safe_cast<IPipelinedModule>(p);
 	next->connect(prev->getOutput(outputIdx), inputIdx, prev->isSource(), inputAcceptMultipleConnections);
-	numRemainingNotifications++;
-	for (size_t i = 0; i < p->getNumInputs(); ++i) {
-		numRemainingNotifications -= p->getInput(i)->getNumConnections();
-	}
 }
 
 void Pipeline::start() {
 	Log::msg(Info, "Pipeline: starting");
+	computeTopology();
 	for (auto &m : modules) {
 		if (m->isSource()) {
 			m->process();
@@ -273,6 +270,20 @@ void Pipeline::exitSync() {
 	for (auto &m : modules) {
 		if (m->isSource()) {
 			m->process();
+		}
+	}
+}
+
+void Pipeline::computeTopology() {
+	for (auto &m : modules) {
+		if (m->isSink()) {
+			if (m->isSource()) {
+				numRemainingNotifications++;
+			} else {
+				for (size_t i = 0; i < m->getNumInputs(); ++i) {
+					numRemainingNotifications += m->getInput(i)->getNumConnections();
+				}
+			}
 		}
 	}
 }
