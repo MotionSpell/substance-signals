@@ -31,7 +31,7 @@ class MS_HSS : public ModuleDynI {
 		std::thread workingThread;
 		FILE *curTransferedFile = nullptr;
 		Data curTransferedData;
-		uint64_t curTransferedDataInputIndex = 0;
+		size_t curTransferedDataInputIndex = 0;
 		static size_t staticCurlCallback(void *ptr, size_t size, size_t nmemb, void *userp);
 		size_t curlCallback(void *ptr, size_t size, size_t nmemb);
 

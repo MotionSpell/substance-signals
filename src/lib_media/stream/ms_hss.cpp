@@ -73,7 +73,7 @@ MS_HSS::~MS_HSS() {
 
 void MS_HSS::endOfStream() {
 	if (workingThread.joinable()) {
-		for (size_t i = 0; i < inputs.size(); ++i) {
+		for (size_t i = 0; i < getNumInputs(); ++i) {
 			inputs[i]->push(nullptr);
 		}
 		workingThread.join();
@@ -182,7 +182,7 @@ size_t MS_HSS::curlCallback(void *ptr, size_t size, size_t nmemb) {
 			curTransferedFile = nullptr;
 			gf_delete_file(safe_cast<const MetadataFile>(curTransferedData->getMetadata())->getFilename().c_str());
 			curTransferedData = nullptr;
-			curTransferedDataInputIndex = (curTransferedDataInputIndex + 1) % inputs.size();
+			curTransferedDataInputIndex = (curTransferedDataInputIndex + 1) % (getNumInputs() - 1);
 		}
 		return curlCallback(ptr, transferSize, 1);
 	} else {
@@ -214,7 +214,7 @@ void MS_HSS::threadProc() {
 		curTransferedFile = nullptr;
 		gf_delete_file(safe_cast<const MetadataFile>(curTransferedData->getMetadata())->getFilename().c_str());
 		curTransferedData = nullptr;
-		curTransferedDataInputIndex = (curTransferedDataInputIndex + 1) % inputs.size();
+		curTransferedDataInputIndex = (curTransferedDataInputIndex + 1) % (getNumInputs() - 1);
 
 		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, ptr);
