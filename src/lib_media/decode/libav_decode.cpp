@@ -127,6 +127,10 @@ bool LibavDecode::processVideo(const DataAVPacket *data) {
 
 void LibavDecode::process(Data data) {
 	auto decoderData = safe_cast<const DataAVPacket>(data);
+	if (!dataReceived) {
+		cumulatedDuration += clockToTimescale(data->getTime()*codecCtx->time_base.num, codecCtx->time_base.den);
+		dataReceived = true;
+	}
 	switch (codecCtx->codec_type) {
 	case AVMEDIA_TYPE_VIDEO:
 		processVideo(decoderData.get());

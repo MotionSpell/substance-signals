@@ -16,6 +16,8 @@ extern "C" {
 //#define AVC_INBAND_CONFIG
 #define TIMESCALE_MUL 1000
 
+#define MSS_UTC_OFFSET_IN_MS 0 /*compensates the difference of processing time between all the streams*/
+
 namespace Modules {
 
 namespace {
@@ -485,7 +487,7 @@ void GPACMuxMP4::closeFragment() {
 				return;
 			}
 			if (!absTimeInMs)
-				absTimeInMs = gf_net_get_utc();
+				absTimeInMs = gf_net_get_utc() + MSS_UTC_OFFSET_IN_MS;
 			auto const oneFragDurInTimescale = clockToTimescale(segmentDurationIn180k, mediaTs);
 			GF_Err e = gf_isom_set_traf_mss_timeext(isoCur, trackId, convertToTimescale(absTimeInMs, 1000, mediaTs) + oneFragDurInTimescale * (DTS / oneFragDurInTimescale - 1), curFragmentDurInTs);
 			if (e != GF_OK)
@@ -726,6 +728,7 @@ void GPACMuxMP4::declareStream(Data data) {
 		auto const edts = clockToTimescale(lastInputTimeIn180k, gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId)));
 		gf_isom_set_edit_segment(isoCur, gf_isom_get_track_by_id(isoCur, trackId), 0, edts, 0, GF_ISOM_EDIT_EMPTY);
 		gf_isom_set_edit_segment(isoCur, gf_isom_get_track_by_id(isoCur, trackId), edts, edts, 0, GF_ISOM_EDIT_NORMAL);
+		deltaInTs = edts;
 	}
 }
 
@@ -786,8 +789,12 @@ void GPACMuxMP4::addSample(gpacpp::IsoSample &sample, const uint64_t dataDuratio
 			segmentStartsWithRAP = sample.IsRAP == RAP;
 			startSegment();
 
-			const u64 oneFragDurInTimescale = clockToTimescale(segmentDurationIn180k, mediaTs);
-			deltaInTs = DTS - oneFragDurInTimescale * (DTS / oneFragDurInTimescale);
+			const u64 oneSegDurInTimescale = clockToTimescale(segmentDurationIn180k, mediaTs);
+			if (oneSegDurInTimescale * (DTS / oneSegDurInTimescale) == 0) { /*initial delay*/ //TODO: what happens when delay is bigger than one segment? Add test on this.
+				deltaInTs = curSegmentDurInTs + deltaInTs - oneSegDurInTimescale * ((curSegmentDurInTs + deltaInTs) / oneSegDurInTimescale);
+			} else {
+				deltaInTs = DTS - oneSegDurInTimescale * (DTS / oneSegDurInTimescale);
+			}
 			if (segmentPolicy == IndependentSegment) {
 				sample.DTS = 0;
 			}
@@ -866,9 +873,9 @@ void GPACMuxMP4::process() {
 	lastInputTimeIn180k = data->getTime();
 	//TODO: make tests and integrate in a module, see #18
 #if 1
-	if (dataDurationInTs - DTS != 0) {
+	if (DTS && (dataDurationInTs - defaultSampleIncInTs != 0)) {
 		/*VFR: computing current sample duration from previous*/
-		dataDurationInTs = clockToTimescale(data->getTime(), mediaTs) - DTS + dataDurationInTs;
+		dataDurationInTs = clockToTimescale(data->getTime(), mediaTs) - (DTS + deltaInTs) + dataDurationInTs;
 		if (dataDurationInTs <= 0) {
 			dataDurationInTs = 1;
 		}
