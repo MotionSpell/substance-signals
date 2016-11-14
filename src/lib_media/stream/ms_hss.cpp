@@ -8,6 +8,7 @@ extern "C" {
 
 #define CURL_DEBUG
 #define CURL_CHUNKED
+#define CURL_SIGNALS_USER_AGENT "GPAC Signals/1.0"
 #define INIT_POST
 #define SKIP_MOOV
 #define U32LE(p) ((((p)[0]) << 24) | (((p)[1]) << 16) | (((p)[2]) << 8) | ((p)[3]))
@@ -28,6 +29,7 @@ MS_HSS::MS_HSS(const std::string &url, uint64_t segDurationInMs)
 
 #ifdef INIT_POST
 	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+	curl_easy_setopt(curl, CURLOPT_USERAGENT, CURL_SIGNALS_USER_AGENT);
 	curl_easy_setopt(curl, CURLOPT_POST, 1L);
 #ifdef CURL_DEBUG
 	curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
@@ -45,6 +47,7 @@ MS_HSS::MS_HSS(const std::string &url, uint64_t segDurationInMs)
 
 #ifdef CURL_CHUNKED
 	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+	curl_easy_setopt(curl, CURLOPT_USERAGENT, CURL_SIGNALS_USER_AGENT);
 	curl_easy_setopt(curl, CURLOPT_POST, 1L);
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
@@ -217,6 +220,7 @@ void MS_HSS::threadProc() {
 		curTransferedDataInputIndex = (curTransferedDataInputIndex + 1) % (getNumInputs() - 1);
 
 		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+		curl_easy_setopt(curl, CURLOPT_USERAGENT, CURL_SIGNALS_USER_AGENT);
 		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, ptr);
 		curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)fileSize);
 #else
