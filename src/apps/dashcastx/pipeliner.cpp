@@ -318,8 +318,8 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 			mpl.close();
 
 			if (!opt.postCommand.empty()) {
-				auto const msg = format(opt.postCommand, masterPlaylistPath).c_str();
-				if (system(msg)) //FIXME: duplicate of CommandExecutor - streamer should also take care of the muxing
+				auto const msg = format(opt.postCommand, masterPlaylistPath);
+				if (system(msg.c_str())) //FIXME: duplicate of CommandExecutor - streamer should also take care of the muxing
 					Log::msg(Warning, "[%s] Command \"%s\" failed.", g_appName, msg);
 			}
 		}
