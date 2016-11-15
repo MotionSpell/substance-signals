@@ -13,7 +13,7 @@ do
     install_name_tool -change $lib $newlib $i 
   done 
   has_rtmp=`otool -L $i | grep rtmp`
-  if [ -z "$has_rtmp" ]; then
+  if [ -n "$has_rtmp" ]; then
     install_name_tool -change librtmp.so.1 $PWD/extra/lib/librtmp.so.1 $i 
   fi
 done
