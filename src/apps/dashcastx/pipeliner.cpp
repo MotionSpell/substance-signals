@@ -98,11 +98,27 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 		pipeline.connect(src, 0, dst, 0);
 	};
 
+	auto autoFit = [&](const Resolution &input, const Resolution &output)->Resolution {
+		if (input == Resolution()) {
+			return output;
+		} else if (output.width == (unsigned)-1) {
+			assert((input.width * output.height % input.height) == 0); //TODO: add SAR at the DASH level to handle rounding errors
+			Resolution oRes((input.width * output.height) / input.height, output.height);
+			Log::msg(Info, "[autoFit] Switched resolution from -1x%s to %sx%s", input.height, oRes.width, oRes.height);
+			return oRes;
+		} else if (output.height == (unsigned)-1) {
+			assert((input.height * output.width % input.width) == 0); //TODO: add SAR at the DASH level to handle rounding errors
+			Resolution oRes(output.width, (input.height * output.width) / input.width);
+			Log::msg(Info, "[autoFit] Switched resolution from %sx-1 to %sx%s", input.width, oRes.width, oRes.height);
+			return oRes;
+		} else {
+			return output;
+		}
+	};
+
 	auto autoRotate = [&](const Resolution &res, bool verticalize)->Resolution {
 		if (verticalize && res.height < res.width) {
-			Resolution oRes;
-			oRes.width = res.height;
-			oRes.height = res.width;
+			Resolution oRes(res.height, res.height);
 			Log::msg(Info, "[autoRotate] Switched resolution from %sx%s to %sx%s", res.width, res.height, oRes.width, oRes.height);
 			return oRes;
 		} else {
@@ -218,7 +234,8 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 		for (size_t r = 0; r < numRes; ++r, ++numDashInputs) {
 			IModule *encoder = nullptr;
 			if (transcode) {
-				PictureFormat encoderInputPicFmt(autoRotate(opt.v[r].res, isVertical), UNKNOWN_PF);
+				Resolution inputRes = metadataDemux->isVideo() ? getMetadataFromOutput<MetadataPktLibavVideo>(demux->getOutput(i))->getResolution() : Resolution();
+				PictureFormat encoderInputPicFmt(autoRotate(autoFit(inputRes, opt.v[r].res), isVertical), UNKNOWN_PF);
 				encoder = createEncoder(metadataDemux, opt.ultraLowLatency, (Encode::LibavEncodeParams::VideoCodecType)opt.v[r].type, encoderInputPicFmt, opt.v[r].bitrate, opt.segmentDurationInMs);
 				if (!encoder)
 					continue;
