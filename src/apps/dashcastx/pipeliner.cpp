@@ -277,7 +277,7 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 						playlistMaster << ",CODECS=\"mp4a.40.5\",BANDWIDTH=128000"; //FIXME: hardcoded
 					}
 					playlistMaster << std::endl;
-					playlistMaster << filename.str() << ".m3u8" << std::endl;
+					playlistMaster << filename.str() << "_.m3u8" << std::endl;
 				}
 #else
 				pipeline.connect(muxer, 0, hlser, numDashInputs);

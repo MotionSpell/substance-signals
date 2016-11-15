@@ -1455,9 +1455,9 @@ function initSymlinks {
   mkdir -p $symlink_dir
   local tools="gcc g++ ar as nm strings strip"
   case $hostPlatform in
-    *darwin*)
-      echo "Detected new Darwin host ($host): disabling ranlib"
-      ;;
+   # *darwin*)
+   #   echo "Detected new Darwin host ($host): disabling ranlib"
+   #   ;;
     *)
       tools="$tools ranlib"
       ;;

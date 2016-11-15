@@ -82,27 +82,28 @@ fi
 #-------------------------------------------------------------------------------
 echo libjpeg-turbo
 #-------------------------------------------------------------------------------
-if [ ! -f extra/src/libjpeg_turbo_1.3.x/configure.ac ] ; then
+if [ ! -f extra/src/libjpeg-turbo/configure.ac ] ; then
 	mkdir -p extra/src
-	rm -rf extra/src/libjpeg_turbo_1.3.x
+	rm -rf extra/src/libjpeg-turbo
 	pushd extra/src
-	svn co svn://svn.code.sf.net/p/libjpeg-turbo/code/branches/1.3.x -r 1397 libjpeg_turbo_1.3.x
-	pushd libjpeg_turbo_1.3.x
+	git clone https://github.com/PyYoshi/libjpeg-turbo.git
+	pushd libjpeg-turbo
+	git checkout 1.3.1
 	autoreconf -fiv
 	popd
 	popd
 fi
 
-if [ ! -f extra/release/libjpeg_turbo_1.3.x/releaseOk ] ; then
-	mkdir -p extra/release/libjpeg_turbo_1.3.x
-	pushd extra/src/libjpeg_turbo_1.3.x
-	../../src/libjpeg_turbo_1.3.x/configure \
+if [ ! -f extra/release/libjpeg-turbo/releaseOk ] ; then
+	mkdir -p extra/release/libjpeg-turbo
+	pushd extra/src/libjpeg-turbo
+	../../src/libjpeg-turbo/configure \
 		--prefix=$EXTRA_DIR \
 		--host=$HOST
 	$MAKE
 	$MAKE install
 	popd
-	touch extra/release/libjpeg_turbo_1.3.x/releaseOk
+	touch extra/release/libjpeg-turbo/releaseOk
 fi
 
 #-------------------------------------------------------------------------------
