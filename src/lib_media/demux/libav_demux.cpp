@@ -17,8 +17,6 @@ namespace Modules {
 
 namespace {
 
-//#define MPEGTS_PCR_DISPATCH //TODO: add mpegts only (format == "mpegts") checks
-
 auto g_InitAv = runAtStartup(&av_register_all);
 auto g_InitAvformat = runAtStartup(&avformat_network_init);
 auto g_InitAvcodec = runAtStartup(&avcodec_register_all);
@@ -40,71 +38,6 @@ const char* webcamFormat() {
 bool isRaw(AVCodecContext *codecCtx) {
 	return codecCtx->codec_id == AV_CODEC_ID_RAWVIDEO;
 }
-
-#ifdef MPEGTS_PCR_DISPATCH
-//FIXME: this is a huge hack to get the PCR. Without PCR, synchronization is broken.
-extern "C" {
-#define NB_PID_MAX 8192
-struct MpegTSFilter {
-	int pid;
-	int es_id;
-	int last_cc; /* last cc code (-1 if first packet) */
-	int64_t last_pcr;
-};
-struct MpegTSContext {
-	void *c;
-	/* user data */
-	AVFormatContext *stream;
-	/** raw packet size, including FEC if present */
-	int raw_packet_size;
-
-	int size_stat[3];
-	int size_stat_count;
-#define SIZE_STAT_THRESHOLD 10
-
-	int64_t pos47_full;
-
-	/** if true, all pids are analyzed to find streams */
-	int auto_guess;
-
-	/** compute exact PCR for each transport stream packet */
-	int mpeg2ts_compute_pcr;
-
-	/** fix dvb teletext pts                                 */
-	int fix_teletext_pts;
-
-	int64_t cur_pcr;    /**< used to estimate the exact PCR */
-	int pcr_incr;       /**< used to estimate the exact PCR */
-
-    /* data needed to handle file based ts */
-    /** stop parsing loop */
-	int stop_parse;
-	/** packet containing Audio/Video data */
-	AVPacket *pkt;
-	/** to detect seek */
-	int64_t last_pos;
-
-	int skip_changes;
-	int skip_clear;
-
-	int scan_all_pmts;
-
-	int resync_size;
-
-	/******************************************/
-	/* private mpegts data */
-	/* scan context */
-	/** structure to keep track of Program->pids mapping */
-	unsigned int nb_prg;
-	struct Program *prg;
-
-	int8_t crc_validity[NB_PID_MAX];
-	/** filters for various streams specified by PMT + for the PAT and PMT */
-	MpegTSFilter *pids[NB_PID_MAX];
-	int current_pid;
-};
-}
-#endif
 
 }
 
@@ -220,14 +153,6 @@ void LibavDemux::setTime(std::shared_ptr<DataAVPacket> data, int streamIdx) {
 }
 
 void LibavDemux::dispatch() {
-#ifdef MPEGTS_PCR_DISPATCH
-	//TODO: add mpegts only (format == "mpegts") checks
-	auto const PCR = ((MpegTSContext*)m_formatCtx->priv_data)->pids[m_formatCtx->programs[0]->pcr_pid]->last_pcr;
-	if (PCR == -1) {
-		return;
-	}
-#endif
-
 	for (size_t i = 0; i < m_formatCtx->nb_streams; ++i) {
 		auto p = dispatchPkts[i].begin();
 		while (p != dispatchPkts[i].end()) {
@@ -236,19 +161,13 @@ void LibavDemux::dispatch() {
 				p = dispatchPkts[i].erase(p);
 				continue;
 			}
-#ifdef MPEGTS_PCR_DISPATCH
-			if (PCR / 300 < pkt->pts) {
-				break;
-			} else
-#endif
-			{
-				auto out = outputs[pkt->stream_index]->getBuffer(0);
-				AVPacket *outPkt = out->getPacket();
-				av_packet_move_ref(outPkt, pkt);
-				setTime(out, outPkt->stream_index);
-				outputs[outPkt->stream_index]->emit(out);
-				p = dispatchPkts[i].erase(p);
-			}
+
+			auto out = outputs[pkt->stream_index]->getBuffer(0);
+			AVPacket *outPkt = out->getPacket();
+			av_packet_move_ref(outPkt, pkt);
+			setTime(out, outPkt->stream_index);
+			outputs[outPkt->stream_index]->emit(out);
+			p = dispatchPkts[i].erase(p);
 		}
 	}
 }
