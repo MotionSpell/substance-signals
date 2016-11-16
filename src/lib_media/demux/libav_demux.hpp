@@ -2,6 +2,8 @@
 
 #include "lib_modules/core/module.hpp"
 #include "../common/libav.hpp"
+#include <list>
+#include <vector>
 
 struct AVFormatContext;
 
@@ -24,12 +26,14 @@ class LibavDemux : public ModuleS {
 		void webcamList();
 		bool webcamOpen(const std::string &options);
 
-		void setTime(std::shared_ptr<DataAVPacket> data, int streamIdx, int64_t startTime);
+		void dispatch();
+		void setTime(std::shared_ptr<DataAVPacket> data, int streamIdx);
 		std::vector<std::unique_ptr<Transform::Restamp>> restampers;
+		std::vector<std::list<std::unique_ptr<DataAVPacket>>> dispatchPkts;
 
 		struct AVFormatContext *m_formatCtx;
+		int64_t startPTS = 0;
 		std::vector<OutputDataDefault<DataAVPacket>*> outputs;
-		DataAVPacket tmpPkt;
 };
 
 }
