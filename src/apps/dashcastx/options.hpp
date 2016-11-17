@@ -11,7 +11,7 @@ struct Video {
 };
 
 struct AppOptions {
-	std::string input, output = "", workingDir = ".", postCommand;
+	std::string input, output1 = "", output2 = "", output3 = "", workingDir = ".", postCommand;
 	std::vector<Video> v;
 	uint64_t seekTimeInMs = 0, segmentDurationInMs = 2000, timeshiftInSegNum = 10;
 	bool isLive = false, ultraLowLatency = false, autoRotate = false;
