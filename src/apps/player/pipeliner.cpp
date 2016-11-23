@@ -27,6 +27,9 @@ void declarePipeline(Pipeline &pipeline, const char *url) {
 	auto demux = pipeline.addModule<Demux::LibavDemux>(url);
 	for (int i = 0; i < (int)demux->getNumOutputs(); ++i) {
 		auto metadata = getMetadataFromOutput<MetadataPktLibav>(demux->getOutput(i));
+		if (!metadata)
+			continue;
+
 		auto decode = pipeline.addModule<Decode::LibavDecode>(*metadata);
 
 		pipeline.connect(demux, i, decode, 0);
