@@ -17,7 +17,7 @@ namespace Tools {
 
 class Profiler {
 	public:
-		Profiler(const std::string &name) : name(name) {
+		Profiler(const std::string &name, std::ostream &os = std::cout) : name(name), os(os) {
 #ifdef _WIN32
 			QueryPerformanceCounter(&startTime);
 #else
@@ -26,7 +26,7 @@ class Profiler {
 		}
 
 		~Profiler() {
-			std::cout << "[" << name.c_str() << "] " << FORMAT(elapsedInUs(), maxDurationInSec*unit) << " us" << std::endl;
+			os << "[" << name.c_str() << "] " << FORMAT(elapsedInUs(), maxDurationInSec*unit) << " us" << std::endl;
 		}
 
 		uint64_t elapsedInUs() {
@@ -54,6 +54,7 @@ class Profiler {
 #endif
 		const int unit = 1000000;
 		const int maxDurationInSec = 100;
+		std::ostream &os;
 };
 
 }
