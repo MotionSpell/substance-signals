@@ -21,12 +21,11 @@ class Log {
 			}
 		}
 
-		void setLevel(Level level);
-		Level getLevel();
+		static void setLevel(Level level);
+		static Level getLevel();
 
 	private:
-		Log();
-		~Log();
+		Log() {}
 		static std::ostream& get(Level level);
 		static std::string getTime();
 		static std::string getColorBegin(Level level);
