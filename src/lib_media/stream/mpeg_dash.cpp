@@ -79,8 +79,9 @@ void MPEG_DASH::ensureManifest() {
 			rep->mime_type = gf_strdup(quality->meta->getMimeType().c_str());
 			rep->codecs = gf_strdup(quality->meta->getCodecName().c_str());
 			rep->starts_with_sap = GF_TRUE;
-			if (quality->meta->getLatency()) {
-				rep->segment_template->availability_time_offset = std::max<double>(0.0, segDurationInMs * (1.0 - (double)quality->meta->getLatency() / Clock::Rate));
+			if (mpd->mpd->type == GF_MPD_TYPE_DYNAMIC && quality->meta->getLatency()) {
+				rep->segment_template->availability_time_offset = std::max<double>(0.0,  (double)(segDurationInMs - clockToTimescale(quality->meta->getLatency(), 1000)) / 1000);
+				mpd->mpd->min_buffer_time = (u32)clockToTimescale(quality->meta->getLatency(), 1000);
 			}
 			switch (quality->meta->getStreamType()) {
 			case AUDIO_PKT: {
