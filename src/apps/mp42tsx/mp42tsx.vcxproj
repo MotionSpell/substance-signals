@@ -202,36 +202,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\lib_media\common\libav.cpp" />
-    <ClCompile Include="..\..\lib_media\common\picture.cpp" />
-    <ClCompile Include="..\..\lib_media\decode\jpegturbo_decode.cpp" />
-    <ClCompile Include="..\..\lib_media\decode\libav_decode.cpp" />
-    <ClCompile Include="..\..\lib_media\demux\gpac_demux_mp4_full.cpp" />
-    <ClCompile Include="..\..\lib_media\demux\gpac_demux_mp4_simple.cpp" />
-    <ClCompile Include="..\..\lib_media\demux\libav_demux.cpp" />
-    <ClCompile Include="..\..\lib_media\encode\jpegturbo_encode.cpp" />
-    <ClCompile Include="..\..\lib_media\encode\libav_encode.cpp" />
-    <ClCompile Include="..\..\lib_media\in\file.cpp" />
-    <ClCompile Include="..\..\lib_media\in\sound_generator.cpp" />
-    <ClCompile Include="..\..\lib_media\in\video_generator.cpp" />
-    <ClCompile Include="..\..\lib_media\mux\gpac_mux_m2ts.cpp" />
-    <ClCompile Include="..\..\lib_media\mux\gpac_mux_mp4.cpp" />
-    <ClCompile Include="..\..\lib_media\mux\libav_mux.cpp" />
-    <ClCompile Include="..\..\lib_media\out\file.cpp" />
-    <ClCompile Include="..\..\lib_media\out\null.cpp" />
-    <ClCompile Include="..\..\lib_media\out\print.cpp" />
-    <ClCompile Include="..\..\lib_media\render\sdl_audio.cpp" />
-    <ClCompile Include="..\..\lib_media\render\sdl_common.cpp" />
-    <ClCompile Include="..\..\lib_media\render\sdl_video.cpp" />
-    <ClCompile Include="..\..\lib_media\stream\adaptive_streaming_common.cpp" />
-    <ClCompile Include="..\..\lib_media\stream\apple_hls.cpp" />
-    <ClCompile Include="..\..\lib_media\stream\mpeg_dash.cpp" />
-    <ClCompile Include="..\..\lib_media\stream\ms_hss.cpp" />
-    <ClCompile Include="..\..\lib_media\transform\audio_convert.cpp" />
-    <ClCompile Include="..\..\lib_media\transform\restamp.cpp" />
-    <ClCompile Include="..\..\lib_media\transform\video_convert.cpp" />
-    <ClCompile Include="..\..\lib_media\utils\comparator.cpp" />
-    <ClCompile Include="..\..\lib_media\utils\recorder.cpp" />
     <ClCompile Include="mp42tsx.cpp" />
     <ClCompile Include="options.cpp" />
     <ClCompile Include="pipeliner.cpp" />
@@ -248,38 +218,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\lib_media\common\libav.hpp" />
-    <ClInclude Include="..\..\lib_media\common\pcm.hpp" />
-    <ClInclude Include="..\..\lib_media\common\picture.hpp" />
-    <ClInclude Include="..\..\lib_media\decode\jpegturbo_decode.hpp" />
-    <ClInclude Include="..\..\lib_media\decode\libav_decode.hpp" />
-    <ClInclude Include="..\..\lib_media\demux\gpac_demux_mp4_full.hpp" />
-    <ClInclude Include="..\..\lib_media\demux\gpac_demux_mp4_simple.hpp" />
-    <ClInclude Include="..\..\lib_media\demux\libav_demux.hpp" />
-    <ClInclude Include="..\..\lib_media\encode\jpegturbo_encode.hpp" />
-    <ClInclude Include="..\..\lib_media\encode\libav_encode.hpp" />
-    <ClInclude Include="..\..\lib_media\in\file.hpp" />
-    <ClInclude Include="..\..\lib_media\in\sound_generator.hpp" />
-    <ClInclude Include="..\..\lib_media\in\video_generator.hpp" />
-    <ClInclude Include="..\..\lib_media\mux\gpac_mux_m2ts.hpp" />
-    <ClInclude Include="..\..\lib_media\mux\gpac_mux_mp4.hpp" />
-    <ClInclude Include="..\..\lib_media\mux\libav_mux.hpp" />
-    <ClInclude Include="..\..\lib_media\out\file.hpp" />
-    <ClInclude Include="..\..\lib_media\out\null.hpp" />
-    <ClInclude Include="..\..\lib_media\out\print.hpp" />
-    <ClInclude Include="..\..\lib_media\render\fifo.hpp" />
-    <ClInclude Include="..\..\lib_media\render\render_common.hpp" />
-    <ClInclude Include="..\..\lib_media\render\sdl_audio.hpp" />
-    <ClInclude Include="..\..\lib_media\render\sdl_video.hpp" />
-    <ClInclude Include="..\..\lib_media\stream\adaptive_streaming_common.hpp" />
-    <ClInclude Include="..\..\lib_media\stream\apple_hls.hpp" />
-    <ClInclude Include="..\..\lib_media\stream\mpeg_dash.hpp" />
-    <ClInclude Include="..\..\lib_media\stream\ms_hss.hpp" />
-    <ClInclude Include="..\..\lib_media\transform\audio_convert.hpp" />
-    <ClInclude Include="..\..\lib_media\transform\restamp.hpp" />
-    <ClInclude Include="..\..\lib_media\transform\video_convert.hpp" />
-    <ClInclude Include="..\..\lib_media\utils\comparator.hpp" />
-    <ClInclude Include="..\..\lib_media\utils\recorder.hpp" />
     <ClInclude Include="options.hpp" />
     <ClInclude Include="pipeliner.hpp" />
   </ItemGroup>
