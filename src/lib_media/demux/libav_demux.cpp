@@ -56,7 +56,7 @@ bool LibavDemux::webcamOpen(const std::string &options) {
 	return true;
 }
 
-LibavDemux::LibavDemux(const std::string &url, const uint64_t seekTimeInMs) {
+LibavDemux::LibavDemux(const std::string &url, const uint64_t seekTimeInMs) : done(false) {
 	if (!(m_formatCtx = avformat_alloc_context()))
 		throw error("Can't allocate format context");
 
@@ -96,7 +96,6 @@ LibavDemux::LibavDemux(const std::string &url, const uint64_t seekTimeInMs) {
 		}
 
 		restampers.resize(m_formatCtx->nb_streams);
-		dispatchPkts.resize(m_formatCtx->nb_streams);
 		for (unsigned i = 0; i < m_formatCtx->nb_streams; i++) {
 			const std::string format(m_formatCtx->iformat->name);
 			const std::string  fn = m_formatCtx->filename;
@@ -133,52 +132,30 @@ LibavDemux::LibavDemux(const std::string &url, const uint64_t seekTimeInMs) {
 		outputs.push_back(addOutput<OutputDataDefault<DataAVPacket>>(m));
 		av_dump_format(m_formatCtx, i, "", 0);
 	}
+
+	workingThread = std::thread(&LibavDemux::threadProc, this);
 }
 
 LibavDemux::~LibavDemux() {
 	avformat_close_input(&m_formatCtx);
-}
 
-void LibavDemux::setTime(std::shared_ptr<DataAVPacket> data, int streamIdx) {
-	auto pkt = data->getPacket();
-	auto const base = m_formatCtx->streams[pkt->stream_index]->time_base;
-	auto const time = timescaleToClock(pkt->dts * base.num, base.den);
-	data->setTime(time);
-
-	restampers[streamIdx]->process(data); /*restamp by pid only when no start time*/
-	int64_t offset = data->getTime() - time;
-	if (offset != 0) {
-		data->restamp(offset * base.num, base.den); /*propagate to AVPacket*/
+	if (workingThread.joinable()) {
+		workingThread.join();
 	}
-}
 
-void LibavDemux::dispatch() {
-	for (size_t i = 0; i < m_formatCtx->nb_streams; ++i) {
-		auto p = dispatchPkts[i].begin();
-		while (p != dispatchPkts[i].end()) {
-			auto pkt = (*p)->getPacket();
-			if (pkt->pts < startPTS) {
-				p = dispatchPkts[i].erase(p);
-				continue;
-			}
-
-			auto out = outputs[pkt->stream_index]->getBuffer(0);
-			AVPacket *outPkt = out->getPacket();
-			av_packet_move_ref(outPkt, pkt);
-			setTime(out, outPkt->stream_index);
-			outputs[outPkt->stream_index]->emit(out);
-			p = dispatchPkts[i].erase(p);
-		}
-	}
-}
-
-void LibavDemux::process(Data data) {
-	for (;;) {
-		if (getNumInputs() && getInput(0)->tryPop(data))
+	AVPacket *p;
+	while (dispatchPkts.tryPop(p)) {
+		if (!p) {
 			break;
+		}
+		av_free_packet(p);
+		delete(p);
+	}
+}
 
-		auto p = uptr(new DataAVPacket);
-		auto pkt = p->getPacket();
+void LibavDemux::threadProc() {
+	while (!done) {
+		auto pkt = new AVPacket;
 		int status = av_read_frame(m_formatCtx, pkt);
 		if (status < 0) {
 			if (status == (int)AVERROR_EOF || (m_formatCtx->pb && m_formatCtx->pb->eof_reached)) {
@@ -186,11 +163,52 @@ void LibavDemux::process(Data data) {
 			} else if (m_formatCtx->pb && m_formatCtx->pb->error) {
 				log(Error, "Stream contains an irrecoverable error (%s) - leaving", status);
 			}
+			dispatchPkts.push(nullptr);
 			return;
 		}
+		dispatchPkts.push(pkt);
+	}
+}
 
-		dispatchPkts[pkt->stream_index].push_back(std::move(p));
-		dispatch();
+void LibavDemux::setTime(std::shared_ptr<DataAVPacket> data) {
+	auto pkt = data->getPacket();
+	auto const base = m_formatCtx->streams[pkt->stream_index]->time_base;
+	auto const time = timescaleToClock(pkt->dts * base.num, base.den);
+	data->setTime(time);
+
+	restampers[pkt->stream_index]->process(data); /*restamp by pid only when no start time*/
+	int64_t offset = data->getTime() - time;
+	if (offset != 0) {
+		data->restamp(offset * base.num, base.den); /*propagate to AVPacket*/
+	}
+}
+
+void LibavDemux::dispatch(AVPacket *pkt) {
+	if (pkt->pts < startPTS) {
+		return;
+	}
+
+	auto out = outputs[pkt->stream_index]->getBuffer(0);
+	AVPacket *outPkt = out->getPacket();
+	av_packet_move_ref(outPkt, pkt);
+	setTime(out);
+	outputs[outPkt->stream_index]->emit(out);
+}
+
+void LibavDemux::process(Data data) {
+	for (;;) {
+		if (getNumInputs() && getInput(0)->tryPop(data)) {
+			done = true;
+			break;
+		}
+
+		auto p = dispatchPkts.pop();
+		if (!p) {
+			return;
+		}
+		dispatch(p);
+		av_free_packet(p);
+		delete(p);
 
 		//TODO: av_dict_set(&st->metadata, "language", language, 0);
 	}
