@@ -73,12 +73,12 @@ public:
 		}
 		if (PTS >= (segIdx + 1) * segDuration + firstPTS) {
 			auto out = outputSegmentAndManifest->getBuffer(0);
-			auto metadata = std::make_shared<MetadataFile>(format("%s.m3u8", segBasename), VIDEO_PKT, "", "", 0, 0, 1, false);
+			auto metadata = std::make_shared<MetadataFile>(format("%s%s.ts", segBasename, segIdx), VIDEO_PKT, "", "", segDuration, 0, 1, false);
 			out->setMetadata(metadata);
 			outputSegmentAndManifest->emit(out);
 
 			out = outputSegmentAndManifest->getBuffer(0);
-			metadata = std::make_shared<MetadataFile>(format("%s%s.ts", segBasename, segIdx), VIDEO_PKT, "", "", segDuration, 0, 1, false);
+			metadata = std::make_shared<MetadataFile>(format("%s.m3u8", segBasename), VIDEO_PKT, "", "", 0, 0, 1, false);
 			out->setMetadata(metadata);
 			outputSegmentAndManifest->emit(out);
 
