@@ -60,8 +60,8 @@ int safeMain(int argc, char const* argv[], const FormatFlags formats) {
 	declarePipeline(*pipeline, opt, formats);
 	g_Pipeline = pipeline.get();
 
-	Tools::Profiler profilerProcessing(format("%s - processing time", g_appName), std::cerr);
-	std::cerr << g_appName << " - close window or ctrl-c to exit cleanly." << std::endl;
+	Tools::Profiler profilerProcessing(format("%s - processing time", g_appName));
+	std::cout << g_appName << " - close window or ctrl-c to exit cleanly." << std::endl;
 	try {
 		pipeline->start();
 		pipeline->waitForCompletion();

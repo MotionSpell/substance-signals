@@ -34,8 +34,13 @@ uint64_t now() {
 }
 
 
-std::ostream& Log::get(Level /*level*/) {
-	return std::cerr;
+std::ostream& Log::get(Level level) {
+	switch (level) {
+	case Info:
+		return std::cout;
+	default:
+		return std::cerr;
+	}
 }
 
 std::string Log::getTime() {
