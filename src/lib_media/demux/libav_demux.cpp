@@ -56,7 +56,8 @@ bool LibavDemux::webcamOpen(const std::string &options) {
 	return true;
 }
 
-LibavDemux::LibavDemux(const std::string &url, const uint64_t seekTimeInMs) : done(false) {
+LibavDemux::LibavDemux(const std::string &url, const uint64_t seekTimeInMs)
+: done(false), dispatchPkts(256) {
 	if (!(m_formatCtx = avformat_alloc_context()))
 		throw error("Can't allocate format context");
 
@@ -132,8 +133,6 @@ LibavDemux::LibavDemux(const std::string &url, const uint64_t seekTimeInMs) : do
 		outputs.push_back(addOutput<OutputDataDefault<DataAVPacket>>(m));
 		av_dump_format(m_formatCtx, i, "", 0);
 	}
-
-	workingThread = std::thread(&LibavDemux::threadProc, this);
 }
 
 LibavDemux::~LibavDemux() {
@@ -143,19 +142,15 @@ LibavDemux::~LibavDemux() {
 		workingThread.join();
 	}
 
-	AVPacket *p;
-	while (dispatchPkts.tryPop(p)) {
-		if (!p) {
-			break;
-		}
-		av_free_packet(p);
-		delete(p);
+	AVPacket p;
+	while (dispatchPkts.read(p)) {
+		av_packet_unref(&p);
 	}
 }
 
 void LibavDemux::threadProc() {
 	while (!done) {
-		auto pkt = new AVPacket;
+		auto pkt = av_packet_alloc();
 		int status = av_read_frame(m_formatCtx, pkt);
 		if (status < 0) {
 			if (status == (int)AVERROR_EOF || (m_formatCtx->pb && m_formatCtx->pb->eof_reached)) {
@@ -163,10 +158,13 @@ void LibavDemux::threadProc() {
 			} else if (m_formatCtx->pb && m_formatCtx->pb->error) {
 				log(Error, "Stream contains an irrecoverable error (%s) - leaving", status);
 			}
-			dispatchPkts.push(nullptr);
+			done = true;
 			return;
 		}
-		dispatchPkts.push(pkt);
+		while (!dispatchPkts.write(*pkt) && !done) {
+			log(m_formatCtx->pb && !m_formatCtx->pb->seekable ? Warning : Debug, "Dispatch queue is full - regulating.");
+			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		}
 	}
 }
 
@@ -183,32 +181,37 @@ void LibavDemux::setTime(std::shared_ptr<DataAVPacket> data) {
 	}
 }
 
-void LibavDemux::dispatch(AVPacket *pkt) {
-	if (pkt->pts < startPTS) {
+void LibavDemux::dispatch(AVPacket &pkt) {
+	if (pkt.pts < startPTS) {
 		return;
 	}
 
-	auto out = outputs[pkt->stream_index]->getBuffer(0);
+	auto out = outputs[pkt.stream_index]->getBuffer(0);
 	AVPacket *outPkt = out->getPacket();
-	av_packet_move_ref(outPkt, pkt);
+	av_packet_move_ref(outPkt, &pkt);
 	setTime(out);
 	outputs[outPkt->stream_index]->emit(out);
 }
 
 void LibavDemux::process(Data data) {
+	workingThread = std::thread(&LibavDemux::threadProc, this);
+
+	AVPacket pkt;
 	for (;;) {
 		if (getNumInputs() && getInput(0)->tryPop(data)) {
 			done = true;
 			break;
 		}
 
-		auto p = dispatchPkts.pop();
-		if (!p) {
+		if (!dispatchPkts.read(pkt)) {
+			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+			continue;
+		}
+		if (done) {
 			return;
 		}
-		dispatch(p);
-		av_free_packet(p);
-		delete(p);
+		dispatch(pkt);
+		av_packet_unref(&pkt);
 
 		//TODO: av_dict_set(&st->metadata, "language", language, 0);
 	}

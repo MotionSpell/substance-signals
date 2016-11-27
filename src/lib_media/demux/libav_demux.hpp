@@ -27,11 +27,11 @@ class LibavDemux : public ModuleS {
 		bool webcamOpen(const std::string &options);
 		void threadProc();
 		void setTime(std::shared_ptr<DataAVPacket> data);
-		void dispatch(AVPacket *pkt);
+		void dispatch(AVPacket &pkt);
 
 		std::thread workingThread;
 		std::atomic_bool done;
-		Signals::Queue<AVPacket*> dispatchPkts;
+		Signals::QueueLockFree<AVPacket> dispatchPkts;
 		std::vector<std::unique_ptr<Transform::Restamp>> restampers;
 		std::vector<OutputDataDefault<DataAVPacket>*> outputs;
 		struct AVFormatContext *m_formatCtx;
