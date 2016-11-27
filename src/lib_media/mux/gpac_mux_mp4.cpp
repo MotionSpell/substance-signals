@@ -489,7 +489,8 @@ void GPACMuxMP4::closeFragment() {
 			if (!absTimeInMs)
 				absTimeInMs = gf_net_get_utc() + MSS_UTC_OFFSET_IN_MS;
 			auto const oneFragDurInTimescale = clockToTimescale(segmentDurationIn180k, mediaTs);
-			GF_Err e = gf_isom_set_traf_mss_timeext(isoCur, trackId, convertToTimescale(absTimeInMs, 1000, mediaTs) + oneFragDurInTimescale * (DTS / oneFragDurInTimescale - 1), curFragmentDurInTs);
+			auto const deltaInTs = DTS == curSegmentDurInTs ? defaultSampleIncInTs : 0;
+			GF_Err e = gf_isom_set_traf_mss_timeext(isoCur, trackId, convertToTimescale(absTimeInMs, 1000, mediaTs) + DTS - curSegmentDurInTs - defaultSampleIncInTs + deltaInTs, curSegmentDurInTs - deltaInTs);
 			if (e != GF_OK)
 				throw error(format("Impossible to create UTC marquer: %s", gf_error_to_string(e)));
 		}
@@ -580,8 +581,8 @@ void GPACMuxMP4::declareStreamAudio(std::shared_ptr<const MetadataPktLibavAudio>
 	log(Debug, "TimeScale: %s", sampleRate);
 	if (!trackNum)
 		throw error(format("Cannot create new track"));
-
 	trackId = gf_isom_get_track_id(isoCur, trackNum);
+	defaultSampleIncInTs = metadata->getFrameSize();
 
 	e = gf_isom_set_track_enabled(isoCur, trackNum, GF_TRUE);
 	if (e != GF_OK)

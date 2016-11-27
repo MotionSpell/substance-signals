@@ -53,7 +53,6 @@ void appInfo(int argc, char const* argv[]) {
 	}
 	std::cout << format("EXECUTING: %s(%s)%s", g_appName, argv[0], argvs) << std::endl;
 	std::cout << format("BUILD:     %s-%s", g_appName, BUILD) << std::endl;
-	exit(0);
 }
 
 }
