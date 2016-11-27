@@ -13,6 +13,7 @@ using namespace Pipelines;
 Pipeline *g_Pipeline = nullptr;
 extern const char *g_appName;
 
+namespace {
 #ifdef _MSC_VER
 BOOL WINAPI signalHandler(_In_ DWORD dwCtrlType) {
 	switch (dwCtrlType) {
@@ -43,12 +44,28 @@ void sigTermHandler(int sig) {
 }
 #endif
 
+#define BUILD "master-43997ba" //TODO
+void appInfo(int argc, char const* argv[]) {
+	std::string argvs;
+	for (int i = 1; i < argc; ++i) {
+		argvs += " ";
+		argvs += argv[i];
+	}
+	std::cout << format("EXECUTING: %s(%s)%s", g_appName, argv[0], argvs) << std::endl;
+	std::cout << format("BUILD:     %s-%s", g_appName, BUILD) << std::endl;
+	exit(0);
+}
+
+}
+
 int safeMain(int argc, char const* argv[], const FormatFlags formats) {
 #ifdef _MSC_VER
 	SetConsoleCtrlHandler(signalHandler, TRUE);
 #else
 	std::signal(SIGTERM, sigTermHandler);
 #endif
+
+	appInfo(argc, argv);
 
 	AppOptions opt = processArgs(argc, argv);
 	if (chdir(opt.workingDir.c_str()) < 0 && (gf_mkdir((char*)opt.workingDir.c_str()) || chdir(opt.workingDir.c_str()) < 0))
