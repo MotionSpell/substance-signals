@@ -259,11 +259,12 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 			std::stringstream filename;
 			unsigned width, height;
 			if (metadataDemux->isVideo()) {
+				auto const resolutionFromDemux = getMetadataFromOutput<MetadataPktLibavVideo>(demux->getOutput(i))->getResolution();
 				if (transcode) {
-					width = opt.v[r].res.width;
-					height = opt.v[r].res.height;
+					auto const res = autoFit(resolutionFromDemux, opt.v[r].res);
+					width = res.width;
+					height = res.height;
 				} else {
-					auto const resolutionFromDemux = getMetadataFromOutput<MetadataPktLibavVideo>(demux->getOutput(i))->getResolution();
 					width = resolutionFromDemux.width;
 					height = resolutionFromDemux.height;
 				}
