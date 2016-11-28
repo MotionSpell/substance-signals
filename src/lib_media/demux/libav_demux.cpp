@@ -136,11 +136,12 @@ LibavDemux::LibavDemux(const std::string &url, const uint64_t seekTimeInMs)
 }
 
 LibavDemux::~LibavDemux() {
-	avformat_close_input(&m_formatCtx);
-
+	done = true;
 	if (workingThread.joinable()) {
 		workingThread.join();
 	}
+
+	avformat_close_input(&m_formatCtx);
 
 	AVPacket p;
 	while (dispatchPkts.read(p)) {
@@ -204,11 +205,12 @@ void LibavDemux::process(Data data) {
 		}
 
 		if (!dispatchPkts.read(pkt)) {
+			if (done) {
+				return;
+			}
+
 			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 			continue;
-		}
-		if (done) {
-			return;
 		}
 		dispatch(pkt);
 		av_packet_unref(&pkt);
