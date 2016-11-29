@@ -81,7 +81,6 @@ public:
 			metadata = std::make_shared<MetadataFile>(format("%s.m3u8", segBasename), VIDEO_PKT, "", "", 0, 0, 1, false);
 			out->setMetadata(metadata);
 			outputSegmentAndManifest->emit(out);
-
 			segIdx++;
 		}
 	}
