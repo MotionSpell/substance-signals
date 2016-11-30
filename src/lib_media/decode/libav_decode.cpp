@@ -113,6 +113,9 @@ bool LibavDecode::processVideo(const DataAVPacket *data) {
 		log(Warning, "Error encoutered while decoding video.");
 		return false;
 	}
+	if (av_frame_get_decode_error_flags(avFrame->get()) || (avFrame->get()->flags & AV_FRAME_FLAG_CORRUPT)) {
+		log(Error, "Corrupted frame decoded.");
+	}
 	if (gotPicture) {
 		auto pic = DataPicture::create(videoOutput, Resolution(avFrame->get()->width, avFrame->get()->height), libavPixFmt2PixelFormat((AVPixelFormat)avFrame->get()->format));
 		copyToPicture(avFrame->get(), pic.get());
@@ -121,6 +124,7 @@ bool LibavDecode::processVideo(const DataAVPacket *data) {
 		videoOutput->emit(pic);
 		return true;
 	}
+	av_frame_unref(avFrame->get());
 
 	return false;
 }

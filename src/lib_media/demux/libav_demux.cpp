@@ -183,7 +183,16 @@ void LibavDemux::setTime(std::shared_ptr<DataAVPacket> data) {
 }
 
 void LibavDemux::dispatch(AVPacket &pkt) {
+	if (pkt.dts == AV_NOPTS_VALUE) {
+		pkt.dts = m_formatCtx->streams[pkt.stream_index]->cur_dts;
+		log(Debug, "No DTS: setting last value %s.", pkt.dts);
+	}
+	if (pkt.pts == AV_NOPTS_VALUE) {
+		pkt.pts = m_formatCtx->streams[pkt.stream_index]->pts_buffer[0];
+		log(Debug, "No PTS: setting last value %s.", pkt.pts);
+	}
 	if (pkt.pts < startPTS) {
+		av_packet_unref(&pkt);
 		return;
 	}
 
@@ -195,6 +204,10 @@ void LibavDemux::dispatch(AVPacket &pkt) {
 }
 
 void LibavDemux::process(Data data) {
+	if (m_formatCtx->iformat->name == std::string("mpegts") && m_formatCtx->pb && !m_formatCtx->pb->seekable) {
+		auto const base = m_formatCtx->streams[0]->time_base;
+		startPTS += clockToTimescale(g_DefaultClock->now() * base.den, base.num);
+	}
 	workingThread = std::thread(&LibavDemux::threadProc, this);
 
 	AVPacket pkt;
@@ -212,8 +225,10 @@ void LibavDemux::process(Data data) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 			continue;
 		}
+		if (pkt.flags & AV_PKT_FLAG_CORRUPT) {
+			log(Error, "Corrupted packet received.");
+		}
 		dispatch(pkt);
-		av_packet_unref(&pkt);
 
 		//TODO: av_dict_set(&st->metadata, "language", language, 0);
 	}
