@@ -30,13 +30,11 @@
     <ClInclude Include="core\output.hpp" />
     <ClInclude Include="utils\helper.hpp" />
     <ClInclude Include="utils\pipeline.hpp" />
-    <ClInclude Include="utils\stranded_pool_executor.hpp" />
     <ClInclude Include="modules.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="core\clock.cpp" />
     <ClCompile Include="utils\pipeline.cpp" />
-    <ClCompile Include="utils\stranded_pool_executor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\lib_utils\utils.vcxproj">

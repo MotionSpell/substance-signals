@@ -1,12 +1,15 @@
 #pragma once
 
-#include "stranded_pool_executor.hpp"
 #include "../core/module.hpp"
 #include "lib_signals/utils/helper.hpp"
 #include <memory>
 
 
 namespace Modules {
+
+typedef Signals::IExecutor<void()> IProcessExecutor;
+static Signals::ExecutorSync<void()> g_executorSync;
+#define defaultExecutor g_executorSync
 
 /* this default factory creates output pins with the default output - create another one for other uses such as low latency */
 template <typename InstanceType>

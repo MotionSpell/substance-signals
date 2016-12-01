@@ -133,7 +133,6 @@ ProjectName:=$(SRC)/lib_modules
 MODULES_SRCS:=\
   $(ProjectName)/core/clock.cpp\
   $(ProjectName)/utils/pipeline.cpp\
-  $(ProjectName)/utils/stranded_pool_executor.cpp\
 
 LIB_MODULES_OBJS:=$(MODULES_SRCS:%.cpp=$(BIN)/%.o)
 DEPS+=$(LIB_MODULES_OBJS:%.o=%.deps)

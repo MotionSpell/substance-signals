@@ -22,9 +22,6 @@
     <ClInclude Include="utils\helper.hpp">
       <Filter>utils</Filter>
     </ClInclude>
-    <ClInclude Include="utils\stranded_pool_executor.hpp">
-      <Filter>utils</Filter>
-    </ClInclude>
     <ClInclude Include="core\module.hpp">
       <Filter>core</Filter>
     </ClInclude>
@@ -48,9 +45,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="utils\stranded_pool_executor.cpp">
-      <Filter>utils</Filter>
-    </ClCompile>
     <ClCompile Include="utils\pipeline.cpp">
       <Filter>utils</Filter>
     </ClCompile>
