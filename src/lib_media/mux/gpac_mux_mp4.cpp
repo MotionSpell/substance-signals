@@ -488,7 +488,6 @@ void GPACMuxMP4::closeFragment() {
 			}
 			if (!absTimeInMs)
 				absTimeInMs = gf_net_get_utc() + MSS_UTC_OFFSET_IN_MS;
-			auto const oneFragDurInTimescale = clockToTimescale(segmentDurationIn180k, mediaTs);
 			auto const deltaInTs = DTS == curSegmentDurInTs ? defaultSampleIncInTs : 0;
 			GF_Err e = gf_isom_set_traf_mss_timeext(isoCur, trackId, convertToTimescale(absTimeInMs, 1000, mediaTs) + DTS - curSegmentDurInTs - defaultSampleIncInTs + deltaInTs, curSegmentDurInTs - deltaInTs);
 			if (e != GF_OK)

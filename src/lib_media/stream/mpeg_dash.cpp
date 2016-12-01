@@ -70,11 +70,17 @@ void MPEG_DASH::ensureManifest() {
 			quality->rep = rep;
 			GF_SAFEALLOC(rep->segment_template, GF_MPD_SegmentTemplate);
 			rep->segment_template->start_number = 1;
-			std::string templateName = "$Number$";
+			std::string templateName;
 			if (useSegmentTimeline) {
 				GF_SAFEALLOC(rep->segment_template->segment_timeline, GF_MPD_SegmentTimeline);
 				rep->segment_template->segment_timeline->entries = gf_list_new();
 				templateName = "$Time$";
+				if (mpd->mpd->type == GF_MPD_TYPE_DYNAMIC) {
+					mpd->mpd->minimum_update_period = (u32)segDurationInMs;
+				}
+			} else {
+				templateName = "$Number$";
+				mpd->mpd->minimum_update_period = 0;
 			}
 			rep->mime_type = gf_strdup(quality->meta->getMimeType().c_str());
 			rep->codecs = gf_strdup(quality->meta->getCodecName().c_str());

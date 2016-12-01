@@ -32,12 +32,10 @@ void Restamp::process(Data data) {
 			offset -= time;
 		}
 		break;
-	case IgnoreFirstTimestamp:
-		time = data->getTime();
-		if (!isInitTime) {
-			time = 0;
-			isInitTime = true;
-		}
+	case IgnoreFirstAndReset:
+		assert(!isInitTime);
+		time = 0;
+		mode = Reset;
 		break;
 	default:
 		throw error("Unknown mode");

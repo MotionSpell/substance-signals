@@ -101,7 +101,7 @@ LibavDemux::LibavDemux(const std::string &url, const uint64_t seekTimeInMs)
 			const std::string format(m_formatCtx->iformat->name);
 			const std::string  fn = m_formatCtx->filename;
 			if (format == "rtsp" || format == "rtp" || format == "sdp" || !fn.compare(0, 4,  "rtp:") || !fn.compare(0, 4, "udp:")) {
-				restampers[i] = uptr(create<Transform::Restamp>(Transform::Restamp::IgnoreFirstTimestamp));
+				restampers[i] = uptr(create<Transform::Restamp>(Transform::Restamp::IgnoreFirstAndReset));
 			} else {
 				restampers[i] = uptr(create<Transform::Restamp>(Transform::Restamp::Reset));
 			}
