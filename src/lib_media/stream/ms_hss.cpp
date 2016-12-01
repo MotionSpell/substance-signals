@@ -6,7 +6,7 @@ extern "C" {
 #include <gpac/tools.h>
 }
 
-#define CURL_DEBUG
+//#define CURL_DEBUG
 #define CURL_CHUNKED
 #define CURL_SIGNALS_USER_AGENT "GPAC Signals/1.0"
 #define INIT_POST

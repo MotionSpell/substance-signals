@@ -56,10 +56,10 @@ Level avLogLevel(int level) {
 	case AV_LOG_QUIET:
 	case AV_LOG_PANIC:
 	case AV_LOG_FATAL:
+		return Error;
 	case AV_LOG_ERROR:
-		return Warning;
 	case AV_LOG_WARNING:
-		return Info;
+		return Warning;
 	case AV_LOG_INFO:
 	case AV_LOG_VERBOSE:
 		return Debug;
