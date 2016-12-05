@@ -1,6 +1,7 @@
 #include "log.hpp"
 #include <cassert>
 #include <chrono>
+#include <ctime>
 #include <iostream>
 #include <string>
 
@@ -44,7 +45,9 @@ std::ostream& Log::get(Level level) {
 }
 
 std::string Log::getTime() {
-	return format("[%s] ", now()/1000.0);
+	std::time_t t = std::time(nullptr);
+	std::tm tm = *std::localtime(&t);
+	return format("[%s][%s] ", std::put_time(&tm, "%c %z"), now()/1000.0);
 }
 
 std::string Log::getColorBegin(Level level) {

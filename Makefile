@@ -66,8 +66,8 @@ ifeq ($(SIGNALS_HAS_X11), 1)
 	pkg-config --libs sdl2 >> $(BIN)/config.mk.tmp
 endif
 
-	/bin/echo 'CFLAGS+=-I$(EXTRA)/include/asio -Wno-unused-local-typedefs' >> $(BIN)/config.mk.tmp
-	/bin/echo 'LDFLAGS+=-lpthread -lturbojpeg -lcurl' >> $(BIN)/config.mk.tmp ;
+	/bin/echo 'CFLAGS+= -Wno-unused-local-typedefs' >> $(BIN)/config.mk.tmp
+	/bin/echo 'LDFLAGS+= -lpthread -lturbojpeg -lcurl' >> $(BIN)/config.mk.tmp ;
 	mv $(BIN)/config.mk.tmp $(BIN)/config.mk
 
 include $(BIN)/config.mk

@@ -44,7 +44,7 @@ void sigTermHandler(int sig) {
 }
 #endif
 
-#define BUILD "master-ad7c99a" //TODO
+#define BUILD "master-e9f2d31" //TODO
 void appInfo(int argc, char const* argv[]) {
 	std::string argvs;
 	for (int i = 1; i < argc; ++i) {
