@@ -1,11 +1,12 @@
 #include "mpeg_dash.hpp"
 #include "../common/libav.hpp"
 
-#define DASH_TIMESCALE 1000 //TODO: there are some ms already hardcoded, including in AdaptiveStreamingCommon
+#define DASH_TIMESCALE 1000 //TODO: there are some ms already hardcoded, including in AdaptiveStreamingCommon and gf_net_get_utc()
 
 #define MIN_BUFFER_TIME_IN_MS_VOD  3000
 #define MIN_BUFFER_TIME_IN_MS_LIVE 1000
 
+#define MIN_UPDATE_PERIOD_IN_MS    ((u32)(segDurationInMs ? segDurationInMs : 1000))
 #define MIN_UPDATE_PERIOD_FACTOR   300 //FIXME: should be 0, but dash.js doesn't support MPDs with no refresh time.
 
 #define AVAILABILITY_TIMEOFFSET_IN_S 0.0
@@ -18,7 +19,6 @@ GF_MPD_AdaptationSet *createAS(uint64_t segDurationInMs, GF_MPD_Period *period, 
 	GF_SAFEALLOC(as->segment_template, GF_MPD_SegmentTemplate);
 	as->segment_template->duration = segDurationInMs;
 	as->segment_template->timescale = DASH_TIMESCALE;
-	as->segment_template->start_number = 1;
 	as->segment_template->availability_time_offset = AVAILABILITY_TIMEOFFSET_IN_S;
 
 	//FIXME: arbitrary: should be set by the app, or computed
@@ -71,18 +71,18 @@ void MPEG_DASH::ensureManifest() {
 			auto rep = mpd->addRepresentation(as, repId.c_str(), (u32)quality->avg_bitrate_in_bps);
 			quality->rep = rep;
 			GF_SAFEALLOC(rep->segment_template, GF_MPD_SegmentTemplate);
-			rep->segment_template->start_number = 1;
 			std::string templateName;
 			if (useSegmentTimeline) {
 				GF_SAFEALLOC(rep->segment_template->segment_timeline, GF_MPD_SegmentTimeline);
 				rep->segment_template->segment_timeline->entries = gf_list_new();
 				templateName = "$Time$";
 				if (mpd->mpd->type == GF_MPD_TYPE_DYNAMIC) {
-					mpd->mpd->minimum_update_period = (u32)segDurationInMs;
+					mpd->mpd->minimum_update_period = MIN_UPDATE_PERIOD_IN_MS;
 				}
 			} else {
 				templateName = "$Number$";
-				mpd->mpd->minimum_update_period = (u32)(segDurationInMs * MIN_UPDATE_PERIOD_FACTOR);
+				mpd->mpd->minimum_update_period = MIN_UPDATE_PERIOD_IN_MS * MIN_UPDATE_PERIOD_FACTOR;
+				rep->segment_template->start_number = (u32)(startTimeInMs / segDurationInMs);
 			}
 			rep->mime_type = gf_strdup(quality->meta->getMimeType().c_str());
 			rep->codecs = gf_strdup(quality->meta->getCodecName().c_str());
@@ -133,6 +133,24 @@ void MPEG_DASH::writeManifest() {
 	}
 }
 
+std::shared_ptr<const MetadataFile> MPEG_DASH::moveFile(const std::shared_ptr<const MetadataFile> src, const std::string &dst) {
+	int retry = 20;
+	while (retry-- && (gf_move_file(src->getFilename().c_str(), dst.c_str()) != GF_OK)) {
+		gf_sleep(10);
+	}
+	if (!retry) {
+		log(Error, "Couldn't rename segment \"%s\" -> \"%s\". You may encounter playback errors.", src->getFilename(), dst);
+	}
+
+	auto mf = std::make_shared<MetadataFile>(dst, src->getStreamType(), src->getMimeType(), src->getCodecName(), src->getDuration(), src->getSize(), src->getLatency(), src->getStartsWithRAP());
+	switch (src->getStreamType()) {
+	case AUDIO_PKT: mf->sampleRate = src->sampleRate; break;
+	case VIDEO_PKT: mf->resolution[0] = src->resolution[0]; mf->resolution[1] = src->resolution[1]; break;
+	default: assert(0);
+	}
+	return mf;
+}
+
 void MPEG_DASH::generateManifest() {
 	ensureManifest();
 
@@ -150,7 +168,7 @@ void MPEG_DASH::generateManifest() {
 			uint64_t segTime;
 			if (!prevEnt || prevEnt->duration != currDur) {
 				auto ent = (GF_MPD_SegmentTimelineEntry*)gf_malloc(sizeof(GF_MPD_SegmentTimelineEntry));
-				segTime = ent->start_time = prevEnt ? prevEnt->start_time + prevEnt->duration*(prevEnt->repeat_count+1) : 0;
+				segTime = ent->start_time = prevEnt ? prevEnt->start_time + prevEnt->duration*(prevEnt->repeat_count+1) : startTimeInMs;
 				ent->duration = (u32)currDur;
 				ent->repeat_count = 0;
 				gf_list_add(entries, ent);
@@ -166,21 +184,16 @@ void MPEG_DASH::generateManifest() {
 			default: assert(0);
 			}
 			log(Debug, "Rename segment \"%s\" -> \"%s\".", quality->meta->getFilename(), fn);
-			int retry = 20;
-			while (retry-- && (gf_move_file(quality->meta->getFilename().c_str(), fn.c_str()) != GF_OK)) {
-				gf_sleep(10);
-			}
-			if (!retry) {
-				log(Error, "Couldn't rename segment \"%s\" -> \"%s\". You may encounter playback errors.", quality->meta->getFilename(), fn);
-			}
-
-			auto mf = std::make_shared<MetadataFile>(fn, quality->meta->getStreamType(), quality->meta->getMimeType(), quality->meta->getCodecName(), quality->meta->getDuration(), quality->meta->getSize(), quality->meta->getLatency(), quality->meta->getStartsWithRAP());
+			quality->meta = moveFile(quality->meta, fn);
+		} else {
+			auto const n = (startTimeInMs + totalDurationInMs) / segDurationInMs;
+			std::string fn;
 			switch (quality->meta->getStreamType()) {
-			case AUDIO_PKT: mf->sampleRate = quality->meta->sampleRate; break;
-			case VIDEO_PKT: mf->resolution[0] = quality->meta->resolution[0]; mf->resolution[1] = quality->meta->resolution[1]; break;
+			case AUDIO_PKT: fn = format("%s/audio_%s.mp4_%s.m4s", mpdDir, i, n); break;
+			case VIDEO_PKT: fn = format("%s/video_%s_%sx%s.mp4_%s.m4s", mpdDir, i, quality->rep->width, quality->rep->height, n); break;
 			default: assert(0);
 			}
-			quality->meta = mf;
+			quality->meta = moveFile(quality->meta, fn);
 		}
 
 		if (timeShiftBufferDepthInMs) {
