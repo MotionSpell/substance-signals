@@ -60,10 +60,13 @@ LibavDecode::~LibavDecode() {
 
 bool LibavDecode::processAudio(const DataAVPacket *data) {
 	AVPacket *pkt = data->getPacket();
-	int gotFrame;
+	int gotFrame = 0;
 	if (avcodec_decode_audio4(codecCtx, avFrame->get(), &gotFrame, pkt) < 0) {
 		log(Warning, "Error encoutered while decoding audio.");
 		return false;
+	}
+	if (av_frame_get_decode_error_flags(avFrame->get()) || (avFrame->get()->flags & AV_FRAME_FLAG_CORRUPT)) {
+		log(Error, "Corrupted audio frame decoded.");
 	}
 	if (gotFrame) {
 		auto out = audioOutput->getBuffer(0);
@@ -76,9 +79,11 @@ bool LibavDecode::processAudio(const DataAVPacket *data) {
 		out->setTime(cumulatedDuration * codecCtx->time_base.num, codecCtx->time_base.den);
 		cumulatedDuration += avFrame->get()->nb_samples;
 		audioOutput->emit(out);
+		av_frame_unref(avFrame->get());
 		return true;
 	}
 
+	av_frame_unref(avFrame->get());
 	return false;
 }
 
@@ -108,13 +113,13 @@ void copyToPicture(AVFrame const* avFrame, DataPicture* pic) {
 
 bool LibavDecode::processVideo(const DataAVPacket *data) {
 	AVPacket *pkt = data->getPacket();
-	int gotPicture;
+	int gotPicture = 0;
 	if (avcodec_decode_video2(codecCtx, avFrame->get(), &gotPicture, pkt) < 0) {
 		log(Warning, "Error encoutered while decoding video.");
 		return false;
 	}
 	if (av_frame_get_decode_error_flags(avFrame->get()) || (avFrame->get()->flags & AV_FRAME_FLAG_CORRUPT)) {
-		log(Error, "Corrupted frame decoded.");
+		log(Error, "Corrupted video frame decoded.");
 	}
 	if (gotPicture) {
 		auto pic = DataPicture::create(videoOutput, Resolution(avFrame->get()->width, avFrame->get()->height), libavPixFmt2PixelFormat((AVPixelFormat)avFrame->get()->format));
@@ -122,10 +127,11 @@ bool LibavDecode::processVideo(const DataAVPacket *data) {
 		pic->setTime(cumulatedDuration * codecCtx->time_base.num, codecCtx->time_base.den);
 		cumulatedDuration += codecCtx->ticks_per_frame;
 		videoOutput->emit(pic);
+		av_frame_unref(avFrame->get());
 		return true;
 	}
-	av_frame_unref(avFrame->get());
 
+	av_frame_unref(avFrame->get());
 	return false;
 }
 
