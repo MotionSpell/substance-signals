@@ -62,7 +62,7 @@ bool LibavDecode::processAudio(const DataAVPacket *data) {
 	AVPacket *pkt = data->getPacket();
 	int gotFrame = 0;
 	if (avcodec_decode_audio4(codecCtx, avFrame->get(), &gotFrame, pkt) < 0) {
-		log(Warning, "Error encoutered while decoding audio.");
+		log(Warning, "Error encountered while decoding audio.");
 		return false;
 	}
 	if (av_frame_get_decode_error_flags(avFrame->get()) || (avFrame->get()->flags & AV_FRAME_FLAG_CORRUPT)) {
@@ -115,7 +115,7 @@ bool LibavDecode::processVideo(const DataAVPacket *data) {
 	AVPacket *pkt = data->getPacket();
 	int gotPicture = 0;
 	if (avcodec_decode_video2(codecCtx, avFrame->get(), &gotPicture, pkt) < 0) {
-		log(Warning, "Error encoutered while decoding video.");
+		log(Warning, "Error encountered while decoding video.");
 		return false;
 	}
 	if (av_frame_get_decode_error_flags(avFrame->get()) || (avFrame->get()->flags & AV_FRAME_FLAG_CORRUPT)) {

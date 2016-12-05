@@ -753,7 +753,7 @@ void GPACMuxMP4::sendOutput() {
 
 	auto const mediaTs = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
 	auto const curSegmentDurIn180k = timescaleToClock(curSegmentDurInTs, mediaTs);
-	auto const latencyIn180k = fragmentPolicy == OneFragmentPerFrame ? timescaleToClock(defaultSampleIncInTs, mediaTs) : curSegmentDurIn180k;
+	auto const latencyIn180k = fragmentPolicy == OneFragmentPerFrame ? timescaleToClock(defaultSampleIncInTs, mediaTs) : std::min<uint64_t>(curSegmentDurIn180k, segmentDurationIn180k);
 	auto metadata = std::make_shared<MetadataFile>(segmentName, streamType, mimeType, codecName, curSegmentDurIn180k, lastSegmentSize,
 		latencyIn180k, segmentStartsWithRAP);
 	switch (gf_isom_get_media_type(isoCur, gf_isom_get_track_by_id(isoCur, trackId))) {
