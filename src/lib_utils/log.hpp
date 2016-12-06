@@ -3,6 +3,8 @@
 #include "format.hpp"
 #include <ostream>
 
+#define LOG_MSG_REPETITION_MAX 100
+
 enum Level {
 	Quiet = -1,
 	Error = 0,
@@ -16,7 +18,7 @@ class Log {
 		template<typename... Arguments>
 		static void msg(Level level, const std::string& fmt, Arguments... args) {
 			if ((level != Quiet) && (level <= globalLogLevel)) {
-				if (fmt == lastMsg) {
+				if (lastMsgCount < LOG_MSG_REPETITION_MAX && fmt == lastMsg) {
 					lastMsgCount++;
 				} else {
 					if (lastMsgCount) {
