@@ -20,6 +20,8 @@ static WORD console_attr_ori = 0;
 #endif /*_WIN32*/
 
 Level Log::globalLogLevel = Info;
+std::string Log::lastMsg = "";
+uint64_t Log::lastMsgCount = 0;
 
 
 namespace {
@@ -45,9 +47,11 @@ std::ostream& Log::get(Level level) {
 }
 
 std::string Log::getTime() {
+	char szOut[255];
 	std::time_t t = std::time(nullptr);
 	std::tm tm = *std::localtime(&t);
-	return format("[%s][%s] ", std::put_time(&tm, "%c %z"), now()/1000.0);
+	auto const size = strftime(szOut, 255, "%Y/%m/%d %H:%M:%S", &tm);
+	return format("[%s][%s] ", std::string(szOut, size), now()/1000.0);
 }
 
 std::string Log::getColorBegin(Level level) {

@@ -2,6 +2,9 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="log.cpp" />
+    <ClCompile Include="$(SolutionDir)\src\version.cpp">
+      <Filter>version</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="log.hpp" />
@@ -21,6 +24,9 @@
     </Filter>
     <Filter Include="ffpp">
       <UniqueIdentifier>{71dea80d-96e3-424d-909a-6f45a3d39810}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="version">
+      <UniqueIdentifier>{f9e869cf-d58f-494d-8222-9ebc8be4b730}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
