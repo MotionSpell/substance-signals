@@ -4,7 +4,7 @@
 #define DASH_TIMESCALE 1000 //TODO: there are some ms already hardcoded, including in AdaptiveStreamingCommon and gf_net_get_utc()
 
 #define MIN_BUFFER_TIME_IN_MS_VOD  3000
-#define MIN_BUFFER_TIME_IN_MS_LIVE 1000
+#define MIN_BUFFER_TIME_IN_MS_LIVE 2000
 
 #define MIN_UPDATE_PERIOD_IN_MS    ((u32)(segDurationInMs ? segDurationInMs : 1000))
 #define MIN_UPDATE_PERIOD_FACTOR   300 //FIXME: should be 0, but dash.js doesn't support MPDs with no refresh time.
