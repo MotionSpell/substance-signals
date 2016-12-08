@@ -44,7 +44,7 @@ LDFLAGS += -L$(EXTRA)/lib
 
 LDFLAGS += $(LDLIBS)
 
-all: targets
+all: version targets
 
 $(BIN)/config.mk:
 	@echo "Configuring ..."
@@ -81,8 +81,8 @@ DEPS:=
 
 ProjectName:=$(SRC)/lib_utils
 UTILS_SRCS:=\
-  $(ProjectName)/log.cpp\
-
+  src/version.cpp\
+  $(ProjectName)/log.cpp
 UTILS_OBJS:=$(UTILS_SRCS:%.cpp=$(BIN)/%.o)
 
 #------------------------------------------------------------------------------
@@ -166,6 +166,9 @@ include $(ProjectName)/project.mk
 CFLAGS+=-I$(ProjectName)
 
 #------------------------------------------------------------------------------
+
+version:
+	echo "const char *g_version = \"`git symbolic-ref HEAD 2> /dev/null | cut -b 12-`-`git log --pretty=format:\"%h\" -1`\";" > src/version.cpp
 
 targets: $(TARGETS)
 

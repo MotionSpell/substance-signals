@@ -12,6 +12,7 @@ using namespace Pipelines;
 
 Pipeline *g_Pipeline = nullptr;
 extern const char *g_appName;
+extern const char *g_version;
 
 namespace {
 #ifdef _MSC_VER
@@ -44,7 +45,6 @@ void sigTermHandler(int sig) {
 }
 #endif
 
-#define BUILD "master-e9f2d31" //TODO
 void appInfo(int argc, char const* argv[]) {
 	std::string argvs;
 	for (int i = 1; i < argc; ++i) {
@@ -52,7 +52,7 @@ void appInfo(int argc, char const* argv[]) {
 		argvs += argv[i];
 	}
 	std::cout << format("EXECUTING: %s(%s)%s", g_appName, argv[0], argvs) << std::endl;
-	std::cout << format("BUILD:     %s-%s", g_appName, BUILD) << std::endl;
+	std::cout << format("BUILD:     %s-%s", g_appName, g_version) << std::endl;
 }
 
 }
@@ -77,7 +77,7 @@ int safeMain(int argc, char const* argv[], const FormatFlags formats) {
 	g_Pipeline = pipeline.get();
 
 	Tools::Profiler profilerProcessing(format("%s - processing time", g_appName));
-	std::cout << g_appName << " - close window or ctrl-c to exit cleanly." << std::endl;
+	std::cout << g_appName << " - send SIGTERM (ctrl-c) to exit cleanly." << std::endl;
 	try {
 		pipeline->start();
 		pipeline->waitForCompletion();
