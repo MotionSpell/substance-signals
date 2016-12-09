@@ -228,5 +228,8 @@
     <ClCompile Include="stream\ms_hss.cpp">
       <Filter>src\stream</Filter>
     </ClCompile>
+    <ClCompile Include="mux\gpac_mux_mp4_mss.cpp">
+      <Filter>src\mux</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

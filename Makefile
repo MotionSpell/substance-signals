@@ -103,6 +103,7 @@ MEDIA_SRCS:=\
   $(ProjectName)/in/video_generator.cpp\
   $(ProjectName)/mux/gpac_mux_m2ts.cpp\
   $(ProjectName)/mux/gpac_mux_mp4.cpp\
+  $(ProjectName)/mux/gpac_mux_mp4_mss.cpp\
   $(ProjectName)/mux/libav_mux.cpp\
   $(ProjectName)/out/file.cpp\
   $(ProjectName)/out/null.cpp\

@@ -76,6 +76,7 @@
     <ClCompile Include="in\video_generator.cpp" />
     <ClCompile Include="mux\gpac_mux_m2ts.cpp" />
     <ClCompile Include="mux\gpac_mux_mp4.cpp" />
+    <ClCompile Include="mux\gpac_mux_mp4_mss.cpp" />
     <ClCompile Include="mux\libav_mux.cpp" />
     <ClCompile Include="out\file.cpp" />
     <ClCompile Include="out\null.cpp" />
