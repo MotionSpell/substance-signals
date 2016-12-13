@@ -48,6 +48,7 @@
     <ClInclude Include="stream\mpeg_dash.hpp" />
     <ClInclude Include="stream\ms_hss.hpp" />
     <ClInclude Include="transform\audio_convert.hpp" />
+    <ClInclude Include="transform\libavfilter.hpp" />
     <ClInclude Include="transform\restamp.hpp" />
     <ClInclude Include="transform\video_convert.hpp" />
     <ClInclude Include="utils\comparator.hpp" />
@@ -89,6 +90,7 @@
     <ClCompile Include="stream\mpeg_dash.cpp" />
     <ClCompile Include="stream\ms_hss.cpp" />
     <ClCompile Include="transform\audio_convert.cpp" />
+    <ClCompile Include="transform\libavfilter.cpp" />
     <ClCompile Include="transform\restamp.cpp" />
     <ClCompile Include="transform\video_convert.cpp" />
     <ClCompile Include="utils\comparator.cpp" />

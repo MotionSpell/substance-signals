@@ -98,6 +98,9 @@
     <ClInclude Include="stream\ms_hss.hpp">
       <Filter>src\stream</Filter>
     </ClInclude>
+    <ClInclude Include="transform\libavfilter.hpp">
+      <Filter>src\transform</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="src">
@@ -230,6 +233,9 @@
     </ClCompile>
     <ClCompile Include="mux\gpac_mux_mp4_mss.cpp">
       <Filter>src\mux</Filter>
+    </ClCompile>
+    <ClCompile Include="transform\libavfilter.cpp">
+      <Filter>src\transform</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

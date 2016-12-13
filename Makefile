@@ -54,7 +54,7 @@ $(BIN)/config.mk:
 	echo $(EXTRA); \
 	/bin/echo '# config file' > $(BIN)/config.mk.tmp ; \
 	/bin/echo -n 'CFLAGS+=' >> $(BIN)/config.mk.tmp ; \
-	pkg-config --cflags libavcodec libavdevice libavformat libavutil libswresample libswscale x264 >> $(BIN)/config.mk.tmp ; \
+	pkg-config --cflags libavcodec libavdevice libavfilter libavformat libavutil libswresample libswscale x264 >> $(BIN)/config.mk.tmp ; \
 	/bin/echo -n 'LDFLAGS+=' >> $(BIN)/config.mk.tmp ; \
 	pkg-config --libs libavcodec libavdevice libavfilter libavformat libavutil libswresample libswscale x264 gpac >> $(BIN)/config.mk.tmp
 
@@ -113,6 +113,7 @@ MEDIA_SRCS:=\
   $(ProjectName)/stream/ms_hss.cpp\
   $(ProjectName)/stream/adaptive_streaming_common.cpp\
   $(ProjectName)/transform/audio_convert.cpp\
+  $(ProjectName)/transform/libavfilter.cpp\
   $(ProjectName)/transform/restamp.cpp\
   $(ProjectName)/transform/video_convert.cpp\
   $(ProjectName)/utils/comparator.cpp\
