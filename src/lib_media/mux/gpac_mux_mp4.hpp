@@ -4,6 +4,8 @@
 #include "../common/libav.hpp"
 #include <string>
 
+#define DURATION_KEEP_LAST_DATA
+
 typedef struct __tag_isom GF_ISOFile;
 namespace gpacpp {
 class IsoSample;
@@ -81,6 +83,10 @@ class GPACMuxMP4 : public ModuleDynI {
 			unsigned int resolution[2];
 			unsigned int sampleRate;
 		};
+
+#ifdef DURATION_KEEP_LAST_DATA
+		Data lastData = nullptr;
+#endif
 };
 
 class GPACMuxMP4MSS : public GPACMuxMP4 {

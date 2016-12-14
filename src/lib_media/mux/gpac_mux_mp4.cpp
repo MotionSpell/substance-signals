@@ -850,7 +850,7 @@ void GPACMuxMP4::process() {
 	int64_t dataDurationInTs = clockToTimescale(data->getTime() - lastInputTimeIn180k, mediaTs);
 	lastInputTimeIn180k = data->getTime();
 	//TODO: make tests and integrate in a module, see #18
-#if 1
+#ifndef DURATION_KEEP_LAST_DATA
 	if (DTS && (dataDurationInTs - defaultSampleIncInTs != 0)) {
 		/*VFR: computing current sample duration from previous*/
 		dataDurationInTs = clockToTimescale(data->getTime(), mediaTs) - (DTS + deltaInTs) + dataDurationInTs;
@@ -861,12 +861,11 @@ void GPACMuxMP4::process() {
 	}
 #else
 	/*wait to have two samples - FIXME: should be in a separate class + last segment is never processed (should be in flush())*/
-	static std::shared_ptr<const DataAVPacket> lastData = nullptr;
 	if (lastData) {
 		dataDurationInTs = clockToTimescale(data->getTime()-lastData->getTime(), mediaTs);
 	} else {
 		lastData = data;
-		return;
+		return; //FIXME: we lose 'sample' i.e. skip the first data
 	}
 	lastData = data;
 #endif
