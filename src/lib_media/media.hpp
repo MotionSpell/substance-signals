@@ -24,6 +24,7 @@
 #include "stream/mpeg_dash.hpp"
 #include "stream/ms_hss.hpp"
 #include "transform/audio_convert.hpp"
+#include "transform/libavfilter.hpp"
 #include "transform/restamp.hpp"
 #include "transform/video_convert.hpp"
 #include "utils/comparator.hpp"
