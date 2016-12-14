@@ -143,9 +143,9 @@ LibavDemux::~LibavDemux() {
 
 	avformat_close_input(&m_formatCtx);
 
-	AVPacket p;
+	AVPacket *p;
 	while (dispatchPkts.read(p)) {
-		av_packet_unref(&p);
+		av_packet_free(&p);
 	}
 }
 
@@ -160,9 +160,14 @@ void LibavDemux::threadProc() {
 				log(Error, "Stream contains an irrecoverable error (%s) - leaving", status);
 			}
 			done = true;
+			av_packet_free(&pkt);
 			return;
 		}
-		while (!dispatchPkts.write(*pkt) && !done) {
+		while (!dispatchPkts.write(pkt)) {
+			if (done) {
+				av_packet_free(&pkt);
+				return;
+			}
 			log(m_formatCtx->pb && !m_formatCtx->pb->seekable ? Warning : Debug, "Dispatch queue is full - regulating.");
 			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 		}
@@ -182,25 +187,26 @@ void LibavDemux::setTime(std::shared_ptr<DataAVPacket> data) {
 	}
 }
 
-void LibavDemux::dispatch(AVPacket &pkt) {
-	if (pkt.dts == AV_NOPTS_VALUE) {
-		pkt.dts = m_formatCtx->streams[pkt.stream_index]->cur_dts;
-		log(Debug, "No DTS: setting last value %s.", pkt.dts);
+void LibavDemux::dispatch(AVPacket *pkt) {
+	if (pkt->dts == AV_NOPTS_VALUE) {
+		pkt->dts = m_formatCtx->streams[pkt->stream_index]->cur_dts;
+		log(Debug, "No DTS: setting last value %s.", pkt->dts);
 	}
-	if (pkt.pts == AV_NOPTS_VALUE) {
-		pkt.pts = m_formatCtx->streams[pkt.stream_index]->pts_buffer[0];
-		log(Debug, "No PTS: setting last value %s.", pkt.pts);
+	if (pkt->pts == AV_NOPTS_VALUE) {
+		pkt->pts = m_formatCtx->streams[pkt->stream_index]->pts_buffer[0];
+		log(Debug, "No PTS: setting last value %s.", pkt->pts);
 	}
-	if (pkt.pts < startPTS) {
-		av_packet_unref(&pkt);
+	if (pkt->pts < startPTS) {
+		av_packet_free(&pkt);
 		return;
 	}
 
-	auto out = outputs[pkt.stream_index]->getBuffer(0);
+	auto out = outputs[pkt->stream_index]->getBuffer(0);
 	AVPacket *outPkt = out->getPacket();
-	av_packet_move_ref(outPkt, &pkt);
+	av_packet_move_ref(outPkt, pkt);
 	setTime(out);
 	outputs[outPkt->stream_index]->emit(out);
+	av_packet_free(&pkt);
 }
 
 void LibavDemux::process(Data data) {
@@ -210,7 +216,7 @@ void LibavDemux::process(Data data) {
 	}
 	workingThread = std::thread(&LibavDemux::threadProc, this);
 
-	AVPacket pkt;
+	AVPacket *pkt = nullptr;
 	for (;;) {
 		if (getNumInputs() && getInput(0)->tryPop(data)) {
 			done = true;
@@ -225,12 +231,10 @@ void LibavDemux::process(Data data) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 			continue;
 		}
-		if (pkt.flags & AV_PKT_FLAG_CORRUPT) {
+		if (pkt->flags & AV_PKT_FLAG_CORRUPT) {
 			log(Error, "Corrupted packet received.");
 		}
 		dispatch(pkt);
-
-		//TODO: av_dict_set(&st->metadata, "language", language, 0);
 	}
 
 	log(Info, "Exit from an external event.");
