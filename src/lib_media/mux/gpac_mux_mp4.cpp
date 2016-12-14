@@ -663,6 +663,10 @@ void GPACMuxMP4::declareStreamVideo(std::shared_ptr<const MetadataPktLibavVideo>
 		}
 	}
 
+	auto const res = metadata->getResolution();
+	resolution[0] = res.width;
+	resolution[1] = res.height;
+	gf_isom_set_visual_info(isoCur, gf_isom_get_track_by_id(isoCur, trackId), di, res.width, res.height);
 	gf_isom_set_sync_table(isoCur, trackNum);
 
 #ifdef AVC_INBAND_CONFIG

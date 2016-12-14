@@ -32,11 +32,7 @@ void GPACMuxMP4MSS::declareStreamVideo(std::shared_ptr<const MetadataPktLibavVid
 	const uint8_t *extradata;
 	size_t extradataSize;
 	metadata->getExtradata(extradata, extradataSize);
-
-	const u32 di = 1;
 	auto const res = metadata->getResolution();
-	gf_isom_set_visual_info(isoCur, gf_isom_get_track_by_id(isoCur, trackId), di, res.width, res.height);
-
 	ISMLManifest = writeISMLManifest(codec4CC, string2hex(extradata, extradataSize), metadata->getBitrate(), res.width, res.height, 0, 0, 0);
 	auto ptr = (uint32_t*)ISMLManifest.c_str();
 	ptr[0] = 0;

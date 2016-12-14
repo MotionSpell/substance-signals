@@ -20,7 +20,12 @@ class MPEG_DASH : public AdaptiveStreamingCommon, public gpacpp::Init {
 		struct DASHQuality : public Quality {
 			DASHQuality() : rep(nullptr) {}
 			GF_MPD_Representation *rep;
-			std::list<std::shared_ptr<const MetadataFile>> timeshiftSegments;
+			struct SegmentToDelete {
+				SegmentToDelete(std::shared_ptr<const MetadataFile> file) : file(file) {}
+				std::shared_ptr<const MetadataFile> file;
+				int retry = 5;
+			};
+			std::list<SegmentToDelete> timeshiftSegments;
 		};
 
 		void ensureManifest();

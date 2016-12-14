@@ -200,13 +200,14 @@ void MPEG_DASH::generateManifest() {
 			uint64_t timeShiftSegmentsInMs = 0;
 			auto seg = quality->timeshiftSegments.begin();
 			while (seg != quality->timeshiftSegments.end()) {
-				timeShiftSegmentsInMs += clockToTimescale((*seg)->getDuration(), 1000);
+				timeShiftSegmentsInMs += clockToTimescale((*seg).file->getDuration(), 1000);
 				if (timeShiftSegmentsInMs > timeShiftBufferDepthInMs) {
-					log(Debug, "Delete segment \"%s\".", (*seg)->getFilename());
-					if (gf_delete_file((*seg)->getFilename().c_str()) == GF_OK) {
+					log(Debug, "Delete segment \"%s\".", (*seg).file->getFilename());
+					if (gf_delete_file((*seg).file->getFilename().c_str()) == GF_OK || (*seg).retry == 0) {
 						seg = quality->timeshiftSegments.erase(seg);
 					} else {
-						log(Warning, "Couldn't delete old segment \"%s\".", (*seg)->getFilename());
+						log(Warning, "Couldn't delete old segment \"%s\" (retry=%s).", (*seg).file->getFilename(), (*seg).retry);
+						(*seg).retry--;
 					}
 				} else {
 					++seg;
@@ -228,7 +229,7 @@ void MPEG_DASH::generateManifest() {
 				}
 			}
 
-			quality->timeshiftSegments.emplace(quality->timeshiftSegments.begin(), quality->meta);
+			quality->timeshiftSegments.emplace(quality->timeshiftSegments.begin(), DASHQuality::SegmentToDelete(quality->meta));
 		}
 	}
 
@@ -256,8 +257,8 @@ void MPEG_DASH::finalizeManifest() {
 			}
 
 			for (auto &seg : quality->timeshiftSegments) {
-				if (gf_delete_file(seg->getFilename().c_str()) != GF_OK) {
-					log(Error, "Couldn't delete media segment \"%s\".", seg->getFilename());
+				if (gf_delete_file(seg.file->getFilename().c_str()) != GF_OK) {
+					log(Error, "Couldn't delete media segment \"%s\".", seg.file->getFilename());
 				}
 			}
 		}
