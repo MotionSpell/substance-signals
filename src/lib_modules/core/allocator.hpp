@@ -44,7 +44,7 @@ class PacketAllocator {
 		~PacketAllocator() {
 			Block block;
 			while (freeBlocks.tryPop(block)) {
-				if (OneBufferIsFree) {
+				if (block.event == OneBufferIsFree) {
 					delete block.data;
 				}
 			}
