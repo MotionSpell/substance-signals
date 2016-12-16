@@ -85,7 +85,7 @@ class GPACMuxMP4 : public ModuleDynI {
 
 class GPACMuxMP4MSS : public GPACMuxMP4 {
 public:
-	GPACMuxMP4MSS(const std::string &baseName, uint64_t segmentDurationInMs, const std::string &audioLang, const std::string &audioName);
+	GPACMuxMP4MSS(const std::string &baseName, uint64_t segmentDurationInMs, const std::string &audioLang = "", const std::string &audioName = "");
 
 private:
 	void declareStreamVideo(std::shared_ptr<const MetadataPktLibavVideo> stream) final;
