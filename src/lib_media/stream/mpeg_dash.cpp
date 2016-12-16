@@ -134,7 +134,7 @@ void MPEG_DASH::writeManifest() {
 }
 
 std::shared_ptr<const MetadataFile> MPEG_DASH::moveFile(const std::shared_ptr<const MetadataFile> src, const std::string &dst) {
-	int retry = 20;
+	int retry = 3;
 	while (retry-- && (gf_move_file(src->getFilename().c_str(), dst.c_str()) != GF_OK)) {
 		gf_sleep(10);
 	}
