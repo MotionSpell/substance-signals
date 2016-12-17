@@ -20,9 +20,11 @@ static WORD console_attr_ori = 0;
 #endif /*_WIN32*/
 
 Level Log::globalLogLevel = Info;
+
+#ifdef LOG_THREAD_SAFETY
 std::string Log::lastMsg = "";
 uint64_t Log::lastMsgCount = 0;
-
+#endif
 
 namespace {
 
