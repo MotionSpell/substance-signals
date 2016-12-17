@@ -7,7 +7,7 @@
 #define MIN_BUFFER_TIME_IN_MS_LIVE 2000
 
 #define MIN_UPDATE_PERIOD_IN_MS    ((u32)(segDurationInMs ? segDurationInMs : 1000))
-#define MIN_UPDATE_PERIOD_FACTOR   300 //FIXME: should be 0, but dash.js doesn't support MPDs with no refresh time.
+#define MIN_UPDATE_PERIOD_FACTOR   1 //FIXME: should be 0, but dash.js doesn't support MPDs with no refresh time.
 
 #define AVAILABILITY_TIMEOFFSET_IN_S 0.0
 
@@ -82,7 +82,7 @@ void MPEG_DASH::ensureManifest() {
 			} else {
 				templateName = "$Number$";
 				mpd->mpd->minimum_update_period = MIN_UPDATE_PERIOD_IN_MS * MIN_UPDATE_PERIOD_FACTOR;
-				rep->segment_template->start_number = (u32)(startTimeInMs / segDurationInMs);
+				rep->segment_template->start_number = (u32)((startTimeInMs - segDurationInMs) / segDurationInMs);
 			}
 			rep->mime_type = gf_strdup(quality->meta->getMimeType().c_str());
 			rep->codecs = gf_strdup(quality->meta->getCodecName().c_str());
