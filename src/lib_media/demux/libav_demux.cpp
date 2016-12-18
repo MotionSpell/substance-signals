@@ -35,10 +35,6 @@ const char* webcamFormat() {
 #endif
 }
 
-bool isRaw(AVCodecContext *codecCtx) {
-	return codecCtx->codec_id == AV_CODEC_ID_RAWVIDEO;
-}
-
 }
 
 namespace Demux {
@@ -120,15 +116,15 @@ LibavDemux::LibavDemux(const std::string &url, const uint64_t seekTimeInMs)
 		if (parser) {
 			st->codec->ticks_per_frame = parser->repeat_pict + 1;
 		} else {
-			log(Info, format("No parser found for stream %s (%s). Couldn't use full metadata to get the timescale.", i, st->codec->codec_name));
+			log(Debug, format("No parser found for stream %s (%s). Couldn't use full metadata to get the timescale.", i, st->codec->codec_name));
 		}
 
 		IMetadata *m;
 		switch (st->codec->codec_type) {
 		case AVMEDIA_TYPE_AUDIO: m = new MetadataPktLibavAudio(st->codec, st->id); break;
-		case AVMEDIA_TYPE_VIDEO: /*ffpp::isRaw(st->codec) ? m = new MetadataRawVideo :*/
-			m = new MetadataPktLibavVideo(st->codec, st->id); break;
-		default: m = nullptr; break; //TODO:  sparse stream: send regularly empty samples
+		case AVMEDIA_TYPE_VIDEO: m = new MetadataPktLibavVideo(st->codec, st->id); break;
+		case AVMEDIA_TYPE_SUBTITLE: m = new MetadataPktLibavSubtitle(st->codec, st->id); break;
+		default: m = nullptr; break;
 		}
 		outputs.push_back(addOutput<OutputDataDefault<DataAVPacket>>(m));
 		av_dump_format(m_formatCtx, i, "", 0);
