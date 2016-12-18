@@ -119,7 +119,7 @@ bool LibavDecode::processVideo(const DataAVPacket *data) {
 		return false;
 	}
 	if (av_frame_get_decode_error_flags(avFrame->get()) || (avFrame->get()->flags & AV_FRAME_FLAG_CORRUPT)) {
-		log(Error, "Corrupted video frame decoded.");
+		log(Error, "Corrupted video frame decoded (%s).", gotPicture);
 	}
 	if (gotPicture) {
 		auto pic = DataPicture::create(videoOutput, Resolution(avFrame->get()->width, avFrame->get()->height), libavPixFmt2PixelFormat((AVPixelFormat)avFrame->get()->format));

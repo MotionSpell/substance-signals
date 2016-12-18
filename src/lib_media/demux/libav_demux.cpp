@@ -102,8 +102,8 @@ LibavDemux::LibavDemux(const std::string &url, const uint64_t seekTimeInMs)
 				restampers[i] = uptr(create<Transform::Restamp>(Transform::Restamp::Reset));
 			}
 
-			if (format == "mpegts") {
-				startPTS = std::max<int64_t>(startPTS, m_formatCtx->streams[i]->start_time);
+			if (format == "rtsp" || format == "mpegts") {
+				startPTSIn180k = std::max<int64_t>(startPTSIn180k, timescaleToClock(m_formatCtx->streams[i]->start_time*m_formatCtx->streams[i]->time_base.num, m_formatCtx->streams[i]->time_base.den));
 			}
 		}
 
@@ -192,7 +192,7 @@ void LibavDemux::dispatch(AVPacket *pkt) {
 		pkt->pts = m_formatCtx->streams[pkt->stream_index]->pts_buffer[0];
 		log(Debug, "No PTS: setting last value %s.", pkt->pts);
 	}
-	if (pkt->pts < startPTS) {
+	if (pkt->pts < clockToTimescale(startPTSIn180k*m_formatCtx->streams[pkt->stream_index]->time_base.num, m_formatCtx->streams[pkt->stream_index]->time_base.den)) {
 		av_packet_free(&pkt);
 		return;
 	}
@@ -206,9 +206,8 @@ void LibavDemux::dispatch(AVPacket *pkt) {
 }
 
 void LibavDemux::process(Data data) {
-	if (m_formatCtx->iformat->name == std::string("mpegts") && m_formatCtx->pb && !m_formatCtx->pb->seekable) {
-		auto const base = m_formatCtx->streams[0]->time_base;
-		startPTS += clockToTimescale(g_DefaultClock->now() * base.den, base.num);
+	if (startPTSIn180k) {
+		startPTSIn180k += g_DefaultClock->now();
 	}
 	workingThread = std::thread(&LibavDemux::threadProc, this);
 
