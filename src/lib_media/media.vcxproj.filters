@@ -101,7 +101,7 @@
     <ClInclude Include="transform\libavfilter.hpp">
       <Filter>src\transform</Filter>
     </ClInclude>
-    <ClInclude Include="transform\teletext2ttml.hpp">
+    <ClInclude Include="transform\telx2ttml.hpp">
       <Filter>src\transform</Filter>
     </ClInclude>
   </ItemGroup>
@@ -240,7 +240,7 @@
     <ClCompile Include="transform\libavfilter.cpp">
       <Filter>src\transform</Filter>
     </ClCompile>
-    <ClCompile Include="transform\teletext2ttml.cpp">
+    <ClCompile Include="transform\telx2ttml.cpp">
       <Filter>src\transform</Filter>
     </ClCompile>
   </ItemGroup>

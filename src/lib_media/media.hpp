@@ -26,7 +26,7 @@
 #include "transform/audio_convert.hpp"
 #include "transform/libavfilter.hpp"
 #include "transform/restamp.hpp"
-#include "transform/teletext2ttml.hpp"
+#include "transform/telx2ttml.hpp"
 #include "transform/video_convert.hpp"
 #include "utils/comparator.hpp"
 #include "utils/recorder.hpp"

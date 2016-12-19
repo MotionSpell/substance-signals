@@ -115,7 +115,7 @@ MEDIA_SRCS:=\
   $(ProjectName)/transform/audio_convert.cpp\
   $(ProjectName)/transform/libavfilter.cpp\
   $(ProjectName)/transform/restamp.cpp\
-  $(ProjectName)/transform/teletext2ttml.cpp\
+  $(ProjectName)/transform/telx2ttml.cpp\
   $(ProjectName)/transform/video_convert.cpp\
   $(ProjectName)/utils/comparator.cpp\
   $(ProjectName)/utils/recorder.cpp\
