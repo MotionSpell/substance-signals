@@ -594,6 +594,25 @@ void GPACMuxMP4::declareStreamAudio(std::shared_ptr<const MetadataPktLibavAudio>
 		throw error(format("Container format import failed: %s", gf_error_to_string(e)));
 }
 
+void GPACMuxMP4::declareStreamSubtitle(std::shared_ptr<const MetadataPktLibavSubtitle> metadata) {
+	u32 trackNum = gf_isom_new_track(isoCur, 0, GF_ISOM_MEDIA_TEXT, TIMESCALE_MUL);
+	if (!trackNum)
+		throw error(format("Cannot create new track"));
+	trackId = gf_isom_get_track_id(isoCur, trackNum);
+	defaultSampleIncInTs = TIMESCALE_MUL;
+
+	GF_Err e = gf_isom_set_track_enabled(isoCur, trackNum, GF_TRUE);
+	if (e != GF_OK)
+		throw error(format("gf_isom_set_track_enabled: %s", gf_error_to_string(e)));
+
+	u32 di;
+	e = gf_isom_new_xml_subtitle_description(isoCur, trackNum, "http://www.w3.org/ns/ttml", NULL, NULL, &di);
+	if (e != GF_OK)
+		throw error(format("gf_isom_new_xml_subtitle_description: %s", gf_error_to_string(e)));
+
+	codec4CC = "TTML";
+}
+
 void GPACMuxMP4::declareStreamVideo(std::shared_ptr<const MetadataPktLibavVideo> metadata) {
 	u32 trackNum = gf_isom_new_track(isoCur, 0, GF_ISOM_MEDIA_VISUAL, metadata->getTimeScaleDen() * TIMESCALE_MUL);
 	if (!trackNum)
@@ -688,13 +707,14 @@ void GPACMuxMP4::declareStream(Data data) {
 	auto const metadata = data->getMetadata();
 	if (auto video = std::dynamic_pointer_cast<const MetadataPktLibavVideo>(metadata)) {
 		declareStreamVideo(video);
-		declareInput(safe_cast<const MetadataPktLibav>(metadata));
 	} else if (auto audio = std::dynamic_pointer_cast<const MetadataPktLibavAudio>(metadata)) {
 		declareStreamAudio(audio);
-		declareInput(safe_cast<const MetadataPktLibav>(metadata));
+	} else if (auto subs = std::dynamic_pointer_cast<const MetadataPktLibavSubtitle>(metadata)) {
+		declareStreamSubtitle(subs);
 	} else {
 		throw error(format("Stream creation failed: unknown type."));
 	}
+	declareInput(safe_cast<const MetadataPktLibav>(metadata));
 
 	lastInputTimeIn180k = data->getTime();
 	if (lastInputTimeIn180k) { /*first timestamp is not zero*/
@@ -818,13 +838,12 @@ std::unique_ptr<gpacpp::IsoSample> GPACMuxMP4::fillSample(Data data_) {
 			sample->dataLength = bufLen;
 			sample->setDataOwnership(false);
 		}
-	} else if (mediaType == GF_ISOM_MEDIA_AUDIO) {
+	} else if (mediaType == GF_ISOM_MEDIA_AUDIO || mediaType == GF_ISOM_MEDIA_TEXT) {
 		sample->data = (char*)bufPtr;
 		sample->dataLength = bufLen;
 		sample->setDataOwnership(false);
-	} else {
+	} else
 		throw error("Only audio or video supported yet");
-	}
 
 	if (segmentPolicy == IndependentSegment) {
 		sample->DTS = curSegmentDurInTs;

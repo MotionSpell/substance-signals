@@ -42,6 +42,7 @@ class GPACMuxMP4 : public ModuleDynI {
 	protected:
 		virtual void declareStreamVideo(std::shared_ptr<const MetadataPktLibavVideo> stream);
 		virtual void declareStreamAudio(std::shared_ptr<const MetadataPktLibavAudio> stream);
+		virtual void declareStreamSubtitle(std::shared_ptr<const MetadataPktLibavSubtitle> metadata);
 		virtual void startSegmentPostAction() {}
 		uint32_t trackId;
 		std::string codec4CC;
@@ -90,6 +91,7 @@ public:
 private:
 	void declareStreamVideo(std::shared_ptr<const MetadataPktLibavVideo> stream) final;
 	void declareStreamAudio(std::shared_ptr<const MetadataPktLibavAudio> metadata) final;
+	void declareStreamSubtitle(std::shared_ptr<const MetadataPktLibavSubtitle> metadata) final;
 	void startSegmentPostAction() final;
 
 	std::string writeISMLManifest(std::string codec4CC, std::string codecPrivate, int64_t bitrate, int width, int height, uint32_t sampleRate, uint32_t channels, uint16_t bitsPerSample);

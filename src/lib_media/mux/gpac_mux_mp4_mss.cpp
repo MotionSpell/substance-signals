@@ -26,6 +26,14 @@ void GPACMuxMP4MSS::declareStreamAudio(std::shared_ptr<const MetadataPktLibavAud
 	ptr[0] = 0;
 }
 
+void GPACMuxMP4MSS::declareStreamSubtitle(std::shared_ptr<const MetadataPktLibavSubtitle> metadata) {
+	GPACMuxMP4::declareStreamSubtitle(metadata);
+	//FIXME R: audioLang = ; lang is in metadata
+	ISMLManifest = writeISMLManifest(codec4CC, "", metadata->getBitrate(), 0, 0, 0, 0, 0);
+	auto ptr = (uint32_t*)ISMLManifest.c_str();
+	ptr[0] = 0;
+}
+
 void GPACMuxMP4MSS::declareStreamVideo(std::shared_ptr<const MetadataPktLibavVideo> metadata) {
 	GPACMuxMP4::declareStreamVideo(metadata);
 
@@ -67,7 +75,8 @@ std::string GPACMuxMP4MSS::writeISMLManifest(std::string codec4CC, std::string c
 		std::string type;
 		if (inputs[0]->getMetadata()->isAudio()) type = "audio";
 		else if (inputs[0]->getMetadata()->isVideo()) type = "video";
-		else throw error("Only audio or video supported yet (2)");
+		else if (inputs[0]->getMetadata()->isSubtitle()) type = "textstream";
+		else throw error("Only audio, video and subtitle are supported (2)");
 
 		ss << "      <" << type << " src=\"Stream\" systemBitrate=\"" << bitrate << "\">\n";
 		ss << "        <param name=\"trackID\" value=\"" << trackId << "\" valuetype=\"data\"/>\n";
@@ -89,6 +98,12 @@ std::string GPACMuxMP4MSS::writeISMLManifest(std::string codec4CC, std::string c
 			ss << "        <param name=\"MaxHeight\"     value=\"" << height << "\" valuetype=\"data\"/>\n";
 			ss << "        <param name=\"DisplayWidth\"  value=\"" << width  << "\" valuetype=\"data\"/>\n";
 			ss << "        <param name=\"DisplayHeight\" value=\"" << height << "\" valuetype=\"data\"/>\n";
+		} else if (type == "textstream") {
+			ss << "        <param name=\"FourCC\" value=\"" << codec4CC << "\" valuetype=\"data\"/>\n";
+			ss << "        <param name=\"Subtype\" value=\"CAPT\" valuetype=\"data\"/>\n";
+			if (!audioName.empty()) ss << "        <param name=\"trackName\" value=\"" << audioName << "\" valuetype=\"data\" />\n";
+			if (!audioLang.empty()) ss << "        <param name=\"systemLanguage\" value=\"" << audioLang << "\" valuetype=\"data\" />\n";
+			ss << "        </textstream>\n";
 		} else
 			throw error("Only audio or video supported yet (3)");
 
