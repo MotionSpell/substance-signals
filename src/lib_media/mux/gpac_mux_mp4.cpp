@@ -403,6 +403,8 @@ void GPACMuxMP4::startSegment() {
 				declareStreamVideo(video);
 			} else if (auto audio = std::dynamic_pointer_cast<const MetadataPktLibavAudio>(metadata)) {
 				declareStreamAudio(audio);
+			} else if (auto subs = std::dynamic_pointer_cast<const MetadataPktLibavSubtitle>(metadata)) {
+				declareStreamSubtitle(subs);
 			}
 
 			startSegmentPostAction();
@@ -599,7 +601,7 @@ void GPACMuxMP4::declareStreamSubtitle(std::shared_ptr<const MetadataPktLibavSub
 	if (!trackNum)
 		throw error(format("Cannot create new track"));
 	trackId = gf_isom_get_track_id(isoCur, trackNum);
-	defaultSampleIncInTs = TIMESCALE_MUL;
+	defaultSampleIncInTs = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
 
 	GF_Err e = gf_isom_set_track_enabled(isoCur, trackNum, GF_TRUE);
 	if (e != GF_OK)
@@ -731,6 +733,7 @@ void GPACMuxMP4::sendOutput() {
 	switch (gf_isom_get_media_type(isoCur, gf_isom_get_track_by_id(isoCur, trackId))) {
 	case GF_ISOM_MEDIA_VISUAL: streamType = VIDEO_PKT; mimeType = "video/mp4"; break;
 	case GF_ISOM_MEDIA_AUDIO: streamType = AUDIO_PKT; mimeType = "audio/mp4"; break;
+	case GF_ISOM_MEDIA_TEXT: streamType = SUBTITLE_PKT; mimeType = "application/mp4"; break;
 	default: throw error(format("Segment contains neither audio nor video"));
 	}
 	Bool isInband =
@@ -752,6 +755,7 @@ void GPACMuxMP4::sendOutput() {
 	switch (gf_isom_get_media_type(isoCur, gf_isom_get_track_by_id(isoCur, trackId))) {
 	case GF_ISOM_MEDIA_VISUAL: metadata->resolution[0] = resolution[0]; metadata->resolution[1] = resolution[1]; break;
 	case GF_ISOM_MEDIA_AUDIO: metadata->sampleRate = sampleRate; break;
+	case GF_ISOM_MEDIA_TEXT: break;
 	default: throw error(format("Segment contains neither audio nor video"));
 	}
 
@@ -843,7 +847,7 @@ std::unique_ptr<gpacpp::IsoSample> GPACMuxMP4::fillSample(Data data_) {
 		sample->dataLength = bufLen;
 		sample->setDataOwnership(false);
 	} else
-		throw error("Only audio or video supported yet");
+		throw error("Only audio, video or text supported");
 
 	if (segmentPolicy == IndependentSegment) {
 		sample->DTS = curSegmentDurInTs;

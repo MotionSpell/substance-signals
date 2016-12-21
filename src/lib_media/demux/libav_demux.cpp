@@ -202,6 +202,31 @@ void LibavDemux::dispatch(AVPacket *pkt) {
 	av_packet_move_ref(outPkt, pkt);
 	setTime(out);
 	outputs[outPkt->stream_index]->emit(out);
+
+	//signal clockfrom audio to sparse streams (should be the PCR but libavformat doesn't give access to it)
+	uint64_t curDTS = 0;
+	if (m_formatCtx->streams[outPkt->stream_index]->codec->codec_type == AVMEDIA_TYPE_AUDIO) {
+		auto const base = m_formatCtx->streams[outPkt->stream_index]->time_base;
+		const uint64_t time = timescaleToClock(outPkt->dts * base.num, base.den);
+		if (time > curDTS) {
+			curDTS = time;
+		}
+	}
+	if (curDTS > curTimeIn180k) {
+		curTimeIn180k = curDTS;
+		for (unsigned i = 0; i < m_formatCtx->nb_streams; ++i) {
+			if ((int)i == pkt->stream_index) {
+				continue;
+			}
+			AVStream *st = m_formatCtx->streams[i];
+			if (st->codec->codec_type == AVMEDIA_TYPE_SUBTITLE) {
+				auto outParse = outputs[i]->getBuffer(0);
+				outParse->setTime(curTimeIn180k);
+				outputs[i]->emit(outParse);
+			}
+		}
+	}
+
 	av_packet_free(&pkt);
 }
 

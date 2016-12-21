@@ -105,7 +105,7 @@ std::string GPACMuxMP4MSS::writeISMLManifest(std::string codec4CC, std::string c
 			if (!audioLang.empty()) ss << "        <param name=\"systemLanguage\" value=\"" << audioLang << "\" valuetype=\"data\" />\n";
 			ss << "        </textstream>\n";
 		} else
-			throw error("Only audio or video supported yet (3)");
+			throw error("Only audio, video or textstream supported (3)");
 
 		ss << "      </" << type << ">\n";
 	}

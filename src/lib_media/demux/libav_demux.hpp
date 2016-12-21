@@ -36,6 +36,7 @@ class LibavDemux : public ModuleS {
 		std::vector<OutputDataDefault<DataAVPacket>*> outputs;
 		struct AVFormatContext *m_formatCtx;
 		int64_t startPTSIn180k = 0;
+		uint64_t curTimeIn180k = 0;
 };
 
 }
