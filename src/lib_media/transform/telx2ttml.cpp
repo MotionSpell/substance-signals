@@ -985,7 +985,8 @@ void TeletextToTTML::process(Data data) {
 	//7. sparse stream : send regularly empty samples => DONE
 	//8. fix_teletext_pts, see https://git.gpac-licensing.com/rbouqueau/fk-encode/issues/51 => DONE
 	//9. generate fake segments => DONE
-	//10.compat USP
+	//10. compat USP with empty pages (cf sendSample with nullptr)
+	//11. real samples
 
 	auto sub = safe_cast<const DataAVPacket>(data);
 	output->setMetadata(data->getMetadata());

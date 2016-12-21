@@ -601,7 +601,7 @@ void GPACMuxMP4::declareStreamSubtitle(std::shared_ptr<const MetadataPktLibavSub
 	if (!trackNum)
 		throw error(format("Cannot create new track"));
 	trackId = gf_isom_get_track_id(isoCur, trackNum);
-	defaultSampleIncInTs = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
+	defaultSampleIncInTs = clockToTimescale(segmentDurationIn180k, gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId)));
 
 	GF_Err e = gf_isom_set_track_enabled(isoCur, trackNum, GF_TRUE);
 	if (e != GF_OK)
@@ -788,10 +788,12 @@ void GPACMuxMP4::addSample(gpacpp::IsoSample &sample, const uint64_t dataDuratio
 			startSegment();
 
 			const u64 oneSegDurInTimescale = clockToTimescale(segmentDurationIn180k, mediaTs);
-			if (oneSegDurInTimescale * (DTS / oneSegDurInTimescale) == 0) { /*initial delay*/ //TODO: what happens when delay is bigger than one segment? Add test on this.
+			if (oneSegDurInTimescale * (DTS / oneSegDurInTimescale) == 0) { /*initial delay*/
 				deltaInTs = curSegmentDurInTs + deltaInTs - oneSegDurInTimescale * ((curSegmentDurInTs + deltaInTs) / oneSegDurInTimescale);
 			} else {
-				deltaInTs = DTS - oneSegDurInTimescale * (DTS / oneSegDurInTimescale);
+				auto const num = (curSegmentDurInTs + deltaInTs) / oneSegDurInTimescale;
+				auto const rem = DTS - (num ? num - 1 : 0) * oneSegDurInTimescale;
+				deltaInTs = DTS - oneSegDurInTimescale * (rem / oneSegDurInTimescale);
 			}
 			if (segmentPolicy == IndependentSegment) {
 				sample.DTS = 0;
