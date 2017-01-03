@@ -4,7 +4,7 @@
 #include <ostream>
 
 #define LOG_MSG_REPETITION_MAX 100
-//#define LOG_THREAD_SAFETY //FIXME: crash seens
+//#define LOG_THREAD_SAFETY //FIXME: crashes seen: add tests
 
 enum Level {
 	Quiet = -1,

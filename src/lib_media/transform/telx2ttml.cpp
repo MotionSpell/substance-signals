@@ -9,6 +9,115 @@ namespace Modules {
 namespace Transform {
 
 namespace {
+void timestamp_to_srttime(uint64_t timestamp, char *buffer, const char *sep = ",") {
+	uint64_t p = timestamp;
+	uint8_t h = (uint8_t)(p / 3600000);
+	uint8_t m = (uint8_t)(p / 60000 - 60 * h);
+	uint8_t s = (uint8_t)(p / 1000 - 3600 * h - 60 * m);
+	uint16_t u = (uint8_t)(p - 3600000 * h - 60000 * m - 1000 * s);
+	sprintf(buffer, "%02u:%02u:%02u%s%03u", (unsigned)h, (unsigned)m, (unsigned)s, sep, (unsigned)u);
+}
+}
+
+struct Page {
+	Page() {}
+
+	uint64_t tsInMs, show_timestamp, hide_timestamp;
+	uint32_t frames_produced;
+	std::stringstream ss;
+
+	const std::string toTTML(int64_t startTimeInMs, int64_t endTimeInMs) const {
+		std::stringstream ttml;
+#if 1
+		ttml << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+		ttml << "<tt xmlns=\"http://www.w3.org/ns/ttml\" xmlns:tts=\"http://www.w3.org/ns/ttml#styling\" xmlns:ttp=\"http://www.w3.org/ns/ttml#parameter\" xmlns:smpte=\"http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt\">\n";
+		ttml << "<head>\n";
+		ttml << "<smpte:information smpte:mode=\"Enhanced\"/>\n";
+		ttml << "<styling>\n";
+		ttml << "<style xml:id=\"emb\" tts:fontSize=\"4.1%\" tts:fontFamily=\"monospaceSansSerif\"/>\n";
+		ttml << "<style xml:id=\"ttx\" tts:fontSize=\"3.21%\" tts:fontFamily=\"monospaceSansSerif\"/>\n";
+		ttml << "<style xml:id=\"backgroundStyle\" tts:fontFamily=\"proportionalSansSerif\" tts:fontSize=\"18px\" tts:textAlign=\"center\" tts:origin=\"0% 66%\" tts:extent=\"100% 33%\" tts:backgroundColor=\"rgba(0,0,0,0)\" tts:displayAlign=\"center\"/>\n";
+		ttml << "<style xml:id=\"speakerStyle\" style=\"backgroundStyle\" tts:color=\"white\" tts:textOutline=\"black 1px\" tts:backgroundColor=\"transparent\"/>\n";
+		ttml << "<style xml:id=\"textStyle\" style=\"speakerStyle\" tts:color=\"white\" tts:textOutline=\"none\" tts:backgroundColor=\"black\"/>\n";
+		ttml << "</styling>\n";
+		ttml << "<layout>\n";
+		ttml << "<region xml:id=\"full\" tts:origin=\"0% 0%\" tts:extent=\"100% 100%\" tts:zIndex=\"1\"/>\n";
+		ttml << "<region xml:id=\"speaker\" style=\"speakerStyle\" tts:zIndex=\"1\"/>\n";
+		ttml << "<region xml:id=\"background\" style=\"backgroundStyle\" tts:zIndex=\"0\"/>\n";
+		ttml << "</layout>\n";
+		ttml << "</head>\n";
+		ttml << "<body>\n";
+		ttml << "<div>\n";
+
+		char timecode_show[24] = { 0 };
+		timestamp_to_srttime(startTimeInMs, timecode_show, ".");
+		timecode_show[12] = 0;
+		char timecode_hide[24] = { 0 };
+		timestamp_to_srttime(endTimeInMs, timecode_hide, ".");
+		timecode_hide[12] = 0;
+		ttml << "<p begin=\"" << timecode_show << "\" end=\"" << timecode_hide << "\" region=\"speaker\"><span style=\"textStyle\">" << ss.str() << "</span></p>\n";
+
+		ttml << "</div>\n";
+		ttml << "</body>\n";
+		ttml << "</tt>\n\n";
+#else
+		ttml << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n";
+		ttml << "<tt xmlns=\"http://www.w3.org/ns/ttml\" xmlns:tt=\"http://www.w3.org/ns/ttml\" xmlns:ttm=\"http://www.w3.org/ns/ttml#metadata\" xmlns:tts=\"http://www.w3.org/ns/ttml#styling\" xmlns:ttp=\"http://www.w3.org/ns/ttml#parameter\" xmlns:ebutts=\"urn:ebu:tt:style\" xmlns:ebuttm=\"urn:ebu:tt:metadata\" xml:lang=\"\" ttp:timeBase=\"media\">\n";
+		ttml << "  <head>\n";
+		ttml << "    <metadata>\n";
+		ttml << "      <ebuttm:documentMetadata>\n";
+		ttml << "        <ebuttm:conformsToStandard>urn:ebu:tt:distribution:2014-01</ebuttm:conformsToStandard>\n";
+		ttml << "      </ebuttm:documentMetadata>\n";
+		ttml << "    </metadata>\n";
+		ttml << "    <styling>\n";
+		ttml << "      <style xml:id=\"Style0_0\" tts:fontFamily=\"proportionalSansSerif\" tts:backgroundColor=\"#00000099\" tts:color=\"#FFFFFF\" tts:fontSize=\"100%\" tts:lineHeight=\"normal\" ebutts:linePadding=\"0.5c\" />\n";
+		ttml << "      <style xml:id=\"textAlignment_0\" tts:textAlign=\"center\" />\n";
+		ttml << "    </styling>\n";
+		ttml << "    <layout>\n";
+		ttml << "      <region xml:id=\"Region\" tts:origin=\"10% 10%\" tts:extent=\"80% 80%\" tts:displayAlign=\"after\" />\n";
+		ttml << "    </layout>\n";
+		ttml << "  </head>\n";
+		ttml << "  <body>\n";
+		ttml << "    <div>\n";
+		ttml << "      <p region=\"Region\" style=\"textAlignment_0\" begin=\"00:00:00.000\" end=\"00:00:02.000\" xml:id=\"sub_0\">\n";
+		ttml << "        <span style=\"Style0_0\">Ich suche das Holstentor.</span>\n";
+		ttml << "      </p>\n";
+		ttml << "    </div>\n";
+		ttml << "  </body>\n";
+		ttml << "</tt>";//\n\n";
+#endif
+		return ttml.str();
+	}
+
+	const std::string toSRT() {
+		std::stringstream srt;
+		{
+			char buf[255];
+			snprintf(buf, 255, "%.3f|", (double)tsInMs / 1000.0);
+			srt << buf;
+		}
+
+		{
+			char timecode_show[24] = { 0 };
+			timestamp_to_srttime(show_timestamp, timecode_show);
+			timecode_show[12] = 0;
+
+			char timecode_hide[24] = { 0 };
+			timestamp_to_srttime(hide_timestamp, timecode_hide);
+			timecode_hide[12] = 0;
+
+			char buf[255];
+			snprintf(buf, 255, "%u\r\n%s --> %s\r\n", (unsigned)++frames_produced, timecode_show, timecode_hide);
+			srt << buf;
+		}
+
+		srt << ss.str();
+
+		return srt.str();
+	}
+};
+
+namespace {
 
 typedef enum {
 	NO = 0x00,
@@ -51,15 +160,6 @@ const char* TTXT_COLOURS[8] = {
 
 // SRT frames produced
 uint32_t frames_produced = 0;
-
-void timestamp_to_srttime(uint64_t timestamp, char *buffer) {
-	uint64_t p = timestamp;
-	uint8_t h = (uint8_t)(p / 3600000);
-	uint8_t m = (uint8_t)(p / 60000 - 60 * h);
-	uint8_t s = (uint8_t)(p / 1000 - 3600 * h - 60 * m);
-	uint16_t u = (uint8_t)(p - 3600000 * h - 60000 * m - 1000 * s);
-	sprintf(buffer, "%02u:%02u:%02u,%03u", (unsigned)h, (unsigned)m, (unsigned)s, (unsigned)u);
-}
 
 #define VERBOSE_ONLY if(0) 
 #define STDERR_ONLY if(0) 
@@ -525,36 +625,6 @@ void remap_g0_charset(uint8_t c) {
 }
 }
 
-struct Page {
-	Page() {}
-
-	uint64_t tsInMs, show_timestamp, hide_timestamp;
-	uint32_t frames_produced;
-	std::stringstream ss;
-
-	void toSRT() {
-		{
-			char buf[255];
-			snprintf(buf, 255, "%.3f|", (double)tsInMs / 1000.0);
-			ss << buf;
-		}
-
-		{
-			char timecode_show[24] = { 0 };
-			timestamp_to_srttime(show_timestamp, timecode_show);
-			timecode_show[12] = 0;
-
-			char timecode_hide[24] = { 0 };
-			timestamp_to_srttime(hide_timestamp, timecode_hide);
-			timecode_hide[12] = 0;
-
-			char buf[255];
-			snprintf(buf, 255, "%u\r\n%s --> %s\r\n", (unsigned)++frames_produced, timecode_show, timecode_hide);
-			ss << buf;
-		}
-	}
-};
-
 std::unique_ptr<Page> process_page(teletext_page_t *pageIn) {
 #ifdef DEBUG
 	for (uint8_t row = 1; row < 25; row++) {
@@ -564,7 +634,6 @@ std::unique_ptr<Page> process_page(teletext_page_t *pageIn) {
 	}
 	fprintf(fout, "\n");
 #endif
-
 	auto pageOut = uptr(new Page);
 
 	// optimization: slicing column by column -- higher probability we could find boxed area start mark sooner
@@ -692,7 +761,6 @@ page_is_empty:
 
 	pageOut->ss << "\r\n";
 	pageOut->ss.flush();
-
 	return pageOut;
 }
 
@@ -941,41 +1009,48 @@ TeletextToTTML::TeletextToTTML(unsigned page, uint64_t splitDurationInMs)
 	output = addOutput<OutputDataDefault<DataAVPacket>>();
 }
 
-void TeletextToTTML::sendSample(std::stringstream *page) {
+void TeletextToTTML::sendSample(const std::string &sample) {
 	auto out = output->getBuffer(0);
 	out->setTime(intClock);
 	auto pkt = out->getPacket();
-	auto ttml = writeTTML(page);
-	pkt->size = (int)ttml.size() + 1;
+	pkt->size = (int)sample.size();
 	pkt->data = (uint8_t*)av_malloc(pkt->size);
 	pkt->flags |= AV_PKT_FLAG_KEY;
-	memcpy(pkt->data, (uint8_t*)ttml.c_str(), pkt->size);
+	memcpy(pkt->data, (uint8_t*)sample.c_str(), pkt->size);
 	output->emit(out);
 }
 
-void TeletextToTTML::generateEmptySamplesUntilTime(uint64_t time) {
+void TeletextToTTML::generateSamplesUntilTime(uint64_t time, Page const * const page) {
  	//adjust to the next split
 	auto nextSplit = std::min<uint64_t>(((intClock / splitDurationIn180k) + 1) * splitDurationIn180k, time);
-	sendSample(nullptr);
-	log(Warning, "adjust to the next split: %s - %s", intClock, nextSplit);
+	if (nextSplit < intClock) {
+		log(Warning, "Next split time %s is before current clock %s. Skipping sample.", nextSplit, intClock);
+		return;
+	}
+	auto offset = (intClock / splitDurationIn180k) * splitDurationIn180k;
+	sendSample(page->toTTML(clockToTimescale(intClock - offset, 1000), clockToTimescale(nextSplit - offset, 1000)));
+	log(Debug, "Adjust to the next split: %s - %s", intClock, nextSplit);
 	intClock = nextSplit;
 
 	//full split segments
 	while (intClock + splitDurationIn180k < time) {
-		sendSample(nullptr);
-		log(Warning, "full split segments : %s - %s", intClock, intClock + splitDurationIn180k);
+		offset = intClock;
+		sendSample(page->toTTML(clockToTimescale(intClock - offset, 1000), clockToTimescale(intClock + splitDurationIn180k - offset, 1000)));
+		log(Debug, "Full split segments : %s - %s", intClock, intClock + splitDurationIn180k);
 		intClock += splitDurationIn180k;
 	}
 
 	//remainder
 	if (intClock < time) {
-		sendSample(nullptr);
-		log(Warning, "remainder           : %s - %s", intClock, intClock + splitDurationIn180k);
+		offset = intClock;
+		sendSample(page->toTTML(clockToTimescale(intClock - offset, 1000), clockToTimescale(time - offset, 1000)));
+		log(Debug, "Remainder           : %s - %s", intClock, time);
 		intClock = time;
 	}
 }
 
 void TeletextToTTML::process(Data data) {
+	const Page pageEmpty;
 	//1. nothing => DONE
 	//2. build graph => DONE
 	//3. same ttml: fwd input data => DONE
@@ -985,8 +1060,10 @@ void TeletextToTTML::process(Data data) {
 	//7. sparse stream : send regularly empty samples => DONE
 	//8. fix_teletext_pts, see https://git.gpac-licensing.com/rbouqueau/fk-encode/issues/51 => DONE
 	//9. generate fake segments => DONE
-	//10. compat USP with empty pages (cf sendSample with nullptr)
+	//10. compat USP with empty pages (cf sendSample with "") => DONE
 	//11. real samples
+	//12. several samples in one?
+	//13. UTF8 to TTML formatting? accent + EOLs </br>
 
 	auto sub = safe_cast<const DataAVPacket>(data);
 	output->setMetadata(data->getMetadata());
@@ -994,8 +1071,7 @@ void TeletextToTTML::process(Data data) {
 		extClock = sub->getTime();
 		const int64_t nextSplit = ((intClock / splitDurationIn180k) + 1) * splitDurationIn180k;
 		if ((int64_t)(extClock - delayIn180k) > nextSplit) {
-			log(Warning, "ADJUST (extClock=%s, intClock=%s, nextSplit=%s)", extClock, intClock, nextSplit);
-			generateEmptySamplesUntilTime(nextSplit);
+			generateSamplesUntilTime(nextSplit, &pageEmpty);
 		}
 		return;
 	}
@@ -1003,8 +1079,6 @@ void TeletextToTTML::process(Data data) {
 	config.page = page;
 	auto pkt = sub->getPacket();
 	auto time = sub->getTime();
-	if (time < intClock)
-		throw error(format("Timing error: received %s but internal clock is already at %s", time, intClock));
 
 	int pes_packet_length = pkt->size;
 	int i = 1;
@@ -1021,39 +1095,22 @@ void TeletextToTTML::process(Data data) {
 				}
 
 				// FIXME: This explicit type conversion could be a problem some day -- do not need to be platform independant
-				auto p = process_telx_packet(data_unit_id, (teletext_packet_payload_t*)txdata, pkt->pts);
-				if (p) {
-					log(Warning, "SAMPLE");
-					generateEmptySamplesUntilTime(data->getTime()); //FIXME: broken: p->show_timestamp);
-					sendSample(&p->ss);
+				auto page = process_telx_packet(data_unit_id, (teletext_packet_payload_t*)txdata, pkt->pts);
+				if (page) {
+					//if (time < intClock)
+					//	throw error(format("Timing error: received %s but internal clock is already at %s", time, intClock));
+					//TODO: FIXME WE SHOULD PROBABLY ACCUMULATE UNTIL IT IS TIME TO SEND? IT MAY BE COMPLEXE WITH WEBVTT-LIKE ALGO
+					auto codecCtx = safe_cast<const MetadataPktLibav>(data->getMetadata())->getAVCodecContext();
+					auto const startTimeInMs = std::max<int64_t>(convertToTimescale(pkt->pts * codecCtx->time_base.num, codecCtx->time_base.den, 1000), convertToTimescale(page->show_timestamp * codecCtx->time_base.num, codecCtx->time_base.den, 1000));
+					auto const durationInMs = convertToTimescale((page->hide_timestamp - page->show_timestamp) * codecCtx->time_base.num, codecCtx->time_base.den, 1000);
+					generateSamplesUntilTime(timescaleToClock(startTimeInMs, 1000), &pageEmpty);
+					generateSamplesUntilTime(timescaleToClock(startTimeInMs + durationInMs, 1000), page.get());
 				}
 			}
 		}
 
 		i += data_unit_len;
 	}
-}
-
-std::string TeletextToTTML::writeTTML(std::stringstream *page) {
-	std::stringstream ss;
-	ss << "<?xml version=\"1.0\" encoding=\"UTF-8\"?><tt xmlns=\"http://www.w3.org/ns/ttml\" xmlns:tts=\"http://www.w3.org/ns/ttml#styling\" xmlns:smpte=\"http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt\"><head>\n";
-	ss << "<smpte:information smpte:mode=\"Enhanced\" />\n";
-	ss << "<styling>\n";
-	ss << "<style xml:id=\"emb\" tts:fontSize=\"4.1%\" tts:fontFamily=\"monospaceSansSerif\" />\n";
-	ss << "<style xml:id=\"ttx\" tts:fontSize=\"3.21%\" tts:fontFamily=\"monospaceSansSerif\"/>\n";
-	ss << "<style xml:id=\"backgroundStyle\" tts:fontFamily=\"proportionalSansSerif\" tts:fontSize=\"18px\" tts:textAlign=\"center\" tts:origin=\"0% 66%\" tts:extent=\"100% 33%\" tts:backgroundColor=\"rgba(0,0,0,0)\" tts:displayAlign=\"center\" />\n";
-	ss << "<style xml:id=\"speakerStyle\" style=\"backgroundStyle\" tts:color=\"white\" tts:textOutline=\"black 1px\" tts:backgroundColor=\"transparent\" />\n";
-	ss << "<style xml:id=\"textStyle\" style=\"speakerStyle\" tts:color=\"white\" tts:textOutline=\"none\" tts:backgroundColor=\"black\" />\n";
-	ss << "</styling><layout>\n";
-	ss << "<region xml:id=\"full\" tts:origin=\"0% 0%\" tts:extent=\"100% 100%\" tts:zIndex=\"1\" />\n";
-	ss << "<region xml:id=\"speaker\" style=\"speakerStyle\" tts:zIndex=\"1\" />\n";
-	ss << "<region xml:id=\"background\" style=\"backgroundStyle\" tts:zIndex=\"0\" />\n";
-	ss << "</layout>\n";
-	ss << "</head><body><div>\n";
-	ss << "<!-- text-based TTML -->\n";
-	if (page) ss << page->str();
-	ss << "</div></body></tt>\n";
-	return ss.str();
 }
 
 }

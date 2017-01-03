@@ -103,7 +103,6 @@ std::string GPACMuxMP4MSS::writeISMLManifest(std::string codec4CC, std::string c
 			ss << "        <param name=\"Subtype\" value=\"CAPT\" valuetype=\"data\"/>\n";
 			if (!audioName.empty()) ss << "        <param name=\"trackName\" value=\"" << audioName << "\" valuetype=\"data\" />\n";
 			if (!audioLang.empty()) ss << "        <param name=\"systemLanguage\" value=\"" << audioLang << "\" valuetype=\"data\" />\n";
-			ss << "        </textstream>\n";
 		} else
 			throw error("Only audio, video or textstream supported (3)");
 
