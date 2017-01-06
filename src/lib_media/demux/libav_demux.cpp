@@ -13,6 +13,8 @@ extern "C" {
 #include <libavutil/opt.h>
 }
 
+#define PKT_QUEUE_SIZE 256
+
 namespace Modules {
 
 namespace {
@@ -53,7 +55,7 @@ bool LibavDemux::webcamOpen(const std::string &options) {
 }
 
 LibavDemux::LibavDemux(const std::string &url, const uint64_t seekTimeInMs)
-: done(false), dispatchPkts(256) {
+: done(false), dispatchPkts(PKT_QUEUE_SIZE) {
 	if (!(m_formatCtx = avformat_alloc_context()))
 		throw error("Can't allocate format context");
 
@@ -123,7 +125,7 @@ LibavDemux::LibavDemux(const std::string &url, const uint64_t seekTimeInMs)
 		switch (st->codec->codec_type) {
 		case AVMEDIA_TYPE_AUDIO: m = new MetadataPktLibavAudio(st->codec, st->id); break;
 		case AVMEDIA_TYPE_VIDEO: m = new MetadataPktLibavVideo(st->codec, st->id); break;
-		case AVMEDIA_TYPE_SUBTITLE: m = new MetadataPktLibavSubtitle(st->codec, st->id); break;
+		//case AVMEDIA_TYPE_SUBTITLE: m = new MetadataPktLibavSubtitle(st->codec, st->id); break;
 		default: m = nullptr; break;
 		}
 		outputs.push_back(addOutput<OutputDataDefault<DataAVPacket>>(m));
@@ -146,8 +148,14 @@ LibavDemux::~LibavDemux() {
 }
 
 void LibavDemux::threadProc() {
+	std::unique_ptr<DataAVPacket> pkts[PKT_QUEUE_SIZE];
+	for (auto i=0; i<PKT_QUEUE_SIZE; ++i) {
+	  pkts[i] = uptr(new DataAVPacket);
+	}
+	int pktIdx = 0;
 	while (!done) {
-		auto pkt = av_packet_alloc();
+		auto pkt = pkts[pktIdx]->getPacket();
+		av_init_packet(pkt);
 		int status = av_read_frame(m_formatCtx, pkt);
 		if (status < 0) {
 			if (status == (int)AVERROR_EOF || (m_formatCtx->pb && m_formatCtx->pb->eof_reached)) {
@@ -156,17 +164,18 @@ void LibavDemux::threadProc() {
 				log(Error, "Stream contains an irrecoverable error (%s) - leaving", status);
 			}
 			done = true;
-			av_packet_free(&pkt);
+			av_free_packet(pkt);
 			return;
 		}
 		while (!dispatchPkts.write(pkt)) {
 			if (done) {
-				av_packet_free(&pkt);
+				av_free_packet(pkt);
 				return;
 			}
 			log(m_formatCtx->pb && !m_formatCtx->pb->seekable ? Warning : Debug, "Dispatch queue is full - regulating.");
 			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 		}
+		pktIdx = (pktIdx + 1) % PKT_QUEUE_SIZE;
 	}
 }
 
@@ -193,7 +202,7 @@ void LibavDemux::dispatch(AVPacket *pkt) {
 		log(Debug, "No PTS: setting last value %s.", pkt->pts);
 	}
 	if (pkt->pts < clockToTimescale(startPTSIn180k*m_formatCtx->streams[pkt->stream_index]->time_base.num, m_formatCtx->streams[pkt->stream_index]->time_base.den)) {
-		av_packet_free(&pkt);
+		av_free_packet(pkt);
 		return;
 	}
 
@@ -227,7 +236,7 @@ void LibavDemux::dispatch(AVPacket *pkt) {
 		}
 	}
 
-	av_packet_free(&pkt);
+	av_free_packet(pkt);
 }
 
 void LibavDemux::process(Data data) {
