@@ -153,10 +153,10 @@ Entity const ENTITIES[] = {
 	{ '&', "&amp;" }
 };
 
-const char* TTXT_COLOURS[8] = {
-	//black,     red,       green,     yellow,    blue,      magenta,   cyan,      white
-	"#000000", "#ff0000", "#00ff00", "#ffff00", "#0000ff", "#ff00ff", "#00ffff", "#ffffff"
-};
+//const char* TTXT_COLOURS[8] = {
+//	//black,     red,       green,     yellow,    blue,      magenta,   cyan,      white
+//	"#000000", "#ff0000", "#00ff00", "#ffff00", "#0000ff", "#ff00ff", "#00ffff", "#ffffff"
+//};
 
 // SRT frames produced
 uint32_t frames_produced = 0;
