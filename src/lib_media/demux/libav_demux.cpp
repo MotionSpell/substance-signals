@@ -141,22 +141,17 @@ LibavDemux::~LibavDemux() {
 
 	avformat_close_input(&m_formatCtx);
 
-	AVPacket *p;
+	AVPacket p;
 	while (dispatchPkts.read(p)) {
-		av_packet_free(&p);
+		av_free_packet(&p);
 	}
 }
 
 void LibavDemux::threadProc() {
-	std::unique_ptr<DataAVPacket> pkts[PKT_QUEUE_SIZE];
-	for (auto i=0; i<PKT_QUEUE_SIZE; ++i) {
-	  pkts[i] = uptr(new DataAVPacket);
-	}
-	int pktIdx = 0;
+	AVPacket pkt;
 	while (!done) {
-		auto pkt = pkts[pktIdx]->getPacket();
-		av_init_packet(pkt);
-		int status = av_read_frame(m_formatCtx, pkt);
+		av_init_packet(&pkt);
+		int status = av_read_frame(m_formatCtx, &pkt);
 		if (status < 0) {
 			if (status == (int)AVERROR_EOF || (m_formatCtx->pb && m_formatCtx->pb->eof_reached)) {
 				log(Info, "End of stream detected - leaving");
@@ -164,18 +159,17 @@ void LibavDemux::threadProc() {
 				log(Error, "Stream contains an irrecoverable error (%s) - leaving", status);
 			}
 			done = true;
-			av_free_packet(pkt);
+			av_free_packet(&pkt);
 			return;
 		}
 		while (!dispatchPkts.write(pkt)) {
 			if (done) {
-				av_free_packet(pkt);
+				av_free_packet(&pkt);
 				return;
 			}
 			log(m_formatCtx->pb && !m_formatCtx->pb->seekable ? Warning : Debug, "Dispatch queue is full - regulating.");
 			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 		}
-		pktIdx = (pktIdx + 1) % PKT_QUEUE_SIZE;
 	}
 }
 
@@ -212,7 +206,7 @@ void LibavDemux::dispatch(AVPacket *pkt) {
 	setTime(out);
 	outputs[outPkt->stream_index]->emit(out);
 
-	//signal clockfrom audio to sparse streams (should be the PCR but libavformat doesn't give access to it)
+	//signal clock from audio to sparse streams (should be the PCR but libavformat doesn't give access to it)
 	uint64_t curDTS = 0;
 	if (m_formatCtx->streams[outPkt->stream_index]->codec->codec_type == AVMEDIA_TYPE_AUDIO) {
 		auto const base = m_formatCtx->streams[outPkt->stream_index]->time_base;
@@ -235,8 +229,6 @@ void LibavDemux::dispatch(AVPacket *pkt) {
 			}
 		}
 	}
-
-	av_free_packet(pkt);
 }
 
 void LibavDemux::process(Data data) {
@@ -245,25 +237,21 @@ void LibavDemux::process(Data data) {
 	}
 	workingThread = std::thread(&LibavDemux::threadProc, this);
 
-	AVPacket *pkt = nullptr;
-	for (;;) {
+	AVPacket pkt;
+	while (!done) {
 		if (getNumInputs() && getInput(0)->tryPop(data)) {
 			done = true;
 			break;
 		}
 
 		if (!dispatchPkts.read(pkt)) {
-			if (done) {
-				return;
-			}
-
 			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 			continue;
 		}
-		if (pkt->flags & AV_PKT_FLAG_CORRUPT) {
+		if (pkt.flags & AV_PKT_FLAG_CORRUPT) {
 			log(Error, "Corrupted packet received.");
 		}
-		dispatch(pkt);
+		dispatch(&pkt);
 	}
 
 	log(Info, "Exit from an external event.");

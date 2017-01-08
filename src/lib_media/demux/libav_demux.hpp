@@ -31,7 +31,7 @@ class LibavDemux : public ModuleS {
 
 		std::thread workingThread;
 		std::atomic_bool done;
-		Signals::QueueLockFree<AVPacket*> dispatchPkts;
+		Signals::QueueLockFree<AVPacket> dispatchPkts;
 		std::vector<std::unique_ptr<Transform::Restamp>> restampers;
 		std::vector<OutputDataDefault<DataAVPacket>*> outputs;
 		struct AVFormatContext *m_formatCtx;
