@@ -42,4 +42,3 @@ class GenericFifo {
 };
 
 typedef GenericFifo<uint8_t> Fifo;
-

@@ -17,6 +17,9 @@
     </ClInclude>
     <ClInclude Include="format.hpp" />
     <ClInclude Include="profiler.hpp" />
+    <ClInclude Include="fifo.hpp" />
+    <ClInclude Include="queue.hpp" />
+    <ClInclude Include="threadpool.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="gpacpp">

@@ -5,7 +5,7 @@
 #include "lib_media/out/null.hpp"
 #include "lib_media/transform/audio_convert.hpp"
 #include "lib_media/transform/restamp.hpp"
-#include "lib_modules/utils/pipeline.hpp"
+#include "lib_pipeline/pipeline.hpp"
 
 
 using namespace Tests;

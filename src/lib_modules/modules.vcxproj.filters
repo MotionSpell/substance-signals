@@ -25,9 +25,6 @@
     <ClInclude Include="core\module.hpp">
       <Filter>core</Filter>
     </ClInclude>
-    <ClInclude Include="utils\pipeline.hpp">
-      <Filter>utils</Filter>
-    </ClInclude>
     <ClInclude Include="core\metadata.hpp">
       <Filter>core</Filter>
     </ClInclude>
@@ -45,9 +42,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="utils\pipeline.cpp">
-      <Filter>utils</Filter>
-    </ClCompile>
     <ClCompile Include="core\clock.cpp">
       <Filter>core</Filter>
     </ClCompile>

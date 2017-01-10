@@ -26,9 +26,6 @@
     <ClInclude Include="decode\libav_decode.hpp">
       <Filter>src\decode</Filter>
     </ClInclude>
-    <ClInclude Include="render\fifo.hpp">
-      <Filter>src\render</Filter>
-    </ClInclude>
     <ClInclude Include="render\render_common.hpp">
       <Filter>src\render</Filter>
     </ClInclude>

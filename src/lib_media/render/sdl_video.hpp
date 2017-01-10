@@ -36,7 +36,7 @@ class SDLVideo : public ModuleS {
 
 		int64_t m_NumFrames;
 
-		Signals::Queue<Data> m_dataQueue; //FIXME: useless now we have input pins
+		Queue<Data> m_dataQueue; //FIXME: useless now we have input pins
 		std::thread workingThread;
 };
 

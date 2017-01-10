@@ -3,7 +3,7 @@
 #include "lib_modules/core/clock.hpp"
 #include "lib_modules/core/module.hpp"
 #include "../common/pcm.hpp"
-#include "fifo.hpp"
+#include "lib_utils/fifo.hpp"
 #include <mutex>
 #include <memory.h>
 

@@ -1,6 +1,6 @@
 #include "pipeline.hpp"
 #include <typeinfo>
-#include "helper.hpp"
+#include "lib_modules/utils/helper.hpp"
 
 #define EXECUTOR_SYNC              Signals::ExecutorSync<void()>
 #define EXECUTOR_ASYNC_THREAD      Signals::ExecutorThread<void()>(getDelegateName())

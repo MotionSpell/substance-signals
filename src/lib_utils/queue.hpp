@@ -11,8 +11,6 @@
 #include <type_traits>
 #include <utility>
 
-namespace Signals {
-
 template<typename T>
 class Queue {
 	public:
@@ -289,5 +287,3 @@ private:
 	std::atomic<unsigned int> readIndex_;
 	std::atomic<unsigned int> writeIndex_;
 };
-
-}

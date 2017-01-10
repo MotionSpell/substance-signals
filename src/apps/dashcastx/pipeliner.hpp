@@ -1,6 +1,6 @@
 #pragma once
 
-#include "lib_modules/utils/pipeline.hpp"
+#include "lib_pipeline/pipeline.hpp"
 #include "options.hpp"
 
 enum FormatFlags {

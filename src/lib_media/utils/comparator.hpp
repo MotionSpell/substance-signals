@@ -13,7 +13,7 @@ class IComparator : public ModuleS {
 		virtual void pushOther(Data data);
 
 	private:
-		Signals::Queue<Data> original, other;
+		Queue<Data> original, other;
 };
 
 

@@ -8,8 +8,6 @@
 #include <thread>
 
 
-namespace Signals {
-
 class ThreadPool {
 	public:
 		ThreadPool(const std::string &name = "", unsigned threadCount = std::thread::hardware_concurrency())
@@ -77,4 +75,3 @@ class ThreadPool {
 		std::string name;
 		std::exception_ptr eptr;
 };
-}

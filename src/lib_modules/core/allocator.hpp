@@ -1,7 +1,7 @@
 #pragma once
 
 #include "data.hpp"
-#include "lib_signals/utils/queue.hpp"
+#include "lib_utils/queue.hpp"
 #include <algorithm>
 #include <atomic>
 #include <list>
@@ -131,9 +131,9 @@ class PacketAllocator {
 		const size_t maxDynNumBlocks;
 		std::atomic_size_t curNumBlocks;
 #endif
-		Signals::Queue<Block> freeBlocks;
+		Queue<Block> freeBlocks;
 #ifdef ALLOC_DEBUG_TRACK_BLOCKS
-		Signals::Queue<std::weak_ptr<DataType>> usedBlocks;
+		Queue<std::weak_ptr<DataType>> usedBlocks;
 #endif
 };
 

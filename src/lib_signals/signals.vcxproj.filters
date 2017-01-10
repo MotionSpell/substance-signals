@@ -13,12 +13,6 @@
     <ClInclude Include="utils\helper.hpp">
       <Filter>utils</Filter>
     </ClInclude>
-    <ClInclude Include="utils\queue.hpp">
-      <Filter>utils</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\threadpool.hpp">
-      <Filter>utils</Filter>
-    </ClInclude>
     <ClInclude Include="core\executor.hpp">
       <Filter>core</Filter>
     </ClInclude>

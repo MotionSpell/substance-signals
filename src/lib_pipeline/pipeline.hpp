@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../core/module.hpp"
+#include "lib_modules/core/module.hpp"
 #include <atomic>
 #include <memory>
 #include <stdexcept>

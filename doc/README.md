@@ -32,7 +32,8 @@ Signals is layered (from bottom to top):
 
 Signals include:
  - lib_signals: an agnostic signal/slot mechanism using C++11. May convey any type of data with any type of messaging.
- - lib_modules: an agnostic modules system. Uses lib_signals to connect the modules.  Modules are: inputs/outputs, a clock, an allocator, a data/metadata system. Everything can be configured thru templates. lib_modules comes with some helpers: a special thread-pool that guarantees thread-safeness of calls on a module and a pipeline class to supervise modules.
+ - lib_modules: an agnostic modules system. Uses lib_signals to connect the modules.  Modules are: inputs/outputs, a clock, an allocator, a data/metadata system. Everything can be configured thru templates.
+ - lib_pipeline: easily build and supervise modules.
  - lib_media: a multimedia-specific layer. Uses lib_modules. Defines types for audio and video, and a lot of modules (encode/decode, mux/demux, transform, stream, render, etc.).
  - others: Signals also include some C++ wrappers for FFmpeg and GPAC, and some lib_utils (logs, profilings, C++ utils).
 

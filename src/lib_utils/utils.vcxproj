@@ -38,9 +38,12 @@
   <ItemGroup>
     <ClInclude Include="..\lib_ffpp\ffpp.hpp" />
     <ClInclude Include="..\lib_gpacpp\gpacpp.hpp" />
+    <ClInclude Include="fifo.hpp" />
     <ClInclude Include="format.hpp" />
     <ClInclude Include="log.hpp" />
     <ClInclude Include="profiler.hpp" />
+    <ClInclude Include="queue.hpp" />
+    <ClInclude Include="threadpool.hpp" />
     <ClInclude Include="tools.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

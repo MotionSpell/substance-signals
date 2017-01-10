@@ -156,8 +156,6 @@
     <ClInclude Include="core\result.hpp" />
     <ClInclude Include="core\signal.hpp" />
     <ClInclude Include="utils\helper.hpp" />
-    <ClInclude Include="utils\queue.hpp" />
-    <ClInclude Include="utils\threadpool.hpp" />
     <ClInclude Include="signals.hpp" />
     <ClInclude Include="core\executor.hpp" />
   </ItemGroup>

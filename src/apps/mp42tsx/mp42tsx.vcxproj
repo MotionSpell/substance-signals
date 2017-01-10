@@ -213,6 +213,9 @@
     <ProjectReference Include="..\..\lib_modules\modules.vcxproj">
       <Project>{f6843994-f116-4e68-8ef8-c88149887d4c}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\lib_pipeline\pipeline.vcxproj">
+      <Project>{574ff783-7940-4c5f-996f-93431aea2f1a}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\..\lib_utils\utils.vcxproj">
       <Project>{bbd0b4eb-5070-4ecf-b626-da78ed6c8725}</Project>
     </ProjectReference>

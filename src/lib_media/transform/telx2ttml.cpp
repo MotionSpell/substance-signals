@@ -1076,11 +1076,9 @@ void TeletextToTTML::process(Data data) {
 		return;
 	}
 
-	config.page = page;
 	auto pkt = sub->getPacket();
-	auto time = sub->getTime();
-
 	int pes_packet_length = pkt->size;
+	config.page = page;
 	int i = 1;
 	while (i <= pes_packet_length - 6) {
 		auto data_unit_id = (data_unit_t)pkt->data[i++];

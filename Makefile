@@ -132,10 +132,18 @@ DEPS+=$(LIB_MEDIA_OBJS:%.o=%.deps)
 
 #------------------------------------------------------------------------------
 
+ProjectName:=$(SRC)/lib_pipeline
+PIPELINE_SRCS:=\
+  $(ProjectName)/pipeline.cpp\
+
+LIB_PIPELINE_OBJS:=$(PIPELINE_SRCS:%.cpp=$(BIN)/%.o)
+DEPS+=$(LIB_PIPELINE_OBJS:%.o=%.deps)
+
+#------------------------------------------------------------------------------
+
 ProjectName:=$(SRC)/lib_modules
 MODULES_SRCS:=\
   $(ProjectName)/core/clock.cpp\
-  $(ProjectName)/utils/pipeline.cpp\
 
 LIB_MODULES_OBJS:=$(MODULES_SRCS:%.cpp=$(BIN)/%.o)
 DEPS+=$(LIB_MODULES_OBJS:%.o=%.deps)

@@ -3,7 +3,7 @@
 #include "lib_modules/core/module.hpp"
 #include "../common/libav.hpp"
 #include "../common/picture.hpp"
-#include "lib_signals/utils/queue.hpp"
+#include "lib_utils/queue.hpp"
 #include <string>
 
 struct AVStream;
@@ -57,7 +57,7 @@ class LibavEncode : public ModuleS {
 		AVCodecContext *codecCtx;
 		std::unique_ptr<PcmFormat> pcmFormat = nullptr;
 		std::unique_ptr<ffpp::Frame> const avFrame;
-		Signals::Queue<uint64_t> times;
+		Queue<uint64_t> times;
 		int64_t cumulatedPktDuration = 0;
 		OutputDataDefault<DataAVPacket>* output;
 };
