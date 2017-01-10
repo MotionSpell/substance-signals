@@ -34,8 +34,6 @@ class ThreadPool {
 					threads[i].join();
 				}
 			}
-			if (eptr)
-				std::rethrow_exception(eptr);
 		}
 
 		template<typename Callback, typename... Args>

@@ -41,8 +41,8 @@ void Pipeline::waitForCompletion() {
 	while (numRemainingNotifications > 0) {
 		Log::msg(Debug, "Pipeline: condition (remaining: %s) (%s modules in the pipeline)", (int)numRemainingNotifications, modules.size());
 		condition.wait(lock);
-		if (eptr) {
-			//TODO: Pipeline::pause(); + Resume?()
+		if (eptr) { //TODO: this is not the right place since the condition has to be triggered (which may happen at the end of the execution)
+			//exitSync();
 			//std::rethrow_exception(eptr);
 		}
 	}
