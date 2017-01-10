@@ -19,8 +19,13 @@ struct ModuleDefault : public OutputCap, public InstanceType {
 };
 
 template <typename InstanceType, typename ...Args>
+InstanceType* createModule(size_t allocatorSize, Args&&... args) {
+	return new Modules::ModuleDefault<InstanceType>(allocatorSize, std::forward<Args>(args)...);
+}
+
+template <typename InstanceType, typename ...Args>
 InstanceType* create(Args&&... args) {
-	return new ModuleDefault<InstanceType>(ALLOC_NUM_BLOCKS_DEFAULT, std::forward<Args>(args)...);
+	return createModule<InstanceType>(ALLOC_NUM_BLOCKS_DEFAULT, std::forward<Args>(args)...);
 }
 
 template<typename Class>
