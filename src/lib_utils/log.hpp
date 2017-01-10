@@ -4,7 +4,6 @@
 #include <ostream>
 
 #define LOG_MSG_REPETITION_MAX 100
-//#define LOG_THREAD_SAFETY //FIXME: crash seens
 
 enum Level {
 	Quiet = -1,
@@ -19,21 +18,8 @@ class Log {
 		template<typename... Arguments>
 		static void msg(Level level, const std::string& fmt, Arguments... args) {
 			if ((level != Quiet) && (level <= globalLogLevel)) {
-#ifdef LOG_THREAD_SAFETY
-				if (lastMsgCount < LOG_MSG_REPETITION_MAX && fmt == lastMsg) {
-					lastMsgCount++;
-				} else {
-					if (lastMsgCount) {
-						get(level) << getColorBegin(level) << getTime() << format("Last message repeated %s times.", lastMsgCount) << getColorEnd(level) << std::endl;
-					}
-#endif	
-					get(level) << getColorBegin(level) << getTime() << format(fmt, args...) << getColorEnd(level) << std::endl;
-					get(level).flush();
-#ifdef LOG_THREAD_SAFETY
-					lastMsg = fmt;
-					lastMsgCount = 0;
-				}
-#endif
+				get(level) << getColorBegin(level) << getTime() << format(fmt, args...) << getColorEnd(level) << std::endl;
+				get(level).flush();
 			}
 		}
 
@@ -48,8 +34,33 @@ class Log {
 		static std::string getColorEnd(Level level);
 
 		static Level globalLogLevel;
-#ifdef LOG_THREAD_SAFETY
-		static std::string lastMsg;
-		static uint64_t lastMsgCount;
-#endif
+};
+
+class LogRepetition {
+public:
+	LogRepetition() {}
+
+	template<typename... Arguments>
+	void msg(Level l, const std::string& fmt, Arguments... args) {
+		if ((level != Quiet) && (l <= level)) {
+			auto const msg = format(fmt, args...);
+			if (lastMsgCount < LOG_MSG_REPETITION_MAX && l == lastLevel && msg == lastMsg) {
+				lastMsgCount++;
+			} else {
+				if (lastMsgCount) {
+					Log::msg(l, "Last message repeated %s times.", lastMsgCount);
+				}
+
+				Log::msg(l, msg);
+				lastLevel = l;
+				lastMsg = msg;
+				lastMsgCount = 0;
+			}
+		}
+	}
+
+private:
+	Level level = Log::getLevel(), lastLevel = Debug;
+	std::string lastMsg;
+	uint64_t lastMsgCount = 0;
 };

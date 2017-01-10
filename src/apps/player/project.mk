@@ -4,6 +4,7 @@ TARGETS+=$(OUTDIR)/player.exe
 EXE_PLAYER_OBJS:=\
 	$(LIB_MEDIA_OBJS)\
 	$(LIB_MODULES_OBJS)\
+	$(LIB_PIPELINE_OBJS)\
 	$(UTILS_OBJS)\
  	$(OUTDIR)/pipeliner.o\
  	$(OUTDIR)/player.o

@@ -16,11 +16,12 @@ struct IMetadataCap {
 
 enum StreamType {
 	UNKNOWN_ST = -1,
-	AUDIO_RAW, //uncompressed audio
-	VIDEO_RAW, //uncompressed video
-	AUDIO_PKT, //compressed audio
-	VIDEO_PKT, //compressed video
-	PLAYLIST   //playlist and adaptive streaming manifests
+	AUDIO_RAW,    //uncompressed audio
+	VIDEO_RAW,    //uncompressed video
+	AUDIO_PKT,    //compressed audio
+	VIDEO_PKT,    //compressed video
+	SUBTITLE_PKT, //subtitles and captions
+	PLAYLIST      //playlist and adaptive streaming manifests
 };
 
 struct IMetadata {
@@ -35,6 +36,12 @@ struct IMetadata {
 	bool isAudio() const {
 		switch (getStreamType()) {
 		case AUDIO_RAW: case AUDIO_PKT: return true;
+		default: return false;
+		}
+	}
+	bool isSubtitle() const {
+		switch (getStreamType()) {
+		case SUBTITLE_PKT: return true;
 		default: return false;
 		}
 	}

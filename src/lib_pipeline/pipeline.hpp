@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../core/module.hpp"
+#include "lib_modules/modules.hpp"
 #include <atomic>
 #include <memory>
 #include <stdexcept>
@@ -8,11 +8,6 @@
 
 
 namespace Pipelines {
-
-template <typename InstanceType, typename ...Args>
-InstanceType* createModule(size_t allocatorSize, Args&&... args) {
-	return new Modules::ModuleDefault<InstanceType>(allocatorSize, std::forward<Args>(args)...);
-}
 
 struct IPipelinedModule : public Modules::IModule {
 	virtual bool isSource() const = 0;
@@ -47,7 +42,7 @@ class Pipeline : public IPipelineNotifier {
 
 		template <typename InstanceType, int NumBlocks = 0, typename ...Args>
 		IPipelinedModule* addModule(Args&&... args) {
-			return addModuleInternal(createModule<InstanceType>(NumBlocks ? NumBlocks : allocatorNumBlocks, std::forward<Args>(args)...));
+			return addModuleInternal(Modules::createModule<InstanceType>(NumBlocks ? NumBlocks : allocatorNumBlocks, std::forward<Args>(args)...));
 		}
 
 		void connect(Modules::IModule *prev, size_t outputIdx, Modules::IModule *next, size_t inputIdx, bool inputAcceptMultipleConnections = false);

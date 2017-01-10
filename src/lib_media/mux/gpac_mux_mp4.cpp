@@ -403,6 +403,8 @@ void GPACMuxMP4::startSegment() {
 				declareStreamVideo(video);
 			} else if (auto audio = std::dynamic_pointer_cast<const MetadataPktLibavAudio>(metadata)) {
 				declareStreamAudio(audio);
+			} else if (auto subs = std::dynamic_pointer_cast<const MetadataPktLibavSubtitle>(metadata)) {
+				declareStreamSubtitle(subs);
 			}
 
 			startSegmentPostAction();
@@ -594,12 +596,33 @@ void GPACMuxMP4::declareStreamAudio(std::shared_ptr<const MetadataPktLibavAudio>
 		throw error(format("Container format import failed: %s", gf_error_to_string(e)));
 }
 
+void GPACMuxMP4::declareStreamSubtitle(std::shared_ptr<const MetadataPktLibavSubtitle> metadata) {
+	u32 trackNum = gf_isom_new_track(isoCur, 0, GF_ISOM_MEDIA_TEXT, TIMESCALE_MUL);
+	if (!trackNum)
+		throw error(format("Cannot create new track"));
+	trackId = gf_isom_get_track_id(isoCur, trackNum);
+	defaultSampleIncInTs = clockToTimescale(segmentDurationIn180k, gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId)));
+
+	GF_Err e = gf_isom_set_track_enabled(isoCur, trackNum, GF_TRUE);
+	if (e != GF_OK)
+		throw error(format("gf_isom_set_track_enabled: %s", gf_error_to_string(e)));
+
+	u32 di;
+	e = gf_isom_new_xml_subtitle_description(isoCur, trackNum, "http://www.w3.org/ns/ttml", NULL, NULL, &di);
+	if (e != GF_OK)
+		throw error(format("gf_isom_new_xml_subtitle_description: %s", gf_error_to_string(e)));
+
+	codec4CC = "TTML";
+}
+
 void GPACMuxMP4::declareStreamVideo(std::shared_ptr<const MetadataPktLibavVideo> metadata) {
 	u32 trackNum = gf_isom_new_track(isoCur, 0, GF_ISOM_MEDIA_VISUAL, metadata->getTimeScaleDen() * TIMESCALE_MUL);
 	if (!trackNum)
 		throw error(format("Cannot create new track"));
 	trackId = gf_isom_get_track_id(isoCur, trackNum);
 	defaultSampleIncInTs = metadata->getTimeScaleNum() * TIMESCALE_MUL;
+	resolution[0] = metadata->getResolution().width;
+	resolution[1] = metadata->getResolution().height;
 
 	GF_Err e = gf_isom_set_track_enabled(isoCur, trackNum, GF_TRUE);
 	if (e != GF_OK)
@@ -692,13 +715,14 @@ void GPACMuxMP4::declareStream(Data data) {
 	auto const metadata = data->getMetadata();
 	if (auto video = std::dynamic_pointer_cast<const MetadataPktLibavVideo>(metadata)) {
 		declareStreamVideo(video);
-		declareInput(safe_cast<const MetadataPktLibav>(metadata));
 	} else if (auto audio = std::dynamic_pointer_cast<const MetadataPktLibavAudio>(metadata)) {
 		declareStreamAudio(audio);
-		declareInput(safe_cast<const MetadataPktLibav>(metadata));
+	} else if (auto subs = std::dynamic_pointer_cast<const MetadataPktLibavSubtitle>(metadata)) {
+		declareStreamSubtitle(subs);
 	} else {
 		throw error(format("Stream creation failed: unknown type."));
 	}
+	declareInput(safe_cast<const MetadataPktLibav>(metadata));
 
 	lastInputTimeIn180k = data->getTime();
 	if (lastInputTimeIn180k) { /*first timestamp is not zero*/
@@ -715,6 +739,7 @@ void GPACMuxMP4::sendOutput() {
 	switch (gf_isom_get_media_type(isoCur, gf_isom_get_track_by_id(isoCur, trackId))) {
 	case GF_ISOM_MEDIA_VISUAL: streamType = VIDEO_PKT; mimeType = "video/mp4"; break;
 	case GF_ISOM_MEDIA_AUDIO: streamType = AUDIO_PKT; mimeType = "audio/mp4"; break;
+	case GF_ISOM_MEDIA_TEXT: streamType = SUBTITLE_PKT; mimeType = "application/mp4"; break;
 	default: throw error(format("Segment contains neither audio nor video"));
 	}
 	Bool isInband =
@@ -736,6 +761,7 @@ void GPACMuxMP4::sendOutput() {
 	switch (gf_isom_get_media_type(isoCur, gf_isom_get_track_by_id(isoCur, trackId))) {
 	case GF_ISOM_MEDIA_VISUAL: metadata->resolution[0] = resolution[0]; metadata->resolution[1] = resolution[1]; break;
 	case GF_ISOM_MEDIA_AUDIO: metadata->sampleRate = sampleRate; break;
+	case GF_ISOM_MEDIA_TEXT: break;
 	default: throw error(format("Segment contains neither audio nor video"));
 	}
 
@@ -768,10 +794,12 @@ void GPACMuxMP4::addSample(gpacpp::IsoSample &sample, const uint64_t dataDuratio
 			startSegment();
 
 			const u64 oneSegDurInTimescale = clockToTimescale(segmentDurationIn180k, mediaTs);
-			if (oneSegDurInTimescale * (DTS / oneSegDurInTimescale) == 0) { /*initial delay*/ //TODO: what happens when delay is bigger than one segment? Add test on this.
+			if (oneSegDurInTimescale * (DTS / oneSegDurInTimescale) == 0) { /*initial delay*/
 				deltaInTs = curSegmentDurInTs + deltaInTs - oneSegDurInTimescale * ((curSegmentDurInTs + deltaInTs) / oneSegDurInTimescale);
 			} else {
-				deltaInTs = DTS - oneSegDurInTimescale * (DTS / oneSegDurInTimescale);
+				auto const num = (curSegmentDurInTs + deltaInTs) / oneSegDurInTimescale;
+				auto const rem = DTS - (num ? num - 1 : 0) * oneSegDurInTimescale;
+				deltaInTs = DTS - oneSegDurInTimescale * (rem / oneSegDurInTimescale);
 			}
 			if (segmentPolicy == IndependentSegment) {
 				sample.DTS = 0;
@@ -822,13 +850,12 @@ std::unique_ptr<gpacpp::IsoSample> GPACMuxMP4::fillSample(Data data_) {
 			sample->dataLength = bufLen;
 			sample->setDataOwnership(false);
 		}
-	} else if (mediaType == GF_ISOM_MEDIA_AUDIO) {
+	} else if (mediaType == GF_ISOM_MEDIA_AUDIO || mediaType == GF_ISOM_MEDIA_TEXT) {
 		sample->data = (char*)bufPtr;
 		sample->dataLength = bufLen;
 		sample->setDataOwnership(false);
-	} else {
-		throw error("Only audio or video supported yet");
-	}
+	} else
+		throw error("Only audio, video or text supported");
 
 	if (segmentPolicy == IndependentSegment) {
 		sample->DTS = curSegmentDurInTs;

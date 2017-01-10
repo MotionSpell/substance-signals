@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include "../utils/queue.hpp"
+#include "lib_utils/queue.hpp"
 
 
 namespace Signals {

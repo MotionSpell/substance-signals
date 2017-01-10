@@ -110,7 +110,8 @@ StreamType MetadataPktLibav::getStreamType() const {
 	switch (codecCtx->codec_type) {
 	case AVMEDIA_TYPE_VIDEO: return VIDEO_PKT;
 	case AVMEDIA_TYPE_AUDIO: return AUDIO_PKT;
-	default: throw std::runtime_error("Unknown stream type. Only audio and video handled.");
+	case AVMEDIA_TYPE_SUBTITLE: return SUBTITLE_PKT;
+	default: throw std::runtime_error("Unknown stream type. Only audio, video and subtitle handled.");
 	}
 }
 

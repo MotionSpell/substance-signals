@@ -2,7 +2,7 @@
 
 #include "data.hpp"
 #include "metadata.hpp"
-#include "lib_signals/utils/queue.hpp"
+#include "lib_utils/queue.hpp"
 #include <atomic>
 #include <memory>
 
@@ -29,7 +29,7 @@ class ConnectedCap {
 		std::atomic_size_t connections;
 };
 
-struct IInput : public IProcessor, public ConnectedCap, public MetadataCap, public Signals::Queue<Data> {
+struct IInput : public IProcessor, public ConnectedCap, public MetadataCap, public Queue<Data> {
 	virtual ~IInput() noexcept(false) {}
 };
 
@@ -43,7 +43,7 @@ class Input : public IInput {
 		}
 
 		void push(Data data) override {
-			Signals::Queue<Data>::push(data);
+			Queue<Data>::push(data);
 		}
 
 	private:

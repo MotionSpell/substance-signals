@@ -13,6 +13,7 @@ $(BIN)/$(ProjectName)/utils_%.o: CFLAGS+=-DUNIT
 #---------------------------------------------------------------
 EXE_UTILS_OBJS:=\
  	$(OUTDIR)/utils.o\
+ 	$(OUTDIR)/utils_fifo.o\
  	$(TEST_COMMON_OBJ)
 DEPS+=$(EXE_UTILS_OBJS:%.o=%.deps)
 
@@ -38,6 +39,7 @@ EXE_MODULES_OBJS:=\
  	$(TEST_COMMON_OBJ)\
  	$(LIB_MEDIA_OBJS)\
  	$(LIB_MODULES_OBJS)\
+	$(LIB_PIPELINE_OBJS)\
  	$(UTILS_OBJS)
 DEPS+=$(EXE_MODULES_OBJS:%.o=%.deps)
 

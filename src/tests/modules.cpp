@@ -9,7 +9,6 @@
 #include "modules_render.cpp"
 #endif /*SIGNALS_HAS_X11*/
 
-#include "modules_fifo.cpp"
 #include "modules_simple.cpp"
 #include "modules_clock.cpp"
 #include "modules_converter.cpp"

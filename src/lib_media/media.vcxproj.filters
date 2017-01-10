@@ -26,9 +26,6 @@
     <ClInclude Include="decode\libav_decode.hpp">
       <Filter>src\decode</Filter>
     </ClInclude>
-    <ClInclude Include="render\fifo.hpp">
-      <Filter>src\render</Filter>
-    </ClInclude>
     <ClInclude Include="render\render_common.hpp">
       <Filter>src\render</Filter>
     </ClInclude>
@@ -99,6 +96,9 @@
       <Filter>src\stream</Filter>
     </ClInclude>
     <ClInclude Include="transform\libavfilter.hpp">
+      <Filter>src\transform</Filter>
+    </ClInclude>
+    <ClInclude Include="transform\telx2ttml.hpp">
       <Filter>src\transform</Filter>
     </ClInclude>
   </ItemGroup>
@@ -235,6 +235,9 @@
       <Filter>src\mux</Filter>
     </ClCompile>
     <ClCompile Include="transform\libavfilter.cpp">
+      <Filter>src\transform</Filter>
+    </ClCompile>
+    <ClCompile Include="transform\telx2ttml.cpp">
       <Filter>src\transform</Filter>
     </ClCompile>
   </ItemGroup>

@@ -59,6 +59,11 @@ class MetadataPktLibavAudio : public MetadataPktLibav {
 		void getExtradata(const uint8_t *&extradata, size_t &extradataSize) const;
 };
 
+class MetadataPktLibavSubtitle : public MetadataPktLibav {
+public:
+	MetadataPktLibavSubtitle(AVCodecContext *codecCtx, int id = -1) : MetadataPktLibav(codecCtx, id) {}
+};
+
 struct AVPacketDeleter {
 	void operator()(AVPacket *p);
 };

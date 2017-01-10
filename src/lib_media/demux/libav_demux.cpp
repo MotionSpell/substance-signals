@@ -13,6 +13,8 @@ extern "C" {
 #include <libavutil/opt.h>
 }
 
+#define PKT_QUEUE_SIZE 256
+
 namespace Modules {
 
 namespace {
@@ -35,10 +37,6 @@ const char* webcamFormat() {
 #endif
 }
 
-bool isRaw(AVCodecContext *codecCtx) {
-	return codecCtx->codec_id == AV_CODEC_ID_RAWVIDEO;
-}
-
 }
 
 namespace Demux {
@@ -57,7 +55,7 @@ bool LibavDemux::webcamOpen(const std::string &options) {
 }
 
 LibavDemux::LibavDemux(const std::string &url, const uint64_t seekTimeInMs)
-: done(false), dispatchPkts(256) {
+: done(false), dispatchPkts(PKT_QUEUE_SIZE) {
 	if (!(m_formatCtx = avformat_alloc_context()))
 		throw error("Can't allocate format context");
 
@@ -106,8 +104,8 @@ LibavDemux::LibavDemux(const std::string &url, const uint64_t seekTimeInMs)
 				restampers[i] = uptr(create<Transform::Restamp>(Transform::Restamp::Reset));
 			}
 
-			if (format == "mpegts") {
-				startPTS = std::max<int64_t>(startPTS, m_formatCtx->streams[i]->start_time);
+			if (format == "rtsp" || format == "mpegts") {
+				startPTSIn180k = std::max<int64_t>(startPTSIn180k, timescaleToClock(m_formatCtx->streams[i]->start_time*m_formatCtx->streams[i]->time_base.num, m_formatCtx->streams[i]->time_base.den));
 			}
 		}
 
@@ -120,15 +118,15 @@ LibavDemux::LibavDemux(const std::string &url, const uint64_t seekTimeInMs)
 		if (parser) {
 			st->codec->ticks_per_frame = parser->repeat_pict + 1;
 		} else {
-			log(Info, format("No parser found for stream %s (%s). Couldn't use full metadata to get the timescale.", i, st->codec->codec_name));
+			log(Debug, format("No parser found for stream %s (%s). Couldn't use full metadata to get the timescale.", i, st->codec->codec_name));
 		}
 
 		IMetadata *m;
 		switch (st->codec->codec_type) {
 		case AVMEDIA_TYPE_AUDIO: m = new MetadataPktLibavAudio(st->codec, st->id); break;
-		case AVMEDIA_TYPE_VIDEO: /*ffpp::isRaw(st->codec) ? m = new MetadataRawVideo :*/
-			m = new MetadataPktLibavVideo(st->codec, st->id); break;
-		default: m = nullptr; break; //TODO:  sparse stream: send regularly empty samples
+		case AVMEDIA_TYPE_VIDEO: m = new MetadataPktLibavVideo(st->codec, st->id); break;
+		//case AVMEDIA_TYPE_SUBTITLE: m = new MetadataPktLibavSubtitle(st->codec, st->id); break;
+		default: m = nullptr; break;
 		}
 		outputs.push_back(addOutput<OutputDataDefault<DataAVPacket>>(m));
 		av_dump_format(m_formatCtx, i, "", 0);
@@ -143,16 +141,17 @@ LibavDemux::~LibavDemux() {
 
 	avformat_close_input(&m_formatCtx);
 
-	AVPacket *p;
+	AVPacket p;
 	while (dispatchPkts.read(p)) {
-		av_packet_free(&p);
+		av_free_packet(&p);
 	}
 }
 
 void LibavDemux::threadProc() {
+	AVPacket pkt;
 	while (!done) {
-		auto pkt = av_packet_alloc();
-		int status = av_read_frame(m_formatCtx, pkt);
+		av_init_packet(&pkt);
+		int status = av_read_frame(m_formatCtx, &pkt);
 		if (status < 0) {
 			if (status == (int)AVERROR_EOF || (m_formatCtx->pb && m_formatCtx->pb->eof_reached)) {
 				log(Info, "End of stream detected - leaving");
@@ -160,12 +159,12 @@ void LibavDemux::threadProc() {
 				log(Error, "Stream contains an irrecoverable error (%s) - leaving", status);
 			}
 			done = true;
-			av_packet_free(&pkt);
+			av_free_packet(&pkt);
 			return;
 		}
 		while (!dispatchPkts.write(pkt)) {
 			if (done) {
-				av_packet_free(&pkt);
+				av_free_packet(&pkt);
 				return;
 			}
 			log(m_formatCtx->pb && !m_formatCtx->pb->seekable ? Warning : Debug, "Dispatch queue is full - regulating.");
@@ -196,8 +195,8 @@ void LibavDemux::dispatch(AVPacket *pkt) {
 		pkt->pts = m_formatCtx->streams[pkt->stream_index]->pts_buffer[0];
 		log(Debug, "No PTS: setting last value %s.", pkt->pts);
 	}
-	if (pkt->pts < startPTS) {
-		av_packet_free(&pkt);
+	if (pkt->pts < clockToTimescale(startPTSIn180k*m_formatCtx->streams[pkt->stream_index]->time_base.num, m_formatCtx->streams[pkt->stream_index]->time_base.den)) {
+		av_free_packet(pkt);
 		return;
 	}
 
@@ -206,35 +205,53 @@ void LibavDemux::dispatch(AVPacket *pkt) {
 	av_packet_move_ref(outPkt, pkt);
 	setTime(out);
 	outputs[outPkt->stream_index]->emit(out);
-	av_packet_free(&pkt);
+
+	//signal clock from audio to sparse streams (should be the PCR but libavformat doesn't give access to it)
+	uint64_t curDTS = 0;
+	if (m_formatCtx->streams[outPkt->stream_index]->codec->codec_type == AVMEDIA_TYPE_AUDIO) {
+		auto const base = m_formatCtx->streams[outPkt->stream_index]->time_base;
+		const uint64_t time = timescaleToClock(outPkt->dts * base.num, base.den);
+		if (time > curDTS) {
+			curDTS = time;
+		}
+	}
+	if (curDTS > curTimeIn180k) {
+		curTimeIn180k = curDTS;
+		for (unsigned i = 0; i < m_formatCtx->nb_streams; ++i) {
+			if ((int)i == pkt->stream_index) {
+				continue;
+			}
+			AVStream *st = m_formatCtx->streams[i];
+			if (st->codec->codec_type == AVMEDIA_TYPE_SUBTITLE) {
+				auto outParse = outputs[i]->getBuffer(0);
+				outParse->setTime(curTimeIn180k);
+				outputs[i]->emit(outParse);
+			}
+		}
+	}
 }
 
 void LibavDemux::process(Data data) {
-	if (m_formatCtx->iformat->name == std::string("mpegts") && m_formatCtx->pb && !m_formatCtx->pb->seekable) {
-		auto const base = m_formatCtx->streams[0]->time_base;
-		startPTS += clockToTimescale(g_DefaultClock->now() * base.den, base.num);
+	if (startPTSIn180k) {
+		startPTSIn180k += g_DefaultClock->now();
 	}
 	workingThread = std::thread(&LibavDemux::threadProc, this);
 
-	AVPacket *pkt = nullptr;
-	for (;;) {
+	AVPacket pkt;
+	while (!done) {
 		if (getNumInputs() && getInput(0)->tryPop(data)) {
 			done = true;
 			break;
 		}
 
 		if (!dispatchPkts.read(pkt)) {
-			if (done) {
-				return;
-			}
-
 			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 			continue;
 		}
-		if (pkt->flags & AV_PKT_FLAG_CORRUPT) {
+		if (pkt.flags & AV_PKT_FLAG_CORRUPT) {
 			log(Error, "Corrupted packet received.");
 		}
-		dispatch(pkt);
+		dispatch(&pkt);
 	}
 
 	log(Info, "Exit from an external event.");

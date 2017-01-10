@@ -204,6 +204,7 @@
   <ItemGroup>
     <ClCompile Include="tests.cpp" />
     <ClCompile Include="utils.cpp" />
+    <ClCompile Include="utils_fifo.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="tests.hpp" />

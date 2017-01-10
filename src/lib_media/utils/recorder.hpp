@@ -15,7 +15,7 @@ class Recorder : public ModuleS {
 		Data pop();
 
 	private:
-		Signals::Queue<Data> record;
+		Queue<Data> record;
 };
 
 }

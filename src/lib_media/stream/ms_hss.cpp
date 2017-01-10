@@ -120,7 +120,10 @@ size_t MS_HSS::curlCallback(void *ptr, size_t size, size_t nmemb) {
 		std::shared_ptr<const MetadataFile> meta = safe_cast<const MetadataFile>(curTransferedData->getMetadata());
 		if (!meta)
 			throw error(format("Unknown data received on input %s", curTransferedDataInputIndex));
-		curTransferedFile = gf_fopen(meta->getFilename().c_str(), "rb");
+		auto const fn = meta->getFilename();
+		curTransferedFile = gf_fopen(fn.c_str(), "rb");
+		if (!curTransferedFile)
+			throw error(format("File %s cannot be opened", fn.c_str()));
 		if (state != RunNewConnection) {
 			state = RunNewFile; //on new connection, don't remove the ftyp/moov
 		}

@@ -324,7 +324,7 @@ function gpac_build {
   host=$1
   pushDir $WORK/src
 
-  lazy_git_clone https://github.com/gpac/gpac.git gpac ca2228022291
+  lazy_git_clone https://github.com/gpac/gpac.git gpac 815dca31aa9
 
   local OS=$(get_os $host)
   local crossPrefix=$(get_cross_prefix $BUILD $host)
@@ -1194,7 +1194,7 @@ function x264_build {
     --enable-pic \
     --disable-gpl \
     --disable-cli \
-    --enable-win32thread \
+    $THREADING \
     --enable-strip \
     --disable-avs \
     --disable-swscale \
@@ -1207,6 +1207,9 @@ function x264_build {
     *darwin*)
       RANLIB="" $build
       ;;
+    *mingw*)
+      THREADING="--enable-win32thread" $build
+      ;;
     *)
       $build
       ;;
@@ -1216,7 +1219,7 @@ function x264_build {
 }
 
 function x264_get_deps {
-  local a=0
+  echo "libpthread"
 }
 
 
@@ -1227,7 +1230,7 @@ function zlib_get_deps {
 function zlib_build {
   host=$1
   pushDir $WORK/src
-  lazy_download "zlib-$host.tar.gz" "http://zlib.net/zlib-1.2.8.tar.gz"
+  lazy_download "zlib-$host.tar.gz" "http://zlib.net/fossils/zlib-1.2.9.tar.gz"
   lazy_extract "zlib-$host.tar.gz"
   mkgit "zlib-$host"
   pushDir zlib-$host

@@ -8,8 +8,6 @@
 #include <thread>
 
 
-namespace Signals {
-
 class ThreadPool {
 	public:
 		ThreadPool(const std::string &name = "", unsigned threadCount = std::thread::hardware_concurrency())
@@ -36,16 +34,13 @@ class ThreadPool {
 					threads[i].join();
 				}
 			}
-			if (eptr)
-				std::rethrow_exception(eptr);
 		}
 
 		template<typename Callback, typename... Args>
 		std::shared_future<Callback> submit(const std::function<Callback(Args...)> &callback, Args... args)	{
-			if (eptr) {
+			if (eptr)
 				std::rethrow_exception(eptr);
-				eptr = nullptr;
-			}
+
 			const std::shared_future<Callback> &future = std::async(std::launch::deferred, callback, args...);
 			std::function<void(void)> f = [future]() {
 				future.get();
@@ -77,4 +72,3 @@ class ThreadPool {
 		std::string name;
 		std::exception_ptr eptr;
 };
-}
