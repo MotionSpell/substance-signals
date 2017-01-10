@@ -134,8 +134,12 @@ void MPEG_DASH::writeManifest() {
 }
 
 std::shared_ptr<const MetadataFile> MPEG_DASH::moveFile(const std::shared_ptr<const MetadataFile> src, const std::string &dst) {
+	if (src->getFilename() == dst) {
+		return src;
+	}
+
 	int retry = 3;
-	while (retry-- && (system(format("mv %s %s", src->getFilename().c_str(), dst.c_str()).c_str())) == 0) {
+	while (retry-- && (system(format("mv %s %s", src->getFilename(), dst).c_str())) == 0) {
 		gf_sleep(10);
 	}
 	if (!retry) {

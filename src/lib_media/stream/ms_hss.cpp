@@ -123,7 +123,7 @@ size_t MS_HSS::curlCallback(void *ptr, size_t size, size_t nmemb) {
 		auto const fn = meta->getFilename();
 		curTransferedFile = gf_fopen(fn.c_str(), "rb");
 		if (!curTransferedFile)
-			throw error(format("File %s cannot be opened", fn.c_str()));
+			throw error(format("File %s cannot be opened", fn));
 		if (state != RunNewConnection) {
 			state = RunNewFile; //on new connection, don't remove the ftyp/moov
 		}

@@ -4,7 +4,7 @@
 #include "../common/libav.hpp"
 #include <string>
 
-#define DURATION_KEEP_LAST_DATA
+//#define DURATION_KEEP_LAST_DATA
 
 typedef struct __tag_isom GF_ISOFile;
 namespace gpacpp {
