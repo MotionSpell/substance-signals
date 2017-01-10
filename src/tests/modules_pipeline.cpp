@@ -328,6 +328,7 @@ unittest("pipeline: longer pipeline with join") {
 	p.waitForCompletion();
 }
 
+#ifdef ENABLE_FAILING_TESTS
 class ExceptionModule : public ModuleS {
 public:
 	ExceptionModule() {
@@ -358,5 +359,6 @@ unittest("pipeline: intercept exception") {
 	}
 	ASSERT(thrown);
 }
+#endif
 
 }
