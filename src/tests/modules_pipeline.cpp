@@ -328,13 +328,12 @@ unittest("pipeline: longer pipeline with join") {
 	p.waitForCompletion();
 }
 
-#ifdef ENABLE_FAILING_TESTS
-class ExceptionModule : public Module {
+class ExceptionModule : public ModuleS {
 public:
 	ExceptionModule() {
 		addInput(new Input<DataBase>(this));
 	}
-	void process() {
+	void process(Data) {
 		if (!raised) {
 			raised = true;
 			throw error("test exception");
@@ -349,8 +348,8 @@ unittest("pipeline: intercept exception") {
 	bool thrown = false;
 	try {
 		Pipeline p;
-		auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
 		auto exception = p.addModule<ExceptionModule>();
+		auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
 		p.connect(demux, 0, exception, 0);
 		p.start();
 		p.waitForCompletion();
@@ -359,6 +358,5 @@ unittest("pipeline: intercept exception") {
 	}
 	ASSERT(thrown);
 }
-#endif
 
 }

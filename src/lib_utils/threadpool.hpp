@@ -38,10 +38,9 @@ class ThreadPool {
 
 		template<typename Callback, typename... Args>
 		std::shared_future<Callback> submit(const std::function<Callback(Args...)> &callback, Args... args)	{
-			if (eptr) {
+			if (eptr)
 				std::rethrow_exception(eptr);
-				eptr = nullptr;
-			}
+
 			const std::shared_future<Callback> &future = std::async(std::launch::deferred, callback, args...);
 			std::function<void(void)> f = [future]() {
 				future.get();

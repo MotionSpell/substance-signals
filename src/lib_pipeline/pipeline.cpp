@@ -3,6 +3,8 @@
 #include "pipeline.hpp"
 #include "lib_modules/utils/helper.hpp"
 
+#define COMPLETION_GRANULARITY_IN_MS 200
+
 namespace Pipelines {
 
 Pipeline::Pipeline(bool isLowLatency, double clockSpeed, Threading threading)
@@ -40,10 +42,14 @@ void Pipeline::waitForCompletion() {
 	std::unique_lock<std::mutex> lock(mutex);
 	while (numRemainingNotifications > 0) {
 		Log::msg(Debug, "Pipeline: condition (remaining: %s) (%s modules in the pipeline)", (int)numRemainingNotifications, modules.size());
-		condition.wait(lock);
-		if (eptr) { //TODO: this is not the right place since the condition has to be triggered (which may happen at the end of the execution)
-			//exitSync();
-			//std::rethrow_exception(eptr);
+		condition.wait_for(lock, std::chrono::milliseconds(COMPLETION_GRANULARITY_IN_MS));
+		try {
+			if (eptr)
+				std::rethrow_exception(eptr);
+		} catch (const std::exception &e) {
+			Log::msg(Error, "Pipeline: exception caught: %s. Exiting.", e.what());
+			exitSync();
+			std::rethrow_exception(eptr); //FIXME: at this point the exception forward in submit() already lost some data
 		}
 	}
 	Log::msg(Info, "Pipeline: completed");
