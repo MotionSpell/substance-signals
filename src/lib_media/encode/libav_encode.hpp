@@ -35,6 +35,8 @@ struct LibavEncodeParams {
 	int bitrate_a = 128000;
 	int sampleRate = 44100;
 	int numChannels = 2;
+
+	std::string avcodecCustom;
 };
 
 class LibavEncode : public ModuleS {
