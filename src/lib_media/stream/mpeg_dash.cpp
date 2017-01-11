@@ -1,6 +1,10 @@
 #include "mpeg_dash.hpp"
 #include "../common/libav.hpp"
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
 #define DASH_TIMESCALE 1000 //TODO: there are some ms already hardcoded, including in AdaptiveStreamingCommon and gf_net_get_utc()
 
 #define MIN_BUFFER_TIME_IN_MS_VOD  3000
@@ -140,7 +144,7 @@ std::shared_ptr<const MetadataFile> MPEG_DASH::moveFile(const std::shared_ptr<co
 
 	int retry = 3;
 #ifdef _WIN32
-	while (retry-- && (MoveFile(src->getFilename(), dst)) == 0) { //Romain
+	while (retry-- && (MoveFileA(src->getFilename().c_str(), dst.c_str())) == 0) {
 #else
 	while (retry-- && (system(format("%s %s %s", mv, src->getFilename(), dst).c_str())) == 0) {
 #endif
