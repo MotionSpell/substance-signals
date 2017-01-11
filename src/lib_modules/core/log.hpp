@@ -10,7 +10,7 @@ struct LogCap : public LogRepetition {
 
 	template<typename... Arguments>
 	void log(Level level, const std::string& fmt, Arguments... args) {
-		msg(level, fmt, args...);
+		msg(level, "[%s %s] " + fmt, this, typeid(*this).name(), args...);
 	}
 };
 
