@@ -35,7 +35,7 @@ MPEG_DASH::MPEG_DASH(const std::string &mpdDir, const std::string &mpdName, Type
 	: AdaptiveStreamingCommon(type, segDurationInMs),
 	  mpd(type == Live ? new gpacpp::MPD(GF_MPD_TYPE_DYNAMIC, MIN_BUFFER_TIME_IN_MS_LIVE)
 	  : new gpacpp::MPD(GF_MPD_TYPE_STATIC, MIN_BUFFER_TIME_IN_MS_VOD)),
-	    mpdDir(mpdDir), mpdPath(format("%s/%s", mpdDir, mpdName)),
+	    mpdDir(mpdDir), mpdPath(format("%s%s", mpdDir, mpdName)),
 	    useSegmentTimeline(segDurationInMs == 0), timeShiftBufferDepthInMs(timeShiftBufferDepthInMs) {
 }
 
@@ -98,7 +98,7 @@ void MPEG_DASH::ensureManifest() {
 				rep->segment_template->media = gf_strdup(format("audio_$RepresentationID$.mp4_%s.m4s", templateName).c_str());
 
 				auto out = outputSegment->getBuffer(0);
-				auto metadata = std::make_shared<MetadataFile>(format("%s/audio_%s.mp4", mpdDir, repId), AUDIO_PKT, "", "", 0, 0, 1, false);
+				auto metadata = std::make_shared<MetadataFile>(format("%saudio_%s.mp4", mpdDir, repId), AUDIO_PKT, "", "", 0, 0, 1, false);
 				out->setMetadata(metadata);
 				outputSegment->emit(out);
 				break;
@@ -110,7 +110,7 @@ void MPEG_DASH::ensureManifest() {
 				rep->segment_template->media = gf_strdup(format("video_$RepresentationID$_%sx%s.mp4_%s.m4s", rep->width, rep->height, templateName).c_str());
 
 				auto out = outputSegment->getBuffer(0);
-				auto metadata = std::make_shared<MetadataFile>(format("%s/video_%s_%sx%s.mp4", mpdDir, repId, rep->width, rep->height), VIDEO_PKT, "", "", 0, 0, 1, false);
+				auto metadata = std::make_shared<MetadataFile>(format("%svideo_%s_%sx%s.mp4", mpdDir, repId, rep->width, rep->height), VIDEO_PKT, "", "", 0, 0, 1, false);
 				out->setMetadata(metadata);
 				outputSegment->emit(out);
 				break;
@@ -139,7 +139,11 @@ std::shared_ptr<const MetadataFile> MPEG_DASH::moveFile(const std::shared_ptr<co
 	}
 
 	int retry = 3;
-	while (retry-- && (system(format("mv %s %s", src->getFilename(), dst).c_str())) == 0) {
+#ifdef _WIN32
+	while (retry-- && (MoveFile(src->getFilename(), dst)) == 0) { //Romain
+#else
+	while (retry-- && (system(format("%s %s %s", mv, src->getFilename(), dst).c_str())) == 0) {
+#endif
 		gf_sleep(10);
 	}
 	if (!retry) {
@@ -193,11 +197,17 @@ void MPEG_DASH::generateManifest() {
 			auto const n = (startTimeInMs + totalDurationInMs) / segDurationInMs;
 			std::string fn;
 			switch (quality->meta->getStreamType()) {
-			case AUDIO_PKT: fn = format("%s/audio_%s.mp4_%s.m4s", mpdDir, i, n); break;
-			case VIDEO_PKT: fn = format("%s/video_%s_%sx%s.mp4_%s.m4s", mpdDir, i, quality->rep->width, quality->rep->height, n); break;
+			case AUDIO_PKT: fn = format("%saudio_%s.mp4_%s.m4s", mpdDir, i, n); break;
+			case VIDEO_PKT: fn = format("%svideo_%s_%sx%s.mp4_%s.m4s", mpdDir, i, quality->rep->width, quality->rep->height, n); break;
 			default: assert(0);
 			}
-			quality->meta = moveFile(quality->meta, fn);
+			//Romain
+			//if (mpd->mpd->type == GF_MPD_TYPE_DYNAMIC && quality->meta->getLatency()) {
+			//	assert(quality->meta->getFilename() == fn); //Romain: TODO: remove when confident that segment names are aligned (utc time is retrieved separately in the muxer and in AdaptiveStreamingCommon)
+			//} else
+			{
+				quality->meta = moveFile(quality->meta, fn);
+			}
 		}
 
 		if (timeShiftBufferDepthInMs) {
@@ -271,6 +281,7 @@ void MPEG_DASH::finalizeManifest() {
 		mpd->mpd->type = GF_MPD_TYPE_STATIC;
 		mpd->mpd->minimum_update_period = 0;
 		mpd->mpd->media_presentation_duration = totalDurationInMs;
+		totalDurationInMs -= segDurationInMs;
 		generateManifest();
 		writeManifest();
 	}

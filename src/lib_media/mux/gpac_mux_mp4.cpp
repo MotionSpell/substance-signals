@@ -349,20 +349,21 @@ GPACMuxMP4::GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs
 	if ((compatFlags & SmoothStreaming) && (segmentPolicy != IndependentSegment))
 		throw error("Inconsistent parameters: SmoothStreaming compatibility requires IndependentSegment policy.");
 
-	std::stringstream fileName;
-	fileName << baseName << ".mp4";
-	if (baseName == "") {
-		throw error("Unsupported memory output"); //open in memory - apparently we have to use the gmem:// protocol
+	if (baseName.empty()) {
+		log(Info, "Working in memory mode.");
 	} else {
-		isoInit = gf_isom_open(fileName.str().c_str(), GF_ISOM_OPEN_WRITE, nullptr);
-		if (!isoInit)
-			throw error(format("Cannot open isoInit file %s"));
-		isoCur = isoInit;
+		segmentName = format("%s.mp4", baseName);
+		log(Info, "Working in file mode: %s.", segmentName);
 	}
+
+	isoInit = gf_isom_open(segmentName.empty() ? nullptr : segmentName.c_str(), GF_ISOM_OPEN_WRITE, nullptr);
+	if (!isoInit)
+		throw error(format("Cannot open isoInit file %s"));
+	isoCur = isoInit;
 
 	GF_Err e = gf_isom_set_storage_mode(isoCur, GF_ISOM_STORE_INTERLEAVED);
 	if (e != GF_OK)
-		throw error(format("Cannot make iso file %s interleaved", fileName.str()));
+		throw error(format("Cannot make iso file %s interleaved", baseName));
 
 	output = addOutput<OutputDataDefault<DataAVPacket>>();
 }
@@ -383,21 +384,23 @@ void GPACMuxMP4::flush() {
 
 void GPACMuxMP4::startSegment() {
 	if (segmentPolicy > SingleSegment) {
-		std::stringstream ss;
-		ss << gf_isom_get_filename(isoInit) << "_" << segmentNum + 1;
-		if (segmentPolicy == FragmentedSegment) ss << ".m4s";
-		else ss << ".mp4";
-		segmentName = ss.str();
+		if (gf_isom_get_filename(isoInit)) {
+			std::stringstream ss;
+			ss << gf_isom_get_filename(isoInit) << "_" << segmentNum + 1;
+			if (segmentPolicy == FragmentedSegment) ss << ".m4s";
+			else ss << ".mp4";
+			segmentName = ss.str();
+		}
 
 		if (segmentPolicy == FragmentedSegment) {
-			GF_Err e = gf_isom_start_segment(isoCur, (char*)segmentName.c_str(), GF_TRUE);
+			GF_Err e = gf_isom_start_segment(isoCur, segmentName.empty() ? nullptr : segmentName.c_str(), GF_TRUE);
 			if (e != GF_OK)
 				throw error(format("Impossible to start segment %s (%s): %s", segmentNum, segmentName, gf_error_to_string(e)));
 		} else if (segmentPolicy == IndependentSegment) {
-			isoCur = gf_isom_open(segmentName.c_str(), GF_ISOM_OPEN_WRITE, nullptr);
+			isoCur = gf_isom_open(segmentName.empty() ? nullptr : segmentName.c_str(), GF_ISOM_OPEN_WRITE, nullptr);
 			if (!isoCur)
 				throw error(format("Cannot open isoCur file %s"));
-			
+
 			auto metadata = inputs[0]->getMetadata();
 			if (auto video = std::dynamic_pointer_cast<const MetadataPktLibavVideo>(metadata)) {
 				declareStreamVideo(video);
@@ -426,6 +429,10 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 		return;
 	} else {
 		if (segmentPolicy == FragmentedSegment) {
+			if (gf_isom_get_filename(isoInit)) {
+				//TODO: memory mode - get bs + deal with IndependentSegment
+			}
+
 			GF_Err e = gf_isom_close_segment(isoCur, 0, 0, 0, 0, 0, GF_FALSE, (Bool)isLastSeg, compatFlags & DashJs ? 0 : GF_4CC('e', 'o', 'd', 's'), nullptr, nullptr);
 			if (e != GF_OK) {
 				if (DTS == 0) {
@@ -704,6 +711,10 @@ void GPACMuxMP4::declareStreamVideo(std::shared_ptr<const MetadataPktLibavVideo>
 
 void GPACMuxMP4::declareInput(std::shared_ptr<const MetadataPktLibav> metadata) {
 	setupFragments();
+	auto const segDurationInMs = clockToTimescale(segmentDurationIn180k, 1000);
+	if (!(compatFlags & SegNumStartsAtZero)) {
+		segmentNum = (gf_net_get_utc() - segDurationInMs) / segDurationInMs - 1;
+	}
 	startSegment();
 	startFragment(0, 0);
 
@@ -756,8 +767,7 @@ void GPACMuxMP4::sendOutput() {
 	auto const mediaTs = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
 	auto const curSegmentDurIn180k = timescaleToClock(curSegmentDurInTs, mediaTs);
 	auto const latencyIn180k = fragmentPolicy == OneFragmentPerFrame ? timescaleToClock(defaultSampleIncInTs, mediaTs) : std::min<uint64_t>(curSegmentDurIn180k, segmentDurationIn180k);
-	auto metadata = std::make_shared<MetadataFile>(segmentName, streamType, mimeType, codecName, curSegmentDurIn180k, lastSegmentSize,
-		latencyIn180k, segmentStartsWithRAP);
+	auto metadata = std::make_shared<MetadataFile>(segmentName, streamType, mimeType, codecName, curSegmentDurIn180k, lastSegmentSize, latencyIn180k, segmentStartsWithRAP);
 	switch (gf_isom_get_media_type(isoCur, gf_isom_get_track_by_id(isoCur, trackId))) {
 	case GF_ISOM_MEDIA_VISUAL: metadata->resolution[0] = resolution[0]; metadata->resolution[1] = resolution[1]; break;
 	case GF_ISOM_MEDIA_AUDIO: metadata->sampleRate = sampleRate; break;

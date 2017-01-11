@@ -7,6 +7,7 @@
 //#define DURATION_KEEP_LAST_DATA
 
 typedef struct __tag_isom GF_ISOFile;
+typedef struct __tag_bitstream GF_BitStream;
 namespace gpacpp {
 class IsoSample;
 }
@@ -30,10 +31,11 @@ class GPACMuxMP4 : public ModuleDynI {
 		};
 
 		enum CompatibilityFlag {
-			None            = 0,
-			SegmentAtAny    = 1, //don't wait for a RAP
-			DashJs          = 1 << 1,
-			SmoothStreaming = 1 << 2,
+			None               = 0,
+			SegmentAtAny       = 1, //don't wait for a RAP
+			DashJs             = 1 << 1,
+			SmoothStreaming    = 1 << 2,
+			SegNumStartsAtZero = 1 << 3
 		};
 
 		GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs = 0, SegmentPolicy segmentPolicy = NoSegment, FragmentPolicy fragmentPolicy = NoFragment, CompatibilityFlag compatFlags = None);
@@ -78,6 +80,7 @@ class GPACMuxMP4 : public ModuleDynI {
 		uint64_t segmentDurationIn180k, curSegmentDurInTs = 0, deltaInTs = 0, segmentNum = 0, lastSegmentSize = 0;
 		bool segmentStartsWithRAP = true;
 		std::string segmentName;
+		GF_BitStream *memory = nullptr;
 
 		OutputDataDefault<DataAVPacket>* output;
 		union {
