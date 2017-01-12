@@ -187,6 +187,9 @@ void LibavDemux::setTime(std::shared_ptr<DataAVPacket> data) {
 }
 
 void LibavDemux::dispatch(AVPacket *pkt) {
+	if (pkt->flags & AV_PKT_FLAG_CORRUPT) {
+		log(Error, "Corrupted packet received (DTS=%s).", pkt->dts);
+	}
 	if (pkt->dts == AV_NOPTS_VALUE) {
 		pkt->dts = m_formatCtx->streams[pkt->stream_index]->cur_dts;
 		log(Debug, "No DTS: setting last value %s.", pkt->dts);
@@ -241,20 +244,20 @@ void LibavDemux::process(Data data) {
 	while (!done) {
 		if (getNumInputs() && getInput(0)->tryPop(data)) {
 			done = true;
-			break;
+			log(Info, "Exit from an external event.");
+			return;
 		}
 
 		if (!dispatchPkts.read(pkt)) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 			continue;
 		}
-		if (pkt.flags & AV_PKT_FLAG_CORRUPT) {
-			log(Error, "Corrupted packet received.");
-		}
 		dispatch(&pkt);
 	}
 
-	log(Info, "Exit from an external event.");
+	while (dispatchPkts.read(pkt)) {
+		dispatch(&pkt);
+	}
 }
 
 }
