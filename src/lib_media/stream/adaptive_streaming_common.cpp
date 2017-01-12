@@ -43,6 +43,7 @@ void AdaptiveStreamingCommon::threadProc() {
 					throw error(format("Unknown data received on input %s", i));
 				qualities[i]->avg_bitrate_in_bps = (qualities[i]->meta->getSize() * 8 + qualities[i]->avg_bitrate_in_bps * numSeg) / (numSeg + 1);
 				if (!i) curSegDurInMs = segDurationInMs ? segDurationInMs : clockToTimescale(qualities[i]->meta->getDuration(), 1000);
+				if (!startTimeInMs) startTimeInMs = clockToTimescale(data->getTime(), 1000);
 			}
 		}
 		if (!data) {

@@ -16,8 +16,6 @@ extern "C" {
 //#define AVC_INBAND_CONFIG
 #define TIMESCALE_MUL 1000
 
-#define MSS_UTC_OFFSET_IN_MS 0 /*compensates the difference of processing time between all the streams*/
-
 namespace Modules {
 
 namespace {
@@ -486,8 +484,6 @@ void GPACMuxMP4::closeFragment() {
 				log(Warning, "Media timescale is 0. Fragment cannot be closed.");
 				return;
 			}
-			if (!absTimeInMs)
-				absTimeInMs = gf_net_get_utc() + MSS_UTC_OFFSET_IN_MS;
 			auto const deltaInTs = DTS == curSegmentDurInTs ? defaultSampleIncInTs : 0;
 			GF_Err e = gf_isom_set_traf_mss_timeext(isoCur, trackId, convertToTimescale(absTimeInMs, 1000, mediaTs) + DTS - curSegmentDurInTs - defaultSampleIncInTs + deltaInTs, curSegmentDurInTs - deltaInTs);
 			if (e != GF_OK)
@@ -711,9 +707,11 @@ void GPACMuxMP4::declareStreamVideo(std::shared_ptr<const MetadataPktLibavVideo>
 
 void GPACMuxMP4::declareInput(std::shared_ptr<const MetadataPktLibav> metadata) {
 	setupFragments();
-	auto const segDurationInMs = clockToTimescale(segmentDurationIn180k, 1000);
+	if (!absTimeInMs) {
+		absTimeInMs = gf_net_get_utc();
+	}
 	if (!(compatFlags & SegNumStartsAtZero)) {
-		segmentNum = (gf_net_get_utc() - segDurationInMs) / segDurationInMs - 1;
+		segmentNum = absTimeInMs / clockToTimescale(segmentDurationIn180k, 1000) - 1;
 	}
 	startSegment();
 	startFragment(0, 0);
@@ -785,7 +783,8 @@ void GPACMuxMP4::sendOutput() {
 
 	auto out = output->getBuffer(0);
 	out->setMetadata(metadata);
-	out->setTime(prevDTS, mediaTs);
+	auto const deltaInTs = DTS == curSegmentDurInTs ? defaultSampleIncInTs : 0;
+	out->setTime(timescaleToClock(absTimeInMs, 1000) + timescaleToClock(DTS - curSegmentDurInTs - defaultSampleIncInTs + deltaInTs, mediaTs));
 	prevDTS = DTS;
 	output->emit(out);
 }

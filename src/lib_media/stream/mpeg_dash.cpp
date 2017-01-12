@@ -86,7 +86,7 @@ void MPEG_DASH::ensureManifest() {
 			} else {
 				templateName = "$Number$";
 				mpd->mpd->minimum_update_period = MIN_UPDATE_PERIOD_IN_MS * MIN_UPDATE_PERIOD_FACTOR;
-				rep->segment_template->start_number = (u32)((startTimeInMs - segDurationInMs) / segDurationInMs);
+				rep->segment_template->start_number = (u32)(startTimeInMs / segDurationInMs);
 			}
 			rep->mime_type = gf_strdup(quality->meta->getMimeType().c_str());
 			rep->codecs = gf_strdup(quality->meta->getCodecName().c_str());
@@ -205,13 +205,8 @@ void MPEG_DASH::generateManifest() {
 			case VIDEO_PKT: fn = format("%svideo_%s_%sx%s.mp4_%s.m4s", mpdDir, i, quality->rep->width, quality->rep->height, n); break;
 			default: assert(0);
 			}
-			//Romain
-			//if (mpd->mpd->type == GF_MPD_TYPE_DYNAMIC && quality->meta->getLatency()) {
-			//	assert(quality->meta->getFilename() == fn); //Romain: TODO: remove when confident that segment names are aligned (utc time is retrieved separately in the muxer and in AdaptiveStreamingCommon)
-			//} else
-			{
-				quality->meta = moveFile(quality->meta, fn);
-			}
+
+			quality->meta = moveFile(quality->meta, fn);
 		}
 
 		if (timeShiftBufferDepthInMs) {
