@@ -2,6 +2,7 @@
 
 #include "lib_modules/core/module.hpp"
 #include "../common/libav.hpp"
+#include "../common/gpac.hpp"
 #include <string>
 
 //#define DURATION_KEEP_LAST_DATA
@@ -82,7 +83,7 @@ class GPACMuxMP4 : public ModuleDynI {
 		std::string segmentName;
 		GF_BitStream *memory = nullptr;
 
-		OutputDataDefault<DataAVPacket>* output;
+		OutputDataDefault<DataRawGPAC>* output;
 		union {
 			unsigned int resolution[2];
 			unsigned int sampleRate;

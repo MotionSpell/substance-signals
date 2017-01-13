@@ -363,7 +363,7 @@ GPACMuxMP4::GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs
 	if (e != GF_OK)
 		throw error(format("Cannot make iso file %s interleaved", baseName));
 
-	output = addOutput<OutputDataDefault<DataAVPacket>>();
+	output = addOutput<OutputDataDefault<DataRawGPAC>>();
 }
 
 void GPACMuxMP4::flush() {
@@ -427,10 +427,6 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 		return;
 	} else {
 		if (segmentPolicy == FragmentedSegment) {
-			if (gf_isom_get_filename(isoInit)) {
-				//TODO: memory mode - get bs + deal with IndependentSegment
-			}
-
 			GF_Err e = gf_isom_close_segment(isoCur, 0, 0, 0, 0, 0, GF_FALSE, (Bool)isLastSeg, compatFlags & DashJs ? 0 : GF_4CC('e', 'o', 'd', 's'), nullptr, nullptr);
 			if (e != GF_OK) {
 				if (DTS == 0) {
@@ -438,6 +434,15 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 				} else {
 					throw error(format("gf_isom_close_segment: %s", gf_error_to_string(e)));
 				}
+			}
+			if (!gf_isom_get_filename(isoInit)) {
+				GF_BitStream *bs = NULL;
+				GF_Err e = gf_isom_get_segment_bs(isoInit, &bs);
+				if (e)
+					throw error(format("gf_isom_segment_get_bs: %s", gf_error_to_string(e)));
+				char *output; u32 size;
+				gf_bs_get_content(bs, &output, &size);
+				int Romain = 5;//out->setData((uint8_t*)output, size);
 			}
 
 			lastSegmentSize = gf_isom_get_file_size(isoCur);
@@ -773,15 +778,26 @@ void GPACMuxMP4::sendOutput() {
 	default: throw error(format("Segment contains neither audio nor video"));
 	}
 
+	auto out = output->getBuffer(0);
 	if (segmentPolicy == IndependentSegment) {
 		nextFragmentNum = gf_isom_get_next_moof_number(isoCur);
-		GF_Err e = gf_isom_close(isoCur);
+		GF_Err e = gf_isom_write(isoCur);
+		if (e)
+			throw error(format("gf_isom_write: %s", gf_error_to_string(e)));
+		if (!gf_isom_get_filename(isoInit)) {
+			GF_BitStream *bs = NULL;
+			e = gf_isom_get_bs(isoCur, &bs);
+			if (e)
+				throw error(format("gf_isom_get_bs: %s", gf_error_to_string(e)));
+			char *output; u32 size;
+			gf_bs_get_content(bs, &output, &size);
+			out->setData((uint8_t*)output, size);
+		}
+		gf_isom_delete(isoCur);
 		if (e != GF_OK && e != GF_ISOM_INVALID_FILE)
 			throw error(format("gf_isom_close (2): %s", gf_error_to_string(e)));
 		isoCur = nullptr;
 	}
-
-	auto out = output->getBuffer(0);
 	out->setMetadata(metadata);
 	auto const deltaInTs = DTS == curSegmentDurInTs ? defaultSampleIncInTs : 0;
 	out->setTime(timescaleToClock(absTimeInMs, 1000) + timescaleToClock(DTS - curSegmentDurInTs - defaultSampleIncInTs + deltaInTs, mediaTs));

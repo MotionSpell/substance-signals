@@ -90,6 +90,7 @@ UTILS_OBJS:=$(UTILS_SRCS:%.cpp=$(BIN)/%.o)
 ProjectName:=$(SRC)/lib_media
 MEDIA_SRCS:=\
   $(ProjectName)/common/libav.cpp\
+  $(ProjectName)/common/gpac.cpp\
   $(ProjectName)/common/picture.cpp\
   $(ProjectName)/decode/jpegturbo_decode.cpp\
   $(ProjectName)/decode/libav_decode.cpp\

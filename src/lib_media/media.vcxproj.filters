@@ -101,6 +101,9 @@
     <ClInclude Include="transform\telx2ttml.hpp">
       <Filter>src\transform</Filter>
     </ClInclude>
+    <ClInclude Include="common\gpac.hpp">
+      <Filter>src\common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="src">
@@ -239,6 +242,9 @@
     </ClCompile>
     <ClCompile Include="transform\telx2ttml.cpp">
       <Filter>src\transform</Filter>
+    </ClCompile>
+    <ClCompile Include="common\gpac.cpp">
+      <Filter>src\common</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

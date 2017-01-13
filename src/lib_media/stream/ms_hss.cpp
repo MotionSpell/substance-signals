@@ -64,7 +64,7 @@ MS_HSS::MS_HSS(const std::string &url, uint64_t segDurationInMs)
 	}
 #endif
 
-	addInput(new Input<DataAVPacket>(this));
+	addInput(new Input<DataRaw>(this));
 }
 
 MS_HSS::~MS_HSS() {
