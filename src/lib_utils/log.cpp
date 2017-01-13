@@ -20,6 +20,7 @@ static WORD console_attr_ori = 0;
 #endif /*_WIN32*/
 
 Level Log::globalLogLevel = Info;
+bool Log::globalColor = true;
 
 #ifdef LOG_THREAD_SAFETY
 std::string Log::lastMsg = "";
@@ -101,4 +102,12 @@ void Log::setLevel(Level level) {
 
 Level Log::getLevel() {
 	return globalLogLevel;
+}
+
+void Log::setColor(bool isColored) {
+	globalColor = isColored;
+}
+
+bool Log::getColor() {
+	return globalColor;
 }

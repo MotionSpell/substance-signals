@@ -26,6 +26,9 @@ class Log {
 		static void setLevel(Level level);
 		static Level getLevel();
 
+		static void setColor(bool isColored);
+		static bool getColor();
+
 	private:
 		Log() {}
 		static std::ostream& get(Level level);
@@ -34,6 +37,7 @@ class Log {
 		static std::string getColorEnd(Level level);
 
 		static Level globalLogLevel;
+		static bool globalColor;
 };
 
 class LogRepetition {
