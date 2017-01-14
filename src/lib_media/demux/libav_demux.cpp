@@ -54,7 +54,7 @@ bool LibavDemux::webcamOpen(const std::string &options) {
 	return true;
 }
 
-LibavDemux::LibavDemux(const std::string &url, const uint64_t seekTimeInMs)
+LibavDemux::LibavDemux(const std::string &url, const std::string &avformatCustom, const uint64_t seekTimeInMs)
 : done(false), dispatchPkts(PKT_QUEUE_SIZE) {
 	if (!(m_formatCtx = avformat_alloc_context()))
 		throw error("Can't allocate format context");
@@ -72,7 +72,7 @@ LibavDemux::LibavDemux(const std::string &url, const uint64_t seekTimeInMs)
 			restampers[i] = uptr(create<Transform::Restamp>(Transform::Restamp::ClockSystem)); /*some webcams timestamps don't start at 0 (based on UTC)*/
 		}
 	} else {
-		ffpp::Dict dict(typeid(*this).name(), "demuxer", "-buffer_size 1M -fifo_size 1M -probesize 10M -analyzeduration 10M -overrun_nonfatal 1 -protocol_whitelist file,udp,rtp,http,https,tcp,tls,rtmp -rtsp_flags prefer_tcp");
+		ffpp::Dict dict(typeid(*this).name(), "demuxer", "-buffer_size 1M -fifo_size 1M -probesize 10M -analyzeduration 10M -overrun_nonfatal 1 -protocol_whitelist file,udp,rtp,http,https,tcp,tls,rtmp -rtsp_flags prefer_tcp" + avformatCustom);
 		if (avformat_open_input(&m_formatCtx, url.c_str(), nullptr, &dict)) {
 			if (m_formatCtx) avformat_close_input(&m_formatCtx);
 			throw error(format("Error when opening input '%s'", url));
