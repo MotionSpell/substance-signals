@@ -9,7 +9,7 @@ namespace Modules {
 namespace Mux {
 
 GPACMuxMP4MSS::GPACMuxMP4MSS(const std::string &baseName, uint64_t segmentDurationInMs, const std::string &audioLang, const std::string &audioName)
-: GPACMuxMP4(baseName, segmentDurationInMs, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::OneFragmentPerSegment, Mux::GPACMuxMP4::SmoothStreaming | Mux::GPACMuxMP4::DashJs),
+: GPACMuxMP4("", segmentDurationInMs, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::OneFragmentPerSegment, Mux::GPACMuxMP4::SmoothStreaming | Mux::GPACMuxMP4::DashJs),
 audioLang(audioLang), audioName(audioName) {
 }
 
@@ -28,7 +28,6 @@ void GPACMuxMP4MSS::declareStreamAudio(std::shared_ptr<const MetadataPktLibavAud
 
 void GPACMuxMP4MSS::declareStreamSubtitle(std::shared_ptr<const MetadataPktLibavSubtitle> metadata) {
 	GPACMuxMP4::declareStreamSubtitle(metadata);
-	//FIXME R: audioLang = ; lang is in metadata
 	ISMLManifest = writeISMLManifest(codec4CC, "", metadata->getBitrate(), 0, 0, 0, 0, 0);
 	auto ptr = (uint32_t*)ISMLManifest.c_str();
 	ptr[0] = 0;

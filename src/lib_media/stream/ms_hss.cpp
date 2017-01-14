@@ -4,6 +4,7 @@
 extern "C" {
 #include <curl/curl.h>
 #include <gpac/tools.h>
+#include <gpac/bitstream.h>
 }
 
 //#define CURL_DEBUG
@@ -58,7 +59,6 @@ MS_HSS::MS_HSS(const std::string &url, uint64_t segDurationInMs)
 	curl_easy_setopt(curl, CURLOPT_READFUNCTION, &MS_HSS::staticCurlCallback);
 	curl_easy_setopt(curl, CURLOPT_READDATA, this);
 	{
-		struct curl_slist *chunk = nullptr;
 		chunk = curl_slist_append(chunk, "Transfer-Encoding: chunked");
 		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
 	}
@@ -69,7 +69,7 @@ MS_HSS::MS_HSS(const std::string &url, uint64_t segDurationInMs)
 
 MS_HSS::~MS_HSS() {
 	endOfStream();
-	//TODO: curl_slist_free_all();
+	curl_slist_free_all(chunk);
 	curl_easy_cleanup(curl);
 	curl_global_cleanup();
 }
@@ -98,6 +98,37 @@ void MS_HSS::process() {
 	}
 }
 
+void MS_HSS::open(std::shared_ptr<const MetadataFile> meta) {
+	if (!meta)
+		throw error(format("Unknown data received on input %s", curTransferedDataInputIndex));
+	assert(!curTransferedBs && !curTransferedFile);
+	auto const fn = meta->getFilename();
+	if (fn.empty()) {
+		curTransferedBs = gf_bs_new((const char*)curTransferedData->data(), curTransferedData->size(), GF_BITSTREAM_READ);
+	} else {
+		curTransferedFile = gf_fopen(fn.c_str(), "rb");
+		if (!curTransferedFile)
+			throw error(format("File %s cannot be opened", fn));
+		curTransferedBs = gf_bs_from_file(curTransferedFile, GF_BITSTREAM_READ);
+	}
+	if (!curTransferedBs)
+		throw error("Bitstream cannot be created");
+}
+
+void MS_HSS::clean() {
+	if (curTransferedBs) {
+		if (curTransferedFile) {
+			gf_fclose(curTransferedFile);
+			curTransferedFile = nullptr;
+			gf_delete_file(safe_cast<const MetadataFile>(curTransferedData->getMetadata())->getFilename().c_str());
+		}
+		gf_bs_del(curTransferedBs);
+		curTransferedBs = nullptr;
+		curTransferedData = nullptr;
+		curTransferedDataInputIndex = (curTransferedDataInputIndex + 1) % (getNumInputs() - 1);
+	}
+}
+
 size_t MS_HSS::staticCurlCallback(void *ptr, size_t size, size_t nmemb, void *userp) {
 	auto pThis = (MS_HSS*)userp;
 	return pThis->curlCallback(ptr, size, nmemb);
@@ -107,7 +138,7 @@ size_t MS_HSS::curlCallback(void *ptr, size_t size, size_t nmemb) {
 	if (state == RunNewConnection && curTransferedData) {
 		std::shared_ptr<const MetadataFile> meta = safe_cast<const MetadataFile>(curTransferedData->getMetadata());
 		log(Debug, "reconnect: file %s", meta->getFilename());
-		gf_fseek(curTransferedFile, 0, SEEK_SET);
+		gf_bs_seek(curTransferedBs, 0);
 	}
 
 	if (!curTransferedData) {
@@ -117,62 +148,56 @@ size_t MS_HSS::curlCallback(void *ptr, size_t size, size_t nmemb) {
 			return 0;
 		}
 
-		std::shared_ptr<const MetadataFile> meta = safe_cast<const MetadataFile>(curTransferedData->getMetadata());
-		if (!meta)
-			throw error(format("Unknown data received on input %s", curTransferedDataInputIndex));
-		auto const fn = meta->getFilename();
-		curTransferedFile = gf_fopen(fn.c_str(), "rb");
-		if (!curTransferedFile)
-			throw error(format("File %s cannot be opened", fn));
+		open(safe_cast<const MetadataFile>(curTransferedData->getMetadata()));
 		if (state != RunNewConnection) {
 			state = RunNewFile; //on new connection, don't remove the ftyp/moov
 		}
 	}
 
+	auto const data = (u8*)ptr; auto const datac = (char*)ptr;
 	if (state == RunNewConnection) {
 		state = RunResume;
 	}
 #ifdef SKIP_MOOV
 	else if (state == RunNewFile) {
-		auto const data = (u8*)ptr;
-		auto read = fread(ptr, 1, 8, curTransferedFile);
+		auto read = gf_bs_read_data(curTransferedBs, datac, 8);
 		if (read != 8)
 			throw error("I/O error (1)");
 		u32 size = U32LE(data);
 		u32 type = U32LE(data + 4);
 		if (type != GF_4CC('f', 't', 'y', 'p'))
 			throw error("ftyp not found");
-		read = fread(ptr, 1, size - 8, curTransferedFile);
+		read = gf_bs_read_data(curTransferedBs, datac, size - 8);
 		if (read != size - 8)
 			throw error("I/O error (2)");
 
-		read = fread(ptr, 1, 8, curTransferedFile);
+		read = gf_bs_read_data(curTransferedBs, datac, 8);
 		if (read != 8)
 			throw error("I/O error (3)");
 		size = U32LE(data);
-		read = fread(ptr, 1, size - 8, curTransferedFile);
+		read = gf_bs_read_data(curTransferedBs, datac, size - 8);
 		if (read != size - 8)
 			throw error("I/O error (4)");
 
-		read = fread(ptr, 1, 8, curTransferedFile);
+		read = gf_bs_read_data(curTransferedBs, datac, 8);
 		if (read != 8)
 			throw error("I/O error (5)");
 		size = U32LE(data);
 		type = U32LE(data + 4);
 		if (type != GF_4CC('f', 'r', 'e', 'e'))
-			throw error("moov not found");
-		read = fread(ptr, 1, size - 8, curTransferedFile);
+			throw error("free not found");
+		read = gf_bs_read_data(curTransferedBs, datac, size - 8);
 		if (read != size - 8)
 			throw error("I/O error (6)");
 
-		read = fread(ptr, 1, 8, curTransferedFile);
+		read = gf_bs_read_data(curTransferedBs, datac, 8);
 		if (read != 8)
 			throw error("I/O error (7)");
 		size = U32LE(data);
 		type = U32LE(data + 4);
 		if (type != GF_4CC('m', 'o', 'o', 'v'))
 			throw error("moov not found");
-		read = fread(ptr, 1, size - 8, curTransferedFile);
+		read = gf_bs_read_data(curTransferedBs, datac, size - 8);
 		if (read != size - 8)
 			throw error("I/O error (8)");
 
@@ -181,15 +206,10 @@ size_t MS_HSS::curlCallback(void *ptr, size_t size, size_t nmemb) {
 #endif
 
 	auto const transferSize = size*nmemb;
-	auto const read = fread(ptr, 1, transferSize, curTransferedFile);
+	auto const read = gf_bs_read_data(curTransferedBs, datac, std::min<u32>((u32)gf_bs_available(curTransferedBs), (u32)transferSize));
 	if (read == 0) {
-		if (curTransferedFile) {
-			gf_fclose(curTransferedFile);
-			curTransferedFile = nullptr;
-			gf_delete_file(safe_cast<const MetadataFile>(curTransferedData->getMetadata())->getFilename().c_str());
-			curTransferedData = nullptr;
-			curTransferedDataInputIndex = (curTransferedDataInputIndex + 1) % (getNumInputs() - 1);
-		}
+		clean();
+		curTransferedDataInputIndex = (curTransferedDataInputIndex + 1) % (getNumInputs() - 1);
 		return curlCallback(ptr, transferSize, 1);
 	} else {
 		return read;
@@ -207,19 +227,13 @@ void MS_HSS::threadProc() {
 			state = Stop;
 			break;
 		}
-		std::shared_ptr<const MetadataFile> meta = safe_cast<const MetadataFile>(curTransferedData->getMetadata());
-		if (!meta)
-			throw error(format("Unknown data received on input %s", curTransferedDataInputIndex));
-		curTransferedFile = fopen(meta->getFilename().c_str(), "rb");
-		size_t read = fread(ptr, 1, transferSize, curTransferedFile), fileSize = read;
+		open(safe_cast<const MetadataFile>(curTransferedData->getMetadata()));
+		auto read = gf_bs_read_data(curTransferedBs, (char*)ptr, std::min<u32>((u32)gf_bs_available(curTransferedBs), (u32)transferSize)), fileSize = read;
 		while (read) {
-			read = fread(ptr, 1, transferSize, curTransferedFile);
+			read = gf_bs_read_data(curTransferedBs, (char*)ptr, std::min<u32>((u32)gf_bs_available(curTransferedBs), (u32)transferSize));
 			fileSize += read;
 		}
-		fclose(curTransferedFile);
-		curTransferedFile = nullptr;
-		gf_delete_file(safe_cast<const MetadataFile>(curTransferedData->getMetadata())->getFilename().c_str());
-		curTransferedData = nullptr;
+		clean();
 		curTransferedDataInputIndex = (curTransferedDataInputIndex + 1) % (getNumInputs() - 1);
 
 		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());

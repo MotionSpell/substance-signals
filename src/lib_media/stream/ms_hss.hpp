@@ -3,6 +3,8 @@
 #include "lib_modules/core/module.hpp"
 
 typedef void CURL;
+struct curl_slist;
+typedef struct __tag_bitstream GF_BitStream;
 
 namespace Modules {
 namespace Stream {
@@ -24,11 +26,14 @@ class MS_HSS : public ModuleDynI {
 			Stop,
 		};
 
+		void open(std::shared_ptr<const MetadataFile> meta);
+		void clean();
 		void endOfStream();
 
 		void threadProc();
 		int numDataQueueNotify = 0;
 		std::thread workingThread;
+		GF_BitStream *curTransferedBs = nullptr;
 		FILE *curTransferedFile = nullptr;
 		Data curTransferedData;
 		size_t curTransferedDataInputIndex = 0;
@@ -37,6 +42,7 @@ class MS_HSS : public ModuleDynI {
 
 		std::string url;
 		CURL *curl;
+		struct curl_slist *chunk = nullptr;
 		State state = Init;
 };
 

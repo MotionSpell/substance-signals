@@ -370,9 +370,13 @@ void GPACMuxMP4::flush() {
 	closeSegment(true);
 
 	if (segmentPolicy == IndependentSegment) {
-		std::string fn(gf_isom_get_filename(isoInit));
-		gf_isom_delete(isoInit);
-		gf_delete_file(fn.c_str());
+		if (gf_isom_get_filename(isoInit)) {
+			const std::string fn = gf_isom_get_filename(isoInit);
+			gf_isom_delete(isoInit);
+			gf_delete_file(fn.c_str());
+		} else {
+			gf_isom_delete(isoInit);
+		}
 	} else {
 		GF_Err e = gf_isom_close(isoCur);
 		if (e != GF_OK && e != GF_ISOM_INVALID_FILE)
@@ -436,13 +440,16 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 				}
 			}
 			if (!gf_isom_get_filename(isoInit)) {
+				throw error("memory segmented not implmented yet.");
+#if 0 //TODO: sendOutput of memory + this code is repeated and can be factorized
 				GF_BitStream *bs = NULL;
-				GF_Err e = gf_isom_get_segment_bs(isoInit, &bs);
+				GF_Err e = gf_isom_get_bs(isoInit, &bs);
 				if (e)
 					throw error(format("gf_isom_segment_get_bs: %s", gf_error_to_string(e)));
 				char *output; u32 size;
 				gf_bs_get_content(bs, &output, &size);
-				int Romain = 5;//out->setData((uint8_t*)output, size);
+				gf_free(output);
+#endif
 			}
 
 			lastSegmentSize = gf_isom_get_file_size(isoCur);
