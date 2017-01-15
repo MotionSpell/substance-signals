@@ -7,7 +7,7 @@ namespace Stream {
 Apple_HLS::Apple_HLS(const std::string &m3u8Path, Type type, uint64_t segDurationInMs)
 	: AdaptiveStreamingCommon(type, segDurationInMs), playlistMasterPath(m3u8Path) {
 	if (segDurationInMs % 1000)
-		throw error("segment duration must be an integer number of seconds.");
+		throw error("Segment duration must be an integer number of seconds.");
 }
 
 Apple_HLS::~Apple_HLS() {

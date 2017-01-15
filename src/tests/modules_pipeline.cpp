@@ -337,7 +337,7 @@ public:
 	void process(Data) {
 		if (!raised) {
 			raised = true;
-			throw error("test exception");
+			throw error("Test exception");
 		}
 	}
 

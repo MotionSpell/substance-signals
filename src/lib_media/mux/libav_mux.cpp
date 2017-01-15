@@ -26,13 +26,13 @@ LibavMux::LibavMux(const std::string &baseName, const std::string &fmt, const st
 	ffpp::Dict formatDict(typeid(*this).name(), "format", "-format " + fmt);
 	AVOutputFormat *of = av_guess_format(formatDict.get("format")->value, nullptr, nullptr);
 	if (!of)
-		throw error("couldn't guess container from file extension");
+		throw error("Couldn't guess container from file extension");
 	av_dict_free(&formatDict);
 
 	/* output format context */
 	m_formatCtx = avformat_alloc_context();
 	if (!m_formatCtx)
-		throw error("format context couldn't be allocated.");
+		throw error("Format context couldn't be allocated.");
 	m_formatCtx->oformat = of;
 
 	std::stringstream fileName;

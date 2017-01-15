@@ -212,7 +212,7 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 		auto const metadataDemux = getMetadataFromOutput<MetadataPktLibav>(demux->getOutput(i));
 		if (!metadataDemux) {
 			Log::msg(Warning, "[%s] Unknown metadataDemux for stream %s. Ignoring.", g_appName, i);
-			break;
+			continue;
 		}
 
 		IModule *decode = nullptr;

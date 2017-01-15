@@ -92,7 +92,7 @@ LibavEncode::LibavEncode(Type type, LibavEncodeParams &params)
 
 	codecCtx = avcodec_alloc_context3(codec);
 	if (!codecCtx)
-		throw error("could not allocate the codec context.");
+		throw error("Could not allocate the codec context.");
 
 	/* parameters */
 	switch (type) {
@@ -131,7 +131,7 @@ LibavEncode::LibavEncode(Type type, LibavEncodeParams &params)
 	/* open it */
 	codecCtx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER; //gives access to the extradata (e.g. H264 SPS/PPS, etc.)
 	if (avcodec_open2(codecCtx, codec, &codecDict) < 0)
-		throw error("could not open codec, disable output.");
+		throw error("Could not open codec, disable output.");
 	codecDict.ensureAllOptionsConsumed();
 
 	output = addOutput<OutputDataDefault<DataAVPacket>>();

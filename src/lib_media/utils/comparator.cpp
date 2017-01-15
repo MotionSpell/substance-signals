@@ -8,7 +8,7 @@ namespace Utils {
 
 void IComparator::process(Data data) {
 	if (data != nullptr)
-		throw error("data not expected");
+		throw error("Data not expected");
 
 	for (;;) {
 		Data aData, bData;
@@ -16,7 +16,7 @@ void IComparator::process(Data data) {
 		auto b = other.tryPop(bData);
 		if (!a || !b) {
 			if (a || b)
-				throw error("not the same number of samples");
+				throw error("Not the same number of samples");
 			log(Info, "end of process");
 			break;
 		}

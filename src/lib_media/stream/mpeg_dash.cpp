@@ -1,11 +1,10 @@
 #include "mpeg_dash.hpp"
 #include "../common/libav.hpp"
-
 #ifdef _WIN32
 #include <Windows.h>
 #endif
 
-#define DASH_TIMESCALE 1000 //TODO: there are some ms already hardcoded, including in AdaptiveStreamingCommon and gf_net_get_utc()
+#define DASH_TIMESCALE 1000 //TODO: there are some ms already hardcoded, including in AdaptiveStreamingCommon and gf_net_get_utc() results
 
 #define MIN_BUFFER_TIME_IN_MS_VOD  3000
 #define MIN_BUFFER_TIME_IN_MS_LIVE 2000
@@ -14,6 +13,8 @@
 #define MIN_UPDATE_PERIOD_FACTOR   1 //FIXME: should be 0, but dash.js doesn't support MPDs with no refresh time.
 
 #define AVAILABILITY_TIMEOFFSET_IN_S 0.0
+
+#define MOVE_FILE_NUM_RETRY 3
 
 namespace Modules {
 
@@ -142,7 +143,7 @@ std::shared_ptr<const MetadataFile> MPEG_DASH::moveFile(const std::shared_ptr<co
 		return src;
 	}
 
-	int retry = 3;
+	int retry = MOVE_FILE_NUM_RETRY;
 #ifdef _WIN32
 	while (retry-- && (MoveFileA(src->getFilename().c_str(), dst.c_str())) == 0) {
 #else

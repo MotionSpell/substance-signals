@@ -51,9 +51,7 @@ void AdaptiveStreamingCommon::threadProc() {
 		}
 
 		numSeg++;
-		if (!startTimeInMs) {
-			startTimeInMs = gf_net_get_utc() - curSegDurInMs;
-		}
+		if (!startTimeInMs) startTimeInMs = gf_net_get_utc() - curSegDurInMs;
 		generateManifest();
 		totalDurationInMs += curSegDurInMs;
 		log(Info, "Processes segment (total processed: %ss, UTC: %s (deltaAST=%s).", (double)totalDurationInMs / 1000, gf_net_get_utc(), gf_net_get_utc() - startTimeInMs);

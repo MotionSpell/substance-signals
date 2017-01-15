@@ -26,7 +26,7 @@ MS_HSS::MS_HSS(const std::string &url, uint64_t segDurationInMs)
 	curl_global_init(CURL_GLOBAL_ALL);
 	curl = curl_easy_init();
 	if (!curl)
-		throw error("couldn't init the HTTP stack.");
+		throw error("Couldn't init the HTTP stack.");
 
 #ifdef INIT_POST
 	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
