@@ -722,7 +722,7 @@ void GPACMuxMP4::declareInput(std::shared_ptr<const MetadataPktLibav> metadata) 
 	if (!absTimeInMs) {
 		absTimeInMs = gf_net_get_utc();
 	}
-	if (!(compatFlags & SegNumStartsAtZero)) {
+	if (segmentDurationIn180k && !(compatFlags & SegNumStartsAtZero)) {
 		segmentNum = absTimeInMs / clockToTimescale(segmentDurationIn180k, 1000) - 1;
 	}
 	startSegment();

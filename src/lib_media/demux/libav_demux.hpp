@@ -18,17 +18,19 @@ namespace Demux {
 class LibavDemux : public ModuleS {
 	public:
 		//@param url may be a file, a remote URL, or a webcam (set "webcam" to list the available devices)
-		LibavDemux(const std::string &url, const std::string &avformatCustom = "", const uint64_t seekTimeInMs = 0);
+		LibavDemux(const std::string &url, const bool loop = false, const std::string &avformatCustom = "", const uint64_t seekTimeInMs = 0);
 		~LibavDemux();
 		void process(Data data) override;
 
 	private:
 		void webcamList();
 		bool webcamOpen(const std::string &options);
+		void seekToStart();
 		void threadProc();
 		void setTime(std::shared_ptr<DataAVPacket> data);
 		void dispatch(AVPacket *pkt);
 
+		bool loop;
 		std::thread workingThread;
 		std::atomic_bool done;
 		QueueLockFree<AVPacket> dispatchPkts;
@@ -36,7 +38,7 @@ class LibavDemux : public ModuleS {
 		std::vector<OutputDataDefault<DataAVPacket>*> outputs;
 		struct AVFormatContext *m_formatCtx;
 		int64_t startPTSIn180k = 0;
-		uint64_t curTimeIn180k = 0;
+		uint64_t curTimeIn180k = 0, loopOffsetIn180k = 0;
 };
 
 }

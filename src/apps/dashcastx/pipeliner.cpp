@@ -171,7 +171,7 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 		}
 	};
 
-	auto demux = pipeline.addModule<Demux::LibavDemux>(opt.input);
+	auto demux = pipeline.addModule<Demux::LibavDemux>(opt.input, opt.loop);
 	IPipelinedModule *command = nullptr;
 	if (!opt.postCommand.empty()) {
 		command = pipeline.addModule<CommandExecutor>(opt.postCommand);

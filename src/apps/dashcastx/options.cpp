@@ -92,16 +92,18 @@ AppOptions processArgs(int argc, char const* argv[]) {
 		"  %s file.ts\n"
 		"  %s udp://226.0.0.1:1234\n"
 		"Transcode:\n"
-		"  %s --live --seg-dur 10000 --autorotate --video 320x180:50000 --video 640x360:300000 http://server.com/file.mp4\n"
+		"  %s --live --loop --seg-dur 10000 --autorotate --video 320x180:50000 --video 640x360:300000 http://server.com/file.mp4\n"
 		"  %s --live -v 1280x720:1000000 webcam:video=/dev/video0:audio=/dev/audio1\n"
-		"  %s --live --working-dir -v 640x360:300000 -v 1280x720:1000000 webcam:video=/dev/video0:audio=/dev/audio1\n",
-		"  %s -l -w -v -r 640x360:300000:0 udp://226.0.0.1:1234\n",
+		"  %s --live --working-dir workdir -v 640x360:300000 -v 1280x720:1000000 webcam:video=/dev/video0:audio=/dev/audio1\n",
+		"  %s -ilr -w tmp -v 640x360:300000:0 udp://226.0.0.1:1234\n",
 		g_appName, g_appName, g_appName, g_appName, g_appName, g_appName, g_appName);
 	const option::Descriptor usage[] = {
 		{ UNKNOWN,  0, "" ,  "",
 		Arg::Unknown, usage0.c_str() },
 		{ HELP,     0, "h", "help",        Arg::None,
 			"  --help,              -h             \tPrint usage and exit." },
+		{ OPT,      0, "i", "loop",        Arg::None,
+			"  --loop,              -i             \tLoops the input indefinitely." },
 		{ OPT,      0, "l", "live",        Arg::None,
 			"  --live,              -l             \tRun at system clock pace (otherwise runs as fast as possible)." },
 		{ OPT,      0, "u", "ultra-low-latency", Arg::None,
@@ -141,6 +143,9 @@ AppOptions processArgs(int argc, char const* argv[]) {
 	for (option::Option *o = options[OPT]; o; o = o->next()) {
 		if (o->desc->shortopt == std::string("l")) {
 			opt.isLive = true;
+		}
+		if (o->desc->shortopt == std::string("i")) {
+			opt.loop = true;
 		}
 		if (o->desc->shortopt == std::string("u")) {
 			opt.ultraLowLatency = true;

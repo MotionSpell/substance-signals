@@ -54,8 +54,8 @@ bool LibavDemux::webcamOpen(const std::string &options) {
 	return true;
 }
 
-LibavDemux::LibavDemux(const std::string &url, const std::string &avformatCustom, const uint64_t seekTimeInMs)
-: done(false), dispatchPkts(PKT_QUEUE_SIZE) {
+LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::string &avformatCustom, uint64_t seekTimeInMs)
+: loop(loop), done(false), dispatchPkts(PKT_QUEUE_SIZE) {
 	if (!(m_formatCtx = avformat_alloc_context()))
 		throw error("Can't allocate format context");
 
@@ -79,7 +79,7 @@ LibavDemux::LibavDemux(const std::string &url, const std::string &avformatCustom
 		}
 
 		if (seekTimeInMs) {
-			if(avformat_seek_file(m_formatCtx, -1, INT64_MIN, (seekTimeInMs * AV_TIME_BASE) / 1000, INT64_MAX, 0) < 0) {
+			if(avformat_seek_file(m_formatCtx, -1, INT64_MIN, convertToTimescale(seekTimeInMs, 1000, AV_TIME_BASE), INT64_MAX, 0) < 0) {
 				avformat_close_input(&m_formatCtx);
 				throw error(format("Couldn't seek to time %sms", seekTimeInMs));
 			} else {
@@ -147,21 +147,37 @@ LibavDemux::~LibavDemux() {
 	}
 }
 
+void LibavDemux::seekToStart() {
+	if (av_seek_frame(m_formatCtx, -1, m_formatCtx->start_time, 0) < 0)
+		throw error(format("Couldn't seek to start time %s", m_formatCtx->start_time));
+
+	loopOffsetIn180k += timescaleToClock(m_formatCtx->duration, AV_TIME_BASE) ;
+}
+
 void LibavDemux::threadProc() {
 	AVPacket pkt;
 	while (!done) {
 		av_init_packet(&pkt);
 		int status = av_read_frame(m_formatCtx, &pkt);
 		if (status < 0) {
+			av_free_packet(&pkt);
 			if (status == (int)AVERROR_EOF || (m_formatCtx->pb && m_formatCtx->pb->eof_reached)) {
-				log(Info, "End of stream detected - leaving");
+				log(Info, "End of stream detected - %s", loop ? "looping" : "leaving");
+				if (loop) {
+					seekToStart();
+					continue;
+				}
 			} else if (m_formatCtx->pb && m_formatCtx->pb->error) {
 				log(Error, "Stream contains an irrecoverable error (%s) - leaving", status);
 			}
 			done = true;
-			av_free_packet(&pkt);
 			return;
 		}
+
+		auto const base = m_formatCtx->streams[pkt.stream_index]->time_base;
+		pkt.dts += clockToTimescale(loopOffsetIn180k * base.num, base.den);
+		pkt.pts += clockToTimescale(loopOffsetIn180k * base.num, base.den);
+
 		while (!dispatchPkts.write(pkt)) {
 			if (done) {
 				av_free_packet(&pkt);
