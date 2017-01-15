@@ -40,7 +40,7 @@ class MS_HSS : public ModuleDynI {
 		static size_t staticCurlCallback(void *ptr, size_t size, size_t nmemb, void *userp);
 		size_t curlCallback(void *ptr, size_t size, size_t nmemb);
 
-		std::string url;
+		const std::string url;
 		CURL *curl;
 		struct curl_slist *chunk = nullptr;
 		State state = Init;

@@ -41,7 +41,7 @@ public:
 protected:
 	void endOfStream();
 
-	Type type;
+	const Type type;
 	uint64_t startTimeInMs=-1, segDurationInMs, totalDurationInMs=0, numSeg=1;
 	std::vector<std::unique_ptr<Quality>> qualities;
 
