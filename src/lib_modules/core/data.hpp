@@ -1,7 +1,6 @@
 #pragma once
 
-#include "clock.hpp"
-
+#include <atomic>
 #include <cstdint>
 #include <memory>
 #include <vector>
@@ -21,25 +20,16 @@ class DataBase {
 		virtual uint64_t size() const = 0;
 		virtual void resize(size_t size) = 0;
 
-		std::shared_ptr<const IMetadata> getMetadata() const {
-			return m_metadata;
-		}
-		void setMetadata(std::shared_ptr<const IMetadata> metadata) {
-			m_metadata = metadata;
-		}
+		std::shared_ptr<const IMetadata> getMetadata() const;
+		void setMetadata(std::shared_ptr<const IMetadata> metadata);
+		void setTime(uint64_t timeIn180k);
+		void setTime(uint64_t timeIn180k, uint64_t timescale);
+		uint64_t getTime() const;
 
-		void setTime(uint64_t timeIn180k) {
-			m_TimeIn180k = timeIn180k;
-		}
-		void setTime(uint64_t timeIn180k, uint64_t timescale) {
-			m_TimeIn180k = timescaleToClock(timeIn180k, timescale);
-		}
-		uint64_t getTime() const {
-			return m_TimeIn180k;
-		}
+		static std::atomic<uint64_t> absUTCOffsetInMs;
 
 	private:
-		uint64_t m_TimeIn180k = 0;
+		uint64_t m_timeIn180k = 0;
 		std::shared_ptr<const IMetadata> m_metadata;
 };
 
@@ -51,21 +41,11 @@ struct DataLoose : public DataBase {};
 class DataRaw : public DataBase {
 	public:
 		DataRaw(size_t size) : buffer(size) {}
-		uint8_t* data() override {
-			return buffer.data();
-		}
-		bool isRecyclable() const override {
-			return true;
-		}
-		const uint8_t* data() const override {
-			return buffer.data();
-		}
-		uint64_t size() const override {
-			return buffer.size();
-		}
-		void resize(size_t size) override {
-			buffer.resize(size);
-		}
+		uint8_t* data() override;
+		bool isRecyclable() const override;
+		const uint8_t* data() const override;
+		uint64_t size() const override;
+		void resize(size_t size) override;
 
 	private:
 		std::vector<uint8_t> buffer;

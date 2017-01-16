@@ -2,6 +2,7 @@
 
 #include "data.hpp"
 #include "lib_utils/queue.hpp"
+#include "lib_utils/tools.hpp"
 #include <algorithm>
 #include <atomic>
 #include <list>

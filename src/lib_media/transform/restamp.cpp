@@ -1,4 +1,5 @@
 #include "restamp.hpp"
+#include "lib_modules/core/clock.hpp"
 
 namespace Modules {
 namespace Transform {

@@ -3,6 +3,7 @@
 #include "data.hpp"
 #include "metadata.hpp"
 #include "lib_utils/queue.hpp"
+#include "lib_utils/tools.hpp"
 #include <atomic>
 #include <memory>
 

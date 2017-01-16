@@ -1,4 +1,5 @@
 #include "mpeg_dash.hpp"
+#include "lib_modules/core/clock.hpp"
 #include "../common/libav.hpp"
 #ifdef _WIN32
 #include <Windows.h>

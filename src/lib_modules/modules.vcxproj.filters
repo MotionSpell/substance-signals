@@ -45,5 +45,8 @@
     <ClCompile Include="core\clock.cpp">
       <Filter>core</Filter>
     </ClCompile>
+    <ClCompile Include="core\data.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -5,6 +5,7 @@
     <ClCompile Include="$(SolutionDir)\src\version.cpp">
       <Filter>version</Filter>
     </ClCompile>
+    <ClCompile Include="time.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="log.hpp" />
@@ -20,6 +21,7 @@
     <ClInclude Include="fifo.hpp" />
     <ClInclude Include="queue.hpp" />
     <ClInclude Include="threadpool.hpp" />
+    <ClInclude Include="time.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="gpacpp">

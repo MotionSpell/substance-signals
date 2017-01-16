@@ -1,5 +1,7 @@
 #pragma once
 
+#include "lib_utils/format.hpp"
+
 #include <stdint.h>
 #include <string>
 #include <stdexcept>

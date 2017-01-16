@@ -33,6 +33,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="core\clock.cpp" />
+    <ClCompile Include="core\data.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\lib_utils\utils.vcxproj">

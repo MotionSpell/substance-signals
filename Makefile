@@ -82,7 +82,8 @@ DEPS:=
 ProjectName:=$(SRC)/lib_utils
 UTILS_SRCS:=\
   src/version.cpp\
-  $(ProjectName)/log.cpp
+  $(ProjectName)/log.cpp\
+  $(ProjectName)/time.cpp
 UTILS_OBJS:=$(UTILS_SRCS:%.cpp=$(BIN)/%.o)
 
 #------------------------------------------------------------------------------
@@ -119,15 +120,13 @@ MEDIA_SRCS:=\
   $(ProjectName)/transform/telx2ttml.cpp\
   $(ProjectName)/transform/video_convert.cpp\
   $(ProjectName)/utils/comparator.cpp\
-  $(ProjectName)/utils/recorder.cpp\
-   
+  $(ProjectName)/utils/recorder.cpp   
 ifeq ($(SIGNALS_HAS_X11), 1)
 MEDIA_SRCS+=\
   $(ProjectName)/render/sdl_audio.cpp\
   $(ProjectName)/render/sdl_common.cpp\
   $(ProjectName)/render/sdl_video.cpp
-endif
-  
+endif  
 LIB_MEDIA_OBJS:=$(MEDIA_SRCS:%.cpp=$(BIN)/%.o)
 DEPS+=$(LIB_MEDIA_OBJS:%.o=%.deps)
 
@@ -135,8 +134,7 @@ DEPS+=$(LIB_MEDIA_OBJS:%.o=%.deps)
 
 ProjectName:=$(SRC)/lib_pipeline
 PIPELINE_SRCS:=\
-  $(ProjectName)/pipeline.cpp\
-
+  $(ProjectName)/pipeline.cpp
 LIB_PIPELINE_OBJS:=$(PIPELINE_SRCS:%.cpp=$(BIN)/%.o)
 DEPS+=$(LIB_PIPELINE_OBJS:%.o=%.deps)
 
@@ -145,7 +143,7 @@ DEPS+=$(LIB_PIPELINE_OBJS:%.o=%.deps)
 ProjectName:=$(SRC)/lib_modules
 MODULES_SRCS:=\
   $(ProjectName)/core/clock.cpp\
-
+  $(ProjectName)/core/data.cpp
 LIB_MODULES_OBJS:=$(MODULES_SRCS:%.cpp=$(BIN)/%.o)
 DEPS+=$(LIB_MODULES_OBJS:%.o=%.deps)
 
