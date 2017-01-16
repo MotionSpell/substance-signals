@@ -471,7 +471,11 @@ void GPACMuxMP4::startFragment(uint64_t DTS, uint64_t PTS) {
 			throw error(format("Impossible to create the moof starting the fragment: %s", gf_error_to_string(e)));
 
 		if (segmentPolicy == FragmentedSegment) {
-			if (!(compatFlags & SmoothStreaming)) {
+			if (compatFlags & SmoothStreaming) {
+				e = gf_isom_set_fragment_option(isoCur, trackId, GF_ISOM_TFHD_FORCE_MOOF_BASE_OFFSET, 1);
+				if (e != GF_OK)
+					throw error(format("Cannot force the use of moof base offsets: %s", gf_error_to_string(e)));
+			} else {
 				e = gf_isom_set_traf_base_media_decode_time(isoCur, trackId, DTS);
 				if (e != GF_OK)
 					throw error(format("Impossible to create TFDT %s: %s", DTS, gf_error_to_string(e)));
