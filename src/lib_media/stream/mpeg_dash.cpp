@@ -148,7 +148,7 @@ std::shared_ptr<const MetadataFile> MPEG_DASH::moveFile(const std::shared_ptr<co
 #ifdef _WIN32
 	while (retry-- && (MoveFileA(src->getFilename().c_str(), dst.c_str())) == 0) {
 #else
-	while (retry-- && (system(format("%s %s %s", mv, src->getFilename(), dst).c_str())) == 0) {
+	while (retry-- && (system(format("%s %s %s", "mv", src->getFilename(), dst).c_str())) == 0) {
 #endif
 		gf_sleep(10);
 	}
