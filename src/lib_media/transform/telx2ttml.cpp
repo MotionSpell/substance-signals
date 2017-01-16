@@ -5,6 +5,8 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 }
 
+//#define DEBUG_DISPLAY_TIMESTAMPS
+
 namespace Modules {
 namespace Transform {
 
@@ -56,8 +58,11 @@ struct Page {
 		char timecode_hide[24] = { 0 };
 		timestamp_to_srttime(endTimeInMs, timecode_hide, ".");
 		timecode_hide[12] = 0;
-		//ttml << "<p begin=\"" << timecode_show << "\" end=\"" << timecode_hide << "\" region=\"speaker\"><span style=\"textStyle\">" << ss.str() << "</span></p>\n";
+#ifdef DEBUG_DISPLAY_TIMESTAMPS
 		ttml << "<p begin=\"" << timecode_show << "\" end=\"" << timecode_hide << "\" region=\"speaker\"><span style=\"textStyle\">" << timecode_show << " - " << timecode_hide << "</span></p>\n";
+#else
+		ttml << "<p begin=\"" << timecode_show << "\" end=\"" << timecode_hide << "\" region=\"speaker\"><span style=\"textStyle\">" << ss.str() << "</span></p>\n";
+#endif
 
 		ttml << "</div>\n";
 		ttml << "</body>\n";
@@ -89,8 +94,11 @@ struct Page {
 		timestamp_to_srttime(endTimeInMs, timecode_hide, ".");
 		timecode_hide[12] = 0;
 		ttml << "      <p region=\"Region\" style=\"textAlignment_0\" begin=\"" << timecode_show << "\" end=\"" << timecode_hide << "\" xml:id=\"sub_0\">\n";
-		//ttml << "        <span style=\"Style0_0\">" << ss.str() << "</span>\n";
+#ifdef DEBUG_DISPLAY_TIMESTAMPS
 		ttml << "        <span style=\"Style0_0\">" << timecode_show << " - " << timecode_hide << "</span>\n";
+#else
+		ttml << "        <span style=\"Style0_0\">" << ss.str() << "</span>\n";
+#endif
 		ttml << "      </p>\n";
 
 		ttml << "    </div>\n";
