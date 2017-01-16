@@ -1,5 +1,9 @@
 #include "gpac_mux_mp4.hpp"
+#include "lib_modules/core/clock.hpp"
 #include "lib_utils/tools.hpp"
+#include "lib_utils/time.hpp"
+#include "lib_gpacpp/gpacpp.hpp"
+#include "lib_ffpp/ffpp.hpp"
 #include <sstream>
 
 extern "C" {
@@ -8,10 +12,6 @@ extern "C" {
 #include <gpac/isomedia.h>
 #include <gpac/internal/media_dev.h>
 }
-
-#include "lib_gpacpp/gpacpp.hpp"
-#include "lib_ffpp/ffpp.hpp"
-#include "../common/libav.hpp"
 
 //#define AVC_INBAND_CONFIG
 #define TIMESCALE_MUL 1000
@@ -336,8 +336,6 @@ void fillVideoSampleData(const u8 *bufPtr, u32 bufLen, GF_ISOSample &sample) {
 
 namespace Mux {
 
-uint64_t GPACMuxMP4::absTimeInMs = 0;
-
 GPACMuxMP4::GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs, SegmentPolicy segmentPolicy, FragmentPolicy fragmentPolicy, CompatibilityFlag compatFlags)
 	: compatFlags(compatFlags), fragmentPolicy(fragmentPolicy), segmentPolicy(segmentPolicy), segmentDurationIn180k(timescaleToClock(segmentDurationInMs, 1000)) {
 	if ((segmentDurationInMs == 0) ^ (segmentPolicy == NoSegment || segmentPolicy == SingleSegment))
@@ -440,7 +438,7 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 				}
 			}
 			if (!gf_isom_get_filename(isoInit)) {
-				throw error("memory segmented not implmented yet.");
+				throw error("Memory segmented not implemented yet.");
 #if 0 //TODO: sendOutput of memory + this code is repeated and can be factorized
 				GF_BitStream *bs = NULL;
 				GF_Err e = gf_isom_get_bs(isoInit, &bs);
@@ -459,7 +457,7 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 
 		if (lastSegmentSize) {
 			sendOutput();
-			log(Info, "Segment %s completed (size %s) (startsWithSAP=%s)", segmentName, lastSegmentSize, segmentStartsWithRAP);
+			log(Info, "Segment %s completed (size %s) (startsWithSAP=%s)", segmentName.empty() ? "[in memory]" : segmentName, lastSegmentSize, segmentStartsWithRAP);
 		}
 	}
 }
@@ -480,7 +478,7 @@ void GPACMuxMP4::startFragment(uint64_t DTS, uint64_t PTS) {
 			}
 
 			if (!(compatFlags & DashJs)) {
-				e = gf_isom_set_fragment_reference_time(isoCur, trackId, gf_net_get_ntp_ts(), PTS);
+				e = gf_isom_set_fragment_reference_time(isoCur, trackId, UTC2NTP(DataBase::absUTCOffsetInMs) + PTS, PTS);
 				if (e != GF_OK)
 					throw error(format("Impossible to create UTC marquer: %s", gf_error_to_string(e)));
 			}
@@ -497,7 +495,7 @@ void GPACMuxMP4::closeFragment() {
 				return;
 			}
 			auto const deltaInTs = DTS == curSegmentDurInTs ? defaultSampleIncInTs : 0;
-			GF_Err e = gf_isom_set_traf_mss_timeext(isoCur, trackId, convertToTimescale(absTimeInMs, 1000, mediaTs) + DTS - curSegmentDurInTs - defaultSampleIncInTs + deltaInTs, curSegmentDurInTs - deltaInTs);
+			GF_Err e = gf_isom_set_traf_mss_timeext(isoCur, trackId, convertToTimescale(DataBase::absUTCOffsetInMs, 1000, mediaTs) + DTS - curSegmentDurInTs - defaultSampleIncInTs + deltaInTs, curSegmentDurInTs - deltaInTs);
 			if (e != GF_OK)
 				throw error(format("Impossible to create UTC marquer: %s", gf_error_to_string(e)));
 		}
@@ -719,11 +717,8 @@ void GPACMuxMP4::declareStreamVideo(std::shared_ptr<const MetadataPktLibavVideo>
 
 void GPACMuxMP4::declareInput(std::shared_ptr<const MetadataPktLibav> metadata) {
 	setupFragments();
-	if (!absTimeInMs) {
-		absTimeInMs = gf_net_get_utc();
-	}
 	if (segmentDurationIn180k && !(compatFlags & SegNumStartsAtZero)) {
-		segmentNum = absTimeInMs / clockToTimescale(segmentDurationIn180k, 1000) - 1;
+		segmentNum = DataBase::absUTCOffsetInMs / clockToTimescale(segmentDurationIn180k, 1000) - 1;
 	}
 	startSegment();
 	startFragment(0, 0);
@@ -807,7 +802,7 @@ void GPACMuxMP4::sendOutput() {
 	}
 	out->setMetadata(metadata);
 	auto const deltaInTs = DTS == curSegmentDurInTs ? defaultSampleIncInTs : 0;
-	out->setTime(timescaleToClock(absTimeInMs, 1000) + timescaleToClock(DTS - curSegmentDurInTs - defaultSampleIncInTs + deltaInTs, mediaTs));
+	out->setTime(timescaleToClock(DataBase::absUTCOffsetInMs, 1000) + timescaleToClock(DTS - curSegmentDurInTs - defaultSampleIncInTs + deltaInTs, mediaTs));
 	prevDTS = DTS;
 	output->emit(out);
 }

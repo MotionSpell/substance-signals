@@ -1,6 +1,7 @@
 #include "libav_demux.hpp"
 #include "../transform/restamp.hpp"
 #include "../common/libav.hpp"
+#include "lib_modules/core/clock.hpp"
 #include "lib_utils/tools.hpp"
 #include "lib_ffpp/ffpp.hpp"
 #include <cassert>
@@ -54,7 +55,7 @@ bool LibavDemux::webcamOpen(const std::string &options) {
 	return true;
 }
 
-LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::string &avformatCustom, uint64_t seekTimeInMs)
+LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::string &avformatCustom, const uint64_t seekTimeInMs)
 : loop(loop), done(false), dispatchPkts(PKT_QUEUE_SIZE) {
 	if (!(m_formatCtx = avformat_alloc_context()))
 		throw error("Can't allocate format context");
@@ -125,7 +126,7 @@ LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::strin
 		switch (st->codec->codec_type) {
 		case AVMEDIA_TYPE_AUDIO: m = new MetadataPktLibavAudio(st->codec, st->id); break;
 		case AVMEDIA_TYPE_VIDEO: m = new MetadataPktLibavVideo(st->codec, st->id); break;
-		//case AVMEDIA_TYPE_SUBTITLE: m = new MetadataPktLibavSubtitle(st->codec, st->id); break;
+		case AVMEDIA_TYPE_SUBTITLE: m = new MetadataPktLibavSubtitle(st->codec, st->id); break;
 		default: m = nullptr; break;
 		}
 		outputs.push_back(addOutput<OutputDataDefault<DataAVPacket>>(m));

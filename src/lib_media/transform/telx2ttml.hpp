@@ -1,6 +1,7 @@
 #pragma once
 
 #include "lib_modules/core/module.hpp"
+#include "lib_modules/core/clock.hpp"
 #include "../common/libav.hpp"
 #include <sstream>
 
@@ -11,15 +12,23 @@ struct Page;
 
 class TeletextToTTML : public ModuleS {
 public:
-	TeletextToTTML(unsigned page, uint64_t splitDurationIn180k);
+	enum TimingPolicy {
+		AbsoluteUTC,     //USP
+		RelativeToMedia, //14496-30
+		RelativeToSplit  //MSS
+	};
+
+	TeletextToTTML(unsigned pageNum, uint64_t splitDurationIn180k, TimingPolicy timingPolicy);
 	void process(Data data) override;
 
 private:
 	void sendSample(const std::string &sample);
 	void generateSamplesUntilTime(uint64_t time, Page const * const page);
 	OutputDataDefault<DataAVPacket> *output;
-	unsigned page;
-	uint64_t intClock = 0, extClock = 0, splitDurationIn180k, delayIn180k = 2 * Clock::Rate;
+	const unsigned pageNum;
+	const TimingPolicy timingPolicy;
+	const uint64_t splitDurationIn180k;
+	uint64_t intClock = 0, extClock = 0, delayIn180k = 2 * Clock::Rate;
 };
 
 }

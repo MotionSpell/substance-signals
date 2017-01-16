@@ -11,7 +11,7 @@ namespace Transform {
 namespace {
 void timestamp_to_srttime(uint64_t timestamp, char *buffer, const char *sep = ",") {
 	uint64_t p = timestamp;
-	uint8_t h = (uint8_t)(p / 3600000);
+	uint64_t h = (uint64_t)(p / 3600000);
 	uint8_t m = (uint8_t)(p / 60000 - 60 * h);
 	uint8_t s = (uint8_t)(p / 1000 - 3600 * h - 60 * m);
 	uint16_t u = (uint8_t)(p - 3600000 * h - 60000 * m - 1000 * s);
@@ -28,7 +28,8 @@ struct Page {
 
 	const std::string toTTML(int64_t startTimeInMs, int64_t endTimeInMs) const {
 		std::stringstream ttml;
-#if 1
+		//TODO: some styling
+#if 0
 		ttml << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
 		ttml << "<tt xmlns=\"http://www.w3.org/ns/ttml\" xmlns:tts=\"http://www.w3.org/ns/ttml#styling\" xmlns:ttp=\"http://www.w3.org/ns/ttml#parameter\" xmlns:smpte=\"http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt\">\n";
 		ttml << "<head>\n";
@@ -55,7 +56,8 @@ struct Page {
 		char timecode_hide[24] = { 0 };
 		timestamp_to_srttime(endTimeInMs, timecode_hide, ".");
 		timecode_hide[12] = 0;
-		ttml << "<p begin=\"" << timecode_show << "\" end=\"" << timecode_hide << "\" region=\"speaker\"><span style=\"textStyle\">" << ss.str() << "</span></p>\n";
+		//ttml << "<p begin=\"" << timecode_show << "\" end=\"" << timecode_hide << "\" region=\"speaker\"><span style=\"textStyle\">" << ss.str() << "</span></p>\n";
+		ttml << "<p begin=\"" << timecode_show << "\" end=\"" << timecode_hide << "\" region=\"speaker\"><span style=\"textStyle\">" << timecode_show << " - " << timecode_hide << "</span></p>\n";
 
 		ttml << "</div>\n";
 		ttml << "</body>\n";
@@ -79,12 +81,21 @@ struct Page {
 		ttml << "  </head>\n";
 		ttml << "  <body>\n";
 		ttml << "    <div>\n";
-		ttml << "      <p region=\"Region\" style=\"textAlignment_0\" begin=\"00:00:00.000\" end=\"00:00:02.000\" xml:id=\"sub_0\">\n";
-		ttml << "        <span style=\"Style0_0\">Ich suche das Holstentor.</span>\n";
+
+		char timecode_show[24] = { 0 };
+		timestamp_to_srttime(startTimeInMs, timecode_show, ".");
+		timecode_show[12] = 0;
+		char timecode_hide[24] = { 0 };
+		timestamp_to_srttime(endTimeInMs, timecode_hide, ".");
+		timecode_hide[12] = 0;
+		ttml << "      <p region=\"Region\" style=\"textAlignment_0\" begin=\"" << timecode_show << "\" end=\"" << timecode_hide << "\" xml:id=\"sub_0\">\n";
+		//ttml << "        <span style=\"Style0_0\">" << ss.str() << "</span>\n";
+		ttml << "        <span style=\"Style0_0\">" << timecode_show << " - " << timecode_hide << "</span>\n";
 		ttml << "      </p>\n";
+
 		ttml << "    </div>\n";
 		ttml << "  </body>\n";
-		ttml << "</tt>";//\n\n";
+		ttml << "</tt>\n\n";
 #endif
 		return ttml.str();
 	}
@@ -1003,8 +1014,8 @@ std::unique_ptr<Page> process_telx_packet(data_unit_t data_unit_id, teletext_pac
 }
 }
 
-TeletextToTTML::TeletextToTTML(unsigned page, uint64_t splitDurationInMs)
-: page(page), splitDurationIn180k(timescaleToClock(splitDurationInMs, 1000)) {
+TeletextToTTML::TeletextToTTML(unsigned pageNum, uint64_t splitDurationInMs, TimingPolicy timingPolicy)
+: pageNum(pageNum), timingPolicy(timingPolicy), splitDurationIn180k(timescaleToClock(splitDurationInMs, 1000)) {
 	addInput(new Input<DataAVPacket>(this));
 	output = addOutput<OutputDataDefault<DataAVPacket>>();
 }
@@ -1027,43 +1038,52 @@ void TeletextToTTML::generateSamplesUntilTime(uint64_t time, Page const * const 
 		log(Warning, "Next split time %s is before current clock %s. Skipping sample.", nextSplit, intClock);
 		return;
 	}
-	auto offset = (intClock / splitDurationIn180k) * splitDurationIn180k;
-	sendSample(page->toTTML(clockToTimescale(intClock - offset, 1000), clockToTimescale(nextSplit - offset, 1000)));
-	log(Debug, "Adjust to the next split: %s - %s", intClock, nextSplit);
+
+	int64_t offset;
+	switch (timingPolicy) {
+	case AbsoluteUTC: offset = timescaleToClock(DataBase::absUTCOffsetInMs, 1000); break;
+	case RelativeToMedia: offset = 0; break;
+	case RelativeToSplit: offset = -1 * (intClock / splitDurationIn180k) * splitDurationIn180k; break;		
+	default: throw error("Unknown timing policy (1)");
+	}
+	sendSample(page->toTTML(clockToTimescale(intClock + offset, 1000), clockToTimescale(nextSplit + offset, 1000)));
+	log(Debug, "Adjust to the next split: %s - %s", offset + intClock, offset + nextSplit);
 	intClock = nextSplit;
 
 	//full split segments
 	while (intClock + splitDurationIn180k < time) {
-		offset = intClock;
-		sendSample(page->toTTML(clockToTimescale(intClock - offset, 1000), clockToTimescale(intClock + splitDurationIn180k - offset, 1000)));
-		log(Debug, "Full split segments : %s - %s", intClock, intClock + splitDurationIn180k);
+		switch (timingPolicy) {
+		case AbsoluteUTC: offset = timescaleToClock(DataBase::absUTCOffsetInMs, 1000); break;
+		case RelativeToMedia: offset = 0; break;
+		case RelativeToSplit: offset = -1 * intClock; break;
+		default: throw error("Unknown timing policy (2)");
+		}
+		sendSample(page->toTTML(clockToTimescale(intClock + offset, 1000), clockToTimescale(intClock + offset + splitDurationIn180k, 1000)));
+		log(Debug, "Full split segments : %s - %s", intClock + offset, intClock + offset + splitDurationIn180k);
 		intClock += splitDurationIn180k;
 	}
 
 	//remainder
 	if (intClock < time) {
-		offset = intClock;
-		sendSample(page->toTTML(clockToTimescale(intClock - offset, 1000), clockToTimescale(time - offset, 1000)));
-		log(Debug, "Remainder           : %s - %s", intClock, time);
+		switch (timingPolicy) {
+		case AbsoluteUTC: offset = timescaleToClock(DataBase::absUTCOffsetInMs, 1000); break;
+		case RelativeToMedia: offset = 0; break;
+		case RelativeToSplit: offset = -1 * intClock; break;
+		default: throw error("Unknown timing policy (3)");
+		}
+		sendSample(page->toTTML(clockToTimescale(offset + intClock, 1000), clockToTimescale(offset + time, 1000)));
+		log(Debug, "Remainder           : %s - %s", offset + intClock, offset + time);
 		intClock = time;
 	}
 }
 
 void TeletextToTTML::process(Data data) {
 	const Page pageEmpty;
-	//1. nothing => DONE
-	//2. build graph => DONE
-	//3. same ttml: fwd input data => DONE
-	//4. update deps => DONE
-	//5. real converter => DONE
-	//6. gpac mux => DONE
-	//7. sparse stream : send regularly empty samples => DONE
-	//8. fix_teletext_pts, see https://git.gpac-licensing.com/rbouqueau/fk-encode/issues/51 => DONE
-	//9. generate fake segments => DONE
-	//10. compat USP with empty pages (cf sendSample with "") => DONE
-	//11. real samples
-	//12. several samples in one?
+	//TODO
+	//11. real samples => DONE
+	//12. text placement => DONE
 	//13. UTF8 to TTML formatting? accent + EOLs </br>
+	//14. several samples/lines_regions in one?
 
 	auto sub = safe_cast<const DataAVPacket>(data);
 	output->setMetadata(data->getMetadata());
@@ -1078,7 +1098,7 @@ void TeletextToTTML::process(Data data) {
 
 	auto pkt = sub->getPacket();
 	int pes_packet_length = pkt->size;
-	config.page = page;
+	config.page = pageNum;
 	int i = 1;
 	while (i <= pes_packet_length - 6) {
 		auto data_unit_id = (data_unit_t)pkt->data[i++];
@@ -1097,7 +1117,7 @@ void TeletextToTTML::process(Data data) {
 				if (page) {
 					//if (time < intClock)
 					//	throw error(format("Timing error: received %s but internal clock is already at %s", time, intClock));
-					//TODO: FIXME WE SHOULD PROBABLY ACCUMULATE UNTIL IT IS TIME TO SEND? IT MAY BE COMPLEXE WITH WEBVTT-LIKE ALGO
+					//TODO: FIXME we should probably accumulate until it is time to send? it may be complex with webvtt-like algo, see point 14 above
 					auto codecCtx = safe_cast<const MetadataPktLibav>(data->getMetadata())->getAVCodecContext();
 					auto const startTimeInMs = std::max<int64_t>(convertToTimescale(pkt->pts * codecCtx->time_base.num, codecCtx->time_base.den, 1000), convertToTimescale(page->show_timestamp * codecCtx->time_base.num, codecCtx->time_base.den, 1000));
 					auto const durationInMs = convertToTimescale((page->hide_timestamp - page->show_timestamp) * codecCtx->time_base.num, codecCtx->time_base.den, 1000);

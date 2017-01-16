@@ -68,17 +68,17 @@ class GPACMuxMP4 : public ModuleDynI {
 		void setupFragments();
 		void startFragment(uint64_t DTS, uint64_t PTS);
 		void closeFragment();
-		FragmentPolicy fragmentPolicy;
+		const FragmentPolicy fragmentPolicy;
 		uint64_t curFragmentDurInTs = 0;
 		//SmoothStreaming compat only, for fragments:
-		static uint64_t absTimeInMs;
 		uint64_t nextFragmentNum/*used with IndependentSegment*/ = 1; 
 
 		//segments
 		void startSegment();
 		void closeSegment(bool isLastSeg);
-		SegmentPolicy segmentPolicy;
-		uint64_t segmentDurationIn180k, curSegmentDurInTs = 0, deltaInTs = 0, segmentNum = 0, lastSegmentSize = 0;
+		const SegmentPolicy segmentPolicy;
+		const uint64_t segmentDurationIn180k;
+		uint64_t curSegmentDurInTs = 0, deltaInTs = 0, segmentNum = 0, lastSegmentSize = 0;
 		bool segmentStartsWithRAP = true;
 		std::string segmentName;
 		GF_BitStream *memory = nullptr;
@@ -105,7 +105,8 @@ private:
 	void startSegmentPostAction() final;
 
 	std::string writeISMLManifest(std::string codec4CC, std::string codecPrivate, int64_t bitrate, int width, int height, uint32_t sampleRate, uint32_t channels, uint16_t bitsPerSample);
-	std::string ISMLManifest, audioLang, audioName;
+	std::string ISMLManifest;
+	const std::string audioLang, audioName;
 };
 
 inline GPACMuxMP4::CompatibilityFlag operator | (GPACMuxMP4::CompatibilityFlag a, GPACMuxMP4::CompatibilityFlag b) {
