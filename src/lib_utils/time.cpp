@@ -12,12 +12,14 @@ int gettimeofday(struct timeval *tp, void *tz) {
 	tp->tv_usec = timebuffer.millitm * 1000;
 	return 0;
 }
+#else
+#include <sys/time.h>
 #endif
 
 static void getNTP(uint32_t *sec, uint32_t *frac) {
 	uint64_t frac_part;
 	struct timeval now;
-	gettimeofday(&now, NULL);
+	gettimeofday(&now, nullptr);
 	if (sec) {
 		*sec = (uint32_t)(now.tv_sec) + GF_NTP_SEC_1900_TO_1970;
 	}
