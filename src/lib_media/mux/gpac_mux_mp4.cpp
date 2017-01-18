@@ -148,8 +148,8 @@ static GF_Err hevc_import_ffextradata(const u8 *extradata, const u64 extradata_s
 		u8 NALUnitType, temporalId, layerId;
 		u64 NALStart;
 		u32 NALSize;
-
-		if (gf_bs_read_u32(bs) != 0x00000001) {
+		u32 startCode = gf_bs_read_u24(bs);
+		if (!(startCode == 0x000001) && !(!startCode && gf_bs_read_u8(bs) == 1)) {
 			gf_bs_del(bs);
 			return GF_NON_COMPLIANT_BITSTREAM;
 		}
