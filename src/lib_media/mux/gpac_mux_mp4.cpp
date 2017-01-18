@@ -470,7 +470,7 @@ void GPACMuxMP4::startFragment(uint64_t DTS, uint64_t PTS) {
 		if (e != GF_OK)
 			throw error(format("Impossible to create the moof starting the fragment: %s", gf_error_to_string(e)));
 
-		if (segmentPolicy == FragmentedSegment) {
+		if (segmentPolicy >= IndependentSegment) {
 			if (compatFlags & SmoothStreaming) {
 				e = gf_isom_set_fragment_option(isoCur, trackId, GF_ISOM_TFHD_FORCE_MOOF_BASE_OFFSET, 1);
 				if (e != GF_OK)
@@ -819,6 +819,9 @@ void GPACMuxMP4::addSample(gpacpp::IsoSample &sample, const uint64_t dataDuratio
 	if (segmentPolicy > SingleSegment) {
 		curSegmentDurInTs += dataDurationInTs;
 		if (((curSegmentDurInTs + deltaInTs) * IClock::Rate) > (mediaTs * segmentDurationIn180k) && ((sample.IsRAP == RAP) || (compatFlags & SegmentAtAny))) {
+			if ((compatFlags & SegConstantDur) && (timescaleToClock(curSegmentDurInTs, mediaTs) != segmentDurationIn180k) && (curSegmentDurInTs - dataDurationInTs != 0)) {
+				segmentDurationIn180k = timescaleToClock(curSegmentDurInTs - dataDurationInTs, mediaTs);
+			}
 			closeSegment(false);
 			segmentNum++;
 			segmentStartsWithRAP = sample.IsRAP == RAP;

@@ -9,7 +9,7 @@ namespace Modules {
 namespace Mux {
 
 GPACMuxMP4MSS::GPACMuxMP4MSS(const std::string &baseName, uint64_t segmentDurationInMs, const std::string &audioLang, const std::string &audioName)
-: GPACMuxMP4(baseName, segmentDurationInMs, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::OneFragmentPerSegment, Mux::GPACMuxMP4::SmoothStreaming | Mux::GPACMuxMP4::DashJs),
+: GPACMuxMP4(baseName, segmentDurationInMs, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::OneFragmentPerSegment, Mux::GPACMuxMP4::SmoothStreaming | Mux::GPACMuxMP4::DashJs | Mux::GPACMuxMP4::SegConstantDur),
 audioLang(audioLang), audioName(audioName) {
 }
 

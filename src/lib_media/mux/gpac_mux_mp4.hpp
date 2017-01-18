@@ -36,7 +36,8 @@ class GPACMuxMP4 : public ModuleDynI {
 			SegmentAtAny       = 1, //don't wait for a RAP
 			DashJs             = 1 << 1,
 			SmoothStreaming    = 1 << 2,
-			SegNumStartsAtZero = 1 << 3
+			SegNumStartsAtZero = 1 << 3,
+			SegConstantDur     = 1 << 4 //default is average i.e. segment duration may vary ; with this flag the actual duration may be different from segmentDurationInMs
 		};
 
 		GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs = 0, SegmentPolicy segmentPolicy = NoSegment, FragmentPolicy fragmentPolicy = NoFragment, CompatibilityFlag compatFlags = None);
@@ -77,8 +78,7 @@ class GPACMuxMP4 : public ModuleDynI {
 		void startSegment();
 		void closeSegment(bool isLastSeg);
 		const SegmentPolicy segmentPolicy;
-		const uint64_t segmentDurationIn180k;
-		uint64_t curSegmentDurInTs = 0, deltaInTs = 0, segmentNum = 0, lastSegmentSize = 0;
+		uint64_t segmentDurationIn180k, curSegmentDurInTs = 0, deltaInTs = 0, segmentNum = 0, lastSegmentSize = 0;
 		bool segmentStartsWithRAP = true;
 		std::string segmentName;
 		GF_BitStream *memory = nullptr;
