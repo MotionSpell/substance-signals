@@ -338,6 +338,54 @@ void DataAVPacket::resize(size_t /*size*/) {
 	assert(0);
 }
 
+void copyToPicture(AVFrame const* avFrame, DataPicture* pic) {
+	for (size_t comp = 0; comp<pic->getNumPlanes(); ++comp) {
+		auto const subsampling = comp == 0 ? 1 : 2;
+		auto const bytePerPixel = pic->getFormat().format == YUYV422 ? 2 : 1;
+		auto src = avFrame->data[comp];
+		auto const srcPitch = avFrame->linesize[comp];
+
+		auto dst = pic->getPlane(comp);
+		auto const dstPitch = pic->getPitch(comp);
+
+		auto const w = avFrame->width * bytePerPixel / subsampling;
+		auto const h = avFrame->height / subsampling;
+
+		for (int y = 0; y<h; ++y) {
+			memcpy(dst, src, w);
+			src += srcPitch;
+			dst += dstPitch;
+		}
+	}
+}
+
+static void lavc_ReleaseFrame(void *opaque, uint8_t *data) {
+}
+
+int avGetBuffer2(struct AVCodecContext *ctx, AVFrame *frame, int flags) {
+	auto dr = static_cast<LibavDirectRendering*>(ctx->opaque);
+	int width = frame->width;
+	int height = frame->height;
+	int linesize_align[AV_NUM_DATA_POINTERS];
+	avcodec_align_dimensions2(ctx, &width, &height, linesize_align);
+	auto pic = dr->getPicture(Resolution(width, height), libavPixFmt2PixelFormat((AVPixelFormat)frame->format));
+	frame->opaque = static_cast<void*>(pic);
+
+	for (size_t i = 0; i < AV_NUM_DATA_POINTERS; ++i) {
+		frame->data[i] = NULL;
+		frame->linesize[i] = 0;
+		frame->buf[i] = NULL;
+	}
+	for (size_t i = 0; i < pic->getNumPlanes(); ++i) {
+		frame->data[i] = pic->getPlane(i);
+		frame->linesize[i] = (int)pic->getPitch(i);
+		assert(!(pic->getPitch(i) % linesize_align[i]));
+		frame->buf[i] = av_buffer_create(frame->data[i], frame->linesize[i], lavc_ReleaseFrame, pic, 0);
+	}
+
+	return 0;
+}
+
 void avLog(void* /*avcl*/, int level, const char *fmt, va_list vl) {
 #if defined(__CYGWIN__) // cygwin does not have vsnprintf in std=c++11 mode. To be removed when cygwin is fixed
 	Log::msg(avLogLevel(level), "[libav-log::%s] %s", avlogLevelName(level), fmt);

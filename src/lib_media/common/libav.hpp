@@ -98,6 +98,11 @@ void libavFrame2pcmConvert(const AVFrame *frame, PcmFormat *cfg);
 void pixelFormat2libavPixFmt(const enum PixelFormat format, enum AVPixelFormat &avPixfmt);
 enum PixelFormat libavPixFmt2PixelFormat(const enum AVPixelFormat &avPixfmt);
 
+struct LibavDirectRendering {
+	virtual DataPicture* getPicture(const Resolution &res, const PixelFormat &format) = 0;
+};
+void copyToPicture(AVFrame const* avFrame, DataPicture* pic);
+extern "C" int avGetBuffer2(struct AVCodecContext *s, AVFrame *frame, int flags);
 void avLog(void *avcl, int level, const char *fmt, va_list vl);
 
 }

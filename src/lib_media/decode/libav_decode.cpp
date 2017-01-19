@@ -34,12 +34,20 @@ LibavDecode::LibavDecode(const MetadataPktLibav &metadata)
 	ffpp::Dict dict(typeid(*this).name(), "decoder", "-threads auto -err_detect 1 -flags output_corrupt -flags2 showall");
 	if (avcodec_open2(codecCtx, codec, &dict) < 0)
 		throw error("Couldn't open stream.");
+	codecCtx->refcounted_frames = true;
 
 	switch (codecCtx->codec_type) {
 	case AVMEDIA_TYPE_VIDEO: {
 		auto input = addInput(new Input<DataAVPacket>(this));
 		input->setMetadata(new MetadataPktLibavVideo(codecCtx));
-		videoOutput = addOutput<OutputPicture>(new MetadataRawVideo);
+		if (codecCtx->codec->capabilities & CODEC_CAP_DR1) {
+			codecCtx->thread_safe_callbacks = 1;
+			codecCtx->opaque = safe_cast<LibavDirectRendering>(this);
+			codecCtx->get_buffer2 = avGetBuffer2;
+			videoOutput = addOutputDyn<OutputPicture>(new MetadataRawVideo);
+		} else {
+			videoOutput = addOutput<OutputPicture>(new MetadataRawVideo);
+		}
 		break;
 	}
 	case AVMEDIA_TYPE_AUDIO: {
@@ -88,30 +96,6 @@ bool LibavDecode::processAudio(const DataAVPacket *data) {
 	return false;
 }
 
-namespace {
-//FIXME: this function is related to DataPicture and libav and should not be in a module (libav.xpp) + we can certainly avoid a memcpy here
-void copyToPicture(AVFrame const* avFrame, DataPicture* pic) {
-	for (size_t comp=0; comp<pic->getNumPlanes(); ++comp) {
-		auto const subsampling = comp == 0 ? 1 : 2;
-		auto const bytePerPixel = pic->getFormat().format == YUYV422 ? 2 : 1;
-		auto src = avFrame->data[comp];
-		auto const srcPitch = avFrame->linesize[comp];
-
-		auto dst = pic->getPlane(comp);
-		auto const dstPitch = pic->getPitch(comp);
-
-		auto const w = avFrame->width * bytePerPixel / subsampling;
-		auto const h = avFrame->height / subsampling;
-
-		for (int y=0; y<h; ++y) {
-			memcpy(dst, src, w);
-			src += srcPitch;
-			dst += dstPitch;
-		}
-	}
-}
-}
-
 bool LibavDecode::processVideo(const DataAVPacket *data) {
 	AVPacket *pkt = data->getPacket();
 	int gotPicture = 0;
@@ -123,8 +107,15 @@ bool LibavDecode::processVideo(const DataAVPacket *data) {
 		log(Error, "Corrupted video frame decoded (%s).", gotPicture);
 	}
 	if (gotPicture) {
-		auto pic = DataPicture::create(videoOutput, Resolution(avFrame->get()->width, avFrame->get()->height), libavPixFmt2PixelFormat((AVPixelFormat)avFrame->get()->format));
-		copyToPicture(avFrame->get(), pic.get());
+		std::shared_ptr<DataPicture> pic;
+		auto const &picf = pictures.find(avFrame->get()->opaque);
+		if (picf == pictures.end()) {
+			pic = DataPicture::create(videoOutput, Resolution(avFrame->get()->width, avFrame->get()->height), libavPixFmt2PixelFormat((AVPixelFormat)avFrame->get()->format));
+			copyToPicture(avFrame->get(), pic.get());
+		} else {
+			pic = picf->second;
+			pictures.erase(avFrame->get()->opaque);
+		}
 		pic->setTime(cumulatedDuration * codecCtx->time_base.num, codecCtx->time_base.den);
 		cumulatedDuration += codecCtx->ticks_per_frame;
 		videoOutput->emit(pic);
@@ -134,6 +125,12 @@ bool LibavDecode::processVideo(const DataAVPacket *data) {
 
 	av_frame_unref(avFrame->get());
 	return false;
+}
+
+DataPicture* LibavDecode::getPicture(const Resolution &res, const PixelFormat &format) {
+	auto directRenderPicture = DataPicture::create(videoOutput, res, format);
+	pictures[directRenderPicture.get()] = directRenderPicture;
+	return directRenderPicture.get();
 }
 
 void LibavDecode::process(Data data) {

@@ -64,30 +64,6 @@ LibavFilter::~LibavFilter() {
 	avfilter_graph_free(&graph);
 }
 
-namespace {
-//FIXME: this function is related to DataPicture and libav and should not be in a module (libav.xpp) + we can certainly avoid a memcpy here
-void copyToPicture(AVFrame const* avFrame, DataPicture* pic) {
-	for (size_t comp = 0; comp<pic->getNumPlanes(); ++comp) {
-		auto const subsampling = comp == 0 ? 1 : 2;
-		auto const bytePerPixel = pic->getFormat().format == YUYV422 ? 2 : 1;
-		auto src = avFrame->data[comp];
-		auto const srcPitch = avFrame->linesize[comp];
-
-		auto dst = pic->getPlane(comp);
-		auto const dstPitch = pic->getPitch(comp);
-
-		auto const w = avFrame->width * bytePerPixel / subsampling;
-		auto const h = avFrame->height / subsampling;
-
-		for (int y = 0; y<h; ++y) {
-			memcpy(dst, src, w);
-			src += srcPitch;
-			dst += dstPitch;
-		}
-	}
-}
-}
-
 void LibavFilter::process(Data data) {
 	times.push(data->getTime());
 	const auto pic = safe_cast<const DataPicture>(data);

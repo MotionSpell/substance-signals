@@ -30,7 +30,10 @@ class OutputT : public IOutput, public MetadataCap {
 		typedef Allocator AllocatorType;
 
 		OutputT(size_t allocatorSize, IMetadata *metadata = nullptr)
-			: MetadataCap(metadata), signal(g_executorOutputSync), allocator(new Allocator(allocatorSize)) {
+			: MetadataCap(metadata), signal(g_executorOutputSync), allocator(new Allocator(allocatorSize, allocatorSize)) {
+		}
+		OutputT(size_t allocatorBaseSize, size_t allocatorMaxSize, IMetadata *metadata = nullptr)
+			: MetadataCap(metadata), signal(g_executorOutputSync), allocator(new Allocator(allocatorBaseSize, allocatorMaxSize)) {
 		}
 		virtual ~OutputT() noexcept(false) {
 			allocator->unblock();
@@ -62,8 +65,8 @@ template<typename DataType> using OutputDataDefault = OutputT<PacketAllocator<Da
 typedef OutputDataDefault<DataRaw> OutputDefault;
 
 template <typename InstanceType, typename ...Args>
-InstanceType* createOutput(size_t allocatorSize, Args&&... args) {
-	return new InstanceType(allocatorSize, std::forward<Args>(args)...);
+InstanceType* createOutput(size_t allocatorBaseSize, size_t allocatorMaxSize, Args&&... args) {
+	return new InstanceType(allocatorBaseSize, allocatorMaxSize, std::forward<Args>(args)...);
 }
 
 class IOutputCap {
@@ -75,7 +78,13 @@ public:
 protected:
 	template <typename InstanceType, typename ...Args>
 	InstanceType* addOutput(Args&&... args) {
-		auto p = createOutput<InstanceType>(allocatorSize, std::forward<Args>(args)...);
+		auto p = createOutput<InstanceType>(allocatorSize, allocatorSize, std::forward<Args>(args)...);
+		outputs.push_back(uptr(p));
+		return safe_cast<InstanceType>(p);
+	}
+	template <typename InstanceType, typename ...Args>
+	InstanceType* addOutputDyn(Args&&... args) {
+		auto p = createOutput<InstanceType>(allocatorSize, -1, std::forward<Args>(args)...);
 		outputs.push_back(uptr(p));
 		return safe_cast<InstanceType>(p);
 	}

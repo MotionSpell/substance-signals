@@ -3,6 +3,7 @@
 #include "lib_modules/core/module.hpp"
 #include "../common/libav.hpp"
 #include "../common/pcm.hpp"
+#include <map>
 
 struct AVCodecContext;
 
@@ -15,7 +16,7 @@ class AudioConverter;
 namespace Modules {
 namespace Decode {
 
-class LibavDecode : public ModuleS {
+class LibavDecode : public ModuleS, public LibavDirectRendering {
 	public:
 		LibavDecode(const MetadataPktLibav &metadata);
 		~LibavDecode();
@@ -25,6 +26,9 @@ class LibavDecode : public ModuleS {
 	private:
 		bool processAudio(const DataAVPacket*);
 		bool processVideo(const DataAVPacket*);
+
+		DataPicture* getPicture(const Resolution &res, const PixelFormat &format) override;
+		std::map<void*, std::shared_ptr<DataPicture>> pictures;
 
 		AVCodecContext * const codecCtx;
 		std::unique_ptr<ffpp::Frame> const avFrame;

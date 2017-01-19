@@ -15,29 +15,23 @@ namespace Modules {
 static const size_t ALLOC_NUM_BLOCKS_DEFAULT = 10;
 static const size_t ALLOC_NUM_BLOCKS_LOW_LATENCY = 2;
 
-//#define ALLOC_NUM_BLOCKS_MAX_DYN (std::min<size_t>(numBlocks+3, numBlocks*2)) /*flexibility on the allocator*/
-#ifdef ALLOC_NUM_BLOCKS_MAX_DYN
-  #define ALLOC_NUM_BLOCKS_MAX_DYN_FREE /*free the dynamically allocated blocks*/
-#endif /*ALLOC_NUM_BLOCKS_MAX_DYN*/
-
+//#define ALLOC_NUM_BLOCKS_MAX_DYN_FREE /*free the dynamically allocated blocks*/
 //#define ALLOC_DEBUG_TRACK_BLOCKS
 
 template<typename DataType>
 class PacketAllocator {
 	public:
 		typedef DataType MyType;
-		PacketAllocator(size_t numBlocks)
-#ifdef ALLOC_NUM_BLOCKS_MAX_DYN
-			:
+		PacketAllocator(size_t minBlocks, size_t maxBlocks) :
 #ifdef ALLOC_NUM_BLOCKS_MAX_DYN_FREE
-			targetNumBlocks(numBlocks),
+			minBlocks(minBlocks),
 #endif
-			maxDynNumBlocks(ALLOC_NUM_BLOCKS_MAX_DYN), curNumBlocks(numBlocks)
-#endif
-		{
-			if (numBlocks == 0)
+			maxBlocks(maxBlocks), curNumBlocks(minBlocks) {
+			if (minBlocks == 0)
 				throw std::runtime_error("Cannot create an allocator with 0 block.");
-			for (size_t i=0; i<numBlocks; ++i) {
+			if (maxBlocks < minBlocks)
+				throw std::runtime_error(format("Max block number %s is smaller than min block number %s.", maxBlocks, minBlocks));
+			for (size_t i=0; i<minBlocks; ++i) {
 				freeBlocks.push(Block());
 			}
 		}
@@ -63,12 +57,10 @@ class PacketAllocator {
 		std::shared_ptr<T> getBuffer(size_t size) {
 			Block block;
 			if (!freeBlocks.tryPop(block)) {
-#ifdef ALLOC_NUM_BLOCKS_MAX_DYN
-				if (curNumBlocks < maxDynNumBlocks) {
+				if (curNumBlocks < maxBlocks) {
 					freeBlocks.push(Block(OneBufferIsFree));
 					curNumBlocks++;
 				}
-#endif
 				block = freeBlocks.pop();
 			}
 			switch (block.event) {
@@ -102,7 +94,7 @@ class PacketAllocator {
 		PacketAllocator& operator= (const PacketAllocator&) = delete;
 		void recycle(DataType *p) {
 #ifdef ALLOC_NUM_BLOCKS_MAX_DYN_FREE
-			if (curNumBlocks > targetNumBlocks) {
+			if (curNumBlocks > minBlocks) {
 				curNumBlocks--;
 				delete p;
 				return;
@@ -125,13 +117,11 @@ class PacketAllocator {
 			DataType *data;
 		};
 
-#ifdef ALLOC_NUM_BLOCKS_MAX_DYN
 #ifdef ALLOC_NUM_BLOCKS_MAX_DYN_FREE
-		const size_t targetNumBlocks;
+		const size_t minBlocks;
 #endif
-		const size_t maxDynNumBlocks;
+		const size_t maxBlocks;
 		std::atomic_size_t curNumBlocks;
-#endif
 		Queue<Block> freeBlocks;
 #ifdef ALLOC_DEBUG_TRACK_BLOCKS
 		Queue<std::weak_ptr<DataType>> usedBlocks;
