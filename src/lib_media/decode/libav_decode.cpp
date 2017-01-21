@@ -127,8 +127,8 @@ bool LibavDecode::processVideo(const DataAVPacket *data) {
 	return false;
 }
 
-DataPicture* LibavDecode::getPicture(const Resolution &res, const PixelFormat &format) {
-	auto directRenderPicture = DataPicture::create(videoOutput, res, format);
+DataPicture* LibavDecode::getPicture(const Resolution &res, const Resolution &resInternal, const PixelFormat &format) {
+	auto directRenderPicture = DataPicture::create(videoOutput, res, resInternal, format);
 	pictures[directRenderPicture.get()] = directRenderPicture;
 	return directRenderPicture.get();
 }

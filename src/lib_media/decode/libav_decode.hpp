@@ -27,7 +27,7 @@ class LibavDecode : public ModuleS, public LibavDirectRendering {
 		bool processAudio(const DataAVPacket*);
 		bool processVideo(const DataAVPacket*);
 
-		DataPicture* getPicture(const Resolution &res, const PixelFormat &format) override;
+		DataPicture* getPicture(const Resolution &res, const Resolution &resInternal, const PixelFormat &format) override;
 		std::map<void*, std::shared_ptr<DataPicture>> pictures;
 
 		AVCodecContext * const codecCtx;

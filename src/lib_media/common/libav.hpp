@@ -99,7 +99,7 @@ void pixelFormat2libavPixFmt(const enum PixelFormat format, enum AVPixelFormat &
 enum PixelFormat libavPixFmt2PixelFormat(const enum AVPixelFormat &avPixfmt);
 
 struct LibavDirectRendering {
-	virtual DataPicture* getPicture(const Resolution &res, const PixelFormat &format) = 0;
+	virtual DataPicture* getPicture(const Resolution &res, const Resolution &resInternal, const PixelFormat &format) = 0;
 };
 void copyToPicture(AVFrame const* avFrame, DataPicture* pic);
 extern "C" int avGetBuffer2(struct AVCodecContext *s, AVFrame *frame, int flags);

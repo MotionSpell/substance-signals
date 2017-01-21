@@ -276,6 +276,7 @@ void libavFrameDataConvert(const DataPcm *pcmData, AVFrame *frame) {
 void pixelFormat2libavPixFmt(const enum PixelFormat format, AVPixelFormat &avPixfmt) {
 	switch (format) {
 	case YUV420P: avPixfmt = AV_PIX_FMT_YUV420P; break;
+	case YUV422P: avPixfmt = AV_PIX_FMT_YUV422P; break;
 	case YUYV422: avPixfmt = AV_PIX_FMT_YUYV422; break;
 	case NV12: avPixfmt = AV_PIX_FMT_NV12; break;
 	case RGB24: avPixfmt = AV_PIX_FMT_RGB24; break;
@@ -286,6 +287,7 @@ void pixelFormat2libavPixFmt(const enum PixelFormat format, AVPixelFormat &avPix
 enum PixelFormat libavPixFmt2PixelFormat(const AVPixelFormat &avPixfmt) {
 	switch (avPixfmt) {
 	case AV_PIX_FMT_YUV420P: case AV_PIX_FMT_YUVJ420P: return YUV420P;
+	case AV_PIX_FMT_YUV422P: return YUV422P;
 	case AV_PIX_FMT_YUYV422: return YUYV422;
 	case AV_PIX_FMT_NV12: return NV12;
 	case AV_PIX_FMT_RGB24: return RGB24;
@@ -368,7 +370,10 @@ int avGetBuffer2(struct AVCodecContext *ctx, AVFrame *frame, int flags) {
 	int height = frame->height;
 	int linesize_align[AV_NUM_DATA_POINTERS];
 	avcodec_align_dimensions2(ctx, &width, &height, linesize_align);
-	auto pic = dr->getPicture(Resolution(width, height), libavPixFmt2PixelFormat((AVPixelFormat)frame->format));
+	if (width < 2 * linesize_align[0]) {
+		width *= 2;
+	}
+	auto pic = dr->getPicture(Resolution(frame->width, frame->height), Resolution(width, height), libavPixFmt2PixelFormat((AVPixelFormat)frame->format));
 	frame->opaque = static_cast<void*>(pic);
 
 	for (size_t i = 0; i < AV_NUM_DATA_POINTERS; ++i) {

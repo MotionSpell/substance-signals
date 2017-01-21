@@ -29,6 +29,7 @@ struct Resolution {
 enum PixelFormat {
 	UNKNOWN_PF = -1,
 	YUV420P,
+	YUV422P,
 	YUYV422,
 	NV12,
 	RGB24
@@ -54,6 +55,7 @@ class PictureFormat {
 		static size_t getSize(const Resolution &res, const PixelFormat &format) {
 			switch (format) {
 			case YUV420P: return res.width * res.height * 3 / 2;
+			case YUV422P: return res.width * res.height * 2;
 			case YUYV422: return res.width * res.height * 2;
 			case NV12: return res.width * res.height * 3 / 2;
 			case RGB24: return res.width * res.height * 3;
@@ -73,40 +75,44 @@ class DataPicture : public DataRaw {
 	public:
 		DataPicture(size_t unused) : DataRaw(0) {}
 		static std::shared_ptr<DataPicture> create(OutputPicture *out, const Resolution &res, const PixelFormat &format);
+		static std::shared_ptr<DataPicture> create(OutputPicture *out, const Resolution &res, const Resolution &resInternal, const PixelFormat &format);
 
 		bool isRecyclable() const override {
 			return true;
 		}
 
 		PictureFormat getFormat() const {
-			return m_format;
+			return format;
 		}
 		size_t getSize() const {
-			return m_format.getSize();
+			return format.getSize();
 		}
 		virtual size_t getNumPlanes() const = 0;
 		virtual const uint8_t* getPlane(size_t planeIdx) const = 0;
 		virtual uint8_t* getPlane(size_t planeIdx) = 0;
 		virtual size_t getPitch(size_t planeIdx) const = 0;
-		virtual void setResolution(const Resolution &res) = 0;
+		virtual void setInternalResolution(const Resolution &res) = 0;
+		virtual void setVisibleResolution(const Resolution &res) = 0;
 
 	protected:
 		DataPicture(const Resolution &res, const PixelFormat &format)
 			: DataRaw(PictureFormat::getSize(res, format)),
-			  m_format(res, format) {
+			  format(res, format), internalFormat(res, format) {
 		}
 
-		PictureFormat m_format;
+		PictureFormat format;
+		PictureFormat internalFormat /*we might need to store the picture within a wider memory space*/;
 };
 
 class PictureYUV420P : public DataPicture {
 	public:
 		PictureYUV420P(size_t unused) : DataPicture(0) {
-			m_format.format = YUV420P;
+			internalFormat.format = format.format = YUV420P;
 		}
 		PictureYUV420P(const Resolution &res)
 			: DataPicture(res, YUV420P) {
-			setResolution(res);
+			setInternalResolution(res);
+			setVisibleResolution(res);
 		}
 		size_t getNumPlanes() const override {
 			return 3;
@@ -120,9 +126,9 @@ class PictureYUV420P : public DataPicture {
 		size_t getPitch(size_t planeIdx) const override {
 			return m_pitch[planeIdx];
 		}
-		void setResolution(const Resolution &res) override {
-			m_format.res = res;
-			resize(m_format.getSize());
+		void setInternalResolution(const Resolution &res) override {
+			internalFormat.res = res;
+			resize(internalFormat.getSize());
 			auto const numPixels = res.width * res.height;
 			m_planes[0] = data();
 			m_planes[1] = data() + numPixels;
@@ -131,20 +137,66 @@ class PictureYUV420P : public DataPicture {
 			m_pitch[1] = res.width / 2;
 			m_pitch[2] = res.width / 2;
 		}
+		void setVisibleResolution(const Resolution &res) override {
+			format.res = res;
+		}
 
 	private:
 		size_t m_pitch[3];
 		uint8_t* m_planes[3];
 };
 
+class PictureYUV422P : public DataPicture {
+public:
+	PictureYUV422P(size_t unused) : DataPicture(0) {
+		internalFormat.format = format.format = YUV422P;
+	}
+	PictureYUV422P(const Resolution &res)
+		: DataPicture(res, YUV422P) {
+		setInternalResolution(res);
+		setVisibleResolution(res);
+	}
+	size_t getNumPlanes() const override {
+		return 3;
+	}
+	const uint8_t* getPlane(size_t planeIdx) const override {
+		return m_planes[planeIdx];
+	}
+	uint8_t* getPlane(size_t planeIdx) override {
+		return m_planes[planeIdx];
+	}
+	size_t getPitch(size_t planeIdx) const override {
+		return m_pitch[planeIdx];
+	}
+	void setInternalResolution(const Resolution &res) override {
+		internalFormat.res = res;
+		resize(internalFormat.getSize());
+		auto const numPixels = res.width * res.height;
+		m_planes[0] = data();
+		m_planes[1] = data() + numPixels;
+		m_planes[2] = data() + numPixels + numPixels / 2;
+		m_pitch[0] = res.width;
+		m_pitch[1] = res.width / 2;
+		m_pitch[2] = res.width / 2;
+	}
+	void setVisibleResolution(const Resolution &res) override {
+		format.res = res;
+	}
+
+private:
+	size_t m_pitch[3];
+	uint8_t* m_planes[3];
+};
+
 class PictureYUYV422 : public DataPicture {
 	public:
 		PictureYUYV422(size_t unused) : DataPicture(0) {
-			m_format.format = YUYV422;
+			internalFormat.format = format.format = YUYV422;
 		}
 		PictureYUYV422(const Resolution &res)
 			: DataPicture(res, YUYV422) {
-			setResolution(res);
+			setInternalResolution(res);
+			setVisibleResolution(res);
 		}
 		size_t getNumPlanes() const override {
 			return 1;
@@ -156,22 +208,26 @@ class PictureYUYV422 : public DataPicture {
 			return data();
 		}
 		size_t getPitch(size_t planeIdx) const override {
-			return m_format.res.width * 2;
+			return format.res.width * 2;
 		}
-		void setResolution(const Resolution &res) override {
-			m_format.res = res;
-			resize(m_format.getSize());
+		void setInternalResolution(const Resolution &res) override {
+			internalFormat.res = res;
+			resize(internalFormat.getSize());
+		}
+		void setVisibleResolution(const Resolution &res) override {
+			format.res = res;
 		}
 };
 
 class PictureNV12 : public DataPicture {
 public:
 	PictureNV12(size_t unused) : DataPicture(0) {
-		m_format.format = NV12;
+		internalFormat.format = format.format = NV12;
 	}
 	PictureNV12(const Resolution &res)
 		: DataPicture(res, NV12) {
-		setResolution(res);
+		setInternalResolution(res);
+		setVisibleResolution(res);
 	}
 	size_t getNumPlanes() const override {
 		return 2;
@@ -185,13 +241,16 @@ public:
 	size_t getPitch(size_t planeIdx) const override {
 		return m_pitch[planeIdx];
 	}
-	void setResolution(const Resolution &res) override {
-		m_format.res = res;
-		resize(m_format.getSize());
+	void setInternalResolution(const Resolution &res) override {
+		internalFormat.res = res;
+		resize(internalFormat.getSize());
 		auto const numPixels = res.width * res.height;
 		m_planes[0] = data();
 		m_planes[1] = data() + numPixels;
 		m_pitch[0] = m_pitch[1] = res.width;
+	}
+	void setVisibleResolution(const Resolution &res) override {
+		format.res = res;
 	}
 
 private:
@@ -202,11 +261,12 @@ private:
 class PictureRGB24 : public DataPicture {
 	public:
 		PictureRGB24(size_t unused) : DataPicture(0) {
-			m_format.format = RGB24;
+			internalFormat.format = format.format = RGB24;
 		}
 		PictureRGB24(const Resolution &res)
 			: DataPicture(res, RGB24) {
-			setResolution(res);
+			setInternalResolution(res);
+			setVisibleResolution(res);
 		}
 		size_t getNumPlanes() const override {
 			return 1;
@@ -218,11 +278,15 @@ class PictureRGB24 : public DataPicture {
 			return data();
 		}
 		size_t getPitch(size_t planeIdx) const override {
-			return m_format.res.width * 3;
+			return format.res.width * 3;
 		}
-		void setResolution(const Resolution &res) override {
-			m_format.res = res;
-			resize(m_format.getSize());
+		void setInternalResolution(const Resolution &res) override {
+			internalFormat.res = res;
+			resize(internalFormat.getSize());
+
+		}
+		void setVisibleResolution(const Resolution &res) override {
+			format.res = res;
 		}
 };
 

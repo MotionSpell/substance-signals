@@ -83,7 +83,7 @@ Decode::LibavDecode* createVideoDecoder() {
 	return createGenericDecoder(AV_CODEC_ID_H264);
 }
 
-std::shared_ptr<DataBase> getTestH24Frame() {
+std::shared_ptr<DataBase> getTestH264Frame() {
 	static const uint8_t h264_gray_frame[] = {
 		0x00, 0x00, 0x00, 0x01,
 		0x67, 0x4d, 0x40, 0x0a, 0xe8, 0x8f, 0x42, 0x00,
@@ -100,7 +100,7 @@ std::shared_ptr<DataBase> getTestH24Frame() {
 
 unittest("decode: video simple") {
 	auto decode = uptr(createVideoDecoder());
-	auto data = getTestH24Frame();
+	auto data = getTestH264Frame();
 
 	auto onPic = [&](Data data) {
 		auto const pic = safe_cast<const DataPicture>(data);
