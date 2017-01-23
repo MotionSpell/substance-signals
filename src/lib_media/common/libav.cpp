@@ -370,8 +370,8 @@ int avGetBuffer2(struct AVCodecContext *ctx, AVFrame *frame, int flags) {
 	int height = frame->height;
 	int linesize_align[AV_NUM_DATA_POINTERS];
 	avcodec_align_dimensions2(ctx, &width, &height, linesize_align);
-	if (width < 2 * linesize_align[0]) {
-		width *= 2;
+	if (width % (2 * linesize_align[0])) {
+		width += 2 * linesize_align[0] - (width % (2 * linesize_align[0]));
 	}
 	auto pic = dr->getPicture(Resolution(frame->width, frame->height), Resolution(width, height), libavPixFmt2PixelFormat((AVPixelFormat)frame->format));
 	frame->opaque = static_cast<void*>(pic);
