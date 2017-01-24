@@ -39,6 +39,7 @@ class LibavDemux : public ModuleS {
 		struct AVFormatContext *m_formatCtx;
 		int64_t startPTSIn180k = 0;
 		uint64_t curTimeIn180k = 0, loopOffsetIn180k = 0;
+		std::vector<uint64_t> lastDTS, lastPTS;
 };
 
 }

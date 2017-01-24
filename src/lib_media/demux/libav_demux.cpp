@@ -95,6 +95,8 @@ LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::strin
 			throw error("Couldn't get additional video stream info");
 		}
 
+		lastDTS.resize(m_formatCtx->nb_streams);
+		lastPTS.resize(m_formatCtx->nb_streams);
 		restampers.resize(m_formatCtx->nb_streams);
 		for (unsigned i = 0; i < m_formatCtx->nb_streams; i++) {
 			const std::string format(m_formatCtx->iformat->name);
@@ -208,13 +210,15 @@ void LibavDemux::dispatch(AVPacket *pkt) {
 		log(Error, "Corrupted packet received (DTS=%s).", pkt->dts);
 	}
 	if (pkt->dts == AV_NOPTS_VALUE) {
-		pkt->dts = m_formatCtx->streams[pkt->stream_index]->cur_dts;
+		pkt->dts = lastDTS[pkt->stream_index];
 		log(Debug, "No DTS: setting last value %s.", pkt->dts);
 	}
 	if (pkt->pts == AV_NOPTS_VALUE) {
-		pkt->pts = m_formatCtx->streams[pkt->stream_index]->pts_buffer[0];
+		pkt->pts = lastPTS[pkt->stream_index];
 		log(Debug, "No PTS: setting last value %s.", pkt->pts);
 	}
+	lastDTS[pkt->stream_index] = pkt->dts;
+	lastPTS[pkt->stream_index] = pkt->pts;
 	if (pkt->pts < clockToTimescale(startPTSIn180k*m_formatCtx->streams[pkt->stream_index]->time_base.num, m_formatCtx->streams[pkt->stream_index]->time_base.den)) {
 		av_free_packet(pkt);
 		return;
