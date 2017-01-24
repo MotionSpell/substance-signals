@@ -14,6 +14,8 @@ extern const char *g_appName;
 //#define MP4_MONITOR
 #define MANUAL_HLS //FIXME: see https://git.gpac-licensing.com/rbouqueau/fk-encode/issues/17 and https://git.gpac-licensing.com/rbouqueau/fk-encode/issues/18
 
+#define MAX_GOP_DURATION_IN_MS 2000
+
 #ifdef MANUAL_HLS
 #include <fstream>
 #endif
@@ -133,7 +135,11 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 			p.codecType = videoCodecType;
 			p.res = dstFmt.res;
 			p.bitrate_v = bitrate;
-			p.GOPSize = ultraLowLatency ? 1 : (int)(segmentDurationInMs * p.frameRate) / 1000;
+			const int GOPDurationDivisor = 1 + (int)(segmentDurationInMs / (MAX_GOP_DURATION_IN_MS+1));
+			p.GOPSize = ultraLowLatency ? 1 : (int)(segmentDurationInMs * p.frameRate) / (1000 * GOPDurationDivisor);
+			if ((segmentDurationInMs * p.frameRate) % (1000 * GOPDurationDivisor))
+				throw std::runtime_error(format("Couldn't align GOP size (%s, divisor=%s) with segment duration (%sms). Check your input parameters.", p.GOPSize, GOPDurationDivisor, segmentDurationInMs));
+			if (GOPDurationDivisor > 1) Log::msg(Info, "[Encoder] Setting GOP duration to %sms (%s frames)", segmentDurationInMs / GOPDurationDivisor, p.GOPSize);
 			auto m = pipeline.addModule<Encode::LibavEncode>(Encode::LibavEncode::Video, p);
 			dstFmt.format = p.pixelFormat;
 			return m;
