@@ -110,6 +110,8 @@ AppOptions processArgs(int argc, char const* argv[]) {
 			"  --ultra-low-latency, -u             \tLower the latency as much as possible (quality may be degraded)." },
 		{ NUMERIC,  0, "s", "seg-dur",     Arg::Numeric,
 			"  --seg-dur,           -s             \tSet the segment duration (in ms) (default value: 2000)." },
+		{ NUMERIC,  0, "t", "dvr",         Arg::Numeric,
+			"  --dvr,               -t             \tSet the timeshift buffer depth in segment number (default value: infinite)." },
 		{ VIDEO,    0, "v", "video",       Arg::Video,
 			"  --video wxh[:b[:t]], -v wxh[:b[:t]] \tSet a video resolution and optionally bitrate (enables resize and/or transcoding) and encoder type (supported 0 (software (default)), 1 (QuickSync), 2 (NVEnc)." },
 		{ OPT,      0, "r", "autorotate",  Arg::None,
@@ -154,8 +156,12 @@ AppOptions processArgs(int argc, char const* argv[]) {
 			opt.autoRotate = true;
 		}
 	}
-	if (options[NUMERIC].first()->desc && options[NUMERIC].first()->desc->shortopt == std::string("s"))
-		opt.segmentDurationInMs = atoll(options[NUMERIC].first()->arg);
+	if (options[NUMERIC].first()->desc) {
+		if (options[NUMERIC].first()->desc->shortopt == std::string("s")) {
+			opt.segmentDurationInMs = atoll(options[NUMERIC].first()->arg);
+		} else if (options[NUMERIC].first()->desc->shortopt == std::string("t")) {
+			opt.timeshiftInSegNum = atoll(options[NUMERIC].first()->arg);
+		}
 	if (options[VIDEO].first()->desc && options[VIDEO].first()->desc->shortopt == std::string("v")) {
 		unsigned w=0, h=0, bitrate=0, type=0;
 		for (option::Option* o = options[VIDEO]; o; o = o->next()) {

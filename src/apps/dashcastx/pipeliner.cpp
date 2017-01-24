@@ -202,7 +202,7 @@ void declarePipeline(Pipeline &pipeline, const AppOptions &opt, const FormatFlag
 	if (formats & MPEG_DASH) {
 		if ((gf_dir_exists(DASH_SUBDIR) == GF_FALSE) && gf_mkdir(DASH_SUBDIR))
 			throw std::runtime_error(format("%s - couldn't create subdir %s: please check you have sufficient rights", g_appName, DASH_SUBDIR));
-		dasher = pipeline.addModule<Stream::MPEG_DASH>(DASH_SUBDIR, format("%s.mpd", g_appName), type, opt.segmentDurationInMs);
+		dasher = pipeline.addModule<Stream::MPEG_DASH>(DASH_SUBDIR, format("%s.mpd", g_appName), type, opt.segmentDurationInMs, opt.segmentDurationInMs * opt.timeshiftInSegNum);
 	}
 
 	bool isVertical = false;
