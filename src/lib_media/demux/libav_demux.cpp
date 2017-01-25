@@ -194,6 +194,8 @@ void LibavDemux::threadProc() {
 
 void LibavDemux::setTime(std::shared_ptr<DataAVPacket> data) {
 	auto pkt = data->getPacket();
+	lastDTS[pkt->stream_index] = pkt->dts;
+	lastPTS[pkt->stream_index] = pkt->pts;
 	auto const base = m_formatCtx->streams[pkt->stream_index]->time_base;
 	auto const time = timescaleToClock(pkt->dts * base.num, base.den);
 	data->setTime(time);
@@ -205,7 +207,7 @@ void LibavDemux::setTime(std::shared_ptr<DataAVPacket> data) {
 	}
 }
 
-void LibavDemux::dispatch(AVPacket *pkt) {
+bool LibavDemux::dispatchable(AVPacket * const pkt) {
 	if (pkt->flags & AV_PKT_FLAG_CORRUPT) {
 		log(Error, "Corrupted packet received (DTS=%s).", pkt->dts);
 	}
@@ -217,24 +219,34 @@ void LibavDemux::dispatch(AVPacket *pkt) {
 		pkt->pts = lastPTS[pkt->stream_index];
 		log(Debug, "No PTS: setting last value %s.", pkt->pts);
 	}
-	lastDTS[pkt->stream_index] = pkt->dts;
-	lastPTS[pkt->stream_index] = pkt->pts;
-	if (pkt->pts < clockToTimescale(startPTSIn180k*m_formatCtx->streams[pkt->stream_index]->time_base.num, m_formatCtx->streams[pkt->stream_index]->time_base.den)) {
-		av_free_packet(pkt);
-		return;
+	if (!lastDTS[pkt->stream_index]) {
+		if (pkt->pts < clockToTimescale(startPTSIn180k*m_formatCtx->streams[pkt->stream_index]->time_base.num, m_formatCtx->streams[pkt->stream_index]->time_base.den)) {
+			av_free_packet(pkt);
+			return false;
+		}
+		if (!(pkt->flags & AV_PKT_FLAG_KEY)) {
+			auto const st = m_formatCtx->streams[pkt->stream_index];
+			startPTSIn180k = timescaleToClock(pkt->pts * st->time_base.num, st->time_base.den);
+			return false;
+		}
 	}
+	return true;
+}
 
+void LibavDemux::dispatch(AVPacket *pkt) {
 	auto out = outputs[pkt->stream_index]->getBuffer(0);
 	AVPacket *outPkt = out->getPacket();
 	av_packet_move_ref(outPkt, pkt);
 	setTime(out);
 	outputs[outPkt->stream_index]->emit(out);
+	sparseStreamsHeartbeat(outPkt);
+}
 
-	//signal clock from audio to sparse streams (should be the PCR but libavformat doesn't give access to it)
+void LibavDemux::sparseStreamsHeartbeat(AVPacket const * const pkt) {
 	uint64_t curDTS = 0;
-	if (m_formatCtx->streams[outPkt->stream_index]->codec->codec_type == AVMEDIA_TYPE_AUDIO) {
-		auto const base = m_formatCtx->streams[outPkt->stream_index]->time_base;
-		const uint64_t time = timescaleToClock(outPkt->dts * base.num, base.den);
+	if (m_formatCtx->streams[pkt->stream_index]->codec->codec_type == AVMEDIA_TYPE_AUDIO) { //signal clock from audio to sparse streams (should be the PCR but libavformat doesn't give access to it)
+		auto const base = m_formatCtx->streams[pkt->stream_index]->time_base;
+		const uint64_t time = timescaleToClock(pkt->dts * base.num, base.den);
 		if (time > curDTS) {
 			curDTS = time;
 		}
@@ -273,7 +285,9 @@ void LibavDemux::process(Data data) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 			continue;
 		}
-		dispatch(&pkt);
+		if (dispatchable(&pkt)) {
+			dispatch(&pkt);
+		}
 	}
 
 	while (dispatchPkts.read(pkt)) {

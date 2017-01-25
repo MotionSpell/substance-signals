@@ -1094,8 +1094,9 @@ void TeletextToTTML::process(Data data) {
 	//TODO
 	//11. real samples => DONE
 	//12. text placement => DONE
-	//13. UTF8 to TTML formatting? accent + EOLs </br>
-	//14. several samples/lines_regions in one?
+	//13. add flush() for ondemand samples
+	//14. UTF8 to TTML formatting? accent + EOLs </br>
+	//15. several samples/lines_regions in one?
 
 	auto sub = safe_cast<const DataAVPacket>(data);
 	output->setMetadata(data->getMetadata());
@@ -1129,7 +1130,7 @@ void TeletextToTTML::process(Data data) {
 				if (page) {
 					//if (time < intClock)
 					//	throw error(format("Timing error: received %s but internal clock is already at %s", time, intClock));
-					//TODO: FIXME we should probably accumulate until it is time to send? it may be complex with webvtt-like algo, see point 14 above
+					//TODO: FIXME we should probably accumulate until it is time to send? it may be complex with webvtt-like algo, see point 15 above
 					auto codecCtx = safe_cast<const MetadataPktLibav>(data->getMetadata())->getAVCodecContext();
 					auto const startTimeInMs = std::max<int64_t>(convertToTimescale(pkt->pts * codecCtx->time_base.num, codecCtx->time_base.den, 1000), convertToTimescale(page->show_timestamp * codecCtx->time_base.num, codecCtx->time_base.den, 1000));
 					auto const durationInMs = convertToTimescale((page->hide_timestamp - page->show_timestamp) * codecCtx->time_base.num, codecCtx->time_base.den, 1000);

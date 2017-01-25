@@ -44,7 +44,7 @@ void Restamp::process(Data data) {
 
 	if ((int64_t)(time + offset) < 0) {
 		if (time < 2 * IClock::Rate) {
-			log(Error, "CISCO: reset offset [%s -> %ss (time=%s, offset=%s)]", (double)data->getTime() / IClock::Rate, (double)(std::max<int64_t>(0, time + offset)) / IClock::Rate, time, offset);
+			log(Error, "reset offset [%s -> %ss (time=%s, offset=%s)]", (double)data->getTime() / IClock::Rate, (double)(std::max<int64_t>(0, time + offset)) / IClock::Rate, time, offset);
 			offset = 0;
 		}
 	}
