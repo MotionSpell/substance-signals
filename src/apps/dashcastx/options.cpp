@@ -92,14 +92,13 @@ AppOptions processArgs(int argc, char const* argv[]) {
 		"  %s file.ts\n"
 		"  %s udp://226.0.0.1:1234\n"
 		"Transcode:\n"
-		"  %s --live --loop --seg-dur 10000 --autorotate --video 320x180:50000 --video 640x360:300000 http://server.com/file.mp4\n"
+		"  %s --live --loop --seg-dur 10000 --dvr 10 --autorotate --video 320x180:50000 --video 640x360:300000 http://server.com/file.mp4\n"
 		"  %s --live -v 1280x720:1000000 webcam:video=/dev/video0:audio=/dev/audio1\n"
 		"  %s --live --working-dir workdir -v 640x360:300000 -v 1280x720:1000000 webcam:video=/dev/video0:audio=/dev/audio1\n",
-		"  %s -ilr -w tmp -v 640x360:300000:0 udp://226.0.0.1:1234\n",
+		"  %s -ilr -w tmp -t 10 -v 640x360:300000:0 udp://226.0.0.1:1234\n",
 		g_appName, g_appName, g_appName, g_appName, g_appName, g_appName, g_appName);
 	const option::Descriptor usage[] = {
-		{ UNKNOWN,  0, "" ,  "",
-		Arg::Unknown, usage0.c_str() },
+		{ UNKNOWN,  0, "" ,  "",           Arg::Unknown, usage0.c_str() },
 		{ HELP,     0, "h", "help",        Arg::None,
 			"  --help,              -h             \tPrint usage and exit." },
 		{ OPT,      0, "i", "loop",        Arg::None,
@@ -111,7 +110,7 @@ AppOptions processArgs(int argc, char const* argv[]) {
 		{ NUMERIC,  0, "s", "seg-dur",     Arg::Numeric,
 			"  --seg-dur,           -s             \tSet the segment duration (in ms) (default value: 2000)." },
 		{ NUMERIC,  0, "t", "dvr",         Arg::Numeric,
-			"  --dvr,               -t             \tSet the timeshift buffer depth in segment number (default value: infinite)." },
+			"  --dvr,               -t             \tSet the timeshift buffer depth in segment number (default value: infinite(0))." },
 		{ VIDEO,    0, "v", "video",       Arg::Video,
 			"  --video wxh[:b[:t]], -v wxh[:b[:t]] \tSet a video resolution and optionally bitrate (enables resize and/or transcoding) and encoder type (supported 0 (software (default)), 1 (QuickSync), 2 (NVEnc)." },
 		{ OPT,      0, "r", "autorotate",  Arg::None,
@@ -162,6 +161,7 @@ AppOptions processArgs(int argc, char const* argv[]) {
 		} else if (options[NUMERIC].first()->desc->shortopt == std::string("t")) {
 			opt.timeshiftInSegNum = atoll(options[NUMERIC].first()->arg);
 		}
+	}
 	if (options[VIDEO].first()->desc && options[VIDEO].first()->desc->shortopt == std::string("v")) {
 		unsigned w=0, h=0, bitrate=0, type=0;
 		for (option::Option* o = options[VIDEO]; o; o = o->next()) {
