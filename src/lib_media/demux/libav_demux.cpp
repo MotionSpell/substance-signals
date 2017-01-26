@@ -107,7 +107,7 @@ LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::strin
 				restampers[i] = uptr(create<Transform::Restamp>(Transform::Restamp::Reset));
 			}
 
-			if (format == "rtsp" || format == "mpegts") {
+			if (format == "rtsp" || format == "rtp" || format == "mpegts") {
 				startPTSIn180k = std::max<int64_t>(startPTSIn180k, timescaleToClock(m_formatCtx->streams[i]->start_time*m_formatCtx->streams[i]->time_base.num, m_formatCtx->streams[i]->time_base.den));
 			}
 		}
@@ -116,7 +116,7 @@ LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::strin
 	}
 
 	for (unsigned i = 0; i<m_formatCtx->nb_streams; i++) {
-		AVStream *st = m_formatCtx->streams[i];
+		auto const st = m_formatCtx->streams[i];
 		auto parser = av_stream_get_parser(st);
 		if (parser) {
 			st->codec->ticks_per_frame = parser->repeat_pict + 1;
@@ -219,16 +219,9 @@ bool LibavDemux::dispatchable(AVPacket * const pkt) {
 		pkt->pts = lastPTS[pkt->stream_index];
 		log(Debug, "No PTS: setting last value %s.", pkt->pts);
 	}
-	if (!lastDTS[pkt->stream_index]) {
-		if (pkt->pts < clockToTimescale(startPTSIn180k*m_formatCtx->streams[pkt->stream_index]->time_base.num, m_formatCtx->streams[pkt->stream_index]->time_base.den)) {
-			av_free_packet(pkt);
-			return false;
-		}
-		if (!(pkt->flags & AV_PKT_FLAG_KEY)) {
-			auto const st = m_formatCtx->streams[pkt->stream_index];
-			startPTSIn180k = timescaleToClock(pkt->pts * st->time_base.num, st->time_base.den);
-			return false;
-		}
+	if (!lastDTS[pkt->stream_index] && pkt->pts < clockToTimescale(startPTSIn180k*m_formatCtx->streams[pkt->stream_index]->time_base.num, m_formatCtx->streams[pkt->stream_index]->time_base.den)) {
+		av_free_packet(pkt);
+		return false;
 	}
 	return true;
 }
