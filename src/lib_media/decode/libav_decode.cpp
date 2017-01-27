@@ -115,6 +115,7 @@ bool LibavDecode::processVideo(const DataAVPacket *data) {
 		} else {
 			pic = picf->second;
 			pictures.erase(avFrame->get()->opaque);
+			pic->setVisibleResolution(Resolution(codecCtx->width, codecCtx->height));
 		}
 		pic->setTime(cumulatedDuration * codecCtx->time_base.num, codecCtx->time_base.den);
 		cumulatedDuration += codecCtx->ticks_per_frame;
