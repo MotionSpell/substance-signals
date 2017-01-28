@@ -18,8 +18,7 @@ using namespace Modules;
 namespace Pipelines {
 namespace {
 template<typename Class>
-Signals::MemberFunctor<void, Class, void(Class::*)()>
-	MEMBER_FUNCTOR_NOTIFY_FINISHED(Class* objectPtr) {
+Signals::MemberFunctor<void, Class, void(Class::*)()> MEMBER_FUNCTOR_NOTIFY_FINISHED(Class* objectPtr) {
 	return Signals::MemberFunctor<void, Class, void(Class::*)()>(objectPtr, &ICompletionNotifier::finished);
 }
 }
