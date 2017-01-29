@@ -5,6 +5,7 @@
 typedef void CURL;
 struct curl_slist;
 typedef struct __tag_bitstream GF_BitStream;
+extern const char *g_version;
 
 namespace Modules {
 namespace Out {
@@ -16,7 +17,7 @@ class HTTP : public ModuleDynI {
 			Chunked          = 1 << 1, //not enabling it is experimental
 		};
 
-		HTTP(const std::string &url, Flag flags = InitialEmptyPost | Chunked);
+		HTTP(const std::string &url, Flag flags = InitialEmptyPost | Chunked, const std::string &userAgent = std::string("GPAC Signals/1.0-") + std::string(g_version));
 		virtual ~HTTP();
 
 		void process() final;
@@ -54,6 +55,7 @@ class HTTP : public ModuleDynI {
 		struct curl_slist *chunk = nullptr;
 		State state = Init;
 		Flag flags;
+		std::string userAgent;
 };
 
 }

@@ -7,14 +7,12 @@ extern "C" {
 }
 
 //#define CURL_DEBUG
-extern const char *g_version;
-#define CURL_SIGNALS_USER_AGENT (std::string("GPAC Signals/1.0-") + std::string(g_version)).c_str()
 
 namespace Modules {
 namespace Out {
 
-HTTP::HTTP(const std::string &url, Flag flags)
-: url(url), flags(flags) {
+HTTP::HTTP(const std::string &url, Flag flags, const std::string &userAgent)
+: url(url), flags(flags), userAgent(userAgent) {
 	if (url.compare(0, 7, "http://"))
 		throw error(format("can only handle URLs startint with 'http://', not %s.", url));
 
@@ -25,13 +23,13 @@ HTTP::HTTP(const std::string &url, Flag flags)
 
 	if (flags & InitialEmptyPost) {
 		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-		curl_easy_setopt(curl, CURLOPT_USERAGENT, CURL_SIGNALS_USER_AGENT);
+		curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent.c_str());
 		curl_easy_setopt(curl, CURLOPT_POST, 1L);
 #ifdef CURL_DEBUG
 		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 #endif
 
-		//make an empty POST to check the end point exists :
+		//make an empty POST to check the end point exists
 		curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, 0);
 		CURLcode res = curl_easy_perform(curl);
 		if (res != CURLE_OK) {
@@ -43,7 +41,7 @@ HTTP::HTTP(const std::string &url, Flag flags)
 
 	if (flags & Chunked) {
 		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-		curl_easy_setopt(curl, CURLOPT_USERAGENT, CURL_SIGNALS_USER_AGENT);
+		curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent.c_str());
 		curl_easy_setopt(curl, CURLOPT_POST, 1L);
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
@@ -209,7 +207,7 @@ void HTTP::threadProc() {
 			curTransferedDataInputIndex = (curTransferedDataInputIndex + 1) % (getNumInputs() - 1);
 
 			curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-			curl_easy_setopt(curl, CURLOPT_USERAGENT, CURL_SIGNALS_USER_AGENT);
+			curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent.c_str());
 			curl_easy_setopt(curl, CURLOPT_POSTFIELDS, ptr);
 			curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)fileSize);
 
