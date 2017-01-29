@@ -38,6 +38,7 @@
     <ClInclude Include="mux\gpac_mux_mp4.hpp" />
     <ClInclude Include="mux\libav_mux.hpp" />
     <ClInclude Include="out\file.hpp" />
+    <ClInclude Include="out\http.hpp" />
     <ClInclude Include="out\null.hpp" />
     <ClInclude Include="out\print.hpp" />
     <ClInclude Include="render\render_common.hpp" />
@@ -82,6 +83,7 @@
     <ClCompile Include="mux\gpac_mux_mp4_mss.cpp" />
     <ClCompile Include="mux\libav_mux.cpp" />
     <ClCompile Include="out\file.cpp" />
+    <ClCompile Include="out\http.cpp" />
     <ClCompile Include="out\null.cpp" />
     <ClCompile Include="out\print.cpp" />
     <ClCompile Include="render\sdl_audio.cpp" />

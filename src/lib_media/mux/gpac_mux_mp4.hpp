@@ -109,9 +109,5 @@ private:
 	const std::string audioLang, audioName;
 };
 
-inline GPACMuxMP4::CompatibilityFlag operator | (GPACMuxMP4::CompatibilityFlag a, GPACMuxMP4::CompatibilityFlag b) {
-	return static_cast<GPACMuxMP4::CompatibilityFlag>(static_cast<int>(a) | static_cast<int>(b));
-}
-
 }
 }

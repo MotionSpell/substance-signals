@@ -14,6 +14,7 @@
 #include "mux/gpac_mux_mp4.hpp"
 #include "mux/libav_mux.hpp"
 #include "out/file.hpp"
+#include "out/http.hpp"
 #include "out/null.hpp"
 #include "out/print.hpp"
 #ifdef SIGNALS_HAS_X11

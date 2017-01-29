@@ -104,6 +104,9 @@
     <ClInclude Include="common\gpac.hpp">
       <Filter>src\common</Filter>
     </ClInclude>
+    <ClInclude Include="out\http.hpp">
+      <Filter>src\out</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="src">
@@ -245,6 +248,9 @@
     </ClCompile>
     <ClCompile Include="common\gpac.cpp">
       <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="out\http.cpp">
+      <Filter>src\out</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

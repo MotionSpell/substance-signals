@@ -126,3 +126,13 @@ struct NotVoidStruct<void> {
 };
 
 template <typename T> using NotVoid = typename NotVoidStruct<T>::Type;
+
+template<typename T>
+inline constexpr T operator | (T a, T b) {
+	return static_cast<T>(static_cast<int>(a) | static_cast<int>(b));
+}
+
+template<typename T>
+inline constexpr T operator & (T a, T b) {
+	return static_cast<T>(static_cast<int>(a) & static_cast<int>(b));
+}

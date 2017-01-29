@@ -1,0 +1,224 @@
+#include "http.hpp"
+
+extern "C" {
+#include <curl/curl.h>
+#include <gpac/tools.h>
+#include <gpac/bitstream.h>
+}
+
+//#define CURL_DEBUG
+extern const char *g_version;
+#define CURL_SIGNALS_USER_AGENT (std::string("GPAC Signals/1.0-") + std::string(g_version)).c_str()
+
+namespace Modules {
+namespace Out {
+
+HTTP::HTTP(const std::string &url, Flag flags)
+: url(url), flags(flags) {
+	if (url.compare(0, 7, "http://"))
+		throw error(format("can only handle URLs startint with 'http://', not %s.", url));
+
+	curl_global_init(CURL_GLOBAL_ALL);
+	curl = curl_easy_init();
+	if (!curl)
+		throw error("Couldn't init the HTTP stack.");
+
+	if (flags & InitialEmptyPost) {
+		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+		curl_easy_setopt(curl, CURLOPT_USERAGENT, CURL_SIGNALS_USER_AGENT);
+		curl_easy_setopt(curl, CURLOPT_POST, 1L);
+#ifdef CURL_DEBUG
+		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+#endif
+
+		//make an empty POST to check the end point exists :
+		curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, 0);
+		CURLcode res = curl_easy_perform(curl);
+		if (res != CURLE_OK) {
+			log(Warning, "curl_easy_perform() failed: %s", curl_easy_strerror(res));
+			throw error("curl_easy_perform() failed");
+		}
+		curl_easy_reset(curl);
+	}
+
+	if (flags & Chunked) {
+		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+		curl_easy_setopt(curl, CURLOPT_USERAGENT, CURL_SIGNALS_USER_AGENT);
+		curl_easy_setopt(curl, CURLOPT_POST, 1L);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+
+#ifdef CURL_DEBUG
+		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+#endif
+		curl_easy_setopt(curl, CURLOPT_READFUNCTION, &HTTP::staticCurlCallback);
+		curl_easy_setopt(curl, CURLOPT_READDATA, this);
+		{
+			chunk = curl_slist_append(chunk, "Transfer-Encoding: chunked");
+			curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
+		}
+	}
+
+	addInput(new Input<DataRaw>(this));
+}
+
+HTTP::~HTTP() {
+	endOfStream();
+	curl_slist_free_all(chunk);
+	curl_easy_cleanup(curl);
+	curl_global_cleanup();
+}
+
+void HTTP::endOfStream() {
+	if (workingThread.joinable()) {
+		for (size_t i = 0; i < getNumInputs(); ++i) {
+			inputs[i]->push(nullptr);
+		}
+		workingThread.join();
+	}
+}
+
+void HTTP::flush() {
+	numDataQueueNotify--;
+	if (numDataQueueNotify == 0) {
+		endOfStream();
+	}
+}
+
+void HTTP::process() {
+	if (!workingThread.joinable() && state == Init) {
+		state = RunNewConnection;
+		numDataQueueNotify = (int)getNumInputs() - 1; //FIXME: connection/disconnection cannot occur dynamically. Lock inputs?
+		workingThread = std::thread(&HTTP::threadProc, this);
+	}
+}
+
+void HTTP::open(std::shared_ptr<const MetadataFile> meta) {
+	if (!meta)
+		throw error(format("Unknown data received on input %s", curTransferedDataInputIndex));
+	assert(!curTransferedBs && !curTransferedFile);
+	auto const fn = meta->getFilename();
+	if (fn.empty()) {
+		curTransferedBs = gf_bs_new((const char*)curTransferedData->data(), curTransferedData->size(), GF_BITSTREAM_READ);
+	} else {
+		curTransferedFile = gf_fopen(fn.c_str(), "rb");
+		if (!curTransferedFile)
+			throw error(format("File %s cannot be opened", fn));
+		curTransferedBs = gf_bs_from_file(curTransferedFile, GF_BITSTREAM_READ);
+	}
+	if (!curTransferedBs)
+		throw error("Bitstream cannot be created");
+}
+
+void HTTP::clean() {
+	if (curTransferedBs) {
+		if (curTransferedFile) {
+			gf_fclose(curTransferedFile);
+			curTransferedFile = nullptr;
+			gf_delete_file(safe_cast<const MetadataFile>(curTransferedData->getMetadata())->getFilename().c_str());
+		}
+		gf_bs_del(curTransferedBs);
+		curTransferedBs = nullptr;
+		curTransferedData = nullptr;
+		curTransferedDataInputIndex = (curTransferedDataInputIndex + 1) % (getNumInputs() - 1);
+	}
+}
+
+size_t HTTP::staticCurlCallback(void *ptr, size_t size, size_t nmemb, void *userp) {
+	auto pThis = (HTTP*)userp;
+	return pThis->curlCallback(ptr, size, nmemb);
+}
+
+size_t HTTP::curlCallback(void *ptr, size_t size, size_t nmemb) {
+	if (state == RunNewConnection && curTransferedData) {
+		std::shared_ptr<const MetadataFile> meta = safe_cast<const MetadataFile>(curTransferedData->getMetadata());
+		log(Debug, "reconnect: file %s", meta->getFilename());
+		gf_bs_seek(curTransferedBs, 0);
+	}
+
+	if (!curTransferedData) {
+		curTransferedData = inputs[curTransferedDataInputIndex]->pop();
+		if (!curTransferedData) {
+			state = Stop;
+			return 0;
+		}
+
+		open(safe_cast<const MetadataFile>(curTransferedData->getMetadata()));
+		if (state != RunNewConnection) {
+			state = RunNewFile; //on new connection, don't remove the ftyp/moov
+		}
+	}
+
+	if (state == RunNewConnection) {
+		state = RunResume;
+	} else if (state == RunNewFile) {
+		newFileCallback(ptr);
+		state = RunResume;
+	}
+
+	auto const transferSize = size*nmemb;
+	auto const read = gf_bs_read_data(curTransferedBs, (char*)ptr, std::min<u32>((u32)gf_bs_available(curTransferedBs), (u32)transferSize));
+	if (read == 0) {
+		clean();
+		curTransferedDataInputIndex = (curTransferedDataInputIndex + 1) % (getNumInputs() - 1);
+		return curlCallback(ptr, transferSize, 1);
+	} else {
+		return read;
+	}
+}
+
+bool HTTP::performTransfer() {
+	CURLcode res = curl_easy_perform(curl);
+	if (res == CURLE_OK) {
+		fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+	}
+
+	if (state == Stop) {
+		return false;
+	} else {
+		state = RunNewConnection;
+		return true;
+	}
+}
+
+void HTTP::threadProc() {
+	if (flags & Chunked) {
+		while (state != Stop) {
+			//TODO: with the additional requirement that the encoder MUST resend the previous two MP4 fragments for each track in the stream, and resume without introducing discontinuities in the media timeline. Resending the last two MP4 fragments for each track ensures that there is no data loss.
+			if (!performTransfer()) {
+				break;
+			}
+		}
+	} else {
+		const int transferSize = 1000000;
+		void *ptr = (void*)malloc(transferSize); //FIXME: to be freed
+		while (state != Stop) {
+			//TODO: with the additional requirement that the encoder MUST resend the previous two MP4 fragments for each track in the stream, and resume without introducing discontinuities in the media timeline. Resending the last two MP4 fragments for each track ensures that there is no data loss.
+			auto curTransferedData = inputs[curTransferedDataInputIndex]->pop();
+			if (!curTransferedData) {
+				state = Stop;
+				break;
+			}
+			open(safe_cast<const MetadataFile>(curTransferedData->getMetadata()));
+			auto read = gf_bs_read_data(curTransferedBs, (char*)ptr, std::min<u32>((u32)gf_bs_available(curTransferedBs), (u32)transferSize)), fileSize = read;
+			while (read) {
+				read = gf_bs_read_data(curTransferedBs, (char*)ptr, std::min<u32>((u32)gf_bs_available(curTransferedBs), (u32)transferSize));
+				fileSize += read;
+			}
+			clean();
+			curTransferedDataInputIndex = (curTransferedDataInputIndex + 1) % (getNumInputs() - 1);
+
+			curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+			curl_easy_setopt(curl, CURLOPT_USERAGENT, CURL_SIGNALS_USER_AGENT);
+			curl_easy_setopt(curl, CURLOPT_POSTFIELDS, ptr);
+			curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)fileSize);
+
+			if (!performTransfer()) {
+				break;
+			}
+		}
+	}
+}
+
+}
+}

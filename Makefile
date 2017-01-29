@@ -108,6 +108,7 @@ MEDIA_SRCS:=\
   $(ProjectName)/mux/gpac_mux_mp4_mss.cpp\
   $(ProjectName)/mux/libav_mux.cpp\
   $(ProjectName)/out/file.cpp\
+  $(ProjectName)/out/http.cpp\
   $(ProjectName)/out/null.cpp\
   $(ProjectName)/out/print.cpp\
   $(ProjectName)/stream/apple_hls.cpp\

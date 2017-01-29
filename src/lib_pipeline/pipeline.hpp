@@ -68,11 +68,4 @@ class Pipeline : public IPipelineNotifier {
 		std::exception_ptr eptr;
 };
 
-inline Pipeline::Threading operator | (Pipeline::Threading a, Pipeline::Threading b) {
-	return static_cast<Pipeline::Threading>(static_cast<int>(a) | static_cast<int>(b));
-}
-inline Pipeline::Threading operator & (Pipeline::Threading a, Pipeline::Threading b) {
-	return static_cast<Pipeline::Threading>(static_cast<int>(a) & static_cast<int>(b));
-}
-
 }
