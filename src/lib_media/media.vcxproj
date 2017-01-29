@@ -182,9 +182,9 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <TreatWarningAsError>true</TreatWarningAsError>
       <MinimalRebuild>false</MinimalRebuild>
-      <AssemblerListingLocation>$(IntDir)obj\%(RelativeDir)</AssemblerListingLocation>
-      <ObjectFileName>$(IntDir)obj\%(RelativeDir)</ObjectFileName>
-      <XMLDocumentationFileName>$(IntDir)obj\%(RelativeDir)</XMLDocumentationFileName>
+      <AssemblerListingLocation>$(IntDir)%(RelativeDir)</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)%(RelativeDir)</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)%(RelativeDir)</XMLDocumentationFileName>
       <SDLCheck>true</SDLCheck>
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -208,9 +208,9 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <TreatWarningAsError>true</TreatWarningAsError>
       <MinimalRebuild>false</MinimalRebuild>
-      <AssemblerListingLocation>$(IntDir)obj\%(RelativeDir)</AssemblerListingLocation>
-      <ObjectFileName>$(IntDir)obj\%(RelativeDir)</ObjectFileName>
-      <XMLDocumentationFileName>$(IntDir)obj\%(RelativeDir)</XMLDocumentationFileName>
+      <AssemblerListingLocation>$(IntDir)%(RelativeDir)</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)%(RelativeDir)</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)%(RelativeDir)</XMLDocumentationFileName>
       <SDLCheck>true</SDLCheck>
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <OmitFramePointers>false</OmitFramePointers>
@@ -235,9 +235,9 @@
       <AdditionalIncludeDirectories>.;$(ProjectDir)\..\..\extra_lib\include;$(ProjectDir)\..\..\src\</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <TreatWarningAsError>true</TreatWarningAsError>
-      <AssemblerListingLocation>$(IntDir)obj\%(RelativeDir)</AssemblerListingLocation>
-      <ObjectFileName>$(IntDir)obj\%(RelativeDir)</ObjectFileName>
-      <XMLDocumentationFileName>$(IntDir)obj\%(RelativeDir)</XMLDocumentationFileName>
+      <AssemblerListingLocation>$(IntDir)%(RelativeDir)</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)%(RelativeDir)</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)%(RelativeDir)</XMLDocumentationFileName>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4250;4996</DisableSpecificWarnings>
       <ControlFlowGuard>Guard</ControlFlowGuard>
@@ -265,9 +265,9 @@
       <AdditionalIncludeDirectories>.;$(ProjectDir)\..\..\extra_lib\include;$(ProjectDir)\..\..\src\</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <TreatWarningAsError>true</TreatWarningAsError>
-      <AssemblerListingLocation>$(IntDir)obj\%(RelativeDir)</AssemblerListingLocation>
-      <ObjectFileName>$(IntDir)obj\%(RelativeDir)</ObjectFileName>
-      <XMLDocumentationFileName>$(IntDir)obj\%(RelativeDir)</XMLDocumentationFileName>
+      <AssemblerListingLocation>$(IntDir)%(RelativeDir)</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)%(RelativeDir)</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)%(RelativeDir)</XMLDocumentationFileName>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4250;4996</DisableSpecificWarnings>
       <ControlFlowGuard>Guard</ControlFlowGuard>
