@@ -2,7 +2,7 @@
 
 #include "lib_utils/format.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 #include <string>
 #include <stdexcept>
 

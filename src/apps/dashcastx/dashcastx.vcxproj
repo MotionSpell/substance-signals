@@ -202,7 +202,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="dashcastx.cpp" />
+    <ClCompile Include="..\common\safemain.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="options.cpp" />
     <ClCompile Include="pipeliner.cpp" />

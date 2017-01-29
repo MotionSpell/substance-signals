@@ -1,16 +1,10 @@
+#include "lib_pipeline/pipeline.hpp"
 #include "lib_utils/profiler.hpp"
 #include "pipeliner.hpp"
+#include "options.hpp"
 #include <csignal>
-#ifdef _WIN32
-#include <direct.h> //chdir
-#else
-#include <unistd.h>
-#endif
-#include <gpac/tools.h> //gf_mkdir
 
-using namespace Pipelines;
-
-Pipeline *g_Pipeline = nullptr;
+Pipelines::Pipeline *g_Pipeline = nullptr;
 extern const char *g_appName;
 extern const char *g_version;
 
@@ -54,26 +48,19 @@ void appInfo(int argc, char const* argv[]) {
 	std::cout << format("EXECUTING: %s(%s)%s", g_appName, argv[0], argvs) << std::endl;
 	std::cout << format("BUILD:     %s-%s", g_appName, g_version) << std::endl;
 }
-
 }
 
-int safeMain(int argc, char const* argv[], const FormatFlags formats) {
+int safeMain(int argc, char const* argv[]) {
+	Tools::Profiler profilerGlobal(g_appName);
+	appInfo(argc, argv);
 #ifdef _MSC_VER
 	SetConsoleCtrlHandler(signalHandler, TRUE);
 #else
 	std::signal(SIGTERM, sigTermHandler);
 #endif
 
-	appInfo(argc, argv);
-
-	AppOptions opt = processArgs(argc, argv);
-	if (chdir(opt.workingDir.c_str()) < 0 && (gf_mkdir((char*)opt.workingDir.c_str()) || chdir(opt.workingDir.c_str()) < 0))
-		throw std::runtime_error(format("%s - couldn't change dir to %s: please check the directory exists and you have sufficient rights", g_appName, opt.workingDir));
-
-	Tools::Profiler profilerGlobal(g_appName);
-
-	auto pipeline = uptr(new Pipeline(opt.ultraLowLatency, opt.isLive ? 1.0 : 0.0, opt.ultraLowLatency ? Pipeline::Mono : Pipeline::OnePerModule));
-	declarePipeline(*pipeline, opt, formats);
+	auto config = processArgs(argc, argv);
+	auto pipeline = buildPipeline(*config);
 	g_Pipeline = pipeline.get();
 
 	Tools::Profiler profilerProcessing(format("%s - processing time", g_appName));

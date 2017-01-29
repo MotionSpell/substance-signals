@@ -22,6 +22,7 @@
     <ClInclude Include="queue.hpp" />
     <ClInclude Include="threadpool.hpp" />
     <ClInclude Include="time.hpp" />
+    <ClInclude Include="resolution.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="gpacpp">

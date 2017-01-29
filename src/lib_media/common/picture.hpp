@@ -2,28 +2,9 @@
 
 #include "lib_modules/core/data.hpp"
 #include "lib_modules/core/output.hpp"
+#include "lib_utils/resolution.hpp"
 
 namespace Modules {
-
-struct Resolution {
-	Resolution() : width(0), height(0) {
-	}
-	Resolution(unsigned int w, unsigned int h) : width(w), height(h) {
-	}
-	bool operator==(Resolution const& other) const {
-		return width == other.width && height == other.height;
-	}
-	bool operator!=(Resolution const& other) const {
-		return !(*this == other);
-	}
-	Resolution operator/(const int div) const {
-		return Resolution(this->width/2, this->height/2);
-	}
-	std::string toString() const {
-		return format("%sx%s", width, height);
-	}
-	unsigned int width, height;
-};
 
 #undef PixelFormat //there are collisions with FFmpeg here
 enum PixelFormat {

@@ -2,7 +2,7 @@
 
 #include "lib_utils/tools.hpp"
 #include <chrono>
-#include <stdint.h>
+#include <cstdint>
 
 namespace Modules {
 

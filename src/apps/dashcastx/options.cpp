@@ -1,10 +1,10 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include <iostream>
-#include <memory>
 #include "optionparser/optionparser.h"
 #include "options.hpp"
 #include "lib_utils/format.hpp"
+#include "lib_utils/tools.hpp"
 
 extern const char *g_appName;
 
@@ -83,7 +83,7 @@ void printDetectedOptions(option::Parser &parse, option::Option * const options)
 
 }
 
-AppOptions processArgs(int argc, char const* argv[]) {
+std::unique_ptr<const IConfig> processArgs(int argc, char const* argv[]) {
 	auto const usage0 = format("Usage: %s [options] <URL>\n\nOptions:", g_appName);
 	auto const examples = format(
 		"\nExamples:\n"
@@ -139,27 +139,27 @@ AppOptions processArgs(int argc, char const* argv[]) {
 		printDetectedOptions(parse, options.get());
 	}
 
-	AppOptions opt;
-	opt.input = parse.nonOption(0);
+	auto opt = uptr(new AppOptions);
+	opt->input = parse.nonOption(0);
 	for (option::Option *o = options[OPT]; o; o = o->next()) {
 		if (o->desc->shortopt == std::string("l")) {
-			opt.isLive = true;
+			opt->isLive = true;
 		}
 		if (o->desc->shortopt == std::string("i")) {
-			opt.loop = true;
+			opt->loop = true;
 		}
 		if (o->desc->shortopt == std::string("u")) {
-			opt.ultraLowLatency = true;
+			opt->ultraLowLatency = true;
 		}
 		if (o->desc->shortopt == std::string("r")) {
-			opt.autoRotate = true;
+			opt->autoRotate = true;
 		}
 	}
 	if (options[NUMERIC].first()->desc) {
 		if (options[NUMERIC].first()->desc->shortopt == std::string("s")) {
-			opt.segmentDurationInMs = atoll(options[NUMERIC].first()->arg);
+			opt->segmentDurationInMs = atoll(options[NUMERIC].first()->arg);
 		} else if (options[NUMERIC].first()->desc->shortopt == std::string("t")) {
-			opt.timeshiftInSegNum = atoll(options[NUMERIC].first()->arg);
+			opt->timeshiftInSegNum = atoll(options[NUMERIC].first()->arg);
 		}
 	}
 	if (options[VIDEO].first()->desc && options[VIDEO].first()->desc->shortopt == std::string("v")) {
@@ -168,14 +168,14 @@ AppOptions processArgs(int argc, char const* argv[]) {
 			auto const parsed = sscanf(o->arg, "%ux%u:%u:%u", &w, &h, &bitrate, &type);
 			if (parsed < 2) /*bitrate is optional*/
 				throw std::runtime_error("Internal error while retrieving resolution.");
-			opt.v.push_back(Video(Modules::Resolution(w, h), bitrate, type));
+			opt->v.push_back(Video(Resolution(w, h), bitrate, type));
 		}
 	}
 	for (option::Option *o = options[NONEMPTY]; o; o = o->next()) {
 		if (o->desc->shortopt == std::string("w"))
-			opt.workingDir = o->arg;
+			opt->workingDir = o->arg;
 		if (o->desc->shortopt == std::string("p"))
-			opt.postCommand = o->arg;
+			opt->postCommand = o->arg;
 	}
 
 	return opt;

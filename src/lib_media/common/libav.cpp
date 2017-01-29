@@ -6,7 +6,7 @@
 #include <cassert>
 #include <cstdio>
 #include <mutex>
-#include <string.h>
+#include <cstring>
 
 extern "C" {
 #include <libavcodec/avcodec.h>

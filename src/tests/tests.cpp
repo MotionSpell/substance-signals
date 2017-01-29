@@ -1,6 +1,6 @@
 #include <iostream>
 #include <stdexcept>
-#include <stdlib.h>
+#include <cstdlib>
 #include "lib_utils/profiler.hpp"
 #include "lib_utils/tools.hpp"
 #include "tests.hpp"
