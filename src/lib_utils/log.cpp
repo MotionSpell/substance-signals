@@ -58,6 +58,7 @@ std::string Log::getTime() {
 }
 
 std::string Log::getColorBegin(Level level) {
+	if (!getColor()) return "";
 #ifdef _WIN32
 	if (console == NULL) {
 		CONSOLE_SCREEN_BUFFER_INFO console_info;
@@ -88,6 +89,7 @@ std::string Log::getColorBegin(Level level) {
 }
 
 std::string Log::getColorEnd(Level level) {
+	if (!getColor()) return "";
 #ifdef _WIN32
 	SetConsoleTextAttribute(console, console_attr_ori);
 #else
