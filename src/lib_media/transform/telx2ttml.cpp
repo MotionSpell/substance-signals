@@ -21,98 +21,15 @@ void timestamp_to_srttime(uint64_t timestamp, char *buffer, const char *sep = ",
 }
 }
 
-struct Page {
-	Page() {}
-
-	uint64_t tsInMs, show_timestamp, hide_timestamp;
-	uint32_t frames_produced;
-	std::stringstream ss;
-
-	const std::string toTTML(int64_t startTimeInMs, int64_t endTimeInMs) const {
-		std::stringstream ttml;
-		//TODO: some styling
-#if 0
-		ttml << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-		ttml << "<tt xmlns=\"http://www.w3.org/ns/ttml\" xmlns:tts=\"http://www.w3.org/ns/ttml#styling\" xmlns:ttp=\"http://www.w3.org/ns/ttml#parameter\" xmlns:smpte=\"http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt\">\n";
-		ttml << "<head>\n";
-		ttml << "<smpte:information smpte:mode=\"Enhanced\"/>\n";
-		ttml << "<styling>\n";
-		ttml << "<style xml:id=\"emb\" tts:fontSize=\"4.1%\" tts:fontFamily=\"monospaceSansSerif\"/>\n";
-		ttml << "<style xml:id=\"ttx\" tts:fontSize=\"3.21%\" tts:fontFamily=\"monospaceSansSerif\"/>\n";
-		ttml << "<style xml:id=\"backgroundStyle\" tts:fontFamily=\"proportionalSansSerif\" tts:fontSize=\"18px\" tts:textAlign=\"center\" tts:origin=\"0% 66%\" tts:extent=\"100% 33%\" tts:backgroundColor=\"rgba(0,0,0,0)\" tts:displayAlign=\"center\"/>\n";
-		ttml << "<style xml:id=\"speakerStyle\" style=\"backgroundStyle\" tts:color=\"white\" tts:textOutline=\"black 1px\" tts:backgroundColor=\"transparent\"/>\n";
-		ttml << "<style xml:id=\"textStyle\" style=\"speakerStyle\" tts:color=\"white\" tts:textOutline=\"none\" tts:backgroundColor=\"black\"/>\n";
-		ttml << "</styling>\n";
-		ttml << "<layout>\n";
-		ttml << "<region xml:id=\"full\" tts:origin=\"0% 0%\" tts:extent=\"100% 100%\" tts:zIndex=\"1\"/>\n";
-		ttml << "<region xml:id=\"speaker\" style=\"speakerStyle\" tts:zIndex=\"1\"/>\n";
-		ttml << "<region xml:id=\"background\" style=\"backgroundStyle\" tts:zIndex=\"0\"/>\n";
-		ttml << "</layout>\n";
-		ttml << "</head>\n";
-		ttml << "<body>\n";
-		ttml << "<div>\n";
-
-		char timecode_show[24] = { 0 };
-		timestamp_to_srttime(startTimeInMs, timecode_show, ".");
-		timecode_show[12] = 0;
-		char timecode_hide[24] = { 0 };
-		timestamp_to_srttime(endTimeInMs, timecode_hide, ".");
-		timecode_hide[12] = 0;
-#ifdef DEBUG_DISPLAY_TIMESTAMPS
-		ttml << "<p begin=\"" << timecode_show << "\" end=\"" << timecode_hide << "\" region=\"speaker\"><span style=\"textStyle\">" << timecode_show << " - " << timecode_hide << "</span></p>\n";
-#else
-		if (!ss.str().empty()) {
-			ttml << "<p begin=\"" << timecode_show << "\" end=\"" << timecode_hide << "\" region=\"speaker\"><span style=\"textStyle\">" << ss.str() << "</span></p>\n";
-		}
-#endif
-
-		ttml << "</div>\n";
-		ttml << "</body>\n";
-		ttml << "</tt>\n\n";
-#else
-		ttml << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n";
-		ttml << "<tt xmlns=\"http://www.w3.org/ns/ttml\" xmlns:tt=\"http://www.w3.org/ns/ttml\" xmlns:ttm=\"http://www.w3.org/ns/ttml#metadata\" xmlns:tts=\"http://www.w3.org/ns/ttml#styling\" xmlns:ttp=\"http://www.w3.org/ns/ttml#parameter\" xmlns:ebutts=\"urn:ebu:tt:style\" xmlns:ebuttm=\"urn:ebu:tt:metadata\" xml:lang=\"\" ttp:timeBase=\"media\">\n";
-		ttml << "  <head>\n";
-		ttml << "    <metadata>\n";
-		ttml << "      <ebuttm:documentMetadata>\n";
-		ttml << "        <ebuttm:conformsToStandard>urn:ebu:tt:distribution:2014-01</ebuttm:conformsToStandard>\n";
-		ttml << "      </ebuttm:documentMetadata>\n";
-		ttml << "    </metadata>\n";
-		ttml << "    <styling>\n";
-		ttml << "      <style xml:id=\"Style0_0\" tts:fontFamily=\"proportionalSansSerif\" tts:backgroundColor=\"#00000099\" tts:color=\"#FFFFFF\" tts:fontSize=\"100%\" tts:lineHeight=\"normal\" ebutts:linePadding=\"0.5c\" />\n";
-		ttml << "      <style xml:id=\"textAlignment_0\" tts:textAlign=\"center\" />\n";
-		ttml << "    </styling>\n";
-		ttml << "    <layout>\n";
-		ttml << "      <region xml:id=\"Region\" tts:origin=\"10% 10%\" tts:extent=\"80% 80%\" tts:displayAlign=\"after\" />\n";
-		ttml << "    </layout>\n";
-		ttml << "  </head>\n";
-		ttml << "  <body>\n";
-		ttml << "    <div>\n";
-
-		char timecode_show[24] = { 0 };
-		timestamp_to_srttime(startTimeInMs, timecode_show, ".");
-		timecode_show[12] = 0;
-		char timecode_hide[24] = { 0 };
-		timestamp_to_srttime(endTimeInMs, timecode_hide, ".");
-		timecode_hide[12] = 0;
-		ttml << "      <p region=\"Region\" style=\"textAlignment_0\" begin=\"" << timecode_show << "\" end=\"" << timecode_hide << "\" xml:id=\"sub_0\">\n";
-#ifdef DEBUG_DISPLAY_TIMESTAMPS
-		ttml << "        <span style=\"Style0_0\">" << timecode_show << " - " << timecode_hide << "</span>\n";
-#else
-		if (!ss.str().empty()) {
-			ttml << "        <span style=\"Style0_0\">" << ss.str() << "</span>\n";
-		}
-#endif
-		ttml << "      </p>\n";
-
-		ttml << "    </div>\n";
-		ttml << "  </body>\n";
-		ttml << "</tt>\n\n";
-#endif
-		return ttml.str();
+const std::string Page::toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs) const {
+	std::stringstream ttml;
+	if (!ss.str().empty()) {
+		ttml << "        <span style=\"Style0_0\">" << ss.str() << "</span>\n";
 	}
+	return ttml.str();
+}
 
-	const std::string toSRT() {
+const std::string Page::toSRT() {
 		std::stringstream srt;
 		{
 			char buf[255];
@@ -138,7 +55,68 @@ struct Page {
 
 		return srt.str();
 	}
-};
+
+const std::string TeletextToTTML::toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs) {
+	std::stringstream ttml;
+	ttml << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n";
+	ttml << "<tt xmlns=\"http://www.w3.org/ns/ttml\" xmlns:tt=\"http://www.w3.org/ns/ttml\" xmlns:ttm=\"http://www.w3.org/ns/ttml#metadata\" xmlns:tts=\"http://www.w3.org/ns/ttml#styling\" xmlns:ttp=\"http://www.w3.org/ns/ttml#parameter\" xmlns:ebutts=\"urn:ebu:tt:style\" xmlns:ebuttm=\"urn:ebu:tt:metadata\" xml:lang=\"\" ttp:timeBase=\"media\">\n";
+	ttml << "  <head>\n";
+	ttml << "    <metadata>\n";
+	ttml << "      <ebuttm:documentMetadata>\n";
+	ttml << "        <ebuttm:conformsToStandard>urn:ebu:tt:distribution:2014-01</ebuttm:conformsToStandard>\n";
+	ttml << "      </ebuttm:documentMetadata>\n";
+	ttml << "    </metadata>\n";
+	ttml << "    <styling>\n";
+	ttml << "      <style xml:id=\"Style0_0\" tts:fontFamily=\"proportionalSansSerif\" tts:backgroundColor=\"#00000099\" tts:color=\"#FFFFFF\" tts:fontSize=\"100%\" tts:lineHeight=\"normal\" ebutts:linePadding=\"0.5c\" />\n";
+	ttml << "      <style xml:id=\"textAlignment_0\" tts:textAlign=\"center\" />\n";
+	ttml << "    </styling>\n";
+	ttml << "    <layout>\n";
+	ttml << "      <region xml:id=\"Region\" tts:origin=\"10% 10%\" tts:extent=\"80% 80%\" tts:displayAlign=\"after\" />\n";
+	ttml << "    </layout>\n";
+	ttml << "  </head>\n";
+	ttml << "  <body>\n";
+	ttml << "    <div>\n";
+
+	int64_t offset;
+	switch (timingPolicy) {
+	case AbsoluteUTC: offset = DataBase::absUTCOffsetInMs; break;
+	case RelativeToMedia: offset = 0; break;
+	case RelativeToSplit: offset = -1 * startTimeInMs; break;
+	default: throw error("Unknown timing policy (1)");
+	}
+
+	char timecode_show[24] = { 0 };
+	timestamp_to_srttime(startTimeInMs + offset, timecode_show, ".");
+	timecode_show[12] = 0;
+	char timecode_hide[24] = { 0 };
+	timestamp_to_srttime(endTimeInMs + offset, timecode_hide, ".");
+	timecode_hide[12] = 0;
+	ttml << "      <p region=\"Region\" style=\"textAlignment_0\" begin=\"" << timecode_show << "\" end=\"" << timecode_hide << "\" xml:id=\"sub_0\">\n";
+
+#ifdef DEBUG_DISPLAY_TIMESTAMPS
+	ttml << "        <span style=\"Style0_0\">" << timecode_show << " - " << timecode_hide << "</span>\n";
+#else
+	auto page = currentPages.begin();
+	while (page != currentPages.end()) {
+		if ((*page)->endTimeInMs > startTimeInMs && (*page)->startTimeInMs < endTimeInMs) {
+			auto localStartTimeInMs = std::max<uint64_t>((*page)->startTimeInMs, startTimeInMs);
+			auto localEndTimeInMs = std::min<uint64_t>((*page)->endTimeInMs, endTimeInMs);
+			ttml << (*page)->toTTML(localStartTimeInMs + offset, localEndTimeInMs + offset);
+		}
+		if ((*page)->endTimeInMs <= endTimeInMs) {
+			page = currentPages.erase(page);
+		} else {
+			++page;
+		}
+	}
+#endif
+
+	ttml << "      </p>\n";
+	ttml << "    </div>\n";
+	ttml << "  </body>\n";
+	ttml << "</tt>\n\n";
+	return ttml.str();
+}
 
 namespace {
 
@@ -725,7 +703,7 @@ page_is_empty:
 
 			if (col == col_start) {
 				if ((foreground_color != 0x7) && (config.colours == YES)) {
-					//TODO: colors: fprintf(fout, "<font color=\"%s\">", TTXT_COLOURS[foreground_color]);
+					//TODO: look for "colors:": fprintf(fout, "<font color=\"%s\">", TTXT_COLOURS[foreground_color]);
 					font_tag_opened = YES;
 				}
 			}
@@ -736,14 +714,14 @@ page_is_empty:
 					// each character space occupied by a spacing attribute is displayed as a SPACE.
 					if (config.colours == YES) {
 						if (font_tag_opened == YES) {
-							//TODO: colors: fprintf(fout, "</font> ");
+							//colors: fprintf(fout, "</font> ");
 							font_tag_opened = NO;
 						}
 
 						// black is considered as white for telxcc purpose
 						// telxcc writes <font/> tags only when needed
 						if ((v > 0x0) && (v < 0x7)) {
-							//TODO: colors: fprintf(fout, "<font color=\"%s\">", TTXT_COLOURS[v]);
+							//colors: fprintf(fout, "<font color=\"%s\">", TTXT_COLOURS[v]);
 							font_tag_opened = YES;
 						}
 					}
@@ -755,7 +733,7 @@ page_is_empty:
 					if (config.colours == YES) {
 						for (uint8_t i = 0; i < ARRAY_LENGTH(ENTITIES); i++) {
 							if (v == ENTITIES[i].character) {
-								//TODO: colors: fprintf(fout, "%s", ENTITIES[i].entity);
+								//colors: fprintf(fout, "%s", ENTITIES[i].entity);
 								// v < 0x20 won't be printed in next block
 								v = 0;
 								break;
@@ -774,7 +752,7 @@ page_is_empty:
 
 		// no tag will left opened!
 		if ((config.colours == YES) && (font_tag_opened == YES)) {
-			//TODO: colors: fprintf(fout, "</font>");
+			//colors: fprintf(fout, "</font>");
 			font_tag_opened = NO;
 		}
 
@@ -1043,68 +1021,21 @@ void TeletextToTTML::sendSample(const std::string &sample) {
 	output->emit(out);
 }
 
-void TeletextToTTML::generateSamplesUntilTime(uint64_t time, Page const * const page) {
- 	//adjust to the next split
-	auto nextSplit = std::min<uint64_t>(((intClock / splitDurationIn180k) + 1) * splitDurationIn180k, time);
-	if (nextSplit < intClock) {
-		log(Warning, "Next split time %s is before current clock %s. Skipping sample.", nextSplit, intClock);
-		return;
-	}
-
-	int64_t offset;
-	switch (timingPolicy) {
-	case AbsoluteUTC: offset = timescaleToClock(DataBase::absUTCOffsetInMs, 1000); break;
-	case RelativeToMedia: offset = 0; break;
-	case RelativeToSplit: offset = -1 * (intClock / splitDurationIn180k) * splitDurationIn180k; break;		
-	default: throw error("Unknown timing policy (1)");
-	}
-	sendSample(page->toTTML(clockToTimescale(intClock + offset, 1000), clockToTimescale(nextSplit + offset, 1000)));
-	log(Debug, "Adjust to the next split: %s - %s", offset + intClock, offset + nextSplit);
-	intClock = nextSplit;
-
-	//full split segments
-	while (intClock + splitDurationIn180k < time) {
-		switch (timingPolicy) {
-		case AbsoluteUTC: offset = timescaleToClock(DataBase::absUTCOffsetInMs, 1000); break;
-		case RelativeToMedia: offset = 0; break;
-		case RelativeToSplit: offset = -1 * intClock; break;
-		default: throw error("Unknown timing policy (2)");
-		}
-		sendSample(page->toTTML(clockToTimescale(intClock + offset, 1000), clockToTimescale(intClock + offset + splitDurationIn180k, 1000)));
-		log(Debug, "Full split segments : %s - %s", intClock + offset, intClock + offset + splitDurationIn180k);
-		intClock += splitDurationIn180k;
-	}
-
-	//remainder
-	if (intClock < time) {
-		switch (timingPolicy) {
-		case AbsoluteUTC: offset = timescaleToClock(DataBase::absUTCOffsetInMs, 1000); break;
-		case RelativeToMedia: offset = 0; break;
-		case RelativeToSplit: offset = -1 * intClock; break;
-		default: throw error("Unknown timing policy (3)");
-		}
-		sendSample(page->toTTML(clockToTimescale(offset + intClock, 1000), clockToTimescale(offset + time, 1000)));
-		log(Debug, "Remainder           : %s - %s", offset + intClock, offset + time);
-		intClock = time;
-	}
-}
-
 void TeletextToTTML::process(Data data) {
-	const Page pageEmpty;
 	//TODO
-	//11. real samples => DONE
-	//12. text placement => DONE
-	//13. add flush() for ondemand samples
-	//14. UTF8 to TTML formatting? accent + EOLs </br>
-	//15. several samples/lines_regions in one?
+	//13. several samples/lines_regions in one? => DONE
+	//14. add flush() for ondemand samples
+	//15. UTF8 to TTML formatting? accent + EOLs </br>
 
 	auto sub = safe_cast<const DataAVPacket>(data);
 	output->setMetadata(data->getMetadata());
-	if (!sub->size()) { //on sparse stream, we may be regularly awaken: generate empty samples when needed
+	if (!sub->size()) { //on sparse stream, we may be regularly awaken: generate samples when needed
 		extClock = sub->getTime();
-		const int64_t nextSplit = ((intClock / splitDurationIn180k) + 1) * splitDurationIn180k;
+		const int64_t prevSplit = (intClock / splitDurationIn180k) * splitDurationIn180k;
+		const int64_t nextSplit = prevSplit + splitDurationIn180k;
 		if ((int64_t)(extClock - delayIn180k) > nextSplit) {
-			generateSamplesUntilTime(nextSplit, &pageEmpty);
+			sendSample(toTTML(clockToTimescale(prevSplit, 1000), clockToTimescale(nextSplit, 1000)));
+			intClock = nextSplit;
 		}
 		return;
 	}
@@ -1128,14 +1059,17 @@ void TeletextToTTML::process(Data data) {
 				// FIXME: This explicit type conversion could be a problem some day -- do not need to be platform independant
 				auto page = process_telx_packet(data_unit_id, (teletext_packet_payload_t*)txdata, pkt->pts);
 				if (page) {
-					//if (time < intClock)
-					//	throw error(format("Timing error: received %s but internal clock is already at %s", time, intClock));
-					//TODO: FIXME we should probably accumulate until it is time to send? it may be complex with webvtt-like algo, see point 15 above
-					auto codecCtx = safe_cast<const MetadataPktLibav>(data->getMetadata())->getAVCodecContext();
+					auto const codecCtx = safe_cast<const MetadataPktLibav>(data->getMetadata())->getAVCodecContext();
+					log(Debug, "frames_produced %s, show=%s, hide=%s", page->frames_produced, convertToTimescale(page->show_timestamp * codecCtx->time_base.num, codecCtx->time_base.den, 1000), convertToTimescale(page->hide_timestamp * codecCtx->time_base.num, codecCtx->time_base.den, 1000));
+					if (data->getTime() < intClock) {
+						log(Warning, "Timing error: received %s but internal clock is already at %s", data->getTime(), intClock);
+					}
+
 					auto const startTimeInMs = std::max<int64_t>(convertToTimescale(pkt->pts * codecCtx->time_base.num, codecCtx->time_base.den, 1000), convertToTimescale(page->show_timestamp * codecCtx->time_base.num, codecCtx->time_base.den, 1000));
 					auto const durationInMs = convertToTimescale((page->hide_timestamp - page->show_timestamp) * codecCtx->time_base.num, codecCtx->time_base.den, 1000);
-					generateSamplesUntilTime(timescaleToClock(startTimeInMs, 1000), &pageEmpty);
-					generateSamplesUntilTime(timescaleToClock(startTimeInMs + durationInMs, 1000), page.get());
+					page->startTimeInMs = startTimeInMs;
+					page->endTimeInMs = startTimeInMs + durationInMs;
+					currentPages.push_back(std::move(page));
 				}
 			}
 		}
