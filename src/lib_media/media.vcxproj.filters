@@ -107,6 +107,9 @@
     <ClInclude Include="out\http.hpp">
       <Filter>src\out</Filter>
     </ClInclude>
+    <ClInclude Include="utils\repeater.hpp">
+      <Filter>src\utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="src">
@@ -251,6 +254,9 @@
     </ClCompile>
     <ClCompile Include="out\http.cpp">
       <Filter>src\out</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\repeater.cpp">
+      <Filter>src\utils</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

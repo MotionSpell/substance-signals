@@ -55,6 +55,7 @@
     <ClInclude Include="transform\video_convert.hpp" />
     <ClInclude Include="utils\comparator.hpp" />
     <ClInclude Include="utils\recorder.hpp" />
+    <ClInclude Include="utils\repeater.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\lib_modules\modules.vcxproj">
@@ -100,6 +101,7 @@
     <ClCompile Include="transform\video_convert.cpp" />
     <ClCompile Include="utils\comparator.cpp" />
     <ClCompile Include="utils\recorder.cpp" />
+    <ClCompile Include="utils\repeater.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3ED5C725-44B6-4E0B-A38C-73D85D8347CD}</ProjectGuid>

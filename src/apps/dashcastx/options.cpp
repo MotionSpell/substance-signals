@@ -178,5 +178,5 @@ std::unique_ptr<const IConfig> processArgs(int argc, char const* argv[]) {
 			opt->postCommand = o->arg;
 	}
 
-	return opt;
+	return std::move(opt);
 }

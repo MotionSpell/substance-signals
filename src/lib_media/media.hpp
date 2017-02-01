@@ -31,3 +31,4 @@
 #include "transform/video_convert.hpp"
 #include "utils/comparator.hpp"
 #include "utils/recorder.hpp"
+#include "utils/repeater.hpp"

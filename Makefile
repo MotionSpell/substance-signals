@@ -121,7 +121,8 @@ MEDIA_SRCS:=\
   $(ProjectName)/transform/telx2ttml.cpp\
   $(ProjectName)/transform/video_convert.cpp\
   $(ProjectName)/utils/comparator.cpp\
-  $(ProjectName)/utils/recorder.cpp   
+  $(ProjectName)/utils/recorder.cpp\
+  $(ProjectName)/utils/repeater.cpp
 ifeq ($(SIGNALS_HAS_X11), 1)
 MEDIA_SRCS+=\
   $(ProjectName)/render/sdl_audio.cpp\
