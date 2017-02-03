@@ -1060,13 +1060,13 @@ void TeletextToTTML::process(Data data) {
 				auto page = process_telx_packet(data_unit_id, (teletext_packet_payload_t*)txdata, pkt->pts);
 				if (page) {
 					auto const codecCtx = safe_cast<const MetadataPktLibav>(data->getMetadata())->getAVCodecContext();
-					log(Debug, "frames_produced %s, show=%s, hide=%s", page->frames_produced, convertToTimescale(page->show_timestamp * codecCtx->time_base.num, codecCtx->time_base.den, 1000), convertToTimescale(page->hide_timestamp * codecCtx->time_base.num, codecCtx->time_base.den, 1000));
+					log(Debug, "frames_produced %s, show=%s, hide=%s", page->frames_produced, convertToTimescale(page->show_timestamp * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000), convertToTimescale(page->hide_timestamp * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000));
 					if (data->getTime() < intClock) {
 						log(Warning, "Timing error: received %s but internal clock is already at %s", data->getTime(), intClock);
 					}
 
-					auto const startTimeInMs = std::max<int64_t>(convertToTimescale(pkt->pts * codecCtx->time_base.num, codecCtx->time_base.den, 1000), convertToTimescale(page->show_timestamp * codecCtx->time_base.num, codecCtx->time_base.den, 1000));
-					auto const durationInMs = convertToTimescale((page->hide_timestamp - page->show_timestamp) * codecCtx->time_base.num, codecCtx->time_base.den, 1000);
+					auto const startTimeInMs = std::max<int64_t>(convertToTimescale(pkt->pts * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000), convertToTimescale(page->show_timestamp * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000));
+					auto const durationInMs = convertToTimescale((page->hide_timestamp - page->show_timestamp) * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000);
 					page->startTimeInMs = startTimeInMs;
 					page->endTimeInMs = startTimeInMs + durationInMs;
 					currentPages.push_back(std::move(page));
