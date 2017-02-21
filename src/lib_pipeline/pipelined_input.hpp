@@ -27,7 +27,7 @@ Signals::MemberFunctor<void, Class, void(Class::*)()> MEMBER_FUNCTOR_NOTIFY_FINI
    Data is queued in the calling thread, then always dispatched by the executor
        (with a delay if the clock is set: this assumes the connection is made
        using an asynchronous executor and the start time is zero).
-   Data is nullptr at startup and at completion. */
+   Data is nullptr at completion. */
 class PipelinedInput : public IInput {
 	public:
 		PipelinedInput(IInput *input, const std::string &moduleName, IProcessExecutor *localExecutor, IProcessExecutor &delegateExecutor, IPipelineNotifier * const notify, IClock const * const clock)

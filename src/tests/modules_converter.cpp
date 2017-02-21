@@ -129,14 +129,14 @@ void framingTest(const size_t inFrameFrames, const size_t outFrameFrames) {
 	auto data = std::make_shared<DataPcm>(0);
 	data->setFormat(format);
 
-	auto input = uptr(new uint8_t[inFrameSize]);
-	auto inputRaw = input.get();
+	std::vector<uint8_t> input(inFrameSize);
+	auto inputRaw = input.data();
 	const size_t modulo = std::min<size_t>(inFrameSize, 256);
 	for (size_t i = 0; i < inFrameSize; ++i) {
 		inputRaw[i] = (uint8_t)(i % modulo);
 	}
 	for (uint8_t i = 0; i < format.numPlanes; ++i) {
-		data->setPlane(i, input.get(), inFrameSize);
+		data->setPlane(i, inputRaw, inFrameSize);
 	}
 
 	auto recorder = uptr(create<Utils::Recorder>());
