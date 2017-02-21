@@ -11,20 +11,29 @@ namespace Modules {
 namespace Transform {
 
 namespace {
-void timestamp_to_srttime(uint64_t timestamp, char *buffer, const char *sep = ",") {
+void timestampToTime(uint64_t timestamp, char *buffer, const char *msSeparator = ",") {
 	uint64_t p = timestamp;
 	uint64_t h = (uint64_t)(p / 3600000);
 	uint8_t m = (uint8_t)(p / 60000 - 60 * h);
 	uint8_t s = (uint8_t)(p / 1000 - 3600 * h - 60 * m);
 	uint16_t u = (uint8_t)(p - 3600000 * h - 60000 * m - 1000 * s);
-	sprintf(buffer, "%02u:%02u:%02u%s%03u", (unsigned)h, (unsigned)m, (unsigned)s, sep, (unsigned)u);
+	sprintf(buffer, "%02u:%02u:%02u%s%03u", (unsigned)h, (unsigned)m, (unsigned)s, msSeparator, (unsigned)u);
 }
 }
 
 const std::string Page::toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs) const {
 	std::stringstream ttml;
 	if (!ss.str().empty()) {
+		char timecode_show[24] = { 0 };
+		timestampToTime(startTimeInMs, timecode_show, ".");
+		timecode_show[12] = 0;
+		char timecode_hide[24] = { 0 };
+		timestampToTime(endTimeInMs, timecode_hide, ".");
+		timecode_hide[12] = 0;
+
+		ttml << "      <p region=\"Region\" style=\"textAlignment_0\" begin=\"" << timecode_show << "\" end=\"" << timecode_hide << "\" xml:id=\"sub_0\">\n";
 		ttml << "        <span style=\"Style0_0\">" << ss.str() << "</span>\n";
+		ttml << "      </p>\n";
 	}
 	return ttml.str();
 }
@@ -39,11 +48,11 @@ const std::string Page::toSRT() {
 
 		{
 			char timecode_show[24] = { 0 };
-			timestamp_to_srttime(show_timestamp, timecode_show);
+			timestampToTime(show_timestamp, timecode_show);
 			timecode_show[12] = 0;
 
 			char timecode_hide[24] = { 0 };
-			timestamp_to_srttime(hide_timestamp, timecode_hide);
+			timestampToTime(hide_timestamp, timecode_hide);
 			timecode_hide[12] = 0;
 
 			char buf[255];
@@ -85,22 +94,23 @@ const std::string TeletextToTTML::toTTML(uint64_t startTimeInMs, uint64_t endTim
 	default: throw error("Unknown timing policy (1)");
 	}
 
+#ifdef DEBUG_DISPLAY_TIMESTAMPS
 	char timecode_show[24] = { 0 };
-	timestamp_to_srttime(startTimeInMs + offset, timecode_show, ".");
+	timestampToTime(startTimeInMs + offset, timecode_show, ".");
 	timecode_show[12] = 0;
 	char timecode_hide[24] = { 0 };
-	timestamp_to_srttime(endTimeInMs + offset, timecode_hide, ".");
+	timestampToTime(endTimeInMs + offset, timecode_hide, ".");
 	timecode_hide[12] = 0;
 	ttml << "      <p region=\"Region\" style=\"textAlignment_0\" begin=\"" << timecode_show << "\" end=\"" << timecode_hide << "\" xml:id=\"sub_0\">\n";
-
-#ifdef DEBUG_DISPLAY_TIMESTAMPS
 	ttml << "        <span style=\"Style0_0\">" << timecode_show << " - " << timecode_hide << "</span>\n";
+	ttml << "      </p>\n";
 #else
 	auto page = currentPages.begin();
 	while (page != currentPages.end()) {
 		if ((*page)->endTimeInMs > startTimeInMs && (*page)->startTimeInMs < endTimeInMs) {
 			auto localStartTimeInMs = std::max<uint64_t>((*page)->startTimeInMs, startTimeInMs);
 			auto localEndTimeInMs = std::min<uint64_t>((*page)->endTimeInMs, endTimeInMs);
+			log(Debug, "[%s-%s]: %s - %s: %s", startTimeInMs, endTimeInMs, localStartTimeInMs, localEndTimeInMs, (*page)->ss.str());
 			ttml << (*page)->toTTML(localStartTimeInMs + offset, localEndTimeInMs + offset);
 		}
 		if ((*page)->endTimeInMs <= endTimeInMs) {
@@ -111,7 +121,6 @@ const std::string TeletextToTTML::toTTML(uint64_t startTimeInMs, uint64_t endTim
 	}
 #endif
 
-	ttml << "      </p>\n";
 	ttml << "    </div>\n";
 	ttml << "  </body>\n";
 	ttml << "</tt>\n\n";
@@ -703,7 +712,7 @@ page_is_empty:
 
 			if (col == col_start) {
 				if ((foreground_color != 0x7) && (config.colours == YES)) {
-					//TODO: look for "colors:": fprintf(fout, "<font color=\"%s\">", TTXT_COLOURS[foreground_color]);
+					//TODO: look for "//colors:": fprintf(fout, "<font color=\"%s\">", TTXT_COLOURS[foreground_color]);
 					font_tag_opened = YES;
 				}
 			}
