@@ -58,7 +58,7 @@ int sign(T num) {
 
 template<typename T>
 T divUp(T num, T divisor) {
-	return (num + divisor - 1) / divisor;
+	return (num + sign(num) * (divisor - 1)) / divisor;
 }
 
 template<typename T>

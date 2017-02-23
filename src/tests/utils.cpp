@@ -69,4 +69,11 @@ unittest("stringDup") {
 	ASSERT(!memcmp(s.data(), c, s.size()));
 }
 
+unittest("divUp") {
+	auto res1 = divUp(5, 2);
+	ASSERT(res1 == 3);
+	res1 = divUp(-5, 2);
+	ASSERT(res1 == -3);
+}
+
 }
