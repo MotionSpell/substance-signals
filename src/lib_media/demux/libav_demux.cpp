@@ -123,6 +123,7 @@ LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::strin
 		} else {
 			log(Debug, format("No parser found for stream %s (%s). Couldn't use full metadata to get the timescale.", i, st->codec->codec_name));
 		}
+		st->codec->time_base = st->time_base; //allows to keep trace of the pkt timebase in the output metadata
 
 		IMetadata *m;
 		switch (st->codec->codec_type) {

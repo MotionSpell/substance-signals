@@ -59,8 +59,6 @@ class LibavEncode : public ModuleS {
 		AVCodecContext *codecCtx;
 		std::unique_ptr<PcmFormat> pcmFormat = nullptr;
 		std::unique_ptr<ffpp::Frame> const avFrame;
-		Queue<uint64_t> times;
-		int64_t cumulatedPktDuration = 0;
 		OutputDataDefault<DataAVPacket>* output;
 };
 

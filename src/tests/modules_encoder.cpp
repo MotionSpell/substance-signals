@@ -55,3 +55,5 @@ unittest("encoder: timestamps start at random values") {
 	demux->flush();
 	ASSERT(i == times.size());
 }
+
+//TODO: add a more complex test for each module!

@@ -85,8 +85,8 @@ bool LibavDecode::processAudio(const DataAVPacket *data) {
 		for (uint8_t i = 0; i < pcmFormat.numPlanes; ++i) {
 			out->setPlane(i, avFrame->get()->data[i], avFrame->get()->nb_samples * pcmFormat.getBytesPerSample() / pcmFormat.numPlanes);
 		}
-		out->setTime(cumulatedDuration * codecCtx->time_base.num, codecCtx->time_base.den);
-		cumulatedDuration += avFrame->get()->nb_samples;
+		auto const &timebase = safe_cast<const MetadataPktLibavAudio>(getInput(0)->getMetadata())->getAVCodecContext()->time_base;
+		out->setTime(avFrame->get()->pkt_dts * timebase.num, timebase.den);
 		audioOutput->emit(out);
 		av_frame_unref(avFrame->get());
 		return true;
@@ -109,11 +109,11 @@ bool LibavDecode::processVideo(const DataAVPacket *data) {
 	if (gotPicture) {
 		auto ctx = static_cast<LibavDirectRenderingContext*>(avFrame->get()->opaque);
 		ctx->pic->setVisibleResolution(Resolution(codecCtx->width, codecCtx->height));
-		ctx->pic->setTime(cumulatedDuration * codecCtx->time_base.num, codecCtx->time_base.den);
-		cumulatedDuration += codecCtx->ticks_per_frame;
+		auto const &timebase = safe_cast<const MetadataPktLibavVideo>(data->getMetadata())->getAVCodecContext()->time_base;
+		ctx->pic->setTime(avFrame->get()->pkt_dts * timebase.num, timebase.den);
 		videoOutput->emit(ctx->pic);
-		delete ctx;
 		av_frame_unref(avFrame->get());
+		delete ctx;
 		return true;
 	}
 
@@ -129,10 +129,6 @@ LibavDirectRendering::LibavDirectRenderingContext* LibavDecode::getPicture(const
 
 void LibavDecode::process(Data data) {
 	auto decoderData = safe_cast<const DataAVPacket>(data);
-	if (!dataReceived) {
-		cumulatedDuration += clockToTimescale(data->getTime()*codecCtx->time_base.num, codecCtx->time_base.den);
-		dataReceived = true;
-	}
 	switch (codecCtx->codec_type) {
 	case AVMEDIA_TYPE_VIDEO:
 		processVideo(decoderData.get());
@@ -148,6 +144,7 @@ void LibavDecode::process(Data data) {
 
 void LibavDecode::flush() {
 	auto nullPkt = uptr(new DataAVPacket(0));
+	nullPkt->setMetadata(getInput(0)->getMetadata());
 	switch (codecCtx->codec_type) {
 	case AVMEDIA_TYPE_VIDEO:
 		while (processVideo(nullPkt.get())) {}

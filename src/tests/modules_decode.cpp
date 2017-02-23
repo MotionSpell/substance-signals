@@ -70,7 +70,6 @@ std::shared_ptr<DataBase> getTestMp3Frame() {
 
 unittest("decode: audio simple") {
 	auto decode = uptr(createMp3Decoder());
-
 	auto null = uptr(create<Out::Null>());
 	ConnectOutputToInput(decode->getOutput(0), null);
 

@@ -30,8 +30,6 @@ class LibavDecode : public ModuleS, public LibavDirectRendering {
 
 		AVCodecContext * const codecCtx;
 		std::unique_ptr<ffpp::Frame> const avFrame;
-		int64_t cumulatedDuration = 0;
-		bool dataReceived = false;
 		OutputPicture* videoOutput;
 		OutputPcm* audioOutput;
 };

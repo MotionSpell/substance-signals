@@ -1,4 +1,5 @@
 #include "libav_encode.hpp"
+#include "lib_modules/core/clock.hpp"
 #include "lib_utils/tools.hpp"
 #include "../common/pcm.hpp"
 #include <cassert>
@@ -186,7 +187,7 @@ bool LibavEncode::processAudio(const DataPcm *data) {
 	if (data) {
 		f = avFrame->get();
 		libavFrameDataConvert(data, f);
-		f->pts++;
+		f->pts = clockToTimescale(data->getTime() * codecCtx->time_base.num, codecCtx->time_base.den);
 	}
 
 	int gotPkt = 0;
@@ -194,19 +195,11 @@ bool LibavEncode::processAudio(const DataPcm *data) {
 		log(Warning, "error encountered while encoding audio frame %s.", f ? f->pts : -1);
 		return false;
 	}
-	if (gotPkt) {
-		pkt->pts = pkt->dts = cumulatedPktDuration;
-		cumulatedPktDuration += pkt->duration;
+	if (gotPkt && pkt->pts < 0) { //TODO: handle encoders that generate negative offsets such as AAC ones
 		if (pkt->duration != codecCtx->frame_size) {
 			log(Warning, "pkt duration %s is different from codec frame size %s - this may cause timing errors", pkt->duration, codecCtx->frame_size);
 		}
-		uint64_t time;
-		if (times.tryPop(time)) {
-			out->setTime(time);
-		} else {
-			log(Warning, "error encountered at input frame %s, output dts %s: more output packets than input. Discard", f ? f->pts : -1, pkt->dts);
-			return false;
-		}
+		out->setTime(pkt->pts * codecCtx->time_base.num, codecCtx->time_base.den);
 		assert(pkt->size);
 		if (out) output->emit(out);
 		return true;
@@ -230,7 +223,7 @@ bool LibavEncode::processVideo(const DataPicture *pic) {
 			f->data[i] = (uint8_t*)pic->getPlane(i);
 			f->linesize[i] = (int)pic->getPitch(i);
 		}
-		f->pts++;
+		f->pts = clockToTimescale(pic->getTime() * codecCtx->time_base.num, codecCtx->time_base.den);
 	}
 
 	int gotPkt = 0;
@@ -243,7 +236,7 @@ bool LibavEncode::processVideo(const DataPicture *pic) {
 			if (pkt->duration <= 0) {
 				pkt->duration = 1; /*store duration in case a forward module (e.g. muxer) would need it*/
 			}
-			out->setTime(times.pop());
+			out->setTime(pkt->pts * codecCtx->time_base.num, codecCtx->time_base.den);
 			output->emit(out);
 			return true;
 		}
@@ -253,7 +246,6 @@ bool LibavEncode::processVideo(const DataPicture *pic) {
 }
 
 void LibavEncode::process(Data data) {
-	times.push(data->getTime());
 	switch (codecCtx->codec_type) {
 	case AVMEDIA_TYPE_VIDEO: {
 		const auto encoderData = safe_cast<const DataPicture>(data);
