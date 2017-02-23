@@ -107,19 +107,12 @@ bool LibavDecode::processVideo(const DataAVPacket *data) {
 		log(Error, "Corrupted video frame decoded (%s).", gotPicture);
 	}
 	if (gotPicture) {
-		std::shared_ptr<DataPicture> pic;
-		auto const &picf = pictures.find(avFrame->get()->opaque);
-		if (picf == pictures.end()) {
-			pic = DataPicture::create(videoOutput, Resolution(avFrame->get()->width, avFrame->get()->height), libavPixFmt2PixelFormat((AVPixelFormat)avFrame->get()->format));
-			copyToPicture(avFrame->get(), pic.get());
-		} else {
-			pic = picf->second;
-			pictures.erase(avFrame->get()->opaque);
-			pic->setVisibleResolution(Resolution(codecCtx->width, codecCtx->height));
-		}
-		pic->setTime(cumulatedDuration * codecCtx->time_base.num, codecCtx->time_base.den);
+		auto ctx = static_cast<LibavDirectRenderingContext*>(avFrame->get()->opaque);
+		ctx->pic->setVisibleResolution(Resolution(codecCtx->width, codecCtx->height));
+		ctx->pic->setTime(cumulatedDuration * codecCtx->time_base.num, codecCtx->time_base.den);
 		cumulatedDuration += codecCtx->ticks_per_frame;
-		videoOutput->emit(pic);
+		videoOutput->emit(ctx->pic);
+		delete ctx;
 		av_frame_unref(avFrame->get());
 		return true;
 	}
@@ -128,10 +121,10 @@ bool LibavDecode::processVideo(const DataAVPacket *data) {
 	return false;
 }
 
-DataPicture* LibavDecode::getPicture(const Resolution &res, const Resolution &resInternal, const PixelFormat &format) {
-	auto directRenderPicture = DataPicture::create(videoOutput, res, resInternal, format);
-	pictures[directRenderPicture.get()] = directRenderPicture;
-	return directRenderPicture.get();
+LibavDirectRendering::LibavDirectRenderingContext* LibavDecode::getPicture(const Resolution &res, const Resolution &resInternal, const PixelFormat &format) {
+	auto ctx = new LibavDirectRenderingContext;
+	ctx->pic = DataPicture::create(videoOutput, res, resInternal, format);
+	return ctx;
 }
 
 void LibavDecode::process(Data data) {
