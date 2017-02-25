@@ -21,46 +21,28 @@ You need a C++11 compiler. ```ccache``` on unix can accelerate rebuilds: conside
 Before committing please execute tests (check.sh will reformat, build, and make tests for you). Test execution should be fast (less than 30s).
 
 Design
-======================
+======
 
 Signals is layered (from bottom to top):
-- signals: a signal-slot system
-- modules: a generic set of module interfaces and connection helpers
-- pipeline: pipeline builder and connection helpers (currently in modules/utils) - doesn't know anything about multimedia
-- mm (currently in media/common): multimedia consideration (modules would be agnostic)
-- media: some module implementations based on libmodules
-
-Signals include:
- - lib_signals: an agnostic signal/slot mechanism using C++11. May convey any type of data with any type of messaging.
- - lib_modules: an agnostic modules system. Uses lib_signals to connect the modules.  Modules are: inputs/outputs, a clock, an allocator, a data/metadata system. Everything can be configured thru templates.
- - lib_pipeline: easily build and supervise modules.
- - lib_media: a multimedia-specific layer. Uses lib_modules. Defines types for audio and video, and a lot of modules (encode/decode, mux/demux, transform, stream, render, etc.).
- - others: Signals also include some C++ wrappers for FFmpeg and GPAC, and some lib_utils (logs, profilings, C++ utils).
+- utils: some light C++ helpers (strings, containers, log, profiling, clocks, etc.) and wrappers (including for FFmpeg and GPAC).
+- signals: an agnostic signal/slot mechanism using C++11. May convey any type of data with any type of messaging.
+- modules: an agnostic modules system. Uses signals to connect the modules.  Modules are: inputs/outputs, a clock, an allocator, a data/metadata system. Everything can be configured thru templates.
+- pipeline: a pipeline of modules builder. Doesn't know anything about multimedia.
+- mm (currently in media/common): multimedia consideration. Defines types for audio and video, and a lot of
+- media: module implementations based on libmodules and mm (encode/decode, mux/demux, transform, stream, render, etc.).
 
 Write an application
 ====================
 
-Modules have an easy interface: just implement ```process(Data data)```.
-
-Data is garbage collected.
-
-To declare an input (more likely in the constructor), call ```addInput()```:
-```
-addInput(new Input<DataBase>(this));
-```
-The type of the input (here DataBase) can be:
- - DataLoose when the data type is not known (necessary for dynamic inputs (e.g. Muxers) but lazy-typing has some drawbacks.
- - DataRaw: raw data.
- - DataPcm: raw audio specialization.
- - DataPicture: raw video specialization.
- - PictureYUV420P: picture specialization for YUV420P colospace.
- - PictureYUYV422: picture specialization for YUYV422 colospace.
- - PictureNV12: picture specialization for NV12 colospace.
- - PictureRGB24: picture specialization for RGB24 colospace.
- - DataAVPacket: libav packet wrapper.
+You can connect the modules manually or use the Pipeline helper. You can find some example in the tests.
 
 Internals
 =========
+
+Signals is a data-driven framework. It means that data is the engine of the execution (most frameworks are driven by time). It means that:
+ - Input errors tend to propagate. They may appear in some later modules of your graph or pipeline. Be careful to test each of your modules.
+ - A lack of input may stop all outputs and logs.
+ - There is no such things as real-time in the modules.
 
 ```
 class Module : public IModule, public ErrorCap, public LogCap, public InputCap {
@@ -143,6 +125,27 @@ Write a module
 
 Use the Modules namespace.
 
+Modules have an easy interface: just implement ```process(Data data)```.
+
+You may want
+
+Data is reference-counted. It means that you don't need to care about its lifetime because it will be released as soon as no modules use it.
+
+To declare an input (more likely in the constructor), call ```addInput()```:
+```
+addInput(new Input<DataBase>(this));
+```
+The type of the input (here DataBase) can be:
+ - DataLoose when the data type is not known (necessary for dynamic inputs (e.g. Muxers) but lazy-typing has some drawbacks.
+ - DataRaw: raw data.
+ - DataPcm: raw audio specialization.
+ - DataPicture: raw video specialization.
+ - PictureYUV420P: picture specialization for YUV420P colospace.
+ - PictureYUYV422: picture specialization for YUYV422 colospace.
+ - PictureNV12: picture specialization for NV12 colospace.
+ - PictureRGB24: picture specialization for RGB24 colospace.
+ - DataAVPacket: libav packet wrapper.
+ 
 Constructor: use hard types.
 flush() = EOS
 

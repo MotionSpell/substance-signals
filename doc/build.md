@@ -18,11 +18,11 @@ We support two build systems:
 ## Visual Studio
 For Visual Studio, dependencies are already built and available from this repository: https://github.com/rbouqueau/signals-deps.git
 
-To use them, clone the repository and copy the pre-compiled dependencies using the CopyToSignals.bat file.
+To use them, clone the repository and copy the pre-compiled dependencies (drag and drop your signals folder on the ```CopyToSignals.bat``` batch).
 The dependencies are built using Visual Studio 2015.
 
 ## Make
-If you want to use the make build system, the dependencies for Signals need to be downloaded and built first.
+If you want to use the Make build system, the dependencies for Signals need to be downloaded and built first.
 
 ### Dependencies
 
@@ -39,12 +39,12 @@ You can use the ```CPREFIX``` environment variable to indicate another build too
 CPREFIX=x86_64-w64-mingw32 ./extra.sh
 ```
 
-For cmake, make sure you have its subpackages (modules) installed.
+For CMake (needed by some dependencies), make sure you have its subpackages (modules) installed.
 
 
 #### MinGW-w64
 
-On Windows, to be able to use make, we recommend using [msys2](https://msys2.github.io/) which comes with the package manager pacman to install those tools. However, some environment variables including PATH need to be tweaked (especially if it contains spaces) as follows:
+On Windows, to be able to use Make, we recommend using [msys2](https://msys2.github.io/) which comes with the package manager pacman to install those tools. However, some environment variables including PATH need to be tweaked (especially if it contains spaces) as follows:
 64 bits:
 ```
 $ export PATH=/mingw64/bin:$PWD/extra/bin:$PATH
