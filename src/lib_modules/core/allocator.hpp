@@ -46,15 +46,15 @@ class PacketAllocator {
 		}
 
 		struct Deleter {
-			Deleter(PacketAllocator<DataType> *allocator) : allocator(allocator) {}
+			Deleter(std::shared_ptr<PacketAllocator<DataType>> allocator) : allocator(allocator) {}
 			void operator()(DataType *p) const {
 				allocator->recycle(p);
 			}
-			PacketAllocator<DataType> * const allocator;
+			std::shared_ptr<PacketAllocator<DataType>> const allocator;
 		};
 
 		template<typename T>
-		std::shared_ptr<T> getBuffer(size_t size) {
+		std::shared_ptr<T> getBuffer(size_t size, std::shared_ptr<PacketAllocator> allocator) {
 			Block block;
 			if (!freeBlocks.tryPop(block)) {
 				if (curNumBlocks < maxBlocks) {
@@ -74,7 +74,7 @@ class PacketAllocator {
 					}
 				}
 
-				auto ret = std::shared_ptr<T>(safe_cast<T>(block.data), Deleter(this));
+				auto ret = std::shared_ptr<T>(safe_cast<T>(block.data), Deleter(allocator));
 #ifdef ALLOC_DEBUG_TRACK_BLOCKS
 				usedBlocks.push(ret);
 #endif

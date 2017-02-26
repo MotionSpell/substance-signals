@@ -49,7 +49,7 @@ class OutputT : public IOutput, public MetadataCap {
 
 		template<typename T = typename Allocator::MyType>
 		std::shared_ptr<T> getBuffer(size_t size) {
-			return allocator->template getBuffer<T>(size);
+			return allocator->template getBuffer<T>(size, allocator);
 		}
 
 		Signals::ISignal<void(Data)>& getSignal() override {
@@ -58,7 +58,7 @@ class OutputT : public IOutput, public MetadataCap {
 
 	private:
 		Signal signal;
-		std::unique_ptr<Allocator> allocator;
+		std::shared_ptr<Allocator> allocator;
 };
 
 template<typename DataType> using OutputDataDefault = OutputT<PacketAllocator<DataType>, SignalDefaultSync>;

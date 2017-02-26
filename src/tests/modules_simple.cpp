@@ -47,3 +47,19 @@ unittest("print packets size from file: File -> Out::Print") {
 
 	f->process(nullptr);
 }
+
+unittest("connect in any order") {
+	struct DataStore : public ModuleS {
+		DataStore() {
+			addInput(new Input<DataBase>(this));
+		}
+		void process(Data data) {
+			this->data = data;
+		}
+		Data data;
+	};
+	auto dataStore = uptr(create<DataStore>());
+	auto demux = uptr(create<Demux::LibavDemux>("data/beepbop.mp4"));
+	ConnectOutputToInput(demux->getOutput(0), dataStore);
+	demux->process(nullptr);
+}

@@ -39,6 +39,7 @@ class Pipeline : public IPipelineNotifier {
 		   @clockSpeed   Controls the execution speed (0.0 is "as fast as possible"): this may create threads.
 		   @threading    Controls the threading. */
 		Pipeline(bool isLowLatency = false, double clockSpeed = 0.0, Threading threading = OnePerModule);
+		virtual ~Pipeline();
 
 		template <typename InstanceType, int NumBlocks = 0, typename ...Args>
 		IPipelinedModule* addModule(Args&&... args) {
