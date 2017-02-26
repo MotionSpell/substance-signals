@@ -109,7 +109,7 @@ bool LibavDecode::processVideo(const DataAVPacket *data) {
 	if (gotPicture) {
 		auto ctx = static_cast<LibavDirectRenderingContext*>(avFrame->get()->opaque);
 		ctx->pic->setVisibleResolution(Resolution(codecCtx->width, codecCtx->height));
-		auto const &timebase = safe_cast<const MetadataPktLibavVideo>(data->getMetadata())->getAVCodecContext()->time_base;
+		auto const &timebase = safe_cast<const MetadataPktLibavVideo>(getInput(0)->getMetadata())->getAVCodecContext()->time_base;
 		ctx->pic->setTime(avFrame->get()->pkt_dts * timebase.num, timebase.den);
 		videoOutput->emit(ctx->pic);
 		av_frame_unref(avFrame->get());
@@ -129,6 +129,7 @@ LibavDirectRendering::LibavDirectRenderingContext* LibavDecode::getPicture(const
 
 void LibavDecode::process(Data data) {
 	auto decoderData = safe_cast<const DataAVPacket>(data);
+	inputs[0]->updateMetadata(data);
 	switch (codecCtx->codec_type) {
 	case AVMEDIA_TYPE_VIDEO:
 		processVideo(decoderData.get());
@@ -144,7 +145,6 @@ void LibavDecode::process(Data data) {
 
 void LibavDecode::flush() {
 	auto nullPkt = uptr(new DataAVPacket(0));
-	nullPkt->setMetadata(getInput(0)->getMetadata());
 	switch (codecCtx->codec_type) {
 	case AVMEDIA_TYPE_VIDEO:
 		while (processVideo(nullPkt.get())) {}

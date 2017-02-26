@@ -7,7 +7,7 @@ namespace Stream {
 AdaptiveStreamingCommon::AdaptiveStreamingCommon(Type type, uint64_t segDurationInMs)
 	: type(type), segDurationInMs(segDurationInMs) {
 	addInput(new Input<DataRaw>(this));
-	outputSegment  = addOutput<OutputDataDefault<DataAVPacket>>();
+	outputSegments = addOutput<OutputDataDefault<DataAVPacket>>();
 	outputManifest = addOutput<OutputDataDefault<DataAVPacket>>();
 }
 

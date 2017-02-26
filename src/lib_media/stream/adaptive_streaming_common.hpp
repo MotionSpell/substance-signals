@@ -45,8 +45,7 @@ protected:
 	uint64_t startTimeInMs=-1, segDurationInMs, totalDurationInMs=0, numSeg=1;
 	std::vector<std::unique_ptr<Quality>> qualities;
 
-	OutputDataDefault<DataAVPacket> *outputSegment;  /*handled in AdaptiveStreamingCommon*/
-	OutputDataDefault<DataAVPacket> *outputManifest; /*handled by implementations*/
+	OutputDataDefault<DataAVPacket> *outputSegments, *outputManifest;
 
 private:
 	void threadProc();

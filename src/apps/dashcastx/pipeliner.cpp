@@ -191,9 +191,9 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 					width = resolutionFromDemux.width;
 					height = resolutionFromDemux.height;
 				}
-				filename << "video_" << numDashInputs << "_" << width << "x" << height;
+				filename << "v_" << numDashInputs << "_" << width << "x" << height;
 			} else {
-				filename << "audio_" << numDashInputs;
+				filename << "a_" << numDashInputs;
 			}
 
 			auto muxer = pipeline->addModule<Mux::GPACMuxMP4>(DASH_SUBDIR + filename.str(), opt->segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, opt->ultraLowLatency ? Mux::GPACMuxMP4::OneFragmentPerFrame : Mux::GPACMuxMP4::OneFragmentPerSegment);
