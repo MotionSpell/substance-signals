@@ -6,16 +6,13 @@
 #endif
 
 #define DASH_TIMESCALE 1000 //TODO: there are some ms already hardcoded, including in AdaptiveStreamingCommon and gf_net_get_utc() results
+#define MOVE_FILE_NUM_RETRY 3
+#define MIN_UPDATE_PERIOD_FACTOR   1 //FIXME: should be 0, but dash.js doesn't support MPDs with no refresh time.
 
 #define MIN_BUFFER_TIME_IN_MS_VOD  3000
 #define MIN_BUFFER_TIME_IN_MS_LIVE 2000
-
-#define MIN_UPDATE_PERIOD_IN_MS    ((u32)(segDurationInMs ? segDurationInMs : 1000))
-#define MIN_UPDATE_PERIOD_FACTOR   1 //FIXME: should be 0, but dash.js doesn't support MPDs with no refresh time.
-
 #define AVAILABILITY_TIMEOFFSET_IN_S 0.0
 
-#define MOVE_FILE_NUM_RETRY 3
 
 namespace Modules {
 
@@ -37,12 +34,13 @@ GF_MPD_AdaptationSet *createAS(uint64_t segDurationInMs, GF_MPD_Period *period, 
 
 namespace Stream {
 
-MPEG_DASH::MPEG_DASH(const std::string &mpdDir, const std::string &mpdFilename, Type type, uint64_t segDurationInMs, uint64_t timeShiftBufferDepthInMs, const std::vector<std::string> &baseURLs)
+MPEG_DASH::MPEG_DASH(const std::string &mpdDir, const std::string &mpdFilename, Type type, uint64_t segDurationInMs, uint64_t timeShiftBufferDepthInMs, uint64_t minUpdatePeriodInMs, const std::vector<std::string> &baseURLs)
 	: AdaptiveStreamingCommon(type, segDurationInMs),
 	mpd(type == Live ? new gpacpp::MPD(GF_MPD_TYPE_DYNAMIC, MIN_BUFFER_TIME_IN_MS_LIVE)
 		: new gpacpp::MPD(GF_MPD_TYPE_STATIC, MIN_BUFFER_TIME_IN_MS_VOD)),
 	mpdDir(mpdDir), mpdPath(format("%s%s", mpdDir, mpdFilename)), baseURLs(baseURLs),
-	useSegmentTimeline(segDurationInMs == 0), timeShiftBufferDepthInMs(timeShiftBufferDepthInMs) {
+	minUpdatePeriodInMs(minUpdatePeriodInMs ? minUpdatePeriodInMs : (segDurationInMs ? segDurationInMs : 1000)),
+	timeShiftBufferDepthInMs(timeShiftBufferDepthInMs), useSegmentTimeline(segDurationInMs == 0) {
 }
 
 MPEG_DASH::~MPEG_DASH() {
@@ -94,11 +92,11 @@ void MPEG_DASH::ensureManifest() {
 				rep->segment_template->segment_timeline->entries = gf_list_new();
 				templateName = "$Time$";
 				if (mpd->mpd->type == GF_MPD_TYPE_DYNAMIC) {
-					mpd->mpd->minimum_update_period = MIN_UPDATE_PERIOD_IN_MS;
+					mpd->mpd->minimum_update_period = (u32)minUpdatePeriodInMs;
 				}
 			} else {
 				templateName = "$Number$";
-				mpd->mpd->minimum_update_period = MIN_UPDATE_PERIOD_IN_MS * MIN_UPDATE_PERIOD_FACTOR;
+				mpd->mpd->minimum_update_period = (u32)minUpdatePeriodInMs * MIN_UPDATE_PERIOD_FACTOR;
 				rep->segment_template->start_number = (u32)(startTimeInMs / segDurationInMs);
 			}
 			rep->mime_type = gf_strdup(quality->meta->getMimeType().c_str());
