@@ -11,7 +11,7 @@ namespace Utils {
 /*repeats the last received data every n ms*/
 class Repeater : public ModuleS {
 	public:
-		Repeater(int ms);
+		Repeater(int64_t ms);
 		virtual ~Repeater();
 		void process(Data data) override;
 		void flush() override;

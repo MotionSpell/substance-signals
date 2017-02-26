@@ -14,7 +14,7 @@ namespace Out {
 HTTP::HTTP(const std::string &url, Flag flags, const std::string &userAgent)
 : url(url), flags(flags), userAgent(userAgent) {
 	if (url.compare(0, 7, "http://"))
-		throw error(format("can only handle URLs startint with 'http://', not %s.", url));
+		throw error(format("can only handle URLs starting with 'http://', not %s.", url));
 
 	curl_global_init(CURL_GLOBAL_ALL);
 	curl = curl_easy_init();
@@ -69,7 +69,7 @@ HTTP::~HTTP() {
 
 void HTTP::endOfStream() {
 	if (workingThread.joinable()) {
-		for (size_t i = 0; i < getNumInputs(); ++i) {
+		for (size_t i = 0; i < std::max<size_t>(1, getNumInputs() - 1); ++i) {
 			inputs[i]->push(nullptr);
 		}
 		workingThread.join();
@@ -86,7 +86,7 @@ void HTTP::flush() {
 void HTTP::process() {
 	if (!workingThread.joinable() && state == Init) {
 		state = RunNewConnection;
-		numDataQueueNotify = (int)getNumInputs() - 1; //FIXME: connection/disconnection cannot occur dynamically. Lock inputs?
+		numDataQueueNotify = (int)std::max<size_t>(1, getNumInputs() - 1); //FIXME: connection/disconnection cannot occur dynamically. Lock inputs?
 		workingThread = std::thread(&HTTP::threadProc, this);
 	}
 }
@@ -118,8 +118,9 @@ void HTTP::clean() {
 		gf_bs_del(curTransferedBs);
 		curTransferedBs = nullptr;
 		curTransferedData = nullptr;
-		curTransferedDataInputIndex = (curTransferedDataInputIndex + 1) % (getNumInputs() - 1);
 	}
+
+	curTransferedDataInputIndex = (curTransferedDataInputIndex + 1) % (std::max<size_t>(1, getNumInputs() - 1));
 }
 
 size_t HTTP::staticCurlCallback(void *ptr, size_t size, size_t nmemb, void *userp) {
@@ -129,7 +130,7 @@ size_t HTTP::staticCurlCallback(void *ptr, size_t size, size_t nmemb, void *user
 
 size_t HTTP::curlCallback(void *ptr, size_t size, size_t nmemb) {
 	if (state == RunNewConnection && curTransferedData) {
-		std::shared_ptr<const MetadataFile> meta = safe_cast<const MetadataFile>(curTransferedData->getMetadata());
+		auto meta = safe_cast<const MetadataFile>(curTransferedData->getMetadata());
 		log(Debug, "reconnect: file %s", meta->getFilename());
 		gf_bs_seek(curTransferedBs, 0);
 	}
@@ -158,7 +159,6 @@ size_t HTTP::curlCallback(void *ptr, size_t size, size_t nmemb) {
 	auto const read = gf_bs_read_data(curTransferedBs, (char*)ptr, std::min<u32>((u32)gf_bs_available(curTransferedBs), (u32)transferSize));
 	if (read == 0) {
 		clean();
-		curTransferedDataInputIndex = (curTransferedDataInputIndex + 1) % (getNumInputs() - 1);
 		return curlCallback(ptr, transferSize, 1);
 	} else {
 		return read;
@@ -167,8 +167,8 @@ size_t HTTP::curlCallback(void *ptr, size_t size, size_t nmemb) {
 
 bool HTTP::performTransfer() {
 	CURLcode res = curl_easy_perform(curl);
-	if (res == CURLE_OK) {
-		fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+	if (res != CURLE_OK) {
+		log(Warning, "curl_easy_perform() failed: %s", curl_easy_strerror(res));
 	}
 
 	if (state == Stop) {
@@ -204,7 +204,6 @@ void HTTP::threadProc() {
 				fileSize += read;
 			}
 			clean();
-			curTransferedDataInputIndex = (curTransferedDataInputIndex + 1) % (getNumInputs() - 1);
 
 			curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 			curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent.c_str());

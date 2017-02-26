@@ -348,7 +348,12 @@ GPACMuxMP4::GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs
 	if (baseName.empty()) {
 		log(Info, "Working in memory mode.");
 	} else {
-		segmentName = format("%s.mp4", baseName);
+		if (segmentPolicy > NoSegment) {
+			segmentName = format("%s-init.mp4", baseName);
+		} else {
+			segmentName = format("%s.mp4", baseName);
+		}
+		
 		log(Info, "Working in file mode: %s.", segmentName);
 	}
 
@@ -386,7 +391,8 @@ void GPACMuxMP4::startSegment() {
 	if (segmentPolicy > SingleSegment) {
 		if (gf_isom_get_filename(isoInit)) {
 			std::stringstream ss;
-			ss << gf_isom_get_filename(isoInit) << "_" << segmentNum + 1;
+			std::string fn = gf_isom_get_filename(isoInit);
+			ss << fn.substr(0, fn.find("-init")) << "-" << segmentNum + 1;
 			if (segmentPolicy == FragmentedSegment) ss << ".m4s";
 			else ss << ".mp4";
 			segmentName = ss.str();
@@ -661,8 +667,8 @@ void GPACMuxMP4::declareStreamVideo(std::shared_ptr<const MetadataPktLibavVideo>
 			e = gf_isom_avc_config_new(isoCur, trackNum, avccfg, nullptr, nullptr, &di);
 			if (e != GF_OK)
 				throw error(format("Cannot create AVC config: %s", gf_error_to_string(e)));
-			gf_odf_avc_cfg_del(avccfg);
 		}
+		gf_odf_avc_cfg_del(avccfg);
 	} else if (metadata->getAVCodecContext()->codec_id == AV_CODEC_ID_H265) {
 		codec4CC = "H265";
 		GF_HEVCConfig *hevccfg = gf_odf_hevc_cfg_new();
@@ -674,8 +680,8 @@ void GPACMuxMP4::declareStreamVideo(std::shared_ptr<const MetadataPktLibavVideo>
 			e = gf_isom_hevc_config_new(isoCur, trackNum, hevccfg, nullptr, nullptr, &di);
 			if (e != GF_OK)
 				throw error(format("Cannot create AVC config: %s", gf_error_to_string(e)));
-			gf_odf_hevc_cfg_del(hevccfg);
 		}
+		gf_odf_hevc_cfg_del(hevccfg);
 	} else {
 		throw error(format("Unknown codec"));
 	}

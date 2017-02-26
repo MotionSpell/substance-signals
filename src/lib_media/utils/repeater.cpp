@@ -4,10 +4,11 @@
 namespace Modules {
 namespace Utils {
 
-Repeater::Repeater(int ms) {
+Repeater::Repeater(int64_t ms) : timeInMs(ms) {
 	done = false;
 	addInput(new Input<DataBase>(this));
 	addOutput<OutputDataDefault<DataBase>>();
+	lastNow = std::chrono::high_resolution_clock::now();
 	workingThread = std::thread(&Repeater::threadProc, this);
 }
 
@@ -32,7 +33,7 @@ void Repeater::threadProc() {
 		auto const now = std::chrono::high_resolution_clock::now();
 		auto const waitTimeInMs = (std::chrono::duration_cast<std::chrono::milliseconds>(now - lastNow)).count();
 		if (waitTimeInMs > timeInMs) {
-			outputs[0]->emit(lastData);
+			if (lastData) outputs[0]->emit(lastData);
 			lastNow = std::chrono::high_resolution_clock::now();
 		}
 	}
