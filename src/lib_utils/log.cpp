@@ -17,6 +17,7 @@ static WORD console_attr_ori = 0;
 #define CYAN   "\x1b[36m"
 #define WHITE  "\x1b[37m"
 #define RESET  "\x1b[0m"
+bool Log::globalSysLog = false;
 #endif /*_WIN32*/
 
 Level Log::globalLogLevel = Info;
@@ -28,7 +29,6 @@ uint64_t Log::lastMsgCount = 0;
 #endif
 
 namespace {
-
 static std::chrono::time_point<std::chrono::high_resolution_clock> const m_Start = std::chrono::high_resolution_clock::now();
 
 uint64_t now() {
@@ -36,9 +36,7 @@ uint64_t now() {
 	auto const timeNowInMs = std::chrono::duration_cast<std::chrono::milliseconds>(timeNow - m_Start);
 	return timeNowInMs.count();
 }
-
 }
-
 
 std::ostream& Log::get(Level level) {
 	switch (level) {
@@ -113,3 +111,18 @@ void Log::setColor(bool isColored) {
 bool Log::getColor() {
 	return globalColor;
 }
+
+#ifndef _WIN32
+void Log::setSysLog(bool isSysLog) {
+	if (!globalSysLog && isSysLog) {
+		openlog(nullptr, 0, LOG_USER);
+	} else if (globalSysLog && !isSysLog) {
+		closelog();
+	}
+	globalSysLog = isSysLog;
+}
+
+bool Log::getSysLog() {
+	return globalSysLog;
+}
+#endif

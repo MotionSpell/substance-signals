@@ -2,7 +2,6 @@
 
 #include "lib_utils/log.hpp"
 
-
 namespace Modules {
 
 struct LogCap : public LogRepetition {

@@ -2,6 +2,9 @@
 
 #include "format.hpp"
 #include <ostream>
+#ifndef _WIN32
+#include <syslog.h>
+#endif
 
 #define LOG_MSG_REPETITION_MAX 100
 
@@ -13,13 +16,22 @@ enum Level {
 	Debug
 };
 
+const int levelToSysLog[] = {3, 4, 6, 7};
+
 class Log {
 	public:
 		template<typename... Arguments>
 		static void msg(Level level, const std::string& fmt, Arguments... args) {
 			if ((level != Quiet) && (level <= globalLogLevel)) {
-				get(level) << getColorBegin(level) << getTime() << format(fmt, args...) << getColorEnd(level) << std::endl;
-				get(level).flush();
+#ifndef _WIN32
+				if (globalSysLog) {
+					::syslog(levelToSysLog[level], format(fmt, args...));
+				} else
+#endif
+				{
+					get(level) << getColorBegin(level) << getTime() << format(fmt, args...) << getColorEnd(level) << std::endl;
+					get(level).flush();
+				}
 			}
 		}
 
@@ -28,6 +40,11 @@ class Log {
 
 		static void setColor(bool isColored);
 		static bool getColor();
+
+#ifndef _WIN32
+		static void setSysLog(bool isSysLog);
+		static bool getSysLog();
+#endif
 
 	private:
 		Log() {}
@@ -38,6 +55,9 @@ class Log {
 
 		static Level globalLogLevel;
 		static bool globalColor;
+#ifndef _WIN32
+		static bool globalSysLog;
+#endif
 };
 
 class LogRepetition {
