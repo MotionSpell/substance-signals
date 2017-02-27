@@ -12,10 +12,6 @@ Pipeline::Pipeline(bool isLowLatency, double clockSpeed, Threading threading)
   clock(new Modules::Clock(clockSpeed)), threading(threading), numRemainingNotifications(0) {
 }
 
-Pipeline::~Pipeline() {
-	waitForCompletion();
-}
-
 IPipelinedModule* Pipeline::addModuleInternal(IModule *rawModule) {
 	auto module = uptr(new PipelinedModule(rawModule, this, clock.get(), threading));
 	auto ret = module.get();
