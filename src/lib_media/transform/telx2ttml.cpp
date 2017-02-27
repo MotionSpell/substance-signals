@@ -1,5 +1,5 @@
 #include "telx2ttml.hpp"
-#include <cstdio>
+#include "lib_utils/time.hpp"
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -10,25 +10,14 @@ extern "C" {
 namespace Modules {
 namespace Transform {
 
-namespace {
-void timestampToTime(uint64_t timestamp, char *buffer, const char *msSeparator = ",") {
-	uint64_t p = timestamp;
-	uint64_t h = (uint64_t)(p / 3600000);
-	uint8_t m = (uint8_t)(p / 60000 - 60 * h);
-	uint8_t s = (uint8_t)(p / 1000 - 3600 * h - 60 * m);
-	uint16_t u = (uint8_t)(p - 3600000 * h - 60000 * m - 1000 * s);
-	sprintf(buffer, "%02u:%02u:%02u%s%03u", (unsigned)h, (unsigned)m, (unsigned)s, msSeparator, (unsigned)u);
-}
-}
-
 const std::string Page::toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs) const {
 	std::stringstream ttml;
 	if (!ss.str().empty()) {
 		char timecode_show[24] = { 0 };
-		timestampToTime(startTimeInMs, timecode_show, ".");
+		timeInMsToStr(startTimeInMs, timecode_show, ".");
 		timecode_show[12] = 0;
 		char timecode_hide[24] = { 0 };
-		timestampToTime(endTimeInMs, timecode_hide, ".");
+		timeInMsToStr(endTimeInMs, timecode_hide, ".");
 		timecode_hide[12] = 0;
 
 		ttml << "      <p region=\"Region\" style=\"textAlignment_0\" begin=\"" << timecode_show << "\" end=\"" << timecode_hide << "\" xml:id=\"sub_0\">\n";
@@ -48,11 +37,11 @@ const std::string Page::toSRT() {
 
 		{
 			char timecode_show[24] = { 0 };
-			timestampToTime(show_timestamp, timecode_show);
+			timeInMsToStr(show_timestamp, timecode_show);
 			timecode_show[12] = 0;
 
 			char timecode_hide[24] = { 0 };
-			timestampToTime(hide_timestamp, timecode_hide);
+			timeInMsToStr(hide_timestamp, timecode_hide);
 			timecode_hide[12] = 0;
 
 			char buf[255];
@@ -96,10 +85,10 @@ const std::string TeletextToTTML::toTTML(uint64_t startTimeInMs, uint64_t endTim
 
 #ifdef DEBUG_DISPLAY_TIMESTAMPS
 	char timecode_show[24] = { 0 };
-	timestampToTime(startTimeInMs + offset, timecode_show, ".");
+	timeInMsToStr(startTimeInMs + offset, timecode_show, ".");
 	timecode_show[12] = 0;
 	char timecode_hide[24] = { 0 };
-	timestampToTime(endTimeInMs + offset, timecode_hide, ".");
+	timeInMsToStr(endTimeInMs + offset, timecode_hide, ".");
 	timecode_hide[12] = 0;
 	ttml << "      <p region=\"Region\" style=\"textAlignment_0\" begin=\"" << timecode_show << "\" end=\"" << timecode_hide << "\" xml:id=\"sub_0\">\n";
 	ttml << "        <span style=\"Style0_0\">" << timecode_show << " - " << timecode_hide << "</span>\n";

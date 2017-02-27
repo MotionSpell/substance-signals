@@ -54,9 +54,9 @@ $(BIN)/config.mk:
 	echo $(EXTRA); \
 	/bin/echo '# config file' > $(BIN)/config.mk.tmp ; \
 	/bin/echo -n 'CFLAGS+=' >> $(BIN)/config.mk.tmp ; \
-	pkg-config --cflags libavcodec libavdevice libavfilter libavformat libavutil libswresample libswscale x264 >> $(BIN)/config.mk.tmp ; \
+	pkg-config --cflags libavcodec libavdevice libavfilter libavformat libavutil libswresample libswscale x264 freetype2 >> $(BIN)/config.mk.tmp ; \
 	/bin/echo -n 'LDFLAGS+=' >> $(BIN)/config.mk.tmp ; \
-	pkg-config --libs libavcodec libavdevice libavfilter libavformat libavutil libswresample libswscale x264 gpac >> $(BIN)/config.mk.tmp
+	pkg-config --libs libavcodec libavdevice libavfilter libavformat libavutil libswresample libswscale x264 freetype2 gpac >> $(BIN)/config.mk.tmp
 
 ifeq ($(SIGNALS_HAS_X11), 1)
 	export PKG_CONFIG_PATH=$(EXTRA)/lib/pkgconfig:$$PKG_CONFIG_PATH ; \

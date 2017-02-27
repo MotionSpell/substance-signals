@@ -1,6 +1,7 @@
 #include "time.hpp"
+#include <cstdio>
 
-#define GF_NTP_SEC_1900_TO_1970 2208988800ul
+#define NTP_SEC_1900_TO_1970 2208988800ul
 
 #ifdef _WIN32 
 #include <sys/timeb.h>
@@ -21,7 +22,7 @@ static void getNTP(uint32_t *sec, uint32_t *frac) {
 	struct timeval now;
 	gettimeofday(&now, nullptr);
 	if (sec) {
-		*sec = (uint32_t)(now.tv_sec) + GF_NTP_SEC_1900_TO_1970;
+		*sec = (uint32_t)(now.tv_sec) + NTP_SEC_1900_TO_1970;
 	}
 	if (frac) {
 		frac_part = now.tv_usec * 0xFFFFFFFFULL;
@@ -35,7 +36,7 @@ uint64_t getUTCInMs() {
 	double msec;
 	uint32_t sec, frac;
 	getNTP(&sec, &frac);
-	current_time = sec - GF_NTP_SEC_1900_TO_1970;
+	current_time = sec - NTP_SEC_1900_TO_1970;
 	current_time *= 1000;
 	msec = (frac*1000.0) / 0xFFFFFFFF;
 	current_time += (uint64_t)msec;
@@ -43,8 +44,17 @@ uint64_t getUTCInMs() {
 }
 
 uint64_t UTC2NTP(uint64_t absTimeUTCInMs) {
-	const uint64_t sec = GF_NTP_SEC_1900_TO_1970 + absTimeUTCInMs / 1000;
+	const uint64_t sec = NTP_SEC_1900_TO_1970 + absTimeUTCInMs / 1000;
 	const uint64_t msec = absTimeUTCInMs - 1000 * (absTimeUTCInMs / 1000);
 	const uint64_t frac = (msec * 0xFFFFFFFF) / 1000;
 	return (sec << 32) + frac;
+}
+
+void timeInMsToStr(uint64_t timestamp, char buffer[24], const char *msSeparator) {
+	uint64_t p = timestamp;
+	uint64_t h = (uint64_t)(p / 3600000);
+	uint8_t m = (uint8_t)(p / 60000 - 60 * h);
+	uint8_t s = (uint8_t)(p / 1000 - 3600 * h - 60 * m);
+	uint16_t u = (uint8_t)(p - 3600000 * h - 60000 * m - 1000 * s);
+	sprintf(buffer, "%02u:%02u:%02u%s%03u", (unsigned)h, (unsigned)m, (unsigned)s, msSeparator, (unsigned)u);
 }

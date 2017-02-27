@@ -148,6 +148,8 @@ The type of the input (here DataBase) can be:
  
 Constructor: use hard types.
 flush() = EOS
+A module should never receive or send a nullptr. nullptr is for signalling the end of the execution.
+Multimedia: DTS for encoded stuff and PTS for decoded? (should always be in order)
 
 * Inputs
 
@@ -162,6 +164,8 @@ void module::process(Data data) {
 	}
 }
 ```
+
+TODO: metadata don't propagate to the connected input yet. This easily allows modules to catch the updates.
 TODO: add a test framework for modules (to prove they behave as expected by the API).
 
 If your last input pin has the type DataLoose, you should ignore it. It means it is a fake input pin for:
