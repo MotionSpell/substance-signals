@@ -29,7 +29,7 @@ unittest("encoder: video simple") {
 unittest("encoder: timestamps start at random values") {
 	const std::vector<uint64_t> times = {Clock::Rate, 2* Clock::Rate, 3* Clock::Rate };
 	Encode::LibavEncodeParams p;
-	p.frameRate = 1;
+	p.frameRateNum = 1;
 
 	//mux starting at a non-zero value
 	std::shared_ptr<DataBase> picture = uptr(new PictureYUV420P(VIDEO_RESOLUTION));

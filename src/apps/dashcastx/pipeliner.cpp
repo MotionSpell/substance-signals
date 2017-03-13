@@ -66,9 +66,13 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 			p.codecType = videoCodecType;
 			p.res = dstFmt.res;
 			p.bitrate_v = bitrate;
+			auto const metaVideo = safe_cast<const MetadataPktLibavVideo>(metadataDemux);
+			p.frameRateNum = metaVideo->getFrameRateNum();
+			p.frameRateDen = metaVideo->getFrameRateDen();
 			const int GOPDurationDivisor = 1 + (int)(segmentDurationInMs / (MAX_GOP_DURATION_IN_MS+1));
-			p.GOPSize = ultraLowLatency ? 1 : (int)(segmentDurationInMs * p.frameRate) / (1000 * GOPDurationDivisor);
-			if ((segmentDurationInMs * p.frameRate) % (1000 * GOPDurationDivisor))
+			auto const frameRate = (double)p.frameRateNum / p.frameRateDen;
+			p.GOPSize = ultraLowLatency ? 1 : (int)(segmentDurationInMs * frameRate) / (1000 * GOPDurationDivisor);
+			if ((uint64_t)(segmentDurationInMs * frameRate) % (1000 * GOPDurationDivisor))
 				throw std::runtime_error(format("Couldn't align GOP size (%s, divisor=%s) with segment duration (%sms). Check your input parameters.", p.GOPSize, GOPDurationDivisor, segmentDurationInMs));
 			if (GOPDurationDivisor > 1) Log::msg(Info, "[Encoder] Setting GOP duration to %sms (%s frames)", segmentDurationInMs / GOPDurationDivisor, p.GOPSize);
 			auto m = pipeline->addModule<Encode::LibavEncode>(Encode::LibavEncode::Video, p);
@@ -206,6 +210,7 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 			pipeline->connect(muxer, 0, dasher, numDashInputs);
 
 #ifdef MP4_MONITOR
+			//auto muxermp4 = pipeline->addModule<Mux::LibavMux>("monitor_" + filename.str(), "mp4");
 			auto muxermp4 = pipeline->addModule<Mux::GPACMuxMP4>("monitor_" + filename.str());
 			if (transcode) {
 				connect(encoder, muxermp4);

@@ -153,7 +153,7 @@ Multimedia: DTS for encoded stuff and PTS for decoded? (should always be in orde
 
 * Inputs
 
-In the pipeline, input modules will be called two times on void ::process(Data data): onece at the beginning, and one when asked to exit on each input pin. Therefore the structure should be:
+In the pipeline, input modules will be called two times on void ::process(Data data): once at the beginning, and one when asked to exit on each input pin. Therefore the structure should be:
 ```
 void module::process(Data data) {
 	while (getInput(0)->tryPop(data)) {

@@ -911,11 +911,18 @@ void GPACMuxMP4::process() {
 	Data data = inputs[0]->pop();
 	if (inputs[0]->updateMetadata(data))
 		declareStream(data);
-	auto sample = fillSample(data);	
+	auto sample = fillSample(data);
 
 	auto const mediaTs = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
 	int64_t dataDurationInTs = clockToTimescale(data->getTime() - lastInputTimeIn180k, mediaTs);
-	lastInputTimeIn180k = data->getTime();
+	if (DTS && !data->getTime()) {
+		lastInputTimeIn180k += defaultSampleIncInTs;
+		dataDurationInTs = defaultSampleIncInTs;
+		log(Warning, "Received time 0 but inferring it to %s", lastInputTimeIn180k);
+	} else {
+		lastInputTimeIn180k = data->getTime();
+	}
+
 	//TODO: make tests and integrate in a module, see #18
 #ifndef DURATION_KEEP_LAST_DATA
 	if (DTS && (dataDurationInTs - defaultSampleIncInTs != 0)) {

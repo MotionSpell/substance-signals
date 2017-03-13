@@ -45,6 +45,8 @@ class MetadataPktLibavVideo : public MetadataPktLibav {
 		Resolution getResolution() const;
 		uint32_t getTimeScaleNum() const;
 		uint32_t getTimeScaleDen() const;
+		uint32_t getFrameRateNum() const;
+		uint32_t getFrameRateDen() const;
 		void getExtradata(const uint8_t *&extradata, size_t &extradataSize) const;
 };
 

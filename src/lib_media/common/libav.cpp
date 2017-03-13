@@ -148,6 +148,18 @@ uint32_t MetadataPktLibavVideo::getTimeScaleDen() const {
 	return codecCtx->time_base.den;
 }
 
+uint32_t MetadataPktLibavVideo::getFrameRateNum() const {
+	if (codecCtx->framerate.num == 0)
+		throw std::runtime_error(format("Unsupported video frame rate numerator \"%s\".", codecCtx->framerate.num));
+	return codecCtx->framerate.num;
+}
+
+uint32_t MetadataPktLibavVideo::getFrameRateDen() const {
+	if (codecCtx->framerate.den == 0)
+		throw std::runtime_error(format("Unsupported video frame rate denumerator\"%s\".", codecCtx->framerate.den));
+	return codecCtx->framerate.den;
+}
+
 void MetadataPktLibavVideo::getExtradata(const uint8_t *&extradata, size_t &extradataSize) const {
 	extradata = codecCtx->extradata;
 	extradataSize = codecCtx->extradata_size;
