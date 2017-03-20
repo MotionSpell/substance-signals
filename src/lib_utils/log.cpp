@@ -3,7 +3,6 @@
 #include <chrono>
 #include <ctime>
 #include <iostream>
-#include <string>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -94,6 +93,19 @@ std::string Log::getColorEnd(Level level) {
 	fprintf(stderr, RESET);
 #endif
 	return "";
+}
+
+void Log::setLevel(std::string level) {
+	if (level == "error") {
+		globalLogLevel = Error;
+	} else if (level == "warning") {
+		globalLogLevel = Warning;
+	} else if (level == "info") {
+		globalLogLevel = Info;
+	} else if (level == "debug") {
+		globalLogLevel = Debug;
+	} else
+		throw std::runtime_error(format("Unknown log level: \"%s\"", level));
 }
 
 void Log::setLevel(Level level) {

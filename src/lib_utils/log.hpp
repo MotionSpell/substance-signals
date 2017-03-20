@@ -2,6 +2,7 @@
 
 #include "format.hpp"
 #include <ostream>
+#include <string>
 #ifndef _WIN32
 #include <syslog.h>
 #endif
@@ -35,6 +36,7 @@ class Log {
 			}
 		}
 
+		static void setLevel(std::string level);
 		static void setLevel(Level level);
 		static Level getLevel();
 
