@@ -34,10 +34,10 @@ GF_MPD_AdaptationSet *createAS(uint64_t segDurationInMs, GF_MPD_Period *period, 
 
 namespace Stream {
 
-MPEG_DASH::MPEG_DASH(const std::string &mpdDir, const std::string &mpdFilename, Type type, uint64_t segDurationInMs, uint64_t timeShiftBufferDepthInMs, uint64_t minUpdatePeriodInMs, const std::vector<std::string> &baseURLs)
+MPEG_DASH::MPEG_DASH(const std::string &mpdDir, const std::string &mpdFilename, Type type, uint64_t segDurationInMs, uint64_t timeShiftBufferDepthInMs, uint64_t minUpdatePeriodInMs, uint32_t minBufferTimeInMs, const std::vector<std::string> &baseURLs)
 	: AdaptiveStreamingCommon(type, segDurationInMs),
-	mpd(type == Live ? new gpacpp::MPD(GF_MPD_TYPE_DYNAMIC, MIN_BUFFER_TIME_IN_MS_LIVE)
-		: new gpacpp::MPD(GF_MPD_TYPE_STATIC, MIN_BUFFER_TIME_IN_MS_VOD)),
+	mpd(type == Live ? new gpacpp::MPD(GF_MPD_TYPE_DYNAMIC, minBufferTimeInMs ? minBufferTimeInMs : MIN_BUFFER_TIME_IN_MS_LIVE)
+		: new gpacpp::MPD(GF_MPD_TYPE_STATIC, minBufferTimeInMs ? minBufferTimeInMs : MIN_BUFFER_TIME_IN_MS_VOD)),
 	mpdDir(mpdDir), mpdPath(format("%s%s", mpdDir, mpdFilename)), baseURLs(baseURLs),
 	minUpdatePeriodInMs(minUpdatePeriodInMs ? minUpdatePeriodInMs : (segDurationInMs ? segDurationInMs : 1000)),
 	timeShiftBufferDepthInMs(timeShiftBufferDepthInMs), useSegmentTimeline(segDurationInMs == 0) {

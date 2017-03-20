@@ -9,7 +9,7 @@ namespace Stream {
 
 class MPEG_DASH : public AdaptiveStreamingCommon, public gpacpp::Init {
 	public:
-		MPEG_DASH(const std::string &mpdDir, const std::string &mpdName, Type type, uint64_t segDurationInMs, uint64_t timeShiftBufferDepthInMs = 0, uint64_t minUpdatePeriodInMs = 0, const std::vector<std::string> &baseURLs = std::vector<std::string>());
+		MPEG_DASH(const std::string &mpdDir, const std::string &mpdName, Type type, uint64_t segDurationInMs, uint64_t timeShiftBufferDepthInMs = 0, uint64_t minUpdatePeriodInMs = 0, uint32_t minBufferTimeInMs = 0, const std::vector<std::string> &baseURLs = std::vector<std::string>());
 		virtual ~MPEG_DASH();
 
 	private:

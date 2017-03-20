@@ -20,7 +20,7 @@ struct IConfig {
 struct AppOptions : IConfig {
 	std::string input, output1 = "", output2 = "", output3 = "", workingDir = ".", postCommand;
 	std::vector<Video> v;
-	uint64_t seekTimeInMs = 0, segmentDurationInMs = 2000, timeshiftInSegNum = 0, minUpdatePeriodInMs = 0;
+	uint64_t seekTimeInMs = 0, segmentDurationInMs = 2000, timeshiftInSegNum = 0, minUpdatePeriodInMs = 0, minBufferTimeInMs = 0;
 	bool isLive = false, loop = false, ultraLowLatency = false, autoRotate = false;
 };
 
