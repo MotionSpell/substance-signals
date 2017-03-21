@@ -48,7 +48,7 @@ std::ostream& Log::get(Level level) {
 
 std::string Log::getTime() {
 	char szOut[255];
-	std::time_t t = std::time(nullptr);
+	const std::time_t t = std::time(nullptr);
 	std::tm tm = *std::localtime(&t);
 	auto const size = strftime(szOut, 255, "%Y/%m/%d %H:%M:%S", &tm);
 	return format("[%s][%s] ", std::string(szOut, size), now()/1000.0);

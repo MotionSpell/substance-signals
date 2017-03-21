@@ -1,5 +1,7 @@
 #include "time.hpp"
 #include <cstdio>
+#include <ctime>
+#include <iostream>
 
 #define NTP_SEC_1900_TO_1970 2208988800ul
 
@@ -57,4 +59,19 @@ void timeInMsToStr(uint64_t timestamp, char buffer[24], const char *msSeparator)
 	uint8_t s = (uint8_t)(p / 1000 - 3600 * h - 60 * m);
 	uint16_t u = (uint16_t)(p - 3600000 * h - 60000 * m - 1000 * s);
 	sprintf(buffer, "%02u:%02u:%02u%s%03u", (unsigned)h, (unsigned)m, (unsigned)s, msSeparator, (unsigned)u);
+}
+
+std::string getDay() {
+	char day[255];
+	const std::time_t t = std::time(nullptr);
+	std::tm tm = *std::localtime(&t);
+	auto const size = strftime(day, 255, "%a %b %d %Y", &tm);
+	return day;
+}
+
+std::string getTime() {
+	char time[24];
+	auto const t = getUTCInMs();
+	timeInMsToStr(((t / 3600000) % 24) * 3600000 + (t % 3600000), time);
+	return time;
 }
