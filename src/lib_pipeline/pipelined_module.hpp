@@ -9,6 +9,9 @@ using namespace Modules;
 
 namespace Pipelines {
 
+/* automatic inputs have a loose datatype */
+struct DataLoosePipeline : public DataBase {};
+
 /* Wrapper around the module. */
 class PipelinedModule : public IPipelineNotifier, public IPipelinedModule, public InputCap {
 public:
@@ -39,7 +42,7 @@ public:
 	bool isSource() const override {
 		if (delegate->getNumInputs() == 0) {
 			return true;
-		} else if (delegate->getNumInputs() == 1 && dynamic_cast<Input<DataLoose, IProcessor>*>(delegate->getInput(0))) {
+		} else if (delegate->getNumInputs() == 1 && dynamic_cast<Input<DataLoosePipeline, IProcessor>*>(delegate->getInput(0))) {
 			return true;
 		} else {
 			return false;
@@ -91,7 +94,7 @@ private:
 		if (isSource()) {
 			if (getNumInputs() == 0) {
 				/*first time: create a fake pin and push null to trigger execution*/
-				delegate->addInput(new Input<DataLoose>(delegate.get()));
+				delegate->addInput(new Input<DataLoosePipeline>(delegate.get()));
 				getInput(0)->push(nullptr);
 				delegate->getInput(0)->push(nullptr);
 				delegateExecutor(MEMBER_FUNCTOR_PROCESS(delegate.get()));

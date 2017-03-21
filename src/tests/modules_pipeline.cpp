@@ -2,6 +2,7 @@
 #include "lib_media/decode/libav_decode.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/in/video_generator.hpp"
+#include "lib_media/mux/libav_mux.hpp"
 #include "lib_media/out/null.hpp"
 #include "lib_media/transform/audio_convert.hpp"
 #include "lib_media/transform/restamp.hpp"
@@ -194,6 +195,22 @@ unittest("pipeline: source only") {
 	try {
 		Pipeline p;
 		p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
+		p.start();
+		p.waitForCompletion();
+	} catch (...) {
+		thrown = true;
+	}
+	ASSERT(!thrown);
+}
+
+unittest("pipeline: orphan dynamic inputs sink") {
+	bool thrown = false;
+	try {
+		Pipeline p;
+		auto src = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
+		auto sink = p.addModule<Out::Null>();
+		p.connect(src, 0, sink, 0);
+		p.addModule<Mux::LibavMux>("orphan", "mp4");
 		p.start();
 		p.waitForCompletion();
 	} catch (...) {

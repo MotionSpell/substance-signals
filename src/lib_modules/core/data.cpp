@@ -20,8 +20,8 @@ void DataBase::setTime(uint64_t timeIn180k) {
 	}
 }
 
-void DataBase::setTime(uint64_t timeIn180k, uint64_t timescale) {
-	m_timeIn180k = timescaleToClock(timeIn180k, timescale);
+void DataBase::setTime(uint64_t time, uint64_t timescale) {
+	m_timeIn180k = timescaleToClock(time, timescale);
 }
 
 uint64_t DataBase::getTime() const {

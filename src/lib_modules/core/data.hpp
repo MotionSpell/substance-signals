@@ -23,7 +23,7 @@ class DataBase {
 		std::shared_ptr<const IMetadata> getMetadata() const;
 		void setMetadata(std::shared_ptr<const IMetadata> metadata);
 		void setTime(uint64_t timeIn180k);
-		void setTime(uint64_t timeIn180k, uint64_t timescale);
+		void setTime(uint64_t time, uint64_t timescale);
 		uint64_t getTime() const;
 
 		static std::atomic<uint64_t> absUTCOffsetInMs;

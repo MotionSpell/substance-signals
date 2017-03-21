@@ -195,7 +195,7 @@ bool LibavEncode::processAudio(const DataPcm *data) {
 		log(Warning, "error encountered while encoding audio frame %s.", f ? f->pts : -1);
 		return false;
 	}
-	if (gotPkt && pkt->pts < 0) { //TODO: handle encoders that generate negative offsets such as AAC ones
+	if (gotPkt && pkt->pts > 0) { //TODO: handle encoders that generate negative offsets such as AAC ones
 		if (pkt->duration != codecCtx->frame_size) {
 			log(Warning, "pkt duration %s is different from codec frame size %s - this may cause timing errors", pkt->duration, codecCtx->frame_size);
 		}
