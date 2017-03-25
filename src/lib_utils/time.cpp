@@ -65,7 +65,7 @@ std::string getDay() {
 	char day[255];
 	const std::time_t t = std::time(nullptr);
 	std::tm tm = *std::localtime(&t);
-	auto const size = strftime(day, 255, "%a %b %d %Y", &tm);
+	strftime(day, 255, "%a %b %d %Y", &tm);
 	return day;
 }
 
