@@ -1,4 +1,5 @@
 #include "time.hpp"
+#include "format.hpp"
 #include <cstdio>
 #include <ctime>
 #include <iostream>
@@ -58,7 +59,9 @@ void timeInMsToStr(uint64_t timestamp, char buffer[24], const char *msSeparator)
 	uint8_t m = (uint8_t)(p / 60000 - 60 * h);
 	uint8_t s = (uint8_t)(p / 1000 - 3600 * h - 60 * m);
 	uint16_t u = (uint16_t)(p - 3600000 * h - 60000 * m - 1000 * s);
-	sprintf(buffer, "%02u:%02u:%02u%s%03u", (unsigned)h, (unsigned)m, (unsigned)s, msSeparator, (unsigned)u);
+	auto len = snprintf(buffer, 24, "%02u:%02u:%02u%s%03u", (unsigned)h, (unsigned)m, (unsigned)s, msSeparator, (unsigned)u);
+	if (len < 0 || len >= 24)
+		throw std::runtime_error(format("Failure in formatting in timeInMsToStr() (len=%s, max=%s)", len, 24));
 }
 
 std::string getDay() {
