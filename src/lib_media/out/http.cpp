@@ -21,6 +21,8 @@ HTTP::HTTP(const std::string &url, Flag flags, const std::string &userAgent)
 	if (!curl)
 		throw error("Couldn't init the HTTP stack.");
 
+	curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
+
 	if (flags & InitialEmptyPost) {
 		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 		curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent.c_str());
@@ -32,10 +34,9 @@ HTTP::HTTP(const std::string &url, Flag flags, const std::string &userAgent)
 		//make an empty POST to check the end point exists
 		curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, 0);
 		CURLcode res = curl_easy_perform(curl);
-		if (res != CURLE_OK) {
-			log(Warning, "curl_easy_perform() failed: %s", curl_easy_strerror(res));
+		if (res != CURLE_OK)
 			throw error("curl_easy_perform() failed");
-		}
+
 		curl_easy_reset(curl);
 	}
 
