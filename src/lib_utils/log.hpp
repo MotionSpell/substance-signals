@@ -26,7 +26,7 @@ class Log {
 			if ((level != Quiet) && (level <= globalLogLevel)) {
 #ifndef _WIN32
 				if (globalSysLog) {
-					::syslog(levelToSysLog[level], format(fmt, args...).c_str());
+					::syslog(levelToSysLog[level], "%s", format(fmt, args...).c_str());
 				} else
 #endif
 				{
