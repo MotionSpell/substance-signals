@@ -35,7 +35,7 @@ HTTP::HTTP(const std::string &url, Flag flags, const std::string &userAgent)
 		curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, 0);
 		CURLcode res = curl_easy_perform(curl);
 		if (res != CURLE_OK)
-			throw error("curl_easy_perform() failed");
+			throw error("curl_easy_perform() failed for URL: %s", url);
 
 		curl_easy_reset(curl);
 	}
