@@ -169,7 +169,7 @@ size_t HTTP::curlCallback(void *ptr, size_t size, size_t nmemb) {
 bool HTTP::performTransfer() {
 	CURLcode res = curl_easy_perform(curl);
 	if (res != CURLE_OK) {
-		log(Warning, "curl_easy_perform() failed: %s", curl_easy_strerror(res));
+		log(Warning, "curl_easy_perform() failed for URL %s: %s", url, curl_easy_strerror(res));
 	}
 
 	if (state == Stop) {
