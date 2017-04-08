@@ -6,7 +6,7 @@
 #endif
 
 #define DASH_TIMESCALE 1000 //TODO: there are some ms already hardcoded, including in AdaptiveStreamingCommon and gf_net_get_utc() results
-#define MOVE_FILE_NUM_RETRY 3
+#define MOVE_FILE_NUM_RETRY 5
 #define MIN_UPDATE_PERIOD_FACTOR   1 //FIXME: should be 0, but dash.js doesn't support MPDs with no refresh time.
 
 #define MIN_BUFFER_TIME_IN_MS_VOD  3000
@@ -29,6 +29,21 @@ GF_MPD_AdaptationSet *createAS(uint64_t segDurationInMs, GF_MPD_Period *period, 
 	as->bitstream_switching = GF_TRUE;
 
 	return as;
+}
+
+bool moveFileInternal(const std::string &src, const std::string &dst) {
+	int retry = MOVE_FILE_NUM_RETRY + 1;
+#ifdef _WIN32
+	while (--retry && (MoveFileA(src.c_str(), dst.c_str())) == 0) {
+#else
+	while (--retry && (system(format("%s %s %s", "mv", src, dst).c_str())) == 0) {
+#endif
+		gf_sleep(10);
+	}
+	if (!retry) {
+		return false;
+	}
+	return true;
 }
 }
 
@@ -106,16 +121,14 @@ void MPEG_DASH::ensureManifest() {
 				rep->segment_template->availability_time_offset = std::max<double>(0.0,  (double)(segDurationInMs - clockToTimescale(quality->meta->getLatency(), 1000)) / 1000);
 				mpd->mpd->min_buffer_time = (u32)clockToTimescale(quality->meta->getLatency(), 1000);
 			}
+
+			std::string initFnSrc;
 			switch (quality->meta->getStreamType()) {
 			case AUDIO_PKT: {
 				rep->samplerate = quality->meta->sampleRate;
-				rep->segment_template->initialization = gf_strdup(format("a_$RepresentationID$-init.mp4").c_str());
+				rep->segment_template->initialization = gf_strdup("a_$RepresentationID$-init.mp4");
 				rep->segment_template->media = gf_strdup(format("a_$RepresentationID$-%s.m4s", templateName).c_str());
-
-				auto out = outputSegments->getBuffer(0);
-				auto metadata = std::make_shared<MetadataFile>(format("%sa_%s-init.mp4", mpdDir, repId), AUDIO_PKT, "", "", 0, 0, 1, false);
-				out->setMetadata(metadata);
-				outputSegments->emit(out);
+				initFnSrc = format("a_%s-init.mp4", repId);
 				break;
 			}
 			case VIDEO_PKT: {
@@ -123,15 +136,27 @@ void MPEG_DASH::ensureManifest() {
 				rep->height = quality->meta->resolution[1];
 				rep->segment_template->initialization = gf_strdup(format("v_$RepresentationID$_%sx%s-init.mp4", rep->width, rep->height).c_str());
 				rep->segment_template->media = gf_strdup(format("v_$RepresentationID$_%sx%s-%s.m4s", rep->width, rep->height, templateName).c_str());
-
-				auto out = outputSegments->getBuffer(0);
-				auto metadata = std::make_shared<MetadataFile>(format("%sv_%s_%sx%s-init.mp4", mpdDir, repId, rep->width, rep->height), VIDEO_PKT, "", "", 0, 0, 1, false);
-				out->setMetadata(metadata);
-				outputSegments->emit(out);
+				initFnSrc = format("v_%s_%sx%s-init.mp4", repId, rep->width, rep->height);
 				break;
 			}
 			default:
 				assert(0);
+			}
+
+			switch (quality->meta->getStreamType()) {
+			case AUDIO_PKT:
+			case VIDEO_PKT: {
+				auto out = outputSegments->getBuffer(0);
+				auto const initFnDst = format("%s%s", mpdDir, initFnSrc);
+				if (!moveFileInternal(initFnSrc, initFnDst)) {
+					log(Error, "Couldn't rename init segment \"%s\" -> \"%s\". You may encounter playback errors.", initFnSrc, initFnDst);
+				}
+				auto metadata = std::make_shared<MetadataFile>(initFnDst, AUDIO_PKT, "", "", 0, 0, 1, false);
+				out->setMetadata(metadata);
+				outputSegments->emit(out);
+				break;
+			}
+			default: break;
 			}
 		}
 	}
@@ -152,16 +177,7 @@ std::shared_ptr<const MetadataFile> MPEG_DASH::moveFile(const std::shared_ptr<co
 	if (src->getFilename() == dst) {
 		return src;
 	}
-
-	int retry = MOVE_FILE_NUM_RETRY;
-#ifdef _WIN32
-	while (retry-- && (MoveFileA(src->getFilename().c_str(), dst.c_str())) == 0) {
-#else
-	while (retry-- && (system(format("%s %s %s", "mv", src->getFilename(), dst).c_str())) == 0) {
-#endif
-		gf_sleep(10);
-	}
-	if (!retry) {
+	if (!moveFileInternal(src->getFilename(), dst)) {
 		log(Error, "Couldn't rename segment \"%s\" -> \"%s\". You may encounter playback errors.", src->getFilename(), dst);
 	}
 
@@ -275,8 +291,8 @@ void MPEG_DASH::finalizeManifest() {
 			auto quality = safe_cast<DASHQuality>(qualities[i].get());
 			std::string fn;
 			switch (quality->meta->getStreamType()) {
-			case AUDIO_PKT: fn = format("a_%s-init.mp4", mpdDir, i); break;
-			case VIDEO_PKT: fn = format("v_%s_%sx%s-init.mp4", i, quality->meta->resolution[0], quality->meta->resolution[1]); break;
+			case AUDIO_PKT: fn = format("%sa_%s-init.mp4", mpdDir, i); break;
+			case VIDEO_PKT: fn = format("%sv_%s_%sx%s-init.mp4", mpdDir, i, quality->meta->resolution[0], quality->meta->resolution[1]); break;
 			default: assert(0);
 			}
 			if (gf_delete_file(fn.c_str()) != GF_OK) {
