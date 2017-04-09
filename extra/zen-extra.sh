@@ -98,7 +98,7 @@ function ffmpeg_build {
   host=$1
   pushDir $WORK/src
 
-  lazy_git_clone git://source.ffmpeg.org/ffmpeg.git ffmpeg 2b14204339bdc88
+  lazy_git_clone git://source.ffmpeg.org/ffmpeg.git ffmpeg 4588063f3ecd9
 
   local ARCH=$(get_arch $host)
   local OS=$(get_os $host)

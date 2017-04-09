@@ -20,10 +20,10 @@ namespace Modules {
 
 namespace {
 
-auto g_InitAv = runAtStartup(&av_register_all);
-auto g_InitAvformat = runAtStartup(&avformat_network_init);
 auto g_InitAvcodec = runAtStartup(&avcodec_register_all);
 auto g_InitAvdevice = runAtStartup(&avdevice_register_all);
+auto g_InitAv = runAtStartup(&av_register_all);
+auto g_InitAvnetwork = runAtStartup(&avformat_network_init);
 auto g_InitAvLog = runAtStartup(&av_log_set_callback, avLog);
 
 const char* webcamFormat() {
@@ -95,8 +95,6 @@ LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::strin
 			throw error("Couldn't get additional video stream info");
 		}
 
-		lastDTS.resize(m_formatCtx->nb_streams);
-		lastPTS.resize(m_formatCtx->nb_streams);
 		restampers.resize(m_formatCtx->nb_streams);
 		for (unsigned i = 0; i < m_formatCtx->nb_streams; i++) {
 			const std::string format(m_formatCtx->iformat->name);
@@ -115,6 +113,8 @@ LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::strin
 		av_dict_free(&dict);
 	}
 
+	lastDTS.resize(m_formatCtx->nb_streams);
+	lastPTS.resize(m_formatCtx->nb_streams);
 	for (unsigned i = 0; i<m_formatCtx->nb_streams; i++) {
 		auto const st = m_formatCtx->streams[i];
 		auto parser = av_stream_get_parser(st);
