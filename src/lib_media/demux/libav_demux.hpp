@@ -25,6 +25,7 @@ class LibavDemux : public ModuleS {
 	private:
 		void webcamList();
 		bool webcamOpen(const std::string &options);
+		void initRestamp();
 		void seekToStart();
 		void threadProc();
 		void setTime(std::shared_ptr<DataAVPacket> data);

@@ -55,6 +55,24 @@ bool LibavDemux::webcamOpen(const std::string &options) {
 	return true;
 }
 
+void LibavDemux::initRestamp() {
+	restampers.resize(m_formatCtx->nb_streams);
+	for (unsigned i = 0; i < m_formatCtx->nb_streams; i++) {
+		const std::string format(m_formatCtx->iformat->name);
+		const std::string  fn = m_formatCtx->filename;
+		if (format == "rtsp" || format == "rtp" || format == "sdp" || !fn.compare(0, 4, "rtp:") || !fn.compare(0, 4, "udp:")) {
+			restampers[i] = uptr(create<Transform::Restamp>(Transform::Restamp::IgnoreFirstAndReset));
+		}
+		else {
+			restampers[i] = uptr(create<Transform::Restamp>(Transform::Restamp::Reset));
+		}
+
+		if (format == "rtsp" || format == "rtp" || format == "mpegts") {
+			startPTSIn180k = std::max<int64_t>(startPTSIn180k, timescaleToClock(m_formatCtx->streams[i]->start_time*m_formatCtx->streams[i]->time_base.num, m_formatCtx->streams[i]->time_base.den));
+		}
+	}
+}
+
 LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::string &avformatCustom, const uint64_t seekTimeInMs)
 : loop(loop), done(false), dispatchPkts(PKT_QUEUE_SIZE) {
 	if (!(m_formatCtx = avformat_alloc_context()))
@@ -80,7 +98,7 @@ LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::strin
 		}
 
 		if (seekTimeInMs) {
-			if(avformat_seek_file(m_formatCtx, -1, INT64_MIN, convertToTimescale(seekTimeInMs, 1000, AV_TIME_BASE), INT64_MAX, 0) < 0) {
+			if (avformat_seek_file(m_formatCtx, -1, INT64_MIN, convertToTimescale(seekTimeInMs, 1000, AV_TIME_BASE), INT64_MAX, 0) < 0) {
 				avformat_close_input(&m_formatCtx);
 				throw error(format("Couldn't seek to time %sms", seekTimeInMs));
 			} else {
@@ -95,20 +113,7 @@ LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::strin
 			throw error("Couldn't get additional video stream info");
 		}
 
-		restampers.resize(m_formatCtx->nb_streams);
-		for (unsigned i = 0; i < m_formatCtx->nb_streams; i++) {
-			const std::string format(m_formatCtx->iformat->name);
-			const std::string  fn = m_formatCtx->filename;
-			if (format == "rtsp" || format == "rtp" || format == "sdp" || !fn.compare(0, 4,  "rtp:") || !fn.compare(0, 4, "udp:")) {
-				restampers[i] = uptr(create<Transform::Restamp>(Transform::Restamp::IgnoreFirstAndReset));
-			} else {
-				restampers[i] = uptr(create<Transform::Restamp>(Transform::Restamp::Reset));
-			}
-
-			if (format == "rtsp" || format == "rtp" || format == "mpegts") {
-				startPTSIn180k = std::max<int64_t>(startPTSIn180k, timescaleToClock(m_formatCtx->streams[i]->start_time*m_formatCtx->streams[i]->time_base.num, m_formatCtx->streams[i]->time_base.den));
-			}
-		}
+		initRestamp();
 
 		av_dict_free(&dict);
 	}
