@@ -107,18 +107,18 @@ bool LibavDecode::processVideo(const DataAVPacket *data) {
 		log(Error, "Corrupted video frame decoded (%s).", gotPicture);
 	}
 	if (gotPicture) {
-		auto ctx = static_cast<LibavDirectRenderingContext*>(avFrame->get()->opaque);
+		std::shared_ptr<DataPicture> pic;
+		auto ctx = uptr(static_cast<LibavDirectRenderingContext*>(avFrame->get()->opaque));
 		if (ctx) {
+			pic = ctx->pic;
 			ctx->pic->setVisibleResolution(Resolution(codecCtx->width, codecCtx->height));
-			auto const &timebase = safe_cast<const MetadataPktLibavVideo>(getInput(0)->getMetadata())->getAVCodecContext()->time_base;
-			ctx->pic->setTime(avFrame->get()->pkt_dts * timebase.num, timebase.den);
-			videoOutput->emit(ctx->pic);
-			delete ctx;
 		} else {
-			auto const pic = DataPicture::create(videoOutput, Resolution(avFrame->get()->width, avFrame->get()->height), libavPixFmt2PixelFormat((AVPixelFormat)avFrame->get()->format));
+			pic = DataPicture::create(videoOutput, Resolution(avFrame->get()->width, avFrame->get()->height), libavPixFmt2PixelFormat((AVPixelFormat)avFrame->get()->format));
 			copyToPicture(avFrame->get(), pic.get());
-			videoOutput->emit(pic);
 		}
+		auto const &timebase = safe_cast<const MetadataPktLibavVideo>(getInput(0)->getMetadata())->getAVCodecContext()->time_base;
+		pic->setTime(avFrame->get()->pkt_dts * timebase.num, timebase.den);
+		videoOutput->emit(pic);
 		av_frame_unref(avFrame->get());
 		return true;
 	}
