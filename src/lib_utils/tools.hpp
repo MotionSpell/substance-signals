@@ -8,12 +8,10 @@
 #include <vector>
 
 
-// Runs a function at instanciation:
+// Runs a function at instantiation:
 // Use to initialize C libraries at program startup.
-// Example:
-// auto g_InitAv = runAtStartup(&av_register_all);
-struct DummyStruct {
-};
+// Example: auto g_InitAv = runAtStartup(&av_register_all);
+struct DummyStruct {};
 
 template<class R, class... Args>
 DummyStruct runAtStartup(R f(Args...), Args... argVal) {

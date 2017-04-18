@@ -1,6 +1,8 @@
 #pragma once
 
 #include <stdexcept>
+#include <lib_utils/log.hpp>
+#include <lib_utils/tools.hpp>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -56,14 +58,15 @@ class Dict {
 
 		void ensureAllOptionsConsumed() const {
 			auto opt = stringDup(options.c_str());
-			char *tok = strtok(opt.data(), "- ");
-			while (tok && strtok(nullptr, "- ")) {
+			char *tok = strtok(opt.data(), " ");
+			if (tok && *tok == '-') tok++;
+			while (tok && strtok(nullptr, "-")) {
 				AVDictionaryEntry *avde = nullptr;
 				avde = get(tok, avde);
 				if (avde) {
 					Log::msg(Warning, "codec option \"%s\", value \"%s\" was ignored.", avde->key, avde->value);
 				}
-				tok = strtok(nullptr, "- ");
+				tok = strtok(nullptr, " ");
 			}
 		}
 
@@ -76,11 +79,12 @@ class Dict {
 
 		void buildAVDictionary(const std::string &options) {
 			auto opt = stringDup(options.c_str());
-			char *tok = strtok(opt.data(), "- ");
+			char *tok = strtok(opt.data(), " ");
+			if (tok && *tok == '-') tok++;
 			char *tokval = nullptr;
-			while (tok && (tokval = strtok(nullptr, "- "))) {
+			while (tok && (tokval = strtok(nullptr, "-"))) {
 				set(tok, tokval);
-				tok = strtok(nullptr, "- ");
+				tok = strtok(nullptr, " ");
 			}
 		}
 

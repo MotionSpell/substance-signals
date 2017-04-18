@@ -5,6 +5,7 @@
 #include <string>
 #ifndef _WIN32
 #include <syslog.h>
+const int levelToSysLog[] = { 3, 4, 6, 7 };
 #endif
 
 #define LOG_MSG_REPETITION_MAX 100
@@ -16,8 +17,6 @@ enum Level {
 	Info,
 	Debug
 };
-
-const int levelToSysLog[] = {3, 4, 6, 7};
 
 class Log {
 	public:
