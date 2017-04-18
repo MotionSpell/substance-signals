@@ -29,12 +29,17 @@ BOOL WINAPI signalHandler(_In_ DWORD dwCtrlType) {
 }
 #else
 void sigTermHandler(int sig) {
-	if (sig == SIGTERM) {
+	switch (sig) {
+	case SIGINT:
+	case SIGTERM:
 		std::cerr << "Caught signal(SIGTERM), exiting." << std::endl;
 		if (g_Pipeline) {
 			g_Pipeline->exitSync();
 			g_Pipeline = nullptr;
 		}
+		break;
+	default:
+		break;
 	}
 }
 #endif
@@ -56,6 +61,7 @@ int safeMain(int argc, char const* argv[]) {
 #ifdef _MSC_VER
 	SetConsoleCtrlHandler(signalHandler, TRUE);
 #else
+	std::signal(SIGINT, sigTermHandler);
 	std::signal(SIGTERM, sigTermHandler);
 #endif
 
