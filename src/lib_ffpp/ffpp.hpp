@@ -83,6 +83,7 @@ class Dict {
 			if (tok && *tok == '-') tok++;
 			char *tokval = nullptr;
 			while (tok && (tokval = strtok(nullptr, "-"))) {
+				if (*(tokval + strlen(tokval) - 1) == ' ') *(tokval + strlen(tokval) - 1) = '\0';
 				set(tok, tokval);
 				tok = strtok(nullptr, " ");
 			}

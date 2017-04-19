@@ -10,7 +10,7 @@ extern const char *g_version;
 
 namespace {
 #ifdef _MSC_VER
-BOOL WINAPI signalHandler(_In_ DWORD dwCtrlType) {
+static BOOL WINAPI signalHandler(_In_ DWORD dwCtrlType) {
 	switch (dwCtrlType) {
 	case CTRL_C_EVENT:
 	case CTRL_BREAK_EVENT:
@@ -28,7 +28,7 @@ BOOL WINAPI signalHandler(_In_ DWORD dwCtrlType) {
 	}
 }
 #else
-void sigTermHandler(int sig) {
+static void sigTermHandler(int sig) {
 	switch (sig) {
 	case SIGINT:
 	case SIGTERM:
