@@ -101,6 +101,7 @@ MEDIA_SRCS:=\
   $(ProjectName)/encode/jpegturbo_encode.cpp\
   $(ProjectName)/encode/libav_encode.cpp\
   $(ProjectName)/in/file.cpp\
+  $(ProjectName)/in/mpeg_dash_input.cpp\
   $(ProjectName)/in/sound_generator.cpp\
   $(ProjectName)/in/video_generator.cpp\
   $(ProjectName)/mux/gpac_mux_m2ts.cpp\
@@ -204,4 +205,3 @@ clean:
 #-------------------------------------------------------------------------------
 
 -include $(DEPS)
-

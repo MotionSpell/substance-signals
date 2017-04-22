@@ -8,6 +8,7 @@
 #include "encode/jpegturbo_encode.hpp"
 #include "encode/libav_encode.hpp"
 #include "in/file.hpp"
+#include "in/mpeg_dash_input.hpp"
 #include "in/sound_generator.hpp"
 #include "in/video_generator.hpp"
 #include "mux/gpac_mux_m2ts.hpp"

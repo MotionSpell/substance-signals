@@ -14,6 +14,7 @@ $(BIN)/$(ProjectName)/utils_%.o: CFLAGS+=-DUNIT
 EXE_UTILS_OBJS:=\
  	$(OUTDIR)/utils.o\
  	$(OUTDIR)/utils_fifo.o\
+ 	$(UTILS_OBJS)\
  	$(TEST_COMMON_OBJ)
 DEPS+=$(EXE_UTILS_OBJS:%.o=%.deps)
 

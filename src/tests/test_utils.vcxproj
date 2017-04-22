@@ -209,6 +209,11 @@
   <ItemGroup>
     <ClInclude Include="tests.hpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\lib_utils\utils.vcxproj">
+      <Project>{bbd0b4eb-5070-4ecf-b626-da78ed6c8725}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

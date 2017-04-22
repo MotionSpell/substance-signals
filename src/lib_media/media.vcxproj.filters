@@ -110,6 +110,9 @@
     <ClInclude Include="utils\repeater.hpp">
       <Filter>src\utils</Filter>
     </ClInclude>
+    <ClInclude Include="in\mpeg_dash_input.hpp">
+      <Filter>src\in</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="src">
@@ -257,6 +260,9 @@
     </ClCompile>
     <ClCompile Include="utils\repeater.cpp">
       <Filter>src\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="in\mpeg_dash_input.cpp">
+      <Filter>src\in</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

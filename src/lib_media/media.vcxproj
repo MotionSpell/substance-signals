@@ -31,6 +31,7 @@
     <ClInclude Include="encode\jpegturbo_encode.hpp" />
     <ClInclude Include="encode\libav_encode.hpp" />
     <ClInclude Include="in\file.hpp" />
+    <ClInclude Include="in\mpeg_dash_input.hpp" />
     <ClInclude Include="in\sound_generator.hpp" />
     <ClInclude Include="in\video_generator.hpp" />
     <ClInclude Include="media.hpp" />
@@ -77,6 +78,7 @@
     <ClCompile Include="encode\jpegturbo_encode.cpp" />
     <ClCompile Include="encode\libav_encode.cpp" />
     <ClCompile Include="in\file.cpp" />
+    <ClCompile Include="in\mpeg_dash_input.cpp" />
     <ClCompile Include="in\sound_generator.cpp" />
     <ClCompile Include="in\video_generator.cpp" />
     <ClCompile Include="mux\gpac_mux_m2ts.cpp" />
