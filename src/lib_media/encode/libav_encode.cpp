@@ -78,22 +78,25 @@ LibavEncode::LibavEncode(Type type, LibavEncodeParams &params)
 	}
 
 	/* parse the codec optionsDict */
-	ffpp::Dict codecDict(typeid(*this).name(), "codec", codecOptions + "-threads auto" + params.avcodecCustom);
+	ffpp::Dict codecDict(typeid(*this).name(), "codec", codecOptions + "-threads auto " + params.avcodecCustom);
 
-	/* parse other optionsDict*/
+	/* parse other optionsDict */
 	ffpp::Dict generalDict(typeid(*this).name(), "other", generalOptions);
 
 	/* find the encoder */
 	auto entry = generalDict.get(codecName);
 	if (!entry)
-		throw error("Could not get codecName.");
-	AVCodec *codec = avcodec_find_encoder_by_name(entry->value);
-	if (!codec)
-		throw error(format("codec '%s' not found, disable output.", entry->value));
+		throw error(format("Could not get codecName (%s).", codecName));
+	auto codec = avcodec_find_encoder_by_name(entry->value);
+	if (!codec) {
+		auto desc = avcodec_descriptor_get_by_name(entry->value);
+		if (!desc)
+			throw error(format("codec '%s' not found, disable output.", entry->value));
+	}
 
 	codecCtx = avcodec_alloc_context3(codec);
 	if (!codecCtx)
-		throw error("Could not allocate the codec context.");
+		throw error(format("Could not allocate the codec context (%s).", codecName));
 
 	/* parameters */
 	switch (type) {
