@@ -10,20 +10,21 @@
 namespace Modules {
 
 namespace {
+const double tolerance = 0.001;
 void fps2NumDen(const double fps, int &num, int &den) {
-	if (fabs(fps - (int)fps) < 0.001) {
+	if (fabs(fps - (int)fps) < tolerance) {
 		//infer integer frame rates
 		num = (int)fps;
 		den = 1;
-	} else if (fabs((fps*1001.0) / 1000.0 - (int)(fps + 1)) < 0.001) {
+	} else if (fabs((fps*1001.0) / 1000.0 - (int)(fps + 1)) < tolerance) {
 		//infer ATSC frame rates
 		num = (int)(fps + 1) * 1000;
 		den = 1001;
-	} else if (fabs(fps * 2 - (int)(fps * 2)) < 0.001) {
+	} else if (fabs(fps * 2 - (int)(fps * 2)) < tolerance) {
 		//infer rational frame rates; den = 2
 		num = (int)(fps * 2);
 		den = 2;
-	} else if (fabs(fps * 4 - (int)(fps * 4)) < 0.001) {
+	} else if (fabs(fps * 4 - (int)(fps * 4)) < tolerance) {
 		//infer rational frame rates; den = 4
 		num = (int)(fps * 4);
 		den = 4;
@@ -112,9 +113,8 @@ LibavEncode::LibavEncode(Type type, LibavEncodeParams &params)
 		}
 		params.pixelFormat = libavPixFmt2PixelFormat(codecCtx->pix_fmt);
 
-		double fr = atof(generalDict.get("r")->value);
 		AVRational fps;
-		fps2NumDen(fr, fps.den, fps.num); //for FPS, num and den are inverted
+		fps2NumDen((double)params.frameRateNum/params.frameRateDen, fps.den, fps.num); //for FPS, num and den are inverted
 		codecCtx->time_base = fps;
 	}
 	break;
