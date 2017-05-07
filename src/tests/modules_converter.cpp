@@ -125,25 +125,25 @@ unittest("audio converter: dynamic formats") {
 namespace {
 void framingTest(const size_t inFrameFrames, const size_t outFrameFrames) {
 	PcmFormat format;
-	const size_t inFrameSize = inFrameFrames * format.getBytesPerSample() / format.numPlanes;
+	const size_t inFrameSizeInBytes = inFrameFrames * format.getBytesPerSample() / format.numPlanes;
 	auto data = std::make_shared<DataPcm>(0);
 	data->setFormat(format);
 
-	std::vector<uint8_t> input(inFrameSize);
+	std::vector<uint8_t> input(inFrameSizeInBytes);
 	auto inputRaw = input.data();
-	const size_t modulo = std::min<size_t>(inFrameSize, 256);
-	for (size_t i = 0; i < inFrameSize; ++i) {
+	const size_t modulo = std::min<size_t>(inFrameSizeInBytes, 256);
+	for (size_t i = 0; i < inFrameSizeInBytes; ++i) {
 		inputRaw[i] = (uint8_t)(i % modulo);
 	}
 	for (uint8_t i = 0; i < format.numPlanes; ++i) {
-		data->setPlane(i, inputRaw, inFrameSize);
+		data->setPlane(i, inputRaw, inFrameSizeInBytes);
 	}
 
 	auto recorder = uptr(create<Utils::Recorder>());
 	auto converter = uptr(create<Transform::AudioConvert>(format, format, outFrameFrames));
 	ConnectOutputToInput(converter->getOutput(0), recorder);
 
-	auto const numIter = 5;
+	auto const numIter = 3;
 	for (size_t i = 0; i < numIter; ++i) {
 		converter->process(data);
 	}
@@ -158,14 +158,16 @@ void framingTest(const size_t inFrameFrames, const size_t outFrameFrames) {
 		size_t val = 0;
 		for (size_t p = 0; p < audioData->getFormat().numPlanes; ++p) {
 			auto const plane = audioData->getPlane(p);
-			for (size_t s = 0; s < audioData->getPlaneSize(p); ++s) {
-				ASSERT(plane[s] == ((val % inFrameSize) % modulo));
+			auto const planeSizeInBytes = audioData->getPlaneSize(p);
+			ASSERT(planeSizeInBytes <= outFrameFrames * format.getBytesPerSample() / format.numPlanes);
+			for (size_t s = 0; s < planeSizeInBytes; ++s) {
+				ASSERT(plane[s] == ((val % inFrameSizeInBytes) % modulo));
 				++idx;
 				++val;
 			}
 		}
 	}
-	ASSERT(idx == inFrameSize * numIter * format.numPlanes);
+	ASSERT(idx == inFrameSizeInBytes * numIter * format.numPlanes);
 }
 }
 
@@ -187,6 +189,7 @@ unittest("audio converter: smaller framing size.") {
 	bool thrown = false;
 	try {
 		framingTest(1152, 1024);
+		framingTest(1152, 512);
 	} catch (std::exception const& e) {
 		std::cerr << "Expected error: " << e.what() << std::endl;
 		thrown = true;
@@ -198,6 +201,7 @@ unittest("audio converter: bigger framing size.") {
 	bool thrown = false;
 	try {
 		framingTest(1024, 1152);
+		framingTest(1024, 4096);
 	} catch (std::exception const& e) {
 		std::cerr << "Expected error: " << e.what() << std::endl;
 		thrown = true;

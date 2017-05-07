@@ -77,9 +77,12 @@ void AudioConvert::process(Data data) {
 		}
 		pSrc = audioData->getPlanes();
 	} else {
-		dstNumSamples = m_Swr->getDelay(dstPcmFormat.sampleRate);
-		if (dstNumSamples == 0)
+		auto const delay = m_Swr->getDelay(dstPcmFormat.sampleRate);;
+		if (delay == 0 && curDstNumSamples == 0) {
 			return;
+		} else if (delay < dstNumSamples) {
+			dstNumSamples = delay; //we are flushing, these are the last samples
+		}
 		pSrc = nullptr;
 		srcNumSamples = 0;
 	}
@@ -130,6 +133,7 @@ void AudioConvert::process(Data data) {
 		accumulatedTimeInDstSR += dstNumSamples;
 
 		output->emit(out);
+		out = nullptr;
 		if (m_Swr->getDelay(dstPcmFormat.sampleRate) >= dstNumSamples) { //accumulated more than one output buffer: flush.
 			process(nullptr);
 		}
