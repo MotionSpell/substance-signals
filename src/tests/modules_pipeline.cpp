@@ -20,6 +20,7 @@ public:
 	DualInput(bool threaded) : threaded(threaded) {
 		addInput(new Input<DataBase>(this));
 		addInput(new Input<DataBase>(this));
+		addOutput<OutputDefault>();
 		numCallsMutex.lock();
 		numCalls = 0;
 		if (threaded)
@@ -341,6 +342,18 @@ unittest("pipeline: longer pipeline with join") {
 		p.connect(decode, 0, null, 0, true);
 	}
 
+	p.start();
+	p.waitForCompletion();
+}
+
+unittest("pipeline: null after split") {
+	Pipeline p;
+	auto generator = p.addModule<In::VideoGenerator>();
+	auto dualInput = p.addModule<DualInput>(true);
+	p.connect(generator, 0, dualInput, 0);
+	p.connect(generator, 0, dualInput, 1);
+	auto passthru = p.addModule<Transform::Restamp>(Transform::Restamp::Passthru);
+	p.connect(dualInput, 0, passthru, 0);
 	p.start();
 	p.waitForCompletion();
 }

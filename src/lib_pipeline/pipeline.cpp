@@ -71,7 +71,10 @@ void Pipeline::computeTopology() {
 				numRemainingNotifications++;
 			} else {
 				for (size_t i = 0; i < m->getNumInputs(); ++i) {
-					numRemainingNotifications += m->getInput(i)->getNumConnections();
+					if (m->getInput(i)->getNumConnections()) {
+						numRemainingNotifications++;
+						break;
+					}
 				}
 			}
 		}

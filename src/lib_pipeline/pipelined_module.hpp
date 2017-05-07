@@ -67,6 +67,7 @@ private:
 		ConnectOutputToInput(output, input, inputExecutor[inputIdx]);
 		if (!inputAcceptMultipleConnections && (input->getNumConnections() != 1))
 			throw std::runtime_error(format("PipelinedModule %s: input %s has %s connections.", getDelegateName(), inputIdx, input->getNumConnections()));
+		activeConnections++;
 	}
 
 	void mimicInputs() {
@@ -115,12 +116,14 @@ private:
 	}
 
 	void finished() override {
-		delegate->flush();
-		if (isSink()) {
-			m_notify->finished();
-		} else {
-			for (size_t i = 0; i < delegate->getNumOutputs(); ++i) {
-				delegate->getOutput(i)->emit(nullptr);
+		if (--activeConnections <= 0) {
+			delegate->flush();
+			if (isSink()) {
+				m_notify->finished();
+			} else {
+				for (size_t i = 0; i < delegate->getNumOutputs(); ++i) {
+					delegate->getOutput(i)->emit(nullptr);
+				}
 			}
 		}
 	}
@@ -138,6 +141,7 @@ private:
 	Pipeline::Threading threading;
 
 	IPipelineNotifier * const m_notify;
+	std::atomic<int> activeConnections = 0;
 };
 
 }
