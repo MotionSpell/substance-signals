@@ -24,7 +24,8 @@ class HTTP : public ModuleDynI {
 		void flush() final;
 
 	protected:
-		virtual void newFileCallback(void *) {}
+		virtual void newFileCallback(void*) {}
+		virtual size_t endOfSession(void*, size_t) { return 0; }
 		GF_BitStream *curTransferedBs = nullptr;
 
 	private:
@@ -33,7 +34,7 @@ class HTTP : public ModuleDynI {
 			RunNewConnection, //untouched, send from previous ftyp/moov
 			RunNewFile,       //execute newFileCallback()
 			RunResume,        //untouched
-			Stop,
+			Stop,             //execute endOfSession()
 		};
 
 		void open(std::shared_ptr<const MetadataFile> meta);

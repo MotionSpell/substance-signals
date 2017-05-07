@@ -140,7 +140,7 @@ size_t HTTP::curlCallback(void *ptr, size_t size, size_t nmemb) {
 		curTransferedData = inputs[curTransferedDataInputIndex]->pop();
 		if (!curTransferedData) {
 			state = Stop;
-			return 0;
+			return endOfSession(ptr, size*nmemb);
 		}
 
 		open(safe_cast<const MetadataFile>(curTransferedData->getMetadata()));
@@ -196,6 +196,8 @@ void HTTP::threadProc() {
 			auto curTransferedData = inputs[curTransferedDataInputIndex]->pop();
 			if (!curTransferedData) {
 				state = Stop;
+				endOfSession(ptr, transferSize);
+				//TODO: perform transfer
 				break;
 			}
 			open(safe_cast<const MetadataFile>(curTransferedData->getMetadata()));

@@ -11,7 +11,8 @@ class MS_HSS : public Out::HTTP {
 		MS_HSS(const std::string &url);
 
 	private:
-		void newFileCallback(void *ptr) final; //remove ftyp/moov
+		void newFileCallback(void *ptr) final;             //remove ftyp/moov
+		size_t endOfSession(void *ptr, size_t size) final; //empty mfra
 };
 
 }
