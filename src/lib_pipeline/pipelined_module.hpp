@@ -18,7 +18,7 @@ public:
 	/* take ownership of module and executor */
 	PipelinedModule(IModule *module, IPipelineNotifier *notify, IClock const * const clock, Pipeline::Threading threading)
 		: delegate(module), localDelegateExecutor(threading & Pipeline::Mono ? (IProcessExecutor*)new EXECUTOR_LIVE : (IProcessExecutor*)new EXECUTOR),
-		delegateExecutor(*localDelegateExecutor), clock(clock), threading(threading), m_notify(notify) {
+		delegateExecutor(*localDelegateExecutor), clock(clock), threading(threading), m_notify(notify), activeConnections(0) {
 	}
 	~PipelinedModule() noexcept(false) {}
 	std::string getDelegateName() const {
@@ -141,7 +141,7 @@ private:
 	Pipeline::Threading threading;
 
 	IPipelineNotifier * const m_notify;
-	std::atomic<int> activeConnections = 0;
+	std::atomic<int> activeConnections;
 };
 
 }
