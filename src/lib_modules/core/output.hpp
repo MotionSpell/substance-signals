@@ -83,8 +83,8 @@ protected:
 		return safe_cast<InstanceType>(p);
 	}
 	template <typename InstanceType, typename ...Args>
-	InstanceType* addOutputDyn(Args&&... args) {
-		auto p = createOutput<InstanceType>(allocatorSize, -1, std::forward<Args>(args)...);
+	InstanceType* addOutputDyn(size_t allocatorMaxSize, Args&&... args) {
+		auto p = createOutput<InstanceType>(allocatorSize, allocatorMaxSize, std::forward<Args>(args)...);
 		outputs.push_back(uptr(p));
 		return safe_cast<InstanceType>(p);
 	}

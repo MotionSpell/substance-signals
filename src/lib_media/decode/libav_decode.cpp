@@ -44,7 +44,7 @@ LibavDecode::LibavDecode(const MetadataPktLibav &metadata)
 			codecCtx->thread_safe_callbacks = 1;
 			codecCtx->opaque = safe_cast<LibavDirectRendering>(this);
 			codecCtx->get_buffer2 = avGetBuffer2;
-			videoOutput = addOutputDyn<OutputPicture>(new MetadataRawVideo);
+			videoOutput = addOutputDyn<OutputPicture>(std::thread::hardware_concurrency() * 4, new MetadataRawVideo);
 		} else {
 			videoOutput = addOutput<OutputPicture>(new MetadataRawVideo);
 		}
