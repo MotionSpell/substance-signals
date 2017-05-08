@@ -139,8 +139,14 @@ size_t HTTP::curlCallback(void *ptr, size_t size, size_t nmemb) {
 	if (!curTransferedData) {
 		curTransferedData = inputs[curTransferedDataInputIndex]->pop();
 		if (!curTransferedData) {
-			state = Stop;
-			return endOfSession(ptr, size*nmemb);
+			if (state != Stop) {
+				state = Stop;
+				auto n = endOfSession(ptr, size*nmemb);
+				if (n) inputs[curTransferedDataInputIndex]->push(nullptr);
+				return n;
+			} else {
+				return 0;
+			}
 		}
 
 		open(safe_cast<const MetadataFile>(curTransferedData->getMetadata()));
