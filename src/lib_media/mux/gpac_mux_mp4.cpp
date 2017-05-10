@@ -435,7 +435,7 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 		return;
 	} else {
 		if (segmentPolicy == FragmentedSegment) {
-			GF_Err e = gf_isom_close_segment(isoCur, 0, 0, 0, 0, 0, GF_FALSE, (Bool)isLastSeg, compatFlags & DashJs ? 0 : GF_4CC('e', 'o', 'd', 's'), nullptr, nullptr);
+			GF_Err e = gf_isom_close_segment(isoCur, 0, 0, 0, 0, 0, GF_FALSE, (Bool)isLastSeg, (compatFlags & Browsers) ? 0 : GF_4CC('e', 'o', 'd', 's'), nullptr, nullptr);
 			if (e != GF_OK) {
 				if (DTS == 0) {
 					return;
@@ -487,7 +487,7 @@ void GPACMuxMP4::startFragment(uint64_t DTS, uint64_t PTS) {
 					throw error(format("Impossible to create TFDT %s: %s", DTS, gf_error_to_string(e)));
 			}
 
-			if (!(compatFlags & DashJs)) {
+			if (!(compatFlags & Browsers)) {
 				e = gf_isom_set_fragment_reference_time(isoCur, trackId, UTC2NTP(DataBase::absUTCOffsetInMs) + PTS, PTS);
 				if (e != GF_OK)
 					throw error(format("Impossible to create UTC marquer: %s", gf_error_to_string(e)));
@@ -824,7 +824,9 @@ void GPACMuxMP4::addSample(gpacpp::IsoSample &sample, const uint64_t dataDuratio
 	GF_Err e;
 	if (segmentPolicy > SingleSegment) {
 		curSegmentDurInTs += dataDurationInTs;
-		if (((curSegmentDurInTs + deltaInTs) * IClock::Rate) > (mediaTs * segmentDurationIn180k) && ((sample.IsRAP == RAP) || (compatFlags & SegmentAtAny))) {
+		if ((!(compatFlags & Browsers) || curFragmentDurInTs > 0) && /*avoid 0-sized mdat interpreted as EOS in browsers*/
+			((curSegmentDurInTs + deltaInTs) * IClock::Rate) > (mediaTs * segmentDurationIn180k) && 
+			((sample.IsRAP == RAP) || (compatFlags & SegmentAtAny))) {
 			if ((compatFlags & SegConstantDur) && (timescaleToClock(curSegmentDurInTs, mediaTs) != segmentDurationIn180k) && (curSegmentDurInTs - dataDurationInTs != 0)) {
 				segmentDurationIn180k = timescaleToClock(curSegmentDurInTs - dataDurationInTs, mediaTs);
 			}

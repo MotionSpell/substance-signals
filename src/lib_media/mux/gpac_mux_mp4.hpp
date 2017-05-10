@@ -34,7 +34,7 @@ class GPACMuxMP4 : public ModuleDynI {
 		enum CompatibilityFlag {
 			None               = 0,
 			SegmentAtAny       = 1, //don't wait for a RAP
-			DashJs             = 1 << 1,
+			Browsers           = 1 << 1,
 			SmoothStreaming    = 1 << 2,
 			SegNumStartsAtZero = 1 << 3,
 			SegConstantDur     = 1 << 4 //default is average i.e. segment duration may vary ; with this flag the actual duration may be different from segmentDurationInMs
