@@ -24,9 +24,9 @@ ifeq ($(DEBUG), 1)
   LDFLAGS += -g
 else
   CFLAGS += -Werror -O3 -DNDEBUG -Wno-unused-variable -Wno-deprecated-declarations
-	ifneq ($(UNAME_S),Darwin)
-  	CFLAGS += -s
-	endif
+  ifneq ($(UNAME_S),Darwin)
+    CFLAGS += -s
+  endif
   LDFLAGS += -s
 endif
 

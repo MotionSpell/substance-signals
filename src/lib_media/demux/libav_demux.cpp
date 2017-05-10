@@ -43,7 +43,7 @@ const char* webcamFormat() {
 namespace Demux {
 void LibavDemux::webcamList() {
 	log(Warning, "Webcam list:");
-	ffpp::Dict dict(typeid(*this).name(), "format", "-list_devices true");
+	ffpp::Dict dict(typeid(*this).name(), "-list_devices true");
 	avformat_open_input(&m_formatCtx, "video=dummy:audio=dummy", av_find_input_format(webcamFormat()), &dict);
 	log(Warning, "Webcam example: webcam:video=\"Integrated Webcam\":audio=\"Microphone (Realtek High Defini\"");
 }
@@ -91,7 +91,7 @@ LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::strin
 			restampers[i] = uptr(create<Transform::Restamp>(Transform::Restamp::ClockSystem)); /*some webcams timestamps don't start at 0 (based on UTC)*/
 		}
 	} else {
-		ffpp::Dict dict(typeid(*this).name(), "demuxer", "-buffer_size 1M -fifo_size 1M -probesize 10M -analyzeduration 10M -overrun_nonfatal 1 -protocol_whitelist file,udp,rtp,http,https,tcp,tls,rtmp -rtsp_flags prefer_tcp " + avformatCustom);
+		ffpp::Dict dict(typeid(*this).name(),"-buffer_size 1M -fifo_size 1M -probesize 10M -analyzeduration 10M -overrun_nonfatal 1 -protocol_whitelist file,udp,rtp,http,https,tcp,tls,rtmp -rtsp_flags prefer_tcp " + avformatCustom);
 		if (avformat_open_input(&m_formatCtx, url.c_str(), nullptr, &dict)) {
 			if (m_formatCtx) avformat_close_input(&m_formatCtx);
 			throw error(format("Error when opening input '%s'", url));

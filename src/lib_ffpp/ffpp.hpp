@@ -38,18 +38,21 @@ class Frame {
 
 class Dict {
 	public:
-		Dict(const std::string &moduleName, const std::string &dictName, const std::string &options)
-		: avDict(nullptr), options(options), moduleName(moduleName), dictName(dictName) {
+		Dict(const std::string &moduleName, const std::string &options)
+		: avDict(nullptr), options(options), moduleName(moduleName) {
 			buildAVDictionary(options);
+			if (av_dict_copy(&avDictOri, avDict, 0) != 0)
+				throw(format("[%s] could copy options for \"%s\".", moduleName, options));
 		}
 
 		~Dict() {
 			ensureAllOptionsConsumed();
 			av_dict_free(&avDict);
+			av_dict_free(&avDictOri);
 		}
 
-		AVDictionaryEntry* get(std::string const name, AVDictionaryEntry* entry = nullptr) const {
-			return av_dict_get(avDict, name.c_str(), entry, 0);
+		AVDictionaryEntry* get(std::string const name) const {
+			return av_dict_get(avDict, name.c_str(), nullptr, 0);
 		}
 
 		AVDictionary** operator&() {
@@ -57,40 +60,31 @@ class Dict {
 		}
 
 		void ensureAllOptionsConsumed() const {
-			auto opt = stringDup(options.c_str());
-			char *tok = strtok(opt.data(), " ");
-			if (tok && *tok == '-') tok++;
-			while (tok && strtok(nullptr, "-")) {
-				AVDictionaryEntry *avde = nullptr;
-				avde = get(tok, avde);
-				if (avde) {
+			AVDictionaryEntry *avde = nullptr;
+			while ( (avde = av_dict_get(*&avDictOri, "", avde, AV_DICT_IGNORE_SUFFIX)) ) {
+				if (get(avde->key)) {
 					Log::msg(Warning, "codec option \"%s\", value \"%s\" was ignored.", avde->key, avde->value);
 				}
-				tok = strtok(nullptr, " ");
 			}
 		}
 
 	private:
-		void set(std::string const& name, std::string const& val) {
-			if (av_dict_set(&avDict, name.c_str(), val.c_str(), 0) < 0) {
-				Log::msg(Warning, "[%s] unknown %s option \"%s\" with value \"%s\"", moduleName.c_str(), dictName, name, val);
-			}
-		}
-
 		void buildAVDictionary(const std::string &options) {
-			auto opt = stringDup(options.c_str());
-			char *tok = strtok(opt.data(), " ");
-			if (tok && *tok == '-') tok++;
-			char *tokval = nullptr;
-			while (tok && (tokval = strtok(nullptr, "-"))) {
-				if (*(tokval + strlen(tokval) - 1) == ' ') *(tokval + strlen(tokval) - 1) = '\0';
-				set(tok, tokval);
-				tok = strtok(nullptr, " ");
+			if (av_dict_parse_string(&avDict, options.c_str(), " ", " ", 0) != 0)
+				throw(format("[%s] could not parse option list \"%s\".", moduleName, options));
+
+			AVDictionaryEntry *avde = nullptr;
+			while ((avde = av_dict_get(*&avDict, "", avde, AV_DICT_IGNORE_SUFFIX))) {
+				if (avde->key[0] == '-') {
+					for (size_t i=1; i<=strlen(avde->key); ++i) {
+						avde->key[i-1] = avde->key[i];
+					}
+				}
 			}
 		}
 
-		AVDictionary* avDict;
-		std::string options, moduleName, dictName;
+		AVDictionary* avDict, *avDictOri;
+		std::string options, moduleName;
 };
 
 class SwResampler {

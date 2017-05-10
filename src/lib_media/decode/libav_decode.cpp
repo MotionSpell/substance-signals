@@ -31,7 +31,7 @@ LibavDecode::LibavDecode(const MetadataPktLibav &metadata)
 		throw error(format("Decoder not found for codecID(%s).", codecCtx->codec_id));
 
 	//force single threaded as h264 probing seems to miss SPS/PPS and seek fails silently
-	ffpp::Dict dict(typeid(*this).name(), "decoder", "-threads auto -err_detect 1 -flags output_corrupt -flags2 showall");
+	ffpp::Dict dict(typeid(*this).name(), "-threads auto -err_detect 1 -flags output_corrupt -flags2 showall");
 	if (avcodec_open2(codecCtx, codec, &dict) < 0)
 		throw error("Couldn't open stream.");
 	codecCtx->refcounted_frames = true;

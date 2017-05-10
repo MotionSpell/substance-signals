@@ -21,9 +21,9 @@ auto g_InitAvLog = runAtStartup(&av_log_set_callback, avLog);
 namespace Mux {
 
 LibavMux::LibavMux(const std::string &baseName, const std::string &fmt, const std::string &options)
-	: optionsDict(typeid(*this).name(), "options", options) {
+	: optionsDict(typeid(*this).name(), options) {
 	/* setup container */
-	ffpp::Dict formatDict(typeid(*this).name(), "format", "-format " + fmt);
+	ffpp::Dict formatDict(typeid(*this).name(), "-format " + fmt);
 	AVOutputFormat *of = av_guess_format(formatDict.get("format")->value, nullptr, nullptr);
 	if (!of)
 		throw error("Couldn't guess container from file extension");

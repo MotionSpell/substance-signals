@@ -79,10 +79,10 @@ LibavEncode::LibavEncode(Type type, LibavEncodeParams &params)
 	}
 
 	/* parse the codec optionsDict */
-	ffpp::Dict codecDict(typeid(*this).name(), "codec", codecOptions + "-threads auto " + params.avcodecCustom);
+	ffpp::Dict codecDict(typeid(*this).name(), codecOptions + " -threads auto " + params.avcodecCustom);
 
 	/* parse other optionsDict */
-	ffpp::Dict generalDict(typeid(*this).name(), "other", generalOptions);
+	ffpp::Dict generalDict(typeid(*this).name(), generalOptions);
 
 	/* find the encoder */
 	auto entry = generalDict.get(codecName);
