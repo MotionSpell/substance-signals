@@ -36,7 +36,7 @@ bool moveFileInternal(const std::string &src, const std::string &dst) {
 #ifdef _WIN32
 	DeleteFileA(dst.c_str());
 	while (--retry && (MoveFileA(src.c_str(), dst.c_str())) == 0) {
-		auto lastError = GetLastError(); lastError;
+		auto lastError = GetLastError();
 #else
 	while (--retry && (system(format("%s %s %s", "mv", src, dst).c_str())) == 0) {
 #endif

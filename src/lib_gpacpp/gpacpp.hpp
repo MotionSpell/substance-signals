@@ -3,6 +3,7 @@
 #include "lib_utils/format.hpp"
 
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <stdexcept>
 
@@ -45,6 +46,60 @@ class Error : public std::exception {
 };
 
 //------------------------------------------------
+// wrapper for GPAC init
+//------------------------------------------------
+class Init {
+public:
+	Init(/*bool memTracker = false, */GF_LOG_Tool globalLogTools = GF_LOG_ALL, GF_LOG_Level globalLogLevel = GF_LOG_WARNING) {
+#ifdef GPAC_MEM_TRACKER
+		gf_sys_init(GF_MemTrackerBackTrace);
+#else
+		gf_sys_init(GF_MemTrackerNone);
+#endif
+		gf_log_set_tool_level(globalLogTools, globalLogLevel);
+	}
+
+	~Init() {
+		gf_sys_close();
+	}
+};
+
+//------------------------------------------------
+// wrapper for GF_Config
+//------------------------------------------------
+class Config {
+public:
+	Config(const char *filePath, const char *fileName) {
+		cfg = gf_cfg_new(filePath, fileName);
+	}
+
+	~Config() {
+		gf_cfg_del(cfg);
+	}
+
+	GF_Config* get() const {
+		return cfg;
+	}
+
+	void setKey(const char *secName, const char *keyName, const char *keyValue) {
+		GF_Err e = gf_cfg_set_key(cfg, secName, keyName, keyValue);
+		if (e < 0)
+			throw Error(format("[GPACPP] Cannot set config (%s) key [%s] %s=%s", cfg, secName, keyName, keyValue).c_str(), e);
+	}
+
+	const char* getKey(const char *secName, const char *keyName) const {
+		return gf_cfg_get_key(cfg, secName, keyName);
+	}
+
+	Config const& operator=(Config const&) = delete;
+
+private:
+	GF_Config *cfg;
+};
+
+#ifndef GPAC_DISABLE_ISOM
+
+//------------------------------------------------
 // wrapper for GF_ISOSample
 //------------------------------------------------
 class IsoSample : public GF_ISOSample {
@@ -72,25 +127,6 @@ class IsoSample : public GF_ISOSample {
 	private:
 		IsoSample const& operator=(IsoSample const&) = delete;
 		bool ownsData = true;
-};
-
-//------------------------------------------------
-// wrapper for GPAC init
-//------------------------------------------------
-class Init {
-	public:
-		Init(/*bool memTracker = false, */GF_LOG_Tool globalLogTools = GF_LOG_ALL, GF_LOG_Level globalLogLevel = GF_LOG_WARNING) {
-#ifdef GPAC_MEM_TRACKER
-			gf_sys_init(GF_MemTrackerBackTrace);
-#else
-			gf_sys_init(GF_MemTrackerNone);
-#endif
-			gf_log_set_tool_level(globalLogTools, globalLogLevel);
-		}
-
-		~Init() {
-			gf_sys_close();
-		}
 };
 
 //------------------------------------------------
@@ -172,38 +208,7 @@ class IsoFile : public Init {
 		GF_ISOFile* movie_;
 };
 
-//------------------------------------------------
-// wrapper for GF_Config
-//------------------------------------------------
-class Config {
-	public:
-		Config(const char *filePath, const char *fileName) {
-			cfg = gf_cfg_new(filePath, fileName);
-		}
-
-		~Config() {
-			gf_cfg_del(cfg);
-		}
-
-		GF_Config* get() const {
-			return cfg;
-		}
-
-		void setKey(const char *secName, const char *keyName, const char *keyValue) {
-			GF_Err e = gf_cfg_set_key(cfg, secName, keyName, keyValue);
-			if (e < 0)
-				throw Error(format("[GPACPP] Cannot set config (%s) key [%s] %s=%s", cfg, secName, keyName, keyValue).c_str(), e);
-		}
-
-		const char* getKey(const char *secName, const char *keyName) const {
-			return gf_cfg_get_key(cfg, secName, keyName);
-		}
-
-		Config const& operator=(Config const&) = delete;
-
-	private:
-		GF_Config *cfg;
-};
+#endif /*GPAC_DISABLE_ISOM*/
 
 //------------------------------------------------
 // wrapper for GF_DownloadManager
@@ -227,6 +232,8 @@ class DownloadManager : public Init {
 	private:
 		GF_DownloadManager *dm;
 };
+
+#ifndef GPAC_DISABLE_DASH_CLIENT
 
 //------------------------------------------------
 // wrapper for GF_DashClient
@@ -280,6 +287,10 @@ class DashClient : public Init {
 		std::unique_ptr<DownloadManager> dm;
 		GF_DashClient *dashClient;
 };
+
+#endif /*GPAC_DISABLE_DASH_CLIENT*/
+
+#ifndef GPAC_DISABLE_CORE_TOOLS
 
 //------------------------------------------------
 // wrapper for GF_MPD
@@ -459,5 +470,7 @@ class MPD {
 			return true;
 		}
 };
+
+#endif /*GPAC_DISABLE_CORE_TOOLS*/
 
 }
