@@ -62,6 +62,7 @@ LibavDecode::LibavDecode(const MetadataPktLibav &metadata)
 }
 
 LibavDecode::~LibavDecode() {
+	flush(); //we need to flush to avoid a leak of LibavDirectRenderingContext pictures
 	avcodec_close(codecCtx);
 	auto codecCtxCopy = codecCtx;
 	avcodec_free_context(&codecCtxCopy);
