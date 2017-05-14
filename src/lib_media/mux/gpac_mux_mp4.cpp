@@ -435,7 +435,7 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 		return;
 	} else {
 		if (segmentPolicy == FragmentedSegment) {
-			GF_Err e = gf_isom_close_segment(isoCur, 0, 0, 0, 0, 0, GF_FALSE, (Bool)isLastSeg, (compatFlags & Browsers) ? 0 : GF_4CC('e', 'o', 'd', 's'), nullptr, nullptr);
+			GF_Err e = gf_isom_close_segment(isoCur, 0, 0, 0, 0, 0, GF_FALSE, (Bool)isLastSeg, GF_TRUE, (compatFlags & Browsers) ? 0 : GF_4CC('e', 'o', 'd', 's'), nullptr, nullptr);
 			if (e != GF_OK) {
 				if (DTS == 0) {
 					return;

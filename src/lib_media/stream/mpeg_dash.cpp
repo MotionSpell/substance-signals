@@ -6,7 +6,7 @@
 #endif
 
 #define DASH_TIMESCALE 1000 //TODO: there are some ms already hardcoded, including in AdaptiveStreamingCommon and gf_net_get_utc() results
-#define MOVE_FILE_NUM_RETRY 5
+#define MOVE_FILE_NUM_RETRY 3
 #define MIN_UPDATE_PERIOD_FACTOR   1 //FIXME: should be 0, but dash.js doesn't support MPDs with no refresh time.
 
 #define MIN_BUFFER_TIME_IN_MS_VOD  3000
@@ -34,7 +34,9 @@ GF_MPD_AdaptationSet *createAS(uint64_t segDurationInMs, GF_MPD_Period *period, 
 bool moveFileInternal(const std::string &src, const std::string &dst) {
 	int retry = MOVE_FILE_NUM_RETRY + 1;
 #ifdef _WIN32
+	DeleteFileA(dst.c_str());
 	while (--retry && (MoveFileA(src.c_str(), dst.c_str())) == 0) {
+		auto lastError = GetLastError(); lastError;
 #else
 	while (--retry && (system(format("%s %s %s", "mv", src, dst).c_str())) == 0) {
 #endif
