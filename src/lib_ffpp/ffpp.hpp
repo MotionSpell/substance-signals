@@ -40,9 +40,20 @@ class Dict {
 	public:
 		Dict(const std::string &moduleName, const std::string &options)
 		: avDict(nullptr), options(options), moduleName(moduleName) {
-			buildAVDictionary(options);
+			if (av_dict_parse_string(&avDict, options.c_str(), " ", " ", 0) != 0)
+				throw(format("[%s] could not parse option list \"%s\".", moduleName, options));
+
+			AVDictionaryEntry *avde = nullptr;
+			while ((avde = av_dict_get(*&avDict, "", avde, AV_DICT_IGNORE_SUFFIX))) {
+				if (avde->key[0] == '-') {
+					for (size_t i=1; i<=strlen(avde->key); ++i) {
+						avde->key[i-1] = avde->key[i];
+					}
+				}
+			}
+
 			if (av_dict_copy(&avDictOri, avDict, 0) != 0)
-				throw(format("[%s] could copy options for \"%s\".", moduleName, options));
+				throw(format("[%s] could not copy options for \"%s\".", moduleName, options));
 		}
 
 		~Dict() {
@@ -69,21 +80,7 @@ class Dict {
 		}
 
 	private:
-		void buildAVDictionary(const std::string &options) {
-			if (av_dict_parse_string(&avDict, options.c_str(), " ", " ", 0) != 0)
-				throw(format("[%s] could not parse option list \"%s\".", moduleName, options));
-
-			AVDictionaryEntry *avde = nullptr;
-			while ((avde = av_dict_get(*&avDict, "", avde, AV_DICT_IGNORE_SUFFIX))) {
-				if (avde->key[0] == '-') {
-					for (size_t i=1; i<=strlen(avde->key); ++i) {
-						avde->key[i-1] = avde->key[i];
-					}
-				}
-			}
-		}
-
-		AVDictionary* avDict, *avDictOri;
+		AVDictionary *avDict = nullptr, *avDictOri = nullptr;
 		std::string options, moduleName;
 };
 
