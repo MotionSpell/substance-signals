@@ -435,6 +435,7 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 		return;
 	} else {
 		if (segmentPolicy == FragmentedSegment) {
+			lastSegmentSize = gf_isom_get_file_size(isoCur);
 			GF_Err e = gf_isom_close_segment(isoCur, 0, 0, 0, 0, 0, GF_FALSE, (Bool)isLastSeg, GF_TRUE, (compatFlags & Browsers) ? 0 : GF_4CC('e', 'o', 'd', 's'), nullptr, nullptr);
 			if (e != GF_OK) {
 				if (DTS == 0) {
@@ -455,8 +456,6 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 				gf_free(output);
 #endif
 			}
-
-			lastSegmentSize = gf_isom_get_file_size(isoCur);
 		} else {
 			lastSegmentSize = gf_isom_estimate_size(isoCur);
 		}
