@@ -21,7 +21,11 @@ const std::string Page::toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs) con
 		timecode_hide[12] = 0;
 
 		ttml << "      <p region=\"Region\" style=\"textAlignment_0\" begin=\"" << timecode_show << "\" end=\"" << timecode_hide << "\" xml:id=\"sub_0\">\n";
+#ifdef DEBUG_DISPLAY_TIMESTAMPS
 		ttml << "        <span style=\"Style0_0\">" << ss.str() << "</span>\n";
+#else
+		ttml << "        <span style=\"Style0_0\">" << timecode_show << " - " << timecode_hide << "</span>\n";
+#endif
 		ttml << "      </p>\n";
 	}
 	return ttml.str();
@@ -83,17 +87,6 @@ const std::string TeletextToTTML::toTTML(uint64_t startTimeInMs, uint64_t endTim
 	default: throw error("Unknown timing policy (1)");
 	}
 
-#ifdef DEBUG_DISPLAY_TIMESTAMPS
-	char timecode_show[24] = { 0 };
-	timeInMsToStr(startTimeInMs + offset, timecode_show, ".");
-	timecode_show[12] = 0;
-	char timecode_hide[24] = { 0 };
-	timeInMsToStr(endTimeInMs + offset, timecode_hide, ".");
-	timecode_hide[12] = 0;
-	ttml << "      <p region=\"Region\" style=\"textAlignment_0\" begin=\"" << timecode_show << "\" end=\"" << timecode_hide << "\" xml:id=\"sub_0\">\n";
-	ttml << "        <span style=\"Style0_0\">" << timecode_show << " - " << timecode_hide << "</span>\n";
-	ttml << "      </p>\n";
-#else
 	auto page = currentPages.begin();
 	while (page != currentPages.end()) {
 		if ((*page)->endTimeInMs > startTimeInMs && (*page)->startTimeInMs < endTimeInMs) {
@@ -108,7 +101,6 @@ const std::string TeletextToTTML::toTTML(uint64_t startTimeInMs, uint64_t endTim
 			++page;
 		}
 	}
-#endif
 
 	ttml << "    </div>\n";
 	ttml << "  </body>\n";
@@ -1021,10 +1013,8 @@ void TeletextToTTML::sendSample(const std::string &sample) {
 
 void TeletextToTTML::process(Data data) {
 	//TODO
-	//13. several samples/lines_regions in one? => DONE
 	//14. add flush() for ondemand samples
 	//15. UTF8 to TTML formatting? accent + EOLs </br>
-
 	auto sub = safe_cast<const DataAVPacket>(data);
 	output->setMetadata(data->getMetadata());
 	if (!sub->size()) { //on sparse stream, we may be regularly awaken: generate samples when needed
