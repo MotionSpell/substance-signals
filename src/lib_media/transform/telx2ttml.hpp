@@ -11,7 +11,7 @@ namespace Transform {
 
 struct Page {
 	Page() {}
-	const std::string toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs) const;
+	const std::string toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs, uint64_t idx) const;
 	const std::string toSRT();
 
 	uint64_t tsInMs, startTimeInMs, endTimeInMs, show_timestamp, hide_timestamp;

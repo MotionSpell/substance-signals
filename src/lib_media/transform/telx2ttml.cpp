@@ -10,7 +10,7 @@ extern "C" {
 namespace Modules {
 namespace Transform {
 
-const std::string Page::toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs) const {
+const std::string Page::toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs, uint64_t idx) const {
 	std::stringstream ttml;
 	if (!ss.str().empty()) {
 		char timecode_show[24] = { 0 };
@@ -20,11 +20,11 @@ const std::string Page::toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs) con
 		timeInMsToStr(endTimeInMs, timecode_hide, ".");
 		timecode_hide[12] = 0;
 
-		ttml << "      <p region=\"Region\" style=\"textAlignment_0\" begin=\"" << timecode_show << "\" end=\"" << timecode_hide << "\" xml:id=\"sub_0\">\n";
+		ttml << "      <p region=\"Region\" style=\"textAlignment_0\" begin=\"" << timecode_show << "\" end=\"" << timecode_hide << "\" xml:id=\"sub_" << idx << "\">\n";
 #ifdef DEBUG_DISPLAY_TIMESTAMPS
-		ttml << "        <span style=\"Style0_0\">" << ss.str() << "</span>\n";
-#else
 		ttml << "        <span style=\"Style0_0\">" << timecode_show << " - " << timecode_hide << "</span>\n";
+#else
+		ttml << "        <span style=\"Style0_0\">" << ss.str() << "</span>\n";
 #endif
 		ttml << "      </p>\n";
 	}
@@ -93,7 +93,7 @@ const std::string TeletextToTTML::toTTML(uint64_t startTimeInMs, uint64_t endTim
 			auto localStartTimeInMs = std::max<uint64_t>((*page)->startTimeInMs, startTimeInMs);
 			auto localEndTimeInMs = std::min<uint64_t>((*page)->endTimeInMs, endTimeInMs);
 			log(Debug, "[%s-%s]: %s - %s: %s", startTimeInMs, endTimeInMs, localStartTimeInMs, localEndTimeInMs, (*page)->ss.str());
-			ttml << (*page)->toTTML(localStartTimeInMs + offset, localEndTimeInMs + offset);
+			ttml << (*page)->toTTML(localStartTimeInMs + offset, localEndTimeInMs + offset, startTimeInMs / clockToTimescale(this->splitDurationIn180k, 1000));
 		}
 		if ((*page)->endTimeInMs <= endTimeInMs) {
 			page = currentPages.erase(page);
