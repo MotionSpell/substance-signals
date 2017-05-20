@@ -34,9 +34,10 @@ GF_MPD_AdaptationSet *createAS(uint64_t segDurationInMs, GF_MPD_Period *period, 
 bool moveFileInternal(const std::string &src, const std::string &dst) {
 	int retry = MOVE_FILE_NUM_RETRY + 1;
 #ifdef _WIN32
-	DeleteFileA(dst.c_str());
 	while (--retry && (MoveFileA(src.c_str(), dst.c_str())) == 0) {
-		auto lastError = GetLastError();
+		if (GetLastError() == ERROR_ALREADY_EXISTS) {
+			DeleteFileA(dst.c_str());
+		}
 #else
 	while (--retry && (system(format("%s %s %s", "mv", src, dst).c_str())) == 0) {
 #endif
