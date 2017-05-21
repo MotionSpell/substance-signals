@@ -84,7 +84,7 @@ UTILS_SRCS:=\
   src/version.cpp\
   $(ProjectName)/log.cpp\
   $(ProjectName)/time.cpp
-UTILS_OBJS:=$(UTILS_SRCS:%.cpp=$(BIN)/%.o)
+LIB_UTILS_OBJS:=$(UTILS_SRCS:%.cpp=$(BIN)/%.o)
 
 #------------------------------------------------------------------------------
 
@@ -162,21 +162,17 @@ DEPS+=$(LIB_APPCOMMON_OBJS:%.o=%.deps)
 
 ProjectName:=$(SRC)/tests
 include $(ProjectName)/project.mk
-CFLAGS+=-I$(ProjectName)
 
 #------------------------------------------------------------------------------
 
 ProjectName:=$(SRC)/apps/dashcastx
 include $(ProjectName)/project.mk
-CFLAGS+=-I$(ProjectName)
-
 #------------------------------------------------------------------------------
 
 ifeq ($(SIGNALS_HAS_X11), 1)
 
 ProjectName:=$(SRC)/apps/player
 include $(ProjectName)/project.mk
-CFLAGS+=-I$(ProjectName)
 
 endif
 
@@ -184,7 +180,6 @@ endif
 
 ProjectName:=$(SRC)/apps/mp42tsx
 include $(ProjectName)/project.mk
-CFLAGS+=-I$(ProjectName)
 
 #------------------------------------------------------------------------------
 

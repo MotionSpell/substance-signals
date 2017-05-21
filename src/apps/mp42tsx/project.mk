@@ -6,7 +6,7 @@ EXE_MP42TSX_OBJS:=\
 	$(LIB_MEDIA_OBJS)\
 	$(LIB_MODULES_OBJS)\
 	$(LIB_PIPELINE_OBJS)\
-	$(UTILS_OBJS)\
+	$(LIB_UTILS_OBJS)\
  	$(OUTDIR)/mp42tsx.o\
  	$(OUTDIR)/options.o\
  	$(OUTDIR)/pipeliner.o
