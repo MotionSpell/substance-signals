@@ -1,6 +1,7 @@
 OUTDIR:=$(BIN)/$(ProjectName)
+TARGET:=$(OUTDIR)/$(ProjectName).exe
 
-TARGETS+=$(OUTDIR)/dashcastx.exe
+TARGETS+=$(TARGET)
 EXE_DASHCASTX_OBJS:=\
 	$(LIB_MEDIA_OBJS)\
 	$(LIB_MODULES_OBJS)\
@@ -10,5 +11,5 @@ EXE_DASHCASTX_OBJS:=\
  	$(OUTDIR)/main.o\
  	$(OUTDIR)/options.o\
  	$(OUTDIR)/pipeliner.o
-$(OUTDIR)/dashcastx.exe: $(EXE_DASHCASTX_OBJS)
+$(TARGET): $(EXE_DASHCASTX_OBJS)
 DEPS+=$(EXE_DASHCASTX_OBJS:%.o=%.deps)

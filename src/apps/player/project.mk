@@ -1,6 +1,7 @@
 OUTDIR:=$(BIN)/$(ProjectName)
+TARGET:=$(OUTDIR)/$(ProjectName).exe
 
-TARGETS+=$(OUTDIR)/player.exe
+TARGETS+=$(TARGET)
 EXE_PLAYER_OBJS:=\
 	$(LIB_MEDIA_OBJS)\
 	$(LIB_MODULES_OBJS)\
@@ -8,5 +9,5 @@ EXE_PLAYER_OBJS:=\
 	$(UTILS_OBJS)\
  	$(OUTDIR)/pipeliner.o\
  	$(OUTDIR)/player.o
-$(OUTDIR)/player.exe:  $(EXE_PLAYER_OBJS)
+$(TARGET): $(EXE_PLAYER_OBJS)
 DEPS+=$(EXE_PLAYER_OBJS:%.o=%.deps)
