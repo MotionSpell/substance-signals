@@ -46,7 +46,16 @@ LibavEncode::LibavEncode(Type type, LibavEncodeParams &params)
 	: avFrame(new ffpp::Frame) {
 	std::string codecOptions, generalOptions, codecName;
 	switch (type) {
-	case Video:
+	case Video: {
+		codecName = "vcodec";
+		ffpp::Dict customDict(typeid(*this).name(), params.avcodecCustom);
+		auto codec = customDict.get("vcodec");
+		if (codec) {
+			generalOptions = format(" -vcodec %s", codec->value);
+			av_dict_free(&customDict);
+			break;
+		}
+		av_dict_free(&customDict);
 		switch (params.codecType) {
 		case LibavEncodeParams::Software:
 			generalOptions = " -vcodec libx264";
@@ -67,34 +76,40 @@ LibavEncode::LibavEncode(Type type, LibavEncodeParams &params)
 		}
 		generalOptions += format(" -r %s/%s -pass 1", params.frameRateNum, params.frameRateDen);
 		codecOptions += format(" -b %s -g %s -keyint_min %s -bf 0 -sc_threshold 0", params.bitrate_v, params.GOPSize, params.GOPSize);
-		codecName = "vcodec";
 		break;
-	case Audio:
+	}
+	case Audio: {
+		codecName = "acodec";
+		ffpp::Dict customDict(typeid(*this).name(), params.avcodecCustom);
+		auto codec = customDict.get("acodec");
+		if (codec) {
+			generalOptions = format(" -acodec %s", codec->value);
+			av_dict_free(&customDict);
+			break;
+		}
+		av_dict_free(&customDict);
 		codecOptions = format(" -b %s -ar %s -ac %s", params.bitrate_a, params.sampleRate, params.numChannels);
 		generalOptions = " -acodec aac";
-		codecName = "acodec";
 		break;
+	}
 	default:
 		throw error("Unknown encoder type. Failed.");
 	}
 
-	/* parse the codec optionsDict */
-	ffpp::Dict codecDict(typeid(*this).name(), codecOptions + " -threads auto " + params.avcodecCustom);
-
-	/* parse other optionsDict */
-	ffpp::Dict generalDict(typeid(*this).name(), generalOptions);
-
 	/* find the encoder */
+	ffpp::Dict generalDict(typeid(*this).name(), generalOptions);
 	auto entry = generalDict.get(codecName);
 	if (!entry)
-		throw error(format("Could not get codecName (%s).", codecName));
+		throw error(format("Could not get codecName (\"%s\").", codecName));
 	auto codec = avcodec_find_encoder_by_name(entry->value);
 	if (!codec) {
 		auto desc = avcodec_descriptor_get_by_name(entry->value);
 		if (!desc)
-			throw error(format("codec '%s' not found, disable output.", entry->value));
+			throw error(format("codec descriptor '%s' not found, disable output.", entry->value));
+		codec = avcodec_find_encoder(desc->id);
 	}
-
+	if (!codec)
+		throw error(format("codec '%s' not found, disable output.", entry->value));
 	codecCtx = avcodec_alloc_context3(codec);
 	if (!codecCtx)
 		throw error(format("Could not allocate the codec context (%s).", codecName));
@@ -134,6 +149,8 @@ LibavEncode::LibavEncode(Type type, LibavEncodeParams &params)
 
 	/* open it */
 	codecCtx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER; //gives access to the extradata (e.g. H264 SPS/PPS, etc.)
+	ffpp::Dict codecDict(typeid(*this).name(), codecOptions + " -threads auto " + params.avcodecCustom);
+	av_dict_set(&codecDict, codecName.c_str(), nullptr, 0);
 	if (avcodec_open2(codecCtx, codec, &codecDict) < 0)
 		throw error("Could not open codec, disable output.");
 	codecDict.ensureAllOptionsConsumed();

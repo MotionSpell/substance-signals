@@ -18,7 +18,7 @@ namespace Demux {
 class LibavDemux : public ModuleS {
 	public:
 		//@param url may be a file, a remote URL, or a webcam (set "webcam" to list the available devices)
-		LibavDemux(const std::string &url, const bool loop = false, const std::string &avformatCustom = "", const uint64_t seekTimeInMs = 0);
+		LibavDemux(const std::string &url, const bool loop = false, const std::string &avformatCustom = "", const uint64_t seekTimeInMs = 0, const std::string &formatName = "");
 		~LibavDemux();
 		void process(Data data) override;
 

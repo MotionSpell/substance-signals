@@ -40,8 +40,9 @@ class Dict {
 	public:
 		Dict(const std::string &moduleName, const std::string &options)
 		: avDict(nullptr), options(options), moduleName(moduleName) {
-			if (av_dict_parse_string(&avDict, options.c_str(), " ", " ", 0) != 0)
-				throw(format("[%s] could not parse option list \"%s\".", moduleName, options));
+			if (av_dict_parse_string(&avDict, options.c_str(), " ", " ", 0) != 0) {
+				Log::msg(Warning, "[%s] could not parse option list \"%s\".", moduleName, options);
+			}
 
 			AVDictionaryEntry *avde = nullptr;
 			while ((avde = av_dict_get(*&avDict, "", avde, AV_DICT_IGNORE_SUFFIX))) {
@@ -50,6 +51,7 @@ class Dict {
 						avde->key[i-1] = avde->key[i];
 					}
 				}
+				Log::msg(Debug, "[%s] detected option \"%s\", value \"%s\".", avde->key, avde->value);
 			}
 
 			if (av_dict_copy(&avDictOri, avDict, 0) != 0)
