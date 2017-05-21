@@ -6,7 +6,7 @@ EXE_DASHCASTX_OBJS:=\
 	$(LIB_MODULES_OBJS)\
 	$(LIB_PIPELINE_OBJS)\
 	$(UTILS_OBJS)\
- 	$(OUTDIR)/../common/safemain.o\
+	$(APPCOMMON_OBJS)\
  	$(OUTDIR)/main.o\
  	$(OUTDIR)/options.o\
  	$(OUTDIR)/pipeliner.o

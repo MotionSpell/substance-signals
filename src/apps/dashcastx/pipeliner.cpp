@@ -1,6 +1,6 @@
 #include "lib_media/media.hpp"
 #include "lib_pipeline/pipeline.hpp"
-#include "pipeliner.hpp"
+#include "lib_appcommon/pipeliner.hpp"
 #include <sstream>
 #ifdef _WIN32
 #include <direct.h> //chdir

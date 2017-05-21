@@ -1,6 +1,5 @@
 #include <iostream>
 #include <stdexcept>
-#include "pipeliner.hpp"
 
 const char *g_appName = "dashcastx";
 

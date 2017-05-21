@@ -152,6 +152,14 @@ DEPS+=$(LIB_MODULES_OBJS:%.o=%.deps)
 
 #------------------------------------------------------------------------------
 
+ProjectName:=$(SRC)/lib_appcommon
+APPCOMMON_SRCS:=\
+  $(ProjectName)/safemain.cpp
+LIB_APPCOMMON_OBJS:=$(APPCOMMON_SRCS:%.cpp=$(BIN)/%.o)
+DEPS+=$(LIB_APPCOMMON_OBJS:%.o=%.deps)
+
+#------------------------------------------------------------------------------
+
 ProjectName:=$(SRC)/tests
 include $(ProjectName)/project.mk
 CFLAGS+=-I$(ProjectName)

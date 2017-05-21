@@ -4,17 +4,5 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="options.cpp" />
     <ClCompile Include="pipeliner.cpp" />
-    <ClCompile Include="..\common\safemain.cpp">
-      <Filter>common</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="options.hpp" />
-    <ClInclude Include="pipeliner.hpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <Filter Include="common">
-      <UniqueIdentifier>{b3182ade-b793-4c47-afe2-7ecdd8b1fac6}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
 </Project>

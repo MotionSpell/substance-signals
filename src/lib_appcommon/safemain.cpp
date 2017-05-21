@@ -1,8 +1,10 @@
 #include "lib_pipeline/pipeline.hpp"
 #include "lib_utils/profiler.hpp"
-#include "pipeliner.hpp"
 #include "options.hpp"
 #include <csignal>
+
+extern std::unique_ptr<const IConfig> processArgs(int argc, char const* argv[]);
+extern std::unique_ptr<Pipelines::Pipeline> buildPipeline(const IConfig &config);
 
 Pipelines::Pipeline *g_Pipeline = nullptr;
 extern const char *g_appName;
