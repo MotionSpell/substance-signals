@@ -429,7 +429,9 @@ void GPACMuxMP4::startSegment() {
 }
 
 void GPACMuxMP4::closeSegment(bool isLastSeg) {
-	closeFragment();
+	if (curFragmentDurInTs) {
+		closeFragment();
+	}
 
 	if (!isLastSeg && segmentPolicy <= SingleSegment) {
 		return;
@@ -497,6 +499,9 @@ void GPACMuxMP4::startFragment(uint64_t DTS, uint64_t PTS) {
 
 void GPACMuxMP4::closeFragment() {
 	if (fragmentPolicy > NoFragment) {
+		if (!curFragmentDurInTs) {
+			log(Warning, "Writing an empty fragment. Some players may stop playing here.");
+		}
 		if (compatFlags & SmoothStreaming) {
 			auto const mediaTs = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
 			if (mediaTs == 0) {
@@ -823,8 +828,7 @@ void GPACMuxMP4::addSample(gpacpp::IsoSample &sample, const uint64_t dataDuratio
 	GF_Err e;
 	if (segmentPolicy > SingleSegment) {
 		curSegmentDurInTs += dataDurationInTs;
-		if ((!(compatFlags & Browsers) || curFragmentDurInTs > 0) && /*avoid 0-sized mdat interpreted as EOS in browsers*/
-			((curSegmentDurInTs + deltaInTs) * IClock::Rate) > (mediaTs * segmentDurationIn180k) && 
+		if (((curSegmentDurInTs + deltaInTs) * IClock::Rate) > (mediaTs * segmentDurationIn180k) && 
 			((sample.IsRAP == RAP) || (compatFlags & SegmentAtAny))) {
 			if ((compatFlags & SegConstantDur) && (timescaleToClock(curSegmentDurInTs, mediaTs) != segmentDurationIn180k) && (curSegmentDurInTs - dataDurationInTs != 0)) {
 				segmentDurationIn180k = timescaleToClock(curSegmentDurInTs - dataDurationInTs, mediaTs);
@@ -846,13 +850,18 @@ void GPACMuxMP4::addSample(gpacpp::IsoSample &sample, const uint64_t dataDuratio
 				sample.DTS = 0;
 			}
 			curSegmentDurInTs = 0;
-			startFragment(sample.DTS, sample.DTS + sample.CTS_Offset);
+			if (fragmentPolicy != OneFragmentPerFrame) {
+				startFragment(sample.DTS, sample.DTS + sample.CTS_Offset);
+			}
 		}
 	}
 
 	if (fragmentPolicy > NoFragment) {
-		if ((fragmentPolicy == OneFragmentPerRAP) && (sample.IsRAP == RAP) && sample.DTS) {
+		if (curFragmentDurInTs && (fragmentPolicy == OneFragmentPerRAP) && (sample.IsRAP == RAP)) {
 			closeFragment();
+			startFragment(sample.DTS, sample.DTS + sample.CTS_Offset);
+		}
+		if ((fragmentPolicy == OneFragmentPerFrame) && !curFragmentDurInTs && sample.DTS) {
 			startFragment(sample.DTS, sample.DTS + sample.CTS_Offset);
 		}
 
@@ -863,9 +872,8 @@ void GPACMuxMP4::addSample(gpacpp::IsoSample &sample, const uint64_t dataDuratio
 		}
 		curFragmentDurInTs += dataDurationInTs;
 
-		if (fragmentPolicy == OneFragmentPerFrame && sample.DTS) {
+		if (fragmentPolicy == OneFragmentPerFrame) {
 			closeFragment();
-			startFragment(sample.DTS, sample.DTS + sample.CTS_Offset);
 		}
 	} else {
 		GF_Err e = gf_isom_add_sample(isoCur, trackId, 1, &sample);
