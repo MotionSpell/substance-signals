@@ -1,6 +1,5 @@
 OUTDIR:=$(BIN)/$(ProjectName)
-TARGET:=$(OUTDIR)/$(ProjectName).exe
-
+TARGET:=$(OUTDIR)/$(notdir $(ProjectName)).exe
 TARGETS+=$(TARGET)
 EXE_MP42TSX_OBJS:=\
 	$(LIB_MEDIA_OBJS)\

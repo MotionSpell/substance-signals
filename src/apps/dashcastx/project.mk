@@ -1,6 +1,5 @@
 OUTDIR:=$(BIN)/$(ProjectName)
-TARGET:=$(OUTDIR)/$(ProjectName).exe
-
+TARGET:=$(OUTDIR)/$(notdir $(ProjectName)).exe
 TARGETS+=$(TARGET)
 EXE_DASHCASTX_OBJS:=\
 	$(LIB_MEDIA_OBJS)\
