@@ -57,20 +57,14 @@ void MS_HSS::newFileCallback(void *ptr) {
 }
 
 size_t MS_HSS::endOfSession(void *ptr, size_t size) {
-	auto const mfraSize = 32;
+	auto const mfraSize = 8;
 	if (size < mfraSize) {
 		log(Warning, "endOfSession: needed to write %s bytes but buffer size is %s.", mfraSize, size);
 		return 0;
 	}
 	auto bs = gf_bs_new((const char*)ptr, size, GF_BITSTREAM_WRITE);
-	gf_bs_write_u32(bs, mfraSize);   //size (Box)
+	gf_bs_write_u32(bs, mfraSize); //size (Box)
 	gf_bs_write_u32(bs, GF_4CC('m', 'f', 'r', 'a'));
-	gf_bs_write_u32(bs, mfraSize-8); //size (FullBox)
-	gf_bs_write_u32(bs, GF_4CC('t', 'f', 'r', 'a'));
-	gf_bs_write_u32(bs, 0);          //version and flags
-	const u32 track_ID = 1;
-	gf_bs_write_u32(bs, track_ID);
-	gf_bs_write_u64(bs, 0);          //reserved + length_size_of_traf_num(0) + length_size_of_trun_num(0) + length_size_of_sample_num(0) + number_of_entry(0)
 	if (gf_bs_get_position(bs) != mfraSize) {
 		log(Warning, "endOfSession: mfra size is %s but buffer index is %s.", mfraSize, gf_bs_get_position(bs));
 	}
