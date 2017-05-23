@@ -42,7 +42,7 @@ auto g_InitAvLog = runAtStartup(&av_log_set_callback, avLog);
 
 namespace Encode {
 
-LibavEncode::LibavEncode(Type type, LibavEncodeParams &params)
+LibavEncode::LibavEncode(Type type, Params &params)
 	: avFrame(new ffpp::Frame) {
 	std::string codecOptions, generalOptions, codecName;
 	switch (type) {
@@ -57,7 +57,7 @@ LibavEncode::LibavEncode(Type type, LibavEncodeParams &params)
 		}
 		av_dict_free(&customDict);
 		switch (params.codecType) {
-		case LibavEncodeParams::Software:
+		case Params::Software:
 			generalOptions = " -vcodec libx264";
 			if (params.isLowLatency) {
 				codecOptions += " -preset ultrafast -tune zerolatency";
@@ -65,10 +65,10 @@ LibavEncode::LibavEncode(Type type, LibavEncodeParams &params)
 				codecOptions += " -preset veryfast";
 			}
 			break;
-		case LibavEncodeParams::Hardware_qsv:
+		case Params::Hardware_qsv:
 			generalOptions = " -vcodec h264_qsv";
 			break;
-		case LibavEncodeParams::Hardware_nvenc:
+		case Params::Hardware_nvenc:
 			generalOptions = " -vcodec nvenc_h264";
 			break;
 		default:

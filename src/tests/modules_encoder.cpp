@@ -28,7 +28,7 @@ unittest("encoder: video simple") {
 
 unittest("encoder: timestamps start at random values") {
 	const std::vector<uint64_t> times = {Clock::Rate, 2* Clock::Rate, 3* Clock::Rate };
-	Encode::LibavEncodeParams p;
+	Encode::LibavEncode::Params p;
 	p.frameRateNum = 1;
 
 	//mux starting at a non-zero value

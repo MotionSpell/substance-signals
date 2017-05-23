@@ -57,11 +57,11 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 		}
 	};
 
-	auto createEncoder = [&](std::shared_ptr<const IMetadata> metadataDemux, bool ultraLowLatency, Encode::LibavEncodeParams::VideoCodecType videoCodecType, PictureFormat &dstFmt, unsigned bitrate, uint64_t segmentDurationInMs)->IModule* {
+	auto createEncoder = [&](std::shared_ptr<const IMetadata> metadataDemux, bool ultraLowLatency, Encode::LibavEncode::Params::VideoCodecType videoCodecType, PictureFormat &dstFmt, unsigned bitrate, uint64_t segmentDurationInMs)->IModule* {
 		auto const codecType = metadataDemux->getStreamType();
 		if (codecType == VIDEO_PKT) {
 			Log::msg(Info, "[Encoder] Found video stream");
-			Encode::LibavEncodeParams p;
+			Encode::LibavEncode::Params p;
 			p.isLowLatency = ultraLowLatency;
 			p.codecType = videoCodecType;
 			p.res = dstFmt.res;
@@ -82,7 +82,7 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 			Log::msg(Info, "[Encoder] Found audio stream");
 			PcmFormat encFmt, demuxFmt;
 			libavAudioCtx2pcmConvert(safe_cast<const MetadataPktLibavAudio>(metadataDemux)->getAVCodecContext(), &demuxFmt);
-			Encode::LibavEncodeParams p;
+			Encode::LibavEncode::Params p;
 			p.sampleRate = demuxFmt.sampleRate;
 			p.numChannels = demuxFmt.numChannels;
 			return pipeline->addModule<Encode::LibavEncode>(Encode::LibavEncode::Audio, p);
@@ -163,7 +163,7 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 			if (transcode) {
 				Resolution inputRes = metadataDemux->isVideo() ? getMetadataFromOutput<MetadataPktLibavVideo>(demux->getOutput(i))->getResolution() : Resolution();
 				PictureFormat encoderInputPicFmt(autoRotate(autoFit(inputRes, opt->v[r].res), isVertical), UNKNOWN_PF);
-				encoder = createEncoder(metadataDemux, opt->ultraLowLatency, (Encode::LibavEncodeParams::VideoCodecType)opt->v[r].type, encoderInputPicFmt, opt->v[r].bitrate, opt->segmentDurationInMs);
+				encoder = createEncoder(metadataDemux, opt->ultraLowLatency, (Encode::LibavEncode::Params::VideoCodecType)opt->v[r].type, encoderInputPicFmt, opt->v[r].bitrate, opt->segmentDurationInMs);
 				if (!encoder)
 					continue;
 
