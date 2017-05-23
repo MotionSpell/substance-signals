@@ -62,7 +62,10 @@ LibavDecode::LibavDecode(const MetadataPktLibav &metadata)
 }
 
 LibavDecode::~LibavDecode() {
-	flush(); //we need to flush to avoid a leak of LibavDirectRenderingContext pictures
+	//HACK: we need to flush to avoid a leak of LibavDirectRenderingContext pictures
+	videoOutput = nullptr;
+	flush();
+
 	avcodec_close(codecCtx);
 	auto codecCtxCopy = codecCtx;
 	avcodec_free_context(&codecCtxCopy);
@@ -119,7 +122,7 @@ bool LibavDecode::processVideo(const DataAVPacket *data) {
 		}
 		auto const &timebase = safe_cast<const MetadataPktLibavVideo>(getInput(0)->getMetadata())->getAVCodecContext()->time_base;
 		pic->setTime(avFrame->get()->pkt_dts * timebase.num, timebase.den);
-		videoOutput->emit(pic);
+		if (videoOutput) videoOutput->emit(pic);
 		av_frame_unref(avFrame->get());
 		return true;
 	}

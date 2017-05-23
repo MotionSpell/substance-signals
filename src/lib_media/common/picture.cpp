@@ -2,6 +2,7 @@
 
 namespace Modules {
 std::shared_ptr<DataPicture> DataPicture::create(OutputPicture *out, const Resolution &res, const Resolution &resInternal, const PixelFormat &format) {
+	if (!out) return nullptr;
 	std::shared_ptr<DataPicture> r;
 	auto const size = PictureFormat::getSize(resInternal, format);
 	switch (format) {

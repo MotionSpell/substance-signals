@@ -386,6 +386,8 @@ int avGetBuffer2(struct AVCodecContext *ctx, AVFrame *frame, int flags) {
 		width += 2 * linesize_align[0] - (width % (2 * linesize_align[0]));
 	}
 	auto picCtx = dr->getPicture(Resolution(frame->width, frame->height), Resolution(width, height), libavPixFmt2PixelFormat((AVPixelFormat)frame->format));
+	if (!picCtx->pic)
+		return -1;
 	frame->opaque = static_cast<void*>(picCtx);
 	auto pic = picCtx->pic.get();
 
