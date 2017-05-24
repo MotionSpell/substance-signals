@@ -38,10 +38,11 @@ static GF_Err avc_import_ffextradata(const u8 *extradata, const u64 extradataSiz
 	}
 
 	//SPS
+	u64 nalStart = 4;
 	{
 		s32 idx;
 		char *buffer = nullptr;
-		const u64 nalStart = 4;
+parse_sps:
 		nalSize = gf_media_nalu_next_start_code_bs(bs);
 		if (nalStart + nalSize > extradataSize) {
 			gf_bs_del(bs);
@@ -50,7 +51,14 @@ static GF_Err avc_import_ffextradata(const u8 *extradata, const u64 extradataSiz
 		buffer = (char*)gf_malloc(nalSize);
 		gf_bs_read_data(bs, buffer, nalSize);
 		gf_bs_seek(bs, nalStart);
-		if ((gf_bs_read_u8(bs) & 0x1F) != GF_AVC_NALU_SEQ_PARAM) {
+		auto type = gf_bs_read_u8(bs) & 0x1F;
+		if (type == GF_AVC_NALU_ACCESS_UNIT) {
+			nalStart += nalSize + 4;
+			gf_bs_seek(bs, nalStart);
+			gf_free(buffer);
+			goto parse_sps;
+		}
+		if (type != GF_AVC_NALU_SEQ_PARAM) {
 			gf_bs_del(bs);
 			gf_free(buffer);
 			return GF_BAD_PARAM;
@@ -84,7 +92,7 @@ static GF_Err avc_import_ffextradata(const u8 *extradata, const u64 extradataSiz
 	{
 		s32 idx;
 		char *buffer = nullptr;
-		const u64 nalStart = 4 + nalSize + 4;
+		nalStart += 4 + nalSize;
 		gf_bs_seek(bs, nalStart);
 		nalSize = gf_media_nalu_next_start_code_bs(bs);
 		if (nalStart + nalSize > extradataSize) {
