@@ -27,7 +27,7 @@ public:
 		RelativeToSplit  //MSS
 	};
 
-	TeletextToTTML(unsigned pageNum, uint64_t splitDurationIn180k, TimingPolicy timingPolicy);
+	TeletextToTTML(unsigned pageNum, const std::string &lang, uint64_t splitDurationIn180k, TimingPolicy timingPolicy);
 	void process(Data data) override;
 
 private:
@@ -35,6 +35,7 @@ private:
 	void sendSample(const std::string &sample);
 	OutputDataDefault<DataAVPacket> *output;
 	const unsigned pageNum;
+	std::string lang;
 	const TimingPolicy timingPolicy;
 	const uint64_t splitDurationIn180k;
 	uint64_t intClock = 0, extClock = 0, delayIn180k = 2 * Clock::Rate;

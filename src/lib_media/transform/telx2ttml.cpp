@@ -20,7 +20,7 @@ const std::string Page::toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs, uin
 		timeInMsToStr(endTimeInMs, timecode_hide, ".");
 		timecode_hide[12] = 0;
 
-		ttml << "      <p region=\"Region\" style=\"textAlignment_0\" begin=\"" << timecode_show << "\" end=\"" << timecode_hide << "\" xml:id=\"sub_" << idx << "\">\n";
+		ttml << "      <p region=\"Region\" style=\"textAlignment_0\" begin=\"" << timecode_show << "\" end=\"" << timecode_hide << "\" xml:id=\"s" << idx << "\">\n";
 #ifdef DEBUG_DISPLAY_TIMESTAMPS
 		ttml << "        <span style=\"Style0_0\">" << timecode_show << " - " << timecode_hide << "</span>\n";
 #else
@@ -61,7 +61,7 @@ const std::string Page::toSRT() {
 const std::string TeletextToTTML::toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs) {
 	std::stringstream ttml;
 	ttml << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n";
-	ttml << "<tt xmlns=\"http://www.w3.org/ns/ttml\" xmlns:tt=\"http://www.w3.org/ns/ttml\" xmlns:ttm=\"http://www.w3.org/ns/ttml#metadata\" xmlns:tts=\"http://www.w3.org/ns/ttml#styling\" xmlns:ttp=\"http://www.w3.org/ns/ttml#parameter\" xmlns:ebutts=\"urn:ebu:tt:style\" xmlns:ebuttm=\"urn:ebu:tt:metadata\" xml:lang=\"\" ttp:timeBase=\"media\">\n";
+	ttml << "<tt xmlns=\"http://www.w3.org/ns/ttml\" xmlns:tt=\"http://www.w3.org/ns/ttml\" xmlns:ttm=\"http://www.w3.org/ns/ttml#metadata\" xmlns:tts=\"http://www.w3.org/ns/ttml#styling\" xmlns:ttp=\"http://www.w3.org/ns/ttml#parameter\" xmlns:ebutts=\"urn:ebu:tt:style\" xmlns:ebuttm=\"urn:ebu:tt:metadata\" xml:lang=\"" << lang << "\" ttp:timeBase=\"media\">\n";
 	ttml << "  <head>\n";
 	ttml << "    <metadata>\n";
 	ttml << "      <ebuttm:documentMetadata>\n";
@@ -994,8 +994,8 @@ std::unique_ptr<Page> process_telx_packet(data_unit_t data_unit_id, teletext_pac
 }
 }
 
-TeletextToTTML::TeletextToTTML(unsigned pageNum, uint64_t splitDurationInMs, TimingPolicy timingPolicy)
-: pageNum(pageNum), timingPolicy(timingPolicy), splitDurationIn180k(timescaleToClock(splitDurationInMs, 1000)) {
+TeletextToTTML::TeletextToTTML(unsigned pageNum, const std::string &lang, uint64_t splitDurationInMs, TimingPolicy timingPolicy)
+: pageNum(pageNum), lang(lang), timingPolicy(timingPolicy), splitDurationIn180k(timescaleToClock(splitDurationInMs, 1000)) {
 	addInput(new Input<DataAVPacket>(this));
 	output = addOutput<OutputDataDefault<DataAVPacket>>();
 }
