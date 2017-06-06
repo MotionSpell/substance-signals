@@ -18,7 +18,7 @@ struct IConfig {
 };
 
 struct AppOptions : IConfig {
-	std::string input, output1 = "", output2 = "", output3 = "", workingDir = ".", postCommand;
+	std::string input, output1 = "", output2 = "", output3 = "", workingDir = ".", postCommand, id;
 	std::vector<Video> v;
 	uint64_t seekTimeInMs = 0, segmentDurationInMs = 2000, timeshiftInSegNum = 0, minUpdatePeriodInMs = 0;
 	uint32_t minBufferTimeInMs = 0;

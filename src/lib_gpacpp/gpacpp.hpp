@@ -297,16 +297,16 @@ class DashClient : public Init {
 //------------------------------------------------
 class MPD {
 	public:
-		MPD(GF_MPD_Type type, u32 minBufferTime) {
+		MPD(GF_MPD_Type type, const std::string &id, const std::string &profiles, u32 minBufferTime) {
 			mpd = gf_mpd_new();
 			mpd->xml_namespace = "urn:mpeg:dash:schema:mpd:2011";
 			mpd->type = type;
 			mpd->min_buffer_time = minBufferTime;
-			mpd->profiles = gf_strdup("urn:mpeg:dash:profile:full:2011");
+			mpd->profiles = gf_strdup(profiles.c_str());
 			if (type == GF_MPD_TYPE_DYNAMIC) {
 				mpd->minimum_update_period = 1000;
 			}
-			//mpd->ID
+			mpd->ID = gf_strdup(id.c_str());
 			//mpd->availabilityStartTime
 			//mpd->availabilityEndTime
 			//mpd->publishTime
