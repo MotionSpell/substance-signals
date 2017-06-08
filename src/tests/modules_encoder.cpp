@@ -56,4 +56,24 @@ unittest("encoder: timestamps start at random values") {
 	ASSERT(i == times.size());
 }
 
+//TODO: logs on Error should be caught as exceptions in tests
+unittest("GPAC mp4 mux: don't create empty fragments") {
+	auto const segmentDurationInMs = clockToTimescale(Clock::Rate, 1000);
+	const std::vector<uint64_t> times = {Clock::Rate, 0, 3*Clock::Rate };
+	Encode::LibavEncode::Params p;
+	p.frameRateNum = 1;
+
+	//mux starting at a non-zero value
+	std::shared_ptr<DataBase> picture = uptr(new PictureYUV420P(VIDEO_RESOLUTION));
+	auto encode = uptr(create<Encode::LibavEncode>(Encode::LibavEncode::Video, p));
+	auto mux = uptr(create<Mux::GPACMuxMP4>("tmp", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerRAP, Mux::GPACMuxMP4::Browsers | Mux::GPACMuxMP4::SegmentAtAny));
+	ConnectOutputToInput(encode->getOutput(0), mux);
+	for (size_t i = 0; i < times.size(); ++i) {
+		picture->setTime(times[i]);
+		encode->process(picture);
+	}
+	encode->flush();
+	mux->flush();
+}
+
 //TODO: add a more complex test for each module!

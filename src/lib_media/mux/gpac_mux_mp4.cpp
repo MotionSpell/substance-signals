@@ -508,7 +508,7 @@ void GPACMuxMP4::startFragment(uint64_t DTS, uint64_t PTS) {
 void GPACMuxMP4::closeFragment() {
 	if (fragmentPolicy > NoFragment) {
 		if (!curFragmentDurInTs) {
-			log(Warning, "Writing an empty fragment. Some players may stop playing here.");
+			log((compatFlags & Browsers) ? Error : Warning, "Writing an empty fragment. Some players may stop playing here.");
 		}
 		if (compatFlags & SmoothStreaming) {
 			auto const mediaTs = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
@@ -836,7 +836,8 @@ void GPACMuxMP4::addSample(gpacpp::IsoSample &sample, const uint64_t dataDuratio
 	GF_Err e;
 	if (segmentPolicy > SingleSegment) {
 		curSegmentDurInTs += dataDurationInTs;
-		if (((curSegmentDurInTs + deltaInTs) * IClock::Rate) > (mediaTs * segmentDurationIn180k) && 
+		if ((!(compatFlags & Browsers) || curFragmentDurInTs > 0) && /*avoid 0-sized mdat interpreted as EOS in browsers*/
+			((curSegmentDurInTs + deltaInTs) * IClock::Rate) > (mediaTs * segmentDurationIn180k) && 
 			((sample.IsRAP == RAP) || (compatFlags & SegmentAtAny))) {
 			if ((compatFlags & SegConstantDur) && (timescaleToClock(curSegmentDurInTs, mediaTs) != segmentDurationIn180k) && (curSegmentDurInTs - dataDurationInTs != 0)) {
 				segmentDurationIn180k = timescaleToClock(curSegmentDurInTs - dataDurationInTs, mediaTs);
