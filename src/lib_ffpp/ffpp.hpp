@@ -51,7 +51,7 @@ class Dict {
 						avde->key[i-1] = avde->key[i];
 					}
 				}
-				Log::msg(Debug, "[%s] detected option \"%s\", value \"%s\".", avde->key, avde->value);
+				Log::msg(Debug, "[%s] detected option \"%s\", value \"%s\".", moduleName, avde->key, avde->value);
 			}
 
 			if (av_dict_copy(&avDictOri, avDict, 0) != 0)
