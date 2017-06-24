@@ -5,14 +5,24 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 }
 
-//#define DEBUG_DISPLAY_TIMESTAMPS
+#define DEBUG_DISPLAY_TIMESTAMPS
+#define USP_HACK
+
+#ifdef USP_HACK
+#define USP_ROUNDUP(t) ((t % 1000) ? ((t / 1000 + 1) * 1000) : t)
+#else
+#define USP_ROUNDUP(t) (t)
+#endif
 
 namespace Modules {
 namespace Transform {
 
 const std::string Page::toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs, uint64_t idx) const {
 	std::stringstream ttml;
-	if (!ss.str().empty()) {
+#ifndef DEBUG_DISPLAY_TIMESTAMPS
+	if (!ss.str().empty())
+#endif
+	{
 		char timecode_show[24] = { 0 };
 		timeInMsToStr(startTimeInMs, timecode_show, ".");
 		timecode_show[12] = 0;
@@ -81,12 +91,16 @@ const std::string TeletextToTTML::toTTML(uint64_t startTimeInMs, uint64_t endTim
 
 	int64_t offset;
 	switch (timingPolicy) {
-	case AbsoluteUTC: offset = DataBase::absUTCOffsetInMs; break;
+	case AbsoluteUTC: offset = USP_ROUNDUP((int64_t)DataBase::absUTCOffsetInMs); break;
 	case RelativeToMedia: offset = 0; break;
 	case RelativeToSplit: offset = -1 * startTimeInMs; break;
 	default: throw error("Unknown timing policy (1)");
 	}
 
+#ifdef DEBUG_DISPLAY_TIMESTAMPS
+	auto pageOut = uptr(new Page);
+	ttml << pageOut->toTTML(offset + startTimeInMs, offset + endTimeInMs, startTimeInMs / clockToTimescale(this->splitDurationIn180k, 1000));
+#else
 	auto page = currentPages.begin();
 	while (page != currentPages.end()) {
 		if ((*page)->endTimeInMs > startTimeInMs && (*page)->startTimeInMs < endTimeInMs) {
@@ -101,6 +115,7 @@ const std::string TeletextToTTML::toTTML(uint64_t startTimeInMs, uint64_t endTim
 			++page;
 		}
 	}
+#endif /*DEBUG_DISPLAY_TIMESTAMPS*/
 
 	ttml << "    </div>\n";
 	ttml << "  </body>\n";
