@@ -5,11 +5,12 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 }
 
-#define DEBUG_DISPLAY_TIMESTAMPS
+//#define DEBUG_DISPLAY_TIMESTAMPS
 #define USP_HACK
 
 #ifdef USP_HACK
-#define USP_ROUNDUP(t) ((t % 1000) ? ((t / 1000 + 1) * 1000) : t)
+#define USP_HACK_OFFSET_IN_MS 0
+#define USP_ROUNDUP(t) (((t % 1000) ? ((t / 1000 + 1) * 1000) : t) + USP_HACK_OFFSET_IN_MS)
 #else
 #define USP_ROUNDUP(t) (t)
 #endif
