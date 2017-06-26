@@ -69,7 +69,7 @@ LibavEncode::LibavEncode(Type type, Params &params)
 			generalOptions = " -vcodec h264_qsv";
 			break;
 		case Params::Hardware_nvenc:
-			generalOptions = " -vcodec nvenc_h264";
+			generalOptions = " -vcodec h264_nvenc";
 			break;
 		default:
 			throw error("Unknown video encoder type. Failed.");
