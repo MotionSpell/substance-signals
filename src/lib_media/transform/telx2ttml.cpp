@@ -24,12 +24,13 @@ const std::string Page::toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs, uin
 	if (!ss.str().empty())
 #endif
 	{
-		char timecode_show[24] = { 0 };
+		const size_t timecodeSize = 24;
+		char timecode_show[timecodeSize] = { 0 };
 		timeInMsToStr(startTimeInMs, timecode_show, ".");
-		timecode_show[12] = 0;
-		char timecode_hide[24] = { 0 };
+		timecode_show[timecodeSize-1] = 0;
+		char timecode_hide[timecodeSize] = { 0 };
 		timeInMsToStr(endTimeInMs, timecode_hide, ".");
-		timecode_hide[12] = 0;
+		timecode_hide[timecodeSize-1] = 0;
 
 		ttml << "      <p region=\"Region\" style=\"textAlignment_0\" begin=\"" << timecode_show << "\" end=\"" << timecode_hide << "\" xml:id=\"s" << idx << "\">\n";
 #ifdef DEBUG_DISPLAY_TIMESTAMPS
