@@ -45,6 +45,8 @@ class Pipeline : public IPipelineNotifier {
 		IPipelinedModule* addModule(Args&&... args) {
 			return addModuleInternal(Modules::createModule<InstanceType>(NumBlocks ? NumBlocks : allocatorNumBlocks, std::forward<Args>(args)...));
 		}
+		/*Remove a module from a pipeline. This is only possible when the module is already disconnected.*/
+		void removeModule(IPipelinedModule *module);
 
 		void connect   (Modules::IModule *prev, size_t outputIdx, Modules::IModule *next, size_t inputIdx, bool inputAcceptMultipleConnections = false);
 		void disconnect(Modules::IModule *prev, size_t outputIdx);

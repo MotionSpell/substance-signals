@@ -72,7 +72,8 @@ private:
 
 	void disconnectAll(IOutput *output) override {
 		auto &sig = output->getSignal();
-		for (size_t i = 0; i < sig.getNumConnections(); ++i) {
+		auto const numConn = sig.getNumConnections();
+		for (size_t i = 0; i < numConn; ++i) {
 			sig.disconnect(i);
 		}
 		activeConnections = 0;

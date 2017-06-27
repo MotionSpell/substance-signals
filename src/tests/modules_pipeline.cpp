@@ -301,28 +301,33 @@ unittest("pipeline: dynamic module disconnection (multiple ref decrease)") {
 }
 
 unittest("pipeline: dynamic module disconnection (remove module dynamically)") {
-	//CLEAN GRAPH
-	/*Pipeline p;
+	Pipeline p;
 	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
 	auto dualInput = p.addModule<DualInput>(false);
 	p.connect(demux, 0, dualInput, 0);
 	p.connect(demux, 0, dualInput, 1);
 	p.start();
 	p.disconnect(demux, 0);
-	p.waitForCompletion();*/
+	p.removeModule(dualInput);
+	p.waitForCompletion();
 }
 
+#ifdef ENABLE_FAILING_TESTS
 unittest("pipeline: dynamic module disconnection (multiple deallocations)") {
-	/*Pipeline p;
+	Pipeline p;
 	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
 	auto dualInput = p.addModule<DualInput>(false);
 	p.connect(demux, 0, dualInput, 0);
-	auto demux2 = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
-	p.connect(demux2, 0, dualInput, 1);
+	p.connect(demux, 0, dualInput, 1);
 	p.start();
-	if (demux2->isSource()) demux2->process(); //only sources need to be triggered
-	p.waitForCompletion();*/
+	p.disconnect(demux, 0);
+	p.removeModule(dualInput);
+	p.removeModule(demux);
+	p.waitForCompletion();
 }
+
+//TODO: dynamic module addition
+#endif
 
 unittest("pipeline: input data is manually queued while module is running") {
 	try {

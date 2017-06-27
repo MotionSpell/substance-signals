@@ -21,6 +21,7 @@ IPipelinedModule* Pipeline::addModuleInternal(IModule *rawModule) {
 
 void Pipeline::connect(IModule *p, size_t outputIdx, IModule *n, size_t inputIdx, bool inputAcceptMultipleConnections) {
 	if (!n || !p) return;
+	std::unique_lock<std::mutex> lock(mutex);
 	if (remainingNotifications != notifications)
 		throw std::runtime_error("Connection but the topology has changed. Not supported yet.");
 	auto next = safe_cast<IPipelinedModule>(n);
@@ -31,11 +32,23 @@ void Pipeline::connect(IModule *p, size_t outputIdx, IModule *n, size_t inputIdx
 
 void Pipeline::disconnect(IModule *p, size_t outputIdx) {
 	if (!p) return;
+	std::unique_lock<std::mutex> lock(mutex);
 	if (remainingNotifications != notifications)
 		throw std::runtime_error("Disconnection but the topology has changed. Not supported yet.");
 	auto prev = safe_cast<IPipelinedModule>(p);
 	prev->disconnectAll(prev->getOutput(outputIdx));
 	computeTopology();
+}
+
+void Pipeline::removeModule(IPipelinedModule *module) {
+	std::unique_lock<std::mutex> lock(mutex);
+	for (auto &m : modules) {
+		if (m.get() == module) {
+			m = nullptr;
+			return;
+		}
+	}
+	throw std::runtime_error("Could not remove module from pipeline");
 }
 
 void Pipeline::start() {
