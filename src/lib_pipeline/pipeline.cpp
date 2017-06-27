@@ -9,7 +9,7 @@ namespace Pipelines {
 
 Pipeline::Pipeline(bool isLowLatency, double clockSpeed, Threading threading)
 : allocatorNumBlocks(isLowLatency ? Modules::ALLOC_NUM_BLOCKS_LOW_LATENCY : Modules::ALLOC_NUM_BLOCKS_DEFAULT),
-  clock(new Modules::Clock(clockSpeed)), threading(threading), numRemainingNotifications(0) {
+  clock(new Modules::Clock(clockSpeed)), threading(threading), remainingNotifications(0) {
 }
 
 IPipelinedModule* Pipeline::addModuleInternal(IModule *rawModule) {
@@ -21,14 +21,16 @@ IPipelinedModule* Pipeline::addModuleInternal(IModule *rawModule) {
 
 void Pipeline::connect(IModule *p, size_t outputIdx, IModule *n, size_t inputIdx, bool inputAcceptMultipleConnections) {
 	if (!n || !p) return;
+	if (remainingNotifications != notifications)
+		throw std::runtime_error("Connection while the topology has changed. Not supported yet.");
 	auto next = safe_cast<IPipelinedModule>(n);
 	auto prev = safe_cast<IPipelinedModule>(p);
 	next->connect(prev->getOutput(outputIdx), inputIdx, prev->isSource(), inputAcceptMultipleConnections);
+	computeTopology();
 }
 
 void Pipeline::start() {
 	Log::msg(Info, "Pipeline: starting");
-	computeTopology();
 	for (auto &m : modules) {
 		if (m->isSource()) {
 			m->process();
@@ -40,8 +42,8 @@ void Pipeline::start() {
 void Pipeline::waitForCompletion() {
 	Log::msg(Info, "Pipeline: waiting for completion");
 	std::unique_lock<std::mutex> lock(mutex);
-	while (numRemainingNotifications > 0) {
-		Log::msg(Debug, "Pipeline: condition (remaining: %s) (%s modules in the pipeline)", (int)numRemainingNotifications, modules.size());
+	while (remainingNotifications > 0) {
+		Log::msg(Debug, "Pipeline: condition (remaining: %s) (%s modules in the pipeline)", (size_t)remainingNotifications, modules.size());
 		condition.wait_for(lock, std::chrono::milliseconds(COMPLETION_GRANULARITY_IN_MS));
 		try {
 			if (eptr)
@@ -65,26 +67,28 @@ void Pipeline::exitSync() {
 }
 
 void Pipeline::computeTopology() {
+	notifications = 0;
 	for (auto &m : modules) {
 		if (m->isSink()) {
 			if (m->isSource()) {
-				numRemainingNotifications++;
+				notifications++;
 			} else {
 				for (size_t i = 0; i < m->getNumInputs(); ++i) {
 					if (m->getInput(i)->getNumConnections()) {
-						numRemainingNotifications++;
+						notifications++;
 						break;
 					}
 				}
 			}
 		}
 	}
+	remainingNotifications = notifications;
 }
 
 void Pipeline::finished() {
 	std::unique_lock<std::mutex> lock(mutex);
-	assert(numRemainingNotifications > 0);
-	--numRemainingNotifications;
+	assert(remainingNotifications > 0);
+	--remainingNotifications;
 	condition.notify_one();
 }
 

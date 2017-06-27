@@ -230,7 +230,16 @@ unittest("pipeline: sink only (incorrect topology)") {
 	}
 }
 
-#ifdef ENABLE_FAILING_TESTS
+unittest("pipeline: dynamic module connection of an existing module (without modifying the topology)") {
+	Pipeline p;
+	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
+	auto dualInput = p.addModule<DualInput>(false);
+	p.connect(demux, 0, dualInput, 0);
+	p.start();
+	p.connect(demux, 0, dualInput, 1);
+	p.waitForCompletion();
+}
+
 unittest("pipeline: connect while running") {
 	Pipeline p;
 	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
@@ -247,48 +256,28 @@ unittest("pipeline: connect while running") {
 	tf.join();
 }
 
-unittest("pipeline: dynamic module connection of an existing module") {
-	try {
-		Pipeline p;
-		auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
-		auto dualInput = p.addModule<DualInput>(false);
-		p.connect(demux, 0, dualInput, 0);
-		p.start();
-		p.connect(demux, 0, dualInput, 1);
-		p.waitForCompletion();
-	} catch (std::runtime_error const& /*e*/) {
-	}
-}
-
 unittest("pipeline: dynamic module connection of a new module (1)") {
-	try {
-		Pipeline p;
-		auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
-		auto dualInput = p.addModule<DualInput>(false);
-		p.connect(demux, 0, dualInput, 0);
-		auto demux2 = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
-		p.start();
-		p.connect(demux2, 0, dualInput, 1);
-		p.waitForCompletion();
-	} catch (std::runtime_error const& /*e*/) {
-	}
+	Pipeline p;
+	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
+	auto dualInput = p.addModule<DualInput>(false);
+	p.connect(demux, 0, dualInput, 0);
+	auto demux2 = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
+	p.start();
+	p.connect(demux2, 0, dualInput, 1);
+	p.waitForCompletion();
 }
 
 unittest("pipeline: dynamic module connection of a new module (2)") {
-	try {
-		Pipeline p;
-		auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
-		auto dualInput = p.addModule<DualInput>(false);
-		p.connect(demux, 0, dualInput, 0);
-		p.start();
-		auto demux2 = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
-		p.connect(demux2, 0, dualInput, 1);
-		if (demux2->isSource()) demux2->process(); //only sources need to be triggered
-		p.waitForCompletion();
-	} catch (std::runtime_error const& /*e*/) {
-	}
+	Pipeline p;
+	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
+	auto dualInput = p.addModule<DualInput>(false);
+	p.connect(demux, 0, dualInput, 0);
+	p.start();
+	auto demux2 = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
+	p.connect(demux2, 0, dualInput, 1);
+	if (demux2->isSource()) demux2->process(); //only sources need to be triggered
+	p.waitForCompletion();
 }
-#endif
 
 unittest("pipeline: input data is manually queued while module is running") {
 	try {

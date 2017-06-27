@@ -64,7 +64,8 @@ class Pipeline : public IPipelineNotifier {
 
 		std::mutex mutex;
 		std::condition_variable condition;
-		std::atomic_size_t numRemainingNotifications;
+		size_t notifications;
+		std::atomic_size_t remainingNotifications;
 		std::exception_ptr eptr;
 };
 
