@@ -22,10 +22,19 @@ IPipelinedModule* Pipeline::addModuleInternal(IModule *rawModule) {
 void Pipeline::connect(IModule *p, size_t outputIdx, IModule *n, size_t inputIdx, bool inputAcceptMultipleConnections) {
 	if (!n || !p) return;
 	if (remainingNotifications != notifications)
-		throw std::runtime_error("Connection while the topology has changed. Not supported yet.");
+		throw std::runtime_error("Connection but the topology has changed. Not supported yet.");
 	auto next = safe_cast<IPipelinedModule>(n);
 	auto prev = safe_cast<IPipelinedModule>(p);
 	next->connect(prev->getOutput(outputIdx), inputIdx, prev->isSource(), inputAcceptMultipleConnections);
+	computeTopology();
+}
+
+void Pipeline::disconnect(IModule *p, size_t outputIdx) {
+	if (!p) return;
+	if (remainingNotifications != notifications)
+		throw std::runtime_error("Disconnection but the topology has changed. Not supported yet.");
+	auto prev = safe_cast<IPipelinedModule>(p);
+	prev->disconnectAll(prev->getOutput(outputIdx));
 	computeTopology();
 }
 

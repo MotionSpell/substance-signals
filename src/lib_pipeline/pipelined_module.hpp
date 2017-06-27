@@ -70,6 +70,16 @@ private:
 		activeConnections++;
 	}
 
+	void disconnectAll(IOutput *output) override {
+		auto &sig = output->getSignal();
+		for (size_t i = 0; i < sig.getNumConnections(); ++i) {
+			sig.disconnect(i);
+		}
+		activeConnections = 0;
+		getInput(0)->push(nullptr);
+		delegateExecutor(MEMBER_FUNCTOR_PROCESS(getInput(0)));
+	}
+
 	void mimicInputs() {
 		auto const delegateInputs = delegate->getNumInputs();
 		auto const thisInputs = inputs.size();

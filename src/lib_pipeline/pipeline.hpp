@@ -13,6 +13,7 @@ struct IPipelinedModule : public Modules::IModule {
 	virtual bool isSource() const = 0;
 	virtual bool isSink() const = 0;
 	virtual void connect(Modules::IOutput *output, size_t inputIdx, bool forceAsync, bool inputAcceptMultipleConnections) = 0;
+	virtual void disconnectAll(Modules::IOutput *output) = 0;
 };
 
 struct ICompletionNotifier {
@@ -45,7 +46,8 @@ class Pipeline : public IPipelineNotifier {
 			return addModuleInternal(Modules::createModule<InstanceType>(NumBlocks ? NumBlocks : allocatorNumBlocks, std::forward<Args>(args)...));
 		}
 
-		void connect(Modules::IModule *prev, size_t outputIdx, Modules::IModule *next, size_t inputIdx, bool inputAcceptMultipleConnections = false);
+		void connect   (Modules::IModule *prev, size_t outputIdx, Modules::IModule *next, size_t inputIdx, bool inputAcceptMultipleConnections = false);
+		void disconnect(Modules::IModule *prev, size_t outputIdx);
 
 		void start();
 		void waitForCompletion();
