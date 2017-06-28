@@ -1,5 +1,4 @@
 #include "pipelined_module.hpp"
-
 #include "pipeline.hpp"
 #include "lib_modules/utils/helper.hpp"
 
@@ -36,7 +35,7 @@ void Pipeline::disconnect(IModule *p, size_t outputIdx) {
 	if (remainingNotifications != notifications)
 		throw std::runtime_error("Disconnection but the topology has changed. Not supported yet.");
 	auto prev = safe_cast<IPipelinedModule>(p);
-	prev->disconnectAll(prev->getOutput(outputIdx));
+	prev->disconnect(prev->getOutput(outputIdx));
 	computeTopology();
 }
 
@@ -53,6 +52,7 @@ void Pipeline::removeModule(IPipelinedModule *module) {
 
 void Pipeline::start() {
 	Log::msg(Info, "Pipeline: starting");
+	computeTopology();
 	for (auto &m : modules) {
 		if (m->isSource()) {
 			m->process();
@@ -83,7 +83,7 @@ void Pipeline::exitSync() {
 	Log::msg(Warning, "Pipeline: asked to exit now.");
 	for (auto &m : modules) {
 		if (m->isSource()) {
-			m->process();
+			m->process(); //Romain: ok but then we don't flush() so it may be stuck in waitForCompletion
 		}
 	}
 }
@@ -96,7 +96,7 @@ void Pipeline::computeTopology() {
 				notifications++;
 			} else {
 				for (size_t i = 0; i < m->getNumInputs(); ++i) {
-					if (m->getInput(i)->getNumConnections()) {
+					if (m->getInput(i)->getNumConnections()) { //Romain: we will fail here on disconnection
 						notifications++;
 						break;
 					}

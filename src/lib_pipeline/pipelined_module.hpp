@@ -21,6 +21,10 @@ public:
 		delegateExecutor(*localDelegateExecutor), clock(clock), threading(threading), m_notify(notify), activeConnections(0) {
 	}
 	~PipelinedModule() noexcept(false) {}
+	void flush() override {
+		process();
+		while (activeConnections > 0) std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	}
 	std::string getDelegateName() const {
 		auto const &dref = *delegate.get();
 		return typeid(dref).name();
@@ -70,15 +74,17 @@ private:
 		activeConnections++;
 	}
 
-	void disconnectAll(IOutput *output) override {
+	void disconnect(IOutput *output) override {
 		auto &sig = output->getSignal();
 		auto const numConn = sig.getNumConnections();
 		for (size_t i = 0; i < numConn; ++i) {
-			sig.disconnect(i);
+			sig.disconnect(i); //Romain: the IInput has to be aware of the disconnection
 		}
-		activeConnections = 0;
-		getInput(0)->push(nullptr);
-		delegateExecutor(MEMBER_FUNCTOR_PROCESS(getInput(0)));
+		activeConnections = 0; //Romain => make the difference before and after disconnecting?
+		//Romain: why do we flush here?
+		//delegate->getInput(0)->push(nullptr);
+		//getInput(0)->push(nullptr);
+		//delegateExecutor(MEMBER_FUNCTOR_PROCESS(getInput(0)));
 	}
 
 	void mimicInputs() {
@@ -128,7 +134,7 @@ private:
 
 	void finished() override {
 		if (--activeConnections <= 0) {
-			delegate->flush();
+			delegate->flush(); //Romain: can be called several times!!!!
 			if (isSink()) {
 				m_notify->finished();
 			} else {
