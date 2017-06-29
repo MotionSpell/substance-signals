@@ -1,11 +1,9 @@
 #include "libav_encode.hpp"
 #include "lib_modules/core/clock.hpp"
 #include "lib_utils/tools.hpp"
+#include "lib_ffpp/ffpp.hpp"
 #include "../common/pcm.hpp"
 #include <cassert>
-
-#include "lib_ffpp/ffpp.hpp"
-
 
 namespace Modules {
 
@@ -34,10 +32,6 @@ void fps2NumDen(const double fps, int &num, int &den) {
 		Log::msg(Warning, "Frame rate '%s' was not recognized. Truncating to '%s'.", fps, num);
 	}
 }
-
-auto g_InitAv = runAtStartup(&av_register_all);
-auto g_InitAvcodec = runAtStartup(&avcodec_register_all);
-auto g_InitAvLog = runAtStartup(&av_log_set_callback, avLog);
 }
 
 namespace Encode {

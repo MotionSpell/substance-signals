@@ -3,21 +3,11 @@
 #include "../common/libav.hpp"
 
 extern "C" {
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-#include <libavfilter/avfiltergraph.h>
 #include <libavfilter/buffersink.h>
 #include <libavfilter/buffersrc.h>
-#include <libavutil/opt.h>
 }
 
 namespace Modules {
-
-namespace {
-auto g_InitAvfilter = runAtStartup(&avfilter_register_all);
-auto g_InitAvLog = runAtStartup(&av_log_set_callback, avLog);
-}
-
 namespace Transform {
 
 LibavFilter::LibavFilter(const PictureFormat &format, const std::string &filterArgs)

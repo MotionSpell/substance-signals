@@ -1,12 +1,11 @@
 #include "jpegturbo_decode.hpp"
 #include "../common/libav.hpp"
 #include "lib_utils/tools.hpp"
+
 extern "C" {
 #include <turbojpeg.h>
+#include <libavutil/pixfmt.h>
 }
-
-#include "lib_ffpp/ffpp.hpp"
-
 
 namespace Modules {
 namespace Decode {

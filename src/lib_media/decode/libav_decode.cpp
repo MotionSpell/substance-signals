@@ -7,12 +7,6 @@
 
 namespace Modules {
 
-namespace {
-auto g_InitAv = runAtStartup(&av_register_all);
-auto g_InitAvcodec = runAtStartup(&avcodec_register_all);
-auto g_InitAvLog = runAtStartup(&av_log_set_callback, avLog);
-}
-
 namespace Decode {
 
 LibavDecode::LibavDecode(const MetadataPktLibav &metadata)

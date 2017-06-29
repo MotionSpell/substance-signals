@@ -10,8 +10,6 @@
 extern "C" {
 #include <libavdevice/avdevice.h>
 #include <libavformat/avformat.h>
-#include <libavutil/mathematics.h>
-#include <libavutil/opt.h>
 }
 
 #define PKT_QUEUE_SIZE 256
@@ -19,12 +17,6 @@ extern "C" {
 namespace Modules {
 
 namespace {
-
-auto g_InitAvcodec = runAtStartup(&avcodec_register_all);
-auto g_InitAvdevice = runAtStartup(&avdevice_register_all);
-auto g_InitAv = runAtStartup(&av_register_all);
-auto g_InitAvnetwork = runAtStartup(&avformat_network_init);
-auto g_InitAvLog = runAtStartup(&av_log_set_callback, avLog);
 
 const char* webcamFormat() {
 #ifdef _WIN32

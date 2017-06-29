@@ -10,6 +10,9 @@
 
 extern "C" {
 #include <libavcodec/avcodec.h>
+#include <libavdevice/avdevice.h>
+#include <libavfilter/avfilter.h>
+#include <libavformat/avformat.h>
 #undef PixelFormat
 }
 
@@ -99,6 +102,30 @@ const char* avlogLevelName(int level) {
 		return "unknown";
 	}
 }
+
+void avLog(void* /*avcl*/, int level, const char *fmt, va_list vl) {
+#if defined(__CYGWIN__) // cygwin does not have vsnprintf in std=c++11 mode. To be removed when cygwin is fixed
+	Log::msg(avLogLevel(level), "[libav-log::%s] %s", avlogLevelName(level), fmt);
+#else
+	char buffer[1280];
+	std::vsnprintf(buffer, sizeof(buffer)-1, fmt, vl);
+
+	// remove trailing end of line
+	{
+		auto const N = strlen(buffer);
+		if (N > 0 && buffer[N-1] == '\n')
+			buffer[N-1] = 0;
+	}
+	Log::msg(avLogLevel(level), "[libav-log::%s] %s", avlogLevelName(level), buffer);
+#endif
+}
+
+auto g_InitAvcodec = runAtStartup(&avcodec_register_all);
+auto g_InitAvdevice = runAtStartup(&avdevice_register_all);
+auto g_InitAv = runAtStartup(&av_register_all);
+auto g_InitAvnetwork = runAtStartup(&avformat_network_init);
+auto g_InitAvLog = runAtStartup(&av_log_set_callback, avLog);
+
 }
 
 namespace Modules {
@@ -404,23 +431,6 @@ int avGetBuffer2(struct AVCodecContext *ctx, AVFrame *frame, int flags) {
 	}
 
 	return 0;
-}
-
-void avLog(void* /*avcl*/, int level, const char *fmt, va_list vl) {
-#if defined(__CYGWIN__) // cygwin does not have vsnprintf in std=c++11 mode. To be removed when cygwin is fixed
-	Log::msg(avLogLevel(level), "[libav-log::%s] %s", avlogLevelName(level), fmt);
-#else
-	char buffer[1024];
-	std::vsnprintf(buffer, sizeof(buffer)-1, fmt, vl);
-
-	// remove trailing end of line
-	{
-		auto const N = strlen(buffer);
-		if(N > 0 && buffer[N-1] == '\n')
-			buffer[N-1] = 0;
-	}
-	Log::msg(avLogLevel(level), "[libav-log::%s] %s", avlogLevelName(level), buffer);
-#endif
 }
 
 }

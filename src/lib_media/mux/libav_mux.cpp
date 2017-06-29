@@ -6,17 +6,9 @@
 
 extern "C" {
 #include <libavformat/avformat.h>
-#include <libavutil/mathematics.h>
-#include <libavutil/opt.h>
 }
 
 namespace Modules {
-
-namespace {
-auto g_InitAv = runAtStartup(&av_register_all);
-auto g_InitAvcodec = runAtStartup(&avcodec_register_all);
-auto g_InitAvLog = runAtStartup(&av_log_set_callback, avLog);
-}
 
 namespace Mux {
 

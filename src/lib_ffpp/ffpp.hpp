@@ -13,7 +13,7 @@ extern "C" {
 #include <libavutil/mem.h>
 #include <libavutil/opt.h>
 #include <libswresample/swresample.h>
-#include "libswscale/swscale.h"
+#include <libswscale/swscale.h>
 }
 
 namespace ffpp {

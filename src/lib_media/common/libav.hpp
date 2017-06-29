@@ -108,6 +108,5 @@ struct LibavDirectRendering {
 };
 void copyToPicture(AVFrame const* avFrame, DataPicture* pic);
 extern "C" int avGetBuffer2(struct AVCodecContext *s, AVFrame *frame, int flags);
-void avLog(void *avcl, int level, const char *fmt, va_list vl);
 
 }
