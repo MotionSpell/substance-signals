@@ -7,7 +7,6 @@
 #include <stdexcept>
 #include <thread>
 
-
 class ThreadPool {
 	public:
 		ThreadPool(const std::string &name = "", unsigned threadCount = std::thread::hardware_concurrency())

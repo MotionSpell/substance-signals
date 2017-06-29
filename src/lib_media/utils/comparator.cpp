@@ -2,7 +2,6 @@
 #include "../common/pcm.hpp"
 #include <cmath>
 
-
 namespace Modules {
 namespace Utils {
 
@@ -80,4 +79,3 @@ void PcmComparator::pushOther(Data data) {
 
 }
 }
-

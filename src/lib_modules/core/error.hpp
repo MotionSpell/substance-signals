@@ -4,7 +4,6 @@
 #include <stdexcept>
 #include <string>
 
-
 namespace Modules {
 
 class Exception : public std::runtime_error {

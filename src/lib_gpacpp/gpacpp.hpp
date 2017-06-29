@@ -1,7 +1,6 @@
 #pragma once
 
 #include "lib_utils/format.hpp"
-
 #include <cstdint>
 #include <memory>
 #include <string>

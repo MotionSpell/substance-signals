@@ -34,4 +34,3 @@ unittest("basic module connection tests") {
 	ASSERT((*res)[0] == 101 && (*res)[4] == 101);
 }
 }
-

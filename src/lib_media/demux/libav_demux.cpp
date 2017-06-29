@@ -33,6 +33,7 @@ const char* webcamFormat() {
 }
 
 namespace Demux {
+
 void LibavDemux::webcamList() {
 	log(Warning, "Webcam list:");
 	ffpp::Dict dict(typeid(*this).name(), "-list_devices true");

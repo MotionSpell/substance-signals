@@ -1,11 +1,9 @@
 #include "tests.hpp"
 #include "lib_modules/modules.hpp"
-
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/mux/gpac_mux_mp4.hpp"
 #include "lib_media/mux/libav_mux.hpp"
 #include "lib_utils/tools.hpp"
-
 
 using namespace Tests;
 using namespace Modules;
@@ -17,7 +15,7 @@ unittest("remux test: GPAC mp4 mux") {
 	auto mux = uptr(create<Mux::GPACMuxMP4>("output_video_gpac"));
 	for (size_t i = 0; i < demux->getNumOutputs(); ++i) {
 		ConnectModules(demux.get(), i, mux.get(), i);
-		break; //FIXME
+		break; //FIXME: real mux not support yet
 	}
 
 	demux->process(nullptr);
@@ -30,7 +28,7 @@ unittest("remux test: libav mp4 mux") {
 	auto mux = uptr(create<Mux::LibavMux>("output_video_libav", "mp4"));
 	for (size_t i = 0; i < demux->getNumOutputs(); ++i) {
 		ConnectModules(demux.get(), i, mux.get(), i);
-		break; //FIXME
+		break; //FIXME: real mux not support yet
 	}
 
 	demux->process(nullptr);
@@ -120,7 +118,7 @@ unittest("GPAC mp4 mux outputs combination coverage") {
 			ConnectModules(demux.get(), i, mux37.get(), 0);
 #endif
 
-			break; //FIXME
+			break; //FIXME: real mux not support yet
 		}
 	}
 

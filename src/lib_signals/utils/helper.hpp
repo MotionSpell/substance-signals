@@ -1,6 +1,5 @@
 #pragma once
 
-
 namespace Signals {
 
 /* member function helper */

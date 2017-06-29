@@ -5,7 +5,6 @@
 #include <thread>
 
 namespace Modules {
-
 namespace Utils {
 
 /*repeats the last received data every n ms*/

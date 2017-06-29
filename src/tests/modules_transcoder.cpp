@@ -13,7 +13,6 @@
 #include "lib_media/transform/video_convert.hpp"
 #include "lib_utils/tools.hpp"
 
-
 using namespace Tests;
 using namespace Modules;
 

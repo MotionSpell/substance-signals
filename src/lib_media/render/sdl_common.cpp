@@ -31,4 +31,3 @@ class SdlInit {
 };
 
 static SdlInit const g_InitSdl;
-

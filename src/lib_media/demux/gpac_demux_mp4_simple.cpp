@@ -1,6 +1,5 @@
 #include "gpac_demux_mp4_simple.hpp"
 #include "lib_utils/tools.hpp"
-
 #include "lib_gpacpp/gpacpp.hpp"
 
 namespace Modules {

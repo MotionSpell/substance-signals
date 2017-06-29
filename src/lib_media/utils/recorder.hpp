@@ -3,7 +3,6 @@
 #include "lib_modules/core/module.hpp"
 
 namespace Modules {
-
 namespace Utils {
 
 class Recorder : public ModuleS {
@@ -19,5 +18,4 @@ class Recorder : public ModuleS {
 };
 
 }
-
 }

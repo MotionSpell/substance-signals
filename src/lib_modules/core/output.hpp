@@ -7,7 +7,6 @@
 #include "lib_utils/tools.hpp"
 #include <lib_signals/signals.hpp>
 
-
 namespace Modules {
 
 class IModule;

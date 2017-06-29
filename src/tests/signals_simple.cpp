@@ -90,4 +90,3 @@ unittest("connect to lambda") {
 	ASSERT((*res)[0] == 64);
 }
 }
-

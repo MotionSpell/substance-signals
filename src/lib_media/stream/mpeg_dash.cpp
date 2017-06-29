@@ -5,14 +5,13 @@
 #include <Windows.h>
 #endif
 
-#define DASH_TIMESCALE 1000 //TODO: there are some ms already hardcoded, including in AdaptiveStreamingCommon and gf_net_get_utc() results
+#define DASH_TIMESCALE 1000 // /!\ there are some ms already hardcoded, including in AdaptiveStreamingCommon and gf_net_get_utc() results
 #define MOVE_FILE_NUM_RETRY 3
-#define MIN_UPDATE_PERIOD_FACTOR   1 //FIXME: should be 0, but dash.js doesn't support MPDs with no refresh time.
+#define MIN_UPDATE_PERIOD_FACTOR 1 //should be 0, but dash.js doesn't support MPDs with no refresh time.
 
 #define MIN_BUFFER_TIME_IN_MS_VOD  3000
 #define MIN_BUFFER_TIME_IN_MS_LIVE 2000
 #define AVAILABILITY_TIMEOFFSET_IN_S 0.0
-
 
 namespace Modules {
 
@@ -249,7 +248,7 @@ void MPEG_DASH::generateManifest() {
 				timeShiftSegmentsInMs += clockToTimescale((*seg).file->getDuration(), 1000);
 				if (timeShiftSegmentsInMs > timeShiftBufferDepthInMs) {
 					log(Debug, "Delete segment \"%s\".", (*seg).file->getFilename());
-					if (gf_delete_file((*seg).file->getFilename().c_str()) == GF_OK || (*seg).retry == 0) { //TODO: if we have memory segments, we should not delete
+					if (gf_delete_file((*seg).file->getFilename().c_str()) == GF_OK || (*seg).retry == 0) {
 						seg = quality->timeshiftSegments.erase(seg);
 					} else {
 						log(Warning, "Couldn't delete old segment \"%s\" (retry=%s).", (*seg).file->getFilename(), (*seg).retry);

@@ -3,7 +3,6 @@
 #include "lib_modules/core/module.hpp"
 
 namespace Modules {
-
 namespace In {
 
 class MPEG_DASH_Input : public ModuleS {
@@ -16,5 +15,4 @@ class MPEG_DASH_Input : public ModuleS {
 };
 
 }
-
 }

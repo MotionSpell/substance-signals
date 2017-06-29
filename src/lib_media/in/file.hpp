@@ -3,7 +3,6 @@
 #include "lib_modules/core/module.hpp"
 
 namespace Modules {
-
 namespace In {
 
 class File : public ModuleS {
@@ -18,5 +17,4 @@ class File : public ModuleS {
 };
 
 }
-
 }

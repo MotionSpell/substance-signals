@@ -4,7 +4,6 @@
 #include "../common/pcm.hpp"
 
 namespace Modules {
-
 namespace In {
 
 class SoundGenerator : public ModuleS {
@@ -20,5 +19,4 @@ class SoundGenerator : public ModuleS {
 };
 
 }
-
 }

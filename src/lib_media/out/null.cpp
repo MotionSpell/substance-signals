@@ -1,6 +1,5 @@
 #include "null.hpp"
 
-
 namespace Modules {
 namespace Out {
 

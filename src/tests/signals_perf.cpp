@@ -266,4 +266,3 @@ unittest("safe emit sleep   on  lazy") {
 	emitTest<void(int), ResultQueue<void>, ExecutorLazy, int>(Util::sleepInMs, 100);
 }
 }
-

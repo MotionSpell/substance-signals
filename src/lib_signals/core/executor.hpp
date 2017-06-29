@@ -5,7 +5,6 @@
 #include <functional>
 #include <future>
 
-
 namespace Signals {
 
 template<typename R, typename... Args>

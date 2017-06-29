@@ -49,8 +49,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="tests.hpp">
-      <Filter>tests</Filter>
-    </ClInclude>
+    <ClInclude Include="tests.hpp" />
   </ItemGroup>
 </Project>

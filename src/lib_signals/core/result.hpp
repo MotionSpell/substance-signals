@@ -3,13 +3,11 @@
 #include <vector>
 #include "lib_utils/queue.hpp"
 
-
 namespace Signals {
 
 struct IResult {
 	virtual ~IResult() {}
 };
-
 
 template<typename ResultType>
 class ResultQueue : public IResult {

@@ -5,7 +5,6 @@
 #include "../common/libav.hpp"
 
 namespace Modules {
-
 namespace In {
 
 class VideoGenerator : public ModuleS {
@@ -19,5 +18,4 @@ class VideoGenerator : public ModuleS {
 };
 
 }
-
 }

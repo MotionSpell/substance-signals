@@ -5,7 +5,6 @@ extern "C" {
 }
 
 namespace Modules {
-
 namespace Mux {
 
 GPACMuxMP4MSS::GPACMuxMP4MSS(const std::string &baseName, uint64_t segmentDurationInMs, const std::string &audioLang, const std::string &audioName)

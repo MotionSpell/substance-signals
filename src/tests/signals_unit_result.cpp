@@ -25,4 +25,3 @@ unittest("unit test on class Result") {
 	}
 }
 }
-

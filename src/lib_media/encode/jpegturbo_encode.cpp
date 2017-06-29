@@ -5,7 +5,6 @@ extern "C" {
 }
 #include <cassert>
 
-
 namespace Modules {
 namespace Encode {
 

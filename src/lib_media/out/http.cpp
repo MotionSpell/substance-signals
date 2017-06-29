@@ -87,7 +87,7 @@ void HTTP::flush() {
 void HTTP::process() {
 	if (!workingThread.joinable() && state == Init) {
 		state = RunNewConnection;
-		numDataQueueNotify = (int)std::max<size_t>(1, getNumInputs() - 1); //FIXME: connection/disconnection cannot occur dynamically. Lock inputs?
+		numDataQueueNotify = (int)std::max<size_t>(1, getNumInputs() - 1); //FIXME: connection/disconnection cannot occur dynamically. Lock inputs? //Romain: module should be able to express such constraints
 		workingThread = std::thread(&HTTP::threadProc, this);
 	}
 }
@@ -196,7 +196,7 @@ void HTTP::threadProc() {
 		}
 	} else {
 		const int transferSize = 1000000;
-		void *ptr = (void*)malloc(transferSize); //FIXME: to be freed
+		void *ptr = (void*)malloc(transferSize);
 		while (state != Stop) {
 			//TODO: with the additional requirement that the encoder MUST resend the previous two MP4 fragments for each track in the stream, and resume without introducing discontinuities in the media timeline. Resending the last two MP4 fragments for each track ensures that there is no data loss.
 			auto curTransferedData = inputs[curTransferedDataInputIndex]->pop();
@@ -223,6 +223,7 @@ void HTTP::threadProc() {
 				break;
 			}
 		}
+		free(ptr);
 	}
 }
 

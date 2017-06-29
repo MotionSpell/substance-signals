@@ -19,4 +19,5 @@ double Clock::getSpeed() const {
 
 static Clock systemClock(1.0);
 extern IClock* const g_DefaultClock = &systemClock;
+
 }

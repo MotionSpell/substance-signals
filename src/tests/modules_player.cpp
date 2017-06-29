@@ -9,7 +9,6 @@
 #include "lib_media/transform/audio_convert.hpp"
 #include "lib_utils/tools.hpp"
 
-
 using namespace Tests;
 using namespace Modules;
 

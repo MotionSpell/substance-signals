@@ -156,4 +156,3 @@ unittest("thread-safe queue can be destroyed while element is blocked while push
 }
 
 }
-

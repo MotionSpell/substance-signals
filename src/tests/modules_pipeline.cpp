@@ -8,7 +8,6 @@
 #include "lib_media/transform/restamp.hpp"
 #include "lib_pipeline/pipeline.hpp"
 
-
 using namespace Tests;
 using namespace Modules;
 using namespace Pipelines;

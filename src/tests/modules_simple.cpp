@@ -1,13 +1,11 @@
 #include "tests.hpp"
 #include "lib_modules/modules.hpp"
 #include <stdexcept>
-
 #include "lib_media/demux/gpac_demux_mp4_simple.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/in/file.hpp"
 #include "lib_media/out/print.hpp"
 #include "lib_utils/tools.hpp"
-
 
 using namespace Tests;
 using namespace Modules;

@@ -6,7 +6,6 @@
 #include <stdexcept>
 #include <vector>
 
-
 namespace Pipelines {
 
 struct IPipelinedModule : public Modules::IModule {

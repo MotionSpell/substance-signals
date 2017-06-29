@@ -48,4 +48,5 @@ static uint64_t clockToTimescale(uint64_t time, uint64_t timescale) {
 static int64_t clockToTimescale(int64_t time, uint64_t timescale) {
 	return convertToTimescale(time, IClock::Rate, timescale);
 }
+
 }

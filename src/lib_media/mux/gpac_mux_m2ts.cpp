@@ -8,7 +8,6 @@ extern "C" {
 }
 
 namespace Modules {
-
 namespace Mux {
 
 GPACMuxMPEG2TS::GPACMuxMPEG2TS() {

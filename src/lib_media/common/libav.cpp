@@ -434,4 +434,3 @@ int avGetBuffer2(struct AVCodecContext *ctx, AVFrame *frame, int flags) {
 }
 
 }
-

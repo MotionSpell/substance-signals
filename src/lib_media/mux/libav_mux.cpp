@@ -9,7 +9,6 @@ extern "C" {
 }
 
 namespace Modules {
-
 namespace Mux {
 
 LibavMux::LibavMux(const std::string &baseName, const std::string &fmt, const std::string &options)

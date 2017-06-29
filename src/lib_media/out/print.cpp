@@ -1,6 +1,5 @@
 #include "print.hpp"
 
-
 namespace Modules {
 namespace Out {
 

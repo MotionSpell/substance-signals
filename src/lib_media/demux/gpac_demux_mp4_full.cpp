@@ -2,7 +2,6 @@
 #include "lib_utils/tools.hpp"
 #include <string>
 #include <sstream>
-
 #include "lib_gpacpp/gpacpp.hpp"
 
 namespace Modules {

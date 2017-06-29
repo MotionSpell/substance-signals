@@ -3,7 +3,6 @@
 #include "lib_modules/core/module.hpp"
 #include "../common/picture.hpp"
 
-
 namespace Modules {
 namespace Decode {
 

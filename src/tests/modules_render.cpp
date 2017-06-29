@@ -1,6 +1,5 @@
 #include "tests.hpp"
 #include "lib_modules/modules.hpp"
-
 #include "lib_media/render/sdl_audio.hpp"
 #include "lib_media/render/sdl_video.hpp"
 #include "lib_media/in/sound_generator.hpp"

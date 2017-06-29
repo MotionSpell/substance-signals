@@ -6,7 +6,6 @@
 #include <cassert>
 
 namespace Modules {
-
 namespace Decode {
 
 LibavDecode::LibavDecode(const MetadataPktLibav &metadata)
@@ -56,9 +55,8 @@ LibavDecode::LibavDecode(const MetadataPktLibav &metadata)
 }
 
 LibavDecode::~LibavDecode() {
-	//HACK: we need to flush to avoid a leak of LibavDirectRenderingContext pictures
 	videoOutput = nullptr;
-	flush();
+	flush(); //we need to flush to avoid a leak of LibavDirectRenderingContext pictures
 
 	avcodec_close(codecCtx);
 	auto codecCtxCopy = codecCtx;

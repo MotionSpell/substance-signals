@@ -66,4 +66,3 @@ unittest("as many results as emit() calls, results arriving in wrong order") {
 	ASSERT((*res)[1] == 1789);
 }
 }
-

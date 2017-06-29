@@ -4,7 +4,6 @@
 #include "lib_signals/utils/helper.hpp"
 #include <memory>
 
-
 namespace Modules {
 
 typedef Signals::IExecutor<void()> IProcessExecutor;

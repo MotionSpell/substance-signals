@@ -7,7 +7,6 @@
 #include <atomic>
 #include <memory>
 
-
 namespace Modules {
 
 struct IProcessor {

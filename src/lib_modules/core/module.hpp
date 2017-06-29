@@ -10,7 +10,6 @@
 #include <string>
 #include <vector>
 
-
 namespace Modules {
 
 class IModule : public IProcessor, public virtual IInputCap, public virtual IOutputCap {
@@ -80,4 +79,5 @@ class ModuleDynI : public IModule, public ErrorCap, public LogCap, public InputC
 			return inputs[i].get();
 		}
 };
+
 }

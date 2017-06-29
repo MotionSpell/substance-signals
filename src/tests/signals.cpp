@@ -2,10 +2,8 @@
 #include "lib_signals/signals.hpp"
 #include "lib_utils/tools.hpp"
 
-
 //#define ENABLE_FAILING_TESTS
 //#define ENABLE_PERF_TESTS
-
 
 #include "signals_queue.cpp"
 #include "signals_unit_result.cpp"

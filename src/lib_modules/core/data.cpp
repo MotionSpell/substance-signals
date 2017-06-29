@@ -3,6 +3,7 @@
 #include "lib_utils/time.hpp"
 
 namespace Modules {
+
 std::atomic<uint64_t> DataBase::absUTCOffsetInMs(0);
 
 std::shared_ptr<const IMetadata> DataBase::getMetadata() const {
@@ -47,4 +48,5 @@ uint64_t DataRaw::size() const {
 void DataRaw::resize(size_t size) {
 	buffer.resize(size);
 }
+
 }

@@ -1,12 +1,10 @@
 #pragma once
 
 #include "format.hpp"
-
 #include <cstring>
 #include <memory>
 #include <typeinfo>
 #include <vector>
-
 
 // Runs a function at instantiation:
 // Use to initialize C libraries at program startup.

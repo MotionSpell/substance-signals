@@ -3,7 +3,6 @@
 #include "lib_modules/core/module.hpp"
 #include "../common/pcm.hpp"
 
-
 namespace ffpp {
 class SwResampler;
 class Frame;
