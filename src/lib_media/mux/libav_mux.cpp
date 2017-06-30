@@ -4,10 +4,6 @@
 #include <cassert>
 #include <string>
 
-extern "C" {
-#include <libavformat/avformat.h>
-}
-
 namespace Modules {
 namespace Mux {
 

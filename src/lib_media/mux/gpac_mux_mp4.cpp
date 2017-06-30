@@ -9,7 +9,6 @@
 extern "C" {
 #include <gpac/base_coding.h>
 #include <gpac/constants.h>
-#include <gpac/isomedia.h>
 #include <gpac/internal/media_dev.h>
 }
 
@@ -517,7 +516,7 @@ void GPACMuxMP4::closeFragment() {
 				return;
 			}
 			auto const deltaInTs = DTS == curSegmentDurInTs ? defaultSampleIncInTs : 0;
-			GF_Err e = gf_isom_set_traf_mss_timeext(isoCur, trackId, convertToTimescale(DataBase::absUTCOffsetInMs, 1000, mediaTs) + DTS - curSegmentDurInTs - defaultSampleIncInTs + deltaInTs, curSegmentDurInTs - deltaInTs);
+			GF_Err e = gf_isom_set_traf_mss_timeext(isoCur, trackId, convertToTimescale((uint64_t)DataBase::absUTCOffsetInMs, 1000, mediaTs) + DTS - curSegmentDurInTs - defaultSampleIncInTs + deltaInTs, curSegmentDurInTs - deltaInTs);
 			if (e != GF_OK)
 				throw error(format("Impossible to create UTC marquer: %s", gf_error_to_string(e)));
 		}
@@ -824,7 +823,7 @@ void GPACMuxMP4::sendOutput() {
 	}
 	out->setMetadata(metadata);
 	auto const deltaInTs = DTS == curSegmentDurInTs ? defaultSampleIncInTs : 0;
-	out->setTime(timescaleToClock(DataBase::absUTCOffsetInMs, 1000) + timescaleToClock(DTS - curSegmentDurInTs - defaultSampleIncInTs + deltaInTs, mediaTs));
+	out->setTime(timescaleToClock((uint64_t)DataBase::absUTCOffsetInMs, 1000) + timescaleToClock(DTS - curSegmentDurInTs - defaultSampleIncInTs + deltaInTs, mediaTs));
 	prevDTS = DTS;
 	output->emit(out);
 }
