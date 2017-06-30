@@ -17,32 +17,32 @@ EXTRA?=$(CURDIR)/extra
 
 # default to debug mode
 DEBUG?=1
-UNAME_S := $(shell uname -s)
+COMPILER:=$(shell $(CXX) -v 2>&1 | grep -q -e "LLVM version" -e "clang version" && echo clang || echo gcc)
 ifeq ($(DEBUG), 1)
-  CFLAGS += -Werror -Wno-deprecated-declarations
-  CFLAGS += -g3
-  LDFLAGS += -g
+  CFLAGS+=-Werror -Wno-deprecated-declarations
+  CFLAGS+=-g3
+  LDFLAGS+=-g
 else
-  CFLAGS += -Werror -O3 -DNDEBUG -Wno-unused-variable -Wno-deprecated-declarations
-  ifneq ($(UNAME_S),Darwin)
-    CFLAGS += -s
+  CFLAGS+=-Werror -O3 -DNDEBUG -Wno-unused-variable -Wno-deprecated-declarations
+  ifneq ($(COMPILER), clang)
+    CFLAGS+=-s
   endif
-  LDFLAGS += -s
+  LDFLAGS+=-s
 endif
 
 #default has X11
 SIGNALS_HAS_X11?=1
 
 ifeq ($(SIGNALS_HAS_X11), 1)
-  CFLAGS += -DSIGNALS_HAS_X11
+  CFLAGS+=-DSIGNALS_HAS_X11
 endif
 
-CFLAGS += -I$(SRC) -I$(SRC)/lib_modules
+CFLAGS+=-I$(SRC) -I$(SRC)/lib_modules
 
-CFLAGS += -I$(EXTRA)/include
-LDFLAGS += -L$(EXTRA)/lib
+CFLAGS+=-I$(EXTRA)/include
+LDFLAGS+=-L$(EXTRA)/lib
 
-LDFLAGS += $(LDLIBS)
+LDFLAGS+=$(LDLIBS)
 
 all: version targets
 
