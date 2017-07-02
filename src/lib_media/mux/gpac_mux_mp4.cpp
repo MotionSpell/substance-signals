@@ -19,6 +19,18 @@ namespace Modules {
 
 namespace {
 
+uint64_t fileSize(const std::string &fn) {
+	FILE *file = gf_fopen(fn.c_str(), "rb");
+	if (!file) {
+		return 0;
+	}
+	gf_fseek(file, 0, SEEK_END);
+	auto const size = gf_ftell(file);
+	gf_fseek(file, 0, SEEK_SET);
+	gf_fclose(file);
+	return size;
+}
+
 static GF_Err avc_import_ffextradata(const u8 *extradata, const u64 extradataSize, GF_AVCConfig *dstcfg) {
 	u8 nalSize;
 	AVCState avc;
@@ -444,7 +456,6 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 		return;
 	} else {
 		if (segmentPolicy == FragmentedSegment) {
-			lastSegmentSize = gf_isom_get_file_size(isoCur);
 			GF_Err e = gf_isom_close_segment(isoCur, 0, 0, 0, 0, 0, GF_FALSE, (Bool)isLastSeg, GF_TRUE, (compatFlags & Browsers) ? 0 : GF_4CC('e', 'o', 'd', 's'), nullptr, nullptr);
 			if (e != GF_OK) {
 				if (DTS == 0) {
@@ -453,7 +464,9 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 					throw error(format("gf_isom_close_segment: %s", gf_error_to_string(e)));
 				}
 			}
-			if (!gf_isom_get_filename(isoInit)) {
+			if (gf_isom_get_filename(isoInit)) {
+				lastSegmentSize = fileSize(segmentName);
+			} else {
 				throw error("Memory segmented not implemented yet.");
 #if 0 //TODO: sendOutput of memory + this code is repeated and can be factorized
 				GF_BitStream *bs = NULL;
@@ -462,11 +475,12 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 					throw error(format("gf_isom_segment_get_bs: %s", gf_error_to_string(e)));
 				char *output; u32 size;
 				gf_bs_get_content(bs, &output, &size);
+				lastSegmentSize = size? ;
 				gf_free(output);
 #endif
 			}
 		} else {
-			lastSegmentSize = gf_isom_estimate_size(isoCur);
+			lastSegmentSize = fileSize(segmentName);
 		}
 
 		if (lastSegmentSize) {

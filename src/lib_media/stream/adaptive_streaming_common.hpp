@@ -42,7 +42,7 @@ protected:
 	void endOfStream();
 
 	const Type type;
-	uint64_t startTimeInMs=-1, segDurationInMs, totalDurationInMs=0, numSeg=1;
+	uint64_t startTimeInMs=-1, segDurationInMs, totalDurationInMs=0, numSeg=0;
 	std::vector<std::unique_ptr<Quality>> qualities;
 
 	OutputDataDefault<DataAVPacket> *outputSegments, *outputManifest;

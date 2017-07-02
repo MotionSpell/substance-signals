@@ -42,7 +42,7 @@ void AdaptiveStreamingCommon::threadProc() {
 				qualities[i]->meta = safe_cast<const MetadataFile>(data->getMetadata());
 				if (!qualities[i]->meta)
 					throw error(format("Unknown data received on input %s", i));
-				qualities[i]->avg_bitrate_in_bps = (qualities[i]->meta->getSize() * 8 + qualities[i]->avg_bitrate_in_bps * numSeg) / (numSeg + 1);
+				qualities[i]->avg_bitrate_in_bps = ((qualities[i]->meta->getSize() * 8) / (segDurationInMs / 1000.0) + qualities[i]->avg_bitrate_in_bps * numSeg) / (numSeg + 1);
 				if (!i) curSegDurInMs = segDurationInMs ? segDurationInMs : clockToTimescale(qualities[i]->meta->getDuration(), 1000);
 				if (!startTimeInMs) startTimeInMs = clockToTimescale(data->getTime(), 1000);
 			}
