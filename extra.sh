@@ -24,10 +24,14 @@ if [ -z "$CPREFIX" ]; then
 		CPREFIX=x86_64-w64-mingw32
 		echo "MSYS detected ($OSTYPE): forcing use of prefix \"$CPREFIX\""
 		;;
-	darwin*)
+	darwin*|linux-musl)
 		CPREFIX=-
-		HOST=$(gcc -dumpmachine)
-		echo "Darwin detected ($OSTYPE): forcing use of prefix \"$CPREFIX\" (host=$HOST)"
+		if [ ! -e extra/config.guess ] ; then
+			wget -O extra/config.guess 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD'
+			chmod +x extra/config.guess
+		fi
+		HOST=$(extra/config.guess)
+		echo "$OSTYPE detected: forcing use of prefix \"$CPREFIX\" (host=$HOST)"
 		;;
 	*)
 		CPREFIX=$(gcc -dumpmachine)
