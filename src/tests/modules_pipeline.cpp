@@ -191,42 +191,27 @@ unittest("pipeline: connect incompatible i/o") {
 }
 
 unittest("pipeline: source only") {
-	bool thrown = false;
-	try {
-		Pipeline p;
-		p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
-		p.start();
-		p.waitForCompletion();
-	} catch (...) {
-		thrown = true;
-	}
-	ASSERT(!thrown);
+	Pipeline p;
+	p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
+	p.start();
+	p.waitForCompletion();
 }
 
 unittest("pipeline: orphan dynamic inputs sink") {
-	bool thrown = false;
-	try {
-		Pipeline p;
-		auto src = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
-		auto sink = p.addModule<Out::Null>();
-		p.connect(src, 0, sink, 0);
-		p.addModule<Mux::LibavMux>("orphan", "mp4");
-		p.start();
-		p.waitForCompletion();
-	} catch (...) {
-		thrown = true;
-	}
-	ASSERT(!thrown);
+	Pipeline p;
+	auto src = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
+	auto sink = p.addModule<Out::Null>();
+	p.connect(src, 0, sink, 0);
+	p.addModule<Mux::LibavMux>("orphan", "mp4");
+	p.start();
+	p.waitForCompletion();
 }
 
 unittest("pipeline: sink only (incorrect topology)") {
-	try {
-		Pipeline p;
-		p.addModule<Out::Null>();
-		p.start();
-		p.waitForCompletion();
-	} catch (...) {
-	}
+	Pipeline p;
+	p.addModule<Out::Null>();
+	p.start();
+	p.waitForCompletion();
 }
 
 #ifdef ENABLE_FAILING_TESTS

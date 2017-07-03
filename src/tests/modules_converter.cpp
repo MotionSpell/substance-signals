@@ -31,13 +31,7 @@ unittest("audio converter: interleaved to planar to interleaved") {
 	soundGen->process(nullptr);
 	SLEEP_IN_MS(200); // HACK: allow time for the data to reach the comparator ...
 	bool thrown = false;
-	try {
-		comparator->process(nullptr);
-	} catch (std::exception const& e) {
-		std::cerr << "Expected error: " << e.what() << std::endl;
-		thrown = true;
-	}
-	ASSERT(!thrown);
+	comparator->process(nullptr);
 }
 
 unittest("audio converter: 44100 to 48000") {
@@ -58,14 +52,7 @@ unittest("audio converter: 44100 to 48000") {
 
 	converter1->flush();
 	converter2->flush();
-	bool thrown = false;
-	try {
-		comparator->process(nullptr);
-	} catch (std::exception const& e) {
-		std::cerr << "Expected error: " << e.what() << std::endl;
-		thrown = true;
-	}
-	ASSERT(!thrown);
+	comparator->process(nullptr);
 }
 
 unittest("audio converter: dynamic formats") {
@@ -78,27 +65,11 @@ unittest("audio converter: dynamic formats") {
 	ConnectOutputToInput(soundGen->getOutput(0), converter);
 	ConnectOutputToInput(converter->getOutput(0), recorder);
 
-	{
-		bool thrown = false;
-		try {
-			soundGen->process(nullptr);
-		} catch (std::exception const& e) {
-			std::cerr << "Expected error: " << e.what() << std::endl;
-			thrown = true;
-		}
-		ASSERT(!thrown);
-	}
+	soundGen->process(nullptr);
 
 	{
-		bool thrown = false;
-		try {
-			Tools::Profiler profilerGlobal("  Send to converter");
-			soundGen->process(nullptr);
-		} catch (std::exception const& e) {
-			std::cerr << "Expected error: " << e.what() << std::endl;
-			thrown = true;
-		}
-		ASSERT(!thrown);
+		Tools::Profiler profilerGlobal("  Send to converter");
+		soundGen->process(nullptr);
 	}
 
 	converter->flush();
@@ -106,18 +77,11 @@ unittest("audio converter: dynamic formats") {
 	recorder->process(nullptr);
 
 	{
-		bool thrown = false;
-		try {
-			Tools::Profiler profilerGlobal("  Passthru");
-			Data data;
-			while ((data = recorder->pop())) {
-				converter->process(data);
-			}
-		} catch (std::exception const& e) {
-			std::cerr << "Expected error: " << e.what() << std::endl;
-			thrown = true;
+		Tools::Profiler profilerGlobal("  Passthru");
+		Data data;
+		while ((data = recorder->pop())) {
+			converter->process(data);
 		}
-		ASSERT(!thrown);
 	}
 }
 
@@ -171,41 +135,20 @@ void framingTest(const size_t inFrameFrames, const size_t outFrameFrames) {
 }
 
 unittest("audio converter: same framing size.") {
-	bool thrown = false;
-	try {
-		framingTest(1024, 1024);
-		framingTest(111, 111);
-		framingTest(11, 11);
-		framingTest(1, 1);
-	} catch (std::exception const& e) {
-		std::cerr << "Expected error: " << e.what() << std::endl;
-		thrown = true;
-	}
-	ASSERT(!thrown);
+	framingTest(1024, 1024);
+	framingTest(111, 111);
+	framingTest(11, 11);
+	framingTest(1, 1);
 }
 
 unittest("audio converter: smaller framing size.") {
-	bool thrown = false;
-	try {
-		framingTest(1152, 1024);
-		framingTest(1152, 512);
-	} catch (std::exception const& e) {
-		std::cerr << "Expected error: " << e.what() << std::endl;
-		thrown = true;
-	}
-	ASSERT(!thrown);
+	framingTest(1152, 1024);
+	framingTest(1152, 512);
 }
 
 unittest("audio converter: bigger framing size.") {
-	bool thrown = false;
-	try {
-		framingTest(1024, 1152);
-		framingTest(1024, 4096);
-	} catch (std::exception const& e) {
-		std::cerr << "Expected error: " << e.what() << std::endl;
-		thrown = true;
-	}
-	ASSERT(!thrown);
+	framingTest(1024, 1152);
+	framingTest(1024, 4096);
 }
 
 unittest("video converter: pass-through") {
