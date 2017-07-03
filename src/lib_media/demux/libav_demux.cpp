@@ -148,7 +148,7 @@ LibavDemux::~LibavDemux() {
 }
 
 void LibavDemux::seekToStart() {
-	if (av_seek_frame(m_formatCtx, -1, m_formatCtx->start_time, 0) < 0)
+	if (av_seek_frame(m_formatCtx, -1, m_formatCtx->start_time, AVSEEK_FLAG_ANY) < 0)
 		throw error(format("Couldn't seek to start time %s", m_formatCtx->start_time));
 
 	loopOffsetIn180k += timescaleToClock(m_formatCtx->duration, AV_TIME_BASE) ;
