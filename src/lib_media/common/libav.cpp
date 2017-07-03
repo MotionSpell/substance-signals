@@ -401,6 +401,9 @@ void copyToPicture(AVFrame const* avFrame, DataPicture* pic) {
 }
 
 static void lavc_ReleaseFrame(void *opaque, uint8_t *data) {
+	if (opaque) {
+		delete static_cast<LibavDirectRendering::LibavDirectRenderingContext*>(opaque);
+	}
 }
 
 int avGetBuffer2(struct AVCodecContext *ctx, AVFrame *frame, int flags) {
@@ -427,7 +430,7 @@ int avGetBuffer2(struct AVCodecContext *ctx, AVFrame *frame, int flags) {
 		frame->data[i] = pic->getPlane(i);
 		frame->linesize[i] = (int)pic->getPitch(i);
 		assert(!(pic->getPitch(i) % linesize_align[i]));
-		frame->buf[i] = av_buffer_create(frame->data[i], frame->linesize[i], lavc_ReleaseFrame, pic, 0);
+		frame->buf[i] = av_buffer_create(frame->data[i], frame->linesize[i], lavc_ReleaseFrame, i == 0 ? (void*)picCtx : nullptr, 0);
 	}
 
 	return 0;

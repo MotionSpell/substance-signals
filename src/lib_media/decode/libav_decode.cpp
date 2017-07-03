@@ -100,7 +100,7 @@ bool LibavDecode::processVideo(AVPacket const * const pkt) {
 	}
 	if (gotPicture) {
 		std::shared_ptr<DataPicture> pic;
-		auto ctx = uptr(static_cast<LibavDirectRenderingContext*>(avFrame->get()->opaque));
+		auto ctx = static_cast<LibavDirectRenderingContext*>(avFrame->get()->opaque);
 		if (ctx) {
 			pic = ctx->pic;
 			ctx->pic->setVisibleResolution(Resolution(codecCtx->width, codecCtx->height));

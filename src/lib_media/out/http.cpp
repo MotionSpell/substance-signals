@@ -87,7 +87,7 @@ void HTTP::flush() {
 void HTTP::process() {
 	if (!workingThread.joinable() && state == Init) {
 		state = RunNewConnection;
-		numDataQueueNotify = (int)std::max<size_t>(1, getNumInputs() - 1); //FIXME: connection/disconnection cannot occur dynamically. Lock inputs? //Romain: module should be able to express such constraints
+		numDataQueueNotify = (int)std::max<size_t>(1, getNumInputs() - 1); //FIXME: connection/disconnection cannot occur dynamically. Lock inputs? //FIXME: module should be able to express such constraints
 		workingThread = std::thread(&HTTP::threadProc, this);
 	}
 }
