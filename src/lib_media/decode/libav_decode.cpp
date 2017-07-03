@@ -23,7 +23,6 @@ LibavDecode::LibavDecode(const MetadataPktLibav &metadata)
 	if (!codec)
 		throw error(format("Decoder not found for codecID(%s).", codecCtx->codec_id));
 
-	//force single threaded as h264 probing seems to miss SPS/PPS and seek fails silently
 	ffpp::Dict dict(typeid(*this).name(), "-threads auto -err_detect 1 -flags output_corrupt -flags2 showall");
 	if (avcodec_open2(codecCtx, codec, &dict) < 0)
 		throw error("Couldn't open stream.");
@@ -57,14 +56,12 @@ LibavDecode::LibavDecode(const MetadataPktLibav &metadata)
 LibavDecode::~LibavDecode() {
 	videoOutput = nullptr;
 	flush(); //we need to flush to avoid a leak of LibavDirectRenderingContext pictures
-
 	avcodec_close(codecCtx);
 	auto codecCtxCopy = codecCtx;
 	avcodec_free_context(&codecCtxCopy);
 }
 
-bool LibavDecode::processAudio(const DataAVPacket *data) {
-	AVPacket *pkt = data->getPacket();
+bool LibavDecode::processAudio(AVPacket const * const pkt) {
 	int gotFrame = 0;
 	if (avcodec_decode_audio4(codecCtx, avFrame->get(), &gotFrame, pkt) < 0) {
 		log(Warning, "Error encountered while decoding audio.");
@@ -92,8 +89,7 @@ bool LibavDecode::processAudio(const DataAVPacket *data) {
 	return false;
 }
 
-bool LibavDecode::processVideo(const DataAVPacket *data) {
-	AVPacket *pkt = data->getPacket();
+bool LibavDecode::processVideo(AVPacket const * const pkt) {
 	int gotPicture = 0;
 	if (avcodec_decode_video2(codecCtx, avFrame->get(), &gotPicture, pkt) < 0) {
 		log(Warning, "Error encountered while decoding video.");
@@ -132,12 +128,18 @@ LibavDirectRendering::LibavDirectRenderingContext* LibavDecode::getPicture(const
 void LibavDecode::process(Data data) {
 	auto decoderData = safe_cast<const DataAVPacket>(data);
 	inputs[0]->updateMetadata(data);
+	AVPacket *pkt = decoderData->getPacket();
+	if (pkt->flags & AV_PKT_FLAG_RESET_DECODER) {
+		avcodec_flush_buffers(codecCtx);
+		pkt->flags &= ~AV_PKT_FLAG_RESET_DECODER;
+	}
+
 	switch (codecCtx->codec_type) {
 	case AVMEDIA_TYPE_VIDEO:
-		processVideo(decoderData.get());
+		processVideo(pkt);
 		break;
 	case AVMEDIA_TYPE_AUDIO:
-		processAudio(decoderData.get());
+		processAudio(pkt);
 		break;
 	default:
 		assert(0);
@@ -146,13 +148,15 @@ void LibavDecode::process(Data data) {
 }
 
 void LibavDecode::flush() {
-	auto nullPkt = uptr(new DataAVPacket(0));
+	AVPacket nullPkt;
+	av_init_packet(&nullPkt);
+	av_free_packet(&nullPkt);
 	switch (codecCtx->codec_type) {
 	case AVMEDIA_TYPE_VIDEO:
-		while (processVideo(nullPkt.get())) {}
+		while (processVideo(&nullPkt)) {}
 		break;
 	case AVMEDIA_TYPE_AUDIO:
-		while (processAudio(nullPkt.get())) {}
+		while (processAudio(&nullPkt)) {}
 		break;
 	default:
 		assert(0);

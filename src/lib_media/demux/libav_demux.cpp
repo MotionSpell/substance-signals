@@ -1,6 +1,5 @@
 #include "libav_demux.hpp"
 #include "../transform/restamp.hpp"
-#include "../common/libav.hpp"
 #include "lib_modules/core/clock.hpp"
 #include "lib_utils/tools.hpp"
 #include "lib_ffpp/ffpp.hpp"
@@ -156,6 +155,7 @@ void LibavDemux::seekToStart() {
 
 void LibavDemux::threadProc() {
 	AVPacket pkt;
+	bool nextPacketResetFlag = false;
 	while (!done) {
 		av_init_packet(&pkt);
 		int status = av_read_frame(m_formatCtx, &pkt);
@@ -165,6 +165,7 @@ void LibavDemux::threadProc() {
 				log(Info, "End of stream detected - %s", loop ? "looping" : "leaving");
 				if (loop) {
 					seekToStart();
+					nextPacketResetFlag = true;
 					continue;
 				}
 			} else if (m_formatCtx->pb && m_formatCtx->pb->error) {
@@ -177,6 +178,10 @@ void LibavDemux::threadProc() {
 		auto const base = m_formatCtx->streams[pkt.stream_index]->time_base;
 		pkt.dts += clockToTimescale(loopOffsetIn180k * base.num, base.den);
 		pkt.pts += clockToTimescale(loopOffsetIn180k * base.num, base.den);
+		if (nextPacketResetFlag) {
+			pkt.flags |= AV_PKT_FLAG_RESET_DECODER;
+			nextPacketResetFlag = false;
+		}
 
 		while (!dispatchPkts.write(pkt)) {
 			if (done) {

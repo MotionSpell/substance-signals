@@ -24,8 +24,8 @@ class LibavDecode : public ModuleS, public LibavDirectRendering {
 		void flush() override;
 
 	private:
-		bool processAudio(const DataAVPacket*);
-		bool processVideo(const DataAVPacket*);
+		bool processAudio(AVPacket const * const pkt);
+		bool processVideo(AVPacket const * const pkt);
 		LibavDirectRenderingContext* getPicture(const Resolution &res, const Resolution &resInternal, const PixelFormat &format) override;
 
 		AVCodecContext * const codecCtx;

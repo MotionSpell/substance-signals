@@ -21,6 +21,8 @@ extern "C" {
 }
 #endif
 
+#define AV_PKT_FLAG_RESET_DECODER (1 << 30)
+
 namespace Modules {
 
 class MetadataPktLibav : public IMetadata {
