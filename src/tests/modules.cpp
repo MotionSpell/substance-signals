@@ -18,6 +18,5 @@
 #include "modules_erasure.cpp"
 #include "modules_mux.cpp"
 #include "modules_transcoder.cpp"
-#include "modules_pipeline.cpp"
 
 using namespace Tests;

@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="pipeline.cpp" />
+    <ClCompile Include="tests.cpp" />
+    <ClCompile Include="pipeline_base.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="pipeline_topology.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="pipeline_interrupt.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="pipeline_dynamic.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="tests.hpp" />
+    <ClInclude Include="pipeline_common.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="tests">
+      <UniqueIdentifier>{3a1fc96b-5f5d-48e6-bcae-6da2478de8c1}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
