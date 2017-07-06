@@ -74,15 +74,14 @@ private:
 		activeConnections++;
 	}
 
-	void disconnect(IOutput *output) override {
+	void disconnect(size_t inputIdx, IOutput * const output) override {
+		getInput(inputIdx)->disconnect();
 		auto &sig = output->getSignal();
 		auto const numConn = sig.getNumConnections();
 		for (size_t i = 0; i < numConn; ++i) {
-			sig.disconnect(i); //Romain: the IInput has to be aware of the disconnection
+			sig.disconnect(i);
 		}
-		activeConnections = 0; //Romain => make the difference before and after disconnecting?
-		//Romain: why do we flush here?
-		//delegate->getInput(0)->push(nullptr);
+		activeConnections--;
 		//getInput(0)->push(nullptr);
 		//delegateExecutor(MEMBER_FUNCTOR_PROCESS(getInput(0)));
 	}
@@ -113,6 +112,7 @@ private:
 			if (getNumInputs() == 0) {
 				/*first time: create a fake pin and push null to trigger execution*/
 				delegate->addInput(new Input<DataLoosePipeline>(delegate.get()));
+				activeConnections = 1;
 				getInput(0)->push(nullptr);
 				delegate->getInput(0)->push(nullptr);
 				delegateExecutor(MEMBER_FUNCTOR_PROCESS(delegate.get()));
@@ -133,8 +133,8 @@ private:
 	}
 
 	void finished() override {
-		if (--activeConnections <= 0) {
-			delegate->flush(); //Romain: can be called several times!!!!
+		if (--activeConnections == 0) {
+			delegate->flush();
 			if (isSink()) {
 				m_notify->finished();
 			} else {
@@ -142,7 +142,8 @@ private:
 					delegate->getOutput(i)->emit(nullptr);
 				}
 			}
-		}
+		} else if (activeConnections < 0)
+			throw std::runtime_error(format("PipelinedModule %s: activeConnections is negative (%s).", getDelegateName(), (int)activeConnections));
 	}
 
 	void exception(std::exception_ptr eptr) override {

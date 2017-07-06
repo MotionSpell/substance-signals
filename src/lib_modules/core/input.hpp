@@ -24,6 +24,9 @@ class ConnectedCap {
 		virtual void connect() {
 			connections++;
 		}
+		virtual void disconnect() {
+			connections--;
+		}
 
 	private:
 		std::atomic_size_t connections;

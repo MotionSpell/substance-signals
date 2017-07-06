@@ -63,6 +63,9 @@ class PipelinedInput : public IInput {
 		void connect() override {
 			delegate->connect();
 		}
+		void disconnect() {
+			delegate->disconnect();
+		}
 
 		void setLocalExecutor(std::unique_ptr<IProcessExecutor> e) {
 			localExecutor = std::move(e);

@@ -11,31 +11,31 @@ Pipeline::Pipeline(bool isLowLatency, double clockSpeed, Threading threading)
   clock(new Modules::Clock(clockSpeed)), threading(threading), remainingNotifications(0) {
 }
 
-IPipelinedModule* Pipeline::addModuleInternal(IModule *rawModule) {
+IPipelinedModule* Pipeline::addModuleInternal(IModule * const rawModule) {
 	auto module = uptr(new PipelinedModule(rawModule, this, clock.get(), threading));
 	auto ret = module.get();
 	modules.push_back(std::move(module));
 	return ret;
 }
 
-void Pipeline::connect(IModule *p, size_t outputIdx, IModule *n, size_t inputIdx, bool inputAcceptMultipleConnections) {
+void Pipeline::connect(IModule * const p, size_t outputIdx, IModule * const n, size_t inputIdx, bool inputAcceptMultipleConnections) {
 	if (!n || !p) return;
 	std::unique_lock<std::mutex> lock(mutex);
 	if (remainingNotifications != notifications)
-		throw std::runtime_error("Connection but the topology has changed. Not supported yet.");
+		throw std::runtime_error("Connection but the topology has changed. Not supported yet."); //TODO: to change that, we need to store a state of the PipelinedModule.
 	auto next = safe_cast<IPipelinedModule>(n);
 	auto prev = safe_cast<IPipelinedModule>(p);
 	next->connect(prev->getOutput(outputIdx), inputIdx, prev->isSource(), inputAcceptMultipleConnections);
 	computeTopology();
 }
 
-void Pipeline::disconnect(IModule *p, size_t outputIdx) {
+void Pipeline::disconnect(IModule * const p, size_t outputIdx, IModule * const n, size_t inputIdx) {
 	if (!p) return;
 	std::unique_lock<std::mutex> lock(mutex);
 	if (remainingNotifications != notifications)
 		throw std::runtime_error("Disconnection but the topology has changed. Not supported yet.");
-	auto prev = safe_cast<IPipelinedModule>(p);
-	prev->disconnect(prev->getOutput(outputIdx));
+	auto next = safe_cast<IPipelinedModule>(n);
+	next->disconnect(inputIdx, p->getOutput(outputIdx));
 	computeTopology();
 }
 
@@ -43,7 +43,7 @@ void Pipeline::removeModule(IPipelinedModule *module) {
 	std::unique_lock<std::mutex> lock(mutex);
 	for (auto &m : modules) {
 		if (m.get() == module) {
-			m = nullptr;
+			m = nullptr; //FIXME: vector is not the right container to remove it
 			return;
 		}
 	}
@@ -83,7 +83,7 @@ void Pipeline::exitSync() {
 	Log::msg(Warning, "Pipeline: asked to exit now.");
 	for (auto &m : modules) {
 		if (m->isSource()) {
-			m->process(); //Romain: ok but then we don't flush() so it may be stuck in waitForCompletion
+			m->process(); //FIXME: ok but then we don't flush() so it may be stuck in waitForCompletion
 		}
 	}
 }
@@ -96,7 +96,7 @@ void Pipeline::computeTopology() {
 				notifications++;
 			} else {
 				for (size_t i = 0; i < m->getNumInputs(); ++i) {
-					if (m->getInput(i)->getNumConnections()) { //Romain: we will fail here on disconnection
+					if (m->getInput(i)->getNumConnections()) {
 						notifications++;
 						break;
 					}

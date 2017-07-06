@@ -12,7 +12,7 @@ struct IPipelinedModule : public Modules::IModule {
 	virtual bool isSource() const = 0;
 	virtual bool isSink() const = 0;
 	virtual void connect(Modules::IOutput *output, size_t inputIdx, bool forceAsync, bool inputAcceptMultipleConnections) = 0;
-	virtual void disconnect(Modules::IOutput *output) = 0;
+	virtual void disconnect(size_t inputIdx, Modules::IOutput * const output) = 0;
 };
 
 struct ICompletionNotifier {
@@ -45,10 +45,10 @@ class Pipeline : public IPipelineNotifier {
 			return addModuleInternal(Modules::createModule<InstanceType>(NumBlocks ? NumBlocks : allocatorNumBlocks, std::forward<Args>(args)...));
 		}
 		/*Remove a module from a pipeline. This is only possible when the module is already disconnected and flush()ed (which is the caller reponsibility - FIXME).*/
-		void removeModule(IPipelinedModule *module);
+		void removeModule(IPipelinedModule * const module);
 
-		void connect   (Modules::IModule *prev, size_t outputIdx, Modules::IModule *next, size_t inputIdx, bool inputAcceptMultipleConnections = false);
-		void disconnect(Modules::IModule *prev, size_t outputIdx);
+		void connect   (Modules::IModule * const prev, size_t outputIdx, Modules::IModule * const next, size_t inputIdx, bool inputAcceptMultipleConnections = false);
+		void disconnect(Modules::IModule * const prev, size_t outputIdx, Modules::IModule * const next, size_t inputIdx);
 
 		void start();
 		void waitForCompletion();
@@ -58,9 +58,9 @@ class Pipeline : public IPipelineNotifier {
 		void computeTopology();
 		void finished() override;
 		void exception(std::exception_ptr eptr) override;
-		IPipelinedModule* addModuleInternal(Modules::IModule *rawModule);
+		IPipelinedModule* addModuleInternal(Modules::IModule * const rawModule);
 
-		std::vector<std::unique_ptr<IPipelinedModule>> modules; //Romain: vector and uptr are not the right structures
+		std::vector<std::unique_ptr<IPipelinedModule>> modules;
 		const size_t allocatorNumBlocks;
 		std::unique_ptr<const Modules::IClock> const clock;
 		const Threading threading;
