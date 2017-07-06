@@ -62,10 +62,10 @@ $(OUTDIR)/test_pipeline.exe: $(EXE_PIPELINE_OBJS)
 #---------------------------------------------------------------
 
 TestProjectName:=$(ProjectName)
-TestOutDir:=$(OUTDIR)
+TestOutDir:=$(CURDIR)/$(OUTDIR)
 
 run: unit
 	$(TestOutDir)/test_utils.exe
 	$(TestOutDir)/test_signals.exe
-	cd src/tests ; ../../$(TestOutDir)/test_modules.exe
-	cd src/tests ; ../../$(TestOutDir)/test_pipeline.exe
+	cd $(SRC)/tests ; $(TestOutDir)/test_modules.exe
+	cd $(SRC)/tests ; $(TestOutDir)/test_pipeline.exe

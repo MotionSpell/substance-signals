@@ -30,7 +30,6 @@ unittest("audio converter: interleaved to planar to interleaved") {
 
 	soundGen->process(nullptr);
 	SLEEP_IN_MS(200); // HACK: allow time for the data to reach the comparator ...
-	bool thrown = false;
 	comparator->process(nullptr);
 }
 
