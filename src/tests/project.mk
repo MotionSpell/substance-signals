@@ -9,7 +9,7 @@ $(BIN)/$(ProjectName)/modules_%.o: CFLAGS+=-DUNIT
 $(BIN)/$(ProjectName)/utils_%.o: CFLAGS+=-DUNIT
 
 #---------------------------------------------------------------
-# utils.exe
+# test_utils.exe
 #---------------------------------------------------------------
 EXE_UTILS_OBJS:=\
 	$(OUTDIR)/utils.o\
@@ -21,7 +21,7 @@ TARGETS+=$(OUTDIR)/test_utils.exe
 $(OUTDIR)/test_utils.exe: $(EXE_UTILS_OBJS)
 
 #---------------------------------------------------------------
-# signals.exe
+# test_signals.exe
 #---------------------------------------------------------------
 EXE_SIGNALS_OBJS:=\
 	$(OUTDIR)/signals.o\
@@ -31,7 +31,7 @@ TARGETS+=$(OUTDIR)/test_signals.exe
 $(OUTDIR)/test_signals.exe: $(EXE_SIGNALS_OBJS)
 
 #---------------------------------------------------------------
-# modules.exe
+# test_modules.exe
 #---------------------------------------------------------------
 EXE_MODULES_OBJS:=\
 	$(OUTDIR)/modules.o\
@@ -44,7 +44,7 @@ TARGETS+=$(OUTDIR)/test_modules.exe
 $(OUTDIR)/test_modules.exe: $(EXE_MODULES_OBJS)
 
 #---------------------------------------------------------------
-# pipeline.exe
+# test_pipeline.exe
 #---------------------------------------------------------------
 EXE_PIPELINE_OBJS:=\
 	$(OUTDIR)/pipeline.o\

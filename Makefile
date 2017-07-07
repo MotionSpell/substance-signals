@@ -44,7 +44,7 @@ LDFLAGS+=-L$(EXTRA)/lib
 
 LDFLAGS+=$(LDLIBS)
 
-all: version targets
+all: targets
 
 $(BIN)/config.mk:
 	@echo "Configuring ..."
@@ -167,6 +167,7 @@ include $(ProjectName)/project.mk
 
 ProjectName:=$(SRC)/apps/dashcastx
 include $(ProjectName)/project.mk
+
 #------------------------------------------------------------------------------
 
 ifeq ($(SIGNALS_HAS_X11), 1)
@@ -186,7 +187,7 @@ include $(ProjectName)/project.mk
 version:
 	echo "const char *g_version = \"`git symbolic-ref HEAD 2> /dev/null | cut -b 12-`-`git log --pretty=format:\"%h\" -1`\";" > src/version.cpp
 
-targets: $(TARGETS)
+targets: version $(TARGETS)
 
 unit: $(TARGETS)
 
