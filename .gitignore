@@ -156,5 +156,6 @@ $RECYCLE.BIN/
 # ctags file
 tags
 
+src/version.cpp
 extra/
 doc/html/
