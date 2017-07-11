@@ -6,7 +6,7 @@
 extern std::unique_ptr<const IConfig> processArgs(int argc, char const* argv[]);
 extern std::unique_ptr<Pipelines::Pipeline> buildPipeline(const IConfig &config);
 
-Pipelines::Pipeline *g_Pipeline = nullptr;
+static Pipelines::Pipeline *g_Pipeline = nullptr;
 extern const char *g_appName;
 extern const char *g_version;
 
@@ -34,10 +34,19 @@ static void sigTermHandler(int sig) {
 	switch (sig) {
 	case SIGINT:
 	case SIGTERM:
-		std::cerr << "Caught signal(SIGTERM), exiting." << std::endl;
-		if (g_Pipeline) {
-			g_Pipeline->exitSync();
-			g_Pipeline = nullptr;
+		{
+			static int numSig = 0;
+			numSig++;
+			if (numSig > 3) {
+				std::cerr << "Caught " << numSig-1 << "signals, hard exit." << std::endl;
+				exit(3);
+			} else {
+				std::cerr << "Caught signal, exiting." << std::endl;
+				if (g_Pipeline) {
+					g_Pipeline->exitSync();
+					g_Pipeline = nullptr;
+				}
+			}
 		}
 		break;
 	default:
