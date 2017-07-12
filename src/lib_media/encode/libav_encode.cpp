@@ -5,6 +5,10 @@
 #include "../common/pcm.hpp"
 #include <cassert>
 
+extern "C" {
+#include <libavutil/pixdesc.h>
+}
+
 namespace Modules {
 
 namespace {
@@ -43,9 +47,15 @@ LibavEncode::LibavEncode(Type type, Params &params)
 	case Video: {
 		codecName = "vcodec";
 		ffpp::Dict customDict(typeid(*this).name(), params.avcodecCustom);
-		auto codec = customDict.get("vcodec");
+		auto const codec = customDict.get("vcodec");
 		if (codec) {
 			generalOptions = format(" -vcodec %s", codec->value);
+			av_dict_free(&customDict);
+			break;
+		}
+		auto const pixFmt = customDict.get("pix_fmt");
+		if (pixFmt) {
+			generalOptions = format(" -pix_fmt %s", pixFmt->value);
 			av_dict_free(&customDict);
 			break;
 		}
@@ -75,7 +85,7 @@ LibavEncode::LibavEncode(Type type, Params &params)
 	case Audio: {
 		codecName = "acodec";
 		ffpp::Dict customDict(typeid(*this).name(), params.avcodecCustom);
-		auto codec = customDict.get("acodec");
+		auto const codec = customDict.get("acodec");
 		if (codec) {
 			generalOptions = format(" -acodec %s", codec->value);
 			av_dict_free(&customDict);
@@ -113,7 +123,11 @@ LibavEncode::LibavEncode(Type type, Params &params)
 	case Video: {
 		codecCtx->width = params.res.width;
 		codecCtx->height = params.res.height;
-		if (!strcmp(generalDict.get("vcodec")->value, "mjpeg")) {
+		if (generalDict.get("pix_fmt")) {
+			codecCtx->pix_fmt = av_get_pix_fmt(generalDict.get("pix_fmt")->value);
+			if (codecCtx->pix_fmt == AV_PIX_FMT_NONE)
+				throw error(format("Unknown pixel format\"%s\".", generalDict.get("pix_fmt")->value));
+		} else if (!strcmp(generalDict.get("vcodec")->value, "mjpeg")) {
 			codecCtx->pix_fmt = AV_PIX_FMT_YUVJ420P;
 		} else if (!strcmp(generalDict.get("vcodec")->value, "h264_qsv")) {
 			codecCtx->pix_fmt = AV_PIX_FMT_NV12;
