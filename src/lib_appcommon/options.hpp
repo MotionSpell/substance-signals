@@ -22,6 +22,7 @@ struct AppOptions : IConfig {
 	std::vector<Video> v;
 	uint64_t seekTimeInMs = 0, segmentDurationInMs = 2000, timeshiftInSegNum = 0, minUpdatePeriodInMs = 0;
 	uint32_t minBufferTimeInMs = 0;
+	int64_t astOffset = 0;
 	bool isLive = false, loop = false, ultraLowLatency = false, autoRotate = false;
 };
 
