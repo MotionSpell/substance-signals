@@ -47,22 +47,20 @@ LibavEncode::LibavEncode(Type type, Params &params)
 	case Video: {
 		codecName = "vcodec";
 		ffpp::Dict customDict(typeid(*this).name(), params.avcodecCustom);
+                auto const pixFmt = customDict.get("pix_fmt");
+                if (pixFmt) {
+                        generalOptions += format(" -pix_fmt %s", pixFmt->value);
+                }
 		auto const codec = customDict.get("vcodec");
 		if (codec) {
-			generalOptions = format(" -vcodec %s", codec->value);
-			av_dict_free(&customDict);
-			break;
-		}
-		auto const pixFmt = customDict.get("pix_fmt");
-		if (pixFmt) {
-			generalOptions = format(" -pix_fmt %s", pixFmt->value);
+			generalOptions += format(" -vcodec %s", codec->value);
 			av_dict_free(&customDict);
 			break;
 		}
 		av_dict_free(&customDict);
 		switch (params.codecType) {
 		case Params::Software:
-			generalOptions = " -vcodec libx264";
+			generalOptions += " -vcodec libx264";
 			if (params.isLowLatency) {
 				codecOptions += " -preset ultrafast -tune zerolatency";
 			} else {
@@ -70,10 +68,10 @@ LibavEncode::LibavEncode(Type type, Params &params)
 			}
 			break;
 		case Params::Hardware_qsv:
-			generalOptions = " -vcodec h264_qsv";
+			generalOptions += " -vcodec h264_qsv";
 			break;
 		case Params::Hardware_nvenc:
-			generalOptions = " -vcodec h264_nvenc";
+			generalOptions += " -vcodec h264_nvenc";
 			break;
 		default:
 			throw error("Unknown video encoder type. Failed.");
@@ -87,13 +85,13 @@ LibavEncode::LibavEncode(Type type, Params &params)
 		ffpp::Dict customDict(typeid(*this).name(), params.avcodecCustom);
 		auto const codec = customDict.get("acodec");
 		if (codec) {
-			generalOptions = format(" -acodec %s", codec->value);
+			generalOptions += format(" -acodec %s", codec->value);
 			av_dict_free(&customDict);
 			break;
 		}
 		av_dict_free(&customDict);
-		codecOptions = format(" -b %s -ar %s -ac %s", params.bitrate_a, params.sampleRate, params.numChannels);
-		generalOptions = " -acodec aac";
+		codecOptions += format(" -b %s -ar %s -ac %s", params.bitrate_a, params.sampleRate, params.numChannels);
+		generalOptions += " -acodec aac";
 		break;
 	}
 	default:
@@ -127,6 +125,7 @@ LibavEncode::LibavEncode(Type type, Params &params)
 			codecCtx->pix_fmt = av_get_pix_fmt(generalDict.get("pix_fmt")->value);
 			if (codecCtx->pix_fmt == AV_PIX_FMT_NONE)
 				throw error(format("Unknown pixel format\"%s\".", generalDict.get("pix_fmt")->value));
+			av_dict_set(&generalDict, "pix_fmt", nullptr, 0);
 		} else if (!strcmp(generalDict.get("vcodec")->value, "mjpeg")) {
 			codecCtx->pix_fmt = AV_PIX_FMT_YUVJ420P;
 		} else if (!strcmp(generalDict.get("vcodec")->value, "h264_qsv")) {
