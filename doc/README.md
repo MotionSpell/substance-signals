@@ -16,7 +16,9 @@
 Coding consideration
 ====================
 
-You need a C++11 compiler. ```ccache``` on unix can accelerate rebuilds: consider aliasing your CXX (e.g. ```CXX="ccache g++"```).
+You need a C++11 compiler (MSVC2013+, gcc 4.9+, clang 3.1+).
+
+```ccache``` on unix can accelerate rebuilds: consider aliasing your CXX (e.g. ```CXX="ccache g++"```).
 
 Before committing please execute tests (check.sh will reformat, build, and make tests for you). Test execution should be fast (less than 30s).
 
@@ -34,15 +36,42 @@ Signals is layered (from bottom to top):
 Write an application
 ====================
 
-You can connect the modules manually or use the Pipeline helper. You can find some example in the tests.
+You can connect the modules manually or use the Pipeline helper. You can find some examples in the tests.
+
+Pipeline helper (recommended):
+```
+	Pipeline p;
+	
+	//add modules to the pipeline
+	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
+	auto print = p.addModule<Out::Print>();
+	for (int i = 0; i < (int)demux->getNumOutputs(); ++i) {
+		p.connect(print, i, demux, i);
+	}
+	
+	p.start();
+	p.waitForCompletion();
+```
+
+Manual connections:
+```
+	auto demux = uptr(create<Demux::LibavDemux>("data/beepbop.mp4"));
+	auto print = uptr(create<Out::Print>(std::cout));
+	for (int i = 0; i < (int)demux->getNumOutputs(); ++i) {	
+		ConnectOutputToInput(demux->getOutput(0), print);
+	}
+	demux->process(nullptr);
+	demux->flush();
+	print->flush();
+```
 
 Internals
 =========
 
 Signals is a data-driven framework. It means that data is the engine of the execution (most frameworks are driven by time). It means that:
- - Input errors tend to propagate. They may appear in some later modules of your graph or pipeline. Be careful to test each of your modules.
+ - Input errors tend to propagate. They may appear in some later modules of your graph or pipeline. Be careful to test each of your modules. You may want to write modules to rectify the signal.
  - A lack of input may stop all outputs and logs.
- - There is no such things as real-time in the modules.
+ - There is no such things as real-time in the modules. There is a clock abstraction, and the application or Pipeline level may handle a clock.
 
 ```
 class Module : public IModule, public ErrorCap, public LogCap, public InputCap {
