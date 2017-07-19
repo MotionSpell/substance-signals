@@ -456,7 +456,8 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 		return;
 	} else {
 		if (segmentPolicy == FragmentedSegment) {
-			GF_Err e = gf_isom_close_segment(isoCur, 0, 0, 0, 0, 0, GF_FALSE, (Bool)isLastSeg, GF_TRUE, (compatFlags & Browsers) ? 0 : GF_4CC('e', 'o', 'd', 's'), nullptr, nullptr);
+			const Bool isFile = (Bool)(gf_isom_get_filename(isoInit) != nullptr);
+			GF_Err e = gf_isom_close_segment(isoCur, 0, 0, 0, 0, 0, GF_FALSE, (Bool)isLastSeg, isFile, (compatFlags & Browsers) ? 0 : GF_4CC('e', 'o', 'd', 's'), nullptr, nullptr);
 			if (e != GF_OK) {
 				if (DTS == 0) {
 					return;
@@ -464,20 +465,17 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 					throw error(format("gf_isom_close_segment: %s", gf_error_to_string(e)));
 				}
 			}
-			if (gf_isom_get_filename(isoInit)) {
+			if (isFile) {
 				lastSegmentSize = fileSize(segmentName);
 			} else {
-				throw error("Memory segmented not implemented yet.");
-#if 0 //TODO: sendOutput of memory + this code is repeated and can be factorized
 				GF_BitStream *bs = NULL;
 				GF_Err e = gf_isom_get_bs(isoInit, &bs);
 				if (e)
-					throw error(format("gf_isom_segment_get_bs: %s", gf_error_to_string(e)));
+					throw error(format("gf_isom_get_bs: %s", gf_error_to_string(e)));
 				char *output; u32 size;
 				gf_bs_get_content(bs, &output, &size);
-				lastSegmentSize = size? ;
+				lastSegmentSize = size;
 				gf_free(output);
-#endif
 			}
 		} else {
 			lastSegmentSize = fileSize(segmentName);
@@ -799,7 +797,7 @@ void GPACMuxMP4::sendOutput() {
 #else
 		GF_FALSE;
 #endif
-	char codecName[256]; //FIXME: security issue on the GPAC API
+	char codecName[40];
 	GF_Err e = gf_media_get_rfc_6381_codec_name(isoCur, gf_isom_get_track_by_id(isoCur, trackId), codecName, isInband, GF_FALSE);
 	if (e)
 		throw error(format("Could not compute codec name (RFC 6381)"));

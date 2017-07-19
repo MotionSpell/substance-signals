@@ -13,6 +13,8 @@
 #define MIN_BUFFER_TIME_IN_MS_LIVE 2000
 #define AVAILABILITY_TIMEOFFSET_IN_S 0.0
 
+static auto const g_profiles = "urn:mpeg:dash:profile:isoff-live:2011, http://dashif.org/guidelines/dash264";
+
 namespace Modules {
 
 namespace {
@@ -53,8 +55,8 @@ namespace Stream {
 
 MPEG_DASH::MPEG_DASH(const std::string &mpdDir, const std::string &mpdFilename, Type type, uint64_t segDurationInMs, uint64_t timeShiftBufferDepthInMs, uint64_t minUpdatePeriodInMs, uint32_t minBufferTimeInMs, const std::vector<std::string> &baseURLs, const std::string &id, int64_t initialOffsetInMs)
 	: AdaptiveStreamingCommon(type, segDurationInMs),
-	mpd(type == Live ? new gpacpp::MPD(GF_MPD_TYPE_DYNAMIC, id, "http://dashif.org/guidelines/dash264", minBufferTimeInMs ? minBufferTimeInMs : MIN_BUFFER_TIME_IN_MS_LIVE)
-		: new gpacpp::MPD(GF_MPD_TYPE_STATIC, id, "http://dashif.org/guidelines/dash264", minBufferTimeInMs ? minBufferTimeInMs : MIN_BUFFER_TIME_IN_MS_VOD)),
+	mpd(type == Live ? new gpacpp::MPD(GF_MPD_TYPE_DYNAMIC, id, g_profiles, minBufferTimeInMs ? minBufferTimeInMs : MIN_BUFFER_TIME_IN_MS_LIVE)
+		: new gpacpp::MPD(GF_MPD_TYPE_STATIC, id, g_profiles, minBufferTimeInMs ? minBufferTimeInMs : MIN_BUFFER_TIME_IN_MS_VOD)),
 	mpdDir(mpdDir), mpdPath(format("%s%s", mpdDir, mpdFilename)), baseURLs(baseURLs),
 	minUpdatePeriodInMs(minUpdatePeriodInMs ? minUpdatePeriodInMs : (segDurationInMs ? segDurationInMs : 1000)),
 	timeShiftBufferDepthInMs(timeShiftBufferDepthInMs), initialOffsetInMs(initialOffsetInMs), useSegmentTimeline(segDurationInMs == 0) {
