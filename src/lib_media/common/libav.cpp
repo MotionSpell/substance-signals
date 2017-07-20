@@ -247,11 +247,17 @@ void libavAudioCtx2pcmConvert(const AVCodecContext *codecCtx, PcmFormat *cfg) {
 
 	cfg->numChannels = cfg->numPlanes = codecCtx->channels;
 	switch (codecCtx->sample_fmt) {
-	case AV_SAMPLE_FMT_S16: cfg->numPlanes = 1;
+	case AV_SAMPLE_FMT_S16:
+		cfg->sampleFormat = Modules::S16;
+		cfg->numPlanes = 1;
+		break;
 	case AV_SAMPLE_FMT_S16P:
 		cfg->sampleFormat = Modules::S16;
 		break;
-	case AV_SAMPLE_FMT_FLT: cfg->numPlanes = 1;
+	case AV_SAMPLE_FMT_FLT:
+		cfg->sampleFormat = Modules::F32;
+		cfg->numPlanes = 1;
+		break;
 	case AV_SAMPLE_FMT_FLTP:
 		cfg->sampleFormat = Modules::F32;
 		break;
@@ -276,11 +282,17 @@ void libavFrame2pcmConvert(const AVFrame *frame, PcmFormat *cfg) {
 
 	cfg->numChannels = cfg->numPlanes = frame->channels;
 	switch (frame->format) {
-	case AV_SAMPLE_FMT_S16: cfg->numPlanes = 1;
+	case AV_SAMPLE_FMT_S16:
+		cfg->sampleFormat = Modules::S16;
+		cfg->numPlanes = 1;
+		break;
 	case AV_SAMPLE_FMT_S16P:
 		cfg->sampleFormat = Modules::S16;
 		break;
-	case AV_SAMPLE_FMT_FLT: cfg->numPlanes = 1;
+	case AV_SAMPLE_FMT_FLT:
+		cfg->sampleFormat = Modules::F32;
+		cfg->numPlanes = 1;
+		break;
 	case AV_SAMPLE_FMT_FLTP:
 		cfg->sampleFormat = Modules::F32;
 		break;
