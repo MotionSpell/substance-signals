@@ -36,8 +36,8 @@ void GPACMuxMPEG2TS::process() {
 	GF_M2TS_Mux *muxer = gf_m2ts_mux_new(mux_rate, psi_refresh_rate, real_time);
 
 	for (size_t i = 0; i < getNumInputs() - 1; ++i) {
-		Data data = inputs[0]->pop();
-		if (inputs[0]->updateMetadata(data))
+		Data data = inputs[i]->pop();
+		if (inputs[i]->updateMetadata(data))
 			declareStream(data);
 		auto encoderData = safe_cast<const DataAVPacket>(data);
 		printf("%p", muxer);
