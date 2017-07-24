@@ -7,19 +7,25 @@
 namespace Modules {
 namespace Mux {
 
-LibavMux::LibavMux(const std::string &baseName, const std::string &fmt, const std::string &options)
-	: optionsDict(typeid(*this).name(), options) {
-	/* setup container */
-	ffpp::Dict formatDict(typeid(*this).name(), "-format " + fmt);
-	AVOutputFormat *of = av_guess_format(formatDict.get("format")->value, nullptr, nullptr);
-	if (!of)
-		throw error("Couldn't guess container from file extension");
-	av_dict_free(&formatDict);
+void LibavMux::formatsList() {
+	Log::msg(Warning, "Output formats list:");
+	AVOutputFormat *fmt = nullptr;
+	while ((fmt = av_oformat_next(fmt))) {
+		Log::msg(Warning, "fmt->name=%s, fmt->mime_type=%s, fmt->extensions=%s", fmt->name ? fmt->name : "", fmt->mime_type ? fmt->mime_type : "", fmt->extensions ? fmt->extensions : "");
+	}
+}
 
-	/* output format context */
-	m_formatCtx = avformat_alloc_context();
+LibavMux::LibavMux(const std::string &baseName, const std::string &fmt, const std::string &options)
+	: m_formatCtx(avformat_alloc_context()), optionsDict(typeid(*this).name(), options) {
 	if (!m_formatCtx)
 		throw error("Format context couldn't be allocated.");
+
+	/* setup container */
+	AVOutputFormat *of = av_guess_format(fmt.c_str(), nullptr, nullptr);
+	if (!of) {
+		formatsList();
+		throw error("Couldn't guess output format. Check list above for supported ones.");
+	}
 	m_formatCtx->oformat = of;
 
 	std::stringstream fileName;
@@ -28,15 +34,15 @@ LibavMux::LibavMux(const std::string &baseName, const std::string &fmt, const st
 	std::string fileNameExt;
 	std::getline(formatExts, fileNameExt, ',');
 	fileName << "." << fileNameExt;
-
-	/* open the output file, if needed */
-	if (!(m_formatCtx->oformat->flags & AVFMT_NOFILE)) {
-		if (avio_open(&m_formatCtx->pb, fileName.str().c_str(), AVIO_FLAG_READ_WRITE) < 0) {
+	if (!(m_formatCtx->oformat->flags & AVFMT_NOFILE)) { /* open the output file, if needed */
+		if (avio_open2(&m_formatCtx->pb, fileName.str().c_str(), AVIO_FLAG_READ_WRITE, nullptr, &optionsDict) < 0) {
 			avformat_free_context(m_formatCtx);
 			throw error(format("could not open %s, disable output.", baseName));
 		}
 	}
 	strncpy(m_formatCtx->filename, fileName.str().c_str(), sizeof(m_formatCtx->filename));
+
+	av_dump_format(m_formatCtx, 0, baseName.c_str(), 1);
 
 	if (!fmt.compare(0, 5, "mpegts") || !fmt.compare(0, 3, "hls")) {
 		m_inbandMetadata = true;
@@ -82,7 +88,7 @@ void LibavMux::declareStream(Data data) {
 		throw error("Stream creation failed.");
 	if (avcodec_parameters_from_context(avStream->codecpar, metadata->getAVCodecContext()) < 0)
 		throw error("Stream parameters copy failed.");
-	avStream->codec->time_base = metadata->getAVCodecContext()->time_base;
+	avStream->time_base = avStream->codec->time_base = metadata->getAVCodecContext()->time_base;
 
 	auto input = addInput(new Input<DataAVPacket>(this));
 	if (metadataVideo) {
@@ -142,7 +148,7 @@ void LibavMux::process() {
 
 	/* timestamps */
 	assert(pkt->pts != (int64_t)AV_NOPTS_VALUE);
-	AVStream *avStream = m_formatCtx->streams[0]; //FIXME: fixed '0' for stream num: this is not a mux yet ;)
+	auto const avStream = m_formatCtx->streams[0]; //FIXME: fixed '0' for stream num: this is not a mux yet ;)
 	pkt->dts = av_rescale_q(pkt->dts, avStream->codec->time_base, avStream->time_base);
 	pkt->pts = av_rescale_q(pkt->pts, avStream->codec->time_base, avStream->time_base);
 	pkt->duration = (int64_t)av_rescale_q(pkt->duration, avStream->codec->time_base, avStream->time_base);

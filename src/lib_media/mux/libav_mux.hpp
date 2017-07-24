@@ -16,6 +16,7 @@ class LibavMux : public ModuleDynI {
 		void process() override;
 
 	private:
+		static void formatsList();
 		void ensureHeader();
 		AVPacket * getFormattedPkt(Data data);
 		void declareStream(Data stream);
