@@ -184,12 +184,15 @@ include $(ProjectName)/project.mk
 
 #------------------------------------------------------------------------------
 
+VER_CUR:=$(shell echo `cat src/version.cpp`)
+VER_NEW:=$(shell echo "const char *g_version = \"`git symbolic-ref HEAD 2> /dev/null | cut -b 12-`-`git log --pretty=format:\"%h\" -1`\";")
+
 version:
-	echo "const char *g_version = \"`git symbolic-ref HEAD 2> /dev/null | cut -b 12-`-`git log --pretty=format:\"%h\" -1`\";" > src/version.cpp
+	@if [ '$(VER_CUR)' != '$(VER_NEW)' ] ; then \
+		echo '$(VER_NEW)' > src/version.cpp; \
+	fi
 
 targets: version $(TARGETS)
-
-unit: $(TARGETS)
 
 #------------------------------------------------------------------------------
 
