@@ -159,7 +159,7 @@ if [ ! -f extra/release/curl/releaseOk ] ; then
 	$MAKE
 	$MAKE install
 	popd
-	touch extra/release/rapidjson/releaseOk
+	touch extra/release/curl/releaseOk
 fi
 
 echo "Done"
