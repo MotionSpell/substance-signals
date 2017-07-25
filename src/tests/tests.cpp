@@ -26,9 +26,17 @@ int RegisterTest(void (*fn)(), const char* testName, int&) {
 	return 0;
 }
 
+void listAll() {
+	for (int i = 0; i < g_NumTests; ++i) {
+		std::cout << "Test #" << i << ": " << g_AllTests[i].name << std::endl;
+	}
+}
+
 void Run(int i) {
-	if(i < 0 || i >= g_NumTests)
-		throw std::runtime_error("Invalid test index");
+	if (i < 0 || i >= g_NumTests) {
+		listAll();
+		throw std::runtime_error(format("Invalid test index %s", i));
+	}
 	std::cout << "----------------------------------------------------------------" << std::endl;
 	std::cout << "Test #" << i << ": " << g_AllTests[i].name << std::endl;
 	g_AllTests[i].fn();
@@ -38,12 +46,6 @@ void Run(int i) {
 void RunAll() {
 	for(int i=0; i < g_NumTests; ++i) {
 		Run(i);
-	}
-}
-
-void listAll() {
-	for(int i=0; i < g_NumTests; ++i) {
-		std::cout << "Test #" << i << ": " << g_AllTests[i].name << std::endl;
 	}
 }
 }
