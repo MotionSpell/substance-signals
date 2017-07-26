@@ -1,12 +1,9 @@
 OUTDIR:=$(BIN)/$(ProjectName)
+TESTOUTDIR:=$(CURDIR)/$(OUTDIR)
 
 TEST_COMMON_OBJ:=\
 	$(OUTDIR)/tests.o
 DEPS+=$(TEST_COMMON_OBJ:%.o=%.deps)
-
-$(BIN)/$(ProjectName)/signals_%.o: CFLAGS+=-DUNIT
-$(BIN)/$(ProjectName)/modules_%.o: CFLAGS+=-DUNIT
-$(BIN)/$(ProjectName)/utils_%.o: CFLAGS+=-DUNIT
 
 #---------------------------------------------------------------
 # test_utils.exe
@@ -19,6 +16,8 @@ EXE_UTILS_OBJS:=\
 DEPS+=$(EXE_UTILS_OBJS:%.o=%.deps)
 TARGETS+=$(OUTDIR)/test_utils.exe
 $(OUTDIR)/test_utils.exe: $(EXE_UTILS_OBJS)
+TESTS+=$(TESTOUTDIR)/test_utils.exe
+TESTS_DIR+=$(CURDIR)/$(SRC)/tests
 
 #---------------------------------------------------------------
 # test_signals.exe
@@ -29,6 +28,8 @@ EXE_SIGNALS_OBJS:=\
 DEPS+=$(EXE_SIGNALS_OBJS:%.o=%.deps)
 TARGETS+=$(OUTDIR)/test_signals.exe
 $(OUTDIR)/test_signals.exe: $(EXE_SIGNALS_OBJS)
+TESTS+=$(TESTOUTDIR)/test_signals.exe
+TESTS_DIR+=$(CURDIR)/$(SRC)/tests
 
 #---------------------------------------------------------------
 # test_modules.exe
@@ -42,6 +43,8 @@ EXE_MODULES_OBJS:=\
 DEPS+=$(EXE_MODULES_OBJS:%.o=%.deps)
 TARGETS+=$(OUTDIR)/test_modules.exe
 $(OUTDIR)/test_modules.exe: $(EXE_MODULES_OBJS)
+TESTS+=$(TESTOUTDIR)/test_modules.exe
+TESTS_DIR+=$(CURDIR)/$(SRC)/tests
 
 #---------------------------------------------------------------
 # test_pipeline.exe
@@ -56,16 +59,13 @@ EXE_PIPELINE_OBJS:=\
 DEPS+=$(EXE_PIPELINE_OBJS:%.o=%.deps)
 TARGETS+=$(OUTDIR)/test_pipeline.exe
 $(OUTDIR)/test_pipeline.exe: $(EXE_PIPELINE_OBJS)
+TESTS+=$(TESTOUTDIR)/test_pipeline.exe
+TESTS_DIR+=$(CURDIR)/$(SRC)/tests
 
 #---------------------------------------------------------------
 # run tests
 #---------------------------------------------------------------
+pairup=$(if $1$2, cd $(firstword $1) ; $(firstword $2) || exit ; $(call pairup,$(wordlist 2,$(words $1),$1),$(wordlist 2,$(words $2),$2)))
 
-TestProjectName:=$(ProjectName)
-TestOutDir:=$(CURDIR)/$(OUTDIR)
-
-run: unit
-	$(TestOutDir)/test_utils.exe
-	$(TestOutDir)/test_signals.exe
-	cd $(SRC)/tests ; $(TestOutDir)/test_modules.exe
-	cd $(SRC)/tests ; $(TestOutDir)/test_pipeline.exe
+run: targets
+	$(call pairup, $(TESTS_DIR), $(TESTS))
