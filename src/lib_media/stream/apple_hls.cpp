@@ -20,21 +20,33 @@ std::unique_ptr<Quality> Apple_HLS::createQuality() const {
 }
 
 void Apple_HLS::generateManifestMaster() {
-	playlistMaster.clear();
+	std::stringstream playlistMaster;
 	playlistMaster << "#EXTM3U" << std::endl;
 	playlistMaster << "#EXT-X-VERSION:3" << std::endl;
 	for (size_t i = 0; i < getNumInputs() - 1; ++i) {
 		auto quality = safe_cast<HLSQuality>(qualities[i].get());
-		playlistMaster << "#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=" << quality->avg_bitrate_in_bps << ",RESOLUTION=" << quality->meta->resolution[0] << "x" << quality->meta->resolution[1] << std::endl;
-		playlistMaster << i << ".m3u8" << std::endl;
+		playlistMaster << "#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=" << quality->avg_bitrate_in_bps;
+		switch (quality->meta->getStreamType()) {
+		case AUDIO_PKT:
+			playlistMaster << ",CODECS=" << "mp4a.40.5" /*TODO: quality->meta->getCodecName()*/ << std::endl;
+			playlistMaster << "a_" << i;
+			break;
+		case VIDEO_PKT: {
+			std::stringstream res; res << quality->meta->resolution[0] << "x" << quality->meta->resolution[1];
+			playlistMaster << ",RESOLUTION=" << res.str() << std::endl;
+			playlistMaster << "v_" << i << "_" << res.str();
+			break;
+		}
+		default:
+			assert(0);
+		}
+		playlistMaster << "_.m3u8" << std::endl;
 	}
+	std::ofstream mpl(playlistMasterPath, std::ofstream::out | std::ofstream::trunc);
+	mpl << playlistMaster.str();
+	mpl.close();
 
 	if (type == Live) {
-		std::ofstream mpl;
-		mpl.open(playlistMasterPath);
-		mpl << playlistMaster.str();
-		mpl.close();
-
 		auto out = outputManifest->getBuffer(0);
 		auto metadata = std::make_shared<MetadataFile>(playlistMasterPath, PLAYLIST, "", "", timescaleToClock(segDurationInMs, 1000), 0, 1, false);
 		out->setMetadata(metadata);
@@ -43,13 +55,16 @@ void Apple_HLS::generateManifestMaster() {
 }
 
 void Apple_HLS::updateManifestVoDVariants() {
+#ifndef LIBAVMUXHLS
 	for (size_t i = 0; i < getNumInputs() - 1; ++i) {
 		auto quality = safe_cast<HLSQuality>(qualities[i].get());
 		quality->segmentPaths.push_back(quality->meta->getFilename());
 	}
+#endif /*LIBAVMUXHLS*/
 }
 
 void Apple_HLS::generateManifestVariant() {
+#ifndef LIBAVMUXHLS
 	for (size_t i = 0; i < getNumInputs() - 1; ++i) {
 		auto quality = safe_cast<HLSQuality>(qualities[i].get());
 		quality->playlistVariant << "#EXTM3U" << std::endl;
@@ -73,6 +88,7 @@ void Apple_HLS::generateManifestVariant() {
 		out->setMetadata(metadata);
 		outputManifest->emit(out);
 	}
+#endif /*LIBAVMUXHLS*/
 }
 
 void Apple_HLS::generateManifest() {
