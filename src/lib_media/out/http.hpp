@@ -37,7 +37,7 @@ class HTTP : public ModuleDynI {
 			Stop,             //execute endOfSession()
 		};
 
-		void open(std::shared_ptr<const MetadataFile> meta);
+		bool open(std::shared_ptr<const MetadataFile> meta);
 		void clean();
 		void endOfStream();
 

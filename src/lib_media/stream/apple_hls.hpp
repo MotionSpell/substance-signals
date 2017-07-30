@@ -62,7 +62,7 @@ public:
 			outputSegment->emit(out);
 
 			out = outputManifest->getBuffer(0);
-			metadata = std::make_shared<MetadataFile>(format("%s.m3u8", segBasename), VIDEO_PKT, "", "", 0, 0, 1, false);
+			metadata = std::make_shared<MetadataFile>(format("%s.m3u8", segBasename), PLAYLIST, "", "", 0, 0, 1, false);
 			out->setMetadata(metadata);
 			outputManifest->emit(out);
 			segIdx++;

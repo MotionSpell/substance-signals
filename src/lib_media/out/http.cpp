@@ -92,7 +92,7 @@ void HTTP::process() {
 	}
 }
 
-void HTTP::open(std::shared_ptr<const MetadataFile> meta) {
+bool HTTP::open(std::shared_ptr<const MetadataFile> meta) {
 	if (!meta)
 		throw error(format("Unknown data received on input %s", curTransferedDataInputIndex));
 	assert(!curTransferedBs && !curTransferedFile);
@@ -101,12 +101,15 @@ void HTTP::open(std::shared_ptr<const MetadataFile> meta) {
 		curTransferedBs = gf_bs_new((const char*)curTransferedData->data(), curTransferedData->size(), GF_BITSTREAM_READ);
 	} else {
 		curTransferedFile = gf_fopen(fn.c_str(), "rb");
-		if (!curTransferedFile)
-			throw error(format("File %s cannot be opened", fn));
+		if (!curTransferedFile) {
+			log(Error, "File %s cannot be opened", fn);
+			return false;
+		}
 		curTransferedBs = gf_bs_from_file(curTransferedFile, GF_BITSTREAM_READ);
 	}
 	if (!curTransferedBs)
 		throw error("Bitstream cannot be created");
+	return true;
 }
 
 void HTTP::clean() {
@@ -131,9 +134,14 @@ size_t HTTP::staticCurlCallback(void *ptr, size_t size, size_t nmemb, void *user
 
 size_t HTTP::curlCallback(void *ptr, size_t size, size_t nmemb) {
 	if (state == RunNewConnection && curTransferedData) {
-		auto meta = safe_cast<const MetadataFile>(curTransferedData->getMetadata());
-		log(Debug, "reconnect: file %s", meta->getFilename());
-		gf_bs_seek(curTransferedBs, 0);
+		if (curTransferedBs) {
+			auto meta = safe_cast<const MetadataFile>(curTransferedData->getMetadata());
+			log(Debug, "reconnect: file %s", meta->getFilename());
+			gf_bs_seek(curTransferedBs, 0);
+		} else { /*we mmay be exiting because of an exception*/
+			curTransferedData = nullptr;
+			inputs[curTransferedDataInputIndex]->push(nullptr);
+		}
 	}
 
 	if (!curTransferedData) {
@@ -149,7 +157,9 @@ size_t HTTP::curlCallback(void *ptr, size_t size, size_t nmemb) {
 			}
 		}
 
-		open(safe_cast<const MetadataFile>(curTransferedData->getMetadata()));
+		if (!open(safe_cast<const MetadataFile>(curTransferedData->getMetadata()))) {
+			return 0;
+		}
 		if (state != RunNewConnection) {
 			state = RunNewFile; //on new connection, don't remove the ftyp/moov
 		}
@@ -206,7 +216,9 @@ void HTTP::threadProc() {
 				//TODO: perform transfer
 				break;
 			}
-			open(safe_cast<const MetadataFile>(curTransferedData->getMetadata()));
+			if (!open(safe_cast<const MetadataFile>(curTransferedData->getMetadata()))) {
+				return;
+			}
 			auto read = gf_bs_read_data(curTransferedBs, (char*)ptr, std::min<u32>((u32)gf_bs_available(curTransferedBs), (u32)transferSize)), fileSize = read;
 			while (read) {
 				read = gf_bs_read_data(curTransferedBs, (char*)ptr, std::min<u32>((u32)gf_bs_available(curTransferedBs), (u32)transferSize));
