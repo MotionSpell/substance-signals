@@ -70,7 +70,7 @@ LibavMux::~LibavMux() {
 	}
 }
 
-void LibavMux::declareStream(Data data) {
+void LibavMux::declareStream(Data data, size_t inputIdx) {
 	auto const metadata_ = data->getMetadata();
 	auto metadataVideo = std::dynamic_pointer_cast<const MetadataPktLibavVideo>(metadata_);
 	auto metadataAudio = std::dynamic_pointer_cast<const MetadataPktLibavAudio>(metadata_);
@@ -89,13 +89,7 @@ void LibavMux::declareStream(Data data) {
 	if (avcodec_parameters_from_context(avStream->codecpar, metadata->getAVCodecContext()) < 0)
 		throw error("Stream parameters copy failed.");
 	avStream->time_base = avStream->codec->time_base = metadata->getAVCodecContext()->time_base;
-
-	auto input = addInput(new Input<DataAVPacket>(this));
-	if (metadataVideo) {
-		input->setMetadata(new MetadataPktLibavVideo(metadataVideo->getAVCodecContext()));
-	} else if (metadataAudio) {
-		input->setMetadata(new MetadataPktLibavAudio(metadataAudio->getAVCodecContext()));
-	}
+	inputIdx2AvStream[inputIdx] = m_formatCtx->nb_streams - 1;
 }
 
 void LibavMux::ensureHeader() {
@@ -138,17 +132,22 @@ AVPacket * LibavMux::getFormattedPkt(Data data) {
 }
 
 void LibavMux::process() {
-	//FIXME: reimplement with multiple inputs
-	Data data = inputs[0]->pop();
-	if (inputs[0]->updateMetadata(data))
-		declareStream(data);
+	size_t inputIdx = 0;
+	Data data;
+	while (!inputs[inputIdx]->tryPop(data)) {
+		inputIdx++;
+	}
+	if (inputs[inputIdx]->updateMetadata(data))
+		declareStream(data, inputIdx);
+	if (m_formatCtx->nb_streams < inputs.size() - 1)
+		return;
 
 	ensureHeader();
 	auto pkt = getFormattedPkt(data);
 
 	/* timestamps */
 	assert(pkt->pts != (int64_t)AV_NOPTS_VALUE);
-	auto const avStream = m_formatCtx->streams[0]; //FIXME: fixed '0' for stream num: this is not a mux yet ;)
+	auto const avStream = m_formatCtx->streams[inputIdx2AvStream[inputIdx]];
 	pkt->dts = av_rescale_q(pkt->dts, avStream->codec->time_base, avStream->time_base);
 	pkt->pts = av_rescale_q(pkt->pts, avStream->codec->time_base, avStream->time_base);
 	pkt->duration = (int64_t)av_rescale_q(pkt->duration, avStream->codec->time_base, avStream->time_base);

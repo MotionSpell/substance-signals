@@ -19,9 +19,10 @@ class LibavMux : public ModuleDynI {
 		static void formatsList();
 		void ensureHeader();
 		AVPacket * getFormattedPkt(Data data);
-		void declareStream(Data stream);
+		void declareStream(Data stream, size_t inputIdx);
 
 		struct AVFormatContext *m_formatCtx;
+		std::map<size_t, size_t> inputIdx2AvStream;
 		std::unique_ptr<ffpp::IAvIO> m_avio = nullptr;
 		ffpp::Dict optionsDict;
 		bool m_headerWritten = false;

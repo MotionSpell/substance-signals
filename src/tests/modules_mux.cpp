@@ -10,38 +10,33 @@ using namespace Modules;
 
 namespace {
 
+#ifdef ENABLE_FAILING_TESTS
 unittest("remux test: GPAC mp4 mux") {
 	auto demux = uptr(create<Demux::LibavDemux>("data/beepbop.mp4"));
 	auto mux = uptr(create<Mux::GPACMuxMP4>("output_video_gpac"));
 	for (size_t i = 0; i < demux->getNumOutputs(); ++i) {
 		ConnectModules(demux.get(), i, mux.get(), i);
-		break; //FIXME: real mux not support yet
 	}
 
 	demux->process(nullptr);
 }
 
-#ifdef ENABLE_FAILING_TESTS
 //ffmpeg extradata seems to be different (non annex B ?) when output from the muxer
 unittest("remux test: libav mp4 mux") {
 	auto demux = uptr(create<Demux::LibavDemux>("data/beepbop.mp4"));
-	auto mux = uptr(create<Mux::LibavMux>("output_video_libav", "mp4"));
+	auto mux = uptr(create<Mux::LibavMux>("output_libav", "mp4"));
 	for (size_t i = 0; i < demux->getNumOutputs(); ++i) {
 		ConnectModules(demux.get(), i, mux.get(), i);
-		break; //FIXME: real mux not support yet
 	}
 
 	demux->process(nullptr);
 }
-#endif
 
-#ifdef ENABLE_FAILING_TESTS
 unittest("multiple inputs: send same packets to 2 GPAC mp4 mux inputs") {
-	//TODO
+	assert(0);//TODO
 }
-#endif
+#endif /*ENABLE_FAILING_TESTS*/
 
-//FIXME: enable all paths
 unittest("GPAC mp4 mux outputs combination coverage") {
 	auto demux = uptr(create<Demux::LibavDemux>("data/beepbop.mp4"));
 	const uint64_t segmentDurationInMs = 2000;
@@ -118,7 +113,7 @@ unittest("GPAC mp4 mux outputs combination coverage") {
 			ConnectModules(demux.get(), i, mux37.get(), 0);
 #endif
 
-			break; //FIXME: real mux not support yet
+			break;
 		}
 	}
 
