@@ -47,10 +47,10 @@ LibavEncode::LibavEncode(Type type, Params &params)
 	case Video: {
 		codecName = "vcodec";
 		ffpp::Dict customDict(typeid(*this).name(), params.avcodecCustom);
-                auto const pixFmt = customDict.get("pix_fmt");
-                if (pixFmt) {
-                        generalOptions += format(" -pix_fmt %s", pixFmt->value);
-                }
+		auto const pixFmt = customDict.get("pix_fmt");
+		if (pixFmt) {
+			generalOptions += format(" -pix_fmt %s", pixFmt->value);
+		}
 		auto const codec = customDict.get("vcodec");
 		if (codec) {
 			generalOptions += format(" -vcodec %s", codec->value);
@@ -91,7 +91,7 @@ LibavEncode::LibavEncode(Type type, Params &params)
 		}
 		av_dict_free(&customDict);
 		codecOptions += format(" -b %s -ar %s -ac %s", params.bitrate_a, params.sampleRate, params.numChannels);
-		generalOptions += " -acodec aac";
+		generalOptions += " -acodec aac -profile aac_low";
 		break;
 	}
 	default:
