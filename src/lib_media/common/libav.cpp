@@ -164,28 +164,16 @@ Resolution MetadataPktLibavVideo::getResolution() const {
 	return Resolution(codecCtx->width, codecCtx->height);
 }
 
-uint32_t MetadataPktLibavVideo::getTimeScaleNum() const {
-	if (codecCtx->time_base.num == 0)
-		throw std::runtime_error(format("Unsupported video time scale numerator \"%s\".", codecCtx->time_base.num));
-	return codecCtx->ticks_per_frame * codecCtx->time_base.num;
+Fraction MetadataPktLibavVideo::getTimeScale() const {
+	if (!codecCtx->time_base.den || !codecCtx->time_base.den)
+		throw std::runtime_error(format("Unsupported video time scale %s/%s.", codecCtx->time_base.den, codecCtx->time_base.num));
+	return Fraction(codecCtx->time_base.den, codecCtx->time_base.num);
 }
 
-uint32_t MetadataPktLibavVideo::getTimeScaleDen() const {
-	if (codecCtx->time_base.den == 0)
-		throw std::runtime_error(format("Unsupported video time scale denumerator\"%s\".", codecCtx->time_base.den));
-	return codecCtx->time_base.den;
-}
-
-uint32_t MetadataPktLibavVideo::getFrameRateNum() const {
-	if (codecCtx->framerate.num == 0)
-		throw std::runtime_error(format("Unsupported video frame rate numerator \"%s\".", codecCtx->framerate.num));
-	return codecCtx->framerate.num;
-}
-
-uint32_t MetadataPktLibavVideo::getFrameRateDen() const {
-	if (codecCtx->framerate.den == 0)
-		throw std::runtime_error(format("Unsupported video frame rate denumerator\"%s\".", codecCtx->framerate.den));
-	return codecCtx->framerate.den;
+Fraction MetadataPktLibavVideo::getFrameRate() const {
+	if (!codecCtx->framerate.den || !codecCtx->framerate.den)
+		throw std::runtime_error(format("Unsupported video frame rate %s/%s.", codecCtx->framerate.den, codecCtx->framerate.num));
+	return Fraction(codecCtx->framerate.den, codecCtx->framerate.num);
 }
 
 void MetadataPktLibavVideo::getExtradata(const uint8_t *&extradata, size_t &extradataSize) const {

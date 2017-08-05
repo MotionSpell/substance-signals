@@ -45,10 +45,8 @@ class MetadataPktLibavVideo : public MetadataPktLibav {
 		MetadataPktLibavVideo(AVCodecContext *codecCtx, int id = -1) : MetadataPktLibav(codecCtx, id) {}
 		PixelFormat getPixelFormat() const;
 		Resolution getResolution() const;
-		uint32_t getTimeScaleNum() const;
-		uint32_t getTimeScaleDen() const;
-		uint32_t getFrameRateNum() const;
-		uint32_t getFrameRateDen() const;
+		Fraction getTimeScale() const;
+		Fraction getFrameRate() const;
 		void getExtradata(const uint8_t *&extradata, size_t &extradataSize) const;
 };
 

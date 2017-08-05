@@ -36,8 +36,7 @@ class LibavEncode : public ModuleS {
 			Resolution res = VIDEO_RESOLUTION;
 			int bitrate_v = 300000;
 			int GOPSize = 25;
-			int frameRateNum = 25;
-			int frameRateDen = 1;
+			Fraction frameRate = Fraction(25, 1);
 			bool isLowLatency = false;
 			VideoCodecType codecType = Software;
 			PixelFormat pixelFormat = UNKNOWN_PF; //set by the encoder

@@ -11,6 +11,18 @@
 // Example: auto g_InitAv = runAtStartup(&av_register_all);
 struct DummyStruct {};
 
+//Romain: template<typename T = int>
+struct Fraction {
+	Fraction(int num, int den) : num(num), den(den) {
+	}
+	operator double() const {
+		return (double)num / den;
+	}
+
+	int num;
+	int den;
+};
+
 template<class R, class... Args>
 DummyStruct runAtStartup(R f(Args...), Args... argVal) {
 	f(argVal...);

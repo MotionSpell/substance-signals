@@ -76,7 +76,7 @@ LibavEncode::LibavEncode(Type type, Params &params)
 		default:
 			throw error("Unknown video encoder type. Failed.");
 		}
-		generalOptions += format(" -r %s/%s -pass 1", params.frameRateNum, params.frameRateDen);
+		generalOptions += format(" -r %s/%s -pass 1", params.frameRate.num, params.frameRate.den);
 		codecOptions += format(" -b %s -g %s -keyint_min %s -bf 0 -sc_threshold 0", params.bitrate_v, params.GOPSize, params.GOPSize);
 		break;
 	}
@@ -136,7 +136,7 @@ LibavEncode::LibavEncode(Type type, Params &params)
 		params.pixelFormat = libavPixFmt2PixelFormat(codecCtx->pix_fmt);
 
 		AVRational fps;
-		fps2NumDen((double)params.frameRateNum/params.frameRateDen, fps.den, fps.num); //for FPS, num and den are inverted
+		fps2NumDen(params.frameRate, fps.den, fps.num); //for FPS, num and den are inverted
 		codecCtx->time_base = fps;
 	}
 	break;
