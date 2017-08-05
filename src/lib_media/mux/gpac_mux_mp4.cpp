@@ -508,7 +508,7 @@ void GPACMuxMP4::startFragment(uint64_t DTS, uint64_t PTS) {
 			}
 
 			if (!(compatFlags & Browsers)) {
-				e = gf_isom_set_fragment_reference_time(isoCur, trackId, UTC2NTP(DataBase::absUTCOffsetInMs) + PTS, PTS);
+				e = gf_isom_set_fragment_reference_time(isoCur, trackId, UTC2NTP(firstDataAbsTimeInMs) + PTS, PTS);
 				if (e != GF_OK)
 					throw error(format("Impossible to create UTC marquer: %s", gf_error_to_string(e)));
 			}
@@ -528,7 +528,7 @@ void GPACMuxMP4::closeFragment() {
 				return;
 			}
 			auto const deltaInTs = DTS == curSegmentDurInTs ? defaultSampleIncInTs : 0;
-			GF_Err e = gf_isom_set_traf_mss_timeext(isoCur, trackId, convertToTimescale((uint64_t)DataBase::absUTCOffsetInMs, 1000, mediaTs) + DTS - curSegmentDurInTs - defaultSampleIncInTs + deltaInTs, curSegmentDurInTs - deltaInTs);
+			GF_Err e = gf_isom_set_traf_mss_timeext(isoCur, trackId, convertToTimescale(firstDataAbsTimeInMs, 1000, mediaTs) + DTS - curSegmentDurInTs - defaultSampleIncInTs + deltaInTs, curSegmentDurInTs - deltaInTs);
 			if (e != GF_OK)
 				throw error(format("Impossible to create UTC marquer: %s", gf_error_to_string(e)));
 		}
@@ -751,7 +751,7 @@ void GPACMuxMP4::declareStreamVideo(std::shared_ptr<const MetadataPktLibavVideo>
 void GPACMuxMP4::declareInput(std::shared_ptr<const MetadataPktLibav> metadata) {
 	setupFragments();
 	if (segmentDurationIn180k && !(compatFlags & SegNumStartsAtZero)) {
-		segmentNum = DataBase::absUTCOffsetInMs / clockToTimescale(segmentDurationIn180k, 1000) - 1;
+		segmentNum = firstDataAbsTimeInMs / clockToTimescale(segmentDurationIn180k, 1000) - 1;
 	}
 	startSegment();
 	startFragment(0, 0);
@@ -773,7 +773,7 @@ void GPACMuxMP4::declareStream(Data data) {
 	}
 	declareInput(safe_cast<const MetadataPktLibav>(metadata));
 
-	lastInputTimeIn180k = data->getTime();
+	lastInputTimeIn180k = data->getMediaTime();
 	if (lastInputTimeIn180k) { /*first timestamp is not zero*/
 		auto const edts = clockToTimescale(lastInputTimeIn180k, gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId)));
 		gf_isom_set_edit_segment(isoCur, gf_isom_get_track_by_id(isoCur, trackId), 0, edts, 0, GF_ISOM_EDIT_EMPTY);
@@ -835,7 +835,7 @@ void GPACMuxMP4::sendOutput() {
 	}
 	out->setMetadata(metadata);
 	auto const deltaInTs = DTS == curSegmentDurInTs ? defaultSampleIncInTs : 0;
-	out->setTime(timescaleToClock((uint64_t)DataBase::absUTCOffsetInMs, 1000) + timescaleToClock(DTS - curSegmentDurInTs - defaultSampleIncInTs + deltaInTs, mediaTs));
+	out->setTime(timescaleToClock(firstDataAbsTimeInMs, 1000) + timescaleToClock(DTS - curSegmentDurInTs - defaultSampleIncInTs + deltaInTs, mediaTs));
 	prevDTS = DTS;
 	output->emit(out);
 }
@@ -940,23 +940,25 @@ void GPACMuxMP4::process() {
 	Data data = inputs[0]->pop();
 	if (inputs[0]->updateMetadata(data))
 		declareStream(data);
+	if (!firstDataAbsTimeInMs)
+		firstDataAbsTimeInMs = data->getAbsTime(1000);
 	auto sample = fillSample(data);
 
 	auto const mediaTs = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
-	int64_t dataDurationInTs = clockToTimescale(data->getTime() - lastInputTimeIn180k, mediaTs);
-	if (DTS && !data->getTime()) {
+	int64_t dataDurationInTs = clockToTimescale(data->getMediaTime() - lastInputTimeIn180k, mediaTs);
+	if (DTS && !data->getMediaTime()) {
 		lastInputTimeIn180k += defaultSampleIncInTs;
 		dataDurationInTs = defaultSampleIncInTs;
 		log(Warning, "Received time 0 but inferring it to %s", lastInputTimeIn180k);
 	} else {
-		lastInputTimeIn180k = data->getTime();
+		lastInputTimeIn180k = data->getMediaTime();
 	}
 
 	//TODO: make tests and integrate in a module, see #18
 #ifndef DURATION_KEEP_LAST_DATA
 	if (DTS && (dataDurationInTs - defaultSampleIncInTs != 0)) {
 		/*VFR: computing current sample duration from previous*/
-		dataDurationInTs = clockToTimescale(data->getTime(), mediaTs) - (DTS + deltaInTs) + dataDurationInTs;
+		dataDurationInTs = clockToTimescale(data->getMediaTime(), mediaTs) - (DTS + deltaInTs) + dataDurationInTs;
 		if (dataDurationInTs <= 0) {
 			dataDurationInTs = 1;
 		}
@@ -965,7 +967,7 @@ void GPACMuxMP4::process() {
 #else
 	/*wait to have two samples - FIXME: should be in a separate class + last segment is never processed (should be in flush()) (execute tests to trigger issue)*/
 	if (lastData) {
-		dataDurationInTs = clockToTimescale(data->getTime()-lastData->getTime(), mediaTs);
+		dataDurationInTs = clockToTimescale(data->getMediaTime()-lastData->getMediaTime(), mediaTs);
 	} else {
 		lastData = data;
 		return; //FIXME: we lose 'sample' i.e. skip the first data

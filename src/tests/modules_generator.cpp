@@ -29,13 +29,12 @@ unittest("video generator") {
 	std::vector<int> times;
 	auto onFrame = [&](Data data) {
 		auto rawData = safe_cast<const DataPicture>(data);
-		times.push_back((int)rawData->getTime());
+		times.push_back((int)rawData->getMediaTime());
 		render->process(rawData);
 	};
-
 	Connect(videoGen->getOutput(0)->getSignal(), onFrame);
 
-	for(int i=0; i < 50; ++i) {
+	for (int i = 0; i < 50; ++i) {
 		videoGen->process(nullptr);
 	}
 

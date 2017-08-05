@@ -46,17 +46,17 @@ unittest("restamp: passthru with offsets") {
 	data->setTime(time);
 	auto restamp = uptr(create<Transform::Restamp>(Transform::Restamp::Reset));
 	restamp->process(data);
-	ASSERT_EQUALS(0, data->getTime());
+	ASSERT_EQUALS(0, data->getMediaTime());
 
 	data->setTime(time);
 	restamp = uptr(create<Transform::Restamp>(Transform::Restamp::Reset, 0));
 	restamp->process(data);
-	ASSERT_EQUALS(0, data->getTime());
+	ASSERT_EQUALS(0, data->getMediaTime());
 
 	data->setTime(time);
 	restamp = uptr(create<Transform::Restamp>(Transform::Restamp::Reset, time));
 	restamp->process(data);
-	ASSERT_EQUALS(time, data->getTime());
+	ASSERT_EQUALS(time, data->getMediaTime());
 }
 
 unittest("restamp: reset with offsets") {
@@ -67,22 +67,22 @@ unittest("restamp: reset with offsets") {
 	data->setTime(time);
 	auto restamp = uptr(create<Transform::Restamp>(Transform::Restamp::Passthru));
 	restamp->process(data);
-	ASSERT_EQUALS(time, data->getTime());
+	ASSERT_EQUALS(time, data->getMediaTime());
 
 	data->setTime(time);
 	restamp = uptr(create<Transform::Restamp>(Transform::Restamp::Passthru, 0));
 	restamp->process(data);
-	ASSERT_EQUALS(time, data->getTime());
+	ASSERT_EQUALS(time, data->getMediaTime());
 
 	data->setTime(time);
 	restamp = uptr(create<Transform::Restamp>(Transform::Restamp::Passthru, offset));
 	restamp->process(data);
-	ASSERT_EQUALS(time + offset, data->getTime());
+	ASSERT_EQUALS(time + offset, data->getMediaTime());
 
 	data->setTime(time);
 	restamp = uptr(create<Transform::Restamp>(Transform::Restamp::Passthru, time));
 	restamp->process(data);
-	ASSERT_EQUALS(time+time, data->getTime());
+	ASSERT_EQUALS(time+time, data->getMediaTime());
 }
 
 }

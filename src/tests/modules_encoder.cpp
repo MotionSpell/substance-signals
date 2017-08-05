@@ -42,7 +42,7 @@ unittest("encoder: timestamps start at random values") {
 
 	size_t i = 0;
 	auto onFrame = [&](Data data) {
-		ASSERT(data->getTime() + times[0] == times[i]);
+		ASSERT(data->getMediaTime() + times[0] == times[i]);
 		i++;
 	};
 	auto demux = uptr(create<Demux::LibavDemux>("random_ts.mp4"));

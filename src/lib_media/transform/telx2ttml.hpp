@@ -38,7 +38,7 @@ private:
 	std::string lang;
 	const TimingPolicy timingPolicy;
 	const uint64_t splitDurationIn180k;
-	uint64_t intClock = 0, extClock = 0, delayIn180k = 2 * Clock::Rate;
+	uint64_t intClock = 0, extClock = 0, delayIn180k = 2 * Clock::Rate, firstDataAbsTimeInMs = 0;
 	std::list<std::unique_ptr<Page>> currentPages;
 };
 

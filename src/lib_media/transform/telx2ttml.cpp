@@ -93,7 +93,7 @@ const std::string TeletextToTTML::toTTML(uint64_t startTimeInMs, uint64_t endTim
 
 	int64_t offset;
 	switch (timingPolicy) {
-	case AbsoluteUTC: offset = USP_ROUNDUP((int64_t)DataBase::absUTCOffsetInMs); break;
+	case AbsoluteUTC: offset = USP_ROUNDUP((int64_t)firstDataAbsTimeInMs); break;
 	case RelativeToMedia: offset = 0; break;
 	case RelativeToSplit: offset = -1 * startTimeInMs; break;
 	default: throw error("Unknown timing policy (1)");
@@ -1029,13 +1029,15 @@ void TeletextToTTML::sendSample(const std::string &sample) {
 }
 
 void TeletextToTTML::process(Data data) {
+	if (!firstDataAbsTimeInMs)
+		firstDataAbsTimeInMs = data->getAbsTime(1000);
 	//TODO
 	//14. add flush() for ondemand samples
 	//15. UTF8 to TTML formatting? accent + EOLs </br>
 	auto sub = safe_cast<const DataAVPacket>(data);
 	output->setMetadata(data->getMetadata());
 	if (!sub->size()) { //on sparse stream, we may be regularly awaken: generate samples when needed
-		extClock = sub->getTime();
+		extClock = sub->getMediaTime();
 		const int64_t prevSplit = (intClock / splitDurationIn180k) * splitDurationIn180k;
 		const int64_t nextSplit = prevSplit + splitDurationIn180k;
 		if ((int64_t)(extClock - delayIn180k) > nextSplit) {
@@ -1066,8 +1068,8 @@ void TeletextToTTML::process(Data data) {
 				if (page) {
 					auto const codecCtx = safe_cast<const MetadataPktLibav>(data->getMetadata())->getAVCodecContext();
 					log(Debug, "frames_produced %s, show=%s, hide=%s", page->frames_produced, convertToTimescale(page->show_timestamp * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000), convertToTimescale(page->hide_timestamp * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000));
-					if (data->getTime() < intClock) {
-						log(Warning, "Timing error: received %s but internal clock is already at %s", data->getTime(), intClock);
+					if (data->getMediaTime() < intClock) {
+						log(Warning, "Timing error: received %s but internal clock is already at %s", data->getMediaTime(), intClock);
 					}
 
 					auto const startTimeInMs = std::max<int64_t>(convertToTimescale(pkt->pts * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000), convertToTimescale(page->show_timestamp * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000));

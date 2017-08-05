@@ -95,7 +95,7 @@ void SDLAudio::push(Data data) {
 
 	std::lock_guard<std::mutex> lg(m_Mutex);
 	if(m_Fifo.bytesToRead() == 0) {
-		m_FifoTime = pcmData->getTime() + PREROLL_DELAY;
+		m_FifoTime = pcmData->getMediaTime() + PREROLL_DELAY;
 	}
 	for (int i = 0; i < pcmData->getFormat().numPlanes; ++i)
 		m_Fifo.write(pcmData->getPlane(i), (size_t)pcmData->getPlaneSize(i));

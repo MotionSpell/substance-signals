@@ -203,7 +203,7 @@ void LibavDemux::setTime(std::shared_ptr<DataAVPacket> data) {
 	data->setTime(time);
 
 	restampers[pkt->stream_index]->process(data); /*restamp by pid only when no start time*/
-	int64_t offset = data->getTime() - time;
+	int64_t offset = data->getMediaTime() - time;
 	if (offset != 0) {
 		data->restamp(offset * base.num, base.den); /*propagate to AVPacket*/
 	}

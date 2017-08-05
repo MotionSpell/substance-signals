@@ -34,7 +34,7 @@ public:
 		delegate->getInput(0)->push(data);
 		delegate->process();
 
-		const int64_t PTS = data->getTime();
+		const int64_t PTS = data->getMediaTime();
 		if (firstPTS == -1) {
 			firstPTS = PTS;
 		}

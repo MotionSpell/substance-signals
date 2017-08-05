@@ -68,7 +68,7 @@ void AudioConvert::process(Data data) {
 			} else {
 				throw error("Incompatible input audio data.");
 			}
-			accumulatedTimeInDstSR = clockToTimescale(data->getTime(), srcPcmFormat.sampleRate);
+			accumulatedTimeInDstSR = clockToTimescale(data->getMediaTime(), srcPcmFormat.sampleRate);
 		}
 
 		srcNumSamples = audioData->size() / audioData->getFormat().getBytesPerSample();

@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <memory>
 #include <vector>
+#include "clock.hpp"
 
 namespace Modules {
 
@@ -22,14 +23,12 @@ class DataBase {
 
 		std::shared_ptr<const IMetadata> getMetadata() const;
 		void setMetadata(std::shared_ptr<const IMetadata> metadata);
-		void setTime(uint64_t timeIn180k);
-		void setTime(uint64_t time, uint64_t timescale);
-		uint64_t getTime() const;
-
-		static std::atomic<uint64_t> absUTCOffsetInMs;
+		void setTime(uint64_t timeIn180k, uint64_t timescale = Clock::Rate);
+		uint64_t getMediaTime() const;
+		uint64_t getAbsTime(uint64_t timescale = Clock::Rate) const;
 
 	private:
-		uint64_t m_timeIn180k = 0;
+		uint64_t timeIn180k = 0, absUTCOffsetInMs = 0;
 		std::shared_ptr<const IMetadata> m_metadata;
 };
 

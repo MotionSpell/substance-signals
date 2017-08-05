@@ -11,7 +11,6 @@
 // Example: auto g_InitAv = runAtStartup(&av_register_all);
 struct DummyStruct {};
 
-//Romain: template<typename T = int>
 struct Fraction {
 	Fraction(int num, int den) : num(num), den(den) {
 	}

@@ -55,7 +55,7 @@ LibavFilter::~LibavFilter() {
 }
 
 void LibavFilter::process(Data data) {
-	times.push(data->getTime());
+	times.push(data->getMediaTime());
 	const auto pic = safe_cast<const DataPicture>(data);
 	avFrameIn->get()->pict_type = AV_PICTURE_TYPE_NONE;
 	AVPixelFormat avpf; pixelFormat2libavPixFmt(pic->getFormat().format, avpf); avFrameIn->get()->format = (int)avpf;

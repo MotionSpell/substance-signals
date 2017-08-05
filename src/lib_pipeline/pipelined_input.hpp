@@ -38,7 +38,7 @@ class PipelinedInput : public IInput {
 		void process() override {
 			auto data = pop();
 			if (data) {
-				auto const dataTime = data->getTime();
+				auto const dataTime = data->getMediaTime();
 				if (!dynamic_cast<EXECUTOR_SYNC*>(executor)) {
 					regulate(dataTime);
 				}

@@ -17,10 +17,10 @@ void Restamp::process(Data data) {
 	uint64_t time;
 	switch (mode) {
 	case Passthru:
-		time = data->getTime();
+		time = data->getMediaTime();
 		break;
 	case Reset:
-		time = data->getTime();
+		time = data->getMediaTime();
 		if (!isInitTime) {
 			isInitTime = true;
 			offset -= time;
@@ -44,13 +44,13 @@ void Restamp::process(Data data) {
 
 	if ((int64_t)(time + offset) < 0) {
 		if (time < 2 * IClock::Rate) {
-			log(Error, "reset offset [%s -> %ss (time=%s, offset=%s)]", (double)data->getTime() / IClock::Rate, (double)(std::max<int64_t>(0, time + offset)) / IClock::Rate, time, offset);
+			log(Error, "reset offset [%s -> %ss (time=%s, offset=%s)]", (double)data->getMediaTime() / IClock::Rate, (double)(std::max<int64_t>(0, time + offset)) / IClock::Rate, time, offset);
 			offset = 0;
 		}
 	}
 
 	auto const restampedTime = std::max<int64_t>(0, time + offset);
-	log(((time != 0) && ((int64_t)time + offset < 0)) ? Info : Debug, "%s -> %ss (time=%s, offset=%s)", (double)data->getTime() / IClock::Rate, (double)(restampedTime) / IClock::Rate, time, offset);
+	log(((time != 0) && ((int64_t)time + offset < 0)) ? Info : Debug, "%s -> %ss (time=%s, offset=%s)", (double)data->getMediaTime() / IClock::Rate, (double)(restampedTime) / IClock::Rate, time, offset);
 	const_cast<DataBase*>(data.get())->setTime(restampedTime); //FIXME: we should have input&output on the same allocator
 	getOutput(0)->emit(data);
 }

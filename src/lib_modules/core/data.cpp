@@ -4,8 +4,6 @@
 
 namespace Modules {
 
-std::atomic<uint64_t> DataBase::absUTCOffsetInMs(0);
-
 std::shared_ptr<const IMetadata> DataBase::getMetadata() const {
 	return m_metadata;
 }
@@ -14,19 +12,19 @@ void DataBase::setMetadata(std::shared_ptr<const IMetadata> metadata) {
 	m_metadata = metadata;
 }
 
-void DataBase::setTime(uint64_t timeIn180k) {
-	m_timeIn180k = timeIn180k;
+void DataBase::setTime(uint64_t timeIn180k, uint64_t timescale) {
+	this->timeIn180k = timescaleToClock(timeIn180k, timescale);
 	if (!absUTCOffsetInMs) {
 		absUTCOffsetInMs = getUTCInMs();
 	}
 }
 
-void DataBase::setTime(uint64_t time, uint64_t timescale) {
-	m_timeIn180k = timescaleToClock(time, timescale);
+uint64_t DataBase::getMediaTime() const {
+	return timeIn180k;
 }
 
-uint64_t DataBase::getTime() const {
-	return m_timeIn180k;
+uint64_t DataBase::getAbsTime(uint64_t timescale) const {
+	return timescaleToClock(absUTCOffsetInMs, timescale);
 }
 
 uint8_t* DataRaw::data() {

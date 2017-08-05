@@ -44,7 +44,7 @@ void AdaptiveStreamingCommon::threadProc() {
 					throw error(format("Unknown data received on input %s", i));
 				qualities[i]->avg_bitrate_in_bps = ((qualities[i]->meta->getSize() * 8) / (segDurationInMs / 1000.0) + qualities[i]->avg_bitrate_in_bps * numSeg) / (numSeg + 1);
 				if (!i) curSegDurInMs = segDurationInMs ? segDurationInMs : clockToTimescale(qualities[i]->meta->getDuration(), 1000);
-				if (!startTimeInMs) startTimeInMs = clockToTimescale(data->getTime(), 1000);
+				if (!startTimeInMs) startTimeInMs = clockToTimescale(data->getMediaTime(), 1000);
 			}
 		}
 		if (!data) {
@@ -55,7 +55,7 @@ void AdaptiveStreamingCommon::threadProc() {
 		if (!startTimeInMs) startTimeInMs = gf_net_get_utc() - curSegDurInMs;
 		generateManifest();
 		totalDurationInMs += curSegDurInMs;
-		log(Info, "Processes segment (total processed: %ss, UTC: %s (deltaAST=%s, deltaInput=%s).", (double)totalDurationInMs / 1000, gf_net_get_utc(), gf_net_get_utc() - startTimeInMs, (int64_t)(gf_net_get_utc() - clockToTimescale(data->getTime(), 1000)));
+		log(Info, "Processes segment (total processed: %ss, UTC: %s (deltaAST=%s, deltaInput=%s).", (double)totalDurationInMs / 1000, gf_net_get_utc(), gf_net_get_utc() - startTimeInMs, (int64_t)(gf_net_get_utc() - clockToTimescale(data->getMediaTime(), 1000)));
 
 		if (type == Live) {
 			const int64_t dur = startTimeInMs + totalDurationInMs - gf_net_get_utc();

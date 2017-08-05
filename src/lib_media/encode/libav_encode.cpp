@@ -214,7 +214,7 @@ bool LibavEncode::processAudio(const DataPcm *data) {
 	if (data) {
 		f = avFrame->get();
 		libavFrameDataConvert(data, f);
-		f->pts = (data->getTime() * codecCtx->time_base.den) / (codecCtx->time_base.num * Clock::Rate);
+		f->pts = (data->getMediaTime() * codecCtx->time_base.den) / (codecCtx->time_base.num * Clock::Rate);
 	}
 
 	int gotPkt = 0;
@@ -250,7 +250,7 @@ bool LibavEncode::processVideo(const DataPicture *pic) {
 			f->data[i] = (uint8_t*)pic->getPlane(i);
 			f->linesize[i] = (int)pic->getPitch(i);
 		}
-		f->pts = (pic->getTime() * codecCtx->time_base.den) / (codecCtx->time_base.num * Clock::Rate);
+		f->pts = (pic->getMediaTime() * codecCtx->time_base.den) / (codecCtx->time_base.num * Clock::Rate);
 	}
 
 	int gotPkt = 0;

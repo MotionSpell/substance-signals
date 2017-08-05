@@ -46,7 +46,7 @@ std::ostream& Log::get(Level level) {
 	}
 }
 
-std::string Log::getTime() {
+std::string Log::getMediaTime() {
 	char szOut[255];
 	const std::time_t t = std::time(nullptr);
 	std::tm tm = *std::localtime(&t);
