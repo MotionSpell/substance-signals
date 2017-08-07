@@ -1,1 +1,1 @@
-const char *g_version = "firekast-bb40577";
+const char *g_version = "firekast-50eeb3a";

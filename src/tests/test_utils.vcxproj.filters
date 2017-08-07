@@ -12,6 +12,9 @@
     <ClCompile Include="utils_queue.cpp">
       <Filter>tests</Filter>
     </ClCompile>
+    <ClCompile Include="utils_scheduler.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="tests.hpp" />

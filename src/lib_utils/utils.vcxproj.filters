@@ -23,6 +23,7 @@
     <ClInclude Include="threadpool.hpp" />
     <ClInclude Include="time.hpp" />
     <ClInclude Include="resolution.hpp" />
+    <ClInclude Include="scheduler.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="gpacpp">

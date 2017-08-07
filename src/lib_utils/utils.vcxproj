@@ -45,6 +45,7 @@
     <ClInclude Include="profiler.hpp" />
     <ClInclude Include="queue.hpp" />
     <ClInclude Include="resolution.hpp" />
+    <ClInclude Include="scheduler.hpp" />
     <ClInclude Include="threadpool.hpp" />
     <ClInclude Include="time.hpp" />
     <ClInclude Include="tools.hpp" />
