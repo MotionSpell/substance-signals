@@ -3,9 +3,22 @@
   <ItemGroup>
     <ClCompile Include="tests.cpp" />
     <ClCompile Include="utils.cpp" />
-    <ClCompile Include="utils_fifo.cpp" />
+    <ClCompile Include="utils_fifo.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="utils_misc.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="utils_queue.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="tests.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="tests">
+      <UniqueIdentifier>{282707f6-1f59-431a-b93d-f6b79fb108cf}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>

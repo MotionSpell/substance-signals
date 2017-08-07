@@ -1,10 +1,8 @@
 #include "tests.hpp"
-#include "lib_modules/modules.hpp"
 #include "lib_utils/fifo.hpp"
 #include "lib_utils/tools.hpp"
 
 using namespace Tests;
-using namespace Modules;
 
 unittest("fifo") {
 	GenericFifo<char> fp;

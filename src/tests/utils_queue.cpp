@@ -1,8 +1,8 @@
 #include "tests.hpp"
-#include "lib_signals/signals.hpp"
+#include "lib_utils/queue.hpp"
+#include <thread>
 
 using namespace Tests;
-using namespace Signals;
 
 namespace {
 

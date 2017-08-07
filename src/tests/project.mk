@@ -10,7 +10,6 @@ DEPS+=$(TEST_COMMON_OBJ:%.o=%.deps)
 #---------------------------------------------------------------
 EXE_UTILS_OBJS:=\
 	$(OUTDIR)/utils.o\
-	$(OUTDIR)/utils_fifo.o\
 	$(LIB_UTILS_OBJS)\
 	$(TEST_COMMON_OBJ)
 DEPS+=$(EXE_UTILS_OBJS:%.o=%.deps)

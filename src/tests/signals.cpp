@@ -5,7 +5,6 @@
 //#define ENABLE_FAILING_TESTS
 //#define ENABLE_PERF_TESTS
 
-#include "signals_queue.cpp"
 #include "signals_unit_result.cpp"
 #include "signals_simple.cpp"
 #include "signals_module.cpp"
