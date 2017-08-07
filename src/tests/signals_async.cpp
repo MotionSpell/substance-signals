@@ -9,33 +9,33 @@ using namespace Signals;
 namespace {
 
 int sleepAndDummy(int ms, int a) {
-	Util::sleepInMs(ms);
+	sleepInMs(ms);
 	return a;
 }
 
 unittest("destroy on execution") {
 	Signal<void(int)> sig;
-	sig.connect(Util::sleepInMs);
+	sig.connect(sleepInMs);
 	sig.emit(1000);
 }
 
 unittest("disconnect before execution") {
 	Signal<void(int)> sig;
-	size_t uid = sig.connect(Util::sleepInMs);
+	size_t uid = sig.connect(sleepInMs);
 	sig.disconnect(uid);
 	sig.emit(1000);
 }
 
 unittest("disconnect on execution") {
 	Signal<void(int)> sig;
-	size_t uid = sig.connect(Util::sleepInMs);
+	size_t uid = sig.connect(sleepInMs);
 	sig.emit(1000);
 	sig.disconnect(uid);
 }
 
 unittest("as many results as emit() calls") {
 	Signal<int(int)> sig;
-	sig.connect(Util::dummy);
+	sig.connect(dummy);
 	sig.emit(27);
 	sig.emit(1789);
 	auto res = sig.results();

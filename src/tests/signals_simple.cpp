@@ -6,7 +6,7 @@ using namespace Signals;
 
 namespace {
 int dummy2(int a) {
-	return Util::dummy(1 + Util::dummy(a));
+	return dummy(1 + dummy(a));
 }
 
 unittest("signals_simple") {
@@ -20,7 +20,7 @@ unittest("signals_simple") {
 	}
 
 	Test("connect");
-	size_t id = sig.connect(Util::dummy);
+	size_t id = sig.connect(dummy);
 
 	Test("single connection: check result");
 	const int input = 100;
@@ -28,19 +28,19 @@ unittest("signals_simple") {
 	auto val = sig.results();
 	ASSERT(numVal == val->size());
 	ASSERT(val->size() == 1);
-	ASSERT((*val)[0] == Util::dummy(input));
+	ASSERT((*val)[0] == dummy(input));
 
 	Test("multiple connections: check results");
 	size_t id2 = sig.connect(dummy2);
-	sig.connect(Util::dummy);
+	sig.connect(dummy);
 	sig.connect(dummy2);
 	numVal = sig.emit(input);
 	val = sig.results();
 	ASSERT(numVal == val->size());
 	ASSERT(val->size() == 4);
-	ASSERT((*val)[0] == Util::dummy(input));
+	ASSERT((*val)[0] == dummy(input));
 	ASSERT((*val)[1] == dummy2(input));
-	ASSERT((*val)[2] == Util::dummy(input));
+	ASSERT((*val)[2] == dummy(input));
 	ASSERT((*val)[3] == dummy2(input));
 
 	Test("test connections count");
@@ -50,9 +50,9 @@ unittest("signals_simple") {
 	auto val2 = sig.results();
 	ASSERT(numVal == val2->size());
 	ASSERT(val2->size() == 4);
-	ASSERT((*val2)[0] == Util::dummy(input));
+	ASSERT((*val2)[0] == dummy(input));
 	ASSERT((*val2)[1] == dummy2(input));
-	ASSERT((*val2)[2] == Util::dummy(input));
+	ASSERT((*val2)[2] == dummy(input));
 	ASSERT((*val2)[3] == dummy2(input));
 
 	Test("disconnections");
@@ -76,7 +76,7 @@ unittest("signals_simple") {
 
 unittest("signals_simple (void return value)") {
 	Signal<void(int)> sig;
-	sig.connect(Util::dummy);
+	sig.connect(dummy);
 	sig.emit(100);
 	sig.results();
 }

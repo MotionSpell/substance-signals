@@ -29,7 +29,6 @@ unittest("audio converter: interleaved to planar to interleaved") {
 	Connect(converter2->getOutput(0)->getSignal(), comparator.get(), &Utils::PcmComparator::pushOther);
 
 	soundGen->process(nullptr);
-	SLEEP_IN_MS(200); // HACK: allow time for the data to reach the comparator ...
 	comparator->process(nullptr);
 }
 

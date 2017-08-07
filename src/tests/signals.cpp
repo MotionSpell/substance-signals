@@ -5,6 +5,21 @@
 //#define ENABLE_FAILING_TESTS
 //#define ENABLE_PERF_TESTS
 
+namespace {
+inline int dummy(int a) {
+	return a;
+}
+inline int dummyPrint(int a) {
+	std::cout << "a = " << a << std::endl;
+	return a;
+}
+
+inline void sleepInMs(int ms) {
+	//std::cout << "sleepInMs(" << ms << ") in thread " << std::this_thread::get_id() << std::endl;
+	std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+}
+}
+
 #include "signals_unit_result.cpp"
 #include "signals_simple.cpp"
 #include "signals_module.cpp"
