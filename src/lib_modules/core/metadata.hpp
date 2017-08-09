@@ -121,7 +121,7 @@ struct MetadataPktAudio : public MetadataPkt {
 	}
 };
 
-class MetadataCap : public IMetadataCap {
+class MetadataCap : public virtual IMetadataCap {
 	public:
 		MetadataCap(IMetadata *metadata = nullptr) : m_metadata(metadata) {}
 		virtual ~MetadataCap() noexcept(false) {}

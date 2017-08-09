@@ -12,14 +12,14 @@ namespace Pipelines {
 /* automatic inputs have a loose datatype */
 struct DataLoosePipeline : public DataBase {};
 
-/* Wrapper around the module. */
-class PipelinedModule : public IPipelineNotifier, public IPipelinedModule, public Module {
+/* wrapper around the module */
+class PipelinedModule : public IPipelineNotifier, public ClockCap, public IPipelinedModule, public Module {
 public:
 	/* take ownership of module and executor */
 	PipelinedModule(IModule *module, IPipelineNotifier *notify, const std::shared_ptr<IClock> clock, Pipeline::Threading threading)
-		: delegate(module), localDelegateExecutor(threading & Pipeline::Mono ? (IProcessExecutor*)new EXECUTOR_LIVE : (IProcessExecutor*)new EXECUTOR),
+		: ClockCap(clock),
+		delegate(module), localDelegateExecutor(threading & Pipeline::Mono ? (IProcessExecutor*)new EXECUTOR_LIVE : (IProcessExecutor*)new EXECUTOR),
 		delegateExecutor(*localDelegateExecutor), threading(threading), m_notify(notify), activeConnections(0) {
-		this->setClock(clock);
 	}
 	~PipelinedModule() noexcept(false) {}
 	void flush() override {
