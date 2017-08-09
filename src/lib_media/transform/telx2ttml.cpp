@@ -1019,7 +1019,7 @@ TeletextToTTML::TeletextToTTML(unsigned pageNum, const std::string &lang, uint64
 
 void TeletextToTTML::sendSample(const std::string &sample) {
 	auto out = output->getBuffer(0);
-	out->setTime(intClock);
+	out->setMediaTime(intClock);
 	auto pkt = out->getPacket();
 	pkt->size = (int)sample.size();
 	pkt->data = (uint8_t*)av_malloc(pkt->size);

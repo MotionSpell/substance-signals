@@ -129,7 +129,7 @@ void AudioConvert::process(Data data) {
 			out->setPlane(i, out->getPlane(i), outPlaneSize);
 
 		auto const accumulatedTimeIn180k = timescaleToClock(accumulatedTimeInDstSR, dstPcmFormat.sampleRate);
-		out->setTime(accumulatedTimeIn180k);
+		out->setMediaTime(accumulatedTimeIn180k);
 		accumulatedTimeInDstSR += dstNumSamples;
 
 		output->emit(out);

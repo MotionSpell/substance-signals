@@ -34,7 +34,7 @@ unittest("encoder: timestamps start at random values") {
 	auto mux = uptr(create<Mux::GPACMuxMP4>("random_ts"));
 	ConnectOutputToInput(encode->getOutput(0), mux);
 	for (size_t i = 0; i < times.size(); ++i) {
-		picture->setTime(times[i]);
+		picture->setMediaTime(times[i]);
 		encode->process(picture);
 	}
 	encode->flush();
@@ -63,7 +63,7 @@ unittest("GPAC mp4 mux: don't create empty fragments") {
 	auto mux = uptr(create<Mux::GPACMuxMP4>("tmp", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerRAP, Mux::GPACMuxMP4::Browsers | Mux::GPACMuxMP4::SegmentAtAny));
 	ConnectOutputToInput(encode->getOutput(0), mux);
 	for (size_t i = 0; i < times.size(); ++i) {
-		picture->setTime(times[i]);
+		picture->setMediaTime(times[i]);
 		encode->process(picture);
 	}
 	encode->flush();

@@ -194,13 +194,13 @@ void LibavDemux::threadProc() {
 	}
 }
 
-void LibavDemux::setTime(std::shared_ptr<DataAVPacket> data) {
+void LibavDemux::setMediaTime(std::shared_ptr<DataAVPacket> data) {
 	auto pkt = data->getPacket();
 	lastDTS[pkt->stream_index] = pkt->dts;
 	lastPTS[pkt->stream_index] = pkt->pts;
 	auto const base = m_formatCtx->streams[pkt->stream_index]->time_base;
 	auto const time = timescaleToClock(pkt->dts * base.num, base.den);
-	data->setTime(time);
+	data->setMediaTime(time);
 
 	restampers[pkt->stream_index]->process(data); /*restamp by pid only when no start time*/
 	int64_t offset = data->getMediaTime() - time;
@@ -232,7 +232,7 @@ void LibavDemux::dispatch(AVPacket *pkt) {
 	auto out = outputs[pkt->stream_index]->getBuffer(0);
 	AVPacket *outPkt = out->getPacket();
 	av_packet_move_ref(outPkt, pkt);
-	setTime(out);
+	setMediaTime(out);
 	outputs[outPkt->stream_index]->emit(out);
 	sparseStreamsHeartbeat(outPkt);
 }
@@ -255,7 +255,7 @@ void LibavDemux::sparseStreamsHeartbeat(AVPacket const * const pkt) {
 			AVStream *st = m_formatCtx->streams[i];
 			if (st->codec->codec_type == AVMEDIA_TYPE_SUBTITLE) {
 				auto outParse = outputs[i]->getBuffer(0);
-				outParse->setTime(curTimeIn180k);
+				outParse->setMediaTime(curTimeIn180k);
 				outputs[i]->emit(outParse);
 			}
 		}

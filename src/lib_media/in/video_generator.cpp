@@ -26,7 +26,7 @@ void VideoGenerator::process(Data /*data*/) {
 
 	auto const framePeriodIn180k = IClock::Rate / FRAMERATE;
 	assert(IClock::Rate % FRAMERATE == 0);
-	pic->setTime(m_numFrames * framePeriodIn180k);
+	pic->setMediaTime(m_numFrames * framePeriodIn180k);
 
 	if (m_numFrames % 25 < 2)
 		output->emit(pic);

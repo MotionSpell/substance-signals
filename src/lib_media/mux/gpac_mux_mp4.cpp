@@ -835,7 +835,7 @@ void GPACMuxMP4::sendOutput() {
 	}
 	out->setMetadata(metadata);
 	auto const deltaInTs = DTS == curSegmentDurInTs ? defaultSampleIncInTs : 0;
-	out->setTime(timescaleToClock(firstDataAbsTimeInMs, 1000) + timescaleToClock(DTS - curSegmentDurInTs - defaultSampleIncInTs + deltaInTs, mediaTs));
+	out->setMediaTime(timescaleToClock(firstDataAbsTimeInMs, 1000) + timescaleToClock(DTS - curSegmentDurInTs - defaultSampleIncInTs + deltaInTs, mediaTs));
 	prevDTS = DTS;
 	output->emit(out);
 }

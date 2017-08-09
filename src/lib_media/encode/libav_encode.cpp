@@ -226,7 +226,7 @@ bool LibavEncode::processAudio(const DataPcm *data) {
 		if (pkt->duration != codecCtx->frame_size) {
 			log(Warning, "pkt duration %s is different from codec frame size %s - this may cause timing errors", pkt->duration, codecCtx->frame_size);
 		}
-		out->setTime(pkt->pts * codecCtx->time_base.num, codecCtx->time_base.den);
+		out->setMediaTime(pkt->pts * codecCtx->time_base.num, codecCtx->time_base.den);
 		assert(pkt->size);
 		output->emit(out);
 		return true;
@@ -263,7 +263,7 @@ bool LibavEncode::processVideo(const DataPicture *pic) {
 			if (pkt->duration <= 0) {
 				pkt->duration = 1; /*store duration in case a forward module (e.g. muxer) would need it*/
 			}
-			out->setTime(pkt->pts * codecCtx->time_base.num, codecCtx->time_base.den);
+			out->setMediaTime(pkt->pts * codecCtx->time_base.num, codecCtx->time_base.den);
 			output->emit(out);
 			return true;
 		}

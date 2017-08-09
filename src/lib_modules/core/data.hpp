@@ -23,7 +23,7 @@ class DataBase {
 
 		std::shared_ptr<const IMetadata> getMetadata() const;
 		void setMetadata(std::shared_ptr<const IMetadata> metadata);
-		void setTime(uint64_t timeIn180k, uint64_t timescale = Clock::Rate);
+		void setMediaTime(uint64_t timeIn180k, uint64_t timescale = Clock::Rate);
 		uint64_t getMediaTime() const;
 		uint64_t getAbsTime(uint64_t timescale = Clock::Rate) const;
 
