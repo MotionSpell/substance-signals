@@ -38,7 +38,7 @@ void IComparator::pushOther(Data data) {
 
 PcmComparator::PcmComparator() {
 	auto input = addInput(new Input<DataPcm>(this));
-	input->setMetadata(new MetadataRawAudio);
+	input->setMetadata(shptr(new MetadataRawAudio));
 }
 
 bool PcmComparator::compare(Data data1, Data data2) const {

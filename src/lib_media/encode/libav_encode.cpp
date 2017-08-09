@@ -165,14 +165,14 @@ LibavEncode::LibavEncode(Type type, Params &params)
 	switch (type) {
 	case Video: {
 		auto input = addInput(new Input<DataPicture>(this));
-		input->setMetadata(new MetadataRawVideo);
-		output->setMetadata(new MetadataPktLibavVideo(codecCtx));
+		input->setMetadata(shptr(new MetadataRawVideo));
+		output->setMetadata(shptr(new MetadataPktLibavVideo(codecCtx)));
 		break;
 	}
 	case Audio: {
 		auto input = addInput(new Input<DataPcm>(this));
-		input->setMetadata(new MetadataRawAudio);
-		output->setMetadata(new MetadataPktLibavAudio(codecCtx));
+		input->setMetadata(shptr(new MetadataRawAudio));
+		output->setMetadata(shptr(new MetadataPktLibavAudio(codecCtx)));
 		break;
 	}
 	default:

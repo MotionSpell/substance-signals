@@ -46,8 +46,8 @@ LibavFilter::LibavFilter(const PictureFormat &format, const std::string &filterA
 		throw error("Cannot config filter graph");
 
 	auto input = addInput(new Input<DataPicture>(this));
-	input->setMetadata(new MetadataRawVideo);
-	addOutput<OutputPicture>(new MetadataRawVideo);
+	input->setMetadata(shptr(new MetadataRawVideo));
+	addOutput<OutputPicture>(shptr(new MetadataRawVideo));
 }
 
 LibavFilter::~LibavFilter() {

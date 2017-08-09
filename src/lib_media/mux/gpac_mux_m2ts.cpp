@@ -21,10 +21,10 @@ void GPACMuxMPEG2TS::declareStream(Data data) {
 	auto const metadata_ = data->getMetadata();
 	if (auto metadata = std::dynamic_pointer_cast<const MetadataPktLibavVideo>(metadata_)) {
 		auto input = addInput(new Input<DataAVPacket>(this));
-		input->setMetadata(new MetadataPktLibavVideo(metadata->getAVCodecContext()));
+		input->setMetadata(shptr(new MetadataPktLibavVideo(metadata->getAVCodecContext())));
 	} else if (auto metadata2 = std::dynamic_pointer_cast<const MetadataPktLibavAudio>(metadata_)) {
 		auto input = addInput(new Input<DataAVPacket>(this));
-		input->setMetadata(new MetadataPktLibavAudio(metadata2->getAVCodecContext()));
+		input->setMetadata(shptr(new MetadataPktLibavAudio(metadata2->getAVCodecContext())));
 	} else {
 		throw error("Stream creation failed: unknown type.");
 	}

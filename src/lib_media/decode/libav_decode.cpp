@@ -30,21 +30,21 @@ LibavDecode::LibavDecode(const MetadataPktLibav &metadata)
 	switch (codecCtx->codec_type) {
 	case AVMEDIA_TYPE_VIDEO: {
 		auto input = addInput(new Input<DataAVPacket>(this));
-		input->setMetadata(new MetadataPktLibavVideo(codecCtx));
+		input->setMetadata(shptr(new MetadataPktLibavVideo(codecCtx)));
 		if (codecCtx->codec->capabilities & CODEC_CAP_DR1) {
 			codecCtx->thread_safe_callbacks = 1;
 			codecCtx->opaque = safe_cast<LibavDirectRendering>(this);
 			codecCtx->get_buffer2 = avGetBuffer2;
-			videoOutput = addOutputDynAlloc<OutputPicture>(std::thread::hardware_concurrency() * 4, new MetadataRawVideo);
+			videoOutput = addOutputDynAlloc<OutputPicture>(std::thread::hardware_concurrency() * 4, shptr(new MetadataRawVideo));
 		} else {
-			videoOutput = addOutput<OutputPicture>(new MetadataRawVideo);
+			videoOutput = addOutput<OutputPicture>(shptr(new MetadataRawVideo));
 		}
 		break;
 	}
 	case AVMEDIA_TYPE_AUDIO: {
 		auto input = addInput(new Input<DataAVPacket>(this));
-		input->setMetadata(new MetadataPktLibavAudio(codecCtx));
-		audioOutput = addOutput<OutputPcm>(new MetadataRawAudio);
+		input->setMetadata(shptr(new MetadataPktLibavAudio(codecCtx)));
+		audioOutput = addOutput<OutputPcm>(shptr(new MetadataRawAudio));
 		break;
 	}
 	default:

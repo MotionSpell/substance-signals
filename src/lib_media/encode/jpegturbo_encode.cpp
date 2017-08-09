@@ -27,7 +27,7 @@ class JPEGTurbo {
 JPEGTurboEncode::JPEGTurboEncode(int JPEGQuality)
 	: jtHandle(new JPEGTurbo), JPEGQuality(JPEGQuality) {
 	auto input = addInput(new Input<DataPicture>(this));
-	input->setMetadata(new MetadataRawVideo);
+	input->setMetadata(shptr(new MetadataRawVideo));
 	output = addOutput<OutputDefault>();
 }
 

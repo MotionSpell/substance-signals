@@ -119,12 +119,12 @@ LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::strin
 			st->codec->framerate = st->avg_frame_rate; //it is our reponsibility to provide the application with a reference framerate
 		}
 
-		IMetadata *m;
+		std::shared_ptr<IMetadata> m;
 		switch (st->codec->codec_type) {
-		case AVMEDIA_TYPE_AUDIO: m = new MetadataPktLibavAudio(st->codec, st->id); break;
-		case AVMEDIA_TYPE_VIDEO: m = new MetadataPktLibavVideo(st->codec, st->id); break;
-		case AVMEDIA_TYPE_SUBTITLE: m = new MetadataPktLibavSubtitle(st->codec, st->id); break;
-		default: m = nullptr; break;
+		case AVMEDIA_TYPE_AUDIO: m = shptr(new MetadataPktLibavAudio(st->codec, st->id)); break;
+		case AVMEDIA_TYPE_VIDEO: m = shptr(new MetadataPktLibavVideo(st->codec, st->id)); break;
+		case AVMEDIA_TYPE_SUBTITLE: m = shptr(new MetadataPktLibavSubtitle(st->codec, st->id)); break;
+		default: break;
 		}
 		outputs.push_back(addOutput<OutputDataDefault<DataAVPacket>>(m));
 		av_dump_format(m_formatCtx, i, url.c_str(), 0);

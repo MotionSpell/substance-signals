@@ -10,7 +10,6 @@ namespace Modules {
 struct IMetadataCap {
 	virtual ~IMetadataCap() noexcept(false) {}
 	virtual std::shared_ptr<const IMetadata> getMetadata() const = 0;
-	virtual void setMetadata(IMetadata *metadata) = 0;
 	virtual void setMetadata(std::shared_ptr<const IMetadata> metadata) = 0;
 };
 
@@ -123,16 +122,11 @@ struct MetadataPktAudio : public MetadataPkt {
 
 class MetadataCap : public virtual IMetadataCap {
 	public:
-		MetadataCap(IMetadata *metadata = nullptr) : m_metadata(metadata) {}
+		MetadataCap(std::shared_ptr<const IMetadata> metadata = nullptr) : m_metadata(metadata) {}
 		virtual ~MetadataCap() noexcept(false) {}
 
 		std::shared_ptr<const IMetadata> getMetadata() const override {
 			return m_metadata;
-		}
-
-		//Takes ownership.
-		void setMetadata(IMetadata *metadata) override {
-			m_metadata = std::shared_ptr<const IMetadata>(metadata);
 		}
 		void setMetadata(std::shared_ptr<const IMetadata> metadata) override {
 			m_metadata = metadata;

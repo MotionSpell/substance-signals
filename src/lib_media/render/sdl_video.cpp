@@ -25,7 +25,7 @@ Uint32 pixelFormat2SDLFormat(const Modules::PixelFormat format) {
 SDLVideo::SDLVideo(const std::shared_ptr<IClock> clock)
 	: m_clock(clock), texture(nullptr), displayrect(new SDL_Rect()), workingThread(&SDLVideo::doRender, this) {
 	auto input = addInput(new Input<DataPicture>(this));
-	input->setMetadata(new MetadataRawVideo);
+	input->setMetadata(shptr(new MetadataRawVideo));
 	m_dataQueue.pop();
 }
 

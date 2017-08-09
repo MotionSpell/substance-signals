@@ -97,7 +97,7 @@ class ExecutorThread<R(Args...)> : public IExecutor<R(Args...)> {
 template<typename R, typename... Args>
 class ExecutorThreadPool<R(Args...)> : public IExecutor<R(Args...)> {
 	public:
-		ExecutorThreadPool() : threadPool(std::shared_ptr<ThreadPool>(new ThreadPool)) {
+		ExecutorThreadPool() : threadPool(shptr(new ThreadPool)) {
 		}
 
 		ExecutorThreadPool(std::shared_ptr<ThreadPool> threadPool) : threadPool(threadPool) {

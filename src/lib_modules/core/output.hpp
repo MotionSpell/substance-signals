@@ -31,7 +31,7 @@ class OutputT : public IOutput, public MetadataCap, public ClockCap {
 public:
 	typedef Allocator AllocatorType;
 
-	OutputT(size_t allocatorBaseSize, size_t allocatorMaxSize, std::shared_ptr<IClock> clock, IMetadata *metadata = nullptr)
+	OutputT(size_t allocatorBaseSize, size_t allocatorMaxSize, std::shared_ptr<IClock> clock, std::shared_ptr<IMetadata> metadata = nullptr)
 		: MetadataCap(metadata), ClockCap(clock), signal(g_executorOutputSync), allocator(new Allocator(allocatorBaseSize, allocatorMaxSize)) {
 	}
 	OutputT(size_t allocatorSize, std::shared_ptr<IClock> clock, const IMetadata *metadata = nullptr)

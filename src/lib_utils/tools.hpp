@@ -98,8 +98,13 @@ std::vector<T> apply(Lambda func, std::vector<T>& input, Arguments... args) {
 }
 
 template<typename T>
-std::unique_ptr<T> uptr(T* p) {
+std::unique_ptr<T> uptr(T *p) {
 	return std::unique_ptr<T>(p);
+}
+
+template<typename T>
+std::shared_ptr<T> shptr(T *p) {
+	return std::shared_ptr<T>(p);
 }
 
 template<typename T, typename U>
@@ -113,7 +118,7 @@ std::shared_ptr<T> safe_cast(std::shared_ptr<U> p) {
 }
 
 template<typename T, typename U>
-T* safe_cast(U* p) {
+T* safe_cast(U *p) {
 	if (!p)
 		return nullptr;
 	auto r = dynamic_cast<T*>(p);
