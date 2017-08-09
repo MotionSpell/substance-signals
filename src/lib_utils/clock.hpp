@@ -6,14 +6,14 @@
 
 struct IClock {
 	static auto const Rate = 180000ULL;
-	virtual uint64_t now() const = 0;
+	virtual uint64_t now(const uint64_t timescale = 1000) const = 0;
 	virtual double getSpeed() const = 0;
 };
 
 class Clock : public IClock {
 public:
 	Clock(double speed) : timeStart(std::chrono::high_resolution_clock::now()), speed(speed) {}
-	uint64_t now() const override;
+	uint64_t now(const uint64_t timescale = 1000) const override;
 	double getSpeed() const override;
 
 private:
