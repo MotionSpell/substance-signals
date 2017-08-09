@@ -62,7 +62,7 @@ class Pipeline : public IPipelineNotifier {
 
 		std::vector<std::unique_ptr<IPipelinedModule>> modules;
 		const size_t allocatorNumBlocks;
-		std::unique_ptr<const IClock> const clock;
+		std::shared_ptr<const IClock> const clock;
 		const Threading threading;
 
 		std::mutex mutex;

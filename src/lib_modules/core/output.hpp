@@ -63,11 +63,6 @@ class OutputT : public IOutput, public MetadataCap {
 template<typename DataType> using OutputDataDefault = OutputT<PacketAllocator<DataType>, SignalDefaultSync>;
 typedef OutputDataDefault<DataRaw> OutputDefault;
 
-template <typename InstanceType, typename ...Args>
-InstanceType* createOutput(size_t allocatorBaseSize, size_t allocatorMaxSize, Args&&... args) {
-	return new InstanceType(allocatorBaseSize, allocatorMaxSize, std::forward<Args>(args)...);
-}
-
 class IOutputCap {
 public:
 	virtual ~IOutputCap() noexcept(false) {}
@@ -75,19 +70,6 @@ public:
 	virtual IOutput* getOutput(size_t i) const = 0;
 
 protected:
-	template <typename InstanceType, typename ...Args>
-	InstanceType* addOutput(Args&&... args) {
-		auto p = createOutput<InstanceType>(allocatorSize, allocatorSize, std::forward<Args>(args)...);
-		outputs.push_back(uptr(p));
-		return safe_cast<InstanceType>(p);
-	}
-	template <typename InstanceType, typename ...Args>
-	InstanceType* addOutputDyn(size_t allocatorMaxSize, Args&&... args) {
-		auto p = createOutput<InstanceType>(allocatorSize, allocatorMaxSize, std::forward<Args>(args)...);
-		outputs.push_back(uptr(p));
-		return safe_cast<InstanceType>(p);
-	}
-
 	/*FIXME: we need to have factories to move these back to the implementation - otherwise pins created from the constructor may crash*/
 	std::vector<std::unique_ptr<IOutput>> outputs;
 	/*const*/ size_t allocatorSize;

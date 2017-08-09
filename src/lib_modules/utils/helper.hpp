@@ -79,10 +79,4 @@ std::shared_ptr<const T> getMetadataFromOutput(IOutput const * const out) {
 	return safe_cast<const T>(metadata);
 }
 
-template <typename T>
-std::shared_ptr<const T> getMetadataFromOutputUnsafe(IOutput const * const out) {
-	auto const metadata = safe_cast<const IMetadataCap>(out)->getMetadata();
-	return std::dynamic_pointer_cast<const T>(metadata);
-}
-
 }

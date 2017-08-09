@@ -23,13 +23,26 @@ class Module : public IModule, public ErrorCap, public LogCap, public InputCap {
 		Module() = default;
 		virtual ~Module() noexcept(false) {}
 
+		template <typename InstanceType, typename ...Args>
+		InstanceType* addOutput(Args&&... args) {
+			auto p = new InstanceType(allocatorSize, allocatorSize, std::forward<Args>(args)...);
+			outputs.push_back(uptr(p));
+			return safe_cast<InstanceType>(p);
+		}
+		template <typename InstanceType, typename ...Args>
+		InstanceType* addOutputDyn(size_t allocatorMaxSize, Args&&... args) {
+			auto p = new InstanceType(allocatorSize, allocatorMaxSize, std::forward<Args>(args)...);
+			outputs.push_back(uptr(p));
+			return safe_cast<InstanceType>(p);
+		}
+
 	private:
 		Module(Module const&) = delete;
 		Module const& operator=(Module const&) = delete;
 };
 
 //single input specialized module
-class ModuleS : public IModule, public ErrorCap, public LogCap, public InputCap {
+class ModuleS : public Module {
 	public:
 		ModuleS() = default;
 		virtual ~ModuleS() noexcept(false) {}
@@ -43,12 +56,12 @@ class ModuleS : public IModule, public ErrorCap, public LogCap, public InputCap 
 //note: pins added automatically will carry the DataLoose type which doesn't
 //      allow to perform all safety checks ; consider adding pins manually if
 //      you can
-class ModuleDynI : public IModule, public ErrorCap, public LogCap, public InputCap {
+class ModuleDynI : public Module {
 	public:
 		ModuleDynI() = default;
 		virtual ~ModuleDynI() noexcept(false) {}
 
-		IInput* addInput(IInput* p) override { //takes ownership
+		IInput* addInput(IInput *p) override { //takes ownership
 			bool isDyn = false;
 			std::unique_ptr<IInput> pEx(nullptr);
 			if (inputs.size() && dynamic_cast<DataLoose*>(inputs.back().get())) {

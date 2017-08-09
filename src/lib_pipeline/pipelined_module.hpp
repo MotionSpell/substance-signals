@@ -16,7 +16,7 @@ struct DataLoosePipeline : public DataBase {};
 class PipelinedModule : public IPipelineNotifier, public IPipelinedModule, public InputCap {
 public:
 	/* take ownership of module and executor */
-	PipelinedModule(IModule *module, IPipelineNotifier *notify, IClock const * const clock, Pipeline::Threading threading)
+	PipelinedModule(IModule *module, IPipelineNotifier *notify, std::shared_ptr<const IClock> const clock, Pipeline::Threading threading)
 		: delegate(module), localDelegateExecutor(threading & Pipeline::Mono ? (IProcessExecutor*)new EXECUTOR_LIVE : (IProcessExecutor*)new EXECUTOR),
 		delegateExecutor(*localDelegateExecutor), clock(clock), threading(threading), m_notify(notify), activeConnections(0) {
 	}
@@ -82,8 +82,6 @@ private:
 			sig.disconnect(i);
 		}
 		activeConnections--;
-		//getInput(0)->push(nullptr);
-		//delegateExecutor(MEMBER_FUNCTOR_PROCESS(getInput(0)));
 	}
 
 	void mimicInputs() {
@@ -109,8 +107,7 @@ private:
 		Log::msg(Debug, "Module %s: dispatch data", getDelegateName());
 
 		if (isSource()) {
-			if (getNumInputs() == 0) {
-				/*first time: create a fake pin and push null to trigger execution*/
+			if (getNumInputs() == 0) { /*first time: create a fake pin and push null to trigger execution*/
 				delegate->addInput(new Input<DataLoosePipeline>(delegate.get()));
 				activeConnections = 1;
 				getInput(0)->push(nullptr);
@@ -118,8 +115,7 @@ private:
 				delegateExecutor(MEMBER_FUNCTOR_PROCESS(delegate.get()));
 				delegateExecutor(MEMBER_FUNCTOR_PROCESS(getInput(0)));
 				return;
-			} else {
-				/*the source is likely processing: push null in the loop to exit and let things follow their way*/
+			} else { /*the source is likely processing: push null in the loop to exit and let things follow their way*/
 				delegate->getInput(0)->push(nullptr);
 				return;
 			}
@@ -155,7 +151,7 @@ private:
 	IProcessExecutor &delegateExecutor;
 
 	std::vector<IProcessExecutor*> inputExecutor; /*needed to sleep when using a clock*/
-	IClock const * const clock;
+	std::shared_ptr<const IClock> const clock;
 	Pipeline::Threading threading;
 
 	IPipelineNotifier * const m_notify;

@@ -30,7 +30,7 @@ Signals::MemberFunctor<void, Class, void(Class::*)()> MEMBER_FUNCTOR_NOTIFY_FINI
    Data is nullptr at completion. */
 class PipelinedInput : public IInput {
 	public:
-		PipelinedInput(IInput *input, const std::string &moduleName, IProcessExecutor *localExecutor, IProcessExecutor &delegateExecutor, IPipelineNotifier * const notify, IClock const * const clock)
+		PipelinedInput(IInput *input, const std::string &moduleName, IProcessExecutor *localExecutor, IProcessExecutor &delegateExecutor, IPipelineNotifier * const notify, std::shared_ptr<const IClock> const clock)
 			: delegate(input), delegateName(moduleName), notify(notify), executor(localExecutor), delegateExecutor(delegateExecutor), clock(clock) {}
 		virtual ~PipelinedInput() noexcept(false) {}
 
@@ -75,7 +75,7 @@ class PipelinedInput : public IInput {
 	private:
 		void regulate(uint64_t dataTime) {
 			if (clock->getSpeed() > 0.0) {
-				auto const delayInMs = clockToTimescale((int64_t)(dataTime - clock->now()), 1000);
+				auto const delayInMs = clockToTimescale((int64_t)(dataTime - clock->now()), 1000); //Romain: that's absolute bullshit in case speed != 1.0
 				if (delayInMs > 0) {
 					Log::msg(delayInMs < REGULATION_TOLERANCE_IN_MS ? Debug : Warning, "Module %s: received data for time %ss (will sleep %s ms)", delegateName, dataTime / (double)IClock::Rate, delayInMs);
 					std::this_thread::sleep_for(std::chrono::milliseconds(delayInMs));
@@ -90,7 +90,7 @@ class PipelinedInput : public IInput {
 		IPipelineNotifier * const notify;
 		IProcessExecutor *executor, &delegateExecutor;
 		std::unique_ptr<IProcessExecutor> localExecutor;
-		IClock const * const clock;
+		std::shared_ptr<const IClock> const clock;
 };
 
 }
