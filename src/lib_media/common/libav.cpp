@@ -1,6 +1,6 @@
 #include "libav.hpp"
 #include "pcm.hpp"
-#include "lib_modules/core/clock.hpp"
+#include "lib_utils/clock.hpp"
 #include "lib_utils/log.hpp"
 #include "lib_utils/tools.hpp"
 #include <cassert>

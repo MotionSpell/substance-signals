@@ -1,9 +1,10 @@
 #pragma once
 
-#include "lib_modules/core/clock.hpp"
 #include "lib_modules/core/module.hpp"
 #include "../common/pcm.hpp"
+#include "lib_utils/clock.hpp"
 #include "lib_utils/fifo.hpp"
+#include <memory>
 #include <mutex>
 #include <memory.h>
 
@@ -16,7 +17,7 @@ namespace Render {
 
 class SDLAudio : public ModuleS {
 	public:
-		SDLAudio(IClock* clock = g_DefaultClock);
+		SDLAudio(const std::shared_ptr<IClock> clock = g_DefaultClock);
 		~SDLAudio();
 		void process(Data data) override;
 
@@ -31,7 +32,7 @@ class SDLAudio : public ModuleS {
 		void writeSamples(uint8_t*& dst, uint8_t const* src, size_t n);
 		void silenceSamples(uint8_t*& dst, size_t n);
 
-		IClock* const m_clock;
+		const std::shared_ptr<IClock> m_clock;
 		static auto const audioJitterTolerance = 500;
 		uint8_t bytesPerSample;
 		std::unique_ptr<const PcmFormat> pcmFormat;

@@ -6,6 +6,7 @@
       <Filter>version</Filter>
     </ClCompile>
     <ClCompile Include="time.cpp" />
+    <ClCompile Include="clock.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="log.hpp" />
@@ -24,6 +25,7 @@
     <ClInclude Include="time.hpp" />
     <ClInclude Include="resolution.hpp" />
     <ClInclude Include="scheduler.hpp" />
+    <ClInclude Include="clock.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="gpacpp">

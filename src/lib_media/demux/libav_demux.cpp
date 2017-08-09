@@ -1,6 +1,6 @@
 #include "libav_demux.hpp"
 #include "../transform/restamp.hpp"
-#include "lib_modules/core/clock.hpp"
+#include "lib_utils/clock.hpp"
 #include "lib_utils/tools.hpp"
 #include "lib_ffpp/ffpp.hpp"
 #include <cassert>

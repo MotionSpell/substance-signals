@@ -33,12 +33,14 @@
       <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)obj\src\version.obj</ObjectFileName>
       <XMLDocumentationFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)obj\src</XMLDocumentationFileName>
     </ClCompile>
+    <ClCompile Include="clock.cpp" />
     <ClCompile Include="log.cpp" />
     <ClCompile Include="time.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\lib_ffpp\ffpp.hpp" />
     <ClInclude Include="..\lib_gpacpp\gpacpp.hpp" />
+    <ClInclude Include="clock.hpp" />
     <ClInclude Include="fifo.hpp" />
     <ClInclude Include="format.hpp" />
     <ClInclude Include="log.hpp" />

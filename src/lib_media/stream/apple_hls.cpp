@@ -1,5 +1,4 @@
 #include "apple_hls.hpp"
-#include "lib_modules/core/clock.hpp"
 #include <fstream>
 
 namespace Modules {

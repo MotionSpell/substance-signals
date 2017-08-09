@@ -1,8 +1,6 @@
 #include "clock.hpp"
 #include <cassert>
 
-namespace Modules {
-
 using namespace std::chrono;
 
 uint64_t Clock::now() const {
@@ -17,7 +15,5 @@ double Clock::getSpeed() const {
 	return speed;
 }
 
-static Clock systemClock(1.0);
-extern IClock* const g_DefaultClock = &systemClock;
-
-}
+static std::shared_ptr<Clock> systemClock(new Clock(1.0));
+extern const std::shared_ptr<Clock> g_DefaultClock = systemClock;

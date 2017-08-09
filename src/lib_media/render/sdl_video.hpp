@@ -2,7 +2,7 @@
 
 #include "../common/picture.hpp"
 #include "lib_modules/core/module.hpp"
-#include "lib_modules/core/clock.hpp"
+#include "lib_utils/clock.hpp"
 #include <mutex>
 #include <thread>
 
@@ -16,7 +16,7 @@ namespace Render {
 
 class SDLVideo : public ModuleS {
 	public:
-		SDLVideo(IClock* clock = g_DefaultClock);
+		SDLVideo(const std::shared_ptr<IClock> clock = g_DefaultClock);
 		~SDLVideo();
 		void process(Data data) override;
 
@@ -26,7 +26,7 @@ class SDLVideo : public ModuleS {
 		bool processOneFrame(Data data);
 		void createTexture();
 
-		IClock* const m_clock;
+		const std::shared_ptr<IClock> m_clock;
 
 		SDL_Window* window;
 		SDL_Renderer *renderer;

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "lib_modules/core/clock.hpp"
 #include "lib_modules/core/module.hpp"
 #include "../common/libav.hpp"
 
@@ -14,7 +13,7 @@ class VideoGenerator : public ModuleS {
 
 	private:
 		uint64_t m_numFrames = 0;
-		OutputPicture* output;
+		OutputPicture *output;
 };
 
 }

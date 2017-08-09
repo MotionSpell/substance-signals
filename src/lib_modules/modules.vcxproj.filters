@@ -13,9 +13,6 @@
     <ClInclude Include="core\allocator.hpp">
       <Filter>core</Filter>
     </ClInclude>
-    <ClInclude Include="core\clock.hpp">
-      <Filter>core</Filter>
-    </ClInclude>
     <ClInclude Include="core\data.hpp">
       <Filter>core</Filter>
     </ClInclude>
@@ -42,9 +39,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="core\clock.cpp">
-      <Filter>core</Filter>
-    </ClCompile>
     <ClCompile Include="core\data.cpp">
       <Filter>core</Filter>
     </ClCompile>
