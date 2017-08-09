@@ -42,7 +42,7 @@ class Pipeline : public IPipelineNotifier {
 
 		template <typename InstanceType, int NumBlocks = 0, typename ...Args>
 		IPipelinedModule* addModule(Args&&... args) {
-			return addModuleInternal(Modules::createModule<InstanceType>(NumBlocks ? NumBlocks : allocatorNumBlocks, std::forward<Args>(args)...));
+			return addModuleInternal(Modules::createModule<InstanceType>(NumBlocks ? NumBlocks : allocatorNumBlocks, clock, std::forward<Args>(args)...));
 		}
 		/*Remove a module from a pipeline. This is only possible when the module is already disconnected and flush()ed (which is the caller reponsibility - FIXME).*/
 		void removeModule(IPipelinedModule * const module);
@@ -62,7 +62,7 @@ class Pipeline : public IPipelineNotifier {
 
 		std::vector<std::unique_ptr<IPipelinedModule>> modules;
 		const size_t allocatorNumBlocks;
-		std::shared_ptr<const IClock> const clock;
+		const std::shared_ptr<IClock> clock;
 		const Threading threading;
 
 		std::mutex mutex;

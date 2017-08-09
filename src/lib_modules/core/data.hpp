@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <memory>
 #include <vector>
-#include "lib_utils/clock.hpp"
+#include "clock.hpp"
 
 namespace Modules {
 
@@ -24,11 +24,12 @@ class DataBase {
 		std::shared_ptr<const IMetadata> getMetadata() const;
 		void setMetadata(std::shared_ptr<const IMetadata> metadata);
 		void setMediaTime(uint64_t timeIn180k, uint64_t timescale = Clock::Rate);
+		void setClockTime(uint64_t timeIn180k, uint64_t timescale = Clock::Rate); /*should be set automatically after data is allocated*/
 		uint64_t getMediaTime() const;
-		uint64_t getAbsTime(uint64_t timescale = Clock::Rate) const;
+		uint64_t getClockTime(uint64_t timescale = Clock::Rate) const;
 
 	private:
-		uint64_t timeIn180k = 0, absUTCOffsetInMs = 0;
+		uint64_t mediaTimeIn180k = 0, clockTimeIn180k = 0;
 		std::shared_ptr<const IMetadata> m_metadata;
 };
 

@@ -18,9 +18,9 @@ public:
 		if (fmt != "hls")
 			error("HLS only!");
 		if (isLowLatency) {
-			delegate = uptr(createModule<Mux::LibavMux>(Modules::ALLOC_NUM_BLOCKS_LOW_LATENCY, baseName, fmt, options));
+			delegate = uptr(createModule<Mux::LibavMux>(Modules::ALLOC_NUM_BLOCKS_LOW_LATENCY, clock, baseName, fmt, options));
 		} else {
-			delegate = uptr(createModule<Mux::LibavMux>(Modules::ALLOC_NUM_BLOCKS_DEFAULT, baseName, fmt, options));
+			delegate = uptr(createModule<Mux::LibavMux>(Modules::ALLOC_NUM_BLOCKS_DEFAULT, clock, baseName, fmt, options));
 		}
 		addInput(new Input<DataAVPacket>(this));
 		outputSegment  = addOutput<OutputDataDefault<DataAVPacket>>();

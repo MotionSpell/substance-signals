@@ -12,18 +12,19 @@ void DataBase::setMetadata(std::shared_ptr<const IMetadata> metadata) {
 }
 
 void DataBase::setMediaTime(uint64_t timeIn180k, uint64_t timescale) {
-	this->timeIn180k = timescaleToClock(timeIn180k, timescale);
-	if (!absUTCOffsetInMs) {
-		absUTCOffsetInMs = getUTCInMs();
-	}
+	mediaTimeIn180k = timescaleToClock(timeIn180k, timescale);
+}
+
+void DataBase::setClockTime(uint64_t timeIn180k, uint64_t timescale) {
+	clockTimeIn180k = timescaleToClock(timeIn180k, timescale);
 }
 
 uint64_t DataBase::getMediaTime() const {
-	return timeIn180k;
+	return mediaTimeIn180k;
 }
 
-uint64_t DataBase::getAbsTime(uint64_t timescale) const {
-	return timescaleToClock(absUTCOffsetInMs, timescale);
+uint64_t DataBase::getClockTime(uint64_t timescale) const {
+	return timescaleToClock(clockTimeIn180k, timescale);
 }
 
 uint8_t* DataRaw::data() {

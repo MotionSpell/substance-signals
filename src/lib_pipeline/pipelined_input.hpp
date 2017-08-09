@@ -30,7 +30,7 @@ Signals::MemberFunctor<void, Class, void(Class::*)()> MEMBER_FUNCTOR_NOTIFY_FINI
    Data is nullptr at completion. */
 class PipelinedInput : public IInput {
 	public:
-		PipelinedInput(IInput *input, const std::string &moduleName, IProcessExecutor *localExecutor, IProcessExecutor &delegateExecutor, IPipelineNotifier * const notify, std::shared_ptr<const IClock> const clock)
+		PipelinedInput(IInput *input, const std::string &moduleName, IProcessExecutor *localExecutor, IProcessExecutor &delegateExecutor, IPipelineNotifier * const notify, const std::shared_ptr<IClock> clock)
 			: delegate(input), delegateName(moduleName), notify(notify), executor(localExecutor), delegateExecutor(delegateExecutor), clock(clock) {}
 		virtual ~PipelinedInput() noexcept(false) {}
 
@@ -90,7 +90,7 @@ class PipelinedInput : public IInput {
 		IPipelineNotifier * const notify;
 		IProcessExecutor *executor, &delegateExecutor;
 		std::unique_ptr<IProcessExecutor> localExecutor;
-		std::shared_ptr<const IClock> const clock;
+		const std::shared_ptr<IClock> clock;
 };
 
 }

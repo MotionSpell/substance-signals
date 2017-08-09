@@ -1030,7 +1030,7 @@ void TeletextToTTML::sendSample(const std::string &sample) {
 
 void TeletextToTTML::process(Data data) {
 	if (!firstDataAbsTimeInMs)
-		firstDataAbsTimeInMs = data->getAbsTime(1000);
+		firstDataAbsTimeInMs = data->getClockTime(1000);
 	//TODO
 	//14. add flush() for ondemand samples
 	//15. UTF8 to TTML formatting? accent + EOLs </br>

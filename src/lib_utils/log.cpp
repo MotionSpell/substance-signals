@@ -1,4 +1,5 @@
 #include "log.hpp"
+#include "clock.hpp"
 #include <cassert>
 #include <chrono>
 #include <ctime>
@@ -27,16 +28,6 @@ std::string Log::lastMsg = "";
 uint64_t Log::lastMsgCount = 0;
 #endif
 
-namespace {
-static std::chrono::time_point<std::chrono::high_resolution_clock> const m_Start = std::chrono::high_resolution_clock::now();
-
-uint64_t now() {
-	auto const timeNow = std::chrono::high_resolution_clock::now();
-	auto const timeNowInMs = std::chrono::duration_cast<std::chrono::milliseconds>(timeNow - m_Start);
-	return timeNowInMs.count();
-}
-}
-
 std::ostream& Log::get(Level level) {
 	switch (level) {
 	case Info:
@@ -51,7 +42,7 @@ std::string Log::getTime() {
 	const std::time_t t = std::time(nullptr);
 	std::tm tm = *std::localtime(&t);
 	auto const size = strftime(szOut, 255, "%Y/%m/%d %H:%M:%S", &tm);
-	return format("[%s][%s] ", std::string(szOut, size), now()/1000.0);
+	return format("[%s][%s] ", std::string(szOut, size), g_DefaultClock->now());
 }
 
 std::string Log::getColorBegin(Level level) {

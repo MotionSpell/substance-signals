@@ -6,6 +6,7 @@
 #include "lib_utils/tools.hpp"
 #include <atomic>
 #include <memory>
+#include <vector>
 
 namespace Modules {
 

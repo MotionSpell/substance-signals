@@ -2,6 +2,7 @@
 
 #include "../core/module.hpp"
 #include "lib_signals/utils/helper.hpp"
+#include "lib_utils/clock.hpp"
 #include <memory>
 
 namespace Modules {
@@ -11,20 +12,22 @@ static Signals::ExecutorSync<void()> g_executorSync;
 #define defaultExecutor g_executorSync
 
 /* this default factory creates output pins with the default output - create another one for other uses such as low latency */
-template <typename InstanceType>
+template <class InstanceType>
 struct ModuleDefault : public OutputCap, public InstanceType {
 	template <typename ...Args>
-	ModuleDefault(size_t allocatorSize, Args&&... args) : OutputCap(allocatorSize), InstanceType(std::forward<Args>(args)...) {}
+	ModuleDefault(size_t allocatorSize, const std::shared_ptr<IClock> clock, Args&&... args) : OutputCap(allocatorSize), InstanceType(std::forward<Args>(args)...) {
+		this->setClock(clock);
+	}
 };
 
 template <typename InstanceType, typename ...Args>
-InstanceType* createModule(size_t allocatorSize, Args&&... args) {
-	return new Modules::ModuleDefault<InstanceType>(allocatorSize, std::forward<Args>(args)...);
+InstanceType* createModule(size_t allocatorSize, const std::shared_ptr<IClock> clock, Args&&... args) {
+	return new ModuleDefault<InstanceType>(allocatorSize, clock, std::forward<Args>(args)...);
 }
 
 template <typename InstanceType, typename ...Args>
 InstanceType* create(Args&&... args) {
-	return createModule<InstanceType>(ALLOC_NUM_BLOCKS_DEFAULT, std::forward<Args>(args)...);
+	return createModule<InstanceType>(ALLOC_NUM_BLOCKS_DEFAULT, g_DefaultClock, std::forward<Args>(args)...);
 }
 
 template<typename Class>

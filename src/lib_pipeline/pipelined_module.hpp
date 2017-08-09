@@ -13,12 +13,13 @@ namespace Pipelines {
 struct DataLoosePipeline : public DataBase {};
 
 /* Wrapper around the module. */
-class PipelinedModule : public IPipelineNotifier, public IPipelinedModule, public InputCap {
+class PipelinedModule : public IPipelineNotifier, public IPipelinedModule, public Module {
 public:
 	/* take ownership of module and executor */
-	PipelinedModule(IModule *module, IPipelineNotifier *notify, std::shared_ptr<const IClock> const clock, Pipeline::Threading threading)
+	PipelinedModule(IModule *module, IPipelineNotifier *notify, const std::shared_ptr<IClock> clock, Pipeline::Threading threading)
 		: delegate(module), localDelegateExecutor(threading & Pipeline::Mono ? (IProcessExecutor*)new EXECUTOR_LIVE : (IProcessExecutor*)new EXECUTOR),
-		delegateExecutor(*localDelegateExecutor), clock(clock), threading(threading), m_notify(notify), activeConnections(0) {
+		delegateExecutor(*localDelegateExecutor), threading(threading), m_notify(notify), activeConnections(0) {
+		this->setClock(clock);
 	}
 	~PipelinedModule() noexcept(false) {}
 	void flush() override {
@@ -151,7 +152,6 @@ private:
 	IProcessExecutor &delegateExecutor;
 
 	std::vector<IProcessExecutor*> inputExecutor; /*needed to sleep when using a clock*/
-	std::shared_ptr<const IClock> const clock;
 	Pipeline::Threading threading;
 
 	IPipelineNotifier * const m_notify;

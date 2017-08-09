@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="core\allocator.hpp" />
+    <ClInclude Include="core\clock.hpp" />
     <ClInclude Include="core\data.hpp" />
     <ClInclude Include="core\error.hpp" />
     <ClInclude Include="core\input.hpp" />

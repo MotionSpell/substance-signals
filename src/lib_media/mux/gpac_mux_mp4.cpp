@@ -941,7 +941,7 @@ void GPACMuxMP4::process() {
 	if (inputs[0]->updateMetadata(data))
 		declareStream(data);
 	if (!firstDataAbsTimeInMs)
-		firstDataAbsTimeInMs = data->getAbsTime(1000);
+		firstDataAbsTimeInMs = data->getClockTime(1000);
 	auto sample = fillSample(data);
 
 	auto const mediaTs = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
