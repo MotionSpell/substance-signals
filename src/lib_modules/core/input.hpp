@@ -55,29 +55,27 @@ class Input : public IInput {
 
 struct IInputCap {
 	virtual ~IInputCap() noexcept(false) {}
+	virtual IInput* addInput(IInput* p) = 0;
 	virtual size_t getNumInputs() const = 0;
 	virtual IInput* getInput(size_t i) = 0;
-	virtual IInput* addInput(IInput* p) = 0;
 };
 
 class InputCap : public virtual IInputCap {
-	public:
-		virtual ~InputCap() noexcept(false) {}
+public:
+	virtual ~InputCap() noexcept(false) {}
+	IInput* addInput(IInput* p) override { //Takes ownership
+		inputs.push_back(uptr(p));
+		return p;
+	}
+	size_t getNumInputs() const override {
+		return inputs.size();
+	}
+	IInput* getInput(size_t i) override {
+		return inputs[i].get();
+	}
 
-		//Takes ownership
-		IInput* addInput(IInput* p) override {
-			inputs.push_back(uptr(p));
-			return p;
-		}
-		size_t getNumInputs() const override {
-			return inputs.size();
-		}
-		IInput* getInput(size_t i) override {
-			return inputs[i].get();
-		}
-
-	protected:
-		std::vector<std::unique_ptr<IInput>> inputs;
+protected:
+	std::vector<std::unique_ptr<IInput>> inputs;
 };
 
 }

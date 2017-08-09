@@ -48,8 +48,7 @@ class ModuleDynI : public IModule, public ErrorCap, public LogCap, public InputC
 		ModuleDynI() = default;
 		virtual ~ModuleDynI() noexcept(false) {}
 
-		//takes ownership
-		IInput* addInput(IInput* p) override {
+		IInput* addInput(IInput* p) override { //takes ownership
 			bool isDyn = false;
 			std::unique_ptr<IInput> pEx(nullptr);
 			if (inputs.size() && dynamic_cast<DataLoose*>(inputs.back().get())) {

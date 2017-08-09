@@ -17,7 +17,8 @@ private:
 	Exception& operator= (const Exception&) = delete;
 };
 
-struct ErrorCap {
+class ErrorCap {
+protected:
 	std::exception error(std::string const &msg) {
 		throw Exception(format("[%s] %s", typeid(*this).name(), msg));
 	}
