@@ -2,7 +2,6 @@
 
 #include "../common/picture.hpp"
 #include "lib_modules/core/module.hpp"
-#include "lib_utils/clock.hpp"
 #include <mutex>
 #include <thread>
 

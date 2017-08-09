@@ -5,7 +5,6 @@
 #define LIBAVMUXHLS //FIXME: see https://git.gpac-licensing.com/rbouqueau/fk-encode/issues/18 ; the libav muxer doesn't signal new segments*/
 #include "../mux/libav_mux.hpp"
 #include <lib_modules/utils/helper.hpp>
-#include "lib_utils/clock.hpp"
 
 namespace Modules {
 namespace Stream {

@@ -1,5 +1,4 @@
 #include "adaptive_streaming_common.hpp"
-#include "lib_utils/clock.hpp"
 #include "lib_utils/time.hpp"
 
 namespace Modules {

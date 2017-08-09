@@ -1,5 +1,4 @@
 #include "mpeg_dash.hpp"
-#include "lib_utils/clock.hpp"
 #include "lib_utils/time.hpp"
 #include "../common/libav.hpp"
 #ifdef _WIN32

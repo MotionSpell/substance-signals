@@ -2,7 +2,6 @@
 
 #include "lib_modules/core/module.hpp"
 #include "../common/pcm.hpp"
-#include "lib_utils/clock.hpp"
 #include "lib_utils/fifo.hpp"
 #include <memory>
 #include <mutex>
