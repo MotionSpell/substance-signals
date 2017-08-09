@@ -1,5 +1,6 @@
 #include "adaptive_streaming_common.hpp"
 #include "lib_utils/clock.hpp"
+#include "lib_utils/time.hpp"
 
 namespace Modules {
 namespace Stream {
@@ -23,7 +24,7 @@ void AdaptiveStreamingCommon::endOfStream() {
 //needed because of the use of system time for live - otherwise awake on data as for any multi-input module
 //TODO: add clock to the scheduler, see #14
 void AdaptiveStreamingCommon::threadProc() {
-	log(Info, "start processing at UTC: %s.", gf_net_get_utc());
+	log(Info, "start processing at UTC: %s.", getUTCInMs());
 
 	auto const numInputs = getNumInputs() - 1;
 	qualities.resize(numInputs);
@@ -52,13 +53,13 @@ void AdaptiveStreamingCommon::threadProc() {
 		}
 
 		numSeg++;
-		if (!startTimeInMs) startTimeInMs = gf_net_get_utc() - curSegDurInMs;
+		if (!startTimeInMs) startTimeInMs = getUTCInMs() - curSegDurInMs;
 		generateManifest();
 		totalDurationInMs += curSegDurInMs;
-		log(Info, "Processes segment (total processed: %ss, UTC: %s (deltaAST=%s, deltaInput=%s).", (double)totalDurationInMs / 1000, gf_net_get_utc(), gf_net_get_utc() - startTimeInMs, (int64_t)(gf_net_get_utc() - clockToTimescale(data->getMediaTime(), 1000)));
+		log(Info, "Processes segment (total processed: %ss, UTC: %s (deltaAST=%s, deltaInput=%s).", (double)totalDurationInMs / 1000, getUTCInMs(), gf_net_get_utc() - startTimeInMs, (int64_t)(gf_net_get_utc() - clockToTimescale(data->getMediaTime(), 1000)));
 
 		if (type == Live) {
-			const int64_t dur = startTimeInMs + totalDurationInMs - gf_net_get_utc();
+			const int64_t dur = startTimeInMs + totalDurationInMs - getUTCInMs();
 			if (dur > 0) {
 				auto durInMs = std::chrono::milliseconds(dur);
 				log(Debug, "Going to sleep for %s ms.", dur);

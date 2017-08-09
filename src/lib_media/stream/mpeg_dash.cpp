@@ -1,11 +1,12 @@
 #include "mpeg_dash.hpp"
 #include "lib_utils/clock.hpp"
+#include "lib_utils/time.hpp"
 #include "../common/libav.hpp"
 #ifdef _WIN32
 #include <Windows.h>
 #endif
 
-#define DASH_TIMESCALE 1000 // /!\ there are some ms already hardcoded, including in AdaptiveStreamingCommon and gf_net_get_utc() results
+#define DASH_TIMESCALE 1000 // /!\ there are some ms already hardcoded from the GPAC calls
 #define MOVE_FILE_NUM_RETRY 3
 #define MIN_UPDATE_PERIOD_FACTOR 1 //should be 0, but dash.js doesn't support MPDs with no refresh time.
 
@@ -75,7 +76,7 @@ void MPEG_DASH::ensureManifest() {
 		mpd->mpd->availabilityStartTime = startTimeInMs + initialOffsetInMs;
 		mpd->mpd->time_shift_buffer_depth = (u32)timeShiftBufferDepthInMs;
 	}
-	mpd->mpd->publishTime = gf_net_get_utc();
+	mpd->mpd->publishTime = getUTCInMs();
 
 	auto mpdBaseURL = gf_list_new();
 	if (!mpdBaseURL)

@@ -72,7 +72,7 @@ std::string getDay() {
 	return day;
 }
 
-std::string getMediaTime() {
+std::string getTimeFromUTC() {
 	char time[24];
 	auto const t = getUTCInMs();
 	timeInMsToStr(((t / 3600000) % 24) * 3600000 + (t % 3600000), time);

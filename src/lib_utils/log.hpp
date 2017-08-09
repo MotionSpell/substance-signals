@@ -29,7 +29,7 @@ class Log {
 				} else
 #endif
 				{
-					get(level) << getColorBegin(level) << getMediaTime() << format(fmt, args...) << getColorEnd(level) << std::endl;
+					get(level) << getColorBegin(level) << getTime() << format(fmt, args...) << getColorEnd(level) << std::endl;
 					get(level).flush();
 				}
 			}
@@ -50,7 +50,7 @@ class Log {
 	private:
 		Log() {}
 		static std::ostream& get(Level level);
-		static std::string getMediaTime();
+		static std::string getTime();
 		static std::string getColorBegin(Level level);
 		static std::string getColorEnd(Level level);
 
