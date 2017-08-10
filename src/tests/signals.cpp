@@ -13,9 +13,7 @@ inline int dummyPrint(int a) {
 	std::cout << "a = " << a << std::endl;
 	return a;
 }
-
 inline void sleepInMs(int ms) {
-	//std::cout << "sleepInMs(" << ms << ") in thread " << std::this_thread::get_id() << std::endl;
 	std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 }
 }

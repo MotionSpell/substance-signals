@@ -1,9 +1,13 @@
 #include "clock.hpp"
-#include <cassert>
+#include <thread>
 
 using namespace std::chrono;
 
-uint64_t Clock::now(const uint64_t timescale) const {
+Clock::Clock(double speed)
+: timeStart(std::chrono::high_resolution_clock::now()), speed(speed) {
+}
+
+uint64_t Clock::now(uint64_t timescale) const {
 	auto const timeNow = high_resolution_clock::now();
 	auto const timeElapsedInSpeed = speed * (timeNow - timeStart);
 	auto const timeNowInMs = duration_cast<milliseconds>(timeElapsedInSpeed);
@@ -13,6 +17,12 @@ uint64_t Clock::now(const uint64_t timescale) const {
 
 double Clock::getSpeed() const {
 	return speed;
+}
+
+void Clock::sleep(uint64_t time, uint64_t timescale) const {
+	if (speed > 0.0) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(convertToTimescale(time, timescale, 1000)));
+	}
 }
 
 static std::shared_ptr<Clock> systemClock(new Clock(1.0));

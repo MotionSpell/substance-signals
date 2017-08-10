@@ -12,38 +12,43 @@ unittest("scheduler: basic, scheduleIn()/scheduleAt()") {
 	auto clear = [&] { q.clear(); i = 0; };
 
 	{
-		Scheduler s;
+		auto clock = shptr(new Clock(1.0));
+		Scheduler s(clock);
 	}
 
 	{
-		Scheduler s;
+		auto clock = shptr(new Clock(1.0));
+		Scheduler s(clock);
 		s.scheduleIn(f, 50);
 	}
 	ASSERT(i == 0);
 	clear();
 
 	{
-		Scheduler s;
+		auto clock = shptr(new Clock(1.0));
+		Scheduler s(clock);
 		s.scheduleIn(f, 0);
-		std::this_thread::sleep_for(std::chrono::milliseconds(50));
+		clock->sleep(50, 1000);
 	}
 	ASSERT(i == 1);
 	clear();
 
 	{
-		Scheduler s;
+		auto clock = shptr(new Clock(1.0));
+		Scheduler s(clock);
 		s.scheduleIn(f, 0);
 		s.scheduleIn(f, 1000);
-		std::this_thread::sleep_for(std::chrono::milliseconds(50));
+		clock->sleep(50, 1000);
 	}
 	ASSERT(i == 1);
 	clear();
 
 	{
-		Scheduler s;
+		auto clock = shptr(new Clock(1.0));
+		Scheduler s(clock);
 		s.scheduleIn(f, 0);
 		s.scheduleIn(f, 1);
-		std::this_thread::sleep_for(std::chrono::milliseconds(50));
+		clock->sleep(50, 1000);
 	}
 	ASSERT(i == 2);
 	ASSERT(q.pop() == 0);
@@ -58,9 +63,10 @@ unittest("scheduler: scheduleEvery()") {
 	};
 
 	{
-		Scheduler s;
+		auto clock = shptr(new Clock(1.0));
+		Scheduler s(clock);
 		s.scheduleEvery(f, getUTCInMs(), 10);
-		std::this_thread::sleep_for(std::chrono::milliseconds(50));
+		clock->sleep(50, 1000);
 	}
 	ASSERT(i >= 3);
 	ASSERT(q.pop() == 0);
@@ -69,7 +75,7 @@ unittest("scheduler: scheduleEvery()") {
 }
 
 #ifdef ENABLE_FAILING_TESTS
-unittest("scheduler: scheduleEvery()") {
+unittest("scheduler: scheduleEvery() on non void types") {
 	//TODO: non void(void)
 }
 #endif
@@ -79,10 +85,11 @@ unittest("scheduler: reschedule a sooner event while waiting") {
 	std::atomic_int i(0);
 
 	{
-		Scheduler s;
+		auto clock = shptr(new Clock(1.0));
+		Scheduler s(clock);
 		s.scheduleIn([&] { q.push(20); }, 20);
 		s.scheduleIn([&] { q.push(0); }, 0);
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		clock->sleep(50, 1000);
 	}
 	ASSERT(q.size() == 2);
 	ASSERT(q.pop() == 0);

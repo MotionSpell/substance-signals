@@ -9,9 +9,7 @@ unittest("global clock") {
 	for (int i = 0; i < 5; ++i) {
 		auto const now = g_DefaultClock->now(1000);
 		std::cout << "Time: " << now << std::endl;
-
-		auto const duration = std::chrono::milliseconds(20);
-		std::this_thread::sleep_for(duration);
+		g_DefaultClock->sleep(20, 1000);
 	}
 }
 
@@ -20,9 +18,7 @@ unittest("basic clock, speed 0.5x") {
 	for (int i = 0; i < 5; ++i) {
 		auto const now = clock.now(1000);
 		std::cout << "Time: " << now << std::endl;
-
-		auto const duration = std::chrono::milliseconds(20);
-		std::this_thread::sleep_for(duration);
+		g_DefaultClock->sleep(20, 1000);
 	}
 }
 
@@ -31,9 +27,7 @@ unittest("basic clock, speed 2x") {
 	for (int i = 0; i < 5; ++i) {
 		auto const now = clock.now(1000);
 		std::cout << "Time: " << now << std::endl;
-
-		auto const duration = std::chrono::milliseconds(20);
-		std::this_thread::sleep_for(duration);
+		g_DefaultClock->sleep(20, 1000);
 	}
 }
 
