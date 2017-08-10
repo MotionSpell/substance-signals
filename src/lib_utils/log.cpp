@@ -42,7 +42,7 @@ std::string Log::getTime() {
 	const std::time_t t = std::time(nullptr);
 	std::tm tm = *std::localtime(&t);
 	auto const size = strftime(szOut, 255, "%Y/%m/%d %H:%M:%S", &tm);
-	return format("[%s][%s] ", std::string(szOut, size), g_DefaultClock->now());
+	return format("[%s][%s] ", std::string(szOut, size), g_DefaultClock->now() / IClock::Rate);
 }
 
 std::string Log::getColorBegin(Level level) {

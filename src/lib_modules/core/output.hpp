@@ -52,7 +52,7 @@ public:
 	template<typename T = typename Allocator::MyType>
 	std::shared_ptr<T> getBuffer(size_t size) {
 		auto buffer = allocator->template getBuffer<T>(size, allocator);
-		if (clock) buffer->setClockTime(clock->now(), 1000);
+		if (clock) buffer->setClockTime(clock->now());
 		return buffer;
 	}
 

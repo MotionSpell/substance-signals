@@ -6,7 +6,7 @@
 
 struct IClock {
 	static auto const Rate = 180000ULL;
-	virtual uint64_t now(const uint64_t timescale = 1000) const = 0;
+	virtual uint64_t now(const uint64_t timescale = IClock::Rate) const = 0;
 	virtual double getSpeed() const = 0;
 };
 

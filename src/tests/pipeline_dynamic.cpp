@@ -36,20 +36,9 @@ unittest("pipeline: connect while running") {
 	tf.join();
 }
 
-unittest("pipeline: dynamic module connection of a new module (1)") {
+unittest("pipeline: dynamic module connection of a new module") {
 	Pipeline p;
-	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
-	auto dualInput = p.addModule<DualInput>(false);
-	p.connect(demux, 0, dualInput, 0);
-	auto demux2 = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
-	p.start();
-	p.connect(demux2, 0, dualInput, 1);
-	p.waitForCompletion();
-}
-
-unittest("pipeline: dynamic module connection of a new module (2)") {
-	Pipeline p;
-	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
+	auto demux = p.addModule<Demux::LibavDemux, 1>("data/beepbop.mp4");
 	auto dualInput = p.addModule<DualInput>(false);
 	p.connect(demux, 0, dualInput, 0);
 	p.start();

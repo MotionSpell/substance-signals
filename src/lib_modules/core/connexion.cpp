@@ -18,7 +18,7 @@ size_t ConnectOutputToInput(IOutput *prev, IInput *next, IProcessExecutor * cons
 			Log::msg(Info, "--------- Connect: metadata is not the same as next");
 		} else if (!prevMetadata && nextMetadata) {
 			safe_cast<IMetadataCap>(prev)->setMetadata(nextMetadata);
-			Log::msg(Info, "--------- Connect: metadata propagate to previous (backward)");
+			Log::msg(Info, "--------- Connect: metadata propagate to previous (backward).");
 		} else {
 			Log::msg(Debug, "--------- Connect: no metadata");
 		}

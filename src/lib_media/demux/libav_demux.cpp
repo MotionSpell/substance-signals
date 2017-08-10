@@ -268,7 +268,7 @@ void LibavDemux::process(Data data) {
 	workingThread = std::thread(&LibavDemux::threadProc, this);
 
 	AVPacket pkt;
-	while (!done) {
+	while (1) {
 		if (getNumInputs() && getInput(0)->tryPop(data)) {
 			done = true;
 			log(Info, "Exit from an external event.");
@@ -276,6 +276,10 @@ void LibavDemux::process(Data data) {
 		}
 
 		if (!dispatchPkts.read(pkt)) {
+			if (done) {
+				log(Info, "All data consumed: exit process().");
+				return;
+			}
 			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 			continue;
 		}
