@@ -31,4 +31,9 @@ size_t ConnectOutputToInput(IOutput *prev, IInput *next, IProcessExecutor * cons
 	});
 }
 
+size_t ConnectModules(Module *prev, size_t outputIdx, Module *next, size_t inputIdx, IProcessExecutor &executor) {
+	auto output = prev->getOutput(outputIdx);
+	return ConnectOutputToInput(output, next->getInput(inputIdx), &executor);
+}
+
 }

@@ -1,5 +1,4 @@
-#include "input.hpp"
-#include "output.hpp"
+#include "module.hpp"
 
 namespace Modules {
 
@@ -14,11 +13,6 @@ MEMBER_FUNCTOR_PROCESS(Class* objectPtr) {
 }
 
 size_t ConnectOutputToInput(IOutput *prev, IInput *next, IProcessExecutor * const executor = &defaultExecutor);
-
-template<typename ModuleType1, typename ModuleType2>
-size_t ConnectModules(ModuleType1 *prev, size_t outputIdx, ModuleType2 *next, size_t inputIdx, IProcessExecutor &executor = defaultExecutor) {
-	auto output = prev->getOutput(outputIdx);
-	return ConnectOutputToInput(output, next->getInput(inputIdx), &executor);
-}
+size_t ConnectModules(Module *prev, size_t outputIdx, Module *next, size_t inputIdx, IProcessExecutor &executor = defaultExecutor);
 
 }
