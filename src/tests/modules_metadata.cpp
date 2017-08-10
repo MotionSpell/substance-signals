@@ -30,6 +30,7 @@ public:
 		input = addInput(new Input<DataBase>(this));
 	}
 	void process() {
+		inputs[0]->updateMetadata(inputs[0]->pop());
 	}
 
 	void setMetadata(std::shared_ptr<const IMetadata> metadata) {
@@ -50,17 +51,15 @@ unittest("metadata: backwarded by connection") {
 	ASSERT(o->getMetadata() == i->getMetadata());
 }
 
-#ifdef ENABLE_FAILING_TESTS
-unittest("metadata: forwarded by connection") {
+unittest("metadata: not forwarded by connection") {
 	auto output = uptr(create<FakeOutput>());
 	auto input = uptr(create<FakeInput>());
 	output->setMetadata(shptr(new MetadataRawAudio));
 	auto o = output->getOutput(0);
 	auto i = input->getInput(0);
 	ConnectOutputToInput(o, i);
-	ASSERT(o->getMetadata() == i->getMetadata());
+	ASSERT(!i->getMetadata());
 }
-#endif
 
 unittest("metadata: same back and fwd by connection") {
 	auto output = uptr(create<FakeOutput>());
@@ -74,7 +73,6 @@ unittest("metadata: same back and fwd by connection") {
 	ASSERT(o->getMetadata() == i->getMetadata());
 }
 
-#ifdef ENABLE_FAILING_TESTS
 unittest("metadata: forwarded by data") {
 	auto output = uptr(create<FakeOutput>());
 	auto input = uptr(create<FakeInput>());
@@ -104,7 +102,6 @@ unittest("metadata: incompatible by data") {
 	}
 	ASSERT(thrown);
 }
-#endif
 
 unittest("metadata: incompatible back and fwd") {
 	bool thrown = false;
@@ -125,7 +122,6 @@ unittest("metadata: incompatible back and fwd") {
 	ASSERT(thrown);
 }
 
-#ifdef ENABLE_FAILING_TESTS
 unittest("metadata: updated twice by data") {
 	auto output = uptr(create<FakeOutput>());
 	auto input = uptr(create<FakeInput>());
@@ -138,6 +134,5 @@ unittest("metadata: updated twice by data") {
 	output->process();
 	ASSERT(o->getMetadata() == i->getMetadata());
 }
-#endif
 
 }

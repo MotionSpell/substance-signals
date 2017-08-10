@@ -151,7 +151,9 @@ class MetadataCap : public virtual IMetadataCap {
 		bool setMetadataInternal(std::shared_ptr<const IMetadata> metadata) {
 			if (metadata != m_metadata) {
 				if (m_metadata) {
-					if (*m_metadata == *metadata) {
+					if (metadata->getStreamType() != m_metadata->getStreamType()) {
+						throw std::runtime_error(format("Metadata update: incompatible types %s for data and %s for attached", metadata->getStreamType(), m_metadata->getStreamType()));
+					} else if (*m_metadata == *metadata) {
 						Log::msg(Debug, "Output: metadata not equal but comparable by value. Updating.");
 						m_metadata = metadata;
 					} else {
@@ -160,8 +162,6 @@ class MetadataCap : public virtual IMetadataCap {
 					return true;
 				}
 				Log::msg(Info, "Output: metadata transported by data changed. Updating.");
-				if (m_metadata && (metadata->getStreamType() != m_metadata->getStreamType()))
-					throw std::runtime_error(format("Metadata update: incompatible types %s for data and %s for attached", metadata->getStreamType(), m_metadata->getStreamType()));
 				m_metadata = metadata;
 				return true;
 			} else {

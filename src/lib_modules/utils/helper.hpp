@@ -45,13 +45,10 @@ size_t ConnectOutputToInput(IOutput *prev, ModuleType *next, IProcessExecutor * 
 		Log::msg(Info, "--------- Connect: metadata OK");
 	} else {
 		if (prevMetadata && !nextMetadata) {
-#if 0 //rely on data to propagate type instead of inputs or outputs - this way sent data type is on the output, processed data is on the input
-			next->setMetadata(prevMetadata);
-			log(Info, "--------- Connect: metadata Propagate to next");
-#endif
+			Log::msg(Info, "--------- Connect: metadata is not the same as next");
 		} else if (!prevMetadata && nextMetadata) {
 			safe_cast<IMetadataCap>(prev)->setMetadata(nextMetadata);
-			Log::msg(Info, "--------- Connect: metadata Propagate to prev (backward)");
+			Log::msg(Info, "--------- Connect: metadata propagate to prev (backward)");
 		} else {
 			Log::msg(Info, "--------- Connect: no metadata");
 		}
