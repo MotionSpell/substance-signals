@@ -84,6 +84,7 @@ UTILS_SRCS:=\
   src/version.cpp\
   $(ProjectName)/clock.cpp\
   $(ProjectName)/log.cpp\
+  $(ProjectName)/scheduler.cpp\
   $(ProjectName)/time.cpp
 LIB_UTILS_OBJS:=$(UTILS_SRCS:%.cpp=$(BIN)/%.o)
 

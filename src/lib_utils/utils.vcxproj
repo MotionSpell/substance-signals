@@ -35,6 +35,7 @@
     </ClCompile>
     <ClCompile Include="clock.cpp" />
     <ClCompile Include="log.cpp" />
+    <ClCompile Include="scheduler.cpp" />
     <ClCompile Include="time.cpp" />
   </ItemGroup>
   <ItemGroup>

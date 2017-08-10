@@ -7,6 +7,7 @@
     </ClCompile>
     <ClCompile Include="time.cpp" />
     <ClCompile Include="clock.cpp" />
+    <ClCompile Include="scheduler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="log.hpp" />
