@@ -70,7 +70,7 @@ std::shared_ptr<DataBase> getTestMp3Frame() {
 unittest("decode: audio simple") {
 	auto decode = uptr(createMp3Decoder());
 	auto null = uptr(create<Out::Null>());
-	ConnectOutputToInput(decode->getOutput(0), null);
+	ConnectOutputToInput(decode->getOutput(0), null->getInput(0));
 
 	auto frame = getTestMp3Frame();
 	decode->process(frame);
@@ -122,7 +122,7 @@ unittest("decode: audio mp3 manual frame to AAC") {
 	auto decode = uptr(createMp3Decoder());
 	auto encoder = uptr(create<Encode::LibavEncode>(Encode::LibavEncode::Audio));
 
-	ConnectOutputToInput(decode->getOutput(0), encoder);
+	ConnectOutputToInput(decode->getOutput(0), encoder->getInput(0));
 
 	auto frame = getTestMp3Frame();
 	bool thrown = false;
@@ -145,8 +145,8 @@ unittest("decode: audio mp3 to converter to AAC") {
 	auto const metaEnc = safe_cast<const MetadataPktLibavAudio>(metadataEncoder);
 	auto converter = uptr(create<Transform::AudioConvert>(srcFormat, dstFormat, metaEnc->getFrameSize()));
 
-	ConnectOutputToInput(decode->getOutput(0), converter);
-	ConnectOutputToInput(converter->getOutput(0), encoder);
+	ConnectOutputToInput(decode->getOutput(0), converter->getInput(0));
+	ConnectOutputToInput(converter->getOutput(0), encoder->getInput(0));
 
 	auto frame = getTestMp3Frame();
 	decode->process(frame);

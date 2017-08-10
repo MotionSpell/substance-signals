@@ -146,6 +146,7 @@ DEPS+=$(LIB_PIPELINE_OBJS:%.o=%.deps)
 
 ProjectName:=$(SRC)/lib_modules
 MODULES_SRCS:=\
+  $(ProjectName)/core/connexion.cpp\
   $(ProjectName)/core/data.cpp
 LIB_MODULES_OBJS:=$(MODULES_SRCS:%.cpp=$(BIN)/%.o)
 DEPS+=$(LIB_MODULES_OBJS:%.o=%.deps)

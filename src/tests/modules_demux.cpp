@@ -15,7 +15,7 @@ unittest("demux one track: Demux::GPACDemuxMP4Simple -> Out::Print") {
 	auto mp4Demux = uptr(create<Demux::GPACDemuxMP4Simple>("data/beepbop.mp4"));
 	auto p = uptr(create<Out::Print>(std::cout));
 
-	ConnectOutputToInput(mp4Demux->getOutput(0), p);
+	ConnectOutputToInput(mp4Demux->getOutput(0), p->getInput(0));
 
 	mp4Demux->process(nullptr);
 }
@@ -26,8 +26,8 @@ unittest("demux one track: File -> Demux::GPACDemuxMP4Full -> Out::Print") {
 	auto mp4Demux = uptr(create<Demux::GPACDemuxMP4Full>());
 	auto p = uptr(create<Out::Print>(std::cout));
 
-	ConnectOutputToInput(f->getOutput(0), mp4Demux);
-	ConnectOutputToInput(mp4Demux->getOutput(0), p);
+	ConnectOutputToInput(f->getOutput(0), mp4Demux->getInput(0));
+	ConnectOutputToInput(mp4Demux->getOutput(0), p->getInput(0));
 
 	f->process(nullptr);
 }

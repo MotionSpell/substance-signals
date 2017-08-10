@@ -40,9 +40,15 @@
     <ClInclude Include="core\clock.hpp">
       <Filter>core</Filter>
     </ClInclude>
+    <ClInclude Include="core\connexion.hpp">
+      <Filter>core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="core\data.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="core\connexion.cpp">
       <Filter>core</Filter>
     </ClCompile>
   </ItemGroup>

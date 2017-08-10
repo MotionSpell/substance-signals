@@ -14,11 +14,11 @@ namespace {
 unittest("render: A/V sync, one thread") {
 	auto videoGen = uptr(create<In::VideoGenerator>());
 	auto videoRender = uptr(create<Render::SDLVideo>());
-	ConnectOutputToInput(videoGen->getOutput(0), videoRender);
+	ConnectOutputToInput(videoGen->getOutput(0), videoRender->getInput(0));
 
 	auto soundGen = uptr(create<In::SoundGenerator>());
 	auto soundRender = uptr(create<Render::SDLAudio>());
-	ConnectOutputToInput(soundGen->getOutput(0), soundRender);
+	ConnectOutputToInput(soundGen->getOutput(0), soundRender->getInput(0));
 
 	for(int i=0; i < 25*5; ++i) {
 		videoGen->process(nullptr);

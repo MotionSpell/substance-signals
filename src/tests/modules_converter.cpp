@@ -24,8 +24,8 @@ unittest("audio converter: interleaved to planar to interleaved") {
 	auto converter1 = uptr(create<Transform::AudioConvert>(baseFormat, otherFormat));
 	auto converter2 = uptr(create<Transform::AudioConvert>(otherFormat, baseFormat));
 
-	ConnectOutputToInput(soundGen->getOutput(0), converter1);
-	ConnectOutputToInput(converter1->getOutput(0), converter2);
+	ConnectOutputToInput(soundGen->getOutput(0), converter1->getInput(0));
+	ConnectOutputToInput(converter1->getOutput(0), converter2->getInput(0));
 	Connect(converter2->getOutput(0)->getSignal(), comparator.get(), &Utils::PcmComparator::pushOther);
 
 	soundGen->process(nullptr);
@@ -42,8 +42,8 @@ unittest("audio converter: 44100 to 48000") {
 	auto converter1 = uptr(create<Transform::AudioConvert>(baseFormat, otherFormat));
 	auto converter2 = uptr(create<Transform::AudioConvert>(otherFormat, baseFormat));
 
-	ConnectOutputToInput(soundGen->getOutput(0), converter1, g_executorSync);
-	ConnectOutputToInput(converter1->getOutput(0), converter2, g_executorSync);
+	ConnectOutputToInput(soundGen->getOutput(0), converter1->getInput(0), &g_executorSync);
+	ConnectOutputToInput(converter1->getOutput(0), converter2->getInput(0), &g_executorSync);
 	Connect(converter2->getOutput(0)->getSignal(), comparator.get(), &Utils::PcmComparator::pushOther);
 
 	soundGen->process(nullptr);
@@ -60,8 +60,8 @@ unittest("audio converter: dynamic formats") {
 	PcmFormat format;;
 	auto converter = uptr(create<Transform::AudioConvert>(format));
 
-	ConnectOutputToInput(soundGen->getOutput(0), converter);
-	ConnectOutputToInput(converter->getOutput(0), recorder);
+	ConnectOutputToInput(soundGen->getOutput(0), converter->getInput(0));
+	ConnectOutputToInput(converter->getOutput(0), recorder->getInput(0));
 
 	soundGen->process(nullptr);
 
@@ -102,7 +102,7 @@ void framingTest(const size_t inFrameFrames, const size_t outFrameFrames) {
 
 	auto recorder = uptr(create<Utils::Recorder>());
 	auto converter = uptr(create<Transform::AudioConvert>(format, format, outFrameFrames));
-	ConnectOutputToInput(converter->getOutput(0), recorder);
+	ConnectOutputToInput(converter->getOutput(0), recorder->getInput(0));
 
 	auto const numIter = 3;
 	for (size_t i = 0; i < numIter; ++i) {

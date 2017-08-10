@@ -42,7 +42,7 @@ unittest("print packets size from file: File -> Out::Print") {
 	auto f = uptr(create<In::File>("data/beepbop.mp4"));
 	auto p = uptr(create<Out::Print>(std::cout));
 
-	ConnectOutputToInput(f->getOutput(0), p);
+	ConnectOutputToInput(f->getOutput(0), p->getInput(0));
 
 	f->process(nullptr);
 }
@@ -59,6 +59,6 @@ unittest("connect in any order") {
 	};
 	auto dataStore = uptr(create<DataStore>());
 	auto demux = uptr(create<Demux::LibavDemux>("data/beepbop.mp4"));
-	ConnectOutputToInput(demux->getOutput(0), dataStore);
+	ConnectOutputToInput(demux->getOutput(0), dataStore->getInput(0));
 	demux->process(nullptr);
 }

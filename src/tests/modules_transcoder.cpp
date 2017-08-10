@@ -29,7 +29,7 @@ void libav_mux(std::string format) {
 		if (metadata->getStreamType() == VIDEO_PKT) {
 			videoIndex = i;
 		} else {
-			ConnectOutputToInput(demux->getOutput(i), null);
+			ConnectOutputToInput(demux->getOutput(i), null->getInput(0));
 		}
 	}
 	ASSERT(videoIndex != std::numeric_limits<size_t>::max());
@@ -40,9 +40,9 @@ void libav_mux(std::string format) {
 	auto encode = uptr(create<Encode::LibavEncode>(Encode::LibavEncode::Video));
 	auto mux = uptr(create<Mux::LibavMux>("output_video_libav", format));
 
-	ConnectOutputToInput(demux->getOutput(videoIndex), decode);
-	ConnectOutputToInput(decode->getOutput(0), encode);
-	ConnectOutputToInput(encode->getOutput(0), mux);
+	ConnectOutputToInput(demux->getOutput(videoIndex), decode->getInput(0));
+	ConnectOutputToInput(decode->getOutput(0), encode->getInput(0));
+	ConnectOutputToInput(encode->getOutput(0), mux->getInput(0));
 
 	demux->process(nullptr);
 }
@@ -67,7 +67,7 @@ unittest("transcoder: video simple (gpac mux MP4)") {
 		if (demux->getOutput(i)->getMetadata()->getStreamType() == VIDEO_PKT) {
 			videoIndex = i;
 		} else {
-			ConnectOutputToInput(demux->getOutput(i), null);
+			ConnectOutputToInput(demux->getOutput(i), null->getInput(0));
 		}
 	}
 	ASSERT(videoIndex != std::numeric_limits<size_t>::max());
@@ -78,9 +78,9 @@ unittest("transcoder: video simple (gpac mux MP4)") {
 	auto encode = uptr(create<Encode::LibavEncode>(Encode::LibavEncode::Video));
 	auto mux = uptr(create<Mux::GPACMuxMP4>("output_video_gpac"));
 
-	ConnectOutputToInput(demux->getOutput(videoIndex), decode);
-	ConnectOutputToInput(decode->getOutput(0), encode);
-	ConnectOutputToInput(encode->getOutput(0), mux);
+	ConnectOutputToInput(demux->getOutput(videoIndex), decode->getInput(0));
+	ConnectOutputToInput(decode->getOutput(0), encode->getInput(0));
+	ConnectOutputToInput(encode->getOutput(0), mux->getInput(0));
 
 	demux->process(nullptr);
 }
@@ -90,7 +90,7 @@ unittest("transcoder: jpg to jpg") {
 	auto decode = uptr(create<Decode::JPEGTurboDecode>());
 	{
 		auto preReader = uptr(create<In::File>(filename));
-		ConnectOutputToInput(preReader->getOutput(0), decode);
+		ConnectOutputToInput(preReader->getOutput(0), decode->getInput(0));
 		preReader->process(nullptr);
 	}
 
@@ -98,9 +98,9 @@ unittest("transcoder: jpg to jpg") {
 	auto encoder = uptr(create<Encode::JPEGTurboEncode>());
 	auto writer = uptr(create<Out::File>("data/test.jpg"));
 
-	ConnectOutputToInput(reader->getOutput(0), decode);
-	ConnectOutputToInput(decode->getOutput(0), encoder);
-	ConnectOutputToInput(encoder->getOutput(0), writer);
+	ConnectOutputToInput(reader->getOutput(0), decode->getInput(0));
+	ConnectOutputToInput(decode->getOutput(0), encoder->getInput(0));
+	ConnectOutputToInput(encoder->getOutput(0), writer->getInput(0));
 
 	reader->process(nullptr);
 }
@@ -110,7 +110,7 @@ unittest("transcoder: jpg to resized jpg") {
 	auto decode = uptr(create<Decode::JPEGTurboDecode>());
 	{
 		auto preReader = uptr(create<In::File>(filename));
-		ConnectOutputToInput(preReader->getOutput(0), decode);
+		ConnectOutputToInput(preReader->getOutput(0), decode->getInput(0));
 		preReader->process(nullptr);
 	}
 	auto reader = uptr(create<In::File>(filename));
@@ -120,10 +120,10 @@ unittest("transcoder: jpg to resized jpg") {
 	auto encoder = uptr(create<Encode::JPEGTurboEncode>());
 	auto writer = uptr(create<Out::File>("data/test.jpg"));
 
-	ConnectOutputToInput(reader->getOutput(0), decode);
-	ConnectOutputToInput(decode->getOutput(0), converter);
-	ConnectOutputToInput(converter->getOutput(0), encoder);
-	ConnectOutputToInput(encoder->getOutput(0), writer);
+	ConnectOutputToInput(reader->getOutput(0), decode->getInput(0));
+	ConnectOutputToInput(decode->getOutput(0), converter->getInput(0));
+	ConnectOutputToInput(converter->getOutput(0), encoder->getInput(0));
+	ConnectOutputToInput(encoder->getOutput(0), writer->getInput(0));
 
 	reader->process(nullptr);
 }
@@ -142,10 +142,10 @@ unittest("transcoder: h264/mp4 to jpg") {
 	auto dstFormat = PictureFormat(dstRes, RGB24);
 	auto converter = uptr(create<Transform::VideoConvert>(dstFormat));
 
-	ConnectOutputToInput(demux->getOutput(1), decode);
-	ConnectOutputToInput(decode->getOutput(0), converter);
-	ConnectOutputToInput(converter->getOutput(0), encoder);
-	ConnectOutputToInput(encoder->getOutput(0), writer);
+	ConnectOutputToInput(demux->getOutput(1), decode->getInput(0));
+	ConnectOutputToInput(decode->getOutput(0), converter->getInput(0));
+	ConnectOutputToInput(converter->getOutput(0), encoder->getInput(0));
+	ConnectOutputToInput(encoder->getOutput(0), writer->getInput(0));
 
 	demux->process(nullptr);
 }
@@ -155,7 +155,7 @@ unittest("transcoder: jpg to h264/mp4 (gpac)") {
 	auto decode = uptr(create<Decode::JPEGTurboDecode>());
 	{
 		auto preReader = uptr(create<In::File>(filename));
-		ConnectOutputToInput(preReader->getOutput(0), decode);
+		ConnectOutputToInput(preReader->getOutput(0), decode->getInput(0));
 		preReader->process(nullptr);
 	}
 	auto reader = uptr(create<In::File>(filename));
@@ -166,10 +166,10 @@ unittest("transcoder: jpg to h264/mp4 (gpac)") {
 	auto encoder = uptr(create<Encode::LibavEncode>(Encode::LibavEncode::Video));
 	auto mux = uptr(create<Mux::GPACMuxMP4>("data/test"));
 
-	ConnectOutputToInput(reader->getOutput(0), decode);
-	ConnectOutputToInput(decode->getOutput(0), converter);
-	ConnectOutputToInput(converter->getOutput(0), encoder);
-	ConnectOutputToInput(encoder->getOutput(0), mux);
+	ConnectOutputToInput(reader->getOutput(0), decode->getInput(0));
+	ConnectOutputToInput(decode->getOutput(0), converter->getInput(0));
+	ConnectOutputToInput(converter->getOutput(0), encoder->getInput(0));
+	ConnectOutputToInput(encoder->getOutput(0), mux->getInput(0));
 
 	reader->process(nullptr);
 	converter->flush();

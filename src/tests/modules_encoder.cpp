@@ -32,7 +32,7 @@ unittest("encoder: timestamps start at random values") {
 	std::shared_ptr<DataBase> picture = uptr(new PictureYUV420P(VIDEO_RESOLUTION));
 	auto encode = uptr(create<Encode::LibavEncode>(Encode::LibavEncode::Video, p));
 	auto mux = uptr(create<Mux::GPACMuxMP4>("random_ts"));
-	ConnectOutputToInput(encode->getOutput(0), mux);
+	ConnectOutputToInput(encode->getOutput(0), mux->getInput(0));
 	for (size_t i = 0; i < times.size(); ++i) {
 		picture->setMediaTime(times[i]);
 		encode->process(picture);
@@ -61,7 +61,7 @@ unittest("GPAC mp4 mux: don't create empty fragments") {
 	std::shared_ptr<DataBase> picture = uptr(new PictureYUV420P(VIDEO_RESOLUTION));
 	auto encode = uptr(create<Encode::LibavEncode>(Encode::LibavEncode::Video, p));
 	auto mux = uptr(create<Mux::GPACMuxMP4>("tmp", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerRAP, Mux::GPACMuxMP4::Browsers | Mux::GPACMuxMP4::SegmentAtAny));
-	ConnectOutputToInput(encode->getOutput(0), mux);
+	ConnectOutputToInput(encode->getOutput(0), mux->getInput(0));
 	for (size_t i = 0; i < times.size(); ++i) {
 		picture->setMediaTime(times[i]);
 		encode->process(picture);

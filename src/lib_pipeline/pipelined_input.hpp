@@ -1,7 +1,7 @@
 #pragma once
 
 #include "pipeline.hpp"
-#include "lib_modules/core/module.hpp"
+#include "lib_modules/modules.hpp"
 
 #define EXECUTOR_SYNC              Signals::ExecutorSync<void()>
 #define EXECUTOR_ASYNC_THREAD      Signals::ExecutorThread<void()>(getDelegateName())
