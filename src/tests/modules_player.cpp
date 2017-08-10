@@ -20,15 +20,14 @@ unittest("packet type erasure + multi-output: libav Demux -> libav Decoder (Vide
 
 	size_t videoIndex = std::numeric_limits<size_t>::max();
 	for (size_t i = 0; i < demux->getNumOutputs(); ++i) {
-		auto metadata = getMetadataFromOutput<MetadataPktLibav>(demux->getOutput(i));
-		if (metadata->isVideo()) {
+		if (demux->getOutput(i)->getMetadata()->isVideo()) {
 			videoIndex = i;
 		} else {
 			ConnectOutputToInput(demux->getOutput(i), null);
 		}
 	}
 	ASSERT(videoIndex != std::numeric_limits<size_t>::max());
-	auto metadata = getMetadataFromOutput<MetadataPktLibav>(demux->getOutput(videoIndex));
+	auto metadata = safe_cast<const MetadataPktLibav>(demux->getOutput(videoIndex)->getMetadata());
 	auto decode = uptr(create<Decode::LibavDecode>(*metadata));
 	auto render = uptr(create<Render::SDLVideo>());
 
@@ -44,15 +43,14 @@ unittest("packet type erasure + multi-output: libav Demux -> libav Decoder (Audi
 
 	size_t audioIndex = std::numeric_limits<size_t>::max();
 	for (size_t i = 0; i < demux->getNumOutputs(); ++i) {
-		auto metadata = getMetadataFromOutput(demux->getOutput(i));
-		if (metadata->getStreamType() == AUDIO_PKT) {
+		if (demux->getOutput(i)->getMetadata()->getStreamType() == AUDIO_PKT) {
 			audioIndex = i;
 		} else {
 			ConnectOutputToInput(demux->getOutput(i), null);
 		}
 	}
 	ASSERT(audioIndex != std::numeric_limits<size_t>::max());
-	auto metadata = getMetadataFromOutput<MetadataPktLibav>(demux->getOutput(audioIndex));
+	auto metadata = safe_cast<const MetadataPktLibav>(demux->getOutput(audioIndex)->getMetadata());
 	auto decode = uptr(create<Decode::LibavDecode>(*metadata));
 	auto srcFormat = PcmFormat(44100, 1, AudioLayout::Mono, AudioSampleFormat::F32, AudioStruct::Planar);
 	auto dstFormat = PcmFormat(44100, 2, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Interleaved);

@@ -136,7 +136,7 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 
 	int numDashInputs = 0;
 	for (size_t i = 0; i < demux->getNumOutputs(); ++i) {
-		auto const metadataDemux = getMetadataFromOutput<MetadataPktLibav>(demux->getOutput(i));
+		auto const metadataDemux = safe_cast<const MetadataPktLibav>(demux->getOutput(i)->getMetadata());
 		if (!metadataDemux) {
 			Log::msg(Warning, "[%s] Unknown metadataDemux for stream %s. Ignoring.", g_appName, i);
 			continue;
@@ -148,7 +148,7 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 			pipeline->connect(demux, i, decode, 0);
 
 			if (metadataDemux->isVideo() && opt->autoRotate) {
-				auto const res = getMetadataFromOutput<MetadataPktLibavVideo>(demux->getOutput(i))->getResolution();
+				auto const res = safe_cast<const MetadataPktLibavVideo>(demux->getOutput(i)->getMetadata())->getResolution();
 				if (res.height > res.width) {
 					isVertical = true;
 				}
@@ -159,14 +159,13 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 		for (size_t r = 0; r < numRes; ++r, ++numDashInputs) {
 			IModule *encoder = nullptr;
 			if (transcode) {
-				Resolution inputRes = metadataDemux->isVideo() ? getMetadataFromOutput<MetadataPktLibavVideo>(demux->getOutput(i))->getResolution() : Resolution();
+				Resolution inputRes = metadataDemux->isVideo() ? safe_cast<const MetadataPktLibavVideo>(demux->getOutput(i)->getMetadata())->getResolution() : Resolution();
 				PictureFormat encoderInputPicFmt(autoRotate(autoFit(inputRes, opt->v[r].res), isVertical), UNKNOWN_PF);
 				encoder = createEncoder(metadataDemux, opt->ultraLowLatency, (Encode::LibavEncode::Params::VideoCodecType)opt->v[r].type, encoderInputPicFmt, opt->v[r].bitrate, opt->segmentDurationInMs);
 				if (!encoder)
 					continue;
 
-				auto const metadataEncoder = getMetadataFromOutput<MetadataPktLibav>(encoder->getOutput(0));
-				auto converter = createConverter(metadataDemux, metadataEncoder, encoderInputPicFmt);
+				auto converter = createConverter(metadataDemux, encoder->getOutput(0)->getMetadata(), encoderInputPicFmt);
 				if (!converter)
 					continue;
 
@@ -184,7 +183,7 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 			std::stringstream filename;
 			unsigned width, height;
 			if (metadataDemux->isVideo()) {
-				auto const resolutionFromDemux = getMetadataFromOutput<MetadataPktLibavVideo>(demux->getOutput(i))->getResolution();
+				auto const resolutionFromDemux = safe_cast<const MetadataPktLibavVideo>(demux->getOutput(i)->getMetadata())->getResolution();
 				if (transcode) {
 					auto const res = autoFit(resolutionFromDemux, opt->v[r].res);
 					width = res.width;

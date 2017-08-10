@@ -35,8 +35,8 @@ MEMBER_FUNCTOR_PROCESS(Class* objectPtr) {
 	return Signals::MemberFunctor<void, Class, void(Class::*)()>(objectPtr, &IProcessor::process);
 }
 
-template<typename ModuleType>
-size_t ConnectOutputToInput(IOutput *prev, ModuleType *next, IProcessExecutor * const executor = &defaultExecutor) {
+template<typename IInput>
+size_t ConnectOutputToInput(IOutput *prev, IInput *next, IProcessExecutor * const executor = &defaultExecutor) {
 	auto prevMetadata = safe_cast<const IMetadataCap>(prev)->getMetadata();
 	auto nextMetadata = next->getMetadata();
 	if (prevMetadata && nextMetadata) {
@@ -48,9 +48,9 @@ size_t ConnectOutputToInput(IOutput *prev, ModuleType *next, IProcessExecutor * 
 			Log::msg(Info, "--------- Connect: metadata is not the same as next");
 		} else if (!prevMetadata && nextMetadata) {
 			safe_cast<IMetadataCap>(prev)->setMetadata(nextMetadata);
-			Log::msg(Info, "--------- Connect: metadata propagate to prev (backward)");
+			Log::msg(Info, "--------- Connect: metadata propagate to previous (backward)");
 		} else {
-			Log::msg(Info, "--------- Connect: no metadata");
+			Log::msg(Debug, "--------- Connect: no metadata");
 		}
 	}
 
@@ -70,12 +70,6 @@ template<typename ModuleType1, typename ModuleType2>
 size_t ConnectModules(ModuleType1 *prev, size_t outputIdx, ModuleType2 *next, size_t inputIdx, IProcessExecutor& executor = defaultExecutor) {
 	auto output = prev->getOutput(outputIdx);
 	return ConnectOutputToInput(output, next->getInput(inputIdx), &executor);
-}
-
-template <typename T = IMetadata>
-std::shared_ptr<const T> getMetadataFromOutput(IOutput const * const out) {
-	auto const metadata = safe_cast<const IMetadataCap>(out)->getMetadata();
-	return safe_cast<const T>(metadata);
 }
 
 }

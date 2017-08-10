@@ -69,7 +69,7 @@ unittest("pipeline: longer pipeline") {
 	Pipeline p;
 	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
 	for (int i = 0; i < (int)demux->getNumOutputs(); ++i) {
-		auto metadata = getMetadataFromOutput<MetadataPktLibav>(demux->getOutput(i));
+		auto metadata = safe_cast<const MetadataPktLibav>(demux->getOutput(i)->getMetadata());
 		auto decode = p.addModule<Decode::LibavDecode>(*metadata);
 		p.connect(demux, i, decode, 0);
 		auto null = p.addModule<Out::Null>();
@@ -85,7 +85,7 @@ unittest("pipeline: longer pipeline with join") {
 	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
 	auto null = p.addModule<Out::Null>();
 	for (int i = 0; i < (int)demux->getNumOutputs(); ++i) {
-		auto metadata = getMetadataFromOutput<MetadataPktLibav>(demux->getOutput(i));
+		auto metadata = safe_cast<const MetadataPktLibav>(demux->getOutput(i)->getMetadata());
 		auto decode = p.addModule<Decode::LibavDecode>(*metadata);
 		p.connect(demux, i, decode, 0);
 		p.connect(decode, 0, null, 0, true);

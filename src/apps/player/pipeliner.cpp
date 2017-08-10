@@ -25,7 +25,7 @@ void declarePipeline(Pipeline &pipeline, const char *url) {
 
 	auto demux = pipeline.addModule<Demux::LibavDemux>(url);
 	for (int i = 0; i < (int)demux->getNumOutputs(); ++i) {
-		auto metadata = getMetadataFromOutput<MetadataPktLibav>(demux->getOutput(i));
+		auto metadata = safe_cast<MetadataPktLibav>(demux->getOutput(i));
 		if (!metadata || metadata->isSubtitle()/*only render audio and video*/)
 			continue;
 

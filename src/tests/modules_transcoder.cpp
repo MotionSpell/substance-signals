@@ -25,7 +25,7 @@ void libav_mux(std::string format) {
 	//find video signal from demux
 	size_t videoIndex = std::numeric_limits<size_t>::max();
 	for (size_t i = 0; i < demux->getNumOutputs(); ++i) {
-		auto metadata = getMetadataFromOutput(demux->getOutput(i));
+		auto metadata = demux->getOutput(i)->getMetadata();
 		if (metadata->getStreamType() == VIDEO_PKT) {
 			videoIndex = i;
 		} else {
@@ -35,7 +35,7 @@ void libav_mux(std::string format) {
 	ASSERT(videoIndex != std::numeric_limits<size_t>::max());
 
 	//create the video decode
-	auto metadata = getMetadataFromOutput<MetadataPktLibav>(demux->getOutput(videoIndex));
+	auto metadata = safe_cast<const MetadataPktLibav>(demux->getOutput(videoIndex)->getMetadata());
 	auto decode = uptr(create<Decode::LibavDecode>(*metadata));
 	auto encode = uptr(create<Encode::LibavEncode>(Encode::LibavEncode::Video));
 	auto mux = uptr(create<Mux::LibavMux>("output_video_libav", format));
@@ -64,8 +64,7 @@ unittest("transcoder: video simple (gpac mux MP4)") {
 	//find video signal from demux
 	size_t videoIndex = std::numeric_limits<size_t>::max();
 	for (size_t i = 0; i < demux->getNumOutputs(); ++i) {
-		auto metadata = getMetadataFromOutput(demux->getOutput(i));
-		if (metadata->getStreamType() == VIDEO_PKT) {
+		if (demux->getOutput(i)->getMetadata()->getStreamType() == VIDEO_PKT) {
 			videoIndex = i;
 		} else {
 			ConnectOutputToInput(demux->getOutput(i), null);
@@ -74,7 +73,7 @@ unittest("transcoder: video simple (gpac mux MP4)") {
 	ASSERT(videoIndex != std::numeric_limits<size_t>::max());
 
 	//create the video decode
-	auto metadata = getMetadataFromOutput<MetadataPktLibav>(demux->getOutput(videoIndex));
+	auto metadata = safe_cast<const MetadataPktLibav>(demux->getOutput(videoIndex)->getMetadata());
 	auto decode = uptr(create<Decode::LibavDecode>(*metadata));
 	auto encode = uptr(create<Encode::LibavEncode>(Encode::LibavEncode::Video));
 	auto mux = uptr(create<Mux::GPACMuxMP4>("output_video_gpac"));
@@ -132,7 +131,7 @@ unittest("transcoder: jpg to resized jpg") {
 unittest("transcoder: h264/mp4 to jpg") {
 	auto demux = uptr(create<Demux::LibavDemux>("data/beepbop.mp4"));
 
-	auto metadata = getMetadataFromOutput<MetadataPktLibavVideo>(demux->getOutput(1));
+	auto metadata = safe_cast<const MetadataPktLibavVideo>(demux->getOutput(1)->getMetadata());
 	auto decode = uptr(create<Decode::LibavDecode>(*metadata));
 
 	auto encoder = uptr(create<Encode::JPEGTurboEncode>());

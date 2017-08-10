@@ -90,7 +90,7 @@ unittest("GPAC mp4 mux outputs combination coverage") {
 #endif
 
 	for (size_t i = 0; i < demux->getNumOutputs(); ++i) {
-		auto metadata = getMetadataFromOutput<IMetadata>(demux->getOutput(i));
+		auto metadata = demux->getOutput(i)->getMetadata();
 		if (metadata->isVideo()) {
 			ConnectModules(demux.get(), i, mux00.get(), 0);
 			ConnectModules(demux.get(), i, mux02.get(), 0);

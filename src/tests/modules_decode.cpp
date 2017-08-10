@@ -141,7 +141,7 @@ unittest("decode: audio mp3 to converter to AAC") {
 
 	auto const srcFormat = PcmFormat(44100, 1, AudioLayout::Mono, AudioSampleFormat::S16, AudioStruct::Planar);
 	auto const dstFormat = PcmFormat(44100, 2, AudioLayout::Stereo, AudioSampleFormat::F32, AudioStruct::Planar);
-	auto const metadataEncoder = getMetadataFromOutput<MetadataPktLibav>(encoder->getOutput(0));
+	auto const metadataEncoder = safe_cast<const MetadataPktLibav>(encoder->getOutput(0)->getMetadata());
 	auto const metaEnc = safe_cast<const MetadataPktLibavAudio>(metadataEncoder);
 	auto converter = uptr(create<Transform::AudioConvert>(srcFormat, dstFormat, metaEnc->getFrameSize()));
 
