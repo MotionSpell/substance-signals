@@ -129,7 +129,8 @@ class MetadataCap : public virtual IMetadataCap {
 			return m_metadata;
 		}
 		void setMetadata(std::shared_ptr<const IMetadata> metadata) override {
-			m_metadata = metadata;
+			if (!setMetadataInternal(metadata))
+				throw std::runtime_error("Metadata could not be set.");
 		}
 
 		bool updateMetadata(Data data) {
@@ -140,28 +141,34 @@ class MetadataCap : public virtual IMetadataCap {
 				if (!metadata) {
 					const_cast<DataBase*>(data.get())->setMetadata(m_metadata);
 					return true;
-				} else if (metadata != m_metadata) {
-					if (m_metadata) {
-						if (*m_metadata == *metadata) {
-							Log::msg(Debug, "Output: metadata not equal but comparable by value. Updating.");
-							m_metadata = metadata;
-						} else {
-							Log::msg(Info, "Metadata update from data not supported yet: output pin and data won't carry the same metadata.");
-						}
-						return true;
-					}
-					Log::msg(Info, "Output: metadata transported by data changed. Updating.");
-					if (m_metadata && (metadata->getStreamType() != m_metadata->getStreamType()))
-						throw std::runtime_error(format("Metadata update: incompatible types %s for data and %s for attached", metadata->getStreamType(), m_metadata->getStreamType()));
-					m_metadata = metadata;
-					return true;
 				} else {
-					return false;
+					return setMetadataInternal(metadata);
 				}
 			}
 		}
 
 	private:
+		bool setMetadataInternal(std::shared_ptr<const IMetadata> metadata) {
+			if (metadata != m_metadata) {
+				if (m_metadata) {
+					if (*m_metadata == *metadata) {
+						Log::msg(Debug, "Output: metadata not equal but comparable by value. Updating.");
+						m_metadata = metadata;
+					} else {
+						Log::msg(Info, "Metadata update from data not supported yet: output pin and data won't carry the same metadata.");
+					}
+					return true;
+				}
+				Log::msg(Info, "Output: metadata transported by data changed. Updating.");
+				if (m_metadata && (metadata->getStreamType() != m_metadata->getStreamType()))
+					throw std::runtime_error(format("Metadata update: incompatible types %s for data and %s for attached", metadata->getStreamType(), m_metadata->getStreamType()));
+				m_metadata = metadata;
+				return true;
+			} else {
+				return false;
+			}
+		}
+
 		std::shared_ptr<const IMetadata> m_metadata;
 };
 
