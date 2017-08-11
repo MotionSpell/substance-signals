@@ -7,7 +7,7 @@ namespace Modules {
 Signals::ExecutorSync<void()> g_executorSync;
 
 size_t ConnectOutputToInput(IOutput *prev, IInput *next, IProcessExecutor * const executor) {
-	auto prevMetadata = safe_cast<const IMetadataCap>(prev)->getMetadata();
+	auto prevMetadata = prev->getMetadata();
 	auto nextMetadata = next->getMetadata();
 	if (prevMetadata && nextMetadata) {
 		if (prevMetadata->getStreamType() != next->getMetadata()->getStreamType())
@@ -15,9 +15,9 @@ size_t ConnectOutputToInput(IOutput *prev, IInput *next, IProcessExecutor * cons
 		Log::msg(Info, "--------- Connect: metadata OK");
 	} else {
 		if (prevMetadata && !nextMetadata) {
-			Log::msg(Info, "--------- Connect: metadata is not the same as next");
+			Log::msg(Debug, "--------- Connect: metadata doesn't propagate to next (forward)");
 		} else if (!prevMetadata && nextMetadata) {
-			safe_cast<IMetadataCap>(prev)->setMetadata(nextMetadata);
+			prev->setMetadata(nextMetadata);
 			Log::msg(Info, "--------- Connect: metadata propagate to previous (backward).");
 		} else {
 			Log::msg(Debug, "--------- Connect: no metadata");

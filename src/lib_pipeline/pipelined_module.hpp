@@ -37,14 +37,14 @@ public:
 	size_t getNumOutputs() const override {
 		return delegate->getNumOutputs();
 	}
-	IOutput* getOutput(size_t i) const override {
+	IOutput* getOutput(size_t i) override {
 		if (i >= delegate->getNumOutputs())
 			throw std::runtime_error(format("PipelinedModule %s: no output %s.", getDelegateName(), i));
 		return delegate->getOutput(i);
 	}
 
 	/* source modules are stopped manually - then the message propagates to other connected modules */
-	bool isSource() const override {
+	bool isSource() override {
 		if (delegate->getNumInputs() == 0) {
 			return true;
 		} else if (delegate->getNumInputs() == 1 && dynamic_cast<Input<DataLoosePipeline, IProcessor>*>(delegate->getInput(0))) {
@@ -53,7 +53,7 @@ public:
 			return false;
 		}
 	}
-	bool isSink() const override {
+	bool isSink() override {
 		for (size_t i = 0; i < getNumOutputs(); ++i) {
 			if (getOutput(i)->getSignal().getNumConnections() > 0)
 				return false;

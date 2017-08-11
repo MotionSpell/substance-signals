@@ -72,7 +72,7 @@ class IOutputCap {
 public:
 	virtual ~IOutputCap() noexcept(false) {}
 	virtual size_t getNumOutputs() const = 0;
-	virtual IOutput* getOutput(size_t i) const = 0;
+	virtual IOutput* getOutput(size_t i) = 0;
 
 protected:
 	/*FIXME: we need to have factories to move these back to the implementation - otherwise pins created from the constructor may crash*/
@@ -89,7 +89,7 @@ public:
 	size_t getNumOutputs() const override {
 		return outputs.size();
 	}
-	IOutput* getOutput(size_t i) const override {
+	IOutput* getOutput(size_t i) override {
 		return outputs[i].get();
 	}
 };
