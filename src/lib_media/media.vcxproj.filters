@@ -113,6 +113,9 @@
     <ClInclude Include="in\mpeg_dash_input.hpp">
       <Filter>src\in</Filter>
     </ClInclude>
+    <ClInclude Include="transform\time_rectifier.hpp">
+      <Filter>src\transform</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="src">
@@ -263,6 +266,9 @@
     </ClCompile>
     <ClCompile Include="in\mpeg_dash_input.cpp">
       <Filter>src\in</Filter>
+    </ClCompile>
+    <ClCompile Include="transform\time_rectifier.cpp">
+      <Filter>src\transform</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

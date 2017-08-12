@@ -39,6 +39,9 @@
     <ClCompile Include="modules_metadata.cpp">
       <Filter>tests</Filter>
     </ClCompile>
+    <ClCompile Include="modules_rectifier.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="tests">

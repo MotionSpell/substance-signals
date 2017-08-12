@@ -122,6 +122,7 @@ MEDIA_SRCS:=\
   $(ProjectName)/transform/libavfilter.cpp\
   $(ProjectName)/transform/restamp.cpp\
   $(ProjectName)/transform/telx2ttml.cpp\
+  $(ProjectName)/transform/time_rectifier.cpp\
   $(ProjectName)/transform/video_convert.cpp\
   $(ProjectName)/utils/comparator.cpp\
   $(ProjectName)/utils/recorder.cpp\
