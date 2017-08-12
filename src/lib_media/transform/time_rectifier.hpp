@@ -88,7 +88,7 @@ private:
 		//Data defaultTypeData; //Romain: black screen for video, etc.
 	};
 
-	uint64_t analyzeWindowIn180k;
+	uint64_t analyzeWindowIn180k = 0;
 	std::vector<std::unique_ptr<Stream>> input;
 	std::unique_ptr<IScheduler> scheduler;
 	bool hasVideo = false;

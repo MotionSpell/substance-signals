@@ -11,6 +11,7 @@ namespace Modules {
 
 namespace {
 
+constexpr
 const char* webcamFormat() {
 #ifdef _WIN32
 	return "dshow";
@@ -108,7 +109,7 @@ LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::strin
 	lastPTS.resize(m_formatCtx->nb_streams);
 	for (unsigned i = 0; i<m_formatCtx->nb_streams; i++) {
 		auto const st = m_formatCtx->streams[i];
-		auto parser = av_stream_get_parser(st);
+		auto const parser = av_stream_get_parser(st);
 		if (parser) {
 			st->codec->ticks_per_frame = parser->repeat_pict + 1;
 		} else {
@@ -251,7 +252,7 @@ void LibavDemux::sparseStreamsHeartbeat(AVPacket const * const pkt) {
 			if ((int)i == pkt->stream_index) {
 				continue;
 			}
-			AVStream *st = m_formatCtx->streams[i];
+			auto const st = m_formatCtx->streams[i];
 			if (st->codec->codec_type == AVMEDIA_TYPE_SUBTITLE) {
 				auto outParse = outputs[i]->getBuffer(0);
 				outParse->setMediaTime(curTimeIn180k);

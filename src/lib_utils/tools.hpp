@@ -28,7 +28,7 @@ DummyStruct runAtStartup(R f(Args...), Args... argVal) {
 	return DummyStruct();
 }
 
-inline
+constexpr
 const char *redirectStdToNul() {
 #ifndef _WIN32
 	return " > /dev/null 2>&1";
@@ -59,6 +59,7 @@ std::string string2hex(const uint8_t *extradata, size_t extradataSize) {
 }
 
 template <typename T>
+constexpr
 int sign(T num) {
 	return (T(0) < num) - (num < T(0));
 }
@@ -140,11 +141,11 @@ struct NotVoidStruct<void> {
 template <typename T> using NotVoid = typename NotVoidStruct<T>::Type;
 
 template<typename T>
-inline constexpr T operator | (T a, T b) {
+constexpr T operator | (T a, T b) {
 	return static_cast<T>(static_cast<int>(a) | static_cast<int>(b));
 }
 
 template<typename T>
-inline constexpr T operator & (T a, T b) {
+constexpr T operator & (T a, T b) {
 	return static_cast<T>(static_cast<int>(a) & static_cast<int>(b));
 }

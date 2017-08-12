@@ -54,12 +54,12 @@ uint64_t UTC2NTP(uint64_t absTimeUTCInMs) {
 }
 
 void timeInMsToStr(uint64_t timestamp, char buffer[24], const char *msSeparator) {
-	uint64_t p = timestamp;
-	uint64_t h = (uint64_t)(p / 3600000);
-	uint8_t m = (uint8_t)(p / 60000 - 60 * h);
-	uint8_t s = (uint8_t)(p / 1000 - 3600 * h - 60 * m);
-	uint16_t u = (uint16_t)(p - 3600000 * h - 60000 * m - 1000 * s);
-	auto len = snprintf(buffer, 24, "%02u:%02u:%02u%s%03u", (unsigned)h, (unsigned)m, (unsigned)s, msSeparator, (unsigned)u);
+	const uint64_t p = timestamp;
+	const uint64_t h = (uint64_t)(p / 3600000);
+	const uint8_t m = (uint8_t)(p / 60000 - 60 * h);
+	const uint8_t s = (uint8_t)(p / 1000 - 3600 * h - 60 * m);
+	const uint16_t u = (uint16_t)(p - 3600000 * h - 60000 * m - 1000 * s);
+	auto const len = snprintf(buffer, 24, "%02u:%02u:%02u%s%03u", (unsigned)h, (unsigned)m, (unsigned)s, msSeparator, (unsigned)u);
 	if (len < 0 || len >= 24)
 		throw std::runtime_error(format("Failure in formatting in timeInMsToStr() (len=%s, max=%s)", len, 24));
 }

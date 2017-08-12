@@ -77,7 +77,7 @@ public:
 protected:
 	/*FIXME: we need to have factories to move these back to the implementation - otherwise pins created from the constructor may crash*/
 	std::vector<std::unique_ptr<IOutput>> outputs;
-	/*const*/ size_t allocatorSize;
+	/*const*/ size_t allocatorSize = 0;
 };
 
 class OutputCap : public virtual IOutputCap {

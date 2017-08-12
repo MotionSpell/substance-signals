@@ -1048,12 +1048,12 @@ void TeletextToTTML::process(Data data) {
 	}
 
 	auto pkt = sub->getPacket();
-	int pes_packet_length = pkt->size;
+	auto const pes_packet_length = pkt->size;
 	config.page = pageNum;
 	int i = 1;
 	while (i <= pes_packet_length - 6) {
 		auto data_unit_id = (data_unit_t)pkt->data[i++];
-		uint8_t data_unit_len = pkt->data[i++];
+		auto const data_unit_len = pkt->data[i++];
 		if ((data_unit_id == DATA_UNIT_EBU_TELETEXT_NONSUBTITLE) || (data_unit_id == DATA_UNIT_EBU_TELETEXT_SUBTITLE)) {
 			// teletext payload has always size 44 bytes
 			if (data_unit_len == 44) {

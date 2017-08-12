@@ -16,7 +16,7 @@ using namespace Modules;
 
 namespace {
 Decode::LibavDecode* createGenericDecoder(enum AVCodecID id) {
-	auto codec = avcodec_find_decoder(id);
+	auto const codec = avcodec_find_decoder(id);
 	auto context = avcodec_alloc_context3(codec);
 	context->time_base.num = 1;
 	context->time_base.den = 44100; //needed for FFmpeg >= 3.1
@@ -64,7 +64,6 @@ std::shared_ptr<DataBase> getTestMp3Frame() {
 
 	return createAvPacket(mp3_sine_frame);
 }
-
 }
 
 unittest("decode: audio simple") {

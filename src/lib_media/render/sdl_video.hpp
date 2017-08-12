@@ -27,7 +27,7 @@ class SDLVideo : public ModuleS {
 
 		const std::shared_ptr<IClock> m_clock;
 
-		SDL_Window* window;
+		SDL_Window *window = nullptr;
 		SDL_Renderer *renderer;
 		SDL_Texture *texture;
 		std::unique_ptr<SDL_Rect> displayrect;

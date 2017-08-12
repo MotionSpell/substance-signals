@@ -50,7 +50,7 @@ class GPACMuxMP4 : public ModuleDynI {
 		virtual void declareStreamAudio(std::shared_ptr<const MetadataPktLibavAudio> stream);
 		virtual void declareStreamSubtitle(std::shared_ptr<const MetadataPktLibavSubtitle> metadata);
 		virtual void startSegmentPostAction() {}
-		uint32_t trackId;
+		uint32_t trackId = 0;
 		std::string codec4CC;
 		GF_ISOFile *isoInit, *isoCur;
 

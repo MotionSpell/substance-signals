@@ -33,7 +33,7 @@ HTTP::HTTP(const std::string &url, Flag flags, const std::string &userAgent)
 
 		//make an empty POST to check the end point exists
 		curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, 0);
-		CURLcode res = curl_easy_perform(curl);
+		auto const res = curl_easy_perform(curl);
 		if (res != CURLE_OK)
 			throw error(format("curl_easy_perform() failed for URL: %s", url));
 

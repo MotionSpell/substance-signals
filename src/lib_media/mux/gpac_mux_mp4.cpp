@@ -32,8 +32,8 @@ uint64_t fileSize(const std::string &fn) {
 
 static GF_Err avc_import_ffextradata(const u8 *extradata, const u64 extradataSize, GF_AVCConfig *dstcfg) {
 	u8 nalSize;
-	AVCState avc;
-	GF_BitStream *bs;
+	auto avc = uptr(new AVCState);
+	GF_BitStream *bs = nullptr;
 	if (!extradata || !extradataSize) {
 		Log::msg(Warning, "No initial SPS/PPS provided.");
 		return GF_OK;
@@ -50,7 +50,7 @@ static GF_Err avc_import_ffextradata(const u8 *extradata, const u64 extradataSiz
 	//SPS
 	u64 nalStart = 4;
 	{
-		s32 idx;
+		s32 idx = 0;
 		char *buffer = nullptr;
 parse_sps:
 		nalSize = gf_media_nalu_next_start_code_bs(bs);
@@ -61,7 +61,7 @@ parse_sps:
 		buffer = (char*)gf_malloc(nalSize);
 		gf_bs_read_data(bs, buffer, nalSize);
 		gf_bs_seek(bs, nalStart);
-		auto type = gf_bs_read_u8(bs) & 0x1F;
+		auto const type = gf_bs_read_u8(bs) & 0x1F;
 		if (type == GF_AVC_NALU_ACCESS_UNIT) {
 			nalStart += nalSize + 4;
 			gf_bs_seek(bs, nalStart);
@@ -74,7 +74,7 @@ parse_sps:
 			return GF_BAD_PARAM;
 		}
 
-		idx = gf_media_avc_read_sps(buffer, nalSize, &avc, 0, nullptr);
+		idx = gf_media_avc_read_sps(buffer, nalSize, avc.get(), 0, nullptr);
 		if (idx < 0) {
 			gf_bs_del(bs);
 			gf_free(buffer);
@@ -82,12 +82,12 @@ parse_sps:
 		}
 
 		dstcfg->configurationVersion = 1;
-		dstcfg->profile_compatibility = avc.sps[idx].prof_compat;
-		dstcfg->AVCProfileIndication = avc.sps[idx].profile_idc;
-		dstcfg->AVCLevelIndication = avc.sps[idx].level_idc;
-		dstcfg->chroma_format = avc.sps[idx].chroma_format;
-		dstcfg->luma_bit_depth = 8 + avc.sps[idx].luma_bit_depth_m8;
-		dstcfg->chroma_bit_depth = 8 + avc.sps[idx].chroma_bit_depth_m8;
+		dstcfg->profile_compatibility = avc->sps[idx].prof_compat;
+		dstcfg->AVCProfileIndication = avc->sps[idx].profile_idc;
+		dstcfg->AVCLevelIndication = avc->sps[idx].level_idc;
+		dstcfg->chroma_format = avc->sps[idx].chroma_format;
+		dstcfg->luma_bit_depth = 8 + avc->sps[idx].luma_bit_depth_m8;
+		dstcfg->chroma_bit_depth = 8 + avc->sps[idx].chroma_bit_depth_m8;
 
 		{
 			GF_AVCConfigSlot *slc = (GF_AVCConfigSlot*)gf_malloc(sizeof(GF_AVCConfigSlot));
@@ -100,7 +100,7 @@ parse_sps:
 
 	//PPS
 	{
-		s32 idx;
+		s32 idx = 0;
 		char *buffer = nullptr;
 		nalStart += 4 + nalSize;
 		gf_bs_seek(bs, nalStart);
@@ -118,7 +118,7 @@ parse_sps:
 			return GF_BAD_PARAM;
 		}
 
-		idx = gf_media_avc_read_pps(buffer, nalSize, &avc);
+		idx = gf_media_avc_read_pps(buffer, nalSize, avc.get());
 		if (idx < 0) {
 			gf_bs_del(bs);
 			gf_free(buffer);
@@ -146,9 +146,9 @@ parse_sps:
 * @returns GF_OK is the extradata was parsed and is valid, other values otherwise.
 */
 static GF_Err hevc_import_ffextradata(const u8 *extradata, const u64 extradata_size, GF_HEVCConfig *dstCfg) {
-	HEVCState hevc;
+	auto hevc = uptr(new HEVCState);
 	GF_HEVCParamArray *vpss = nullptr, *spss = nullptr, *ppss = nullptr;
-	GF_BitStream *bs;
+	GF_BitStream *bs = nullptr;
 	char *buffer = nullptr;
 	u32 bufferSize = 0;
 	if (!extradata || (extradata_size < sizeof(u32)))
@@ -157,16 +157,16 @@ static GF_Err hevc_import_ffextradata(const u8 *extradata, const u64 extradata_s
 	if (!bs)
 		return GF_BAD_PARAM;
 
-	memset(&hevc, 0, sizeof(HEVCState));
-	hevc.sps_active_idx = -1;
+	memset(hevc.get(), 0, sizeof(HEVCState));
+	hevc->sps_active_idx = -1;
 
 	while (gf_bs_available(bs)) {
-		s32 idx;
-		GF_AVCConfigSlot *slc;
+		s32 idx = 0;
+		GF_AVCConfigSlot *slc = nullptr;
 		u8 NALUnitType, temporalId, layerId;
-		u64 NALStart;
-		u32 NALSize;
-		u32 startCode = gf_bs_read_u24(bs);
+		u64 NALStart = 0;
+		u32 NALSize = 0;
+		const u32 startCode = gf_bs_read_u24(bs);
 		if (!(startCode == 0x000001) && !(!startCode && gf_bs_read_u8(bs) == 1)) {
 			gf_bs_del(bs);
 			return GF_NON_COMPLIANT_BITSTREAM;
@@ -185,7 +185,7 @@ static GF_Err hevc_import_ffextradata(const u8 *extradata, const u64 extradata_s
 		gf_bs_read_data(bs, buffer, NALSize);
 		gf_bs_seek(bs, NALStart);
 
-		gf_media_hevc_parse_nalu(bs, &hevc, &NALUnitType, &temporalId, &layerId);
+		gf_media_hevc_parse_nalu(bs, hevc.get(), &NALUnitType, &temporalId, &layerId);
 		if (layerId) {
 			gf_bs_del(bs);
 			gf_free(buffer);
@@ -194,22 +194,22 @@ static GF_Err hevc_import_ffextradata(const u8 *extradata, const u64 extradata_s
 
 		switch (NALUnitType) {
 		case GF_HEVC_NALU_VID_PARAM:
-			idx = gf_media_hevc_read_vps(buffer, NALSize, &hevc);
+			idx = gf_media_hevc_read_vps(buffer, NALSize, hevc.get());
 			if (idx < 0) {
 				gf_bs_del(bs);
 				gf_free(buffer);
 				return GF_BAD_PARAM;
 			}
 
-			assert(hevc.vps[idx].state == 1); //we don't expect multiple VPS
-			if (hevc.vps[idx].state == 1) {
-				hevc.vps[idx].state = 2;
-				hevc.vps[idx].crc = gf_crc_32(buffer, NALSize);
+			assert(hevc->vps[idx].state == 1); //we don't expect multiple VPS
+			if (hevc->vps[idx].state == 1) {
+				hevc->vps[idx].state = 2;
+				hevc->vps[idx].crc = gf_crc_32(buffer, NALSize);
 
-				dstCfg->avgFrameRate = hevc.vps[idx].rates[0].avg_pic_rate;
-				dstCfg->constantFrameRate = hevc.vps[idx].rates[0].constand_pic_rate_idc;
-				dstCfg->numTemporalLayers = hevc.vps[idx].max_sub_layers;
-				dstCfg->temporalIdNested = hevc.vps[idx].temporal_id_nesting;
+				dstCfg->avgFrameRate = hevc->vps[idx].rates[0].avg_pic_rate;
+				dstCfg->constantFrameRate = hevc->vps[idx].rates[0].constand_pic_rate_idc;
+				dstCfg->numTemporalLayers = hevc->vps[idx].max_sub_layers;
+				dstCfg->temporalIdNested = hevc->vps[idx].temporal_id_nesting;
 
 				if (!vpss) {
 					GF_SAFEALLOC(vpss, GF_HEVCParamArray);
@@ -229,35 +229,35 @@ static GF_Err hevc_import_ffextradata(const u8 *extradata, const u64 extradata_s
 			}
 			break;
 		case GF_HEVC_NALU_SEQ_PARAM:
-			idx = gf_media_hevc_read_sps(buffer, NALSize, &hevc);
+			idx = gf_media_hevc_read_sps(buffer, NALSize, hevc.get());
 			if (idx < 0) {
 				gf_bs_del(bs);
 				gf_free(buffer);
 				return GF_BAD_PARAM;
 			}
 
-			assert(!(hevc.sps[idx].state & AVC_SPS_DECLARED)); //we don't expect multiple SPS
-			if ((hevc.sps[idx].state & AVC_SPS_PARSED) && !(hevc.sps[idx].state & AVC_SPS_DECLARED)) {
-				hevc.sps[idx].state |= AVC_SPS_DECLARED;
-				hevc.sps[idx].crc = gf_crc_32(buffer, NALSize);
+			assert(!(hevc->sps[idx].state & AVC_SPS_DECLARED)); //we don't expect multiple SPS
+			if ((hevc->sps[idx].state & AVC_SPS_PARSED) && !(hevc->sps[idx].state & AVC_SPS_DECLARED)) {
+				hevc->sps[idx].state |= AVC_SPS_DECLARED;
+				hevc->sps[idx].crc = gf_crc_32(buffer, NALSize);
 			}
 
 			dstCfg->configurationVersion = 1;
-			dstCfg->profile_space = hevc.sps[idx].ptl.profile_space;
-			dstCfg->tier_flag = hevc.sps[idx].ptl.tier_flag;
-			dstCfg->profile_idc = hevc.sps[idx].ptl.profile_idc;
-			dstCfg->general_profile_compatibility_flags = hevc.sps[idx].ptl.profile_compatibility_flag;
-			dstCfg->progressive_source_flag = hevc.sps[idx].ptl.general_progressive_source_flag;
-			dstCfg->interlaced_source_flag = hevc.sps[idx].ptl.general_interlaced_source_flag;
-			dstCfg->non_packed_constraint_flag = hevc.sps[idx].ptl.general_non_packed_constraint_flag;
-			dstCfg->frame_only_constraint_flag = hevc.sps[idx].ptl.general_frame_only_constraint_flag;
+			dstCfg->profile_space = hevc->sps[idx].ptl.profile_space;
+			dstCfg->tier_flag = hevc->sps[idx].ptl.tier_flag;
+			dstCfg->profile_idc = hevc->sps[idx].ptl.profile_idc;
+			dstCfg->general_profile_compatibility_flags = hevc->sps[idx].ptl.profile_compatibility_flag;
+			dstCfg->progressive_source_flag = hevc->sps[idx].ptl.general_progressive_source_flag;
+			dstCfg->interlaced_source_flag = hevc->sps[idx].ptl.general_interlaced_source_flag;
+			dstCfg->non_packed_constraint_flag = hevc->sps[idx].ptl.general_non_packed_constraint_flag;
+			dstCfg->frame_only_constraint_flag = hevc->sps[idx].ptl.general_frame_only_constraint_flag;
 
-			dstCfg->constraint_indicator_flags = hevc.sps[idx].ptl.general_reserved_44bits;
-			dstCfg->level_idc = hevc.sps[idx].ptl.level_idc;
+			dstCfg->constraint_indicator_flags = hevc->sps[idx].ptl.general_reserved_44bits;
+			dstCfg->level_idc = hevc->sps[idx].ptl.level_idc;
 
-			dstCfg->chromaFormat = hevc.sps[idx].chroma_format_idc;
-			dstCfg->luma_bit_depth = hevc.sps[idx].bit_depth_luma;
-			dstCfg->chroma_bit_depth = hevc.sps[idx].bit_depth_chroma;
+			dstCfg->chromaFormat = hevc->sps[idx].chroma_format_idc;
+			dstCfg->luma_bit_depth = hevc->sps[idx].bit_depth_luma;
+			dstCfg->chroma_bit_depth = hevc->sps[idx].bit_depth_chroma;
 
 			if (!spss) {
 				GF_SAFEALLOC(spss, GF_HEVCParamArray);
@@ -275,17 +275,17 @@ static GF_Err hevc_import_ffextradata(const u8 *extradata, const u64 extradata_s
 			gf_list_add(spss->nalus, slc);
 			break;
 		case GF_HEVC_NALU_PIC_PARAM:
-			idx = gf_media_hevc_read_pps(buffer, NALSize, &hevc);
+			idx = gf_media_hevc_read_pps(buffer, NALSize, hevc.get());
 			if (idx < 0) {
 				gf_bs_del(bs);
 				gf_free(buffer);
 				return GF_BAD_PARAM;
 			}
 
-			assert(hevc.pps[idx].state == 1); //we don't expect multiple PPS
-			if (hevc.pps[idx].state == 1) {
-				hevc.pps[idx].state = 2;
-				hevc.pps[idx].crc = gf_crc_32(buffer, NALSize);
+			assert(hevc->pps[idx].state == 1); //we don't expect multiple PPS
+			if (hevc->pps[idx].state == 1) {
+				hevc->pps[idx].state = 2;
+				hevc->pps[idx].crc = gf_crc_32(buffer, NALSize);
 
 				if (!ppss) {
 					GF_SAFEALLOC(ppss, GF_HEVCParamArray);
@@ -556,7 +556,7 @@ void GPACMuxMP4::setupFragments() {
 
 void GPACMuxMP4::declareStreamAudio(std::shared_ptr<const MetadataPktLibavAudio> metadata) {
 	GF_Err e;
-	u32 di, trackNum;
+	u32 di=0, trackNum=0;
 	GF_M4ADecSpecInfo acfg;
 
 	GF_ESD *esd = gf_odf_desc_esd_new(2);
@@ -677,7 +677,7 @@ void GPACMuxMP4::declareStreamVideo(std::shared_ptr<const MetadataPktLibavVideo>
 	size_t extradataSize;
 	metadata->getExtradata(extradata, extradataSize);
 
-	u32 di;
+	u32 di = 0;
 	if (metadata->getAVCodecContext()->codec_id == AV_CODEC_ID_H264) {
 		codec4CC = "H264";
 		GF_AVCConfig *avccfg = gf_odf_avc_cfg_new();
@@ -909,7 +909,7 @@ std::unique_ptr<gpacpp::IsoSample> GPACMuxMP4::fillSample(Data data_) {
 	u32 bufLen = (u32)data->size();
 	const u8 *bufPtr = data->data();
 
-	u32 mediaType = gf_isom_get_media_type(isoCur, 1);
+	const u32 mediaType = gf_isom_get_media_type(isoCur, 1);
 	if (mediaType == GF_ISOM_MEDIA_VISUAL) {
 		if (isAnnexB) {
 			fillVideoSampleData(bufPtr, bufLen, *sample);

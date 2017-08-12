@@ -59,7 +59,7 @@ int main(int argc, const char* argv[]) {
 		if(word == "--list" || word == "-l") {
 			Tests::listAll();
 		} else {
-			int idx = atoi(argv[1]);
+			auto const idx = atoi(argv[1]);
 			Tests::Run(idx);
 		}
 	}

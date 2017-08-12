@@ -6,7 +6,6 @@ using namespace Tests;
 using namespace Modules;
 
 namespace {
-
 class FakeOutput : public Module {
 public:
 	FakeOutput() {
@@ -40,6 +39,7 @@ public:
 private:
 	IInput *input;
 };
+}
 
 unittest("metadata: backwarded by connection") {
 	auto output = uptr(create<FakeOutput>());
@@ -133,6 +133,4 @@ unittest("metadata: updated twice by data") {
 	output->setMetadata(shptr(new MetadataRawAudio));
 	output->process();
 	ASSERT(o->getMetadata() == i->getMetadata());
-}
-
 }

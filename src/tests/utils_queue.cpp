@@ -66,7 +66,7 @@ unittest("thread-safe queue can be cleared while several blocking pop() are wait
 unittest("thread-safe queue has an optional max size") {
 	const int maxSize = 2;
 	QueueMaxSize<int> queue(maxSize);
-	bool res;
+	bool res = false;
 	for (int i = 0; i < maxSize; ++i) {
 		res = queue.tryPush(i);
 		ASSERT_EQUALS(true, res);

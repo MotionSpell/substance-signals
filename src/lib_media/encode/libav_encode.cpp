@@ -99,7 +99,7 @@ LibavEncode::LibavEncode(Type type, Params &params)
 
 	/* find the encoder */
 	ffpp::Dict generalDict(typeid(*this).name(), generalOptions);
-	auto entry = generalDict.get(codecName);
+	auto const entry = generalDict.get(codecName);
 	if (!entry)
 		throw error(format("Could not get codecName (\"%s\").", codecName));
 	auto codec = avcodec_find_encoder_by_name(entry->value);

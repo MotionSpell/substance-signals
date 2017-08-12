@@ -80,7 +80,7 @@ void MPEG_DASH::ensureManifest() {
 	auto mpdBaseURL = gf_list_new();
 	if (!mpdBaseURL)
 		throw error("Can't allocate mpdBaseURL with gf_list_new()");
-	for (auto &baseURL : baseURLs) {
+	for (auto const &baseURL : baseURLs) {
 		GF_MPD_BaseURL *url;
 		GF_SAFEALLOC(url, GF_MPD_BaseURL);
 		url->URL = gf_strdup(baseURL.c_str());
@@ -208,7 +208,7 @@ void MPEG_DASH::generateManifest() {
 			auto const prevEntIdx = gf_list_count(entries);
 			GF_MPD_SegmentTimelineEntry *prevEnt = prevEntIdx == 0 ? nullptr : (GF_MPD_SegmentTimelineEntry*)gf_list_get(entries, prevEntIdx-1);
 			auto const currDur = clockToTimescale(quality->meta->getDuration(), 1000);
-			uint64_t segTime;
+			uint64_t segTime = 0;
 			if (!prevEnt || prevEnt->duration != currDur) {
 				auto ent = (GF_MPD_SegmentTimelineEntry*)gf_malloc(sizeof(GF_MPD_SegmentTimelineEntry));
 				segTime = ent->start_time = prevEnt ? prevEnt->start_time + prevEnt->duration*(prevEnt->repeat_count+1) : startTimeInMs;
@@ -303,7 +303,7 @@ void MPEG_DASH::finalizeManifest() {
 				log(Error, "Couldn't delete initialization segment \"%s\".", fn);
 			}
 
-			for (auto &seg : quality->timeshiftSegments) {
+			for (auto const &seg : quality->timeshiftSegments) {
 				if (gf_delete_file(seg.file->getFilename().c_str()) != GF_OK) {
 					log(Error, "Couldn't delete media segment \"%s\".", seg.file->getFilename());
 				}

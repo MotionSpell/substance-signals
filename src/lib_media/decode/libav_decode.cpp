@@ -18,7 +18,7 @@ LibavDecode::LibavDecode(const MetadataPktLibav &metadata)
 	}
 
 	//find an appropriate decode
-	auto codec = avcodec_find_decoder(codecCtx->codec_id);
+	auto const codec = avcodec_find_decoder(codecCtx->codec_id);
 	if (!codec)
 		throw error(format("Decoder not found for codecID(%s).", codecCtx->codec_id));
 

@@ -49,7 +49,7 @@ struct Arg : public option::Arg {
 	}
 
 	static option::ArgStatus Video(const option::Option& option, bool msg) {
-		unsigned w, h, bitrate, type = 0;
+		unsigned w = 0, h = 0, bitrate = 0, type = 0;
 		if (option.arg != 0 && sscanf(option.arg, "%ux%u:%u:%u", &w, &h, &bitrate, &type) >= 3)
 			return option::ARG_OK;
 

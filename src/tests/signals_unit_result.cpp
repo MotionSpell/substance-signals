@@ -16,11 +16,11 @@ bool test() {
 
 unittest("unit test on class Result") {
 	{
-		bool res = test<int>();
+		const bool res = test<int>();
 		ASSERT(res);
 	}
 	{
-		bool res = test<void>();
+		const bool res = test<void>();
 		ASSERT(res);
 	}
 }

@@ -56,8 +56,8 @@ void AudioConvert::flush() {
 }
 
 void AudioConvert::process(Data data) {
-	uint64_t srcNumSamples;
-	uint8_t * const * pSrc;
+	uint64_t srcNumSamples = 0;
+	uint8_t * const * pSrc = nullptr;
 	auto audioData = safe_cast<const DataPcm>(data);
 	if (audioData) {
 		if (audioData->getFormat() != srcPcmFormat) {

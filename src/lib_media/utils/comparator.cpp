@@ -11,8 +11,8 @@ void IComparator::process(Data data) {
 
 	for (;;) {
 		Data aData, bData;
-		auto a = original.tryPop(aData);
-		auto b = other.tryPop(bData);
+		auto const a = original.tryPop(aData);
+		auto const b = other.tryPop(bData);
 		if (!a || !b) {
 			if (a || b)
 				throw error("Not the same number of samples");
@@ -20,7 +20,7 @@ void IComparator::process(Data data) {
 			break;
 		}
 
-		auto res = compare(aData, bData);
+		auto const res = compare(aData, bData);
 		if (!res)
 			log(Info, "comparison failed");
 	}

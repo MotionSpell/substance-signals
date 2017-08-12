@@ -63,7 +63,7 @@ void TimeRectifier::fillInputQueues() {
 }
 
 void TimeRectifier::removeOutdated() {
-	auto absTimeIn180k = getUTCInMs();
+	auto const absTimeIn180k = getUTCInMs();
 	for (size_t i = 0; i < getNumInputs() - 1; ++i) {
 		auto data = input[i]->data.begin();
 		while (data != input[i]->data.end()) {
@@ -83,6 +83,7 @@ void TimeRectifier::awakeOnFPS() {
 		switch (inputs[i]->getMetadata()->getStreamType()) {
 		case VIDEO_RAW:
 			//TODO: send one frame
+			//const_cast<DataBase*>(data.get())->setMediaTime(restampedTime);
 			break;
 		case AUDIO_RAW:
 			//TODO: pull audio for continuity

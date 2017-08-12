@@ -6,13 +6,13 @@ using namespace Signals;
 
 namespace {
 struct Signaler {
-		Signal<int(int)> signal;
+	Signal<int(int)> signal;
 };
 
 struct Slot {
-		int slot(int a) {
-			return 1 + dummyPrint(a);
-		}
+	int slot(int a) {
+		return 1 + dummyPrint(a);
+	}
 };
 
 unittest("basic module connection tests") {

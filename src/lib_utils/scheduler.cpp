@@ -56,7 +56,7 @@ void Scheduler::threadProc() {
 
 		{
 			mutex.lock();
-			auto &t = queue.top();
+			auto const &t = queue.top();
 			mutex.unlock();
 			t->task(); //TODO: tasks may be blocking so we might want to create a pool instead of a single thread
 			mutex.lock();

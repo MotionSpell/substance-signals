@@ -58,7 +58,7 @@ void JPEGTurboDecode::ensureMetadata(int width, int height, int pixelFmt) {
 void JPEGTurboDecode::process(Data data_) {
 	auto data = safe_cast<const DataBase>(data_);
 	const int pixelFmt = TJPF_RGB;
-	int w, h, jpegSubsamp;
+	int w=0, h=0, jpegSubsamp=0;
 	auto jpegBuf = data->data();
 	if (tjDecompressHeader2(jtHandle->get(), (unsigned char*)jpegBuf, (unsigned long)data->size(), &w, &h, &jpegSubsamp) < 0) {
 		log(Warning, "error encountered while decompressing header.");

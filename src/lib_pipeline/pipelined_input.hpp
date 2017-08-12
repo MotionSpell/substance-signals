@@ -63,7 +63,7 @@ class PipelinedInput : public IInput {
 		void connect() override {
 			delegate->connect();
 		}
-		void disconnect() {
+		void disconnect() override {
 			delegate->disconnect();
 		}
 

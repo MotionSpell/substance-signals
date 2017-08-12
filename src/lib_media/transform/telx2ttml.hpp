@@ -13,7 +13,7 @@ struct Page {
 	const std::string toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs, uint64_t idx) const;
 	const std::string toSRT();
 
-	uint64_t tsInMs, startTimeInMs, endTimeInMs, show_timestamp, hide_timestamp;
+	uint64_t tsInMs=0, startTimeInMs=0, endTimeInMs=0, show_timestamp=0, hide_timestamp=0;
 	uint32_t frames_produced = 0;
 	std::stringstream ss;
 };
