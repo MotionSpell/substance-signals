@@ -6,11 +6,11 @@ using namespace Modules;
 using namespace Pipelines;
 
 void declarePipeline(Pipeline &pipeline, const char *url) {
-	auto connect = [&](auto* src, auto* dst) {
+	auto connect = [&](auto src, auto dst) {
 		pipeline.connect(src, 0, dst, 0);
 	};
 
-	auto createRenderer = [&](int codecType)->IModule* {
+	auto createRenderer = [&](int codecType)->IPipelinedModule* {
 		if (codecType == VIDEO_PKT) {
 			Log::msg(Info, "Found video stream");
 			return pipeline.addModule<Render::SDLVideo>();

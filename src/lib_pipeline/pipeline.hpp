@@ -47,8 +47,8 @@ class Pipeline : public IPipelineNotifier {
 		/*Remove a module from a pipeline. This is only possible when the module is already disconnected and flush()ed (which is the caller reponsibility - FIXME).*/
 		void removeModule(IPipelinedModule * const module);
 
-		void connect   (Modules::IModule * const prev, size_t outputIdx, Modules::IModule * const next, size_t inputIdx, bool inputAcceptMultipleConnections = false);
-		void disconnect(Modules::IModule * const prev, size_t outputIdx, Modules::IModule * const next, size_t inputIdx);
+		void connect   (IPipelinedModule * const prev, size_t outputIdx, IPipelinedModule * const next, size_t inputIdx, bool inputAcceptMultipleConnections = false);
+		void disconnect(IPipelinedModule * const prev, size_t outputIdx, IPipelinedModule * const next, size_t inputIdx);
 
 		void start();
 		void waitForCompletion();

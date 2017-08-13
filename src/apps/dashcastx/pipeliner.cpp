@@ -25,7 +25,7 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 	auto opt = safe_cast<const AppOptions>(&config);
 	auto pipeline = uptr(new Pipeline(opt->ultraLowLatency, opt->isLive ? 1.0 : 0.0, opt->ultraLowLatency ? Pipeline::Mono : Pipeline::OnePerModule));
 
-	auto connect = [&](auto* src, auto* dst) {
+	auto connect = [&](auto src, auto dst) {
 		pipeline->connect(src, 0, dst, 0);
 	};
 
@@ -57,7 +57,7 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 		}
 	};
 
-	auto createEncoder = [&](std::shared_ptr<const IMetadata> metadataDemux, bool ultraLowLatency, Encode::LibavEncode::Params::VideoCodecType videoCodecType, PictureFormat &dstFmt, unsigned bitrate, uint64_t segmentDurationInMs)->IModule* {
+	auto createEncoder = [&](std::shared_ptr<const IMetadata> metadataDemux, bool ultraLowLatency, Encode::LibavEncode::Params::VideoCodecType videoCodecType, PictureFormat &dstFmt, unsigned bitrate, uint64_t segmentDurationInMs)->IPipelinedModule* {
 		auto const codecType = metadataDemux->getStreamType();
 		if (codecType == VIDEO_PKT) {
 			Log::msg(Info, "[Encoder] Found video stream");
@@ -91,7 +91,7 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 	};
 
 	/*video is forced, audio is as passthru as possible*/
-	auto createConverter = [&](std::shared_ptr<const IMetadata> metadataDemux, std::shared_ptr<const IMetadata> metadataEncoder, const PictureFormat &dstFmt)->IModule* {
+	auto createConverter = [&](std::shared_ptr<const IMetadata> metadataDemux, std::shared_ptr<const IMetadata> metadataEncoder, const PictureFormat &dstFmt)->IPipelinedModule* {
 		auto const codecType = metadataDemux->getStreamType();
 		if (codecType == VIDEO_PKT) {
 			Log::msg(Info, "[Converter] Found video stream");
@@ -142,7 +142,7 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 			continue;
 		}
 
-		IModule *decode = nullptr;
+		IPipelinedModule *decode = nullptr;
 		if (transcode) {
 			decode = pipeline->addModule<Decode::LibavDecode>(*metadataDemux);
 			pipeline->connect(demux, i, decode, 0);
@@ -157,7 +157,7 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 
 		auto const numRes = metadataDemux->isVideo() ? std::max<size_t>(opt->v.size(), 1) : 1;
 		for (size_t r = 0; r < numRes; ++r, ++numDashInputs) {
-			IModule *encoder = nullptr;
+			IPipelinedModule *encoder = nullptr;
 			if (transcode) {
 				Resolution inputRes = metadataDemux->isVideo() ? safe_cast<const MetadataPktLibavVideo>(demux->getOutput(i)->getMetadata())->getResolution() : Resolution();
 				PictureFormat encoderInputPicFmt(autoRotate(autoFit(inputRes, opt->v[r].res), isVertical), UNKNOWN_PF);

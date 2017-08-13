@@ -11,31 +11,28 @@ Pipeline::Pipeline(bool isLowLatency, double clockSpeed, Threading threading)
   clock(new Clock(clockSpeed)), threading(threading), remainingNotifications(0) {
 }
 
-IPipelinedModule* Pipeline::addModuleInternal(std::unique_ptr<IModule> rawModule) {
+IPipelinedModule * Pipeline::addModuleInternal(std::unique_ptr<IModule> rawModule) {
 	auto module = uptr(new PipelinedModule(std::move(rawModule), this, clock, threading));
 	auto ret = module.get();
 	modules.push_back(std::move(module));
 	return ret;
 }
 
-void Pipeline::connect(IModule * const p, size_t outputIdx, IModule * const n, size_t inputIdx, bool inputAcceptMultipleConnections) {
-	if (!n || !p) return;
+void Pipeline::connect(IPipelinedModule * const prev, size_t outputIdx, IPipelinedModule * const next, size_t inputIdx, bool inputAcceptMultipleConnections) {
+	if (!next || !prev) return;
 	std::unique_lock<std::mutex> lock(mutex);
 	if (remainingNotifications != notifications)
 		throw std::runtime_error("Connection but the topology has changed. Not supported yet."); //TODO: to change that, we need to store a state of the PipelinedModule.
-	auto next = safe_cast<IPipelinedModule>(n);
-	auto prev = safe_cast<IPipelinedModule>(p);
 	next->connect(prev->getOutput(outputIdx), inputIdx, prev->isSource(), inputAcceptMultipleConnections);
 	computeTopology();
 }
 
-void Pipeline::disconnect(IModule * const p, size_t outputIdx, IModule * const n, size_t inputIdx) {
-	if (!p) return;
+void Pipeline::disconnect(IPipelinedModule * const prev, size_t outputIdx, IPipelinedModule * const next, size_t inputIdx) {
+	if (!prev) return;
 	std::unique_lock<std::mutex> lock(mutex);
 	if (remainingNotifications != notifications)
 		throw std::runtime_error("Disconnection but the topology has changed. Not supported yet.");
-	auto next = safe_cast<IPipelinedModule>(n);
-	next->disconnect(inputIdx, p->getOutput(outputIdx));
+	next->disconnect(inputIdx, prev->getOutput(outputIdx));
 	computeTopology();
 }
 
