@@ -12,8 +12,8 @@ using namespace Modules;
 namespace {
 
 unittest("sound generator") {
-	auto soundGen = uptr(create<In::SoundGenerator>());
-	auto render = uptr(create<Render::SDLAudio>());
+	auto soundGen = create<In::SoundGenerator>();
+	auto render = create<Render::SDLAudio>();
 
 	ConnectOutputToInput(soundGen->getOutput(0), render->getInput(0));
 
@@ -23,8 +23,8 @@ unittest("sound generator") {
 }
 
 unittest("video generator") {
-	auto videoGen = uptr(create<In::VideoGenerator>());
-	auto render = uptr(create<Render::SDLVideo>());
+	auto videoGen = create<In::VideoGenerator>();
+	auto render = create<Render::SDLVideo>();
 
 	std::vector<int> times;
 	auto onFrame = [&](Data data) {

@@ -48,10 +48,10 @@ void LibavDemux::initRestamp() {
 		const std::string format(m_formatCtx->iformat->name);
 		const std::string  fn = m_formatCtx->filename;
 		if (format == "rtsp" || format == "rtp" || format == "sdp" || !fn.compare(0, 4, "rtp:") || !fn.compare(0, 4, "udp:")) {
-			restampers[i] = uptr(create<Transform::Restamp>(Transform::Restamp::IgnoreFirstAndReset));
+			restampers[i] = create<Transform::Restamp>(Transform::Restamp::IgnoreFirstAndReset);
 		}
 		else {
-			restampers[i] = uptr(create<Transform::Restamp>(Transform::Restamp::Reset));
+			restampers[i] = create<Transform::Restamp>(Transform::Restamp::Reset);
 		}
 
 		if (format == "rtsp" || format == "rtp" || format == "mpegts") {
@@ -75,7 +75,7 @@ LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::strin
 
 		restampers.resize(m_formatCtx->nb_streams);
 		for (unsigned i = 0; i < m_formatCtx->nb_streams; i++) {
-			restampers[i] = uptr(create<Transform::Restamp>(Transform::Restamp::ClockSystem)); /*some webcams timestamps don't start at 0 (based on UTC)*/
+			restampers[i] = create<Transform::Restamp>(Transform::Restamp::ClockSystem); /*some webcams timestamps don't start at 0 (based on UTC)*/
 		}
 	} else {
 		ffpp::Dict dict(typeid(*this).name(),"-buffer_size 1M -fifo_size 1M -probesize 10M -analyzeduration 10M -overrun_nonfatal 1 -protocol_whitelist file,udp,rtp,http,https,tcp,tls,rtmp -rtsp_flags prefer_tcp " + avformatCustom);

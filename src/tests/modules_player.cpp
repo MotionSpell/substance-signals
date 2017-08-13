@@ -15,8 +15,8 @@ using namespace Modules;
 namespace {
 
 unittest("packet type erasure + multi-output: libav Demux -> libav Decoder (Video Only) -> Render::SDL2") {
-	auto demux = uptr(create<Demux::LibavDemux>("data/beepbop.mp4"));
-	auto null = uptr(create<Out::Null>());
+	auto demux = create<Demux::LibavDemux>("data/beepbop.mp4");
+	auto null = create<Out::Null>();
 
 	size_t videoIndex = std::numeric_limits<size_t>::max();
 	for (size_t i = 0; i < demux->getNumOutputs(); ++i) {
@@ -28,8 +28,8 @@ unittest("packet type erasure + multi-output: libav Demux -> libav Decoder (Vide
 	}
 	ASSERT(videoIndex != std::numeric_limits<size_t>::max());
 	auto metadata = safe_cast<const MetadataPktLibav>(demux->getOutput(videoIndex)->getMetadata());
-	auto decode = uptr(create<Decode::LibavDecode>(*metadata));
-	auto render = uptr(create<Render::SDLVideo>());
+	auto decode = create<Decode::LibavDecode>(*metadata);
+	auto render = create<Render::SDLVideo>();
 
 	ConnectOutputToInput(demux->getOutput(videoIndex), decode->getInput(0));
 	ConnectOutputToInput(decode->getOutput(0), render->getInput(0));
@@ -38,8 +38,8 @@ unittest("packet type erasure + multi-output: libav Demux -> libav Decoder (Vide
 }
 
 unittest("packet type erasure + multi-output: libav Demux -> libav Decoder (Audio Only) -> Render::SDL2") {
-	auto demux = uptr(create<Demux::LibavDemux>("data/beepbop.mp4"));
-	auto null = uptr(create<Out::Null>());
+	auto demux = create<Demux::LibavDemux>("data/beepbop.mp4");
+	auto null = create<Out::Null>();
 
 	size_t audioIndex = std::numeric_limits<size_t>::max();
 	for (size_t i = 0; i < demux->getNumOutputs(); ++i) {
@@ -51,11 +51,11 @@ unittest("packet type erasure + multi-output: libav Demux -> libav Decoder (Audi
 	}
 	ASSERT(audioIndex != std::numeric_limits<size_t>::max());
 	auto metadata = safe_cast<const MetadataPktLibav>(demux->getOutput(audioIndex)->getMetadata());
-	auto decode = uptr(create<Decode::LibavDecode>(*metadata));
+	auto decode = create<Decode::LibavDecode>(*metadata);
 	auto srcFormat = PcmFormat(44100, 1, AudioLayout::Mono, AudioSampleFormat::F32, AudioStruct::Planar);
 	auto dstFormat = PcmFormat(44100, 2, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Interleaved);
-	auto converter = uptr(create<Transform::AudioConvert>(srcFormat, dstFormat));
-	auto render = uptr(create<Render::SDLAudio>());
+	auto converter = create<Transform::AudioConvert>(srcFormat, dstFormat);
+	auto render = create<Render::SDLAudio>();
 
 	ConnectOutputToInput(demux->getOutput(audioIndex), decode->getInput(0));
 	ConnectOutputToInput(decode->getOutput(0), converter->getInput(0));

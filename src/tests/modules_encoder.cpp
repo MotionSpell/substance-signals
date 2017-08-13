@@ -16,7 +16,7 @@ unittest("encoder: video simple") {
 		numEncodedFrames++;
 	};
 
-	auto encode = uptr(create<Encode::LibavEncode>(Encode::LibavEncode::Video));
+	auto encode = create<Encode::LibavEncode>(Encode::LibavEncode::Video);
 	Connect(encode->getOutput(0)->getSignal(), onFrame);
 	for (int i = 0; i < 50; ++i) {
 		encode->process(picture);
@@ -30,8 +30,8 @@ unittest("encoder: timestamps start at random values") {
 	Encode::LibavEncode::Params p;
 	p.frameRate.num = 1;
 	std::shared_ptr<DataBase> picture = uptr(new PictureYUV420P(VIDEO_RESOLUTION));
-	auto encode = uptr(create<Encode::LibavEncode>(Encode::LibavEncode::Video, p));
-	auto mux = uptr(create<Mux::GPACMuxMP4>("random_ts"));
+	auto encode = create<Encode::LibavEncode>(Encode::LibavEncode::Video, p);
+	auto mux = create<Mux::GPACMuxMP4>("random_ts");
 	ConnectOutputToInput(encode->getOutput(0), mux->getInput(0));
 	for (size_t i = 0; i < times.size(); ++i) {
 		picture->setMediaTime(times[i]);
@@ -45,7 +45,7 @@ unittest("encoder: timestamps start at random values") {
 		ASSERT(data->getMediaTime() + times[0] == times[i]);
 		i++;
 	};
-	auto demux = uptr(create<Demux::LibavDemux>("random_ts.mp4"));
+	auto demux = create<Demux::LibavDemux>("random_ts.mp4");
 	Connect(demux->getOutput(0)->getSignal(), onFrame);
 	demux->process(nullptr);
 	demux->flush();
@@ -59,8 +59,8 @@ unittest("GPAC mp4 mux: don't create empty fragments") {
 	Encode::LibavEncode::Params p;
 	p.frameRate.num = 1;
 	std::shared_ptr<DataBase> picture = uptr(new PictureYUV420P(VIDEO_RESOLUTION));
-	auto encode = uptr(create<Encode::LibavEncode>(Encode::LibavEncode::Video, p));
-	auto mux = uptr(create<Mux::GPACMuxMP4>("tmp", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerRAP, Mux::GPACMuxMP4::Browsers | Mux::GPACMuxMP4::SegmentAtAny));
+	auto encode = create<Encode::LibavEncode>(Encode::LibavEncode::Video, p);
+	auto mux = create<Mux::GPACMuxMP4>("tmp", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerRAP, Mux::GPACMuxMP4::Browsers | Mux::GPACMuxMP4::SegmentAtAny);
 	ConnectOutputToInput(encode->getOutput(0), mux->getInput(0));
 	for (size_t i = 0; i < times.size(); ++i) {
 		picture->setMediaTime(times[i]);

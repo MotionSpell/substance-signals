@@ -32,10 +32,10 @@ template<typename Metadata>
 void testRectifier(std::vector<std::pair<uint64_t, uint64_t>> times /*need to add outTimes*/) {
 	auto clock = shptr(new Clock(0.0));
 	auto scheduler = uptr(new Scheduler(clock));
-	auto rectifier = uptr(create<TimeRectifier>(Clock::Rate / 2, std::move(scheduler)));
-	auto generator = uptr(create<DataGenerator<Metadata>>());
+	auto rectifier = create<TimeRectifier>(Clock::Rate / 2, std::move(scheduler));
+	auto generator = create<DataGenerator<Metadata>>();
 	ConnectModules(generator.get(), 0, rectifier.get(), 0);
-	auto recorder = uptr(create<Utils::Recorder>());
+	auto recorder = create<Utils::Recorder>();
 	ConnectModules(rectifier.get(), 0, recorder.get(), 0);
 	for (size_t i = 0; i < times.size(); ++i) {
 		generator->push(times[i].first, times[i].second);
@@ -90,17 +90,17 @@ unittest("restamp: passthru with offsets") {
 	auto data = std::make_shared<DataRaw>(0);
 
 	data->setMediaTime(time);
-	auto restamp = uptr(create<Transform::Restamp>(Transform::Restamp::Reset));
+	auto restamp = create<Transform::Restamp>(Transform::Restamp::Reset);
 	restamp->process(data);
 	ASSERT_EQUALS(0, data->getMediaTime());
 
 	data->setMediaTime(time);
-	restamp = uptr(create<Transform::Restamp>(Transform::Restamp::Reset, 0));
+	restamp = create<Transform::Restamp>(Transform::Restamp::Reset, 0);
 	restamp->process(data);
 	ASSERT_EQUALS(0, data->getMediaTime());
 
 	data->setMediaTime(time);
-	restamp = uptr(create<Transform::Restamp>(Transform::Restamp::Reset, time));
+	restamp = create<Transform::Restamp>(Transform::Restamp::Reset, time);
 	restamp->process(data);
 	ASSERT_EQUALS(time, data->getMediaTime());
 }
@@ -111,22 +111,22 @@ unittest("restamp: reset with offsets") {
 	auto data = std::make_shared<DataRaw>(0);
 
 	data->setMediaTime(time);
-	auto restamp = uptr(create<Transform::Restamp>(Transform::Restamp::Passthru));
+	auto restamp = create<Transform::Restamp>(Transform::Restamp::Passthru);
 	restamp->process(data);
 	ASSERT_EQUALS(time, data->getMediaTime());
 
 	data->setMediaTime(time);
-	restamp = uptr(create<Transform::Restamp>(Transform::Restamp::Passthru, 0));
+	restamp = create<Transform::Restamp>(Transform::Restamp::Passthru, 0);
 	restamp->process(data);
 	ASSERT_EQUALS(time, data->getMediaTime());
 
 	data->setMediaTime(time);
-	restamp = uptr(create<Transform::Restamp>(Transform::Restamp::Passthru, offset));
+	restamp = create<Transform::Restamp>(Transform::Restamp::Passthru, offset);
 	restamp->process(data);
 	ASSERT_EQUALS(time + offset, data->getMediaTime());
 
 	data->setMediaTime(time);
-	restamp = uptr(create<Transform::Restamp>(Transform::Restamp::Passthru, time));
+	restamp = create<Transform::Restamp>(Transform::Restamp::Passthru, time);
 	restamp->process(data);
 	ASSERT_EQUALS(time + time, data->getMediaTime());
 }

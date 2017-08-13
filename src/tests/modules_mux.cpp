@@ -12,8 +12,8 @@ namespace {
 
 #ifdef ENABLE_FAILING_TESTS
 unittest("remux test: GPAC mp4 mux") {
-	auto demux = uptr(create<Demux::LibavDemux>("data/beepbop.mp4"));
-	auto mux = uptr(create<Mux::GPACMuxMP4>("output_video_gpac"));
+	auto demux = create<Demux::LibavDemux>("data/beepbop.mp4");
+	auto mux = create<Mux::GPACMuxMP4>("output_video_gpac");
 	for (size_t i = 0; i < demux->getNumOutputs(); ++i) {
 		ConnectModules(demux.get(), i, mux.get(), i);
 	}
@@ -23,8 +23,8 @@ unittest("remux test: GPAC mp4 mux") {
 
 //ffmpeg extradata seems to be different (non annex B ?) when output from the muxer
 unittest("remux test: libav mp4 mux") {
-	auto demux = uptr(create<Demux::LibavDemux>("data/beepbop.mp4"));
-	auto mux = uptr(create<Mux::LibavMux>("output_libav", "mp4"));
+	auto demux = create<Demux::LibavDemux>("data/beepbop.mp4");
+	auto mux = create<Mux::LibavMux>("output_libav", "mp4");
 	for (size_t i = 0; i < demux->getNumOutputs(); ++i) {
 		ConnectModules(demux.get(), i, mux.get(), i);
 	}
@@ -38,55 +38,55 @@ unittest("multiple inputs: send same packets to 2 GPAC mp4 mux inputs") {
 #endif /*ENABLE_FAILING_TESTS*/
 
 unittest("GPAC mp4 mux outputs combination coverage") {
-	auto demux = uptr(create<Demux::LibavDemux>("data/beepbop.mp4"));
+	auto demux = create<Demux::LibavDemux>("data/beepbop.mp4");
 	const uint64_t segmentDurationInMs = 2000;
 
 	bool thrown = false;
 	try {
-		auto mux01 = uptr(create<Mux::GPACMuxMP4>("output_video_gpac_01", segmentDurationInMs, Mux::GPACMuxMP4::NoSegment, Mux::GPACMuxMP4::NoFragment));
+		auto mux01 = create<Mux::GPACMuxMP4>("output_video_gpac_01", segmentDurationInMs, Mux::GPACMuxMP4::NoSegment, Mux::GPACMuxMP4::NoFragment);
 	} catch (std::exception const& e) {
 		std::cerr << "Expected error: " << e.what() << std::endl;
 		thrown = true;
 	}
 	ASSERT(thrown);
 
-	auto mux00 = uptr(create<Mux::GPACMuxMP4>("output_video_gpac_00", 0, Mux::GPACMuxMP4::NoSegment, Mux::GPACMuxMP4::NoFragment));
-	auto mux02 = uptr(create<Mux::GPACMuxMP4>("output_video_gpac_02", 0, Mux::GPACMuxMP4::NoSegment, Mux::GPACMuxMP4::OneFragmentPerSegment));
-	auto mux04 = uptr(create<Mux::GPACMuxMP4>("output_video_gpac_04", 0, Mux::GPACMuxMP4::NoSegment, Mux::GPACMuxMP4::OneFragmentPerRAP));
-	auto mux06 = uptr(create<Mux::GPACMuxMP4>("output_video_gpac_06", 0, Mux::GPACMuxMP4::NoSegment, Mux::GPACMuxMP4::OneFragmentPerFrame));
+	auto mux00 = create<Mux::GPACMuxMP4>("output_video_gpac_00", 0, Mux::GPACMuxMP4::NoSegment, Mux::GPACMuxMP4::NoFragment);
+	auto mux02 = create<Mux::GPACMuxMP4>("output_video_gpac_02", 0, Mux::GPACMuxMP4::NoSegment, Mux::GPACMuxMP4::OneFragmentPerSegment);
+	auto mux04 = create<Mux::GPACMuxMP4>("output_video_gpac_04", 0, Mux::GPACMuxMP4::NoSegment, Mux::GPACMuxMP4::OneFragmentPerRAP);
+	auto mux06 = create<Mux::GPACMuxMP4>("output_video_gpac_06", 0, Mux::GPACMuxMP4::NoSegment, Mux::GPACMuxMP4::OneFragmentPerFrame);
 
 	thrown = false;
 	try {
-		auto mux10 = uptr(create<Mux::GPACMuxMP4>("output_video_gpac_10", 0, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::NoFragment));
+		auto mux10 = create<Mux::GPACMuxMP4>("output_video_gpac_10", 0, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::NoFragment);
 	} catch (std::exception const& e) {
 		std::cerr << "Expected error: " << e.what() << std::endl;
 		thrown = true;
 	}
 	ASSERT(thrown);
 
-	auto mux11 = uptr(create<Mux::GPACMuxMP4>("output_video_gpac_11", segmentDurationInMs, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::NoFragment));
-	auto mux13 = uptr(create<Mux::GPACMuxMP4>("output_video_gpac_13", segmentDurationInMs, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::OneFragmentPerSegment));
-	auto mux15 = uptr(create<Mux::GPACMuxMP4>("output_video_gpac_15", segmentDurationInMs, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::OneFragmentPerRAP));
-	auto mux17 = uptr(create<Mux::GPACMuxMP4>("output_video_gpac_17", segmentDurationInMs, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::OneFragmentPerFrame));
+	auto mux11 = create<Mux::GPACMuxMP4>("output_video_gpac_11", segmentDurationInMs, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::NoFragment);
+	auto mux13 = create<Mux::GPACMuxMP4>("output_video_gpac_13", segmentDurationInMs, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::OneFragmentPerSegment);
+	auto mux15 = create<Mux::GPACMuxMP4>("output_video_gpac_15", segmentDurationInMs, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::OneFragmentPerRAP);
+	auto mux17 = create<Mux::GPACMuxMP4>("output_video_gpac_17", segmentDurationInMs, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::OneFragmentPerFrame);
 
 	thrown = false;
 	try {
-		auto mux21 = uptr(create<Mux::GPACMuxMP4>("output_video_gpac_21", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::NoFragment));
+		auto mux21 = create<Mux::GPACMuxMP4>("output_video_gpac_21", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::NoFragment);
 	} catch (std::exception const& e) {
 		std::cerr << "Expected error: " << e.what() << std::endl;
 		thrown = true;
 	}
 	ASSERT(thrown);
 
-	auto mux23 = uptr(create<Mux::GPACMuxMP4>("output_video_gpac_23", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerSegment));
-	auto mux25 = uptr(create<Mux::GPACMuxMP4>("output_video_gpac_25", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerRAP));
-	auto mux27 = uptr(create<Mux::GPACMuxMP4>("output_video_gpac_27", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerFrame));
+	auto mux23 = create<Mux::GPACMuxMP4>("output_video_gpac_23", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerSegment);
+	auto mux25 = create<Mux::GPACMuxMP4>("output_video_gpac_25", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerRAP);
+	auto mux27 = create<Mux::GPACMuxMP4>("output_video_gpac_27", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerFrame);
 
 #ifdef ENABLE_FAILING_TESTS
-	auto mux31 = uptr(create<Mux::GPACMuxMP4>("output_video_gpac_31", 0, Mux::GPACMuxMP4::SingleSegment, Mux::GPACMuxMP4::NoFragment));
-	auto mux33 = uptr(create<Mux::GPACMuxMP4>("output_video_gpac_33", 0, Mux::GPACMuxMP4::SingleSegment, Mux::GPACMuxMP4::OneFragmentPerSegment));
-	auto mux35 = uptr(create<Mux::GPACMuxMP4>("output_video_gpac_35", 0, Mux::GPACMuxMP4::SingleSegment, Mux::GPACMuxMP4::OneFragmentPerRAP));
-	auto mux37 = uptr(create<Mux::GPACMuxMP4>("output_video_gpac_37", 0, Mux::GPACMuxMP4::SingleSegment, Mux::GPACMuxMP4::OneFragmentPerFrame));
+	auto mux31 = create<Mux::GPACMuxMP4>("output_video_gpac_31", 0, Mux::GPACMuxMP4::SingleSegment, Mux::GPACMuxMP4::NoFragment);
+	auto mux33 = create<Mux::GPACMuxMP4>("output_video_gpac_33", 0, Mux::GPACMuxMP4::SingleSegment, Mux::GPACMuxMP4::OneFragmentPerSegment);
+	auto mux35 = create<Mux::GPACMuxMP4>("output_video_gpac_35", 0, Mux::GPACMuxMP4::SingleSegment, Mux::GPACMuxMP4::OneFragmentPerRAP);
+	auto mux37 = create<Mux::GPACMuxMP4>("output_video_gpac_37", 0, Mux::GPACMuxMP4::SingleSegment, Mux::GPACMuxMP4::OneFragmentPerFrame);
 #endif
 
 	for (size_t i = 0; i < demux->getNumOutputs(); ++i) {

@@ -12,8 +12,8 @@ using namespace Modules;
 namespace {
 
 unittest("demux one track: Demux::GPACDemuxMP4Simple -> Out::Print") {
-	auto mp4Demux = uptr(create<Demux::GPACDemuxMP4Simple>("data/beepbop.mp4"));
-	auto p = uptr(create<Out::Print>(std::cout));
+	auto mp4Demux = create<Demux::GPACDemuxMP4Simple>("data/beepbop.mp4");
+	auto p = create<Out::Print>(std::cout);
 
 	ConnectOutputToInput(mp4Demux->getOutput(0), p->getInput(0));
 
@@ -22,9 +22,9 @@ unittest("demux one track: Demux::GPACDemuxMP4Simple -> Out::Print") {
 
 #ifdef ENABLE_FAILING_TESTS
 unittest("demux one track: File -> Demux::GPACDemuxMP4Full -> Out::Print") {
-	auto f = uptr(create<In::File>("data/beepbop.mp4"));
-	auto mp4Demux = uptr(create<Demux::GPACDemuxMP4Full>());
-	auto p = uptr(create<Out::Print>(std::cout));
+	auto f = create<In::File>("data/beepbop.mp4");
+	auto mp4Demux = create<Demux::GPACDemuxMP4Full>();
+	auto p = create<Out::Print>(std::cout);
 
 	ConnectOutputToInput(f->getOutput(0), mp4Demux->getInput(0));
 	ConnectOutputToInput(mp4Demux->getOutput(0), p->getInput(0));

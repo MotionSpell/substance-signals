@@ -42,8 +42,8 @@ private:
 }
 
 unittest("metadata: backwarded by connection") {
-	auto output = uptr(create<FakeOutput>());
-	auto input  = uptr(create<FakeInput>());
+	auto output = create<FakeOutput>();
+	auto input  = create<FakeInput>();
 	input->setMetadata(shptr(new MetadataRawAudio));
 	auto o = output->getOutput(0);
 	auto i = input->getInput(0);
@@ -52,8 +52,8 @@ unittest("metadata: backwarded by connection") {
 }
 
 unittest("metadata: not forwarded by connection") {
-	auto output = uptr(create<FakeOutput>());
-	auto input = uptr(create<FakeInput>());
+	auto output = create<FakeOutput>();
+	auto input = create<FakeInput>();
 	output->setMetadata(shptr(new MetadataRawAudio));
 	auto o = output->getOutput(0);
 	auto i = input->getInput(0);
@@ -62,8 +62,8 @@ unittest("metadata: not forwarded by connection") {
 }
 
 unittest("metadata: same back and fwd by connection") {
-	auto output = uptr(create<FakeOutput>());
-	auto input = uptr(create<FakeInput>());
+	auto output = create<FakeOutput>();
+	auto input = create<FakeInput>();
 	auto meta = shptr(new MetadataRawAudio);
 	input->setMetadata(meta);
 	output->setMetadata(meta);
@@ -74,8 +74,8 @@ unittest("metadata: same back and fwd by connection") {
 }
 
 unittest("metadata: forwarded by data") {
-	auto output = uptr(create<FakeOutput>());
-	auto input = uptr(create<FakeInput>());
+	auto output = create<FakeOutput>();
+	auto input = create<FakeInput>();
 	auto o = output->getOutput(0);
 	auto i = input->getInput(0);
 	ConnectOutputToInput(o, i);
@@ -87,8 +87,8 @@ unittest("metadata: forwarded by data") {
 unittest("metadata: incompatible by data") {
 	bool thrown = false;
 	try {
-		auto output = uptr(create<FakeOutput>());
-		auto input = uptr(create<FakeInput>());
+		auto output = create<FakeOutput>();
+		auto input = create<FakeInput>();
 		input->setMetadata(shptr(new MetadataRawAudio));
 		auto o = output->getOutput(0);
 		auto i = input->getInput(0);
@@ -106,8 +106,8 @@ unittest("metadata: incompatible by data") {
 unittest("metadata: incompatible back and fwd") {
 	bool thrown = false;
 	try {
-		auto output = uptr(create<FakeOutput>());
-		auto input = uptr(create<FakeInput>());
+		auto output = create<FakeOutput>();
+		auto input = create<FakeInput>();
 		input->setMetadata(shptr(new MetadataRawAudio));
 		output->setMetadata(shptr(new MetadataRawVideo));
 		auto o = output->getOutput(0);
@@ -123,8 +123,8 @@ unittest("metadata: incompatible back and fwd") {
 }
 
 unittest("metadata: updated twice by data") {
-	auto output = uptr(create<FakeOutput>());
-	auto input = uptr(create<FakeInput>());
+	auto output = create<FakeOutput>();
+	auto input = create<FakeInput>();
 	auto o = output->getOutput(0);
 	auto i = input->getInput(0);
 	ConnectOutputToInput(o, i);

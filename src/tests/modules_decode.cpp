@@ -15,7 +15,7 @@ using namespace Tests;
 using namespace Modules;
 
 namespace {
-Decode::LibavDecode* createGenericDecoder(enum AVCodecID id) {
+std::unique_ptr<Decode::LibavDecode> createGenericDecoder(enum AVCodecID id) {
 	auto const codec = avcodec_find_decoder(id);
 	auto context = avcodec_alloc_context3(codec);
 	context->time_base.num = 1;
@@ -27,7 +27,7 @@ Decode::LibavDecode* createGenericDecoder(enum AVCodecID id) {
 	return decode;
 }
 
-Decode::LibavDecode* createMp3Decoder() {
+std::unique_ptr<Decode::LibavDecode> createMp3Decoder() {
 	return createGenericDecoder(AV_CODEC_ID_MP3);
 }
 
@@ -67,8 +67,8 @@ std::shared_ptr<DataBase> getTestMp3Frame() {
 }
 
 unittest("decode: audio simple") {
-	auto decode = uptr(createMp3Decoder());
-	auto null = uptr(create<Out::Null>());
+	auto decode = createMp3Decoder();
+	auto null = create<Out::Null>();
 	ConnectOutputToInput(decode->getOutput(0), null->getInput(0));
 
 	auto frame = getTestMp3Frame();
@@ -76,7 +76,7 @@ unittest("decode: audio simple") {
 }
 
 namespace {
-Decode::LibavDecode* createVideoDecoder() {
+std::unique_ptr<Decode::LibavDecode> createVideoDecoder() {
 	return createGenericDecoder(AV_CODEC_ID_H264);
 }
 
@@ -96,7 +96,7 @@ std::shared_ptr<DataBase> getTestH264Frame() {
 }
 
 unittest("decode: video simple") {
-	auto decode = uptr(createVideoDecoder());
+	auto decode = createVideoDecoder();
 	auto data = getTestH264Frame();
 
 	auto onPic = [&](Data data) {
@@ -118,8 +118,8 @@ unittest("decode: video simple") {
 }
 
 unittest("decode: audio mp3 manual frame to AAC") {
-	auto decode = uptr(createMp3Decoder());
-	auto encoder = uptr(create<Encode::LibavEncode>(Encode::LibavEncode::Audio));
+	auto decode = createMp3Decoder();
+	auto encoder = create<Encode::LibavEncode>(Encode::LibavEncode::Audio);
 
 	ConnectOutputToInput(decode->getOutput(0), encoder->getInput(0));
 
@@ -135,14 +135,14 @@ unittest("decode: audio mp3 manual frame to AAC") {
 }
 
 unittest("decode: audio mp3 to converter to AAC") {
-	auto decode = uptr(createMp3Decoder());
-	auto encoder = uptr(create<Encode::LibavEncode>(Encode::LibavEncode::Audio));
+	auto decode = createMp3Decoder();
+	auto encoder = create<Encode::LibavEncode>(Encode::LibavEncode::Audio);
 
 	auto const srcFormat = PcmFormat(44100, 1, AudioLayout::Mono, AudioSampleFormat::S16, AudioStruct::Planar);
 	auto const dstFormat = PcmFormat(44100, 2, AudioLayout::Stereo, AudioSampleFormat::F32, AudioStruct::Planar);
 	auto const metadataEncoder = safe_cast<const MetadataPktLibav>(encoder->getOutput(0)->getMetadata());
 	auto const metaEnc = safe_cast<const MetadataPktLibavAudio>(metadataEncoder);
-	auto converter = uptr(create<Transform::AudioConvert>(srcFormat, dstFormat, metaEnc->getFrameSize()));
+	auto converter = create<Transform::AudioConvert>(srcFormat, dstFormat, metaEnc->getFrameSize());
 
 	ConnectOutputToInput(decode->getOutput(0), converter->getInput(0));
 	ConnectOutputToInput(converter->getOutput(0), encoder->getInput(0));

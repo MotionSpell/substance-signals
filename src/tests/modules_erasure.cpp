@@ -11,15 +11,15 @@ using namespace Modules;
 namespace {
 
 unittest("packet type erasure + multi-output: libav Demux -> {libav Decoder -> Out::Print}*") {
-	auto demux = uptr(create<Demux::LibavDemux>("data/beepbop.mp4"));
+	auto demux = create<Demux::LibavDemux>("data/beepbop.mp4");
 
 	std::vector<std::unique_ptr<Decode::LibavDecode>> decoders;
 	std::vector<std::unique_ptr<Out::Print>> printers;
 	for (size_t i = 0; i < demux->getNumOutputs(); ++i) {
 		auto metadata = safe_cast<const MetadataPktLibav>(demux->getOutput(i)->getMetadata());
-		auto decode = uptr(create<Decode::LibavDecode>(*metadata));
+		auto decode = create<Decode::LibavDecode>(*metadata);
 
-		auto p = uptr(create<Out::Print>(std::cout));
+		auto p = create<Out::Print>(std::cout);
 
 		ConnectOutputToInput(demux->getOutput(i), decode->getInput(0));
 		ConnectOutputToInput(decode->getOutput(0), p->getInput(0));

@@ -58,7 +58,7 @@ class Pipeline : public IPipelineNotifier {
 		void computeTopology();
 		void finished() override;
 		void exception(std::exception_ptr eptr) override;
-		IPipelinedModule* addModuleInternal(Modules::IModule * const rawModule);
+		IPipelinedModule* addModuleInternal(std::unique_ptr<Modules::IModule> rawModule);
 
 		std::vector<std::unique_ptr<IPipelinedModule>> modules;
 		const size_t allocatorNumBlocks;

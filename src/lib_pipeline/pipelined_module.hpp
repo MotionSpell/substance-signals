@@ -16,9 +16,9 @@ struct DataLoosePipeline : public DataBase {};
 class PipelinedModule : public IPipelineNotifier, public ClockCap, public IPipelinedModule, public Module {
 public:
 	/* take ownership of module and executor */
-	PipelinedModule(IModule *module, IPipelineNotifier *notify, const std::shared_ptr<IClock> clock, Pipeline::Threading threading)
+	PipelinedModule(std::unique_ptr<IModule> module, IPipelineNotifier *notify, const std::shared_ptr<IClock> clock, Pipeline::Threading threading)
 		: ClockCap(clock),
-		delegate(module), localDelegateExecutor(threading & Pipeline::Mono ? (IProcessExecutor*)new EXECUTOR_LIVE : (IProcessExecutor*)new EXECUTOR),
+		delegate(std::move(module)), localDelegateExecutor(threading & Pipeline::Mono ? (IProcessExecutor*)new EXECUTOR_LIVE : (IProcessExecutor*)new EXECUTOR),
 		delegateExecutor(*localDelegateExecutor), threading(threading), m_notify(notify), activeConnections(0) {
 	}
 	~PipelinedModule() noexcept(false) {}
