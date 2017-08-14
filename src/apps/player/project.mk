@@ -6,7 +6,7 @@ EXE_PLAYER_OBJS:=\
 	$(LIB_MODULES_OBJS)\
 	$(LIB_PIPELINE_OBJS)\
 	$(LIB_UTILS_OBJS)\
- 	$(OUTDIR)/pipeliner.o\
+ 	$(OUTDIR)/pipeliner_player.o\
  	$(OUTDIR)/player.o
 $(TARGET): $(EXE_PLAYER_OBJS)
 DEPS+=$(EXE_PLAYER_OBJS:%.o=%.deps)

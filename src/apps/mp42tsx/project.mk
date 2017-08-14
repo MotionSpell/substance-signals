@@ -8,6 +8,6 @@ EXE_MP42TSX_OBJS:=\
 	$(LIB_UTILS_OBJS)\
  	$(OUTDIR)/mp42tsx.o\
  	$(OUTDIR)/options.o\
- 	$(OUTDIR)/pipeliner.o
+ 	$(OUTDIR)/pipeliner_mp42ts.o
 $(TARGET): $(EXE_MP42TSX_OBJS)
 DEPS+=$(EXE_MP42TSX_OBJS:%.o=%.deps)

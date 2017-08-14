@@ -9,6 +9,6 @@ EXE_DASHCASTX_OBJS:=\
 	$(LIB_APPCOMMON_OBJS)\
  	$(OUTDIR)/main.o\
  	$(OUTDIR)/options.o\
- 	$(OUTDIR)/pipeliner.o
+ 	$(OUTDIR)/pipeliner_dashcastx.o
 $(TARGET): $(EXE_DASHCASTX_OBJS)
 DEPS+=$(EXE_DASHCASTX_OBJS:%.o=%.deps)

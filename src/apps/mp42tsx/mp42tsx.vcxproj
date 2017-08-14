@@ -220,7 +220,7 @@
   <ItemGroup>
     <ClCompile Include="mp42tsx.cpp" />
     <ClCompile Include="options.cpp" />
-    <ClCompile Include="pipeliner.cpp" />
+    <ClCompile Include="pipeliner_mp42ts.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\lib_media\media.vcxproj">
@@ -238,7 +238,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="options.hpp" />
-    <ClInclude Include="pipeliner.hpp" />
+    <ClInclude Include="pipeliner_mp42ts.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
