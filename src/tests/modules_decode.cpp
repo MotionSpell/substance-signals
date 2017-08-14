@@ -20,7 +20,7 @@ std::unique_ptr<Decode::LibavDecode> createGenericDecoder(enum AVCodecID id) {
 	auto context = avcodec_alloc_context3(codec);
 	context->time_base.num = 1;
 	context->time_base.den = 44100; //needed for FFmpeg >= 3.1
-	MetadataPktLibav metadata(context);
+	auto metadata = shptr(new MetadataPktLibav(context));
 	auto decode = create<Decode::LibavDecode>(metadata);
 	avcodec_close(context);
 	av_free(context);

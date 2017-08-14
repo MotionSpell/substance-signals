@@ -18,7 +18,7 @@ namespace Decode {
 
 class LibavDecode : public ModuleS, public LibavDirectRendering {
 	public:
-		LibavDecode(const MetadataPktLibav &metadata);
+		LibavDecode(std::shared_ptr<const MetadataPktLibav> metadata);
 		~LibavDecode();
 		void process(Data data) override;
 		void flush() override;
@@ -30,8 +30,8 @@ class LibavDecode : public ModuleS, public LibavDirectRendering {
 
 		AVCodecContext * const codecCtx;
 		std::unique_ptr<ffpp::Frame> const avFrame;
-		OutputPicture* videoOutput;
-		OutputPcm* audioOutput;
+		OutputPicture *videoOutput;
+		OutputPcm *audioOutput;
 };
 
 }

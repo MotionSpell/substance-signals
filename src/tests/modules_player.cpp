@@ -28,7 +28,7 @@ unittest("packet type erasure + multi-output: libav Demux -> libav Decoder (Vide
 	}
 	ASSERT(videoIndex != std::numeric_limits<size_t>::max());
 	auto metadata = safe_cast<const MetadataPktLibav>(demux->getOutput(videoIndex)->getMetadata());
-	auto decode = create<Decode::LibavDecode>(*metadata);
+	auto decode = create<Decode::LibavDecode>(metadata);
 	auto render = create<Render::SDLVideo>();
 
 	ConnectOutputToInput(demux->getOutput(videoIndex), decode->getInput(0));
@@ -51,7 +51,7 @@ unittest("packet type erasure + multi-output: libav Demux -> libav Decoder (Audi
 	}
 	ASSERT(audioIndex != std::numeric_limits<size_t>::max());
 	auto metadata = safe_cast<const MetadataPktLibav>(demux->getOutput(audioIndex)->getMetadata());
-	auto decode = create<Decode::LibavDecode>(*metadata);
+	auto decode = create<Decode::LibavDecode>(metadata);
 	auto srcFormat = PcmFormat(44100, 1, AudioLayout::Mono, AudioSampleFormat::F32, AudioStruct::Planar);
 	auto dstFormat = PcmFormat(44100, 2, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Interleaved);
 	auto converter = create<Transform::AudioConvert>(srcFormat, dstFormat);

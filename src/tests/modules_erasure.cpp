@@ -17,7 +17,7 @@ unittest("packet type erasure + multi-output: libav Demux -> {libav Decoder -> O
 	std::vector<std::unique_ptr<Out::Print>> printers;
 	for (size_t i = 0; i < demux->getNumOutputs(); ++i) {
 		auto metadata = safe_cast<const MetadataPktLibav>(demux->getOutput(i)->getMetadata());
-		auto decode = create<Decode::LibavDecode>(*metadata);
+		auto decode = create<Decode::LibavDecode>(metadata);
 
 		auto p = create<Out::Print>(std::cout);
 

@@ -25,22 +25,22 @@ int av_lockmgr(void **mutex, enum AVLockOp op) {
 
 	switch (op) {
 	case AV_LOCK_CREATE: {
-		std::mutex *m = new std::mutex();
+		auto m = new std::mutex();
 		*mutex = static_cast<void*>(m);
 		break;
 	}
 	case AV_LOCK_OBTAIN: {
-		std::mutex *m = static_cast<std::mutex*>(*mutex);
+		auto m = static_cast<std::mutex*>(*mutex);
 		m->lock();
 		break;
 	}
 	case AV_LOCK_RELEASE: {
-		std::mutex *m = static_cast<std::mutex*>(*mutex);
+		auto m = static_cast<std::mutex*>(*mutex);
 		m->unlock();
 		break;
 	}
 	case AV_LOCK_DESTROY: {
-		std::mutex *m = static_cast<std::mutex*>(*mutex);
+		auto m = static_cast<std::mutex*>(*mutex);
 		delete m;
 		break;
 	}

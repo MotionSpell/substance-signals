@@ -7,9 +7,9 @@
 namespace Modules {
 namespace Decode {
 
-LibavDecode::LibavDecode(const MetadataPktLibav &metadata)
+LibavDecode::LibavDecode(std::shared_ptr<const MetadataPktLibav> metadata)
 	: codecCtx(avcodec_alloc_context3(nullptr)), avFrame(new ffpp::Frame) {
-	avcodec_copy_context(codecCtx, metadata.getAVCodecContext());
+	avcodec_copy_context(codecCtx, metadata->getAVCodecContext());
 
 	switch (codecCtx->codec_type) {
 	case AVMEDIA_TYPE_VIDEO: break;

@@ -45,7 +45,7 @@ class Dict {
 			}
 
 			AVDictionaryEntry *avde = nullptr;
-			while ((avde = av_dict_get(*&avDict, "", avde, AV_DICT_IGNORE_SUFFIX))) {
+			while ((avde = av_dict_get(avDict, "", avde, AV_DICT_IGNORE_SUFFIX))) {
 				if (avde->key[0] == '-') {
 					for (size_t i=1; i<=strlen(avde->key); ++i) {
 						avde->key[i-1] = avde->key[i];
@@ -74,7 +74,7 @@ class Dict {
 
 		void ensureAllOptionsConsumed() const {
 			AVDictionaryEntry *avde = nullptr;
-			while ( (avde = av_dict_get(*&avDictOri, "", avde, AV_DICT_IGNORE_SUFFIX)) ) {
+			while ( (avde = av_dict_get(avDictOri, "", avde, AV_DICT_IGNORE_SUFFIX)) ) {
 				if (get(avde->key)) {
 					Log::msg(Warning, "codec option \"%s\", value \"%s\" was ignored.", avde->key, avde->value);
 				}

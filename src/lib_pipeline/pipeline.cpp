@@ -11,7 +11,7 @@ Pipeline::Pipeline(bool isLowLatency, double clockSpeed, Threading threading)
   clock(new Clock(clockSpeed)), threading(threading), remainingNotifications(0) {
 }
 
-IPipelinedModule * Pipeline::addModuleInternal(std::unique_ptr<IModule> rawModule) {
+IPipelinedModule* Pipeline::addModuleInternal(std::unique_ptr<IModule> rawModule) {
 	auto module = uptr(new PipelinedModule(std::move(rawModule), this, clock, threading));
 	auto ret = module.get();
 	modules.push_back(std::move(module));
