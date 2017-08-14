@@ -16,14 +16,11 @@ using namespace Modules;
 
 namespace {
 std::unique_ptr<Decode::LibavDecode> createGenericDecoder(enum AVCodecID id) {
-	auto const codec = avcodec_find_decoder(id);
-	auto context = avcodec_alloc_context3(codec);
+	auto context = shptr(avcodec_alloc_context3(avcodec_find_decoder(id)));
 	context->time_base.num = 1;
 	context->time_base.den = 44100; //needed for FFmpeg >= 3.1
 	auto metadata = shptr(new MetadataPktLibav(context));
 	auto decode = create<Decode::LibavDecode>(metadata);
-	avcodec_close(context);
-	av_free(context);
 	return decode;
 }
 

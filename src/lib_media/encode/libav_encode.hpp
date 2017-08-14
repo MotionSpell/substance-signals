@@ -58,7 +58,7 @@ class LibavEncode : public ModuleS {
 		bool processAudio(const DataPcm *data);
 		bool processVideo(const DataPicture *data);
 
-		AVCodecContext *codecCtx;
+		std::shared_ptr<AVCodecContext> codecCtx;
 		std::unique_ptr<PcmFormat> pcmFormat = nullptr;
 		std::unique_ptr<ffpp::Frame> const avFrame;
 		OutputDataDefault<DataAVPacket>* output;

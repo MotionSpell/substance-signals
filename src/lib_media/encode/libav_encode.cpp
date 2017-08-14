@@ -111,7 +111,7 @@ LibavEncode::LibavEncode(Type type, Params &params)
 	}
 	if (!codec)
 		throw error(format("codec '%s' not found, disable output.", entry->value));
-	codecCtx = avcodec_alloc_context3(codec);
+	codecCtx = shptr(avcodec_alloc_context3(codec));
 	if (!codecCtx)
 		throw error(format("Could not allocate the codec context (%s).", codecName));
 
@@ -147,7 +147,7 @@ LibavEncode::LibavEncode(Type type, Params &params)
 		default: throw error("Unknown libav audio layout");
 		}
 		pcmFormat = uptr(new PcmFormat(params.sampleRate, params.numChannels, layout));
-		libavAudioCtxConvert(pcmFormat.get(), codecCtx);
+		libavAudioCtxConvert(pcmFormat.get(), codecCtx.get());
 		break;
 	default:
 		assert(0);
@@ -157,7 +157,7 @@ LibavEncode::LibavEncode(Type type, Params &params)
 	codecCtx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER; //gives access to the extradata (e.g. H264 SPS/PPS, etc.)
 	ffpp::Dict codecDict(typeid(*this).name(), codecOptions + " -threads auto " + params.avcodecCustom);
 	av_dict_set(&codecDict, codecName.c_str(), nullptr, 0);
-	if (avcodec_open2(codecCtx, codec, &codecDict) < 0)
+	if (avcodec_open2(codecCtx.get(), codec, &codecDict) < 0)
 		throw error("Could not open codec, disable output.");
 	codecDict.ensureAllOptionsConsumed();
 
@@ -200,10 +200,6 @@ void LibavEncode::flush() {
 }
 
 LibavEncode::~LibavEncode() {
-	if (codecCtx) {
-		avcodec_close(codecCtx);
-		avcodec_free_context(&codecCtx);
-	}
 }
 
 bool LibavEncode::processAudio(const DataPcm *data) {
@@ -217,7 +213,7 @@ bool LibavEncode::processAudio(const DataPcm *data) {
 	}
 
 	int gotPkt = 0;
-	if (avcodec_encode_audio2(codecCtx, pkt, f, &gotPkt)) {
+	if (avcodec_encode_audio2(codecCtx.get(), pkt, f, &gotPkt)) {
 		log(Warning, "error encountered while encoding audio frame %s.", f ? f->pts : -1);
 		return false;
 	}
@@ -253,7 +249,7 @@ bool LibavEncode::processVideo(const DataPicture *pic) {
 	}
 
 	int gotPkt = 0;
-	if (avcodec_encode_video2(codecCtx, pkt, f, &gotPkt)) {
+	if (avcodec_encode_video2(codecCtx.get(), pkt, f, &gotPkt)) {
 		log(Warning, "error encountered while encoding video frame %s.", f ? f->pts : -1);
 		return false;
 	} else {

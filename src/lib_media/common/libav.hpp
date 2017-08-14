@@ -3,6 +3,7 @@
 #include "picture.hpp"
 #include "lib_modules/core/output.hpp"
 #include "lib_modules/core/metadata.hpp"
+#include "lib_utils/tools.hpp"
 #include <cstdarg>
 #include <memory>
 
@@ -23,26 +24,30 @@ extern "C" {
 
 #define AV_PKT_FLAG_RESET_DECODER (1 << 30)
 
+template<>
+std::shared_ptr<AVCodecContext> shptr(AVCodecContext *p);
+
 namespace Modules {
+
+void AVCodecContextDeleter(AVCodecContext *p);
 
 class MetadataPktLibav : public IMetadata {
 	public:
-		//Doesn't take codecCtx ownership
-		MetadataPktLibav(AVCodecContext *codecCtx, int id = -1);
+		MetadataPktLibav(std::shared_ptr<AVCodecContext> codecCtx, int id = -1);
 		virtual ~MetadataPktLibav() {}
 		StreamType getStreamType() const override;
 		int64_t getBitrate() const;
-		AVCodecContext* getAVCodecContext() const;
+		std::shared_ptr<AVCodecContext> getAVCodecContext() const;
 		int getId() const;
 
 	protected:
-		AVCodecContext *codecCtx;
+		std::shared_ptr<AVCodecContext> codecCtx;
 		int id; /*format specific id e.g. PID for MPEG2-TS. -1 is uninitialized*/
 };
 
 class MetadataPktLibavVideo : public MetadataPktLibav {
 	public:
-		MetadataPktLibavVideo(AVCodecContext *codecCtx, int id = -1) : MetadataPktLibav(codecCtx, id) {}
+		MetadataPktLibavVideo(std::shared_ptr<AVCodecContext> codecCtx, int id = -1) : MetadataPktLibav(codecCtx, id) {}
 		PixelFormat getPixelFormat() const;
 		Resolution getResolution() const;
 		Fraction getTimeScale() const;
@@ -52,7 +57,7 @@ class MetadataPktLibavVideo : public MetadataPktLibav {
 
 class MetadataPktLibavAudio : public MetadataPktLibav {
 	public:
-		MetadataPktLibavAudio(AVCodecContext *codecCtx, int id = -1) : MetadataPktLibav(codecCtx, id) {}
+		MetadataPktLibavAudio(std::shared_ptr<AVCodecContext> codecCtx, int id = -1) : MetadataPktLibav(codecCtx, id) {}
 		std::string getCodecName() const;
 		uint32_t getNumChannels() const;
 		uint32_t getSampleRate() const;
@@ -63,7 +68,7 @@ class MetadataPktLibavAudio : public MetadataPktLibav {
 
 class MetadataPktLibavSubtitle : public MetadataPktLibav {
 public:
-	MetadataPktLibavSubtitle(AVCodecContext *codecCtx, int id = -1) : MetadataPktLibav(codecCtx, id) {}
+	MetadataPktLibavSubtitle(std::shared_ptr<AVCodecContext>codecCtx, int id = -1) : MetadataPktLibav(codecCtx, id) {}
 };
 
 struct AVPacketDeleter {
@@ -93,7 +98,7 @@ class PcmFormat;
 class DataPcm;
 void libavAudioCtxConvertLibav(const PcmFormat *cfg, int &sampleRate, enum AVSampleFormat &format, int &numChannels, uint64_t &layout);
 void libavAudioCtxConvert(const PcmFormat *cfg, AVCodecContext *codecCtx);
-void libavAudioCtx2pcmConvert(const AVCodecContext *codecCtx, PcmFormat *cfg);
+void libavAudioCtx2pcmConvert(std::shared_ptr<const AVCodecContext> codecCtx, PcmFormat *cfg);
 void libavFrameDataConvert(const DataPcm *data, AVFrame *frame);
 void libavFrame2pcmConvert(const AVFrame *frame, PcmFormat *cfg);
 

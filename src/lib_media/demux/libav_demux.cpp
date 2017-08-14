@@ -121,10 +121,12 @@ LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::strin
 		}
 
 		std::shared_ptr<IMetadata> m;
+		auto codecCtx = shptr(avcodec_alloc_context3(nullptr));
+		avcodec_copy_context(codecCtx.get(), st->codec);
 		switch (st->codec->codec_type) {
-		case AVMEDIA_TYPE_AUDIO: m = shptr(new MetadataPktLibavAudio(st->codec, st->id)); break;
-		case AVMEDIA_TYPE_VIDEO: m = shptr(new MetadataPktLibavVideo(st->codec, st->id)); break;
-		case AVMEDIA_TYPE_SUBTITLE: m = shptr(new MetadataPktLibavSubtitle(st->codec, st->id)); break;
+		case AVMEDIA_TYPE_AUDIO: m = shptr(new MetadataPktLibavAudio(codecCtx, st->id)); break;
+		case AVMEDIA_TYPE_VIDEO: m = shptr(new MetadataPktLibavVideo(codecCtx, st->id)); break;
+		case AVMEDIA_TYPE_SUBTITLE: m = shptr(new MetadataPktLibavSubtitle(codecCtx, st->id)); break;
 		default: break;
 		}
 		outputs.push_back(addOutput<OutputDataDefault<DataAVPacket>>(m));

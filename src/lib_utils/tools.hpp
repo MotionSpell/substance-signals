@@ -98,17 +98,22 @@ std::vector<T> apply(Lambda func, std::vector<T>& input, Arguments... args) {
 	return r;
 }
 
-template<typename T>
+template<class T>
 std::unique_ptr<T> uptr(T *p) {
 	return std::unique_ptr<T>(p);
 }
 
-template<typename T>
+template<class T>
 std::shared_ptr<T> shptr(T *p) {
 	return std::shared_ptr<T>(p);
 }
 
-template<typename T, typename U>
+template<class T, class Deleter>
+std::shared_ptr<T> shptr(T *p, Deleter d) {
+	return std::shared_ptr<T>(p, d);
+}
+
+template<class T, class U>
 std::shared_ptr<T> safe_cast(std::shared_ptr<U> p) {
 	if (!p)
 		return nullptr;

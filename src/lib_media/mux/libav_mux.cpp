@@ -86,7 +86,7 @@ void LibavMux::declareStream(Data data, size_t inputIdx) {
 	AVStream *avStream = avformat_new_stream(m_formatCtx, metadata->getAVCodecContext()->codec);
 	if (!avStream)
 		throw error("Stream creation failed.");
-	if (avcodec_parameters_from_context(avStream->codecpar, metadata->getAVCodecContext()) < 0)
+	if (avcodec_parameters_from_context(avStream->codecpar, metadata->getAVCodecContext().get()) < 0)
 		throw error("Stream parameters copy failed.");
 	avStream->time_base = avStream->codec->time_base = metadata->getAVCodecContext()->time_base;
 	inputIdx2AvStream[inputIdx] = m_formatCtx->nb_streams - 1;

@@ -16,6 +16,11 @@ extern "C" {
 #undef PixelFormat
 }
 
+template<>
+std::shared_ptr<AVCodecContext> shptr(AVCodecContext *p) {
+	return std::shared_ptr<AVCodecContext>(p, Modules::AVCodecContextDeleter);
+}
+
 namespace {
 
 int av_lockmgr(void **mutex, enum AVLockOp op) {
@@ -130,7 +135,12 @@ auto g_InitAvLog = runAtStartup(&av_log_set_callback, avLog);
 
 namespace Modules {
 
-MetadataPktLibav::MetadataPktLibav(AVCodecContext *codecCtx, int id)
+void AVCodecContextDeleter(AVCodecContext *p) {
+	avcodec_close(p);
+	avcodec_free_context(&p);
+}
+
+MetadataPktLibav::MetadataPktLibav(std::shared_ptr<AVCodecContext> codecCtx, int id)
 	: codecCtx(codecCtx), id(id) {
 }
 
@@ -143,7 +153,7 @@ StreamType MetadataPktLibav::getStreamType() const {
 	}
 }
 
-AVCodecContext* MetadataPktLibav::getAVCodecContext() const {
+std::shared_ptr<AVCodecContext> MetadataPktLibav::getAVCodecContext() const {
 	return codecCtx;
 }
 
@@ -229,7 +239,7 @@ void libavAudioCtxConvert(const PcmFormat *cfg, AVCodecContext *codecCtx) {
 	libavAudioCtxConvertLibav(cfg, codecCtx->sample_rate, codecCtx->sample_fmt, codecCtx->channels, codecCtx->channel_layout);
 }
 
-void libavAudioCtx2pcmConvert(const AVCodecContext *codecCtx, PcmFormat *cfg) {
+void libavAudioCtx2pcmConvert(std::shared_ptr<const AVCodecContext> codecCtx, PcmFormat *cfg) {
 	cfg->sampleRate = codecCtx->sample_rate;
 
 	cfg->numChannels = cfg->numPlanes = codecCtx->channels;

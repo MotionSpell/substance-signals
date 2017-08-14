@@ -8,22 +8,19 @@ namespace Modules {
 namespace Decode {
 
 LibavDecode::LibavDecode(std::shared_ptr<const MetadataPktLibav> metadata)
-	: codecCtx(avcodec_alloc_context3(nullptr)), avFrame(new ffpp::Frame) {
-	avcodec_copy_context(codecCtx, metadata->getAVCodecContext());
-
+: codecCtx(shptr(avcodec_alloc_context3(nullptr))), avFrame(new ffpp::Frame) {
+	avcodec_copy_context(codecCtx.get(), metadata->getAVCodecContext().get());
 	switch (codecCtx->codec_type) {
 	case AVMEDIA_TYPE_VIDEO: break;
 	case AVMEDIA_TYPE_AUDIO: break;
 	default: throw error(format("codec_type %s not supported. Must be audio or video.", codecCtx->codec_type));
 	}
 
-	//find an appropriate decode
 	auto const codec = avcodec_find_decoder(codecCtx->codec_id);
 	if (!codec)
 		throw error(format("Decoder not found for codecID(%s).", codecCtx->codec_id));
-
 	ffpp::Dict dict(typeid(*this).name(), "-threads auto -err_detect 1 -flags output_corrupt -flags2 showall");
-	if (avcodec_open2(codecCtx, codec, &dict) < 0)
+	if (avcodec_open2(codecCtx.get(), codec, &dict) < 0)
 		throw error("Couldn't open stream.");
 	codecCtx->refcounted_frames = true;
 
@@ -55,14 +52,11 @@ LibavDecode::LibavDecode(std::shared_ptr<const MetadataPktLibav> metadata)
 LibavDecode::~LibavDecode() {
 	videoOutput = nullptr;
 	flush(); //we need to flush to avoid a leak of LibavDirectRenderingContext pictures
-	avcodec_close(codecCtx);
-	auto codecCtxCopy = codecCtx;
-	avcodec_free_context(&codecCtxCopy);
 }
 
 bool LibavDecode::processAudio(AVPacket const * const pkt) {
 	int gotFrame = 0;
-	if (avcodec_decode_audio4(codecCtx, avFrame->get(), &gotFrame, pkt) < 0) {
+	if (avcodec_decode_audio4(codecCtx.get(), avFrame->get(), &gotFrame, pkt) < 0) {
 		log(Warning, "Error encountered while decoding audio.");
 		return false;
 	}
@@ -90,7 +84,7 @@ bool LibavDecode::processAudio(AVPacket const * const pkt) {
 
 bool LibavDecode::processVideo(AVPacket const * const pkt) {
 	int gotPicture = 0;
-	if (avcodec_decode_video2(codecCtx, avFrame->get(), &gotPicture, pkt) < 0) {
+	if (avcodec_decode_video2(codecCtx.get(), avFrame->get(), &gotPicture, pkt) < 0) {
 		log(Warning, "Error encountered while decoding video.");
 		return false;
 	}
@@ -129,7 +123,7 @@ void LibavDecode::process(Data data) {
 	inputs[0]->updateMetadata(data);
 	AVPacket *pkt = decoderData->getPacket();
 	if (pkt->flags & AV_PKT_FLAG_RESET_DECODER) {
-		avcodec_flush_buffers(codecCtx);
+		avcodec_flush_buffers(codecCtx.get());
 		pkt->flags &= ~AV_PKT_FLAG_RESET_DECODER;
 	}
 

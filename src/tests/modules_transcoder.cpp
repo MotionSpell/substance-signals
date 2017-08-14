@@ -115,7 +115,7 @@ unittest("transcoder: jpg to resized jpg") {
 	}
 	auto reader = create<In::File>(filename);
 
-	auto dstFormat = PictureFormat(VIDEO_RESOLUTION / 2, RGB24);
+	auto const dstFormat = PictureFormat(VIDEO_RESOLUTION / 2, RGB24);
 	auto converter = create<Transform::VideoConvert>(dstFormat);
 	auto encoder = create<Encode::JPEGTurboEncode>();
 	auto writer = create<Out::File>("data/test.jpg");
@@ -137,9 +137,9 @@ unittest("transcoder: h264/mp4 to jpg") {
 	auto encoder = create<Encode::JPEGTurboEncode>();
 	auto writer = create<Out::File>("data/test.jpg");
 
-	auto dstRes = metadata->getResolution();
+	auto const dstRes = metadata->getResolution();
 	ASSERT(metadata->getPixelFormat() == YUV420P);
-	auto dstFormat = PictureFormat(dstRes, RGB24);
+	auto const dstFormat = PictureFormat(dstRes, RGB24);
 	auto converter = create<Transform::VideoConvert>(dstFormat);
 
 	ConnectOutputToInput(demux->getOutput(1), decode->getInput(0));
@@ -160,7 +160,7 @@ unittest("transcoder: jpg to h264/mp4 (gpac)") {
 	}
 	auto reader = create<In::File>(filename);
 
-	auto dstFormat = PictureFormat(VIDEO_RESOLUTION, YUV420P);
+	auto const dstFormat = PictureFormat(VIDEO_RESOLUTION, YUV420P);
 	auto converter = create<Transform::VideoConvert>(dstFormat);
 
 	auto encoder = create<Encode::LibavEncode>(Encode::LibavEncode::Video);
