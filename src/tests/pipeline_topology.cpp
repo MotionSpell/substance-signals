@@ -21,6 +21,19 @@ unittest("pipeline: source only") {
 	p.waitForCompletion();
 }
 
+unittest("pipeline: a non left-connected module is not a source") {
+	Pipeline p;
+	auto data = std::make_shared<DataRaw>(0);
+	auto null = p.addModule<Out::Null>();
+	null->getInput(0)->push(data);
+	null->getInput(0)->process();
+	null->getInput(0)->push(nullptr);
+	null->flush();
+	ASSERT(!null->isSource());
+	p.start();
+	p.waitForCompletion();
+}
+
 unittest("pipeline: connect one input (out of 2) to one output") {
 	Pipeline p;
 	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");

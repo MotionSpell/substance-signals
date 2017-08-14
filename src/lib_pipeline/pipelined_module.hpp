@@ -72,7 +72,7 @@ private:
 		ConnectOutputToInput(output, input, inputExecutor[inputIdx]);
 		if (!inputAcceptMultipleConnections && (input->getNumConnections() != 1))
 			throw std::runtime_error(format("PipelinedModule %s: input %s has %s connections.", getDelegateName(), inputIdx, input->getNumConnections()));
-		activeConnections++;
+		connections++; activeConnections++;
 	}
 
 	void disconnect(size_t inputIdx, IOutput * const output) override {
@@ -82,7 +82,7 @@ private:
 		for (size_t i = 0; i < numConn; ++i) {
 			sig.disconnect(i);
 		}
-		activeConnections--;
+		connections--; activeConnections--;
 	}
 
 	void mimicInputs() {
@@ -110,7 +110,7 @@ private:
 		if (isSource()) {
 			if (getNumInputs() == 0) { /*first time: create a fake pin and push null to trigger execution*/
 				delegate->addInput(new Input<DataLoosePipeline>(delegate.get()));
-				activeConnections = 1;
+				connections = 1; activeConnections = 1;
 				getInput(0)->push(nullptr);
 				delegate->getInput(0)->push(nullptr);
 				delegateExecutor(MEMBER_FUNCTOR_PROCESS(delegate.get()));
@@ -130,10 +130,12 @@ private:
 	}
 
 	void finished() override {
-		if (--activeConnections == 0) {
+		if (!connections || --activeConnections == 0) {
 			delegate->flush();
 			if (isSink()) {
-				m_notify->finished();
+				if (connections) {
+					m_notify->finished();
+				}
 			} else {
 				for (size_t i = 0; i < delegate->getNumOutputs(); ++i) {
 					delegate->getOutput(i)->emit(nullptr);
@@ -155,6 +157,7 @@ private:
 	Pipeline::Threading threading;
 
 	IPipelineNotifier * const m_notify;
+	size_t connections = 0;
 	std::atomic<int> activeConnections;
 };
 
