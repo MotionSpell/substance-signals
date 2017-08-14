@@ -17,6 +17,7 @@ Uint32 pixelFormat2SDLFormat(const Modules::PixelFormat format) {
 	case YUYV422: return SDL_PIXELFORMAT_YUY2;
 	case NV12   : return SDL_PIXELFORMAT_NV12;
 	case RGB24  : return SDL_PIXELFORMAT_RGB24;
+	case RGBA32 : return SDL_PIXELFORMAT_RGBX8888;
 	default: throw std::runtime_error("Pixel format not supported.");
 	}
 }

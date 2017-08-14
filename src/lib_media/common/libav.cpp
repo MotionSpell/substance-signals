@@ -130,7 +130,6 @@ auto g_InitAvLog = runAtStartup(&av_log_set_callback, avLog);
 
 namespace Modules {
 
-//MetadataPktLibav
 MetadataPktLibav::MetadataPktLibav(AVCodecContext *codecCtx, int id)
 	: codecCtx(codecCtx), id(id) {
 }
@@ -321,6 +320,7 @@ void pixelFormat2libavPixFmt(const enum PixelFormat format, AVPixelFormat &avPix
 	case YUYV422: avPixfmt = AV_PIX_FMT_YUYV422; break;
 	case NV12: avPixfmt = AV_PIX_FMT_NV12; break;
 	case RGB24: avPixfmt = AV_PIX_FMT_RGB24; break;
+	case RGBA32: avPixfmt = AV_PIX_FMT_RGB24; break;
 	default: throw std::runtime_error("Unknown pixel format to convert (1). Please contact your vendor.");
 	}
 }
@@ -333,6 +333,7 @@ enum PixelFormat libavPixFmt2PixelFormat(const AVPixelFormat &avPixfmt) {
 	case AV_PIX_FMT_YUYV422: return YUYV422;
 	case AV_PIX_FMT_NV12: return NV12;
 	case AV_PIX_FMT_RGB24: return RGB24;
+	case AV_PIX_FMT_RGBA: return RGBA32;
 	default: throw std::runtime_error("Unknown pixel format to convert (2). Please contact your vendor.");
 	}
 }

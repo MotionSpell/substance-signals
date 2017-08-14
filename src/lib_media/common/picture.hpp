@@ -14,7 +14,8 @@ enum PixelFormat {
 	YUV422P,
 	YUYV422,
 	NV12,
-	RGB24
+	RGB24,
+	RGBA32
 };
 
 class PictureFormat {
@@ -42,6 +43,7 @@ class PictureFormat {
 			case YUYV422: return res.width * res.height * 2;
 			case NV12: return res.width * res.height * 3 / 2;
 			case RGB24: return res.width * res.height * 3;
+			case RGBA32: return res.width * res.height * 4;
 			default: throw std::runtime_error("Unknown pixel format. Please contact your vendor.");
 			}
 		}
@@ -313,6 +315,38 @@ class PictureRGB24 : public DataPicture {
 		void setVisibleResolution(const Resolution &res) override {
 			format.res = res;
 		}
+};
+
+class PictureRGBA32 : public DataPicture {
+public:
+	PictureRGBA32(size_t unused) : DataPicture(0) {
+		internalFormat.format = format.format = RGBA32;
+	}
+	PictureRGBA32(const Resolution &res)
+		: DataPicture(res, RGBA32) {
+		setInternalResolution(res);
+		setVisibleResolution(res);
+	}
+	size_t getNumPlanes() const override {
+		return 1;
+	}
+	const uint8_t* getPlane(size_t planeIdx) const override {
+		return data();
+	}
+	uint8_t* getPlane(size_t planeIdx) override {
+		return data();
+	}
+	size_t getPitch(size_t planeIdx) const override {
+		return format.res.width * 4;
+	}
+	void setInternalResolution(const Resolution &res) override {
+		internalFormat.res = res;
+		resize(internalFormat.getSize());
+
+	}
+	void setVisibleResolution(const Resolution &res) override {
+		format.res = res;
+	}
 };
 
 static const Resolution VIDEO_RESOLUTION(320, 180);
