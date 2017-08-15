@@ -1,5 +1,5 @@
 #include "lib_media/media.hpp"
-#include "pipeliner.hpp"
+#include "pipeliner_mp42ts.hpp"
 #include <sstream>
 
 using namespace Modules;

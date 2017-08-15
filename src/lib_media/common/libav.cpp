@@ -330,7 +330,7 @@ void pixelFormat2libavPixFmt(const enum PixelFormat format, AVPixelFormat &avPix
 	case YUYV422: avPixfmt = AV_PIX_FMT_YUYV422; break;
 	case NV12: avPixfmt = AV_PIX_FMT_NV12; break;
 	case RGB24: avPixfmt = AV_PIX_FMT_RGB24; break;
-	case RGBA32: avPixfmt = AV_PIX_FMT_RGB24; break;
+	case RGBA32: avPixfmt = AV_PIX_FMT_RGBA; break;
 	default: throw std::runtime_error("Unknown pixel format to convert (1). Please contact your vendor.");
 	}
 }

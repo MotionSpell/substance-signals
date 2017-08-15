@@ -1,4 +1,4 @@
-#include "pipeliner.hpp"
+#include "pipeliner_player.hpp"
 #include <iostream>
 
 using namespace Pipelines;

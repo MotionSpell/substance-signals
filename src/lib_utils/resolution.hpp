@@ -14,7 +14,7 @@ struct Resolution {
 		return !(*this == other);
 	}
 	Resolution operator/(const int div) const {
-		return Resolution(this->width / 2, this->height / 2);
+		return Resolution(this->width / div, this->height / div);
 	}
 	std::string toString() const {
 		return format("%sx%s", width, height);

@@ -3,8 +3,10 @@
 #include "lib_ffpp/ffpp.hpp"
 #include "../common/libav.hpp"
 
+#define ALIGN_PAD(n, p) ((n/p + 1) * p + p)
+
 namespace {
-AVPixelFormat libavPixFmtConvert(const Modules::PixelFormat format) {
+inline AVPixelFormat libavPixFmtConvert(const Modules::PixelFormat format) {
 	AVPixelFormat pixFmt;
 	pixelFormat2libavPixFmt(format, pixFmt);
 	return pixFmt;
@@ -45,16 +47,17 @@ void VideoConvert::process(Data data) {
 
 	uint8_t const* srcSlice[8] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
 	int srcStride[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-	for (int i=0; i<3; ++i) {
+	for (size_t i=0; i<videoData->getNumPlanes(); ++i) {
 		srcSlice[i] = videoData->getPlane(i);
 		srcStride[i] = (int)videoData->getPitch(i);
 	}
 
 	std::shared_ptr<DataBase> out;
-	uint8_t* pDst[3] = { nullptr, nullptr, nullptr };
-	int dstStride[3] = { 0, 0, 0 };
+	uint8_t* pDst[8] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
+	int dstStride[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 	switch (dstFormat.format) {
 	case YUV420P: case YUV420P10LE: case YUV422P: case YUYV422: case NV12: case RGB24: case RGBA32: {
+		auto resInternal = Resolution(ALIGN_PAD(dstFormat.res.width, 16), ALIGN_PAD(dstFormat.res.height, 16));
 		auto pic = DataPicture::create(output, dstFormat.res, dstFormat.format);
 		for (size_t i=0; i<pic->getNumPlanes(); ++i) {
 			pDst[i] = pic->getPlane(i);

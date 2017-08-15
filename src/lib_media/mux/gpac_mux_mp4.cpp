@@ -661,11 +661,11 @@ void GPACMuxMP4::declareStreamSubtitle(std::shared_ptr<const MetadataPktLibavSub
 }
 
 void GPACMuxMP4::declareStreamVideo(std::shared_ptr<const MetadataPktLibavVideo> metadata) {
-	u32 trackNum = gf_isom_new_track(isoCur, 0, GF_ISOM_MEDIA_VISUAL, metadata->getTimeScale().den * TIMESCALE_MUL);
+	u32 trackNum = gf_isom_new_track(isoCur, 0, GF_ISOM_MEDIA_VISUAL, metadata->getTimeScale().num * TIMESCALE_MUL);
 	if (!trackNum)
 		throw error(format("Cannot create new track"));
 	trackId = gf_isom_get_track_id(isoCur, trackNum);
-	defaultSampleIncInTs = metadata->getTimeScale().num * TIMESCALE_MUL;
+	defaultSampleIncInTs = metadata->getTimeScale().den * TIMESCALE_MUL;
 	resolution[0] = metadata->getResolution().width;
 	resolution[1] = metadata->getResolution().height;
 
