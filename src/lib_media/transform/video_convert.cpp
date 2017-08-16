@@ -3,7 +3,7 @@
 #include "lib_ffpp/ffpp.hpp"
 #include "../common/libav.hpp"
 
-#define ALIGN_PAD(n, p) ((n/p + 1) * p + p)
+#define ALIGN_PAD(n, align, pad) ((n/align + 1) * align + pad)
 
 namespace {
 inline AVPixelFormat libavPixFmtConvert(const Modules::PixelFormat format) {
@@ -57,8 +57,8 @@ void VideoConvert::process(Data data) {
 	int dstStride[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 	switch (dstFormat.format) {
 	case YUV420P: case YUV420P10LE: case YUV422P: case YUYV422: case NV12: case RGB24: case RGBA32: {
-		auto resInternal = Resolution(ALIGN_PAD(dstFormat.res.width, 16), ALIGN_PAD(dstFormat.res.height, 16));
-		auto pic = DataPicture::create(output, dstFormat.res, dstFormat.format);
+		auto resInternal = Resolution(ALIGN_PAD(dstFormat.res.width, 16, 0), ALIGN_PAD(dstFormat.res.height, 8, 0));
+		auto pic = DataPicture::create(output, dstFormat.res, resInternal, dstFormat.format);
 		for (size_t i=0; i<pic->getNumPlanes(); ++i) {
 			pDst[i] = pic->getPlane(i);
 			dstStride[i] = (int)pic->getPitch(i);
