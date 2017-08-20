@@ -62,7 +62,8 @@ class GPACMuxMP4 : public ModuleDynI {
 		void addSample(gpacpp::IsoSample &sample, const uint64_t dataDurationInTs);
 
 		CompatibilityFlag compatFlags;
-		uint64_t DTS = 0, prevDTS = 0, lastInputTimeIn180k = 0, defaultSampleIncInTs = 0, firstDataAbsTimeInMs = 0;
+		int64_t lastInputTimeIn180k = 0;
+		uint64_t DTS = 0, prevDTS = 0, defaultSampleIncInTs = 0, firstDataAbsTimeInMs = 0;
 		bool isAnnexB = true;
 
 		//fragments

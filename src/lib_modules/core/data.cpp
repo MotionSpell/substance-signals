@@ -11,19 +11,19 @@ void DataBase::setMetadata(std::shared_ptr<const IMetadata> metadata) {
 	m_metadata = metadata;
 }
 
-void DataBase::setMediaTime(uint64_t timeIn180k, uint64_t timescale) {
+void DataBase::setMediaTime(int64_t timeIn180k, uint64_t timescale) {
 	mediaTimeIn180k = timescaleToClock(timeIn180k, timescale);
 }
 
-void DataBase::setClockTime(uint64_t timeIn180k, uint64_t timescale) {
+void DataBase::setClockTime(int64_t timeIn180k, uint64_t timescale) {
 	clockTimeIn180k = timescaleToClock(timeIn180k, timescale);
 }
 
-uint64_t DataBase::getMediaTime() const {
+int64_t DataBase::getMediaTime() const {
 	return mediaTimeIn180k;
 }
 
-uint64_t DataBase::getClockTime(uint64_t timescale) const {
+int64_t DataBase::getClockTime(uint64_t timescale) const {
 	return timescaleToClock(clockTimeIn180k, timescale);
 }
 

@@ -240,10 +240,10 @@ void LibavDemux::dispatch(AVPacket *pkt) {
 }
 
 void LibavDemux::sparseStreamsHeartbeat(AVPacket const * const pkt) {
-	uint64_t curDTS = 0;
+	int64_t curDTS = 0;
 	if (m_formatCtx->streams[pkt->stream_index]->codec->codec_type == AVMEDIA_TYPE_AUDIO) { //signal clock from audio to sparse streams (should be the PCR but libavformat doesn't give access to it)
 		auto const base = m_formatCtx->streams[pkt->stream_index]->time_base;
-		const uint64_t time = timescaleToClock(pkt->dts * base.num, base.den);
+		auto const time = timescaleToClock(pkt->dts * base.num, base.den);
 		if (time > curDTS) {
 			curDTS = time;
 		}

@@ -40,9 +40,9 @@ class LibavDemux : public ModuleS {
 		std::vector<std::unique_ptr<Transform::Restamp>> restampers;
 		std::vector<OutputDataDefault<DataAVPacket>*> outputs;
 		struct AVFormatContext *m_formatCtx;
-		int64_t startPTSIn180k = 0;
-		uint64_t curTimeIn180k = 0, loopOffsetIn180k = 0;
-		std::vector<uint64_t> lastDTS, lastPTS;
+		int64_t curTimeIn180k = 0, startPTSIn180k = 0;
+		uint64_t loopOffsetIn180k = 0;
+		std::vector<int64_t> lastDTS, lastPTS;
 };
 
 }
