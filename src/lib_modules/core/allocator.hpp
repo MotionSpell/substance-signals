@@ -1,6 +1,7 @@
 #pragma once
 
 #include "data.hpp"
+#include "lib_utils/log.hpp"
 #include "lib_utils/queue.hpp"
 #include "lib_utils/tools.hpp"
 #include <algorithm>
@@ -29,8 +30,10 @@ class PacketAllocator {
 			maxBlocks(maxBlocks), curNumBlocks(minBlocks) {
 			if (minBlocks == 0)
 				throw std::runtime_error("Cannot create an allocator with 0 block.");
-			if (maxBlocks < minBlocks)
-				throw std::runtime_error(format("Max block number %s is smaller than min block number %s.", maxBlocks, minBlocks));
+			if (maxBlocks < minBlocks) {
+				Log::msg(Warning, "Max block number %s is smaller than min block number %s. Aligning values.", maxBlocks, minBlocks);
+				maxBlocks = minBlocks;
+			}
 			for (size_t i=0; i<minBlocks; ++i) {
 				freeBlocks.push(Block());
 			}
