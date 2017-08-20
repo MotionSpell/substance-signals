@@ -352,6 +352,12 @@ public:
 static const Resolution VIDEO_RESOLUTION(320, 180);
 static const int VIDEO_FPS = 24;
 
+enum VideoCodecType {
+	Software,
+	Hardware_qsv,
+	Hardware_nvenc
+};
+
 }
 
 namespace { //FIXME: should be put in .cpp when lib_media/common is made a separate lib
@@ -376,19 +382,13 @@ void fps2NumDen(const double fps, int &num, int &den) {
 	}
 }
 
-enum VideoCodecType {
-	Software,
-	Hardware_qsv,
-	Hardware_nvenc
-};
-
-VideoCodecType encoderType(const std::string &opt_encoder_type) {
+Modules::VideoCodecType encoderType(const std::string &opt_encoder_type) {
 	if (opt_encoder_type == "software") {
-		return Software;
+		return Modules::Software;
 	} else if (opt_encoder_type == "quicksync") {
-		return Hardware_qsv;
+		return Modules::Hardware_qsv;
 	} else if (opt_encoder_type == "nvenc") {
-		return Hardware_nvenc;
+		return Modules::Hardware_nvenc;
 	} else
 		throw std::runtime_error("Unknown encoder type. Aborting.");
 }
