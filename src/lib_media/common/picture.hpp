@@ -349,6 +349,44 @@ public:
 	}
 };
 
+static const double tolerance = 0.001;
+static void fps2NumDen(const double fps, int &num, int &den) {
+	if (fabs(fps - (int)fps) < tolerance) { //integer frame rates
+		num = (int)fps;
+		den = 1;
+	} else if (fabs((fps*1001.0) / 1000.0 - (int)(fps + 1)) < tolerance) { //ATSC frame rates
+		num = (int)(fps + 1) * 1000;
+		den = 1001;
+	} else if (fabs(fps * 2 - (int)(fps * 2)) < tolerance) { //rational frame rates; den = 2
+		num = (int)(fps * 2);
+		den = 2;
+	} else if (fabs(fps * 4 - (int)(fps * 4)) < tolerance) { //rational frame rates; den = 4
+		num = (int)(fps * 4);
+		den = 4;
+	} else {
+		num = (int)fps;
+		den = 1;
+		Log::msg(Warning, "Frame rate '%s' was not recognized. Truncating to '%s'.", fps, num);
+	}
+}
+
+enum VideoCodecType {
+	Software,
+	Hardware_qsv,
+	Hardware_nvenc
+};
+
+static VideoCodecType encoderType(const std::string &opt_encoder_type) {
+	if (opt_encoder_type == "software") {
+		return Software;
+	} else if (opt_encoder_type == "quicksync") {
+		return Hardware_qsv;
+	} else if (opt_encoder_type == "nvenc") {
+		return Hardware_nvenc;
+	} else
+		throw std::runtime_error("Unknown encoder type. Aborting.");
+}
+
 static const Resolution VIDEO_RESOLUTION(320, 180);
 static const int VIDEO_FPS = 24;
 

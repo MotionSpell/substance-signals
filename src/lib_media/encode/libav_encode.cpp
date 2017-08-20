@@ -9,38 +9,10 @@ extern "C" {
 }
 
 namespace Modules {
-
-namespace {
-const double tolerance = 0.001;
-void fps2NumDen(const double fps, int &num, int &den) {
-	if (fabs(fps - (int)fps) < tolerance) {
-		//infer integer frame rates
-		num = (int)fps;
-		den = 1;
-	} else if (fabs((fps*1001.0) / 1000.0 - (int)(fps + 1)) < tolerance) {
-		//infer ATSC frame rates
-		num = (int)(fps + 1) * 1000;
-		den = 1001;
-	} else if (fabs(fps * 2 - (int)(fps * 2)) < tolerance) {
-		//infer rational frame rates; den = 2
-		num = (int)(fps * 2);
-		den = 2;
-	} else if (fabs(fps * 4 - (int)(fps * 4)) < tolerance) {
-		//infer rational frame rates; den = 4
-		num = (int)(fps * 4);
-		den = 4;
-	} else {
-		num = (int)fps;
-		den = 1;
-		Log::msg(Warning, "Frame rate '%s' was not recognized. Truncating to '%s'.", fps, num);
-	}
-}
-}
-
 namespace Encode {
 
 LibavEncode::LibavEncode(Type type, Params &params)
-	: avFrame(new ffpp::Frame) {
+: avFrame(new ffpp::Frame) {
 	std::string codecOptions, generalOptions, codecName;
 	switch (type) {
 	case Video: {
@@ -58,7 +30,7 @@ LibavEncode::LibavEncode(Type type, Params &params)
 		}
 		av_dict_free(&customDict);
 		switch (params.codecType) {
-		case Params::Software:
+		case Software:
 			generalOptions += " -vcodec libx264";
 			if (params.isLowLatency) {
 				codecOptions += " -preset ultrafast -tune zerolatency";
@@ -66,10 +38,10 @@ LibavEncode::LibavEncode(Type type, Params &params)
 				codecOptions += " -preset veryfast";
 			}
 			break;
-		case Params::Hardware_qsv:
+		case Hardware_qsv:
 			generalOptions += " -vcodec h264_qsv";
 			break;
-		case Params::Hardware_nvenc:
+		case Hardware_nvenc:
 			generalOptions += " -vcodec h264_nvenc";
 			break;
 		default:
@@ -135,7 +107,7 @@ LibavEncode::LibavEncode(Type type, Params &params)
 		params.pixelFormat = libavPixFmt2PixelFormat(codecCtx->pix_fmt);
 
 		AVRational fps;
-		fps2NumDen(params.frameRate, fps.den, fps.num); //for FPS, num and den are inverted
+		fps2NumDen(params.frameRate, fps.den, fps.num); //for time_base, 'num' and 'den' are inverted
 		codecCtx->time_base = fps;
 	}
 	break;

@@ -26,12 +26,6 @@ class LibavEncode : public ModuleS {
 		struct Params {
 			Params() {}
 
-			enum VideoCodecType {
-				Software,
-				Hardware_qsv,
-				Hardware_nvenc
-			};
-
 			//video only
 			Resolution res = VIDEO_RESOLUTION;
 			int bitrate_v = 300000;

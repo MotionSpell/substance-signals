@@ -12,7 +12,7 @@
 struct DummyStruct {};
 
 struct Fraction {
-	Fraction(int num, int den) : num(num), den(den) {
+	Fraction(int num = 1, int den = 1) : num(num), den(den) {
 	}
 	operator double() const {
 		return (double)num / den;

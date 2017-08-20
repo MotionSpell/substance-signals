@@ -3,9 +3,7 @@
 #include "format.hpp"
 
 struct Resolution {
-	Resolution() : width(0), height(0) {
-	}
-	Resolution(unsigned int w, unsigned int h) : width(w), height(h) {
+	Resolution(unsigned int w = 0, unsigned int h = 0) : width(w), height(h) {
 	}
 	bool operator==(Resolution const& other) const {
 		return width == other.width && height == other.height;

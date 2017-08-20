@@ -5,12 +5,12 @@
 #include <string>
 #include <vector>
 
-struct Video {
+struct Video { //FIXME: this can be factorized with other params
 	Video(Resolution res, unsigned bitrate, unsigned type)
 		: res(res), bitrate(bitrate), type(type) {}
 	Resolution res;
 	unsigned bitrate;
-	unsigned type = 0;
+	unsigned type;
 };
 
 struct IConfig {
