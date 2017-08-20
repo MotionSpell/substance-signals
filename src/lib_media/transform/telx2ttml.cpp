@@ -1029,13 +1029,14 @@ void TeletextToTTML::sendSample(const std::string &sample) {
 }
 
 void TeletextToTTML::process(Data data) {
+	if (inputs[0]->updateMetadata(data))
+		output->setMetadata(data->getMetadata());
 	if (!firstDataAbsTimeInMs)
 		firstDataAbsTimeInMs = data->getClockTime(1000);
 	//TODO
 	//14. add flush() for ondemand samples
 	//15. UTF8 to TTML formatting? accent + EOLs </br>
 	auto sub = safe_cast<const DataAVPacket>(data);
-	output->setMetadata(data->getMetadata());
 	if (!sub->size()) { //on sparse stream, we may be regularly awaken: generate samples when needed
 		extClock = sub->getMediaTime();
 		const int64_t prevSplit = (intClock / splitDurationIn180k) * splitDurationIn180k;

@@ -182,7 +182,7 @@ Fraction MetadataPktLibavVideo::getTimeScale() const {
 Fraction MetadataPktLibavVideo::getFrameRate() const {
 	if (!codecCtx->framerate.den || !codecCtx->framerate.den)
 		throw std::runtime_error(format("Unsupported video frame rate %s/%s.", codecCtx->framerate.den, codecCtx->framerate.num));
-	return Fraction(codecCtx->framerate.den, codecCtx->framerate.num);
+	return Fraction(codecCtx->framerate.num, codecCtx->framerate.den);
 }
 
 void MetadataPktLibavVideo::getExtradata(const uint8_t *&extradata, size_t &extradataSize) const {

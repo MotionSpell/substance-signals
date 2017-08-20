@@ -13,7 +13,7 @@ struct IClock {
 class Clock : public IClock {
 public:
 	Clock(double speed);
-	uint64_t now(uint64_t timescale = 1000) const override;
+	uint64_t now(uint64_t timescale = IClock::Rate) const override;
 	double getSpeed() const override;
 	void sleep(uint64_t timeIn180k, uint64_t timescale = IClock::Rate) const override;
 

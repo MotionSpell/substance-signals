@@ -77,8 +77,8 @@ class PipelinedInput : public IInput {
 			if (clock->getSpeed() > 0.0) {
 				auto const delayInMs = clockToTimescale((int64_t)(dataTime - clock->now()), 1000);
 				if (delayInMs > 0) {
-					Log::msg(delayInMs < REGULATION_TOLERANCE_IN_MS ? Debug : Warning, "Module %s: received data for time %ss (will sleep %s ms)", delegateName, dataTime / (double)IClock::Rate, delayInMs);
-					clock->sleep(delayInMs);
+					Log::msg(delayInMs < REGULATION_TOLERANCE_IN_MS ? Debug : Warning, "Module %s: received data for time %ss (will sleep for %s ms)", delegateName, dataTime / (double)IClock::Rate, delayInMs);
+					clock->sleep(delayInMs, 1000);
 				} else if (delayInMs + REGULATION_TOLERANCE_IN_MS < 0) {
 					Log::msg(Warning, "Module %s: received data for time %ss is late from %sms", delegateName, dataTime / (double)IClock::Rate, -delayInMs);
 				}

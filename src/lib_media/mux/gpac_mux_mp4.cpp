@@ -480,7 +480,7 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 			lastSegmentSize = fileSize(segmentName);
 		}
 
-		if (lastSegmentSize) {
+		if ((lastSegmentSize > 0) || (segmentPolicy == IndependentSegment)) {
 			sendOutput();
 			log(Info, "Segment %s completed (size %s) (startsWithSAP=%s)", segmentName.empty() ? "[in memory]" : segmentName, lastSegmentSize, segmentStartsWithRAP);
 		}

@@ -58,12 +58,12 @@ void AdaptiveStreamingCommon::threadProc() {
 		log(Info, "Processes segment (total processed: %ss, UTC: %s (deltaAST=%s, deltaInput=%s).", (double)totalDurationInMs / 1000, getUTCInMs(), gf_net_get_utc() - startTimeInMs, (int64_t)(gf_net_get_utc() - clockToTimescale(data->getMediaTime(), 1000)));
 
 		if (type == Live) {
-			const int64_t dur = startTimeInMs + totalDurationInMs - getUTCInMs();
-			if (dur > 0) {
-				log(Debug, "Going to sleep for %s ms.", dur);
-				clock->sleep(dur);
+			const int64_t durInMs = startTimeInMs + totalDurationInMs - getUTCInMs();
+			if (durInMs > 0) {
+				log(Debug, "Going to sleep for %s ms.", durInMs);
+				clock->sleep(durInMs, 1000);
 			} else {
-				log(Warning, "Late from %s ms.", -dur);
+				log(Warning, "Late from %s ms.", -durInMs);
 			}
 		}
 	}

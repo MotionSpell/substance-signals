@@ -132,7 +132,7 @@ unittest("decode: audio mp3 manual frame to AAC") {
 }
 
 unittest("decode: audio mp3 to converter to AAC") {
-	auto decode = createMp3Decoder();
+	auto decoder = createMp3Decoder();
 	auto encoder = create<Encode::LibavEncode>(Encode::LibavEncode::Audio);
 
 	auto const srcFormat = PcmFormat(44100, 1, AudioLayout::Mono, AudioSampleFormat::S16, AudioStruct::Planar);
@@ -141,9 +141,12 @@ unittest("decode: audio mp3 to converter to AAC") {
 	auto const metaEnc = safe_cast<const MetadataPktLibavAudio>(metadataEncoder);
 	auto converter = create<Transform::AudioConvert>(srcFormat, dstFormat, metaEnc->getFrameSize());
 
-	ConnectOutputToInput(decode->getOutput(0), converter->getInput(0));
+	ConnectOutputToInput(decoder->getOutput(0), converter->getInput(0));
 	ConnectOutputToInput(converter->getOutput(0), encoder->getInput(0));
 
 	auto frame = getTestMp3Frame();
-	decode->process(frame);
+	decoder->process(frame);
+	decoder->flush();
+	converter->flush();
+	encoder->flush();
 }
