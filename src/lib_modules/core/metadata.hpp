@@ -20,7 +20,8 @@ enum StreamType {
 	AUDIO_PKT,    //compressed audio
 	VIDEO_PKT,    //compressed video
 	SUBTITLE_PKT, //subtitles and captions
-	PLAYLIST      //playlist and adaptive streaming manifests
+	PLAYLIST,     //playlist and adaptive streaming manifests
+	SEGMENT       //adaptive streaming segments
 };
 
 struct IMetadata {
@@ -121,55 +122,55 @@ struct MetadataPktAudio : public MetadataPkt {
 };
 
 class MetadataCap : public virtual IMetadataCap {
-	public:
-		MetadataCap(std::shared_ptr<const IMetadata> metadata = nullptr) : m_metadata(metadata) {}
-		virtual ~MetadataCap() noexcept(false) {}
+public:
+	MetadataCap(std::shared_ptr<const IMetadata> metadata = nullptr) : m_metadata(metadata) {}
+	virtual ~MetadataCap() noexcept(false) {}
 
-		std::shared_ptr<const IMetadata> getMetadata() const override {
-			return m_metadata;
-		}
-		void setMetadata(std::shared_ptr<const IMetadata> metadata) override {
-			if (!setMetadataInternal(metadata))
-				throw std::runtime_error("Metadata could not be set.");
-		}
+	std::shared_ptr<const IMetadata> getMetadata() const override {
+		return m_metadata;
+	}
+	void setMetadata(std::shared_ptr<const IMetadata> metadata) override {
+		if (!setMetadataInternal(metadata))
+			throw std::runtime_error("Metadata could not be set.");
+	}
 
-		bool updateMetadata(Data data) {
-			if (!data) {
-				return false;
-			} else {
-				auto const metadata = data->getMetadata();
-				if (!metadata) {
-					const_cast<DataBase*>(data.get())->setMetadata(m_metadata);
-					return true;
-				} else {
-					return setMetadataInternal(metadata);
-				}
-			}
-		}
-
-	private:
-		bool setMetadataInternal(std::shared_ptr<const IMetadata> metadata) {
-			if (metadata != m_metadata) {
-				if (m_metadata) {
-					if (metadata->getStreamType() != m_metadata->getStreamType()) {
-						throw std::runtime_error(format("Metadata update: incompatible types %s for data and %s for attached", metadata->getStreamType(), m_metadata->getStreamType()));
-					} else if (*m_metadata == *metadata) {
-						Log::msg(Debug, "Output: metadata not equal but comparable by value. Updating.");
-						m_metadata = metadata;
-					} else {
-						Log::msg(Info, "Metadata update from data not supported yet: output pin and data won't carry the same metadata.");
-					}
-					return true;
-				}
-				Log::msg(Info, "Output: metadata transported by data changed. Updating.");
-				m_metadata = metadata;
+	bool updateMetadata(Data data) {
+		if (!data) {
+			return false;
+		} else {
+			auto const metadata = data->getMetadata();
+			if (!metadata) {
+				const_cast<DataBase*>(data.get())->setMetadata(m_metadata);
 				return true;
 			} else {
-				return false;
+				return setMetadataInternal(metadata);
 			}
 		}
+	}
 
-		std::shared_ptr<const IMetadata> m_metadata;
+private:
+	bool setMetadataInternal(std::shared_ptr<const IMetadata> metadata) {
+		if (metadata != m_metadata) {
+			if (m_metadata) {
+				if (metadata->getStreamType() != m_metadata->getStreamType()) {
+					throw std::runtime_error(format("Metadata update: incompatible types %s for data and %s for attached", metadata->getStreamType(), m_metadata->getStreamType()));
+				} else if (*m_metadata == *metadata) {
+					Log::msg(Debug, "Output: metadata not equal but comparable by value. Updating.");
+					m_metadata = metadata;
+				} else {
+					Log::msg(Info, "Metadata update from data not supported yet: output pin and data won't carry the same metadata.");
+				}
+				return true;
+			}
+			Log::msg(Info, "Output: metadata transported by data changed. Updating.");
+			m_metadata = metadata;
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	std::shared_ptr<const IMetadata> m_metadata;
 };
 
 }

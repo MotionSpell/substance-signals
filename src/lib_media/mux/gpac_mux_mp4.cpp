@@ -775,8 +775,10 @@ void GPACMuxMP4::declareStream(Data data) {
 	lastInputTimeIn180k = data->getMediaTime();
 	if (lastInputTimeIn180k) { /*first timestamp is not zero*/
 		auto const edts = clockToTimescale(lastInputTimeIn180k, gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId)));
+#if 0 //Romain: disable as it breaks most muxers + how about negative values => gf_isom_set_composition_offset_mode would allow to modify one track only?
 		gf_isom_set_edit_segment(isoCur, gf_isom_get_track_by_id(isoCur, trackId), 0, edts, 0, GF_ISOM_EDIT_EMPTY);
 		gf_isom_set_edit_segment(isoCur, gf_isom_get_track_by_id(isoCur, trackId), edts, edts, 0, GF_ISOM_EDIT_NORMAL);
+#endif
 		deltaInTs = edts;
 	}
 }
@@ -937,10 +939,10 @@ std::unique_ptr<gpacpp::IsoSample> GPACMuxMP4::fillSample(Data data_) {
 void GPACMuxMP4::process() {
 	//FIXME: reimplement with multiple inputs
 	Data data = inputs[0]->pop();
+	if (!firstDataAbsTimeInMs)
+		firstDataAbsTimeInMs = getUTCInMs();
 	if (inputs[0]->updateMetadata(data))
 		declareStream(data);
-	if (!firstDataAbsTimeInMs)
-		firstDataAbsTimeInMs = data->getClockTime(1000);
 	auto sample = fillSample(data);
 
 	auto const mediaTs = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));

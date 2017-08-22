@@ -155,7 +155,7 @@ void MPEG_DASH::ensureManifest() {
 				if (!moveFileInternal(initFnSrc, initFnDst)) {
 					log(Error, "Couldn't rename init segment \"%s\" -> \"%s\". You may encounter playback errors.", initFnSrc, initFnDst);
 				}
-				auto metadata = std::make_shared<MetadataFile>(initFnDst, AUDIO_PKT, "", "", 0, 0, 1, false);
+				auto metadata = std::make_shared<MetadataFile>(initFnDst, SEGMENT, "", "", 0, 0, 1, false);
 				out->setMetadata(metadata);
 				outputSegments->emit(out);
 				break;
@@ -178,14 +178,13 @@ void MPEG_DASH::writeManifest() {
 }
 
 std::shared_ptr<const MetadataFile> MPEG_DASH::moveFile(const std::shared_ptr<const MetadataFile> src, const std::string &dst) {
-	if (src->getFilename() == dst) {
-		return src;
-	}
-	if (!moveFileInternal(src->getFilename(), dst)) {
-		log(Error, "Couldn't rename segment \"%s\" -> \"%s\". You may encounter playback errors.", src->getFilename(), dst);
+	if (src->getFilename() != dst) {
+		if (!moveFileInternal(src->getFilename(), dst)) {
+			log(Error, "Couldn't rename segment \"%s\" -> \"%s\". You may encounter playback errors.", src->getFilename(), dst);
+		}
 	}
 
-	auto mf = std::make_shared<MetadataFile>(dst, src->getStreamType(), src->getMimeType(), src->getCodecName(), src->getDuration(), src->getSize(), src->getLatency(), src->getStartsWithRAP());
+	auto mf = std::make_shared<MetadataFile>(dst, SEGMENT, src->getMimeType(), src->getCodecName(), src->getDuration(), src->getSize(), src->getLatency(), src->getStartsWithRAP());
 	switch (src->getStreamType()) {
 	case AUDIO_PKT: mf->sampleRate = src->sampleRate; break;
 	case VIDEO_PKT: mf->resolution[0] = src->resolution[0]; mf->resolution[1] = src->resolution[1]; break;
@@ -203,6 +202,7 @@ void MPEG_DASH::generateManifest() {
 			quality->rep->starts_with_sap = (quality->rep->starts_with_sap == GF_TRUE && quality->meta->getStartsWithRAP()) ? GF_TRUE : GF_FALSE;
 		}
 
+		std::string fn;
 		if (useSegmentTimeline) {
 			auto entries = quality->rep->segment_template->segment_timeline->entries;
 			auto const prevEntIdx = gf_list_count(entries);
@@ -220,28 +220,26 @@ void MPEG_DASH::generateManifest() {
 				segTime = prevEnt->start_time + prevEnt->duration*(prevEnt->repeat_count);
 			}
 
-			std::string fn;
 			switch (quality->meta->getStreamType()) {
 			case AUDIO_PKT: fn = format("%sa_%s-%s.m4s", mpdDir, i, segTime); break;
 			case VIDEO_PKT: fn = format("%sv_%s_%sx%s-%s.m4s", mpdDir, i, quality->rep->width, quality->rep->height, segTime); break;
-			default: assert(0);
+			default: break;
 			}
-			log(Debug, "Rename segment \"%s\" -> \"%s\".", quality->meta->getFilename(), fn);
-			quality->meta = moveFile(quality->meta, fn);
 		} else {
 			auto const n = (startTimeInMs + totalDurationInMs) / segDurationInMs;
-			std::string fn;
 			switch (quality->meta->getStreamType()) {
 			case AUDIO_PKT: fn = format("%sa_%s-%s.m4s", mpdDir, i, n); break;
 			case VIDEO_PKT: fn = format("%sv_%s_%sx%s-%s.m4s", mpdDir, i, quality->rep->width, quality->rep->height, n); break;
-			default: assert(0);
+			default: break;
 			}
-
-			quality->meta = moveFile(quality->meta, fn);
 		}
-		auto out = outputSegments->getBuffer(0);
-		out->setMetadata(quality->meta);
-		outputSegments->emit(out);
+		if (!fn.empty()) {
+			log(Debug, "Rename segment \"%s\" -> \"%s\".", quality->meta->getFilename(), fn);
+			quality->meta = moveFile(quality->meta, fn);
+			auto out = outputSegments->getBuffer(0);
+			out->setMetadata(quality->meta);
+			outputSegments->emit(out);
+		}
 
 		if (timeShiftBufferDepthInMs) {
 			uint64_t timeShiftSegmentsInMs = 0;
