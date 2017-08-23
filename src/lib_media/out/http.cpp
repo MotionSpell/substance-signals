@@ -138,7 +138,7 @@ size_t HTTP::curlCallback(void *ptr, size_t size, size_t nmemb) {
 			auto meta = safe_cast<const MetadataFile>(curTransferedData->getMetadata());
 			log(Debug, "reconnect: file %s", meta->getFilename());
 			gf_bs_seek(curTransferedBs, 0);
-		} else { /*we mmay be exiting because of an exception*/
+		} else { /*we may be exiting because of an exception*/
 			curTransferedData = nullptr;
 			inputs[curTransferedDataInputIndex]->push(nullptr);
 		}

@@ -17,7 +17,7 @@ public:
 		output->setMetadata(shptr(new T));
 	}
 	void process() {}
-	void push(uint64_t mediaTime, uint64_t clockTime) {
+	void push(int64_t mediaTime, int64_t clockTime) {
 		auto data = output->getBuffer(0);
 		data->setMediaTime(mediaTime);
 		data->setClockTime(clockTime);
@@ -29,30 +29,30 @@ private:
 };
 
 template<typename Metadata>
-void testRectifier(std::vector<std::pair<uint64_t, uint64_t>> times /*need to add outTimes*/) {
-	auto clock = shptr(new Clock(0.0));
-	auto scheduler = uptr(new Scheduler(clock));
-	auto rectifier = create<TimeRectifier>(Clock::Rate / 2, std::move(scheduler));
+void testRectifier(std::vector<std::pair<int64_t, int64_t>> inTimes, std::vector<int64_t> outTimes) {
+	auto rectifier = create<TimeRectifier>(Clock::Rate/2, uptr(new Scheduler(shptr(new Clock(0.0)))));
 	auto generator = create<DataGenerator<Metadata>>();
 	ConnectModules(generator.get(), 0, rectifier.get(), 0);
 	auto recorder = create<Utils::Recorder>();
 	ConnectModules(rectifier.get(), 0, recorder.get(), 0);
-	for (size_t i = 0; i < times.size(); ++i) {
-		generator->push(times[i].first, times[i].second);
+	for (size_t i = 0; i < inTimes.size(); ++i) {
+		generator->push(inTimes[i].first, inTimes[i].second);
 	}
 	rectifier->flush();
 	recorder->process(nullptr);
 	Data data;
+	size_t i = 0;
 	while ((data = recorder->pop())) {
-		//Romain: check data timings
+		ASSERT(data->getMediaTime() == outTimes[i++]);
 	}
+	ASSERT(outTimes.size() == i);
 }
 }
 
 /*Romain: there are four times:
 1-2) Inputs: realtime   + timestamp
 3)   Clock:  media time +
-4)   Output:
+4)   Output: media time
 */
 //id:            1 2 3 4 5 => 1 2 3 4 5
 //half:          1 2 3 4 5 => 1 x 3 x 5
@@ -67,7 +67,7 @@ void testRectifier(std::vector<std::pair<uint64_t, uint64_t>> times /*need to ad
 //Romain: dont forget to remove the restamper (tests are below) + sparseStreamsHeartbeat in demux
 
 unittest("rectifier: timing checks with a single pin") {
-	testRectifier<MetadataRawVideo>({ { 0, 0 }, { 1, 1 }, { 2, 2 }, { 3, 3 }, { 4, 4 } });
+	testRectifier<MetadataRawVideo>({ { 0, 0 }, { 1, 1 }, { 2, 2 }, { 3, 3 }, { 4, 4 } }, { 1, 2, 3, 4, 5 });
 }
 
 unittest("rectifier: timing checks with multiple pins") {
@@ -77,7 +77,7 @@ unittest("rectifier: timing checks with multiple pins") {
 unittest("rectifier: fail when no video") {
 	bool thrown = false;
 	try {
-		testRectifier<MetadataRawAudio>({ { 0, 0 } });
+		testRectifier<MetadataRawAudio>({ { 0, 0 } }, { 0 });
 	} catch (std::exception const& e) {
 		std::cerr << "Expected error: " << e.what() << std::endl;
 		thrown = true;
@@ -86,7 +86,7 @@ unittest("rectifier: fail when no video") {
 }
 
 unittest("restamp: passthru with offsets") {
-	const uint64_t time = 10001;
+	auto const time = 10001LL;
 	auto data = std::make_shared<DataRaw>(0);
 
 	data->setMediaTime(time);
@@ -130,4 +130,3 @@ unittest("restamp: reset with offsets") {
 	restamp->process(data);
 	ASSERT_EQUALS(time + time, data->getMediaTime());
 }
-

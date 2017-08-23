@@ -11,7 +11,7 @@ namespace Modules {
 /*This module is responsible for feeding the next modules with a clean signal.
 
 A clean signal has the following properties:
-1) it is clean (no gaps, overlaps, or dicontinuity),
+1) it is clean (no gaps, overlaps, or discontinuities),
 2) its timings are continuous,
 3) the different media are synchronized.
 
@@ -19,7 +19,7 @@ To achieve these goals:
 1) All streams which need to be synchronized need to go through the same TimeRectify module.
 2) One needs to TODOXXX update the metadata on the output pins according to the encoder settings TODOXXX should be done automatically?
 
-The module needs to be sample accurate. It operates on raw data. Raw data may take a lot of memory but
+The module needs to be sample accurate. It operates on raw data. Raw data requires a lot of memory ; however:
 1) we store a short duration (typically 500ms),
 2) the framework works by default with pre-allocated pools,
 3) RAM is cheap ;)
@@ -28,7 +28,7 @@ Input data:
 - Metadata: we process different media type (audio, video, subtitles) differently.
 - Input
 - Media time.
- - System time.
+- System time.
 
 Parameters:
 - Explicit:
@@ -51,6 +51,7 @@ This module acts as a transframerater.
 This module deprecates the AudioConvert class when used as a reframer.
 This module deprecates heartbeat mechanisms for sparse streams.
 */
+//Romain: may serve for a compositor: video1+video2
 class TimeRectifier : public ModuleDynI {
 public:
 	TimeRectifier(uint64_t analyzeWindowIn180k = Clock::Rate / 2, std::unique_ptr<IScheduler> scheduler = uptr(new Scheduler));
@@ -78,6 +79,7 @@ private:
 	}
 #endif
 
+	void sanityChecks();
 	void mimicOutputs();
 	void fillInputQueues();
 	void removeOutdated();
@@ -85,7 +87,7 @@ private:
 
 	struct Stream {
 		std::list<Data> data;
-		//Data defaultTypeData; //Romain: black screen for video, etc.
+		//Data defaultTypeData; //Romain: black screen for video, etc. => should do some composition?
 	};
 
 	uint64_t analyzeWindowIn180k = 0;

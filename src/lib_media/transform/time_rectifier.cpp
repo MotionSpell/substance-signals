@@ -7,11 +7,14 @@ TimeRectifier::TimeRectifier(uint64_t analyzeWindowIn180k, std::unique_ptr<ISche
 : scheduler(std::move(scheduler)) {
 }
 
-void TimeRectifier::process() {
-	fillInputQueues();
-	mimicOutputs(); //Romain: is it useful to call it twice?
+void TimeRectifier::sanityChecks() {
 	if (!hasVideo)
 		throw error("requires to have one video stream connected");
+}
+
+void TimeRectifier::process() {
+	fillInputQueues();
+	sanityChecks();
 	removeOutdated();
 }
 
@@ -20,18 +23,8 @@ void TimeRectifier::mimicOutputs() {
 	auto const numOutputs = outputs.size();
 	if (numOutputs < numInputs) {
 		for (size_t i = numOutputs; i < numInputs; ++i) {
-#if 1 //Romain
 			addOutput<OutputDefault>();
 			input.push_back(uptr(new Stream));
-#else
-			//if (!inputs[i]->getMetadata())
-			//	throw error(format("No metadata for input %s", i));
-			addOutputFromType(inputs[i]->getMetadata()->getStreamType());
-			if (!outputs[i]->getMetadata()) {
-				log(Warning, "No metadata for output %s: forwarding the input metadata", i);
-				outputs[i]->setMetadata(inputs[i]->getMetadata());
-			}
-#endif
 		}
 	}
 }
@@ -67,7 +60,7 @@ void TimeRectifier::removeOutdated() {
 	for (size_t i = 0; i < getNumInputs() - 1; ++i) {
 		auto data = input[i]->data.begin();
 		while (data != input[i]->data.end()) {
-			if ((*data)->getClockTime() < absTimeIn180k - analyzeWindowIn180k) {
+			if ((*data)->getClockTime() < (int64_t)(absTimeIn180k - analyzeWindowIn180k)) {
 				if (input[i]->data.size() <= 1) {
 					break;
 				} else {
