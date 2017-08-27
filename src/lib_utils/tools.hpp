@@ -10,23 +10,43 @@
 // Use to initialize C libraries at program startup.
 // Example: auto g_InitAv = runAtStartup(&av_register_all);
 struct DummyStruct {};
-
-struct Fraction {
-	Fraction(int num = 1, int den = 1) : num(num), den(den) {
-	}
-	operator double() const {
-		return (double)num / den;
-	}
-
-	int num;
-	int den;
-};
-
 template<class R, class... Args>
 DummyStruct runAtStartup(R f(Args...), Args... argVal) {
 	f(argVal...);
 	return DummyStruct();
 }
+
+inline
+int64_t pgcd(int64_t a, int64_t b) {
+	return b ? pgcd(b, a%b) : a;
+}
+
+struct Fraction {
+	Fraction(int64_t num = 1, int64_t den = 1) : num(num), den(den) {
+	}
+	inline operator double() const {
+		return (double)num / den;
+	}
+	inline Fraction operator+(const Fraction &frac) const {
+		auto const gcd = pgcd(num * frac.den + frac.num * den, den * frac.den);
+		return Fraction((num * frac.den + frac.num * den) / gcd, (den * frac.den) / gcd);
+	}
+	inline bool operator< (const Fraction& rhs) const  {
+		return num * rhs.den < rhs.num * den;
+	}
+	inline bool operator> (const Fraction& rhs) const {
+		return num * rhs.den > rhs.num * den;
+	}
+	inline bool operator<=(const Fraction& rhs) {
+		return !(*this > rhs);
+	}
+	inline bool operator>=(const Fraction& rhs) {
+		return !(*this < rhs);
+	}
+
+	int64_t num;
+	int64_t den;
+};
 
 constexpr
 const char *redirectStdToNul() {

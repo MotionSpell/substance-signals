@@ -26,8 +26,8 @@ extern const std::shared_ptr<Clock> g_DefaultClock;
 
 template<typename T>
 static T convertToTimescale(T time, uint64_t timescaleSrc, uint64_t timescaleDst) {
-	if (timescaleSrc == timescaleDst) return time;
-	else return divUp<T>(time * timescaleDst, timescaleSrc);
+	auto const gcd = pgcd(timescaleSrc, timescaleDst);
+	return divUp<T>(time * (timescaleDst / gcd), (timescaleSrc / gcd));
 }
 
 template<typename T>

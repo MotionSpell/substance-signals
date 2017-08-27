@@ -34,7 +34,7 @@ static void getNTP(uint32_t *sec, uint32_t *frac) {
 	}
 }
 
-uint64_t getUTCInMs() {
+Fraction getUTC() {
 	uint64_t current_time;
 	double msec;
 	uint32_t sec, frac;
@@ -43,7 +43,7 @@ uint64_t getUTCInMs() {
 	current_time *= 1000;
 	msec = (frac*1000.0) / 0xFFFFFFFF;
 	current_time += (uint64_t)msec;
-	return current_time;
+	return Fraction(current_time, 1000);
 }
 
 uint64_t UTC2NTP(uint64_t absTimeUTCInMs) {
@@ -74,7 +74,7 @@ std::string getDay() {
 
 std::string getTimeFromUTC() {
 	char time[24];
-	auto const t = getUTCInMs();
+	const uint64_t t = (uint64_t)(1000 * getUTC());
 	timeInMsToStr(((t / 3600000) % 24) * 3600000 + (t % 3600000), time);
 	return time;
 }

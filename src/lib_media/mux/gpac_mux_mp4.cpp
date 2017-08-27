@@ -661,7 +661,7 @@ void GPACMuxMP4::declareStreamSubtitle(std::shared_ptr<const MetadataPktLibavSub
 }
 
 void GPACMuxMP4::declareStreamVideo(std::shared_ptr<const MetadataPktLibavVideo> metadata) {
-	u32 trackNum = gf_isom_new_track(isoCur, 0, GF_ISOM_MEDIA_VISUAL, metadata->getTimeScale().num * TIMESCALE_MUL);
+	u32 trackNum = gf_isom_new_track(isoCur, 0, GF_ISOM_MEDIA_VISUAL, (u32)(metadata->getTimeScale().num * TIMESCALE_MUL));
 	if (!trackNum)
 		throw error(format("Cannot create new track"));
 	trackId = gf_isom_get_track_id(isoCur, trackNum);
@@ -940,7 +940,7 @@ void GPACMuxMP4::process() {
 	//FIXME: reimplement with multiple inputs
 	Data data = inputs[0]->pop();
 	if (!firstDataAbsTimeInMs)
-		firstDataAbsTimeInMs = getUTCInMs();
+		firstDataAbsTimeInMs = (uint64_t)(1000 * getUTC());
 	if (inputs[0]->updateMetadata(data))
 		declareStream(data);
 	auto sample = fillSample(data);

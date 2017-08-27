@@ -65,7 +65,7 @@ unittest("scheduler: scheduleEvery()") {
 	{
 		auto clock = shptr(new Clock(1.0));
 		Scheduler s(clock);
-		s.scheduleEvery(f, getUTCInMs(), 10);
+		s.scheduleEvery(f, 10, getUTC());
 		clock->sleep(50, 1000);
 	}
 	ASSERT(i >= 3);

@@ -109,8 +109,8 @@ LibavEncode::LibavEncode(Type type, Params &params)
 		AVRational fps;
 		fps2NumDen(params.frameRate, fps.den, fps.num); //for time_base, 'num' and 'den' are inverted
 		codecCtx->time_base = fps;
+		break;
 	}
-	break;
 	case Audio:
 		AudioLayout layout;
 		switch (params.numChannels) {

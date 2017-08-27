@@ -11,11 +11,11 @@
 
 struct IScheduler {
 	virtual ~IScheduler() {}
-	virtual void scheduleAt(const std::function<void(void)> &&task, uint64_t absTimeInMs) = 0;
-	virtual void scheduleIn(const std::function<void(void)> &&task, uint64_t timeInMs) {
-		scheduleAt(std::move(task), getUTCInMs() + timeInMs);
+	virtual void scheduleAt(const std::function<void(void)> &&task, Fraction timeUTC) = 0;
+	virtual void scheduleIn(const std::function<void(void)> &&task, Fraction timeUTC) {
+		scheduleAt(std::move(task), getUTC() + timeUTC);
 	}
-	virtual void scheduleEvery(const std::function<void(void)> &&task, uint64_t startTimeInMs, uint64_t loopTimeInMs/*TODO: , uint64_t stopTimeInMs = -1*/) = 0;
+	virtual void scheduleEvery(const std::function<void(void)> &&task, Fraction loopTime, Fraction startTimeUTC = 0/*TODO: , Fraction stopTimeUTC = -1*/) = 0;
 	//TODO: scheduleWhen() would allow to remove threads in modules, see https://github.com/gpac/signals/issues/14 + remark below on the necessity of thread pool + should be attached to any thread (e.g. th0).
 };
 
@@ -23,20 +23,20 @@ class Scheduler : public IScheduler {
 public:
 	Scheduler(std::shared_ptr<IClock> clock = g_DefaultClock);
 	~Scheduler();
-	void scheduleAt(const std::function<void(void)> &&task, uint64_t absTimeUTCInMs) override;
-	void scheduleEvery(const std::function<void(void)> &&task, uint64_t startTimeUTCInMs, uint64_t loopTimeInMs) override;
+	void scheduleAt(const std::function<void(void)> &&task, Fraction timeUTC) override;
+	void scheduleEvery(const std::function<void(void)> &&task, Fraction loopTime, Fraction startTimeUTC) override;
 
 private:
 	struct Task {
 		struct Sooner {
 			bool operator()(const std::unique_ptr<Task> &lhs, const std::unique_ptr<Task> &rhs) const {
-				return lhs->absTimeUTCInMs > rhs->absTimeUTCInMs;
+				return lhs->timeUTC > rhs->timeUTC;
 			}
 		};
-		Task(const std::function<void(void)> &&task2, uint64_t absTimeUTCInMs) : task(std::move(task2)), absTimeUTCInMs(absTimeUTCInMs) {
+		Task(const std::function<void(void)> &&task2, Fraction timeUTC) : task(std::move(task2)), timeUTC(timeUTC) {
 		}
 		std::function<void(void)> task;
-		uint64_t absTimeUTCInMs;
+		Fraction timeUTC;
 	};
 
 	void threadProc();

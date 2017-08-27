@@ -16,18 +16,21 @@ Scheduler::~Scheduler() {
 	}
 }
 
-void Scheduler::scheduleAt(const std::function<void(void)> &&task, uint64_t absTimeUTCInMs) {
+void Scheduler::scheduleAt(const std::function<void(void)> &&task, Fraction timeUTC) {
 	std::unique_lock<std::mutex> lock(mutex);
-	queue.push(uptr(new Task(std::move(task), absTimeUTCInMs)));
+	queue.push(uptr(new Task(std::move(task), timeUTC)));
 	condition.notify_one();
 }
 
-void Scheduler::scheduleEvery(const std::function<void(void)> &&task, uint64_t startTimeUTCInMs, uint64_t loopTimeInMs) {
-	const std::function<void(void)> schedTask = [&, task2{ std::move(task) }, startTimeUTCInMs, loopTimeInMs] {
+void Scheduler::scheduleEvery(const std::function<void(void)> &&task, Fraction loopTime, Fraction startTimeUTC) {
+	if (startTimeUTC == 0) {
+		startTimeUTC = Fraction(clock->now(1000), 1000);
+	}
+	const std::function<void(void)> schedTask = [&, task2{ std::move(task) }, startTimeUTC, loopTime] {
 		task2();
-		scheduleEvery(std::move(task2), startTimeUTCInMs + loopTimeInMs, loopTimeInMs);
+		scheduleEvery(std::move(task2), loopTime, startTimeUTC + loopTime);
 	};
-	scheduleAt(std::move(schedTask), startTimeUTCInMs);
+	scheduleAt(std::move(schedTask), startTimeUTC);
 }
 
 void Scheduler::threadProc() {
@@ -42,13 +45,12 @@ void Scheduler::threadProc() {
 
 		if (clock->getSpeed()) {
 			auto &t = queue.top();
-			auto const waitDurInMs = (int64_t)(t->absTimeUTCInMs - getUTCInMs());
+			auto const waitDurInMs = (int64_t)(t->timeUTC - getUTC());
 			if (waitDurInMs < 0) {
 				Log::msg(Warning, "Late from %s ms.", -waitDurInMs);
-			}
-			else if (waitDurInMs > 0) {
+			} else if (waitDurInMs > 0) {
 				std::unique_lock<std::mutex> lock(mutex);
-				if (condition.wait_for(lock, std::chrono::milliseconds((int64_t)(waitDurInMs / clock->getSpeed())), [&] { return (queue.top()->absTimeUTCInMs < t->absTimeUTCInMs) || waitAndExit; })) {
+				if (condition.wait_for(lock, std::chrono::milliseconds((int64_t)(waitDurInMs / clock->getSpeed())), [&] { return (queue.top()->timeUTC < t->timeUTC) || waitAndExit; })) {
 					continue;
 				}
 			}

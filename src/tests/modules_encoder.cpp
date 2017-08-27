@@ -54,7 +54,7 @@ unittest("encoder: timestamps start at random values") {
 
 //TODO: logs on Error should be caught as exceptions in tests
 unittest("GPAC mp4 mux: don't create empty fragments") {
-	auto const segmentDurationInMs = clockToTimescale(Clock::Rate, 1000);
+	auto const segmentDurationInMs = 1000;
 	const std::vector<uint64_t> times = { Clock::Rate, 0, 3*Clock::Rate };
 	Encode::LibavEncode::Params p;
 	p.frameRate.num = 1;

@@ -361,22 +361,23 @@ enum VideoCodecType {
 }
 
 namespace { //FIXME: should be put in .cpp when lib_media/common is made a separate lib
-void fps2NumDen(const double fps, int &num, int &den) {
+template<typename T>
+void fps2NumDen(const double fps, T &num, T &den) {
 	const double tolerance = 0.001;
 	if (fabs(fps - (int)fps) < tolerance) { //integer frame rates
-		num = (int)fps;
+		num = (T)fps;
 		den = 1;
 	} else if (fabs((fps*1001.0) / 1000.0 - (int)(fps + 1)) < tolerance) { //ATSC frame rates
-		num = (int)(fps + 1) * 1000;
+		num = (T)(fps + 1) * 1000;
 		den = 1001;
 	} else if (fabs(fps * 2 - (int)(fps * 2)) < tolerance) { //rational frame rates; den = 2
-		num = (int)(fps * 2);
+		num = (T)(fps * 2);
 		den = 2;
 	} else if (fabs(fps * 4 - (int)(fps * 4)) < tolerance) { //rational frame rates; den = 4
-		num = (int)(fps * 4);
+		num = (T)(fps * 4);
 		den = 4;
 	} else {
-		num = (int)fps;
+		num = (T)fps;
 		den = 1;
 		Log::msg(Warning, "Frame rate '%s' was not recognized. Truncating to '%s'.", fps, num);
 	}
