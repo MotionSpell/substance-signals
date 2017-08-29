@@ -29,43 +29,54 @@ public:
 	virtual ~LibavMuxHLS() {}
 
 	void process() override {
-		auto data = getInput(0)->pop();
-		delegate->getInput(0)->push(data);
+		size_t inputIdx = 0;
+		Data data;
+		while (!inputs[inputIdx]->tryPop(data)) {
+			inputIdx++;
+		}
+		delegate->getInput(inputIdx)->push(data);
 		delegate->process();
 
-		const int64_t PTS = data->getMediaTime();
-		if (firstPTS == -1) {
-			firstPTS = PTS;
-		}
-		if (PTS >= (segIdx + 1) * segDuration + firstPTS) {
-			auto const fn = format("%s%s.ts", segBasename, segIdx);
-			auto file = fopen(fn.c_str(), "rt");
-			if (!file)
-				throw error(format("Can't open file for reading: %s", fn));
-			fseek(file, 0, SEEK_END);
-			auto const fsize = ftell(file);
-
-			auto out = outputSegment->getBuffer(0);
-			auto metadata = std::make_shared<MetadataFile>(fn, data->getMetadata()->getStreamType(), "", "", segDuration, fsize, 1, false);
-			switch (data->getMetadata()->getStreamType()) {
-			case AUDIO_PKT: metadata->sampleRate = safe_cast<const MetadataPktLibavAudio>(data->getMetadata())->getSampleRate(); break;
-			case VIDEO_PKT: {
-				auto const res = safe_cast<const MetadataPktLibavVideo>(data->getMetadata())->getResolution();
-				metadata->resolution[0] = res.width;
-				metadata->resolution[1] = res.height;
-				break;
+		if (data->getMetadata()->getStreamType() == VIDEO_PKT) {
+			const int64_t PTS = data->getMediaTime();
+			if (firstPTS == -1) {
+				firstPTS = PTS;
 			}
-			default: assert(0);
-			}
-			out->setMetadata(metadata);
-			outputSegment->emit(out);
+			if (PTS >= (segIdx + 1) * segDuration + firstPTS) {
+				auto const fn = format("%s%s.ts", segBasename, segIdx);
+				auto file = fopen(fn.c_str(), "rt");
+				if (!file)
+					throw error(format("Can't open file for reading: %s", fn));
+				fseek(file, 0, SEEK_END);
+				auto const fsize = ftell(file);
 
-			out = outputManifest->getBuffer(0);
-			metadata = std::make_shared<MetadataFile>(format("%s.m3u8", segBasename), PLAYLIST, "", "", 0, 0, 1, false);
-			out->setMetadata(metadata);
-			outputManifest->emit(out);
-			segIdx++;
+				auto out = outputSegment->getBuffer(0);
+				auto metadata = std::make_shared<MetadataFile>(fn, data->getMetadata()->getStreamType(), "", "", segDuration, fsize, 1, false);
+				switch (data->getMetadata()->getStreamType()) {
+				case AUDIO_PKT: metadata->sampleRate = safe_cast<const MetadataPktLibavAudio>(data->getMetadata())->getSampleRate(); break;
+				case VIDEO_PKT: {
+					auto const res = safe_cast<const MetadataPktLibavVideo>(data->getMetadata())->getResolution();
+					metadata->resolution[0] = res.width;
+					metadata->resolution[1] = res.height;
+					break;
+				}
+				default: assert(0);
+				}
+				out->setMetadata(metadata);
+				outputSegment->emit(out);
+
+				out = outputManifest->getBuffer(0);
+				metadata = std::make_shared<MetadataFile>(format("%s.m3u8", segBasename), PLAYLIST, "", "", 0, 0, 1, false);
+				out->setMetadata(metadata);
+				outputManifest->emit(out);
+				segIdx++;
+			}
 		}
+	}
+
+	IInput* getInput(size_t i) override {
+		delegate->getInput(i);
+		return ModuleDynI::getInput(i);
 	}
 
 private:

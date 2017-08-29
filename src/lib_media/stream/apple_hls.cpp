@@ -69,15 +69,16 @@ void Apple_HLS::generateManifestVariant() {
 		quality->playlistVariant << "#EXTM3U" << std::endl;
 		quality->playlistVariant << "#EXT-X-VERSION:3" << std::endl;
 		quality->playlistVariant << "#EXT-X-TARGETDURATION:" << segDurationInMs / 1000 << std::endl;
+		quality->playlistVariant << "#EXT-X-MEDIA-SEQUENCE:0" << std::endl;
+		quality->playlistVariant << "#EXT-X-PLAYLIST-TYPE:EVENT" << std::endl;
 		for (auto segPath : quality->segmentPaths) {
 			quality->playlistVariant << "#EXT-X-STREAM-INF:" << segDurationInMs / 1000 << std::endl;
 			quality->playlistVariant << "#EXT-X-STREAM-INF:" << segPath << std::endl;
 		}
 		quality->playlistVariant << "#EXT-X-ENDLIST" << std::endl;
-		quality->playlistVariant << i << ".m3u8" << std::endl;
 
 		std::ofstream vpl;
-		auto playlistCurVariantPath = format("%s.m3u8", i);
+		auto const playlistCurVariantPath = format("%s.m3u8", i);
 		vpl.open(playlistCurVariantPath);
 		vpl << quality->playlistVariant.str();
 		vpl.close();

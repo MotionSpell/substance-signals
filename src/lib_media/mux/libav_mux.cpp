@@ -141,18 +141,15 @@ void LibavMux::process() {
 		declareStream(data, inputIdx);
 	if (m_formatCtx->nb_streams < inputs.size() - 1)
 		return;
-
 	ensureHeader();
-	auto pkt = getFormattedPkt(data);
 
-	/* timestamps */
+	auto pkt = getFormattedPkt(data);
 	assert(pkt->pts != (int64_t)AV_NOPTS_VALUE);
 	auto const avStream = m_formatCtx->streams[inputIdx2AvStream[inputIdx]];
 	pkt->dts = av_rescale_q(pkt->dts, avStream->codec->time_base, avStream->time_base);
 	pkt->pts = av_rescale_q(pkt->pts, avStream->codec->time_base, avStream->time_base);
 	pkt->duration = (int64_t)av_rescale_q(pkt->duration, avStream->codec->time_base, avStream->time_base);
 
-	/* write the compressed frame to the container output file */
 	pkt->stream_index = avStream->index;
 	if (av_interleaved_write_frame(m_formatCtx, pkt) != 0) {
 		log(Warning, "can't write video frame.");
