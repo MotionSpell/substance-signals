@@ -55,7 +55,7 @@ void AdaptiveStreamingCommon::threadProc() {
 		if (!startTimeInMs) startTimeInMs = (uint64_t)(1000 * getUTC()) - curSegDurInMs;
 		generateManifest();
 		totalDurationInMs += curSegDurInMs;
-		static_assert(getUTC().den == 1000);
+		assert(getUTC().den == 1000);
 		log(Info, "Processes segment (total processed: %ss, UTC: %sms (deltaAST=%s, deltaInput=%s).", (double)totalDurationInMs / 1000, getUTC().num, gf_net_get_utc() - startTimeInMs, (int64_t)(gf_net_get_utc() - clockToTimescale(data->getMediaTime(), 1000)));
 
 		if (type == Live) {

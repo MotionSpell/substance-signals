@@ -187,8 +187,12 @@ include $(ProjectName)/project.mk
 
 #------------------------------------------------------------------------------
 
+TAG:=$(shell echo `git describe --tags --abbrev=0 2> /dev/null || echo "UNKNOWN"`)
+VERSION:=$(shell echo `git describe --tags --long 2> /dev/null || echo "UNKNOWN"` | sed "s/^$(TAG)-//")
+BRANCH:=$(shell git rev-parse --abbrev-ref HEAD 2> /dev/null || echo "UNKNOWN")
+
 VER_CUR:=$(shell echo `cat src/version.cpp`)
-VER_NEW:=$(shell echo "const char *g_version = \"`git symbolic-ref HEAD 2> /dev/null | cut -b 12-`-`git log --pretty=format:\"%h\" -1`\";")
+VER_NEW:=$(shell echo "const char *g_version = \"$(TAG)-$(BRANCH)-rev$(VERSION)\";")
 
 version:
 	@if [ '$(VER_CUR)' != '$(VER_NEW)' ] ; then \
