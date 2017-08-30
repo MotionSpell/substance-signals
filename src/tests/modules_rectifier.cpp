@@ -30,7 +30,7 @@ private:
 
 template<typename Metadata>
 void testRectifier(std::vector<std::pair<int64_t, int64_t>> inTimes, std::vector<int64_t> outTimes) {
-	auto rectifier = create<TimeRectifier>(Clock::Rate/2, uptr(new Scheduler(shptr(new Clock(0.0)))));
+	auto rectifier = create<TimeRectifier>(Fraction(25, 1), Clock::Rate/2, uptr(new Scheduler(shptr(new Clock(0.0)))));
 	auto generator = create<DataGenerator<Metadata>>();
 	ConnectModules(generator.get(), 0, rectifier.get(), 0);
 	auto recorder = create<Utils::Recorder>();
@@ -49,11 +49,6 @@ void testRectifier(std::vector<std::pair<int64_t, int64_t>> inTimes, std::vector
 }
 }
 
-/*Romain: there are four times:
-1-2) Inputs: realtime   + timestamp
-3)   Clock:  media time +
-4)   Output: media time
-*/
 //id:            1 2 3 4 5 => 1 2 3 4 5
 //half:          1 2 3 4 5 => 1 x 3 x 5
 //double:        1 2 3 4 5 => 1 1 2 2 3 3 4 4 5 5
@@ -106,7 +101,7 @@ unittest("restamp: passthru with offsets") {
 }
 
 unittest("restamp: reset with offsets") {
-	uint64_t time = 10001;
+	int64_t time = 10001;
 	int64_t offset = -100;
 	auto data = std::make_shared<DataRaw>(0);
 

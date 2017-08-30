@@ -8,56 +8,34 @@
 
 namespace Modules {
 
-/*This module is responsible for feeding the next modules with a clean signal.
+/*
+This module is responsible for feeding the next modules with a clean signal.
 
 A clean signal has the following properties:
-1) it is clean (no gaps, overlaps, or discontinuities),
-2) its timings are continuous,
-3) the different media are synchronized.
-
-To achieve these goals:
-1) All streams which need to be synchronized need to go through the same TimeRectify module.
-2) One needs to TODOXXX update the metadata on the output pins according to the encoder settings TODOXXX should be done automatically?
+1) its timings are continuous (no gaps, overlaps, or discontinuities),
+2) the different media are synchronized.
 
 The module needs to be sample accurate. It operates on raw data. Raw data requires a lot of memory ; however:
-1) we store a short duration (typically 500ms),
-2) the framework works by default with pre-allocated pools,
-3) RAM is cheap ;)
+1) we store a short duration (typically 500ms) and the framework works by default with pre-allocated pools,
+2) RAM is cheap ;)
 
-Input data:
-- Metadata: we process different media type (audio, video, subtitles) differently.
-- Input
-- Media time.
-- System time.
+The module works this way:
+ - At each tick it pulls some data (like a mux would).
+ - We rely on Clock times. Media times are considered non-reliable and only used to achieve sync.
+ - Different media types are processed differently (video = lead, audio = pulled, subtitles = sparse).
 
-Parameters:
-- Explicit:
-  * The time window expressed as a system time duration.
-- Implicit:
-  * Output FPS / frame-tick frequency.
-
-Output data:
-- Each input has an output with the same data type.
-- Specific configuration of the output (such as the framerate for video streams) is inferred from the next module).
-
-Technically:
-) This module has a raw buffer duration for each input. Input data older than that (except what is required for one output sample TODO: keep the last input sample) will be discarded.
-) Media timestamps are considered non-reliable and only for sync purpose.
-x) quieries a clock / ticks other than data => regulator ; technically we could extend it so that output modules pull the data when they needed it.
-x) operates as a mux
-x) could use metadata to signal problems such as blank frames
-
-This module acts as a transframerater.
-This module deprecates the AudioConvert class when used as a reframer.
-This module deprecates heartbeat mechanisms for sparse streams.
+Remarks:
+ - This module acts as a transframerater for video (by skipping or repeating frames).
+ - This module deprecates the AudioConvert class when used as a reframer (i.e. no sample rate conversion).
+ - This module deprecates heartbeat mechanisms for sparse streams.
+ - This module feeds compositors or mux with some clean data.
 */
-//Romain: may serve for a compositor: video1+video2
 class TimeRectifier : public ModuleDynI {
 public:
-	TimeRectifier(uint64_t analyzeWindowIn180k = Clock::Rate / 2, std::unique_ptr<IScheduler> scheduler = uptr(new Scheduler));
+	TimeRectifier(Fraction frameRate, uint64_t analyzeWindowIn180k = Clock::Rate / 2, std::unique_ptr<IScheduler> scheduler = uptr(new Scheduler));
 
 	void process() override;
-	//Romain: //TODO: flush()
+	void flush() override;
 
 	size_t getNumOutputs() const override {
 		return outputs.size();
@@ -68,28 +46,19 @@ public:
 	}
 
 private:
-#if 0 //Romain
-	void addOutputFromType(StreamType type) { //Romain: unused?
-		switch (type) {
-		case VIDEO_RAW:    addOutput<OutputPicture>(); break;
-		case AUDIO_RAW:    addOutput<OutputPcm>();     break;
-		case SUBTITLE_PKT: addOutput<OutputPcm>();     break;
-		default: throw error("unhandled media type (mimicInputToOutput)");
-		}
-	}
-#endif
-
 	void sanityChecks();
 	void mimicOutputs();
 	void fillInputQueues();
 	void removeOutdated();
-	void awakeOnFPS();
+	void declareScheduler(Data data, std::unique_ptr<IInput> &input, std::unique_ptr<IOutput> &output);
+	void awakeOnFPS(Fraction time);
 
 	struct Stream {
 		std::list<Data> data;
-		//Data defaultTypeData; //Romain: black screen for video, etc. => should do some composition?
+		//Data defaultTypeData; //TODO: black screen for video, etc.
 	};
 
+	Fraction frameRate;
 	uint64_t analyzeWindowIn180k = 0;
 	std::vector<std::unique_ptr<Stream>> input;
 	std::unique_ptr<IScheduler> scheduler;

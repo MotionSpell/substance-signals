@@ -7,7 +7,7 @@ Clock::Clock(double speed)
 : timeStart(std::chrono::high_resolution_clock::now()), speed(speed) {
 }
 
-uint64_t Clock::now(uint64_t timescale) const {
+uint64_t Clock::now(uint64_t timescale) const { //Romain: use Fraction
 	auto const timeNow = high_resolution_clock::now();
 	auto const timeElapsedInSpeed = speed * (timeNow - timeStart);
 	auto const timeNowInMs = duration_cast<milliseconds>(timeElapsedInSpeed);

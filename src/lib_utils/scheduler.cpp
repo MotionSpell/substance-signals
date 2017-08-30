@@ -16,18 +16,18 @@ Scheduler::~Scheduler() {
 	}
 }
 
-void Scheduler::scheduleAt(const std::function<void(void)> &&task, Fraction timeUTC) {
+void Scheduler::scheduleAt(const std::function<void(Fraction)> &&task, Fraction timeUTC) {
 	std::unique_lock<std::mutex> lock(mutex);
 	queue.push(uptr(new Task(std::move(task), timeUTC)));
 	condition.notify_one();
 }
 
-void Scheduler::scheduleEvery(const std::function<void(void)> &&task, Fraction loopTime, Fraction startTimeUTC) {
+void Scheduler::scheduleEvery(const std::function<void(Fraction)> &&task, Fraction loopTime, Fraction startTimeUTC) {
 	if (startTimeUTC == 0) {
 		startTimeUTC = Fraction(clock->now(1000), 1000);
 	}
-	const std::function<void(void)> schedTask = [&, task2{ std::move(task) }, startTimeUTC, loopTime] {
-		task2();
+	const std::function<void(Fraction)> schedTask = [&, task2{ std::move(task) }, loopTime](Fraction startTimeUTC) {
+		task2(startTimeUTC);
 		scheduleEvery(std::move(task2), loopTime, startTimeUTC + loopTime);
 	};
 	scheduleAt(std::move(schedTask), startTimeUTC);
@@ -45,12 +45,13 @@ void Scheduler::threadProc() {
 
 		if (clock->getSpeed()) {
 			auto &t = queue.top();
-			auto const waitDurInMs = (int64_t)(t->timeUTC - getUTC());
+			auto const waitDurInMs = (int64_t)(t->time - clock->now());
 			if (waitDurInMs < 0) {
 				Log::msg(Warning, "Late from %s ms.", -waitDurInMs);
 			} else if (waitDurInMs > 0) {
 				std::unique_lock<std::mutex> lock(mutex);
-				if (condition.wait_for(lock, std::chrono::milliseconds((int64_t)(waitDurInMs / clock->getSpeed())), [&] { return (queue.top()->timeUTC < t->timeUTC) || waitAndExit; })) {
+				auto const durInMs = std::chrono::milliseconds((int64_t)(waitDurInMs / clock->getSpeed()));
+				if (condition.wait_for(lock, durInMs, [&] { return (queue.top()->time < t->time) || waitAndExit; })) {
 					continue;
 				}
 			}
@@ -60,7 +61,7 @@ void Scheduler::threadProc() {
 			mutex.lock();
 			auto const &t = queue.top();
 			mutex.unlock();
-			t->task(); //TODO: tasks may be blocking so we might want to create a pool instead of a single thread
+			t->task(t->time); //TODO: tasks may be blocking so we might want to create a pool instead of a single thread
 			mutex.lock();
 			queue.pop();
 			mutex.unlock();
