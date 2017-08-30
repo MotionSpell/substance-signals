@@ -129,6 +129,7 @@ auto g_InitAvcodec = runAtStartup(&avcodec_register_all);
 auto g_InitAvdevice = runAtStartup(&avdevice_register_all);
 auto g_InitAv = runAtStartup(&av_register_all);
 auto g_InitAvnetwork = runAtStartup(&avformat_network_init);
+auto g_InitAvfilter = runAtStartup(avfilter_register_all);
 auto g_InitAvLog = runAtStartup(&av_log_set_callback, avLog);
 
 }
