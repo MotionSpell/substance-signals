@@ -16,21 +16,21 @@ Scheduler::~Scheduler() {
 	}
 }
 
-void Scheduler::scheduleAt(const std::function<void(Fraction)> &&task, Fraction timeUTC) {
+void Scheduler::scheduleAt(const std::function<void(Fraction)> &&task, Fraction time) {
 	std::unique_lock<std::mutex> lock(mutex);
-	queue.push(uptr(new Task(std::move(task), timeUTC)));
+	queue.push(uptr(new Task(std::move(task), time)));
 	condition.notify_one();
 }
 
-void Scheduler::scheduleEvery(const std::function<void(Fraction)> &&task, Fraction loopTime, Fraction startTimeUTC) {
-	if (startTimeUTC == 0) {
-		startTimeUTC = Fraction(clock->now(1000), 1000);
+void Scheduler::scheduleEvery(const std::function<void(Fraction)> &&task, Fraction loopTime, Fraction time) {
+	if (time == 0) {
+		time = Fraction(clock->now(1000), 1000);
 	}
-	const std::function<void(Fraction)> schedTask = [&, task2{ std::move(task) }, loopTime](Fraction startTimeUTC) {
-		task2(startTimeUTC);
-		scheduleEvery(std::move(task2), loopTime, startTimeUTC + loopTime);
+	const std::function<void(Fraction)> schedTask = [&, task2{ std::move(task) }, loopTime](Fraction startTime) {
+		task2(startTime);
+		scheduleEvery(std::move(task2), loopTime, startTime + loopTime);
 	};
-	scheduleAt(std::move(schedTask), startTimeUTC);
+	scheduleAt(std::move(schedTask), time);
 }
 
 void Scheduler::threadProc() {
@@ -45,7 +45,7 @@ void Scheduler::threadProc() {
 
 		if (clock->getSpeed()) {
 			auto &t = queue.top();
-			auto const waitDurInMs = (int64_t)(t->time - clock->now());
+			auto const waitDurInMs = (int64_t)(1000 * t->time - clock->now(1000));
 			if (waitDurInMs < 0) {
 				Log::msg(Warning, "Late from %s ms.", -waitDurInMs);
 			} else if (waitDurInMs > 0) {

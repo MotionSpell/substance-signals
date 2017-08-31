@@ -31,10 +31,21 @@ struct Fraction {
 		auto const gcd = pgcd(num * frac.den + frac.num * den, den * frac.den);
 		return Fraction((num * frac.den + frac.num * den) / gcd, (den * frac.den) / gcd);
 	}
-	inline bool operator< (const Fraction& rhs) const  {
+	inline Fraction operator-(const Fraction &frac) const {
+		auto const gcd = pgcd(num * frac.den - frac.num * den, den * frac.den);
+		return Fraction((num * frac.den - frac.num * den) / gcd, (den * frac.den) / gcd);
+	}
+	inline bool operator==(const Fraction& rhs) const {
+		return num * rhs.den == rhs.num * den;
+	}
+	template <typename T>
+	inline bool operator==(const T& rhs) const {
+		return *this == Fraction(rhs);
+	}
+	inline bool operator<(const Fraction& rhs) const  {
 		return num * rhs.den < rhs.num * den;
 	}
-	inline bool operator> (const Fraction& rhs) const {
+	inline bool operator>(const Fraction& rhs) const {
 		return num * rhs.den > rhs.num * den;
 	}
 	inline bool operator<=(const Fraction& rhs) {
