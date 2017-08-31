@@ -24,7 +24,7 @@ public:
 	~PipelinedModule() noexcept(false) {}
 	void flush() override {
 		process();
-		while (activeConnections > 0) clock->sleep(10, 1000);
+		while (activeConnections > 0) clock->sleep(Fraction(10, 1000));
 	}
 	std::string getDelegateName() const {
 		auto const &dref = *delegate.get();

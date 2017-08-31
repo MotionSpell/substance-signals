@@ -62,7 +62,7 @@ void TimeRectifier::fillInputQueues() {
 }
 
 void TimeRectifier::removeOutdated() {
-	auto const absTimeIn180k = clock->now();
+	auto const absTimeIn180k = fractionToClock(clock->now());
 	for (size_t i = 0; i < getNumInputs() - 1; ++i) {
 		auto data = input[i]->data.begin();
 		while (data != input[i]->data.end()) {

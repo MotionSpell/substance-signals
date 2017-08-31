@@ -62,7 +62,7 @@ void AdaptiveStreamingCommon::threadProc() {
 			const int64_t durInMs = startTimeInMs + totalDurationInMs - (uint64_t)(1000 * getUTC());
 			if (durInMs > 0) {
 				log(Debug, "Going to sleep for %s ms.", durInMs);
-				clock->sleep(durInMs, 1000);
+				clock->sleep(Fraction(durInMs, 1000));
 			} else {
 				log(Warning, "Late from %s ms.", -durInMs);
 			}

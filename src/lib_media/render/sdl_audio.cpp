@@ -103,7 +103,7 @@ void SDLAudio::push(Data data) {
 
 void SDLAudio::fillAudio(uint8_t *stream, int len) {
 	// timestamp of the first sample of the buffer
-	auto const bufferTimeIn180k = m_clock->now() + m_Latency;
+	auto const bufferTimeIn180k = fractionToClock(m_clock->now()) + m_Latency;
 
 	std::lock_guard<std::mutex> lg(m_Mutex);
 

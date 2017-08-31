@@ -24,7 +24,7 @@ void Scheduler::scheduleAt(const std::function<void(Fraction)> &&task, Fraction 
 
 void Scheduler::scheduleEvery(const std::function<void(Fraction)> &&task, Fraction loopTime, Fraction time) {
 	if (time == 0) {
-		time = Fraction(clock->now(1000), 1000);
+		time = clock->now();
 	}
 	const std::function<void(Fraction)> schedTask = [&, task2{ std::move(task) }, loopTime](Fraction startTime) {
 		task2(startTime);
@@ -45,7 +45,7 @@ void Scheduler::threadProc() {
 
 		if (clock->getSpeed()) {
 			auto &t = queue.top();
-			auto const waitDurInMs = (int64_t)(1000 * t->time - clock->now(1000));
+			auto const waitDurInMs = (int64_t)(1000 * (t->time - clock->now()));
 			if (waitDurInMs < 0) {
 				Log::msg(Warning, "Late from %s ms.", -waitDurInMs);
 			} else if (waitDurInMs > 0) {

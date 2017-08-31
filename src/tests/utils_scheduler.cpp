@@ -32,7 +32,7 @@ unittest("scheduler: basic, scheduleIn()/scheduleAt()") {
 		auto clock = shptr(new Clock(clockSpeed));
 		Scheduler s(clock);
 		s.scheduleIn(f, 0);
-		clock->sleep(50, 1000); //Romain: use Fractions
+		clock->sleep(f50);
 	}
 	ASSERT(q.size() == 1);
 	q.clear();
@@ -42,7 +42,7 @@ unittest("scheduler: basic, scheduleIn()/scheduleAt()") {
 		Scheduler s(clock);
 		s.scheduleIn(f, 0);
 		s.scheduleIn(f, f1000);
-		clock->sleep(50, 1000);
+		clock->sleep(f50);
 	}
 	ASSERT(q.size() == 1);
 	q.clear();
@@ -52,7 +52,7 @@ unittest("scheduler: basic, scheduleIn()/scheduleAt()") {
 		Scheduler s(clock);
 		s.scheduleIn(f, 0);
 		s.scheduleIn(f, f1);
-		clock->sleep(50, 1000);
+		clock->sleep(f50);
 	}
 	ASSERT(q.size() == 2);
 	auto const t1 = q.pop(), t2 = q.pop();
@@ -70,7 +70,7 @@ unittest("scheduler: scheduleEvery()") {
 		auto clock = shptr(new Clock(clockSpeed));
 		Scheduler s(clock);
 		s.scheduleEvery(f, f10, 0);
-		clock->sleep(50, 1000);
+		clock->sleep(f50);
 	}
 	ASSERT(q.size() >= 3);
 	auto const t1 = q.pop(), t2 = q.pop();
@@ -84,7 +84,7 @@ unittest("scheduler: reschedule a sooner event while waiting") {
 		Scheduler s(clock);
 		s.scheduleIn([&](Fraction f) { q.push(f); }, f10);
 		s.scheduleIn([&](Fraction f) { q.push(f); }, 0);
-		clock->sleep(50, 1000);
+		clock->sleep(f50);
 	}
 	std::cout << q.size() << std::endl;
 	ASSERT(q.size() == 2);

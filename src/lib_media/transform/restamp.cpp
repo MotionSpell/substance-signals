@@ -26,7 +26,7 @@ void Restamp::process(Data data) {
 		}
 		break;
 	case ClockSystem:
-		time = g_DefaultClock->now();
+		time = fractionToClock(g_DefaultClock->now());
 		if (!isInitTime) {
 			isInitTime = true;
 			offset -= time;

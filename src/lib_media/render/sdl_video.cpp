@@ -90,7 +90,7 @@ bool SDLVideo::processOneFrame(Data data) {
 		createTexture();
 	}
 
-	auto const now = m_clock->now();
+	auto const now = fractionToClock(m_clock->now());
 	auto const timestamp = pic->getMediaTime() + PREROLL_DELAY; // assume timestamps start at zero
 	auto const delay = std::max<int64_t>(0, timestamp - now);
 	auto const delayInMs = clockToTimescale(delay, 1000);

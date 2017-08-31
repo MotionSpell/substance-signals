@@ -24,7 +24,7 @@ public:
 	void scheduleAt(const std::function<void(Fraction)> &&task, Fraction time) override;
 	void scheduleEvery(const std::function<void(Fraction)> &&task, Fraction loopTime, Fraction time) override;
 	void scheduleIn(const std::function<void(Fraction)> &&task, Fraction time) override {
-		scheduleAt(std::move(task), Fraction(clock->now(), Clock::Rate) + time);
+		scheduleAt(std::move(task), clock->now() + time);
 	}
 
 private:
