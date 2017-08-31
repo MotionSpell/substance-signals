@@ -7,13 +7,13 @@ auto const f1  = Fraction( 1, 1000);
 auto const f10 = Fraction(10, 1000);
 auto const f50 = Fraction(50, 1000);
 auto const f1000 = Fraction(1, 1);
+const double clockSpeed = 1.0;
 
 unittest("scheduler: basic, scheduleIn()/scheduleAt()") {
 	Queue<Fraction> q;
 	auto f = [&](Fraction time) {
 		q.push(time);
 	};
-	const double clockSpeed = 1.0; //Romain: test with other values
 
 	{
 		auto clock = shptr(new Clock(clockSpeed));
@@ -67,7 +67,7 @@ unittest("scheduler: scheduleEvery()") {
 	auto const f10 = Fraction(10, 1000);
 
 	{
-		auto clock = shptr(new Clock(1.0));
+		auto clock = shptr(new Clock(clockSpeed));
 		Scheduler s(clock);
 		s.scheduleEvery(f, f10, 0);
 		clock->sleep(50, 1000);
@@ -80,7 +80,7 @@ unittest("scheduler: scheduleEvery()") {
 unittest("scheduler: reschedule a sooner event while waiting") {
 	Queue<Fraction> q;
 	{
-		auto clock = shptr(new Clock(1.0));
+		auto clock = shptr(new Clock(clockSpeed));
 		Scheduler s(clock);
 		s.scheduleIn([&](Fraction f) { q.push(f); }, f10);
 		s.scheduleIn([&](Fraction f) { q.push(f); }, 0);
