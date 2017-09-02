@@ -4,34 +4,37 @@
 #include "lib_media/transform/time_rectifier.hpp"
 #include "lib_media/utils/recorder.hpp"
 #include "lib_media/common/pcm.hpp"
+#include "lib_media/common/picture.hpp"
 
 using namespace Tests;
 using namespace Modules;
 
 namespace {
-template<typename T>
+template<typename METADATA, typename PIN>
 class DataGenerator : public Module, public virtual IOutputCap {
 public:
 	DataGenerator() {
-		output = addOutput<OutputPcm>();
-		output->setMetadata(shptr(new T));
+		output = addOutput<PIN>();
+		output->setMetadata(shptr(new METADATA));
 	}
 	void process() {}
 	void push(int64_t mediaTime, int64_t clockTime) {
 		auto data = output->getBuffer(0);
+		Log::msg(Warning, "gen %s (%s)", data, data.get());
 		data->setMediaTime(mediaTime);
 		data->setClockTime(clockTime);
 		output->emit(data);
 	}
 
 private:
-	OutputPcm *output;
+	PIN *output;
 };
 
-template<typename Metadata>
-void testRectifier(std::vector<std::pair<int64_t, int64_t>> inTimes, std::vector<int64_t> outTimes) {
-	auto rectifier = create<TimeRectifier>(Fraction(25, 1), Clock::Rate/2, uptr(new Scheduler(shptr(new Clock(0.0)))));
-	auto generator = create<DataGenerator<Metadata>>();
+template<typename Metadata, typename PinType>
+void testRectifier(Fraction fps, std::vector<std::pair<int64_t, int64_t>> inTimes, std::vector<int64_t> outTimes) {
+	auto clock = shptr(new Clock(1.0));
+	auto rectifier = createModule<TimeRectifier>(1, clock, fps, Clock::Rate/2, uptr(new Scheduler(clock)));
+	auto generator = create<DataGenerator<Metadata, PinType>>();
 	ConnectModules(generator.get(), 0, rectifier.get(), 0);
 	auto recorder = create<Utils::Recorder>();
 	ConnectModules(rectifier.get(), 0, recorder.get(), 0);
@@ -42,10 +45,11 @@ void testRectifier(std::vector<std::pair<int64_t, int64_t>> inTimes, std::vector
 	recorder->process(nullptr);
 	Data data;
 	size_t i = 0;
-	while ((data = recorder->pop())) {
+	while ((data = recorder->pop()) && (i <= outTimes.size())) {
+		Log::msg(Warning, "recv %s (expected %s)", data->getMediaTime(), outTimes[i]);
 		ASSERT(data->getMediaTime() == outTimes[i++]);
 	}
-	ASSERT(outTimes.size() == i);
+	ASSERT(i == outTimes.size());
 }
 }
 
@@ -62,7 +66,16 @@ void testRectifier(std::vector<std::pair<int64_t, int64_t>> inTimes, std::vector
 //Romain: dont forget to remove the restamper (tests are below) + sparseStreamsHeartbeat in demux
 
 unittest("rectifier: timing checks with a single pin") {
-	testRectifier<MetadataRawVideo>({ { 0, 0 }, { 1, 1 }, { 2, 2 }, { 3, 3 }, { 4, 4 } }, { 1, 2, 3, 4, 5 });
+	auto const numItems = 5;
+	auto const fps = Fraction(25, 1);
+	std::vector<std::pair<int64_t, int64_t>> inTimes; inTimes.resize(numItems);
+	std::vector<int64_t> outTimes; outTimes.resize(numItems);
+	for (size_t i = 0; i < numItems; ++i) {
+		auto const val = Clock::Rate * i * fps.den / fps.num;
+		inTimes[i] = { val, val };
+		outTimes[i] = val;
+	}
+	testRectifier<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>(fps, inTimes, outTimes);
 }
 
 unittest("rectifier: timing checks with multiple pins") {
@@ -72,7 +85,7 @@ unittest("rectifier: timing checks with multiple pins") {
 unittest("rectifier: fail when no video") {
 	bool thrown = false;
 	try {
-		testRectifier<MetadataRawAudio>({ { 0, 0 } }, { 0 });
+		testRectifier<MetadataRawAudio, OutputPcm>(Fraction(25, 1), { { 0, 0 } }, { 0 });
 	} catch (std::exception const& e) {
 		std::cerr << "Expected error: " << e.what() << std::endl;
 		thrown = true;

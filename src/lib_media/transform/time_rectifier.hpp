@@ -2,6 +2,7 @@
 
 #include "lib_modules/modules.hpp"
 #include "lib_utils/scheduler.hpp"
+#include <condition_variable>
 #include <list>
 #include <memory>
 #include <vector>
@@ -27,8 +28,8 @@ The module works this way:
 Remarks:
  - This module acts as a transframerater for video (by skipping or repeating frames).
  - This module deprecates the AudioConvert class when used as a reframer (i.e. no sample rate conversion).
- - This module deprecates heartbeat mechanisms for sparse streams.
  - This module feeds compositors or mux with some clean data.
+ - TODO (currently handled by demux): This module deprecates heartbeat mechanisms for sparse streams.
 */
 class TimeRectifier : public ModuleDynI {
 public:
@@ -48,21 +49,24 @@ public:
 private:
 	void sanityChecks();
 	void mimicOutputs();
-	void fillInputQueues();
-	void removeOutdated();
+	void fillInputQueuesUnsafe();
+	void removeOutdatedUnsafe(int64_t removalClockTime);
 	void declareScheduler(Data data, std::unique_ptr<IInput> &input, std::unique_ptr<IOutput> &output);
 	void awakeOnFPS(Fraction time);
 
 	struct Stream {
 		std::list<Data> data;
+		int64_t currTimeIn180k = 0;
 		//Data defaultTypeData; //TODO: black screen for video, etc.
 	};
 
 	Fraction frameRate;
-	uint64_t analyzeWindowIn180k = 0;
+	uint64_t analyzeWindowIn180k = 0, numTicks = 0;
 	std::vector<std::unique_ptr<Stream>> input;
+	std::mutex inputMutex;
+	std::condition_variable flushedCond;
 	std::unique_ptr<IScheduler> scheduler;
-	bool hasVideo = false;
+	bool hasVideo = false, flushing = false;
 };
 
 template <>
