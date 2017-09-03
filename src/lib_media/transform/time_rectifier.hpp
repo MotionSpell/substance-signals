@@ -33,7 +33,7 @@ Remarks:
 */
 class TimeRectifier : public ModuleDynI {
 public:
-	TimeRectifier(Fraction frameRate, uint64_t analyzeWindowIn180k = Clock::Rate / 2, std::unique_ptr<IScheduler> scheduler = uptr(new Scheduler));
+	TimeRectifier(Fraction frameRate, uint64_t analyzeWindowIn180k = Clock::Rate / 2);
 
 	void process() override;
 	void flush() override;

@@ -73,9 +73,9 @@ class PipelinedInput : public IInput {
 		}
 
 	private:
-		void regulate(uint64_t dataTime) {
+		void regulate(int64_t dataTime) {
 			if (clock->getSpeed() > 0.0) {
-				auto const delayInMs = clockToTimescale((int64_t)(dataTime - clock->now()), 1000);
+				auto const delayInMs = clockToTimescale(dataTime - fractionToClock(clock->now()), 1000);
 				if (delayInMs > 0) {
 					Log::msg(delayInMs < REGULATION_TOLERANCE_IN_MS ? Debug : Warning, "Module %s: received data for time %ss (will sleep for %s ms)", delegateName, dataTime / (double)IClock::Rate, delayInMs);
 					clock->sleep(Fraction(delayInMs, 1000));

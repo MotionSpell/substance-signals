@@ -197,7 +197,7 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 				filename << "a_" << numDashInputs;
 			}
 
-			auto muxer = pipeline->addModule<Mux::GPACMuxMP4>(DASH_SUBDIR + filename.str(), opt->segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, opt->ultraLowLatency ? Mux::GPACMuxMP4::OneFragmentPerFrame : Mux::GPACMuxMP4::OneFragmentPerSegment);
+			auto muxer = pipeline->addModule<Mux::GPACMuxMP4>(DASH_SUBDIR + filename.str(), 0, Mux::GPACMuxMP4::NoSegment, Mux::GPACMuxMP4::NoFragment);
 			if (transcode) {
 				connect(encoder, muxer);
 			} else {

@@ -3,9 +3,10 @@
 
 namespace Modules {
 
-TimeRectifier::TimeRectifier(Fraction frameRate, uint64_t analyzeWindowIn180k, std::unique_ptr<IScheduler> scheduler)
-: frameRate(frameRate), analyzeWindowIn180k(analyzeWindowIn180k), scheduler(std::move(scheduler)) {
-	//Romain: TODO: when clock speed is 0.0, we should do the same as the current restamper
+TimeRectifier::TimeRectifier(Fraction frameRate, uint64_t analyzeWindowIn180k)
+: frameRate(frameRate), analyzeWindowIn180k(analyzeWindowIn180k), scheduler(new Scheduler(clock)) {
+	//TODO: when clock speed is 0.0, all clockTimes are zero. Deal with it.
+	//TODO: what about low latency? Should it be a low analyzeWindowIn180k value?
 }
 
 void TimeRectifier::sanityChecks() {
@@ -75,14 +76,14 @@ void TimeRectifier::removeOutdatedUnsafe(int64_t removalClockTime) {
 			if ((*data)->getClockTime() < removalClockTime) {
 				if (input[i]->data.size() <= 1) {
 					if (flushing) {
-						log(Warning, "Remove input[%s] data time media=%s clock=%s", i, (*data)->getMediaTime(), (*data)->getClockTime());
+						log(Debug, "Remove input[%s] data time media=%s clock=%s", i, (*data)->getMediaTime(), (*data)->getClockTime());
 						data = input[i]->data.erase(data);
 						flushedCond.notify_one();
 					} else {
 						break;
 					}
 				} else {
-					log(Warning, "Remove input[%s] data time media=%s clock=%s", i, (*data)->getMediaTime(), (*data)->getClockTime());
+					log(Debug, "Remove input[%s] data time media=%s clock=%s", i, (*data)->getMediaTime(), (*data)->getClockTime());
 					data = input[i]->data.erase(data);
 				}
 			} else {
@@ -94,8 +95,7 @@ void TimeRectifier::removeOutdatedUnsafe(int64_t removalClockTime) {
 
 void TimeRectifier::awakeOnFPS(Fraction time) {
 	std::unique_lock<std::mutex> lock(inputMutex);
-	auto const nowIn180k = fractionToClock(clock->now());
-	removeOutdatedUnsafe(nowIn180k - analyzeWindowIn180k);
+	removeOutdatedUnsafe(fractionToClock(time) - analyzeWindowIn180k);
 
 	Data refData;
 	for (size_t i = 0; i < getNumInputs() - 1; ++i) {
@@ -109,12 +109,13 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 				}
 			}
 			if (!refData) {
-				log(Warning, "No available reference data for clock time %s", nowIn180k);
+				log(Warning, "No available reference data for clock time %s", fractionToClock(time));
+				//TODO: either send the last frame or a black frame
 				return;
 			}
 			input[i]->currTimeIn180k = numTicks++ * fractionToClock(Fraction(frameRate.den, frameRate.num));
 			log(Warning, "send %s", input[i]->currTimeIn180k);
-			const_cast<DataBase*>(refData.get())->setMediaTime(input[i]->currTimeIn180k); //Romain: this is wrong: we need to point on the same data with data.copy()
+			const_cast<DataBase*>(refData.get())->setMediaTime(input[i]->currTimeIn180k); //TODO: this is wrong: we need to point on the same data with data.copy()
 			outputs[i]->emit(refData);
 		}
 	}
@@ -126,7 +127,7 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 			for (auto &currData : input[i]->data) {
 				if (refData->getClockTime() <= currData->getClockTime()) {
 					//input[i]->currTimeIn180k = numTicks++ * fractionToClock(Fraction(frameRate.den, frameRate.num));
-					const_cast<DataBase*>(currData.get())->setMediaTime(input[i]->currTimeIn180k); //Romain: fractionToClock(time) on multiple packets?
+					const_cast<DataBase*>(currData.get())->setMediaTime(input[i]->currTimeIn180k); //TODO: fractionToClock(time) on multiple packets?
 				}
 			}
 			break;

@@ -51,7 +51,7 @@ LibavDecode::LibavDecode(std::shared_ptr<const MetadataPktLibav> metadata)
 
 LibavDecode::~LibavDecode() {
 	videoOutput = nullptr;
-	flush(); //we need to flush to avoid a leak of LibavDirectRenderingContext pictures
+	flush(); //flush to avoid a leak of LibavDirectRenderingContext pictures
 }
 
 bool LibavDecode::processAudio(AVPacket const * const pkt) {

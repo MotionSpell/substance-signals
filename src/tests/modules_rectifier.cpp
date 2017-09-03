@@ -33,7 +33,7 @@ private:
 template<typename Metadata, typename PinType>
 void testRectifier(Fraction fps, std::vector<std::pair<int64_t, int64_t>> inTimes, std::vector<int64_t> outTimes) {
 	auto clock = shptr(new Clock(1.0));
-	auto rectifier = createModule<TimeRectifier>(1, clock, fps, Clock::Rate/2, uptr(new Scheduler(clock)));
+	auto rectifier = createModule<TimeRectifier>(1, clock, fps, Clock::Rate/2);
 	auto generator = create<DataGenerator<Metadata, PinType>>();
 	ConnectModules(generator.get(), 0, rectifier.get(), 0);
 	auto recorder = create<Utils::Recorder>();
@@ -60,11 +60,8 @@ void testRectifier(Fraction fps, std::vector<std::pair<int64_t, int64_t>> inTime
 //missing frame: 1 2 4  5  => 1 2 2 4 5
 //ts backward  : 1 2 10 11 => 1 2 3 4
 //
-//Romain: also think about when output lags - maybe limit based on raw vs pkt
-//Pipeline is not single responsability. And dispatch is not perfect/ideal. It also assumes the first timestamp is zero.
-//
-//Romain: dont forget to remove the restamper (tests are below) + sparseStreamsHeartbeat in demux
-
+//TODO: also think about when output lags - maybe limit based on raw vs pkt
+//FIXME: Pipeline is not single responsability. And dispatch is not perfect/ideal. It also assumes the first timestamp is zero.
 unittest("rectifier: timing checks with a single pin") {
 	auto const numItems = 5;
 	auto const fps = Fraction(25, 1);

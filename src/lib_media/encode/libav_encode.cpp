@@ -181,7 +181,8 @@ bool LibavEncode::processAudio(const DataPcm *data) {
 	if (data) {
 		f = avFrame->get();
 		libavFrameDataConvert(data, f);
-		f->pts = (data->getMediaTime() * codecCtx->time_base.den) / (codecCtx->time_base.num * Clock::Rate);
+		static int romain = 0;
+		f->pts = (romain++ * 1024);///*data->getMediaTime()*/ *codecCtx->time_base.den) / (codecCtx->time_base.num * Clock::Rate);
 	}
 
 	int gotPkt = 0;
