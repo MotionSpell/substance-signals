@@ -181,7 +181,7 @@ LibavEncode::~LibavEncode() {
 void LibavEncode::computeDurationAndEmit(std::shared_ptr<DataAVPacket> &data, int64_t defaultDuration) {
 	auto pkt = data->getPacket();
 	assert(pkt->size);
-	if (pkt->duration != pkt->dts - lastDTS) {
+	if (pkt->duration != (int64_t)(pkt->dts - lastDTS)) {
 		log(Warning, "VFR detected: duration is %s but ", pkt->duration, pkt->dts - lastDTS);
 		pkt->duration = pkt->dts - lastDTS;
 	}
