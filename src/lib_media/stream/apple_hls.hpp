@@ -38,11 +38,11 @@ public:
 		delegate->process();
 
 		if (data->getMetadata()->getStreamType() == VIDEO_PKT) {
-			const int64_t PTS = data->getMediaTime();
-			if (firstPTS == -1) {
-				firstPTS = PTS;
+			const int64_t DTS = data->getMediaTime();
+			if (firstDTS == -1) {
+				firstDTS = DTS;
 			}
-			if (PTS >= (segIdx + 1) * segDuration + firstPTS) {
+			if (DTS >= (segIdx + 1) * segDuration + firstDTS) {
 				auto const fn = format("%s%s.ts", segBasename, segIdx);
 				auto file = fopen(fn.c_str(), "rt");
 				if (!file)
@@ -82,7 +82,7 @@ public:
 private:
 	std::unique_ptr<Modules::Mux::LibavMux> delegate;
 	OutputDataDefault<DataAVPacket> *outputSegment, *outputManifest;
-	int64_t firstPTS = -1, segDuration, segIdx = 0;
+	int64_t firstDTS = -1, segDuration, segIdx = 0;
 	std::string segBasename;
 };
 #endif /*LIBAVMUXHLS*/

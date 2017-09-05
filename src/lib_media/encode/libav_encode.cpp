@@ -8,6 +8,8 @@ extern "C" {
 #include <libavutil/pixdesc.h>
 }
 
+#define TIMESCALE_MUL 100
+
 namespace Modules {
 namespace Encode {
 
@@ -108,7 +110,9 @@ LibavEncode::LibavEncode(Type type, Params &params)
 
 		AVRational fps;
 		fps2NumDen(params.frameRate, fps.den, fps.num); //for time_base, 'num' and 'den' are inverted
+		fps.den *= TIMESCALE_MUL;
 		codecCtx->time_base = fps;
+		codecCtx->ticks_per_frame *= TIMESCALE_MUL;
 		break;
 	}
 	case Audio:
@@ -174,6 +178,21 @@ void LibavEncode::flush() {
 LibavEncode::~LibavEncode() {
 }
 
+void LibavEncode::computeDurationAndEmit(std::shared_ptr<DataAVPacket> &data, int64_t defaultDuration) {
+	auto pkt = data->getPacket();
+	assert(pkt->size);
+	if (pkt->duration != pkt->dts - lastDTS) {
+		log(Warning, "VFR detected: duration is %s but ", pkt->duration, pkt->dts - lastDTS);
+		pkt->duration = pkt->dts - lastDTS;
+	}
+	lastDTS = pkt->dts;
+	if (pkt->duration <= 0) {
+		pkt->duration = defaultDuration;
+	}
+	data->setMediaTime(pkt->dts * codecCtx->time_base.num, codecCtx->time_base.den);
+	output->emit(data);
+}
+
 bool LibavEncode::processAudio(const DataPcm *data) {
 	auto out = output->getBuffer(0);
 	AVPacket *pkt = out->getPacket();
@@ -181,26 +200,22 @@ bool LibavEncode::processAudio(const DataPcm *data) {
 	if (data) {
 		f = avFrame->get();
 		libavFrameDataConvert(data, f);
-		static int romain = 0;
-		f->pts = (romain++ * 1024);///*data->getMediaTime()*/ *codecCtx->time_base.den) / (codecCtx->time_base.num * Clock::Rate);
+		f->pts = (data->getMediaTime() * codecCtx->time_base.den) / (codecCtx->time_base.num * Clock::Rate);
 	}
 
 	int gotPkt = 0;
 	if (avcodec_encode_audio2(codecCtx.get(), pkt, f, &gotPkt)) {
 		log(Warning, "error encountered while encoding audio frame %s.", f ? f->pts : -1);
 		return false;
-	}
-	if (gotPkt) {
+	} else if (gotPkt) {
 		if (pkt->duration != codecCtx->frame_size) {
 			log(Warning, "pkt duration %s is different from codec frame size %s - this may cause timing errors", pkt->duration, codecCtx->frame_size);
 		}
-		out->setMediaTime(pkt->dts * codecCtx->time_base.num, codecCtx->time_base.den);
-		assert(pkt->size);
-		output->emit(out);
+		computeDurationAndEmit(out, pkt->duration);
 		return true;
+	} else {
+		return false;
 	}
-
-	return false;
 }
 
 bool LibavEncode::processVideo(const DataPicture *pic) {
@@ -225,19 +240,12 @@ bool LibavEncode::processVideo(const DataPicture *pic) {
 	if (avcodec_encode_video2(codecCtx.get(), pkt, f, &gotPkt)) {
 		log(Warning, "error encountered while encoding video frame %s.", f ? f->pts : -1);
 		return false;
+	} else if (gotPkt) {
+		computeDurationAndEmit(out, TIMESCALE_MUL);
+		return true;
 	} else {
-		if (gotPkt) {
-			assert(pkt->size);
-			if (pkt->duration <= 0) {
-				pkt->duration = 1; /*store duration in case a forward module (e.g. muxer) would need it*/
-			}
-			out->setMediaTime(pkt->pts * codecCtx->time_base.num, codecCtx->time_base.den);
-			output->emit(out);
-			return true;
-		}
+		return false;
 	}
-
-	return false;
 }
 
 void LibavEncode::process(Data data) {
@@ -255,8 +263,7 @@ void LibavEncode::process(Data data) {
 		break;
 	}
 	default:
-		assert(0);
-		return;
+		assert(0); return;
 	}
 }
 

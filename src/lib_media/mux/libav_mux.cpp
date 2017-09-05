@@ -125,6 +125,7 @@ AVPacket * LibavMux::getFormattedPkt(Data data) {
 		newPkt->flags = pkt->flags;
 		newPkt->dts = pkt->dts;
 		newPkt->pts = pkt->pts;
+		newPkt->duration = pkt->duration;
 		return newPkt;
 	} else {
 		return av_packet_clone(pkt);
@@ -149,8 +150,8 @@ void LibavMux::process() {
 	pkt->dts = av_rescale_q(pkt->dts, avStream->codec->time_base, avStream->time_base);
 	pkt->pts = av_rescale_q(pkt->pts, avStream->codec->time_base, avStream->time_base);
 	pkt->duration = (int64_t)av_rescale_q(pkt->duration, avStream->codec->time_base, avStream->time_base);
-
 	pkt->stream_index = avStream->index;
+	
 	if (av_interleaved_write_frame(m_formatCtx, pkt) != 0) {
 		log(Warning, "can't write video frame.");
 		return;

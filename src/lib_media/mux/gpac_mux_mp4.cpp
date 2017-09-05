@@ -12,7 +12,7 @@ extern "C" {
 }
 
 //#define AVC_INBAND_CONFIG
-#define TIMESCALE_MUL 1000
+#define TIMESCALE_MUL 100
 
 namespace Modules {
 

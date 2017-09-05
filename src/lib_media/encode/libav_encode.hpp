@@ -51,11 +51,13 @@ class LibavEncode : public ModuleS {
 	private:
 		bool processAudio(const DataPcm *data);
 		bool processVideo(const DataPicture *data);
+		void computeDurationAndEmit(std::shared_ptr<DataAVPacket> &data, int64_t defaultDuration);
 
 		std::shared_ptr<AVCodecContext> codecCtx;
 		std::unique_ptr<PcmFormat> pcmFormat = nullptr;
 		std::unique_ptr<ffpp::Frame> const avFrame;
 		OutputDataDefault<DataAVPacket>* output;
+		uint64_t lastDTS = 0;
 };
 
 }

@@ -198,6 +198,9 @@ void LibavDemux::threadProc() {
 
 void LibavDemux::setMediaTime(std::shared_ptr<DataAVPacket> data) {
 	auto pkt = data->getPacket();
+	if (!pkt->duration) {
+		pkt->duration = pkt->dts - lastDTS[pkt->stream_index];
+	}
 	lastDTS[pkt->stream_index] = pkt->dts;
 	lastPTS[pkt->stream_index] = pkt->pts;
 	auto const base = m_formatCtx->streams[pkt->stream_index]->time_base;

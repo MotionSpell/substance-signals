@@ -175,13 +175,13 @@ Resolution MetadataPktLibavVideo::getResolution() const {
 }
 
 Fraction MetadataPktLibavVideo::getTimeScale() const {
-	if (!codecCtx->time_base.den || !codecCtx->time_base.den)
+	if (!codecCtx->time_base.num || !codecCtx->time_base.den)
 		throw std::runtime_error(format("Unsupported video time scale %s/%s.", codecCtx->time_base.den, codecCtx->time_base.num));
-	return Fraction(codecCtx->time_base.den, codecCtx->time_base.num);
+	return Fraction(codecCtx->time_base.den, codecCtx->time_base.num * codecCtx->ticks_per_frame);
 }
 
 Fraction MetadataPktLibavVideo::getFrameRate() const {
-	if (!codecCtx->framerate.den || !codecCtx->framerate.den)
+	if (!codecCtx->framerate.num || !codecCtx->framerate.den)
 		throw std::runtime_error(format("Unsupported video frame rate %s/%s.", codecCtx->framerate.den, codecCtx->framerate.num));
 	return Fraction(codecCtx->framerate.num, codecCtx->framerate.den);
 }
