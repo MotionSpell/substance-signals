@@ -143,26 +143,18 @@ void TeletextToTTML::sendSample(const std::string &sample) {
 	output->emit(out);
 }
 
-void TeletextToTTML::process(Data data) {
-	if (inputs[0]->updateMetadata(data))
-		output->setMetadata(data->getMetadata());
-	if (!firstDataAbsTimeInMs)
-		firstDataAbsTimeInMs = data->getClockTime(1000);
-	//TODO
-	//14. add flush() for ondemand samples + send data when it is detected, not when new sparse data arrives (we depend on them)
-	//15. UTF8 to TTML formatting? accent + EOLs </br>
-	auto sub = safe_cast<const DataAVPacket>(data);
-	if (!sub->size()) { //on sparse stream, we may be regularly awaken: generate samples only when needed
-		extClock = sub->getMediaTime();
-		const int64_t prevSplit = (intClock / splitDurationIn180k) * splitDurationIn180k;
-		const int64_t nextSplit = prevSplit + splitDurationIn180k;
-		if ((int64_t)(extClock - delayIn180k) > nextSplit) {
-			sendSample(toTTML(clockToTimescale(prevSplit, 1000), clockToTimescale(nextSplit, 1000)));
-			intClock = nextSplit;
-		}
-		return;
+void TeletextToTTML::dispatch() {
+	int64_t prevSplit = (intClock / splitDurationIn180k) * splitDurationIn180k;
+	int64_t nextSplit = prevSplit + splitDurationIn180k;
+	while ((int64_t)(extClock - delayIn180k) > nextSplit) {
+		sendSample(toTTML(clockToTimescale(prevSplit, 1000), clockToTimescale(nextSplit, 1000)));
+		intClock = nextSplit;
+		prevSplit = (intClock / splitDurationIn180k) * splitDurationIn180k;
+		nextSplit = prevSplit + splitDurationIn180k;
 	}
+}
 
+void TeletextToTTML::processTelx(DataAVPacket const * const sub) {
 	auto pkt = sub->getPacket();
 	config.page = pageNum;
 	int i = 1;
@@ -178,10 +170,10 @@ void TeletextToTTML::process(Data data) {
 
 			auto page = process_telx_packet(dataUnitId, (Payload*)entitiesData, pkt->pts);
 			if (page) {
-				auto const codecCtx = safe_cast<const MetadataPktLibav>(data->getMetadata())->getAVCodecContext();
+				auto const codecCtx = safe_cast<const MetadataPktLibav>(sub->getMetadata())->getAVCodecContext();
 				log(Debug, "framesProduced %s, show=%s, hide=%s", page->framesProduced, convertToTimescale(page->showTimestampInMs * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000), convertToTimescale(page->hideTimestampInMs * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000));
-				if (data->getMediaTime() < intClock) {
-					log(Warning, "Timing error: received %s but internal clock is already at %s", data->getMediaTime(), intClock);
+				if (sub->getMediaTime() < intClock) {
+					log(Warning, "Timing error: received %s but internal clock is already at %s", sub->getMediaTime(), intClock);
 				}
 
 				auto const startTimeInMs = std::max<int64_t>(convertToTimescale(pkt->pts * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000), convertToTimescale(page->showTimestampInMs * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000));
@@ -194,6 +186,22 @@ void TeletextToTTML::process(Data data) {
 
 		i += dataUnitSize;
 	}
+}
+
+void TeletextToTTML::process(Data data) {
+	if (inputs[0]->updateMetadata(data))
+		output->setMetadata(data->getMetadata());
+	if (!firstDataAbsTimeInMs)
+		firstDataAbsTimeInMs = data->getClockTime(1000);
+	extClock = data->getMediaTime();
+	//TODO
+	//14. add flush() for ondemand samples
+	//15. UTF8 to TTML formatting? accent + EOLs </br>
+	auto sub = safe_cast<const DataAVPacket>(data);
+	if (sub->size()) {
+		processTelx(sub.get());
+	}
+	dispatch();
 }
 
 }

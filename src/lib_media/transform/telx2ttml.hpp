@@ -32,6 +32,9 @@ public:
 private:
 	const std::string toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs);
 	void sendSample(const std::string &sample);
+	void processTelx(DataAVPacket const * const pkt);
+	void dispatch();
+
 	OutputDataDefault<DataAVPacket> *output;
 	const unsigned pageNum;
 	std::string lang;
