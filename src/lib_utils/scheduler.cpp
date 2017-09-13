@@ -26,7 +26,7 @@ void Scheduler::scheduleEvery(const std::function<void(Fraction)> &&task, Fracti
 	if (time == 0) {
 		time = clock->now();
 	}
-	const std::function<void(Fraction)> schedTask = [&, task2{ std::move(task) }, loopTime](Fraction startTime) {
+	const std::function<void(Fraction)> schedTask = [&, task2(std::move(task)), loopTime](Fraction startTime) {
 		task2(startTime);
 		scheduleEvery(std::move(task2), loopTime, startTime + loopTime);
 	};
