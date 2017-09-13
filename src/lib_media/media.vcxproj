@@ -52,7 +52,9 @@
     <ClInclude Include="transform\audio_convert.hpp" />
     <ClInclude Include="transform\libavfilter.hpp" />
     <ClInclude Include="transform\restamp.hpp" />
+    <ClInclude Include="transform\telx.hpp" />
     <ClInclude Include="transform\telx2ttml.hpp" />
+    <ClInclude Include="transform\telx_tables.hpp" />
     <ClInclude Include="transform\time_rectifier.hpp" />
     <ClInclude Include="transform\video_convert.hpp" />
     <ClInclude Include="utils\comparator.hpp" />

@@ -116,6 +116,12 @@
     <ClInclude Include="transform\time_rectifier.hpp">
       <Filter>src\transform</Filter>
     </ClInclude>
+    <ClInclude Include="transform\telx.hpp">
+      <Filter>src\transform</Filter>
+    </ClInclude>
+    <ClInclude Include="transform\telx_tables.hpp">
+      <Filter>src\transform</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="src">
