@@ -17,7 +17,7 @@ class HTTP : public ModuleDynI {
 			Chunked          = 1 << 1, //not enabling it is experimental
 		};
 
-		HTTP(const std::string &url, Flag flags = InitialEmptyPost | Chunked, const std::string &userAgent = std::string("GPAC Signals/1.0-") + std::string(g_version));
+		HTTP(const std::string &url, Flag flags = InitialEmptyPost | Chunked, const std::string &userAgent = std::string("GPAC Signals/") + std::string(g_version));
 		virtual ~HTTP();
 
 		void process() final;
