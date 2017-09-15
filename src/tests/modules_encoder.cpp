@@ -1,6 +1,8 @@
 #include "tests.hpp"
 #include "lib_modules/modules.hpp"
 #include "lib_media/demux/libav_demux.hpp"
+#include "lib_media/demux/gpac_demux_mp4_simple.hpp"
+#include "lib_media/demux/gpac_demux_mp4_full.hpp"
 #include "lib_media/encode/libav_encode.hpp"
 #include "lib_media/mux/gpac_mux_mp4.hpp"
 #include "lib_utils/tools.hpp"
@@ -25,8 +27,8 @@ unittest("encoder: video simple") {
 	ASSERT(numEncodedFrames > 0);
 }
 
-unittest("encoder: timestamps start at random values") {
-	const std::vector<uint64_t> times = { Clock::Rate, 2*Clock::Rate, 3*Clock::Rate };
+template<typename T>
+void checkTimestamps(const std::vector<int64_t> &times) {
 	Encode::LibavEncode::Params p;
 	p.frameRate.num = 1;
 	std::shared_ptr<DataBase> picture = uptr(new PictureYUV420P(VIDEO_RESOLUTION));
@@ -45,12 +47,33 @@ unittest("encoder: timestamps start at random values") {
 		ASSERT(data->getMediaTime() + times[0] == times[i]);
 		i++;
 	};
-	auto demux = create<Demux::LibavDemux>("random_ts.mp4");
+	auto demux = create<T>("random_ts.mp4");
 	Connect(demux->getOutput(0)->getSignal(), onFrame);
 	demux->process(nullptr);
-	demux->flush();
 	ASSERT(i == times.size());
 }
+
+unittest("encoder: timestamps start at random values (LibavDemux)") {
+	const int64_t interval = (int64_t)Clock::Rate;
+	checkTimestamps<Demux::LibavDemux>({ interval, 2*interval, 3*interval });
+}
+
+#ifdef ENABLE_FAILING_TESTS
+unittest("encoder: timestamps start at random values (GPACDemuxMP4Simple)") {
+	const int64_t interval = (int64_t)Clock::Rate;
+	checkTimestamps<Demux::GPACDemuxMP4Simple>({ interval, 2 * interval, 3 * interval });
+}
+
+unittest("encoder: timestamps start at a negative value") {
+	const int64_t interval = (int64_t)Clock::Rate;
+	checkTimestamps<Demux::LibavDemux>({ -interval, 0, interval });
+}
+
+unittest("encoder: timestamps start at a negative value") {
+	const int64_t interval = (int64_t)Clock::Rate;
+	checkTimestamps<Demux::GPACDemuxMP4Simple>({ -interval, 0, interval });
+}
+#endif
 
 //TODO: logs on Error should be caught as exceptions in tests
 unittest("GPAC mp4 mux: don't create empty fragments") {

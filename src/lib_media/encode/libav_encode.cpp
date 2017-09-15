@@ -233,7 +233,7 @@ bool LibavEncode::processVideo(const DataPicture *pic) {
 			f->data[i] = (uint8_t*)pic->getPlane(i);
 			f->linesize[i] = (int)pic->getPitch(i);
 		}
-		f->pts = (pic->getMediaTime() * codecCtx->time_base.den) / (codecCtx->time_base.num * Clock::Rate);
+		f->pts = (pic->getMediaTime() * codecCtx->time_base.den) / (codecCtx->time_base.num * (int64_t)Clock::Rate);
 	}
 
 	int gotPkt = 0;

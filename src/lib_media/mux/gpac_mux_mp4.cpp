@@ -774,9 +774,14 @@ void GPACMuxMP4::declareStream(Data data) {
 
 	lastInputTimeIn180k = data->getMediaTime();
 	if (lastInputTimeIn180k) { /*first timestamp is not zero*/
-		//Romain: should we use sample.CTS_Offset?
-		gf_isom_set_composition_offset_mode(isoCur, gf_isom_get_track_by_id(isoCur, trackId), GF_TRUE);
-		deltaInTs = clockToTimescale(lastInputTimeIn180k, gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId)));
+		auto const edts = clockToTimescale(lastInputTimeIn180k, gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId)));
+		if (edts > 0) {
+			gf_isom_set_edit_segment(isoCur, gf_isom_get_track_by_id(isoCur, trackId), 0, edts, 0, GF_ISOM_EDIT_EMPTY);
+			gf_isom_set_edit_segment(isoCur, gf_isom_get_track_by_id(isoCur, trackId), 0, edts, 0, GF_ISOM_EDIT_NORMAL);
+			deltaInTs = edts;
+		} else {
+			gf_isom_append_edit_segment(isoCur, gf_isom_get_track_by_id(isoCur, trackId), 0, -edts, GF_ISOM_EDIT_NORMAL);
+		}
 	}
 }
 
