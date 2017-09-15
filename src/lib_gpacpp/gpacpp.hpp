@@ -183,6 +183,10 @@ class IsoFile : public Init {
 			return std::unique_ptr<IsoSample>(new IsoSample(sample));
 		}
 
+		uint32_t getMediaTimescale(int trackNumber) const {
+			return gf_isom_get_media_timescale(movie_, trackNumber);
+		}
+
 		GF_DecoderConfig* getDecoderConfig(int trackHandle, int descriptorIndex) const {
 			return gf_isom_get_decoder_config(movie_, trackHandle, descriptorIndex);
 		}

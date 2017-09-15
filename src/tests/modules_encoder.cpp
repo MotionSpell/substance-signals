@@ -2,7 +2,6 @@
 #include "lib_modules/modules.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/demux/gpac_demux_mp4_simple.hpp"
-#include "lib_media/demux/gpac_demux_mp4_full.hpp"
 #include "lib_media/encode/libav_encode.hpp"
 #include "lib_media/mux/gpac_mux_mp4.hpp"
 #include "lib_utils/tools.hpp"
@@ -58,12 +57,12 @@ unittest("encoder: timestamps start at random values (LibavDemux)") {
 	checkTimestamps<Demux::LibavDemux>({ interval, 2*interval, 3*interval });
 }
 
-#ifdef ENABLE_FAILING_TESTS
 unittest("encoder: timestamps start at random values (GPACDemuxMP4Simple)") {
 	const int64_t interval = (int64_t)Clock::Rate;
 	checkTimestamps<Demux::GPACDemuxMP4Simple>({ interval, 2 * interval, 3 * interval });
 }
 
+#ifdef ENABLE_FAILING_TESTS
 unittest("encoder: timestamps start at a negative value") {
 	const int64_t interval = (int64_t)Clock::Rate;
 	checkTimestamps<Demux::LibavDemux>({ -interval, 0, interval });

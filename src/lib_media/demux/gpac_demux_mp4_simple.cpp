@@ -39,20 +39,16 @@ void GPACDemuxMP4Simple::process(Data /*data*/) {
 	for (;;) {
 		try {
 			int sampleDescriptionIndex;
-			std::unique_ptr<gpacpp::IsoSample> ISOSample;
-			ISOSample = reader->movie->getSample(reader->trackNumber, reader->sampleIndex, sampleDescriptionIndex);
+			std::unique_ptr<gpacpp::IsoSample> ISOSample = reader->movie->getSample(reader->trackNumber, reader->sampleIndex, sampleDescriptionIndex);
 
 			log(Debug, "Found sample #%s/%s of length %s, RAP %s, DTS: %s, CTS: %s",
-			         reader->sampleIndex,
-			         reader->sampleCount,
-			         ISOSample->dataLength,
-			         ISOSample->IsRAP,
-			         ISOSample->DTS,
-			         ISOSample->DTS + ISOSample->CTS_Offset);
+				reader->sampleIndex, reader->sampleCount, ISOSample->dataLength,
+				ISOSample->IsRAP, ISOSample->DTS, ISOSample->DTS + ISOSample->CTS_Offset);
 			reader->sampleIndex++;
 
 			auto out = output->getBuffer(ISOSample->dataLength);
 			memcpy(out->data(), ISOSample->data, ISOSample->dataLength);
+			out->setMediaTime(ISOSample->DTS, reader->movie->getMediaTimescale(reader->trackNumber));
 			output->emit(out);
 		} catch (gpacpp::Error const& err) {
 			if (err.error_ == GF_ISOM_INCOMPLETE_FILE) {
