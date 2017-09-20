@@ -192,7 +192,7 @@ void TeletextToTTML::process(Data data) {
 	if (inputs[0]->updateMetadata(data))
 		output->setMetadata(data->getMetadata());
 	if (!firstDataAbsTimeInMs)
-		firstDataAbsTimeInMs = data->getClockTime(1000);
+		firstDataAbsTimeInMs = (uint64_t)(1000 * getUTC());
 	extClock = data->getMediaTime();
 	//TODO
 	//14. add flush() for ondemand samples

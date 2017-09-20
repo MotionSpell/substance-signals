@@ -324,7 +324,7 @@ function gpac_build {
   host=$1
   pushDir $WORK/src
 
-  lazy_git_clone https://github.com/gpac/gpac.git gpac b74bbb4fb
+  lazy_git_clone https://github.com/gpac/gpac.git gpac 9b1c2ef5c
 
   local OS=$(get_os $host)
   local crossPrefix=$(get_cross_prefix $BUILD $host)

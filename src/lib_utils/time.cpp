@@ -74,7 +74,7 @@ std::string getDay() {
 
 std::string getTimeFromUTC() {
 	char time[24];
-	const uint64_t t = (uint64_t)(1000 * getUTC());
+	auto const t = (uint64_t)(1000 * getUTC());
 	timeInMsToStr(((t / 3600000) % 24) * 3600000 + (t % 3600000), time);
 	return time;
 }
