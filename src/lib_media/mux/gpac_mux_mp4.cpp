@@ -185,7 +185,7 @@ static GF_Err hevc_import_ffextradata(const u8 *extradata, const u64 extradata_s
 		gf_bs_read_data(bs, buffer, NALSize);
 		gf_bs_seek(bs, NALStart);
 
-		gf_media_hevc_parse_nalu(bs, hevc.get(), &NALUnitType, &temporalId, &layerId);
+		gf_media_hevc_parse_nalu(buffer, NALSize, hevc.get(), &NALUnitType, &temporalId, &layerId);
 		if (layerId) {
 			gf_bs_del(bs);
 			gf_free(buffer);
@@ -456,7 +456,7 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 	} else {
 		if (segmentPolicy == FragmentedSegment) {
 			const Bool isFile = (Bool)(gf_isom_get_filename(isoInit) != nullptr);
-			GF_Err e = gf_isom_close_segment(isoCur, 0, 0, 0, 0, 0, GF_FALSE, (Bool)isLastSeg, isFile, (compatFlags & Browsers) ? 0 : GF_4CC('e', 'o', 'd', 's'), nullptr, nullptr);
+			GF_Err e = gf_isom_close_segment(isoCur, 0, 0, 0, 0, 0, GF_FALSE, (Bool)isLastSeg, isFile, (compatFlags & Browsers) ? 0 : GF_4CC('e', 'o', 'd', 's'), nullptr, nullptr, &lastSegmentSize);
 			if (e != GF_OK) {
 				if (DTS == 0) {
 					return;
@@ -464,15 +464,14 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 					throw error(format("gf_isom_close_segment: %s", gf_error_to_string(e)));
 				}
 			}
-			if (isFile) {
-				lastSegmentSize = fileSize(segmentName);
-			} else {
+			if (!isFile) {
 				GF_BitStream *bs = NULL;
 				GF_Err e = gf_isom_get_bs(isoInit, &bs);
 				if (e)
 					throw error(format("gf_isom_get_bs: %s", gf_error_to_string(e)));
 				char *output; u32 size;
 				gf_bs_get_content(bs, &output, &size);
+				assert(lastSegmentSize == size);
 				lastSegmentSize = size;
 				gf_free(output);
 			}

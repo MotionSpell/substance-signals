@@ -423,7 +423,7 @@ std::unique_ptr<Modules::Transform::Page> process_telx_packet(DataUnit dataUnitI
 					ucs2_to_utf8(u, c);
 				}
 
-				//time conversion here is insane:
+				//time conversion here is insane
 				// BCD to Modified Julian Day
 				uint32_t t = 0;
 				t += (packet->data[10] & 0x0f) * 10000;
@@ -440,7 +440,6 @@ std::unique_ptr<Modules::Transform::Page> process_telx_packet(DataUnit dataUnitI
 				t += (((packet->data[15] & 0xf0) >> 4) * 10 + (packet->data[15] & 0x0f));
 				t -= 40271;
 
-				time_t t0 = (time_t)t;
 				if (config.seMode == YES) {
 					config.UTCReferenceTime = t;
 					states.PTSIsInit = NO;

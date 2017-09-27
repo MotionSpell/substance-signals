@@ -102,7 +102,7 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 		if (inputs[i]->getMetadata()->getStreamType() == VIDEO_RAW) {
 			auto dist = std::numeric_limits<int64_t>::max();
 			for (auto &currData : input[i]->data) {
-				auto const currDist = abs(currData->getClockTime() - fractionToClock(time));
+				auto const currDist = std::abs(currData->getClockTime() - fractionToClock(time));
 				if (currDist < dist) {
 					dist = currDist;
 					refData = currData;

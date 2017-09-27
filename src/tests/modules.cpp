@@ -1,5 +1,7 @@
 #include "tests.hpp"
 
+//TODO: logs on Error should be caught as exceptions in tests
+
 //#define ENABLE_FAILING_TESTS
 
 #if 0
