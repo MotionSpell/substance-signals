@@ -80,11 +80,11 @@ LibavEncode::LibavEncode(Type type, Params &params)
 	if (!codec) {
 		auto desc = avcodec_descriptor_get_by_name(entry->value);
 		if (!desc)
-			throw error(format("codec descriptor '%s' not found, disable output.", entry->value));
+			throw error(format("Codec descriptor '%s' not found, disable output.", entry->value));
 		codec = avcodec_find_encoder(desc->id);
 	}
 	if (!codec)
-		throw error(format("codec '%s' not found, disable output.", entry->value));
+		throw error(format("Codec '%s' not found, disable output.", entry->value));
 	codecCtx = shptr(avcodec_alloc_context3(codec));
 	if (!codecCtx)
 		throw error(format("Could not allocate the codec context (%s).", codecName));
