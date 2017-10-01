@@ -36,6 +36,7 @@ GPACDemuxMP4Simple::~GPACDemuxMP4Simple() {
 }
 
 void GPACDemuxMP4Simple::process(Data /*data*/) {
+	auto const DTSOffset = reader->movie->getDTSOffet(reader->trackNumber); //Romain: demux full?
 	for (;;) {
 		try {
 			int sampleDescriptionIndex;
@@ -43,12 +44,12 @@ void GPACDemuxMP4Simple::process(Data /*data*/) {
 
 			log(Debug, "Found sample #%s/%s of length %s, RAP %s, DTS: %s, CTS: %s",
 				reader->sampleIndex, reader->sampleCount, ISOSample->dataLength,
-				ISOSample->IsRAP, ISOSample->DTS, ISOSample->DTS + ISOSample->CTS_Offset);
+				ISOSample->IsRAP, ISOSample->DTS + DTSOffset, ISOSample->DTS + DTSOffset + ISOSample->CTS_Offset);
 			reader->sampleIndex++;
 
 			auto out = output->getBuffer(ISOSample->dataLength);
 			memcpy(out->data(), ISOSample->data, ISOSample->dataLength);
-			out->setMediaTime(ISOSample->DTS, reader->movie->getMediaTimescale(reader->trackNumber));
+			out->setMediaTime(ISOSample->DTS + DTSOffset, reader->movie->getMediaTimescale(reader->trackNumber));
 			output->emit(out);
 		} catch (gpacpp::Error const& err) {
 			if (err.error_ == GF_ISOM_INCOMPLETE_FILE) {

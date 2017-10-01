@@ -354,6 +354,8 @@ void fillVideoSampleData(const u8 *bufPtr, u32 bufLen, GF_ISOSample &sample) {
 
 namespace Mux {
 
+int64_t GPACMuxMP4::firstDataAbsTimeInMs = 0;
+
 GPACMuxMP4::GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs, SegmentPolicy segmentPolicy, FragmentPolicy fragmentPolicy, CompatibilityFlag compatFlags)
 	: compatFlags(compatFlags), fragmentPolicy(fragmentPolicy), segmentPolicy(segmentPolicy), segmentDurationIn180k(timescaleToClock(segmentDurationInMs, 1000)) {
 	if ((segmentDurationInMs == 0) ^ (segmentPolicy == NoSegment || segmentPolicy == SingleSegment))
@@ -528,7 +530,7 @@ void GPACMuxMP4::closeFragment() {
 			auto const deltaInTs = DTS == curSegmentDurInTs ? defaultSampleIncInTs : 0;
 			GF_Err e = gf_isom_set_traf_mss_timeext(isoCur, trackId, convertToTimescale(firstDataAbsTimeInMs, 1000, mediaTs) + DTS - curSegmentDurInTs - defaultSampleIncInTs + deltaInTs, curSegmentDurInTs - deltaInTs);
 			if (e != GF_OK)
-				throw error(format("Impossible to create UTC marquer: %s", gf_error_to_string(e)));
+				throw error(format("Impossible to create UTC marker: %s", gf_error_to_string(e)));
 		}
 		if ((segmentPolicy == FragmentedSegment) || (segmentPolicy == SingleSegment)) {
 			gf_isom_flush_fragments(isoCur, GF_TRUE); //writes a 'styp'
@@ -773,13 +775,13 @@ void GPACMuxMP4::declareStream(Data data) {
 
 	lastInputTimeIn180k = data->getMediaTime();
 	if (lastInputTimeIn180k) { /*first timestamp is not zero*/
-		auto const edts = clockToTimescale(lastInputTimeIn180k, gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId)));
-		if (edts > 0) {
-			gf_isom_set_edit_segment(isoCur, gf_isom_get_track_by_id(isoCur, trackId), 0, edts, 0, GF_ISOM_EDIT_EMPTY);
-			gf_isom_set_edit_segment(isoCur, gf_isom_get_track_by_id(isoCur, trackId), 0, edts, 0, GF_ISOM_EDIT_NORMAL);
-			deltaInTs = edts;
+		auto const edtsInMovieTs = clockToTimescale(lastInputTimeIn180k, gf_isom_get_timescale(isoCur));
+		if (edtsInMovieTs > 0) {
+			gf_isom_append_edit_segment(isoCur, gf_isom_get_track_by_id(isoCur, trackId), edtsInMovieTs, 0, GF_ISOM_EDIT_EMPTY);
+			gf_isom_append_edit_segment(isoCur, gf_isom_get_track_by_id(isoCur, trackId), edtsInMovieTs, 0, GF_ISOM_EDIT_NORMAL);
+			deltaInTs = clockToTimescale(lastInputTimeIn180k, gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId)));
 		} else {
-			gf_isom_append_edit_segment(isoCur, gf_isom_get_track_by_id(isoCur, trackId), 0, -edts, GF_ISOM_EDIT_NORMAL);
+			gf_isom_append_edit_segment(isoCur, gf_isom_get_track_by_id(isoCur, trackId), 0, -edtsInMovieTs, GF_ISOM_EDIT_NORMAL);
 		}
 	}
 }
@@ -949,7 +951,7 @@ void GPACMuxMP4::process() {
 	auto const mediaTs = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
 	int64_t dataDurationInTs = clockToTimescale(data->getMediaTime() - lastInputTimeIn180k, mediaTs);
 	if (DTS && !data->getMediaTime()) {
-		lastInputTimeIn180k += defaultSampleIncInTs;
+		lastInputTimeIn180k += timescaleToClock(defaultSampleIncInTs, mediaTs);
 		dataDurationInTs = defaultSampleIncInTs;
 		log(Warning, "Received time 0 but inferring it to %s", lastInputTimeIn180k);
 	} else {

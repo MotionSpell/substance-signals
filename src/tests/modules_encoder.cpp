@@ -45,15 +45,15 @@ unittest("H265 encode and GPAC mp4 mux") {
 }
 
 template<typename T>
-void checkTimestamps(const std::vector<int64_t> &times) {
+void checkTimestamps(const std::vector<int64_t> &timesIn, const std::vector<int64_t> &timesOut) {
 	Encode::LibavEncode::Params p;
 	p.frameRate.num = 1;
 	std::shared_ptr<DataBase> picture = uptr(new PictureYUV420P(VIDEO_RESOLUTION));
 	auto encode = create<Encode::LibavEncode>(Encode::LibavEncode::Video, p);
 	auto mux = create<Mux::GPACMuxMP4>("random_ts");
 	ConnectOutputToInput(encode->getOutput(0), mux->getInput(0));
-	for (size_t i = 0; i < times.size(); ++i) {
-		picture->setMediaTime(times[i]);
+	for (size_t i = 0; i < timesIn.size(); ++i) {
+		picture->setMediaTime(timesIn[i]);
 		encode->process(picture);
 	}
 	encode->flush();
@@ -61,36 +61,40 @@ void checkTimestamps(const std::vector<int64_t> &times) {
 
 	size_t i = 0;
 	auto onFrame = [&](Data data) {
-		ASSERT(data->getMediaTime() + times[0] == times[i]);
+		ASSERT(data->getMediaTime() == timesOut[i]);
 		i++;
 	};
 	auto demux = create<T>("random_ts.mp4");
 	Connect(demux->getOutput(0)->getSignal(), onFrame);
 	demux->process(nullptr);
-	ASSERT(i == times.size());
+	ASSERT(i == timesOut.size());
 }
 
 unittest("encoder: timestamps start at random values (LibavDemux)") {
 	const int64_t interval = (int64_t)Clock::Rate;
-	checkTimestamps<Demux::LibavDemux>({ interval, 2*interval, 3*interval });
+	const std::vector<int64_t> correct = { interval, 2 * interval, 3 * interval };
+	const std::vector<int64_t> incorrect = { 0 };
+	checkTimestamps<Demux::LibavDemux>(correct, incorrect);
 }
 
 unittest("encoder: timestamps start at random values (GPACDemuxMP4Simple)") {
 	const int64_t interval = (int64_t)Clock::Rate;
-	checkTimestamps<Demux::GPACDemuxMP4Simple>({ interval, 2 * interval, 3 * interval });
-}
-
-#ifdef ENABLE_FAILING_TESTS
-unittest("encoder: timestamps start at a negative value") {
-	const int64_t interval = (int64_t)Clock::Rate;
-	checkTimestamps<Demux::LibavDemux>({ -interval, 0, interval });
+	const std::vector<int64_t> correct = { interval, 2 * interval, 3 * interval };
+	checkTimestamps<Demux::GPACDemuxMP4Simple>(correct, correct);
 }
 
 unittest("encoder: timestamps start at a negative value") {
 	const int64_t interval = (int64_t)Clock::Rate;
-	checkTimestamps<Demux::GPACDemuxMP4Simple>({ -interval, 0, interval });
+	const std::vector<int64_t> correct = { -interval, 0, interval };
+	const std::vector<int64_t> incorrect = { 0 };
+	checkTimestamps<Demux::LibavDemux>(correct, incorrect);
 }
-#endif
+
+unittest("encoder: timestamps start at a negative value") {
+	const int64_t interval = (int64_t)Clock::Rate;
+	const std::vector<int64_t> correct = { -interval, 0, interval };
+	checkTimestamps<Demux::GPACDemuxMP4Simple>(correct, correct);
+}
 
 #ifdef ENABLE_FAILING_TESTS
 unittest("GPAC mp4 mux: don't create empty fragments") {

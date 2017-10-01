@@ -57,7 +57,7 @@ class LibavEncode : public ModuleS {
 		std::unique_ptr<PcmFormat> pcmFormat = nullptr;
 		std::unique_ptr<ffpp::Frame> const avFrame;
 		OutputDataDefault<DataAVPacket>* output;
-		uint64_t lastDTS = 0;
+		int64_t lastDTS = 0;
 };
 
 }

@@ -63,7 +63,8 @@ class GPACMuxMP4 : public ModuleDynI {
 
 		CompatibilityFlag compatFlags;
 		int64_t lastInputTimeIn180k = 0;
-		uint64_t DTS = 0, prevDTS = 0, defaultSampleIncInTs = 0, firstDataAbsTimeInMs = 0;
+		uint64_t DTS = 0, prevDTS = 0, defaultSampleIncInTs = 0;
+		static int64_t firstDataAbsTimeInMs;
 		bool isAnnexB = true;
 
 		//fragments
