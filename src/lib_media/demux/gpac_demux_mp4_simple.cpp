@@ -36,7 +36,7 @@ GPACDemuxMP4Simple::~GPACDemuxMP4Simple() {
 }
 
 void GPACDemuxMP4Simple::process(Data /*data*/) {
-	auto const DTSOffset = reader->movie->getDTSOffet(reader->trackNumber); //Romain: demux full?
+	auto const DTSOffset = reader->movie->getDTSOffet(reader->trackNumber);
 	for (;;) {
 		try {
 			int sampleDescriptionIndex;

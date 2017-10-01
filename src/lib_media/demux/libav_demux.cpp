@@ -49,8 +49,7 @@ void LibavDemux::initRestamp() {
 		const std::string  fn = m_formatCtx->filename;
 		if (format == "rtsp" || format == "rtp" || format == "sdp" || !fn.compare(0, 4, "rtp:") || !fn.compare(0, 4, "udp:")) {
 			restampers[i] = create<Transform::Restamp>(Transform::Restamp::IgnoreFirstAndReset);
-		}
-		else {
+		} else {
 			restampers[i] = create<Transform::Restamp>(Transform::Restamp::Reset);
 		}
 
@@ -205,10 +204,14 @@ void LibavDemux::setMediaTime(std::shared_ptr<DataAVPacket> data) {
 	lastPTS[pkt->stream_index] = pkt->pts;
 	auto const base = m_formatCtx->streams[pkt->stream_index]->time_base;
 	auto const time = timescaleToClock(pkt->dts * base.num, base.den);
-	data->setMediaTime(time);
-
-	restampers[pkt->stream_index]->process(data); /*restamp by pid only when no start time*/
-	int64_t offset = data->getMediaTime() - time;
+	data->setMediaTime(time - startPTSIn180k);
+	int64_t offset;
+	if (startPTSIn180k) {
+		offset = -startPTSIn180k; /*a global offset is applied to all streams*/
+	} else {
+		restampers[pkt->stream_index]->process(data); /*restamp by pid only when no start time*/
+		offset = data->getMediaTime() - time;
+	}
 	if (offset != 0) {
 		data->restamp(offset * base.num, base.den); /*propagate to AVPacket*/
 	}

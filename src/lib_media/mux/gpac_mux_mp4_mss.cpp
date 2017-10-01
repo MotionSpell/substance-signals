@@ -8,7 +8,8 @@ namespace Modules {
 namespace Mux {
 
 GPACMuxMP4MSS::GPACMuxMP4MSS(const std::string &baseName, uint64_t segmentDurationInMs, const std::string &audioLang, const std::string &audioName)
-: GPACMuxMP4(baseName, segmentDurationInMs, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::OneFragmentPerSegment, Mux::GPACMuxMP4::SmoothStreaming | Mux::GPACMuxMP4::Browsers | Mux::GPACMuxMP4::SegConstantDur),
+: GPACMuxMP4(baseName, segmentDurationInMs,
+  Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::OneFragmentPerSegment, Mux::GPACMuxMP4::SmoothStreaming | Mux::GPACMuxMP4::Browsers | (!audioName.empty() ? Mux::GPACMuxMP4::SegConstantDur : None)),
 audioLang(audioLang), audioName(audioName) {
 }
 

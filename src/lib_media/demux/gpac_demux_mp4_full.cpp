@@ -96,15 +96,16 @@ bool GPACDemuxMP4Full::processSample() {
 						 */
 
 					reader->samplesProcessed++;
+					auto const DTSOffset = reader->movie->getDTSOffet(reader->trackNumber);
 					/*here we dump some sample info: samp->data, samp->dataLength, samp->isRAP, samp->DTS, samp->CTS_Offset */
 					log(Debug, "Found sample #%s(#%s) of length %s , RAP: %s, DTS: %s, CTS: %s",
 						reader->sampleIndex, reader->samplesProcessed, ISOSample->dataLength,
-						ISOSample->IsRAP, ISOSample->DTS, ISOSample->DTS + ISOSample->CTS_Offset);
+						ISOSample->IsRAP, ISOSample->DTS + DTSOffset, ISOSample->DTS + DTSOffset + ISOSample->CTS_Offset);
 					reader->sampleIndex++;
 
 					auto out = output->getBuffer(ISOSample->dataLength);
 					memcpy(out->data(), ISOSample->data, ISOSample->dataLength);
-					out->setMediaTime(ISOSample->DTS, reader->movie->getMediaTimescale(reader->trackNumber));
+					out->setMediaTime(ISOSample->DTS + DTSOffset, reader->movie->getMediaTimescale(reader->trackNumber));
 					output->emit(out);
 				}
 
