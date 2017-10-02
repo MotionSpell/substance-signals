@@ -75,7 +75,7 @@ void MPEG_DASH::ensureManifest() {
 		mpd->mpd->availabilityStartTime = startTimeInMs + initialOffsetInMs;
 		mpd->mpd->time_shift_buffer_depth = (u32)timeShiftBufferDepthInMs;
 	}
-	mpd->mpd->publishTime = (uint64_t)(1000 * getUTC());
+	mpd->mpd->publishTime = getUTC().num;
 
 	auto mpdBaseURL = gf_list_new();
 	if (!mpdBaseURL)

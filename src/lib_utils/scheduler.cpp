@@ -45,7 +45,7 @@ void Scheduler::threadProc() {
 
 		if (clock->getSpeed()) {
 			auto &t = queue.top();
-			auto const waitDurInMs = (int64_t)(1000 * (t->time - clock->now()));
+			auto const waitDurInMs = 1000 * (double)(t->time - clock->now());
 			if (waitDurInMs < 0) {
 				Log::msg(Warning, "Late from %s ms.", -waitDurInMs);
 			} else if (waitDurInMs > 0) {

@@ -20,7 +20,7 @@ double Clock::getSpeed() const {
 
 void Clock::sleep(Fraction time) const {
 	if (speed > 0.0) {
-		std::this_thread::sleep_for(std::chrono::milliseconds((uint64_t)(time * 1000)));
+		std::this_thread::sleep_for(std::chrono::milliseconds(time.num * 1000 / time.den));
 	}
 }
 

@@ -1,5 +1,6 @@
 #include "time.hpp"
 #include "format.hpp"
+#include <cassert>
 #include <cstdio>
 #include <ctime>
 #include <iostream>
@@ -35,15 +36,17 @@ static void getNTP(uint32_t *sec, uint32_t *frac) {
 }
 
 Fraction getUTC() {
-	uint64_t current_time;
+	const uint64_t unit = 1000;
+	assert(unit == 1000);
+	uint64_t currentTime;
 	double msec;
 	uint32_t sec, frac;
 	getNTP(&sec, &frac);
-	current_time = sec - NTP_SEC_1900_TO_1970;
-	current_time *= 1000;
-	msec = (frac*1000.0) / 0xFFFFFFFF;
-	current_time += (uint64_t)msec;
-	return Fraction(current_time, 1000);
+	currentTime = sec - NTP_SEC_1900_TO_1970;
+	currentTime *= unit;
+	msec = (frac*double(unit)) / 0xFFFFFFFF;
+	currentTime += (uint64_t)msec;
+	return Fraction(currentTime, unit);
 }
 
 uint64_t UTC2NTP(uint64_t absTimeUTCInMs) {
@@ -74,7 +77,7 @@ std::string getDay() {
 
 std::string getTimeFromUTC() {
 	char time[24];
-	auto const t = (uint64_t)(1000 * getUTC());
+	auto const t = getUTC().num;
 	timeInMsToStr(((t / 3600000) % 24) * 3600000 + (t % 3600000), time);
 	return time;
 }

@@ -61,7 +61,9 @@ void checkTimestamps(const std::vector<int64_t> &timesIn, const std::vector<int6
 
 	size_t i = 0;
 	auto onFrame = [&](Data data) {
-		ASSERT(data->getMediaTime() == timesOut[i]);
+		if (i < timesOut.size()) {
+			ASSERT(data->getMediaTime() == timesOut[i]);
+		}
 		i++;
 	};
 	auto demux = create<T>("random_ts.mp4");

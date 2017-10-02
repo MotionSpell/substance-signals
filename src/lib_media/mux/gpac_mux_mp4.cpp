@@ -944,7 +944,7 @@ void GPACMuxMP4::process() {
 	//FIXME: reimplement with multiple inputs
 	Data data = inputs[0]->pop();
 	if (!firstDataAbsTimeInMs)
-		firstDataAbsTimeInMs = (uint64_t)(1000 * getUTC());
+		firstDataAbsTimeInMs = getUTC().num;
 	if (inputs[0]->updateMetadata(data))
 		declareStream(data);
 	auto sample = fillSample(data);
