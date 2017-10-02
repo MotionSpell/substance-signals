@@ -776,12 +776,13 @@ void GPACMuxMP4::declareStream(Data data) {
 	lastInputTimeIn180k = data->getMediaTime();
 	if (lastInputTimeIn180k) { /*first timestamp is not zero*/
 		auto const edtsInMovieTs = clockToTimescale(lastInputTimeIn180k, gf_isom_get_timescale(isoCur));
+		auto const edtsInMediaTs = clockToTimescale(lastInputTimeIn180k, gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId)));
 		if (edtsInMovieTs > 0) {
 			gf_isom_append_edit_segment(isoCur, gf_isom_get_track_by_id(isoCur, trackId), edtsInMovieTs, 0, GF_ISOM_EDIT_EMPTY);
 			gf_isom_append_edit_segment(isoCur, gf_isom_get_track_by_id(isoCur, trackId), edtsInMovieTs, 0, GF_ISOM_EDIT_NORMAL);
-			deltaInTs = clockToTimescale(lastInputTimeIn180k, gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId)));
+			deltaInTs = edtsInMediaTs;
 		} else {
-			gf_isom_append_edit_segment(isoCur, gf_isom_get_track_by_id(isoCur, trackId), 0, -edtsInMovieTs, GF_ISOM_EDIT_NORMAL);
+			gf_isom_append_edit_segment(isoCur, gf_isom_get_track_by_id(isoCur, trackId), 0, -edtsInMediaTs, GF_ISOM_EDIT_NORMAL);
 		}
 	}
 }

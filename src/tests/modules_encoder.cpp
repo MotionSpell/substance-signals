@@ -83,14 +83,14 @@ unittest("encoder: timestamps start at random values (GPACDemuxMP4Simple)") {
 	checkTimestamps<Demux::GPACDemuxMP4Simple>(correct, correct);
 }
 
-unittest("encoder: timestamps start at a negative value") {
+unittest("encoder: timestamps start at a negative value (LibavDemux)") {
 	const int64_t interval = (int64_t)Clock::Rate;
 	const std::vector<int64_t> correct = { -interval, 0, interval };
 	const std::vector<int64_t> incorrect = { 0 };
 	checkTimestamps<Demux::LibavDemux>(correct, incorrect);
 }
 
-unittest("encoder: timestamps start at a negative value") {
+unittest("encoder: timestamps start at a negative value (GPACDemuxMP4Simple)") {
 	const int64_t interval = (int64_t)Clock::Rate;
 	const std::vector<int64_t> correct = { -interval, 0, interval };
 	checkTimestamps<Demux::GPACDemuxMP4Simple>(correct, correct);
