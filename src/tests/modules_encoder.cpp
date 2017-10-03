@@ -98,6 +98,47 @@ unittest("encoder: timestamps start at a negative value (GPACDemuxMP4Simple)") {
 	checkTimestamps<Demux::GPACDemuxMP4Simple>(correct, correct);
 }
 
+void RAPTest(const Fraction fps, const std::vector<uint64_t> &times, const std::vector<bool> &RAPs) {
+	Encode::LibavEncode::Params p;
+	p.frameRate = fps;
+	p.GOPSize = fps;
+	std::shared_ptr<DataBase> picture = uptr(new PictureYUV420P(VIDEO_RESOLUTION));
+	auto encode = create<Encode::LibavEncode>(Encode::LibavEncode::Video, p);
+	size_t i = 0;
+	auto onFrame = [&](Data data) {
+		if (i < RAPs.size()) {
+			auto pkt = safe_cast<const DataAVPacket>(data)->getPacket();
+			ASSERT((pkt->flags & AV_PKT_FLAG_KEY) == RAPs[i]);
+		}
+		i++;
+	};
+	Connect(encode->getOutput(0)->getSignal(), onFrame);
+	for (size_t i = 0; i < times.size(); ++i) {
+		picture->setMediaTime(times[i]);
+		encode->process(picture);
+	}
+	encode->flush();
+	ASSERT(i == RAPs.size());
+}
+
+unittest("encoder: RAP placement (25/1 fps)") {
+	const std::vector<uint64_t> times = { 0, Clock::Rate / 2, Clock::Rate, Clock::Rate * 3 / 2, Clock::Rate * 2 };
+	const std::vector<bool> RAPs = { true, false, true, false, true };
+	RAPTest(Fraction(25, 1), times, RAPs);
+}
+
+unittest("encoder: RAP placement (30000/1001 fps)") {
+	const std::vector<uint64_t> times = { 0, Clock::Rate/2, Clock::Rate, Clock::Rate*3/2, Clock::Rate*2 };
+	const std::vector<bool> RAPs = { true, false, true, false, true };
+	RAPTest(Fraction(30000, 1001), times, RAPs);
+}
+
+unittest("encoder: RAP placement (incorrect timings)") {
+	const std::vector<uint64_t> times = { 0, 0, Clock::Rate };
+	const std::vector<bool> RAPs = { true, false, true };
+	RAPTest(Fraction(25, 1), times, RAPs);
+}
+
 #ifdef ENABLE_FAILING_TESTS
 unittest("GPAC mp4 mux: don't create empty fragments") {
 	auto const segmentDurationInMs = 1000;

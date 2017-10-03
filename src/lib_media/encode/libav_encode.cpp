@@ -31,6 +31,7 @@ LibavEncode::LibavEncode(Type type, Params &params)
 			break;
 		}
 		av_dict_free(&customDict);
+		generalOptions += " -forced-idr 1";
 		switch (params.codecType) {
 		case Software:
 			generalOptions += " -vcodec libx264";
@@ -50,7 +51,8 @@ LibavEncode::LibavEncode(Type type, Params &params)
 			throw error("Unknown video encoder type. Failed.");
 		}
 		generalOptions += format(" -r %s/%s -pass 1", params.frameRate.num, params.frameRate.den);
-		codecOptions += format(" -b %s -g %s -keyint_min %s -bf 0 -sc_threshold 0", params.bitrate_v, params.GOPSize, params.GOPSize);
+		codecOptions += format(" -b %s -bf 0", params.bitrate_v);
+		GOPSize = params.GOPSize;
 		break;
 	}
 	case Audio: {
@@ -65,6 +67,7 @@ LibavEncode::LibavEncode(Type type, Params &params)
 		av_dict_free(&customDict);
 		codecOptions += format(" -b %s -ar %s -ac %s", params.bitrate_a, params.sampleRate, params.numChannels);
 		generalOptions += " -acodec aac -profile aac_low";
+		GOPSize = 1;
 		break;
 	}
 	default:
@@ -109,7 +112,7 @@ LibavEncode::LibavEncode(Type type, Params &params)
 		params.pixelFormat = libavPixFmt2PixelFormat(codecCtx->pix_fmt);
 
 		AVRational fps;
-		fps2NumDen(params.frameRate, fps.den, fps.num); //for time_base, 'num' and 'den' are inverted
+		fps2NumDen((double)params.frameRate, fps.den, fps.num); //for time_base, 'num' and 'den' are inverted
 		fps.den *= TIMESCALE_MUL;
 		codecCtx->time_base = fps;
 		codecCtx->ticks_per_frame *= TIMESCALE_MUL;
@@ -134,7 +137,7 @@ LibavEncode::LibavEncode(Type type, Params &params)
 	ffpp::Dict codecDict(typeid(*this).name(), codecOptions + " -threads auto " + params.avcodecCustom);
 	av_dict_set(&codecDict, codecName.c_str(), nullptr, 0);
 	if (avcodec_open2(codecCtx.get(), codec, &codecDict) < 0)
-		throw error("Could not open codec, disable output.");
+		throw error(format("Could not open codec %s, disable output.", codecName));
 	codecDict.ensureAllOptionsConsumed();
 
 	output = addOutput<OutputDataDefault<DataAVPacket>>();
@@ -156,7 +159,7 @@ LibavEncode::LibavEncode(Type type, Params &params)
 	}
 
 	av_dict_free(&generalDict);
-	avFrame->get()->pts = -1;
+	avFrame->get()->pts = std::numeric_limits<int64_t>::min();
 }
 
 void LibavEncode::flush() {
@@ -193,6 +196,10 @@ void LibavEncode::computeDurationAndEmit(std::shared_ptr<DataAVPacket> &data, in
 	output->emit(data);
 }
 
+int64_t LibavEncode::computePTS(const int64_t mediaTime) const {
+	return (mediaTime * codecCtx->time_base.den) / (codecCtx->time_base.num * (int64_t)Clock::Rate);
+}
+
 bool LibavEncode::processAudio(const DataPcm *data) {
 	auto out = output->getBuffer(0);
 	AVPacket *pkt = out->getPacket();
@@ -200,12 +207,12 @@ bool LibavEncode::processAudio(const DataPcm *data) {
 	if (data) {
 		f = avFrame->get();
 		libavFrameDataConvert(data, f);
-		f->pts = (data->getMediaTime() * codecCtx->time_base.den) / (codecCtx->time_base.num * Clock::Rate);
+		f->pts = computePTS(data->getMediaTime());
 	}
 
 	int gotPkt = 0;
 	if (avcodec_encode_audio2(codecCtx.get(), pkt, f, &gotPkt)) {
-		log(Warning, "error encountered while encoding audio frame %s.", f ? f->pts : -1);
+		log(Warning, "error encountered while encoding audio frame %s.", f ? f->pts : std::numeric_limits<int64_t>::min());
 		return false;
 	} else if (gotPkt) {
 		if (pkt->duration != codecCtx->frame_size) {
@@ -218,14 +225,33 @@ bool LibavEncode::processAudio(const DataPcm *data) {
 	}
 }
 
+void LibavEncode::computeFrameAttributes(AVFrame * const f, const int64_t currMediaTime) {
+	if (f->pts == std::numeric_limits<int64_t>::min()) {
+		firstMediaTime = currMediaTime;
+		f->key_frame = 1;
+		f->pict_type = AV_PICTURE_TYPE_I;
+	} else {
+		auto const prevGOP = ((prevMediaTime - firstMediaTime) * GOPSize.den * codecCtx->time_base.den) / (GOPSize.num * codecCtx->time_base.num * TIMESCALE_MUL * (int64_t)Clock::Rate);
+		auto const currGOP = ((currMediaTime - firstMediaTime) * GOPSize.den * codecCtx->time_base.den) / (GOPSize.num * codecCtx->time_base.num * TIMESCALE_MUL * (int64_t)Clock::Rate);
+		if (prevGOP != currGOP) {
+			if (currGOP != prevGOP + 1) {
+				log(Warning, "Invalid content: switching from GOP %s to GOP %s - inserting RAP.", prevGOP, currGOP);
+			}
+			f->key_frame = 1;
+			f->pict_type = AV_PICTURE_TYPE_I;
+		} else {
+			f->key_frame = 0;
+			f->pict_type = AV_PICTURE_TYPE_NONE;
+		}
+	}
+	prevMediaTime = currMediaTime;
+}
+
 bool LibavEncode::processVideo(const DataPicture *pic) {
 	auto out = output->getBuffer(0);
-	AVPacket *pkt = out->getPacket();
-
 	AVFrame *f = nullptr;
 	if (pic) {
 		f = avFrame->get();
-		f->pict_type = AV_PICTURE_TYPE_NONE;
 		AVPixelFormat avpf; pixelFormat2libavPixFmt(pic->getFormat().format, avpf); f->format = (int)avpf;
 		for (size_t i = 0; i < pic->getNumPlanes(); ++i) {
 			f->width = pic->getFormat().res.width;
@@ -233,12 +259,14 @@ bool LibavEncode::processVideo(const DataPicture *pic) {
 			f->data[i] = (uint8_t*)pic->getPlane(i);
 			f->linesize[i] = (int)pic->getPitch(i);
 		}
-		f->pts = (pic->getMediaTime() * codecCtx->time_base.den) / (codecCtx->time_base.num * (int64_t)Clock::Rate);
+		computeFrameAttributes(f, pic->getMediaTime());
+		f->pts = computePTS(pic->getMediaTime());
 	}
 
 	int gotPkt = 0;
+	AVPacket *pkt = out->getPacket();
 	if (avcodec_encode_video2(codecCtx.get(), pkt, f, &gotPkt)) {
-		log(Warning, "error encountered while encoding video frame %s.", f ? f->pts : -1);
+		log(Warning, "error encountered while encoding video frame %s.", f ? f->pts : std::numeric_limits<int64_t>::min());
 		return false;
 	} else if (gotPkt) {
 		computeDurationAndEmit(out, TIMESCALE_MUL);

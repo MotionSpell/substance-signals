@@ -66,13 +66,18 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 			p.codecType = videoCodecType;
 			p.res = dstFmt.res;
 			p.bitrate_v = bitrate;
+
 			auto const metaVideo = safe_cast<const MetadataPktLibavVideo>(metadataDemux);
 			p.frameRate = metaVideo->getFrameRate();
-			const int GOPDurationDivisor = 1 + (int)(segmentDurationInMs / (MAX_GOP_DURATION_IN_MS+1));
-			p.GOPSize = ultraLowLatency ? 1 : (int)(segmentDurationInMs * p.frameRate) / (1000 * GOPDurationDivisor);
-			if ((uint64_t)(segmentDurationInMs * p.frameRate) % (1000 * GOPDurationDivisor))
-				throw std::runtime_error(format("Couldn't align GOP size (%s, divisor=%s) with segment duration (%sms). Check your input parameters.", p.GOPSize, GOPDurationDivisor, segmentDurationInMs));
-			if (GOPDurationDivisor > 1) Log::msg(Info, "[Encoder] Setting GOP duration to %sms (%s frames)", segmentDurationInMs / GOPDurationDivisor, p.GOPSize);
+			auto const GOPDurationDivisor = 1 + (segmentDurationInMs / (MAX_GOP_DURATION_IN_MS+1));
+			p.GOPSize = ultraLowLatency ? 1 : (Fraction(segmentDurationInMs, 1000) * p.frameRate) / Fraction(GOPDurationDivisor, 1);
+			if ((segmentDurationInMs * p.frameRate.num) % (1000 * GOPDurationDivisor * p.frameRate.den)) {
+				Log::msg(Warning, "[%s] Couldn't align GOP size (%s/%s, divisor=%s) with segment duration (%sms). Segment duration may vary.", g_appName, p.GOPSize.num, p.GOPSize.den, GOPDurationDivisor, segmentDurationInMs);
+				if ((p.frameRate.den % 1001) || ((segmentDurationInMs * p.frameRate.num * 1001) % (1000 * GOPDurationDivisor * p.frameRate.den * 1000)))
+					throw std::runtime_error("GOP size checks failed. Please read previous log messages.");
+			}
+			if (GOPDurationDivisor > 1) Log::msg(Info, "[Encoder] Setting GOP duration to %sms (%s/%s frames)", segmentDurationInMs / GOPDurationDivisor, p.GOPSize.num, p.GOPSize.den);
+
 			auto m = pipeline->addModule<Encode::LibavEncode>(Encode::LibavEncode::Video, p);
 			dstFmt.format = p.pixelFormat;
 			return m;

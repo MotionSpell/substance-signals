@@ -29,7 +29,7 @@ class LibavEncode : public ModuleS {
 			//video only
 			Resolution res = VIDEO_RESOLUTION;
 			int bitrate_v = 300000;
-			int GOPSize = 25;
+			Fraction GOPSize = Fraction(25, 1);
 			Fraction frameRate = Fraction(25, 1);
 			bool isLowLatency = false;
 			VideoCodecType codecType = Software;
@@ -51,13 +51,16 @@ class LibavEncode : public ModuleS {
 	private:
 		bool processAudio(const DataPcm *data);
 		bool processVideo(const DataPicture *data);
+		inline int64_t computePTS(const int64_t mediaTime) const;
+		void computeFrameAttributes(AVFrame * const f, const int64_t currMediaTime);
 		void computeDurationAndEmit(std::shared_ptr<DataAVPacket> &data, int64_t defaultDuration);
 
 		std::shared_ptr<AVCodecContext> codecCtx;
 		std::unique_ptr<PcmFormat> pcmFormat = nullptr;
 		std::unique_ptr<ffpp::Frame> const avFrame;
 		OutputDataDefault<DataAVPacket>* output;
-		int64_t lastDTS = 0;
+		int64_t lastDTS = 0, firstMediaTime, prevMediaTime;
+		Fraction GOPSize;
 };
 
 }
