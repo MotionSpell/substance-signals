@@ -26,16 +26,16 @@ const std::string Page::toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs, uin
 #endif
 	{
 		const size_t timecodeSize = 24;
-		char timecode_show[timecodeSize] = { 0 };
-		timeInMsToStr(startTimeInMs, timecode_show, ".");
-		timecode_show[timecodeSize-1] = 0;
-		char timecode_hide[timecodeSize] = { 0 };
-		timeInMsToStr(endTimeInMs, timecode_hide, ".");
-		timecode_hide[timecodeSize-1] = 0;
+		char timecodeShow[timecodeSize] = { 0 };
+		timeInMsToStr(startTimeInMs, timecodeShow, ".");
+		timecodeShow[timecodeSize-1] = 0;
+		char timecodeHide[timecodeSize] = { 0 };
+		timeInMsToStr(endTimeInMs, timecodeHide, ".");
+		timecodeHide[timecodeSize-1] = 0;
 
-		ttml << "      <p region=\"Region\" style=\"textAlignment_0\" begin=\"" << timecode_show << "\" end=\"" << timecode_hide << "\" xml:id=\"s" << idx << "\">\n";
+		ttml << "      <p region=\"Region\" style=\"textAlignment_0\" begin=\"" << timecodeShow << "\" end=\"" << timecodeHide << "\" xml:id=\"s" << idx << "\">\n";
 #ifdef DEBUG_DISPLAY_TIMESTAMPS
-		ttml << "        <span style=\"Style0_0\">" << timecode_show << " - " << timecode_hide << "</span>\n";
+		ttml << "        <span style=\"Style0_0\">" << timecodeShow << " - " << timecodeHide << "</span>\n";
 #else
 		ttml << "        <span style=\"Style0_0\">" << ss.str() << "</span>\n";
 #endif

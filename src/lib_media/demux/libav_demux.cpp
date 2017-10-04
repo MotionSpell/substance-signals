@@ -207,13 +207,13 @@ void LibavDemux::setMediaTime(std::shared_ptr<DataAVPacket> data) {
 	data->setMediaTime(time - startPTSIn180k);
 	int64_t offset;
 	if (startPTSIn180k) {
-		offset = -startPTSIn180k; /*a global offset is applied to all streams*/
+		offset = -startPTSIn180k; //a global offset is applied to all streams
 	} else {
-		restampers[pkt->stream_index]->process(data); /*restamp by pid only when no start time*/
+		restampers[pkt->stream_index]->process(data); //restamp by pid only when no start time
 		offset = data->getMediaTime() - time;
 	}
 	if (offset != 0) {
-		data->restamp(offset * base.num, base.den); /*propagate to AVPacket*/
+		data->restamp(offset * base.num, base.den); //propagate to AVPacket
 	}
 }
 
