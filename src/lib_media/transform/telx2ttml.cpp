@@ -7,14 +7,6 @@ extern "C" {
 }
 
 //#define DEBUG_DISPLAY_TIMESTAMPS
-#define USP_HACK
-
-#ifdef USP_HACK
-#define USP_HACK_OFFSET_IN_MS 0
-#define USP_ROUNDUP(t) (((t % 1000) ? ((t / 1000 + 1) * 1000) : t) + USP_HACK_OFFSET_IN_MS)
-#else
-#define USP_ROUNDUP(t) (t)
-#endif
 
 namespace Modules {
 namespace Transform {
@@ -94,7 +86,7 @@ const std::string TeletextToTTML::toTTML(uint64_t startTimeInMs, uint64_t endTim
 
 	int64_t offset;
 	switch (timingPolicy) {
-	case AbsoluteUTC: offset = USP_ROUNDUP((int64_t)firstDataAbsTimeInMs); break;
+	case AbsoluteUTC: offset = (int64_t)firstDataAbsTimeInMs; break;
 	case RelativeToMedia: offset = 0; break;
 	case RelativeToSplit: offset = -1 * startTimeInMs; break;
 	default: throw error("Unknown timing policy (1)");
