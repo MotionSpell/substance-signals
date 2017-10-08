@@ -51,11 +51,8 @@ bool SDLAudio::reconfigure(PcmFormat const * const pcmData) {
 
 	m_Latency = timescaleToClock((uint64_t)realSpec.samples, realSpec.freq);
 	log(Info, "%s Hz %s ms", realSpec.freq, m_Latency * 1000.0f / IClock::Rate);
-
 	pcmFormat = uptr(new PcmFormat(*pcmData));
-
 	SDL_PauseAudio(0);
-
 	return true;
 }
 
@@ -92,33 +89,30 @@ void SDLAudio::process(Data data) {
 
 void SDLAudio::push(Data data) {
 	auto pcmData = safe_cast<const DataPcm>(data);
-
 	std::lock_guard<std::mutex> lg(m_Mutex);
 	if(m_Fifo.bytesToRead() == 0) {
 		m_FifoTime = pcmData->getMediaTime() + PREROLL_DELAY;
 	}
-	for (int i = 0; i < pcmData->getFormat().numPlanes; ++i)
+	for (int i = 0; i < pcmData->getFormat().numPlanes; ++i) {
 		m_Fifo.write(pcmData->getPlane(i), (size_t)pcmData->getPlaneSize(i));
+	}
 }
 
 void SDLAudio::fillAudio(uint8_t *stream, int len) {
 	// timestamp of the first sample of the buffer
 	auto const bufferTimeIn180k = fractionToClock(m_clock->now()) + m_Latency;
-
 	std::lock_guard<std::mutex> lg(m_Mutex);
-
 	int64_t numSamplesToProduce = len / bytesPerSample;
+	auto const relativeTimePosition = int64_t(m_FifoTime) - bufferTimeIn180k;
+	auto const relativeSamplePosition = relativeTimePosition * pcmFormat->sampleRate / int64_t(IClock::Rate);
 
-	auto const relativeTimePosition = int64_t(m_FifoTime) - int64_t(bufferTimeIn180k);
-	auto const relativeSamplePosition = relativeTimePosition * int64_t(pcmFormat->sampleRate) / int64_t(IClock::Rate);
-
-	if (relativeSamplePosition < -audioJitterTolerance) {
+	if (relativeTimePosition < -audioJitterTimeTolerance) {
 		auto const numSamplesToDrop = std::min<int64_t>(fifoSamplesToRead(), -relativeSamplePosition);
 		log(Warning, "must drop fifo data (%s ms)", numSamplesToDrop * 1000.0f / pcmFormat->sampleRate);
 		fifoConsumeSamples((size_t)numSamplesToDrop);
 	}
 
-	if (relativeSamplePosition > audioJitterTolerance) {
+	if (relativeTimePosition > audioJitterTimeTolerance) {
 		auto const numSilenceSamples = std::min<int64_t>(numSamplesToProduce, relativeSamplePosition);
 		log(Warning, "insert silence (%s ms)", numSilenceSamples * 1000.0f / pcmFormat->sampleRate);
 		silenceSamples(stream, (size_t)numSilenceSamples);
