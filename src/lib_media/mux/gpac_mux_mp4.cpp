@@ -528,7 +528,10 @@ void GPACMuxMP4::closeFragment() {
 				return;
 			}
 			auto const deltaInTs = DTS == curSegmentDurInTs ? defaultSampleIncInTs : 0;
-			GF_Err e = gf_isom_set_traf_mss_timeext(isoCur, trackId, convertToTimescale(firstDataAbsTimeInMs, 1000, mediaTs) + DTS - curSegmentDurInTs - defaultSampleIncInTs + deltaInTs, curSegmentDurInTs - deltaInTs);
+			auto const absTimeInTs = convertToTimescale(firstDataAbsTimeInMs, 1000, mediaTs) + DTS - curSegmentDurInTs - defaultSampleIncInTs + deltaInTs;
+			auto const durationInTs = curSegmentDurInTs - deltaInTs;
+			log(Debug, "Closing MSS fragment with absolute time %s and duration %s (timescale %s)", absTimeInTs, durationInTs, mediaTs);
+			GF_Err e = gf_isom_set_traf_mss_timeext(isoCur, trackId, absTimeInTs, durationInTs);
 			if (e != GF_OK)
 				throw error(format("Impossible to create UTC marker: %s", gf_error_to_string(e)));
 		}
