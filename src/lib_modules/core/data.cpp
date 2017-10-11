@@ -2,6 +2,7 @@
 #include "lib_utils/time.hpp"
 
 namespace Modules {
+std::atomic<uint64_t> DataBase::absUTCOffsetInMs(0);
 
 std::shared_ptr<const IMetadata> DataBase::getMetadata() const {
 	return m_metadata;
@@ -13,6 +14,9 @@ void DataBase::setMetadata(std::shared_ptr<const IMetadata> metadata) {
 
 void DataBase::setMediaTime(int64_t time, uint64_t timescale) {
 	mediaTimeIn180k = timescaleToClock(time, timescale);
+	if (!absUTCOffsetInMs) {
+		absUTCOffsetInMs = getUTC().num;
+	}
 }
 
 void DataBase::setClockTime(int64_t time, uint64_t timescale) {

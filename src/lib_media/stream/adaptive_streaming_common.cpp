@@ -23,7 +23,7 @@ void AdaptiveStreamingCommon::endOfStream() {
 //needed because of the use of system time for live - otherwise awake on data as for any multi-input module
 //TODO: add clock to the scheduler, see #14
 void AdaptiveStreamingCommon::threadProc() {
-	log(Info, "start processing at UTC: %s.", (double)getUTC());
+	log(Info, "start processing at UTC: %sms.", (uint64_t)DataBase::absUTCOffsetInMs);
 
 	auto const numInputs = getNumInputs() - 1;
 	qualities.resize(numInputs);
@@ -52,13 +52,13 @@ void AdaptiveStreamingCommon::threadProc() {
 		}
 
 		numSeg++;
-		if (!startTimeInMs) startTimeInMs = getUTC().num - curSegDurInMs;
+		if (!startTimeInMs) startTimeInMs = DataBase::absUTCOffsetInMs - curSegDurInMs;
 		generateManifest();
 		totalDurationInMs += curSegDurInMs;
 		log(Info, "Processes segment (total processed: %ss, UTC: %sms (deltaAST=%s, deltaInput=%s).", (double)totalDurationInMs / 1000, getUTC().num, gf_net_get_utc() - startTimeInMs, (int64_t)(gf_net_get_utc() - clockToTimescale(data->getMediaTime(), 1000)));
 
 		if (type == Live) {
-			const int64_t durInMs = startTimeInMs + totalDurationInMs - getUTC().num;
+			const int64_t durInMs = startTimeInMs + totalDurationInMs - DataBase::absUTCOffsetInMs;
 			if (durInMs > 0) {
 				log(Debug, "Going to sleep for %s ms.", durInMs);
 				clock->sleep(Fraction(durInMs, 1000));

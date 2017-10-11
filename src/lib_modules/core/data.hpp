@@ -27,6 +27,7 @@ class DataBase {
 		void setClockTime(int64_t timeIn180k, uint64_t timescale = Clock::Rate); /*should be set automatically after data is allocated*/
 		int64_t getMediaTime() const;
 		int64_t getClockTime(uint64_t timescale = Clock::Rate) const;
+		static std::atomic<uint64_t> absUTCOffsetInMs;
 
 	private:
 		int64_t mediaTimeIn180k = 0, clockTimeIn180k = 0;
