@@ -38,13 +38,11 @@ static void getNTP(uint32_t *sec, uint32_t *frac) {
 Fraction getUTC() {
 	const uint64_t unit = 1000;
 	assert(unit == 1000);
-	uint64_t currentTime;
-	double msec;
 	uint32_t sec, frac;
 	getNTP(&sec, &frac);
-	currentTime = sec - NTP_SEC_1900_TO_1970;
+	uint64_t currentTime = sec - NTP_SEC_1900_TO_1970;
 	currentTime *= unit;
-	msec = (frac*double(unit)) / 0xFFFFFFFF;
+	double msec = (frac*double(unit)) / 0xFFFFFFFF;
 	currentTime += (uint64_t)msec;
 	return Fraction(currentTime, unit);
 }
