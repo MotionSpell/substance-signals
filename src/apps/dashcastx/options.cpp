@@ -61,10 +61,12 @@ struct Arg : public option::Arg {
 enum optionIndex { UNKNOWN, HELP, OPT, REQUIRED, NUMERIC, VIDEO, NONEMPTY };
 
 void printDetectedOptions(option::Parser &parse, option::Option * const options) {
-	if (parse.nonOptionsCount() == 1) {
+	if (parse.nonOptionsCount() >= 1 || parse.nonOptionsCount() <= 2) {
 		std::cout << "URL: " << parse.nonOption(0) << std::endl;
+		for (int i = 1; i < parse.nonOptionsCount(); ++i)
+			std::cout << "URL: " << parse.nonOption(i) << std::endl;
 	} else {
-		std::cout << "Several URLs detected: " << std::endl;
+		std::cout << "Unparsed options: " << std::endl;
 		for (int i = 0; i < parse.nonOptionsCount(); ++i)
 			std::cout << "Unknown option: " << parse.nonOption(i) << std::endl;
 		throw std::runtime_error("Parse error (1). Please check message and usage above.");
@@ -141,6 +143,8 @@ std::unique_ptr<const IConfig> processArgs(int argc, char const* argv[]) {
 
 	auto opt = uptr(new AppOptions);
 	opt->input = parse.nonOption(0);
+	for (int i = 1; i < parse.nonOptionsCount(); ++i)
+		opt->outputs.push_back(parse.nonOption(i));
 	for (option::Option *o = options[OPT]; o; o = o->next()) {
 		if (o->desc->shortopt == std::string("l")) {
 			opt->isLive = true;
