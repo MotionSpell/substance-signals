@@ -98,6 +98,7 @@ void MPEG_DASH::ensureManifest() {
 			switch (quality->meta->getStreamType()) {
 			case AUDIO_PKT: audioAS ? as = audioAS : as = audioAS = createAS(segDurationInMs, period, mpd.get()); break;
 			case VIDEO_PKT: videoAS ? as = videoAS : as = videoAS = createAS(segDurationInMs, period, mpd.get()); break;
+			case SUBTITLE_PKT: as = createAS(segDurationInMs, period, mpd.get()); break;
 			default: assert(0);
 			}
 
@@ -128,28 +129,32 @@ void MPEG_DASH::ensureManifest() {
 
 			std::string initFnSrc;
 			switch (quality->meta->getStreamType()) {
-			case AUDIO_PKT: {
+			case AUDIO_PKT:
 				rep->samplerate = quality->meta->sampleRate;
 				rep->segment_template->initialization = gf_strdup("a_$RepresentationID$-init.mp4");
 				rep->segment_template->media = gf_strdup(format("a_$RepresentationID$-%s.m4s", templateName).c_str());
 				initFnSrc = format("a_%s-init.mp4", repId);
 				break;
-			}
-			case VIDEO_PKT: {
+			case VIDEO_PKT:
 				rep->width = quality->meta->resolution[0];
 				rep->height = quality->meta->resolution[1];
 				rep->segment_template->initialization = gf_strdup(format("v_$RepresentationID$_%sx%s-init.mp4", rep->width, rep->height).c_str());
 				rep->segment_template->media = gf_strdup(format("v_$RepresentationID$_%sx%s-%s.m4s", rep->width, rep->height, templateName).c_str());
 				initFnSrc = format("v_%s_%sx%s-init.mp4", repId, rep->width, rep->height);
 				break;
-			}
+			case SUBTITLE_PKT:
+				rep->segment_template->initialization = gf_strdup("s_$RepresentationID$-init.mp4");
+				rep->segment_template->media = gf_strdup(format("s_$RepresentationID$-%s.m4s", templateName).c_str());
+				initFnSrc = format("s_%s-init.mp4", repId);
+				break;
 			default:
 				assert(0);
 			}
 
 			switch (quality->meta->getStreamType()) {
 			case AUDIO_PKT:
-			case VIDEO_PKT: {
+			case VIDEO_PKT:
+			case SUBTITLE_PKT: {
 				auto out = outputSegments->getBuffer(0);
 				auto const initFnDst = format("%s%s", mpdDir, initFnSrc);
 				if (!moveFileInternal(initFnSrc, initFnDst)) {
@@ -188,6 +193,7 @@ std::shared_ptr<const MetadataFile> MPEG_DASH::moveFile(const std::shared_ptr<co
 	switch (src->getStreamType()) {
 	case AUDIO_PKT: mf->sampleRate = src->sampleRate; break;
 	case VIDEO_PKT: mf->resolution[0] = src->resolution[0]; mf->resolution[1] = src->resolution[1]; break;
+	case SUBTITLE_PKT: break;
 	default: assert(0);
 	}
 	return mf;
@@ -221,15 +227,17 @@ void MPEG_DASH::generateManifest() {
 			}
 
 			switch (quality->meta->getStreamType()) {
-			case AUDIO_PKT: fn = format("%sa_%s-%s.m4s", mpdDir, i, segTime); break;
-			case VIDEO_PKT: fn = format("%sv_%s_%sx%s-%s.m4s", mpdDir, i, quality->rep->width, quality->rep->height, segTime); break;
+			case AUDIO_PKT:    fn = format("%sa_%s-%s.m4s", mpdDir, i, segTime); break;
+			case VIDEO_PKT:    fn = format("%sv_%s_%sx%s-%s.m4s", mpdDir, i, quality->rep->width, quality->rep->height, segTime); break;
+			case SUBTITLE_PKT: fn = format("%ss_%s-%s.m4s", mpdDir, i, segTime); break;
 			default: break;
 			}
 		} else {
 			auto const n = (startTimeInMs + totalDurationInMs) / segDurationInMs;
 			switch (quality->meta->getStreamType()) {
-			case AUDIO_PKT: fn = format("%sa_%s-%s.m4s", mpdDir, i, n); break;
-			case VIDEO_PKT: fn = format("%sv_%s_%sx%s-%s.m4s", mpdDir, i, quality->rep->width, quality->rep->height, n); break;
+			case AUDIO_PKT:    fn = format("%sa_%s-%s.m4s", mpdDir, i, n); break;
+			case VIDEO_PKT:    fn = format("%sv_%s_%sx%s-%s.m4s", mpdDir, i, quality->rep->width, quality->rep->height, n); break;
+			case SUBTITLE_PKT: fn = format("%ss_%s-%s.m4s", mpdDir, i, n); break;
 			default: break;
 			}
 		}
@@ -293,9 +301,10 @@ void MPEG_DASH::finalizeManifest() {
 			auto quality = safe_cast<DASHQuality>(qualities[i].get());
 			std::string fn;
 			switch (quality->meta->getStreamType()) {
-			case AUDIO_PKT: fn = format("%sa_%s-init.mp4", mpdDir, i); break;
-			case VIDEO_PKT: fn = format("%sv_%s_%sx%s-init.mp4", mpdDir, i, quality->meta->resolution[0], quality->meta->resolution[1]); break;
-			default: assert(0);
+			case AUDIO_PKT:    fn = format("%sa_%s-init.mp4", mpdDir, i); break;
+			case VIDEO_PKT:    fn = format("%sv_%s_%sx%s-init.mp4", mpdDir, i, quality->meta->resolution[0], quality->meta->resolution[1]); break;
+			case SUBTITLE_PKT: fn = format("%ss_%s-init.mp4", mpdDir, i); break;
+			default: break;
 			}
 			if (gf_delete_file(fn.c_str()) != GF_OK) {
 				log(Error, "Couldn't delete initialization segment \"%s\".", fn);
