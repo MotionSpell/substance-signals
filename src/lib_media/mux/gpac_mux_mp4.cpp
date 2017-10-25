@@ -856,7 +856,7 @@ void GPACMuxMP4::addSample(gpacpp::IsoSample &sample, const uint64_t dataDuratio
 	if (segmentPolicy > SingleSegment) {
 		curSegmentDurInTs += dataDurationInTs;
 		if ((!(compatFlags & Browsers) || curFragmentDurInTs > 0) && /*avoid 0-sized mdat interpreted as EOS in browsers*/
-			((curSegmentDurInTs + deltaInTs) * IClock::Rate) > (mediaTs * segmentDurationIn180k) && 
+			((curSegmentDurInTs + deltaInTs) * IClock::Rate) >= (mediaTs * segmentDurationIn180k) && 
 			((sample.IsRAP == RAP) || (compatFlags & SegmentAtAny))) {
 			if ((compatFlags & SegConstantDur) && (timescaleToClock(curSegmentDurInTs, mediaTs) != segmentDurationIn180k) && (curSegmentDurInTs - dataDurationInTs != 0)) {
 				segmentDurationIn180k = timescaleToClock(curSegmentDurInTs - dataDurationInTs, mediaTs);

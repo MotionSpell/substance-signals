@@ -53,7 +53,7 @@ void LibavDemux::initRestamp() {
 			restampers[i] = create<Transform::Restamp>(Transform::Restamp::Reset);
 		}
 
-		if (format == "rtsp" || format == "rtp" || format == "mpegts") {
+		if ((m_formatCtx->iformat->flags & AVFMT_NOFILE) && (format == "rtsp" || format == "rtp" || format == "mpegts")) {
 			startPTSIn180k = std::max<int64_t>(startPTSIn180k, timescaleToClock(m_formatCtx->streams[i]->start_time*m_formatCtx->streams[i]->time_base.num, m_formatCtx->streams[i]->time_base.den));
 		}
 	}
@@ -77,7 +77,7 @@ LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::strin
 			restampers[i] = create<Transform::Restamp>(Transform::Restamp::ClockSystem); /*some webcams timestamps don't start at 0 (based on UTC)*/
 		}
 	} else {
-		ffpp::Dict dict(typeid(*this).name(),"-buffer_size 1M -fifo_size 1M -probesize 10M -analyzeduration 10M -overrun_nonfatal 1 -protocol_whitelist file,udp,rtp,http,https,tcp,tls,rtmp -rtsp_flags prefer_tcp " + avformatCustom);
+		ffpp::Dict dict(typeid(*this).name(),"-buffer_size 1M -fifo_size 1M -probesize 10M -analyzeduration 10M -overrun_nonfatal 1 -protocol_whitelist file,udp,rtp,http,https,tcp,tls,rtmp -rtsp_flags prefer_tcp" + avformatCustom);
 		if (avformat_open_input(&m_formatCtx, url.c_str(), av_find_input_format(formatName.c_str()), &dict)) {
 			if (m_formatCtx) avformat_close_input(&m_formatCtx);
 			throw error(format("Error when opening input '%s'", url));
@@ -195,7 +195,7 @@ void LibavDemux::threadProc() {
 	}
 }
 
-void LibavDemux::setMediaTime(std::shared_ptr<DataAVPacket> data) {
+bool LibavDemux::setMediaTime(std::shared_ptr<DataAVPacket> data) {
 	auto pkt = data->getPacket();
 	if (!pkt->duration) {
 		pkt->duration = pkt->dts - lastDTS[pkt->stream_index];
@@ -207,7 +207,7 @@ void LibavDemux::setMediaTime(std::shared_ptr<DataAVPacket> data) {
 	data->setMediaTime(time - startPTSIn180k);
 	int64_t offset;
 	if (startPTSIn180k) {
-		offset = -startPTSIn180k; //a global offset is applied to all streams
+		offset = -startPTSIn180k; //a global offset is applied to all streams (since it is a PTS we'll need to check the DTS is not negative)
 	} else {
 		restampers[pkt->stream_index]->process(data); //restamp by pid only when no start time
 		offset = data->getMediaTime() - time;
@@ -215,6 +215,11 @@ void LibavDemux::setMediaTime(std::shared_ptr<DataAVPacket> data) {
 	if (offset != 0) {
 		data->restamp(offset * base.num, base.den); //propagate to AVPacket
 	}
+	if (pkt->dts < 0) {
+		log(Warning, "Detected a negative DTS (%s) while demuxing: discard as it can cause errors later on.", pkt->dts);
+		return false;
+	}
+	return true;
 }
 
 bool LibavDemux::dispatchable(AVPacket * const pkt) {
@@ -240,9 +245,10 @@ void LibavDemux::dispatch(AVPacket *pkt) {
 	auto out = outputs[pkt->stream_index]->getBuffer(0);
 	AVPacket *outPkt = out->getPacket();
 	av_packet_move_ref(outPkt, pkt);
-	setMediaTime(out);
-	outputs[outPkt->stream_index]->emit(out);
-	sparseStreamsHeartbeat(outPkt);
+	if (setMediaTime(out)) {
+		outputs[outPkt->stream_index]->emit(out);
+		sparseStreamsHeartbeat(outPkt);
+	}
 }
 
 void LibavDemux::sparseStreamsHeartbeat(AVPacket const * const pkt) {
