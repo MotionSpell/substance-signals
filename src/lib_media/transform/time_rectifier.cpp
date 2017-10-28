@@ -110,13 +110,13 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 			}
 			if (!refData) {
 				log(Warning, "No available reference data for clock time %s", fractionToClock(time));
-				//TODO: either send the last frame or a black frame
 				return;
 			}
-			input[i]->currTimeIn180k = numTicks++ * fractionToClock(Fraction(frameRate.den, frameRate.num));
-			log(Warning, "send %s", input[i]->currTimeIn180k);
-			const_cast<DataBase*>(refData.get())->setMediaTime(input[i]->currTimeIn180k); //TODO: this is wrong: we need to point on the same data with data.copy()
-			outputs[i]->emit(refData);
+			input[i]->currTimeIn180k = fractionToClock(Fraction(numTicks++ * frameRate.den, frameRate.num));
+			log(Debug, "send %s", input[i]->currTimeIn180k);
+			auto data = shptr(new DataBase(refData));
+			data->setMediaTime(input[i]->currTimeIn180k);
+			outputs[i]->emit(data);
 		}
 	}
 
@@ -126,8 +126,9 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 			//TODO: we are supposed to work sample per sample, but if we keep the packetization then we can operate of compressed streams also
 			for (auto &currData : input[i]->data) {
 				if (refData->getClockTime() <= currData->getClockTime()) {
-					//input[i]->currTimeIn180k = numTicks++ * fractionToClock(Fraction(frameRate.den, frameRate.num));
-					const_cast<DataBase*>(currData.get())->setMediaTime(input[i]->currTimeIn180k); //TODO: fractionToClock(time) on multiple packets?
+					auto data = shptr(new DataBase(currData));
+					data->setMediaTime(input[i]->currTimeIn180k);
+					outputs[i]->emit(data); //TODO: fractionToClock(time) on multiple packets?
 				}
 			}
 			break;

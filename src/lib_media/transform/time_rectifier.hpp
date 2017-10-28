@@ -13,17 +13,18 @@ namespace Modules {
 This module is responsible for feeding the next modules with a clean signal.
 
 A clean signal has the following properties:
-1) its timings are continuous (no gaps, overlaps, or discontinuities),
+1) its timings are continuous (no gaps, overlaps, or discontinuities - but may not start at zero),
 2) the different media are synchronized.
 
-The module needs to be sample accurate. It operates on raw data. Raw data requires a lot of memory ; however:
+The module needs to be sample accurate (TODO ; ATM we still rely on reframers and act at an AU level). It
+operates on raw data. Raw data requires a lot of memory ; however:
 1) we store a short duration (typically 500ms) and the framework works by default with pre-allocated pools,
 2) RAM is cheap ;)
 
 The module works this way:
  - At each tick it pulls some data (like a mux would).
  - We rely on Clock times. Media times are considered non-reliable and only used to achieve sync.
- - Different media types are processed differently (video = lead, audio = pulled, subtitles = sparse).
+ - The different media types are processed differently (video = lead, audio = pulled, subtitles = sparse).
 
 Remarks:
  - This module acts as a transframerater for video (by skipping or repeating frames).
