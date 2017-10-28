@@ -24,8 +24,6 @@ public:
 //A generic timed data container with metadata.
 class DataBase : public IData {
 public:
-	//Romain: DataBase(size_t size) : data(std::shared_ptr<Data>(new Data(size))) {};
-	//DataBase(std::shared_ptr<IData> data = nullptr) : data(safe_cast<IData>(data)) {};
 	DataBase(std::shared_ptr<const DataBase> data = nullptr);
 	virtual ~DataBase() = default;
 	std::shared_ptr<IData> getData() {
