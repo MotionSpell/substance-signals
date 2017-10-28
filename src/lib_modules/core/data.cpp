@@ -4,12 +4,40 @@
 namespace Modules {
 std::atomic<uint64_t> DataBase::absUTCOffsetInMs(0);
 
+DataBase::DataBase(std::shared_ptr<const DataBase> data) {
+	if (data) {
+		setMediaTime(data->getMediaTime());
+		setClockTime(data->getClockTime());
+		setMetadata(data->getMetadata());
+	}
+}
+
+bool DataBase::isRecyclable() const {
+	return data_->isRecyclable();
+}
+
+uint8_t* DataBase::data() {
+	return data_->data();
+}
+
+const uint8_t* DataBase::data() const {
+	return data_->data();
+}
+
+uint64_t DataBase::size() const {
+	return data_->size();
+}
+
+void DataBase::resize(size_t size) {
+	data_->resize(size);
+}
+
 std::shared_ptr<const IMetadata> DataBase::getMetadata() const {
-	return m_metadata;
+	return metadata;
 }
 
 void DataBase::setMetadata(std::shared_ptr<const IMetadata> metadata) {
-	m_metadata = metadata;
+	this->metadata = metadata;
 }
 
 void DataBase::setMediaTime(int64_t time, uint64_t timescale) {

@@ -10,28 +10,47 @@ namespace Modules {
 
 struct IMetadata;
 
-//A generic timed data container.
-class DataBase {
-	public:
-		DataBase() = default;
-		virtual ~DataBase() {}
-		virtual bool isRecyclable() const = 0;
-		virtual uint8_t* data() = 0;
-		virtual const uint8_t* data() const = 0;
-		virtual uint64_t size() const = 0;
-		virtual void resize(size_t size) = 0;
+class IData {
+public:
+	IData() = default;
+	virtual ~IData() {}
+	virtual bool isRecyclable() const = 0;
+	virtual uint8_t* data() = 0;
+	virtual const uint8_t* data() const = 0;
+	virtual uint64_t size() const = 0;
+	virtual void resize(size_t size) = 0;
+};
 
-		std::shared_ptr<const IMetadata> getMetadata() const;
-		void setMetadata(std::shared_ptr<const IMetadata> metadata);
-		void setMediaTime(int64_t timeIn180k, uint64_t timescale = Clock::Rate);
-		void setClockTime(int64_t timeIn180k, uint64_t timescale = Clock::Rate); /*should be set automatically after data is allocated*/
-		int64_t getMediaTime() const;
-		int64_t getClockTime(uint64_t timescale = Clock::Rate) const;
-		static std::atomic<uint64_t> absUTCOffsetInMs;
+//A generic timed data container with metadata.
+class DataBase : public IData {
+public:
+	//Romain: DataBase(size_t size) : data(std::shared_ptr<Data>(new Data(size))) {};
+	//DataBase(std::shared_ptr<IData> data = nullptr) : data(safe_cast<IData>(data)) {};
+	DataBase(std::shared_ptr<const DataBase> data = nullptr);
+	virtual ~DataBase() = default;
+	std::shared_ptr<IData> getData() {
+		return data_;
+	}
 
-	private:
-		int64_t mediaTimeIn180k = 0, clockTimeIn180k = 0;
-		std::shared_ptr<const IMetadata> m_metadata;
+	bool isRecyclable() const override;
+	uint8_t* data() override;
+	const uint8_t* data() const override;
+	uint64_t size() const override;
+	void resize(size_t size) override;
+
+	std::shared_ptr<const IMetadata> getMetadata() const;
+	void setMetadata(std::shared_ptr<const IMetadata> metadata);
+
+	void setMediaTime(int64_t timeIn180k, uint64_t timescale = Clock::Rate);
+	void setClockTime(int64_t timeIn180k, uint64_t timescale = Clock::Rate); /*should be set automatically after data is allocated*/
+	int64_t getMediaTime() const;
+	int64_t getClockTime(uint64_t timescale = Clock::Rate) const;
+	static std::atomic<uint64_t> absUTCOffsetInMs;
+
+private:
+	int64_t mediaTimeIn180k = 0, clockTimeIn180k = 0;
+	std::shared_ptr<const IMetadata> metadata;
+	std::shared_ptr<IData> data_;
 };
 
 typedef std::shared_ptr<const DataBase> Data;
@@ -40,16 +59,16 @@ typedef std::shared_ptr<const DataBase> Data;
 struct DataLoose : public DataBase {};
 
 class DataRaw : public DataBase {
-	public:
-		DataRaw(size_t size) : buffer(size) {}
-		uint8_t* data() override;
-		bool isRecyclable() const override;
-		const uint8_t* data() const override;
-		uint64_t size() const override;
-		void resize(size_t size) override;
+public:
+	DataRaw(size_t size) : buffer(size) {}
+	uint8_t* data() override;
+	bool isRecyclable() const override;
+	const uint8_t* data() const override;
+	uint64_t size() const override;
+	void resize(size_t size) override;
 
-	private:
-		std::vector<uint8_t> buffer;
+private:
+	std::vector<uint8_t> buffer;
 };
 
 }
