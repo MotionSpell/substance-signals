@@ -95,8 +95,7 @@ public:
 	PictureYUV420P(size_t unused) : DataPicture(0) {
 		internalFormat.format = format.format = YUV420P;
 	}
-	PictureYUV420P(const Resolution &res)
-		: DataPicture(res, YUV420P) {
+	PictureYUV420P(const Resolution &res) : DataPicture(res, YUV420P) {
 		setInternalResolution(res);
 		setVisibleResolution(res);
 	}
@@ -137,8 +136,7 @@ public:
 	PictureYUV420P10LE(size_t unused) : DataPicture(0) {
 		internalFormat.format = format.format = YUV420P10LE;
 	}
-	PictureYUV420P10LE(const Resolution &res)
-		: DataPicture(res, YUV420P10LE) {
+	PictureYUV420P10LE(const Resolution &res) : DataPicture(res, YUV420P10LE) {
 		setInternalResolution(res);
 		setVisibleResolution(res);
 	}
@@ -179,8 +177,7 @@ public:
 	PictureYUV422P(size_t unused) : DataPicture(0) {
 		internalFormat.format = format.format = YUV422P;
 	}
-	PictureYUV422P(const Resolution &res)
-		: DataPicture(res, YUV422P) {
+	PictureYUV422P(const Resolution &res) : DataPicture(res, YUV422P) {
 		setInternalResolution(res);
 		setVisibleResolution(res);
 	}
@@ -221,8 +218,7 @@ public:
 	PictureYUYV422(size_t unused) : DataPicture(0) {
 		internalFormat.format = format.format = YUYV422;
 	}
-	PictureYUYV422(const Resolution &res)
-		: DataPicture(res, YUYV422) {
+	PictureYUYV422(const Resolution &res) : DataPicture(res, YUYV422) {
 		setInternalResolution(res);
 		setVisibleResolution(res);
 	}
@@ -252,8 +248,7 @@ public:
 	PictureNV12(size_t unused) : DataPicture(0) {
 		internalFormat.format = format.format = NV12;
 	}
-	PictureNV12(const Resolution &res)
-		: DataPicture(res, NV12) {
+	PictureNV12(const Resolution &res) : DataPicture(res, NV12) {
 		setInternalResolution(res);
 		setVisibleResolution(res);
 	}
@@ -291,8 +286,7 @@ public:
 	PictureRGB24(size_t unused) : DataPicture(0) {
 		internalFormat.format = format.format = RGB24;
 	}
-	PictureRGB24(const Resolution &res)
-		: DataPicture(res, RGB24) {
+	PictureRGB24(const Resolution &res) : DataPicture(res, RGB24) {
 		setInternalResolution(res);
 		setVisibleResolution(res);
 	}
@@ -323,8 +317,7 @@ public:
 	PictureRGBA32(size_t unused) : DataPicture(0) {
 		internalFormat.format = format.format = RGBA32;
 	}
-	PictureRGBA32(const Resolution &res)
-		: DataPicture(res, RGBA32) {
+	PictureRGBA32(const Resolution &res) : DataPicture(res, RGBA32) {
 		setInternalResolution(res);
 		setVisibleResolution(res);
 	}
