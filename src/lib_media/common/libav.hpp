@@ -75,23 +75,23 @@ struct AVPacketDeleter {
 	void operator()(AVPacket *p);
 };
 
-class DataAVPacket : public DataBase {
-	public:
-		DataAVPacket(size_t size = 0);
-		~DataAVPacket();
-		bool isRecyclable() const override {
-			return false;
-		}
-		uint8_t* data() override;
-		uint8_t const* data() const override;
-		uint64_t size() const override;
-		void resize(size_t size) override;
+class DataAVPacket : public IData {
+public:
+	DataAVPacket(size_t size = 0);
+	~DataAVPacket();
+	bool isRecyclable() const override {
+		return false;
+	}
+	uint8_t* data() override;
+	uint8_t const* data() const override;
+	uint64_t size() const override;
+	void resize(size_t size) override;
 
-		AVPacket* getPacket() const;
-		void restamp(int64_t offsetIn180k, uint64_t pktTimescale) const;
+	AVPacket* getPacket() const;
+	void restamp(int64_t offsetIn180k, uint64_t pktTimescale) const;
 
-	private:
-		std::unique_ptr<AVPacket, AVPacketDeleter> const pkt;
+private:
+	std::unique_ptr<AVPacket, AVPacketDeleter> const pkt;
 };
 
 class PcmFormat;
