@@ -113,8 +113,7 @@ unittest("rectifier: initial offset") {
 	testRectifier<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>(fps, inTimes1, outTimes);
 }
 
-//missing frame: 1 2   4 5  => 1 2 2 4 5
-unittest("rectifier: deal with gaps") {
+unittest("rectifier: deal with missing frames") {
 	const uint64_t freq = 2;
 	auto const fps = Fraction(25, 1);
 
@@ -138,12 +137,22 @@ unittest("rectifier: deal with gaps") {
 	testRectifier<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>(fps, inTimes, outTimes);
 }
 
-#if 0
-//ts backward  : 1 2 10 11 => 1 2 3 4
 unittest("rectifier: deal with backward discontinuity") {
-	assert(0);
+	auto const fps = Fraction(25, 1);
+	auto const u = fractionToClock(fps);
+	auto const outGenVal = [&](uint64_t step, Fraction fps, int64_t clockTimeOffset, int64_t mediaTimeOffset) {
+		auto const mediaTime = (int64_t)(Clock::Rate * (step + mediaTimeOffset) * fps.den) / fps.num;
+		auto const clockTime = (int64_t)(Clock::Rate * (step + clockTimeOffset) * fps.den) / fps.num;
+		return std::pair<int64_t, int64_t >(mediaTime, clockTime);
+	};
+	auto inTimes1 = generateData(fps);
+	auto inTimes2 = generateData(fps, std::bind(outGenVal, std::placeholders::_1, std::placeholders::_2, inTimes1.size(), 0));
+	auto outTimes1 = generateData(fps);
+	auto outTimes2 = generateData(fps, std::bind(outGenVal, std::placeholders::_1, std::placeholders::_2, inTimes1.size(), inTimes1.size()));
+	inTimes1.insert(inTimes1.end(), inTimes2.begin(), inTimes2.end());
+	outTimes1.insert(outTimes1.end(), outTimes2.begin(), outTimes2.end());
+	testRectifier<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>(fps, inTimes1, outTimes1);
 }
-#endif
 
 #if 0
 unittest("rectifier: multiple pins") {
