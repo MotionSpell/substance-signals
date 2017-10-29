@@ -31,12 +31,16 @@ private:
 };
 
 template<typename Metadata, typename PinType>
-void testRectifier(const Fraction &fps, const std::vector<std::pair<int64_t, int64_t>> &inTimes, const std::vector<std::pair<int64_t, int64_t>> &outTimes) {
+void testRectifier(const Fraction &fps, const std::vector<std::pair<int64_t, int64_t>> &inTimes, const std::vector<std::pair<int64_t, int64_t>> &outTimes, bool async = true) {
 	auto clock = shptr(new Clock(0.0));
 	auto rectifier = createModule<TimeRectifier>(1, clock, fps);
 	auto generator = createModule<DataGenerator<Metadata, PinType>>(inTimes.size(), clock);
 	auto executor = uptr(new Signals::ExecutorThread<void()>(""));
-	ConnectModules(generator.get(), 0, rectifier.get(), 0, *executor);
+	if (async) {
+		ConnectModules(generator.get(), 0, rectifier.get(), 0, *executor);
+	} else {
+		ConnectModules(generator.get(), 0, rectifier.get(), 0);
+	}
 	auto recorder = create<Utils::Recorder>();
 	ConnectModules(rectifier.get(), 0, recorder.get(), 0);
 	for (size_t i = 0; i < inTimes.size(); ++i) {
@@ -94,22 +98,22 @@ unittest("rectifier: FPS factor with a single pin") {
 	}
 }
 
-#if 0
 unittest("rectifier: initial offset") {
 	auto const fps = Fraction(25, 1);
 	auto const inGenVal = [&](uint64_t step, Fraction fps, int shift) {
 		auto const t = (int64_t)(Clock::Rate * (step + shift) * fps.den) / fps.num;
-		return std::pair<int64_t, int64_t >(t, t);
+		return std::pair<int64_t, int64_t >(t, (Clock::Rate * step * fps.den) / fps.num);
 	};
 
-	auto const outTimes = generateData(fps);
-	auto const inTimes1 = generateData(fps, std::bind(inGenVal, std::placeholders::_1, std::placeholders::_2,  5));
+	auto const outTimes = generateData(fps, std::bind(inGenVal, std::placeholders::_1, std::placeholders::_2, 0));
+	auto const inTimes1 = generateData(fps, std::bind(inGenVal, std::placeholders::_1, std::placeholders::_2, 5));
 	testRectifier<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>(fps, inTimes1, outTimes);
 
 	auto const inTimes2 = generateData(fps, std::bind(inGenVal, std::placeholders::_1, std::placeholders::_2, -5));
 	testRectifier<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>(fps, inTimes1, outTimes);
 }
 
+#if 0
 //missing frame: 1 2   4 5  => 1 2 2 4 5
 unittest("rectifier: deal with gaps") {
 	const uint64_t freq = 2;
@@ -140,21 +144,23 @@ unittest("rectifier: deal with backward discontinuity") {
 	assert(0);
 }
 
+#if 0
 unittest("rectifier: multiple pins") {
 	assert(0);
 }
+#endif
+#endif
 
 unittest("rectifier: fail when no video") {
 	bool thrown = false;
 	try {
-		testRectifier<MetadataRawAudio, OutputPcm>(Fraction(25, 1), { { 0, 0 } }, { { 0, 0 } });
+		testRectifier<MetadataRawAudio, OutputPcm>(Fraction(25, 1), { { 0, 0 } }, { { 0, 0 } }, false);
 	} catch (std::exception const& e) {
 		std::cerr << "Expected error: " << e.what() << std::endl;
 		thrown = true;
 	}
 	ASSERT(thrown);
 }
-#endif
 
 unittest("restamp: passthru with offsets") {
 	auto const time = 10001LL;
