@@ -113,7 +113,6 @@ unittest("rectifier: initial offset") {
 	testRectifier<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>(fps, inTimes1, outTimes);
 }
 
-#if 0
 //missing frame: 1 2   4 5  => 1 2 2 4 5
 unittest("rectifier: deal with gaps") {
 	const uint64_t freq = 2;
@@ -129,26 +128,27 @@ unittest("rectifier: deal with gaps") {
 
 	auto const outGenVal = [&](uint64_t step, Fraction fps) {
 		auto const t = (Clock::Rate * step * fps.den) / fps.num;
-		static uint64_t prevT = 0, i = 0;
-		const uint64_t val = (i && !(i % freq)) ? prevT : t;
+		static uint64_t prevT = 0, i = 1;
+		const uint64_t val = !(i % (freq+1)) ? prevT : t;
 		i++; prevT = t;
-		return std::pair<int64_t, int64_t >(val, (Clock::Rate * step * fps.den) / fps.num);
+		return std::pair<int64_t, int64_t >((Clock::Rate * step * fps.den) / fps.num, val);
 	};
 	auto const outTimes = generateData(fps, outGenVal);
 
 	testRectifier<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>(fps, inTimes, outTimes);
 }
 
+#if 0
 //ts backward  : 1 2 10 11 => 1 2 3 4
 unittest("rectifier: deal with backward discontinuity") {
 	assert(0);
 }
+#endif
 
 #if 0
 unittest("rectifier: multiple pins") {
 	assert(0);
 }
-#endif
 #endif
 
 unittest("rectifier: fail when no video") {
