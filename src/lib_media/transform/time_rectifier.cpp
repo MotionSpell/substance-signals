@@ -4,9 +4,12 @@
 namespace Modules {
 
 TimeRectifier::TimeRectifier(Fraction frameRate, uint64_t analyzeWindowIn180k)
-: frameRate(frameRate), analyzeWindowIn180k(analyzeWindowIn180k), scheduler(new Scheduler(clock)) {
-	//TODO: when clock speed is 0.0, all clockTimes are zero. Deal with it.
-	//TODO: what about low latency? Should it be a low analyzeWindowIn180k value?
+: frameRate(frameRate), scheduler(new Scheduler(clock)) {
+	if (clock->getSpeed() == 0.0) {
+		this->analyzeWindowIn180k = std::numeric_limits<uint64_t>::max() / 4;
+	} else {
+		this->analyzeWindowIn180k = (uint64_t)(analyzeWindowIn180k * clock->getSpeed());
+	}
 }
 
 void TimeRectifier::sanityChecks() {
@@ -22,9 +25,14 @@ void TimeRectifier::process() {
 }
 
 void TimeRectifier::flush() {
-	std::unique_lock<std::mutex> lock(inputMutex);
-	flushing = true;
-	flushedCond.wait(lock);
+	{
+		std::unique_lock<std::mutex> lock(inputMutex);
+		flushing = true;
+		if (clock->getSpeed() == 0.0) {
+			this->analyzeWindowIn180k = Clock::Rate / 2;
+		}
+		flushedCond.wait(lock);
+	}
 	scheduler = nullptr;
 }
 
@@ -76,14 +84,14 @@ void TimeRectifier::removeOutdatedUnsafe(int64_t removalClockTime) {
 			if ((*data)->getClockTime() < removalClockTime) {
 				if (input[i]->data.size() <= 1) {
 					if (flushing) {
-						log(Debug, "Remove input[%s] data time media=%s clock=%s", i, (*data)->getMediaTime(), (*data)->getClockTime());
+						log(Debug, "Remove input[%s][%s] data time media=%s clock=%s", i, removalClockTime, (*data)->getMediaTime(), (*data)->getClockTime());
 						data = input[i]->data.erase(data);
 						flushedCond.notify_one();
 					} else {
 						break;
 					}
 				} else {
-					log(Debug, "Remove input[%s] data time media=%s clock=%s", i, (*data)->getMediaTime(), (*data)->getClockTime());
+					log(Debug, "Remove input[%s][%s] data time media=%s clock=%s", i, removalClockTime, (*data)->getMediaTime(), (*data)->getClockTime());
 					data = input[i]->data.erase(data);
 				}
 			} else {
@@ -94,18 +102,27 @@ void TimeRectifier::removeOutdatedUnsafe(int64_t removalClockTime) {
 }
 
 void TimeRectifier::awakeOnFPS(Fraction time) {
-	std::unique_lock<std::mutex> lock(inputMutex);
-	removeOutdatedUnsafe(fractionToClock(time) - analyzeWindowIn180k);
+	{
+		std::unique_lock<std::mutex> lock(inputMutex);
+		removeOutdatedUnsafe(fractionToClock(time) - analyzeWindowIn180k);
+	}
 
 	Data refData;
 	for (size_t i = 0; i < getNumInputs() - 1; ++i) {
 		if (inputs[i]->getMetadata()->getStreamType() == VIDEO_RAW) {
-			auto dist = std::numeric_limits<int64_t>::max();
-			for (auto &currData : input[i]->data) {
-				auto const currDist = std::abs(currData->getClockTime() - fractionToClock(time));
-				if (currDist < dist) {
-					dist = currDist;
-					refData = currData;
+			{
+				std::unique_lock<std::mutex> lock(inputMutex);
+				auto dist = std::numeric_limits<int64_t>::max();
+				for (auto &currData : input[i]->data) {
+					auto const currDist = currData->getClockTime() - fractionToClock(time);
+					log(Debug, "Considering data (%s/%s) at time %s (currDist=%s, dist=%s, threshold=%s)", currData->getMediaTime(), currData->getClockTime(), fractionToClock(time), currDist, dist, timescaleToClock(frameRate.den, frameRate.num));
+					if (std::abs(currDist) < dist) {
+						/*timings are monotonic so check for a previous data with distance less than one frame*/
+						if (currDist <= 0 || (currDist > 0 && dist > timescaleToClock(frameRate.den, frameRate.num))) {
+							dist = std::abs(currDist);
+							refData = currData;
+						}
+					}
 				}
 			}
 			if (!refData) {
@@ -113,9 +130,9 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 				return;
 			}
 			input[i]->currTimeIn180k = fractionToClock(Fraction(numTicks++ * frameRate.den, frameRate.num));
-			log(Debug, "send %s", input[i]->currTimeIn180k);
 			auto data = shptr(new DataBase(refData));
 			data->setMediaTime(input[i]->currTimeIn180k);
+			log(Debug, "send[%s:%s] t=%s (data=%s/%s) (ref %s/%s)", i, input[i]->data.size(), input[i]->currTimeIn180k, data->getMediaTime(), data->getClockTime(), refData->getMediaTime(), refData->getClockTime());
 			outputs[i]->emit(data);
 		}
 	}
@@ -123,12 +140,15 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 	for (size_t i = 0; i < getNumInputs() - 1; ++i) {
 		switch (inputs[i]->getMetadata()->getStreamType()) {
 		case SUBTITLE_PKT: case AUDIO_RAW: {
-			//TODO: we are supposed to work sample per sample, but if we keep the packetization then we can operate of compressed streams also
-			for (auto &currData : input[i]->data) {
-				if (refData->getClockTime() <= currData->getClockTime()) {
-					auto data = shptr(new DataBase(currData));
-					data->setMediaTime(input[i]->currTimeIn180k);
-					outputs[i]->emit(data); //TODO: fractionToClock(time) on multiple packets?
+			{
+				std::unique_lock<std::mutex> lock(inputMutex);
+				//TODO: we are supposed to work sample per sample, but if we keep the packetization then we can operate of compressed streams also
+				for (auto &currData : input[i]->data) {
+					if (refData->getClockTime() <= currData->getClockTime()) {
+						auto data = shptr(new DataBase(currData));
+						data->setMediaTime(input[i]->currTimeIn180k);
+						outputs[i]->emit(data); //TODO: multiple packets?
+					}
 				}
 			}
 			break;
@@ -138,6 +158,7 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 		}
 	}
 
+	std::unique_lock<std::mutex> lock(inputMutex);
 	removeOutdatedUnsafe(refData->getClockTime());
 }
 
