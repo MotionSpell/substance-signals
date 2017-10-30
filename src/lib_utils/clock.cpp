@@ -4,7 +4,7 @@
 using namespace std::chrono;
 
 Clock::Clock(double speed)
-: timeStart(std::chrono::high_resolution_clock::now()), speed(speed) {
+: timeStart(high_resolution_clock::now()), speed(speed) {
 }
 
 Fraction Clock::now() const {
@@ -20,7 +20,7 @@ double Clock::getSpeed() const {
 
 void Clock::sleep(Fraction time) const {
 	if (speed > 0.0) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(time.num * 1000 / time.den));
+		std::this_thread::sleep_for(milliseconds(time.num * 1000 / time.den));
 	}
 }
 

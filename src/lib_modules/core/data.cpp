@@ -12,6 +12,10 @@ DataBase::DataBase(std::shared_ptr<const DataBase> data) {
 	}
 }
 
+std::shared_ptr<IData> DataBase::getData() {
+	return data_;
+}
+
 bool DataBase::isRecyclable() const {
 	return data_->isRecyclable();
 }

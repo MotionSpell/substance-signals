@@ -26,9 +26,8 @@ class DataBase : public IData {
 public:
 	DataBase(std::shared_ptr<const DataBase> data = nullptr);
 	virtual ~DataBase() = default;
-	std::shared_ptr<IData> getData() {
-		return data_;
-	}
+
+	std::shared_ptr<IData> getData();
 
 	bool isRecyclable() const override;
 	uint8_t* data() override;

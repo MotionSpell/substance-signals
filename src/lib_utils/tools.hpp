@@ -57,10 +57,10 @@ struct Fraction {
 	inline bool operator>(const Fraction& rhs) const {
 		return num * rhs.den > rhs.num * den;
 	}
-	inline bool operator<=(const Fraction& rhs) {
+	inline bool operator<=(const Fraction& rhs) const {
 		return !(*this > rhs);
 	}
-	inline bool operator>=(const Fraction& rhs) {
+	inline bool operator>=(const Fraction& rhs) const {
 		return !(*this < rhs);
 	}
 

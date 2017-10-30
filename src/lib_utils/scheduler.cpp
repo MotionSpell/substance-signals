@@ -43,17 +43,22 @@ void Scheduler::threadProc() {
 			}
 		}
 
-		if (clock->getSpeed()) {
+		{
 			auto &t = queue.top();
-			auto const waitDurInMs = 1000 * (double)(t->time - clock->now());
-			if (waitDurInMs < 0) {
-				Log::msg(Warning, "Late from %s ms.", -waitDurInMs);
-			} else if (waitDurInMs > 0) {
-				std::unique_lock<std::mutex> lock(mutex);
-				auto const durInMs = std::chrono::milliseconds((int64_t)(waitDurInMs / clock->getSpeed()));
-				if (condition.wait_for(lock, durInMs, [&] { return (queue.top()->time < t->time) || waitAndExit; })) {
-					continue;
+			auto const waitDur = t->time - clock->now();
+			if (clock->getSpeed()) {
+				auto const waitDurInMs = 1000 * (double)(waitDur);
+				if (waitDurInMs < 0) {
+					Log::msg(Warning, "Late from %s ms.", -waitDurInMs);
+				} else if (waitDurInMs > 0) {
+					std::unique_lock<std::mutex> lock(mutex);
+					auto const durInMs = std::chrono::milliseconds((int64_t)(waitDurInMs / clock->getSpeed()));
+					if (condition.wait_for(lock, durInMs, [&] { return (queue.top()->time < t->time) || waitAndExit; })) {
+						continue;
+					}
 				}
+			} else {
+				clock->sleep(waitDur);
 			}
 		}
 

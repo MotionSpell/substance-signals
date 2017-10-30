@@ -11,6 +11,37 @@ using namespace Tests;
 using namespace Modules;
 
 namespace {
+
+class ClockNonLinear : public IClock {
+public:
+	virtual ~ClockNonLinear() {
+		condition.notify_one();
+	}
+	void setTime(const Fraction &t) {
+		time = t;
+		condition.notify_one();
+	}
+
+	Fraction now() const override {
+		return time;
+	}
+	double getSpeed() const override {
+		return 0.0;
+	}
+	void sleep(Fraction t) const override {
+		std::unique_lock<std::mutex> lock(mutex);
+		auto const tInit = time;
+		while (time <= tInit + t) {
+			condition.wait(lock);
+		}
+	}
+
+private:
+	Fraction time = Fraction(0, 1);
+	mutable std::mutex mutex;
+	mutable std::condition_variable condition;
+};
+
 template<typename METADATA, typename PIN>
 class DataGenerator : public Module, public virtual IOutputCap {
 public:
@@ -87,6 +118,28 @@ void testFPSFactor(const Fraction &fps, const Fraction &factor) {
 }
 }
 
+unittest("scheduler: non linear clock") {
+	Queue<Fraction> q;
+	auto f = [&](Fraction time) {
+		q.push(time);
+	};
+
+	{
+		auto const f1 = Fraction(1, 1000);
+		auto const f10 = Fraction(10, 1000);
+		auto clock = shptr(new ClockNonLinear);
+		Scheduler s(clock);
+		s.scheduleIn(f, f1);
+		g_DefaultClock->sleep(f10);
+		ASSERT(q.size() == 0);
+		clock->setTime(f10);
+		g_DefaultClock->sleep(f10);
+		ASSERT(q.size() == 1);
+		auto const t = q.pop();
+		ASSERT(t == f1);
+	}
+}
+
 unittest("rectifier: FPS factor with a single pin") {
 	auto const FPSs = { Fraction(25, 1), Fraction(30000, 1001) };
 	auto const factors = { Fraction(1, 1), Fraction(2, 1), Fraction(1, 2) };
@@ -155,7 +208,7 @@ unittest("rectifier: deal with backward discontinuity") {
 }
 
 #if 0
-unittest("rectifier: multiple pins") {
+unittest("rectifier: multiple media types") {
 	assert(0);
 }
 #endif
