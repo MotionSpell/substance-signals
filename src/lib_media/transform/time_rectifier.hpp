@@ -62,7 +62,7 @@ private:
 	};
 
 	Fraction frameRate;
-	uint64_t analyzeWindowIn180k = 0, numTicks = 0;
+	int64_t analyzeWindowIn180k = 0, numTicks = 0, maxClockTimeIn180k = 0;
 	std::vector<std::unique_ptr<Stream>> input;
 	std::mutex inputMutex;
 	std::condition_variable flushedCond;

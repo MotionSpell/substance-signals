@@ -3,12 +3,16 @@
 
 namespace Modules {
 
+#define TR_DEBUG Debug
+
+static const int64_t ANALYZE_WINDOW_MAX = std::numeric_limits<int64_t>::max() / 2;
+
 TimeRectifier::TimeRectifier(Fraction frameRate, uint64_t analyzeWindowIn180k)
 : frameRate(frameRate), scheduler(new Scheduler(clock)) {
 	if (clock->getSpeed() == 0.0) {
-		this->analyzeWindowIn180k = std::numeric_limits<uint64_t>::max() / 4;
+		this->analyzeWindowIn180k = ANALYZE_WINDOW_MAX;
 	} else {
-		this->analyzeWindowIn180k = (uint64_t)(analyzeWindowIn180k * clock->getSpeed());
+		this->analyzeWindowIn180k = (int64_t)(analyzeWindowIn180k * clock->getSpeed());
 	}
 }
 
@@ -21,19 +25,19 @@ void TimeRectifier::process() {
 	std::unique_lock<std::mutex> lock(inputMutex);
 	fillInputQueuesUnsafe();
 	sanityChecks();
-	removeOutdatedUnsafe((int64_t)(fractionToClock(clock->now()) - analyzeWindowIn180k));
+	removeOutdatedUnsafe((fractionToClock(clock->now()) - analyzeWindowIn180k));
 }
 
 void TimeRectifier::flush() {
-	{
-		std::unique_lock<std::mutex> lock(inputMutex);
-		flushing = true;
-		if (clock->getSpeed() == 0.0) {
-			this->analyzeWindowIn180k = Clock::Rate / 2;
-		}
-		flushedCond.wait(lock);
-	}
-	scheduler = nullptr;
+	std::unique_lock<std::mutex> lock(inputMutex);
+	flushing = true;
+	auto const finalClockTime = std::max<int64_t>(maxClockTimeIn180k, fractionToClock(clock->now())) + 1;
+	log(TR_DEBUG, "Schedule final removal at time %s (max:%s|%s)", finalClockTime, maxClockTimeIn180k, fractionToClock(clock->now()));
+	scheduler->scheduleAt([this](Fraction f) {
+		log(TR_DEBUG, "Final removal at time %s", fractionToClock(f));
+		removeOutdatedUnsafe(fractionToClock(f));
+	}, Fraction(finalClockTime, Clock::Rate));
+	flushedCond.wait(lock);
 }
 
 void TimeRectifier::mimicOutputs() {
@@ -72,6 +76,9 @@ void TimeRectifier::fillInputQueuesUnsafe() {
 			if (currInput->updateMetadata(data)) {
 				declareScheduler(data, currInput, outputs[i]);
 			}
+			if (data->getClockTime() > maxClockTimeIn180k) {
+				maxClockTimeIn180k = data->getClockTime();
+			}
 			input[i]->data.push_back(data);
 		}
 	}
@@ -84,14 +91,14 @@ void TimeRectifier::removeOutdatedUnsafe(int64_t removalClockTime) {
 			if ((*data)->getClockTime() < removalClockTime) {
 				if (input[i]->data.size() <= 1) {
 					if (flushing) {
-						log(Debug, "Remove input[%s][%s] data time media=%s clock=%s", i, removalClockTime, (*data)->getMediaTime(), (*data)->getClockTime());
+						log(TR_DEBUG, "Remove input[%s] data time media=%s clock=%s (removalClockTime=%s)", i, (*data)->getMediaTime(), (*data)->getClockTime(), removalClockTime);
 						data = input[i]->data.erase(data);
 						flushedCond.notify_one();
 					} else {
 						break;
 					}
 				} else {
-					log(Debug, "Remove input[%s][%s] data time media=%s clock=%s", i, removalClockTime, (*data)->getMediaTime(), (*data)->getClockTime());
+					log(TR_DEBUG, "Remove last input[%s] data time media=%s clock=%s (removalClockTime=%s)", i, (*data)->getMediaTime(), (*data)->getClockTime(), removalClockTime);
 					data = input[i]->data.erase(data);
 				}
 			} else {
@@ -132,7 +139,7 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 			input[i]->currTimeIn180k = fractionToClock(Fraction(numTicks++ * frameRate.den, frameRate.num));
 			auto data = shptr(new DataBase(refData));
 			data->setMediaTime(input[i]->currTimeIn180k);
-			log(Debug, "send[%s:%s] t=%s (data=%s/%s) (ref %s/%s)", i, input[i]->data.size(), input[i]->currTimeIn180k, data->getMediaTime(), data->getClockTime(), refData->getMediaTime(), refData->getClockTime());
+			log(TR_DEBUG, "send[%s:%s] t=%s (data=%s/%s) (ref %s/%s)", i, input[i]->data.size(), input[i]->currTimeIn180k, data->getMediaTime(), data->getClockTime(), refData->getMediaTime(), refData->getClockTime());
 			outputs[i]->emit(data);
 		}
 	}

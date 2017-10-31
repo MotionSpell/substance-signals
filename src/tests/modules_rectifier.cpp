@@ -15,11 +15,11 @@ namespace {
 class ClockNonLinear : public IClock {
 public:
 	virtual ~ClockNonLinear() {
-		condition.notify_one();
+		condition.notify_all();
 	}
 	void setTime(const Fraction &t) {
 		time = t;
-		condition.notify_one();
+		condition.notify_all();
 	}
 
 	Fraction now() const override {
@@ -31,8 +31,9 @@ public:
 	void sleep(Fraction t) const override {
 		std::unique_lock<std::mutex> lock(mutex);
 		auto const tInit = time;
-		while (time <= tInit + t) {
-			condition.wait(lock);
+		while (time < tInit + t) {
+			auto const durInMs = std::chrono::milliseconds(10);
+			condition.wait_for(lock, durInMs);
 		}
 	}
 
@@ -63,7 +64,7 @@ private:
 
 template<typename Metadata, typename PinType>
 void testRectifier(const Fraction &fps, const std::vector<std::pair<int64_t, int64_t>> &inTimes, const std::vector<std::pair<int64_t, int64_t>> &outTimes, bool async = true) {
-	auto clock = shptr(new Clock(0.0));
+	auto clock = shptr(new ClockNonLinear);
 	auto rectifier = createModule<TimeRectifier>(1, clock, fps);
 	auto generator = createModule<DataGenerator<Metadata, PinType>>(inTimes.size(), clock);
 	auto executor = uptr(new Signals::ExecutorThread<void()>(""));
@@ -74,10 +75,17 @@ void testRectifier(const Fraction &fps, const std::vector<std::pair<int64_t, int
 	}
 	auto recorder = create<Utils::Recorder>();
 	ConnectModules(rectifier.get(), 0, recorder.get(), 0);
+
 	for (size_t i = 0; i < inTimes.size(); ++i) {
 		generator->push(inTimes[i].first, inTimes[i].second);
+		clock->setTime(Fraction(inTimes[i].second, Clock::Rate));
 	}
+	(*executor)([&]() {
+		Log::msg(Info, "Set clock to final value: %s", inTimes[inTimes.size() - 1].second + 1);
+		clock->setTime(Fraction(inTimes[inTimes.size()-1].second+1, Clock::Rate));
+	});
 	rectifier->flush();
+
 	recorder->process(nullptr);
 	Data data;
 	size_t i = 0, iMax = std::min<size_t>(inTimes.size(), outTimes.size());
@@ -88,6 +96,7 @@ void testRectifier(const Fraction &fps, const std::vector<std::pair<int64_t, int
 		i++;
 	}
 	ASSERT(i == iMax);
+	clock->setTime(std::numeric_limits<int32_t>::max());
 }
 
 auto const generateValuesDefault = [](uint64_t step, Fraction fps) {
