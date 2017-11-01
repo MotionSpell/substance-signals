@@ -120,7 +120,7 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 				auto dist = std::numeric_limits<int64_t>::max();
 				for (auto &currData : input[i]->data) {
 					auto const currDist = currData->getClockTime() - fractionToClock(time);
-					log(Debug, "Considering data (%s/%s) at time %s (currDist=%s, dist=%s, threshold=%s)", currData->getMediaTime(), currData->getClockTime(), fractionToClock(time), currDist, dist, timescaleToClock(frameRate.den, frameRate.num));
+					log(Debug, "Video: considering data (%s/%s) at time %s (currDist=%s, dist=%s, threshold=%s)", currData->getMediaTime(), currData->getClockTime(), fractionToClock(time), currDist, dist, timescaleToClock(frameRate.den, frameRate.num));
 					if (std::abs(currDist) < dist) {
 						/*timings are monotonic so check for a previous data with distance less than one frame*/
 						if (currDist <= 0 || (currDist > 0 && dist > timescaleToClock(frameRate.den, frameRate.num))) {
@@ -136,7 +136,7 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 			}
 			auto data = shptr(new DataBase(refData));
 			data->setMediaTime(fractionToClock(Fraction(input[i]->numTicks++ * frameRate.den, frameRate.num)));
-			log(TR_DEBUG, "send[%s:%s] t=%s (data=%s/%s) (ref %s/%s)", i, input[i]->data.size(), data->getMediaTime(), data->getMediaTime(), data->getClockTime(), refData->getMediaTime(), refData->getClockTime());
+			log(TR_DEBUG, "Video: send[%s:%s] t=%s (data=%s/%s) (ref %s/%s)", i, input[i]->data.size(), data->getMediaTime(), data->getMediaTime(), data->getClockTime(), refData->getMediaTime(), refData->getClockTime());
 			outputs[i]->emit(data);
 		}
 	}
@@ -146,11 +146,13 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 		case AUDIO_RAW: {
 			{
 				for (auto &currData : input[i]->data) {
-					if (refData->getClockTime() <= currData->getClockTime()) {
+					log(Debug, "Other: considering data (%s/%s) at time %s (ref=%s/%s)", currData->getMediaTime(), currData->getClockTime(), fractionToClock(time), refData->getMediaTime(), refData->getClockTime());
+					if (currData->getClockTime() < refData->getClockTime()) {
 						//TODO: we are supposed to work sample per sample, but if we keep the packetization then we can operate of compressed streams also
 						auto const audioData = safe_cast<const DataPcm>(currData);
 						auto data = shptr(new DataBase(currData));
 						data->setMediaTime(fractionToClock(Fraction(input[i]->numTicks++ * audioData->getPlaneSize(0) / audioData->getFormat().getBytesPerSample(), audioData->getFormat().sampleRate)));
+						log(TR_DEBUG, "Other: send[%s:%s] t=%s (data=%s/%s) (ref %s/%s)", i, input[i]->data.size(), data->getMediaTime(), data->getMediaTime(), data->getClockTime(), refData->getMediaTime(), refData->getClockTime());
 						outputs[i]->emit(data); //TODO: multiple packets?
 					}
 				}

@@ -44,20 +44,21 @@ private:
 };
 
 template<typename METADATA, typename PIN>
-class DataGenerator : public ModuleS, public virtual IOutputCap {
-public:
+struct DataGenerator : public ModuleS, public virtual IOutputCap {
 	DataGenerator() {
 		output = addOutput<PIN>();
 		output->setMetadata(shptr(new METADATA));
 	}
-	void process(Data data) {
-		auto dataOut = output->getBuffer(0);
-		dataOut->setMediaTime(data->getMediaTime());
-		dataOut->setClockTime(data->getClockTime());
-		output->emit(dataOut);
+	void process(Data dataIn) override {
+		auto data = output->getBuffer(0);
+		auto dataPcm = std::dynamic_pointer_cast<DataPcm>(data);
+		if (dataPcm) {
+			dataPcm->setPlane(0, nullptr, 1024 * dataPcm->getFormat().getBytesPerSample());
+		}
+		data->setMediaTime(dataIn->getMediaTime());
+		data->setClockTime(dataIn->getClockTime());
+		output->emit(data);
 	}
-
-private:
 	PIN *output;
 };
 
@@ -67,42 +68,52 @@ void testRectifierMeta(const Fraction &fps, std::shared_ptr<ClockMock> clock,
 	bool async = true) {
 	auto rectifier = createModule<TimeRectifier>(1, clock, fps);
 	auto executor = uptr(new Signals::ExecutorThread<void()>(""));
-	if (async) {
-		ConnectModules(generators[0].get(), 0, rectifier.get(), 0, *executor);
-	} else {
-		ConnectModules(generators[0].get(), 0, rectifier.get(), 0);
-	}
-	auto recorder = create<Utils::Recorder>();
-	ConnectModules(rectifier.get(), 0, recorder.get(), 0);
-
-	{
-		std::shared_ptr<DataRaw> data(new DataRaw(0));
-		for (size_t i = 0; i < inTimes[0].size(); ++i) {
-			data->setMediaTime(inTimes[0][i].first);
-			data->setClockTime(inTimes[0][i].second);
-			generators[0]->process(data);
-			clock->setTime(Fraction(inTimes[0][i].second, Clock::Rate));
+	for (size_t g = 0; g < generators.size(); ++g) {
+		if (async) {
+			ConnectModules(generators[g].get(), 0, rectifier.get(), g, *executor);
+		} else {
+			ConnectModules(generators[g].get(), 0, rectifier.get(), g);
 		}
 	}
+	std::vector<std::unique_ptr<Utils::Recorder>> recorders;
+	for (size_t g = 0; g < generators.size(); ++g) {
+		recorders.push_back(create<Utils::Recorder>());
+		ConnectModules(rectifier.get(), g, recorders[g].get(), 0);
+	}
+
+	std::shared_ptr<DataRaw> data(new DataRaw(0));
+	for (size_t g = 0; g < generators.size(); ++g) {
+		for (size_t i = 0; i < inTimes[g].size(); ++i) {
+			data->setMediaTime(inTimes[g][i].first);
+			data->setClockTime(inTimes[g][i].second);
+			generators[g]->process(data);
+			clock->setTime(Fraction(inTimes[g][i].second, Clock::Rate));
+		}
+	}
+
+	int64_t maxClock = 0;
+	for (size_t g = 0; g < generators.size(); ++g) {
+		if (inTimes[g][inTimes[g].size() - 1].second > maxClock)
+			maxClock = inTimes[g][inTimes[g].size() - 1].second;
+	}
 	(*executor)([&]() {
-		auto const t = inTimes[0][inTimes[0].size()-1].second + 1;
-		Log::msg(Debug, "Set clock to final value: %s", t);
-		clock->setTime(Fraction(t, Clock::Rate));
+		Log::msg(Debug, "Set clock to final value: %s", maxClock + 1);
+		clock->setTime(Fraction(maxClock + 1, Clock::Rate));
 	});
 	rectifier->flush();
 
-	recorder->process(nullptr);
-	size_t i = 0, iMax = std::min<size_t>(inTimes[0].size(), outTimes[0].size());
-	{
+	for (size_t g = 0; g < generators.size(); ++g) {
+		recorders[g]->process(nullptr);
+		size_t i = 0, iMax = std::min<size_t>(inTimes[g].size(), outTimes[g].size());
 		Data data;
-		while ((data = recorder->pop()) && (i < iMax)) {
-			Log::msg(Debug, "recv %s-%s (expected %s-%s)", data->getMediaTime(), data->getClockTime(), outTimes[0][i].first, outTimes[0][i].second);
-			ASSERT(llabs(data->getMediaTime() == outTimes[0][i].first));
-			ASSERT(llabs(data->getClockTime() == outTimes[0][i].second));
+		while ((data = recorders[g]->pop()) && (i < iMax)) {
+			Log::msg(Debug, "recv[%s] %s-%s (expected %s-%s)", g, data->getMediaTime(), data->getClockTime(), outTimes[g][i].first, outTimes[g][i].second);
+			ASSERT(llabs(data->getMediaTime() == outTimes[g][i].first));
+			ASSERT(llabs(data->getClockTime() == outTimes[g][i].second));
 			i++;
 		}
+		ASSERT(i == iMax);
 	}
-	ASSERT(i == iMax);
 	clock->setTime(std::numeric_limits<int32_t>::max());
 }
 
@@ -118,9 +129,8 @@ void testRectifierSinglePin(const Fraction &fps, const std::vector<std::pair<int
 	testRectifierMeta(fps, clock, generators, in, out, async);
 }
 
-
 auto const generateValuesDefault = [](uint64_t step, Fraction fps) {
-	auto const t = (Clock::Rate * step * fps.den) / fps.num;
+	auto const t = timescaleToClock(step * fps.den, fps.num);
 	return std::pair<int64_t, int64_t>(t, t);
 };
 
@@ -236,11 +246,20 @@ unittest("rectifier: deal with backward discontinuity (single pin)") {
 	testRectifierSinglePin<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>(fps, inTimes1, outTimes1);
 }
 
-#if 0
-unittest("rectifier: multiple media types") {
-	assert(0);
+unittest("rectifier: multiple media types simple") {
+	const Fraction fps1 = 25, fps2 = Fraction(44100, 1024);
+	std::vector<std::vector<std::pair<int64_t, int64_t>>> in;
+	in.push_back(generateData(fps1)); //simulate video
+	in.push_back(generateData(fps2)); //simulate audio
+	std::vector<std::vector<std::pair<int64_t, int64_t>>> out;
+	out.push_back(generateData(fps1));
+	out.push_back(generateData(fps2));
+	std::vector<std::unique_ptr<ModuleS>> generators;
+	auto clock = shptr(new ClockMock);
+	generators.push_back(createModule<DataGenerator<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>>(in[0].size(), clock));
+	generators.push_back(createModule<DataGenerator<MetadataRawAudio, OutputPcm>>(in[1].size(), clock));
+	testRectifierMeta(fps1, clock, generators, in, out);
 }
-#endif
 
 unittest("rectifier: fail when no video") {
 	bool thrown = false;
