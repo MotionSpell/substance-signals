@@ -57,12 +57,12 @@ private:
 
 	struct Stream {
 		std::list<Data> data;
-		int64_t currTimeIn180k = 0;
+		int64_t numTicks = 0;
 		//Data defaultTypeData; //TODO: black screen for video, etc.
 	};
 
 	Fraction frameRate;
-	int64_t analyzeWindowIn180k = 0, numTicks = 0, maxClockTimeIn180k = 0;
+	int64_t analyzeWindowIn180k = 0, maxClockTimeIn180k = 0;
 	std::vector<std::unique_ptr<Stream>> input;
 	std::mutex inputMutex;
 	std::condition_variable flushedCond;

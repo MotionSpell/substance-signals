@@ -1,5 +1,6 @@
 #include "time_rectifier.hpp"
 #include "lib_utils/scheduler.hpp"
+#include "../common/pcm.hpp"
 
 namespace Modules {
 
@@ -109,16 +110,13 @@ void TimeRectifier::removeOutdatedUnsafe(int64_t removalClockTime) {
 }
 
 void TimeRectifier::awakeOnFPS(Fraction time) {
-	{
-		std::unique_lock<std::mutex> lock(inputMutex);
-		removeOutdatedUnsafe(fractionToClock(time) - analyzeWindowIn180k);
-	}
+	std::unique_lock<std::mutex> lock(inputMutex);
+	removeOutdatedUnsafe(fractionToClock(time) - analyzeWindowIn180k);
 
 	Data refData;
 	for (size_t i = 0; i < getNumInputs() - 1; ++i) {
 		if (inputs[i]->getMetadata()->getStreamType() == VIDEO_RAW) {
 			{
-				std::unique_lock<std::mutex> lock(inputMutex);
 				auto dist = std::numeric_limits<int64_t>::max();
 				for (auto &currData : input[i]->data) {
 					auto const currDist = currData->getClockTime() - fractionToClock(time);
@@ -136,24 +134,23 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 				log(Warning, "No available reference data for clock time %s", fractionToClock(time));
 				return;
 			}
-			input[i]->currTimeIn180k = fractionToClock(Fraction(numTicks++ * frameRate.den, frameRate.num));
 			auto data = shptr(new DataBase(refData));
-			data->setMediaTime(input[i]->currTimeIn180k);
-			log(TR_DEBUG, "send[%s:%s] t=%s (data=%s/%s) (ref %s/%s)", i, input[i]->data.size(), input[i]->currTimeIn180k, data->getMediaTime(), data->getClockTime(), refData->getMediaTime(), refData->getClockTime());
+			data->setMediaTime(fractionToClock(Fraction(input[i]->numTicks++ * frameRate.den, frameRate.num)));
+			log(TR_DEBUG, "send[%s:%s] t=%s (data=%s/%s) (ref %s/%s)", i, input[i]->data.size(), data->getMediaTime(), data->getMediaTime(), data->getClockTime(), refData->getMediaTime(), refData->getClockTime());
 			outputs[i]->emit(data);
 		}
 	}
 
 	for (size_t i = 0; i < getNumInputs() - 1; ++i) {
 		switch (inputs[i]->getMetadata()->getStreamType()) {
-		case SUBTITLE_PKT: case AUDIO_RAW: {
+		case AUDIO_RAW: {
 			{
-				std::unique_lock<std::mutex> lock(inputMutex);
-				//TODO: we are supposed to work sample per sample, but if we keep the packetization then we can operate of compressed streams also
 				for (auto &currData : input[i]->data) {
 					if (refData->getClockTime() <= currData->getClockTime()) {
+						//TODO: we are supposed to work sample per sample, but if we keep the packetization then we can operate of compressed streams also
+						auto const audioData = safe_cast<const DataPcm>(currData);
 						auto data = shptr(new DataBase(currData));
-						data->setMediaTime(input[i]->currTimeIn180k);
+						data->setMediaTime(fractionToClock(Fraction(input[i]->numTicks++ * audioData->getPlaneSize(0) / audioData->getFormat().getBytesPerSample(), audioData->getFormat().sampleRate)));
 						outputs[i]->emit(data); //TODO: multiple packets?
 					}
 				}
@@ -165,7 +162,6 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 		}
 	}
 
-	std::unique_lock<std::mutex> lock(inputMutex);
 	removeOutdatedUnsafe(refData->getClockTime());
 }
 
