@@ -26,7 +26,7 @@ void TimeRectifier::process() {
 	std::unique_lock<std::mutex> lock(inputMutex);
 	fillInputQueuesUnsafe();
 	sanityChecks();
-	removeOutdatedUnsafe((fractionToClock(clock->now()) - analyzeWindowIn180k));
+	removeOutdatedAllUnsafe((fractionToClock(clock->now()) - analyzeWindowIn180k));
 }
 
 void TimeRectifier::flush() {
@@ -36,7 +36,7 @@ void TimeRectifier::flush() {
 	log(TR_DEBUG, "Schedule final removal at time %s (max:%s|%s)", finalClockTime, maxClockTimeIn180k, fractionToClock(clock->now()));
 	scheduler->scheduleAt([this](Fraction f) {
 		log(TR_DEBUG, "Final removal at time %s", fractionToClock(f));
-		removeOutdatedUnsafe(fractionToClock(f));
+		removeOutdatedAllUnsafe(fractionToClock(f));
 	}, Fraction(finalClockTime, Clock::Rate));
 	flushedCond.wait(lock);
 }
@@ -85,48 +85,54 @@ void TimeRectifier::fillInputQueuesUnsafe() {
 	}
 }
 
-void TimeRectifier::removeOutdatedUnsafe(int64_t removalClockTime) {
+void TimeRectifier::removeOutdatedAllUnsafe(int64_t removalClockTime) {
 	for (size_t i = 0; i < getNumInputs() - 1; ++i) {
-		auto data = input[i]->data.begin();
-		while (data != input[i]->data.end()) {
-			if ((*data)->getClockTime() < removalClockTime) {
-				if (input[i]->data.size() <= 1) {
-					if (flushing) {
-						log(TR_DEBUG, "Remove input[%s] data time media=%s clock=%s (removalClockTime=%s)", i, (*data)->getMediaTime(), (*data)->getClockTime(), removalClockTime);
-						data = input[i]->data.erase(data);
-						flushedCond.notify_one();
-					} else {
-						break;
-					}
+		removeOutdatedIndexUnsafe(i, removalClockTime);
+	}
+}
+
+void TimeRectifier::removeOutdatedIndexUnsafe(size_t inputIdx, int64_t removalClockTime) {
+	auto data = input[inputIdx]->data.begin();
+	while (data != input[inputIdx]->data.end()) {
+		if ((*data)->getClockTime() < removalClockTime) {
+			if (input[inputIdx]->data.size() <= 1) {
+				if (flushing) {
+					log(TR_DEBUG, "Remove input[%s] data time media=%s clock=%s (removalClockTime=%s)", inputIdx, (*data)->getMediaTime(), (*data)->getClockTime(), removalClockTime);
+					data = input[inputIdx]->data.erase(data);
+					flushedCond.notify_one();
 				} else {
-					log(TR_DEBUG, "Remove last input[%s] data time media=%s clock=%s (removalClockTime=%s)", i, (*data)->getMediaTime(), (*data)->getClockTime(), removalClockTime);
-					data = input[i]->data.erase(data);
+					break;
 				}
 			} else {
-				data++;
+				log(TR_DEBUG, "Remove last input[%s] data time media=%s clock=%s (removalClockTime=%s)", inputIdx, (*data)->getMediaTime(), (*data)->getClockTime(), removalClockTime);
+				data = input[inputIdx]->data.erase(data);
 			}
+		} else {
+			data++;
 		}
 	}
 }
 
 void TimeRectifier::awakeOnFPS(Fraction time) {
 	std::unique_lock<std::mutex> lock(inputMutex);
-	removeOutdatedUnsafe(fractionToClock(time) - analyzeWindowIn180k);
+	removeOutdatedAllUnsafe(fractionToClock(time) - analyzeWindowIn180k);
 
 	Data refData;
+	auto const threshold = timescaleToClock(frameRate.den, frameRate.num);
 	for (size_t i = 0; i < getNumInputs() - 1; ++i) {
 		if (inputs[i]->getMetadata()->getStreamType() == VIDEO_RAW) {
-			{
-				auto dist = std::numeric_limits<int64_t>::max();
-				for (auto &currData : input[i]->data) {
-					auto const currDist = currData->getClockTime() - fractionToClock(time);
-					log(Debug, "Video: considering data (%s/%s) at time %s (currDist=%s, dist=%s, threshold=%s)", currData->getMediaTime(), currData->getClockTime(), fractionToClock(time), currDist, dist, timescaleToClock(frameRate.den, frameRate.num));
-					if (std::abs(currDist) < dist) {
-						/*timings are monotonic so check for a previous data with distance less than one frame*/
-						if (currDist <= 0 || (currDist > 0 && dist > timescaleToClock(frameRate.den, frameRate.num))) {
-							dist = std::abs(currDist);
-							refData = currData;
-						}
+			auto distClock = std::numeric_limits<int64_t>::max();
+			int currDataIdx = -1, idx = -1;
+			for (auto &currData : input[i]->data) {
+				idx++;
+				auto const currDistClock = currData->getClockTime() - fractionToClock(time);
+				log(Debug, "Video: considering data (%s/%s) at time %s (currDist=%s, dist=%s, threshold=%s)", currData->getMediaTime(), currData->getClockTime(), fractionToClock(time), currDistClock, distClock, threshold);
+				if (std::abs(currDistClock) < distClock) {
+					/*timings are monotonic so check for a previous data with distance less than one frame*/
+					if (currDistClock <= 0 || (currDistClock > 0 && distClock > timescaleToClock(frameRate.den, frameRate.num))) {
+						distClock = std::abs(currDistClock);
+						refData = currData;
+						currDataIdx = idx;
 					}
 				}
 			}
@@ -134,28 +140,51 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 				log(Warning, "No available reference data for clock time %s", fractionToClock(time));
 				return;
 			}
+			if ((input[i]->numTicks > 0) && (input[i]->data.size() >= 2) && (currDataIdx != 1)) {
+				log(Warning, "[%s] Selected data is not contiguous to the last one (index=%s). Epect discontinuity in the signal.", i, currDataIdx);
+			}
+
 			auto data = shptr(new DataBase(refData));
 			data->setMediaTime(fractionToClock(Fraction(input[i]->numTicks++ * frameRate.den, frameRate.num)));
 			log(TR_DEBUG, "Video: send[%s:%s] t=%s (data=%s/%s) (ref %s/%s)", i, input[i]->data.size(), data->getMediaTime(), data->getMediaTime(), data->getClockTime(), refData->getMediaTime(), refData->getClockTime());
 			outputs[i]->emit(data);
+			removeOutdatedIndexUnsafe(i, data->getClockTime());
 		}
 	}
 
 	for (size_t i = 0; i < getNumInputs() - 1; ++i) {
 		switch (inputs[i]->getMetadata()->getStreamType()) {
 		case AUDIO_RAW: {
-			{
+			Data selectedData;
+			while (1) {
+				int currDataIdx = -1, idx = -1;
 				for (auto &currData : input[i]->data) {
-					log(Debug, "Other: considering data (%s/%s) at time %s (ref=%s/%s)", currData->getMediaTime(), currData->getClockTime(), fractionToClock(time), refData->getMediaTime(), refData->getClockTime());
-					if (currData->getClockTime() < refData->getClockTime()) {
-						//TODO: we are supposed to work sample per sample, but if we keep the packetization then we can operate of compressed streams also
-						auto const audioData = safe_cast<const DataPcm>(currData);
-						auto data = shptr(new DataBase(currData));
-						data->setMediaTime(fractionToClock(Fraction(input[i]->numTicks++ * audioData->getPlaneSize(0) / audioData->getFormat().getBytesPerSample(), audioData->getFormat().sampleRate)));
-						log(TR_DEBUG, "Other: send[%s:%s] t=%s (data=%s/%s) (ref %s/%s)", i, input[i]->data.size(), data->getMediaTime(), data->getMediaTime(), data->getClockTime(), refData->getMediaTime(), refData->getClockTime());
-						outputs[i]->emit(data); //TODO: multiple packets?
+					idx++;
+					if (selectedData && !idx) { /*first data cannot be selected*/
+						selectedData = nullptr;
+						continue;
+					}
+					auto const currDistMedia = refData->getMediaTime() - currData->getMediaTime();
+					log(Debug, "Other: considering data (%s/%s) at time %s (ref=%s/%s, currDist=%s)", currData->getMediaTime(), currData->getClockTime(), fractionToClock(time), refData->getMediaTime(), refData->getClockTime(), currDistMedia);
+					if ((currDistMedia >= 0) && (currDistMedia < threshold)) {
+						selectedData = currData;
+						currDataIdx = idx;
+						break;
 					}
 				}
+				if (!selectedData) {
+					break;
+				}
+				if ((input[i]->numTicks > 0) && (input[i]->data.size() >= 2) && (currDataIdx != 1)) {
+					log(Warning, "[%s] Selected data is not contiguous to the last one (index=%s). Epect discontinuity in the signal.", i, currDataIdx);
+				}
+
+				auto const audioData = safe_cast<const DataPcm>(selectedData);
+				auto data = shptr(new DataBase(selectedData));
+				data->setMediaTime(fractionToClock(Fraction(input[i]->numTicks++ * audioData->getPlaneSize(0) / audioData->getFormat().getBytesPerSample(), audioData->getFormat().sampleRate)));
+				log(TR_DEBUG, "Other: send[%s:%s] t=%s (data=%s/%s) (ref %s/%s)", i, input[i]->data.size(), data->getMediaTime(), data->getMediaTime(), data->getClockTime(), refData->getMediaTime(), refData->getClockTime());
+				outputs[i]->emit(data);
+				removeOutdatedIndexUnsafe(i, data->getClockTime());
 			}
 			break;
 		}
@@ -163,8 +192,6 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 		default: throw error("unhandled media type (awakeOnFPS)");
 		}
 	}
-
-	removeOutdatedUnsafe(refData->getClockTime());
 }
 
 }

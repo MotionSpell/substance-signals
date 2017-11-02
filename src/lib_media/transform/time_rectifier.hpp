@@ -9,6 +9,8 @@
 
 namespace Modules {
 
+static uint64_t const ANALYZE_WINDOW_IN_180K = (5 * Clock::Rate);
+
 /*
 This module is responsible for feeding the next modules with a clean signal.
 
@@ -34,7 +36,7 @@ Remarks:
 */
 class TimeRectifier : public ModuleDynI {
 public:
-	TimeRectifier(Fraction frameRate, uint64_t analyzeWindowIn180k = Clock::Rate / 2);
+	TimeRectifier(Fraction frameRate, uint64_t analyzeWindowIn180k = ANALYZE_WINDOW_IN_180K);
 
 	void process() override;
 	void flush() override;
@@ -51,7 +53,8 @@ private:
 	void sanityChecks();
 	void mimicOutputs();
 	void fillInputQueuesUnsafe();
-	void removeOutdatedUnsafe(int64_t removalClockTime);
+	void removeOutdatedIndexUnsafe(size_t inputIdx, int64_t removalClockTime);
+	void removeOutdatedAllUnsafe(int64_t removalClockTime);
 	void declareScheduler(Data data, std::unique_ptr<IInput> &input, std::unique_ptr<IOutput> &output);
 	void awakeOnFPS(Fraction time);
 
