@@ -141,7 +141,8 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 				return;
 			}
 			if ((input[i]->numTicks > 0) && (input[i]->data.size() >= 2) && (currDataIdx != 1)) {
-				log(Warning, "[%s] Selected data is not contiguous to the last one (index=%s). Epect discontinuity in the signal.", i, currDataIdx);
+				log(Warning, "[%s] Selected data is not contiguous to the last one (index=%s). Expect discontinuity in the signal.", i, currDataIdx);
+				//TODO: pass in error mode: flush all the data where the clock time removeOutdatedAllUnsafe(refData->getClockTime());
 			}
 
 			auto data = shptr(new DataBase(refData));
@@ -152,6 +153,11 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 		}
 	}
 
+	//TODO: Notes:
+	//DO WE NEED TO KNOW IF WE ARE ON ERROR STATE? => LOG IT
+	//23MS OF DESYNC IS OK => KEEP TRACK OF CURRENT DESYNC
+	//AUDIO: BE ABLE TO ASK FOR A LARGER BUFFER ALLOCATOR? => BACK TO THE APP + DYN ALLOCATOR SIZE?
+	//VIDEO: HAVE ONLY A FEW DECODED FRAMES: THEY ARRIVE IN ADVANCE ANYWAY
 	for (size_t i = 0; i < getNumInputs() - 1; ++i) {
 		switch (inputs[i]->getMetadata()->getStreamType()) {
 		case AUDIO_RAW: {
@@ -176,7 +182,7 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 					break;
 				}
 				if ((input[i]->numTicks > 0) && (input[i]->data.size() >= 2) && (currDataIdx != 1)) {
-					log(Warning, "[%s] Selected data is not contiguous to the last one (index=%s). Epect discontinuity in the signal.", i, currDataIdx);
+					log(Warning, "[%s] Selected data is not contiguous to the last one (index=%s). Expect discontinuity in the signal.", i, currDataIdx);
 				}
 
 				auto const audioData = safe_cast<const DataPcm>(selectedData);

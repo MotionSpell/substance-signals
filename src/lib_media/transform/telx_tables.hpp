@@ -74,7 +74,7 @@ enum {
 	GREEK,
 	ARABIC,
 	HEBREW
-};;
+};
 
 //G0 charsets in UCS-2
 uint16_t G0[5][96] = {
