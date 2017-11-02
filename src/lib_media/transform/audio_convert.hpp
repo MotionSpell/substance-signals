@@ -30,7 +30,7 @@ class AudioConvert : public ModuleS {
 		std::shared_ptr<DataPcm> curOut;
 		std::unique_ptr<ffpp::SwResampler> m_Swr;
 		uint64_t accumulatedTimeInDstSR = 0;
-		OutputPcm* output;
+		OutputPcm *output;
 		bool autoConfigure;
 };
 

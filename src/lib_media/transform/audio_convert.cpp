@@ -60,6 +60,12 @@ void AudioConvert::process(Data data) {
 	uint8_t * const * pSrc = nullptr;
 	auto audioData = safe_cast<const DataPcm>(data);
 	if (audioData) {
+		auto const timeInDstSR = clockToTimescale(data->getMediaTime(), srcPcmFormat.sampleRate);
+		if ((timeInDstSR < (int64_t)accumulatedTimeInDstSR) || (timeInDstSR - (int64_t)accumulatedTimeInDstSR > dstNumSamples)) {
+			log(Warning, "Discontinuity detected. Reset at time %s.", data->getMediaTime());
+			accumulatedTimeInDstSR = clockToTimescale(data->getMediaTime(), srcPcmFormat.sampleRate);
+		}
+
 		if (audioData->getFormat() != srcPcmFormat) {
 			if (autoConfigure) {
 				log(Info, "Incompatible input audio data. Reconfiguring.");
@@ -76,7 +82,7 @@ void AudioConvert::process(Data data) {
 		}
 		pSrc = audioData->getPlanes();
 	} else {
-		auto const delay = m_Swr->getDelay(dstPcmFormat.sampleRate);;
+		auto const delay = m_Swr->getDelay(dstPcmFormat.sampleRate);
 		if (delay == 0 && curDstNumSamples == 0) {
 			return;
 		} else if (delay < dstNumSamples) {

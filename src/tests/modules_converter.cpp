@@ -57,7 +57,7 @@ unittest("audio converter: dynamic formats") {
 	auto soundGen = create<In::SoundGenerator>();
 	auto recorder = create<Utils::Recorder>();
 
-	PcmFormat format;;
+	PcmFormat format;
 	auto converter = create<Transform::AudioConvert>(format);
 
 	ConnectOutputToInput(soundGen->getOutput(0), converter->getInput(0));
@@ -106,6 +106,7 @@ void framingTest(const size_t inFrameFrames, const size_t outFrameFrames) {
 
 	auto const numIter = 3;
 	for (size_t i = 0; i < numIter; ++i) {
+		data->setMediaTime(inFrameFrames * i, format.sampleRate);
 		converter->process(data);
 	}
 	converter->flush();
