@@ -390,7 +390,7 @@ GPACMuxMP4::GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs
 }
 
 void GPACMuxMP4::flush() {
-	if (compatFlags & ComputeInputDur) {
+	if (compatFlags & ExactInputDur) {
 		inputs[0]->push(lastData);
 		process();
 		lastData = nullptr;
@@ -966,7 +966,7 @@ void GPACMuxMP4::process() {
 	}
 
 	//TODO: make tests and integrate in a module, see #18
-	if (!(compatFlags & ComputeInputDur)) {
+	if (!(compatFlags & ExactInputDur)) {
 		if (DTS && (dataDurationInTs - defaultSampleIncInTs != 0)) {
 			/*VFR: computing current sample duration from previous*/
 			dataDurationInTs = clockToTimescale(data->getMediaTime(), mediaTs) - (DTS + curSegmentDeltaInTs) + dataDurationInTs;
