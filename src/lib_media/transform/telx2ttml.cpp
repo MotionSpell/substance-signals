@@ -168,7 +168,7 @@ void TeletextToTTML::processTelx(DataAVPacket const * const sub) {
 					log(Warning, "Timing error: received %s but internal clock is already at %s", sub->getMediaTime(), intClock);
 				}
 
-				auto const startTimeInMs = std::max<int64_t>(convertToTimescale(pkt->pts * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000), convertToTimescale(page->showTimestampInMs * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000));
+				auto const startTimeInMs = std::max<int64_t>(convertToTimescale(page->showTimestampInMs * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000), convertToTimescale(page->showTimestampInMs * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000));
 				auto const durationInMs = convertToTimescale((page->hideTimestampInMs - page->showTimestampInMs) * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000);
 				page->startTimeInMs = startTimeInMs;
 				page->endTimeInMs = startTimeInMs + durationInMs;
