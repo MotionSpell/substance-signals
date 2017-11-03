@@ -5,8 +5,6 @@
 #include "../common/gpac.hpp"
 #include <string>
 
-//#define DURATION_KEEP_LAST_DATA
-
 typedef struct __tag_isom GF_ISOFile;
 typedef struct __tag_bitstream GF_BitStream;
 namespace gpacpp {
@@ -37,7 +35,8 @@ class GPACMuxMP4 : public ModuleDynI {
 			Browsers           = 1 << 1,
 			SmoothStreaming    = 1 << 2,
 			SegNumStartsAtZero = 1 << 3,
-			SegConstantDur     = 1 << 4 //default is average i.e. segment duration may vary ; with this flag the actual duration may be different from segmentDurationInMs
+			SegConstantDur     = 1 << 4, //default is average i.e. segment duration may vary ; with this flag the actual duration may be different from segmentDurationInMs
+			ComputeInputDur    = 1 << 5, //adds a one sample latency ; default is inferred and smoothen
 		};
 
 		GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs = 0, SegmentPolicy segmentPolicy = NoSegment, FragmentPolicy fragmentPolicy = NoFragment, CompatibilityFlag compatFlags = None);
@@ -59,11 +58,12 @@ class GPACMuxMP4 : public ModuleDynI {
 		void declareInput(std::shared_ptr<const MetadataPktLibav> metadata);
 		void sendOutput();
 		std::unique_ptr<gpacpp::IsoSample> fillSample(Data data);
-		void addSample(gpacpp::IsoSample &sample, const uint64_t dataDurationInTs);
+		void addSample(std::unique_ptr<gpacpp::IsoSample>, const uint64_t dataDurationInTs);
 
 		CompatibilityFlag compatFlags;
+		Data lastData = nullptr; //used with ComputeInputDur flag
 		int64_t lastInputTimeIn180k = 0;
-		uint64_t DTS = 0, prevDTS = 0, defaultSampleIncInTs = 0;
+		uint64_t DTS = 0, defaultSampleIncInTs = 0;
 		static int64_t firstDataAbsTimeInMs;
 		bool isAnnexB = true;
 
@@ -80,7 +80,7 @@ class GPACMuxMP4 : public ModuleDynI {
 		void startSegment();
 		void closeSegment(bool isLastSeg);
 		const SegmentPolicy segmentPolicy;
-		uint64_t segmentDurationIn180k, curSegmentDurInTs = 0, deltaInTs = 0, segmentNum = 0, lastSegmentSize = 0;
+		uint64_t segmentDurationIn180k, curSegmentDurInTs = 0, curSegmentDeltaInTs = 0, segmentNum = 0, lastSegmentSize = 0;
 		bool segmentStartsWithRAP = true;
 		std::string segmentName;
 
@@ -89,10 +89,6 @@ class GPACMuxMP4 : public ModuleDynI {
 			unsigned int resolution[2];
 			unsigned int sampleRate;
 		};
-
-#ifdef DURATION_KEEP_LAST_DATA
-		Data lastData = nullptr;
-#endif
 };
 
 class GPACMuxMP4MSS : public GPACMuxMP4 {

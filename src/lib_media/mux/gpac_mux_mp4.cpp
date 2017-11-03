@@ -390,6 +390,11 @@ GPACMuxMP4::GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs
 }
 
 void GPACMuxMP4::flush() {
+	if (compatFlags & ComputeInputDur) {
+		inputs[0]->push(lastData);
+		process();
+		lastData = nullptr;
+	}
 	closeSegment(true);
 
 	if (segmentPolicy == IndependentSegment) {
@@ -527,10 +532,10 @@ void GPACMuxMP4::closeFragment() {
 				log(Warning, "Media timescale is 0. Fragment cannot be closed.");
 				return;
 			}
-			auto const deltaInTs = DTS == curSegmentDurInTs ? defaultSampleIncInTs : 0;
-			auto const absTimeInTs = convertToTimescale(firstDataAbsTimeInMs, 1000, mediaTs) + DTS - curSegmentDurInTs - defaultSampleIncInTs + deltaInTs;
-			auto const durationInTs = curSegmentDurInTs - deltaInTs;
-			log(Debug, "Closing MSS fragment with absolute time %s and duration %s (timescale %s)", absTimeInTs, durationInTs, mediaTs);
+			auto const compensateInTs = DTS == curSegmentDurInTs ? defaultSampleIncInTs : 0;
+			auto const absTimeInTs = convertToTimescale(firstDataAbsTimeInMs, 1000, mediaTs) + DTS - curSegmentDurInTs - defaultSampleIncInTs + compensateInTs;
+			auto const durationInTs = curSegmentDurInTs - compensateInTs;
+			log(Warning, "Closing MSS fragment with absolute time %s and duration %s (timescale %s)", absTimeInTs, durationInTs, mediaTs);
 			GF_Err e = gf_isom_set_traf_mss_timeext(isoCur, trackId, absTimeInTs, durationInTs);
 			if (e != GF_OK)
 				throw error(format("Impossible to create UTC marker: %s", gf_error_to_string(e)));
@@ -783,7 +788,7 @@ void GPACMuxMP4::declareStream(Data data) {
 		if (edtsInMovieTs > 0) {
 			gf_isom_append_edit_segment(isoCur, gf_isom_get_track_by_id(isoCur, trackId), edtsInMovieTs, 0, GF_ISOM_EDIT_EMPTY);
 			gf_isom_append_edit_segment(isoCur, gf_isom_get_track_by_id(isoCur, trackId), edtsInMovieTs, 0, GF_ISOM_EDIT_NORMAL);
-			deltaInTs = edtsInMediaTs;
+			curSegmentDeltaInTs = edtsInMediaTs;
 		} else {
 			gf_isom_append_edit_segment(isoCur, gf_isom_get_track_by_id(isoCur, trackId), 0, -edtsInMediaTs, GF_ISOM_EDIT_NORMAL);
 		}
@@ -842,13 +847,12 @@ void GPACMuxMP4::sendOutput() {
 		isoCur = nullptr;
 	}
 	out->setMetadata(metadata);
-	auto const deltaInTs = DTS == curSegmentDurInTs ? defaultSampleIncInTs : 0;
-	out->setMediaTime(timescaleToClock(firstDataAbsTimeInMs, 1000) + timescaleToClock(DTS - curSegmentDurInTs - defaultSampleIncInTs + deltaInTs, mediaTs));
-	prevDTS = DTS;
+	auto const curSegmentDeltaInTs = DTS == curSegmentDurInTs ? defaultSampleIncInTs : 0;
+	out->setMediaTime(timescaleToClock(firstDataAbsTimeInMs, 1000) + timescaleToClock(DTS - curSegmentDurInTs - defaultSampleIncInTs + curSegmentDeltaInTs, mediaTs));
 	output->emit(out);
 }
 
-void GPACMuxMP4::addSample(gpacpp::IsoSample &sample, const uint64_t dataDurationInTs) {
+void GPACMuxMP4::addSample(std::unique_ptr<gpacpp::IsoSample> sample, const uint64_t dataDurationInTs) {
 	DTS += dataDurationInTs;
 	auto const mediaTs = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
 
@@ -856,44 +860,44 @@ void GPACMuxMP4::addSample(gpacpp::IsoSample &sample, const uint64_t dataDuratio
 	if (segmentPolicy > SingleSegment) {
 		curSegmentDurInTs += dataDurationInTs;
 		if ((!(compatFlags & Browsers) || curFragmentDurInTs > 0) && /*avoid 0-sized mdat interpreted as EOS in browsers*/
-			((curSegmentDurInTs + deltaInTs) * IClock::Rate) >= (mediaTs * segmentDurationIn180k) && 
-			((sample.IsRAP == RAP) || (compatFlags & SegmentAtAny))) {
-			if ((compatFlags & SegConstantDur) && (timescaleToClock(curSegmentDurInTs, mediaTs) != segmentDurationIn180k) && (curSegmentDurInTs - dataDurationInTs != 0)) {
-				segmentDurationIn180k = timescaleToClock(curSegmentDurInTs - dataDurationInTs, mediaTs);
+			((curSegmentDurInTs + curSegmentDeltaInTs) * IClock::Rate) > (mediaTs * segmentDurationIn180k) && 
+			((sample->IsRAP == RAP) || (compatFlags & SegmentAtAny))) {
+			if ((compatFlags & SegConstantDur) && (timescaleToClock(curSegmentDurInTs + curSegmentDeltaInTs - dataDurationInTs, mediaTs) != segmentDurationIn180k) && (curSegmentDurInTs - dataDurationInTs != 0)) {
+				segmentDurationIn180k = timescaleToClock(curSegmentDurInTs + curSegmentDeltaInTs - dataDurationInTs, mediaTs);
 			}
 			closeSegment(false);
 			segmentNum++;
-			segmentStartsWithRAP = sample.IsRAP == RAP;
+			segmentStartsWithRAP = sample->IsRAP == RAP;
 			startSegment();
 
 			const u64 oneSegDurInTimescale = clockToTimescale(segmentDurationIn180k, mediaTs);
 			if (oneSegDurInTimescale * (DTS / oneSegDurInTimescale) == 0) { /*initial delay*/
-				deltaInTs = curSegmentDurInTs + deltaInTs - oneSegDurInTimescale * ((curSegmentDurInTs + deltaInTs) / oneSegDurInTimescale);
+				curSegmentDeltaInTs = curSegmentDurInTs + curSegmentDeltaInTs - oneSegDurInTimescale * ((curSegmentDurInTs + curSegmentDeltaInTs) / oneSegDurInTimescale);
 			} else {
-				auto const num = (curSegmentDurInTs + deltaInTs) / oneSegDurInTimescale;
+				auto const num = (curSegmentDurInTs + curSegmentDeltaInTs) / oneSegDurInTimescale;
 				auto const rem = DTS - (num ? num - 1 : 0) * oneSegDurInTimescale;
-				deltaInTs = DTS - oneSegDurInTimescale * (rem / oneSegDurInTimescale);
+				curSegmentDeltaInTs = DTS - oneSegDurInTimescale * (rem / oneSegDurInTimescale);
 			}
 			if (segmentPolicy == IndependentSegment) {
-				sample.DTS = 0;
+				sample->DTS = 0;
 			}
 			curSegmentDurInTs = 0;
 			if (fragmentPolicy != OneFragmentPerFrame) {
-				startFragment(sample.DTS, sample.DTS + sample.CTS_Offset);
+				startFragment(sample->DTS, sample->DTS + sample->CTS_Offset);
 			}
 		}
 	}
 
 	if (fragmentPolicy > NoFragment) {
-		if (curFragmentDurInTs && (fragmentPolicy == OneFragmentPerRAP) && (sample.IsRAP == RAP)) {
+		if (curFragmentDurInTs && (fragmentPolicy == OneFragmentPerRAP) && (sample->IsRAP == RAP)) {
 			closeFragment();
-			startFragment(sample.DTS, sample.DTS + sample.CTS_Offset);
+			startFragment(sample->DTS, sample->DTS + sample->CTS_Offset);
 		}
-		if ((fragmentPolicy == OneFragmentPerFrame) && !curFragmentDurInTs && sample.DTS) {
-			startFragment(sample.DTS, sample.DTS + sample.CTS_Offset);
+		if ((fragmentPolicy == OneFragmentPerFrame) && !curFragmentDurInTs && sample->DTS) {
+			startFragment(sample->DTS, sample->DTS + sample->CTS_Offset);
 		}
 
-		e = gf_isom_fragment_add_sample(isoCur, trackId, &sample, 1, (u32)dataDurationInTs, 0, 0, GF_FALSE);
+		e = gf_isom_fragment_add_sample(isoCur, trackId, sample.get(), 1, (u32)dataDurationInTs, 0, 0, GF_FALSE);
 		if (e != GF_OK) {
 			log(Error, "gf_isom_fragment_add_sample: %s", gf_error_to_string(e));
 			return;
@@ -904,7 +908,7 @@ void GPACMuxMP4::addSample(gpacpp::IsoSample &sample, const uint64_t dataDuratio
 			closeFragment();
 		}
 	} else {
-		GF_Err e = gf_isom_add_sample(isoCur, trackId, 1, &sample);
+		GF_Err e = gf_isom_add_sample(isoCur, trackId, 1, sample.get());
 		if (e != GF_OK) {
 			log(Error, "gf_isom_add_sample: %s", gf_error_to_string(e));
 			return;
@@ -935,7 +939,7 @@ std::unique_ptr<gpacpp::IsoSample> GPACMuxMP4::fillSample(Data data_) {
 		throw error("Only audio, video or text supported");
 
 	if (segmentPolicy == IndependentSegment) {
-		sample->DTS = curSegmentDurInTs;
+		sample->DTS = curSegmentDurInTs + curSegmentDeltaInTs;
 	} else {
 		sample->DTS = DTS;
 	}
@@ -950,7 +954,6 @@ void GPACMuxMP4::process() {
 		firstDataAbsTimeInMs = DataBase::absUTCOffsetInMs;
 	if (inputs[0]->updateMetadata(data))
 		declareStream(data);
-	auto sample = fillSample(data);
 
 	auto const mediaTs = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
 	int64_t dataDurationInTs = clockToTimescale(data->getMediaTime() - lastInputTimeIn180k, mediaTs);
@@ -963,30 +966,34 @@ void GPACMuxMP4::process() {
 	}
 
 	//TODO: make tests and integrate in a module, see #18
-#ifndef DURATION_KEEP_LAST_DATA
-	if (DTS && (dataDurationInTs - defaultSampleIncInTs != 0)) {
-		/*VFR: computing current sample duration from previous*/
-		dataDurationInTs = clockToTimescale(data->getMediaTime(), mediaTs) - (DTS + deltaInTs) + dataDurationInTs;
-		if (dataDurationInTs <= 0) {
-			dataDurationInTs = 1;
+	if (!(compatFlags & ComputeInputDur)) {
+		if (DTS && (dataDurationInTs - defaultSampleIncInTs != 0)) {
+			/*VFR: computing current sample duration from previous*/
+			dataDurationInTs = clockToTimescale(data->getMediaTime(), mediaTs) - (DTS + curSegmentDeltaInTs) + dataDurationInTs;
+			if (dataDurationInTs <= 0) {
+				dataDurationInTs = 1;
+			}
+			log(Debug, "VFR: adding sample with duration %ss", dataDurationInTs / (double)mediaTs);
 		}
-		log(Debug, "VFR: adding sample with duration %ss", dataDurationInTs / (double)mediaTs);
-	}
-#else
-	/*wait to have two samples - FIXME: should be in a separate class + last segment is never processed (should be in flush()) (execute tests to trigger issue)*/
-	if (lastData) {
-		dataDurationInTs = clockToTimescale(data->getMediaTime()-lastData->getMediaTime(), mediaTs);
-	} else {
-		lastData = data;
-		return; //FIXME: we lose 'sample' i.e. skip the first data
-	}
-	lastData = data;
-#endif
-	if (dataDurationInTs == 0) {
-		dataDurationInTs = defaultSampleIncInTs;
-	}
+		if (dataDurationInTs == 0) {
+			dataDurationInTs = defaultSampleIncInTs;
+		}
 
-	addSample(*sample, dataDurationInTs);
+		addSample(fillSample(data), dataDurationInTs);
+	} else {
+		/*wait to have two samples - FIXME: last segment is never processed (should be in flush()) (execute tests to trigger issue)*/
+		if (lastData) {
+			dataDurationInTs = clockToTimescale(data->getMediaTime() - lastData->getMediaTime(), mediaTs);
+			if (dataDurationInTs == 0) {
+				dataDurationInTs = defaultSampleIncInTs;
+			}
+		} else {
+			lastData = data;
+			return; //FIXME: we lose 'sample' i.e. skip the first data
+		}
+		addSample(fillSample(lastData), dataDurationInTs);
+		lastData = data;
+	}
 }
 
 }
