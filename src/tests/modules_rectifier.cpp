@@ -231,7 +231,6 @@ unittest("rectifier: deal with missing frames (single pin)") {
 
 unittest("rectifier: deal with backward discontinuity (single pin)") {
 	auto const fps = Fraction(25, 1);
-	auto const u = fractionToClock(fps);
 	auto const outGenVal = [&](uint64_t step, Fraction fps, int64_t clockTimeOffset, int64_t mediaTimeOffset) {
 		auto const mediaTime = (int64_t)(Clock::Rate * (step + mediaTimeOffset) * fps.den) / fps.num;
 		auto const clockTime = (int64_t)(Clock::Rate * (step + clockTimeOffset) * fps.den) / fps.num;

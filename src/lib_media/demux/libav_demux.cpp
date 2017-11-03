@@ -292,7 +292,7 @@ void LibavDemux::process(Data data) {
 	if (!ret) {
 #else
 	struct sched_param sp;
-	s_par.sched_priority = 1;
+	sp.sched_priority = 1;
 	if (pthread_setschedparam((pthread_t)workingThread.native_handle(), SCHED_RR, &sp)) {
 #endif
 		log(Warning, "Couldn't change reception thread priority to realtime.");
