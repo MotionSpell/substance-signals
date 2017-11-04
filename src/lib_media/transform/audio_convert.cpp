@@ -60,12 +60,6 @@ void AudioConvert::process(Data data) {
 	uint8_t * const * pSrc = nullptr;
 	auto audioData = safe_cast<const DataPcm>(data);
 	if (audioData) {
-		auto const timeInDstSR = clockToTimescale(data->getMediaTime(), srcPcmFormat.sampleRate);
-		if ((timeInDstSR < (int64_t)accumulatedTimeInDstSR) || (timeInDstSR - (int64_t)accumulatedTimeInDstSR > dstNumSamples)) {
-			log(Warning, "Discontinuity detected. Reset at time %s.", data->getMediaTime());
-			accumulatedTimeInDstSR = clockToTimescale(data->getMediaTime(), srcPcmFormat.sampleRate);
-		}
-
 		if (audioData->getFormat() != srcPcmFormat) {
 			if (autoConfigure) {
 				log(Info, "Incompatible input audio data. Reconfiguring.");
@@ -73,6 +67,12 @@ void AudioConvert::process(Data data) {
 			} else {
 				throw error("Incompatible input audio data.");
 			}
+			accumulatedTimeInDstSR = clockToTimescale(data->getMediaTime(), srcPcmFormat.sampleRate);
+		}
+
+		auto const timeInDstSR = clockToTimescale(data->getMediaTime(), srcPcmFormat.sampleRate);
+		if ((timeInDstSR < (int64_t)accumulatedTimeInDstSR) || (timeInDstSR - (int64_t)accumulatedTimeInDstSR > dstNumSamples)) {
+			log(Warning, "Discontinuity detected. Reset at time %s (previous was %s).", data->getMediaTime(), timescaleToClock(accumulatedTimeInDstSR, srcPcmFormat.sampleRate));
 			accumulatedTimeInDstSR = clockToTimescale(data->getMediaTime(), srcPcmFormat.sampleRate);
 		}
 

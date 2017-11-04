@@ -1,6 +1,5 @@
 #include "lib_media/transform/time_rectifier.hpp"
 #include "tests.hpp"
-#include "lib_media/transform/restamp.hpp"
 #include "lib_media/transform/time_rectifier.hpp"
 #include "lib_media/utils/recorder.hpp"
 #include "lib_media/common/pcm.hpp"
@@ -9,8 +8,6 @@
 
 using namespace Tests;
 using namespace Modules;
-
-namespace {
 
 class ClockMock : public IClock {
 public:
@@ -42,6 +39,26 @@ private:
 	mutable std::mutex mutex;
 	mutable std::condition_variable condition;
 };
+
+unittest("scheduler: mock clock") {
+	Queue<Fraction> q;
+	auto f = [&](Fraction time) {
+		q.push(time);
+	};
+
+	auto const f1 = Fraction(1, 1000);
+	auto const f10 = Fraction(10, 1000);
+	auto clock = shptr(new ClockMock);
+	Scheduler s(clock);
+	s.scheduleIn(f, f1);
+	g_DefaultClock->sleep(f10);
+	ASSERT(q.size() == 0);
+	clock->setTime(f10);
+	g_DefaultClock->sleep(f10);
+	ASSERT(q.size() == 1);
+	auto const t = q.pop();
+	ASSERT(t == f1);
+}
 
 template<typename METADATA, typename PIN>
 struct DataGenerator : public ModuleS, public virtual IOutputCap {
@@ -155,29 +172,6 @@ void testFPSFactor(const Fraction &fps, const Fraction &factor) {
 	auto const inTimes = generateData(fps);
 	testRectifierSinglePin<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>(fps * factor, inTimes, outTimes);
 }
-}
-
-unittest("scheduler: mock clock") {
-	Queue<Fraction> q;
-	auto f = [&](Fraction time) {
-		q.push(time);
-	};
-
-	{
-		auto const f1 = Fraction(1, 1000);
-		auto const f10 = Fraction(10, 1000);
-		auto clock = shptr(new ClockMock);
-		Scheduler s(clock);
-		s.scheduleIn(f, f1);
-		g_DefaultClock->sleep(f10);
-		ASSERT(q.size() == 0);
-		clock->setTime(f10);
-		g_DefaultClock->sleep(f10);
-		ASSERT(q.size() == 1);
-		auto const t = q.pop();
-		ASSERT(t == f1);
-	}
-}
 
 unittest("rectifier: FPS factor (single pin)") {
 	auto const FPSs = { Fraction(25, 1), Fraction(30000, 1001) };
@@ -269,50 +263,4 @@ unittest("rectifier: fail when no video") {
 		thrown = true;
 	}
 	ASSERT(thrown);
-}
-
-unittest("restamp: passthru with offsets") {
-	auto const time = 10001LL;
-	auto data = std::make_shared<DataRaw>(0);
-
-	data->setMediaTime(time);
-	auto restamp = create<Transform::Restamp>(Transform::Restamp::Reset);
-	restamp->process(data);
-	ASSERT_EQUALS(0, data->getMediaTime());
-
-	data->setMediaTime(time);
-	restamp = create<Transform::Restamp>(Transform::Restamp::Reset, 0);
-	restamp->process(data);
-	ASSERT_EQUALS(0, data->getMediaTime());
-
-	data->setMediaTime(time);
-	restamp = create<Transform::Restamp>(Transform::Restamp::Reset, time);
-	restamp->process(data);
-	ASSERT_EQUALS(time, data->getMediaTime());
-}
-
-unittest("restamp: reset with offsets") {
-	int64_t time = 10001;
-	int64_t offset = -100;
-	auto data = std::make_shared<DataRaw>(0);
-
-	data->setMediaTime(time);
-	auto restamp = create<Transform::Restamp>(Transform::Restamp::Passthru);
-	restamp->process(data);
-	ASSERT_EQUALS(time, data->getMediaTime());
-
-	data->setMediaTime(time);
-	restamp = create<Transform::Restamp>(Transform::Restamp::Passthru, 0);
-	restamp->process(data);
-	ASSERT_EQUALS(time, data->getMediaTime());
-
-	data->setMediaTime(time);
-	restamp = create<Transform::Restamp>(Transform::Restamp::Passthru, offset);
-	restamp->process(data);
-	ASSERT_EQUALS(time + offset, data->getMediaTime());
-
-	data->setMediaTime(time);
-	restamp = create<Transform::Restamp>(Transform::Restamp::Passthru, time);
-	restamp->process(data);
-	ASSERT_EQUALS(time + time, data->getMediaTime());
 }
