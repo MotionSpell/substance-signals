@@ -71,8 +71,9 @@ void AudioConvert::process(Data data) {
 		}
 
 		auto const timeInDstSR = clockToTimescale(data->getMediaTime(), srcPcmFormat.sampleRate);
-		if ((timeInDstSR < (int64_t)accumulatedTimeInDstSR) || (timeInDstSR - (int64_t)accumulatedTimeInDstSR > dstNumSamples)) {
-			log(Warning, "Discontinuity detected. Reset at time %s (previous was %s).", data->getMediaTime(), timescaleToClock(accumulatedTimeInDstSR, srcPcmFormat.sampleRate));
+		auto const tolerance = 1 * dstNumSamples;
+		if ((timeInDstSR + tolerance < (int64_t)accumulatedTimeInDstSR) || ((int64_t)(timeInDstSR - accumulatedTimeInDstSR) > dstNumSamples + tolerance)) {
+			log(Warning, "Discontinuity detected. Reset at time %s (previous: %s, delay: %s samples).", data->getMediaTime(), timescaleToClock(accumulatedTimeInDstSR, srcPcmFormat.sampleRate), m_Swr->getDelay(dstPcmFormat.sampleRate));
 			accumulatedTimeInDstSR = clockToTimescale(data->getMediaTime(), srcPcmFormat.sampleRate);
 		}
 

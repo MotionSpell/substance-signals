@@ -90,7 +90,7 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 			Encode::LibavEncode::Params p;
 			auto m = createModule<Encode::LibavEncode>(bufferSize, g_DefaultClock, Encode::LibavEncode::Video, p);
 			dstFmt.format = p.pixelFormat;
-			return m;
+			return std::move(m);
 		} else if (codecType == AUDIO_PKT) {
 			PcmFormat encFmt, demuxFmt;
 			libavAudioCtx2pcmConvert(safe_cast<const MetadataPktLibavAudio>(metadataDemux)->getAVCodecContext(), &demuxFmt);
