@@ -35,10 +35,17 @@ void AdaptiveStreamingCommon::threadProc() {
 	uint64_t curSegDurInMs = 0;
 	for (;;) {
 		for (size_t i = 0; i < numInputs; ++i) {
-			data = inputs[i]->pop();
-			if (!data) {
-				break;
+			if (type == LiveNonBlocking) {
+				data = nullptr;
+				while (inputs[i]->tryPop(data)) {}
 			} else {
+				data = inputs[i]->pop();
+				if (!data) {
+					break;
+				}
+			}
+			
+			if (data) {
 				qualities[i]->meta = safe_cast<const MetadataFile>(data->getMetadata());
 				if (!qualities[i]->meta)
 					throw error(format("Unknown data received on input %s", i));
@@ -57,7 +64,7 @@ void AdaptiveStreamingCommon::threadProc() {
 		totalDurationInMs += curSegDurInMs;
 		log(Info, "Processes segment (total processed: %ss, UTC: %sms (deltaAST=%s, deltaInput=%s).", (double)totalDurationInMs / 1000, getUTC().num, gf_net_get_utc() - startTimeInMs, (int64_t)(gf_net_get_utc() - clockToTimescale(data->getMediaTime(), 1000)));
 
-		if (type == Live) {
+		if (type != Static) {
 			const int64_t durInMs = startTimeInMs + totalDurationInMs - DataBase::absUTCOffsetInMs;
 			if (durInMs > 0) {
 				log(Debug, "Going to sleep for %s ms.", durInMs);
@@ -82,7 +89,7 @@ void AdaptiveStreamingCommon::process() {
 
 void AdaptiveStreamingCommon::flush() {
 	numDataQueueNotify--;
-	if ((type == Live) && (numDataQueueNotify == 0)) {
+	if ((type != Static) && (numDataQueueNotify == 0)) {
 		endOfStream();
 	}
 }

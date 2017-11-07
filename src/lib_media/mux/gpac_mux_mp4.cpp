@@ -840,6 +840,7 @@ void GPACMuxMP4::sendOutput() {
 			char *output; u32 size;
 			gf_bs_get_content(bs, &output, &size);
 			out->setData((uint8_t*)output, size);
+			lastSegmentSize = size;
 		}
 		gf_isom_delete(isoCur);
 		if (e != GF_OK && e != GF_ISOM_INVALID_FILE)

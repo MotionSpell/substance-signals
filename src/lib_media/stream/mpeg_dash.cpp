@@ -49,15 +49,19 @@ bool moveFileInternal(const std::string &src, const std::string &dst) {
 	}
 	return true;
 }
+
+std::unique_ptr<gpacpp::MPD> createMPD(Stream::AdaptiveStreamingCommon::Type type, uint32_t minBufferTimeInMs, const std::string &id) {
+	return type != Stream::AdaptiveStreamingCommon::Static ?
+		uptr(new gpacpp::MPD(GF_MPD_TYPE_DYNAMIC, id, g_profiles, minBufferTimeInMs ? minBufferTimeInMs : MIN_BUFFER_TIME_IN_MS_LIVE)) :
+		uptr(new gpacpp::MPD(GF_MPD_TYPE_STATIC , id, g_profiles, minBufferTimeInMs ? minBufferTimeInMs : MIN_BUFFER_TIME_IN_MS_VOD ));
+}
 }
 
 namespace Stream {
 
 MPEG_DASH::MPEG_DASH(const std::string &mpdDir, const std::string &mpdFilename, Type type, uint64_t segDurationInMs, uint64_t timeShiftBufferDepthInMs, uint64_t minUpdatePeriodInMs, uint32_t minBufferTimeInMs, const std::vector<std::string> &baseURLs, const std::string &id, int64_t initialOffsetInMs)
 	: AdaptiveStreamingCommon(type, segDurationInMs),
-	mpd(type == Live ? new gpacpp::MPD(GF_MPD_TYPE_DYNAMIC, id, g_profiles, minBufferTimeInMs ? minBufferTimeInMs : MIN_BUFFER_TIME_IN_MS_LIVE)
-		: new gpacpp::MPD(GF_MPD_TYPE_STATIC, id, g_profiles, minBufferTimeInMs ? minBufferTimeInMs : MIN_BUFFER_TIME_IN_MS_VOD)),
-	mpdDir(mpdDir), mpdPath(format("%s%s", mpdDir, mpdFilename)), baseURLs(baseURLs),
+	mpd(createMPD(type, minBufferTimeInMs, id)), mpdDir(mpdDir), mpdPath(format("%s%s", mpdDir, mpdFilename)), baseURLs(baseURLs),
 	minUpdatePeriodInMs(minUpdatePeriodInMs ? minUpdatePeriodInMs : (segDurationInMs ? segDurationInMs : 1000)),
 	timeShiftBufferDepthInMs(timeShiftBufferDepthInMs), initialOffsetInMs(initialOffsetInMs), useSegmentTimeline(segDurationInMs == 0) {
 }
@@ -74,6 +78,12 @@ void MPEG_DASH::ensureManifest() {
 	if (!mpd->mpd->availabilityStartTime) {
 		mpd->mpd->availabilityStartTime = startTimeInMs + initialOffsetInMs;
 		mpd->mpd->time_shift_buffer_depth = (u32)timeShiftBufferDepthInMs;
+	}
+	if ((type == LiveNonBlocking) && (mpd->mpd->media_presentation_duration == 0)) {
+		auto mpdOld = std::move(mpd);
+		mpd = createMPD(type, mpdOld->mpd->min_buffer_time, mpdOld->mpd->ID);
+		mpd->mpd->availabilityStartTime = mpdOld->mpd->availabilityStartTime;
+		mpd->mpd->time_shift_buffer_depth = mpdOld->mpd->time_shift_buffer_depth;
 	}
 	mpd->mpd->publishTime = getUTC().num;
 
@@ -95,6 +105,9 @@ void MPEG_DASH::ensureManifest() {
 		for (size_t i = 0; i < getNumInputs() - 1; ++i) {
 			GF_MPD_AdaptationSet *as = nullptr;
 			auto quality = safe_cast<DASHQuality>(qualities[i].get());
+			if (!quality->meta) {
+				continue;
+			}
 			switch (quality->meta->getStreamType()) {
 			case AUDIO_PKT: audioAS ? as = audioAS : as = audioAS = createAS(segDurationInMs, period, mpd.get()); break;
 			case VIDEO_PKT: videoAS ? as = videoAS : as = videoAS = createAS(segDurationInMs, period, mpd.get()); break;
@@ -204,6 +217,9 @@ void MPEG_DASH::generateManifest() {
 
 	for (size_t i = 0; i < getNumInputs() - 1; ++i) {
 		auto quality = safe_cast<DASHQuality>(qualities[i].get());
+		if (!quality->meta) {
+			continue;
+		}
 		if (quality->rep->width) { /*video only*/
 			quality->rep->starts_with_sap = (quality->rep->starts_with_sap == GF_TRUE && quality->meta->getStartsWithRAP()) ? GF_TRUE : GF_FALSE;
 		}
@@ -286,7 +302,7 @@ void MPEG_DASH::generateManifest() {
 		}
 	}
 
-	if (type == Live) {
+	if (type != Static) {
 		writeManifest();
 	}
 }

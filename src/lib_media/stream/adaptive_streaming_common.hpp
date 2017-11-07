@@ -28,8 +28,9 @@ struct IAdaptiveStreamingCommon {
 class AdaptiveStreamingCommon : public IAdaptiveStreamingCommon, public ModuleDynI {
 public:
 	enum Type {
+		Static,
 		Live,
-		Static
+		LiveNonBlocking,
 	};
 
 	AdaptiveStreamingCommon(Type type, uint64_t segDurationInMs);

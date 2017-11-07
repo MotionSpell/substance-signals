@@ -45,7 +45,7 @@ void Apple_HLS::generateManifestMaster() {
 	mpl << playlistMaster.str();
 	mpl.close();
 
-	if (type == Live) {
+	if (type != Static) {
 		auto out = outputManifest->getBuffer(0);
 		auto metadata = std::make_shared<MetadataFile>(playlistMasterPath, PLAYLIST, "", "", timescaleToClock(segDurationInMs, 1000), 0, 1, false);
 		out->setMetadata(metadata);
