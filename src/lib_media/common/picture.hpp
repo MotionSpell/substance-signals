@@ -88,8 +88,7 @@ public:
 
 protected:
 	DataPicture(const Resolution &res, const PixelFormat &format)
-		: DataRaw(PictureFormat::getSize(res, format)),
-			format(res, format), internalFormat(res, format) {
+	: DataRaw(PictureFormat::getSize(res, format)), format(res, format), internalFormat(res, format) {
 	}
 
 	PictureFormat format;
@@ -275,7 +274,7 @@ public:
 		return data();
 	}
 	size_t getPitch(size_t planeIdx) const override {
-		return format.res.width * 2;
+		return internalFormat.res.width * 2;
 	}
 	void setInternalResolution(const Resolution &res) override {
 		internalFormat.res = res;
@@ -343,7 +342,7 @@ public:
 		return data();
 	}
 	size_t getPitch(size_t planeIdx) const override {
-		return format.res.width * 3;
+		return internalFormat.res.width * 3;
 	}
 	void setInternalResolution(const Resolution &res) override {
 		internalFormat.res = res;
@@ -374,7 +373,7 @@ public:
 		return data();
 	}
 	size_t getPitch(size_t planeIdx) const override {
-		return format.res.width * 4;
+		return internalFormat.res.width * 4;
 	}
 	void setInternalResolution(const Resolution &res) override {
 		internalFormat.res = res;
