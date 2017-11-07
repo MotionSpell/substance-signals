@@ -6,6 +6,7 @@ std::shared_ptr<DataPicture> DataPicture::create(OutputPicture *out, const Resol
 	std::shared_ptr<DataPicture> r;
 	auto const size = PictureFormat::getSize(resInternal, format);
 	switch (format) {
+	case Y8:          r = safe_cast<DataPicture>(out->getBuffer<PictureY8>(size));          break;
 	case YUV420P:     r = safe_cast<DataPicture>(out->getBuffer<PictureYUV420P>(size));     break;
 	case YUV420P10LE: r = safe_cast<DataPicture>(out->getBuffer<PictureYUV420P10LE>(size)); break;
 	case YUV422P:     r = safe_cast<DataPicture>(out->getBuffer<PictureYUV422P>(size));     break;

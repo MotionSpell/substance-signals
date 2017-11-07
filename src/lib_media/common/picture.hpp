@@ -10,6 +10,7 @@ namespace Modules {
 #undef PixelFormat //there are collisions with FFmpeg here
 enum PixelFormat {
 	UNKNOWN_PF = -1,
+	Y8,
 	YUV420P,
 	YUV420P10LE,
 	YUV422P,
@@ -38,6 +39,7 @@ public:
 	}
 	static size_t getSize(const Resolution &res, const PixelFormat &format) {
 		switch (format) {
+		case Y8: return res.width * res.height;
 		case YUV420P: return res.width * res.height * 3 / 2;
 		case YUV420P10LE: return res.width * divUp(10, 8) * res.height * 3 / 2;
 		case YUV422P: return res.width * res.height * 2;
@@ -47,6 +49,10 @@ public:
 		case RGBA32: return res.width * res.height * 4;
 		default: throw std::runtime_error("Unknown pixel format. Please contact your vendor.");
 		}
+	}
+
+	bool hasTransparency() const {
+		return format == RGBA32;
 	}
 
 	Resolution res;
@@ -88,6 +94,43 @@ protected:
 
 	PictureFormat format;
 	PictureFormat internalFormat /*we might need to store the picture within a wider memory space*/;
+};
+
+class PictureY8 : public DataPicture {
+public:
+	PictureY8(size_t unused) : DataPicture(0) {
+		internalFormat.format = format.format = Y8;
+	}
+	PictureY8(const Resolution &res) : DataPicture(res, Y8) {
+		setInternalResolution(res);
+		setVisibleResolution(res);
+	}
+	size_t getNumPlanes() const override {
+		return 1;
+	}
+	const uint8_t* getPlane(size_t planeIdx) const override {
+		return m_planes[planeIdx];
+	}
+	uint8_t* getPlane(size_t planeIdx) override {
+		return m_planes[planeIdx];
+	}
+	size_t getPitch(size_t planeIdx) const override {
+		return m_pitch[planeIdx];
+	}
+	void setInternalResolution(const Resolution &res) override {
+		internalFormat.res = res;
+		resize(internalFormat.getSize());
+		auto const numPixels = res.width * res.height;
+		m_planes[0] = data();
+		m_pitch[0] = res.width;
+	}
+	void setVisibleResolution(const Resolution &res) override {
+		format.res = res;
+	}
+
+private:
+	size_t m_pitch[1];
+	uint8_t* m_planes[1];
 };
 
 class PictureYUV420P : public DataPicture {
