@@ -125,8 +125,8 @@ void testRectifierMeta(const Fraction &fps, std::shared_ptr<ClockMock> clock,
 		Data data;
 		while ((data = recorders[g]->pop()) && (i < iMax)) {
 			Log::msg(Debug, "recv[%s] %s-%s (expected %s-%s)", g, data->getMediaTime(), data->getClockTime(), outTimes[g][i].first, outTimes[g][i].second);
-			ASSERT(llabs(data->getMediaTime() == outTimes[g][i].first));
-			ASSERT(llabs(data->getClockTime() == outTimes[g][i].second));
+			ASSERT(data->getMediaTime() == outTimes[g][i].first);
+			ASSERT(data->getClockTime() == outTimes[g][i].second);
 			i++;
 		}
 		ASSERT(i == iMax);

@@ -151,7 +151,7 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 		recorders[g]->process(nullptr);
 		Data data;
 		int64_t lastMediaTime = 0;
-		while (data = recorders[g]->pop()) {
+		while ((data = recorders[g]->pop())) {
 			Log::msg(Debug, "recv[%s] %s", g, data->getMediaTime());
 			lastMediaTime = data->getMediaTime();
 		}
