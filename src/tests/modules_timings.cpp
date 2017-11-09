@@ -13,12 +13,11 @@ using namespace Tests;
 using namespace Modules;
 
 template<typename T>
-void checkTimestamps(const std::vector<int64_t> &timesIn, const std::vector<int64_t> &timesOut) {
+void checkTimestampsMux(const std::vector<int64_t> &timesIn, const std::vector<int64_t> &timesOut, std::unique_ptr<IModule> mux) {
 	Encode::LibavEncode::Params p;
 	p.frameRate.num = 1;
 	std::shared_ptr<DataBase> picture = uptr(new PictureYUV420P(VIDEO_RESOLUTION));
 	auto encode = create<Encode::LibavEncode>(Encode::LibavEncode::Video, p);
-	auto mux = create<Mux::GPACMuxMP4>("random_ts");
 	ConnectOutputToInput(encode->getOutput(0), mux->getInput(0));
 	for (size_t i = 0; i < timesIn.size(); ++i) {
 		picture->setMediaTime(timesIn[i]);
@@ -38,6 +37,12 @@ void checkTimestamps(const std::vector<int64_t> &timesIn, const std::vector<int6
 	Connect(demux->getOutput(0)->getSignal(), onFrame);
 	demux->process(nullptr);
 	ASSERT(i == timesOut.size());
+}
+
+template<typename T>
+void checkTimestamps(const std::vector<int64_t> &timesIn, const std::vector<int64_t> &timesOut) {
+	checkTimestampsMux<T>(timesIn, timesOut, create<Mux::GPACMuxMP4>("random_ts"));
+	checkTimestampsMux<T>(timesIn, timesOut, create<Mux::GPACMuxMP4>("random_ts", 0, Mux::GPACMuxMP4::NoSegment, Mux::GPACMuxMP4::NoFragment, Mux::GPACMuxMP4::ExactInputDur));
 }
 
 unittest("timestamps start at random values (LibavDemux)") {
