@@ -162,4 +162,21 @@ if [ ! -f extra/release/curl/releaseOk ] ; then
 	touch extra/release/curl/releaseOk
 fi
 
+#-------------------------------------------------------------------------------	
+echo ASIO
+#-------------------------------------------------------------------------------
+if [ ! -f extra/src/asio/asio/include/asio.hpp ] ; then
+	mkdir -p extra/src
+	rm -rf extra/src/asio
+	git clone --depth 1000 https://github.com/chriskohlhoff/asio extra/src/asio
+	pushd extra/src/asio
+	git checkout b44805ff00
+	popd	
+fi	
+	
+if [ ! -f extra/include/asio/asio.hpp ] ; then
+	mkdir -p extra/include/asio	
+	cp -r extra/src/asio/asio/include/* extra/include/asio/	
+fi
+
 echo "Done"

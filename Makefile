@@ -2,13 +2,12 @@ CFLAGS:=$(CFLAGS)
 CFLAGS+=-std=gnu++1y
 CFLAGS+=-Wall
 CFLAGS+=-Wextra
-CFLAGS+=-fvisibility=hidden
+CFLAGS+=-fvisibility=hidden -fvisibility-inlines-hidden 
 CFLAGS+=-W
 CFLAGS+=-Wno-unused-parameter
 CFLAGS+=-Wno-unused-function
 CFLAGS+=-Wno-unused-label
 CFLAGS+=-Wno-write-strings
-
 CFLAGS+=-D__STDC_CONSTANT_MACROS
 
 BIN?=bin
@@ -66,7 +65,7 @@ ifeq ($(SIGNALS_HAS_X11), 1)
 	pkg-config --libs sdl2 >> $(BIN)/config.mk.tmp
 endif
 
-	/bin/echo 'CFLAGS+= -Wno-unused-local-typedefs' >> $(BIN)/config.mk.tmp
+	/bin/echo 'CFLAGS+= -I$(EXTRA)/include/asio -Wno-unused-local-typedefs' >> $(BIN)/config.mk.tmp
 	/bin/echo 'LDFLAGS+= -lpthread -lturbojpeg -lcurl' >> $(BIN)/config.mk.tmp ;
 	mv $(BIN)/config.mk.tmp $(BIN)/config.mk
 
