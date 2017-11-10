@@ -20,8 +20,7 @@ LibavMux::LibavMux(const std::string &baseName, const std::string &fmt, const st
 	if (!m_formatCtx)
 		throw error("Format context couldn't be allocated.");
 
-	/* setup container */
-	AVOutputFormat *of = av_guess_format(fmt.c_str(), nullptr, nullptr);
+	auto const of = av_guess_format(fmt.c_str(), nullptr, nullptr);
 	if (!of) {
 		formatsList();
 		throw error("Couldn't guess output format. Check list above for supported ones.");
@@ -33,7 +32,9 @@ LibavMux::LibavMux(const std::string &baseName, const std::string &fmt, const st
 	std::stringstream formatExts(of->extensions); //get the first extension recommended by ffmpeg
 	std::string fileNameExt;
 	std::getline(formatExts, fileNameExt, ',');
-	fileName << "." << fileNameExt;
+	if (fileName.str().find("://") == std::string::npos) {
+		fileName << "." << fileNameExt;
+	}
 	if (!(m_formatCtx->oformat->flags & AVFMT_NOFILE)) { /* open the output file, if needed */
 		if (avio_open2(&m_formatCtx->pb, fileName.str().c_str(), AVIO_FLAG_READ_WRITE, nullptr, &optionsDict) < 0) {
 			avformat_free_context(m_formatCtx);
