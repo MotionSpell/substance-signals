@@ -119,7 +119,6 @@ public:
 	void setInternalResolution(const Resolution &res) override {
 		internalFormat.res = res;
 		resize(internalFormat.getSize());
-		auto const numPixels = res.width * res.height;
 		m_planes[0] = data();
 		m_pitch[0] = res.width;
 	}

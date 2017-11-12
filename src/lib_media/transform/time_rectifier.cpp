@@ -32,11 +32,11 @@ void TimeRectifier::process() {
 void TimeRectifier::flush() {
 	std::unique_lock<std::mutex> lock(inputMutex);
 	flushing = true;
-	auto const finalClockTime = std::max<int64_t>(maxClockTimeIn180k, fractionToClock(clock->now())) + 1;
+	auto const finalClockTime = std::max<int64_t>(maxClockTimeIn180k, fractionToClock(clock->now()));
 	log(TR_DEBUG, "Schedule final removal at time %s (max:%s|%s)", finalClockTime, maxClockTimeIn180k, fractionToClock(clock->now()));
 	scheduler->scheduleAt([this](Fraction f) {
 		log(TR_DEBUG, "Final removal at time %s", fractionToClock(f));
-		removeOutdatedAllUnsafe(fractionToClock(f));
+		removeOutdatedAllUnsafe(fractionToClock(f)+1);
 	}, Fraction(finalClockTime, Clock::Rate));
 	flushedCond.wait(lock);
 }
@@ -64,7 +64,6 @@ void TimeRectifier::declareScheduler(Data data, std::unique_ptr<IInput> &input, 
 		if (hasVideo)
 			throw error("Only one video stream is allowed");
 		hasVideo = true;
-
 		scheduler->scheduleEvery(std::bind(&TimeRectifier::awakeOnFPS, this, std::placeholders::_1), Fraction(frameRate.den, frameRate.num), 0);
 	}
 }
@@ -74,13 +73,13 @@ void TimeRectifier::fillInputQueuesUnsafe() {
 	for (size_t i = 0; i < getNumInputs() - 1; ++i) {
 		auto &currInput = inputs[i];
 		while (currInput->tryPop(data)) {
-			if (currInput->updateMetadata(data)) {
-				declareScheduler(data, currInput, outputs[i]);
-			}
 			if (data->getClockTime() > maxClockTimeIn180k) {
 				maxClockTimeIn180k = data->getClockTime();
 			}
 			input[i]->data.push_back(data);
+			if (currInput->updateMetadata(data)) {
+				declareScheduler(data, currInput, outputs[i]);
+			}
 		}
 	}
 }
@@ -129,7 +128,7 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 				log(Debug, "Video: considering data (%s/%s) at time %s (currDist=%s, dist=%s, threshold=%s)", currData->getMediaTime(), currData->getClockTime(), fractionToClock(time), currDistClock, distClock, threshold);
 				if (std::abs(currDistClock) < distClock) {
 					/*timings are monotonic so check for a previous data with distance less than one frame*/
-					if (currDistClock <= 0 || (currDistClock > 0 && distClock > timescaleToClock(frameRate.den, frameRate.num))) {
+					if (currDistClock <= 0 || (currDistClock > 0 && distClock > threshold)) {
 						distClock = std::abs(currDistClock);
 						refData = currData;
 						currDataIdx = idx;
@@ -137,11 +136,16 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 				}
 			}
 			if (!refData) {
+				if ((input[i]->numTicks > 0) && !flushing)
+					throw error(format("No reference data found but neither starting (%s) nor flushing(%s)", input[i]->numTicks, flushing));
 				log(Warning, "No available reference data for clock time %s", fractionToClock(time));
 				return;
 			}
+			if (input[i]->numTicks == 0) {
+				log(Info, "First available reference clock time: %s", fractionToClock(time));
+			}
 			if ((input[i]->numTicks > 0) && (input[i]->data.size() >= 2) && (currDataIdx != 1)) {
-				log(Warning, "[%s] Selected data is not contiguous to the last one (index=%s). Expect discontinuity in the signal.", i, currDataIdx);
+				log(Debug, "[%s] Selected reference data is not contiguous to the last one (index=%s).", i, currDataIdx);
 				//TODO: pass in error mode: flush all the data where the clock time removeOutdatedAllUnsafe(refData->getClockTime());
 			}
 
