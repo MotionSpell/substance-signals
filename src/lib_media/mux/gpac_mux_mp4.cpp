@@ -792,6 +792,7 @@ void GPACMuxMP4::declareStream(Data data) {
 		} else {
 			gf_isom_append_edit_segment(isoCur, gf_isom_get_track_by_id(isoCur, trackId), 0, -edtsInMediaTs, GF_ISOM_EDIT_NORMAL);
 		}
+		log(Info, "Initial offset: %ss (4CC=%s, \"%s\", timescale=%s/%s)", lastInputTimeIn180k / (double)Clock::Rate, codec4CC, segmentName, gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId)), gf_isom_get_timescale(isoCur));
 	}
 }
 
