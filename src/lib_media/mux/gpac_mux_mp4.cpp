@@ -864,7 +864,9 @@ void GPACMuxMP4::addSample(std::unique_ptr<gpacpp::IsoSample> sample, const uint
 			((curSegmentDurInTs + curSegmentDeltaInTs) * IClock::Rate) > (mediaTs * segmentDurationIn180k) && 
 			((sample->IsRAP == RAP) || (compatFlags & SegmentAtAny))) {
 			if ((compatFlags & SegConstantDur) && (timescaleToClock(curSegmentDurInTs + curSegmentDeltaInTs - dataDurationInTs, mediaTs) != segmentDurationIn180k) && (curSegmentDurInTs - dataDurationInTs != 0)) {
-				segmentDurationIn180k = timescaleToClock(curSegmentDurInTs + curSegmentDeltaInTs - dataDurationInTs, mediaTs);
+				if (((DTS - dataDurationInTs) / clockToTimescale(segmentDurationIn180k, mediaTs)) == 0) {
+					segmentDurationIn180k = timescaleToClock(curSegmentDurInTs + curSegmentDeltaInTs - dataDurationInTs, mediaTs);
+				}
 			}
 			closeSegment(false);
 			segmentNum++;

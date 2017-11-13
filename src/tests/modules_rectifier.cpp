@@ -125,7 +125,7 @@ void testRectifierMeta(const Fraction &fps, std::shared_ptr<ClockMock> clock,
 			ASSERT(data->getClockTime() == outTimes[g][i].second);
 			i++;
 		}
-		ASSERT(i > iMax / 2);
+		ASSERT(i >= iMax - 2);
 	}
 	clock->setTime(std::numeric_limits<int32_t>::max());
 }
