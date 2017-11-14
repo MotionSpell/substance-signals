@@ -59,7 +59,7 @@ void LibavDemux::initRestamp() {
 			restampers[i] = create<Transform::Restamp>(Transform::Restamp::Reset);
 		}
 
-		if ((m_formatCtx->iformat->flags & AVFMT_NOFILE) && (format == "rtsp" || format == "rtp" || format == "mpegts")) {
+		if (format == "rtsp" || format == "rtp" || format == "mpegts") {
 			startPTSIn180k = std::max<int64_t>(startPTSIn180k, timescaleToClock(m_formatCtx->streams[i]->start_time*m_formatCtx->streams[i]->time_base.num, m_formatCtx->streams[i]->time_base.den));
 		}
 	}
@@ -202,7 +202,7 @@ void LibavDemux::threadProc() {
 	}
 }
 
-bool LibavDemux::setMediaTime(std::shared_ptr<DataAVPacket> data) {
+void LibavDemux::setMediaTime(std::shared_ptr<DataAVPacket> data) {
 	auto pkt = data->getPacket();
 	if (!pkt->duration) {
 		pkt->duration = pkt->dts - lastDTS[pkt->stream_index];
@@ -222,11 +222,6 @@ bool LibavDemux::setMediaTime(std::shared_ptr<DataAVPacket> data) {
 	if (offset != 0) {
 		data->restamp(offset * base.num, base.den); //propagate to AVPacket
 	}
-	if (pkt->dts < 0) {
-		log(Warning, "Detected a negative DTS (%s) while demuxing: discard as it can cause errors later on.", pkt->dts);
-		return false;
-	}
-	return true;
 }
 
 bool LibavDemux::dispatchable(AVPacket * const pkt) {
@@ -252,10 +247,9 @@ void LibavDemux::dispatch(AVPacket *pkt) {
 	auto out = outputs[pkt->stream_index]->getBuffer(0);
 	AVPacket *outPkt = out->getPacket();
 	av_packet_move_ref(outPkt, pkt);
-	if (setMediaTime(out)) {
-		outputs[outPkt->stream_index]->emit(out);
-		sparseStreamsHeartbeat(outPkt);
-	}
+	setMediaTime(out);
+	outputs[outPkt->stream_index]->emit(out);
+	sparseStreamsHeartbeat(outPkt);
 }
 
 void LibavDemux::sparseStreamsHeartbeat(AVPacket const * const pkt) {

@@ -28,7 +28,7 @@ class LibavDemux : public ModuleS {
 		void initRestamp();
 		void seekToStart();
 		void threadProc();
-		bool setMediaTime(std::shared_ptr<DataAVPacket> data);
+		void setMediaTime(std::shared_ptr<DataAVPacket> data);
 		bool dispatchable(AVPacket * const pkt);
 		void dispatch(AVPacket *pkt);
 		void sparseStreamsHeartbeat(AVPacket const * const pkt);

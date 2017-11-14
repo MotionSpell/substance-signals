@@ -12,7 +12,7 @@ extern "C" {
 }
 
 //#define AVC_INBAND_CONFIG
-#define TIMESCALE_MUL 100
+#define TIMESCALE_MUL 100 /*offers a tolerance on VFR or faulty streams*/
 
 namespace Modules {
 
@@ -651,7 +651,8 @@ void GPACMuxMP4::declareStreamAudio(std::shared_ptr<const MetadataPktLibavAudio>
 }
 
 void GPACMuxMP4::declareStreamSubtitle(std::shared_ptr<const MetadataPktLibavSubtitle> metadata) {
-	u32 trackNum = gf_isom_new_track(isoCur, 0, GF_ISOM_MEDIA_TEXT, TIMESCALE_MUL);
+	auto const timescale = 10 * TIMESCALE_MUL; assert(((10 * TIMESCALE_MUL) % 1000) == 0); /*ms accuracy mandatory*/
+	u32 trackNum = gf_isom_new_track(isoCur, 0, GF_ISOM_MEDIA_TEXT, timescale);
 	if (!trackNum)
 		throw error(format("Cannot create new track"));
 	trackId = gf_isom_get_track_id(isoCur, trackNum);
