@@ -5,7 +5,7 @@ namespace Modules {
 namespace Stream {
 
 AdaptiveStreamingCommon::AdaptiveStreamingCommon(Type type, uint64_t segDurationInMs)
-	: type(type), segDurationInMs(segDurationInMs) {
+: type(type), segDurationInMs(segDurationInMs) {
 	addInput(new Input<DataRaw>(this));
 	outputSegments = addOutput<OutputDataDefault<DataAVPacket>>();
 	outputManifest = addOutput<OutputDataDefault<DataAVPacket>>();
@@ -32,12 +32,14 @@ void AdaptiveStreamingCommon::threadProc() {
 	}
 
 	Data data;
-	uint64_t curSegDurInMs = 0;
 	for (;;) {
-		for (size_t i = 0; i < numInputs; ++i) {
-			if (type == LiveNonBlocking) {
-				data = nullptr;
-				while (inputs[i]->tryPop(data)) {}
+		uint64_t curSegDurInMs = 0;
+		size_t i;
+		for (i = 0; i < numInputs; ++i) {
+			if ((type == LiveNonBlocking) && (!qualities[i]->meta)) {
+				if (inputs[i]->tryPop(data) && !data) {
+					break;
+				}
 			} else {
 				data = inputs[i]->pop();
 				if (!data) {
@@ -55,14 +57,24 @@ void AdaptiveStreamingCommon::threadProc() {
 			}
 		}
 		if (!data) {
-			break;
+			if (i != numInputs) {
+				break;
+			} else {
+				assert((type == LiveNonBlocking) && (qualities.size() < numInputs));
+				g_DefaultClock->sleep(Fraction(1, 1000));
+				continue;
+			}
 		}
 
 		numSeg++;
+		if (!curSegDurInMs) curSegDurInMs = segDurationInMs;
 		if (!startTimeInMs) startTimeInMs = DataBase::absUTCOffsetInMs - curSegDurInMs;
 		generateManifest();
 		totalDurationInMs += curSegDurInMs;
-		log(Info, "Processes segment (total processed: %ss, UTC: %sms (deltaAST=%s, deltaInput=%s).", (double)totalDurationInMs / 1000, getUTC().num, gf_net_get_utc() - startTimeInMs, (int64_t)(gf_net_get_utc() - clockToTimescale(data->getMediaTime(), 1000)));
+		log(Info, "Processes segment (total processed: %ss, UTC: %sms (deltaAST=%s, deltaInput=%s).",
+			(double)totalDurationInMs / 1000, getUTC().num, gf_net_get_utc() - startTimeInMs,
+			data ? (int64_t)(gf_net_get_utc() - clockToTimescale(data->getMediaTime(), 1000)) : 0);
+		data = nullptr;
 
 		if (type != Static) {
 			const int64_t durInMs = startTimeInMs + totalDurationInMs - DataBase::absUTCOffsetInMs;

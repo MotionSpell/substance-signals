@@ -30,7 +30,7 @@ class MPEG_DASH : public AdaptiveStreamingCommon, public gpacpp::Init {
 
 		void ensureManifest();
 		void writeManifest();
-		std::shared_ptr<const MetadataFile> moveFile(const std::shared_ptr<const MetadataFile> src, const std::string &dst);
+		bool moveFile(const std::string &src, const std::string &dst) const;
 		std::unique_ptr<gpacpp::MPD> mpd;
 		const std::string mpdDir, mpdPath;
 		const std::vector<std::string> baseURLs;
