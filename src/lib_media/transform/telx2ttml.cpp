@@ -118,8 +118,8 @@ const std::string TeletextToTTML::toTTML(uint64_t startTimeInMs, uint64_t endTim
 	return ttml.str();
 }
 
-TeletextToTTML::TeletextToTTML(unsigned pageNum, const std::string &lang, uint64_t splitDurationInMs, TimingPolicy timingPolicy)
-: pageNum(pageNum), lang(lang), timingPolicy(timingPolicy), splitDurationIn180k(timescaleToClock(splitDurationInMs, 1000)) {
+TeletextToTTML::TeletextToTTML(unsigned pageNum, const std::string &lang, uint64_t splitDurationInMs, uint64_t maxDelayBeforeEmptyInMs, TimingPolicy timingPolicy)
+: pageNum(pageNum), lang(lang), timingPolicy(timingPolicy), maxPageDurIn180k(timescaleToClock(maxDelayBeforeEmptyInMs, 1000)), splitDurationIn180k(timescaleToClock(splitDurationInMs, 1000)) {
 	addInput(new Input<DataAVPacket>(this));
 	output = addOutput<OutputDataDefault<DataAVPacket>>();
 }
@@ -138,7 +138,7 @@ void TeletextToTTML::sendSample(const std::string &sample) {
 void TeletextToTTML::dispatch() {
 	int64_t prevSplit = (intClock / splitDurationIn180k) * splitDurationIn180k;
 	int64_t nextSplit = prevSplit + splitDurationIn180k;
-	while ((int64_t)(extClock - delayIn180k) > nextSplit) {
+	while ((int64_t)(extClock - maxPageDurIn180k) > nextSplit) {
 		sendSample(toTTML(clockToTimescale(prevSplit, 1000), clockToTimescale(nextSplit, 1000)));
 		intClock = nextSplit;
 		prevSplit = (intClock / splitDurationIn180k) * splitDurationIn180k;
@@ -163,12 +163,12 @@ void TeletextToTTML::processTelx(DataAVPacket const * const sub) {
 			auto page = process_telx_packet(dataUnitId, (Payload*)entitiesData, pkt->pts);
 			if (page) {
 				auto const codecCtx = safe_cast<const MetadataPktLibav>(sub->getMetadata())->getAVCodecContext();
-				log(Debug, "framesProduced %s, show=%s, hide=%s", page->framesProduced, convertToTimescale(page->showTimestampInMs * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000), convertToTimescale(page->hideTimestampInMs * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000));
-				if (sub->getMediaTime() < intClock) {
-					log(Warning, "Timing error: received %s but internal clock is already at %s", sub->getMediaTime(), intClock);
-				}
+				log((int64_t)convertToTimescale(page->showTimestampInMs * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000) < clockToTimescale(intClock, 1000) ? Warning : Debug,
+					"framesProduced %s, show=%s:hide=%s, clocks:data=%s:int=%s,ext=%s, content=%s",
+					page->framesProduced, convertToTimescale(page->showTimestampInMs * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000), convertToTimescale(page->hideTimestampInMs * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000),
+					clockToTimescale(sub->getMediaTime(), 1000), clockToTimescale(intClock, 1000), clockToTimescale(extClock, 1000), page->ss.str());
 
-				auto const startTimeInMs = std::max<int64_t>(convertToTimescale(page->showTimestampInMs * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000), convertToTimescale(page->showTimestampInMs * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000));
+				auto const startTimeInMs = convertToTimescale(page->showTimestampInMs * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000);
 				auto const durationInMs = convertToTimescale((page->hideTimestampInMs - page->showTimestampInMs) * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000);
 				page->startTimeInMs = startTimeInMs;
 				page->endTimeInMs = startTimeInMs + durationInMs;
