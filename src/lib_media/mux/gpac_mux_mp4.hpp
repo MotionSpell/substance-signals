@@ -31,12 +31,13 @@ class GPACMuxMP4 : public ModuleDynI {
 
 		enum CompatibilityFlag {
 			None               = 0,
-			SegmentAtAny       = 1, //don't wait for a RAP
+			SegmentAtAny       = 1 << 0, //don't wait for a RAP
 			Browsers           = 1 << 1,
 			SmoothStreaming    = 1 << 2,
 			SegNumStartsAtZero = 1 << 3,
 			SegConstantDur     = 1 << 4, //default is average i.e. segment duration may vary ; with this flag the actual duration may be different from segmentDurationInMs
 			ExactInputDur      = 1 << 5, //adds a one sample latency ; default is inferred and smoothen
+			NoEditLists        = 1 << 6, 
 		};
 
 		GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs = 0, SegmentPolicy segmentPolicy = NoSegment, FragmentPolicy fragmentPolicy = NoFragment, CompatibilityFlag compatFlags = None);
@@ -62,9 +63,8 @@ class GPACMuxMP4 : public ModuleDynI {
 
 		CompatibilityFlag compatFlags;
 		Data lastData = nullptr; //used with ExactInputDur flag
-		int64_t lastInputTimeIn180k = 0;
+		int64_t lastInputTimeIn180k = 0, firstDataAbsTimeInMs = 0;
 		uint64_t DTS = 0, defaultSampleIncInTs = 0;
-		static int64_t firstDataAbsTimeInMs;
 		bool isAnnexB = true;
 
 		//fragments
@@ -84,7 +84,7 @@ class GPACMuxMP4 : public ModuleDynI {
 		bool segmentStartsWithRAP = true;
 		std::string segmentName;
 
-		OutputDataDefault<DataRawGPAC>* output;
+		OutputDataDefault<DataRawGPAC> *output;
 		union {
 			unsigned int resolution[2];
 			unsigned int sampleRate;

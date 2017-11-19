@@ -354,8 +354,6 @@ void fillVideoSampleData(const u8 *bufPtr, u32 bufLen, GF_ISOSample &sample) {
 
 namespace Mux {
 
-int64_t GPACMuxMP4::firstDataAbsTimeInMs = 0;
-
 GPACMuxMP4::GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs, SegmentPolicy segmentPolicy, FragmentPolicy fragmentPolicy, CompatibilityFlag compatFlags)
 	: compatFlags(compatFlags), fragmentPolicy(fragmentPolicy), segmentPolicy(segmentPolicy), segmentDurationIn180k(timescaleToClock(segmentDurationInMs, 1000)) {
 	if ((segmentDurationInMs == 0) ^ (segmentPolicy == NoSegment || segmentPolicy == SingleSegment))
@@ -784,16 +782,20 @@ void GPACMuxMP4::declareStream(Data data) {
 
 	lastInputTimeIn180k = data->getMediaTime();
 	if (lastInputTimeIn180k) { /*first timestamp is not zero*/
-		auto const edtsInMovieTs = clockToTimescale(lastInputTimeIn180k, gf_isom_get_timescale(isoCur));
-		auto const edtsInMediaTs = clockToTimescale(lastInputTimeIn180k, gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId)));
-		if (edtsInMovieTs > 0) {
-			gf_isom_append_edit_segment(isoCur, gf_isom_get_track_by_id(isoCur, trackId), edtsInMovieTs, 0, GF_ISOM_EDIT_EMPTY);
-			gf_isom_append_edit_segment(isoCur, gf_isom_get_track_by_id(isoCur, trackId), edtsInMovieTs, 0, GF_ISOM_EDIT_NORMAL);
-			curSegmentDeltaInTs = edtsInMediaTs;
-		} else {
-			gf_isom_append_edit_segment(isoCur, gf_isom_get_track_by_id(isoCur, trackId), 0, -edtsInMediaTs, GF_ISOM_EDIT_NORMAL);
-		}
 		log(Info, "Initial offset: %ss (4CC=%s, \"%s\", timescale=%s/%s)", lastInputTimeIn180k / (double)Clock::Rate, codec4CC, segmentName, gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId)), gf_isom_get_timescale(isoCur));
+		if (compatFlags & NoEditLists) {
+			firstDataAbsTimeInMs += clockToTimescale(lastInputTimeIn180k, 1000);
+		} else {
+			auto const edtsInMovieTs = clockToTimescale(lastInputTimeIn180k, gf_isom_get_timescale(isoCur));
+			auto const edtsInMediaTs = clockToTimescale(lastInputTimeIn180k, gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId)));
+			if (edtsInMovieTs > 0) {
+				gf_isom_append_edit_segment(isoCur, gf_isom_get_track_by_id(isoCur, trackId), edtsInMovieTs, 0, GF_ISOM_EDIT_EMPTY);
+				gf_isom_append_edit_segment(isoCur, gf_isom_get_track_by_id(isoCur, trackId), edtsInMovieTs, 0, GF_ISOM_EDIT_NORMAL);
+				curSegmentDeltaInTs = edtsInMediaTs;
+			} else {
+				gf_isom_append_edit_segment(isoCur, gf_isom_get_track_by_id(isoCur, trackId), 0, -edtsInMediaTs, GF_ISOM_EDIT_NORMAL);
+			}
+		}
 	}
 }
 
