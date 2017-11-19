@@ -857,15 +857,12 @@ void GPACMuxMP4::sendOutput() {
 	output->emit(out);
 }
 
-void GPACMuxMP4::addSample(std::unique_ptr<gpacpp::IsoSample> sample) {
-	DTS += lastDataDurationInTs;
+void GPACMuxMP4::splitSegment(gpacpp::IsoSample * const sample) {
 	auto const mediaTs = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
-
-	GF_Err e;
 	if (segmentPolicy > SingleSegment) {
 		curSegmentDurInTs += lastDataDurationInTs;
 		if ((!(compatFlags & Browsers) || curFragmentDurInTs > 0) && /*avoid 0-sized mdat interpreted as EOS in browsers*/
-			((curSegmentDurInTs + curSegmentDeltaInTs) * IClock::Rate) > (mediaTs * segmentDurationIn180k) && 
+			((curSegmentDurInTs + curSegmentDeltaInTs) * IClock::Rate) > (mediaTs * segmentDurationIn180k) &&
 			((sample->IsRAP == RAP) || (compatFlags & SegmentAtAny))) {
 			if ((compatFlags & SegConstantDur) && (timescaleToClock(curSegmentDurInTs + curSegmentDeltaInTs - lastDataDurationInTs, mediaTs) != segmentDurationIn180k) && (curSegmentDurInTs - lastDataDurationInTs != 0)) {
 				if (((DTS - lastDataDurationInTs) / clockToTimescale(segmentDurationIn180k, mediaTs)) == 0) {
@@ -894,7 +891,9 @@ void GPACMuxMP4::addSample(std::unique_ptr<gpacpp::IsoSample> sample) {
 			}
 		}
 	}
+}
 
+void GPACMuxMP4::addData(gpacpp::IsoSample const * const sample) {
 	if (fragmentPolicy > NoFragment) {
 		if (curFragmentDurInTs && (fragmentPolicy == OneFragmentPerRAP) && (sample->IsRAP == RAP)) {
 			closeFragment();
@@ -904,7 +903,7 @@ void GPACMuxMP4::addSample(std::unique_ptr<gpacpp::IsoSample> sample) {
 			startFragment(sample->DTS, sample->DTS + sample->CTS_Offset);
 		}
 
-		e = gf_isom_fragment_add_sample(isoCur, trackId, sample.get(), 1, (u32)lastDataDurationInTs, 0, 0, GF_FALSE);
+		GF_Err e = gf_isom_fragment_add_sample(isoCur, trackId, sample, 1, (u32)lastDataDurationInTs, 0, 0, GF_FALSE);
 		if (e != GF_OK) {
 			log(Error, "gf_isom_fragment_add_sample: %s", gf_error_to_string(e));
 			return;
@@ -915,12 +914,18 @@ void GPACMuxMP4::addSample(std::unique_ptr<gpacpp::IsoSample> sample) {
 			closeFragment();
 		}
 	} else {
-		GF_Err e = gf_isom_add_sample(isoCur, trackId, 1, sample.get());
+		GF_Err e = gf_isom_add_sample(isoCur, trackId, 1, sample);
 		if (e != GF_OK) {
 			log(Error, "gf_isom_add_sample: %s", gf_error_to_string(e));
 			return;
 		}
 	}
+}
+
+void GPACMuxMP4::processSample(std::unique_ptr<gpacpp::IsoSample> sample) {
+	DTS += lastDataDurationInTs;
+	splitSegment(sample.get());
+	addData(sample.get());
 }
 
 std::unique_ptr<gpacpp::IsoSample> GPACMuxMP4::fillSample(Data data_) {
@@ -988,7 +993,7 @@ void GPACMuxMP4::process() {
 			lastData = data;
 			return;
 		}
-		addSample(fillSample(lastData));
+		processSample(fillSample(lastData));
 		lastData = data;
 	} else {
 		if (DTS && (lastDataDurationInTs - defaultSampleIncInTs != 0)) {
@@ -1002,7 +1007,7 @@ void GPACMuxMP4::process() {
 			lastDataDurationInTs = defaultSampleIncInTs;
 		}
 
-		addSample(fillSample(data));
+		processSample(fillSample(data));
 	}
 }
 
