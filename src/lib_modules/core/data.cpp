@@ -4,15 +4,20 @@
 namespace Modules {
 std::atomic<uint64_t> DataBase::absUTCOffsetInMs(0);
 
+DataBase::DataBase(IData * const data) {
+	data_ = shptr(data, [](IData*) {});
+}
+
 DataBase::DataBase(std::shared_ptr<const DataBase> data) {
 	if (data) {
 		setMediaTime(data->getMediaTime());
 		setClockTime(data->getClockTime());
 		setMetadata(data->getMetadata());
+		data_ = data->getData();
 	}
 }
 
-std::shared_ptr<IData> DataBase::getData() {
+std::shared_ptr<IData> DataBase::getData() const {
 	return data_;
 }
 
@@ -61,6 +66,9 @@ int64_t DataBase::getMediaTime() const {
 
 int64_t DataBase::getClockTime(uint64_t timescale) const {
 	return timescaleToClock(clockTimeIn180k, timescale);
+}
+
+DataRaw::DataRaw(size_t size) : DataBase(this), buffer(size) {
 }
 
 uint8_t* DataRaw::data() {

@@ -24,10 +24,10 @@ public:
 //A generic timed data container with metadata.
 class DataBase : public IData {
 public:
-	DataBase(std::shared_ptr<const DataBase> data = nullptr);
+	DataBase(IData * const data);
+	DataBase(std::shared_ptr<const DataBase> data);
 	virtual ~DataBase() = default;
-
-	std::shared_ptr<IData> getData();
+	std::shared_ptr<IData> getData() const;
 
 	bool isRecyclable() const override;
 	uint8_t* data() override;
@@ -50,14 +50,12 @@ private:
 	std::shared_ptr<IData> data_;
 };
 
-typedef std::shared_ptr<const DataBase> Data;
-
 /* automatic inputs have a loose datatype */
 struct DataLoose : public DataBase {};
 
 class DataRaw : public DataBase {
 public:
-	DataRaw(size_t size) : buffer(size) {}
+	DataRaw(size_t size);
 	uint8_t* data() override;
 	bool isRecyclable() const override;
 	const uint8_t* data() const override;
@@ -68,4 +66,16 @@ private:
 	std::vector<uint8_t> buffer;
 };
 
+typedef std::shared_ptr<const DataBase> Data;
+
+}
+
+template<class T>
+std::shared_ptr<T> safe_cast(std::shared_ptr<const Modules::DataBase> p) {
+	if (!p || !p->getData())
+		return nullptr;
+	auto r = std::dynamic_pointer_cast<T>(p->getData());
+	if (!r)
+		throw std::runtime_error(format("dynamic cast error: could not convert from Modules::Data to %s", typeid(T).name()));
+	return r;
 }
