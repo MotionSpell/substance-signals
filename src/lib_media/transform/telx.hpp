@@ -146,8 +146,8 @@ Config config = {
 };
 
 typedef struct {
-	uint64_t showTimestampInMs;
-	uint64_t hideTimestampInMs;
+	uint64_t showTimestamp;
+	uint64_t hideTimestamp;
 	uint16_t text[25][40];
 	uint8_t tainted; // 1 = text variable contains any data
 } PageBuffer;
@@ -183,15 +183,15 @@ emptyPage:
 	if (emptyPage == YES)
 		return pageOut;
 
-	if (pageIn->showTimestampInMs > pageIn->hideTimestampInMs)
-		pageIn->hideTimestampInMs = pageIn->showTimestampInMs;
+	if (pageIn->showTimestamp > pageIn->hideTimestamp)
+		pageIn->hideTimestamp = pageIn->showTimestamp;
 
 	if (config.seMode == YES) {
 		++framesProduced;
-		pageOut->tsInMs = pageIn->showTimestampInMs;
+		pageOut->tsInMs = pageIn->showTimestamp;
 	} else {
-		pageOut->showTimestampInMs = pageIn->showTimestampInMs;
-		pageOut->hideTimestampInMs = pageIn->hideTimestampInMs;
+		pageOut->showTimestamp = pageIn->showTimestamp;
+		pageOut->hideTimestamp = pageIn->hideTimestamp;
 	}
 
 	for (uint8_t row = 1; row < 25; row++) {
@@ -320,12 +320,12 @@ std::unique_ptr<Modules::Transform::Page> process_telx_packet(DataUnit dataUnitI
 			return nullptr; //page transmission is terminated, however now we are waiting for our new page
 
 		if (pageBuffer.tainted == YES) { //begining of page transmission
-			pageBuffer.hideTimestampInMs = timestamp - 40;
+			pageBuffer.hideTimestamp = timestamp - 40;
 			pageOut = process_page(&pageBuffer);
 		}
 
-		pageBuffer.showTimestampInMs = timestamp;
-		pageBuffer.hideTimestampInMs = 0;
+		pageBuffer.showTimestamp = timestamp;
+		pageBuffer.hideTimestamp = 0;
 		memset(pageBuffer.text, 0x00, sizeof(pageBuffer.text));
 		pageBuffer.tainted = NO;
 		receivingData = YES;

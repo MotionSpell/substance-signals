@@ -46,11 +46,11 @@ const std::string Page::toSRT() {
 
 		{
 			char timecode_show[24] = { 0 };
-			timeInMsToStr(showTimestampInMs, timecode_show);
+			timeInMsToStr(showTimestamp, timecode_show);
 			timecode_show[12] = 0;
 
 			char timecode_hide[24] = { 0 };
-			timeInMsToStr(hideTimestampInMs, timecode_hide);
+			timeInMsToStr(hideTimestamp, timecode_hide);
 			timecode_hide[12] = 0;
 
 			char buf[255];
@@ -84,17 +84,17 @@ const std::string TeletextToTTML::toTTML(uint64_t startTimeInMs, uint64_t endTim
 	ttml << "  <body>\n";
 	ttml << "    <div>\n";
 
-	int64_t offset;
+	int64_t offsetInMs;
 	switch (timingPolicy) {
-	case AbsoluteUTC: offset = (int64_t)firstDataAbsTimeInMs; break;
-	case RelativeToMedia: offset = 0; break;
-	case RelativeToSplit: offset = -1 * startTimeInMs; break;
+	case AbsoluteUTC: offsetInMs = (int64_t)(firstDataAbsTimeInMs); break;
+	case RelativeToMedia: offsetInMs = 0; break;
+	case RelativeToSplit: offsetInMs = -1 * startTimeInMs; break;
 	default: throw error("Unknown timing policy (1)");
 	}
 
 #ifdef DEBUG_DISPLAY_TIMESTAMPS
 	auto pageOut = uptr(new Page);
-	ttml << pageOut->toTTML(offset + startTimeInMs, offset + endTimeInMs, startTimeInMs / clockToTimescale(this->splitDurationIn180k, 1000));
+	ttml << pageOut->toTTML(offsetInMs + startTimeInMs, offsetInMs + endTimeInMs, startTimeInMs / clockToTimescale(this->splitDurationIn180k, 1000));
 #else
 	auto page = currentPages.begin();
 	while (page != currentPages.end()) {
@@ -102,7 +102,7 @@ const std::string TeletextToTTML::toTTML(uint64_t startTimeInMs, uint64_t endTim
 			auto localStartTimeInMs = std::max<uint64_t>((*page)->startTimeInMs, startTimeInMs);
 			auto localEndTimeInMs = std::min<uint64_t>((*page)->endTimeInMs, endTimeInMs);
 			log(Debug, "[%s-%s]: %s - %s: %s", startTimeInMs, endTimeInMs, localStartTimeInMs, localEndTimeInMs, (*page)->ss.str());
-			ttml << (*page)->toTTML(localStartTimeInMs + offset, localEndTimeInMs + offset, startTimeInMs / clockToTimescale(this->splitDurationIn180k, 1000));
+			ttml << (*page)->toTTML(localStartTimeInMs + offsetInMs, localEndTimeInMs + offsetInMs, startTimeInMs / clockToTimescale(this->splitDurationIn180k, 1000));
 		}
 		if ((*page)->endTimeInMs <= endTimeInMs) {
 			page = currentPages.erase(page);
@@ -163,13 +163,13 @@ void TeletextToTTML::processTelx(DataAVPacket const * const sub) {
 			auto page = process_telx_packet(dataUnitId, (Payload*)entitiesData, pkt->pts);
 			if (page) {
 				auto const codecCtx = safe_cast<const MetadataPktLibav>(sub->getMetadata())->getAVCodecContext();
-				log((int64_t)convertToTimescale(page->showTimestampInMs * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000) < clockToTimescale(intClock, 1000) ? Warning : Debug,
+				log((int64_t)convertToTimescale(page->showTimestamp * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000) < clockToTimescale(intClock, 1000) ? Warning : Debug,
 					"framesProduced %s, show=%s:hide=%s, clocks:data=%s:int=%s,ext=%s, content=%s",
-					page->framesProduced, convertToTimescale(page->showTimestampInMs * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000), convertToTimescale(page->hideTimestampInMs * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000),
+					page->framesProduced, convertToTimescale(page->showTimestamp * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000), convertToTimescale(page->hideTimestamp * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000),
 					clockToTimescale(sub->getMediaTime(), 1000), clockToTimescale(intClock, 1000), clockToTimescale(extClock, 1000), page->ss.str());
 
-				auto const startTimeInMs = convertToTimescale(page->showTimestampInMs * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000);
-				auto const durationInMs = convertToTimescale((page->hideTimestampInMs - page->showTimestampInMs) * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000);
+				auto const startTimeInMs = convertToTimescale(page->showTimestamp * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000);
+				auto const durationInMs = convertToTimescale((page->hideTimestamp - page->showTimestamp) * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000);
 				page->startTimeInMs = startTimeInMs;
 				page->endTimeInMs = startTimeInMs + durationInMs;
 				currentPages.push_back(std::move(page));
