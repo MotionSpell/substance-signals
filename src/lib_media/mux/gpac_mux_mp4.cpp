@@ -524,7 +524,7 @@ void GPACMuxMP4::closeFragment() {
 				return;
 			}
 			auto const curFragmentStartInTs = DTS - lastDataDurationInTs - curFragmentDurInTs;
-			auto const absTimeInTs = convertToTimescale(firstDataAbsTimeInMs, 1000, mediaTs);
+			auto const absTimeInTs = convertToTimescale(firstDataAbsTimeInMs, 1000, mediaTs) + curFragmentStartInTs;
 			auto const deltaRealTimeInMs = 1000 * (double)(getUTC() - Fraction(absTimeInTs, mediaTs));
 			log(deltaRealTimeInMs < 0 || deltaRealTimeInMs > curFragmentStartInTs ? Warning : Debug,
 				"Closing MSS fragment with absolute time %s (deltaRT=%s) and duration %s (timescale %s)",
