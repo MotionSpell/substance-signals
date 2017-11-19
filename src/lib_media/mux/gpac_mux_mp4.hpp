@@ -60,11 +60,11 @@ class GPACMuxMP4 : public ModuleDynI {
 		void handleInitialTimeOffset();
 		void sendOutput();
 		std::unique_ptr<gpacpp::IsoSample> fillSample(Data data);
-		void addSample(std::unique_ptr<gpacpp::IsoSample>, const uint64_t dataDurationInTs);
+		void addSample(std::unique_ptr<gpacpp::IsoSample>);
 
 		CompatibilityFlag compatFlags;
 		Data lastData = nullptr; //used with ExactInputDur flag
-		int64_t lastInputTimeIn180k = 0, firstDataAbsTimeInMs = 0;
+		int64_t lastInputTimeIn180k = 0, lastDataDurationInTs = 0, firstDataAbsTimeInMs = 0;
 		uint64_t DTS = 0, defaultSampleIncInTs = 0;
 		bool isAnnexB = true;
 

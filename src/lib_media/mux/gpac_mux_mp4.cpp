@@ -523,10 +523,12 @@ void GPACMuxMP4::closeFragment() {
 				log(Warning, "Media timescale is 0. Fragment cannot be closed.");
 				return;
 			}
-			auto const compensateInTs = DTS == curSegmentDurInTs ? defaultSampleIncInTs : 0;
-			auto const curFragmentStartInTs = DTS - curSegmentDurInTs - defaultSampleIncInTs/*dataDurationInTs*/ + compensateInTs;
-			auto const absTimeInTs = convertToTimescale(firstDataAbsTimeInMs, 1000, mediaTs) + curFragmentStartInTs + curFragmentDurInTs;
-			log(Info, "Closing MSS fragment with absolute time %s and duration %s (timescale %s)", absTimeInTs, curFragmentDurInTs, mediaTs);
+			auto const curFragmentStartInTs = DTS - lastDataDurationInTs - curFragmentDurInTs;
+			auto const absTimeInTs = convertToTimescale(firstDataAbsTimeInMs, 1000, mediaTs);
+			auto const deltaRealTimeInMs = 1000 * (double)(getUTC() - Fraction(absTimeInTs, mediaTs));
+			log(deltaRealTimeInMs < 0 || deltaRealTimeInMs > curFragmentStartInTs ? Warning : Debug,
+				"Closing MSS fragment with absolute time %s (deltaRT=%s) and duration %s (timescale %s)",
+				absTimeInTs, deltaRealTimeInMs, curFragmentDurInTs, mediaTs);
 			GF_Err e = gf_isom_set_traf_mss_timeext(isoCur, trackId, absTimeInTs, curFragmentDurInTs);
 			if (e != GF_OK)
 				throw error(format("Impossible to create UTC marker: %s", gf_error_to_string(e)));
@@ -648,6 +650,10 @@ void GPACMuxMP4::declareStreamSubtitle(const std::shared_ptr<const MetadataPktLi
 		throw error(format("Cannot create new track"));
 	trackId = gf_isom_get_track_id(isoCur, trackNum);
 	defaultSampleIncInTs = clockToTimescale(segmentDurationIn180k, gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId)));
+	if (!defaultSampleIncInTs) {
+		log(Warning, "Computed defaultSampleIncInTs=0, forcing the ExactInputDur flag.");
+		compatFlags = compatFlags | ExactInputDur;
+	}
 
 	GF_Err e = gf_isom_set_track_enabled(isoCur, trackNum, GF_TRUE);
 	if (e != GF_OK)
@@ -812,8 +818,10 @@ void GPACMuxMP4::sendOutput() {
 
 	auto const mediaTs = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
 	auto const curSegmentDurIn180k = timescaleToClock(curSegmentDurInTs, mediaTs);
-	auto const latencyIn180k = fragmentPolicy == OneFragmentPerFrame ? timescaleToClock(defaultSampleIncInTs, mediaTs) : std::min<uint64_t>(curSegmentDurIn180k, segmentDurationIn180k);
-	auto metadata = std::make_shared<MetadataFile>(segmentName, streamType, mimeType, codecName, curSegmentDurIn180k, lastSegmentSize, latencyIn180k, segmentStartsWithRAP);
+	auto computeContainerLatency = [&]() {
+		return fragmentPolicy == OneFragmentPerFrame ? timescaleToClock(defaultSampleIncInTs, mediaTs) : std::min<uint64_t>(curSegmentDurIn180k, segmentDurationIn180k);
+	};
+	auto metadata = std::make_shared<MetadataFile>(segmentName, streamType, mimeType, codecName, curSegmentDurIn180k, lastSegmentSize, computeContainerLatency(), segmentStartsWithRAP);
 	switch (gf_isom_get_media_type(isoCur, gf_isom_get_track_by_id(isoCur, trackId))) {
 	case GF_ISOM_MEDIA_VISUAL: metadata->resolution[0] = resolution[0]; metadata->resolution[1] = resolution[1]; break;
 	case GF_ISOM_MEDIA_AUDIO: metadata->sampleRate = sampleRate; break;
@@ -843,24 +851,25 @@ void GPACMuxMP4::sendOutput() {
 		isoCur = nullptr;
 	}
 	out->setMetadata(metadata);
-	auto const curSegmentDeltaInTs = DTS == curSegmentDurInTs ? defaultSampleIncInTs : 0;
-	out->setMediaTime(timescaleToClock(firstDataAbsTimeInMs, 1000) + timescaleToClock(DTS - curSegmentDurInTs - defaultSampleIncInTs + curSegmentDeltaInTs, mediaTs));
+	auto const compensateInTs = DTS == curSegmentDurInTs ? lastDataDurationInTs : 0;
+	auto const curSegmentStartInTs = DTS - curSegmentDurInTs - lastDataDurationInTs + compensateInTs;
+	out->setMediaTime(convertToTimescale(firstDataAbsTimeInMs, 1000, mediaTs) + curSegmentStartInTs, mediaTs);
 	output->emit(out);
 }
 
-void GPACMuxMP4::addSample(std::unique_ptr<gpacpp::IsoSample> sample, const uint64_t dataDurationInTs) {
-	DTS += dataDurationInTs;
+void GPACMuxMP4::addSample(std::unique_ptr<gpacpp::IsoSample> sample) {
+	DTS += lastDataDurationInTs;
 	auto const mediaTs = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
 
 	GF_Err e;
 	if (segmentPolicy > SingleSegment) {
-		curSegmentDurInTs += dataDurationInTs;
+		curSegmentDurInTs += lastDataDurationInTs;
 		if ((!(compatFlags & Browsers) || curFragmentDurInTs > 0) && /*avoid 0-sized mdat interpreted as EOS in browsers*/
 			((curSegmentDurInTs + curSegmentDeltaInTs) * IClock::Rate) > (mediaTs * segmentDurationIn180k) && 
 			((sample->IsRAP == RAP) || (compatFlags & SegmentAtAny))) {
-			if ((compatFlags & SegConstantDur) && (timescaleToClock(curSegmentDurInTs + curSegmentDeltaInTs - dataDurationInTs, mediaTs) != segmentDurationIn180k) && (curSegmentDurInTs - dataDurationInTs != 0)) {
-				if (((DTS - dataDurationInTs) / clockToTimescale(segmentDurationIn180k, mediaTs)) == 0) {
-					segmentDurationIn180k = timescaleToClock(curSegmentDurInTs + curSegmentDeltaInTs - dataDurationInTs, mediaTs);
+			if ((compatFlags & SegConstantDur) && (timescaleToClock(curSegmentDurInTs + curSegmentDeltaInTs - lastDataDurationInTs, mediaTs) != segmentDurationIn180k) && (curSegmentDurInTs - lastDataDurationInTs != 0)) {
+				if (((DTS - lastDataDurationInTs) / clockToTimescale(segmentDurationIn180k, mediaTs)) == 0) {
+					segmentDurationIn180k = timescaleToClock(curSegmentDurInTs + curSegmentDeltaInTs - lastDataDurationInTs, mediaTs);
 				}
 			}
 			closeSegment(false);
@@ -895,12 +904,12 @@ void GPACMuxMP4::addSample(std::unique_ptr<gpacpp::IsoSample> sample, const uint
 			startFragment(sample->DTS, sample->DTS + sample->CTS_Offset);
 		}
 
-		e = gf_isom_fragment_add_sample(isoCur, trackId, sample.get(), 1, (u32)dataDurationInTs, 0, 0, GF_FALSE);
+		e = gf_isom_fragment_add_sample(isoCur, trackId, sample.get(), 1, (u32)lastDataDurationInTs, 0, 0, GF_FALSE);
 		if (e != GF_OK) {
 			log(Error, "gf_isom_fragment_add_sample: %s", gf_error_to_string(e));
 			return;
 		}
-		curFragmentDurInTs += dataDurationInTs;
+		curFragmentDurInTs += lastDataDurationInTs;
 
 		if (fragmentPolicy == OneFragmentPerFrame) {
 			closeFragment();
@@ -952,7 +961,6 @@ void GPACMuxMP4::process() {
 		declareStream(metadata);
 		declareInput(metadata);
 	}
-
 	if (!firstDataAbsTimeInMs) {
 		firstDataAbsTimeInMs = DataBase::absUTCOffsetInMs;
 		lastInputTimeIn180k = data->getMediaTime();
@@ -960,43 +968,41 @@ void GPACMuxMP4::process() {
 	}
 
 	auto const mediaTs = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
-	int64_t dataDurationInTs = clockToTimescale(data->getMediaTime() - lastInputTimeIn180k, mediaTs);
+	lastDataDurationInTs = clockToTimescale(data->getMediaTime() - lastInputTimeIn180k, mediaTs);
 	if (DTS && !data->getMediaTime()) {
 		lastInputTimeIn180k += timescaleToClock(defaultSampleIncInTs, mediaTs);
-		dataDurationInTs = defaultSampleIncInTs;
+		lastDataDurationInTs = defaultSampleIncInTs;
 		log(Warning, "Received time 0 but inferring it to %s", lastInputTimeIn180k);
 	} else {
 		lastInputTimeIn180k = data->getMediaTime();
 	}
 
-	//TODO: make tests and integrate in a module, see #18
-	if (!(compatFlags & ExactInputDur)) {
-		if (DTS && (dataDurationInTs - defaultSampleIncInTs != 0)) {
-			/*VFR: computing current sample duration from previous*/
-			dataDurationInTs = clockToTimescale(data->getMediaTime(), mediaTs) - (DTS + curSegmentDeltaInTs) + dataDurationInTs;
-			if (dataDurationInTs <= 0) {
-				dataDurationInTs = 1;
-			}
-			log(Debug, "VFR: adding sample with duration %ss", dataDurationInTs / (double)mediaTs);
-		}
-		if (dataDurationInTs == 0) {
-			dataDurationInTs = defaultSampleIncInTs;
-		}
-
-		addSample(fillSample(data), dataDurationInTs);
-	} else {
-		/*wait to have two samples - FIXME: last segment is never processed (should be in flush()) (execute tests to trigger issue)*/
+	if (compatFlags & ExactInputDur) {
 		if (lastData) {
-			dataDurationInTs = clockToTimescale(data->getMediaTime() - lastData->getMediaTime(), mediaTs);
-			if (dataDurationInTs == 0) {
-				dataDurationInTs = defaultSampleIncInTs;
+			lastDataDurationInTs = clockToTimescale(data->getMediaTime() - lastData->getMediaTime(), mediaTs);
+			if (lastDataDurationInTs <= 0) {
+				lastDataDurationInTs = defaultSampleIncInTs;
+				log(Warning, "Computed duration is inferior or equal to zero. Inferring to %s", defaultSampleIncInTs);
 			}
 		} else {
 			lastData = data;
-			return; //FIXME: we lose 'sample' i.e. skip the first data
+			return;
 		}
-		addSample(fillSample(lastData), dataDurationInTs);
+		addSample(fillSample(lastData));
 		lastData = data;
+	} else {
+		if (DTS && (lastDataDurationInTs - defaultSampleIncInTs != 0)) {
+			lastDataDurationInTs = clockToTimescale(data->getMediaTime(), mediaTs) - (DTS + curSegmentDeltaInTs) + lastDataDurationInTs;
+			if (lastDataDurationInTs <= 0) {
+				lastDataDurationInTs = 1;
+			}
+			log(Warning, "VFR: adding sample with duration %ss", lastDataDurationInTs / (double)mediaTs);
+		}
+		if (lastDataDurationInTs == 0) {
+			lastDataDurationInTs = defaultSampleIncInTs;
+		}
+
+		addSample(fillSample(data));
 	}
 }
 
