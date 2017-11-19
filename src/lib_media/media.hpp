@@ -13,6 +13,7 @@
 #include "in/video_generator.hpp"
 #include "mux/gpac_mux_m2ts.hpp"
 #include "mux/gpac_mux_mp4.hpp"
+#include "mux/gpac_mux_mp4_mss.hpp"
 #include "mux/libav_mux.hpp"
 #include "out/file.hpp"
 #include "out/http.hpp"

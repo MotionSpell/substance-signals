@@ -122,6 +122,9 @@
     <ClInclude Include="transform\telx_tables.hpp">
       <Filter>src\transform</Filter>
     </ClInclude>
+    <ClInclude Include="mux\gpac_mux_mp4_mss.hpp">
+      <Filter>src\mux</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="src">

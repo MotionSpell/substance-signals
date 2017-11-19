@@ -37,6 +37,7 @@
     <ClInclude Include="media.hpp" />
     <ClInclude Include="mux\gpac_mux_m2ts.hpp" />
     <ClInclude Include="mux\gpac_mux_mp4.hpp" />
+    <ClInclude Include="mux\gpac_mux_mp4_mss.hpp" />
     <ClInclude Include="mux\libav_mux.hpp" />
     <ClInclude Include="out\file.hpp" />
     <ClInclude Include="out\http.hpp" />
