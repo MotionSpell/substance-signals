@@ -46,17 +46,18 @@ class GPACMuxMP4 : public ModuleDynI {
 		void flush() override;
 
 	protected:
-		virtual void declareStreamVideo(std::shared_ptr<const MetadataPktLibavVideo> stream);
-		virtual void declareStreamAudio(std::shared_ptr<const MetadataPktLibavAudio> stream);
-		virtual void declareStreamSubtitle(std::shared_ptr<const MetadataPktLibavSubtitle> metadata);
+		virtual void declareStreamVideo(const std::shared_ptr<const MetadataPktLibavVideo> &metadata);
+		virtual void declareStreamAudio(const std::shared_ptr<const MetadataPktLibavAudio> &metadata);
+		virtual void declareStreamSubtitle(const std::shared_ptr<const MetadataPktLibavSubtitle> &metadata);
 		virtual void startSegmentPostAction() {}
 		uint32_t trackId = 0;
 		std::string codec4CC;
 		GF_ISOFile *isoInit, *isoCur;
 
 	private:
-		void declareStream(Data stream);
-		void declareInput(std::shared_ptr<const MetadataPktLibav> metadata);
+		void declareStream(const std::shared_ptr<const IMetadata> &metadata);
+		void declareInput(const std::shared_ptr<const IMetadata> &metadata);
+		void handleInitialTimeOffset();
 		void sendOutput();
 		std::unique_ptr<gpacpp::IsoSample> fillSample(Data data);
 		void addSample(std::unique_ptr<gpacpp::IsoSample>, const uint64_t dataDurationInTs);

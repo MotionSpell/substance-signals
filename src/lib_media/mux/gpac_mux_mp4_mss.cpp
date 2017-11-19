@@ -14,7 +14,7 @@ GPACMuxMP4MSS::GPACMuxMP4MSS(const std::string &baseName, uint64_t segmentDurati
 audioLang(audioLang), audioName(audioName) {
 }
 
-void GPACMuxMP4MSS::declareStreamAudio(std::shared_ptr<const MetadataPktLibavAudio> metadata) {
+void GPACMuxMP4MSS::declareStreamAudio(const std::shared_ptr<const MetadataPktLibavAudio> &metadata) {
 	GPACMuxMP4::declareStreamAudio(metadata);
 
 	const uint8_t *extradata;
@@ -27,14 +27,14 @@ void GPACMuxMP4MSS::declareStreamAudio(std::shared_ptr<const MetadataPktLibavAud
 	ptr[0] = 0;
 }
 
-void GPACMuxMP4MSS::declareStreamSubtitle(std::shared_ptr<const MetadataPktLibavSubtitle> metadata) {
+void GPACMuxMP4MSS::declareStreamSubtitle(const std::shared_ptr<const MetadataPktLibavSubtitle> &metadata) {
 	GPACMuxMP4::declareStreamSubtitle(metadata);
 	ISMLManifest = writeISMLManifest(codec4CC, "", metadata->getBitrate(), 0, 0, 0, 0, 0);
 	auto ptr = (uint32_t*)ISMLManifest.c_str();
 	ptr[0] = 0;
 }
 
-void GPACMuxMP4MSS::declareStreamVideo(std::shared_ptr<const MetadataPktLibavVideo> metadata) {
+void GPACMuxMP4MSS::declareStreamVideo(const std::shared_ptr<const MetadataPktLibavVideo> &metadata) {
 	GPACMuxMP4::declareStreamVideo(metadata);
 
 	const uint8_t *extradata;

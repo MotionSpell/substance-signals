@@ -430,14 +430,7 @@ void GPACMuxMP4::startSegment() {
 			if (!isoCur)
 				throw error(format("Cannot open isoCur file %s"));
 
-			auto metadata = inputs[0]->getMetadata();
-			if (auto video = std::dynamic_pointer_cast<const MetadataPktLibavVideo>(metadata)) {
-				declareStreamVideo(video);
-			} else if (auto audio = std::dynamic_pointer_cast<const MetadataPktLibavAudio>(metadata)) {
-				declareStreamAudio(audio);
-			} else if (auto subs = std::dynamic_pointer_cast<const MetadataPktLibavSubtitle>(metadata)) {
-				declareStreamSubtitle(subs);
-			}
+			declareStream(inputs[0]->getMetadata());
 
 			startSegmentPostAction();
 			if (fragmentPolicy > NoFragment) {
@@ -561,7 +554,7 @@ void GPACMuxMP4::setupFragments() {
 	}
 }
 
-void GPACMuxMP4::declareStreamAudio(std::shared_ptr<const MetadataPktLibavAudio> metadata) {
+void GPACMuxMP4::declareStreamAudio(const std::shared_ptr<const MetadataPktLibavAudio> &metadata) {
 	GF_Err e;
 	u32 di=0, trackNum=0;
 	GF_M4ADecSpecInfo acfg;
@@ -648,7 +641,7 @@ void GPACMuxMP4::declareStreamAudio(std::shared_ptr<const MetadataPktLibavAudio>
 		throw error(format("Container format import failed: %s", gf_error_to_string(e)));
 }
 
-void GPACMuxMP4::declareStreamSubtitle(std::shared_ptr<const MetadataPktLibavSubtitle> metadata) {
+void GPACMuxMP4::declareStreamSubtitle(const std::shared_ptr<const MetadataPktLibavSubtitle> &metadata) {
 	auto const timescale = 10 * TIMESCALE_MUL; assert(((10 * TIMESCALE_MUL) % 1000) == 0); /*ms accuracy mandatory*/
 	u32 trackNum = gf_isom_new_track(isoCur, 0, GF_ISOM_MEDIA_TEXT, timescale);
 	if (!trackNum)
@@ -668,7 +661,7 @@ void GPACMuxMP4::declareStreamSubtitle(std::shared_ptr<const MetadataPktLibavSub
 	codec4CC = "TTML";
 }
 
-void GPACMuxMP4::declareStreamVideo(std::shared_ptr<const MetadataPktLibavVideo> metadata) {
+void GPACMuxMP4::declareStreamVideo(const std::shared_ptr<const MetadataPktLibavVideo> &metadata) {
 	u32 trackNum = gf_isom_new_track(isoCur, 0, GF_ISOM_MEDIA_VISUAL, (u32)(metadata->getTimeScale().num * TIMESCALE_MUL));
 	if (!trackNum)
 		throw error(format("Cannot create new track"));
@@ -755,32 +748,30 @@ void GPACMuxMP4::declareStreamVideo(std::shared_ptr<const MetadataPktLibavVideo>
 #endif
 }
 
-void GPACMuxMP4::declareInput(std::shared_ptr<const MetadataPktLibav> metadata) {
-	setupFragments();
-	if (segmentDurationIn180k && !(compatFlags & SegNumStartsAtZero)) {
-		segmentNum = firstDataAbsTimeInMs / clockToTimescale(segmentDurationIn180k, 1000) - 1;
-	}
-	startSegment();
-	startFragment(0, 0);
-
-	auto input = addInput(new Input<DataAVPacket>(this));
-	input->setMetadata(shptr(new MetadataPktLibavVideo(metadata->getAVCodecContext())));
-}
-
-void GPACMuxMP4::declareStream(Data data) {
-	auto const metadata = data->getMetadata();
+void GPACMuxMP4::declareStream(const std::shared_ptr<const IMetadata> &metadata) {
 	if (auto video = std::dynamic_pointer_cast<const MetadataPktLibavVideo>(metadata)) {
 		declareStreamVideo(video);
 	} else if (auto audio = std::dynamic_pointer_cast<const MetadataPktLibavAudio>(metadata)) {
 		declareStreamAudio(audio);
 	} else if (auto subs = std::dynamic_pointer_cast<const MetadataPktLibavSubtitle>(metadata)) {
 		declareStreamSubtitle(subs);
-	} else {
+	} else
 		throw error(format("Stream creation failed: unknown type."));
-	}
-	declareInput(safe_cast<const MetadataPktLibav>(metadata));
+}
 
-	lastInputTimeIn180k = data->getMediaTime();
+void GPACMuxMP4::declareInput(const std::shared_ptr<const IMetadata> &metadata) {
+	auto input = addInput(new Input<DataAVPacket>(this));
+	input->setMetadata(shptr(new MetadataPktLibavVideo(safe_cast<const MetadataPktLibav>(metadata)->getAVCodecContext())));
+
+	setupFragments();
+	if (segmentDurationIn180k && !(compatFlags & SegNumStartsAtZero)) {
+		segmentNum = firstDataAbsTimeInMs / clockToTimescale(segmentDurationIn180k, 1000) - 1;
+	}
+	startSegment();
+	startFragment(0, 0);
+}
+
+void GPACMuxMP4::handleInitialTimeOffset() {
 	if (lastInputTimeIn180k) { /*first timestamp is not zero*/
 		log(Info, "Initial offset: %ss (4CC=%s, \"%s\", timescale=%s/%s)", lastInputTimeIn180k / (double)Clock::Rate, codec4CC, segmentName, gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId)), gf_isom_get_timescale(isoCur));
 		if (compatFlags & NoEditLists) {
@@ -955,12 +946,18 @@ std::unique_ptr<gpacpp::IsoSample> GPACMuxMP4::fillSample(Data data_) {
 }
 
 void GPACMuxMP4::process() {
-	//FIXME: reimplement with multiple inputs
-	Data data = inputs[0]->pop();
-	if (!firstDataAbsTimeInMs)
+	Data data = inputs[0]->pop(); //FIXME: reimplement with multiple inputs
+	if (inputs[0]->updateMetadata(data)) {
+		auto const &metadata = data->getMetadata();
+		declareStream(metadata);
+		declareInput(metadata);
+	}
+
+	if (!firstDataAbsTimeInMs) {
 		firstDataAbsTimeInMs = DataBase::absUTCOffsetInMs;
-	if (inputs[0]->updateMetadata(data))
-		declareStream(data);
+		lastInputTimeIn180k = data->getMediaTime();
+		handleInitialTimeOffset();
+	}
 
 	auto const mediaTs = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
 	int64_t dataDurationInTs = clockToTimescale(data->getMediaTime() - lastInputTimeIn180k, mediaTs);
