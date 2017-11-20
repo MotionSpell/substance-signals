@@ -64,17 +64,9 @@ void AudioConvert::process(Data data) {
 			if (autoConfigure) {
 				log(Info, "Incompatible input audio data. Reconfiguring.");
 				reconfigure(audioData->getFormat());
-			} else {
+				accumulatedTimeInDstSR = clockToTimescale(data->getMediaTime(), srcPcmFormat.sampleRate);
+			} else
 				throw error("Incompatible input audio data.");
-			}
-			accumulatedTimeInDstSR = clockToTimescale(data->getMediaTime(), srcPcmFormat.sampleRate);
-		}
-
-		auto const timeInDstSR = clockToTimescale(data->getMediaTime(), srcPcmFormat.sampleRate);
-		auto const tolerance = 1 * dstNumSamples;
-		if ((timeInDstSR + tolerance < (int64_t)accumulatedTimeInDstSR) || ((int64_t)(timeInDstSR - accumulatedTimeInDstSR) > dstNumSamples + tolerance)) {
-			log(Warning, "Discontinuity detected. Reset at time %s (previous: %s, delay: %s samples).", data->getMediaTime(), timescaleToClock(accumulatedTimeInDstSR, srcPcmFormat.sampleRate), m_Swr->getDelay(dstPcmFormat.sampleRate));
-			accumulatedTimeInDstSR = clockToTimescale(data->getMediaTime(), srcPcmFormat.sampleRate);
 		}
 
 		srcNumSamples = audioData->size() / audioData->getFormat().getBytesPerSample();

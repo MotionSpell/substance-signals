@@ -27,6 +27,7 @@
 #include "stream/mpeg_dash.hpp"
 #include "stream/ms_hss.hpp"
 #include "transform/audio_convert.hpp"
+#include "transform/audio_gap_filler.hpp"
 #include "transform/libavfilter.hpp"
 #include "transform/time_rectifier.hpp"
 #include "transform/restamp.hpp"

@@ -2,6 +2,7 @@
 #include "lib_modules/modules.hpp"
 #include "lib_media/in/sound_generator.hpp"
 #include "lib_media/transform/audio_convert.hpp"
+#include "lib_media/transform/audio_gap_filler.hpp"
 #include "lib_media/transform/video_convert.hpp"
 #include "lib_media/utils/comparator.hpp"
 #include "lib_media/utils/recorder.hpp"
@@ -193,6 +194,39 @@ unittest("video converter: different sizes") {
 	}
 
 	ASSERT_EQUALS(1, numFrames);
+}
+
+unittest("audio gap filler") {
+	PcmFormat format;
+	auto data = std::make_shared<DataPcm>(0);
+	data->setFormat(format);
+	auto const numSamples = 1024;
+	const size_t inFrameSizeInBytes = numSamples * format.getBytesPerSample() / format.numPlanes;
+	std::vector<uint8_t> input(inFrameSizeInBytes);
+	for (uint8_t i = 0; i < format.numPlanes; ++i) {
+		data->setPlane(i, input.data(), inFrameSizeInBytes);
+	}
+
+	const std::vector<int64_t> in = { 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 12, 12, 1000, 1001, 1002, 3, 4, 5 };
+	const std::vector<int64_t> out = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12, 12, 1000, 1001, 1002, 3, 4, 5 };
+	auto recorder = create<Utils::Recorder>();
+	auto gapFiller = createModule<Transform::AudioGapFiller>(out.size(), g_DefaultClock);
+	ConnectOutputToInput(gapFiller->getOutput(0), recorder->getInput(0));
+	for (auto &val : in) {
+		data->setMediaTime(val * numSamples, format.sampleRate);
+		gapFiller->process(data);
+	}
+	recorder->process(nullptr);
+
+	Data dataRec;
+	size_t idx = 0;
+	while ((dataRec = recorder->pop())) {
+		Log::msg(Debug, " %s - %s", dataRec->getMediaTime(), timescaleToClock(out[idx] * numSamples, format.sampleRate));
+		ASSERT(abs(dataRec->getMediaTime() - timescaleToClock(out[idx] * numSamples, format.sampleRate)) < 6);
+		idx++;
+	}
+	ASSERT(idx == out.size());
+
 }
 
 }

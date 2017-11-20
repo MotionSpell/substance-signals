@@ -118,6 +118,7 @@ MEDIA_SRCS:=\
   $(ProjectName)/stream/ms_hss.cpp\
   $(ProjectName)/stream/adaptive_streaming_common.cpp\
   $(ProjectName)/transform/audio_convert.cpp\
+  $(ProjectName)/transform/audio_gap_filler.cpp\
   $(ProjectName)/transform/libavfilter.cpp\
   $(ProjectName)/transform/restamp.cpp\
   $(ProjectName)/transform/telx2ttml.cpp\

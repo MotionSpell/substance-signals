@@ -125,6 +125,9 @@
     <ClInclude Include="mux\gpac_mux_mp4_mss.hpp">
       <Filter>src\mux</Filter>
     </ClInclude>
+    <ClInclude Include="transform\audio_gap_filler.hpp">
+      <Filter>src\transform</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="src">
@@ -277,6 +280,9 @@
       <Filter>src\in</Filter>
     </ClCompile>
     <ClCompile Include="transform\time_rectifier.cpp">
+      <Filter>src\transform</Filter>
+    </ClCompile>
+    <ClCompile Include="transform\audio_gap_filler.cpp">
       <Filter>src\transform</Filter>
     </ClCompile>
   </ItemGroup>
