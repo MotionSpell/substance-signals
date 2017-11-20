@@ -149,7 +149,7 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 				//TODO: pass in error mode: flush all the data where the clock time removeOutdatedAllUnsafe(refData->getClockTime());
 			}
 
-			auto data = shptr(new DataBase(refData));
+			auto data = shptr(new DataBaseRef(refData));
 			data->setMediaTime(fractionToClock(Fraction(input[i]->numTicks++ * frameRate.den, frameRate.num)));
 			log(TR_DEBUG, "Video: send[%s:%s] t=%s (data=%s/%s) (ref %s/%s)", i, input[i]->data.size(), data->getMediaTime(), data->getMediaTime(), data->getClockTime(), refData->getMediaTime(), refData->getClockTime());
 			outputs[i]->emit(data);
@@ -190,7 +190,7 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 				}
 
 				auto const audioData = safe_cast<const DataPcm>(selectedData);
-				auto data = shptr(new DataBase(selectedData));
+				auto data = shptr(new DataBaseRef(selectedData));
 				data->setMediaTime(fractionToClock(Fraction(input[i]->numTicks++ * audioData->getPlaneSize(0) / audioData->getFormat().getBytesPerSample(), audioData->getFormat().sampleRate)));
 				log(TR_DEBUG, "Other: send[%s:%s] t=%s (data=%s/%s) (ref %s/%s)", i, input[i]->data.size(), data->getMediaTime(), data->getMediaTime(), data->getClockTime(), refData->getMediaTime(), refData->getClockTime());
 				outputs[i]->emit(data);

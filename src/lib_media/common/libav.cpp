@@ -358,7 +358,7 @@ void AVPacketDeleter::operator()(AVPacket *p) {
 }
 
 DataAVPacket::DataAVPacket(size_t size)
-: DataBase(this), pkt(std::unique_ptr<AVPacket, AVPacketDeleter>(new AVPacket)) {
+: pkt(std::unique_ptr<AVPacket, AVPacketDeleter>(new AVPacket)) {
 	av_init_packet(pkt.get());
 	av_free_packet(pkt.get());
 	if (size)

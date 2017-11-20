@@ -22,7 +22,7 @@ void AudioGapFiller::process(Data data) {
 	auto const diff = (int64_t)(timeInSR - accumulatedTimeInSR);
 	if ((uint64_t)abs(diff) >= srcNumSamples) {
 		if ((diff > 0) && ((uint64_t)diff <= srcNumSamples * (1 + toleranceInFrames))) {
-			auto dataInThePast = shptr(new DataBase(data));
+			auto dataInThePast = shptr(new DataBaseRef(data));
 			dataInThePast->setMediaTime(data->getMediaTime() - timescaleToClock(srcNumSamples, sampleRate));
 			process(dataInThePast);
 		} else {
@@ -31,7 +31,7 @@ void AudioGapFiller::process(Data data) {
 		}
 	}
 
-	auto dataOut = shptr(new DataBase(data));
+	auto dataOut = shptr(new DataBaseRef(data));
 	dataOut->setMediaTime(accumulatedTimeInSR, sampleRate);
 	output->emit(dataOut);
 
