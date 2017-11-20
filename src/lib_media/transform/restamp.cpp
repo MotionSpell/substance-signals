@@ -50,8 +50,9 @@ void Restamp::process(Data data) {
 
 	auto const restampedTime = std::max<int64_t>(0, time + offset);
 	log(((time != 0) && ((int64_t)time + offset < 0)) ? Info : Debug, "%s -> %ss (time=%s, offset=%s)", (double)data->getMediaTime() / IClock::Rate, (double)(restampedTime) / IClock::Rate, time, offset);
-	const_cast<DataBase*>(data.get())->setMediaTime(restampedTime); //FIXME: we should have input&output on the same allocator
-	getOutput(0)->emit(data);
+	auto dataOut = shptr(new DataBase(data));
+	dataOut->setMediaTime(restampedTime);
+	getOutput(0)->emit(dataOut);
 }
 
 }
