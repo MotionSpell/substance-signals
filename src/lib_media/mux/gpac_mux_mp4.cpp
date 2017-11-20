@@ -458,9 +458,8 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 			if (e != GF_OK) {
 				if (DTS == 0) {
 					return;
-				} else {
+				} else
 					throw error(format("gf_isom_close_segment: %s", gf_error_to_string(e)));
-				}
 			}
 			if (!isFile) {
 				GF_BitStream *bs = NULL;
@@ -481,6 +480,8 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 			sendOutput();
 			log(Info, "Segment %s completed (size %s) (startsWithSAP=%s)", segmentName.empty() ? "[in memory]" : segmentName, lastSegmentSize, segmentStartsWithRAP);
 		}
+
+		curSegmentDurInTs = 0;
 	}
 }
 
@@ -523,7 +524,8 @@ void GPACMuxMP4::closeFragment() {
 				log(Warning, "Media timescale is 0. Fragment cannot be closed.");
 				return;
 			}
-			auto const curFragmentStartInTs = DTS - lastDataDurationInTs - curFragmentDurInTs;
+
+			auto const curFragmentStartInTs = DTS - curFragmentDurInTs;
 			auto const absTimeInTs = convertToTimescale(firstDataAbsTimeInMs, 1000, mediaTs) + curFragmentStartInTs;
 			auto const deltaRealTimeInMs = 1000 * (double)(getUTC() - Fraction(absTimeInTs, mediaTs));
 			log(deltaRealTimeInMs < 0 || deltaRealTimeInMs > curFragmentStartInTs ? Warning : Debug,
@@ -641,6 +643,11 @@ void GPACMuxMP4::declareStreamAudio(const std::shared_ptr<const MetadataPktLibav
 	e = gf_isom_set_pl_indication(isoCur, GF_ISOM_PL_AUDIO, acfg.audioPL);
 	if (e != GF_OK)
 		throw error(format("Container format import failed: %s", gf_error_to_string(e)));
+
+	if (!(compatFlags & SegmentAtAny)) {
+		log(Info, "Audio detected: assuming all segments are RAPs.");
+		compatFlags = compatFlags | SegmentAtAny;
+	}
 }
 
 void GPACMuxMP4::declareStreamSubtitle(const std::shared_ptr<const MetadataPktLibavSubtitle> &metadata) {
@@ -665,6 +672,10 @@ void GPACMuxMP4::declareStreamSubtitle(const std::shared_ptr<const MetadataPktLi
 		throw error(format("gf_isom_new_xml_subtitle_description: %s", gf_error_to_string(e)));
 
 	codec4CC = "TTML";
+	if (!(compatFlags & SegmentAtAny)) {
+		log(Info, "Subtitles detected: assuming all segments are RAPs.");
+		compatFlags = compatFlags | SegmentAtAny;
+	}
 }
 
 void GPACMuxMP4::declareStreamVideo(const std::shared_ptr<const MetadataPktLibavVideo> &metadata) {
@@ -774,7 +785,6 @@ void GPACMuxMP4::declareInput(const std::shared_ptr<const IMetadata> &metadata) 
 		segmentNum = firstDataAbsTimeInMs / clockToTimescale(segmentDurationIn180k, 1000) - 1;
 	}
 	startSegment();
-	startFragment(0, 0);
 }
 
 void GPACMuxMP4::handleInitialTimeOffset() {
@@ -851,49 +861,33 @@ void GPACMuxMP4::sendOutput() {
 		isoCur = nullptr;
 	}
 	out->setMetadata(metadata);
-	auto const compensateInTs = DTS == curSegmentDurInTs ? lastDataDurationInTs : 0;
-	auto const curSegmentStartInTs = DTS - curSegmentDurInTs - lastDataDurationInTs + compensateInTs;
+	auto const curSegmentStartInTs = DTS - curSegmentDurInTs;
 	out->setMediaTime(convertToTimescale(firstDataAbsTimeInMs, 1000, mediaTs) + curSegmentStartInTs, mediaTs);
 	output->emit(out);
 }
 
-void GPACMuxMP4::splitSegment(gpacpp::IsoSample * const sample) {
-	auto const mediaTs = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
-	if (segmentPolicy > SingleSegment) {
-		curSegmentDurInTs += lastDataDurationInTs;
-		if ((!(compatFlags & Browsers) || curFragmentDurInTs > 0) && /*avoid 0-sized mdat interpreted as EOS in browsers*/
-			((curSegmentDurInTs + curSegmentDeltaInTs) * IClock::Rate) > (mediaTs * segmentDurationIn180k) &&
-			((sample->IsRAP == RAP) || (compatFlags & SegmentAtAny))) {
-			if ((compatFlags & SegConstantDur) && (timescaleToClock(curSegmentDurInTs + curSegmentDeltaInTs - lastDataDurationInTs, mediaTs) != segmentDurationIn180k) && (curSegmentDurInTs - lastDataDurationInTs != 0)) {
-				if (((DTS - lastDataDurationInTs) / clockToTimescale(segmentDurationIn180k, mediaTs)) == 0) {
-					segmentDurationIn180k = timescaleToClock(curSegmentDurInTs + curSegmentDeltaInTs - lastDataDurationInTs, mediaTs);
-				}
-			}
-			closeSegment(false);
-			segmentNum++;
-			segmentStartsWithRAP = sample->IsRAP == RAP;
-			startSegment();
-
-			const u64 oneSegDurInTimescale = clockToTimescale(segmentDurationIn180k, mediaTs);
-			if (oneSegDurInTimescale * (DTS / oneSegDurInTimescale) == 0) { /*initial delay*/
-				curSegmentDeltaInTs = curSegmentDurInTs + curSegmentDeltaInTs - oneSegDurInTimescale * ((curSegmentDurInTs + curSegmentDeltaInTs) / oneSegDurInTimescale);
-			} else {
-				auto const num = (curSegmentDurInTs + curSegmentDeltaInTs) / oneSegDurInTimescale;
-				auto const rem = DTS - (num ? num - 1 : 0) * oneSegDurInTimescale;
-				curSegmentDeltaInTs = DTS - oneSegDurInTimescale * (rem / oneSegDurInTimescale);
-			}
-			if (segmentPolicy == IndependentSegment) {
-				sample->DTS = 0;
-			}
-			curSegmentDurInTs = 0;
-			if (fragmentPolicy != OneFragmentPerFrame) {
-				startFragment(sample->DTS, sample->DTS + sample->CTS_Offset);
-			}
+void GPACMuxMP4::startChunk(gpacpp::IsoSample * const sample) {
+	if ((segmentPolicy > SingleSegment) && (curSegmentDurInTs == 0)) {
+		segmentStartsWithRAP = sample->IsRAP == RAP;
+		auto const mediaTs = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
+		const u64 oneSegDurInTimescale = clockToTimescale(segmentDurationIn180k, mediaTs);
+		if (oneSegDurInTimescale * (DTS / oneSegDurInTimescale) == 0) { /*initial delay*/
+			curSegmentDeltaInTs = curSegmentDurInTs + curSegmentDeltaInTs - oneSegDurInTimescale * ((curSegmentDurInTs + curSegmentDeltaInTs) / oneSegDurInTimescale);
+		} else {
+			auto const num = (curSegmentDurInTs + curSegmentDeltaInTs) / oneSegDurInTimescale;
+			auto const rem = DTS - (num ? num - 1 : 0) * oneSegDurInTimescale;
+			curSegmentDeltaInTs = DTS - oneSegDurInTimescale * (rem / oneSegDurInTimescale);
+		}
+		if (segmentPolicy == IndependentSegment) {
+			sample->DTS = 0;
+		}
+		if (fragmentPolicy != OneFragmentPerFrame) {
+			startFragment(sample->DTS, sample->DTS + sample->CTS_Offset);
 		}
 	}
 }
 
-void GPACMuxMP4::addData(gpacpp::IsoSample const * const sample) {
+void GPACMuxMP4::addData(gpacpp::IsoSample const * const sample, int64_t lastDataDurationInTs) {
 	if (fragmentPolicy > NoFragment) {
 		if (curFragmentDurInTs && (fragmentPolicy == OneFragmentPerRAP) && (sample->IsRAP == RAP)) {
 			closeFragment();
@@ -920,12 +914,36 @@ void GPACMuxMP4::addData(gpacpp::IsoSample const * const sample) {
 			return;
 		}
 	}
+
+	DTS += lastDataDurationInTs;
+	if (segmentPolicy > SingleSegment) {
+		curSegmentDurInTs += lastDataDurationInTs;
+	}
 }
 
-void GPACMuxMP4::processSample(std::unique_ptr<gpacpp::IsoSample> sample) {
-	DTS += lastDataDurationInTs;
-	splitSegment(sample.get());
-	addData(sample.get());
+void GPACMuxMP4::closeChunk(bool nextSampleIsRAP) {
+	auto const mediaTs = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
+	if (segmentPolicy > SingleSegment) {
+		if ((!(compatFlags & Browsers) || curFragmentDurInTs > 0) && /*avoid 0-sized mdat interpreted as EOS in browsers*/
+			((curSegmentDurInTs + curSegmentDeltaInTs) * IClock::Rate) >= (mediaTs * segmentDurationIn180k) &&
+			((nextSampleIsRAP == RAP) || (compatFlags & SegmentAtAny))) {
+			if ((compatFlags & SegConstantDur) && (timescaleToClock(curSegmentDurInTs + curSegmentDeltaInTs, mediaTs) != segmentDurationIn180k) && (curSegmentDurInTs != 0)) {
+				if ((DTS / clockToTimescale(segmentDurationIn180k, mediaTs)) <= 1) {
+					segmentDurationIn180k = timescaleToClock(curSegmentDurInTs + curSegmentDeltaInTs, mediaTs);
+				}
+			}
+			closeSegment(false);
+			segmentNum++;
+			startSegment();
+		}
+	}
+}
+
+void GPACMuxMP4::processSample(std::unique_ptr<gpacpp::IsoSample> sample, int64_t lastDataDurationInTs) {
+	closeChunk(sample->IsRAP == RAP);
+	startChunk(sample.get());
+	addData(sample.get(), lastDataDurationInTs);
+	closeChunk(false); //close it now if possible, otherwise wait for the next sample to be available
 }
 
 std::unique_ptr<gpacpp::IsoSample> GPACMuxMP4::fillSample(Data data_) {
@@ -973,7 +991,7 @@ void GPACMuxMP4::process() {
 	}
 
 	auto const mediaTs = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
-	lastDataDurationInTs = clockToTimescale(data->getMediaTime() - lastInputTimeIn180k, mediaTs);
+	auto lastDataDurationInTs = clockToTimescale(data->getMediaTime() - lastInputTimeIn180k, mediaTs);
 	if (DTS && !data->getMediaTime()) {
 		lastInputTimeIn180k += timescaleToClock(defaultSampleIncInTs, mediaTs);
 		lastDataDurationInTs = defaultSampleIncInTs;
@@ -993,7 +1011,7 @@ void GPACMuxMP4::process() {
 			lastData = data;
 			return;
 		}
-		processSample(fillSample(lastData));
+		processSample(fillSample(lastData), lastDataDurationInTs);
 		lastData = data;
 	} else {
 		if (DTS && (lastDataDurationInTs - defaultSampleIncInTs != 0)) {
@@ -1007,7 +1025,7 @@ void GPACMuxMP4::process() {
 			lastDataDurationInTs = defaultSampleIncInTs;
 		}
 
-		processSample(fillSample(data));
+		processSample(fillSample(data), lastDataDurationInTs);
 	}
 }
 

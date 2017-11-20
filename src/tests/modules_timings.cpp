@@ -2,11 +2,15 @@
 #include "tests.hpp"
 #include "lib_media/decode/libav_decode.hpp"
 #include "lib_media/demux/libav_demux.hpp"
+#include "lib_media/demux/gpac_demux_mp4_simple.hpp"
 #include "lib_media/encode/libav_encode.hpp"
+#include "lib_media/mux/gpac_mux_mp4.hpp"
 #include "lib_media/transform/audio_convert.hpp"
+#include "lib_media/transform/audio_gap_filler.hpp"
 #include "lib_media/transform/restamp.hpp"
 #include "lib_media/transform/video_convert.hpp"
 #include "lib_media/utils/recorder.hpp"
+#include "lib_modules/modules.hpp"
 #include <cmath>
 
 using namespace Tests;
@@ -48,7 +52,7 @@ void checkTimestamps(const std::vector<int64_t> &timesIn, const std::vector<int6
 unittest("timestamps start at random values (LibavDemux)") {
 	const int64_t interval = (int64_t)Clock::Rate;
 	const std::vector<int64_t> correct = { interval, 2 * interval, 3 * interval };
-	const std::vector<int64_t> incorrect = { 0 };
+	const std::vector<int64_t> incorrect = { interval };
 	checkTimestamps<Demux::LibavDemux>(correct, incorrect);
 }
 
@@ -126,6 +130,9 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 	std::vector<std::unique_ptr<Utils::Recorder>> recorders;
 	for (size_t i = 0; i < demux->getNumOutputs(); ++i) {
 		auto const metadataDemux = safe_cast<const MetadataPktLibav>(demux->getOutput(i)->getMetadata());
+		if (!metadataDemux->isVideo())
+			continue;
+
 		auto gapper = create<Gapper>();
 		ConnectOutputToInput(demux->getOutput(i), gapper->getInput(0));
 		auto decoder = create<Decode::LibavDecode>(metadataDemux);
@@ -166,46 +173,57 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 
 unittest("restamp: passthru with offsets") {
 	auto const time = 10001LL;
+	int64_t expected = 0;
+	auto onFrame = [&](Data data) {
+		ASSERT(data->getMediaTime() == expected);
+	};
 	auto data = std::make_shared<DataRaw>(0);
 
 	data->setMediaTime(time);
 	auto restamp = create<Transform::Restamp>(Transform::Restamp::Reset);
+	Connect(restamp->getOutput(0)->getSignal(), onFrame);
 	restamp->process(data);
-	ASSERT_EQUALS(0, data->getMediaTime());
 
 	data->setMediaTime(time);
 	restamp = create<Transform::Restamp>(Transform::Restamp::Reset, 0);
+	Connect(restamp->getOutput(0)->getSignal(), onFrame);
 	restamp->process(data);
-	ASSERT_EQUALS(0, data->getMediaTime());
 
 	data->setMediaTime(time);
 	restamp = create<Transform::Restamp>(Transform::Restamp::Reset, time);
+	expected = time;
+	Connect(restamp->getOutput(0)->getSignal(), onFrame);
 	restamp->process(data);
-	ASSERT_EQUALS(time, data->getMediaTime());
 }
 
 unittest("restamp: reset with offsets") {
 	int64_t time = 10001;
 	int64_t offset = -100;
+	int64_t expected = time;
+	auto onFrame = [&](Data data) {
+		ASSERT(data->getMediaTime() == expected);
+	};
 	auto data = std::make_shared<DataRaw>(0);
 
 	data->setMediaTime(time);
 	auto restamp = create<Transform::Restamp>(Transform::Restamp::Passthru);
+	Connect(restamp->getOutput(0)->getSignal(), onFrame);
 	restamp->process(data);
-	ASSERT_EQUALS(time, data->getMediaTime());
 
 	data->setMediaTime(time);
 	restamp = create<Transform::Restamp>(Transform::Restamp::Passthru, 0);
+	Connect(restamp->getOutput(0)->getSignal(), onFrame);
 	restamp->process(data);
-	ASSERT_EQUALS(time, data->getMediaTime());
 
 	data->setMediaTime(time);
 	restamp = create<Transform::Restamp>(Transform::Restamp::Passthru, offset);
+	expected = time + offset;
+	Connect(restamp->getOutput(0)->getSignal(), onFrame);
 	restamp->process(data);
-	ASSERT_EQUALS(time + offset, data->getMediaTime());
 
 	data->setMediaTime(time);
 	restamp = create<Transform::Restamp>(Transform::Restamp::Passthru, time);
+	expected = time + time;
+	Connect(restamp->getOutput(0)->getSignal(), onFrame);
 	restamp->process(data);
-	ASSERT_EQUALS(time + time, data->getMediaTime());
 }

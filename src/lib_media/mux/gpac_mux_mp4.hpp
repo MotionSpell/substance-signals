@@ -31,7 +31,7 @@ class GPACMuxMP4 : public ModuleDynI {
 
 		enum CompatibilityFlag {
 			None               = 0,
-			SegmentAtAny       = 1 << 0, //don't wait for a RAP
+			SegmentAtAny       = 1 << 0, //don't wait for a RAP - automatically set for audio and subtitles
 			Browsers           = 1 << 1,
 			SmoothStreaming    = 1 << 2,
 			SegNumStartsAtZero = 1 << 3,
@@ -60,13 +60,14 @@ class GPACMuxMP4 : public ModuleDynI {
 		void handleInitialTimeOffset();
 		void sendOutput();
 		std::unique_ptr<gpacpp::IsoSample> fillSample(Data data);
-		void splitSegment(gpacpp::IsoSample * const sample);
-		void addData(gpacpp::IsoSample const * const sample);
-		void processSample(std::unique_ptr<gpacpp::IsoSample>);
+		void startChunk(gpacpp::IsoSample * const sample);
+		void addData(gpacpp::IsoSample const * const sample, int64_t lastDataDurationInTs);
+		void closeChunk(bool nextSampleIsRAP);
+		void processSample(std::unique_ptr<gpacpp::IsoSample> sample, int64_t lastDataDurationInTs);
 
 		CompatibilityFlag compatFlags;
 		Data lastData = nullptr; //used with ExactInputDur flag
-		int64_t lastInputTimeIn180k = 0, lastDataDurationInTs = 0, firstDataAbsTimeInMs = 0;
+		int64_t lastInputTimeIn180k = 0, firstDataAbsTimeInMs = 0;
 		uint64_t DTS = 0, defaultSampleIncInTs = 0;
 		bool isAnnexB = true;
 
