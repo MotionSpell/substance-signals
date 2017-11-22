@@ -73,9 +73,9 @@ if [ ! -f extra/src/libjpeg-turbo/configure.ac ] ; then
 	mkdir -p extra/src
 	rm -rf extra/src/libjpeg-turbo
 	pushd extra/src
-	git clone https://github.com/PyYoshi/libjpeg-turbo.git
+	git clone https://github.com/libjpeg-turbo/libjpeg-turbo.git
 	pushd libjpeg-turbo
-	git checkout 1.3.1
+	git checkout 5abf2536
 	autoreconf -fiv
 	popd
 	popd

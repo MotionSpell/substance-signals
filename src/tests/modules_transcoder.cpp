@@ -105,7 +105,7 @@ unittest("transcoder: jpg to jpg") {
 	reader->process(nullptr);
 }
 
-unittest("transcoder: jpg to resized jpg") {
+void resizeJPGTest(PixelFormat pf) {
 	const std::string filename("data/sample.jpg");
 	auto decode = create<Decode::JPEGTurboDecode>();
 	{
@@ -115,7 +115,7 @@ unittest("transcoder: jpg to resized jpg") {
 	}
 	auto reader = create<In::File>(filename);
 
-	auto const dstFormat = PictureFormat(VIDEO_RESOLUTION / 2, RGB24);
+	auto const dstFormat = PictureFormat(VIDEO_RESOLUTION / 2, pf);
 	auto converter = create<Transform::VideoConvert>(dstFormat);
 	auto encoder = create<Encode::JPEGTurboEncode>();
 	auto writer = create<Out::File>("data/test.jpg");
@@ -126,6 +126,14 @@ unittest("transcoder: jpg to resized jpg") {
 	ConnectOutputToInput(encoder->getOutput(0), writer->getInput(0));
 
 	reader->process(nullptr);
+}
+
+unittest("transcoder: jpg to resized jpg (RGB24)") {
+	resizeJPGTest(RGB24);
+}
+
+unittest("transcoder: jpg to resized jpg (YUV420)") {
+	resizeJPGTest(YUV420P);
 }
 
 unittest("transcoder: h264/mp4 to jpg") {
