@@ -30,6 +30,19 @@ const char* webcamFormat() {
 #endif
 }
 
+//Romain: elsewhere
+struct BufferData {
+	uint8_t *buf = nullptr;
+	int sizeLeft = 0;
+};
+int read(void *opaque, uint8_t *buf, int buf_size) {
+	auto *bd = (BufferData*)opaque;
+	buf_size = (int)FFMIN(buf_size, bd->sizeLeft);
+	memcpy(buf, bd->buf, buf_size);
+	bd->buf += buf_size;
+	bd->sizeLeft -= buf_size;
+	return buf_size;
+}
 }
 
 namespace Demux {
@@ -84,6 +97,19 @@ LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::strin
 		}
 	} else {
 		ffpp::Dict dict(typeid(*this).name(),"-buffer_size 1M -fifo_size 1M -probesize 10M -analyzeduration 10M -overrun_nonfatal 1 -protocol_whitelist file,udp,rtp,http,https,tcp,tls,rtmp -rtsp_flags prefer_tcp " + avformatCustom);
+
+		m_formatCtx = avformat_alloc_context();
+		if (!m_formatCtx)
+			throw error("could not allocate the context.");
+
+		if (!formatName.compare(0, 6, "mem://")) {
+			auto bd = uptr(new BufferData);
+			if (sscanf(formatName.c_str(), "mem://%d@%p", &bd->sizeLeft, &bd->buf) == 2) {
+				m_avio = std::unique_ptr<ffpp::IAvIO>(new ffpp::AvIO<BufferData>(read, nullptr, nullptr, std::move(bd), false));
+				m_formatCtx->pb = m_avio->get();
+				m_formatCtx->flags = AVFMT_FLAG_CUSTOM_IO;
+			}
+		}
 		if (avformat_open_input(&m_formatCtx, url.c_str(), av_find_input_format(formatName.c_str()), &dict)) {
 			if (m_formatCtx) avformat_close_input(&m_formatCtx);
 			throw error(format("Error when opening input '%s'", url));
