@@ -193,7 +193,7 @@ void LibavDemux::threadProc() {
 	while (!done) {
 		av_init_packet(&pkt);
 		int status = av_read_frame(m_formatCtx, &pkt);
-		if ((status < 0) || (pkt.pts < pkt.dts)) {
+		if ((status < 0) || (pkt.pts != AV_NOPTS_VALUE && pkt.dts != AV_NOPTS_VALUE && pkt.pts < pkt.dts)) {
 			av_free_packet(&pkt);
 			if (status == (int)AVERROR_EOF || (m_formatCtx->pb && m_formatCtx->pb->eof_reached)) {
 				log(Info, "End of stream detected - %s", loop ? "looping" : "leaving");
