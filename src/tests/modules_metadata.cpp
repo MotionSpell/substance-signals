@@ -134,3 +134,14 @@ unittest("metadata: updated twice by data") {
 	output->process();
 	ASSERT(o->getMetadata() == i->getMetadata());
 }
+
+unittest("duplicating data") {
+	const Resolution res(80, 60);
+	auto data = std::make_shared<DataPcm>(0);
+
+	Data dataCopy = std::make_shared<DataBaseRef>(data);
+	data = nullptr;
+
+	auto dataCopyPcm = safe_cast<const DataPcm>(dataCopy);
+	ASSERT(dataCopyPcm);
+}

@@ -30,7 +30,7 @@ const char* webcamFormat() {
 #endif
 }
 
-//Romain: elsewhere
+//for mem:// protocol
 struct BufferData {
 	uint8_t *buf = nullptr;
 	int sizeLeft = 0;
