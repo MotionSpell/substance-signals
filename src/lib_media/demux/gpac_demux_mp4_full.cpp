@@ -31,7 +31,7 @@ class ISOProgressiveReader {
 };
 
 GPACDemuxMP4Full::GPACDemuxMP4Full()
-	: reader(new ISOProgressiveReader) {
+: reader(new ISOProgressiveReader) {
 	addInput(new Input<DataRaw>(this));
 	output = addOutput<OutputDefault>();
 }
@@ -45,9 +45,7 @@ bool GPACDemuxMP4Full::openData() {
 	GF_ISOFile *movie;
 	GF_Err e = gf_isom_open_progressive(reader->dataUrl.c_str(), 0, 0, &movie, &missingBytes);
 	if ((e != GF_OK && e != GF_ISOM_INCOMPLETE_FILE) || reader->movie) {
-		log(Warning, "Error opening fragmented mp4 in progressive mode: %s (missing %s bytes)",
-		         gf_error_to_string(e), missingBytes);
-
+		log(Warning, "Error opening fragmented mp4 in progressive mode: %s (missing %s bytes)", gf_error_to_string(e), missingBytes);
 		return false;
 	}
 	reader->movie.reset(new gpacpp::IsoFile(movie));

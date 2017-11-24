@@ -529,8 +529,8 @@ void GPACMuxMP4::closeFragment() {
 			auto const absTimeInTs = convertToTimescale(firstDataAbsTimeInMs, 1000, mediaTs) + curFragmentStartInTs;
 			auto const deltaRealTimeInMs = 1000 * (double)(getUTC() - Fraction(absTimeInTs, mediaTs));
 			log(deltaRealTimeInMs < 0 || deltaRealTimeInMs > curFragmentStartInTs ? Warning : Debug,
-				"Closing MSS fragment with absolute time %s (deltaRT=%s) and duration %s (timescale %s)",
-				absTimeInTs, deltaRealTimeInMs, curFragmentDurInTs, mediaTs);
+				"Closing MSS fragment with absolute time %s %s UTC %s and duration %s (timescale %s, time=%s, deltaRT=%s)",
+				getDay(), getTimeFromUTC(), curFragmentDurInTs, mediaTs, absTimeInTs, deltaRealTimeInMs);
 			GF_Err e = gf_isom_set_traf_mss_timeext(isoCur, trackId, absTimeInTs, curFragmentDurInTs);
 			if (e != GF_OK)
 				throw error(format("Impossible to create UTC marker: %s", gf_error_to_string(e)));
