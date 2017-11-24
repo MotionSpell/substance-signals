@@ -193,7 +193,7 @@ void LibavDemux::threadProc() {
 	while (!done) {
 		av_init_packet(&pkt);
 		int status = av_read_frame(m_formatCtx, &pkt);
-		if (status < 0) {
+		if ((status < 0) || (pkt.pts < pkt.dts)) {
 			av_free_packet(&pkt);
 			if (status == (int)AVERROR_EOF || (m_formatCtx->pb && m_formatCtx->pb->eof_reached)) {
 				log(Info, "End of stream detected - %s", loop ? "looping" : "leaving");
@@ -204,6 +204,8 @@ void LibavDemux::threadProc() {
 				}
 			} else if (m_formatCtx->pb && m_formatCtx->pb->error) {
 				log(Error, "Stream contains an irrecoverable error (%s) - leaving", status);
+			} else if (pkt.pts < pkt.dts) {
+				log(Error, "Stream %s: pts < dts (%s < %s) - leaving", pkt.stream_index, pkt.pts, pkt.dts);
 			}
 			done = true;
 			return;
