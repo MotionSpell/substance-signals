@@ -85,8 +85,13 @@ std::shared_ptr<T> safe_cast(std::shared_ptr<const Modules::DataBase> p) {
 		auto s = std::dynamic_pointer_cast<const Modules::DataBaseRef>(p);
 		if (s) {
 			auto t = std::dynamic_pointer_cast<T>(s->getData());
-			if (t)
+			if (t) {
 				return t;
+			} else {
+				auto u = std::dynamic_pointer_cast<const Modules::DataBase>(s->getData());
+				if (u)
+					return safe_cast<T>(u);
+			}
 		}
 	}
 	throw std::runtime_error(format("dynamic cast error: could not convert from Modules::Data to %s", typeid(T).name()));

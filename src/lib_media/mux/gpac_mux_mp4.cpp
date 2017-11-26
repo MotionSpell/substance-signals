@@ -977,18 +977,27 @@ std::unique_ptr<gpacpp::IsoSample> GPACMuxMP4::fillSample(Data data_) {
 	return sample;
 }
 
-void GPACMuxMP4::process() {
-	Data data = inputs[0]->pop(); //FIXME: reimplement with multiple inputs
+void GPACMuxMP4::processInit(Data &data) {
 	if (inputs[0]->updateMetadata(data)) {
 		auto const &metadata = data->getMetadata();
 		declareStream(metadata);
 		declareInput(metadata);
+	}
+	auto refData = std::dynamic_pointer_cast<const DataBaseRef>(data);
+	if (refData && !refData->getData()) {
+		sendOutput();
+		return;
 	}
 	if (!firstDataAbsTimeInMs) {
 		firstDataAbsTimeInMs = DataBase::absUTCOffsetInMs;
 		lastInputTimeIn180k = data->getMediaTime();
 		handleInitialTimeOffset();
 	}
+}
+
+void GPACMuxMP4::process() {
+	auto data = inputs[0]->pop(); //FIXME: reimplement with multiple inputs
+	processInit(data);
 
 	auto const mediaTs = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
 	auto lastDataDurationInTs = clockToTimescale(data->getMediaTime() - lastInputTimeIn180k, mediaTs);
@@ -1011,6 +1020,7 @@ void GPACMuxMP4::process() {
 			lastData = data;
 			return;
 		}
+
 		processSample(fillSample(lastData), lastDataDurationInTs);
 		lastData = data;
 	} else {
@@ -1019,7 +1029,7 @@ void GPACMuxMP4::process() {
 			if (lastDataDurationInTs <= 0) {
 				lastDataDurationInTs = 1;
 			}
-			log(Warning, "VFR: adding sample with duration %ss", lastDataDurationInTs / (double)mediaTs);
+			log(Debug, "VFR: adding sample with duration %ss", lastDataDurationInTs / (double)mediaTs);
 		}
 		if (lastDataDurationInTs == 0) {
 			lastDataDurationInTs = defaultSampleIncInTs;

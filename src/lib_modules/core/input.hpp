@@ -16,21 +16,21 @@ struct IProcessor {
 };
 
 class ConnectedCap {
-	public:
-		ConnectedCap() : connections(0) {}
-		virtual ~ConnectedCap() noexcept(false) {}
-		virtual size_t getNumConnections() const {
-			return connections;
-		}
-		virtual void connect() {
-			connections++;
-		}
-		virtual void disconnect() {
-			connections--;
-		}
+public:
+	ConnectedCap() : connections(0) {}
+	virtual ~ConnectedCap() noexcept(false) {}
+	virtual size_t getNumConnections() const {
+		return connections;
+	}
+	virtual void connect() {
+		connections++;
+	}
+	virtual void disconnect() {
+		connections--;
+	}
 
-	private:
-		std::atomic_size_t connections;
+private:
+	std::atomic_size_t connections;
 };
 
 struct IInput : public IProcessor, public ConnectedCap, public MetadataCap, public Queue<Data> {
@@ -39,19 +39,19 @@ struct IInput : public IProcessor, public ConnectedCap, public MetadataCap, publ
 
 template<typename DataType, typename ModuleType = IProcessor>
 class Input : public IInput {
-	public:
-		Input(ModuleType * const module) : module(module) {}
+public:
+	Input(ModuleType * const module) : module(module) {}
 
-		void process() override {
-			module->process();
-		}
+	void process() override {
+		module->process();
+	}
 
-		void push(Data data) override {
-			Queue<Data>::push(data);
-		}
+	void push(Data data) override {
+		Queue<Data>::push(data);
+	}
 
-	private:
-		ModuleType * const module;
+private:
+	ModuleType * const module;
 };
 
 struct IInputCap {
