@@ -977,7 +977,7 @@ std::unique_ptr<gpacpp::IsoSample> GPACMuxMP4::fillSample(Data data_) {
 	return sample;
 }
 
-void GPACMuxMP4::processInit(Data &data) {
+bool GPACMuxMP4::processInit(Data &data) {
 	if (inputs[0]->updateMetadata(data)) {
 		auto const &metadata = data->getMetadata();
 		declareStream(metadata);
@@ -986,18 +986,20 @@ void GPACMuxMP4::processInit(Data &data) {
 	auto refData = std::dynamic_pointer_cast<const DataBaseRef>(data);
 	if (refData && !refData->getData()) {
 		sendOutput();
-		return;
+		return false;
 	}
 	if (!firstDataAbsTimeInMs) {
 		firstDataAbsTimeInMs = DataBase::absUTCOffsetInMs;
 		lastInputTimeIn180k = data->getMediaTime();
 		handleInitialTimeOffset();
 	}
+	return true;
 }
 
 void GPACMuxMP4::process() {
 	auto data = inputs[0]->pop(); //FIXME: reimplement with multiple inputs
-	processInit(data);
+	if (!processInit(data))
+		return;
 
 	auto const mediaTs = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
 	auto lastDataDurationInTs = clockToTimescale(data->getMediaTime() - lastInputTimeIn180k, mediaTs);

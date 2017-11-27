@@ -55,7 +55,7 @@ protected:
 	GF_ISOFile *isoInit, *isoCur;
 
 private:
-	void processInit(Data &data);
+	bool processInit(Data &data);
 	void declareStream(const std::shared_ptr<const IMetadata> &metadata);
 	void declareInput(const std::shared_ptr<const IMetadata> &metadata);
 	void handleInitialTimeOffset();
