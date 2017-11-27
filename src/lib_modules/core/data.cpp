@@ -36,7 +36,12 @@ DataBaseRef::DataBaseRef(std::shared_ptr<const DataBase> data) {
 		setMediaTime(data->getMediaTime());
 		setClockTime(data->getClockTime());
 		setMetadata(data->getMetadata());
-		dataRef = data;
+		auto ref = std::dynamic_pointer_cast<const DataBaseRef>(data);
+		if (ref) {
+			dataRef = ref->getData();
+		} else {
+			dataRef = data;
+		}
 	}
 }
 
