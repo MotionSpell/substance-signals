@@ -96,7 +96,7 @@ LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::strin
 			restampers[i] = create<Transform::Restamp>(Transform::Restamp::ClockSystem); /*some webcams timestamps don't start at 0 (based on UTC)*/
 		}
 	} else {
-		ffpp::Dict dict(typeid(*this).name(),"-buffer_size 1M -fifo_size 1M -probesize 10M -analyzeduration 10M -overrun_nonfatal 1 -protocol_whitelist file,udp,rtp,http,https,tcp,tls,rtmp -rtsp_flags prefer_tcp " + avformatCustom);
+		ffpp::Dict dict(typeid(*this).name(),"-buffer_size 1M -fifo_size 1M -probesize 10M -analyzeduration 10M -overrun_nonfatal 1 -protocol_whitelist file,udp,rtp,http,https,tcp,tls,rtmp -rtsp_flags prefer_tcp -correct_ts_overflow 0 " + avformatCustom);
 
 		m_formatCtx = avformat_alloc_context();
 		if (!m_formatCtx)
@@ -184,7 +184,36 @@ void LibavDemux::seekToStart() {
 	if (av_seek_frame(m_formatCtx, -1, m_formatCtx->start_time, AVSEEK_FLAG_ANY) < 0)
 		throw error(format("Couldn't seek to start time %s", m_formatCtx->start_time));
 
-	loopOffsetIn180k += timescaleToClock(m_formatCtx->duration, AV_TIME_BASE) ;
+	offsetDTSIn180k += timescaleToClock(m_formatCtx->duration, AV_TIME_BASE);
+	offsetPTSIn180k += timescaleToClock(m_formatCtx->duration, AV_TIME_BASE);
+}
+
+void LibavDemux::rectifyTimestamps(AVPacket &pkt) {
+	auto is = m_formatCtx;
+	auto ist = is->streams[pkt.stream_index];
+	AVRational tb = { 1, AV_TIME_BASE };
+	auto const base = m_formatCtx->streams[pkt.stream_index]->time_base;
+
+	auto const thresholdInBase = 1 * base.num / base.den;
+	if (lastDTS[pkt.stream_index] && pkt.dts < lastDTS[pkt.stream_index]
+		&& (1LL << ist->pts_wrap_bits) - lastDTS[pkt.stream_index] < thresholdInBase && pkt.dts + (1LL << ist->pts_wrap_bits) > lastDTS[pkt.stream_index]) {
+		offsetDTSIn180k += timescaleToClock((1LL << ist->pts_wrap_bits) * base.num, base.den);
+		log(Warning, "Stream %s: overflow detecting on DTS (%s, last=%s, timescale=%s/%s, offset=%s).",
+		pkt.stream_index, pkt.dts, lastDTS[pkt.stream_index], base.num, base.den, clockToTimescale(offsetDTSIn180k * base.num, base.den));
+	}
+	if (lastPTS[pkt.stream_index] && pkt.pts < lastPTS[pkt.stream_index]
+		&& (1LL << ist->pts_wrap_bits) - lastPTS[pkt.stream_index] < thresholdInBase && pkt.pts + (1LL << ist->pts_wrap_bits) > lastPTS[pkt.stream_index]) {
+		offsetPTSIn180k += timescaleToClock((1LL << ist->pts_wrap_bits) * base.num, base.den);
+		log(Warning, "Stream %s: overflow detecting on PTS (%s, last=%s, timescale=%s/%s, offset=%s).",
+			pkt.stream_index, pkt.pts, lastPTS[pkt.stream_index], base.num, base.den, clockToTimescale(offsetPTSIn180k * base.num, base.den));
+	}
+
+	if (pkt.pts != AV_NOPTS_VALUE && pkt.dts != AV_NOPTS_VALUE && pkt.pts < pkt.dts) {
+		log(Error, "Stream %s: pts < dts (%s < %s)", pkt.stream_index, pkt.pts, pkt.dts);
+	}
+
+	pkt.dts += clockToTimescale(offsetDTSIn180k * base.num, base.den);
+	pkt.pts += clockToTimescale(offsetPTSIn180k * base.num, base.den);
 }
 
 void LibavDemux::threadProc() {
@@ -193,7 +222,7 @@ void LibavDemux::threadProc() {
 	while (!done) {
 		av_init_packet(&pkt);
 		int status = av_read_frame(m_formatCtx, &pkt);
-		if ((status < 0) || (pkt.pts != AV_NOPTS_VALUE && pkt.dts != AV_NOPTS_VALUE && pkt.pts < pkt.dts)) {
+		if (status < 0) {
 			av_free_packet(&pkt);
 			if (status == (int)AVERROR_EOF || (m_formatCtx->pb && m_formatCtx->pb->eof_reached)) {
 				log(Info, "End of stream detected - %s", loop ? "looping" : "leaving");
@@ -204,16 +233,12 @@ void LibavDemux::threadProc() {
 				}
 			} else if (m_formatCtx->pb && m_formatCtx->pb->error) {
 				log(Error, "Stream contains an irrecoverable error (%s) - leaving", status);
-			} else if (pkt.pts < pkt.dts) {
-				log(Error, "Stream %s: pts < dts (%s < %s) - leaving", pkt.stream_index, pkt.pts, pkt.dts);
 			}
 			done = true;
 			return;
 		}
 
-		auto const base = m_formatCtx->streams[pkt.stream_index]->time_base;
-		pkt.dts += clockToTimescale(loopOffsetIn180k * base.num, base.den);
-		pkt.pts += clockToTimescale(loopOffsetIn180k * base.num, base.den);
+		rectifyTimestamps(pkt);
 		if (nextPacketResetFlag) {
 			pkt.flags |= AV_PKT_FLAG_RESET_DECODER;
 			nextPacketResetFlag = false;

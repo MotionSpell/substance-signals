@@ -17,34 +17,35 @@ namespace Transform {
 namespace Demux {
 
 class LibavDemux : public ModuleS {
-	public:
-		//@param url may be a file, a remote URL, or a webcam (set "webcam" to list the available devices)
-		LibavDemux(const std::string &url, const bool loop = false, const std::string &avformatCustom = "", const uint64_t seekTimeInMs = 0, const std::string &formatName = "");
-		~LibavDemux();
-		void process(Data data) override;
+public:
+	//@param url may be a file, a remote URL, or a webcam (set "webcam" to list the available devices)
+	LibavDemux(const std::string &url, const bool loop = false, const std::string &avformatCustom = "", const uint64_t seekTimeInMs = 0, const std::string &formatName = "");
+	~LibavDemux();
+	void process(Data data) override;
 
-	private:
-		void webcamList();
-		bool webcamOpen(const std::string &options);
-		void initRestamp();
-		void seekToStart();
-		void threadProc();
-		void setMediaTime(std::shared_ptr<DataAVPacket> data);
-		bool dispatchable(AVPacket * const pkt);
-		void dispatch(AVPacket *pkt);
-		void sparseStreamsHeartbeat(AVPacket const * const pkt);
+private:
+	void webcamList();
+	bool webcamOpen(const std::string &options);
+	void initRestamp();
+	void seekToStart();
+	void rectifyTimestamps(AVPacket &pkt);
+	void threadProc();
+	void setMediaTime(std::shared_ptr<DataAVPacket> data);
+	bool dispatchable(AVPacket * const pkt);
+	void dispatch(AVPacket *pkt);
+	void sparseStreamsHeartbeat(AVPacket const * const pkt);
 
-		bool loop;
-		std::thread workingThread;
-		std::atomic_bool done;
-		QueueLockFree<AVPacket> dispatchPkts;
-		std::vector<std::unique_ptr<Transform::Restamp>> restampers;
-		std::vector<OutputDataDefault<DataAVPacket>*> outputs;
-		struct AVFormatContext *m_formatCtx;
-		std::unique_ptr<ffpp::IAvIO> m_avio = nullptr;
-		int64_t curTimeIn180k = 0, startPTSIn180k = 0;
-		uint64_t loopOffsetIn180k = 0;
-		std::vector<int64_t> lastDTS, lastPTS;
+	bool loop;
+	std::thread workingThread;
+	std::atomic_bool done;
+	QueueLockFree<AVPacket> dispatchPkts;
+	std::vector<std::unique_ptr<Transform::Restamp>> restampers;
+	std::vector<OutputDataDefault<DataAVPacket>*> outputs;
+	struct AVFormatContext *m_formatCtx;
+	std::unique_ptr<ffpp::IAvIO> m_avio = nullptr;
+	int64_t curTimeIn180k = 0, startPTSIn180k = 0;
+	uint64_t offsetDTSIn180k = 0, offsetPTSIn180k = 0;
+	std::vector<int64_t> lastDTS, lastPTS;
 };
 
 }
