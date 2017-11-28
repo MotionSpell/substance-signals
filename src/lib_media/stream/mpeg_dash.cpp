@@ -152,7 +152,7 @@ void MPEG_DASH::ensureManifest() {
 			case VIDEO_PKT:
 			case SUBTITLE_PKT: {
 				auto out = outputSegments->getBuffer(0);
-				auto const initFnDst = format("%s_%s%s", period->ID, mpdDir, initFnSrc);
+				auto const initFnDst = format("%s_%s%s", mpdDir, period->ID, initFnSrc);
 				moveFile(initFnSrc, initFnDst);
 				out->setMetadata(std::make_shared<MetadataFile>(initFnDst, SEGMENT, quality->meta->getMimeType(), quality->meta->getCodecName(), quality->meta->getDuration(), quality->meta->getSize(), quality->meta->getLatency(), quality->meta->getStartsWithRAP()));
 				outputSegments->emit(out);
