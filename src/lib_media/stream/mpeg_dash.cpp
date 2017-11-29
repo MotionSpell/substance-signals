@@ -152,7 +152,7 @@ void MPEG_DASH::ensureManifest() {
 			case VIDEO_PKT:
 			case SUBTITLE_PKT: {
 				auto out = outputSegments->getBuffer(0);
-				auto const initFnDst = format("%s_%s%s", mpdDir, period->ID, initFnSrc);
+				auto const initFnDst = format("%s%s_%s", mpdDir, getPeriodID(), initFnSrc);
 				moveFile(initFnSrc, initFnDst);
 				out->setMetadata(std::make_shared<MetadataFile>(initFnDst, SEGMENT, quality->meta->getMimeType(), quality->meta->getCodecName(), quality->meta->getDuration(), quality->meta->getSize(), quality->meta->getLatency(), quality->meta->getStartsWithRAP()));
 				outputSegments->emit(out);
@@ -240,7 +240,7 @@ void MPEG_DASH::generateManifest() {
 			switch (quality->meta->getStreamType()) {
 			case AUDIO_PKT:    fn = format("%s%s_a_%s-%s.m4s", mpdDir, getPeriodID(), i, n); break;
 			case VIDEO_PKT:    fn = format("%s%s_v_%s_%sx%s-%s.m4s", mpdDir, getPeriodID(), i, quality->rep->width, quality->rep->height, n); break;
-			case SUBTITLE_PKT: fn = format("%%s_ss_%s-%s.m4s", mpdDir, getPeriodID(), i, n); break;
+			case SUBTITLE_PKT: fn = format("%s%s_s_%s-%s.m4s", mpdDir, getPeriodID(), i, n); break;
 			default: break;
 			}
 		}
