@@ -138,7 +138,6 @@ LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::strin
 	}
 
 	lastDTS.resize(m_formatCtx->nb_streams);
-	lastPTS.resize(m_formatCtx->nb_streams);
 	for (unsigned i = 0; i<m_formatCtx->nb_streams; i++) {
 		auto const st = m_formatCtx->streams[i];
 		auto const parser = av_stream_get_parser(st);
@@ -188,7 +187,7 @@ void LibavDemux::seekToStart() {
 	offsetPTSIn180k += timescaleToClock(m_formatCtx->duration, AV_TIME_BASE);
 }
 
-void LibavDemux::rectifyTimestamps(AVPacket &pkt) {
+bool LibavDemux::rectifyTimestamps(AVPacket &pkt) {
 	auto is = m_formatCtx;
 	auto ist = is->streams[pkt.stream_index];
 	AVRational tb = { 1, AV_TIME_BASE };
@@ -200,20 +199,26 @@ void LibavDemux::rectifyTimestamps(AVPacket &pkt) {
 		offsetDTSIn180k += timescaleToClock((1LL << ist->pts_wrap_bits) * base.num, base.den);
 		log(Warning, "Stream %s: overflow detecting on DTS (%s, last=%s, timescale=%s/%s, offset=%s).",
 		pkt.stream_index, pkt.dts, lastDTS[pkt.stream_index], base.num, base.den, clockToTimescale(offsetDTSIn180k * base.num, base.den));
+		return false; //TODO: do not exit: handle PCR loop cleanly
 	}
-	if (lastPTS[pkt.stream_index] && pkt.pts < lastPTS[pkt.stream_index]
+#if 0
+	if (lastPTS[pkt.stream_index] && pkt.pts < lastPTS[pkt.stream_index] //Romain: not good: les PTS peuvent revenir en arriere!
 		&& (1LL << ist->pts_wrap_bits) - lastPTS[pkt.stream_index] < thresholdInBase && pkt.pts + (1LL << ist->pts_wrap_bits) > lastPTS[pkt.stream_index]) {
 		offsetPTSIn180k += timescaleToClock((1LL << ist->pts_wrap_bits) * base.num, base.den);
 		log(Warning, "Stream %s: overflow detecting on PTS (%s, last=%s, timescale=%s/%s, offset=%s).",
 			pkt.stream_index, pkt.pts, lastPTS[pkt.stream_index], base.num, base.den, clockToTimescale(offsetPTSIn180k * base.num, base.den));
 	}
+#endif
 
 	if (pkt.pts != AV_NOPTS_VALUE && pkt.dts != AV_NOPTS_VALUE && pkt.pts < pkt.dts) {
 		log(Error, "Stream %s: pts < dts (%s < %s)", pkt.stream_index, pkt.pts, pkt.dts);
+		return false;
 	}
 
 	pkt.dts += clockToTimescale(offsetDTSIn180k * base.num, base.den);
 	pkt.pts += clockToTimescale(offsetPTSIn180k * base.num, base.den);
+
+	return true;
 }
 
 void LibavDemux::threadProc() {
@@ -222,7 +227,7 @@ void LibavDemux::threadProc() {
 	while (!done) {
 		av_init_packet(&pkt);
 		int status = av_read_frame(m_formatCtx, &pkt);
-		if (status < 0) {
+		if (status < 0 || !rectifyTimestamps(pkt)) {
 			av_free_packet(&pkt);
 			if (status == (int)AVERROR_EOF || (m_formatCtx->pb && m_formatCtx->pb->eof_reached)) {
 				log(Info, "End of stream detected - %s", loop ? "looping" : "leaving");
@@ -238,7 +243,6 @@ void LibavDemux::threadProc() {
 			return;
 		}
 
-		rectifyTimestamps(pkt);
 		if (nextPacketResetFlag) {
 			pkt.flags |= AV_PKT_FLAG_RESET_DECODER;
 			nextPacketResetFlag = false;
@@ -261,7 +265,6 @@ void LibavDemux::setMediaTime(std::shared_ptr<DataAVPacket> data) {
 		pkt->duration = pkt->dts - lastDTS[pkt->stream_index];
 	}
 	lastDTS[pkt->stream_index] = pkt->dts;
-	lastPTS[pkt->stream_index] = pkt->pts;
 	auto const base = m_formatCtx->streams[pkt->stream_index]->time_base;
 	auto const time = timescaleToClock(pkt->dts * base.num, base.den);
 	data->setMediaTime(time - startPTSIn180k);
@@ -284,10 +287,6 @@ bool LibavDemux::dispatchable(AVPacket * const pkt) {
 	if (pkt->dts == AV_NOPTS_VALUE) {
 		pkt->dts = lastDTS[pkt->stream_index];
 		log(Debug, "No DTS: setting last value %s.", pkt->dts);
-	}
-	if (pkt->pts == AV_NOPTS_VALUE) {
-		pkt->pts = lastPTS[pkt->stream_index];
-		log(Debug, "No PTS: setting last value %s.", pkt->pts);
 	}
 	if (!lastDTS[pkt->stream_index] && pkt->pts < clockToTimescale(startPTSIn180k*m_formatCtx->streams[pkt->stream_index]->time_base.num, m_formatCtx->streams[pkt->stream_index]->time_base.den)) {
 		av_free_packet(pkt);

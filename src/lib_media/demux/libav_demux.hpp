@@ -28,7 +28,7 @@ private:
 	bool webcamOpen(const std::string &options);
 	void initRestamp();
 	void seekToStart();
-	void rectifyTimestamps(AVPacket &pkt);
+	bool rectifyTimestamps(AVPacket &pkt);
 	void threadProc();
 	void setMediaTime(std::shared_ptr<DataAVPacket> data);
 	bool dispatchable(AVPacket * const pkt);
@@ -45,7 +45,7 @@ private:
 	std::unique_ptr<ffpp::IAvIO> m_avio = nullptr;
 	int64_t curTimeIn180k = 0, startPTSIn180k = 0;
 	uint64_t offsetDTSIn180k = 0, offsetPTSIn180k = 0;
-	std::vector<int64_t> lastDTS, lastPTS;
+	std::vector<int64_t> lastDTS;
 };
 
 }
