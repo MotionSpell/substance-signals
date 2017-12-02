@@ -44,7 +44,7 @@ private:
 	struct AVFormatContext *m_formatCtx;
 	std::unique_ptr<ffpp::IAvIO> m_avio = nullptr;
 	int64_t curTimeIn180k = 0, startPTSIn180k = 0;
-	uint64_t offsetDTSIn180k = 0, offsetPTSIn180k = 0;
+	std::vector<uint64_t> offsetIn180k;
 	std::vector<int64_t> lastDTS;
 };
 

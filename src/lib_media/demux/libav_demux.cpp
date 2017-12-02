@@ -138,6 +138,7 @@ LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::strin
 	}
 
 	lastDTS.resize(m_formatCtx->nb_streams);
+	offsetIn180k.resize(m_formatCtx->nb_streams);
 	for (unsigned i = 0; i<m_formatCtx->nb_streams; i++) {
 		auto const st = m_formatCtx->streams[i];
 		auto const parser = av_stream_get_parser(st);
@@ -183,40 +184,40 @@ void LibavDemux::seekToStart() {
 	if (av_seek_frame(m_formatCtx, -1, m_formatCtx->start_time, AVSEEK_FLAG_ANY) < 0)
 		throw error(format("Couldn't seek to start time %s", m_formatCtx->start_time));
 
-	offsetDTSIn180k += timescaleToClock(m_formatCtx->duration, AV_TIME_BASE);
-	offsetPTSIn180k += timescaleToClock(m_formatCtx->duration, AV_TIME_BASE);
+	for (unsigned i = 0; i < m_formatCtx->nb_streams; i++) {
+		offsetIn180k[i] += timescaleToClock(m_formatCtx->duration, AV_TIME_BASE);
+	}
 }
 
 bool LibavDemux::rectifyTimestamps(AVPacket &pkt) {
-	auto is = m_formatCtx;
-	auto ist = is->streams[pkt.stream_index];
-	AVRational tb = { 1, AV_TIME_BASE };
-	auto const base = m_formatCtx->streams[pkt.stream_index]->time_base;
+	auto const stream = m_formatCtx->streams[pkt.stream_index];
+	auto const maxDelayInSec = 5;
+	auto const thresholdInBase = (maxDelayInSec * stream->time_base.den) / stream->time_base.num;
 
-	auto const thresholdInBase = 1 * base.num / base.den;
-	if (lastDTS[pkt.stream_index] && pkt.dts < lastDTS[pkt.stream_index]
-		&& (1LL << ist->pts_wrap_bits) - lastDTS[pkt.stream_index] < thresholdInBase && pkt.dts + (1LL << ist->pts_wrap_bits) > lastDTS[pkt.stream_index]) {
-		offsetDTSIn180k += timescaleToClock((1LL << ist->pts_wrap_bits) * base.num, base.den);
-		log(Warning, "Stream %s: overflow detecting on DTS (%s, last=%s, timescale=%s/%s, offset=%s).",
-		pkt.stream_index, pkt.dts, lastDTS[pkt.stream_index], base.num, base.den, clockToTimescale(offsetDTSIn180k * base.num, base.den));
-		return false; //TODO: do not exit: handle PCR loop cleanly
+	if (pkt.dts != AV_NOPTS_VALUE) {
+		pkt.dts += clockToTimescale(offsetIn180k[pkt.stream_index] * stream->time_base.num, stream->time_base.den);
+		if (lastDTS[pkt.stream_index] && pkt.dts < lastDTS[pkt.stream_index]
+			&& (1LL << stream->pts_wrap_bits) - lastDTS[pkt.stream_index] < thresholdInBase && pkt.dts + (1LL << stream->pts_wrap_bits) > lastDTS[pkt.stream_index]) {
+			offsetIn180k[pkt.stream_index] += timescaleToClock((1LL << stream->pts_wrap_bits) * stream->time_base.num, stream->time_base.den);
+			log(Warning, "Stream %s: overflow detecting on DTS (%s, last=%s, timescale=%s/%s, offset=%s).",
+				pkt.stream_index, pkt.dts, lastDTS[pkt.stream_index], stream->time_base.num, stream->time_base.den, clockToTimescale(offsetIn180k[pkt.stream_index] * stream->time_base.num, stream->time_base.den));
+		}
 	}
-#if 0
-	if (lastPTS[pkt.stream_index] && pkt.pts < lastPTS[pkt.stream_index] //Romain: not good: les PTS peuvent revenir en arriere!
-		&& (1LL << ist->pts_wrap_bits) - lastPTS[pkt.stream_index] < thresholdInBase && pkt.pts + (1LL << ist->pts_wrap_bits) > lastPTS[pkt.stream_index]) {
-		offsetPTSIn180k += timescaleToClock((1LL << ist->pts_wrap_bits) * base.num, base.den);
-		log(Warning, "Stream %s: overflow detecting on PTS (%s, last=%s, timescale=%s/%s, offset=%s).",
-			pkt.stream_index, pkt.pts, lastPTS[pkt.stream_index], base.num, base.den, clockToTimescale(offsetPTSIn180k * base.num, base.den));
+
+	if (pkt.pts != AV_NOPTS_VALUE) {
+		pkt.pts += clockToTimescale(offsetIn180k[pkt.stream_index] * stream->time_base.num, stream->time_base.den);
+		if (pkt.pts < pkt.dts && (1LL << stream->pts_wrap_bits) + pkt.pts - pkt.dts < thresholdInBase) {
+			auto const localOffsetIn180k = timescaleToClock((1LL << stream->pts_wrap_bits) * stream->time_base.num, stream->time_base.den);
+			log(Warning, "Stream %s: overflow detecting on PTS (%s, new=%s, timescale=%s/%s, offset=%s).",
+				pkt.stream_index, pkt.pts, pkt.pts + localOffsetIn180k, stream->time_base.num, stream->time_base.den, clockToTimescale(offsetIn180k[pkt.stream_index] * stream->time_base.num, stream->time_base.den));
+			pkt.pts += localOffsetIn180k;
+		}
 	}
-#endif
 
 	if (pkt.pts != AV_NOPTS_VALUE && pkt.dts != AV_NOPTS_VALUE && pkt.pts < pkt.dts) {
 		log(Error, "Stream %s: pts < dts (%s < %s)", pkt.stream_index, pkt.pts, pkt.dts);
 		return false;
 	}
-
-	pkt.dts += clockToTimescale(offsetDTSIn180k * base.num, base.den);
-	pkt.pts += clockToTimescale(offsetPTSIn180k * base.num, base.den);
 
 	return true;
 }
