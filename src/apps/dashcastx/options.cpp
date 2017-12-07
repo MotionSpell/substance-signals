@@ -121,6 +121,8 @@ std::unique_ptr<const IConfig> processArgs(int argc, char const* argv[]) {
 			"  --working-dir,       -w             \tSet a working directory." },
 		{ NONEMPTY, 0, "p", "post-cmd",    Arg::NonEmpty,
 			"  --post-cmd,          -p             \tExecute a command when a segment or a manifest are created/updated. Shall contain one '%s' to be replaced by the filename." },
+		{ OPT,      0, "n", "no-watermark",Arg::None,
+			"  --no-watermark,      -n             \tRemove the watermark (when applicable)." },
 		{ UNKNOWN,  0, "" ,  "",           Arg::None, examples.c_str() },
 		{ 0, 0, 0, 0, 0, 0 }
 	};
@@ -157,6 +159,9 @@ std::unique_ptr<const IConfig> processArgs(int argc, char const* argv[]) {
 		}
 		if (o->desc->shortopt == std::string("r")) {
 			opt->autoRotate = true;
+		}
+		if (o->desc->shortopt == std::string("n")) {
+			opt->watermark = false;
 		}
 	}
 	if (options[NUMERIC].first()->desc) {
