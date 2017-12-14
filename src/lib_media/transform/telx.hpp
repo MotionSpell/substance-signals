@@ -1,8 +1,12 @@
+#pragma once
+
 #include <cstdint>
 #include <cstdio>
 #include <memory>
 #include "telx_tables.hpp"
+#include "telx_structs.hpp"
 #include "lib_utils/log.hpp"
+#include "telx2ttml.hpp"
 
 //this code was written really fast to cover the teletext to ttml conversion
 //sticks to the spec
@@ -11,105 +15,71 @@
 
 namespace {
 
-typedef enum { //awkward type required by the spec states
-	UNDEF = 255,
-	NO = 0,
-	YES = 1,
-} Bool;
-
-typedef struct {
-	uint8_t current;
-	uint8_t G0_M29;
-	uint8_t G0_X28;
-} PrimaryCharset;
-PrimaryCharset primaryCharset = { 0x00, UNDEF, UNDEF };
-
-typedef struct {
-	Bool progInfoProcessed;
-	Bool PTSIsInit;
-} State;
-State states = { NO, NO };
-
-// entities, used in color mode, to replace unsafe HTML tag chars
-typedef struct {
-	uint16_t character;
-	char *entity;
-} Entity;
-Entity const entities[] = {
-	{ '<', "&lt;" },
-	{ '>', "&gt;" },
-	{ '&', "&amp;" }
+struct Config : public Modules::Transform::ITelxConfig {
+	uint8_t verbose = NO;
+	uint16_t page = 0;
+	uint16_t tid = 0;      // 13 bits packet ID for teletext stream
+	uint8_t colors = NO;   // output <font...></font> tags
+	uint8_t bom = YES;
+	uint8_t nonempty = NO; // produce at least one (dummy) frame
+	uint64_t UTCReferenceTime = 0;
+	uint8_t seMode = NO;
+	PrimaryCharset primaryCharset = { 0x00, UNDEF, UNDEF };
+	State states = { NO, NO };
+	uint32_t framesProduced = 0;
+	uint8_t cc_map[256] = { 0 };
+	TransmissionMode transmissionMode = SERIAL;
+	uint8_t receivingData = NO; // flag indicating if incoming data should be processed or ignored
+	PageBuffer pageBuffer;
+	uint16_t G0[5][96] = { //G0 charsets in UCS-2
+		{ // Latin G0 Primary Set
+			0x0020, 0x0021, 0x0022, 0x00a3, 0x0024, 0x0025, 0x0026, 0x0027, 0x0028, 0x0029, 0x002a, 0x002b, 0x002c, 0x002d, 0x002e, 0x002f,
+			0x0030, 0x0031, 0x0032, 0x0033, 0x0034, 0x0035, 0x0036, 0x0037, 0x0038, 0x0039, 0x003a, 0x003b, 0x003c, 0x003d, 0x003e, 0x003f,
+			0x0040, 0x0041, 0x0042, 0x0043, 0x0044, 0x0045, 0x0046, 0x0047, 0x0048, 0x0049, 0x004a, 0x004b, 0x004c, 0x004d, 0x004e, 0x004f,
+			0x0050, 0x0051, 0x0052, 0x0053, 0x0054, 0x0055, 0x0056, 0x0057, 0x0058, 0x0059, 0x005a, 0x00ab, 0x00bd, 0x00bb, 0x005e, 0x0023,
+			0x002d, 0x0061, 0x0062, 0x0063, 0x0064, 0x0065, 0x0066, 0x0067, 0x0068, 0x0069, 0x006a, 0x006b, 0x006c, 0x006d, 0x006e, 0x006f,
+			0x0070, 0x0071, 0x0072, 0x0073, 0x0074, 0x0075, 0x0076, 0x0077, 0x0078, 0x0079, 0x007a, 0x00bc, 0x00a6, 0x00be, 0x00f7, 0x007f
+		},
+		{ // Cyrillic G0 Primary Set - Option 1 - Serbian/Croatian
+			0x0020, 0x0021, 0x0022, 0x0023, 0x0024, 0x0025, 0x044b, 0x0027, 0x0028, 0x0029, 0x002a, 0x002b, 0x002c, 0x002d, 0x002e, 0x002f,
+			0x0030, 0x0031, 0x3200, 0x0033, 0x0034, 0x0035, 0x0036, 0x0037, 0x0038, 0x0039, 0x003a, 0x003b, 0x003c, 0x003d, 0x003e, 0x003f,
+			0x0427, 0x0410, 0x0411, 0x0426, 0x0414, 0x0415, 0x0424, 0x0413, 0x0425, 0x0418, 0x0408, 0x041a, 0x041b, 0x041c, 0x041d, 0x041e,
+			0x041f, 0x040c, 0x0420, 0x0421, 0x0422, 0x0423, 0x0412, 0x0403, 0x0409, 0x040a, 0x0417, 0x040b, 0x0416, 0x0402, 0x0428, 0x040f,
+			0x0447, 0x0430, 0x0431, 0x0446, 0x0434, 0x0435, 0x0444, 0x0433, 0x0445, 0x0438, 0x0428, 0x043a, 0x043b, 0x043c, 0x043d, 0x043e,
+			0x043f, 0x042c, 0x0440, 0x0441, 0x0442, 0x0443, 0x0432, 0x0423, 0x0429, 0x042a, 0x0437, 0x042b, 0x0436, 0x0422, 0x0448, 0x042f
+		},
+		{ // Cyrillic G0 Primary Set - Option 2 - Russian/Bulgarian
+			0x0020, 0x0021, 0x0022, 0x0023, 0x0024, 0x0025, 0x044b, 0x0027, 0x0028, 0x0029, 0x002a, 0x002b, 0x002c, 0x002d, 0x002e, 0x002f,
+			0x0030, 0x0031, 0x0032, 0x0033, 0x0034, 0x0035, 0x0036, 0x0037, 0x0038, 0x0039, 0x003a, 0x003b, 0x003c, 0x003d, 0x003e, 0x003f,
+			0x042e, 0x0410, 0x0411, 0x0426, 0x0414, 0x0415, 0x0424, 0x0413, 0x0425, 0x0418, 0x0419, 0x041a, 0x041b, 0x041c, 0x041d, 0x041e,
+			0x041f, 0x042f, 0x0420, 0x0421, 0x0422, 0x0423, 0x0416, 0x0412, 0x042c, 0x042a, 0x0417, 0x0428, 0x042d, 0x0429, 0x0427, 0x042b,
+			0x044e, 0x0430, 0x0431, 0x0446, 0x0434, 0x0435, 0x0444, 0x0433, 0x0445, 0x0438, 0x0439, 0x043a, 0x043b, 0x043c, 0x043d, 0x043e,
+			0x043f, 0x044f, 0x0440, 0x0441, 0x0442, 0x0443, 0x0436, 0x0432, 0x044c, 0x044a, 0x0437, 0x0448, 0x044d, 0x0449, 0x0447, 0x044b
+		},
+		{ // Cyrillic G0 Primary Set - Option 3 - Ukrainian
+			0x0020, 0x0021, 0x0022, 0x0023, 0x0024, 0x0025, 0x00ef, 0x0027, 0x0028, 0x0029, 0x002a, 0x002b, 0x002c, 0x002d, 0x002e, 0x002f,
+			0x0030, 0x0031, 0x0032, 0x0033, 0x0034, 0x0035, 0x0036, 0x0037, 0x0038, 0x0039, 0x003a, 0x003b, 0x003c, 0x003d, 0x003e, 0x003f,
+			0x042e, 0x0410, 0x0411, 0x0426, 0x0414, 0x0415, 0x0424, 0x0413, 0x0425, 0x0418, 0x0419, 0x041a, 0x041b, 0x041c, 0x041d, 0x041e,
+			0x041f, 0x042f, 0x0420, 0x0421, 0x0422, 0x0423, 0x0416, 0x0412, 0x042c, 0x0049, 0x0417, 0x0428, 0x042d, 0x0429, 0x0427, 0x00cf,
+			0x044e, 0x0430, 0x0431, 0x0446, 0x0434, 0x0435, 0x0444, 0x0433, 0x0445, 0x0438, 0x0439, 0x043a, 0x043b, 0x043c, 0x043d, 0x043e,
+			0x043f, 0x044f, 0x0440, 0x0441, 0x0442, 0x0443, 0x0436, 0x0432, 0x044c, 0x0069, 0x0437, 0x0448, 0x044d, 0x0449, 0x0447, 0x00ff
+		},
+		{ // Greek G0 Primary Set
+			0x0020, 0x0021, 0x0022, 0x0023, 0x0024, 0x0025, 0x0026, 0x0027, 0x0028, 0x0029, 0x002a, 0x002b, 0x002c, 0x002d, 0x002e, 0x002f,
+			0x0030, 0x0031, 0x0032, 0x0033, 0x0034, 0x0035, 0x0036, 0x0037, 0x0038, 0x0039, 0x003a, 0x003b, 0x003c, 0x003d, 0x003e, 0x003f,
+			0x0390, 0x0391, 0x0392, 0x0393, 0x0394, 0x0395, 0x0396, 0x0397, 0x0398, 0x0399, 0x039a, 0x039b, 0x039c, 0x039d, 0x039e, 0x039f,
+			0x03a0, 0x03a1, 0x03a2, 0x03a3, 0x03a4, 0x03a5, 0x03a6, 0x03a7, 0x03a8, 0x03a9, 0x03aa, 0x03ab, 0x03ac, 0x03ad, 0x03ae, 0x03af,
+			0x03b0, 0x03b1, 0x03b2, 0x03b3, 0x03b4, 0x03b5, 0x03b6, 0x03b7, 0x03b8, 0x03b9, 0x03ba, 0x03bb, 0x03bc, 0x03bd, 0x03be, 0x03bf,
+			0x03c0, 0x03c1, 0x03c2, 0x03c3, 0x03c4, 0x03c5, 0x03c6, 0x03c7, 0x03c8, 0x03c9, 0x03ca, 0x03cb, 0x03cc, 0x03cd, 0x03ce, 0x03cf
+		}
+		//{ // Arabic G0 Primary Set
+		//},
+		//{ // Hebrew G0 Primary Set
+		//}
+	};
 };
 
-uint32_t framesProduced = 0;
-
-typedef enum {
-	NONSUBTITLE = 0x02,
-	SUBTITLE = 0x03,
-	INVERTED = 0x0c,
-	DATA_UNIT_VPS = 0xc3,
-	DATA_UNIT_CLOSED_CAPTIONS = 0xc5
-} DataUnit;
-
-typedef struct {
-	uint8_t unused_clock_in;
-	uint8_t unused_framing_code;
-	uint8_t address[2];
-	uint8_t data[40];
-} Payload;
-
-uint8_t unham_8_4(uint8_t a) {
-	uint8_t val = UnHam_8_4[a];
-	if (val == 0xff) {
-		val = 0;
-		Log::msg(Warning, "Teletext: unrecoverable data error (4): %s\n", a);
-	}
-	return (val & 0x0f);
-}
-
-#define MAGAZINE(telx_page) ((telx_page >> 8) & 0xf)
-#define PAGE(telx_page) (telx_page & 0xff)
-
-uint32_t unham_24_18(uint32_t a) {
-	// Section 8.3
-	uint8_t test = 0;
-	for (uint8_t i = 0; i < 23; i++) {
-		test ^= ((a >> i) & 0x01) * (i + 33);
-	}
-	test ^= ((a >> 23) & 0x01) * 32;
-
-	if ((test & 0x1f) != 0x1f) {
-		if ((test & 0x20) == 0x20) {
-			return 0xffffffff;
-		}
-		a ^= 1 << (30 - test);
-	}
-
-	return (a & 0x000004) >> 2 | (a & 0x000070) >> 3 | (a & 0x007f00) >> 4 | (a & 0x7f0000) >> 5;
-}
-
-uint8_t cc_map[256] = { 0 };
-
-void ucs2_to_utf8(char *out, uint16_t in) {
-	if (in < 0x80) {
-		out[0] = in & 0x7f;
-		out[1] = 0;
-		out[2] = 0;
-		out[3] = 0;
-	} else if (in < 0x800) {
-		out[0] = (in >> 6) | 0xc0;
-		out[1] = (in & 0x3f) | 0x80;
-		out[2] = 0;
-		out[3] = 0;
-	} else {
-		out[0] = (in >> 12) | 0xe0;
-		out[1] = ((in >> 6) & 0x3f) | 0x80;
-		out[2] = (in & 0x3f) | 0x80;
-		out[3] = 0;
-	}
-}
-
-uint16_t telx_to_ucs2(uint8_t c) {
+uint16_t telx_to_ucs2(uint8_t c, Config &config) {
 	if (Parity8[c] == 0) {
 		Log::msg(Warning, "Teletext: Unrecoverable data error (5): %s\n", c);
 		return 0x20;
@@ -117,57 +87,27 @@ uint16_t telx_to_ucs2(uint8_t c) {
 
 	uint16_t val = c & 0x7f;
 	if (val >= 0x20) {
-		val = G0[LATIN][val - 0x20];
+		val = config.G0[LATIN][val - 0x20];
 	}
 	return val;
 }
 
-typedef enum {
-	PARALLEL = 0,
-	SERIAL = 1
-} TransmissionMode;
-TransmissionMode transmissionMode = SERIAL;
-
-uint8_t receivingData = NO; // flag indicating if incoming data should be processed or ignored
-
-typedef struct {
-	uint8_t verbose;
-	uint16_t page;
-	uint16_t tid;     // 13 bits packet ID for teletext stream
-	uint8_t colors;   // output <font...></font> tags
-	uint8_t bom;
-	uint8_t nonempty; // produce at least one (dummy) frame
-	uint64_t UTCReferenceTime;
-	uint8_t seMode;
-} Config;
-
-Config config = {
-	NO, 0, 0, NO, YES, NO, 0, NO,
-};
-
-typedef struct {
-	uint64_t showTimestamp;
-	uint64_t hideTimestamp;
-	uint16_t text[25][40];
-	uint8_t tainted; // 1 = text variable contains any data
-} PageBuffer;
-PageBuffer pageBuffer;
-
-void remap_g0_charset(uint8_t c) {
-	if (c != primaryCharset.current) {
+void remap_g0_charset(uint8_t c, Config &config) {
+	if (c != config.primaryCharset.current) {
 		uint8_t m = G0_LATIN_NATIONAL_SUBSETS_MAP[c];
 		if (m == 0xff) {
 			Log::msg(Warning, "Teletext: G0 subset %s.%s is not implemented\n", (c >> 3), (c & 0x7));
 		} else {
 			for (uint8_t j = 0; j < 13; j++) {
-				G0[LATIN][G0_LATIN_NATIONAL_SUBSETS_POSITIONS[j]] = G0_LATIN_NATIONAL_SUBSETS[m].characters[j];
+				config.G0[LATIN][G0_LATIN_NATIONAL_SUBSETS_POSITIONS[j]] = G0_LATIN_NATIONAL_SUBSETS[m].characters[j];
 			}
-			primaryCharset.current = c;
+			config.primaryCharset.current = c;
 		}
 	}
 }
 
-std::unique_ptr<Modules::Transform::Page> process_page(PageBuffer *pageIn) {
+std::unique_ptr<Modules::Transform::Page> process_page(Config &config) {
+	PageBuffer *pageIn = &config.pageBuffer;
 	auto pageOut = uptr(new Modules::Transform::Page);
 	uint8_t emptyPage = YES;
 	for (uint8_t col = 0; col < 40; col++) {
@@ -187,7 +127,7 @@ emptyPage:
 		pageIn->hideTimestamp = pageIn->showTimestamp;
 
 	if (config.seMode == YES) {
-		++framesProduced;
+		++config.framesProduced;
 		pageOut->tsInMs = pageIn->showTimestamp;
 	} else {
 		pageOut->showTimestamp = pageIn->showTimestamp;
@@ -281,7 +221,7 @@ emptyPage:
 	return pageOut;
 }
 
-std::unique_ptr<Modules::Transform::Page> process_telx_packet(DataUnit dataUnitId, Payload *packet, uint64_t timestamp) {
+std::unique_ptr<Modules::Transform::Page> process_telx_packet(Config &config, DataUnit dataUnitId, Payload *packet, uint64_t timestamp) {
 	// section 7.1.2
 	uint8_t address = (unham_8_4(packet->address[1]) << 4) | unham_8_4(packet->address[0]);
 	uint8_t m = address & 0x7;
@@ -294,7 +234,7 @@ std::unique_ptr<Modules::Transform::Page> process_telx_packet(DataUnit dataUnitI
 	if (y == 0) {
 		uint8_t i = (unham_8_4(packet->data[1]) << 4) | unham_8_4(packet->data[0]);
 		uint8_t subtitleFlag = (unham_8_4(packet->data[5]) & 0x08) >> 3;
-		cc_map[i] |= subtitleFlag << (m - 1);
+		config.cc_map[i] |= subtitleFlag << (m - 1);
 
 		if ((config.page == 0) && (subtitleFlag == YES) && (i < 0xff)) {
 			config.page = (m << 8) | (unham_8_4(packet->data[1]) << 4) | unham_8_4(packet->data[0]);
@@ -304,43 +244,43 @@ std::unique_ptr<Modules::Transform::Page> process_telx_packet(DataUnit dataUnitI
 		uint8_t charset = ((unham_8_4(packet->data[7]) & 0x08) | (unham_8_4(packet->data[7]) & 0x04) | (unham_8_4(packet->data[7]) & 0x02)) >> 1;
 		
 		// Section 9.3.1.3
-		transmissionMode = (TransmissionMode)(unham_8_4(packet->data[7]) & 0x01);
-		if ((transmissionMode == PARALLEL) && (dataUnitId != SUBTITLE))
+		config.transmissionMode = (TransmissionMode)(unham_8_4(packet->data[7]) & 0x01);
+		if ((config.transmissionMode == PARALLEL) && (dataUnitId != SUBTITLE))
 			return nullptr;
 
-		if ((receivingData == YES) && (
-			((transmissionMode == SERIAL) && (PAGE(pageNum) != PAGE(config.page))) ||
-			((transmissionMode == PARALLEL) && (PAGE(pageNum) != PAGE(config.page)) && (m == MAGAZINE(config.page)))
+		if ((config.receivingData == YES) && (
+			((config.transmissionMode == SERIAL) && (PAGE(pageNum) != PAGE(config.page))) ||
+			((config.transmissionMode == PARALLEL) && (PAGE(pageNum) != PAGE(config.page)) && (m == MAGAZINE(config.page)))
 			)) {
-			receivingData = NO;
+			config.receivingData = NO;
 			return nullptr;
 		}
 
 		if (pageNum != config.page)
 			return nullptr; //page transmission is terminated, however now we are waiting for our new page
 
-		if (pageBuffer.tainted == YES) { //begining of page transmission
-			pageBuffer.hideTimestamp = timestamp - 40;
-			pageOut = process_page(&pageBuffer);
+		if (config.pageBuffer.tainted == YES) { //begining of page transmission
+			config.pageBuffer.hideTimestamp = timestamp - 40;
+			pageOut = process_page(config);
 		}
 
-		pageBuffer.showTimestamp = timestamp;
-		pageBuffer.hideTimestamp = 0;
-		memset(pageBuffer.text, 0x00, sizeof(pageBuffer.text));
-		pageBuffer.tainted = NO;
-		receivingData = YES;
-		primaryCharset.G0_X28 = UNDEF;
+		config.pageBuffer.showTimestamp = timestamp;
+		config.pageBuffer.hideTimestamp = 0;
+		memset(config.pageBuffer.text, 0x00, sizeof(config.pageBuffer.text));
+		config.pageBuffer.tainted = NO;
+		config.receivingData = YES;
+		config.primaryCharset.G0_X28 = UNDEF;
 
-		uint8_t c = (primaryCharset.G0_M29 != UNDEF) ? primaryCharset.G0_M29 : charset;
-		remap_g0_charset(c);
-	} else if ((m == MAGAZINE(config.page)) && (y >= 1) && (y <= 23) && (receivingData == YES)) {
+		uint8_t c = (config.primaryCharset.G0_M29 != UNDEF) ? config.primaryCharset.G0_M29 : charset;
+		remap_g0_charset(c, config);
+	} else if ((m == MAGAZINE(config.page)) && (y >= 1) && (y <= 23) && (config.receivingData == YES)) {
 		// Section 9.4.1
 		for (uint8_t i = 0; i < 40; i++) {
-			if (pageBuffer.text[y][i] == 0x00)
-				pageBuffer.text[y][i] = telx_to_ucs2(packet->data[i]);
+			if (config.pageBuffer.text[y][i] == 0x00)
+				config.pageBuffer.text[y][i] = telx_to_ucs2(packet->data[i], config);
 		}
-		pageBuffer.tainted = YES;
-	} else if ((m == MAGAZINE(config.page)) && (y == 26) && (receivingData == YES)) {
+		config.pageBuffer.tainted = YES;
+	} else if ((m == MAGAZINE(config.page)) && (y == 26) && (config.receivingData == YES)) {
 		// Section 12.3.2
 		uint8_t X26Row = 0, X26Col = 0;
 		uint32_t triplets[13] = { 0 };
@@ -368,21 +308,21 @@ std::unique_ptr<Modules::Transform::Page> process_telx_packet(DataUnit dataUnitI
 
 			if ((mode == 0x0f) && (row_address_group == NO)) {
 				X26Col = address;
-				if (data > 31) pageBuffer.text[X26Row][X26Col] = G2[0][data - 0x20];
+				if (data > 31) config.pageBuffer.text[X26Row][X26Col] = G2[0][data - 0x20];
 			}
 
 			if ((mode >= 0x11) && (mode <= 0x1f) && (row_address_group == NO)) {
 				X26Col = address;
 				if ((data >= 65) && (data <= 90)) { // A - Z
-					pageBuffer.text[X26Row][X26Col] = G2_ACCENTS[mode - 0x11][data - 65];
+					config.pageBuffer.text[X26Row][X26Col] = G2_ACCENTS[mode - 0x11][data - 65];
 				} else if ((data >= 97) && (data <= 122)) { // a - z
-					pageBuffer.text[X26Row][X26Col] = G2_ACCENTS[mode - 0x11][data - 71];
+					config.pageBuffer.text[X26Row][X26Col] = G2_ACCENTS[mode - 0x11][data - 71];
 				} else {
-					pageBuffer.text[X26Row][X26Col] = telx_to_ucs2(data);
+					config.pageBuffer.text[X26Row][X26Col] = telx_to_ucs2(data, config);
 				}
 			}
 		}
-	} else if ((m == MAGAZINE(config.page)) && (y == 28) && (receivingData == YES)) {
+	} else if ((m == MAGAZINE(config.page)) && (y == 28) && (config.receivingData == YES)) {
 		// Section 9.4.7
 		if ((designationCode == 0) || (designationCode == 4)) {
 			uint32_t triplet0 = unham_24_18((packet->data[3] << 16) | (packet->data[2] << 8) | packet->data[1]);
@@ -390,8 +330,8 @@ std::unique_ptr<Modules::Transform::Page> process_telx_packet(DataUnit dataUnitI
 				Log::msg(Warning, "Teletext: unrecoverable data error (2): %s\n", triplet0);
 			} else {
 				if ((triplet0 & 0x0f) == 0x00) {
-					primaryCharset.G0_X28 = (triplet0 & 0x3f80) >> 7;
-					remap_g0_charset(primaryCharset.G0_X28);
+					config.primaryCharset.G0_X28 = (triplet0 & 0x3f80) >> 7;
+					remap_g0_charset(config.primaryCharset.G0_X28, config);
 				}
 			}
 		}
@@ -403,19 +343,19 @@ std::unique_ptr<Modules::Transform::Page> process_telx_packet(DataUnit dataUnitI
 				Log::msg(Warning, "Teletext: unrecoverable data error (3): %s\n", triplet0);
 			} else {
 				if ((triplet0 & 0xff) == 0x00) {
-					primaryCharset.G0_M29 = (triplet0 & 0x3f80) >> 7;
-					if (primaryCharset.G0_X28 == UNDEF) {
-						remap_g0_charset(primaryCharset.G0_M29);
+					config.primaryCharset.G0_M29 = (triplet0 & 0x3f80) >> 7;
+					if (config.primaryCharset.G0_X28 == UNDEF) {
+						remap_g0_charset(config.primaryCharset.G0_M29, config);
 					}
 				}
 			}
 		}
 	} else if ((m == 8) && (y == 30)) {
 		// Section 9.8
-		if (states.progInfoProcessed == NO) {
+		if (config.states.progInfoProcessed == NO) {
 			if (unham_8_4(packet->data[0]) < 2) {
 				for (uint8_t i = 20; i < 40; i++) {
-					uint8_t c = (uint8_t)telx_to_ucs2(packet->data[i]);
+					uint8_t c = (uint8_t)telx_to_ucs2(packet->data[i], config);
 					if (c < 0x20)
 						continue;
 
@@ -442,9 +382,9 @@ std::unique_ptr<Modules::Transform::Page> process_telx_packet(DataUnit dataUnitI
 
 				if (config.seMode == YES) {
 					config.UTCReferenceTime = t;
-					states.PTSIsInit = NO;
+					config.states.PTSIsInit = NO;
 				}
-				states.progInfoProcessed = YES;
+				config.states.progInfoProcessed = YES;
 			}
 		}
 	}

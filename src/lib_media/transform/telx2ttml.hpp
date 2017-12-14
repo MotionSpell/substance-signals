@@ -18,6 +18,10 @@ struct Page {
 	std::stringstream ss;
 };
 
+struct ITelxConfig {
+	virtual ~ITelxConfig() {}
+};
+
 class TeletextToTTML : public ModuleS {
 public:
 	enum TimingPolicy {
@@ -43,6 +47,7 @@ private:
 	const uint64_t maxPageDurIn180k, splitDurationIn180k;
 	uint64_t firstDataAbsTimeInMs = 0;
 	std::list<std::unique_ptr<Page>> currentPages;
+	std::unique_ptr<ITelxConfig> config;
 };
 
 }

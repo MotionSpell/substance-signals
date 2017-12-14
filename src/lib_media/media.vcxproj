@@ -56,6 +56,7 @@
     <ClInclude Include="transform\restamp.hpp" />
     <ClInclude Include="transform\telx.hpp" />
     <ClInclude Include="transform\telx2ttml.hpp" />
+    <ClInclude Include="transform\telx_structs.hpp" />
     <ClInclude Include="transform\telx_tables.hpp" />
     <ClInclude Include="transform\time_rectifier.hpp" />
     <ClInclude Include="transform\video_convert.hpp" />
