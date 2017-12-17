@@ -24,7 +24,7 @@ struct AppOptions : IConfig {
 	uint64_t seekTimeInMs = 0, segmentDurationInMs = 2000, timeshiftInSegNum = 0, minUpdatePeriodInMs = 0;
 	uint32_t minBufferTimeInMs = 0;
 	int64_t astOffset = 0;
-	bool isLive = false, loop = false, ultraLowLatency = false, autoRotate = false;
+	bool isLive = false, loop = false, ultraLowLatency = false, autoRotate = false, watermark = true;
 };
 
 std::unique_ptr<const IConfig> processArgs(int argc, char const* argv[]);

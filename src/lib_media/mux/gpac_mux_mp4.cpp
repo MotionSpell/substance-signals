@@ -478,7 +478,7 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 
 		if ((lastSegmentSize > 0) || (segmentPolicy == IndependentSegment)) {
 			sendOutput();
-			log(Info, "Segment %s completed (size %s) (startsWithSAP=%s)", segmentName.empty() ? "[in memory]" : segmentName, lastSegmentSize, segmentStartsWithRAP);
+			log(Debug, "Segment %s completed (size %s) (startsWithSAP=%s)", segmentName.empty() ? "[in memory]" : segmentName, lastSegmentSize, segmentStartsWithRAP);
 		}
 
 		curSegmentDurInTs = 0;
@@ -528,8 +528,8 @@ void GPACMuxMP4::closeFragment() {
 			auto const curFragmentStartInTs = DTS - curFragmentDurInTs;
 			auto const absTimeInTs = convertToTimescale(firstDataAbsTimeInMs, 1000, mediaTs) + curFragmentStartInTs;
 			auto const deltaRealTimeInMs = 1000 * (double)(getUTC() - Fraction(absTimeInTs, mediaTs));
-			log(deltaRealTimeInMs < 0 || deltaRealTimeInMs > curFragmentStartInTs ? Warning : Debug,
-				"Closing MSS fragment with absolute time %s %s UTC %s and duration %s (timescale %s, time=%s, deltaRT=%s)",
+			log(deltaRealTimeInMs < 0 || deltaRealTimeInMs > curFragmentStartInTs || curFragmentDurInTs != clockToTimescale(segmentDurationIn180k, mediaTs) ? Warning : Debug,
+				"Closing MSS fragment with absolute time %s %s UTC and duration %s (timescale %s, time=%s, deltaRT=%s)",
 				getDay(), getTimeFromUTC(), curFragmentDurInTs, mediaTs, absTimeInTs, deltaRealTimeInMs);
 			GF_Err e = gf_isom_set_traf_mss_timeext(isoCur, trackId, absTimeInTs, curFragmentDurInTs);
 			if (e != GF_OK)
@@ -977,18 +977,29 @@ std::unique_ptr<gpacpp::IsoSample> GPACMuxMP4::fillSample(Data data_) {
 	return sample;
 }
 
-void GPACMuxMP4::process() {
-	Data data = inputs[0]->pop(); //FIXME: reimplement with multiple inputs
+bool GPACMuxMP4::processInit(Data &data) {
 	if (inputs[0]->updateMetadata(data)) {
 		auto const &metadata = data->getMetadata();
 		declareStream(metadata);
 		declareInput(metadata);
+	}
+	auto refData = std::dynamic_pointer_cast<const DataBaseRef>(data);
+	if (refData && !refData->getData()) {
+		sendOutput();
+		return false;
 	}
 	if (!firstDataAbsTimeInMs) {
 		firstDataAbsTimeInMs = DataBase::absUTCOffsetInMs;
 		lastInputTimeIn180k = data->getMediaTime();
 		handleInitialTimeOffset();
 	}
+	return true;
+}
+
+void GPACMuxMP4::process() {
+	auto data = inputs[0]->pop(); //FIXME: reimplement with multiple inputs
+	if (!processInit(data))
+		return;
 
 	auto const mediaTs = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
 	auto lastDataDurationInTs = clockToTimescale(data->getMediaTime() - lastInputTimeIn180k, mediaTs);
@@ -1011,6 +1022,7 @@ void GPACMuxMP4::process() {
 			lastData = data;
 			return;
 		}
+
 		processSample(fillSample(lastData), lastDataDurationInTs);
 		lastData = data;
 	} else {
@@ -1019,7 +1031,7 @@ void GPACMuxMP4::process() {
 			if (lastDataDurationInTs <= 0) {
 				lastDataDurationInTs = 1;
 			}
-			log(Warning, "VFR: adding sample with duration %ss", lastDataDurationInTs / (double)mediaTs);
+			log(Debug, "VFR: adding sample with duration %ss", lastDataDurationInTs / (double)mediaTs);
 		}
 		if (lastDataDurationInTs == 0) {
 			lastDataDurationInTs = defaultSampleIncInTs;

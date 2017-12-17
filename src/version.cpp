@@ -1,1 +1,1 @@
-const char *g_version = "1.0.7-firekast-rev13-gf4df2fd";
+const char *g_version = "1.1.4-firekast-rev0-g72428cd";

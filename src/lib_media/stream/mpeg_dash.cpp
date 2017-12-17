@@ -83,7 +83,7 @@ void MPEG_DASH::ensureManifest() {
 
 	if (!gf_list_count(mpd->mpd->periods)) {
 		auto period = mpd->addPeriod();
-		period->ID = gf_strdup(format("p%s", qualities.size()).c_str());
+		period->ID = gf_strdup(getPeriodID().c_str());
 		GF_MPD_AdaptationSet *audioAS = nullptr, *videoAS = nullptr;
 		for (size_t i = 0; i < getNumInputs() - 1; ++i) {
 			GF_MPD_AdaptationSet *as = nullptr;
@@ -127,20 +127,20 @@ void MPEG_DASH::ensureManifest() {
 			switch (quality->meta->getStreamType()) {
 			case AUDIO_PKT:
 				rep->samplerate = quality->meta->sampleRate;
-				rep->segment_template->initialization = gf_strdup("a_$RepresentationID$-init.mp4");
-				rep->segment_template->media = gf_strdup(format("a_$RepresentationID$-%s.m4s", templateName).c_str());
+				rep->segment_template->initialization = gf_strdup(format("%s_a_$RepresentationID$-init.mp4", getPeriodID()).c_str());
+				rep->segment_template->media = gf_strdup(format("%s_a_$RepresentationID$-%s.m4s", getPeriodID(), templateName).c_str());
 				initFnSrc = format("a_%s-init.mp4", repId);
 				break;
 			case VIDEO_PKT:
 				rep->width = quality->meta->resolution[0];
 				rep->height = quality->meta->resolution[1];
-				rep->segment_template->initialization = gf_strdup(format("v_$RepresentationID$_%sx%s-init.mp4", rep->width, rep->height).c_str());
-				rep->segment_template->media = gf_strdup(format("v_$RepresentationID$_%sx%s-%s.m4s", rep->width, rep->height, templateName).c_str());
+				rep->segment_template->initialization = gf_strdup(format("%s_v_$RepresentationID$_%sx%s-init.mp4", getPeriodID(), rep->width, rep->height).c_str());
+				rep->segment_template->media = gf_strdup(format("%s_v_$RepresentationID$_%sx%s-%s.m4s", getPeriodID(), rep->width, rep->height, templateName).c_str());
 				initFnSrc = format("v_%s_%sx%s-init.mp4", repId, rep->width, rep->height);
 				break;
 			case SUBTITLE_PKT:
-				rep->segment_template->initialization = gf_strdup("s_$RepresentationID$-init.mp4");
-				rep->segment_template->media = gf_strdup(format("s_$RepresentationID$-%s.m4s", templateName).c_str());
+				rep->segment_template->initialization = gf_strdup(format("%s_s_$RepresentationID$-init.mp4", getPeriodID()).c_str());
+				rep->segment_template->media = gf_strdup(format("%s_s_$RepresentationID$-%s.m4s", getPeriodID(), templateName).c_str());
 				initFnSrc = format("s_%s-init.mp4", repId);
 				break;
 			default:
@@ -152,7 +152,7 @@ void MPEG_DASH::ensureManifest() {
 			case VIDEO_PKT:
 			case SUBTITLE_PKT: {
 				auto out = outputSegments->getBuffer(0);
-				auto const initFnDst = format("%s%s", mpdDir, initFnSrc);
+				auto const initFnDst = format("%s%s_%s", mpdDir, getPeriodID(), initFnSrc);
 				moveFile(initFnSrc, initFnDst);
 				out->setMetadata(std::make_shared<MetadataFile>(initFnDst, SEGMENT, quality->meta->getMimeType(), quality->meta->getCodecName(), quality->meta->getDuration(), quality->meta->getSize(), quality->meta->getLatency(), quality->meta->getStartsWithRAP()));
 				outputSegments->emit(out);
@@ -195,6 +195,10 @@ bool MPEG_DASH::moveFile(const std::string &src, const std::string &dst) const {
 	return true;
 }
 
+std::string MPEG_DASH::getPeriodID() const {
+	return format("p%s", qualities.size());
+}
+
 void MPEG_DASH::generateManifest() {
 	ensureManifest();
 
@@ -226,17 +230,17 @@ void MPEG_DASH::generateManifest() {
 			}
 
 			switch (quality->meta->getStreamType()) {
-			case AUDIO_PKT:    fn = format("%sa_%s-%s.m4s", mpdDir, i, segTime); break;
-			case VIDEO_PKT:    fn = format("%sv_%s_%sx%s-%s.m4s", mpdDir, i, quality->rep->width, quality->rep->height, segTime); break;
-			case SUBTITLE_PKT: fn = format("%ss_%s-%s.m4s", mpdDir, i, segTime); break;
+			case AUDIO_PKT:    fn = format("%s%s_a_%s-%s.m4s", mpdDir, getPeriodID(), i, segTime); break;
+			case VIDEO_PKT:    fn = format("%s%s_v_%s_%sx%s-%s.m4s", mpdDir, getPeriodID(), i, quality->rep->width, quality->rep->height, segTime); break;
+			case SUBTITLE_PKT: fn = format("%s%s_s_%s-%s.m4s", mpdDir, getPeriodID(), i, segTime); break;
 			default: break;
 			}
 		} else {
 			auto const n = (startTimeInMs + totalDurationInMs) / segDurationInMs;
 			switch (quality->meta->getStreamType()) {
-			case AUDIO_PKT:    fn = format("%sa_%s-%s.m4s", mpdDir, i, n); break;
-			case VIDEO_PKT:    fn = format("%sv_%s_%sx%s-%s.m4s", mpdDir, i, quality->rep->width, quality->rep->height, n); break;
-			case SUBTITLE_PKT: fn = format("%ss_%s-%s.m4s", mpdDir, i, n); break;
+			case AUDIO_PKT:    fn = format("%s%s_a_%s-%s.m4s", mpdDir, getPeriodID(), i, n); break;
+			case VIDEO_PKT:    fn = format("%s%s_v_%s_%sx%s-%s.m4s", mpdDir, getPeriodID(), i, quality->rep->width, quality->rep->height, n); break;
+			case SUBTITLE_PKT: fn = format("%s%s_s_%s-%s.m4s", mpdDir, getPeriodID(), i, n); break;
 			default: break;
 			}
 		}

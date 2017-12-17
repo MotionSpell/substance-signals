@@ -77,7 +77,7 @@ void AdaptiveStreamingCommon::threadProc() {
 		data = nullptr;
 
 		if (type != Static) {
-			const int64_t durInMs = startTimeInMs + totalDurationInMs - DataBase::absUTCOffsetInMs;
+			const int64_t durInMs = startTimeInMs + totalDurationInMs - getUTC().num;
 			if (durInMs > 0) {
 				log(Debug, "Going to sleep for %s ms.", durInMs);
 				clock->sleep(Fraction(durInMs, 1000));

@@ -120,6 +120,7 @@ const std::string TeletextToTTML::toTTML(uint64_t startTimeInMs, uint64_t endTim
 
 TeletextToTTML::TeletextToTTML(unsigned pageNum, const std::string &lang, uint64_t splitDurationInMs, uint64_t maxDelayBeforeEmptyInMs, TimingPolicy timingPolicy)
 : pageNum(pageNum), lang(lang), timingPolicy(timingPolicy), maxPageDurIn180k(timescaleToClock(maxDelayBeforeEmptyInMs, 1000)), splitDurationIn180k(timescaleToClock(splitDurationInMs, 1000)) {
+	config = uptr(new Config);
 	addInput(new Input<DataAVPacket>(this));
 	output = addOutput<OutputDataDefault<DataAVPacket>>();
 }
@@ -148,7 +149,8 @@ void TeletextToTTML::dispatch() {
 
 void TeletextToTTML::processTelx(DataAVPacket const * const sub) {
 	auto pkt = sub->getPacket();
-	config.page = pageNum;
+	auto &cfg = *dynamic_cast<Config*>(config.get());
+	cfg.page = pageNum;
 	int i = 1;
 	while (i <= pkt->size - 6) {
 		auto dataUnitId = (DataUnit)pkt->data[i++];
@@ -160,7 +162,7 @@ void TeletextToTTML::processTelx(DataAVPacket const * const sub) {
 				entitiesData[j] = Reverse8[pkt->data[i + j]]; //reverse endianess
 			}
 
-			auto page = process_telx_packet(dataUnitId, (Payload*)entitiesData, pkt->pts);
+			auto page = process_telx_packet(cfg, dataUnitId, (Payload*)entitiesData, pkt->pts);
 			if (page) {
 				auto const codecCtx = safe_cast<const MetadataPktLibav>(sub->getMetadata())->getAVCodecContext();
 				log((int64_t)convertToTimescale(page->showTimestamp * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000) < clockToTimescale(intClock, 1000) ? Warning : Debug,

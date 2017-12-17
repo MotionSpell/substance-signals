@@ -128,6 +128,9 @@
     <ClInclude Include="transform\audio_gap_filler.hpp">
       <Filter>src\transform</Filter>
     </ClInclude>
+    <ClInclude Include="transform\telx_structs.hpp">
+      <Filter>src\transform</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="src">
