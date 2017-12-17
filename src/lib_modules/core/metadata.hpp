@@ -158,7 +158,7 @@ private:
 					Log::msg(Debug, "Output: metadata not equal but comparable by value. Updating.");
 					m_metadata = metadata;
 				} else {
-					Log::msg(Info, "Metadata update from data not supported yet: output pin and data won't carry the same metadata.");
+					Log::msg(Info, "Metadata update from data not supported yet: output port and data won't carry the same metadata.");
 				}
 				return true;
 			}

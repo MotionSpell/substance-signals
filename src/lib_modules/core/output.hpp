@@ -75,7 +75,7 @@ public:
 	virtual IOutput* getOutput(size_t i) = 0;
 
 protected:
-	/*FIXME: we need to have factories to move these back to the implementation - otherwise pins created from the constructor may crash*/
+	/*FIXME: we need to have factories to move these back to the implementation - otherwise ports created from the constructor may crash*/
 	std::vector<std::unique_ptr<IOutput>> outputs;
 	/*const*/ size_t allocatorSize = 0;
 };

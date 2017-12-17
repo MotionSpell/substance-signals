@@ -52,8 +52,8 @@ public:
 };
 
 //dynamic input number specialized module
-//note: pins added automatically will carry the DataLoose type which doesn't
-//      allow to perform all safety checks ; consider adding pins manually if
+//note: ports added automatically will carry the DataLoose type which doesn't
+//      allow to perform all safety checks ; consider adding ports manually if
 //      you can
 class ModuleDynI : public Module {
 public:
@@ -85,7 +85,7 @@ public:
 		if (i == inputs.size())
 			addInput(new Input<DataLoose>(this));
 		else if (i > inputs.size())
-			throw std::runtime_error(format("Incorrect pin number %s for dynamic input.", i));
+			throw std::runtime_error(format("Incorrect port number %s for dynamic input.", i));
 
 		return inputs[i].get();
 	}

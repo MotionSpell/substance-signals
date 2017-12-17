@@ -11,7 +11,7 @@ MPEG_DASH_Input::MPEG_DASH_Input(std::string const &url) {
 
 	//PARSE MPD
 	
-	//DECLARE OUTPUT PINS
+	//DECLARE OUTPUT PORTS
 
 }
 

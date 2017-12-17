@@ -108,7 +108,7 @@ private:
 		Log::msg(Debug, "Module %s: dispatch data", getDelegateName());
 
 		if (isSource()) {
-			if (getNumInputs() == 0) { /*first time: create a fake pin and push null to trigger execution*/
+			if (getNumInputs() == 0) { /*first time: create a fake input port and push null to trigger execution*/
 				delegate->addInput(new Input<DataLoosePipeline>(delegate.get()));
 				connections = 1; activeConnections = 1;
 				getInput(0)->push(nullptr);

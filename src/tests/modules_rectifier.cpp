@@ -70,10 +70,10 @@ unittest("scheduler: mock clock") {
 	ASSERT(t == f1);
 }
 
-template<typename METADATA, typename PIN>
+template<typename METADATA, typename PORT>
 struct DataGenerator : public ModuleS, public virtual IOutputCap {
 	DataGenerator() {
-		output = addOutput<PIN>();
+		output = addOutput<PORT>();
 		output->setMetadata(shptr(new METADATA));
 	}
 	void process(Data dataIn) override {
@@ -86,7 +86,7 @@ struct DataGenerator : public ModuleS, public virtual IOutputCap {
 		data->setClockTime(dataIn->getClockTime());
 		output->emit(data);
 	}
-	PIN *output;
+	PORT *output;
 };
 
 void testRectifierMeta(const Fraction &fps, std::shared_ptr<ClockMock> clock,
@@ -130,15 +130,15 @@ void testRectifierMeta(const Fraction &fps, std::shared_ptr<ClockMock> clock,
 	clock->setTime(std::numeric_limits<int32_t>::max());
 }
 
-template<typename Metadata, typename PinType>
-void testRectifierSinglePin(const Fraction &fps, const std::vector<std::pair<int64_t, int64_t>> &inTimes, const std::vector<std::pair<int64_t, int64_t>> &outTimes) {
+template<typename Metadata, typename PortType>
+void testRectifierSinglePort(const Fraction &fps, const std::vector<std::pair<int64_t, int64_t>> &inTimes, const std::vector<std::pair<int64_t, int64_t>> &outTimes) {
 	std::vector<std::vector<std::pair<int64_t, int64_t>>> in;
 	in.push_back(inTimes);
 	std::vector<std::vector<std::pair<int64_t, int64_t>>> out;
 	out.push_back(outTimes);
 	std::vector<std::unique_ptr<ModuleS>> generators;
 	auto clock = shptr(new ClockMock);
-	generators.push_back(createModule<DataGenerator<Metadata, PinType>>(in[0].size(), clock));
+	generators.push_back(createModule<DataGenerator<Metadata, PortType>>(in[0].size(), clock));
 	testRectifierMeta(fps, clock, generators, in, out);
 }
 
@@ -166,10 +166,10 @@ void testFPSFactor(const Fraction &fps, const Fraction &factor) {
 
 	auto const outTimes = generateData(fps * factor, genVal);
 	auto const inTimes = generateData(fps);
-	testRectifierSinglePin<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>(fps * factor, inTimes, outTimes);
+	testRectifierSinglePort<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>(fps * factor, inTimes, outTimes);
 }
 
-unittest("rectifier: FPS factor (single pin)") {
+unittest("rectifier: FPS factor (single port)") {
 	auto const FPSs = { Fraction(25, 1), Fraction(30000, 1001) };
 	auto const factors = { Fraction(1, 1), Fraction(2, 1), Fraction(1, 2) };
 	for (auto &fps : FPSs) {
@@ -180,7 +180,7 @@ unittest("rectifier: FPS factor (single pin)") {
 	}
 }
 
-unittest("rectifier: initial offset (single pin)") {
+unittest("rectifier: initial offset (single port)") {
 	auto const fps = Fraction(25, 1);
 	auto const inGenVal = [&](uint64_t step, Fraction fps, int shift) {
 		auto const t = (int64_t)(Clock::Rate * (step + shift) * fps.den) / fps.num;
@@ -189,13 +189,13 @@ unittest("rectifier: initial offset (single pin)") {
 
 	auto const outTimes = generateData(fps, std::bind(inGenVal, std::placeholders::_1, std::placeholders::_2, 0));
 	auto const inTimes1 = generateData(fps, std::bind(inGenVal, std::placeholders::_1, std::placeholders::_2, 5));
-	testRectifierSinglePin<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>(fps, inTimes1, outTimes);
+	testRectifierSinglePort<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>(fps, inTimes1, outTimes);
 
 	auto const inTimes2 = generateData(fps, std::bind(inGenVal, std::placeholders::_1, std::placeholders::_2, -5));
-	testRectifierSinglePin<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>(fps, inTimes1, outTimes);
+	testRectifierSinglePort<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>(fps, inTimes1, outTimes);
 }
 
-unittest("rectifier: deal with missing frames (single pin)") {
+unittest("rectifier: deal with missing frames (single port)") {
 	const uint64_t freq = 2;
 	auto const fps = Fraction(25, 1);
 
@@ -216,10 +216,10 @@ unittest("rectifier: deal with missing frames (single pin)") {
 	};
 	auto const outTimes = generateData(fps, outGenVal);
 
-	testRectifierSinglePin<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>(fps, inTimes, outTimes);
+	testRectifierSinglePort<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>(fps, inTimes, outTimes);
 }
 
-unittest("rectifier: deal with backward discontinuity (single pin)") {
+unittest("rectifier: deal with backward discontinuity (single port)") {
 	auto const fps = Fraction(25, 1);
 	auto const outGenVal = [&](uint64_t step, Fraction fps, int64_t clockTimeOffset, int64_t mediaTimeOffset) {
 		auto const mediaTime = (int64_t)(Clock::Rate * (step + mediaTimeOffset) * fps.den) / fps.num;
@@ -232,7 +232,7 @@ unittest("rectifier: deal with backward discontinuity (single pin)") {
 	auto outTimes2 = generateData(fps, std::bind(outGenVal, std::placeholders::_1, std::placeholders::_2, inTimes1.size(), inTimes1.size()));
 	inTimes1.insert(inTimes1.end(), inTimes2.begin(), inTimes2.end());
 	outTimes1.insert(outTimes1.end(), outTimes2.begin(), outTimes2.end());
-	testRectifierSinglePin<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>(fps, inTimes1, outTimes1);
+	testRectifierSinglePort<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>(fps, inTimes1, outTimes1);
 }
 
 unittest("rectifier: multiple media types simple") {
@@ -253,7 +253,7 @@ unittest("rectifier: multiple media types simple") {
 unittest("rectifier: fail when no video") {
 	bool thrown = false;
 	try {
-		testRectifierSinglePin<MetadataRawAudio, OutputPcm>(Fraction(25, 1), { { 0, 0 } }, { { 0, 0 } });
+		testRectifierSinglePort<MetadataRawAudio, OutputPcm>(Fraction(25, 1), { { 0, 0 } }, { { 0, 0 } });
 	} catch (std::exception const& e) {
 		std::cerr << "Expected error: " << e.what() << std::endl;
 		thrown = true;

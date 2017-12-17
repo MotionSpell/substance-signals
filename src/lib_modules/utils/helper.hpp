@@ -7,7 +7,7 @@
 
 namespace Modules {
 
-/* this default factory creates output pins with the default output - create another one for other uses such as low latency */
+/* this default factory creates output ports with the default output - create another one for other uses such as low latency */
 template <class InstanceType>
 struct ModuleDefault : public ClockCap, public OutputCap, public InstanceType {
 	template <typename ...Args>
