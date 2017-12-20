@@ -68,7 +68,7 @@ void timeInMsToStr(uint64_t timestamp, char buffer[24], const char *msSeparator)
 std::string getDay() {
 	char day[255];
 	const std::time_t t = std::time(nullptr);
-	std::tm tm = *std::localtime(&t);
+	std::tm tm = *std::gmtime(&t);
 	strftime(day, 255, "%a %b %d %Y", &tm);
 	return day;
 }
