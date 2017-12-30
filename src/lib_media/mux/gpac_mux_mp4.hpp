@@ -37,7 +37,8 @@ public:
 		SegNumStartsAtZero = 1 << 3,
 		SegConstantDur     = 1 << 4, //default is average i.e. segment duration may vary ; with this flag the actual duration may be different from segmentDurationInMs
 		ExactInputDur      = 1 << 5, //adds a one sample latency ; default is inferred and smoothen
-		NoEditLists        = 1 << 6, 
+		NoEditLists        = 1 << 6,
+		FlushFragMemory    = 1 << 7, //flushes fragment by fragment in memory (only valid when baseName == "")
 	};
 
 	GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs = 0, SegmentPolicy segmentPolicy = NoSegment, FragmentPolicy fragmentPolicy = NoFragment, CompatibilityFlag compatFlags = None);

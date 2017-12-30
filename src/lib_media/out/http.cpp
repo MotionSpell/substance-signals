@@ -199,7 +199,6 @@ bool HTTP::performTransfer() {
 void HTTP::threadProc() {
 	if (flags & Chunked) {
 		while (state != Stop) {
-			//TODO: with the additional requirement that the encoder MUST resend the previous two MP4 fragments for each track in the stream, and resume without introducing discontinuities in the media timeline. Resending the last two MP4 fragments for each track ensures that there is no data loss.
 			if (!performTransfer()) {
 				break;
 			}
@@ -208,7 +207,6 @@ void HTTP::threadProc() {
 		const int transferSize = 1000000;
 		void *ptr = (void*)malloc(transferSize);
 		while (state != Stop) {
-			//TODO: with the additional requirement that the encoder MUST resend the previous two MP4 fragments for each track in the stream, and resume without introducing discontinuities in the media timeline. Resending the last two MP4 fragments for each track ensures that there is no data loss.
 			auto curTransferedData = inputs[curTransferedDataInputIndex]->pop();
 			if (!curTransferedData) {
 				state = Stop;

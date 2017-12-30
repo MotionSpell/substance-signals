@@ -362,6 +362,8 @@ GPACMuxMP4::GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs
 		throw error("Inconsistent parameters: segmented policies requires fragmentation to be enabled.");
 	if ((compatFlags & SmoothStreaming) && (segmentPolicy != IndependentSegment))
 		throw error("Inconsistent parameters: SmoothStreaming compatibility requires IndependentSegment policy.");
+	if ((compatFlags & FlushFragMemory) && ((!baseName.empty()) || (segmentPolicy != FragmentedSegment)))
+		throw error("Inconsistent parameters: FlushFragMemory requires empty segment name and FragmentedSegment policy.");
 
 	if (baseName.empty()) {
 		log(Info, "Working in memory mode.");
@@ -537,6 +539,10 @@ void GPACMuxMP4::closeFragment() {
 		}
 		if ((segmentPolicy == FragmentedSegment) || (segmentPolicy == SingleSegment)) {
 			gf_isom_flush_fragments(isoCur, GF_TRUE); //writes a 'styp'
+
+			if (compatFlags & FlushFragMemory) {
+				sendOutput();
+			}
 		}
 
 		curFragmentDurInTs = 0;
@@ -859,7 +865,17 @@ void GPACMuxMP4::sendOutput() {
 		if (e != GF_OK && e != GF_ISOM_INVALID_FILE)
 			throw error(format("gf_isom_close (2): %s", gf_error_to_string(e)));
 		isoCur = nullptr;
+	} else if (compatFlags & FlushFragMemory) {
+		GF_BitStream *bs = NULL;
+		GF_Err e = gf_isom_get_bs(isoInit, &bs);
+		if (e)
+			throw error(format("gf_isom_get_bs: %s", gf_error_to_string(e)));
+		char *output; u32 size;
+		gf_bs_get_content(bs, &output, &size);
+		out->setData((uint8_t*)output, size);
+		gf_free(output);
 	}
+
 	out->setMetadata(metadata);
 	auto const curSegmentStartInTs = DTS - curSegmentDurInTs;
 	out->setMediaTime(convertToTimescale(firstDataAbsTimeInMs, 1000, mediaTs) + curSegmentStartInTs, mediaTs);
@@ -893,7 +909,7 @@ void GPACMuxMP4::addData(gpacpp::IsoSample const * const sample, int64_t lastDat
 			closeFragment();
 			startFragment(sample->DTS, sample->DTS + sample->CTS_Offset);
 		}
-		if ((fragmentPolicy == OneFragmentPerFrame) && !curFragmentDurInTs && sample->DTS) {
+		if ((fragmentPolicy == OneFragmentPerFrame) && !curFragmentDurInTs) {
 			startFragment(sample->DTS, sample->DTS + sample->CTS_Offset);
 		}
 
