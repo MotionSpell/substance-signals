@@ -23,10 +23,13 @@ void declarePipeline(Pipeline &pipeline, const mp42tsXOptions &opt) {
 	const bool isHLS = false; //TODO
 
 	auto demux = pipeline.addModule<Demux::LibavDemux>(opt.url);
-	auto m2tsmux = pipeline.addModule<Mux::GPACMuxMPEG2TS>();
+	auto m2tsmux = pipeline.addModule<Mux::GPACMuxMPEG2TS>(GF_FALSE, 0);
 	auto sink = createSink(isHLS);
 	for (size_t i = 0; i < demux->getNumOutputs(); ++i) {
-		pipeline.connect(demux, i, m2tsmux, i);
+		if (demux->getOutput(i)->getMetadata()->isVideo()) { //FIXME
+			pipeline.connect(demux, i, m2tsmux, 0);
+			break; //FIXME
+		}
 	}
 
 	connect(m2tsmux, sink);
