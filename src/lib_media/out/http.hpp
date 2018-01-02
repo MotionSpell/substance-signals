@@ -51,12 +51,11 @@ private:
 	static size_t staticCurlCallback(void *ptr, size_t size, size_t nmemb, void *userp);
 	size_t curlCallback(void *ptr, size_t size, size_t nmemb);
 
-	const std::string url;
+	const std::string url, userAgent;
 	CURL *curl;
 	struct curl_slist *chunk = nullptr;
 	State state = Init;
 	Flag flags;
-	std::string userAgent;
 };
 
 }

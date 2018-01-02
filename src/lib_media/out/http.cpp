@@ -12,7 +12,7 @@ namespace Modules {
 namespace Out {
 
 HTTP::HTTP(const std::string &url, Flag flags, const std::string &userAgent)
-: url(url), flags(flags), userAgent(userAgent) {
+: url(url), userAgent(userAgent), flags(flags) {
 	if (url.compare(0, 7, "http://"))
 		throw error(format("can only handle URLs starting with 'http://', not %s.", url));
 
@@ -40,22 +40,21 @@ HTTP::HTTP(const std::string &url, Flag flags, const std::string &userAgent)
 		curl_easy_reset(curl);
 	}
 
-	if (flags & Chunked) {
-		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-		curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent.c_str());
-		curl_easy_setopt(curl, CURLOPT_POST, 1L);
-		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+	curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent.c_str());
+	curl_easy_setopt(curl, CURLOPT_POST, 1L);
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 
 #ifdef CURL_DEBUG
-		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+	curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 #endif
-		curl_easy_setopt(curl, CURLOPT_READFUNCTION, &HTTP::staticCurlCallback);
-		curl_easy_setopt(curl, CURLOPT_READDATA, this);
-		{
-			chunk = curl_slist_append(chunk, "Transfer-Encoding: chunked");
-			curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
-		}
+	curl_easy_setopt(curl, CURLOPT_READFUNCTION, &HTTP::staticCurlCallback);
+	curl_easy_setopt(curl, CURLOPT_READDATA, this);
+
+	if (flags & Chunked) {
+		chunk = curl_slist_append(chunk, "Transfer-Encoding: chunked");
+		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
 	}
 
 	addInput(new Input<DataRaw>(this));
@@ -204,36 +203,7 @@ void HTTP::threadProc() {
 			}
 		}
 	} else {
-		const int transferSize = 1000000;
-		void *ptr = (void*)malloc(transferSize);
-		while (state != Stop) {
-			auto curTransferedData = inputs[curTransferedDataInputIndex]->pop();
-			if (!curTransferedData) {
-				state = Stop;
-				endOfSession(ptr, transferSize);
-				//TODO: perform transfer
-				break;
-			}
-			if (!open(safe_cast<const MetadataFile>(curTransferedData->getMetadata()))) {
-				return;
-			}
-			auto read = gf_bs_read_data(curTransferedBs, (char*)ptr, std::min<u32>((u32)gf_bs_available(curTransferedBs), (u32)transferSize)), fileSize = read;
-			while (read) {
-				read = gf_bs_read_data(curTransferedBs, (char*)ptr, std::min<u32>((u32)gf_bs_available(curTransferedBs), (u32)transferSize));
-				fileSize += read;
-			}
-			clean();
-
-			curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-			curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent.c_str());
-			curl_easy_setopt(curl, CURLOPT_POSTFIELDS, ptr);
-			curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)fileSize);
-
-			if (!performTransfer()) {
-				break;
-			}
-		}
-		free(ptr);
+		performTransfer();
 	}
 }
 
