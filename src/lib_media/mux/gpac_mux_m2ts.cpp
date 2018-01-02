@@ -27,6 +27,11 @@ GPACMuxMPEG2TS::~GPACMuxMPEG2TS() {
 			av_packet_free(&data);
 		}
 	}
+
+#if 0
+	for (j = 0; j<sources[i].nb_streams; j++) {
+		if (sources[i].streams[j].input_ctrl) sources[i].streams[j].input_ctrl(&sources[i].streams[j], GF_ESI_INPUT_DESTROY, NULL);
+#endif
 }
 
 GF_Err GPACMuxMPEG2TS::staticFillInput(GF_ESInterface *esi, u32 ctrl_type, void *param) {
@@ -37,22 +42,42 @@ GF_Err GPACMuxMPEG2TS::staticFillInput(GF_ESInterface *esi, u32 ctrl_type, void 
 GF_Err GPACMuxMPEG2TS::fillInput(GF_ESInterface *esi, u32 ctrl_type, size_t inputIdx) {
 	switch (ctrl_type) {
 	case GF_ESI_INPUT_DATA_FLUSH: {
-		AVPacket *data = nullptr;
-		while (inputData[inputIdx]->tryPop(data)) {
-			//TODO: this is the libav structure, copy the fiels to match the GF_ESIPacket
-			/*auto pkt = data->getPacket();
+		AVPacket *pkt = nullptr;
+		while (inputData[inputIdx-1]->tryPop(pkt)) {
+			GF_ESIPacket pck;
+			memset(&pck, 0, sizeof(GF_ESIPacket));
 
-			pkt.dts      = 0;
-			pkt.pts      = 512;
-			pkt.size     = 1088; //pck.data_len
-			pkt.flags    = 31;
-			pkt.duration = 512;
+			pck.flags = GF_ESI_DATA_AU_START | GF_ESI_DATA_HAS_CTS | GF_ESI_DATA_HAS_DTS;
+			if (pkt->flags & AV_PKT_FLAG_KEY) {
+				pck.flags |= GF_ESI_DATA_AU_RAP;
+			}
 
-			//esi->output_ctrl(esi, , );*/
-			av_packet_free(&data);
+			pck.dts = pkt->dts;
+			pck.cts = pkt->pts;
+
+#if 0
+			if (priv->sample->IsRAP && priv->dsi && priv->dsi_size) {
+				pck.data = (char*)priv->dsi;
+				pck.data_len = priv->dsi_size;
+				ifce->output_ctrl(ifce, GF_ESI_OUTPUT_DATA_DISPATCH, &pck);
+				pck.flags &= ~GF_ESI_DATA_AU_START;
+			}
+#endif
+
+			pck.flags |= GF_ESI_DATA_AU_END;
+			pck.data = (char*)pkt->data;
+			pck.data_len = pkt->size;
+			pck.duration = (u32)pkt->duration;
+
+			esi->output_ctrl(esi, GF_ESI_OUTPUT_DATA_DISPATCH, &pck);
+			log(Debug, "Dispatch CTS %s\n", pck.cts);
+
+			av_packet_free(&pkt);
 		}
 		break;
 	}
+	case GF_ESI_INPUT_DATA_RELEASE:
+		return GF_OK;
 	case GF_ESI_INPUT_DESTROY:
 		delete (UserData*)esi->input_udta;
 		return GF_OK;
@@ -81,16 +106,13 @@ void GPACMuxMPEG2TS::declareStream(Data data) {
 		ifce->object_type_indication = metadata->getAVCodecContext()->codec_id == AV_CODEC_ID_H264 ? GPAC_OTI_VIDEO_AVC : GPAC_OTI_VIDEO_HEVC;;
 		ifce->fourcc = 0;
 		ifce->lang = 0;
-		ifce->timescale = Clock::Rate;
+		ifce->timescale = (u32)metadata->getTimeScale().num;
+		assert(metadata->getTimeScale().den == 1);
 		ifce->duration = 0;
 		ifce->bit_rate = 0;
 		ifce->repeat_rate = 0;
 		ifce->decoder_config;
 		ifce->decoder_config_size;
-		ifce->info_video.par = 0;
-		ifce->info_video.width = 0;
-		ifce->info_video.height = 0;
-		ifce->info_video.FPS = 0.0;
 #if 0
 	} else if (auto metadata2 = std::dynamic_pointer_cast<const MetadataPktLibavAudio>(metadata_)) {
 #if 0 //TODO
@@ -104,7 +126,7 @@ void GPACMuxMPEG2TS::declareStream(Data data) {
 		throw std::runtime_error("[GPACMuxMPEG2TS] Stream creation failed: unknown type.");
 
 	//TODO: Fill the interface with test content; the current GPAC importer needs to be generalized
-	ifce->caps |= GF_ESI_AU_PULL_CAP;
+	//ifce->caps |= GF_ESI_AU_PULL_CAP;
 	ifce->input_ctrl = &GPACMuxMPEG2TS::staticFillInput;
 	ifce->input_udta = (void*)new UserData(this, inputIdx);
 	ifce->output_udta = nullptr;
