@@ -355,15 +355,15 @@ void fillVideoSampleData(const u8 *bufPtr, u32 bufLen, GF_ISOSample &sample) {
 namespace Mux {
 
 GPACMuxMP4::GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs, SegmentPolicy segmentPolicy, FragmentPolicy fragmentPolicy, CompatibilityFlag compatFlags)
-	: compatFlags(compatFlags), fragmentPolicy(fragmentPolicy), segmentPolicy(segmentPolicy), segmentDurationIn180k(timescaleToClock(segmentDurationInMs, 1000)) {
+: compatFlags(compatFlags), fragmentPolicy(fragmentPolicy), segmentPolicy(segmentPolicy), segmentDurationIn180k(timescaleToClock(segmentDurationInMs, 1000)) {
 	if ((segmentDurationInMs == 0) ^ (segmentPolicy == NoSegment || segmentPolicy == SingleSegment))
 		throw error(format("Inconsistent parameters: segment duration is %sms but no segment.", segmentDurationInMs));
 	if ((segmentPolicy == SingleSegment || segmentPolicy == FragmentedSegment) && (fragmentPolicy == NoFragment))
 		throw error("Inconsistent parameters: segmented policies requires fragmentation to be enabled.");
 	if ((compatFlags & SmoothStreaming) && (segmentPolicy != IndependentSegment))
 		throw error("Inconsistent parameters: SmoothStreaming compatibility requires IndependentSegment policy.");
-	if ((compatFlags & FlushFragMemory) && ((!baseName.empty()) || (segmentPolicy != FragmentedSegment)))
-		throw error("Inconsistent parameters: FlushFragMemory requires empty segment name and FragmentedSegment policy.");
+	if ((compatFlags & FlushFragMemory) && ((baseName.empty()) || (segmentPolicy != FragmentedSegment)))
+		throw error("Inconsistent parameters: FlushFragMemory requires a base segment name (for init) and FragmentedSegment policy.");
 
 	if (baseName.empty()) {
 		log(Info, "Working in memory mode.");
@@ -424,7 +424,7 @@ void GPACMuxMP4::startSegment() {
 		}
 
 		if (segmentPolicy == FragmentedSegment) {
-			GF_Err e = gf_isom_start_segment(isoCur, segmentName.empty() ? nullptr : segmentName.c_str(), GF_TRUE);
+			GF_Err e = gf_isom_start_segment(isoCur, (segmentName.empty() || (compatFlags & FlushFragMemory)) ? nullptr : segmentName.c_str(), GF_TRUE);
 			if (e != GF_OK)
 				throw error(format("Impossible to start segment %s (%s): %s", segmentNum, segmentName, gf_error_to_string(e)));
 		} else if (segmentPolicy == IndependentSegment) {

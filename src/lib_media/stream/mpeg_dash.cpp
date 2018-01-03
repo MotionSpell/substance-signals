@@ -41,11 +41,13 @@ std::unique_ptr<gpacpp::MPD> createMPD(Stream::AdaptiveStreamingCommon::Type typ
 
 namespace Stream {
 
-MPEG_DASH::MPEG_DASH(const std::string &mpdDir, const std::string &mpdFilename, Type type, uint64_t segDurationInMs, uint64_t timeShiftBufferDepthInMs, uint64_t minUpdatePeriodInMs, uint32_t minBufferTimeInMs, const std::vector<std::string> &baseURLs, const std::string &id, int64_t initialOffsetInMs)
-	: AdaptiveStreamingCommon(type, segDurationInMs),
-	mpd(createMPD(type, minBufferTimeInMs, id)), mpdDir(mpdDir), mpdPath(format("%s%s", mpdDir, mpdFilename)), baseURLs(baseURLs),
-	minUpdatePeriodInMs(minUpdatePeriodInMs ? minUpdatePeriodInMs : (segDurationInMs ? segDurationInMs : 1000)),
-	timeShiftBufferDepthInMs(timeShiftBufferDepthInMs), initialOffsetInMs(initialOffsetInMs), useSegmentTimeline(segDurationInMs == 0) {
+MPEG_DASH::MPEG_DASH(const std::string &mpdDir, const std::string &mpdFilename, Type type, uint64_t segDurationInMs, uint64_t timeShiftBufferDepthInMs, uint64_t minUpdatePeriodInMs, uint32_t minBufferTimeInMs, const std::vector<std::string> &baseURLs, const std::string &id, int64_t initialOffsetInMs, bool presignalNextSegment)
+: AdaptiveStreamingCommon(type, segDurationInMs),
+  mpd(createMPD(type, minBufferTimeInMs, id)), mpdDir(mpdDir), mpdPath(format("%s%s", mpdDir, mpdFilename)), baseURLs(baseURLs),
+  minUpdatePeriodInMs(minUpdatePeriodInMs ? minUpdatePeriodInMs : (segDurationInMs ? segDurationInMs : 1000)),
+  timeShiftBufferDepthInMs(timeShiftBufferDepthInMs), initialOffsetInMs(initialOffsetInMs), useSegmentTimeline(segDurationInMs == 0) {
+	if (useSegmentTimeline && presignalNextSegment)
+		throw error("Inconsistent parameters: next segment pre-signalling cannot be used with segment timeline.");
 }
 
 MPEG_DASH::~MPEG_DASH() {
@@ -199,6 +201,15 @@ std::string MPEG_DASH::getPeriodID() const {
 	return format("p%s", qualities.size());
 }
 
+std::string MPEG_DASH::getSegmentName(DASHQuality const * const quality, size_t index, u64 segmentNum) const {
+	switch (quality->meta->getStreamType()) {
+	case AUDIO_PKT:    return format("%s%s_a_%s-%s.m4s", mpdDir, getPeriodID(), index, segmentNum);
+	case VIDEO_PKT:    return format("%s%s_v_%s_%sx%s-%s.m4s", mpdDir, getPeriodID(), index, quality->rep->width, quality->rep->height, segmentNum);
+	case SUBTITLE_PKT: return format("%s%s_s_%s-%s.m4s", mpdDir, getPeriodID(), index, segmentNum);
+	default: return "";
+	}
+}
+
 void MPEG_DASH::generateManifest() {
 	ensureManifest();
 
@@ -211,7 +222,7 @@ void MPEG_DASH::generateManifest() {
 			quality->rep->starts_with_sap = (quality->rep->starts_with_sap == GF_TRUE && quality->meta->getStartsWithRAP()) ? GF_TRUE : GF_FALSE;
 		}
 
-		std::string fn;
+		std::string fn, fnNext;
 		if (useSegmentTimeline) {
 			auto entries = quality->rep->segment_template->segment_timeline->entries;
 			auto const prevEntIdx = gf_list_count(entries);
@@ -229,20 +240,11 @@ void MPEG_DASH::generateManifest() {
 				segTime = prevEnt->start_time + prevEnt->duration*(prevEnt->repeat_count);
 			}
 
-			switch (quality->meta->getStreamType()) {
-			case AUDIO_PKT:    fn = format("%s%s_a_%s-%s.m4s", mpdDir, getPeriodID(), i, segTime); break;
-			case VIDEO_PKT:    fn = format("%s%s_v_%s_%sx%s-%s.m4s", mpdDir, getPeriodID(), i, quality->rep->width, quality->rep->height, segTime); break;
-			case SUBTITLE_PKT: fn = format("%s%s_s_%s-%s.m4s", mpdDir, getPeriodID(), i, segTime); break;
-			default: break;
-			}
+			fn = getSegmentName(quality, i, segTime);
 		} else {
 			auto const n = (startTimeInMs + totalDurationInMs) / segDurationInMs;
-			switch (quality->meta->getStreamType()) {
-			case AUDIO_PKT:    fn = format("%s%s_a_%s-%s.m4s", mpdDir, getPeriodID(), i, n); break;
-			case VIDEO_PKT:    fn = format("%s%s_v_%s_%sx%s-%s.m4s", mpdDir, getPeriodID(), i, quality->rep->width, quality->rep->height, n); break;
-			case SUBTITLE_PKT: fn = format("%s%s_s_%s-%s.m4s", mpdDir, getPeriodID(), i, n); break;
-			default: break;
-			}
+			fn = getSegmentName(quality, i, n);
+			fnNext = getSegmentName(quality, i, n+1);
 		}
 		if (!fn.empty()) {
 			log(Debug, "Rename segment \"%s\" -> \"%s\".", quality->meta->getFilename(), fn);
@@ -261,6 +263,12 @@ void MPEG_DASH::generateManifest() {
 			auto out = outputSegments->getBuffer(0);
 			out->setMetadata(std::make_shared<MetadataFile>(fn, SEGMENT, quality->meta->getMimeType(), quality->meta->getCodecName(), quality->meta->getDuration(), quality->meta->getSize(), quality->meta->getLatency(), quality->meta->getStartsWithRAP()));
 			outputSegments->emit(out);
+
+			if (!fnNext.empty()) {
+				auto out = outputSegments->getBuffer(0);
+				out->setMetadata(std::make_shared<MetadataFile>(fnNext, SEGMENT, quality->meta->getMimeType(), quality->meta->getCodecName(), quality->meta->getDuration(), 0, quality->meta->getLatency(), quality->meta->getStartsWithRAP()));
+				outputSegments->emit(out);
+			}
 		}
 
 		if (timeShiftBufferDepthInMs) {
