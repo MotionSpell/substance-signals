@@ -12,15 +12,10 @@ namespace Stream {
 #ifdef LIBAVMUXHLS
 class LibavMuxHLS : public ModuleDynI {
 public:
-	LibavMuxHLS(bool isLowLatency, uint64_t segDurationInMs, const std::string &baseName, const std::string &fmt, const std::string &options = "")
-	: segDuration(timescaleToClock(segDurationInMs, 1000)), segBasename(baseName) {
-		if (fmt != "hls")
-			error("HLS only!");
-		if (isLowLatency) {
-			delegate = createModule<Mux::LibavMux>(Modules::ALLOC_NUM_BLOCKS_LOW_LATENCY, clock, baseName, fmt, options);
-		} else {
-			delegate = createModule<Mux::LibavMux>(Modules::ALLOC_NUM_BLOCKS_DEFAULT, clock, baseName, fmt, options);
-		}
+	LibavMuxHLS(bool isLowLatency, uint64_t segDurationInMs, const std::string &baseDir, const std::string &baseName, const std::string &options = "")
+	: segDuration(timescaleToClock(segDurationInMs, 1000)), hlsDir(baseDir), segBasename(baseName) {
+		delegate = createModule<Mux::LibavMux>(isLowLatency ? ALLOC_NUM_BLOCKS_LOW_LATENCY : ALLOC_NUM_BLOCKS_DEFAULT,
+			clock, format("%s%s", hlsDir, baseName), "hls", options);
 		addInput(new Input<DataAVPacket>(this));
 		outputSegment  = addOutput<OutputDataDefault<DataAVPacket>>();
 		outputManifest = addOutput<OutputDataDefault<DataAVPacket>>();
@@ -44,7 +39,7 @@ public:
 			}
 			if (DTS >= (segIdx + 1) * segDuration + firstDTS) {
 				auto const fn = format("%s%s.ts", segBasename, segIdx);
-				auto file = fopen(fn.c_str(), "rt");
+				auto file = fopen(format("%s%s", hlsDir, fn).c_str(), "rt");
 				if (!file)
 					throw error(format("Can't open file for reading: %s", fn));
 				fseek(file, 0, SEEK_END);
@@ -66,7 +61,7 @@ public:
 				outputSegment->emit(out);
 
 				out = outputManifest->getBuffer(0);
-				metadata = std::make_shared<MetadataFile>(format("%s.m3u8", segBasename), PLAYLIST, "", "", 0, 0, 1, false);
+				metadata = std::make_shared<MetadataFile>(format("%s%s.m3u8", hlsDir, segBasename), PLAYLIST, "", "", 0, 0, 1, false);
 				out->setMetadata(metadata);
 				outputManifest->emit(out);
 				segIdx++;
@@ -83,13 +78,13 @@ private:
 	std::unique_ptr<Modules::Mux::LibavMux> delegate;
 	OutputDataDefault<DataAVPacket> *outputSegment, *outputManifest;
 	int64_t firstDTS = -1, segDuration, segIdx = 0;
-	std::string segBasename;
+	std::string hlsDir, segBasename;
 };
 #endif /*LIBAVMUXHLS*/
 
 class Apple_HLS : public AdaptiveStreamingCommon {
 public:
-	Apple_HLS(const std::string &m3u8Path, Type type, uint64_t segDurationInMs);
+	Apple_HLS(const std::string &m3u8Dir, const std::string &m3u8Filename, Type type, uint64_t segDurationInMs, bool genVariantPlaylist = false);
 	virtual ~Apple_HLS();
 
 private:
@@ -97,16 +92,18 @@ private:
 	void generateManifest() override;
 	void finalizeManifest() override;
 
-	void updateManifestVoDVariants();
-	void generateManifestVariant();
 	struct HLSQuality : public Quality {
 		HLSQuality() {}
 		std::stringstream playlistVariant;
 		std::vector<std::string> segmentPaths;
 	};
+	std::string getVariantPlaylistName(HLSQuality const * const quality, const std::string &subDir, size_t index);
+	void updateManifestVariants();
+	void generateManifestVariantFull(bool isLast);
 
 	void generateManifestMaster();
-	std::string playlistMasterPath;
+	std::string m3u8Dir, playlistMasterPath;
+	const bool genVariantPlaylist;
 };
 
 }
