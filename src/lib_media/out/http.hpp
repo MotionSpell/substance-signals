@@ -43,7 +43,6 @@ private:
 
 	void threadProc();
 	bool performTransfer();
-	int numDataQueueNotify = 0;
 	std::thread workingThread;
 	FILE *curTransferedFile = nullptr;
 	Data curTransferedData;

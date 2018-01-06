@@ -110,7 +110,7 @@ void Apple_HLS::generateManifestVariantFull(bool isLast) {
 					assert(!(tv.tv_sec & 0xFFFFFFFF00000000));
 					tv.tv_usec = 0;
 					time_t sec = tv.tv_sec;
-					struct tm *tm = gmtime(&sec);
+					auto *tm = gmtime(&sec);
 					if (!tm) {
 						log(Warning, "Segment \"%s\": could not convert UTC start time %sms. Skippping PROGRAM-DATE-TIME.", seg.startTimeInMs, seg.path);
 					} else {

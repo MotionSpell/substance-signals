@@ -49,7 +49,6 @@ protected:
 
 private:
 	void threadProc();
-	int numDataQueueNotify = 0;
 	std::thread workingThread;
 };
 
