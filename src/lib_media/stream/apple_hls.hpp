@@ -93,17 +93,25 @@ private:
 	void finalizeManifest() override;
 
 	struct HLSQuality : public Quality {
+		struct Segment {
+			std::string path;
+			uint64_t startTimeInMs;
+		};
 		HLSQuality() {}
 		std::stringstream playlistVariant;
-		std::vector<std::string> segmentPaths;
+		std::vector<Segment> segments;
 	};
-	std::string getVariantPlaylistName(HLSQuality const * const quality, const std::string &subDir, size_t index);
+	std::string getVariantPlaylistName(HLSQuality const * const quality, const std::string &subDir, size_t index, bool isInit);
 	void updateManifestVariants();
 	void generateManifestVariantFull(bool isLast);
 
 	void generateManifestMaster();
 	std::string m3u8Dir, playlistMasterPath;
 	const bool genVariantPlaylist;
+
+	uint8_t version = 0;
+	bool hasInitSeg = false;
+	uint64_t firstSegNum = 0;
 };
 
 }
