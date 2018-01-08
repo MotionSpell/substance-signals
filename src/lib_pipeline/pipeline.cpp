@@ -18,6 +18,17 @@ IPipelinedModule* Pipeline::addModuleInternal(std::unique_ptr<IModule> rawModule
 	return ret;
 }
 
+void Pipeline::removeModule(IPipelinedModule *module) {
+	std::unique_lock<std::mutex> lock(mutex);
+	for (auto &m : modules) {
+		if (m.get() == module) {
+			modules.remove(m);
+			return;
+		}
+	}
+	throw std::runtime_error("Could not remove module from pipeline");
+}
+
 void Pipeline::connect(IPipelinedModule * const prev, size_t outputIdx, IPipelinedModule * const next, size_t inputIdx, bool inputAcceptMultipleConnections) {
 	if (!next || !prev) return;
 	std::unique_lock<std::mutex> lock(mutex);
@@ -34,17 +45,6 @@ void Pipeline::disconnect(IPipelinedModule * const prev, size_t outputIdx, IPipe
 		throw std::runtime_error("Disconnection but the topology has changed. Not supported yet.");
 	next->disconnect(inputIdx, prev->getOutput(outputIdx));
 	computeTopology();
-}
-
-void Pipeline::removeModule(IPipelinedModule *module) {
-	std::unique_lock<std::mutex> lock(mutex);
-	for (auto &m : modules) {
-		if (m.get() == module) {
-			m = nullptr; //FIXME: vector is not the right container to remove it
-			return;
-		}
-	}
-	throw std::runtime_error("Could not remove module from pipeline");
 }
 
 void Pipeline::start() {
