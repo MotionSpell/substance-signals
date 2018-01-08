@@ -72,6 +72,9 @@ public:
 	void waitForCompletion();
 	void exitSync();
 
+	int getNumBlocks(int numBlock) const override {
+		return numBlock ? numBlock : allocatorNumBlocks;
+	}
 	const std::shared_ptr<IClock> getClock() const override {
 		return clock;
 	}
@@ -80,9 +83,6 @@ private:
 	void computeTopology();
 	void finished() override;
 	void exception(std::exception_ptr eptr) override;
-	int getNumBlocks(int numBlock) const override {
-		return numBlock ? numBlock : allocatorNumBlocks;
-	}
 
 	std::list<std::unique_ptr<IPipelinedModule>> modules;
 	const int allocatorNumBlocks;
