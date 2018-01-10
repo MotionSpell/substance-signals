@@ -21,8 +21,19 @@ enum StreamType {
 	VIDEO_PKT,    //compressed video
 	SUBTITLE_PKT, //subtitles and captions
 	PLAYLIST,     //playlist and adaptive streaming manifests
-	SEGMENT       //adaptive streaming segments
+	SEGMENT,      //adaptive streaming segments
+	SIZE_OF_ENUM
 };
+static const char* StreamTypeNames[] = {
+	"audio raw",
+	"video raw",
+	"audio compressed",
+	"video compressed",
+	"subtitle compressed",
+	"playlist",
+	"segment"
+};
+static_assert(sizeof(StreamTypeNames) / sizeof(char*) == StreamType::SIZE_OF_ENUM , "StreamType sizes don't match");
 
 struct IMetadata {
 	virtual ~IMetadata() {}
@@ -134,11 +145,11 @@ public:
 			throw std::runtime_error("Metadata could not be set.");
 	}
 
-	bool updateMetadata(Data data) {
+	bool updateMetadata(Data &data) {
 		if (!data) {
 			return false;
 		} else {
-			auto const metadata = data->getMetadata();
+			auto const &metadata = data->getMetadata();
 			if (!metadata) {
 				const_cast<DataBase*>(data.get())->setMetadata(m_metadata);
 				return true;
@@ -149,7 +160,7 @@ public:
 	}
 
 private:
-	bool setMetadataInternal(std::shared_ptr<const IMetadata> metadata) {
+	bool setMetadataInternal(const std::shared_ptr<const IMetadata> &metadata) {
 		if (metadata != m_metadata) {
 			if (m_metadata) {
 				if (metadata->getStreamType() != m_metadata->getStreamType()) {

@@ -58,7 +58,6 @@ protected:
 private:
 	bool processInit(Data &data);
 	void declareStream(const std::shared_ptr<const IMetadata> &metadata);
-	void declareInput(const std::shared_ptr<const IMetadata> &metadata);
 	void handleInitialTimeOffset();
 	void sendOutput();
 	std::unique_ptr<gpacpp::IsoSample> fillSample(Data data);

@@ -782,17 +782,6 @@ void GPACMuxMP4::declareStream(const std::shared_ptr<const IMetadata> &metadata)
 		throw error(format("Stream creation failed: unknown type."));
 }
 
-void GPACMuxMP4::declareInput(const std::shared_ptr<const IMetadata> &metadata) {
-	auto input = addInput(new Input<DataAVPacket>(this));
-	input->setMetadata(shptr(new MetadataPktLibavVideo(safe_cast<const MetadataPktLibav>(metadata)->getAVCodecContext())));
-
-	setupFragments();
-	if (segmentDurationIn180k && !(compatFlags & SegNumStartsAtZero)) {
-		segmentNum = firstDataAbsTimeInMs / clockToTimescale(segmentDurationIn180k, 1000) - 1;
-	}
-	startSegment();
-}
-
 void GPACMuxMP4::handleInitialTimeOffset() {
 	if (lastInputTimeIn180k) { /*first timestamp is not zero*/
 		log(Info, "Initial offset: %ss (4CC=%s, \"%s\", timescale=%s/%s)", lastInputTimeIn180k / (double)Clock::Rate, codec4CC, segmentName, gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId)), gf_isom_get_timescale(isoCur));
@@ -997,17 +986,27 @@ bool GPACMuxMP4::processInit(Data &data) {
 	if (inputs[0]->updateMetadata(data)) {
 		auto const &metadata = data->getMetadata();
 		declareStream(metadata);
-		declareInput(metadata);
+
+		if (!firstDataAbsTimeInMs) {
+			firstDataAbsTimeInMs = DataBase::absUTCOffsetInMs;
+			lastInputTimeIn180k = data->getMediaTime();
+			handleInitialTimeOffset();
+		}
+
+		auto input = addInput(new Input<DataAVPacket>(this));
+		input->setMetadata(shptr(new MetadataPktLibav(safe_cast<const MetadataPktLibav>(metadata)->getAVCodecContext())));
+
+		setupFragments();
+		if (segmentDurationIn180k && !(compatFlags & SegNumStartsAtZero)) {
+			segmentNum = firstDataAbsTimeInMs / clockToTimescale(segmentDurationIn180k, 1000) - 1;
+		}
+		startSegment();
 	}
+
 	auto refData = std::dynamic_pointer_cast<const DataBaseRef>(data);
 	if (refData && !refData->getData()) {
 		sendOutput();
 		return false;
-	}
-	if (!firstDataAbsTimeInMs) {
-		firstDataAbsTimeInMs = DataBase::absUTCOffsetInMs;
-		lastInputTimeIn180k = data->getMediaTime();
-		handleInitialTimeOffset();
 	}
 	return true;
 }

@@ -29,7 +29,8 @@ public:
 		input = addInput(new Input<DataBase>(this));
 	}
 	void process() {
-		inputs[0]->updateMetadata(inputs[0]->pop());
+		auto data = inputs[0]->pop();
+		inputs[0]->updateMetadata(data);
 	}
 
 	void setMetadata(std::shared_ptr<const IMetadata> metadata) {
