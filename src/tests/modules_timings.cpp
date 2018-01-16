@@ -52,7 +52,7 @@ void checkTimestamps(const std::vector<int64_t> &timesIn, const std::vector<int6
 unittest("timestamps start at random values (LibavDemux)") {
 	const int64_t interval = (int64_t)Clock::Rate;
 	const std::vector<int64_t> correct = { interval, 2 * interval, 3 * interval };
-	const std::vector<int64_t> incorrect = { interval };
+	const std::vector<int64_t> incorrect = { 0 };
 	checkTimestamps<Demux::LibavDemux>(correct, incorrect);
 }
 

@@ -12,14 +12,11 @@ Restamp::Restamp(Mode mode, int64_t offsetIn180k)
 Restamp::~Restamp() {
 }
 
-void Restamp::process(Data data) {
-	uint64_t time;
+int64_t Restamp::restamp(int64_t time) {
 	switch (mode) {
 	case Passthru:
-		time = data->getMediaTime();
 		break;
 	case Reset:
-		time = data->getMediaTime();
 		if (!isInitTime) {
 			isInitTime = true;
 			offset -= time;
@@ -41,15 +38,20 @@ void Restamp::process(Data data) {
 		throw error("Unknown mode");
 	}
 
-	if ((int64_t)(time + offset) < 0) {
-		if (time < 2 * IClock::Rate) {
-			log(Error, "reset offset [%s -> %ss (time=%s, offset=%s)]", (double)data->getMediaTime() / IClock::Rate, (double)(std::max<int64_t>(0, time + offset)) / IClock::Rate, time, offset);
+	if (time + offset < 0) {
+		if (time / IClock::Rate < 2) {
+			log(Error, "reset offset [%s -> %ss (time=%s, offset=%s)]", (double)time / IClock::Rate, (double)(std::max<int64_t>(0, time + offset)) / IClock::Rate, time, offset);
 			offset = 0;
 		}
 	}
 
-	auto const restampedTime = std::max<int64_t>(0, time + offset);
-	log(((time != 0) && ((int64_t)time + offset < 0)) ? Info : Debug, "%s -> %ss (time=%s, offset=%s)", (double)data->getMediaTime() / IClock::Rate, (double)(restampedTime) / IClock::Rate, time, offset);
+	return std::max<int64_t>(0, time + offset);
+}
+
+void Restamp::process(Data data) {
+	auto const time = data->getMediaTime();
+	auto const restampedTime = restamp(time);
+	log(((time != 0) && (time + offset < 0)) ? Info : Debug, "%s -> %ss (time=%s, offset=%s)", (double)time / IClock::Rate, (double)(restampedTime) / IClock::Rate, time, offset);
 	auto dataOut = shptr(new DataBaseRef(data));
 	dataOut->setMediaTime(restampedTime);
 	getOutput(0)->emit(dataOut);

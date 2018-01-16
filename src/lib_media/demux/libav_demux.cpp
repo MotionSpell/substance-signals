@@ -273,7 +273,7 @@ void LibavDemux::setMediaTime(std::shared_ptr<DataAVPacket> data) {
 	if (startPTSIn180k) {
 		offset = -startPTSIn180k; //a global offset is applied to all streams (since it is a PTS we may have negative DTSs)
 	} else {
-		restampers[pkt->stream_index]->process(data); //restamp by pid only when no start time
+		data->setMediaTime(restampers[pkt->stream_index]->restamp(data->getMediaTime())); //restamp by pid only when no start time
 		offset = data->getMediaTime() - time;
 	}
 	if (offset != 0) {
