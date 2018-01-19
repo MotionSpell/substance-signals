@@ -145,7 +145,7 @@ if [ ! -f extra/src/curl/include/curl/curl.h ] ; then
 	rm -rf extra/src/curl
 	git clone https://github.com/curl/curl.git extra/src/curl
 	pushd extra/src/curl
-	git checkout curl-7_50_1
+	git checkout curl-7_57_0
 	autoreconf -fiv
 	popd
 fi
