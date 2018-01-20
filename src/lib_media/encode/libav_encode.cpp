@@ -31,7 +31,7 @@ LibavEncode::LibavEncode(Type type, Params &params)
 			break;
 		}
 		av_dict_free(&customDict);
-		generalOptions += " -forced-idr 1";
+		codecOptions += " -forced-idr 1";
 		switch (params.codecType) {
 		case Software:
 			generalOptions += " -vcodec libx264";
@@ -50,7 +50,6 @@ LibavEncode::LibavEncode(Type type, Params &params)
 		default:
 			throw error("Unknown video encoder type. Failed.");
 		}
-		generalOptions += format(" -r %s/%s -pass 1", params.frameRate.num, params.frameRate.den);
 		codecOptions += format(" -b %s -bf 0", params.bitrate_v);
 		GOPSize = params.GOPSize;
 		break;
