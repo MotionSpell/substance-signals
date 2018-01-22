@@ -14,6 +14,7 @@ enum PixelFormat {
 	YUV420P,
 	YUV420P10LE,
 	YUV422P,
+	YUV422P10LE,
 	YUYV422,
 	NV12,
 	RGB24,
@@ -43,6 +44,7 @@ public:
 		case YUV420P: return res.width * res.height * 3 / 2;
 		case YUV420P10LE: return res.width * divUp(10, 8) * res.height * 3 / 2;
 		case YUV422P: return res.width * res.height * 2;
+		case YUV422P10LE: return res.width * divUp(10, 8) * res.height * 2;
 		case YUYV422: return res.width * res.height * 2;
 		case NV12: return res.width * res.height * 3 / 2;
 		case RGB24: return res.width * res.height * 3;
@@ -219,6 +221,47 @@ public:
 		internalFormat.format = format.format = YUV422P;
 	}
 	PictureYUV422P(const Resolution &res) : DataPicture(res, YUV422P) {
+		setInternalResolution(res);
+		setVisibleResolution(res);
+	}
+	size_t getNumPlanes() const override {
+		return 3;
+	}
+	const uint8_t* getPlane(size_t planeIdx) const override {
+		return m_planes[planeIdx];
+	}
+	uint8_t* getPlane(size_t planeIdx) override {
+		return m_planes[planeIdx];
+	}
+	size_t getPitch(size_t planeIdx) const override {
+		return m_pitch[planeIdx];
+	}
+	void setInternalResolution(const Resolution &res) override {
+		internalFormat.res = res;
+		resize(internalFormat.getSize());
+		auto const numPixels = res.width * res.height;
+		m_planes[0] = data();
+		m_planes[1] = data() + numPixels;
+		m_planes[2] = data() + numPixels + numPixels / 2;
+		m_pitch[0] = res.width;
+		m_pitch[1] = res.width / 2;
+		m_pitch[2] = res.width / 2;
+	}
+	void setVisibleResolution(const Resolution &res) override {
+		format.res = res;
+	}
+
+private:
+	size_t m_pitch[3];
+	uint8_t* m_planes[3];
+};
+
+class PictureYUV422P10LE : public DataPicture {
+public:
+	PictureYUV422P10LE(size_t unused) : DataPicture(0) {
+		internalFormat.format = format.format = YUV422P10LE;
+	}
+	PictureYUV422P10LE(const Resolution &res) : DataPicture(res, YUV422P10LE) {
 		setInternalResolution(res);
 		setVisibleResolution(res);
 	}

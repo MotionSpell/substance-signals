@@ -56,7 +56,7 @@ void JPEGTurboEncode::process(Data data_) {
 	unsigned long jpegSize;
 
 	switch (videoData->getFormat().format) {
-	case Y8: case YUV420P: case YUV420P10LE: case YUV422P: case YUYV422: case NV12: {
+	case Y8: case YUV420P: case YUV420P10LE: case YUV422P: case YUV422P10LE: case YUYV422: case NV12: {
 		uint8_t const* srcSlice[8] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
 		int srcStride[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 		for (size_t i = 0; i<videoData->getNumPlanes(); ++i) {

@@ -329,6 +329,7 @@ void pixelFormat2libavPixFmt(const enum PixelFormat format, AVPixelFormat &avPix
 	case YUV420P: avPixfmt = AV_PIX_FMT_YUV420P; break;
 	case YUV420P10LE: avPixfmt = AV_PIX_FMT_YUV420P10LE; break;
 	case YUV422P: avPixfmt = AV_PIX_FMT_YUV422P; break;
+	case YUV422P10LE: avPixfmt = AV_PIX_FMT_YUV422P10LE; break;
 	case YUYV422: avPixfmt = AV_PIX_FMT_YUYV422; break;
 	case NV12: avPixfmt = AV_PIX_FMT_NV12; break;
 	case RGB24: avPixfmt = AV_PIX_FMT_RGB24; break;
@@ -343,6 +344,7 @@ enum PixelFormat libavPixFmt2PixelFormat(const AVPixelFormat &avPixfmt) {
 	case AV_PIX_FMT_YUV420P: case AV_PIX_FMT_YUVJ420P: return YUV420P;
 	case AV_PIX_FMT_YUV420P10LE: return YUV420P10LE;
 	case AV_PIX_FMT_YUV422P: return YUV422P;
+	case AV_PIX_FMT_YUV422P10LE: return YUV422P10LE;
 	case AV_PIX_FMT_YUYV422: return YUYV422;
 	case AV_PIX_FMT_NV12: return NV12;
 	case AV_PIX_FMT_RGB24: return RGB24;

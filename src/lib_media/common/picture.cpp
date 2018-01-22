@@ -10,6 +10,7 @@ std::shared_ptr<DataPicture> DataPicture::create(OutputPicture *out, const Resol
 	case YUV420P:     r = safe_cast<DataPicture>(out->getBuffer<PictureYUV420P>(size));     break;
 	case YUV420P10LE: r = safe_cast<DataPicture>(out->getBuffer<PictureYUV420P10LE>(size)); break;
 	case YUV422P:     r = safe_cast<DataPicture>(out->getBuffer<PictureYUV422P>(size));     break;
+	case YUV422P10LE: r = safe_cast<DataPicture>(out->getBuffer<PictureYUV422P10LE>(size));     break;
 	case YUYV422:     r = safe_cast<DataPicture>(out->getBuffer<PictureYUYV422>(size));     break;
 	case NV12:        r = safe_cast<DataPicture>(out->getBuffer<PictureNV12   >(size));     break;
 	case RGB24:       r = safe_cast<DataPicture>(out->getBuffer<PictureRGB24  >(size));     break;
