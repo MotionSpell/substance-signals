@@ -96,7 +96,7 @@ LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::strin
 			restampers[i] = create<Transform::Restamp>(Transform::Restamp::ClockSystem); /*some webcams timestamps don't start at 0 (based on UTC)*/
 		}
 	} else {
-		ffpp::Dict dict(typeid(*this).name(),"-buffer_size 1M -fifo_size 1M -probesize 10M -analyzeduration 10M -overrun_nonfatal 1 -protocol_whitelist file,udp,rtp,http,https,tcp,tls,rtmp -rtsp_flags prefer_tcp -correct_ts_overflow 0 " + avformatCustom);
+		ffpp::Dict dict(typeid(*this).name(), "-buffer_size 1M -fifo_size 1M -probesize 10M -analyzeduration 10M -overrun_nonfatal 1 -protocol_whitelist file,udp,rtp,http,https,tcp,tls,rtmp -rtsp_flags prefer_tcp -correct_ts_overflow 0 " + avformatCustom);
 
 		m_formatCtx = avformat_alloc_context();
 		if (!m_formatCtx)
@@ -237,6 +237,10 @@ void LibavDemux::threadProc() {
 					nextPacketResetFlag = true;
 					continue;
 				}
+			} else if (status == (int)AVERROR(EAGAIN)) {
+				log(Debug, "Stream asks to try again later. Sleeping for a short period of time.");
+				std::this_thread::sleep_for(std::chrono::milliseconds(10));
+				continue;
 			} else if (m_formatCtx->pb && m_formatCtx->pb->error) {
 				log(Error, "Stream contains an irrecoverable error (%s) - leaving", status);
 			}
