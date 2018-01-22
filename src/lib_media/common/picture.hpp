@@ -284,9 +284,9 @@ public:
 		m_planes[0] = data();
 		m_planes[1] = data() + numPixels;
 		m_planes[2] = data() + numPixels + numPixels / 2;
-		m_pitch[0] = res.width;
-		m_pitch[1] = res.width / 2;
-		m_pitch[2] = res.width / 2;
+		m_pitch[0] = res.width * divUp(10, 8);
+		m_pitch[1] = res.width * divUp(10, 8) / 2;
+		m_pitch[2] = res.width * divUp(10, 8) / 2;
 	}
 	void setVisibleResolution(const Resolution &res) override {
 		format.res = res;

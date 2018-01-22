@@ -285,7 +285,7 @@ void LibavEncode::process(Data data) {
 	case AVMEDIA_TYPE_AUDIO: {
 		const auto pcmData = safe_cast<const DataPcm>(data);
 		if (pcmData->getFormat() != *pcmFormat)
-			throw error("Incompatible audio data");
+			throw error("Incompatible audio data (1)");
 		processAudio(pcmData.get());
 		break;
 	}

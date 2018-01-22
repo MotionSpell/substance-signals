@@ -45,7 +45,7 @@ bool PcmComparator::compare(Data data1, Data data2) const {
 	auto pcm1 = safe_cast<const DataPcm>(data1);
 	auto pcm2 = safe_cast<const DataPcm>(data2);
 	if (pcm1->getFormat() != pcm2->getFormat())
-		throw std::runtime_error("Incompatible audio data");
+		throw std::runtime_error("Incompatible audio data (2)");
 
 	auto const size1 = pcm1->size();
 	auto const size2 = pcm2->size();
