@@ -5,9 +5,9 @@
 namespace {
 	
 typedef enum { //awkward type required by the spec states
-	UNDEF = 255,
-	NO = 0,
-	YES = 1,
+	Undef = 255,
+	No = 0,
+	Yes = 1,
 } Bool;
 
 typedef struct {
@@ -33,11 +33,11 @@ Entity const entities[] = {
 };
 
 typedef enum {
-	NONSUBTITLE = 0x02,
-	SUBTITLE = 0x03,
-	INVERTED = 0x0c,
-	DATA_UNIT_VPS = 0xc3,
-	DATA_UNIT_CLOSED_CAPTIONS = 0xc5
+	NonSubtitle = 0x02,
+	Subtitle = 0x03,
+	Inverted = 0x0c,
+	DataUnitVPS = 0xc3,
+	DataUnitClosedCaptions = 0xc5
 } DataUnit;
 
 typedef struct {
@@ -97,8 +97,8 @@ void ucs2_to_utf8(char *out, uint16_t in) {
 }
 
 typedef enum {
-	PARALLEL = 0,
-	SERIAL = 1
+	Parallel = 0,
+	Serial = 1
 } TransmissionMode;
 
 typedef struct {

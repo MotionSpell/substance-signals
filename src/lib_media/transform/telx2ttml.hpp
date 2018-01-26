@@ -9,13 +9,18 @@ namespace Modules {
 namespace Transform {
 
 struct Page {
-	Page() {}
+	Page() {
+		lines.resize(1);
+		ss = &lines[0];
+	}
+	const std::string toString() const;
 	const std::string toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs, uint64_t idx) const;
 	const std::string toSRT();
 
 	uint64_t tsInMs=0, startTimeInMs=0, endTimeInMs=0, showTimestamp=0, hideTimestamp=0;
 	uint32_t framesProduced = 0;
-	std::stringstream ss;
+	std::vector<std::stringstream> lines;
+	std::stringstream *ss = nullptr;
 };
 
 struct ITelxConfig {

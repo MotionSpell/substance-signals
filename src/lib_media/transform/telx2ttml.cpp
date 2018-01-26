@@ -11,10 +11,18 @@ extern "C" {
 namespace Modules {
 namespace Transform {
 
+const std::string Page::toString() const {
+	std::stringstream str;
+	for (auto &ss : lines) {
+		str << ss.str() << std::endl;
+	}
+	return str.str();
+}
+
 const std::string Page::toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs, uint64_t idx) const {
 	std::stringstream ttml;
 #ifndef DEBUG_DISPLAY_TIMESTAMPS
-	if (!ss.str().empty())
+	if (!lines.empty())
 #endif
 	{
 		const size_t timecodeSize = 24;
@@ -29,7 +37,20 @@ const std::string Page::toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs, uin
 #ifdef DEBUG_DISPLAY_TIMESTAMPS
 		ttml << "        <span style=\"Style0_0\">" << timecodeShow << " - " << timecodeHide << "</span>\n";
 #else
-		ttml << "        <span style=\"Style0_0\">" << ss.str() << "</span>\n";
+		ttml << "        <span style=\"Style0_0\">";
+
+		auto const numLines = lines.size();
+		if (numLines > 0) {
+			auto const numEffectiveLines = lines[numLines-1].str().empty() ? numLines-1 : numLines;
+			if (numEffectiveLines > 0) {
+				for (size_t i = 0; i < numEffectiveLines - 1; ++i) {
+					ttml << lines[i].str() << "<br/>\r\n";
+				}
+				ttml << lines[numEffectiveLines - 1].str();
+			}
+		}
+
+		ttml << "</span>\n";
 #endif
 		ttml << "      </p>\n";
 	}
@@ -58,7 +79,9 @@ const std::string Page::toSRT() {
 			srt << buf;
 		}
 
-		srt << ss.str();
+		for (auto &ss : lines) {
+			srt << ss.str() << "\r\n";
+		}
 
 		return srt.str();
 	}
@@ -101,7 +124,7 @@ const std::string TeletextToTTML::toTTML(uint64_t startTimeInMs, uint64_t endTim
 		if ((*page)->endTimeInMs > startTimeInMs && (*page)->startTimeInMs < endTimeInMs) {
 			auto localStartTimeInMs = std::max<uint64_t>((*page)->startTimeInMs, startTimeInMs);
 			auto localEndTimeInMs = std::min<uint64_t>((*page)->endTimeInMs, endTimeInMs);
-			log(Debug, "[%s-%s]: %s - %s: %s", startTimeInMs, endTimeInMs, localStartTimeInMs, localEndTimeInMs, (*page)->ss.str());
+			log(Debug, "[%s-%s]: %s - %s: %s", startTimeInMs, endTimeInMs, localStartTimeInMs, localEndTimeInMs, (*page)->toString());
 			ttml << (*page)->toTTML(localStartTimeInMs + offsetInMs, localEndTimeInMs + offsetInMs, startTimeInMs / clockToTimescale(this->splitDurationIn180k, 1000));
 		}
 		if ((*page)->endTimeInMs <= endTimeInMs) {
@@ -156,7 +179,7 @@ void TeletextToTTML::processTelx(DataAVPacket const * const sub) {
 		auto dataUnitId = (DataUnit)pkt->data[i++];
 		auto const dataUnitSize = pkt->data[i++];
 		const uint8_t telxPayloadSize = 44;
-		if ( ((dataUnitId == NONSUBTITLE) || (dataUnitId == SUBTITLE)) && (dataUnitSize == telxPayloadSize) ) {
+		if ( ((dataUnitId == NonSubtitle) || (dataUnitId == Subtitle)) && (dataUnitSize == telxPayloadSize) ) {
 			uint8_t entitiesData[telxPayloadSize];
 			for (uint8_t j = 0; j < dataUnitSize; j++) {
 				entitiesData[j] = Reverse8[pkt->data[i + j]]; //reverse endianess
@@ -168,7 +191,7 @@ void TeletextToTTML::processTelx(DataAVPacket const * const sub) {
 				log((int64_t)convertToTimescale(page->showTimestamp * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000) < clockToTimescale(intClock, 1000) ? Warning : Debug,
 					"framesProduced %s, show=%s:hide=%s, clocks:data=%s:int=%s,ext=%s, content=%s",
 					page->framesProduced, convertToTimescale(page->showTimestamp * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000), convertToTimescale(page->hideTimestamp * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000),
-					clockToTimescale(sub->getMediaTime(), 1000), clockToTimescale(intClock, 1000), clockToTimescale(extClock, 1000), page->ss.str());
+					clockToTimescale(sub->getMediaTime(), 1000), clockToTimescale(intClock, 1000), clockToTimescale(extClock, 1000), page->toString());
 
 				auto const startTimeInMs = convertToTimescale(page->showTimestamp * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000);
 				auto const durationInMs = convertToTimescale((page->hideTimestamp - page->showTimestamp) * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000);
@@ -190,7 +213,7 @@ void TeletextToTTML::process(Data data) {
 	extClock = data->getMediaTime();
 	//TODO
 	//14. add flush() for ondemand samples
-	//15. UTF8 to TTML formatting? accent + EOLs </br>
+	//15. UTF8 to TTML formatting? accent
 	auto sub = safe_cast<const DataAVPacket>(data);
 	if (sub->size()) {
 		processTelx(sub.get());

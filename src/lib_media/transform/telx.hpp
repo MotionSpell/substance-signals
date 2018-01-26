@@ -16,20 +16,20 @@
 namespace {
 
 struct Config : public Modules::Transform::ITelxConfig {
-	uint8_t verbose = NO;
+	uint8_t verbose = No;
 	uint16_t page = 0;
 	uint16_t tid = 0;      // 13 bits packet ID for teletext stream
-	uint8_t colors = NO;   // output <font...></font> tags
-	uint8_t bom = YES;
-	uint8_t nonempty = NO; // produce at least one (dummy) frame
+	uint8_t colors = No;   // output <font...></font> tags
+	uint8_t bom = Yes;
+	uint8_t nonempty = No; // produce at least one (dummy) frame
 	uint64_t UTCReferenceTime = 0;
-	uint8_t seMode = NO;
-	PrimaryCharset primaryCharset = { 0x00, UNDEF, UNDEF };
-	State states = { NO, NO };
+	uint8_t seMode = No;
+	PrimaryCharset primaryCharset = { 0x00, Undef, Undef };
+	State states = { No, No };
 	uint32_t framesProduced = 0;
 	uint8_t cc_map[256] = { 0 };
-	TransmissionMode transmissionMode = SERIAL;
-	uint8_t receivingData = NO; // flag indicating if incoming data should be processed or ignored
+	TransmissionMode transmissionMode = Serial;
+	uint8_t receivingData = No; // flag indicating if incoming data should be processed or ignored
 	PageBuffer pageBuffer;
 	uint16_t G0[5][96] = { //G0 charsets in UCS-2
 		{ // Latin G0 Primary Set
@@ -81,7 +81,7 @@ struct Config : public Modules::Transform::ITelxConfig {
 
 uint16_t telx_to_ucs2(uint8_t c, Config &config) {
 	if (Parity8[c] == 0) {
-		Log::msg(Warning, "Teletext: Unrecoverable data error (5): %s\n", c);
+		Log::msg(Warning, "Teletext: Unrecoverable data error (5): %s", c);
 		return 0x20;
 	}
 
@@ -94,12 +94,12 @@ uint16_t telx_to_ucs2(uint8_t c, Config &config) {
 
 void remap_g0_charset(uint8_t c, Config &config) {
 	if (c != config.primaryCharset.current) {
-		uint8_t m = G0_LATIN_NATIONAL_SUBSETS_MAP[c];
+		uint8_t m = G0_LatinNationalSubsetsMap[c];
 		if (m == 0xff) {
-			Log::msg(Warning, "Teletext: G0 subset %s.%s is not implemented\n", (c >> 3), (c & 0x7));
+			Log::msg(Warning, "Teletext: G0 subset %s.%s is not implemented", (c >> 3), (c & 0x7));
 		} else {
 			for (uint8_t j = 0; j < 13; j++) {
-				config.G0[LATIN][G0_LATIN_NATIONAL_SUBSETS_POSITIONS[j]] = G0_LATIN_NATIONAL_SUBSETS[m].characters[j];
+				config.G0[LATIN][G0_LatinNationalSubsetsPositions[j]] = G0_LatinNationalSubsets[m].characters[j];
 			}
 			config.primaryCharset.current = c;
 		}
@@ -109,24 +109,24 @@ void remap_g0_charset(uint8_t c, Config &config) {
 std::unique_ptr<Modules::Transform::Page> process_page(Config &config) {
 	PageBuffer *pageIn = &config.pageBuffer;
 	auto pageOut = uptr(new Modules::Transform::Page);
-	uint8_t emptyPage = YES;
+	uint8_t emptyPage = Yes;
 	for (uint8_t col = 0; col < 40; col++) {
 		for (uint8_t row = 1; row < 25; row++) {
 			if (pageIn->text[row][col] == 0x0b) {
-				emptyPage = NO;
+				emptyPage = No;
 				goto emptyPage;
 			}
 		}
 	}
 
 emptyPage:
-	if (emptyPage == YES)
+	if (emptyPage == Yes)
 		return pageOut;
 
 	if (pageIn->showTimestamp > pageIn->hideTimestamp)
 		pageIn->hideTimestamp = pageIn->showTimestamp;
 
-	if (config.seMode == YES) {
+	if (config.seMode == Yes) {
 		++config.framesProduced;
 		pageOut->tsInMs = pageIn->showTimestamp;
 	} else {
@@ -158,7 +158,7 @@ emptyPage:
 
 		// section 12.2: Alpha White ("Set-After") - Start-of-row default condition.
 		uint8_t fgColor = 0x7; //white(7)
-		uint8_t fontTagOpened = NO;
+		uint8_t fontTagOpened = No;
 		for (uint8_t col = 0; col <= colStop; col++) {
 			uint16_t val = pageIn->text[row][col];
 			if (col < colStart) {
@@ -166,22 +166,22 @@ emptyPage:
 					fgColor = (uint8_t)val;
 			}
 			if (col == colStart) {
-				if ((fgColor != 0x7) && (config.colors == YES)) {
-					//TODO: look for "//colors:": fprintf(fout, "<font color=\"%s\">", TELX_COLORS[fgColor]);
-					fontTagOpened = YES;
+				if ((fgColor != 0x7) && (config.colors == Yes)) {
+					//TODO: look for "//colors:": fprintf(fout, "<font color=\"%s\">", TELX_Colors[fgColor]);
+					fontTagOpened = Yes;
 				}
 			}
 
 			if (col >= colStart) {
 				if (val <= 0x7) {
-					if (config.colors == YES) {
-						if (fontTagOpened == YES) {
+					if (config.colors == Yes) {
+						if (fontTagOpened == Yes) {
 							//colors: fprintf(fout, "</font> ");
-							fontTagOpened = NO;
+							fontTagOpened = No;
 						}
 						if ((val > 0x0) && (val < 0x7)) {
-							//colors: fprintf(fout, "<font color=\"%s\">", TELX_COLORS[v]);
-							fontTagOpened = YES;
+							//colors: fprintf(fout, "<font color=\"%s\">", TELX_Colors[v]);
+							fontTagOpened = Yes;
 						}
 					} else {
 						val = 0x20;
@@ -189,7 +189,7 @@ emptyPage:
 				}
 
 				if (val >= 0x20) {
-					if (config.colors == YES) {
+					if (config.colors == Yes) {
 						for (uint8_t i = 0; i < sizeof(entities) / sizeof(entities[0]); i++) {
 							if (val == entities[i].character) { // translate chars into entities when in color mode
 								//colors: fprintf(fout, "%s", entities[i].entity);
@@ -203,21 +203,25 @@ emptyPage:
 				if (val >= 0x20) {
 					char u[4] = { 0, 0, 0, 0 };
 					ucs2_to_utf8(u, val);
-					pageOut->ss << u;
+					*pageOut->ss << u;
 				}
 			}
 		}
 
-		if ((config.colors == YES) && (fontTagOpened == YES)) {
+		if ((config.colors == Yes) && (fontTagOpened == Yes)) {
 			//colors: fprintf(fout, "</font>");
-			fontTagOpened = NO;
+			fontTagOpened = No;
 		}
 
-		pageOut->ss << ((config.seMode == YES) ? " " : "\r\n"); // line delimiter
+		if (config.seMode == Yes) {
+			*pageOut->ss << " ";
+		} else {
+			pageOut->lines.resize(pageOut->lines.size()+1);
+			pageOut->ss = &pageOut->lines[pageOut->lines.size()-1];
+		}
 	}
 
-	pageOut->ss << "\r\n";
-	pageOut->ss.flush();
+	pageOut->ss->flush();
 	return pageOut;
 }
 
@@ -236,7 +240,7 @@ std::unique_ptr<Modules::Transform::Page> process_telx_packet(Config &config, Da
 		uint8_t subtitleFlag = (unham_8_4(packet->data[5]) & 0x08) >> 3;
 		config.cc_map[i] |= subtitleFlag << (m - 1);
 
-		if ((config.page == 0) && (subtitleFlag == YES) && (i < 0xff)) {
+		if ((config.page == 0) && (subtitleFlag == Yes) && (i < 0xff)) {
 			config.page = (m << 8) | (unham_8_4(packet->data[1]) << 4) | unham_8_4(packet->data[0]);
 		}
 
@@ -245,21 +249,21 @@ std::unique_ptr<Modules::Transform::Page> process_telx_packet(Config &config, Da
 		
 		// Section 9.3.1.3
 		config.transmissionMode = (TransmissionMode)(unham_8_4(packet->data[7]) & 0x01);
-		if ((config.transmissionMode == PARALLEL) && (dataUnitId != SUBTITLE))
+		if ((config.transmissionMode == Parallel) && (dataUnitId != Subtitle))
 			return nullptr;
 
-		if ((config.receivingData == YES) && (
-			((config.transmissionMode == SERIAL) && (PAGE(pageNum) != PAGE(config.page))) ||
-			((config.transmissionMode == PARALLEL) && (PAGE(pageNum) != PAGE(config.page)) && (m == MAGAZINE(config.page)))
+		if ((config.receivingData == Yes) && (
+			((config.transmissionMode == Serial) && (PAGE(pageNum) != PAGE(config.page))) ||
+			((config.transmissionMode == Parallel) && (PAGE(pageNum) != PAGE(config.page)) && (m == MAGAZINE(config.page)))
 			)) {
-			config.receivingData = NO;
+			config.receivingData = No;
 			return nullptr;
 		}
 
 		if (pageNum != config.page)
 			return nullptr; //page transmission is terminated, however now we are waiting for our new page
 
-		if (config.pageBuffer.tainted == YES) { //begining of page transmission
+		if (config.pageBuffer.tainted == Yes) { //begining of page transmission
 			config.pageBuffer.hideTimestamp = timestamp - 40;
 			pageOut = process_page(config);
 		}
@@ -267,20 +271,20 @@ std::unique_ptr<Modules::Transform::Page> process_telx_packet(Config &config, Da
 		config.pageBuffer.showTimestamp = timestamp;
 		config.pageBuffer.hideTimestamp = 0;
 		memset(config.pageBuffer.text, 0x00, sizeof(config.pageBuffer.text));
-		config.pageBuffer.tainted = NO;
-		config.receivingData = YES;
-		config.primaryCharset.G0_X28 = UNDEF;
+		config.pageBuffer.tainted = No;
+		config.receivingData = Yes;
+		config.primaryCharset.G0_X28 = Undef;
 
-		uint8_t c = (config.primaryCharset.G0_M29 != UNDEF) ? config.primaryCharset.G0_M29 : charset;
+		uint8_t c = (config.primaryCharset.G0_M29 != Undef) ? config.primaryCharset.G0_M29 : charset;
 		remap_g0_charset(c, config);
-	} else if ((m == MAGAZINE(config.page)) && (y >= 1) && (y <= 23) && (config.receivingData == YES)) {
+	} else if ((m == MAGAZINE(config.page)) && (y >= 1) && (y <= 23) && (config.receivingData == Yes)) {
 		// Section 9.4.1
 		for (uint8_t i = 0; i < 40; i++) {
 			if (config.pageBuffer.text[y][i] == 0x00)
 				config.pageBuffer.text[y][i] = telx_to_ucs2(packet->data[i], config);
 		}
-		config.pageBuffer.tainted = YES;
-	} else if ((m == MAGAZINE(config.page)) && (y == 26) && (config.receivingData == YES)) {
+		config.pageBuffer.tainted = Yes;
+	} else if ((m == MAGAZINE(config.page)) && (y == 26) && (config.receivingData == Yes)) {
 		// Section 12.3.2
 		uint8_t X26Row = 0, X26Col = 0;
 		uint32_t triplets[13] = { 0 };
@@ -290,7 +294,7 @@ std::unique_ptr<Modules::Transform::Page> process_telx_packet(Config &config, Da
 
 		for (uint8_t j = 0; j < 13; j++) {
 			if (triplets[j] == 0xffffffff) {
-				Log::msg(Warning, "Teletext: unrecoverable data error (1): %s\n", triplets[j]);
+				Log::msg(Warning, "Teletext: unrecoverable data error (1): %s", triplets[j]);
 				continue;
 			}
 
@@ -298,36 +302,36 @@ std::unique_ptr<Modules::Transform::Page> process_telx_packet(Config &config, Da
 			uint8_t mode = (triplets[j] & 0x7c0) >> 6;
 			uint8_t address = triplets[j] & 0x3f;
 			uint8_t row_address_group = (address >= 40) && (address <= 63);
-			if ((mode == 0x04) && (row_address_group == YES)) {
+			if ((mode == 0x04) && (row_address_group == Yes)) {
 				X26Row = address - 40;
 				if (X26Row == 0) X26Row = 24;
 				X26Col = 0;
 			}
-			if ((mode >= 0x11) && (mode <= 0x1f) && (row_address_group == YES))
+			if ((mode >= 0x11) && (mode <= 0x1f) && (row_address_group == Yes))
 				break; //termination marker
 
-			if ((mode == 0x0f) && (row_address_group == NO)) {
+			if ((mode == 0x0f) && (row_address_group == No)) {
 				X26Col = address;
 				if (data > 31) config.pageBuffer.text[X26Row][X26Col] = G2[0][data - 0x20];
 			}
 
-			if ((mode >= 0x11) && (mode <= 0x1f) && (row_address_group == NO)) {
+			if ((mode >= 0x11) && (mode <= 0x1f) && (row_address_group == No)) {
 				X26Col = address;
 				if ((data >= 65) && (data <= 90)) { // A - Z
-					config.pageBuffer.text[X26Row][X26Col] = G2_ACCENTS[mode - 0x11][data - 65];
+					config.pageBuffer.text[X26Row][X26Col] = G2_Accents[mode - 0x11][data - 65];
 				} else if ((data >= 97) && (data <= 122)) { // a - z
-					config.pageBuffer.text[X26Row][X26Col] = G2_ACCENTS[mode - 0x11][data - 71];
+					config.pageBuffer.text[X26Row][X26Col] = G2_Accents[mode - 0x11][data - 71];
 				} else {
 					config.pageBuffer.text[X26Row][X26Col] = telx_to_ucs2(data, config);
 				}
 			}
 		}
-	} else if ((m == MAGAZINE(config.page)) && (y == 28) && (config.receivingData == YES)) {
+	} else if ((m == MAGAZINE(config.page)) && (y == 28) && (config.receivingData == Yes)) {
 		// Section 9.4.7
 		if ((designationCode == 0) || (designationCode == 4)) {
 			uint32_t triplet0 = unham_24_18((packet->data[3] << 16) | (packet->data[2] << 8) | packet->data[1]);
 			if (triplet0 == 0xffffffff) {
-				Log::msg(Warning, "Teletext: unrecoverable data error (2): %s\n", triplet0);
+				Log::msg(Warning, "Teletext: unrecoverable data error (2): %s", triplet0);
 			} else {
 				if ((triplet0 & 0x0f) == 0x00) {
 					config.primaryCharset.G0_X28 = (triplet0 & 0x3f80) >> 7;
@@ -340,11 +344,11 @@ std::unique_ptr<Modules::Transform::Page> process_telx_packet(Config &config, Da
 		if ((designationCode == 0) || (designationCode == 4)) {
 			uint32_t triplet0 = unham_24_18((packet->data[3] << 16) | (packet->data[2] << 8) | packet->data[1]);
 			if (triplet0 == 0xffffffff) {
-				Log::msg(Warning, "Teletext: unrecoverable data error (3): %s\n", triplet0);
+				Log::msg(Warning, "Teletext: unrecoverable data error (3): %s", triplet0);
 			} else {
 				if ((triplet0 & 0xff) == 0x00) {
 					config.primaryCharset.G0_M29 = (triplet0 & 0x3f80) >> 7;
-					if (config.primaryCharset.G0_X28 == UNDEF) {
+					if (config.primaryCharset.G0_X28 == Undef) {
 						remap_g0_charset(config.primaryCharset.G0_M29, config);
 					}
 				}
@@ -352,7 +356,7 @@ std::unique_ptr<Modules::Transform::Page> process_telx_packet(Config &config, Da
 		}
 	} else if ((m == 8) && (y == 30)) {
 		// Section 9.8
-		if (config.states.progInfoProcessed == NO) {
+		if (config.states.progInfoProcessed == No) {
 			if (unham_8_4(packet->data[0]) < 2) {
 				for (uint8_t i = 20; i < 40; i++) {
 					uint8_t c = (uint8_t)telx_to_ucs2(packet->data[i], config);
@@ -380,11 +384,11 @@ std::unique_ptr<Modules::Transform::Page> process_telx_packet(Config &config, Da
 				t += (((packet->data[15] & 0xf0) >> 4) * 10 + (packet->data[15] & 0x0f));
 				t -= 40271;
 
-				if (config.seMode == YES) {
+				if (config.seMode == Yes) {
 					config.UTCReferenceTime = t;
-					config.states.PTSIsInit = NO;
+					config.states.PTSIsInit = No;
 				}
-				config.states.progInfoProcessed = YES;
+				config.states.progInfoProcessed = Yes;
 			}
 		}
 	}

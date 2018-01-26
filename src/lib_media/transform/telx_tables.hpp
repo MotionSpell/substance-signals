@@ -5,7 +5,7 @@
 namespace {
 
 #ifdef TELX_COLOR //TODO
-const char* TELX_COLORS[8] = {
+const char* TELX_Colors[8] = {
 	"#000000", "#ff0000", "#00ff00", "#ffff00", "#0000ff", "#ff00ff", "#00ffff", "#ffffff"
 };
 #endif
@@ -77,8 +77,8 @@ enum {
 	HEBREW
 };
 
-//array positions where chars from G0_LATIN_NATIONAL_SUBSETS are injected into G0[LATIN]
-const uint8_t G0_LATIN_NATIONAL_SUBSETS_POSITIONS[13] = {
+//array positions where chars from G0_LatinNationalSubsets are injected into G0[LATIN]
+const uint8_t G0_LatinNationalSubsetsPositions[13] = {
 	0x03, 0x04, 0x20, 0x3b, 0x3c, 0x3d, 0x3e, 0x3f, 0x40, 0x5b, 0x5c, 0x5d, 0x5e
 };
 
@@ -86,7 +86,7 @@ const uint8_t G0_LATIN_NATIONAL_SUBSETS_POSITIONS[13] = {
 struct {
 	const char *language;
 	uint16_t characters[13];
-} const G0_LATIN_NATIONAL_SUBSETS[14] = {
+} const G0_LatinNationalSubsets[14] = {
 	{ // 0
 		"English",
 		{ 0x00a3, 0x0024, 0x0040, 0x00ab, 0x00bd, 0x00bb, 0x005e, 0x0023, 0x002d, 0x00bc, 0x00a6, 0x00be, 0x00f7 }
@@ -141,8 +141,8 @@ struct {
 	}
 };
 
-//references to the G0_LATIN_NATIONAL_SUBSETS array
-const uint8_t G0_LATIN_NATIONAL_SUBSETS_MAP[56] = {
+//references to the G0_LatinNationalSubsets array
+const uint8_t G0_LatinNationalSubsetsMap[56] = {
 	0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
 	0x08, 0x01, 0x02, 0x03, 0x04, 0xff, 0x06, 0xff,
 	0x00, 0x01, 0x02, 0x09, 0x04, 0x05, 0x06, 0xff,
@@ -164,7 +164,7 @@ const uint16_t G2[1][96] = {
 	}
 };
 
-const uint16_t G2_ACCENTS[15][52] = {
+const uint16_t G2_Accents[15][52] = {
 	// A B C D E F G H I J K L M N O P Q R S T U V W X Y Z a b c d e f g h i j k l m n o p q r s t u v w x y z
 	{ // grave
 		0x00c0, 0x0000, 0x0000, 0x0000, 0x00c8, 0x0000, 0x0000, 0x0000, 0x00cc, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x00d2, 0x0000,
