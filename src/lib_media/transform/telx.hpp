@@ -216,8 +216,8 @@ emptyPage:
 		if (config.seMode == Yes) {
 			*pageOut->ss << " ";
 		} else {
-			pageOut->lines.resize(pageOut->lines.size()+1);
-			pageOut->ss = &pageOut->lines[pageOut->lines.size()-1];
+			pageOut->lines.push_back(uptr(new std::stringstream));
+			pageOut->ss = pageOut->lines[pageOut->lines.size()-1].get();
 		}
 	}
 

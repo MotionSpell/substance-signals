@@ -11,10 +11,15 @@ extern "C" {
 namespace Modules {
 namespace Transform {
 
+Page::Page() {
+	lines.push_back(uptr(new std::stringstream));
+	ss = lines[0].get();
+}
+
 const std::string Page::toString() const {
 	std::stringstream str;
 	for (auto &ss : lines) {
-		str << ss.str() << std::endl;
+		str << ss->str() << std::endl;
 	}
 	return str.str();
 }
@@ -41,12 +46,12 @@ const std::string Page::toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs, uin
 
 		auto const numLines = lines.size();
 		if (numLines > 0) {
-			auto const numEffectiveLines = lines[numLines-1].str().empty() ? numLines-1 : numLines;
+			auto const numEffectiveLines = lines[numLines-1]->str().empty() ? numLines-1 : numLines;
 			if (numEffectiveLines > 0) {
 				for (size_t i = 0; i < numEffectiveLines - 1; ++i) {
-					ttml << lines[i].str() << "<br/>\r\n";
+					ttml << lines[i]->str() << "<br/>\r\n";
 				}
-				ttml << lines[numEffectiveLines - 1].str();
+				ttml << lines[numEffectiveLines - 1]->str();
 			}
 		}
 
@@ -80,7 +85,7 @@ const std::string Page::toSRT() {
 		}
 
 		for (auto &ss : lines) {
-			srt << ss.str() << "\r\n";
+			srt << ss->str() << "\r\n";
 		}
 
 		return srt.str();
