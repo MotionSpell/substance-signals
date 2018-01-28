@@ -41,13 +41,17 @@ std::unique_ptr<gpacpp::MPD> createMPD(Stream::AdaptiveStreamingCommon::Type typ
 
 namespace Stream {
 
-MPEG_DASH::MPEG_DASH(const std::string &mpdDir, const std::string &mpdFilename, Type type, uint64_t segDurationInMs, uint64_t timeShiftBufferDepthInMs, uint64_t minUpdatePeriodInMs, uint32_t minBufferTimeInMs, const std::vector<std::string> &baseURLs, const std::string &id, int64_t initialOffsetInMs, bool presignalNextSegment)
+MPEG_DASH::MPEG_DASH(const std::string &mpdDir, const std::string &mpdFilename, Type type, uint64_t segDurationInMs,
+	uint64_t timeShiftBufferDepthInMs, uint64_t minUpdatePeriodInMs, uint32_t minBufferTimeInMs,
+	const std::vector<std::string> &baseURLs, const std::string &id, int64_t initialOffsetInMs, Flags flags)
 : AdaptiveStreamingCommon(type, segDurationInMs),
   mpd(createMPD(type, minBufferTimeInMs, id)), mpdDir(mpdDir), mpdPath(format("%s%s", mpdDir, mpdFilename)), baseURLs(baseURLs),
   minUpdatePeriodInMs(minUpdatePeriodInMs ? minUpdatePeriodInMs : (segDurationInMs ? segDurationInMs : 1000)),
-  timeShiftBufferDepthInMs(timeShiftBufferDepthInMs), initialOffsetInMs(initialOffsetInMs), useSegmentTimeline(segDurationInMs == 0) {
-	if (useSegmentTimeline && presignalNextSegment)
+  timeShiftBufferDepthInMs(timeShiftBufferDepthInMs), initialOffsetInMs(initialOffsetInMs), useSegmentTimeline(segDurationInMs == 0), flags(flags) {
+	if (useSegmentTimeline && (flags & PresignalNextSegment))
 		throw error("Inconsistent parameters: next segment pre-signalling cannot be used with segment timeline.");
+	if (!mpdDir.empty() && (flags & DontRenameSegments))
+		throw error(format("Inconsistent parameters: non-empty mpdDir (%s) not compatible with renaming prevention flag.", mpdDir));
 }
 
 MPEG_DASH::~MPEG_DASH() {
@@ -129,20 +133,20 @@ void MPEG_DASH::ensureManifest() {
 			switch (quality->meta->getStreamType()) {
 			case AUDIO_PKT:
 				rep->samplerate = quality->meta->sampleRate;
-				rep->segment_template->initialization = gf_strdup(format("%s_a_$RepresentationID$-init.mp4", getPeriodID()).c_str());
-				rep->segment_template->media = gf_strdup(format("%s_a_$RepresentationID$-%s.m4s", getPeriodID(), templateName).c_str());
+				rep->segment_template->initialization = gf_strdup(format("%sa_$RepresentationID$-init.mp4", getPeriodID()).c_str());
+				rep->segment_template->media = gf_strdup(format("%sa_$RepresentationID$-%s.m4s", getPeriodID(), templateName).c_str());
 				initFnSrc = format("a_%s-init.mp4", repId);
 				break;
 			case VIDEO_PKT:
 				rep->width = quality->meta->resolution[0];
 				rep->height = quality->meta->resolution[1];
-				rep->segment_template->initialization = gf_strdup(format("%s_v_$RepresentationID$_%sx%s-init.mp4", getPeriodID(), rep->width, rep->height).c_str());
-				rep->segment_template->media = gf_strdup(format("%s_v_$RepresentationID$_%sx%s-%s.m4s", getPeriodID(), rep->width, rep->height, templateName).c_str());
+				rep->segment_template->initialization = gf_strdup(format("%sv_$RepresentationID$_%sx%s-init.mp4", getPeriodID(), rep->width, rep->height).c_str());
+				rep->segment_template->media = gf_strdup(format("%sv_$RepresentationID$_%sx%s-%s.m4s", getPeriodID(), rep->width, rep->height, templateName).c_str());
 				initFnSrc = format("v_%s_%sx%s-init.mp4", repId, rep->width, rep->height);
 				break;
 			case SUBTITLE_PKT:
-				rep->segment_template->initialization = gf_strdup(format("%s_s_$RepresentationID$-init.mp4", getPeriodID()).c_str());
-				rep->segment_template->media = gf_strdup(format("%s_s_$RepresentationID$-%s.m4s", getPeriodID(), templateName).c_str());
+				rep->segment_template->initialization = gf_strdup(format("%ss_$RepresentationID$-init.mp4", getPeriodID()).c_str());
+				rep->segment_template->media = gf_strdup(format("%ss_$RepresentationID$-%s.m4s", getPeriodID(), templateName).c_str());
 				initFnSrc = format("s_%s-init.mp4", repId);
 				break;
 			default:
@@ -150,13 +154,11 @@ void MPEG_DASH::ensureManifest() {
 			}
 
 			switch (quality->meta->getStreamType()) {
-			case AUDIO_PKT:
-			case VIDEO_PKT:
-			case SUBTITLE_PKT: {
+			case AUDIO_PKT: case VIDEO_PKT: case SUBTITLE_PKT: {
 				auto out = outputSegments->getBuffer(0);
-				auto const initFnDst = format("%s%s_%s", mpdDir, getPeriodID(), initFnSrc);
+				auto const initFnDst = format("%s%s%s", mpdDir, getPeriodID(), initFnSrc);
 				moveFile(initFnSrc, initFnDst);
-				out->setMetadata(std::make_shared<MetadataFile>(initFnDst, SEGMENT, quality->meta->getMimeType(), quality->meta->getCodecName(), quality->meta->getDuration(), quality->meta->getSize(), quality->meta->getLatency(), quality->meta->getStartsWithRAP()));
+				out->setMetadata(std::make_shared<MetadataFile>(initFnDst, quality->meta->getStreamType(), quality->meta->getMimeType(), quality->meta->getCodecName(), quality->meta->getDuration(), quality->meta->getSize(), quality->meta->getLatency(), quality->meta->getStartsWithRAP()));
 				outputSegments->emit(out);
 				break;
 			}
@@ -178,7 +180,7 @@ void MPEG_DASH::writeManifest() {
 }
 
 bool MPEG_DASH::moveFile(const std::string &src, const std::string &dst) const {
-	if (src != dst) {
+	if (!src.empty() && (src != dst)) {
 		int retry = MOVE_FILE_NUM_RETRY + 1;
 #ifdef _WIN32
 		while (--retry && (MoveFileA(src.c_str(), dst.c_str())) == 0) {
@@ -198,16 +200,15 @@ bool MPEG_DASH::moveFile(const std::string &src, const std::string &dst) const {
 }
 
 std::string MPEG_DASH::getPeriodID() const {
-	return format("p%s", qualities.size());
+	if (flags & DontRenameSegments) {
+		return "";
+	} else {
+		return format("p%s_", qualities.size());
+	}
 }
 
-std::string MPEG_DASH::getSegmentName(DASHQuality const * const quality, size_t index, u64 segmentNum) const {
-	switch (quality->meta->getStreamType()) {
-	case AUDIO_PKT:    return format("%s%s_a_%s-%s.m4s", mpdDir, getPeriodID(), index, segmentNum);
-	case VIDEO_PKT:    return format("%s%s_v_%s_%sx%s-%s.m4s", mpdDir, getPeriodID(), index, quality->rep->width, quality->rep->height, segmentNum);
-	case SUBTITLE_PKT: return format("%s%s_s_%s-%s.m4s", mpdDir, getPeriodID(), index, segmentNum);
-	default: return "";
-	}
+std::string MPEG_DASH::getPrefixedSegmentName(DASHQuality const * const quality, size_t index, u64 segmentNum) const {
+	return mpdDir + getPeriodID() + getSegmentName(quality, index, segmentNum);
 }
 
 void MPEG_DASH::generateManifest() {
@@ -240,11 +241,11 @@ void MPEG_DASH::generateManifest() {
 				segTime = prevEnt->start_time + prevEnt->duration*(prevEnt->repeat_count);
 			}
 
-			fn = getSegmentName(quality, i, segTime);
+			fn = getPrefixedSegmentName(quality, i, segTime);
 		} else {
 			auto const n = (startTimeInMs + totalDurationInMs) / segDurationInMs;
-			fn = getSegmentName(quality, i, n);
-			fnNext = getSegmentName(quality, i, n+1);
+			fn = getPrefixedSegmentName(quality, i, n);
+			fnNext = getPrefixedSegmentName(quality, i, n+1);
 		}
 		if (!fn.empty()) {
 			log(Debug, "Rename segment \"%s\" -> \"%s\".", quality->meta->getFilename(), fn);
@@ -261,12 +262,12 @@ void MPEG_DASH::generateManifest() {
 			quality->meta = mf;
 
 			auto out = outputSegments->getBuffer(0);
-			out->setMetadata(std::make_shared<MetadataFile>(fn, SEGMENT, quality->meta->getMimeType(), quality->meta->getCodecName(), quality->meta->getDuration(), quality->meta->getSize(), quality->meta->getLatency(), quality->meta->getStartsWithRAP()));
+			out->setMetadata(std::make_shared<MetadataFile>(fn, quality->meta->getStreamType(), quality->meta->getMimeType(), quality->meta->getCodecName(), quality->meta->getDuration(), quality->meta->getSize(), quality->meta->getLatency(), quality->meta->getStartsWithRAP()));
 			outputSegments->emit(out);
 
 			if (!fnNext.empty()) {
 				auto out = outputSegments->getBuffer(0);
-				out->setMetadata(std::make_shared<MetadataFile>(fnNext, SEGMENT, quality->meta->getMimeType(), quality->meta->getCodecName(), quality->meta->getDuration(), 0, quality->meta->getLatency(), quality->meta->getStartsWithRAP()));
+				out->setMetadata(std::make_shared<MetadataFile>(fnNext, quality->meta->getStreamType(), quality->meta->getMimeType(), quality->meta->getCodecName(), quality->meta->getDuration(), 0, quality->meta->getLatency(), quality->meta->getStartsWithRAP()));
 				outputSegments->emit(out);
 			}
 		}

@@ -109,7 +109,7 @@ private:
 	std::string m3u8Dir, playlistMasterPath;
 	const bool genVariantPlaylist;
 
-	uint8_t version = 0;
+	unsigned version = 0;
 	bool hasInitSeg = false;
 	uint64_t firstSegNum = 0;
 };

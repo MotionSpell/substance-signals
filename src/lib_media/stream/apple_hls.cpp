@@ -66,7 +66,10 @@ void Apple_HLS::updateManifestVariants() {
 	if (genVariantPlaylist) {
 		for (size_t i = 0; i < getNumInputs() - 1; ++i) {
 			auto quality = safe_cast<HLSQuality>(qualities[i].get());
-			auto const &fn = quality->meta->getFilename();
+			auto fn = quality->meta->getFilename();
+			if (fn.empty()) {
+				fn = getSegmentName(quality, i, (startTimeInMs + totalDurationInMs) / segDurationInMs);
+			}
 			auto const sepPos = fn.find_last_of(".");
 			auto const ext = fn.substr(sepPos + 1);
 			if (!version) {
@@ -81,7 +84,7 @@ void Apple_HLS::updateManifestVariants() {
 				std::istringstream buffer(firstSegNumStr);
 				buffer >> firstSegNum;
 			}
-			quality->segments.push_back({ quality->meta->getFilename(), startTimeInMs+totalDurationInMs });
+			quality->segments.push_back({ fn, startTimeInMs+totalDurationInMs });
 		}
 
 		generateManifestVariantFull(false);
@@ -92,7 +95,7 @@ void Apple_HLS::generateManifestVariantFull(bool isLast) {
 	if (genVariantPlaylist) {
 		for (size_t i = 0; i < getNumInputs() - 1; ++i) {
 			auto quality = safe_cast<HLSQuality>(qualities[i].get());
-			quality->playlistVariant.clear();
+			quality->playlistVariant.str(std::string());
 			quality->playlistVariant << "#EXTM3U" << std::endl;
 			quality->playlistVariant << "#EXT-X-VERSION:" << version << std::endl;
 			quality->playlistVariant << "#EXT-X-TARGETDURATION:" << (segDurationInMs + 500) / 1000 << std::endl;
@@ -114,10 +117,13 @@ void Apple_HLS::generateManifestVariantFull(bool isLast) {
 					if (!tm) {
 						log(Warning, "Segment \"%s\": could not convert UTC start time %sms. Skippping PROGRAM-DATE-TIME.", seg.startTimeInMs, seg.path);
 					} else {
-						snprintf(cmd, sizeof(cmd), "%d-%02d-%02dT%02d:%02d:%02d.%03d+00:00\r\n", 1900 + tm->tm_year, 1 + tm->tm_mon, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, (int)(seg.startTimeInMs % 1000));
+						snprintf(cmd, sizeof(cmd), "%d-%02d-%02dT%02d:%02d:%02d.%03d+00:00", 1900 + tm->tm_year, 1 + tm->tm_mon, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, (int)(seg.startTimeInMs % 1000));
 						quality->playlistVariant << "#EXT-X-PROGRAM-DATE-TIME:" << cmd << std::endl;
 					}
 				}
+
+				if (seg.path.empty())
+					error("HLS segment path is empty. Even when using memory mode, you must set a valid path in the metadata.");
 				quality->playlistVariant << seg.path << std::endl;
 			}
 			quality->playlistVariant << "#EXT-X-ENDLIST" << std::endl;

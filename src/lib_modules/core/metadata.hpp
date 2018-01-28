@@ -21,7 +21,6 @@ enum StreamType {
 	VIDEO_PKT,    //compressed video
 	SUBTITLE_PKT, //subtitles and captions
 	PLAYLIST,     //playlist and adaptive streaming manifests
-	SEGMENT,      //adaptive streaming segments
 	SIZE_OF_ENUM
 };
 static const char* StreamTypeNames[] = {
@@ -30,8 +29,7 @@ static const char* StreamTypeNames[] = {
 	"audio compressed",
 	"video compressed",
 	"subtitle compressed",
-	"playlist",
-	"segment"
+	"playlist"
 };
 static_assert(sizeof(StreamTypeNames) / sizeof(char*) == StreamType::SIZE_OF_ENUM , "StreamType sizes don't match");
 

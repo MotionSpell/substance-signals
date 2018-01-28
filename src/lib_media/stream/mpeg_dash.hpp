@@ -9,7 +9,13 @@ namespace Stream {
 
 class MPEG_DASH : public AdaptiveStreamingCommon, public gpacpp::Init {
 public:
-	MPEG_DASH(const std::string &mpdDir, const std::string &mpdName, Type type, uint64_t segDurationInMs, uint64_t timeShiftBufferDepthInMs = 0, uint64_t minUpdatePeriodInMs = 0, uint32_t minBufferTimeInMs = 0, const std::vector<std::string> &baseURLs = std::vector<std::string>(), const std::string &id = "id", int64_t initialOffsetInMs = 0, bool presignalNextSegment = false);
+	enum Flags {
+		None = 0,
+		DontRenameSegments,
+		PresignalNextSegment
+	};
+
+	MPEG_DASH(const std::string &mpdDir, const std::string &mpdName, Type type, uint64_t segDurationInMs, uint64_t timeShiftBufferDepthInMs = 0, uint64_t minUpdatePeriodInMs = 0, uint32_t minBufferTimeInMs = 0, const std::vector<std::string> &baseURLs = std::vector<std::string>(), const std::string &id = "id", int64_t initialOffsetInMs = 0, Flags flags = None);
 	virtual ~MPEG_DASH();
 
 private:
@@ -32,13 +38,14 @@ private:
 	void writeManifest();
 	bool moveFile(const std::string &src, const std::string &dst) const;
 	std::string getPeriodID() const;
-	std::string getSegmentName(DASHQuality const * const quality, size_t index, u64 segmentNum) const;
+	std::string getPrefixedSegmentName(DASHQuality const * const quality, size_t index, u64 segmentNum) const;
 	std::unique_ptr<gpacpp::MPD> mpd;
 	const std::string mpdDir, mpdPath;
 	const std::vector<std::string> baseURLs;
 	const uint64_t minUpdatePeriodInMs, timeShiftBufferDepthInMs;
 	const int64_t initialOffsetInMs;
 	const bool useSegmentTimeline = false;
+	const Flags flags;
 };
 
 }

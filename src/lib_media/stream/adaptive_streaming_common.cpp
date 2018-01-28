@@ -11,6 +11,15 @@ AdaptiveStreamingCommon::AdaptiveStreamingCommon(Type type, uint64_t segDuration
 	outputManifest = addOutput<OutputDataDefault<DataAVPacket>>();
 }
 
+std::string AdaptiveStreamingCommon::getSegmentName(Quality const * const quality, size_t index, u64 segmentNum) const {
+	switch (quality->meta->getStreamType()) {
+	case AUDIO_PKT:    return format("a_%s-%s.m4s", index, segmentNum);
+	case VIDEO_PKT:    return format("v_%s_%sx%s-%s.m4s", index, quality->meta->resolution[0], quality->meta->resolution[1], segmentNum);
+	case SUBTITLE_PKT: return format("s_%s-%s.m4s", index, segmentNum);
+	default: return "";
+	}
+}
+
 void AdaptiveStreamingCommon::endOfStream() {
 	if (workingThread.joinable()) {
 		for (size_t i = 0; i < inputs.size(); ++i) {
@@ -51,6 +60,10 @@ void AdaptiveStreamingCommon::threadProc() {
 				qualities[i]->meta = safe_cast<const MetadataFile>(data->getMetadata());
 				if (!qualities[i]->meta)
 					throw error(format("Unknown data received on input %s", i));
+				if (qualities[i]->meta->getDuration() == 0) {
+					--i;
+					continue; //this is an in-memory initialisation segment
+				}
 				qualities[i]->avg_bitrate_in_bps = ((qualities[i]->meta->getSize() * 8) / (segDurationInMs / 1000.0) + qualities[i]->avg_bitrate_in_bps * numSeg) / (numSeg + 1);
 				if (!i) curSegDurInMs = segDurationInMs ? segDurationInMs : clockToTimescale(qualities[i]->meta->getDuration(), 1000);
 				if (!startTimeInMs) startTimeInMs = clockToTimescale(data->getMediaTime(), 1000);

@@ -459,30 +459,18 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 		return;
 	} else {
 		if (segmentPolicy == FragmentedSegment) {
-			const Bool isFile = (Bool)(gf_isom_get_filename(isoInit) != nullptr);
-			GF_Err e = gf_isom_close_segment(isoCur, 0, 0, 0, 0, 0, GF_FALSE, (Bool)isLastSeg, isFile, (compatFlags & Browsers) ? 0 : GF_4CC('e', 'o', 'd', 's'), nullptr, nullptr, &lastSegmentSize);
+			GF_Err e = gf_isom_close_segment(isoCur, 0, 0, 0, 0, 0, GF_FALSE, (Bool)isLastSeg, (Bool)(gf_isom_get_filename(isoInit) != nullptr),
+			                                 (compatFlags & Browsers) ? 0 : GF_4CC('e', 'o', 'd', 's'), nullptr, nullptr, &lastSegmentSize);
 			if (e != GF_OK) {
 				if (DTS == 0) {
 					return;
 				} else
 					throw error(format("gf_isom_close_segment: %s", gf_error_to_string(e)));
 			}
-			if (!isFile) {
-				char *output = nullptr; u32 size = 0;
-				getBsContent(isoCur, output, size);
-				assert(lastSegmentSize == size);
-				assert(!( (compatFlags & FlushFragMemory) && (size != 0) ));
-				lastSegmentSize = size;
-				gf_free(output);
-			}
-		} else {
-			lastSegmentSize = fileSize(segmentName);
 		}
 
-		if ((lastSegmentSize > 0) || (segmentPolicy == IndependentSegment)) {
-			sendOutput();
-			log(Debug, "Segment %s completed (size %s) (startsWithSAP=%s)", segmentName.empty() ? "[in memory]" : segmentName, lastSegmentSize, segmentStartsWithRAP);
-		}
+		sendOutput();
+		log(Debug, "Segment %s completed (size %s) (startsWithSAP=%s)", segmentName.empty() ? "[in memory]" : segmentName, lastSegmentSize, segmentStartsWithRAP);
 
 		curSegmentDurInTs = 0;
 	}
@@ -807,6 +795,28 @@ void GPACMuxMP4::handleInitialTimeOffset() {
 }
 
 void GPACMuxMP4::sendOutput() {
+	if (segmentPolicy == IndependentSegment) {
+		nextFragmentNum = gf_isom_get_next_moof_number(isoCur);
+		GF_Err e = gf_isom_write(isoCur);
+		if (e)
+			throw error(format("gf_isom_write: %s", gf_error_to_string(e)));
+	}
+
+	auto out = output->getBuffer(0);
+	if (gf_isom_get_filename(isoCur)) {
+		lastSegmentSize = fileSize(segmentName);
+	} else {
+		char *output = nullptr; u32 size = 0;
+		getBsContent(isoCur, output, size);
+		if (!size) {
+			assert((segmentPolicy == FragmentedSegment) && (fragmentPolicy > NoFragment));
+			log(Debug, "Empty segment. Ignore.");
+			return;
+		}
+		out->setData((uint8_t*)output, size);
+		lastSegmentSize = size;
+	}
+
 	StreamType streamType;
 	std::string mimeType;
 	switch (gf_isom_get_media_type(isoCur, gf_isom_get_track_by_id(isoCur, trackId))) {
@@ -839,33 +849,15 @@ void GPACMuxMP4::sendOutput() {
 	default: throw error(format("Segment contains neither audio nor video"));
 	}
 
-	auto out = output->getBuffer(0);
-	if (segmentPolicy == IndependentSegment) {
-		nextFragmentNum = gf_isom_get_next_moof_number(isoCur);
-		GF_Err e = gf_isom_write(isoCur);
-		if (e)
-			throw error(format("gf_isom_write: %s", gf_error_to_string(e)));
-		if (!gf_isom_get_filename(isoCur)) {
-			char *output = nullptr; u32 size = 0;
-			getBsContent(isoCur, output, size);
-			out->setData((uint8_t*)output, size);
-			lastSegmentSize = size;
-		}
-		gf_isom_delete(isoCur);
-		if (e != GF_OK && e != GF_ISOM_INVALID_FILE)
-			throw error(format("gf_isom_close (2): %s", gf_error_to_string(e)));
-		isoInit = isoCur = nullptr;
-	} else if (compatFlags & FlushFragMemory) {
-		char *output = nullptr; u32 size = 0;
-		getBsContent(isoCur, output, size);
-		out->setData((uint8_t*)output, size);
-		lastSegmentSize = size;
-	}
-
 	out->setMetadata(metadata);
 	auto const curSegmentStartInTs = DTS - curSegmentDurInTs;
 	out->setMediaTime(convertToTimescale(firstDataAbsTimeInMs, 1000, mediaTs) + curSegmentStartInTs, mediaTs);
 	output->emit(out);
+
+	if (segmentPolicy == IndependentSegment) {
+		gf_isom_delete(isoCur);
+		isoInit = isoCur = nullptr;
+	}
 }
 
 void GPACMuxMP4::startChunk(gpacpp::IsoSample * const sample) {

@@ -40,6 +40,7 @@ public:
 	void flush() override final;
 
 protected:
+	std::string getSegmentName(Quality const * const quality, size_t index, u64 segmentNum) const;
 	void endOfStream();
 
 	const Type type;
