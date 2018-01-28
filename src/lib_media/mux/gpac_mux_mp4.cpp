@@ -30,6 +30,14 @@ uint64_t fileSize(const std::string &fn) {
 	return size;
 }
 
+void getBsContent(GF_ISOFile *iso, char *&output, u32 &size) {
+	GF_BitStream *bs = NULL;
+	GF_Err e = gf_isom_get_bs(iso, &bs);
+	if (e)
+		throw std::runtime_error(format("gf_isom_get_bs: %s", gf_error_to_string(e)));
+	gf_bs_get_content(bs, &output, &size);
+}
+
 static GF_Err avc_import_ffextradata(const u8 *extradata, const u64 extradataSize, GF_AVCConfig *dstcfg) {
 	u8 nalSize;
 	auto avc = uptr(new AVCState);
@@ -358,12 +366,14 @@ GPACMuxMP4::GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs
 : compatFlags(compatFlags), fragmentPolicy(fragmentPolicy), segmentPolicy(segmentPolicy), segmentDurationIn180k(timescaleToClock(segmentDurationInMs, 1000)) {
 	if ((segmentDurationInMs == 0) ^ (segmentPolicy == NoSegment || segmentPolicy == SingleSegment))
 		throw error(format("Inconsistent parameters: segment duration is %sms but no segment.", segmentDurationInMs));
+	if ((segmentDurationInMs == 0) && (fragmentPolicy == Mux::GPACMuxMP4::OneFragmentPerSegment))
+		throw error("Inconsistent parameters: segment duration is 0ms but requested one fragment by segment.");
 	if ((segmentPolicy == SingleSegment || segmentPolicy == FragmentedSegment) && (fragmentPolicy == NoFragment))
 		throw error("Inconsistent parameters: segmented policies requires fragmentation to be enabled.");
 	if ((compatFlags & SmoothStreaming) && (segmentPolicy != IndependentSegment))
 		throw error("Inconsistent parameters: SmoothStreaming compatibility requires IndependentSegment policy.");
-	if ((compatFlags & FlushFragMemory) && ((baseName.empty()) || (segmentPolicy != FragmentedSegment)))
-		throw error("Inconsistent parameters: FlushFragMemory requires a base segment name (for init) and FragmentedSegment policy.");
+	if ((compatFlags & FlushFragMemory) && ((!baseName.empty()) || (segmentPolicy != FragmentedSegment)))
+		throw error("Inconsistent parameters: FlushFragMemory requires an empty segment name and FragmentedSegment policy.");
 
 	if (baseName.empty()) {
 		log(Info, "Working in memory mode.");
@@ -424,25 +434,19 @@ void GPACMuxMP4::startSegment() {
 		}
 
 		if (segmentPolicy == FragmentedSegment) {
-			GF_Err e = gf_isom_start_segment(isoCur, (segmentName.empty() || (compatFlags & FlushFragMemory)) ? nullptr : segmentName.c_str(), GF_TRUE);
+			GF_Err e = gf_isom_start_segment(isoCur, segmentName.empty() ? nullptr : segmentName.c_str(), GF_TRUE);
 			if (e != GF_OK)
 				throw error(format("Impossible to start segment %s (%s): %s", segmentNum, segmentName, gf_error_to_string(e)));
 		} else if (segmentPolicy == IndependentSegment) {
 			isoCur = gf_isom_open(segmentName.empty() ? nullptr : segmentName.c_str(), GF_ISOM_OPEN_WRITE, nullptr);
 			if (!isoCur)
 				throw error(format("Cannot open isoCur file %s"));
-
 			declareStream(inputs[0]->getMetadata());
-
 			startSegmentPostAction();
-			if (fragmentPolicy > NoFragment) {
-				setupFragments();
-			}
-
+			setupFragments();
 			gf_isom_set_next_moof_number(isoCur, (u32)nextFragmentNum);
-		} else {
+		} else
 			throw error("Unknown segment policy (2)");
-		}
 	}
 }
 
@@ -464,13 +468,10 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 					throw error(format("gf_isom_close_segment: %s", gf_error_to_string(e)));
 			}
 			if (!isFile) {
-				GF_BitStream *bs = NULL;
-				GF_Err e = gf_isom_get_bs(isoInit, &bs);
-				if (e)
-					throw error(format("gf_isom_get_bs: %s", gf_error_to_string(e)));
-				char *output; u32 size;
-				gf_bs_get_content(bs, &output, &size);
+				char *output = nullptr; u32 size = 0;
+				getBsContent(isoCur, output, size);
 				assert(lastSegmentSize == size);
+				assert(!( (compatFlags & FlushFragMemory) && (size != 0) ));
 				lastSegmentSize = size;
 				gf_free(output);
 			}
@@ -558,9 +559,13 @@ void GPACMuxMP4::setupFragments() {
 		int mode = 1;
 		if (segmentPolicy == NoSegment || segmentPolicy == IndependentSegment) mode = 0;
 		else if (segmentPolicy == SingleSegment) mode = 2;
-		e = gf_isom_finalize_for_fragment(isoCur, mode);
+		e = gf_isom_finalize_for_fragment(isoCur, mode); //writes moov
 		if (e != GF_OK)
 			throw error(format("Cannot prepare track for movie fragmentation: %s", gf_error_to_string(e)));
+		
+		if (segmentPolicy == FragmentedSegment) {
+			sendOutput(); //init
+		}
 	}
 }
 
@@ -840,29 +845,21 @@ void GPACMuxMP4::sendOutput() {
 		GF_Err e = gf_isom_write(isoCur);
 		if (e)
 			throw error(format("gf_isom_write: %s", gf_error_to_string(e)));
-		if (!gf_isom_get_filename(isoInit)) {
-			GF_BitStream *bs = NULL;
-			e = gf_isom_get_bs(isoCur, &bs);
-			if (e)
-				throw error(format("gf_isom_get_bs: %s", gf_error_to_string(e)));
-			char *output; u32 size;
-			gf_bs_get_content(bs, &output, &size);
+		if (!gf_isom_get_filename(isoCur)) {
+			char *output = nullptr; u32 size = 0;
+			getBsContent(isoCur, output, size);
 			out->setData((uint8_t*)output, size);
 			lastSegmentSize = size;
 		}
 		gf_isom_delete(isoCur);
 		if (e != GF_OK && e != GF_ISOM_INVALID_FILE)
 			throw error(format("gf_isom_close (2): %s", gf_error_to_string(e)));
-		isoCur = nullptr;
+		isoInit = isoCur = nullptr;
 	} else if (compatFlags & FlushFragMemory) {
-		GF_BitStream *bs = NULL;
-		GF_Err e = gf_isom_get_bs(isoInit, &bs);
-		if (e)
-			throw error(format("gf_isom_get_bs: %s", gf_error_to_string(e)));
-		char *output; u32 size;
-		gf_bs_get_content(bs, &output, &size);
+		char *output = nullptr; u32 size = 0;
+		getBsContent(isoCur, output, size);
 		out->setData((uint8_t*)output, size);
-		gf_free(output);
+		lastSegmentSize = size;
 	}
 
 	out->setMetadata(metadata);
@@ -898,7 +895,7 @@ void GPACMuxMP4::addData(gpacpp::IsoSample const * const sample, int64_t lastDat
 			closeFragment();
 			startFragment(sample->DTS, sample->DTS + sample->CTS_Offset);
 		}
-		if ((fragmentPolicy == OneFragmentPerFrame) && !curFragmentDurInTs) {
+		if ((fragmentPolicy > NoFragment) && !curFragmentDurInTs) {
 			startFragment(sample->DTS, sample->DTS + sample->CTS_Offset);
 		}
 
@@ -957,7 +954,7 @@ std::unique_ptr<gpacpp::IsoSample> GPACMuxMP4::fillSample(Data data_) {
 	u32 bufLen = (u32)data->size();
 	const u8 *bufPtr = data->data();
 
-	const u32 mediaType = gf_isom_get_media_type(isoCur, 1);
+	const u32 mediaType = gf_isom_get_media_type(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
 	if (mediaType == GF_ISOM_MEDIA_VISUAL) {
 		if (isAnnexB) {
 			fillVideoSampleData(bufPtr, bufLen, *sample);
