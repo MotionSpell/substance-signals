@@ -2,7 +2,7 @@
 
 #include "adaptive_streaming_common.hpp"
 
-#define LIBAVMUXHLS //FIXME: see https://git.gpac-licensing.com/rbouqueau/fk-encode/issues/18 ; the libav muxer doesn't signal new segments*/
+#define LIBAVMUXHLS //FIXME: see https://git.gpac-licensing.com/rbouqueau/fk-encode/issues/18
 #include "../mux/libav_mux.hpp"
 #include <lib_modules/utils/helper.hpp>
 
@@ -10,18 +10,18 @@ namespace Modules {
 namespace Stream {
 
 #ifdef LIBAVMUXHLS
-class LibavMuxHLS : public ModuleDynI {
+class LibavMuxHLSTS : public ModuleDynI {
 public:
-	LibavMuxHLS(bool isLowLatency, uint64_t segDurationInMs, const std::string &baseDir, const std::string &baseName, const std::string &options = "")
+	LibavMuxHLSTS(bool isLowLatency, uint64_t segDurationInMs, const std::string &baseDir, const std::string &baseName, const std::string &options = "")
 	: segDuration(timescaleToClock(segDurationInMs, 1000)), hlsDir(baseDir), segBasename(baseName) {
 		delegate = createModule<Mux::LibavMux>(isLowLatency ? ALLOC_NUM_BLOCKS_LOW_LATENCY : ALLOC_NUM_BLOCKS_DEFAULT,
-			clock, format("%s%s", hlsDir, baseName), "hls", options);
+		                                       clock, format("%s%s", hlsDir, baseName), "hls", options);
 		addInput(new Input<DataAVPacket>(this));
 		outputSegment  = addOutput<OutputDataDefault<DataAVPacket>>();
 		outputManifest = addOutput<OutputDataDefault<DataAVPacket>>();
 	}
 
-	virtual ~LibavMuxHLS() {}
+	virtual ~LibavMuxHLSTS() {}
 
 	void process() override {
 		size_t inputIdx = 0;
@@ -84,7 +84,7 @@ private:
 
 class Apple_HLS : public AdaptiveStreamingCommon {
 public:
-	Apple_HLS(const std::string &m3u8Dir, const std::string &m3u8Filename, Type type, uint64_t segDurationInMs, bool genVariantPlaylist = false);
+	Apple_HLS(const std::string &m3u8Dir, const std::string &m3u8Filename, Type type, uint64_t segDurationInMs, bool genVariantPlaylist = false, AdaptiveStreamingCommonFlags flags = None);
 	virtual ~Apple_HLS();
 
 private:

@@ -43,11 +43,11 @@ namespace Stream {
 
 MPEG_DASH::MPEG_DASH(const std::string &mpdDir, const std::string &mpdFilename, Type type, uint64_t segDurationInMs,
 	uint64_t timeShiftBufferDepthInMs, uint64_t minUpdatePeriodInMs, uint32_t minBufferTimeInMs,
-	const std::vector<std::string> &baseURLs, const std::string &id, int64_t initialOffsetInMs, Flags flags)
-: AdaptiveStreamingCommon(type, segDurationInMs),
+	const std::vector<std::string> &baseURLs, const std::string &id, int64_t initialOffsetInMs, AdaptiveStreamingCommonFlags flags)
+: AdaptiveStreamingCommon(type, segDurationInMs, flags),
   mpd(createMPD(type, minBufferTimeInMs, id)), mpdDir(mpdDir), mpdPath(format("%s%s", mpdDir, mpdFilename)), baseURLs(baseURLs),
   minUpdatePeriodInMs(minUpdatePeriodInMs ? minUpdatePeriodInMs : (segDurationInMs ? segDurationInMs : 1000)),
-  timeShiftBufferDepthInMs(timeShiftBufferDepthInMs), initialOffsetInMs(initialOffsetInMs), useSegmentTimeline(segDurationInMs == 0), flags(flags) {
+  timeShiftBufferDepthInMs(timeShiftBufferDepthInMs), initialOffsetInMs(initialOffsetInMs), useSegmentTimeline(segDurationInMs == 0) {
 	if (useSegmentTimeline && (flags & PresignalNextSegment))
 		throw error("Inconsistent parameters: next segment pre-signalling cannot be used with segment timeline.");
 	if (!mpdDir.empty() && (flags & DontRenameSegments))

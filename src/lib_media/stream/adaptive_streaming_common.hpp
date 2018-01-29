@@ -32,8 +32,14 @@ public:
 		Live,
 		LiveNonBlocking,
 	};
+	enum AdaptiveStreamingCommonFlags {
+		None = 0,
+		DontRenameSegments,
+		PresignalNextSegment,
+		ForceRealDurations
+	};
 
-	AdaptiveStreamingCommon(Type type, uint64_t segDurationInMs);
+	AdaptiveStreamingCommon(Type type, uint64_t segDurationInMs, AdaptiveStreamingCommonFlags flags);
 	virtual ~AdaptiveStreamingCommon() {}
 
 	void process() override final;
@@ -45,6 +51,7 @@ protected:
 
 	const Type type;
 	uint64_t startTimeInMs=-1, segDurationInMs, totalDurationInMs=0, numSeg=0;
+	const AdaptiveStreamingCommonFlags flags;
 	std::vector<std::unique_ptr<Quality>> qualities;
 	OutputDataDefault<DataAVPacket> *outputSegments, *outputManifest;
 

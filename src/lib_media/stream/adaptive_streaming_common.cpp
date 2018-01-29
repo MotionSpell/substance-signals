@@ -4,8 +4,10 @@
 namespace Modules {
 namespace Stream {
 
-AdaptiveStreamingCommon::AdaptiveStreamingCommon(Type type, uint64_t segDurationInMs)
-: type(type), segDurationInMs(segDurationInMs) {
+AdaptiveStreamingCommon::AdaptiveStreamingCommon(Type type, uint64_t segDurationInMs, AdaptiveStreamingCommonFlags flags)
+: type(type), segDurationInMs(segDurationInMs), flags(flags) {
+	if ((flags & ForceRealDurations) && !segDurationInMs)
+		throw error("Inconsistent parameters: ForceRealDurations flag requires a non-null segment duration.");
 	addInput(new Input<DataRaw>(this));
 	outputSegments = addOutput<OutputDataDefault<DataAVPacket>>();
 	outputManifest = addOutput<OutputDataDefault<DataAVPacket>>();
@@ -29,8 +31,6 @@ void AdaptiveStreamingCommon::endOfStream() {
 	}
 }
 
-//needed because of the use of system time for live - otherwise awake on data as for any multi-input module
-//TODO: add clock to the scheduler, see #14
 void AdaptiveStreamingCommon::threadProc() {
 	log(Info, "start processing at UTC: %sms.", (uint64_t)DataBase::absUTCOffsetInMs);
 
@@ -41,8 +41,8 @@ void AdaptiveStreamingCommon::threadProc() {
 	}
 
 	Data data;
+	uint64_t curSegDurInMs = 0;
 	for (;;) {
-		uint64_t curSegDurInMs = 0;
 		size_t i;
 		for (i = 0; i < numInputs; ++i) {
 			if ((type == LiveNonBlocking) && (!qualities[i]->meta)) {
@@ -61,11 +61,16 @@ void AdaptiveStreamingCommon::threadProc() {
 				if (!qualities[i]->meta)
 					throw error(format("Unknown data received on input %s", i));
 				if (qualities[i]->meta->getDuration() == 0) {
-					--i;
-					continue; //this is an in-memory initialisation segment
+					--i; data = nullptr; continue; //this is an in-memory initialization segment
 				}
 				qualities[i]->avg_bitrate_in_bps = ((qualities[i]->meta->getSize() * 8) / (segDurationInMs / 1000.0) + qualities[i]->avg_bitrate_in_bps * numSeg) / (numSeg + 1);
-				if (!i) curSegDurInMs = segDurationInMs ? segDurationInMs : clockToTimescale(qualities[i]->meta->getDuration(), 1000);
+				if (!i) {
+					if (flags & ForceRealDurations) {
+						curSegDurInMs += clockToTimescale(qualities[i]->meta->getDuration(), 1000);
+					} else {
+						curSegDurInMs = segDurationInMs ? segDurationInMs : clockToTimescale(qualities[i]->meta->getDuration(), 1000);
+					}
+				}
 				if (!startTimeInMs) startTimeInMs = clockToTimescale(data->getMediaTime(), 1000);
 			}
 		}
@@ -78,6 +83,8 @@ void AdaptiveStreamingCommon::threadProc() {
 				continue;
 			}
 		}
+		if (curSegDurInMs < segDurationInMs)
+			continue;
 
 		numSeg++;
 		if (!curSegDurInMs) curSegDurInMs = segDurationInMs;
@@ -88,6 +95,7 @@ void AdaptiveStreamingCommon::threadProc() {
 			(double)totalDurationInMs / 1000, getUTC().num, gf_net_get_utc() - startTimeInMs,
 			data ? (int64_t)(gf_net_get_utc() - clockToTimescale(data->getMediaTime(), 1000)) : 0);
 		data = nullptr;
+		curSegDurInMs = 0;
 
 		if (type != Static) {
 			const int64_t durInMs = startTimeInMs + totalDurationInMs - getUTC().num;
