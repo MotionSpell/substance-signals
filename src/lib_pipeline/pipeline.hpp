@@ -41,7 +41,7 @@ public:
 
 	virtual void start() = 0;
 	virtual void waitForCompletion() = 0;
-	virtual void exitSync() = 0;; /*ask for all sources to finish*/
+	virtual void exitSync() = 0; /*ask for all sources to finish*/
 
 protected:
 	virtual IPipelinedModule* addModuleInternal(std::unique_ptr<Modules::IModule> rawModule) = 0;

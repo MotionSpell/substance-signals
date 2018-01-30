@@ -103,7 +103,7 @@ void GPACMuxMPEG2TS::declareStream(Data data) {
 		ifce->stream_id = 1;
 		ifce->program_number = 0;
 		ifce->stream_type = GF_STREAM_VISUAL;
-		ifce->object_type_indication = metadata->getAVCodecContext()->codec_id == AV_CODEC_ID_H264 ? GPAC_OTI_VIDEO_AVC : GPAC_OTI_VIDEO_HEVC;;
+		ifce->object_type_indication = metadata->getAVCodecContext()->codec_id == AV_CODEC_ID_H264 ? GPAC_OTI_VIDEO_AVC : GPAC_OTI_VIDEO_HEVC;
 		ifce->fourcc = 0;
 		ifce->lang = 0;
 		ifce->timescale = (u32)metadata->getTimeScale().num;
