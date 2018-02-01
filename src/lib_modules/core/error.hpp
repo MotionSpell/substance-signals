@@ -19,7 +19,7 @@ private:
 
 class ErrorCap {
 protected:
-	std::exception error(std::string const &msg) {
+	std::exception error(std::string const &msg) const {
 		throw Exception(format("[%s] %s", typeid(*this).name(), msg));
 	}
 };
