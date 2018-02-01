@@ -45,6 +45,9 @@
     <ClCompile Include="modules_timings.cpp">
       <Filter>tests</Filter>
     </ClCompile>
+    <ClCompile Include="modules_streamer.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="tests">

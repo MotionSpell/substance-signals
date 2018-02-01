@@ -4,22 +4,42 @@
 namespace Modules {
 namespace Stream {
 
-AdaptiveStreamingCommon::AdaptiveStreamingCommon(Type type, uint64_t segDurationInMs, AdaptiveStreamingCommonFlags flags)
-: type(type), segDurationInMs(segDurationInMs), flags(flags) {
+AdaptiveStreamingCommon::AdaptiveStreamingCommon(Type type, uint64_t segDurationInMs, const std::string &manifestDir, AdaptiveStreamingCommonFlags flags)
+: type(type), segDurationInMs(segDurationInMs), manifestDir(manifestDir), flags(flags) {
 	if ((flags & ForceRealDurations) && !segDurationInMs)
 		throw error("Inconsistent parameters: ForceRealDurations flag requires a non-null segment duration.");
+	if (!manifestDir.empty() && (flags & SegmentsNotOwned))
+		throw error(format("Inconsistent parameters: manifestDir (%s) should be empty when segments are not owned.", manifestDir));
 	addInput(new Input<DataRaw>(this));
 	outputSegments = addOutput<OutputDataDefault<DataAVPacket>>();
 	outputManifest = addOutput<OutputDataDefault<DataAVPacket>>();
 }
 
-std::string AdaptiveStreamingCommon::getSegmentName(Quality const * const quality, size_t index, u64 segmentNum) const {
+std::string AdaptiveStreamingCommon::getInitName(Quality const * const quality, size_t index) const {
 	switch (quality->meta->getStreamType()) {
-	case AUDIO_PKT:    return format("a_%s-%s.m4s", index, segmentNum);
-	case VIDEO_PKT:    return format("v_%s_%sx%s-%s.m4s", index, quality->meta->resolution[0], quality->meta->resolution[1], segmentNum);
-	case SUBTITLE_PKT: return format("s_%s-%s.m4s", index, segmentNum);
+	case AUDIO_PKT: case VIDEO_PKT: case SUBTITLE_PKT: return format("%s-init.m4s", getPrefix(quality, index));
 	default: return "";
 	}
+}
+
+std::string AdaptiveStreamingCommon::getPrefix(Quality const * const quality, size_t index) const {
+	switch (quality->meta->getStreamType()) {
+	case AUDIO_PKT:    return format("%sa_%s", quality->prefix, index);
+	case VIDEO_PKT:    return format("%sv_%s_%sx%s", quality->prefix, index, quality->meta->resolution[0], quality->meta->resolution[1]);
+	case SUBTITLE_PKT: return format("%ss_%s", quality->prefix, index);
+	default: return "";
+	}
+}
+
+std::string AdaptiveStreamingCommon::getSegmentName(Quality const * const quality, size_t index, const std::string &segmentNumSymbol) const {
+	switch (quality->meta->getStreamType()) {
+	case AUDIO_PKT: case VIDEO_PKT: case SUBTITLE_PKT: return format("%s-%s.m4s", getPrefix(quality, index), segmentNumSymbol);
+	default: return "";
+	}
+}
+
+uint64_t AdaptiveStreamingCommon::getCurSegNum() const {
+	return (startTimeInMs + totalDurationInMs) / segDurationInMs;
 }
 
 void AdaptiveStreamingCommon::endOfStream() {
@@ -61,9 +81,18 @@ void AdaptiveStreamingCommon::threadProc() {
 				if (!qualities[i]->meta)
 					throw error(format("Unknown data received on input %s", i));
 				if (qualities[i]->meta->getDuration() == 0) {
-					--i; data = nullptr; continue; //this is an in-memory initialization segment
+					processInitSegment(qualities[i].get(), i);
+					--i; data = nullptr; continue;
 				}
-				qualities[i]->avg_bitrate_in_bps = ((qualities[i]->meta->getSize() * 8) / (segDurationInMs / 1000.0) + qualities[i]->avg_bitrate_in_bps * numSeg) / (numSeg + 1);
+				qualities[i]->avg_bitrate_in_bps = ((qualities[i]->meta->getSize() * 8 * Clock::Rate) / qualities[i]->meta->getDuration() + qualities[i]->avg_bitrate_in_bps * numSeg) / (numSeg + 1);
+				if (qualities[i]->prefix.empty()) {
+					qualities[i]->prefix = format("%s_%sK/", getPrefix(qualities[i].get(), i), qualities[i]->avg_bitrate_in_bps / (8 * 1024));
+					if (!(flags & SegmentsNotOwned)) {
+						auto const dir = format("%s%s", manifestDir, qualities[i]->prefix);
+						if ((gf_dir_exists(dir.c_str()) == GF_FALSE) && gf_mkdir(qualities[i]->prefix.c_str()))
+							throw std::runtime_error(format("couldn't create subdir %s: please check you have sufficient rights", qualities[i]->prefix));
+					}
+				}
 				if (!i) {
 					if (flags & ForceRealDurations) {
 						curSegDurInMs += clockToTimescale(qualities[i]->meta->getDuration(), 1000);
@@ -71,7 +100,6 @@ void AdaptiveStreamingCommon::threadProc() {
 						curSegDurInMs = segDurationInMs ? segDurationInMs : clockToTimescale(qualities[i]->meta->getDuration(), 1000);
 					}
 				}
-				if (!startTimeInMs) startTimeInMs = clockToTimescale(data->getMediaTime(), 1000);
 			}
 		}
 		if (!data) {
@@ -83,12 +111,10 @@ void AdaptiveStreamingCommon::threadProc() {
 				continue;
 			}
 		}
-		if (curSegDurInMs < segDurationInMs)
-			continue;
 
 		numSeg++;
 		if (!curSegDurInMs) curSegDurInMs = segDurationInMs;
-		if (!startTimeInMs) startTimeInMs = DataBase::absUTCOffsetInMs - curSegDurInMs;
+		if (!startTimeInMs) startTimeInMs = clockToTimescale(data->getMediaTime(), 1000);
 		generateManifest();
 		totalDurationInMs += curSegDurInMs;
 		log(Info, "Processes segment (total processed: %ss, UTC: %sms (deltaAST=%s, deltaInput=%s).",

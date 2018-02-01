@@ -13,7 +13,7 @@ namespace Modules {
 namespace Stream {
 
 Apple_HLS::Apple_HLS(const std::string &m3u8Dir, const std::string &m3u8Filename, Type type, uint64_t segDurationInMs, bool genVariantPlaylist, AdaptiveStreamingCommonFlags flags)
-: AdaptiveStreamingCommon(type, segDurationInMs, flags), m3u8Dir(m3u8Dir), playlistMasterPath(format("%s%s", m3u8Dir, m3u8Filename)), genVariantPlaylist(genVariantPlaylist) {
+: AdaptiveStreamingCommon(type, segDurationInMs, m3u8Dir, flags), playlistMasterPath(format("%s%s", m3u8Dir, m3u8Filename)), genVariantPlaylist(genVariantPlaylist) {
 	if (segDurationInMs % 1000)
 		throw error("Segment duration must be an integer number of seconds.");
 }
@@ -26,39 +26,55 @@ std::unique_ptr<Quality> Apple_HLS::createQuality() const {
 	return uptr<Quality>(safe_cast<Quality>(new HLSQuality));
 }
 
-std::string Apple_HLS::getVariantPlaylistName(HLSQuality const * const quality, const std::string &subDir, size_t index, bool isInit) {
-	auto const suffix = isInit ? "-init.m4s" : "_.m3u8";
+void Apple_HLS::processInitSegment(Quality const * const quality, size_t index) {
 	switch (quality->meta->getStreamType()) {
-	case AUDIO_PKT:    return format("%sa_%s%s", subDir, index, suffix);
-	case VIDEO_PKT:    return format("%sv_%s_%sx%s%s", subDir, index, quality->meta->resolution[0], quality->meta->resolution[1], suffix);
-	case SUBTITLE_PKT: return format("%ss_%s%s", subDir, index, suffix);
+	case AUDIO_PKT: case VIDEO_PKT: case SUBTITLE_PKT: {
+		auto out = outputSegments->getBuffer(0);
+		auto const initFnSrc = getInitName(quality, index);
+		auto const initFnDst = format("%s%s", manifestDir, initFnSrc);
+		out->setMetadata(std::make_shared<MetadataFile>(initFnDst, quality->meta->getStreamType(), quality->meta->getMimeType(), quality->meta->getCodecName(), quality->meta->getDuration(), quality->meta->getSize(), quality->meta->getLatency(), quality->meta->getStartsWithRAP()));
+		outputSegments->emit(out);
+		break;
+	}
+	default: break;
+	}
+}
+
+std::string Apple_HLS::getVariantPlaylistName(HLSQuality const * const quality, const std::string &subDir, size_t index) {
+	switch (quality->meta->getStreamType()) {
+	case AUDIO_PKT:    return format("%s%sa_%s_.m3u8", subDir, quality->prefix, index);
+	case VIDEO_PKT:    return format("%s%sv_%s_%sx%s_.m3u8", subDir, quality->prefix, index, quality->meta->resolution[0], quality->meta->resolution[1]);
+	case SUBTITLE_PKT: return format("%s%ss_%s", subDir, quality->prefix, index);
 	default: return "";
 	}
 }
 
 void Apple_HLS::generateManifestMaster() {
-	std::stringstream playlistMaster;
-	playlistMaster << "#EXTM3U" << std::endl;
-	playlistMaster << "#EXT-X-VERSION:3" << std::endl;
-	for (size_t i = 0; i < getNumInputs() - 1; ++i) {
-		auto quality = safe_cast<HLSQuality>(qualities[i].get());
-		playlistMaster << "#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=" << quality->avg_bitrate_in_bps;
-		switch (quality->meta->getStreamType()) {
-		case AUDIO_PKT: playlistMaster << ",CODECS=" << "mp4a.40.5" /*TODO: quality->meta->getCodecName()*/ << std::endl; break;
-		case VIDEO_PKT: playlistMaster << ",RESOLUTION=" << quality->meta->resolution[0] << "x" << quality->meta->resolution[1] << std::endl; break;
-		default: assert(0);
+	if (!masterManifestIsWritten) {
+		std::stringstream playlistMaster;
+		playlistMaster << "#EXTM3U" << std::endl;
+		playlistMaster << "#EXT-X-VERSION:3" << std::endl;
+		for (size_t i = 0; i < getNumInputs() - 1; ++i) {
+			auto quality = safe_cast<HLSQuality>(qualities[i].get());
+			playlistMaster << "#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=" << quality->avg_bitrate_in_bps;
+			switch (quality->meta->getStreamType()) {
+			case AUDIO_PKT: playlistMaster << ",CODECS=" << "mp4a.40.5" /*TODO: quality->meta->getCodecName()*/ << std::endl; break;
+			case VIDEO_PKT: playlistMaster << ",RESOLUTION=" << quality->meta->resolution[0] << "x" << quality->meta->resolution[1] << std::endl; break;
+			default: assert(0);
+			}
+			playlistMaster << getVariantPlaylistName(quality, "", i) << std::endl;
 		}
-		playlistMaster << getVariantPlaylistName(quality, "", i, false) << std::endl;
-	}
-	std::ofstream mpl(playlistMasterPath, std::ofstream::out | std::ofstream::trunc);
-	mpl << playlistMaster.str();
-	mpl.close();
+		std::ofstream mpl(playlistMasterPath, std::ofstream::out | std::ofstream::trunc);
+		mpl << playlistMaster.str();
+		mpl.close();
+		masterManifestIsWritten = true;
 
-	if (type != Static) {
-		auto out = outputManifest->getBuffer(0);
-		auto metadata = std::make_shared<MetadataFile>(playlistMasterPath, PLAYLIST, "", "", timescaleToClock(segDurationInMs, 1000), 0, 1, false);
-		out->setMetadata(metadata);
-		outputManifest->emit(out);
+		if (type != Static) {
+			auto out = outputManifest->getBuffer(0);
+			auto metadata = std::make_shared<MetadataFile>(playlistMasterPath, PLAYLIST, "", "", timescaleToClock(segDurationInMs, 1000), 0, 1, false);
+			out->setMetadata(metadata);
+			outputManifest->emit(out);
+		}
 	}
 }
 
@@ -68,7 +84,7 @@ void Apple_HLS::updateManifestVariants() {
 			auto quality = safe_cast<HLSQuality>(qualities[i].get());
 			auto fn = quality->meta->getFilename();
 			if (fn.empty()) {
-				fn = getSegmentName(quality, i, (startTimeInMs + totalDurationInMs) / segDurationInMs);
+				fn = getSegmentName(quality, i, std::to_string(getCurSegNum()));
 			}
 			auto const sepPos = fn.find_last_of(".");
 			auto const ext = fn.substr(sepPos + 1);
@@ -84,6 +100,11 @@ void Apple_HLS::updateManifestVariants() {
 				std::istringstream buffer(firstSegNumStr);
 				buffer >> firstSegNum;
 			}
+
+			auto out = outputSegments->getBuffer(0);
+			out->setMetadata(std::make_shared<MetadataFile>(format("%s%s", manifestDir, fn), quality->meta->getStreamType(), quality->meta->getMimeType(), quality->meta->getCodecName(), quality->meta->getDuration(), quality->meta->getSize(), quality->meta->getLatency(), quality->meta->getStartsWithRAP()));
+			outputSegments->emit(out);
+
 			quality->segments.push_back({ fn, startTimeInMs+totalDurationInMs });
 		}
 
@@ -101,7 +122,7 @@ void Apple_HLS::generateManifestVariantFull(bool isLast) {
 			quality->playlistVariant << "#EXT-X-TARGETDURATION:" << (segDurationInMs + 500) / 1000 << std::endl;
 			quality->playlistVariant << "#EXT-X-MEDIA-SEQUENCE:" << firstSegNum << std::endl;
 			if (version >= 6) quality->playlistVariant << "#EXT-X-INDEPENDENT-SEGMENTS" << std::endl;
-			if (hasInitSeg) quality->playlistVariant << "#EXT-X-MAP:URI=\"" << getVariantPlaylistName(quality, "", i, true) << "\"" << std::endl;
+			if (hasInitSeg) quality->playlistVariant << "#EXT-X-MAP:URI=\"" << getInitName(quality, i) << "\"" << std::endl;
 			quality->playlistVariant << "#EXT-X-PLAYLIST-TYPE:EVENT" << std::endl;
 
 			for (auto &seg : quality->segments) {
@@ -129,7 +150,7 @@ void Apple_HLS::generateManifestVariantFull(bool isLast) {
 			quality->playlistVariant << "#EXT-X-ENDLIST" << std::endl;
 
 			std::ofstream vpl;
-			auto const playlistCurVariantPath = getVariantPlaylistName(quality, m3u8Dir, i, false);
+			auto const playlistCurVariantPath = getVariantPlaylistName(quality, manifestDir, i);
 			vpl.open(playlistCurVariantPath, std::ofstream::out | std::ofstream::trunc);
 			vpl << quality->playlistVariant.str();
 			vpl.close();

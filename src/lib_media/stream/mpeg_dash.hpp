@@ -14,6 +14,7 @@ public:
 
 private:
 	std::unique_ptr<Quality> createQuality() const override;
+	void processInitSegment(Quality const * const quality, size_t index) override;
 	void generateManifest() override;
 	void finalizeManifest() override;
 
@@ -34,7 +35,7 @@ private:
 	std::string getPeriodID() const;
 	std::string getPrefixedSegmentName(DASHQuality const * const quality, size_t index, u64 segmentNum) const;
 	std::unique_ptr<gpacpp::MPD> mpd;
-	const std::string mpdDir, mpdPath;
+	const std::string mpdPath;
 	const std::vector<std::string> baseURLs;
 	const uint64_t minUpdatePeriodInMs, timeShiftBufferDepthInMs;
 	const int64_t initialOffsetInMs;

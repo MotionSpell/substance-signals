@@ -89,6 +89,7 @@ public:
 
 private:
 	std::unique_ptr<Quality> createQuality() const override;
+	void processInitSegment(Quality const * const quality, size_t index) override;
 	void generateManifest() override;
 	void finalizeManifest() override;
 
@@ -101,16 +102,16 @@ private:
 		std::stringstream playlistVariant;
 		std::vector<Segment> segments;
 	};
-	std::string getVariantPlaylistName(HLSQuality const * const quality, const std::string &subDir, size_t index, bool isInit);
+	std::string getVariantPlaylistName(HLSQuality const * const quality, const std::string &subDir, size_t index);
 	void updateManifestVariants();
 	void generateManifestVariantFull(bool isLast);
 
 	void generateManifestMaster();
-	std::string m3u8Dir, playlistMasterPath;
+	std::string playlistMasterPath;
 	const bool genVariantPlaylist;
 
 	unsigned version = 0;
-	bool hasInitSeg = false;
+	bool masterManifestIsWritten = false, hasInitSeg = false;
 	uint64_t firstSegNum = 0;
 };
 

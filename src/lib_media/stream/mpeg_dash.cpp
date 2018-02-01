@@ -44,14 +44,12 @@ namespace Stream {
 MPEG_DASH::MPEG_DASH(const std::string &mpdDir, const std::string &mpdFilename, Type type, uint64_t segDurationInMs,
 	uint64_t timeShiftBufferDepthInMs, uint64_t minUpdatePeriodInMs, uint32_t minBufferTimeInMs,
 	const std::vector<std::string> &baseURLs, const std::string &id, int64_t initialOffsetInMs, AdaptiveStreamingCommonFlags flags)
-: AdaptiveStreamingCommon(type, segDurationInMs, flags),
-  mpd(createMPD(type, minBufferTimeInMs, id)), mpdDir(mpdDir), mpdPath(format("%s%s", mpdDir, mpdFilename)), baseURLs(baseURLs),
+: AdaptiveStreamingCommon(type, segDurationInMs, mpdDir, flags),
+  mpd(createMPD(type, minBufferTimeInMs, id)), mpdPath(format("%s%s", mpdDir, mpdFilename)), baseURLs(baseURLs),
   minUpdatePeriodInMs(minUpdatePeriodInMs ? minUpdatePeriodInMs : (segDurationInMs ? segDurationInMs : 1000)),
   timeShiftBufferDepthInMs(timeShiftBufferDepthInMs), initialOffsetInMs(initialOffsetInMs), useSegmentTimeline(segDurationInMs == 0) {
 	if (useSegmentTimeline && (flags & PresignalNextSegment))
 		throw error("Inconsistent parameters: next segment pre-signalling cannot be used with segment timeline.");
-	if (!mpdDir.empty() && (flags & DontRenameSegments))
-		throw error(format("Inconsistent parameters: non-empty mpdDir (%s) not compatible with renaming prevention flag.", mpdDir));
 }
 
 MPEG_DASH::~MPEG_DASH() {
@@ -60,6 +58,21 @@ MPEG_DASH::~MPEG_DASH() {
 
 std::unique_ptr<Quality> MPEG_DASH::createQuality() const {
 	return uptr<Quality>(safe_cast<Quality>(new DASHQuality));
+}
+
+void MPEG_DASH::processInitSegment(Quality const * const quality, size_t index) {
+	switch (quality->meta->getStreamType()) {
+	case AUDIO_PKT: case VIDEO_PKT: case SUBTITLE_PKT: {
+		auto out = outputSegments->getBuffer(0);
+		auto const initFnSrc = getInitName(quality, index);
+		auto const initFnDst = format("%s%s%s", manifestDir, getPeriodID(), initFnSrc);
+		moveFile(initFnSrc, initFnDst);
+		out->setMetadata(std::make_shared<MetadataFile>(initFnDst, quality->meta->getStreamType(), quality->meta->getMimeType(), quality->meta->getCodecName(), quality->meta->getDuration(), quality->meta->getSize(), quality->meta->getLatency(), quality->meta->getStartsWithRAP()));
+		outputSegments->emit(out);
+		break;
+	}
+	default: break;
+	}
 }
 
 void MPEG_DASH::ensureManifest() {
@@ -128,41 +141,23 @@ void MPEG_DASH::ensureManifest() {
 				rep->segment_template->availability_time_offset = std::max<double>(0.0,  (double)(segDurationInMs - clockToTimescale(quality->meta->getLatency(), 1000)) / 1000);
 				mpd->mpd->min_buffer_time = (u32)clockToTimescale(quality->meta->getLatency(), 1000);
 			}
-
-			std::string initFnSrc;
 			switch (quality->meta->getStreamType()) {
 			case AUDIO_PKT:
 				rep->samplerate = quality->meta->sampleRate;
-				rep->segment_template->initialization = gf_strdup(format("%sa_$RepresentationID$-init.mp4", getPeriodID()).c_str());
-				rep->segment_template->media = gf_strdup(format("%sa_$RepresentationID$-%s.m4s", getPeriodID(), templateName).c_str());
-				initFnSrc = format("a_%s-init.mp4", repId);
 				break;
 			case VIDEO_PKT:
 				rep->width = quality->meta->resolution[0];
 				rep->height = quality->meta->resolution[1];
-				rep->segment_template->initialization = gf_strdup(format("%sv_$RepresentationID$_%sx%s-init.mp4", getPeriodID(), rep->width, rep->height).c_str());
-				rep->segment_template->media = gf_strdup(format("%sv_$RepresentationID$_%sx%s-%s.m4s", getPeriodID(), rep->width, rep->height, templateName).c_str());
-				initFnSrc = format("v_%s_%sx%s-init.mp4", repId, rep->width, rep->height);
 				break;
-			case SUBTITLE_PKT:
-				rep->segment_template->initialization = gf_strdup(format("%ss_$RepresentationID$-init.mp4", getPeriodID()).c_str());
-				rep->segment_template->media = gf_strdup(format("%ss_$RepresentationID$-%s.m4s", getPeriodID(), templateName).c_str());
-				initFnSrc = format("s_%s-init.mp4", repId);
-				break;
-			default:
-				assert(0);
+			default: break;
 			}
 
 			switch (quality->meta->getStreamType()) {
-			case AUDIO_PKT: case VIDEO_PKT: case SUBTITLE_PKT: {
-				auto out = outputSegments->getBuffer(0);
-				auto const initFnDst = format("%s%s%s", mpdDir, getPeriodID(), initFnSrc);
-				moveFile(initFnSrc, initFnDst);
-				out->setMetadata(std::make_shared<MetadataFile>(initFnDst, quality->meta->getStreamType(), quality->meta->getMimeType(), quality->meta->getCodecName(), quality->meta->getDuration(), quality->meta->getSize(), quality->meta->getLatency(), quality->meta->getStartsWithRAP()));
-				outputSegments->emit(out);
+			case AUDIO_PKT: case VIDEO_PKT: case SUBTITLE_PKT:
+				rep->segment_template->initialization = gf_strdup(getInitName(quality, i).c_str());
+				rep->segment_template->media = gf_strdup(getSegmentName(quality, i, templateName).c_str());
 				break;
-			}
-			default: break;
+			default: assert(0);
 			}
 		}
 	}
@@ -181,6 +176,9 @@ void MPEG_DASH::writeManifest() {
 
 bool MPEG_DASH::moveFile(const std::string &src, const std::string &dst) const {
 	if (!src.empty() && (src != dst)) {
+		if (flags & SegmentsNotOwned)
+			throw error(format("Segment not owned requires similar filenames (%s != %s)", src, dst));
+
 		int retry = MOVE_FILE_NUM_RETRY + 1;
 #ifdef _WIN32
 		while (--retry && (MoveFileA(src.c_str(), dst.c_str())) == 0) {
@@ -200,7 +198,7 @@ bool MPEG_DASH::moveFile(const std::string &src, const std::string &dst) const {
 }
 
 std::string MPEG_DASH::getPeriodID() const {
-	if (flags & DontRenameSegments) {
+	if (flags & SegmentsNotOwned) {
 		return "";
 	} else {
 		return format("p%s_", qualities.size());
@@ -208,7 +206,7 @@ std::string MPEG_DASH::getPeriodID() const {
 }
 
 std::string MPEG_DASH::getPrefixedSegmentName(DASHQuality const * const quality, size_t index, u64 segmentNum) const {
-	return mpdDir + getPeriodID() + getSegmentName(quality, index, segmentNum);
+	return manifestDir + getPeriodID() + getSegmentName(quality, index, std::to_string(segmentNum));
 }
 
 void MPEG_DASH::generateManifest() {
@@ -242,8 +240,8 @@ void MPEG_DASH::generateManifest() {
 			}
 
 			fn = getPrefixedSegmentName(quality, i, segTime);
-		} else {
-			auto const n = (startTimeInMs + totalDurationInMs) / segDurationInMs;
+		} else if (mpd->mpd->type != GF_MPD_TYPE_STATIC) { //We are live and not exiting
+			auto n = getCurSegNum();
 			fn = getPrefixedSegmentName(quality, i, n);
 			fnNext = getPrefixedSegmentName(quality, i, n+1);
 		}
@@ -316,26 +314,22 @@ void MPEG_DASH::generateManifest() {
 
 void MPEG_DASH::finalizeManifest() {
 	if (mpd->mpd->time_shift_buffer_depth) {
-		log(Info, "Manifest was not rewritten for on-demand and all file are being deleted.");
-		if (gf_delete_file(mpdPath.c_str()) != GF_OK) {
-			log(Error, "Couldn't delete MPD: \"%s\".", mpdPath);
-		}
-		for (size_t i = 0; i < getNumInputs() - 1; ++i) {
-			auto quality = safe_cast<DASHQuality>(qualities[i].get());
-			std::string fn;
-			switch (quality->meta->getStreamType()) {
-			case AUDIO_PKT:    fn = format("%sa_%s-init.mp4", mpdDir, i); break;
-			case VIDEO_PKT:    fn = format("%sv_%s_%sx%s-init.mp4", mpdDir, i, quality->meta->resolution[0], quality->meta->resolution[1]); break;
-			case SUBTITLE_PKT: fn = format("%ss_%s-init.mp4", mpdDir, i); break;
-			default: break;
+		if (!(flags & SegmentsNotOwned)) {
+			log(Info, "Manifest was not rewritten for on-demand and all file are being deleted.");
+			if (gf_delete_file(mpdPath.c_str()) != GF_OK) {
+				log(Error, "Couldn't delete MPD: \"%s\".", mpdPath);
 			}
-			if (gf_delete_file(fn.c_str()) != GF_OK) {
-				log(Error, "Couldn't delete initialization segment \"%s\".", fn);
-			}
+			for (size_t i = 0; i < getNumInputs() - 1; ++i) {
+				auto quality = safe_cast<DASHQuality>(qualities[i].get());
+				std::string fn = manifestDir + getInitName(quality, i);
+				if (gf_delete_file(fn.c_str()) != GF_OK) {
+					log(Error, "Couldn't delete initialization segment \"%s\".", fn);
+				}
 
-			for (auto const &seg : quality->timeshiftSegments) {
-				if (gf_delete_file(seg.file->getFilename().c_str()) != GF_OK) {
-					log(Error, "Couldn't delete media segment \"%s\".", seg.file->getFilename());
+				for (auto const &seg : quality->timeshiftSegments) {
+					if (gf_delete_file(seg.file->getFilename().c_str()) != GF_OK) {
+						log(Error, "Couldn't delete media segment \"%s\".", seg.file->getFilename());
+					}
 				}
 			}
 		}
