@@ -16,7 +16,7 @@ void LibavMux::formatsList() {
 }
 
 LibavMux::LibavMux(const std::string &baseName, const std::string &fmt, const std::string &options)
-	: m_formatCtx(avformat_alloc_context()), optionsDict(typeid(*this).name(), options) {
+: m_formatCtx(avformat_alloc_context()), optionsDict(typeid(*this).name(), options) {
 	if (!m_formatCtx)
 		throw error("Format context couldn't be allocated.");
 
@@ -100,8 +100,14 @@ void LibavMux::ensureHeader() {
 			for (unsigned i = 0; i < m_formatCtx->nb_streams; i++) {
 				if (m_formatCtx->streams[i]->codec && m_formatCtx->streams[i]->codec->codec) {
 					log(Debug, "codec[%s] is \"%s\" (%s)", i, m_formatCtx->streams[i]->codec->codec->name, m_formatCtx->streams[i]->codec->codec->long_name);
-					if (!m_formatCtx->streams[i]->codec->extradata)
-						throw error("Bitstream format is not raw. Check your encoder settings.");
+					if (!m_formatCtx->streams[i]->codec->extradata) {
+						if (m_formatCtx->streams[i]->codecpar->extradata) {
+							m_formatCtx->streams[i]->codec->extradata = (uint8_t*)av_malloc(m_formatCtx->streams[i]->codec->extradata_size);
+							m_formatCtx->streams[i]->codec->extradata_size = m_formatCtx->streams[i]->codecpar->extradata_size;
+							memcpy(m_formatCtx->streams[i]->codec->extradata, m_formatCtx->streams[i]->codecpar->extradata, m_formatCtx->streams[i]->codecpar->extradata_size);
+						} else
+							throw error("Bitstream format is not raw. Check your encoder settings.");
+					}
 				}
 			}
 		} else {
