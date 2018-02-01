@@ -427,7 +427,7 @@ void GPACMuxMP4::startSegment() {
 		if (gf_isom_get_filename(isoInit)) {
 			std::stringstream ss;
 			std::string fn = gf_isom_get_filename(isoInit);
-			ss << fn.substr(0, fn.find("-init")) << "-" << segmentNum + 1;
+			ss << fn.substr(0, fn.find("-init")) << "-" << segmentNum;
 			if (segmentPolicy == FragmentedSegment) ss << ".m4s";
 			else ss << ".mp4";
 			segmentName = ss.str();
@@ -856,7 +856,7 @@ void GPACMuxMP4::sendOutput() {
 
 	if (segmentPolicy == IndependentSegment) {
 		gf_isom_delete(isoCur);
-		isoInit = isoCur = nullptr;
+		isoCur = nullptr;
 	}
 }
 
@@ -987,7 +987,7 @@ bool GPACMuxMP4::processInit(Data &data) {
 
 		setupFragments();
 		if (segmentDurationIn180k && !(compatFlags & SegNumStartsAtZero)) {
-			segmentNum = firstDataAbsTimeInMs / clockToTimescale(segmentDurationIn180k, 1000) - 1;
+			segmentNum = firstDataAbsTimeInMs / clockToTimescale(segmentDurationIn180k, 1000);
 		}
 		startSegment();
 	}

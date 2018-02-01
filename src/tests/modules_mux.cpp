@@ -4,7 +4,7 @@
 #include "lib_media/mux/gpac_mux_mp4.hpp"
 #include "lib_media/mux/libav_mux.hpp"
 #include "lib_utils/tools.hpp"
-#include <list>
+#include "modules_common.hpp"
 
 using namespace Tests;
 using namespace Modules;
@@ -38,74 +38,47 @@ unittest("multiple inputs: send same packets to 2 GPAC mp4 mux inputs") {
 }
 #endif /*ENABLE_FAILING_TESTS*/
 
-unittest("mux GPAC mp4 outputs combination coverage") {
-	struct Meta {
-		bool operator==(const Meta& rhs) const {
-			return true; //Romain
-		}
-		std::string filename, mimeType, codecName;
-		uint64_t durationIn180k, filesize, latencyIn180k;
-		bool startsWithRAP;
-	};
-
+unittest("mux GPAC mp4 combination coverage") {
 	std::vector<Meta> results, ref = {
-		{ "output_video_gpac_01.mp4"          , "video/mp4", "avc1.42C00D",      0, 40542,      0, 1 },
-		{ "output_video_gpac_03.mp4"          , "video/mp4", "avc1.42C00D",      0, 41693,      0, 1 },
-		{ "output_video_gpac_04.mp4"          , "video/mp4", "avc1.42C00D",      0, 51827,      8, 1 },
-		{ ""                                  , "video/mp4", "avc1.42C00D",      0, 40542,      0, 1 },
-		{ "output_video_gpac_11-758672246.mp4", "video/mp4", "avc1.42C00D", 360000, 15932, 360000, 1 },
-		{ "output_video_gpac_11-758672246.mp4", "video/mp4", "avc1.42C00D", 360000, 17847, 360000, 1 },
-		{ "output_video_gpac_11-758672246.mp4", "video/mp4", "avc1.42C00D", 172800,  9645, 172800, 1 },
-		{ "output_video_gpac_12-758672246.mp4", "video/mp4", "avc1.42C00D", 360000, 15820, 360000, 1 },
-		{ "output_video_gpac_12-758672246.mp4", "video/mp4", "avc1.42C00D", 360000, 17751, 360000, 1 },
-		{ "output_video_gpac_12-758672246.mp4", "video/mp4", "avc1.42C00D", 172800,  9665, 172800, 1 },
-		{ "output_video_gpac_13-758672246.mp4", "video/mp4", "avc1.42C00D", 360000, 16280, 360000, 1 },
-		{ "output_video_gpac_13-758672246.mp4", "video/mp4", "avc1.42C00D", 360000, 18115, 360000, 1 },
-		{ "output_video_gpac_13-758672246.mp4", "video/mp4", "avc1.42C00D", 172800,  9665, 172800, 1 },
-		{ "output_video_gpac_14-758672246.mp4", "video/mp4", "avc1.42C00D", 360000, 23960,      8, 1 },
-		{ "output_video_gpac_14-758672246.mp4", "video/mp4", "avc1.42C00D", 360000, 25895,      8, 1 },
-		{ "output_video_gpac_14-758672246.mp4", "video/mp4", "avc1.42C00D", 172800, 13437,      8, 1 },
-		{ ""                                  , "video/mp4", "avc1.42C00D", 360000, 15932, 360000, 1 },
-		{ ""                                  , "video/mp4", "avc1.42C00D", 360000, 17847, 360000, 1 },
-		{ ""                                  , "video/mp4", "avc1.42C00D", 172800,  9645, 172800, 1 },
-		{ "output_video_gpac_21-init.mp4"     , "video/mp4", "avc1.42C00D",      0,     0,      0, 1 },
-		{ "output_video_gpac_21-758672246.m4s", "video/mp4", "avc1.42C00D", 360000, 15734, 360000, 1 },
-		{ "output_video_gpac_21-758672247.m4s", "video/mp4", "avc1.42C00D", 360000, 17469, 360000, 1 },
-		{ "output_video_gpac_21-758672248.m4s", "video/mp4", "avc1.42C00D", 172800,  9083, 172800, 1 },
-		{ "output_video_gpac_22-init.mp4"     , "video/mp4", "avc1.42C00D",      0,     0,      0, 1 },
-		{ "output_video_gpac_22-758672246.m4s", "video/mp4", "avc1.42C00D", 360000, 15634, 360000, 1 },
-		{ "output_video_gpac_22-758672247.m4s", "video/mp4", "avc1.42C00D", 360000, 17469, 360000, 1 },
-		{ "output_video_gpac_22-758672248.m4s", "video/mp4", "avc1.42C00D", 172800,  9083, 172800, 1 },
-		{ "output_video_gpac_23-init.mp4"     , "video/mp4", "avc1.42C00D",      0,     0,      8, 1 },
-		{ "output_video_gpac_23-758672246.m4s", "video/mp4", "avc1.42C00D", 360000, 21550,      8, 1 },
-		{ "output_video_gpac_23-758672247.m4s", "video/mp4", "avc1.42C00D", 360000, 23485,      8, 1 },
-		{ "output_video_gpac_23-758672248.m4s", "video/mp4", "avc1.42C00D", 172800, 11963,      8, 1 },
-		{ ""                                  , "video/mp4", "avc1.42C00D",      0,   806,      0, 1 },
-		{ ""                                  , "video/mp4", "avc1.42C00D", 360000, 15734, 360000, 1 },
-		{ ""                                  , "video/mp4", "avc1.42C00D", 360000, 17469, 360000, 1 },
-		{ ""                                  , "video/mp4", "avc1.42C00D", 172800,  9083, 172800, 1 },
-		{ ""                                  , "video/mp4", "avc1.42C00D",      0,   806,      0, 1 },
-		{ ""                                  , "video/mp4", "avc1.42C00D", 360000, 15726, 360000, 1 },
-		{ ""                                  , "video/mp4", "avc1.42C00D", 360000, 17461, 360000, 1 },
-		{ ""                                  , "video/mp4", "avc1.42C00D", 172800,  9075, 172800, 1 }
-	};
-
-	struct Listener : public ModuleS {
-		Listener() {
-			addInput(new Input<DataBase>(this));
-		}
-		void process(Data data) override {
-			auto const &m = safe_cast<const MetadataFile>(data->getMetadata());
-			results.push_back({ m->getFilename(), m->getMimeType(), m->getCodecName(),
-				m->getDuration(), m->getSize(), m->getLatency(), m->getStartsWithRAP() });
-		}
-		void print() { //used for generating reference results
-			for (auto &r : results) {
-				std::cout << "{ \"" << r.filename << "\", \"" << r.mimeType << "\", \"" << r.codecName << "\", " << r.durationIn180k << ", " << r.filesize << ", " << r.latencyIn180k << ", " << r.startsWithRAP << " }," << std::endl;
-			}
-		}
-
-		std::list<Meta> results;
+		{ "output_video_gpac_01.mp4"     , "video/mp4", "avc1.42C00D",      0, 40542,      0, 1 },
+		{ "output_video_gpac_03.mp4"     , "video/mp4", "avc1.42C00D",      0, 41693,      0, 1 },
+		{ "output_video_gpac_04.mp4"     , "video/mp4", "avc1.42C00D",      0, 51827,      8, 1 },
+		{ ""                             , "video/mp4", "avc1.42C00D",      0, 40542,      0, 1 },
+		{ "output_video_gpac_11-0.mp4"   , "video/mp4", "avc1.42C00D", 360000, 15932, 360000, 1 },
+		{ "output_video_gpac_11-1.mp4"   , "video/mp4", "avc1.42C00D", 360000, 17847, 360000, 1 },
+		{ "output_video_gpac_11-2.mp4"   , "video/mp4", "avc1.42C00D", 172800,  9645, 172800, 1 },
+		{ "output_video_gpac_12-0.mp4"   , "video/mp4", "avc1.42C00D", 360000, 15820, 360000, 1 },
+		{ "output_video_gpac_12-1.mp4"   , "video/mp4", "avc1.42C00D", 360000, 17751, 360000, 1 },
+		{ "output_video_gpac_12-2.mp4"   , "video/mp4", "avc1.42C00D", 172800,  9665, 172800, 1 },
+		{ "output_video_gpac_13-0.mp4"   , "video/mp4", "avc1.42C00D", 360000, 16280, 360000, 1 },
+		{ "output_video_gpac_13-1.mp4"   , "video/mp4", "avc1.42C00D", 360000, 18115, 360000, 1 },
+		{ "output_video_gpac_13-2.mp4"   , "video/mp4", "avc1.42C00D", 172800,  9665, 172800, 1 },
+		{ "output_video_gpac_14-0.mp4"   , "video/mp4", "avc1.42C00D", 360000, 23960,      8, 1 },
+		{ "output_video_gpac_14-1.mp4"   , "video/mp4", "avc1.42C00D", 360000, 25895,      8, 1 },
+		{ "output_video_gpac_14-2.mp4"   , "video/mp4", "avc1.42C00D", 172800, 13437,      8, 1 },
+		{ ""                             , "video/mp4", "avc1.42C00D", 360000, 15932, 360000, 1 },
+		{ ""                             , "video/mp4", "avc1.42C00D", 360000, 17847, 360000, 1 },
+		{ ""                             , "video/mp4", "avc1.42C00D", 172800,  9645, 172800, 1 },
+		{ "output_video_gpac_21-init.mp4", "video/mp4", "avc1.42C00D",      0,     0,      0, 1 },
+		{ "output_video_gpac_21-0.m4s"   , "video/mp4", "avc1.42C00D", 360000, 15734, 360000, 1 },
+		{ "output_video_gpac_21-1.m4s"   , "video/mp4", "avc1.42C00D", 360000, 17469, 360000, 1 },
+		{ "output_video_gpac_21-2.m4s"   , "video/mp4", "avc1.42C00D", 172800,  9083, 172800, 1 },
+		{ "output_video_gpac_22-init.mp4", "video/mp4", "avc1.42C00D",      0,     0,      0, 1 },
+		{ "output_video_gpac_22-0.m4s"   , "video/mp4", "avc1.42C00D", 360000, 15634, 360000, 1 },
+		{ "output_video_gpac_22-1.m4s"   , "video/mp4", "avc1.42C00D", 360000, 17469, 360000, 1 },
+		{ "output_video_gpac_22-2.m4s"   , "video/mp4", "avc1.42C00D", 172800,  9083, 172800, 1 },
+		{ "output_video_gpac_23-init.mp4", "video/mp4", "avc1.42C00D",      0,     0,      8, 1 },
+		{ "output_video_gpac_23-0.m4s"   , "video/mp4", "avc1.42C00D", 360000, 21550,      8, 1 },
+		{ "output_video_gpac_23-1.m4s"   , "video/mp4", "avc1.42C00D", 360000, 23485,      8, 1 },
+		{ "output_video_gpac_23-2.m4s"   , "video/mp4", "avc1.42C00D", 172800, 11963,      8, 1 },
+		{ ""                             , "video/mp4", "avc1.42C00D",      0,   806,      0, 1 },
+		{ ""                             , "video/mp4", "avc1.42C00D", 360000, 15734, 360000, 1 },
+		{ ""                             , "video/mp4", "avc1.42C00D", 360000, 17469, 360000, 1 },
+		{ ""                             , "video/mp4", "avc1.42C00D", 172800,  9083, 172800, 1 },
+		{ ""                             , "video/mp4", "avc1.42C00D",      0,   806,      0, 1 },
+		{ ""                             , "video/mp4", "avc1.42C00D", 360000, 15726, 360000, 1 },
+		{ ""                             , "video/mp4", "avc1.42C00D", 360000, 17461, 360000, 1 },
+		{ ""                             , "video/mp4", "avc1.42C00D", 172800,  9075, 172800, 1 }
 	};
 
 	auto demux = create<Demux::LibavDemux>("data/beepbop.mp4");
@@ -132,20 +105,21 @@ unittest("mux GPAC mp4 outputs combination coverage") {
 	muxers.push_back(create<Mux::GPACMuxMP4>("", 0, Mux::GPACMuxMP4::NoSegment, Mux::GPACMuxMP4::NoFragment));
 	CATCH_ERROR([&]() {create<Mux::GPACMuxMP4>("", 0, Mux::GPACMuxMP4::NoSegment, Mux::GPACMuxMP4::NoFragment, Mux::GPACMuxMP4::FlushFragMemory);});
 
-	CATCH_ERROR([&]() {create<Mux::GPACMuxMP4>("output_video_gpac_10", 0, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::NoFragment);});
-	muxers.push_back(create<Mux::GPACMuxMP4>("output_video_gpac_11", segmentDurationInMs, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::NoFragment));
-	muxers.push_back(create<Mux::GPACMuxMP4>("output_video_gpac_12", segmentDurationInMs, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::OneFragmentPerSegment));
-	muxers.push_back(create<Mux::GPACMuxMP4>("output_video_gpac_13", segmentDurationInMs, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::OneFragmentPerRAP));
-	muxers.push_back(create<Mux::GPACMuxMP4>("output_video_gpac_14", segmentDurationInMs, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::OneFragmentPerFrame));
-	muxers.push_back(create<Mux::GPACMuxMP4>("", segmentDurationInMs, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::NoFragment));
-	CATCH_ERROR([&]() {create<Mux::GPACMuxMP4>("", segmentDurationInMs, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::NoFragment, Mux::GPACMuxMP4::FlushFragMemory);});
+	CATCH_ERROR([&]() {create<Mux::GPACMuxMP4>("output_video_gpac_10", 0, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::NoFragment, Mux::GPACMuxMP4::SegNumStartsAtZero);});
+	muxers.push_back(create<Mux::GPACMuxMP4>("output_video_gpac_11", segmentDurationInMs, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::NoFragment, Mux::GPACMuxMP4::SegNumStartsAtZero));
 
-	CATCH_ERROR([&]() {create<Mux::GPACMuxMP4>("output_video_gpac_20", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::NoFragment);});
-	muxers.push_back(create<Mux::GPACMuxMP4>("output_video_gpac_21", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerSegment));
-	muxers.push_back(create<Mux::GPACMuxMP4>("output_video_gpac_22", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerRAP));
-	muxers.push_back(create<Mux::GPACMuxMP4>("output_video_gpac_23", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerFrame));
-	muxers.push_back(create<Mux::GPACMuxMP4>("", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerSegment));
-	muxers.push_back(create<Mux::GPACMuxMP4>("", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerSegment, Mux::GPACMuxMP4::FlushFragMemory));
+	muxers.push_back(create<Mux::GPACMuxMP4>("output_video_gpac_12", segmentDurationInMs, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::OneFragmentPerSegment, Mux::GPACMuxMP4::SegNumStartsAtZero));
+	muxers.push_back(create<Mux::GPACMuxMP4>("output_video_gpac_13", segmentDurationInMs, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::OneFragmentPerRAP, Mux::GPACMuxMP4::SegNumStartsAtZero));
+	muxers.push_back(create<Mux::GPACMuxMP4>("output_video_gpac_14", segmentDurationInMs, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::OneFragmentPerFrame, Mux::GPACMuxMP4::SegNumStartsAtZero));
+	muxers.push_back(create<Mux::GPACMuxMP4>("", segmentDurationInMs, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::NoFragment, Mux::GPACMuxMP4::SegNumStartsAtZero));
+	CATCH_ERROR([&]() {create<Mux::GPACMuxMP4>("", segmentDurationInMs, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::NoFragment, Mux::GPACMuxMP4::SegNumStartsAtZero | Mux::GPACMuxMP4::FlushFragMemory);});
+
+	CATCH_ERROR([&]() {create<Mux::GPACMuxMP4>("output_video_gpac_20", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::NoFragment, Mux::GPACMuxMP4::SegNumStartsAtZero);});
+	muxers.push_back(create<Mux::GPACMuxMP4>("output_video_gpac_21", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerSegment, Mux::GPACMuxMP4::SegNumStartsAtZero));
+	muxers.push_back(create<Mux::GPACMuxMP4>("output_video_gpac_22", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerRAP, Mux::GPACMuxMP4::SegNumStartsAtZero));
+	muxers.push_back(create<Mux::GPACMuxMP4>("output_video_gpac_23", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerFrame, Mux::GPACMuxMP4::SegNumStartsAtZero));
+	muxers.push_back(create<Mux::GPACMuxMP4>("", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerSegment, Mux::GPACMuxMP4::SegNumStartsAtZero));
+	muxers.push_back(create<Mux::GPACMuxMP4>("", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerSegment, Mux::GPACMuxMP4::SegNumStartsAtZero | Mux::GPACMuxMP4::FlushFragMemory));
 
 #ifdef ENABLE_FAILING_TESTS
 	muxers.push_back(create<Mux::GPACMuxMP4>("output_video_gpac_31", 0, Mux::GPACMuxMP4::SingleSegment, Mux::GPACMuxMP4::NoFragment));
