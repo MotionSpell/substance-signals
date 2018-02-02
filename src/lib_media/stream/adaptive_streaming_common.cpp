@@ -80,10 +80,14 @@ void AdaptiveStreamingCommon::threadProc() {
 				qualities[i]->meta = safe_cast<const MetadataFile>(data->getMetadata());
 				if (!qualities[i]->meta)
 					throw error(format("Unknown data received on input %s", i));
-				if (qualities[i]->meta->getDuration() == 0) {
+
+				auto const curDurInMs = clockToTimescale(qualities[i]->meta->getDuration(), 1000);
+				if (curDurInMs == 0) {
 					processInitSegment(qualities[i].get(), i);
 					--i; data = nullptr; continue;
 				}
+
+				auto const numSeg = totalDurationInMs / segDurationInMs;
 				qualities[i]->avg_bitrate_in_bps = ((qualities[i]->meta->getSize() * 8 * Clock::Rate) / qualities[i]->meta->getDuration() + qualities[i]->avg_bitrate_in_bps * numSeg) / (numSeg + 1);
 				if (qualities[i]->prefix.empty()) {
 					qualities[i]->prefix = format("%s_%sK/", getPrefix(qualities[i].get(), i), qualities[i]->avg_bitrate_in_bps / (8 * 1024));
@@ -93,12 +97,17 @@ void AdaptiveStreamingCommon::threadProc() {
 							throw std::runtime_error(format("couldn't create subdir %s: please check you have sufficient rights", qualities[i]->prefix));
 					}
 				}
+
 				if (!i) {
 					if (flags & ForceRealDurations) {
 						curSegDurInMs += clockToTimescale(qualities[i]->meta->getDuration(), 1000);
 					} else {
 						curSegDurInMs = segDurationInMs ? segDurationInMs : clockToTimescale(qualities[i]->meta->getDuration(), 1000);
 					}
+				}
+
+				if (curSegDurInMs < segDurationInMs) {
+					break;
 				}
 			}
 		}
@@ -111,16 +120,21 @@ void AdaptiveStreamingCommon::threadProc() {
 				continue;
 			}
 		}
-
-		numSeg++;
+		auto const curMediaTimeInMs = clockToTimescale(data->getMediaTime(), 1000);
+		data = nullptr;
 		if (!curSegDurInMs) curSegDurInMs = segDurationInMs;
-		if (!startTimeInMs) startTimeInMs = clockToTimescale(data->getMediaTime(), 1000);
+		if (!startTimeInMs) startTimeInMs = curMediaTimeInMs;
+		if (curSegDurInMs < segDurationInMs) {
+			auto out = outputSegments->getBuffer(0);
+			out->setMetadata(std::make_shared<MetadataFile>(getSegmentName(qualities[i].get(), i, std::to_string(getCurSegNum())), qualities[i]->meta->getStreamType(), qualities[i]->meta->getMimeType(), qualities[i]->meta->getCodecName(), qualities[i]->meta->getDuration(), qualities[i]->meta->getSize(), qualities[i]->meta->getLatency(), qualities[i]->meta->getStartsWithRAP()));
+			outputSegments->emit(out);
+			continue;
+		}
+
 		generateManifest();
 		totalDurationInMs += curSegDurInMs;
 		log(Info, "Processes segment (total processed: %ss, UTC: %sms (deltaAST=%s, deltaInput=%s).",
-			(double)totalDurationInMs / 1000, getUTC().num, gf_net_get_utc() - startTimeInMs,
-			data ? (int64_t)(gf_net_get_utc() - clockToTimescale(data->getMediaTime(), 1000)) : 0);
-		data = nullptr;
+			(double)totalDurationInMs / 1000, getUTC().num, gf_net_get_utc() - startTimeInMs, (int64_t)(gf_net_get_utc() - curMediaTimeInMs));
 		curSegDurInMs = 0;
 
 		if (type != Static) {

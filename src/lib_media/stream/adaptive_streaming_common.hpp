@@ -54,7 +54,7 @@ protected:
 	void endOfStream();
 
 	const Type type;
-	uint64_t startTimeInMs=-1, segDurationInMs, totalDurationInMs=0, numSeg=0;
+	uint64_t startTimeInMs=-1, segDurationInMs, totalDurationInMs=0;
 	const std::string manifestDir;
 	const AdaptiveStreamingCommonFlags flags;
 	std::vector<std::unique_ptr<Quality>> qualities;
