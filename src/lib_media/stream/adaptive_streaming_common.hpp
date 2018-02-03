@@ -62,6 +62,7 @@ protected:
 
 private:
 	virtual void processInitSegment(Quality const * const quality, size_t index) = 0;
+	void ensurePrefix(size_t index);
 	std::string getPrefix(Quality const * const quality, size_t index) const;
 	void threadProc();
 	std::thread workingThread;

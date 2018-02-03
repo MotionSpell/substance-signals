@@ -42,6 +42,17 @@ uint64_t AdaptiveStreamingCommon::getCurSegNum() const {
 	return (startTimeInMs + totalDurationInMs) / segDurationInMs;
 }
 
+void AdaptiveStreamingCommon::ensurePrefix(size_t i) {
+	if (qualities[i]->prefix.empty()) {
+		qualities[i]->prefix = format("%s/", getPrefix(qualities[i].get(), i));
+		if (!(flags & SegmentsNotOwned)) {
+			auto const dir = format("%s%s", manifestDir, qualities[i]->prefix);
+			if ((gf_dir_exists(dir.c_str()) == GF_FALSE) && gf_mkdir(qualities[i]->prefix.c_str()))
+				throw std::runtime_error(format("couldn't create subdir %s: please check you have sufficient rights", qualities[i]->prefix));
+		}
+	}
+}
+
 void AdaptiveStreamingCommon::endOfStream() {
 	if (workingThread.joinable()) {
 		for (size_t i = 0; i < inputs.size(); ++i) {
@@ -61,10 +72,32 @@ void AdaptiveStreamingCommon::threadProc() {
 	}
 
 	Data data;
-	uint64_t curSegDurInMs = 0;
-	for (;;) {
-		size_t i;
+	std::vector<uint64_t> curSegDurIn180k; curSegDurIn180k.resize(numInputs);
+	size_t i;
+	auto ensureCurDur = [&]() {
 		for (i = 0; i < numInputs; ++i) {
+			if (!curSegDurIn180k[0])
+				curSegDurIn180k[0] = segDurationInMs;
+		}
+	};
+	auto segmentReady = [&]()->bool {
+		ensureCurDur();
+		for (i = 0; i < numInputs; ++i) {
+			if (curSegDurIn180k[i] < timescaleToClock(segDurationInMs, 1000)) {
+				return false;
+			}
+		}
+		for (auto &d : curSegDurIn180k) {
+			d -= timescaleToClock(segDurationInMs, 1000);
+		}
+		return true;
+	};
+	for (;;) {
+		for (i = 0; i < numInputs; ++i) {
+			if (curSegDurIn180k[i] > *std::min_element(curSegDurIn180k.begin(), curSegDurIn180k.end())) {
+				continue;
+			}
+
 			if ((type == LiveNonBlocking) && (!qualities[i]->meta)) {
 				if (inputs[i]->tryPop(data) && !data) {
 					break;
@@ -75,39 +108,32 @@ void AdaptiveStreamingCommon::threadProc() {
 					break;
 				}
 			}
-			
+
 			if (data) {
 				qualities[i]->meta = safe_cast<const MetadataFile>(data->getMetadata());
 				if (!qualities[i]->meta)
 					throw error(format("Unknown data received on input %s", i));
 
-				auto const curDurInMs = clockToTimescale(qualities[i]->meta->getDuration(), 1000);
-				if (curDurInMs == 0) {
+				auto const curDurIn180k = qualities[i]->meta->getDuration();
+				if (curDurIn180k == 0) {
 					processInitSegment(qualities[i].get(), i);
 					--i; data = nullptr; continue;
 				}
 
 				auto const numSeg = totalDurationInMs / segDurationInMs;
 				qualities[i]->avg_bitrate_in_bps = ((qualities[i]->meta->getSize() * 8 * Clock::Rate) / qualities[i]->meta->getDuration() + qualities[i]->avg_bitrate_in_bps * numSeg) / (numSeg + 1);
-				if (qualities[i]->prefix.empty()) {
-					qualities[i]->prefix = format("%s/", getPrefix(qualities[i].get(), i));
-					if (!(flags & SegmentsNotOwned)) {
-						auto const dir = format("%s%s", manifestDir, qualities[i]->prefix);
-						if ((gf_dir_exists(dir.c_str()) == GF_FALSE) && gf_mkdir(qualities[i]->prefix.c_str()))
-							throw std::runtime_error(format("couldn't create subdir %s: please check you have sufficient rights", qualities[i]->prefix));
-					}
+				ensurePrefix(i);
+
+				if (flags & ForceRealDurations) {
+					curSegDurIn180k[i] += qualities[i]->meta->getDuration();
+				} else {
+					curSegDurIn180k[i] = segDurationInMs ? timescaleToClock(segDurationInMs, 1000) : qualities[i]->meta->getDuration();
 				}
 
-				if (!i) {
-					if (flags & ForceRealDurations) {
-						curSegDurInMs += clockToTimescale(qualities[i]->meta->getDuration(), 1000);
-					} else {
-						curSegDurInMs = segDurationInMs ? segDurationInMs : clockToTimescale(qualities[i]->meta->getDuration(), 1000);
-					}
-				}
-
-				if (curSegDurInMs < segDurationInMs) {
-					continue;
+				if (curSegDurIn180k[i] < timescaleToClock(segDurationInMs, 1000)) {
+					auto out = outputSegments->getBuffer(0);
+					out->setMetadata(std::make_shared<MetadataFile>(getSegmentName(qualities[i].get(), i, std::to_string(getCurSegNum())), SEGMENT, qualities[i]->meta->getMimeType(), qualities[i]->meta->getCodecName(), qualities[i]->meta->getDuration(), qualities[i]->meta->getSize(), qualities[i]->meta->getLatency(), qualities[i]->meta->getStartsWithRAP()));
+					outputSegments->emit(out);
 				}
 			}
 		}
@@ -120,32 +146,24 @@ void AdaptiveStreamingCommon::threadProc() {
 				continue;
 			}
 		}
-		auto const curMediaTimeInMs = clockToTimescale(data->getMediaTime(), 1000);
+		const int64_t curMediaTimeInMs = clockToTimescale(data->getMediaTime(), 1000);
 		data = nullptr;
-		if (!curSegDurInMs) curSegDurInMs = segDurationInMs;
-		if (!startTimeInMs) startTimeInMs = curMediaTimeInMs;
-		if (curSegDurInMs < segDurationInMs) {
-			for (i = 0; i < numInputs; ++i) {
-				auto out = outputSegments->getBuffer(0);
-				out->setMetadata(std::make_shared<MetadataFile>(getSegmentName(qualities[i].get(), i, std::to_string(getCurSegNum())), SEGMENT, qualities[i]->meta->getMimeType(), qualities[i]->meta->getCodecName(), qualities[i]->meta->getDuration(), qualities[i]->meta->getSize(), qualities[i]->meta->getLatency(), qualities[i]->meta->getStartsWithRAP()));
-				outputSegments->emit(out);
-			}
-			continue;
-		}
 
-		generateManifest();
-		totalDurationInMs += curSegDurInMs;
-		log(Info, "Processes segment (total processed: %ss, UTC: %sms (deltaAST=%s, deltaInput=%s).",
-			(double)totalDurationInMs / 1000, getUTC().num, gf_net_get_utc() - startTimeInMs, (int64_t)(gf_net_get_utc() - curMediaTimeInMs));
-		curSegDurInMs = 0;
+		if (segmentReady()) {
+			if (!startTimeInMs) startTimeInMs = curMediaTimeInMs;
+			generateManifest();
+			totalDurationInMs += segDurationInMs;
+			log(Info, "Processes segment (total processed: %ss, UTC: %sms (deltaAST=%s, deltaInput=%s).",
+				(double)totalDurationInMs / 1000, getUTC().num, gf_net_get_utc() - startTimeInMs, (int64_t)(gf_net_get_utc() - curMediaTimeInMs));
 
-		if (type != Static) {
-			const int64_t durInMs = startTimeInMs + totalDurationInMs - getUTC().num;
-			if (durInMs > 0) {
-				log(Debug, "Going to sleep for %s ms.", durInMs);
-				clock->sleep(Fraction(durInMs, 1000));
-			} else {
-				log(Warning, "Late from %s ms.", -durInMs);
+			if (type != Static) {
+				const int64_t durInMs = startTimeInMs + totalDurationInMs - getUTC().num;
+				if (durInMs > 0) {
+					log(Debug, "Going to sleep for %s ms.", durInMs);
+					clock->sleep(Fraction(durInMs, 1000));
+				} else {
+					log(Warning, "Late from %s ms.", -durInMs);
+				}
 			}
 		}
 	}
