@@ -32,7 +32,7 @@ void Apple_HLS::processInitSegment(Quality const * const quality, size_t index) 
 		auto out = outputSegments->getBuffer(0);
 		auto const initFnSrc = getInitName(quality, index);
 		auto const initFnDst = format("%s%s", manifestDir, initFnSrc);
-		out->setMetadata(std::make_shared<MetadataFile>(initFnDst, quality->meta->getStreamType(), quality->meta->getMimeType(), quality->meta->getCodecName(), quality->meta->getDuration(), quality->meta->getSize(), quality->meta->getLatency(), quality->meta->getStartsWithRAP()));
+		out->setMetadata(std::make_shared<MetadataFile>(initFnDst, SEGMENT, quality->meta->getMimeType(), quality->meta->getCodecName(), quality->meta->getDuration(), quality->meta->getSize(), quality->meta->getLatency(), quality->meta->getStartsWithRAP()));
 		outputSegments->emit(out);
 		break;
 	}
@@ -60,6 +60,7 @@ void Apple_HLS::generateManifestMaster() {
 			switch (quality->meta->getStreamType()) {
 			case AUDIO_PKT: playlistMaster << ",CODECS=" << "mp4a.40.5" /*TODO: quality->meta->getCodecName()*/ << std::endl; break;
 			case VIDEO_PKT: playlistMaster << ",RESOLUTION=" << quality->meta->resolution[0] << "x" << quality->meta->resolution[1] << std::endl; break;
+			case SEGMENT: playlistMaster << ",RESOLUTION=" << quality->meta->resolution[0] << "x" << quality->meta->resolution[1] << std::endl; break;
 			default: assert(0);
 			}
 			playlistMaster << getVariantPlaylistName(quality, "", i) << std::endl;
@@ -102,7 +103,7 @@ void Apple_HLS::updateManifestVariants() {
 			}
 
 			auto out = outputSegments->getBuffer(0);
-			out->setMetadata(std::make_shared<MetadataFile>(format("%s%s", manifestDir, fn), quality->meta->getStreamType(), quality->meta->getMimeType(), quality->meta->getCodecName(), quality->meta->getDuration(), quality->meta->getSize(), quality->meta->getLatency(), quality->meta->getStartsWithRAP()));
+			out->setMetadata(std::make_shared<MetadataFile>(format("%s%s", manifestDir, fn), SEGMENT, quality->meta->getMimeType(), quality->meta->getCodecName(), quality->meta->getDuration(), quality->meta->getSize(), quality->meta->getLatency(), quality->meta->getStartsWithRAP()));
 			outputSegments->emit(out);
 
 			quality->segments.push_back({ fn, startTimeInMs+totalDurationInMs });

@@ -302,7 +302,7 @@ bool LibavDemux::dispatchable(AVPacket * const pkt) {
 
 void LibavDemux::dispatch(AVPacket *pkt) {
 	auto out = outputs[pkt->stream_index]->getBuffer(0);
-	AVPacket *outPkt = out->getPacket();
+	auto outPkt = out->getPacket();
 	av_packet_move_ref(outPkt, pkt);
 	setMediaTime(out);
 	outputs[outPkt->stream_index]->emit(out);

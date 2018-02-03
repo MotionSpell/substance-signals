@@ -90,7 +90,7 @@ void AdaptiveStreamingCommon::threadProc() {
 				auto const numSeg = totalDurationInMs / segDurationInMs;
 				qualities[i]->avg_bitrate_in_bps = ((qualities[i]->meta->getSize() * 8 * Clock::Rate) / qualities[i]->meta->getDuration() + qualities[i]->avg_bitrate_in_bps * numSeg) / (numSeg + 1);
 				if (qualities[i]->prefix.empty()) {
-					qualities[i]->prefix = format("%s_%sK/", getPrefix(qualities[i].get(), i), qualities[i]->avg_bitrate_in_bps / (8 * 1024));
+					qualities[i]->prefix = format("%s/", getPrefix(qualities[i].get(), i));
 					if (!(flags & SegmentsNotOwned)) {
 						auto const dir = format("%s%s", manifestDir, qualities[i]->prefix);
 						if ((gf_dir_exists(dir.c_str()) == GF_FALSE) && gf_mkdir(qualities[i]->prefix.c_str()))
@@ -107,7 +107,7 @@ void AdaptiveStreamingCommon::threadProc() {
 				}
 
 				if (curSegDurInMs < segDurationInMs) {
-					break;
+					continue;
 				}
 			}
 		}
@@ -125,9 +125,11 @@ void AdaptiveStreamingCommon::threadProc() {
 		if (!curSegDurInMs) curSegDurInMs = segDurationInMs;
 		if (!startTimeInMs) startTimeInMs = curMediaTimeInMs;
 		if (curSegDurInMs < segDurationInMs) {
-			auto out = outputSegments->getBuffer(0);
-			out->setMetadata(std::make_shared<MetadataFile>(getSegmentName(qualities[i].get(), i, std::to_string(getCurSegNum())), qualities[i]->meta->getStreamType(), qualities[i]->meta->getMimeType(), qualities[i]->meta->getCodecName(), qualities[i]->meta->getDuration(), qualities[i]->meta->getSize(), qualities[i]->meta->getLatency(), qualities[i]->meta->getStartsWithRAP()));
-			outputSegments->emit(out);
+			for (i = 0; i < numInputs; ++i) {
+				auto out = outputSegments->getBuffer(0);
+				out->setMetadata(std::make_shared<MetadataFile>(getSegmentName(qualities[i].get(), i, std::to_string(getCurSegNum())), SEGMENT, qualities[i]->meta->getMimeType(), qualities[i]->meta->getCodecName(), qualities[i]->meta->getDuration(), qualities[i]->meta->getSize(), qualities[i]->meta->getLatency(), qualities[i]->meta->getStartsWithRAP()));
+				outputSegments->emit(out);
+			}
 			continue;
 		}
 

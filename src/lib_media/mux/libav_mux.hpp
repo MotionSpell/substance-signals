@@ -10,22 +10,22 @@ namespace Modules {
 namespace Mux {
 
 class LibavMux : public ModuleDynI {
-	public:
-		LibavMux(const std::string &baseName, const std::string &format, const std::string &options = "");
-		~LibavMux();
-		void process() override;
+public:
+	LibavMux(const std::string &baseName, const std::string &format, const std::string &options = "");
+	~LibavMux();
+	void process() override;
 
-	private:
-		static void formatsList();
-		void ensureHeader();
-		AVPacket * getFormattedPkt(Data data);
-		void declareStream(Data stream, size_t inputIdx);
+private:
+	static void formatsList();
+	void ensureHeader();
+	AVPacket * getFormattedPkt(Data data);
+	void declareStream(Data stream, size_t inputIdx);
 
-		struct AVFormatContext *m_formatCtx;
-		std::map<size_t, size_t> inputIdx2AvStream;
-		ffpp::Dict optionsDict;
-		bool m_headerWritten = false;
-		bool m_inbandMetadata = false;
+	struct AVFormatContext *m_formatCtx;
+	std::map<size_t, size_t> inputIdx2AvStream;
+	ffpp::Dict optionsDict;
+	bool m_headerWritten = false;
+	bool m_inbandMetadata = false;
 };
 
 }

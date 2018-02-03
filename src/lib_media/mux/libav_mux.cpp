@@ -147,7 +147,7 @@ void LibavMux::process() {
 	}
 	if (inputs[inputIdx]->updateMetadata(data))
 		declareStream(data, inputIdx);
-	if (m_formatCtx->nb_streams < inputs.size() - 1)
+	if (m_formatCtx->nb_streams < getNumInputs())
 		return;
 	ensureHeader();
 

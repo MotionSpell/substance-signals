@@ -46,7 +46,8 @@ public:
 				auto const fsize = ftell(file);
 
 				auto out = outputSegment->getBuffer(0);
-				auto metadata = std::make_shared<MetadataFile>(hlsDir + fn, data->getMetadata()->getStreamType(), "", "", segDuration, fsize, 1, false);
+				out->setMediaTime(timescaleToClock((uint64_t)DataBase::absUTCOffsetInMs, 1000) + data->getMediaTime());
+				auto metadata = std::make_shared<MetadataFile>(hlsDir + fn, SEGMENT, "", "", segDuration, fsize, 1, false);
 				switch (data->getMetadata()->getStreamType()) {
 				case AUDIO_PKT: metadata->sampleRate = safe_cast<const MetadataPktLibavAudio>(data->getMetadata())->getSampleRate(); break;
 				case VIDEO_PKT: {

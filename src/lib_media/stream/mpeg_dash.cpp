@@ -67,7 +67,7 @@ void MPEG_DASH::processInitSegment(Quality const * const quality, size_t index) 
 		auto const initFnSrc = getInitName(quality, index);
 		auto const initFnDst = format("%s%s%s", manifestDir, getPeriodID(), initFnSrc);
 		moveFile(initFnSrc, initFnDst);
-		out->setMetadata(std::make_shared<MetadataFile>(initFnDst, quality->meta->getStreamType(), quality->meta->getMimeType(), quality->meta->getCodecName(), quality->meta->getDuration(), quality->meta->getSize(), quality->meta->getLatency(), quality->meta->getStartsWithRAP()));
+		out->setMetadata(std::make_shared<MetadataFile>(initFnDst, SEGMENT, quality->meta->getMimeType(), quality->meta->getCodecName(), quality->meta->getDuration(), quality->meta->getSize(), quality->meta->getLatency(), quality->meta->getStartsWithRAP()));
 		outputSegments->emit(out);
 		break;
 	}
@@ -250,7 +250,7 @@ void MPEG_DASH::generateManifest() {
 			if (!moveFile(quality->meta->getFilename(), fn)) {
 				log(Error, "Couldn't rename segment \"%s\" -> \"%s\". You may encounter playback errors.", quality->meta->getFilename(), fn);
 			}
-			auto mf = std::make_shared<MetadataFile>(fn, quality->meta->getStreamType(), quality->meta->getMimeType(), quality->meta->getCodecName(), quality->meta->getDuration(), quality->meta->getSize(), quality->meta->getLatency(), quality->meta->getStartsWithRAP());
+			auto mf = std::make_shared<MetadataFile>(fn, SEGMENT, quality->meta->getMimeType(), quality->meta->getCodecName(), quality->meta->getDuration(), quality->meta->getSize(), quality->meta->getLatency(), quality->meta->getStartsWithRAP());
 			switch (quality->meta->getStreamType()) {
 			case AUDIO_PKT: mf->sampleRate = quality->meta->sampleRate; break;
 			case VIDEO_PKT: mf->resolution[0] = quality->meta->resolution[0]; mf->resolution[1] = quality->meta->resolution[1]; break;
@@ -260,12 +260,12 @@ void MPEG_DASH::generateManifest() {
 			quality->meta = mf;
 
 			auto out = outputSegments->getBuffer(0);
-			out->setMetadata(std::make_shared<MetadataFile>(fn, quality->meta->getStreamType(), quality->meta->getMimeType(), quality->meta->getCodecName(), quality->meta->getDuration(), quality->meta->getSize(), quality->meta->getLatency(), quality->meta->getStartsWithRAP()));
+			out->setMetadata(std::make_shared<MetadataFile>(fn, SEGMENT, quality->meta->getMimeType(), quality->meta->getCodecName(), quality->meta->getDuration(), quality->meta->getSize(), quality->meta->getLatency(), quality->meta->getStartsWithRAP()));
 			outputSegments->emit(out);
 
 			if (!fnNext.empty()) {
 				auto out = outputSegments->getBuffer(0);
-				out->setMetadata(std::make_shared<MetadataFile>(fnNext, quality->meta->getStreamType(), quality->meta->getMimeType(), quality->meta->getCodecName(), quality->meta->getDuration(), 0, quality->meta->getLatency(), quality->meta->getStartsWithRAP()));
+				out->setMetadata(std::make_shared<MetadataFile>(fnNext, SEGMENT, quality->meta->getMimeType(), quality->meta->getCodecName(), quality->meta->getDuration(), 0, quality->meta->getLatency(), quality->meta->getStartsWithRAP()));
 				outputSegments->emit(out);
 			}
 		}
