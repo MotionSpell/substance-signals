@@ -47,6 +47,16 @@ public:
 	void process() override final;
 	void flush() override final;
 
+	static std::string getCommonPrefixAudio(size_t index) {
+		return format("a_%s", index);
+	}
+	static std::string getCommonPrefixVideo(size_t index, unsigned width, unsigned height) {
+		return format("v_%s_%sx%s", index, width, height);
+	}
+	static std::string getCommonPrefixSubtitle(size_t index) {
+		return format("s_%s", index);
+	}
+
 protected:
 	std::string getInitName(Quality const * const quality, size_t index) const;
 	std::string getSegmentName(Quality const * const quality, size_t index, const std::string &segmentNumSymbol) const;

@@ -24,9 +24,9 @@ std::string AdaptiveStreamingCommon::getInitName(Quality const * const quality, 
 
 std::string AdaptiveStreamingCommon::getPrefix(Quality const * const quality, size_t index) const {
 	switch (quality->meta->getStreamType()) {
-	case AUDIO_PKT:    return format("%sa_%s", quality->prefix, index);
-	case VIDEO_PKT:    return format("%sv_%s_%sx%s", quality->prefix, index, quality->meta->resolution[0], quality->meta->resolution[1]);
-	case SUBTITLE_PKT: return format("%ss_%s", quality->prefix, index);
+	case AUDIO_PKT:    return format("%s%s", quality->prefix, getCommonPrefixAudio(index));
+	case VIDEO_PKT:    return format("%s%s", quality->prefix, getCommonPrefixVideo(index, quality->meta->resolution[0], quality->meta->resolution[1]));
+	case SUBTITLE_PKT: return format("%s%s", quality->prefix, getCommonPrefixSubtitle(index));
 	default: return "";
 	}
 }
@@ -120,8 +120,10 @@ void AdaptiveStreamingCommon::threadProc() {
 					--i; data = nullptr; continue;
 				}
 
-				auto const numSeg = totalDurationInMs / segDurationInMs;
-				qualities[i]->avg_bitrate_in_bps = ((qualities[i]->meta->getSize() * 8 * Clock::Rate) / qualities[i]->meta->getDuration() + qualities[i]->avg_bitrate_in_bps * numSeg) / (numSeg + 1);
+				if (segDurationInMs) {
+					auto const numSeg = totalDurationInMs / segDurationInMs;
+					qualities[i]->avg_bitrate_in_bps = ((qualities[i]->meta->getSize() * 8 * Clock::Rate) / qualities[i]->meta->getDuration() + qualities[i]->avg_bitrate_in_bps * numSeg) / (numSeg + 1);
+				}
 				ensurePrefix(i);
 
 				if (flags & ForceRealDurations) {

@@ -77,7 +77,7 @@ unittest("timestamps start at a negative value (GPACDemuxMP4Simple)") {
 
 unittest("transcoder with reframers: test a/v sync recovery") {
 	const int64_t maxDurIn180k = 2 * Clock::Rate;
-	auto const bufferSize = (maxDurIn180k * 1000) / (20 * Clock::Rate);
+	const size_t bufferSize = (maxDurIn180k * 1000) / (20 * Clock::Rate);
 
 	struct Gapper : public ModuleS {
 		Gapper() {

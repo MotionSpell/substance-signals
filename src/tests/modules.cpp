@@ -19,5 +19,6 @@
 #include "modules_metadata.cpp"
 #include "modules_mux.cpp"
 #include "modules_rectifier.cpp"
+#include "modules_streamer.cpp"
 #include "modules_timings.cpp"
 #include "modules_transcoder.cpp"

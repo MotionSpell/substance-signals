@@ -48,8 +48,8 @@ MPEG_DASH::MPEG_DASH(const std::string &mpdDir, const std::string &mpdFilename, 
   mpd(createMPD(type, minBufferTimeInMs, id)), mpdPath(format("%s%s", mpdDir, mpdFilename)), baseURLs(baseURLs),
   minUpdatePeriodInMs(minUpdatePeriodInMs ? minUpdatePeriodInMs : (segDurationInMs ? segDurationInMs : 1000)),
   timeShiftBufferDepthInMs(timeShiftBufferDepthInMs), initialOffsetInMs(initialOffsetInMs), useSegmentTimeline(segDurationInMs == 0) {
-	if (useSegmentTimeline && (flags & PresignalNextSegment))
-		throw error("Inconsistent parameters: next segment pre-signalling cannot be used with segment timeline.");
+	if (useSegmentTimeline && ((flags & PresignalNextSegment) || (flags & SegmentsNotOwned)))
+		throw error("Next segment pre-signalling or segments not owned cannot be used with segment timeline.");
 }
 
 MPEG_DASH::~MPEG_DASH() {

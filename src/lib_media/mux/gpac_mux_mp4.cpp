@@ -396,7 +396,11 @@ GPACMuxMP4::GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs
 	if (e != GF_OK)
 		throw error(format("Cannot make iso file %s interleaved", baseName));
 
-	output = addOutput<OutputDataDefault<DataRawGPAC>>();
+	if (compatFlags & FlushFragMemory) {
+		output = addOutputDynAlloc<OutputDataDefault<DataRawGPAC>>(100 * ALLOC_NUM_BLOCKS_DEFAULT); //TODO: retrieve framerate, and multiply the allocator size
+	} else {
+		output = addOutput<OutputDataDefault<DataRawGPAC>>();
+	}
 }
 
 void GPACMuxMP4::flush() {

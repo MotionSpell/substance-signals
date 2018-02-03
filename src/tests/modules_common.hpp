@@ -11,7 +11,7 @@ struct Meta {
 			&& this->mimeType == rhs.mimeType
 			&& this->codecName == rhs.codecName
 			&& this->durationIn180k == rhs.durationIn180k
-			&& this->filesize == rhs.filesize
+			//FIXME: sizes are sometimes different with FFmpeg on different platforms: && this->filesize == rhs.filesize
 			&& this->latencyIn180k == rhs.latencyIn180k
 			&& this->startsWithRAP == rhs.startsWithRAP;
 	}
