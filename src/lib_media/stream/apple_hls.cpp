@@ -33,7 +33,7 @@ void Apple_HLS::processInitSegment(Quality const * const quality, size_t index) 
 		auto out = shptr(new DataBaseRef(quality->lastData));
 		auto const initFnSrc = getInitName(quality, index);
 		auto const initFnDst = format("%s%s", manifestDir, initFnSrc);
-		out->setMetadata(std::make_shared<MetadataFile>(initFnDst, SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), meta->getSize(), meta->getLatency(), meta->getStartsWithRAP()));
+		out->setMetadata(std::make_shared<MetadataFile>(initFnDst, SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), meta->getSize(), meta->getLatency(), meta->getStartsWithRAP(), true));
 		outputSegments->emit(out);
 		break;
 	}
@@ -75,7 +75,7 @@ void Apple_HLS::generateManifestMaster() {
 
 		if (type != Static) {
 			auto out = outputManifest->getBuffer(0);
-			auto metadata = std::make_shared<MetadataFile>(playlistMasterPath, PLAYLIST, "", "", timescaleToClock(segDurationInMs, 1000), 0, 1, false);
+			auto metadata = std::make_shared<MetadataFile>(playlistMasterPath, PLAYLIST, "", "", timescaleToClock(segDurationInMs, 1000), 0, 1, false, true);
 			out->setMetadata(metadata);
 			outputManifest->emit(out);
 		}
@@ -107,7 +107,7 @@ void Apple_HLS::updateManifestVariants() {
 			}
 
 			auto out = shptr(new DataBaseRef(quality->lastData));
-			out->setMetadata(std::make_shared<MetadataFile>(format("%s%s", manifestDir, fn), SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), meta->getSize(), meta->getLatency(), meta->getStartsWithRAP()));
+			out->setMetadata(std::make_shared<MetadataFile>(format("%s%s", manifestDir, fn), SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), meta->getSize(), meta->getLatency(), meta->getStartsWithRAP(), true));
 			outputSegments->emit(out);
 
 			quality->segments.push_back({ fn, startTimeInMs+totalDurationInMs });
@@ -161,7 +161,7 @@ void Apple_HLS::generateManifestVariantFull(bool isLast) {
 			vpl.close();
 
 			auto out = outputManifest->getBuffer(0);
-			auto metadata = std::make_shared<MetadataFile>(playlistCurVariantPath, PLAYLIST, "", "", timescaleToClock(segDurationInMs, 1000), 0, 1, false);
+			auto metadata = std::make_shared<MetadataFile>(playlistCurVariantPath, PLAYLIST, "", "", timescaleToClock(segDurationInMs, 1000), 0, 1, false, true);
 			out->setMetadata(metadata);
 			outputManifest->emit(out);
 		}

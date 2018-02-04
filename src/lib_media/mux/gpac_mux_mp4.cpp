@@ -473,7 +473,7 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 			}
 		}
 
-		sendOutput();
+		sendOutput(true);
 		log(Debug, "Segment %s completed (size %s) (startsWithSAP=%s)", segmentName.empty() ? "[in memory]" : segmentName, lastSegmentSize, segmentStartsWithRAP);
 
 		curSegmentDurInTs = 0;
@@ -534,7 +534,7 @@ void GPACMuxMP4::closeFragment() {
 			gf_isom_flush_fragments(isoCur, GF_TRUE); //writes a 'styp'
 
 			if (compatFlags & FlushFragMemory) {
-				sendOutput();
+				sendOutput(false);
 			}
 		}
 
@@ -556,7 +556,7 @@ void GPACMuxMP4::setupFragments() {
 			throw error(format("Cannot prepare track for movie fragmentation: %s", gf_error_to_string(e)));
 		
 		if (segmentPolicy == FragmentedSegment) {
-			sendOutput(); //init
+			sendOutput(true); //init
 		}
 	}
 }
@@ -798,7 +798,7 @@ void GPACMuxMP4::handleInitialTimeOffset() {
 	}
 }
 
-void GPACMuxMP4::sendOutput() {
+void GPACMuxMP4::sendOutput(bool EOS) {
 	if (segmentPolicy == IndependentSegment) {
 		nextFragmentNum = gf_isom_get_next_moof_number(isoCur);
 		GF_Err e = gf_isom_write(isoCur);
@@ -845,7 +845,7 @@ void GPACMuxMP4::sendOutput() {
 	auto computeContainerLatency = [&]() {
 		return fragmentPolicy == OneFragmentPerFrame ? timescaleToClock(defaultSampleIncInTs, mediaTs) : std::min<uint64_t>(consideredDurationIn180k, segmentDurationIn180k);
 	};
-	auto metadata = std::make_shared<MetadataFile>(segmentName, streamType, mimeType, codecName, consideredDurationIn180k, lastSegmentSize, computeContainerLatency(), segmentStartsWithRAP);
+	auto metadata = std::make_shared<MetadataFile>(segmentName, streamType, mimeType, codecName, consideredDurationIn180k, lastSegmentSize, computeContainerLatency(), segmentStartsWithRAP, EOS);
 	switch (gf_isom_get_media_type(isoCur, gf_isom_get_track_by_id(isoCur, trackId))) {
 	case GF_ISOM_MEDIA_VISUAL: metadata->resolution[0] = resolution[0]; metadata->resolution[1] = resolution[1]; break;
 	case GF_ISOM_MEDIA_AUDIO: metadata->sampleRate = sampleRate; break;
@@ -998,7 +998,7 @@ bool GPACMuxMP4::processInit(Data &data) {
 
 	auto refData = std::dynamic_pointer_cast<const DataBaseRef>(data);
 	if (refData && !refData->getData()) {
-		sendOutput();
+		sendOutput(true);
 		return false;
 	}
 	return true;

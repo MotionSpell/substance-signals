@@ -46,6 +46,7 @@ private:
 	std::thread workingThread;
 	FILE *curTransferedFile = nullptr;
 	Data curTransferedData;
+	std::shared_ptr<const MetadataFile> curTransferedMeta;
 	size_t curTransferedDataInputIndex = 0;
 	static size_t staticCurlCallback(void *ptr, size_t size, size_t nmemb, void *userp);
 	size_t curlCallback(void *ptr, size_t size, size_t nmemb);
@@ -55,6 +56,7 @@ private:
 	struct curl_slist *chunk = nullptr;
 	State state = Init;
 	Flag flags;
+	OutputDataDefault<DataRaw> *outputFinished;
 };
 
 }

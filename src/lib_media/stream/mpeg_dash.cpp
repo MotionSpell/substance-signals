@@ -68,7 +68,7 @@ void MPEG_DASH::processInitSegment(Quality const * const quality, size_t index) 
 		auto const initFnSrc = getInitName(quality, index);
 		auto const initFnDst = format("%s%s%s", manifestDir, getPeriodID(), initFnSrc);
 		moveFile(initFnSrc, initFnDst);
-		out->setMetadata(std::make_shared<MetadataFile>(initFnDst, SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), meta->getSize(), meta->getLatency(), meta->getStartsWithRAP()));
+		out->setMetadata(std::make_shared<MetadataFile>(initFnDst, SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), meta->getSize(), meta->getLatency(), meta->getStartsWithRAP(), true));
 		outputSegments->emit(out);
 		break;
 	}
@@ -170,7 +170,7 @@ void MPEG_DASH::writeManifest() {
 		log(Warning, "Can't write MPD at %s (1). Check you have sufficient rights.", mpdPath);
 	} else {
 		auto out = outputManifest->getBuffer(0);
-		auto metadata = std::make_shared<MetadataFile>(mpdPath, PLAYLIST, "", "", timescaleToClock(segDurationInMs, 1000), 0, 1, false);
+		auto metadata = std::make_shared<MetadataFile>(mpdPath, PLAYLIST, "", "", timescaleToClock(segDurationInMs, 1000), 0, 1, false, true);
 		out->setMetadata(metadata);
 		outputManifest->emit(out);
 	}
@@ -250,7 +250,7 @@ void MPEG_DASH::generateManifest() {
 				fnNext = getPrefixedSegmentName(quality, i, n + 1);
 			}
 		}
-		auto metaFn = std::make_shared<MetadataFile>(fn, SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), meta->getSize(), meta->getLatency(), meta->getStartsWithRAP());
+		auto metaFn = std::make_shared<MetadataFile>(fn, SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), meta->getSize(), meta->getLatency(), meta->getStartsWithRAP(), true);
 		switch (meta->getStreamType()) {
 		case AUDIO_PKT: metaFn->sampleRate = meta->sampleRate; break;
 		case VIDEO_PKT: metaFn->resolution[0] = meta->resolution[0]; metaFn->resolution[1] = meta->resolution[1]; break;
@@ -270,7 +270,7 @@ void MPEG_DASH::generateManifest() {
 
 			if (!fnNext.empty()) {
 				auto out = shptr(new DataBaseRef(quality->lastData));
-				out->setMetadata(std::make_shared<MetadataFile>(fnNext, metaFn->getStreamType(), metaFn->getMimeType(), metaFn->getCodecName(), metaFn->getDuration(), 0, metaFn->getLatency(), metaFn->getStartsWithRAP()));
+				out->setMetadata(std::make_shared<MetadataFile>(fnNext, metaFn->getStreamType(), metaFn->getMimeType(), metaFn->getCodecName(), metaFn->getDuration(), 0, metaFn->getLatency(), metaFn->getStartsWithRAP(), false));
 				outputSegments->emit(out);
 			}
 		}

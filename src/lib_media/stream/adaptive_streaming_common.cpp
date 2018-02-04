@@ -89,7 +89,7 @@ void AdaptiveStreamingCommon::threadProc() {
 		ensureStartTime();
 		auto out = shptr(new DataBaseRef(data));
 		auto const &meta = qualities[i]->getMeta();
-		out->setMetadata(std::make_shared<MetadataFile>(getSegmentName(qualities[i].get(), i, std::to_string(getCurSegNum())), SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), size, meta->getLatency(), meta->getStartsWithRAP()));
+		out->setMetadata(std::make_shared<MetadataFile>(getSegmentName(qualities[i].get(), i, std::to_string(getCurSegNum())), SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), size, meta->getLatency(), meta->getStartsWithRAP(), meta->getEOS()));
 		outputSegments->emit(out);
 	};
 	auto segmentReady = [&]()->bool {

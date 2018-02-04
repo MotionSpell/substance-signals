@@ -59,7 +59,7 @@ private:
 	bool processInit(Data &data);
 	void declareStream(const std::shared_ptr<const IMetadata> &metadata);
 	void handleInitialTimeOffset();
-	void sendOutput();
+	void sendOutput(bool EOS);
 	std::unique_ptr<gpacpp::IsoSample> fillSample(Data data);
 	void startChunk(gpacpp::IsoSample * const sample);
 	void addData(gpacpp::IsoSample const * const sample, int64_t lastDataDurationInTs);

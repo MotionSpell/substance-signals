@@ -2,7 +2,6 @@
 
 extern "C" {
 #include <curl/curl.h>
-#include <gpac/tools.h>
 #include <gpac/bitstream.h>
 }
 
@@ -11,10 +10,16 @@ extern "C" {
 namespace Modules {
 namespace Out {
 
+namespace {
+size_t writeVoid(void *buffer, size_t size, size_t nmemb, void *userp) {
+	return size * nmemb;
+}
+}
+
 HTTP::HTTP(const std::string &url, Flag flags, const std::string &userAgent)
 : url(url), userAgent(userAgent), flags(flags) {
-	if (url.compare(0, 7, "http://"))
-		throw error(format("can only handle URLs starting with 'http://', not %s.", url));
+	if (url.compare(0, 7, "http://") && url.compare(0, 8, "https://"))
+		throw error(format("can only handle URLs starting with 'http://' or 'https://', not %s.", url));
 
 	curl_global_init(CURL_GLOBAL_ALL);
 	curl = curl_easy_init();
@@ -48,6 +53,8 @@ HTTP::HTTP(const std::string &url, Flag flags, const std::string &userAgent)
 
 #ifdef CURL_DEBUG
 	curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+#else
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeVoid);
 #endif
 	curl_easy_setopt(curl, CURLOPT_READFUNCTION, &HTTP::staticCurlCallback);
 	curl_easy_setopt(curl, CURLOPT_READDATA, this);
@@ -58,6 +65,7 @@ HTTP::HTTP(const std::string &url, Flag flags, const std::string &userAgent)
 	}
 
 	addInput(new Input<DataRaw>(this));
+	outputFinished = addOutput<OutputDataDefault<DataRaw>>();
 }
 
 HTTP::~HTTP() {
@@ -92,7 +100,7 @@ bool HTTP::open(std::shared_ptr<const MetadataFile> meta) {
 		throw error(format("Unknown data received on input %s", curTransferedDataInputIndex));
 	assert(!curTransferedBs && !curTransferedFile);
 	auto const fn = meta->getFilename();
-	if (fn.empty()) {
+	if (fn.empty() || curTransferedData->size()) {
 		curTransferedBs = gf_bs_new((const char*)curTransferedData->data(), curTransferedData->size(), GF_BITSTREAM_READ);
 	} else {
 		curTransferedFile = gf_fopen(fn.c_str(), "rb");
@@ -112,7 +120,6 @@ void HTTP::clean() {
 		if (curTransferedFile) {
 			gf_fclose(curTransferedFile);
 			curTransferedFile = nullptr;
-			gf_delete_file(safe_cast<const MetadataFile>(curTransferedData->getMetadata())->getFilename().c_str());
 		}
 		gf_bs_del(curTransferedBs);
 		curTransferedBs = nullptr;
@@ -142,6 +149,10 @@ size_t HTTP::curlCallback(void *ptr, size_t size, size_t nmemb) {
 	if (!curTransferedData) {
 		curTransferedData = inputs[curTransferedDataInputIndex]->pop();
 		if (!curTransferedData) {
+			auto out = outputFinished->getBuffer(0);
+			out->setMetadata(curTransferedMeta);
+			outputFinished->emit(out);
+
 			if (state != Stop) {
 				state = Stop;
 				auto n = endOfSession(ptr, size*nmemb);
@@ -152,11 +163,12 @@ size_t HTTP::curlCallback(void *ptr, size_t size, size_t nmemb) {
 			}
 		}
 
-		if (!open(safe_cast<const MetadataFile>(curTransferedData->getMetadata()))) {
+		curTransferedMeta = safe_cast<const MetadataFile>(curTransferedData->getMetadata());
+		if (!open(curTransferedMeta)) {
 			return 0;
 		}
 		if (state != RunNewConnection) {
-			state = RunNewFile; //on new connection, don't remove the ftyp/moov
+			state = RunNewFile; //on new connection, don't call newFileCallback()
 		}
 	}
 
