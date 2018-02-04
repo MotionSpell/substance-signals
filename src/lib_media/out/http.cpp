@@ -77,9 +77,7 @@ HTTP::~HTTP() {
 
 void HTTP::endOfStream() {
 	if (workingThread.joinable()) {
-		for (size_t i = 0; i < std::max<size_t>(1, getNumInputs() - 1); ++i) {
-			inputs[i]->push(nullptr);
-		}
+		inputs[0]->push(nullptr);
 		workingThread.join();
 	}
 }
@@ -97,7 +95,7 @@ void HTTP::process() {
 
 bool HTTP::open(std::shared_ptr<const MetadataFile> meta) {
 	if (!meta)
-		throw error(format("Unknown data received on input %s", curTransferedDataInputIndex));
+		throw error("Unknown data received on input");
 	assert(!curTransferedBs && !curTransferedFile);
 	auto const fn = meta->getFilename();
 	if (fn.empty() || curTransferedData->size()) {
@@ -125,8 +123,6 @@ void HTTP::clean() {
 		curTransferedBs = nullptr;
 		curTransferedData = nullptr;
 	}
-
-	curTransferedDataInputIndex = (curTransferedDataInputIndex + 1) % (std::max<size_t>(1, getNumInputs() - 1));
 }
 
 size_t HTTP::staticCurlCallback(void *ptr, size_t size, size_t nmemb, void *userp) {
@@ -142,12 +138,12 @@ size_t HTTP::curlCallback(void *ptr, size_t size, size_t nmemb) {
 			gf_bs_seek(curTransferedBs, 0);
 		} else { /*we may be exiting because of an exception*/
 			curTransferedData = nullptr;
-			inputs[curTransferedDataInputIndex]->push(nullptr);
+			inputs[0]->push(nullptr);
 		}
 	}
 
 	if (!curTransferedData) {
-		curTransferedData = inputs[curTransferedDataInputIndex]->pop();
+		curTransferedData = inputs[0]->pop();
 		if (!curTransferedData) {
 			auto out = outputFinished->getBuffer(0);
 			out->setMetadata(curTransferedMeta);
@@ -156,7 +152,7 @@ size_t HTTP::curlCallback(void *ptr, size_t size, size_t nmemb) {
 			if (state != Stop) {
 				state = Stop;
 				auto n = endOfSession(ptr, size*nmemb);
-				if (n) inputs[curTransferedDataInputIndex]->push(nullptr);
+				if (n) inputs[0]->push(nullptr);
 				return n;
 			} else {
 				return 0;

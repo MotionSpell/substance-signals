@@ -10,7 +10,7 @@ extern const char *g_version;
 namespace Modules {
 namespace Out {
 
-class HTTP : public ModuleDynI {
+class HTTP : public Module {
 public:
 	enum Flag {
 		InitialEmptyPost = 1,
@@ -47,7 +47,6 @@ private:
 	FILE *curTransferedFile = nullptr;
 	Data curTransferedData;
 	std::shared_ptr<const MetadataFile> curTransferedMeta;
-	size_t curTransferedDataInputIndex = 0;
 	static size_t staticCurlCallback(void *ptr, size_t size, size_t nmemb, void *userp);
 	size_t curlCallback(void *ptr, size_t size, size_t nmemb);
 
