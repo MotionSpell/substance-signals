@@ -27,12 +27,13 @@ std::unique_ptr<Quality> Apple_HLS::createQuality() const {
 }
 
 void Apple_HLS::processInitSegment(Quality const * const quality, size_t index) {
-	switch (quality->meta->getStreamType()) {
+	auto const &meta = quality->getMeta();
+	switch (meta->getStreamType()) {
 	case AUDIO_PKT: case VIDEO_PKT: case SUBTITLE_PKT: {
-		auto out = outputSegments->getBuffer(0);
+		auto out = shptr(new DataBaseRef(quality->lastData));
 		auto const initFnSrc = getInitName(quality, index);
 		auto const initFnDst = format("%s%s", manifestDir, initFnSrc);
-		out->setMetadata(std::make_shared<MetadataFile>(initFnDst, SEGMENT, quality->meta->getMimeType(), quality->meta->getCodecName(), quality->meta->getDuration(), quality->meta->getSize(), quality->meta->getLatency(), quality->meta->getStartsWithRAP()));
+		out->setMetadata(std::make_shared<MetadataFile>(initFnDst, SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), meta->getSize(), meta->getLatency(), meta->getStartsWithRAP()));
 		outputSegments->emit(out);
 		break;
 	}
@@ -41,9 +42,10 @@ void Apple_HLS::processInitSegment(Quality const * const quality, size_t index) 
 }
 
 std::string Apple_HLS::getVariantPlaylistName(HLSQuality const * const quality, const std::string &subDir, size_t index) {
-	switch (quality->meta->getStreamType()) {
+	auto const &meta = quality->getMeta();
+	switch (meta->getStreamType()) {
 	case AUDIO_PKT:    return format("%s%s%s_.m3u8", subDir, quality->prefix, getCommonPrefixAudio(index));
-	case VIDEO_PKT:    return format("%s%s%s_.m3u8", subDir, quality->prefix, getCommonPrefixVideo(index, quality->meta->resolution[0], quality->meta->resolution[1]));
+	case VIDEO_PKT:    return format("%s%s%s_.m3u8", subDir, quality->prefix, getCommonPrefixVideo(index, meta->resolution[0], meta->resolution[1]));
 	case SUBTITLE_PKT: return format("%s%s%s", subDir, quality->prefix, getCommonPrefixSubtitle(index));
 	default: return "";
 	}
@@ -57,10 +59,11 @@ void Apple_HLS::generateManifestMaster() {
 		for (size_t i = 0; i < getNumInputs() - 1; ++i) {
 			auto quality = safe_cast<HLSQuality>(qualities[i].get());
 			playlistMaster << "#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=" << quality->avg_bitrate_in_bps;
-			switch (quality->meta->getStreamType()) {
-			case AUDIO_PKT: playlistMaster << ",CODECS=" << "mp4a.40.5" /*TODO: quality->meta->getCodecName()*/ << std::endl; break;
-			case VIDEO_PKT: playlistMaster << ",RESOLUTION=" << quality->meta->resolution[0] << "x" << quality->meta->resolution[1] << std::endl; break;
-			case SEGMENT: playlistMaster << ",RESOLUTION=" << quality->meta->resolution[0] << "x" << quality->meta->resolution[1] << std::endl; break;
+			auto const &meta = quality->getMeta();
+			switch (meta->getStreamType()) {
+			case AUDIO_PKT: playlistMaster << ",CODECS=" << meta->getCodecName() << std::endl; break;
+			case VIDEO_PKT: playlistMaster << ",RESOLUTION=" << meta->resolution[0] << "x" << meta->resolution[1] << std::endl; break;
+			case SEGMENT: playlistMaster << ",RESOLUTION=" << meta->resolution[0] << "x" << meta->resolution[1] << std::endl; break;
 			default: assert(0);
 			}
 			playlistMaster << getVariantPlaylistName(quality, "", i) << std::endl;
@@ -83,7 +86,8 @@ void Apple_HLS::updateManifestVariants() {
 	if (genVariantPlaylist) {
 		for (size_t i = 0; i < getNumInputs() - 1; ++i) {
 			auto quality = safe_cast<HLSQuality>(qualities[i].get());
-			auto fn = quality->meta->getFilename();
+			auto const &meta = quality->getMeta();
+			auto fn = meta->getFilename();
 			if (fn.empty()) {
 				fn = getSegmentName(quality, i, std::to_string(getCurSegNum()));
 			}
@@ -102,8 +106,8 @@ void Apple_HLS::updateManifestVariants() {
 				buffer >> firstSegNum;
 			}
 
-			auto out = outputSegments->getBuffer(0);
-			out->setMetadata(std::make_shared<MetadataFile>(format("%s%s", manifestDir, fn), SEGMENT, quality->meta->getMimeType(), quality->meta->getCodecName(), quality->meta->getDuration(), quality->meta->getSize(), quality->meta->getLatency(), quality->meta->getStartsWithRAP()));
+			auto out = shptr(new DataBaseRef(quality->lastData));
+			out->setMetadata(std::make_shared<MetadataFile>(format("%s%s", manifestDir, fn), SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), meta->getSize(), meta->getLatency(), meta->getStartsWithRAP()));
 			outputSegments->emit(out);
 
 			quality->segments.push_back({ fn, startTimeInMs+totalDurationInMs });

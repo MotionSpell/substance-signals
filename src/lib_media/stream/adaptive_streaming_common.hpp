@@ -1,8 +1,6 @@
 #pragma once
 
 #include "lib_modules/core/module.hpp"
-#include "lib_gpacpp/gpacpp.hpp"
-#include "../common/libav.hpp"
 #include <memory>
 #include <string>
 
@@ -10,11 +8,15 @@ namespace Modules {
 namespace Stream {
 
 struct Quality {
-	Quality() : meta(nullptr), avg_bitrate_in_bps(0) {}
 	virtual ~Quality() {}
-	std::shared_ptr<const MetadataFile> meta;
-	uint64_t avg_bitrate_in_bps;
-	std::string prefix; //typically a subdir, ending with a folder separator
+
+	std::shared_ptr<const MetadataFile> getMeta() const {
+		return lastData ? safe_cast<const MetadataFile>(lastData->getMetadata()) : nullptr;
+	};
+
+	Data lastData;
+	uint64_t avg_bitrate_in_bps = 0;
+	std::string prefix; //typically a subdir, ending with a folder separator '/'
 };
 
 struct IAdaptiveStreamingCommon {
@@ -68,7 +70,7 @@ protected:
 	const std::string manifestDir;
 	const AdaptiveStreamingCommonFlags flags;
 	std::vector<std::unique_ptr<Quality>> qualities;
-	OutputDataDefault<DataAVPacket> *outputSegments, *outputManifest;
+	OutputDataDefault<DataRaw> *outputSegments, *outputManifest;
 
 private:
 	virtual void processInitSegment(Quality const * const quality, size_t index) = 0;

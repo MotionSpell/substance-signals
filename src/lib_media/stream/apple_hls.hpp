@@ -4,6 +4,7 @@
 
 #define LIBAVMUXHLS //FIXME: see https://git.gpac-licensing.com/rbouqueau/fk-encode/issues/18
 #include "../mux/libav_mux.hpp"
+#include "../common/libav.hpp"
 #include <lib_modules/utils/helper.hpp>
 
 namespace Modules {
@@ -17,8 +18,8 @@ public:
 		delegate = createModule<Mux::LibavMux>(isLowLatency ? ALLOC_NUM_BLOCKS_LOW_LATENCY : ALLOC_NUM_BLOCKS_DEFAULT,
 		                                       clock, format("%s%s", hlsDir, baseName), "hls", options);
 		addInput(new Input<DataAVPacket>(this));
-		outputSegment  = addOutput<OutputDataDefault<DataAVPacket>>();
-		outputManifest = addOutput<OutputDataDefault<DataAVPacket>>();
+		outputSegment  = addOutput<OutputDataDefault<DataRaw>>();
+		outputManifest = addOutput<OutputDataDefault<DataRaw>>();
 	}
 
 	virtual ~LibavMuxHLSTS() {}
@@ -77,7 +78,7 @@ public:
 
 private:
 	std::unique_ptr<Modules::Mux::LibavMux> delegate;
-	OutputDataDefault<DataAVPacket> *outputSegment, *outputManifest;
+	OutputDataDefault<DataRaw> *outputSegment, *outputManifest;
 	int64_t firstDTS = -1, segDuration, segIdx = 0;
 	std::string hlsDir, segBasename;
 };
