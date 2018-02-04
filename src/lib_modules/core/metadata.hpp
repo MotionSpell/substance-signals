@@ -173,7 +173,7 @@ private:
 				}
 				return true;
 			}
-			Log::msg(Info, "Output: metadata transported by data changed. Updating.");
+			Log::msg(Debug, "Output: metadata transported by data changed. Updating.");
 			m_metadata = metadata;
 			return true;
 		} else {
