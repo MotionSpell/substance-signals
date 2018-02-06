@@ -30,12 +30,18 @@ uint64_t fileSize(const std::string &fn) {
 	return size;
 }
 
-void getBsContent(GF_ISOFile *iso, char *&output, u32 &size) {
+void getBsContent(GF_ISOFile *iso, char *&output, u32 &size, bool newBs) {
 	GF_BitStream *bs = NULL;
 	GF_Err e = gf_isom_get_bs(iso, &bs);
 	if (e)
 		throw std::runtime_error(format("gf_isom_get_bs: %s", gf_error_to_string(e)));
 	gf_bs_get_content(bs, &output, &size);
+	if (newBs) {
+		auto bsNew = gf_bs_new(nullptr, 0, GF_BITSTREAM_WRITE);
+		memcpy(bs, bsNew, 2*sizeof(void*)); //HACK: GPAC GF_BitStream.original nee sto be non-NULL
+		memset(bsNew,  0, 2*sizeof(void*));
+		gf_bs_del(bsNew);
+	}
 }
 
 static GF_Err avc_import_ffextradata(const u8 *extradata, const u64 extradataSize, GF_AVCConfig *dstcfg) {
@@ -811,7 +817,7 @@ void GPACMuxMP4::sendOutput(bool EOS) {
 		lastSegmentSize = fileSize(segmentName);
 	} else {
 		char *output = nullptr; u32 size = 0;
-		getBsContent(isoCur, output, size);
+		getBsContent(isoCur, output, size, (compatFlags & FlushFragMemory) && curFragmentDurInTs);
 		if (!size) {
 			assert((segmentPolicy == FragmentedSegment) && (fragmentPolicy > NoFragment));
 			log(Debug, "Empty segment. Ignore.");
