@@ -18,7 +18,7 @@ AdaptiveStreamingCommon::AdaptiveStreamingCommon(Type type, uint64_t segDuration
 
 std::string AdaptiveStreamingCommon::getInitName(Quality const * const quality, size_t index) const {
 	switch (quality->getMeta()->getStreamType()) {
-	case AUDIO_PKT: case VIDEO_PKT: case SUBTITLE_PKT: return format("%s-init.m4s", getPrefix(quality, index));
+	case AUDIO_PKT: case VIDEO_PKT: case SUBTITLE_PKT: return format("%s-init.mp4", getPrefix(quality, index));
 	default: return "";
 	}
 }
@@ -87,15 +87,19 @@ void AdaptiveStreamingCommon::threadProc() {
 	};
 	auto sendLocalData = [&](uint64_t size) {
 		ensureStartTime();
-		auto out = shptr(new DataBaseRef(data));
+		auto out = size ? shptr<DataBase>(new DataBaseRef(data)) : outputSegments->getBuffer(0);
 		auto const &meta = qualities[i]->getMeta();
 		out->setMetadata(std::make_shared<MetadataFile>(getSegmentName(qualities[i].get(), i, std::to_string(getCurSegNum())), SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), size, meta->getLatency(), meta->getStartsWithRAP(), meta->getEOS()));
+		out->setMediaTime(totalDurationInMs + timescaleToClock(curSegDurIn180k[i], 1000));
 		outputSegments->emit(out);
 	};
 	auto segmentReady = [&]()->bool {
 		ensureCurDur();
 		for (i = 0; i < numInputs; ++i) {
 			if (curSegDurIn180k[i] < timescaleToClock(segDurationInMs, 1000)) {
+				return false;
+			}
+			if (!qualities[i]->getMeta()->getEOS()) {
 				return false;
 			}
 		}
@@ -129,7 +133,7 @@ void AdaptiveStreamingCommon::threadProc() {
 				ensurePrefix(i);
 
 				auto const curDurIn180k = meta->getDuration();
-				if (curDurIn180k == 0) {
+				if (curDurIn180k == 0 && curSegDurIn180k[i] == 0) {
 					processInitSegment(qualities[i].get(), i);
 					if (flags & PresignalNextSegment) {
 						sendLocalData(0);
@@ -137,18 +141,19 @@ void AdaptiveStreamingCommon::threadProc() {
 					--i; data = nullptr; continue;
 				}
 
-				if (segDurationInMs) {
+				if (segDurationInMs && curDurIn180k) {
 					auto const numSeg = totalDurationInMs / segDurationInMs;
 					qualities[i]->avg_bitrate_in_bps = ((meta->getSize() * 8 * Clock::Rate) / meta->getDuration() + qualities[i]->avg_bitrate_in_bps * numSeg) / (numSeg + 1);
+				}
+				if (curSegDurIn180k[i] < timescaleToClock(segDurationInMs, 1000)) {
+					sendLocalData(meta->getSize());
+				} else {
+					assert(meta->getEOS());
 				}
 				if (flags & ForceRealDurations) {
 					curSegDurIn180k[i] += meta->getDuration();
 				} else {
 					curSegDurIn180k[i] = segDurationInMs ? timescaleToClock(segDurationInMs, 1000) : meta->getDuration();
-				}
-
-				if (curSegDurIn180k[i] < timescaleToClock(segDurationInMs, 1000)) {
-					sendLocalData(meta->getSize());
 				}
 			}
 		}

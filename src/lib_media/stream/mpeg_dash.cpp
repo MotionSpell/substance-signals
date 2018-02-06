@@ -69,6 +69,7 @@ void MPEG_DASH::processInitSegment(Quality const * const quality, size_t index) 
 		auto const initFnDst = format("%s%s%s", manifestDir, getPeriodID(), initFnSrc);
 		moveFile(initFnSrc, initFnDst);
 		out->setMetadata(std::make_shared<MetadataFile>(initFnDst, SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), meta->getSize(), meta->getLatency(), meta->getStartsWithRAP(), true));
+		out->setMediaTime(totalDurationInMs, 1000);
 		outputSegments->emit(out);
 		break;
 	}
@@ -78,7 +79,7 @@ void MPEG_DASH::processInitSegment(Quality const * const quality, size_t index) 
 
 void MPEG_DASH::ensureManifest() {
 	if (!mpd->mpd->availabilityStartTime) {
-		mpd->mpd->availabilityStartTime = startTimeInMs + initialOffsetInMs;
+		mpd->mpd->availabilityStartTime = startTimeInMs + segDurationInMs + initialOffsetInMs;
 		mpd->mpd->time_shift_buffer_depth = (u32)timeShiftBufferDepthInMs;
 	}
 	mpd->mpd->publishTime = getUTC().num;
@@ -172,6 +173,7 @@ void MPEG_DASH::writeManifest() {
 		auto out = outputManifest->getBuffer(0);
 		auto metadata = std::make_shared<MetadataFile>(mpdPath, PLAYLIST, "", "", timescaleToClock(segDurationInMs, 1000), 0, 1, false, true);
 		out->setMetadata(metadata);
+		out->setMediaTime(totalDurationInMs, 1000);
 		outputManifest->emit(out);
 	}
 }
@@ -179,7 +181,7 @@ void MPEG_DASH::writeManifest() {
 bool MPEG_DASH::moveFile(const std::string &src, const std::string &dst) const {
 	if (!src.empty() && (src != dst)) {
 		if (flags & SegmentsNotOwned)
-			throw error(format("Segment not owned requires similar filenames (%s != %s)", src, dst));
+			throw error(format("Segments not owned require similar filenames (%s != %s)", src, dst));
 
 		int retry = MOVE_FILE_NUM_RETRY + 1;
 #ifdef _WIN32
@@ -266,11 +268,13 @@ void MPEG_DASH::generateManifest() {
 
 			auto out = shptr(new DataBaseRef(quality->lastData));
 			out->setMetadata(metaFn);
+			out->setMediaTime(totalDurationInMs, 1000);
 			outputSegments->emit(out);
 
 			if (!fnNext.empty()) {
-				auto out = shptr(new DataBaseRef(quality->lastData));
+				auto out = outputSegments->getBuffer(0);
 				out->setMetadata(std::make_shared<MetadataFile>(fnNext, metaFn->getStreamType(), metaFn->getMimeType(), metaFn->getCodecName(), metaFn->getDuration(), 0, metaFn->getLatency(), metaFn->getStartsWithRAP(), false));
+				out->setMediaTime(totalDurationInMs, 1000);
 				outputSegments->emit(out);
 			}
 		}

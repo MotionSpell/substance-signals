@@ -34,6 +34,7 @@ void Apple_HLS::processInitSegment(Quality const * const quality, size_t index) 
 		auto const initFnSrc = getInitName(quality, index);
 		auto const initFnDst = format("%s%s", manifestDir, initFnSrc);
 		out->setMetadata(std::make_shared<MetadataFile>(initFnDst, SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), meta->getSize(), meta->getLatency(), meta->getStartsWithRAP(), true));
+		out->setMediaTime(totalDurationInMs, 1000);
 		outputSegments->emit(out);
 		break;
 	}
@@ -44,9 +45,9 @@ void Apple_HLS::processInitSegment(Quality const * const quality, size_t index) 
 std::string Apple_HLS::getVariantPlaylistName(HLSQuality const * const quality, const std::string &subDir, size_t index) {
 	auto const &meta = quality->getMeta();
 	switch (meta->getStreamType()) {
-	case AUDIO_PKT:    return format("%s%s%s_.m3u8", subDir, quality->prefix, getCommonPrefixAudio(index));
-	case VIDEO_PKT:    return format("%s%s%s_.m3u8", subDir, quality->prefix, getCommonPrefixVideo(index, meta->resolution[0], meta->resolution[1]));
-	case SUBTITLE_PKT: return format("%s%s%s", subDir, quality->prefix, getCommonPrefixSubtitle(index));
+	case AUDIO_PKT:    return format("%s%s_.m3u8", subDir, getCommonPrefixAudio(index));
+	case VIDEO_PKT:    return format("%s%s_.m3u8", subDir, getCommonPrefixVideo(index, meta->resolution[0], meta->resolution[1]));
+	case SUBTITLE_PKT: return format("%s%s", subDir, getCommonPrefixSubtitle(index));
 	default: return "";
 	}
 }
@@ -77,6 +78,7 @@ void Apple_HLS::generateManifestMaster() {
 			auto out = outputManifest->getBuffer(0);
 			auto metadata = std::make_shared<MetadataFile>(playlistMasterPath, PLAYLIST, "", "", timescaleToClock(segDurationInMs, 1000), 0, 1, false, true);
 			out->setMetadata(metadata);
+			out->setMediaTime(totalDurationInMs, 1000);
 			outputManifest->emit(out);
 		}
 	}
@@ -108,6 +110,7 @@ void Apple_HLS::updateManifestVariants() {
 
 			auto out = shptr(new DataBaseRef(quality->lastData));
 			out->setMetadata(std::make_shared<MetadataFile>(format("%s%s", manifestDir, fn), SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), meta->getSize(), meta->getLatency(), meta->getStartsWithRAP(), true));
+			out->setMediaTime(totalDurationInMs, 1000);
 			outputSegments->emit(out);
 
 			quality->segments.push_back({ fn, startTimeInMs+totalDurationInMs });
@@ -163,6 +166,7 @@ void Apple_HLS::generateManifestVariantFull(bool isLast) {
 			auto out = outputManifest->getBuffer(0);
 			auto metadata = std::make_shared<MetadataFile>(playlistCurVariantPath, PLAYLIST, "", "", timescaleToClock(segDurationInMs, 1000), 0, 1, false, true);
 			out->setMetadata(metadata);
+			out->setMediaTime(totalDurationInMs, 1000);
 			outputManifest->emit(out);
 		}
 	}
