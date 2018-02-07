@@ -40,45 +40,48 @@ unittest("multiple inputs: send same packets to 2 GPAC mp4 mux inputs") {
 
 unittest("mux GPAC mp4 combination coverage") {
 	std::vector<Meta> results, ref = {
-	{ "output_video_gpac_01.mp4"     , "audio/mp4", "mp4a.40.2", 0     , 10437, 0     , 1 },
-	{ "output_video_gpac_03.mp4"     , "audio/mp4", "mp4a.40.2", 0     , 36741, 0     , 1 },
-	{ "output_video_gpac_04.mp4"     , "audio/mp4", "mp4a.40.2", 0     , 29837, 4180  , 1 },
-	{ ""                             , "audio/mp4", "mp4a.40.2", 0     , 10437, 0     , 1 },
-	{ "output_video_gpac_11-0.mp4"   , "audio/mp4", "mp4a.40.2", 363633, 5202 , 360000, 1 },
-	{ "output_video_gpac_11-1.mp4"   , "audio/mp4", "mp4a.40.2", 359992, 5449 , 359992, 1 },
-	{ "output_video_gpac_11-2.mp4"   , "audio/mp4", "mp4a.40.2", 171372, 2853 , 171372, 1 },
-	{ "output_video_gpac_12-0.mp4"   , "audio/mp4", "mp4a.40.2", 363633, 4934 , 360000, 1 },
-	{ "output_video_gpac_12-1.mp4"   , "audio/mp4", "mp4a.40.2", 359992, 5181 , 359992, 1 },
-	{ "output_video_gpac_12-2.mp4"   , "audio/mp4", "mp4a.40.2", 171372, 2785 , 171372, 1 },
-	{ "output_video_gpac_13-0.mp4"   , "audio/mp4", "mp4a.40.2", 363633, 27642, 360000, 1 },
-	{ "output_video_gpac_13-1.mp4"   , "audio/mp4", "mp4a.40.2", 359992, 27889, 359992, 1 },
-	{ "output_video_gpac_13-2.mp4"   , "audio/mp4", "mp4a.40.2", 171372, 13349, 171372, 1 },
-	{ "output_video_gpac_14-0.mp4"   , "audio/mp4", "mp4a.40.2", 363633, 19290, 4180  , 1 },
-	{ "output_video_gpac_14-1.mp4"   , "audio/mp4", "mp4a.40.2", 359992, 19537, 4180  , 1 },
-	{ "output_video_gpac_14-2.mp4"   , "audio/mp4", "mp4a.40.2", 171372, 9413 , 4180  , 1 },
-	{ ""                             , "audio/mp4", "mp4a.40.2", 363633, 5202 , 360000, 1 },
-	{ ""                             , "audio/mp4", "mp4a.40.2", 359992, 5449 , 359992, 1 },
-	{ ""                             , "audio/mp4", "mp4a.40.2", 171372, 2853 , 171372, 1 },
-	{ "output_video_gpac_21-init.mp4", "audio/mp4", "mp4a.40.2", 0     , 0    , 0     , 1 },
-	{ "output_video_gpac_21-0.m4s"   , "audio/mp4", "mp4a.40.2", 363633, 5025 , 360000, 1 },
-	{ "output_video_gpac_21-1.m4s"   , "audio/mp4", "mp4a.40.2", 359992, 5272 , 359992, 1 },
-	{ "output_video_gpac_21-2.m4s"   , "audio/mp4", "mp4a.40.2", 171372, 2508 , 171372, 1 },
-	{ "output_video_gpac_22-init.mp4", "audio/mp4", "mp4a.40.2", 0     , 0    , 0     , 1 },
-	{ "output_video_gpac_22-0.m4s"   , "audio/mp4", "mp4a.40.2", 363633, 21193, 360000, 1 },
-	{ "output_video_gpac_22-1.m4s"   , "audio/mp4", "mp4a.40.2", 359992, 21440, 359992, 1 },
-	{ "output_video_gpac_22-2.m4s"   , "audio/mp4", "mp4a.40.2", 171372, 10028, 171372, 1 },
-	{ "output_video_gpac_23-init.mp4", "audio/mp4", "mp4a.40.2", 0     , 0    , 4180  , 1 },
-	{ "output_video_gpac_23-0.m4s"   , "audio/mp4", "mp4a.40.2", 363633, 15625, 4180  , 1 },
-	{ "output_video_gpac_23-1.m4s"   , "audio/mp4", "mp4a.40.2", 359992, 15872, 4180  , 1 },
-	{ "output_video_gpac_23-2.m4s"   , "audio/mp4", "mp4a.40.2", 171372, 7404 , 4180  , 1 },
-	{ ""                             , "audio/mp4", "mp4a.40.2", 0     , 729  , 0     , 1 },
-	{ ""                             , "audio/mp4", "mp4a.40.2", 363633, 5025 , 360000, 1 },
-	{ ""                             , "audio/mp4", "mp4a.40.2", 359992, 5272 , 359992, 1 },
-	{ ""                             , "audio/mp4", "mp4a.40.2", 171372, 2508 , 171372, 1 },
-	{ ""                             , "audio/mp4", "mp4a.40.2", 0     , 729  , 0     , 1 },
-	{ ""                             , "audio/mp4", "mp4a.40.2", 363633, 5017 , 360000, 1 },
-	{ ""                             , "audio/mp4", "mp4a.40.2", 359992, 5264 , 359992, 1 },
-	{ ""                             , "audio/mp4", "mp4a.40.2", 171372, 2500 , 171372, 1 }
+	{ "output_video_gpac_01.mp4", "audio/mp4", "mp4a.40.2", 0, 10437, 0, 1 },
+	{ "output_video_gpac_03.mp4", "audio/mp4", "mp4a.40.2", 0, 36741, 0, 1 },
+	{ "output_video_gpac_04.mp4", "audio/mp4", "mp4a.40.2", 0, 29837, 4180, 1 },
+	{ "", "audio/mp4", "mp4a.40.2", 0, 10437, 0, 1 },
+	{ "output_video_gpac_11-0.mp4", "audio/mp4", "mp4a.40.2", 363633, 5202, 360000, 1 },
+	{ "output_video_gpac_11-1.mp4", "audio/mp4", "mp4a.40.2", 359992, 5449, 359992, 1 },
+	{ "output_video_gpac_11-2.mp4", "audio/mp4", "mp4a.40.2", 171372, 2853, 171372, 1 },
+	{ "output_video_gpac_12-0.mp4", "audio/mp4", "mp4a.40.2", 363633, 4934, 360000, 1 },
+	{ "output_video_gpac_12-1.mp4", "audio/mp4", "mp4a.40.2", 359992, 5181, 359992, 1 },
+	{ "output_video_gpac_12-2.mp4", "audio/mp4", "mp4a.40.2", 171372, 2785, 171372, 1 },
+	{ "output_video_gpac_13-0.mp4", "audio/mp4", "mp4a.40.2", 363633, 27642, 360000, 1 },
+	{ "output_video_gpac_13-1.mp4", "audio/mp4", "mp4a.40.2", 359992, 27889, 359992, 1 },
+	{ "output_video_gpac_13-2.mp4", "audio/mp4", "mp4a.40.2", 171372, 13349, 171372, 1 },
+	{ "output_video_gpac_14-0.mp4", "audio/mp4", "mp4a.40.2", 363633, 19290, 4180, 1 },
+	{ "output_video_gpac_14-1.mp4", "audio/mp4", "mp4a.40.2", 359992, 19537, 4180, 1 },
+	{ "output_video_gpac_14-2.mp4", "audio/mp4", "mp4a.40.2", 171372, 9413, 4180, 1 },
+	{ "", "audio/mp4", "mp4a.40.2", 363633, 5202, 360000, 1 },
+	{ "", "audio/mp4", "mp4a.40.2", 359992, 5449, 359992, 1 },
+	{ "", "audio/mp4", "mp4a.40.2", 171372, 2853, 171372, 1 },
+	{ "output_video_gpac_21-init.mp4", "audio/mp4", "mp4a.40.2", 0, 0, 0, 1 },
+	{ "output_video_gpac_21-0.m4s", "audio/mp4", "mp4a.40.2", 363633, 5025, 360000, 1 },
+	{ "output_video_gpac_21-1.m4s", "audio/mp4", "mp4a.40.2", 359992, 5272, 359992, 1 },
+	{ "output_video_gpac_21-2.m4s", "audio/mp4", "mp4a.40.2", 171372, 2508, 171372, 1 },
+	{ "output_video_gpac_22-init.mp4", "audio/mp4", "mp4a.40.2", 0, 0, 0, 1 },
+	{ "output_video_gpac_22-0.m4s", "audio/mp4", "mp4a.40.2", 363633, 21193, 360000, 1 },
+	{ "output_video_gpac_22-1.m4s", "audio/mp4", "mp4a.40.2", 359992, 21440, 359992, 1 },
+	{ "output_video_gpac_22-2.m4s", "audio/mp4", "mp4a.40.2", 171372, 10028, 171372, 1 },
+	{ "output_video_gpac_23-init.mp4", "audio/mp4", "mp4a.40.2", 0, 0, 4180, 1 },
+	{ "output_video_gpac_23-0.m4s", "audio/mp4", "mp4a.40.2", 363633, 15625, 4180, 1 },
+	{ "output_video_gpac_23-1.m4s", "audio/mp4", "mp4a.40.2", 359992, 15872, 4180, 1 },
+	{ "output_video_gpac_23-2.m4s", "audio/mp4", "mp4a.40.2", 171372, 7404, 4180, 1 },
+	{ "", "audio/mp4", "mp4a.40.2", 0, 729, 0, 1 },
+	{ "", "audio/mp4", "mp4a.40.2", 363633, 5025, 360000, 1 },
+	{ "", "audio/mp4", "mp4a.40.2", 359992, 5272, 359992, 1 },
+	{ "", "audio/mp4", "mp4a.40.2", 171372, 2508, 171372, 1 },
+	{ "", "audio/mp4", "mp4a.40.2", 0, 729, 0, 1 },
+	{ "", "audio/mp4", "mp4a.40.2", 363633, 5017, 360000, 1 },
+	{ "", "audio/mp4", "mp4a.40.2", 0, 8, 0, 1 },
+	{ "", "audio/mp4", "mp4a.40.2", 359992, 5264, 359992, 1 },
+	{ "", "audio/mp4", "mp4a.40.2", 0, 8, 0, 1 },
+	{ "", "audio/mp4", "mp4a.40.2", 171372, 2500, 171372, 1 },
+	{ "", "audio/mp4", "mp4a.40.2", 0, 8, 0, 1 }
 	};
 
 	auto demux = create<Demux::LibavDemux>("data/beepbop.mp4");
@@ -148,9 +151,7 @@ unittest("mux GPAC mp4 combination coverage") {
 	}
 	for (auto &l : listeners) {
 		l->flush();
-		for (auto &r : l->results) {
-			results.push_back(r);
-		}
+		for (auto &r : l->results) results.push_back(r);
 	}
 
 	ASSERT_EQUALS(results.size(), ref.size());

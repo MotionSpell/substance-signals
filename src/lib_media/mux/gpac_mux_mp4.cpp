@@ -871,21 +871,23 @@ void GPACMuxMP4::sendOutput(bool EOS) {
 }
 
 void GPACMuxMP4::startChunk(gpacpp::IsoSample * const sample) {
-	if ((segmentPolicy > SingleSegment) && (curSegmentDurInTs == 0)) {
+	if (curSegmentDurInTs == 0) {
 		segmentStartsWithRAP = sample->IsRAP == RAP;
-		auto const mediaTs = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
-		const u64 oneSegDurInTimescale = clockToTimescale(segmentDurationIn180k, mediaTs);
-		if (oneSegDurInTimescale * (DTS / oneSegDurInTimescale) == 0) { /*initial delay*/
-			curSegmentDeltaInTs = curSegmentDurInTs + curSegmentDeltaInTs - oneSegDurInTimescale * ((curSegmentDurInTs + curSegmentDeltaInTs) / oneSegDurInTimescale);
-		} else {
-			auto const num = (curSegmentDurInTs + curSegmentDeltaInTs) / oneSegDurInTimescale;
-			auto const rem = DTS - (num ? num - 1 : 0) * oneSegDurInTimescale;
-			curSegmentDeltaInTs = DTS - oneSegDurInTimescale * (rem / oneSegDurInTimescale);
+		if (segmentPolicy > SingleSegment) {
+			auto const mediaTs = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
+			const u64 oneSegDurInTimescale = clockToTimescale(segmentDurationIn180k, mediaTs);
+			if (oneSegDurInTimescale * (DTS / oneSegDurInTimescale) == 0) { /*initial delay*/
+				curSegmentDeltaInTs = curSegmentDurInTs + curSegmentDeltaInTs - oneSegDurInTimescale * ((curSegmentDurInTs + curSegmentDeltaInTs) / oneSegDurInTimescale);
+			} else {
+				auto const num = (curSegmentDurInTs + curSegmentDeltaInTs) / oneSegDurInTimescale;
+				auto const rem = DTS - (num ? num - 1 : 0) * oneSegDurInTimescale;
+				curSegmentDeltaInTs = DTS - oneSegDurInTimescale * (rem / oneSegDurInTimescale);
+			}
+			if (segmentPolicy == IndependentSegment) {
+				sample->DTS = 0;
+			}
 		}
-		if (segmentPolicy == IndependentSegment) {
-			sample->DTS = 0;
-		}
-		if (fragmentPolicy != OneFragmentPerFrame) {
+		if (fragmentPolicy > NoFragment) {
 			startFragment(sample->DTS, sample->DTS + sample->CTS_Offset);
 		}
 	}
@@ -897,7 +899,7 @@ void GPACMuxMP4::addData(gpacpp::IsoSample const * const sample, int64_t lastDat
 			closeFragment();
 			startFragment(sample->DTS, sample->DTS + sample->CTS_Offset);
 		}
-		if ((fragmentPolicy > NoFragment) && !curFragmentDurInTs) {
+		if (curSegmentDurInTs && (fragmentPolicy == OneFragmentPerFrame)) {
 			startFragment(sample->DTS, sample->DTS + sample->CTS_Offset);
 		}
 

@@ -145,15 +145,13 @@ void AdaptiveStreamingCommon::threadProc() {
 					auto const numSeg = totalDurationInMs / segDurationInMs;
 					qualities[i]->avg_bitrate_in_bps = ((meta->getSize() * 8 * Clock::Rate) / meta->getDuration() + qualities[i]->avg_bitrate_in_bps * numSeg) / (numSeg + 1);
 				}
-				if (curSegDurIn180k[i] < timescaleToClock(segDurationInMs, 1000)) {
-					sendLocalData(meta->getSize());
-				} else {
-					assert(meta->getEOS());
-				}
 				if (flags & ForceRealDurations) {
 					curSegDurIn180k[i] += meta->getDuration();
 				} else {
 					curSegDurIn180k[i] = segDurationInMs ? timescaleToClock(segDurationInMs, 1000) : meta->getDuration();
+				}
+				if (curSegDurIn180k[i] < timescaleToClock(segDurationInMs, 1000) || !meta->getEOS()) {
+					sendLocalData(meta->getSize());
 				}
 			}
 		}
