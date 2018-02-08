@@ -79,7 +79,7 @@ void MPEG_DASH::processInitSegment(Quality const * const quality, size_t index) 
 
 void MPEG_DASH::ensureManifest() {
 	if (!mpd->mpd->availabilityStartTime) {
-		mpd->mpd->availabilityStartTime = startTimeInMs + segDurationInMs + initialOffsetInMs;
+		mpd->mpd->availabilityStartTime = startTimeInMs + initialOffsetInMs;
 		mpd->mpd->time_shift_buffer_depth = (u32)timeShiftBufferDepthInMs;
 	}
 	mpd->mpd->publishTime = getUTC().num;
