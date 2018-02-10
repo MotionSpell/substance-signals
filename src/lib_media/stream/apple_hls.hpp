@@ -15,8 +15,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 public:
 	LibavMuxHLSTS(bool isLowLatency, uint64_t segDurationInMs, const std::string &baseDir, const std::string &baseName, const std::string &options = "")
 	: segDuration(timescaleToClock(segDurationInMs, 1000)), hlsDir(baseDir), segBasename(baseName) {
-		delegate = createModule<Mux::LibavMux>(isLowLatency ? ALLOC_NUM_BLOCKS_LOW_LATENCY : ALLOC_NUM_BLOCKS_DEFAULT,
-		                                       clock, format("%s%s", hlsDir, baseName), "hls", options);
+		delegate = create<Mux::LibavMux>(format("%s%s", hlsDir, baseName), "hls", options);
 		addInput(new Input<DataAVPacket>(this));
 		outputSegment  = addOutput<OutputDataDefault<DataRaw>>();
 		outputManifest = addOutput<OutputDataDefault<DataRaw>>();
@@ -25,6 +24,8 @@ public:
 	virtual ~LibavMuxHLSTS() {}
 
 	void process() override {
+		ensureDelegateInputs();
+
 		size_t inputIdx = 0;
 		Data data;
 		while (!inputs[inputIdx]->tryPop(data)) {
@@ -42,7 +43,7 @@ public:
 				auto const fn = format("%s%s.ts", segBasename, segIdx);
 				auto file = fopen(format("%s%s", hlsDir, fn).c_str(), "rt");
 				if (!file)
-					throw error(format("Can't open file for reading: %s", fn));
+					throw error(format("Can't open segment in read mode: %s", fn));
 				fseek(file, 0, SEEK_END);
 				auto const fsize = ftell(file);
 
@@ -77,6 +78,13 @@ public:
 	}
 
 private:
+	void ensureDelegateInputs() {
+		auto const inputs = getNumInputs();
+		auto const delegateInputs = delegate->getNumInputs();
+		for (auto i = delegateInputs; i < inputs; ++i) {
+			delegate->getInput(i);
+		}
+	}
 	std::unique_ptr<Modules::Mux::LibavMux> delegate;
 	OutputDataDefault<DataRaw> *outputSegment, *outputManifest;
 	int64_t firstDTS = -1, segDuration, segIdx = 0;
