@@ -260,7 +260,7 @@ void libavAudioCtx2pcmConvert(std::shared_ptr<const AVCodecContext> codecCtx, Pc
 		cfg->sampleFormat = Modules::F32;
 		break;
 	default:
-		throw std::runtime_error("Unknown libav audio format (2)");
+		throw std::runtime_error(format("Unknown libav audio format [%s] (2)", codecCtx->sample_fmt));
 	}
 
 	switch (codecCtx->channel_layout) {
