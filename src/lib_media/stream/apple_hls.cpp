@@ -38,17 +38,17 @@ void Apple_HLS::processInitSegment(Quality const * const quality, size_t index) 
 		outputSegments->emit(out);
 		break;
 	}
-	default: break;
+	default: assert(0); break;
 	}
 }
 
 std::string Apple_HLS::getVariantPlaylistName(HLSQuality const * const quality, const std::string &subDir, size_t index) {
 	auto const &meta = quality->getMeta();
 	switch (meta->getStreamType()) {
-	case AUDIO_PKT:    return format("%s%s_.m3u8", subDir, getCommonPrefixAudio(index));
-	case VIDEO_PKT:    return format("%s%s_.m3u8", subDir, getCommonPrefixVideo(index, meta->resolution[0], meta->resolution[1]));
-	case SUBTITLE_PKT: return format("%s%s", subDir, getCommonPrefixSubtitle(index));
-	default: return "";
+	case AUDIO_PKT:               return format("%s%s_.m3u8", subDir, getCommonPrefixAudio(index));
+	case VIDEO_PKT: case SEGMENT: return format("%s%s_.m3u8", subDir, getCommonPrefixVideo(index, meta->resolution[0], meta->resolution[1]));
+	case SUBTITLE_PKT:            return format("%s%s", subDir, getCommonPrefixSubtitle(index));
+	default: assert(0); return "";
 	}
 }
 
