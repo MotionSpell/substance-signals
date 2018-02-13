@@ -113,7 +113,21 @@ void Apple_HLS::updateManifestVariants() {
 			out->setMediaTime(totalDurationInMs, 1000);
 			outputSegments->emit(out);
 
-			quality->segments.push_back({ fn, startTimeInMs+totalDurationInMs });
+			if (flags & PresignalNextSegment) {
+				if (quality->segments.empty()) {
+					quality->segments.push_back({ fn, startTimeInMs + totalDurationInMs });
+				}
+				if (quality->segments.back().path != fn)
+					throw error(format("PresignalNextSegment but segment names are inconsistent (\"%s\" versus \"%s\")", quality->segments.back().path, fn));
+
+				auto const segNumPos = fn.substr(0, sepPos).find_last_of("-");
+				auto const segNumStr = fn.substr(segNumPos + 1, sepPos - (segNumPos + 1));
+				uint64_t segNum; std::istringstream buffer(segNumStr); buffer >> segNum;
+				auto fnNext = format("%s%s%s", fn.substr(0, segNumPos+1), segNum+1, fn.substr(sepPos));
+				quality->segments.push_back({ fnNext, startTimeInMs + totalDurationInMs + segDurationInMs });
+			} else {
+				quality->segments.push_back({ fn, startTimeInMs + totalDurationInMs });
+			}
 		}
 
 		generateManifestVariantFull(false);

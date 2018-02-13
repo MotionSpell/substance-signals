@@ -17,7 +17,7 @@ class PipelinedModule : public IPipelineNotifier, public ClockCap, public IPipel
 public:
 	/* take ownership of module and executor */
 	PipelinedModule(std::unique_ptr<IModule> module, IPipelineNotifier *notify, const std::shared_ptr<IClock> clock, Pipeline::Threading threading)
-		: ClockCap(clock),
+	: ClockCap(clock),
 		delegate(std::move(module)), localDelegateExecutor(threading & Pipeline::Mono ? (IProcessExecutor*)new EXECUTOR_LIVE : (IProcessExecutor*)new EXECUTOR),
 		delegateExecutor(*localDelegateExecutor), threading(threading), m_notify(notify), activeConnections(0) {
 	}
