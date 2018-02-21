@@ -373,9 +373,9 @@ GPACMuxMP4::GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs
 	if ((segmentDurationInMs == 0) ^ (segmentPolicy == NoSegment || segmentPolicy == SingleSegment))
 		throw error(format("Inconsistent parameters: segment duration is %sms but no segment.", segmentDurationInMs));
 	if ((segmentDurationInMs == 0) && (fragmentPolicy == Mux::GPACMuxMP4::OneFragmentPerSegment))
-		throw error("Inconsistent parameters: segment duration is 0ms but requested one fragment by segment.");
+		throw error("Inconsistent parameters: segment duration is 0 ms but requested one fragment by segment.");
 	if ((segmentPolicy == SingleSegment || segmentPolicy == FragmentedSegment) && (fragmentPolicy == NoFragment))
-		throw error("Inconsistent parameters: segmented policies requires fragmentation to be enabled.");
+		throw error("Inconsistent parameters: segmented policies require fragmentation to be enabled.");
 	if ((compatFlags & SmoothStreaming) && (segmentPolicy != IndependentSegment))
 		throw error("Inconsistent parameters: SmoothStreaming compatibility requires IndependentSegment policy.");
 	if ((compatFlags & FlushFragMemory) && ((!baseName.empty()) || (segmentPolicy != FragmentedSegment)))
@@ -875,13 +875,13 @@ void GPACMuxMP4::startChunk(gpacpp::IsoSample * const sample) {
 		segmentStartsWithRAP = sample->IsRAP == RAP;
 		if (segmentPolicy > SingleSegment) {
 			auto const mediaTs = gf_isom_get_media_timescale(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
-			const u64 oneSegDurInTimescale = clockToTimescale(segmentDurationIn180k, mediaTs);
-			if (oneSegDurInTimescale * (DTS / oneSegDurInTimescale) == 0) { /*initial delay*/
-				curSegmentDeltaInTs = curSegmentDurInTs + curSegmentDeltaInTs - oneSegDurInTimescale * ((curSegmentDurInTs + curSegmentDeltaInTs) / oneSegDurInTimescale);
+			const u64 oneSegDurInTs = clockToTimescale(segmentDurationIn180k, mediaTs);
+			if (oneSegDurInTs * (DTS / oneSegDurInTs) == 0) { /*initial delay*/
+				curSegmentDeltaInTs = curSegmentDurInTs + curSegmentDeltaInTs - oneSegDurInTs * ((curSegmentDurInTs + curSegmentDeltaInTs) / oneSegDurInTs);
 			} else {
-				auto const num = (curSegmentDurInTs + curSegmentDeltaInTs) / oneSegDurInTimescale;
-				auto const rem = DTS - (num ? num - 1 : 0) * oneSegDurInTimescale;
-				curSegmentDeltaInTs = DTS - oneSegDurInTimescale * (rem / oneSegDurInTimescale);
+				auto const num = (curSegmentDurInTs + curSegmentDeltaInTs) / oneSegDurInTs;
+				auto const rem = DTS - (num ? num - 1 : 0) * oneSegDurInTs;
+				curSegmentDeltaInTs = DTS - oneSegDurInTs * (rem / oneSegDurInTs);
 			}
 			if (segmentPolicy == IndependentSegment) {
 				sample->DTS = 0;

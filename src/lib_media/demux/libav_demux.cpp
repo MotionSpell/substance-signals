@@ -65,7 +65,7 @@ void LibavDemux::initRestamp() {
 	restampers.resize(m_formatCtx->nb_streams);
 	for (unsigned i = 0; i < m_formatCtx->nb_streams; i++) {
 		const std::string format(m_formatCtx->iformat->name);
-		const std::string  fn = m_formatCtx->filename;
+		const std::string fn = m_formatCtx->filename;
 		if (format == "rtsp" || format == "rtp" || format == "sdp" || !fn.compare(0, 4, "rtp:") || !fn.compare(0, 4, "udp:")) {
 			restampers[i] = create<Transform::Restamp>(Transform::Restamp::IgnoreFirstAndReset);
 		} else {
