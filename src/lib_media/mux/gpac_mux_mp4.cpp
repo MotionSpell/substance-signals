@@ -994,9 +994,6 @@ bool GPACMuxMP4::processInit(Data &data) {
 			handleInitialTimeOffset();
 		}
 
-		auto input = addInput(new Input<DataAVPacket>(this));
-		input->setMetadata(shptr(new MetadataPktLibav(safe_cast<const MetadataPktLibav>(metadata)->getAVCodecContext())));
-
 		setupFragments();
 		if (segmentDurationIn180k && !(compatFlags & SegNumStartsAtZero)) {
 			segmentNum = firstDataAbsTimeInMs / clockToTimescale(segmentDurationIn180k, 1000);
@@ -1005,11 +1002,7 @@ bool GPACMuxMP4::processInit(Data &data) {
 	}
 
 	auto refData = std::dynamic_pointer_cast<const DataBaseRef>(data);
-	if (refData && !refData->getData()) {
-		sendOutput(true);
-		return false;
-	}
-	return true;
+	return !(refData && !refData->getData());
 }
 
 void GPACMuxMP4::process() {
