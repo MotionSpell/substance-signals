@@ -242,7 +242,7 @@ function fribidi_build {
   host=$1
   pushDir $WORK/src
 
-  lazy_download "fribidi.tar.xz" "http://fribidi.org/download/fribidi-0.19.6.tar.bz2"
+  lazy_download "fribidi.tar.xz" "https://ftp.osuosl.org/pub/blfs/conglomeration/fribidi/fribidi-0.19.6.tar.bz2"
   lazy_extract "fribidi.tar.xz"
   mkgit "fribidi"
   
@@ -1109,7 +1109,7 @@ function autoconf_build {
   if [ ! -f $name/configure ] ; then
     printMsg "WARNING: package '$name' has no configure script, running autoreconf"
     pushDir $name
-    autoreconf -i
+    aclocal && libtoolize --force && autoreconf
     popDir
   fi
   
@@ -1438,6 +1438,15 @@ function checkForCommonBuildTools {
     echo "pacman -S msys/gperf"
     echo "or"
     echo "apt-get install gperf"
+    echo ""
+    error="1"
+  fi
+
+  if isMissing "perl" ; then
+    echo "gperf not installed.  Please install with:"
+    echo "pacman -S perl"
+    echo "or"
+    echo "apt-get install perl"
     echo ""
     error="1"
   fi

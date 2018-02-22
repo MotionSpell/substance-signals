@@ -162,6 +162,58 @@ if [ ! -f extra/release/curl/releaseOk ] ; then
 	touch extra/release/curl/releaseOk
 fi
 
+#-------------------------------------------------------------------------------
+echo OpenSSL
+#-------------------------------------------------------------------------------
+if [ ! -f extra/src/openssl-1.0.2n/include/openssl/aes.h ] ; then
+	mkdir -p extra/src
+	rm -rf extra/src/openssl-1.0.2n
+	wget https://www.openssl.org/source/openssl-1.0.2n.tar.gz -O openssl.tar.gz
+	tar xvf openssl.tar.gz -C extra/src
+	pushd extra/src/openssl-1.0.2n
+	popd
+fi
+
+if [ ! -f extra/release/openssl/releaseOk ] ; then
+	mkdir -p extra/release/openssl
+	pushd extra/src/openssl-1.0.2n/
+	#perl ../../src/openssl-1.1.0g/Configure mingw64 no-shared  --prefix=$EXTRA_DIR
+
+	./configure \
+		--prefix=$EXTRA_DIR \
+		no-idea no-mdc2 no-rc5 shared mingw64
+	$MAKE depend
+	$MAKE
+	$MAKE install
+	popd
+	touch extra/release/openssl/releaseOk
+fi
+
+
+#-------------------------------------------------------------------------------
+echo AWS-SDK
+#-------------------------------------------------------------------------------
+# if [ ! -f extra/src/aws/CMakeLists.txt ] ; then
+# 	mkdir -p extra/src
+# 	rm -rf extra/src/aws
+# 	git clone https://github.com/aws/aws-sdk-cpp.git extra/src/aws
+# 	pushd extra/src/aws
+# 	git checkout 1.3.48
+# 	popd
+# fi
+
+# if [ ! -f extra/release/aws/releaseOk ] ; then
+# 	mkdir -p extra/release/aws
+# 	pushd extra/release/aws
+# 	cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_SOURCE_DIR=../../src/aws -DCMAKE_CXX_FLAGS=-I$EXTRA_DIR/include -DOPENSSL_LIBRARIES=$EXTRA_DIR/lib -DCURL_LIBRARY=$EXTRA_DIR/lib \
+# 	 -DCURL_INCLUDE_DIR=$EXTRA_DIR/include -DCMAKE_CXX_FLAGS=-L$EXTRA_DIR/lib -DCMAKE_INSTALL_PREFIX=$EXTRA_DIR ../../src/aws -DBUILD_ONLY="s3;mediastore;mediastore-data"
+# 	$MAKE
+# 	$MAKE install
+# 	popd
+# 	touch extra/release/aws/releaseOk
+# fi
+
+
 #-------------------------------------------------------------------------------	
 echo ASIO
 #-------------------------------------------------------------------------------
