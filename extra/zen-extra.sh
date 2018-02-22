@@ -1443,7 +1443,7 @@ function checkForCommonBuildTools {
   fi
 
   if isMissing "perl" ; then
-    echo "gperf not installed.  Please install with:"
+    echo "perl not installed.  Please install with:"
     echo "pacman -S perl"
     echo "or"
     echo "apt-get install perl"
