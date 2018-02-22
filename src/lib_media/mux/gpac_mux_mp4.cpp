@@ -791,13 +791,13 @@ void GPACMuxMP4::declareStream(const std::shared_ptr<const IMetadata> &metadata)
 }
 
 void GPACMuxMP4::handleInitialTimeOffset() {
-	if (lastInputTimeIn180k) { /*first timestamp is not zero*/
-		log(Info, "Initial offset: %ss (4CC=%s, \"%s\", timescale=%s/%s)", lastInputTimeIn180k / (double)Clock::Rate, codec4CC, segmentName, mediaTs, gf_isom_get_timescale(isoCur));
+	if (initTimeIn180k) { /*first timestamp is not zero*/
+		log(Info, "Initial offset: %ss (4CC=%s, \"%s\", timescale=%s/%s)", initTimeIn180k / (double)Clock::Rate, codec4CC, segmentName, mediaTs, gf_isom_get_timescale(isoCur));
 		if (compatFlags & NoEditLists) {
-			firstDataAbsTimeInMs += clockToTimescale(lastInputTimeIn180k, 1000);
+			firstDataAbsTimeInMs += clockToTimescale(initTimeIn180k, 1000);
 		} else {
-			auto const edtsInMovieTs = clockToTimescale(lastInputTimeIn180k, gf_isom_get_timescale(isoCur));
-			auto const edtsInMediaTs = clockToTimescale(lastInputTimeIn180k, mediaTs);
+			auto const edtsInMovieTs = clockToTimescale(initTimeIn180k, gf_isom_get_timescale(isoCur));
+			auto const edtsInMediaTs = clockToTimescale(initTimeIn180k, mediaTs);
 			if (edtsInMovieTs > 0) {
 				gf_isom_append_edit_segment(isoCur, gf_isom_get_track_by_id(isoCur, trackId), edtsInMovieTs, 0, GF_ISOM_EDIT_EMPTY);
 				gf_isom_append_edit_segment(isoCur, gf_isom_get_track_by_id(isoCur, trackId), edtsInMovieTs, 0, GF_ISOM_EDIT_NORMAL);
@@ -992,7 +992,7 @@ bool GPACMuxMP4::processInit(Data &data) {
 
 		if (!firstDataAbsTimeInMs) {
 			firstDataAbsTimeInMs = DataBase::absUTCOffsetInMs;
-			lastInputTimeIn180k = data->getMediaTime();
+			initTimeIn180k = data->getMediaTime();
 			handleInitialTimeOffset();
 		}
 
@@ -1012,39 +1012,30 @@ void GPACMuxMP4::process() {
 	if (!processInit(data))
 		return;
 
-	auto lastDataDurationInTs = clockToTimescale(data->getMediaTime() - lastInputTimeIn180k, mediaTs);
-	if (DTS && !data->getMediaTime()) {
-		lastInputTimeIn180k += timescaleToClock(defaultSampleIncInTs, mediaTs);
-		lastDataDurationInTs = defaultSampleIncInTs;
-		log(Warning, "Received time 0 but inferring it to %s", lastInputTimeIn180k);
-	} else {
-		lastInputTimeIn180k = data->getMediaTime();
-	}
-
 	if (compatFlags & ExactInputDur) {
 		if (lastData) {
-			lastDataDurationInTs = clockToTimescale(data->getMediaTime() - lastData->getMediaTime(), mediaTs);
-			if (lastDataDurationInTs <= 0) {
-				lastDataDurationInTs = defaultSampleIncInTs;
+			auto dataDurationInTs = clockToTimescale(data->getMediaTime() - initTimeIn180k, mediaTs) - DTS;
+			if (dataDurationInTs <= 0) {
+				dataDurationInTs = defaultSampleIncInTs;
 				log(Warning, "Computed duration is inferior or equal to zero. Inferring to %s", defaultSampleIncInTs);
 			}
-		} else {
-			lastData = data;
-			return;
+			processSample(fillSample(lastData), dataDurationInTs);
 		}
 
-		processSample(fillSample(lastData), lastDataDurationInTs);
 		lastData = data;
 	} else {
-		if (DTS && (lastDataDurationInTs - defaultSampleIncInTs != 0)) {
-			lastDataDurationInTs = clockToTimescale(data->getMediaTime(), mediaTs) - (DTS + curSegmentDeltaInTs) + lastDataDurationInTs;
-			if (lastDataDurationInTs <= 0) {
-				lastDataDurationInTs = 1;
+		auto lastDataDurationInTs = clockToTimescale(data->getMediaTime() - initTimeIn180k, mediaTs) + defaultSampleIncInTs - DTS;
+		if (DTS > 0) {
+			if (!data->getMediaTime()) {
+				lastDataDurationInTs = defaultSampleIncInTs;
+				log(Warning, "Received time 0: inferring duration of %s", lastDataDurationInTs);
 			}
-			log(Debug, "VFR: adding sample with duration %ss", lastDataDurationInTs / (double)mediaTs);
-		}
-		if (lastDataDurationInTs == 0) {
-			lastDataDurationInTs = defaultSampleIncInTs;
+			if (lastDataDurationInTs - defaultSampleIncInTs != 0) {
+				if (lastDataDurationInTs <= 0) {
+					lastDataDurationInTs = 1;
+				}
+				log(Debug, "VFR: adding sample with duration %ss", lastDataDurationInTs / (double)mediaTs);
+			}
 		}
 
 		processSample(fillSample(data), lastDataDurationInTs);

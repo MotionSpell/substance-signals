@@ -68,8 +68,8 @@ private:
 
 	CompatibilityFlag compatFlags;
 	Data lastData = nullptr; //used with ExactInputDur flag
-	int64_t lastInputTimeIn180k = 0, firstDataAbsTimeInMs = 0;
-	uint64_t DTS = 0, defaultSampleIncInTs = 0;
+	int64_t DTS = 0, initTimeIn180k = 0, firstDataAbsTimeInMs = 0;
+	uint64_t defaultSampleIncInTs = 0;
 	uint32_t mediaTs = 0;
 	bool isAnnexB = true;
 
