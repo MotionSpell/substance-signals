@@ -49,8 +49,8 @@ void AdaptiveStreamingCommon::ensurePrefix(size_t i) {
 		//if (!(flags & SegmentsNotOwned)) //FIXME: HLS manifests still requires the subdir presence
 		{
 			auto const dir = format("%s%s", manifestDir, qualities[i]->prefix);
-			if ((gf_dir_exists(dir.c_str()) == GF_FALSE) && gf_mkdir(qualities[i]->prefix.c_str()))
-				throw std::runtime_error(format("couldn't create subdir %s: please check you have sufficient rights", qualities[i]->prefix));
+			if ((gf_dir_exists(dir.c_str()) == GF_FALSE) && gf_mkdir(dir.c_str()))
+				throw std::runtime_error(format("couldn't create subdir %s: please check you have sufficient rights (1)", qualities[i]->prefix));
 		}
 	}
 }

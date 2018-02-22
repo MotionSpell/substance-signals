@@ -185,7 +185,7 @@ bool MPEG_DASH::moveFile(const std::string &src, const std::string &dst) const {
 
 		auto subdir = dst.substr(0, dst.find_last_of("/") + 1);
 		if ((gf_dir_exists(subdir.c_str()) == GF_FALSE) && gf_mkdir(subdir.c_str()))
-			throw std::runtime_error(format("couldn't create subdir \"%s\": please check you have sufficient rights", subdir));
+			throw std::runtime_error(format("couldn't create subdir \"%s\": please check you have sufficient rights (2)", subdir));
 
 		int retry = MOVE_FILE_NUM_RETRY + 1;
 #ifdef _WIN32
