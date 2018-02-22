@@ -65,8 +65,8 @@ void MPEG_DASH::processInitSegment(Quality const * const quality, size_t index) 
 	switch (meta->getStreamType()) {
 	case AUDIO_PKT: case VIDEO_PKT: case SUBTITLE_PKT: {
 		auto out = shptr(new DataBaseRef(quality->lastData));
-		auto const initFnSrc = getInitName(quality, index);
-		auto const initFnDst = format("%s%s%s", manifestDir, getPeriodID(), initFnSrc);
+		auto const initFnSrc = safe_cast<const MetadataFile>(quality->lastData->getMetadata())->getFilename();
+		auto const initFnDst = format("%s%s%s", manifestDir, getPeriodID(), getInitName(quality, index));
 		moveFile(initFnSrc, initFnDst);
 		out->setMetadata(std::make_shared<MetadataFile>(initFnDst, SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), meta->getSize(), meta->getLatency(), meta->getStartsWithRAP(), true));
 		out->setMediaTime(totalDurationInMs, 1000);
