@@ -183,6 +183,10 @@ bool MPEG_DASH::moveFile(const std::string &src, const std::string &dst) const {
 		if (flags & SegmentsNotOwned)
 			throw error(format("Segments not owned require similar filenames (%s != %s)", src, dst));
 
+		auto subdir = dst.substr(0, dst.find_last_of("/") + 1);
+		if ((gf_dir_exists(subdir.c_str()) == GF_FALSE) && gf_mkdir(subdir.c_str()))
+			throw std::runtime_error(format("couldn't create subdir \"%s\": please check you have sufficient rights", subdir));
+
 		int retry = MOVE_FILE_NUM_RETRY + 1;
 #ifdef _WIN32
 		while (--retry && (MoveFileA(src.c_str(), dst.c_str())) == 0) {

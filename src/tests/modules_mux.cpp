@@ -2,7 +2,6 @@
 #include "lib_modules/modules.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/mux/gpac_mux_mp4.hpp"
-#include "lib_media/mux/libav_mux.hpp"
 #include "lib_utils/tools.hpp"
 #include "modules_common.hpp"
 

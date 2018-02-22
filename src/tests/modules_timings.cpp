@@ -137,7 +137,7 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 		ConnectOutputToInput(demux->getOutput(i), gapper->getInput(0));
 		auto decoder = create<Decode::LibavDecode>(metadataDemux);
 		ConnectOutputToInput(gapper->getOutput(0), decoder->getInput(0));
-		
+
 		auto inputRes = metadataDemux->isVideo() ? safe_cast<const MetadataPktLibavVideo>(demux->getOutput(i)->getMetadata())->getResolution() : Resolution();
 		PictureFormat encoderInputPicFmt(inputRes, UNKNOWN_PF);
 		auto encoder = createEncoder(metadataDemux, encoderInputPicFmt);
