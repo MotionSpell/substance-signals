@@ -1,7 +1,6 @@
 #include "tests.hpp"
 #include "lib_modules/modules.hpp"
 #include "lib_media/demux/libav_demux.hpp"
-#include "lib_media/demux/gpac_demux_mp4_simple.hpp"
 #include "lib_media/encode/libav_encode.hpp"
 #include "lib_media/mux/gpac_mux_mp4.hpp"
 #include "lib_utils/tools.hpp"

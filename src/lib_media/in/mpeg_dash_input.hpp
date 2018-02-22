@@ -6,12 +6,12 @@ namespace Modules {
 namespace In {
 
 class MPEG_DASH_Input : public ModuleS {
-	public:
-		MPEG_DASH_Input(std::string const &url);
-		~MPEG_DASH_Input();
-		void process(Data data) override;
+public:
+	MPEG_DASH_Input(std::string const &url);
+	~MPEG_DASH_Input();
+	void process(Data data) override;
 
-	private:
+private:
 };
 
 }
