@@ -37,6 +37,7 @@ public:
 	virtual ~MetadataPktLibav() {}
 	StreamType getStreamType() const override;
 	int64_t getBitrate() const;
+	Fraction getTimeScale() const;
 	std::shared_ptr<AVCodecContext> getAVCodecContext() const;
 	int getId() const;
 
@@ -50,7 +51,6 @@ public:
 	MetadataPktLibavVideo(std::shared_ptr<AVCodecContext> codecCtx, int id = -1) : MetadataPktLibav(codecCtx, id) {}
 	PixelFormat getPixelFormat() const;
 	Resolution getResolution() const;
-	Fraction getTimeScale() const;
 	Fraction getFrameRate() const;
 	void getExtradata(const uint8_t *&extradata, size_t &extradataSize) const;
 };

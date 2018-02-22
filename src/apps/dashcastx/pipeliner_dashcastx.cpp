@@ -128,7 +128,7 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 	changeDir();
 	auto demux = pipeline->addModule<Demux::LibavDemux>(opt->input, opt->loop);
 	createSubdir();
-	auto const type = opt->isLive ? Stream::AdaptiveStreamingCommon::Live : Stream::AdaptiveStreamingCommon::Static;
+	auto const type = (opt->isLive || opt->ultraLowLatency) ? Stream::AdaptiveStreamingCommon::Live : Stream::AdaptiveStreamingCommon::Static;
 	auto dasher = pipeline->addModule<Stream::MPEG_DASH>(DASH_SUBDIR, format("%s.mpd", g_appName), type, opt->segmentDurationInMs, opt->segmentDurationInMs * opt->timeshiftInSegNum);
 
 	bool isVertical = false;
@@ -185,7 +185,7 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 				connect(converter, encoder);
 			}
 
-			std::stringstream filename;
+			std::string prefix;
 			unsigned width, height;
 			if (metadataDemux->isVideo()) {
 				auto const resolutionFromDemux = safe_cast<const MetadataPktLibavVideo>(demux->getOutput(i)->getMetadata())->getResolution();
@@ -197,12 +197,16 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 					width = resolutionFromDemux.width;
 					height = resolutionFromDemux.height;
 				}
-				filename << Stream::AdaptiveStreamingCommon::getCommonPrefixVideo(numDashInputs, width, height);
+				prefix = Stream::AdaptiveStreamingCommon::getCommonPrefixVideo(numDashInputs, width, height);
 			} else {
-				filename << Stream::AdaptiveStreamingCommon::getCommonPrefixAudio(numDashInputs);
+				prefix = Stream::AdaptiveStreamingCommon::getCommonPrefixAudio(numDashInputs);
 			}
 
-			auto muxer = pipeline->addModule<Mux::GPACMuxMP4>(DASH_SUBDIR + filename.str(), opt->segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, opt->ultraLowLatency ? Mux::GPACMuxMP4::OneFragmentPerFrame : Mux::GPACMuxMP4::OneFragmentPerSegment);
+			auto const subdir = DASH_SUBDIR + prefix + "/";
+			if ((gf_dir_exists(subdir.c_str()) == GF_FALSE) && gf_mkdir(subdir.c_str()))
+				throw std::runtime_error(format("couldn't create subdir \"%s\": please check you have sufficient rights", subdir));
+
+			auto muxer = pipeline->addModule<Mux::GPACMuxMP4>(subdir + prefix, opt->segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, opt->ultraLowLatency ? Mux::GPACMuxMP4::OneFragmentPerFrame : Mux::GPACMuxMP4::OneFragmentPerSegment);
 			if (transcode) {
 				connect(encoder, muxer);
 			} else {
@@ -212,8 +216,8 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 			pipeline->connect(muxer, 0, dasher, numDashInputs);
 
 #ifdef MP4_MONITOR
-			//auto muxermp4 = pipeline->addModule<Mux::LibavMux>("monitor_" + filename.str(), "mp4");
-			auto muxermp4 = pipeline->addModule<Mux::GPACMuxMP4>("monitor_" + filename.str());
+			//auto muxermp4 = pipeline->addModule<Mux::LibavMux>("monitor_" + prefix.str(), "mp4");
+			auto muxermp4 = pipeline->addModule<Mux::GPACMuxMP4>("monitor_" + prefix.str());
 			if (transcode) {
 				connect(encoder, muxermp4);
 			} else {

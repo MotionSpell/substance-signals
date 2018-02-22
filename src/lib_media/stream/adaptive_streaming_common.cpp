@@ -1,6 +1,11 @@
 #include "adaptive_streaming_common.hpp"
 #include "lib_utils/time.hpp"
 #include "lib_gpacpp/gpacpp.hpp"
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
+#define MOVE_FILE_NUM_RETRY 3
 
 namespace Modules {
 namespace Stream {
@@ -14,6 +19,55 @@ AdaptiveStreamingCommon::AdaptiveStreamingCommon(Type type, uint64_t segDuration
 	addInput(new Input<DataRaw>(this));
 	outputSegments = addOutput<OutputDataDefault<DataRaw>>();
 	outputManifest = addOutput<OutputDataDefault<DataRaw>>();
+}
+
+bool AdaptiveStreamingCommon::moveFile(const std::string &src, const std::string &dst) const {
+	if (!src.empty() && (src != dst)) {
+		if (flags & SegmentsNotOwned)
+			throw error(format("Segments not owned require similar filenames (%s != %s)", src, dst));
+
+		auto subdir = dst.substr(0, dst.find_last_of("/") + 1);
+		if ((gf_dir_exists(subdir.c_str()) == GF_FALSE) && gf_mkdir(subdir.c_str()))
+			throw std::runtime_error(format("couldn't create subdir \"%s\": please check you have sufficient rights (2)", subdir));
+
+		int retry = MOVE_FILE_NUM_RETRY + 1;
+#ifdef _WIN32
+		while (--retry && (MoveFileA(src.c_str(), dst.c_str())) == 0) {
+			if (GetLastError() == ERROR_ALREADY_EXISTS) {
+				DeleteFileA(dst.c_str());
+			}
+#else
+		while (--retry && (system(format("%s %s %s", "mv", src, dst).c_str())) == 0) {
+#endif
+			gf_sleep(10);
+		}
+		if (!retry) {
+			return false;
+		}
+	}
+return true;
+}
+
+void AdaptiveStreamingCommon::processInitSegment(Quality const * const quality, size_t index) {
+	auto const &meta = quality->getMeta();
+	switch (meta->getStreamType()) {
+	case AUDIO_PKT: case VIDEO_PKT: case SUBTITLE_PKT: {
+		auto out = shptr(new DataBaseRef(quality->lastData));
+		std::string initFn = safe_cast<const MetadataFile>(quality->lastData->getMetadata())->getFilename();
+		if (initFn.empty()) {
+			initFn = format("%s%s", manifestDir, getInitName(quality, index));
+		} else if (!(flags & SegmentsNotOwned)) {
+			auto const dst = format("%s%s", manifestDir, getInitName(quality, index));
+			moveFile(initFn, dst);
+			initFn = dst;
+		}
+		out->setMetadata(std::make_shared<MetadataFile>(initFn, SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), meta->getSize(), meta->getLatency(), meta->getStartsWithRAP(), true));
+		out->setMediaTime(totalDurationInMs, 1000);
+		outputSegments->emit(out);
+		break;
+	}
+	default: break;
+	}
 }
 
 std::string AdaptiveStreamingCommon::getInitName(Quality const * const quality, size_t index) const {

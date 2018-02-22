@@ -668,10 +668,6 @@ void GPACMuxMP4::declareStreamSubtitle(const std::shared_ptr<const MetadataPktLi
 	trackId = gf_isom_get_track_id(isoCur, trackNum);
 
 	defaultSampleIncInTs = clockToTimescale(segmentDurationIn180k, mediaTs);
-	if (!defaultSampleIncInTs) {
-		log(Warning, "Computed defaultSampleIncInTs=0, forcing the ExactInputDur flag.");
-		compatFlags = compatFlags | ExactInputDur;
-	}
 	if (segmentDurationIn180k != timescaleToClock(defaultSampleIncInTs, mediaTs))
 		throw error(format("Rounding error when computing default sample duration for subtitles (%s vs %s, timescale=%s)", segmentDurationIn180k, timescaleToClock(defaultSampleIncInTs, mediaTs), mediaTs));
 
@@ -989,6 +985,18 @@ bool GPACMuxMP4::processInit(Data &data) {
 	if (inputs[0]->updateMetadata(data)) {
 		auto const &metadata = data->getMetadata();
 		declareStream(metadata);
+
+		if (!defaultSampleIncInTs) {
+			auto pkt = safe_cast<const DataAVPacket>(data);
+			if (pkt && pkt->getPacket()->duration) {
+				auto metaPkt = std::dynamic_pointer_cast<const MetadataPktLibav>(metadata);
+				defaultSampleIncInTs = convertToTimescale(pkt->getPacket()->duration, metaPkt->getTimeScale().num, metaPkt->getTimeScale().den * mediaTs);
+				log(Warning, "Codec defaultSampleIncInTs=0 but first data contains a duration (%s/%s).", defaultSampleIncInTs, mediaTs);
+			} else {
+				log(Warning, "Computed defaultSampleIncInTs=0, forcing the ExactInputDur flag.");
+				compatFlags = compatFlags | ExactInputDur;
+			}
+		}
 
 		if (!firstDataAbsTimeInMs) {
 			firstDataAbsTimeInMs = DataBase::absUTCOffsetInMs;

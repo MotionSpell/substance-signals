@@ -13,7 +13,7 @@ namespace Modules {
 namespace Stream {
 
 Apple_HLS::Apple_HLS(const std::string &m3u8Dir, const std::string &m3u8Filename, Type type, uint64_t segDurationInMs, bool genVariantPlaylist, AdaptiveStreamingCommonFlags flags)
-: AdaptiveStreamingCommon(type, segDurationInMs, m3u8Dir, flags), playlistMasterPath(format("%s%s", m3u8Dir, m3u8Filename)), genVariantPlaylist(genVariantPlaylist) {
+: AdaptiveStreamingCommon(type, segDurationInMs, m3u8Dir, flags | SegmentsNotOwned), playlistMasterPath(format("%s%s", m3u8Dir, m3u8Filename)), genVariantPlaylist(genVariantPlaylist) {
 	if (segDurationInMs % 1000)
 		throw error("Segment duration must be an integer number of seconds.");
 }
@@ -24,22 +24,6 @@ Apple_HLS::~Apple_HLS() {
 
 std::unique_ptr<Quality> Apple_HLS::createQuality() const {
 	return uptr<Quality>(safe_cast<Quality>(new HLSQuality));
-}
-
-void Apple_HLS::processInitSegment(Quality const * const quality, size_t index) {
-	auto const &meta = quality->getMeta();
-	switch (meta->getStreamType()) {
-	case AUDIO_PKT: case VIDEO_PKT: case SUBTITLE_PKT: {
-		auto out = shptr(new DataBaseRef(quality->lastData));
-		auto const initFnSrc = safe_cast<const MetadataFile>(quality->lastData->getMetadata())->getFilename();
-		auto const initFnDst = format("%s%s", manifestDir, getInitName(quality, index));
-		out->setMetadata(std::make_shared<MetadataFile>(initFnDst, SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), meta->getSize(), meta->getLatency(), meta->getStartsWithRAP(), true));
-		out->setMediaTime(totalDurationInMs, 1000);
-		outputSegments->emit(out);
-		break;
-	}
-	default: assert(0); break;
-	}
 }
 
 std::string Apple_HLS::getVariantPlaylistName(HLSQuality const * const quality, const std::string &subDir, size_t index) {

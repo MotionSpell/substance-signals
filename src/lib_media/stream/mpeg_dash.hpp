@@ -14,7 +14,6 @@ public:
 
 private:
 	std::unique_ptr<Quality> createQuality() const override;
-	void processInitSegment(Quality const * const quality, size_t index) override;
 	void generateManifest() override;
 	void finalizeManifest() override;
 
@@ -31,7 +30,6 @@ private:
 
 	void ensureManifest();
 	void writeManifest();
-	bool moveFile(const std::string &src, const std::string &dst) const;
 	std::string getPrefixedSegmentName(DASHQuality const * const quality, size_t index, u64 segmentNum) const;
 	std::unique_ptr<gpacpp::MPD> mpd;
 	const std::string mpdPath;

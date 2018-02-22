@@ -166,18 +166,18 @@ int64_t MetadataPktLibav::getBitrate() const {
 	return codecCtx->bit_rate;
 }
 
+Fraction MetadataPktLibav::getTimeScale() const {
+	if (!codecCtx->time_base.num || !codecCtx->time_base.den)
+		throw std::runtime_error(format("Unsupported time scale %s/%s.", codecCtx->time_base.den, codecCtx->time_base.num));
+	return Fraction(codecCtx->time_base.den, codecCtx->time_base.num * codecCtx->ticks_per_frame);
+}
+
 PixelFormat MetadataPktLibavVideo::getPixelFormat() const {
 	return libavPixFmt2PixelFormat(codecCtx->pix_fmt);
 }
 
 Resolution MetadataPktLibavVideo::getResolution() const {
 	return Resolution(codecCtx->width, codecCtx->height);
-}
-
-Fraction MetadataPktLibavVideo::getTimeScale() const {
-	if (!codecCtx->time_base.num || !codecCtx->time_base.den)
-		throw std::runtime_error(format("Unsupported video time scale %s/%s.", codecCtx->time_base.den, codecCtx->time_base.num));
-	return Fraction(codecCtx->time_base.den, codecCtx->time_base.num * codecCtx->ticks_per_frame);
 }
 
 Fraction MetadataPktLibavVideo::getFrameRate() const {

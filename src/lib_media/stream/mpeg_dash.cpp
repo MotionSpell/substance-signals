@@ -1,14 +1,9 @@
 #include "mpeg_dash.hpp"
 #include "lib_utils/time.hpp"
 #include "../common/libav.hpp"
-#ifdef _WIN32
-#include <Windows.h>
-#endif
 
 #define DASH_TIMESCALE 1000 // /!\ there are some ms already hardcoded from the GPAC calls
-#define MOVE_FILE_NUM_RETRY 3
-#define MIN_UPDATE_PERIOD_FACTOR 1 //should be 0, but dash.js doesn't support MPDs with no refresh time.
-
+#define MIN_UPDATE_PERIOD_FACTOR 1 //should be 0, but dash.js doesn't support MPDs with no refresh time
 #define MIN_BUFFER_TIME_IN_MS_VOD  3000
 #define MIN_BUFFER_TIME_IN_MS_LIVE 2000
 #define AVAILABILITY_TIMEOFFSET_IN_S 0.0
@@ -59,23 +54,6 @@ MPEG_DASH::~MPEG_DASH() {
 
 std::unique_ptr<Quality> MPEG_DASH::createQuality() const {
 	return uptr<Quality>(safe_cast<Quality>(new DASHQuality));
-}
-
-void MPEG_DASH::processInitSegment(Quality const * const quality, size_t index) {
-	auto const &meta = quality->getMeta();
-	switch (meta->getStreamType()) {
-	case AUDIO_PKT: case VIDEO_PKT: case SUBTITLE_PKT: {
-		auto out = shptr(new DataBaseRef(quality->lastData));
-		auto const initFnSrc = safe_cast<const MetadataFile>(quality->lastData->getMetadata())->getFilename();
-		auto const initFnDst = format("%s%s", manifestDir, getInitName(quality, index));
-		moveFile(initFnSrc, initFnDst);
-		out->setMetadata(std::make_shared<MetadataFile>(initFnDst, SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), meta->getSize(), meta->getLatency(), meta->getStartsWithRAP(), true));
-		out->setMediaTime(totalDurationInMs, 1000);
-		outputSegments->emit(out);
-		break;
-	}
-	default: break;
-	}
 }
 
 void MPEG_DASH::ensureManifest() {
@@ -179,35 +157,8 @@ void MPEG_DASH::writeManifest() {
 	}
 }
 
-bool MPEG_DASH::moveFile(const std::string &src, const std::string &dst) const {
-	if (!src.empty() && (src != dst)) {
-		if (flags & SegmentsNotOwned)
-			throw error(format("Segments not owned require similar filenames (%s != %s)", src, dst));
-
-		auto subdir = dst.substr(0, dst.find_last_of("/") + 1);
-		if ((gf_dir_exists(subdir.c_str()) == GF_FALSE) && gf_mkdir(subdir.c_str()))
-			throw std::runtime_error(format("couldn't create subdir \"%s\": please check you have sufficient rights (2)", subdir));
-
-		int retry = MOVE_FILE_NUM_RETRY + 1;
-#ifdef _WIN32
-		while (--retry && (MoveFileA(src.c_str(), dst.c_str())) == 0) {
-			if (GetLastError() == ERROR_ALREADY_EXISTS) {
-				DeleteFileA(dst.c_str());
-			}
-#else
-		while (--retry && (system(format("%s %s %s", "mv", src, dst).c_str())) == 0) {
-#endif
-			gf_sleep(10);
-		}
-		if (!retry) {
-			return false;
-		}
-	}
-	return true;
-}
-
 std::string MPEG_DASH::getPrefixedSegmentName(DASHQuality const * const quality, size_t index, u64 segmentNum) const {
-	return manifestDir + getSegmentName(quality, index, std::to_string(segmentNum));
+	return manifestDir + getSegmentName(quality, index, std::to_string(segmentNum)); //Romain: same as HLS? see manifestDir
 }
 
 void MPEG_DASH::generateManifest() {

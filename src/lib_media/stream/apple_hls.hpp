@@ -99,7 +99,6 @@ public:
 
 private:
 	std::unique_ptr<Quality> createQuality() const override;
-	void processInitSegment(Quality const * const quality, size_t index) override;
 	void generateManifest() override;
 	void finalizeManifest() override;
 

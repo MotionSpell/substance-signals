@@ -60,6 +60,8 @@ public:
 	}
 
 protected:
+	bool moveFile(const std::string &src, const std::string &dst) const;
+	void processInitSegment(Quality const * const quality, size_t index);
 	std::string getInitName(Quality const * const quality, size_t index) const;
 	std::string getSegmentName(Quality const * const quality, size_t index, const std::string &segmentNumSymbol) const;
 	uint64_t getCurSegNum() const;
@@ -73,7 +75,6 @@ protected:
 	OutputDataDefault<DataRaw> *outputSegments, *outputManifest;
 
 private:
-	virtual void processInitSegment(Quality const * const quality, size_t index) = 0;
 	void ensurePrefix(size_t index);
 	std::string getPrefix(Quality const * const quality, size_t index) const;
 	void threadProc();
