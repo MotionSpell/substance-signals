@@ -32,7 +32,6 @@ private:
 	void ensureManifest();
 	void writeManifest();
 	bool moveFile(const std::string &src, const std::string &dst) const;
-	std::string getPeriodID() const;
 	std::string getPrefixedSegmentName(DASHQuality const * const quality, size_t index, u64 segmentNum) const;
 	std::unique_ptr<gpacpp::MPD> mpd;
 	const std::string mpdPath;

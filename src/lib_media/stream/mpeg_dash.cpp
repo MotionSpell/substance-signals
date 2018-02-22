@@ -12,6 +12,7 @@
 #define MIN_BUFFER_TIME_IN_MS_VOD  3000
 #define MIN_BUFFER_TIME_IN_MS_LIVE 2000
 #define AVAILABILITY_TIMEOFFSET_IN_S 0.0
+#define PERIOD_NAME "1"
 
 static auto const g_profiles = "urn:mpeg:dash:profile:isoff-live:2011, http://dashif.org/guidelines/dash264";
 
@@ -66,7 +67,7 @@ void MPEG_DASH::processInitSegment(Quality const * const quality, size_t index) 
 	case AUDIO_PKT: case VIDEO_PKT: case SUBTITLE_PKT: {
 		auto out = shptr(new DataBaseRef(quality->lastData));
 		auto const initFnSrc = safe_cast<const MetadataFile>(quality->lastData->getMetadata())->getFilename();
-		auto const initFnDst = format("%s%s%s", manifestDir, getPeriodID(), getInitName(quality, index));
+		auto const initFnDst = format("%s%s", manifestDir, getInitName(quality, index));
 		moveFile(initFnSrc, initFnDst);
 		out->setMetadata(std::make_shared<MetadataFile>(initFnDst, SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), meta->getSize(), meta->getLatency(), meta->getStartsWithRAP(), true));
 		out->setMediaTime(totalDurationInMs, 1000);
@@ -104,7 +105,7 @@ void MPEG_DASH::ensureManifest() {
 
 	if (!gf_list_count(mpd->mpd->periods)) {
 		auto period = mpd->addPeriod();
-		period->ID = gf_strdup(getPeriodID().c_str());
+		period->ID = gf_strdup(PERIOD_NAME);
 		GF_MPD_AdaptationSet *audioAS = nullptr, *videoAS = nullptr;
 		for (size_t i = 0; i < getNumInputs() - 1; ++i) {
 			GF_MPD_AdaptationSet *as = nullptr;
@@ -205,16 +206,8 @@ bool MPEG_DASH::moveFile(const std::string &src, const std::string &dst) const {
 	return true;
 }
 
-std::string MPEG_DASH::getPeriodID() const {
-	if (flags & SegmentsNotOwned) {
-		return "";
-	} else {
-		return format("p%s_", qualities.size());
-	}
-}
-
 std::string MPEG_DASH::getPrefixedSegmentName(DASHQuality const * const quality, size_t index, u64 segmentNum) const {
-	return manifestDir + getPeriodID() + getSegmentName(quality, index, std::to_string(segmentNum));
+	return manifestDir + getSegmentName(quality, index, std::to_string(segmentNum));
 }
 
 void MPEG_DASH::generateManifest() {
