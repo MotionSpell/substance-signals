@@ -24,6 +24,7 @@ public:
 	void process(Data data) override;
 
 private:
+	void clean();
 	void webcamList();
 	bool webcamOpen(const std::string &options);
 	void initRestamp();

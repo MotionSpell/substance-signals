@@ -50,6 +50,7 @@ namespace Demux {
 void LibavDemux::webcamList() {
 	log(Warning, "Webcam list:");
 	ffpp::Dict dict(typeid(*this).name(), "-list_devices true");
+	avformat_free_context(m_formatCtx);
 	avformat_open_input(&m_formatCtx, "video=dummy:audio=dummy", av_find_input_format(webcamFormat()), &dict);
 	log(Warning, "Webcam example: webcam:video=\"Integrated Webcam\":audio=\"Microphone (Realtek High Defini\"");
 }
@@ -87,7 +88,7 @@ LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::strin
 	if (device == "webcam") {
 		if (url == device || !webcamOpen(url.substr(url.find(":") + 1))) {
 			webcamList();
-			if (m_formatCtx) avformat_close_input(&m_formatCtx);
+			clean();
 			throw error("Webcam init failed.");
 		}
 
@@ -98,10 +99,6 @@ LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::strin
 	} else {
 		ffpp::Dict dict(typeid(*this).name(), "-buffer_size 1M -fifo_size 1M -probesize 10M -analyzeduration 10M -overrun_nonfatal 1 -protocol_whitelist file,udp,rtp,http,https,tcp,tls,rtmp -rtsp_flags prefer_tcp -correct_ts_overflow 0 " + avformatCustom);
 
-		m_formatCtx = avformat_alloc_context();
-		if (!m_formatCtx)
-			throw error("could not allocate the context.");
-
 		if (!formatName.compare(0, 6, "mem://")) {
 			auto bd = uptr(new BufferData);
 			if (sscanf(formatName.c_str(), "mem://%d@%p", &bd->sizeLeft, &bd->buf) == 2) {
@@ -111,14 +108,14 @@ LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::strin
 			}
 		}
 		if (avformat_open_input(&m_formatCtx, url.c_str(), av_find_input_format(formatName.c_str()), &dict)) {
-			if (m_formatCtx) avformat_close_input(&m_formatCtx);
+			clean();
 			throw error(format("Error when opening input '%s'", url));
 		}
 		m_formatCtx->flags |= AVFMT_FLAG_KEEP_SIDE_DATA; //deprecated >= 3.5 https://github.com/FFmpeg/FFmpeg/commit/ca2b779423
 
 		if (seekTimeInMs) {
 			if (avformat_seek_file(m_formatCtx, -1, INT64_MIN, convertToTimescale(seekTimeInMs, 1000, AV_TIME_BASE), INT64_MAX, 0) < 0) {
-				avformat_close_input(&m_formatCtx);
+				clean();
 				throw error(format("Couldn't seek to time %sms", seekTimeInMs));
 			} else {
 				log(Info, "Successful initial seek to %sms", seekTimeInMs);
@@ -128,7 +125,7 @@ LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::strin
 		//if you don't call you may miss the first frames
 		m_formatCtx->max_analyze_duration = 0;
 		if (avformat_find_stream_info(m_formatCtx, nullptr) < 0) {
-			avformat_close_input(&m_formatCtx);
+			clean();
 			throw error("Couldn't get additional video stream info");
 		}
 
@@ -166,18 +163,25 @@ LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::strin
 	}
 }
 
-LibavDemux::~LibavDemux() {
+void LibavDemux::clean() {
 	done = true;
 	if (workingThread.joinable()) {
 		workingThread.join();
 	}
 
-	avformat_close_input(&m_formatCtx);
+	if (m_formatCtx) {
+		avformat_close_input(&m_formatCtx);
+		avformat_free_context(m_formatCtx);
+	}
 
 	AVPacket p;
 	while (dispatchPkts.read(p)) {
 		av_free_packet(&p);
 	}
+}
+
+LibavDemux::~LibavDemux() {
+	clean();
 }
 
 void LibavDemux::seekToStart() {
