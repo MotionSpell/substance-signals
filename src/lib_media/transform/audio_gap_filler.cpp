@@ -21,10 +21,15 @@ void AudioGapFiller::process(Data data) {
 	auto const srcNumSamples = audioData->size() / audioData->getFormat().getBytesPerSample();
 	auto const diff = (int64_t)(timeInSR - accumulatedTimeInSR);
 	if ((uint64_t)abs(diff) >= srcNumSamples) {
-		if ((diff > 0) && ((uint64_t)diff <= srcNumSamples * (1 + toleranceInFrames))) {
-			auto dataInThePast = shptr(new DataBaseRef(data));
-			dataInThePast->setMediaTime(data->getMediaTime() - timescaleToClock(srcNumSamples, sampleRate));
-			process(dataInThePast);
+		if ((uint64_t)abs(diff) <= srcNumSamples * (1 + toleranceInFrames)) {
+			log(Debug, "Fixing gap of %s samples (input=%s, accumulation=%s)", diff, timeInSR, accumulatedTimeInSR);
+			if (diff > 0) {
+				auto dataInThePast = shptr(new DataBaseRef(data));
+				dataInThePast->setMediaTime(data->getMediaTime() - timescaleToClock(srcNumSamples, sampleRate));
+				process(dataInThePast);
+			} else {
+				return;
+			}
 		} else {
 			log(Warning, "Discontinuity detected. Reset at time %s (previous: %s).", data->getMediaTime(), timescaleToClock(accumulatedTimeInSR, sampleRate));
 			accumulatedTimeInSR = timeInSR;
