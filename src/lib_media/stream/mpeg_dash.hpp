@@ -32,7 +32,7 @@ private:
 	void writeManifest();
 	std::string getPrefixedSegmentName(DASHQuality const * const quality, size_t index, u64 segmentNum) const;
 	std::unique_ptr<gpacpp::MPD> mpd;
-	const std::string mpdPath;
+	const std::string mpdFn;
 	const std::vector<std::string> baseURLs;
 	const uint64_t minUpdatePeriodInMs, timeShiftBufferDepthInMs;
 	const int64_t initialOffsetInMs;

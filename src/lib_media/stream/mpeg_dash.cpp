@@ -41,7 +41,7 @@ MPEG_DASH::MPEG_DASH(const std::string &mpdDir, const std::string &mpdFilename, 
 	uint64_t timeShiftBufferDepthInMs, uint64_t minUpdatePeriodInMs, uint32_t minBufferTimeInMs,
 	const std::vector<std::string> &baseURLs, const std::string &id, int64_t initialOffsetInMs, AdaptiveStreamingCommonFlags flags)
 : AdaptiveStreamingCommon(type, segDurationInMs, mpdDir, flags),
-  mpd(createMPD(type, minBufferTimeInMs, id)), mpdPath(format("%s%s", mpdDir, mpdFilename)), baseURLs(baseURLs),
+  mpd(createMPD(type, minBufferTimeInMs, id)), mpdFn(mpdFilename), baseURLs(baseURLs),
   minUpdatePeriodInMs(minUpdatePeriodInMs ? minUpdatePeriodInMs : (segDurationInMs ? segDurationInMs : 1000)),
   timeShiftBufferDepthInMs(timeShiftBufferDepthInMs), initialOffsetInMs(initialOffsetInMs), useSegmentTimeline(segDurationInMs == 0) {
 	if (useSegmentTimeline && ((flags & PresignalNextSegment) || (flags & SegmentsNotOwned)))
@@ -148,9 +148,15 @@ void MPEG_DASH::ensureManifest() {
 }
 
 void MPEG_DASH::writeManifest() {
-	if (!mpd->write(mpdPath)) {
-		log(Warning, "Can't write MPD at %s (1). Check you have sufficient rights.", mpdPath);
+	if (!mpd->write(mpdFn)) {
+		log(Warning, "Can't write MPD at %s (1). Check you have sufficient rights.", mpdFn);
 	} else {
+		auto const mpdPath = format("%s%s", manifestDir, mpdFn);
+		if (!moveFile(mpdFn, mpdPath)) {
+			log(Error, "Can't move MPD at %s (2). Check you have sufficient rights.", mpdPath);
+			return;
+		}
+
 		auto out = outputManifest->getBuffer(0);
 		auto metadata = std::make_shared<MetadataFile>(mpdPath, PLAYLIST, "", "", timescaleToClock(segDurationInMs, 1000), 0, 1, false, true);
 		out->setMetadata(metadata);
@@ -275,6 +281,7 @@ void MPEG_DASH::finalizeManifest() {
 	if (mpd->mpd->time_shift_buffer_depth) {
 		if (!(flags & SegmentsNotOwned)) {
 			log(Info, "Manifest was not rewritten for on-demand and all file are being deleted.");
+			auto const mpdPath = format("%s%s", manifestDir, mpdFn);
 			if (gf_delete_file(mpdPath.c_str()) != GF_OK) {
 				log(Error, "Couldn't delete MPD: \"%s\".", mpdPath);
 			}
