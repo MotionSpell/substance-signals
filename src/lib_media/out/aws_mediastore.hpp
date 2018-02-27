@@ -24,6 +24,7 @@ class AwsMediaStore : public ModuleS {
 		AwsMediaStore(std::string const& endpoint);
 		~AwsMediaStore();
 		void process(Data data) override;
+		void flush() override;
 
 	private:
 		Aws::SDKOptions options; std::shared_ptr<Aws::MediaStoreData::MediaStoreDataClient> mediastoreDataClient;

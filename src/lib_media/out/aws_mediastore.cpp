@@ -32,45 +32,50 @@ AwsMediaStore::AwsMediaStore(std::string const& endpoint) {
 AwsMediaStore::~AwsMediaStore() {
 }
 
+void AwsMediaStore::flush() {
+	if (awsData.empty()) {
+		log(Warning, "Flusing empty file %s", currentFilename.c_str());
+		return;
+	}
+
+	Aws::Utils::Array<uint8_t> array(&awsData[0], awsData.size());
+	Aws::Utils::Stream::PreallocatedStreamBuf streamBuf(&array, array.GetLength());
+	auto preallocatedStreamReader = Aws::MakeShared<Aws::IOStream>("preallocatedStreamReader", &streamBuf);
+
+	Aws::MediaStoreData::Model::PutObjectRequest request;
+	request.WithPath(currentFilename.c_str());
+	if (currentFilename.substr(currentFilename.size() - 4, 4).compare(".mpd") == 0) {
+		//request.SetContentType("application/dash+xml"); // => makes AWS SDK unhappy
+	}
+	else if (currentFilename.substr(currentFilename.size() - 5, 5).compare(".m3u8") == 0) {
+		request.SetContentType("application/x-mpegURL");
+	}
+	else if (currentFilename.substr(currentFilename.size() - 4, 4).compare(".m4s") == 0) {
+		request.SetContentType("video/mp4");
+	}
+	request.SetBody(preallocatedStreamReader);
+	auto outcome = mediastoreDataClient->PutObject(request);
+	if (outcome.IsSuccess()) {
+		log(Info, "%s sucessfully uploaded", currentFilename);
+	}
+	else {
+		log(Error, "%s failed to upload %s %s", currentFilename, outcome.GetError().GetExceptionName(), outcome.GetError().GetMessage());
+	}
+	awsData.clear();
+}
+
 void AwsMediaStore::process(Data data_) {
 	auto data = safe_cast<const DataBase>(data_);
 	auto meta = safe_cast<const MetadataFile>(data->getMetadata());
-	if (data->size() == 0) { //flush
-		if (awsData.empty()) {
-			return;
-		}
 
-		Aws::Utils::Array<uint8_t> array(&awsData[0], awsData.size());
-		Aws::Utils::Stream::PreallocatedStreamBuf streamBuf(&array, array.GetLength());
-		auto preallocatedStreamReader = Aws::MakeShared<Aws::IOStream>("preallocatedStreamReader", &streamBuf);
 
-		Aws::MediaStoreData::Model::PutObjectRequest request;
-		request.WithPath(meta->getFilename().c_str());
-		std::string filename = meta->getFilename().c_str();
-		if (filename.substr(filename.size() - 4, 4).compare(".mpd") == 0) {
-			//request.SetContentType("application/dash+xml"); // => makes AWS SDK unhappy
-		}
-		else if (filename.substr(filename.size() - 5, 5).compare(".m3u8") == 0) {
-			request.SetContentType("application/x-mpegURL");
-		}
-		else if (filename.substr(filename.size() - 4, 4).compare(".m4s") == 0) {
-			request.SetContentType("video/mp4");
-		}
-		request.SetBody(preallocatedStreamReader);
-		auto outcome = mediastoreDataClient->PutObject(request);
-		if (outcome.IsSuccess()) {
-			log(Info, "%s sucessfully uploaded", meta->getFilename());
-		}
-		else {
-			log(Error, "%s failed to upload %s %s", meta->getFilename(), outcome.GetError().GetExceptionName(), outcome.GetError().GetMessage());
-		}
-		awsData.clear();
-	}
-	else {
-		//growing vector, pretty inefficient for now
+	currentFilename = meta->getFilename();
+	if (data->size() != 0) 
 		awsData.insert(awsData.end(), data->data(), data->data() + data->size());
-	}
 	
+	if (meta->getEOS()) 
+		flush();
+
 }
 
 }
