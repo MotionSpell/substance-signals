@@ -181,9 +181,9 @@ Resolution MetadataPktLibavVideo::getResolution() const {
 }
 
 Fraction MetadataPktLibavVideo::getFrameRate() const {
-	if (!codecCtx->framerate.num || !codecCtx->framerate.den)
-		throw std::runtime_error(format("Unsupported video frame rate %s/%s.", codecCtx->framerate.den, codecCtx->framerate.num));
-	return Fraction(codecCtx->framerate.num, codecCtx->framerate.den);
+	if (!codecCtx->framerate.num || !codecCtx->framerate.den || !codecCtx->ticks_per_frame || (codecCtx->framerate.num % codecCtx->ticks_per_frame))
+		throw std::runtime_error(format("Unsupported video frame rate %s/%s (inc=%s).", codecCtx->framerate.num, codecCtx->framerate.den, codecCtx->ticks_per_frame));
+	return Fraction(codecCtx->framerate.num, codecCtx->framerate.den * codecCtx->ticks_per_frame);
 }
 
 void MetadataPktLibavVideo::getExtradata(const uint8_t *&extradata, size_t &extradataSize) const {
