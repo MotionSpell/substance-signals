@@ -16,6 +16,7 @@
 #include "mux/gpac_mux_mp4_mss.hpp"
 #include "mux/libav_mux.hpp"
 #include "out/file.hpp"
+#include "out/aws_mediastore.hpp"
 #include "out/http.hpp"
 #include "out/null.hpp"
 #include "out/print.hpp"

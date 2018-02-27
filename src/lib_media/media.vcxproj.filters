@@ -131,6 +131,12 @@
     <ClInclude Include="transform\telx_structs.hpp">
       <Filter>src\transform</Filter>
     </ClInclude>
+    <ClInclude Include="out\aws_mediastore.hpp">
+      <Filter>src\out</Filter>
+    </ClInclude>
+    <ClInclude Include="out\aws_sdk_instance.hpp">
+      <Filter>src\out</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="src">
@@ -287,6 +293,12 @@
     </ClCompile>
     <ClCompile Include="transform\audio_gap_filler.cpp">
       <Filter>src\transform</Filter>
+    </ClCompile>
+    <ClCompile Include="out\aws_mediastore.cpp">
+      <Filter>src\out</Filter>
+    </ClCompile>
+    <ClCompile Include="out\aws_sdk_instance.cpp">
+      <Filter>src\out</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
