@@ -50,7 +50,7 @@ void AwsMediaStore::flush() {
 	else if (currentFilename.substr(currentFilename.size() - 5, 5).compare(".m3u8") == 0) {
 		request.SetContentType("application/x-mpegURL");
 	}
-	else if (currentFilename.substr(currentFilename.size() - 4, 4).compare(".m4s") == 0) {
+	else if (currentFilename.substr(currentFilename.size() - 4, 4).compare(".m4s") == 0 || currentFilename.substr(currentFilename.size() - 4, 4).compare(".mp4") == 0 || currentFilename.substr(currentFilename.size() - 4, 4).compare(".m4a") == 0) {
 		request.SetContentType("video/mp4");
 	}
 	request.SetBody(preallocatedStreamReader);
