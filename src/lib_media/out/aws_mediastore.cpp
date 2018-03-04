@@ -45,7 +45,7 @@ void AwsMediaStore::flush() {
 	Aws::MediaStoreData::Model::PutObjectRequest request;
 	request.WithPath(currentFilename.c_str());
 	if (currentFilename.substr(currentFilename.size() - 4, 4).compare(".mpd") == 0) {
-		//request.SetContentType("application/dash+xml"); // => makes AWS SDK unhappy
+		request.SetContentType("application/dash+xml"); 
 	}
 	else if (currentFilename.substr(currentFilename.size() - 5, 5).compare(".m3u8") == 0) {
 		request.SetContentType("application/x-mpegURL");
