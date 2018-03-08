@@ -65,6 +65,7 @@ protected:
 	std::string getInitName(Quality const * const quality, size_t index) const;
 	std::string getSegmentName(Quality const * const quality, size_t index, const std::string &segmentNumSymbol) const;
 	uint64_t getCurSegNum() const;
+	std::shared_ptr<DataBase> getData(uint64_t size, Data &data);
 	void endOfStream();
 
 	const Type type;

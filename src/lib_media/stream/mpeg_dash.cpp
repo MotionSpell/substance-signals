@@ -166,7 +166,7 @@ void MPEG_DASH::writeManifest() {
 }
 
 std::string MPEG_DASH::getPrefixedSegmentName(DASHQuality const * const quality, size_t index, u64 segmentNum) const {
-	return manifestDir + getSegmentName(quality, index, std::to_string(segmentNum)); //Romain: same as HLS? see manifestDir
+	return manifestDir + getSegmentName(quality, index, std::to_string(segmentNum));
 }
 
 void MPEG_DASH::generateManifest() {
@@ -229,6 +229,16 @@ void MPEG_DASH::generateManifest() {
 
 			if (!fnNext.empty()) {
 				auto out = outputSegments->getBuffer(0);
+				/*{
+					0x00, 0x00, 0x00, 0x18, 0x73, 0x74, 0x79, 0x70,
+					0x6d, 0x73, 0x64, 0x68, 0x00, 0x00, 0x00, 0x00,
+					0x6d, 0x73, 0x64, 0x68, 0x6d, 0x73, 0x69, 0x78,
+					0x00, 0x00, 0x00, 0x18, 0x6d, 0x6f, 0x6f, 0x66,
+					0x00, 0x00, 0x00, 0x10, 0x6d, 0x66, 0x68, 0x64,
+					0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01,
+				};*/
+				//Romain: out->resize(44);
+				//Romain: memcpy(out->data(), , 44);
 				out->setMetadata(std::make_shared<MetadataFile>(fnNext, metaFn->getStreamType(), metaFn->getMimeType(), metaFn->getCodecName(), metaFn->getDuration(), 0, metaFn->getLatency(), metaFn->getStartsWithRAP(), false));
 				out->setMediaTime(totalDurationInMs, 1000);
 				outputSegments->emit(out);

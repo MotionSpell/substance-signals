@@ -24,6 +24,7 @@ public:
 	void flush() final;
 
 protected:
+	virtual void newConnectionCallback(void*) {}
 	virtual void newFileCallback(void*) {}
 	virtual size_t endOfSession(void*, size_t) { return 0; }
 	GF_BitStream *curTransferedBs = nullptr;

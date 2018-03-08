@@ -4,7 +4,7 @@
 
 //#define ENABLE_FAILING_TESTS
 
-#ifdef SIGNALS_HAS_X11 //FIXME:we should isolate tests using X11 more precisely
+#if SIGNALS_HAS_X11 //FIXME:we should isolate tests using X11 more precisely
 #include "modules_generator.cpp"
 #include "modules_player.cpp"
 #include "modules_render.cpp"

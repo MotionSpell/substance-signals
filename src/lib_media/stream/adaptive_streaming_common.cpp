@@ -118,6 +118,19 @@ void AdaptiveStreamingCommon::endOfStream() {
 	}
 }
 
+std::shared_ptr<DataBase> AdaptiveStreamingCommon::getData(uint64_t size, Data &data) {
+	if (size == 0) {
+		//Romain: put the custom header (now in mpeg_dash.cpp)
+		return outputSegments->getBuffer(0);
+	} else {
+		//Romain: check for styp and remove it
+		//Romain: should we copy it?
+		//auto dataRaw = safe_cast<DataRaw>(data);
+		//memmove(dataRaw->data(), dataRaw->data() + XXX, XXX);
+		return shptr<DataBase>(new DataBaseRef(data));
+	}
+}
+
 void AdaptiveStreamingCommon::threadProc() {
 	log(Info, "start processing at UTC: %sms.", (uint64_t)DataBase::absUTCOffsetInMs);
 
@@ -141,7 +154,7 @@ void AdaptiveStreamingCommon::threadProc() {
 	};
 	auto sendLocalData = [&](uint64_t size) {
 		ensureStartTime();
-		auto out = size ? shptr<DataBase>(new DataBaseRef(data)) : outputSegments->getBuffer(0);
+		auto out = getData(size, data);
 		auto const &meta = qualities[i]->getMeta();
 		out->setMetadata(std::make_shared<MetadataFile>(getSegmentName(qualities[i].get(), i, std::to_string(getCurSegNum())), SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), size, meta->getLatency(), meta->getStartsWithRAP(), meta->getEOS()));
 		out->setMediaTime(totalDurationInMs + timescaleToClock(curSegDurIn180k[i], 1000));

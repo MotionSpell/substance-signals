@@ -80,7 +80,7 @@ private:
 				Log::msg(delayInMs < REGULATION_TOLERANCE_IN_MS ? Debug : Warning, "Module %s: received data for time %ss (will sleep for %s ms)", delegateName, dataTime / (double)IClock::Rate, delayInMs);
 				clock->sleep(Fraction(delayInMs, 1000));
 			} else if (delayInMs + REGULATION_TOLERANCE_IN_MS < 0) {
-				Log::msg(dataTime > 0 ? Warning : Debug, "Module %s: received data for time %ss is late from %sms", delegateName, dataTime / (double)IClock::Rate, -delayInMs);
+				//Romain: Log::msg(dataTime > 0 ? Warning : Debug, "Module %s: received data for time %ss is late from %sms", delegateName, dataTime / (double)IClock::Rate, -delayInMs);
 			}
 		}
 	}

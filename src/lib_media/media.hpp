@@ -16,11 +16,13 @@
 #include "mux/gpac_mux_mp4_mss.hpp"
 #include "mux/libav_mux.hpp"
 #include "out/file.hpp"
+#if SIGNALS_HAS_AWS
 #include "out/aws_mediastore.hpp"
+#endif /*SIGNALS_HAS_AWS*/
 #include "out/http.hpp"
 #include "out/null.hpp"
 #include "out/print.hpp"
-#ifdef SIGNALS_HAS_X11
+#if SIGNALS_HAS_X11
 #include "render/sdl_audio.hpp"
 #include "render/sdl_video.hpp"
 #endif /*SIGNALS_HAS_X11*/

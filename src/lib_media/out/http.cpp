@@ -134,7 +134,7 @@ size_t HTTP::curlCallback(void *ptr, size_t size, size_t nmemb) {
 	if (state == RunNewConnection && curTransferedData) {
 		if (curTransferedBs) {
 			auto meta = safe_cast<const MetadataFile>(curTransferedData->getMetadata());
-			log(Debug, "reconnect: file %s", meta->getFilename());
+			log(Warning, "Reconnect: file %s", meta->getFilename());
 			gf_bs_seek(curTransferedBs, 0);
 		} else { /*we may be exiting because of an exception*/
 			curTransferedData = nullptr;
@@ -169,6 +169,7 @@ size_t HTTP::curlCallback(void *ptr, size_t size, size_t nmemb) {
 	}
 
 	if (state == RunNewConnection) {
+		newConnectionCallback(ptr); //Romain: USEFUL TO INJECT NEW DATA?
 		state = RunResume;
 	} else if (state == RunNewFile) {
 		newFileCallback(ptr);

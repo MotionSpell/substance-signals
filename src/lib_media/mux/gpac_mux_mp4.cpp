@@ -536,7 +536,7 @@ void GPACMuxMP4::closeFragment() {
 				throw error(format("Impossible to create UTC marker: %s", gf_error_to_string(e)));
 		}
 		if ((segmentPolicy == FragmentedSegment) || (segmentPolicy == SingleSegment)) {
-			gf_isom_flush_fragments(isoCur, GF_TRUE); //writes a 'styp'
+			gf_isom_flush_fragments(isoCur, GF_FALSE); //writes a 'styp'
 
 			if (compatFlags & FlushFragMemory) {
 				sendOutput(false);

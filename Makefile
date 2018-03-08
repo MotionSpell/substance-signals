@@ -29,8 +29,8 @@ else
   LDFLAGS+=-s
 endif
 
-#default has X11
 SIGNALS_HAS_X11?=1
+SIGNALS_HAS_AWS?=0
 
 ifeq ($(SIGNALS_HAS_X11), 1)
   CFLAGS+=-DSIGNALS_HAS_X11
