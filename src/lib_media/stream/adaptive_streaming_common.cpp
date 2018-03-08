@@ -147,7 +147,6 @@ std::shared_ptr<DataBase> AdaptiveStreamingCommon::getPresignalledData(uint64_t 
 			return shptr<DataBase>(new DataBaseRef(data));
 		}
 	}
-
 }
 
 void AdaptiveStreamingCommon::threadProc() {
