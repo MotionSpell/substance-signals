@@ -819,7 +819,7 @@ void GPACMuxMP4::sendOutput(bool EOS) {
 	} else {
 		char *output = nullptr; u32 size = 0;
 		getBsContent(isoCur, output, size, (compatFlags & FlushFragMemory) && curFragmentDurInTs);
-		if (!size) {
+		if (!size && !EOS) {
 			assert((segmentPolicy == FragmentedSegment) && (fragmentPolicy > NoFragment));
 			log(Debug, "Empty segment. Ignore.");
 			return;
@@ -928,7 +928,7 @@ void GPACMuxMP4::addData(gpacpp::IsoSample const * const sample, int64_t lastDat
 
 void GPACMuxMP4::closeChunk(bool nextSampleIsRAP) {
 	if (segmentPolicy > SingleSegment) {
-		if ((!(compatFlags & Browsers) || curFragmentDurInTs > 0) && /*avoid 0-sized mdat interpreted as EOS in browsers*/
+		if ((!(compatFlags & Browsers) || curFragmentDurInTs > 0 || fragmentPolicy == OneFragmentPerFrame) && /*avoid 0-sized mdat interpreted as EOS in browsers*/
 			((curSegmentDurInTs + curSegmentDeltaInTs) * IClock::Rate) >= (mediaTs * segmentDurationIn180k) &&
 			((nextSampleIsRAP == RAP) || (compatFlags & SegmentAtAny))) {
 			if ((compatFlags & SegConstantDur) && (timescaleToClock(curSegmentDurInTs + curSegmentDeltaInTs, mediaTs) != segmentDurationIn180k) && (curSegmentDurInTs != 0)) {

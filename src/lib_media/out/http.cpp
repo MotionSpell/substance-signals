@@ -103,7 +103,9 @@ bool HTTP::open(std::shared_ptr<const MetadataFile> meta) {
 	} else {
 		curTransferedFile = gf_fopen(fn.c_str(), "rb");
 		if (!curTransferedFile) {
-			log(Error, "File %s cannot be opened", fn);
+			if (curTransferedData->size()) {
+				log(Error, "File %s cannot be opened", fn);
+			}
 			return false;
 		}
 		curTransferedBs = gf_bs_from_file(curTransferedFile, GF_BITSTREAM_READ);
@@ -169,7 +171,6 @@ size_t HTTP::curlCallback(void *ptr, size_t size, size_t nmemb) {
 	}
 
 	if (state == RunNewConnection) {
-		newConnectionCallback(ptr); //Romain: USEFUL TO INJECT NEW DATA?
 		state = RunResume;
 	} else if (state == RunNewFile) {
 		newFileCallback(ptr);

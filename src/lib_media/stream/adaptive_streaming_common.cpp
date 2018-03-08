@@ -1,6 +1,7 @@
 #include "adaptive_streaming_common.hpp"
 #include "lib_utils/time.hpp"
 #include "lib_gpacpp/gpacpp.hpp"
+#include <cassert>
 #ifdef _WIN32
 #include <Windows.h>
 #endif
@@ -118,17 +119,35 @@ void AdaptiveStreamingCommon::endOfStream() {
 	}
 }
 
-std::shared_ptr<DataBase> AdaptiveStreamingCommon::getData(uint64_t size, Data &data) {
-	if (size == 0) {
-		//Romain: put the custom header (now in mpeg_dash.cpp)
-		return outputSegments->getBuffer(0);
+std::shared_ptr<DataBase> AdaptiveStreamingCommon::getPresignalledData(uint64_t size, Data &data, bool EOS) {
+	if (!(flags & PresignalNextSegment))
+		throw error("getPresignalledData() cannot be called when PresignalNextSegment flag is absent.");
+
+	static constexpr uint8_t mp4StaticHeader[] = {
+		0x00, 0x00, 0x00, 0x18, 0x73, 0x74, 0x79, 0x70,
+		0x6d, 0x73, 0x64, 0x68, 0x00, 0x00, 0x00, 0x00,
+		0x6d, 0x73, 0x64, 0x68, 0x6d, 0x73, 0x69, 0x78,
+	};
+	auto constexpr headerSize = sizeof(mp4StaticHeader);
+	if (size == 0 && !EOS) {
+		auto out = outputSegments->getBuffer(0);
+		out->resize(headerSize);
+		memcpy(out->data(), mp4StaticHeader, headerSize);
+		return out;
 	} else {
-		//Romain: check for styp and remove it
-		//Romain: should we copy it?
-		//auto dataRaw = safe_cast<DataRaw>(data);
-		//memmove(dataRaw->data(), dataRaw->data() + XXX, XXX);
-		return shptr<DataBase>(new DataBaseRef(data));
+		auto dataRaw = safe_cast<const DataRaw>(data);
+		auto const dataRawSize = dataRaw->size();
+		if (dataRawSize >= headerSize && !memcmp(dataRaw->data(), mp4StaticHeader, headerSize)) {
+			auto out = outputSegments->getBuffer(0);
+			out->resize(dataRawSize - headerSize);
+			memcpy(out->data(), dataRaw->data() + headerSize, headerSize);
+			return out;
+		} else {
+			assert(dataRawSize < 8 || *(uint32_t*)(dataRaw->data() + 4) != (uint32_t)0x70797473);
+			return shptr<DataBase>(new DataBaseRef(data));
+		}
 	}
+
 }
 
 void AdaptiveStreamingCommon::threadProc() {
@@ -154,8 +173,8 @@ void AdaptiveStreamingCommon::threadProc() {
 	};
 	auto sendLocalData = [&](uint64_t size) {
 		ensureStartTime();
-		auto out = getData(size, data);
 		auto const &meta = qualities[i]->getMeta();
+		auto out = getPresignalledData(size, data, meta->getEOS());
 		out->setMetadata(std::make_shared<MetadataFile>(getSegmentName(qualities[i].get(), i, std::to_string(getCurSegNum())), SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), size, meta->getLatency(), meta->getStartsWithRAP(), meta->getEOS()));
 		out->setMediaTime(totalDurationInMs + timescaleToClock(curSegDurIn180k[i], 1000));
 		outputSegments->emit(out);
