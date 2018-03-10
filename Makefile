@@ -36,6 +36,10 @@ ifeq ($(SIGNALS_HAS_X11), 1)
   CFLAGS+=-DSIGNALS_HAS_X11
 endif
 
+ifeq ($(SIGNALS_HAS_AWS), 1)
+  CFLAGS+=-DSIGNALS_HAS_AWS
+endif
+
 CFLAGS+=-I$(SRC) -I$(SRC)/lib_modules
 
 CFLAGS+=-I$(EXTRA)/include
@@ -63,6 +67,10 @@ ifeq ($(SIGNALS_HAS_X11), 1)
 	pkg-config --cflags sdl2 >> $(BIN)/config.mk.tmp ; \
 	/bin/echo -n 'LDFLAGS+=' >> $(BIN)/config.mk.tmp ; \
 	pkg-config --libs sdl2 >> $(BIN)/config.mk.tmp
+endif
+
+ifeq ($(SIGNALS_HAS_AWS), 1)
+	/bin/echo -n 'LDFLAGS+=-libaws-cpp-sdk-core -llibaws-cpp-sdk-mediastore libaws-cpp-sdk-mediastore-data' >> $(BIN)/config.mk.tmp ; 
 endif
 
 	/bin/echo 'CFLAGS+= -I$(EXTRA)/include/asio -Wno-unused-local-typedefs' >> $(BIN)/config.mk.tmp
