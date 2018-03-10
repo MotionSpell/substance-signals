@@ -140,7 +140,7 @@ std::shared_ptr<DataBase> AdaptiveStreamingCommon::getPresignalledData(uint64_t 
 		if (dataRawSize >= headerSize && !memcmp(dataRaw->data(), mp4StaticHeader, headerSize)) {
 			auto out = outputSegments->getBuffer(0);
 			out->resize(dataRawSize - headerSize);
-			memcpy(out->data(), dataRaw->data() + headerSize, headerSize);
+			memcpy(out->data(), dataRaw->data() + headerSize, dataRawSize - headerSize);
 			return out;
 		} else {
 			assert(dataRawSize < 8 || *(uint32_t*)(dataRaw->data() + 4) != (uint32_t)0x70797473);
@@ -170,11 +170,11 @@ void AdaptiveStreamingCommon::threadProc() {
 				curSegDurIn180k[0] = segDurationInMs;
 		}
 	};
-	auto sendLocalData = [&](uint64_t size) {
+	auto sendLocalData = [&](uint64_t size, bool EOS) {
 		ensureStartTime();
+		auto out = getPresignalledData(size, data, EOS);
 		auto const &meta = qualities[i]->getMeta();
-		auto out = getPresignalledData(size, data, meta->getEOS());
-		out->setMetadata(std::make_shared<MetadataFile>(getSegmentName(qualities[i].get(), i, std::to_string(getCurSegNum())), SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), size, meta->getLatency(), meta->getStartsWithRAP(), meta->getEOS()));
+		out->setMetadata(std::make_shared<MetadataFile>(getSegmentName(qualities[i].get(), i, std::to_string(getCurSegNum())), SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), size, meta->getLatency(), meta->getStartsWithRAP(), EOS));
 		out->setMediaTime(totalDurationInMs + timescaleToClock(curSegDurIn180k[i], 1000));
 		outputSegments->emit(out);
 	};
@@ -221,7 +221,7 @@ void AdaptiveStreamingCommon::threadProc() {
 				if (curDurIn180k == 0 && curSegDurIn180k[i] == 0) {
 					processInitSegment(qualities[i].get(), i);
 					if (flags & PresignalNextSegment) {
-						sendLocalData(0);
+						sendLocalData(0, false);
 					}
 					--i; data = nullptr; continue;
 				}
@@ -236,7 +236,7 @@ void AdaptiveStreamingCommon::threadProc() {
 					curSegDurIn180k[i] = segDurationInMs ? timescaleToClock(segDurationInMs, 1000) : meta->getDuration();
 				}
 				if (curSegDurIn180k[i] < timescaleToClock(segDurationInMs, 1000) || !meta->getEOS()) {
-					sendLocalData(meta->getSize());
+					sendLocalData(meta->getSize(), meta->getEOS());
 				}
 			}
 		}
