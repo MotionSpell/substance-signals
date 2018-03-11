@@ -70,7 +70,7 @@ ifeq ($(SIGNALS_HAS_X11), 1)
 endif
 
 ifeq ($(SIGNALS_HAS_AWS), 1)
-	/bin/echo -n 'LDFLAGS+=-libaws-cpp-sdk-core -llibaws-cpp-sdk-mediastore libaws-cpp-sdk-mediastore-data' >> $(BIN)/config.mk.tmp ; 
+	/bin/echo 'LDFLAGS+=-laws-cpp-sdk-core -laws-cpp-sdk-mediastore -laws-cpp-sdk-mediastore-data' >> $(BIN)/config.mk.tmp ; 
 endif
 
 	/bin/echo 'CFLAGS+= -I$(EXTRA)/include/asio -Wno-unused-local-typedefs' >> $(BIN)/config.mk.tmp
@@ -140,6 +140,11 @@ MEDIA_SRCS+=\
   $(ProjectName)/render/sdl_audio.cpp\
   $(ProjectName)/render/sdl_common.cpp\
   $(ProjectName)/render/sdl_video.cpp
+endif  
+ifeq ($(SIGNALS_HAS_AWS), 1)
+MEDIA_SRCS+=\
+  $(ProjectName)/out/aws_mediastore.cpp\
+  $(ProjectName)/out/aws_sdk_instance.cpp
 endif  
 LIB_MEDIA_OBJS:=$(MEDIA_SRCS:%.cpp=$(BIN)/%.o)
 DEPS+=$(LIB_MEDIA_OBJS:%.o=%.deps)

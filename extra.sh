@@ -203,9 +203,10 @@ echo OpenSSL
 		rm -rf extra/release/aws
 		mkdir -p extra/release/aws
 		pushd extra/release/aws
-		cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_SOURCE_DIR=../../src/aws -DCMAKE_C_FLAGS=-I$EXTRA_DIR/include \
-		 -DCMAKE_C_FLAGS=-L$EXTRA_DIR/lib -DCMAKE_INSTALL_PREFIX=$EXTRA_DIR ../../src/aws -DBUILD_ONLY="s3;mediastore;mediastore-data"
+		cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_SOURCE_DIR=../../src/aws -DCMAKE_CXX_FLAGS=-I$EXTRA_DIR/include \
+		 -DCMAKE_LD_FLAGS=-L$EXTRA_DIR/lib -DCMAKE_INSTALL_PREFIX=$EXTRA_DIR ../../src/aws -DBUILD_ONLY="s3;mediastore;mediastore-data"
 		$MAKE
+		$MAKE install
 		popd
 		touch extra/release/aws/releaseOk
 	fi
