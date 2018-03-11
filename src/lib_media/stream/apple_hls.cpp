@@ -163,7 +163,10 @@ void Apple_HLS::generateManifestVariantFull(bool isLast) {
 					error("HLS segment path is empty. Even when using memory mode, you must set a valid path in the metadata.");
 				quality->playlistVariant << seg.path << std::endl;
 			}
-			quality->playlistVariant << "#EXT-X-ENDLIST" << std::endl;
+
+			if (isLast) {
+				quality->playlistVariant << "#EXT-X-ENDLIST" << std::endl;
+			}
 
 			std::ofstream vpl;
 			auto const playlistCurVariantPath = getVariantPlaylistName(quality, manifestDir, i);
