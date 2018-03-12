@@ -21,7 +21,7 @@
   <ItemGroup>
     <ClInclude Include="core\allocator.hpp" />
     <ClInclude Include="core\clock.hpp" />
-    <ClInclude Include="core\connexion.hpp" />
+    <ClInclude Include="core\connection.hpp" />
     <ClInclude Include="core\data.hpp" />
     <ClInclude Include="core\error.hpp" />
     <ClInclude Include="core\input.hpp" />
@@ -33,7 +33,7 @@
     <ClInclude Include="modules.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="core\connexion.cpp" />
+    <ClCompile Include="core\connection.cpp" />
     <ClCompile Include="core\data.cpp" />
   </ItemGroup>
   <ItemGroup>
