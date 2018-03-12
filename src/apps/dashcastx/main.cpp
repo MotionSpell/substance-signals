@@ -9,7 +9,7 @@ int main(int argc, char const* argv[]) {
 	try {
 		return safeMain(argc, argv);
 	} catch (std::exception const& e) {
-		std::cerr << "Error: " << e.what() << std::endl;
+		std::cerr << "[" << g_appName << "] " << "Error: " << e.what() << std::endl;
 		return 1;
 	}
 }

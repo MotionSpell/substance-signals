@@ -117,12 +117,12 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 
 	auto createSubdir = [&]() {
 		if ((gf_dir_exists(DASH_SUBDIR) == GF_FALSE) && gf_mkdir(DASH_SUBDIR))
-			throw std::runtime_error(format("%s - couldn't create subdir %s: please check you have sufficient rights", g_appName, DASH_SUBDIR));
+			throw std::runtime_error(format("couldn't create subdir %s: please check you have sufficient rights", DASH_SUBDIR));
 	};
 
 	auto changeDir = [&]() {
 		if (chdir(opt->workingDir.c_str()) < 0 && (gf_mkdir((char*)opt->workingDir.c_str()) || chdir(opt->workingDir.c_str()) < 0))
-			throw std::runtime_error(format("%s - couldn't change dir to %s: please check the directory exists and you have sufficient rights", g_appName, opt->workingDir));
+			throw std::runtime_error(format("couldn't change dir to %s: please check the directory exists and you have sufficient rights", opt->workingDir));
 	};
 
 	changeDir();
@@ -136,7 +136,7 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 	if (!transcode) {
 		Log::msg(Warning, "[%s] No transcode. Make passthru.", g_appName);
 		if (opt->autoRotate)
-			throw std::runtime_error(format("%s - cannot autorotate when transcoding is disabled", g_appName, DASH_SUBDIR));
+			throw std::runtime_error(format("cannot autorotate when transcoding is disabled", DASH_SUBDIR));
 	}
 
 	int numDashInputs = 0;
