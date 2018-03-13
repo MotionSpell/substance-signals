@@ -50,15 +50,17 @@ namespace Demux {
 void LibavDemux::webcamList() {
 	log(Warning, "Webcam list:");
 	ffpp::Dict dict(typeid(*this).name(), "-list_devices true");
-	avformat_free_context(m_formatCtx);
 	avformat_open_input(&m_formatCtx, "video=dummy:audio=dummy", av_find_input_format(webcamFormat()), &dict);
 	log(Warning, "Webcam example: webcam:video=\"Integrated Webcam\":audio=\"Microphone (Realtek High Defini\"");
 }
 
 bool LibavDemux::webcamOpen(const std::string &options) {
 	auto avInputFormat = av_find_input_format(webcamFormat());
-	if (avformat_open_input(&m_formatCtx, options.c_str(), avInputFormat, nullptr))
+	if (avformat_open_input(&m_formatCtx, options.c_str(), avInputFormat, nullptr)) {
+		avformat_free_context(m_formatCtx);
+		m_formatCtx = nullptr;
 		return false;
+	}
 	return true;
 }
 
@@ -142,7 +144,7 @@ LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::strin
 		if (parser) {
 			st->codec->ticks_per_frame = parser->repeat_pict + 1;
 		} else {
-			log(Debug, format("No parser found for stream %s (%s). Couldn't use full metadata to get the timescale.", i, st->codec->codec_name));
+			log(Debug, format("No parser found for stream %s (%s). Couldn't use full metadata to get the timescale.", i, avcodec_get_name(st->codec->codec_id)));
 		}
 		st->codec->time_base = st->time_base; //allows to keep trace of the pkt timebase in the output metadata
 		if (!st->codec->framerate.num) {

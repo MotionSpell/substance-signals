@@ -18,7 +18,7 @@ LibavDecode::LibavDecode(std::shared_ptr<const MetadataPktLibav> metadata)
 
 	auto const codec = avcodec_find_decoder(codecCtx->codec_id);
 	if (!codec)
-		throw error(format("Decoder not found for codecID(%s).", codecCtx->codec_id));
+		throw error(format("Decoder not found for codecID (%s).", codecCtx->codec_id));
 	ffpp::Dict dict(typeid(*this).name(), "-threads auto -err_detect 1 -flags output_corrupt -flags2 showall");
 	if (avcodec_open2(codecCtx.get(), codec, &dict) < 0)
 		throw error("Couldn't open stream.");
@@ -28,7 +28,7 @@ LibavDecode::LibavDecode(std::shared_ptr<const MetadataPktLibav> metadata)
 	case AVMEDIA_TYPE_VIDEO: {
 		auto input = addInput(new Input<DataAVPacket>(this));
 		input->setMetadata(shptr(new MetadataPktLibavVideo(codecCtx)));
-		if (codecCtx->codec->capabilities & CODEC_CAP_DR1) {
+		if (codecCtx->codec->capabilities & AV_CODEC_CAP_DR1) {
 			codecCtx->thread_safe_callbacks = 1;
 			codecCtx->opaque = safe_cast<LibavDirectRendering>(this);
 			codecCtx->get_buffer2 = avGetBuffer2;

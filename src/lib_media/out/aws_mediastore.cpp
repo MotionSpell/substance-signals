@@ -70,10 +70,10 @@ void AwsMediaStore::process(Data data_) {
 				log(Error, "Could not open file %s", currentFilename.c_str());
 				return;
 			}
-			std::streamsize size = file.tellg();
+			auto const size = file.tellg();
 			file.seekg(0, std::ios::beg);
 
-			awsData.resize(size);
+			awsData.resize((size_t)size);
 			file.read((char*)awsData.data(), size);
 		}
 

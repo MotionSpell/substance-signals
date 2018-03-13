@@ -395,7 +395,7 @@ GPACMuxMP4::GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs
 
 	isoInit = gf_isom_open(segmentName.empty() ? nullptr : segmentName.c_str(), GF_ISOM_OPEN_WRITE, nullptr);
 	if (!isoInit)
-		throw error(format("Cannot open isoInit file %s"));
+		throw error(format("Cannot open isoInit file %s", segmentName));
 	isoCur = isoInit;
 
 	GF_Err e = gf_isom_set_storage_mode(isoCur, GF_ISOM_STORE_INTERLEAVED);
@@ -732,9 +732,9 @@ void GPACMuxMP4::declareStreamVideo(const std::shared_ptr<const MetadataPktLibav
 				throw error(format("Cannot create AVC config: %s", gf_error_to_string(e)));
 		}
 		gf_odf_hevc_cfg_del(hevccfg);
-	} else {
-		throw error(format("Unknown codec"));
-	}
+	} else
+		throw error("Unknown codec");
+
 	if (e) {
 		if (e == GF_NON_COMPLIANT_BITSTREAM) {
 			log(Debug, "non Annex B: assume this is AVCC");
@@ -754,9 +754,8 @@ void GPACMuxMP4::declareStreamVideo(const std::shared_ptr<const MetadataPktLibav
 			if (e != GF_OK)
 				throw error(format("Cannot create MPEG-4 config: %s", gf_error_to_string(e)));
 			gf_odf_desc_del((GF_Descriptor*)esd);
-		} else {
-			throw error(format("Container format import failed"));
-		}
+		} else
+			throw error("Container format import failed");
 	}
 
 	auto const res = metadata->getResolution();
@@ -783,7 +782,7 @@ void GPACMuxMP4::declareStream(const std::shared_ptr<const IMetadata> &metadata)
 	} else if (auto subs = std::dynamic_pointer_cast<const MetadataPktLibavSubtitle>(metadata)) {
 		declareStreamSubtitle(subs);
 	} else
-		throw error(format("Stream creation failed: unknown type."));
+		throw error("Stream creation failed: unknown type.");
 }
 
 void GPACMuxMP4::handleInitialTimeOffset() {

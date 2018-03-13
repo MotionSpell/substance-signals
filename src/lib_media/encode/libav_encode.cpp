@@ -89,7 +89,7 @@ LibavEncode::LibavEncode(Type type, Params &params)
 		throw error(format("Codec '%s' not found, disable output.", entry->value));
 	codecCtx = shptr(avcodec_alloc_context3(codec));
 	if (!codecCtx)
-		throw error(format("Could not allocate the codec context (%s).", codecName));
+		throw error(format("Could not allocate the codec context (\"%s\").", codecName));
 
 	/* parameters */
 	switch (type) {
@@ -162,7 +162,7 @@ LibavEncode::LibavEncode(Type type, Params &params)
 }
 
 void LibavEncode::flush() {
-	if (codecCtx && (codecCtx->codec->capabilities & CODEC_CAP_DELAY)) {
+	if (codecCtx && (codecCtx->codec->capabilities & AV_CODEC_CAP_DELAY)) {
 		switch (codecCtx->codec_type) {
 		case AVMEDIA_TYPE_VIDEO:
 			while (processVideo(nullptr)) {}

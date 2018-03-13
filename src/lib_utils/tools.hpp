@@ -26,7 +26,7 @@ struct Fraction {
 	}
 	template<typename T>
 	inline explicit operator T() const {
-		return (T)num / den;
+		return (T)num / (T)den;
 	}
 	inline Fraction operator+(const Fraction &frac) const {
 		auto const gcd = pgcd(num * frac.den + frac.num * den, den * frac.den);
