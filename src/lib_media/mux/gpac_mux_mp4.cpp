@@ -667,10 +667,6 @@ void GPACMuxMP4::declareStreamSubtitle(const std::shared_ptr<const MetadataPktLi
 		throw error(format("Cannot create new track"));
 	trackId = gf_isom_get_track_id(isoCur, trackNum);
 
-	defaultSampleIncInTs = clockToTimescale(segmentDurationIn180k, mediaTs);
-	if (segmentDurationIn180k != timescaleToClock(defaultSampleIncInTs, mediaTs))
-		throw error(format("Rounding error when computing default sample duration for subtitles (%s vs %s, timescale=%s)", segmentDurationIn180k, timescaleToClock(defaultSampleIncInTs, mediaTs), mediaTs));
-
 	GF_Err e = gf_isom_set_track_enabled(isoCur, trackNum, GF_TRUE);
 	if (e != GF_OK)
 		throw error(format("gf_isom_set_track_enabled: %s", gf_error_to_string(e)));
