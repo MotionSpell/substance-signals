@@ -630,10 +630,10 @@ unittest("adaptive streaming combination coverage") {
 	auto muxTSSeg = create<Stream::LibavMuxHLSTS>(false, segmentDurationInMs, "", "muxTSSeg_", format("-hls_time %s -hls_playlist_type event", segmentDurationInMs / 1000));
 
 	auto clock = shptr(new Clock(0.0));
-	auto hls_ts = createModule<Stream::Apple_HLS>(ALLOC_NUM_BLOCKS_DEFAULT, clock, "", "hls_ts.m3u8", Stream::AdaptiveStreamingCommon::Live, segmentDurationInMs, false, Stream::AdaptiveStreamingCommon::SegmentsNotOwned | Stream::AdaptiveStreamingCommon::PresignalNextSegment | Stream::AdaptiveStreamingCommon::ForceRealDurations);
+	auto hls_ts = createModule<Stream::Apple_HLS>(ALLOC_NUM_BLOCKS_DEFAULT, clock, "", "hls_ts.m3u8", Stream::AdaptiveStreamingCommon::Live, segmentDurationInMs, 0, false, Stream::AdaptiveStreamingCommon::SegmentsNotOwned | Stream::AdaptiveStreamingCommon::PresignalNextSegment | Stream::AdaptiveStreamingCommon::ForceRealDurations);
 	std::vector<std::unique_ptr<Stream::AdaptiveStreamingCommon>> hls_mp4, dash, dashTimeline;
 	for (auto i = 0; i < 3; ++i) {
-		hls_mp4.push_back(createModule<Stream::Apple_HLS>(ALLOC_NUM_BLOCKS_DEFAULT, clock, "", "hls_mp4.m3u8", Stream::AdaptiveStreamingCommon::Live, segmentDurationInMs, true, Stream::AdaptiveStreamingCommon::SegmentsNotOwned | Stream::AdaptiveStreamingCommon::PresignalNextSegment | Stream::AdaptiveStreamingCommon::ForceRealDurations));
+		hls_mp4.push_back(createModule<Stream::Apple_HLS>(ALLOC_NUM_BLOCKS_DEFAULT, clock, "", "hls_mp4.m3u8", Stream::AdaptiveStreamingCommon::Live, segmentDurationInMs, 0, true, Stream::AdaptiveStreamingCommon::SegmentsNotOwned | Stream::AdaptiveStreamingCommon::PresignalNextSegment | Stream::AdaptiveStreamingCommon::ForceRealDurations));
 		dash.push_back(createModule<Stream::MPEG_DASH>(ALLOC_NUM_BLOCKS_DEFAULT, clock, "", "dash.mpd", Stream::AdaptiveStreamingCommon::Live, segmentDurationInMs, 0, segmentDurationInMs, 0, std::vector<std::string>(), "id", 0, Stream::AdaptiveStreamingCommon::SegmentsNotOwned | Stream::AdaptiveStreamingCommon::PresignalNextSegment | Stream::AdaptiveStreamingCommon::ForceRealDurations));
 		dashTimeline.push_back(createModule<Stream::MPEG_DASH>(ALLOC_NUM_BLOCKS_DEFAULT, clock, "", "dash.mpd", Stream::AdaptiveStreamingCommon::Live, 0, 0, segmentDurationInMs, 0, std::vector<std::string>(), "id", 0));
 	}

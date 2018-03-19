@@ -94,7 +94,7 @@ private:
 
 class Apple_HLS : public AdaptiveStreamingCommon {
 public:
-	Apple_HLS(const std::string &m3u8Dir, const std::string &m3u8Filename, Type type, uint64_t segDurationInMs, bool genVariantPlaylist = false, AdaptiveStreamingCommonFlags flags = None);
+	Apple_HLS(const std::string &m3u8Dir, const std::string &m3u8Filename, Type type, uint64_t segDurationInMs, uint64_t timeShiftBufferDepthInMs = 0, bool genVariantPlaylist = false, AdaptiveStreamingCommonFlags flags = None);
 	virtual ~Apple_HLS();
 
 private:
@@ -121,7 +121,7 @@ private:
 
 	unsigned version = 0;
 	bool masterManifestIsWritten = false, hasInitSeg = false;
-	uint64_t firstSegNum = 0;
+	uint64_t firstSegNum = 0, timeShiftBufferDepthInMs = 0;
 };
 
 }

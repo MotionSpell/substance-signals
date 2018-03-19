@@ -22,8 +22,9 @@ v_0_640x360/playlist.m3u8
 Segments:
 /cmaf/live/595451/ulldemo2802/v_0_640x360/v_0_640x360-*.m4s
 */
-Apple_HLS::Apple_HLS(const std::string &m3u8Dir, const std::string &m3u8Filename, Type type, uint64_t segDurationInMs, bool genVariantPlaylist, AdaptiveStreamingCommonFlags flags)
-: AdaptiveStreamingCommon(type, segDurationInMs, m3u8Dir, flags | (genVariantPlaylist ? SegmentsNotOwned : None)), playlistMasterPath(format("%s%s", m3u8Dir, m3u8Filename)), genVariantPlaylist(genVariantPlaylist) {
+Apple_HLS::Apple_HLS(const std::string &m3u8Dir, const std::string &m3u8Filename, Type type, uint64_t segDurationInMs, uint64_t timeShiftBufferDepthInMs, bool genVariantPlaylist, AdaptiveStreamingCommonFlags flags)
+: AdaptiveStreamingCommon(type, segDurationInMs, m3u8Dir, flags | (genVariantPlaylist ? SegmentsNotOwned : None)), playlistMasterPath(format("%s%s", m3u8Dir, m3u8Filename)),
+  genVariantPlaylist(genVariantPlaylist), timeShiftBufferDepthInMs(timeShiftBufferDepthInMs) {
 	if (segDurationInMs % 1000)
 		throw error("Segment duration must be an integer number of seconds.");
 }
@@ -139,7 +140,7 @@ void Apple_HLS::generateManifestVariantFull(bool isLast) {
 			quality->playlistVariant << "#EXT-X-MEDIA-SEQUENCE:" << firstSegNum << std::endl;
 			if (version >= 6) quality->playlistVariant << "#EXT-X-INDEPENDENT-SEGMENTS" << std::endl;
 			if (hasInitSeg) quality->playlistVariant << "#EXT-X-MAP:URI=\"" << getInitName(quality, i) << "\"" << std::endl;
-			quality->playlistVariant << "#EXT-X-PLAYLIST-TYPE:EVENT" << std::endl;
+			if (!timeShiftBufferDepthInMs) quality->playlistVariant << "#EXT-X-PLAYLIST-TYPE:EVENT" << std::endl;
 
 			for (auto &seg : quality->segments) {
 				quality->playlistVariant << "#EXTINF:" << segDurationInMs / 1000.0 << std::endl;
@@ -166,6 +167,17 @@ void Apple_HLS::generateManifestVariantFull(bool isLast) {
 
 			if (isLast) {
 				quality->playlistVariant << "#EXT-X-ENDLIST" << std::endl;
+			}
+
+			if (timeShiftBufferDepthInMs) {
+				auto seg = quality->segments.begin();
+				while (seg != quality->segments.end()) {
+					if ((*seg).startTimeInMs + timeShiftBufferDepthInMs < startTimeInMs + totalDurationInMs) {
+						seg = quality->segments.erase(seg);
+					} else {
+						++seg;
+					}
+				}
 			}
 
 			std::ofstream vpl;

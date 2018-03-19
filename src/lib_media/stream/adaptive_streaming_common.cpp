@@ -120,8 +120,9 @@ void AdaptiveStreamingCommon::endOfStream() {
 }
 
 std::shared_ptr<DataBase> AdaptiveStreamingCommon::getPresignalledData(uint64_t size, Data &data, bool EOS) {
-	if (!(flags & PresignalNextSegment))
-		throw error("getPresignalledData() cannot be called when PresignalNextSegment flag is absent.");
+	if (!(flags & PresignalNextSegment)) {
+		return shptr<DataBase>(new DataBaseRef(data));
+	}
 
 	static constexpr uint8_t mp4StaticHeader[] = {
 		0x00, 0x00, 0x00, 0x18, 0x73, 0x74, 0x79, 0x70,
