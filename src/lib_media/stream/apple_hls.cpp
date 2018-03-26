@@ -12,16 +12,6 @@
 namespace Modules {
 namespace Stream {
 
-/*
-HLS Master:
-https://gpactest.akamaized.net/hls/live/595451/ulldemo2802/master.m3u8
-
-HLS Child:
-v_0_640x360/playlist.m3u8
-
-Segments:
-/cmaf/live/595451/ulldemo2802/v_0_640x360/v_0_640x360-*.m4s
-*/
 Apple_HLS::Apple_HLS(const std::string &m3u8Dir, const std::string &m3u8Filename, Type type, uint64_t segDurationInMs, uint64_t timeShiftBufferDepthInMs, bool genVariantPlaylist, AdaptiveStreamingCommonFlags flags)
 : AdaptiveStreamingCommon(type, segDurationInMs, m3u8Dir, flags | (genVariantPlaylist ? SegmentsNotOwned : None)), playlistMasterPath(format("%s%s", m3u8Dir, m3u8Filename)),
   genVariantPlaylist(genVariantPlaylist), timeShiftBufferDepthInMs(timeShiftBufferDepthInMs) {

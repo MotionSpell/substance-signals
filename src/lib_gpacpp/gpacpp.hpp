@@ -524,7 +524,7 @@ public:
 
 	void addStream(std::unique_ptr<GF_ESInterface> ifce, u32 PID, Bool isPCR) {
 		auto stream = gf_m2ts_program_stream_add(program, ifce.get(), PID, isPCR, GF_FALSE);
-		if ((ifce->stream_type == GF_STREAM_VISUAL)) stream->start_pes_at_rap = GF_TRUE;
+		if (ifce->stream_type == GF_STREAM_VISUAL) stream->start_pes_at_rap = GF_TRUE;
 		ifces.push_back(std::move(ifce));
 	}
 

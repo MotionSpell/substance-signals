@@ -114,7 +114,7 @@ std::unique_ptr<const IConfig> processArgs(int argc, char const* argv[]) {
 		{ NUMERIC,  0, "t", "dvr",         Arg::Numeric,
 			"  --dvr,               -t             \tSet the timeshift buffer depth in segment number (default value: infinite(0))." },
 		{ VIDEO,    0, "v", "video",       Arg::Video,
-			"  --video wxh[:b[:t]], -v wxh[:b[:t]] \tSet a video resolution and optionally bitrate (enables resize and/or transcoding) and encoder type (supported 0 (software (default)), 1 (QuickSync), 2 (NVEnc)." },
+			"  --video wxh[:b[:t]], -v wxh:b[:t]   \tSet a video resolution and optionally bitrate (enables resize and/or transcoding) and encoder type (supported 0 (software (default)), 1 (QuickSync), 2 (NVEnc)." },
 		{ OPT,      0, "r", "autorotate",  Arg::None,
 			"  --autorotate,        -r             \tAuto-rotate if the input height is bigger than the width." },
 		{ NONEMPTY, 0, "w", "working-dir", Arg::NonEmpty,
