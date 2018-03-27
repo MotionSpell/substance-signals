@@ -25,8 +25,8 @@ else
   CFLAGS+=-Werror -O3 -DNDEBUG -Wno-unused-variable -Wno-deprecated-declarations
   ifneq ($(COMPILER), clang)
     CFLAGS+=-s
+    LDFLAGS+=-s
   endif
-  LDFLAGS+=-s
 endif
 
 SIGNALS_HAS_X11?=1

@@ -65,12 +65,12 @@ public:
 	Pipeline(bool isLowLatency = false, double clockSpeed = 0.0, Threading threading = OnePerModule);
 
 	IPipelinedModule* addModuleInternal(std::unique_ptr<Modules::IModule> rawModule) override;
-	void removeModule(IPipelinedModule * const module);
-	void connect   (IPipelinedModule * const prev, size_t outputIdx, IPipelinedModule * const next, size_t inputIdx, bool inputAcceptMultipleConnections = false);
-	void disconnect(IPipelinedModule * const prev, size_t outputIdx, IPipelinedModule * const next, size_t inputIdx);
-	void start();
-	void waitForCompletion();
-	void exitSync();
+	void removeModule(IPipelinedModule * const module) override;
+	void connect   (IPipelinedModule * const prev, size_t outputIdx, IPipelinedModule * const next, size_t inputIdx, bool inputAcceptMultipleConnections = false) override;
+	void disconnect(IPipelinedModule * const prev, size_t outputIdx, IPipelinedModule * const next, size_t inputIdx) override;
+	void start() override;
+	void waitForCompletion() override;
+	void exitSync() override;
 
 	int getNumBlocks(int numBlock) const override {
 		return numBlock ? numBlock : allocatorNumBlocks;
