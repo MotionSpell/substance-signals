@@ -39,53 +39,10 @@ unittest("multiple inputs: send same packets to 2 GPAC mp4 mux inputs") {
 
 unittest("mux GPAC mp4 combination coverage") {
 	std::vector<Meta> results, ref = {
-	{ "output_video_gpac_01.mp4", "audio/mp4", "mp4a.40.2", 0, 10437, 0, 1 },
-	{ "output_video_gpac_03.mp4", "audio/mp4", "mp4a.40.2", 0, 29869, 0, 1 },
-	{ "output_video_gpac_04.mp4", "audio/mp4", "mp4a.40.2", 0, 29869, 4180, 1 },
-	{ "", "audio/mp4", "mp4a.40.2", 0, 10437, 0, 1 },
-	{ "output_video_gpac_11-0.mp4", "audio/mp4", "mp4a.40.2", 363629, 5226, 360000, 1 },
-	{ "output_video_gpac_11-1.mp4", "audio/mp4", "mp4a.40.2", 359445, 5336, 359445, 1 },
-	{ "output_video_gpac_11-2.mp4", "audio/mp4", "mp4a.40.2", 175543, 3022, 175543, 1 },
-	{ "output_video_gpac_12-0.mp4", "audio/mp4", "mp4a.40.2", 363629, 4838, 360000, 1 },
-	{ "output_video_gpac_12-1.mp4", "audio/mp4", "mp4a.40.2", 359445, 4936, 359445, 1 },
-	{ "output_video_gpac_12-2.mp4", "audio/mp4", "mp4a.40.2", 175543, 2838, 175543, 1 },
-	{ "output_video_gpac_13-0.mp4", "audio/mp4", "mp4a.40.2", 363629, 19298, 360000, 1 },
-	{ "output_video_gpac_13-1.mp4", "audio/mp4", "mp4a.40.2", 359445, 19232, 359445, 1 },
-	{ "output_video_gpac_13-2.mp4", "audio/mp4", "mp4a.40.2", 175543, 9734, 175543, 1 },
-	{ "output_video_gpac_14-0.mp4", "audio/mp4", "mp4a.40.2", 363629, 19298, 4180, 1 },
-	{ "output_video_gpac_14-1.mp4", "audio/mp4", "mp4a.40.2", 359445, 19232, 4180, 1 },
-	{ "output_video_gpac_14-2.mp4", "audio/mp4", "mp4a.40.2", 175543, 9734, 4180, 1 },
-	{ "", "audio/mp4", "mp4a.40.2", 363629, 5226, 360000, 1 },
-	{ "", "audio/mp4", "mp4a.40.2", 359445, 5336, 359445, 1 },
-	{ "", "audio/mp4", "mp4a.40.2", 175543, 3022, 175543, 1 },
-	{ "output_video_gpac_21-init.mp4", "audio/mp4", "mp4a.40.2", 0, 0, 0, 1 },
-	{ "output_video_gpac_21-0.m4s", "audio/mp4", "mp4a.40.2", 363629, 4961, 360000, 1 },
-	{ "output_video_gpac_21-1.m4s", "audio/mp4", "mp4a.40.2", 359445, 5051, 359445, 1 },
-	{ "output_video_gpac_21-2.m4s", "audio/mp4", "mp4a.40.2", 175543, 2601, 175543, 1 },
-	{ "output_video_gpac_22-init.mp4", "audio/mp4", "mp4a.40.2", 0, 0, 0, 1 },
-	{ "output_video_gpac_22-0.m4s", "audio/mp4", "mp4a.40.2", 363629, 15633, 360000, 1 },
-	{ "output_video_gpac_22-1.m4s", "audio/mp4", "mp4a.40.2", 359445, 15603, 359445, 1 },
-	{ "output_video_gpac_22-2.m4s", "audio/mp4", "mp4a.40.2", 175543, 7689, 175543, 1 },
-	{ "output_video_gpac_23-init.mp4", "audio/mp4", "mp4a.40.2", 0, 0, 4180, 1 },
-	{ "output_video_gpac_23-0.m4s", "audio/mp4", "mp4a.40.2", 363629, 15633, 4180, 1 },
-	{ "output_video_gpac_23-1.m4s", "audio/mp4", "mp4a.40.2", 359445, 15603, 4180, 1 },
-	{ "output_video_gpac_23-2.m4s", "audio/mp4", "mp4a.40.2", 175543, 7689, 4180, 1 },
-	{ "", "audio/mp4", "mp4a.40.2", 0, 729, 0, 1 },
-	{ "", "audio/mp4", "mp4a.40.2", 363629, 4961, 360000, 1 },
-	{ "", "audio/mp4", "mp4a.40.2", 359445, 5051, 359445, 1 },
-	{ "", "audio/mp4", "mp4a.40.2", 175543, 2601, 175543, 1 },
-	{ "", "audio/mp4", "mp4a.40.2", 0, 729, 0, 1 },
-	{ "", "audio/mp4", "mp4a.40.2", 363629, 4953, 360000, 1 },
-	{ "", "audio/mp4", "mp4a.40.2", 0, 8, 0, 1 },
-	{ "", "audio/mp4", "mp4a.40.2", 359445, 5043, 359445, 1 },
-	{ "", "audio/mp4", "mp4a.40.2", 0, 8, 0, 1 },
-	{ "", "audio/mp4", "mp4a.40.2", 175543, 2593, 175543, 1 },
-	{ "", "audio/mp4", "mp4a.40.2", 0, 8, 0, 1 },
 	};
 
 	auto demux = create<Demux::LibavDemux>("data/beepbop.mp4");
 	std::vector<std::unique_ptr<Mux::GPACMuxMP4>> muxers;
-	std::vector<std::unique_ptr<Listener>> listeners;
 	const uint64_t segmentDurationInMs = 2000;
 	bool thrown = false;
 	auto CATCH_ERROR = [&](std::function<void()> creation) {
@@ -132,12 +89,13 @@ unittest("mux GPAC mp4 combination coverage") {
 	CATCH_ERROR([&]() { create<Mux::GPACMuxMP4>("", 0, Mux::GPACMuxMP4::SingleSegment, Mux::GPACMuxMP4::NoFragment, Mux::GPACMuxMP4::FlushFragMemory);
 #endif
 
+	std::vector<std::unique_ptr<Listener>> listeners;
 	for (size_t i = 0; i < demux->getNumOutputs(); ++i) {
 		auto metadata = demux->getOutput(i)->getMetadata();
 		if (metadata->isAudio()) {
 			for (auto &m : muxers) {
 				ConnectModules(demux.get(), i, m.get(), 0);
-				listeners.push_back(create<Listener>());
+				listeners.push_back(create<Listener>(listeners.size()));
 				ConnectModules(m.get(), 0, listeners.back().get(), 0);
 			}
 			break;
@@ -149,6 +107,7 @@ unittest("mux GPAC mp4 combination coverage") {
 		m->flush();
 	}
 	for (auto &l : listeners) {
+		l->print();
 		for (auto &r : l->results) results.push_back(r);
 	}
 
