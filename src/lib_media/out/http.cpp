@@ -16,7 +16,7 @@ size_t writeVoid(void *buffer, size_t size, size_t nmemb, void *userp) {
 }
 }
 
-HTTP::HTTP(const std::string &url, Flag flags, const std::string &userAgent)
+HTTP::HTTP(const std::string &url, Flag flags, const std::string &userAgent, const std::vector<std::string> &headers)
 : url(url), userAgent(userAgent), flags(flags) {
 	if (url.compare(0, 7, "http://") && url.compare(0, 8, "https://"))
 		throw error(format("can only handle URLs starting with 'http://' or 'https://', not %s.", url));
@@ -27,17 +27,20 @@ HTTP::HTTP(const std::string &url, Flag flags, const std::string &userAgent)
 		throw error("Couldn't init the HTTP stack.");
 
 	curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
-
-	if (flags & InitialEmptyPost) {
-		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-		curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent.c_str());
-		curl_easy_setopt(curl, CURLOPT_POST, 1L);
 #ifdef CURL_DEBUG
-		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+	curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 #endif
 
-		//make an empty POST to check the end point exists
-		curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, 0);
+	if (flags & InitialEmptyPost) { //make an empty POST to check the end point exists
+		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+		curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent.c_str());
+		if (flags & UsePUT) {
+			curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
+			curl_easy_setopt(curl, CURLOPT_INFILESIZE_LARGE, 0);
+		} else {
+			curl_easy_setopt(curl, CURLOPT_POST, 1L);
+			curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, 0);
+		}
 		auto const res = curl_easy_perform(curl);
 		if (res != CURLE_OK)
 			throw error(format("curl_easy_perform() failed for URL: %s", url));
@@ -47,20 +50,24 @@ HTTP::HTTP(const std::string &url, Flag flags, const std::string &userAgent)
 
 	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 	curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent.c_str());
-	curl_easy_setopt(curl, CURLOPT_POST, 1L);
+	if (flags & UsePUT) {
+		curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
+	} else {
+		curl_easy_setopt(curl, CURLOPT_POST, 1L);
+	}
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 
-#ifdef CURL_DEBUG
-	curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-#else
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeVoid);
-#endif
 	curl_easy_setopt(curl, CURLOPT_READFUNCTION, &HTTP::staticCurlCallback);
 	curl_easy_setopt(curl, CURLOPT_READDATA, this);
 
 	if (flags & Chunked) {
 		chunk = curl_slist_append(chunk, "Transfer-Encoding: chunked");
+		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
+	}
+	for (auto &h : headers) {
+		chunk = curl_slist_append(chunk, h.c_str());
 		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
 	}
 

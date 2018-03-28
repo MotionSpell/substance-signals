@@ -15,9 +15,10 @@ public:
 	enum Flag {
 		InitialEmptyPost = 1,
 		Chunked          = 1 << 1, //not enabling it is experimental
+		UsePUT           = 1 << 2, //use PUT instead of POST
 	};
 
-	HTTP(const std::string &url, Flag flags = InitialEmptyPost | Chunked, const std::string &userAgent = std::string("GPAC Signals/") + std::string(g_version));
+	HTTP(const std::string &url, Flag flags = InitialEmptyPost | Chunked, const std::string &userAgent = std::string("GPAC Signals/") + std::string(g_version), const std::vector<std::string> &headers = {});
 	virtual ~HTTP();
 
 	void process() final;
