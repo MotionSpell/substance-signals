@@ -38,7 +38,7 @@ void getBsContent(GF_ISOFile *iso, char *&output, u32 &size, bool newBs) {
 	gf_bs_get_content(bs, &output, &size);
 	if (newBs) {
 		auto bsNew = gf_bs_new(nullptr, 0, GF_BITSTREAM_WRITE);
-		memcpy(bs, bsNew, 2*sizeof(void*)); //HACK: GPAC GF_BitStream.original nee sto be non-NULL
+		memcpy(bs, bsNew, 2*sizeof(void*)); //HACK: GPAC GF_BitStream.original needs to be non-NULL
 		memset(bsNew,  0, 2*sizeof(void*));
 		gf_bs_del(bsNew);
 	}

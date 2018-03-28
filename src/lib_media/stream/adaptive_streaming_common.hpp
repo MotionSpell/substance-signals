@@ -39,7 +39,7 @@ public:
 	enum AdaptiveStreamingCommonFlags {
 		None = 0,
 		SegmentsNotOwned     = 1 << 0, //don't touch files
-		PresignalNextSegment = 1 << 1,
+		PresignalNextSegment = 1 << 1, //speculative, allows prefetching on player side
 		ForceRealDurations   = 1 << 2
 	};
 
@@ -69,7 +69,8 @@ protected:
 	void endOfStream();
 
 	const Type type;
-	uint64_t startTimeInMs=-1, segDurationInMs, totalDurationInMs=0;
+	uint64_t startTimeInMs = -1, totalDurationInMs = 0;
+	const uint64_t segDurationInMs;
 	const std::string manifestDir;
 	const AdaptiveStreamingCommonFlags flags;
 	std::vector<std::unique_ptr<Quality>> qualities;

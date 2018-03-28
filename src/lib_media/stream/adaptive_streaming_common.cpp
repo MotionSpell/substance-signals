@@ -123,6 +123,9 @@ std::shared_ptr<DataBase> AdaptiveStreamingCommon::getPresignalledData(uint64_t 
 	if (!(flags & PresignalNextSegment)) {
 		return shptr<DataBase>(new DataBaseRef(data));
 	}
+	if (!safe_cast<const MetadataFile>(data->getMetadata())->getFilename().empty() && !EOS) {
+		return nullptr;
+	}
 
 	static constexpr uint8_t mp4StaticHeader[] = {
 		0x00, 0x00, 0x00, 0x18, 0x73, 0x74, 0x79, 0x70,
@@ -163,6 +166,17 @@ void AdaptiveStreamingCommon::threadProc() {
 	std::vector<uint64_t> curSegDurIn180k; curSegDurIn180k.resize(numInputs);
 	size_t i;
 
+	auto isComplete = [&]()->bool {
+		uint64_t minIncompletSegDur = std::numeric_limits<uint64_t>::max();
+		for (size_t idx = 0; idx < curSegDurIn180k.size(); ++idx) {
+			auto const &segDur = curSegDurIn180k[idx];
+			if ( (segDur < minIncompletSegDur) &&
+				((segDur < timescaleToClock(segDurationInMs, 1000)) || (!qualities[idx]->getMeta() || !qualities[idx]->getMeta()->getEOS()))) {
+				minIncompletSegDur = segDur;
+			}
+		}
+		return (minIncompletSegDur == std::numeric_limits<uint64_t>::max()) || (curSegDurIn180k[i] > minIncompletSegDur);
+	};
 	auto ensureStartTime = [&]() {
 		if (!startTimeInMs) startTimeInMs = clockToTimescale(data->getMediaTime(), 1000);
 	};
@@ -175,10 +189,12 @@ void AdaptiveStreamingCommon::threadProc() {
 	auto sendLocalData = [&](uint64_t size, bool EOS) {
 		ensureStartTime();
 		auto out = getPresignalledData(size, data, EOS);
-		auto const &meta = qualities[i]->getMeta();
-		out->setMetadata(std::make_shared<MetadataFile>(getSegmentName(qualities[i].get(), i, std::to_string(getCurSegNum())), SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), size, meta->getLatency(), meta->getStartsWithRAP(), EOS));
-		out->setMediaTime(totalDurationInMs + timescaleToClock(curSegDurIn180k[i], 1000));
-		outputSegments->emit(out);
+		if (out) {
+			auto const &meta = qualities[i]->getMeta();
+			out->setMetadata(std::make_shared<MetadataFile>(getSegmentName(qualities[i].get(), i, std::to_string(getCurSegNum())), SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), size, meta->getLatency(), meta->getStartsWithRAP(), EOS));
+			out->setMediaTime(totalDurationInMs + timescaleToClock(curSegDurIn180k[i], 1000));
+			outputSegments->emit(out);
+		}
 	};
 	auto segmentReady = [&]()->bool {
 		ensureCurDur();
@@ -197,7 +213,7 @@ void AdaptiveStreamingCommon::threadProc() {
 	};
 	for (;;) {
 		for (i = 0; i < numInputs; ++i) {
-			if (curSegDurIn180k[i] > *std::min_element(curSegDurIn180k.begin(), curSegDurIn180k.end())) {
+			if (isComplete()) {
 				continue;
 			}
 

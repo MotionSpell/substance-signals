@@ -222,16 +222,20 @@ void MPEG_DASH::generateManifest() {
 				log(Error, "Couldn't rename segment \"%s\" -> \"%s\". You may encounter playback errors.", meta->getFilename(), fn);
 			}
 
-			auto out = shptr(new DataBaseRef(quality->lastData));
+			auto out = getPresignalledData(meta->getSize(), quality->lastData, true);
+			if (!out)
+				throw error("Unexpected null pointer detected which getting data.");
 			out->setMetadata(metaFn);
 			out->setMediaTime(totalDurationInMs, 1000);
 			outputSegments->emit(out);
 
 			if (!fnNext.empty()) {
 				auto out = getPresignalledData(0, quality->lastData, false);
-				out->setMetadata(std::make_shared<MetadataFile>(fnNext, metaFn->getStreamType(), metaFn->getMimeType(), metaFn->getCodecName(), metaFn->getDuration(), 0, metaFn->getLatency(), metaFn->getStartsWithRAP(), false));
-				out->setMediaTime(totalDurationInMs, 1000);
-				outputSegments->emit(out);
+				if (out) {
+					out->setMetadata(std::make_shared<MetadataFile>(fnNext, metaFn->getStreamType(), metaFn->getMimeType(), metaFn->getCodecName(), metaFn->getDuration(), 0, metaFn->getLatency(), metaFn->getStartsWithRAP(), false));
+					out->setMediaTime(totalDurationInMs, 1000);
+					outputSegments->emit(out);
+				}
 			}
 		}
 

@@ -39,6 +39,48 @@ unittest("multiple inputs: send same packets to 2 GPAC mp4 mux inputs") {
 
 unittest("mux GPAC mp4 combination coverage") {
 	std::vector<Meta> results, ref = {
+	{ 0, "output_video_gpac_01.mp4", "audio/mp4", "mp4a.40.2", 0, 10437, 0, 1, 1 },
+	{ 1, "output_video_gpac_03.mp4", "audio/mp4", "mp4a.40.2", 0, 29869, 0, 1, 1 },
+	{ 2, "output_video_gpac_04.mp4", "audio/mp4", "mp4a.40.2", 0, 29869, 4180, 1, 1 },
+	{ 3, "", "audio/mp4", "mp4a.40.2", 0, 10437, 0, 1, 1 },
+	{ 4, "output_video_gpac_11-0.mp4", "audio/mp4", "mp4a.40.2", 363629, 5226, 360000, 1, 1 },
+	{ 4, "output_video_gpac_11-1.mp4", "audio/mp4", "mp4a.40.2", 359445, 5336, 359445, 1, 1 },
+	{ 4, "output_video_gpac_11-2.mp4", "audio/mp4", "mp4a.40.2", 175543, 3022, 175543, 1, 1 },
+	{ 5, "output_video_gpac_12-0.mp4", "audio/mp4", "mp4a.40.2", 363629, 4838, 360000, 1, 1 },
+	{ 5, "output_video_gpac_12-1.mp4", "audio/mp4", "mp4a.40.2", 359445, 4936, 359445, 1, 1 },
+	{ 5, "output_video_gpac_12-2.mp4", "audio/mp4", "mp4a.40.2", 175543, 2838, 175543, 1, 1 },
+	{ 6, "output_video_gpac_13-0.mp4", "audio/mp4", "mp4a.40.2", 363629, 19298, 360000, 1, 1 },
+	{ 6, "output_video_gpac_13-1.mp4", "audio/mp4", "mp4a.40.2", 359445, 19232, 359445, 1, 1 },
+	{ 6, "output_video_gpac_13-2.mp4", "audio/mp4", "mp4a.40.2", 175543, 9734, 175543, 1, 1 },
+	{ 7, "output_video_gpac_14-0.mp4", "audio/mp4", "mp4a.40.2", 363629, 19298, 4180, 1, 1 },
+	{ 7, "output_video_gpac_14-1.mp4", "audio/mp4", "mp4a.40.2", 359445, 19232, 4180, 1, 1 },
+	{ 7, "output_video_gpac_14-2.mp4", "audio/mp4", "mp4a.40.2", 175543, 9734, 4180, 1, 1 },
+	{ 8, "", "audio/mp4", "mp4a.40.2", 363629, 5226, 360000, 1, 1 },
+	{ 8, "", "audio/mp4", "mp4a.40.2", 359445, 5336, 359445, 1, 1 },
+	{ 8, "", "audio/mp4", "mp4a.40.2", 175543, 3022, 175543, 1, 1 },
+	{ 9, "output_video_gpac_21-init.mp4", "audio/mp4", "mp4a.40.2", 0, 0, 0, 1, 1 },
+	{ 9, "output_video_gpac_21-0.m4s", "audio/mp4", "mp4a.40.2", 363629, 4957, 360000, 1, 1 },
+	{ 9, "output_video_gpac_21-1.m4s", "audio/mp4", "mp4a.40.2", 359445, 5047, 359445, 1, 1 },
+	{ 9, "output_video_gpac_21-2.m4s", "audio/mp4", "mp4a.40.2", 175543, 2597, 175543, 1, 1 },
+	{ 10, "output_video_gpac_22-init.mp4", "audio/mp4", "mp4a.40.2", 0, 0, 0, 1, 1 },
+	{ 10, "output_video_gpac_22-0.m4s", "audio/mp4", "mp4a.40.2", 363629, 15629, 360000, 1, 1 },
+	{ 10, "output_video_gpac_22-1.m4s", "audio/mp4", "mp4a.40.2", 359445, 15599, 359445, 1, 1 },
+	{ 10, "output_video_gpac_22-2.m4s", "audio/mp4", "mp4a.40.2", 175543, 7685, 175543, 1, 1 },
+	{ 11, "output_video_gpac_23-init.mp4", "audio/mp4", "mp4a.40.2", 0, 0, 4180, 1, 1 },
+	{ 11, "output_video_gpac_23-0.m4s", "audio/mp4", "mp4a.40.2", 363629, 15629, 4180, 1, 1 },
+	{ 11, "output_video_gpac_23-1.m4s", "audio/mp4", "mp4a.40.2", 359445, 15599, 4180, 1, 1 },
+	{ 11, "output_video_gpac_23-2.m4s", "audio/mp4", "mp4a.40.2", 175543, 7685, 4180, 1, 1 },
+	{ 12, "", "audio/mp4", "mp4a.40.2", 0, 729, 0, 1, 1 },
+	{ 12, "", "audio/mp4", "mp4a.40.2", 363629, 4957, 360000, 1, 1 },
+	{ 12, "", "audio/mp4", "mp4a.40.2", 359445, 5047, 359445, 1, 1 },
+	{ 12, "", "audio/mp4", "mp4a.40.2", 175543, 2597, 175543, 1, 1 },
+	{ 13, "", "audio/mp4", "mp4a.40.2", 0, 729, 0, 1, 1 },
+	{ 13, "", "audio/mp4", "mp4a.40.2", 363629, 4949, 360000, 1, 0 },
+	{ 13, "", "audio/mp4", "mp4a.40.2", 0, 8, 0, 1, 1 },
+	{ 13, "", "audio/mp4", "mp4a.40.2", 359445, 5039, 359445, 1, 0 },
+	{ 13, "", "audio/mp4", "mp4a.40.2", 0, 8, 0, 1, 1 },
+	{ 13, "", "audio/mp4", "mp4a.40.2", 175543, 2589, 175543, 1, 0 },
+	{ 13, "", "audio/mp4", "mp4a.40.2", 0, 8, 0, 1, 1 },
 	};
 
 	auto demux = create<Demux::LibavDemux>("data/beepbop.mp4");
@@ -107,7 +149,6 @@ unittest("mux GPAC mp4 combination coverage") {
 		m->flush();
 	}
 	for (auto &l : listeners) {
-		l->print();
 		for (auto &r : l->results) results.push_back(r);
 	}
 
