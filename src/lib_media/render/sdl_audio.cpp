@@ -49,8 +49,8 @@ bool SDLAudio::reconfigure(PcmFormat const * const pcmData) {
 		return false;
 	}
 
-	m_Latency = timescaleToClock((uint64_t)realSpec.samples, realSpec.freq);
-	log(Info, "%s Hz %s ms", realSpec.freq, m_Latency * 1000.0f / IClock::Rate);
+	m_LatencyIn180k = timescaleToClock((uint64_t)realSpec.samples, realSpec.freq);
+	log(Info, "%s Hz %s ms", realSpec.freq, m_LatencyIn180k * 1000.0f / IClock::Rate);
 	pcmFormat = uptr(new PcmFormat(*pcmData));
 	SDL_PauseAudio(0);
 	return true;
@@ -58,7 +58,7 @@ bool SDLAudio::reconfigure(PcmFormat const * const pcmData) {
 
 SDLAudio::SDLAudio(const std::shared_ptr<IClock> clock)
 	: m_clock(clock), pcmFormat(new PcmFormat(44100, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Interleaved)),
-	  m_converter(create<Transform::AudioConvert>(*pcmFormat)), m_FifoTime(0) {
+	  m_converter(create<Transform::AudioConvert>(*pcmFormat)), fifoTimeIn180k(0) {
 	if (!reconfigure(pcmFormat.get()))
 		throw error("Audio output creation failed");
 
@@ -90,8 +90,8 @@ void SDLAudio::process(Data data) {
 void SDLAudio::push(Data data) {
 	auto pcmData = safe_cast<const DataPcm>(data);
 	std::lock_guard<std::mutex> lg(m_Mutex);
-	if(m_Fifo.bytesToRead() == 0) {
-		m_FifoTime = pcmData->getMediaTime() + PREROLL_DELAY;
+	if (m_Fifo.bytesToRead() == 0) {
+		fifoTimeIn180k = pcmData->getMediaTime() + PREROLL_DELAY;
 	}
 	for (int i = 0; i < pcmData->getFormat().numPlanes; ++i) {
 		m_Fifo.write(pcmData->getPlane(i), (size_t)pcmData->getPlaneSize(i));
@@ -100,19 +100,17 @@ void SDLAudio::push(Data data) {
 
 void SDLAudio::fillAudio(uint8_t *stream, int len) {
 	// timestamp of the first sample of the buffer
-	auto const bufferTimeIn180k = fractionToClock(m_clock->now()) + m_Latency;
+	auto const bufferTimeIn180k = fractionToClock(m_clock->now()) + m_LatencyIn180k;
 	std::lock_guard<std::mutex> lg(m_Mutex);
 	int64_t numSamplesToProduce = len / bytesPerSample;
-	auto const relativeTimePosition = int64_t(m_FifoTime) - bufferTimeIn180k;
-	auto const relativeSamplePosition = relativeTimePosition * pcmFormat->sampleRate / int64_t(IClock::Rate);
+	auto const relativeTimePositionIn180k = fifoTimeIn180k - bufferTimeIn180k;
+	auto const relativeSamplePosition = relativeTimePositionIn180k * pcmFormat->sampleRate / int64_t(IClock::Rate);
 
-	if (relativeTimePosition < -audioJitterTimeTolerance) {
+	if (relativeTimePositionIn180k < -audioJitterTimeToleranceIn180k) {
 		auto const numSamplesToDrop = std::min<int64_t>(fifoSamplesToRead(), -relativeSamplePosition);
 		log(Warning, "must drop fifo data (%s ms)", numSamplesToDrop * 1000.0f / pcmFormat->sampleRate);
 		fifoConsumeSamples((size_t)numSamplesToDrop);
-	}
-
-	if (relativeTimePosition > audioJitterTimeTolerance) {
+	} else if (relativeTimePositionIn180k > audioJitterTimeToleranceIn180k) {
 		auto const numSilenceSamples = std::min<int64_t>(numSamplesToProduce, relativeSamplePosition);
 		log(Warning, "insert silence (%s ms)", numSilenceSamples * 1000.0f / pcmFormat->sampleRate);
 		silenceSamples(stream, (size_t)numSilenceSamples);
@@ -143,7 +141,7 @@ uint64_t SDLAudio::fifoSamplesToRead() const {
 
 void SDLAudio::fifoConsumeSamples(size_t n) {
 	m_Fifo.consume(n * bytesPerSample);
-	m_FifoTime += (n * IClock::Rate) / pcmFormat->sampleRate;
+	fifoTimeIn180k += (n * IClock::Rate) / pcmFormat->sampleRate;
 }
 
 void SDLAudio::writeSamples(uint8_t*& dst, uint8_t const* src, size_t n) {

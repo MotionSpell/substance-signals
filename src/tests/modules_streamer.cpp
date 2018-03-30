@@ -15,7 +15,7 @@ using namespace Modules;
 
 //TODO: test LiveNonBlocking
 //#define TEST_DASH_TIMELINE //FIXME: DASH segment timeline requires segments to be owned.
-#ifdef _MSC_VER //FIXME: the results should me manually verified and tested. Current results are a copy of satisfying runs.
+#ifdef _MSC_VER
 unittest("adaptive streaming combination coverage") {
 	std::vector<Meta> results, ref = {
 	{ 0, "muxTSSeg_0.ts", "", "", 360000, 47376, 1, 0, 1 },
@@ -694,7 +694,7 @@ unittest("adaptive streaming combination coverage") {
 		ConnectModules(muxMP4Mem[i].get(), 0, dashTimeline[1].get(), i);
 		ConnectModules(muxMP4MemFlushFrags[i].get(), 0, dashTimeline[2].get(), i);
 #endif
-		
+
 		if (i == 0) {
 			ConnectModules(muxTSSeg.get(), 0, hls_ts.get(), 0);
 			listeners.push_back(create<Listener>(listeners.size()));
