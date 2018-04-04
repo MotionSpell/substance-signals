@@ -6,6 +6,7 @@
 #include "../mux/libav_mux.hpp"
 #include "../common/libav.hpp"
 #include <lib_modules/utils/helper.hpp>
+#include <vector>
 
 namespace Modules {
 namespace Stream {
@@ -115,13 +116,15 @@ private:
 	void updateManifestVariants();
 	void generateManifestVariantFull(bool isLast);
 
+	std::string getManifestMasterInternal();
 	void generateManifestMaster();
 	std::string playlistMasterPath;
 	const bool genVariantPlaylist;
 
 	unsigned version = 0;
-	bool masterManifestIsWritten = false, hasInitSeg = false;
-	uint64_t firstSegNum = 0, timeShiftBufferDepthInMs = 0;
+	bool masterManifestIsWritten = false, isCMAF = false;
+	std::vector<uint64_t> firstSegNums;
+	uint64_t timeShiftBufferDepthInMs = 0;
 };
 
 }

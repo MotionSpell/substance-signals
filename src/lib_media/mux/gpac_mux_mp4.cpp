@@ -972,6 +972,8 @@ std::unique_ptr<gpacpp::IsoSample> GPACMuxMP4::fillSample(Data data_) {
 	} else {
 		sample->DTS = DTS;
 	}
+	auto const &metaPkt = safe_cast<const MetadataPktLibav>(data->getMetadata());
+	sample->CTS_Offset = (s32)convertToTimescale(data->getPacket()->pts - data->getPacket()->dts, metaPkt->getTimeScale().num, metaPkt->getTimeScale().den * mediaTs);
 	sample->IsRAP = (SAPType)(data->getPacket()->flags & AV_PKT_FLAG_KEY);
 	return sample;
 }
@@ -984,7 +986,7 @@ bool GPACMuxMP4::processInit(Data &data) {
 		if (!defaultSampleIncInTs) {
 			auto pkt = safe_cast<const DataAVPacket>(data);
 			if (pkt && pkt->getPacket()->duration) {
-				auto metaPkt = std::dynamic_pointer_cast<const MetadataPktLibav>(metadata);
+				auto const metaPkt = std::dynamic_pointer_cast<const MetadataPktLibav>(metadata);
 				defaultSampleIncInTs = convertToTimescale(pkt->getPacket()->duration, metaPkt->getTimeScale().num, metaPkt->getTimeScale().den * mediaTs);
 				log(Warning, "Codec defaultSampleIncInTs=0 but first data contains a duration (%s/%s).", defaultSampleIncInTs, mediaTs);
 			} else {
