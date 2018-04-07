@@ -41,8 +41,7 @@ std::string Apple_HLS::getManifestMasterInternal() {
 	std::stringstream playlistMaster;
 	playlistMaster << "#EXTM3U" << std::endl;
 	playlistMaster << "#EXT-X-VERSION:" << version << std::endl;
-	if (isCMAF) playlistMaster << "#EXT-X-INDEPENDENT-SEGMENTS" << std::endl;
-	playlistMaster << std::endl;
+	if (isCMAF) playlistMaster << "#EXT-X-INDEPENDENT-SEGMENTS" << std::endl << std::endl;
 
 	if (isCMAF) {
 		auto const audioGroupName = "audio";
@@ -59,6 +58,9 @@ std::string Apple_HLS::getManifestMasterInternal() {
 				playlistMaster << "#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"" << audioGroupName << "\",NAME=\"Main\",LANGUAGE=\"en\",AUTOSELECT=YES,URI=\"" << getVariantPlaylistName(quality, "", i) << "\"" << std::endl;
 			}
 		}
+		if (!audioSpecs.empty()) {
+			playlistMaster << std::endl;
+		}
 		if (audioSpecs.size() > 1)
 			throw error("Several audio detected in CMAF mode. Not supported.");
 
@@ -66,15 +68,13 @@ std::string Apple_HLS::getManifestMasterInternal() {
 			auto quality = safe_cast<HLSQuality>(qualities[i].get());
 			uint64_t bandwidth = quality->avg_bitrate_in_bps;
 			if (!audioSpecs.empty()) {
-				playlistMaster << std::endl;
 				bandwidth += audioSpecs[0].bandwidth;
 			}
-			playlistMaster << "#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=" << bandwidth;
 			auto const &meta = quality->getMeta();
 			switch (meta->getStreamType()) {
 			case AUDIO_PKT: break;
 			case VIDEO_PKT:
-				playlistMaster << ",CODECS=\"" << meta->getCodecName();
+				playlistMaster << "#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=" << bandwidth<< ",CODECS=\"" << meta->getCodecName();
 				if (!audioSpecs.empty()) {
 					playlistMaster << "," << audioSpecs[0].codecName;
 					playlistMaster << "\",AUDIO=\"" << audioGroupName;
@@ -84,7 +84,7 @@ std::string Apple_HLS::getManifestMasterInternal() {
 				break;
 			default: assert(0);
 			}
-			}
+		}
 	} else {
 		for (size_t i = 0; i < getNumInputs() - 1; ++i) {
 			auto quality = safe_cast<HLSQuality>(qualities[i].get());
