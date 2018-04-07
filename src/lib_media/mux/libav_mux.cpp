@@ -160,7 +160,7 @@ void LibavMux::process() {
 	pkt->stream_index = avStream->index;
 	
 	if (av_interleaved_write_frame(m_formatCtx, pkt) != 0) {
-		log(Warning, "can't write video frame.");
+		log(Warning, "can't write frame.");
 		return;
 	}
 	av_packet_free(&pkt);
