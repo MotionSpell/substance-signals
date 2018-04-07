@@ -171,6 +171,7 @@ echo OpenSSL
 		rm -rf extra/src/openssl-1.1.0g
 		wget https://www.openssl.org/source/openssl-1.1.0g.tar.gz -O openssl.tar.gz
 		tar xvf openssl.tar.gz -C extra/src
+		rm openssl.tar.gz
 		pushd extra/src/openssl-1.1.0g
 		popd
 	fi
