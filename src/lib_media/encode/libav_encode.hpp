@@ -49,8 +49,8 @@ public:
 	void flush() override;
 
 private:
-	bool processAudio(const DataPcm *data);
-	bool processVideo(const DataPicture *data);
+	bool processAudio(Data data);
+	bool processVideo(Data data);
 	inline int64_t computePTS(const int64_t mediaTime) const;
 	void computeFrameAttributes(AVFrame * const f, const int64_t currMediaTime);
 	void computeDurationAndEmit(std::shared_ptr<DataAVPacket> &data, int64_t defaultDuration);

@@ -202,13 +202,16 @@ int64_t LibavEncode::computePTS(const int64_t mediaTime) const {
 	return (mediaTime * codecCtx->time_base.den) / (codecCtx->time_base.num * (int64_t)Clock::Rate);
 }
 
-bool LibavEncode::processAudio(const DataPcm *data) {
+bool LibavEncode::processAudio(Data data) {
 	auto out = output->getBuffer(0);
-	AVPacket *pkt = out->getPacket();
+	auto pkt = out->getPacket();
 	AVFrame *f = nullptr;
 	if (data) {
+		const auto pcmData = safe_cast<const DataPcm>(data).get();
+		if (pcmData->getFormat() != *pcmFormat)
+			throw error("Incompatible audio data (1)");
 		f = avFrame->get();
-		libavFrameDataConvert(data, f);
+		libavFrameDataConvert(pcmData, f);
 		f->pts = computePTS(data->getMediaTime());
 	}
 
@@ -249,7 +252,8 @@ void LibavEncode::computeFrameAttributes(AVFrame * const f, const int64_t currMe
 	prevMediaTime = currMediaTime;
 }
 
-bool LibavEncode::processVideo(const DataPicture *pic) {
+bool LibavEncode::processVideo(Data data) {
+	const auto pic = safe_cast<const DataPicture>(data).get();
 	auto out = output->getBuffer(0);
 	AVFrame *f = nullptr;
 	if (pic) {
@@ -261,8 +265,8 @@ bool LibavEncode::processVideo(const DataPicture *pic) {
 			f->data[i] = (uint8_t*)pic->getPlane(i);
 			f->linesize[i] = (int)pic->getPitch(i);
 		}
-		computeFrameAttributes(f, pic->getMediaTime());
-		f->pts = computePTS(pic->getMediaTime());
+		computeFrameAttributes(f, data->getMediaTime());
+		f->pts = computePTS(data->getMediaTime());
 	}
 
 	int gotPkt = 0;
@@ -280,20 +284,9 @@ bool LibavEncode::processVideo(const DataPicture *pic) {
 
 void LibavEncode::process(Data data) {
 	switch (codecCtx->codec_type) {
-	case AVMEDIA_TYPE_VIDEO: {
-		const auto encoderData = safe_cast<const DataPicture>(data);
-		processVideo(encoderData.get());
-		break;
-	}
-	case AVMEDIA_TYPE_AUDIO: {
-		const auto pcmData = safe_cast<const DataPcm>(data);
-		if (pcmData->getFormat() != *pcmFormat)
-			throw error("Incompatible audio data (1)");
-		processAudio(pcmData.get());
-		break;
-	}
-	default:
-		assert(0); return;
+	case AVMEDIA_TYPE_VIDEO: processVideo(data); break;
+	case AVMEDIA_TYPE_AUDIO: processAudio(data); break;
+	default: assert(0); return;
 	}
 }
 
