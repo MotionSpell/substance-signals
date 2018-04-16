@@ -124,12 +124,6 @@ fi
 
 if [ ! -f extra/release/rapidjson/releaseOk ] ; then
 	mkdir -p extra/release/rapidjson
-	pushd extra/release/rapidjson
-	#CC=$CPREFIX-gcc cmake -G "Unix Makefiles" -DCMAKE_CXX_COMPILER=$CPREFIX-gcc -DCMAKE_INSTALL_PREFIX:PATH=$EXTRA_DIR ../../src/rapidjson
-	#CFLAGS="$CFLAGS -I$PWD/include"
-	#$MAKE
-	#$MAKE install
-	popd
 	touch extra/release/rapidjson/releaseOk
 fi
 
@@ -163,9 +157,9 @@ if [ ! -f extra/release/curl/releaseOk ] ; then
 fi
 
 if [ "$HOST" == "x86_64-linux-gnu" ]; then
-#-------------------------------------------------------------------------------
-echo OpenSSL
-#-------------------------------------------------------------------------------
+	#-------------------------------------------------------------------------------
+	echo OpenSSL
+	#-------------------------------------------------------------------------------
 	if [ ! -f extra/src/openssl-1.1.0g/include/openssl/aes.h ] ; then
 		mkdir -p extra/src
 		rm -rf extra/src/openssl-1.1.0g
@@ -212,8 +206,32 @@ echo OpenSSL
 		touch extra/release/aws/releaseOk
 	fi
 
-fi
+	#-------------------------------------------------------------------------------	
+	echo sqlite3
+	#-------------------------------------------------------------------------------
+	if [ ! -f extra/src/libsqlite3/sqlite3.h ] ; then
+		mkdir -p extra/src
+		rm -rf extra/src/libsqlite3
+		git clone https://github.com/LuaDist/libsqlite3.git extra/src/libsqlite3
+		pushd extra/src/libsqlite3
+		autoreconf -fiv
+		popd	
+	fi	
+		
+	if [ ! -f extra/release/libsqlite3/releaseOk ] ; then
+		rm -rf extra/release/libsqlite3
+		mkdir -p extra/release/libsqlite3
+		pushd extra/release/libsqlite3
+		../../src/libsqlite3/configure \
+			--prefix=$EXTRA_DIR \
+			--host=$HOST
+		$MAKE
+		$MAKE install
+		popd
+		touch extra/release/libsqlite3/releaseOk
+	fi
 
+fi #"$HOST" == "x86_64-linux-gnu"
 
 #-------------------------------------------------------------------------------	
 echo ASIO
@@ -230,30 +248,6 @@ fi
 if [ ! -f extra/include/asio/asio.hpp ] ; then
 	mkdir -p extra/include/asio	
 	cp -r extra/src/asio/asio/include/* extra/include/asio/	
-fi
-
-#-------------------------------------------------------------------------------	
-echo sqlite3
-#-------------------------------------------------------------------------------
-if [ ! -f extra/src/libsqlite3/sqlite3.h ] ; then
-	mkdir -p extra/src
-	rm -rf extra/src/libsqlite3
-	git clone https://github.com/LuaDist/libsqlite3.git extra/src/libsqlite3
-	pushd extra/src/libsqlite3
-	popd	
-fi	
-	
-if [ ! -f extra/release/libsqlite3/releaseOk ] ; then
-	rm -rf extra/release/libsqlite3
-	mkdir -p extra/release/libsqlite3
-	pushd extra/release/libsqlite3
-	../../src/libsqlite3/configure \
-		--prefix=$EXTRA_DIR \
-		--host=$HOST	
-			$MAKE
-		$MAKE install
-	popd
-	touch extra/release/libsqlite3/releaseOk
 fi
 
 echo "Done"
