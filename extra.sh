@@ -232,4 +232,28 @@ if [ ! -f extra/include/asio/asio.hpp ] ; then
 	cp -r extra/src/asio/asio/include/* extra/include/asio/	
 fi
 
+#-------------------------------------------------------------------------------	
+echo sqlite3
+#-------------------------------------------------------------------------------
+if [ ! -f extra/src/libsqlite3/sqlite3.h ] ; then
+	mkdir -p extra/src
+	rm -rf extra/src/libsqlite3
+	git clone https://github.com/LuaDist/libsqlite3.git extra/src/libsqlite3
+	pushd extra/src/libsqlite3
+	popd	
+fi	
+	
+if [ ! -f extra/release/libsqlite3/releaseOk ] ; then
+	rm -rf extra/release/libsqlite3
+	mkdir -p extra/release/libsqlite3
+	pushd extra/release/libsqlite3
+	../../src/libsqlite3/configure \
+		--prefix=$EXTRA_DIR \
+		--host=$HOST	
+			$MAKE
+		$MAKE install
+	popd
+	touch extra/release/libsqlite3/releaseOk
+fi
+
 echo "Done"
