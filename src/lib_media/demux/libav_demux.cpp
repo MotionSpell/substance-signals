@@ -1,7 +1,6 @@
 #include "libav_demux.hpp"
 #include "../transform/restamp.hpp"
 #include "lib_utils/tools.hpp"
-#include "lib_ffpp/ffpp.hpp"
 #include <cassert>
 #include <fstream>
 
@@ -30,19 +29,6 @@ const char* webcamFormat() {
 #endif
 }
 
-//for mem:// protocol
-struct BufferData {
-	uint8_t *buf = nullptr;
-	int sizeLeft = 0;
-};
-int read(void *opaque, uint8_t *buf, int buf_size) {
-	auto *bd = (BufferData*)opaque;
-	buf_size = (int)FFMIN(buf_size, bd->sizeLeft);
-	memcpy(buf, bd->buf, buf_size);
-	bd->buf += buf_size;
-	bd->sizeLeft -= buf_size;
-	return buf_size;
-}
 }
 
 namespace Demux {
@@ -81,8 +67,8 @@ void LibavDemux::initRestamp() {
 	}
 }
 
-LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::string &avformatCustom, const uint64_t seekTimeInMs, const std::string &formatName)
-: loop(loop), done(false), dispatchPkts(PKT_QUEUE_SIZE) {
+LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::string &avformatCustom, const uint64_t seekTimeInMs, const std::string &formatName, std::unique_ptr<ffpp::IAvIO> avioCustom)
+: loop(loop), done(false), dispatchPkts(PKT_QUEUE_SIZE), m_avio(std::move(avioCustom)) {
 	if (!(m_formatCtx = avformat_alloc_context()))
 		throw error("Can't allocate format context");
 
@@ -101,13 +87,9 @@ LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::strin
 	} else {
 		ffpp::Dict dict(typeid(*this).name(), "-buffer_size 1M -fifo_size 1M -probesize 10M -analyzeduration 10M -overrun_nonfatal 1 -protocol_whitelist file,udp,rtp,http,https,tcp,tls,rtmp -rtsp_flags prefer_tcp -correct_ts_overflow 0 " + avformatCustom);
 
-		if (!formatName.compare(0, 6, "mem://")) {
-			auto bd = uptr(new BufferData);
-			if (sscanf(formatName.c_str(), "mem://%d@%p", &bd->sizeLeft, &bd->buf) == 2) {
-				m_avio = std::unique_ptr<ffpp::IAvIO>(new ffpp::AvIO<BufferData>(read, nullptr, nullptr, std::move(bd), false));
-				m_formatCtx->pb = m_avio->get();
-				m_formatCtx->flags = AVFMT_FLAG_CUSTOM_IO;
-			}
+		if (m_avio) {
+			m_formatCtx->pb = m_avio->get();
+			m_formatCtx->flags = AVFMT_FLAG_CUSTOM_IO;
 		}
 		if (avformat_open_input(&m_formatCtx, url.c_str(), av_find_input_format(formatName.c_str()), &dict)) {
 			clean();
