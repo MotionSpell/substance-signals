@@ -19,7 +19,7 @@ private:
 	static void formatsList();
 	void ensureHeader();
 	AVPacket * getFormattedPkt(Data data);
-	void declareStream(Data stream, size_t inputIdx);
+	bool declareStream(Data stream, size_t inputIdx);
 
 	struct AVFormatContext *m_formatCtx;
 	std::map<size_t, size_t> inputIdx2AvStream;

@@ -71,7 +71,7 @@ LibavMux::~LibavMux() {
 	}
 }
 
-void LibavMux::declareStream(Data data, size_t inputIdx) {
+bool LibavMux::declareStream(Data data, size_t inputIdx) {
 	auto const metadata_ = data->getMetadata();
 	auto metadataVideo = std::dynamic_pointer_cast<const MetadataPktLibavVideo>(metadata_);
 	auto metadataAudio = std::dynamic_pointer_cast<const MetadataPktLibavAudio>(metadata_);
@@ -91,6 +91,9 @@ void LibavMux::declareStream(Data data, size_t inputIdx) {
 		throw error("Stream parameters copy failed.");
 	avStream->time_base = avStream->codec->time_base = metadata->getAVCodecContext()->time_base;
 	inputIdx2AvStream[inputIdx] = m_formatCtx->nb_streams - 1;
+
+	auto refData = std::dynamic_pointer_cast<const DataBaseRef>(data);
+	return !(refData && !refData->getData());
 }
 
 void LibavMux::ensureHeader() {
@@ -145,8 +148,10 @@ void LibavMux::process() {
 	while (!inputs[inputIdx]->tryPop(data)) {
 		inputIdx++;
 	}
-	if (inputs[inputIdx]->updateMetadata(data))
-		declareStream(data, inputIdx);
+	if (inputs[inputIdx]->updateMetadata(data)) {
+		if (!declareStream(data, inputIdx))
+			return;
+	}
 	if (m_formatCtx->nb_streams < getNumInputs()-1)
 		return;
 	ensureHeader();
