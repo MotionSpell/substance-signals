@@ -18,6 +18,8 @@ LibavEncode::LibavEncode(Type type, Params &params)
 	std::string codecOptions, generalOptions, codecName;
 	switch (type) {
 	case Video: {
+		GOPSize = params.GOPSize;
+		codecOptions += format(" -b %s", params.bitrate_v);
 		codecName = "vcodec";
 		ffpp::Dict customDict(typeid(*this).name(), params.avcodecCustom);
 		auto const pixFmt = customDict.get("pix_fmt");
@@ -50,8 +52,7 @@ LibavEncode::LibavEncode(Type type, Params &params)
 		default:
 			throw error("Unknown video encoder type. Failed.");
 		}
-		codecOptions += format(" -b %s -bf 0", params.bitrate_v);
-		GOPSize = params.GOPSize;
+		codecOptions += " -bf 0";
 		break;
 	}
 	case Audio: {

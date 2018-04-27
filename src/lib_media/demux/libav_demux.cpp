@@ -107,7 +107,6 @@ LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::strin
 		}
 
 		//if you don't call you may miss the first frames
-		m_formatCtx->max_analyze_duration = 0;
 		if (avformat_find_stream_info(m_formatCtx, nullptr) < 0) {
 			clean();
 			throw error("Couldn't get additional video stream info");
