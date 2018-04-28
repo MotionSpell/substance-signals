@@ -22,7 +22,7 @@ enum StreamType {
 	SUBTITLE_PKT, //subtitles and captions
 	PLAYLIST,     //playlist and adaptive streaming manifests
 	SEGMENT,      //adaptive streaming init and media segments
-	SIZE_OF_ENUM
+	SIZE_OF_ENUM_STREAM_TYPE
 };
 static const char* StreamTypeNames[] = {
 	"audio raw",
@@ -33,7 +33,7 @@ static const char* StreamTypeNames[] = {
 	"playlist",
 	"segment"
 };
-static_assert(sizeof(StreamTypeNames) / sizeof(char*) == StreamType::SIZE_OF_ENUM , "StreamType sizes don't match");
+static_assert(sizeof(StreamTypeNames) / sizeof(char*) == StreamType::SIZE_OF_ENUM_STREAM_TYPE, "StreamType sizes don't match");
 
 struct IMetadata {
 	virtual ~IMetadata() {}

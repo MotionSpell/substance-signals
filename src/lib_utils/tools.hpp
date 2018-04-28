@@ -66,6 +66,9 @@ struct Fraction {
 	inline bool operator>=(const Fraction& rhs) const {
 		return !(*this < rhs);
 	}
+	std::string toString() const {
+		return format("%s/%s", num, den);
+	}
 
 	int64_t num;
 	int64_t den;
