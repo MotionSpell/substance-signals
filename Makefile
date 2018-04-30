@@ -211,7 +211,7 @@ $(BIN)/%.exe:
 
 $(BIN)/%.o: %.cpp
 	@mkdir -p $(dir $@)
-	$(CXX) "$<" -c $(CFLAGS) -o "$(BIN)/$*.deps" -MM -MT "$(BIN)/$*.o"
+	$(CXX) "$<" -c $(CFLAGS) -o "$(BIN)/$*.deps" -MP -MM -MT "$(BIN)/$*.o"
 	$(CXX) "$<" -c $(CFLAGS) -o "$@" 
 
 clean:
