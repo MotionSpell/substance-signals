@@ -162,7 +162,7 @@ function fontconfig_build {
   host=$1
   pushDir $WORK/src
 
-  lazy_download "fontconfig.tar.bz2" "http://www.freedesktop.org/software/fontconfig/release/fontconfig-2.11.92.tar.bz2"
+  lazy_download "fontconfig.tar.bz2" "http://www.freedesktop.org/software/fontconfig/release/fontconfig-2.12.6.tar.bz2"
   lazy_extract "fontconfig.tar.bz2"
   mkgit "fontconfig"
   pushDir fontconfig
