@@ -12,4 +12,3 @@ EXE_DASHCASTX_OBJS:=\
  	$(OUTDIR)/options.o\
  	$(OUTDIR)/pipeliner_dashcastx.o
 $(TARGET): $(EXE_DASHCASTX_OBJS)
-DEPS+=$(EXE_DASHCASTX_OBJS:%.o=%.deps)

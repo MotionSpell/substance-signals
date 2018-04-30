@@ -149,14 +149,12 @@ MEDIA_SRCS+=\
   $(SRC)/lib_media/out/aws_sdk_instance.cpp
 endif  
 LIB_MEDIA_OBJS:=$(MEDIA_SRCS:%.cpp=$(BIN)/%.o)
-DEPS+=$(LIB_MEDIA_OBJS:%.o=%.deps)
 
 #------------------------------------------------------------------------------
 
 PIPELINE_SRCS:=\
   $(SRC)//lib_pipeline/pipeline.cpp
 LIB_PIPELINE_OBJS:=$(PIPELINE_SRCS:%.cpp=$(BIN)/%.o)
-DEPS+=$(LIB_PIPELINE_OBJS:%.o=%.deps)
 
 #------------------------------------------------------------------------------
 
@@ -164,14 +162,12 @@ MODULES_SRCS:=\
   $(SRC)/lib_modules/core/connection.cpp\
   $(SRC)/lib_modules/core/data.cpp
 LIB_MODULES_OBJS:=$(MODULES_SRCS:%.cpp=$(BIN)/%.o)
-DEPS+=$(LIB_MODULES_OBJS:%.o=%.deps)
 
 #------------------------------------------------------------------------------
 
 APPCOMMON_SRCS:=\
   $(SRC)/lib_appcommon/safemain.cpp
 LIB_APPCOMMON_OBJS:=$(APPCOMMON_SRCS:%.cpp=$(BIN)/%.o)
-DEPS+=$(LIB_APPCOMMON_OBJS:%.o=%.deps)
 
 #------------------------------------------------------------------------------
 
@@ -224,4 +220,4 @@ clean:
 
 #-------------------------------------------------------------------------------
 
--include $(DEPS)
+-include $(shell test -d $(BIN) && find $(BIN) -name "*.deps")

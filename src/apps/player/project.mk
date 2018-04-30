@@ -10,4 +10,3 @@ EXE_PLAYER_OBJS:=\
  	$(OUTDIR)/pipeliner_player.o\
  	$(OUTDIR)/player.o
 $(TARGET): $(EXE_PLAYER_OBJS)
-DEPS+=$(EXE_PLAYER_OBJS:%.o=%.deps)
