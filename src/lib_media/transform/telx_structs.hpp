@@ -24,7 +24,7 @@ typedef struct {
 // entities, used in color mode, to replace unsafe HTML tag chars
 typedef struct {
 	uint16_t character;
-	char *entity;
+	const char *entity;
 } Entity;
 Entity const entities[] = {
 	{ '<', "&lt;" },
