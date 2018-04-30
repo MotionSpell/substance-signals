@@ -1,58 +1,59 @@
+MYDIR=$(call get-my-dir)
 OUTDIR:=$(BIN)/$(call get-my-dir)
 TESTOUTDIR:=$(CURDIR)/$(OUTDIR)
 
-TEST_COMMON_OBJ:=\
-	$(OUTDIR)/tests.o
+TEST_COMMON_SRCS:=\
+	$(MYDIR)/tests.cpp
 
 #---------------------------------------------------------------
 # test_utils.exe
 #---------------------------------------------------------------
-EXE_UTILS_OBJS:=\
-	$(OUTDIR)/utils.o\
-	$(LIB_UTILS_OBJS)\
-	$(TEST_COMMON_OBJ)
+EXE_UTILS_SRCS:=\
+	$(MYDIR)/utils.cpp\
+	$(LIB_UTILS_SRCS)\
+	$(TEST_COMMON_SRCS)
 TARGETS+=$(OUTDIR)/test_utils.exe
-$(OUTDIR)/test_utils.exe: $(EXE_UTILS_OBJS)
+$(OUTDIR)/test_utils.exe: $(EXE_UTILS_SRCS:%=$(BIN)/%.o)
 TESTS+=$(TESTOUTDIR)/test_utils.exe
 TESTS_DIR+=$(CURDIR)/$(SRC)/tests
 
 #---------------------------------------------------------------
 # test_signals.exe
 #---------------------------------------------------------------
-EXE_SIGNALS_OBJS:=\
-	$(OUTDIR)/signals.o\
-	$(TEST_COMMON_OBJ)
+EXE_SIGNALS_SRCS:=\
+	$(MYDIR)/signals.cpp\
+	$(TEST_COMMON_SRCS)
 TARGETS+=$(OUTDIR)/test_signals.exe
-$(OUTDIR)/test_signals.exe: $(EXE_SIGNALS_OBJS)
+$(OUTDIR)/test_signals.exe: $(EXE_SIGNALS_SRCS:%=$(BIN)/%.o)
 TESTS+=$(TESTOUTDIR)/test_signals.exe
 TESTS_DIR+=$(CURDIR)/$(SRC)/tests
 
 #---------------------------------------------------------------
 # test_modules.exe
 #---------------------------------------------------------------
-EXE_MODULES_OBJS:=\
-	$(OUTDIR)/modules.o\
-	$(TEST_COMMON_OBJ)\
-	$(LIB_MEDIA_OBJS)\
-	$(LIB_MODULES_OBJS)\
-	$(LIB_UTILS_OBJS)
+EXE_MODULES_SRCS:=\
+	$(MYDIR)/modules.cpp\
+	$(TEST_COMMON_SRCS)\
+	$(LIB_MEDIA_SRCS)\
+	$(LIB_MODULES_SRCS)\
+	$(LIB_UTILS_SRCS)
 TARGETS+=$(OUTDIR)/test_modules.exe
-$(OUTDIR)/test_modules.exe: $(EXE_MODULES_OBJS)
+$(OUTDIR)/test_modules.exe: $(EXE_MODULES_SRCS:%=$(BIN)/%.o)
 TESTS+=$(TESTOUTDIR)/test_modules.exe
 TESTS_DIR+=$(CURDIR)/$(SRC)/tests
 
 #---------------------------------------------------------------
 # test_pipeline.exe
 #---------------------------------------------------------------
-EXE_PIPELINE_OBJS:=\
-	$(OUTDIR)/pipeline.o\
-	$(TEST_COMMON_OBJ)\
-	$(LIB_MEDIA_OBJS)\
-	$(LIB_MODULES_OBJS)\
-	$(LIB_PIPELINE_OBJS)\
-	$(LIB_UTILS_OBJS)
+EXE_PIPELINE_SRCS:=\
+	$(MYDIR)/pipeline.cpp\
+	$(TEST_COMMON_SRCS)\
+	$(LIB_MEDIA_SRCS)\
+	$(LIB_MODULES_SRCS)\
+	$(LIB_PIPELINE_SRCS)\
+	$(LIB_UTILS_SRCS)
 TARGETS+=$(OUTDIR)/test_pipeline.exe
-$(OUTDIR)/test_pipeline.exe: $(EXE_PIPELINE_OBJS)
+$(OUTDIR)/test_pipeline.exe: $(EXE_PIPELINE_SRCS:%=$(BIN)/%.o)
 TESTS+=$(TESTOUTDIR)/test_pipeline.exe
 TESTS_DIR+=$(CURDIR)/$(SRC)/tests
 

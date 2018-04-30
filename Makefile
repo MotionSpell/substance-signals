@@ -90,17 +90,16 @@ endef
 
 #------------------------------------------------------------------------------
 
-UTILS_SRCS:=\
+LIB_UTILS_SRCS:=\
   src/version.cpp\
   $(SRC)/lib_utils/clock.cpp\
   $(SRC)/lib_utils/log.cpp\
   $(SRC)/lib_utils/scheduler.cpp\
-  $(SRC)/lib_utils/time.cpp
-LIB_UTILS_OBJS:=$(UTILS_SRCS:%.cpp=$(BIN)/%.o)
+  $(SRC)/lib_utils/time.cpp\
 
 #------------------------------------------------------------------------------
 
-MEDIA_SRCS:=\
+LIB_MEDIA_SRCS:=\
   $(SRC)/lib_media/common/libav.cpp\
   $(SRC)/lib_media/common/gpac.cpp\
   $(SRC)/lib_media/common/picture.cpp\
@@ -138,36 +137,32 @@ MEDIA_SRCS:=\
   $(SRC)/lib_media/utils/recorder.cpp\
   $(SRC)/lib_media/utils/repeater.cpp
 ifeq ($(SIGNALS_HAS_X11), 1)
-MEDIA_SRCS+=\
+LIB_MEDIA_SRCS+=\
   $(SRC)/lib_media/render/sdl_audio.cpp\
   $(SRC)/lib_media/render/sdl_common.cpp\
   $(SRC)/lib_media/render/sdl_video.cpp
 endif  
 ifeq ($(SIGNALS_HAS_AWS), 1)
-MEDIA_SRCS+=\
+LIB_MEDIA_SRCS+=\
   $(SRC)/lib_media/out/aws_mediastore.cpp\
   $(SRC)/lib_media/out/aws_sdk_instance.cpp
 endif  
-LIB_MEDIA_OBJS:=$(MEDIA_SRCS:%.cpp=$(BIN)/%.o)
 
 #------------------------------------------------------------------------------
 
-PIPELINE_SRCS:=\
-  $(SRC)//lib_pipeline/pipeline.cpp
-LIB_PIPELINE_OBJS:=$(PIPELINE_SRCS:%.cpp=$(BIN)/%.o)
+LIB_PIPELINE_SRCS:=\
+  $(SRC)/lib_pipeline/pipeline.cpp
 
 #------------------------------------------------------------------------------
 
-MODULES_SRCS:=\
+LIB_MODULES_SRCS:=\
   $(SRC)/lib_modules/core/connection.cpp\
   $(SRC)/lib_modules/core/data.cpp
-LIB_MODULES_OBJS:=$(MODULES_SRCS:%.cpp=$(BIN)/%.o)
 
 #------------------------------------------------------------------------------
 
-APPCOMMON_SRCS:=\
+LIB_APPCOMMON_SRCS:=\
   $(SRC)/lib_appcommon/safemain.cpp
-LIB_APPCOMMON_OBJS:=$(APPCOMMON_SRCS:%.cpp=$(BIN)/%.o)
 
 #------------------------------------------------------------------------------
 
@@ -209,7 +204,7 @@ $(BIN)/%.exe:
 	@mkdir -p $(dir $@)
 	$(CXX) -o "$@" $^ $(LDFLAGS)
 
-$(BIN)/%.o: %.cpp
+$(BIN)/%.cpp.o: %.cpp
 	@mkdir -p $(dir $@)
 	$(CXX) "$<" -c $(CFLAGS) -o "$@" 
 	@$(CXX) "$<" -c $(CFLAGS) -o "$(BIN)/$*.deps" -MP -MM -MT "$(BIN)/$*.o"

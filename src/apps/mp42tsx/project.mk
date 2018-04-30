@@ -2,13 +2,14 @@ MYDIR=$(call get-my-dir)
 OUTDIR:=$(BIN)/$(MYDIR)
 TARGET:=$(OUTDIR)/$(notdir $(MYDIR)).exe
 TARGETS+=$(TARGET)
-EXE_MP42TSX_OBJS:=\
-	$(LIB_MEDIA_OBJS)\
-	$(LIB_MODULES_OBJS)\
-	$(LIB_PIPELINE_OBJS)\
-	$(LIB_UTILS_OBJS)\
- 	$(OUTDIR)/mp42tsx.o\
- 	$(OUTDIR)/options.o\
- 	$(OUTDIR)/pipeliner_mp42ts.o
-$(TARGET): $(EXE_MP42TSX_OBJS)
-DEPS+=$(EXE_MP42TSX_OBJS:%.o=%.deps)
+EXE_MP42TSX_SRCS:=\
+  $(LIB_MEDIA_SRCS)\
+  $(LIB_MODULES_SRCS)\
+  $(LIB_PIPELINE_SRCS)\
+  $(LIB_UTILS_SRCS)\
+  $(MYDIR)/mp42tsx.cpp\
+  $(MYDIR)/options.cpp\
+  $(MYDIR)/pipeliner_mp42ts.cpp\
+
+$(TARGET): $(EXE_MP42TSX_SRCS:%=$(BIN)/%.o)
+

@@ -1,12 +1,15 @@
 MYDIR=$(call get-my-dir)
 OUTDIR:=$(BIN)/$(MYDIR)
-TARGET:=$(OUTDIR)/$(notdir $(MYDIR)).exe
+
+TARGET:=$(OUTDIR)/player.exe
 TARGETS+=$(TARGET)
-EXE_PLAYER_OBJS:=\
-	$(LIB_MEDIA_OBJS)\
-	$(LIB_MODULES_OBJS)\
-	$(LIB_PIPELINE_OBJS)\
-	$(LIB_UTILS_OBJS)\
- 	$(OUTDIR)/pipeliner_player.o\
- 	$(OUTDIR)/player.o
-$(TARGET): $(EXE_PLAYER_OBJS)
+
+EXE_PLAYER_SRCS:=\
+	$(LIB_MEDIA_SRCS)\
+	$(LIB_MODULES_SRCS)\
+	$(LIB_PIPELINE_SRCS)\
+	$(LIB_UTILS_SRCS)\
+ 	$(MYDIR)/pipeliner_player.cpp\
+ 	$(MYDIR)/player.cpp\
+
+$(TARGET): $(EXE_PLAYER_SRCS:%=$(BIN)/%.o)
