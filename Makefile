@@ -5,7 +5,6 @@ CFLAGS+=-Wextra
 CFLAGS+=-fvisibility=hidden -fvisibility-inlines-hidden 
 CFLAGS+=-W
 CFLAGS+=-Wno-unused-parameter
-CFLAGS+=-Wno-unused-function
 CFLAGS+=-Wno-unused-label
 CFLAGS+=-Wno-write-strings
 CFLAGS+=-D__STDC_CONSTANT_MACROS
