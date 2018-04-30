@@ -1,5 +1,6 @@
-OUTDIR:=$(BIN)/$(ProjectName)
-TARGET:=$(OUTDIR)/$(notdir $(ProjectName)).exe
+MYDIR=$(call get-my-dir)
+OUTDIR:=$(BIN)/$(MYDIR)
+TARGET:=$(OUTDIR)/$(notdir $(MYDIR)).exe
 TARGETS+=$(TARGET)
 EXE_MP42TSX_OBJS:=\
 	$(LIB_MEDIA_OBJS)\

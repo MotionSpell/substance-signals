@@ -1,4 +1,4 @@
-OUTDIR:=$(BIN)/$(ProjectName)
+OUTDIR:=$(BIN)/$(call get-my-dir)
 TESTOUTDIR:=$(CURDIR)/$(OUTDIR)
 
 TEST_COMMON_OBJ:=\

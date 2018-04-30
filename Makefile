@@ -84,119 +84,112 @@ CFLAGS+=-Umain
 TARGETS:=
 DEPS:=
 
+define get-my-dir
+$(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))
+endef
+
 #------------------------------------------------------------------------------
 
-ProjectName:=$(SRC)/lib_utils
 UTILS_SRCS:=\
   src/version.cpp\
-  $(ProjectName)/clock.cpp\
-  $(ProjectName)/log.cpp\
-  $(ProjectName)/scheduler.cpp\
-  $(ProjectName)/time.cpp
+  $(SRC)/lib_utils/clock.cpp\
+  $(SRC)/lib_utils/log.cpp\
+  $(SRC)/lib_utils/scheduler.cpp\
+  $(SRC)/lib_utils/time.cpp
 LIB_UTILS_OBJS:=$(UTILS_SRCS:%.cpp=$(BIN)/%.o)
 
 #------------------------------------------------------------------------------
 
-ProjectName:=$(SRC)/lib_media
 MEDIA_SRCS:=\
-  $(ProjectName)/common/libav.cpp\
-  $(ProjectName)/common/gpac.cpp\
-  $(ProjectName)/common/picture.cpp\
-  $(ProjectName)/decode/jpegturbo_decode.cpp\
-  $(ProjectName)/decode/libav_decode.cpp\
-  $(ProjectName)/demux/gpac_demux_mp4_simple.cpp\
-  $(ProjectName)/demux/gpac_demux_mp4_full.cpp\
-  $(ProjectName)/demux/libav_demux.cpp\
-  $(ProjectName)/encode/jpegturbo_encode.cpp\
-  $(ProjectName)/encode/libav_encode.cpp\
-  $(ProjectName)/in/file.cpp\
-  $(ProjectName)/in/mpeg_dash_input.cpp\
-  $(ProjectName)/in/sound_generator.cpp\
-  $(ProjectName)/in/video_generator.cpp\
-  $(ProjectName)/mux/gpac_mux_m2ts.cpp\
-  $(ProjectName)/mux/gpac_mux_mp4.cpp\
-  $(ProjectName)/mux/gpac_mux_mp4_mss.cpp\
-  $(ProjectName)/mux/libav_mux.cpp\
-  $(ProjectName)/out/file.cpp\
-  $(ProjectName)/out/http.cpp\
-  $(ProjectName)/out/null.cpp\
-  $(ProjectName)/out/print.cpp\
-  $(ProjectName)/stream/apple_hls.cpp\
-  $(ProjectName)/stream/mpeg_dash.cpp\
-  $(ProjectName)/stream/ms_hss.cpp\
-  $(ProjectName)/stream/adaptive_streaming_common.cpp\
-  $(ProjectName)/transform/audio_convert.cpp\
-  $(ProjectName)/transform/audio_gap_filler.cpp\
-  $(ProjectName)/transform/libavfilter.cpp\
-  $(ProjectName)/transform/restamp.cpp\
-  $(ProjectName)/transform/telx2ttml.cpp\
-  $(ProjectName)/transform/time_rectifier.cpp\
-  $(ProjectName)/transform/video_convert.cpp\
-  $(ProjectName)/utils/comparator.cpp\
-  $(ProjectName)/utils/recorder.cpp\
-  $(ProjectName)/utils/repeater.cpp
+  $(SRC)/lib_media/common/libav.cpp\
+  $(SRC)/lib_media/common/gpac.cpp\
+  $(SRC)/lib_media/common/picture.cpp\
+  $(SRC)/lib_media/decode/jpegturbo_decode.cpp\
+  $(SRC)/lib_media/decode/libav_decode.cpp\
+  $(SRC)/lib_media/demux/gpac_demux_mp4_simple.cpp\
+  $(SRC)/lib_media/demux/gpac_demux_mp4_full.cpp\
+  $(SRC)/lib_media/demux/libav_demux.cpp\
+  $(SRC)/lib_media/encode/jpegturbo_encode.cpp\
+  $(SRC)/lib_media/encode/libav_encode.cpp\
+  $(SRC)/lib_media/in/file.cpp\
+  $(SRC)/lib_media/in/mpeg_dash_input.cpp\
+  $(SRC)/lib_media/in/sound_generator.cpp\
+  $(SRC)/lib_media/in/video_generator.cpp\
+  $(SRC)/lib_media/mux/gpac_mux_m2ts.cpp\
+  $(SRC)/lib_media/mux/gpac_mux_mp4.cpp\
+  $(SRC)/lib_media/mux/gpac_mux_mp4_mss.cpp\
+  $(SRC)/lib_media/mux/libav_mux.cpp\
+  $(SRC)/lib_media/out/file.cpp\
+  $(SRC)/lib_media/out/http.cpp\
+  $(SRC)/lib_media/out/null.cpp\
+  $(SRC)/lib_media/out/print.cpp\
+  $(SRC)/lib_media/stream/apple_hls.cpp\
+  $(SRC)/lib_media/stream/mpeg_dash.cpp\
+  $(SRC)/lib_media/stream/ms_hss.cpp\
+  $(SRC)/lib_media/stream/adaptive_streaming_common.cpp\
+  $(SRC)/lib_media/transform/audio_convert.cpp\
+  $(SRC)/lib_media/transform/audio_gap_filler.cpp\
+  $(SRC)/lib_media/transform/libavfilter.cpp\
+  $(SRC)/lib_media/transform/restamp.cpp\
+  $(SRC)/lib_media/transform/telx2ttml.cpp\
+  $(SRC)/lib_media/transform/time_rectifier.cpp\
+  $(SRC)/lib_media/transform/video_convert.cpp\
+  $(SRC)/lib_media/utils/comparator.cpp\
+  $(SRC)/lib_media/utils/recorder.cpp\
+  $(SRC)/lib_media/utils/repeater.cpp
 ifeq ($(SIGNALS_HAS_X11), 1)
 MEDIA_SRCS+=\
-  $(ProjectName)/render/sdl_audio.cpp\
-  $(ProjectName)/render/sdl_common.cpp\
-  $(ProjectName)/render/sdl_video.cpp
+  $(SRC)/lib_media/render/sdl_audio.cpp\
+  $(SRC)/lib_media/render/sdl_common.cpp\
+  $(SRC)/lib_media/render/sdl_video.cpp
 endif  
 ifeq ($(SIGNALS_HAS_AWS), 1)
 MEDIA_SRCS+=\
-  $(ProjectName)/out/aws_mediastore.cpp\
-  $(ProjectName)/out/aws_sdk_instance.cpp
+  $(SRC)/lib_media/out/aws_mediastore.cpp\
+  $(SRC)/lib_media/out/aws_sdk_instance.cpp
 endif  
 LIB_MEDIA_OBJS:=$(MEDIA_SRCS:%.cpp=$(BIN)/%.o)
 DEPS+=$(LIB_MEDIA_OBJS:%.o=%.deps)
 
 #------------------------------------------------------------------------------
 
-ProjectName:=$(SRC)/lib_pipeline
 PIPELINE_SRCS:=\
-  $(ProjectName)/pipeline.cpp
+  $(SRC)//lib_pipeline/pipeline.cpp
 LIB_PIPELINE_OBJS:=$(PIPELINE_SRCS:%.cpp=$(BIN)/%.o)
 DEPS+=$(LIB_PIPELINE_OBJS:%.o=%.deps)
 
 #------------------------------------------------------------------------------
 
-ProjectName:=$(SRC)/lib_modules
 MODULES_SRCS:=\
-  $(ProjectName)/core/connection.cpp\
-  $(ProjectName)/core/data.cpp
+  $(SRC)/lib_modules/core/connection.cpp\
+  $(SRC)/lib_modules/core/data.cpp
 LIB_MODULES_OBJS:=$(MODULES_SRCS:%.cpp=$(BIN)/%.o)
 DEPS+=$(LIB_MODULES_OBJS:%.o=%.deps)
 
 #------------------------------------------------------------------------------
 
-ProjectName:=$(SRC)/lib_appcommon
 APPCOMMON_SRCS:=\
-  $(ProjectName)/safemain.cpp
+  $(SRC)/lib_appcommon/safemain.cpp
 LIB_APPCOMMON_OBJS:=$(APPCOMMON_SRCS:%.cpp=$(BIN)/%.o)
 DEPS+=$(LIB_APPCOMMON_OBJS:%.o=%.deps)
 
 #------------------------------------------------------------------------------
 
-ProjectName:=$(SRC)/tests
-include $(ProjectName)/project.mk
+include $(SRC)/tests/project.mk
 
 #------------------------------------------------------------------------------
 
-ProjectName:=$(SRC)/apps/dashcastx
-include $(ProjectName)/project.mk
+include $(SRC)/apps/dashcastx/project.mk
 
 #------------------------------------------------------------------------------
 
 ifeq ($(SIGNALS_HAS_X11), 1)
-
-ProjectName:=$(SRC)/apps/player
-include $(ProjectName)/project.mk
-
+include $(SRC)/apps/player/project.mk
 endif
 
 #------------------------------------------------------------------------------
 
-ProjectName:=$(SRC)/apps/mp42tsx
-include $(ProjectName)/project.mk
+include $(SRC)/apps/mp42tsx/project.mk
 
 #------------------------------------------------------------------------------
 
