@@ -32,6 +32,9 @@ inline bool isPow2(int i) {
 	return (i == 0) || (i - (1 << (int)log2(i)) == 0);
 }
 
+#define TEST_MAX_SIZE (1<<12)
+#define TEST_TIMEOUT_IN_US 800000
+
 template<typename SignalSignature, typename Result, template<typename> class ExecutorTemplate, typename ValType>
 void emitTest(std::function<SignalSignature> f, ValType val) {
 	ExecutorTemplate<SignalSignature> executor;

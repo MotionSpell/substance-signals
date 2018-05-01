@@ -7,9 +7,6 @@
 #include <thread>
 
 #define TESTS
-#define TEST_MAX_SIZE (1<<12)
-#define TEST_TIMEOUT_IN_US 800000
-
 // generate a file-unique identifier, based on current line
 #define unittestSuffix(suffix, prettyName) \
 	static void testFunction##suffix(); \
@@ -33,7 +30,7 @@ inline void Fail(char const* file, int line, const char* msg) {
 		std::stringstream exprStringStream; \
 		exprStringStream << "assertion failed: " << #expr; \
 		Fail(__FILE__, __LINE__, exprStringStream.str().c_str()); \
- 	}
+	}
 
 #define ASSERT_EQUALS(expected, actual) \
 	if ((expected) != (actual)) { \
