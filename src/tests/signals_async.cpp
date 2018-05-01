@@ -1,7 +1,5 @@
 #include "tests.hpp"
 #include "lib_signals/signals.hpp"
-#include <sstream>
-#include <vector>
 
 using namespace Tests;
 using namespace Signals;
