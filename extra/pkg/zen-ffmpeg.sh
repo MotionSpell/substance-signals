@@ -37,8 +37,6 @@ function ffmpeg_build {
       --enable-zlib \
       --disable-gnutls \
       --disable-openssl \
-      --disable-gnutls \
-      --disable-openssl \
       --disable-iconv \
       --disable-bzlib \
       --enable-avresample \
