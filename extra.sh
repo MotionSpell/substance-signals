@@ -15,7 +15,7 @@ if [ -z "$MAKE" ]; then
 		CORES=$(nproc)
 	fi
 
-	MAKE="make -j$CORES"
+	export MAKE="make -j$CORES"
 fi
 
 if [ -z "$CPREFIX" ]; then
