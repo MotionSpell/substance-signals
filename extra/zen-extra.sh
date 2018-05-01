@@ -11,29 +11,36 @@ function main {
 
   checkForCommonBuildTools
 
-  buildPackage . expat $1
-  buildPackage . faad2 $1
-  buildPackage . ffmpeg $1
-  buildPackage . fontconfig $1
-  buildPackage . freetype2 $1
-  buildPackage . fribidi $1
-  buildPackage . gpac $1
-  buildPackage . liba52 $1
-  buildPackage . libass $1
-  buildPackage . libjpeg $1
-  buildPackage . libjpeg-turbo $1
-  buildPackage . libmad $1
-  buildPackage . libogg $1
-  buildPackage . libpng $1
-  buildPackage . libpthread $1
-  buildPackage . librtmp $1
-  buildPackage . libsdl2 $1
-  buildPackage . libtheora $1
-  buildPackage . libvorbis $1
-  buildPackage . libxvidcore $1
-  buildPackage . opencore-amr $1
-  buildPackage . x264 $1
-  buildPackage . zlib $1
+  for pkg in $(get_all_packages) ; do
+    buildPackage . "$pkg" $1
+  done
+}
+
+function get_all_packages
+{
+  echo expat
+  echo faad2
+  echo ffmpeg
+  echo fontconfig
+  echo freetype2
+  echo fribidi
+  echo gpac
+  echo liba52
+  echo libass
+  echo libjpeg
+  echo libjpeg-turbo
+  echo libmad
+  echo libogg
+  echo libpng
+  echo libpthread
+  echo librtmp
+  echo libsdl2
+  echo libtheora
+  echo libvorbis
+  echo libxvidcore
+  echo opencore-amr
+  echo x264
+  echo zlib
 }
 
 #####################################
