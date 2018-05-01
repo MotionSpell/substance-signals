@@ -301,7 +301,10 @@ function lazy_build {
     build $host $depName
   done
 
-  ${name}_build $host
+  # launch the builder in a separate process
+  # so it cannot modify our environment.
+  ${name}_build $host &
+  wait
 
   printMsg "$name: build OK"
   mark_as_built $host $name
