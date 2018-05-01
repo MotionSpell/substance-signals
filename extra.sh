@@ -204,6 +204,7 @@ if [ "$HOST" == "x86_64-linux-gnu" ]; then
 			-DCMAKE_CXX_FLAGS=-I$EXTRA_DIR/include \
 			-DCMAKE_LD_FLAGS=-L$EXTRA_DIR/lib \
 			-DCMAKE_INSTALL_PREFIX=$EXTRA_DIR \
+			-DENABLE_TESTING=OFF \
 			-DBUILD_ONLY="s3;mediastore;mediastore-data" \
 			../../src/aws
 		$MAKE
