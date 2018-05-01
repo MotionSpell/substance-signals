@@ -9,6 +9,8 @@ function main {
     source $f
   done
 
+  checkForCommonBuildTools
+
   buildPackage . expat $1
   buildPackage . faad2 $1
   buildPackage . ffmpeg $1
@@ -193,7 +195,6 @@ function buildPackage {
 
   initSymlinks
   checkForCrossChain "$BUILD" "$hostPlatform"
-  checkForCommonBuildTools
 
   CACHE=$WORK/cache
   mkdir -p $CACHE

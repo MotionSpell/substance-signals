@@ -56,15 +56,12 @@ esac
 #-------------------------------------------------------------------------------
 echo zenbuild extra script
 #-------------------------------------------------------------------------------
-if [ ! -f extra/zenbuild.built ] ; then
-	pushd extra
-	./zen-extra.sh $CPREFIX
-	popd
+pushd extra
+./zen-extra.sh $CPREFIX
+popd
 
-	## move files
-	rsync -ar extra/release/$HOST/* extra/
-	touch extra/zenbuild.built
-fi
+## move files
+rsync -ar extra/release/$HOST/* extra/
 
 #-------------------------------------------------------------------------------
 echo optionparser
