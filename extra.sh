@@ -174,7 +174,7 @@ if [ "$HOST" == "x86_64-linux-gnu" ]; then
 		mkdir -p extra/release/openssl
 		pushd extra/release/openssl
 		../../src/openssl-1.1.0g/config \
-			--prefix=$EXTRA_DIR 
+			--prefix=$EXTRA_DIR
 		$MAKE depend
 		$MAKE
 		$MAKE install
@@ -206,7 +206,7 @@ if [ "$HOST" == "x86_64-linux-gnu" ]; then
 		touch extra/release/aws/releaseOk
 	fi
 
-	#-------------------------------------------------------------------------------	
+	#-------------------------------------------------------------------------------
 	echo sqlite3
 	#-------------------------------------------------------------------------------
 	if [ ! -f extra/src/libsqlite3/sqlite3.h ] ; then
@@ -215,9 +215,9 @@ if [ "$HOST" == "x86_64-linux-gnu" ]; then
 		git clone https://github.com/LuaDist/libsqlite3.git extra/src/libsqlite3
 		pushd extra/src/libsqlite3
 		autoreconf -fiv
-		popd	
-	fi	
-		
+		popd
+	fi
+
 	if [ ! -f extra/release/libsqlite3/releaseOk ] ; then
 		rm -rf extra/release/libsqlite3
 		mkdir -p extra/release/libsqlite3
@@ -233,7 +233,7 @@ if [ "$HOST" == "x86_64-linux-gnu" ]; then
 
 fi #"$HOST" == "x86_64-linux-gnu"
 
-#-------------------------------------------------------------------------------	
+#-------------------------------------------------------------------------------
 echo ASIO
 #-------------------------------------------------------------------------------
 if [ ! -f extra/src/asio/asio/include/asio.hpp ] ; then
@@ -242,12 +242,12 @@ if [ ! -f extra/src/asio/asio/include/asio.hpp ] ; then
 	git clone --depth 1000 https://github.com/chriskohlhoff/asio extra/src/asio
 	pushd extra/src/asio
 	git checkout b44805ff00
-	popd	
-fi	
-	
+	popd
+fi
+
 if [ ! -f extra/include/asio/asio.hpp ] ; then
-	mkdir -p extra/include/asio	
-	cp -r extra/src/asio/asio/include/* extra/include/asio/	
+	mkdir -p extra/include/asio
+	cp -r extra/src/asio/asio/include/* extra/include/asio/
 fi
 
 echo "Done"
