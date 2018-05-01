@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -eo pipefail
+set -euo pipefail
 
 function main {
   readonly scriptDir=$(get_abs_dir $(dirname $0))
