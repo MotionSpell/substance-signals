@@ -17,12 +17,12 @@ public:
 	Queue() {}
 	virtual ~Queue() noexcept(false) {}
 
-	virtual void push(T data) {
+	void push(T data) {
 		std::lock_guard<std::mutex> lock(mutex);
 		pushUnsafe(data);
 	}
 
-	virtual bool tryPop(T &value) {
+	bool tryPop(T &value) {
 		std::lock_guard<std::mutex> lock(mutex);
 		if (dataQueue.empty()) {
 			return false;
@@ -32,7 +32,7 @@ public:
 		return true;
 	}
 
-	virtual T pop() {
+	T pop() {
 		std::unique_lock<std::mutex> lock(mutex);
 		while (dataQueue.empty())
 			dataAvailable.wait(lock);
@@ -42,7 +42,7 @@ public:
 		return p;
 	}
 
-	virtual void clear() {
+	void clear() {
 		std::lock_guard<std::mutex> lock(mutex);
 		std::queue<T> emptyQueue;
 		std::swap(emptyQueue, dataQueue);
@@ -93,58 +93,6 @@ protected:
 private:
 	Queue(const Queue&) = delete;
 	Queue& operator= (const Queue&) = delete;
-};
-
-template<typename T>
-class QueueMaxSize : public Queue<T> {
-public:
-	QueueMaxSize(size_t maxSize = std::numeric_limits<size_t>::max()) : maxSize(maxSize), dataWaitingToBePushed(0) {
-		if (maxSize == 0)
-			throw std::runtime_error("QueueMaxSize size cannot be 0.");
-	}
-	virtual ~QueueMaxSize() noexcept(false) {}
-
-	bool tryPush(T data) {
-		std::lock_guard<std::mutex> lock(Queue<T>::mutex);
-		if (Queue<T>::dataQueue.size() < maxSize) {
-			Queue<T>::pushUnsafe(data);
-			Queue<T>::dataAvailable.notify_one();
-			return true;
-		}
-
-		return false;
-	}
-
-	void push(T data) {
-		std::unique_lock<std::mutex> lock(Queue<T>::mutex);
-		dataWaitingToBePushed++;
-		while (Queue<T>::dataQueue.size() > maxSize)
-			dataPopped.wait(lock);
-		Queue<T>::pushUnsafe(data);
-		dataWaitingToBePushed--;
-	}
-
-	T pop() {
-		T p = Queue<T>::pop();
-		dataPopped.notify_one();
-		return p;
-	}
-
-	/* After a clear() call, you are guaranteed that all blocking push() will
-		awaken and that the queue is empty. */
-	virtual void clear() {
-		while (dataWaitingToBePushed > 0)
-			pop();
-		Queue<T>::clear();
-	}
-
-private:
-	QueueMaxSize(const QueueMaxSize&) = delete;
-	QueueMaxSize& operator= (const QueueMaxSize&) = delete;
-
-	size_t maxSize;
-	std::atomic_size_t dataWaitingToBePushed;
-	std::condition_variable dataPopped;
 };
 
 /* Copyright 2016 Facebook, Inc., https://github.com/facebook/folly/blob/master/folly/ProducerConsumerQueue.h */

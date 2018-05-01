@@ -46,10 +46,6 @@ public:
 		module->process();
 	}
 
-	void push(Data data) override {
-		Queue<Data>::push(data);
-	}
-
 private:
 	ModuleType * const module;
 };
