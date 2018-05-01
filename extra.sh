@@ -67,33 +67,6 @@ if [ ! -f extra/zenbuild.built ] ; then
 fi
 
 #-------------------------------------------------------------------------------
-echo libjpeg-turbo
-#-------------------------------------------------------------------------------
-if [ ! -f extra/src/libjpeg-turbo/configure.ac ] ; then
-	mkdir -p extra/src
-	rm -rf extra/src/libjpeg-turbo
-	pushd extra/src
-	git clone https://github.com/libjpeg-turbo/libjpeg-turbo.git
-	pushd libjpeg-turbo
-	git checkout 5abf2536
-	autoreconf -fiv
-	popd
-	popd
-fi
-
-if [ ! -f extra/release/libjpeg-turbo/releaseOk ] ; then
-	mkdir -p extra/release/libjpeg-turbo
-	pushd extra/src/libjpeg-turbo
-	../../src/libjpeg-turbo/configure \
-		--prefix=$EXTRA_DIR \
-		--host=$HOST
-	$MAKE
-	$MAKE install
-	popd
-	touch extra/release/libjpeg-turbo/releaseOk
-fi
-
-#-------------------------------------------------------------------------------
 echo optionparser
 #-------------------------------------------------------------------------------
 if [ ! -f extra/src/optionparser-1.3/src/optionparser.h ] ; then

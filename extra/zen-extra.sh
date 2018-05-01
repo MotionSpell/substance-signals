@@ -19,6 +19,7 @@ function main {
   buildPackage . liba52 $1
   buildPackage . libass $1
   buildPackage . libjpeg $1
+  buildPackage . libjpeg-turbo $1
   buildPackage . libmad $1
   buildPackage . libogg $1
   buildPackage . libpng $1
