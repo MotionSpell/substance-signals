@@ -130,7 +130,7 @@ function lazy_git_clone {
   local rev="$3"
   local depth=1
 
-  if [ -d "$to" ] ;
+  if [ -d "$to/.git" ] ;
   then
     pushDir "$to"
     git reset -q --hard
