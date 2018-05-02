@@ -1,13 +1,9 @@
-#!/usr/bin/env bash
 
 function libjpeg-turbo_build {
   pushDir $WORK/src
 
-  lazy_git_clone https://github.com/libjpeg-turbo/libjpeg-turbo.git libjpeg-turbo 5abf2536
-
-  pushDir "libjpeg-turbo"
-  autoreconf -fiv
-  popDir
+  lazy_download "libjpeg-turbo.tar.gz" "https://sourceforge.net/projects/libjpeg-turbo/files/1.5.3/libjpeg-turbo-1.5.3.tar.gz/download"
+  lazy_extract "libjpeg-turbo.tar.gz"
 
   autoconf_build $host "libjpeg-turbo"
 
