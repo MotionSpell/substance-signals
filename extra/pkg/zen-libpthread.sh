@@ -23,7 +23,7 @@ function libpthread_build_mingw {
 
   autoconf_build $host "winpthreads"
 
-  rm $PREFIX/$host/include/pthread.h #remove broken header - will fallback on the pthread correct one
+  rm $PREFIX/include/pthread.h #remove broken header - will fallback on the pthread correct one
 
   popDir
 }

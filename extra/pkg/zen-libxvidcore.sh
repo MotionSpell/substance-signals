@@ -14,7 +14,7 @@ function libxvidcore_build {
   cp $scriptDir/config.guess .
   ./configure \
      --host=$host \
-     --prefix=$PREFIX/$host
+     --prefix=$PREFIX
 
   $MAKE
   $MAKE install

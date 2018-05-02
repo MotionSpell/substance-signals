@@ -20,12 +20,12 @@ function gpac_build {
   ../../configure \
     --target-os=$os \
     --cross-prefix="$crossPrefix" \
-    --extra-cflags="-I$PREFIX/$host/include -w -fPIC" \
-    --extra-ldflags="-L$PREFIX/$host/lib -Wl,-rpath-link=$PREFIX/$host/lib" \
-    --sdl-cfg=":$PREFIX/$host/bin" \
+    --extra-cflags="-I$PREFIX/include -w -fPIC" \
+    --extra-ldflags="-L$PREFIX/lib -Wl,-rpath-link=$PREFIX/lib" \
+    --sdl-cfg=":$PREFIX/bin" \
     --disable-jack \
     --enable-amr \
-    --prefix=$PREFIX/$host
+    --prefix=$PREFIX
 
   $MAKE
   $MAKE install

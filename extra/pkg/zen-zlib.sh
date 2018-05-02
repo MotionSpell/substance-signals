@@ -12,7 +12,7 @@ function zlib_build {
   CFLAGS="-w -fPIC" \
   CHOST=$host \
     ./configure \
-    --prefix=$PREFIX/$host
+    --prefix=$PREFIX
   $MAKE
   $MAKE install
 

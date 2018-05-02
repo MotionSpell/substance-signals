@@ -14,7 +14,7 @@ function fontconfig_build {
   ../../configure \
     --build=$BUILD \
     --host=$host \
-    --prefix=$PREFIX/$host \
+    --prefix=$PREFIX \
     --enable-shared \
     --disable-static
   $MAKE

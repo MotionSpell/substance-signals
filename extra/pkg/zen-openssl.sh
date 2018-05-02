@@ -7,7 +7,7 @@ function openssl_build {
   pushDir openssl/bin/$host
   pwd
   $WORK/src/openssl/config \
-    --prefix=$PREFIX/$host
+    --prefix=$PREFIX
   $MAKE depend
   $MAKE
   $MAKE install_dev install_runtime

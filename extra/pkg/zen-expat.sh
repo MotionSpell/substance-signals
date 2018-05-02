@@ -6,8 +6,8 @@ function expat_build {
   lazy_extract "expat.tar.xz"
   mkgit "expat"
 
-  CFLAGS+=" -I$PREFIX/$host/include " \
-  LDFLAGS+=" -L$PREFIX/$host/lib " \
+  CFLAGS+=" -I$PREFIX/include " \
+  LDFLAGS+=" -L$PREFIX/lib " \
   autoconf_build $host "expat" \
     --enable-shared \
     --disable-static

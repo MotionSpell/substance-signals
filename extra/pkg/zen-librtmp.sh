@@ -20,7 +20,7 @@ function librtmp_build {
       ;;
   esac
 
-  $sed -i "s@^prefix=.*@prefix=$PREFIX/$host@" Makefile
+  $sed -i "s@^prefix=.*@prefix=$PREFIX@" Makefile
   $sed -i "s@^CRYPTO=.*@@" Makefile
 
   $MAKE CROSS_COMPILE="$host-"

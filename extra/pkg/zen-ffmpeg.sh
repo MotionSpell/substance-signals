@@ -20,9 +20,9 @@ function ffmpeg_build {
   mkdir -p ffmpeg/build/$host
   pushDir ffmpeg/build/$host
 
-  LDFLAGS="-L$PREFIX/$host/lib -lz" \
+  LDFLAGS="-L$PREFIX/lib -lz" \
   ../../configure \
-      --prefix=$PREFIX/$host \
+      --prefix=$PREFIX \
       --enable-pthreads \
       --disable-w32threads \
       --disable-debug \

@@ -5,9 +5,9 @@ function optionparser_build {
   lazy_download "optionparser.tar.gz" "http://sourceforge.net/projects/optionparser/files/optionparser-1.3.tar.gz/download"
   lazy_extract "optionparser.tar.gz"
 
-  if [ ! -f $PREFIX/$host/include/optionparser/optionparser.h ] ; then
-    mkdir -p $PREFIX/$host/include/optionparser
-    cp $WORK/src/optionparser/src/optionparser.h $PREFIX/$host/include/optionparser/
+  if [ ! -f $PREFIX/include/optionparser/optionparser.h ] ; then
+    mkdir -p $PREFIX/include/optionparser
+    cp $WORK/src/optionparser/src/optionparser.h $PREFIX/include/optionparser/
   fi
 }
 

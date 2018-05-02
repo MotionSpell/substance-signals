@@ -231,10 +231,10 @@ function buildPackage {
   mkdir -p $CACHE
   mkdir -p $WORK/src
 
-  export PREFIX="$WORK/release"
+  export PREFIX="$WORK/release/${hostPlatform}"
   for dir in "lib" "bin" "include"
   do
-    mkdir -p "$PREFIX/${hostPlatform}/${dir}"
+    mkdir -p "$PREFIX/${dir}"
   done
 
   initCflags
@@ -318,8 +318,8 @@ function lazy_build {
   local host=$1
   local name=$2
 
-  export PKG_CONFIG_PATH=$PREFIX/$host/lib/pkgconfig
-  export PKG_CONFIG_LIBDIR=$PREFIX/$host/lib/pkgconfig
+  export PKG_CONFIG_PATH=$PREFIX/lib/pkgconfig
+  export PKG_CONFIG_LIBDIR=$PREFIX/lib/pkgconfig
 
   if is_built $host $name ; then
     printMsg "$name: already built"
@@ -393,7 +393,7 @@ function autoconf_build {
   ../../configure \
     --build=$BUILD \
     --host=$host \
-    --prefix=$PREFIX/$host \
+    --prefix=$PREFIX \
     "$@"
   $MAKE
   $MAKE install

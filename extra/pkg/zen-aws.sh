@@ -6,9 +6,9 @@ function aws_build {
   pushDir aws/bin/$host
   cmake \
     -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_CXX_FLAGS=-I$PREFIX/$host/include \
-    -DCMAKE_LD_FLAGS=-L$PREFIX/$host/lib \
-    -DCMAKE_INSTALL_PREFIX=$PREFIX/$host \
+    -DCMAKE_CXX_FLAGS=-I$PREFIX/include \
+    -DCMAKE_LD_FLAGS=-L$PREFIX/lib \
+    -DCMAKE_INSTALL_PREFIX=$PREFIX \
     -DENABLE_TESTING=OFF \
     -DBUILD_ONLY="s3;mediastore;mediastore-data" \
     ../..
