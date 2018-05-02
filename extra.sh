@@ -52,49 +52,11 @@ darwin*)
     ;;
 esac
 
-
-#-------------------------------------------------------------------------------
-echo zenbuild extra script
-#-------------------------------------------------------------------------------
 pushd extra >/dev/null
 ./zen-extra.sh $CPREFIX
 popd >/dev/null
 
 ## move files
 rsync -ar extra/release/$HOST/* extra/
-
-if [ "$HOST" == "x86_64-linux-gnu" ]; then
-	#-------------------------------------------------------------------------------
-	echo AWS-SDK
-	#-------------------------------------------------------------------------------
-	if [ ! -f extra/src/aws/CMakeLists.txt ] ; then
-		mkdir -p extra/src
-		rm -rf extra/src/aws
-		git clone https://github.com/aws/aws-sdk-cpp.git extra/src/aws
-		pushd extra/src/aws
-		git checkout 1.3.48
-		popd
-	fi
-
-	if [ ! -f extra/release/aws/releaseOk ] ; then
-		rm -rf extra/release/aws
-		mkdir -p extra/release/aws
-		pushd extra/release/aws
-		cmake \
-			-DCMAKE_BUILD_TYPE=Release \
-			-DCMAKE_SOURCE_DIR=../../src/aws \
-			-DCMAKE_CXX_FLAGS=-I$EXTRA_DIR/include \
-			-DCMAKE_LD_FLAGS=-L$EXTRA_DIR/lib \
-			-DCMAKE_INSTALL_PREFIX=$EXTRA_DIR \
-			-DENABLE_TESTING=OFF \
-			-DBUILD_ONLY="s3;mediastore;mediastore-data" \
-			../../src/aws
-		$MAKE
-		$MAKE install
-		popd
-		touch extra/release/aws/releaseOk
-	fi
-
-fi #"$HOST" == "x86_64-linux-gnu"
 
 echo "Done"

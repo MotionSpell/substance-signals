@@ -20,6 +20,12 @@ function get_all_packages
 {
   local host=$1
 
+  if [ "$host" == "x86_64-linux-gnu" ]; then
+    echo aws
+    echo openssl
+    echo sqlite3
+  fi
+
   echo asio
   echo expat
   echo faad2
@@ -47,11 +53,6 @@ function get_all_packages
   echo rapidjson
   echo x264
   echo zlib
-
-  if [ "$host" == "x86_64-linux-gnu" ]; then
-    echo openssl
-    echo sqlite3
-  fi
 }
 
 #####################################
