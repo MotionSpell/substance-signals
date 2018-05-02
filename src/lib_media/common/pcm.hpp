@@ -176,14 +176,6 @@ public:
 		return planes;
 	}
 
-	void setPlanes(uint8_t numAudioPlanes, uint8_t* audioPlanes[AUDIO_PCM_PLANES_MAX], uint64_t audioPlaneSize[AUDIO_PCM_PLANES_MAX]) {
-		format.numPlanes = numAudioPlanes;
-		freePlanes();
-		for (uint8_t i = 0; i < numAudioPlanes; ++i) {
-			setPlane(i, audioPlanes[i], audioPlaneSize[i]);
-		}
-	}
-
 	void setPlane(uint8_t planeIdx, uint8_t *plane, uint64_t size) {
 		if (planeIdx > format.numPlanes)
 			throw std::runtime_error("Pcm plane doesn't exist.");
