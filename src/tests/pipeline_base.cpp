@@ -115,7 +115,7 @@ unittest("pipeline: multiple inputs (send same packets to 2 inputs and check cal
 	p.connect(generator, 0, dualInput, 1);
 	p.start();
 	p.waitForCompletion();
-	ASSERT_EQUALS(DualInput::numCalls, 1);
+	ASSERT_EQUALS(DualInput::numCalls, 1u);
 }
 
 }

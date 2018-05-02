@@ -20,19 +20,29 @@ namespace Tests {
 void Test(char const* name);
 void Fail(char const* file, int line, const char* msg);
 
-#define ASSERT(expr) \
-	if (!(expr)) { \
-		std::stringstream exprStringStream; \
-		exprStringStream << "assertion failed: " << #expr; \
-		::Tests::Fail(__FILE__, __LINE__, exprStringStream.str().c_str()); \
+template<typename T>
+inline void Assert(char const* file, int line, const char* caption, T const& result) {
+	if (!result) {
+		std::stringstream ss;
+		ss << "assertion failed: " << caption;
+		::Tests::Fail(file, line, ss.str().c_str());
 	}
+}
+
+template<typename T, typename U>
+inline void AssertEquals(char const* file, int line, const char* caption, T const& expected, U const& actual) {
+	if (expected != actual) {
+		std::stringstream ss;
+		ss << "assertion failed for expression: '" << caption << "' , expected '" << expected << "' got '" << actual << "'";
+		::Tests::Fail(file, line, ss.str().c_str());
+	}
+}
+
+#define ASSERT(expr) \
+  ::Tests::Assert(__FILE__, __LINE__, #expr, expr)
 
 #define ASSERT_EQUALS(expected, actual) \
-	if ((expected) != (actual)) { \
-		std::stringstream ss; \
-		ss << "assertion failed for expression: '" << #actual << "' , expected '" << (expected) << "' got '" << (actual) << "'"; \
-		::Tests::Fail(__FILE__, __LINE__, ss.str().c_str()); \
-	}
+  ::Tests::AssertEquals(__FILE__, __LINE__, #actual, expected, actual)
 
 int RegisterTest(void (*f)(), const char* testName, int& dummy);
 void RunAll();
