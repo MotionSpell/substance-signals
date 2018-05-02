@@ -57,6 +57,6 @@ pushd extra >/dev/null
 popd >/dev/null
 
 ## move files
-rsync -ar extra/release/$HOST/* extra/
+rsync -ar /tmp/mem/zen-work/release/$HOST/* sysroot
 
 echo "Done"

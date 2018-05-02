@@ -157,7 +157,8 @@ $RECYCLE.BIN/
 tags
 
 src/version.cpp
-extra/
+/sysroot
+/extra/config.guess
 extra_lib/
 doc/html/
 src/tests/data/test.*

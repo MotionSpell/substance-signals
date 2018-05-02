@@ -8,7 +8,7 @@ CFLAGS+=-D__STDC_CONSTANT_MACROS
 
 BIN?=bin
 SRC?=src
-EXTRA?=$(CURDIR)/extra
+EXTRA?=$(CURDIR)/sysroot
 
 # default to debug mode
 DEBUG?=1
