@@ -50,6 +50,7 @@ function get_all_packages
 
   if [ "$host" == "x86_64-linux-gnu" ]; then
     echo openssl
+    echo sqlite3
   fi
 }
 
