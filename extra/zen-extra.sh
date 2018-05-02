@@ -144,7 +144,10 @@ function lazy_git_clone {
   pushDir "$to"
   while ! git checkout -q $rev ; do
     depth=$(($depth * 10))
-    git fetch --depth=$depth
+    # "git clone --depth" defaults to only downloading the default branch,
+    # but not tags.
+    git config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*'
+    git fetch origin --depth=$depth
   done
 	git submodule update --init
   popDir
