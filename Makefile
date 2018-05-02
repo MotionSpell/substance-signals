@@ -47,19 +47,27 @@ LDFLAGS+=$(LDLIBS)
 all: targets
 
 PKGS:=\
-	libavcodec\
-	libavdevice\
-	libavfilter\
-	libavformat\
-	libavutil\
-	libswresample\
-	libswscale\
-	x264\
-	freetype2\
-	gpac\
+  libavcodec\
+  libavdevice\
+  libavfilter\
+  libavformat\
+  libavutil\
+  libswresample\
+  libswscale\
+  x264\
+  freetype2\
+  gpac\
+  libcurl\
+  libturbojpeg\
 
 ifeq ($(SIGNALS_HAS_X11), 1)
-	PKGS+=sdl2
+  PKGS+=sdl2
+endif
+
+
+ifeq ($(SIGNALS_HAS_AWS), 1)
+  PKGS+=aws-cpp-sdk-mediastore
+  PKGS+=aws-cpp-sdk-mediastore-data
 endif
 
 $(BIN)/config.mk:
@@ -73,13 +81,8 @@ $(BIN)/config.mk:
 	pkg-config --cflags $(PKGS) >> $(BIN)/config.mk.tmp ; \
 	/bin/echo -n 'LDFLAGS+=' >> $(BIN)/config.mk.tmp ; \
 	pkg-config --libs $(PKGS) >> $(BIN)/config.mk.tmp
-
-ifeq ($(SIGNALS_HAS_AWS), 1)
-	/bin/echo 'LDFLAGS+=-laws-cpp-sdk-core -laws-cpp-sdk-mediastore -laws-cpp-sdk-mediastore-data' >> $(BIN)/config.mk.tmp ; 
-endif
-
 	/bin/echo 'CFLAGS+= -I$(EXTRA)/include/asio -Wno-unused-local-typedefs' >> $(BIN)/config.mk.tmp
-	/bin/echo 'LDFLAGS+= -lpthread -lturbojpeg -lcurl' >> $(BIN)/config.mk.tmp ;
+	/bin/echo 'LDFLAGS+= -lpthread' >> $(BIN)/config.mk.tmp ;
 	mv $(BIN)/config.mk.tmp $(BIN)/config.mk
 
 include $(BIN)/config.mk
