@@ -1,9 +1,14 @@
 
 function librtmp_build {
   host=$1
-  lazy_git_clone "git://git.ffmpeg.org/rtmpdump" rtmpdump 79459a2b43f41ac44a2ec001139bcb7b1b8f7497
+
+  if [ ! -d "rtmpdump/.git" ] ; then
+    git clone "git://git.ffmpeg.org/rtmpdump" rtmpdump
+  fi
 
   pushDir rtmpdump/librtmp
+  git checkout -q 79459a2b43f41ac44a2ec001139bcb7b1b8f7497
+
   if [ $(uname -s) == "Darwin" ]; then
     librtmp_patches
   fi
