@@ -11,13 +11,15 @@ function main {
 
   checkForCommonBuildTools
 
-  for pkg in $(get_all_packages) ; do
+  for pkg in $(get_all_packages $1) ; do
     buildPackage . "$pkg" $1
   done
 }
 
 function get_all_packages
 {
+  local host=$1
+
   echo asio
   echo expat
   echo faad2
@@ -45,6 +47,10 @@ function get_all_packages
   echo rapidjson
   echo x264
   echo zlib
+
+  if [ "$host" == "x86_64-linux-gnu" ]; then
+    echo openssl
+  fi
 }
 
 #####################################

@@ -65,31 +65,6 @@ rsync -ar extra/release/$HOST/* extra/
 
 if [ "$HOST" == "x86_64-linux-gnu" ]; then
 	#-------------------------------------------------------------------------------
-	echo OpenSSL
-	#-------------------------------------------------------------------------------
-	if [ ! -f extra/src/openssl-1.1.0g/include/openssl/aes.h ] ; then
-		mkdir -p extra/src
-		rm -rf extra/src/openssl-1.1.0g
-		wget https://www.openssl.org/source/openssl-1.1.0g.tar.gz -O openssl.tar.gz
-		tar xvf openssl.tar.gz -C extra/src
-		rm openssl.tar.gz
-		pushd extra/src/openssl-1.1.0g
-		popd
-	fi
-
-	if [ ! -f extra/release/openssl/releaseOk ] ; then
-		mkdir -p extra/release/openssl
-		pushd extra/release/openssl
-		../../src/openssl-1.1.0g/config \
-			--prefix=$EXTRA_DIR
-		$MAKE depend
-		$MAKE
-		$MAKE install
-		popd
-		touch extra/release/openssl/releaseOk
-	fi
-
-	#-------------------------------------------------------------------------------
 	echo AWS-SDK
 	#-------------------------------------------------------------------------------
 	if [ ! -f extra/src/aws/CMakeLists.txt ] ; then
