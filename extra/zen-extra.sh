@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+readonly workDir=/tmp/mem/zen-work
+
 function main {
   readonly scriptDir=$(get_abs_dir $(dirname $0))
 
@@ -12,7 +14,7 @@ function main {
   checkForCommonBuildTools
 
   for pkg in $(get_all_packages $1) ; do
-    buildPackage . "$pkg" $1
+    buildPackage $workDir "$pkg" $1
   done
 }
 
