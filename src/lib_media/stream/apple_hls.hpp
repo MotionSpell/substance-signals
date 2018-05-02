@@ -14,7 +14,7 @@ namespace Stream {
 #ifdef LIBAVMUXHLS
 class LibavMuxHLSTS : public ModuleDynI {
 public:
-	LibavMuxHLSTS(bool isLowLatency, uint64_t segDurationInMs, const std::string &baseDir, const std::string &baseName, const std::string &options = "")
+	LibavMuxHLSTS(uint64_t segDurationInMs, const std::string &baseDir, const std::string &baseName, const std::string &options = "")
 	: segDuration(timescaleToClock(segDurationInMs, 1000)), hlsDir(baseDir), segBasename(baseName) {
 		delegate = create<Mux::LibavMux>(format("%s%s", hlsDir, baseName), "hls", options);
 		addInput(new Input<DataAVPacket>(this));

@@ -12,7 +12,7 @@ unittest("encoder: video simple") {
 	std::shared_ptr<DataBase> picture = uptr(new PictureYUV420P(VIDEO_RESOLUTION));
 
 	int numEncodedFrames = 0;
-	auto onFrame = [&](Data data) {
+	auto onFrame = [&](Data /*data*/) {
 		numEncodedFrames++;
 	};
 

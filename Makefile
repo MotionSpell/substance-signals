@@ -4,7 +4,6 @@ CFLAGS+=-Wall
 CFLAGS+=-Wextra
 CFLAGS+=-fvisibility=hidden -fvisibility-inlines-hidden 
 CFLAGS+=-W
-CFLAGS+=-Wno-unused-parameter
 CFLAGS+=-D__STDC_CONSTANT_MACROS
 
 BIN?=bin

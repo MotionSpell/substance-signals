@@ -53,7 +53,7 @@ void TimeRectifier::mimicOutputs() {
 	}
 }
 
-void TimeRectifier::declareScheduler(Data data, std::unique_ptr<IInput> &input, std::unique_ptr<IOutput> &output) {
+void TimeRectifier::declareScheduler(Data /*data*/, std::unique_ptr<IInput> &input, std::unique_ptr<IOutput> &output) {
 	auto const oMeta = output->getMetadata();
 	if (!oMeta) {
 		log(Debug, "Output isn't connected or doesn't expose a metadata: impossible to check.");

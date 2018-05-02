@@ -7,7 +7,7 @@ namespace Modules {
 class DataRawGPAC : public DataRaw {
 public:
 	/*takes ownership*/
-	DataRawGPAC(size_t size) : DataRaw(0), buffer(nullptr), bufferSize(0) {
+	DataRawGPAC(size_t /*size*/) : DataRaw(0), buffer(nullptr), bufferSize(0) {
 	}
 	~DataRawGPAC();
 	void setData(uint8_t *buffer, const size_t size) {
@@ -26,7 +26,7 @@ public:
 	uint64_t size() const override {
 		return bufferSize;
 	}
-	void resize(size_t size) override {
+	void resize(size_t /*size*/) override {
 		throw std::runtime_error("DataRawGPAC: forbidden operation resize().");
 	}
 

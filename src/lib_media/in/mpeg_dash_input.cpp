@@ -6,11 +6,11 @@
 namespace Modules {
 namespace In {
 
-MPEG_DASH_Input::MPEG_DASH_Input(std::string const &url) {
+MPEG_DASH_Input::MPEG_DASH_Input(std::string const &/*url*/) {
 	//GET MPD FROM HTTP
 
 	//PARSE MPD
-	
+
 	//DECLARE OUTPUT PORTS
 
 }

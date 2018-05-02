@@ -8,6 +8,7 @@ Null::Null() {
 }
 
 void Null::process(Data data) {
+	(void)data;
 }
 
 }

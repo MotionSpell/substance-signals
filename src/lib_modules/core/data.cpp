@@ -65,7 +65,7 @@ uint64_t DataBaseRef::size() const {
 	return dataRef->size();
 }
 
-void DataBaseRef::resize(size_t size) {
+void DataBaseRef::resize(size_t /*size*/) {
 	throw std::runtime_error("DataBaseRef::resize(): non-const operations not allowed. Aborting.");
 }
 

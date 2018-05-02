@@ -75,7 +75,7 @@ std::string Log::getColorBegin(Level level) {
 	return "";
 }
 
-std::string Log::getColorEnd(Level level) {
+std::string Log::getColorEnd(Level /*level*/) {
 	if (!getColor()) return "";
 #ifdef _WIN32
 	SetConsoleTextAttribute(console, console_attr_ori);

@@ -635,7 +635,7 @@ unittest("adaptive streaming combination coverage") {
 	std::vector<std::unique_ptr<Encode::LibavEncode>> encode;
 
 	std::vector<std::unique_ptr<Mux::GPACMuxMP4>> muxMP4File, muxMP4Mem, muxMP4MemFlushFrags;
-	auto muxTSSeg = create<Stream::LibavMuxHLSTS>(false, segmentDurationInMs, "", "muxTSSeg_", format("-hls_time %s -hls_playlist_type event", segmentDurationInMs / 1000));
+	auto muxTSSeg = create<Stream::LibavMuxHLSTS>(segmentDurationInMs, "", "muxTSSeg_", format("-hls_time %s -hls_playlist_type event", segmentDurationInMs / 1000));
 
 	auto clock = shptr(new Clock(0.0));
 	auto hls_ts = createModule<Stream::Apple_HLS>(ALLOC_NUM_BLOCKS_DEFAULT, clock, "", "hls_ts.m3u8", Stream::AdaptiveStreamingCommon::Live, segmentDurationInMs, 0, false, Stream::AdaptiveStreamingCommon::SegmentsNotOwned | Stream::AdaptiveStreamingCommon::PresignalNextSegment | Stream::AdaptiveStreamingCommon::ForceRealDurations);

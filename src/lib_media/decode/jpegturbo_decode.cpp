@@ -44,7 +44,7 @@ JPEGTurboDecode::JPEGTurboDecode()
 JPEGTurboDecode::~JPEGTurboDecode() {
 }
 
-void JPEGTurboDecode::ensureMetadata(int width, int height, int pixelFmt) {
+void JPEGTurboDecode::ensureMetadata(int /*width*/, int /*height*/, int /*pixelFmt*/) {
 	if (!output->getMetadata()) {
 		auto p = safe_cast<const MetadataRawVideo>(output->getMetadata());
 		//TODO: add resolution and pixel format to MetadataRawVideo

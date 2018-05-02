@@ -80,7 +80,7 @@ typedef OutputDataDefault<DataPicture> OutputPicture;
 //TODO: we should probably separate planar vs non-planar data, avoid resize on the data, etc.
 class DataPicture : public DataRaw {
 public:
-	DataPicture(size_t unused) : DataRaw(0) {}
+	DataPicture(size_t /*unused*/) : DataRaw(0) {}
 	static std::shared_ptr<DataPicture> create(OutputPicture *out, const Resolution &res, const PixelFormat &format);
 	static std::shared_ptr<DataPicture> create(OutputPicture *out, const Resolution &res, const Resolution &resInternal, const PixelFormat &format);
 
@@ -112,7 +112,7 @@ protected:
 
 class PictureY8 : public DataPicture {
 public:
-	PictureY8(size_t unused) : DataPicture(0) {
+	PictureY8(size_t /*unused*/) : DataPicture(0) {
 		internalFormat.format = format.format = Y8;
 	}
 	PictureY8(const Resolution &res) : DataPicture(res, Y8) {
@@ -148,7 +148,7 @@ private:
 
 class PictureYUV420P : public DataPicture {
 public:
-	PictureYUV420P(size_t unused) : DataPicture(0) {
+	PictureYUV420P(size_t /*unused*/) : DataPicture(0) {
 		internalFormat.format = format.format = YUV420P;
 	}
 	PictureYUV420P(const Resolution &res) : DataPicture(res, YUV420P) {
@@ -189,7 +189,7 @@ private:
 
 class PictureYUV420P10LE : public DataPicture {
 public:
-	PictureYUV420P10LE(size_t unused) : DataPicture(0) {
+	PictureYUV420P10LE(size_t /*unused*/) : DataPicture(0) {
 		internalFormat.format = format.format = YUV420P10LE;
 	}
 	PictureYUV420P10LE(const Resolution &res) : DataPicture(res, YUV420P10LE) {
@@ -230,7 +230,7 @@ private:
 
 class PictureYUV422P : public DataPicture {
 public:
-	PictureYUV422P(size_t unused) : DataPicture(0) {
+	PictureYUV422P(size_t /*unused*/) : DataPicture(0) {
 		internalFormat.format = format.format = YUV422P;
 	}
 	PictureYUV422P(const Resolution &res) : DataPicture(res, YUV422P) {
@@ -271,7 +271,7 @@ private:
 
 class PictureYUV422P10LE : public DataPicture {
 public:
-	PictureYUV422P10LE(size_t unused) : DataPicture(0) {
+	PictureYUV422P10LE(size_t /*unused*/) : DataPicture(0) {
 		internalFormat.format = format.format = YUV422P10LE;
 	}
 	PictureYUV422P10LE(const Resolution &res) : DataPicture(res, YUV422P10LE) {
@@ -312,7 +312,7 @@ private:
 
 class PictureYUYV422 : public DataPicture {
 public:
-	PictureYUYV422(size_t unused) : DataPicture(0) {
+	PictureYUYV422(size_t /*unused*/) : DataPicture(0) {
 		internalFormat.format = format.format = YUYV422;
 	}
 	PictureYUYV422(const Resolution &res) : DataPicture(res, YUYV422) {
@@ -322,13 +322,13 @@ public:
 	size_t getNumPlanes() const override {
 		return 1;
 	}
-	const uint8_t* getPlane(size_t planeIdx) const override {
+	const uint8_t* getPlane(size_t /*planeIdx*/) const override {
 		return data();
 	}
-	uint8_t* getPlane(size_t planeIdx) override {
+	uint8_t* getPlane(size_t /*planeIdx*/) override {
 		return data();
 	}
-	size_t getPitch(size_t planeIdx) const override {
+	size_t getPitch(size_t /*planeIdx*/) const override {
 		return internalFormat.res.width * 2;
 	}
 	void setInternalResolution(const Resolution &res) override {
@@ -342,7 +342,7 @@ public:
 
 class PictureNV12 : public DataPicture {
 public:
-	PictureNV12(size_t unused) : DataPicture(0) {
+	PictureNV12(size_t /*unused*/) : DataPicture(0) {
 		internalFormat.format = format.format = NV12;
 	}
 	PictureNV12(const Resolution &res) : DataPicture(res, NV12) {
@@ -380,7 +380,7 @@ private:
 
 class PictureRGB24 : public DataPicture {
 public:
-	PictureRGB24(size_t unused) : DataPicture(0) {
+	PictureRGB24(size_t /*unused*/) : DataPicture(0) {
 		internalFormat.format = format.format = RGB24;
 	}
 	PictureRGB24(const Resolution &res) : DataPicture(res, RGB24) {
@@ -390,13 +390,13 @@ public:
 	size_t getNumPlanes() const override {
 		return 1;
 	}
-	const uint8_t* getPlane(size_t planeIdx) const override {
+	const uint8_t* getPlane(size_t /*planeIdx*/) const override {
 		return data();
 	}
-	uint8_t* getPlane(size_t planeIdx) override {
+	uint8_t* getPlane(size_t /*planeIdx*/) override {
 		return data();
 	}
-	size_t getPitch(size_t planeIdx) const override {
+	size_t getPitch(size_t /*planeIdx*/) const override {
 		return internalFormat.res.width * 3;
 	}
 	void setInternalResolution(const Resolution &res) override {
@@ -411,7 +411,7 @@ public:
 
 class PictureRGBA32 : public DataPicture {
 public:
-	PictureRGBA32(size_t unused) : DataPicture(0) {
+	PictureRGBA32(size_t /*unused*/) : DataPicture(0) {
 		internalFormat.format = format.format = RGBA32;
 	}
 	PictureRGBA32(const Resolution &res) : DataPicture(res, RGBA32) {
@@ -421,13 +421,13 @@ public:
 	size_t getNumPlanes() const override {
 		return 1;
 	}
-	const uint8_t* getPlane(size_t planeIdx) const override {
+	const uint8_t* getPlane(size_t /*planeIdx*/) const override {
 		return data();
 	}
-	uint8_t* getPlane(size_t planeIdx) override {
+	uint8_t* getPlane(size_t /*planeIdx*/) override {
 		return data();
 	}
-	size_t getPitch(size_t planeIdx) const override {
+	size_t getPitch(size_t /*planeIdx*/) const override {
 		return internalFormat.res.width * 4;
 	}
 	void setInternalResolution(const Resolution &res) override {

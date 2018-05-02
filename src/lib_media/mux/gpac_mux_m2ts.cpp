@@ -34,7 +34,7 @@ GPACMuxMPEG2TS::~GPACMuxMPEG2TS() {
 #endif
 }
 
-GF_Err GPACMuxMPEG2TS::staticFillInput(GF_ESInterface *esi, u32 ctrl_type, void *param) {
+GF_Err GPACMuxMPEG2TS::staticFillInput(GF_ESInterface *esi, u32 ctrl_type, void * /*param*/) {
 	auto userData = (UserData*)esi->input_udta;
 	return userData->muxer->fillInput(esi, ctrl_type, userData->inputIdx);
 }
@@ -122,7 +122,7 @@ void GPACMuxMPEG2TS::declareStream(Data data) {
 		ifce.info_audio.sample_rate = 0;
 		ifce.info_audio.nb_channels = 0;
 #endif
-	} else 
+	} else
 		throw std::runtime_error("[GPACMuxMPEG2TS] Stream creation failed: unknown type.");
 
 	//TODO: Fill the interface with test content; the current GPAC importer needs to be generalized
