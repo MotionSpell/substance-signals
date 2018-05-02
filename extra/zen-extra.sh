@@ -27,6 +27,7 @@ function get_all_packages
   echo gpac
   echo liba52
   echo libass
+  echo libcurl
   echo libjpeg
   echo libjpeg-turbo
   echo libmad

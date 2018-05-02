@@ -63,31 +63,6 @@ popd >/dev/null
 ## move files
 rsync -ar extra/release/$HOST/* extra/
 
-#-------------------------------------------------------------------------------
-echo cURL
-#-------------------------------------------------------------------------------
-if [ ! -f extra/src/curl/include/curl/curl.h ] ; then
-	mkdir -p extra/src
-	rm -rf extra/src/curl
-	git clone https://github.com/curl/curl.git extra/src/curl
-	pushd extra/src/curl
-	git checkout curl-7_58_0
-	autoreconf -fiv
-	popd
-fi
-
-if [ ! -f extra/release/curl/releaseOk ] ; then
-	mkdir -p extra/release/curl
-	pushd extra/release/curl
-	../../src/curl/configure \
-		--prefix=$EXTRA_DIR \
-		--host=$HOST
-	$MAKE
-	$MAKE install
-	popd
-	touch extra/release/curl/releaseOk
-fi
-
 if [ "$HOST" == "x86_64-linux-gnu" ]; then
 	#-------------------------------------------------------------------------------
 	echo OpenSSL
