@@ -39,6 +39,7 @@ function get_all_packages
   echo libvorbis
   echo libxvidcore
   echo opencore-amr
+  echo optionparser
   echo x264
   echo zlib
 }

@@ -64,22 +64,6 @@ popd >/dev/null
 rsync -ar extra/release/$HOST/* extra/
 
 #-------------------------------------------------------------------------------
-echo optionparser
-#-------------------------------------------------------------------------------
-if [ ! -f extra/src/optionparser-1.3/src/optionparser.h ] ; then
-	mkdir -p extra/src
-	rm -rf extra/src/optionparser-1.3
-	wget http://sourceforge.net/projects/optionparser/files/optionparser-1.3.tar.gz/download -O optionparser-1.3.tar.gz
-	tar xvf optionparser-1.3.tar.gz -C extra/src
-	rm optionparser-1.3.tar.gz
-fi
-
-if [ ! -f extra/include/optionparser/optionparser.h ] ; then
-	mkdir -p extra/include/optionparser
-	cp extra/src/optionparser-1.3/src/optionparser.h extra/include/optionparser/
-fi
-
-#-------------------------------------------------------------------------------
 echo rapidjson
 #-------------------------------------------------------------------------------
 if [ ! -f extra/src/rapidjson/include/rapidjson/rapidjson.h ] ; then
