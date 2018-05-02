@@ -473,4 +473,14 @@ void fps2NumDen(const double fps, T &num, T &den) {
 	}
 }
 
+inline Modules::VideoCodecType encoderType(const std::string &opt_encoder_type) {
+	if (opt_encoder_type == "software") {
+		return Modules::Software;
+	} else if (opt_encoder_type == "quicksync") {
+		return Modules::Hardware_qsv;
+	} else if (opt_encoder_type == "nvenc") {
+		return Modules::Hardware_nvenc;
+	} else
+		throw std::runtime_error("Unknown encoder type. Aborting.");
+}
 }
