@@ -1,7 +1,6 @@
 
 function fribidi_build {
   host=$1
-  pushDir $WORK/src
 
   lazy_download "fribidi.tar.xz" "https://ftp.osuosl.org/pub/blfs/conglomeration/fribidi/fribidi-0.19.6.tar.bz2"
   lazy_extract "fribidi.tar.xz"
@@ -14,8 +13,6 @@ function fribidi_build {
   autoconf_build $host "fribidi" \
     --enable-shared \
     --disable-static
-
-  popDir
 }
 
 function fribidi_get_deps {

@@ -5,7 +5,6 @@ function libxvidcore_get_deps {
 
 function libxvidcore_build {
   local host=$1
-  pushDir $WORK/src
 
   lazy_download "libxvidcore.tar.gz" "http://downloads.xvid.org/downloads/xvidcore-1.3.3.tar.gz"
   lazy_extract "libxvidcore.tar.gz"
@@ -21,7 +20,6 @@ function libxvidcore_build {
   $MAKE install
 
 
-  popDir
   popDir
 }
 

@@ -5,7 +5,6 @@ function libmad_get_deps {
 
 function libmad_build {
   local host=$1
-  pushDir $WORK/src
 
   lazy_download "libmad.tar.gz" "http://sourceforge.net/projects/mad/files/libmad/0.15.1b/libmad-0.15.1b.tar.gz"
   lazy_extract "libmad.tar.gz"
@@ -22,8 +21,6 @@ function libmad_build {
   fi
 
   autoconf_build $host "libmad"
-
-  popDir
 }
 
 

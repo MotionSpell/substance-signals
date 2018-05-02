@@ -1,7 +1,5 @@
 
 function openssl_build {
-  pushDir $WORK/src
-
   lazy_download "openssl.tar.gz" https://www.openssl.org/source/openssl-1.1.0g.tar.gz
   lazy_extract "openssl.tar.gz"
 
@@ -13,8 +11,6 @@ function openssl_build {
   $MAKE depend
   $MAKE
   $MAKE install_dev install_runtime
-  popDir
-
   popDir
 }
 

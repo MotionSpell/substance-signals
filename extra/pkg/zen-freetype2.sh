@@ -1,7 +1,6 @@
 
 function freetype2_build {
   host=$1
-  pushDir $WORK/src
 
   lazy_download "freetype2.tar.bz2" "http://download.savannah.gnu.org/releases/freetype/freetype-2.7.1.tar.bz2"
   lazy_extract "freetype2.tar.bz2"
@@ -15,8 +14,6 @@ function freetype2_build {
     "--without-png" \
     "--enable-shared" \
     "--disable-static"
-
-  popDir
 }
 
 function freetype2_get_deps {

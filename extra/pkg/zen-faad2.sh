@@ -1,7 +1,6 @@
 
 function faad2_build {
   host=$1
-  pushDir $WORK/src
 
   lazy_download "faad2.tar.bz2" "http://downloads.sourceforge.net/faac/faad2-2.7.tar.bz2"
   lazy_extract "faad2.tar.bz2"
@@ -12,8 +11,6 @@ function faad2_build {
   popDir
 
   autoconf_build $host "faad2"
-
-  popDir
 }
 
 function faad2_get_deps {

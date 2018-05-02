@@ -1,7 +1,6 @@
 
 function gpac_build {
   host=$1
-  pushDir $WORK/src
 
   lazy_git_clone https://github.com/gpac/gpac.git gpac e0ac0849fea
 
@@ -32,7 +31,6 @@ function gpac_build {
   $MAKE install
   $MAKE install-lib
 
-  popDir
   popDir
 }
 

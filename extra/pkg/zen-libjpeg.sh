@@ -6,15 +6,12 @@ function libjpeg_get_deps {
 function libjpeg_build {
   local host=$1
 
-  pushDir $WORK/src
   lazy_download "libjpeg-$host.tar.gz" "http://www.ijg.org/files/jpegsrc.v9a.tar.gz"
 
   lazy_extract "libjpeg-$host.tar.gz"
 
   autoconf_build $host "libjpeg-$host" \
     --enable-dependency-tracking
-
-  popDir
 }
 
 

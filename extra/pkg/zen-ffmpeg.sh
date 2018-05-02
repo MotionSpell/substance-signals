@@ -1,7 +1,6 @@
 
 function ffmpeg_build {
   host=$1
-  pushDir $WORK/src
 
   lazy_git_clone git://source.ffmpeg.org/ffmpeg.git ffmpeg 4588063f3ecd9
 
@@ -46,8 +45,6 @@ function ffmpeg_build {
       --cross-prefix=$host-
   $MAKE
   $MAKE install
-  popDir
-
   popDir
 }
 

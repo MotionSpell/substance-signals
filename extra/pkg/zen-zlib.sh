@@ -1,7 +1,6 @@
 
 function zlib_build {
   host=$1
-  pushDir $WORK/src
   lazy_download "zlib-$host.tar.gz" "http://zlib.net/fossils/zlib-1.2.9.tar.gz"
   lazy_extract "zlib-$host.tar.gz"
   mkgit "zlib-$host"
@@ -17,7 +16,6 @@ function zlib_build {
   $MAKE
   $MAKE install
 
-  popDir
   popDir
 }
 

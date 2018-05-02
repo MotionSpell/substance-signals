@@ -1,7 +1,6 @@
 
 function libtheora_build {
   host=$1
-  pushDir $WORK/src
 
   lazy_download "libtheora.tar.bz2" "http://downloads.xiph.org/releases/theora/libtheora-1.1.1.tar.bz2"
   lazy_extract "libtheora.tar.bz2"
@@ -22,7 +21,6 @@ function libtheora_build {
   $MAKE
   $MAKE install
 
-  popDir
   popDir
 }
 

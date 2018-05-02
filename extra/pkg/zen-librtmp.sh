@@ -1,7 +1,6 @@
 
 function librtmp_build {
   host=$1
-  pushDir $WORK/src
   lazy_git_clone "git://git.ffmpeg.org/rtmpdump" rtmpdump 79459a2b43f41ac44a2ec001139bcb7b1b8f7497
 
   pushDir rtmpdump/librtmp
@@ -22,7 +21,6 @@ function librtmp_build {
   $MAKE CROSS_COMPILE="$host-"
   $MAKE CROSS_COMPILE="$host-" install
 
-  popDir
   popDir
 }
 

@@ -1,7 +1,6 @@
 
 function fontconfig_build {
   host=$1
-  pushDir $WORK/src
 
   lazy_download "fontconfig.tar.bz2" "http://www.freedesktop.org/software/fontconfig/release/fontconfig-2.12.6.tar.bz2"
   lazy_extract "fontconfig.tar.bz2"
@@ -22,7 +21,6 @@ function fontconfig_build {
   $MAKE install || true #avoid error: /usr/bin/install: cannot stat
   popDir
 
-  popDir
   popDir
 }
 

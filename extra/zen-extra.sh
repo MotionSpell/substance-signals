@@ -330,10 +330,14 @@ function lazy_build {
     build $host $depName
   done
 
+  pushDir $WORK/src
+
   # launch the builder in a separate process
   # so it cannot modify our environment.
   ${name}_build $host &
   pid=$!
+
+  popDir
 
   if ! wait $pid ; then
     echo "Build failure"
