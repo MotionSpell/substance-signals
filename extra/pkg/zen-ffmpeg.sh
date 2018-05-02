@@ -26,6 +26,7 @@ function ffmpeg_build {
       --enable-pthreads \
       --disable-w32threads \
       --disable-debug \
+      --disable-doc \
       --disable-static \
       --enable-shared \
       --enable-libass \
