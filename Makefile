@@ -46,6 +46,22 @@ LDFLAGS+=$(LDLIBS)
 
 all: targets
 
+PKGS:=\
+	libavcodec\
+	libavdevice\
+	libavfilter\
+	libavformat\
+	libavutil\
+	libswresample\
+	libswscale\
+	x264\
+	freetype2\
+	gpac\
+
+ifeq ($(SIGNALS_HAS_X11), 1)
+	PKGS+=sdl2
+endif
+
 $(BIN)/config.mk:
 	@echo "Configuring ..."
 	@set -e ; \
@@ -54,17 +70,9 @@ $(BIN)/config.mk:
 	echo $(EXTRA); \
 	/bin/echo '# config file' > $(BIN)/config.mk.tmp ; \
 	/bin/echo -n 'CFLAGS+=' >> $(BIN)/config.mk.tmp ; \
-	pkg-config --cflags libavcodec libavdevice libavfilter libavformat libavutil libswresample libswscale x264 freetype2 >> $(BIN)/config.mk.tmp ; \
+	pkg-config --cflags $(PKGS) >> $(BIN)/config.mk.tmp ; \
 	/bin/echo -n 'LDFLAGS+=' >> $(BIN)/config.mk.tmp ; \
-	pkg-config --libs libavcodec libavdevice libavfilter libavformat libavutil libswresample libswscale x264 freetype2 gpac >> $(BIN)/config.mk.tmp
-
-ifeq ($(SIGNALS_HAS_X11), 1)
-	export PKG_CONFIG_PATH=$(EXTRA)/lib/pkgconfig:$$PKG_CONFIG_PATH ; \
-	/bin/echo -n 'CFLAGS+=' >> $(BIN)/config.mk.tmp ; \
-	pkg-config --cflags sdl2 >> $(BIN)/config.mk.tmp ; \
-	/bin/echo -n 'LDFLAGS+=' >> $(BIN)/config.mk.tmp ; \
-	pkg-config --libs sdl2 >> $(BIN)/config.mk.tmp
-endif
+	pkg-config --libs $(PKGS) >> $(BIN)/config.mk.tmp
 
 ifeq ($(SIGNALS_HAS_AWS), 1)
 	/bin/echo 'LDFLAGS+=-laws-cpp-sdk-core -laws-cpp-sdk-mediastore -laws-cpp-sdk-mediastore-data' >> $(BIN)/config.mk.tmp ; 
