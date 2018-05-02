@@ -92,26 +92,49 @@ std::shared_ptr<DataBase> getTestH264Frame() {
 }
 }
 
+// move this to tests.hpp when it has other users,
+// but first find a way not to explicitly depend on 'vector'.
+template<typename T>
+inline std::ostream& operator<<(std::ostream& o, std::vector<T> iterable) {
+	o << "[";
+	bool first = true;
+	for(auto& val : iterable) {
+		if(!first)
+			o << ", ";
+		o << val;
+		first = false;
+	}
+	o << "]";
+	return o;
+}
+
 unittest("decode: video simple") {
 	auto decode = createVideoDecoder();
 	auto data = getTestH264Frame();
 
+	std::vector<std::string> actualFrames;
+
 	auto onPic = [&](Data data) {
 		auto const pic = safe_cast<const DataPicture>(data);
 		auto const format = pic->getFormat();
-		ASSERT_EQUALS(16, format.res.width);
-		ASSERT_EQUALS(16, format.res.height);
-		ASSERT_EQUALS(YUV420P, format.format);
-
 		auto const firstPixel = *pic->getPlane(0);
-		auto const lastPixel = *(pic->getPlane(0) + format.res.width * format.res.height - 1);
-		ASSERT_EQUALS(0x80, firstPixel);
-		ASSERT_EQUALS(0x80, lastPixel);
+		auto const lastPixel = *(pic->getPlane(0) + pic->getPitch(0) * (format.res.height-1) + format.res.width - 1);
+
+		char info[256];
+		sprintf(info, "'%dx%d %d %.2X %.2X'", format.res.width, format.res.height, format.format, firstPixel, lastPixel);
+		actualFrames.push_back(info);
 	};
+
+	auto expectedFrames = std::vector<std::string>({
+		"'16x16 1 80 80'",
+		"'16x16 1 80 80'",
+	});
 
 	Connect(decode->getOutput(0)->getSignal(), onPic);
 	decode->process(data);
 	decode->process(data);
+	decode->flush();
+	ASSERT_EQUALS(expectedFrames, actualFrames);
 }
 
 unittest("decode: audio mp3 manual frame to AAC") {
