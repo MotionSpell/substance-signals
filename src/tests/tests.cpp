@@ -21,8 +21,8 @@ int g_NumTests;
 
 namespace Tests {
 
-void Test(const std::string &name) {
-	std::cout << std::endl << "[ ***** " << name.c_str() << " ***** ]" << std::endl;
+void Test(char const* name) {
+	std::cout << std::endl << "[ ***** " << name << " ***** ]" << std::endl;
 }
 
 void Fail(char const* file, int line, const char* msg) {

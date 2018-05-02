@@ -1,7 +1,6 @@
 #pragma once
 
 #include <sstream>
-#include <string>
 
 #define TESTS
 // generate a file-unique identifier, based on current line
@@ -18,7 +17,7 @@
 
 namespace Tests {
 
-void Test(const std::string &name);
+void Test(char const* name);
 void Fail(char const* file, int line, const char* msg);
 
 #define ASSERT(expr) \
