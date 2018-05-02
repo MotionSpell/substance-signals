@@ -64,28 +64,6 @@ popd >/dev/null
 rsync -ar extra/release/$HOST/* extra/
 
 #-------------------------------------------------------------------------------
-echo rapidjson
-#-------------------------------------------------------------------------------
-if [ ! -f extra/src/rapidjson/include/rapidjson/rapidjson.h ] ; then
-	mkdir -p extra/src
-	rm -rf extra/src/rapidjson
-	git clone https://github.com/miloyip/rapidjson.git extra/src/rapidjson
-	pushd extra/src/rapidjson
-	git checkout 67d8a99477b4e1b638b920cc9b02f8910dfb05e7
-	git submodule update --init
-	popd
-fi
-
-if [ ! -f extra/release/rapidjson/releaseOk ] ; then
-	mkdir -p extra/release/rapidjson
-	touch extra/release/rapidjson/releaseOk
-fi
-
-if [ ! -f extra/include/rapidjson/rapidjson.h ] ; then
-	cp -r extra/src/rapidjson/include/rapidjson extra/include/
-fi
-
-#-------------------------------------------------------------------------------
 echo cURL
 #-------------------------------------------------------------------------------
 if [ ! -f extra/src/curl/include/curl/curl.h ] ; then

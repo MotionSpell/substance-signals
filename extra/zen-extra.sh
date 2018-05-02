@@ -40,6 +40,7 @@ function get_all_packages
   echo libxvidcore
   echo opencore-amr
   echo optionparser
+  echo rapidjson
   echo x264
   echo zlib
 }
@@ -130,6 +131,7 @@ function lazy_git_clone {
 
   pushDir "$to"
   git checkout -q $rev
+	git submodule update --init
   popDir
 }
 
