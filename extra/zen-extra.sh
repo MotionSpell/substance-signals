@@ -118,6 +118,7 @@ function lazy_git_clone {
   local url="$1"
   local to="$2"
   local rev="$3"
+  local depth=1
 
   if [ -d "$to" ] ;
   then
@@ -126,11 +127,15 @@ function lazy_git_clone {
     git clean -q -f
     popDir
   else
-    git clone "$url" "$to"
+    echo "git clone: $url"
+    git clone --depth=$depth "$url" "$to"
   fi
 
   pushDir "$to"
-  git checkout -q $rev
+  while ! git checkout -q $rev ; do
+    depth=$(($depth * 10))
+    git fetch --depth=$depth
+  done
 	git submodule update --init
   popDir
 }
