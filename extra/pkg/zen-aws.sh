@@ -1,6 +1,6 @@
 
 function aws_build {
-  lazy_git_clone "https://github.com/aws/aws-sdk-cpp.git" "aws" "1.3.48"
+  lazy_git_clone "https://github.com/aws/aws-sdk-cpp.git" "aws" "1.4.40"
 
   mkdir -p aws/bin/$host
   pushDir aws/bin/$host
