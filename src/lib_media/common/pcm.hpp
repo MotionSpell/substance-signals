@@ -180,7 +180,7 @@ public:
 		format.numPlanes = numAudioPlanes;
 		freePlanes();
 		for (uint8_t i = 0; i < numAudioPlanes; ++i) {
-			setPlane(i, planes[i], planeSize[i]);
+			setPlane(i, audioPlanes[i], audioPlaneSize[i]);
 		}
 	}
 
