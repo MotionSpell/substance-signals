@@ -191,17 +191,20 @@ function buildPackage {
   BUILD=$($scriptDir/config.guess | sed 's/-unknown//' | sed 's/-msys$/-mingw32/')
   mkdir -p patches
 
-  printMsg "Building in: $WORK"
-
-  printMsg "Build platform: $BUILD"
-  printMsg "Target platform: $hostPlatform"
-
   if [ $hostPlatform = "-" ]; then
     hostPlatform=$BUILD
   fi
 
-  initSymlinks
-  checkForCrossChain "$BUILD" "$hostPlatform"
+  if [ -z ${alreadyDone:-} ] ; then
+    printMsg "Building in: $WORK"
+
+    printMsg "Build platform: $BUILD"
+    printMsg "Target platform: $hostPlatform"
+
+    initSymlinks
+    checkForCrossChain "$BUILD" "$hostPlatform"
+    alreadyDone="yes"
+  fi
 
   CACHE=$WORK/cache
   mkdir -p $CACHE

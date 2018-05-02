@@ -56,9 +56,9 @@ esac
 #-------------------------------------------------------------------------------
 echo zenbuild extra script
 #-------------------------------------------------------------------------------
-pushd extra
+pushd extra >/dev/null
 ./zen-extra.sh $CPREFIX
-popd
+popd >/dev/null
 
 ## move files
 rsync -ar extra/release/$HOST/* extra/
