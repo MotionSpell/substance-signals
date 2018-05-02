@@ -1,3 +1,4 @@
+#include <iostream>
 #include "tests.hpp"
 #include "lib_utils/clock.hpp"
 

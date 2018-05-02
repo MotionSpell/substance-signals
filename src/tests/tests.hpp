@@ -1,10 +1,7 @@
 #pragma once
 
-#include <csignal>
-#include <cstdint>
-#include <iostream>
 #include <sstream>
-#include <thread>
+#include <string>
 
 #define TESTS
 // generate a file-unique identifier, based on current line
@@ -20,10 +17,9 @@
 	unittestLine(__COUNTER__, prettyName)
 
 namespace Tests {
-inline void Fail(char const* file, int line, const char* msg) {
-	std::cerr << "TEST FAILED: " << file << "(" << line << "): " << msg << std::endl;
-	std::raise(SIGABRT);
-}
+
+void Test(const std::string &name);
+void Fail(char const* file, int line, const char* msg);
 
 #define ASSERT(expr) \
 	if (!(expr)) { \
@@ -41,9 +37,5 @@ inline void Fail(char const* file, int line, const char* msg) {
 
 int RegisterTest(void (*f)(), const char* testName, int& dummy);
 void RunAll();
-
-inline void Test(const std::string &name) {
-	std::cout << std::endl << "[ ***** " << name.c_str() << " ***** ]" << std::endl;
-}
 
 }

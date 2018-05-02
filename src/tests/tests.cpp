@@ -1,6 +1,8 @@
 #include <iostream>
 #include <stdexcept>
 #include <cstdlib>
+#include <csignal>
+#include <iostream>
 #include "lib_utils/profiler.hpp"
 #include "lib_utils/tools.hpp"
 #include "tests.hpp"
@@ -18,6 +20,15 @@ int g_NumTests;
 }
 
 namespace Tests {
+
+void Test(const std::string &name) {
+	std::cout << std::endl << "[ ***** " << name.c_str() << " ***** ]" << std::endl;
+}
+
+void Fail(char const* file, int line, const char* msg) {
+	std::cerr << "TEST FAILED: " << file << "(" << line << "): " << msg << std::endl;
+	std::raise(SIGABRT);
+}
 
 int RegisterTest(void (*fn)(), const char* testName, int&) {
 	g_AllTests[g_NumTests].fn = fn;
