@@ -18,6 +18,7 @@ function main {
 
 function get_all_packages
 {
+  echo asio
   echo expat
   echo faad2
   echo ffmpeg
