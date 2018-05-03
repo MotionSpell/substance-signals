@@ -128,7 +128,7 @@ Lines
 Namespaces
 ==========
 
-* Always use fully qualified name for standard library (e.g.using namespace std; is not allowed anywhere).
+* In header files, always use fully qualified name for standard library (e.g.using namespace std; is only allowed in implementation files).
 * No indent in namespaces.
 
 
