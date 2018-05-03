@@ -8,7 +8,7 @@ const int64_t maxTimeInMs = 500;
 
 using namespace std::chrono;
 
-Repeater::Repeater(int64_t ms) : timeInMs(ms) {
+Repeater::Repeater(int64_t ms) : periodInMs(ms) {
 	done = false;
 	addInput(new Input<DataBase>(this));
 	addOutput<OutputDataDefault<DataBase>>();
@@ -33,10 +33,10 @@ Repeater::~Repeater() {
 
 void Repeater::threadProc() {
 	while (!done) {
-		std::this_thread::sleep_for(milliseconds(std::min(timeInMs, maxTimeInMs)));
+		std::this_thread::sleep_for(milliseconds(std::min(periodInMs, maxTimeInMs)));
 		auto const now = high_resolution_clock::now();
 		auto const waitTimeInMs = (duration_cast<milliseconds>(now - lastNow)).count();
-		if (waitTimeInMs > timeInMs) {
+		if (waitTimeInMs > periodInMs) {
 			if (lastData) outputs[0]->emit(lastData);
 			lastNow = high_resolution_clock::now();
 		}

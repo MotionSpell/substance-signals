@@ -19,7 +19,7 @@ private:
 	void threadProc();
 	std::thread workingThread;
 	std::atomic_bool done;
-	int64_t timeInMs;
+	int64_t periodInMs;
 	std::chrono::time_point<std::chrono::high_resolution_clock> lastNow;
 	Data lastData;
 };
