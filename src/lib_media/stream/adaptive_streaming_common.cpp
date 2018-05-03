@@ -246,7 +246,7 @@ void AdaptiveStreamingCommon::threadProc() {
 
 				if (segDurationInMs && curDurIn180k) {
 					auto const numSeg = totalDurationInMs / segDurationInMs;
-					qualities[i]->avg_bitrate_in_bps = ((meta->getSize() * 8 * Clock::Rate) / meta->getDuration() + qualities[i]->avg_bitrate_in_bps * numSeg) / (numSeg + 1);
+					qualities[i]->avg_bitrate_in_bps = ((meta->getSize() * 8 * IClock::Rate) / meta->getDuration() + qualities[i]->avg_bitrate_in_bps * numSeg) / (numSeg + 1);
 				}
 				if (flags & ForceRealDurations) {
 					curSegDurIn180k[i] += meta->getDuration();

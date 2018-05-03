@@ -200,7 +200,7 @@ void LibavEncode::computeDurationAndEmit(std::shared_ptr<DataAVPacket> &data, in
 }
 
 int64_t LibavEncode::computePTS(const int64_t mediaTime) const {
-	return (mediaTime * codecCtx->time_base.den) / (codecCtx->time_base.num * (int64_t)Clock::Rate);
+	return (mediaTime * codecCtx->time_base.den) / (codecCtx->time_base.num * (int64_t)IClock::Rate);
 }
 
 bool LibavEncode::processAudio(Data data) {
@@ -237,8 +237,8 @@ void LibavEncode::computeFrameAttributes(AVFrame * const f, const int64_t currMe
 		f->key_frame = 1;
 		f->pict_type = AV_PICTURE_TYPE_I;
 	} else {
-		auto const prevGOP = ((prevMediaTime - firstMediaTime) * GOPSize.den * codecCtx->time_base.den) / (GOPSize.num * codecCtx->time_base.num * TIMESCALE_MUL * (int64_t)Clock::Rate);
-		auto const currGOP = ((currMediaTime - firstMediaTime) * GOPSize.den * codecCtx->time_base.den) / (GOPSize.num * codecCtx->time_base.num * TIMESCALE_MUL * (int64_t)Clock::Rate);
+		auto const prevGOP = ((prevMediaTime - firstMediaTime) * GOPSize.den * codecCtx->time_base.den) / (GOPSize.num * codecCtx->time_base.num * TIMESCALE_MUL * (int64_t)IClock::Rate);
+		auto const currGOP = ((currMediaTime - firstMediaTime) * GOPSize.den * codecCtx->time_base.den) / (GOPSize.num * codecCtx->time_base.num * TIMESCALE_MUL * (int64_t)IClock::Rate);
 		if (prevGOP != currGOP) {
 			if (currGOP != prevGOP + 1) {
 				log(Warning, "Invalid content: switching from GOP %s to GOP %s - inserting RAP.", prevGOP, currGOP);

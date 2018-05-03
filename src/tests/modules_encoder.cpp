@@ -68,19 +68,19 @@ void RAPTest(const Fraction fps, const std::vector<uint64_t> &times, const std::
 }
 
 unittest("encoder: RAP placement (25/1 fps)") {
-	const std::vector<uint64_t> times = { 0, Clock::Rate / 2, Clock::Rate, Clock::Rate * 3 / 2, Clock::Rate * 2 };
+	const std::vector<uint64_t> times = { 0, IClock::Rate / 2, IClock::Rate, IClock::Rate * 3 / 2, IClock::Rate * 2 };
 	const std::vector<bool> RAPs = { true, false, true, false, true };
 	RAPTest(Fraction(25, 1), times, RAPs);
 }
 
 unittest("encoder: RAP placement (30000/1001 fps)") {
-	const std::vector<uint64_t> times = { 0, Clock::Rate/2, Clock::Rate, Clock::Rate*3/2, Clock::Rate*2 };
+	const std::vector<uint64_t> times = { 0, IClock::Rate/2, IClock::Rate, IClock::Rate*3/2, IClock::Rate*2 };
 	const std::vector<bool> RAPs = { true, false, true, false, true };
 	RAPTest(Fraction(30000, 1001), times, RAPs);
 }
 
 unittest("encoder: RAP placement (incorrect timings)") {
-	const std::vector<uint64_t> times = { 0, 0, Clock::Rate };
+	const std::vector<uint64_t> times = { 0, 0, IClock::Rate };
 	const std::vector<bool> RAPs = { true, false, true };
 	RAPTest(Fraction(25, 1), times, RAPs);
 }
@@ -88,7 +88,7 @@ unittest("encoder: RAP placement (incorrect timings)") {
 #ifdef ENABLE_FAILING_TESTS
 unittest("GPAC mp4 mux: don't create empty fragments") {
 	auto const segmentDurationInMs = 1000;
-	const std::vector<uint64_t> times = { Clock::Rate, 0, 3*Clock::Rate };
+	const std::vector<uint64_t> times = { IClock::Rate, 0, 3*IClock::Rate };
 	Encode::LibavEncode::Params p;
 	p.frameRate.num = 1;
 	std::shared_ptr<DataBase> picture = uptr(new PictureYUV420P(VIDEO_RESOLUTION));

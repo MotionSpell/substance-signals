@@ -9,7 +9,7 @@
 
 namespace Modules {
 
-static uint64_t const ANALYZE_WINDOW_IN_180K = (5 * Clock::Rate);
+static uint64_t const ANALYZE_WINDOW_IN_180K = (5 * IClock::Rate);
 
 /*
 This module is responsible for feeding the next modules with a clean signal.

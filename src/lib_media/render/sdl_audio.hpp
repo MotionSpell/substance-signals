@@ -32,7 +32,7 @@ class SDLAudio : public ModuleS {
 		void silenceSamples(uint8_t*& dst, size_t n);
 
 		const std::shared_ptr<IClock> m_clock;
-		static const int64_t audioJitterTimeToleranceIn180k = Clock::Rate / 20;
+		static const int64_t audioJitterTimeToleranceIn180k = IClock::Rate / 20;
 		uint8_t bytesPerSample;
 		std::unique_ptr<const PcmFormat> pcmFormat;
 		std::unique_ptr<ModuleS> m_converter;

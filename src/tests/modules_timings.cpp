@@ -50,34 +50,34 @@ void checkTimestamps(const std::vector<int64_t> &timesIn, const std::vector<int6
 }
 
 unittest("timestamps start at random values (LibavDemux)") {
-	const int64_t interval = (int64_t)Clock::Rate;
+	const int64_t interval = (int64_t)IClock::Rate;
 	const std::vector<int64_t> correct = { interval, 2 * interval, 3 * interval };
 	const std::vector<int64_t> incorrect = { 0 };
 	checkTimestamps<Demux::LibavDemux>(correct, incorrect);
 }
 
 unittest("timestamps start at random values (GPACDemuxMP4Simple)") {
-	const int64_t interval = (int64_t)Clock::Rate;
+	const int64_t interval = (int64_t)IClock::Rate;
 	const std::vector<int64_t> correct = { interval, 2 * interval, 3 * interval };
 	checkTimestamps<Demux::GPACDemuxMP4Simple>(correct, correct);
 }
 
 unittest("timestamps start at a negative value (LibavDemux)") {
-	const int64_t interval = (int64_t)Clock::Rate;
+	const int64_t interval = (int64_t)IClock::Rate;
 	const std::vector<int64_t> correct = { -interval, 0, interval };
 	const std::vector<int64_t> incorrect = { 0 };
 	checkTimestamps<Demux::LibavDemux>(correct, incorrect);
 }
 
 unittest("timestamps start at a negative value (GPACDemuxMP4Simple)") {
-	const int64_t interval = (int64_t)Clock::Rate;
+	const int64_t interval = (int64_t)IClock::Rate;
 	const std::vector<int64_t> correct = { -interval, 0, interval };
 	checkTimestamps<Demux::GPACDemuxMP4Simple>(correct, correct);
 }
 
 unittest("transcoder with reframers: test a/v sync recovery") {
-	const int64_t maxDurIn180k = 2 * Clock::Rate;
-	const size_t bufferSize = (maxDurIn180k * 1000) / (20 * Clock::Rate);
+	const int64_t maxDurIn180k = 2 * IClock::Rate;
+	const size_t bufferSize = (maxDurIn180k * 1000) / (20 * IClock::Rate);
 
 	struct Gapper : public ModuleS {
 		Gapper() {

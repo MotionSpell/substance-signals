@@ -1,7 +1,6 @@
 #pragma once
 
 #include "lib_utils/tools.hpp"
-#include <chrono>
 
 struct IClock {
 	static auto const Rate = 180000ULL;
@@ -11,18 +10,6 @@ struct IClock {
 };
 
 extern const std::shared_ptr<IClock> g_DefaultClock;
-
-class Clock : public IClock {
-	public:
-		Clock(double speed);
-		Fraction now() const override;
-		double getSpeed() const override;
-		void sleep(Fraction time) const override;
-
-	private:
-		std::chrono::time_point<std::chrono::high_resolution_clock> const timeStart;
-		double const speed;
-};
 
 template<typename T>
 static T convertToTimescale(T time, uint64_t timescaleSrc, uint64_t timescaleDst) {

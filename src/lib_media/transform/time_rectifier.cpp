@@ -37,7 +37,7 @@ void TimeRectifier::flush() {
 	scheduler->scheduleAt([this](Fraction f) {
 		log(TR_DEBUG, "Final removal at time %s", fractionToClock(f));
 		removeOutdatedAllUnsafe(fractionToClock(f)+1);
-	}, Fraction(finalClockTime, Clock::Rate));
+	}, Fraction(finalClockTime, IClock::Rate));
 	flushedCond.wait(lock);
 }
 

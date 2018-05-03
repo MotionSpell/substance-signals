@@ -1,6 +1,6 @@
 #include <iostream>
 #include "tests.hpp"
-#include "lib_utils/clock.hpp"
+#include "lib_utils/sysclock.hpp"
 
 using namespace Tests;
 

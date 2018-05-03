@@ -783,7 +783,7 @@ void GPACMuxMP4::declareStream(const std::shared_ptr<const IMetadata> &metadata)
 
 void GPACMuxMP4::handleInitialTimeOffset() {
 	if (initTimeIn180k) { /*first timestamp is not zero*/
-		log(Info, "Initial offset: %ss (4CC=%s, \"%s\", timescale=%s/%s)", initTimeIn180k / (double)Clock::Rate, codec4CC, segmentName, mediaTs, gf_isom_get_timescale(isoCur));
+		log(Info, "Initial offset: %ss (4CC=%s, \"%s\", timescale=%s/%s)", initTimeIn180k / (double)IClock::Rate, codec4CC, segmentName, mediaTs, gf_isom_get_timescale(isoCur));
 		if (compatFlags & NoEditLists) {
 			firstDataAbsTimeInMs += clockToTimescale(initTimeIn180k, 1000);
 		} else {
