@@ -48,10 +48,7 @@ void SDLVideo::doRender() {
 
 	SDL_EventState(SDL_KEYUP, SDL_IGNORE); //ignore key up events, they don't even get filtered
 
-	for(;;) {
-		auto data = m_dataQueue.pop();
-		if(!data)
-			break;
+	while(auto data = m_dataQueue.pop()) {
 		if (!processOneFrame(data))
 			break;
 	}
