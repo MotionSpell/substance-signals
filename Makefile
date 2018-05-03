@@ -97,65 +97,8 @@ define get-my-dir
 $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))
 endef
 
-#------------------------------------------------------------------------------
-
-LIB_UTILS_SRCS:=\
-  src/version.cpp\
-  $(SRC)/lib_utils/clock.cpp\
-  $(SRC)/lib_utils/log.cpp\
-  $(SRC)/lib_utils/scheduler.cpp\
-  $(SRC)/lib_utils/time.cpp\
-
-#------------------------------------------------------------------------------
-
-LIB_MEDIA_SRCS:=\
-  $(SRC)/lib_media/common/libav.cpp\
-  $(SRC)/lib_media/common/gpac.cpp\
-  $(SRC)/lib_media/common/picture.cpp\
-  $(SRC)/lib_media/decode/jpegturbo_decode.cpp\
-  $(SRC)/lib_media/decode/libav_decode.cpp\
-  $(SRC)/lib_media/demux/gpac_demux_mp4_simple.cpp\
-  $(SRC)/lib_media/demux/gpac_demux_mp4_full.cpp\
-  $(SRC)/lib_media/demux/libav_demux.cpp\
-  $(SRC)/lib_media/encode/jpegturbo_encode.cpp\
-  $(SRC)/lib_media/encode/libav_encode.cpp\
-  $(SRC)/lib_media/in/file.cpp\
-  $(SRC)/lib_media/in/mpeg_dash_input.cpp\
-  $(SRC)/lib_media/in/sound_generator.cpp\
-  $(SRC)/lib_media/in/video_generator.cpp\
-  $(SRC)/lib_media/mux/gpac_mux_m2ts.cpp\
-  $(SRC)/lib_media/mux/gpac_mux_mp4.cpp\
-  $(SRC)/lib_media/mux/gpac_mux_mp4_mss.cpp\
-  $(SRC)/lib_media/mux/libav_mux.cpp\
-  $(SRC)/lib_media/out/file.cpp\
-  $(SRC)/lib_media/out/http.cpp\
-  $(SRC)/lib_media/out/null.cpp\
-  $(SRC)/lib_media/out/print.cpp\
-  $(SRC)/lib_media/stream/apple_hls.cpp\
-  $(SRC)/lib_media/stream/mpeg_dash.cpp\
-  $(SRC)/lib_media/stream/ms_hss.cpp\
-  $(SRC)/lib_media/stream/adaptive_streaming_common.cpp\
-  $(SRC)/lib_media/transform/audio_convert.cpp\
-  $(SRC)/lib_media/transform/audio_gap_filler.cpp\
-  $(SRC)/lib_media/transform/libavfilter.cpp\
-  $(SRC)/lib_media/transform/restamp.cpp\
-  $(SRC)/lib_media/transform/telx2ttml.cpp\
-  $(SRC)/lib_media/transform/time_rectifier.cpp\
-  $(SRC)/lib_media/transform/video_convert.cpp\
-  $(SRC)/lib_media/utils/comparator.cpp\
-  $(SRC)/lib_media/utils/recorder.cpp\
-  $(SRC)/lib_media/utils/repeater.cpp
-ifeq ($(SIGNALS_HAS_X11), 1)
-LIB_MEDIA_SRCS+=\
-  $(SRC)/lib_media/render/sdl_audio.cpp\
-  $(SRC)/lib_media/render/sdl_common.cpp\
-  $(SRC)/lib_media/render/sdl_video.cpp
-endif  
-ifeq ($(SIGNALS_HAS_AWS), 1)
-LIB_MEDIA_SRCS+=\
-  $(SRC)/lib_media/out/aws_mediastore.cpp\
-  $(SRC)/lib_media/out/aws_sdk_instance.cpp
-endif  
+include src/lib_utils/project.mk
+include src/lib_media/project.mk
 
 #------------------------------------------------------------------------------
 
