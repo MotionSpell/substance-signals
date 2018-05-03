@@ -32,11 +32,31 @@ TESTS_DIR+=$(CURDIR)/$(SRC)/tests
 # test_modules.exe
 #---------------------------------------------------------------
 EXE_MODULES_SRCS:=\
-	$(MYDIR)/modules.cpp\
 	$(TEST_COMMON_SRCS)\
 	$(LIB_MEDIA_SRCS)\
 	$(LIB_MODULES_SRCS)\
 	$(LIB_UTILS_SRCS)
+
+ifeq ($(SIGNALS_HAS_X11), 1)
+  EXE_MODULES_SRCS+=$(MYDIR)/modules_generator.cpp
+  EXE_MODULES_SRCS+=$(MYDIR)/modules_player.cpp
+  EXE_MODULES_SRCS+=$(MYDIR)/modules_render.cpp
+endif
+
+EXE_MODULES_SRCS+=$(MYDIR)/modules_simple.cpp
+EXE_MODULES_SRCS+=$(MYDIR)/modules_converter.cpp
+EXE_MODULES_SRCS+=$(MYDIR)/modules_decode.cpp
+EXE_MODULES_SRCS+=$(MYDIR)/modules_demux.cpp
+EXE_MODULES_SRCS+=$(MYDIR)/modules_encoder.cpp
+EXE_MODULES_SRCS+=$(MYDIR)/modules_erasure.cpp
+EXE_MODULES_SRCS+=$(MYDIR)/modules_metadata.cpp
+EXE_MODULES_SRCS+=$(MYDIR)/modules_mux.cpp
+EXE_MODULES_SRCS+=$(MYDIR)/modules_rectifier.cpp
+EXE_MODULES_SRCS+=$(MYDIR)/modules_streamer.cpp
+EXE_MODULES_SRCS+=$(MYDIR)/modules_timings.cpp
+EXE_MODULES_SRCS+=$(MYDIR)/modules_transcoder.cpp
+
+
 TARGETS+=$(OUTDIR)/test_modules.exe
 $(OUTDIR)/test_modules.exe: $(EXE_MODULES_SRCS:%=$(BIN)/%.o)
 TESTS+=$(TESTOUTDIR)/test_modules.exe

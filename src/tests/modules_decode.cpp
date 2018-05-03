@@ -93,22 +93,6 @@ std::shared_ptr<DataBase> getTestH264Frame() {
 }
 }
 
-// move this to tests.hpp when it has other users,
-// but first find a way not to explicitly depend on 'vector'.
-template<typename T>
-inline std::ostream& operator<<(std::ostream& o, std::vector<T> iterable) {
-	o << "[";
-	bool first = true;
-	for(auto& val : iterable) {
-		if(!first)
-			o << ", ";
-		o << val;
-		first = false;
-	}
-	o << "]";
-	return o;
-}
-
 unittest("decode: video simple") {
 	auto decode = createVideoDecoder();
 	auto data = getTestH264Frame();

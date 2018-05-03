@@ -1,12 +1,13 @@
 #pragma once
 
 #include <sstream>
+#include <vector>
 
 #define TESTS
 // generate a file-unique identifier, based on current line
 #define unittestSuffix(suffix, prettyName) \
 	static void testFunction##suffix(); \
-	int g_isRegistered##suffix = Tests::RegisterTest(&testFunction##suffix, prettyName, g_isRegistered##suffix); \
+	static int g_isRegistered##suffix = Tests::RegisterTest(&testFunction##suffix, prettyName, g_isRegistered##suffix); \
 	static void testFunction##suffix()
 
 #define unittestLine(counter, prettyName) \
@@ -14,6 +15,21 @@
 
 #define unittest(prettyName) \
 	unittestLine(__COUNTER__, prettyName)
+
+// TODO: find a way not to explicitly depend on 'vector'.
+template<typename T>
+inline std::ostream& operator<<(std::ostream& o, std::vector<T> iterable) {
+	o << "[";
+	bool first = true;
+	for(auto& val : iterable) {
+		if(!first)
+			o << ", ";
+		o << val;
+		first = false;
+	}
+	o << "]";
+	return o;
+}
 
 namespace Tests {
 
