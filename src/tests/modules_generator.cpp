@@ -3,7 +3,6 @@
 #include "lib_media/in/sound_generator.hpp"
 #include "lib_media/in/video_generator.hpp"
 #include "lib_media/render/sdl_audio.hpp"
-#include "lib_media/render/sdl_video.hpp"
 #include "lib_utils/tools.hpp"
 
 using namespace Tests;
@@ -24,13 +23,11 @@ unittest("sound generator") {
 
 unittest("video generator") {
 	auto videoGen = create<In::VideoGenerator>();
-	auto render = create<Render::SDLVideo>();
 
 	std::vector<int> times;
 	auto onFrame = [&](Data data) {
 		auto rawData = safe_cast<const DataPicture>(data);
 		times.push_back((int)rawData->getMediaTime());
-		render->process(rawData);
 	};
 	Connect(videoGen->getOutput(0)->getSignal(), onFrame);
 
