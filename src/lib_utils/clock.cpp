@@ -24,5 +24,4 @@ void Clock::sleep(Fraction time) const {
 	}
 }
 
-static std::shared_ptr<Clock> systemClock(new Clock(1.0));
-extern const std::shared_ptr<Clock> g_DefaultClock = systemClock;
+extern const std::shared_ptr<IClock> g_DefaultClock(new Clock(1.0));

@@ -10,6 +10,8 @@ struct IClock {
 	virtual void sleep(Fraction time) const = 0;
 };
 
+extern const std::shared_ptr<IClock> g_DefaultClock;
+
 class Clock : public IClock {
 	public:
 		Clock(double speed);
@@ -21,8 +23,6 @@ class Clock : public IClock {
 		std::chrono::time_point<std::chrono::high_resolution_clock> const timeStart;
 		double const speed;
 };
-
-extern const std::shared_ptr<Clock> g_DefaultClock;
 
 template<typename T>
 static T convertToTimescale(T time, uint64_t timescaleSrc, uint64_t timescaleDst) {
