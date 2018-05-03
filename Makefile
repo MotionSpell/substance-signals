@@ -79,9 +79,9 @@ $(BIN)/config.mk:
 	echo $(EXTRA); \
 	/bin/echo '# config file' > $(BIN)/config.mk.tmp ; \
 	/bin/echo -n 'CFLAGS+=' >> $(BIN)/config.mk.tmp ; \
-	pkg-config --cflags $(PKGS) >> $(BIN)/config.mk.tmp ; \
+	pkg-config --define-prefix --cflags $(PKGS) >> $(BIN)/config.mk.tmp ; \
 	/bin/echo -n 'LDFLAGS+=' >> $(BIN)/config.mk.tmp ; \
-	pkg-config --libs $(PKGS) >> $(BIN)/config.mk.tmp
+	pkg-config --define-prefix --libs $(PKGS) >> $(BIN)/config.mk.tmp
 	/bin/echo 'CFLAGS+= -I$(EXTRA)/include/asio -Wno-unused-local-typedefs' >> $(BIN)/config.mk.tmp
 	/bin/echo 'LDFLAGS+= -lpthread' >> $(BIN)/config.mk.tmp ;
 	mv $(BIN)/config.mk.tmp $(BIN)/config.mk
