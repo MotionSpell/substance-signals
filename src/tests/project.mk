@@ -6,18 +6,6 @@ TEST_COMMON_SRCS:=\
 	$(MYDIR)/tests.cpp
 
 #---------------------------------------------------------------
-# test_utils.exe
-#---------------------------------------------------------------
-EXE_UTILS_SRCS:=\
-	$(MYDIR)/utils.cpp\
-	$(LIB_UTILS_SRCS)\
-	$(TEST_COMMON_SRCS)
-TARGETS+=$(OUTDIR)/test_utils.exe
-$(OUTDIR)/test_utils.exe: $(EXE_UTILS_SRCS:%=$(BIN)/%.o)
-TESTS+=$(TESTOUTDIR)/test_utils.exe
-TESTS_DIR+=$(CURDIR)/$(SRC)/tests
-
-#---------------------------------------------------------------
 # test_signals.exe
 #---------------------------------------------------------------
 EXE_SIGNALS_SRCS:=\

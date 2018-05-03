@@ -1,5 +1,5 @@
 #include <iostream>
-#include "tests.hpp"
+#include "tests/tests.hpp"
 #include "lib_utils/sysclock.hpp"
 
 using namespace Tests;
