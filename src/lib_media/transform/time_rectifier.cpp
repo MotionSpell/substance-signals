@@ -61,7 +61,7 @@ void TimeRectifier::declareScheduler(Data /*data*/, std::unique_ptr<IInput> &inp
 		if (hasVideo)
 			throw error("Only one video stream is allowed");
 		hasVideo = true;
-		scheduler->scheduleEvery(std::bind(&TimeRectifier::awakeOnFPS, this, std::placeholders::_1), Fraction(frameRate.den, frameRate.num), 0);
+		scheduler->scheduleEvery(std::bind(&TimeRectifier::awakeOnFPS, this, std::placeholders::_1), frameRate.inverse(), 0);
 	}
 }
 
