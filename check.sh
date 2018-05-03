@@ -10,9 +10,7 @@ else
   find src -name "*.cpp" -or -name "*.hpp" | xargs $SED -i -e 's/\r//'
 fi
 
-if [ ! -d "bin" ]; then
-  mkdir bin
-fi
+mkdir -p bin
 
 EXTRA=${EXTRA:$PWD/sysroot}
 
