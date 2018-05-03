@@ -4,11 +4,13 @@
 namespace Modules {
 namespace Utils {
 
+using namespace std::chrono;
+
 Repeater::Repeater(int64_t ms) : timeInMs(ms) {
 	done = false;
 	addInput(new Input<DataBase>(this));
 	addOutput<OutputDataDefault<DataBase>>();
-	lastNow = std::chrono::high_resolution_clock::now();
+	lastNow = high_resolution_clock::now();
 	workingThread = std::thread(&Repeater::threadProc, this);
 }
 
@@ -29,12 +31,12 @@ Repeater::~Repeater() {
 
 void Repeater::threadProc() {
 	while (!done) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(std::min<int64_t>(timeInMs, maxTimeInMs)));
-		auto const now = std::chrono::high_resolution_clock::now();
-		auto const waitTimeInMs = (std::chrono::duration_cast<std::chrono::milliseconds>(now - lastNow)).count();
+		std::this_thread::sleep_for(milliseconds(std::min(timeInMs, maxTimeInMs)));
+		auto const now = high_resolution_clock::now();
+		auto const waitTimeInMs = (duration_cast<milliseconds>(now - lastNow)).count();
 		if (waitTimeInMs > timeInMs) {
 			if (lastData) outputs[0]->emit(lastData);
-			lastNow = std::chrono::high_resolution_clock::now();
+			lastNow = high_resolution_clock::now();
 		}
 	}
 }
@@ -42,7 +44,7 @@ void Repeater::threadProc() {
 void Repeater::process(Data data) {
 	lastData = data;
 	outputs[0]->emit(lastData);
-	lastNow = std::chrono::high_resolution_clock::now();
+	lastNow = high_resolution_clock::now();
 }
 
 }
