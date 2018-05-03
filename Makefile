@@ -197,15 +197,11 @@ TAG:=$(shell echo `git describe --tags --abbrev=0 2> /dev/null || echo "UNKNOWN"
 VERSION:=$(shell echo `git describe --tags --long 2> /dev/null || echo "UNKNOWN"` | sed "s/^$(TAG)-//")
 BRANCH:=$(shell git rev-parse --abbrev-ref HEAD 2> /dev/null || echo "UNKNOWN")
 
-VER_CUR:=$(shell echo `cat src/version.cpp`)
-VER_NEW:=$(shell echo "const char *g_version = \"$(TAG)-$(BRANCH)-rev$(VERSION)\";")
+VER_NEW:=$(TAG)-$(BRANCH)-rev$(VERSION)
 
-version:
-	@if [ '$(VER_CUR)' != '$(VER_NEW)' ] ; then \
-		echo '$(VER_NEW)' > src/version.cpp; \
-	fi
+$(BIN)/src/version.cpp.o: CFLAGS+=-DVERSION="\"$(VER_NEW)\""
 
-targets: version $(TARGETS)
+targets: $(TARGETS)
 
 #------------------------------------------------------------------------------
 
