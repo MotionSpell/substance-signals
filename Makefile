@@ -1,3 +1,5 @@
+.DELETE_ON_ERROR:
+
 CFLAGS:=$(CFLAGS)
 CFLAGS+=-std=gnu++1y
 CFLAGS+=-Wall
