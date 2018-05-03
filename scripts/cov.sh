@@ -16,5 +16,9 @@ $scriptDir/run_tests.sh
 
 # Generate coverage report
 lcov --capture -d bin-cov -o bin-cov/profile.txt
-genhtml -o bin-cov/html bin-cov/profile.txt
-echo "Coverage report is available in bin-cov/html/index.html"
+genhtml -o cov-html bin-cov/profile.txt
+
+# free disk space
+rm -rf bin-cov
+
+echo "Coverage report is available in cov-html/index.html"
