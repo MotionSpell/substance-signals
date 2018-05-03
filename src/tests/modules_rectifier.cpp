@@ -58,14 +58,14 @@ unittest("scheduler: mock clock") {
 	Scheduler s(clock);
 	s.scheduleAt(f, f1);
 	g_DefaultClock->sleep(f10);
-	ASSERT(q.size() == 0);
+	ASSERT_EQUALS(0u, q.size());
 	clock->setTime(f10);
 	{
 		std::unique_lock<std::mutex> lock(mutex);
 		auto const durInMs = std::chrono::milliseconds(100);
 		condition.wait_for(lock, durInMs);
 	}
-	ASSERT(q.size() == 1);
+	ASSERT_EQUALS(1u, q.size());
 	auto const t = q.pop();
 	ASSERT(t == f1);
 }
