@@ -13,9 +13,6 @@ using namespace Modules;
 class ClockMock : public IClock {
 	public:
 		ClockMock(Fraction time = Fraction(-1, 1000)) : time(time) {}
-		virtual ~ClockMock() {
-			condition.notify_all();
-		}
 		void setTime(Fraction t) {
 			if (t > time) {
 				time = t;
