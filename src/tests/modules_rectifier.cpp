@@ -11,11 +11,11 @@ using namespace Modules;
 
 class ClockMock : public IClock {
 	public:
-		ClockMock(const Fraction &time = Fraction(-1, 1000)) : time(time) {}
+		ClockMock(Fraction time = Fraction(-1, 1000)) : time(time) {}
 		virtual ~ClockMock() {
 			condition.notify_all();
 		}
-		void setTime(const Fraction &t) {
+		void setTime(Fraction t) {
 			if (t > time) {
 				time = t;
 			}
