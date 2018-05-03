@@ -10,7 +10,7 @@
 #include "modules_render.cpp"
 #endif /*SIGNALS_HAS_X11*/
 
-#include "modules_simple.cpp"
+#include "../lib_modules/unittests/simple.cpp"
 #include "modules_converter.cpp"
 #include "modules_decode.cpp"
 #include "modules_demux.cpp"

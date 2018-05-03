@@ -1,4 +1,4 @@
-#include "tests.hpp"
+#include "tests/tests.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/out/null.hpp"
 #include "lib_pipeline/pipeline.hpp"

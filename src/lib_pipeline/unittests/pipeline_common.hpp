@@ -53,4 +53,3 @@ private:
 	std::thread workingThread;
 	std::mutex numCallsMutex;
 };
-uint64_t DualInput::numCalls = 0;

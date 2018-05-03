@@ -1,4 +1,4 @@
-#include "tests.hpp"
+#include "tests/tests.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/in/video_generator.hpp"
 #include "lib_media/mux/libav_mux.hpp"

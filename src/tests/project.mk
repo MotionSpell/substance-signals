@@ -43,7 +43,6 @@ ifeq ($(SIGNALS_HAS_X11), 1)
   EXE_MODULES_SRCS+=$(MYDIR)/modules_render.cpp
 endif
 
-EXE_MODULES_SRCS+=$(MYDIR)/modules_simple.cpp
 EXE_MODULES_SRCS+=$(MYDIR)/modules_converter.cpp
 EXE_MODULES_SRCS+=$(MYDIR)/modules_decode.cpp
 EXE_MODULES_SRCS+=$(MYDIR)/modules_demux.cpp
@@ -63,18 +62,20 @@ TESTS+=$(TESTOUTDIR)/test_modules.exe
 TESTS_DIR+=$(CURDIR)/$(SRC)/tests
 
 #---------------------------------------------------------------
-# test_pipeline.exe
+# test_other.exe : all the unit tests gathered from
+# the in-tree 'unittests' directories.
 #---------------------------------------------------------------
-EXE_PIPELINE_SRCS:=\
-	$(MYDIR)/pipeline.cpp\
+EXE_OTHER_SRCS:=\
 	$(TEST_COMMON_SRCS)\
 	$(LIB_MEDIA_SRCS)\
 	$(LIB_MODULES_SRCS)\
 	$(LIB_PIPELINE_SRCS)\
 	$(LIB_UTILS_SRCS)
-TARGETS+=$(OUTDIR)/test_pipeline.exe
-$(OUTDIR)/test_pipeline.exe: $(EXE_PIPELINE_SRCS:%=$(BIN)/%.o)
-TESTS+=$(TESTOUTDIR)/test_pipeline.exe
+
+EXE_OTHER_SRCS+=$(shell find $(MYDIR)/.. -path "*/unittests/*.cpp")
+TARGETS+=$(OUTDIR)/test_other.exe
+$(OUTDIR)/test_other.exe: $(EXE_OTHER_SRCS:%=$(BIN)/%.o)
+TESTS+=$(TESTOUTDIR)/test_other.exe
 TESTS_DIR+=$(CURDIR)/$(SRC)/tests
 
 #---------------------------------------------------------------

@@ -1,4 +1,4 @@
-#include "tests.hpp"
+#include "tests/tests.hpp"
 #include "lib_pipeline/pipeline.hpp"
 
 //#define ENABLE_FAILING_TESTS

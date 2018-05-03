@@ -1,4 +1,4 @@
-#include "tests.hpp"
+#include "tests/tests.hpp"
 #include "lib_media/decode/libav_decode.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/in/video_generator.hpp"
@@ -119,3 +119,5 @@ unittest("pipeline: multiple inputs (send same packets to 2 inputs and check cal
 }
 
 }
+
+uint64_t DualInput::numCalls = 0;

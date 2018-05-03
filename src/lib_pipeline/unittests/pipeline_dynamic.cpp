@@ -1,4 +1,4 @@
-#include "tests.hpp"
+#include "tests/tests.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/out/null.hpp"
 #include "lib_pipeline/pipeline.hpp"
@@ -100,7 +100,7 @@ unittest("pipeline: dynamic module disconnection (remove module dynamically)") {
 	p.waitForCompletion();
 }
 
-#ifdef ENABLE_FAILING_TESTS 
+#ifdef ENABLE_FAILING_TESTS
 unittest("pipeline: dynamic module disconnection (remove sink without disconnect)") {
 	Pipeline p;
 	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
