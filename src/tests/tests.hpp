@@ -60,6 +60,13 @@ inline void AssertEquals(char const* file, int line, const char* caption, T cons
 #define ASSERT_EQUALS(expected, actual) \
   ::Tests::AssertEquals(__FILE__, __LINE__, #actual, expected, actual)
 
+#define ASSERT_THROWN(expr) \
+	try { \
+		expr; \
+		ASSERT(0); \
+	} catch (...) { \
+	} \
+
 int RegisterTest(void (*f)(), const char* testName, int& dummy);
 void RunAll();
 

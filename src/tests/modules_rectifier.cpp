@@ -251,12 +251,5 @@ unittest("rectifier: multiple media types simple") {
 }
 
 unittest("rectifier: fail when no video") {
-	bool thrown = false;
-	try {
-		testRectifierSinglePort<MetadataRawAudio, OutputPcm>(Fraction(25, 1), { { 0, 0 } }, { { 0, 0 } });
-	} catch (std::exception const& e) {
-		std::cerr << "Expected error: " << e.what() << std::endl;
-		thrown = true;
-	}
-	ASSERT(thrown);
+	ASSERT_THROWN((testRectifierSinglePort<MetadataRawAudio, OutputPcm>(Fraction(25, 1), { { 0, 0 } }, { { 0, 0 } })));
 }
