@@ -2,15 +2,12 @@
 
 #include <cassert>
 #include <cstdint>
-#include <memory.h>
+#include <string.h>
 #include <vector>
 
 template<typename T>
 class GenericFifo {
 	public:
-		GenericFifo() : m_writePos(0), m_readPos(0) {
-		}
-
 		void write(const T* data, size_t len) {
 			if (!len) return;
 			m_data.resize(m_writePos + len);
@@ -38,8 +35,8 @@ class GenericFifo {
 		}
 
 	private:
-		size_t m_writePos;
-		size_t m_readPos;
+		size_t m_writePos = 0;
+		size_t m_readPos = 0;
 		std::vector<T> m_data;
 };
 
