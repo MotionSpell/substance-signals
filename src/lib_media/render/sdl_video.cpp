@@ -48,8 +48,6 @@ void SDLVideo::doRender() {
 
 	SDL_EventState(SDL_KEYUP, SDL_IGNORE); //ignore key up events, they don't even get filtered
 
-	m_NumFrames = 0;
-
 	for(;;) {
 		auto data = m_dataQueue.pop();
 		if(!data)
@@ -106,8 +104,6 @@ bool SDLVideo::processOneFrame(Data data) {
 	}
 	SDL_RenderCopy(renderer, texture, nullptr, displayrect.get());
 	SDL_RenderPresent(renderer);
-
-	m_NumFrames++;
 
 	return true;
 }

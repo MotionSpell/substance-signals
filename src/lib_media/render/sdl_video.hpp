@@ -32,8 +32,6 @@ class SDLVideo : public ModuleS {
 		std::unique_ptr<SDL_Rect> displayrect;
 		PictureFormat pictureFormat;
 
-		int64_t m_NumFrames;
-
 		Queue<Data> m_dataQueue; //FIXME: useless now we have input ports
 		std::thread workingThread;
 };
