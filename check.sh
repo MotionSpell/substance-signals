@@ -3,14 +3,20 @@ set -eu
 
 if [ $(uname -s) == "Darwin" ]; then
   CORES=$(sysctl -n hw.logicalcpu)
-  SED=gsed
 else
   CORES=$(nproc)
-  SED=sed
-  find src -name "*.cpp" -or -name "*.hpp" | xargs $SED -i -e 's/\r//'
 fi
 
-mkdir -p bin
+if which astyle >/dev/null ; then
+  astyle -q -r \
+    --lineend=linux \
+    --preserve-date \
+    --suffix=none \
+    --indent=tab \
+    --indent-after-parens \
+    --indent-classes --indent-col1-comments --style=attach --keep-one-line-statements \
+    '*.hpp' '*.cpp'
+fi
 
 make -j$CORES
 

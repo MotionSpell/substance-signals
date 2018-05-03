@@ -19,7 +19,7 @@ size_t writeVoid(void *buffer, size_t size, size_t nmemb, void *userp) {
 }
 
 HTTP::HTTP(const std::string &url, Flag flags, const std::string &userAgent, const std::vector<std::string> &headers)
-: url(url), userAgent(userAgent), flags(flags) {
+	: url(url), userAgent(userAgent), flags(flags) {
 	if (url.compare(0, 7, "http://") && url.compare(0, 8, "https://"))
 		throw error(format("can only handle URLs starting with 'http://' or 'https://', not %s.", url));
 

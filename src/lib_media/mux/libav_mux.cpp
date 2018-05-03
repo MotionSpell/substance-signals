@@ -16,7 +16,7 @@ void LibavMux::formatsList() {
 }
 
 LibavMux::LibavMux(const std::string &baseName, const std::string &fmt, const std::string &options)
-: m_formatCtx(avformat_alloc_context()), optionsDict(typeid(*this).name(), options) {
+	: m_formatCtx(avformat_alloc_context()), optionsDict(typeid(*this).name(), options) {
 	if (!m_formatCtx)
 		throw error("Format context couldn't be allocated.");
 
@@ -165,7 +165,7 @@ void LibavMux::process() {
 	pkt->pts = av_rescale_q(pkt->pts, avStream->codec->time_base, avStream->time_base);
 	pkt->duration = (int64_t)av_rescale_q(pkt->duration, avStream->codec->time_base, avStream->time_base);
 	pkt->stream_index = avStream->index;
-	
+
 	if (av_interleaved_write_frame(m_formatCtx, pkt) != 0) {
 		log(Warning, "can't write frame.");
 		return;

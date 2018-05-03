@@ -63,33 +63,33 @@ const std::string Page::toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs, uin
 }
 
 const std::string Page::toSRT() {
-		std::stringstream srt;
-		{
-			char buf[255];
-			snprintf(buf, 255, "%.3f|", (double)tsInMs / 1000.0);
-			srt << buf;
-		}
-
-		{
-			char timecode_show[24] = { 0 };
-			timeInMsToStr(showTimestamp, timecode_show);
-			timecode_show[12] = 0;
-
-			char timecode_hide[24] = { 0 };
-			timeInMsToStr(hideTimestamp, timecode_hide);
-			timecode_hide[12] = 0;
-
-			char buf[255];
-			snprintf(buf, 255, "%u\r\n%s --> %s\r\n", (unsigned)++framesProduced, timecode_show, timecode_hide);
-			srt << buf;
-		}
-
-		for (auto &ss : lines) {
-			srt << ss->str() << "\r\n";
-		}
-
-		return srt.str();
+	std::stringstream srt;
+	{
+		char buf[255];
+		snprintf(buf, 255, "%.3f|", (double)tsInMs / 1000.0);
+		srt << buf;
 	}
+
+	{
+		char timecode_show[24] = { 0 };
+		timeInMsToStr(showTimestamp, timecode_show);
+		timecode_show[12] = 0;
+
+		char timecode_hide[24] = { 0 };
+		timeInMsToStr(hideTimestamp, timecode_hide);
+		timecode_hide[12] = 0;
+
+		char buf[255];
+		snprintf(buf, 255, "%u\r\n%s --> %s\r\n", (unsigned)++framesProduced, timecode_show, timecode_hide);
+		srt << buf;
+	}
+
+	for (auto &ss : lines) {
+		srt << ss->str() << "\r\n";
+	}
+
+	return srt.str();
+}
 
 const std::string TeletextToTTML::toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs) {
 	std::stringstream ttml;
@@ -147,7 +147,7 @@ const std::string TeletextToTTML::toTTML(uint64_t startTimeInMs, uint64_t endTim
 }
 
 TeletextToTTML::TeletextToTTML(unsigned pageNum, const std::string &lang, uint64_t splitDurationInMs, uint64_t maxDelayBeforeEmptyInMs, TimingPolicy timingPolicy)
-: pageNum(pageNum), lang(lang), timingPolicy(timingPolicy), maxPageDurIn180k(timescaleToClock(maxDelayBeforeEmptyInMs, 1000)), splitDurationIn180k(timescaleToClock(splitDurationInMs, 1000)) {
+	: pageNum(pageNum), lang(lang), timingPolicy(timingPolicy), maxPageDurIn180k(timescaleToClock(maxDelayBeforeEmptyInMs, 1000)), splitDurationIn180k(timescaleToClock(splitDurationInMs, 1000)) {
 	config = uptr(new Config);
 	addInput(new Input<DataAVPacket>(this));
 	output = addOutput<OutputDataDefault<DataAVPacket>>();
@@ -194,9 +194,9 @@ void TeletextToTTML::processTelx(DataAVPacket const * const sub) {
 			if (page) {
 				auto const codecCtx = safe_cast<const MetadataPktLibav>(sub->getMetadata())->getAVCodecContext();
 				log((int64_t)convertToTimescale(page->showTimestamp * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000) < clockToTimescale(intClock, 1000) ? Warning : Debug,
-					"framesProduced %s, show=%s:hide=%s, clocks:data=%s:int=%s,ext=%s, content=%s",
-					page->framesProduced, convertToTimescale(page->showTimestamp * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000), convertToTimescale(page->hideTimestamp * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000),
-					clockToTimescale(sub->getMediaTime(), 1000), clockToTimescale(intClock, 1000), clockToTimescale(extClock, 1000), page->toString());
+				    "framesProduced %s, show=%s:hide=%s, clocks:data=%s:int=%s,ext=%s, content=%s",
+				    page->framesProduced, convertToTimescale(page->showTimestamp * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000), convertToTimescale(page->hideTimestamp * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000),
+				    clockToTimescale(sub->getMediaTime(), 1000), clockToTimescale(intClock, 1000), clockToTimescale(extClock, 1000), page->toString());
 
 				auto const startTimeInMs = convertToTimescale(page->showTimestamp * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000);
 				auto const durationInMs = convertToTimescale((page->hideTimestamp - page->showTimestamp) * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000);

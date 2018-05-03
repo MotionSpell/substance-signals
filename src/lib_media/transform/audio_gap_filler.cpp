@@ -4,7 +4,7 @@ namespace Modules {
 namespace Transform {
 
 AudioGapFiller::AudioGapFiller(uint64_t toleranceInFrames)
-: toleranceInFrames(toleranceInFrames) {
+	: toleranceInFrames(toleranceInFrames) {
 	auto input = addInput(new Input<DataPcm>(this));
 	input->setMetadata(shptr(new MetadataRawAudio));
 	output = addOutput<OutputPcm>();

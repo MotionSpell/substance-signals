@@ -7,21 +7,21 @@
 namespace Modules {
 
 class Exception : public std::runtime_error {
-public:
-	Exception(std::string const &msg) throw() : std::runtime_error(msg) {
-		Log::msg(Error, "Caught exception: %s", msg);
-	}
-	virtual ~Exception() throw() {}
+	public:
+		Exception(std::string const &msg) throw() : std::runtime_error(msg) {
+			Log::msg(Error, "Caught exception: %s", msg);
+		}
+		virtual ~Exception() throw() {}
 
-private:
-	Exception& operator= (const Exception&) = delete;
+	private:
+		Exception& operator= (const Exception&) = delete;
 };
 
 class ErrorCap {
-protected:
-	std::exception error(std::string const &msg) const {
-		throw Exception(format("[%s] %s", typeid(*this).name(), msg));
-	}
+	protected:
+		std::exception error(std::string const &msg) const {
+			throw Exception(format("[%s] %s", typeid(*this).name(), msg));
+		}
 };
 
 }

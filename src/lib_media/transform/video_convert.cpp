@@ -26,8 +26,8 @@ VideoConvert::VideoConvert(const PictureFormat &dstFormat)
 void VideoConvert::reconfigure(const PictureFormat &format) {
 	sws_freeContext(m_SwContext);
 	m_SwContext = sws_getContext(format.res.width, format.res.height, libavPixFmtConvert(format.format),
-	                             dstFormat.res.width, dstFormat.res.height, libavPixFmtConvert(dstFormat.format),
-	                             SWS_BILINEAR, nullptr, nullptr, nullptr);
+	        dstFormat.res.width, dstFormat.res.height, libavPixFmtConvert(dstFormat.format),
+	        SWS_BILINEAR, nullptr, nullptr, nullptr);
 	if (!m_SwContext)
 		throw error("Impossible to set up video converter.");
 	srcFormat = format;

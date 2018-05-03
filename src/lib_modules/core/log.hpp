@@ -5,13 +5,13 @@
 namespace Modules {
 
 struct LogCap : protected LogRepetition {
-	virtual ~LogCap() noexcept(false) {}
+		virtual ~LogCap() noexcept(false) {}
 
-protected:
-	template<typename... Arguments>
-	void log(Level level, const std::string& fmt, Arguments... args) {
-		msg(level, "[%s %s] " + fmt, this, typeid(*this).name(), args...);
-	}
+	protected:
+		template<typename... Arguments>
+		void log(Level level, const std::string& fmt, Arguments... args) {
+			msg(level, "[%s %s] " + fmt, this, typeid(*this).name(), args...);
+		}
 };
 
 }

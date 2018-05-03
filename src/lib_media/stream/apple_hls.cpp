@@ -2,7 +2,7 @@
 #include <fstream>
 #include <sstream>
 
-#ifdef _WIN32 
+#ifdef _WIN32
 #include <sys/timeb.h>
 #include <Winsock2.h>
 #else
@@ -13,8 +13,8 @@ namespace Modules {
 namespace Stream {
 
 Apple_HLS::Apple_HLS(const std::string &m3u8Dir, const std::string &m3u8Filename, Type type, uint64_t segDurationInMs, uint64_t timeShiftBufferDepthInMs, bool genVariantPlaylist, AdaptiveStreamingCommonFlags flags)
-: AdaptiveStreamingCommon(type, segDurationInMs, m3u8Dir, flags | (genVariantPlaylist ? SegmentsNotOwned : None)), playlistMasterPath(format("%s%s", m3u8Dir, m3u8Filename)),
-  genVariantPlaylist(genVariantPlaylist), timeShiftBufferDepthInMs(timeShiftBufferDepthInMs) {
+	: AdaptiveStreamingCommon(type, segDurationInMs, m3u8Dir, flags | (genVariantPlaylist ? SegmentsNotOwned : None)), playlistMasterPath(format("%s%s", m3u8Dir, m3u8Filename)),
+	  genVariantPlaylist(genVariantPlaylist), timeShiftBufferDepthInMs(timeShiftBufferDepthInMs) {
 	if (segDurationInMs % 1000)
 		throw error("Segment duration must be an integer number of seconds.");
 }

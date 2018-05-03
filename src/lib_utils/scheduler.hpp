@@ -18,35 +18,35 @@ struct IScheduler {
 };
 
 class Scheduler : public IScheduler {
-public:
-	Scheduler(std::shared_ptr<IClock> clock = g_DefaultClock);
-	~Scheduler();
-	void scheduleAt(const std::function<void(Fraction)> &&task, Fraction time) override;
-	void scheduleEvery(const std::function<void(Fraction)> &&task, Fraction loopTime, Fraction time) override;
-	void scheduleIn(const std::function<void(Fraction)> &&task, Fraction time) override {
-		scheduleAt(std::move(task), clock->now() + time);
-	}
-
-private:
-	struct Task {
-		struct Sooner {
-			bool operator()(const std::unique_ptr<Task> &lhs, const std::unique_ptr<Task> &rhs) const {
-				return lhs->time > rhs->time;
-			}
-		};
-		Task(const std::function<void(Fraction)> &&task2, Fraction time)
-			: task(std::move(task2)), time(time) {
+	public:
+		Scheduler(std::shared_ptr<IClock> clock = g_DefaultClock);
+		~Scheduler();
+		void scheduleAt(const std::function<void(Fraction)> &&task, Fraction time) override;
+		void scheduleEvery(const std::function<void(Fraction)> &&task, Fraction loopTime, Fraction time) override;
+		void scheduleIn(const std::function<void(Fraction)> &&task, Fraction time) override {
+			scheduleAt(std::move(task), clock->now() + time);
 		}
-		std::function<void(Fraction)> task;
-		Fraction time;
-	};
 
-	void threadProc();
+	private:
+		struct Task {
+			struct Sooner {
+				bool operator()(const std::unique_ptr<Task> &lhs, const std::unique_ptr<Task> &rhs) const {
+					return lhs->time > rhs->time;
+				}
+			};
+			Task(const std::function<void(Fraction)> &&task2, Fraction time)
+				: task(std::move(task2)), time(time) {
+			}
+			std::function<void(Fraction)> task;
+			Fraction time;
+		};
 
-	std::mutex mutex;
-	std::condition_variable condition;
-	std::priority_queue<std::unique_ptr<Task>, std::deque<std::unique_ptr<Task>>, Task::Sooner> queue;
-	std::atomic_bool waitAndExit;
-	std::thread schedThread;
-	std::shared_ptr<IClock> clock;
+		void threadProc();
+
+		std::mutex mutex;
+		std::condition_variable condition;
+		std::priority_queue<std::unique_ptr<Task>, std::deque<std::unique_ptr<Task>>, Task::Sooner> queue;
+		std::atomic_bool waitAndExit;
+		std::thread schedThread;
+		std::shared_ptr<IClock> clock;
 };

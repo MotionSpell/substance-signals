@@ -13,16 +13,16 @@ namespace Modules {
 namespace Transform {
 
 class LibavFilter : public ModuleS {
-public:
-	LibavFilter(const PictureFormat &format, const std::string &filterArgs);
-	~LibavFilter();
-	void process(Data data) override;
+	public:
+		LibavFilter(const PictureFormat &format, const std::string &filterArgs);
+		~LibavFilter();
+		void process(Data data) override;
 
-private:
-	AVFilterGraph *graph;
-	AVFilterContext *buffersrc_ctx, *buffersink_ctx;
-	std::unique_ptr<ffpp::Frame> const avFrameIn, avFrameOut;
-	Queue<int64_t> times;
+	private:
+		AVFilterGraph *graph;
+		AVFilterContext *buffersrc_ctx, *buffersink_ctx;
+		std::unique_ptr<ffpp::Frame> const avFrameIn, avFrameOut;
+		Queue<int64_t> times;
 };
 
 }

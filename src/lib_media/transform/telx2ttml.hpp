@@ -25,31 +25,31 @@ struct ITelxConfig {
 };
 
 class TeletextToTTML : public ModuleS {
-public:
-	enum TimingPolicy {
-		AbsoluteUTC,     //USP
-		RelativeToMedia, //14496-30
-		RelativeToSplit  //MSS
-	};
+	public:
+		enum TimingPolicy {
+			AbsoluteUTC,     //USP
+			RelativeToMedia, //14496-30
+			RelativeToSplit  //MSS
+		};
 
-	TeletextToTTML(unsigned pageNum, const std::string &lang, uint64_t splitDurationIn180k, uint64_t maxDelayBeforeEmptyInMs, TimingPolicy timingPolicy);
-	void process(Data data) override;
+		TeletextToTTML(unsigned pageNum, const std::string &lang, uint64_t splitDurationIn180k, uint64_t maxDelayBeforeEmptyInMs, TimingPolicy timingPolicy);
+		void process(Data data) override;
 
-private:
-	const std::string toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs);
-	void sendSample(const std::string &sample);
-	void processTelx(DataAVPacket const * const pkt);
-	void dispatch();
+	private:
+		const std::string toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs);
+		void sendSample(const std::string &sample);
+		void processTelx(DataAVPacket const * const pkt);
+		void dispatch();
 
-	OutputDataDefault<DataAVPacket> *output;
-	const unsigned pageNum;
-	std::string lang;
-	const TimingPolicy timingPolicy;
-	int64_t intClock = 0, extClock = 0;
-	const uint64_t maxPageDurIn180k, splitDurationIn180k;
-	uint64_t firstDataAbsTimeInMs = 0;
-	std::list<std::unique_ptr<Page>> currentPages;
-	std::unique_ptr<ITelxConfig> config;
+		OutputDataDefault<DataAVPacket> *output;
+		const unsigned pageNum;
+		std::string lang;
+		const TimingPolicy timingPolicy;
+		int64_t intClock = 0, extClock = 0;
+		const uint64_t maxPageDurIn180k, splitDurationIn180k;
+		uint64_t firstDataAbsTimeInMs = 0;
+		std::list<std::unique_ptr<Page>> currentPages;
+		std::unique_ptr<ITelxConfig> config;
 };
 
 }

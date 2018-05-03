@@ -4,7 +4,7 @@
 using namespace std::chrono;
 
 Clock::Clock(double speed)
-: timeStart(high_resolution_clock::now()), speed(speed) {
+	: timeStart(high_resolution_clock::now()), speed(speed) {
 }
 
 Fraction Clock::now() const {

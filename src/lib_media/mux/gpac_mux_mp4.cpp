@@ -369,7 +369,7 @@ void fillVideoSampleData(const u8 *bufPtr, u32 bufLen, GF_ISOSample &sample) {
 namespace Mux {
 
 GPACMuxMP4::GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs, SegmentPolicy segmentPolicy, FragmentPolicy fragmentPolicy, CompatibilityFlag compatFlags)
-: compatFlags(compatFlags), fragmentPolicy(fragmentPolicy), segmentPolicy(segmentPolicy), segmentDurationIn180k(timescaleToClock(segmentDurationInMs, 1000)) {
+	: compatFlags(compatFlags), fragmentPolicy(fragmentPolicy), segmentPolicy(segmentPolicy), segmentDurationIn180k(timescaleToClock(segmentDurationInMs, 1000)) {
 	if ((segmentDurationInMs == 0) ^ (segmentPolicy == NoSegment || segmentPolicy == SingleSegment))
 		throw error(format("Inconsistent parameters: segment duration is %sms but no segment.", segmentDurationInMs));
 	if ((segmentDurationInMs == 0) && (fragmentPolicy == Mux::GPACMuxMP4::OneFragmentPerSegment))
@@ -470,7 +470,7 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 	} else {
 		if (segmentPolicy == FragmentedSegment) {
 			GF_Err e = gf_isom_close_segment(isoCur, 0, 0, 0, 0, 0, GF_FALSE, (Bool)isLastSeg, (Bool)(gf_isom_get_filename(isoInit) != nullptr),
-			                                 (compatFlags & Browsers) ? 0 : GF_4CC('e', 'o', 'd', 's'), nullptr, nullptr, &lastSegmentSize);
+			        (compatFlags & Browsers) ? 0 : GF_4CC('e', 'o', 'd', 's'), nullptr, nullptr, &lastSegmentSize);
 			if (e != GF_OK) {
 				if (DTS == 0) {
 					return;
@@ -529,8 +529,8 @@ void GPACMuxMP4::closeFragment() {
 			auto const absTimeInTs = convertToTimescale(firstDataAbsTimeInMs, 1000, mediaTs) + curFragmentStartInTs;
 			auto const deltaRealTimeInMs = 1000 * (double)(getUTC() - Fraction(absTimeInTs, mediaTs));
 			log(deltaRealTimeInMs < 0 || deltaRealTimeInMs > curFragmentStartInTs || curFragmentDurInTs != clockToTimescale(segmentDurationIn180k, mediaTs) ? Warning : Debug,
-				"Closing MSS fragment with absolute time %s %s UTC and duration %s (timescale %s, time=%s, deltaRT=%s)",
-				getDay(), getTimeFromUTC(), curFragmentDurInTs, mediaTs, absTimeInTs, deltaRealTimeInMs);
+			    "Closing MSS fragment with absolute time %s %s UTC and duration %s (timescale %s, time=%s, deltaRT=%s)",
+			    getDay(), getTimeFromUTC(), curFragmentDurInTs, mediaTs, absTimeInTs, deltaRealTimeInMs);
 			GF_Err e = gf_isom_set_traf_mss_timeext(isoCur, trackId, absTimeInTs, curFragmentDurInTs);
 			if (e != GF_OK)
 				throw error(format("Impossible to create UTC marker: %s", gf_error_to_string(e)));
@@ -833,9 +833,9 @@ void GPACMuxMP4::sendOutput(bool EOS) {
 	}
 	Bool isInband =
 #ifdef AVC_INBAND_CONFIG
-		GF_TRUE;
+	    GF_TRUE;
 #else
-		GF_FALSE;
+	    GF_FALSE;
 #endif
 	char codecName[40];
 	GF_Err e = gf_media_get_rfc_6381_codec_name(isoCur, gf_isom_get_track_by_id(isoCur, trackId), codecName, isInband, GF_FALSE);
@@ -924,8 +924,8 @@ void GPACMuxMP4::addData(gpacpp::IsoSample const * const sample, int64_t lastDat
 void GPACMuxMP4::closeChunk(bool nextSampleIsRAP) {
 	if (segmentPolicy > SingleSegment) {
 		if ((!(compatFlags & Browsers) || curFragmentDurInTs > 0 || fragmentPolicy == OneFragmentPerFrame) && /*avoid 0-sized mdat interpreted as EOS in browsers*/
-			((curSegmentDurInTs + curSegmentDeltaInTs) * IClock::Rate) >= (mediaTs * segmentDurationIn180k) &&
-			((nextSampleIsRAP == RAP) || (compatFlags & SegmentAtAny))) {
+		    ((curSegmentDurInTs + curSegmentDeltaInTs) * IClock::Rate) >= (mediaTs * segmentDurationIn180k) &&
+		    ((nextSampleIsRAP == RAP) || (compatFlags & SegmentAtAny))) {
 			if ((compatFlags & SegConstantDur) && (timescaleToClock(curSegmentDurInTs + curSegmentDeltaInTs, mediaTs) != segmentDurationIn180k) && (curSegmentDurInTs != 0)) {
 				if ((DTS / clockToTimescale(segmentDurationIn180k, mediaTs)) <= 1) {
 					segmentDurationIn180k = timescaleToClock(curSegmentDurInTs + curSegmentDeltaInTs, mediaTs);

@@ -12,7 +12,7 @@ template <class InstanceType>
 struct ModuleDefault : public ClockCap, public OutputCap, public InstanceType {
 	template <typename ...Args>
 	ModuleDefault(size_t allocatorSize, const std::shared_ptr<IClock> clock, Args&&... args)
-	: ClockCap(clock), OutputCap(allocatorSize), InstanceType(std::forward<Args>(args)...) {
+		: ClockCap(clock), OutputCap(allocatorSize), InstanceType(std::forward<Args>(args)...) {
 	}
 };
 

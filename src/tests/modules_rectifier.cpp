@@ -10,37 +10,37 @@ using namespace Tests;
 using namespace Modules;
 
 class ClockMock : public IClock {
-public:
-	ClockMock(const Fraction &time = Fraction(-1, 1000)) : time(time) {}
-	virtual ~ClockMock() {
-		condition.notify_all();
-	}
-	void setTime(const Fraction &t) {
-		if (t > time) {
-			time = t;
+	public:
+		ClockMock(const Fraction &time = Fraction(-1, 1000)) : time(time) {}
+		virtual ~ClockMock() {
+			condition.notify_all();
 		}
-		condition.notify_all();
-	}
-
-	Fraction now() const override {
-		return time;
-	}
-	double getSpeed() const override {
-		return 0.0;
-	}
-	void sleep(Fraction t) const override {
-		std::unique_lock<std::mutex> lock(mutex);
-		auto const tInit = time;
-		while (time < tInit + t) {
-			auto const durInMs = std::chrono::milliseconds(10);
-			condition.wait_for(lock, durInMs);
+		void setTime(const Fraction &t) {
+			if (t > time) {
+				time = t;
+			}
+			condition.notify_all();
 		}
-	}
 
-private:
-	Fraction time;
-	mutable std::mutex mutex;
-	mutable std::condition_variable condition;
+		Fraction now() const override {
+			return time;
+		}
+		double getSpeed() const override {
+			return 0.0;
+		}
+		void sleep(Fraction t) const override {
+			std::unique_lock<std::mutex> lock(mutex);
+			auto const tInit = time;
+			while (time < tInit + t) {
+				auto const durInMs = std::chrono::milliseconds(10);
+				condition.wait_for(lock, durInMs);
+			}
+		}
+
+	private:
+		Fraction time;
+		mutable std::mutex mutex;
+		mutable std::condition_variable condition;
 };
 
 unittest("scheduler: mock clock") {
@@ -90,8 +90,8 @@ struct DataGenerator : public ModuleS, public virtual IOutputCap {
 };
 
 void testRectifierMeta(const Fraction &fps, std::shared_ptr<ClockMock> clock,
-	const std::vector<std::unique_ptr<ModuleS>> &generators,
-	const std::vector<std::vector<std::pair<int64_t, int64_t>>> &inTimes, const std::vector<std::vector<std::pair<int64_t, int64_t>>> &outTimes) {
+    const std::vector<std::unique_ptr<ModuleS>> &generators,
+    const std::vector<std::vector<std::pair<int64_t, int64_t>>> &inTimes, const std::vector<std::vector<std::pair<int64_t, int64_t>>> &outTimes) {
 	auto rectifier = createModule<TimeRectifier>(1, clock, fps);
 	std::vector<std::unique_ptr<Utils::Recorder>> recorders;
 	for (size_t g = 0; g < generators.size(); ++g) {

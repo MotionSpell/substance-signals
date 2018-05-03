@@ -7,8 +7,8 @@
 namespace Pipelines {
 
 Pipeline::Pipeline(bool isLowLatency, double clockSpeed, Threading threading)
-: allocatorNumBlocks(isLowLatency ? Modules::ALLOC_NUM_BLOCKS_LOW_LATENCY : Modules::ALLOC_NUM_BLOCKS_DEFAULT),
-  clock(new Clock(clockSpeed)), threading(threading), remainingNotifications(0) {
+	: allocatorNumBlocks(isLowLatency ? Modules::ALLOC_NUM_BLOCKS_LOW_LATENCY : Modules::ALLOC_NUM_BLOCKS_DEFAULT),
+	  clock(new Clock(clockSpeed)), threading(threading), remainingNotifications(0) {
 }
 
 IPipelinedModule* Pipeline::addModuleInternal(std::unique_ptr<IModule> rawModule) {

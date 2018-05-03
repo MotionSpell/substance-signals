@@ -3,7 +3,7 @@
 #include "telx_tables.hpp"
 
 namespace {
-	
+
 typedef enum { //awkward type required by the spec states
 	Undef = 255,
 	No = 0,

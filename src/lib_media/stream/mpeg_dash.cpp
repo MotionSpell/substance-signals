@@ -30,20 +30,20 @@ GF_MPD_AdaptationSet *createAS(uint64_t segDurationInMs, GF_MPD_Period *period, 
 
 std::unique_ptr<gpacpp::MPD> createMPD(Stream::AdaptiveStreamingCommon::Type type, uint32_t minBufferTimeInMs, const std::string &id) {
 	return type != Stream::AdaptiveStreamingCommon::Static ?
-		uptr(new gpacpp::MPD(GF_MPD_TYPE_DYNAMIC, id, g_profiles, minBufferTimeInMs ? minBufferTimeInMs : MIN_BUFFER_TIME_IN_MS_LIVE)) :
-		uptr(new gpacpp::MPD(GF_MPD_TYPE_STATIC , id, g_profiles, minBufferTimeInMs ? minBufferTimeInMs : MIN_BUFFER_TIME_IN_MS_VOD ));
+	    uptr(new gpacpp::MPD(GF_MPD_TYPE_DYNAMIC, id, g_profiles, minBufferTimeInMs ? minBufferTimeInMs : MIN_BUFFER_TIME_IN_MS_LIVE)) :
+	    uptr(new gpacpp::MPD(GF_MPD_TYPE_STATIC, id, g_profiles, minBufferTimeInMs ? minBufferTimeInMs : MIN_BUFFER_TIME_IN_MS_VOD ));
 }
 }
 
 namespace Stream {
 
 MPEG_DASH::MPEG_DASH(const std::string &mpdDir, const std::string &mpdFilename, Type type, uint64_t segDurationInMs,
-	uint64_t timeShiftBufferDepthInMs, uint64_t minUpdatePeriodInMs, uint32_t minBufferTimeInMs,
-	const std::vector<std::string> &baseURLs, const std::string &id, int64_t initialOffsetInMs, AdaptiveStreamingCommonFlags flags)
-: AdaptiveStreamingCommon(type, segDurationInMs, mpdDir, flags),
-  mpd(createMPD(type, minBufferTimeInMs, id)), mpdFn(mpdFilename), baseURLs(baseURLs),
-  minUpdatePeriodInMs(minUpdatePeriodInMs ? minUpdatePeriodInMs : (segDurationInMs ? segDurationInMs : 1000)),
-  timeShiftBufferDepthInMs(timeShiftBufferDepthInMs), initialOffsetInMs(initialOffsetInMs), useSegmentTimeline(segDurationInMs == 0) {
+    uint64_t timeShiftBufferDepthInMs, uint64_t minUpdatePeriodInMs, uint32_t minBufferTimeInMs,
+    const std::vector<std::string> &baseURLs, const std::string &id, int64_t initialOffsetInMs, AdaptiveStreamingCommonFlags flags)
+	: AdaptiveStreamingCommon(type, segDurationInMs, mpdDir, flags),
+	  mpd(createMPD(type, minBufferTimeInMs, id)), mpdFn(mpdFilename), baseURLs(baseURLs),
+	  minUpdatePeriodInMs(minUpdatePeriodInMs ? minUpdatePeriodInMs : (segDurationInMs ? segDurationInMs : 1000)),
+	  timeShiftBufferDepthInMs(timeShiftBufferDepthInMs), initialOffsetInMs(initialOffsetInMs), useSegmentTimeline(segDurationInMs == 0) {
 	if (useSegmentTimeline && ((flags & PresignalNextSegment) || (flags & SegmentsNotOwned)))
 		throw error("Next segment pre-signalling or segments not owned cannot be used with segment timeline.");
 }

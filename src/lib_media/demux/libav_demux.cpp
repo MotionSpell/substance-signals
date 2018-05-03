@@ -68,7 +68,7 @@ void LibavDemux::initRestamp() {
 }
 
 LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::string &avformatCustom, const uint64_t seekTimeInMs, const std::string &formatName, std::unique_ptr<ffpp::IAvIO> avioCustom)
-: loop(loop), done(false), dispatchPkts(PKT_QUEUE_SIZE), m_avio(std::move(avioCustom)) {
+	: loop(loop), done(false), dispatchPkts(PKT_QUEUE_SIZE), m_avio(std::move(avioCustom)) {
 	if (!(m_formatCtx = avformat_alloc_context()))
 		throw error("Can't allocate format context");
 
@@ -184,10 +184,10 @@ bool LibavDemux::rectifyTimestamps(AVPacket &pkt) {
 	if (pkt.dts != AV_NOPTS_VALUE) {
 		pkt.dts += clockToTimescale(offsetIn180k[pkt.stream_index] * stream->time_base.num, stream->time_base.den);
 		if (lastDTS[pkt.stream_index] && pkt.dts < lastDTS[pkt.stream_index]
-			&& (1LL << stream->pts_wrap_bits) - lastDTS[pkt.stream_index] < thresholdInBase && pkt.dts + (1LL << stream->pts_wrap_bits) > lastDTS[pkt.stream_index]) {
+		    && (1LL << stream->pts_wrap_bits) - lastDTS[pkt.stream_index] < thresholdInBase && pkt.dts + (1LL << stream->pts_wrap_bits) > lastDTS[pkt.stream_index]) {
 			offsetIn180k[pkt.stream_index] += timescaleToClock((1LL << stream->pts_wrap_bits) * stream->time_base.num, stream->time_base.den);
 			log(Warning, "Stream %s: overflow detecting on DTS (%s, last=%s, timescale=%s/%s, offset=%s).",
-				pkt.stream_index, pkt.dts, lastDTS[pkt.stream_index], stream->time_base.num, stream->time_base.den, clockToTimescale(offsetIn180k[pkt.stream_index] * stream->time_base.num, stream->time_base.den));
+			    pkt.stream_index, pkt.dts, lastDTS[pkt.stream_index], stream->time_base.num, stream->time_base.den, clockToTimescale(offsetIn180k[pkt.stream_index] * stream->time_base.num, stream->time_base.den));
 		}
 	}
 
@@ -196,7 +196,7 @@ bool LibavDemux::rectifyTimestamps(AVPacket &pkt) {
 		if (pkt.pts < pkt.dts && (1LL << stream->pts_wrap_bits) + pkt.pts - pkt.dts < thresholdInBase) {
 			auto const localOffsetIn180k = timescaleToClock((1LL << stream->pts_wrap_bits) * stream->time_base.num, stream->time_base.den);
 			log(Warning, "Stream %s: overflow detecting on PTS (%s, new=%s, timescale=%s/%s, offset=%s).",
-				pkt.stream_index, pkt.pts, pkt.pts + localOffsetIn180k, stream->time_base.num, stream->time_base.den, clockToTimescale(offsetIn180k[pkt.stream_index] * stream->time_base.num, stream->time_base.den));
+			    pkt.stream_index, pkt.pts, pkt.pts + localOffsetIn180k, stream->time_base.num, stream->time_base.den, clockToTimescale(offsetIn180k[pkt.stream_index] * stream->time_base.num, stream->time_base.den));
 			pkt.pts += localOffsetIn180k;
 		}
 	}

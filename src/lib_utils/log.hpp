@@ -62,30 +62,30 @@ class Log {
 };
 
 class LogRepetition {
-public:
-	LogRepetition() {}
+	public:
+		LogRepetition() {}
 
-	template<typename... Arguments>
-	void msg(Level l, const std::string& fmt, Arguments... args) {
-		if ((level != Quiet) && (l <= level)) {
-			auto const msg = format(fmt, args...);
-			if (lastMsgCount < LOG_MSG_REPETITION_MAX && l == lastLevel && msg == lastMsg) {
-				lastMsgCount++;
-			} else {
-				if (lastMsgCount) {
-					Log::msg(l, "Last message repeated %s times.", lastMsgCount);
+		template<typename... Arguments>
+		void msg(Level l, const std::string& fmt, Arguments... args) {
+			if ((level != Quiet) && (l <= level)) {
+				auto const msg = format(fmt, args...);
+				if (lastMsgCount < LOG_MSG_REPETITION_MAX && l == lastLevel && msg == lastMsg) {
+					lastMsgCount++;
+				} else {
+					if (lastMsgCount) {
+						Log::msg(l, "Last message repeated %s times.", lastMsgCount);
+					}
+
+					Log::msg(l, msg);
+					lastLevel = l;
+					lastMsg = msg;
+					lastMsgCount = 0;
 				}
-
-				Log::msg(l, msg);
-				lastLevel = l;
-				lastMsg = msg;
-				lastMsgCount = 0;
 			}
 		}
-	}
 
-private:
-	Level level = Log::getLevel(), lastLevel = Debug;
-	std::string lastMsg;
-	uint64_t lastMsgCount = 0;
+	private:
+		Level level = Log::getLevel(), lastLevel = Debug;
+		std::string lastMsg;
+		uint64_t lastMsgCount = 0;
 };

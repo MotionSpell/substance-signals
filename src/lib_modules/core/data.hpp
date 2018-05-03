@@ -22,52 +22,52 @@ struct IData {
 
 //A generic timed data container with metadata.
 class DataBase : public IData {
-public:
-	virtual ~DataBase() = default;
+	public:
+		virtual ~DataBase() = default;
 
-	std::shared_ptr<const IMetadata> getMetadata() const;
-	void setMetadata(std::shared_ptr<const IMetadata> metadata);
+		std::shared_ptr<const IMetadata> getMetadata() const;
+		void setMetadata(std::shared_ptr<const IMetadata> metadata);
 
-	void setMediaTime(int64_t timeIn180k, uint64_t timescale = Clock::Rate);
-	void setClockTime(int64_t timeIn180k, uint64_t timescale = Clock::Rate); /*should be set automatically after data is allocated*/
-	int64_t getMediaTime() const;
-	int64_t getClockTime(uint64_t timescale = Clock::Rate) const;
-	static std::atomic<uint64_t> absUTCOffsetInMs;
+		void setMediaTime(int64_t timeIn180k, uint64_t timescale = Clock::Rate);
+		void setClockTime(int64_t timeIn180k, uint64_t timescale = Clock::Rate); /*should be set automatically after data is allocated*/
+		int64_t getMediaTime() const;
+		int64_t getClockTime(uint64_t timescale = Clock::Rate) const;
+		static std::atomic<uint64_t> absUTCOffsetInMs;
 
-private:
-	int64_t mediaTimeIn180k = 0, clockTimeIn180k = 0;
-	std::shared_ptr<const IMetadata> metadata;
+	private:
+		int64_t mediaTimeIn180k = 0, clockTimeIn180k = 0;
+		std::shared_ptr<const IMetadata> metadata;
 };
 
 class DataBaseRef : public DataBase {
-public:
-	DataBaseRef(std::shared_ptr<const DataBase> data);
-	std::shared_ptr<const DataBase> getData() const;
+	public:
+		DataBaseRef(std::shared_ptr<const DataBase> data);
+		std::shared_ptr<const DataBase> getData() const;
 
-	bool isRecyclable() const override;
-	uint8_t* data() override;
-	const uint8_t* data() const override;
-	uint64_t size() const override;
-	void resize(size_t size) override;
+		bool isRecyclable() const override;
+		uint8_t* data() override;
+		const uint8_t* data() const override;
+		uint64_t size() const override;
+		void resize(size_t size) override;
 
-private:
-	std::shared_ptr<const DataBase> dataRef;
+	private:
+		std::shared_ptr<const DataBase> dataRef;
 };
 
 /* automatic inputs have a loose datatype */
 struct DataLoose : public DataBase {};
 
 class DataRaw : public DataBase {
-public:
-	DataRaw(size_t size);
-	uint8_t* data() override;
-	bool isRecyclable() const override;
-	const uint8_t* data() const override;
-	uint64_t size() const override;
-	void resize(size_t size) override;
+	public:
+		DataRaw(size_t size);
+		uint8_t* data() override;
+		bool isRecyclable() const override;
+		const uint8_t* data() const override;
+		uint64_t size() const override;
+		void resize(size_t size) override;
 
-private:
-	std::vector<uint8_t> buffer;
+	private:
+		std::vector<uint8_t> buffer;
 };
 
 typedef std::shared_ptr<const DataBase> Data;

@@ -10,7 +10,7 @@
 class ThreadPool {
 	public:
 		ThreadPool(const std::string &name = "", unsigned threadCount = std::thread::hardware_concurrency())
-		: name(name) {
+			: name(name) {
 			done = false;
 			waitAndExit = false;
 			for (unsigned i = 0; i < threadCount; ++i) {
@@ -26,7 +26,7 @@ class ThreadPool {
 		void WaitForCompletion() {
 			waitAndExit = true;
 			for (size_t i = 0; i < threads.size(); ++i) {
-				workQueue.push([]{});
+				workQueue.push([] {});
 			}
 			for (size_t i = 0; i < threads.size(); ++i) {
 				if (threads[i].joinable()) {

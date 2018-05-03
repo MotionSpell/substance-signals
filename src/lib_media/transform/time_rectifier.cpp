@@ -9,7 +9,7 @@ namespace Modules {
 static const int64_t ANALYZE_WINDOW_MAX = std::numeric_limits<int64_t>::max() / 2;
 
 TimeRectifier::TimeRectifier(Fraction frameRate, uint64_t analyzeWindowIn180k)
-: frameRate(frameRate), scheduler(new Scheduler(clock)) {
+	: frameRate(frameRate), scheduler(new Scheduler(clock)) {
 	if (clock->getSpeed() == 0.0) {
 		this->analyzeWindowIn180k = ANALYZE_WINDOW_MAX;
 	} else {

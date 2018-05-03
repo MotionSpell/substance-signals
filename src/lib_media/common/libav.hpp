@@ -32,43 +32,43 @@ namespace Modules {
 void AVCodecContextDeleter(AVCodecContext *p);
 
 class MetadataPktLibav : public IMetadata {
-public:
-	MetadataPktLibav(std::shared_ptr<AVCodecContext> codecCtx, int id = -1);
-	virtual ~MetadataPktLibav() {}
-	StreamType getStreamType() const override;
-	int64_t getBitrate() const;
-	Fraction getTimeScale() const;
-	std::shared_ptr<AVCodecContext> getAVCodecContext() const;
-	int getId() const;
+	public:
+		MetadataPktLibav(std::shared_ptr<AVCodecContext> codecCtx, int id = -1);
+		virtual ~MetadataPktLibav() {}
+		StreamType getStreamType() const override;
+		int64_t getBitrate() const;
+		Fraction getTimeScale() const;
+		std::shared_ptr<AVCodecContext> getAVCodecContext() const;
+		int getId() const;
 
-protected:
-	std::shared_ptr<AVCodecContext> codecCtx;
-	int id; /*format specific id e.g. PID for MPEG2-TS. -1 is uninitialized*/
+	protected:
+		std::shared_ptr<AVCodecContext> codecCtx;
+		int id; /*format specific id e.g. PID for MPEG2-TS. -1 is uninitialized*/
 };
 
 class MetadataPktLibavVideo : public MetadataPktLibav {
-public:
-	MetadataPktLibavVideo(std::shared_ptr<AVCodecContext> codecCtx, int id = -1) : MetadataPktLibav(codecCtx, id) {}
-	PixelFormat getPixelFormat() const;
-	Resolution getResolution() const;
-	Fraction getFrameRate() const;
-	void getExtradata(const uint8_t *&extradata, size_t &extradataSize) const;
+	public:
+		MetadataPktLibavVideo(std::shared_ptr<AVCodecContext> codecCtx, int id = -1) : MetadataPktLibav(codecCtx, id) {}
+		PixelFormat getPixelFormat() const;
+		Resolution getResolution() const;
+		Fraction getFrameRate() const;
+		void getExtradata(const uint8_t *&extradata, size_t &extradataSize) const;
 };
 
 class MetadataPktLibavAudio : public MetadataPktLibav {
-public:
-	MetadataPktLibavAudio(std::shared_ptr<AVCodecContext> codecCtx, int id = -1) : MetadataPktLibav(codecCtx, id) {}
-	std::string getCodecName() const;
-	uint32_t getNumChannels() const;
-	uint32_t getSampleRate() const;
-	uint8_t getBitsPerSample() const;
-	uint32_t getFrameSize() const;
-	void getExtradata(const uint8_t *&extradata, size_t &extradataSize) const;
+	public:
+		MetadataPktLibavAudio(std::shared_ptr<AVCodecContext> codecCtx, int id = -1) : MetadataPktLibav(codecCtx, id) {}
+		std::string getCodecName() const;
+		uint32_t getNumChannels() const;
+		uint32_t getSampleRate() const;
+		uint8_t getBitsPerSample() const;
+		uint32_t getFrameSize() const;
+		void getExtradata(const uint8_t *&extradata, size_t &extradataSize) const;
 };
 
 class MetadataPktLibavSubtitle : public MetadataPktLibav {
-public:
-	MetadataPktLibavSubtitle(std::shared_ptr<AVCodecContext>codecCtx, int id = -1) : MetadataPktLibav(codecCtx, id) {}
+	public:
+		MetadataPktLibavSubtitle(std::shared_ptr<AVCodecContext>codecCtx, int id = -1) : MetadataPktLibav(codecCtx, id) {}
 };
 
 struct AVPacketDeleter {
@@ -76,22 +76,22 @@ struct AVPacketDeleter {
 };
 
 class DataAVPacket : public DataBase {
-public:
-	DataAVPacket(size_t size = 0);
-	~DataAVPacket();
-	bool isRecyclable() const override {
-		return false;
-	}
-	uint8_t* data() override;
-	uint8_t const* data() const override;
-	uint64_t size() const override;
-	void resize(size_t size) override;
+	public:
+		DataAVPacket(size_t size = 0);
+		~DataAVPacket();
+		bool isRecyclable() const override {
+			return false;
+		}
+		uint8_t* data() override;
+		uint8_t const* data() const override;
+		uint64_t size() const override;
+		void resize(size_t size) override;
 
-	AVPacket* getPacket() const;
-	void restamp(int64_t offsetIn180k, uint64_t pktTimescale) const;
+		AVPacket* getPacket() const;
+		void restamp(int64_t offsetIn180k, uint64_t pktTimescale) const;
 
-private:
-	std::unique_ptr<AVPacket, AVPacketDeleter> const pkt;
+	private:
+		std::unique_ptr<AVPacket, AVPacketDeleter> const pkt;
 };
 
 class PcmFormat;

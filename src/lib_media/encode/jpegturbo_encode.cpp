@@ -9,23 +9,23 @@ namespace Modules {
 namespace Encode {
 
 class JPEGTurbo {
-public:
-	JPEGTurbo() {
-		handle = tjInitCompress();
-	}
-	~JPEGTurbo() {
-		tjDestroy(handle);
-	}
-	tjhandle get() {
-		return handle;
-	}
+	public:
+		JPEGTurbo() {
+			handle = tjInitCompress();
+		}
+		~JPEGTurbo() {
+			tjDestroy(handle);
+		}
+		tjhandle get() {
+			return handle;
+		}
 
-private:
-	tjhandle handle;
+	private:
+		tjhandle handle;
 };
 
 JPEGTurboEncode::JPEGTurboEncode(int JPEGQuality)
-: jtHandle(new JPEGTurbo), JPEGQuality(JPEGQuality) {
+	: jtHandle(new JPEGTurbo), JPEGQuality(JPEGQuality) {
 	auto input = addInput(new Input<DataPicture>(this));
 	input->setMetadata(shptr(new MetadataRawVideo));
 	output = addOutput<OutputDefault>();
@@ -65,8 +65,8 @@ void JPEGTurboEncode::process(Data data_) {
 		}
 
 		if (tjCompressFromYUVPlanes(jtHandle->get(),
-			srcSlice, videoData->getFormat().res.width, srcStride, videoData->getFormat().res.height, TJSAMP_420,
-			&buf, &jpegSize, JPEGQuality, TJFLAG_NOREALLOC | TJFLAG_FASTDCT)) {
+		        srcSlice, videoData->getFormat().res.width, srcStride, videoData->getFormat().res.height, TJSAMP_420,
+		        &buf, &jpegSize, JPEGQuality, TJFLAG_NOREALLOC | TJFLAG_FASTDCT)) {
 			log(Warning, "error encountered while compressing (YUV).");
 			return;
 		}

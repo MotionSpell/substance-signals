@@ -11,15 +11,15 @@ struct IClock {
 };
 
 class Clock : public IClock {
-public:
-	Clock(double speed);
-	Fraction now() const override;
-	double getSpeed() const override;
-	void sleep(Fraction time) const override;
+	public:
+		Clock(double speed);
+		Fraction now() const override;
+		double getSpeed() const override;
+		void sleep(Fraction time) const override;
 
-private:
-	std::chrono::time_point<std::chrono::high_resolution_clock> const timeStart;
-	double const speed;
+	private:
+		std::chrono::time_point<std::chrono::high_resolution_clock> const timeStart;
+		double const speed;
 };
 
 extern const std::shared_ptr<Clock> g_DefaultClock;

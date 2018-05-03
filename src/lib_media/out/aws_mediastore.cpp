@@ -17,7 +17,7 @@
 
 #include <fstream>
 
-#define USE_IMPORT_EXPORT 
+#define USE_IMPORT_EXPORT
 
 namespace Modules {
 namespace Out {
@@ -45,9 +45,9 @@ void AwsMediaStore::process(Data data_) {
 
 
 	currentFilename = meta->getFilename();
-	if (data->size() != 0) 
+	if (data->size() != 0)
 		awsData.insert(awsData.end(), data->data(), data->data() + data->size());
-	
+
 	if (meta->getEOS()) {
 
 
@@ -55,11 +55,9 @@ void AwsMediaStore::process(Data data_) {
 		request.WithPath(currentFilename.c_str());
 		if (currentFilename.substr(currentFilename.size() - 4, 4).compare(".mpd") == 0) {
 			request.SetContentType("application/dash+xml");
-		}
-		else if (currentFilename.substr(currentFilename.size() - 5, 5).compare(".m3u8") == 0) {
+		} else if (currentFilename.substr(currentFilename.size() - 5, 5).compare(".m3u8") == 0) {
 			request.SetContentType("application/x-mpegURL");
-		}
-		else if (currentFilename.substr(currentFilename.size() - 4, 4).compare(".m4s") == 0 || currentFilename.substr(currentFilename.size() - 4, 4).compare(".mp4") == 0 || currentFilename.substr(currentFilename.size() - 4, 4).compare(".m4a") == 0) {
+		} else if (currentFilename.substr(currentFilename.size() - 4, 4).compare(".m4s") == 0 || currentFilename.substr(currentFilename.size() - 4, 4).compare(".mp4") == 0 || currentFilename.substr(currentFilename.size() - 4, 4).compare(".m4a") == 0) {
 			request.SetContentType("video/mp4");
 		}
 
@@ -85,8 +83,7 @@ void AwsMediaStore::process(Data data_) {
 		auto outcome = mediastoreDataClient->PutObject(request);
 		if (outcome.IsSuccess()) {
 			log(Info, "%s sucessfully uploaded", currentFilename);
-		}
-		else {
+		} else {
 			log(Error, "%s failed to upload %s %s", currentFilename, outcome.GetError().GetExceptionName(), outcome.GetError().GetMessage());
 		}
 		awsData.clear();

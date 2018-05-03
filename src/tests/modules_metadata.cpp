@@ -9,38 +9,38 @@ using namespace Modules;
 
 namespace {
 class FakeOutput : public Module {
-public:
-	FakeOutput() {
-		output = addOutput<OutputPcm>();
-	}
-	void process() {
-		auto data = output->getBuffer(0);
-		output->emit(data);
-	}
-	void setMetadata(std::shared_ptr<const IMetadata> metadata) {
-		output->setMetadata(metadata);
-	}
+	public:
+		FakeOutput() {
+			output = addOutput<OutputPcm>();
+		}
+		void process() {
+			auto data = output->getBuffer(0);
+			output->emit(data);
+		}
+		void setMetadata(std::shared_ptr<const IMetadata> metadata) {
+			output->setMetadata(metadata);
+		}
 
-private:
-	OutputPcm *output;
+	private:
+		OutputPcm *output;
 };
 
 class FakeInput : public Module {
-public:
-	FakeInput() {
-		input = addInput(new Input<DataBase>(this));
-	}
-	void process() {
-		auto data = inputs[0]->pop();
-		inputs[0]->updateMetadata(data);
-	}
+	public:
+		FakeInput() {
+			input = addInput(new Input<DataBase>(this));
+		}
+		void process() {
+			auto data = inputs[0]->pop();
+			inputs[0]->updateMetadata(data);
+		}
 
-	void setMetadata(std::shared_ptr<const IMetadata> metadata) {
-		input->setMetadata(metadata);
-	}
+		void setMetadata(std::shared_ptr<const IMetadata> metadata) {
+			input->setMetadata(metadata);
+		}
 
-private:
-	IInput *input;
+	private:
+		IInput *input;
 };
 }
 

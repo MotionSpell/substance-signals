@@ -33,22 +33,21 @@ static BOOL WINAPI signalHandler(_In_ DWORD dwCtrlType) {
 static void sigTermHandler(int sig) {
 	switch (sig) {
 	case SIGINT:
-	case SIGTERM:
-		{
-			static int numSig = 0;
-			numSig++;
-			if (numSig >= 3) {
-				std::cerr << "Caught " << numSig-1 << "signals, hard exit." << std::endl;
-				exit(3);
-			} else {
-				std::cerr << "Caught signal, exiting." << std::endl;
-				if (g_Pipeline) {
-					g_Pipeline->exitSync();
-					g_Pipeline = nullptr;
-				}
+	case SIGTERM: {
+		static int numSig = 0;
+		numSig++;
+		if (numSig >= 3) {
+			std::cerr << "Caught " << numSig-1 << "signals, hard exit." << std::endl;
+			exit(3);
+		} else {
+			std::cerr << "Caught signal, exiting." << std::endl;
+			if (g_Pipeline) {
+				g_Pipeline->exitSync();
+				g_Pipeline = nullptr;
 			}
 		}
-		break;
+	}
+	break;
 	default:
 		break;
 	}

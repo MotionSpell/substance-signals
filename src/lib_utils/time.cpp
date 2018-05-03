@@ -7,7 +7,7 @@
 
 #define NTP_SEC_1900_TO_1970 2208988800ul
 
-#ifdef _WIN32 
+#ifdef _WIN32
 #include <sys/timeb.h>
 #include <Winsock2.h>
 int gettimeofday(struct timeval *tp, void *tz) {

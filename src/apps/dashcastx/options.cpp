@@ -88,42 +88,64 @@ void printDetectedOptions(option::Parser &parse, option::Option * const options)
 std::unique_ptr<const IConfig> processArgs(int argc, char const* argv[]) {
 	auto const usage0 = format("Usage: %s [options] <URL>\n\nOptions:", g_appName);
 	auto const examples = format(
-		"\nExamples:\n"
-		"No transcode:\n"
-		"  %s -l -s 10000 file.mp4\n"
-		"  %s file.ts\n"
-		"  %s udp://226.0.0.1:1234\n"
-		"Transcode:\n"
-		"  %s --live --loop --seg-dur 10000 --dvr 10 --autorotate --video 320x180:50000 --video 640x360:300000 http://server.com/file.mp4\n"
-		"  %s --live -v 1280x720:1000000 webcam:video=/dev/video0:audio=/dev/audio1\n"
-		"  %s --live --working-dir workdir -v 640x360:300000 -v 1280x720:1000000 webcam:video=/dev/video0:audio=/dev/audio1\n",
-		"  %s -ilr -w tmp -t 10 -v 640x360:300000:0 udp://226.0.0.1:1234\n",
-		g_appName, g_appName, g_appName, g_appName, g_appName, g_appName, g_appName);
+	        "\nExamples:\n"
+	        "No transcode:\n"
+	        "  %s -l -s 10000 file.mp4\n"
+	        "  %s file.ts\n"
+	        "  %s udp://226.0.0.1:1234\n"
+	        "Transcode:\n"
+	        "  %s --live --loop --seg-dur 10000 --dvr 10 --autorotate --video 320x180:50000 --video 640x360:300000 http://server.com/file.mp4\n"
+	        "  %s --live -v 1280x720:1000000 webcam:video=/dev/video0:audio=/dev/audio1\n"
+	        "  %s --live --working-dir workdir -v 640x360:300000 -v 1280x720:1000000 webcam:video=/dev/video0:audio=/dev/audio1\n",
+	        "  %s -ilr -w tmp -t 10 -v 640x360:300000:0 udp://226.0.0.1:1234\n",
+	        g_appName, g_appName, g_appName, g_appName, g_appName, g_appName, g_appName);
 	const option::Descriptor usage[] = {
-		{ UNKNOWN,  0, "" ,  "",           Arg::Unknown, usage0.c_str() },
-		{ HELP,     0, "h", "help",        Arg::None,
-			"  --help,              -h             \tPrint usage and exit." },
-		{ OPT,      0, "i", "loop",        Arg::None,
-			"  --loop,              -i             \tLoops the input indefinitely." },
-		{ OPT,      0, "l", "live",        Arg::None,
-			"  --live,              -l             \tRun at system clock pace (otherwise runs as fast as possible)." },
-		{ OPT,      0, "u", "ultra-low-latency", Arg::None,
-			"  --ultra-low-latency, -u             \tLower the latency as much as possible (quality may be degraded)." },
-		{ NUMERIC,  0, "s", "seg-dur",     Arg::Numeric,
-			"  --seg-dur,           -s             \tSet the segment duration (in ms) (default value: 2000)." },
-		{ NUMERIC,  0, "t", "dvr",         Arg::Numeric,
-			"  --dvr,               -t             \tSet the timeshift buffer depth in segment number (default value: infinite(0))." },
-		{ VIDEO,    0, "v", "video",       Arg::Video,
-			"  --video wxh[:b[:t]], -v wxh:b[:t]   \tSet a video resolution and optionally bitrate (enables resize and/or transcoding) and encoder type (supported 0 (software (default)), 1 (QuickSync), 2 (NVEnc)." },
-		{ OPT,      0, "r", "autorotate",  Arg::None,
-			"  --autorotate,        -r             \tAuto-rotate if the input height is bigger than the width." },
-		{ NONEMPTY, 0, "w", "working-dir", Arg::NonEmpty,
-			"  --working-dir,       -w             \tSet a working directory." },
-		{ NONEMPTY, 0, "p", "post-cmd",    Arg::NonEmpty,
-			"  --post-cmd,          -p             \tExecute a command when a segment or a manifest are created/updated. Shall contain one '%s' to be replaced by the filename." },
-		{ OPT,      0, "n", "no-watermark",Arg::None,
-			"  --no-watermark,      -n             \tRemove the watermark (when applicable)." },
-		{ UNKNOWN,  0, "" ,  "",           Arg::None, examples.c_str() },
+		{ UNKNOWN,  0, "",  "",           Arg::Unknown, usage0.c_str() },
+		{
+			HELP,     0, "h", "help",        Arg::None,
+			"  --help,              -h             \tPrint usage and exit."
+		},
+		{
+			OPT,      0, "i", "loop",        Arg::None,
+			"  --loop,              -i             \tLoops the input indefinitely."
+		},
+		{
+			OPT,      0, "l", "live",        Arg::None,
+			"  --live,              -l             \tRun at system clock pace (otherwise runs as fast as possible)."
+		},
+		{
+			OPT,      0, "u", "ultra-low-latency", Arg::None,
+			"  --ultra-low-latency, -u             \tLower the latency as much as possible (quality may be degraded)."
+		},
+		{
+			NUMERIC,  0, "s", "seg-dur",     Arg::Numeric,
+			"  --seg-dur,           -s             \tSet the segment duration (in ms) (default value: 2000)."
+		},
+		{
+			NUMERIC,  0, "t", "dvr",         Arg::Numeric,
+			"  --dvr,               -t             \tSet the timeshift buffer depth in segment number (default value: infinite(0))."
+		},
+		{
+			VIDEO,    0, "v", "video",       Arg::Video,
+			"  --video wxh[:b[:t]], -v wxh:b[:t]   \tSet a video resolution and optionally bitrate (enables resize and/or transcoding) and encoder type (supported 0 (software (default)), 1 (QuickSync), 2 (NVEnc)."
+		},
+		{
+			OPT,      0, "r", "autorotate",  Arg::None,
+			"  --autorotate,        -r             \tAuto-rotate if the input height is bigger than the width."
+		},
+		{
+			NONEMPTY, 0, "w", "working-dir", Arg::NonEmpty,
+			"  --working-dir,       -w             \tSet a working directory."
+		},
+		{
+			NONEMPTY, 0, "p", "post-cmd",    Arg::NonEmpty,
+			"  --post-cmd,          -p             \tExecute a command when a segment or a manifest are created/updated. Shall contain one '%s' to be replaced by the filename."
+		},
+		{
+			OPT,      0, "n", "no-watermark",Arg::None,
+			"  --no-watermark,      -n             \tRemove the watermark (when applicable)."
+		},
+		{ UNKNOWN,  0, "",  "",           Arg::None, examples.c_str() },
 		{ 0, 0, 0, 0, 0, 0 }
 	};
 

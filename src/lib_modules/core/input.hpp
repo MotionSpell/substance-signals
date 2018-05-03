@@ -16,21 +16,21 @@ struct IProcessor {
 };
 
 class ConnectedCap {
-public:
-	ConnectedCap() : connections(0) {}
-	virtual ~ConnectedCap() noexcept(false) {}
-	virtual size_t getNumConnections() const {
-		return connections;
-	}
-	virtual void connect() {
-		connections++;
-	}
-	virtual void disconnect() {
-		connections--;
-	}
+	public:
+		ConnectedCap() : connections(0) {}
+		virtual ~ConnectedCap() noexcept(false) {}
+		virtual size_t getNumConnections() const {
+			return connections;
+		}
+		virtual void connect() {
+			connections++;
+		}
+		virtual void disconnect() {
+			connections--;
+		}
 
-private:
-	std::atomic_size_t connections;
+	private:
+		std::atomic_size_t connections;
 };
 
 struct IInput : public IProcessor, public ConnectedCap, public MetadataCap, public Queue<Data> {
@@ -39,15 +39,15 @@ struct IInput : public IProcessor, public ConnectedCap, public MetadataCap, publ
 
 template<typename DataType, typename ModuleType = IProcessor>
 class Input : public IInput {
-public:
-	Input(ModuleType * const module) : module(module) {}
+	public:
+		Input(ModuleType * const module) : module(module) {}
 
-	void process() override {
-		module->process();
-	}
+		void process() override {
+			module->process();
+		}
 
-private:
-	ModuleType * const module;
+	private:
+		ModuleType * const module;
 };
 
 struct IInputCap {
@@ -58,21 +58,21 @@ struct IInputCap {
 };
 
 class InputCap : public virtual IInputCap {
-public:
-	virtual ~InputCap() noexcept(false) {}
-	IInput* addInput(IInput* p) override { //Takes ownership
-		inputs.push_back(uptr(p));
-		return p;
-	}
-	size_t getNumInputs() const override {
-		return inputs.size();
-	}
-	IInput* getInput(size_t i) override {
-		return inputs[i].get();
-	}
+	public:
+		virtual ~InputCap() noexcept(false) {}
+		IInput* addInput(IInput* p) override { //Takes ownership
+			inputs.push_back(uptr(p));
+			return p;
+		}
+		size_t getNumInputs() const override {
+			return inputs.size();
+		}
+		IInput* getInput(size_t i) override {
+			return inputs[i].get();
+		}
 
-protected:
-	std::vector<std::unique_ptr<IInput>> inputs;
+	protected:
+		std::vector<std::unique_ptr<IInput>> inputs;
 };
 
 }

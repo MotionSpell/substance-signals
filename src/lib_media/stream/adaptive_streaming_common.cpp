@@ -12,7 +12,7 @@ namespace Modules {
 namespace Stream {
 
 AdaptiveStreamingCommon::AdaptiveStreamingCommon(Type type, uint64_t segDurationInMs, const std::string &manifestDir, AdaptiveStreamingCommonFlags flags)
-: type(type), segDurationInMs(segDurationInMs), manifestDir(manifestDir), flags(flags) {
+	: type(type), segDurationInMs(segDurationInMs), manifestDir(manifestDir), flags(flags) {
 	if ((flags & ForceRealDurations) && !segDurationInMs)
 		throw error("Inconsistent parameters: ForceRealDurations flag requires a non-null segment duration.");
 	if (!manifestDir.empty() && (flags & SegmentsNotOwned))
@@ -46,7 +46,7 @@ bool AdaptiveStreamingCommon::moveFile(const std::string &src, const std::string
 			return false;
 		}
 	}
-return true;
+	return true;
 }
 
 void AdaptiveStreamingCommon::processInitSegment(Quality const * const quality, size_t index) {
@@ -171,7 +171,7 @@ void AdaptiveStreamingCommon::threadProc() {
 		for (size_t idx = 0; idx < curSegDurIn180k.size(); ++idx) {
 			auto const &segDur = curSegDurIn180k[idx];
 			if ( (segDur < minIncompletSegDur) &&
-				((segDur < timescaleToClock(segDurationInMs, 1000)) || (!qualities[idx]->getMeta() || !qualities[idx]->getMeta()->getEOS()))) {
+			    ((segDur < timescaleToClock(segDurationInMs, 1000)) || (!qualities[idx]->getMeta() || !qualities[idx]->getMeta()->getEOS()))) {
 				minIncompletSegDur = segDur;
 			}
 		}
@@ -275,7 +275,7 @@ void AdaptiveStreamingCommon::threadProc() {
 			generateManifest();
 			totalDurationInMs += segDurationInMs;
 			log(Info, "Processes segment (total processed: %ss, UTC: %sms (deltaAST=%s, deltaInput=%s).",
-				(double)totalDurationInMs / 1000, getUTC().num, gf_net_get_utc() - startTimeInMs, (int64_t)(gf_net_get_utc() - curMediaTimeInMs));
+			    (double)totalDurationInMs / 1000, getUTC().num, gf_net_get_utc() - startTimeInMs, (int64_t)(gf_net_get_utc() - curMediaTimeInMs));
 
 			if (type != Static) {
 				const int64_t durInMs = startTimeInMs + totalDurationInMs - getUTC().num;

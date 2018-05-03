@@ -147,7 +147,7 @@ unittest("pipeline: dynamic module addition") {
 	};
 	std::thread tf(f);*/
 	auto null = p.addModule<Out::Null>();
-	p.connect(demux, 0, null, 0);*/
+	p.connect(demux, 0, null, 0); */
 	p.waitForCompletion();
 }
 #endif

@@ -20,78 +20,78 @@ static Signals::ExecutorSync<void(Data)> g_executorOutputSync;
 typedef SignalSync SignalDefaultSync;
 
 class IOutput : public virtual IMetadataCap {
-public:
-	virtual ~IOutput() noexcept(false) {}
-	virtual size_t emit(Data data) = 0;
-	virtual Signals::ISignal<void(Data)>& getSignal() = 0;
+	public:
+		virtual ~IOutput() noexcept(false) {}
+		virtual size_t emit(Data data) = 0;
+		virtual Signals::ISignal<void(Data)>& getSignal() = 0;
 };
 
 template<typename Allocator, typename Signal>
 class OutputT : public IOutput, public MetadataCap, public ClockCap {
-public:
-	typedef Allocator AllocatorType;
+	public:
+		typedef Allocator AllocatorType;
 
-	OutputT(size_t allocatorBaseSize, size_t allocatorMaxSize, std::shared_ptr<IClock> clock, std::shared_ptr<const IMetadata> metadata = nullptr)
-		: MetadataCap(metadata), ClockCap(clock), signal(g_executorOutputSync), allocator(new Allocator(allocatorBaseSize, allocatorMaxSize)) {
-	}
-	OutputT(size_t allocatorSize, std::shared_ptr<IClock> clock, const IMetadata *metadata = nullptr)
-		: OutputT(allocatorSize, allocatorSize, clock, metadata) {
-	}
-	virtual ~OutputT() noexcept(false) {
-		allocator->unblock();
-	}
+		OutputT(size_t allocatorBaseSize, size_t allocatorMaxSize, std::shared_ptr<IClock> clock, std::shared_ptr<const IMetadata> metadata = nullptr)
+			: MetadataCap(metadata), ClockCap(clock), signal(g_executorOutputSync), allocator(new Allocator(allocatorBaseSize, allocatorMaxSize)) {
+		}
+		OutputT(size_t allocatorSize, std::shared_ptr<IClock> clock, const IMetadata *metadata = nullptr)
+			: OutputT(allocatorSize, allocatorSize, clock, metadata) {
+		}
+		virtual ~OutputT() noexcept(false) {
+			allocator->unblock();
+		}
 
-	size_t emit(Data data) override {
-		updateMetadata(data);
-		size_t numReceivers = signal.emit(data);
-		if (numReceivers == 0)
-			Log::msg(Debug, "emit(): Output had no receiver");
-		return numReceivers;
-	}
+		size_t emit(Data data) override {
+			updateMetadata(data);
+			size_t numReceivers = signal.emit(data);
+			if (numReceivers == 0)
+				Log::msg(Debug, "emit(): Output had no receiver");
+			return numReceivers;
+		}
 
-	template<typename T = typename Allocator::MyType>
-	std::shared_ptr<T> getBuffer(size_t size) {
-		auto buffer = allocator->template getBuffer<T>(size, allocator);
-		if (clock) buffer->setClockTime(fractionToClock(clock->now()));
-		return buffer;
-	}
+		template<typename T = typename Allocator::MyType>
+		std::shared_ptr<T> getBuffer(size_t size) {
+			auto buffer = allocator->template getBuffer<T>(size, allocator);
+			if (clock) buffer->setClockTime(fractionToClock(clock->now()));
+			return buffer;
+		}
 
-	Signals::ISignal<void(Data)>& getSignal() override {
-		return signal;
-	}
+		Signals::ISignal<void(Data)>& getSignal() override {
+			return signal;
+		}
 
-private:
-	Signal signal;
-	std::shared_ptr<Allocator> allocator;
+	private:
+		Signal signal;
+		std::shared_ptr<Allocator> allocator;
 };
 
 template<typename DataType> using OutputDataDefault = OutputT<PacketAllocator<DataType>, SignalDefaultSync>;
 typedef OutputDataDefault<DataRaw> OutputDefault;
 
 class IOutputCap {
-public:
-	virtual ~IOutputCap() noexcept(false) {}
-	virtual size_t getNumOutputs() const = 0;
-	virtual IOutput* getOutput(size_t i) = 0;
+	public:
+		virtual ~IOutputCap() noexcept(false) {}
+		virtual size_t getNumOutputs() const = 0;
+		virtual IOutput* getOutput(size_t i) = 0;
 
-protected:
-	/*FIXME: we need to have factories to move these back to the implementation - otherwise ports created from the constructor may crash*/
-	std::vector<std::unique_ptr<IOutput>> outputs;
-	/*const*/ size_t allocatorSize = 0;
+	protected:
+		/*FIXME: we need to have factories to move these back to the implementation - otherwise ports created from the constructor may crash*/
+		std::vector<std::unique_ptr<IOutput>> outputs;
+		/*const*/ size_t allocatorSize = 0;
 };
 
 class OutputCap : public virtual IOutputCap {
-public:
-	OutputCap(size_t allocatorSize) {
-		this->allocatorSize = allocatorSize;
-	}
+	public:
+		OutputCap(size_t allocatorSize) {
+			this->allocatorSize = allocatorSize;
+		}
 
-	size_t getNumOutputs() const override {
-		return outputs.size();
-	}
-	IOutput* getOutput(size_t i) override {
-		return outputs[i].get();
-	}
+		size_t getNumOutputs() const override {
+			return outputs.size();
+		}
+		IOutput* getOutput(size_t i) override {
+			return outputs[i].get();
+		}
 };
 
 }

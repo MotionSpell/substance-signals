@@ -14,7 +14,7 @@ namespace Modules {
 namespace Encode {
 
 LibavEncode::LibavEncode(Type type, Params &params)
-: avFrame(new ffpp::Frame) {
+	: avFrame(new ffpp::Frame) {
 	std::string codecOptions, generalOptions, codecName;
 	switch (type) {
 	case Video: {

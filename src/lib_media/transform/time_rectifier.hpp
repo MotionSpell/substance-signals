@@ -35,49 +35,49 @@ Remarks:
  - TODO (currently handled by demux): This module deprecates heartbeat mechanisms for sparse streams.
 */
 class TimeRectifier : public ModuleDynI {
-public:
-	TimeRectifier(Fraction frameRate, uint64_t analyzeWindowIn180k = ANALYZE_WINDOW_IN_180K);
+	public:
+		TimeRectifier(Fraction frameRate, uint64_t analyzeWindowIn180k = ANALYZE_WINDOW_IN_180K);
 
-	void process() override;
-	void flush() override;
+		void process() override;
+		void flush() override;
 
-	size_t getNumOutputs() const override {
-		return outputs.size();
-	}
-	IOutput* getOutput(size_t i) override {
-		mimicOutputs();
-		return outputs[i].get();
-	}
+		size_t getNumOutputs() const override {
+			return outputs.size();
+		}
+		IOutput* getOutput(size_t i) override {
+			mimicOutputs();
+			return outputs[i].get();
+		}
 
-private:
-	void sanityChecks();
-	void mimicOutputs();
-	void fillInputQueuesUnsafe();
-	void removeOutdatedIndexUnsafe(size_t inputIdx, int64_t removalClockTime);
-	void removeOutdatedAllUnsafe(int64_t removalClockTime);
-	void declareScheduler(Data data, std::unique_ptr<IInput> &input, std::unique_ptr<IOutput> &output);
-	void awakeOnFPS(Fraction time);
+	private:
+		void sanityChecks();
+		void mimicOutputs();
+		void fillInputQueuesUnsafe();
+		void removeOutdatedIndexUnsafe(size_t inputIdx, int64_t removalClockTime);
+		void removeOutdatedAllUnsafe(int64_t removalClockTime);
+		void declareScheduler(Data data, std::unique_ptr<IInput> &input, std::unique_ptr<IOutput> &output);
+		void awakeOnFPS(Fraction time);
 
-	struct Stream {
-		std::list<Data> data;
-		int64_t numTicks = 0;
-		//Data defaultTypeData; //TODO: black screen for video, etc.
-	};
+		struct Stream {
+			std::list<Data> data;
+			int64_t numTicks = 0;
+			//Data defaultTypeData; //TODO: black screen for video, etc.
+		};
 
-	Fraction frameRate;
-	int64_t analyzeWindowIn180k = 0, maxClockTimeIn180k = 0;
-	std::vector<std::unique_ptr<Stream>> input;
-	std::mutex inputMutex;
-	std::condition_variable flushedCond;
-	std::unique_ptr<IScheduler> scheduler;
-	bool hasVideo = false, flushing = false;
+		Fraction frameRate;
+		int64_t analyzeWindowIn180k = 0, maxClockTimeIn180k = 0;
+		std::vector<std::unique_ptr<Stream>> input;
+		std::mutex inputMutex;
+		std::condition_variable flushedCond;
+		std::unique_ptr<IScheduler> scheduler;
+		bool hasVideo = false, flushing = false;
 };
 
 template <>
 struct ModuleDefault<TimeRectifier> : public ClockCap, public TimeRectifier {
 	template <typename ...Args>
 	ModuleDefault(size_t allocatorSize, const std::shared_ptr<IClock> clock, Args&&... args)
-	: ClockCap(clock), TimeRectifier(std::forward<Args>(args)...) {
+		: ClockCap(clock), TimeRectifier(std::forward<Args>(args)...) {
 		this->allocatorSize = allocatorSize;
 	}
 };

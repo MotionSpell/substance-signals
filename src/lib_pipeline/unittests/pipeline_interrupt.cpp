@@ -26,19 +26,19 @@ unittest("pipeline: interrupted") {
 
 #ifdef ENABLE_FAILING_TESTS
 class ExceptionModule : public ModuleS {
-public:
-	ExceptionModule() {
-		addInput(new Input<DataBase>(this));
-	}
-	void process(Data) {
-		if (!raised) {
-			raised = true;
-			throw error("Test exception");
+	public:
+		ExceptionModule() {
+			addInput(new Input<DataBase>(this));
 		}
-	}
+		void process(Data) {
+			if (!raised) {
+				raised = true;
+				throw error("Test exception");
+			}
+		}
 
-private:
-	bool raised = false;
+	private:
+		bool raised = false;
 };
 
 unittest("pipeline: intercept exception") {

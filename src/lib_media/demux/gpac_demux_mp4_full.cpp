@@ -8,30 +8,30 @@ namespace Modules {
 namespace Demux {
 
 class ISOProgressiveReader {
-public:
-	ISOProgressiveReader()
-		: data(0), refreshBoxes(GF_TRUE), samplesProcessed(0), sampleIndex(1), sampleCount(0), trackNumber(1) {
-	}
+	public:
+		ISOProgressiveReader()
+			: data(0), refreshBoxes(GF_TRUE), samplesProcessed(0), sampleIndex(1), sampleCount(0), trackNumber(1) {
+		}
 
-	~ISOProgressiveReader() {
-	}
+		~ISOProgressiveReader() {
+		}
 
-	/* data buffer to be read by the parser */
-	std::vector<u8> data;
-	/* URL used to pass a buffer to the parser */
-	std::string dataUrl;
-	/* The ISO file structure created for the parsing of data */
-	std::unique_ptr<gpacpp::IsoFile> movie;
-	/* Boolean state to indicate if the needs to be parsed */
-	Bool refreshBoxes;
-	u32 samplesProcessed;
-	u32 sampleIndex; /* samples are numbered starting from 1 */
-	u32 sampleCount;
-	int trackNumber; //TODO: multi-tracks
+		/* data buffer to be read by the parser */
+		std::vector<u8> data;
+		/* URL used to pass a buffer to the parser */
+		std::string dataUrl;
+		/* The ISO file structure created for the parsing of data */
+		std::unique_ptr<gpacpp::IsoFile> movie;
+		/* Boolean state to indicate if the needs to be parsed */
+		Bool refreshBoxes;
+		u32 samplesProcessed;
+		u32 sampleIndex; /* samples are numbered starting from 1 */
+		u32 sampleCount;
+		int trackNumber; //TODO: multi-tracks
 };
 
 GPACDemuxMP4Full::GPACDemuxMP4Full()
-: reader(new ISOProgressiveReader) {
+	: reader(new ISOProgressiveReader) {
 	addInput(new Input<DataRaw>(this));
 	output = addOutput<OutputDefault>();
 }
@@ -71,8 +71,8 @@ bool GPACDemuxMP4Full::processSample() {
 			if (newSampleCount > reader->sampleCount) {
 				/* New samples have been added to the file */
 				log(Info, "Found %s new samples (total: %s)",
-				         newSampleCount - reader->sampleCount,
-				         newSampleCount);
+				    newSampleCount - reader->sampleCount,
+				    newSampleCount);
 				if (reader->sampleCount == 0) {
 					reader->sampleCount = newSampleCount;
 				}
@@ -97,8 +97,8 @@ bool GPACDemuxMP4Full::processSample() {
 					auto const DTSOffset = reader->movie->getDTSOffet(reader->trackNumber);
 					/*here we dump some sample info: samp->data, samp->dataLength, samp->isRAP, samp->DTS, samp->CTS_Offset */
 					log(Debug, "Found sample #%s(#%s) of length %s , RAP: %s, DTS: %s, CTS: %s",
-						reader->sampleIndex, reader->samplesProcessed, ISOSample->dataLength,
-						ISOSample->IsRAP, ISOSample->DTS + DTSOffset, ISOSample->DTS + DTSOffset + ISOSample->CTS_Offset);
+					    reader->sampleIndex, reader->samplesProcessed, ISOSample->dataLength,
+					    ISOSample->IsRAP, ISOSample->DTS + DTSOffset, ISOSample->DTS + DTSOffset + ISOSample->CTS_Offset);
 					reader->sampleIndex++;
 
 					auto out = output->getBuffer(ISOSample->dataLength);

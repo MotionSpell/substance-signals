@@ -11,7 +11,7 @@ namespace Modules {
 namespace Transform {
 
 LibavFilter::LibavFilter(const PictureFormat &format, const std::string &filterArgs)
-: graph(avfilter_graph_alloc()), avFrameIn(new ffpp::Frame), avFrameOut(new ffpp::Frame) {
+	: graph(avfilter_graph_alloc()), avFrameIn(new ffpp::Frame), avFrameOut(new ffpp::Frame) {
 	char args[512];
 	AVPixelFormat pf;
 	pixelFormat2libavPixFmt(format.format, pf);
