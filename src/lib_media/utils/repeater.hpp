@@ -20,7 +20,6 @@ private:
 	std::thread workingThread;
 	std::atomic_bool done;
 	int64_t timeInMs;
-	const int64_t maxTimeInMs = 500;
 	std::chrono::time_point<std::chrono::high_resolution_clock> lastNow;
 	Data lastData;
 };

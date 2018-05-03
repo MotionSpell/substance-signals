@@ -4,6 +4,8 @@
 namespace Modules {
 namespace Utils {
 
+const int64_t maxTimeInMs = 500;
+
 using namespace std::chrono;
 
 Repeater::Repeater(int64_t ms) : timeInMs(ms) {
