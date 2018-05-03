@@ -5,7 +5,6 @@
 #include <mutex>
 #include <thread>
 
-struct SDL_Rect;
 struct SDL_Renderer;
 struct SDL_Texture;
 struct SDL_Window;
@@ -29,7 +28,7 @@ class SDLVideo : public ModuleS {
 		SDL_Window *window = nullptr;
 		SDL_Renderer *renderer;
 		SDL_Texture *texture;
-		std::unique_ptr<SDL_Rect> displayrect;
+		Resolution displaySize;
 		PictureFormat pictureFormat;
 
 		Queue<Data> m_dataQueue; //FIXME: useless now we have input ports

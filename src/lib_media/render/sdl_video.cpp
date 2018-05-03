@@ -24,7 +24,7 @@ Uint32 pixelFormat2SDLFormat(const Modules::PixelFormat format) {
 }
 
 SDLVideo::SDLVideo(const std::shared_ptr<IClock> clock)
-	: m_clock(clock), texture(nullptr), displayrect(new SDL_Rect()), workingThread(&SDLVideo::doRender, this) {
+	: m_clock(clock), texture(nullptr), workingThread(&SDLVideo::doRender, this) {
 	auto input = addInput(new Input<DataPicture>(this));
 	input->setMetadata(shptr(new MetadataRawVideo));
 	m_dataQueue.pop();
@@ -68,8 +68,8 @@ bool SDLVideo::processOneFrame(Data data) {
 		case SDL_WINDOWEVENT:
 			if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
 				SDL_RenderSetViewport(renderer, nullptr);
-				displayrect->w = event.window.data1;
-				displayrect->h = event.window.data2;
+				displaySize.width = event.window.data1;
+				displaySize.height = event.window.data2;
 			}
 			break;
 		case SDL_QUIT:
@@ -102,7 +102,11 @@ bool SDLVideo::processOneFrame(Data data) {
 	} else {
 		SDL_UpdateTexture(texture, nullptr, pic->getPlane(0), (int)pic->getPitch(0));
 	}
-	SDL_RenderCopy(renderer, texture, nullptr, displayrect.get());
+
+	SDL_Rect displayrect {};
+	displayrect.w = displaySize.width;
+	displayrect.h = displaySize.height;
+	SDL_RenderCopy(renderer, texture, nullptr, &displayrect);
 	SDL_RenderPresent(renderer);
 
 	return true;
@@ -118,11 +122,9 @@ void SDLVideo::createTexture() {
 	if (!texture)
 		throw error(format("Couldn't set create texture: %s", SDL_GetError()));
 
-	displayrect->x = 0;
-	displayrect->y = 0;
-	displayrect->w = pictureFormat.res.width;
-	displayrect->h = pictureFormat.res.height;
-	SDL_SetWindowSize(window, displayrect->w, displayrect->h);
+	displaySize.width = pictureFormat.res.width;
+	displaySize.height = pictureFormat.res.height;
+	SDL_SetWindowSize(window, displaySize.width, displaySize.height);
 }
 
 SDLVideo::~SDLVideo() {
