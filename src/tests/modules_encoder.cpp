@@ -4,6 +4,7 @@
 #include "lib_media/encode/libav_encode.hpp"
 #include "lib_media/mux/gpac_mux_mp4.hpp"
 #include "lib_utils/tools.hpp"
+#include <iostream> // std::cerr
 
 using namespace Tests;
 using namespace Modules;

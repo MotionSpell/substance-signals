@@ -2,6 +2,7 @@
 
 #include "lib_modules/core/module.hpp"
 #include "../common/libav.hpp"
+#include "../common/pcm.hpp"
 #include "../common/picture.hpp"
 #include "lib_utils/queue.hpp"
 #include <string>

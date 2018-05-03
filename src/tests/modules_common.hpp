@@ -2,6 +2,7 @@
 
 #include "lib_modules/modules.hpp"
 #include <list>
+#include <iostream> // std::cout
 
 namespace {
 
