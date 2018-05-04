@@ -25,7 +25,7 @@ unittest("scheduler: basic)") {
 	Scheduler s(shptr(new Clock(clockSpeed)));
 }
 
-unittest("scheduler: scheduleIn 1") {
+unittest("scheduler: scheduled events are delayed") {
 	Queue<Fraction> q;
 	auto f = [&](Fraction time) {
 		q.push(time);
@@ -36,7 +36,7 @@ unittest("scheduler: scheduleIn 1") {
 	ASSERT(transferToVector(q).empty());
 }
 
-unittest("scheduler: scheduleIn 2") {
+unittest("scheduler: scheduled events are not delayed too much") {
 	Queue<Fraction> q;
 	auto f = [&](Fraction time) {
 		q.push(time);
@@ -49,7 +49,7 @@ unittest("scheduler: scheduleIn 2") {
 	ASSERT_EQUALS(1u, transferToVector(q).size());
 }
 
-unittest("scheduler: scheduleIn 3") {
+unittest("scheduler: expired scheduled events are executed, but not the others") {
 	Queue<Fraction> q;
 	auto f = [&](Fraction time) {
 		q.push(time);
@@ -63,7 +63,7 @@ unittest("scheduler: scheduleIn 3") {
 	ASSERT_EQUALS(1u, transferToVector(q).size());
 }
 
-unittest("scheduler: scheduleAt") {
+unittest("scheduler: absolute-time scheduled events are received in order") {
 	Queue<Fraction> q;
 	auto f = [&](Fraction time) {
 		q.push(time);
@@ -81,7 +81,7 @@ unittest("scheduler: scheduleAt") {
 	ASSERT_EQUALS(f1, t2 - t1);
 }
 
-unittest("scheduler: scheduleEvery()") {
+unittest("scheduler: periodic events are executed periodically") {
 	Queue<Fraction> q;
 	auto f = [&](Fraction time) {
 		q.push(time);
@@ -100,7 +100,7 @@ unittest("scheduler: scheduleEvery()") {
 	ASSERT_EQUALS(f10, t2 - t1);
 }
 
-unittest("scheduler: reschedule a sooner event while waiting") {
+unittest("scheduler: events scheduled out-of-order are all executed") {
 	Queue<Fraction> q;
 	auto f = [&](Fraction time) {
 		q.push(time);
