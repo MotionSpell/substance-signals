@@ -3,7 +3,6 @@
 #include "lib_utils/tools.hpp" // Fraction
 #include "lib_utils/scheduler.hpp"
 #include "lib_utils/sysclock.hpp"
-#include <iostream>
 
 namespace {
 
@@ -104,7 +103,6 @@ unittest("scheduler: reschedule a sooner event while waiting") {
 		s.scheduleIn(f, 0);
 		clock->sleep(f50);
 	}
-	std::cout << q.size() << std::endl;
 	ASSERT(q.size() == 2);
 }
 
