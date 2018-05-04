@@ -7,10 +7,7 @@ Scheduler::Scheduler(std::shared_ptr<IClock> clock) : waitAndExit(false), clock(
 
 Scheduler::~Scheduler() {
 	waitAndExit = true;
-	{
-		std::unique_lock<std::mutex> lock(mutex);
-		condition.notify_one();
-	}
+	condition.notify_one();
 	schedThread.join();
 }
 
