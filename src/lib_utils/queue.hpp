@@ -15,7 +15,6 @@ template<typename T>
 class Queue {
 	public:
 		Queue() {}
-		virtual ~Queue() noexcept(false) {}
 
 		void push(T data) {
 			std::lock_guard<std::mutex> lock(mutex);
@@ -48,7 +47,7 @@ class Queue {
 			std::swap(emptyQueue, dataQueue);
 		}
 
-	protected:
+	private:
 		void pushUnsafe(T data) {
 			dataQueue.push(std::move(data));
 			dataAvailable.notify_one();
@@ -58,7 +57,6 @@ class Queue {
 		std::queue<T> dataQueue;
 		std::condition_variable dataAvailable;
 
-	private:
 		Queue(const Queue&) = delete;
 		Queue& operator= (const Queue&) = delete;
 };
