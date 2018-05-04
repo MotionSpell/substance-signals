@@ -35,7 +35,7 @@ unittest("video generator") {
 		videoGen->process(nullptr);
 	}
 
-	ASSERT_EQUALS(makeVector(0, 7200, 180000, 187200), times);
+	ASSERT_EQUALS(makeVector({0, 7200, 180000, 187200}), times);
 }
 
 }

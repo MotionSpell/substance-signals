@@ -8,12 +8,12 @@ using namespace Tests;
 namespace {
 
 unittest("makeVector: empty") {
-	auto const testVector = makeVector<int>();
+	auto const testVector = makeVector<int>({});
 	ASSERT(testVector.empty());
 }
 
 unittest("makeVector: 4 elements") {
-	auto const testVector = makeVector(1, 3, 5, 7);
+	auto const testVector = makeVector({1, 3, 5, 7});
 	ASSERT(testVector[0] == 1);
 	ASSERT(testVector[1] == 3);
 	ASSERT(testVector[2] == 5);
@@ -22,8 +22,8 @@ unittest("makeVector: 4 elements") {
 }
 
 unittest("makeVector: vector elements") {
-	auto const smallVector = makeVector(1, 2);
-	auto const bigVector = makeVector(smallVector, smallVector);
+	auto const innerVector = makeVector({1, 2});
+	auto const bigVector = makeVector({innerVector, innerVector});
 
 	ASSERT(bigVector.size() == 2);
 	for(size_t i=0; i < bigVector.size(); ++i) {
