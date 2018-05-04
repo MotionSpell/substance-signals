@@ -1,12 +1,9 @@
 #pragma once
 
 #include <cstdint>
-#include <iomanip>
 #include <sstream>
 #include <stdexcept>
 #include <vector>
-
-#define FORMAT(i, max) std::setw(1+(std::streamsize)log10(max)) << i
 
 template<typename T>
 std::string toString(T const& val) {

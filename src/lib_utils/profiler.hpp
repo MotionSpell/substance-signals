@@ -1,15 +1,17 @@
 #pragma once
 
-#include "format.hpp"
 #include <cmath>
 #include <cstring>
 #include <iostream>
+#include <iomanip>
 #ifdef _WIN32
 #include <windows.h>
 #else
 #include <unistd.h>
 #include <sys/time.h>
 #endif
+
+#define FORMAT(i, max) std::setw(1+(std::streamsize)log10(max)) << i
 
 namespace Tools {
 
