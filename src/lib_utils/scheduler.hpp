@@ -5,21 +5,25 @@
 #include "clock.hpp"
 #include "lib_utils/default_clock.hpp"
 #include "time.hpp"
-#include <condition_variable>
+#include "timer.hpp"
 #include <mutex>
 #include <queue>
-#include <thread>
 
 class Scheduler : public IScheduler {
 	public:
-		Scheduler(std::shared_ptr<IClock> clock = g_DefaultClock);
-		~Scheduler();
+		Scheduler(std::shared_ptr<IClock> clock = g_DefaultClock, std::shared_ptr<ITimer> timer = std::shared_ptr<ITimer>(new SystemTimer));
 		void scheduleAt(TaskFunc &&task, Fraction time) override;
 		void scheduleIn(TaskFunc &&task, Fraction time) override {
 			scheduleAt(std::move(task), clock->now() + time);
 		}
 
 	private:
+		// checks if there's anything to do, and do it.
+		// returns immediately. Always run from the timer thread.
+		void wakeUp();
+
+		void reschedule();
+
 		struct Task {
 			bool operator<(const Task &other) const {
 				return time > other.time;
@@ -31,14 +35,15 @@ class Scheduler : public IScheduler {
 			Fraction time;
 		};
 
-		void threadProc();
+		// removes from 'queue' the list of expired tasks
+		std::vector<Task> advanceTime(Fraction time);
 
-		Fraction waitDuration() const;
-
-		std::mutex mutex;
-		std::condition_variable condition;
+		std::mutex mutex; // protects 'queue'
 		std::priority_queue<Task, std::deque<Task>> queue;
-		bool stopThread = false;
-		std::thread schedThread;
+
+		std::shared_ptr<ITimer> timer;
 		std::shared_ptr<IClock> clock;
+
+		Fraction nextWakeUpTime;
 };
+

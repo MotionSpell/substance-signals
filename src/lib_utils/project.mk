@@ -8,4 +8,5 @@ LIB_UTILS_SRCS:=\
   $(MYDIR)/scheduler.cpp\
   $(MYDIR)/time.cpp\
   $(MYDIR)/os.cpp\
+  $(MYDIR)/timer.cpp\
 

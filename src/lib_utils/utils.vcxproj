@@ -26,6 +26,7 @@
     <ClCompile Include="log.cpp" />
     <ClCompile Include="scheduler.cpp" />
     <ClCompile Include="time.cpp" />
+    <ClCompile Include="timer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\lib_ffpp\ffpp.hpp" />

@@ -1,23 +1,18 @@
 #include "scheduler.hpp"
 #include "log.hpp"
 
-Scheduler::Scheduler(std::shared_ptr<IClock> clock) : clock(clock) {
-	schedThread = std::thread(&Scheduler::threadProc, this);
-}
+auto const NEVER = Fraction(-1, 1);
 
-Scheduler::~Scheduler() {
-	{
-		std::unique_lock<std::mutex> lock(mutex);
-		stopThread = true;
-	}
-	condition.notify_one();
-	schedThread.join();
+Scheduler::Scheduler(std::shared_ptr<IClock> clock, std::shared_ptr<ITimer> timer) : timer(timer), clock(clock) {
+	nextWakeUpTime = NEVER;
 }
 
 void Scheduler::scheduleAt(TaskFunc &&task, Fraction time) {
-	std::unique_lock<std::mutex> lock(mutex);
-	queue.push(Task(std::move(task), time));
-	condition.notify_one();
+	{
+		std::unique_lock<std::mutex> lock(mutex);
+		queue.push(Task(std::move(task), time));
+	}
+	reschedule();
 }
 
 namespace {
@@ -32,56 +27,59 @@ void scheduleEvery(IScheduler* scheduler, TaskFunc &&task, Fraction loopTime, Fr
 	scheduler->scheduleAt(std::move(schedTask), time);
 }
 
-void Scheduler::threadProc() {
+void Scheduler::wakeUp() {
+	{
+		std::unique_lock<std::mutex> lock(mutex);
+		nextWakeUpTime = NEVER;
+	}
 
-	auto wakeUpCondition = [&]() {
-		return stopThread || !queue.empty();
-	};
+	// assume the time is fixed for the time of this call:
+	// we don't wait anywhere.
+	auto const now = clock->now();
 
-	while (1) {
-		Fraction waitDur;
+	auto expiredTasks = advanceTime(now);
 
-		{
-			std::unique_lock<std::mutex> lock(mutex);
-			condition.wait(lock, wakeUpCondition);
-			if(stopThread)
-				break;
+	// run expired tasks: must be done asynchronously
+	for(auto& t : expiredTasks) {
+		auto const delayInMs = 1000 * (double)(t.time - now);
 
-			waitDur = waitDuration();
+		if (delayInMs < 0) {
+			Log::msg(Warning, "Late from %s ms.", -delayInMs);
 		}
 
-		{
-			auto const waitDurInMs = fractionToTimescale(waitDur, 1000);
-			if (waitDurInMs < 0) {
-				Log::msg(Warning, "Late from %s ms.", -waitDurInMs);
-			}
-			if (clock->getSpeed()) {
-				if (waitDurInMs > 0) {
-					std::unique_lock<std::mutex> lock(mutex);
-					auto const durInMs = std::chrono::milliseconds((int64_t)(waitDurInMs / clock->getSpeed()));
-					if (condition.wait_for(lock, durInMs, [&] { return waitDuration() < 0 || stopThread; })) {
-						continue;
-					}
-				}
-			} else {
-				clock->sleep(waitDur);
-			}
-		}
+		t.task(t.time);
+	}
 
-		{
-			Task t(nullptr, Fraction(0,0));
+	reschedule();
+}
 
-			{
-				std::unique_lock<std::mutex> lock(mutex);
-				t = std::move(queue.top());
-				queue.pop();
-			}
+std::vector<Scheduler::Task> Scheduler::advanceTime(Fraction now) {
+	std::vector<Task> expiredTasks;
 
-			t.task(t.time);
-		}
+	std::unique_lock<std::mutex> lock(mutex);
+
+	// collect all expired tasks
+	while(!queue.empty() && queue.top().time <= now) {
+		expiredTasks.emplace_back(std::move(queue.top()));
+		queue.pop();
+	}
+
+	return expiredTasks;
+}
+
+void Scheduler::reschedule() {
+	std::unique_lock<std::mutex> lock(mutex);
+
+	if(queue.empty())
+		return;
+
+	auto const topTime = queue.top().time;
+
+	// set the next wake-up time, if any
+	if(topTime < nextWakeUpTime || nextWakeUpTime == NEVER) {
+		nextWakeUpTime = topTime;
+		auto runDg = std::bind(&Scheduler::wakeUp, this);
+		timer->scheduleIn(runDg, topTime - clock->now());
 	}
 }
 
-Fraction Scheduler::waitDuration() const {
-	return queue.top().time - clock->now();
-}
