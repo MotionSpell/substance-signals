@@ -21,6 +21,7 @@ class ClockMock : public IClock {
 	public:
 		ClockMock(Fraction time = Fraction(-1, 1000)) : time(time) {}
 		void setTime(Fraction t) {
+			unique_lock<std::mutex> lock(mutex);
 			if (t > time) {
 				time = t;
 			}
@@ -28,6 +29,7 @@ class ClockMock : public IClock {
 		}
 
 		Fraction now() const override {
+			unique_lock<std::mutex> lock(mutex);
 			return time;
 		}
 		double getSpeed() const override {
