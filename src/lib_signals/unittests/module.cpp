@@ -1,5 +1,6 @@
 #include "tests/tests.hpp"
 #include "lib_signals/signals.hpp"
+#include "lib_utils/queue_inspect.hpp"
 #include <iostream>
 
 using namespace Tests;
@@ -36,7 +37,6 @@ unittest("basic module connection tests") {
 
 	sender.signal.emit(100);
 	auto res = sender.signal.results();
-	ASSERT(res->size() == 5);
-	ASSERT((*res)[0] == 101 && (*res)[4] == 101);
+	ASSERT_EQUALS(makeVector({101, 101, 101, 101, 101}), transferToVector(*res));
 }
 }

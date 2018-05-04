@@ -1,9 +1,16 @@
 #include "tests/tests.hpp"
 #include "lib_utils/queue.hpp"
+#include "lib_utils/queue_inspect.hpp"
 #include "lib_utils/fraction.hpp"
 #include "lib_utils/tools.hpp" // shptr
 #include "lib_utils/scheduler.hpp"
 #include "lib_utils/sysclock.hpp"
+
+// allows ASSERT_EQUALS on fractions
+static std::ostream& operator<<(std::ostream& o, Fraction f) {
+	o << f.num << "/" << f.den;
+	return o;
+}
 
 namespace {
 
@@ -26,7 +33,7 @@ unittest("scheduler: scheduleIn 1") {
 
 	Scheduler s(shptr(new Clock(clockSpeed)));
 	s.scheduleIn(f, f50);
-	ASSERT(q.size() == 0);
+	ASSERT(transferToVector(q).empty());
 }
 
 unittest("scheduler: scheduleIn 2") {
@@ -39,7 +46,7 @@ unittest("scheduler: scheduleIn 2") {
 	Scheduler s(clock);
 	s.scheduleIn(f, 0);
 	clock->sleep(f50);
-	ASSERT(q.size() == 1);
+	ASSERT_EQUALS(1u, transferToVector(q).size());
 }
 
 unittest("scheduler: scheduleIn 3") {
@@ -53,7 +60,7 @@ unittest("scheduler: scheduleIn 3") {
 	s.scheduleIn(f, 0);
 	s.scheduleIn(f, f1000);
 	clock->sleep(f50);
-	ASSERT(q.size() == 1);
+	ASSERT_EQUALS(1u, transferToVector(q).size());
 }
 
 unittest("scheduler: scheduleAt") {
@@ -68,9 +75,10 @@ unittest("scheduler: scheduleAt") {
 	s.scheduleAt(f, now + f0);
 	s.scheduleAt(f, now + f1);
 	clock->sleep(f50);
-	ASSERT(q.size() == 2);
-	auto const t1 = q.pop(), t2 = q.pop();
-	ASSERT(t2 - t1 == f1);
+	auto v = transferToVector(q);
+	ASSERT_EQUALS(2u, v.size());
+	auto const t1 = v[0], t2 = v[1];
+	ASSERT_EQUALS(f1, t2 - t1);
 }
 
 unittest("scheduler: scheduleEvery()") {
@@ -86,9 +94,10 @@ unittest("scheduler: scheduleEvery()") {
 		s.scheduleEvery(f, f10, 0);
 		clock->sleep(f50);
 	}
-	ASSERT(q.size() >= 3);
-	auto const t1 = q.pop(), t2 = q.pop();
-	ASSERT(t2 - t1 == f10);
+	auto v = transferToVector(q);
+	ASSERT(v.size() >= 3);
+	auto const t1 = v[0], t2 = v[1];
+	ASSERT_EQUALS(f10, t2 - t1);
 }
 
 unittest("scheduler: reschedule a sooner event while waiting") {
@@ -104,7 +113,8 @@ unittest("scheduler: reschedule a sooner event while waiting") {
 		s.scheduleIn(f, 0);
 		clock->sleep(f50);
 	}
-	ASSERT(q.size() == 2);
+	auto v = transferToVector(q);
+	ASSERT_EQUALS(2u, v.size());
 }
 
 }

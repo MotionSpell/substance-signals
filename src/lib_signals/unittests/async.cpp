@@ -1,5 +1,6 @@
 #include "tests/tests.hpp"
 #include "lib_signals/signals.hpp"
+#include "lib_utils/queue_inspect.hpp" // transferToVector
 
 using namespace Tests;
 using namespace Signals;
@@ -35,14 +36,6 @@ unittest("disconnect on execution") {
 	size_t uid = sig.connect(sleepInMs);
 	sig.emit(1000);
 	sig.disconnect(uid);
-}
-
-std::vector<int> transferToVector(Queue<int>& q) {
-	std::vector<int> r;
-	int val;
-	while(q.tryPop(val))
-		r.push_back(val);
-	return r;
 }
 
 unittest("as many results as emit() calls") {

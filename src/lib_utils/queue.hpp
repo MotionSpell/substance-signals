@@ -48,38 +48,6 @@ class Queue {
 			std::swap(emptyQueue, dataQueue);
 		}
 
-#ifdef TESTS
-		size_t size() const {
-			std::lock_guard<std::mutex> lock(mutex);
-			return dataQueue.size();
-		}
-
-		T& operator[] (size_t index) {
-			std::lock_guard<std::mutex> lock(mutex);
-			const size_t dataSize = dataQueue.size();
-			assert(index < dataSize);
-			if (index == 0) {
-				return dataQueue.front();
-			}
-			std::queue<T> tmpQueue;
-			for (size_t i = 0; i < index; ++i) {
-				tmpQueue.push(dataQueue.front());
-				dataQueue.pop();
-			}
-			T &res = dataQueue.front();
-			for (size_t i = index; i < dataSize; ++i) {
-				tmpQueue.push(dataQueue.front());
-				dataQueue.pop();
-			}
-			assert((dataQueue.size() == 0) && (tmpQueue.size() == dataSize));
-			for (size_t i = 0; i < dataSize; ++i) {
-				dataQueue.push(tmpQueue.front());
-				tmpQueue.pop();
-			}
-			return res;
-		}
-#endif
-
 	protected:
 		void pushUnsafe(T data) {
 			dataQueue.push(std::move(data));

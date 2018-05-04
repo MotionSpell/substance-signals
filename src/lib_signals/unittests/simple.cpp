@@ -1,5 +1,6 @@
 #include "tests/tests.hpp"
 #include "lib_signals/signals.hpp"
+#include "lib_utils/queue_inspect.hpp"
 
 using namespace Tests;
 using namespace Signals;
@@ -29,9 +30,7 @@ unittest("signals_simple") {
 	const int input = 100;
 	auto numVal = sig.emit(input);
 	auto val = sig.results();
-	ASSERT(numVal == val->size());
-	ASSERT(val->size() == 1);
-	ASSERT((*val)[0] == dummy(input));
+	ASSERT_EQUALS(makeVector({dummy(input)}), transferToVector(*val));
 
 	Test("multiple connections: check results");
 	size_t id2 = sig.connect(dummy2);
@@ -39,24 +38,17 @@ unittest("signals_simple") {
 	sig.connect(dummy2);
 	numVal = sig.emit(input);
 	val = sig.results();
-	ASSERT(numVal == val->size());
-	ASSERT(val->size() == 4);
-	ASSERT((*val)[0] == dummy(input));
-	ASSERT((*val)[1] == dummy2(input));
-	ASSERT((*val)[2] == dummy(input));
-	ASSERT((*val)[3] == dummy2(input));
+	ASSERT_EQUALS(4u, numVal);
+
+	auto expected = makeVector({
+		dummy(input),
+		dummy2(input),
+		dummy(input),
+		dummy2(input)});
+	ASSERT_EQUALS(expected, transferToVector(*val));
 
 	Test("test connections count");
 	ASSERT(sig.getNumConnections() == 4);
-
-	Test("multiple connections: ask results again");
-	auto val2 = sig.results();
-	ASSERT(numVal == val2->size());
-	ASSERT(val2->size() == 4);
-	ASSERT((*val2)[0] == dummy(input));
-	ASSERT((*val2)[1] == dummy2(input));
-	ASSERT((*val2)[2] == dummy(input));
-	ASSERT((*val2)[3] == dummy2(input));
 
 	Test("disconnections");
 	{
@@ -89,7 +81,6 @@ unittest("connect to lambda") {
 	Connect(sig, [](int val) -> int { return val * val; });
 	sig.emit(8);
 	auto const res = sig.results();
-	ASSERT(res->size() == 1);
-	ASSERT((*res)[0] == 64);
+	ASSERT_EQUALS(makeVector({64}), transferToVector(*res));
 }
 }

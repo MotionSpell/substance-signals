@@ -1,4 +1,5 @@
 #include "tests.hpp"
+#include "lib_utils/queue_inspect.hpp"
 #include "lib_media/transform/time_rectifier.hpp"
 #include "lib_media/utils/recorder.hpp"
 #include "lib_media/common/pcm.hpp"
@@ -9,6 +10,12 @@
 using namespace std;
 using namespace Tests;
 using namespace Modules;
+
+// allows ASSERT_EQUALS on fractions
+static std::ostream& operator<<(std::ostream& o, Fraction f) {
+	o << f.num << "/" << f.den;
+	return o;
+}
 
 class ClockMock : public IClock {
 	public:
@@ -56,16 +63,15 @@ unittest("scheduler: mock clock") {
 	Scheduler s(clock);
 	s.scheduleAt(f, f1);
 	g_DefaultClock->sleep(f10);
-	ASSERT_EQUALS(0u, q.size());
+	ASSERT(transferToVector(q).empty());
 	clock->setTime(f10);
 	{
 		unique_lock<std::mutex> lock(mutex);
 		auto const durInMs = chrono::milliseconds(100);
 		condition.wait_for(lock, durInMs);
 	}
-	ASSERT_EQUALS(1u, q.size());
-	auto const t = q.pop();
-	ASSERT(t == f1);
+
+	ASSERT_EQUALS(makeVector({f1}), transferToVector(q));
 }
 
 template<typename METADATA, typename PORT>
