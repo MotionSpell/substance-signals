@@ -1,6 +1,7 @@
 #pragma once
 
-#include "lib_utils/tools.hpp"
+#include <memory>
+#include "lib_utils/fraction.hpp"
 
 struct IClock {
 	static auto const Rate = 180000ULL;

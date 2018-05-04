@@ -1,8 +1,8 @@
 #pragma once
 
-#include <cinttypes>
+#include <cstdint>
 #include <string>
-#include "tools.hpp"
+#include "lib_utils/fraction.hpp"
 
 #ifdef _WIN32
 int gettimeofday(struct timeval *tp, void *tz);

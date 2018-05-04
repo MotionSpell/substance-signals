@@ -5,6 +5,7 @@
 #include <memory>
 #include <vector>
 #include "clock.hpp"
+#include "lib_utils/format.hpp"
 
 namespace Modules {
 
