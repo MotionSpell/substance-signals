@@ -11,9 +11,7 @@ Scheduler::~Scheduler() {
 		std::unique_lock<std::mutex> lock(mutex);
 		condition.notify_one();
 	}
-	if (schedThread.joinable()) {
-		schedThread.join();
-	}
+	schedThread.join();
 }
 
 void Scheduler::scheduleAt(const std::function<void(Fraction)> &&task, Fraction time) {
