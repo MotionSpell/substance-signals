@@ -1,6 +1,7 @@
 #include "tests/tests.hpp"
 #include "lib_utils/queue.hpp"
-#include "lib_utils/tools.hpp" // Fraction
+#include "lib_utils/fraction.hpp"
+#include "lib_utils/tools.hpp" // shptr
 #include "lib_utils/scheduler.hpp"
 #include "lib_utils/sysclock.hpp"
 
