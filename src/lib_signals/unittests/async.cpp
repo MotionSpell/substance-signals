@@ -37,15 +37,21 @@ unittest("disconnect on execution") {
 	sig.disconnect(uid);
 }
 
+std::vector<int> transferToVector(Queue<int>& q) {
+	std::vector<int> r;
+	int val;
+	while(q.tryPop(val))
+		r.push_back(val);
+	return r;
+}
+
 unittest("as many results as emit() calls") {
 	Signal<int(int)> sig;
 	sig.connect(dummy);
 	sig.emit(27);
 	sig.emit(1789);
 	auto res = sig.results();
-	ASSERT(res->size() == 2);
-	ASSERT((*res)[0] == 27);
-	ASSERT((*res)[1] == 1789);
+	ASSERT_EQUALS(makeVector({27, 1789}), transferToVector(*res));
 }
 
 unittest("as many results as emit() calls, results arriving in wrong order") {
@@ -54,9 +60,7 @@ unittest("as many results as emit() calls, results arriving in wrong order") {
 	sig.emit(200, 27);
 	sig.emit(20, 1789);
 	auto res = sig.results();
-	ASSERT(res->size() == 2);
-	ASSERT((*res)[0] == 27);
-	ASSERT((*res)[1] == 1789);
+	ASSERT_EQUALS(makeVector({27, 1789}), transferToVector(*res));
 }
 
 unittest("as many results as emit() calls, results arriving in wrong order") {
@@ -65,8 +69,6 @@ unittest("as many results as emit() calls, results arriving in wrong order") {
 	sig.emit(200, 27);
 	sig.emit(20, 1789);
 	auto res = sig.results();
-	ASSERT(res->size() == 2);
-	ASSERT((*res)[0] == 27);
-	ASSERT((*res)[1] == 1789);
+	ASSERT_EQUALS(makeVector({27, 1789}), transferToVector(*res));
 }
 }
