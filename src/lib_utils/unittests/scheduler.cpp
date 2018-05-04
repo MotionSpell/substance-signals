@@ -20,10 +20,51 @@ auto const f1  = Fraction( 1, 1000);
 auto const f10 = Fraction(10, 1000);
 auto const f50 = Fraction(50, 1000);
 auto const f1000 = Fraction(1, 1);
-const double clockSpeed = 1.0;
+
+// A fully offline clock+timer implementation.
+// To advance the time, call 'sleep'.
+class TestClock : public IClock, public ITimer {
+	public:
+		// ITimer
+		void scheduleIn(std::function<void()>&& task, Fraction delay) {
+			callback = task;
+			eventTime = curr + delay;
+		}
+
+		// IClock
+		virtual Fraction now() const {
+			return curr;
+		}
+
+		virtual void sleep(Fraction delay) const {
+			auto nonConstThis = const_cast<TestClock*>(this);
+			nonConstThis->advanceTime(delay);
+		}
+
+		virtual double getSpeed() const {
+			return 1.0;
+		}
+
+	private:
+		void advanceTime(Fraction delta) {
+			curr = curr + delta;
+			if(callback && curr >= eventTime) {
+
+				// invoking the callback might modify 'this->callback'
+				auto cb = std::move(callback);
+
+				cb();
+			}
+		}
+
+		Fraction curr = 0;
+		Fraction eventTime;
+		std::function<void()> callback;
+};
 
 unittest("scheduler: basic") {
-	Scheduler s(make_shared<Clock>(clockSpeed));
+	auto clk = make_shared<TestClock>();
+	Scheduler s(clk, clk);
 }
 
 unittest("scheduler: scheduled events are delayed") {
@@ -32,7 +73,8 @@ unittest("scheduler: scheduled events are delayed") {
 		q.push(time);
 	};
 
-	Scheduler s(make_shared<Clock>(clockSpeed));
+	auto clk = make_shared<TestClock>();
+	Scheduler s(clk, clk);
 	s.scheduleIn(f, f50);
 	ASSERT(transferToVector(q).empty());
 }
@@ -43,8 +85,8 @@ unittest("scheduler: scheduled events are not delayed too much") {
 		q.push(time);
 	};
 
-	auto clock = make_shared<Clock>(clockSpeed);
-	Scheduler s(clock);
+	auto clock = make_shared<TestClock>();
+	Scheduler s(clock, clock);
 	s.scheduleIn(f, 0);
 	clock->sleep(f50);
 	ASSERT_EQUALS(1u, transferToVector(q).size());
@@ -56,8 +98,8 @@ unittest("scheduler: expired scheduled events are executed, but not the others")
 		q.push(time);
 	};
 
-	auto clock = make_shared<Clock>(clockSpeed);
-	Scheduler s(clock);
+	auto clock = make_shared<TestClock>();
+	Scheduler s(clock, clock);
 	s.scheduleIn(f, 0);
 	s.scheduleIn(f, f1000);
 	clock->sleep(f50);
@@ -70,8 +112,8 @@ unittest("scheduler: absolute-time scheduled events are received in order") {
 		q.push(time);
 	};
 
-	auto clock = make_shared<Clock>(clockSpeed);
-	Scheduler s(clock);
+	auto clock = make_shared<TestClock>();
+	Scheduler s(clock, clock);
 	auto const now = clock->now();
 	s.scheduleAt(f, now + f0);
 	s.scheduleAt(f, now + f1);
@@ -90,10 +132,11 @@ unittest("scheduleEvery: periodic events are executed periodically") {
 	auto const period = Fraction(10, 1000);
 
 	{
-		auto clock = make_shared<Clock>(clockSpeed);
-		Scheduler s(clock);
+		auto clock = make_shared<TestClock>();
+		Scheduler s(clock, clock);
 		scheduleEvery(&s, f, period, 0);
-		clock->sleep(f50);
+		for(int i=0; i < 5; ++i)
+			clock->sleep(f10);
 	}
 	auto v = transferToVector(q);
 	ASSERT(v.size() >= 3);
@@ -105,8 +148,8 @@ unittest("scheduler: events scheduled out-of-order are executed in order") {
 	std::string order; // marker values
 
 	{
-		auto clock = make_shared<Clock>(clockSpeed);
-		Scheduler s(clock);
+		auto clock = make_shared<TestClock>();
+		Scheduler s(clock, clock);
 		s.scheduleIn([&](Fraction) {
 			order += 'B';
 		}, f50);
@@ -122,13 +165,13 @@ unittest("[DISABLED] scheduler: can still schedule and trigger 'near' tasks whil
 	auto const oneMsec = Fraction(1, 1000);
 	auto const oneHour = Fraction(3600, 1);
 
-	auto clock = make_shared<Clock>(clockSpeed);
+	auto clock = make_shared<TestClock>();
 	Queue<Fraction> q;
 	auto f = [&](Fraction /*time*/) {
 		q.push(clock->now());
 	};
 
-	Scheduler s(clock);
+	Scheduler s(clock, clock);
 	s.scheduleIn(f, oneHour);
 	clock->sleep(f10); // let the scheduler run and start waiting for oneHour
 	s.scheduleIn(f, oneMsec); // now schedule an imminent task
