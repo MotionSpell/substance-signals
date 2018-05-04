@@ -100,7 +100,7 @@ unittest("scheduler: periodic events are executed periodically") {
 	ASSERT_EQUALS(f10, t2 - t1);
 }
 
-unittest("scheduler: events scheduled out-of-order are all executed") {
+unittest("scheduler: events scheduled out-of-order are executed in order") {
 	Queue<Fraction> q;
 	auto f = [&](Fraction time) {
 		q.push(time);
@@ -114,7 +114,7 @@ unittest("scheduler: events scheduled out-of-order are all executed") {
 		clock->sleep(f50);
 	}
 	auto v = transferToVector(q);
-	ASSERT_EQUALS(2u, v.size());
+	ASSERT_EQUALS(makeVector({Fraction(0), f10}), v);
 }
 
 }
