@@ -18,7 +18,8 @@ class Queue {
 
 		void push(T data) {
 			std::lock_guard<std::mutex> lock(mutex);
-			pushUnsafe(data);
+			dataQueue.push(std::move(data));
+			dataAvailable.notify_one();
 		}
 
 		bool tryPop(T &value) {
@@ -48,11 +49,6 @@ class Queue {
 		}
 
 	private:
-		void pushUnsafe(T data) {
-			dataQueue.push(std::move(data));
-			dataAvailable.notify_one();
-		}
-
 		mutable std::mutex mutex;
 		std::queue<T> dataQueue;
 		std::condition_variable dataAvailable;
