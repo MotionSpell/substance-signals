@@ -30,8 +30,8 @@ class Scheduler : public IScheduler {
 	private:
 		struct Task {
 			struct Sooner {
-				bool operator()(const std::unique_ptr<Task> &lhs, const std::unique_ptr<Task> &rhs) const {
-					return lhs->time > rhs->time;
+				bool operator()(const Task &lhs, const Task &rhs) const {
+					return lhs.time > rhs.time;
 				}
 			};
 			Task(const std::function<void(Fraction)> &&task2, Fraction time)
@@ -45,7 +45,7 @@ class Scheduler : public IScheduler {
 
 		std::mutex mutex;
 		std::condition_variable condition;
-		std::priority_queue<std::unique_ptr<Task>, std::deque<std::unique_ptr<Task>>, Task::Sooner> queue;
+		std::priority_queue<Task, std::deque<Task>, Task::Sooner> queue;
 		std::atomic_bool waitAndExit;
 		std::thread schedThread;
 		std::shared_ptr<IClock> clock;
