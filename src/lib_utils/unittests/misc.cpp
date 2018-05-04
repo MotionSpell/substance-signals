@@ -43,6 +43,11 @@ unittest("format: one char argument") {
 	ASSERT_EQUALS("A", format("%s", 'A'));
 }
 
+unittest("format: string argument") {
+	std::string s = "Hello";
+	ASSERT_EQUALS("Hello, world", format("%s, world", s));
+}
+
 unittest("format: vector argument") {
 	std::vector<int> v;
 	v.push_back(1);

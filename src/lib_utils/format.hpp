@@ -4,7 +4,6 @@
 #include <cstdint>
 #include <sstream>
 #include <stdexcept>
-#include <vector>
 
 template<typename T>
 std::string toString(T const& val) {
@@ -19,8 +18,8 @@ inline std::string toString(uint8_t val) {
 	return ss.str();
 }
 
-template<typename T>
-std::string toString(std::vector<T> const& val) {
+template<typename T, typename MustBeIterable = decltype(T::begin())>
+std::string toString(T const& val) {
 	std::stringstream ss;
 	ss << "[";
 	for (size_t i = 0; i < val.size(); ++i) {
