@@ -6,6 +6,9 @@
 #ifdef _MSC_VER
 #include <Windows.h>
 #endif
+#ifdef __linux__
+#include <signal.h>
+#endif
 
 namespace Modules {
 namespace Render {
@@ -31,6 +34,23 @@ SDLVideo::SDLVideo(const std::shared_ptr<IClock> clock)
 }
 
 void SDLVideo::doRender() {
+
+	{
+#ifdef __linux__
+		// save current Ctrl-C handler
+		struct sigaction action;
+		sigaction(SIGINT, nullptr, &action);
+#endif
+
+		if (SDL_InitSubSystem(SDL_INIT_VIDEO | SDL_INIT_NOPARACHUTE) == -1)
+			throw std::runtime_error(format("Couldn't initialize: %s", SDL_GetError()));
+
+#ifdef __linux__
+		// restore Ctrl-C handler
+		sigaction(SIGINT, &action, nullptr);
+#endif
+	}
+
 	pictureFormat.res = VIDEO_RESOLUTION;
 	pictureFormat.format = YUV420P;
 	window = SDL_CreateWindow("Signals SDLVideo renderer", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, pictureFormat.res.width, pictureFormat.res.height, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
@@ -56,6 +76,7 @@ void SDLVideo::doRender() {
 	SDL_DestroyTexture(texture);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
+	SDL_QuitSubSystem(SDL_INIT_VIDEO);
 }
 
 bool SDLVideo::processOneFrame(Data data) {

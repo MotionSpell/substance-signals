@@ -59,6 +59,10 @@ bool SDLAudio::reconfigure(PcmFormat const * const pcmData) {
 SDLAudio::SDLAudio(const std::shared_ptr<IClock> clock)
 	: m_clock(clock), pcmFormat(new PcmFormat(44100, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Interleaved)),
 	  m_converter(create<Transform::AudioConvert>(*pcmFormat)), fifoTimeIn180k(0) {
+
+	if (SDL_InitSubSystem(SDL_INIT_AUDIO | SDL_INIT_NOPARACHUTE) == -1)
+		throw std::runtime_error(format("Couldn't initialize: %s", SDL_GetError()));
+
 	if (!reconfigure(pcmFormat.get()))
 		throw error("Audio output creation failed");
 
@@ -81,6 +85,7 @@ SDLAudio::~SDLAudio() {
 		} while (remaining != 0);
 	}
 	SDL_CloseAudio();
+	SDL_QuitSubSystem(SDL_INIT_AUDIO);
 }
 
 void SDLAudio::process(Data data) {
