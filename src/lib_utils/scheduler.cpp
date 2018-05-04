@@ -63,7 +63,11 @@ void Scheduler::threadProc() {
 			mutex.lock();
 			auto const &t = queue.top();
 			mutex.unlock();
-			t->task(t->time); //TODO: tasks may be blocking so we might want to create a pool instead of a single thread + allow use of std::unique_lock<std::mutex> lock(mutex);
+
+			//TODO: tasks may be blocking, so we might want to create a pool
+			//instead of a single thread allow use of std::unique_lock
+			t->task(t->time);
+
 			mutex.lock();
 			queue.pop();
 			mutex.unlock();
