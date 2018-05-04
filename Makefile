@@ -4,6 +4,7 @@ CFLAGS:=$(CFLAGS)
 CFLAGS+=-std=gnu++1y
 CFLAGS+=-Wall
 CFLAGS+=-Wextra
+CFLAGS+=-Werror
 CFLAGS+=-fvisibility=hidden -fvisibility-inlines-hidden 
 CFLAGS+=-W
 CFLAGS+=-D__STDC_CONSTANT_MACROS
@@ -12,15 +13,20 @@ BIN?=bin
 SRC?=src
 EXTRA?=$(CURDIR)/sysroot
 
+# always optimize
+CFLAGS+=-O3
+
 # default to debug mode
 DEBUG?=1
 COMPILER:=$(shell $(CXX) -v 2>&1 | grep -q -e "LLVM version" -e "clang version" && echo clang || echo gcc)
 ifeq ($(DEBUG), 1)
-  CFLAGS+=-Werror -Wno-deprecated-declarations
+  CFLAGS+=-Wno-deprecated-declarations
   CFLAGS+=-g3
   LDFLAGS+=-g
 else
-  CFLAGS+=-Werror -O3 -DNDEBUG -Wno-unused-variable -Wno-deprecated-declarations
+  # disable all warnings in release mode:
+  # the code must always build, especially old versions with recent compilers
+  CFLAGS+=-w -DNDEBUG
   ifneq ($(COMPILER), clang)
     CFLAGS+=-s
     LDFLAGS+=-s
