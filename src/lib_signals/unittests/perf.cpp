@@ -1,4 +1,4 @@
-#include "tests.hpp"
+#include "tests/tests.hpp"
 #include "lib_signals/signals.hpp"
 #include "lib_utils/profiler.hpp"
 #include <sstream>
@@ -77,6 +77,9 @@ void emitTest(std::function<SignalSignature> f, ValType val) {
 	}
 }
 
+//#define ENABLE_PERF_TESTS
+
+#ifdef ENABLE_PERF_TESTS
 unittest("create a signal") {
 	{
 		Tools::Profiler p("Create void(void)");
@@ -292,4 +295,6 @@ unittest("safe emit sleep   on  sync") {
 unittest("safe emit sleep   on  lazy") {
 	emitTest<void(int), ResultQueue<void>, ExecutorLazy, int>(sleepInMs, 100);
 }
+
+#endif // ENABLE_PERF_TESTS
 }

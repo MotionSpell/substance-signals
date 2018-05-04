@@ -1,4 +1,4 @@
-#include "tests.hpp"
+#include "tests/tests.hpp"
 #include "lib_signals/signals.hpp"
 #include "lib_signals/core/result.hpp"
 

@@ -1,10 +1,13 @@
-#include "tests.hpp"
+#include "tests/tests.hpp"
 #include "lib_signals/signals.hpp"
 
 using namespace Tests;
 using namespace Signals;
 
 namespace {
+inline int dummy(int a) {
+	return a;
+}
 int dummy2(int a) {
 	return dummy(1 + dummy(a));
 }

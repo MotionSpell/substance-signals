@@ -1,5 +1,6 @@
-#include "tests.hpp"
+#include "tests/tests.hpp"
 #include "lib_signals/signals.hpp"
+#include <iostream>
 
 using namespace Tests;
 using namespace Signals;
@@ -8,6 +9,11 @@ namespace {
 struct Signaler {
 	Signal<int(int)> signal;
 };
+
+inline int dummyPrint(int a) {
+	std::cout << "a = " << a << std::endl;
+	return a;
+}
 
 struct Slot {
 	int slot(int a) {

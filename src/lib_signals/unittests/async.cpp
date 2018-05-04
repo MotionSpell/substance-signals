@@ -1,4 +1,4 @@
-#include "tests.hpp"
+#include "tests/tests.hpp"
 #include "lib_signals/signals.hpp"
 
 using namespace Tests;
@@ -6,6 +6,12 @@ using namespace Signals;
 
 namespace {
 
+inline int dummy(int a) {
+	return a;
+}
+inline void sleepInMs(int ms) {
+	std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+}
 int sleepAndDummy(int ms, int a) {
 	sleepInMs(ms);
 	return a;
