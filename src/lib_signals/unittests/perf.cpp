@@ -7,6 +7,9 @@
 using namespace Tests;
 using namespace Signals;
 
+//#define ENABLE_PERF_TESTS
+
+#ifdef ENABLE_PERF_TESTS
 namespace {
 inline int compute(int a) {
 	int64_t n = (int64_t)1 << a;
@@ -77,9 +80,6 @@ void emitTest(std::function<SignalSignature> f, ValType val) {
 	}
 }
 
-//#define ENABLE_PERF_TESTS
-
-#ifdef ENABLE_PERF_TESTS
 unittest("create a signal") {
 	{
 		Tools::Profiler p("Create void(void)");
@@ -296,5 +296,5 @@ unittest("safe emit sleep   on  lazy") {
 	emitTest<void(int), ResultQueue<void>, ExecutorLazy, int>(sleepInMs, 100);
 }
 
-#endif // ENABLE_PERF_TESTS
 }
+#endif // ENABLE_PERF_TESTS

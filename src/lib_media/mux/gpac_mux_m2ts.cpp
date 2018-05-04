@@ -111,8 +111,8 @@ GPACMuxMPEG2TS::~GPACMuxMPEG2TS() {
 			ifce->duration = 0;
 			ifce->bit_rate = 0;
 			ifce->repeat_rate = 0;
-			ifce->decoder_config;
-			ifce->decoder_config_size;
+			(void)ifce->decoder_config;
+			(void)ifce->decoder_config_size;
 #if 0
 		} else if (auto metadata2 = std::dynamic_pointer_cast<const MetadataPktLibavAudio>(metadata_)) {
 #if 0 //TODO

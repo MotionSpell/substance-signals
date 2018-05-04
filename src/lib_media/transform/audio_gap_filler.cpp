@@ -20,8 +20,8 @@ void AudioGapFiller::process(Data data) {
 
 	auto const srcNumSamples = audioData->size() / audioData->getFormat().getBytesPerSample();
 	auto const diff = (int64_t)(timeInSR - accumulatedTimeInSR);
-	if ((uint64_t)abs(diff) >= srcNumSamples) {
-		if ((uint64_t)abs(diff) <= srcNumSamples * (1 + toleranceInFrames)) {
+	if ((uint64_t)std::abs(diff) >= srcNumSamples) {
+		if ((uint64_t)std::abs(diff) <= srcNumSamples * (1 + toleranceInFrames)) {
 			log(Debug, "Fixing gap of %s samples (input=%s, accumulation=%s)", diff, timeInSR, accumulatedTimeInSR);
 			if (diff > 0) {
 				auto dataInThePast = shptr(new DataBaseRef(data));
