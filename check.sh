@@ -20,4 +20,4 @@ fi
 
 make -j$CORES
 
-scripts/run_tests.sh
+/usr/bin/env time -f "%e" scripts/run_tests.sh

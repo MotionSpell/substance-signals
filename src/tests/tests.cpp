@@ -62,7 +62,6 @@ void RunAll() {
 }
 
 int main(int argc, const char* argv[]) {
-	Tools::Profiler p("TESTS TOTAL TIME");
 	if(argc == 1)
 		Tests::RunAll();
 	else if(argc == 2) {
