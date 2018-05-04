@@ -86,18 +86,18 @@ unittest("scheduler: periodic events are executed periodically") {
 	auto f = [&](Fraction time) {
 		q.push(time);
 	};
-	auto const f10 = Fraction(10, 1000);
+	auto const period = Fraction(10, 1000);
 
 	{
 		auto clock = shptr(new Clock(clockSpeed));
 		Scheduler s(clock);
-		s.scheduleEvery(f, f10, 0);
+		s.scheduleEvery(f, period, 0);
 		clock->sleep(f50);
 	}
 	auto v = transferToVector(q);
 	ASSERT(v.size() >= 3);
 	auto const t1 = v[0], t2 = v[1];
-	ASSERT_EQUALS(f10, t2 - t1);
+	ASSERT_EQUALS(period, t2 - t1);
 }
 
 unittest("scheduler: events scheduled out-of-order are executed in order") {
