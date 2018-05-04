@@ -60,17 +60,15 @@ void Scheduler::threadProc() {
 		}
 
 		{
-			mutex.lock();
-			auto const &t = queue.top();
-			mutex.unlock();
+			Task t(nullptr, Fraction(0,0));
 
-			//TODO: tasks may be blocking, so we might want to create a pool
-			//instead of a single thread allow use of std::unique_lock
+			{
+				std::unique_lock<std::mutex> lock(mutex);
+				t = std::move(queue.top());
+				queue.pop();
+			}
+
 			t.task(t.time);
-
-			mutex.lock();
-			queue.pop();
-			mutex.unlock();
 		}
 	}
 }
