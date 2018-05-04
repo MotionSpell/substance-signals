@@ -26,14 +26,6 @@ const char *redirectStdToNul() {
 }
 
 inline
-std::vector<char> stringDup(const char *src) {
-	const size_t srcStrLen = strlen(src) + 1;
-	std::vector<char> data(srcStrLen);
-	strncpy(data.data(), src, srcStrLen);
-	return data;
-}
-
-inline
 std::string string2hex(const uint8_t *extradata, size_t extradataSize) {
 	static const char* const ab = "0123456789ABCDEF";
 	std::string output;
@@ -64,14 +56,6 @@ std::vector<T> makeVector(T val, Arguments... args) {
 	r.push_back(val);
 	auto const tail = makeVector(args...);
 	r.insert(r.end(), tail.begin(), tail.end());
-	return r;
-}
-
-template<typename Lambda, typename T, typename... Arguments>
-std::vector<T> apply(Lambda func, std::vector<T>& input, Arguments... args) {
-	std::vector<T> r;
-	for(auto& element : input)
-		r.push_back(func(element, args...));
 	return r;
 }
 

@@ -68,12 +68,6 @@ unittest("format: vector argument") {
 	ASSERT(s == "[[], [0, 7], [0]]");
 }
 
-unittest("stringDup") {
-	const char c[] = "01234";
-	auto s = stringDup(c);
-	ASSERT(!memcmp(s.data(), c, s.size()));
-}
-
 unittest("divUp") {
 	auto res1 = divUp(5, 2);
 	ASSERT(res1 == 3);
