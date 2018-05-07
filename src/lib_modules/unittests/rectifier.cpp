@@ -19,32 +19,32 @@ static std::ostream& operator<<(std::ostream& o, Fraction f) {
 
 class ClockMock : public IClock {
 	public:
-		ClockMock(Fraction time = Fraction(-1, 1000)) : time(time) {}
+		ClockMock(Fraction time = Fraction(-1, 1000)) : m_time(time) {}
 		void setTime(Fraction t) {
 			unique_lock<std::mutex> lock(mutex);
-			if (t > time) {
-				time = t;
+			if (t > m_time) {
+				m_time = t;
 			}
 			condition.notify_all();
 		}
 
 		Fraction now() const override {
 			unique_lock<std::mutex> lock(mutex);
-			return time;
+			return m_time;
 		}
 		double getSpeed() const override {
 			return 0.0;
 		}
 		void sleep(Fraction delay) const override {
 			unique_lock<std::mutex> lock(mutex);
-			auto const end = time + delay;
-			while (time < end) {
+			auto const end = m_time + delay;
+			while (m_time < end) {
 				condition.wait_for(lock, chrono::milliseconds(10));
 			}
 		}
 
 	private:
-		Fraction time;
+		Fraction m_time;
 		mutable std::mutex mutex;
 		mutable condition_variable condition;
 };
