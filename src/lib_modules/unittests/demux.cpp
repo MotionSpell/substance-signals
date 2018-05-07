@@ -12,7 +12,7 @@ using namespace Modules;
 
 namespace {
 
-unittest("demux one track: Demux::GPACDemuxMP4Simple -> Out::Print") {
+secondclasstest("demux one track: Demux::GPACDemuxMP4Simple -> Out::Print") {
 	auto mp4Demux = create<Demux::GPACDemuxMP4Simple>("data/beepbop.mp4");
 	auto p = create<Out::Print>(std::cout);
 
@@ -22,7 +22,7 @@ unittest("demux one track: Demux::GPACDemuxMP4Simple -> Out::Print") {
 }
 
 #ifdef ENABLE_FAILING_TESTS
-unittest("demux one track: File -> Demux::GPACDemuxMP4Full -> Out::Print") {
+secondclasstest("demux one track: File -> Demux::GPACDemuxMP4Full -> Out::Print") {
 	auto f = create<In::File>("data/beepbop.mp4");
 	auto mp4Demux = create<Demux::GPACDemuxMP4Full>();
 	auto p = create<Out::Print>(std::cout);

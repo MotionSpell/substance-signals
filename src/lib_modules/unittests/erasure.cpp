@@ -11,7 +11,7 @@ using namespace Modules;
 
 namespace {
 
-unittest("packet type erasure + multi-output: libav Demux -> {libav Decoder -> Out::Print}*") {
+secondclasstest("packet type erasure + multi-output: libav Demux -> {libav Decoder -> Out::Print}*") {
 	auto demux = create<Demux::LibavDemux>("data/beepbop.mp4");
 
 	std::vector<std::unique_ptr<Decode::LibavDecode>> decoders;
