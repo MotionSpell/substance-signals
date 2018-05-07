@@ -110,8 +110,8 @@ int main(int argc, const char* argv[]) {
 			filter.maxIdx = idx;
 			filter.noSecondClass = false;
 		} else if(word == "--range") {
-			filter.minIdx=  atoi(popWord().c_str());
-			filter.minIdx=  atoi(popWord().c_str());
+			filter.minIdx =  atoi(popWord().c_str());
+			filter.maxIdx =  atoi(popWord().c_str());
 		} else if(word == "--second-class") {
 			filter.noSecondClass = false;
 		}
