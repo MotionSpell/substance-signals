@@ -21,32 +21,34 @@ class ClockMock : public IClock {
 	public:
 		ClockMock(Fraction time = Fraction(-1, 1000)) : m_time(time) {}
 		void setTime(Fraction t) {
-			unique_lock<std::mutex> lock(mutex);
+			unique_lock<std::mutex> lock(protectTime);
 			if (t > m_time) {
 				m_time = t;
 			}
-			condition.notify_all();
+			timeChanged.notify_all();
 		}
 
 		Fraction now() const override {
-			unique_lock<std::mutex> lock(mutex);
+			unique_lock<std::mutex> lock(protectTime);
 			return m_time;
 		}
+
 		double getSpeed() const override {
 			return 0.0;
 		}
+
 		void sleep(Fraction delay) const override {
-			unique_lock<std::mutex> lock(mutex);
+			unique_lock<std::mutex> lock(protectTime);
 			auto const end = m_time + delay;
 			while (m_time < end) {
-				condition.wait_for(lock, chrono::milliseconds(10));
+				timeChanged.wait_for(lock, chrono::milliseconds(10));
 			}
 		}
 
 	private:
 		Fraction m_time;
-		mutable std::mutex mutex;
-		mutable condition_variable condition;
+		mutable std::mutex protectTime;
+		mutable condition_variable timeChanged;
 };
 
 unittest("scheduler: mock clock") {
