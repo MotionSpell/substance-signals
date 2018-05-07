@@ -37,8 +37,8 @@ class ClockMock : public IClock {
 		}
 		void sleep(Fraction delay) const override {
 			unique_lock<std::mutex> lock(mutex);
-			auto const tInit = time;
-			while (time < tInit + delay) {
+			auto const end = time + delay;
+			while (time < end) {
 				auto const durInMs = chrono::milliseconds(10);
 				condition.wait_for(lock, durInMs);
 			}
