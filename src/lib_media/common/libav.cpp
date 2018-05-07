@@ -55,10 +55,6 @@ int av_lockmgr(void **mutex, enum AVLockOp op) {
 	}
 	return 0;
 }
-void av_lockmgr_register() {
-	av_lockmgr_register(&av_lockmgr);
-}
-auto g_InitAvLockMgr = runAtStartup(&av_lockmgr_register);
 
 Level avLogLevel(int level) {
 	switch (level) {
@@ -129,12 +125,17 @@ void avLog(void* /*avcl*/, int level, const char *fmt, va_list vl) {
 	Log::msg(avLogLevel(level), "[libav-log::%s] %s", avlogLevelName(level), buffer);
 }
 
-auto g_InitAvcodec = runAtStartup(&avcodec_register_all);
-auto g_InitAvdevice = runAtStartup(&avdevice_register_all);
-auto g_InitAv = runAtStartup(&av_register_all);
-auto g_InitAvnetwork = runAtStartup(&avformat_network_init);
-auto g_InitAvfilter = runAtStartup(avfilter_register_all);
-auto g_InitAvLog = runAtStartup(&av_log_set_callback, avLog);
+void do_ffmpeg_static_initialization() {
+	av_lockmgr_register(&av_lockmgr);
+	avcodec_register_all();
+	avdevice_register_all();
+	av_register_all();
+	avformat_network_init();
+	avfilter_register_all();
+	av_log_set_callback(&avLog);
+}
+
+auto g_InitFfmpeg = runAtStartup(&do_ffmpeg_static_initialization);
 
 }
 
