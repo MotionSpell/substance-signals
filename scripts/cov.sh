@@ -15,6 +15,7 @@ make -j`nproc`
 $scriptDir/run_tests.sh
 
 # Generate coverage report
+find bin-cov -path "*/unittests/*.gcda" -delete
 lcov --capture -d bin-cov -o bin-cov/profile.txt
 genhtml -o cov-html bin-cov/profile.txt
 
