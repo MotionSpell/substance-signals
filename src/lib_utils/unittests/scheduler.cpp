@@ -117,4 +117,27 @@ unittest("scheduler: events scheduled out-of-order are executed in order") {
 	ASSERT_EQUALS(makeVector({Fraction(0), f10}), v);
 }
 
+unittest("[disabled] scheduler: pushing a new imminent event can interrupt the wait for a far event") {
+	return;
+	auto const verySoon = Fraction(1, 1000);
+	auto const aLongTime = Fraction(100, 1000);
+
+	auto clock = shptr(new Clock(clockSpeed));
+	Queue<Fraction> q;
+	auto f = [&](Fraction /*time*/) {
+		q.push(clock->now());
+	};
+
+	{
+		Scheduler s(clock);
+		s.scheduleIn(f, aLongTime);
+		clock->sleep(f10); // let the scheduler run and start waiting for aLongTime
+		s.scheduleIn(f, verySoon); // now schedule a task verySoon
+		clock->sleep(aLongTime * 2); // allow time for both tasks
+	}
+
+	auto v = transferToVector(q);
+	ASSERT_EQUALS(makeVector({verySoon+f10, aLongTime}), v);
+}
+
 }
