@@ -117,10 +117,10 @@ unittest("scheduler: events scheduled out-of-order are executed in order") {
 	ASSERT_EQUALS(makeVector({Fraction(0), f10}), v);
 }
 
-unittest("[disabled] scheduler: pushing a new imminent event can interrupt the wait for a far event") {
+unittest("[disabled] scheduler: can still schedule and trigger 'near' tasks while waiting for a 'far' one") {
 	return;
-	auto const verySoon = Fraction(1, 1000);
-	auto const aLongTime = Fraction(100, 1000);
+	auto const oneMsec = Fraction(1, 1000);
+	auto const oneHour = Fraction(3600, 1);
 
 	auto clock = shptr(new Clock(clockSpeed));
 	Queue<Fraction> q;
@@ -128,16 +128,16 @@ unittest("[disabled] scheduler: pushing a new imminent event can interrupt the w
 		q.push(clock->now());
 	};
 
-	{
-		Scheduler s(clock);
-		s.scheduleIn(f, aLongTime);
-		clock->sleep(f10); // let the scheduler run and start waiting for aLongTime
-		s.scheduleIn(f, verySoon); // now schedule a task verySoon
-		clock->sleep(aLongTime * 2); // allow time for both tasks
-	}
+	Scheduler s(clock);
+	s.scheduleIn(f, oneHour);
+	clock->sleep(f10); // let the scheduler run and start waiting for oneHour
+	s.scheduleIn(f, oneMsec); // now schedule an imminent task
+	clock->sleep(f10 * 3); // allow some time for the imminent task to run
+
+	// don't destroy 's' now, as it would wake it up and miss the goal of this test
 
 	auto v = transferToVector(q);
-	ASSERT_EQUALS(makeVector({verySoon+f10, aLongTime}), v);
+	ASSERT_EQUALS(1u, v.size());
 }
 
 }
