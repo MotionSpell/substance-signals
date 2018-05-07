@@ -39,8 +39,7 @@ class ClockMock : public IClock {
 			unique_lock<std::mutex> lock(mutex);
 			auto const end = time + delay;
 			while (time < end) {
-				auto const durInMs = chrono::milliseconds(10);
-				condition.wait_for(lock, durInMs);
+				condition.wait_for(lock, chrono::milliseconds(10));
 			}
 		}
 
