@@ -3,7 +3,6 @@
 #include <sstream>
 #include <vector>
 
-#define TESTS
 // generate a file-unique identifier, based on current line
 #define unittestSuffix(suffix, prettyName, secondClass) \
 	static void testFunction##suffix(); \
