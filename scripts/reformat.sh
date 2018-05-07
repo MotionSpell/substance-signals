@@ -19,12 +19,12 @@ function reformat_one_file
     --indent-classes \
     --indent-col1-comments \
     --style=attach \
-    --keep-one-line-statements > "$f.new.cpp"
+    --keep-one-line-statements > "$f.new"
 
-  if diff -u "$f" "$f.new.cpp" ; then
-    rm "$f.new.cpp"
+  if diff -u "$f" "$f.new" ; then
+    rm "$f.new"
   else
-    mv "$f.new.cpp" "$f"
+    mv "$f.new" "$f"
   fi
 }
 
