@@ -30,13 +30,17 @@ void scheduleEvery(IScheduler* scheduler, TaskFunc &&task, Fraction loopTime, Fr
 }
 
 void Scheduler::threadProc() {
-	while (!waitAndExit) {
+
+	auto wakeUpCondition = [&]() {
+		return waitAndExit || !queue.empty();
+	};
+
+	while (1) {
 		{
 			std::unique_lock<std::mutex> lock(mutex);
-			if (queue.empty()) {
-				condition.wait(lock);
-				continue;
-			}
+			condition.wait(lock, wakeUpCondition);
+			if(waitAndExit)
+				break;
 		}
 
 		{
