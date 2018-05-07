@@ -10,7 +10,7 @@ using namespace Modules;
 
 namespace {
 
-unittest("sound generator") {
+secondclasstest("sound generator") {
 	auto soundGen = create<In::SoundGenerator>();
 	auto render = create<Render::SDLAudio>();
 

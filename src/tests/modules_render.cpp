@@ -11,7 +11,7 @@ using namespace Modules;
 
 namespace {
 
-unittest("render: A/V sync, one thread") {
+secondclasstest("render: A/V sync, one thread") {
 	auto videoGen = create<In::VideoGenerator>();
 	auto videoRender = create<Render::SDLVideo>();
 	ConnectOutputToInput(videoGen->getOutput(0), videoRender->getInput(0));
@@ -26,7 +26,7 @@ unittest("render: A/V sync, one thread") {
 	}
 }
 
-unittest("render: dynamic resolution") {
+secondclasstest("render: dynamic resolution") {
 	auto videoRender = create<Render::SDLVideo>();
 
 	std::shared_ptr<DataBase> pic1 = uptr(new PictureYUV420P(Resolution(128, 64)));
