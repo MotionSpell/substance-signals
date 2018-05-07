@@ -19,7 +19,7 @@ static WORD console_attr_ori = 0;
 bool Log::globalSysLog = false;
 #endif /*_WIN32*/
 
-Level Log::globalLogLevel = Info;
+Level Log::globalLogLevel = Warning;
 bool Log::globalColor = true;
 
 #ifdef LOG_THREAD_SAFETY
