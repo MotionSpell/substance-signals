@@ -8,7 +8,7 @@ namespace {
 
 auto const f20 = Fraction(20, 1000);
 
-unittest("global clock") {
+secondclasstest("global clock") {
 	for (int i = 0; i < 5; ++i) {
 		auto const now = (double)g_DefaultClock->now();
 		std::cout << "Time: " << now << std::endl;
@@ -16,7 +16,7 @@ unittest("global clock") {
 	}
 }
 
-unittest("basic clock, speed 0.5x") {
+secondclasstest("basic clock, speed 0.5x") {
 	Clock clock(0.5);
 	for (int i = 0; i < 5; ++i) {
 		auto const now = (double)g_DefaultClock->now();
@@ -25,7 +25,7 @@ unittest("basic clock, speed 0.5x") {
 	}
 }
 
-unittest("basic clock, speed 2x") {
+secondclasstest("basic clock, speed 2x") {
 	Clock clock(2.0);
 	for (int i = 0; i < 5; ++i) {
 		auto const now = (double)g_DefaultClock->now();

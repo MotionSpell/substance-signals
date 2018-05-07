@@ -5,16 +5,19 @@
 
 #define TESTS
 // generate a file-unique identifier, based on current line
-#define unittestSuffix(suffix, prettyName) \
+#define unittestSuffix(suffix, prettyName, secondClass) \
 	static void testFunction##suffix(); \
-	static int g_isRegistered##suffix = Tests::RegisterTest(&testFunction##suffix, prettyName, g_isRegistered##suffix); \
+	static int g_isRegistered##suffix = Tests::RegisterTest(&testFunction##suffix, prettyName, secondClass, g_isRegistered##suffix); \
 	static void testFunction##suffix()
 
-#define unittestLine(counter, prettyName) \
-	unittestSuffix(counter, prettyName)
+#define unittestLine(counter, prettyName, secondClass) \
+	unittestSuffix(counter, prettyName, secondClass)
 
 #define unittest(prettyName) \
-	unittestLine(__COUNTER__, prettyName)
+	unittestLine(__COUNTER__, prettyName, 0)
+
+#define secondclasstest(prettyName) \
+	unittestLine(__COUNTER__, prettyName, 1)
 
 // TODO: find a way not to explicitly depend on 'vector'.
 template<typename T>
@@ -67,6 +70,6 @@ inline void AssertEquals(char const* file, int line, const char* caption, T cons
 	} catch (...) { \
 	} \
 
-int RegisterTest(void (*f)(), const char* testName, int& dummy);
+int RegisterTest(void (*f)(), const char* testName, bool secondClass, int& dummy);
 
 }
