@@ -1,7 +1,7 @@
 #include "scheduler.hpp"
 #include "log.hpp"
 
-Scheduler::Scheduler(std::shared_ptr<IClock> clock) : waitAndExit(false), clock(clock) {
+Scheduler::Scheduler(std::shared_ptr<IClock> clock) : clock(clock) {
 	schedThread = std::thread(&Scheduler::threadProc, this);
 }
 

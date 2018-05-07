@@ -2,7 +2,6 @@
 
 #include "clock.hpp"
 #include "time.hpp"
-#include <atomic>
 #include <condition_variable>
 #include <functional>
 #include <mutex>
@@ -48,7 +47,7 @@ class Scheduler : public IScheduler {
 		std::mutex mutex;
 		std::condition_variable condition;
 		std::priority_queue<Task, std::deque<Task>> queue;
-		std::atomic_bool waitAndExit;
+		bool waitAndExit = false;
 		std::thread schedThread;
 		std::shared_ptr<IClock> clock;
 };
