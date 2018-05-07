@@ -48,11 +48,12 @@ void Scheduler::threadProc() {
 
 		{
 			auto const waitDur = waitDuration();
+			auto const waitDurInMs = 1000 * (double)(waitDur);
+			if (waitDurInMs < 0) {
+				Log::msg(Warning, "Late from %s ms.", -waitDurInMs);
+			}
 			if (clock->getSpeed()) {
-				auto const waitDurInMs = 1000 * (double)(waitDur);
-				if (waitDurInMs < 0) {
-					Log::msg(Warning, "Late from %s ms.", -waitDurInMs);
-				} else if (waitDurInMs > 0) {
+				if (waitDurInMs > 0) {
 					std::unique_lock<std::mutex> lock(mutex);
 					auto const durInMs = std::chrono::milliseconds((int64_t)(waitDurInMs / clock->getSpeed()));
 					if (condition.wait_for(lock, durInMs, [&] { return waitDuration() < 0 || stopThread; })) {
