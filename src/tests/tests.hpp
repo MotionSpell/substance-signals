@@ -68,6 +68,5 @@ inline void AssertEquals(char const* file, int line, const char* caption, T cons
 	} \
 
 int RegisterTest(void (*f)(), const char* testName, int& dummy);
-void RunAll();
 
 }
