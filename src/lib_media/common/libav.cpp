@@ -108,12 +108,17 @@ const char* avlogLevelName(int level) {
 	}
 }
 
+// cygwin does not have vsnprintf in std=c++11 mode.
+// To be removed when cygwin is fixed
+#if defined(__CYGWIN__)
+void vsnprintf(char* buffer, size_t size, const char* fmt, va_list vl) {
+	strncpy(buffer, size, fmt);
+}
+#endif
+
 void avLog(void* /*avcl*/, int level, const char *fmt, va_list vl) {
-#if defined(__CYGWIN__) // cygwin does not have vsnprintf in std=c++11 mode. To be removed when cygwin is fixed
-	Log::msg(avLogLevel(level), "[libav-log::%s] %s", avlogLevelName(level), fmt);
-#else
 	char buffer[1280];
-	std::vsnprintf(buffer, sizeof(buffer)-1, fmt, vl);
+	vsnprintf(buffer, sizeof(buffer)-1, fmt, vl);
 
 	// remove trailing end of line
 	{
@@ -122,7 +127,6 @@ void avLog(void* /*avcl*/, int level, const char *fmt, va_list vl) {
 			buffer[N-1] = 0;
 	}
 	Log::msg(avLogLevel(level), "[libav-log::%s] %s", avlogLevelName(level), buffer);
-#endif
 }
 
 auto g_InitAvcodec = runAtStartup(&avcodec_register_all);
