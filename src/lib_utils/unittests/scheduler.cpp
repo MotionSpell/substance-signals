@@ -21,7 +21,7 @@ auto const f50 = Fraction(50, 1000);
 auto const f1000 = Fraction(1, 1);
 const double clockSpeed = 1.0;
 
-unittest("scheduler: basic)") {
+unittest("scheduler: basic") {
 	Scheduler s(shptr(new Clock(clockSpeed)));
 }
 
