@@ -17,11 +17,15 @@ void Scheduler::scheduleAt(const std::function<void(Fraction)> &&task, Fraction 
 	condition.notify_one();
 }
 
+namespace {
+void runAndReschedule(Scheduler* scheduler, std::function<void(Fraction)> task, Fraction loopTime, Fraction timeNow) {
+	task(timeNow);
+	scheduler->scheduleEvery(std::move(task), loopTime, timeNow + loopTime);
+}
+}
+
 void Scheduler::scheduleEvery(const std::function<void(Fraction)> &&task, Fraction loopTime, Fraction time) {
-	auto schedTask = [&, task2(std::move(task)), loopTime](Fraction startTime) {
-		task2(startTime);
-		scheduleEvery(std::move(task2), loopTime, startTime + loopTime);
-	};
+	auto schedTask = std::bind(&runAndReschedule, this, std::move(task), loopTime, std::placeholders::_1);
 	scheduleAt(std::move(schedTask), time);
 }
 
