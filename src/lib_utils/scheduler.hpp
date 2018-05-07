@@ -13,16 +13,16 @@ struct IScheduler {
 	virtual ~IScheduler() {}
 	virtual void scheduleAt(std::function<void(Fraction)> &&task, Fraction time) = 0;
 	virtual void scheduleIn(std::function<void(Fraction)> &&task, Fraction time) = 0;
-	virtual void scheduleEvery(std::function<void(Fraction)> &&task, Fraction loopTime, Fraction startTime = 0/*TODO: , Fraction stopTime = -1*/) = 0;
 	//TODO: scheduleWhen() would allow to remove threads in modules, see https://github.com/gpac/signals/issues/14 + remark below on the necessity of thread pool + should be attached to any thread (e.g. th0).
 };
+
+void scheduleEvery(IScheduler* scheduler, std::function<void(Fraction)> &&task, Fraction loopTime, Fraction time);
 
 class Scheduler : public IScheduler {
 	public:
 		Scheduler(std::shared_ptr<IClock> clock = g_DefaultClock);
 		~Scheduler();
 		void scheduleAt(std::function<void(Fraction)> &&task, Fraction time) override;
-		void scheduleEvery(std::function<void(Fraction)> &&task, Fraction loopTime, Fraction time) override;
 		void scheduleIn(std::function<void(Fraction)> &&task, Fraction time) override {
 			scheduleAt(std::move(task), clock->now() + time);
 		}

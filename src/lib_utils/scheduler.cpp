@@ -18,15 +18,15 @@ void Scheduler::scheduleAt(std::function<void(Fraction)> &&task, Fraction time) 
 }
 
 namespace {
-void runAndReschedule(Scheduler* scheduler, std::function<void(Fraction)> task, Fraction loopTime, Fraction timeNow) {
+void runAndReschedule(IScheduler* scheduler, std::function<void(Fraction)> task, Fraction loopTime, Fraction timeNow) {
 	task(timeNow);
-	scheduler->scheduleEvery(std::move(task), loopTime, timeNow + loopTime);
+	scheduleEvery(scheduler, std::move(task), loopTime, timeNow + loopTime);
 }
 }
 
-void Scheduler::scheduleEvery(std::function<void(Fraction)> &&task, Fraction loopTime, Fraction time) {
-	auto schedTask = std::bind(&runAndReschedule, this, std::move(task), loopTime, std::placeholders::_1);
-	scheduleAt(std::move(schedTask), time);
+void scheduleEvery(IScheduler* scheduler, std::function<void(Fraction)> &&task, Fraction loopTime, Fraction time) {
+	auto schedTask = std::bind(&runAndReschedule, scheduler, std::move(task), loopTime, std::placeholders::_1);
+	scheduler->scheduleAt(std::move(schedTask), time);
 }
 
 void Scheduler::threadProc() {

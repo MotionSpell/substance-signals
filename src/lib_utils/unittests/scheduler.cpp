@@ -81,7 +81,7 @@ unittest("scheduler: absolute-time scheduled events are received in order") {
 	ASSERT_EQUALS(f1, t2 - t1);
 }
 
-unittest("scheduler: periodic events are executed periodically") {
+unittest("scheduleEvery: periodic events are executed periodically") {
 	Queue<Fraction> q;
 	auto f = [&](Fraction time) {
 		q.push(time);
@@ -91,7 +91,7 @@ unittest("scheduler: periodic events are executed periodically") {
 	{
 		auto clock = shptr(new Clock(clockSpeed));
 		Scheduler s(clock);
-		s.scheduleEvery(f, period, 0);
+		scheduleEvery(&s, f, period, 0);
 		clock->sleep(f50);
 	}
 	auto v = transferToVector(q);
