@@ -47,7 +47,7 @@ class Scheduler : public IScheduler {
 		std::mutex mutex;
 		std::condition_variable condition;
 		std::priority_queue<Task, std::deque<Task>> queue;
-		bool waitAndExit = false;
+		bool stopThread = false;
 		std::thread schedThread;
 		std::shared_ptr<IClock> clock;
 };

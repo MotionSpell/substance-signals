@@ -8,7 +8,7 @@ Scheduler::Scheduler(std::shared_ptr<IClock> clock) : clock(clock) {
 Scheduler::~Scheduler() {
 	{
 		std::unique_lock<std::mutex> lock(mutex);
-		waitAndExit = true;
+		stopThread = true;
 	}
 	condition.notify_one();
 	schedThread.join();
@@ -35,14 +35,14 @@ void scheduleEvery(IScheduler* scheduler, TaskFunc &&task, Fraction loopTime, Fr
 void Scheduler::threadProc() {
 
 	auto wakeUpCondition = [&]() {
-		return waitAndExit || !queue.empty();
+		return stopThread || !queue.empty();
 	};
 
 	while (1) {
 		{
 			std::unique_lock<std::mutex> lock(mutex);
 			condition.wait(lock, wakeUpCondition);
-			if(waitAndExit)
+			if(stopThread)
 				break;
 		}
 
@@ -55,7 +55,7 @@ void Scheduler::threadProc() {
 				} else if (waitDurInMs > 0) {
 					std::unique_lock<std::mutex> lock(mutex);
 					auto const durInMs = std::chrono::milliseconds((int64_t)(waitDurInMs / clock->getSpeed()));
-					if (condition.wait_for(lock, durInMs, [&] { return waitDuration() < 0 || waitAndExit; })) {
+					if (condition.wait_for(lock, durInMs, [&] { return waitDuration() < 0 || stopThread; })) {
 						continue;
 					}
 				}
