@@ -125,7 +125,8 @@ void testRectifierMeta(const Fraction &fps,
 
 	for (size_t g = 0; g < generators.size(); ++g) {
 		recorders[g]->process(nullptr);
-		size_t i = 0, iMax = min<size_t>(inTimes[g].size(), outTimes[g].size());
+		size_t i = 0;
+		auto const iMax = min(inTimes[g].size(), outTimes[g].size());
 		Data data;
 		while ((data = recorders[g]->pop()) && (i < iMax)) {
 			Log::msg(Debug, "recv[%s] %s-%s (expected %s-%s)", g, data->getMediaTime(), data->getClockTime(), outTimes[g][i].first, outTimes[g][i].second);
