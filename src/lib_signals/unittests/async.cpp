@@ -18,20 +18,20 @@ int sleepAndDummy(int ms, int a) {
 	return a;
 }
 
-unittest("destroy on execution") {
+secondclasstest("destroy on execution") {
 	Signal<void(int)> sig;
 	sig.connect(sleepInMs);
 	sig.emit(1000);
 }
 
-unittest("disconnect before execution") {
+secondclasstest("disconnect before execution") {
 	Signal<void(int)> sig;
 	size_t uid = sig.connect(sleepInMs);
 	sig.disconnect(uid);
 	sig.emit(1000);
 }
 
-unittest("disconnect on execution") {
+secondclasstest("disconnect on execution") {
 	Signal<void(int)> sig;
 	size_t uid = sig.connect(sleepInMs);
 	sig.emit(1000);
