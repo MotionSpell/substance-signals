@@ -41,6 +41,8 @@ class Scheduler : public IScheduler {
 
 		void threadProc();
 
+		Fraction waitDuration() const;
+
 		std::mutex mutex;
 		std::condition_variable condition;
 		std::priority_queue<Task, std::deque<Task>> queue;

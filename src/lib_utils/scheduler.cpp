@@ -36,8 +36,7 @@ void Scheduler::threadProc() {
 		}
 
 		{
-			auto const topTime = queue.top().time;
-			auto const waitDur = topTime - clock->now();
+			auto const waitDur = waitDuration();
 			if (clock->getSpeed()) {
 				auto const waitDurInMs = 1000 * (double)(waitDur);
 				if (waitDurInMs < 0) {
@@ -45,7 +44,7 @@ void Scheduler::threadProc() {
 				} else if (waitDurInMs > 0) {
 					std::unique_lock<std::mutex> lock(mutex);
 					auto const durInMs = std::chrono::milliseconds((int64_t)(waitDurInMs / clock->getSpeed()));
-					if (condition.wait_for(lock, durInMs, [&] { return (queue.top().time < topTime) || waitAndExit; })) {
+					if (condition.wait_for(lock, durInMs, [&] { return waitDuration() < 0 || waitAndExit; })) {
 						continue;
 					}
 				}
@@ -66,4 +65,8 @@ void Scheduler::threadProc() {
 			t.task(t.time);
 		}
 	}
+}
+
+Fraction Scheduler::waitDuration() const {
+	return queue.top().time - clock->now();
 }
