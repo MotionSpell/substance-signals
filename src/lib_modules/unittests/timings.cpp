@@ -1,5 +1,4 @@
-
-#include "tests.hpp"
+#include "tests/tests.hpp"
 #include "lib_media/decode/libav_decode.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/demux/gpac_demux_mp4_simple.hpp"

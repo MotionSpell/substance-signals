@@ -1,4 +1,4 @@
-#include "tests.hpp"
+#include "tests/tests.hpp"
 #include "lib_modules/modules.hpp"
 #include <stdexcept>
 #include "lib_media/demux/libav_demux.hpp"
