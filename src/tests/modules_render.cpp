@@ -11,6 +11,7 @@ using namespace Modules;
 
 namespace {
 
+#if SIGNALS_HAS_X11
 secondclasstest("render: A/V sync, one thread") {
 	auto videoGen = create<In::VideoGenerator>();
 	auto videoRender = create<Render::SDLVideo>();
@@ -37,5 +38,6 @@ secondclasstest("render: dynamic resolution") {
 	pic2->setMediaTime(2000);
 	videoRender->process(pic2);
 }
+#endif
 
 }

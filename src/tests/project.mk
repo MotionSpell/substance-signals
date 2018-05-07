@@ -14,11 +14,8 @@ EXE_MODULES_SRCS:=\
 	$(LIB_MODULES_SRCS)\
 	$(LIB_UTILS_SRCS)
 
-ifeq ($(SIGNALS_HAS_X11), 1)
-  EXE_MODULES_SRCS+=$(MYDIR)/modules_player.cpp
-  EXE_MODULES_SRCS+=$(MYDIR)/modules_render.cpp
-endif
-
+EXE_MODULES_SRCS+=$(MYDIR)/modules_player.cpp
+EXE_MODULES_SRCS+=$(MYDIR)/modules_render.cpp
 EXE_MODULES_SRCS+=$(MYDIR)/modules_generator.cpp
 EXE_MODULES_SRCS+=$(MYDIR)/modules_converter.cpp
 EXE_MODULES_SRCS+=$(MYDIR)/modules_decode.cpp

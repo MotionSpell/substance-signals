@@ -14,6 +14,7 @@ using namespace Modules;
 
 namespace {
 
+#if SIGNALS_HAS_X11
 secondclasstest("packet type erasure + multi-output: libav Demux -> libav Decoder (Video Only) -> Render::SDL2") {
 	auto demux = create<Demux::LibavDemux>("data/beepbop.mp4");
 	auto null = create<Out::Null>();
@@ -63,5 +64,6 @@ secondclasstest("packet type erasure + multi-output: libav Demux -> libav Decode
 
 	demux->process(nullptr);
 }
+#endif
 
 }
