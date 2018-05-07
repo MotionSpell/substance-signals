@@ -38,16 +38,7 @@ void listAll() {
 	}
 }
 
-void Run(int i) {
-	if (i < 0 || i >= g_NumTests) {
-		listAll();
-		throw std::runtime_error(format("Invalid test index %s", i));
-	}
-	std::cout << "Test #" << i << ": " << g_AllTests[i].name << std::endl;
-	g_AllTests[i].fn();
-}
-
-bool Matches(Filter filter, int idx) {
+bool matches(Filter filter, int idx) {
 	if(idx < filter.minIdx)
 		return false;
 	if(idx > filter.maxIdx)
@@ -59,8 +50,10 @@ bool Matches(Filter filter, int idx) {
 
 void RunAll(Filter filter) {
 	for(int i=0; i < g_NumTests; ++i) {
-		if(Matches(filter, i))
-			Run(i);
+		if(matches(filter, i)) {
+			std::cout << "Test #" << i << ": " << g_AllTests[i].name << std::endl;
+			g_AllTests[i].fn();
+		}
 	}
 }
 }
