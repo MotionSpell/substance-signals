@@ -11,7 +11,7 @@ Scheduler::~Scheduler() {
 	schedThread.join();
 }
 
-void Scheduler::scheduleAt(const std::function<void(Fraction)> &&task, Fraction time) {
+void Scheduler::scheduleAt(std::function<void(Fraction)> &&task, Fraction time) {
 	std::unique_lock<std::mutex> lock(mutex);
 	queue.push(Task(std::move(task), time));
 	condition.notify_one();
@@ -24,7 +24,7 @@ void runAndReschedule(Scheduler* scheduler, std::function<void(Fraction)> task, 
 }
 }
 
-void Scheduler::scheduleEvery(const std::function<void(Fraction)> &&task, Fraction loopTime, Fraction time) {
+void Scheduler::scheduleEvery(std::function<void(Fraction)> &&task, Fraction loopTime, Fraction time) {
 	auto schedTask = std::bind(&runAndReschedule, this, std::move(task), loopTime, std::placeholders::_1);
 	scheduleAt(std::move(schedTask), time);
 }
