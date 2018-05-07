@@ -20,4 +20,7 @@ fi
 
 make -j$CORES
 
-/usr/bin/env time -f "%e" scripts/run_tests.sh
+readonly t1=$(date +%s)
+scripts/run_tests.sh
+readonly t2=$(date +%s)
+echo "$((t2-t1))s"
