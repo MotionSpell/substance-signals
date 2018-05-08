@@ -184,7 +184,7 @@ unittest("rectifier: FPS factor (single port)") {
 	auto const factors = { Fraction(1, 1), Fraction(2, 1), Fraction(1, 2) };
 	for (auto &fps : FPSs) {
 		for (auto &factor : factors) {
-			Log::msg(Info, "Testing FPS %s/%s with output factor %s/%s", fps.num, fps.den, factor.num, factor.den);
+			Log::msg(Info, "Testing FPS %s with output factor %s", fps, factor);
 			testFPSFactor(fps, factor);
 		}
 	}
