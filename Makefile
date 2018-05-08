@@ -18,7 +18,6 @@ CFLAGS+=-O3
 
 # default to debug mode
 DEBUG?=1
-COMPILER:=$(shell $(CXX) -v 2>&1 | grep -q -e "LLVM version" -e "clang version" && echo clang || echo gcc)
 ifeq ($(DEBUG), 1)
   CFLAGS+=-Wno-deprecated-declarations
   CFLAGS+=-g3
@@ -27,10 +26,7 @@ else
   # disable all warnings in release mode:
   # the code must always build, especially old versions with recent compilers
   CFLAGS+=-w -DNDEBUG
-  ifneq ($(COMPILER), clang)
-    CFLAGS+=-s
-    LDFLAGS+=-s
-  endif
+  LDFLAGS+=-Xlinker -s
 endif
 
 SIGNALS_HAS_X11?=1
