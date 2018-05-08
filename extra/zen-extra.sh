@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-readonly workDir=/tmp/mem/zen-work
+readonly workDir=${workDir-/tmp/mem/zen-work}
 
 function main {
   readonly scriptDir=$(get_abs_dir $(dirname $0))
