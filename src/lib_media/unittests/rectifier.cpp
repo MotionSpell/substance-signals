@@ -96,7 +96,7 @@ struct DataGenerator : public ModuleS, public virtual IOutputCap {
 	PORT *output;
 };
 
-void testRectifierMeta(const Fraction &fps,
+void testRectifierMeta(Fraction fps,
     shared_ptr<ClockMock> clock,
     const vector<unique_ptr<ModuleS>> &generators,
     const vector<vector<pair<int64_t, int64_t>>> &inTimes,
@@ -141,7 +141,7 @@ void testRectifierMeta(const Fraction &fps,
 }
 
 template<typename Metadata, typename PortType>
-void testRectifierSinglePort(const Fraction &fps, const vector<pair<int64_t, int64_t>> &inTimes, const vector<pair<int64_t, int64_t>> &outTimes) {
+void testRectifierSinglePort(Fraction fps, const vector<pair<int64_t, int64_t>> &inTimes, const vector<pair<int64_t, int64_t>> &outTimes) {
 	vector<vector<pair<int64_t, int64_t>>> in;
 	in.push_back(inTimes);
 	vector<vector<pair<int64_t, int64_t>>> out;
@@ -166,7 +166,7 @@ vector<pair<int64_t, int64_t>> generateData(Fraction fps, const function<pair<in
 	return times;
 }
 
-void testFPSFactor(const Fraction &fps, const Fraction &factor) {
+void testFPSFactor(Fraction fps, Fraction factor) {
 	auto const genVal = [&](uint64_t step, Fraction fps) {
 		auto const tIn = timescaleToClock(step * fps.den, fps.num);
 		auto const stepOutIn180k = (IClock::Rate * fps.den * factor.num) / (fps.num * factor.den);
