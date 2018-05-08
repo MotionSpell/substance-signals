@@ -96,11 +96,15 @@ function lazy_download {
   local file="$1"
   local url="$2"
 
-  if [ ! -e "$CACHE/$file" ]; then
+  local hashKey=$(echo "$url" | md5sum - | sed 's/ .*//')
+
+  if [ ! -e "$CACHE/$hashKey" ]; then
     echo "Downloading: $file"
-    wget "$url" -c -O "$CACHE/${file}.tmp" --no-verbose
-    mv "$CACHE/${file}.tmp" "$CACHE/$file"
+    wget "$url" -c -O "$CACHE/${hashKey}.tmp" --no-verbose
+    mv "$CACHE/${hashKey}.tmp" "$CACHE/$hashKey" # ensure atomicity
   fi
+
+  cp "$CACHE/${hashKey}" "$file"
 }
 
 function lazy_extract {
@@ -120,7 +124,7 @@ function lazy_extract {
   else
     rm -rf ${name}.tmp
     mkdir ${name}.tmp
-    $tar_cmd -C ${name}.tmp -xlf "$CACHE/$archive"  --strip-components=1
+    $tar_cmd -C ${name}.tmp -xlf "$archive"  --strip-components=1
     mv ${name}.tmp $name
     echo "ok"
   fi
