@@ -252,12 +252,14 @@ unittest("rectifier: deal with backward discontinuity (single port)") {
 
 unittest("rectifier: multiple media types simple") {
 	const Fraction fps1 = 25, fps2 = Fraction(44100, 1024);
-	vector<vector<TimePair>> in;
-	in.push_back(generateData(fps1)); //simulate video
-	in.push_back(generateData(fps2)); //simulate audio
-	vector<vector<TimePair>> out;
-	out.push_back(generateData(fps1));
-	out.push_back(generateData(fps2));
+	const vector<vector<TimePair>> in = {
+		generateData(fps1), //simulate video
+		generateData(fps2), //simulate audio
+	};
+	const vector<vector<TimePair>> out = {
+		generateData(fps1),
+		generateData(fps2),
+	};
 	vector<unique_ptr<ModuleS>> generators;
 	auto clock = shptr(new ClockMock);
 	generators.push_back(createModule<DataGenerator<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>>(in[0].size(), clock));
