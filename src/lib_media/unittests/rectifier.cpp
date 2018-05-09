@@ -164,6 +164,10 @@ void testRectifierMeta(Fraction fps,
 	auto actualTimes = runRectifier(fps, clock, generators, inTimes);
 
 	for (size_t g = 0; g < generators.size(); ++g) {
+
+		auto missing = (int)expectedTimes[g].size() - (int)actualTimes[g].size();
+		ASSERT(missing <= 3);
+
 		// cut the surplus 'actual' times
 		if(actualTimes[g].size() > expectedTimes[g].size())
 			actualTimes[g].resize(expectedTimes[g].size());
