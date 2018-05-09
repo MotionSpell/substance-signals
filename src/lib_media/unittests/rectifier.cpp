@@ -111,11 +111,12 @@ struct DataGenerator : public ModuleS, public virtual IOutputCap {
 	PORT *output;
 };
 
-void testRectifierMeta(Fraction fps,
-    shared_ptr<ClockMock> clock,
-    const vector<unique_ptr<ModuleS>> &generators,
-    const vector<vector<TimePair>> &inTimes,
-    vector<vector<TimePair>> outTimes) {
+vector<vector<TimePair>> runRectifier(
+        Fraction fps,
+        shared_ptr<ClockMock> clock,
+        const vector<unique_ptr<ModuleS>> &generators,
+vector<vector<TimePair>> input) {
+
 	auto rectifier = createModule<TimeRectifier>(1, clock, fps);
 	vector<unique_ptr<Utils::Recorder>> recorders;
 	for (size_t g = 0; g < generators.size(); ++g) {
@@ -125,7 +126,7 @@ void testRectifierMeta(Fraction fps,
 	}
 
 	for (size_t g = 0; g < generators.size(); ++g) {
-		for (auto timePair : inTimes[g]) {
+		for (auto timePair : input[g]) {
 			shared_ptr<DataRaw> data(new DataRaw(0));
 			data->setMediaTime(timePair.mediaTime);
 			data->setClockTime(timePair.clockTime);
@@ -133,7 +134,7 @@ void testRectifierMeta(Fraction fps,
 		}
 	}
 	for (size_t g = 0; g < generators.size(); ++g) {
-		for (auto times : inTimes[g]) {
+		for (auto times : input[g]) {
 			clock->setTime(Fraction(times.clockTime, IClock::Rate));
 		}
 	}
@@ -146,15 +147,31 @@ void testRectifierMeta(Fraction fps,
 		while (auto data = recorders[g]->pop()) {
 			actualTimes[g].push_back(TimePair{data->getMediaTime(), data->getClockTime()});
 		}
+	}
 
+	clock->setTime(numeric_limits<int32_t>::max());
+
+	return actualTimes;
+}
+
+
+void testRectifierMeta(Fraction fps,
+    shared_ptr<ClockMock> clock,
+    const vector<unique_ptr<ModuleS>> &generators,
+    const vector<vector<TimePair>> &inTimes,
+    vector<vector<TimePair>> outTimes) {
+
+	auto actualTimes = runRectifier(fps, clock, generators, inTimes);
+
+	for (size_t g = 0; g < generators.size(); ++g) {
 		// cut the surplus 'actual' times
 		if(actualTimes[g].size() > outTimes[g].size())
 			actualTimes[g].resize(outTimes[g].size());
 		else // workaround: don't compare beyond 'actual' times
 			outTimes[g].resize(actualTimes[g].size());
 	}
+
 	ASSERT_EQUALS(outTimes, actualTimes);
-	clock->setTime(numeric_limits<int32_t>::max());
 }
 
 template<typename Metadata, typename PortType>
