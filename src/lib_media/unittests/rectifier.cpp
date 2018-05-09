@@ -11,6 +11,8 @@ using namespace std;
 using namespace Tests;
 using namespace Modules;
 
+typedef pair<int64_t, int64_t> TimePair;
+
 // allows ASSERT_EQUALS on fractions
 static std::ostream& operator<<(std::ostream& o, Fraction f) {
 	o << f.num << "/" << f.den;
@@ -99,8 +101,8 @@ struct DataGenerator : public ModuleS, public virtual IOutputCap {
 void testRectifierMeta(Fraction fps,
     shared_ptr<ClockMock> clock,
     const vector<unique_ptr<ModuleS>> &generators,
-    const vector<vector<pair<int64_t, int64_t>>> &inTimes,
-    const vector<vector<pair<int64_t, int64_t>>> &outTimes) {
+    const vector<vector<TimePair>> &inTimes,
+    const vector<vector<TimePair>> &outTimes) {
 	auto rectifier = createModule<TimeRectifier>(1, clock, fps);
 	vector<unique_ptr<Utils::Recorder>> recorders;
 	for (size_t g = 0; g < generators.size(); ++g) {
@@ -141,10 +143,10 @@ void testRectifierMeta(Fraction fps,
 }
 
 template<typename Metadata, typename PortType>
-void testRectifierSinglePort(Fraction fps, const vector<pair<int64_t, int64_t>> &inTimes, const vector<pair<int64_t, int64_t>> &outTimes) {
-	vector<vector<pair<int64_t, int64_t>>> in;
+void testRectifierSinglePort(Fraction fps, const vector<TimePair> &inTimes, const vector<TimePair> &outTimes) {
+	vector<vector<TimePair>> in;
 	in.push_back(inTimes);
-	vector<vector<pair<int64_t, int64_t>>> out;
+	vector<vector<TimePair>> out;
 	out.push_back(outTimes);
 	vector<unique_ptr<ModuleS>> generators;
 	auto clock = shptr(new ClockMock);
@@ -154,12 +156,12 @@ void testRectifierSinglePort(Fraction fps, const vector<pair<int64_t, int64_t>> 
 
 auto const generateValuesDefault = [](uint64_t step, Fraction fps) {
 	auto const t = timescaleToClock(step * fps.den, fps.num);
-	return pair<int64_t, int64_t>(t, t);
+	return TimePair(t, t);
 };
 
-vector<pair<int64_t, int64_t>> generateData(Fraction fps, const function<pair<int64_t, int64_t>(uint64_t, Fraction)> &generateValue = generateValuesDefault) {
+vector<TimePair> generateData(Fraction fps, const function<TimePair(uint64_t, Fraction)> &generateValue = generateValuesDefault) {
 	auto const numItems = (size_t)(Fraction(15) * fps / Fraction(25, 1));
-	vector<pair<int64_t, int64_t>> times; times.resize(numItems);
+	vector<TimePair> times; times.resize(numItems);
 	for (size_t i = 0; i < numItems; ++i) {
 		times[i] = generateValue(i, fps);
 	}
@@ -171,7 +173,7 @@ void testFPSFactor(Fraction fps, Fraction factor) {
 		auto const tIn = timescaleToClock(step * fps.den, fps.num);
 		auto const stepOutIn180k = (IClock::Rate * fps.den * factor.num) / (fps.num * factor.den);
 		auto const tOut = tIn / stepOutIn180k * stepOutIn180k;
-		return pair<int64_t, int64_t>(tIn, tOut);
+		return TimePair(tIn, tOut);
 	};
 
 	auto const outTimes = generateData(fps * factor, genVal);
@@ -194,7 +196,7 @@ unittest("rectifier: initial offset (single port)") {
 	auto const fps = Fraction(25, 1);
 	auto const inGenVal = [&](uint64_t step, Fraction fps, int shift) {
 		auto const t = (int64_t)(IClock::Rate * (step + shift) * fps.den) / fps.num;
-		return pair<int64_t, int64_t >(t, (IClock::Rate * step * fps.den) / fps.num);
+		return TimePair(t, (IClock::Rate * step * fps.den) / fps.num);
 	};
 
 	auto const outTimes = generateData(fps, bind(inGenVal, placeholders::_1, placeholders::_2, 0));
@@ -213,7 +215,7 @@ unittest("rectifier: deal with missing frames (single port)") {
 		static uint64_t i = 0;
 		if (step && !(step % freq)) i++;
 		auto const t = (IClock::Rate * (step+i) * fps.den) / fps.num;
-		return pair<int64_t, int64_t >(t, t);
+		return TimePair(t, t);
 	};
 	auto const inTimes = generateData(fps, inGenVal);
 
@@ -222,7 +224,7 @@ unittest("rectifier: deal with missing frames (single port)") {
 		static uint64_t prevT = 0, i = 1;
 		const uint64_t val = !(i % (freq+1)) ? prevT : t;
 		i++; prevT = t;
-		return pair<int64_t, int64_t >((IClock::Rate * step * fps.den) / fps.num, val);
+		return TimePair((IClock::Rate * step * fps.den) / fps.num, val);
 	};
 	auto const outTimes = generateData(fps, outGenVal);
 
@@ -234,7 +236,7 @@ unittest("rectifier: deal with backward discontinuity (single port)") {
 	auto const outGenVal = [&](uint64_t step, Fraction fps, int64_t clockTimeOffset, int64_t mediaTimeOffset) {
 		auto const mediaTime = (int64_t)(IClock::Rate * (step + mediaTimeOffset) * fps.den) / fps.num;
 		auto const clockTime = (int64_t)(IClock::Rate * (step + clockTimeOffset) * fps.den) / fps.num;
-		return pair<int64_t, int64_t >(mediaTime, clockTime);
+		return TimePair(mediaTime, clockTime);
 	};
 	auto inTimes1 = generateData(fps);
 	auto inTimes2 = generateData(fps, bind(outGenVal, placeholders::_1, placeholders::_2, inTimes1.size(), 0));
@@ -247,10 +249,10 @@ unittest("rectifier: deal with backward discontinuity (single port)") {
 
 unittest("rectifier: multiple media types simple") {
 	const Fraction fps1 = 25, fps2 = Fraction(44100, 1024);
-	vector<vector<pair<int64_t, int64_t>>> in;
+	vector<vector<TimePair>> in;
 	in.push_back(generateData(fps1)); //simulate video
 	in.push_back(generateData(fps2)); //simulate audio
-	vector<vector<pair<int64_t, int64_t>>> out;
+	vector<vector<TimePair>> out;
 	out.push_back(generateData(fps1));
 	out.push_back(generateData(fps2));
 	vector<unique_ptr<ModuleS>> generators;
