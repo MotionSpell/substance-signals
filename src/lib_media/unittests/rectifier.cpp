@@ -213,15 +213,28 @@ void testFPSFactor(Fraction fps, Fraction factor) {
 	testRectifierSinglePort<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>(fps * factor, inTimes, outTimes);
 }
 
-unittest("rectifier: FPS factor (single port)") {
-	auto const FPSs = { Fraction(25, 1), Fraction(30000, 1001) };
-	auto const factors = { Fraction(1, 1), Fraction(2, 1), Fraction(1, 2) };
-	for (auto &fps : FPSs) {
-		for (auto &factor : factors) {
-			Log::msg(Info, "Testing FPS %s with output factor %s", fps, factor);
-			testFPSFactor(fps, factor);
-		}
-	}
+unittest("rectifier: FPS factor (single port) 25 fps, x1") {
+	testFPSFactor(25, 1);
+}
+
+unittest("rectifier: FPS factor (single port) 25 fps, x2") {
+	testFPSFactor(25, 2);
+}
+
+unittest("rectifier: FPS factor (single port) 25 fps, x1/2") {
+	testFPSFactor(25, Fraction(1, 2));
+}
+
+unittest("rectifier: FPS factor (single port) 29.97 fps, x1") {
+	testFPSFactor(Fraction(30000, 1001), 1);
+}
+
+unittest("rectifier: FPS factor (single port) 29.97 fps, x2") {
+	testFPSFactor(Fraction(30000, 1001), 2);
+}
+
+unittest("rectifier: FPS factor (single port) 29.97 fps, x1/2") {
+	testFPSFactor(Fraction(30000, 1001), Fraction(1, 2));
 }
 
 unittest("rectifier: initial offset (single port)") {
