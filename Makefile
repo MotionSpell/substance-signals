@@ -63,6 +63,11 @@ PKGS:=\
   libcurl\
   libturbojpeg\
 
+# Workaround: linking with libavfilter requires this.
+# Remove this when the project builds without this line when SIGNALS_HAS_X11=0
+# (linking with SDL somehow hides the issue)
+PKGS+=libass
+
 ifeq ($(SIGNALS_HAS_X11), 1)
   PKGS+=sdl2
 endif
