@@ -159,19 +159,19 @@ void testRectifierMeta(Fraction fps,
     shared_ptr<ClockMock> clock,
     const vector<unique_ptr<ModuleS>> &generators,
     const vector<vector<TimePair>> &inTimes,
-    vector<vector<TimePair>> outTimes) {
+    vector<vector<TimePair>> expectedTimes) {
 
 	auto actualTimes = runRectifier(fps, clock, generators, inTimes);
 
 	for (size_t g = 0; g < generators.size(); ++g) {
 		// cut the surplus 'actual' times
-		if(actualTimes[g].size() > outTimes[g].size())
-			actualTimes[g].resize(outTimes[g].size());
+		if(actualTimes[g].size() > expectedTimes[g].size())
+			actualTimes[g].resize(expectedTimes[g].size());
 		else // workaround: don't compare beyond 'actual' times
-			outTimes[g].resize(actualTimes[g].size());
+			expectedTimes[g].resize(actualTimes[g].size());
 	}
 
-	ASSERT_EQUALS(outTimes, actualTimes);
+	ASSERT_EQUALS(expectedTimes, actualTimes);
 }
 
 template<typename Metadata, typename PortType>
