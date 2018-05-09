@@ -5,6 +5,12 @@
 #include <memory>
 #include <typeinfo>
 
+template<typename T, size_t N>
+constexpr size_t NELEMENTS(T const (&array)[N]) {
+	(void)array;
+	return N;
+}
+
 namespace Modules {
 
 struct IMetadataCap {
@@ -33,7 +39,7 @@ static const char* StreamTypeNames[] = {
 	"playlist",
 	"segment"
 };
-static_assert(sizeof(StreamTypeNames) / sizeof(char*) == StreamType::SIZE_OF_ENUM_STREAM_TYPE, "StreamType sizes don't match");
+static_assert(NELEMENTS(StreamTypeNames) == StreamType::SIZE_OF_ENUM_STREAM_TYPE, "StreamType sizes don't match");
 
 struct IMetadata {
 	virtual ~IMetadata() {}

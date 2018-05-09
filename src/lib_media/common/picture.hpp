@@ -32,7 +32,7 @@ static const char* PixelFormatNames[] = {
 	"RGB 24 bits",
 	"RGB 32 bits",
 };
-static_assert(sizeof(PixelFormatNames) / sizeof(char*) == PixelFormat::SIZE_OF_ENUM_PIXEL_FORMAT, "PixelFormat sizes don't match");
+static_assert(NELEMENTS(PixelFormatNames) == PixelFormat::SIZE_OF_ENUM_PIXEL_FORMAT, "PixelFormat sizes don't match");
 
 class PictureFormat {
 	public:

@@ -195,7 +195,7 @@ emptyPage:
 
 				if (val >= 0x20) {
 					if (config.colors == Yes) {
-						for (uint8_t i = 0; i < sizeof(entities) / sizeof(entities[0]); i++) {
+						for (uint8_t i = 0; i < NELEMENTS(entities); i++) {
 							if (val == entities[i].character) { // translate chars into entities when in color mode
 								//colors: fprintf(fout, "%s", entities[i].entity);
 								val = 0; // v < 0x20 won't be printed in next block
