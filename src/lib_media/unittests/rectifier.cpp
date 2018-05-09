@@ -176,10 +176,8 @@ void testRectifierMeta(Fraction fps,
 
 template<typename Metadata, typename PortType>
 void testRectifierSinglePort(Fraction fps, const vector<TimePair> &inTimes, const vector<TimePair> &outTimes) {
-	vector<vector<TimePair>> in;
-	in.push_back(inTimes);
-	vector<vector<TimePair>> out;
-	out.push_back(outTimes);
+	const vector<vector<TimePair>> in { inTimes };
+	const vector<vector<TimePair>> out { outTimes };
 	vector<unique_ptr<ModuleS>> generators;
 	auto clock = shptr(new ClockMock);
 	generators.push_back(createModule<DataGenerator<Metadata, PortType>>(in[0].size(), clock));
