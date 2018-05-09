@@ -32,10 +32,6 @@ static bool operator==(TimePair a, TimePair b) {
 	return a.clockTime == b.clockTime && a.mediaTime == b.mediaTime;
 }
 
-static bool operator!=(TimePair a, TimePair b) {
-	return !(a == b);
-}
-
 class ClockMock : public IClock {
 	public:
 		ClockMock(Fraction time = Fraction(-1, 1000)) : m_time(time) {}
@@ -119,7 +115,7 @@ void testRectifierMeta(Fraction fps,
     shared_ptr<ClockMock> clock,
     const vector<unique_ptr<ModuleS>> &generators,
     const vector<vector<TimePair>> &inTimes,
-    const vector<vector<TimePair>> &outTimes) {
+    vector<vector<TimePair>> outTimes) {
 	auto rectifier = createModule<TimeRectifier>(1, clock, fps);
 	vector<unique_ptr<Utils::Recorder>> recorders;
 	for (size_t g = 0; g < generators.size(); ++g) {
@@ -143,6 +139,8 @@ void testRectifierMeta(Fraction fps,
 	}
 	rectifier->flush();
 
+	vector<vector<TimePair>> actualTimes(generators.size());
+
 	for (size_t g = 0; g < generators.size(); ++g) {
 		recorders[g]->process(nullptr);
 		size_t i = 0;
@@ -150,12 +148,16 @@ void testRectifierMeta(Fraction fps,
 		Data data;
 		while ((data = recorders[g]->pop()) && (i < iMax)) {
 			auto dataTime = TimePair{data->getMediaTime(), data->getClockTime()};
-			Log::msg(Debug, "recv[%s] %s (expected %s)", g, dataTime, outTimes[g][i]);
-			ASSERT_EQUALS(outTimes[g][i], dataTime);
+			actualTimes[g].push_back(dataTime);
 			i++;
 		}
+
+		// workaround: don't compare beyond 'actual' times
+		outTimes[g].resize(actualTimes[g].size());
+
 		ASSERT(i >= iMax - 2);
 	}
+	ASSERT_EQUALS(outTimes, actualTimes);
 	clock->setTime(numeric_limits<int32_t>::max());
 }
 
