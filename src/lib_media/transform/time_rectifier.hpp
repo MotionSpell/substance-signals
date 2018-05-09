@@ -64,7 +64,7 @@ class TimeRectifier : public ModuleDynI {
 			//Data defaultTypeData; //TODO: black screen for video, etc.
 		};
 
-		Fraction frameRate;
+		Fraction const frameRate;
 		int64_t analyzeWindowIn180k = 0, maxClockTimeIn180k = 0;
 		std::vector<Stream> streams;
 		std::mutex inputMutex;
