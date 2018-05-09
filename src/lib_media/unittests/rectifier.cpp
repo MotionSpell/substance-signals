@@ -123,8 +123,8 @@ void testRectifierMeta(Fraction fps,
 		}
 	}
 	for (size_t g = 0; g < generators.size(); ++g) {
-		for (size_t i = 0; i < inTimes[g].size(); ++i) {
-			clock->setTime(Fraction(inTimes[g][i].clockTime, IClock::Rate));
+		for (auto times : inTimes[g]) {
+			clock->setTime(Fraction(times.clockTime, IClock::Rate));
 		}
 	}
 	rectifier->flush();
