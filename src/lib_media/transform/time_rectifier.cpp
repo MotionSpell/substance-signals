@@ -46,7 +46,7 @@ void TimeRectifier::mimicOutputs() {
 	while (outputs.size() < numInputs) {
 		std::unique_lock<std::mutex> lock(inputMutex);
 		addOutput<OutputDefault>();
-		input.push_back(Stream());
+		streams.push_back(Stream());
 	}
 }
 
@@ -73,7 +73,7 @@ void TimeRectifier::fillInputQueuesUnsafe() {
 			if (data->getClockTime() > maxClockTimeIn180k) {
 				maxClockTimeIn180k = data->getClockTime();
 			}
-			input[i].data.push_back(data);
+			streams[i].data.push_back(data);
 			if (currInput->updateMetadata(data)) {
 				declareScheduler(data, currInput, outputs[i]);
 			}
@@ -88,20 +88,20 @@ void TimeRectifier::removeOutdatedAllUnsafe(int64_t removalClockTime) {
 }
 
 void TimeRectifier::removeOutdatedIndexUnsafe(size_t inputIdx, int64_t removalClockTime) {
-	auto data = input[inputIdx].data.begin();
-	while (data != input[inputIdx].data.end()) {
+	auto data = streams[inputIdx].data.begin();
+	while (data != streams[inputIdx].data.end()) {
 		if ((*data)->getClockTime() < removalClockTime) {
-			if (input[inputIdx].data.size() <= 1) {
+			if (streams[inputIdx].data.size() <= 1) {
 				if (flushing) {
-					log(TR_DEBUG, "Remove input[%s] data time media=%s clock=%s (removalClockTime=%s)", inputIdx, (*data)->getMediaTime(), (*data)->getClockTime(), removalClockTime);
-					data = input[inputIdx].data.erase(data);
+					log(TR_DEBUG, "Remove streams[%s] data time media=%s clock=%s (removalClockTime=%s)", inputIdx, (*data)->getMediaTime(), (*data)->getClockTime(), removalClockTime);
+					data = streams[inputIdx].data.erase(data);
 					flushedCond.notify_one();
 				} else {
 					break;
 				}
 			} else {
-				log(TR_DEBUG, "Remove last input[%s] data time media=%s clock=%s (removalClockTime=%s)", inputIdx, (*data)->getMediaTime(), (*data)->getClockTime(), removalClockTime);
-				data = input[inputIdx].data.erase(data);
+				log(TR_DEBUG, "Remove last streams[%s] data time media=%s clock=%s (removalClockTime=%s)", inputIdx, (*data)->getMediaTime(), (*data)->getClockTime(), removalClockTime);
+				data = streams[inputIdx].data.erase(data);
 			}
 		} else {
 			data++;
@@ -119,7 +119,7 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 		if (inputs[i]->getMetadata()->getStreamType() == VIDEO_RAW) {
 			auto distClock = std::numeric_limits<int64_t>::max();
 			int currDataIdx = -1, idx = -1;
-			for (auto &currData : input[i].data) {
+			for (auto &currData : streams[i].data) {
 				idx++;
 				auto const currDistClock = currData->getClockTime() - fractionToClock(time);
 				log(Debug, "Video: considering data (%s/%s) at time %s (currDist=%s, dist=%s, threshold=%s)", currData->getMediaTime(), currData->getClockTime(), fractionToClock(time), currDistClock, distClock, threshold);
@@ -133,22 +133,22 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 				}
 			}
 			if (!refData) {
-				if ((input[i].numTicks > 0) && !flushing)
-					throw error(format("No reference data found but neither starting (%s) nor flushing(%s)", input[i].numTicks, flushing));
+				if ((streams[i].numTicks > 0) && !flushing)
+					throw error(format("No reference data found but neither starting (%s) nor flushing(%s)", streams[i].numTicks, flushing));
 				log(Warning, "No available reference data for clock time %s", fractionToClock(time));
 				return;
 			}
-			if (input[i].numTicks == 0) {
+			if (streams[i].numTicks == 0) {
 				log(Info, "First available reference clock time: %s", fractionToClock(time));
 			}
-			if ((input[i].numTicks > 0) && (input[i].data.size() >= 2) && (currDataIdx != 1)) {
+			if ((streams[i].numTicks > 0) && (streams[i].data.size() >= 2) && (currDataIdx != 1)) {
 				log(Debug, "[%s] Selected reference data is not contiguous to the last one (index=%s).", i, currDataIdx);
 				//TODO: pass in error mode: flush all the data where the clock time removeOutdatedAllUnsafe(refData->getClockTime());
 			}
 
 			auto data = shptr(new DataBaseRef(refData));
-			data->setMediaTime(fractionToClock(Fraction(input[i].numTicks++ * frameRate.den, frameRate.num)));
-			log(TR_DEBUG, "Video: send[%s:%s] t=%s (data=%s/%s) (ref %s/%s)", i, input[i].data.size(), data->getMediaTime(), data->getMediaTime(), data->getClockTime(), refData->getMediaTime(), refData->getClockTime());
+			data->setMediaTime(fractionToClock(Fraction(streams[i].numTicks++ * frameRate.den, frameRate.num)));
+			log(TR_DEBUG, "Video: send[%s:%s] t=%s (data=%s/%s) (ref %s/%s)", i, streams[i].data.size(), data->getMediaTime(), data->getMediaTime(), data->getClockTime(), refData->getMediaTime(), refData->getClockTime());
 			outputs[i]->emit(data);
 			removeOutdatedIndexUnsafe(i, data->getClockTime());
 		}
@@ -165,7 +165,7 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 			Data selectedData;
 			while (1) {
 				int currDataIdx = -1, idx = -1;
-				for (auto &currData : input[i].data) {
+				for (auto &currData : streams[i].data) {
 					idx++;
 					if (selectedData && !idx) { /*first data cannot be selected*/
 						selectedData = nullptr;
@@ -182,14 +182,14 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 				if (!selectedData) {
 					break;
 				}
-				if ((input[i].numTicks > 0) && (input[i].data.size() >= 2) && (currDataIdx != 1)) {
+				if ((streams[i].numTicks > 0) && (streams[i].data.size() >= 2) && (currDataIdx != 1)) {
 					log(Warning, "[%s] Selected data is not contiguous to the last one (index=%s). Expect discontinuity in the signal.", i, currDataIdx);
 				}
 
 				auto const audioData = safe_cast<const DataPcm>(selectedData);
 				auto data = shptr(new DataBaseRef(selectedData));
-				data->setMediaTime(fractionToClock(Fraction(input[i].numTicks++ * audioData->getPlaneSize(0) / audioData->getFormat().getBytesPerSample(), audioData->getFormat().sampleRate)));
-				log(TR_DEBUG, "Other: send[%s:%s] t=%s (data=%s/%s) (ref %s/%s)", i, input[i].data.size(), data->getMediaTime(), data->getMediaTime(), data->getClockTime(), refData->getMediaTime(), refData->getClockTime());
+				data->setMediaTime(fractionToClock(Fraction(streams[i].numTicks++ * audioData->getPlaneSize(0) / audioData->getFormat().getBytesPerSample(), audioData->getFormat().sampleRate)));
+				log(TR_DEBUG, "Other: send[%s:%s] t=%s (data=%s/%s) (ref %s/%s)", i, streams[i].data.size(), data->getMediaTime(), data->getMediaTime(), data->getClockTime(), refData->getMediaTime(), refData->getClockTime());
 				outputs[i]->emit(data);
 				removeOutdatedIndexUnsafe(i, data->getClockTime());
 			}

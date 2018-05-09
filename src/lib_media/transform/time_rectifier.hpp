@@ -66,7 +66,7 @@ class TimeRectifier : public ModuleDynI {
 
 		Fraction frameRate;
 		int64_t analyzeWindowIn180k = 0, maxClockTimeIn180k = 0;
-		std::vector<Stream> input;
+		std::vector<Stream> streams;
 		std::mutex inputMutex;
 		std::condition_variable flushedCond;
 		std::unique_ptr<IScheduler> scheduler;
