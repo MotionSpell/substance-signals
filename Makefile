@@ -99,8 +99,8 @@ define get-my-dir
 $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))
 endef
 
-include src/lib_utils/project.mk
-include src/lib_media/project.mk
+include $(SRC)/lib_utils/project.mk
+include $(SRC)/lib_media/project.mk
 
 #------------------------------------------------------------------------------
 
