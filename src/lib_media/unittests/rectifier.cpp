@@ -124,9 +124,9 @@ void testRectifierMeta(Fraction fps,
 		ConnectModules(rectifier.get(), g, recorders[g].get(), 0);
 	}
 
-	shared_ptr<DataRaw> data(new DataRaw(0));
 	for (size_t g = 0; g < generators.size(); ++g) {
 		for (size_t i = 0; i < inTimes[g].size(); ++i) {
+			shared_ptr<DataRaw> data(new DataRaw(0));
 			data->setMediaTime(inTimes[g][i].mediaTime);
 			data->setClockTime(inTimes[g][i].clockTime);
 			generators[g]->process(data);
