@@ -50,8 +50,20 @@ inline void Assert(char const* file, int line, const char* caption, T const& res
 template<typename T, typename U>
 inline void AssertEquals(char const* file, int line, const char* caption, T const& expected, U const& actual) {
 	if (expected != actual) {
+		std::stringstream ssExpected;
+		ssExpected << expected;
+		std::stringstream ssActual;
+		ssActual << actual;
+		bool multiline = ssExpected.str().size() > 40 || ssActual.str().size() > 40;
+
 		std::stringstream ss;
-		ss << "assertion failed for expression: '" << caption << "' , expected '" << expected << "' got '" << actual << "'";
+		ss << "assertion failed for expression: '" << caption << "'. ";
+		if(multiline)
+			ss << std::endl;
+		ss << "expected '" << ssExpected.str() << "' ";
+		if(multiline)
+			ss << std::endl << "     ";
+		ss << "got '" << ssActual.str() << "'";
 		::Tests::Fail(file, line, ss.str().c_str());
 	}
 }
