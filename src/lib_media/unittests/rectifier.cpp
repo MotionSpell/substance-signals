@@ -140,8 +140,8 @@ void testRectifierMeta(Fraction fps,
 		Data data;
 		while ((data = recorders[g]->pop()) && (i < iMax)) {
 			Log::msg(Debug, "recv[%s] %s-%s (expected %s-%s)", g, data->getMediaTime(), data->getClockTime(), outTimes[g][i].mediaTime, outTimes[g][i].clockTime);
-			ASSERT(data->getMediaTime() == outTimes[g][i].mediaTime);
-			ASSERT(data->getClockTime() == outTimes[g][i].clockTime);
+			ASSERT_EQUALS(outTimes[g][i].mediaTime, data->getMediaTime());
+			ASSERT_EQUALS(outTimes[g][i].clockTime, data->getClockTime());
 			i++;
 		}
 		ASSERT(i >= iMax - 2);
