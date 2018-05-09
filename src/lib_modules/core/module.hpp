@@ -62,7 +62,7 @@ class ModuleDynI : public Module {
 
 		IInput* addInput(IInput *p) override { //takes ownership
 			bool isDyn = false;
-			std::unique_ptr<IInput> pEx(nullptr);
+			std::unique_ptr<IInput> pEx;
 			if (inputs.size() && dynamic_cast<DataLoose*>(inputs.back().get())) {
 				isDyn = true;
 				pEx = std::move(inputs.back());
