@@ -220,37 +220,35 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="tests.cpp" />
-    <ClCompile Include="signals.cpp" />
-    <ClCompile Include="signals_async.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="signals_module.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="signals_perf.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="signals_simple.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="signals_unit_result.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Inlcude="../../src/lib_modules/unittests/demux.cpp" />
+    <ClCompile Inlcude="../../src/lib_modules/unittests/mux.cpp" />
+    <ClCompile Inlcude="../../src/lib_modules/unittests/player.cpp" />
+    <ClCompile Inlcude="../../src/lib_modules/unittests/generator.cpp" />
+    <ClCompile Inlcude="../../src/lib_modules/unittests/timings.cpp" />
+    <ClCompile Inlcude="../../src/lib_modules/unittests/decode.cpp" />
+    <ClCompile Inlcude="../../src/lib_modules/unittests/streamer.cpp" />
+    <ClCompile Inlcude="../../src/lib_modules/unittests/converter.cpp" />
+    <ClCompile Inlcude="../../src/lib_modules/unittests/encoder.cpp" />
+    <ClCompile Inlcude="../../src/lib_modules/unittests/simple.cpp" />
+    <ClCompile Inlcude="../../src/lib_modules/unittests/erasure.cpp" />
+    <ClCompile Inlcude="../../src/lib_modules/unittests/transcoder.cpp" />
+    <ClCompile Inlcude="../../src/lib_modules/unittests/metadata.cpp" />
+    <ClCompile Inlcude="../../src/lib_modules/unittests/render.cpp" />
+    <ClCompile Inlcude="../../src/lib_pipeline/unittests/pipeline_topology.cpp" />
+    <ClCompile Inlcude="../../src/lib_pipeline/unittests/pipeline_dynamic.cpp" />
+    <ClCompile Inlcude="../../src/lib_pipeline/unittests/pipeline_base.cpp" />
+    <ClCompile Inlcude="../../src/lib_pipeline/unittests/pipeline_interrupt.cpp" />
+    <ClCompile Inlcude="../../src/lib_signals/unittests/unit_result.cpp" />
+    <ClCompile Inlcude="../../src/lib_signals/unittests/async.cpp" />
+    <ClCompile Inlcude="../../src/lib_signals/unittests/module.cpp" />
+    <ClCompile Inlcude="../../src/lib_signals/unittests/simple.cpp" />
+    <ClCompile Inlcude="../../src/lib_signals/unittests/perf.cpp" />
+    <ClCompile Inlcude="../../src/lib_media/unittests/rectifier.cpp" />
+    <ClCompile Inlcude="../../src/lib_utils/unittests/clock.cpp" />
+    <ClCompile Inlcude="../../src/lib_utils/unittests/queue.cpp" />
+    <ClCompile Inlcude="../../src/lib_utils/unittests/fifo.cpp" />
+    <ClCompile Inlcude="../../src/lib_utils/unittests/scheduler.cpp" />
+    <ClCompile Inlcude="../../src/lib_utils/unittests/misc.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="tests.hpp" />

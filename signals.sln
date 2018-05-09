@@ -5,6 +5,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_signals", "src\tests\test_signals.vcxproj", "{56B7E6F6-9666-4F71-A75C-C24AFFC93FCA}"
 	ProjectSection(ProjectDependencies) = postProject
 		{2ECCB03E-D138-43B8-823F-C9CF1837D97A} = {2ECCB03E-D138-43B8-823F-C9CF1837D97A}
+		{574FF783-7940-4C5F-996F-93431AEA2F1A} = {574FF783-7940-4C5F-996F-93431AEA2F1A}
+		{F6843994-F116-4E68-8EF8-C88149887D4C} = {F6843994-F116-4E68-8EF8-C88149887D4C}
+		{BBD0B4EB-5070-4ECF-B626-DA78ED6C8725} = {BBD0B4EB-5070-4ECF-B626-DA78ED6C8725}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "signals", "src\lib_signals\signals.vcxproj", "{2ECCB03E-D138-43B8-823F-C9CF1837D97A}"
@@ -12,12 +15,6 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "modules", "src\lib_modules\modules.vcxproj", "{F6843994-F116-4E68-8EF8-C88149887D4C}"
 	ProjectSection(ProjectDependencies) = postProject
 		{2ECCB03E-D138-43B8-823F-C9CF1837D97A} = {2ECCB03E-D138-43B8-823F-C9CF1837D97A}
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_modules", "src\tests\test_modules.vcxproj", "{E89A9760-ED01-4413-915F-EE1B36F3E35E}"
-	ProjectSection(ProjectDependencies) = postProject
-		{574FF783-7940-4C5F-996F-93431AEA2F1A} = {574FF783-7940-4C5F-996F-93431AEA2F1A}
-		{F6843994-F116-4E68-8EF8-C88149887D4C} = {F6843994-F116-4E68-8EF8-C88149887D4C}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "utils", "src\lib_utils\utils.vcxproj", "{BBD0B4EB-5070-4ECF-B626-DA78ED6C8725}"
@@ -31,11 +28,6 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "player", "src\apps\player\player.vcxproj", "{BB532BC0-B84B-46B3-B02E-EBE9ECFC664E}"
 	ProjectSection(ProjectDependencies) = postProject
 		{574FF783-7940-4C5F-996F-93431AEA2F1A} = {574FF783-7940-4C5F-996F-93431AEA2F1A}
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_utils", "src\tests\test_utils.vcxproj", "{4A14FB63-AD80-418D-A68B-0814B51F0C74}"
-	ProjectSection(ProjectDependencies) = postProject
-		{BBD0B4EB-5070-4ECF-B626-DA78ED6C8725} = {BBD0B4EB-5070-4ECF-B626-DA78ED6C8725}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dashcastx", "src\apps\dashcastx\dashcastx.vcxproj", "{D0952093-7DEF-41AD-BA68-87FEEA688E95}"
@@ -59,8 +51,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pipeline", "src\lib_pipelin
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "appcommon", "src\lib_appcommon\appcommon.vcxproj", "{64F77F21-C278-42D0-ABC3-B79F1453F4C6}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_pipeline", "src\tests\test_pipeline.vcxproj", "{E89A9760-ED01-4414-915F-EE1B36F3E35E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
