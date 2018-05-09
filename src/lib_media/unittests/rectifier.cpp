@@ -125,10 +125,10 @@ void testRectifierMeta(Fraction fps,
 	}
 
 	for (size_t g = 0; g < generators.size(); ++g) {
-		for (size_t i = 0; i < inTimes[g].size(); ++i) {
+		for (auto timePair : inTimes[g]) {
 			shared_ptr<DataRaw> data(new DataRaw(0));
-			data->setMediaTime(inTimes[g][i].mediaTime);
-			data->setClockTime(inTimes[g][i].clockTime);
+			data->setMediaTime(timePair.mediaTime);
+			data->setClockTime(timePair.clockTime);
 			generators[g]->process(data);
 		}
 	}
