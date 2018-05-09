@@ -22,6 +22,20 @@ static std::ostream& operator<<(std::ostream& o, Fraction f) {
 	return o;
 }
 
+// allows ASSERT_EQUALS on TimePair
+static std::ostream& operator<<(std::ostream& o, TimePair t) {
+	o << t.mediaTime << "-" << t.clockTime;
+	return o;
+}
+
+static bool operator==(TimePair a, TimePair b) {
+	return a.clockTime == b.clockTime && a.mediaTime == b.mediaTime;
+}
+
+static bool operator!=(TimePair a, TimePair b) {
+	return !(a == b);
+}
+
 class ClockMock : public IClock {
 	public:
 		ClockMock(Fraction time = Fraction(-1, 1000)) : m_time(time) {}
@@ -135,9 +149,9 @@ void testRectifierMeta(Fraction fps,
 		auto const iMax = min(inTimes[g].size(), outTimes[g].size());
 		Data data;
 		while ((data = recorders[g]->pop()) && (i < iMax)) {
-			Log::msg(Debug, "recv[%s] %s-%s (expected %s-%s)", g, data->getMediaTime(), data->getClockTime(), outTimes[g][i].mediaTime, outTimes[g][i].clockTime);
-			ASSERT_EQUALS(outTimes[g][i].mediaTime, data->getMediaTime());
-			ASSERT_EQUALS(outTimes[g][i].clockTime, data->getClockTime());
+			auto dataTime = TimePair{data->getMediaTime(), data->getClockTime()};
+			Log::msg(Debug, "recv[%s] %s (expected %s)", g, dataTime, outTimes[g][i]);
+			ASSERT_EQUALS(outTimes[g][i], dataTime);
 			i++;
 		}
 		ASSERT(i >= iMax - 2);
