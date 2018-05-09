@@ -144,8 +144,7 @@ void testRectifierMeta(Fraction fps,
 	for (size_t g = 0; g < generators.size(); ++g) {
 		recorders[g]->process(nullptr);
 		while (auto data = recorders[g]->pop()) {
-			auto dataTime = TimePair{data->getMediaTime(), data->getClockTime()};
-			actualTimes[g].push_back(dataTime);
+			actualTimes[g].push_back(TimePair{data->getMediaTime(), data->getClockTime()});
 		}
 
 		// cut the surplus 'actual' times
