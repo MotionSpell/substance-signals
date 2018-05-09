@@ -11,7 +11,14 @@ using namespace std;
 using namespace Tests;
 using namespace Modules;
 
-typedef pair<int64_t, int64_t> TimePair;
+struct TimePair {
+	TimePair() = default;
+	TimePair(int64_t mediaTime, int64_t clockTime) : mediaTime(mediaTime), clockTime(clockTime) {
+	}
+
+	int64_t mediaTime;
+	int64_t clockTime;
+};
 
 // allows ASSERT_EQUALS on fractions
 static std::ostream& operator<<(std::ostream& o, Fraction f) {
@@ -114,14 +121,14 @@ void testRectifierMeta(Fraction fps,
 	shared_ptr<DataRaw> data(new DataRaw(0));
 	for (size_t g = 0; g < generators.size(); ++g) {
 		for (size_t i = 0; i < inTimes[g].size(); ++i) {
-			data->setMediaTime(inTimes[g][i].first);
-			data->setClockTime(inTimes[g][i].second);
+			data->setMediaTime(inTimes[g][i].mediaTime);
+			data->setClockTime(inTimes[g][i].clockTime);
 			generators[g]->process(data);
 		}
 	}
 	for (size_t g = 0; g < generators.size(); ++g) {
 		for (size_t i = 0; i < inTimes[g].size(); ++i) {
-			clock->setTime(Fraction(inTimes[g][i].second, IClock::Rate));
+			clock->setTime(Fraction(inTimes[g][i].clockTime, IClock::Rate));
 		}
 	}
 	rectifier->flush();
@@ -132,9 +139,9 @@ void testRectifierMeta(Fraction fps,
 		auto const iMax = min(inTimes[g].size(), outTimes[g].size());
 		Data data;
 		while ((data = recorders[g]->pop()) && (i < iMax)) {
-			Log::msg(Debug, "recv[%s] %s-%s (expected %s-%s)", g, data->getMediaTime(), data->getClockTime(), outTimes[g][i].first, outTimes[g][i].second);
-			ASSERT(data->getMediaTime() == outTimes[g][i].first);
-			ASSERT(data->getClockTime() == outTimes[g][i].second);
+			Log::msg(Debug, "recv[%s] %s-%s (expected %s-%s)", g, data->getMediaTime(), data->getClockTime(), outTimes[g][i].mediaTime, outTimes[g][i].clockTime);
+			ASSERT(data->getMediaTime() == outTimes[g][i].mediaTime);
+			ASSERT(data->getClockTime() == outTimes[g][i].clockTime);
 			i++;
 		}
 		ASSERT(i >= iMax - 2);
