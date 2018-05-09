@@ -9,7 +9,9 @@ namespace Modules {
 static const int64_t ANALYZE_WINDOW_MAX = std::numeric_limits<int64_t>::max() / 2;
 
 TimeRectifier::TimeRectifier(Fraction frameRate, uint64_t analyzeWindowIn180k)
-	: frameRate(frameRate), scheduler(new Scheduler(clock)) {
+	: frameRate(frameRate),
+	  threshold(timescaleToClock(frameRate.den, frameRate.num)),
+	  scheduler(new Scheduler(clock)) {
 	if (clock->getSpeed() == 0.0) {
 		this->analyzeWindowIn180k = ANALYZE_WINDOW_MAX;
 	} else {
@@ -114,7 +116,6 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 	removeOutdatedAllUnsafe(fractionToClock(time) - analyzeWindowIn180k);
 
 	Data refData;
-	auto const threshold = timescaleToClock(frameRate.den, frameRate.num);
 	for (size_t i = 0; i < getNumInputs() - 1; ++i) {
 		if (inputs[i]->getMetadata()->getStreamType() == VIDEO_RAW) {
 			auto distClock = std::numeric_limits<int64_t>::max();
