@@ -180,7 +180,7 @@ auto const generateValuesDefault = [](uint64_t step, Fraction fps) {
 
 vector<TimePair> generateData(Fraction fps, const function<TimePair(uint64_t, Fraction)> &generateValue = generateValuesDefault) {
 	auto const numItems = (size_t)(Fraction(15) * fps / Fraction(25, 1));
-	vector<TimePair> times; times.resize(numItems);
+	vector<TimePair> times(numItems);
 	for (size_t i = 0; i < numItems; ++i) {
 		times[i] = generateValue(i, fps);
 	}
