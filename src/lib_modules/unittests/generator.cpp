@@ -2,13 +2,14 @@
 #include "lib_modules/modules.hpp"
 #include "lib_media/in/sound_generator.hpp"
 #include "lib_media/in/video_generator.hpp"
-#include "lib_media/render/sdl_audio.hpp"
 #include "lib_utils/tools.hpp"
 
 using namespace Tests;
 using namespace Modules;
 
-namespace {
+#if SIGNALS_HAS_X11
+
+#include "lib_media/render/sdl_audio.hpp"
 
 secondclasstest("sound generator") {
 	auto soundGen = create<In::SoundGenerator>();
@@ -20,6 +21,8 @@ secondclasstest("sound generator") {
 		soundGen->process(nullptr);
 	}
 }
+
+#endif
 
 unittest("video generator") {
 	auto videoGen = create<In::VideoGenerator>();
@@ -38,4 +41,3 @@ unittest("video generator") {
 	ASSERT_EQUALS(makeVector({0, 7200, 180000, 187200}), times);
 }
 
-}
