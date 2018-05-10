@@ -17,7 +17,6 @@ class JPEGTurboEncode : public ModuleS {
 		void process(Data data) override;
 
 	private:
-		int pixelFormat(PixelFormat pf);
 		OutputDefault* output;
 		std::unique_ptr<JPEGTurbo> const jtHandle;
 		int JPEGQuality;

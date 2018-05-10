@@ -34,18 +34,6 @@ JPEGTurboEncode::JPEGTurboEncode(int JPEGQuality)
 JPEGTurboEncode::~JPEGTurboEncode() {
 }
 
-int JPEGTurboEncode::pixelFormat(PixelFormat pf) {
-	switch (pf) {
-	case Y8: return TJSAMP_GRAY;
-	case YUV420P: return TJSAMP_420;
-	case YUV422P: return TJSAMP_422;
-	case NV12: return TJSAMP_420;
-	case RGB24: return TJPF_RGB;
-	case RGBA32: return TJPF_RGBX;
-	default: throw error(format("Unsupported pixel format %s", pf));
-	}
-}
-
 void JPEGTurboEncode::process(Data data_) {
 	auto videoData = safe_cast<const DataPicture>(data_);
 	auto const w = videoData->getFormat().res.width, h = videoData->getFormat().res.height;
