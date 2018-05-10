@@ -51,7 +51,7 @@ void Scheduler::threadProc() {
 		}
 
 		{
-			auto const waitDurInMs = 1000 * (double)(waitDur);
+			auto const waitDurInMs = fractionToTimescale(waitDur, 1000);
 			if (waitDurInMs < 0) {
 				Log::msg(Warning, "Late from %s ms.", -waitDurInMs);
 			}

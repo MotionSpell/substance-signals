@@ -32,6 +32,10 @@ static T clockToTimescale(T time, uint64_t timescale) {
 	return convertToTimescale(time, IClock::Rate, timescale);
 }
 
+static inline int64_t fractionToTimescale(Fraction time, uint64_t timescale) {
+	return convertToTimescale(time.num, time.den, timescale);
+}
+
 static inline int64_t fractionToClock(Fraction time) {
 	return timescaleToClock(time.num, time.den);
 }
