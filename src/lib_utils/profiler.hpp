@@ -26,7 +26,7 @@ class Profiler {
 		}
 
 		~Profiler() {
-			os << "[" << name << "] " << FORMAT(elapsedInUs(), maxDurationInSec*unit) << " us" << std::endl;
+			os << "[" << name.c_str() << "] " << FORMAT(elapsedInUs(), maxDurationInSec*unit) << " us" << std::endl;
 		}
 
 		uint64_t elapsedInUs() {
