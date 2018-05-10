@@ -506,7 +506,7 @@ void GPACMuxMP4::startFragment(uint64_t DTS, uint64_t PTS) {
 			}
 
 			if (!(compatFlags & Browsers)) {
-				e = gf_isom_set_fragment_reference_time(isoCur, trackId, UTC2NTP(firstDataAbsTimeInMs) + PTS, PTS);
+				e = gf_isom_set_fragment_reference_time(isoCur, trackId, UTC2NTP(firstDataAbsTimeInMs + convertToTimescale(PTS, mediaTs, 1000)), PTS);
 				if (e != GF_OK)
 					throw error(format("Impossible to create UTC marquer: %s", gf_error_to_string(e)));
 			}
