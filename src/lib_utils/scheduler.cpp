@@ -39,15 +39,18 @@ void Scheduler::threadProc() {
 	};
 
 	while (1) {
+		Fraction waitDur;
+
 		{
 			std::unique_lock<std::mutex> lock(mutex);
 			condition.wait(lock, wakeUpCondition);
 			if(stopThread)
 				break;
+
+			waitDur = waitDuration();
 		}
 
 		{
-			auto const waitDur = waitDuration();
 			auto const waitDurInMs = 1000 * (double)(waitDur);
 			if (waitDurInMs < 0) {
 				Log::msg(Warning, "Late from %s ms.", -waitDurInMs);
