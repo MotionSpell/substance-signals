@@ -409,6 +409,10 @@ GPACMuxMP4::GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs
 	}
 }
 
+GPACMuxMP4::~GPACMuxMP4() {
+	gf_isom_delete(isoCur);
+}
+
 void GPACMuxMP4::flush() {
 	if (compatFlags & ExactInputDur) {
 		inputs[0]->push(lastData);
@@ -429,6 +433,7 @@ void GPACMuxMP4::flush() {
 		GF_Err e = gf_isom_close(isoCur);
 		if (e != GF_OK && e != GF_ISOM_INVALID_FILE)
 			throw error(format("gf_isom_close: %s", gf_error_to_string(e)));
+		isoCur = nullptr;
 	}
 }
 
