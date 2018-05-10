@@ -7,8 +7,16 @@ readonly scriptDir=$(dirname $(readlink -f $0))
 
 # Build instrumented version
 export BIN=bin-san
-export CFLAGS=-fsanitize=address,undefined
-export LDFLAGS=-fsanitize=address,undefined
+
+# the 'thread' sanitizer doesn't play well with the others
+# (change the below condition to thread-sanitize your code)
+if false ; then
+  export CFLAGS=-fsanitize=thread
+  export LDFLAGS=-fsanitize=thread
+else
+  export CFLAGS=-fsanitize=address,undefined
+  export LDFLAGS=-fsanitize=address,undefined
+fi
 make -j`nproc`
 
 export TSAN_OPTIONS=halt_on_error=1
