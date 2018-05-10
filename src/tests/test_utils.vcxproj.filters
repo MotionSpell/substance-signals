@@ -2,28 +2,28 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="tests.cpp" />
-    <ClCompile Include="..\lib_signals\unittests\async.cpp">
+    <ClCompile Include="..\lib_utils\unittests\clock.cpp">
       <Filter>tests</Filter>
     </ClCompile>
-    <ClCompile Include="..\lib_signals\unittests\module.cpp">
+    <ClCompile Include="..\lib_utils\unittests\fifo.cpp">
       <Filter>tests</Filter>
     </ClCompile>
-    <ClCompile Include="..\lib_signals\unittests\perf.cpp">
+    <ClCompile Include="..\lib_utils\unittests\misc.cpp">
       <Filter>tests</Filter>
     </ClCompile>
-    <ClCompile Include="..\lib_signals\unittests\simple.cpp">
+    <ClCompile Include="..\lib_utils\unittests\queue.cpp">
       <Filter>tests</Filter>
     </ClCompile>
-    <ClCompile Include="..\lib_signals\unittests\unit_result.cpp">
+    <ClCompile Include="..\lib_utils\unittests\scheduler.cpp">
       <Filter>tests</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Filter Include="tests">
-      <UniqueIdentifier>{7bf9eaed-692e-4050-b005-92e0d8380a51}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="tests.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="tests">
+      <UniqueIdentifier>{282707f6-1f59-431a-b93d-f6b79fb108cf}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>

@@ -19,10 +19,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{56B7E6F6-9666-4F71-A75C-C24AFFC93FCA}</ProjectGuid>
+    <ProjectGuid>{E89A9760-ED01-4413-915F-EE1B36F3E35E}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>signals</RootNamespace>
-    <ProjectName>test_signals</ProjectName>
+    <ProjectName>test_modules</ProjectName>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -219,15 +219,33 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\lib_signals\unittests\async.cpp" />
-    <ClCompile Include="..\lib_signals\unittests\module.cpp" />
-    <ClCompile Include="..\lib_signals\unittests\perf.cpp" />
-    <ClCompile Include="..\lib_signals\unittests\simple.cpp" />
-    <ClCompile Include="..\lib_signals\unittests\unit_result.cpp" />
+    <ClCompile Include="..\lib_modules\unittests\converter.cpp" />
+    <ClCompile Include="..\lib_modules\unittests\decode.cpp" />
+    <ClCompile Include="..\lib_modules\unittests\demux.cpp" />
+    <ClCompile Include="..\lib_modules\unittests\encoder.cpp" />
+    <ClCompile Include="..\lib_modules\unittests\erasure.cpp" />
+    <ClCompile Include="..\lib_modules\unittests\generator.cpp" />
+    <ClCompile Include="..\lib_modules\unittests\metadata.cpp" />
+    <ClCompile Include="..\lib_modules\unittests\mux.cpp" />
+    <ClCompile Include="..\lib_modules\unittests\player.cpp" />
+    <ClCompile Include="..\lib_modules\unittests\render.cpp" />
+    <ClCompile Include="..\lib_modules\unittests\simple.cpp" />
+    <ClCompile Include="..\lib_modules\unittests\streamer.cpp" />
+    <ClCompile Include="..\lib_modules\unittests\timings.cpp" />
+    <ClCompile Include="..\lib_modules\unittests\transcoder.cpp" />
     <ClCompile Include="tests.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\lib_modules\unittests\modules_common.hpp" />
     <ClInclude Include="tests.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\lib_media\media.vcxproj">
+      <Project>{3ed5c725-44b6-4e0b-a38c-73d85d8347cd}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\lib_modules\modules.vcxproj">
+      <Project>{f6843994-f116-4e68-8ef8-c88149887d4c}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

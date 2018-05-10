@@ -80,7 +80,6 @@ int RegisterTest(void (*fn)(), const char* testName, bool secondClass, int&) {
 }
 
 int main(int argc, const char* argv[]) {
-
 	int i = 1;
 	auto popWord = [&]() -> std::string {
 		if(i >= argc)

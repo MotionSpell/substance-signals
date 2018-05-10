@@ -19,10 +19,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{56B7E6F6-9666-4F71-A75C-C24AFFC93FCA}</ProjectGuid>
+    <ProjectGuid>{4A14FB63-AD80-418D-A68B-0814B51F0C74}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>signals</RootNamespace>
-    <ProjectName>test_signals</ProjectName>
+    <ProjectName>test_utils</ProjectName>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -106,7 +106,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>SIGNALS_HAS_AWS;SIGNALS_HAS_X11;WIN32;_CRT_SECURE_NO_WARNINGS;WIN32_LEAN_AND_MEAN;_WIN32_WINNT=0x0501;NOMINMAX;WIN32_LEAN_AND_MEAN;_WIN32_WINNT=0x0501;;NOMINMAX;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SIGNALS_HAS_AWS;SIGNALS_HAS_X11;WIN32;_CRT_SECURE_NO_WARNINGS;WIN32_LEAN_AND_MEAN;_WIN32_WINNT=0x0501;NOMINMAX;;NOMINMAX;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>.;$(ProjectDir)\..\..\extra_lib\include;$(ProjectDir)\..\..\src\</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4250;4996;4251</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -133,7 +133,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>SIGNALS_HAS_AWS;SIGNALS_HAS_X11;WIN32;_CRT_SECURE_NO_WARNINGS;WIN32_LEAN_AND_MEAN;_WIN32_WINNT=0x0501;NOMINMAX;WIN32_LEAN_AND_MEAN;_WIN32_WINNT=0x0501;;NOMINMAX;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SIGNALS_HAS_AWS;SIGNALS_HAS_X11;WIN32;_CRT_SECURE_NO_WARNINGS;WIN32_LEAN_AND_MEAN;_WIN32_WINNT=0x0501;NOMINMAX;;NOMINMAX;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>.;$(ProjectDir)\..\..\extra_lib\include;$(ProjectDir)\..\..\src\</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4250;4996;4251</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -163,7 +163,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>SIGNALS_HAS_AWS;SIGNALS_HAS_X11;WIN32;_CRT_SECURE_NO_WARNINGS;WIN32_LEAN_AND_MEAN;_WIN32_WINNT=0x0501;NOMINMAX;WIN32_LEAN_AND_MEAN;_WIN32_WINNT=0x0501;;NOMINMAX;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SIGNALS_HAS_AWS;SIGNALS_HAS_X11;WIN32;_CRT_SECURE_NO_WARNINGS;WIN32_LEAN_AND_MEAN;_WIN32_WINNT=0x0501;NOMINMAX;;NOMINMAX;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>.;$(ProjectDir)\..\..\extra_lib\include;$(ProjectDir)\..\..\src\</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <TreatWarningAsError>true</TreatWarningAsError>
@@ -195,7 +195,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>SIGNALS_HAS_AWS;SIGNALS_HAS_X11;WIN32;_CRT_SECURE_NO_WARNINGS;WIN32_LEAN_AND_MEAN;_WIN32_WINNT=0x0501;NOMINMAX;WIN32_LEAN_AND_MEAN;_WIN32_WINNT=0x0501;;NOMINMAX;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SIGNALS_HAS_AWS;SIGNALS_HAS_X11;WIN32;_CRT_SECURE_NO_WARNINGS;WIN32_LEAN_AND_MEAN;_WIN32_WINNT=0x0501;NOMINMAX;;NOMINMAX;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>.;$(ProjectDir)\..\..\extra_lib\include;$(ProjectDir)\..\..\src\</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <TreatWarningAsError>true</TreatWarningAsError>
@@ -219,15 +219,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\lib_signals\unittests\async.cpp" />
-    <ClCompile Include="..\lib_signals\unittests\module.cpp" />
-    <ClCompile Include="..\lib_signals\unittests\perf.cpp" />
-    <ClCompile Include="..\lib_signals\unittests\simple.cpp" />
-    <ClCompile Include="..\lib_signals\unittests\unit_result.cpp" />
+    <ClCompile Include="..\lib_utils\unittests\clock.cpp" />
+    <ClCompile Include="..\lib_utils\unittests\fifo.cpp" />
+    <ClCompile Include="..\lib_utils\unittests\misc.cpp" />
+    <ClCompile Include="..\lib_utils\unittests\queue.cpp" />
+    <ClCompile Include="..\lib_utils\unittests\scheduler.cpp" />
     <ClCompile Include="tests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="tests.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\lib_utils\utils.vcxproj">
+      <Project>{bbd0b4eb-5070-4ecf-b626-da78ed6c8725}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
