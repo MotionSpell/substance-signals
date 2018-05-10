@@ -101,20 +101,21 @@ unittest("scheduleEvery: periodic events are executed periodically") {
 }
 
 unittest("scheduler: events scheduled out-of-order are executed in order") {
-	Queue<Fraction> q;
-	auto f = [&](Fraction time) {
-		q.push(time);
-	};
+	Fraction tA = 222; // marker values
+	Fraction tB = 111;
 
 	{
 		auto clock = shptr(new Clock(clockSpeed));
 		Scheduler s(clock);
-		s.scheduleIn(f, f10);
-		s.scheduleIn(f, 0);
-		clock->sleep(f50);
+		s.scheduleIn([&](Fraction) {
+			tB = clock->now();
+		}, f50);
+		s.scheduleIn([&](Fraction) {
+			tA = clock->now();
+		}, f10);
+		clock->sleep(Fraction(1, 10));
 	}
-	auto v = transferToVector(q);
-	ASSERT_EQUALS(makeVector({Fraction(0), f10}), v);
+	ASSERT(tA < tB);
 }
 
 unittest("[disabled] scheduler: can still schedule and trigger 'near' tasks while waiting for a 'far' one") {
