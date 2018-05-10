@@ -1,7 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if ! which astyle >/dev/null ; then
+function has_astyle
+{
+  if ! which astyle >/dev/null ; then
+    return 1
+  fi
+
+  if [ ! "$(astyle --version)" = "Artistic Style Version 3.1" ] ; then
+    return 1
+  fi
+
+  return 0
+}
+
+if ! has_astyle ; then
   echo "astyle not found, skipping reformatting ..." >&2
   exit 0
 fi
