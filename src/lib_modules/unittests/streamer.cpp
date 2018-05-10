@@ -9,6 +9,7 @@
 #include "lib_media/stream/mpeg_dash.hpp"
 #include "lib_media/stream/ms_hss.hpp"
 #include "modules_common.hpp"
+#include "lib_utils/sysclock.hpp"
 
 using namespace Tests;
 using namespace Modules;
