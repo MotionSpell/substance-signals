@@ -8,18 +8,18 @@
 namespace Modules {
 namespace Encode {
 
-class JPEGTurbo;
+typedef void* tjhandle;
 
 class JPEGTurboEncode : public ModuleS {
 	public:
-		JPEGTurboEncode(int JPEGQuality = JPEG_DEFAULT_QUALITY);
+		JPEGTurboEncode(int quality = JPEG_DEFAULT_QUALITY);
 		~JPEGTurboEncode();
 		void process(Data data) override;
 
 	private:
 		OutputDefault* output;
-		std::unique_ptr<JPEGTurbo> const jtHandle;
-		int JPEGQuality;
+		tjhandle jtHandle;
+		int quality;
 };
 
 }

@@ -8,30 +8,15 @@ extern "C" {
 namespace Modules {
 namespace Encode {
 
-class JPEGTurbo {
-	public:
-		JPEGTurbo() {
-			handle = tjInitCompress();
-		}
-		~JPEGTurbo() {
-			tjDestroy(handle);
-		}
-		tjhandle get() {
-			return handle;
-		}
-
-	private:
-		tjhandle handle;
-};
-
-JPEGTurboEncode::JPEGTurboEncode(int JPEGQuality)
-	: jtHandle(new JPEGTurbo), JPEGQuality(JPEGQuality) {
+JPEGTurboEncode::JPEGTurboEncode(int quality)
+	: jtHandle(tjInitCompress()), quality(quality) {
 	auto input = addInput(new Input<DataPicture>(this));
 	input->setMetadata(shptr(new MetadataRawVideo));
 	output = addOutput<OutputDefault>();
 }
 
 JPEGTurboEncode::~JPEGTurboEncode() {
+	tjDestroy(jtHandle);
 }
 
 void JPEGTurboEncode::process(Data data_) {
@@ -52,16 +37,16 @@ void JPEGTurboEncode::process(Data data_) {
 			srcStride[i] = (int)videoData->getPitch(i);
 		}
 
-		if (tjCompressFromYUVPlanes(jtHandle->get(),
+		if (tjCompressFromYUVPlanes(jtHandle,
 		        srcSlice, videoData->getFormat().res.width, srcStride, videoData->getFormat().res.height, TJSAMP_420,
-		        &buf, &jpegSize, JPEGQuality, TJFLAG_NOREALLOC | TJFLAG_FASTDCT)) {
+		        &buf, &jpegSize, quality, TJFLAG_NOREALLOC | TJFLAG_FASTDCT)) {
 			log(Warning, "error encountered while compressing (YUV).");
 			return;
 		}
 		break;
 	}
 	case RGB24: case RGBA32: {
-		if (tjCompress2(jtHandle->get(), (unsigned char*)jpegBuf, w, 0/*pitch*/, h, TJPF_RGB, &buf, &jpegSize, TJSAMP_420, JPEGQuality, TJFLAG_FASTDCT) < 0) {
+		if (tjCompress2(jtHandle, (unsigned char*)jpegBuf, w, 0/*pitch*/, h, TJPF_RGB, &buf, &jpegSize, TJSAMP_420, quality, TJFLAG_FASTDCT) < 0) {
 			log(Warning, "error encountered while compressing (RGB).");
 			return;
 		}
