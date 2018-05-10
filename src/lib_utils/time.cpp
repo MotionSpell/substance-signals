@@ -10,7 +10,7 @@
 #ifdef _WIN32
 #include <sys/timeb.h>
 #include <Winsock2.h>
-int gettimeofday(struct timeval *tp, void *tz) {
+int gettimeofday(struct timeval *tp, void * /*tz*/) {
 	struct _timeb timebuffer;
 	_ftime(&timebuffer);
 	tp->tv_sec = (long)(timebuffer.time);
