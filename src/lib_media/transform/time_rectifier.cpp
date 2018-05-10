@@ -52,7 +52,7 @@ void TimeRectifier::mimicOutputs() {
 	}
 }
 
-void TimeRectifier::declareScheduler(Data /*data*/, std::unique_ptr<IInput> &input, std::unique_ptr<IOutput> &output) {
+void TimeRectifier::declareScheduler(std::unique_ptr<IInput> &input, std::unique_ptr<IOutput> &output) {
 	auto const oMeta = output->getMetadata();
 	if (!oMeta) {
 		log(Debug, "Output isn't connected or doesn't expose a metadata: impossible to check.");
@@ -77,7 +77,7 @@ void TimeRectifier::fillInputQueuesUnsafe() {
 			}
 			streams[i].data.push_back(data);
 			if (currInput->updateMetadata(data)) {
-				declareScheduler(data, currInput, outputs[i]);
+				declareScheduler(currInput, outputs[i]);
 			}
 		}
 	}
@@ -135,7 +135,7 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 			}
 			if (!refData) {
 				if ((streams[i].numTicks > 0) && !flushing)
-					throw error(format("No reference data found but neither starting (%s) nor flushing(%s)", streams[i].numTicks, flushing));
+					throw error(format("No reference data found but neither starting (%s) nor flushing (%s)", streams[i].numTicks, flushing));
 				log(Warning, "No available reference data for clock time %s", fractionToClock(time));
 				return;
 			}
