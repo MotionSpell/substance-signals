@@ -583,8 +583,6 @@ void GPACMuxMP4::declareStreamAudio(const std::shared_ptr<const MetadataPktLibav
 	const uint8_t *extradata;
 	size_t extradataSize;
 	metadata->getExtradata(extradata, extradataSize);
-	esd->decoderConfig = (GF_DecoderConfig *)gf_odf_desc_new(GF_ODF_DCD_TAG);
-	esd->slConfig = (GF_SLConfig *)gf_odf_desc_new(GF_ODF_SLC_TAG);
 	esd->decoderConfig->streamType = GF_STREAM_AUDIO;
 	sampleRate = metadata->getSampleRate();
 	if (metadata->getCodecName() == "aac") { //TODO: find an automatic table, we only know about MPEG1 Layer 2 and AAC-LC
@@ -593,7 +591,6 @@ void GPACMuxMP4::declareStreamAudio(const std::shared_ptr<const MetadataPktLibav
 
 		esd->decoderConfig->bufferSizeDB = 20;
 		esd->slConfig->timestampResolution = sampleRate;
-		esd->decoderConfig->decoderSpecificInfo = (GF_DefaultDescriptor *)gf_odf_desc_new(GF_ODF_DSI_TAG);
 		esd->ESID = 1;
 
 		esd->decoderConfig->decoderSpecificInfo->dataLength = (u32)extradataSize;
