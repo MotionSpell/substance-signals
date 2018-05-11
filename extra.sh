@@ -18,6 +18,9 @@ if [ -z "$MAKE" ]; then
 	export MAKE="make -j$CORES"
 fi
 
+export PREFIX=${PREFIX-"$PWD/sysroot"}
+echo "Installation prefix: $PREFIX"
+
 if [ -z "$CPREFIX" ]; then
 	case $OSTYPE in
 	msys)
@@ -55,8 +58,5 @@ esac
 pushd extra >/dev/null
 ./zen-extra.sh $CPREFIX
 popd >/dev/null
-
-## move files
-rsync -ar /tmp/mem/zen-work/release/$HOST/* sysroot
 
 echo "Done"

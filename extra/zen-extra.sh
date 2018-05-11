@@ -211,6 +211,11 @@ function buildPackage {
     exit 3
   fi
 
+  if [ -z "${PREFIX-}" ] ; then
+    echo "PREFIX needs to be defined" >&2
+    exit 4
+  fi
+
   if [ ! -e "$scriptDir/config.guess" ]; then
     wget -O "$scriptDir/config.guess" 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD'
     chmod +x "$scriptDir/config.guess"
@@ -237,7 +242,7 @@ function buildPackage {
   mkdir -p $CACHE
   mkdir -p $WORK/src
 
-  export PREFIX="$WORK/release/${hostPlatform}"
+  export PREFIX
   for dir in "lib" "bin" "include"
   do
     mkdir -p "$PREFIX/${dir}"

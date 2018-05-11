@@ -34,14 +34,14 @@ $ ./extra.sh
 This script will ask you to install some tools (make, libtools, nasm, rsync ...).
 On completion, it will create a 'sysroot' directory at the top-level.
 By default, the makefile will look for 'lib', 'include', etc. in this directory.
-For convenience, it's possible to move the generated 'sysroot' directory to
-another location in your system, and tell the makefile the new location, using
-the environment variable 'EXTRA'.
+For convenience, it's possible to generate the 'sysroot' directory to
+another location in your system, using the environment variable PREFIX,
+and tell the makefile the new location, using
+the environment variable 'EXTRA':
 
 For example:
 ```
-$ ./extra.sh
-$ mv sysroot /home/john/source/signals-sysroot
+$ PREFIX=/home/john/source/signals-sysroot ./extra.sh
 $ export EXTRA=/home/john/source/signals-sysroot
 $ make
 ```
