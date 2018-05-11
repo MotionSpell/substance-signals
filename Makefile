@@ -63,10 +63,10 @@ PKGS:=\
   libcurl\
   libturbojpeg\
 
-# Workaround: linking with libavfilter requires this.
-# Remove this when the project builds without this line when SIGNALS_HAS_X11=0
-# (linking with SDL somehow hides the issue)
-PKGS+=libass
+# Workaround: linking with libgpac and libavfilter currently requires this,
+# otherwise link fails with undefined references to libass, libjpeg and libpng.
+# (extra.sh builds libgpac/libavfilter with 'rpath' options, this might be root cause).
+LDFLAGS+=-Wl,-rpath,$(EXTRA)/lib
 
 ifeq ($(SIGNALS_HAS_X11), 1)
   PKGS+=sdl2
