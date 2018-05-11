@@ -51,10 +51,11 @@ bool matches(Filter filter, int idx) {
 void RunAll(Filter filter) {
 	for(int i=0; i < g_NumTests; ++i) {
 		if(matches(filter, i)) {
-			std::cout << "Running test #" << i << ": " << g_AllTests[i].name << std::endl;
+			std::cout << "#" << i << ": " << g_AllTests[i].name << std::endl;
 			g_AllTests[i].fn();
 		}
 	}
+	std::cout << "-- Tests were run successfully" << std::endl;
 }
 }
 
