@@ -164,8 +164,9 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 		if (inputs[i]->getMetadata()->getStreamType() == VIDEO_RAW) {
 			refData = findNearestData(i, time);
 			if (!refData) {
-				if ((streams[i].numTicks > 0) && !flushing)
-					throw error(format("No reference data found but neither starting (%s) nor flushing (%s)", streams[i].numTicks, flushing));
+				// No reference data found but neither starting nor flushing
+				assert(streams[i].numTicks == 0 || flushing);
+
 				log(Warning, "No available reference data for clock time %s", fractionToClock(time));
 				return;
 			}
