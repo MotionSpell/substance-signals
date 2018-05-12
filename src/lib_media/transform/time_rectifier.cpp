@@ -44,8 +44,8 @@ void TimeRectifier::flush() {
 }
 
 void TimeRectifier::mimicOutputs() {
-	auto const numInputs = getNumInputs() - 1;
-	while (outputs.size() < numInputs) {
+	for(auto i : getInputs()) {
+		(void)i;
 		std::unique_lock<std::mutex> lock(inputMutex);
 		addOutput<OutputDefault>();
 		streams.push_back(Stream());
@@ -68,7 +68,7 @@ void TimeRectifier::declareScheduler(std::unique_ptr<IInput> &input, std::unique
 }
 
 void TimeRectifier::fillInputQueuesUnsafe() {
-	for (size_t i = 0; i < getNumInputs() - 1; ++i) {
+	for (auto i : getInputs()) {
 		auto &currInput = inputs[i];
 		Data data;
 		while (currInput->tryPop(data)) {
@@ -82,7 +82,7 @@ void TimeRectifier::fillInputQueuesUnsafe() {
 }
 
 void TimeRectifier::removeOutdatedAllUnsafe(int64_t removalClockTime) {
-	for (size_t i = 0; i < getNumInputs() - 1; ++i) {
+	for (auto i : getInputs()) {
 		removeOutdatedIndexUnsafe(i, removalClockTime);
 	}
 }
@@ -155,7 +155,7 @@ void TimeRectifier::findNearestDataAudio(int i, Fraction time, Data& selectedDat
 }
 
 int TimeRectifier::getMasterStreamId() const {
-	for (size_t i = 0; i < getNumInputs() - 1; ++i) {
+	for(auto i : getInputs()) {
 		if (inputs[i]->getMetadata()->getStreamType() == VIDEO_RAW) {
 			return i;
 		}
@@ -196,7 +196,7 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 	//23MS OF DESYNC IS OK => KEEP TRACK OF CURRENT DESYNC
 	//AUDIO: BE ABLE TO ASK FOR A LARGER BUFFER ALLOCATOR? => BACK TO THE APP + DYN ALLOCATOR SIZE?
 	//VIDEO: HAVE ONLY A FEW DECODED FRAMES: THEY ARRIVE IN ADVANCE ANYWAY
-	for (size_t i = 0; i < getNumInputs() - 1; ++i) {
+	for (auto i : getInputs()) {
 		switch (inputs[i]->getMetadata()->getStreamType()) {
 		case AUDIO_RAW: {
 			Data selectedData;
