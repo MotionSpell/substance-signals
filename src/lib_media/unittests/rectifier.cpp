@@ -37,9 +37,8 @@ class ClockMock : public IClock {
 		ClockMock(Fraction time = Fraction(-1, 1000)) : m_time(time) {}
 		void setTime(Fraction t) {
 			unique_lock<std::mutex> lock(protectTime);
-			if (t > m_time) {
-				m_time = t;
-			}
+			assert(t >= m_time);
+			m_time = t;
 			timeChanged.notify_all();
 		}
 
@@ -133,11 +132,20 @@ vector<vector<TimePair>> input) {
 			generators[g]->process(data);
 		}
 	}
+
+	std::vector<Fraction> allTimes;
 	for (size_t g = 0; g < generators.size(); ++g) {
 		for (auto times : input[g]) {
-			clock->setTime(Fraction(times.clockTime, IClock::Rate));
+			allTimes.push_back(Fraction(times.clockTime, IClock::Rate));
 		}
 	}
+
+	std::sort(allTimes.begin(), allTimes.end());
+
+	for (auto time : allTimes) {
+		clock->setTime(time);
+	}
+
 	rectifier->flush();
 
 	vector<vector<TimePair>> actualTimes(generators.size());
