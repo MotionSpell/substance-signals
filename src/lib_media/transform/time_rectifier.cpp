@@ -68,9 +68,9 @@ void TimeRectifier::declareScheduler(std::unique_ptr<IInput> &input, std::unique
 }
 
 void TimeRectifier::fillInputQueuesUnsafe() {
-	Data data;
 	for (size_t i = 0; i < getNumInputs() - 1; ++i) {
 		auto &currInput = inputs[i];
+		Data data;
 		while (currInput->tryPop(data)) {
 			maxClockTimeIn180k = std::max<int64_t>(maxClockTimeIn180k, data->getClockTime());
 			streams[i].data.push_back(data);
