@@ -155,31 +155,40 @@ void TimeRectifier::findNearestDataAudio(int i, Fraction time, Data& selectedDat
 	}
 }
 
+int TimeRectifier::getMasterStreamId() const {
+	for (size_t i = 0; i < getNumInputs() - 1; ++i) {
+		if (inputs[i]->getMetadata()->getStreamType() == VIDEO_RAW) {
+			return i;
+		}
+	}
+	return 0;
+}
+
 void TimeRectifier::awakeOnFPS(Fraction time) {
 	std::unique_lock<std::mutex> lock(inputMutex);
 	removeOutdatedAllUnsafe(fractionToClock(time) - analyzeWindowIn180k);
 
 	Data refData;
-	for (size_t i = 0; i < getNumInputs() - 1; ++i) {
-		if (inputs[i]->getMetadata()->getStreamType() == VIDEO_RAW) {
-			refData = findNearestData(i, time);
-			if (!refData) {
-				// No reference data found but neither starting nor flushing
-				assert(streams[i].numTicks == 0 || flushing);
 
-				log(Warning, "No available reference data for clock time %s", fractionToClock(time));
-				return;
-			}
-			if (streams[i].numTicks == 0) {
-				log(Info, "First available reference clock time: %s", fractionToClock(time));
-			}
+	{
+		auto const i = getMasterStreamId();
+		refData = findNearestData(i, time);
+		if (!refData) {
+			// No reference data found but neither starting nor flushing
+			assert(streams[i].numTicks == 0 || flushing);
 
-			auto data = shptr(new DataBaseRef(refData));
-			data->setMediaTime(fractionToClock(Fraction(streams[i].numTicks++ * frameRate.den, frameRate.num)));
-			log(TR_DEBUG, "Video: send[%s:%s] t=%s (data=%s/%s) (ref %s/%s)", i, streams[i].data.size(), data->getMediaTime(), data->getMediaTime(), data->getClockTime(), refData->getMediaTime(), refData->getClockTime());
-			outputs[i]->emit(data);
-			removeOutdatedIndexUnsafe(i, data->getClockTime());
+			log(Warning, "No available reference data for clock time %s", fractionToClock(time));
+			return;
 		}
+		if (streams[i].numTicks == 0) {
+			log(Info, "First available reference clock time: %s", fractionToClock(time));
+		}
+
+		auto data = shptr(new DataBaseRef(refData));
+		data->setMediaTime(fractionToClock(Fraction(streams[i].numTicks++ * frameRate.den, frameRate.num)));
+		log(TR_DEBUG, "Video: send[%s:%s] t=%s (data=%s/%s) (ref %s/%s)", i, streams[i].data.size(), data->getMediaTime(), data->getMediaTime(), data->getClockTime(), refData->getMediaTime(), refData->getClockTime());
+		outputs[i]->emit(data);
+		removeOutdatedIndexUnsafe(i, data->getClockTime());
 	}
 
 	//TODO: Notes:
