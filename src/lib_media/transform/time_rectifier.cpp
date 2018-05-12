@@ -133,6 +133,27 @@ Data TimeRectifier::findNearestData(int i, Fraction time) {
 	return refData;
 }
 
+void TimeRectifier::findNearestDataAudio(int i, Fraction time, Data& selectedData, Data refData) {
+	int currDataIdx = -1, idx = -1;
+	for (auto &currData : streams[i].data) {
+		idx++;
+		if (selectedData && !idx) { /*first data cannot be selected*/
+			selectedData = nullptr;
+			continue;
+		}
+		auto const currDistMedia = refData->getMediaTime() - currData->getMediaTime();
+		log(Debug, "Other: considering data (%s/%s) at time %s (ref=%s/%s, currDist=%s)", currData->getMediaTime(), currData->getClockTime(), fractionToClock(time), refData->getMediaTime(), refData->getClockTime(), currDistMedia);
+		if ((currDistMedia >= 0) && (currDistMedia < threshold)) {
+			selectedData = currData;
+			currDataIdx = idx;
+			break;
+		}
+	}
+	if ((streams[i].numTicks > 0) && (streams[i].data.size() >= 2) && (currDataIdx != 1)) {
+		log(Warning, "[%s] Selected data is not contiguous to the last one (index=%s). Expect discontinuity in the signal.", i, currDataIdx);
+	}
+}
+
 void TimeRectifier::awakeOnFPS(Fraction time) {
 	std::unique_lock<std::mutex> lock(inputMutex);
 	removeOutdatedAllUnsafe(fractionToClock(time) - analyzeWindowIn180k);
@@ -168,27 +189,12 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 		switch (inputs[i]->getMetadata()->getStreamType()) {
 		case AUDIO_RAW: {
 			Data selectedData;
+
 			while (1) {
-				int currDataIdx = -1, idx = -1;
-				for (auto &currData : streams[i].data) {
-					idx++;
-					if (selectedData && !idx) { /*first data cannot be selected*/
-						selectedData = nullptr;
-						continue;
-					}
-					auto const currDistMedia = refData->getMediaTime() - currData->getMediaTime();
-					log(Debug, "Other: considering data (%s/%s) at time %s (ref=%s/%s, currDist=%s)", currData->getMediaTime(), currData->getClockTime(), fractionToClock(time), refData->getMediaTime(), refData->getClockTime(), currDistMedia);
-					if ((currDistMedia >= 0) && (currDistMedia < threshold)) {
-						selectedData = currData;
-						currDataIdx = idx;
-						break;
-					}
-				}
+
+				findNearestDataAudio(i, time, selectedData, refData);
 				if (!selectedData) {
 					break;
-				}
-				if ((streams[i].numTicks > 0) && (streams[i].data.size() >= 2) && (currDataIdx != 1)) {
-					log(Warning, "[%s] Selected data is not contiguous to the last one (index=%s). Expect discontinuity in the signal.", i, currDataIdx);
 				}
 
 				auto const audioData = safe_cast<const DataPcm>(selectedData);

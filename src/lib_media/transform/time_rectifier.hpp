@@ -58,6 +58,7 @@ class TimeRectifier : public ModuleDynI {
 		void declareScheduler(std::unique_ptr<IInput> &input, std::unique_ptr<IOutput> &output);
 		void awakeOnFPS(Fraction time);
 		Data findNearestData(int i, Fraction time);
+		void findNearestDataAudio(int i, Fraction time, Data& selectedData, Data refData);
 
 		struct Stream {
 			std::list<Data> data;
