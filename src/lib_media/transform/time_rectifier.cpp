@@ -111,9 +111,10 @@ void TimeRectifier::removeOutdatedIndexUnsafe(size_t inputIdx, int64_t removalCl
 
 Data TimeRectifier::findNearestData(int i, Fraction time) {
 	Data refData;
+	auto& stream = streams[i];
 	auto distClock = std::numeric_limits<int64_t>::max();
 	int currDataIdx = -1, idx = -1;
-	for (auto &currData : streams[i].data) {
+	for (auto &currData : stream.data) {
 		idx++;
 		auto const currDistClock = currData->getClockTime() - fractionToClock(time);
 		log(Debug, "Video: considering data (%s/%s) at time %s (currDist=%s, dist=%s, threshold=%s)", currData->getMediaTime(), currData->getClockTime(), fractionToClock(time), currDistClock, distClock, threshold);
@@ -126,7 +127,7 @@ Data TimeRectifier::findNearestData(int i, Fraction time) {
 			}
 		}
 	}
-	if ((streams[i].numTicks > 0) && (streams[i].data.size() >= 2) && (currDataIdx != 1)) {
+	if ((stream.numTicks > 0) && (stream.data.size() >= 2) && (currDataIdx != 1)) {
 		log(Debug, "[%s] Selected reference data is not contiguous to the last one (index=%s).", i, currDataIdx);
 		//TODO: pass in error mode: flush all the data where the clock time removeOutdatedAllUnsafe(refData->getClockTime());
 	}
