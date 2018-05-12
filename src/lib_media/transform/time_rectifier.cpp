@@ -109,6 +109,30 @@ void TimeRectifier::removeOutdatedIndexUnsafe(size_t inputIdx, int64_t removalCl
 	}
 }
 
+Data TimeRectifier::findNearestData(int i, Fraction time) {
+	Data refData;
+	auto distClock = std::numeric_limits<int64_t>::max();
+	int currDataIdx = -1, idx = -1;
+	for (auto &currData : streams[i].data) {
+		idx++;
+		auto const currDistClock = currData->getClockTime() - fractionToClock(time);
+		log(Debug, "Video: considering data (%s/%s) at time %s (currDist=%s, dist=%s, threshold=%s)", currData->getMediaTime(), currData->getClockTime(), fractionToClock(time), currDistClock, distClock, threshold);
+		if (std::abs(currDistClock) < distClock) {
+			/*timings are monotonic so check for a previous data with distance less than one frame*/
+			if (currDistClock <= 0 || (currDistClock > 0 && distClock > threshold)) {
+				distClock = std::abs(currDistClock);
+				refData = currData;
+				currDataIdx = idx;
+			}
+		}
+	}
+	if ((streams[i].numTicks > 0) && (streams[i].data.size() >= 2) && (currDataIdx != 1)) {
+		log(Debug, "[%s] Selected reference data is not contiguous to the last one (index=%s).", i, currDataIdx);
+		//TODO: pass in error mode: flush all the data where the clock time removeOutdatedAllUnsafe(refData->getClockTime());
+	}
+	return refData;
+}
+
 void TimeRectifier::awakeOnFPS(Fraction time) {
 	std::unique_lock<std::mutex> lock(inputMutex);
 	removeOutdatedAllUnsafe(fractionToClock(time) - analyzeWindowIn180k);
@@ -116,21 +140,7 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 	Data refData;
 	for (size_t i = 0; i < getNumInputs() - 1; ++i) {
 		if (inputs[i]->getMetadata()->getStreamType() == VIDEO_RAW) {
-			auto distClock = std::numeric_limits<int64_t>::max();
-			int currDataIdx = -1, idx = -1;
-			for (auto &currData : streams[i].data) {
-				idx++;
-				auto const currDistClock = currData->getClockTime() - fractionToClock(time);
-				log(Debug, "Video: considering data (%s/%s) at time %s (currDist=%s, dist=%s, threshold=%s)", currData->getMediaTime(), currData->getClockTime(), fractionToClock(time), currDistClock, distClock, threshold);
-				if (std::abs(currDistClock) < distClock) {
-					/*timings are monotonic so check for a previous data with distance less than one frame*/
-					if (currDistClock <= 0 || (currDistClock > 0 && distClock > threshold)) {
-						distClock = std::abs(currDistClock);
-						refData = currData;
-						currDataIdx = idx;
-					}
-				}
-			}
+			refData = findNearestData(i, time);
 			if (!refData) {
 				if ((streams[i].numTicks > 0) && !flushing)
 					throw error(format("No reference data found but neither starting (%s) nor flushing (%s)", streams[i].numTicks, flushing));
@@ -139,10 +149,6 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 			}
 			if (streams[i].numTicks == 0) {
 				log(Info, "First available reference clock time: %s", fractionToClock(time));
-			}
-			if ((streams[i].numTicks > 0) && (streams[i].data.size() >= 2) && (currDataIdx != 1)) {
-				log(Debug, "[%s] Selected reference data is not contiguous to the last one (index=%s).", i, currDataIdx);
-				//TODO: pass in error mode: flush all the data where the clock time removeOutdatedAllUnsafe(refData->getClockTime());
 			}
 
 			auto data = shptr(new DataBaseRef(refData));

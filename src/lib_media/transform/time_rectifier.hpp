@@ -57,6 +57,7 @@ class TimeRectifier : public ModuleDynI {
 		void removeOutdatedAllUnsafe(int64_t removalClockTime);
 		void declareScheduler(std::unique_ptr<IInput> &input, std::unique_ptr<IOutput> &output);
 		void awakeOnFPS(Fraction time);
+		Data findNearestData(int i, Fraction time);
 
 		struct Stream {
 			std::list<Data> data;
