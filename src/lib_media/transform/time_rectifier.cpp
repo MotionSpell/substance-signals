@@ -109,9 +109,8 @@ void TimeRectifier::removeOutdatedIndexUnsafe(size_t inputIdx, int64_t removalCl
 	}
 }
 
-Data TimeRectifier::findNearestData(int i, Fraction time) {
+Data TimeRectifier::findNearestData(Stream& stream, Fraction time) {
 	Data refData;
-	auto& stream = streams[i];
 	auto distClock = std::numeric_limits<int64_t>::max();
 	int currDataIdx = -1, idx = -1;
 	for (auto &currData : stream.data) {
@@ -128,7 +127,7 @@ Data TimeRectifier::findNearestData(int i, Fraction time) {
 		}
 	}
 	if ((stream.numTicks > 0) && (stream.data.size() >= 2) && (currDataIdx != 1)) {
-		log(Debug, "[%s] Selected reference data is not contiguous to the last one (index=%s).", i, currDataIdx);
+		log(Debug, "Selected reference data is not contiguous to the last one (index=%s).", currDataIdx);
 		//TODO: pass in error mode: flush all the data where the clock time removeOutdatedAllUnsafe(refData->getClockTime());
 	}
 	return refData;
@@ -172,21 +171,22 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 
 	{
 		auto const i = getMasterStreamId();
-		refData = findNearestData(i, time);
+		auto& master = streams[i];
+		refData = findNearestData(master, time);
 		if (!refData) {
 			// No reference data found but neither starting nor flushing
-			assert(streams[i].numTicks == 0 || flushing);
+			assert(master.numTicks == 0 || flushing);
 
 			log(Warning, "No available reference data for clock time %s", fractionToClock(time));
 			return;
 		}
-		if (streams[i].numTicks == 0) {
+		if (master.numTicks == 0) {
 			log(Info, "First available reference clock time: %s", fractionToClock(time));
 		}
 
 		auto data = shptr(new DataBaseRef(refData));
-		data->setMediaTime(fractionToClock(Fraction(streams[i].numTicks++ * frameRate.den, frameRate.num)));
-		log(TR_DEBUG, "Video: send[%s:%s] t=%s (data=%s/%s) (ref %s/%s)", i, streams[i].data.size(), data->getMediaTime(), data->getMediaTime(), data->getClockTime(), refData->getMediaTime(), refData->getClockTime());
+		data->setMediaTime(fractionToClock(Fraction(master.numTicks++ * frameRate.den, frameRate.num)));
+		log(TR_DEBUG, "Video: send[%s:%s] t=%s (data=%s/%s) (ref %s/%s)", i, master.data.size(), data->getMediaTime(), data->getMediaTime(), data->getClockTime(), refData->getMediaTime(), refData->getClockTime());
 		outputs[i]->emit(data);
 		removeOutdatedIndexUnsafe(i, data->getClockTime());
 	}

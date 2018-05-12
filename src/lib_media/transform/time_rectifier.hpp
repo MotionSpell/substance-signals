@@ -50,6 +50,12 @@ class TimeRectifier : public ModuleDynI {
 		}
 
 	private:
+		struct Stream {
+			std::list<Data> data;
+			int64_t numTicks = 0;
+			//Data defaultTypeData; //TODO: black screen for video, etc.
+		};
+
 		void sanityChecks();
 		void mimicOutputs();
 		void fillInputQueuesUnsafe();
@@ -57,15 +63,9 @@ class TimeRectifier : public ModuleDynI {
 		void removeOutdatedAllUnsafe(int64_t removalClockTime);
 		void declareScheduler(std::unique_ptr<IInput> &input, std::unique_ptr<IOutput> &output);
 		void awakeOnFPS(Fraction time);
-		Data findNearestData(int i, Fraction time);
+		Data findNearestData(Stream& stream, Fraction time);
 		void findNearestDataAudio(int i, Fraction time, Data& selectedData, Data refData);
 		int getMasterStreamId() const;
-
-		struct Stream {
-			std::list<Data> data;
-			int64_t numTicks = 0;
-			//Data defaultTypeData; //TODO: black screen for video, etc.
-		};
 
 		Fraction const frameRate;
 		int64_t const threshold;
