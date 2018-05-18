@@ -44,7 +44,7 @@ class LibavDemux : public ModuleS {
 		std::vector<OutputDataDefault<DataAVPacket>*> outputs;
 		struct AVFormatContext *m_formatCtx;
 		std::unique_ptr<ffpp::IAvIO> m_avio = nullptr;
-		int64_t curTimeIn180k = 0, startPTSIn180k = 0;
+		int64_t curTimeIn180k = 0, startPTSIn180k = std::numeric_limits<int64_t>::min();
 		std::vector<uint64_t> offsetIn180k;
 		std::vector<int64_t> lastDTS;
 };
