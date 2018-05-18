@@ -133,7 +133,7 @@ Data TimeRectifier::findNearestData(Stream& stream, Fraction time) {
 	return refData;
 }
 
-void TimeRectifier::findNearestDataAudio(int i, Fraction time, Data& selectedData, Data refData) {
+void TimeRectifier::findNearestDataAudio(size_t i, Fraction time, Data& selectedData, Data refData) {
 	int currDataIdx = -1, idx = -1;
 	for (auto &currData : streams[i].data) {
 		idx++;
@@ -154,7 +154,7 @@ void TimeRectifier::findNearestDataAudio(int i, Fraction time, Data& selectedDat
 	}
 }
 
-int TimeRectifier::getMasterStreamId() const {
+size_t TimeRectifier::getMasterStreamId() const {
 	for(auto i : getInputs()) {
 		if (inputs[i]->getMetadata()->getStreamType() == VIDEO_RAW) {
 			return i;
