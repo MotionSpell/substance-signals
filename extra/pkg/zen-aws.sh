@@ -2,6 +2,10 @@
 function aws_build {
   lazy_git_clone "https://github.com/aws/aws-sdk-cpp.git" "aws" "1.4.40"
 
+  # remove compiler flags currently leaking all the way down to the client app!
+  sed '/list(APPEND AWS_COMPILER_FLAGS "-fno-exceptions" "-std=c++${CPP_STANDARD}")/d' \
+    -i aws/cmake/compiler_settings.cmake
+
   mkdir -p aws/bin/$host
   pushDir aws/bin/$host
   cmake \
