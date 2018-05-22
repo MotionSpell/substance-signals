@@ -17,10 +17,7 @@ CFLAGS+=-O3
 
 # default to debug mode
 DEBUG?=1
-ifeq ($(DEBUG), 1)
-  CFLAGS+=-g3
-  LDFLAGS+=-g
-else
+ifeq ($(DEBUG), 0)
   # disable all warnings in release mode:
   # the code must always build, especially old versions with recent compilers
   CFLAGS+=-w -DNDEBUG
