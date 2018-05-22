@@ -6,8 +6,8 @@ using namespace Tests;
 
 namespace {
 
-#ifdef ENABLE_FAILING_TESTS
-unittest("thread-safe queue with non-pointer types") {
+unittest("[DISABLED] thread-safe queue with non-pointer types") {
+	return;
 	Queue<int> queue;
 	const int val = 1;
 
@@ -16,22 +16,15 @@ unittest("thread-safe queue with non-pointer types") {
 	ASSERT(data == val);
 
 	queue.push(val);
-	data = queue.tryPop();
-	ASSERT(data == val);
-	data = queue.tryPop();
-	ASSERT(XXX);
-
-	queue.push(val);
 	auto res = queue.tryPop(data);
 	ASSERT((res == true) && (data == val));
-	auto res = queue.tryPop(data);
+	res = queue.tryPop(data);
 	ASSERT(res == false);
 
 	queue.clear();
-	auto res = queue.tryPop(data);
+	res = queue.tryPop(data);
 	ASSERT(res == false);
 }
-#endif
 
 unittest("thread-safe queue can be cleared while a blocking pop() is waiting") {
 	Queue<int> queue;

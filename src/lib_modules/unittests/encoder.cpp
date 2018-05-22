@@ -85,8 +85,8 @@ unittest("encoder: RAP placement (incorrect timings)") {
 	RAPTest(Fraction(25, 1), times, RAPs);
 }
 
-#ifdef ENABLE_FAILING_TESTS
-unittest("GPAC mp4 mux: don't create empty fragments") {
+unittest("[DISABLED] GPAC mp4 mux: don't create empty fragments") {
+	return;
 	auto const segmentDurationInMs = 1000;
 	const std::vector<uint64_t> times = { IClock::Rate, 0, 3*IClock::Rate };
 	Encode::LibavEncode::Params p;
@@ -107,6 +107,5 @@ unittest("GPAC mp4 mux: don't create empty fragments") {
 	demux->process(nullptr);
 	ASSERT(i == times.size());*/
 }
-#endif
 
 //TODO: add a more complex test for each module!

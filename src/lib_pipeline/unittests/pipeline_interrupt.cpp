@@ -24,7 +24,6 @@ unittest("pipeline: interrupted") {
 	tf.join();
 }
 
-#ifdef ENABLE_FAILING_TESTS
 class ExceptionModule : public ModuleS {
 	public:
 		ExceptionModule() {
@@ -41,7 +40,8 @@ class ExceptionModule : public ModuleS {
 		bool raised = false;
 };
 
-unittest("pipeline: intercept exception") {
+unittest("[DISABLED] pipeline: intercept exception") {
+	return;
 	bool thrown = false;
 	try {
 		Pipeline p;
@@ -55,6 +55,5 @@ unittest("pipeline: intercept exception") {
 	}
 	ASSERT(thrown);
 }
-#endif
 
 }

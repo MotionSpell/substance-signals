@@ -21,8 +21,8 @@ secondclasstest("demux one track: Demux::GPACDemuxMP4Simple -> Out::Print") {
 	mp4Demux->process(nullptr);
 }
 
-#ifdef ENABLE_FAILING_TESTS
-secondclasstest("demux one track: File -> Demux::GPACDemuxMP4Full -> Out::Print") {
+secondclasstest("[DISABLED] demux one track: File -> Demux::GPACDemuxMP4Full -> Out::Print") {
+	return;
 	auto f = create<In::File>("data/beepbop.mp4");
 	auto mp4Demux = create<Demux::GPACDemuxMP4Full>();
 	auto p = create<Out::Print>(std::cout);
@@ -32,6 +32,5 @@ secondclasstest("demux one track: File -> Demux::GPACDemuxMP4Full -> Out::Print"
 
 	f->process(nullptr);
 }
-#endif
 
 }

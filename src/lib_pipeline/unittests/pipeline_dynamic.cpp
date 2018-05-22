@@ -48,8 +48,8 @@ unittest("pipeline: dynamic module connection of a new module") {
 	p.waitForCompletion();
 }
 
-#ifdef ENABLE_FAILING_TESTS
-unittest("pipeline: wrong disconnection") {
+unittest("[DISABLED]` pipeline: wrong disconnection") {
+	return;
 	Pipeline p;
 	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
 	auto null = p.addModule<Out::Null>();
@@ -63,7 +63,6 @@ unittest("pipeline: wrong disconnection") {
 	}
 	ASSERT(thrown);
 }
-#endif
 
 unittest("pipeline: dynamic module disconnection (single ref decrease)") {
 	Pipeline p;
@@ -100,8 +99,8 @@ unittest("pipeline: dynamic module disconnection (remove module dynamically)") {
 	p.waitForCompletion();
 }
 
-#ifdef ENABLE_FAILING_TESTS
-unittest("pipeline: dynamic module disconnection (remove sink without disconnect)") {
+unittest("[DISABLED] pipeline: dynamic module disconnection (remove sink without disconnect)") {
+	return;
 	Pipeline p;
 	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
 	auto dualInput = p.addModule<DualInput>(false);
@@ -112,7 +111,8 @@ unittest("pipeline: dynamic module disconnection (remove sink without disconnect
 	p.waitForCompletion();
 }
 
-unittest("pipeline: dynamic module disconnection (remove source without disconnect)") {
+unittest("[DISABLED] pipeline: dynamic module disconnection (remove source without disconnect)") {
+	return;
 	Pipeline p;
 	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
 	auto dualInput = p.addModule<DualInput>(false);
@@ -123,7 +123,8 @@ unittest("pipeline: dynamic module disconnection (remove source without disconne
 	p.waitForCompletion();
 }
 
-unittest("pipeline: dynamic module disconnection (remove source)") {
+unittest("[DISABLED] pipeline: dynamic module disconnection (remove source)") {
+	return;
 	Pipeline p;
 	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
 	auto dualInput = p.addModule<DualInput>(false);
@@ -138,7 +139,8 @@ unittest("pipeline: dynamic module disconnection (remove source)") {
 }
 
 //TODO: we should fuzz the creation because it is actually stored with a vector (not thread-safe)
-unittest("pipeline: dynamic module addition") {
+unittest("[DISABLED] pipeline: dynamic module addition") {
+	return;
 	Pipeline p;
 	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4", true);
 	p.start();
@@ -147,9 +149,8 @@ unittest("pipeline: dynamic module addition") {
 	};
 	std::thread tf(f);*/
 	auto null = p.addModule<Out::Null>();
-	p.connect(demux, 0, null, 0); */
+	p.connect(demux, 0, null, 0);
 	p.waitForCompletion();
 }
-#endif
 
 }
