@@ -11,7 +11,6 @@ CFLAGS+=-D__STDC_CONSTANT_MACROS
 
 BIN?=bin
 SRC?=src
-EXTRA?=$(CURDIR)/sysroot
 
 # always optimize
 CFLAGS+=-O3
@@ -49,11 +48,6 @@ PKGS:=\
   gpac\
   libcurl\
   libturbojpeg\
-
-# Workaround: linking with libgpac and libavfilter currently requires this,
-# otherwise link fails with undefined references to libass, libjpeg and libpng.
-# (extra.sh builds libgpac/libavfilter with 'rpath' options, this might be root cause).
-LDFLAGS+=-Wl,-rpath,$(EXTRA)/lib
 
 $(BIN)/config.mk:
 	@echo "Configuring ..."

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+export EXTRA=${EXTRA-$PWD/sysroot}
 export PKG_CONFIG_PATH=$EXTRA/lib/pkgconfig:${PKG_CONFIG_PATH-}
 
 echo '# config file'
@@ -21,4 +22,9 @@ fi
 
 echo "CFLAGS+= -I$EXTRA/include/asio -Wno-unused-local-typedefs"
 echo "LDFLAGS+= -lpthread"
+
+# Workaround: linking with libgpac and libavfilter currently requires this,
+# otherwise link fails with undefined references to libass, libjpeg and libpng.
+# (extra.sh builds libgpac/libavfilter with 'rpath' options, this might be root cause).
+echo "LDFLAGS+=-Wl,-rpath,$EXTRA/lib"
 
