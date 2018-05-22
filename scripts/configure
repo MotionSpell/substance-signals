@@ -5,6 +5,7 @@ export EXTRA=${EXTRA-$PWD/sysroot}
 export PKG_CONFIG_PATH=$EXTRA/lib/pkgconfig:${PKG_CONFIG_PATH-}
 
 echo '# config file'
+echo '# packages: $PKGS'
 
 readonly PKGS="$@"
 if [ ! -z "$PKGS" ] ; then

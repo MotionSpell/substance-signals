@@ -31,17 +31,17 @@ CFLAGS+=-I$(SRC)
 all: targets
 
 PKGS:=\
+  gpac\
   libavcodec\
   libavdevice\
   libavfilter\
   libavformat\
   libavutil\
+  libcurl\
   libswresample\
   libswscale\
-  x264\
-  gpac\
-  libcurl\
   libturbojpeg\
+  x264\
 
 $(BIN)/config.mk: $(SRC)/../scripts/configure
 	@echo "Configuring ..."
