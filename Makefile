@@ -31,10 +31,6 @@ endif
 
 SIGNALS_HAS_X11?=1
 
-ifeq ($(SIGNALS_HAS_X11), 1)
-  CFLAGS+=-DSIGNALS_HAS_X11
-endif
-
 CFLAGS+=-I$(SRC) -I$(SRC)/lib_modules
 
 CFLAGS+=-I$(EXTRA)/include
@@ -62,10 +58,6 @@ PKGS:=\
 # otherwise link fails with undefined references to libass, libjpeg and libpng.
 # (extra.sh builds libgpac/libavfilter with 'rpath' options, this might be root cause).
 LDFLAGS+=-Wl,-rpath,$(EXTRA)/lib
-
-ifeq ($(SIGNALS_HAS_X11), 1)
-  PKGS+=sdl2
-endif
 
 $(BIN)/config.mk:
 	@echo "Configuring ..."
