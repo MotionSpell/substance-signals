@@ -60,7 +60,9 @@ $(BIN)/config.mk:
 	@mkdir -p $(BIN)
 	$(SRC)/../scripts/configure $(PKGS) > "$@"
 
+ifneq ($(MAKECMDGOALS),clean)
 include $(BIN)/config.mk
+endif
 
 CFLAGS+=-Umain
 
@@ -132,7 +134,6 @@ $(BIN)/%.cpp.o: %.cpp
 
 clean:
 	rm -rf $(BIN)
-	mkdir $(BIN)
 
 #-------------------------------------------------------------------------------
 
