@@ -5,7 +5,7 @@ CFLAGS+=-std=gnu++1y
 CFLAGS+=-Wall
 CFLAGS+=-Wextra
 CFLAGS+=-Werror
-CFLAGS+=-fvisibility=hidden -fvisibility-inlines-hidden 
+CFLAGS+=-fvisibility=hidden -fvisibility-inlines-hidden
 CFLAGS+=-W
 CFLAGS+=-D__STDC_CONSTANT_MACROS
 
@@ -129,7 +129,7 @@ $(BIN)/%.exe:
 
 $(BIN)/%.cpp.o: %.cpp
 	@mkdir -p $(dir $@)
-	$(CXX) "$<" -c $(CFLAGS) -o "$@" 
+	$(CXX) "$<" -c $(CFLAGS) -o "$@"
 	@$(CXX) "$<" -c $(CFLAGS) -o "$@.deps" -MP -MM -MT "$@"
 
 clean:
