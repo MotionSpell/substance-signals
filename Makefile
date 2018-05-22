@@ -28,8 +28,6 @@ SIGNALS_HAS_X11?=1
 
 CFLAGS+=-I$(SRC)
 
-LDFLAGS+=$(LDLIBS)
-
 all: targets
 
 PKGS:=\
