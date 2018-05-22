@@ -65,7 +65,6 @@ include $(BIN)/config.mk
 CFLAGS+=-Umain
 
 TARGETS:=
-DEPS:=
 
 define get-my-dir
 $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))
