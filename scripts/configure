@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+export PKG_CONFIG_PATH=$EXTRA/lib/pkgconfig:${PKG_CONFIG_PATH-}
+
+echo '# config file'
+
+readonly PKGS="$@"
+if [ ! -z "$PKGS" ] ; then
+  if ! pkg-config --exists "$PKGS" ; then
+    echo "Some packages were not found" >&2
+    exit 1
+  fi
+
+  echo -n 'CFLAGS+='
+  pkg-config --cflags "$PKGS"
+
+  echo -n 'LDFLAGS+='
+  pkg-config --libs "$PKGS"
+fi
+
+echo 'CFLAGS+= -I$EXTRA/include/asio -Wno-unused-local-typedefs'
+echo 'LDFLAGS+= -lpthread'
+

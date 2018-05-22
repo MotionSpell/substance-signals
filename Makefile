@@ -61,18 +61,8 @@ LDFLAGS+=-Wl,-rpath,$(EXTRA)/lib
 
 $(BIN)/config.mk:
 	@echo "Configuring ..."
-	@set -e ; \
-	mkdir -p $(BIN) ; \
-	export PKG_CONFIG_PATH=$(EXTRA)/lib/pkgconfig:$$PKG_CONFIG_PATH ; \
-	echo $(EXTRA); \
-	/bin/echo '# config file' > $(BIN)/config.mk.tmp ; \
-	/bin/echo -n 'CFLAGS+=' >> $(BIN)/config.mk.tmp ; \
-	pkg-config --cflags $(PKGS) >> $(BIN)/config.mk.tmp ; \
-	/bin/echo -n 'LDFLAGS+=' >> $(BIN)/config.mk.tmp ; \
-	pkg-config --libs $(PKGS) >> $(BIN)/config.mk.tmp
-	/bin/echo 'CFLAGS+= -I$(EXTRA)/include/asio -Wno-unused-local-typedefs' >> $(BIN)/config.mk.tmp
-	/bin/echo 'LDFLAGS+= -lpthread' >> $(BIN)/config.mk.tmp ;
-	mv $(BIN)/config.mk.tmp $(BIN)/config.mk
+	@mkdir -p $(BIN)
+	$(CURDIR)/scripts/configure $(PKGS) > "$@"
 
 include $(BIN)/config.mk
 
