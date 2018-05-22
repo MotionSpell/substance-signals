@@ -13,10 +13,10 @@ const char* processArgs(int argc, char const* argv[]) {
 }
 
 int safeMain(int argc, char const* argv[]) {
-	auto const inputFile = processArgs(argc, argv);
+	auto const url = processArgs(argc, argv);
 
 	Pipeline pipeline(true, 1.0);
-	declarePipeline(pipeline, inputFile);
+	declarePipeline(pipeline, url);
 	pipeline.start();
 	pipeline.waitForCompletion();
 

@@ -23,7 +23,7 @@ MPEG_DASH_Input::MPEG_DASH_Input(IHttpSource* httpSource, std::string const& url
 
 	//DECLARE OUTPUT PORTS
 	for(int i=0; i < mpd.adaptationSetCount; ++i)
-		outputs.push_back(nullptr);
+		addOutput<OutputDefault>();
 }
 
 MPEG_DASH_Input::~MPEG_DASH_Input() {

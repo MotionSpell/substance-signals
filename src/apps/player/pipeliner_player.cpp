@@ -6,6 +6,12 @@
 
 using namespace Modules;
 using namespace Pipelines;
+using namespace In;
+
+static
+bool startsWith(std::string s, std::string prefix) {
+	return s.substr(0, prefix.size()) == prefix;
+}
 
 void declarePipeline(Pipeline &pipeline, const char *url) {
 	auto connect = [&](auto src, auto dst) {
@@ -25,7 +31,19 @@ void declarePipeline(Pipeline &pipeline, const char *url) {
 		}
 	};
 
-	auto demux = pipeline.addModule<Demux::LibavDemux>(url);
+	std::unique_ptr<IHttpSource> createHttpSource();
+	std::unique_ptr<IHttpSource> httpSource;
+
+	auto createSource = [&](std::string url)->IPipelinedModule* {
+		if(startsWith(url, "http://")) {
+			httpSource = createHttpSource();
+			return pipeline.addModule<MPEG_DASH_Input>(httpSource.get(), url);
+		} else
+			return pipeline.addModule<Demux::LibavDemux>(url);
+	};
+
+	auto demux = createSource(url);
+
 	for (int i = 0; i < (int)demux->getNumOutputs(); ++i) {
 		auto metadata = safe_cast<const MetadataPktLibav>(demux->getOutput(i)->getMetadata());
 		if (!metadata || metadata->isSubtitle()/*only render audio and video*/)
