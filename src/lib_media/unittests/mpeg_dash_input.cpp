@@ -14,7 +14,8 @@ struct LocalHttpSource : IHttpSource {
 	std::map<std::string, std::string> resources;
 };
 
-static auto const MPD = R"|(
+unittest("mpeg_dash_input: get MPD") {
+	static auto const MPD = R"|(
 <?xml version="1.0"?>
 <MPD>
   <Period>
@@ -31,11 +32,28 @@ static auto const MPD = R"|(
   </Period>
 </MPD>)|";
 
-unittest("mpeg_dash_input: get MPD") {
 	LocalHttpSource source;
 	source.resources["http://toto.mpd"] = MPD;
 	auto dash = create<MPEG_DASH_Input>(&source, "http://toto.mpd");
 	ASSERT_EQUALS(2u, dash->getNumOutputs());
+}
+
+unittest("mpeg_dash_input: get MPD, one input") {
+	static auto const MPD = R"|(
+<?xml version="1.0"?>
+<MPD>
+  <Period>
+    <AdaptationSet>
+      <ContentComponent id="1" contentType="audio"/>
+      <SegmentTemplate initialization="audio-init.mp4" media="audio-$Number$.m4s" startNumber="10" />
+      <Representation id="audio"/>
+    </AdaptationSet>
+  </Period>
+</MPD>)|";
+	LocalHttpSource source;
+	source.resources["http://single.mpd"] = MPD;
+	auto dash = create<MPEG_DASH_Input>(&source, "http://single.mpd");
+	ASSERT_EQUALS(1u, dash->getNumOutputs());
 }
 
 std::unique_ptr<IHttpSource> createHttpSource();

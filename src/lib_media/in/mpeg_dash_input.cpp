@@ -5,17 +5,24 @@
 
 using namespace Modules::In;
 
+struct DashMpd {
+	int adaptationSetCount;
+};
+
+DashMpd parseMpd(std::string text);
+
 namespace Modules {
 namespace In {
 
 MPEG_DASH_Input::MPEG_DASH_Input(IHttpSource* httpSource, std::string const& url) {
 	//GET MPD FROM HTTP
-	auto mpd = httpSource->get(url);
+	auto mpdAsText = httpSource->get(url);
 
 	//PARSE MPD
+	auto mpd = parseMpd(mpdAsText);
 
 	//DECLARE OUTPUT PORTS
-	for(int i=0; i < 2; ++i)
+	for(int i=0; i < mpd.adaptationSetCount; ++i)
 		outputs.push_back(nullptr);
 }
 
@@ -44,6 +51,56 @@ void MPEG_DASH_Input::process(Data data) {
 }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// nothing above this line should depend upon gpac
+
+void enforce(bool condition, char const* msg) {
+	if(condition)
+		return;
+	throw std::runtime_error(msg);
+}
+
+extern "C" {
+#include <gpac/xml.h>
+}
+DashMpd parseMpd(std::string text) {
+	GF_Err err;
+
+	struct Context {
+
+		DashMpd* mpd;
+
+		static
+		void onNodeStartCallback(void* user, const char* name, const char* namespace_, const GF_XMLAttribute *attributes, u32 nb_attributes) {
+			(void)namespace_;
+			(void)attributes;
+			(void)nb_attributes;
+			auto pThis = (Context*)user;
+			pThis->onNodeStart(name);
+		}
+
+		void onNodeStart(std::string name) {
+			if(name == "AdaptationSet")
+				++mpd->adaptationSetCount;
+		}
+	};
+
+	DashMpd r {};
+	Context ctx { &r };
+
+	auto parser = gf_xml_sax_new(&Context::onNodeStartCallback, nullptr, nullptr, &ctx);
+	enforce(parser, "XML parser creation failed");
+
+	err = gf_xml_sax_init(parser, nullptr);
+	enforce(!err, "XML parser init failed");
+
+	err = gf_xml_sax_parse(parser, text.c_str());
+	enforce(!err, "XML parsing failed");
+
+	gf_xml_sax_del(parser);
+
+	return  r;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // move this elsewhere
