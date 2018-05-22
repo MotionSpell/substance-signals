@@ -22,14 +22,12 @@ namespace Out {
 class AwsMediaStore : public ModuleS {
 	public:
 		AwsMediaStore(std::string const& endpoint);
-		~AwsMediaStore();
 		void process(Data data) override;
 		void flush() override;
 
 	private:
 		Aws::SDKOptions options; std::shared_ptr<Aws::MediaStoreData::MediaStoreDataClient> mediastoreDataClient;
 		AwsSdkInstance sdk;
-		std::string currentFilename;
 
 		std::vector<uint8_t> awsData;
 };

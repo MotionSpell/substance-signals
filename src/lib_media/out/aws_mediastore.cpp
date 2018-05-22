@@ -31,9 +31,6 @@ AwsMediaStore::AwsMediaStore(std::string const& endpoint) {
 	addInput(new Input<DataBase>(this));
 }
 
-AwsMediaStore::~AwsMediaStore() {
-}
-
 void AwsMediaStore::flush() {
 	//Not called
 	return;
@@ -44,7 +41,7 @@ void AwsMediaStore::process(Data data_) {
 	auto meta = safe_cast<const MetadataFile>(data->getMetadata());
 
 
-	currentFilename = meta->getFilename();
+	auto currentFilename = meta->getFilename();
 	if (data->size() != 0)
 		awsData.insert(awsData.end(), data->data(), data->data() + data->size());
 
