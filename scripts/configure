@@ -19,6 +19,6 @@ if [ ! -z "$PKGS" ] ; then
   pkg-config --libs "$PKGS"
 fi
 
-echo 'CFLAGS+= -I$EXTRA/include/asio -Wno-unused-local-typedefs'
-echo 'LDFLAGS+= -lpthread'
+echo "CFLAGS+= -I$EXTRA/include/asio -Wno-unused-local-typedefs"
+echo "LDFLAGS+= -lpthread"
 
