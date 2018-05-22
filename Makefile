@@ -46,7 +46,7 @@ PKGS:=\
   libcurl\
   libturbojpeg\
 
-$(BIN)/config.mk:
+$(BIN)/config.mk: $(SRC)/../scripts/configure
 	@echo "Configuring ..."
 	@mkdir -p $(BIN)
 	$(SRC)/../scripts/configure $(PKGS) > "$@"
