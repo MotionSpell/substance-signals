@@ -10,7 +10,7 @@ using namespace Tests;
 using namespace Modules;
 
 unittest("encoder: video simple") {
-	std::shared_ptr<DataBase> picture = uptr(new PictureYUV420P(VIDEO_RESOLUTION));
+	auto picture = shptr(new PictureYUV420P(VIDEO_RESOLUTION));
 
 	int numEncodedFrames = 0;
 	auto onFrame = [&](Data /*data*/) {
@@ -35,7 +35,7 @@ unittest("H265 encode and GPAC mp4 mux") {
 		auto mux = create<Mux::GPACMuxMP4>("tmp");
 		ConnectOutputToInput(encode->getOutput(0), mux->getInput(0));
 
-		std::shared_ptr<DataBase> picture = uptr(new PictureYUV420P(VIDEO_RESOLUTION));
+		auto picture = shptr(new PictureYUV420P(VIDEO_RESOLUTION));
 		encode->process(picture);
 		encode->flush();
 		mux->flush();
@@ -48,7 +48,7 @@ void RAPTest(const Fraction fps, const std::vector<uint64_t> &times, const std::
 	Encode::LibavEncode::Params p;
 	p.frameRate = fps;
 	p.GOPSize = fps;
-	std::shared_ptr<DataBase> picture = uptr(new PictureYUV420P(VIDEO_RESOLUTION));
+	auto picture = shptr(new PictureYUV420P(VIDEO_RESOLUTION));
 	auto encode = create<Encode::LibavEncode>(Encode::LibavEncode::Video, p);
 	size_t i = 0;
 	auto onFrame = [&](Data data) {
@@ -91,7 +91,7 @@ unittest("GPAC mp4 mux: don't create empty fragments") {
 	const std::vector<uint64_t> times = { IClock::Rate, 0, 3*IClock::Rate };
 	Encode::LibavEncode::Params p;
 	p.frameRate.num = 1;
-	std::shared_ptr<DataBase> picture = uptr(new PictureYUV420P(VIDEO_RESOLUTION));
+	auto picture = shptr(new PictureYUV420P(VIDEO_RESOLUTION));
 	auto encode = create<Encode::LibavEncode>(Encode::LibavEncode::Video, p);
 	auto mux = create<Mux::GPACMuxMP4>("chrome", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerRAP, Mux::GPACMuxMP4::Browsers | Mux::GPACMuxMP4::SegmentAtAny);
 	ConnectOutputToInput(encode->getOutput(0), mux->getInput(0));

@@ -30,11 +30,11 @@ secondclasstest("render: A/V sync, one thread") {
 secondclasstest("render: dynamic resolution") {
 	auto videoRender = create<Render::SDLVideo>();
 
-	std::shared_ptr<DataBase> pic1 = uptr(new PictureYUV420P(Resolution(128, 64)));
+	auto pic1 = shptr(new PictureYUV420P(Resolution(128, 64)));
 	pic1->setMediaTime(1000);
 	videoRender->process(pic1);
 
-	std::shared_ptr<DataBase> pic2 = uptr(new PictureYUV420P(Resolution(64, 256)));
+	auto pic2 = shptr(new PictureYUV420P(Resolution(64, 256)));
 	pic2->setMediaTime(2000);
 	videoRender->process(pic2);
 }
