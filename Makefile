@@ -30,7 +30,7 @@ endif
 
 SIGNALS_HAS_X11?=1
 
-CFLAGS+=-I$(SRC) -I$(SRC)/lib_modules
+CFLAGS+=-I$(SRC)
 
 LDFLAGS+=$(LDLIBS)
 
