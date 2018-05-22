@@ -19,7 +19,6 @@ CFLAGS+=-O3
 # default to debug mode
 DEBUG?=1
 ifeq ($(DEBUG), 1)
-  CFLAGS+=-Wno-deprecated-declarations
   CFLAGS+=-g3
   LDFLAGS+=-g
 else

@@ -57,3 +57,4 @@ LIB_MEDIA_SRCS+=\
   $(MYDIR)/out/aws_sdk_instance.cpp
 endif
 
+$(BIN)/src/lib_media/%.o: CFLAGS+=-Wno-deprecated-declarations
