@@ -11,12 +11,18 @@ export BIN=bin-san
 # the 'thread' sanitizer doesn't play well with the others
 # (change the below condition to thread-sanitize your code)
 if false ; then
-  export CFLAGS=-fsanitize=thread
-  export LDFLAGS=-fsanitize=thread
+  CFLAGS=-fsanitize=thread
+  LDFLAGS=-fsanitize=thread
 else
-  export CFLAGS=-fsanitize=address,undefined
-  export LDFLAGS=-fsanitize=address,undefined
+  CFLAGS=-fsanitize=address,undefined
+  LDFLAGS=-fsanitize=address,undefined
 fi
+
+CFLAGS="$CFLAGS -g3"
+LDFLAGS="$LDFLAGS -g"
+
+export CFLAGS LDFLAGS
+
 make -j`nproc`
 
 export TSAN_OPTIONS=halt_on_error=1
