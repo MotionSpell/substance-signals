@@ -1,8 +1,4 @@
 MYDIR=$(call get-my-dir)
-OUTDIR:=$(BIN)/$(MYDIR)
-
-TARGET:=$(OUTDIR)/player.exe
-TARGETS+=$(TARGET)
 
 EXE_PLAYER_SRCS:=\
 	$(LIB_MEDIA_SRCS)\
@@ -12,4 +8,5 @@ EXE_PLAYER_SRCS:=\
  	$(MYDIR)/pipeliner_player.cpp\
  	$(MYDIR)/player.cpp\
 
-$(TARGET): $(EXE_PLAYER_SRCS:%=$(BIN)/%.o)
+$(BIN)/player.exe: $(EXE_PLAYER_SRCS:%=$(BIN)/%.o)
+TARGETS+=$(BIN)/player.exe
