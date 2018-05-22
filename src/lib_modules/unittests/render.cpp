@@ -12,6 +12,17 @@ using namespace Modules;
 namespace {
 
 #if SIGNALS_HAS_X11
+secondclasstest("render: sound generator") {
+	auto soundGen = create<In::SoundGenerator>();
+	auto render = create<Render::SDLAudio>();
+
+	ConnectOutputToInput(soundGen->getOutput(0), render->getInput(0));
+
+	for(int i=0; i < 25; ++i) {
+		soundGen->process(nullptr);
+	}
+}
+
 secondclasstest("render: A/V sync, one thread") {
 	auto videoGen = create<In::VideoGenerator>();
 	auto videoRender = create<Render::SDLVideo>();

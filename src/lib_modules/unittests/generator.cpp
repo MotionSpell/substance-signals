@@ -7,23 +7,6 @@
 using namespace Tests;
 using namespace Modules;
 
-#if SIGNALS_HAS_X11
-
-#include "lib_media/render/sdl_audio.hpp"
-
-secondclasstest("sound generator") {
-	auto soundGen = create<In::SoundGenerator>();
-	auto render = create<Render::SDLAudio>();
-
-	ConnectOutputToInput(soundGen->getOutput(0), render->getInput(0));
-
-	for(int i=0; i < 25; ++i) {
-		soundGen->process(nullptr);
-	}
-}
-
-#endif
-
 unittest("video generator") {
 	auto videoGen = create<In::VideoGenerator>();
 
