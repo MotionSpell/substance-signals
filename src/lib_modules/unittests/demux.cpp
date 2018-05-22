@@ -22,7 +22,6 @@ secondclasstest("demux one track: Demux::GPACDemuxMP4Simple -> Out::Print") {
 }
 
 secondclasstest("[DISABLED] demux one track: File -> Demux::GPACDemuxMP4Full -> Out::Print") {
-	return;
 	auto f = create<In::File>("data/beepbop.mp4");
 	auto mp4Demux = create<Demux::GPACDemuxMP4Full>();
 	auto p = create<Out::Print>(std::cout);

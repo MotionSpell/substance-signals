@@ -41,7 +41,6 @@ class ExceptionModule : public ModuleS {
 };
 
 unittest("[DISABLED] pipeline: intercept exception") {
-	return;
 	bool thrown = false;
 	try {
 		Pipeline p;

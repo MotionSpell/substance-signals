@@ -38,12 +38,18 @@ void listAll() {
 	}
 }
 
+bool startsWith(std::string s, std::string prefix) {
+	return s.substr(0, prefix.size()) == prefix;
+}
+
 bool matches(Filter filter, int idx) {
 	if(idx < filter.minIdx)
 		return false;
 	if(idx > filter.maxIdx)
 		return false;
 	if(filter.noSecondClass && g_AllTests[idx].secondClass)
+		return false;
+	if(startsWith(g_AllTests[idx].name, "[DISABLED]"))
 		return false;
 	return true;
 }

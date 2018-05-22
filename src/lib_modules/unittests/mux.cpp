@@ -12,7 +12,6 @@ using namespace Modules;
 namespace {
 
 unittest("[DISABLED] remux test: GPAC mp4 mux") {
-	return;
 	auto demux = create<Demux::LibavDemux>("data/beepbop.mp4");
 	auto mux = create<Mux::GPACMuxMP4>("output_video_gpac");
 	for (size_t i = 0; i < demux->getNumOutputs(); ++i) {
@@ -24,7 +23,6 @@ unittest("[DISABLED] remux test: GPAC mp4 mux") {
 
 //ffmpeg extradata seems to be different (non annex B ?) when output from the muxer
 unittest("[DISABLED] remux test: libav mp4 mux") {
-	return;
 	auto demux = create<Demux::LibavDemux>("data/beepbop.mp4");
 	auto mux = create<Mux::LibavMux>("output_libav", "mp4");
 	for (size_t i = 0; i < demux->getNumOutputs(); ++i) {

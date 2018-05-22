@@ -7,7 +7,6 @@ using namespace Tests;
 namespace {
 
 unittest("[DISABLED] thread-safe queue with non-pointer types") {
-	return;
 	Queue<int> queue;
 	const int val = 1;
 

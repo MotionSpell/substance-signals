@@ -49,7 +49,6 @@ unittest("pipeline: dynamic module connection of a new module") {
 }
 
 unittest("[DISABLED]` pipeline: wrong disconnection") {
-	return;
 	Pipeline p;
 	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
 	auto null = p.addModule<Out::Null>();
@@ -100,7 +99,6 @@ unittest("pipeline: dynamic module disconnection (remove module dynamically)") {
 }
 
 unittest("[DISABLED] pipeline: dynamic module disconnection (remove sink without disconnect)") {
-	return;
 	Pipeline p;
 	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
 	auto dualInput = p.addModule<DualInput>(false);
@@ -112,7 +110,6 @@ unittest("[DISABLED] pipeline: dynamic module disconnection (remove sink without
 }
 
 unittest("[DISABLED] pipeline: dynamic module disconnection (remove source without disconnect)") {
-	return;
 	Pipeline p;
 	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
 	auto dualInput = p.addModule<DualInput>(false);
@@ -124,7 +121,6 @@ unittest("[DISABLED] pipeline: dynamic module disconnection (remove source witho
 }
 
 unittest("[DISABLED] pipeline: dynamic module disconnection (remove source)") {
-	return;
 	Pipeline p;
 	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
 	auto dualInput = p.addModule<DualInput>(false);
@@ -140,7 +136,6 @@ unittest("[DISABLED] pipeline: dynamic module disconnection (remove source)") {
 
 //TODO: we should fuzz the creation because it is actually stored with a vector (not thread-safe)
 unittest("[DISABLED] pipeline: dynamic module addition") {
-	return;
 	Pipeline p;
 	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4", true);
 	p.start();

@@ -86,7 +86,6 @@ unittest("encoder: RAP placement (incorrect timings)") {
 }
 
 unittest("[DISABLED] GPAC mp4 mux: don't create empty fragments") {
-	return;
 	auto const segmentDurationInMs = 1000;
 	const std::vector<uint64_t> times = { IClock::Rate, 0, 3*IClock::Rate };
 	Encode::LibavEncode::Params p;
