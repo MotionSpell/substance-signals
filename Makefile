@@ -32,9 +32,6 @@ SIGNALS_HAS_X11?=1
 
 CFLAGS+=-I$(SRC) -I$(SRC)/lib_modules
 
-CFLAGS+=-I$(EXTRA)/include
-LDFLAGS+=-L$(EXTRA)/lib
-
 LDFLAGS+=$(LDLIBS)
 
 all: targets
