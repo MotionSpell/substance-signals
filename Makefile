@@ -36,10 +36,6 @@ ifeq ($(SIGNALS_HAS_X11), 1)
   CFLAGS+=-DSIGNALS_HAS_X11
 endif
 
-ifeq ($(SIGNALS_HAS_AWS), 1)
-  CFLAGS+=-DSIGNALS_HAS_AWS
-endif
-
 CFLAGS+=-I$(SRC) -I$(SRC)/lib_modules
 
 CFLAGS+=-I$(EXTRA)/include
