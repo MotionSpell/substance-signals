@@ -58,7 +58,7 @@ LDFLAGS+=-Wl,-rpath,$(EXTRA)/lib
 $(BIN)/config.mk:
 	@echo "Configuring ..."
 	@mkdir -p $(BIN)
-	$(CURDIR)/scripts/configure $(PKGS) > "$@"
+	$(SRC)/../scripts/configure $(PKGS) > "$@"
 
 include $(BIN)/config.mk
 
