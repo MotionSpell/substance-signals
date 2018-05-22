@@ -1,5 +1,7 @@
 MYDIR=$(call get-my-dir)
 
+LIB_MEDIA_HAS_AWS?=0
+
 LIB_MEDIA_SRCS:=\
   $(MYDIR)/common/libav.cpp\
   $(MYDIR)/common/gpac.cpp\
@@ -43,11 +45,13 @@ LIB_MEDIA_SRCS+=\
   $(MYDIR)/render/sdl_audio.cpp\
   $(MYDIR)/render/sdl_common.cpp\
   $(MYDIR)/render/sdl_video.cpp
-endif  
+endif
 
-ifeq ($(SIGNALS_HAS_AWS), 1)
+ifeq ($(LIB_MEDIA_HAS_AWS), 1)
+PKGS+=aws-cpp-sdk-mediastore
+PKGS+=aws-cpp-sdk-mediastore-data
 LIB_MEDIA_SRCS+=\
   $(MYDIR)/out/aws_mediastore.cpp\
   $(MYDIR)/out/aws_sdk_instance.cpp
-endif  
+endif
 

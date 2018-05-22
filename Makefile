@@ -30,7 +30,6 @@ else
 endif
 
 SIGNALS_HAS_X11?=1
-SIGNALS_HAS_AWS?=0
 
 ifeq ($(SIGNALS_HAS_X11), 1)
   CFLAGS+=-DSIGNALS_HAS_X11
@@ -66,12 +65,6 @@ LDFLAGS+=-Wl,-rpath,$(EXTRA)/lib
 
 ifeq ($(SIGNALS_HAS_X11), 1)
   PKGS+=sdl2
-endif
-
-
-ifeq ($(SIGNALS_HAS_AWS), 1)
-  PKGS+=aws-cpp-sdk-mediastore
-  PKGS+=aws-cpp-sdk-mediastore-data
 endif
 
 $(BIN)/config.mk:
