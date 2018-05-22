@@ -19,10 +19,6 @@
 #include "out/http.hpp"
 #include "out/null.hpp"
 #include "out/print.hpp"
-#if SIGNALS_HAS_X11
-#include "render/sdl_audio.hpp"
-#include "render/sdl_video.hpp"
-#endif /*SIGNALS_HAS_X11*/
 #include "stream/apple_hls.hpp"
 #include "stream/mpeg_dash.hpp"
 #include "stream/ms_hss.hpp"

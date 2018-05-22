@@ -1,5 +1,7 @@
 #include "lib_media/media.hpp"
 #include "lib_appcommon/pipeliner.hpp"
+#include "lib_media/render/sdl_audio.hpp"
+#include "lib_media/render/sdl_video.hpp"
 #include <sstream>
 
 using namespace Modules;
