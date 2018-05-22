@@ -41,7 +41,7 @@ unittest("mpeg_dash_input: get MPD") {
 std::unique_ptr<IHttpSource> createHttpSource();
 
 secondclasstest("mpeg_dash_input: get MPD from remote server") {
-  auto url = "http://download.tsi.telecom-paristech.fr/gpac/DASH_CONFORMANCE/TelecomParisTech/mp4-live/mp4-live-mpd-AV-NBS.mpd";
+	auto url = "http://download.tsi.telecom-paristech.fr/gpac/DASH_CONFORMANCE/TelecomParisTech/mp4-live/mp4-live-mpd-AV-NBS.mpd";
 	auto source = createHttpSource();
 	auto dash = create<MPEG_DASH_Input>(source.get(), url);
 	ASSERT_EQUALS(2u, dash->getNumOutputs());

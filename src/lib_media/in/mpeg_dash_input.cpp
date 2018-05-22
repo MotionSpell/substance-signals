@@ -61,9 +61,9 @@ struct HttpSource : IHttpSource {
 
 			static size_t callback(void *stream, size_t size, size_t nmemb, void *ptr) {
 				auto pThis = (HttpContext*)ptr;
-        auto const bytes = size * nmemb;
+				auto const bytes = size * nmemb;
 				pThis->onReceiveBuffer(bytes, (uint8_t*)stream);
-        return bytes;
+				return bytes;
 			}
 
 			void onReceiveBuffer(size_t size, uint8_t *stream) {
