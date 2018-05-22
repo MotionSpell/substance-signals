@@ -132,13 +132,14 @@ class PipelinedModule : public IPipelineNotifier, public ClockCap, public IPipel
 		void finished() override {
 			if (!connections || --activeConnections == 0) {
 				delegate->flush();
+
+				for (size_t i = 0; i < delegate->getNumOutputs(); ++i) {
+					delegate->getOutput(i)->emit(nullptr);
+				}
+
 				if (isSink()) {
 					if (connections) {
 						m_notify->finished();
-					}
-				} else {
-					for (size_t i = 0; i < delegate->getNumOutputs(); ++i) {
-						delegate->getOutput(i)->emit(nullptr);
 					}
 				}
 			} else if (activeConnections < 0)
