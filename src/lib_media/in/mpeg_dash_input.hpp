@@ -5,9 +5,13 @@
 namespace Modules {
 namespace In {
 
+struct IHttpSource {
+	virtual std::string get(std::string url) = 0;
+};
+
 class MPEG_DASH_Input : public ModuleS {
 	public:
-		MPEG_DASH_Input(std::string const &url);
+		MPEG_DASH_Input(IHttpSource* httpSource, std::string const &url);
 		~MPEG_DASH_Input();
 		void process(Data data) override;
 
