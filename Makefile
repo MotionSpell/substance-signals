@@ -39,7 +39,6 @@ PKGS:=\
   libswresample\
   libswscale\
   x264\
-  freetype2\
   gpac\
   libcurl\
   libturbojpeg\
