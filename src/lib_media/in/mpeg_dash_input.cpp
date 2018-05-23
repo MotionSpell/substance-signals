@@ -26,26 +26,7 @@ MPEG_DASH_Input::MPEG_DASH_Input(IHttpSource* httpSource, std::string const& url
 		addOutput<OutputDefault>();
 }
 
-MPEG_DASH_Input::~MPEG_DASH_Input() {
-}
-
-void MPEG_DASH_Input::process(Data data) {
-	for (;;) {
-		if (getNumInputs() && getInput(0)->tryPop(data))
-			break;
-
-#if 0
-		auto out = output->getBuffer(IOSIZE);
-		size_t read = fread(out->data(), 1, IOSIZE, file);
-		if (read < IOSIZE) {
-			if (read == 0) {
-				break;
-			}
-			out->resize(read);
-		}
-		output->emit(out);
-#endif
-	}
+void MPEG_DASH_Input::process() {
 }
 
 }
