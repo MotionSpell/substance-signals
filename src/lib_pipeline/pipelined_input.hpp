@@ -28,26 +28,28 @@ class PipelinedInput : public IInput {
 			: delegate(input), delegateName(moduleName), notify(notify), executor(localExecutor), delegateExecutor(delegateExecutor), clock(clock) {}
 		virtual ~PipelinedInput() noexcept(false) {}
 
-		/* receiving nullptr stops the execution */
 		void process() override {
 			auto data = pop();
-			if (data) {
-				auto const dataTime = data->getMediaTime();
-				if (!dynamic_cast<EXECUTOR_SYNC*>(executor)) {
-					regulate(dataTime);
-				}
-				Log::msg(Debug, "Module %s: dispatch data for time %ss", delegateName, dataTime / (double)IClock::Rate);
-				delegate->push(data);
-				try {
-					delegateExecutor(Bind(&IProcessor::process, delegate));
-				} catch (...) { //stop now
-					auto const &eptr = std::current_exception();
-					notify->exception(eptr);
-					std::rethrow_exception(eptr);
-				}
-			} else {
+
+			// receiving nullptr stops the execution
+			if (!data) {
 				Log::msg(Debug, "Module %s: notify finished.", delegateName);
 				delegateExecutor(Bind(&IPipelineNotifier::finished, notify));
+				return;
+			}
+
+			auto const dataTime = data->getMediaTime();
+			if (!dynamic_cast<EXECUTOR_SYNC*>(executor)) {
+				regulate(dataTime);
+			}
+			Log::msg(Debug, "Module %s: dispatch data for time %ss", delegateName, dataTime / (double)IClock::Rate);
+			delegate->push(data);
+			try {
+				delegateExecutor(Bind(&IProcessor::process, delegate));
+			} catch (...) { //stop now
+				auto const &eptr = std::current_exception();
+				notify->exception(eptr);
+				std::rethrow_exception(eptr);
 			}
 		}
 
