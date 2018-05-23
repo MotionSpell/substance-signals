@@ -16,12 +16,6 @@
 using namespace Modules;
 
 namespace Pipelines {
-namespace {
-template<typename Class>
-Signals::MemberFunctor<void, Class, void(Class::*)()> MEMBER_FUNCTOR_NOTIFY_FINISHED(Class* objectPtr) {
-	return Signals::MemberFunctor<void, Class, void(Class::*)()>(objectPtr, &ICompletionNotifier::finished);
-}
-}
 
 /* Wrapper around the module's inputs.
    Data is queued in the calling thread, then always dispatched by the executor
@@ -53,7 +47,7 @@ class PipelinedInput : public IInput {
 				}
 			} else {
 				Log::msg(Debug, "Module %s: notify finished.", delegateName);
-				delegateExecutor(MEMBER_FUNCTOR_NOTIFY_FINISHED(notify));
+				delegateExecutor(Bind(&IPipelineNotifier::finished, notify));
 			}
 		}
 
