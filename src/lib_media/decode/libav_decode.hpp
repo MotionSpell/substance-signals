@@ -3,15 +3,12 @@
 #include "lib_modules/utils/helper.hpp"
 #include "../common/libav.hpp"
 #include "../common/pcm.hpp"
-#include <map>
 
 struct AVCodecContext;
 
 namespace ffpp {
 class Frame;
 }
-
-class AudioConverter;
 
 namespace Modules {
 namespace Decode {
