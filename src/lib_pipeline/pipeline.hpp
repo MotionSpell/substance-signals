@@ -15,15 +15,9 @@ struct IPipelinedModule : public Modules::IModule {
 	virtual void disconnect(size_t inputIdx, Modules::IOutput * const output) = 0;
 };
 
-struct ICompletionNotifier {
+struct IPipelineNotifier {
 	virtual void finished() = 0;
-};
-
-struct IExceptionNotifier {
 	virtual void exception(std::exception_ptr eptr) = 0;
-};
-
-struct IPipelineNotifier : public ICompletionNotifier, public IExceptionNotifier {
 };
 
 class IPipeline {
