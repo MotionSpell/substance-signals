@@ -10,6 +10,7 @@
 static HANDLE console = NULL;
 static WORD console_attr_ori = 0;
 #else /*_WIN32*/
+#include <syslog.h>
 #define RED    "\x1b[31m"
 #define YELLOW "\x1b[33m"
 #define GREEN  "\x1b[32m"
@@ -122,6 +123,10 @@ void Log::setSysLog(bool isSysLog) {
 		closelog();
 	}
 	globalSysLog = isSysLog;
+}
+
+void Log::sendToSyslog(int level, std::string msg) {
+	::syslog(levelToSysLog[level], "%s", msg.c_str());
 }
 
 bool Log::getSysLog() {

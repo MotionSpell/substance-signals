@@ -4,7 +4,6 @@
 #include <ostream>
 #include <string>
 #ifndef _WIN32
-#include <syslog.h>
 const int levelToSysLog[] = { 3, 4, 6, 7 };
 #endif
 
@@ -25,7 +24,7 @@ class Log {
 			if ((level != Quiet) && (level <= globalLogLevel)) {
 #ifndef _WIN32
 				if (globalSysLog) {
-					::syslog(levelToSysLog[level], "%s", format(fmt, args...).c_str());
+					sendToSyslog(level, format(fmt, args...));
 				} else
 #endif
 				{
@@ -58,6 +57,7 @@ class Log {
 		static bool globalColor;
 #ifndef _WIN32
 		static bool globalSysLog;
+		static void sendToSyslog(int level, std::string msg);
 #endif
 };
 
