@@ -2,7 +2,6 @@
 
 #include "lib_modules/utils/helper.hpp"
 #include "../common/libav.hpp"
-#include "lib_ffpp/ffpp.hpp"
 #include <atomic>
 #include <vector>
 
