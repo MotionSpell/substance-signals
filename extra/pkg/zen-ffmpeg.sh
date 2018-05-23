@@ -2,7 +2,7 @@
 function ffmpeg_build {
   host=$1
 
-  lazy_git_clone git://source.ffmpeg.org/ffmpeg.git ffmpeg 4588063f3ecd9
+  lazy_git_clone git://source.ffmpeg.org/ffmpeg.git ffmpeg fe84f70819d6f5aab3c4823290e0d32b99d6de78
 
   local ARCH=$(get_arch $host)
   local OS=$(get_os $host)
@@ -40,6 +40,7 @@ function ffmpeg_build {
       --disable-iconv \
       --disable-bzlib \
       --enable-avresample \
+      --disable-decoder=mp3float \
       --pkg-config=pkg-config \
       --target-os=$os \
       --arch=$ARCH \
