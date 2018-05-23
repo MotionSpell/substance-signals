@@ -3,9 +3,6 @@
 #include "format.hpp"
 #include <ostream>
 #include <string>
-#ifndef _WIN32
-const int levelToSysLog[] = { 3, 4, 6, 7 };
-#endif
 
 #define LOG_MSG_REPETITION_MAX 100
 
@@ -22,13 +19,14 @@ class Log {
 		template<typename... Arguments>
 		static void msg(Level level, const std::string& fmt, Arguments... args) {
 			if ((level != Quiet) && (level <= globalLogLevel)) {
+				auto msg = format(fmt, args...);
 #ifndef _WIN32
 				if (globalSysLog) {
-					sendToSyslog(level, format(fmt, args...));
+					sendToSyslog(level, msg);
 				} else
 #endif
 				{
-					get(level) << getColorBegin(level) << getTime() << format(fmt, args...) << getColorEnd(level) << std::endl;
+					get(level) << getColorBegin(level) << getTime() << msg << getColorEnd(level) << std::endl;
 					get(level).flush();
 				}
 			}

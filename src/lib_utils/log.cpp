@@ -11,6 +11,7 @@ static HANDLE console = NULL;
 static WORD console_attr_ori = 0;
 #else /*_WIN32*/
 #include <syslog.h>
+const int levelToSysLog[] = { 3, 4, 6, 7 };
 #define RED    "\x1b[31m"
 #define YELLOW "\x1b[33m"
 #define GREEN  "\x1b[32m"
