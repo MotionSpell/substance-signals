@@ -45,7 +45,7 @@ class PipelinedInput : public IInput {
 				Log::msg(Debug, "Module %s: dispatch data for time %ss", delegateName, dataTime / (double)IClock::Rate);
 				delegate->push(data);
 				try {
-					delegateExecutor(MEMBER_FUNCTOR_PROCESS(delegate));
+					delegateExecutor(Bind(&IProcessor::process, delegate));
 				} catch (...) { //stop now
 					auto const &eptr = std::current_exception();
 					notify->exception(eptr);

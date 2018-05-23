@@ -27,7 +27,7 @@ size_t ConnectOutputToInput(IOutput *prev, IInput *next, IProcessExecutor * cons
 	next->connect();
 	return prev->getSignal().connect([=](Data data) {
 		next->push(data);
-		(*executor)(MEMBER_FUNCTOR_PROCESS(next));
+		(*executor)(Bind(&IProcessor::process, next));
 	});
 }
 

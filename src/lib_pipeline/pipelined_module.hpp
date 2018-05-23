@@ -113,8 +113,8 @@ class PipelinedModule : public IPipelineNotifier, public ClockCap, public IPipel
 					connections = 1; activeConnections = 1;
 					getInput(0)->push(nullptr);
 					delegate->getInput(0)->push(nullptr);
-					delegateExecutor(MEMBER_FUNCTOR_PROCESS(delegate.get()));
-					delegateExecutor(MEMBER_FUNCTOR_PROCESS(getInput(0)));
+					delegateExecutor(Bind(&IProcessor::process, delegate.get()));
+					delegateExecutor(Bind(&IProcessor::process, getInput(0)));
 				} else { /*the source is likely processing: push null in the loop to exit and let things follow their way*/
 					delegate->getInput(0)->push(nullptr);
 				}
