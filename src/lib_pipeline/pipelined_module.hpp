@@ -115,11 +115,10 @@ class PipelinedModule : public IPipelineNotifier, public ClockCap, public IPipel
 					delegate->getInput(0)->push(nullptr);
 					delegateExecutor(MEMBER_FUNCTOR_PROCESS(delegate.get()));
 					delegateExecutor(MEMBER_FUNCTOR_PROCESS(getInput(0)));
-					return;
 				} else { /*the source is likely processing: push null in the loop to exit and let things follow their way*/
 					delegate->getInput(0)->push(nullptr);
-					return;
 				}
+				return;
 			}
 
 			Data data = getInput(0)->pop();
