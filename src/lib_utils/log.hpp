@@ -27,7 +27,6 @@ class Log {
 #endif
 				{
 					get(level) << getColorBegin(level) << getTime() << msg << getColorEnd(level) << std::endl;
-					get(level).flush();
 				}
 			}
 		}
