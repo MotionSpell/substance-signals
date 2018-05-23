@@ -7,6 +7,7 @@ function fontconfig_build {
   mkgit "fontconfig"
   pushDir fontconfig
 
+  rm -f src/fcobjshash.h
   autoreconf -fiv
 
   mkdir -p build/$host
