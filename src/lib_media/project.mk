@@ -49,14 +49,6 @@ LIB_MEDIA_SRCS+=\
   $(MYDIR)/render/sdl_video.cpp
 endif
 
-ifeq ($(LIB_MEDIA_HAS_AWS), 1)
-PKGS+=aws-cpp-sdk-mediastore
-PKGS+=aws-cpp-sdk-mediastore-data
-LIB_MEDIA_SRCS+=\
-  $(MYDIR)/out/aws_mediastore.cpp\
-  $(MYDIR)/out/aws_sdk_instance.cpp
-endif
-
 # Warning derogations. TODO: make this list empty
 $(BIN)/src/lib_media/common/libav.cpp.o: CFLAGS+=-Wno-deprecated-declarations
 $(BIN)/src/lib_media/encode/libav_encode.cpp.o: CFLAGS+=-Wno-deprecated-declarations
