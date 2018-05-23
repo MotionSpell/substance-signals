@@ -24,11 +24,6 @@ bool Log::globalSysLog = false;
 Level Log::globalLogLevel = Warning;
 bool Log::globalColor = true;
 
-#ifdef LOG_THREAD_SAFETY
-std::string Log::lastMsg = "";
-uint64_t Log::lastMsgCount = 0;
-#endif
-
 std::ostream& Log::get(Level level) {
 	switch (level) {
 	case Info:
