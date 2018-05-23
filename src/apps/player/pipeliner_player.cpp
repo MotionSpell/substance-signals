@@ -1,8 +1,13 @@
-#include "lib_media/media.hpp"
 #include "lib_appcommon/pipeliner.hpp"
+#include <sstream>
+
+// modules
+#include "lib_media/demux/libav_demux.hpp"
+#include "lib_media/in/mpeg_dash_input.hpp"
+#include "lib_media/out/null.hpp"
 #include "lib_media/render/sdl_audio.hpp"
 #include "lib_media/render/sdl_video.hpp"
-#include <sstream>
+#include "lib_media/decode/libav_decode.hpp"
 
 using namespace Modules;
 using namespace Pipelines;

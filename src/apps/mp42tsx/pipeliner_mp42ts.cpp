@@ -1,6 +1,11 @@
-#include "lib_media/media.hpp"
 #include "pipeliner_mp42ts.hpp"
 #include <sstream>
+
+// modules
+#include "lib_media/stream/apple_hls.hpp"
+#include "lib_media/out/file.hpp"
+#include "lib_media/demux/libav_demux.hpp"
+#include "lib_media/mux/gpac_mux_m2ts.hpp"
 
 using namespace Modules;
 using namespace Pipelines;

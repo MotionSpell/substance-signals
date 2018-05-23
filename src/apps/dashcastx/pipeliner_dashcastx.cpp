@@ -1,4 +1,3 @@
-#include "lib_media/media.hpp"
 #include "lib_pipeline/pipeline.hpp"
 #include "lib_appcommon/pipeliner.hpp"
 #include <sstream>
@@ -8,6 +7,15 @@
 #include <unistd.h>
 #endif
 #include <gpac/tools.h> //gf_mkdir
+
+// modules
+#include "lib_media/decode/libav_decode.hpp"
+#include "lib_media/demux/libav_demux.hpp"
+#include "lib_media/encode/libav_encode.hpp"
+#include "lib_media/stream/mpeg_dash.hpp"
+#include "lib_media/transform/audio_convert.hpp"
+#include "lib_media/transform/video_convert.hpp"
+#include "lib_media/mux/gpac_mux_mp4.hpp"
 
 using namespace Modules;
 using namespace Pipelines;
