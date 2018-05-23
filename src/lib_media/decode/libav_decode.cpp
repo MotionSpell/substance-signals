@@ -131,17 +131,15 @@ void LibavDecode::process(Data data) {
 }
 
 
-void LibavDecode::processPacket(AVPacket const * pkt) {
+bool LibavDecode::processPacket(AVPacket const * pkt) {
 	switch (codecCtx->codec_type) {
 	case AVMEDIA_TYPE_VIDEO:
-		processVideo(pkt);
-		break;
+		return processVideo(pkt);
 	case AVMEDIA_TYPE_AUDIO:
-		processAudio(pkt);
-		break;
+		return processAudio(pkt);
 	default:
 		assert(0);
-		return;
+		return false;
 	}
 }
 
@@ -149,16 +147,8 @@ void LibavDecode::flush() {
 	AVPacket nullPkt;
 	av_init_packet(&nullPkt);
 	av_free_packet(&nullPkt);
-	switch (codecCtx->codec_type) {
-	case AVMEDIA_TYPE_VIDEO:
-		while (processVideo(&nullPkt)) {}
-		break;
-	case AVMEDIA_TYPE_AUDIO:
-		while (processAudio(&nullPkt)) {}
-		break;
-	default:
-		assert(0);
-		break;
+
+	while(processPacket(&nullPkt)) {
 	}
 }
 
