@@ -144,9 +144,7 @@ bool LibavDecode::processPacket(AVPacket const * pkt) {
 }
 
 void LibavDecode::flush() {
-	AVPacket nullPkt;
-	av_init_packet(&nullPkt);
-	av_free_packet(&nullPkt);
+	AVPacket nullPkt {};
 
 	while(processPacket(&nullPkt)) {
 	}
