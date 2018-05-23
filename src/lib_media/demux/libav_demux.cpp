@@ -1,15 +1,10 @@
 #include "libav_demux.hpp"
 #include "../transform/restamp.hpp"
 #include "lib_utils/tools.hpp"
+#include "lib_utils/os.hpp"
 #include "lib_ffpp/ffpp.hpp"
 #include <cassert>
 #include <fstream>
-
-#if _WIN32
-#include <Windows.h>
-#else
-#include <pthread.h>
-#endif
 
 #define PKT_QUEUE_SIZE 256
 
@@ -222,6 +217,10 @@ bool LibavDemux::rectifyTimestamps(AVPacket &pkt) {
 }
 
 void LibavDemux::threadProc() {
+
+	if(!setHighThreadPriority())
+		log(Warning, "Couldn't change reception thread priority to realtime.");
+
 	AVPacket pkt;
 	bool nextPacketResetFlag = false;
 	while (!done) {
@@ -338,16 +337,6 @@ void LibavDemux::process(Data data) {
 		startPTSIn180k += fractionToClock(g_DefaultClock->now());
 	}
 	workingThread = std::thread(&LibavDemux::threadProc, this);
-#if _WIN32
-	auto const ret = SetThreadPriority((HANDLE)workingThread.native_handle(), THREAD_PRIORITY_TIME_CRITICAL);
-	if (!ret) {
-#else
-	struct sched_param sp;
-	sp.sched_priority = 1;
-	if (pthread_setschedparam((pthread_t)workingThread.native_handle(), SCHED_RR, &sp)) {
-#endif
-		log(Warning, "Couldn't change reception thread priority to realtime.");
-	}
 
 	AVPacket pkt;
 	while (1) {

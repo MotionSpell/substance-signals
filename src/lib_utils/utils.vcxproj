@@ -34,6 +34,7 @@
       <XMLDocumentationFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)obj\src</XMLDocumentationFileName>
     </ClCompile>
     <ClCompile Include="clock.cpp" />
+    <ClCompile Include="os.cpp" />
     <ClCompile Include="log.cpp" />
     <ClCompile Include="scheduler.cpp" />
     <ClCompile Include="time.cpp" />
