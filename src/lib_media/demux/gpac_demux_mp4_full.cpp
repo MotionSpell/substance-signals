@@ -7,27 +7,19 @@
 namespace Modules {
 namespace Demux {
 
-class ISOProgressiveReader {
-	public:
-		ISOProgressiveReader()
-			: data(0), refreshBoxes(GF_TRUE), samplesProcessed(0), sampleIndex(1), sampleCount(0), trackNumber(1) {
-		}
-
-		~ISOProgressiveReader() {
-		}
-
-		/* data buffer to be read by the parser */
-		std::vector<u8> data;
-		/* URL used to pass a buffer to the parser */
-		std::string dataUrl;
-		/* The ISO file structure created for the parsing of data */
-		std::unique_ptr<gpacpp::IsoFile> movie;
-		/* Boolean state to indicate if the needs to be parsed */
-		Bool refreshBoxes;
-		u32 samplesProcessed;
-		u32 sampleIndex; /* samples are numbered starting from 1 */
-		u32 sampleCount;
-		int trackNumber; //TODO: multi-tracks
+struct ISOProgressiveReader {
+	/* data buffer to be read by the parser */
+	std::vector<u8> data;
+	/* URL used to pass a buffer to the parser */
+	std::string dataUrl;
+	/* The ISO file structure created for the parsing of data */
+	std::unique_ptr<gpacpp::IsoFile> movie;
+	/* Boolean state to indicate if the needs to be parsed */
+	Bool refreshBoxes = GF_TRUE;
+	u32 samplesProcessed = 0;
+	u32 sampleIndex = 1; /* samples are numbered starting from 1 */
+	u32 sampleCount = 0;
+	int trackNumber = 1; //TODO: multi-tracks
 };
 
 GPACDemuxMP4Full::GPACDemuxMP4Full()
