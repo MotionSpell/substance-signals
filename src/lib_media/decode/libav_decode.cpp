@@ -75,7 +75,8 @@ bool LibavDecode::processAudio(AVPacket const * const pkt) {
 		out->setPlane(i, avFrame->get()->data[i], avFrame->get()->nb_samples * pcmFormat.getBytesPerSample() / pcmFormat.numPlanes);
 	}
 	auto const &timebase = safe_cast<const MetadataPktLibavAudio>(getInput(0)->getMetadata())->getAVCodecContext()->time_base;
-	out->setMediaTime(avFrame->get()->pkt_pts * timebase.num, timebase.den);
+
+	out->setMediaTime(avFrame->get()->pts * timebase.num, timebase.den);
 	audioOutput->emit(out);
 	return true;
 }
@@ -103,7 +104,8 @@ bool LibavDecode::processVideo(AVPacket const * const pkt) {
 		copyToPicture(avFrame->get(), pic.get());
 	}
 	auto const &timebase = safe_cast<const MetadataPktLibavVideo>(getInput(0)->getMetadata())->getAVCodecContext()->time_base;
-	pic->setMediaTime(avFrame->get()->pkt_pts * timebase.num, timebase.den);
+
+	pic->setMediaTime(avFrame->get()->pts * timebase.num, timebase.den);
 	if (videoOutput) videoOutput->emit(pic);
 	return true;
 }
