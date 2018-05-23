@@ -63,21 +63,21 @@ bool LibavDecode::processAudio(AVPacket const * const pkt) {
 	if (av_frame_get_decode_error_flags(avFrame->get()) || (avFrame->get()->flags & AV_FRAME_FLAG_CORRUPT)) {
 		log(Error, "Corrupted audio frame decoded.");
 	}
-	if (gotFrame) {
-		auto out = audioOutput->getBuffer(0);
-		PcmFormat pcmFormat;
-		libavFrame2pcmConvert(avFrame->get(), &pcmFormat);
-		out->setFormat(pcmFormat);
-		for (uint8_t i = 0; i < pcmFormat.numPlanes; ++i) {
-			out->setPlane(i, avFrame->get()->data[i], avFrame->get()->nb_samples * pcmFormat.getBytesPerSample() / pcmFormat.numPlanes);
-		}
-		auto const &timebase = safe_cast<const MetadataPktLibavAudio>(getInput(0)->getMetadata())->getAVCodecContext()->time_base;
-		out->setMediaTime(avFrame->get()->pkt_pts * timebase.num, timebase.den);
-		audioOutput->emit(out);
-		return true;
+	if (!gotFrame) {
+		return false;
 	}
 
-	return false;
+	auto out = audioOutput->getBuffer(0);
+	PcmFormat pcmFormat;
+	libavFrame2pcmConvert(avFrame->get(), &pcmFormat);
+	out->setFormat(pcmFormat);
+	for (uint8_t i = 0; i < pcmFormat.numPlanes; ++i) {
+		out->setPlane(i, avFrame->get()->data[i], avFrame->get()->nb_samples * pcmFormat.getBytesPerSample() / pcmFormat.numPlanes);
+	}
+	auto const &timebase = safe_cast<const MetadataPktLibavAudio>(getInput(0)->getMetadata())->getAVCodecContext()->time_base;
+	out->setMediaTime(avFrame->get()->pkt_pts * timebase.num, timebase.den);
+	audioOutput->emit(out);
+	return true;
 }
 
 bool LibavDecode::processVideo(AVPacket const * const pkt) {
@@ -89,23 +89,23 @@ bool LibavDecode::processVideo(AVPacket const * const pkt) {
 	if (av_frame_get_decode_error_flags(avFrame->get()) || (avFrame->get()->flags & AV_FRAME_FLAG_CORRUPT)) {
 		log(Error, "Corrupted video frame decoded (%s).", gotPicture);
 	}
-	if (gotPicture) {
-		std::shared_ptr<DataPicture> pic;
-		auto ctx = static_cast<LibavDirectRenderingContext*>(avFrame->get()->opaque);
-		if (ctx) {
-			pic = ctx->pic;
-			ctx->pic->setVisibleResolution(Resolution(codecCtx->width, codecCtx->height));
-		} else {
-			pic = DataPicture::create(videoOutput, Resolution(avFrame->get()->width, avFrame->get()->height), libavPixFmt2PixelFormat((AVPixelFormat)avFrame->get()->format));
-			copyToPicture(avFrame->get(), pic.get());
-		}
-		auto const &timebase = safe_cast<const MetadataPktLibavVideo>(getInput(0)->getMetadata())->getAVCodecContext()->time_base;
-		pic->setMediaTime(avFrame->get()->pkt_pts * timebase.num, timebase.den);
-		if (videoOutput) videoOutput->emit(pic);
-		return true;
+	if (!gotPicture) {
+		return false;
 	}
 
-	return false;
+	std::shared_ptr<DataPicture> pic;
+	auto ctx = static_cast<LibavDirectRenderingContext*>(avFrame->get()->opaque);
+	if (ctx) {
+		pic = ctx->pic;
+		ctx->pic->setVisibleResolution(Resolution(codecCtx->width, codecCtx->height));
+	} else {
+		pic = DataPicture::create(videoOutput, Resolution(avFrame->get()->width, avFrame->get()->height), libavPixFmt2PixelFormat((AVPixelFormat)avFrame->get()->format));
+		copyToPicture(avFrame->get(), pic.get());
+	}
+	auto const &timebase = safe_cast<const MetadataPktLibavVideo>(getInput(0)->getMetadata())->getAVCodecContext()->time_base;
+	pic->setMediaTime(avFrame->get()->pkt_pts * timebase.num, timebase.den);
+	if (videoOutput) videoOutput->emit(pic);
+	return true;
 }
 
 LibavDirectRendering::LibavDirectRenderingContext* LibavDecode::getPicture(Resolution res, Resolution resInternal, PixelFormat format) {
