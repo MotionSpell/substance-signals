@@ -141,39 +141,4 @@ class SwResampler {
 		SwrContext* m_SwrContext;
 };
 
-struct IAvIO {
-	virtual ~IAvIO() {}
-	virtual AVIOContext* get() = 0;
-};
-
-template <typename PrivateData>
-class AvIO : public IAvIO {
-	public:
-		AvIO(int    (*read) (void *opaque, uint8_t *buf, int buf_size),
-		    int    (*write)(void *opaque, uint8_t *buf, int buf_size),
-		    int64_t(*seek) (void *opaque, int64_t offset, int whence),
-		    std::unique_ptr<PrivateData> priv,
-		    bool isWritable,
-		    int avioCtxBufferSize = 1024 * 1024)
-			: avioCtxBufferSize(avioCtxBufferSize), priv(std::move(priv)) {
-			avioCtx = avio_alloc_context((unsigned char*)av_malloc(avioCtxBufferSize), avioCtxBufferSize, isWritable, this->priv.get(), read, write, seek);
-			if (!avioCtx)
-				throw std::runtime_error("AvIO allocation failed");
-		}
-		virtual ~AvIO() {
-			if (avioCtx) {
-				av_freep(&avioCtx->buffer);
-				av_freep(&avioCtx);
-			}
-		}
-		AVIOContext* get() override {
-			return avioCtx;
-		}
-
-	private:
-		AVIOContext *avioCtx = nullptr;
-		const int avioCtxBufferSize;
-		std::unique_ptr<PrivateData> priv;
-};
-
 }

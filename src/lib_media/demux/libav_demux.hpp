@@ -7,6 +7,7 @@
 #include <vector>
 
 struct AVFormatContext;
+struct AVIOContext;
 
 namespace Modules {
 
@@ -18,8 +19,10 @@ namespace Demux {
 
 class LibavDemux : public ModuleS {
 	public:
+
+		typedef std::function<int(uint8_t* buf, int bufSize)> ReadFunc;
 		//@param url may be a file, a remote URL, or a webcam (set "webcam" to list the available devices)
-		LibavDemux(const std::string &url, const bool loop = false, const std::string &avformatCustom = "", const uint64_t seekTimeInMs = 0, const std::string &formatName = "", std::unique_ptr<ffpp::IAvIO> avioCustom = nullptr);
+		LibavDemux(const std::string &url, const bool loop = false, const std::string &avformatCustom = "", const uint64_t seekTimeInMs = 0, const std::string &formatName = "", ReadFunc func = nullptr);
 		~LibavDemux();
 		void process(Data data) override;
 
@@ -42,11 +45,17 @@ class LibavDemux : public ModuleS {
 		QueueLockFree<AVPacket> dispatchPkts;
 		std::vector<std::unique_ptr<Transform::Restamp>> restampers;
 		std::vector<OutputDataDefault<DataAVPacket>*> outputs;
-		struct AVFormatContext *m_formatCtx;
-		std::unique_ptr<ffpp::IAvIO> m_avio = nullptr;
+		AVFormatContext* m_formatCtx;
+		AVIOContext* m_avioCtx = nullptr;
+		ReadFunc m_read;
 		int64_t curTimeIn180k = 0, startPTSIn180k = std::numeric_limits<int64_t>::min();
 		std::vector<uint64_t> offsetIn180k;
 		std::vector<int64_t> lastDTS;
+
+		static int read(void* user, uint8_t* data, int size) {
+			auto pThis = (LibavDemux*)user;
+			return pThis->m_read(data, size);
+		}
 };
 
 }

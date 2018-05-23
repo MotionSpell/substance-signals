@@ -33,6 +33,8 @@ const char* webcamFormat() {
 
 namespace Demux {
 
+static const int avioCtxBufferSize = 1024 * 1024;
+
 void LibavDemux::webcamList() {
 	log(Warning, "Webcam list:");
 	ffpp::Dict dict(typeid(*this).name(), "-list_devices true");
@@ -69,8 +71,8 @@ void LibavDemux::initRestamp() {
 	}
 }
 
-LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::string &avformatCustom, const uint64_t seekTimeInMs, const std::string &formatName, std::unique_ptr<ffpp::IAvIO> avioCustom)
-	: loop(loop), done(false), dispatchPkts(PKT_QUEUE_SIZE), m_avio(std::move(avioCustom)) {
+LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::string &avformatCustom, const uint64_t seekTimeInMs, const std::string &formatName, LibavDemux::ReadFunc avioCustom)
+	: loop(loop), done(false), dispatchPkts(PKT_QUEUE_SIZE), m_read(std::move(avioCustom)) {
 	if (!(m_formatCtx = avformat_alloc_context()))
 		throw error("Can't allocate format context");
 
@@ -89,8 +91,11 @@ LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::strin
 	} else {
 		ffpp::Dict dict(typeid(*this).name(), "-buffer_size 1M -fifo_size 1M -probesize 10M -analyzeduration 10M -overrun_nonfatal 1 -protocol_whitelist file,udp,rtp,http,https,tcp,tls,rtmp -rtsp_flags prefer_tcp -correct_ts_overflow 0 " + avformatCustom);
 
-		if (m_avio) {
-			m_formatCtx->pb = m_avio->get();
+		if (m_read) {
+			m_avioCtx = avio_alloc_context((unsigned char*)av_malloc(avioCtxBufferSize), avioCtxBufferSize, 0, this, &LibavDemux::read, nullptr, nullptr);
+			if (!m_avioCtx)
+				throw std::runtime_error("AvIO allocation failed");
+			m_formatCtx->pb = m_avioCtx;
 			m_formatCtx->flags = AVFMT_FLAG_CUSTOM_IO;
 		}
 		if (avformat_open_input(&m_formatCtx, url.c_str(), av_find_input_format(formatName.c_str()), &dict)) {
@@ -163,6 +168,10 @@ void LibavDemux::clean() {
 	while (dispatchPkts.read(p)) {
 		av_free_packet(&p);
 	}
+
+	if(m_avioCtx)
+		av_free(m_avioCtx->buffer);
+	av_free(m_avioCtx);
 }
 
 LibavDemux::~LibavDemux() {
