@@ -68,10 +68,14 @@ Manual connections:
 Internals
 =========
 
-Signals is a data-driven framework. It means that data is the engine of the execution (most frameworks are driven by time). It means that:
- - Input errors tend to propagate. They may appear in some later modules of your graph or pipeline. Be careful to test each of your modules. You may want to write modules to rectify the signal.
+Signals is a data-driven framework.
+It means that data is the engine of the execution (most frameworks are driven by time).
+It means that:
+ - Input errors tend to propagate. They may appear in some later modules of your graph or pipeline.
+   Be careful to test each of your modules. You may want to write modules to rectify the signal.
  - A lack of input may stop all outputs and logs.
- - There is no such things as real-time in the modules. There is a clock abstraction, and the application or Pipeline level may handle a clock.
+ - There is no such thing as real-time in the modules.
+   There is a clock abstraction, and the application or Pipeline level may provide a clock.
 
 ```
 class Module : public IModule, public ErrorCap, public LogCap, public InputCap {
@@ -137,8 +141,15 @@ How to declare an output:
 
 ADD DOXYGEN
 
-When developping modules, you should not take care of concurrency (threads or mutex). Signals takes care of the hard part for you. However this is tweakable.
-About parallelism, take care that modules may execute blocking calls when trying to get an output buffer (depends on your allocator policy). This may lead to deadlock if you run on a thread-pool with not enough threads. This may be solved in different ways: 1) one thread per module (```#define EXECUTOR EXECUTOR_ASYNC_THREAD``` in modules/utils/pipeline.cpp) 2) more permissive allocator 3) blocking calls returns cooperatively to the scheduler, see #14.
+When developping modules, you should not take care of concurrency (threads or mutex).
+Signals takes care of the hard part for you. However this is tweakable.
+About parallelism, take care that modules may execute blocking calls
+when trying to get an output buffer (this depends on your allocator policy).
+This may lead to deadlock if you run on a thread-pool with not enough threads.
+This may be solved in different ways: 
+  - one thread per module (```#define EXECUTOR EXECUTOR_ASYNC_THREAD``` in modules/utils/pipeline.cpp)
+  - more permissive allocator 
+  - blocking calls returns cooperatively to the scheduler, see #14.
 
 Use the Pipeline namespace.
 
