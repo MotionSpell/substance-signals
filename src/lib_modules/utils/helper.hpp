@@ -10,6 +10,60 @@
 
 namespace Modules {
 
+template<typename DataType, typename ModuleType = IProcessor>
+class Input : public IInput {
+	public:
+		Input(ModuleType * const module) : module(module) {}
+
+		void process() override {
+			module->process();
+		}
+
+	private:
+		ModuleType * const module;
+};
+
+class InputCap : public virtual IInputCap {
+	public:
+		virtual ~InputCap() noexcept(false) {}
+		IInput* addInput(IInput* p) override { //Takes ownership
+			inputs.push_back(uptr(p));
+			return p;
+		}
+		size_t getNumInputs() const override {
+			return inputs.size();
+		}
+		IInput* getInput(size_t i) override {
+			return inputs[i].get();
+		}
+
+	protected:
+		std::vector<std::unique_ptr<IInput>> inputs;
+};
+
+class Module : public IModule, public ErrorCap, public LogCap, public InputCap {
+	public:
+		Module() = default;
+		virtual ~Module() noexcept(false) {}
+
+		template <typename InstanceType, typename ...Args>
+		InstanceType* addOutput(Args&&... args) {
+			auto p = new InstanceType(allocatorSize, allocatorSize, clock, std::forward<Args>(args)...);
+			outputs.push_back(uptr(p));
+			return safe_cast<InstanceType>(p);
+		}
+		template <typename InstanceType, typename ...Args>
+		InstanceType* addOutputDynAlloc(size_t allocatorMaxSize, Args&&... args) {
+			auto p = new InstanceType(allocatorSize, allocatorMaxSize, clock, std::forward<Args>(args)...);
+			outputs.push_back(uptr(p));
+			return safe_cast<InstanceType>(p);
+		}
+
+	private:
+		Module(Module const&) = delete;
+		Module const& operator=(Module const&) = delete;
+};
+
 /* this default factory creates output ports with the default output - create another one for other uses such as low latency */
 template <class InstanceType>
 struct ModuleDefault : public ClockCap, public OutputCap, public InstanceType {
