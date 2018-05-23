@@ -109,9 +109,9 @@ LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::strin
 			if (avformat_seek_file(m_formatCtx, -1, INT64_MIN, convertToTimescale(seekTimeInMs, 1000, AV_TIME_BASE), INT64_MAX, 0) < 0) {
 				clean();
 				throw error(format("Couldn't seek to time %sms", seekTimeInMs));
-			} else {
-				log(Info, "Successful initial seek to %sms", seekTimeInMs);
 			}
+
+			log(Info, "Successful initial seek to %sms", seekTimeInMs);
 		}
 
 		//if you don't call you may miss the first frames
