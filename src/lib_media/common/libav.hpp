@@ -101,14 +101,14 @@ void libavAudioCtx2pcmConvert(std::shared_ptr<const AVCodecContext> codecCtx, Pc
 void libavFrameDataConvert(const DataPcm *data, AVFrame *frame);
 void libavFrame2pcmConvert(const AVFrame *frame, PcmFormat *cfg);
 
-void pixelFormat2libavPixFmt(const enum PixelFormat format, enum AVPixelFormat &avPixfmt);
-enum PixelFormat libavPixFmt2PixelFormat(const enum AVPixelFormat &avPixfmt);
+void pixelFormat2libavPixFmt(PixelFormat format, AVPixelFormat& avPixfmt);
+PixelFormat libavPixFmt2PixelFormat(AVPixelFormat avPixfmt);
 
 struct LibavDirectRendering {
 	struct LibavDirectRenderingContext {
 		std::shared_ptr<DataPicture> pic;
 	};
-	virtual LibavDirectRenderingContext* getPicture(const Resolution &res, const Resolution &resInternal, const PixelFormat &format) = 0;
+	virtual LibavDirectRenderingContext* getPicture(Resolution res, Resolution resInternal, PixelFormat format) = 0;
 };
 void copyToPicture(AVFrame const* avFrame, DataPicture* pic);
 extern "C" int avGetBuffer2(struct AVCodecContext *s, AVFrame *frame, int flags);

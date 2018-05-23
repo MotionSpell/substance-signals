@@ -22,9 +22,9 @@ class LibavDecode : public ModuleS, public LibavDirectRendering {
 
 	private:
 		bool processPacket(AVPacket const * pkt);
-		bool processAudio(AVPacket const * const pkt);
-		bool processVideo(AVPacket const * const pkt);
-		LibavDirectRenderingContext* getPicture(const Resolution &res, const Resolution &resInternal, const PixelFormat &format) override;
+		bool processAudio(AVPacket const * pkt);
+		bool processVideo(AVPacket const * pkt);
+		LibavDirectRenderingContext* getPicture(Resolution res, Resolution resInternal, PixelFormat format) override;
 
 		std::shared_ptr<AVCodecContext> const codecCtx;
 		std::unique_ptr<ffpp::Frame> const avFrame;

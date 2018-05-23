@@ -108,7 +108,7 @@ bool LibavDecode::processVideo(AVPacket const * const pkt) {
 	return false;
 }
 
-LibavDirectRendering::LibavDirectRenderingContext* LibavDecode::getPicture(const Resolution &res, const Resolution &resInternal, const PixelFormat &format) {
+LibavDirectRendering::LibavDirectRenderingContext* LibavDecode::getPicture(Resolution res, Resolution resInternal, PixelFormat format) {
 	auto ctx = new LibavDirectRenderingContext;
 	ctx->pic = DataPicture::create(videoOutput, res, resInternal, format);
 	return ctx;
