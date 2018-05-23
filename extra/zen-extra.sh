@@ -30,26 +30,19 @@ function get_all_packages
 
   echo asio
   echo expat
-  echo faad2
   echo ffmpeg
   echo fontconfig
   echo freetype2
   echo fribidi
   echo gpac
-  echo liba52
   echo libass
   echo libcurl
-  echo libjpeg
   echo libjpeg-turbo
-  echo libmad
   echo libogg
   echo libpng
   echo libpthread
   echo librtmp
   echo libsdl2
-  echo libvorbis
-  echo libxvidcore
-  echo opencore-amr
   echo optionparser
   echo rapidjson
   echo x264

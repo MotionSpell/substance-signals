@@ -24,11 +24,11 @@ function gpac_build {
     --extra-ldflags="-L$PREFIX/lib -Wl,-rpath-link=$PREFIX/lib" \
     --sdl-cfg=":$PREFIX/bin" \
     --disable-jack \
-    --enable-amr \
+    --disable-player \
     --prefix=$PREFIX
 
-  $MAKE
-  $MAKE install
+  $MAKE lib
+  $MAKE install # this is what causes gpac.pc to be copied to lib/pkg-config
   $MAKE install-lib
 
   popDir
@@ -36,19 +36,12 @@ function gpac_build {
 
 function gpac_get_deps {
   echo libpthread
-  echo faad2
   echo ffmpeg
   echo freetype2
-  echo liba52
-  echo libjpeg
-  echo libmad
   echo libogg
   echo libpng
   echo libsdl2
-  echo libvorbis
-  echo libxvidcore
   echo libogg
-  echo opencore-amr
   echo zlib
 }
 
