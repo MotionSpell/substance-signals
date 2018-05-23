@@ -1,7 +1,6 @@
 #pragma once
 
 #include "lib_modules/core/module.hpp"
-#include <cstdint>
 
 namespace Modules {
 namespace Demux {
