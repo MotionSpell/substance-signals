@@ -1,6 +1,6 @@
 #pragma once
 
-#include "lib_modules/core/module.hpp"
+#include "lib_modules/utils/helper.hpp"
 #include "lib_ffpp/ffpp.hpp"
 
 struct AVFormatContext;

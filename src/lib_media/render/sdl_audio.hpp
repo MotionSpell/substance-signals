@@ -1,6 +1,6 @@
 #pragma once
 
-#include "lib_modules/core/module.hpp"
+#include "lib_modules/utils/helper.hpp"
 #include "../common/pcm.hpp"
 #include "lib_utils/fifo.hpp"
 #include <memory>
