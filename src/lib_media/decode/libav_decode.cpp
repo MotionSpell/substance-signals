@@ -127,6 +127,11 @@ void LibavDecode::process(Data data) {
 		pkt->flags &= ~AV_PKT_FLAG_RESET_DECODER;
 	}
 
+	processPacket(pkt);
+}
+
+
+void LibavDecode::processPacket(AVPacket const * pkt) {
 	switch (codecCtx->codec_type) {
 	case AVMEDIA_TYPE_VIDEO:
 		processVideo(pkt);
