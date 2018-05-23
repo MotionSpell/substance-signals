@@ -13,8 +13,7 @@ namespace Transform {
 LibavFilter::LibavFilter(const PictureFormat &format, const std::string &filterArgs)
 	: graph(avfilter_graph_alloc()), avFrameIn(new ffpp::Frame), avFrameOut(new ffpp::Frame) {
 	char args[512];
-	AVPixelFormat pf;
-	pixelFormat2libavPixFmt(format.format, pf);
+	AVPixelFormat pf = pixelFormat2libavPixFmt(format.format);
 	snprintf(args, sizeof(args), "video_size=%dx%d:pix_fmt=%d:time_base=%d/%d:pixel_aspect=%d/%d", format.res.width, format.res.height, pf, 90000, 1, format.res.width, format.res.height);
 
 	auto ret = avfilter_graph_create_filter(&buffersrc_ctx, avfilter_get_by_name("buffer"), "in", args, nullptr, graph);
@@ -58,7 +57,7 @@ void LibavFilter::process(Data data) {
 	times.push(data->getMediaTime());
 	const auto pic = safe_cast<const DataPicture>(data);
 	avFrameIn->get()->pict_type = AV_PICTURE_TYPE_NONE;
-	AVPixelFormat avpf; pixelFormat2libavPixFmt(pic->getFormat().format, avpf); avFrameIn->get()->format = (int)avpf;
+	avFrameIn->get()->format = (int)pixelFormat2libavPixFmt(pic->getFormat().format);
 	for (size_t i = 0; i < pic->getNumPlanes(); ++i) {
 		avFrameIn->get()->width = pic->getFormat().res.width;
 		avFrameIn->get()->height = pic->getFormat().res.height;

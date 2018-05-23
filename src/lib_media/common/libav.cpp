@@ -328,17 +328,17 @@ void libavFrameDataConvert(const DataPcm *pcmData, AVFrame *frame) {
 	frame->nb_samples = (int)(pcmData->size() / format.getBytesPerSample());
 }
 
-void pixelFormat2libavPixFmt(PixelFormat format, AVPixelFormat& avPixfmt) {
+AVPixelFormat pixelFormat2libavPixFmt(PixelFormat format) {
 	switch (format) {
-	case Y8: avPixfmt = AV_PIX_FMT_GRAY8; break;
-	case YUV420P: avPixfmt = AV_PIX_FMT_YUV420P; break;
-	case YUV420P10LE: avPixfmt = AV_PIX_FMT_YUV420P10LE; break;
-	case YUV422P: avPixfmt = AV_PIX_FMT_YUV422P; break;
-	case YUV422P10LE: avPixfmt = AV_PIX_FMT_YUV422P10LE; break;
-	case YUYV422: avPixfmt = AV_PIX_FMT_YUYV422; break;
-	case NV12: avPixfmt = AV_PIX_FMT_NV12; break;
-	case RGB24: avPixfmt = AV_PIX_FMT_RGB24; break;
-	case RGBA32: avPixfmt = AV_PIX_FMT_RGBA; break;
+	case Y8: return AV_PIX_FMT_GRAY8;
+	case YUV420P: return AV_PIX_FMT_YUV420P;
+	case YUV420P10LE: return AV_PIX_FMT_YUV420P10LE;
+	case YUV422P: return AV_PIX_FMT_YUV422P;
+	case YUV422P10LE: return AV_PIX_FMT_YUV422P10LE;
+	case YUYV422: return AV_PIX_FMT_YUYV422;
+	case NV12: return AV_PIX_FMT_NV12;
+	case RGB24: return AV_PIX_FMT_RGB24;
+	case RGBA32: return AV_PIX_FMT_RGBA;
 	default: throw std::runtime_error("Unknown pixel format to convert (1). Please contact your vendor.");
 	}
 }

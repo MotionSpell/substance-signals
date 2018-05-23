@@ -101,7 +101,7 @@ void libavAudioCtx2pcmConvert(std::shared_ptr<const AVCodecContext> codecCtx, Pc
 void libavFrameDataConvert(const DataPcm *data, AVFrame *frame);
 void libavFrame2pcmConvert(const AVFrame *frame, PcmFormat *cfg);
 
-void pixelFormat2libavPixFmt(PixelFormat format, AVPixelFormat& avPixfmt);
+AVPixelFormat pixelFormat2libavPixFmt(PixelFormat format);
 PixelFormat libavPixFmt2PixelFormat(AVPixelFormat avPixfmt);
 
 struct LibavDirectRendering {

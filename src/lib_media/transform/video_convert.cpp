@@ -5,14 +5,6 @@
 
 #define ALIGN_PAD(n, align, pad) ((n/align + 1) * align + pad)
 
-namespace {
-inline AVPixelFormat libavPixFmtConvert(const Modules::PixelFormat format) {
-	AVPixelFormat pixFmt;
-	pixelFormat2libavPixFmt(format, pixFmt);
-	return pixFmt;
-}
-}
-
 namespace Modules {
 namespace Transform {
 
@@ -25,8 +17,8 @@ VideoConvert::VideoConvert(const PictureFormat &dstFormat)
 
 void VideoConvert::reconfigure(const PictureFormat &format) {
 	sws_freeContext(m_SwContext);
-	m_SwContext = sws_getContext(format.res.width, format.res.height, libavPixFmtConvert(format.format),
-	        dstFormat.res.width, dstFormat.res.height, libavPixFmtConvert(dstFormat.format),
+	m_SwContext = sws_getContext(format.res.width, format.res.height, pixelFormat2libavPixFmt(format.format),
+	        dstFormat.res.width, dstFormat.res.height, pixelFormat2libavPixFmt(dstFormat.format),
 	        SWS_BILINEAR, nullptr, nullptr, nullptr);
 	if (!m_SwContext)
 		throw error("Impossible to set up video converter.");

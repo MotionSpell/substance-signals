@@ -259,7 +259,7 @@ bool LibavEncode::processVideo(Data data) {
 	AVFrame *f = nullptr;
 	if (pic) {
 		f = avFrame->get();
-		AVPixelFormat avpf; pixelFormat2libavPixFmt(pic->getFormat().format, avpf); f->format = (int)avpf;
+		f->format = (int)pixelFormat2libavPixFmt(pic->getFormat().format);
 		for (size_t i = 0; i < pic->getNumPlanes(); ++i) {
 			f->width = pic->getFormat().res.width;
 			f->height = pic->getFormat().res.height;
