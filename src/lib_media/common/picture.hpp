@@ -1,7 +1,8 @@
 #pragma once
 
 #include "lib_modules/core/data.hpp"
-#include "lib_modules/core/output.hpp"
+#include "lib_modules/core/metadata.hpp" // NELEMENTS
+#include "lib_modules/utils/helper.hpp"
 #include "lib_utils/resolution.hpp"
 #include <cmath>
 

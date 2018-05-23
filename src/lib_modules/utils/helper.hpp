@@ -4,6 +4,7 @@
 // The application code should not depend on this.
 
 #include "../core/module.hpp"
+#include "../core/allocator.hpp"
 #include "lib_signals/utils/helper.hpp"
 #include "lib_utils/tools.hpp"
 #include <memory>
@@ -39,6 +40,67 @@ class InputCap : public virtual IInputCap {
 
 	protected:
 		std::vector<std::unique_ptr<IInput>> inputs;
+};
+
+typedef Signals::Signal<void(Data), Signals::ResultQueue<NotVoid<void>>> SignalAsync;
+typedef Signals::Signal<void(Data), Signals::ResultVector<NotVoid<void>>> SignalSync;
+static Signals::ExecutorSync<void(Data)> g_executorOutputSync;
+typedef SignalSync SignalDefaultSync;
+
+template<typename Allocator, typename Signal>
+class OutputT : public IOutput, public MetadataCap, public ClockCap {
+	public:
+		typedef Allocator AllocatorType;
+
+		OutputT(size_t allocatorBaseSize, size_t allocatorMaxSize, std::shared_ptr<IClock> clock, std::shared_ptr<const IMetadata> metadata = nullptr)
+			: MetadataCap(metadata), ClockCap(clock), signal(g_executorOutputSync), allocator(new Allocator(allocatorBaseSize, allocatorMaxSize)) {
+		}
+		OutputT(size_t allocatorSize, std::shared_ptr<IClock> clock, const IMetadata *metadata = nullptr)
+			: OutputT(allocatorSize, allocatorSize, clock, metadata) {
+		}
+		virtual ~OutputT() noexcept(false) {
+			allocator->unblock();
+		}
+
+		size_t emit(Data data) override {
+			updateMetadata(data);
+			size_t numReceivers = signal.emit(data);
+			if (numReceivers == 0)
+				Log::msg(Debug, "emit(): Output had no receiver");
+			return numReceivers;
+		}
+
+		template<typename T = typename Allocator::MyType>
+		std::shared_ptr<T> getBuffer(size_t size) {
+			auto buffer = allocator->template getBuffer<T>(size, allocator);
+			if (clock) buffer->setClockTime(fractionToClock(clock->now()));
+			return buffer;
+		}
+
+		Signals::ISignal<void(Data)>& getSignal() override {
+			return signal;
+		}
+
+	private:
+		Signal signal;
+		std::shared_ptr<Allocator> allocator;
+};
+
+template<typename DataType> using OutputDataDefault = OutputT<PacketAllocator<DataType>, SignalDefaultSync>;
+typedef OutputDataDefault<DataRaw> OutputDefault;
+
+class OutputCap : public virtual IOutputCap {
+	public:
+		OutputCap(size_t allocatorSize) {
+			this->allocatorSize = allocatorSize;
+		}
+
+		size_t getNumOutputs() const override {
+			return outputs.size();
+		}
+		IOutput* getOutput(size_t i) override {
+			return outputs[i].get();
+		}
 };
 
 class Module : public IModule, public ErrorCap, public LogCap, public InputCap {

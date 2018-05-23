@@ -1,7 +1,6 @@
 #pragma once
 
 #include "lib_modules/core/data.hpp"
-#include "lib_modules/core/output.hpp"
 
 namespace Modules {
 

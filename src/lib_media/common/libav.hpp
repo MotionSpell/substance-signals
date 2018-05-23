@@ -1,7 +1,6 @@
 #pragma once
 
 #include "picture.hpp"
-#include "lib_modules/core/output.hpp"
 #include "lib_modules/core/metadata.hpp"
 #include "lib_utils/tools.hpp"
 #include <cstdarg>
