@@ -47,7 +47,6 @@ function get_all_packages
   echo libpthread
   echo librtmp
   echo libsdl2
-  echo libtheora
   echo libvorbis
   echo libxvidcore
   echo opencore-amr

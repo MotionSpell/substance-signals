@@ -45,7 +45,6 @@ function gpac_get_deps {
   echo libogg
   echo libpng
   echo libsdl2
-  echo libtheora
   echo libvorbis
   echo libxvidcore
   echo libogg
