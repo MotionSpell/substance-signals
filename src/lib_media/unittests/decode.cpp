@@ -65,12 +65,25 @@ std::shared_ptr<DataBase> getTestMp3Frame() {
 }
 
 unittest("decode: audio simple") {
+	struct FrameCounter : ModuleS {
+		FrameCounter() {
+			addInput(new Input<DataBase>(this));
+		}
+		void process(Data) override {
+			++frameCount;
+		}
+		int frameCount = 0;
+	};
+
 	auto decode = createMp3Decoder();
-	auto null = create<Out::Null>();
-	ConnectOutputToInput(decode->getOutput(0), null->getInput(0));
+	auto rec = create<FrameCounter>();
+	ConnectOutputToInput(decode->getOutput(0), rec->getInput(0));
 
 	auto frame = getTestMp3Frame();
 	decode->process(frame);
+	decode->flush();
+
+	ASSERT_EQUALS(1, rec->frameCount);
 }
 
 namespace {
