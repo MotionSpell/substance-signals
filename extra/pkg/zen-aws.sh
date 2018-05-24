@@ -1,6 +1,8 @@
 
 function aws_build {
-  lazy_git_clone "https://github.com/aws/aws-sdk-cpp.git" "aws" "1.4.40"
+  lazy_download "aws.tar.gz" "https://github.com/aws/aws-sdk-cpp/archive/1.4.40.tar.gz"
+  lazy_extract "aws.tar.gz"
+  mkgit "aws"
 
   # remove compiler flags currently leaking all the way down to the client app!
   sed '/list(APPEND AWS_COMPILER_FLAGS "-fno-exceptions" "-std=c++${CPP_STANDARD}")/d' \
