@@ -9,7 +9,7 @@
 
 #ifdef _WIN32
 #include <sys/timeb.h>
-#include <Winsock2.h>
+#include <winsock2.h>
 int gettimeofday(struct timeval *tp, void * /*tz*/) {
 	struct _timeb timebuffer;
 	_ftime(&timebuffer);

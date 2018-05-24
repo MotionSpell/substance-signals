@@ -3,7 +3,7 @@
 #include "lib_gpacpp/gpacpp.hpp"
 #include <cassert>
 #ifdef _WIN32
-#include <Windows.h>
+#include <windows.h>
 #endif
 
 #define MOVE_FILE_NUM_RETRY 3
