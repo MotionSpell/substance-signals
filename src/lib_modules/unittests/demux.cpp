@@ -21,6 +21,29 @@ vector<int64_t> deltas(vector<int64_t> times) {
 }
 }
 
+// at the moment, the demuxer discards the first frame
+unittest("[DISABLED] LibavDemux: simple: 75 frames") {
+
+	struct MyOutput : ModuleS {
+		MyOutput() {
+			addInput(new Input<DataBase>(this));
+		}
+		void process(Data) override {
+			++frameCount;
+		}
+		int frameCount = 0;
+	};
+
+	auto demux = create<Demux::LibavDemux>("data/simple.ts");
+	auto rec = create<MyOutput>();
+	ConnectOutputToInput(demux->getOutput(0), rec->getInput(0));
+
+	demux->process(nullptr);
+	demux->flush();
+
+	ASSERT_EQUALS(75, rec->frameCount);
+}
+
 unittest("LibavDemux: rollover") {
 
 	struct MyOutput : ModuleS {
