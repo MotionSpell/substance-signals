@@ -8,6 +8,6 @@ function libcurl_build {
 }
 
 function libcurl_get_deps {
-  local a=0
+  echo openssl
 }
 
