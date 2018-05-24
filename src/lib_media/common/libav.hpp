@@ -14,7 +14,6 @@ struct AVPacket;
 extern "C" {
 #include <libavutil/pixfmt.h>
 #include <libavutil/samplefmt.h>
-#undef PixelFormat
 }
 
 #define AV_PKT_FLAG_RESET_DECODER (1 << 30)

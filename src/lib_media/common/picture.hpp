@@ -8,7 +8,6 @@
 
 namespace Modules {
 
-#undef PixelFormat //there are collisions with FFmpeg here
 enum PixelFormat {
 	UNKNOWN_PF = -1,
 	Y8,
