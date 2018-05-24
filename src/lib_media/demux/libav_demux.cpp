@@ -294,9 +294,13 @@ bool LibavDemux::dispatchable(AVPacket * const pkt) {
 		pkt->dts = lastDTS[pkt->stream_index];
 		log(Debug, "No DTS: setting last value %s.", pkt->dts);
 	}
-	if (!lastDTS[pkt->stream_index] && pkt->pts < clockToTimescale(startPTSIn180k*m_formatCtx->streams[pkt->stream_index]->time_base.num, m_formatCtx->streams[pkt->stream_index]->time_base.den)) {
-		av_free_packet(pkt);
-		return false;
+	if (!lastDTS[pkt->stream_index]) {
+		auto stream = m_formatCtx->streams[pkt->stream_index];
+		auto minPts = clockToTimescale(startPTSIn180k*stream->time_base.num, stream->time_base.den);
+		if(pkt->pts < minPts) {
+			av_free_packet(pkt);
+			return false;
+		}
 	}
 	return true;
 }
