@@ -4,11 +4,14 @@ set -euo pipefail
 export EXTRA=${EXTRA-$PWD/sysroot}
 export PKG_CONFIG_PATH=$EXTRA/lib/pkgconfig:${PKG_CONFIG_PATH-}
 
-echo '# config file'
-echo '# packages: $PKGS'
+echo "# config file"
+echo "# PKG_CONFIG_PATH: $PKG_CONFIG_PATH"
 
 readonly PKGS="$@"
 if [ ! -z "$PKGS" ] ; then
+
+  echo "# packages: $PKGS"
+
   if ! pkg-config --exists "$PKGS" ; then
     echo "Some packages were not found:" >&2
     for pkg in $PKGS ; do
@@ -16,6 +19,7 @@ if [ ! -z "$PKGS" ] ; then
         echo "* $pkg" >&2
       fi
     done
+    echo "using PKG_CONFIG_PATH=\"$PKG_CONFIG_PATH\"" >&2
     exit 1
   fi
 
