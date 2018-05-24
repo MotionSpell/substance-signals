@@ -3,27 +3,120 @@
   <ItemGroup>
     <ClCompile Include="tests.cpp" />
     <ClCompile Include="..\lib_signals\unittests\async.cpp">
-      <Filter>tests</Filter>
+      <Filter>signals</Filter>
     </ClCompile>
     <ClCompile Include="..\lib_signals\unittests\module.cpp">
-      <Filter>tests</Filter>
+      <Filter>signals</Filter>
     </ClCompile>
     <ClCompile Include="..\lib_signals\unittests\perf.cpp">
-      <Filter>tests</Filter>
+      <Filter>signals</Filter>
     </ClCompile>
     <ClCompile Include="..\lib_signals\unittests\simple.cpp">
-      <Filter>tests</Filter>
+      <Filter>signals</Filter>
     </ClCompile>
     <ClCompile Include="..\lib_signals\unittests\unit_result.cpp">
-      <Filter>tests</Filter>
+      <Filter>signals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib_utils\unittests\clock.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib_utils\unittests\fifo.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib_utils\unittests\misc.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib_utils\unittests\queue.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib_utils\unittests\scheduler.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib_pipeline\unittests\pipeline_topology.cpp">
+      <Filter>pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib_pipeline\unittests\pipeline_base.cpp">
+      <Filter>pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib_pipeline\unittests\pipeline_dynamic.cpp">
+      <Filter>pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib_pipeline\unittests\pipeline_interrupt.cpp">
+      <Filter>pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib_media\unittests\mpeg_dash_input.cpp">
+      <Filter>media</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib_media\unittests\player.cpp">
+      <Filter>media</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib_media\unittests\rectifier.cpp">
+      <Filter>media</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib_media\unittests\render.cpp">
+      <Filter>media</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib_modules\unittests\converter.cpp">
+      <Filter>modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib_modules\unittests\decode.cpp">
+      <Filter>modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib_modules\unittests\demux.cpp">
+      <Filter>modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib_modules\unittests\encoder.cpp">
+      <Filter>modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib_modules\unittests\erasure.cpp">
+      <Filter>modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib_modules\unittests\generator.cpp">
+      <Filter>modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib_modules\unittests\metadata.cpp">
+      <Filter>modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib_modules\unittests\mux.cpp">
+      <Filter>modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib_modules\unittests\simple.cpp">
+      <Filter>modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib_modules\unittests\streamer.cpp">
+      <Filter>modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib_modules\unittests\timings.cpp">
+      <Filter>modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib_modules\unittests\transcoder.cpp">
+      <Filter>modules</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="tests">
+    <Filter Include="signals">
       <UniqueIdentifier>{7bf9eaed-692e-4050-b005-92e0d8380a51}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="utils">
+      <UniqueIdentifier>{3c559c0f-217e-44bb-bd8a-f93069e3d2d3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pipeline">
+      <UniqueIdentifier>{914c89f5-a11d-41ab-8cda-b6389393b93d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="modules">
+      <UniqueIdentifier>{36ce03be-6e4c-45d7-955c-f977ae54dfee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="media">
+      <UniqueIdentifier>{e4afaae9-1e9c-4c2e-952e-56b6f681af6e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="tests.hpp" />
+    <ClInclude Include="..\lib_pipeline\unittests\pipeline_common.hpp">
+      <Filter>pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lib_modules\unittests\modules_common.hpp">
+      <Filter>modules</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

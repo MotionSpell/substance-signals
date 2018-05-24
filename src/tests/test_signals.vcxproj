@@ -219,15 +219,56 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\lib_media\unittests\mpeg_dash_input.cpp" />
+    <ClCompile Include="..\lib_media\unittests\player.cpp" />
+    <ClCompile Include="..\lib_media\unittests\rectifier.cpp" />
+    <ClCompile Include="..\lib_media\unittests\render.cpp" />
+    <ClCompile Include="..\lib_modules\unittests\converter.cpp" />
+    <ClCompile Include="..\lib_modules\unittests\decode.cpp" />
+    <ClCompile Include="..\lib_modules\unittests\demux.cpp" />
+    <ClCompile Include="..\lib_modules\unittests\encoder.cpp" />
+    <ClCompile Include="..\lib_modules\unittests\erasure.cpp" />
+    <ClCompile Include="..\lib_modules\unittests\generator.cpp" />
+    <ClCompile Include="..\lib_modules\unittests\metadata.cpp" />
+    <ClCompile Include="..\lib_modules\unittests\mux.cpp" />
+    <ClCompile Include="..\lib_modules\unittests\simple.cpp" />
+    <ClCompile Include="..\lib_modules\unittests\streamer.cpp" />
+    <ClCompile Include="..\lib_modules\unittests\timings.cpp" />
+    <ClCompile Include="..\lib_modules\unittests\transcoder.cpp" />
+    <ClCompile Include="..\lib_pipeline\unittests\pipeline_base.cpp" />
+    <ClCompile Include="..\lib_pipeline\unittests\pipeline_dynamic.cpp" />
+    <ClCompile Include="..\lib_pipeline\unittests\pipeline_interrupt.cpp" />
+    <ClCompile Include="..\lib_pipeline\unittests\pipeline_topology.cpp" />
     <ClCompile Include="..\lib_signals\unittests\async.cpp" />
     <ClCompile Include="..\lib_signals\unittests\module.cpp" />
     <ClCompile Include="..\lib_signals\unittests\perf.cpp" />
     <ClCompile Include="..\lib_signals\unittests\simple.cpp" />
     <ClCompile Include="..\lib_signals\unittests\unit_result.cpp" />
+    <ClCompile Include="..\lib_utils\unittests\clock.cpp" />
+    <ClCompile Include="..\lib_utils\unittests\fifo.cpp" />
+    <ClCompile Include="..\lib_utils\unittests\misc.cpp" />
+    <ClCompile Include="..\lib_utils\unittests\queue.cpp" />
+    <ClCompile Include="..\lib_utils\unittests\scheduler.cpp" />
     <ClCompile Include="tests.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\lib_modules\unittests\modules_common.hpp" />
+    <ClInclude Include="..\lib_pipeline\unittests\pipeline_common.hpp" />
     <ClInclude Include="tests.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\lib_media\media.vcxproj">
+      <Project>{3ed5c725-44b6-4e0b-a38c-73d85d8347cd}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\lib_modules\modules.vcxproj">
+      <Project>{f6843994-f116-4e68-8ef8-c88149887d4c}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\lib_pipeline\pipeline.vcxproj">
+      <Project>{574ff783-7940-4c5f-996f-93431aea2f1a}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\lib_utils\utils.vcxproj">
+      <Project>{bbd0b4eb-5070-4ecf-b626-da78ed6c8725}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

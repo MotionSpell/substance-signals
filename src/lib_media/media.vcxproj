@@ -39,8 +39,6 @@
     <ClInclude Include="mux\gpac_mux_mp4.hpp" />
     <ClInclude Include="mux\gpac_mux_mp4_mss.hpp" />
     <ClInclude Include="mux\libav_mux.hpp" />
-    <ClInclude Include="out\aws_mediastore.hpp" />
-    <ClInclude Include="out\aws_sdk_instance.hpp" />
     <ClInclude Include="out\file.hpp" />
     <ClInclude Include="out\http.hpp" />
     <ClInclude Include="out\null.hpp" />
@@ -93,8 +91,6 @@
     <ClCompile Include="mux\gpac_mux_mp4.cpp" />
     <ClCompile Include="mux\gpac_mux_mp4_mss.cpp" />
     <ClCompile Include="mux\libav_mux.cpp" />
-    <ClCompile Include="out\aws_mediastore.cpp" />
-    <ClCompile Include="out\aws_sdk_instance.cpp" />
     <ClCompile Include="out\file.cpp" />
     <ClCompile Include="out\http.cpp" />
     <ClCompile Include="out\null.cpp" />
