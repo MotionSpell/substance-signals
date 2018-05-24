@@ -366,10 +366,6 @@ void LibavDemux::process(Data data) {
 			dispatch(&pkt);
 		}
 	}
-
-	while (dispatchPkts.read(pkt)) {
-		dispatch(&pkt);
-	}
 }
 
 }
