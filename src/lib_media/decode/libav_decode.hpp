@@ -22,8 +22,8 @@ class LibavDecode : public ModuleS, public LibavDirectRendering {
 
 	private:
 		bool processPacket(AVPacket const * pkt);
-		bool processAudio(AVPacket const * pkt);
-		bool processVideo(AVPacket const * pkt);
+		bool processAudio();
+		bool processVideo();
 		void setMediaTime(DataBase* data);
 		LibavDirectRenderingContext* getPicture(Resolution res, Resolution resInternal, PixelFormat format) override;
 
@@ -31,6 +31,8 @@ class LibavDecode : public ModuleS, public LibavDirectRendering {
 		std::unique_ptr<ffpp::Frame> const avFrame;
 		OutputPicture *videoOutput;
 		OutputPcm *audioOutput;
+
+		int (*avcodec_decode_bitstream)(AVCodecContext*, AVFrame*, int* gotFrame, const AVPacket*);
 };
 
 }

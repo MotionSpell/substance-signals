@@ -11,8 +11,12 @@ LibavDecode::LibavDecode(std::shared_ptr<const MetadataPktLibav> metadata)
 	: codecCtx(shptr(avcodec_alloc_context3(nullptr))), avFrame(new ffpp::Frame) {
 	avcodec_copy_context(codecCtx.get(), metadata->getAVCodecContext().get());
 	switch (codecCtx->codec_type) {
-	case AVMEDIA_TYPE_VIDEO: break;
-	case AVMEDIA_TYPE_AUDIO: break;
+	case AVMEDIA_TYPE_VIDEO:
+		avcodec_decode_bitstream = &avcodec_decode_video2;
+		break;
+	case AVMEDIA_TYPE_AUDIO:
+		avcodec_decode_bitstream = &avcodec_decode_audio4;
+		break;
 	default: throw error(format("codec_type %s not supported. Must be audio or video.", codecCtx->codec_type));
 	}
 
@@ -54,18 +58,7 @@ LibavDecode::~LibavDecode() {
 	flush(); //flush to avoid a leak of LibavDirectRenderingContext pictures
 }
 
-bool LibavDecode::processAudio(AVPacket const * const pkt) {
-	int gotFrame = 0;
-	if (avcodec_decode_audio4(codecCtx.get(), avFrame->get(), &gotFrame, pkt) < 0) {
-		log(Warning, "Error encountered while decoding audio.");
-		return false;
-	}
-	if (av_frame_get_decode_error_flags(avFrame->get()) || (avFrame->get()->flags & AV_FRAME_FLAG_CORRUPT)) {
-		log(Error, "Corrupted audio frame decoded.");
-	}
-	if (!gotFrame) {
-		return false;
-	}
+bool LibavDecode::processAudio() {
 
 	auto out = audioOutput->getBuffer(0);
 	PcmFormat pcmFormat;
@@ -81,18 +74,7 @@ bool LibavDecode::processAudio(AVPacket const * const pkt) {
 	return true;
 }
 
-bool LibavDecode::processVideo(AVPacket const * const pkt) {
-	int gotPicture = 0;
-	if (avcodec_decode_video2(codecCtx.get(), avFrame->get(), &gotPicture, pkt) < 0) {
-		log(Warning, "Error encountered while decoding video.");
-		return false;
-	}
-	if (av_frame_get_decode_error_flags(avFrame->get()) || (avFrame->get()->flags & AV_FRAME_FLAG_CORRUPT)) {
-		log(Error, "Corrupted video frame decoded (%s).", gotPicture);
-	}
-	if (!gotPicture) {
-		return false;
-	}
+bool LibavDecode::processVideo() {
 
 	std::shared_ptr<DataPicture> pic;
 	auto ctx = static_cast<LibavDirectRenderingContext*>(avFrame->get()->opaque);
@@ -136,11 +118,22 @@ void LibavDecode::process(Data data) {
 
 
 bool LibavDecode::processPacket(AVPacket const * pkt) {
+	int gotFrame = 0;
+	if (avcodec_decode_bitstream(codecCtx.get(), avFrame->get(), &gotFrame, pkt) < 0) {
+		log(Warning, "Error encountered while decoding bitstream.");
+		return false;
+	}
+	if (av_frame_get_decode_error_flags(avFrame->get()) || (avFrame->get()->flags & AV_FRAME_FLAG_CORRUPT)) {
+		log(Error, "Corrupted frame decoded (%s).", gotFrame);
+	}
+	if (!gotFrame) {
+		return false;
+	}
 	switch (codecCtx->codec_type) {
 	case AVMEDIA_TYPE_VIDEO:
-		return processVideo(pkt);
+		return processVideo();
 	case AVMEDIA_TYPE_AUDIO:
-		return processAudio(pkt);
+		return processAudio();
 	default:
 		assert(0);
 		return false;
