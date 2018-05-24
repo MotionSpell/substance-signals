@@ -7,6 +7,12 @@ export PKG_CONFIG_PATH=$EXTRA/lib/pkgconfig:${PKG_CONFIG_PATH-}
 echo "# config file"
 echo "# PKG_CONFIG_PATH: $PKG_CONFIG_PATH"
 
+if [ ! -d "$EXTRA" ] ; then
+  echo "EXTRA directory not found: $EXTRA" >&2
+  echo "Please use 'export EXTRA=/my/sysroot' to specify an existing directory" >&2
+  exit 1
+fi
+
 readonly PKGS="$@"
 if [ ! -z "$PKGS" ] ; then
 
