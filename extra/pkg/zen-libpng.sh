@@ -6,9 +6,10 @@ function libpng_build {
   lazy_extract "libpng.tar.xz"
   mkgit "libpng"
 
-  LDFLAGS+=" -L$WORK/release/$host/lib" \
-  CFLAGS+=" -I$WORK/release/$host/include" \
-  CPPFLAGS+=" -I$WORK/release/$host/include" \
+  # workaround 'zlib not installed' (libpng's BS doesn't use pkg-config for zlib)
+  LDFLAGS+=" -L$PREFIX/lib" \
+  CFLAGS+=" -I$PREFIX/include" \
+  CPPFLAGS+=" -I$PREFIX/include" \
   autoconf_build $host "libpng" \
     --enable-shared \
     --disable-static
