@@ -21,8 +21,7 @@ vector<int64_t> deltas(vector<int64_t> times) {
 }
 }
 
-
-unittest("[DISABLED] LibavDemux: rollover") {
+unittest("LibavDemux: rollover") {
 
 	struct MyOutput : ModuleS {
 		MyOutput() {
@@ -41,7 +40,7 @@ unittest("[DISABLED] LibavDemux: rollover") {
 	demux->process(nullptr);
 	demux->flush();
 
-	vector<int64_t> expected(74, 7200);
+	vector<int64_t> expected(73, 7200);
 	ASSERT_EQUALS(expected, deltas(rec->times));
 }
 
