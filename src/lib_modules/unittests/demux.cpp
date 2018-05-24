@@ -10,6 +10,17 @@
 
 using namespace Tests;
 using namespace Modules;
+using namespace std;
+
+namespace {
+vector<int64_t> deltas(vector<int64_t> times) {
+	vector<int64_t> r;
+	for(size_t i=0; i < times.size()-1; ++i)
+		r.push_back(times[i+1] - times[i]);
+	return r;
+}
+}
+
 
 unittest("[DISABLED] LibavDemux: rollover") {
 
@@ -17,10 +28,10 @@ unittest("[DISABLED] LibavDemux: rollover") {
 		MyOutput() {
 			addInput(new Input<DataBase>(this));
 		}
-		void process(Data) override {
-			++demuxedPictureCount;
+		vector<int64_t> times;
+		void process(Data data) override {
+			times.push_back(data->getMediaTime());
 		}
-		int demuxedPictureCount = 0;
 	};
 
 	auto demux = create<Demux::LibavDemux>("data/rollover.ts");
@@ -30,7 +41,8 @@ unittest("[DISABLED] LibavDemux: rollover") {
 	demux->process(nullptr);
 	demux->flush();
 
-	ASSERT_EQUALS(75, rec->demuxedPictureCount);
+	vector<int64_t> expected(74, 7200);
+	ASSERT_EQUALS(expected, deltas(rec->times));
 }
 
 namespace {
