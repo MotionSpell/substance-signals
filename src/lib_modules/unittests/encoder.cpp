@@ -53,8 +53,8 @@ void RAPTest(const Fraction fps, const std::vector<uint64_t> &times, const std::
 	size_t i = 0;
 	auto onFrame = [&](Data data) {
 		if (i < RAPs.size()) {
-			auto pkt = safe_cast<const DataAVPacket>(data)->getPacket();
-			ASSERT((pkt->flags & AV_PKT_FLAG_KEY) == RAPs[i]);
+			auto pkt = safe_cast<const DataAVPacket>(data);
+			ASSERT(pkt->isRap() == RAPs[i]);
 		}
 		i++;
 	};
