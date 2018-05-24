@@ -2,6 +2,7 @@
 #include "lib_modules/modules.hpp"
 #include "lib_media/demux/gpac_demux_mp4_simple.hpp"
 #include "lib_media/demux/gpac_demux_mp4_full.hpp"
+#include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/in/file.hpp"
 #include "lib_media/out/print.hpp"
 #include "lib_utils/tools.hpp"
@@ -9,6 +10,28 @@
 
 using namespace Tests;
 using namespace Modules;
+
+unittest("[DISABLED] LibavDemux: rollover") {
+
+	struct MyOutput : ModuleS {
+		MyOutput() {
+			addInput(new Input<DataBase>(this));
+		}
+		void process(Data) override {
+			++demuxedPictureCount;
+		}
+		int demuxedPictureCount = 0;
+	};
+
+	auto demux = create<Demux::LibavDemux>("data/rollover.ts");
+	auto rec = create<MyOutput>();
+	ConnectOutputToInput(demux->getOutput(0), rec->getInput(0));
+
+	demux->process(nullptr);
+	demux->flush();
+
+	ASSERT_EQUALS(75, rec->demuxedPictureCount);
+}
 
 namespace {
 
