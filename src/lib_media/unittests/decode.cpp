@@ -88,6 +88,32 @@ unittest("decode: audio simple") {
 	ASSERT_EQUALS(3, rec->frameCount);
 }
 
+unittest("[DISABLED] decode: timestamp propagation") {
+	struct FrameCounter : ModuleS {
+		FrameCounter() {
+			addInput(new Input<DataBase>(this));
+		}
+		void process(Data data) override {
+			mediaTimes.push_back(data->getMediaTime());
+		}
+		std::vector<int64_t> mediaTimes;
+	};
+
+	auto decode = createMp3Decoder();
+	auto rec = create<FrameCounter>();
+	ConnectOutputToInput(decode->getOutput(0), rec->getInput(0));
+
+	for(int i=0; i < 5; ++i) {
+		auto frame = getTestMp3Frame();
+		frame->setMediaTime(0);
+		decode->process(frame);
+	}
+	decode->flush();
+
+	auto expected = std::vector<int64_t>({0, 1, 2, 3, 4});
+	ASSERT_EQUALS(expected, rec->mediaTimes);
+}
+
 namespace {
 std::unique_ptr<Decode::LibavDecode> createVideoDecoder() {
 	return createGenericDecoder(AV_CODEC_ID_H264);
