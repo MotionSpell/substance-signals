@@ -10,16 +10,12 @@ struct AVCodecContext;
 struct AVFormatContext;
 struct AVFrame;
 struct AVPacket;
-#ifdef _MSC_VER
-enum AVPixelFormat;
-enum AVSampleFormat;
-#undef PixelFormat
-#else
+
 extern "C" {
-#include <libavcodec/avcodec.h>
+#include <libavutil/pixfmt.h>
+#include <libavutil/samplefmt.h>
 #undef PixelFormat
 }
-#endif
 
 #define AV_PKT_FLAG_RESET_DECODER (1 << 30)
 
