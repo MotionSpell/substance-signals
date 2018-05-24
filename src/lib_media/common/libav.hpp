@@ -16,9 +16,6 @@ extern "C" {
 
 #define AV_PKT_FLAG_RESET_DECODER (1 << 30)
 
-template<>
-std::shared_ptr<AVCodecContext> shptr(AVCodecContext *p);
-
 namespace Modules {
 
 void AVCodecContextDeleter(AVCodecContext *p);
