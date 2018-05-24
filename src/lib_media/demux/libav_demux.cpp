@@ -344,9 +344,6 @@ void LibavDemux::sparseStreamsHeartbeat(AVPacket const * const pkt) {
 }
 
 void LibavDemux::process(Data data) {
-	if (startPTSIn180k) {
-		startPTSIn180k += fractionToClock(g_DefaultClock->now());
-	}
 	workingThread = std::thread(&LibavDemux::threadProc, this);
 
 	AVPacket pkt;
