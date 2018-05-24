@@ -16,6 +16,9 @@ extern "C" {
 
 #define AV_PKT_FLAG_RESET_DECODER (1 << 30)
 
+template<>
+std::shared_ptr<AVCodecContext> shptr(AVCodecContext *p);
+
 namespace Modules {
 
 void AVCodecContextDeleter(AVCodecContext *p);
@@ -27,6 +30,7 @@ class MetadataPktLibav : public IMetadata {
 		StreamType getStreamType() const override;
 		int64_t getBitrate() const;
 		Fraction getTimeScale() const;
+		std::string getCodecName() const;
 		std::shared_ptr<AVCodecContext> getAVCodecContext() const;
 		int getId() const;
 
