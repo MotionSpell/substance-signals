@@ -7,6 +7,13 @@ int64_t pgcd(int64_t a, int64_t b) {
 	return b ? pgcd(b, a%b) : a;
 }
 
+template<typename T>
+static void simplifyFraction(T& num, T& den) {
+	auto const gcd = pgcd(num, den);
+	num /= gcd;
+	den /= gcd;
+}
+
 struct Fraction {
 	Fraction(int64_t num = 1, int64_t den = 1) : num(num), den(den) {
 	}
@@ -15,20 +22,28 @@ struct Fraction {
 		return (T)num / (T)den;
 	}
 	inline Fraction operator+(const Fraction &frac) const {
-		auto const gcd = pgcd(num * frac.den + frac.num * den, den * frac.den);
-		return Fraction((num * frac.den + frac.num * den) / gcd, (den * frac.den) / gcd);
+		auto newNum = num * frac.den + frac.num * den;
+		auto newDen = den * frac.den;
+		simplifyFraction(newNum, newDen);
+		return Fraction(newNum, newDen);
 	}
 	inline Fraction operator-(const Fraction &frac) const {
-		auto const gcd = pgcd(num * frac.den - frac.num * den, den * frac.den);
-		return Fraction((num * frac.den - frac.num * den) / gcd, (den * frac.den) / gcd);
+		auto newNum = num * frac.den - frac.num * den;
+		auto newDen = den * frac.den;
+		simplifyFraction(newNum, newDen);
+		return Fraction(newNum, newDen);
 	}
 	inline Fraction operator*(const Fraction &frac) const {
-		auto const gcd = pgcd(num * frac.num, den * frac.den);
-		return Fraction((num * frac.num) / gcd, (den * frac.den) / gcd);
+		auto newNum = num * frac.num;
+		auto newDen = den * frac.den;
+		simplifyFraction(newNum, newDen);
+		return Fraction(newNum, newDen);
 	}
 	inline Fraction operator/(const Fraction &frac) const {
-		auto const gcd = pgcd(num * frac.den, den * frac.num);
-		return Fraction((num * frac.den) / gcd, (den * frac.num) / gcd);
+		auto newNum = num * frac.den;
+		auto newDen = den * frac.num;
+		simplifyFraction(newNum, newDen);
+		return Fraction(newNum, newDen);
 	}
 	inline bool operator==(const Fraction& rhs) const {
 		return num * rhs.den == rhs.num * den;

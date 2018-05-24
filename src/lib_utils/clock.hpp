@@ -18,8 +18,8 @@ extern const std::shared_ptr<IClock> g_DefaultClock;
 
 template<typename T>
 static T convertToTimescale(T time, uint64_t timescaleSrc, uint64_t timescaleDst) {
-	auto const gcd = pgcd(timescaleSrc, timescaleDst);
-	return divUp<T>(time * (timescaleDst / gcd), (timescaleSrc / gcd));
+	simplifyFraction(timescaleSrc, timescaleDst);
+	return divUp<T>(time * timescaleDst, timescaleSrc);
 }
 
 template<typename T>
