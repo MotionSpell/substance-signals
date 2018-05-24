@@ -5,7 +5,7 @@
 namespace Modules {
 namespace Demux {
 
-class ISOProgressiveReader;
+struct ISOProgressiveReader;
 
 class GPACDemuxMP4Full : public ModuleS {
 	public:
