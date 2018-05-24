@@ -74,9 +74,9 @@ bool LibavDecode::processAudio(AVPacket const * const pkt) {
 	for (uint8_t i = 0; i < pcmFormat.numPlanes; ++i) {
 		out->setPlane(i, avFrame->get()->data[i], avFrame->get()->nb_samples * pcmFormat.getBytesPerSample() / pcmFormat.numPlanes);
 	}
-	auto const &timebase = safe_cast<const MetadataPktLibavAudio>(getInput(0)->getMetadata())->getAVCodecContext()->time_base;
 
-	out->setMediaTime(avFrame->get()->pts * timebase.num, timebase.den);
+	setMediaTime(out.get());
+
 	audioOutput->emit(out);
 	return true;
 }
@@ -103,11 +103,16 @@ bool LibavDecode::processVideo(AVPacket const * const pkt) {
 		pic = DataPicture::create(videoOutput, Resolution(avFrame->get()->width, avFrame->get()->height), libavPixFmt2PixelFormat((AVPixelFormat)avFrame->get()->format));
 		copyToPicture(avFrame->get(), pic.get());
 	}
-	auto const &timebase = safe_cast<const MetadataPktLibavVideo>(getInput(0)->getMetadata())->getAVCodecContext()->time_base;
 
-	pic->setMediaTime(avFrame->get()->pts * timebase.num, timebase.den);
+	setMediaTime(pic.get());
+
 	if (videoOutput) videoOutput->emit(pic);
 	return true;
+}
+
+void LibavDecode::setMediaTime(DataBase* data) {
+	auto const timebase = safe_cast<const MetadataPktLibav>(getInput(0)->getMetadata())->getAVCodecContext()->time_base;
+	data->setMediaTime(avFrame->get()->pts * timebase.num, timebase.den);
 }
 
 LibavDirectRendering::LibavDirectRenderingContext* LibavDecode::getPicture(Resolution res, Resolution resInternal, PixelFormat format) {

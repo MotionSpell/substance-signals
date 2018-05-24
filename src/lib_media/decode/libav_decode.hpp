@@ -24,6 +24,7 @@ class LibavDecode : public ModuleS, public LibavDirectRendering {
 		bool processPacket(AVPacket const * pkt);
 		bool processAudio(AVPacket const * pkt);
 		bool processVideo(AVPacket const * pkt);
+		void setMediaTime(DataBase* data);
 		LibavDirectRenderingContext* getPicture(Resolution res, Resolution resInternal, PixelFormat format) override;
 
 		std::shared_ptr<AVCodecContext> const codecCtx;
