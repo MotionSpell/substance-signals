@@ -228,6 +228,13 @@ void LibavDemux::threadProc() {
 		int status = av_read_frame(m_formatCtx, &pkt);
 		if (status < 0 || !rectifyTimestamps(pkt)) {
 			av_free_packet(&pkt);
+
+			if (status == (int)AVERROR(EAGAIN)) {
+				log(Debug, "Stream asks to try again later. Sleeping for a short period of time.");
+				std::this_thread::sleep_for(std::chrono::milliseconds(10));
+				continue;
+			}
+
 			if (status == (int)AVERROR_EOF || (m_formatCtx->pb && m_formatCtx->pb->eof_reached)) {
 				log(Info, "End of stream detected - %s", loop ? "looping" : "leaving");
 				if (loop) {
@@ -235,10 +242,6 @@ void LibavDemux::threadProc() {
 					nextPacketResetFlag = true;
 					continue;
 				}
-			} else if (status == (int)AVERROR(EAGAIN)) {
-				log(Debug, "Stream asks to try again later. Sleeping for a short period of time.");
-				std::this_thread::sleep_for(std::chrono::milliseconds(10));
-				continue;
 			} else if (m_formatCtx->pb && m_formatCtx->pb->error) {
 				log(Error, "Stream contains an irrecoverable error (%s) - leaving", status);
 			}
