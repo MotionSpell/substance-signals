@@ -111,7 +111,8 @@ bool LibavDecode::processVideo(AVPacket const * const pkt) {
 }
 
 void LibavDecode::setMediaTime(DataBase* data) {
-	auto const timebase = safe_cast<const MetadataPktLibav>(getInput(0)->getMetadata())->getAVCodecContext()->time_base;
+	auto const meta = safe_cast<const MetadataPktLibav>(getInput(0)->getMetadata());
+	auto const timebase = meta->getAVCodecContext()->time_base;
 	data->setMediaTime(avFrame->get()->pts * timebase.num, timebase.den);
 }
 
