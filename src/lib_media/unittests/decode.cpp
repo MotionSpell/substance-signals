@@ -79,11 +79,13 @@ unittest("decode: audio simple") {
 	auto rec = create<FrameCounter>();
 	ConnectOutputToInput(decode->getOutput(0), rec->getInput(0));
 
-	auto frame = getTestMp3Frame();
-	decode->process(frame);
+	for(int i=0; i < 3; ++i) {
+		auto frame = getTestMp3Frame();
+		decode->process(frame);
+	}
 	decode->flush();
 
-	ASSERT_EQUALS(1, rec->frameCount);
+	ASSERT_EQUALS(3, rec->frameCount);
 }
 
 namespace {
