@@ -60,7 +60,8 @@ void LibavDemux::initRestamp() {
 		}
 
 		if (format == "rtsp" || format == "rtp" || format == "mpegts") {
-			startPTSIn180k = std::max<int64_t>(startPTSIn180k, timescaleToClock(m_formatCtx->streams[i]->start_time*m_formatCtx->streams[i]->time_base.num, m_formatCtx->streams[i]->time_base.den));
+			auto stream = m_formatCtx->streams[i];
+			startPTSIn180k = std::max<int64_t>(startPTSIn180k, timescaleToClock(stream->start_time*stream->time_base.num, stream->time_base.den));
 		} else {
 			startPTSIn180k = 0;
 		}
