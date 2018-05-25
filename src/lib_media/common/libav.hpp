@@ -5,7 +5,6 @@
 #include <memory>
 
 struct AVCodecContext;
-struct AVFormatContext;
 struct AVFrame;
 struct AVPacket;
 
