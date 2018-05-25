@@ -21,13 +21,13 @@ unittest("encoder: video simple") {
 
 	auto encode = create<Encode::LibavEncode>(Encode::LibavEncode::Video);
 	Connect(encode->getOutput(0)->getSignal(), onFrame);
-	for (int i = 0; i < 50; ++i) {
+	for (int i = 0; i < 37; ++i) {
 		picture->setMediaTime(i); // avoid warning about non-monotonic pts
 		encode->process(picture);
 	}
 	encode->flush();
 
-	ASSERT_EQUALS(50, numEncodedFrames);
+	ASSERT_EQUALS(37, numEncodedFrames);
 }
 
 unittest("encoder: timestamp passthrough") {
