@@ -22,8 +22,9 @@ unittest("encoder: video simple") {
 	for (int i = 0; i < 50; ++i) {
 		encode->process(picture);
 	}
+	encode->flush();
 
-	ASSERT(numEncodedFrames > 0);
+	ASSERT_EQUALS(50, numEncodedFrames);
 }
 
 unittest("H265 encode and GPAC mp4 mux") {
