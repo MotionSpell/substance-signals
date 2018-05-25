@@ -166,17 +166,7 @@ LibavEncode::LibavEncode(Type type, Params &params)
 
 void LibavEncode::flush() {
 	if (codecCtx && (codecCtx->codec->capabilities & AV_CODEC_CAP_DELAY)) {
-		switch (codecCtx->codec_type) {
-		case AVMEDIA_TYPE_VIDEO:
-			while (processVideo(nullptr)) {}
-			break;
-		case AVMEDIA_TYPE_AUDIO:
-			while (processAudio(nullptr)) {}
-			break;
-		default:
-			assert(0);
-			break;
-		}
+		encodeFrame(nullptr);
 	}
 }
 
@@ -216,27 +206,7 @@ bool LibavEncode::processAudio(Data data) {
 		f->pts = computePTS(data->getMediaTime());
 	}
 
-	int ret;
-
-	ret = avcodec_send_frame(codecCtx.get(), f);
-	if (ret != 0) {
-		log(Warning, "error encountered while encoding audio frame %s : %s", f ? f->pts : std::numeric_limits<int64_t>::min(), avStrError(ret));
-		return false;
-	}
-
-	while(1) {
-		auto out = output->getBuffer(0);
-		AVPacket *pkt = out->getPacket();
-		ret = avcodec_receive_packet(codecCtx.get(), pkt);
-		if(ret != 0)
-			break;
-
-		if (pkt->duration != codecCtx->frame_size) {
-			log(Warning, "pkt duration %s is different from codec frame size %s - this may cause timing errors", pkt->duration, codecCtx->frame_size);
-		}
-		computeDurationAndEmit(out, pkt->duration);
-	}
-
+	encodeFrame(f);
 	return true;
 }
 
@@ -278,12 +248,18 @@ bool LibavEncode::processVideo(Data data) {
 		f->pts = computePTS(data->getMediaTime());
 	}
 
+	encodeFrame(f);
+	return true;
+}
+
+void LibavEncode::encodeFrame(AVFrame* f) {
 	int ret;
 
 	ret = avcodec_send_frame(codecCtx.get(), f);
 	if (ret != 0) {
-		log(Warning, "error encountered while encoding video frame %s : %s", f ? f->pts : std::numeric_limits<int64_t>::min(), avStrError(ret));
-		return false;
+		auto desc = f ? format("pts=%s", f->pts) : format("flush");
+		log(Warning, "error encountered while encoding frame (%s) : %s", desc, avStrError(ret));
+		return;
 	}
 
 	while(1) {
@@ -293,10 +269,12 @@ bool LibavEncode::processVideo(Data data) {
 		if(ret != 0)
 			break;
 
+		if (pkt->duration != codecCtx->frame_size) {
+			log(Warning, "pkt duration %s is different from codec frame size %s - this may cause timing errors", pkt->duration, codecCtx->frame_size);
+		}
+
 		computeDurationAndEmit(out, TIMESCALE_MUL);
 	}
-
-	return true;
 }
 
 void LibavEncode::process(Data data) {
