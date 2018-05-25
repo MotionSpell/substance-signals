@@ -5,6 +5,7 @@
 #include "lib_media/mux/gpac_mux_mp4.hpp"
 #include "lib_utils/tools.hpp"
 #include <iostream> // std::cerr
+#include <vector>
 
 using namespace Tests;
 using namespace Modules;
@@ -25,6 +26,25 @@ unittest("encoder: video simple") {
 	encode->flush();
 
 	ASSERT_EQUALS(50, numEncodedFrames);
+}
+
+unittest("[DISABLED] encoder: timestamp passthrough") {
+	std::vector<int64_t> times;
+	auto onFrame = [&](Data data) {
+		times.push_back(data->getMediaTime());
+	};
+
+	auto encode = create<Encode::LibavEncode>(Encode::LibavEncode::Video);
+	Connect(encode->getOutput(0)->getSignal(), onFrame);
+	for (int i = 0; i < 5; ++i) {
+		auto picture = shptr(new PictureYUV420P(VIDEO_RESOLUTION));
+		picture->setMediaTime(i);
+		encode->process(picture);
+	}
+	encode->flush();
+
+	std::vector<int64_t> expected = {0, 1, 2, 3, 4};
+	ASSERT_EQUALS(expected, times);
 }
 
 unittest("H265 encode and GPAC mp4 mux") {
