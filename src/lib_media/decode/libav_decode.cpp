@@ -81,9 +81,7 @@ void LibavDecode::processVideo() {
 }
 
 void LibavDecode::setMediaTime(DataBase* data) {
-	auto const meta = safe_cast<const MetadataPktLibav>(getInput(0)->getMetadata());
-	auto const timebase = meta->getAVCodecContext()->time_base;
-	data->setMediaTime(avFrame->get()->pts * timebase.num, timebase.den);
+	data->setMediaTime(avFrame->get()->pts);
 }
 
 LibavDirectRendering::LibavDirectRenderingContext* LibavDecode::getPicture(Resolution res, Resolution resInternal, PixelFormat format) {
@@ -101,6 +99,7 @@ void LibavDecode::process(Data data) {
 		pkt->flags &= ~AV_PKT_FLAG_RESET_DECODER;
 	}
 
+	pkt->pts = data->getMediaTime();
 	processPacket(pkt);
 }
 

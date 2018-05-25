@@ -88,7 +88,7 @@ unittest("decode: audio simple") {
 	ASSERT_EQUALS(3, rec->frameCount);
 }
 
-unittest("[DISABLED] decode: timestamp propagation") {
+unittest("decode: timestamp propagation") {
 	struct FrameCounter : ModuleS {
 		FrameCounter() {
 			addInput(new Input<DataBase>(this));
