@@ -4,14 +4,15 @@
 #include "lib_media/encode/libav_encode.hpp"
 #include "lib_media/mux/gpac_mux_mp4.hpp"
 #include "lib_utils/tools.hpp"
-#include <iostream> // std::cerr
+#include <iostream> // cerr
 #include <vector>
 
 using namespace Tests;
 using namespace Modules;
+using namespace std;
 
 unittest("encoder: video simple") {
-	auto picture = shptr(new PictureYUV420P(VIDEO_RESOLUTION));
+	auto picture = make_shared<PictureYUV420P>(VIDEO_RESOLUTION);
 
 	int numEncodedFrames = 0;
 	auto onFrame = [&](Data /*data*/) {
@@ -29,7 +30,7 @@ unittest("encoder: video simple") {
 }
 
 unittest("[DISABLED] encoder: timestamp passthrough") {
-	std::vector<int64_t> times;
+	vector<int64_t> times;
 	auto onFrame = [&](Data data) {
 		times.push_back(data->getMediaTime());
 	};
@@ -37,13 +38,13 @@ unittest("[DISABLED] encoder: timestamp passthrough") {
 	auto encode = create<Encode::LibavEncode>(Encode::LibavEncode::Video);
 	Connect(encode->getOutput(0)->getSignal(), onFrame);
 	for (int i = 0; i < 5; ++i) {
-		auto picture = shptr(new PictureYUV420P(VIDEO_RESOLUTION));
+		auto picture = make_shared<PictureYUV420P>(VIDEO_RESOLUTION);
 		picture->setMediaTime(i);
 		encode->process(picture);
 	}
 	encode->flush();
 
-	std::vector<int64_t> expected = {0, 1, 2, 3, 4};
+	vector<int64_t> expected = {0, 1, 2, 3, 4};
 	ASSERT_EQUALS(expected, times);
 }
 
@@ -56,20 +57,20 @@ unittest("H265 encode and GPAC mp4 mux") {
 		auto mux = create<Mux::GPACMuxMP4>("tmp");
 		ConnectOutputToInput(encode->getOutput(0), mux->getInput(0));
 
-		auto picture = shptr(new PictureYUV420P(VIDEO_RESOLUTION));
+		auto picture = make_shared<PictureYUV420P>(VIDEO_RESOLUTION);
 		encode->process(picture);
 		encode->flush();
 		mux->flush();
-	} catch (std::exception const &e) {
-		std::cerr << "No support for \"" << p.avcodecCustom << "\". Skipping test (" << e.what() << ")" << std::endl;
+	} catch (exception const &e) {
+		cerr << "No support for \"" << p.avcodecCustom << "\". Skipping test (" << e.what() << ")" << endl;
 	}
 }
 
-void RAPTest(const Fraction fps, const std::vector<uint64_t> &times, const std::vector<bool> &RAPs) {
+void RAPTest(const Fraction fps, const vector<uint64_t> &times, const vector<bool> &RAPs) {
 	Encode::LibavEncode::Params p;
 	p.frameRate = fps;
 	p.GOPSize = fps;
-	auto picture = shptr(new PictureYUV420P(VIDEO_RESOLUTION));
+	auto picture = make_shared<PictureYUV420P>(VIDEO_RESOLUTION);
 	auto encode = create<Encode::LibavEncode>(Encode::LibavEncode::Video, p);
 	size_t i = 0;
 	auto onFrame = [&](Data data) {
@@ -89,29 +90,29 @@ void RAPTest(const Fraction fps, const std::vector<uint64_t> &times, const std::
 }
 
 unittest("encoder: RAP placement (25/1 fps)") {
-	const std::vector<uint64_t> times = { 0, IClock::Rate / 2, IClock::Rate, IClock::Rate * 3 / 2, IClock::Rate * 2 };
-	const std::vector<bool> RAPs = { true, false, true, false, true };
+	const vector<uint64_t> times = { 0, IClock::Rate / 2, IClock::Rate, IClock::Rate * 3 / 2, IClock::Rate * 2 };
+	const vector<bool> RAPs = { true, false, true, false, true };
 	RAPTest(Fraction(25, 1), times, RAPs);
 }
 
 unittest("encoder: RAP placement (30000/1001 fps)") {
-	const std::vector<uint64_t> times = { 0, IClock::Rate/2, IClock::Rate, IClock::Rate*3/2, IClock::Rate*2 };
-	const std::vector<bool> RAPs = { true, false, true, false, true };
+	const vector<uint64_t> times = { 0, IClock::Rate/2, IClock::Rate, IClock::Rate*3/2, IClock::Rate*2 };
+	const vector<bool> RAPs = { true, false, true, false, true };
 	RAPTest(Fraction(30000, 1001), times, RAPs);
 }
 
 unittest("encoder: RAP placement (incorrect timings)") {
-	const std::vector<uint64_t> times = { 0, 0, IClock::Rate };
-	const std::vector<bool> RAPs = { true, false, true };
+	const vector<uint64_t> times = { 0, 0, IClock::Rate };
+	const vector<bool> RAPs = { true, false, true };
 	RAPTest(Fraction(25, 1), times, RAPs);
 }
 
 unittest("[DISABLED] GPAC mp4 mux: don't create empty fragments") {
 	auto const segmentDurationInMs = 1000;
-	const std::vector<uint64_t> times = { IClock::Rate, 0, 3*IClock::Rate };
+	const vector<uint64_t> times = { IClock::Rate, 0, 3*IClock::Rate };
 	Encode::LibavEncode::Params p;
 	p.frameRate.num = 1;
-	auto picture = shptr(new PictureYUV420P(VIDEO_RESOLUTION));
+	auto picture = make_shared<PictureYUV420P>(VIDEO_RESOLUTION);
 	auto encode = create<Encode::LibavEncode>(Encode::LibavEncode::Video, p);
 	auto mux = create<Mux::GPACMuxMP4>("chrome", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerRAP, Mux::GPACMuxMP4::Browsers | Mux::GPACMuxMP4::SegmentAtAny);
 	ConnectOutputToInput(encode->getOutput(0), mux->getInput(0));
