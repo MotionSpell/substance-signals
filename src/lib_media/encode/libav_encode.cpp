@@ -195,20 +195,6 @@ int64_t LibavEncode::computePTS(const int64_t mediaTime) const {
 	return (mediaTime * codecCtx->time_base.den) / (codecCtx->time_base.num * (int64_t)IClock::Rate);
 }
 
-void LibavEncode::processAudio(Data data) {
-	AVFrame *f = nullptr;
-	if (data) {
-		const auto pcmData = safe_cast<const DataPcm>(data).get();
-		if (pcmData->getFormat() != *pcmFormat)
-			throw error("Incompatible audio data (1)");
-		f = avFrame->get();
-		libavFrameDataConvert(pcmData, f);
-		f->pts = computePTS(data->getMediaTime());
-	}
-
-	encodeFrame(f);
-}
-
 void LibavEncode::computeFrameAttributes(AVFrame * const f, const int64_t currMediaTime) {
 	if (f->pts == std::numeric_limits<int64_t>::min()) {
 		firstMediaTime = currMediaTime;
@@ -229,25 +215,6 @@ void LibavEncode::computeFrameAttributes(AVFrame * const f, const int64_t currMe
 		}
 	}
 	prevMediaTime = currMediaTime;
-}
-
-void LibavEncode::processVideo(Data data) {
-	const auto pic = safe_cast<const DataPicture>(data).get();
-	AVFrame *f = nullptr;
-	if (pic) {
-		f = avFrame->get();
-		f->format = (int)pixelFormat2libavPixFmt(pic->getFormat().format);
-		for (size_t i = 0; i < pic->getNumPlanes(); ++i) {
-			f->width = pic->getFormat().res.width;
-			f->height = pic->getFormat().res.height;
-			f->data[i] = (uint8_t*)pic->getPlane(i);
-			f->linesize[i] = (int)pic->getPitch(i);
-		}
-		computeFrameAttributes(f, data->getMediaTime());
-		f->pts = computePTS(data->getMediaTime());
-	}
-
-	encodeFrame(f);
 }
 
 void LibavEncode::encodeFrame(AVFrame* f) {
@@ -276,11 +243,39 @@ void LibavEncode::encodeFrame(AVFrame* f) {
 }
 
 void LibavEncode::process(Data data) {
+	AVFrame *f = nullptr;
+
 	switch (codecCtx->codec_type) {
-	case AVMEDIA_TYPE_VIDEO: processVideo(data); break;
-	case AVMEDIA_TYPE_AUDIO: processAudio(data); break;
-	default: assert(0); return;
+	case AVMEDIA_TYPE_VIDEO: {
+		const auto pic = safe_cast<const DataPicture>(data).get();
+		if (pic) {
+			f = avFrame->get();
+			f->format = (int)pixelFormat2libavPixFmt(pic->getFormat().format);
+			for (size_t i = 0; i < pic->getNumPlanes(); ++i) {
+				f->width = pic->getFormat().res.width;
+				f->height = pic->getFormat().res.height;
+				f->data[i] = (uint8_t*)pic->getPlane(i);
+				f->linesize[i] = (int)pic->getPitch(i);
+			}
+			computeFrameAttributes(f, data->getMediaTime());
+		}
 	}
+	break;
+	case AVMEDIA_TYPE_AUDIO: {
+		if (data) {
+			const auto pcmData = safe_cast<const DataPcm>(data).get();
+			if (pcmData->getFormat() != *pcmFormat)
+				throw error("Incompatible audio data (1)");
+			f = avFrame->get();
+			libavFrameDataConvert(pcmData, f);
+		}
+	}
+	break;
+	default: assert(0);
+	}
+
+	f->pts = computePTS(data->getMediaTime());
+	encodeFrame(f);
 }
 
 }
