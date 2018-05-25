@@ -466,4 +466,10 @@ int avGetBuffer2(struct AVCodecContext *ctx, AVFrame *frame, int /*flags*/) {
 	return 0;
 }
 
+std::string avStrError(int err) {
+	char buffer[256] {};
+	av_strerror(err, buffer, sizeof buffer);
+	return buffer;
+}
+
 }

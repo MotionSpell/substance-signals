@@ -21,7 +21,7 @@ class LibavDecode : public ModuleS, public LibavDirectRendering {
 		void flush() override;
 
 	private:
-		bool processPacket(AVPacket const * pkt);
+		void processPacket(AVPacket const * pkt);
 		void processAudio();
 		void processVideo();
 		void setMediaTime(DataBase* data);
@@ -31,8 +31,6 @@ class LibavDecode : public ModuleS, public LibavDirectRendering {
 		std::unique_ptr<ffpp::Frame> const avFrame;
 		OutputPicture *videoOutput;
 		OutputPcm *audioOutput;
-
-		int (*avcodec_decode_bitstream)(AVCodecContext*, AVFrame*, int* gotFrame, const AVPacket*);
 };
 
 }

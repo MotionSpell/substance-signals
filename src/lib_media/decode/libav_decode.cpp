@@ -12,10 +12,8 @@ LibavDecode::LibavDecode(std::shared_ptr<const MetadataPktLibav> metadata)
 	avcodec_copy_context(codecCtx.get(), metadata->getAVCodecContext().get());
 	switch (codecCtx->codec_type) {
 	case AVMEDIA_TYPE_VIDEO:
-		avcodec_decode_bitstream = &avcodec_decode_video2;
 		break;
 	case AVMEDIA_TYPE_AUDIO:
-		avcodec_decode_bitstream = &avcodec_decode_audio4;
 		break;
 	default: throw error(format("codec_type %s not supported. Must be audio or video.", codecCtx->codec_type));
 	}
@@ -55,7 +53,6 @@ LibavDecode::LibavDecode(std::shared_ptr<const MetadataPktLibav> metadata)
 
 LibavDecode::~LibavDecode() {
 	videoOutput = nullptr;
-	flush(); //flush to avoid a leak of LibavDirectRenderingContext pictures
 }
 
 void LibavDecode::processAudio() {
@@ -115,37 +112,38 @@ void LibavDecode::process(Data data) {
 }
 
 
-bool LibavDecode::processPacket(AVPacket const * pkt) {
-	int gotFrame = 0;
-	if (avcodec_decode_bitstream(codecCtx.get(), avFrame->get(), &gotFrame, pkt) < 0) {
-		log(Warning, "Error encountered while decoding bitstream.");
-		return false;
+void LibavDecode::processPacket(AVPacket const * pkt) {
+	int ret;
+
+	ret = avcodec_send_packet(codecCtx.get(), pkt);
+	if (ret < 0) {
+		log(Warning, "Decoding error: %s", avStrError(ret));
+		return;
 	}
-	if (av_frame_get_decode_error_flags(avFrame->get()) || (avFrame->get()->flags & AV_FRAME_FLAG_CORRUPT)) {
-		log(Error, "Corrupted frame decoded (%s).", gotFrame);
+
+	while(1) {
+		ret = avcodec_receive_frame(codecCtx.get(), avFrame->get());
+		if(ret != 0)
+			break; // no more frames
+
+		if (av_frame_get_decode_error_flags(avFrame->get()) || (avFrame->get()->flags & AV_FRAME_FLAG_CORRUPT)) {
+			log(Error, "Corrupted frame decoded");
+		}
+		switch (codecCtx->codec_type) {
+		case AVMEDIA_TYPE_VIDEO:
+			processVideo();
+			break;
+		case AVMEDIA_TYPE_AUDIO:
+			processAudio();
+			break;
+		default:
+			assert(0);
+		}
 	}
-	if (!gotFrame) {
-		return false;
-	}
-	switch (codecCtx->codec_type) {
-	case AVMEDIA_TYPE_VIDEO:
-		processVideo();
-		break;
-	case AVMEDIA_TYPE_AUDIO:
-		processAudio();
-		break;
-	default:
-		assert(0);
-		return false;
-	}
-	return true;
 }
 
 void LibavDecode::flush() {
-	AVPacket nullPkt {};
-
-	while(processPacket(&nullPkt)) {
-	}
+	processPacket(nullptr);
 }
 
 }
