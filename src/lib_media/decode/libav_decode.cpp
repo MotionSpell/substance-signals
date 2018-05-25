@@ -58,7 +58,7 @@ LibavDecode::~LibavDecode() {
 	flush(); //flush to avoid a leak of LibavDirectRenderingContext pictures
 }
 
-bool LibavDecode::processAudio() {
+void LibavDecode::processAudio() {
 
 	auto out = audioOutput->getBuffer(0);
 	PcmFormat pcmFormat;
@@ -71,10 +71,9 @@ bool LibavDecode::processAudio() {
 	setMediaTime(out.get());
 
 	audioOutput->emit(out);
-	return true;
 }
 
-bool LibavDecode::processVideo() {
+void LibavDecode::processVideo() {
 
 	std::shared_ptr<DataPicture> pic;
 	auto ctx = static_cast<LibavDirectRenderingContext*>(avFrame->get()->opaque);
@@ -89,7 +88,6 @@ bool LibavDecode::processVideo() {
 	setMediaTime(pic.get());
 
 	if (videoOutput) videoOutput->emit(pic);
-	return true;
 }
 
 void LibavDecode::setMediaTime(DataBase* data) {
@@ -131,13 +129,16 @@ bool LibavDecode::processPacket(AVPacket const * pkt) {
 	}
 	switch (codecCtx->codec_type) {
 	case AVMEDIA_TYPE_VIDEO:
-		return processVideo();
+		processVideo();
+		break;
 	case AVMEDIA_TYPE_AUDIO:
-		return processAudio();
+		processAudio();
+		break;
 	default:
 		assert(0);
 		return false;
 	}
+	return true;
 }
 
 void LibavDecode::flush() {

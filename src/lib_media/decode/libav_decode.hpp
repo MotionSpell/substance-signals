@@ -22,8 +22,8 @@ class LibavDecode : public ModuleS, public LibavDirectRendering {
 
 	private:
 		bool processPacket(AVPacket const * pkt);
-		bool processAudio();
-		bool processVideo();
+		void processAudio();
+		void processVideo();
 		void setMediaTime(DataBase* data);
 		LibavDirectRenderingContext* getPicture(Resolution res, Resolution resInternal, PixelFormat format) override;
 
