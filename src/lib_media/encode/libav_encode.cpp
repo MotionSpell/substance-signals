@@ -213,10 +213,6 @@ void LibavEncode::encodeFrame(AVFrame* f) {
 		if(ret != 0)
 			break;
 
-		if (pkt->duration != codecCtx->frame_size) {
-			log(Warning, "pkt duration %s is different from codec frame size %s - this may cause timing errors", pkt->duration, codecCtx->frame_size);
-		}
-
 		out->setMediaTime(pkt->pts);
 		output->emit(out);
 	}
