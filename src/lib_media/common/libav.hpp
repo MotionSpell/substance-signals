@@ -21,8 +21,6 @@ std::shared_ptr<AVCodecContext> shptr(AVCodecContext *p);
 
 namespace Modules {
 
-void AVCodecContextDeleter(AVCodecContext *p);
-
 class MetadataPktLibav : public IMetadata {
 	public:
 		MetadataPktLibav(std::shared_ptr<AVCodecContext> codecCtx, int id = -1);
