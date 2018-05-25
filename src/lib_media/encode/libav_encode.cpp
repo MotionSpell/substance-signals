@@ -206,8 +206,6 @@ int64_t LibavEncode::computePTS(const int64_t mediaTime) const {
 }
 
 bool LibavEncode::processAudio(Data data) {
-	auto out = output->getBuffer(0);
-	auto pkt = out->getPacket();
 	AVFrame *f = nullptr;
 	if (data) {
 		const auto pcmData = safe_cast<const DataPcm>(data).get();
@@ -218,20 +216,27 @@ bool LibavEncode::processAudio(Data data) {
 		f->pts = computePTS(data->getMediaTime());
 	}
 
-	int gotPkt = 0;
-	if (avcodec_encode_audio2(codecCtx.get(), pkt, f, &gotPkt)) {
-		log(Warning, "error encountered while encoding audio frame %s.", f ? f->pts : std::numeric_limits<int64_t>::min());
+	int ret;
+
+	ret = avcodec_send_frame(codecCtx.get(), f);
+	if (ret != 0) {
+		log(Warning, "error encountered while encoding audio frame %s : %s", f ? f->pts : std::numeric_limits<int64_t>::min(), avStrError(ret));
 		return false;
 	}
 
-	if (!gotPkt) {
-		return false;
+	while(1) {
+		auto out = output->getBuffer(0);
+		AVPacket *pkt = out->getPacket();
+		ret = avcodec_receive_packet(codecCtx.get(), pkt);
+		if(ret != 0)
+			break;
+
+		if (pkt->duration != codecCtx->frame_size) {
+			log(Warning, "pkt duration %s is different from codec frame size %s - this may cause timing errors", pkt->duration, codecCtx->frame_size);
+		}
+		computeDurationAndEmit(out, pkt->duration);
 	}
 
-	if (pkt->duration != codecCtx->frame_size) {
-		log(Warning, "pkt duration %s is different from codec frame size %s - this may cause timing errors", pkt->duration, codecCtx->frame_size);
-	}
-	computeDurationAndEmit(out, pkt->duration);
 	return true;
 }
 
@@ -259,7 +264,6 @@ void LibavEncode::computeFrameAttributes(AVFrame * const f, const int64_t currMe
 
 bool LibavEncode::processVideo(Data data) {
 	const auto pic = safe_cast<const DataPicture>(data).get();
-	auto out = output->getBuffer(0);
 	AVFrame *f = nullptr;
 	if (pic) {
 		f = avFrame->get();
@@ -274,18 +278,24 @@ bool LibavEncode::processVideo(Data data) {
 		f->pts = computePTS(data->getMediaTime());
 	}
 
-	int gotPkt = 0;
-	AVPacket *pkt = out->getPacket();
-	if (avcodec_encode_video2(codecCtx.get(), pkt, f, &gotPkt)) {
-		log(Warning, "error encountered while encoding video frame %s.", f ? f->pts : std::numeric_limits<int64_t>::min());
+	int ret;
+
+	ret = avcodec_send_frame(codecCtx.get(), f);
+	if (ret != 0) {
+		log(Warning, "error encountered while encoding video frame %s : %s", f ? f->pts : std::numeric_limits<int64_t>::min(), avStrError(ret));
 		return false;
 	}
 
-	if (!gotPkt) {
-		return false;
+	while(1) {
+		auto out = output->getBuffer(0);
+		AVPacket *pkt = out->getPacket();
+		ret = avcodec_receive_packet(codecCtx.get(), pkt);
+		if(ret != 0)
+			break;
+
+		computeDurationAndEmit(out, TIMESCALE_MUL);
 	}
 
-	computeDurationAndEmit(out, TIMESCALE_MUL);
 	return true;
 }
 
