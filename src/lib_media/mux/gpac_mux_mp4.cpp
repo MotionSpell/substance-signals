@@ -975,7 +975,8 @@ std::unique_ptr<gpacpp::IsoSample> GPACMuxMP4::fillSample(Data data_) {
 		sample->DTS = DTS;
 	}
 	auto const &metaPkt = safe_cast<const MetadataPktLibav>(data->getMetadata());
-	sample->CTS_Offset = (s32)convertToTimescale(data->getPacket()->pts - data->getPacket()->dts, metaPkt->getTimeScale().num, metaPkt->getTimeScale().den * mediaTs / metaPkt->getAVCodecContext()->ticks_per_frame);
+	auto const ctsOffset = data->getPacket()->pts - data->getPacket()->dts;
+	sample->CTS_Offset = (s32)convertToTimescale(ctsOffset, metaPkt->getTimeScale().num, metaPkt->getTimeScale().den * mediaTs / metaPkt->getAVCodecContext()->ticks_per_frame);
 	sample->IsRAP = (SAPType)(data->getPacket()->flags & AV_PKT_FLAG_KEY);
 	return sample;
 }
