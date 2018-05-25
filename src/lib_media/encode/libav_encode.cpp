@@ -174,24 +174,6 @@ void LibavEncode::flush() {
 LibavEncode::~LibavEncode() {
 }
 
-void LibavEncode::computeDurationAndEmit(std::shared_ptr<DataAVPacket> &data, int64_t defaultDuration) {
-	auto pkt = data->getPacket();
-	if (!pkt->size) {
-		log(Warning, "Incorrect zero-sized packet");
-		return;
-	}
-	if (pkt->duration != (int64_t)(pkt->dts - lastDTS)) {
-		log(Debug, "VFR detected: duration is %s but timestamp diff is %s", pkt->duration, pkt->dts - lastDTS);
-		pkt->duration = pkt->dts - lastDTS;
-	}
-	lastDTS = pkt->dts;
-	if (pkt->duration <= 0) {
-		pkt->duration = defaultDuration;
-	}
-	data->setMediaTime(pkt->pts);
-	output->emit(data);
-}
-
 void LibavEncode::computeFrameAttributes(AVFrame * const f, const int64_t currMediaTime) {
 	if (f->pts == std::numeric_limits<int64_t>::min()) {
 		firstMediaTime = currMediaTime;
@@ -235,7 +217,8 @@ void LibavEncode::encodeFrame(AVFrame* f) {
 			log(Warning, "pkt duration %s is different from codec frame size %s - this may cause timing errors", pkt->duration, codecCtx->frame_size);
 		}
 
-		computeDurationAndEmit(out, TIMESCALE_MUL);
+		out->setMediaTime(pkt->pts);
+		output->emit(out);
 	}
 }
 

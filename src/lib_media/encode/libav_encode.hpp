@@ -53,13 +53,12 @@ class LibavEncode : public ModuleS {
 	private:
 		void encodeFrame(AVFrame* frame);
 		void computeFrameAttributes(AVFrame * const f, const int64_t currMediaTime);
-		void computeDurationAndEmit(std::shared_ptr<DataAVPacket> &data, int64_t defaultDuration);
 
 		std::shared_ptr<AVCodecContext> codecCtx;
 		std::unique_ptr<PcmFormat> pcmFormat = nullptr;
 		std::unique_ptr<ffpp::Frame> const avFrame;
 		OutputDataDefault<DataAVPacket>* output;
-		int64_t lastDTS = 0, firstMediaTime, prevMediaTime;
+		int64_t firstMediaTime, prevMediaTime;
 		Fraction GOPSize;
 };
 
