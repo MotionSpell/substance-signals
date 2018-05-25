@@ -243,32 +243,26 @@ void LibavEncode::encodeFrame(AVFrame* f) {
 }
 
 void LibavEncode::process(Data data) {
-	AVFrame *f = nullptr;
+	AVFrame *f = avFrame->get();
 
 	switch (codecCtx->codec_type) {
 	case AVMEDIA_TYPE_VIDEO: {
-		const auto pic = safe_cast<const DataPicture>(data).get();
-		if (pic) {
-			f = avFrame->get();
-			f->format = (int)pixelFormat2libavPixFmt(pic->getFormat().format);
-			for (size_t i = 0; i < pic->getNumPlanes(); ++i) {
-				f->width = pic->getFormat().res.width;
-				f->height = pic->getFormat().res.height;
-				f->data[i] = (uint8_t*)pic->getPlane(i);
-				f->linesize[i] = (int)pic->getPitch(i);
-			}
-			computeFrameAttributes(f, data->getMediaTime());
+		const auto pic = safe_cast<const DataPicture>(data);
+		f->format = (int)pixelFormat2libavPixFmt(pic->getFormat().format);
+		for (size_t i = 0; i < pic->getNumPlanes(); ++i) {
+			f->width = pic->getFormat().res.width;
+			f->height = pic->getFormat().res.height;
+			f->data[i] = (uint8_t*)pic->getPlane(i);
+			f->linesize[i] = (int)pic->getPitch(i);
 		}
+		computeFrameAttributes(f, data->getMediaTime());
 	}
 	break;
 	case AVMEDIA_TYPE_AUDIO: {
-		if (data) {
-			const auto pcmData = safe_cast<const DataPcm>(data).get();
-			if (pcmData->getFormat() != *pcmFormat)
-				throw error("Incompatible audio data (1)");
-			f = avFrame->get();
-			libavFrameDataConvert(pcmData, f);
-		}
+		const auto pcmData = safe_cast<const DataPcm>(data);
+		if (pcmData->getFormat() != *pcmFormat)
+			throw error("Incompatible audio data (1)");
+		libavFrameDataConvert(pcmData.get(), f);
 	}
 	break;
 	default: assert(0);
