@@ -222,15 +222,17 @@ bool LibavEncode::processAudio(Data data) {
 	if (avcodec_encode_audio2(codecCtx.get(), pkt, f, &gotPkt)) {
 		log(Warning, "error encountered while encoding audio frame %s.", f ? f->pts : std::numeric_limits<int64_t>::min());
 		return false;
-	} else if (gotPkt) {
-		if (pkt->duration != codecCtx->frame_size) {
-			log(Warning, "pkt duration %s is different from codec frame size %s - this may cause timing errors", pkt->duration, codecCtx->frame_size);
-		}
-		computeDurationAndEmit(out, pkt->duration);
-		return true;
-	} else {
+	}
+
+	if (!gotPkt) {
 		return false;
 	}
+
+	if (pkt->duration != codecCtx->frame_size) {
+		log(Warning, "pkt duration %s is different from codec frame size %s - this may cause timing errors", pkt->duration, codecCtx->frame_size);
+	}
+	computeDurationAndEmit(out, pkt->duration);
+	return true;
 }
 
 void LibavEncode::computeFrameAttributes(AVFrame * const f, const int64_t currMediaTime) {
@@ -277,12 +279,14 @@ bool LibavEncode::processVideo(Data data) {
 	if (avcodec_encode_video2(codecCtx.get(), pkt, f, &gotPkt)) {
 		log(Warning, "error encountered while encoding video frame %s.", f ? f->pts : std::numeric_limits<int64_t>::min());
 		return false;
-	} else if (gotPkt) {
-		computeDurationAndEmit(out, TIMESCALE_MUL);
-		return true;
-	} else {
+	}
+
+	if (!gotPkt) {
 		return false;
 	}
+
+	computeDurationAndEmit(out, TIMESCALE_MUL);
+	return true;
 }
 
 void LibavEncode::process(Data data) {
