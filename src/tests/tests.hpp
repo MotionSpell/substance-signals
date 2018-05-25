@@ -77,6 +77,7 @@ inline void AssertEquals(char const* file, int line, const char* caption, T cons
 #define ASSERT_THROWN(expr) \
 	try { \
 		expr; \
+		::Tests::Fail(__FILE__, __LINE__, "Missing exception: " #expr); \
 		ASSERT(0); \
 	} catch (...) { \
 	} \
