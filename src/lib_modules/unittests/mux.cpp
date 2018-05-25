@@ -11,6 +11,19 @@ using namespace Modules;
 
 namespace {
 
+std::ostream& operator<<(std::ostream& o, Meta const& meta) {
+	o << "internalTestIdx=" << meta.internalTestIdx << std::endl;
+	o << "filename=" << meta.filename << std::endl;
+	o << "mimeType=" << meta.mimeType << std::endl;
+	o << "codecName=" << meta.codecName << std::endl;
+	o << "durationIn180k=" << meta.durationIn180k << std::endl;
+	o << "filesize=" << meta.filesize << std::endl;
+	o << "latencyIn180k=" << meta.latencyIn180k << std::endl;
+	o << "startsWithRAP=" << meta.startsWithRAP << std::endl;
+	o << "eos=" << meta.eos << std::endl;
+	return o;
+}
+
 unittest("[DISABLED] remux test: GPAC mp4 mux") {
 	auto demux = create<Demux::LibavDemux>("data/beepbop.mp4");
 	auto mux = create<Mux::GPACMuxMP4>("output_video_gpac");
@@ -151,7 +164,7 @@ unittest("mux GPAC mp4 combination coverage") {
 	}
 
 	ASSERT_EQUALS(results.size(), ref.size());
-	ASSERT(results == ref);
+	ASSERT_EQUALS(ref, results);
 }
 
 }
