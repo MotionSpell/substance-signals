@@ -170,14 +170,7 @@ unittest("decode: audio mp3 manual frame to AAC") {
 	ConnectOutputToInput(decode->getOutput(0), encoder->getInput(0));
 
 	auto frame = getTestMp3Frame();
-	bool thrown = false;
-	try {
-		decode->process(frame);
-	} catch (std::exception const& e) {
-		std::cerr << "Expected error: " << e.what() << std::endl;
-		thrown = true;
-	}
-	ASSERT(thrown);
+	ASSERT_THROWN(decode->process(frame));
 }
 
 unittest("decode: audio mp3 to converter to AAC") {

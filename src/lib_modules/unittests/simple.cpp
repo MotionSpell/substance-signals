@@ -12,23 +12,11 @@ using namespace Tests;
 using namespace Modules;
 
 unittest("empty param test: File") {
-	bool thrown = false;
-	try {
-		auto f = create<In::File>("");
-	} catch(std::runtime_error const& /*e*/) {
-		thrown = true;
-	}
-	ASSERT(thrown);
+	ASSERT_THROWN(create<In::File>(""));
 }
 
 unittest("empty param test: Demux") {
-	bool thrown = false;
-	try {
-		auto mp4Demux = create<Demux::GPACDemuxMP4Simple>("");
-	} catch(std::runtime_error const& /*e*/) {
-		thrown = true;
-	}
-	ASSERT(thrown);
+	ASSERT_THROWN(create<Demux::GPACDemuxMP4Simple>(""));
 }
 
 unittest("empty param test: Out::Print") {
