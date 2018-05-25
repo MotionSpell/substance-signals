@@ -10,13 +10,6 @@ namespace Decode {
 LibavDecode::LibavDecode(std::shared_ptr<const MetadataPktLibav> metadata)
 	: codecCtx(shptr(avcodec_alloc_context3(nullptr))), avFrame(new ffpp::Frame) {
 	avcodec_copy_context(codecCtx.get(), metadata->getAVCodecContext().get());
-	switch (codecCtx->codec_type) {
-	case AVMEDIA_TYPE_VIDEO:
-		break;
-	case AVMEDIA_TYPE_AUDIO:
-		break;
-	default: throw error(format("codec_type %s not supported. Must be audio or video.", codecCtx->codec_type));
-	}
 
 	auto const codec = avcodec_find_decoder(codecCtx->codec_id);
 	if (!codec)
@@ -47,7 +40,7 @@ LibavDecode::LibavDecode(std::shared_ptr<const MetadataPktLibav> metadata)
 		break;
 	}
 	default:
-		throw error("Invalid output type.");
+		throw error(format("codec_type %s not supported. Must be audio or video.", codecCtx->codec_type));
 	}
 }
 
