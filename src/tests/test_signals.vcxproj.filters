@@ -59,15 +59,6 @@
     <ClCompile Include="..\lib_modules\unittests\converter.cpp">
       <Filter>modules</Filter>
     </ClCompile>
-    <ClCompile Include="..\lib_modules\unittests\decode.cpp">
-      <Filter>modules</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lib_modules\unittests\demux.cpp">
-      <Filter>modules</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lib_modules\unittests\encoder.cpp">
-      <Filter>modules</Filter>
-    </ClCompile>
     <ClCompile Include="..\lib_modules\unittests\erasure.cpp">
       <Filter>modules</Filter>
     </ClCompile>
@@ -91,6 +82,15 @@
     </ClCompile>
     <ClCompile Include="..\lib_modules\unittests\transcoder.cpp">
       <Filter>modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib_media\unittests\decode.cpp">
+      <Filter>media</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib_media\unittests\demux.cpp">
+      <Filter>media</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib_media\unittests\encoder.cpp">
+      <Filter>media</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
