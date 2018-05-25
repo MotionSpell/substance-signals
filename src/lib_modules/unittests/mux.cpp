@@ -94,9 +94,8 @@ unittest("mux GPAC mp4 combination coverage") {
 	auto demux = create<Demux::LibavDemux>("data/beepbop.mp4");
 	std::vector<std::unique_ptr<Mux::GPACMuxMP4>> muxers;
 	const uint64_t segmentDurationInMs = 2000;
-	bool thrown = false;
 	auto CATCH_ERROR = [&](std::function<void()> creation) {
-		thrown = false;
+		bool thrown = false;
 		try {
 			creation();
 		} catch (std::exception const& e) {
