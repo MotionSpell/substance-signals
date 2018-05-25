@@ -8,6 +8,8 @@ extern "C" {
 #include <libavutil/pixdesc.h>
 }
 
+using std::make_shared;
+
 #define TIMESCALE_MUL 100
 
 namespace Modules {
@@ -144,14 +146,14 @@ LibavEncode::LibavEncode(Type type, Params &params)
 	switch (type) {
 	case Video: {
 		auto input = addInput(new Input<DataPicture>(this));
-		input->setMetadata(shptr(new MetadataRawVideo));
-		output->setMetadata(shptr(new MetadataPktLibavVideo(codecCtx)));
+		input->setMetadata(make_shared<MetadataRawVideo>());
+		output->setMetadata(make_shared<MetadataPktLibavVideo>(codecCtx));
 		break;
 	}
 	case Audio: {
 		auto input = addInput(new Input<DataPcm>(this));
-		input->setMetadata(shptr(new MetadataRawAudio));
-		output->setMetadata(shptr(new MetadataPktLibavAudio(codecCtx)));
+		input->setMetadata(make_shared<MetadataRawAudio>());
+		output->setMetadata(make_shared<MetadataPktLibavAudio>(codecCtx));
 		break;
 	}
 	default:
