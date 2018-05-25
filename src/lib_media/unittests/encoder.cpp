@@ -22,6 +22,7 @@ unittest("encoder: video simple") {
 	auto encode = create<Encode::LibavEncode>(Encode::LibavEncode::Video);
 	Connect(encode->getOutput(0)->getSignal(), onFrame);
 	for (int i = 0; i < 50; ++i) {
+		picture->setMediaTime(i); // avoid warning about non-monotonic pts
 		encode->process(picture);
 	}
 	encode->flush();
@@ -29,7 +30,7 @@ unittest("encoder: video simple") {
 	ASSERT_EQUALS(50, numEncodedFrames);
 }
 
-unittest("[DISABLED] encoder: timestamp passthrough") {
+unittest("encoder: timestamp passthrough") {
 	vector<int64_t> times;
 	auto onFrame = [&](Data data) {
 		times.push_back(data->getMediaTime());

@@ -187,12 +187,8 @@ void LibavEncode::computeDurationAndEmit(std::shared_ptr<DataAVPacket> &data, in
 	if (pkt->duration <= 0) {
 		pkt->duration = defaultDuration;
 	}
-	data->setMediaTime(pkt->dts * codecCtx->time_base.num, codecCtx->time_base.den);
+	data->setMediaTime(pkt->pts);
 	output->emit(data);
-}
-
-int64_t LibavEncode::computePTS(const int64_t mediaTime) const {
-	return (mediaTime * codecCtx->time_base.den) / (codecCtx->time_base.num * (int64_t)IClock::Rate);
 }
 
 void LibavEncode::computeFrameAttributes(AVFrame * const f, const int64_t currMediaTime) {
@@ -268,7 +264,7 @@ void LibavEncode::process(Data data) {
 	default: assert(0);
 	}
 
-	f->pts = computePTS(data->getMediaTime());
+	f->pts = data->getMediaTime();
 	encodeFrame(f);
 }
 
