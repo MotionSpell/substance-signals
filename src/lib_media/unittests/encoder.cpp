@@ -49,7 +49,7 @@ unittest("encoder: timestamp passthrough") {
 	ASSERT_EQUALS(expected, times);
 }
 
-unittest("H265 encode and GPAC mp4 mux") {
+secondclasstest("H265 encode and GPAC mp4 mux") {
 	Encode::LibavEncode::Params p;
 	p.frameRate.num = 1;
 	p.avcodecCustom = "-vcodec libx265";
