@@ -113,8 +113,9 @@ LibavEncode::LibavEncode(Type type, Params &params)
 		}
 		params.pixelFormat = libavPixFmt2PixelFormat(codecCtx->pix_fmt);
 
-		AVRational fps;
-		fps2NumDen((double)params.frameRate, fps.den, fps.num); //for time_base, 'num' and 'den' are inverted
+		//for time_base, 'num' and 'den' are inverted
+		AVRational fps { (int)params.frameRate.den, (int)params.frameRate.num };
+
 		fps.den *= TIMESCALE_MUL;
 		codecCtx->time_base = fps;
 		codecCtx->ticks_per_frame *= TIMESCALE_MUL;
