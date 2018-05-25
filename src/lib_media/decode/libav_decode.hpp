@@ -31,6 +31,7 @@ class LibavDecode : public ModuleS, public LibavDirectRendering {
 		std::unique_ptr<ffpp::Frame> const avFrame;
 		OutputPicture *videoOutput;
 		OutputPcm *audioOutput;
+		std::function<void(void)> deliverOutput;
 };
 
 }

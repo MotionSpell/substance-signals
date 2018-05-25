@@ -31,12 +31,14 @@ LibavDecode::LibavDecode(std::shared_ptr<const MetadataPktLibav> metadata)
 		} else {
 			videoOutput = addOutput<OutputPicture>(shptr(new MetadataRawVideo));
 		}
+		deliverOutput = std::bind(&LibavDecode::processVideo, this);
 		break;
 	}
 	case AVMEDIA_TYPE_AUDIO: {
 		auto input = addInput(new Input<DataAVPacket>(this));
 		input->setMetadata(shptr(new MetadataPktLibavAudio(codecCtx)));
 		audioOutput = addOutput<OutputPcm>(shptr(new MetadataRawAudio));
+		deliverOutput = std::bind(&LibavDecode::processAudio, this);
 		break;
 	}
 	default:
@@ -121,16 +123,8 @@ void LibavDecode::processPacket(AVPacket const * pkt) {
 		if (av_frame_get_decode_error_flags(avFrame->get()) || (avFrame->get()->flags & AV_FRAME_FLAG_CORRUPT)) {
 			log(Error, "Corrupted frame decoded");
 		}
-		switch (codecCtx->codec_type) {
-		case AVMEDIA_TYPE_VIDEO:
-			processVideo();
-			break;
-		case AVMEDIA_TYPE_AUDIO:
-			processAudio();
-			break;
-		default:
-			assert(0);
-		}
+
+		deliverOutput();
 	}
 }
 
