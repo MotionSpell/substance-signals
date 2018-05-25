@@ -105,7 +105,7 @@ unittest("[DISABLED] decode: timestamp propagation") {
 
 	for(int i=0; i < 5; ++i) {
 		auto frame = getTestMp3Frame();
-		frame->setMediaTime(0);
+		frame->setMediaTime(i);
 		decode->process(frame);
 	}
 	decode->flush();
