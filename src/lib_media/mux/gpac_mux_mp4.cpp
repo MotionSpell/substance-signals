@@ -827,11 +827,12 @@ void GPACMuxMP4::sendOutput(bool EOS) {
 
 	StreamType streamType;
 	std::string mimeType;
-	switch (gf_isom_get_media_type(isoCur, gf_isom_get_track_by_id(isoCur, trackId))) {
+	auto const mediaType = gf_isom_get_media_type(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
+	switch (mediaType) {
 	case GF_ISOM_MEDIA_VISUAL: streamType = VIDEO_PKT; mimeType = "video/mp4"; break;
 	case GF_ISOM_MEDIA_AUDIO: streamType = AUDIO_PKT; mimeType = "audio/mp4"; break;
 	case GF_ISOM_MEDIA_TEXT: streamType = SUBTITLE_PKT; mimeType = "application/mp4"; break;
-	default: throw error(format("Segment contains neither audio nor video"));
+	default: throw error(format("Unknown media type for segment: %s", (int)mediaType));
 	}
 	Bool isInband =
 #ifdef AVC_INBAND_CONFIG
@@ -849,11 +850,11 @@ void GPACMuxMP4::sendOutput(bool EOS) {
 		return fragmentPolicy == OneFragmentPerFrame ? timescaleToClock(defaultSampleIncInTs, mediaTs) : std::min<uint64_t>(consideredDurationIn180k, segmentDurationIn180k);
 	};
 	auto metadata = std::make_shared<MetadataFile>(segmentName, streamType, mimeType, codecName, consideredDurationIn180k, lastSegmentSize, computeContainerLatency(), segmentStartsWithRAP, EOS);
-	switch (gf_isom_get_media_type(isoCur, gf_isom_get_track_by_id(isoCur, trackId))) {
+	switch (mediaType) {
 	case GF_ISOM_MEDIA_VISUAL: metadata->resolution[0] = resolution[0]; metadata->resolution[1] = resolution[1]; break;
 	case GF_ISOM_MEDIA_AUDIO: metadata->sampleRate = sampleRate; break;
 	case GF_ISOM_MEDIA_TEXT: break;
-	default: throw error(format("Segment contains neither audio nor video"));
+	default: throw error(format("Unknown media type for segment: %s", (int)mediaType));
 	}
 
 	out->setMetadata(metadata);
