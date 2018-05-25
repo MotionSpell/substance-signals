@@ -151,7 +151,7 @@ unittest("mux GPAC mp4 combination coverage") {
 	}
 
 	ASSERT_EQUALS(results.size(), ref.size());
-	ASSERT(std::equal(results.begin(), results.end(), ref.begin()));
+	ASSERT(results == ref);
 }
 
 }
