@@ -50,19 +50,12 @@ unittest("pipeline: connect inputs to outputs") {
 }
 
 unittest("pipeline: connect incompatible i/o") {
-	bool thrown = false;
-	try {
-		Pipeline p(false, 0.0, Pipeline::Mono | Pipeline::RegulationOffFlag);
-		auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
-		PcmFormat fmt;
-		auto aconv = p.addModule<Transform::AudioConvert>(fmt, fmt);
-		p.connect(demux, 0, aconv, 0);
-		p.start();
-		p.waitForCompletion();
-	} catch (std::runtime_error const& /*e*/) {
-		thrown = true;
-	}
-	ASSERT(thrown);
+	Pipeline p(false, 0.0, Pipeline::Mono | Pipeline::RegulationOffFlag);
+	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
+	PcmFormat fmt;
+	auto aconv = p.addModule<Transform::AudioConvert>(fmt, fmt);
+	p.connect(demux, 0, aconv, 0);
+	ASSERT_THROWN(p.start());
 }
 
 unittest("pipeline: longer pipeline") {
