@@ -51,8 +51,8 @@ class LibavEncode : public ModuleS {
 		void flush() override;
 
 	private:
-		bool processAudio(Data data);
-		bool processVideo(Data data);
+		void processAudio(Data data);
+		void processVideo(Data data);
 		void encodeFrame(AVFrame* frame);
 		inline int64_t computePTS(const int64_t mediaTime) const;
 		void computeFrameAttributes(AVFrame * const f, const int64_t currMediaTime);

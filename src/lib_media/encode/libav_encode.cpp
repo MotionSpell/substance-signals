@@ -195,7 +195,7 @@ int64_t LibavEncode::computePTS(const int64_t mediaTime) const {
 	return (mediaTime * codecCtx->time_base.den) / (codecCtx->time_base.num * (int64_t)IClock::Rate);
 }
 
-bool LibavEncode::processAudio(Data data) {
+void LibavEncode::processAudio(Data data) {
 	AVFrame *f = nullptr;
 	if (data) {
 		const auto pcmData = safe_cast<const DataPcm>(data).get();
@@ -207,7 +207,6 @@ bool LibavEncode::processAudio(Data data) {
 	}
 
 	encodeFrame(f);
-	return true;
 }
 
 void LibavEncode::computeFrameAttributes(AVFrame * const f, const int64_t currMediaTime) {
@@ -232,7 +231,7 @@ void LibavEncode::computeFrameAttributes(AVFrame * const f, const int64_t currMe
 	prevMediaTime = currMediaTime;
 }
 
-bool LibavEncode::processVideo(Data data) {
+void LibavEncode::processVideo(Data data) {
 	const auto pic = safe_cast<const DataPicture>(data).get();
 	AVFrame *f = nullptr;
 	if (pic) {
@@ -249,7 +248,6 @@ bool LibavEncode::processVideo(Data data) {
 	}
 
 	encodeFrame(f);
-	return true;
 }
 
 void LibavEncode::encodeFrame(AVFrame* f) {
