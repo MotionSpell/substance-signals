@@ -13,7 +13,7 @@ class Frame;
 namespace Modules {
 namespace Decode {
 
-class LibavDecode : public ModuleS, public LibavDirectRendering {
+class LibavDecode : public ModuleS, private LibavDirectRendering {
 	public:
 		LibavDecode(std::shared_ptr<const MetadataPktLibav> metadata);
 		~LibavDecode();

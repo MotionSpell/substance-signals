@@ -25,7 +25,7 @@ LibavDecode::LibavDecode(std::shared_ptr<const MetadataPktLibav> metadata)
 		input->setMetadata(shptr(new MetadataPktLibavVideo(codecCtx)));
 		if (codecCtx->codec->capabilities & AV_CODEC_CAP_DR1) {
 			codecCtx->thread_safe_callbacks = 1;
-			codecCtx->opaque = safe_cast<LibavDirectRendering>(this);
+			codecCtx->opaque = static_cast<LibavDirectRendering*>(this);
 			codecCtx->get_buffer2 = avGetBuffer2;
 			videoOutput = addOutputDynAlloc<OutputPicture>(std::thread::hardware_concurrency() * 4, shptr(new MetadataRawVideo));
 		} else {
