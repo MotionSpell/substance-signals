@@ -94,12 +94,11 @@ PictureAllocator::PictureContext* Decoder::getPicture(Resolution res, Resolution
 void Decoder::process(Data data) {
 	inputs[0]->updateMetadata(data);
 
-	AVPacket *pkt = safe_cast<const DataAVPacket>(data)->getPacket();
-	if (pkt->flags & AV_PKT_FLAG_RESET_DECODER) {
+	if (data->flags & DATA_FLAGS_DISCONTINUITY) {
 		avcodec_flush_buffers(codecCtx.get());
-		pkt->flags &= ~AV_PKT_FLAG_RESET_DECODER;
 	}
 
+	AVPacket *pkt = safe_cast<const DataAVPacket>(data)->getPacket();
 	pkt->pts = data->getMediaTime();
 	processPacket(pkt);
 }

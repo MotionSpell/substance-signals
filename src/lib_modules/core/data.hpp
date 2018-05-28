@@ -21,6 +21,8 @@ struct IData {
 	virtual void resize(size_t size) = 0;
 };
 
+auto const DATA_FLAGS_DISCONTINUITY = 0x0001;
+
 //A generic timed data container with metadata.
 class DataBase : public IData {
 	public:
@@ -34,6 +36,8 @@ class DataBase : public IData {
 		int64_t getMediaTime() const;
 		int64_t getClockTime(uint64_t timescale = IClock::Rate) const;
 		static std::atomic<uint64_t> absUTCOffsetInMs;
+
+		uint32_t flags = 0;
 
 	private:
 		int64_t mediaTimeIn180k = 0, clockTimeIn180k = 0;

@@ -8,6 +8,8 @@
 
 #define PKT_QUEUE_SIZE 256
 
+#define AV_PKT_FLAG_RESET_DECODER (1 << 30)
+
 namespace Modules {
 
 namespace {
@@ -310,6 +312,8 @@ void LibavDemux::dispatch(AVPacket *pkt) {
 	auto out = outputs[pkt->stream_index]->getBuffer(0);
 	auto outPkt = out->getPacket();
 	av_packet_move_ref(outPkt, pkt);
+	if(pkt->flags & AV_PKT_FLAG_RESET_DECODER)
+		out->flags |= DATA_FLAGS_DISCONTINUITY;
 	setMediaTime(out);
 	outputs[outPkt->stream_index]->emit(out);
 	sparseStreamsHeartbeat(outPkt);
