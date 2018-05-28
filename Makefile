@@ -1,7 +1,7 @@
 .DELETE_ON_ERROR:
 
 CFLAGS:=$(CFLAGS)
-CFLAGS+=-std=gnu++1y
+CFLAGS+=-std=c++14
 CFLAGS+=-Wall
 CFLAGS+=-Wextra
 CFLAGS+=-Werror
