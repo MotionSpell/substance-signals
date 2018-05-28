@@ -67,7 +67,7 @@ void LibavDecode::processAudio() {
 void LibavDecode::processVideo() {
 
 	std::shared_ptr<DataPicture> pic;
-	auto ctx = static_cast<LibavDirectRenderingContext*>(avFrame->get()->opaque);
+	auto ctx = static_cast<PictureContext*>(avFrame->get()->opaque);
 	if (ctx) {
 		pic = ctx->pic;
 		ctx->pic->setVisibleResolution(Resolution(codecCtx->width, codecCtx->height));
@@ -85,8 +85,8 @@ void LibavDecode::setMediaTime(DataBase* data) {
 	data->setMediaTime(avFrame->get()->pts);
 }
 
-LibavDirectRendering::LibavDirectRenderingContext* LibavDecode::getPicture(Resolution res, Resolution resInternal, PixelFormat format) {
-	auto ctx = new LibavDirectRenderingContext;
+LibavDirectRendering::PictureContext* LibavDecode::getPicture(Resolution res, Resolution resInternal, PixelFormat format) {
+	auto ctx = new LibavDirectRendering::PictureContext;
 	ctx->pic = DataPicture::create(videoOutput, res, resInternal, format);
 	return ctx;
 }

@@ -436,7 +436,7 @@ void copyToPicture(AVFrame const* avFrame, DataPicture* pic) {
 
 static void lavc_ReleaseFrame(void *opaque, uint8_t * /*data*/) {
 	if (opaque) {
-		delete static_cast<LibavDirectRendering::LibavDirectRenderingContext*>(opaque);
+		delete static_cast<LibavDirectRendering::PictureContext*>(opaque);
 	}
 }
 

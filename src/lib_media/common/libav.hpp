@@ -97,10 +97,10 @@ AVPixelFormat pixelFormat2libavPixFmt(PixelFormat format);
 PixelFormat libavPixFmt2PixelFormat(AVPixelFormat avPixfmt);
 
 struct LibavDirectRendering {
-	struct LibavDirectRenderingContext {
+	struct PictureContext {
 		std::shared_ptr<DataPicture> pic;
 	};
-	virtual LibavDirectRenderingContext* getPicture(Resolution res, Resolution resInternal, PixelFormat format) = 0;
+	virtual PictureContext* getPicture(Resolution res, Resolution resInternal, PixelFormat format) = 0;
 };
 void copyToPicture(AVFrame const* avFrame, DataPicture* pic);
 extern "C" int avGetBuffer2(struct AVCodecContext *s, AVFrame *frame, int flags);
