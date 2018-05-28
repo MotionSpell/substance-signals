@@ -163,7 +163,7 @@ void AdaptiveStreamingCommon::threadProc() {
 	}
 
 	Data data;
-	std::vector<uint64_t> curSegDurIn180k; curSegDurIn180k.resize(numInputs);
+	std::vector<uint64_t> curSegDurIn180k(numInputs);
 	size_t i;
 
 	auto isComplete = [&]()->bool {
