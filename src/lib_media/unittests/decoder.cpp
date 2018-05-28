@@ -21,8 +21,7 @@ std::unique_ptr<Decode::Decoder> createGenericDecoder(enum AVCodecID id) {
 	context->time_base.num = 1;
 	context->time_base.den = 44100; //needed for FFmpeg >= 3.1
 	auto metadata = shptr(new MetadataPktLibav(context));
-	auto decode = create<Decode::Decoder>(metadata);
-	return decode;
+	return create<Decode::Decoder>(metadata);
 }
 
 std::unique_ptr<Decode::Decoder> createMp3Decoder() {
