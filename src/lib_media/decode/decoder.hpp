@@ -27,7 +27,7 @@ class Decoder : public ModuleS, private PictureAllocator {
 		void setMediaTime(DataBase* data);
 		PictureAllocator::PictureContext* getPicture(Resolution res, Resolution resInternal, PixelFormat format) override;
 
-		std::shared_ptr<AVCodecContext> const codecCtx;
+		std::shared_ptr<AVCodecContext> codecCtx;
 		std::unique_ptr<ffpp::Frame> const avFrame;
 		OutputPicture *videoOutput;
 		OutputPcm *audioOutput;
