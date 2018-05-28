@@ -436,12 +436,12 @@ void copyToPicture(AVFrame const* avFrame, DataPicture* pic) {
 
 static void lavc_ReleaseFrame(void *opaque, uint8_t * /*data*/) {
 	if (opaque) {
-		delete static_cast<LibavDirectRendering::PictureContext*>(opaque);
+		delete static_cast<PictureAllocator::PictureContext*>(opaque);
 	}
 }
 
 int avGetBuffer2(struct AVCodecContext *ctx, AVFrame *frame, int /*flags*/) {
-	auto dr = static_cast<LibavDirectRendering*>(ctx->opaque);
+	auto dr = static_cast<PictureAllocator*>(ctx->opaque);
 	int width = frame->width;
 	int height = frame->height;
 	int linesize_align[AV_NUM_DATA_POINTERS];

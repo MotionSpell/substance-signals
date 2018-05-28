@@ -13,7 +13,7 @@ class Frame;
 namespace Modules {
 namespace Decode {
 
-class LibavDecode : public ModuleS, private LibavDirectRendering {
+class LibavDecode : public ModuleS, private PictureAllocator {
 	public:
 		LibavDecode(std::shared_ptr<const MetadataPktLibav> metadata);
 		~LibavDecode();
@@ -25,7 +25,7 @@ class LibavDecode : public ModuleS, private LibavDirectRendering {
 		void processAudio();
 		void processVideo();
 		void setMediaTime(DataBase* data);
-		LibavDirectRendering::PictureContext* getPicture(Resolution res, Resolution resInternal, PixelFormat format) override;
+		PictureAllocator::PictureContext* getPicture(Resolution res, Resolution resInternal, PixelFormat format) override;
 
 		std::shared_ptr<AVCodecContext> const codecCtx;
 		std::unique_ptr<ffpp::Frame> const avFrame;

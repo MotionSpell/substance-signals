@@ -96,7 +96,7 @@ void libavFrame2pcmConvert(const AVFrame *frame, PcmFormat *cfg);
 AVPixelFormat pixelFormat2libavPixFmt(PixelFormat format);
 PixelFormat libavPixFmt2PixelFormat(AVPixelFormat avPixfmt);
 
-struct LibavDirectRendering {
+struct PictureAllocator {
 	struct PictureContext {
 		std::shared_ptr<DataPicture> pic;
 	};

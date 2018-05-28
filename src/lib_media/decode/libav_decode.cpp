@@ -25,7 +25,7 @@ LibavDecode::LibavDecode(std::shared_ptr<const MetadataPktLibav> metadata)
 		input->setMetadata(shptr(new MetadataPktLibavVideo(codecCtx)));
 		if (codecCtx->codec->capabilities & AV_CODEC_CAP_DR1) {
 			codecCtx->thread_safe_callbacks = 1;
-			codecCtx->opaque = static_cast<LibavDirectRendering*>(this);
+			codecCtx->opaque = static_cast<PictureAllocator*>(this);
 			codecCtx->get_buffer2 = avGetBuffer2;
 			videoOutput = addOutputDynAlloc<OutputPicture>(std::thread::hardware_concurrency() * 4, shptr(new MetadataRawVideo));
 		} else {
@@ -85,8 +85,8 @@ void LibavDecode::setMediaTime(DataBase* data) {
 	data->setMediaTime(avFrame->get()->pts);
 }
 
-LibavDirectRendering::PictureContext* LibavDecode::getPicture(Resolution res, Resolution resInternal, PixelFormat format) {
-	auto ctx = new LibavDirectRendering::PictureContext;
+PictureAllocator::PictureContext* LibavDecode::getPicture(Resolution res, Resolution resInternal, PixelFormat format) {
+	auto ctx = new PictureAllocator::PictureContext;
 	ctx->pic = DataPicture::create(videoOutput, res, resInternal, format);
 	return ctx;
 }
@@ -103,7 +103,6 @@ void LibavDecode::process(Data data) {
 	pkt->pts = data->getMediaTime();
 	processPacket(pkt);
 }
-
 
 void LibavDecode::processPacket(AVPacket const * pkt) {
 	int ret;
