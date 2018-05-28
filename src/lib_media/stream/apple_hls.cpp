@@ -143,7 +143,7 @@ void Apple_HLS::updateManifestVariants() {
 			std::istringstream buffer(firstSegNumStr);
 			buffer >> firstSegNums[i];
 
-			auto out = shptr(new DataBaseRef(quality->lastData));
+			auto out = std::make_shared<DataBaseRef>(quality->lastData);
 			out->setMetadata(std::make_shared<MetadataFile>(format("%s%s", manifestDir, fn), SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), meta->getSize(), meta->getLatency(), meta->getStartsWithRAP(), true));
 			out->setMediaTime(totalDurationInMs, 1000);
 			outputSegments->emit(out);

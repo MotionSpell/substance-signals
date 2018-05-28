@@ -52,7 +52,7 @@ void Restamp::process(Data data) {
 	auto const time = data->getMediaTime();
 	auto const restampedTime = restamp(time);
 	log(((time != 0) && (time + offset < 0)) ? Info : Debug, "%s -> %ss (time=%s, offset=%s)", (double)time / IClock::Rate, (double)(restampedTime) / IClock::Rate, time, offset);
-	auto dataOut = shptr(new DataBaseRef(data));
+	auto dataOut = std::make_shared<DataBaseRef>(data);
 	dataOut->setMediaTime(restampedTime);
 	getOutput(0)->emit(dataOut);
 }

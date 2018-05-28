@@ -53,7 +53,7 @@ void AdaptiveStreamingCommon::processInitSegment(Quality const * const quality, 
 	auto const &meta = quality->getMeta();
 	switch (meta->getStreamType()) {
 	case AUDIO_PKT: case VIDEO_PKT: case SUBTITLE_PKT: {
-		auto out = shptr(new DataBaseRef(quality->lastData));
+		auto out = std::make_shared<DataBaseRef>(quality->lastData);
 		std::string initFn = safe_cast<const MetadataFile>(quality->lastData->getMetadata())->getFilename();
 		if (initFn.empty()) {
 			initFn = format("%s%s", manifestDir, getInitName(quality, index));
@@ -121,7 +121,7 @@ void AdaptiveStreamingCommon::endOfStream() {
 
 std::shared_ptr<DataBase> AdaptiveStreamingCommon::getPresignalledData(uint64_t size, Data &data, bool EOS) {
 	if (!(flags & PresignalNextSegment)) {
-		return shptr<DataBase>(new DataBaseRef(data));
+		return std::make_shared<DataBaseRef>(data);
 	}
 	if (!safe_cast<const MetadataFile>(data->getMetadata())->getFilename().empty() && !EOS) {
 		return nullptr;
@@ -149,7 +149,7 @@ std::shared_ptr<DataBase> AdaptiveStreamingCommon::getPresignalledData(uint64_t 
 			return out;
 		} else {
 			assert(dataRawSize < 8 || *(uint32_t*)(dataRaw->data() + 4) != (uint32_t)0x70797473);
-			return shptr<DataBase>(new DataBaseRef(data));
+			return std::make_shared<DataBaseRef>(data);
 		}
 	}
 }

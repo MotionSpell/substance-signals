@@ -6,7 +6,7 @@ namespace Transform {
 AudioGapFiller::AudioGapFiller(uint64_t toleranceInFrames)
 	: toleranceInFrames(toleranceInFrames) {
 	auto input = addInput(new Input<DataPcm>(this));
-	input->setMetadata(shptr(new MetadataRawAudio));
+	input->setMetadata(std::make_shared<MetadataRawAudio>());
 	output = addOutput<OutputPcm>();
 }
 
@@ -24,7 +24,7 @@ void AudioGapFiller::process(Data data) {
 		if ((uint64_t)std::abs(diff) <= srcNumSamples * (1 + toleranceInFrames)) {
 			log(Debug, "Fixing gap of %s samples (input=%s, accumulation=%s)", diff, timeInSR, accumulatedTimeInSR);
 			if (diff > 0) {
-				auto dataInThePast = shptr(new DataBaseRef(data));
+				auto dataInThePast = std::make_shared<DataBaseRef>(data);
 				dataInThePast->setMediaTime(data->getMediaTime() - timescaleToClock(srcNumSamples, sampleRate));
 				process(dataInThePast);
 			} else {
@@ -36,7 +36,7 @@ void AudioGapFiller::process(Data data) {
 		}
 	}
 
-	auto dataOut = shptr(new DataBaseRef(data));
+	auto dataOut = std::make_shared<DataBaseRef>(data);
 	dataOut->setMediaTime(accumulatedTimeInSR, sampleRate);
 	output->emit(dataOut);
 

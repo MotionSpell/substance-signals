@@ -47,7 +47,7 @@ class FakeInput : public Module {
 unittest("metadata: backwarded by connection") {
 	auto output = create<FakeOutput>();
 	auto input  = create<FakeInput>();
-	input->setMetadata(shptr(new MetadataRawAudio));
+	input->setMetadata(std::make_shared<MetadataRawAudio>());
 	auto o = output->getOutput(0);
 	auto i = input->getInput(0);
 	ConnectOutputToInput(o, i);
@@ -57,7 +57,7 @@ unittest("metadata: backwarded by connection") {
 unittest("metadata: not forwarded by connection") {
 	auto output = create<FakeOutput>();
 	auto input = create<FakeInput>();
-	output->setMetadata(shptr(new MetadataRawAudio));
+	output->setMetadata(std::make_shared<MetadataRawAudio>());
 	auto o = output->getOutput(0);
 	auto i = input->getInput(0);
 	ConnectOutputToInput(o, i);
@@ -67,7 +67,7 @@ unittest("metadata: not forwarded by connection") {
 unittest("metadata: same back and fwd by connection") {
 	auto output = create<FakeOutput>();
 	auto input = create<FakeInput>();
-	auto meta = shptr(new MetadataRawAudio);
+	auto meta = std::make_shared<MetadataRawAudio>();
 	input->setMetadata(meta);
 	output->setMetadata(meta);
 	auto o = output->getOutput(0);
@@ -82,7 +82,7 @@ unittest("metadata: forwarded by data") {
 	auto o = output->getOutput(0);
 	auto i = input->getInput(0);
 	ConnectOutputToInput(o, i);
-	output->setMetadata(shptr(new MetadataRawAudio));
+	output->setMetadata(std::make_shared<MetadataRawAudio>());
 	output->process();
 	ASSERT(o->getMetadata() == i->getMetadata());
 }
@@ -92,11 +92,11 @@ unittest("metadata: incompatible by data") {
 	try {
 		auto output = create<FakeOutput>();
 		auto input = create<FakeInput>();
-		input->setMetadata(shptr(new MetadataRawAudio));
+		input->setMetadata(std::make_shared<MetadataRawAudio>());
 		auto o = output->getOutput(0);
 		auto i = input->getInput(0);
 		ConnectOutputToInput(o, i);
-		output->setMetadata(shptr(new MetadataRawVideo));
+		output->setMetadata(std::make_shared<MetadataRawVideo>());
 		output->process();
 		ASSERT(o->getMetadata() == i->getMetadata());
 	} catch (std::exception const& e) {
@@ -111,8 +111,8 @@ unittest("metadata: incompatible back and fwd") {
 	try {
 		auto output = create<FakeOutput>();
 		auto input = create<FakeInput>();
-		input->setMetadata(shptr(new MetadataRawAudio));
-		output->setMetadata(shptr(new MetadataRawVideo));
+		input->setMetadata(std::make_shared<MetadataRawAudio>());
+		output->setMetadata(std::make_shared<MetadataRawVideo>());
 		auto o = output->getOutput(0);
 		auto i = input->getInput(0);
 		ConnectOutputToInput(o, i);
@@ -131,9 +131,9 @@ unittest("metadata: updated twice by data") {
 	auto o = output->getOutput(0);
 	auto i = input->getInput(0);
 	ConnectOutputToInput(o, i);
-	output->setMetadata(shptr(new MetadataRawAudio));
+	output->setMetadata(std::make_shared<MetadataRawAudio>());
 	output->process();
-	output->setMetadata(shptr(new MetadataRawAudio));
+	output->setMetadata(std::make_shared<MetadataRawAudio>());
 	output->process();
 	ASSERT(o->getMetadata() == i->getMetadata());
 }

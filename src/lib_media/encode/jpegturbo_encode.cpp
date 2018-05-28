@@ -11,7 +11,7 @@ namespace Encode {
 JPEGTurboEncode::JPEGTurboEncode(int quality)
 	: jtHandle(tjInitCompress()), quality(quality) {
 	auto input = addInput(new Input<DataPicture>(this));
-	input->setMetadata(shptr(new MetadataRawVideo));
+	input->setMetadata(std::make_shared<MetadataRawVideo>());
 	output = addOutput<OutputDefault>();
 }
 

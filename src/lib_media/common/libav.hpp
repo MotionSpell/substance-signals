@@ -13,7 +13,6 @@ extern "C" {
 #include <libavutil/samplefmt.h>
 }
 
-template<>
 std::shared_ptr<AVCodecContext> shptr(AVCodecContext *p);
 
 namespace Modules {

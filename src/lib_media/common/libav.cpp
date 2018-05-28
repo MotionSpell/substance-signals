@@ -19,7 +19,6 @@ namespace Modules {
 void AVCodecContextDeleter(AVCodecContext *p);
 }
 
-template<>
 std::shared_ptr<AVCodecContext> shptr(AVCodecContext *p) {
 	return std::shared_ptr<AVCodecContext>(p, Modules::AVCodecContextDeleter);
 }

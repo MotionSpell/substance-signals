@@ -166,7 +166,7 @@ unittest("video converter: pass-through") {
 		auto convert = create<Transform::VideoConvert>(format);
 		Connect(convert->getOutput(0)->getSignal(), onFrame);
 
-		auto pic = shptr(new PictureYUV420P(res));
+		auto pic = std::make_shared<PictureYUV420P>(res);
 		convert->process(pic);
 	}
 
@@ -189,7 +189,7 @@ unittest("video converter: different sizes") {
 		auto convert = create<Transform::VideoConvert>(format);
 		Connect(convert->getOutput(0)->getSignal(), onFrame);
 
-		auto pic = shptr(new PictureYUV420P(srcRes));
+		auto pic = std::make_shared<PictureYUV420P>(srcRes);
 		convert->process(pic);
 	}
 

@@ -11,7 +11,7 @@ AudioConvert::AudioConvert(const PcmFormat &dstFormat, int64_t dstNumSamples)
 	: dstPcmFormat(dstFormat), dstNumSamples(dstNumSamples), m_Swr(nullptr), autoConfigure(true) {
 	memset(&srcPcmFormat, 0, sizeof(srcPcmFormat));
 	auto input = addInput(new Input<DataPcm>(this));
-	input->setMetadata(shptr(new MetadataRawAudio));
+	input->setMetadata(std::make_shared<MetadataRawAudio>());
 	output = addOutput<OutputPcm>();
 }
 
@@ -19,7 +19,7 @@ AudioConvert::AudioConvert(const PcmFormat &srcFormat, const PcmFormat &dstForma
 	: srcPcmFormat(srcFormat), dstPcmFormat(dstFormat), dstNumSamples(dstNumSamples), m_Swr(new ffpp::SwResampler), autoConfigure(false) {
 	configure(srcPcmFormat);
 	auto input = addInput(new Input<DataPcm>(this));
-	input->setMetadata(shptr(new MetadataRawAudio));
+	input->setMetadata(std::make_shared<MetadataRawAudio>());
 	output = addOutput<OutputPcm>();
 }
 

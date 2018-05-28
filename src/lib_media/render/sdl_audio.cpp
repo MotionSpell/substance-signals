@@ -67,7 +67,7 @@ SDLAudio::SDLAudio(const std::shared_ptr<IClock> clock)
 		throw error("Audio output creation failed");
 
 	auto input = addInput(new Input<DataPcm>(this));
-	input->setMetadata(shptr(new MetadataRawAudio));
+	input->setMetadata(std::make_shared<MetadataRawAudio>());
 	Signals::Connect(m_converter->getOutput(0)->getSignal(), this, &SDLAudio::push, executorSync);
 }
 
