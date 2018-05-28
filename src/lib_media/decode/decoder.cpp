@@ -21,7 +21,7 @@ Decoder::Decoder(std::shared_ptr<const MetadataPktLibav> metadata)
 
 	switch (codecCtx->codec_type) {
 	case AVMEDIA_TYPE_VIDEO: {
-		auto input = addInput(new Input<DataAVPacket>(this));
+		auto input = addInput(new Input<DataBase>(this));
 		input->setMetadata(shptr(new MetadataPktLibavVideo(codecCtx)));
 		if (codecCtx->codec->capabilities & AV_CODEC_CAP_DR1) {
 			codecCtx->thread_safe_callbacks = 1;
@@ -35,7 +35,7 @@ Decoder::Decoder(std::shared_ptr<const MetadataPktLibav> metadata)
 		break;
 	}
 	case AVMEDIA_TYPE_AUDIO: {
-		auto input = addInput(new Input<DataAVPacket>(this));
+		auto input = addInput(new Input<DataBase>(this));
 		input->setMetadata(shptr(new MetadataPktLibavAudio(codecCtx)));
 		audioOutput = addOutput<OutputPcm>(shptr(new MetadataRawAudio));
 		deliverOutput = std::bind(&Decoder::processAudio, this);

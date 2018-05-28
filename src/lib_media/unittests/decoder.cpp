@@ -27,8 +27,8 @@ std::unique_ptr<Decode::Decoder> createMp3Decoder() {
 }
 
 template<size_t numBytes>
-std::shared_ptr<DataBase> createAvPacket(uint8_t const (&bytes)[numBytes]) {
-	auto pkt = std::make_shared<DataAVPacket>(numBytes);
+std::shared_ptr<DataBase> createPacket(uint8_t const (&bytes)[numBytes]) {
+	auto pkt = std::make_shared<DataRaw>(numBytes);
 	memcpy(pkt->data(), bytes, numBytes);
 	return pkt;
 }
@@ -57,7 +57,7 @@ std::shared_ptr<DataBase> getTestMp3Frame() {
 		0x00, 0x00, 0x00, 0x00
 	};
 
-	return createAvPacket(mp3_sine_frame);
+	return createPacket(mp3_sine_frame);
 }
 }
 
@@ -127,7 +127,7 @@ std::shared_ptr<DataBase> getTestH264Frame() {
 		0xaf, 0xfd, 0x0f, 0xdf,
 	};
 
-	return createAvPacket(h264_gray_frame);
+	return createPacket(h264_gray_frame);
 }
 }
 
