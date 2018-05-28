@@ -51,14 +51,13 @@ bool LibavDemux::webcamOpen(const std::string &options) {
 }
 
 void LibavDemux::initRestamp() {
-	restampers.resize(m_formatCtx->nb_streams);
 	for (unsigned i = 0; i < m_formatCtx->nb_streams; i++) {
 		const std::string format(m_formatCtx->iformat->name);
 		const std::string fn = m_formatCtx->filename;
 		if (format == "rtsp" || format == "rtp" || format == "sdp" || !fn.compare(0, 4, "rtp:") || !fn.compare(0, 4, "udp:")) {
-			restampers[i] = create<Transform::Restamp>(Transform::Restamp::IgnoreFirstAndReset);
+			m_streams[i].restamper = create<Transform::Restamp>(Transform::Restamp::IgnoreFirstAndReset);
 		} else {
-			restampers[i] = create<Transform::Restamp>(Transform::Restamp::Reset);
+			m_streams[i].restamper = create<Transform::Restamp>(Transform::Restamp::Reset);
 		}
 
 		if (format == "rtsp" || format == "rtp" || format == "mpegts") {
@@ -83,9 +82,9 @@ LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::strin
 			throw error("Webcam init failed.");
 		}
 
-		restampers.resize(m_formatCtx->nb_streams);
+		m_streams.resize(m_formatCtx->nb_streams);
 		for (unsigned i = 0; i < m_formatCtx->nb_streams; i++) {
-			restampers[i] = create<Transform::Restamp>(Transform::Restamp::ClockSystem); /*some webcams timestamps don't start at 0 (based on UTC)*/
+			m_streams[i].restamper = create<Transform::Restamp>(Transform::Restamp::ClockSystem); /*some webcams timestamps don't start at 0 (based on UTC)*/
 		}
 	} else {
 		ffpp::Dict dict(typeid(*this).name(), "-buffer_size 1M -fifo_size 1M -probesize 10M -analyzeduration 10M -overrun_nonfatal 1 -protocol_whitelist file,udp,rtp,http,https,tcp,tls,rtmp -rtsp_flags prefer_tcp -correct_ts_overflow 1 " + avformatCustom);
@@ -101,6 +100,8 @@ LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::strin
 			clean();
 			throw error(format("Error when opening input '%s'", url));
 		}
+		m_streams.resize(m_formatCtx->nb_streams);
+
 		m_formatCtx->flags |= AVFMT_FLAG_KEEP_SIDE_DATA; //deprecated >= 3.5 https://github.com/FFmpeg/FFmpeg/commit/ca2b779423
 
 		if (seekTimeInMs) {
@@ -122,8 +123,6 @@ LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::strin
 
 		av_dict_free(&dict);
 	}
-
-	m_streams.resize(m_formatCtx->nb_streams);
 
 	for (unsigned i = 0; i<m_formatCtx->nb_streams; i++) {
 		auto const st = m_formatCtx->streams[i];
@@ -282,7 +281,7 @@ void LibavDemux::setMediaTime(std::shared_ptr<DataAVPacket> data) {
 	if (startPTSIn180k) {
 		offset = -startPTSIn180k; //a global offset is applied to all streams (since it is a PTS we may have negative DTSs)
 	} else {
-		data->setMediaTime(restampers[pkt->stream_index]->restamp(data->getMediaTime())); //restamp by pid only when no start time
+		data->setMediaTime(m_streams[pkt->stream_index].restamper->restamp(data->getMediaTime())); //restamp by pid only when no start time
 		offset = data->getMediaTime() - time;
 	}
 	if (offset != 0) {

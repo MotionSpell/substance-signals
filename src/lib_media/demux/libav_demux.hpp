@@ -42,6 +42,7 @@ class LibavDemux : public ModuleS {
 			OutputDataDefault<DataAVPacket>* output = nullptr;
 			uint64_t offsetIn180k = 0;
 			int64_t lastDTS = 0;
+			std::unique_ptr<Transform::Restamp> restamper;
 		};
 
 		std::vector<Stream> m_streams;
@@ -50,7 +51,6 @@ class LibavDemux : public ModuleS {
 		std::thread workingThread;
 		std::atomic_bool done;
 		QueueLockFree<AVPacket> dispatchPkts;
-		std::vector<std::unique_ptr<Transform::Restamp>> restampers;
 		AVFormatContext* m_formatCtx;
 		AVIOContext* m_avioCtx = nullptr;
 		ReadFunc m_read;
