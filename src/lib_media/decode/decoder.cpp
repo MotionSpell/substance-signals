@@ -92,9 +92,9 @@ PictureAllocator::PictureContext* Decoder::getPicture(Resolution res, Resolution
 }
 
 void Decoder::process(Data data) {
-	auto decoderData = safe_cast<const DataAVPacket>(data);
 	inputs[0]->updateMetadata(data);
-	AVPacket *pkt = decoderData->getPacket();
+
+	AVPacket *pkt = safe_cast<const DataAVPacket>(data)->getPacket();
 	if (pkt->flags & AV_PKT_FLAG_RESET_DECODER) {
 		avcodec_flush_buffers(codecCtx.get());
 		pkt->flags &= ~AV_PKT_FLAG_RESET_DECODER;
