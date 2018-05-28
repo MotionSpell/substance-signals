@@ -50,7 +50,7 @@ class LibavDemux : public ModuleS {
 		bool loop;
 		std::thread workingThread;
 		std::atomic_bool done;
-		QueueLockFree<AVPacket> dispatchPkts;
+		QueueLockFree<AVPacket> packetQueue;
 		AVFormatContext* m_formatCtx;
 		AVIOContext* m_avioCtx = nullptr;
 		ReadFunc m_read;

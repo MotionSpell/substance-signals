@@ -70,7 +70,7 @@ void LibavDemux::initRestamp() {
 }
 
 LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::string &avformatCustom, const uint64_t seekTimeInMs, const std::string &formatName, LibavDemux::ReadFunc avioCustom)
-	: loop(loop), done(false), dispatchPkts(PKT_QUEUE_SIZE), m_read(std::move(avioCustom)) {
+	: loop(loop), done(false), packetQueue(PKT_QUEUE_SIZE), m_read(std::move(avioCustom)) {
 	if (!(m_formatCtx = avformat_alloc_context()))
 		throw error("Can't allocate format context");
 
@@ -163,7 +163,7 @@ void LibavDemux::clean() {
 	}
 
 	AVPacket p;
-	while (dispatchPkts.read(p)) {
+	while (packetQueue.read(p)) {
 		av_free_packet(&p);
 	}
 
@@ -257,7 +257,7 @@ void LibavDemux::threadProc() {
 			nextPacketResetFlag = false;
 		}
 
-		while (!dispatchPkts.write(pkt)) {
+		while (!packetQueue.write(pkt)) {
 			if (done) {
 				av_free_packet(&pkt);
 				return;
@@ -359,7 +359,7 @@ void LibavDemux::process(Data data) {
 			return;
 		}
 
-		if (!dispatchPkts.read(pkt)) {
+		if (!packetQueue.read(pkt)) {
 			if (done) {
 				log(Info, "All data consumed: exit process().");
 				return;
