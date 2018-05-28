@@ -47,7 +47,6 @@ LibavDecode::LibavDecode(std::shared_ptr<const MetadataPktLibav> metadata)
 }
 
 LibavDecode::~LibavDecode() {
-	videoOutput = nullptr;
 }
 
 void LibavDecode::processAudio() {
