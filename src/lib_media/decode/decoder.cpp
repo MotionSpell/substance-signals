@@ -98,9 +98,11 @@ void Decoder::process(Data data) {
 		avcodec_flush_buffers(codecCtx.get());
 	}
 
-	AVPacket *pkt = safe_cast<const DataAVPacket>(data)->getPacket();
-	pkt->pts = data->getMediaTime();
-	processPacket(pkt);
+	AVPacket pkt {};
+	pkt.pts = data->getMediaTime();
+	pkt.data = (uint8_t*)data->data();
+	pkt.size = (int)data->size();
+	processPacket(&pkt);
 }
 
 void Decoder::processPacket(AVPacket const * pkt) {
