@@ -163,6 +163,19 @@ unittest("decode: video simple") {
 	ASSERT_EQUALS(expectedFrames, actualFrames);
 }
 
+unittest("decode: destroy without flushing") {
+	auto decode = createVideoDecoder();
+
+	int picCount = 0;
+	auto onPic = [&](Data) {
+		++picCount;
+	};
+
+	Connect(decode->getOutput(0)->getSignal(), onPic);
+	decode->process(getTestH264Frame());
+	ASSERT_EQUALS(0, picCount);
+}
+
 unittest("decode: audio mp3 manual frame to AAC") {
 	auto decode = createMp3Decoder();
 	auto encoder = create<Encode::LibavEncode>(Encode::LibavEncode::Audio);
