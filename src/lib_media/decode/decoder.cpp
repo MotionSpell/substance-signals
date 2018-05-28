@@ -30,7 +30,6 @@ Decoder::Decoder(std::shared_ptr<const MetadataPktLibav> metadata)
 	ffpp::Dict dict(typeid(*this).name(), "-threads auto -err_detect 1 -flags output_corrupt -flags2 showall");
 	if (avcodec_open2(codecCtx.get(), codec, &dict) < 0)
 		throw error("Couldn't open stream.");
-	codecCtx->refcounted_frames = true;
 
 	switch (codecCtx->codec_type) {
 	case AVMEDIA_TYPE_VIDEO: {
@@ -132,7 +131,7 @@ void Decoder::processPacket(AVPacket const * pkt) {
 		if(ret != 0)
 			break; // no more frames
 
-		if (av_frame_get_decode_error_flags(avFrame->get()) || (avFrame->get()->flags & AV_FRAME_FLAG_CORRUPT)) {
+		if (avFrame->get()->decode_error_flags || (avFrame->get()->flags & AV_FRAME_FLAG_CORRUPT)) {
 			log(Error, "Corrupted frame decoded");
 		}
 
