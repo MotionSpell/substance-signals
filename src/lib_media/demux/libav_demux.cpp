@@ -123,8 +123,8 @@ LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::strin
 		av_dict_free(&dict);
 	}
 
-	lastDTS.resize(m_formatCtx->nb_streams);
-	offsetIn180k.resize(m_formatCtx->nb_streams);
+	m_streams.resize(m_formatCtx->nb_streams);
+
 	for (unsigned i = 0; i<m_formatCtx->nb_streams; i++) {
 		auto const st = m_formatCtx->streams[i];
 		auto const parser = av_stream_get_parser(st);
@@ -147,7 +147,7 @@ LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::strin
 		case AVMEDIA_TYPE_SUBTITLE: m = std::make_shared<MetadataPktLibavSubtitle>(codecCtx, st->id); break;
 		default: break;
 		}
-		outputs.push_back(addOutput<OutputDataDefault<DataAVPacket>>(m));
+		m_streams[i].output = addOutput<OutputDataDefault<DataAVPacket>>(m);
 		av_dump_format(m_formatCtx, i, url.c_str(), 0);
 	}
 }
@@ -182,31 +182,32 @@ void LibavDemux::seekToStart() {
 		throw error(format("Couldn't seek to start time %s", m_formatCtx->start_time));
 
 	for (unsigned i = 0; i < m_formatCtx->nb_streams; i++) {
-		offsetIn180k[i] += timescaleToClock(m_formatCtx->duration, AV_TIME_BASE);
+		m_streams[i].offsetIn180k += timescaleToClock(m_formatCtx->duration, AV_TIME_BASE);
 	}
 }
 
 bool LibavDemux::rectifyTimestamps(AVPacket &pkt) {
 	auto const stream = m_formatCtx->streams[pkt.stream_index];
+	auto & demuxStream = m_streams[pkt.stream_index];
 	auto const maxDelayInSec = 5;
 	auto const thresholdInBase = (maxDelayInSec * stream->time_base.den) / stream->time_base.num;
 
 	if (pkt.dts != AV_NOPTS_VALUE) {
-		pkt.dts += clockToTimescale(offsetIn180k[pkt.stream_index] * stream->time_base.num, stream->time_base.den);
-		if (lastDTS[pkt.stream_index] && pkt.dts < lastDTS[pkt.stream_index]
-		    && (1LL << stream->pts_wrap_bits) - lastDTS[pkt.stream_index] < thresholdInBase && pkt.dts + (1LL << stream->pts_wrap_bits) > lastDTS[pkt.stream_index]) {
-			offsetIn180k[pkt.stream_index] += timescaleToClock((1LL << stream->pts_wrap_bits) * stream->time_base.num, stream->time_base.den);
+		pkt.dts += clockToTimescale(demuxStream.offsetIn180k * stream->time_base.num, stream->time_base.den);
+		if (demuxStream.lastDTS && pkt.dts < demuxStream.lastDTS
+		    && (1LL << stream->pts_wrap_bits) - demuxStream.lastDTS < thresholdInBase && pkt.dts + (1LL << stream->pts_wrap_bits) > demuxStream.lastDTS) {
+			demuxStream.offsetIn180k += timescaleToClock((1LL << stream->pts_wrap_bits) * stream->time_base.num, stream->time_base.den);
 			log(Warning, "Stream %s: overflow detecting on DTS (%s, last=%s, timescale=%s/%s, offset=%s).",
-			    pkt.stream_index, pkt.dts, lastDTS[pkt.stream_index], stream->time_base.num, stream->time_base.den, clockToTimescale(offsetIn180k[pkt.stream_index] * stream->time_base.num, stream->time_base.den));
+			    pkt.stream_index, pkt.dts, demuxStream.lastDTS, stream->time_base.num, stream->time_base.den, clockToTimescale(demuxStream.offsetIn180k * stream->time_base.num, stream->time_base.den));
 		}
 	}
 
 	if (pkt.pts != AV_NOPTS_VALUE) {
-		pkt.pts += clockToTimescale(offsetIn180k[pkt.stream_index] * stream->time_base.num, stream->time_base.den);
+		pkt.pts += clockToTimescale(demuxStream.offsetIn180k * stream->time_base.num, stream->time_base.den);
 		if (pkt.pts < pkt.dts && (1LL << stream->pts_wrap_bits) + pkt.pts - pkt.dts < thresholdInBase) {
 			auto const localOffsetIn180k = timescaleToClock((1LL << stream->pts_wrap_bits) * stream->time_base.num, stream->time_base.den);
 			log(Warning, "Stream %s: overflow detecting on PTS (%s, new=%s, timescale=%s/%s, offset=%s).",
-			    pkt.stream_index, pkt.pts, pkt.pts + localOffsetIn180k, stream->time_base.num, stream->time_base.den, clockToTimescale(offsetIn180k[pkt.stream_index] * stream->time_base.num, stream->time_base.den));
+			    pkt.stream_index, pkt.pts, pkt.pts + localOffsetIn180k, stream->time_base.num, stream->time_base.den, clockToTimescale(demuxStream.offsetIn180k * stream->time_base.num, stream->time_base.den));
 			pkt.pts += localOffsetIn180k;
 		}
 	}
@@ -271,9 +272,9 @@ void LibavDemux::threadProc() {
 void LibavDemux::setMediaTime(std::shared_ptr<DataAVPacket> data) {
 	auto pkt = data->getPacket();
 	if (!pkt->duration) {
-		pkt->duration = pkt->dts - lastDTS[pkt->stream_index];
+		pkt->duration = pkt->dts - m_streams[pkt->stream_index].lastDTS;
 	}
-	lastDTS[pkt->stream_index] = pkt->dts;
+	m_streams[pkt->stream_index].lastDTS = pkt->dts;
 	auto const base = m_formatCtx->streams[pkt->stream_index]->time_base;
 	auto const time = timescaleToClock(pkt->dts * base.num, base.den);
 	data->setMediaTime(time - startPTSIn180k);
@@ -294,10 +295,10 @@ bool LibavDemux::dispatchable(AVPacket * const pkt) {
 		log(Error, "Corrupted packet received (DTS=%s).", pkt->dts);
 	}
 	if (pkt->dts == AV_NOPTS_VALUE) {
-		pkt->dts = lastDTS[pkt->stream_index];
+		pkt->dts = m_streams[pkt->stream_index].lastDTS;
 		log(Debug, "No DTS: setting last value %s.", pkt->dts);
 	}
-	if (!lastDTS[pkt->stream_index]) {
+	if (!m_streams[pkt->stream_index].lastDTS) {
 		auto stream = m_formatCtx->streams[pkt->stream_index];
 		auto minPts = clockToTimescale(startPTSIn180k*stream->time_base.num, stream->time_base.den);
 		if(pkt->pts < minPts) {
@@ -309,13 +310,14 @@ bool LibavDemux::dispatchable(AVPacket * const pkt) {
 }
 
 void LibavDemux::dispatch(AVPacket *pkt) {
-	auto out = outputs[pkt->stream_index]->getBuffer(0);
+	auto output = m_streams[pkt->stream_index].output;
+	auto out = output->getBuffer(0);
 	auto outPkt = out->getPacket();
 	av_packet_move_ref(outPkt, pkt);
 	if(pkt->flags & AV_PKT_FLAG_RESET_DECODER)
 		out->flags |= DATA_FLAGS_DISCONTINUITY;
 	setMediaTime(out);
-	outputs[outPkt->stream_index]->emit(out);
+	output->emit(out);
 	sparseStreamsHeartbeat(outPkt);
 }
 
@@ -339,9 +341,9 @@ void LibavDemux::sparseStreamsHeartbeat(AVPacket const * const pkt) {
 			}
 			auto const st = m_formatCtx->streams[i];
 			if (st->codec->codec_type == AVMEDIA_TYPE_SUBTITLE) {
-				auto outParse = outputs[i]->getBuffer(0);
+				auto outParse = m_streams[i].output->getBuffer(0);
 				outParse->setMediaTime(curTimeIn180k);
-				outputs[i]->emit(outParse);
+				m_streams[i].output->emit(outParse);
 			}
 		}
 	}

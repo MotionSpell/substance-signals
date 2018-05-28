@@ -38,18 +38,23 @@ class LibavDemux : public ModuleS {
 		void dispatch(AVPacket *pkt);
 		void sparseStreamsHeartbeat(AVPacket const * const pkt);
 
+		struct Stream {
+			OutputDataDefault<DataAVPacket>* output = nullptr;
+			uint64_t offsetIn180k = 0;
+			int64_t lastDTS = 0;
+		};
+
+		std::vector<Stream> m_streams;
+
 		bool loop;
 		std::thread workingThread;
 		std::atomic_bool done;
 		QueueLockFree<AVPacket> dispatchPkts;
 		std::vector<std::unique_ptr<Transform::Restamp>> restampers;
-		std::vector<OutputDataDefault<DataAVPacket>*> outputs;
 		AVFormatContext* m_formatCtx;
 		AVIOContext* m_avioCtx = nullptr;
 		ReadFunc m_read;
 		int64_t curTimeIn180k = 0, startPTSIn180k = std::numeric_limits<int64_t>::min();
-		std::vector<uint64_t> offsetIn180k;
-		std::vector<int64_t> lastDTS;
 
 		static int read(void* user, uint8_t* data, int size) {
 			auto pThis = (LibavDemux*)user;
