@@ -23,7 +23,7 @@
     <ClInclude Include="decode\jpegturbo_decode.hpp">
       <Filter>src\decode</Filter>
     </ClInclude>
-    <ClInclude Include="decode\libav_decode.hpp">
+    <ClInclude Include="decode\decoder.hpp">
       <Filter>src\decode</Filter>
     </ClInclude>
     <ClInclude Include="render\render_common.hpp">
@@ -192,7 +192,7 @@
     <ClCompile Include="decode\jpegturbo_decode.cpp">
       <Filter>src\decode</Filter>
     </ClCompile>
-    <ClCompile Include="decode\libav_decode.cpp">
+    <ClCompile Include="decode\decoder.cpp">
       <Filter>src\decode</Filter>
     </ClCompile>
     <ClCompile Include="render\sdl_audio.cpp">

@@ -9,7 +9,7 @@
 #include <gpac/tools.h> //gf_mkdir
 
 // modules
-#include "lib_media/decode/libav_decode.hpp"
+#include "lib_media/decode/decoder.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/encode/libav_encode.hpp"
 #include "lib_media/stream/mpeg_dash.hpp"
@@ -157,7 +157,7 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 
 		IPipelinedModule *decode = nullptr;
 		if (transcode) {
-			decode = pipeline->addModule<Decode::LibavDecode>(metadataDemux);
+			decode = pipeline->addModule<Decode::Decoder>(metadataDemux);
 			pipeline->connect(demux, i, decode, 0);
 
 			if (metadataDemux->isVideo() && opt->autoRotate) {

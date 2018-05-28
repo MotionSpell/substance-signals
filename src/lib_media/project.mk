@@ -7,7 +7,7 @@ LIB_MEDIA_SRCS:=\
   $(MYDIR)/common/gpac.cpp\
   $(MYDIR)/common/picture.cpp\
   $(MYDIR)/decode/jpegturbo_decode.cpp\
-  $(MYDIR)/decode/libav_decode.cpp\
+  $(MYDIR)/decode/decoder.cpp\
   $(MYDIR)/demux/gpac_demux_mp4_simple.cpp\
   $(MYDIR)/demux/gpac_demux_mp4_full.cpp\
   $(MYDIR)/demux/libav_demux.cpp\
@@ -52,6 +52,6 @@ endif
 # Warning derogations. TODO: make this list empty
 $(BIN)/src/lib_media/common/libav.cpp.o: CFLAGS+=-Wno-deprecated-declarations
 $(BIN)/src/lib_media/encode/libav_encode.cpp.o: CFLAGS+=-Wno-deprecated-declarations
-$(BIN)/src/lib_media/decode/libav_decode.cpp.o: CFLAGS+=-Wno-deprecated-declarations
+$(BIN)/src/lib_media/decode/decoder.cpp.o: CFLAGS+=-Wno-deprecated-declarations
 $(BIN)/src/lib_media/demux/libav_demux.cpp.o: CFLAGS+=-Wno-deprecated-declarations
 $(BIN)/src/lib_media/mux/libav_mux.cpp.o: CFLAGS+=-Wno-deprecated-declarations

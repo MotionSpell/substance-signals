@@ -1,5 +1,5 @@
 #include "tests/tests.hpp"
-#include "lib_media/decode/libav_decode.hpp"
+#include "lib_media/decode/decoder.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/demux/gpac_demux_mp4_simple.hpp"
 #include "lib_media/encode/libav_encode.hpp"
@@ -134,7 +134,7 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 
 		auto gapper = create<Gapper>();
 		ConnectOutputToInput(demux->getOutput(i), gapper->getInput(0));
-		auto decoder = create<Decode::LibavDecode>(metadataDemux);
+		auto decoder = create<Decode::Decoder>(metadataDemux);
 		ConnectOutputToInput(gapper->getOutput(0), decoder->getInput(0));
 
 		auto inputRes = metadataDemux->isVideo() ? safe_cast<const MetadataPktLibavVideo>(demux->getOutput(i)->getMetadata())->getResolution() : Resolution();

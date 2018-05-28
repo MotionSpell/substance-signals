@@ -1,6 +1,6 @@
 #include "tests/tests.hpp"
 #include "lib_modules/modules.hpp"
-#include "lib_media/decode/libav_decode.hpp"
+#include "lib_media/decode/decoder.hpp"
 #include "lib_media/encode/libav_encode.hpp"
 #include "lib_media/in/file.hpp"
 #include "lib_media/out/null.hpp"
@@ -16,16 +16,16 @@ using namespace Tests;
 using namespace Modules;
 
 namespace {
-std::unique_ptr<Decode::LibavDecode> createGenericDecoder(enum AVCodecID id) {
+std::unique_ptr<Decode::Decoder> createGenericDecoder(enum AVCodecID id) {
 	auto context = shptr(avcodec_alloc_context3(avcodec_find_decoder(id)));
 	context->time_base.num = 1;
 	context->time_base.den = 44100; //needed for FFmpeg >= 3.1
 	auto metadata = shptr(new MetadataPktLibav(context));
-	auto decode = create<Decode::LibavDecode>(metadata);
+	auto decode = create<Decode::Decoder>(metadata);
 	return decode;
 }
 
-std::unique_ptr<Decode::LibavDecode> createMp3Decoder() {
+std::unique_ptr<Decode::Decoder> createMp3Decoder() {
 	return createGenericDecoder(AV_CODEC_ID_MP3);
 }
 
@@ -64,7 +64,7 @@ std::shared_ptr<DataBase> getTestMp3Frame() {
 }
 }
 
-unittest("decode: audio simple") {
+unittest("decoder: audio simple") {
 	struct FrameCounter : ModuleS {
 		FrameCounter() {
 			addInput(new Input<DataBase>(this));
@@ -88,7 +88,7 @@ unittest("decode: audio simple") {
 	ASSERT_EQUALS(3, rec->frameCount);
 }
 
-unittest("decode: timestamp propagation") {
+unittest("decoder: timestamp propagation") {
 	struct FrameCounter : ModuleS {
 		FrameCounter() {
 			addInput(new Input<DataBase>(this));
@@ -115,7 +115,7 @@ unittest("decode: timestamp propagation") {
 }
 
 namespace {
-std::unique_ptr<Decode::LibavDecode> createVideoDecoder() {
+std::unique_ptr<Decode::Decoder> createVideoDecoder() {
 	return createGenericDecoder(AV_CODEC_ID_H264);
 }
 
@@ -134,7 +134,7 @@ std::shared_ptr<DataBase> getTestH264Frame() {
 }
 }
 
-unittest("decode: video simple") {
+unittest("decoder: video simple") {
 	auto decode = createVideoDecoder();
 	auto data = getTestH264Frame();
 
@@ -163,7 +163,7 @@ unittest("decode: video simple") {
 	ASSERT_EQUALS(expectedFrames, actualFrames);
 }
 
-unittest("decode: destroy without flushing") {
+unittest("decoder: destroy without flushing") {
 	auto decode = createVideoDecoder();
 
 	int picCount = 0;
@@ -176,7 +176,7 @@ unittest("decode: destroy without flushing") {
 	ASSERT_EQUALS(0, picCount);
 }
 
-unittest("decode: audio mp3 manual frame to AAC") {
+unittest("decoder: audio mp3 manual frame to AAC") {
 	auto decode = createMp3Decoder();
 	auto encoder = create<Encode::LibavEncode>(Encode::LibavEncode::Audio);
 
@@ -186,7 +186,7 @@ unittest("decode: audio mp3 manual frame to AAC") {
 	ASSERT_THROWN(decode->process(frame));
 }
 
-unittest("decode: audio mp3 to converter to AAC") {
+unittest("decoder: audio mp3 to converter to AAC") {
 	auto decoder = createMp3Decoder();
 	auto encoder = create<Encode::LibavEncode>(Encode::LibavEncode::Audio);
 

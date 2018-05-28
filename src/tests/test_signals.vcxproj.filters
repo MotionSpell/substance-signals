@@ -83,7 +83,7 @@
     <ClCompile Include="..\lib_modules\unittests\transcoder.cpp">
       <Filter>modules</Filter>
     </ClCompile>
-    <ClCompile Include="..\lib_media\unittests\decode.cpp">
+    <ClCompile Include="..\lib_media\unittests\decoder.cpp">
       <Filter>media</Filter>
     </ClCompile>
     <ClCompile Include="..\lib_media\unittests\demux.cpp">

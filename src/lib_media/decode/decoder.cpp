@@ -1,4 +1,4 @@
-#include "libav_decode.hpp"
+#include "decoder.hpp"
 #include "../common/pcm.hpp"
 #include "lib_utils/tools.hpp"
 #include "lib_ffpp/ffpp.hpp"
@@ -7,7 +7,7 @@
 namespace Modules {
 namespace Decode {
 
-LibavDecode::LibavDecode(std::shared_ptr<const MetadataPktLibav> metadata)
+Decoder::Decoder(std::shared_ptr<const MetadataPktLibav> metadata)
 	: codecCtx(shptr(avcodec_alloc_context3(nullptr))), avFrame(new ffpp::Frame) {
 	avcodec_copy_context(codecCtx.get(), metadata->getAVCodecContext().get());
 
@@ -31,14 +31,14 @@ LibavDecode::LibavDecode(std::shared_ptr<const MetadataPktLibav> metadata)
 		} else {
 			videoOutput = addOutput<OutputPicture>(shptr(new MetadataRawVideo));
 		}
-		deliverOutput = std::bind(&LibavDecode::processVideo, this);
+		deliverOutput = std::bind(&Decoder::processVideo, this);
 		break;
 	}
 	case AVMEDIA_TYPE_AUDIO: {
 		auto input = addInput(new Input<DataAVPacket>(this));
 		input->setMetadata(shptr(new MetadataPktLibavAudio(codecCtx)));
 		audioOutput = addOutput<OutputPcm>(shptr(new MetadataRawAudio));
-		deliverOutput = std::bind(&LibavDecode::processAudio, this);
+		deliverOutput = std::bind(&Decoder::processAudio, this);
 		break;
 	}
 	default:
@@ -46,10 +46,10 @@ LibavDecode::LibavDecode(std::shared_ptr<const MetadataPktLibav> metadata)
 	}
 }
 
-LibavDecode::~LibavDecode() {
+Decoder::~Decoder() {
 }
 
-void LibavDecode::processAudio() {
+void Decoder::processAudio() {
 
 	auto out = audioOutput->getBuffer(0);
 	PcmFormat pcmFormat;
@@ -64,7 +64,7 @@ void LibavDecode::processAudio() {
 	audioOutput->emit(out);
 }
 
-void LibavDecode::processVideo() {
+void Decoder::processVideo() {
 
 	std::shared_ptr<DataPicture> pic;
 	auto ctx = static_cast<PictureContext*>(avFrame->get()->opaque);
@@ -81,17 +81,17 @@ void LibavDecode::processVideo() {
 	if (videoOutput) videoOutput->emit(pic);
 }
 
-void LibavDecode::setMediaTime(DataBase* data) {
+void Decoder::setMediaTime(DataBase* data) {
 	data->setMediaTime(avFrame->get()->pts);
 }
 
-PictureAllocator::PictureContext* LibavDecode::getPicture(Resolution res, Resolution resInternal, PixelFormat format) {
+PictureAllocator::PictureContext* Decoder::getPicture(Resolution res, Resolution resInternal, PixelFormat format) {
 	auto ctx = new PictureAllocator::PictureContext;
 	ctx->pic = DataPicture::create(videoOutput, res, resInternal, format);
 	return ctx;
 }
 
-void LibavDecode::process(Data data) {
+void Decoder::process(Data data) {
 	auto decoderData = safe_cast<const DataAVPacket>(data);
 	inputs[0]->updateMetadata(data);
 	AVPacket *pkt = decoderData->getPacket();
@@ -104,7 +104,7 @@ void LibavDecode::process(Data data) {
 	processPacket(pkt);
 }
 
-void LibavDecode::processPacket(AVPacket const * pkt) {
+void Decoder::processPacket(AVPacket const * pkt) {
 	int ret;
 
 	ret = avcodec_send_packet(codecCtx.get(), pkt);
@@ -126,7 +126,7 @@ void LibavDecode::processPacket(AVPacket const * pkt) {
 	}
 }
 
-void LibavDecode::flush() {
+void Decoder::flush() {
 	processPacket(nullptr);
 }
 

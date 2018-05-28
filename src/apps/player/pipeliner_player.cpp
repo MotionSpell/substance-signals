@@ -7,7 +7,7 @@
 #include "lib_media/out/null.hpp"
 #include "lib_media/render/sdl_audio.hpp"
 #include "lib_media/render/sdl_video.hpp"
-#include "lib_media/decode/libav_decode.hpp"
+#include "lib_media/decode/decoder.hpp"
 
 using namespace Modules;
 using namespace Pipelines;
@@ -54,7 +54,7 @@ void declarePipeline(Pipeline &pipeline, const char *url) {
 		if (!metadata || metadata->isSubtitle()/*only render audio and video*/)
 			continue;
 
-		auto decode = pipeline.addModule<Decode::LibavDecode>(metadata);
+		auto decode = pipeline.addModule<Decode::Decoder>(metadata);
 		pipeline.connect(demux, i, decode, 0);
 
 		auto render = createRenderer(metadata->getStreamType());

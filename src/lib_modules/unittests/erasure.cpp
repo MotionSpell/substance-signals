@@ -1,6 +1,6 @@
 #include "tests/tests.hpp"
 #include "lib_modules/modules.hpp"
-#include "lib_media/decode/libav_decode.hpp"
+#include "lib_media/decode/decoder.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/out/print.hpp"
 #include "lib_utils/tools.hpp"
@@ -14,11 +14,11 @@ namespace {
 secondclasstest("packet type erasure + multi-output: libav Demux -> {libav Decoder -> Out::Print}*") {
 	auto demux = create<Demux::LibavDemux>("data/beepbop.mp4");
 
-	std::vector<std::unique_ptr<Decode::LibavDecode>> decoders;
+	std::vector<std::unique_ptr<Decode::Decoder>> decoders;
 	std::vector<std::unique_ptr<Out::Print>> printers;
 	for (size_t i = 0; i < demux->getNumOutputs(); ++i) {
 		auto metadata = safe_cast<const MetadataPktLibav>(demux->getOutput(i)->getMetadata());
-		auto decode = create<Decode::LibavDecode>(metadata);
+		auto decode = create<Decode::Decoder>(metadata);
 
 		auto p = create<Out::Print>(std::cout);
 

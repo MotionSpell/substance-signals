@@ -2,7 +2,7 @@
 #include "lib_modules/modules.hpp"
 #include <stdexcept>
 #include "lib_media/demux/libav_demux.hpp"
-#include "lib_media/decode/libav_decode.hpp"
+#include "lib_media/decode/decoder.hpp"
 #include "lib_media/encode/libav_encode.hpp"
 #include "lib_media/mux/gpac_mux_mp4.hpp"
 #include "lib_media/stream/apple_hls.hpp"
@@ -632,7 +632,7 @@ unittest("adaptive streaming combination coverage") {
 
 	auto const segmentDurationInMs = 2000;
 	DataBase::absUTCOffsetInMs = 1000000;
-	std::vector<std::unique_ptr<Decode::LibavDecode>> decode;
+	std::vector<std::unique_ptr<Decode::Decoder>> decode;
 	std::vector<std::unique_ptr<Encode::LibavEncode>> encode;
 
 	std::vector<std::unique_ptr<Mux::GPACMuxMP4>> muxMP4File, muxMP4Mem, muxMP4MemFlushFrags;
@@ -654,7 +654,7 @@ unittest("adaptive streaming combination coverage") {
 		std::string prefix;
 		if (demux->getOutput(i)->getMetadata()->isVideo()) {
 			auto const metaVideo = safe_cast<const MetadataPktLibavVideo>(demux->getOutput(i)->getMetadata());
-			decode.push_back(create<Decode::LibavDecode>(metaVideo));
+			decode.push_back(create<Decode::Decoder>(metaVideo));
 			Encode::LibavEncode::Params p;
 			p.res = metaVideo->getResolution();
 			p.frameRate = metaVideo->getFrameRate();
@@ -662,7 +662,7 @@ unittest("adaptive streaming combination coverage") {
 			prefix = Stream::AdaptiveStreamingCommon::getCommonPrefixVideo(i, p.res.width, p.res.height);
 		} else if (demux->getOutput(i)->getMetadata()->isAudio()) {
 			auto const metaAudio = safe_cast<const MetadataPktLibavAudio>(demux->getOutput(i)->getMetadata());
-			decode.push_back(create<Decode::LibavDecode>(metaAudio));
+			decode.push_back(create<Decode::Decoder>(metaAudio));
 			Encode::LibavEncode::Params p;
 			p.numChannels = metaAudio->getNumChannels();
 			encode.push_back(create<Encode::LibavEncode>(Encode::LibavEncode::Audio, p));

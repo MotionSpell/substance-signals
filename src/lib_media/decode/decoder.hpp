@@ -13,10 +13,10 @@ class Frame;
 namespace Modules {
 namespace Decode {
 
-class LibavDecode : public ModuleS, private PictureAllocator {
+class Decoder : public ModuleS, private PictureAllocator {
 	public:
-		LibavDecode(std::shared_ptr<const MetadataPktLibav> metadata);
-		~LibavDecode();
+		Decoder(std::shared_ptr<const MetadataPktLibav> metadata);
+		~Decoder();
 		void process(Data data) override;
 		void flush() override;
 

@@ -24,7 +24,7 @@
     <ClInclude Include="common\pcm.hpp" />
     <ClInclude Include="common\picture.hpp" />
     <ClInclude Include="decode\jpegturbo_decode.hpp" />
-    <ClInclude Include="decode\libav_decode.hpp" />
+    <ClInclude Include="decode\decoder.hpp" />
     <ClInclude Include="demux\gpac_demux_mp4_full.hpp" />
     <ClInclude Include="demux\gpac_demux_mp4_simple.hpp" />
     <ClInclude Include="demux\libav_demux.hpp" />
@@ -77,7 +77,7 @@
     <ClCompile Include="common\libav.cpp" />
     <ClCompile Include="common\picture.cpp" />
     <ClCompile Include="decode\jpegturbo_decode.cpp" />
-    <ClCompile Include="decode\libav_decode.cpp" />
+    <ClCompile Include="decode\decoder.cpp" />
     <ClCompile Include="demux\gpac_demux_mp4_full.cpp" />
     <ClCompile Include="demux\gpac_demux_mp4_simple.cpp" />
     <ClCompile Include="demux\libav_demux.cpp" />

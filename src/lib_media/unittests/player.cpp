@@ -1,7 +1,7 @@
 #include "tests/tests.hpp"
 #include "lib_modules/modules.hpp"
 #include "lib_utils/tools.hpp"
-#include "lib_media/decode/libav_decode.hpp"
+#include "lib_media/decode/decoder.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/out/null.hpp"
 #include "lib_media/render/sdl_audio.hpp"
@@ -29,7 +29,7 @@ secondclasstest("packet type erasure + multi-output: libav Demux -> libav Decode
 	}
 	ASSERT(videoIndex != std::numeric_limits<size_t>::max());
 	auto metadata = safe_cast<const MetadataPktLibav>(demux->getOutput(videoIndex)->getMetadata());
-	auto decode = create<Decode::LibavDecode>(metadata);
+	auto decode = create<Decode::Decoder>(metadata);
 	auto render = create<Render::SDLVideo>();
 
 	ConnectOutputToInput(demux->getOutput(videoIndex), decode->getInput(0));
@@ -52,7 +52,7 @@ secondclasstest("packet type erasure + multi-output: libav Demux -> libav Decode
 	}
 	ASSERT(audioIndex != std::numeric_limits<size_t>::max());
 	auto metadata = safe_cast<const MetadataPktLibav>(demux->getOutput(audioIndex)->getMetadata());
-	auto decode = create<Decode::LibavDecode>(metadata);
+	auto decode = create<Decode::Decoder>(metadata);
 	auto srcFormat = PcmFormat(44100, 1, AudioLayout::Mono, AudioSampleFormat::F32, AudioStruct::Planar);
 	auto dstFormat = PcmFormat(44100, 2, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Interleaved);
 	auto converter = create<Transform::AudioConvert>(srcFormat, dstFormat);
