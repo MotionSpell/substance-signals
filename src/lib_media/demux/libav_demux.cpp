@@ -53,7 +53,7 @@ bool LibavDemux::webcamOpen(const std::string &options) {
 void LibavDemux::initRestamp() {
 	for (unsigned i = 0; i < m_formatCtx->nb_streams; i++) {
 		const std::string format(m_formatCtx->iformat->name);
-		const std::string fn = m_formatCtx->filename;
+		const std::string fn = m_formatCtx->url;
 		if (format == "rtsp" || format == "rtp" || format == "sdp" || !fn.compare(0, 4, "rtp:") || !fn.compare(0, 4, "udp:")) {
 			m_streams[i].restamper = create<Transform::Restamp>(Transform::Restamp::IgnoreFirstAndReset);
 		} else {
@@ -130,7 +130,7 @@ LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::strin
 		if (parser) {
 			st->codec->ticks_per_frame = parser->repeat_pict + 1;
 		} else {
-			log(Debug, format("No parser found for stream %s (%s). Couldn't use full metadata to get the timescale.", i, avcodec_get_name(st->codec->codec_id)));
+			log(Debug, format("No parser found for stream %s (%s). Couldn't use full metadata to get the timescale.", i, avcodec_get_name(st->codecpar->codec_id)));
 		}
 		st->codec->time_base = st->time_base; //allows to keep trace of the pkt timebase in the output metadata
 		if (!st->codec->framerate.num) {
@@ -140,7 +140,7 @@ LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::strin
 		std::shared_ptr<IMetadata> m;
 		auto codecCtx = shptr(avcodec_alloc_context3(nullptr));
 		avcodec_copy_context(codecCtx.get(), st->codec);
-		switch (st->codec->codec_type) {
+		switch (st->codecpar->codec_type) {
 		case AVMEDIA_TYPE_AUDIO: m = std::make_shared<MetadataPktLibavAudio>(codecCtx, st->id); break;
 		case AVMEDIA_TYPE_VIDEO: m = std::make_shared<MetadataPktLibavVideo>(codecCtx, st->id); break;
 		case AVMEDIA_TYPE_SUBTITLE: m = std::make_shared<MetadataPktLibavSubtitle>(codecCtx, st->id); break;
@@ -325,7 +325,7 @@ void LibavDemux::sparseStreamsHeartbeat(AVPacket const * const pkt) {
 
 	// signal clock from audio to sparse streams
 	// (should be the PCR but libavformat doesn't give access to it)
-	if (m_formatCtx->streams[pkt->stream_index]->codec->codec_type == AVMEDIA_TYPE_AUDIO) {
+	if (m_formatCtx->streams[pkt->stream_index]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
 		auto const base = m_formatCtx->streams[pkt->stream_index]->time_base;
 		auto const time = timescaleToClock(pkt->dts * base.num, base.den);
 		if (time > curDTS) {
@@ -339,7 +339,7 @@ void LibavDemux::sparseStreamsHeartbeat(AVPacket const * const pkt) {
 				continue;
 			}
 			auto const st = m_formatCtx->streams[i];
-			if (st->codec->codec_type == AVMEDIA_TYPE_SUBTITLE) {
+			if (st->codecpar->codec_type == AVMEDIA_TYPE_SUBTITLE) {
 				auto outParse = m_streams[i].output->getBuffer(0);
 				outParse->setMediaTime(curTimeIn180k);
 				m_streams[i].output->emit(outParse);
