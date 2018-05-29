@@ -95,15 +95,10 @@ void libavFrame2pcmConvert(const AVFrame *frame, PcmFormat *cfg);
 AVPixelFormat pixelFormat2libavPixFmt(PixelFormat format);
 PixelFormat libavPixFmt2PixelFormat(AVPixelFormat avPixfmt);
 
-struct PictureAllocator {
-	struct PictureContext {
-		std::shared_ptr<DataPicture> pic;
-	};
-	virtual PictureContext* getPicture(Resolution res, Resolution resInternal, PixelFormat format) = 0;
-};
 void copyToPicture(AVFrame const* avFrame, DataPicture* pic);
 extern "C" int avGetBuffer2(struct AVCodecContext *s, AVFrame *frame, int flags);
 
 std::string avStrError(int err);
 
 }
+

@@ -1,10 +1,11 @@
 #pragma once
 
 #include "lib_modules/utils/helper.hpp"
-#include "../common/libav.hpp"
+#include "../common/picture_allocator.hpp"
 #include "../common/pcm.hpp"
 
 struct AVCodecContext;
+struct AVPacket;
 
 namespace ffpp {
 class Frame;
