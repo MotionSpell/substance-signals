@@ -1,9 +1,77 @@
 #pragma once
 
-#include "lib_utils/resolution.hpp"
 #include <memory>
 #include <string>
 #include <vector>
+#include <queue>
+#include <sstream>
+
+typedef std::queue<std::string> ArgQueue;
+
+static inline void parseValue(int& var, ArgQueue& args) {
+	std::stringstream ss(args.front());
+	ss >> var;
+	args.pop();
+}
+
+static inline void parseValue(bool& var, ArgQueue&) {
+	var = true;
+}
+
+static inline void parseValue(std::string& var, ArgQueue& args) {
+	var = args.front();
+	args.pop();
+}
+
+static inline void parseValue(std::vector<std::string>& var, ArgQueue& args) {
+	var.clear();
+	while(!args.empty() && args.front()[0] != '-') {
+		var.push_back(args.front());
+		args.pop();
+	}
+}
+
+struct CmdLineOptions {
+		void addFlag(std::string shortName, std::string longName, bool* pVar, std::string desc="") {
+			add(shortName, longName, pVar, desc);
+		}
+
+		template<typename T>
+		void add(std::string shortName, std::string longName, T* pVar, std::string desc="") {
+			auto opt = std::make_unique<TypedOption<T>>();
+			opt->pVar = pVar;
+			opt->shortName = "-" + shortName;
+			opt->longName = "--" + longName;
+			opt->desc = desc;
+			m_Options.push_back(std::move(opt));
+		}
+
+		std::vector<std::string> parse(int argc, const char* argv[]);
+		void printHelp(std::ostream& out);
+
+	private:
+		struct AbstractOption {
+			std::string shortName, longName;
+			std::string desc;
+			virtual void parse(ArgQueue& args) = 0;
+		};
+
+		std::vector<std::unique_ptr<AbstractOption>> m_Options;
+
+		template<typename T>
+		struct TypedOption : AbstractOption {
+			T* pVar;
+			void parse(ArgQueue& args) {
+				parseValue(*pVar, args);
+			}
+		};
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// Deprecated stuff: no config struct can fit all applications
+// (e.g no app from this repo use 'astOffset')
+
+#include "lib_utils/resolution.hpp"
 
 struct Video { //FIXME: this can be factorized with other params
 	Video(Resolution res, unsigned bitrate, unsigned type)

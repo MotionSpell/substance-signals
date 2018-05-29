@@ -7,6 +7,7 @@ EXE_MP42TSX_SRCS:=\
   $(LIB_MODULES_SRCS)\
   $(LIB_PIPELINE_SRCS)\
   $(LIB_UTILS_SRCS)\
+  $(LIB_APPCOMMON_SRCS)\
   $(MYDIR)/mp42tsx.cpp\
   $(MYDIR)/options.cpp\
   $(MYDIR)/pipeliner_mp42ts.cpp\

@@ -211,6 +211,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="safemain.cpp" />
+    <ClCompile Include="options.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="options.hpp" />

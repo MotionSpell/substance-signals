@@ -8,6 +8,7 @@ EXE_DASHCASTX_SRCS:=\
 	$(LIB_PIPELINE_SRCS)\
 	$(LIB_UTILS_SRCS)\
 	$(LIB_APPCOMMON_SRCS)\
+	$(MYDIR)/../../lib_appcommon/safemain.cpp\
 	$(MYDIR)/main.cpp\
 	$(MYDIR)/options.cpp\
 	$(MYDIR)/pipeliner_dashcastx.cpp\

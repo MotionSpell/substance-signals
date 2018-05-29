@@ -4,7 +4,7 @@
 using namespace Pipelines;
 
 int safeMain(int argc, char const* argv[]) {
-	mp42tsXOptions opt = processArgs(argc, argv);
+	mp42tsXOptions opt = parseCommandLine(argc, argv);
 
 	Tools::Profiler profilerGlobal("MP42TS");
 

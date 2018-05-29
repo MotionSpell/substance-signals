@@ -7,11 +7,12 @@ TESTOUTDIR:=$(CURDIR)/$(OUTDIR)
 # the in-tree 'unittests' directories.
 #---------------------------------------------------------------
 EXE_OTHER_SRCS:=\
-	$(MYDIR)/tests.cpp\
-	$(LIB_MEDIA_SRCS)\
-	$(LIB_MODULES_SRCS)\
-	$(LIB_PIPELINE_SRCS)\
-	$(LIB_UTILS_SRCS)
+  $(MYDIR)/tests.cpp\
+  $(MYDIR)/../lib_appcommon/options.cpp\
+  $(LIB_MEDIA_SRCS)\
+  $(LIB_MODULES_SRCS)\
+  $(LIB_PIPELINE_SRCS)\
+  $(LIB_UTILS_SRCS)
 
 EXE_OTHER_SRCS+=$(shell find src -path "*/unittests/*.cpp" | sort)
 TARGETS+=$(OUTDIR)/test_other.exe

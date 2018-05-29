@@ -1,22 +1,40 @@
 #include "pipeliner_player.hpp"
+#include "lib_appcommon/options.hpp"
 #include <iostream>
 
 using namespace Pipelines;
 
-namespace {
-const char* processArgs(int argc, char const* argv[]) {
-	if (argc != 2)
-		throw std::runtime_error("usage: player <URL>");
+struct Config {
+	std::string url;
+	bool lowLatency = false;
+};
 
-	return argv[1];
+namespace {
+Config parseCommandLine(int argc, char const* argv[]) {
+
+	Config cfg;
+
+	CmdLineOptions opt;
+	opt.addFlag("l", "lowlatency", &cfg.lowLatency, "Use low latency");
+
+	auto files = opt.parse(argc, argv);
+	if (files.size() != 1) {
+		std::cout << "Usage: player <URL>" << std::endl;
+		opt.printHelp(std::cout);
+		throw std::runtime_error("invalid command line");
+	}
+
+	cfg.url = files[0];
+
+	return cfg;
 }
 }
 
 int safeMain(int argc, char const* argv[]) {
-	auto const url = processArgs(argc, argv);
+	auto const cfg = parseCommandLine(argc, argv);
 
-	Pipeline pipeline(true, 1.0);
-	declarePipeline(pipeline, url);
+	Pipeline pipeline(cfg.lowLatency, 1.0);
+	declarePipeline(pipeline, cfg.url.c_str());
 	pipeline.start();
 	pipeline.waitForCompletion();
 
