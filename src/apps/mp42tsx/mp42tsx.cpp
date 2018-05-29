@@ -8,8 +8,7 @@ int safeMain(int argc, char const* argv[]) {
 
 	Tools::Profiler profilerGlobal("MP42TS");
 
-	const bool isLive = false; //FIXME: hardcoded
-	Pipeline pipeline(isLive);
+	Pipeline pipeline(opt.isLive);
 	declarePipeline(pipeline, opt);
 
 	Tools::Profiler profilerProcessing("MP42TS - processing time");
