@@ -1,6 +1,7 @@
 #include "connection.hpp"
 #include "metadata.hpp"
 #include "lib_signals/utils/helper.hpp"
+#include "log.hpp"
 
 namespace Modules {
 

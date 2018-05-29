@@ -2,7 +2,6 @@
 
 #include "clock.hpp"
 #include "data.hpp"
-#include "error.hpp"
 #include "metadata.hpp"
 #include "lib_utils/queue.hpp"
 #include "lib_signals/signals.hpp"

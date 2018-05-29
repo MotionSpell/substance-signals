@@ -1,9 +1,6 @@
 #pragma once
 
 #include "data.hpp"
-#include "lib_utils/log.hpp"
-#include <memory>
-#include <typeinfo>
 
 template<typename T, size_t N>
 constexpr size_t NELEMENTS(T const (&array)[N]) {
