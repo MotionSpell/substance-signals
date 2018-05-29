@@ -15,7 +15,7 @@ namespace Decode {
 
 class Decoder : public ModuleS, private PictureAllocator {
 	public:
-		Decoder(std::shared_ptr<const MetadataPktLibav> metadata);
+		Decoder(std::shared_ptr<const MetadataPkt> metadata);
 		~Decoder();
 		void process(Data data) override;
 		void flush() override;

@@ -3,6 +3,8 @@
 #include "data.hpp"
 #include "lib_utils/log.hpp"
 #include <memory>
+#include <vector>
+#include <string>
 #include <typeinfo>
 
 template<typename T, size_t N>
@@ -127,6 +129,8 @@ struct MetadataRawAudio : public IMetadata {
 };
 
 struct MetadataPkt : public IMetadata {
+	int codecId = -1;
+	std::vector<uint8_t> codecSpecificInfo;
 };
 
 struct MetadataPktVideo : public MetadataPkt {

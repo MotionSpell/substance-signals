@@ -7,13 +7,13 @@
 namespace Modules {
 namespace Decode {
 
-Decoder::Decoder(std::shared_ptr<const MetadataPktLibav> metadata)
+Decoder::Decoder(std::shared_ptr<const MetadataPkt> metadata)
 	: avFrame(new ffpp::Frame) {
 
-	auto const codec_id = metadata->getCodecId();
-	auto const extradata = metadata->getExtraData();
+	auto const codec_id = (AVCodecID)metadata->codecId;
+	auto const extradata = metadata->codecSpecificInfo;
 
-	auto const codec = avcodec_find_decoder((AVCodecID)codec_id);
+	auto const codec = avcodec_find_decoder(codec_id);
 	if (!codec)
 		throw error(format("Decoder not found for codecID (%s).", codec_id));
 

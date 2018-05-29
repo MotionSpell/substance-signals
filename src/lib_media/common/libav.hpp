@@ -17,7 +17,7 @@ std::shared_ptr<AVCodecContext> shptr(AVCodecContext *p);
 
 namespace Modules {
 
-class MetadataPktLibav : public IMetadata {
+class MetadataPktLibav : public MetadataPkt {
 	public:
 		MetadataPktLibav(std::shared_ptr<AVCodecContext> codecCtx, int id = -1);
 		virtual ~MetadataPktLibav() {}
@@ -25,8 +25,6 @@ class MetadataPktLibav : public IMetadata {
 		int64_t getBitrate() const;
 		Fraction getTimeScale() const;
 		std::string getCodecName() const;
-		int getCodecId() const;
-		std::vector<uint8_t> getExtraData() const;
 		int getId() const;
 
 		// deprecated, as it fails to isolate the caller from ffmpeg

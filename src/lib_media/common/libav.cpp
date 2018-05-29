@@ -150,6 +150,8 @@ void AVCodecContextDeleter(AVCodecContext *p) {
 
 MetadataPktLibav::MetadataPktLibav(std::shared_ptr<AVCodecContext> codecCtx, int id)
 	: codecCtx(codecCtx), id(id) {
+	codecId = codecCtx->codec_id;
+	codecSpecificInfo.assign(codecCtx->extradata, codecCtx->extradata + codecCtx->extradata_size);
 }
 
 StreamType MetadataPktLibav::getStreamType() const {
@@ -181,16 +183,6 @@ Fraction MetadataPktLibav::getTimeScale() const {
 
 std::string MetadataPktLibav::getCodecName() const {
 	return avcodec_get_name(codecCtx->codec_id);
-}
-
-int MetadataPktLibav::getCodecId() const {
-	return codecCtx->codec_id;
-}
-
-std::vector<uint8_t> MetadataPktLibav::getExtraData() const {
-	std::vector<uint8_t> r;
-	r.assign(codecCtx->extradata, codecCtx->extradata + codecCtx->extradata_size);
-	return r;
 }
 
 PixelFormat MetadataPktLibavVideo::getPixelFormat() const {
