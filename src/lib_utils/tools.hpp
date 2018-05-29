@@ -43,6 +43,9 @@ std::vector<T> makeVector(std::initializer_list<T> list) {
 	return std::vector<T>(list);
 }
 
+using std::make_unique;
+using std::make_shared;
+
 template<class T>
 std::unique_ptr<T> uptr(T *p) {
 	return std::unique_ptr<T>(p);

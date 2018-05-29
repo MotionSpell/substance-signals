@@ -23,7 +23,7 @@ unittest("pipeline: source only") {
 
 unittest("pipeline: a non left-connected module is not a source") {
 	Pipeline p;
-	auto data = std::make_shared<DataRaw>(0);
+	auto data = make_shared<DataRaw>(0);
 	auto null = p.addModule<Out::Null>();
 	null->getInput(0)->push(data);
 	null->getInput(0)->process();

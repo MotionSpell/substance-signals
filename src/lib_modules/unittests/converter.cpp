@@ -88,7 +88,7 @@ namespace {
 void framingTest(const size_t inFrameFrames, const size_t outFrameFrames) {
 	PcmFormat format;
 	const size_t inFrameSizeInBytes = inFrameFrames * format.getBytesPerSample() / format.numPlanes;
-	auto data = std::make_shared<DataPcm>(0);
+	auto data = make_shared<DataPcm>(0);
 	data->setFormat(format);
 
 	std::vector<uint8_t> input(inFrameSizeInBytes);
@@ -166,7 +166,7 @@ unittest("video converter: pass-through") {
 		auto convert = create<Transform::VideoConvert>(format);
 		Connect(convert->getOutput(0)->getSignal(), onFrame);
 
-		auto pic = std::make_shared<PictureYUV420P>(res);
+		auto pic = make_shared<PictureYUV420P>(res);
 		convert->process(pic);
 	}
 
@@ -189,7 +189,7 @@ unittest("video converter: different sizes") {
 		auto convert = create<Transform::VideoConvert>(format);
 		Connect(convert->getOutput(0)->getSignal(), onFrame);
 
-		auto pic = std::make_shared<PictureYUV420P>(srcRes);
+		auto pic = make_shared<PictureYUV420P>(srcRes);
 		convert->process(pic);
 	}
 
@@ -198,7 +198,7 @@ unittest("video converter: different sizes") {
 
 unittest("audio gap filler") {
 	PcmFormat format;
-	auto data = std::make_shared<DataPcm>(0);
+	auto data = make_shared<DataPcm>(0);
 	data->setFormat(format);
 	auto const numSamples = 1024;
 	const size_t inFrameSizeInBytes = numSamples * format.getBytesPerSample() / format.numPlanes;

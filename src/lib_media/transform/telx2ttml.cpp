@@ -12,7 +12,7 @@ namespace Modules {
 namespace Transform {
 
 Page::Page() {
-	lines.push_back(std::make_unique<std::stringstream>());
+	lines.push_back(make_unique<std::stringstream>());
 	ss = lines[0].get();
 }
 
@@ -121,7 +121,7 @@ const std::string TeletextToTTML::toTTML(uint64_t startTimeInMs, uint64_t endTim
 	}
 
 #ifdef DEBUG_DISPLAY_TIMESTAMPS
-	auto pageOut = std::make_unique<Page>();
+	auto pageOut = make_unique<Page>();
 	ttml << pageOut->toTTML(offsetInMs + startTimeInMs, offsetInMs + endTimeInMs, startTimeInMs / clockToTimescale(this->splitDurationIn180k, 1000));
 #else
 	auto page = currentPages.begin();
@@ -148,7 +148,7 @@ const std::string TeletextToTTML::toTTML(uint64_t startTimeInMs, uint64_t endTim
 
 TeletextToTTML::TeletextToTTML(unsigned pageNum, const std::string &lang, uint64_t splitDurationInMs, uint64_t maxDelayBeforeEmptyInMs, TimingPolicy timingPolicy)
 	: pageNum(pageNum), lang(lang), timingPolicy(timingPolicy), maxPageDurIn180k(timescaleToClock(maxDelayBeforeEmptyInMs, 1000)), splitDurationIn180k(timescaleToClock(splitDurationInMs, 1000)) {
-	config = std::make_unique<Config>();
+	config = make_unique<Config>();
 	addInput(new Input<DataAVPacket>(this));
 	output = addOutput<OutputDataDefault<DataAVPacket>>();
 }

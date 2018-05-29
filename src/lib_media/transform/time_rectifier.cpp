@@ -184,7 +184,7 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 			log(Info, "First available reference clock time: %s", fractionToClock(time));
 		}
 
-		auto data = std::make_shared<DataBaseRef>(refData);
+		auto data = make_shared<DataBaseRef>(refData);
 		data->setMediaTime(fractionToClock(Fraction(master.numTicks++ * frameRate.den, frameRate.num)));
 		log(TR_DEBUG, "Video: send[%s:%s] t=%s (data=%s/%s) (ref %s/%s)", i, master.data.size(), data->getMediaTime(), data->getMediaTime(), data->getClockTime(), refData->getMediaTime(), refData->getClockTime());
 		outputs[i]->emit(data);
@@ -209,7 +209,7 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 				}
 
 				auto const audioData = safe_cast<const DataPcm>(selectedData);
-				auto data = std::make_shared<DataBaseRef>(selectedData);
+				auto data = make_shared<DataBaseRef>(selectedData);
 				data->setMediaTime(fractionToClock(Fraction(streams[i].numTicks++ * audioData->getPlaneSize(0) / audioData->getFormat().getBytesPerSample(), audioData->getFormat().sampleRate)));
 				log(TR_DEBUG, "Other: send[%s:%s] t=%s (data=%s/%s) (ref %s/%s)", i, streams[i].data.size(), data->getMediaTime(), data->getMediaTime(), data->getClockTime(), refData->getMediaTime(), refData->getClockTime());
 				outputs[i]->emit(data);

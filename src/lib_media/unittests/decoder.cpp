@@ -18,7 +18,7 @@ using namespace Modules;
 namespace {
 std::unique_ptr<Decode::Decoder> createGenericDecoder(enum AVCodecID id) {
 	auto context = shptr(avcodec_alloc_context3(avcodec_find_decoder(id)));
-	auto metadata = std::make_shared<MetadataPktLibav>(context);
+	auto metadata = make_shared<MetadataPktLibav>(context);
 	return create<Decode::Decoder>(metadata);
 }
 
@@ -28,7 +28,7 @@ std::unique_ptr<Decode::Decoder> createMp3Decoder() {
 
 template<size_t numBytes>
 std::shared_ptr<DataBase> createPacket(uint8_t const (&bytes)[numBytes]) {
-	auto pkt = std::make_shared<DataRaw>(numBytes);
+	auto pkt = make_shared<DataRaw>(numBytes);
 	memcpy(pkt->data(), bytes, numBytes);
 	return pkt;
 }

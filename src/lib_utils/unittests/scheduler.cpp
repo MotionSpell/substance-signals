@@ -5,6 +5,8 @@
 #include "lib_utils/scheduler.hpp"
 #include "lib_utils/sysclock.hpp"
 
+using std::make_shared;
+
 // allows ASSERT_EQUALS on fractions
 static std::ostream& operator<<(std::ostream& o, Fraction f) {
 	o << f.num << "/" << f.den;
@@ -21,7 +23,7 @@ auto const f1000 = Fraction(1, 1);
 const double clockSpeed = 1.0;
 
 unittest("scheduler: basic") {
-	Scheduler s(std::make_shared<Clock>(clockSpeed));
+	Scheduler s(make_shared<Clock>(clockSpeed));
 }
 
 unittest("scheduler: scheduled events are delayed") {
@@ -30,7 +32,7 @@ unittest("scheduler: scheduled events are delayed") {
 		q.push(time);
 	};
 
-	Scheduler s(std::make_shared<Clock>(clockSpeed));
+	Scheduler s(make_shared<Clock>(clockSpeed));
 	s.scheduleIn(f, f50);
 	ASSERT(transferToVector(q).empty());
 }
@@ -41,7 +43,7 @@ unittest("scheduler: scheduled events are not delayed too much") {
 		q.push(time);
 	};
 
-	auto clock = std::make_shared<Clock>(clockSpeed);
+	auto clock = make_shared<Clock>(clockSpeed);
 	Scheduler s(clock);
 	s.scheduleIn(f, 0);
 	clock->sleep(f50);
@@ -54,7 +56,7 @@ unittest("scheduler: expired scheduled events are executed, but not the others")
 		q.push(time);
 	};
 
-	auto clock = std::make_shared<Clock>(clockSpeed);
+	auto clock = make_shared<Clock>(clockSpeed);
 	Scheduler s(clock);
 	s.scheduleIn(f, 0);
 	s.scheduleIn(f, f1000);
@@ -68,7 +70,7 @@ unittest("scheduler: absolute-time scheduled events are received in order") {
 		q.push(time);
 	};
 
-	auto clock = std::make_shared<Clock>(clockSpeed);
+	auto clock = make_shared<Clock>(clockSpeed);
 	Scheduler s(clock);
 	auto const now = clock->now();
 	s.scheduleAt(f, now + f0);
@@ -88,7 +90,7 @@ unittest("scheduleEvery: periodic events are executed periodically") {
 	auto const period = Fraction(10, 1000);
 
 	{
-		auto clock = std::make_shared<Clock>(clockSpeed);
+		auto clock = make_shared<Clock>(clockSpeed);
 		Scheduler s(clock);
 		scheduleEvery(&s, f, period, 0);
 		clock->sleep(f50);
@@ -104,7 +106,7 @@ unittest("scheduler: events scheduled out-of-order are executed in order") {
 	Fraction tB = 111;
 
 	{
-		auto clock = std::make_shared<Clock>(clockSpeed);
+		auto clock = make_shared<Clock>(clockSpeed);
 		Scheduler s(clock);
 		s.scheduleIn([&](Fraction) {
 			tB = clock->now();
@@ -121,7 +123,7 @@ unittest("[DISABLED] scheduler: can still schedule and trigger 'near' tasks whil
 	auto const oneMsec = Fraction(1, 1000);
 	auto const oneHour = Fraction(3600, 1);
 
-	auto clock = std::make_shared<Clock>(clockSpeed);
+	auto clock = make_shared<Clock>(clockSpeed);
 	Queue<Fraction> q;
 	auto f = [&](Fraction /*time*/) {
 		q.push(clock->now());

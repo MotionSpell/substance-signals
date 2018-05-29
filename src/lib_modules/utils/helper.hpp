@@ -137,7 +137,7 @@ struct ModuleDefault : public ClockCap, public OutputCap, public InstanceType {
 
 template <typename InstanceType, typename ...Args>
 std::unique_ptr<InstanceType> createModule(size_t allocatorSize, const std::shared_ptr<IClock> clock, Args&&... args) {
-	return std::make_unique<ModuleDefault<InstanceType>>(allocatorSize, clock, std::forward<Args>(args)...);
+	return make_unique<ModuleDefault<InstanceType>>(allocatorSize, clock, std::forward<Args>(args)...);
 }
 
 template <typename InstanceType, typename ...Args>

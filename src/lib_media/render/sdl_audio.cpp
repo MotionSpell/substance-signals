@@ -51,7 +51,7 @@ bool SDLAudio::reconfigure(PcmFormat const * const pcmData) {
 
 	m_LatencyIn180k = timescaleToClock((uint64_t)realSpec.samples, realSpec.freq);
 	log(Info, "%s Hz %s ms", realSpec.freq, m_LatencyIn180k * 1000.0f / IClock::Rate);
-	pcmFormat = std::make_unique<PcmFormat>((*pcmData));
+	pcmFormat = make_unique<PcmFormat>((*pcmData));
 	SDL_PauseAudio(0);
 	return true;
 }
@@ -67,7 +67,7 @@ SDLAudio::SDLAudio(const std::shared_ptr<IClock> clock)
 		throw error("Audio output creation failed");
 
 	auto input = addInput(new Input<DataPcm>(this));
-	input->setMetadata(std::make_shared<MetadataRawAudio>());
+	input->setMetadata(make_shared<MetadataRawAudio>());
 	Signals::Connect(m_converter->getOutput(0)->getSignal(), this, &SDLAudio::push, executorSync);
 }
 

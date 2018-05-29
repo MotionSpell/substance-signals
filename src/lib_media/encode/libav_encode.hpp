@@ -45,7 +45,7 @@ class LibavEncode : public ModuleS {
 			std::string avcodecCustom;
 		};
 
-		LibavEncode(Type type, Params &params = *std::make_unique<Params>());
+		LibavEncode(Type type, Params &params = *make_unique<Params>());
 		~LibavEncode();
 		void process(Data data) override;
 		void flush() override;

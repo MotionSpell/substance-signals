@@ -50,7 +50,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 
 					auto out = outputSegment->getBuffer(0);
 					out->setMediaTime(timescaleToClock((uint64_t)DataBase::absUTCOffsetInMs, 1000) + data->getMediaTime());
-					auto metadata = std::make_shared<MetadataFile>(hlsDir + fn, SEGMENT, "", "", segDuration, fsize, 1, false, true);
+					auto metadata = make_shared<MetadataFile>(hlsDir + fn, SEGMENT, "", "", segDuration, fsize, 1, false, true);
 					switch (data->getMetadata()->getStreamType()) {
 					case AUDIO_PKT: metadata->sampleRate = safe_cast<const MetadataPktLibavAudio>(data->getMetadata())->getSampleRate(); break;
 					case VIDEO_PKT: {
@@ -65,7 +65,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 					outputSegment->emit(out);
 
 					out = outputManifest->getBuffer(0);
-					metadata = std::make_shared<MetadataFile>(format("%s%s.m3u8", hlsDir, segBasename), PLAYLIST, "", "", 0, 0, 1, false, true);
+					metadata = make_shared<MetadataFile>(format("%s%s.m3u8", hlsDir, segBasename), PLAYLIST, "", "", 0, 0, 1, false, true);
 					out->setMetadata(metadata);
 					outputManifest->emit(out);
 					segIdx++;

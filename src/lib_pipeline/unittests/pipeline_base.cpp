@@ -94,7 +94,7 @@ unittest("pipeline: input data is manually queued while module is running") {
 	auto dualInput = p.addModule<DualInput>(false);
 	p.connect(demux, 0, dualInput, 0);
 	p.start();
-	auto data = std::make_shared<DataRaw>(0);
+	auto data = make_shared<DataRaw>(0);
 	dualInput->getInput(1)->push(data);
 	dualInput->getInput(1)->process();
 	p.waitForCompletion();

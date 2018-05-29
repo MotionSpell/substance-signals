@@ -34,22 +34,22 @@ Decoder::Decoder(std::shared_ptr<const MetadataPktLibav> metadata)
 	switch (codecCtx->codec_type) {
 	case AVMEDIA_TYPE_VIDEO: {
 		auto input = addInput(new Input<DataBase>(this));
-		input->setMetadata(std::make_shared<MetadataPktLibavVideo>(codecCtx));
+		input->setMetadata(make_shared<MetadataPktLibavVideo>(codecCtx));
 		if (codecCtx->codec->capabilities & AV_CODEC_CAP_DR1) {
 			codecCtx->thread_safe_callbacks = 1;
 			codecCtx->opaque = static_cast<PictureAllocator*>(this);
 			codecCtx->get_buffer2 = avGetBuffer2;
-			videoOutput = addOutputDynAlloc<OutputPicture>(std::thread::hardware_concurrency() * 4, std::make_shared<MetadataRawVideo>());
+			videoOutput = addOutputDynAlloc<OutputPicture>(std::thread::hardware_concurrency() * 4, make_shared<MetadataRawVideo>());
 		} else {
-			videoOutput = addOutput<OutputPicture>(std::make_shared<MetadataRawVideo>());
+			videoOutput = addOutput<OutputPicture>(make_shared<MetadataRawVideo>());
 		}
 		deliverOutput = std::bind(&Decoder::processVideo, this);
 		break;
 	}
 	case AVMEDIA_TYPE_AUDIO: {
 		auto input = addInput(new Input<DataBase>(this));
-		input->setMetadata(std::make_shared<MetadataPktLibavAudio>(codecCtx));
-		audioOutput = addOutput<OutputPcm>(std::make_shared<MetadataRawAudio>());
+		input->setMetadata(make_shared<MetadataPktLibavAudio>(codecCtx));
+		audioOutput = addOutput<OutputPcm>(make_shared<MetadataRawAudio>());
 		deliverOutput = std::bind(&Decoder::processAudio, this);
 		break;
 	}

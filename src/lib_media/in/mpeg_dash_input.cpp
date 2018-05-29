@@ -132,7 +132,7 @@ struct HttpSource : IHttpSource {
 };
 
 std::unique_ptr<IHttpSource> createHttpSource() {
-	return std::make_unique<HttpSource>();
+	return make_unique<HttpSource>();
 }
 
 

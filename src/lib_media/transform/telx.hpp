@@ -113,7 +113,7 @@ void remap_g0_charset(uint8_t c, Config &config) {
 
 std::unique_ptr<Modules::Transform::Page> process_page(Config &config) {
 	PageBuffer *pageIn = &config.pageBuffer;
-	auto pageOut = std::make_unique<Modules::Transform::Page>();
+	auto pageOut = make_unique<Modules::Transform::Page>();
 	uint8_t emptyPage = Yes;
 	for (uint8_t col = 0; col < 40; col++) {
 		for (uint8_t row = 1; row < 25; row++) {
@@ -221,7 +221,7 @@ emptyPage:
 		if (config.seMode == Yes) {
 			*pageOut->ss << " ";
 		} else {
-			pageOut->lines.push_back(std::make_unique<std::stringstream>());
+			pageOut->lines.push_back(make_unique<std::stringstream>());
 			pageOut->ss = pageOut->lines[pageOut->lines.size()-1].get();
 		}
 	}

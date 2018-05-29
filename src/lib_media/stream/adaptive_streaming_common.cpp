@@ -53,7 +53,7 @@ void AdaptiveStreamingCommon::processInitSegment(Quality const * const quality, 
 	auto const &meta = quality->getMeta();
 	switch (meta->getStreamType()) {
 	case AUDIO_PKT: case VIDEO_PKT: case SUBTITLE_PKT: {
-		auto out = std::make_shared<DataBaseRef>(quality->lastData);
+		auto out = make_shared<DataBaseRef>(quality->lastData);
 		std::string initFn = safe_cast<const MetadataFile>(quality->lastData->getMetadata())->getFilename();
 		if (initFn.empty()) {
 			initFn = format("%s%s", manifestDir, getInitName(quality, index));
@@ -62,7 +62,7 @@ void AdaptiveStreamingCommon::processInitSegment(Quality const * const quality, 
 			moveFile(initFn, dst);
 			initFn = dst;
 		}
-		out->setMetadata(std::make_shared<MetadataFile>(initFn, SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), meta->getSize(), meta->getLatency(), meta->getStartsWithRAP(), true));
+		out->setMetadata(make_shared<MetadataFile>(initFn, SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), meta->getSize(), meta->getLatency(), meta->getStartsWithRAP(), true));
 		out->setMediaTime(totalDurationInMs, 1000);
 		outputSegments->emit(out);
 		break;
@@ -121,7 +121,7 @@ void AdaptiveStreamingCommon::endOfStream() {
 
 std::shared_ptr<DataBase> AdaptiveStreamingCommon::getPresignalledData(uint64_t size, Data &data, bool EOS) {
 	if (!(flags & PresignalNextSegment)) {
-		return std::make_shared<DataBaseRef>(data);
+		return make_shared<DataBaseRef>(data);
 	}
 	if (!safe_cast<const MetadataFile>(data->getMetadata())->getFilename().empty() && !EOS) {
 		return nullptr;
@@ -149,7 +149,7 @@ std::shared_ptr<DataBase> AdaptiveStreamingCommon::getPresignalledData(uint64_t 
 			return out;
 		} else {
 			assert(dataRawSize < 8 || *(uint32_t*)(dataRaw->data() + 4) != (uint32_t)0x70797473);
-			return std::make_shared<DataBaseRef>(data);
+			return make_shared<DataBaseRef>(data);
 		}
 	}
 }
@@ -191,7 +191,7 @@ void AdaptiveStreamingCommon::threadProc() {
 		auto out = getPresignalledData(size, data, EOS);
 		if (out) {
 			auto const &meta = qualities[i]->getMeta();
-			out->setMetadata(std::make_shared<MetadataFile>(getSegmentName(qualities[i].get(), i, std::to_string(getCurSegNum())), SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), size, meta->getLatency(), meta->getStartsWithRAP(), EOS));
+			out->setMetadata(make_shared<MetadataFile>(getSegmentName(qualities[i].get(), i, std::to_string(getCurSegNum())), SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), size, meta->getLatency(), meta->getStartsWithRAP(), EOS));
 			out->setMediaTime(totalDurationInMs + timescaleToClock(curSegDurIn180k[i], 1000));
 			outputSegments->emit(out);
 		}

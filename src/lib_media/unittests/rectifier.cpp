@@ -76,7 +76,7 @@ unittest("scheduler: mock clock") {
 
 	auto const f1  = Fraction( 1, 1000);
 	auto const f10 = Fraction(10, 1000);
-	auto clock = std::make_shared<ClockMock>();
+	auto clock = make_shared<ClockMock>();
 	Scheduler s(clock);
 	s.scheduleAt(f, f1);
 	g_DefaultClock->sleep(f10);
@@ -95,7 +95,7 @@ template<typename METADATA, typename PORT>
 struct DataGenerator : public ModuleS, public virtual IOutputCap {
 	DataGenerator() {
 		output = addOutput<PORT>();
-		output->setMetadata(std::make_shared<METADATA>());
+		output->setMetadata(make_shared<METADATA>());
 	}
 	void process(Data dataIn) override {
 		auto data = output->getBuffer(0);
@@ -189,7 +189,7 @@ void testRectifierSinglePort(Fraction fps, const vector<TimePair> &inTimes, cons
 	const vector<vector<TimePair>> in { inTimes };
 	const vector<vector<TimePair>> out { outTimes };
 	vector<unique_ptr<ModuleS>> generators;
-	auto clock = std::make_shared<ClockMock>();
+	auto clock = make_shared<ClockMock>();
 	generators.push_back(createModule<DataGenerator<Metadata, PortType>>(in[0].size(), clock));
 	testRectifierMeta(fps, clock, generators, in, out);
 }
@@ -312,7 +312,7 @@ unittest("rectifier: multiple media types simple") {
 		generateData(audioRate),
 	};
 	vector<unique_ptr<ModuleS>> generators;
-	auto clock = std::make_shared<ClockMock>();
+	auto clock = make_shared<ClockMock>();
 	generators.push_back(createModule<DataGenerator<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>>(in[0].size(), clock));
 	generators.push_back(createModule<DataGenerator<MetadataRawAudio, OutputPcm>>(in[1].size(), clock));
 	testRectifierMeta(videoRate, clock, generators, in, out);

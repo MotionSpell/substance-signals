@@ -30,8 +30,8 @@ GF_MPD_AdaptationSet *createAS(uint64_t segDurationInMs, GF_MPD_Period *period, 
 
 std::unique_ptr<gpacpp::MPD> createMPD(Stream::AdaptiveStreamingCommon::Type type, uint32_t minBufferTimeInMs, const std::string &id) {
 	return type != Stream::AdaptiveStreamingCommon::Static ?
-	    std::make_unique<gpacpp::MPD>(GF_MPD_TYPE_DYNAMIC, id, g_profiles, minBufferTimeInMs ? minBufferTimeInMs : MIN_BUFFER_TIME_IN_MS_LIVE) :
-	    std::make_unique<gpacpp::MPD>(GF_MPD_TYPE_STATIC, id, g_profiles, minBufferTimeInMs ? minBufferTimeInMs : MIN_BUFFER_TIME_IN_MS_VOD );
+	    make_unique<gpacpp::MPD>(GF_MPD_TYPE_DYNAMIC, id, g_profiles, minBufferTimeInMs ? minBufferTimeInMs : MIN_BUFFER_TIME_IN_MS_LIVE) :
+	    make_unique<gpacpp::MPD>(GF_MPD_TYPE_STATIC, id, g_profiles, minBufferTimeInMs ? minBufferTimeInMs : MIN_BUFFER_TIME_IN_MS_VOD );
 }
 }
 
@@ -158,7 +158,7 @@ void MPEG_DASH::writeManifest() {
 		}
 
 		auto out = outputManifest->getBuffer(0);
-		auto metadata = std::make_shared<MetadataFile>(mpdPath, PLAYLIST, "", "", timescaleToClock(segDurationInMs, 1000), 0, 1, false, true);
+		auto metadata = make_shared<MetadataFile>(mpdPath, PLAYLIST, "", "", timescaleToClock(segDurationInMs, 1000), 0, 1, false, true);
 		out->setMetadata(metadata);
 		out->setMediaTime(totalDurationInMs, 1000);
 		outputManifest->emit(out);
@@ -208,7 +208,7 @@ void MPEG_DASH::generateManifest() {
 				fnNext = getPrefixedSegmentName(quality, i, n + 1);
 			}
 		}
-		auto metaFn = std::make_shared<MetadataFile>(fn, SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), meta->getSize(), meta->getLatency(), meta->getStartsWithRAP(), true);
+		auto metaFn = make_shared<MetadataFile>(fn, SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), meta->getSize(), meta->getLatency(), meta->getStartsWithRAP(), true);
 		switch (meta->getStreamType()) {
 		case AUDIO_PKT: metaFn->sampleRate = meta->sampleRate; break;
 		case VIDEO_PKT: metaFn->resolution[0] = meta->resolution[0]; metaFn->resolution[1] = meta->resolution[1]; break;
@@ -232,7 +232,7 @@ void MPEG_DASH::generateManifest() {
 			if (!fnNext.empty()) {
 				auto out = getPresignalledData(0, quality->lastData, false);
 				if (out) {
-					out->setMetadata(std::make_shared<MetadataFile>(fnNext, metaFn->getStreamType(), metaFn->getMimeType(), metaFn->getCodecName(), metaFn->getDuration(), 0, metaFn->getLatency(), metaFn->getStartsWithRAP(), false));
+					out->setMetadata(make_shared<MetadataFile>(fnNext, metaFn->getStreamType(), metaFn->getMimeType(), metaFn->getCodecName(), metaFn->getDuration(), 0, metaFn->getLatency(), metaFn->getStartsWithRAP(), false));
 					out->setMediaTime(totalDurationInMs, 1000);
 					outputSegments->emit(out);
 				}

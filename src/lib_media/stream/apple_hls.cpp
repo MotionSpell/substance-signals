@@ -110,7 +110,7 @@ void Apple_HLS::generateManifestMaster() {
 
 		if (type != Static) {
 			auto out = outputManifest->getBuffer(0);
-			auto metadata = std::make_shared<MetadataFile>(playlistMasterPath, PLAYLIST, "", "", timescaleToClock(segDurationInMs, 1000), 0, 1, false, true);
+			auto metadata = make_shared<MetadataFile>(playlistMasterPath, PLAYLIST, "", "", timescaleToClock(segDurationInMs, 1000), 0, 1, false, true);
 			out->setMetadata(metadata);
 			out->setMediaTime(totalDurationInMs, 1000);
 			outputManifest->emit(out);
@@ -143,8 +143,8 @@ void Apple_HLS::updateManifestVariants() {
 			std::istringstream buffer(firstSegNumStr);
 			buffer >> firstSegNums[i];
 
-			auto out = std::make_shared<DataBaseRef>(quality->lastData);
-			out->setMetadata(std::make_shared<MetadataFile>(format("%s%s", manifestDir, fn), SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), meta->getSize(), meta->getLatency(), meta->getStartsWithRAP(), true));
+			auto out = make_shared<DataBaseRef>(quality->lastData);
+			out->setMetadata(make_shared<MetadataFile>(format("%s%s", manifestDir, fn), SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), meta->getSize(), meta->getLatency(), meta->getStartsWithRAP(), true));
 			out->setMediaTime(totalDurationInMs, 1000);
 			outputSegments->emit(out);
 
@@ -227,7 +227,7 @@ void Apple_HLS::generateManifestVariantFull(bool isLast) {
 			vpl.close();
 
 			auto out = outputManifest->getBuffer(0);
-			auto metadata = std::make_shared<MetadataFile>(playlistCurVariantPath, PLAYLIST, "", "", timescaleToClock(segDurationInMs, 1000), 0, 1, false, true);
+			auto metadata = make_shared<MetadataFile>(playlistCurVariantPath, PLAYLIST, "", "", timescaleToClock(segDurationInMs, 1000), 0, 1, false, true);
 			out->setMetadata(metadata);
 			out->setMediaTime(totalDurationInMs, 1000);
 			outputManifest->emit(out);
