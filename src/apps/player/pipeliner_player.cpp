@@ -1,5 +1,4 @@
-#include "lib_appcommon/pipeliner.hpp"
-#include <sstream>
+#include "lib_pipeline/pipeline.hpp"
 
 // modules
 #include "lib_media/demux/libav_demux.hpp"
