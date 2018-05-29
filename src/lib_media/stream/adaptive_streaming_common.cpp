@@ -1,7 +1,6 @@
 #include "adaptive_streaming_common.hpp"
 #include "lib_utils/time.hpp"
 #include "lib_utils/os.hpp"
-#include "lib_gpacpp/gpacpp.hpp"
 #include <cassert>
 #include <thread>
 #include <chrono>
@@ -278,7 +277,7 @@ void AdaptiveStreamingCommon::threadProc() {
 			generateManifest();
 			totalDurationInMs += segDurationInMs;
 			log(Info, "Processes segment (total processed: %ss, UTC: %sms (deltaAST=%s, deltaInput=%s).",
-			    (double)totalDurationInMs / 1000, getUTC().num, gf_net_get_utc() - startTimeInMs, (int64_t)(gf_net_get_utc() - curMediaTimeInMs));
+			    (double)totalDurationInMs / 1000, getUTC().num, getUTC().num - startTimeInMs, (int64_t)(getUTC().num - curMediaTimeInMs));
 
 			if (type != Static) {
 				const int64_t durInMs = startTimeInMs + totalDurationInMs - getUTC().num;

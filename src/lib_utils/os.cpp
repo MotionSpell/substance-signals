@@ -9,11 +9,11 @@ bool setHighThreadPriority() {
 }
 
 bool dirExists(std::string path) {
-  DWORD attributes = GetFileAttributesA(path.c_str());
-  if (attributes == INVALID_FILE_ATTRIBUTES)
-    return false;
+	DWORD attributes = GetFileAttributesA(path.c_str());
+	if (attributes == INVALID_FILE_ATTRIBUTES)
+		return false;
 
-  return attributes & FILE_ATTRIBUTE_DIRECTORY ? true : false;
+	return attributes & FILE_ATTRIBUTE_DIRECTORY ? true : false;
 }
 
 void mkdir(std::string path) {
