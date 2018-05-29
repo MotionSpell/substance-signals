@@ -125,12 +125,14 @@ std::unique_ptr<const IConfig> processArgs(int argc, char const* argv[]) {
 	if (parse.error()) {
 		option::printUsage(std::cerr, usage);
 		throw std::runtime_error("Parse error (2). Please check message and usage above.");
-	} else if (options[HELP] || argc == 0 || parse.nonOptionsCount() == 0) {
+	}
+
+	if (options[HELP] || argc == 0 || parse.nonOptionsCount() == 0) {
 		option::printUsage(std::cout, usage);
 		throw std::runtime_error("Please check message and usage above.");
-	} else {
-		printDetectedOptions(parse, options.get());
 	}
+
+	printDetectedOptions(parse, options.get());
 
 	auto opt = uptr(new AppOptions);
 	opt->input = parse.nonOption(0);
