@@ -98,7 +98,7 @@ std::unique_ptr<const IConfig> processArgs(int argc, char const* argv[]) {
 	        "Transcode:\n"
 	        "  %s --live --loop --seg-dur 10000 --dvr 10 --autorotate --video 320x180:50000 --video 640x360:300000 http://server.com/file.mp4\n"
 	        "  %s --live -v 1280x720:1000000 webcam:video=/dev/video0:audio=/dev/audio1\n"
-	        "  %s --live --working-dir workdir -v 640x360:300000 -v 1280x720:1000000 webcam:video=/dev/video0:audio=/dev/audio1\n",
+	        "  %s --live --working-dir workdir -v 640x360:300000 -v 1280x720:1000000 webcam:video=/dev/video0:audio=/dev/audio1\n"
 	        "  %s -ilr -w tmp -t 10 -v 640x360:300000:0 udp://226.0.0.1:1234\n",
 	        g_appName, g_appName, g_appName, g_appName, g_appName, g_appName, g_appName, g_appName);
 	const option::Descriptor usage[] = {
