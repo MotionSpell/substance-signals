@@ -31,10 +31,10 @@ Decoder::Decoder(std::shared_ptr<const MetadataPktLibav> metadata)
 	if (avcodec_open2(codecCtx.get(), codec, &dict) < 0)
 		throw error("Couldn't open stream.");
 
+	addInput(new Input<DataBase>(this));
+
 	switch (codecCtx->codec_type) {
 	case AVMEDIA_TYPE_VIDEO: {
-		auto input = addInput(new Input<DataBase>(this));
-		input->setMetadata(make_shared<MetadataPktLibavVideo>(codecCtx));
 		if (codecCtx->codec->capabilities & AV_CODEC_CAP_DR1) {
 			codecCtx->thread_safe_callbacks = 1;
 			codecCtx->opaque = static_cast<PictureAllocator*>(this);
@@ -47,8 +47,6 @@ Decoder::Decoder(std::shared_ptr<const MetadataPktLibav> metadata)
 		break;
 	}
 	case AVMEDIA_TYPE_AUDIO: {
-		auto input = addInput(new Input<DataBase>(this));
-		input->setMetadata(make_shared<MetadataPktLibavAudio>(codecCtx));
 		audioOutput = addOutput<OutputPcm>(make_shared<MetadataRawAudio>());
 		deliverOutput = std::bind(&Decoder::processAudio, this);
 		break;
