@@ -8,10 +8,17 @@
 
 typedef std::queue<std::string> ArgQueue;
 
-static inline void parseValue(int& var, ArgQueue& args) {
-	std::stringstream ss(args.front());
-	ss >> var;
+static inline std::string safePop(ArgQueue& args) {
+	if(args.empty())
+		throw std::runtime_error("unexpected end of command line");
+	auto val = args.front();
 	args.pop();
+	return val;
+}
+
+static inline void parseValue(int& var, ArgQueue& args) {
+	std::stringstream ss(safePop(args));
+	ss >> var;
 }
 
 static inline void parseValue(bool& var, ArgQueue&) {
@@ -19,15 +26,13 @@ static inline void parseValue(bool& var, ArgQueue&) {
 }
 
 static inline void parseValue(std::string& var, ArgQueue& args) {
-	var = args.front();
-	args.pop();
+	var = safePop(args);
 }
 
 static inline void parseValue(std::vector<std::string>& var, ArgQueue& args) {
 	var.clear();
 	while(!args.empty() && args.front()[0] != '-') {
-		var.push_back(args.front());
-		args.pop();
+		var.push_back(safePop(args));
 	}
 }
 

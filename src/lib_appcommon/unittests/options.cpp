@@ -73,3 +73,15 @@ unittest("CmdLineOptions: unknown option") {
 	ASSERT_THROWN(opt.parse(NELEMENTS(argv), argv));
 }
 
+unittest("CmdLineOptions: unexpected end of command line") {
+	std::string inputPath;
+	CmdLineOptions opt;
+	opt.add("i", "inputPath", &inputPath);
+
+	const char* argv[] = {
+		"progname", "-i"
+	};
+	ASSERT_THROWN(opt.parse(NELEMENTS(argv), argv));
+}
+
+
