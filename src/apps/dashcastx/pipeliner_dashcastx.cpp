@@ -1,12 +1,7 @@
 #include "lib_pipeline/pipeline.hpp"
 #include "lib_appcommon/pipeliner.hpp"
 #include <sstream>
-#ifdef _WIN32
-#include <direct.h> //chdir
-#else
-#include <unistd.h>
-#endif
-#include <gpac/tools.h> //gf_mkdir
+#include "lib_utils/os.hpp"
 
 // modules
 #include "lib_media/decode/decoder.hpp"
@@ -124,16 +119,15 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 	};
 
 	auto createSubdir = [&]() {
-		if ((gf_dir_exists(DASH_SUBDIR) == GF_FALSE) && gf_mkdir(DASH_SUBDIR))
-			throw std::runtime_error(format("couldn't create subdir %s: please check you have sufficient rights", DASH_SUBDIR));
+		if (!dirExists(DASH_SUBDIR))
+			mkdir(DASH_SUBDIR);
 	};
 
-	auto changeDir = [&]() {
-		if (chdir(opt->workingDir.c_str()) < 0 && (gf_mkdir((char*)opt->workingDir.c_str()) || chdir(opt->workingDir.c_str()) < 0))
-			throw std::runtime_error(format("couldn't change dir to %s: please check the directory exists and you have sufficient rights", opt->workingDir));
-	};
+	if(!dirExists(opt->workingDir))
+		mkdir(opt->workingDir);
 
-	changeDir();
+	changeDir(opt->workingDir);
+
 	auto demux = pipeline->addModule<Demux::LibavDemux>(opt->input, opt->loop);
 	createSubdir();
 	auto const type = (opt->isLive || opt->ultraLowLatency) ? Stream::AdaptiveStreamingCommon::Live : Stream::AdaptiveStreamingCommon::Static;
@@ -211,8 +205,8 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 			}
 
 			auto const subdir = DASH_SUBDIR + prefix + "/";
-			if ((gf_dir_exists(subdir.c_str()) == GF_FALSE) && gf_mkdir(subdir.c_str()))
-				throw std::runtime_error(format("couldn't create subdir \"%s\": please check you have sufficient rights", subdir));
+			if (!dirExists(subdir))
+				mkdir(subdir);
 
 			auto muxer = pipeline->addModule<Mux::GPACMuxMP4>(subdir + prefix, opt->segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, opt->ultraLowLatency ? Mux::GPACMuxMP4::OneFragmentPerFrame : Mux::GPACMuxMP4::OneFragmentPerSegment);
 			if (transcode) {

@@ -4,6 +4,7 @@
 #if _WIN32
 
 #include <windows.h>
+#include <direct.h> //chdir
 bool setHighThreadPriority() {
 	return SetThreadPriority(NULL, THREAD_PRIORITY_TIME_CRITICAL);
 }
@@ -30,10 +31,16 @@ void moveFile(std::string src, std::string dst) {
 	}
 }
 
+void changeDir(std::string path) {
+	if (chdir(path.c_str()) < 0)
+		throw std::runtime_error("can't change to dir '" + path + "'");
+}
+
 #else
 
 #include <pthread.h>
 #include <sys/stat.h>
+#include <unistd.h> //chdir
 
 bool setHighThreadPriority() {
 	sched_param sp {};
@@ -57,6 +64,11 @@ void mkdir(std::string path) {
 void moveFile(std::string src, std::string dst) {
 	if(system(("mv " +  src + " " +  dst).c_str()) != 0)
 		throw std::runtime_error("can't move file");
+}
+
+void changeDir(std::string path) {
+	if (chdir(path.c_str()) < 0)
+		throw std::runtime_error("can't change to dir '" + path + "'");
 }
 
 #endif
