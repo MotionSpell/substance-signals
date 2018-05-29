@@ -90,7 +90,7 @@ class PcmFormat;
 class DataPcm;
 void libavAudioCtxConvertLibav(const PcmFormat *cfg, int &sampleRate, enum AVSampleFormat &format, int &numChannels, uint64_t &layout);
 void libavAudioCtxConvert(const PcmFormat *cfg, AVCodecContext *codecCtx);
-void libavAudioCtx2pcmConvert(std::shared_ptr<const AVCodecContext> codecCtx, PcmFormat *cfg);
+void libavAudioCtx2pcmConvert(std::shared_ptr<const MetadataPktLibavAudio> meta, PcmFormat *cfg);
 void libavFrameDataConvert(const DataPcm *data, AVFrame *frame);
 void libavFrame2pcmConvert(const AVFrame *frame, PcmFormat *cfg);
 

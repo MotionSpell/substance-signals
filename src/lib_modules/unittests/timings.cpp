@@ -101,7 +101,7 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 			return std::move(m);
 		} else if (codecType == AUDIO_PKT) {
 			PcmFormat encFmt, demuxFmt;
-			libavAudioCtx2pcmConvert(safe_cast<const MetadataPktLibavAudio>(metadataDemux)->getAVCodecContext(), &demuxFmt);
+			libavAudioCtx2pcmConvert(safe_cast<const MetadataPktLibavAudio>(metadataDemux), &demuxFmt);
 			Encode::LibavEncode::Params p;
 			p.sampleRate = demuxFmt.sampleRate;
 			p.numChannels = demuxFmt.numChannels;
@@ -115,10 +115,10 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 			return create<Transform::VideoConvert>(dstFmt);
 		} else if (codecType == AUDIO_PKT) {
 			PcmFormat encFmt, demuxFmt;
-			libavAudioCtx2pcmConvert(safe_cast<const MetadataPktLibavAudio>(metadataDemux)->getAVCodecContext(), &demuxFmt);
+			libavAudioCtx2pcmConvert(safe_cast<const MetadataPktLibavAudio>(metadataDemux), &demuxFmt);
 			auto const metaEnc = safe_cast<const MetadataPktLibavAudio>(metadataEncoder);
 			auto format = PcmFormat(demuxFmt.sampleRate, demuxFmt.numChannels, demuxFmt.layout, encFmt.sampleFormat, (encFmt.numPlanes == 1) ? Interleaved : Planar);
-			libavAudioCtx2pcmConvert(metaEnc->getAVCodecContext(), &encFmt);
+			libavAudioCtx2pcmConvert(metaEnc, &encFmt);
 			return create<Transform::AudioConvert>(format, metaEnc->getFrameSize());
 		} else
 			throw std::runtime_error("[Converter] Found unknown stream");

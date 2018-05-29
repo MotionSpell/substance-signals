@@ -261,7 +261,8 @@ void libavAudioCtxConvert(const PcmFormat *cfg, AVCodecContext *codecCtx) {
 	libavAudioCtxConvertLibav(cfg, codecCtx->sample_rate, codecCtx->sample_fmt, codecCtx->channels, codecCtx->channel_layout);
 }
 
-void libavAudioCtx2pcmConvert(std::shared_ptr<const AVCodecContext> codecCtx, PcmFormat *cfg) {
+void libavAudioCtx2pcmConvert(std::shared_ptr<const MetadataPktLibavAudio> meta, PcmFormat *cfg) {
+	auto codecCtx = meta->getAVCodecContext();
 	cfg->sampleRate = codecCtx->sample_rate;
 
 	cfg->numChannels = cfg->numPlanes = codecCtx->channels;
