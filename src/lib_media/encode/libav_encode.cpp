@@ -128,7 +128,7 @@ LibavEncode::LibavEncode(Type type, Params &params)
 		case 2: layout = Modules::Stereo; break;
 		default: throw error("Unknown libav audio layout");
 		}
-		pcmFormat = uptr(new PcmFormat(params.sampleRate, params.numChannels, layout));
+		pcmFormat = std::make_unique<PcmFormat>(params.sampleRate, params.numChannels, layout);
 		libavAudioCtxConvert(pcmFormat.get(), codecCtx.get());
 		break;
 	default:

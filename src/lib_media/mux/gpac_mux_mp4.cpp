@@ -46,7 +46,7 @@ void getBsContent(GF_ISOFile *iso, char *&output, u32 &size, bool newBs) {
 
 static GF_Err avc_import_ffextradata(const u8 *extradata, const u64 extradataSize, GF_AVCConfig *dstcfg) {
 	u8 nalSize;
-	auto avc = uptr(new AVCState);
+	auto avc = std::make_unique<AVCState>();
 	GF_BitStream *bs = nullptr;
 	if (!extradata || !extradataSize) {
 		Log::msg(Warning, "No initial SPS/PPS provided.");
@@ -160,7 +160,7 @@ parse_sps:
 * @returns GF_OK is the extradata was parsed and is valid, other values otherwise.
 */
 static GF_Err hevc_import_ffextradata(const u8 *extradata, const u64 extradata_size, GF_HEVCConfig *dstCfg) {
-	auto hevc = uptr(new HEVCState);
+	auto hevc = std::make_unique<HEVCState>();
 	GF_HEVCParamArray *vpss = nullptr, *spss = nullptr, *ppss = nullptr;
 	GF_BitStream *bs = nullptr;
 	char *buffer = nullptr;
@@ -950,7 +950,7 @@ void GPACMuxMP4::processSample(std::unique_ptr<gpacpp::IsoSample> sample, int64_
 
 std::unique_ptr<gpacpp::IsoSample> GPACMuxMP4::fillSample(Data data_) {
 	auto data = safe_cast<const DataAVPacket>(data_);
-	auto sample = uptr(new gpacpp::IsoSample);
+	auto sample = std::make_unique<gpacpp::IsoSample>();
 	u32 bufLen = (u32)data->size();
 	const u8 *bufPtr = data->data();
 

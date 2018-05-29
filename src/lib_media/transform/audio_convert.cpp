@@ -28,7 +28,7 @@ AudioConvert::~AudioConvert() {
 
 void AudioConvert::reconfigure(const PcmFormat &srcFormat) {
 	flush();
-	m_Swr = uptr(new ffpp::SwResampler);
+	m_Swr = std::make_unique<ffpp::SwResampler>();
 	configure(srcFormat);
 	srcPcmFormat = srcFormat;
 }

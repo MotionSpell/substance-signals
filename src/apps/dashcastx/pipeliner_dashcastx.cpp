@@ -31,7 +31,7 @@ extern const char *g_appName;
 
 std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 	auto opt = safe_cast<const AppOptions>(&config);
-	auto pipeline = uptr(new Pipeline(opt->ultraLowLatency, opt->isLive ? 1.0 : 0.0, opt->ultraLowLatency ? Pipeline::Mono : Pipeline::OnePerModule));
+	auto pipeline = std::make_unique<Pipeline>(opt->ultraLowLatency, opt->isLive ? 1.0 : 0.0, opt->ultraLowLatency ? Pipeline::Mono : Pipeline::OnePerModule);
 
 	auto connect = [&](auto src, auto dst) {
 		pipeline->connect(src, 0, dst, 0);

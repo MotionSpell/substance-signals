@@ -134,7 +134,7 @@ std::unique_ptr<const IConfig> processArgs(int argc, char const* argv[]) {
 
 	printDetectedOptions(parse, options.get());
 
-	auto opt = uptr(new AppOptions);
+	auto opt = std::make_unique<AppOptions>();
 	opt->input = parse.nonOption(0);
 	for (int i = 1; i < parse.nonOptionsCount(); ++i)
 		opt->outputs.push_back(parse.nonOption(i));

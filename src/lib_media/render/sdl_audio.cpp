@@ -51,7 +51,7 @@ bool SDLAudio::reconfigure(PcmFormat const * const pcmData) {
 
 	m_LatencyIn180k = timescaleToClock((uint64_t)realSpec.samples, realSpec.freq);
 	log(Info, "%s Hz %s ms", realSpec.freq, m_LatencyIn180k * 1000.0f / IClock::Rate);
-	pcmFormat = uptr(new PcmFormat(*pcmData));
+	pcmFormat = std::make_unique<PcmFormat>((*pcmData));
 	SDL_PauseAudio(0);
 	return true;
 }

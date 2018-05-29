@@ -90,9 +90,9 @@ GPACMuxMPEG2TS::~GPACMuxMPEG2TS() {
 
 	void GPACMuxMPEG2TS::declareStream(Data data) {
 		const size_t inputIdx = inputs.size() - 1;
-		inputData.push_back(uptr(new DataInput));
+		inputData.push_back(std::make_unique<DataInput>());
 
-		auto ifce = uptr(new GF_ESInterface);
+		auto ifce = std::make_unique<GF_ESInterface>();
 		memset(ifce.get(), 0, sizeof(GF_ESInterface));
 
 		auto const metadata_ = data->getMetadata();
