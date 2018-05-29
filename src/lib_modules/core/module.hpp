@@ -32,7 +32,7 @@ class ConnectedCap {
 		std::atomic_size_t connections;
 };
 
-struct IInput : public IProcessor, public ConnectedCap, public MetadataCap, public Queue<Data> {
+struct IInput : public IProcessor, public ConnectedCap, public virtual IMetadataCap, public Queue<Data> {
 	virtual ~IInput() noexcept(false) {}
 };
 

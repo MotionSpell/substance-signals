@@ -22,7 +22,7 @@ namespace Pipelines {
        (with a delay if the clock is set: this assumes the connection is made
        using an asynchronous executor and the start time is zero).
    Data is nullptr at completion. */
-class PipelinedInput : public IInput {
+class PipelinedInput : public IInput, public MetadataCap {
 	public:
 		PipelinedInput(IInput *input, const std::string &moduleName, IProcessExecutor *localExecutor, IProcessExecutor &delegateExecutor, IPipelineNotifier * const notify, const std::shared_ptr<IClock> clock)
 			: delegate(input), delegateName(moduleName), notify(notify), executor(localExecutor), delegateExecutor(delegateExecutor), clock(clock) {}
