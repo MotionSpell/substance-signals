@@ -249,6 +249,7 @@
     <ClCompile Include="..\lib_utils\unittests\misc.cpp" />
     <ClCompile Include="..\lib_utils\unittests\queue.cpp" />
     <ClCompile Include="..\lib_utils\unittests\scheduler.cpp" />
+    <ClCompile Include="..\lib_appcommon\unittests\options.cpp" />
     <ClCompile Include="tests.cpp" />
   </ItemGroup>
   <ItemGroup>
