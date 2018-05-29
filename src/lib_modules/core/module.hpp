@@ -38,7 +38,6 @@ struct IInput : public IProcessor, public ConnectedCap, public MetadataCap, publ
 
 struct IInputCap {
 	virtual ~IInputCap() noexcept(false) {}
-	virtual IInput* addInput(IInput* p) = 0;
 	virtual size_t getNumInputs() const = 0;
 	virtual IInput* getInput(size_t i) = 0;
 };

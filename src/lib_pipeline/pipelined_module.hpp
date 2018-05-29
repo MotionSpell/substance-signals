@@ -109,7 +109,7 @@ class PipelinedModule : public IPipelineNotifier, public ClockCap, public IPipel
 
 			if (isSource()) {
 				if (getNumInputs() == 0) { /*first time: create a fake input port and push null to trigger execution*/
-					delegate->addInput(new Input<DataLoosePipeline>(delegate.get()));
+					safe_cast<InputCap>(delegate.get())->addInput(new Input<DataLoosePipeline>(delegate.get()));
 					connections = 1; activeConnections = 1;
 					getInput(0)->push(nullptr);
 					delegate->getInput(0)->push(nullptr);

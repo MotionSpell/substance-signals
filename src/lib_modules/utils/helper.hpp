@@ -28,7 +28,7 @@ class Input : public IInput {
 class InputCap : public virtual IInputCap {
 	public:
 		virtual ~InputCap() noexcept(false) {}
-		IInput* addInput(IInput* p) override { //Takes ownership
+		IInput* addInput(IInput* p) { //Takes ownership
 			inputs.push_back(uptr(p));
 			return p;
 		}
@@ -166,7 +166,7 @@ class ModuleDynI : public Module {
 		ModuleDynI() = default;
 		virtual ~ModuleDynI() noexcept(false) {}
 
-		IInput* addInput(IInput *p) override { //takes ownership
+		IInput* addInput(IInput *p) { //takes ownership
 			bool isDyn = false;
 			std::unique_ptr<IInput> pEx;
 			if (inputs.size() && dynamic_cast<DataLoose*>(inputs.back().get())) {
