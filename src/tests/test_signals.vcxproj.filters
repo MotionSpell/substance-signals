@@ -68,19 +68,10 @@
     <ClCompile Include="..\lib_modules\unittests\metadata.cpp">
       <Filter>modules</Filter>
     </ClCompile>
-    <ClCompile Include="..\lib_modules\unittests\mux.cpp">
-      <Filter>modules</Filter>
-    </ClCompile>
     <ClCompile Include="..\lib_modules\unittests\simple.cpp">
       <Filter>modules</Filter>
     </ClCompile>
-    <ClCompile Include="..\lib_modules\unittests\streamer.cpp">
-      <Filter>modules</Filter>
-    </ClCompile>
     <ClCompile Include="..\lib_modules\unittests\timings.cpp">
-      <Filter>modules</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lib_modules\unittests\transcoder.cpp">
       <Filter>modules</Filter>
     </ClCompile>
     <ClCompile Include="..\lib_media\unittests\decoder.cpp">
@@ -92,6 +83,10 @@
     <ClCompile Include="..\lib_media\unittests\encoder.cpp">
       <Filter>media</Filter>
     </ClCompile>
+    <ClCompile Include="..\lib_media\unittests\mux.cpp" />
+    <ClCompile Include="..\lib_media\unittests\streamer.cpp" />
+    <ClCompile Include="..\lib_media\unittests\transcoder.cpp" />
+    <ClCompile Include="..\lib_appcommon\unittests\options.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="signals">

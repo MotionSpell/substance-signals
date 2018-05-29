@@ -258,6 +258,9 @@
     <ClInclude Include="tests.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\lib_appcommon\appcommon.vcxproj">
+      <Project>{64f77f21-c278-42d0-abc3-b79f1453f4c6}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\lib_media\media.vcxproj">
       <Project>{3ed5c725-44b6-4e0b-a38c-73d85d8347cd}</Project>
     </ProjectReference>
