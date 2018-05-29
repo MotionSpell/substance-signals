@@ -35,7 +35,6 @@ inline std::ostream& operator<<(std::ostream& o, std::vector<T> iterable) {
 
 namespace Tests {
 
-void Test(char const* name);
 void Fail(char const* file, int line, const char* msg);
 
 template<typename T>

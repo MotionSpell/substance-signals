@@ -67,10 +67,6 @@ void RunAll(Filter filter) {
 
 namespace Tests {
 
-void Test(char const* name) {
-	std::cout << std::endl << "[ ***** " << name << " ***** ]" << std::endl;
-}
-
 void Fail(char const* file, int line, const char* msg) {
 	std::cerr << "TEST FAILED: " << file << "(" << line << "): " << msg << std::endl;
 	std::raise(SIGABRT);

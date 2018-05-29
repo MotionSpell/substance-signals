@@ -1,7 +1,6 @@
 #include "tests/tests.hpp"
 #include "lib_signals/signals.hpp"
 #include "lib_utils/queue_inspect.hpp"
-#include <iostream>
 
 using namespace Tests;
 using namespace Signals;
@@ -12,7 +11,6 @@ struct Signaler {
 };
 
 inline int dummyPrint(int a) {
-	std::cout << "a = " << a << std::endl;
 	return a;
 }
 

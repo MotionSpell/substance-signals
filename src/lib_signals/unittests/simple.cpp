@@ -13,26 +13,21 @@ int dummy2(int a) {
 	return dummy(1 + dummy(a));
 }
 
+unittest("signals_simple: disconnect non existing") {
+	Signal<int(int)> sig;
+	ASSERT(!sig.disconnect(0));
+}
+
 unittest("signals_simple") {
 	Signal<int(int)> sig;
 
-	Test("disconnect non existing");
-	{
-		bool res;
-		res = sig.disconnect(0);
-		ASSERT(!res);
-	}
-
-	Test("connect");
 	size_t id = sig.connect(dummy);
 
-	Test("single connection: check result");
 	const int input = 100;
 	auto numVal = sig.emit(input);
 	auto val = sig.results();
 	ASSERT_EQUALS(makeVector({dummy(input)}), transferToVector(*val));
 
-	Test("multiple connections: check results");
 	size_t id2 = sig.connect(dummy2);
 	sig.connect(dummy);
 	sig.connect(dummy2);
@@ -47,10 +42,8 @@ unittest("signals_simple") {
 		dummy2(input)});
 	ASSERT_EQUALS(expected, transferToVector(*val));
 
-	Test("test connections count");
 	ASSERT(sig.getNumConnections() == 4);
 
-	Test("disconnections");
 	{
 		bool res;
 		res = sig.disconnect(id2);
