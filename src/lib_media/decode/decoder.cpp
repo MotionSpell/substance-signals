@@ -77,8 +77,7 @@ void Decoder::processAudio() {
 void Decoder::processVideo() {
 
 	std::shared_ptr<DataPicture> pic;
-	auto ctx = static_cast<PictureContext*>(avFrame->get()->opaque);
-	if (ctx) {
+	if (auto ctx = static_cast<PictureContext*>(avFrame->get()->opaque)) {
 		pic = ctx->pic;
 		ctx->pic->setVisibleResolution(Resolution(codecCtx->width, codecCtx->height));
 	} else {
