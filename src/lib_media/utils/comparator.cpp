@@ -1,4 +1,5 @@
 #include "comparator.hpp"
+#include "../common/metadata.hpp"
 #include "../common/pcm.hpp"
 #include <cmath>
 

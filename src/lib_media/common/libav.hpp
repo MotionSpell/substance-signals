@@ -1,7 +1,7 @@
 #pragma once
 
 #include "picture.hpp"
-#include "lib_modules/core/metadata.hpp"
+#include "metadata.hpp"
 #include <memory>
 
 struct AVCodecContext;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../common/metadata.hpp"
 #include "lib_modules/utils/helper.hpp"
 #include <memory>
 #include <string>

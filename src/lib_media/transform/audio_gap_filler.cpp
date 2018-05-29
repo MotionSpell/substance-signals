@@ -1,4 +1,5 @@
 #include "audio_gap_filler.hpp"
+#include "../common/metadata.hpp"
 
 namespace Modules {
 namespace Transform {

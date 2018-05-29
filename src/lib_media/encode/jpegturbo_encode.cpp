@@ -1,5 +1,6 @@
 #include "jpegturbo_encode.hpp"
 #include "lib_utils/tools.hpp"
+#include "../common/metadata.hpp"
 extern "C" {
 #include <turbojpeg.h>
 }

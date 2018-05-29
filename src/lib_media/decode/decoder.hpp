@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../common/metadata.hpp"
 #include "../common/picture_allocator.hpp"
 #include "../common/pcm.hpp"
 

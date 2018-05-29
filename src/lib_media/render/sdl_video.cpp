@@ -1,5 +1,6 @@
 #include "sdl_video.hpp"
 #include "lib_utils/tools.hpp"
+#include "../common/metadata.hpp"
 #include "SDL2/SDL.h"
 #include "render_common.hpp"
 #include <csignal>

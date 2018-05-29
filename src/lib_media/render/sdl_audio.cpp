@@ -2,6 +2,7 @@
 #include "render_common.hpp"
 #include "lib_utils/tools.hpp"
 #include "SDL2/SDL.h"
+#include "../common/metadata.hpp"
 #include "../transform/audio_convert.hpp"
 #include <algorithm>
 #include <cstring>
