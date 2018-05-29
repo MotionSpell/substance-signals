@@ -100,52 +100,19 @@ std::unique_ptr<const IConfig> processArgs(int argc, char const* argv[]) {
 	        "  %s -ilr -w tmp -t 10 -v 640x360:300000:0 udp://226.0.0.1:1234\n",
 	        g_appName, g_appName, g_appName, g_appName, g_appName, g_appName, g_appName);
 	const option::Descriptor usage[] = {
-		{ UNKNOWN,  0, "",  "",           Arg::Unknown, usage0.c_str() },
-		{
-			HELP,     0, "h", "help",        Arg::None,
-			"  --help,              -h             \tPrint usage and exit."
-		},
-		{
-			OPT,      0, "i", "loop",        Arg::None,
-			"  --loop,              -i             \tLoops the input indefinitely."
-		},
-		{
-			OPT,      0, "l", "live",        Arg::None,
-			"  --live,              -l             \tRun at system clock pace (otherwise runs as fast as possible)."
-		},
-		{
-			OPT,      0, "u", "ultra-low-latency", Arg::None,
-			"  --ultra-low-latency, -u             \tLower the latency as much as possible (quality may be degraded)."
-		},
-		{
-			NUMERIC,  0, "s", "seg-dur",     Arg::Numeric,
-			"  --seg-dur,           -s             \tSet the segment duration (in ms) (default value: 2000)."
-		},
-		{
-			NUMERIC,  0, "t", "dvr",         Arg::Numeric,
-			"  --dvr,               -t             \tSet the timeshift buffer depth in segment number (default value: infinite(0))."
-		},
-		{
-			VIDEO,    0, "v", "video",       Arg::Video,
-			"  --video wxh[:b[:t]], -v wxh:b[:t]   \tSet a video resolution and optionally bitrate (enables resize and/or transcoding) and encoder type (supported 0 (software (default)), 1 (QuickSync), 2 (NVEnc)."
-		},
-		{
-			OPT,      0, "r", "autorotate",  Arg::None,
-			"  --autorotate,        -r             \tAuto-rotate if the input height is bigger than the width."
-		},
-		{
-			NONEMPTY, 0, "w", "working-dir", Arg::NonEmpty,
-			"  --working-dir,       -w             \tSet a working directory."
-		},
-		{
-			NONEMPTY, 0, "p", "post-cmd",    Arg::NonEmpty,
-			"  --post-cmd,          -p             \tExecute a command when a segment or a manifest are created/updated. Shall contain one '%s' to be replaced by the filename."
-		},
-		{
-			OPT,      0, "n", "no-watermark",Arg::None,
-			"  --no-watermark,      -n             \tRemove the watermark (when applicable)."
-		},
-		{ UNKNOWN,  0, "",  "",           Arg::None, examples.c_str() },
+		{ UNKNOWN,  0, "",  "",                   Arg::Unknown, usage0.c_str() },
+		{ HELP,     0, "h", "help",               Arg::None,     "  --help,              -h             \tPrint usage and exit." },
+		{ OPT,      0, "i", "loop",               Arg::None,     "  --loop,              -i             \tLoops the input indefinitely." },
+		{ OPT,      0, "l", "live",               Arg::None,     "  --live,              -l             \tRun at system clock pace (otherwise runs as fast as possible)." },
+		{ OPT,      0, "u", "ultra-low-latency",  Arg::None,     "  --ultra-low-latency, -u             \tLower the latency as much as possible (quality may be degraded)." },
+		{ NUMERIC,  0, "s", "seg-dur",            Arg::Numeric,  "  --seg-dur,           -s             \tSet the segment duration (in ms) (default value: 2000)." },
+		{ NUMERIC,  0, "t", "dvr",                Arg::Numeric,  "  --dvr,               -t             \tSet the timeshift buffer depth in segment number (default value: infinite(0))." },
+		{ VIDEO,    0, "v", "video",              Arg::Video,    "  --video wxh[:b[:t]], -v wxh:b[:t]   \tSet a video resolution and optionally bitrate (enables resize and/or transcoding) and encoder type (supported 0 (software (default)), 1 (QuickSync), 2 (NVEnc)." },
+		{ OPT,      0, "r", "autorotate",         Arg::None,     "  --autorotate,        -r             \tAuto-rotate if the input height is bigger than the width." },
+		{ NONEMPTY, 0, "w", "working-dir",        Arg::NonEmpty, "  --working-dir,       -w             \tSet a working directory." },
+		{ NONEMPTY, 0, "p", "post-cmd",           Arg::NonEmpty, "  --post-cmd,          -p             \tExecute a command when a segment or a manifest are created/updated. Shall contain one '%s' to be replaced by the filename." },
+		{ OPT,      0, "n", "no-watermark",       Arg::None,     "  --no-watermark,      -n             \tRemove the watermark (when applicable)." },
+		{ UNKNOWN,  0, "",  "",                   Arg::None, examples.c_str() },
 		{ 0, 0, 0, 0, 0, 0 }
 	};
 
