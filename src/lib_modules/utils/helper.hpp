@@ -5,6 +5,7 @@
 
 #include "../core/module.hpp"
 #include "../core/allocator.hpp"
+#include "../core/log.hpp"
 #include "lib_signals/utils/helper.hpp"
 #include "lib_utils/tools.hpp"
 #include <memory>

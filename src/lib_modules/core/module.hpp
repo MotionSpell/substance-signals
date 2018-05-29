@@ -3,11 +3,9 @@
 #include "clock.hpp"
 #include "data.hpp"
 #include "error.hpp"
-#include "log.hpp"
 #include "metadata.hpp"
 #include "lib_utils/queue.hpp"
 #include "lib_signals/signals.hpp"
-#include <memory>
 
 namespace Modules {
 
@@ -50,6 +48,10 @@ struct IOutput : virtual IMetadataCap {
 	virtual size_t emit(Data data) = 0;
 	virtual Signals::ISignal<void(Data)>& getSignal() = 0;
 };
+
+// FIXME: remove this (see below)
+#include <memory>
+#include <vector>
 
 struct IOutputCap {
 		virtual ~IOutputCap() noexcept(false) {}
