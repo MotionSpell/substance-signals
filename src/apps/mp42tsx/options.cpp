@@ -12,6 +12,7 @@ mp42tsXOptions parseCommandLine(int argc, char const* argv[]) {
 	CmdLineOptions opt;
 
 	opt.addFlag("l", "live", &cfg.isLive, "Use live mode");
+	opt.add("o", "output", &cfg.output, "Output path (default: 'output.ts')");
 
 	auto files = opt.parse(argc, argv);
 	if (files.size() != 1) {
