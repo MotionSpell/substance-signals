@@ -12,7 +12,7 @@ struct IPipelinedModule : public Modules::IModule {
 	virtual bool isSource() = 0;
 	virtual bool isSink() = 0;
 	virtual void connect(Modules::IOutput *output, size_t inputIdx, bool forceAsync, bool inputAcceptMultipleConnections) = 0;
-	virtual void disconnect(size_t inputIdx, Modules::IOutput * const output) = 0;
+	virtual void disconnect(size_t inputIdx, Modules::IOutput * output) = 0;
 };
 
 struct IPipelineNotifier {
@@ -30,10 +30,10 @@ class IPipeline {
 		// Remove a module from a pipeline.
 		// This is only possible when the module is disconnected and flush()ed
 		// (which is the caller responsibility - FIXME)
-		virtual void removeModule(IPipelinedModule * const module) = 0;
+		virtual void removeModule(IPipelinedModule * module) = 0;
 
-		virtual void connect(IPipelinedModule * const prev, size_t outputIdx, IPipelinedModule * const next, size_t inputIdx, bool inputAcceptMultipleConnections = false) = 0;
-		virtual void disconnect(IPipelinedModule * const prev, size_t outputIdx, IPipelinedModule * const next, size_t inputIdx) = 0;
+		virtual void connect(IPipelinedModule * prev, size_t outputIdx, IPipelinedModule * next, size_t inputIdx, bool inputAcceptMultipleConnections = false) = 0;
+		virtual void disconnect(IPipelinedModule * prev, size_t outputIdx, IPipelinedModule * next, size_t inputIdx) = 0;
 
 		virtual void start() = 0;
 		virtual void waitForEndOfStream() = 0;
