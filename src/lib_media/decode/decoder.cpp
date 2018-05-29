@@ -43,12 +43,12 @@ Decoder::Decoder(std::shared_ptr<const MetadataPktLibav> metadata)
 		} else {
 			videoOutput = addOutput<OutputPicture>(make_shared<MetadataRawVideo>());
 		}
-		deliverOutput = std::bind(&Decoder::processVideo, this);
+		getDecompressedData = std::bind(&Decoder::processVideo, this);
 		break;
 	}
 	case AVMEDIA_TYPE_AUDIO: {
 		audioOutput = addOutput<OutputPcm>(make_shared<MetadataRawAudio>());
-		deliverOutput = std::bind(&Decoder::processAudio, this);
+		getDecompressedData = std::bind(&Decoder::processAudio, this);
 		break;
 	}
 	default:
@@ -59,7 +59,7 @@ Decoder::Decoder(std::shared_ptr<const MetadataPktLibav> metadata)
 Decoder::~Decoder() {
 }
 
-void Decoder::processAudio() {
+std::shared_ptr<DataBase> Decoder::processAudio() {
 
 	auto out = audioOutput->getBuffer(0);
 	PcmFormat pcmFormat;
@@ -69,12 +69,10 @@ void Decoder::processAudio() {
 		out->setPlane(i, avFrame->get()->data[i], avFrame->get()->nb_samples * pcmFormat.getBytesPerSample() / pcmFormat.numPlanes);
 	}
 
-	setMediaTime(out.get());
-
-	outputs[0]->emit(out);
+	return out;
 }
 
-void Decoder::processVideo() {
+std::shared_ptr<DataBase> Decoder::processVideo() {
 
 	std::shared_ptr<DataPicture> pic;
 	if (auto ctx = static_cast<PictureContext*>(avFrame->get()->opaque)) {
@@ -85,9 +83,7 @@ void Decoder::processVideo() {
 		copyToPicture(avFrame->get(), pic.get());
 	}
 
-	setMediaTime(pic.get());
-
-	outputs[0]->emit(pic);
+	return pic;
 }
 
 void Decoder::setMediaTime(DataBase* data) {
@@ -132,7 +128,9 @@ void Decoder::processPacket(AVPacket const * pkt) {
 			log(Error, "Corrupted frame decoded");
 		}
 
-		deliverOutput();
+		auto data = getDecompressedData();
+		setMediaTime(data.get());
+		outputs[0]->emit(data);
 	}
 }
 

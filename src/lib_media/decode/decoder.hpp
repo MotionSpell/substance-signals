@@ -22,8 +22,8 @@ class Decoder : public ModuleS, private PictureAllocator {
 
 	private:
 		void processPacket(AVPacket const * pkt);
-		void processAudio();
-		void processVideo();
+		std::shared_ptr<DataBase> processAudio();
+		std::shared_ptr<DataBase> processVideo();
 		void setMediaTime(DataBase* data);
 		PictureAllocator::PictureContext* getPicture(Resolution res, Resolution resInternal, PixelFormat format) override;
 
@@ -31,7 +31,7 @@ class Decoder : public ModuleS, private PictureAllocator {
 		std::unique_ptr<ffpp::Frame> const avFrame;
 		OutputPicture *videoOutput;
 		OutputPcm *audioOutput;
-		std::function<void(void)> deliverOutput;
+		std::function<std::shared_ptr<DataBase>(void)> getDecompressedData;
 };
 
 }
