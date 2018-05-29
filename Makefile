@@ -110,7 +110,7 @@ BRANCH:=$(shell git rev-parse --abbrev-ref HEAD 2> /dev/null || echo "UNKNOWN")
 
 VER_NEW:=$(TAG)-$(BRANCH)-rev$(VERSION)
 
-$(BIN)/src/version.cpp.o: CFLAGS+=-DVERSION="\"$(VER_NEW)\""
+$(BIN)/src/lib_utils/version.cpp.o: CFLAGS+=-DVERSION="\"$(VER_NEW)\""
 
 targets: $(TARGETS)
 

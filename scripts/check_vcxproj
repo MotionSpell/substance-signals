@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly tmpDir=/tmp/check-vcxproj
+trap "rm -rf $tmpDir" EXIT
+mkdir -p $tmpDir
+
+function safeGrep
+{
+  grep "$@" || true
+}
+
+function getVcxprojSources
+{
+  local path="$1"
+  dir=$(dirname $path)
+  safeGrep "ClCompile Include" "$path" | sed 's/ *<ClCompile Include="//' | sed 's@".*@@' | tr '\\' '/' | while read f ; do
+  readlink -m -f "$dir/$f" || true
+  done
+}
+
+function getAllVcxproj
+{
+  for f in $(find -name "*.vcxproj") ; do
+    getVcxprojSources "$f"
+  done | sort -u
+}
+
+getAllVcxproj > $tmpDir/list-vcxproj
+
+find $PWD -name "*.cpp" | sort -u > $tmpDir/list-filesystem
+
+diff -Naurw $tmpDir/list-filesystem $tmpDir/list-vcxproj
+
+
