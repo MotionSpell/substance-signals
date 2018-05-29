@@ -1,10 +1,10 @@
 #include "adaptive_streaming_common.hpp"
 #include "lib_utils/time.hpp"
+#include "lib_utils/os.hpp"
 #include "lib_gpacpp/gpacpp.hpp"
 #include <cassert>
-#ifdef _WIN32
-#include <windows.h>
-#endif
+#include <thread>
+#include <chrono>
 
 #define MOVE_FILE_NUM_RETRY 3
 
@@ -28,26 +28,23 @@ bool AdaptiveStreamingCommon::moveFile(const std::string &src, const std::string
 
 	if(src == dst)
 		return false; // nothing to do
+
 	if (flags & SegmentsNotOwned)
 		throw error(format("Segments not owned require similar filenames (%s != %s)", src, dst));
 
 	auto subdir = dst.substr(0, dst.find_last_of("/") + 1);
-	if ((gf_dir_exists(subdir.c_str()) == GF_FALSE) && gf_mkdir(subdir.c_str()))
-		throw std::runtime_error(format("couldn't create subdir \"%s\": please check you have sufficient rights (2)", subdir));
+	if (!dirExists(subdir))
+		mkdir(subdir);
 
 	int retry = MOVE_FILE_NUM_RETRY + 1;
 	while (--retry) {
-#ifdef _WIN32
-		if(MoveFileA(src.c_str(), dst.c_str()))
+		try {
+			::moveFile(src, dst);
 			break;
-		if (GetLastError() == ERROR_ALREADY_EXISTS) {
-			DeleteFileA(dst.c_str());
+		} catch(...) {
 		}
-#else
-		if(system(format("%s %s %s", "mv", src, dst).c_str()) == 0)
-			break;
-#endif
-		gf_sleep(10);
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
 	if (!retry) {
 		return false;
@@ -110,8 +107,8 @@ void AdaptiveStreamingCommon::ensurePrefix(size_t i) {
 		//if (!(flags & SegmentsNotOwned)) //FIXME: HLS manifests still requires the subdir presence
 		{
 			auto const dir = format("%s%s", manifestDir, qualities[i]->prefix);
-			if ((gf_dir_exists(dir.c_str()) == GF_FALSE) && gf_mkdir(dir.c_str()))
-				throw std::runtime_error(format("couldn't create subdir %s: please check you have sufficient rights (1)", qualities[i]->prefix));
+			if (!dirExists(dir))
+				mkdir(dir);
 		}
 	}
 }
