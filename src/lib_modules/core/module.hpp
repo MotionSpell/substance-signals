@@ -45,15 +45,13 @@ struct IInputCap {
 	virtual IInput* getInput(size_t i) = 0;
 };
 
-class IOutput : public virtual IMetadataCap {
-	public:
-		virtual ~IOutput() noexcept(false) {}
-		virtual size_t emit(Data data) = 0;
-		virtual Signals::ISignal<void(Data)>& getSignal() = 0;
+struct IOutput : virtual IMetadataCap {
+	virtual ~IOutput() noexcept(false) {}
+	virtual size_t emit(Data data) = 0;
+	virtual Signals::ISignal<void(Data)>& getSignal() = 0;
 };
 
-class IOutputCap {
-	public:
+struct IOutputCap {
 		virtual ~IOutputCap() noexcept(false) {}
 		virtual size_t getNumOutputs() const = 0;
 		virtual IOutput* getOutput(size_t i) = 0;
@@ -64,10 +62,9 @@ class IOutputCap {
 		/*const*/ size_t allocatorSize = 0;
 };
 
-class IModule : public IProcessor, public virtual IInputCap, public virtual IOutputCap, public virtual IClockCap {
-	public:
-		virtual ~IModule() noexcept(false) {}
-		virtual void flush() {}
+struct IModule : IProcessor, virtual IInputCap, virtual IOutputCap, virtual IClockCap {
+	virtual ~IModule() noexcept(false) {}
+	virtual void flush() {}
 };
 
 }
