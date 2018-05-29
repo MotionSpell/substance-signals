@@ -23,31 +23,34 @@ AdaptiveStreamingCommon::AdaptiveStreamingCommon(Type type, uint64_t segDuration
 }
 
 bool AdaptiveStreamingCommon::moveFile(const std::string &src, const std::string &dst) const {
-	if (!src.empty() && (src != dst)) {
-		if (flags & SegmentsNotOwned)
-			throw error(format("Segments not owned require similar filenames (%s != %s)", src, dst));
+	if (src.empty())
+		return true;
 
-		auto subdir = dst.substr(0, dst.find_last_of("/") + 1);
-		if ((gf_dir_exists(subdir.c_str()) == GF_FALSE) && gf_mkdir(subdir.c_str()))
-			throw std::runtime_error(format("couldn't create subdir \"%s\": please check you have sufficient rights (2)", subdir));
+	if(src == dst)
+		return false; // nothing to do
+	if (flags & SegmentsNotOwned)
+		throw error(format("Segments not owned require similar filenames (%s != %s)", src, dst));
 
-		int retry = MOVE_FILE_NUM_RETRY + 1;
-		while (--retry) {
+	auto subdir = dst.substr(0, dst.find_last_of("/") + 1);
+	if ((gf_dir_exists(subdir.c_str()) == GF_FALSE) && gf_mkdir(subdir.c_str()))
+		throw std::runtime_error(format("couldn't create subdir \"%s\": please check you have sufficient rights (2)", subdir));
+
+	int retry = MOVE_FILE_NUM_RETRY + 1;
+	while (--retry) {
 #ifdef _WIN32
-			if(MoveFileA(src.c_str(), dst.c_str()))
-				break;
-			if (GetLastError() == ERROR_ALREADY_EXISTS) {
-				DeleteFileA(dst.c_str());
-			}
+		if(MoveFileA(src.c_str(), dst.c_str()))
+			break;
+		if (GetLastError() == ERROR_ALREADY_EXISTS) {
+			DeleteFileA(dst.c_str());
+		}
 #else
-			if(system(format("%s %s %s", "mv", src, dst).c_str()) == 0)
-				break;
+		if(system(format("%s %s %s", "mv", src, dst).c_str()) == 0)
+			break;
 #endif
-			gf_sleep(10);
-		}
-		if (!retry) {
-			return false;
-		}
+		gf_sleep(10);
+	}
+	if (!retry) {
+		return false;
 	}
 	return true;
 }
