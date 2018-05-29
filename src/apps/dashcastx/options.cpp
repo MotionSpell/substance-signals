@@ -10,15 +10,17 @@ extern const char *g_appName;
 
 namespace {
 
+inline std::string toString(option::Option& opt) {
+	return std::string(opt.name, opt.name + opt.namelen);
+}
+
 struct Arg : public option::Arg {
-	static void printError(const char* msg1, const option::Option& opt, const char* msg2) {
-		fprintf(stderr, "%s", msg1);
-		fwrite(opt.name, opt.namelen, 1, stderr);
-		fprintf(stderr, "%s", msg2);
+	static void printError(std::string msg) {
+		fprintf(stderr, "%s\n", msg.c_str());
 	}
 
 	static option::ArgStatus Unknown(const option::Option& option, bool msg) {
-		if (msg) printError("Unknown option '", option, "'\n");
+		if (msg) printError(format("Unknown option '%s'", option));
 		return option::ARG_ILLEGAL;
 	}
 
@@ -26,7 +28,7 @@ struct Arg : public option::Arg {
 		if (option.arg != 0)
 			return option::ARG_OK;
 
-		if (msg) printError("Option '", option, "' requires an argument\n");
+		if (msg) printError(format("Option '%s' requires an argument", option));
 		return option::ARG_ILLEGAL;
 	}
 
@@ -34,7 +36,7 @@ struct Arg : public option::Arg {
 		if (option.arg != 0 && option.arg[0] != 0)
 			return option::ARG_OK;
 
-		if (msg) printError("Option '", option, "' requires a non-empty argument\n");
+		if (msg) printError(format("Option '%s' requires a non-empty argument", option));
 		return option::ARG_ILLEGAL;
 	}
 
@@ -44,7 +46,7 @@ struct Arg : public option::Arg {
 		if (endptr != option.arg && *endptr == 0)
 			return option::ARG_OK;
 
-		if (msg) printError("Option '", option, "' requires a numeric argument\n");
+		if (msg) printError(format("Option '%s' requires a numeric argument", option));
 		return option::ARG_ILLEGAL;
 	}
 
@@ -53,7 +55,7 @@ struct Arg : public option::Arg {
 		if (option.arg != 0 && sscanf(option.arg, "%ux%u:%u:%u", &w, &h, &bitrate, &type) >= 3)
 			return option::ARG_OK;
 
-		if (msg) printError("Option '", option, "' requires a video (wxh:bitrate) argument\n");
+		if (msg) printError(format("Option '%s' requires a video (wxh:bitrate) argument", option));
 		return option::ARG_ILLEGAL;
 	}
 };
