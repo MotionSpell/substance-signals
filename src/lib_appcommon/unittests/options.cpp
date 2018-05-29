@@ -84,4 +84,27 @@ unittest("CmdLineOptions: unexpected end of command line") {
 	ASSERT_THROWN(opt.parse(NELEMENTS(argv), argv));
 }
 
+struct MySize {
+	int width, height;
+};
+
+static inline void parseValue(MySize& var, ArgQueue& args) {
+	auto s = safePop(args);
+	// fake parsing
+	var.width = 128;
+	var.height = 32;
+}
+
+unittest("CmdLineOptions: custom parsing") {
+	MySize mySize {};
+	CmdLineOptions opt;
+	opt.add("s", "size", &mySize);
+
+	const char* argv[] = {
+		"progname", "-s", "128x32"
+	};
+	opt.parse(NELEMENTS(argv), argv);
+	ASSERT_EQUALS(128, mySize.width);
+}
+
 
