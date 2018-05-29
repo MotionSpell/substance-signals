@@ -27,7 +27,9 @@ class IPipeline {
 			return addModuleInternal(Modules::createModule<InstanceType>(getNumBlocks(NumBlocks), getClock(), std::forward<Args>(args)...));
 		}
 
-		/*Remove a module from a pipeline. This is only possible when the module is already disconnected and flush()ed (which is the caller responsibility - FIXME).*/
+		// Remove a module from a pipeline.
+		// This is only possible when the module is disconnected and flush()ed
+		// (which is the caller responsibility - FIXME)
 		virtual void removeModule(IPipelinedModule * const module) = 0;
 
 		virtual void connect(IPipelinedModule * const prev, size_t outputIdx, IPipelinedModule * const next, size_t inputIdx, bool inputAcceptMultipleConnections = false) = 0;
