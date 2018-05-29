@@ -50,11 +50,11 @@ void declarePipeline(Pipeline &pipeline, const char *url) {
 	auto demux = createSource(url);
 
 	for (int i = 0; i < (int)demux->getNumOutputs(); ++i) {
-		auto metadata = safe_cast<const MetadataPktLibav>(demux->getOutput(i)->getMetadata());
+		auto metadata = safe_cast<const MetadataPkt>(demux->getOutput(i)->getMetadata());
 		if (!metadata || metadata->isSubtitle()/*only render audio and video*/)
 			continue;
 
-		auto decode = pipeline.addModule<Decode::Decoder>(metadata);
+		auto decode = pipeline.addModule<Decode::Decoder>(metadata.get());
 		pipeline.connect(demux, i, decode, 0);
 
 		auto render = createRenderer(metadata->getStreamType());

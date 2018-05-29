@@ -1,6 +1,5 @@
 #pragma once
 
-#include "lib_modules/utils/helper.hpp"
 #include "../common/picture_allocator.hpp"
 #include "../common/pcm.hpp"
 
@@ -16,7 +15,7 @@ namespace Decode {
 
 class Decoder : public ModuleS, private PictureAllocator {
 	public:
-		Decoder(std::shared_ptr<const MetadataPkt> metadata);
+		Decoder(const MetadataPkt* metadata);
 		~Decoder();
 		void process(Data data) override;
 		void flush() override;

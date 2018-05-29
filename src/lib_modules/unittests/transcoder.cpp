@@ -35,8 +35,8 @@ void libav_mux(std::string format) {
 	ASSERT(videoIndex != std::numeric_limits<size_t>::max());
 
 	//create the video decode
-	auto metadata = safe_cast<const MetadataPktLibav>(demux->getOutput(videoIndex)->getMetadata());
-	auto decode = create<Decode::Decoder>(metadata);
+	auto metadata = safe_cast<const MetadataPkt>(demux->getOutput(videoIndex)->getMetadata());
+	auto decode = create<Decode::Decoder>(metadata.get());
 	auto encode = create<Encode::LibavEncode>(Encode::LibavEncode::Video);
 	auto mux = create<Mux::LibavMux>("output_video_libav", format);
 
@@ -73,8 +73,8 @@ unittest("transcoder: video simple (gpac mux MP4)") {
 	ASSERT(videoIndex != std::numeric_limits<size_t>::max());
 
 	//create the video decode
-	auto metadata = safe_cast<const MetadataPktLibav>(demux->getOutput(videoIndex)->getMetadata());
-	auto decode = create<Decode::Decoder>(metadata);
+	auto metadata = safe_cast<const MetadataPkt>(demux->getOutput(videoIndex)->getMetadata());
+	auto decode = create<Decode::Decoder>(metadata.get());
 	auto encode = create<Encode::LibavEncode>(Encode::LibavEncode::Video);
 	auto mux = create<Mux::GPACMuxMP4>("output_video_gpac");
 
@@ -140,7 +140,7 @@ unittest("transcoder: h264/mp4 to jpg") {
 	auto demux = create<Demux::LibavDemux>("data/beepbop.mp4");
 
 	auto metadata = safe_cast<const MetadataPktLibavVideo>(demux->getOutput(1)->getMetadata());
-	auto decode = create<Decode::Decoder>(metadata);
+	auto decode = create<Decode::Decoder>(metadata.get());
 
 	auto encoder = create<Encode::JPEGTurboEncode>();
 	auto writer = create<Out::File>("data/test.jpg");

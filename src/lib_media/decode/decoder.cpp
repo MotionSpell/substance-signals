@@ -8,7 +8,7 @@
 namespace Modules {
 namespace Decode {
 
-Decoder::Decoder(std::shared_ptr<const MetadataPkt> metadata)
+Decoder::Decoder(const MetadataPkt* metadata)
 	: avFrame(new ffpp::Frame) {
 
 	auto const codec_id = (AVCodecID)metadata->codecId;
