@@ -71,7 +71,7 @@ void Decoder::processAudio() {
 
 	setMediaTime(out.get());
 
-	audioOutput->emit(out);
+	outputs[0]->emit(out);
 }
 
 void Decoder::processVideo() {
@@ -88,7 +88,7 @@ void Decoder::processVideo() {
 
 	setMediaTime(pic.get());
 
-	if (videoOutput) videoOutput->emit(pic);
+	outputs[0]->emit(pic);
 }
 
 void Decoder::setMediaTime(DataBase* data) {
