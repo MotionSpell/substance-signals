@@ -183,6 +183,16 @@ std::string MetadataPktLibav::getCodecName() const {
 	return avcodec_get_name(codecCtx->codec_id);
 }
 
+int MetadataPktLibav::getCodecId() const {
+	return codecCtx->codec_id;
+}
+
+std::vector<uint8_t> MetadataPktLibav::getExtraData() const {
+	std::vector<uint8_t> r;
+	r.assign(codecCtx->extradata, codecCtx->extradata + codecCtx->extradata_size);
+	return r;
+}
+
 PixelFormat MetadataPktLibavVideo::getPixelFormat() const {
 	return libavPixFmt2PixelFormat(codecCtx->pix_fmt);
 }

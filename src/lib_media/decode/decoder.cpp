@@ -10,10 +10,10 @@ namespace Decode {
 Decoder::Decoder(std::shared_ptr<const MetadataPktLibav> metadata)
 	: avFrame(new ffpp::Frame) {
 
-	auto const origCtx = metadata->getAVCodecContext().get();
-	auto const codec_id = origCtx->codec_id;
+	auto const codec_id = metadata->getCodecId();
+	auto const extradata = metadata->getExtraData();
 
-	auto const codec = avcodec_find_decoder(codec_id);
+	auto const codec = avcodec_find_decoder((AVCodecID)codec_id);
 	if (!codec)
 		throw error(format("Decoder not found for codecID (%s).", codec_id));
 
@@ -22,9 +22,9 @@ Decoder::Decoder(std::shared_ptr<const MetadataPktLibav> metadata)
 	// copy extradata: this allows decoding non-Annex B bitstreams
 	// (i.e AVCC / H264-in-mp4).
 	{
-		codecCtx->extradata = (uint8_t*)av_calloc(1, origCtx->extradata_size + AV_INPUT_BUFFER_PADDING_SIZE);
-		codecCtx->extradata_size = origCtx->extradata_size;
-		memcpy(codecCtx->extradata, origCtx->extradata, origCtx->extradata_size);
+		codecCtx->extradata = (uint8_t*)av_calloc(1, extradata.size() + AV_INPUT_BUFFER_PADDING_SIZE);
+		codecCtx->extradata_size = (int)extradata.size();
+		memcpy(codecCtx->extradata, extradata.data(), extradata.size());
 	}
 
 	ffpp::Dict dict(typeid(*this).name(), "-threads auto -err_detect 1 -flags output_corrupt -flags2 showall");
