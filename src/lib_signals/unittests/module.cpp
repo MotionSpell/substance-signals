@@ -22,16 +22,14 @@ struct Slot {
 
 unittest("basic module connection tests") {
 	Signaler sender;
-	Signaler &senderRef = sender;
-	Signaler *senderPtr = &sender;
 	Slot receiver;
 	Slot &receiverRef = receiver;
 	Slot *receiverPtr = &receiver;
 	Connect(sender.signal, &receiver, &Slot::slot);
-	Connect(senderRef.signal, &receiver, &Slot::slot);
-	Connect(senderPtr->signal, &receiver, &Slot::slot);
-	Connect(senderPtr->signal, &receiverRef, &Slot::slot);
-	Connect(senderPtr->signal, receiverPtr, &Slot::slot);
+	Connect(sender.signal, &receiver, &Slot::slot);
+	Connect(sender.signal, &receiver, &Slot::slot);
+	Connect(sender.signal, &receiverRef, &Slot::slot);
+	Connect(sender.signal, receiverPtr, &Slot::slot);
 
 	sender.signal.emit(100);
 	auto res = sender.signal.results();
