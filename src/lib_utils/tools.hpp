@@ -16,15 +16,6 @@ DummyStruct runAtStartup(R f(Args...), Args... argVal) {
 	return DummyStruct();
 }
 
-constexpr
-const char *redirectStdToNul() {
-#ifndef _WIN32
-	return " > /dev/null 2>&1";
-#else
-	return " > nul 2>&1";
-#endif
-}
-
 inline
 std::string string2hex(const uint8_t *extradata, size_t extradataSize) {
 	static const char* const ab = "0123456789ABCDEF";
