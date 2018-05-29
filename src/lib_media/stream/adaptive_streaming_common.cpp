@@ -32,13 +32,16 @@ bool AdaptiveStreamingCommon::moveFile(const std::string &src, const std::string
 			throw std::runtime_error(format("couldn't create subdir \"%s\": please check you have sufficient rights (2)", subdir));
 
 		int retry = MOVE_FILE_NUM_RETRY + 1;
+		while (--retry) {
 #ifdef _WIN32
-		while (--retry && (MoveFileA(src.c_str(), dst.c_str())) == 0) {
+			if(MoveFileA(src.c_str(), dst.c_str()))
+				break;
 			if (GetLastError() == ERROR_ALREADY_EXISTS) {
 				DeleteFileA(dst.c_str());
 			}
 #else
-		while (--retry && (system(format("%s %s %s", "mv", src, dst).c_str())) == 0) {
+			if(system(format("%s %s %s", "mv", src, dst).c_str()) == 0)
+				break;
 #endif
 			gf_sleep(10);
 		}
