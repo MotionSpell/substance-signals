@@ -21,7 +21,6 @@ class PipelinedModule : public IPipelineNotifier, public ClockCap, public IPipel
 			  delegate(std::move(module)), localDelegateExecutor(threading & Pipeline::Mono ? (IProcessExecutor*)new EXECUTOR_LIVE : (IProcessExecutor*)new EXECUTOR),
 			  delegateExecutor(*localDelegateExecutor), threading(threading), m_notify(notify), activeConnections(0) {
 		}
-		~PipelinedModule() noexcept(false) {}
 		void flush() override {
 			process();
 			while (activeConnections > 0) clock->sleep(Fraction(10, 1000));

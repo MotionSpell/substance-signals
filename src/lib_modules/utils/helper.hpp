@@ -20,7 +20,6 @@ static bool operator==(const IMetadata &left, const IMetadata &right) {
 class MetadataCap : public virtual IMetadataCap {
 	public:
 		MetadataCap(std::shared_ptr<const IMetadata> metadata = nullptr) : m_metadata(metadata) {}
-		virtual ~MetadataCap() noexcept(false) {}
 
 		std::shared_ptr<const IMetadata> getMetadata() const override {
 			return m_metadata;
@@ -83,7 +82,6 @@ class Input : public IInput, public MetadataCap {
 
 class InputCap : public virtual IInputCap {
 	public:
-		virtual ~InputCap() noexcept(false) {}
 		IInput* addInput(IInput* p) { //Takes ownership
 			inputs.push_back(uptr(p));
 			return p;
@@ -115,7 +113,7 @@ class OutputT : public IOutput, public MetadataCap, public ClockCap {
 		OutputT(size_t allocatorSize, std::shared_ptr<IClock> clock, const IMetadata *metadata = nullptr)
 			: OutputT(allocatorSize, allocatorSize, clock, metadata) {
 		}
-		virtual ~OutputT() noexcept(false) {
+		virtual ~OutputT()  {
 			allocator->unblock();
 		}
 
@@ -163,8 +161,6 @@ class OutputCap : public virtual IOutputCap {
 class Module : public IModule, public ErrorCap, public LogCap, public InputCap {
 	public:
 		Module() = default;
-		virtual ~Module() noexcept(false) {}
-
 		template <typename InstanceType, typename ...Args>
 		InstanceType* addOutput(Args&&... args) {
 			auto p = new InstanceType(allocatorSize, allocatorSize, clock, std::forward<Args>(args)...);
@@ -206,7 +202,6 @@ std::unique_ptr<InstanceType> create(Args&&... args) {
 class ModuleS : public Module {
 	public:
 		ModuleS() = default;
-		virtual ~ModuleS() noexcept(false) {}
 		virtual void process(Data data) = 0;
 		void process() override {
 			process(getInput(0)->pop());
@@ -219,9 +214,6 @@ class ModuleS : public Module {
 //      you can
 class ModuleDynI : public Module {
 	public:
-		ModuleDynI() = default;
-		virtual ~ModuleDynI() noexcept(false) {}
-
 		IInput* addInput(IInput *p) { //takes ownership
 			bool isDyn = false;
 			std::unique_ptr<IInput> pEx;

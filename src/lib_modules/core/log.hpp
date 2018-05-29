@@ -5,7 +5,7 @@
 namespace Modules {
 
 struct LogCap : protected LogRepetition {
-		virtual ~LogCap() noexcept(false) {}
+		virtual ~LogCap() = default;
 
 	protected:
 		template<typename... Arguments>
