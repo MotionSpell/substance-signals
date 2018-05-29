@@ -43,7 +43,7 @@ class IPipeline {
 		virtual IPipelinedModule* addModuleInternal(std::unique_ptr<Modules::IModule> rawModule) = 0;
 		/*FIXME: the block below won't be necessary once we inject correctly*/
 		virtual int getNumBlocks(int numBlock) const = 0;
-		virtual const std::shared_ptr<IClock> getClock() const = 0;
+		virtual std::shared_ptr<IClock> getClock() const = 0;
 };
 
 /* not thread-safe */
@@ -61,9 +61,9 @@ class Pipeline : public IPipeline, public IPipelineNotifier {
 		Pipeline(bool isLowLatency = false, double clockSpeed = 0.0, Threading threading = OnePerModule);
 
 		IPipelinedModule* addModuleInternal(std::unique_ptr<Modules::IModule> rawModule) override;
-		void removeModule(IPipelinedModule * const module) override;
-		void connect   (IPipelinedModule * const prev, size_t outputIdx, IPipelinedModule * const next, size_t inputIdx, bool inputAcceptMultipleConnections = false) override;
-		void disconnect(IPipelinedModule * const prev, size_t outputIdx, IPipelinedModule * const next, size_t inputIdx) override;
+		void removeModule(IPipelinedModule * module) override;
+		void connect   (IPipelinedModule * prev, size_t outputIdx, IPipelinedModule * next, size_t inputIdx, bool inputAcceptMultipleConnections = false) override;
+		void disconnect(IPipelinedModule * prev, size_t outputIdx, IPipelinedModule * next, size_t inputIdx) override;
 		void start() override;
 		void waitForEndOfStream() override;
 		void exitSync() override;
@@ -71,7 +71,7 @@ class Pipeline : public IPipeline, public IPipelineNotifier {
 		int getNumBlocks(int numBlock) const override {
 			return numBlock ? numBlock : allocatorNumBlocks;
 		}
-		const std::shared_ptr<IClock> getClock() const override {
+		std::shared_ptr<IClock> getClock() const override {
 			return clock;
 		}
 
