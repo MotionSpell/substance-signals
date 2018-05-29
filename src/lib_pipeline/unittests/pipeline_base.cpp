@@ -23,12 +23,12 @@ unittest("pipeline: empty") {
 	}
 	{
 		Pipeline p;
-		p.waitForCompletion();
+		p.waitForEndOfStream();
 	}
 	{
 		Pipeline p;
 		p.start();
-		p.waitForCompletion();
+		p.waitForEndOfStream();
 	}
 }
 
@@ -42,7 +42,7 @@ unittest("pipeline: connect inputs to outputs") {
 			p.connect(null, i, demux, i);
 		}
 		p.start();
-		p.waitForCompletion();
+		p.waitForEndOfStream();
 	} catch (std::runtime_error const& /*e*/) {
 		thrown = true;
 	}
@@ -70,7 +70,7 @@ unittest("pipeline: longer pipeline") {
 	}
 
 	p.start();
-	p.waitForCompletion();
+	p.waitForEndOfStream();
 }
 
 unittest("pipeline: longer pipeline with join") {
@@ -85,7 +85,7 @@ unittest("pipeline: longer pipeline with join") {
 	}
 
 	p.start();
-	p.waitForCompletion();
+	p.waitForEndOfStream();
 }
 
 unittest("pipeline: input data is manually queued while module is running") {
@@ -97,7 +97,7 @@ unittest("pipeline: input data is manually queued while module is running") {
 	auto data = make_shared<DataRaw>(0);
 	dualInput->getInput(1)->push(data);
 	dualInput->getInput(1)->process();
-	p.waitForCompletion();
+	p.waitForEndOfStream();
 }
 
 unittest("pipeline: multiple inputs (send same packets to 2 inputs and check call number)") {
@@ -107,7 +107,7 @@ unittest("pipeline: multiple inputs (send same packets to 2 inputs and check cal
 	p.connect(generator, 0, dualInput, 0);
 	p.connect(generator, 0, dualInput, 1);
 	p.start();
-	p.waitForCompletion();
+	p.waitForEndOfStream();
 	ASSERT_EQUALS(DualInput::numCalls, 1u);
 }
 

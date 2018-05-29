@@ -128,7 +128,7 @@ class PipelinedModule : public IPipelineNotifier, public ClockCap, public IPipel
 			}
 		}
 
-		void finished() override {
+		void endOfStream() override {
 			if (!connections || --activeConnections == 0) {
 				delegate->flush();
 
@@ -138,7 +138,7 @@ class PipelinedModule : public IPipelineNotifier, public ClockCap, public IPipel
 
 				if (isSink()) {
 					if (connections) {
-						m_notify->finished();
+						m_notify->endOfStream();
 					}
 				}
 			} else if (activeConnections < 0)

@@ -83,7 +83,7 @@ int safeMain(int argc, char const* argv[]) {
 	std::cout << g_appName << " - send SIGTERM (ctrl-c) to exit cleanly." << std::endl;
 	try {
 		pipeline->start();
-		pipeline->waitForCompletion();
+		pipeline->waitForEndOfStream();
 	} catch (std::exception const& e) {
 		std::cerr << "Error: " << e.what() << std::endl;
 	}

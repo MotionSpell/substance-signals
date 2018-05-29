@@ -31,10 +31,10 @@ class PipelinedInput : public IInput {
 		void process() override {
 			auto data = pop();
 
-			// receiving nullptr stops the execution
+			// receiving 'nullptr' means 'end of stream'
 			if (!data) {
-				Log::msg(Debug, "Module %s: notify finished.", delegateName);
-				delegateExecutor(Bind(&IPipelineNotifier::finished, notify));
+				Log::msg(Debug, "Module %s: notify end-of-stream.", delegateName);
+				delegateExecutor(Bind(&IPipelineNotifier::endOfStream, notify));
 				return;
 			}
 

@@ -20,7 +20,7 @@ unittest("pipeline: interrupted") {
 		p.exitSync();
 	};
 	std::thread tf(f);
-	p.waitForCompletion();
+	p.waitForEndOfStream();
 	tf.join();
 }
 
@@ -48,7 +48,7 @@ unittest("[DISABLED] pipeline: intercept exception") {
 		auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
 		p.connect(demux, 0, exception, 0);
 		p.start();
-		p.waitForCompletion();
+		p.waitForEndOfStream();
 	} catch (...) {
 		thrown = true;
 	}

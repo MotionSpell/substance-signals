@@ -13,7 +13,7 @@ int safeMain(int argc, char const* argv[]) {
 
 	Tools::Profiler profilerProcessing("MP42TS - processing time");
 	pipeline.start();
-	pipeline.waitForCompletion();
+	pipeline.waitForEndOfStream();
 
 	return 0;
 }

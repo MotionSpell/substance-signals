@@ -16,7 +16,7 @@ struct IPipelinedModule : public Modules::IModule {
 };
 
 struct IPipelineNotifier {
-	virtual void finished() = 0;
+	virtual void endOfStream() = 0;
 	virtual void exception(std::exception_ptr eptr) = 0;
 };
 
@@ -36,7 +36,7 @@ class IPipeline {
 		virtual void disconnect(IPipelinedModule * const prev, size_t outputIdx, IPipelinedModule * const next, size_t inputIdx) = 0;
 
 		virtual void start() = 0;
-		virtual void waitForCompletion() = 0;
+		virtual void waitForEndOfStream() = 0;
 		virtual void exitSync() = 0; /*ask for all sources to finish*/
 
 	protected:
@@ -65,7 +65,7 @@ class Pipeline : public IPipeline, public IPipelineNotifier {
 		void connect   (IPipelinedModule * const prev, size_t outputIdx, IPipelinedModule * const next, size_t inputIdx, bool inputAcceptMultipleConnections = false) override;
 		void disconnect(IPipelinedModule * const prev, size_t outputIdx, IPipelinedModule * const next, size_t inputIdx) override;
 		void start() override;
-		void waitForCompletion() override;
+		void waitForEndOfStream() override;
 		void exitSync() override;
 
 		int getNumBlocks(int numBlock) const override {
@@ -77,7 +77,7 @@ class Pipeline : public IPipeline, public IPipelineNotifier {
 
 	private:
 		void computeTopology();
-		void finished() override;
+		void endOfStream() override;
 		void exception(std::exception_ptr eptr) override;
 
 		std::list<std::unique_ptr<IPipelinedModule>> modules;

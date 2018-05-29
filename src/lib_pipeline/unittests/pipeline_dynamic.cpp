@@ -17,7 +17,7 @@ unittest("pipeline: dynamic module connection of an existing module (without mod
 	p.connect(demux, 0, dualInput, 0);
 	p.connect(demux, 0, dualInput, 1);
 	p.start();
-	p.waitForCompletion();
+	p.waitForEndOfStream();
 }
 
 unittest("pipeline: connect while running") {
@@ -32,7 +32,7 @@ unittest("pipeline: connect while running") {
 		p.connect(demux, 0, null2, 0);
 	};
 	std::thread tf(f);
-	p.waitForCompletion();
+	p.waitForEndOfStream();
 	tf.join();
 }
 
@@ -45,7 +45,7 @@ unittest("pipeline: dynamic module connection of a new module") {
 	auto demux2 = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
 	p.connect(demux2, 0, dualInput, 1);
 	if (demux2->isSource()) demux2->process(); //only sources need to be triggered
-	p.waitForCompletion();
+	p.waitForEndOfStream();
 }
 
 unittest("[DISABLED]` pipeline: wrong disconnection") {
@@ -56,7 +56,7 @@ unittest("[DISABLED]` pipeline: wrong disconnection") {
 	bool thrown = false;
 	try {
 		p.disconnect(demux, 0, null, 0);
-		p.waitForCompletion();
+		p.waitForEndOfStream();
 	} catch(...) {
 		thrown = true;
 	}
@@ -70,7 +70,7 @@ unittest("pipeline: dynamic module disconnection (single ref decrease)") {
 	p.connect(demux, 0, null, 0);
 	p.start();
 	p.disconnect(demux, 0, null, 0);
-	p.waitForCompletion();
+	p.waitForEndOfStream();
 }
 
 unittest("pipeline: dynamic module disconnection (multiple ref decrease)") {
@@ -82,7 +82,7 @@ unittest("pipeline: dynamic module disconnection (multiple ref decrease)") {
 	p.start();
 	p.disconnect(demux, 0, dualInput, 0);
 	p.disconnect(demux, 0, dualInput, 1);
-	p.waitForCompletion();
+	p.waitForEndOfStream();
 }
 
 unittest("pipeline: dynamic module disconnection (remove module dynamically)") {
@@ -95,7 +95,7 @@ unittest("pipeline: dynamic module disconnection (remove module dynamically)") {
 	p.disconnect(demux, 0, dualInput, 0);
 	p.disconnect(demux, 0, dualInput, 1);
 	p.removeModule(dualInput);
-	p.waitForCompletion();
+	p.waitForEndOfStream();
 }
 
 unittest("[DISABLED] pipeline: dynamic module disconnection (remove sink without disconnect)") {
@@ -106,7 +106,7 @@ unittest("[DISABLED] pipeline: dynamic module disconnection (remove sink without
 	p.connect(demux, 0, dualInput, 1);
 	p.start();
 	p.removeModule(dualInput);
-	p.waitForCompletion();
+	p.waitForEndOfStream();
 }
 
 unittest("[DISABLED] pipeline: dynamic module disconnection (remove source without disconnect)") {
@@ -117,7 +117,7 @@ unittest("[DISABLED] pipeline: dynamic module disconnection (remove source witho
 	p.connect(demux, 0, dualInput, 1);
 	p.start();
 	p.removeModule(demux);
-	p.waitForCompletion();
+	p.waitForEndOfStream();
 }
 
 unittest("[DISABLED] pipeline: dynamic module disconnection (remove source)") {
@@ -131,7 +131,7 @@ unittest("[DISABLED] pipeline: dynamic module disconnection (remove source)") {
 	p.disconnect(demux, 0, dualInput, 1);
 	demux->flush(); //we want to keep all the data
 	p.removeModule(demux);
-	p.waitForCompletion();
+	p.waitForEndOfStream();
 }
 
 //TODO: we should fuzz the creation because it is actually stored with a vector (not thread-safe)
@@ -145,7 +145,7 @@ unittest("[DISABLED] pipeline: dynamic module addition") {
 	std::thread tf(f);*/
 	auto null = p.addModule<Out::Null>();
 	p.connect(demux, 0, null, 0);
-	p.waitForCompletion();
+	p.waitForEndOfStream();
 }
 
 }

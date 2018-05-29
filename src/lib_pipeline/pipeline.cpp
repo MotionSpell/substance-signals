@@ -59,7 +59,7 @@ void Pipeline::start() {
 	Log::msg(Info, "Pipeline: started");
 }
 
-void Pipeline::waitForCompletion() {
+void Pipeline::waitForEndOfStream() {
 	Log::msg(Info, "Pipeline: waiting for completion");
 	std::unique_lock<std::mutex> lock(mutex);
 	while (remainingNotifications > 0) {
@@ -81,7 +81,7 @@ void Pipeline::exitSync() {
 	Log::msg(Warning, "Pipeline: asked to exit now.");
 	for (auto &m : modules) {
 		if (m->isSource()) {
-			m->process(); //FIXME: ok but then we don't flush() so some module may stuck in waitForCompletion
+			m->process(); //FIXME: ok but then we don't flush() so some module may stuck in waitForEndOfStream
 		}
 	}
 }
@@ -105,7 +105,7 @@ void Pipeline::computeTopology() {
 	remainingNotifications = notifications;
 }
 
-void Pipeline::finished() {
+void Pipeline::endOfStream() {
 	std::unique_lock<std::mutex> lock(mutex);
 	assert(remainingNotifications > 0);
 	--remainingNotifications;

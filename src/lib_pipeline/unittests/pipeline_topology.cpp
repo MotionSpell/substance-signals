@@ -18,7 +18,7 @@ unittest("pipeline: source only") {
 	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
 	ASSERT(demux->getNumOutputs() > 1);
 	p.start();
-	p.waitForCompletion();
+	p.waitForEndOfStream();
 }
 
 unittest("pipeline: a non left-connected module is not a source") {
@@ -31,7 +31,7 @@ unittest("pipeline: a non left-connected module is not a source") {
 	null->flush();
 	ASSERT(!null->isSource());
 	p.start();
-	p.waitForCompletion();
+	p.waitForEndOfStream();
 }
 
 unittest("pipeline: connect one input (out of 2) to one output") {
@@ -41,7 +41,7 @@ unittest("pipeline: connect one input (out of 2) to one output") {
 	auto null = p.addModule<Out::Null>();
 	p.connect(demux, 0, null, 0);
 	p.start();
-	p.waitForCompletion();
+	p.waitForEndOfStream();
 }
 
 unittest("pipeline: connect two outputs to the same input") {
@@ -52,7 +52,7 @@ unittest("pipeline: connect two outputs to the same input") {
 	p.connect(demux, 0, null, 0);
 	p.connect(demux, 1, null, 0, true);
 	p.start();
-	p.waitForCompletion();
+	p.waitForEndOfStream();
 }
 
 unittest("pipeline: connect passthru to a multiple input module (1)") {
@@ -65,7 +65,7 @@ unittest("pipeline: connect passthru to a multiple input module (1)") {
 	p.connect(passthru, 0, dualInput, 0);
 	p.connect(passthru, 0, dualInput, 1);
 	p.start();
-	p.waitForCompletion();
+	p.waitForEndOfStream();
 }
 
 unittest("pipeline: connect passthru to a multiple input module (2)") {
@@ -82,7 +82,7 @@ unittest("pipeline: connect passthru to a multiple input module (2)") {
 	p.connect(passthru1, 0, dualInput, 0);
 	p.connect(passthru2, 0, dualInput, 1);
 	p.start();
-	p.waitForCompletion();
+	p.waitForEndOfStream();
 }
 
 unittest("pipeline: orphan dynamic inputs sink") {
@@ -92,14 +92,14 @@ unittest("pipeline: orphan dynamic inputs sink") {
 	p.connect(src, 0, sink, 0);
 	p.addModule<Mux::LibavMux>("orphan", "mp4");
 	p.start();
-	p.waitForCompletion();
+	p.waitForEndOfStream();
 }
 
 unittest("pipeline: sink only (incorrect topology)") {
 	Pipeline p;
 	p.addModule<Out::Null>();
 	p.start();
-	p.waitForCompletion();
+	p.waitForEndOfStream();
 }
 
 unittest("pipeline: null after split") {
@@ -111,7 +111,7 @@ unittest("pipeline: null after split") {
 	auto passthru = p.addModule<Transform::Restamp>(Transform::Restamp::Passthru);
 	p.connect(dualInput, 0, passthru, 0);
 	p.start();
-	p.waitForCompletion();
+	p.waitForEndOfStream();
 }
 
 }

@@ -38,7 +38,7 @@ int safeMain(int argc, char const* argv[]) {
 	Pipeline pipeline(cfg.lowLatency, cfg.speed);
 	declarePipeline(pipeline, cfg.url.c_str());
 	pipeline.start();
-	pipeline.waitForCompletion();
+	pipeline.waitForEndOfStream();
 
 	return 0;
 }
