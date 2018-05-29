@@ -16,6 +16,11 @@ static inline std::string safePop(ArgQueue& args) {
 	return val;
 }
 
+static inline void parseValue(double& var, ArgQueue& args) {
+	std::stringstream ss(safePop(args));
+	ss >> var;
+}
+
 static inline void parseValue(int& var, ArgQueue& args) {
 	std::stringstream ss(safePop(args));
 	ss >> var;

@@ -6,6 +6,7 @@ using namespace Pipelines;
 
 struct Config {
 	std::string url;
+	double speed = 1.0;
 	bool lowLatency = false;
 };
 
@@ -16,6 +17,7 @@ Config parseCommandLine(int argc, char const* argv[]) {
 
 	CmdLineOptions opt;
 	opt.addFlag("l", "lowlatency", &cfg.lowLatency, "Use low latency");
+	opt.add("s", "speed", &cfg.speed, "Speed ratio");
 
 	auto files = opt.parse(argc, argv);
 	if (files.size() != 1) {
@@ -33,7 +35,7 @@ Config parseCommandLine(int argc, char const* argv[]) {
 int safeMain(int argc, char const* argv[]) {
 	auto const cfg = parseCommandLine(argc, argv);
 
-	Pipeline pipeline(cfg.lowLatency, 1.0);
+	Pipeline pipeline(cfg.lowLatency, cfg.speed);
 	declarePipeline(pipeline, cfg.url.c_str());
 	pipeline.start();
 	pipeline.waitForCompletion();
