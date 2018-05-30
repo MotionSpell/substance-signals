@@ -260,6 +260,11 @@ function initSymlinks {
       tools="$tools ranlib"
       ;;
   esac
+  case $hostPlatform in
+    *mingw*)
+      tools+=" dlltool windres"
+      ;;
+  esac
   for tool in $tools
   do
     if which $hostPlatform-$tool > /dev/null ; then
