@@ -4,7 +4,6 @@
 #include <csignal>
 #include <climits>
 #include <iostream>
-#include "lib_utils/tools.hpp"
 #include "tests.hpp"
 
 namespace {

@@ -1,6 +1,7 @@
 #include "adaptive_streaming_common.hpp"
 #include "lib_utils/time.hpp"
 #include "lib_utils/os.hpp"
+#include <cstring> // memcpy
 #include <cassert>
 #include <thread>
 #include <chrono>

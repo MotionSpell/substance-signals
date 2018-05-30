@@ -1,7 +1,6 @@
 #pragma once
 
-#include "format.hpp"
-#include <cstring>
+#include <string>
 #include <memory>
 #include <typeinfo>
 #include <vector>
@@ -47,8 +46,10 @@ std::shared_ptr<T> safe_cast(std::shared_ptr<U> p) {
 	if (!p)
 		return nullptr;
 	auto r = std::dynamic_pointer_cast<T>(p);
-	if (!r)
-		throw std::runtime_error(format("dynamic cast error: could not convert from %s to %s", typeid(U).name(), typeid(T).name()));
+	if (!r) {
+		auto msg = std::string("dynamic cast error: could not convert from '") + typeid(U).name() + "' to '" + typeid(T).name() + "'";
+		throw std::runtime_error(msg);
+	}
 	return r;
 }
 
@@ -57,8 +58,10 @@ T* safe_cast(U *p) {
 	if (!p)
 		return nullptr;
 	auto r = dynamic_cast<T*>(p);
-	if (!r)
-		throw std::runtime_error(format("dynamic cast error: could not convert from %s to %s", typeid(U).name(), typeid(T).name()));
+	if (!r) {
+		auto msg = std::string("dynamic cast error: could not convert from '") + typeid(U).name() + "' to '" + typeid(T).name() + "'";
+		throw std::runtime_error(msg);
+	}
 	return r;
 }
 

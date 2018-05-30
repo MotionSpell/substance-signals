@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstring> // memset
 #include "lib_modules/core/data.hpp"
 
 namespace Modules {
