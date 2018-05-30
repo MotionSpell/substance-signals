@@ -71,6 +71,7 @@ include $(SRC)/lib_media/project.mk
 #------------------------------------------------------------------------------
 
 LIB_PIPELINE_SRCS:=\
+  $(SRC)/lib_pipeline/pipelined_module.cpp\
   $(SRC)/lib_pipeline/pipeline.cpp
 
 #------------------------------------------------------------------------------

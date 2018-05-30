@@ -25,6 +25,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pipeline.cpp" />
+    <ClCompile Include="pipelined_module.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pipeline.hpp" />
