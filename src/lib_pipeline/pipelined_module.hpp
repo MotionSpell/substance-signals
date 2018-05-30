@@ -8,7 +8,11 @@ using namespace Modules;
 namespace Pipelines {
 
 /* wrapper around the module */
-class PipelinedModule : public IPipelineNotifier, public IPipelinedModule, private ClockCap, private InputCap {
+class PipelinedModule :
+	public IPipelinedModule,
+	private ClockCap,
+	private InputCap,
+	private IPipelineNotifier {
 	public:
 		/* take ownership of module and executor */
 		PipelinedModule(std::unique_ptr<IModule> module, IPipelineNotifier *notify, const std::shared_ptr<IClock> clock, Pipeline::Threading threading);
