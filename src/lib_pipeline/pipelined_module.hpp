@@ -22,10 +22,6 @@ class PipelinedModule : public IPipelineNotifier, public IPipelinedModule, priva
 			  delegateExecutor(*localDelegateExecutor), threading(threading), m_notify(notify), activeConnections(0) {
 		}
 		~PipelinedModule() noexcept(false) {}
-		void flush() override {
-			process();
-			while (activeConnections > 0) clock->sleep(Fraction(10, 1000));
-		}
 		std::string getDelegateName() const {
 			auto const &dref = *delegate.get();
 			return typeid(dref).name();
