@@ -3,7 +3,6 @@
 #include "lib_media/common/pcm.hpp"
 #include "lib_media/common/metadata.hpp"
 #include "lib_utils/resolution.hpp"
-#include <iostream>
 
 using namespace Tests;
 using namespace Modules;
@@ -89,37 +88,23 @@ unittest("metadata: forwarded by data") {
 }
 
 unittest("metadata: incompatible by data") {
-	bool thrown = false;
 	auto output = create<FakeOutput>();
 	auto input = create<FakeInput>();
 	input->setMetadata(make_shared<MetadataRawAudio>());
 	auto o = output->getOutput(0);
 	auto i = input->getInput(0);
 	ConnectOutputToInput(o, i);
-	try {
-		output->setMetadata(make_shared<MetadataRawVideo>());
-	} catch (std::exception const& e) {
-		std::cerr << "Expected error: " << e.what() << std::endl;
-		thrown = true;
-	}
-	ASSERT(thrown);
+	ASSERT_THROWN(output->setMetadata(make_shared<MetadataRawVideo>()));
 }
 
 unittest("metadata: incompatible back and fwd") {
-	bool thrown = false;
 	auto output = create<FakeOutput>();
 	auto input = create<FakeInput>();
 	input->setMetadata(make_shared<MetadataRawAudio>());
 	output->setMetadata(make_shared<MetadataRawVideo>());
 	auto o = output->getOutput(0);
 	auto i = input->getInput(0);
-	try {
-		ConnectOutputToInput(o, i);
-	} catch (std::exception const& e) {
-		std::cerr << "Expected error: " << e.what() << std::endl;
-		thrown = true;
-	}
-	ASSERT(thrown);
+	ASSERT_THROWN(ConnectOutputToInput(o, i));
 }
 
 unittest("metadata: updated twice by data") {
