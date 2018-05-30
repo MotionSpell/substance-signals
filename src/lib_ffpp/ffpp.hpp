@@ -8,12 +8,8 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libavformat/avio.h>
-#include <libavutil/channel_layout.h>
-#include <libavutil/mathematics.h>
-#include <libavutil/mem.h>
 #include <libavutil/opt.h>
 #include <libswresample/swresample.h>
-#include <libswscale/swscale.h>
 }
 
 namespace ffpp {

@@ -3,6 +3,10 @@
 #include "lib_ffpp/ffpp.hpp"
 #include "../common/libav.hpp"
 
+extern "C" {
+#include <libswscale/swscale.h>
+}
+
 #define ALIGN_PAD(n, align, pad) ((n/align + 1) * align + pad)
 
 namespace Modules {
