@@ -86,7 +86,7 @@ class Input : public IInput, public MetadataCap {
 			return queue.tryPop(data);
 		}
 
-		void clear() override {
+		void clear() {
 			return queue.clear();
 		}
 

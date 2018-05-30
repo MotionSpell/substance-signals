@@ -8,8 +8,8 @@ using namespace Modules;
 class DualInput : public Module {
 	public:
 		DualInput(bool threaded) : threaded(threaded) {
-			addInput(new Input<DataBase>(this));
-			addInput(new Input<DataBase>(this));
+			input0 = (Input<DataBase>*)addInput(new Input<DataBase>(this));
+			input1 = (Input<DataBase>*)addInput(new Input<DataBase>(this));
 			addOutput<OutputDefault>();
 			numCallsMutex.lock();
 			numCalls = 0;
@@ -37,13 +37,13 @@ class DualInput : public Module {
 			numCalls++;
 
 			if (!done) {
-				auto i1 = getInput(0)->pop();
-				auto i2 = getInput(1)->pop();
+				auto i1 = input0->pop();
+				auto i2 = input1->pop();
 				done = true;
 			}
 
-			getInput(0)->clear();
-			getInput(1)->clear();
+			input0->clear();
+			input1->clear();
 		}
 
 		static uint64_t numCalls;
@@ -52,4 +52,6 @@ class DualInput : public Module {
 		bool done = false, threaded;
 		std::thread workingThread;
 		std::mutex numCallsMutex;
+		Input<DataBase>* input0;
+		Input<DataBase>* input1;
 };

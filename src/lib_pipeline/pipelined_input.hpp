@@ -40,10 +40,6 @@ class PipelinedInput : public IInput, public MetadataCap {
 			return queue.tryPop(data);
 		}
 
-		void clear() override {
-			return queue.clear();
-		}
-
 		void process() override {
 			auto data = pop();
 

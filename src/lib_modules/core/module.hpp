@@ -37,7 +37,6 @@ struct IInput : public IProcessor, public ConnectedCap, public virtual IMetadata
 	// TODO: remove this, should only be visible to the module implementations.
 	virtual Data pop() = 0;
 	virtual bool tryPop(Data &value) = 0;
-  virtual void clear() = 0;
 };
 
 struct IInputCap {
