@@ -19,7 +19,7 @@ class PipelinedModule : public IPipelineNotifier, public IPipelinedModule, priva
 		PipelinedModule(std::unique_ptr<IModule> module, IPipelineNotifier *notify, const std::shared_ptr<IClock> clock, Pipeline::Threading threading)
 			: ClockCap(clock),
 			  delegate(std::move(module)), localDelegateExecutor(threading & Pipeline::Mono ? (IProcessExecutor*)new EXECUTOR_LIVE : (IProcessExecutor*)new EXECUTOR),
-			  delegateExecutor(*localDelegateExecutor), threading(threading), m_notify(notify), activeConnections(0) {
+			  delegateExecutor(*localDelegateExecutor), threading(threading), m_notify(notify), eosCount(0) {
 		}
 		~PipelinedModule() noexcept(false) {}
 		std::string getDelegateName() const {
@@ -68,7 +68,7 @@ class PipelinedModule : public IPipelineNotifier, public IPipelinedModule, priva
 			ConnectOutputToInput(output, input, inputExecutor[inputIdx]);
 			if (!inputAcceptMultipleConnections && (input->getNumConnections() != 1))
 				throw std::runtime_error(format("PipelinedModule %s: input %s has %s connections.", getDelegateName(), inputIdx, input->getNumConnections()));
-			connections++; activeConnections++;
+			connections++;
 		}
 
 		void disconnect(size_t inputIdx, IOutput * const output) override {
@@ -78,7 +78,7 @@ class PipelinedModule : public IPipelineNotifier, public IPipelinedModule, priva
 			for (size_t i = 0; i < numConn; ++i) {
 				sig.disconnect(i);
 			}
-			connections--; activeConnections--;
+			connections--;
 		}
 
 		void mimicInputs() {
@@ -106,7 +106,7 @@ class PipelinedModule : public IPipelineNotifier, public IPipelinedModule, priva
 			assert(isSource());
 			if (getNumInputs() == 0) { /*first time: create a fake input port and push null to trigger execution*/
 				safe_cast<InputCap>(delegate.get())->addInput(new Input<DataLoosePipeline>(delegate.get()));
-				connections = 1; activeConnections = 1;
+				connections = 1;
 				getInput(0)->push(nullptr);
 				delegate->getInput(0)->push(nullptr);
 				delegateExecutor(Bind(&IProcessor::process, delegate.get()));
@@ -117,10 +117,14 @@ class PipelinedModule : public IPipelineNotifier, public IPipelinedModule, priva
 		}
 
 		void endOfStream() override {
-			if (activeConnections < 0)
-				throw std::runtime_error(format("PipelinedModule %s: activeConnections is negative (%s).", getDelegateName(), (int)activeConnections));
+			++eosCount;
 
-			if (!connections || --activeConnections == 0) {
+			if (eosCount > connections) {
+				auto const msg = format("PipelinedModule %s: received too many EOS (%d/%d)", getDelegateName(), (int)eosCount, (int)connections);
+				throw std::runtime_error(msg);
+			}
+
+			if (eosCount == connections) {
 				delegate->flush();
 
 				for (size_t i = 0; i < delegate->getNumOutputs(); ++i) {
@@ -147,8 +151,8 @@ class PipelinedModule : public IPipelineNotifier, public IPipelinedModule, priva
 		Pipeline::Threading threading;
 
 		IPipelineNotifier * const m_notify;
-		size_t connections = 0;
-		std::atomic<int> activeConnections;
+		int connections = 0;
+		std::atomic<int> eosCount;
 };
 
 }
