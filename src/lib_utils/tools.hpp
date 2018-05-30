@@ -5,16 +5,6 @@
 #include <typeinfo>
 #include <vector>
 
-// Runs a function at instantiation:
-// Use to initialize C libraries at program startup.
-// Example: auto g_InitAv = runAtStartup(&av_register_all);
-struct DummyStruct {};
-template<class R, class... Args>
-DummyStruct runAtStartup(R f(Args...), Args... argVal) {
-	f(argVal...);
-	return DummyStruct();
-}
-
 inline
 std::string string2hex(const uint8_t *extradata, size_t extradataSize) {
 	static const char* const ab = "0123456789ABCDEF";

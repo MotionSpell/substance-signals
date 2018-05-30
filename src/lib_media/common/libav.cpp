@@ -128,7 +128,7 @@ void avLog(void* /*avcl*/, int level, const char *fmt, va_list vl) {
 	Log::msg(avLogLevel(level), "[libav-log::%s] %s", avlogLevelName(level), buffer);
 }
 
-void do_ffmpeg_static_initialization() {
+int do_ffmpeg_static_initialization() {
 	av_lockmgr_register(&av_lockmgr);
 	avcodec_register_all();
 	avdevice_register_all();
@@ -136,9 +136,10 @@ void do_ffmpeg_static_initialization() {
 	avformat_network_init();
 	avfilter_register_all();
 	av_log_set_callback(&avLog);
+	return 0;
 }
 
-auto g_InitFfmpeg = runAtStartup(&do_ffmpeg_static_initialization);
+auto g_InitFfmpeg = do_ffmpeg_static_initialization();
 
 }
 
