@@ -103,24 +103,16 @@ class PipelinedModule : public IPipelineNotifier, public IPipelinedModule, priva
 		void process() override {
 			Log::msg(Debug, "Module %s: dispatch data", getDelegateName());
 
-			if (isSource()) {
-				if (getNumInputs() == 0) { /*first time: create a fake input port and push null to trigger execution*/
-					safe_cast<InputCap>(delegate.get())->addInput(new Input<DataLoosePipeline>(delegate.get()));
-					connections = 1; activeConnections = 1;
-					getInput(0)->push(nullptr);
-					delegate->getInput(0)->push(nullptr);
-					delegateExecutor(Bind(&IProcessor::process, delegate.get()));
-					delegateExecutor(Bind(&IProcessor::process, getInput(0)));
-				} else { /*the source is likely processing: push null in the loop to exit and let things follow their way*/
-					delegate->getInput(0)->push(nullptr);
-				}
-				return;
-			}
-
-			Data data = getInput(0)->pop();
-			for (size_t i = 0; i < getNumInputs(); ++i) {
-				getInput(i)->push(data);
-				getInput(i)->process();
+			assert(isSource());
+			if (getNumInputs() == 0) { /*first time: create a fake input port and push null to trigger execution*/
+				safe_cast<InputCap>(delegate.get())->addInput(new Input<DataLoosePipeline>(delegate.get()));
+				connections = 1; activeConnections = 1;
+				getInput(0)->push(nullptr);
+				delegate->getInput(0)->push(nullptr);
+				delegateExecutor(Bind(&IProcessor::process, delegate.get()));
+				delegateExecutor(Bind(&IProcessor::process, getInput(0)));
+			} else { /*the source is likely processing: push null in the loop to exit and let things follow their way*/
+				delegate->getInput(0)->push(nullptr);
 			}
 		}
 
