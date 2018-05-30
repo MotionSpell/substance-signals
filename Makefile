@@ -123,7 +123,8 @@ $(BIN)/%.exe:
 $(BIN)/%.cpp.o: %.cpp
 	@mkdir -p $(dir $@)
 	$(CXX)  -c $(CFLAGS) "$<" -o "$@"
-	@$(CXX) -c $(CFLAGS) "$<" -o "$@.deps" -MP -MM -MT "$@"
+	@$(CXX) -c $(CFLAGS) "$<" -o "$@.deps" -MP -MM -MT "$@" # deps generation
+	@$(CXX) -c $(CFLAGS) "$<" -E | wc -l > "$@.lines" # keep track of line count
 
 clean:
 	rm -rf $(BIN)
