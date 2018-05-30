@@ -98,8 +98,6 @@ unittest("metadata: incompatible by data") {
 		auto i = input->getInput(0);
 		ConnectOutputToInput(o, i);
 		output->setMetadata(make_shared<MetadataRawVideo>());
-		output->process();
-		ASSERT(o->getMetadata() == i->getMetadata());
 	} catch (std::exception const& e) {
 		std::cerr << "Expected error: " << e.what() << std::endl;
 		thrown = true;
@@ -117,8 +115,6 @@ unittest("metadata: incompatible back and fwd") {
 		auto o = output->getOutput(0);
 		auto i = input->getInput(0);
 		ConnectOutputToInput(o, i);
-		output->process();
-		ASSERT(o->getMetadata() == i->getMetadata());
 	} catch (std::exception const& e) {
 		std::cerr << "Expected error: " << e.what() << std::endl;
 		thrown = true;
