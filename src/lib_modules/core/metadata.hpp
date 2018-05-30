@@ -1,7 +1,5 @@
 #pragma once
 
-#include "data.hpp"
-
 template<typename T, size_t N>
 constexpr size_t NELEMENTS(T const (&array)[N]) {
 	(void)array;
@@ -44,6 +42,13 @@ struct IMetadata {
 		}
 	}
 };
+}
+
+
+// FIXME: remove this
+#include "data.hpp"
+
+namespace Modules {
 
 struct IMetadataCap {
 	virtual ~IMetadataCap() noexcept(false) {}
