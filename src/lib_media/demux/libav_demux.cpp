@@ -346,11 +346,12 @@ void LibavDemux::sparseStreamsHeartbeat(AVPacket const * const pkt) {
 	}
 }
 
-void LibavDemux::process(Data data) {
+void LibavDemux::process(Data) {
 	workingThread = std::thread(&LibavDemux::threadProc, this);
 
 	AVPacket pkt;
 	while (1) {
+		Data data;
 		if (getNumInputs() && getInput(0)->tryPop(data)) {
 			done = true;
 			log(Info, "Exit from an external event.");
