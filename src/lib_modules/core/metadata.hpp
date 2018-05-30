@@ -46,7 +46,7 @@ struct IMetadata {
 };
 
 struct IMetadataCap {
-	virtual ~IMetadataCap() = default;
+	virtual ~IMetadataCap() noexcept(false) {}
 	virtual std::shared_ptr<const IMetadata> getMetadata() const = 0;
 	virtual void setMetadata(std::shared_ptr<const IMetadata> metadata) = 0;
 	virtual bool updateMetadata(Data&) {

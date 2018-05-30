@@ -26,6 +26,7 @@ class PipelinedInput : public IInput, public MetadataCap {
 	public:
 		PipelinedInput(IInput *input, const std::string &moduleName, IProcessExecutor *localExecutor, IProcessExecutor &delegateExecutor, IPipelineNotifier * const notify, const std::shared_ptr<IClock> clock)
 			: delegate(input), delegateName(moduleName), notify(notify), executor(localExecutor), delegateExecutor(delegateExecutor), clock(clock) {}
+		virtual ~PipelinedInput() noexcept(false) {}
 
 		void process() override {
 			auto data = pop();

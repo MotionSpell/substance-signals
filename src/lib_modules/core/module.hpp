@@ -9,14 +9,14 @@
 namespace Modules {
 
 struct IProcessor {
-	virtual ~IProcessor() = default;
+	virtual ~IProcessor() noexcept(false) {}
 	virtual void process() = 0;
 };
 
 class ConnectedCap {
 	public:
 		ConnectedCap() : connections(0) {}
-		virtual ~ConnectedCap() = default;
+		virtual ~ConnectedCap() noexcept(false) {}
 		virtual size_t getNumConnections() const {
 			return connections;
 		}
@@ -32,17 +32,17 @@ class ConnectedCap {
 };
 
 struct IInput : public IProcessor, public ConnectedCap, public virtual IMetadataCap, public Queue<Data> {
-	virtual ~IInput() = default;
+	virtual ~IInput() noexcept(false) {}
 };
 
 struct IInputCap {
-	virtual ~IInputCap() = default;
+	virtual ~IInputCap() noexcept(false) {}
 	virtual size_t getNumInputs() const = 0;
 	virtual IInput* getInput(size_t i) = 0;
 };
 
 struct IOutput : virtual IMetadataCap {
-	virtual ~IOutput() = default;
+	virtual ~IOutput() noexcept(false) {}
 	virtual size_t emit(Data data) = 0;
 	virtual Signals::ISignal<void(Data)>& getSignal() = 0;
 };
@@ -52,7 +52,7 @@ struct IOutput : virtual IMetadataCap {
 #include <vector>
 
 struct IOutputCap {
-		virtual ~IOutputCap() = default;
+		virtual ~IOutputCap() noexcept(false) {}
 		virtual size_t getNumOutputs() const = 0;
 		virtual IOutput* getOutput(size_t i) = 0;
 
@@ -63,7 +63,7 @@ struct IOutputCap {
 };
 
 struct IModule : IProcessor, virtual IInputCap, virtual IOutputCap, virtual IClockCap {
-	virtual ~IModule() = default;
+	virtual ~IModule() noexcept(false) {}
 	virtual void flush() {}
 };
 

@@ -5,7 +5,7 @@
 
 class IClockCap {
 	public:
-		virtual ~IClockCap() = default;
+		virtual ~IClockCap() noexcept(false) {}
 
 	protected:
 		/*FIXME: we need to have factories to move these back to the implementation - otherwise ports created from the constructor may crash*/

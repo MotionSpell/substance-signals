@@ -21,7 +21,7 @@ struct Quality {
 };
 
 struct IAdaptiveStreamingCommon {
-	virtual ~IAdaptiveStreamingCommon() = default;
+	virtual ~IAdaptiveStreamingCommon() noexcept(false) {}
 	/*created each quality private data*/
 	virtual std::unique_ptr<Quality> createQuality() const = 0;
 	/*called each time segments are ready*/
@@ -45,6 +45,7 @@ class AdaptiveStreamingCommon : public IAdaptiveStreamingCommon, public ModuleDy
 		};
 
 		AdaptiveStreamingCommon(Type type, uint64_t segDurationInMs, const std::string &manifestDir, AdaptiveStreamingCommonFlags flags);
+		virtual ~AdaptiveStreamingCommon() {}
 
 		void process() override final;
 		void flush() override final;
