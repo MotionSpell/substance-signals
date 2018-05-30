@@ -13,7 +13,7 @@ namespace Pipelines {
 struct DataLoosePipeline : public DataBase {};
 
 /* wrapper around the module */
-class PipelinedModule : public IPipelineNotifier, public ClockCap, public IPipelinedModule, private Module {
+class PipelinedModule : public IPipelineNotifier, public ClockCap, public IPipelinedModule, private InputCap {
 	public:
 		/* take ownership of module and executor */
 		PipelinedModule(std::unique_ptr<IModule> module, IPipelineNotifier *notify, const std::shared_ptr<IClock> clock, Pipeline::Threading threading)
