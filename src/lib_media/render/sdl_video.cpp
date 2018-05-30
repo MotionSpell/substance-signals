@@ -70,8 +70,7 @@ void SDLVideo::doRender() {
 	SDL_EventState(SDL_KEYUP, SDL_IGNORE); //ignore key up events, they don't even get filtered
 
 	while(auto data = m_dataQueue.pop()) {
-		if (!processOneFrame(data))
-			break;
+		processOneFrame(data);
 	}
 
 	SDL_DestroyTexture(texture);
@@ -80,7 +79,7 @@ void SDLVideo::doRender() {
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);
 }
 
-bool SDLVideo::processOneFrame(Data data) {
+void SDLVideo::processOneFrame(Data data) {
 	SDL_Event event;
 	while (SDL_PollEvent(&event)) {
 		switch (event.type) {
@@ -95,9 +94,9 @@ bool SDLVideo::processOneFrame(Data data) {
 #ifdef _MSC_VER
 			GenerateConsoleCtrlEvent(CTRL_C_EVENT, 0);
 #else
-			std::raise(SIGTERM);
+			std::raise(SIGINT);
 #endif
-			return false;
+			break;
 		}
 	}
 
@@ -127,8 +126,6 @@ bool SDLVideo::processOneFrame(Data data) {
 	displayrect.h = displaySize.height;
 	SDL_RenderCopy(renderer, texture, nullptr, &displayrect);
 	SDL_RenderPresent(renderer);
-
-	return true;
 }
 
 void SDLVideo::createTexture() {
