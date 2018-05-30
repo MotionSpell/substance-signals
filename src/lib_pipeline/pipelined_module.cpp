@@ -3,6 +3,9 @@
 
 using namespace Modules;
 
+/* automatic inputs have a loose datatype */
+struct DataLoosePipeline : public DataBase {};
+
 namespace Pipelines {
 
 /* take ownership of module and executor */

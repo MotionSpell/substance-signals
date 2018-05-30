@@ -7,9 +7,6 @@ using namespace Modules;
 
 namespace Pipelines {
 
-/* automatic inputs have a loose datatype */
-struct DataLoosePipeline : public DataBase {};
-
 /* wrapper around the module */
 class PipelinedModule : public IPipelineNotifier, public IPipelinedModule, private ClockCap, private InputCap {
 	public:
