@@ -17,7 +17,11 @@ using namespace Modules;
 //TODO: test LiveNonBlocking
 //#define TEST_DASH_TIMELINE //FIXME: DASH segment timeline requires segments to be owned.
 #ifdef _MSC_VER
-unittest("adaptive streaming combination coverage") {
+unittest("adaptive streaming combination coverage")
+#else
+unittest("[DISABLED] adaptive streaming combination coverage")
+#endif
+{
 	std::vector<Meta> results, ref = {
 		{ 0, "muxTSSeg_0.ts", "", "", 360000, 47376, 1, 0, 1 },
 		{ 0, "muxTSSeg_.m3u8", "", "", 0, 0, 1, 0, 1 },
@@ -739,4 +743,3 @@ unittest("adaptive streaming combination coverage") {
 	ASSERT_EQUALS(ref.size(), results.size());
 	ASSERT(std::equal(results.begin(), results.end(), ref.begin()));
 }
-#endif /*_MSC_VER*/
