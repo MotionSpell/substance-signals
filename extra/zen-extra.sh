@@ -262,6 +262,9 @@ function initSymlinks {
   esac
   for tool in $tools
   do
+    if which $hostPlatform-$tool > /dev/null ; then
+      continue
+    fi
     local dest=$symlink_dir/$hostPlatform-$tool
     if [ ! -f $dest ]; then
       ln -s $(which $tool) $dest
