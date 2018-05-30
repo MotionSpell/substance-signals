@@ -90,13 +90,13 @@ unittest("metadata: forwarded by data") {
 
 unittest("metadata: incompatible by data") {
 	bool thrown = false;
+	auto output = create<FakeOutput>();
+	auto input = create<FakeInput>();
+	input->setMetadata(make_shared<MetadataRawAudio>());
+	auto o = output->getOutput(0);
+	auto i = input->getInput(0);
+	ConnectOutputToInput(o, i);
 	try {
-		auto output = create<FakeOutput>();
-		auto input = create<FakeInput>();
-		input->setMetadata(make_shared<MetadataRawAudio>());
-		auto o = output->getOutput(0);
-		auto i = input->getInput(0);
-		ConnectOutputToInput(o, i);
 		output->setMetadata(make_shared<MetadataRawVideo>());
 	} catch (std::exception const& e) {
 		std::cerr << "Expected error: " << e.what() << std::endl;
@@ -107,13 +107,13 @@ unittest("metadata: incompatible by data") {
 
 unittest("metadata: incompatible back and fwd") {
 	bool thrown = false;
+	auto output = create<FakeOutput>();
+	auto input = create<FakeInput>();
+	input->setMetadata(make_shared<MetadataRawAudio>());
+	output->setMetadata(make_shared<MetadataRawVideo>());
+	auto o = output->getOutput(0);
+	auto i = input->getInput(0);
 	try {
-		auto output = create<FakeOutput>();
-		auto input = create<FakeInput>();
-		input->setMetadata(make_shared<MetadataRawAudio>());
-		output->setMetadata(make_shared<MetadataRawVideo>());
-		auto o = output->getOutput(0);
-		auto i = input->getInput(0);
 		ConnectOutputToInput(o, i);
 	} catch (std::exception const& e) {
 		std::cerr << "Expected error: " << e.what() << std::endl;
