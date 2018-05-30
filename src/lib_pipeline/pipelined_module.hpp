@@ -117,6 +117,9 @@ class PipelinedModule : public IPipelineNotifier, public IPipelinedModule, priva
 		}
 
 		void endOfStream() override {
+			if (activeConnections < 0)
+				throw std::runtime_error(format("PipelinedModule %s: activeConnections is negative (%s).", getDelegateName(), (int)activeConnections));
+
 			if (!connections || --activeConnections == 0) {
 				delegate->flush();
 
@@ -129,8 +132,7 @@ class PipelinedModule : public IPipelineNotifier, public IPipelinedModule, priva
 						m_notify->endOfStream();
 					}
 				}
-			} else if (activeConnections < 0)
-				throw std::runtime_error(format("PipelinedModule %s: activeConnections is negative (%s).", getDelegateName(), (int)activeConnections));
+			}
 		}
 
 		void exception(std::exception_ptr eptr) override {
