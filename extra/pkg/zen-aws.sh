@@ -25,5 +25,6 @@ function aws_build {
 
 function aws_get_deps {
   echo libcurl
+  echo zlib
 }
 
