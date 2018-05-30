@@ -6,12 +6,8 @@
 
 namespace Signals {
 
-struct IResult {
-	virtual ~IResult() {}
-};
-
 template<typename ResultType>
-class ResultQueue : public IResult {
+class ResultQueue {
 	public:
 		typedef std::shared_ptr<Queue<ResultType>> ResultValue;
 
@@ -36,7 +32,7 @@ class ResultQueue : public IResult {
 
 //specialized for void
 template<>
-class ResultQueue<void> : public IResult {
+class ResultQueue<void> {
 	public:
 		typedef std::shared_ptr<void> ResultValue;
 
@@ -55,7 +51,7 @@ class ResultQueue<void> : public IResult {
 };
 
 template<typename ResultType>
-class ResultVector : public IResult {
+class ResultVector  {
 	public:
 		typedef std::shared_ptr<std::vector<ResultType>> ResultValue;
 
@@ -80,7 +76,7 @@ class ResultVector : public IResult {
 
 //specialized for void
 template<>
-class ResultVector<void> : public IResult {
+class ResultVector<void>  {
 	public:
 		typedef std::shared_ptr<void> ResultValue;
 
@@ -104,7 +100,7 @@ class ResultVector<void> : public IResult {
  * require an external lock to protect the result.
  */
 template<typename ResultType>
-class ResultLast : public IResult {
+class ResultLast  {
 	public:
 		typedef ResultType ResultValue;
 
