@@ -14,8 +14,6 @@
 template<typename T>
 class Queue {
 	public:
-		Queue() {}
-
 		void push(T data) {
 			std::lock_guard<std::mutex> lock(mutex);
 			dataQueue.push(std::move(data));
@@ -52,9 +50,6 @@ class Queue {
 		mutable std::mutex mutex;
 		std::queue<T> dataQueue;
 		std::condition_variable dataAvailable;
-
-		Queue(const Queue&) = delete;
-		Queue& operator= (const Queue&) = delete;
 };
 
 /* Copyright 2016 Facebook, Inc., https://github.com/facebook/folly/blob/master/folly/ProducerConsumerQueue.h */

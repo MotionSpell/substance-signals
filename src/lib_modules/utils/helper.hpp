@@ -8,6 +8,7 @@
 #include "../core/log.hpp"
 #include "../core/error.hpp"
 #include "lib_signals/utils/helper.hpp"
+#include "lib_utils/queue.hpp"
 #include "lib_utils/tools.hpp"
 #include <memory>
 
@@ -73,12 +74,29 @@ class Input : public IInput, public MetadataCap {
 	public:
 		Input(ModuleType * const module) : module(module) {}
 
+		void push(Data data) override {
+			queue.push(data);
+		}
+
+		Data pop() override {
+			return queue.pop();
+		}
+
+		bool tryPop(Data& data) override {
+			return queue.tryPop(data);
+		}
+
+		void clear() override {
+			return queue.clear();
+		}
+
 		void process() override {
 			module->process();
 		}
 
 	private:
 		ModuleType * const module;
+		Queue<Data> queue;
 };
 
 class InputCap : public virtual IInputCap {

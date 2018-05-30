@@ -28,6 +28,22 @@ class PipelinedInput : public IInput, public MetadataCap {
 			: delegate(input), delegateName(moduleName), notify(notify), executor(localExecutor), delegateExecutor(delegateExecutor), clock(clock) {}
 		virtual ~PipelinedInput() noexcept(false) {}
 
+		void push(Data data) override {
+			queue.push(data);
+		}
+
+		Data pop() override {
+			return queue.pop();
+		}
+
+		bool tryPop(Data& data) override {
+			return queue.tryPop(data);
+		}
+
+		void clear() override {
+			return queue.clear();
+		}
+
 		void process() override {
 			auto data = pop();
 
@@ -81,6 +97,7 @@ class PipelinedInput : public IInput, public MetadataCap {
 			}
 		}
 
+		Queue<Data> queue;
 		IInput *delegate;
 		std::string delegateName;
 		IPipelineNotifier * const notify;

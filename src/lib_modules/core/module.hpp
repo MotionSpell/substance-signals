@@ -3,7 +3,6 @@
 #include "clock.hpp"
 #include "data.hpp"
 #include "metadata.hpp"
-#include "lib_utils/queue.hpp"
 #include "lib_signals/signals.hpp"
 
 namespace Modules {
@@ -31,8 +30,14 @@ class ConnectedCap {
 		std::atomic_size_t connections;
 };
 
-struct IInput : public IProcessor, public ConnectedCap, public virtual IMetadataCap, public Queue<Data> {
+struct IInput : public IProcessor, public ConnectedCap, public virtual IMetadataCap {
 	virtual ~IInput() noexcept(false) {}
+	virtual void push(Data) = 0;
+
+	// TODO: remove this, should only be visible to the module implementations.
+	virtual Data pop() = 0;
+	virtual bool tryPop(Data &value) = 0;
+  virtual void clear() = 0;
 };
 
 struct IInputCap {
