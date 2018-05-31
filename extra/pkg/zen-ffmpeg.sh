@@ -2,7 +2,9 @@
 function ffmpeg_build {
   host=$1
 
-  lazy_git_clone git://source.ffmpeg.org/ffmpeg.git ffmpeg fe84f70819d6f5aab3c4823290e0d32b99d6de78
+  lazy_download "ffmpeg.tar.gz" "http://ffmpeg.org/releases/ffmpeg-4.0.tar.bz2"
+  lazy_extract "ffmpeg.tar.gz"
+  mkgit "ffmpeg"
 
   local ARCH=$(get_arch $host)
   local OS=$(get_os $host)
