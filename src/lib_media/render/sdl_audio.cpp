@@ -74,18 +74,6 @@ SDLAudio::SDLAudio(const std::shared_ptr<IClock> clock)
 }
 
 SDLAudio::~SDLAudio() {
-	size_t remaining;
-	{
-		std::lock_guard<std::mutex> lg(m_Mutex);
-		remaining = m_Fifo.bytesToRead();
-	}
-	if (remaining > 0) {
-		do {
-			SDL_Delay(10);
-			std::lock_guard<std::mutex> lg(m_Mutex);
-			remaining = m_Fifo.bytesToRead();
-		} while (remaining != 0);
-	}
 	SDL_CloseAudio();
 	SDL_QuitSubSystem(SDL_INIT_AUDIO);
 }
