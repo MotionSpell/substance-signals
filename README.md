@@ -19,8 +19,8 @@ Signals
 Signals is a modern C++ framework to build modular applications. It is currently used for building multimedia applications. Its architecture allows to extend to any domain. Signals is used by companies from the multimedia industry (audio, video and broadcast).
 
 Signals is designed with the following goals:
- - Adding a module must be easy. Especially for multimedia systems, you should not have to know about complex matters (types, internals, clocks, locking, ...) unless you need to ; according to our experience 90% of the applications use the same mechanisms.
- - Writing an application using modules must be easy.
+ - Writing new modules must be easy and require minimal boilerplate. Especially for multimedia systems, you should not have to know about complex matters (types, internals, clocks, locking, ...) unless you need to ; according to our experience 90% of the applications use the same mechanisms.
+ - Writing an application using these modules must be easy.
 
 # Applications
 
@@ -36,6 +36,8 @@ Please read [build.md](doc/build.md).
 # Tests
 
 Signals is built using TDD. There are plenty of tests. If you contribute please commit your tests first.
+Unit tests should be self-validating, which means they shouldn't need the intervention of a human operator to validate the result (e.g, they shouldn't print anything on the console).
+They should also be isolated. At best, they should depend upon no third-party code (except of course when testing the code making the direct calls to a third-party component).
 
 # Documentation
 
