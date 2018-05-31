@@ -25,7 +25,8 @@ Decoder::Decoder(const MetadataPkt* metadata)
 	{
 		codecCtx->extradata = (uint8_t*)av_calloc(1, extradata.size() + AV_INPUT_BUFFER_PADDING_SIZE);
 		codecCtx->extradata_size = (int)extradata.size();
-		memcpy(codecCtx->extradata, extradata.data(), extradata.size());
+		if(extradata.data())
+			memcpy(codecCtx->extradata, extradata.data(), extradata.size());
 	}
 
 	ffpp::Dict dict(typeid(*this).name(), "-threads auto -err_detect 1 -flags output_corrupt -flags2 showall");
