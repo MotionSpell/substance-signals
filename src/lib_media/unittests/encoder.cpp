@@ -20,7 +20,7 @@ unittest("encoder: video simple") {
 	};
 
 	auto encode = create<Encode::LibavEncode>(Encode::LibavEncode::Video);
-	Connect(encode->getOutput(0)->getSignal(), onFrame);
+	ConnectOutput(encode.get(), onFrame);
 	for (int i = 0; i < 37; ++i) {
 		picture->setMediaTime(i); // avoid warning about non-monotonic pts
 		encode->process(picture);
@@ -37,7 +37,7 @@ unittest("encoder: timestamp passthrough") {
 	};
 
 	auto encode = create<Encode::LibavEncode>(Encode::LibavEncode::Video);
-	Connect(encode->getOutput(0)->getSignal(), onFrame);
+	ConnectOutput(encode.get(), onFrame);
 	for (int i = 0; i < 5; ++i) {
 		auto picture = make_shared<PictureYUV420P>(VIDEO_RESOLUTION);
 		picture->setMediaTime(i);
@@ -81,7 +81,7 @@ void RAPTest(const Fraction fps, const vector<uint64_t> &times, const vector<boo
 		}
 		i++;
 	};
-	Connect(encode->getOutput(0)->getSignal(), onFrame);
+	ConnectOutput(encode.get(), onFrame);
 	for (size_t i = 0; i < times.size(); ++i) {
 		picture->setMediaTime(times[i]);
 		encode->process(picture);
@@ -125,7 +125,7 @@ unittest("[DISABLED] GPAC mp4 mux: don't create empty fragments") {
 	mux->flush();
 
 	/*TODO: find segment names: auto demux = create<Demux::LibavDemux>("tmp.mp4");
-	Connect(demux->getOutput(0)->getSignal(), onFrame);
+	ConnectOutput(demux.get(), onFrame);
 	demux->process(nullptr);
 	ASSERT(i == times.size());*/
 }

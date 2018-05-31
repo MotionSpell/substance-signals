@@ -37,7 +37,7 @@ void checkTimestampsMux(const std::vector<int64_t> &timesIn, const std::vector<i
 		i++;
 	};
 	auto demux = create<T>("random_ts.mp4");
-	Connect(demux->getOutput(0)->getSignal(), onFrame);
+	ConnectOutput(demux.get(), onFrame);
 	demux->process(nullptr);
 	ASSERT(i == timesOut.size());
 }
@@ -179,18 +179,18 @@ unittest("restamp: passthru with offsets") {
 
 	data->setMediaTime(time);
 	auto restamp = create<Transform::Restamp>(Transform::Restamp::Reset);
-	Connect(restamp->getOutput(0)->getSignal(), onFrame);
+	ConnectOutput(restamp.get(), onFrame);
 	restamp->process(data);
 
 	data->setMediaTime(time);
 	restamp = create<Transform::Restamp>(Transform::Restamp::Reset, 0);
-	Connect(restamp->getOutput(0)->getSignal(), onFrame);
+	ConnectOutput(restamp.get(), onFrame);
 	restamp->process(data);
 
 	data->setMediaTime(time);
 	restamp = create<Transform::Restamp>(Transform::Restamp::Reset, time);
 	expected = time;
-	Connect(restamp->getOutput(0)->getSignal(), onFrame);
+	ConnectOutput(restamp.get(), onFrame);
 	restamp->process(data);
 }
 
@@ -205,23 +205,23 @@ unittest("restamp: reset with offsets") {
 
 	data->setMediaTime(time);
 	auto restamp = create<Transform::Restamp>(Transform::Restamp::Passthru);
-	Connect(restamp->getOutput(0)->getSignal(), onFrame);
+	ConnectOutput(restamp.get(), onFrame);
 	restamp->process(data);
 
 	data->setMediaTime(time);
 	restamp = create<Transform::Restamp>(Transform::Restamp::Passthru, 0);
-	Connect(restamp->getOutput(0)->getSignal(), onFrame);
+	ConnectOutput(restamp.get(), onFrame);
 	restamp->process(data);
 
 	data->setMediaTime(time);
 	restamp = create<Transform::Restamp>(Transform::Restamp::Passthru, offset);
 	expected = time + offset;
-	Connect(restamp->getOutput(0)->getSignal(), onFrame);
+	ConnectOutput(restamp.get(), onFrame);
 	restamp->process(data);
 
 	data->setMediaTime(time);
 	restamp = create<Transform::Restamp>(Transform::Restamp::Passthru, time);
 	expected = time + time;
-	Connect(restamp->getOutput(0)->getSignal(), onFrame);
+	ConnectOutput(restamp.get(), onFrame);
 	restamp->process(data);
 }

@@ -271,4 +271,9 @@ class ModuleDynI : public Module {
 		}
 };
 
+template<typename Lambda>
+void ConnectOutput(IModule* sender, Lambda f) {
+	Connect(sender->getOutput(0)->getSignal(), f);
+}
+
 }

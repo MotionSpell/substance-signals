@@ -15,7 +15,7 @@ unittest("video generator") {
 		auto rawData = safe_cast<const DataPicture>(data);
 		times.push_back((int)rawData->getMediaTime());
 	};
-	Connect(videoGen->getOutput(0)->getSignal(), onFrame);
+	ConnectOutput(videoGen.get(), onFrame);
 
 	for (int i = 0; i < 50; ++i) {
 		videoGen->process(nullptr);
