@@ -293,8 +293,12 @@ function initCflags {
   CFLAGS+=" -w"
   CXXFLAGS+=" -w"
 
+  # Don't statically link libgcc: this is incompatible with the pthreads
+  # library, which dynamically loads libgcc_s.
+  # See: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=56101#c2
+  # LDFLAGS+=" -static-libgcc"
+
   if [ $(uname -s) != "Darwin" ]; then
-    LDFLAGS+=" -static-libgcc"
     LDFLAGS+=" -static-libstdc++"
   fi
 
