@@ -53,7 +53,6 @@ bool SDLAudio::reconfigure(PcmFormat inputFormat) {
 	audioSpec.samples = 1024;  /* Good low-latency value for callback */
 	audioSpec.callback = &SDLAudio::staticFillAudio;
 	audioSpec.userdata = this;
-	bytesPerSample = inputFormat.getBytesPerSample();
 
 	SDL_CloseAudio();
 	if (SDL_OpenAudio(&audioSpec, &realSpec) < 0) {
@@ -61,7 +60,9 @@ bool SDLAudio::reconfigure(PcmFormat inputFormat) {
 		return false;
 	}
 
-	m_converter = create<Transform::AudioConvert>(toPcmFormat(realSpec));
+	auto outputFormat = toPcmFormat(realSpec);
+	bytesPerSample = outputFormat.getBytesPerSample();
+	m_converter = create<Transform::AudioConvert>(outputFormat);
 
 	m_LatencyIn180k = timescaleToClock((uint64_t)realSpec.samples, realSpec.freq);
 	log(Info, "%s Hz %s ms", realSpec.freq, m_LatencyIn180k * 1000.0f / IClock::Rate);
