@@ -13,12 +13,13 @@ function main {
 
   checkForCommonBuildTools
 
-  for pkg in $(get_all_packages $1) ; do
+  for pkg in $(get_root_packages $1) ; do
     buildPackage $workDir "$pkg" $1
   done
 }
 
-function get_all_packages
+# these are the packages we directly depend upon
+function get_root_packages
 {
   local host=$1
 
@@ -29,22 +30,15 @@ function get_all_packages
   fi
 
   echo asio
-  echo expat
   echo ffmpeg
-  echo fontconfig
   echo freetype2
   echo gpac
   echo libcurl
   echo libjpeg-turbo
   echo libogg
-  echo libpng
-  echo libpthread
-  echo librtmp
   echo libsdl2
   echo optionparser
   echo rapidjson
-  echo x264
-  echo zlib
 }
 
 #####################################
