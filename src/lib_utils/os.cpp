@@ -57,7 +57,7 @@ bool dirExists(std::string path) {
 }
 
 void mkdir(std::string path) {
-	if(::mkdir(path.c_str(), 0) != 0)
+	if(::mkdir(path.c_str(), 0755) != 0)
 		throw std::runtime_error("couldn't create dir \"" + path + "\": please check you have sufficient permissions");
 }
 
