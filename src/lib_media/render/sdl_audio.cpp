@@ -16,17 +16,27 @@ namespace {
 
 static Signals::ExecutorSync<void(Data)> executorSync;
 
-SDL_AudioSpec SDLAudioSpecConvert(PcmFormat cfg) {
+SDL_AudioSpec toSdlAudioSpec(PcmFormat cfg) {
 	SDL_AudioSpec audioSpec {};
 	audioSpec.freq = cfg.sampleRate;
 	audioSpec.channels = cfg.numChannels;
 	switch (cfg.sampleFormat) {
 	case S16: audioSpec.format = AUDIO_S16; break;
 	case F32: audioSpec.format = AUDIO_F32; break;
-	default: throw std::runtime_error("Unknown SDL audio format");
+	default: throw std::runtime_error("Unknown PcmFormat sample format");
 	}
-
 	return audioSpec;
+}
+
+PcmFormat toPcmFormat(SDL_AudioSpec audioSpec) {
+	auto fmt = PcmFormat(audioSpec.freq, audioSpec.channels);
+	fmt.numPlanes = 1;
+	switch (audioSpec.format) {
+	case AUDIO_S16: fmt.sampleFormat = S16; break;
+	case AUDIO_F32: fmt.sampleFormat = F32; break;
+	default: throw std::runtime_error("Unknown SDL audio sample format");
+	}
+	return fmt;
 }
 }
 
@@ -39,7 +49,7 @@ bool SDLAudio::reconfigure(PcmFormat inputFormat) {
 	}
 
 	SDL_AudioSpec realSpec;
-	SDL_AudioSpec audioSpec = SDLAudioSpecConvert(inputFormat);
+	SDL_AudioSpec audioSpec = toSdlAudioSpec(inputFormat);
 	audioSpec.samples = 1024;  /* Good low-latency value for callback */
 	audioSpec.callback = &SDLAudio::staticFillAudio;
 	audioSpec.userdata = this;
@@ -51,10 +61,7 @@ bool SDLAudio::reconfigure(PcmFormat inputFormat) {
 		return false;
 	}
 
-	if(realSpec.format != audioSpec.format) {
-		log(Error, "Unsupported audio sample format: %s", realSpec.format);
-		return false;
-	}
+	m_converter = create<Transform::AudioConvert>(toPcmFormat(realSpec));
 
 	m_LatencyIn180k = timescaleToClock((uint64_t)realSpec.samples, realSpec.freq);
 	log(Info, "%s Hz %s ms", realSpec.freq, m_LatencyIn180k * 1000.0f / IClock::Rate);
@@ -65,7 +72,7 @@ bool SDLAudio::reconfigure(PcmFormat inputFormat) {
 
 SDLAudio::SDLAudio(const std::shared_ptr<IClock> clock)
 	: m_clock(clock), m_inputFormat(PcmFormat(44100, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Interleaved)),
-	  m_converter(create<Transform::AudioConvert>(m_inputFormat)), fifoTimeIn180k(0) {
+	  fifoTimeIn180k(0) {
 
 	if (SDL_InitSubSystem(SDL_INIT_AUDIO | SDL_INIT_NOPARACHUTE) == -1)
 		throw std::runtime_error(format("Couldn't initialize: %s", SDL_GetError()));
