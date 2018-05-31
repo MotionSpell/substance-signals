@@ -17,8 +17,7 @@ namespace {
 static Signals::ExecutorSync<void(Data)> executorSync;
 
 SDL_AudioSpec SDLAudioSpecConvert(const PcmFormat *cfg) {
-	SDL_AudioSpec audioSpec;
-	memset(&audioSpec, 0, sizeof(audioSpec));
+	SDL_AudioSpec audioSpec {};
 	audioSpec.freq = cfg->sampleRate;
 	audioSpec.channels = cfg->numChannels;
 	switch (cfg->sampleFormat) {
@@ -50,6 +49,10 @@ bool SDLAudio::reconfigure(PcmFormat const * const pcmData) {
 	if (SDL_OpenAudio(&audioSpec, &realSpec) < 0) {
 		log(Warning, "Couldn't open audio: %s", SDL_GetError());
 		return false;
+	}
+
+	if(realSpec.format != audioSpec.format) {
+		log(Error, "Unsupported audio sample format: %s", realSpec.format);
 	}
 
 	m_LatencyIn180k = timescaleToClock((uint64_t)realSpec.samples, realSpec.freq);
