@@ -2,6 +2,7 @@
 #include "lib_utils/profiler.hpp"
 #include "options.hpp"
 #include <csignal>
+#include <iostream> // cerr
 
 extern std::unique_ptr<const IConfig> processArgs(int argc, char const* argv[]);
 extern std::unique_ptr<Pipelines::Pipeline> buildPipeline(const IConfig &config);

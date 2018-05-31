@@ -1,5 +1,6 @@
 #include "lib_utils/profiler.hpp"
 #include "pipeliner_mp42ts.hpp"
+#include <iostream> // cerr
 
 using namespace Pipelines;
 
