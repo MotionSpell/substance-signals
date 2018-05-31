@@ -4,7 +4,6 @@
 extern "C" {
 #include <turbojpeg.h>
 }
-#include <cassert>
 
 namespace Modules {
 namespace Encode {
