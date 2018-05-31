@@ -6,7 +6,7 @@
 namespace Modules {
 namespace Decode {
 
-class JPEGTurbo;
+typedef void* tjhandle;
 
 class JPEGTurboDecode : public ModuleS {
 	public:
@@ -17,7 +17,7 @@ class JPEGTurboDecode : public ModuleS {
 	private:
 		OutputPicture* output;
 		void ensureMetadata(int width, int height, int pixelFmt);
-		std::unique_ptr<JPEGTurbo> const jtHandle;
+		tjhandle jtHandle;
 };
 
 }

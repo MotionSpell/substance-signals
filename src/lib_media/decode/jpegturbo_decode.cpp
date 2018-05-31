@@ -10,22 +10,6 @@ extern "C" {
 namespace Modules {
 namespace Decode {
 
-class JPEGTurbo {
-	public:
-		JPEGTurbo() {
-			handle = tjInitDecompress();
-		}
-		~JPEGTurbo() {
-			tjDestroy(handle);
-		}
-		tjhandle get() {
-			return handle;
-		}
-
-	private:
-		tjhandle handle;
-};
-
 AVPixelFormat getAVPF(int JPEGTurboPixelFmt) {
 	switch (JPEGTurboPixelFmt) {
 	case TJPF_RGB: return AV_PIX_FMT_RGB24;
@@ -35,13 +19,14 @@ AVPixelFormat getAVPF(int JPEGTurboPixelFmt) {
 }
 
 JPEGTurboDecode::JPEGTurboDecode()
-	: jtHandle(new JPEGTurbo) {
+	: jtHandle(tjInitDecompress()) {
 	auto input = addInput(new Input<DataBase>(this));
 	input->setMetadata(make_shared<MetadataPktVideo>());
 	output = addOutput<OutputPicture>(make_shared<MetadataRawVideo>());
 }
 
 JPEGTurboDecode::~JPEGTurboDecode() {
+	tjDestroy(jtHandle);
 }
 
 void JPEGTurboDecode::ensureMetadata(int /*width*/, int /*height*/, int /*pixelFmt*/) {
@@ -60,12 +45,12 @@ void JPEGTurboDecode::process(Data data_) {
 	const int pixelFmt = TJPF_RGB;
 	int w=0, h=0, jpegSubsamp=0;
 	auto jpegBuf = data->data();
-	if (tjDecompressHeader2(jtHandle->get(), (unsigned char*)jpegBuf, (unsigned long)data->size(), &w, &h, &jpegSubsamp) < 0) {
+	if (tjDecompressHeader2(jtHandle, (unsigned char*)jpegBuf, (unsigned long)data->size(), &w, &h, &jpegSubsamp) < 0) {
 		log(Warning, "error encountered while decompressing header.");
 		return;
 	}
 	auto out = DataPicture::create(output, Resolution(w, h), RGB24);
-	if (tjDecompress2(jtHandle->get(), (unsigned char*)jpegBuf, (unsigned long)data->size(), out->data(), w, 0/*pitch*/, h, pixelFmt, TJFLAG_FASTDCT) < 0) {
+	if (tjDecompress2(jtHandle, (unsigned char*)jpegBuf, (unsigned long)data->size(), out->data(), w, 0/*pitch*/, h, pixelFmt, TJFLAG_FASTDCT) < 0) {
 		log(Warning, "error encountered while decompressing frame.");
 		return;
 	}
