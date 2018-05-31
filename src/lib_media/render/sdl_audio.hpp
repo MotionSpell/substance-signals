@@ -21,7 +21,7 @@ class SDLAudio : public ModuleS {
 		void process(Data data) override;
 
 	private:
-		bool reconfigure(PcmFormat const * const pcmFormat);
+		bool reconfigure(PcmFormat pcmFormat);
 		void push(Data data);
 		static void staticFillAudio(void *udata, uint8_t *stream, int len);
 		void fillAudio(uint8_t *stream, int len);
@@ -33,7 +33,7 @@ class SDLAudio : public ModuleS {
 
 		const std::shared_ptr<IClock> m_clock;
 		uint8_t bytesPerSample;
-		std::unique_ptr<const PcmFormat> pcmFormat;
+		PcmFormat m_inputFormat;
 		std::unique_ptr<ModuleS> m_converter;
 		std::mutex m_Mutex;
 		Fifo m_Fifo;
