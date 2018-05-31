@@ -46,7 +46,6 @@ PKGS:=\
   libswresample\
   libswscale\
   libturbojpeg\
-  x264\
 
 $(BIN)/config.mk: $(SRC)/../scripts/configure
 	@echo "Configuring ..."
