@@ -1,22 +1,13 @@
 #include "jpegturbo_decode.hpp"
-#include "../common/libav.hpp"
+#include "../common/metadata.hpp"
 #include "lib_utils/tools.hpp"
 
 extern "C" {
 #include <turbojpeg.h>
-#include <libavutil/pixfmt.h>
 }
 
 namespace Modules {
 namespace Decode {
-
-AVPixelFormat getAVPF(int JPEGTurboPixelFmt) {
-	switch (JPEGTurboPixelFmt) {
-	case TJPF_RGB: return AV_PIX_FMT_RGB24;
-	default: throw std::runtime_error("[JPEGTurboDecode] Unsupported pixel format conversion. Failed.");
-	}
-	return AV_PIX_FMT_NONE;
-}
 
 JPEGTurboDecode::JPEGTurboDecode()
 	: jtHandle(tjInitDecompress()) {
