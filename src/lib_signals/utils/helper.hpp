@@ -3,14 +3,14 @@
 namespace Signals {
 
 /* member function helper */
-template<typename Result, typename Class, typename MemberFunction>
+template<typename Class, typename MemberFunction>
 class MemberFunctor {
 	public:
 		MemberFunctor(Class *object, MemberFunction function) : object(object), function(function) {
 		}
 
 		template<typename... Args>
-		Result operator()(Args... args) {
+		auto operator()(Args... args) {
 			return (object->*function)(args...);
 		}
 
@@ -20,9 +20,9 @@ class MemberFunctor {
 };
 
 template<typename Result, typename Class, typename... Args>
-MemberFunctor<Result, Class, Result (Class::*)(Args...)>
+MemberFunctor<Class, Result (Class::*)(Args...)>
 BindMember(Class* objectPtr, Result (Class::*memberFunction) (Args...)) {
-	return MemberFunctor<Result, Class, Result (Class::*)(Args...)>(objectPtr, memberFunction);
+	return MemberFunctor<Class, Result (Class::*)(Args...)>(objectPtr, memberFunction);
 }
 
 template<typename SignalType, typename LambdaType, typename Executor>
