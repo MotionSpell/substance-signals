@@ -29,7 +29,6 @@ function ffmpeg_build {
       --disable-doc \
       --disable-static \
       --enable-shared \
-      --enable-libass \
       --enable-fontconfig \
       --enable-librtmp \
       --enable-gpl \
@@ -51,7 +50,6 @@ function ffmpeg_build {
 }
 
 function ffmpeg_get_deps {
-  echo libass
   echo fontconfig
   echo librtmp
   echo libpthread

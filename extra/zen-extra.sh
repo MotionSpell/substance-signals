@@ -33,9 +33,7 @@ function get_all_packages
   echo ffmpeg
   echo fontconfig
   echo freetype2
-  echo fribidi
   echo gpac
-  echo libass
   echo libcurl
   echo libjpeg-turbo
   echo libogg
