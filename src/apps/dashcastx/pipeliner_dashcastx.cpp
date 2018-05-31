@@ -35,12 +35,12 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 	auto autoFit = [&](const Resolution &input, const Resolution &output)->Resolution {
 		if (input == Resolution()) {
 			return output;
-		} else if (output.width == (unsigned)-1) {
+		} else if (output.width == -1) {
 			assert((input.width * output.height % input.height) == 0); //TODO: add SAR at the DASH level to handle rounding errors
 			Resolution oRes((input.width * output.height) / input.height, output.height);
 			Log::msg(Info, "[autoFit] Switched resolution from -1x%s to %sx%s", input.height, oRes.width, oRes.height);
 			return oRes;
-		} else if (output.height == (unsigned)-1) {
+		} else if (output.height == -1) {
 			assert((input.height * output.width % input.width) == 0); //TODO: add SAR at the DASH level to handle rounding errors
 			Resolution oRes(output.width, (input.height * output.width) / input.width);
 			Log::msg(Info, "[autoFit] Switched resolution from %sx-1 to %sx%s", input.width, oRes.width, oRes.height);
@@ -60,7 +60,7 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 		}
 	};
 
-	auto createEncoder = [&](std::shared_ptr<const IMetadata> metadataDemux, bool ultraLowLatency, VideoCodecType videoCodecType, PictureFormat &dstFmt, unsigned bitrate, uint64_t segmentDurationInMs)->IPipelinedModule* {
+	auto createEncoder = [&](std::shared_ptr<const IMetadata> metadataDemux, bool ultraLowLatency, VideoCodecType videoCodecType, PictureFormat &dstFmt, int bitrate, uint64_t segmentDurationInMs)->IPipelinedModule* {
 		auto const codecType = metadataDemux->getStreamType();
 		if (codecType == VIDEO_PKT) {
 			Log::msg(Info, "[Encoder] Found video stream");
@@ -188,7 +188,7 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 			}
 
 			std::string prefix;
-			unsigned width, height;
+			int width, height;
 			if (metadataDemux->isVideo()) {
 				auto const resolutionFromDemux = safe_cast<const MetadataPktLibavVideo>(demux->getOutput(i)->getMetadata())->getResolution();
 				if (transcode) {

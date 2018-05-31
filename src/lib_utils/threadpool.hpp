@@ -9,11 +9,11 @@
 
 class ThreadPool {
 	public:
-		ThreadPool(const std::string &name = "", unsigned threadCount = std::thread::hardware_concurrency())
+		ThreadPool(const std::string &name = "", int threadCount = std::thread::hardware_concurrency())
 			: name(name) {
 			done = false;
 			waitAndExit = false;
-			for (unsigned i = 0; i < threadCount; ++i) {
+			for (int i = 0; i < threadCount; ++i) {
 				threads.push_back(std::thread(&ThreadPool::run, this));
 			}
 		}

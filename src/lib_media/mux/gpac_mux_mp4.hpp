@@ -92,8 +92,8 @@ class GPACMuxMP4 : public ModuleDynI {
 
 		OutputDataDefault<DataRawGPAC> *output;
 		union {
-			unsigned int resolution[2];
-			unsigned int sampleRate;
+			int resolution[2];
+			int sampleRate;
 		};
 };
 

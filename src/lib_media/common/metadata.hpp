@@ -51,8 +51,8 @@ class MetadataFile : public IMetadata {
 		}
 
 		union {
-			    unsigned int resolution[2] = { 0, 0 };
-			    unsigned int sampleRate;
+			    int resolution[2] = { 0, 0 };
+			    int sampleRate;
 			};
 
 	private:
