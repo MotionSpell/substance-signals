@@ -32,7 +32,7 @@ class SDLAudio : public ModuleS {
 		void silenceSamples(uint8_t*& dst, size_t n);
 
 		const std::shared_ptr<IClock> m_clock;
-		uint8_t bytesPerSample;
+		PcmFormat m_outputFormat;
 		PcmFormat m_inputFormat;
 		std::unique_ptr<ModuleS> m_converter;
 		std::mutex m_Mutex;
