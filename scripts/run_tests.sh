@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+readonly tmpDir=/tmp/signals-test-$$
+trap "rm -rf $tmpDir" EXIT
+mkdir -p $tmpDir
+
 EXTRA=${EXTRA-$PWD/sysroot}
 
 # required for MSYS
@@ -13,7 +17,11 @@ export DYLD_LIBRARY_PATH=$EXTRA/lib${DYLD_LIBRARY_PATH:+:}${DYLD_LIBRARY_PATH:-}
 
 make run
 
+# dashcastx simple crash test
+$BIN/src/apps/dashcastx/dashcastx.exe \
+  -w $tmpDir/dashcastx \
+  $PWD/src/tests/data/h264.ts 1>/dev/null 2>/dev/null
+
 # blind-run the apps so they appear in coverage reports
 $BIN/player.exe                       1>/dev/null 2>/dev/null || true
-$BIN/src/apps/dashcastx/dashcastx.exe 1>/dev/null 2>/dev/null || true
 $BIN/bin/src/apps/mp42tsx/mp42tsx.exe 1>/dev/null 2>/dev/null || true
