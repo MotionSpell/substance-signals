@@ -21,19 +21,8 @@ class MemberFunctor {
 
 template<typename Result, typename Class, typename... Args>
 MemberFunctor<Result, Class, Result (Class::*)(Args...)>
-MEMBER_FUNCTOR(Class* objectPtr, Result (Class::*memberFunction) (Args...)) {
+BindMember(Class* objectPtr, Result (Class::*memberFunction) (Args...)) {
 	return MemberFunctor<Result, Class, Result (Class::*)(Args...)>(objectPtr, memberFunction);
-}
-
-template<typename B, typename C, typename D, typename E>
-size_t Connect(B& sig, C objectSlot, D memberFunctionSlot, E& executor) {
-	auto functor = MEMBER_FUNCTOR(objectSlot, memberFunctionSlot);
-	return sig.connect(functor, executor);
-}
-
-template<typename B, typename C, typename D>
-size_t Connect(B& sig, C objectSlot, D memberFunctionSlot) {
-	return Connect(sig, objectSlot, memberFunctionSlot, sig.getExecutor());
 }
 
 template<typename SignalType, typename LambdaType, typename Executor>

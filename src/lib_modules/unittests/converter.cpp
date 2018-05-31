@@ -17,7 +17,10 @@ namespace {
 unittest("audio converter: interleaved to planar to interleaved") {
 	auto soundGen = create<In::SoundGenerator>();
 	auto comparator = create<Utils::PcmComparator>();
-	Connect(soundGen->getOutput(0)->getSignal(), comparator.get(), &Utils::PcmComparator::pushOriginal);
+	auto pushOrig = Signals::BindMember(comparator.get(), &Utils::PcmComparator::pushOriginal);
+	auto pushOther = Signals::BindMember(comparator.get(), &Utils::PcmComparator::pushOther);
+
+	Connect(soundGen->getOutput(0)->getSignal(), pushOrig);
 
 	auto baseFormat  = PcmFormat(44100, 2, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Interleaved);
 	auto otherFormat = PcmFormat(44100, 2, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Planar);
@@ -27,7 +30,7 @@ unittest("audio converter: interleaved to planar to interleaved") {
 
 	ConnectOutputToInput(soundGen->getOutput(0), converter1->getInput(0));
 	ConnectOutputToInput(converter1->getOutput(0), converter2->getInput(0));
-	Connect(converter2->getOutput(0)->getSignal(), comparator.get(), &Utils::PcmComparator::pushOther);
+	Connect(converter2->getOutput(0)->getSignal(), pushOther);
 
 	soundGen->process(nullptr);
 	comparator->process(nullptr);
@@ -36,7 +39,10 @@ unittest("audio converter: interleaved to planar to interleaved") {
 unittest("audio converter: 44100 to 48000") {
 	auto soundGen = create<In::SoundGenerator>();
 	auto comparator = create<Utils::PcmComparator>();
-	Connect(soundGen->getOutput(0)->getSignal(), comparator.get(), &Utils::PcmComparator::pushOriginal);
+	auto pushOrig = Signals::BindMember(comparator.get(), &Utils::PcmComparator::pushOriginal);
+	auto pushOther = Signals::BindMember(comparator.get(), &Utils::PcmComparator::pushOther);
+
+	Connect(soundGen->getOutput(0)->getSignal(), pushOrig);
 
 	auto baseFormat  = PcmFormat(44100, 2, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Interleaved);
 	auto otherFormat = PcmFormat(48000, 2, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Interleaved);
@@ -45,7 +51,7 @@ unittest("audio converter: 44100 to 48000") {
 
 	ConnectOutputToInput(soundGen->getOutput(0), converter1->getInput(0), &g_executorSync);
 	ConnectOutputToInput(converter1->getOutput(0), converter2->getInput(0), &g_executorSync);
-	Connect(converter2->getOutput(0)->getSignal(), comparator.get(), &Utils::PcmComparator::pushOther);
+	Connect(converter2->getOutput(0)->getSignal(), pushOther);
 
 	soundGen->process(nullptr);
 

@@ -69,7 +69,8 @@ SDLAudio::SDLAudio(const std::shared_ptr<IClock> clock)
 
 	auto input = addInput(new Input<DataPcm>(this));
 	input->setMetadata(make_shared<MetadataRawAudio>());
-	Signals::Connect(m_converter->getOutput(0)->getSignal(), this, &SDLAudio::push, executorSync);
+	auto pushAudio = Signals::BindMember(this, &SDLAudio::push);
+	Signals::Connect(m_converter->getOutput(0)->getSignal(), pushAudio, executorSync);
 }
 
 SDLAudio::~SDLAudio() {
