@@ -3,7 +3,6 @@
 #include <cstdlib>
 #include <csignal>
 #include <climits>
-#include <iostream>
 #include "tests.hpp"
 
 namespace {

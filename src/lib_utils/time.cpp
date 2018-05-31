@@ -3,7 +3,6 @@
 #include <cassert>
 #include <cstdio>
 #include <ctime>
-#include <iostream>
 
 #define NTP_SEC_1900_TO_1970 2208988800ul
 
