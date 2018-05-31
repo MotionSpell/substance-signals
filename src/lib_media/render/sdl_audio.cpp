@@ -8,6 +8,8 @@
 #include <cstring>
 #include <fstream>
 
+static const int64_t TOLERANCE = IClock::Rate / 20;
+
 namespace Modules {
 
 namespace {
@@ -101,11 +103,11 @@ void SDLAudio::fillAudio(uint8_t *stream, int len) {
 	auto const relativeTimePositionIn180k = fifoTimeIn180k - bufferTimeIn180k;
 	auto const relativeSamplePosition = relativeTimePositionIn180k * pcmFormat->sampleRate / int64_t(IClock::Rate);
 
-	if (relativeTimePositionIn180k < -audioJitterTimeToleranceIn180k) {
+	if (relativeTimePositionIn180k < -TOLERANCE) {
 		auto const numSamplesToDrop = std::min<int64_t>(fifoSamplesToRead(), -relativeSamplePosition);
 		log(Warning, "must drop fifo data (%s ms)", numSamplesToDrop * 1000.0f / pcmFormat->sampleRate);
 		fifoConsumeSamples((size_t)numSamplesToDrop);
-	} else if (relativeTimePositionIn180k > audioJitterTimeToleranceIn180k) {
+	} else if (relativeTimePositionIn180k > TOLERANCE) {
 		auto const numSilenceSamples = std::min<int64_t>(numSamplesToProduce, relativeSamplePosition);
 		log(Warning, "insert silence (%s ms)", numSilenceSamples * 1000.0f / pcmFormat->sampleRate);
 		silenceSamples(stream, (size_t)numSilenceSamples);
