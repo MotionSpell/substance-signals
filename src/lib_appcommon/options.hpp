@@ -61,6 +61,7 @@ struct CmdLineOptions {
 
 	private:
 		struct AbstractOption {
+			virtual ~AbstractOption() = default;
 			std::string shortName, longName;
 			std::string desc;
 			virtual void parse(ArgQueue& args) = 0;
