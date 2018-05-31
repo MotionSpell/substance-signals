@@ -2,8 +2,13 @@
 
 EXTRA=${EXTRA-$PWD/sysroot}
 
+# required for MSYS
 export PATH=$PATH:$EXTRA/bin:/mingw64/bin
+
+# required for GNU/Linux
 export LD_LIBRARY_PATH=$EXTRA/lib${LD_LIBRARY_PATH:+:}${LD_LIBRARY_PATH:-}
+
+# required for ?
 export DYLD_LIBRARY_PATH=$EXTRA/lib${DYLD_LIBRARY_PATH:+:}${DYLD_LIBRARY_PATH:-}
 
 make run
