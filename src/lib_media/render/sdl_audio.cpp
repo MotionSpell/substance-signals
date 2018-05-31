@@ -53,6 +53,7 @@ bool SDLAudio::reconfigure(PcmFormat const * const pcmData) {
 
 	if(realSpec.format != audioSpec.format) {
 		log(Error, "Unsupported audio sample format: %s", realSpec.format);
+		return false;
 	}
 
 	m_LatencyIn180k = timescaleToClock((uint64_t)realSpec.samples, realSpec.freq);
