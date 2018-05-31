@@ -31,7 +31,6 @@ function ffmpeg_build {
       --disable-doc \
       --disable-static \
       --enable-shared \
-      --enable-fontconfig \
       --enable-librtmp \
       --enable-gpl \
       --enable-libx264 \
@@ -52,7 +51,6 @@ function ffmpeg_build {
 }
 
 function ffmpeg_get_deps {
-  echo fontconfig
   echo librtmp
   echo libpthread
   echo x264
