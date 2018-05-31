@@ -22,6 +22,7 @@
     <ClCompile Include="version.cpp" />
     <ClCompile Include="clock.cpp" />
     <ClCompile Include="os.cpp" />
+    <ClCompile Include="profiler.cpp" />
     <ClCompile Include="log.cpp" />
     <ClCompile Include="scheduler.cpp" />
     <ClCompile Include="time.cpp" />
