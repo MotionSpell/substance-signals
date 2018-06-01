@@ -53,7 +53,7 @@ function mp42tsx_blindtest
 
 function unittests
 {
-  make run
+  $BIN/src/tests/test_other.exe
 }
 
 main "$@"

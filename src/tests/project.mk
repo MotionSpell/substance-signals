@@ -20,10 +20,3 @@ $(OUTDIR)/test_other.exe: $(EXE_OTHER_SRCS:%=$(BIN)/%.o)
 TESTS+=$(TESTOUTDIR)/test_other.exe
 TESTS_DIR+=$(CURDIR)/$(SRC)/tests
 
-#---------------------------------------------------------------
-# run tests
-#---------------------------------------------------------------
-pairup=$(if $1$2, cd $(firstword $1) ; $(firstword $2) || exit ; $(call pairup,$(wordlist 2,$(words $1),$1),$(wordlist 2,$(words $2),$2)))
-
-run: targets
-	$(call pairup, $(TESTS_DIR), $(TESTS))
