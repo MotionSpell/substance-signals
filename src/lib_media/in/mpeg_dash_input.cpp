@@ -179,6 +179,10 @@ std::unique_ptr<IFilePuller> createHttpSource() {
 ///////////////////////////////////////////////////////////////////////////////
 // move this elsewhere
 
+// usage example:
+// map<string, string> vars;
+// vars["Name"] = "john";
+// assert("hello john" == expandVars("hello $Name$", vars));
 string expandVars(string input, map<string,string> const& values) {
 
 	int i=0;
