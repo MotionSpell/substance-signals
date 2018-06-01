@@ -141,8 +141,6 @@ extern "C" {
 struct HttpSource : IFilePuller {
 
 	std::string get(std::string url) override {
-		printf("wget '%s'\n", url.c_str());
-
 		struct HttpContext {
 			std::vector<uint8_t> data;
 
