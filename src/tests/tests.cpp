@@ -59,7 +59,6 @@ void RunAll(Filter filter) {
 			g_AllTests[i].fn();
 		}
 	}
-	std::cout << "-- Tests were run successfully" << std::endl;
 }
 }
 

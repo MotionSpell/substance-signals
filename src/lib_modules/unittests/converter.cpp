@@ -6,7 +6,6 @@
 #include "lib_media/transform/video_convert.hpp"
 #include "lib_media/utils/comparator.hpp"
 #include "lib_media/utils/recorder.hpp"
-#include "lib_utils/profiler.hpp"
 #include "lib_utils/tools.hpp"
 
 using namespace Tests;
@@ -72,21 +71,15 @@ unittest("audio converter: dynamic formats") {
 
 	soundGen->process(nullptr);
 
-	{
-		Tools::Profiler profilerGlobal("  Send to converter");
-		soundGen->process(nullptr);
-	}
+	soundGen->process(nullptr);
 
 	converter->flush();
 	converter->getOutput(0)->getSignal().disconnect(0);
 	recorder->process(nullptr);
 
-	{
-		Tools::Profiler profilerGlobal("  Passthru");
-		Data data;
-		while ((data = recorder->pop())) {
-			converter->process(data);
-		}
+	Data data;
+	while ((data = recorder->pop())) {
+		converter->process(data);
 	}
 }
 
