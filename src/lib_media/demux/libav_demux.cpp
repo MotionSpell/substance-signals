@@ -349,7 +349,6 @@ void LibavDemux::sparseStreamsHeartbeat(AVPacket const * const pkt) {
 void LibavDemux::process(Data) {
 	workingThread = std::thread(&LibavDemux::threadProc, this);
 
-	AVPacket pkt;
 	while (1) {
 		Data data;
 		if (getNumInputs() && getInput(0)->tryPop(data)) {
@@ -358,6 +357,7 @@ void LibavDemux::process(Data) {
 			return;
 		}
 
+		AVPacket pkt;
 		if (!packetQueue.read(pkt)) {
 			if (done) {
 				log(Info, "All data consumed: exit process().");
