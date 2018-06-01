@@ -30,10 +30,10 @@ void File::process(Data data) {
 
 		auto out = output->getBuffer(IOSIZE);
 		size_t read = fread(out->data(), 1, IOSIZE, file);
+		if (read == 0) {
+			break;
+		}
 		if (read < IOSIZE) {
-			if (read == 0) {
-				break;
-			}
 			out->resize(read);
 		}
 		output->emit(out);
