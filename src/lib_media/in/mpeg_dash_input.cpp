@@ -41,11 +41,10 @@ MPEG_DASH_Input::MPEG_DASH_Input(std::unique_ptr<IFilePuller> source, std::strin
 	*mpd = parseMpd(mpdAsText);
 
 	//DECLARE OUTPUT PORTS
-	for(int i=0; i < (int)mpd->sets.size(); ++i)
+	for(auto& set : mpd->sets) {
 		addOutput<OutputDefault>();
 
-	// GET INITIALIZATION CHUNKS FROM HTTP
-	for(auto& set : mpd->sets) {
+		// GET INITIALIZATION CHUNKS FROM HTTP
 		map<string, string> vars;
 		vars["RepresentationID"] = set.representationId;
 		auto url = m_mpdDirname + "/" + expandVars(set.initialization, vars);
