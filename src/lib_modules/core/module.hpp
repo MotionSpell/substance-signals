@@ -47,7 +47,7 @@ struct IInputCap {
 
 struct IOutput : virtual IMetadataCap {
 	virtual ~IOutput() noexcept(false) {}
-	virtual size_t emit(Data data) = 0;
+	virtual void emit(Data data) = 0;
 	virtual Signals::ISignal<void(Data)>& getSignal() = 0;
 };
 

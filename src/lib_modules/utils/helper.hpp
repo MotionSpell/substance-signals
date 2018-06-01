@@ -137,12 +137,11 @@ class OutputT : public IOutput, public MetadataCap, public ClockCap {
 			allocator->unblock();
 		}
 
-		size_t emit(Data data) override {
+		void emit(Data data) override {
 			updateMetadata(data);
-			size_t numReceivers = signal.emit(data);
+			auto numReceivers = signal.emit(data);
 			if (numReceivers == 0)
 				Log::msg(Debug, "emit(): Output had no receiver");
-			return numReceivers;
 		}
 
 		template<typename T = typename Allocator::MyType>
