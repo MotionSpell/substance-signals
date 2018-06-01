@@ -114,7 +114,7 @@ void PipelinedModule::endOfStream() {
 	++eosCount;
 
 	if (eosCount > connections) {
-		auto const msg = format("PipelinedModule %s: received too many EOS (%d/%d)", getDelegateName(), (int)eosCount, (int)connections);
+		auto const msg = format("PipelinedModule %s: received too many EOS (%s/%s)", getDelegateName(), (int)eosCount, (int)connections);
 		throw std::runtime_error(msg);
 	}
 

@@ -59,7 +59,7 @@ void timeInMsToStr(uint64_t timestamp, char buffer[24], const char *msSeparator)
 	const uint8_t m = (uint8_t)(p / 60000 - 60 * h);
 	const uint8_t s = (uint8_t)(p / 1000 - 3600 * h - 60 * m);
 	const uint16_t u = (uint16_t)(p - 3600000 * h - 60000 * m - 1000 * s);
-	auto const len = snprintf(buffer, 24, "%02u:%02u:%02u%s%03u", (int)h, (int)m, (int)s, msSeparator, (int)u);
+	auto const len = snprintf(buffer, 24, "%02d:%02d:%02d%s%03d", (int)h, (int)m, (int)s, msSeparator, (int)u);
 	if (len < 0 || len >= 24)
 		throw std::runtime_error(format("Failure in formatting in timeInMsToStr() (len=%s, max=%s)", len, 24));
 }
