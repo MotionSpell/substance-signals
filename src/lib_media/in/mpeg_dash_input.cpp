@@ -60,7 +60,7 @@ bool MPEG_DASH_Input::wakeUp() {
 		vars["Number"] = format("%s", set.startNumber);
 		set.startNumber++;
 		auto url = m_mpdDirname + "/" + expandVars(set.media, vars);
-    Log::msg(Debug, "wget: '%s'", url);
+		Log::msg(Debug, "wget: '%s'", url);
 
 		if(m_source->get(url) == "")
 			return false;
