@@ -11,6 +11,7 @@ using namespace Modules::In;
 struct AdaptationSet {
 	string media;
 	int startNumber=0;
+	string representationId;
 };
 
 struct DashMpd {
@@ -39,12 +40,15 @@ MPEG_DASH_Input::~MPEG_DASH_Input() {
 }
 
 void MPEG_DASH_Input::process() {
+	while(wakeUp()) {
+	}
 }
 
 bool MPEG_DASH_Input::wakeUp() {
 	map<string, string> vars;
 
 	for(auto& set : mpd->sets) {
+		vars["RepresentationID"] = set.representationId;
 		vars["Number"] = format("%s", set.startNumber);
 		set.startNumber++;
 		auto url = expandVars(set.media, vars);
@@ -103,6 +107,9 @@ DashMpd parseMpd(std::string text) {
 				auto& set = mpd->sets.back();
 				set.media = attr["media"];
 				set.startNumber = atoi(attr["startNumber"].c_str());
+			} else if(name == "Representation") {
+				auto& set = mpd->sets.back();
+				set.representationId = attr["id"];
 			}
 		}
 	};
@@ -134,6 +141,7 @@ extern "C" {
 struct HttpSource : IFilePuller {
 
 	std::string get(std::string url) override {
+		printf("wget '%s'\n", url.c_str());
 
 		struct HttpContext {
 			std::vector<uint8_t> data;

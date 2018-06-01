@@ -17,10 +17,11 @@ class MPEG_DASH_Input : public Module {
 		MPEG_DASH_Input(std::unique_ptr<IFilePuller> filePuller, std::string const &url);
 		~MPEG_DASH_Input();
 		void process() override;
-		bool wakeUp();
 
 	private:
 		std::unique_ptr<IFilePuller> const m_source;
+		bool wakeUp();
+
 		std::unique_ptr<DashMpd> mpd;
 };
 
