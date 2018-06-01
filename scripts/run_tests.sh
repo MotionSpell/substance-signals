@@ -53,7 +53,10 @@ function mp42tsx_blindtest
 
 function unittests
 {
-  $BIN/src/tests/test_other.exe
+  local absPath=$(readlink -f $BIN/src/tests/test_other.exe)
+  pushd src/tests >/dev/null
+  $absPath
+  popd >/dev/null
 }
 
 main "$@"
