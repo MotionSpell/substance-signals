@@ -24,7 +24,7 @@ Apple_HLS::~Apple_HLS() {
 }
 
 std::unique_ptr<Quality> Apple_HLS::createQuality() const {
-	return uptr<Quality>(safe_cast<Quality>(new HLSQuality));
+	return make_unique<HLSQuality>();
 }
 
 std::string Apple_HLS::getVariantPlaylistName(HLSQuality const * const quality, const std::string &subDir, size_t index) {
