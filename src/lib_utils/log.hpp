@@ -58,6 +58,17 @@ class Log {
 #endif
 };
 
+struct ScopedLogLevel {
+		ScopedLogLevel(Level level) : oldLevel(Log::getLevel()) {
+			Log::setLevel(level);
+		}
+		~ScopedLogLevel() {
+			Log::setLevel(oldLevel);
+		}
+	private:
+		const Level oldLevel;
+};
+
 class LogRepetition {
 	public:
 		LogRepetition() {}

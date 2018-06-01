@@ -12,10 +12,12 @@ using namespace Tests;
 using namespace Modules;
 
 unittest("empty param test: File") {
+	ScopedLogLevel lev(Quiet);
 	ASSERT_THROWN(create<In::File>(""));
 }
 
 unittest("empty param test: Demux") {
+	ScopedLogLevel lev(Quiet);
 	ASSERT_THROWN(create<Demux::GPACDemuxMP4Simple>(""));
 }
 

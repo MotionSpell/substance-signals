@@ -75,6 +75,7 @@ unittest("timestamps start at a negative value (GPACDemuxMP4Simple)") {
 }
 
 unittest("transcoder with reframers: test a/v sync recovery") {
+	ScopedLogLevel lev(Quiet); // some corrupt frames will be detected
 	const int64_t maxDurIn180k = 2 * IClock::Rate;
 	const size_t bufferSize = (maxDurIn180k * 1000) / (20 * IClock::Rate);
 

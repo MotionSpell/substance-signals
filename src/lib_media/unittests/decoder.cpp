@@ -179,6 +179,8 @@ unittest("decoder: audio mp3 manual frame to AAC") {
 	ConnectOutputToInput(decode->getOutput(0), encoder->getInput(0));
 
 	auto frame = getTestMp3Frame();
+
+	ScopedLogLevel lev(Quiet);
 	ASSERT_THROWN(decode->process(frame));
 }
 
