@@ -150,19 +150,20 @@ void MPEG_DASH::ensureManifest() {
 void MPEG_DASH::writeManifest() {
 	if (!mpd->write(mpdFn)) {
 		log(Warning, "Can't write MPD at %s (1). Check you have sufficient rights.", mpdFn);
-	} else {
-		auto const mpdPath = format("%s%s", manifestDir, mpdFn);
-		if (!moveFile(mpdFn, mpdPath)) {
-			log(Error, "Can't move MPD at %s (2). Check you have sufficient rights.", mpdPath);
-			return;
-		}
-
-		auto out = outputManifest->getBuffer(0);
-		auto metadata = make_shared<MetadataFile>(mpdPath, PLAYLIST, "", "", timescaleToClock(segDurationInMs, 1000), 0, 1, false, true);
-		out->setMetadata(metadata);
-		out->setMediaTime(totalDurationInMs, 1000);
-		outputManifest->emit(out);
+		return;
 	}
+
+	auto const mpdPath = format("%s%s", manifestDir, mpdFn);
+	if (!moveFile(mpdFn, mpdPath)) {
+		log(Error, "Can't move MPD at %s (2). Check you have sufficient rights.", mpdPath);
+		return;
+	}
+
+	auto out = outputManifest->getBuffer(0);
+	auto metadata = make_shared<MetadataFile>(mpdPath, PLAYLIST, "", "", timescaleToClock(segDurationInMs, 1000), 0, 1, false, true);
+	out->setMetadata(metadata);
+	out->setMediaTime(totalDurationInMs, 1000);
+	outputManifest->emit(out);
 }
 
 std::string MPEG_DASH::getPrefixedSegmentName(DASHQuality const * const quality, size_t index, u64 segmentNum) const {
