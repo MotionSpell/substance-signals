@@ -6,7 +6,7 @@ using namespace Tests;
 using namespace Modules;
 using namespace In;
 
-struct LocalHttpSource : IHttpSource {
+struct LocalFilesystem : IFilePuller {
 	std::string get(std::string url) override {
 		return resources[url];
 	}
@@ -32,7 +32,7 @@ unittest("mpeg_dash_input: get MPD") {
   </Period>
 </MPD>)|";
 
-	LocalHttpSource source;
+	LocalFilesystem source;
 	source.resources["http://toto.mpd"] = MPD;
 	auto dash = create<MPEG_DASH_Input>(&source, "http://toto.mpd");
 	ASSERT_EQUALS(2u, dash->getNumOutputs());
@@ -50,13 +50,13 @@ unittest("mpeg_dash_input: get MPD, one input") {
     </AdaptationSet>
   </Period>
 </MPD>)|";
-	LocalHttpSource source;
+	LocalFilesystem source;
 	source.resources["http://single.mpd"] = MPD;
 	auto dash = create<MPEG_DASH_Input>(&source, "http://single.mpd");
 	ASSERT_EQUALS(1u, dash->getNumOutputs());
 }
 
-std::unique_ptr<IHttpSource> createHttpSource();
+std::unique_ptr<IFilePuller> createHttpSource();
 
 secondclasstest("mpeg_dash_input: get MPD from remote server") {
 	auto url = "http://download.tsi.telecom-paristech.fr/gpac/DASH_CONFORMANCE/TelecomParisTech/mp4-live/mp4-live-mpd-AV-NBS.mpd";

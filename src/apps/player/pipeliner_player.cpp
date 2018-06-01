@@ -35,8 +35,8 @@ void declarePipeline(Pipeline &pipeline, const char *url) {
 		}
 	};
 
-	std::unique_ptr<IHttpSource> createHttpSource();
-	std::unique_ptr<IHttpSource> httpSource;
+	std::unique_ptr<IFilePuller> createHttpSource();
+	std::unique_ptr<IFilePuller> httpSource;
 
 	auto createSource = [&](std::string url)->IPipelinedModule* {
 		if(startsWith(url, "http://")) {

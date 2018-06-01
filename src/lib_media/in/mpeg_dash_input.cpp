@@ -14,9 +14,9 @@ DashMpd parseMpd(std::string text);
 namespace Modules {
 namespace In {
 
-MPEG_DASH_Input::MPEG_DASH_Input(IHttpSource* httpSource, std::string const& url) {
+MPEG_DASH_Input::MPEG_DASH_Input(IFilePuller* filePuller, std::string const& url) {
 	//GET MPD FROM HTTP
-	auto mpdAsText = httpSource->get(url);
+	auto mpdAsText = filePuller->get(url);
 
 	//PARSE MPD
 	auto mpd = parseMpd(mpdAsText);
@@ -90,7 +90,7 @@ extern "C" {
 #include <curl/curl.h>
 }
 
-struct HttpSource : IHttpSource {
+struct HttpSource : IFilePuller {
 
 	std::string get(std::string url) override {
 
@@ -131,7 +131,7 @@ struct HttpSource : IHttpSource {
 	}
 };
 
-std::unique_ptr<IHttpSource> createHttpSource() {
+std::unique_ptr<IFilePuller> createHttpSource() {
 	return make_unique<HttpSource>();
 }
 
