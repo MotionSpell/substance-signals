@@ -36,7 +36,6 @@ void declarePipeline(Pipeline &pipeline, const char *url) {
 	};
 
 	std::unique_ptr<IFilePuller> createHttpSource();
-	std::unique_ptr<IFilePuller> httpSource;
 
 	auto createSource = [&](std::string url)->IPipelinedModule* {
 		if(startsWith(url, "http://")) {
@@ -49,8 +48,10 @@ void declarePipeline(Pipeline &pipeline, const char *url) {
 
 	for (int i = 0; i < (int)demux->getNumOutputs(); ++i) {
 		auto metadata = safe_cast<const MetadataPkt>(demux->getOutput(i)->getMetadata());
-		if (!metadata || metadata->isSubtitle()/*only render audio and video*/)
+		if (!metadata || metadata->isSubtitle()/*only render audio and video*/) {
+			Log::msg(Debug, "Ignoring stream #%s", i);
 			continue;
+		}
 
 		auto decode = pipeline.addModule<Decode::Decoder>(metadata.get());
 		pipeline.connect(demux, i, decode, 0);
