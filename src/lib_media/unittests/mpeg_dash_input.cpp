@@ -76,6 +76,30 @@ unittest("mpeg_dash_input: get MPD, one input") {
 	ASSERT_EQUALS(1u, dash->getNumOutputs());
 }
 
+unittest("mpeg_dash_input: get initialization chunk") {
+	static auto const MPD = R"|(
+<?xml version="1.0"?>
+<MPD>
+  <Period>
+    <AdaptationSet>
+      <ContentComponent id="1" contentType="video"/>
+      <SegmentTemplate initialization="sub/init-$RepresentationID$.dat" media="$Number$-$RepresentationID$" startNumber="777" />
+      <Representation id="88"/>
+    </AdaptationSet>
+  </Period>
+</MPD>)|";
+	LocalFilesystem source;
+	source.resources["main/live.mpd"] = MPD;
+	source.resources["main/sub/init-88.dat"] = "initdata";
+	auto dash = create<MPEG_DASH_Input>(proxify(source), "main/live.mpd");
+
+	ASSERT_EQUALS(
+	std::vector<std::string>( {
+		"main/live.mpd",
+		"main/sub/init-88.dat",
+	}),
+	source.requests);
+}
 unittest("mpeg_dash_input: get chunks") {
 	static auto const MPD = R"|(
 <?xml version="1.0"?>
@@ -90,6 +114,7 @@ unittest("mpeg_dash_input: get chunks") {
 </MPD>)|";
 	LocalFilesystem source;
 	source.resources["main/live.mpd"] = MPD;
+	source.resources["main/init.mp4"] = "initdata";
 	source.resources["main/sub/x3y77z"] = "data3";
 	source.resources["main/sub/x4y77z"] = "data4";
 	source.resources["main/sub/x5y77z"] = "data5";
@@ -107,6 +132,7 @@ unittest("mpeg_dash_input: get chunks") {
 	ASSERT_EQUALS(
 	std::vector<std::string>( {
 		"main/live.mpd",
+		"main/init.mp4",
 		"main/sub/x3y77z",
 		"main/sub/x4y77z",
 		"main/sub/x5y77z",

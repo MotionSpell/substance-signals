@@ -12,6 +12,7 @@ struct AdaptationSet {
 	string media;
 	int startNumber=0;
 	string representationId;
+	string initialization;
 };
 
 struct DashMpd {
@@ -42,6 +43,15 @@ MPEG_DASH_Input::MPEG_DASH_Input(std::unique_ptr<IFilePuller> source, std::strin
 	//DECLARE OUTPUT PORTS
 	for(int i=0; i < (int)mpd->sets.size(); ++i)
 		addOutput<OutputDefault>();
+
+	// GET INITIALIZATION CHUNKS FROM HTTP
+	for(auto& set : mpd->sets) {
+		map<string, string> vars;
+		vars["RepresentationID"] = set.representationId;
+		auto url = m_mpdDirname + "/" + expandVars(set.initialization, vars);
+		Log::msg(Debug, "wget init chunk: '%s'", url);
+		m_source->get(url);
+	}
 }
 
 MPEG_DASH_Input::~MPEG_DASH_Input() {
@@ -114,6 +124,7 @@ DashMpd parseMpd(std::string text) {
 				mpd->sets.push_back(set);
 			} else if(name == "SegmentTemplate") {
 				auto& set = mpd->sets.back();
+				set.initialization = attr["initialization"];
 				set.media = attr["media"];
 				set.startNumber = atoi(attr["startNumber"].c_str());
 			} else if(name == "Representation") {
