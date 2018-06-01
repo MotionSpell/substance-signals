@@ -5,7 +5,6 @@
 #include <memory>
 #include <vector>
 #include "lib_utils/clock.hpp"
-#include "lib_utils/format.hpp"
 
 namespace Modules {
 
@@ -99,5 +98,5 @@ std::shared_ptr<T> safe_cast(std::shared_ptr<const Modules::DataBase> p) {
 			}
 		}
 	}
-	throw std::runtime_error(format("dynamic cast error: could not convert from Modules::Data to %s", typeid(T).name()));
+	throw std::runtime_error("dynamic cast error: could not convert from Modules::Data to " + std::string(typeid(T).name()));
 }
