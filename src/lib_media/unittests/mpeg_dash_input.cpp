@@ -83,16 +83,16 @@ unittest("mpeg_dash_input: get chunks") {
   <Period>
     <AdaptationSet>
       <ContentComponent id="1" contentType="audio"/>
-      <SegmentTemplate initialization="init.mp4" media="x$Number$y$RepresentationID$z" startNumber="3" />
+      <SegmentTemplate initialization="init.mp4" media="sub/x$Number$y$RepresentationID$z" startNumber="3" />
       <Representation id="77"/>
     </AdaptationSet>
   </Period>
 </MPD>)|";
 	LocalFilesystem source;
 	source.resources["live.mpd"] = MPD;
-	source.resources["x3y77z"] = "data3";
-	source.resources["x4y77z"] = "data4";
-	source.resources["x5y77z"] = "data5";
+	source.resources["sub/x3y77z"] = "data3";
+	source.resources["sub/x4y77z"] = "data4";
+	source.resources["sub/x5y77z"] = "data5";
 	auto dash = create<MPEG_DASH_Input>(proxify(source), "live.mpd");
 	int chunkCount = 0;
 	auto receive = [&](Data data) {
@@ -105,8 +105,14 @@ unittest("mpeg_dash_input: get chunks") {
 	dash->process();
 
 	ASSERT_EQUALS(
-	    std::vector<std::string>({"live.mpd", "x3y77z", "x4y77z", "x5y77z", "x6y77z"}),
-	    source.requests);
+	std::vector<std::string>( {
+		"live.mpd",
+		"sub/x3y77z",
+		"sub/x4y77z",
+		"sub/x5y77z",
+		"sub/x6y77z",
+	}),
+	source.requests);
 }
 
 std::unique_ptr<IFilePuller> createHttpSource();
