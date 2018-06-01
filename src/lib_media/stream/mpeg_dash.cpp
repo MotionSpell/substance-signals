@@ -53,7 +53,7 @@ MPEG_DASH::~MPEG_DASH() {
 }
 
 std::unique_ptr<Quality> MPEG_DASH::createQuality() const {
-	return uptr<Quality>(safe_cast<Quality>(new DASHQuality));
+	return make_unique<DASHQuality>();
 }
 
 void MPEG_DASH::ensureManifest() {
