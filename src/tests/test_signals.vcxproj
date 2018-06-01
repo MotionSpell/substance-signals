@@ -222,6 +222,7 @@
     <ClCompile Include="..\lib_media\unittests\decoder.cpp" />
     <ClCompile Include="..\lib_media\unittests\demux.cpp" />
     <ClCompile Include="..\lib_media\unittests\encoder.cpp" />
+    <ClCompile Include="..\lib_media\unittests\expand_vars.cpp" />
     <ClCompile Include="..\lib_media\unittests\mpeg_dash_input.cpp" />
     <ClCompile Include="..\lib_media\unittests\mux.cpp" />
     <ClCompile Include="..\lib_media\unittests\player.cpp" />

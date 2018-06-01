@@ -1,32 +1,61 @@
 #include "lib_utils/tools.hpp"
 #include "mpeg_dash_input.hpp"
+#include <vector>
+#include <map>
 
-#define IOSIZE (64*1024)
+std::string expandVars(std::string input, std::map<std::string,std::string> const& values);
 
+using namespace std;
 using namespace Modules::In;
 
-struct DashMpd {
-	int adaptationSetCount;
+struct AdaptationSet {
+	string media;
+	int startNumber=0;
 };
 
-DashMpd parseMpd(std::string text);
+struct DashMpd {
+	vector<AdaptationSet> sets;
+};
+
+static DashMpd parseMpd(std::string text);
 
 namespace Modules {
 namespace In {
 
-MPEG_DASH_Input::MPEG_DASH_Input(IFilePuller* filePuller, std::string const& url) {
+MPEG_DASH_Input::MPEG_DASH_Input(IFilePuller* source, std::string const& url) : m_source(source) {
 	//GET MPD FROM HTTP
-	auto mpdAsText = filePuller->get(url);
+	auto mpdAsText = m_source->get(url);
 
 	//PARSE MPD
-	auto mpd = parseMpd(mpdAsText);
+	mpd = make_unique<DashMpd>();
+	*mpd = parseMpd(mpdAsText);
 
 	//DECLARE OUTPUT PORTS
-	for(int i=0; i < mpd.adaptationSetCount; ++i)
+	for(int i=0; i < (int)mpd->sets.size(); ++i)
 		addOutput<OutputDefault>();
 }
 
+MPEG_DASH_Input::~MPEG_DASH_Input() {
+}
+
 void MPEG_DASH_Input::process() {
+}
+
+bool MPEG_DASH_Input::wakeUp() {
+	map<string, string> vars;
+
+	for(auto& set : mpd->sets) {
+		vars["Number"] = format("%s", set.startNumber);
+		set.startNumber++;
+		auto url = expandVars(set.media, vars);
+
+		if(m_source->get(url) == "")
+			return false;
+
+		auto data = make_shared<DataRaw>(10);
+		outputs[0]->emit(data);
+	}
+	return true;
 }
 
 }
@@ -44,6 +73,7 @@ void enforce(bool condition, char const* msg) {
 extern "C" {
 #include <gpac/xml.h>
 }
+
 DashMpd parseMpd(std::string text) {
 	GF_Err err;
 
@@ -54,15 +84,26 @@ DashMpd parseMpd(std::string text) {
 		static
 		void onNodeStartCallback(void* user, const char* name, const char* namespace_, const GF_XMLAttribute *attributes, u32 nb_attributes) {
 			(void)namespace_;
-			(void)attributes;
-			(void)nb_attributes;
 			auto pThis = (Context*)user;
-			pThis->onNodeStart(name);
+
+			map<string,string> attr;
+			for(int i=0; i < (int)nb_attributes; ++i) {
+				auto& attribute = attributes[i];
+				attr[attribute.name] = attribute.value;
+			}
+
+			pThis->onNodeStart(name, attr);
 		}
 
-		void onNodeStart(std::string name) {
-			if(name == "AdaptationSet")
-				++mpd->adaptationSetCount;
+		void onNodeStart(std::string name, map<string, string>& attr) {
+			if(name == "AdaptationSet") {
+				AdaptationSet set;
+				mpd->sets.push_back(set);
+			} else if(name == "SegmentTemplate") {
+				auto& set = mpd->sets.back();
+				set.media = attr["media"];
+				set.startNumber = atoi(attr["startNumber"].c_str());
+			}
 		}
 	};
 
@@ -135,4 +176,52 @@ std::unique_ptr<IFilePuller> createHttpSource() {
 	return make_unique<HttpSource>();
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// move this elsewhere
 
+string expandVars(string input, map<string,string> const& values) {
+
+	int i=0;
+	auto front = [&]() {
+		return input[i];
+	};
+	auto pop = [&]() {
+		return input[i++];
+	};
+	auto empty = [&]() {
+		return i >= (int)input.size();
+	};
+
+	auto parseVarName = [&]() -> string {
+		auto leadingDollar = pop();
+		assert(leadingDollar == '$');
+
+		string name;
+		while(!empty() && front() != '$') {
+			name += pop();
+		}
+
+		if(empty())
+			throw runtime_error("unexpected end of string found when parsing variable name");
+
+		pop(); // pop terminating '$'
+		return name;
+	};
+
+	string r;
+
+	while(!empty()) {
+		auto const head = front();
+		if(head == '$') {
+			auto name = parseVarName();
+			if(values.find(name) == values.end())
+				throw runtime_error("unknown variable name '" + name + "'");
+
+			r += values.at(name);
+		} else {
+			r += pop();
+		}
+	}
+
+	return r;
+}
