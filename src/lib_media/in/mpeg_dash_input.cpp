@@ -1,4 +1,5 @@
 #include "lib_utils/tools.hpp"
+#include "../common/metadata.hpp" // MetadataPkt
 #include "mpeg_dash_input.hpp"
 #include <vector>
 #include <map>
@@ -13,6 +14,7 @@ struct AdaptationSet {
 	int startNumber=0;
 	string representationId;
 	string initialization;
+	string contentType;
 };
 
 struct DashMpd {
@@ -42,14 +44,26 @@ MPEG_DASH_Input::MPEG_DASH_Input(std::unique_ptr<IFilePuller> source, std::strin
 
 	//DECLARE OUTPUT PORTS
 	for(auto& set : mpd->sets) {
-		addOutput<OutputDefault>();
-
 		// GET INITIALIZATION CHUNKS FROM HTTP
 		map<string, string> vars;
 		vars["RepresentationID"] = set.representationId;
 		auto url = m_mpdDirname + "/" + expandVars(set.initialization, vars);
+
+		shared_ptr<MetadataPkt> meta;
+		if(set.contentType == "audio") {
+			meta = make_shared<MetadataPktAudio>();
+		} else if(set.contentType == "video") {
+			meta = make_shared<MetadataPktVideo>();
+		} else {
+			Log::msg(Warning, "Ignoring adaptation set with content type: '%s'", set.contentType);
+			continue;
+		}
+
 		Log::msg(Debug, "wget init chunk: '%s'", url);
 		m_source->get(url);
+
+		auto output = addOutput<OutputDefault>();
+		output->setMetadata(meta);
 	}
 }
 
@@ -121,6 +135,9 @@ DashMpd parseMpd(std::string text) {
 			if(name == "AdaptationSet") {
 				AdaptationSet set;
 				mpd->sets.push_back(set);
+			} else if(name == "ContentComponent") {
+				auto& set = mpd->sets.back();
+				set.contentType = attr["contentType"];
 			} else if(name == "SegmentTemplate") {
 				auto& set = mpd->sets.back();
 				set.initialization = attr["initialization"];
