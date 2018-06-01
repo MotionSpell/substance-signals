@@ -40,8 +40,7 @@ void declarePipeline(Pipeline &pipeline, const char *url) {
 
 	auto createSource = [&](std::string url)->IPipelinedModule* {
 		if(startsWith(url, "http://")) {
-			httpSource = createHttpSource();
-			return pipeline.addModule<MPEG_DASH_Input>(httpSource.get(), url);
+			return pipeline.addModule<MPEG_DASH_Input>(createHttpSource(), url);
 		} else
 			return pipeline.addModule<Demux::LibavDemux>(url);
 	};

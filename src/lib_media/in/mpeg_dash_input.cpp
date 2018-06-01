@@ -22,7 +22,7 @@ static DashMpd parseMpd(std::string text);
 namespace Modules {
 namespace In {
 
-MPEG_DASH_Input::MPEG_DASH_Input(IFilePuller* source, std::string const& url) : m_source(source) {
+MPEG_DASH_Input::MPEG_DASH_Input(std::unique_ptr<IFilePuller> source, std::string const& url) : m_source(move(source)) {
 	//GET MPD FROM HTTP
 	auto mpdAsText = m_source->get(url);
 

@@ -19,6 +19,21 @@ struct LocalFilesystem : IFilePuller {
 	std::vector<std::string> requests;
 };
 
+// will be owned by the dash input
+struct Proxy : IFilePuller {
+	IFilePuller* delegate;
+
+	std::string get(std::string url) override {
+		return delegate->get(url);
+	}
+};
+
+std::unique_ptr<IFilePuller> proxify(IFilePuller& delegate) {
+	auto r = make_unique<Proxy>();
+	r->delegate = &delegate;
+	return r;
+}
+
 unittest("mpeg_dash_input: get MPD") {
 	static auto const MPD = R"|(
 <?xml version="1.0"?>
@@ -39,7 +54,7 @@ unittest("mpeg_dash_input: get MPD") {
 
 	LocalFilesystem source;
 	source.resources["http://toto.mpd"] = MPD;
-	auto dash = create<MPEG_DASH_Input>(&source, "http://toto.mpd");
+	auto dash = create<MPEG_DASH_Input>(proxify(source), "http://toto.mpd");
 	ASSERT_EQUALS(2u, dash->getNumOutputs());
 }
 
@@ -57,7 +72,7 @@ unittest("mpeg_dash_input: get MPD, one input") {
 </MPD>)|";
 	LocalFilesystem source;
 	source.resources["http://single.mpd"] = MPD;
-	auto dash = create<MPEG_DASH_Input>(&source, "http://single.mpd");
+	auto dash = create<MPEG_DASH_Input>(proxify(source), "http://single.mpd");
 	ASSERT_EQUALS(1u, dash->getNumOutputs());
 }
 
@@ -78,7 +93,7 @@ unittest("mpeg_dash_input: get chunks") {
 	source.resources["x3y"] = "data3";
 	source.resources["x4y"] = "data4";
 	source.resources["x5y"] = "data5";
-	auto dash = create<MPEG_DASH_Input>(&source, "live.mpd");
+	auto dash = create<MPEG_DASH_Input>(proxify(source), "live.mpd");
 	int chunkCount = 0;
 	auto receive = [&](Data data) {
 		++chunkCount;
@@ -99,8 +114,7 @@ std::unique_ptr<IFilePuller> createHttpSource();
 
 secondclasstest("mpeg_dash_input: get MPD from remote server") {
 	auto url = "http://download.tsi.telecom-paristech.fr/gpac/DASH_CONFORMANCE/TelecomParisTech/mp4-live/mp4-live-mpd-AV-NBS.mpd";
-	auto source = createHttpSource();
-	auto dash = create<MPEG_DASH_Input>(source.get(), url);
+	auto dash = create<MPEG_DASH_Input>(createHttpSource(), url);
 	ASSERT_EQUALS(2u, dash->getNumOutputs());
 }
 
