@@ -89,11 +89,11 @@ unittest("mpeg_dash_input: get chunks") {
   </Period>
 </MPD>)|";
 	LocalFilesystem source;
-	source.resources["live.mpd"] = MPD;
-	source.resources["sub/x3y77z"] = "data3";
-	source.resources["sub/x4y77z"] = "data4";
-	source.resources["sub/x5y77z"] = "data5";
-	auto dash = create<MPEG_DASH_Input>(proxify(source), "live.mpd");
+	source.resources["main/live.mpd"] = MPD;
+	source.resources["main/sub/x3y77z"] = "data3";
+	source.resources["main/sub/x4y77z"] = "data4";
+	source.resources["main/sub/x5y77z"] = "data5";
+	auto dash = create<MPEG_DASH_Input>(proxify(source), "main/live.mpd");
 	int chunkCount = 0;
 	auto receive = [&](Data data) {
 		++chunkCount;
@@ -106,11 +106,11 @@ unittest("mpeg_dash_input: get chunks") {
 
 	ASSERT_EQUALS(
 	std::vector<std::string>( {
-		"live.mpd",
-		"sub/x3y77z",
-		"sub/x4y77z",
-		"sub/x5y77z",
-		"sub/x6y77z",
+		"main/live.mpd",
+		"main/sub/x3y77z",
+		"main/sub/x4y77z",
+		"main/sub/x5y77z",
+		"main/sub/x6y77z",
 	}),
 	source.requests);
 }

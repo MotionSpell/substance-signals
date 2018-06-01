@@ -23,6 +23,7 @@ class MPEG_DASH_Input : public Module {
 		bool wakeUp();
 
 		std::unique_ptr<DashMpd> mpd;
+		std::string m_mpdDirname;
 };
 
 }

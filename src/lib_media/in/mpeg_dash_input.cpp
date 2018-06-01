@@ -23,9 +23,17 @@ static DashMpd parseMpd(std::string text);
 namespace Modules {
 namespace In {
 
+static string dirName(string path) {
+	auto i = path.rfind('/');
+	if(i != path.npos)
+		path = path.substr(0, i);
+	return path;
+}
+
 MPEG_DASH_Input::MPEG_DASH_Input(std::unique_ptr<IFilePuller> source, std::string const& url) : m_source(move(source)) {
 	//GET MPD FROM HTTP
 	auto mpdAsText = m_source->get(url);
+	m_mpdDirname = dirName(url);
 
 	//PARSE MPD
 	mpd = make_unique<DashMpd>();
@@ -51,7 +59,8 @@ bool MPEG_DASH_Input::wakeUp() {
 		vars["RepresentationID"] = set.representationId;
 		vars["Number"] = format("%s", set.startNumber);
 		set.startNumber++;
-		auto url = expandVars(set.media, vars);
+		auto url = m_mpdDirname + "/" + expandVars(set.media, vars);
+    Log::msg(Debug, "wget: '%s'", url);
 
 		if(m_source->get(url) == "")
 			return false;
