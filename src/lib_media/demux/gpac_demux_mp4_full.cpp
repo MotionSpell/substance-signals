@@ -75,8 +75,8 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 		}
 	}
 	if (reader->sampleCount == 0) {
-		/* no sample yet, let the data input force a reparsing of the data */
-		return true;
+		// no sample yet
+		return false;
 	}
 
 	{

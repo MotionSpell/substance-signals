@@ -96,7 +96,7 @@ unittest("GPACDemuxMP4Full: simple demux one track") {
 	ASSERT_EQUALS(215, sampleCount);
 }
 
-unittest("[DISABLED] GPACDemuxMP4Full: simple demux one empty track") {
+unittest("GPACDemuxMP4Full: simple demux one empty track") {
 	auto f = create<In::File>("data/emptytrack.mp4");
 	auto mp4Demux = create<Demux::GPACDemuxMP4Full>();
 
@@ -110,7 +110,7 @@ unittest("[DISABLED] GPACDemuxMP4Full: simple demux one empty track") {
 
 	f->process(nullptr);
 
-	ASSERT_EQUALS(215, sampleCount);
+	ASSERT_EQUALS(0, sampleCount);
 }
 
 
