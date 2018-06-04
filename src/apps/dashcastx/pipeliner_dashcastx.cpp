@@ -166,7 +166,7 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 		for (size_t r = 0; r < numRes; ++r, ++numDashInputs) {
 			IPipelinedModule *encoder = nullptr;
 			if (transcode) {
-				Resolution inputRes = metadataDemux->isVideo() ? safe_cast<const MetadataPktLibavVideo>(demux->getOutput(i)->getMetadata())->getResolution() : Resolution();
+				auto inputRes = metadataDemux->isVideo() ? safe_cast<const MetadataPktLibavVideo>(demux->getOutput(i)->getMetadata())->getResolution() : Resolution();
 				PictureFormat encoderInputPicFmt(autoRotate(autoFit(inputRes, opt->v[r].res), isVertical), UNKNOWN_PF);
 				encoder = createEncoder(metadataDemux, opt->ultraLowLatency, (VideoCodecType)opt->v[r].type, encoderInputPicFmt, opt->v[r].bitrate, opt->segmentDurationInMs);
 				if (!encoder)
@@ -188,18 +188,15 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 			}
 
 			std::string prefix;
-			int width, height;
+			Resolution reso;
 			if (metadataDemux->isVideo()) {
 				auto const resolutionFromDemux = safe_cast<const MetadataPktLibavVideo>(demux->getOutput(i)->getMetadata())->getResolution();
 				if (transcode) {
-					auto const res = autoFit(resolutionFromDemux, opt->v[r].res);
-					width = res.width;
-					height = res.height;
+					reso = autoFit(resolutionFromDemux, opt->v[r].res);
 				} else {
-					width = resolutionFromDemux.width;
-					height = resolutionFromDemux.height;
+					reso = resolutionFromDemux;
 				}
-				prefix = Stream::AdaptiveStreamingCommon::getCommonPrefixVideo(numDashInputs, width, height);
+				prefix = Stream::AdaptiveStreamingCommon::getCommonPrefixVideo(numDashInputs, reso);
 			} else {
 				prefix = Stream::AdaptiveStreamingCommon::getCommonPrefixAudio(numDashInputs);
 			}

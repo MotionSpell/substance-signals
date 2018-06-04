@@ -2,6 +2,7 @@
 
 #include "../common/metadata.hpp"
 #include "lib_modules/utils/helper.hpp"
+#include "lib_utils/resolution.hpp"
 #include <memory>
 #include <string>
 
@@ -53,8 +54,8 @@ class AdaptiveStreamingCommon : public IAdaptiveStreamingCommon, public ModuleDy
 		static std::string getCommonPrefixAudio(size_t index) {
 			return format("a_%s", index);
 		}
-		static std::string getCommonPrefixVideo(size_t index, unsigned width, unsigned height) {
-			return format("v_%s_%sx%s", index, width, height);
+		static std::string getCommonPrefixVideo(size_t index, Resolution res) {
+			return format("v_%s_%sx%s", index, res.width, res.height);
 		}
 		static std::string getCommonPrefixSubtitle(size_t index) {
 			return format("s_%s", index);

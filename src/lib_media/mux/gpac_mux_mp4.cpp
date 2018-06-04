@@ -692,8 +692,7 @@ void GPACMuxMP4::declareStreamVideo(const std::shared_ptr<const MetadataPktLibav
 		throw error(format("Cannot create new track"));
 	trackId = gf_isom_get_track_id(isoCur, trackNum);
 	defaultSampleIncInTs = metadata->getTimeScale().den * TIMESCALE_MUL;
-	resolution[0] = metadata->getResolution().width;
-	resolution[1] = metadata->getResolution().height;
+	resolution = metadata->getResolution();
 
 	GF_Err e = gf_isom_set_track_enabled(isoCur, trackNum, GF_TRUE);
 	if (e != GF_OK)
@@ -757,8 +756,7 @@ void GPACMuxMP4::declareStreamVideo(const std::shared_ptr<const MetadataPktLibav
 	}
 
 	auto const res = metadata->getResolution();
-	resolution[0] = res.width;
-	resolution[1] = res.height;
+	resolution = res;
 	gf_isom_set_visual_info(isoCur, gf_isom_get_track_by_id(isoCur, trackId), di, res.width, res.height);
 	gf_isom_set_sync_table(isoCur, trackNum);
 
@@ -851,7 +849,7 @@ void GPACMuxMP4::sendOutput(bool EOS) {
 	};
 	auto metadata = make_shared<MetadataFile>(segmentName, streamType, mimeType, codecName, consideredDurationIn180k, lastSegmentSize, computeContainerLatency(), segmentStartsWithRAP, EOS);
 	switch (mediaType) {
-	case GF_ISOM_MEDIA_VISUAL: metadata->resolution[0] = resolution[0]; metadata->resolution[1] = resolution[1]; break;
+	case GF_ISOM_MEDIA_VISUAL: metadata->resolution = resolution; break;
 	case GF_ISOM_MEDIA_AUDIO: metadata->sampleRate = sampleRate; break;
 	case GF_ISOM_MEDIA_TEXT: break;
 	default: throw error(format("Unknown media type for segment: %s", (int)mediaType));

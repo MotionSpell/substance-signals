@@ -130,8 +130,8 @@ void MPEG_DASH::ensureManifest() {
 				rep->samplerate = meta->sampleRate;
 				break;
 			case VIDEO_PKT:
-				rep->width = meta->resolution[0];
-				rep->height = meta->resolution[1];
+				rep->width = meta->resolution.width;
+				rep->height = meta->resolution.height;
 				break;
 			default: break;
 			}
@@ -212,7 +212,7 @@ void MPEG_DASH::generateManifest() {
 		auto metaFn = make_shared<MetadataFile>(fn, SEGMENT, meta->mimeType, meta->codecName, meta->durationIn180k, meta->filesize, meta->latencyIn180k, meta->startsWithRAP, true);
 		switch (meta->getStreamType()) {
 		case AUDIO_PKT: metaFn->sampleRate = meta->sampleRate; break;
-		case VIDEO_PKT: metaFn->resolution[0] = meta->resolution[0]; metaFn->resolution[1] = meta->resolution[1]; break;
+		case VIDEO_PKT: metaFn->resolution = meta->resolution; break;
 		case SUBTITLE_PKT: break;
 		default: assert(0);
 		}

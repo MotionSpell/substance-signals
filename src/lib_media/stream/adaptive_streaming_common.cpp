@@ -84,7 +84,7 @@ std::string AdaptiveStreamingCommon::getInitName(Quality const * const quality, 
 std::string AdaptiveStreamingCommon::getPrefix(Quality const * const quality, size_t index) const {
 	switch (quality->getMeta()->getStreamType()) {
 	case AUDIO_PKT:    return format("%s%s", quality->prefix, getCommonPrefixAudio(index));
-	case VIDEO_PKT:    return format("%s%s", quality->prefix, getCommonPrefixVideo(index, quality->getMeta()->resolution[0], quality->getMeta()->resolution[1]));
+	case VIDEO_PKT:    return format("%s%s", quality->prefix, getCommonPrefixVideo(index, quality->getMeta()->resolution));
 	case SUBTITLE_PKT: return format("%s%s", quality->prefix, getCommonPrefixSubtitle(index));
 	default: return "";
 	}

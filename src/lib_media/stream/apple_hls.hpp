@@ -55,8 +55,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 					case AUDIO_PKT: metadata->sampleRate = safe_cast<const MetadataPktLibavAudio>(data->getMetadata())->getSampleRate(); break;
 					case VIDEO_PKT: {
 						auto const res = safe_cast<const MetadataPktLibavVideo>(data->getMetadata())->getResolution();
-						metadata->resolution[0] = res.width;
-						metadata->resolution[1] = res.height;
+						metadata->resolution = res;
 						break;
 					}
 					default: assert(0);

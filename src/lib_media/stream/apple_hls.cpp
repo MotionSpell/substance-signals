@@ -31,7 +31,7 @@ std::string Apple_HLS::getVariantPlaylistName(HLSQuality const * const quality, 
 	auto const &meta = quality->getMeta();
 	switch (meta->getStreamType()) {
 	case AUDIO_PKT:               return format("%s%s_.m3u8", subDir, getCommonPrefixAudio(index));
-	case VIDEO_PKT: case SEGMENT: return format("%s%s_.m3u8", subDir, getCommonPrefixVideo(index, meta->resolution[0], meta->resolution[1]));
+	case VIDEO_PKT: case SEGMENT: return format("%s%s_.m3u8", subDir, getCommonPrefixVideo(index, meta->resolution));
 	case SUBTITLE_PKT:            return format("%s%s", subDir, getCommonPrefixSubtitle(index));
 	default: assert(0); return "";
 	}
@@ -79,7 +79,7 @@ std::string Apple_HLS::getManifestMasterInternal() {
 					playlistMaster << "," << audioSpecs[0].codecName;
 					playlistMaster << "\",AUDIO=\"" << audioGroupName;
 				}
-				playlistMaster << "\"" << ",RESOLUTION=" << meta->resolution[0] << "x" << meta->resolution[1] << std::endl;
+				playlistMaster << "\"" << ",RESOLUTION=" << meta->resolution.width << "x" << meta->resolution.height << std::endl;
 				playlistMaster << getVariantPlaylistName(quality, "", i) << std::endl;
 				break;
 			default: assert(0);
@@ -91,7 +91,7 @@ std::string Apple_HLS::getManifestMasterInternal() {
 			playlistMaster << "#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=" << quality->avg_bitrate_in_bps;
 			auto const &meta = quality->getMeta();
 			switch (meta->getStreamType()) {
-			case SEGMENT: playlistMaster << ",RESOLUTION=" << meta->resolution[0] << "x" << meta->resolution[1] << std::endl; break;
+			case SEGMENT: playlistMaster << ",RESOLUTION=" << meta->resolution.width << "x" << meta->resolution.height << std::endl; break;
 			default: assert(0);
 			}
 			playlistMaster << getVariantPlaylistName(quality, "", i) << std::endl;

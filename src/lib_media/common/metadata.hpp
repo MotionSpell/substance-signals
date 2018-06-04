@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include "lib_utils/resolution.hpp"
 #include "lib_modules/core/metadata.hpp"
 
 namespace Modules {
@@ -26,7 +27,7 @@ struct MetadataFile : IMetadata {
 	}
 
 	union {
-		    int resolution[2] = { 0, 0 };
+		    Resolution resolution = Resolution(0, 0);
 		    int sampleRate;
 		};
 
