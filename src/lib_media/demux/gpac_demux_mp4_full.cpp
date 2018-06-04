@@ -54,10 +54,9 @@ bool GPACDemuxMP4Full::processSample() {
 	try {
 		/* only if we have the track number can we try to get the sample data */
 		if (reader->trackNumber != 0) {
-			u32 newSampleCount;
 
 			/* let's see how many samples we have since the last parsed */
-			newSampleCount = reader->movie->getSampleCount(reader->trackNumber);
+			auto newSampleCount = reader->movie->getSampleCount(reader->trackNumber);
 			if (newSampleCount > reader->sampleCount) {
 				/* New samples have been added to the file */
 				log(Info, "Found %s new samples (total: %s)",
