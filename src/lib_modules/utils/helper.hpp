@@ -9,7 +9,6 @@
 #include "../core/error.hpp"
 #include "lib_signals/utils/helper.hpp"
 #include "lib_utils/queue.hpp"
-#include "lib_utils/tools.hpp"
 #include <memory>
 
 namespace Modules {
@@ -186,13 +185,13 @@ class Module : public IModule, public ErrorCap, public LogCap, public InputCap {
 		InstanceType* addOutput(Args&&... args) {
 			auto p = new InstanceType(allocatorSize, allocatorSize, clock, std::forward<Args>(args)...);
 			outputs.push_back(uptr(p));
-			return safe_cast<InstanceType>(p);
+			return p;
 		}
 		template <typename InstanceType, typename ...Args>
 		InstanceType* addOutputDynAlloc(size_t allocatorMaxSize, Args&&... args) {
 			auto p = new InstanceType(allocatorSize, allocatorMaxSize, clock, std::forward<Args>(args)...);
 			outputs.push_back(uptr(p));
-			return safe_cast<InstanceType>(p);
+			return p;
 		}
 
 	private:
