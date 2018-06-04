@@ -53,73 +53,73 @@ bool GPACDemuxMP4Full::updateData() {
 bool GPACDemuxMP4Full::processSample() {
 	try {
 		/* only if we have the track number can we try to get the sample data */
-		if (reader->trackNumber != 0) {
+		if (reader->trackNumber == 0)
+			return true;
 
-			/* let's see how many samples we have since the last parsed */
-			auto newSampleCount = reader->movie->getSampleCount(reader->trackNumber);
-			if (newSampleCount > reader->sampleCount) {
-				/* New samples have been added to the file */
-				log(Info, "Found %s new samples (total: %s)",
-				    newSampleCount - reader->sampleCount,
-				    newSampleCount);
-				if (reader->sampleCount == 0) {
-					reader->sampleCount = newSampleCount;
-				}
-			}
+		/* let's see how many samples we have since the last parsed */
+		auto newSampleCount = reader->movie->getSampleCount(reader->trackNumber);
+		if (newSampleCount > reader->sampleCount) {
+			/* New samples have been added to the file */
+			log(Info, "Found %s new samples (total: %s)",
+			    newSampleCount - reader->sampleCount,
+			    newSampleCount);
 			if (reader->sampleCount == 0) {
-				/* no sample yet, let the data input force a reparsing of the data */
-				reader->refreshBoxes = GF_TRUE;
-			} else {
-				/* we have some samples, lets keep things stable in the parser for now and
-					 don't let the data input force a reparsing of the data */
-				reader->refreshBoxes = GF_FALSE;
+				reader->sampleCount = newSampleCount;
+			}
+		}
+		if (reader->sampleCount == 0) {
+			/* no sample yet, let the data input force a reparsing of the data */
+			reader->refreshBoxes = GF_TRUE;
+		} else {
+			/* we have some samples, lets keep things stable in the parser for now and
+				 don't let the data input force a reparsing of the data */
+			reader->refreshBoxes = GF_FALSE;
 
-				{
-					/* let's analyze the samples we have parsed so far one by one */
-					int di /*descriptor index*/;
-					auto ISOSample = reader->movie->getSample(reader->trackNumber, reader->sampleIndex, di);
-					/* if you want the sample description data, you can call:
-						 GF_Descriptor *desc = movie->getDecoderConfig(reader->track_handle, di);
-						 */
+			{
+				/* let's analyze the samples we have parsed so far one by one */
+				int di /*descriptor index*/;
+				auto ISOSample = reader->movie->getSample(reader->trackNumber, reader->sampleIndex, di);
+				/* if you want the sample description data, you can call:
+					 GF_Descriptor *desc = movie->getDecoderConfig(reader->track_handle, di);
+					 */
 
-					reader->samplesProcessed++;
-					auto const DTSOffset = reader->movie->getDTSOffet(reader->trackNumber);
-					/*here we dump some sample info: samp->data, samp->dataLength, samp->isRAP, samp->DTS, samp->CTS_Offset */
-					log(Debug, "Found sample #%s(#%s) of length %s , RAP: %s, DTS: %s, CTS: %s",
-					    reader->sampleIndex, reader->samplesProcessed, ISOSample->dataLength,
-					    ISOSample->IsRAP, ISOSample->DTS + DTSOffset, ISOSample->DTS + DTSOffset + ISOSample->CTS_Offset);
-					reader->sampleIndex++;
+				reader->samplesProcessed++;
+				auto const DTSOffset = reader->movie->getDTSOffet(reader->trackNumber);
+				/*here we dump some sample info: samp->data, samp->dataLength, samp->isRAP, samp->DTS, samp->CTS_Offset */
+				log(Debug, "Found sample #%s(#%s) of length %s , RAP: %s, DTS: %s, CTS: %s",
+				    reader->sampleIndex, reader->samplesProcessed, ISOSample->dataLength,
+				    ISOSample->IsRAP, ISOSample->DTS + DTSOffset, ISOSample->DTS + DTSOffset + ISOSample->CTS_Offset);
+				reader->sampleIndex++;
 
-					auto out = output->getBuffer(ISOSample->dataLength);
-					memcpy(out->data(), ISOSample->data, ISOSample->dataLength);
-					out->setMediaTime(ISOSample->DTS + DTSOffset, reader->movie->getMediaTimescale(reader->trackNumber));
-					output->emit(out);
+				auto out = output->getBuffer(ISOSample->dataLength);
+				memcpy(out->data(), ISOSample->data, ISOSample->dataLength);
+				out->setMediaTime(ISOSample->DTS + DTSOffset, reader->movie->getMediaTimescale(reader->trackNumber));
+				output->emit(out);
+			}
+
+			/* once we have read all the samples, we can release some data and force a reparse of the input buffer */
+			if (reader->sampleIndex > reader->sampleCount) {
+				u64 newBufferStart = 0;
+				u64 missingBytes;
+
+				log(Debug, "Releasing unnecessary buffers");
+				/* release internal structures associated with the samples read so far */
+				reader->movie->resetTables(true);
+
+				/* release the associated input data as well */
+				reader->movie->resetDataOffset(newBufferStart);
+				if (newBufferStart) {
+					u32 offset = (u32)newBufferStart;
+					const size_t newSize = reader->data.size() - offset;
+					memmove(reader->data.data(), reader->data.data() + offset, newSize);
+					reader->data.resize(newSize);
 				}
+				reader->dataUrl = format("gmem://%s@%s", reader->data.size(), (void*)reader->data.data());
+				reader->movie->refreshFragmented(missingBytes, reader->dataUrl);
 
-				/* once we have read all the samples, we can release some data and force a reparse of the input buffer */
-				if (reader->sampleIndex > reader->sampleCount) {
-					u64 newBufferStart = 0;
-					u64 missingBytes;
-
-					log(Debug, "Releasing unnecessary buffers");
-					/* release internal structures associated with the samples read so far */
-					reader->movie->resetTables(true);
-
-					/* release the associated input data as well */
-					reader->movie->resetDataOffset(newBufferStart);
-					if (newBufferStart) {
-						u32 offset = (u32)newBufferStart;
-						const size_t newSize = reader->data.size() - offset;
-						memmove(reader->data.data(), reader->data.data() + offset, newSize);
-						reader->data.resize(newSize);
-					}
-					reader->dataUrl = format("gmem://%s@%s", reader->data.size(), (void*)reader->data.data());
-					reader->movie->refreshFragmented(missingBytes, reader->dataUrl);
-
-					/* update the sample count and sample index */
-					reader->sampleCount = newSampleCount - reader->sampleCount;
-					reader->sampleIndex = 1;
-				}
+				/* update the sample count and sample index */
+				reader->sampleCount = newSampleCount - reader->sampleCount;
+				reader->sampleIndex = 1;
 			}
 		}
 
