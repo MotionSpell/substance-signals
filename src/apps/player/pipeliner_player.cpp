@@ -42,6 +42,7 @@ void declarePipeline(Pipeline &pipeline, const char *url) {
 	struct OutputDesc {
 		IPipelinedModule* module;
 		int index;
+		std::shared_ptr<const IMetadata> metadata;
 	};
 
 	auto createSources = [&](std::string url) -> std::vector<OutputDesc> {
@@ -51,12 +52,12 @@ void declarePipeline(Pipeline &pipeline, const char *url) {
 			for (int i = 0; i < (int)dashInput->getNumOutputs(); ++i) {
 				auto demux = pipeline.addModule<GPACDemuxMP4Full>();
 				pipeline.connect(dashInput, i, demux, 0);
-				r.push_back({demux, 0});
+				r.push_back({demux, 0, dashInput->getOutput(i)->getMetadata()});
 			}
 		} else {
 			auto demux = pipeline.addModule<Demux::LibavDemux>(url);
 			for (int i = 0; i < (int)demux->getNumOutputs(); ++i) {
-				r.push_back({demux, i});
+				r.push_back({demux, i, demux->getOutput(i)->getMetadata()});
 			}
 		}
 		return r;
@@ -66,7 +67,7 @@ void declarePipeline(Pipeline &pipeline, const char *url) {
 
 	for (int k = 0; k < (int)streams.size(); ++k) {
 		auto s = streams[k];
-		auto metadata = safe_cast<const MetadataPkt>(s.module->getOutput(s.index)->getMetadata());
+		auto metadata = safe_cast<const MetadataPkt>(s.metadata);
 		if (!metadata || metadata->isSubtitle()/*only render audio and video*/) {
 			Log::msg(Debug, "Ignoring stream #%s", k);
 			continue;
