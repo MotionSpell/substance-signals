@@ -57,10 +57,6 @@ MPEG_DASH_Input::MPEG_DASH_Input(std::unique_ptr<IFilePuller> source, std::strin
 
 	//DECLARE OUTPUT PORTS
 	for(auto& set : mpd->sets) {
-		// GET INITIALIZATION CHUNKS FROM HTTP
-		map<string, string> vars;
-		vars["RepresentationID"] = set.representationId;
-
 		shared_ptr<MetadataPkt> meta;
 		if(set.contentType == "audio") {
 			meta = make_shared<MetadataPktAudio>();
