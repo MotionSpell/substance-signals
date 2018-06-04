@@ -14,7 +14,7 @@ void Recorder::flush() {
 
 void Recorder::process(Data data) {
 	if (data) {
-		log(Debug, "Data[%s] recorded at media time %s (clock time: %s)", data, data->getMediaTime(), data->getClockTime());
+		log(Debug, "Data[%s] recorded at media time %s (creation time: %s)", data, data->getMediaTime(), data->getCreationTime());
 	}
 	record.push(data);
 }

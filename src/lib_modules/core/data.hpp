@@ -31,10 +31,13 @@ class DataBase : public IData {
 		void setMetadata(std::shared_ptr<const IMetadata> metadata);
 
 		void setMediaTime(int64_t timeIn180k, uint64_t timescale = IClock::Rate);
-		void setClockTime(int64_t timeIn180k, uint64_t timescale = IClock::Rate); /*should be set automatically after data is allocated*/
 		int64_t getMediaTime() const;
-		int64_t getClockTime(uint64_t timescale = IClock::Rate) const;
+
 		static std::atomic<uint64_t> absUTCOffsetInMs;
+
+		// FIXME: move this elsewhere
+		void setCreationTime(int64_t timeIn180k, uint64_t timescale = IClock::Rate); /*should be set automatically after data is allocated*/
+		int64_t getCreationTime(uint64_t timescale = IClock::Rate) const;
 
 		uint32_t flags = 0;
 

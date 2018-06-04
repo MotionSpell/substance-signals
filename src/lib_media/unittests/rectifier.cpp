@@ -104,7 +104,7 @@ struct DataGenerator : public ModuleS, public virtual IOutputCap {
 			dataPcm->setPlane(0, nullptr, 1024 * dataPcm->getFormat().getBytesPerSample());
 		}
 		data->setMediaTime(dataIn->getMediaTime());
-		data->setClockTime(dataIn->getClockTime());
+		data->setCreationTime(dataIn->getCreationTime());
 		output->emit(data);
 	}
 	PORT *output;
@@ -128,7 +128,7 @@ vector<vector<TimePair>> input) {
 		for (auto timePair : input[g]) {
 			shared_ptr<DataRaw> data(new DataRaw(0));
 			data->setMediaTime(timePair.mediaTime);
-			data->setClockTime(timePair.clockTime);
+			data->setCreationTime(timePair.clockTime);
 			generators[g]->process(data);
 		}
 	}
@@ -153,7 +153,7 @@ vector<vector<TimePair>> input) {
 	for (size_t g = 0; g < generators.size(); ++g) {
 		recorders[g]->process(nullptr);
 		while (auto data = recorders[g]->pop()) {
-			actualTimes[g].push_back(TimePair{data->getMediaTime(), data->getClockTime()});
+			actualTimes[g].push_back(TimePair{data->getMediaTime(), data->getCreationTime()});
 		}
 	}
 

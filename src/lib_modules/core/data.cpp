@@ -19,7 +19,7 @@ void DataBase::setMediaTime(int64_t time, uint64_t timescale) {
 	}
 }
 
-void DataBase::setClockTime(int64_t time, uint64_t timescale) {
+void DataBase::setCreationTime(int64_t time, uint64_t timescale) {
 	clockTimeIn180k = timescaleToClock(time, timescale);
 }
 
@@ -27,14 +27,14 @@ int64_t DataBase::getMediaTime() const {
 	return mediaTimeIn180k;
 }
 
-int64_t DataBase::getClockTime(uint64_t timescale) const {
+int64_t DataBase::getCreationTime(uint64_t timescale) const {
 	return timescaleToClock(clockTimeIn180k, timescale);
 }
 
 DataBaseRef::DataBaseRef(std::shared_ptr<const DataBase> data) {
 	if (data) {
 		setMediaTime(data->getMediaTime());
-		setClockTime(data->getClockTime());
+		setCreationTime(data->getCreationTime());
 		setMetadata(data->getMetadata());
 		auto ref = std::dynamic_pointer_cast<const DataBaseRef>(data);
 		if (ref) {

@@ -146,7 +146,7 @@ class OutputT : public IOutput, public MetadataCap, public ClockCap {
 		template<typename T = typename Allocator::MyType>
 		std::shared_ptr<T> getBuffer(size_t size) {
 			auto buffer = allocator->template getBuffer<T>(size, allocator);
-			if (clock) buffer->setClockTime(fractionToClock(clock->now()));
+			if (clock) buffer->setCreationTime(fractionToClock(clock->now()));
 			return buffer;
 		}
 
