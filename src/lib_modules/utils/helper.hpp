@@ -9,6 +9,7 @@
 #include "../core/error.hpp"
 #include "lib_signals/utils/helper.hpp"
 #include "lib_utils/queue.hpp"
+#include "lib_utils/default_clock.hpp"
 #include <memory>
 
 namespace Modules {

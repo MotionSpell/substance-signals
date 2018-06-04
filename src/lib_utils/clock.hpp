@@ -1,6 +1,5 @@
 #pragma once
 
-#include <memory>
 #include "lib_utils/fraction.hpp"
 
 struct IClock {
@@ -13,8 +12,6 @@ struct IClock {
 	// without needing another time reference? (i.e another IClock)
 	virtual double getSpeed() const = 0;
 };
-
-extern const std::shared_ptr<IClock> g_DefaultClock;
 
 template<typename T>
 static T convertToTimescale(T time, uint64_t timescaleSrc, uint64_t timescaleDst) {
@@ -39,3 +36,4 @@ static inline int64_t fractionToTimescale(Fraction time, uint64_t timescale) {
 static inline int64_t fractionToClock(Fraction time) {
 	return timescaleToClock(time.num, time.den);
 }
+

@@ -3,6 +3,7 @@
 #include <cassert>
 #include <ctime>
 #include <iostream>
+#include "lib_utils/default_clock.hpp"
 
 #ifdef _WIN32
 #include <windows.h>
