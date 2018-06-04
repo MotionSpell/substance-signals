@@ -59,7 +59,6 @@ MPEG_DASH_Input::MPEG_DASH_Input(std::unique_ptr<IFilePuller> source, std::strin
 		// GET INITIALIZATION CHUNKS FROM HTTP
 		map<string, string> vars;
 		vars["RepresentationID"] = set.representationId;
-		auto url = m_mpdDirname + "/" + expandVars(set.initialization, vars);
 
 		shared_ptr<MetadataPkt> meta;
 		if(set.contentType == "audio") {
@@ -73,6 +72,7 @@ MPEG_DASH_Input::MPEG_DASH_Input(std::unique_ptr<IFilePuller> source, std::strin
 
 		meta->codec = translateCodecName(set.codecs);
 
+		auto url = m_mpdDirname + "/" + expandVars(set.initialization, vars);
 		Log::msg(Debug, "wget init chunk: '%s'", url);
 		m_source->get(url);
 
