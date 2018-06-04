@@ -77,16 +77,23 @@ secondclasstest("demux one track: Demux::GPACDemuxMP4Simple -> Out::Print") {
 
 	mp4Demux->process(nullptr);
 }
+}
 
-secondclasstest("[DISABLED] demux one track: File -> Demux::GPACDemuxMP4Full -> Out::Print") {
+unittest("GPACDemuxMP4Full: simple demux one track") {
 	auto f = create<In::File>("data/beepbop.mp4");
 	auto mp4Demux = create<Demux::GPACDemuxMP4Full>();
-	auto p = create<Out::Print>(std::cout);
+
+	int sampleCount = 0;
+	auto onSample = [&](Data) {
+		++sampleCount;
+	};
 
 	ConnectOutputToInput(f->getOutput(0), mp4Demux->getInput(0));
-	ConnectOutputToInput(mp4Demux->getOutput(0), p->getInput(0));
+	ConnectOutput(mp4Demux.get(), onSample);
 
 	f->process(nullptr);
+
+	ASSERT_EQUALS(215, sampleCount);
 }
 
-}
+
