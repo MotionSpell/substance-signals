@@ -106,7 +106,7 @@ bool HTTP::open(std::shared_ptr<const MetadataFile> meta) {
 	if (!meta)
 		throw error("Unknown data received on input");
 	assert(!curTransferedBs && !curTransferedFile);
-	auto const fn = meta->getFilename();
+	auto const fn = meta->filename;
 	if (fn.empty() || curTransferedData->size()) {
 		curTransferedBs = gf_bs_new((const char*)curTransferedData->data(), curTransferedData->size(), GF_BITSTREAM_READ);
 	} else {
@@ -145,7 +145,7 @@ size_t HTTP::curlCallback(void *ptr, size_t size, size_t nmemb) {
 	if (state == RunNewConnection && curTransferedData) {
 		if (curTransferedBs) {
 			auto meta = safe_cast<const MetadataFile>(curTransferedData->getMetadata());
-			log(Warning, "Reconnect: file %s", meta->getFilename());
+			log(Warning, "Reconnect: file %s", meta->filename);
 			gf_bs_seek(curTransferedBs, 0);
 		} else { /*we may be exiting because of an exception*/
 			curTransferedData = nullptr;

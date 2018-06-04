@@ -57,7 +57,7 @@ void AdaptiveStreamingCommon::processInitSegment(Quality const * const quality, 
 	switch (meta->getStreamType()) {
 	case AUDIO_PKT: case VIDEO_PKT: case SUBTITLE_PKT: {
 		auto out = make_shared<DataBaseRef>(quality->lastData);
-		std::string initFn = safe_cast<const MetadataFile>(quality->lastData->getMetadata())->getFilename();
+		std::string initFn = safe_cast<const MetadataFile>(quality->lastData->getMetadata())->filename;
 		if (initFn.empty()) {
 			initFn = format("%s%s", manifestDir, getInitName(quality, index));
 		} else if (!(flags & SegmentsNotOwned)) {
@@ -65,7 +65,7 @@ void AdaptiveStreamingCommon::processInitSegment(Quality const * const quality, 
 			moveFile(initFn, dst);
 			initFn = dst;
 		}
-		out->setMetadata(make_shared<MetadataFile>(initFn, SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), meta->getSize(), meta->getLatency(), meta->getStartsWithRAP(), true));
+		out->setMetadata(make_shared<const MetadataFile>(initFn, SEGMENT, meta->mimeType, meta->codecName, meta->durationIn180k, meta->filesize, meta->latencyIn180k, meta->startsWithRAP, true));
 		out->setMediaTime(totalDurationInMs, 1000);
 		outputSegments->emit(out);
 		break;
@@ -126,7 +126,7 @@ std::shared_ptr<DataBase> AdaptiveStreamingCommon::getPresignalledData(uint64_t 
 	if (!(flags & PresignalNextSegment)) {
 		return make_shared<DataBaseRef>(data);
 	}
-	if (!safe_cast<const MetadataFile>(data->getMetadata())->getFilename().empty() && !EOS) {
+	if (!safe_cast<const MetadataFile>(data->getMetadata())->filename.empty() && !EOS) {
 		return nullptr;
 	}
 
@@ -174,7 +174,7 @@ void AdaptiveStreamingCommon::threadProc() {
 		for (size_t idx = 0; idx < curSegDurIn180k.size(); ++idx) {
 			auto const &segDur = curSegDurIn180k[idx];
 			if ( (segDur < minIncompletSegDur) &&
-			    ((segDur < timescaleToClock(segDurationInMs, 1000)) || (!qualities[idx]->getMeta() || !qualities[idx]->getMeta()->getEOS()))) {
+			    ((segDur < timescaleToClock(segDurationInMs, 1000)) || (!qualities[idx]->getMeta() || !qualities[idx]->getMeta()->EOS))) {
 				minIncompletSegDur = segDur;
 			}
 		}
@@ -194,7 +194,7 @@ void AdaptiveStreamingCommon::threadProc() {
 		auto out = getPresignalledData(size, data, EOS);
 		if (out) {
 			auto const &meta = qualities[i]->getMeta();
-			out->setMetadata(make_shared<MetadataFile>(getSegmentName(qualities[i].get(), i, std::to_string(getCurSegNum())), SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), size, meta->getLatency(), meta->getStartsWithRAP(), EOS));
+			out->setMetadata(make_shared<const MetadataFile>(getSegmentName(qualities[i].get(), i, std::to_string(getCurSegNum())), SEGMENT, meta->mimeType, meta->codecName, meta->durationIn180k, size, meta->latencyIn180k, meta->startsWithRAP, EOS));
 			out->setMediaTime(totalDurationInMs + timescaleToClock(curSegDurIn180k[i], 1000));
 			outputSegments->emit(out);
 		}
@@ -205,7 +205,7 @@ void AdaptiveStreamingCommon::threadProc() {
 			if (curSegDurIn180k[i] < timescaleToClock(segDurationInMs, 1000)) {
 				return false;
 			}
-			if (!qualities[i]->getMeta()->getEOS()) {
+			if (!qualities[i]->getMeta()->EOS) {
 				return false;
 			}
 		}
@@ -238,7 +238,7 @@ void AdaptiveStreamingCommon::threadProc() {
 					throw error(format("Unknown data received on input %s", i));
 				ensurePrefix(i);
 
-				auto const curDurIn180k = meta->getDuration();
+				auto const curDurIn180k = meta->durationIn180k;
 				if (curDurIn180k == 0 && curSegDurIn180k[i] == 0) {
 					processInitSegment(qualities[i].get(), i);
 					if (flags & PresignalNextSegment) {
@@ -249,15 +249,15 @@ void AdaptiveStreamingCommon::threadProc() {
 
 				if (segDurationInMs && curDurIn180k) {
 					auto const numSeg = totalDurationInMs / segDurationInMs;
-					qualities[i]->avg_bitrate_in_bps = ((meta->getSize() * 8 * IClock::Rate) / meta->getDuration() + qualities[i]->avg_bitrate_in_bps * numSeg) / (numSeg + 1);
+					qualities[i]->avg_bitrate_in_bps = ((meta->filesize * 8 * IClock::Rate) / meta->durationIn180k + qualities[i]->avg_bitrate_in_bps * numSeg) / (numSeg + 1);
 				}
 				if (flags & ForceRealDurations) {
-					curSegDurIn180k[i] += meta->getDuration();
+					curSegDurIn180k[i] += meta->durationIn180k;
 				} else {
-					curSegDurIn180k[i] = segDurationInMs ? timescaleToClock(segDurationInMs, 1000) : meta->getDuration();
+					curSegDurIn180k[i] = segDurationInMs ? timescaleToClock(segDurationInMs, 1000) : meta->durationIn180k;
 				}
-				if (curSegDurIn180k[i] < timescaleToClock(segDurationInMs, 1000) || !meta->getEOS()) {
-					sendLocalData(meta->getSize(), meta->getEOS());
+				if (curSegDurIn180k[i] < timescaleToClock(segDurationInMs, 1000) || !meta->EOS) {
+					sendLocalData(meta->filesize, meta->EOS);
 				}
 			}
 		}

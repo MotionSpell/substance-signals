@@ -54,7 +54,7 @@ std::string Apple_HLS::getManifestMasterInternal() {
 			auto quality = safe_cast<HLSQuality>(qualities[i].get());
 			auto const &meta = quality->getMeta();
 			if (meta->getStreamType() == AUDIO_PKT) {
-				audioSpecs.push_back({ meta->getCodecName(), quality->avg_bitrate_in_bps });
+				audioSpecs.push_back({ meta->codecName, quality->avg_bitrate_in_bps });
 				playlistMaster << "#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"" << audioGroupName << "\",NAME=\"Main\",LANGUAGE=\"en\",AUTOSELECT=YES,URI=\"" << getVariantPlaylistName(quality, "", i) << "\"" << std::endl;
 			}
 		}
@@ -74,7 +74,7 @@ std::string Apple_HLS::getManifestMasterInternal() {
 			switch (meta->getStreamType()) {
 			case AUDIO_PKT: break;
 			case VIDEO_PKT:
-				playlistMaster << "#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=" << bandwidth<< ",CODECS=\"" << meta->getCodecName();
+				playlistMaster << "#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=" << bandwidth<< ",CODECS=\"" << meta->codecName;
 				if (!audioSpecs.empty()) {
 					playlistMaster << "," << audioSpecs[0].codecName;
 					playlistMaster << "\",AUDIO=\"" << audioGroupName;
@@ -110,7 +110,7 @@ void Apple_HLS::generateManifestMaster() {
 
 		if (type != Static) {
 			auto out = outputManifest->getBuffer(0);
-			auto metadata = make_shared<MetadataFile>(playlistMasterPath, PLAYLIST, "", "", timescaleToClock(segDurationInMs, 1000), 0, 1, false, true);
+			auto metadata = make_shared<const MetadataFile>(playlistMasterPath, PLAYLIST, "", "", timescaleToClock(segDurationInMs, 1000), 0, 1, false, true);
 			out->setMetadata(metadata);
 			out->setMediaTime(totalDurationInMs, 1000);
 			outputManifest->emit(out);
@@ -124,7 +124,7 @@ void Apple_HLS::updateManifestVariants() {
 		for (size_t i = 0; i < getNumInputs() - 1; ++i) {
 			auto quality = safe_cast<HLSQuality>(qualities[i].get());
 			auto const &meta = quality->getMeta();
-			auto fn = meta->getFilename();
+			auto fn = meta->filename;
 			if (fn.empty()) {
 				fn = getSegmentName(quality, i, std::to_string(getCurSegNum()));
 			}
@@ -144,7 +144,7 @@ void Apple_HLS::updateManifestVariants() {
 			buffer >> firstSegNums[i];
 
 			auto out = make_shared<DataBaseRef>(quality->lastData);
-			out->setMetadata(make_shared<MetadataFile>(format("%s%s", manifestDir, fn), SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), meta->getSize(), meta->getLatency(), meta->getStartsWithRAP(), true));
+			out->setMetadata(make_shared<const MetadataFile>(format("%s%s", manifestDir, fn), SEGMENT, meta->mimeType, meta->codecName, meta->durationIn180k, meta->filesize, meta->latencyIn180k, meta->startsWithRAP, true));
 			out->setMediaTime(totalDurationInMs, 1000);
 			outputSegments->emit(out);
 
@@ -227,7 +227,7 @@ void Apple_HLS::generateManifestVariantFull(bool isLast) {
 			vpl.close();
 
 			auto out = outputManifest->getBuffer(0);
-			auto metadata = make_shared<MetadataFile>(playlistCurVariantPath, PLAYLIST, "", "", timescaleToClock(segDurationInMs, 1000), 0, 1, false, true);
+			auto metadata = make_shared<const MetadataFile>(playlistCurVariantPath, PLAYLIST, "", "", timescaleToClock(segDurationInMs, 1000), 0, 1, false, true);
 			out->setMetadata(metadata);
 			out->setMediaTime(totalDurationInMs, 1000);
 			outputManifest->emit(out);

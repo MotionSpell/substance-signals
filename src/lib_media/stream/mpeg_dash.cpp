@@ -118,12 +118,12 @@ void MPEG_DASH::ensureManifest() {
 				mpd->mpd->minimum_update_period = (u32)minUpdatePeriodInMs * MIN_UPDATE_PERIOD_FACTOR;
 				rep->segment_template->start_number = (u32)(startTimeInMs / segDurationInMs);
 			}
-			rep->mime_type = gf_strdup(meta->getMimeType().c_str());
-			rep->codecs = gf_strdup(meta->getCodecName().c_str());
+			rep->mime_type = gf_strdup(meta->mimeType.c_str());
+			rep->codecs = gf_strdup(meta->codecName.c_str());
 			rep->starts_with_sap = GF_TRUE;
-			if (mpd->mpd->type == GF_MPD_TYPE_DYNAMIC && meta->getLatency()) {
-				rep->segment_template->availability_time_offset = std::max<double>(0.0,  (double)(segDurationInMs - clockToTimescale(meta->getLatency(), 1000)) / 1000);
-				mpd->mpd->min_buffer_time = (u32)clockToTimescale(meta->getLatency(), 1000);
+			if (mpd->mpd->type == GF_MPD_TYPE_DYNAMIC && meta->latencyIn180k) {
+				rep->segment_template->availability_time_offset = std::max<double>(0.0,  (double)(segDurationInMs - clockToTimescale(meta->latencyIn180k, 1000)) / 1000);
+				mpd->mpd->min_buffer_time = (u32)clockToTimescale(meta->latencyIn180k, 1000);
 			}
 			switch (meta->getStreamType()) {
 			case AUDIO_PKT:
@@ -180,7 +180,7 @@ void MPEG_DASH::generateManifest() {
 			continue;
 		}
 		if (quality->rep->width) { /*video only*/
-			quality->rep->starts_with_sap = (quality->rep->starts_with_sap == GF_TRUE && meta->getStartsWithRAP()) ? GF_TRUE : GF_FALSE;
+			quality->rep->starts_with_sap = (quality->rep->starts_with_sap == GF_TRUE && meta->startsWithRAP) ? GF_TRUE : GF_FALSE;
 		}
 
 		std::string fn, fnNext;
@@ -188,7 +188,7 @@ void MPEG_DASH::generateManifest() {
 			auto entries = quality->rep->segment_template->segment_timeline->entries;
 			auto const prevEntIdx = gf_list_count(entries);
 			GF_MPD_SegmentTimelineEntry *prevEnt = prevEntIdx == 0 ? nullptr : (GF_MPD_SegmentTimelineEntry*)gf_list_get(entries, prevEntIdx-1);
-			auto const currDur = clockToTimescale(meta->getDuration(), 1000);
+			auto const currDur = clockToTimescale(meta->durationIn180k, 1000);
 			uint64_t segTime = 0;
 			if (!prevEnt || prevEnt->duration != currDur) {
 				auto ent = (GF_MPD_SegmentTimelineEntry*)gf_malloc(sizeof(GF_MPD_SegmentTimelineEntry));
@@ -209,7 +209,7 @@ void MPEG_DASH::generateManifest() {
 				fnNext = getPrefixedSegmentName(quality, i, n + 1);
 			}
 		}
-		auto metaFn = make_shared<MetadataFile>(fn, SEGMENT, meta->getMimeType(), meta->getCodecName(), meta->getDuration(), meta->getSize(), meta->getLatency(), meta->getStartsWithRAP(), true);
+		auto metaFn = make_shared<MetadataFile>(fn, SEGMENT, meta->mimeType, meta->codecName, meta->durationIn180k, meta->filesize, meta->latencyIn180k, meta->startsWithRAP, true);
 		switch (meta->getStreamType()) {
 		case AUDIO_PKT: metaFn->sampleRate = meta->sampleRate; break;
 		case VIDEO_PKT: metaFn->resolution[0] = meta->resolution[0]; metaFn->resolution[1] = meta->resolution[1]; break;
@@ -218,12 +218,12 @@ void MPEG_DASH::generateManifest() {
 		}
 
 		if (!fn.empty()) {
-			log(Debug, "Rename segment \"%s\" -> \"%s\".", meta->getFilename(), fn);
-			if (!moveFile(meta->getFilename(), fn)) {
-				log(Error, "Couldn't rename segment \"%s\" -> \"%s\". You may encounter playback errors.", meta->getFilename(), fn);
+			log(Debug, "Rename segment \"%s\" -> \"%s\".", meta->filename, fn);
+			if (!moveFile(meta->filename, fn)) {
+				log(Error, "Couldn't rename segment \"%s\" -> \"%s\". You may encounter playback errors.", meta->filename, fn);
 			}
 
-			auto out = getPresignalledData(meta->getSize(), quality->lastData, true);
+			auto out = getPresignalledData(meta->filesize, quality->lastData, true);
 			if (!out)
 				throw error("Unexpected null pointer detected which getting data.");
 			out->setMetadata(metaFn);
@@ -233,7 +233,7 @@ void MPEG_DASH::generateManifest() {
 			if (!fnNext.empty()) {
 				auto out = getPresignalledData(0, quality->lastData, false);
 				if (out) {
-					out->setMetadata(make_shared<MetadataFile>(fnNext, metaFn->getStreamType(), metaFn->getMimeType(), metaFn->getCodecName(), metaFn->getDuration(), 0, metaFn->getLatency(), metaFn->getStartsWithRAP(), false));
+					out->setMetadata(make_shared<MetadataFile>(fnNext, metaFn->getStreamType(), metaFn->mimeType, metaFn->codecName, metaFn->durationIn180k, 0, metaFn->latencyIn180k, metaFn->startsWithRAP, false));
 					out->setMediaTime(totalDurationInMs, 1000);
 					outputSegments->emit(out);
 				}
@@ -244,13 +244,13 @@ void MPEG_DASH::generateManifest() {
 			uint64_t timeShiftSegmentsInMs = 0;
 			auto seg = quality->timeshiftSegments.begin();
 			while (seg != quality->timeshiftSegments.end()) {
-				timeShiftSegmentsInMs += clockToTimescale((*seg).file->getDuration(), 1000);
+				timeShiftSegmentsInMs += clockToTimescale((*seg).file->durationIn180k, 1000);
 				if (timeShiftSegmentsInMs > timeShiftBufferDepthInMs) {
-					log(Debug, "Delete segment \"%s\".", (*seg).file->getFilename());
-					if (gf_delete_file((*seg).file->getFilename().c_str()) == GF_OK || (*seg).retry == 0) {
+					log(Debug, "Delete segment \"%s\".", (*seg).file->filename);
+					if (gf_delete_file((*seg).file->filename.c_str()) == GF_OK || (*seg).retry == 0) {
 						seg = quality->timeshiftSegments.erase(seg);
 					} else {
-						log(Warning, "Couldn't delete old segment \"%s\" (retry=%s).", (*seg).file->getFilename(), (*seg).retry);
+						log(Warning, "Couldn't delete old segment \"%s\" (retry=%s).", (*seg).file->filename, (*seg).retry);
 						(*seg).retry--;
 					}
 				} else {
@@ -298,8 +298,8 @@ void MPEG_DASH::finalizeManifest() {
 				}
 
 				for (auto const &seg : quality->timeshiftSegments) {
-					if (gf_delete_file(seg.file->getFilename().c_str()) != GF_OK) {
-						log(Error, "Couldn't delete media segment \"%s\".", seg.file->getFilename());
+					if (gf_delete_file(seg.file->filename.c_str()) != GF_OK) {
+						log(Error, "Couldn't delete media segment \"%s\".", seg.file->filename);
 					}
 				}
 			}

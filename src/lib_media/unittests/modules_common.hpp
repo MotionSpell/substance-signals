@@ -29,8 +29,8 @@ struct Listener : public Modules::ModuleS {
 	}
 	void process(Modules::Data data) override {
 		auto const &m = safe_cast<const Modules::MetadataFile>(data->getMetadata());
-		results.push_back({ internalTestIdx, m->getFilename(), m->getMimeType(), m->getCodecName(),
-		        m->getDuration(), m->getSize(), m->getLatency(), m->getStartsWithRAP(), m->getEOS() });
+		results.push_back({ internalTestIdx, m->filename, m->mimeType, m->codecName,
+		        m->durationIn180k, m->filesize, m->latencyIn180k, m->startsWithRAP, m->EOS });
 	}
 	void print() { //used for generating reference results
 		for (auto &r : results) {
