@@ -25,6 +25,7 @@ class MPEG_DASH_Input : public Module {
 
 		std::unique_ptr<DashMpd> mpd;
 		std::string m_mpdDirname;
+		bool m_initializationChunkSent = false;
 };
 
 }

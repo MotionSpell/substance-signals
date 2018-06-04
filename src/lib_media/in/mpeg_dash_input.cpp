@@ -72,10 +72,6 @@ MPEG_DASH_Input::MPEG_DASH_Input(std::unique_ptr<IFilePuller> source, std::strin
 
 		meta->codec = translateCodecName(set.codecs);
 
-		auto url = m_mpdDirname + "/" + expandVars(set.initialization, vars);
-		Log::msg(Debug, "wget init chunk: '%s'", url);
-		m_source->get(url);
-
 		auto output = addOutput<OutputDefault>();
 		output->setMetadata(meta);
 	}
@@ -92,19 +88,36 @@ void MPEG_DASH_Input::process() {
 bool MPEG_DASH_Input::wakeUp() {
 	map<string, string> vars;
 
-	for(auto& set : mpd->sets) {
-		vars["RepresentationID"] = set.representationId;
-		vars["Number"] = format("%s", set.startNumber);
-		set.startNumber++;
-		auto url = m_mpdDirname + "/" + expandVars(set.media, vars);
-		Log::msg(Debug, "wget: '%s'", url);
+	if(m_initializationChunkSent) {
 
-		if(m_source->get(url) == "")
-			return false;
+		for(auto& set : mpd->sets) {
+			vars["RepresentationID"] = set.representationId;
+			vars["Number"] = format("%s", set.startNumber);
+			set.startNumber++;
+			auto url = m_mpdDirname + "/" + expandVars(set.media, vars);
+			Log::msg(Debug, "wget: '%s'", url);
 
-		auto data = make_shared<DataRaw>(10);
-		outputs[0]->emit(data);
+			if(m_source->get(url) == "")
+				return false;
+
+			auto data = make_shared<DataRaw>(10);
+			outputs[0]->emit(data);
+		}
+	} else {
+		for(auto& set : mpd->sets) {
+			vars["RepresentationID"] = set.representationId;
+			auto url = m_mpdDirname + "/" + expandVars(set.initialization, vars);
+			Log::msg(Debug, "wget: '%s'", url);
+
+			if(m_source->get(url) == "")
+				return false;
+
+			auto data = make_shared<DataRaw>(10);
+			outputs[0]->emit(data);
+		}
+		m_initializationChunkSent = true;
 	}
+
 	return true;
 }
 
