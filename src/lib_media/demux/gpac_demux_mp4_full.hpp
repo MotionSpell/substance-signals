@@ -18,6 +18,7 @@ class GPACDemuxMP4Full : public ModuleS {
 		bool updateData();
 		bool processSample();
 		bool processData();
+		bool safeProcessSample();
 
 		std::unique_ptr<ISOProgressiveReader> reader;
 		OutputDefault* output;
