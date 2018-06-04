@@ -13,7 +13,6 @@ struct ISOProgressiveReader {
 	/* The ISO file structure created for the parsing of data */
 	std::unique_ptr<gpacpp::IsoFile> movie;
 	/* Boolean state to indicate if the needs to be parsed */
-	Bool refreshBoxes = GF_TRUE;
 	u32 samplesProcessed = 0;
 	u32 sampleIndex = 1; /* samples are numbered starting from 1 */
 	u32 sampleCount = 0;
@@ -77,13 +76,8 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 	}
 	if (reader->sampleCount == 0) {
 		/* no sample yet, let the data input force a reparsing of the data */
-		reader->refreshBoxes = GF_TRUE;
 		return true;
 	}
-
-	/* we have some samples, lets keep things stable in the parser for now and
-	   don't let the data input force a reparsing of the data */
-	reader->refreshBoxes = GF_FALSE;
 
 	{
 		/* let's analyze the samples we have parsed so far one by one */
