@@ -50,7 +50,7 @@ struct MetadataRawAudio : public IMetadata {
 };
 
 struct MetadataPkt : public IMetadata {
-	int codecId = -1;
+	std::string codec; // do not replace this with an enum!
 	std::vector<uint8_t> codecSpecificInfo;
 };
 

@@ -152,7 +152,7 @@ void AVCodecContextDeleter(AVCodecContext *p) {
 
 MetadataPktLibav::MetadataPktLibav(std::shared_ptr<AVCodecContext> codecCtx, int id)
 	: codecCtx(codecCtx), id(id) {
-	codecId = codecCtx->codec_id;
+	codec = avcodec_get_name(codecCtx->codec_id);
 	codecSpecificInfo.assign(codecCtx->extradata, codecCtx->extradata + codecCtx->extradata_size);
 }
 
@@ -184,7 +184,7 @@ Fraction MetadataPktLibav::getTimeScale() const {
 }
 
 std::string MetadataPktLibav::getCodecName() const {
-	return avcodec_get_name(codecCtx->codec_id);
+	return codec;
 }
 
 PixelFormat MetadataPktLibavVideo::getPixelFormat() const {

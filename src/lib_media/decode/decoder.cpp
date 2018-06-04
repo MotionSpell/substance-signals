@@ -11,12 +11,11 @@ namespace Decode {
 Decoder::Decoder(const MetadataPkt* metadata)
 	: avFrame(new ffpp::Frame) {
 
-	auto const codec_id = (AVCodecID)metadata->codecId;
 	auto const extradata = metadata->codecSpecificInfo;
 
-	auto const codec = avcodec_find_decoder(codec_id);
+	auto const codec = avcodec_find_decoder_by_name(metadata->codec.c_str());
 	if (!codec)
-		throw error(format("Decoder not found for codecID (%s).", codec_id));
+		throw error(format("Decoder not found for codecID (%s).", metadata->codec));
 
 	codecCtx = shptr(avcodec_alloc_context3(codec));
 
