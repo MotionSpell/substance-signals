@@ -50,12 +50,12 @@ static GF_Err avc_import_ffextradata(const u8 *extradata, const u64 extradataSiz
 		Log::msg(Warning, "No initial SPS/PPS provided.");
 		return GF_OK;
 	}
-	auto bs = gf_bs_new((const char*)extradata, extradataSize, GF_BITSTREAM_READ);
+	auto bs2 = std::shared_ptr<GF_BitStream>(gf_bs_new((const char*)extradata, extradataSize, GF_BITSTREAM_READ), &gf_bs_del);
+	auto bs = bs2.get();
 	if (!bs) {
 		return GF_BAD_PARAM;
 	}
 	if (gf_bs_read_u32(bs) != 0x00000001) {
-		gf_bs_del(bs);
 		return GF_NON_COMPLIANT_BITSTREAM;
 	}
 
@@ -68,7 +68,6 @@ static GF_Err avc_import_ffextradata(const u8 *extradata, const u64 extradataSiz
 parse_sps:
 		nalSize = gf_media_nalu_next_start_code_bs(bs);
 		if (nalStart + nalSize > extradataSize) {
-			gf_bs_del(bs);
 			return GF_BAD_PARAM;
 		}
 		buffer = (char*)gf_malloc(nalSize);
@@ -82,14 +81,12 @@ parse_sps:
 			goto parse_sps;
 		}
 		if (type != GF_AVC_NALU_SEQ_PARAM) {
-			gf_bs_del(bs);
 			gf_free(buffer);
 			return GF_BAD_PARAM;
 		}
 
 		idx = gf_media_avc_read_sps(buffer, nalSize, avc.get(), 0, nullptr);
 		if (idx < 0) {
-			gf_bs_del(bs);
 			gf_free(buffer);
 			return GF_BAD_PARAM;
 		}
@@ -119,21 +116,18 @@ parse_sps:
 		gf_bs_seek(bs, nalStart);
 		nalSize = gf_media_nalu_next_start_code_bs(bs);
 		if (nalStart + nalSize > extradataSize) {
-			gf_bs_del(bs);
 			return GF_BAD_PARAM;
 		}
 		buffer = (char*)gf_malloc(nalSize);
 		gf_bs_read_data(bs, buffer, nalSize);
 		gf_bs_seek(bs, nalStart);
 		if ((gf_bs_read_u8(bs) & 0x1F) != GF_AVC_NALU_PIC_PARAM) {
-			gf_bs_del(bs);
 			gf_free(buffer);
 			return GF_BAD_PARAM;
 		}
 
 		idx = gf_media_avc_read_pps(buffer, nalSize, avc.get());
 		if (idx < 0) {
-			gf_bs_del(bs);
 			gf_free(buffer);
 			return GF_BAD_PARAM;
 		}
@@ -147,7 +141,6 @@ parse_sps:
 		}
 	}
 
-	gf_bs_del(bs);
 	return GF_OK;
 }
 
