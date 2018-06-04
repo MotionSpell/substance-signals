@@ -3,6 +3,7 @@
 #include "mpeg_dash_input.hpp"
 #include <vector>
 #include <map>
+#include <cstring> // memcpy
 
 std::string expandVars(std::string input, std::map<std::string,std::string> const& values);
 
@@ -102,10 +103,12 @@ bool MPEG_DASH_Input::wakeUp() {
 		}
 		Log::msg(Debug, "wget: '%s'", url);
 
-		if(m_source->get(url) == "")
-			return false;
+		auto chunk = m_source->get(url);
+		if(chunk == "")
+			return false; // end of stream
 
-		auto data = make_shared<DataRaw>(10);
+		auto data = make_shared<DataRaw>(chunk.size());
+		memcpy(data->data(), chunk.c_str(), chunk.size());
 		outputs[0]->emit(data);
 	}
 
