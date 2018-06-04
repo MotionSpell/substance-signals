@@ -124,12 +124,12 @@ AVPacket * LibavMux::getFormattedPkt(Data data) {
 	auto pkt = safe_cast<const DataAVPacket>(data)->getPacket();
 	auto videoMetadata = std::dynamic_pointer_cast<const MetadataPktLibavVideo>(data->getMetadata()); //video only ATM
 	if (m_inbandMetadata && videoMetadata && (pkt->flags & AV_PKT_FLAG_KEY)) {
-		auto const eSize = videoMetadata->getAVCodecContext()->extradata_size;
+		auto const eSize = videoMetadata->codecSpecificInfo.size();
 		auto const outSize = pkt->size + eSize;
 		auto newPkt = av_packet_alloc();
 		av_init_packet(newPkt);
 		av_new_packet(newPkt, outSize);
-		memcpy(newPkt->data, videoMetadata->getAVCodecContext()->extradata, eSize);
+		memcpy(newPkt->data, videoMetadata->codecSpecificInfo.data(), eSize);
 		memcpy(newPkt->data + eSize, pkt->data, pkt->size);
 		newPkt->size = outSize;
 		newPkt->flags = pkt->flags;
