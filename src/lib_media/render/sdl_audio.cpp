@@ -71,7 +71,9 @@ bool SDLAudio::reconfigure(PcmFormat inputFormat) {
 
 SDLAudio::SDLAudio(const std::shared_ptr<IClock> clock)
 	: m_clock(clock), m_inputFormat(PcmFormat(44100, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Interleaved)),
-	  fifoTimeIn180k(0) {
+	  // consider an empty fifo as being very far in the future:
+	  // this avoids lots of warning messages in "normal" conditions
+	  fifoTimeIn180k(std::numeric_limits<int>::max()) {
 
 	if (SDL_InitSubSystem(SDL_INIT_AUDIO | SDL_INIT_NOPARACHUTE) == -1)
 		throw std::runtime_error(format("Couldn't initialize: %s", SDL_GetError()));
