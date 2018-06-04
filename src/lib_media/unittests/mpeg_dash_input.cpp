@@ -7,12 +7,12 @@ using namespace Modules;
 using namespace In;
 
 struct LocalFilesystem : IFilePuller {
-	std::string get(std::string url) override {
+	std::vector<uint8_t> get(std::string url) override {
 		requests.push_back(url);
 		if(resources.find(url) == resources.end()) {
-			return "";
+			return {};
 		}
-		return resources[url];
+		return {resources[url].begin(), resources[url].end()};
 	}
 
 	std::map<std::string, std::string> resources;
@@ -23,7 +23,7 @@ struct LocalFilesystem : IFilePuller {
 struct Proxy : IFilePuller {
 	IFilePuller* delegate;
 
-	std::string get(std::string url) override {
+	std::vector<uint8_t> get(std::string url) override {
 		return delegate->get(url);
 	}
 };

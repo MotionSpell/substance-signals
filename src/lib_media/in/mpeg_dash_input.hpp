@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string>
+#include <vector>
 #include "lib_modules/utils/helper.hpp"
 
 struct DashMpd;
@@ -10,7 +10,7 @@ namespace In {
 
 struct IFilePuller {
 	virtual ~IFilePuller() = default;
-	virtual std::string get(std::string url) = 0;
+	virtual std::vector<uint8_t> get(std::string url) = 0;
 };
 
 class MPEG_DASH_Input : public Module {

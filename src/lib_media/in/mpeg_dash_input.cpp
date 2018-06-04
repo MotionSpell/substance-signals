@@ -53,7 +53,7 @@ MPEG_DASH_Input::MPEG_DASH_Input(std::unique_ptr<IFilePuller> source, std::strin
 
 	//PARSE MPD
 	mpd = make_unique<DashMpd>();
-	*mpd = parseMpd(mpdAsText);
+	*mpd = parseMpd(string(mpdAsText.begin(), mpdAsText.end()));
 
 	//DECLARE OUTPUT PORTS
 	for(auto& set : mpd->sets) {
@@ -83,6 +83,7 @@ void MPEG_DASH_Input::process() {
 }
 
 bool MPEG_DASH_Input::wakeUp() {
+	int i=0;
 	for(auto& set : mpd->sets) {
 
 		string url;
@@ -100,12 +101,13 @@ bool MPEG_DASH_Input::wakeUp() {
 		Log::msg(Debug, "wget: '%s'", url);
 
 		auto chunk = m_source->get(url);
-		if(chunk == "")
+		if(chunk.empty())
 			return false; // end of stream
 
 		auto data = make_shared<DataRaw>(chunk.size());
-		memcpy(data->data(), chunk.c_str(), chunk.size());
-		outputs[0]->emit(data);
+		memcpy(data->data(), chunk.data(), chunk.size());
+		outputs[i]->emit(data);
+		++i;
 	}
 
 	m_initializationChunkSent = true;
@@ -195,7 +197,7 @@ extern "C" {
 
 struct HttpSource : IFilePuller {
 
-	std::string get(std::string url) override {
+	std::vector<uint8_t> get(std::string url) override {
 		struct HttpContext {
 			std::vector<uint8_t> data;
 
@@ -229,7 +231,7 @@ struct HttpSource : IFilePuller {
 			throw std::runtime_error(std::string("curl_easy_perform() failed: ") + curl_easy_strerror(res));
 
 		curl_easy_cleanup(curl);
-		return std::string(ctx.data.begin(), ctx.data.end());
+		return ctx.data;
 	}
 };
 
