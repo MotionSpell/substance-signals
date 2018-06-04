@@ -45,14 +45,12 @@ void getBsContent(GF_ISOFile *iso, char *&output, u32 &size, bool newBs) {
 }
 
 static GF_Err avc_import_ffextradata(const u8 *extradata, const u64 extradataSize, GF_AVCConfig *dstcfg) {
-	u8 nalSize;
 	auto avc = make_unique<AVCState>();
-	GF_BitStream *bs = nullptr;
 	if (!extradata || !extradataSize) {
 		Log::msg(Warning, "No initial SPS/PPS provided.");
 		return GF_OK;
 	}
-	bs = gf_bs_new((const char*)extradata, extradataSize, GF_BITSTREAM_READ);
+	auto bs = gf_bs_new((const char*)extradata, extradataSize, GF_BITSTREAM_READ);
 	if (!bs) {
 		return GF_BAD_PARAM;
 	}
@@ -63,6 +61,7 @@ static GF_Err avc_import_ffextradata(const u8 *extradata, const u64 extradataSiz
 
 	//SPS
 	u64 nalStart = 4;
+	u8 nalSize = 0;
 	{
 		s32 idx = 0;
 		char *buffer = nullptr;
