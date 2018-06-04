@@ -67,13 +67,6 @@ class TimeRectifier : public ModuleDynI {
 		void findNearestDataAudio(size_t i, Fraction time, Data& selectedData, Data refData);
 		size_t getMasterStreamId() const;
 
-		std::vector<size_t> getInputs() const {
-			std::vector<size_t> r;
-			for (size_t i = 0; i < getNumInputs() - 1; ++i)
-				r.push_back(i);
-			return r;
-		}
-
 		Fraction const frameRate;
 		int64_t const threshold;
 		int64_t analyzeWindowIn180k = 0, maxClockTimeIn180k = 0;

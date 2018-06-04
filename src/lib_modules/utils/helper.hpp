@@ -268,6 +268,13 @@ class ModuleDynI : public Module {
 
 			return inputs[i].get();
 		}
+		std::vector<size_t> getInputs() const {
+			std::vector<size_t> r;
+			for (size_t i = 0; i < getNumInputs() - 1; ++i)
+				r.push_back(i);
+			return r;
+		}
+
 };
 
 template<typename Lambda>

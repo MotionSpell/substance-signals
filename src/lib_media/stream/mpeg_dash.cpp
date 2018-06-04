@@ -87,7 +87,7 @@ void MPEG_DASH::ensureManifest() {
 		auto period = mpd->addPeriod();
 		period->ID = gf_strdup(PERIOD_NAME);
 		GF_MPD_AdaptationSet *audioAS = nullptr, *videoAS = nullptr;
-		for (size_t i = 0; i < getNumInputs() - 1; ++i) {
+		for(auto i : getInputs()) {
 			GF_MPD_AdaptationSet *as = nullptr;
 			auto quality = safe_cast<DASHQuality>(qualities[i].get());
 			auto const &meta = quality->getMeta();
@@ -173,7 +173,7 @@ std::string MPEG_DASH::getPrefixedSegmentName(DASHQuality const * const quality,
 void MPEG_DASH::generateManifest() {
 	ensureManifest();
 
-	for (size_t i = 0; i < getNumInputs() - 1; ++i) {
+	for(auto i : getInputs()) {
 		auto quality = safe_cast<DASHQuality>(qualities[i].get());
 		auto const &meta = quality->getMeta();
 		if (!meta) {
@@ -290,7 +290,8 @@ void MPEG_DASH::finalizeManifest() {
 			if (gf_delete_file(mpdPath.c_str()) != GF_OK) {
 				log(Error, "Couldn't delete MPD: \"%s\".", mpdPath);
 			}
-			for (size_t i = 0; i < getNumInputs() - 1; ++i) {
+
+			for(auto i : getInputs()) {
 				auto quality = safe_cast<DASHQuality>(qualities[i].get());
 				std::string fn = manifestDir + getInitName(quality, i);
 				if (gf_delete_file(fn.c_str()) != GF_OK) {
