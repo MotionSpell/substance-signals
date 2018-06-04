@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 readonly tmpDir=/tmp/signals-test-$$
 trap "rm -rf $tmpDir" EXIT
