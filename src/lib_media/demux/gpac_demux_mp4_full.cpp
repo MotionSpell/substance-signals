@@ -129,9 +129,8 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 	return true;
 }
 
-void GPACDemuxMP4Full::process(Data data_) {
+void GPACDemuxMP4Full::process(Data data) {
 	//TODO: zero copy mode, or at least improve the current system with allocator packet duplication
-	auto data = safe_cast<const DataBase>(data_);
 	const size_t currSize = reader->data.size();
 	reader->data.resize(reader->data.size() + (size_t)data->size());
 	memcpy(reader->data.data() + currSize, data->data(), (size_t)data->size());
