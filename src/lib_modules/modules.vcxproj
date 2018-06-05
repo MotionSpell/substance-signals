@@ -35,6 +35,7 @@
   <ItemGroup>
     <ClCompile Include="core\connection.cpp" />
     <ClCompile Include="core\data.cpp" />
+    <ClCompile Include="utils\helper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\lib_utils\utils.vcxproj">
