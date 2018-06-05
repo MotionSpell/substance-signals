@@ -22,6 +22,7 @@ class Decoder : public ModuleS, private PictureAllocator {
 		void flush() override;
 
 	private:
+		void openDecoder(const MetadataPkt* metadata);
 		void processPacket(AVPacket const * pkt);
 		std::shared_ptr<DataBase> processAudio();
 		std::shared_ptr<DataBase> processVideo();
