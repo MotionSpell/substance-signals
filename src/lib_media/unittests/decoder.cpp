@@ -7,22 +7,15 @@
 #include "lib_media/transform/audio_convert.hpp"
 #include "lib_utils/tools.hpp"
 
-extern "C" {
-#include "libavcodec/avcodec.h"
-}
-
 using namespace Tests;
 using namespace Modules;
 
 namespace {
-std::unique_ptr<Decode::Decoder> createGenericDecoder(enum AVCodecID id) {
-	auto context = shptr(avcodec_alloc_context3(avcodec_find_decoder(id)));
-	auto metadata = MetadataPktLibav(context);
-	return create<Decode::Decoder>(&metadata);
-}
 
 std::unique_ptr<Decode::Decoder> createMp3Decoder() {
-	return createGenericDecoder(AV_CODEC_ID_MP3);
+	MetadataPktAudio meta;
+	meta.codec = "mp3";
+	return create<Decode::Decoder>(&meta);
 }
 
 template<size_t numBytes>
@@ -112,7 +105,9 @@ unittest("decoder: timestamp propagation") {
 
 namespace {
 std::unique_ptr<Decode::Decoder> createVideoDecoder() {
-	return createGenericDecoder(AV_CODEC_ID_H264);
+	MetadataPktVideo meta;
+	meta.codec = "h264";
+	return create<Decode::Decoder>(&meta);
 }
 
 std::shared_ptr<DataBase> getTestH264Frame() {
