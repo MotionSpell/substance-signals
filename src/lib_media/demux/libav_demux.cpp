@@ -98,7 +98,6 @@ LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::strin
 			clean();
 			throw error(format("Error when opening input '%s'", url));
 		}
-		m_streams.resize(m_formatCtx->nb_streams);
 
 		m_formatCtx->flags |= AVFMT_FLAG_KEEP_SIDE_DATA; //deprecated >= 3.5 https://github.com/FFmpeg/FFmpeg/commit/ca2b779423
 
@@ -116,6 +115,7 @@ LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::strin
 			clean();
 			throw error("Couldn't get additional video stream info");
 		}
+		m_streams.resize(m_formatCtx->nb_streams);
 
 		initRestamp();
 
