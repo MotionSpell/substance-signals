@@ -48,24 +48,22 @@ class MetadataCap : public virtual IMetadataCap {
 
 	private:
 		bool setMetadataInternal(const std::shared_ptr<const IMetadata> &metadata) {
-			if (metadata != m_metadata) {
-				if (m_metadata) {
-					if (metadata->getStreamType() != m_metadata->getStreamType()) {
-						throw std::runtime_error(format("Metadata update: incompatible types %s for data and %s for attached", metadata->getStreamType(), m_metadata->getStreamType()));
-					} else if (*m_metadata == *metadata) {
-						Log::msg(Debug, "Output: metadata not equal but comparable by value. Updating.");
-						m_metadata = metadata;
-					} else {
-						Log::msg(Info, "Metadata update from data not supported yet: output port and data won't carry the same metadata.");
-					}
-					return true;
-				}
-				Log::msg(Debug, "Output: metadata transported by data changed. Updating.");
-				m_metadata = metadata;
-				return true;
-			} else {
+			if (metadata == m_metadata)
 				return false;
+			if (m_metadata) {
+				if (metadata->getStreamType() != m_metadata->getStreamType()) {
+					throw std::runtime_error(format("Metadata update: incompatible types %s for data and %s for attached", metadata->getStreamType(), m_metadata->getStreamType()));
+				} else if (*m_metadata == *metadata) {
+					Log::msg(Debug, "Output: metadata not equal but comparable by value. Updating.");
+					m_metadata = metadata;
+				} else {
+					Log::msg(Info, "Metadata update from data not supported yet: output port and data won't carry the same metadata.");
+				}
+				return true;
 			}
+			Log::msg(Debug, "Output: metadata transported by data changed. Updating.");
+			m_metadata = metadata;
+			return true;
 		}
 
 		std::shared_ptr<const IMetadata> m_metadata;
