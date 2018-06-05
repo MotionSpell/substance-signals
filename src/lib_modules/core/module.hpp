@@ -1,5 +1,9 @@
 #pragma once
 
+// This is how the framework sees custom module implementations.
+// This defines the binary boundary between an application using the framework,
+// third-party user module implementations.
+
 #include "clock.hpp"
 #include "data.hpp"
 #include "metadata.hpp"
