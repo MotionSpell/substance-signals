@@ -12,25 +12,14 @@ struct IProcessor {
 	virtual void process() = 0;
 };
 
-class ConnectedCap {
-	public:
-		ConnectedCap() : connections(0) {}
-		virtual ~ConnectedCap() noexcept(false) {}
-		virtual size_t getNumConnections() const {
-			return connections;
-		}
-		virtual void connect() {
-			connections++;
-		}
-		virtual void disconnect() {
-			connections--;
-		}
-
-	private:
-		std::atomic_size_t connections;
+struct IConnectedCap {
+	virtual ~IConnectedCap() noexcept(false) {}
+	virtual size_t getNumConnections() const = 0;
+	virtual void connect() = 0;
+	virtual void disconnect() = 0;
 };
 
-struct IInput : public IProcessor, public ConnectedCap, public virtual IMetadataCap {
+struct IInput : public IProcessor, public virtual IConnectedCap, public virtual IMetadataCap {
 	virtual ~IInput() noexcept(false) {}
 	virtual void push(Data) = 0;
 

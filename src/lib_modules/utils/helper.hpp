@@ -11,6 +11,7 @@
 #include "lib_utils/queue.hpp"
 #include "lib_utils/default_clock.hpp"
 #include <memory>
+#include <atomic>
 
 namespace Modules {
 
@@ -69,8 +70,27 @@ class MetadataCap : public virtual IMetadataCap {
 
 		std::shared_ptr<const IMetadata> m_metadata;
 };
+
+class ConnectedCap : public virtual IConnectedCap {
+	public:
+		ConnectedCap() : connections(0) {}
+		virtual ~ConnectedCap() noexcept(false) {}
+		virtual size_t getNumConnections() const {
+			return connections;
+		}
+		virtual void connect() {
+			connections++;
+		}
+		virtual void disconnect() {
+			connections--;
+		}
+
+	private:
+		std::atomic_size_t connections;
+};
+
 template<typename DataType, typename ModuleType = IProcessor>
-class Input : public IInput, public MetadataCap {
+class Input : public IInput, public ConnectedCap, public MetadataCap {
 	public:
 		Input(ModuleType * const module) : module(module) {}
 
