@@ -122,16 +122,19 @@ typedef Signals::Signal<void(Data), Signals::ResultVector<NotVoid<void>>> Signal
 static Signals::ExecutorSync<void(Data)> g_executorOutputSync;
 typedef SignalSync SignalDefaultSync;
 
-template<typename Allocator, typename Signal>
-class OutputT : public IOutput, public MetadataCap, public ClockCap {
+template<typename DataType>
+class OutputDataDefault : public IOutput, public MetadataCap, public ClockCap {
 	public:
-		OutputT(size_t allocatorBaseSize, size_t allocatorMaxSize, std::shared_ptr<IClock> clock, std::shared_ptr<const IMetadata> metadata = nullptr)
+		typedef PacketAllocator<DataType> Allocator;
+		typedef SignalDefaultSync Signal;
+
+		OutputDataDefault(size_t allocatorBaseSize, size_t allocatorMaxSize, std::shared_ptr<IClock> clock, std::shared_ptr<const IMetadata> metadata = nullptr)
 			: MetadataCap(metadata), ClockCap(clock), signal(g_executorOutputSync), allocator(new Allocator(allocatorBaseSize, allocatorMaxSize)) {
 		}
-		OutputT(size_t allocatorSize, std::shared_ptr<IClock> clock, const IMetadata *metadata = nullptr)
-			: OutputT(allocatorSize, allocatorSize, clock, metadata) {
+		OutputDataDefault(size_t allocatorSize, std::shared_ptr<IClock> clock, const IMetadata *metadata = nullptr)
+			: OutputDataDefault(allocatorSize, allocatorSize, clock, metadata) {
 		}
-		virtual ~OutputT() noexcept(false) {
+		virtual ~OutputDataDefault() noexcept(false) {
 			allocator->unblock();
 		}
 
@@ -158,7 +161,6 @@ class OutputT : public IOutput, public MetadataCap, public ClockCap {
 		std::shared_ptr<Allocator> allocator;
 };
 
-template<typename DataType> using OutputDataDefault = OutputT<PacketAllocator<DataType>, SignalDefaultSync>;
 typedef OutputDataDefault<DataRaw> OutputDefault;
 
 class OutputCap : public virtual IOutputCap {
