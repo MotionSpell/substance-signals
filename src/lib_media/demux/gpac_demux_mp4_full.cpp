@@ -129,15 +129,6 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 	return true;
 }
 
-void GPACDemuxMP4Full::processData() {
-	bool res = processSample();
-	if (!res) {
-		return;
-	}
-	while (processSample()) {
-	}
-}
-
 void GPACDemuxMP4Full::process(Data data_) {
 #if 0 //TODO: zero copy mode, or at least improve the current system with allocator packet duplication
 	reader->validDataSize = reader->dataSize = data->size();
@@ -160,7 +151,8 @@ void GPACDemuxMP4Full::process(Data data_) {
 		}
 	}
 
-	processData();
+	while (processSample()) {
+	}
 }
 
 }
