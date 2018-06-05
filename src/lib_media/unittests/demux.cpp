@@ -111,6 +111,8 @@ unittest("GPACDemuxMP4Full: simple demux one empty track") {
 	f->process(nullptr);
 
 	ASSERT_EQUALS(0, sampleCount);
+	auto meta = safe_cast<const MetadataPkt>(mp4Demux->getOutput(0)->getMetadata());
+	ASSERT(meta);
 }
 
 

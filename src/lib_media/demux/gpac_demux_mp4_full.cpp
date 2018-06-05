@@ -1,6 +1,7 @@
 #include "gpac_demux_mp4_full.hpp"
 #include <string>
 #include "lib_gpacpp/gpacpp.hpp"
+#include "../common/metadata.hpp"
 
 namespace Modules {
 namespace Demux {
@@ -62,6 +63,18 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 	/* only if we have the track number can we try to get the sample data */
 	if (reader->trackNumber == 0)
 		return true;
+
+	if(auto desc = reader->movie->getDecoderConfig(reader->trackNumber, 1)) {
+		auto dsi = desc->decoderSpecificInfo;
+		{
+			auto infoString = string2hex((uint8_t*)dsi->data, dsi->dataLength);
+			log(Debug, "Found decoder specific info: \"%s\"", infoString);
+		}
+		auto meta = make_shared<MetadataPktVideo>();
+		meta->codecSpecificInfo.assign(dsi->data, dsi->data+dsi->dataLength);
+		output->setMetadata(meta);
+		gf_free(desc);
+	}
 
 	/* let's see how many samples we have since the last parsed */
 	auto newSampleCount = reader->movie->getSampleCount(reader->trackNumber);
