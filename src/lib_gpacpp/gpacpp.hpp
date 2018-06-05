@@ -156,6 +156,10 @@ class IsoFile : public Init {
 			gf_isom_set_single_moof_mode(movie_, (Bool)enable);
 		}
 
+		bool isFragmented() const{
+			return gf_isom_is_fragmented(movie_);
+		}
+
 		void refreshFragmented(uint64_t& missingBytes, std::string const& url) {
 			GF_Err e = gf_isom_refresh_fragmented(movie_, &missingBytes, url.c_str());
 			if (e != GF_OK && e != GF_ISOM_INCOMPLETE_FILE)

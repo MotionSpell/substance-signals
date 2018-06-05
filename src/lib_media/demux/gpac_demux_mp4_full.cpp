@@ -131,9 +131,15 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 			const size_t newSize = reader->data.size() - offset;
 			memmove(reader->data.data(), reader->data.data() + offset, newSize);
 			reader->data.resize(newSize);
+			if (newSize == 0) {
+				return false;
+			}
 		}
-		reader->dataUrl = format("gmem://%s@%s", reader->data.size(), (void*)reader->data.data());
-		reader->movie->refreshFragmented(missingBytes, reader->dataUrl);
+
+		if (reader->movie->isFragmented()) {
+			reader->dataUrl = format("gmem://%s@%s", reader->data.size(), (void*)reader->data.data());
+			reader->movie->refreshFragmented(missingBytes, reader->dataUrl);
+		}
 
 		/* update the sample count and sample index */
 		reader->sampleCount = newSampleCount - reader->sampleCount;
