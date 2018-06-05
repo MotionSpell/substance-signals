@@ -129,14 +129,13 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 	return true;
 }
 
-bool GPACDemuxMP4Full::processData() {
+void GPACDemuxMP4Full::processData() {
 	bool res = processSample();
 	if (!res) {
-		return false;
+		return;
 	}
 	while (processSample()) {
 	}
-	return true;
 }
 
 void GPACDemuxMP4Full::process(Data data_) {
