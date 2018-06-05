@@ -111,8 +111,10 @@ unittest("GPACDemuxMP4Full: simple demux one empty track") {
 	f->process(nullptr);
 
 	ASSERT_EQUALS(0, sampleCount);
+
 	auto meta = safe_cast<const MetadataPkt>(mp4Demux->getOutput(0)->getMetadata());
-	ASSERT(meta);
+	ASSERT_EQUALS("0142C028FFE1001A6742C028116401E0089F961000000300100000030320F1832480010006681020B8CB20",
+	    string2hex(meta->codecSpecificInfo.data(), meta->codecSpecificInfo.size()));
 }
 
 
