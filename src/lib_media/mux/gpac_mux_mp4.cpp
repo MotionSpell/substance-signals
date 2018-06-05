@@ -3,6 +3,7 @@
 #include "lib_utils/time.hpp"
 #include "lib_gpacpp/gpacpp.hpp"
 #include "lib_ffpp/ffpp.hpp"
+#include "lib_modules/core/data_utc.hpp"
 #include <sstream>
 
 extern "C" {
@@ -994,7 +995,7 @@ bool GPACMuxMP4::processInit(Data &data) {
 		}
 
 		if (!firstDataAbsTimeInMs) {
-			firstDataAbsTimeInMs = DataBase::absUTCOffsetInMs;
+			firstDataAbsTimeInMs = Modules::absUTCOffsetInMs;
 			initTimeIn180k = data->getMediaTime();
 			handleInitialTimeOffset();
 		}

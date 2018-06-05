@@ -1,5 +1,6 @@
 #include "tests/tests.hpp"
 #include "lib_modules/modules.hpp"
+#include "lib_modules/core/data_utc.hpp"
 #include <stdexcept>
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/decode/decoder.hpp"
@@ -635,7 +636,7 @@ unittest("[DISABLED] adaptive streaming combination coverage")
 	};
 
 	auto const segmentDurationInMs = 2000;
-	DataBase::absUTCOffsetInMs = 1000000;
+	Modules::absUTCOffsetInMs = 1000000;
 	std::vector<std::unique_ptr<Decode::Decoder>> decode;
 	std::vector<std::unique_ptr<Encode::LibavEncode>> encode;
 

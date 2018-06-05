@@ -1,3 +1,4 @@
+#include "lib_modules/core/data_utc.hpp"
 #include "telx2ttml.hpp"
 #include "telx.hpp"
 #include "lib_utils/time.hpp"
@@ -214,7 +215,7 @@ void TeletextToTTML::process(Data data) {
 	if (inputs[0]->updateMetadata(data))
 		output->setMetadata(data->getMetadata());
 	if (!firstDataAbsTimeInMs)
-		firstDataAbsTimeInMs = DataBase::absUTCOffsetInMs;
+		firstDataAbsTimeInMs = Modules::absUTCOffsetInMs;
 	extClock = data->getMediaTime();
 	//TODO
 	//14. add flush() for ondemand samples

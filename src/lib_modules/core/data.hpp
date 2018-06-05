@@ -1,6 +1,5 @@
 #pragma once
 
-#include <atomic>
 #include <cstdint>
 #include <memory>
 #include <vector>
@@ -32,8 +31,6 @@ class DataBase : public IData {
 
 		void setMediaTime(int64_t timeIn180k, uint64_t timescale = IClock::Rate);
 		int64_t getMediaTime() const;
-
-		static std::atomic<uint64_t> absUTCOffsetInMs;
 
 		// FIXME: move this elsewhere
 		void setCreationTime(int64_t timeIn180k, uint64_t timescale = IClock::Rate); /*should be set automatically after data is allocated*/

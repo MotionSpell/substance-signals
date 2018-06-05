@@ -1,4 +1,5 @@
 #include "adaptive_streaming_common.hpp"
+#include "lib_modules/core/data_utc.hpp"
 #include "lib_utils/time.hpp"
 #include "lib_utils/os.hpp"
 #include <cstring> // memcpy
@@ -158,7 +159,7 @@ std::shared_ptr<DataBase> AdaptiveStreamingCommon::getPresignalledData(uint64_t 
 }
 
 void AdaptiveStreamingCommon::threadProc() {
-	log(Info, "start processing at UTC: %sms.", (uint64_t)DataBase::absUTCOffsetInMs);
+	log(Info, "start processing at UTC: %sms.", (uint64_t)Modules::absUTCOffsetInMs);
 
 	auto const numInputs = getNumInputs() - 1;
 	for (size_t i = 0; i < numInputs; ++i) {

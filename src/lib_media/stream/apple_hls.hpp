@@ -6,6 +6,7 @@
 #include "../mux/libav_mux.hpp"
 #include "../common/libav.hpp"
 #include <lib_modules/utils/helper.hpp>
+#include <lib_modules/core/data_utc.hpp>
 #include <vector>
 
 namespace Modules {
@@ -49,7 +50,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 					auto const fsize = ftell(file);
 
 					auto out = outputSegment->getBuffer(0);
-					out->setMediaTime(timescaleToClock((uint64_t)DataBase::absUTCOffsetInMs, 1000) + data->getMediaTime());
+					out->setMediaTime(timescaleToClock((uint64_t)Modules::absUTCOffsetInMs, 1000) + data->getMediaTime());
 					auto metadata = make_shared<MetadataFile>(hlsDir + fn, SEGMENT, "", "", segDuration, fsize, 1, false, true);
 					switch (data->getMetadata()->getStreamType()) {
 					case AUDIO_PKT: metadata->sampleRate = safe_cast<const MetadataPktLibavAudio>(data->getMetadata())->getSampleRate(); break;
