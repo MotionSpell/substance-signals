@@ -128,10 +128,10 @@ AVPacket * LibavMux::getFormattedPkt(Data data) {
 		auto const outSize = pkt->size + eSize;
 		auto newPkt = av_packet_alloc();
 		av_init_packet(newPkt);
-		av_new_packet(newPkt, outSize);
+		av_new_packet(newPkt, (int)outSize);
 		memcpy(newPkt->data, videoMetadata->codecSpecificInfo.data(), eSize);
 		memcpy(newPkt->data + eSize, pkt->data, pkt->size);
-		newPkt->size = outSize;
+		newPkt->size = (int)outSize;
 		newPkt->flags = pkt->flags;
 		newPkt->dts = pkt->dts;
 		newPkt->pts = pkt->pts;
