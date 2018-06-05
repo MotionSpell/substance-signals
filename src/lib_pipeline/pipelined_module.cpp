@@ -36,7 +36,7 @@ IOutput* PipelinedModule::getOutput(size_t i) {
 bool PipelinedModule::isSource() {
 	if (delegate->getNumInputs() == 0) {
 		return true;
-	} else if (delegate->getNumInputs() == 1 && dynamic_cast<Input<DataLoosePipeline, IProcessor>*>(delegate->getInput(0))) {
+	} else if (delegate->getNumInputs() == 1 && dynamic_cast<Input<DataLoosePipeline>*>(delegate->getInput(0))) {
 		return true;
 	} else {
 		return false;

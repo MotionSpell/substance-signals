@@ -89,10 +89,10 @@ class ConnectedCap : public virtual IConnectedCap {
 		std::atomic_size_t connections;
 };
 
-template<typename DataType, typename ModuleType = IProcessor>
+template<typename DataType>
 class Input : public IInput, public ConnectedCap, public MetadataCap {
 	public:
-		Input(ModuleType * const module) : module(module) {}
+		Input(IProcessor * const processor) : processor(processor) {}
 
 		void push(Data data) override {
 			queue.push(data);
@@ -111,11 +111,11 @@ class Input : public IInput, public ConnectedCap, public MetadataCap {
 		}
 
 		void process() override {
-			module->process();
+			processor->process();
 		}
 
 	private:
-		ModuleType * const module;
+		IProcessor * const processor;
 		Queue<Data> queue;
 };
 
