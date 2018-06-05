@@ -74,7 +74,7 @@ HTTP::HTTP(const std::string &url, Flag flags, const std::string &userAgent, con
 	}
 
 	addInput(new Input<DataRaw>(this));
-	outputFinished = addOutput<OutputDataDefault<DataRaw>>();
+	outputFinished = addOutput<OutputDefault>();
 }
 
 HTTP::~HTTP() {

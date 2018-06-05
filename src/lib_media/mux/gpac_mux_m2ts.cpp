@@ -17,7 +17,7 @@ struct UserData {
 
 GPACMuxMPEG2TS::GPACMuxMPEG2TS(bool real_time, unsigned mux_rate, unsigned pcr_ms, int64_t pcr_init_val)
 	: muxer(new gpacpp::M2TSMux(real_time, mux_rate, pcr_ms, pcr_init_val)) {
-	output = addOutput<OutputDataDefault<DataRaw>>();
+	output = addOutput<OutputDefault>();
 }
 
 GPACMuxMPEG2TS::~GPACMuxMPEG2TS() {
