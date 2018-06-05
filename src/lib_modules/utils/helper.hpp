@@ -125,8 +125,6 @@ typedef SignalSync SignalDefaultSync;
 template<typename Allocator, typename Signal>
 class OutputT : public IOutput, public MetadataCap, public ClockCap {
 	public:
-		typedef Allocator AllocatorType;
-
 		OutputT(size_t allocatorBaseSize, size_t allocatorMaxSize, std::shared_ptr<IClock> clock, std::shared_ptr<const IMetadata> metadata = nullptr)
 			: MetadataCap(metadata), ClockCap(clock), signal(g_executorOutputSync), allocator(new Allocator(allocatorBaseSize, allocatorMaxSize)) {
 		}
