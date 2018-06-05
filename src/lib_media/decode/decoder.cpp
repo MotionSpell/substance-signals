@@ -8,10 +8,31 @@
 namespace Modules {
 namespace Decode {
 
+static std::shared_ptr<const MetadataPkt> clone(const MetadataPkt* orig) {
+	std::shared_ptr<MetadataPkt> r;
+	if(orig->isVideo())
+		r = make_shared<MetadataPktVideo>();
+	else
+		r = make_shared<MetadataPktAudio>();
+	r->codec = orig->codec;
+	r->codecSpecificInfo = orig->codecSpecificInfo;
+	return r;
+}
+
 Decoder::Decoder(const MetadataPkt* metadata)
 	: avFrame(new ffpp::Frame) {
-	addInput(new Input<DataBase>(this));
-	openDecoder(metadata);
+	auto input = addInput(new Input<DataBase>(this));
+
+	input->setMetadata(clone(metadata));
+
+	if(metadata->isVideo()) {
+		videoOutput = addOutput<OutputPicture>(make_shared<MetadataRawVideo>());
+		getDecompressedData = std::bind(&Decoder::processVideo, this);
+	} else if(metadata->isAudio()) {
+		audioOutput = addOutput<OutputPcm>(make_shared<MetadataRawAudio>());
+		getDecompressedData = std::bind(&Decoder::processAudio, this);
+	} else
+		throw error("Can only decode audio or video.");
 }
 
 void Decoder::openDecoder(const MetadataPkt* metadata) {
@@ -19,7 +40,7 @@ void Decoder::openDecoder(const MetadataPkt* metadata) {
 
 	auto const codec = avcodec_find_decoder_by_name(metadata->codec.c_str());
 	if (!codec)
-		throw error(format("Decoder not found for codecID (%s).", metadata->codec));
+		throw error(format("Decoder not found for codec '%s'.", metadata->codec));
 
 	codecCtx = shptr(avcodec_alloc_context3(codec));
 
@@ -36,25 +57,14 @@ void Decoder::openDecoder(const MetadataPkt* metadata) {
 	if (avcodec_open2(codecCtx.get(), codec, &dict) < 0)
 		throw error("Couldn't open stream.");
 
-	switch (codecCtx->codec_type) {
-	case AVMEDIA_TYPE_VIDEO: {
+	if (codecCtx->codec_type == AVMEDIA_TYPE_VIDEO) {
 		if (codecCtx->codec->capabilities & AV_CODEC_CAP_DR1) {
 			codecCtx->thread_safe_callbacks = 1;
 			codecCtx->opaque = static_cast<PictureAllocator*>(this);
 			codecCtx->get_buffer2 = avGetBuffer2;
 			allocatorSize = std::thread::hardware_concurrency() * 4;
+			videoOutput->resetAllocator(allocatorSize);
 		}
-		videoOutput = addOutput<OutputPicture>(make_shared<MetadataRawVideo>());
-		getDecompressedData = std::bind(&Decoder::processVideo, this);
-		break;
-	}
-	case AVMEDIA_TYPE_AUDIO: {
-		audioOutput = addOutput<OutputPcm>(make_shared<MetadataRawAudio>());
-		getDecompressedData = std::bind(&Decoder::processAudio, this);
-		break;
-	}
-	default:
-		throw error(format("codec_type %s not supported. Must be audio or video.", codecCtx->codec_type));
 	}
 }
 
@@ -100,6 +110,17 @@ PictureAllocator::PictureContext* Decoder::getPicture(Resolution res, Resolution
 
 void Decoder::process(Data data) {
 	inputs[0]->updateMetadata(data);
+
+	if(!codecCtx) {
+		auto meta = data->getMetadata();
+		if(!meta)
+			meta = inputs[0]->getMetadata();
+
+		assert(meta);
+		openDecoder(safe_cast<const MetadataPkt>(meta.get()));
+	}
+
+	assert(codecCtx);
 
 	if (data->flags & DATA_FLAGS_DISCONTINUITY) {
 		avcodec_flush_buffers(codecCtx.get());

@@ -137,6 +137,10 @@ class OutputDataDefault : public IOutput, public MetadataCap, public ClockCap {
 			return signal;
 		}
 
+		void resetAllocator(int allocatorSize) {
+			allocator = make_shared<Allocator>(allocatorSize, allocatorSize);
+		}
+
 	private:
 		Signal signal;
 		std::shared_ptr<Allocator> allocator;
