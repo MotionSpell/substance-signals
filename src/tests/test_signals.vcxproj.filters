@@ -56,9 +56,6 @@
     <ClCompile Include="..\lib_media\unittests\render.cpp">
       <Filter>media</Filter>
     </ClCompile>
-    <ClCompile Include="..\lib_modules\unittests\converter.cpp">
-      <Filter>modules</Filter>
-    </ClCompile>
     <ClCompile Include="..\lib_modules\unittests\erasure.cpp">
       <Filter>modules</Filter>
     </ClCompile>
@@ -71,9 +68,6 @@
     <ClCompile Include="..\lib_modules\unittests\simple.cpp">
       <Filter>modules</Filter>
     </ClCompile>
-    <ClCompile Include="..\lib_modules\unittests\timings.cpp">
-      <Filter>modules</Filter>
-    </ClCompile>
     <ClCompile Include="..\lib_media\unittests\decoder.cpp">
       <Filter>media</Filter>
     </ClCompile>
@@ -83,10 +77,27 @@
     <ClCompile Include="..\lib_media\unittests\encoder.cpp">
       <Filter>media</Filter>
     </ClCompile>
-    <ClCompile Include="..\lib_media\unittests\mux.cpp" />
-    <ClCompile Include="..\lib_media\unittests\streamer.cpp" />
-    <ClCompile Include="..\lib_media\unittests\transcoder.cpp" />
-    <ClCompile Include="..\lib_appcommon\unittests\options.cpp" />
+    <ClCompile Include="..\lib_media\unittests\timings.cpp">
+      <Filter>media</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib_media\unittests\transcoder.cpp">
+      <Filter>media</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib_media\unittests\streamer.cpp">
+      <Filter>media</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib_media\unittests\expand_vars.cpp">
+      <Filter>media</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib_appcommon\unittests\options.cpp">
+      <Filter>appcommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib_media\unittests\mux.cpp">
+      <Filter>media</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib_media\unittests\converter.cpp">
+      <Filter>media</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="signals">
@@ -103,6 +114,9 @@
     </Filter>
     <Filter Include="media">
       <UniqueIdentifier>{e4afaae9-1e9c-4c2e-952e-56b6f681af6e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="appcommon">
+      <UniqueIdentifier>{78864fc4-b593-4732-b496-41bda7d7f68e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
