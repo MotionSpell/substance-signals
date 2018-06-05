@@ -8,8 +8,6 @@ extern "C" {
 #include <libavutil/pixdesc.h>
 }
 
-#define TIMESCALE_MUL 100
-
 namespace Modules {
 namespace Encode {
 
@@ -113,10 +111,7 @@ LibavEncode::LibavEncode(Type type, Params &params)
 
 		//for time_base, 'num' and 'den' are inverted
 		AVRational fps { (int)params.frameRate.den, (int)params.frameRate.num };
-
-		fps.den *= TIMESCALE_MUL;
 		codecCtx->time_base = fps;
-		codecCtx->ticks_per_frame *= TIMESCALE_MUL;
 		break;
 	}
 	case Audio:
@@ -178,8 +173,8 @@ void LibavEncode::computeFrameAttributes(AVFrame * const f, const int64_t currMe
 		f->key_frame = 1;
 		f->pict_type = AV_PICTURE_TYPE_I;
 	} else {
-		auto const prevGOP = ((prevMediaTime - firstMediaTime) * GOPSize.den * codecCtx->time_base.den) / (GOPSize.num * codecCtx->time_base.num * TIMESCALE_MUL * (int64_t)IClock::Rate);
-		auto const currGOP = ((currMediaTime - firstMediaTime) * GOPSize.den * codecCtx->time_base.den) / (GOPSize.num * codecCtx->time_base.num * TIMESCALE_MUL * (int64_t)IClock::Rate);
+		auto const prevGOP = ((prevMediaTime - firstMediaTime) * GOPSize.den * codecCtx->time_base.den) / (GOPSize.num * codecCtx->time_base.num * (int64_t)IClock::Rate);
+		auto const currGOP = ((currMediaTime - firstMediaTime) * GOPSize.den * codecCtx->time_base.den) / (GOPSize.num * codecCtx->time_base.num * (int64_t)IClock::Rate);
 		if (prevGOP != currGOP) {
 			if (currGOP != prevGOP + 1) {
 				log(Warning, "Invalid content: switching from GOP %s to GOP %s - inserting RAP.", prevGOP, currGOP);
