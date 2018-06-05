@@ -214,10 +214,6 @@ class Module : public IModule, public ErrorCap, public LogCap, public InputCap {
 			outputs.push_back(uptr(p));
 			return p;
 		}
-
-	private:
-		Module(Module const&) = delete;
-		Module const& operator=(Module const&) = delete;
 };
 
 /* this default factory creates output ports with the default output - create another one for other uses such as low latency */
