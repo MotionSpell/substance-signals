@@ -137,7 +137,7 @@ class OutputDataDefault : public IOutput, public MetadataCap, public ClockCap {
 			return signal;
 		}
 
-		void resetAllocator(int allocatorSize) {
+		void resetAllocator(size_t allocatorSize) {
 			allocator = make_shared<Allocator>(allocatorSize, allocatorSize);
 		}
 
