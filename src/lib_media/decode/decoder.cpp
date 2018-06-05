@@ -23,7 +23,7 @@ void Decoder::openDecoder(const MetadataPkt* metadata) {
 
 	codecCtx = shptr(avcodec_alloc_context3(codec));
 
-	// copy extradata: this allows decoding non-Annex B bitstreams
+	// copy extradata: this allows decoding headerless bitstreams
 	// (i.e AVCC / H264-in-mp4).
 	{
 		codecCtx->extradata = (uint8_t*)av_calloc(1, extradata.size() + AV_INPUT_BUFFER_PADDING_SIZE);
