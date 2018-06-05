@@ -117,4 +117,20 @@ unittest("GPACDemuxMP4Full: simple demux one empty track") {
 	    string2hex(meta->codecSpecificInfo.data(), meta->codecSpecificInfo.size()));
 }
 
+unittest("GPACDemuxMP4Full: demux fragments") {
+	auto f = create<In::File>("data/fragments.mp4");
+	auto mp4Demux = create<Demux::GPACDemuxMP4Full>();
+
+	int sampleCount = 0;
+	auto onSample = [&](Data) {
+		++sampleCount;
+	};
+
+	ConnectOutputToInput(f->getOutput(0), mp4Demux->getInput(0));
+	ConnectOutput(mp4Demux.get(), onSample);
+
+	f->process(nullptr);
+
+	ASSERT_EQUALS(820, sampleCount);
+}
 
