@@ -38,32 +38,38 @@ namespace Tests {
 void Fail(char const* file, int line, const char* msg);
 
 template<typename T>
+std::string ToString(T const& val) {
+	std::stringstream ss;
+	ss << val;
+	return ss.str();
+}
+
+template<typename T>
 inline void Assert(char const* file, int line, const char* caption, T const& result) {
 	if (!result) {
-		std::stringstream ss;
-		ss << "assertion failed: " << caption;
-		::Tests::Fail(file, line, ss.str().c_str());
+		std::string msg;
+		msg += "assertion failed: ";
+		msg += caption;
+		::Tests::Fail(file, line, msg.c_str());
 	}
 }
 
 template<typename T, typename U>
 inline void AssertEquals(char const* file, int line, const char* caption, T const& expected, U const& actual) {
 	if (expected != actual) {
-		std::stringstream ssExpected;
-		ssExpected << expected;
-		std::stringstream ssActual;
-		ssActual << actual;
-		bool multiline = ssExpected.str().size() > 40 || ssActual.str().size() > 40;
+		auto sExpected = ToString(expected);
+		auto sActual = ToString(actual);
+		bool multiline = sExpected.size() > 40 || sActual.size() > 40;
 
-		std::stringstream ss;
-		ss << "assertion failed for expression: '" << caption << "'. ";
+		std::string msg;
+		msg += "assertion failed for expression: '" + std::string(caption) + "'. ";
 		if(multiline)
-			ss << std::endl;
-		ss << "expected '" << ssExpected.str() << "' ";
+			msg += "\n";
+		msg += "expected '" + sExpected + "' ";
 		if(multiline)
-			ss << std::endl << "     ";
-		ss << "got '" << ssActual.str() << "'";
-		::Tests::Fail(file, line, ss.str().c_str());
+			msg += "\n     ";
+		msg += "got '" + sActual + "'";
+		::Tests::Fail(file, line, msg.c_str());
 	}
 }
 
