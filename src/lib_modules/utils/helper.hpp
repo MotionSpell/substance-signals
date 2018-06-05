@@ -53,7 +53,8 @@ class MetadataCap : public virtual IMetadataCap {
 			if (m_metadata) {
 				if (metadata->getStreamType() != m_metadata->getStreamType()) {
 					throw std::runtime_error(format("Metadata update: incompatible types %s for data and %s for attached", metadata->getStreamType(), m_metadata->getStreamType()));
-				} else if (*m_metadata == *metadata) {
+				}
+				if (*m_metadata == *metadata) {
 					Log::msg(Debug, "Output: metadata not equal but comparable by value. Updating.");
 					m_metadata = metadata;
 				} else {
