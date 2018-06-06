@@ -50,6 +50,7 @@ PKGS:=\
 $(BIN)/config.mk: $(SRC)/../scripts/configure
 	@echo "Configuring ..."
 	@mkdir -p $(BIN)
+	scripts/version.sh > $(BIN)/signals_version.h
 	$(SRC)/../scripts/configure $(PKGS) > "$@"
 
 ifneq ($(MAKECMDGOALS),clean)
@@ -105,9 +106,7 @@ include $(SRC)/apps/mp42tsx/project.mk
 
 #------------------------------------------------------------------------------
 
-VER_NEW:=$(shell scripts/version.sh)
-
-$(BIN)/src/lib_utils/version.cpp.o: CFLAGS+=-DVERSION="\"$(VER_NEW)\""
+$(BIN)/src/lib_utils/version.cpp.o: CFLAGS+=-I$(BIN)
 
 targets: $(TARGETS)
 

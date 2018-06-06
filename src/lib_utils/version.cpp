@@ -1,4 +1,3 @@
-#ifndef VERSION
-#define VERSION "unknown"
-#endif
-const char *g_version = VERSION;
+const char *g_version =
+#include "signals_version.h"
+    ;

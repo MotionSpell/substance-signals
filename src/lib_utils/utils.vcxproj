@@ -131,7 +131,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;WIN32_LEAN_AND_MEAN;_WIN32_WINNT=0x0501;NOMINMAX;WIN32_LEAN_AND_MEAN;_WIN32_WINNT=0x0501;;NOMINMAX;UTILS_COMPILATION;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.;$(ProjectDir)\..\..\extra_lib\include;$(ProjectDir)\..\..\src\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;$(ProjectDir)\..\..\extra_lib\include;$(ProjectDir)\..\..\src\;$(SolutionDir)bin</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4250;4996;4251</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <TreatWarningAsError>true</TreatWarningAsError>
@@ -158,7 +158,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;WIN32_LEAN_AND_MEAN;_WIN32_WINNT=0x0501;NOMINMAX;WIN32_LEAN_AND_MEAN;_WIN32_WINNT=0x0501;;NOMINMAX;UTILS_COMPILATION;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.;$(ProjectDir)\..\..\extra_lib\include;$(ProjectDir)\..\..\src\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;$(ProjectDir)\..\..\extra_lib\include;$(ProjectDir)\..\..\src\;$(SolutionDir)bin</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4250;4996;4251</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <TreatWarningAsError>true</TreatWarningAsError>
@@ -188,7 +188,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;WIN32_LEAN_AND_MEAN;_WIN32_WINNT=0x0501;NOMINMAX;WIN32_LEAN_AND_MEAN;_WIN32_WINNT=0x0501;;NOMINMAX;UTILS_COMPILATION;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.;$(ProjectDir)\..\..\extra_lib\include;$(ProjectDir)\..\..\src\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;$(ProjectDir)\..\..\extra_lib\include;$(ProjectDir)\..\..\src\;$(SolutionDir)bin</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <TreatWarningAsError>true</TreatWarningAsError>
       <AssemblerListingLocation>$(IntDir)%(RelativeDir)</AssemblerListingLocation>
@@ -219,7 +219,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;WIN32_LEAN_AND_MEAN;_WIN32_WINNT=0x0501;NOMINMAX;WIN32_LEAN_AND_MEAN;_WIN32_WINNT=0x0501;;NOMINMAX;UTILS_COMPILATION;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.;$(ProjectDir)\..\..\extra_lib\include;$(ProjectDir)\..\..\src\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;$(ProjectDir)\..\..\extra_lib\include;$(ProjectDir)\..\..\src\;$(SolutionDir)bin</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <TreatWarningAsError>true</TreatWarningAsError>
       <AssemblerListingLocation>$(IntDir)%(RelativeDir)</AssemblerListingLocation>
