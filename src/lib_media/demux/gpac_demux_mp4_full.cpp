@@ -99,9 +99,6 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 		/* let's analyze the samples we have parsed so far one by one */
 		int di /*descriptor index*/;
 		auto ISOSample = reader->movie->getSample(FIRST_TRACK, reader->sampleIndex, di);
-		/* if you want the sample description data, you can call:
-		   GF_Descriptor *desc = movie->getDecoderConfig(reader->track_handle, di);
-		   */
 
 		reader->samplesProcessed++;
 		auto const DTSOffset = reader->movie->getDTSOffet(FIRST_TRACK);
