@@ -198,8 +198,15 @@ class IsoFile : public Init {
 			return DTSOffset;
 		}
 
-		GF_DecoderConfig* getDecoderConfig(int trackHandle, int descriptorIndex) const {
-			return gf_isom_get_decoder_config(movie_, trackHandle, descriptorIndex);
+		std::shared_ptr<GF_DecoderConfig> getDecoderConfig(int trackHandle, int descriptorIndex) const {
+			return std::shared_ptr<GF_DecoderConfig>(
+			        gf_isom_get_decoder_config(movie_, trackHandle, descriptorIndex),
+			        &freeDescriptor
+			    );
+		}
+
+		static void freeDescriptor(GF_DecoderConfig* desc) {
+			gf_odf_desc_del((GF_Descriptor*)desc);
 		}
 
 		void resetTables(bool flag) {

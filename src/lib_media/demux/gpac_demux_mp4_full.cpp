@@ -77,7 +77,6 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 		}
 		meta->codecSpecificInfo.assign(dsi->data, dsi->data+dsi->dataLength);
 		output->setMetadata(meta);
-		gf_odf_desc_del((GF_Descriptor*)desc);
 	}
 
 	/* let's see how many samples we have since the last parsed */
