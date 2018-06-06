@@ -28,17 +28,6 @@ static DashMpd parseMpd(std::string text);
 namespace Modules {
 namespace In {
 
-static string translateCodecName(string dashName) {
-	auto codec = dashName.substr(0, dashName.find('.'));
-	if(codec == "avc1")
-		return "h264";
-	if(codec == "mp4a")
-		return "aac";
-
-	Log::msg(Warning, "Unknown codec DASH name: '%s'", dashName);
-	return "unknown";
-}
-
 static string dirName(string path) {
 	auto i = path.rfind('/');
 	if(i != path.npos)
@@ -66,8 +55,6 @@ MPEG_DASH_Input::MPEG_DASH_Input(std::unique_ptr<IFilePuller> source, std::strin
 			Log::msg(Warning, "Ignoring adaptation set with content type: '%s'", set.contentType);
 			continue;
 		}
-
-		meta->codec = translateCodecName(set.codecs);
 
 		auto output = addOutput<OutputDefault>();
 		output->setMetadata(meta);
