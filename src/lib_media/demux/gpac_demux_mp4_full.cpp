@@ -111,7 +111,7 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 
 		auto out = output->getBuffer(ISOSample->dataLength);
 		memcpy(out->data(), ISOSample->data, ISOSample->dataLength);
-		out->setMediaTime(ISOSample->DTS + DTSOffset, reader->movie->getMediaTimescale(reader->trackNumber));
+		out->setMediaTime(ISOSample->DTS + DTSOffset + ISOSample->CTS_Offset, reader->movie->getMediaTimescale(reader->trackNumber));
 		output->emit(out);
 	}
 

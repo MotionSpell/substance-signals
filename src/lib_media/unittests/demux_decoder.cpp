@@ -11,7 +11,7 @@ using namespace Tests;
 using namespace Modules;
 using namespace std;
 
-unittest("[DISABLED] LibavDemux => Decoder: output media times must increase") {
+unittest("LibavDemux => Decoder: output media times must increase") {
 
 	vector<int64_t> mediaTimes;
 	auto onPic = [&](Data data) {
@@ -30,6 +30,10 @@ unittest("[DISABLED] LibavDemux => Decoder: output media times must increase") {
 	demux->flush();
 	decoder->flush();
 
+	// output media times must increase
 	ASSERT(is_sorted(mediaTimes.begin(), mediaTimes.end()));
+
+	// all pictures must be there
+	ASSERT_EQUALS(75, (int)mediaTimes.size());
 }
 

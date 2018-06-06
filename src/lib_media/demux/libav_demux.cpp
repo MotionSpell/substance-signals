@@ -273,7 +273,7 @@ void LibavDemux::setMediaTime(std::shared_ptr<DataAVPacket> data) {
 	}
 	m_streams[pkt->stream_index].lastDTS = pkt->dts;
 	auto const base = m_formatCtx->streams[pkt->stream_index]->time_base;
-	auto const time = timescaleToClock(pkt->dts * base.num, base.den);
+	auto const time = timescaleToClock(pkt->pts * base.num, base.den);
 	data->setMediaTime(time - startPTSIn180k);
 	int64_t offset;
 	if (startPTSIn180k) {

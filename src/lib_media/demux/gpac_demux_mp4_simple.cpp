@@ -49,7 +49,7 @@ void GPACDemuxMP4Simple::process(Data /*data*/) {
 
 			auto out = output->getBuffer(ISOSample->dataLength);
 			memcpy(out->data(), ISOSample->data, ISOSample->dataLength);
-			out->setMediaTime(ISOSample->DTS + DTSOffset, reader->movie->getMediaTimescale(reader->trackNumber));
+			out->setMediaTime(ISOSample->DTS + DTSOffset + ISOSample->CTS_Offset, reader->movie->getMediaTimescale(reader->trackNumber));
 			output->emit(out);
 		} catch (gpacpp::Error const& err) {
 			if (err.error_ == GF_ISOM_INCOMPLETE_FILE) {
