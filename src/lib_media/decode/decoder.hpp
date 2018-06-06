@@ -16,7 +16,7 @@ namespace Decode {
 
 class Decoder : public ModuleS, private PictureAllocator {
 	public:
-		Decoder(const MetadataPkt* metadata);
+		Decoder(StreamType type);
 		~Decoder();
 		void process(Data data) override;
 		void flush() override;

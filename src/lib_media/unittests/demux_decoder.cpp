@@ -18,11 +18,8 @@ unittest("LibavDemux => Decoder: output media times must increase") {
 		mediaTimes.push_back(data->getMediaTime());
 	};
 
-	MetadataPktVideo meta;
-	meta.codec = "h264";
-
 	auto demux = create<Demux::LibavDemux>("data/h264.ts");
-	auto decoder = create<Decode::Decoder>(&meta);
+	auto decoder = create<Decode::Decoder>(VIDEO_PKT);
 	ConnectOutputToInput(demux->getOutput(0), decoder->getInput(0));
 	ConnectOutput(decoder.get(), onPic);
 

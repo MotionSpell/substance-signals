@@ -151,7 +151,7 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 
 		IPipelinedModule *decode = nullptr;
 		if (transcode) {
-			decode = pipeline->addModule<Decode::Decoder>(metadataDemux.get());
+			decode = pipeline->addModule<Decode::Decoder>(metadataDemux->getStreamType());
 			pipeline->connect(demux, i, decode, 0);
 
 			if (metadataDemux->isVideo() && opt->autoRotate) {

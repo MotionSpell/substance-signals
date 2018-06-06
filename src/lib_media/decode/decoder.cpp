@@ -8,27 +8,14 @@
 namespace Modules {
 namespace Decode {
 
-static std::shared_ptr<const MetadataPkt> clone(const MetadataPkt* orig) {
-	std::shared_ptr<MetadataPkt> r;
-	if(orig->isVideo())
-		r = make_shared<MetadataPktVideo>();
-	else
-		r = make_shared<MetadataPktAudio>();
-	r->codec = orig->codec;
-	r->codecSpecificInfo = orig->codecSpecificInfo;
-	return r;
-}
-
-Decoder::Decoder(const MetadataPkt* metadata)
+Decoder::Decoder(StreamType type)
 	: avFrame(new ffpp::Frame) {
-	auto input = addInput(new Input<DataBase>(this));
+	addInput(new Input<DataBase>(this));
 
-	input->setMetadata(clone(metadata));
-
-	if(metadata->isVideo()) {
+	if(type == VIDEO_PKT) {
 		videoOutput = addOutput<OutputPicture>(make_shared<MetadataRawVideo>());
 		getDecompressedData = std::bind(&Decoder::processVideo, this);
-	} else if(metadata->isAudio()) {
+	} else if(type == AUDIO_PKT) {
 		audioOutput = addOutput<OutputPcm>(make_shared<MetadataRawAudio>());
 		getDecompressedData = std::bind(&Decoder::processAudio, this);
 	} else
@@ -116,7 +103,9 @@ void Decoder::process(Data data) {
 		if(!meta)
 			meta = inputs[0]->getMetadata();
 
-		assert(meta);
+		if(!meta)
+			throw error("Can't instanciate decoder: no metadata for input data");
+
 		openDecoder(safe_cast<const MetadataPkt>(meta.get()));
 	}
 

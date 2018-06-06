@@ -73,7 +73,7 @@ void declarePipeline(Pipeline &pipeline, const char *url) {
 			continue;
 		}
 
-		auto decode = pipeline.addModule<Decode::Decoder>(metadata.get());
+		auto decode = pipeline.addModule<Decode::Decoder>(metadata->getStreamType());
 		pipeline.connect(s.module, s.index, decode, 0);
 
 		auto render = createRenderer(metadata->getStreamType());

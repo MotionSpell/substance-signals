@@ -13,9 +13,7 @@ using namespace Modules;
 namespace {
 
 std::unique_ptr<Decode::Decoder> createMp3Decoder() {
-	MetadataPktAudio meta;
-	meta.codec = "mp3";
-	return create<Decode::Decoder>(&meta);
+	return create<Decode::Decoder>(AUDIO_PKT);
 }
 
 template<size_t numBytes>
@@ -49,7 +47,15 @@ std::shared_ptr<DataBase> getTestMp3Frame() {
 		0x00, 0x00, 0x00, 0x00
 	};
 
-	return createPacket(mp3_sine_frame);
+	auto r = createPacket(mp3_sine_frame);
+
+	{
+		auto meta = make_shared<MetadataPktAudio>();
+		meta->codec = "mp3";
+		r->setMetadata(meta);
+	}
+
+	return r;
 }
 }
 
@@ -105,9 +111,7 @@ unittest("decoder: timestamp propagation") {
 
 namespace {
 std::unique_ptr<Decode::Decoder> createVideoDecoder() {
-	MetadataPktVideo meta;
-	meta.codec = "h264";
-	return create<Decode::Decoder>(&meta);
+	return create<Decode::Decoder>(VIDEO_PKT);
 }
 
 std::shared_ptr<DataBase> getTestH264Frame() {
@@ -121,7 +125,15 @@ std::shared_ptr<DataBase> getTestH264Frame() {
 		0xaf, 0xfd, 0x0f, 0xdf,
 	};
 
-	return createPacket(h264_gray_frame);
+	auto r = createPacket(h264_gray_frame);
+
+	{
+		auto meta = make_shared<MetadataPktVideo>();
+		meta->codec = "h264";
+		r->setMetadata(meta);
+	}
+
+	return r;
 }
 }
 
