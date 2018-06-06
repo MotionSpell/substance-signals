@@ -6,6 +6,8 @@
 namespace Modules {
 namespace Demux {
 
+const int FIRST_TRACK = 1;
+
 struct ISOProgressiveReader {
 	/* data buffer to be read by the parser */
 	std::vector<u8> data;
@@ -17,7 +19,6 @@ struct ISOProgressiveReader {
 	u32 samplesProcessed = 0;
 	u32 sampleIndex = 1; /* samples are numbered starting from 1 */
 	u32 sampleCount = 0;
-	int trackNumber = 1; //TODO: multi-tracks
 };
 
 GPACDemuxMP4Full::GPACDemuxMP4Full()
@@ -61,10 +62,10 @@ bool GPACDemuxMP4Full::processSample() {
 
 bool GPACDemuxMP4Full::safeProcessSample() {
 	/* only if we have the track number can we try to get the sample data */
-	if (reader->trackNumber == 0)
+	if (FIRST_TRACK == 0)
 		return true;
 
-	if(auto desc = reader->movie->getDecoderConfig(reader->trackNumber, 1)) {
+	if(auto desc = reader->movie->getDecoderConfig(FIRST_TRACK, 1)) {
 		auto dsi = desc->decoderSpecificInfo;
 		{
 			auto infoString = string2hex((uint8_t*)dsi->data, dsi->dataLength);
@@ -84,7 +85,7 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 	}
 
 	/* let's see how many samples we have since the last parsed */
-	auto newSampleCount = reader->movie->getSampleCount(reader->trackNumber);
+	auto newSampleCount = reader->movie->getSampleCount(FIRST_TRACK);
 	if (newSampleCount > reader->sampleCount) {
 		/* New samples have been added to the file */
 		log(Info, "Found %s new samples (total: %s)",
@@ -102,13 +103,13 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 	{
 		/* let's analyze the samples we have parsed so far one by one */
 		int di /*descriptor index*/;
-		auto ISOSample = reader->movie->getSample(reader->trackNumber, reader->sampleIndex, di);
+		auto ISOSample = reader->movie->getSample(FIRST_TRACK, reader->sampleIndex, di);
 		/* if you want the sample description data, you can call:
 		   GF_Descriptor *desc = movie->getDecoderConfig(reader->track_handle, di);
 		   */
 
 		reader->samplesProcessed++;
-		auto const DTSOffset = reader->movie->getDTSOffet(reader->trackNumber);
+		auto const DTSOffset = reader->movie->getDTSOffet(FIRST_TRACK);
 		/*here we dump some sample info: samp->data, samp->dataLength, samp->isRAP, samp->DTS, samp->CTS_Offset */
 		log(Debug, "Found sample #%s(#%s) of length %s , RAP: %s, DTS: %s, CTS: %s",
 		    reader->sampleIndex, reader->samplesProcessed, ISOSample->dataLength,
@@ -117,7 +118,7 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 
 		auto out = output->getBuffer(ISOSample->dataLength);
 		memcpy(out->data(), ISOSample->data, ISOSample->dataLength);
-		out->setMediaTime(ISOSample->DTS + DTSOffset + ISOSample->CTS_Offset, reader->movie->getMediaTimescale(reader->trackNumber));
+		out->setMediaTime(ISOSample->DTS + DTSOffset + ISOSample->CTS_Offset, reader->movie->getMediaTimescale(FIRST_TRACK));
 		output->emit(out);
 	}
 
