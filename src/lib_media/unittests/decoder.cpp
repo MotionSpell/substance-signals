@@ -12,10 +12,6 @@ using namespace Modules;
 
 namespace {
 
-std::unique_ptr<Decode::Decoder> createMp3Decoder() {
-	return create<Decode::Decoder>(AUDIO_PKT);
-}
-
 template<size_t numBytes>
 std::shared_ptr<DataBase> createPacket(uint8_t const (&bytes)[numBytes]) {
 	auto pkt = make_shared<DataRaw>(numBytes);
@@ -70,7 +66,7 @@ unittest("decoder: audio simple") {
 		int frameCount = 0;
 	};
 
-	auto decode = createMp3Decoder();
+	auto decode = create<Decode::Decoder>(AUDIO_PKT);
 	auto rec = create<FrameCounter>();
 	ConnectOutputToInput(decode->getOutput(0), rec->getInput(0));
 
@@ -94,7 +90,7 @@ unittest("decoder: timestamp propagation") {
 		std::vector<int64_t> mediaTimes;
 	};
 
-	auto decode = createMp3Decoder();
+	auto decode = create<Decode::Decoder>(AUDIO_PKT);
 	auto rec = create<FrameCounter>();
 	ConnectOutputToInput(decode->getOutput(0), rec->getInput(0));
 
@@ -110,9 +106,6 @@ unittest("decoder: timestamp propagation") {
 }
 
 namespace {
-std::unique_ptr<Decode::Decoder> createVideoDecoder() {
-	return create<Decode::Decoder>(VIDEO_PKT);
-}
 
 std::shared_ptr<DataBase> getTestH264Frame() {
 	static const uint8_t h264_gray_frame[] = {
@@ -138,7 +131,7 @@ std::shared_ptr<DataBase> getTestH264Frame() {
 }
 
 unittest("decoder: video simple") {
-	auto decode = createVideoDecoder();
+	auto decode = create<Decode::Decoder>(VIDEO_PKT);
 	auto data = getTestH264Frame();
 
 	std::vector<std::string> actualFrames;
@@ -167,7 +160,7 @@ unittest("decoder: video simple") {
 }
 
 unittest("decoder: destroy without flushing") {
-	auto decode = createVideoDecoder();
+	auto decode = create<Decode::Decoder>(VIDEO_PKT);
 
 	int picCount = 0;
 	auto onPic = [&](Data) {
@@ -180,7 +173,7 @@ unittest("decoder: destroy without flushing") {
 }
 
 unittest("decoder: audio mp3 manual frame to AAC") {
-	auto decode = createMp3Decoder();
+	auto decode = create<Decode::Decoder>(AUDIO_PKT);
 	auto encoder = create<Encode::LibavEncode>(Encode::LibavEncode::Audio);
 
 	ConnectOutputToInput(decode->getOutput(0), encoder->getInput(0));
@@ -192,7 +185,7 @@ unittest("decoder: audio mp3 manual frame to AAC") {
 }
 
 unittest("decoder: audio mp3 to converter to AAC") {
-	auto decoder = createMp3Decoder();
+	auto decoder = create<Decode::Decoder>(AUDIO_PKT);
 	auto encoder = create<Encode::LibavEncode>(Encode::LibavEncode::Audio);
 
 	auto const dstFormat = PcmFormat(44100, 2, AudioLayout::Stereo, AudioSampleFormat::F32, AudioStruct::Planar);
