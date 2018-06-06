@@ -36,7 +36,6 @@ if [ ! -z "$PKGS" ] ; then
   pkg-config --libs "$PKGS"
 fi
 
-echo "CFLAGS+= -I$EXTRA/include/asio -Wno-unused-local-typedefs"
 echo "LDFLAGS+= -lpthread"
 
 # Workaround: linking with libgpac and libavfilter currently requires this,
