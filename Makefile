@@ -105,11 +105,7 @@ include $(SRC)/apps/mp42tsx/project.mk
 
 #------------------------------------------------------------------------------
 
-TAG:=$(shell echo `git describe --tags --abbrev=0 2> /dev/null || echo "UNKNOWN"`)
-VERSION:=$(shell echo `git describe --tags --long 2> /dev/null || echo "UNKNOWN"` | sed "s/^$(TAG)-//")
-BRANCH:=$(shell git rev-parse --abbrev-ref HEAD 2> /dev/null || echo "UNKNOWN")
-
-VER_NEW:=$(TAG)-$(BRANCH)-rev$(VERSION)
+VER_NEW:=$(shell scripts/version.sh)
 
 $(BIN)/src/lib_utils/version.cpp.o: CFLAGS+=-DVERSION="\"$(VER_NEW)\""
 
