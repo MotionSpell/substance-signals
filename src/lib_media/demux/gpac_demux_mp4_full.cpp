@@ -61,10 +61,6 @@ bool GPACDemuxMP4Full::processSample() {
 }
 
 bool GPACDemuxMP4Full::safeProcessSample() {
-	/* only if we have the track number can we try to get the sample data */
-	if (FIRST_TRACK == 0)
-		return true;
-
 	if(auto desc = reader->movie->getDecoderConfig(FIRST_TRACK, 1)) {
 		auto dsi = desc->decoderSpecificInfo;
 		{
