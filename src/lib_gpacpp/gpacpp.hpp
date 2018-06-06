@@ -156,7 +156,7 @@ class IsoFile : public Init {
 			gf_isom_set_single_moof_mode(movie_, (Bool)enable);
 		}
 
-		bool isFragmented() const{
+		bool isFragmented() const {
 			return gf_isom_is_fragmented(movie_);
 		}
 
