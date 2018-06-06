@@ -50,7 +50,7 @@ PKGS:=\
 $(BIN)/config.mk: $(SRC)/../scripts/configure
 	@echo "Configuring ..."
 	@mkdir -p $(BIN)
-	scripts/version.sh > $(BIN)/signals_version.h
+	$(SRC)/../scripts/version.sh > $(BIN)/signals_version.h
 	$(SRC)/../scripts/configure $(PKGS) > "$@"
 
 ifneq ($(MAKECMDGOALS),clean)
