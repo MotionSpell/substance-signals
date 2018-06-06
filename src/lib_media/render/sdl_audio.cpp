@@ -96,6 +96,18 @@ void SDLAudio::process(Data data) {
 	m_converter->process(data);
 }
 
+void SDLAudio::flush() {
+	// wait for everything to be consumed by the audio callback
+	for(;;) {
+		{
+			std::lock_guard<std::mutex> lg(m_Mutex);
+			if(m_Fifo.bytesToRead() == 0)
+				break;
+		}
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	}
+}
+
 void SDLAudio::push(Data data) {
 	auto pcmData = safe_cast<const DataPcm>(data);
 	std::lock_guard<std::mutex> lg(m_Mutex);

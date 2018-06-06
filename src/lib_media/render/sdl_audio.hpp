@@ -19,6 +19,7 @@ class SDLAudio : public ModuleS {
 		SDLAudio(const std::shared_ptr<IClock> clock = g_DefaultClock);
 		~SDLAudio();
 		void process(Data data) override;
+		void flush() override;
 
 	private:
 		bool reconfigure(PcmFormat pcmFormat);
