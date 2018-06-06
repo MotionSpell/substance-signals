@@ -70,8 +70,14 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 			auto infoString = string2hex((uint8_t*)dsi->data, dsi->dataLength);
 			log(Debug, "Found decoder specific info: \"%s\"", infoString);
 		}
-		auto meta = make_shared<MetadataPktAudio>();
-		meta->codec = "aac";
+		std::shared_ptr<MetadataPkt> meta;
+		if(desc->streamType == GF_STREAM_AUDIO) {
+			meta = make_shared<MetadataPktAudio>();
+			meta->codec = "aac";
+		} else {
+			meta = make_shared<MetadataPktVideo>();
+			meta->codec = "h264";
+		}
 		meta->codecSpecificInfo.assign(dsi->data, dsi->data+dsi->dataLength);
 		output->setMetadata(meta);
 		gf_odf_desc_del((GF_Descriptor*)desc);
