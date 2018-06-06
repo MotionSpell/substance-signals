@@ -106,7 +106,7 @@ include $(SRC)/apps/mp42tsx/project.mk
 
 #------------------------------------------------------------------------------
 
-$(BIN)/src/lib_utils/version.cpp.o: CFLAGS+=-I$(BIN)
+$(BIN)/$(SRC)/lib_utils/version.cpp.o: CFLAGS+=-I$(BIN)
 
 targets: $(TARGETS)
 
