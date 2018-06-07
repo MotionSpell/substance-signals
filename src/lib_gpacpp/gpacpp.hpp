@@ -49,20 +49,19 @@ class Error : public std::exception {
 //------------------------------------------------
 // wrapper for GPAC init
 //------------------------------------------------
-class Init {
-	public:
-		Init(/*bool memTracker = false, */GF_LOG_Tool globalLogTools = GF_LOG_ALL, GF_LOG_Level globalLogLevel = GF_LOG_WARNING) {
+struct Init {
+	Init() {
 #ifdef GPAC_MEM_TRACKER
-			gf_sys_init(GF_MemTrackerBackTrace);
+		gf_sys_init(GF_MemTrackerBackTrace);
 #else
-			gf_sys_init(GF_MemTrackerNone);
+		gf_sys_init(GF_MemTrackerNone);
 #endif
-			gf_log_set_tool_level(globalLogTools, globalLogLevel);
-		}
+		gf_log_set_tool_level(GF_LOG_ALL, GF_LOG_WARNING);
+	}
 
-		~Init() {
-			gf_sys_close();
-		}
+	~Init() {
+		gf_sys_close();
+	}
 };
 
 //------------------------------------------------
