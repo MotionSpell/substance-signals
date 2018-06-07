@@ -126,7 +126,7 @@ class OutputDataDefault : public IOutput, public MetadataCap, public ClockCap {
 				Log::msg(Debug, "emit(): Output had no receiver");
 		}
 
-		template<typename T = typename Allocator::MyType>
+		template<typename T = DataType>
 		std::shared_ptr<T> getBuffer(size_t size) {
 			auto buffer = allocator->template getBuffer<T>(size, allocator);
 			if (clock) buffer->setCreationTime(fractionToClock(clock->now()));

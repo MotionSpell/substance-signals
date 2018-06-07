@@ -22,7 +22,6 @@ static const size_t ALLOC_NUM_BLOCKS_LOW_LATENCY = 2;
 template<typename DataType>
 class PacketAllocator {
 	public:
-		typedef DataType MyType;
 		PacketAllocator(size_t minBlocks, size_t maxBlocks) :
 #ifdef ALLOC_NUM_BLOCKS_MAX_DYN_FREE
 			minBlocks(minBlocks),
