@@ -1,12 +1,12 @@
 #pragma once
 
 #include "lib_modules/utils/helper.hpp"
-#include "../common/libav.hpp"
 #include "../common/pcm.hpp"
 #include "../common/picture.hpp"
 #include "lib_utils/queue.hpp"
 #include <string>
 
+struct AVCodecContext;
 struct AVStream;
 struct AVFrame;
 
@@ -15,6 +15,8 @@ class Frame;
 }
 
 namespace Modules {
+class DataAVPacket;
+
 namespace Encode {
 
 class LibavEncode : public ModuleS {
