@@ -3,7 +3,6 @@
 #include "lib_utils/format.hpp"
 #include <cstdint>
 #include <memory>
-#include <string>
 #include <stdexcept>
 
 extern "C" {
@@ -114,8 +113,7 @@ class IsoSample : public GF_ISOSample {
 			IsRAP = RAP_NO;
 		}
 		IsoSample(GF_ISOSample* pOther) {
-			GF_ISOSample* pMe = this;
-			memcpy(pMe, pOther, sizeof(*pOther));
+			*((GF_ISOSample*)this) = *pOther;
 			gf_free(pOther);
 		}
 		~IsoSample() {
