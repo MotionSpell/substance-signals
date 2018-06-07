@@ -106,7 +106,7 @@ typedef SignalSync SignalDefaultSync;
 template<typename DataType>
 class OutputDataDefault : public IOutput, public MetadataCap, public ClockCap {
 	public:
-		typedef PacketAllocator<DataType> Allocator;
+		typedef PacketAllocator Allocator;
 		typedef SignalDefaultSync Signal;
 
 		OutputDataDefault(size_t allocatorBaseSize, size_t allocatorMaxSize, std::shared_ptr<IClock> clock, std::shared_ptr<const IMetadata> metadata = nullptr)

@@ -19,7 +19,6 @@ static const size_t ALLOC_NUM_BLOCKS_LOW_LATENCY = 2;
 //#define ALLOC_NUM_BLOCKS_MAX_DYN_FREE /*free the dynamically allocated blocks*/
 //#define ALLOC_DEBUG_TRACK_BLOCKS
 
-template<typename DataType>
 class PacketAllocator {
 	public:
 		PacketAllocator(size_t minBlocks, size_t maxBlocks) :
@@ -46,11 +45,11 @@ class PacketAllocator {
 		}
 
 		struct Deleter {
-			Deleter(std::shared_ptr<PacketAllocator<DataType>> allocator) : allocator(allocator) {}
-			void operator()(DataType *p) const {
+			Deleter(std::shared_ptr<PacketAllocator> allocator) : allocator(allocator) {}
+			void operator()(IData *p) const {
 				allocator->recycle(p);
 			}
-			std::shared_ptr<PacketAllocator<DataType>> const allocator;
+			std::shared_ptr<PacketAllocator> const allocator;
 		};
 
 		template<typename T>
@@ -92,7 +91,8 @@ class PacketAllocator {
 
 	private:
 		PacketAllocator& operator= (const PacketAllocator&) = delete;
-		void recycle(DataType *p) {
+
+		void recycle(IData *p) {
 #ifdef ALLOC_NUM_BLOCKS_MAX_DYN_FREE
 			if (curNumBlocks > minBlocks) {
 				curNumBlocks--;
@@ -113,7 +113,7 @@ class PacketAllocator {
 		};
 		struct Block {
 			Event event = OneBufferIsFree;
-			DataType *data = nullptr;
+			IData*data = nullptr;
 		};
 
 #ifdef ALLOC_NUM_BLOCKS_MAX_DYN_FREE
@@ -123,7 +123,7 @@ class PacketAllocator {
 		std::atomic_size_t curNumBlocks;
 		Queue<Block> freeBlocks;
 #ifdef ALLOC_DEBUG_TRACK_BLOCKS
-		Queue<std::weak_ptr<DataType>> usedBlocks;
+		Queue<std::weak_ptr<IData>> usedBlocks;
 #endif
 };
 
