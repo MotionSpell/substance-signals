@@ -1,14 +1,15 @@
 #pragma once
 
 #include "lib_modules/utils/helper.hpp"
-#include "../common/libav.hpp"
 #include <atomic>
 #include <vector>
 
 struct AVFormatContext;
 struct AVIOContext;
+struct AVPacket;
 
 namespace Modules {
+class DataAVPacket;
 
 namespace Transform {
 class Restamp;
@@ -50,7 +51,7 @@ class LibavDemux : public ModuleS {
 		bool loop;
 		std::thread workingThread;
 		std::atomic_bool done;
-		QueueLockFree<AVPacket> packetQueue;
+		std::unique_ptr<QueueLockFree<AVPacket>> packetQueue;
 		AVFormatContext* m_formatCtx;
 		AVIOContext* m_avioCtx = nullptr;
 		ReadFunc m_read;
