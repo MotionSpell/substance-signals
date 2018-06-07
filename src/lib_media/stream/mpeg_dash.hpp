@@ -18,8 +18,7 @@ class MPEG_DASH : public AdaptiveStreamingCommon, public gpacpp::Init {
 		void finalizeManifest() override;
 
 		struct DASHQuality : public Quality {
-			DASHQuality() : rep(nullptr) {}
-			GF_MPD_Representation *rep;
+			GF_MPD_Representation *rep = nullptr;
 			struct SegmentToDelete {
 				SegmentToDelete(std::shared_ptr<const MetadataFile> file) : file(file) {}
 				std::shared_ptr<const MetadataFile> file;
