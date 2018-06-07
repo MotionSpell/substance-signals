@@ -36,7 +36,7 @@ class ConnectedCap : public virtual IConnectedCap {
 	public:
 		ConnectedCap() : connections(0) {}
 		virtual ~ConnectedCap() noexcept(false) {}
-		virtual size_t getNumConnections() const {
+		virtual int getNumConnections() const {
 			return connections;
 		}
 		virtual void connect() {
@@ -47,7 +47,7 @@ class ConnectedCap : public virtual IConnectedCap {
 		}
 
 	private:
-		std::atomic_size_t connections;
+		std::atomic<int> connections;
 };
 
 template<typename DataType>
@@ -87,10 +87,10 @@ class InputCap : public virtual IInputCap {
 			inputs.push_back(uptr(p));
 			return p;
 		}
-		size_t getNumInputs() const override {
+		int getNumInputs() const override {
 			return inputs.size();
 		}
-		IInput* getInput(size_t i) override {
+		IInput* getInput(int i) override {
 			return inputs[i].get();
 		}
 
@@ -154,10 +154,10 @@ class OutputCap : public virtual IOutputCap {
 			this->allocatorSize = allocatorSize;
 		}
 
-		size_t getNumOutputs() const override {
-			return outputs.size();
+		int getNumOutputs() const override {
+			return (int)outputs.size();
 		}
-		IOutput* getOutput(size_t i) override {
+		IOutput* getOutput(int i) override {
 			return outputs[i].get();
 		}
 };
@@ -233,25 +233,25 @@ class ModuleDynI : public Module {
 				inputs.push_back(std::move(pEx));
 			return p;
 		}
-		size_t getNumInputs() const override {
+		int getNumInputs() const override {
 			if (inputs.size() == 0)
 				return 1;
 			else if (inputs[inputs.size() - 1]->getNumConnections() == 0)
-				return inputs.size();
+				return (int)inputs.size();
 			else
-				return inputs.size() + 1;
+				return (int)inputs.size() + 1;
 		}
-		IInput* getInput(size_t i) override {
-			if (i == inputs.size())
+		IInput* getInput(int i) override {
+			if (i == (int)inputs.size())
 				addInput(new Input<DataLoose>(this));
-			else if (i > inputs.size())
+			else if (i > (int)inputs.size())
 				throw std::runtime_error(format("Incorrect port number %s for dynamic input.", i));
 
 			return inputs[i].get();
 		}
-		std::vector<size_t> getInputs() const {
-			std::vector<size_t> r;
-			for (size_t i = 0; i < getNumInputs() - 1; ++i)
+		std::vector<int> getInputs() const {
+			std::vector<int> r;
+			for (int i = 0; i < getNumInputs() - 1; ++i)
 				r.push_back(i);
 			return r;
 		}

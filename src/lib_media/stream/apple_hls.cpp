@@ -50,7 +50,7 @@ std::string Apple_HLS::getManifestMasterInternal() {
 			uint64_t bandwidth;
 		};
 		std::vector<AudioSpec> audioSpecs;
-		for (size_t i = 0; i < getNumInputs() - 1; ++i) {
+		for (int i = 0; i < getNumInputs() - 1; ++i) {
 			auto quality = safe_cast<HLSQuality>(qualities[i].get());
 			auto const &meta = quality->getMeta();
 			if (meta->getStreamType() == AUDIO_PKT) {
@@ -64,7 +64,7 @@ std::string Apple_HLS::getManifestMasterInternal() {
 		if (audioSpecs.size() > 1)
 			throw error("Several audio detected in CMAF mode. Not supported.");
 
-		for (size_t i = 0; i < getNumInputs() - 1; ++i) {
+		for (int i = 0; i < getNumInputs() - 1; ++i) {
 			auto quality = safe_cast<HLSQuality>(qualities[i].get());
 			uint64_t bandwidth = quality->avg_bitrate_in_bps;
 			if (!audioSpecs.empty()) {
@@ -86,7 +86,7 @@ std::string Apple_HLS::getManifestMasterInternal() {
 			}
 		}
 	} else {
-		for (size_t i = 0; i < getNumInputs() - 1; ++i) {
+		for (int i = 0; i < getNumInputs() - 1; ++i) {
 			auto quality = safe_cast<HLSQuality>(qualities[i].get());
 			playlistMaster << "#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=" << quality->avg_bitrate_in_bps;
 			auto const &meta = quality->getMeta();
@@ -121,7 +121,7 @@ void Apple_HLS::generateManifestMaster() {
 void Apple_HLS::updateManifestVariants() {
 	if (genVariantPlaylist) {
 		firstSegNums.resize(getNumInputs());
-		for (size_t i = 0; i < getNumInputs() - 1; ++i) {
+		for (int i = 0; i < getNumInputs() - 1; ++i) {
 			auto quality = safe_cast<HLSQuality>(qualities[i].get());
 			auto const &meta = quality->getMeta();
 			auto fn = meta->filename;
@@ -171,13 +171,13 @@ void Apple_HLS::updateManifestVariants() {
 
 void Apple_HLS::generateManifestVariantFull(bool isLast) {
 	if (genVariantPlaylist) {
-		for (size_t i = 0; i < getNumInputs() - 1; ++i) {
+		for (int i = 0; i < getNumInputs() - 1; ++i) {
 			auto quality = safe_cast<HLSQuality>(qualities[i].get());
 			quality->playlistVariant.str(std::string());
 			quality->playlistVariant << "#EXTM3U" << std::endl;
 			quality->playlistVariant << "#EXT-X-VERSION:" << version << std::endl;
 			quality->playlistVariant << "#EXT-X-TARGETDURATION:" << (segDurationInMs + 500) / 1000 << std::endl;
-			if (firstSegNums.size() > i) quality->playlistVariant << "#EXT-X-MEDIA-SEQUENCE:" << firstSegNums[i] << std::endl;
+			if ((int)firstSegNums.size() > i) quality->playlistVariant << "#EXT-X-MEDIA-SEQUENCE:" << firstSegNums[i] << std::endl;
 			if (version >= 6) quality->playlistVariant << "#EXT-X-INDEPENDENT-SEGMENTS" << std::endl;
 			if (isCMAF) quality->playlistVariant << "#EXT-X-MAP:URI=\"" << getInitName(quality, i) << "\"" << std::endl;
 			if (!timeShiftBufferDepthInMs) quality->playlistVariant << "#EXT-X-PLAYLIST-TYPE:EVENT" << std::endl;

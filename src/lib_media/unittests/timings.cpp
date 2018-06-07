@@ -128,7 +128,7 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 	auto demux = create<Demux::LibavDemux>("data/beepbop.mp4");
 	std::vector<std::unique_ptr<IModule>> modules;
 	std::vector<std::unique_ptr<Utils::Recorder>> recorders;
-	for (size_t i = 0; i < demux->getNumOutputs(); ++i) {
+	for (int i = 0; i < demux->getNumOutputs(); ++i) {
 		auto const metadataDemux = safe_cast<const MetadataPktLibav>(demux->getOutput(i)->getMetadata());
 		if (!metadataDemux->isVideo())
 			continue;

@@ -11,8 +11,8 @@ namespace Pipelines {
 struct IPipelinedModule : public Modules::IModule {
 	virtual bool isSource() = 0;
 	virtual bool isSink() = 0;
-	virtual void connect(Modules::IOutput *output, size_t inputIdx, bool forceAsync, bool inputAcceptMultipleConnections) = 0;
-	virtual void disconnect(size_t inputIdx, Modules::IOutput * output) = 0;
+	virtual void connect(Modules::IOutput *output, int inputIdx, bool forceAsync, bool inputAcceptMultipleConnections) = 0;
+	virtual void disconnect(int inputIdx, Modules::IOutput * output) = 0;
 };
 
 struct IPipelineNotifier {
@@ -32,8 +32,8 @@ class IPipeline {
 		// (which is the caller responsibility - FIXME)
 		virtual void removeModule(IPipelinedModule * module) = 0;
 
-		virtual void connect(IPipelinedModule * prev, size_t outputIdx, IPipelinedModule * next, size_t inputIdx, bool inputAcceptMultipleConnections = false) = 0;
-		virtual void disconnect(IPipelinedModule * prev, size_t outputIdx, IPipelinedModule * next, size_t inputIdx) = 0;
+		virtual void connect(IPipelinedModule * prev, int outputIdx, IPipelinedModule * next, int inputIdx, bool inputAcceptMultipleConnections = false) = 0;
+		virtual void disconnect(IPipelinedModule * prev, int outputIdx, IPipelinedModule * next, int inputIdx) = 0;
 
 		virtual void start() = 0;
 		virtual void waitForEndOfStream() = 0;
@@ -62,8 +62,8 @@ class Pipeline : public IPipeline, public IPipelineNotifier {
 
 		IPipelinedModule* addModuleInternal(std::unique_ptr<Modules::IModule> rawModule) override;
 		void removeModule(IPipelinedModule * module) override;
-		void connect   (IPipelinedModule * prev, size_t outputIdx, IPipelinedModule * next, size_t inputIdx, bool inputAcceptMultipleConnections = false) override;
-		void disconnect(IPipelinedModule * prev, size_t outputIdx, IPipelinedModule * next, size_t inputIdx) override;
+		void connect   (IPipelinedModule * prev, int outputIdx, IPipelinedModule * next, int inputIdx, bool inputAcceptMultipleConnections = false) override;
+		void disconnect(IPipelinedModule * prev, int outputIdx, IPipelinedModule * next, int inputIdx) override;
 		void start() override;
 		void waitForEndOfStream() override;
 		void exitSync() override;

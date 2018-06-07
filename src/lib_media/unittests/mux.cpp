@@ -27,7 +27,7 @@ std::ostream& operator<<(std::ostream& o, Meta const& meta) {
 unittest("[DISABLED] remux test: GPAC mp4 mux") {
 	auto demux = create<Demux::LibavDemux>("data/beepbop.mp4");
 	auto mux = create<Mux::GPACMuxMP4>("output_video_gpac");
-	for (size_t i = 0; i < demux->getNumOutputs(); ++i) {
+	for (int i = 0; i < demux->getNumOutputs(); ++i) {
 		ConnectModules(demux.get(), i, mux.get(), i);
 	}
 
@@ -38,7 +38,7 @@ unittest("[DISABLED] remux test: GPAC mp4 mux") {
 unittest("[DISABLED] remux test: libav mp4 mux") {
 	auto demux = create<Demux::LibavDemux>("data/beepbop.mp4");
 	auto mux = create<Mux::LibavMux>("output_libav", "mp4");
-	for (size_t i = 0; i < demux->getNumOutputs(); ++i) {
+	for (int i = 0; i < demux->getNumOutputs(); ++i) {
 		ConnectModules(demux.get(), i, mux.get(), i);
 	}
 
@@ -130,7 +130,7 @@ unittest("mux GPAC mp4 combination coverage") {
 	muxers.push_back(create<Mux::GPACMuxMP4>("", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerSegment, Mux::GPACMuxMP4::SegNumStartsAtZero | Mux::GPACMuxMP4::FlushFragMemory));
 
 	std::vector<std::unique_ptr<Listener>> listeners;
-	for (size_t i = 0; i < demux->getNumOutputs(); ++i) {
+	for (int i = 0; i < demux->getNumOutputs(); ++i) {
 		auto metadata = demux->getOutput(i)->getMetadata();
 		if (metadata->isAudio()) {
 			for (auto &m : muxers) {

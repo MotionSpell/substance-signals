@@ -23,8 +23,8 @@ void libav_mux(std::string format) {
 	auto null = create<Out::Null>();
 
 	//find video signal from demux
-	size_t videoIndex = std::numeric_limits<size_t>::max();
-	for (size_t i = 0; i < demux->getNumOutputs(); ++i) {
+	int videoIndex = -1;
+	for (int i = 0; i < demux->getNumOutputs(); ++i) {
 		auto metadata = demux->getOutput(i)->getMetadata();
 		if (metadata->getStreamType() == VIDEO_PKT) {
 			videoIndex = i;
@@ -32,7 +32,7 @@ void libav_mux(std::string format) {
 			ConnectOutputToInput(demux->getOutput(i), null->getInput(0));
 		}
 	}
-	ASSERT(videoIndex != std::numeric_limits<size_t>::max());
+	ASSERT(videoIndex != -1);
 
 	//create the video decode
 	auto metadata = safe_cast<const MetadataPkt>(demux->getOutput(videoIndex)->getMetadata());
@@ -62,15 +62,15 @@ unittest("transcoder: video simple (gpac mux MP4)") {
 	auto null = create<Out::Null>();
 
 	//find video signal from demux
-	size_t videoIndex = std::numeric_limits<size_t>::max();
-	for (size_t i = 0; i < demux->getNumOutputs(); ++i) {
+	int videoIndex = -1;
+	for (int i = 0; i < demux->getNumOutputs(); ++i) {
 		if (demux->getOutput(i)->getMetadata()->getStreamType() == VIDEO_PKT) {
 			videoIndex = i;
 		} else {
 			ConnectOutputToInput(demux->getOutput(i), null->getInput(0));
 		}
 	}
-	ASSERT(videoIndex != std::numeric_limits<size_t>::max());
+	ASSERT(videoIndex != -1);
 
 	//create the video decode
 	auto decode = create<Decode::Decoder>(VIDEO_PKT);

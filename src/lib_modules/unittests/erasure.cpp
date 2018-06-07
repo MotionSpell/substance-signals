@@ -16,7 +16,7 @@ secondclasstest("packet type erasure + multi-output: libav Demux -> {libav Decod
 
 	std::vector<std::unique_ptr<Decode::Decoder>> decoders;
 	std::vector<std::unique_ptr<Out::Print>> printers;
-	for (size_t i = 0; i < demux->getNumOutputs(); ++i) {
+	for (int i = 0; i < demux->getNumOutputs(); ++i) {
 		auto metadata = safe_cast<const MetadataPktLibav>(demux->getOutput(i)->getMetadata());
 		auto decode = create<Decode::Decoder>(metadata->getStreamType());
 

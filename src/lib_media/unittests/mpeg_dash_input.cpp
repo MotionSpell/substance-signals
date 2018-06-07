@@ -55,7 +55,7 @@ unittest("mpeg_dash_input: get MPD") {
 	LocalFilesystem source;
 	source.resources["http://toto.mpd"] = MPD;
 	auto dash = create<MPEG_DASH_Input>(proxify(source), "http://toto.mpd");
-	ASSERT_EQUALS(2u, dash->getNumOutputs());
+	ASSERT_EQUALS(2, dash->getNumOutputs());
 }
 
 unittest("mpeg_dash_input: get MPD, one input") {
@@ -73,7 +73,7 @@ unittest("mpeg_dash_input: get MPD, one input") {
 	LocalFilesystem source;
 	source.resources["http://single.mpd"] = MPD;
 	auto dash = create<MPEG_DASH_Input>(proxify(source), "http://single.mpd");
-	ASSERT_EQUALS(1u, dash->getNumOutputs());
+	ASSERT_EQUALS(1, dash->getNumOutputs());
 }
 
 unittest("mpeg_dash_input: get chunks") {
@@ -122,6 +122,6 @@ std::unique_ptr<IFilePuller> createHttpSource();
 secondclasstest("mpeg_dash_input: get MPD from remote server") {
 	auto url = "http://download.tsi.telecom-paristech.fr/gpac/DASH_CONFORMANCE/TelecomParisTech/mp4-live/mp4-live-mpd-AV-NBS.mpd";
 	auto dash = create<MPEG_DASH_Input>(createHttpSource(), url);
-	ASSERT_EQUALS(2u, dash->getNumOutputs());
+	ASSERT_EQUALS(2, dash->getNumOutputs());
 }
 

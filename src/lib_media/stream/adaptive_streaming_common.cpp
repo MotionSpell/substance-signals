@@ -162,13 +162,13 @@ void AdaptiveStreamingCommon::threadProc() {
 	log(Info, "start processing at UTC: %sms.", (uint64_t)Modules::absUTCOffsetInMs);
 
 	auto const numInputs = getNumInputs() - 1;
-	for (size_t i = 0; i < numInputs; ++i) {
+	for (int i = 0; i < numInputs; ++i) {
 		qualities.push_back(createQuality());
 	}
 
 	Data data;
 	std::vector<uint64_t> curSegDurIn180k(numInputs);
-	size_t i;
+	int i;
 
 	auto isComplete = [&]()->bool {
 		uint64_t minIncompletSegDur = std::numeric_limits<uint64_t>::max();
@@ -266,7 +266,7 @@ void AdaptiveStreamingCommon::threadProc() {
 			if (i != numInputs) {
 				break;
 			} else {
-				assert((type == LiveNonBlocking) && (qualities.size() < numInputs));
+				assert((type == LiveNonBlocking) && ((int)qualities.size() < numInputs));
 				g_DefaultClock->sleep(Fraction(1, 1000));
 				continue;
 			}

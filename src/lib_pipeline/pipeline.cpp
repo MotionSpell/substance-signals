@@ -30,7 +30,7 @@ void Pipeline::removeModule(IPipelinedModule *module) {
 	throw std::runtime_error("Could not remove module from pipeline");
 }
 
-void Pipeline::connect(IPipelinedModule * const prev, size_t outputIdx, IPipelinedModule * const next, size_t inputIdx, bool inputAcceptMultipleConnections) {
+void Pipeline::connect(IPipelinedModule * const prev, int outputIdx, IPipelinedModule * const next, int inputIdx, bool inputAcceptMultipleConnections) {
 	if (!next || !prev) return;
 	std::unique_lock<std::mutex> lock(mutex);
 	if (remainingNotifications != notifications)
@@ -39,7 +39,7 @@ void Pipeline::connect(IPipelinedModule * const prev, size_t outputIdx, IPipelin
 	computeTopology();
 }
 
-void Pipeline::disconnect(IPipelinedModule * const prev, size_t outputIdx, IPipelinedModule * const next, size_t inputIdx) {
+void Pipeline::disconnect(IPipelinedModule * const prev, int outputIdx, IPipelinedModule * const next, int inputIdx) {
 	if (!prev) return;
 	std::unique_lock<std::mutex> lock(mutex);
 	if (remainingNotifications != notifications)
@@ -63,7 +63,7 @@ void Pipeline::waitForEndOfStream() {
 	Log::msg(Info, "Pipeline: waiting for completion");
 	std::unique_lock<std::mutex> lock(mutex);
 	while (remainingNotifications > 0) {
-		Log::msg(Debug, "Pipeline: condition (remaining: %s) (%s modules in the pipeline)", (size_t)remainingNotifications, modules.size());
+		Log::msg(Debug, "Pipeline: condition (remaining: %s) (%s modules in the pipeline)", (int)remainingNotifications, modules.size());
 		condition.wait_for(lock, std::chrono::milliseconds(COMPLETION_GRANULARITY_IN_MS));
 		try {
 			if (eptr)
@@ -93,7 +93,7 @@ void Pipeline::computeTopology() {
 			if (m->isSource()) {
 				notifications++;
 			} else {
-				for (size_t i = 0; i < m->getNumInputs(); ++i) {
+				for (int i = 0; i < m->getNumInputs(); ++i) {
 					if (m->getInput(i)->getNumConnections()) {
 						notifications++;
 						break;

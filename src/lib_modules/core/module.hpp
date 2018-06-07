@@ -18,7 +18,7 @@ struct IProcessor {
 
 struct IConnectedCap {
 	virtual ~IConnectedCap() noexcept(false) {}
-	virtual size_t getNumConnections() const = 0;
+	virtual int getNumConnections() const = 0;
 	virtual void connect() = 0;
 	virtual void disconnect() = 0;
 };
@@ -34,8 +34,8 @@ struct IInput : public IProcessor, public virtual IConnectedCap, public virtual 
 
 struct IInputCap {
 	virtual ~IInputCap() noexcept(false) {}
-	virtual size_t getNumInputs() const = 0;
-	virtual IInput* getInput(size_t i) = 0;
+	virtual int getNumInputs() const = 0;
+	virtual IInput* getInput(int i) = 0;
 };
 
 struct IOutput : virtual IMetadataCap {
@@ -50,8 +50,8 @@ struct IOutput : virtual IMetadataCap {
 
 struct IOutputCap {
 		virtual ~IOutputCap() noexcept(false) {}
-		virtual size_t getNumOutputs() const = 0;
-		virtual IOutput* getOutput(size_t i) = 0;
+		virtual int getNumOutputs() const = 0;
+		virtual IOutput* getOutput(int i) = 0;
 
 	protected:
 		/*FIXME: we need to have factories to move these back to the implementation - otherwise ports created from the constructor may crash*/

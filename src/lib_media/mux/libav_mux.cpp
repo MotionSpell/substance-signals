@@ -152,7 +152,7 @@ void LibavMux::process() {
 		if (!declareStream(data, inputIdx))
 			return; //stream declared statically: no data to process.
 	}
-	if (m_formatCtx->nb_streams < getNumInputs() - 1) {
+	if (m_formatCtx->nb_streams < (size_t)getNumInputs() - 1) {
 		log(Warning, "Data loss due to undeclared streams on input ports. Consider declaring them statically.");
 		return;
 	}

@@ -655,7 +655,7 @@ unittest("[DISABLED] adaptive streaming combination coverage")
 	//FIXME: transcoding is only needed because "data/beepbop.mp4" exposes a VFR (timescale 25000/1) that prevents correct latency computation in the MP4 mux
 	auto demux = createModule<Demux::LibavDemux>(ALLOC_NUM_BLOCKS_DEFAULT*10, clock, "data/beepbop.mp4");
 	std::vector<std::unique_ptr<Listener>> listeners;
-	for (size_t i = 0; i < demux->getNumOutputs(); ++i) {
+	for (int i = 0; i < demux->getNumOutputs(); ++i) {
 		std::string prefix;
 		if (demux->getOutput(i)->getMetadata()->isVideo()) {
 			decode.push_back(create<Decode::Decoder>(VIDEO_PKT));

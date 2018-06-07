@@ -73,7 +73,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 			}
 		}
 
-		IInput* getInput(size_t i) override {
+		IInput* getInput(int i) override {
 			delegate->getInput(i);
 			return ModuleDynI::getInput(i);
 		}

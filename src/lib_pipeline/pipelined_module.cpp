@@ -20,13 +20,13 @@ std::string PipelinedModule::getDelegateName() const {
 	return typeid(dref).name();
 }
 
-size_t PipelinedModule::getNumInputs() const {
+int PipelinedModule::getNumInputs() const {
 	return delegate->getNumInputs();
 }
-size_t PipelinedModule::getNumOutputs() const {
+int PipelinedModule::getNumOutputs() const {
 	return delegate->getNumOutputs();
 }
-IOutput* PipelinedModule::getOutput(size_t i) {
+IOutput* PipelinedModule::getOutput(int i) {
 	if (i >= delegate->getNumOutputs())
 		throw std::runtime_error(format("PipelinedModule %s: no output %s.", getDelegateName(), i));
 	return delegate->getOutput(i);
@@ -43,14 +43,14 @@ bool PipelinedModule::isSource() {
 	}
 }
 bool PipelinedModule::isSink() {
-	for (size_t i = 0; i < getNumOutputs(); ++i) {
+	for (int i = 0; i < getNumOutputs(); ++i) {
 		if (getOutput(i)->getSignal().getNumConnections() > 0)
 			return false;
 	}
 	return true;
 }
 
-void PipelinedModule::connect(IOutput *output, size_t inputIdx, bool forceAsync, bool inputAcceptMultipleConnections) {
+void PipelinedModule::connect(IOutput *output, int inputIdx, bool forceAsync, bool inputAcceptMultipleConnections) {
 	auto input = safe_cast<PipelinedInput>(getInput(inputIdx));
 	if (forceAsync && !(threading & Pipeline::RegulationOffFlag) && (inputExecutor[inputIdx] == EXECUTOR_INPUT_DEFAULT)) {
 		auto executor = uptr(new REGULATION_EXECUTOR);
@@ -63,7 +63,7 @@ void PipelinedModule::connect(IOutput *output, size_t inputIdx, bool forceAsync,
 	connections++;
 }
 
-void PipelinedModule::disconnect(size_t inputIdx, IOutput * const output) {
+void PipelinedModule::disconnect(int inputIdx, IOutput * const output) {
 	getInput(inputIdx)->disconnect();
 	auto &sig = output->getSignal();
 	auto const numConn = sig.getNumConnections();
@@ -75,18 +75,18 @@ void PipelinedModule::disconnect(size_t inputIdx, IOutput * const output) {
 
 void PipelinedModule::mimicInputs() {
 	auto const delegateInputs = delegate->getNumInputs();
-	auto const thisInputs = inputs.size();
+	auto const thisInputs = (int)inputs.size();
 	if (thisInputs < delegateInputs) {
-		for (size_t i = thisInputs; i < delegateInputs; ++i) {
+		for (int i = thisInputs; i < delegateInputs; ++i) {
 			inputExecutor.push_back(EXECUTOR_INPUT_DEFAULT);
 			addInput(new PipelinedInput(delegate->getInput(i), getDelegateName(), inputExecutor[i], this->delegateExecutor, this, clock));
 		}
 	}
 }
 
-IInput* PipelinedModule::getInput(size_t i) {
+IInput* PipelinedModule::getInput(int i) {
 	mimicInputs();
-	if (i >= inputs.size())
+	if (i >= (int)inputs.size())
 		throw std::runtime_error(format("PipelinedModule %s: no input %s.", getDelegateName(), i));
 	return inputs[i].get();
 }
@@ -121,7 +121,7 @@ void PipelinedModule::endOfStream() {
 	if (eosCount == connections) {
 		delegate->flush();
 
-		for (size_t i = 0; i < delegate->getNumOutputs(); ++i) {
+		for (int i = 0; i < delegate->getNumOutputs(); ++i) {
 			delegate->getOutput(i)->emit(nullptr);
 		}
 

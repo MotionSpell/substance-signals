@@ -21,7 +21,7 @@ GPACMuxMPEG2TS::GPACMuxMPEG2TS(bool real_time, unsigned mux_rate, unsigned pcr_m
 }
 
 GPACMuxMPEG2TS::~GPACMuxMPEG2TS() {
-	for (size_t i = 0; i < getNumInputs() - 1; ++i) {
+	for (int i = 0; i < getNumInputs() - 1; ++i) {
 		AVPacket *data = nullptr;
 		while (inputData[i]->tryPop(data)) {
 			av_packet_free(&data);
@@ -137,7 +137,7 @@ GPACMuxMPEG2TS::~GPACMuxMPEG2TS() {
 	}
 
 	void GPACMuxMPEG2TS::process() {
-		for (size_t i = 0; i < getNumInputs() - 1; ++i) {
+		for (int i = 0; i < getNumInputs() - 1; ++i) {
 			Data data;
 			while (inputs[i]->tryPop(data)) {
 				if (inputs[i]->updateMetadata(data))
