@@ -656,7 +656,7 @@ void GPACMuxMP4::declareStreamAudio(const std::shared_ptr<const MetadataPktLibav
 
 void GPACMuxMP4::declareStreamSubtitle(const std::shared_ptr<const MetadataPktLibavSubtitle> & /*metadata*/) {
 	mediaTs = 10 * TIMESCALE_MUL;
-	assert(((10 * TIMESCALE_MUL) % 1000) == 0); /*ms accuracy mandatory*/
+	assert((mediaTs % 1000) == 0); /*ms accuracy mandatory*/
 	u32 trackNum = gf_isom_new_track(isoCur, 0, GF_ISOM_MEDIA_TEXT, mediaTs);
 	if (!trackNum)
 		throw error(format("Cannot create new track"));
