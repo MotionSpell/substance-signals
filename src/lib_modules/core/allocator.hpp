@@ -34,7 +34,7 @@ class PacketAllocator {
 				maxBlocks = minBlocks;
 			}
 			for (size_t i=0; i<minBlocks; ++i) {
-				freeBlocks.push(Block());
+				freeBlocks.push(Block{});
 			}
 		}
 
@@ -60,7 +60,7 @@ class PacketAllocator {
 			Block block;
 			if (!freeBlocks.tryPop(block)) {
 				if (curNumBlocks < maxBlocks) {
-					freeBlocks.push(Block(OneBufferIsFree));
+					freeBlocks.push(Block{});
 					curNumBlocks++;
 				}
 				block = freeBlocks.pop();
@@ -89,7 +89,7 @@ class PacketAllocator {
 		}
 
 		void unblock() {
-			freeBlocks.push(Block(Exit));
+			freeBlocks.push(Block{Exit});
 		}
 
 	private:
@@ -106,7 +106,7 @@ class PacketAllocator {
 				delete p;
 				p = nullptr;
 			}
-			freeBlocks.push(Block(OneBufferIsFree, p));
+			freeBlocks.push(Block{OneBufferIsFree, p});
 		}
 
 		enum Event {
@@ -114,9 +114,8 @@ class PacketAllocator {
 			Exit,
 		};
 		struct Block {
-			Block(Event event = OneBufferIsFree, DataType *data = nullptr): event(event), data(data) {}
-			Event event;
-			DataType *data;
+			Event event = OneBufferIsFree;
+			DataType *data = nullptr;
 		};
 
 #ifdef ALLOC_NUM_BLOCKS_MAX_DYN_FREE
