@@ -218,9 +218,11 @@ void MPEG_DASH::generateManifest() {
 		}
 
 		if (!fn.empty()) {
-			log(Debug, "Rename segment \"%s\" -> \"%s\".", meta->filename, fn);
-			if (!moveFile(meta->filename, fn)) {
-				log(Error, "Couldn't rename segment \"%s\" -> \"%s\". You may encounter playback errors.", meta->filename, fn);
+			if(meta->filename != fn) {
+				log(Debug, "Rename segment \"%s\" -> \"%s\".", meta->filename, fn);
+				if (!moveFile(meta->filename, fn)) {
+					log(Error, "Couldn't rename segment \"%s\" -> \"%s\". You may encounter playback errors.", meta->filename, fn);
+				}
 			}
 
 			auto out = getPresignalledData(meta->filesize, quality->lastData, true);
