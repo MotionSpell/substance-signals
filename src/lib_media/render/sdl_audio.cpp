@@ -70,10 +70,7 @@ bool SDLAudio::reconfigure(PcmFormat inputFormat) {
 }
 
 SDLAudio::SDLAudio(const std::shared_ptr<IClock> clock)
-	: m_clock(clock), m_inputFormat(PcmFormat(44100, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Interleaved)),
-	  // consider an empty fifo as being very far in the future:
-	  // this avoids lots of warning messages in "normal" conditions
-	  fifoTimeIn180k(std::numeric_limits<int>::max()) {
+	: m_clock(clock), m_inputFormat(PcmFormat(44100, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Interleaved)) {
 
 	if (SDL_InitSubSystem(SDL_INIT_AUDIO | SDL_INIT_NOPARACHUTE) == -1)
 		throw std::runtime_error(format("Couldn't initialize: %s", SDL_GetError()));
@@ -123,6 +120,11 @@ void SDLAudio::fillAudio(uint8_t *stream, int len) {
 	// timestamp of the first sample of the buffer
 	auto const bufferTimeIn180k = fractionToClock(m_clock->now()) + m_LatencyIn180k;
 	std::lock_guard<std::mutex> lg(m_Mutex);
+	if(m_Fifo.bytesToRead() == 0) {
+		// consider an empty fifo as being very far in the future:
+		// this avoids lots of warning messages in "normal" conditions
+		fifoTimeIn180k = std::numeric_limits<int>::max();
+	}
 	int64_t numSamplesToProduce = len / m_outputFormat.getBytesPerSample();
 	auto const relativeTimePositionIn180k = fifoTimeIn180k - bufferTimeIn180k;
 	auto const relativeSamplePosition = relativeTimePositionIn180k * m_outputFormat.sampleRate / int64_t(IClock::Rate);
