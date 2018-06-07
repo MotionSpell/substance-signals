@@ -6,7 +6,6 @@
 #include "lib_utils/tools.hpp"
 #include <algorithm>
 #include <atomic>
-#include <list>
 #include <memory>
 #include <stdexcept>
 
