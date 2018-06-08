@@ -117,14 +117,17 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 
 	/* once we have read all the samples, we can release some data and force a reparse of the input buffer */
 	if (reader->sampleIndex > reader->sampleCount) {
-		u64 newBufferStart = 0;
-		u64 missingBytes;
+
+		/* update the sample count and sample index */
+		reader->sampleCount = newSampleCount - reader->sampleCount;
+		reader->sampleIndex = 1;
 
 		log(Debug, "Releasing unnecessary buffers");
 		/* release internal structures associated with the samples read so far */
 		reader->movie->resetTables(true);
 
 		/* release the associated input data as well */
+		u64 newBufferStart = 0;
 		reader->movie->resetDataOffset(newBufferStart);
 		if (newBufferStart) {
 			u32 offset = (u32)newBufferStart;
@@ -137,13 +140,10 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 		}
 
 		if (reader->movie->isFragmented()) {
+			u64 missingBytes;
 			reader->dataUrl = format("gmem://%s@%s", reader->data.size(), (void*)reader->data.data());
 			reader->movie->refreshFragmented(missingBytes, reader->dataUrl);
 		}
-
-		/* update the sample count and sample index */
-		reader->sampleCount = newSampleCount - reader->sampleCount;
-		reader->sampleIndex = 1;
 	}
 
 	return true;
