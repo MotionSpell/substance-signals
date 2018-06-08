@@ -5,6 +5,7 @@
 #include "lib_media/in/sound_generator.hpp"
 #include "lib_media/in/video_generator.hpp"
 #include "lib_utils/tools.hpp"
+#include "lib_utils/sysclock.hpp"
 
 using namespace Tests;
 using namespace Modules;
@@ -14,13 +15,15 @@ namespace {
 #if SIGNALS_HAS_X11
 secondclasstest("render: sound generator") {
 	auto soundGen = create<In::SoundGenerator>();
-	auto render = create<Render::SDLAudio>();
+	auto render = create<Render::SDLAudio>(make_shared<Clock>(1.0));
 
 	ConnectOutputToInput(soundGen->getOutput(0), render->getInput(0));
 
-	for(int i=0; i < 25; ++i) {
+	for(int i=0; i < 50; ++i) {
 		soundGen->process(nullptr);
 	}
+	soundGen->flush();
+	render->flush();
 }
 
 secondclasstest("render: A/V sync, one thread") {
