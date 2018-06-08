@@ -27,23 +27,18 @@ namespace gpacpp {
 //------------------------------------------------
 class Error : public std::exception {
 	public:
-		Error(char const* msg, GF_Err error) throw() : msg_(msg), error_(error) {
+		Error(char const* msg, GF_Err error) throw() :  error_(error), msg_(msg) {
 			msg_ += ": ";
 			msg_ += gf_error_to_string(error_);
-		}
-
-		~Error() throw() {
 		}
 
 		char const* what() const throw() {
 			return msg_.c_str();
 		}
 
-		std::string msg_;
 		const GF_Err error_;
-
 	private:
-		Error& operator= (const Error&) = delete;
+		std::string msg_;
 };
 
 //------------------------------------------------
