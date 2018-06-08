@@ -173,6 +173,19 @@ unittest("decoder: destroy without flushing") {
 	ASSERT_EQUALS(0, picCount);
 }
 
+unittest("decoder: flush without feeding") {
+	auto decode = create<Decode::Decoder>(VIDEO_PKT);
+
+	int picCount = 0;
+	auto onPic = [&](Data) {
+		++picCount;
+	};
+
+	ConnectOutput(decode.get(), onPic);
+	decode->flush();
+	ASSERT_EQUALS(0, picCount);
+}
+
 unittest("decoder: audio mp3 manual frame to AAC") {
 	auto decode = create<Decode::Decoder>(AUDIO_PKT);
 	auto encoder = create<Encode::LibavEncode>(Encode::LibavEncode::Audio);

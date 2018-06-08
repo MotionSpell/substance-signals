@@ -147,7 +147,8 @@ void Decoder::processPacket(AVPacket const * pkt) {
 }
 
 void Decoder::flush() {
-	processPacket(nullptr);
+	if(codecCtx.get())
+		processPacket(nullptr);
 }
 
 }
