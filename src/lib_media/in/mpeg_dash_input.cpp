@@ -88,8 +88,10 @@ bool MPEG_DASH_Input::wakeUp() {
 		Log::msg(Debug, "wget: '%s'", url);
 
 		auto chunk = m_source->get(url);
-		if(chunk.empty())
-			return false; // end of stream
+		if(chunk.empty()) {
+			Log::msg(Debug, "end of stream");
+			return false;
+		}
 
 		auto data = make_shared<DataRaw>(chunk.size());
 		memcpy(data->data(), chunk.data(), chunk.size());
