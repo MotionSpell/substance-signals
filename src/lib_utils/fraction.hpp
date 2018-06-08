@@ -9,13 +9,31 @@ int64_t pgcd(int64_t a, int64_t b) {
 
 template<typename T>
 static void simplifyFraction(T& num, T& den) {
+	// save sign and make num and den positive
+	bool positive = true;
+	if(num < 0) {
+		num = -num;
+		positive = !positive;
+	}
+	if(den < 0) {
+		den = -den;
+		positive = !positive;
+	}
+
 	auto const gcd = pgcd(num, den);
 	num /= gcd;
 	den /= gcd;
+
+	// restore sign
+	if(!positive)
+		num = -num;
 }
 
 struct Fraction {
 	Fraction(int64_t num = 1, int64_t den = 1) : num(num), den(den) {
+		if(!den)
+			return; // invalid value
+		simplifyFraction(this->num, this->den);
 	}
 	template<typename T>
 	inline explicit operator T() const {
@@ -71,8 +89,8 @@ struct Fraction {
 		return Fraction(den, num);
 	}
 
-	int64_t num;
-	int64_t den;
+	int64_t num; // holds the sign
+	int64_t den; // should always be kept positive
 };
 
 template <typename T>

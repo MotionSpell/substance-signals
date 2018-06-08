@@ -9,7 +9,7 @@ unittest("Fraction: comparison, natural numbers") {
 	ASSERT(Fraction(31, 10) > 3);
 }
 
-unittest("[DISABLED] Fraction: comparison, relative numbers") {
+unittest("Fraction: comparison, relative numbers") {
 	ASSERT(Fraction(-1, 1) <= 100);
 	ASSERT(Fraction(1, -1) <= 100);
 }
