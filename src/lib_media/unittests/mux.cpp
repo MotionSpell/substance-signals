@@ -150,7 +150,6 @@ unittest("mux GPAC mp4 combination coverage") {
 		for (auto &r : l->results) results.push_back(r);
 	}
 
-	ASSERT_EQUALS(results.size(), ref.size());
 	ASSERT_EQUALS(ref, results);
 }
 
