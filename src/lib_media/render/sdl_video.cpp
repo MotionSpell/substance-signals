@@ -73,6 +73,7 @@ void SDLVideo::doRender() {
 	SDL_EventState(SDL_KEYUP, SDL_IGNORE); //ignore key up events, they don't even get filtered
 
 	while(auto data = m_dataQueue.pop()) {
+		processEvents();
 		processOneFrame(data);
 	}
 
@@ -82,7 +83,7 @@ void SDLVideo::doRender() {
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);
 }
 
-void SDLVideo::processOneFrame(Data data) {
+void SDLVideo::processEvents() {
 	SDL_Event event;
 	while (SDL_PollEvent(&event)) {
 		switch (event.type) {
@@ -102,7 +103,9 @@ void SDLVideo::processOneFrame(Data data) {
 			break;
 		}
 	}
+}
 
+void SDLVideo::processOneFrame(Data data) {
 	auto pic = safe_cast<const DataPicture>(data);
 	if (pic->getFormat() != pictureFormat) {
 		pictureFormat = pic->getFormat();
