@@ -44,10 +44,10 @@ unittest("mpeg_dash_input: get MPD") {
       <SegmentTemplate initialization="video-init.mp4" media="video-$Number$.m4s" startNumber="1" />
       <Representation id="video" mimeType="video/mp4"/>
     </AdaptationSet>
-    <AdaptationSet>
-      <ContentComponent id="1" />
+    <AdaptationSet contentType="audio">
+      <ContentComponent id="1"/>
       <SegmentTemplate initialization="audio-init.mp4" media="audio-$Number$.m4s" startNumber="1" />
-      <Representation id="audio" mimeType="audio/mp4"/>
+      <Representation id="audio" />
     </AdaptationSet>
   </Period>
 </MPD>)|";
