@@ -26,8 +26,9 @@ secondclasstest("render: sound generator") {
 	render->flush();
 }
 
-secondclasstest("[DISABLED] render: sound generator, evil samples") {
-	auto render = create<Render::SDLAudio>(make_shared<Clock>(1.0));
+secondclasstest("render: sound generator, evil samples") {
+	auto clock = make_shared<Clock>(1.0);
+	auto render = create<Render::SDLAudio>(clock);
 
 	PcmFormat fmt {};
 	fmt.sampleFormat = S16;
@@ -39,7 +40,8 @@ secondclasstest("[DISABLED] render: sound generator, evil samples") {
 	sample->setFormat(fmt);
 	sample->setPlane(0, nullptr, 100);
 	render->process(sample);
-	render->flush();
+
+	clock->sleep(1); // wait for crash
 }
 
 secondclasstest("render: A/V sync, one thread") {

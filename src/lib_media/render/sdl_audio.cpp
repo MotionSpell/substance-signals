@@ -126,7 +126,7 @@ void SDLAudio::fillAudio(Span buffer) {
 		fifoTimeIn180k = std::numeric_limits<int>::max();
 	}
 	int64_t numSamplesToProduce = buffer.len / m_outputFormat.getBytesPerSample();
-	auto const relativeTimePositionIn180k = fifoTimeIn180k - bufferTimeIn180k;
+	auto const relativeTimePositionIn180k = std::min<int64_t>(fifoTimeIn180k - bufferTimeIn180k, IClock::Rate * 10); // clamp to 10s to avoid integer overflows below
 	auto const relativeSamplePosition = relativeTimePositionIn180k * m_outputFormat.sampleRate / int64_t(IClock::Rate);
 
 	if (relativeTimePositionIn180k < -TOLERANCE) {
