@@ -34,8 +34,8 @@ class SDLAudio : public ModuleS {
 
 		uint64_t fifoSamplesToRead() const;
 		void fifoConsumeSamples(size_t n);
-		void writeSamples(Span& dst, uint8_t const* src, size_t n);
-		void silenceSamples(Span& dst, size_t n);
+		void writeSamples(Span& dst, uint8_t const* src, int n);
+		void silenceSamples(Span& dst, int n);
 
 		const std::shared_ptr<IClock> m_clock;
 		PcmFormat m_outputFormat;

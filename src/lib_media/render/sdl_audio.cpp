@@ -136,7 +136,7 @@ void SDLAudio::fillAudio(Span buffer) {
 	} else if (relativeTimePositionIn180k > TOLERANCE) {
 		auto const numSilenceSamples = std::min<int64_t>(numSamplesToProduce, relativeSamplePosition);
 		log(Warning, "insert silence (%s ms)", numSilenceSamples * 1000.0f / m_outputFormat.sampleRate);
-		silenceSamples(buffer, (size_t)numSilenceSamples);
+		silenceSamples(buffer, numSilenceSamples);
 		numSamplesToProduce -= numSilenceSamples;
 	}
 
@@ -149,7 +149,7 @@ void SDLAudio::fillAudio(Span buffer) {
 
 	if (numSamplesToProduce > 0) {
 		log(Warning, "underflow");
-		silenceSamples(buffer, (size_t)numSamplesToProduce);
+		silenceSamples(buffer, numSamplesToProduce);
 	}
 }
 
@@ -167,16 +167,18 @@ void SDLAudio::fifoConsumeSamples(size_t n) {
 	fifoTimeIn180k += (n * IClock::Rate) / m_outputFormat.sampleRate;
 }
 
-void SDLAudio::writeSamples(Span& dst, uint8_t const* src, size_t n) {
-	auto const bytes = n * m_outputFormat.getBytesPerSample();
+void SDLAudio::writeSamples(Span& dst, uint8_t const* src, int n) {
+	assert(n >= 0);
+	auto const bytes = (size_t)n * m_outputFormat.getBytesPerSample();
 	assert(bytes <= dst.len);
 	memcpy(dst.ptr, src, bytes);
 	dst.ptr += bytes;
 	dst.len -= bytes;
 }
 
-void SDLAudio::silenceSamples(Span& dst, size_t n) {
-	auto const bytes = n * m_outputFormat.getBytesPerSample();
+void SDLAudio::silenceSamples(Span& dst, int n) {
+	assert(n >= 0);
+	auto const bytes = (size_t)n * m_outputFormat.getBytesPerSample();
 	assert(bytes <= dst.len);
 	memset(dst.ptr, 0, bytes);
 	dst.ptr += bytes;
