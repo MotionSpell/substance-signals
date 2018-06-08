@@ -45,7 +45,6 @@ PKGS+=sdl2
 CFLAGS+=-DSIGNALS_HAS_X11
 LIB_MEDIA_SRCS+=\
   $(MYDIR)/render/sdl_audio.cpp\
-  $(MYDIR)/render/sdl_common.cpp\
   $(MYDIR)/render/sdl_video.cpp
 endif
 

@@ -96,7 +96,6 @@
     <ClCompile Include="out\null.cpp" />
     <ClCompile Include="out\print.cpp" />
     <ClCompile Include="render\sdl_audio.cpp" />
-    <ClCompile Include="render\sdl_common.cpp" />
     <ClCompile Include="render\sdl_video.cpp" />
     <ClCompile Include="stream\adaptive_streaming_common.cpp" />
     <ClCompile Include="stream\apple_hls.cpp" />
