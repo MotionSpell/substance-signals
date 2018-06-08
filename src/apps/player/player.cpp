@@ -8,7 +8,7 @@ struct Config {
 	std::string url;
 	double speed = 1.0;
 	bool lowLatency = false;
-	int logLevel = 0;
+	int logLevel = 1;
 };
 
 namespace {
