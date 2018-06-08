@@ -30,6 +30,7 @@ class SDLVideo : public ModuleS {
 		SDL_Texture *texture;
 		Resolution displaySize;
 		PictureFormat pictureFormat;
+		bool respectTimestamps;
 
 		Queue<Data> m_dataQueue; //FIXME: useless now we have input ports
 		std::thread workingThread;

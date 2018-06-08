@@ -52,6 +52,9 @@ void SDLVideo::doRender() {
 #endif
 	}
 
+	// display the first frame as fast as possible, to avoid a black screen
+	respectTimestamps = false;
+
 	pictureFormat.res = VIDEO_RESOLUTION;
 	pictureFormat.format = YUV420P;
 	window = SDL_CreateWindow("Signals SDLVideo renderer", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, pictureFormat.res.width, pictureFormat.res.height, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
@@ -108,7 +111,7 @@ void SDLVideo::processOneFrame(Data data) {
 
 	auto const now = fractionToClock(m_clock->now());
 	auto const timestamp = pic->getMediaTime() + PREROLL_DELAY; // assume timestamps start at zero
-	auto const delay = std::max<int64_t>(0, timestamp - now);
+	auto const delay = respectTimestamps ? std::max<int64_t>(0, timestamp - now) : 0;
 	auto const delayInMs = clockToTimescale(delay, 1000);
 	SDL_Delay((Uint32)delayInMs);
 
@@ -126,6 +129,9 @@ void SDLVideo::processOneFrame(Data data) {
 	displayrect.h = displaySize.height;
 	SDL_RenderCopy(renderer, texture, nullptr, &displayrect);
 	SDL_RenderPresent(renderer);
+
+	// now that we have something on the screen, respect the timestamps
+	respectTimestamps = true;
 }
 
 void SDLVideo::createTexture() {
