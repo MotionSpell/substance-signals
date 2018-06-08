@@ -20,8 +20,8 @@ class SDLVideo : public ModuleS {
 
 	private:
 		void doRender();
-		void processOneFrame(Data data);
-		void processEvents();
+		void displayFrame(Data data);
+		bool processEvents();
 		void createTexture();
 
 		const std::shared_ptr<IClock> m_clock;

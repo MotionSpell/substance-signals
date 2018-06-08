@@ -25,6 +25,13 @@ Uint32 pixelFormat2SDLFormat(const Modules::PixelFormat format) {
 	default: throw std::runtime_error("Pixel format not supported.");
 	}
 }
+
+Uint32 queueOneUserEvent(Uint32, void*) {
+	SDL_Event event {};
+	event.type = SDL_USEREVENT;
+	SDL_PushEvent(&event);
+	return 0;
+}
 }
 
 SDLVideo::SDLVideo(const std::shared_ptr<IClock> clock)
@@ -72,9 +79,7 @@ void SDLVideo::doRender() {
 
 	SDL_EventState(SDL_KEYUP, SDL_IGNORE); //ignore key up events, they don't even get filtered
 
-	while(auto data = m_dataQueue.pop()) {
-		processEvents();
-		processOneFrame(data);
+	while(processEvents()) {
 	}
 
 	SDL_DestroyTexture(texture);
@@ -83,40 +88,45 @@ void SDLVideo::doRender() {
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);
 }
 
-void SDLVideo::processEvents() {
+bool SDLVideo::processEvents() {
 	SDL_Event event;
-	while (SDL_PollEvent(&event)) {
-		switch (event.type) {
-		case SDL_WINDOWEVENT:
-			if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
-				SDL_RenderSetViewport(renderer, nullptr);
-				displaySize.width = event.window.data1;
-				displaySize.height = event.window.data2;
-			}
-			break;
-		case SDL_QUIT:
-#ifdef _MSC_VER
-			GenerateConsoleCtrlEvent(CTRL_C_EVENT, 0);
-#else
-			std::raise(SIGINT);
-#endif
-			break;
+	SDL_WaitEvent(&event);
+
+	switch (event.type) {
+	case SDL_USEREVENT: {
+		Data data;
+		if(m_dataQueue.tryPop(data)) {
+			if(!data)
+				return false;
+			displayFrame(data);
 		}
 	}
+	break;
+	case SDL_WINDOWEVENT:
+		if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
+			SDL_RenderSetViewport(renderer, nullptr);
+			displaySize.width = event.window.data1;
+			displaySize.height = event.window.data2;
+		}
+		break;
+	case SDL_QUIT:
+#ifdef _MSC_VER
+		GenerateConsoleCtrlEvent(CTRL_C_EVENT, 0);
+#else
+		std::raise(SIGINT);
+#endif
+		break;
+	}
+
+	return true;
 }
 
-void SDLVideo::processOneFrame(Data data) {
+void SDLVideo::displayFrame(Data data) {
 	auto pic = safe_cast<const DataPicture>(data);
 	if (pic->getFormat() != pictureFormat) {
 		pictureFormat = pic->getFormat();
 		createTexture();
 	}
-
-	auto const now = fractionToClock(m_clock->now());
-	auto const timestamp = pic->getMediaTime() + PREROLL_DELAY; // assume timestamps start at zero
-	auto const delay = respectTimestamps ? std::max<int64_t>(0, timestamp - now) : 0;
-	auto const delayInMs = clockToTimescale(delay, 1000);
-	SDL_Delay((Uint32)delayInMs);
 
 	if (pictureFormat.format == YUV420P) {
 		SDL_UpdateYUVTexture(texture, nullptr,
@@ -154,11 +164,19 @@ void SDLVideo::createTexture() {
 
 SDLVideo::~SDLVideo() {
 	m_dataQueue.push(nullptr);
+	queueOneUserEvent(0, nullptr);
 	workingThread.join();
 }
 
 void SDLVideo::process(Data data) {
 	m_dataQueue.push(data);
+
+	auto const now = fractionToClock(m_clock->now());
+	auto const timestamp = data->getMediaTime() + PREROLL_DELAY; // assume timestamps start at zero
+	auto const delay = respectTimestamps ? std::max<int64_t>(0, timestamp - now) : 0;
+	auto const delayInMs = clockToTimescale(delay, 1000);
+
+	SDL_AddTimer(delayInMs, &queueOneUserEvent, nullptr);
 }
 
 }
