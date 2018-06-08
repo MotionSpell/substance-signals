@@ -26,6 +26,22 @@ secondclasstest("render: sound generator") {
 	render->flush();
 }
 
+secondclasstest("[DISABLED] render: sound generator, evil samples") {
+	auto render = create<Render::SDLAudio>(make_shared<Clock>(1.0));
+
+	PcmFormat fmt {};
+	fmt.sampleFormat = S16;
+	fmt.sampleRate = 44100;
+	fmt.numPlanes = 1;
+
+	auto sample = make_shared<DataPcm>(0);
+	sample->setMediaTime(299454611464360LL);
+	sample->setFormat(fmt);
+	sample->setPlane(0, nullptr, 100);
+	render->process(sample);
+	render->flush();
+}
+
 secondclasstest("render: A/V sync, one thread") {
 	auto videoGen = create<In::VideoGenerator>();
 	auto videoRender = create<Render::SDLVideo>();
