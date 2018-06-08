@@ -81,7 +81,7 @@ int safeMain(int argc, char const* argv[]) {
 	g_Pipeline = pipeline.get();
 
 	Tools::Profiler profilerProcessing(format("%s - processing time", g_appName));
-	std::cout << g_appName << " - send SIGTERM (ctrl-c) to exit cleanly." << std::endl;
+	std::cout << g_appName << " - send SIGINT (ctrl-c) to exit cleanly." << std::endl;
 	try {
 		pipeline->start();
 		pipeline->waitForEndOfStream();
