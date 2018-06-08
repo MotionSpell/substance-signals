@@ -10,7 +10,8 @@ struct LogCap : protected LogRepetition {
 	protected:
 		template<typename... Arguments>
 		void log(Level level, const std::string& fmt, Arguments... args) {
-			msg(level, "[%s %s] " + fmt, this, typeid(*this).name(), args...);
+			auto const id = format("[%s %s]", this, typeid(*this).name());
+			msg(level, id, fmt, args...);
 		}
 };
 
