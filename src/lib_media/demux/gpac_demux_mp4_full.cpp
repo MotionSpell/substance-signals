@@ -55,7 +55,7 @@ bool GPACDemuxMP4Full::processSample() {
 	try {
 		return safeProcessSample();
 	} catch(gpacpp::Error const& e) {
-		log(Warning, "Could not get sample: %s", gf_error_to_string(e.error_));
+		log(Warning, "Could not get sample: %s", e.what());
 		return false;
 	}
 }

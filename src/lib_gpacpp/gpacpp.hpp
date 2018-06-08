@@ -180,8 +180,10 @@ class IsoFile : public Init {
 
 		std::unique_ptr<IsoSample> getSample(int trackNumber, int sampleIndex, int& descriptorIndex) const {
 			GF_ISOSample* sample = gf_isom_get_sample(movie_, trackNumber, sampleIndex, (u32*)&descriptorIndex);
-			if (!sample)
-				throw Error("Sample does not exist", gf_isom_last_error(movie_));
+			if (!sample) {
+				auto msg = format("Sample with index %s does not exist (trackNumber=%s)", sampleIndex, trackNumber);
+				throw Error(msg.c_str(), gf_isom_last_error(movie_));
+			}
 			return std::unique_ptr<IsoSample>(new IsoSample(sample));
 		}
 
