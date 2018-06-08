@@ -217,6 +217,7 @@ struct HttpSource : IFilePuller {
 		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &HttpContext::callback);
 		curl_easy_setopt(curl, CURLOPT_WRITEDATA, &ctx);
+		curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
 
 		auto res = curl_easy_perform(curl);
 		if(res != CURLE_OK)

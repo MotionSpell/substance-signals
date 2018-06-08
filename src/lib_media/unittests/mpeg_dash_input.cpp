@@ -125,3 +125,8 @@ secondclasstest("mpeg_dash_input: get MPD from remote server") {
 	ASSERT_EQUALS(2, dash->getNumOutputs());
 }
 
+secondclasstest("mpeg_dash_input: non-existing MPD") {
+	auto url = "http://example.com/this_url_doesnt_exist_121324315235";
+	ASSERT_THROWN(create<MPEG_DASH_Input>(createHttpSource(), url));
+}
+
