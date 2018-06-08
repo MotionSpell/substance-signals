@@ -1,4 +1,5 @@
 #include "lib_utils/tools.hpp"
+#include "lib_utils/time.hpp"
 #include "../common/metadata.hpp" // MetadataPkt
 #include "mpeg_dash_input.hpp"
 #include <vector>
@@ -13,6 +14,7 @@ using namespace Modules::In;
 struct AdaptationSet {
 	string media;
 	int startNumber=0;
+	int duration=0;
 	string representationId;
 	string codecs;
 	string initialization;
@@ -21,6 +23,8 @@ struct AdaptationSet {
 };
 
 struct DashMpd {
+	bool dynamic = false;
+	int64_t availabilityStartTime = 0; // in ms
 	vector<AdaptationSet> sets;
 };
 
@@ -59,6 +63,13 @@ MPEG_DASH_Input::MPEG_DASH_Input(std::unique_ptr<IFilePuller> source, std::strin
 
 		auto output = addOutput<OutputDefault>();
 		output->setMetadata(meta);
+	}
+
+	if(mpd->dynamic) {
+		auto now = (int64_t)getUTC();
+		for(auto& set : mpd->sets) {
+			set.startNumber += int((now - mpd->availabilityStartTime) / set.duration);
+		}
 	}
 }
 
@@ -149,11 +160,14 @@ DashMpd parseMpd(std::string text) {
 				}
 				auto& set = mpd->sets.back();
 				set.contentType = attr["contentType"];
+			} else if(name == "MPD") {
+				mpd->dynamic = attr["type"] == "dynamic";
 			} else if(name == "SegmentTemplate") {
 				auto& set = mpd->sets.back();
 				set.initialization = attr["initialization"];
 				set.media = attr["media"];
 				set.startNumber = atoi(attr["startNumber"].c_str());
+				set.duration = atoi(attr["duration"].c_str());
 			} else if(name == "Representation") {
 				auto& set = mpd->sets.back();
 				set.representationId = attr["id"];
