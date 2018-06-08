@@ -14,6 +14,11 @@ struct SDL_Texture;
 namespace Modules {
 namespace Render {
 
+struct Span {
+	uint8_t* ptr;
+	size_t len;
+};
+
 class SDLAudio : public ModuleS {
 	public:
 		SDLAudio(const std::shared_ptr<IClock> clock = g_DefaultClock);
@@ -25,12 +30,12 @@ class SDLAudio : public ModuleS {
 		bool reconfigure(PcmFormat pcmFormat);
 		void push(Data data);
 		static void staticFillAudio(void *udata, uint8_t *stream, int len);
-		void fillAudio(uint8_t *stream, int len);
+		void fillAudio(Span buffer);
 
 		uint64_t fifoSamplesToRead() const;
 		void fifoConsumeSamples(size_t n);
-		void writeSamples(uint8_t*& dst, uint8_t const* src, size_t n);
-		void silenceSamples(uint8_t*& dst, size_t n);
+		void writeSamples(Span& dst, uint8_t const* src, size_t n);
+		void silenceSamples(Span& dst, size_t n);
 
 		const std::shared_ptr<IClock> m_clock;
 		PcmFormat m_outputFormat;

@@ -116,7 +116,7 @@ void SDLAudio::push(Data data) {
 	}
 }
 
-void SDLAudio::fillAudio(uint8_t *stream, int len) {
+void SDLAudio::fillAudio(Span buffer) {
 	// timestamp of the first sample of the buffer
 	auto const bufferTimeIn180k = fractionToClock(m_clock->now()) + m_LatencyIn180k;
 	std::lock_guard<std::mutex> lg(m_Mutex);
@@ -125,7 +125,7 @@ void SDLAudio::fillAudio(uint8_t *stream, int len) {
 		// this avoids lots of warning messages in "normal" conditions
 		fifoTimeIn180k = std::numeric_limits<int>::max();
 	}
-	int64_t numSamplesToProduce = len / m_outputFormat.getBytesPerSample();
+	int64_t numSamplesToProduce = buffer.len / m_outputFormat.getBytesPerSample();
 	auto const relativeTimePositionIn180k = fifoTimeIn180k - bufferTimeIn180k;
 	auto const relativeSamplePosition = relativeTimePositionIn180k * m_outputFormat.sampleRate / int64_t(IClock::Rate);
 
@@ -136,26 +136,26 @@ void SDLAudio::fillAudio(uint8_t *stream, int len) {
 	} else if (relativeTimePositionIn180k > TOLERANCE) {
 		auto const numSilenceSamples = std::min<int64_t>(numSamplesToProduce, relativeSamplePosition);
 		log(Warning, "insert silence (%s ms)", numSilenceSamples * 1000.0f / m_outputFormat.sampleRate);
-		silenceSamples(stream, (size_t)numSilenceSamples);
+		silenceSamples(buffer, (size_t)numSilenceSamples);
 		numSamplesToProduce -= numSilenceSamples;
 	}
 
 	auto const numSamplesToConsume = std::min<int64_t>(numSamplesToProduce, fifoSamplesToRead());
 	if (numSamplesToConsume > 0) {
-		writeSamples(stream, m_Fifo.readPointer(), (size_t)numSamplesToConsume);
+		writeSamples(buffer, m_Fifo.readPointer(), (size_t)numSamplesToConsume);
 		fifoConsumeSamples((size_t)numSamplesToConsume);
 		numSamplesToProduce -= numSamplesToConsume;
 	}
 
 	if (numSamplesToProduce > 0) {
 		log(Warning, "underflow");
-		silenceSamples(stream, (size_t)numSamplesToProduce);
+		silenceSamples(buffer, (size_t)numSamplesToProduce);
 	}
 }
 
 void SDLAudio::staticFillAudio(void *udata, uint8_t *stream, int len) {
 	auto pThis = (SDLAudio*)udata;
-	pThis->fillAudio(stream, len);
+	pThis->fillAudio(Span { stream, (size_t)len });
 }
 
 uint64_t SDLAudio::fifoSamplesToRead() const {
@@ -167,14 +167,20 @@ void SDLAudio::fifoConsumeSamples(size_t n) {
 	fifoTimeIn180k += (n * IClock::Rate) / m_outputFormat.sampleRate;
 }
 
-void SDLAudio::writeSamples(uint8_t*& dst, uint8_t const* src, size_t n) {
-	memcpy(dst, src, n * m_outputFormat.getBytesPerSample());
-	dst += n * m_outputFormat.getBytesPerSample();
+void SDLAudio::writeSamples(Span& dst, uint8_t const* src, size_t n) {
+	auto const bytes = n * m_outputFormat.getBytesPerSample();
+	assert(bytes <= dst.len);
+	memcpy(dst.ptr, src, bytes);
+	dst.ptr += bytes;
+	dst.len -= bytes;
 }
 
-void SDLAudio::silenceSamples(uint8_t*& dst, size_t n) {
-	memset(dst, 0, n * m_outputFormat.getBytesPerSample());
-	dst += n * m_outputFormat.getBytesPerSample();
+void SDLAudio::silenceSamples(Span& dst, size_t n) {
+	auto const bytes = n * m_outputFormat.getBytesPerSample();
+	assert(bytes <= dst.len);
+	memset(dst.ptr, 0, bytes);
+	dst.ptr += bytes;
+	dst.len -= bytes;
 }
 
 }
