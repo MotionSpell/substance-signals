@@ -124,17 +124,20 @@ unittest("mux GPAC mp4 combination coverage") {
 
 	std::vector<std::unique_ptr<Listener>> listeners;
 
-	int audioIndex = -1;
+	IOutput* audioPin = nullptr;
+
 	for (int i = 0; i < demux->getNumOutputs(); ++i) {
-		auto metadata = demux->getOutput(i)->getMetadata();
+		auto pin  =demux->getOutput(i);
+		auto metadata = pin->getMetadata();
 		if (metadata->isAudio()) {
-			audioIndex = i;
+			audioPin = pin;
 		}
 	}
-	assert(audioIndex != -1);
+
+	assert(audioPin);
 
 	for (auto &m : muxers) {
-		ConnectModules(demux.get(), audioIndex, m.get(), 0);
+		ConnectOutputToInput(audioPin, m->getInput(0));
 		listeners.push_back(create<Listener>(listeners.size()));
 		ConnectModules(m.get(), 0, listeners.back().get(), 0);
 	}
