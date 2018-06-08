@@ -21,6 +21,7 @@ class SDLVideo : public ModuleS {
 	private:
 		void doRender();
 		void displayFrame(Data data);
+		void present();
 		bool processEvents();
 		void createTexture();
 

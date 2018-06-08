@@ -107,6 +107,8 @@ bool SDLVideo::processEvents() {
 			SDL_RenderSetViewport(renderer, nullptr);
 			displaySize.width = event.window.data1;
 			displaySize.height = event.window.data2;
+		} else if (event.window.event == SDL_WINDOWEVENT_EXPOSED) {
+			present();
 		}
 		break;
 	case SDL_QUIT:
@@ -137,6 +139,10 @@ void SDLVideo::displayFrame(Data data) {
 		SDL_UpdateTexture(texture, nullptr, pic->getPlane(0), (int)pic->getPitch(0));
 	}
 
+	present();
+}
+
+void SDLVideo::present() {
 	SDL_Rect displayrect {};
 	displayrect.w = displaySize.width;
 	displayrect.h = displaySize.height;
