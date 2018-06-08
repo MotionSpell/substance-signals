@@ -16,7 +16,7 @@ struct AdaptationSet {
 	string representationId;
 	string codecs;
 	string initialization;
-	string contentType;
+	string mimeType;
 };
 
 struct DashMpd {
@@ -47,12 +47,12 @@ MPEG_DASH_Input::MPEG_DASH_Input(std::unique_ptr<IFilePuller> source, std::strin
 	//DECLARE OUTPUT PORTS
 	for(auto& set : mpd->sets) {
 		shared_ptr<MetadataPkt> meta;
-		if(set.contentType == "audio") {
+		if(set.mimeType == "audio/mp4") {
 			meta = make_shared<MetadataPktAudio>();
-		} else if(set.contentType == "video") {
+		} else if(set.mimeType == "video/mp4") {
 			meta = make_shared<MetadataPktVideo>();
 		} else {
-			Log::msg(Warning, "Ignoring adaptation set with content type: '%s'", set.contentType);
+			Log::msg(Warning, "Ignoring adaptation set with unrecognized mime type: '%s'", set.mimeType);
 			continue;
 		}
 
@@ -142,9 +142,6 @@ DashMpd parseMpd(std::string text) {
 			if(name == "AdaptationSet") {
 				AdaptationSet set;
 				mpd->sets.push_back(set);
-			} else if(name == "ContentComponent") {
-				auto& set = mpd->sets.back();
-				set.contentType = attr["contentType"];
 			} else if(name == "SegmentTemplate") {
 				auto& set = mpd->sets.back();
 				set.initialization = attr["initialization"];
@@ -154,6 +151,7 @@ DashMpd parseMpd(std::string text) {
 				auto& set = mpd->sets.back();
 				set.representationId = attr["id"];
 				set.codecs = attr["codecs"];
+				set.mimeType = attr["mimeType"];
 			}
 		}
 	};

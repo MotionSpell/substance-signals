@@ -40,14 +40,14 @@ unittest("mpeg_dash_input: get MPD") {
 <MPD>
   <Period>
     <AdaptationSet>
-      <ContentComponent id="1" contentType="video"/>
+      <ContentComponent id="1" />
       <SegmentTemplate initialization="video-init.mp4" media="video-$Number$.m4s" startNumber="1" />
-      <Representation id="video"/>
+      <Representation id="video" mimeType="video/mp4"/>
     </AdaptationSet>
     <AdaptationSet>
-      <ContentComponent id="1" contentType="audio"/>
+      <ContentComponent id="1" />
       <SegmentTemplate initialization="audio-init.mp4" media="audio-$Number$.m4s" startNumber="1" />
-      <Representation id="audio"/>
+      <Representation id="audio" mimeType="audio/mp4"/>
     </AdaptationSet>
   </Period>
 </MPD>)|";
@@ -64,9 +64,9 @@ unittest("mpeg_dash_input: get MPD, one input") {
 <MPD>
   <Period>
     <AdaptationSet>
-      <ContentComponent id="1" contentType="audio"/>
+      <ContentComponent id="1"/>
       <SegmentTemplate initialization="audio-init.mp4" media="audio-$Number$.m4s" startNumber="10" />
-      <Representation id="audio"/>
+      <Representation id="audio" mimeType="audio/mp4"/>
     </AdaptationSet>
   </Period>
 </MPD>)|";
@@ -82,9 +82,9 @@ unittest("mpeg_dash_input: get chunks") {
 <MPD>
   <Period>
     <AdaptationSet>
-      <ContentComponent id="1" contentType="audio"/>
+      <ContentComponent id="1"/>
       <SegmentTemplate initialization="init-$RepresentationID$.mp4" media="sub/x$Number$y$RepresentationID$z" startNumber="3" />
-      <Representation id="77"/>
+      <Representation id="77" mimeType="audio/mp4"/>
     </AdaptationSet>
   </Period>
 </MPD>)|";
