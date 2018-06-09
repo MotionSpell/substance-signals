@@ -88,7 +88,7 @@ class InputCap : public virtual IInputCap {
 			return p;
 		}
 		int getNumInputs() const override {
-			return inputs.size();
+			return (int)inputs.size();
 		}
 		IInput* getInput(int i) override {
 			return inputs[i].get();
