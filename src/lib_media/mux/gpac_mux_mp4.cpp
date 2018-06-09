@@ -56,12 +56,21 @@ static GF_Err avc_import_ffextradata(const u8 *extradata, const u64 extradataSiz
 	if (!bs) {
 		return GF_BAD_PARAM;
 	}
-	if (gf_bs_read_u32(bs) != 0x00000001) {
-		return GF_NON_COMPLIANT_BITSTREAM;
+
+	//Find start code
+	{
+		u8 a = gf_bs_read_u8(bs), b = gf_bs_read_u8(bs), c = gf_bs_read_u8(bs);
+		if ((a << 16) + (b << 8) + c != 0x000001) {
+			u8 d = gf_bs_read_u8(bs);
+			if ((a << 24) + (b << 16) + (c << 8) + d != 0x00000001) {
+				gf_bs_del(bs);
+				return GF_NON_COMPLIANT_BITSTREAM;
+			}
+		}
 	}
 
 	//SPS
-	u64 nalStart = 4;
+	u64 nalStart = gf_bs_get_position(bs);
 	u8 nalSize = 0;
 	{
 		s32 idx = 0;
