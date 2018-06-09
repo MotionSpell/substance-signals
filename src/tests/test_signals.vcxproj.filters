@@ -98,6 +98,9 @@
     <ClCompile Include="..\lib_media\unittests\converter.cpp">
       <Filter>media</Filter>
     </ClCompile>
+    <ClCompile Include="..\lib_utils\unittests\fraction.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="signals">

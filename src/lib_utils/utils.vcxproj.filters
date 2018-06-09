@@ -2,12 +2,12 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="log.cpp" />
-    <ClCompile Include="$(SolutionDir)\src\version.cpp">
-      <Filter>version</Filter>
-    </ClCompile>
     <ClCompile Include="time.cpp" />
     <ClCompile Include="clock.cpp" />
     <ClCompile Include="scheduler.cpp" />
+    <ClCompile Include="version.cpp" />
+    <ClCompile Include="os.cpp" />
+    <ClCompile Include="profiler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="log.hpp" />
@@ -27,6 +27,11 @@
     <ClInclude Include="resolution.hpp" />
     <ClInclude Include="scheduler.hpp" />
     <ClInclude Include="clock.hpp" />
+    <ClInclude Include="fraction.hpp" />
+    <ClInclude Include="default_clock.hpp" />
+    <ClInclude Include="os.hpp" />
+    <ClInclude Include="queue_inspect.hpp" />
+    <ClInclude Include="sysclock.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="gpacpp">

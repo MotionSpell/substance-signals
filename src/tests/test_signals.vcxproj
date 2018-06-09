@@ -247,6 +247,7 @@
     <ClCompile Include="..\lib_signals\unittests\unit_result.cpp" />
     <ClCompile Include="..\lib_utils\unittests\clock.cpp" />
     <ClCompile Include="..\lib_utils\unittests\fifo.cpp" />
+    <ClCompile Include="..\lib_utils\unittests\fraction.cpp" />
     <ClCompile Include="..\lib_utils\unittests\misc.cpp" />
     <ClCompile Include="..\lib_utils\unittests\queue.cpp" />
     <ClCompile Include="..\lib_utils\unittests\scheduler.cpp" />
