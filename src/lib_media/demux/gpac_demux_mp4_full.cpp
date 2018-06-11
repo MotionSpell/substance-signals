@@ -145,9 +145,6 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 			const auto newSize = reader->data.size() - offset;
 			memmove(reader->data.data(), reader->data.data() + offset, newSize);
 			reader->data.resize(newSize);
-			if (newSize == 0) {
-				return false;
-			}
 		}
 
 		if (reader->movie->isFragmented()) {
@@ -156,7 +153,7 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 		}
 	}
 
-	return true;
+	return !reader->data.empty();
 }
 
 void GPACDemuxMP4Full::process(Data data) {
