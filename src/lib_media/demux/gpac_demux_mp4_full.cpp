@@ -9,6 +9,15 @@ namespace Demux {
 const int FIRST_TRACK = 1;
 
 struct ISOProgressiveReader {
+
+	void pushData(const uint8_t* buffer, size_t len) {
+		//TODO: zero copy mode, or at least improve the current system
+		//with allocator packet duplication
+		const size_t currSize = data.size();
+		data.resize(data.size() + len);
+		memcpy(data.data() + currSize, buffer, len);
+	}
+
 	/* data buffer to be read by the parser */
 	std::vector<u8> data;
 	/* URL used to pass a buffer to the parser */
@@ -151,10 +160,7 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 }
 
 void GPACDemuxMP4Full::process(Data data) {
-	//TODO: zero copy mode, or at least improve the current system with allocator packet duplication
-	const size_t currSize = reader->data.size();
-	reader->data.resize(reader->data.size() + (size_t)data->size());
-	memcpy(reader->data.data() + currSize, data->data(), (size_t)data->size());
+	reader->pushData(data->data(), data->size());
 
 	if (!reader->movie) {
 		if (!openData()) {
