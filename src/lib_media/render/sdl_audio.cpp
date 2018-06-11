@@ -136,20 +136,20 @@ void SDLAudio::fillAudio(Span buffer) {
 	} else if (relativeTimePositionIn180k > TOLERANCE) {
 		auto const numSilenceSamples = std::min<int64_t>(numSamplesToProduce, relativeSamplePosition);
 		log(Warning, "insert silence (%s ms)", numSilenceSamples * 1000.0f / m_outputFormat.sampleRate);
-		silenceSamples(buffer, numSilenceSamples);
+		silenceSamples(buffer, (int)numSilenceSamples);
 		numSamplesToProduce -= numSilenceSamples;
 	}
 
 	auto const numSamplesToConsume = std::min<int64_t>(numSamplesToProduce, fifoSamplesToRead());
 	if (numSamplesToConsume > 0) {
-		writeSamples(buffer, m_Fifo.readPointer(), (size_t)numSamplesToConsume);
+		writeSamples(buffer, m_Fifo.readPointer(), (int)numSamplesToConsume);
 		fifoConsumeSamples((size_t)numSamplesToConsume);
 		numSamplesToProduce -= numSamplesToConsume;
 	}
 
 	if (numSamplesToProduce > 0) {
 		log(Warning, "underflow");
-		silenceSamples(buffer, numSamplesToProduce);
+		silenceSamples(buffer, (int)numSamplesToProduce);
 	}
 }
 

@@ -118,7 +118,7 @@ vector<vector<TimePair>> input) {
 
 	auto rectifier = createModule<TimeRectifier>(1, clock, fps);
 	vector<unique_ptr<Utils::Recorder>> recorders;
-	for (size_t g = 0; g < generators.size(); ++g) {
+	for (int g = 0; g < (int)generators.size(); ++g) {
 		ConnectModules(generators[g].get(), 0, rectifier.get(), g);
 		recorders.push_back(create<Utils::Recorder>());
 		ConnectModules(rectifier.get(), g, recorders[g].get(), 0);
