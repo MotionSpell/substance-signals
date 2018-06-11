@@ -16,6 +16,7 @@ struct AdaptationSet {
 	string media;
 	int startNumber=0;
 	int duration=0;
+	int timescale=1;
 	string representationId;
 	string codecs;
 	string initialization;
@@ -39,6 +40,7 @@ struct MPEG_DASH_Input::Stream {
 	OutputDefault* out = nullptr;
 	AdaptationSet* set = nullptr;
 	int currNumber = 0;
+	Fraction segmentDuration;
 };
 
 static string dirName(string path) {
@@ -73,6 +75,7 @@ MPEG_DASH_Input::MPEG_DASH_Input(std::unique_ptr<IFilePuller> source, std::strin
 		stream->out = addOutput<OutputDefault>();
 		stream->out->setMetadata(meta);
 		stream->set = &set;
+		stream->segmentDuration = Fraction(set.duration, set.timescale);
 
 		m_streams.push_back(move(stream));
 	}
@@ -81,7 +84,7 @@ MPEG_DASH_Input::MPEG_DASH_Input(std::unique_ptr<IFilePuller> source, std::strin
 		stream->currNumber  = stream->set->startNumber;
 		if(mpd->dynamic) {
 			auto now = (int64_t)getUTC();
-			stream->currNumber += int((now - mpd->availabilityStartTime) / stream->set->duration);
+			stream->currNumber += int(stream->segmentDuration.inverse() * (now - mpd->availabilityStartTime));
 			// HACK: add one segment latency
 			stream->currNumber -= 2;
 		}
@@ -100,9 +103,11 @@ bool MPEG_DASH_Input::wakeUp() {
 	for(auto& stream : m_streams) {
 		auto& set = *stream->set;
 
-		if(mpd->periodDuration && (stream->currNumber - set.startNumber) * set.duration >= mpd->periodDuration) {
-			Log::msg(Info, "End of period");
-			return false;
+		if(mpd->periodDuration) {
+			if(stream->segmentDuration * (stream->currNumber - set.startNumber) >= mpd->periodDuration) {
+				Log::msg(Error, "End of period");
+				return false;
+			}
 		}
 
 		string url;
@@ -200,6 +205,10 @@ DashMpd parseMpd(std::string text) {
 				set.media = attr["media"];
 				set.startNumber = atoi(attr["startNumber"].c_str());
 				set.duration = atoi(attr["duration"].c_str());
+				if(attr["timescale"].empty())
+					set.timescale = 1;
+				else
+					set.timescale = atoi(attr["timescale"].c_str());
 			} else if(name == "Representation") {
 				auto& set = mpd->sets.back();
 				set.representationId = attr["id"];
