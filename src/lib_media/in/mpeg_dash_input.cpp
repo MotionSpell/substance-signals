@@ -203,6 +203,15 @@ extern "C" {
 
 struct HttpSource : IFilePuller {
 
+	HttpSource() : curl(curl_easy_init()) {
+		if(!curl)
+			throw std::runtime_error("can't init curl");
+	}
+
+	~HttpSource() {
+		curl_easy_cleanup(curl);
+	}
+
 	std::vector<uint8_t> get(std::string url) override {
 		struct HttpContext {
 			std::vector<uint8_t> data;
@@ -220,10 +229,6 @@ struct HttpSource : IFilePuller {
 			}
 		};
 
-		auto curl = curl_easy_init();
-		if(!curl)
-			throw std::runtime_error("can't init curl");
-
 		HttpContext ctx;
 
 		// some servers require a user-agent field
@@ -237,9 +242,10 @@ struct HttpSource : IFilePuller {
 		if(res != CURLE_OK)
 			throw std::runtime_error(std::string("curl_easy_perform() failed: ") + curl_easy_strerror(res));
 
-		curl_easy_cleanup(curl);
 		return ctx.data;
 	}
+
+	CURL* const curl;
 };
 
 std::unique_ptr<IFilePuller> createHttpSource() {
