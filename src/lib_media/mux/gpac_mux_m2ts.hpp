@@ -4,10 +4,7 @@
 #include "lib_gpacpp/gpacpp.hpp"
 #include <vector>
 
-//FIXME: should not be needed here
-extern "C" {
-#include <libavformat/avformat.h>
-}
+struct AVPacket;
 
 namespace Modules {
 namespace Mux {

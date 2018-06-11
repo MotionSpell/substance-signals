@@ -8,10 +8,7 @@
 extern "C" {
 #include <gpac/tools.h>
 #include <gpac/isomedia.h>
-#include <gpac/thread.h>
 #include <gpac/media_tools.h>
-#include <gpac/download.h>
-#include <gpac/dash.h>
 #include <gpac/internal/mpd.h>
 #include <gpac/mpegts.h>
 }
@@ -226,86 +223,6 @@ class IsoFile : public Init {
 };
 
 #endif /*GPAC_DISABLE_ISOM*/
-
-//------------------------------------------------
-// wrapper for GF_DownloadManager
-//------------------------------------------------
-class DownloadManager : public Init {
-	public:
-		DownloadManager(const Config *cfg) {
-			dm = gf_dm_new(cfg->get());
-		}
-
-		~DownloadManager() {
-			gf_dm_del(dm);
-		}
-
-		GF_DownloadManager* get() const {
-			return dm;
-		}
-
-		GF_DownloadManager const& operator=(GF_DownloadManager const&) = delete;
-
-	private:
-		GF_DownloadManager *dm;
-};
-
-#ifndef GPAC_DISABLE_DASH_CLIENT
-
-//------------------------------------------------
-// wrapper for GF_DashClient
-//------------------------------------------------
-class DashClient : public Init {
-	public:
-		DashClient(GF_DASHFileIO *dashIO, Config *cfg) : dashIO(dashIO), cfg(cfg), dm(new DownloadManager(cfg)) {
-			dashClient = gf_dash_new(this->dashIO.get(), 10, 0, GF_FALSE, GF_TRUE, GF_DASH_SELECT_QUALITY_LOWEST, GF_FALSE, 0);
-			if (dashClient == nullptr)
-				throw std::runtime_error("Can't create DASH Client");
-			state = Init;
-		}
-
-		void start(std::string const& url) {
-			assert(state == Init);
-			GF_Err e = gf_dash_open(dashClient, url.c_str());
-			if (e)
-				throw Error(format("[MPEG-DASH Client] Can't open URL %s", url).c_str(), e);
-			state = Started;
-		}
-
-		void stop() {
-			gf_dash_close(dashClient);
-			state = Stopped;
-		}
-
-		~DashClient() {
-			if (state == Started)
-				stop();
-			gf_dash_del(dashClient);
-		}
-
-		GF_DashClient* get() const {
-			return dashClient;
-		}
-
-		DownloadManager* downloader() {
-			return dm.get();
-		}
-
-	private:
-		enum State {
-			Init,
-			Started,
-			Stopped
-		};
-
-		State state;
-		std::unique_ptr<GF_DASHFileIO> dashIO;
-		std::unique_ptr<Config> cfg;
-		std::unique_ptr<DownloadManager> dm;
-		GF_DashClient *dashClient;
-};
-
-#endif /*GPAC_DISABLE_DASH_CLIENT*/
 
 #ifndef GPAC_DISABLE_CORE_TOOLS
 
@@ -544,39 +461,5 @@ class M2TSMux : public Init {
 		std::vector<std::unique_ptr<GF_ESInterface>> ifces;
 };
 #endif /*GPAC_DISABLE_MPEG2TS_MUX*/
-
-struct Mutex : public Init {
-		Mutex(const std::string &name) {
-			mx = gf_mx_new(name.c_str());
-			if (!mx)
-				throw std::runtime_error(format("[GPACPP Mutex] Could not create mutex (name=\"%s\")", name));
-		}
-		~Mutex() {
-			gf_mx_del(mx);
-		}
-		void lock() {
-			int ret = gf_mx_p(mx);
-			if (ret == 0)
-				throw std::runtime_error("[GPACPP Mutex] Unexpected error why trying to lock.");
-		}
-		void unlock() {
-			gf_mx_v(mx);
-		}
-
-	private:
-		GF_Mutex *mx;
-};
-
-struct MutexLock {
-		MutexLock(Mutex *mx) : mx(mx) {
-			mx->lock();
-		}
-		~MutexLock() {
-			mx->unlock();
-		}
-
-	private:
-		Mutex *mx;
-};
 
 }
