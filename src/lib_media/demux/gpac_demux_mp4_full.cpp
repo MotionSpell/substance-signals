@@ -59,8 +59,7 @@ bool GPACDemuxMP4Full::openData() {
 
 bool GPACDemuxMP4Full::updateData() {
 	/* let inform the parser that the buffer has been updated with new data */
-	uint64_t missingBytes;
-	reader->movie->refreshFragmented(missingBytes, reader->dataUrl());
+	reader->movie->refreshFragmented(reader->dataUrl());
 	return true;
 }
 
@@ -150,8 +149,7 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 		}
 
 		if (reader->movie->isFragmented()) {
-			u64 missingBytes;
-			reader->movie->refreshFragmented(missingBytes, reader->dataUrl());
+			reader->movie->refreshFragmented(reader->dataUrl());
 		}
 	}
 

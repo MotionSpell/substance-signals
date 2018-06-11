@@ -148,10 +148,12 @@ class IsoFile : public Init {
 			return gf_isom_is_fragmented(movie_);
 		}
 
-		void refreshFragmented(uint64_t& missingBytes, std::string const& url) {
+		uint64_t refreshFragmented(std::string const& url) {
+			uint64_t missingBytes;
 			GF_Err e = gf_isom_refresh_fragmented(movie_, &missingBytes, url.c_str());
 			if (e != GF_OK && e != GF_ISOM_INCOMPLETE_FILE)
 				throw Error("Can't refresh fragmented MP4", e);
+			return missingBytes;
 		}
 
 		uint32_t getTrackId(int i) const {
