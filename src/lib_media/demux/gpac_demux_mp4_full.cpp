@@ -22,7 +22,9 @@ struct ISOProgressiveReader {
 	std::vector<u8> data;
 	/* URL used to pass a buffer to the parser */
 	std::string dataUrl() const {
-		return format("gmem://%s@%s", data.size(), (void*)data.data());
+		char buffer[256];
+		sprintf(buffer, "gmem://%lld@%p", (long long)data.size(), data.data());
+		return buffer;
 	}
 	/* The ISO file structure created for the parsing of data */
 	std::unique_ptr<gpacpp::IsoFile> movie;
