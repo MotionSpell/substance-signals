@@ -69,9 +69,8 @@ MPEG_DASH_Input::MPEG_DASH_Input(std::unique_ptr<IFilePuller> source, std::strin
 		auto now = (int64_t)getUTC();
 		for(auto& set : mpd->sets) {
 			set.startNumber += int((now - mpd->availabilityStartTime) / set.duration);
-
-			// HACK: add two-segment latency
-			set.startNumber -= 2;
+			// HACK: add one segment latency
+			set.startNumber -= 1;
 		}
 	}
 }
