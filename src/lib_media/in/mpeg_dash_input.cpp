@@ -93,23 +93,27 @@ bool MPEG_DASH_Input::wakeUp() {
 	for(auto& set : mpd->sets) {
 		++i;
 
-		string url;
-		map<string, string> vars;
-
-		vars["RepresentationID"] = set.representationId;
-
 		if(mpd->periodDuration && (set.currNumber - set.startNumber) * set.duration >= mpd->periodDuration) {
 			Log::msg(Info, "End of period");
 			return false;
 		}
 
-		if(m_initializationChunkSent) {
-			vars["Number"] = format("%s", set.currNumber);
-			set.currNumber++;
-			url = m_mpdDirname + "/" + expandVars(set.media, vars);
-		} else {
-			url = m_mpdDirname + "/" + expandVars(set.initialization, vars);
+		string url;
+
+		{
+			map<string, string> vars;
+
+			vars["RepresentationID"] = set.representationId;
+
+			if(m_initializationChunkSent) {
+				vars["Number"] = format("%s", set.currNumber);
+				set.currNumber++;
+				url = m_mpdDirname + "/" + expandVars(set.media, vars);
+			} else {
+				url = m_mpdDirname + "/" + expandVars(set.initialization, vars);
+			}
 		}
+
 		Log::msg(Debug, "wget: '%s'", url);
 
 		auto chunk = m_source->get(url);
