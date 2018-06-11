@@ -12,7 +12,9 @@ struct ISOProgressiveReader {
 	/* data buffer to be read by the parser */
 	std::vector<u8> data;
 	/* URL used to pass a buffer to the parser */
-	std::string dataUrl;
+	std::string dataUrl() const {
+		return format("gmem://%s@%s", data.size(), (void*)data.data());
+	}
 	/* The ISO file structure created for the parsing of data */
 	std::unique_ptr<gpacpp::IsoFile> movie;
 	/* Boolean state to indicate if the needs to be parsed */
@@ -34,7 +36,7 @@ bool GPACDemuxMP4Full::openData() {
 	/* if the file is not yet opened (no movie), open it in progressive mode (to update its data later on) */
 	u64 missingBytes;
 	GF_ISOFile *movie;
-	GF_Err e = gf_isom_open_progressive(reader->dataUrl.c_str(), 0, 0, &movie, &missingBytes);
+	GF_Err e = gf_isom_open_progressive(reader->dataUrl().c_str(), 0, 0, &movie, &missingBytes);
 	if ((e != GF_OK && e != GF_ISOM_INCOMPLETE_FILE) || reader->movie) {
 		log(Warning, "Error opening fragmented mp4 in progressive mode: %s (missing %s bytes)", gf_error_to_string(e), missingBytes);
 		return false;
@@ -47,7 +49,7 @@ bool GPACDemuxMP4Full::openData() {
 bool GPACDemuxMP4Full::updateData() {
 	/* let inform the parser that the buffer has been updated with new data */
 	uint64_t missingBytes;
-	reader->movie->refreshFragmented(missingBytes, reader->dataUrl);
+	reader->movie->refreshFragmented(missingBytes, reader->dataUrl());
 	return true;
 }
 
@@ -141,8 +143,7 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 
 		if (reader->movie->isFragmented()) {
 			u64 missingBytes;
-			reader->dataUrl = format("gmem://%s@%s", reader->data.size(), (void*)reader->data.data());
-			reader->movie->refreshFragmented(missingBytes, reader->dataUrl);
+			reader->movie->refreshFragmented(missingBytes, reader->dataUrl());
 		}
 	}
 
@@ -154,7 +155,6 @@ void GPACDemuxMP4Full::process(Data data) {
 	const size_t currSize = reader->data.size();
 	reader->data.resize(reader->data.size() + (size_t)data->size());
 	memcpy(reader->data.data() + currSize, data->data(), (size_t)data->size());
-	reader->dataUrl = format("gmem://%s@%s", reader->data.size(), (void*)reader->data.data());
 
 	if (!reader->movie) {
 		if (!openData()) {
