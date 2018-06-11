@@ -69,6 +69,9 @@ MPEG_DASH_Input::MPEG_DASH_Input(std::unique_ptr<IFilePuller> source, std::strin
 		auto now = (int64_t)getUTC();
 		for(auto& set : mpd->sets) {
 			set.startNumber += int((now - mpd->availabilityStartTime) / set.duration);
+
+			// HACK: add two-segment latency
+			set.startNumber -= 2;
 		}
 	}
 }
@@ -101,7 +104,7 @@ bool MPEG_DASH_Input::wakeUp() {
 
 		auto chunk = m_source->get(url);
 		if(chunk.empty()) {
-			Log::msg(Debug, "end of stream");
+			Log::msg(Error, "can't download file: '%s'", url);
 			return false;
 		}
 
@@ -239,6 +242,8 @@ struct HttpSource : IFilePuller {
 		curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
 
 		auto res = curl_easy_perform(curl);
+		if(res == CURLE_HTTP_RETURNED_ERROR)
+			return std::vector<uint8_t>();
 		if(res != CURLE_OK)
 			throw std::runtime_error(std::string("curl_easy_perform() failed: ") + curl_easy_strerror(res));
 

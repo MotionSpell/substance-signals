@@ -3,6 +3,7 @@
 // modules
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/demux/gpac_demux_mp4_full.hpp"
+#include "lib_media/transform/restamp.hpp"
 #include "lib_media/in/mpeg_dash_input.hpp"
 #include "lib_media/out/null.hpp"
 #include "lib_media/render/sdl_audio.hpp"
@@ -10,6 +11,7 @@
 #include "lib_media/decode/decoder.hpp"
 
 using namespace Modules;
+using namespace Transform;
 using namespace Pipelines;
 using namespace In;
 using namespace Demux;
@@ -52,7 +54,9 @@ void declarePipeline(Pipeline &pipeline, const char *url) {
 			for (int i = 0; i < (int)dashInput->getNumOutputs(); ++i) {
 				auto demux = pipeline.addModule<GPACDemuxMP4Full>();
 				pipeline.connect(dashInput, i, demux, 0);
-				r.push_back({demux, 0, dashInput->getOutput(i)->getMetadata()});
+				auto restamp = pipeline.addModule<Restamp>(Transform::Restamp::Reset);
+				pipeline.connect(demux, 0, restamp, 0);
+				r.push_back({restamp, 0, dashInput->getOutput(i)->getMetadata()});
 			}
 		} else {
 			auto demux = pipeline.addModule<Demux::LibavDemux>(url);
