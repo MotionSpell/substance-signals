@@ -25,10 +25,10 @@ function get_root_packages
 
   if [ "$host" == "x86_64-linux-gnu" ]; then
     echo aws
-    echo openssl
-    echo sqlite3
   fi
 
+  echo openssl
+  echo sqlite3
   echo asio
   echo ffmpeg
   echo freetype2
