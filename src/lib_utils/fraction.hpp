@@ -7,6 +7,7 @@ int64_t pgcd(int64_t a, int64_t b) {
 	return b ? pgcd(b, a%b) : a;
 }
 
+
 template<typename T>
 static void simplifyFraction(T& num, T& den) {
 	// save sign and make num and den positive
@@ -27,6 +28,13 @@ static void simplifyFraction(T& num, T& den) {
 	// restore sign
 	if(!positive)
 		num = -num;
+}
+
+template<>
+inline void simplifyFraction<uint64_t>(uint64_t& num, uint64_t& den) {
+	auto const gcd = pgcd(num, den);
+	num /= gcd;
+	den /= gcd;
 }
 
 struct Fraction {
