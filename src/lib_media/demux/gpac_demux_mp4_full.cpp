@@ -158,7 +158,7 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 }
 
 void GPACDemuxMP4Full::process(Data data) {
-	reader->pushData(data->data(), data->size());
+	reader->pushData(data->data(), (size_t)data->size());
 
 	if (!reader->movie) {
 		if (!openData()) {
