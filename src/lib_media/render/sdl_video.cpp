@@ -182,7 +182,7 @@ void SDLVideo::process(Data data) {
 	auto const delay = respectTimestamps ? std::max<int64_t>(0, timestamp - now) : 0;
 	auto const delayInMs = clockToTimescale(delay, 1000);
 
-	SDL_AddTimer(delayInMs, &queueOneUserEvent, nullptr);
+	SDL_AddTimer((Uint32)delayInMs, &queueOneUserEvent, nullptr);
 }
 
 }
