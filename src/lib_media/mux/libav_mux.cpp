@@ -148,8 +148,11 @@ void LibavMux::process() {
 	while (!inputs[inputIdx]->tryPop(data)) {
 		inputIdx++;
 	}
+	auto prevInputMeta = inputs[inputIdx]->getMetadata();
 	if (inputs[inputIdx]->updateMetadata(data)) {
-		if (!declareStream(data, inputIdx))
+		if (prevInputMeta) {
+			log(Error, "Updating existing metadata on input port %s. Not supported but continuing execution.", inputIdx);
+		} else if (!declareStream(data, inputIdx))
 			return; //stream declared statically: no data to process.
 	}
 	if (m_formatCtx->nb_streams < (size_t)getNumInputs() - 1) {
