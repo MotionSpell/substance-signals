@@ -23,6 +23,9 @@ class MPEG_DASH_Input : public Module {
 		std::unique_ptr<IFilePuller> const m_source;
 		bool wakeUp();
 
+		struct Stream;
+		std::vector<std::unique_ptr<Stream>> m_streams;
+
 		std::unique_ptr<DashMpd> mpd;
 		std::string m_mpdDirname;
 		bool m_initializationChunkSent = false;

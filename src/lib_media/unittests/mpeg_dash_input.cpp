@@ -82,6 +82,9 @@ unittest("mpeg_dash_input: get chunks") {
 <MPD>
   <Period duration="PT30S">
     <AdaptationSet>
+      <Representation id="88" mimeType="unknown"/>
+    </AdaptationSet>
+    <AdaptationSet>
       <ContentComponent id="1"/>
       <SegmentTemplate initialization="init-$RepresentationID$.mp4" media="sub/x$Number$y$RepresentationID$z" startNumber="3" duration="10"/>
       <Representation id="77" mimeType="audio/mp4"/>

@@ -21,9 +21,6 @@ struct AdaptationSet {
 	string initialization;
 	string mimeType;
 	string contentType;
-
-	// statefull
-	int currNumber=0;
 };
 
 struct DashMpd {
@@ -37,6 +34,12 @@ static DashMpd parseMpd(std::string text);
 
 namespace Modules {
 namespace In {
+
+struct MPEG_DASH_Input::Stream {
+	OutputDefault* out = nullptr;
+	AdaptationSet* set = nullptr;
+	int currNumber = 0;
+};
 
 static string dirName(string path) {
 	auto i = path.rfind('/');
@@ -66,16 +69,21 @@ MPEG_DASH_Input::MPEG_DASH_Input(std::unique_ptr<IFilePuller> source, std::strin
 			continue;
 		}
 
-		auto output = addOutput<OutputDefault>();
-		output->setMetadata(meta);
+		auto stream = make_unique<Stream>();
+		stream->out = addOutput<OutputDefault>();
+		stream->out->setMetadata(meta);
+		stream->set = &set;
+
+		m_streams.push_back(move(stream));
 	}
 
-	if(mpd->dynamic) {
-		auto now = (int64_t)getUTC();
-		for(auto& set : mpd->sets) {
-			set.currNumber += int((now - mpd->availabilityStartTime) / set.duration);
+	for(auto& stream : m_streams) {
+		stream->currNumber  = stream->set->startNumber;
+		if(mpd->dynamic) {
+			auto now = (int64_t)getUTC();
+			stream->currNumber += int((now - mpd->availabilityStartTime) / stream->set->duration);
 			// HACK: add one segment latency
-			set.currNumber -= 2;
+			stream->currNumber -= 2;
 		}
 	}
 }
@@ -89,11 +97,10 @@ void MPEG_DASH_Input::process() {
 }
 
 bool MPEG_DASH_Input::wakeUp() {
-	int i=-1;
-	for(auto& set : mpd->sets) {
-		++i;
+	for(auto& stream : m_streams) {
+		auto& set = *stream->set;
 
-		if(mpd->periodDuration && (set.currNumber - set.startNumber) * set.duration >= mpd->periodDuration) {
+		if(mpd->periodDuration && (stream->currNumber - set.startNumber) * set.duration >= mpd->periodDuration) {
 			Log::msg(Info, "End of period");
 			return false;
 		}
@@ -106,8 +113,8 @@ bool MPEG_DASH_Input::wakeUp() {
 			vars["RepresentationID"] = set.representationId;
 
 			if(m_initializationChunkSent) {
-				vars["Number"] = format("%s", set.currNumber);
-				set.currNumber++;
+				vars["Number"] = format("%s", stream->currNumber);
+				stream->currNumber++;
 				url = m_mpdDirname + "/" + expandVars(set.media, vars);
 			} else {
 				url = m_mpdDirname + "/" + expandVars(set.initialization, vars);
@@ -119,7 +126,7 @@ bool MPEG_DASH_Input::wakeUp() {
 		auto chunk = m_source->get(url);
 		if(chunk.empty()) {
 			if(mpd->dynamic) {
-				set.currNumber--; // too early, retry
+				stream->currNumber--; // too early, retry
 				continue;
 			}
 			Log::msg(Error, "can't download file: '%s'", url);
@@ -128,7 +135,7 @@ bool MPEG_DASH_Input::wakeUp() {
 
 		auto data = make_shared<DataRaw>(chunk.size());
 		memcpy(data->data(), chunk.data(), chunk.size());
-		outputs[i]->emit(data);
+		stream->out->emit(data);
 	}
 
 	m_initializationChunkSent = true;
@@ -193,7 +200,6 @@ DashMpd parseMpd(std::string text) {
 				set.media = attr["media"];
 				set.startNumber = atoi(attr["startNumber"].c_str());
 				set.duration = atoi(attr["duration"].c_str());
-				set.currNumber = set.startNumber;
 			} else if(name == "Representation") {
 				auto& set = mpd->sets.back();
 				set.representationId = attr["id"];
