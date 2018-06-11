@@ -59,7 +59,9 @@ bool GPACDemuxMP4Full::openData() {
 
 bool GPACDemuxMP4Full::updateData() {
 	/* let inform the parser that the buffer has been updated with new data */
-	reader->movie->refreshFragmented(reader->dataUrl());
+	if (reader->movie->isFragmented()) {
+		reader->movie->refreshFragmented(reader->dataUrl());
+	}
 	return true;
 }
 
@@ -148,9 +150,7 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 			reader->data.resize(newSize);
 		}
 
-		if (reader->movie->isFragmented()) {
-			reader->movie->refreshFragmented(reader->dataUrl());
-		}
+		updateData();
 	}
 
 	return !reader->data.empty();
