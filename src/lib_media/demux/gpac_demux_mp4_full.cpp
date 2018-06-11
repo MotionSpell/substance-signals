@@ -141,8 +141,8 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 		u64 newBufferStart = 0;
 		reader->movie->resetDataOffset(newBufferStart);
 		if (newBufferStart) {
-			u32 offset = (u32)newBufferStart;
-			const size_t newSize = reader->data.size() - offset;
+			const auto offset = (size_t)newBufferStart;
+			const auto newSize = reader->data.size() - offset;
 			memmove(reader->data.data(), reader->data.data() + offset, newSize);
 			reader->data.resize(newSize);
 			if (newSize == 0) {
