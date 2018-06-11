@@ -20,6 +20,9 @@ struct AdaptationSet {
 	string initialization;
 	string mimeType;
 	string contentType;
+
+	// statefull
+	int currNumber=0;
 };
 
 struct DashMpd {
@@ -68,9 +71,9 @@ MPEG_DASH_Input::MPEG_DASH_Input(std::unique_ptr<IFilePuller> source, std::strin
 	if(mpd->dynamic) {
 		auto now = (int64_t)getUTC();
 		for(auto& set : mpd->sets) {
-			set.startNumber += int((now - mpd->availabilityStartTime) / set.duration);
+			set.currNumber += int((now - mpd->availabilityStartTime) / set.duration);
 			// HACK: add one segment latency
-			set.startNumber -= 1;
+			set.currNumber -= 2;
 		}
 	}
 }
@@ -94,8 +97,8 @@ bool MPEG_DASH_Input::wakeUp() {
 		vars["RepresentationID"] = set.representationId;
 
 		if(m_initializationChunkSent) {
-			vars["Number"] = format("%s", set.startNumber);
-			set.startNumber++;
+			vars["Number"] = format("%s", set.currNumber);
+			set.currNumber++;
 			url = m_mpdDirname + "/" + expandVars(set.media, vars);
 		} else {
 			url = m_mpdDirname + "/" + expandVars(set.initialization, vars);
@@ -105,7 +108,7 @@ bool MPEG_DASH_Input::wakeUp() {
 		auto chunk = m_source->get(url);
 		if(chunk.empty()) {
 			if(mpd->dynamic) {
-				set.startNumber--; // too early, retry
+				set.currNumber--; // too early, retry
 				continue;
 			}
 			Log::msg(Error, "can't download file: '%s'", url);
@@ -174,6 +177,7 @@ DashMpd parseMpd(std::string text) {
 				set.media = attr["media"];
 				set.startNumber = atoi(attr["startNumber"].c_str());
 				set.duration = atoi(attr["duration"].c_str());
+				set.currNumber = set.startNumber;
 			} else if(name == "Representation") {
 				auto& set = mpd->sets.back();
 				set.representationId = attr["id"];
