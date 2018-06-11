@@ -10,7 +10,6 @@ extern "C" {
 #include <gpac/isomedia.h>
 #include <gpac/media_tools.h>
 #include <gpac/internal/mpd.h>
-#include <gpac/mpegts.h>
 }
 
 //#define GPAC_MEM_TRACKER
@@ -414,52 +413,5 @@ class MPD {
 };
 
 #endif /*GPAC_DISABLE_CORE_TOOLS*/
-
-#ifndef GPAC_DISABLE_MPEG2TS_MUX
-//------------------------------------------------
-// wrapper for GF_M2TS_Mux
-//------------------------------------------------
-class M2TSMux : public Init {
-	public:
-		M2TSMux(bool real_time, unsigned mux_rate, unsigned pcr_ms = 100, int64_t pcr_init_val = -1) {
-			const GF_M2TS_PackMode single_au_pes = GF_M2TS_PACK_AUDIO_ONLY;
-			const int pcrOffset = 0;
-			const int curPid = 100;
-
-			muxer = gf_m2ts_mux_new(mux_rate, GF_M2TS_PSI_DEFAULT_REFRESH_RATE, real_time == true ? GF_TRUE : GF_FALSE);
-			if (!muxer)
-				throw std::runtime_error("[GPACMuxMPEG2TS] Could not create the muxer.");
-
-			gf_m2ts_mux_use_single_au_pes_mode(muxer, single_au_pes);
-			if (pcr_init_val >= 0)
-				gf_m2ts_mux_set_initial_pcr(muxer, (u64)pcr_init_val);
-
-			gf_m2ts_mux_set_pcr_max_interval(muxer, pcr_ms);
-			program = gf_m2ts_mux_program_add(muxer, 1, curPid, GF_M2TS_PSI_DEFAULT_REFRESH_RATE, pcrOffset, GF_FALSE, 0, GF_TRUE);
-			if (!program)
-				throw std::runtime_error("[GPACMuxMPEG2TS] Could not create the muxer.");
-		}
-
-		~M2TSMux() {
-			gf_m2ts_mux_del(muxer);
-		}
-
-		void addStream(std::unique_ptr<GF_ESInterface> ifce, u32 PID, Bool isPCR) {
-			auto stream = gf_m2ts_program_stream_add(program, ifce.get(), PID, isPCR, GF_FALSE);
-			if (ifce->stream_type == GF_STREAM_VISUAL) stream->start_pes_at_rap = GF_TRUE;
-			ifces.push_back(std::move(ifce));
-		}
-
-		/*return nullptr or a 188 byte packet*/
-		const char* process(u32 &status, u32 &usec_till_next) {
-			return gf_m2ts_mux_process(muxer, &status, &usec_till_next);
-		}
-
-	private:
-		GF_M2TS_Mux *muxer = nullptr;
-		GF_M2TS_Mux_Program *program = nullptr;
-		std::vector<std::unique_ptr<GF_ESInterface>> ifces;
-};
-#endif /*GPAC_DISABLE_MPEG2TS_MUX*/
 
 }

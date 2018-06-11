@@ -6,6 +6,14 @@
 
 struct AVPacket;
 
+extern "C" {
+#include <gpac/esi.h> // GF_ESInterface
+}
+
+namespace gpacpp {
+class M2TSMux;
+}
+
 namespace Modules {
 namespace Mux {
 
