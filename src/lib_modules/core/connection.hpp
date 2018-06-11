@@ -13,6 +13,6 @@ Bind(Function func, Class* objectPtr) {
 }
 
 size_t ConnectOutputToInput(IOutput *prev, IInput *next, IProcessExecutor * const executor = &defaultExecutor);
-size_t ConnectModules(IModule *prev, size_t outputIdx, IModule *next, size_t inputIdx, IProcessExecutor &executor = defaultExecutor);
+size_t ConnectModules(IModule *prev, int outputIdx, IModule *next, int inputIdx, IProcessExecutor &executor = defaultExecutor);
 
 }

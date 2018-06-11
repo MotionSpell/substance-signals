@@ -42,7 +42,7 @@ class TimeRectifier : public ModuleDynI {
 		void flush() override;
 
 		int getNumOutputs() const override {
-			return outputs.size();
+			return (int)outputs.size();
 		}
 		IOutput* getOutput(int i) override {
 			mimicOutputs();

@@ -28,7 +28,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 		void process() override {
 			ensureDelegateInputs();
 
-			size_t inputIdx = 0;
+			int inputIdx = 0;
 			Data data;
 			while (!inputs[inputIdx]->tryPop(data)) {
 				inputIdx++;
