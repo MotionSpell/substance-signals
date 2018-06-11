@@ -85,8 +85,9 @@ void MPEG_DASH_Input::process() {
 }
 
 bool MPEG_DASH_Input::wakeUp() {
-	int i=0;
+	int i=-1;
 	for(auto& set : mpd->sets) {
+		++i;
 
 		string url;
 		map<string, string> vars;
@@ -104,6 +105,10 @@ bool MPEG_DASH_Input::wakeUp() {
 
 		auto chunk = m_source->get(url);
 		if(chunk.empty()) {
+			if(mpd->dynamic) {
+				set.startNumber--; // too early, retry
+				continue;
+			}
 			Log::msg(Error, "can't download file: '%s'", url);
 			return false;
 		}
@@ -111,7 +116,6 @@ bool MPEG_DASH_Input::wakeUp() {
 		auto data = make_shared<DataRaw>(chunk.size());
 		memcpy(data->data(), chunk.data(), chunk.size());
 		outputs[i]->emit(data);
-		++i;
 	}
 
 	m_initializationChunkSent = true;
