@@ -39,7 +39,7 @@ function dashcast_crashtest
   # dashcastx simple crash test
   $BIN/src/apps/dashcastx/dashcastx.exe \
     -w $tmpDir/dashcastx \
-    $PWD/src/tests/data/h264.ts 1>/dev/null 2>/dev/null
+    $PWD/data/h264.ts 1>/dev/null 2>/dev/null
 }
 
 function player_blindtest
@@ -54,10 +54,7 @@ function mp42tsx_blindtest
 
 function unittests
 {
-  local absPath=$(readlink -f $BIN/src/tests/test_other.exe)
-  pushd src/tests >/dev/null
-  $absPath
-  popd >/dev/null
+  $BIN/src/tests/test_other.exe
 }
 
 main "$@"
