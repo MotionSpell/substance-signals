@@ -36,3 +36,32 @@ unittest("expandVars: incomplete") {
 	vars["my_very_long_variable_name"] = "world";
 	ASSERT_THROWN(expandVars("hello $my_very_long_vari", vars));
 }
+
+///////////////////////////////////////////////////////////////////////////////
+
+int64_t parseIso8601Period(std::string input);
+
+unittest("iso8601 parser: invalid") {
+	ASSERT_THROWN(parseIso8601Period("I_AM_INVALID"));
+}
+
+unittest("iso8601 parser: invalid, another") {
+	ASSERT_THROWN(parseIso8601Period("PT7X"));
+}
+
+unittest("iso8601 parser: zero") {
+	ASSERT_EQUALS(0, parseIso8601Period("PT0S"));
+}
+
+unittest("iso8601 parser: one minute") {
+	ASSERT_EQUALS(60, parseIso8601Period("PT1M"));
+}
+
+unittest("iso8601 parser: half an hour and one second") {
+	ASSERT_EQUALS(1801, parseIso8601Period("PT0.5HM1S"));
+}
+
+unittest("iso8601 parser: all") {
+	ASSERT_EQUALS(48551, parseIso8601Period("PT13H29M11S"));
+}
+

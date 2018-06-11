@@ -80,10 +80,10 @@ unittest("mpeg_dash_input: get chunks") {
 	static auto const MPD = R"|(
 <?xml version="1.0"?>
 <MPD>
-  <Period>
+  <Period duration="PT30S">
     <AdaptationSet>
       <ContentComponent id="1"/>
-      <SegmentTemplate initialization="init-$RepresentationID$.mp4" media="sub/x$Number$y$RepresentationID$z" startNumber="3" />
+      <SegmentTemplate initialization="init-$RepresentationID$.mp4" media="sub/x$Number$y$RepresentationID$z" startNumber="3" duration="10"/>
       <Representation id="77" mimeType="audio/mp4"/>
     </AdaptationSet>
   </Period>
@@ -112,7 +112,6 @@ unittest("mpeg_dash_input: get chunks") {
 		"main/sub/x3y77z",
 		"main/sub/x4y77z",
 		"main/sub/x5y77z",
-		"main/sub/x6y77z",
 	}),
 	source.requests);
 }

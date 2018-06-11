@@ -7,6 +7,7 @@
 #include <cstring> // memcpy
 
 std::string expandVars(std::string input, std::map<std::string,std::string> const& values);
+int64_t parseIso8601Period(std::string input);
 
 using namespace std;
 using namespace Modules::In;
@@ -28,6 +29,7 @@ struct AdaptationSet {
 struct DashMpd {
 	bool dynamic = false;
 	int64_t availabilityStartTime = 0; // in ms
+	int64_t periodDuration; // in seconds
 	vector<AdaptationSet> sets;
 };
 
@@ -95,6 +97,11 @@ bool MPEG_DASH_Input::wakeUp() {
 		map<string, string> vars;
 
 		vars["RepresentationID"] = set.representationId;
+
+		if(mpd->periodDuration && (set.currNumber - set.startNumber) * set.duration >= mpd->periodDuration) {
+			Log::msg(Info, "End of period");
+			return false;
+		}
 
 		if(m_initializationChunkSent) {
 			vars["Number"] = format("%s", set.currNumber);
@@ -169,6 +176,11 @@ DashMpd parseMpd(std::string text) {
 				}
 				auto& set = mpd->sets.back();
 				set.contentType = attr["contentType"];
+			} else if(name == "Period") {
+				if(attr["duration"].empty())
+					mpd->periodDuration = 0;
+				else
+					mpd->periodDuration = parseIso8601Period(attr["duration"]);
 			} else if(name == "MPD") {
 				mpd->dynamic = attr["type"] == "dynamic";
 			} else if(name == "SegmentTemplate") {
@@ -317,3 +329,4 @@ string expandVars(string input, map<string,string> const& values) {
 
 	return r;
 }
+
