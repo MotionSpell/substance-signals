@@ -1,8 +1,15 @@
 #pragma once
 
 // This is how the framework sees custom module implementations.
-// This defines the binary boundary between an application using the framework,
-// third-party user module implementations.
+// This is the binary boundary between:
+// - binary applications (plugin host for binary 'signals' plugins).
+// - binary third-party 'signals' modules.
+//
+// As these interfaces are implemented by third-parties,
+// they should be kept small and leave almost no room for errors.
+// (stuff like connection lists and pin lists should be kept in the framework).
+//
+// This is the only header file that third-parties are expected to include.
 
 #include "clock.hpp"
 #include "data.hpp"
