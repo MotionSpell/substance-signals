@@ -54,7 +54,10 @@ function mp42tsx_blindtest
 
 function unittests
 {
+  rm -rf out
+  mkdir -p out
   $BIN/src/tests/test_other.exe
+  rm -rf out
 }
 
 main "$@"
