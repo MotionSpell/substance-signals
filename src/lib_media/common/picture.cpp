@@ -1,7 +1,7 @@
 #include "picture.hpp"
 
 namespace Modules {
-std::shared_ptr<DataPicture> DataPicture::create(OutputPicture *out, Resolution res, Resolution resInternal, const PixelFormat &format) {
+std::shared_ptr<DataPicture> DataPicture::create(OutputPicture *out, Resolution res, Resolution resInternal, PixelFormat format) {
 	if (!out) return nullptr;
 	std::shared_ptr<DataPicture> r;
 	auto const size = PictureFormat::getSize(resInternal, format);
@@ -22,7 +22,7 @@ std::shared_ptr<DataPicture> DataPicture::create(OutputPicture *out, Resolution 
 	return r;
 }
 
-std::shared_ptr<DataPicture> DataPicture::create(OutputPicture *out, Resolution res, const PixelFormat &format) {
+std::shared_ptr<DataPicture> DataPicture::create(OutputPicture *out, Resolution res, PixelFormat format) {
 	return create(out, res, res, format);
 }
 }

@@ -24,7 +24,7 @@ class PictureFormat {
 	public:
 		PictureFormat() : format(UNKNOWN_PF) {
 		}
-		PictureFormat(Resolution res, const PixelFormat &format)
+		PictureFormat(Resolution res, PixelFormat format)
 			: res(res), format(format) {
 		}
 		bool operator==(PictureFormat const& other) const {
@@ -37,7 +37,7 @@ class PictureFormat {
 		size_t getSize() const {
 			return getSize(res, format);
 		}
-		static size_t getSize(Resolution res, const PixelFormat &format) {
+		static size_t getSize(Resolution res, PixelFormat format) {
 			switch (format) {
 			case Y8: return res.width * res.height;
 			case YUV420P: return res.width * res.height * 3 / 2;
@@ -67,8 +67,8 @@ typedef OutputDataDefault<DataPicture> OutputPicture;
 class DataPicture : public DataRaw {
 	public:
 		DataPicture(size_t /*unused*/) : DataRaw(0) {}
-		static std::shared_ptr<DataPicture> create(OutputPicture *out, Resolution res, const PixelFormat &format);
-		static std::shared_ptr<DataPicture> create(OutputPicture *out, Resolution res, Resolution resInternal, const PixelFormat &format);
+		static std::shared_ptr<DataPicture> create(OutputPicture *out, Resolution res, PixelFormat format);
+		static std::shared_ptr<DataPicture> create(OutputPicture *out, Resolution res, Resolution resInternal, PixelFormat format);
 
 		bool isRecyclable() const override {
 			return true;
@@ -88,7 +88,7 @@ class DataPicture : public DataRaw {
 		virtual void setVisibleResolution(Resolution res) = 0;
 
 	protected:
-		DataPicture(Resolution res, const PixelFormat &format)
+		DataPicture(Resolution res, PixelFormat format)
 			: DataRaw(PictureFormat::getSize(res, format)), format(res, format), internalFormat(res, format) {
 		}
 
