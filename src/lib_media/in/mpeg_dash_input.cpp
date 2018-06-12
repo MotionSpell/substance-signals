@@ -53,6 +53,8 @@ static string dirName(string path) {
 MPEG_DASH_Input::MPEG_DASH_Input(std::unique_ptr<IFilePuller> source, std::string const& url) : m_source(move(source)) {
 	//GET MPD FROM HTTP
 	auto mpdAsText = m_source->get(url);
+	if(mpdAsText.empty())
+		throw std::runtime_error("can't get mpd");
 	m_mpdDirname = dirName(url);
 
 	//PARSE MPD

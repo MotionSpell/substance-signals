@@ -34,6 +34,11 @@ std::unique_ptr<IFilePuller> proxify(IFilePuller& delegate) {
 	return r;
 }
 
+unittest("mpeg_dash_input: fail to get MPD") {
+	LocalFilesystem source;
+	ASSERT_THROWN(create<MPEG_DASH_Input>(proxify(source), "http://toto.mpd"));
+}
+
 unittest("mpeg_dash_input: get MPD") {
 	static auto const MPD = R"|(
 <?xml version="1.0"?>
