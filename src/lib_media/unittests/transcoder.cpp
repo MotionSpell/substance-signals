@@ -38,7 +38,7 @@ void libav_mux(std::string format) {
 	auto metadata = safe_cast<const MetadataPkt>(demux->getOutput(videoIndex)->getMetadata());
 	auto decode = create<Decode::Decoder>(VIDEO_PKT);
 	auto encode = create<Encode::LibavEncode>(Encode::LibavEncode::Video);
-	auto mux = create<Mux::LibavMux>("output_video_libav", format);
+	auto mux = create<Mux::LibavMux>("out/output_video_libav", format);
 
 	ConnectOutputToInput(demux->getOutput(videoIndex), decode->getInput(0));
 	ConnectOutputToInput(decode->getOutput(0), encode->getInput(0));
