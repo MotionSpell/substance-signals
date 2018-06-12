@@ -19,7 +19,7 @@ template<typename T>
 void checkTimestampsMux(const std::vector<int64_t> &timesIn, const std::vector<int64_t> &timesOut, std::unique_ptr<IModule> mux) {
 	Encode::LibavEncode::Params p;
 	p.frameRate.num = 1;
-	auto picture = make_shared<PictureYUV420P>(VIDEO_RESOLUTION);
+	auto picture = make_shared<PictureYUV420P>(Resolution(320, 180));
 	auto encode = create<Encode::LibavEncode>(Encode::LibavEncode::Video, p);
 	ConnectOutputToInput(encode->getOutput(0), mux->getInput(0));
 	for (size_t i = 0; i < timesIn.size(); ++i) {

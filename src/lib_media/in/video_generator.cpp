@@ -13,7 +13,7 @@ VideoGenerator::VideoGenerator() {
 }
 
 void VideoGenerator::process(Data /*data*/) {
-	auto const dim = VIDEO_RESOLUTION;
+	auto const dim = Resolution(320, 180);
 	auto pic = DataPicture::create(output, dim, YUV420P);
 
 	// generate video

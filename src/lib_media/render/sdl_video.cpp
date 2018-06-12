@@ -62,7 +62,7 @@ void SDLVideo::doRender() {
 	// display the first frame as fast as possible, to avoid a black screen
 	respectTimestamps = false;
 
-	pictureFormat.res = VIDEO_RESOLUTION;
+	pictureFormat.res = Resolution(320, 180);
 	pictureFormat.format = YUV420P;
 	window = SDL_CreateWindow("Signals SDLVideo renderer", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, pictureFormat.res.width, pictureFormat.res.height, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
 	if (!window)

@@ -11,6 +11,8 @@ using namespace Tests;
 using namespace Modules;
 using namespace std;
 
+auto const VIDEO_RESOLUTION = Resolution(320, 180);
+
 unittest("encoder: video simple") {
 	auto picture = make_shared<PictureYUV420P>(VIDEO_RESOLUTION);
 

@@ -31,7 +31,7 @@ class LibavEncode : public ModuleS {
 			Params() {}
 
 			//video only
-			Resolution res = VIDEO_RESOLUTION;
+			Resolution res = Resolution(320, 180);
 			int bitrate_v = 300000;
 			Fraction GOPSize = Fraction(25, 1);
 			Fraction frameRate = Fraction(25, 1);

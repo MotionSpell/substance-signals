@@ -425,9 +425,6 @@ class PictureRGBA32 : public DataPicture {
 		}
 };
 
-static const Resolution VIDEO_RESOLUTION(320, 180);
-static const int VIDEO_FPS = 24;
-
 enum VideoCodecType {
 	Software,
 	Hardware_qsv,

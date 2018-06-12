@@ -114,7 +114,7 @@ void resizeJPGTest(PixelFormat pf) {
 	}
 	auto reader = create<In::File>(filename);
 
-	auto const dstFormat = PictureFormat(VIDEO_RESOLUTION / 2, pf);
+	auto const dstFormat = PictureFormat(Resolution(320, 180) / 2, pf);
 	auto converter = create<Transform::VideoConvert>(dstFormat);
 	auto encoder = create<Encode::JPEGTurboEncode>();
 	auto writer = create<Out::File>("out/test1.jpg");
@@ -167,7 +167,7 @@ unittest("transcoder: jpg to h264/mp4 (gpac)") {
 	}
 	auto reader = create<In::File>(filename);
 
-	auto const dstFormat = PictureFormat(VIDEO_RESOLUTION, YUV420P);
+	auto const dstFormat = PictureFormat(Resolution(320, 180), YUV420P);
 	auto converter = create<Transform::VideoConvert>(dstFormat);
 
 	auto encoder = create<Encode::LibavEncode>(Encode::LibavEncode::Video);
