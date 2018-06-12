@@ -105,7 +105,7 @@ bool MPEG_DASH_Input::wakeUp() {
 
 		if(mpd->periodDuration) {
 			if(stream->segmentDuration * (stream->currNumber - set.startNumber) >= mpd->periodDuration) {
-				Log::msg(Error, "End of period");
+				Log::msg(Info, "End of period");
 				return false;
 			}
 		}
