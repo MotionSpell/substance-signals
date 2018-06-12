@@ -27,7 +27,7 @@ struct AdaptationSet {
 struct DashMpd {
 	bool dynamic = false;
 	int64_t availabilityStartTime = 0; // in ms
-	int64_t periodDuration; // in seconds
+	int64_t periodDuration = 0; // in seconds
 	vector<AdaptationSet> sets;
 };
 
@@ -195,9 +195,7 @@ DashMpd parseMpd(std::string text) {
 				auto& set = mpd->sets.back();
 				set.contentType = attr["contentType"];
 			} else if(name == "Period") {
-				if(attr["duration"].empty())
-					mpd->periodDuration = 0;
-				else
+				if(!attr["duration"].empty())
 					mpd->periodDuration = parseIso8601Period(attr["duration"]);
 			} else if(name == "MPD") {
 				mpd->dynamic = attr["type"] == "dynamic";
@@ -207,9 +205,7 @@ DashMpd parseMpd(std::string text) {
 				set.media = attr["media"];
 				set.startNumber = atoi(attr["startNumber"].c_str());
 				set.duration = atoi(attr["duration"].c_str());
-				if(attr["timescale"].empty())
-					set.timescale = 1;
-				else
+				if(!attr["timescale"].empty())
 					set.timescale = atoi(attr["timescale"].c_str());
 			} else if(name == "Representation") {
 				auto& set = mpd->sets.back();
