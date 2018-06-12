@@ -1,8 +1,6 @@
 #include "tests/tests.hpp"
 #include "lib_modules/modules.hpp"
-#include <stdexcept>
 #include <iostream>
-#include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/in/file.hpp"
 #include "lib_media/out/print.hpp"
 #include "lib_utils/tools.hpp"
