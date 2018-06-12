@@ -188,12 +188,9 @@ DashMpd parseMpd(std::string text) {
 
 		void onNodeStart(std::string name, map<string, string>& attr) {
 			if(name == "AdaptationSet") {
-				{
-					AdaptationSet set;
-					mpd->sets.push_back(set);
-				}
-				auto& set = mpd->sets.back();
+				AdaptationSet set;
 				set.contentType = attr["contentType"];
+				mpd->sets.push_back(set);
 			} else if(name == "Period") {
 				if(!attr["duration"].empty())
 					mpd->periodDuration = parseIso8601Period(attr["duration"]);
