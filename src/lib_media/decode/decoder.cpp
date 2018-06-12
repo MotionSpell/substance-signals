@@ -44,7 +44,7 @@ void Decoder::openDecoder(const MetadataPkt* metadata) {
 	if (avcodec_open2(codecCtx.get(), codec, &dict) < 0)
 		throw error("Couldn't open stream.");
 
-	if (codecCtx->codec_type == AVMEDIA_TYPE_VIDEO) {
+	if (videoOutput) {
 		if (codecCtx->codec->capabilities & AV_CODEC_CAP_DR1) {
 			codecCtx->thread_safe_callbacks = 1;
 			codecCtx->opaque = static_cast<PictureAllocator*>(this);

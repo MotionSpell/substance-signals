@@ -31,8 +31,8 @@ class Decoder : public ModuleS, private PictureAllocator {
 
 		std::shared_ptr<AVCodecContext> codecCtx;
 		std::unique_ptr<ffpp::Frame> const avFrame;
-		OutputPicture *videoOutput;
-		OutputPcm *audioOutput;
+		OutputPicture *videoOutput = nullptr;
+		OutputPcm *audioOutput = nullptr;
 		std::function<std::shared_ptr<DataBase>(void)> getDecompressedData;
 };
 
