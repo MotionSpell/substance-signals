@@ -9,8 +9,8 @@ struct Resolution {
 	bool operator!=(Resolution const& other) const {
 		return !(*this == other);
 	}
-	Resolution operator/(const int div) const {
+	Resolution operator/(int div) const {
 		return Resolution(this->width / div, this->height / div);
 	}
-	int width, height;
+	int width = 0, height = 0;
 };

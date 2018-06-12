@@ -16,7 +16,7 @@ struct MetadataFile : IMetadata {
 	}
 
 	union {
-		    Resolution resolution = Resolution(0, 0);
+		    Resolution resolution;
 		    int sampleRate;
 		};
 
