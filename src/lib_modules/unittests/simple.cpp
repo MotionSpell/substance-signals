@@ -2,7 +2,6 @@
 #include "lib_modules/modules.hpp"
 #include <stdexcept>
 #include <iostream>
-#include "lib_media/demux/gpac_demux_mp4_simple.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/in/file.hpp"
 #include "lib_media/out/print.hpp"
@@ -14,11 +13,6 @@ using namespace Modules;
 unittest("empty param test: File") {
 	ScopedLogLevel lev(Quiet);
 	ASSERT_THROWN(create<In::File>(""));
-}
-
-unittest("empty param test: Demux") {
-	ScopedLogLevel lev(Quiet);
-	ASSERT_THROWN(create<Demux::GPACDemuxMP4Simple>(""));
 }
 
 unittest("empty param test: Out::Print") {

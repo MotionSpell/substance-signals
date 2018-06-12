@@ -68,7 +68,10 @@ unittest("LibavDemux: rollover") {
 	ASSERT_EQUALS(expected, deltas(rec->times));
 }
 
-namespace {
+unittest("empty param test: Demux") {
+	ScopedLogLevel lev(Quiet);
+	ASSERT_THROWN(create<Demux::GPACDemuxMP4Simple>(""));
+}
 
 secondclasstest("demux one track: Demux::GPACDemuxMP4Simple -> Out::Print") {
 	auto mp4Demux = create<Demux::GPACDemuxMP4Simple>("data/beepbop.mp4");
@@ -77,7 +80,6 @@ secondclasstest("demux one track: Demux::GPACDemuxMP4Simple -> Out::Print") {
 	ConnectOutputToInput(mp4Demux->getOutput(0), p->getInput(0));
 
 	mp4Demux->process(nullptr);
-}
 }
 
 unittest("GPACDemuxMP4Full: simple demux one track") {
