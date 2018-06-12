@@ -50,6 +50,17 @@ static string dirName(string path) {
 	return path;
 }
 
+static shared_ptr<IMetadata> createMetadata(AdaptationSet const& set) {
+	if(set.mimeType == "audio/mp4" || set.contentType == "audio") {
+		return make_shared<MetadataPktAudio>();
+	} else if(set.mimeType == "video/mp4" || set.contentType == "video") {
+		return make_shared<MetadataPktVideo>();
+	} else {
+		Log::msg(Warning, "Ignoring adaptation set with unrecognized mime type: '%s'", set.mimeType);
+		return nullptr;
+	}
+}
+
 MPEG_DASH_Input::MPEG_DASH_Input(std::unique_ptr<IFilePuller> source, std::string const& url) : m_source(move(source)) {
 	//GET MPD FROM HTTP
 	auto mpdAsText = m_source->get(url);
@@ -63,15 +74,9 @@ MPEG_DASH_Input::MPEG_DASH_Input(std::unique_ptr<IFilePuller> source, std::strin
 
 	//DECLARE OUTPUT PORTS
 	for(auto& set : mpd->sets) {
-		shared_ptr<MetadataPkt> meta;
-		if(set.mimeType == "audio/mp4" || set.contentType == "audio") {
-			meta = make_shared<MetadataPktAudio>();
-		} else if(set.mimeType == "video/mp4" || set.contentType == "video") {
-			meta = make_shared<MetadataPktVideo>();
-		} else {
-			Log::msg(Warning, "Ignoring adaptation set with unrecognized mime type: '%s'", set.mimeType);
+		auto meta = createMetadata(set);
+		if(!meta)
 			continue;
-		}
 
 		auto stream = make_unique<Stream>();
 		stream->out = addOutput<OutputDefault>();
