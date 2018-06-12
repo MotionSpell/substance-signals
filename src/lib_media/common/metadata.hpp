@@ -7,17 +7,6 @@
 
 namespace Modules {
 
-static const char* StreamTypeNames[] = {
-	"audio raw",
-	"video raw",
-	"audio compressed",
-	"video compressed",
-	"subtitle compressed",
-	"playlist",
-	"segment"
-};
-static_assert(NELEMENTS(StreamTypeNames) == StreamType::SIZE_OF_ENUM_STREAM_TYPE, "StreamType sizes don't match");
-
 struct MetadataFile : IMetadata {
 	MetadataFile(const std::string& filename, StreamType streamType, const std::string& mimeType, const std::string& codecName, uint64_t durationIn180k, uint64_t filesize, uint64_t latencyIn180k, bool startsWithRAP, bool EOS)
 		: streamType(streamType), filename(filename), mimeType(mimeType), codecName(codecName), durationIn180k(durationIn180k), filesize(filesize), latencyIn180k(latencyIn180k), startsWithRAP(startsWithRAP), EOS(EOS) {
