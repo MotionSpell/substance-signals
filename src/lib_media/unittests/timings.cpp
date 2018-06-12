@@ -32,14 +32,14 @@ void checkTimestampsMux(const std::vector<int64_t> &timesIn, const std::vector<i
 	size_t i = 0;
 	auto onFrame = [&](Data data) {
 		if (i < timesOut.size()) {
-			ASSERT(data->getMediaTime() == timesOut[i]);
+			ASSERT_EQUALS(timesOut[i], data->getMediaTime());
 		}
 		i++;
 	};
 	auto demux = create<T>("out/random_ts.mp4");
 	ConnectOutput(demux.get(), onFrame);
 	demux->process(nullptr);
-	ASSERT(i == timesOut.size());
+	ASSERT_EQUALS(i, timesOut.size());
 }
 
 template<typename T>
@@ -174,7 +174,7 @@ unittest("restamp: passthru with offsets") {
 	auto const time = 10001LL;
 	int64_t expected = 0;
 	auto onFrame = [&](Data data) {
-		ASSERT(data->getMediaTime() == expected);
+		ASSERT_EQUALS(expected, data->getMediaTime());
 	};
 	auto data = make_shared<DataRaw>(0);
 
@@ -200,7 +200,7 @@ unittest("restamp: reset with offsets") {
 	int64_t offset = -100;
 	int64_t expected = time;
 	auto onFrame = [&](Data data) {
-		ASSERT(data->getMediaTime() == expected);
+		ASSERT_EQUALS(expected, data->getMediaTime());
 	};
 	auto data = make_shared<DataRaw>(0);
 
