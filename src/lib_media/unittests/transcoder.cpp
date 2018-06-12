@@ -75,7 +75,7 @@ unittest("transcoder: video simple (gpac mux MP4)") {
 	//create the video decode
 	auto decode = create<Decode::Decoder>(VIDEO_PKT);
 	auto encode = create<Encode::LibavEncode>(Encode::LibavEncode::Video);
-	auto mux = create<Mux::GPACMuxMP4>("output_video_gpac");
+	auto mux = create<Mux::GPACMuxMP4>("out/output_video_gpac");
 
 	ConnectOutputToInput(demux->getOutput(videoIndex), decode->getInput(0));
 	ConnectOutputToInput(decode->getOutput(0), encode->getInput(0));
@@ -95,7 +95,7 @@ unittest("transcoder: jpg to jpg") {
 
 	auto reader = create<In::File>(filename);
 	auto encoder = create<Encode::JPEGTurboEncode>();
-	auto writer = create<Out::File>("data/test.jpg");
+	auto writer = create<Out::File>("out/test2.jpg");
 
 	ConnectOutputToInput(reader->getOutput(0), decode->getInput(0));
 	ConnectOutputToInput(decode->getOutput(0), encoder->getInput(0));
@@ -117,7 +117,7 @@ void resizeJPGTest(PixelFormat pf) {
 	auto const dstFormat = PictureFormat(VIDEO_RESOLUTION / 2, pf);
 	auto converter = create<Transform::VideoConvert>(dstFormat);
 	auto encoder = create<Encode::JPEGTurboEncode>();
-	auto writer = create<Out::File>("data/test.jpg");
+	auto writer = create<Out::File>("out/test1.jpg");
 
 	ConnectOutputToInput(reader->getOutput(0), decode->getInput(0));
 	ConnectOutputToInput(decode->getOutput(0), converter->getInput(0));
@@ -142,7 +142,7 @@ unittest("transcoder: h264/mp4 to jpg") {
 	auto decode = create<Decode::Decoder>(VIDEO_PKT);
 
 	auto encoder = create<Encode::JPEGTurboEncode>();
-	auto writer = create<Out::File>("data/test.jpg");
+	auto writer = create<Out::File>("out/test3.jpg");
 
 	auto const dstRes = metadata->getResolution();
 	ASSERT(metadata->getPixelFormat() == YUV420P);
@@ -171,7 +171,7 @@ unittest("transcoder: jpg to h264/mp4 (gpac)") {
 	auto converter = create<Transform::VideoConvert>(dstFormat);
 
 	auto encoder = create<Encode::LibavEncode>(Encode::LibavEncode::Video);
-	auto mux = create<Mux::GPACMuxMP4>("data/test");
+	auto mux = create<Mux::GPACMuxMP4>("out/test");
 
 	ConnectOutputToInput(reader->getOutput(0), decode->getInput(0));
 	ConnectOutputToInput(decode->getOutput(0), converter->getInput(0));

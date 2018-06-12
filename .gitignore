@@ -149,7 +149,7 @@ $RECYCLE.BIN/
 
 # Mac crap
 .DS_Store
-	
+
 # Vim swap file
 *.swp
 
@@ -161,5 +161,5 @@ tags
 extra_lib/
 doc/html/
 
-# test output
+# test output: directory is created when tests starts and removed when they pass
 /out
