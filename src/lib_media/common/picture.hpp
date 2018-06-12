@@ -1,10 +1,8 @@
 #pragma once
 
 #include "lib_modules/core/data.hpp"
-#include "lib_modules/core/metadata.hpp" // NELEMENTS
 #include "lib_modules/utils/helper.hpp"
 #include "lib_utils/resolution.hpp"
-#include <cmath>
 
 namespace Modules {
 
@@ -21,18 +19,6 @@ enum PixelFormat {
 	RGBA32,
 	SIZE_OF_ENUM_PIXEL_FORMAT
 };
-static const char* PixelFormatNames[] = {
-	"Grey 8 bits",
-	"YUV 4:2:0 planar 8 bits",
-	"YUV 4:2:0 planar 10 bits little-endian",
-	"YUV 4:2:2 planar 8 bits",
-	"YUV 4:2:2 planar 10 bits little-endian",
-	"YUYV 4:2:2",
-	"NV12: YVU 4:2:0 planar 8 bits",
-	"RGB 24 bits",
-	"RGB 32 bits",
-};
-static_assert(NELEMENTS(PixelFormatNames) == PixelFormat::SIZE_OF_ENUM_PIXEL_FORMAT, "PixelFormat sizes don't match");
 
 class PictureFormat {
 	public:
