@@ -37,7 +37,7 @@ class PSignal<Result, Callback(Args...)> : public ISignal<Callback(Args...)> {
 		size_t connect(const CallbackType &cb, IExecutor<Callback(Args...)> &executor) {
 			std::lock_guard<std::mutex> lg(callbacksMutex);
 			const size_t connectionId = uid++;
-			callbacks[connectionId] = new ConnectionType(executor, cb, connectionId);
+			callbacks[connectionId] = std::make_unique<ConnectionType>(executor, cb, connectionId);
 			return connectionId;
 		}
 
@@ -86,13 +86,12 @@ class PSignal<Result, Callback(Args...)> : public ISignal<Callback(Args...)> {
 			auto conn = callbacks.find(connectionId);
 			if (conn == callbacks.end())
 				return false;
-			delete conn->second;
 			callbacks.erase(connectionId);
 			return true;
 		}
 
 		mutable std::mutex callbacksMutex;
-		std::map<size_t, ConnectionType*> callbacks; //protected by callbacksMutex
+		std::map<size_t, std::unique_ptr<ConnectionType>> callbacks; //protected by callbacksMutex
 		size_t uid = 0;                              //protected by callbacksMutex
 
 		std::unique_ptr<IExecutor<Callback(Args...)>> const defaultExecutor;
