@@ -28,13 +28,10 @@ template<typename, typename> class PSignal;
 
 template<typename Result, typename Callback, typename... Args>
 class PSignal<Result, Callback(Args...)> : public ISignal<Callback(Args...)> {
-	protected:
-		typedef std::function<Callback(Args...)> CallbackType;
-
 	private:
+		typedef std::function<Callback(Args...)> CallbackType;
 		typedef typename CallbackType::result_type ResultType;
 		typedef ConnectionList<ResultType, Args...> ConnectionType;
-		typedef std::map<size_t, ConnectionType*> ConnectionManager;
 
 	public:
 		size_t connect(const CallbackType &cb, IExecutor<Callback(Args...)> &executor) {
@@ -95,8 +92,8 @@ class PSignal<Result, Callback(Args...)> : public ISignal<Callback(Args...)> {
 		}
 
 		mutable std::mutex callbacksMutex;
-		ConnectionManager callbacks; //protected by callbacksMutex
-		size_t uid = 0;              //protected by callbacksMutex
+		std::map<size_t, ConnectionType*> callbacks; //protected by callbacksMutex
+		size_t uid = 0;                              //protected by callbacksMutex
 
 		std::unique_ptr<IExecutor<Callback(Args...)>> const defaultExecutor;
 		IExecutor<Callback(Args...)> &executor;
