@@ -49,6 +49,7 @@ class LibavDemux : public ModuleS {
 		std::vector<Stream> m_streams;
 
 		bool loop;
+		bool highPriority = false;
 		std::thread workingThread;
 		std::atomic_bool done;
 		std::unique_ptr<QueueLockFree<AVPacket>> packetQueue;
