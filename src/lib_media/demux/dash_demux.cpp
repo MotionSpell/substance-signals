@@ -1,9 +1,8 @@
 #include "lib_media/demux/dash_demux.hpp"
 #include "lib_media/demux/gpac_demux_mp4_full.hpp"
+#include "lib_media/in/mpeg_dash_input.hpp"
 #include "lib_media/out/null.hpp"
 #include "lib_media/transform/restamp.hpp"
-
-#include "lib_media/in/mpeg_dash_input.hpp" // IFilePuller
 
 std::unique_ptr<Modules::In::IFilePuller> createHttpSource();
 

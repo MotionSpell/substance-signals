@@ -8,7 +8,6 @@
 #include "lib_media/render/sdl_audio.hpp"
 #include "lib_media/render/sdl_video.hpp"
 #include "lib_media/decode/decoder.hpp"
-#include "lib_media/in/mpeg_dash_input.hpp" // IFilePuller
 
 using namespace Modules;
 using namespace Pipelines;
