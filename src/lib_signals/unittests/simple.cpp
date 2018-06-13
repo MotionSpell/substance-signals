@@ -21,24 +21,20 @@ unittest("signals_simple: disconnect non existing") {
 unittest("signals_simple") {
 	Signal<int(int)> sig;
 
-	size_t id = sig.connect(dummy);
+	auto const id = sig.connect(dummy);
 
-	auto numVal = sig.emit(100);
+	sig.emit(100);
 	auto val = sig.results();
 	ASSERT_EQUALS(makeVector({100}), transferToVector(*val));
 
 	size_t id2 = sig.connect(dummy2);
 	sig.connect(dummy);
 	sig.connect(dummy2);
-	numVal = sig.emit(777);
+	auto numVal = sig.emit(777);
 	val = sig.results();
 	ASSERT_EQUALS(4u, numVal);
 
-	auto expected = makeVector({
-		dummy(777),
-		dummy2(777),
-		dummy(777),
-		dummy2(777)});
+	auto expected = makeVector({777, 778, 777, 778});
 	ASSERT_EQUALS(expected, transferToVector(*val));
 
 	ASSERT(sig.getNumConnections() == 4);
