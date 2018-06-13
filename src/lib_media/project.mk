@@ -1,7 +1,5 @@
 MYDIR=$(call get-my-dir)
 
-LIB_MEDIA_HAS_AWS?=0
-
 LIB_MEDIA_SRCS:=\
   $(MYDIR)/common/libav.cpp\
   $(MYDIR)/common/gpac.cpp\
