@@ -10,27 +10,27 @@ namespace Signals {
 
 template<typename> class ISignal;
 
-template <typename Callback, typename... Args>
-class ISignal<Callback(Args...)> {
+template <typename Callback, typename Arg>
+class ISignal<Callback(Arg)> {
 	public:
-		virtual size_t connect(const std::function<Callback(Args...)> &cb, IExecutor<Callback(Args...)> &executor) = 0;
-		virtual size_t connect(const std::function<Callback(Args...)> &cb) = 0;
+		virtual size_t connect(const std::function<Callback(Arg)> &cb, IExecutor<Callback(Arg)> &executor) = 0;
+		virtual size_t connect(const std::function<Callback(Arg)> &cb) = 0;
 		virtual bool disconnect(size_t connectionId) = 0;
 		virtual size_t getNumConnections() const = 0;
-		virtual size_t emit(Args... args) = 0;
+		virtual size_t emit(Arg arg) = 0;
 };
 
 template<typename> class Signal;
 
-template<typename Callback, typename... Args>
-class Signal<Callback(Args...)> : public ISignal<Callback(Args...)> {
+template<typename Callback, typename Arg>
+class Signal<Callback(Arg)> : public ISignal<Callback(Arg)> {
 	private:
-		typedef std::function<Callback(Args...)> CallbackType;
+		typedef std::function<Callback(Arg)> CallbackType;
 		typedef typename CallbackType::result_type ResultType;
-		typedef ConnectionList<ResultType, Args...> ConnectionType;
+		typedef ConnectionList<ResultType, Arg> ConnectionType;
 
 	public:
-		size_t connect(const CallbackType &cb, IExecutor<Callback(Args...)> &executor) {
+		size_t connect(const CallbackType &cb, IExecutor<Callback(Arg)> &executor) {
 			std::lock_guard<std::mutex> lg(callbacksMutex);
 			const size_t connectionId = uid++;
 			callbacks[connectionId] = std::make_unique<ConnectionType>(executor, cb, connectionId);
@@ -51,18 +51,18 @@ class Signal<Callback(Args...)> : public ISignal<Callback(Args...)> {
 			return callbacks.size();
 		}
 
-		size_t emit(Args... args) {
+		size_t emit(Arg arg) {
 			std::lock_guard<std::mutex> lg(callbacksMutex);
 			for (auto &cb : callbacks) {
-				cb.second->futures.push_back(cb.second->executor(cb.second->callback, args...));
+				cb.second->futures.push_back(cb.second->executor(cb.second->callback, arg));
 			}
 			return callbacks.size();
 		}
 
-		Signal() : defaultExecutor(new ExecutorAsync<Callback(Args...)>()), executor(*defaultExecutor.get()) {
+		Signal() : defaultExecutor(new ExecutorAsync<Callback(Arg)>()), executor(*defaultExecutor.get()) {
 		}
 
-		Signal(IExecutor<Callback(Args...)> &executor) : executor(executor) {
+		Signal(IExecutor<Callback(Arg)> &executor) : executor(executor) {
 		}
 
 		virtual ~Signal() {
@@ -84,8 +84,8 @@ class Signal<Callback(Args...)> : public ISignal<Callback(Args...)> {
 		std::map<size_t, std::unique_ptr<ConnectionType>> callbacks; //protected by callbacksMutex
 		size_t uid = 0;                              //protected by callbacksMutex
 
-		std::unique_ptr<IExecutor<Callback(Args...)>> const defaultExecutor;
-		IExecutor<Callback(Args...)> &executor;
+		std::unique_ptr<IExecutor<Callback(Arg)>> const defaultExecutor;
+		IExecutor<Callback(Arg)> &executor;
 };
 
 }
