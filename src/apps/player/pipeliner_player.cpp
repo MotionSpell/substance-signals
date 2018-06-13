@@ -16,6 +16,50 @@ using namespace Pipelines;
 using namespace In;
 using namespace Demux;
 
+// holds the chain: [dash downloader] => ( [mp4demuxer] => [restamper] )*
+class DashDemuxer : public Module {
+	public:
+		DashDemuxer(std::unique_ptr<IFilePuller> fp, std::string url) {
+			downloader = pipeline.addModule<MPEG_DASH_Input>(std::move(fp), url);
+
+			for (int i = 0; i < (int)downloader->getNumOutputs(); ++i)
+				addStream(downloader->getOutput(i));
+		}
+
+		virtual void process() override {
+			pipeline.start();
+			pipeline.waitForEndOfStream();
+		}
+
+	private:
+		IModule* downloader;
+
+		void addStream(IOutput* downloadOutput) {
+			auto meta = downloadOutput->getMetadata();
+
+			// create our own output
+			auto output = addOutput<OutputDefault>();
+			output->setMetadata(meta);
+
+			// add MP4 demuxer
+			auto decap = pipeline.addModule<GPACDemuxMP4Full>();
+			ConnectOutputToInput(downloadOutput, decap->getInput(0));
+
+			// add restamper (so the timestamps start at zero)
+			auto restamp = pipeline.addModule<Restamp>(Transform::Restamp::Reset);
+			ConnectOutputToInput(decap->getOutput(0), restamp->getInput(0));
+
+			ConnectOutput(restamp, [output](Data data) {
+				output->emit(data);
+			});
+
+			auto null = pipeline.addModule<Out::Null>();
+			pipeline.connect(restamp, 0, null, 0);
+		}
+
+		Pipeline pipeline;
+};
+
 static
 bool startsWith(std::string s, std::string prefix) {
 	return s.substr(0, prefix.size()) == prefix;
@@ -37,44 +81,26 @@ void declarePipeline(Pipeline &pipeline, const char *url) {
 
 	std::unique_ptr<IFilePuller> createHttpSource();
 
-	struct OutputDesc {
-		IPipelinedModule* module;
-		int index;
-		std::shared_ptr<const IMetadata> metadata;
-	};
-
-	auto createSources = [&](std::string url) -> std::vector<OutputDesc> {
-		std::vector<OutputDesc> r;
+	auto createDemuxer = [&](std::string url) {
 		if(startsWith(url, "http://")) {
-			auto dashInput = pipeline.addModule<MPEG_DASH_Input>(createHttpSource(), url);
-			for (int i = 0; i < (int)dashInput->getNumOutputs(); ++i) {
-				auto demux = pipeline.addModule<GPACDemuxMP4Full>();
-				pipeline.connect(dashInput, i, demux, 0);
-				auto restamp = pipeline.addModule<Restamp>(Transform::Restamp::Reset);
-				pipeline.connect(demux, 0, restamp, 0);
-				r.push_back({restamp, 0, dashInput->getOutput(i)->getMetadata()});
-			}
+			return pipeline.addModule<DashDemuxer>(createHttpSource(), url);
 		} else {
-			auto demux = pipeline.addModule<Demux::LibavDemux>(url);
-			for (int i = 0; i < (int)demux->getNumOutputs(); ++i) {
-				r.push_back({demux, i, demux->getOutput(i)->getMetadata()});
-			}
+			return pipeline.addModule<Demux::LibavDemux>(url);
 		}
-		return r;
 	};
 
-	auto streams = createSources(url);
+	auto demuxer = createDemuxer(url);
 
-	for (int k = 0; k < (int)streams.size(); ++k) {
-		auto s = streams[k];
-		auto metadata = safe_cast<const MetadataPkt>(s.metadata);
+	assert(demuxer->getNumOutputs() > 0);
+	for (int k = 0; k < (int)demuxer->getNumOutputs(); ++k) {
+		auto metadata = safe_cast<const MetadataPkt>(demuxer->getOutput(k)->getMetadata());
 		if (!metadata || metadata->isSubtitle()/*only render audio and video*/) {
 			Log::msg(Debug, "Ignoring stream #%s", k);
 			continue;
 		}
 
 		auto decode = pipeline.addModule<Decode::Decoder>(metadata->getStreamType());
-		pipeline.connect(s.module, s.index, decode, 0);
+		pipeline.connect(demuxer, k, decode, 0);
 
 		auto render = createRenderer(metadata->getStreamType());
 		if (!render)
