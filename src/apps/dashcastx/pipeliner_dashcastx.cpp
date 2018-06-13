@@ -7,6 +7,7 @@
 #include "lib_media/decode/decoder.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/encode/libav_encode.hpp"
+#include "lib_media/render/sdl_video.hpp"
 #include "lib_media/stream/mpeg_dash.hpp"
 #include "lib_media/transform/audio_convert.hpp"
 #include "lib_media/transform/video_convert.hpp"
@@ -19,8 +20,8 @@ extern const char *g_appName;
 
 #define DASH_SUBDIR "dash/"
 
-//#define DEBUG_MONITOR
-//#define MP4_MONITOR
+auto const DEBUG_MONITOR = 0;
+auto const MP4_MONITOR = 0;
 
 #define MAX_GOP_DURATION_IN_MS 2000
 
@@ -176,12 +177,12 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 				if (!converter)
 					continue;
 
-#ifdef DEBUG_MONITOR
-				if (metadataDemux->isVideo() && r == 0) {
-					auto webcamPreview = pipeline->addModule<Render::SDLVideo>();
-					connect(converter, webcamPreview);
+				if(DEBUG_MONITOR) {
+					if (metadataDemux->isVideo() && r == 0) {
+						auto webcamPreview = pipeline->addModule<Modules::Render::SDLVideo>();
+						connect(converter, webcamPreview);
+					}
 				}
-#endif
 
 				connect(decode, converter);
 				connect(converter, encoder);
@@ -214,15 +215,15 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 
 			pipeline->connect(muxer, 0, dasher, numDashInputs);
 
-#ifdef MP4_MONITOR
-			//auto muxermp4 = pipeline->addModule<Mux::LibavMux>("monitor_" + prefix.str(), "mp4");
-			auto muxermp4 = pipeline->addModule<Mux::GPACMuxMP4>("monitor_" + prefix.str());
-			if (transcode) {
-				connect(encoder, muxermp4);
-			} else {
-				pipeline->connect(demux, i, muxermp4, 0);
+			if(MP4_MONITOR) {
+				//auto muxermp4 = pipeline->addModule<Mux::LibavMux>("monitor_" + prefix.str(), "mp4");
+				auto muxermp4 = pipeline->addModule<Mux::GPACMuxMP4>("monitor_" + prefix);
+				if (transcode) {
+					connect(encoder, muxermp4);
+				} else {
+					pipeline->connect(demux, i, muxermp4, 0);
+				}
 			}
-#endif
 		}
 	}
 
