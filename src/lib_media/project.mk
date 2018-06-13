@@ -49,6 +49,6 @@ LIB_MEDIA_SRCS+=\
 endif
 
 # Warning derogations. TODO: make this list empty
-$(BIN)/src/lib_media/common/libav.cpp.o: CFLAGS+=-Wno-deprecated-declarations
-$(BIN)/src/lib_media/demux/libav_demux.cpp.o: CFLAGS+=-Wno-deprecated-declarations
-$(BIN)/src/lib_media/mux/libav_mux.cpp.o: CFLAGS+=-Wno-deprecated-declarations
+$(BIN)/$(SRC)/lib_media/common/libav.cpp.o: CFLAGS+=-Wno-deprecated-declarations
+$(BIN)/$(SRC)/lib_media/demux/libav_demux.cpp.o: CFLAGS+=-Wno-deprecated-declarations
+$(BIN)/$(SRC)/lib_media/mux/libav_mux.cpp.o: CFLAGS+=-Wno-deprecated-declarations
