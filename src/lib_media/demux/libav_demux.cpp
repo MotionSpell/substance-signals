@@ -57,8 +57,8 @@ bool LibavDemux::webcamOpen(const std::string &options) {
 void LibavDemux::initRestamp() {
 	for (unsigned i = 0; i < m_formatCtx->nb_streams; i++) {
 		const std::string format(m_formatCtx->iformat->name);
-		const std::string fn = m_formatCtx->url;
-		if (format == "rtsp" || format == "rtp" || format == "sdp" || startsWith(fn, "rtp:") || startsWith(fn, "udp:")) {
+		const std::string url = m_formatCtx->url;
+		if (format == "rtsp" || format == "rtp" || format == "sdp" || startsWith(url, "rtp:") || startsWith(url, "udp:")) {
 			m_streams[i].restamper = create<Transform::Restamp>(Transform::Restamp::IgnoreFirstAndReset);
 		} else {
 			m_streams[i].restamper = create<Transform::Restamp>(Transform::Restamp::Reset);
