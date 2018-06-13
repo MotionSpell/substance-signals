@@ -3,8 +3,6 @@
 #include "executor.hpp"
 #include "connection.hpp"
 #include "result.hpp"
-#include <cassert>
-#include <chrono>
 #include <functional>
 #include <map>
 #include <mutex>
