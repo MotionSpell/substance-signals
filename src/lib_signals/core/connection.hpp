@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cassert>
 #include <future>
 #include <vector>
 
