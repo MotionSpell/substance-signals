@@ -27,17 +27,18 @@ Signals is designed with the following goals:
 Signals comes with several multimedia applications:
  - player: a generic multimedia player.
  - dashcastx: a rewrite of the GPAC dashcast application (any input to MPEG-DASH live) in less than 300 lines of code.
- - A lot of test apps in src/tests (generators, renderers, transcoders, etc.).
 
 # Build
 
 Please read [build.md](doc/build.md).
- 
+
 # Tests
 
 Signals is built using TDD. There are plenty of tests. If you contribute please commit your tests first.
 Unit tests should be self-validating, which means they shouldn't need the intervention of a human operator to validate the result (e.g, they shouldn't print anything on the console).
 They should also be isolated. At best, they should depend upon no third-party code (except of course when testing the code making the direct calls to a third-party component).
+
+You can check the code coverage of the test suite using ./scripts/cov.sh. This will generate an HTML report using gcov+lcov in 'cov-html'.
 
 # Documentation
 
