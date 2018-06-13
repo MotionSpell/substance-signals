@@ -2,7 +2,6 @@
 
 #include "executor.hpp"
 #include "connection.hpp"
-#include "result.hpp"
 #include <functional>
 #include <map>
 #include <mutex>
@@ -21,13 +20,10 @@ class ISignal<Callback(Args...)> {
 		virtual size_t emit(Args... args) = 0;
 };
 
-/**
- * The PSignal class exists because we cannot pass default parameters and packed argument for the same class
- */
-template<typename> class PSignal;
+template<typename> class Signal;
 
 template<typename Callback, typename... Args>
-class PSignal<Callback(Args...)> : public ISignal<Callback(Args...)> {
+class Signal<Callback(Args...)> : public ISignal<Callback(Args...)> {
 	private:
 		typedef std::function<Callback(Args...)> CallbackType;
 		typedef typename CallbackType::result_type ResultType;
@@ -63,19 +59,18 @@ class PSignal<Callback(Args...)> : public ISignal<Callback(Args...)> {
 			return callbacks.size();
 		}
 
-	protected:
-		PSignal() : defaultExecutor(new ExecutorAsync<Callback(Args...)>()), executor(*defaultExecutor.get()) {
+		Signal() : defaultExecutor(new ExecutorAsync<Callback(Args...)>()), executor(*defaultExecutor.get()) {
 		}
 
-		PSignal(IExecutor<Callback(Args...)> &executor) : executor(executor) {
+		Signal(IExecutor<Callback(Args...)> &executor) : executor(executor) {
 		}
 
-		virtual ~PSignal() {
+		virtual ~Signal() {
 		}
 
 	private:
-		PSignal(const PSignal&) = delete;
-		PSignal& operator= (const PSignal&) = delete;
+		Signal(const Signal&) = delete;
+		Signal& operator= (const Signal&) = delete;
 
 		bool disconnectUnsafe(size_t connectionId) {
 			auto conn = callbacks.find(connectionId);
@@ -91,13 +86,6 @@ class PSignal<Callback(Args...)> : public ISignal<Callback(Args...)> {
 
 		std::unique_ptr<IExecutor<Callback(Args...)>> const defaultExecutor;
 		IExecutor<Callback(Args...)> &executor;
-};
-
-template <typename SignalSignature>
-class Signal : public PSignal<SignalSignature> {
-	public:
-		Signal() : PSignal<SignalSignature>() {}
-		Signal(IExecutor<SignalSignature> &executor) : PSignal<SignalSignature>(executor) {}
 };
 
 }
