@@ -22,10 +22,6 @@ bool startsWith(std::string s, std::string prefix) {
 }
 
 void declarePipeline(Pipeline &pipeline, const char *url) {
-	auto connect = [&](auto src, auto dst) {
-		pipeline.connect(src, 0, dst, 0);
-	};
-
 	auto createRenderer = [&](int codecType)->IPipelinedModule* {
 		if (codecType == VIDEO_PKT) {
 			Log::msg(Info, "Found video stream");
@@ -84,6 +80,6 @@ void declarePipeline(Pipeline &pipeline, const char *url) {
 		if (!render)
 			continue;
 
-		connect(decode, render);
+		pipeline.connect(decode, 0, render, 0);
 	}
 }
