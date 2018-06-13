@@ -24,10 +24,10 @@ class ISignal<Callback(Args...)> {
 /**
  * The PSignal class exists because we cannot pass default parameters and packed argument for the same class
  */
-template<typename, typename> class PSignal;
+template<typename> class PSignal;
 
-template<typename Result, typename Callback, typename... Args>
-class PSignal<Result, Callback(Args...)> : public ISignal<Callback(Args...)> {
+template<typename Callback, typename... Args>
+class PSignal<Callback(Args...)> : public ISignal<Callback(Args...)> {
 	private:
 		typedef std::function<Callback(Args...)> CallbackType;
 		typedef typename CallbackType::result_type ResultType;
@@ -94,10 +94,10 @@ class PSignal<Result, Callback(Args...)> : public ISignal<Callback(Args...)> {
 };
 
 template <typename SignalSignature, typename Result = ResultQueue<typename std::function<SignalSignature>::result_type >>
-class Signal : public PSignal<Result, SignalSignature> {
+class Signal : public PSignal<SignalSignature> {
 	public:
-		Signal() : PSignal<Result, SignalSignature>() {}
-		Signal(IExecutor<SignalSignature> &executor) : PSignal<Result, SignalSignature>(executor) {}
+		Signal() : PSignal<SignalSignature>() {}
+		Signal(IExecutor<SignalSignature> &executor) : PSignal<SignalSignature>(executor) {}
 };
 
 }
