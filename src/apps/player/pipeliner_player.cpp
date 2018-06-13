@@ -20,7 +20,7 @@ using namespace Demux;
 class DashDemuxer : public Module {
 	public:
 		DashDemuxer(std::unique_ptr<IFilePuller> fp, std::string url) {
-			downloader = pipeline.addModule<MPEG_DASH_Input>(std::move(fp), url);
+			auto downloader = pipeline.addModule<MPEG_DASH_Input>(std::move(fp), url);
 
 			for (int i = 0; i < (int)downloader->getNumOutputs(); ++i)
 				addStream(downloader->getOutput(i));
@@ -32,8 +32,6 @@ class DashDemuxer : public Module {
 		}
 
 	private:
-		IModule* downloader;
-
 		void addStream(IOutput* downloadOutput) {
 			auto meta = downloadOutput->getMetadata();
 
