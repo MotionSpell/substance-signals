@@ -23,23 +23,22 @@ unittest("signals_simple") {
 
 	size_t id = sig.connect(dummy);
 
-	const int input = 100;
-	auto numVal = sig.emit(input);
+	auto numVal = sig.emit(100);
 	auto val = sig.results();
-	ASSERT_EQUALS(makeVector({dummy(input)}), transferToVector(*val));
+	ASSERT_EQUALS(makeVector({100}), transferToVector(*val));
 
 	size_t id2 = sig.connect(dummy2);
 	sig.connect(dummy);
 	sig.connect(dummy2);
-	numVal = sig.emit(input);
+	numVal = sig.emit(777);
 	val = sig.results();
 	ASSERT_EQUALS(4u, numVal);
 
 	auto expected = makeVector({
-		dummy(input),
-		dummy2(input),
-		dummy(input),
-		dummy2(input)});
+		dummy(777),
+		dummy2(777),
+		dummy(777),
+		dummy2(777)});
 	ASSERT_EQUALS(expected, transferToVector(*val));
 
 	ASSERT(sig.getNumConnections() == 4);
