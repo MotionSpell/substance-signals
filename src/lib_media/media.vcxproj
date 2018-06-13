@@ -25,6 +25,7 @@
     <ClInclude Include="common\picture.hpp" />
     <ClInclude Include="decode\jpegturbo_decode.hpp" />
     <ClInclude Include="decode\decoder.hpp" />
+    <ClInclude Include="demux\dash_demux.hpp" />
     <ClInclude Include="demux\gpac_demux_mp4_full.hpp" />
     <ClInclude Include="demux\gpac_demux_mp4_simple.hpp" />
     <ClInclude Include="demux\libav_demux.hpp" />
@@ -79,6 +80,7 @@
     <ClCompile Include="common\picture.cpp" />
     <ClCompile Include="decode\jpegturbo_decode.cpp" />
     <ClCompile Include="decode\decoder.cpp" />
+    <ClCompile Include="demux\dash_demuxer.cpp" />
     <ClCompile Include="demux\gpac_demux_mp4_full.cpp" />
     <ClCompile Include="demux\gpac_demux_mp4_simple.cpp" />
     <ClCompile Include="demux\libav_demux.cpp" />

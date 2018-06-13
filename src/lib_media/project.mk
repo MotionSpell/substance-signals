@@ -12,6 +12,7 @@ LIB_MEDIA_SRCS:=\
   $(MYDIR)/demux/gpac_demux_mp4_simple.cpp\
   $(MYDIR)/demux/gpac_demux_mp4_full.cpp\
   $(MYDIR)/demux/libav_demux.cpp\
+  $(MYDIR)/demux/dash_demux.cpp\
   $(MYDIR)/encode/jpegturbo_encode.cpp\
   $(MYDIR)/encode/libav_encode.cpp\
   $(MYDIR)/in/file.cpp\
