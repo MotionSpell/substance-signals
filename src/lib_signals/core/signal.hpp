@@ -71,11 +71,6 @@ class PSignal<Result, Callback(Args...)> : public ISignal<Callback(Args...)> {
 		}
 
 		virtual ~PSignal() {
-			while (!callbacks.empty()) { //delete still connected callbacks
-				auto& cb = *callbacks.begin();
-				const bool res = disconnectUnsafe(cb.first);
-				assert(res);
-			}
 		}
 
 	private:
