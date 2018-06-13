@@ -1,7 +1,6 @@
 #pragma once
 
 #include "lib_utils/threadpool.hpp"
-#include "lib_utils/tools.hpp"
 #include <functional>
 #include <future>
 
@@ -82,7 +81,7 @@ class ExecutorThread<void(Args...)> : public IExecutor<void(Args...)> {
 template< typename... Args>
 class ExecutorThreadPool<void(Args...)> : public IExecutor<void(Args...)> {
 	public:
-		ExecutorThreadPool() : threadPool(make_shared<ThreadPool>()) {
+		ExecutorThreadPool() : threadPool(std::make_shared<ThreadPool>()) {
 		}
 
 		ExecutorThreadPool(std::shared_ptr<ThreadPool> threadPool) : threadPool(threadPool) {
