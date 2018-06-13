@@ -9,7 +9,7 @@ namespace Signals {
 template<typename ResultType, typename... Args>
 class ConnectionList {
 	public:
-		typedef NotVoid<ResultType> FutureResultType;
+		typedef ResultType FutureResultType;
 		IExecutor<ResultType(Args...)> &executor;
 		std::function<ResultType(Args...)> const callback;
 		size_t const uid;
@@ -41,7 +41,7 @@ class ConnectionList<void, Args...> {
 		IExecutor<void(Args...)> &executor;
 		std::function<void(Args...)> const callback;
 		size_t const uid;
-		FakeVector<std::shared_future<NotVoid<void>>> futures;
+		FakeVector<std::shared_future<void>> futures;
 
 		explicit ConnectionList(IExecutor<void(Args...)> &executor, const std::function<void(Args...)> &callback, const size_t uid) : executor(executor), callback(callback), uid(uid) {
 		}

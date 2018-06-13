@@ -6,36 +6,39 @@ using namespace Tests;
 using namespace Signals;
 
 namespace {
-inline int dummy(int a) {
-	return a;
+
+std::vector<int> results;
+
+inline void dummy(int a) {
+	results.push_back(a);
 }
-int dummy2(int a) {
-	return dummy(1 + dummy(a));
+void dummy2(int a) {
+	results.push_back(1 + a);
 }
 
 unittest("signals_simple: disconnect non existing") {
-	Signal<int(int)> sig;
+	Signal<void(int)> sig;
 	ASSERT(!sig.disconnect(0));
 }
 
 unittest("signals_simple") {
-	Signal<int(int)> sig;
+	Signal<void(int)> sig;
 
 	auto const id = sig.connect(dummy);
 
+	results.clear();
 	sig.emit(100);
-	auto val = sig.results();
-	ASSERT_EQUALS(makeVector({100}), transferToVector(*val));
+	ASSERT_EQUALS(makeVector({100}), results);
 
 	size_t id2 = sig.connect(dummy2);
 	sig.connect(dummy);
 	sig.connect(dummy2);
+	results.clear();
 	auto numVal = sig.emit(777);
-	val = sig.results();
 	ASSERT_EQUALS(4u, numVal);
 
 	auto expected = makeVector({777, 778, 777, 778});
-	ASSERT_EQUALS(expected, transferToVector(*val));
+	ASSERT_EQUALS(expected, results);
 
 	ASSERT(sig.getNumConnections() == 4);
 
@@ -61,14 +64,15 @@ unittest("signals_simple (void return value)") {
 	Signal<void(int)> sig;
 	sig.connect(dummy);
 	sig.emit(100);
-	sig.results();
 }
 
 unittest("connect to lambda") {
-	Signal<int(int)> sig;
-	Connect(sig, [](int val) -> int { return val * val; });
+	int result = 0;
+	Signal<void(int)> sig;
+	Connect(sig, [&](int val) {
+		result = val * val;
+	});
 	sig.emit(8);
-	auto const res = sig.results();
-	ASSERT_EQUALS(makeVector({64}), transferToVector(*res));
+	ASSERT_EQUALS(64, result);
 }
 }

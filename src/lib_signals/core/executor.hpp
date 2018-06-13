@@ -7,28 +7,13 @@
 
 namespace Signals {
 
-template<typename R, typename... Args>
-std::function<R(Args...)> NotVoidFunction(std::function<R(Args...)> fn) {
-	return fn;
-}
-
-// converts a function returning void to a function return int (always 0).
-template<typename... Args>
-std::function<int(Args...)> NotVoidFunction(std::function<void(Args...)> fn) {
-	auto closure = [=](Args... args) -> int {
-		fn(args...);
-		return 0;
-	};
-	return closure;
-}
-
 template<typename> class IExecutor;
 
-template <typename R, typename... Args>
-class IExecutor<R(Args...)> {
+template <typename... Args>
+class IExecutor<void(Args...)> {
 	public:
 		virtual ~IExecutor() noexcept(false) {}
-		virtual std::shared_future<NotVoid<R>> operator() (const std::function<R(Args...)> &fn, Args... args) = 0;
+		virtual std::shared_future<void> operator() (const std::function<void(Args...)> &fn, Args... args) = 0;
 };
 
 template<typename> class ExecutorSync;
@@ -39,12 +24,12 @@ template<typename> class ExecutorThread;
 template<typename> class ExecutorThreadPool;
 
 //synchronous calls
-template<typename R, typename... Args>
-class ExecutorSync<R(Args...)> : public IExecutor<R(Args...)> {
+template<typename... Args>
+class ExecutorSync<void(Args...)> : public IExecutor<void(Args...)> {
 	public:
-		std::shared_future<NotVoid<R>> operator() (const std::function<R(Args...)> &fn, Args... args) {
-			std::packaged_task<NotVoid<R>(Args...)> task(NotVoidFunction(fn));
-			const std::shared_future<NotVoid<R>> &f = task.get_future();
+		std::shared_future<void> operator() (const std::function<void(Args...)> &fn, Args... args) {
+			std::packaged_task<void(Args...)> task(fn);
+			const std::shared_future<void> &f = task.get_future();
 			task(args...);
 			f.get();
 			return f;
@@ -52,41 +37,41 @@ class ExecutorSync<R(Args...)> : public IExecutor<R(Args...)> {
 };
 
 //synchronous lazy calls
-template<typename R, typename... Args>
-class ExecutorLazy<R(Args...)> : public IExecutor<R(Args...)> {
+template<typename... Args>
+class ExecutorLazy<void(Args...)> : public IExecutor<void(Args...)> {
 	public:
-		std::shared_future<NotVoid<R>> operator() (const std::function<R(Args...)> &fn, Args... args) {
-			return std::async(std::launch::deferred, NotVoidFunction(fn), args...);
+		std::shared_future<void> operator() (const std::function<void(Args...)> &fn, Args... args) {
+			return std::async(std::launch::deferred, fn, args...);
 		}
 };
 
 //asynchronous calls with std::launch::async (spawns a thread)
-template<typename R, typename... Args>
-class ExecutorAsync<R(Args...)> : public IExecutor<R(Args...)> {
+template< typename... Args>
+class ExecutorAsync<void(Args...)> : public IExecutor<void(Args...)> {
 	public:
-		std::shared_future<NotVoid<R>> operator() (const std::function<R(Args...)> &fn, Args... args) {
-			return std::async(std::launch::async, NotVoidFunction(fn), args...);
+		std::shared_future<void> operator() (const std::function<void(Args...)> &fn, Args... args) {
+			return std::async(std::launch::async, fn, args...);
 		}
 };
 
 //asynchronous or synchronous calls at the runtime convenience
-template<typename R, typename... Args>
-class ExecutorAuto<R(Args...)> : public IExecutor<R(Args...)> {
+template< typename... Args>
+class ExecutorAuto<void(Args...)> : public IExecutor<void(Args...)> {
 	public:
-		std::shared_future<NotVoid<R>> operator() (const std::function<R(Args...)> &fn, Args... args) {
-			return std::async(std::launch::async | std::launch::deferred, NotVoidFunction(fn), args...);
+		std::shared_future<void> operator() (const std::function<void(Args...)> &fn, Args... args) {
+			return std::async(std::launch::async | std::launch::deferred, fn, args...);
 		}
 };
 
 //tasks occur in a thread
-template<typename R, typename... Args>
-class ExecutorThread<R(Args...)> : public IExecutor<R(Args...)> {
+template< typename... Args>
+class ExecutorThread<void(Args...)> : public IExecutor<void(Args...)> {
 	public:
 		ExecutorThread(const std::string &name) : threadPool(name, 1) {
 		}
 
-		std::shared_future<NotVoid<R>> operator() (const std::function<R(Args...)> &fn, Args... args) {
-			return threadPool.submit(NotVoidFunction(fn), args...);
+		std::shared_future<void> operator() (const std::function<void(Args...)> &fn, Args... args) {
+			return threadPool.submit(fn, args...);
 		}
 
 	private:
@@ -94,8 +79,8 @@ class ExecutorThread<R(Args...)> : public IExecutor<R(Args...)> {
 };
 
 //tasks occur in the pool
-template<typename R, typename... Args>
-class ExecutorThreadPool<R(Args...)> : public IExecutor<R(Args...)> {
+template< typename... Args>
+class ExecutorThreadPool<void(Args...)> : public IExecutor<void(Args...)> {
 	public:
 		ExecutorThreadPool() : threadPool(make_shared<ThreadPool>()) {
 		}
@@ -103,8 +88,8 @@ class ExecutorThreadPool<R(Args...)> : public IExecutor<R(Args...)> {
 		ExecutorThreadPool(std::shared_ptr<ThreadPool> threadPool) : threadPool(threadPool) {
 		}
 
-		std::shared_future<NotVoid<R>> operator() (const std::function<R(Args...)> &fn, Args... args) {
-			return threadPool->submit(NotVoidFunction(fn), args...);
+		std::shared_future<void> operator() (const std::function<void(Args...)> &fn, Args... args) {
+			return threadPool->submit(fn, args...);
 		}
 
 	private:

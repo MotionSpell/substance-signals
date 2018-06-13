@@ -7,7 +7,7 @@ using namespace Signals;
 
 namespace {
 struct Signaler {
-	Signal<int(int)> signal;
+	Signal<void(int)> signal;
 };
 
 inline int dummyPrint(int a) {
@@ -15,8 +15,9 @@ inline int dummyPrint(int a) {
 }
 
 struct Slot {
-	int slot(int a) {
-		return 1 + dummyPrint(a);
+	std::vector<int> vals;
+	void slot(int a) {
+		vals.push_back(1 + dummyPrint(a));
 	}
 };
 
@@ -32,7 +33,6 @@ unittest("basic module connection tests") {
 	Connect(sender.signal, BindMember(receiverPtr, &Slot::slot));
 
 	sender.signal.emit(100);
-	auto res = sender.signal.results();
-	ASSERT_EQUALS(makeVector({101, 101, 101, 101, 101}), transferToVector(*res));
+	ASSERT_EQUALS(makeVector({101, 101, 101, 101, 101}), receiver.vals);
 }
 }
