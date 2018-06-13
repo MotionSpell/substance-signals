@@ -130,11 +130,8 @@ void avLog(void* /*avcl*/, int level, const char *fmt, va_list vl) {
 
 int do_ffmpeg_static_initialization() {
 	av_lockmgr_register(&av_lockmgr);
-	avcodec_register_all();
 	avdevice_register_all();
-	av_register_all();
 	avformat_network_init();
-	avfilter_register_all();
 	av_log_set_callback(&avLog);
 	return 0;
 }
