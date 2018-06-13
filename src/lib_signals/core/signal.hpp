@@ -34,7 +34,6 @@ class PSignal<Result, Callback(Args...)> : public ISignal<Callback(Args...)> {
 		typedef std::function<Callback(Args...)> CallbackType;
 
 	private:
-		typedef typename Result::ResultValue ResultValue;
 		typedef typename CallbackType::result_type ResultType;
 		typedef ConnectionList<ResultType, Args...> ConnectionType;
 		typedef std::map<size_t, ConnectionType*> ConnectionManager;
@@ -63,17 +62,10 @@ class PSignal<Result, Callback(Args...)> : public ISignal<Callback(Args...)> {
 
 		size_t emit(Args... args) {
 			std::lock_guard<std::mutex> lg(callbacksMutex);
-			result.clear();
 			for (auto &cb : callbacks) {
 				cb.second->futures.push_back(cb.second->executor(cb.second->callback, args...));
 			}
 			return callbacks.size();
-		}
-
-		ResultValue results(bool sync = true, bool single = false) {
-			std::lock_guard<std::mutex> lg(callbacksMutex);
-			fillResultsUnsafe(sync, single);
-			return result.get();
 		}
 
 	protected:
@@ -104,26 +96,8 @@ class PSignal<Result, Callback(Args...)> : public ISignal<Callback(Args...)> {
 			return true;
 		}
 
-		void fillResultsUnsafe(bool sync = true, bool single = false) {
-			for (auto &cb : callbacks) {
-				for (auto f = cb.second->futures.begin(); f != cb.second->futures.end();) {
-					if (!sync && (f->wait_for(std::chrono::nanoseconds(0)) != std::future_status::ready)) {
-						++f;
-					} else {
-						assert(f->valid());
-						result.set(f->get());
-						f = cb.second->futures.erase(f);
-						if (single) {
-							return;
-						}
-					}
-				}
-			}
-		}
-
 		mutable std::mutex callbacksMutex;
 		ConnectionManager callbacks; //protected by callbacksMutex
-		Result result;               //protected by callbacksMutex
 		size_t uid = 0;              //protected by callbacksMutex
 
 		std::unique_ptr<IExecutor<Callback(Args...)>> const defaultExecutor;
