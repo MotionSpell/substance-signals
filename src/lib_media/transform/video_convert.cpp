@@ -41,16 +41,16 @@ void VideoConvert::process(Data data) {
 		reconfigure(videoData->getFormat());
 	}
 
-	uint8_t const* srcSlice[8] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
-	int srcStride[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+	uint8_t const* srcSlice[8] {};
+	int srcStride[8] {};
 	for (size_t i=0; i<videoData->getNumPlanes(); ++i) {
 		srcSlice[i] = videoData->getPlane(i);
 		srcStride[i] = (int)videoData->getPitch(i);
 	}
 
 	std::shared_ptr<DataBase> out;
-	uint8_t* pDst[8] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
-	int dstStride[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+	uint8_t* pDst[8] {};
+	int dstStride[8] {};
 	switch (dstFormat.format) {
 	case Y8: case YUV420P: case YUV420P10LE: case YUV422P: case YUV422P10LE: case YUYV422: case NV12: case RGB24: case RGBA32: {
 		auto resInternal = Resolution(ALIGN_PAD(dstFormat.res.width, 16, 0), ALIGN_PAD(dstFormat.res.height, 8, 0));
