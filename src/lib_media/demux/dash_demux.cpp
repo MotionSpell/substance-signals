@@ -1,3 +1,4 @@
+// holds the chain: [dash downloader] => ( [mp4demuxer] => [restamper] )*
 #include "lib_media/demux/dash_demux.hpp"
 #include "lib_media/demux/gpac_demux_mp4_full.hpp"
 #include "lib_media/in/mpeg_dash_input.hpp"

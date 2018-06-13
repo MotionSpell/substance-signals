@@ -5,7 +5,6 @@
 namespace Modules {
 namespace Demux {
 
-// holds the chain: [dash downloader] => ( [mp4demuxer] => [restamper] )*
 class DashDemuxer : public Module {
 	public:
 		DashDemuxer(std::string url);
