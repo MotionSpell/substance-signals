@@ -42,6 +42,7 @@ LIB_MEDIA_SRCS:=\
 
 ifeq ($(SIGNALS_HAS_X11), 1)
 PKGS+=sdl2
+CFLAGS+=-Umain
 CFLAGS+=-DSIGNALS_HAS_X11
 LIB_MEDIA_SRCS+=\
   $(MYDIR)/render/sdl_audio.cpp\

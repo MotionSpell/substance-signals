@@ -57,8 +57,6 @@ ifneq ($(MAKECMDGOALS),clean)
 include $(BIN)/config.mk
 endif
 
-CFLAGS+=-Umain
-
 TARGETS:=
 
 define get-my-dir
