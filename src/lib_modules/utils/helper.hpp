@@ -98,8 +98,8 @@ class InputCap : public virtual IInputCap {
 		std::vector<std::unique_ptr<IInput>> inputs;
 };
 
-typedef Signals::Signal<void(Data), Signals::ResultQueue<NotVoid<void>>> SignalAsync;
-typedef Signals::Signal<void(Data), Signals::ResultVector<NotVoid<void>>> SignalSync;
+typedef Signals::Signal<void(Data)> SignalAsync;
+typedef Signals::Signal<void(Data)> SignalSync;
 static Signals::ExecutorSync<void(Data)> g_executorOutputSync;
 typedef SignalSync SignalDefaultSync;
 

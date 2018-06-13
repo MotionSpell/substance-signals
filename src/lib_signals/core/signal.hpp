@@ -93,7 +93,7 @@ class PSignal<Callback(Args...)> : public ISignal<Callback(Args...)> {
 		IExecutor<Callback(Args...)> &executor;
 };
 
-template <typename SignalSignature, typename Result = ResultQueue<typename std::function<SignalSignature>::result_type >>
+template <typename SignalSignature>
 class Signal : public PSignal<SignalSignature> {
 	public:
 		Signal() : PSignal<SignalSignature>() {}

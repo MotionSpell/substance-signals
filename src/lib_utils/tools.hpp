@@ -56,18 +56,6 @@ T* safe_cast(U *p) {
 }
 
 template<typename T>
-struct NotVoidStruct {
-	typedef T Type;
-};
-
-template<>
-struct NotVoidStruct<void> {
-	typedef int Type;
-};
-
-template <typename T> using NotVoid = typename NotVoidStruct<T>::Type;
-
-template<typename T>
 constexpr T operator | (T a, T b) {
 	return static_cast<T>(static_cast<int>(a) | static_cast<int>(b));
 }
