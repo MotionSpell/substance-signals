@@ -19,7 +19,6 @@ class ISignal<Callback(Args...)> {
 		virtual size_t connect(const std::function<Callback(Args...)> &cb, IExecutor<Callback(Args...)> &executor) = 0;
 		virtual size_t connect(const std::function<Callback(Args...)> &cb) = 0;
 		virtual bool disconnect(size_t connectionId) = 0;
-		virtual IExecutor<Callback(Args...)>& getExecutor() const = 0;
 		virtual size_t getNumConnections() const = 0;
 		virtual size_t emit(Args... args) = 0;
 };
@@ -75,10 +74,6 @@ class PSignal<Result, Callback(Args...)> : public ISignal<Callback(Args...)> {
 			std::lock_guard<std::mutex> lg(callbacksMutex);
 			fillResultsUnsafe(sync, single);
 			return result.get();
-		}
-
-		IExecutor<Callback(Args...)>& getExecutor() const {
-			return executor;
 		}
 
 	protected:
