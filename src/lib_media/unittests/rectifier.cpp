@@ -33,18 +33,12 @@ class ClockMock : public IClock, public IScheduler {
 
 			while(!m_tasks.empty() && m_tasks[0].time <= m_time) {
 				m_time = m_tasks[0].time;
-				runExpired();
-			}
-
-			m_time = t;
-		}
-
-		void runExpired() {
-			// beware: running tasks might modify m_tasks by pushing new tasks
-			while(!m_tasks.empty() && m_tasks[0].time <= m_time) {
+				// beware: running tasks might modify m_tasks by pushing new tasks
 				m_tasks[0].func(m_time);
 				m_tasks.erase(m_tasks.begin());
 			}
+
+			m_time = t;
 		}
 
 		Fraction now() const override {
