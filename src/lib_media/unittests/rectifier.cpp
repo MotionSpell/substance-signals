@@ -1,6 +1,6 @@
 #include "tests/tests.hpp"
 #include "lib_utils/queue_inspect.hpp"
-#include "lib_utils/scheduler.hpp"
+#include "lib_utils/i_scheduler.hpp"
 #include "lib_media/transform/time_rectifier.hpp"
 #include "lib_media/utils/recorder.hpp"
 #include "lib_media/common/pcm.hpp"
@@ -16,12 +16,6 @@ struct TimePair {
 	int64_t clockTime;
 };
 
-// allows ASSERT_EQUALS on fractions
-static std::ostream& operator<<(std::ostream& o, Fraction f) {
-	o << f.num << "/" << f.den;
-	return o;
-}
-
 // allows ASSERT_EQUALS on TimePair
 static std::ostream& operator<<(std::ostream& o, TimePair t) {
 	o << t.mediaTime << "-" << t.clockTime;
@@ -32,63 +26,62 @@ static bool operator==(TimePair a, TimePair b) {
 	return a.clockTime == b.clockTime && a.mediaTime == b.mediaTime;
 }
 
-class ClockMock : public IClock {
+class ClockMock : public IClock, public IScheduler {
 	public:
 		void setTime(Fraction t) {
-			unique_lock<std::mutex> lock(protectTime);
 			assert(t >= m_time);
+
+			while(!m_tasks.empty() && m_tasks[0].time <= m_time) {
+				m_time = m_tasks[0].time;
+				runExpired();
+			}
+
 			m_time = t;
-			timeChanged.notify_all();
+		}
+
+		void runExpired() {
+			// beware: running tasks might modify m_tasks by pushing new tasks
+			while(!m_tasks.empty() && m_tasks[0].time <= m_time) {
+				m_tasks[0].func(m_time);
+				m_tasks.erase(m_tasks.begin());
+			}
 		}
 
 		Fraction now() const override {
-			unique_lock<std::mutex> lock(protectTime);
 			return m_time;
+		}
+
+		void scheduleAt(TaskFunc &&task, Fraction time) {
+			assert(time >= m_time);
+			m_tasks.push_back({time, task});
+			std::sort(m_tasks.begin(), m_tasks.end());
 		}
 
 		double getSpeed() const override {
 			return 0.0;
 		}
 
-		void sleep(Fraction delay) const override {
-			unique_lock<std::mutex> lock(protectTime);
-			auto const end = m_time + delay;
-			while (m_time < end) {
-				timeChanged.wait_for(lock, chrono::milliseconds(10));
-			}
+		void sleep(Fraction) const override {
+			assert(0);
+		}
+
+		void scheduleIn(TaskFunc &&, Fraction) {
+			assert(0);
 		}
 
 	private:
 		Fraction m_time = Fraction(-1, 1000);
-		mutable std::mutex protectTime;
-		mutable condition_variable timeChanged;
+
+		struct Task {
+			Fraction time;
+			TaskFunc func;
+			bool operator<(Task const& other) {
+				return time < other.time;
+			}
+		};
+
+		vector<Task> m_tasks; // keep this sorted
 };
-
-unittest("scheduler: mock clock") {
-	std::mutex mutex;
-	condition_variable condition;
-	Queue<Fraction> q;
-	auto f = [&](Fraction time) {
-		q.push(time);
-		condition.notify_all();
-	};
-
-	auto const f1  = Fraction( 1, 1000);
-	auto const f10 = Fraction(10, 1000);
-	auto clock = make_shared<ClockMock>();
-	Scheduler s(clock);
-	s.scheduleAt(f, f1);
-	g_DefaultClock->sleep(f10);
-	ASSERT(transferToVector(q).empty());
-	clock->setTime(f10);
-	{
-		unique_lock<std::mutex> lock(mutex);
-		auto const durInMs = chrono::milliseconds(100);
-		condition.wait_for(lock, durInMs);
-	}
-
-	ASSERT_EQUALS(makeVector({f1}), transferToVector(q));
-}
 
 template<typename METADATA, typename PORT>
 struct DataGenerator : public ModuleS, public virtual IOutputCap {
@@ -135,8 +128,8 @@ vector<vector<TimePair>> input) {
 
 	std::sort(events.begin(), events.end());
 
-	auto scheduler = make_unique<Scheduler>(clock);
-	auto rectifier = createModule<TimeRectifier>(1, clock, scheduler.get(), fps);
+	auto scheduler = clock.get();
+	auto rectifier = createModule<TimeRectifier>(1, clock, scheduler, fps);
 	vector<unique_ptr<Utils::Recorder>> recorders;
 	for (int i = 0; i < N; ++i) {
 		ConnectModules(generators[i].get(), 0, rectifier.get(), i);
@@ -149,13 +142,20 @@ vector<vector<TimePair>> input) {
 		data->setMediaTime(event.mediaTime);
 		data->setCreationTime(event.clockTime);
 		generators[event.index]->process(data);
+		if(event.clockTime > 0)
+			clock->setTime(Fraction(event.clockTime, IClock::Rate));
 	}
 
-	for (auto event : events) {
-		clock->setTime(Fraction(event.clockTime, IClock::Rate));
+	{
+		std::thread flushThread([&]() {
+			rectifier->flush();
+		});
+		std::this_thread::sleep_for(10ms);
+		auto t = clock->now();
+		for(int i=1; i < 100; ++i)
+			clock->setTime(t + i);
+		flushThread.join();
 	}
-
-	rectifier->flush();
 
 	vector<vector<TimePair>> actualTimes(generators.size());
 
@@ -165,9 +165,6 @@ vector<vector<TimePair>> input) {
 			actualTimes[i].push_back(TimePair{data->getMediaTime(), data->getCreationTime()});
 		}
 	}
-
-	clock->setTime(numeric_limits<int32_t>::max());
-	scheduler.reset(); // stop callbacks
 
 	return actualTimes;
 }
