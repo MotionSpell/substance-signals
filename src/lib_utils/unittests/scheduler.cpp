@@ -102,21 +102,20 @@ unittest("scheduleEvery: periodic events are executed periodically") {
 }
 
 unittest("scheduler: events scheduled out-of-order are executed in order") {
-	Fraction tA = 222; // marker values
-	Fraction tB = 111;
+	std::string order; // marker values
 
 	{
 		auto clock = make_shared<Clock>(clockSpeed);
 		Scheduler s(clock);
 		s.scheduleIn([&](Fraction) {
-			tB = clock->now();
+			order += 'B';
 		}, f50);
 		s.scheduleIn([&](Fraction) {
-			tA = clock->now();
+			order += 'A';
 		}, f10);
 		clock->sleep(Fraction(1, 10));
 	}
-	ASSERT(tA < tB);
+	ASSERT_EQUALS(std::string("AB"), order);
 }
 
 unittest("[DISABLED] scheduler: can still schedule and trigger 'near' tasks while waiting for a 'far' one") {
