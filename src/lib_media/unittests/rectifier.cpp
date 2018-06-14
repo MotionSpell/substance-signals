@@ -6,7 +6,6 @@
 #include "lib_media/common/pcm.hpp"
 #include "lib_media/common/picture.hpp"
 #include "lib_media/common/metadata.hpp"
-#include <cmath>
 
 using namespace std;
 using namespace Tests;
