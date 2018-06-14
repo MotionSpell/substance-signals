@@ -97,12 +97,12 @@ void TimeRectifier::discardOutdatedData(int64_t removalClockTime) {
 
 void TimeRectifier::discardStreamOutdatedData(size_t inputIdx, int64_t removalClockTime) {
 	auto minQueueSize = flushing ? 0 : 1;
-	auto data = streams[inputIdx].data.begin();
-	while (data != streams[inputIdx].data.end()) {
-		if ((*data)->getCreationTime() < removalClockTime
-		    && ((int)streams[inputIdx].data.size() > minQueueSize )) {
+	auto& stream = streams[inputIdx];
+	auto data = stream.data.begin();
+	while ((int)stream.data.size() > minQueueSize && data != stream.data.end()) {
+		if ((*data)->getCreationTime() < removalClockTime) {
 			log(TR_DEBUG, "Remove last streams[%s] data time media=%s clock=%s (removalClockTime=%s)", inputIdx, (*data)->getMediaTime(), (*data)->getCreationTime(), removalClockTime);
-			data = streams[inputIdx].data.erase(data);
+			data = stream.data.erase(data);
 		} else {
 			data++;
 		}
