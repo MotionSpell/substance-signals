@@ -332,7 +332,7 @@ unittest("rectifier: multiple media types simple") {
 	ASSERT_EQUALS(times, actualTimes);
 }
 
-unittest("[DISABLED] rectifier: two streams, only the first receives data") {
+unittest("rectifier: two streams, only the first receives data") {
 	ScopedLogLevel lev(Quiet);
 	const auto videoRate = Fraction(25, 1);
 	vector<vector<TimePair>> times = {

@@ -197,6 +197,8 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 	//AUDIO: BE ABLE TO ASK FOR A LARGER BUFFER ALLOCATOR? => BACK TO THE APP + DYN ALLOCATOR SIZE?
 	//VIDEO: HAVE ONLY A FEW DECODED FRAMES: THEY ARRIVE IN ADVANCE ANYWAY
 	for (auto i : getInputs()) {
+		if(!inputs[i]->getMetadata())
+			continue;
 		switch (inputs[i]->getMetadata()->getStreamType()) {
 		case AUDIO_RAW: {
 			Data selectedData;
