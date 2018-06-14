@@ -31,9 +31,9 @@ class ClockMock : public IClock, public IScheduler {
 		void setTime(Fraction t) {
 			assert(t >= m_time);
 
+			// beware: running tasks might modify m_tasks by pushing new tasks
 			while(!m_tasks.empty() && m_tasks[0].time <= m_time) {
 				m_time = m_tasks[0].time;
-				// beware: running tasks might modify m_tasks by pushing new tasks
 				m_tasks[0].func(m_time);
 				m_tasks.erase(m_tasks.begin());
 			}
