@@ -17,9 +17,8 @@ class DualInput : public Module {
 
 		virtual ~DualInput() {
 			if (workingThread.joinable()) {
-				for (size_t i = 0; i < inputs.size(); ++i) {
-					inputs[i]->push(nullptr);
-				}
+				for(auto& input : inputs)
+					input->push(nullptr);
 				workingThread.join();
 			}
 		}
