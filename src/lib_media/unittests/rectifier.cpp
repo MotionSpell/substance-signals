@@ -171,29 +171,22 @@ static void fixupTimes(vector<TimePair>& expectedTimes, vector<TimePair>& actual
 		expectedTimes.resize(actualTimes.size());
 }
 
-void testRectifierMeta(Fraction fps,
-    shared_ptr<ClockMock> clock,
-    const vector<unique_ptr<ModuleS>> &generators,
-    vector<vector<TimePair>> inTimes,
-    vector<vector<TimePair>> expectedTimes) {
+template<typename Metadata, typename PortType>
+void testRectifierSinglePort(Fraction fps, const vector<TimePair> &inTimes, const vector<TimePair> &outTimes) {
+	const vector<vector<TimePair>> in { inTimes };
+	vector<vector<TimePair>> expectedTimes { outTimes };
+	vector<unique_ptr<ModuleS>> generators;
+	auto clock = make_shared<ClockMock>();
+	generators.push_back(createModule<DataGenerator<Metadata, PortType>>(in[0].size(), clock));
 
-	auto actualTimes = runRectifier(fps, clock, generators, inTimes);
+	auto actualTimes = runRectifier(fps, clock, generators, in);
 
 	for (size_t g = 0; g < generators.size(); ++g) {
 		fixupTimes(expectedTimes[g], actualTimes[g]);
 	}
 
 	ASSERT_EQUALS(expectedTimes, actualTimes);
-}
 
-template<typename Metadata, typename PortType>
-void testRectifierSinglePort(Fraction fps, const vector<TimePair> &inTimes, const vector<TimePair> &outTimes) {
-	const vector<vector<TimePair>> in { inTimes };
-	const vector<vector<TimePair>> out { outTimes };
-	vector<unique_ptr<ModuleS>> generators;
-	auto clock = make_shared<ClockMock>();
-	generators.push_back(createModule<DataGenerator<Metadata, PortType>>(in[0].size(), clock));
-	testRectifierMeta(fps, clock, generators, in, out);
 }
 
 auto const generateValuesDefault = [](uint64_t step, Fraction fps) {
@@ -310,7 +303,7 @@ unittest("rectifier: multiple media types simple") {
 	ScopedLogLevel lev(Quiet);
 	const auto videoRate = Fraction(25, 1);
 	const auto audioRate = Fraction(44100, 1024);
-	const vector<vector<TimePair>> times = {
+	vector<vector<TimePair>> times = {
 		generateData(videoRate),
 		generateData(audioRate),
 	};
@@ -318,7 +311,14 @@ unittest("rectifier: multiple media types simple") {
 	auto clock = make_shared<ClockMock>();
 	generators.push_back(createModule<DataGenerator<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>>(times[0].size(), clock));
 	generators.push_back(createModule<DataGenerator<MetadataRawAudio, OutputPcm>>(times[1].size(), clock));
-	testRectifierMeta(videoRate, clock, generators, times, times);
+
+	auto actualTimes = runRectifier(videoRate, clock, generators, times);
+
+	for (size_t g = 0; g < generators.size(); ++g) {
+		fixupTimes(times[g], actualTimes[g]);
+	}
+
+	ASSERT_EQUALS(times, actualTimes);
 }
 
 unittest("rectifier: fail when no video") {
