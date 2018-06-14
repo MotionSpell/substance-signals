@@ -48,8 +48,8 @@ unittest("audio converter: 44100 to 48000") {
 	auto converter1 = create<Transform::AudioConvert>(baseFormat, otherFormat);
 	auto converter2 = create<Transform::AudioConvert>(otherFormat, baseFormat);
 
-	ConnectOutputToInput(soundGen->getOutput(0), converter1->getInput(0), &g_executorSync);
-	ConnectOutputToInput(converter1->getOutput(0), converter2->getInput(0), &g_executorSync);
+	ConnectOutputToInput(soundGen->getOutput(0), converter1->getInput(0));
+	ConnectOutputToInput(converter1->getOutput(0), converter2->getInput(0));
 	Connect(converter2->getOutput(0)->getSignal(), pushOther);
 
 	soundGen->process(nullptr);
