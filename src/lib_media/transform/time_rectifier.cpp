@@ -38,7 +38,7 @@ void TimeRectifier::flush() {
 	log(TR_DEBUG, "Schedule final removal at time %s (max:%s|%s)", finalClockTime, maxClockTimeIn180k, fractionToClock(clock->now()));
 	scheduler->scheduleAt([this](Fraction f) {
 		log(TR_DEBUG, "Final removal at time %s", fractionToClock(f));
-		discardOutdatedData(fractionToClock(f)+1);
+		discardOutdatedData(INT64_MAX);
 	}, Fraction(finalClockTime, IClock::Rate));
 
 	auto allQueuesEmpty = [this]() {
@@ -96,20 +96,13 @@ void TimeRectifier::discardOutdatedData(int64_t removalClockTime) {
 }
 
 void TimeRectifier::discardStreamOutdatedData(size_t inputIdx, int64_t removalClockTime) {
+	auto minQueueSize = flushing ? 0 : 1;
 	auto data = streams[inputIdx].data.begin();
 	while (data != streams[inputIdx].data.end()) {
-		if ((*data)->getCreationTime() < removalClockTime) {
-			if (streams[inputIdx].data.size() <= 1) {
-				if (flushing) {
-					log(TR_DEBUG, "Remove streams[%s] data time media=%s clock=%s (removalClockTime=%s)", inputIdx, (*data)->getMediaTime(), (*data)->getCreationTime(), removalClockTime);
-					data = streams[inputIdx].data.erase(data);
-				} else {
-					break;
-				}
-			} else {
-				log(TR_DEBUG, "Remove last streams[%s] data time media=%s clock=%s (removalClockTime=%s)", inputIdx, (*data)->getMediaTime(), (*data)->getCreationTime(), removalClockTime);
-				data = streams[inputIdx].data.erase(data);
-			}
+		if ((*data)->getCreationTime() < removalClockTime
+		    && ((int)streams[inputIdx].data.size() > minQueueSize )) {
+			log(TR_DEBUG, "Remove last streams[%s] data time media=%s clock=%s (removalClockTime=%s)", inputIdx, (*data)->getMediaTime(), (*data)->getCreationTime(), removalClockTime);
+			data = streams[inputIdx].data.erase(data);
 		} else {
 			data++;
 		}
