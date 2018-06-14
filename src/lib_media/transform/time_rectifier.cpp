@@ -40,7 +40,15 @@ void TimeRectifier::flush() {
 		log(TR_DEBUG, "Final removal at time %s", fractionToClock(f));
 		discardOutdatedData(fractionToClock(f)+1);
 	}, Fraction(finalClockTime, IClock::Rate));
-	flushedCond.wait(lock);
+
+	auto allQueuesEmpty = [this]() {
+		for(auto& s : streams)
+			if(!s.data.empty())
+				return false;
+		return true;
+	};
+
+	flushedCond.wait(lock, allQueuesEmpty);
 }
 
 void TimeRectifier::mimicOutputs() {
@@ -95,7 +103,6 @@ void TimeRectifier::discardStreamOutdatedData(size_t inputIdx, int64_t removalCl
 				if (flushing) {
 					log(TR_DEBUG, "Remove streams[%s] data time media=%s clock=%s (removalClockTime=%s)", inputIdx, (*data)->getMediaTime(), (*data)->getCreationTime(), removalClockTime);
 					data = streams[inputIdx].data.erase(data);
-					flushedCond.notify_one();
 				} else {
 					break;
 				}
@@ -107,6 +114,7 @@ void TimeRectifier::discardStreamOutdatedData(size_t inputIdx, int64_t removalCl
 			data++;
 		}
 	}
+	flushedCond.notify_one();
 }
 
 Data TimeRectifier::findNearestData(Stream& stream, Fraction time) {
