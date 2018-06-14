@@ -40,6 +40,18 @@ LIB_MEDIA_SRCS:=\
   $(MYDIR)/utils/recorder.cpp\
   $(MYDIR)/utils/repeater.cpp
 
+PKGS+=\
+  gpac\
+  libavcodec\
+  libavdevice\
+  libavfilter\
+  libavformat\
+  libavutil\
+  libcurl\
+  libswresample\
+  libswscale\
+  libturbojpeg\
+
 ifeq ($(SIGNALS_HAS_X11), 1)
 PKGS+=sdl2
 CFLAGS+=-Umain
