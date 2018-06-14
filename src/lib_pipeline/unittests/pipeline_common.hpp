@@ -1,6 +1,8 @@
 #pragma once
 
 #include <thread>
+#include <condition_variable>
+#include <mutex>
 
 using namespace Modules;
 
@@ -29,13 +31,25 @@ class DualInput : public Module {
 			}
 		}
 
+		void flush() {
+			std::unique_lock<std::mutex> lock(m_protectDone);
+			flushed.wait(lock, [this]() {
+				return done;
+			});
+		}
+
 		void threadProc() {
 			numCalls++;
 
 			if (!done) {
 				auto i1 = input0->pop();
 				auto i2 = input1->pop();
+			}
+
+			{
+				std::unique_lock<std::mutex> lock(m_protectDone);
 				done = true;
+				flushed.notify_one();
 			}
 
 			input0->clear();
@@ -47,6 +61,8 @@ class DualInput : public Module {
 	private:
 		bool done = false, threaded;
 		std::thread workingThread;
+		std::mutex m_protectDone;
+		std::condition_variable flushed;
 		Input<DataBase>* input0;
 		Input<DataBase>* input1;
 };
