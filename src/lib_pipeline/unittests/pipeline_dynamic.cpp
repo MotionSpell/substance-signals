@@ -53,14 +53,7 @@ unittest("[DISABLED]` pipeline: wrong disconnection") {
 	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
 	auto null = p.addModule<Out::Null>();
 	p.start();
-	bool thrown = false;
-	try {
-		p.disconnect(demux, 0, null, 0);
-		p.waitForEndOfStream();
-	} catch(...) {
-		thrown = true;
-	}
-	ASSERT(thrown);
+	ASSERT_THROWN(p.disconnect(demux, 0, null, 0));
 }
 
 unittest("pipeline: dynamic module disconnection (single ref decrease)") {

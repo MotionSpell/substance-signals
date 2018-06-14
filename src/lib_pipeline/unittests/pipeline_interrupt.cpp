@@ -41,18 +41,12 @@ class ExceptionModule : public ModuleS {
 };
 
 unittest("[DISABLED] pipeline: intercept exception") {
-	bool thrown = false;
-	try {
-		Pipeline p;
-		auto exception = p.addModule<ExceptionModule>();
-		auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
-		p.connect(demux, 0, exception, 0);
-		p.start();
-		p.waitForEndOfStream();
-	} catch (...) {
-		thrown = true;
-	}
-	ASSERT(thrown);
+	Pipeline p;
+	auto exception = p.addModule<ExceptionModule>();
+	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
+	p.connect(demux, 0, exception, 0);
+	p.start();
+	ASSERT_THROWN(p.waitForEndOfStream());
 }
 
 }
