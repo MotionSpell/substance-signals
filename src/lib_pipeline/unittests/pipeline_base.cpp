@@ -33,20 +33,10 @@ unittest("pipeline: empty") {
 }
 
 unittest("pipeline: connect inputs to outputs") {
-	bool thrown = false;
-	try {
-		Pipeline p;
-		auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
-		auto null = p.addModule<Out::Null>();
-		for (int i = 0; i < (int)demux->getNumOutputs(); ++i) {
-			p.connect(null, i, demux, i);
-		}
-		p.start();
-		p.waitForEndOfStream();
-	} catch (std::runtime_error const& /*e*/) {
-		thrown = true;
-	}
-	ASSERT(thrown);
+	Pipeline p;
+	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
+	auto null = p.addModule<Out::Null>();
+	ASSERT_THROWN(p.connect(null, 0, demux, 0));
 }
 
 unittest("pipeline: connect incompatible i/o") {
