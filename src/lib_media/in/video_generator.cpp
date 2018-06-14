@@ -1,7 +1,5 @@
 #include "video_generator.hpp"
-#include "lib_utils/tools.hpp"
-#include "../common/pcm.hpp"
-#include <cmath>
+#include <string.h> // memset
 
 auto const FRAMERATE = 25;
 
