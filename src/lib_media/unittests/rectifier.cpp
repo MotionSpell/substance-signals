@@ -118,6 +118,24 @@ vector<vector<TimePair>> input) {
 
 	const int N = (int)generators.size();
 
+	struct Event {
+		int index;
+		int64_t clockTime;
+		int64_t mediaTime;
+		bool operator<(Event other) const {
+			return clockTime < other.clockTime;
+		}
+	};
+
+	std::vector<Event> events;
+	for (int i = 0; i < N; ++i) {
+		for (auto times : input[i]) {
+			events.push_back(Event{i, times.clockTime, times.mediaTime});
+		}
+	}
+
+	std::sort(events.begin(), events.end());
+
 	auto rectifier = createModule<TimeRectifier>(1, clock, fps);
 	vector<unique_ptr<Utils::Recorder>> recorders;
 	for (int i = 0; i < N; ++i) {
@@ -126,26 +144,15 @@ vector<vector<TimePair>> input) {
 		ConnectModules(rectifier.get(), i, recorders[i].get(), 0);
 	}
 
-	for (int i = 0; i < N; ++i) {
-		for (auto timePair : input[i]) {
-			shared_ptr<DataRaw> data(new DataRaw(0));
-			data->setMediaTime(timePair.mediaTime);
-			data->setCreationTime(timePair.clockTime);
-			generators[i]->process(data);
-		}
+	for (auto event : events) {
+		shared_ptr<DataRaw> data(new DataRaw(0));
+		data->setMediaTime(event.mediaTime);
+		data->setCreationTime(event.clockTime);
+		generators[event.index]->process(data);
 	}
 
-	std::vector<Fraction> allTimes;
-	for (int i = 0; i < N; ++i) {
-		for (auto times : input[i]) {
-			allTimes.push_back(Fraction(times.clockTime, IClock::Rate));
-		}
-	}
-
-	std::sort(allTimes.begin(), allTimes.end());
-
-	for (auto time : allTimes) {
-		clock->setTime(time);
+	for (auto event : events) {
+		clock->setTime(Fraction(event.clockTime, IClock::Rate));
 	}
 
 	rectifier->flush();
