@@ -1,23 +1,48 @@
 #pragma once
 
-#include <thread>
-#include <condition_variable>
-#include <mutex>
-
 using namespace Modules;
 
 class DualInput : public Module {
 	public:
-		DualInput(bool threaded) : threaded(threaded) {
+		DualInput() {
+			input0 = (Input<DataBase>*)addInput(new Input<DataBase>(this));
+			input1 = (Input<DataBase>*)addInput(new Input<DataBase>(this));
+			addOutput<OutputDefault>();
+		}
+
+		void process() {
+			if (!done) {
+				input0->pop();
+				input1->pop();
+			}
+
+			done = true;
+
+			input0->clear();
+			input1->clear();
+		}
+
+	private:
+		bool done = false;
+		Input<DataBase>* input0;
+		Input<DataBase>* input1;
+};
+
+#include <thread>
+#include <condition_variable>
+#include <mutex>
+
+class ThreadedDualInput : public Module {
+	public:
+		ThreadedDualInput() {
 			input0 = (Input<DataBase>*)addInput(new Input<DataBase>(this));
 			input1 = (Input<DataBase>*)addInput(new Input<DataBase>(this));
 			addOutput<OutputDefault>();
 			numCalls = 0;
-			if (threaded)
-				workingThread = std::thread(&DualInput::threadProc, this);
+			workingThread = std::thread(&ThreadedDualInput::threadProc, this);
 		}
 
-		virtual ~DualInput() {
+		virtual ~ThreadedDualInput() {
 			if (workingThread.joinable()) {
 				for(auto& input : inputs)
 					input->push(nullptr);
@@ -26,9 +51,6 @@ class DualInput : public Module {
 		}
 
 		void process() {
-			if (!threaded) {
-				threadProc();
-			}
 		}
 
 		void flush() {
@@ -42,8 +64,8 @@ class DualInput : public Module {
 			numCalls++;
 
 			if (!done) {
-				auto i1 = input0->pop();
-				auto i2 = input1->pop();
+				input0->pop();
+				input1->pop();
 			}
 
 			{
@@ -59,7 +81,7 @@ class DualInput : public Module {
 		static uint64_t numCalls;
 
 	private:
-		bool done = false, threaded;
+		bool done = false;
 		std::thread workingThread;
 		std::mutex m_protectDone;
 		std::condition_variable flushed;

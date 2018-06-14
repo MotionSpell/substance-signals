@@ -13,7 +13,7 @@ namespace {
 unittest("pipeline: dynamic module connection of an existing module (without modifying the topology)") {
 	Pipeline p;
 	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
-	auto dualInput = p.addModule<DualInput>(false);
+	auto dualInput = p.addModule<DualInput>();
 	p.connect(demux, 0, dualInput, 0);
 	p.connect(demux, 0, dualInput, 1);
 	p.start();
@@ -39,7 +39,7 @@ unittest("pipeline: connect while running") {
 unittest("pipeline: dynamic module connection of a new module") {
 	Pipeline p;
 	auto demux = p.addModule<Demux::LibavDemux, 1>("data/beepbop.mp4");
-	auto dualInput = p.addModule<DualInput>(false);
+	auto dualInput = p.addModule<DualInput>();
 	p.connect(demux, 0, dualInput, 0);
 	p.start();
 	auto demux2 = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
@@ -69,7 +69,7 @@ unittest("pipeline: dynamic module disconnection (single ref decrease)") {
 unittest("pipeline: dynamic module disconnection (multiple ref decrease)") {
 	Pipeline p;
 	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
-	auto dualInput = p.addModule<DualInput>(false);
+	auto dualInput = p.addModule<DualInput>();
 	p.connect(demux, 0, dualInput, 0);
 	p.connect(demux, 0, dualInput, 1);
 	p.start();
@@ -81,7 +81,7 @@ unittest("pipeline: dynamic module disconnection (multiple ref decrease)") {
 unittest("pipeline: dynamic module disconnection (remove module dynamically)") {
 	Pipeline p;
 	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
-	auto dualInput = p.addModule<DualInput>(false);
+	auto dualInput = p.addModule<DualInput>();
 	p.connect(demux, 0, dualInput, 0);
 	p.connect(demux, 0, dualInput, 1);
 	p.start();
@@ -94,7 +94,7 @@ unittest("pipeline: dynamic module disconnection (remove module dynamically)") {
 unittest("[DISABLED] pipeline: dynamic module disconnection (remove sink without disconnect)") {
 	Pipeline p;
 	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
-	auto dualInput = p.addModule<DualInput>(false);
+	auto dualInput = p.addModule<DualInput>();
 	p.connect(demux, 0, dualInput, 0);
 	p.connect(demux, 0, dualInput, 1);
 	p.start();
@@ -105,7 +105,7 @@ unittest("[DISABLED] pipeline: dynamic module disconnection (remove sink without
 unittest("[DISABLED] pipeline: dynamic module disconnection (remove source without disconnect)") {
 	Pipeline p;
 	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
-	auto dualInput = p.addModule<DualInput>(false);
+	auto dualInput = p.addModule<DualInput>();
 	p.connect(demux, 0, dualInput, 0);
 	p.connect(demux, 0, dualInput, 1);
 	p.start();
@@ -116,7 +116,7 @@ unittest("[DISABLED] pipeline: dynamic module disconnection (remove source witho
 unittest("[DISABLED] pipeline: dynamic module disconnection (remove source)") {
 	Pipeline p;
 	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
-	auto dualInput = p.addModule<DualInput>(false);
+	auto dualInput = p.addModule<DualInput>();
 	p.connect(demux, 0, dualInput, 0);
 	p.connect(demux, 0, dualInput, 1);
 	p.start();

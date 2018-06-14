@@ -92,7 +92,7 @@ unittest("pipeline: longer pipeline with join") {
 unittest("pipeline: input data is manually queued while module is running") {
 	Pipeline p;
 	auto demux = p.addModule<DummySource>();
-	auto dualInput = p.addModule<DualInput>(false);
+	auto dualInput = p.addModule<DualInput>();
 	p.connect(demux, 0, dualInput, 0);
 	p.start();
 	auto data = make_shared<DataRaw>(0);
@@ -104,14 +104,14 @@ unittest("pipeline: input data is manually queued while module is running") {
 unittest("pipeline: multiple inputs (send same packets to 2 inputs and check call number)") {
 	Pipeline p;
 	auto generator = p.addModule<DummySource>();
-	auto dualInput = p.addModule<DualInput>(true);
+	auto dualInput = p.addModule<ThreadedDualInput>();
 	p.connect(generator, 0, dualInput, 0);
 	p.connect(generator, 0, dualInput, 1);
 	p.start();
 	p.waitForEndOfStream();
-	ASSERT_EQUALS(DualInput::numCalls, 1u);
+	ASSERT_EQUALS(ThreadedDualInput::numCalls, 1u);
 }
 
 }
 
-uint64_t DualInput::numCalls = 0;
+uint64_t ThreadedDualInput::numCalls = 0;

@@ -60,7 +60,7 @@ unittest("pipeline: connect passthru to a multiple input module (1)") {
 	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
 	ASSERT(demux->getNumOutputs() > 1);
 	auto passthru = p.addModule<Transform::Restamp>(Transform::Restamp::Passthru);
-	auto dualInput = p.addModule<DualInput>(false);
+	auto dualInput = p.addModule<DualInput>();
 	p.connect(demux, 0, passthru, 0);
 	p.connect(passthru, 0, dualInput, 0);
 	p.connect(passthru, 0, dualInput, 1);
@@ -75,7 +75,7 @@ unittest("pipeline: connect passthru to a multiple input module (2)") {
 	auto passthru0 = p.addModule<Transform::Restamp>(Transform::Restamp::Passthru);
 	auto passthru1 = p.addModule<Transform::Restamp>(Transform::Restamp::Passthru);
 	auto passthru2 = p.addModule<Transform::Restamp>(Transform::Restamp::Passthru);
-	auto dualInput = p.addModule<DualInput>(false);
+	auto dualInput = p.addModule<DualInput>();
 	p.connect(demux, 0, passthru0, 0);
 	p.connect(passthru0, 0, passthru1, 0);
 	p.connect(passthru0, 0, passthru2, 0);
@@ -105,7 +105,7 @@ unittest("pipeline: sink only (incorrect topology)") {
 unittest("pipeline: null after split") {
 	Pipeline p;
 	auto generator = p.addModule<In::VideoGenerator>();
-	auto dualInput = p.addModule<DualInput>(true);
+	auto dualInput = p.addModule<ThreadedDualInput>();
 	p.connect(generator, 0, dualInput, 0);
 	p.connect(generator, 0, dualInput, 1);
 	auto passthru = p.addModule<Transform::Restamp>(Transform::Restamp::Passthru);
