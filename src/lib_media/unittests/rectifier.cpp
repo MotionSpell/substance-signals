@@ -151,9 +151,8 @@ vector<vector<TimePair>> input) {
 			rectifier->flush();
 		});
 		std::this_thread::sleep_for(10ms);
-		auto t = clock->now();
 		for(int i=1; i < 100; ++i)
-			clock->setTime(t + i);
+			clock->setTime(clock->now() + 1);
 		flushThread.join();
 	}
 
