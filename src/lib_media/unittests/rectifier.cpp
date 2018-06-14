@@ -162,6 +162,14 @@ vector<vector<TimePair>> input) {
 	return actualTimes;
 }
 
+static void fixupTimes(vector<TimePair>& expectedTimes, vector<TimePair>& actualTimes) {
+	// cut the surplus 'actual' times
+	if(actualTimes.size() > expectedTimes.size())
+		actualTimes.resize(expectedTimes.size());
+	else if(expectedTimes.size() - actualTimes.size() <= 3)
+		// workaround: don't compare beyond 'actual' times
+		expectedTimes.resize(actualTimes.size());
+}
 
 void testRectifierMeta(Fraction fps,
     shared_ptr<ClockMock> clock,
@@ -172,13 +180,7 @@ void testRectifierMeta(Fraction fps,
 	auto actualTimes = runRectifier(fps, clock, generators, inTimes);
 
 	for (size_t g = 0; g < generators.size(); ++g) {
-
-		// cut the surplus 'actual' times
-		if(actualTimes[g].size() > expectedTimes[g].size())
-			actualTimes[g].resize(expectedTimes[g].size());
-		else if(expectedTimes[g].size() - actualTimes[g].size() <= 3)
-			// workaround: don't compare beyond 'actual' times
-			expectedTimes[g].resize(actualTimes[g].size());
+		fixupTimes(expectedTimes[g], actualTimes[g]);
 	}
 
 	ASSERT_EQUALS(expectedTimes, actualTimes);
