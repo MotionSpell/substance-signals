@@ -332,6 +332,24 @@ unittest("rectifier: multiple media types simple") {
 	ASSERT_EQUALS(times, actualTimes);
 }
 
+unittest("[DISABLED] rectifier: two streams, only the first receives data") {
+	ScopedLogLevel lev(Quiet);
+	const auto videoRate = Fraction(25, 1);
+	vector<vector<TimePair>> times = {
+		generateData(videoRate),
+		vector<TimePair>(),
+	};
+	vector<unique_ptr<ModuleS>> generators;
+	auto clock = make_shared<ClockMock>();
+	generators.push_back(createModule<DataGenerator<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>>(100, clock));
+	generators.push_back(createModule<DataGenerator<MetadataRawAudio, OutputPcm>>(100, clock));
+
+	auto actualTimes = runRectifier(videoRate, clock, generators, times);
+
+	fixupTimes(times[0], actualTimes[0]);
+	ASSERT_EQUALS(times[0], actualTimes[0]);
+}
+
 unittest("rectifier: fail when no video") {
 	ScopedLogLevel lev(Quiet);
 	ASSERT_THROWN((testRectifierSinglePort<MetadataRawAudio, OutputPcm>(Fraction(25, 1), { { 0, 0 } }, { { 0, 0 } })));
