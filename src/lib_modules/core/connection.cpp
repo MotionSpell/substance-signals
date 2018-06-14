@@ -7,7 +7,7 @@ namespace Modules {
 
 Signals::ExecutorSync<void()> g_executorSync;
 
-size_t ConnectOutputToInput(IOutput *prev, IInput *next, IProcessExecutor * const executor) {
+void ConnectOutputToInput(IOutput *prev, IInput *next, IProcessExecutor * const executor) {
 	auto prevMetadata = prev->getMetadata();
 	auto nextMetadata = next->getMetadata();
 	if (prevMetadata && nextMetadata) {
@@ -26,15 +26,15 @@ size_t ConnectOutputToInput(IOutput *prev, IInput *next, IProcessExecutor * cons
 	}
 
 	next->connect();
-	return prev->getSignal().connect([=](Data data) {
+	prev->getSignal().connect([=](Data data) {
 		next->push(data);
 		(*executor)(Bind(&IProcessor::process, next));
 	});
 }
 
-size_t ConnectModules(IModule *prev, int outputIdx, IModule *next, int inputIdx, IProcessExecutor &executor) {
+void ConnectModules(IModule *prev, int outputIdx, IModule *next, int inputIdx, IProcessExecutor &executor) {
 	auto output = prev->getOutput(outputIdx);
-	return ConnectOutputToInput(output, next->getInput(inputIdx), &executor);
+	ConnectOutputToInput(output, next->getInput(inputIdx), &executor);
 }
 
 }

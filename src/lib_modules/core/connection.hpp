@@ -12,7 +12,7 @@ Bind(Function func, Class* objectPtr) {
 	return Signals::MemberFunctor<Class, void(Class::*)()>(objectPtr, func);
 }
 
-size_t ConnectOutputToInput(IOutput *prev, IInput *next, IProcessExecutor * const executor = &defaultExecutor);
-size_t ConnectModules(IModule *prev, int outputIdx, IModule *next, int inputIdx, IProcessExecutor &executor = defaultExecutor);
+void ConnectOutputToInput(IOutput *prev, IInput *next, IProcessExecutor * const executor = &defaultExecutor);
+void ConnectModules(IModule *prev, int outputIdx, IModule *next, int inputIdx, IProcessExecutor &executor = defaultExecutor);
 
 }
