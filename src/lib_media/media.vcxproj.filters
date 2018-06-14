@@ -198,9 +198,6 @@
     <ClCompile Include="render\sdl_audio.cpp">
       <Filter>src\render</Filter>
     </ClCompile>
-    <ClCompile Include="render\sdl_common.cpp">
-      <Filter>src\render</Filter>
-    </ClCompile>
     <ClCompile Include="render\sdl_video.cpp">
       <Filter>src\render</Filter>
     </ClCompile>
@@ -287,6 +284,9 @@
     </ClCompile>
     <ClCompile Include="transform\audio_gap_filler.cpp">
       <Filter>src\transform</Filter>
+    </ClCompile>
+    <ClCompile Include="common\iso8601.cpp">
+      <Filter>src\common</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
