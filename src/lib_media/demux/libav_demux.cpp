@@ -65,7 +65,7 @@ void LibavDemux::initRestamp() {
 			m_streams[i].restamper = create<Transform::Restamp>(Transform::Restamp::Reset);
 		}
 
-		if (format == "rtsp" || format == "rtp" || format == "mpegts") {
+		if (format == "rtsp" || format == "rtp" || format == "mpegts" || format == "rtmp" || format == "flv") { //TODO: evaluate why this is not the default behaviour
 			auto stream = m_formatCtx->streams[i];
 			startPTSIn180k = std::max<int64_t>(startPTSIn180k, timescaleToClock(stream->start_time*stream->time_base.num, stream->time_base.den));
 		} else {
