@@ -228,12 +228,12 @@ void testFPSFactor(Fraction fps, Fraction factor) {
 	testRectifierSinglePort<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>(fps * factor, inTimes, outTimes);
 }
 
-unittest("rectifier: FPS factor (single port) 25 fps, x1") {
-	testFPSFactor(25, 1);
+unittest("rectifier: FPS factor (single port) 9 fps, x1") {
+	testFPSFactor(9, 1);
 }
 
-unittest("rectifier: FPS factor (single port) 25 fps, x2") {
-	testFPSFactor(25, 2);
+unittest("rectifier: FPS factor (single port) 9 fps, x2") {
+	testFPSFactor(9, 2);
 }
 
 unittest("rectifier: FPS factor (single port) 25 fps, x1/2") {
