@@ -62,7 +62,7 @@ class TimeRectifier : public ModuleDynI {
 		void discardStreamOutdatedData(size_t inputIdx, int64_t removalClockTime);
 		void discardOutdatedData(int64_t removalClockTime);
 		void declareScheduler(std::unique_ptr<IInput> &input, std::unique_ptr<IOutput> &output);
-		void awakeOnFPS(Fraction time);
+		void emitOnePeriod(Fraction time);
 		Data findNearestData(Stream& stream, Fraction time);
 		void findNearestDataAudio(size_t i, Fraction time, Data& selectedData, Data refData);
 		size_t getMasterStreamId() const;

@@ -63,7 +63,7 @@ void TimeRectifier::declareScheduler(std::unique_ptr<IInput> &input, std::unique
 		if (hasVideo)
 			throw error("Only one video stream is allowed");
 		hasVideo = true;
-		scheduleEvery(scheduler, std::bind(&TimeRectifier::awakeOnFPS, this, std::placeholders::_1), frameRate.inverse(), 0);
+		scheduleEvery(scheduler, std::bind(&TimeRectifier::emitOnePeriod, this, std::placeholders::_1), frameRate.inverse(), 0);
 	}
 }
 
@@ -163,7 +163,7 @@ size_t TimeRectifier::getMasterStreamId() const {
 	return 0;
 }
 
-void TimeRectifier::awakeOnFPS(Fraction time) {
+void TimeRectifier::emitOnePeriod(Fraction time) {
 	std::unique_lock<std::mutex> lock(inputMutex);
 	discardOutdatedData(fractionToClock(time) - analyzeWindowIn180k);
 
