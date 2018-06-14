@@ -161,7 +161,7 @@ unittest("scheduler: events scheduled out-of-order are executed in order") {
 	ASSERT_EQUALS(std::string("AB"), order);
 }
 
-unittest("[DISABLED] scheduler: can still schedule and trigger 'near' tasks while waiting for a 'far' one") {
+unittest("scheduler: can still schedule and trigger 'near' tasks while waiting for a 'far' one") {
 	auto const oneMsec = Fraction(1, 1000);
 	auto const oneHour = Fraction(3600, 1);
 
