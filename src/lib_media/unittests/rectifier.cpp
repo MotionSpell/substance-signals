@@ -35,7 +35,6 @@ static bool operator==(TimePair a, TimePair b) {
 
 class ClockMock : public IClock {
 	public:
-		ClockMock(Fraction time = Fraction(-1, 1000)) : m_time(time) {}
 		void setTime(Fraction t) {
 			unique_lock<std::mutex> lock(protectTime);
 			assert(t >= m_time);
@@ -61,7 +60,7 @@ class ClockMock : public IClock {
 		}
 
 	private:
-		Fraction m_time;
+		Fraction m_time = Fraction(-1, 1000);
 		mutable std::mutex protectTime;
 		mutable condition_variable timeChanged;
 };
