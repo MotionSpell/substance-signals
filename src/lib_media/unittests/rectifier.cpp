@@ -166,7 +166,7 @@ vector<vector<TimePair>> input) {
 void testRectifierMeta(Fraction fps,
     shared_ptr<ClockMock> clock,
     const vector<unique_ptr<ModuleS>> &generators,
-    const vector<vector<TimePair>> &inTimes,
+    vector<vector<TimePair>> inTimes,
     vector<vector<TimePair>> expectedTimes) {
 
 	auto actualTimes = runRectifier(fps, clock, generators, inTimes);
@@ -308,19 +308,15 @@ unittest("rectifier: multiple media types simple") {
 	ScopedLogLevel lev(Quiet);
 	const auto videoRate = Fraction(25, 1);
 	const auto audioRate = Fraction(44100, 1024);
-	const vector<vector<TimePair>> in = {
-		generateData(videoRate),
-		generateData(audioRate),
-	};
-	const vector<vector<TimePair>> out = {
+	const vector<vector<TimePair>> times = {
 		generateData(videoRate),
 		generateData(audioRate),
 	};
 	vector<unique_ptr<ModuleS>> generators;
 	auto clock = make_shared<ClockMock>();
-	generators.push_back(createModule<DataGenerator<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>>(in[0].size(), clock));
-	generators.push_back(createModule<DataGenerator<MetadataRawAudio, OutputPcm>>(in[1].size(), clock));
-	testRectifierMeta(videoRate, clock, generators, in, out);
+	generators.push_back(createModule<DataGenerator<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>>(times[0].size(), clock));
+	generators.push_back(createModule<DataGenerator<MetadataRawAudio, OutputPcm>>(times[1].size(), clock));
+	testRectifierMeta(videoRate, clock, generators, times, times);
 }
 
 unittest("rectifier: fail when no video") {
