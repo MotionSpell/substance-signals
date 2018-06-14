@@ -116,26 +116,28 @@ vector<vector<TimePair>> runRectifier(
         const vector<unique_ptr<ModuleS>> &generators,
 vector<vector<TimePair>> input) {
 
+	const int N = (int)generators.size();
+
 	auto rectifier = createModule<TimeRectifier>(1, clock, fps);
 	vector<unique_ptr<Utils::Recorder>> recorders;
-	for (int g = 0; g < (int)generators.size(); ++g) {
-		ConnectModules(generators[g].get(), 0, rectifier.get(), g);
+	for (int i = 0; i < N; ++i) {
+		ConnectModules(generators[i].get(), 0, rectifier.get(), i);
 		recorders.push_back(create<Utils::Recorder>());
-		ConnectModules(rectifier.get(), g, recorders[g].get(), 0);
+		ConnectModules(rectifier.get(), i, recorders[i].get(), 0);
 	}
 
-	for (size_t g = 0; g < generators.size(); ++g) {
-		for (auto timePair : input[g]) {
+	for (int i = 0; i < N; ++i) {
+		for (auto timePair : input[i]) {
 			shared_ptr<DataRaw> data(new DataRaw(0));
 			data->setMediaTime(timePair.mediaTime);
 			data->setCreationTime(timePair.clockTime);
-			generators[g]->process(data);
+			generators[i]->process(data);
 		}
 	}
 
 	std::vector<Fraction> allTimes;
-	for (size_t g = 0; g < generators.size(); ++g) {
-		for (auto times : input[g]) {
+	for (int i = 0; i < N; ++i) {
+		for (auto times : input[i]) {
 			allTimes.push_back(Fraction(times.clockTime, IClock::Rate));
 		}
 	}
@@ -150,10 +152,10 @@ vector<vector<TimePair>> input) {
 
 	vector<vector<TimePair>> actualTimes(generators.size());
 
-	for (size_t g = 0; g < generators.size(); ++g) {
-		recorders[g]->process(nullptr);
-		while (auto data = recorders[g]->pop()) {
-			actualTimes[g].push_back(TimePair{data->getMediaTime(), data->getCreationTime()});
+	for(int i=0; i < N; ++i) {
+		recorders[i]->process(nullptr);
+		while (auto data = recorders[i]->pop()) {
+			actualTimes[i].push_back(TimePair{data->getMediaTime(), data->getCreationTime()});
 		}
 	}
 
