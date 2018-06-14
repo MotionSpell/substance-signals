@@ -1,6 +1,5 @@
 #pragma once
 
-#include <mutex>
 #include <thread>
 
 using namespace Modules;
@@ -11,14 +10,12 @@ class DualInput : public Module {
 			input0 = (Input<DataBase>*)addInput(new Input<DataBase>(this));
 			input1 = (Input<DataBase>*)addInput(new Input<DataBase>(this));
 			addOutput<OutputDefault>();
-			numCallsMutex.lock();
 			numCalls = 0;
 			if (threaded)
 				workingThread = std::thread(&DualInput::threadProc, this);
 		}
 
 		virtual ~DualInput() {
-			numCallsMutex.unlock();
 			if (workingThread.joinable()) {
 				for (size_t i = 0; i < inputs.size(); ++i) {
 					inputs[i]->push(nullptr);
@@ -51,7 +48,6 @@ class DualInput : public Module {
 	private:
 		bool done = false, threaded;
 		std::thread workingThread;
-		std::mutex numCallsMutex;
 		Input<DataBase>* input0;
 		Input<DataBase>* input1;
 };
