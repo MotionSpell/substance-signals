@@ -1,4 +1,5 @@
 #include "timer.hpp"
+#include <algorithm>
 
 SystemTimer::SystemTimer() {
 	timerThread = std::thread(&SystemTimer::timerThreadProc, this);
