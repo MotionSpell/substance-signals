@@ -77,8 +77,7 @@ unittest("audio converter: dynamic formats") {
 	converter->getOutput(0)->getSignal().disconnect(0);
 	recorder->process(nullptr);
 
-	Data data;
-	while ((data = recorder->pop())) {
+	while (auto data = recorder->pop()) {
 		converter->process(data);
 	}
 }
@@ -113,9 +112,8 @@ void framingTest(const size_t inFrameFrames, const size_t outFrameFrames) {
 	converter->getOutput(0)->getSignal().disconnect(0);
 	recorder->process(nullptr);
 
-	Data dataRec;
 	size_t idx = 0;
-	while ((dataRec = recorder->pop())) {
+	while (auto dataRec = recorder->pop()) {
 		auto audioData = safe_cast<const DataPcm>(dataRec);
 		size_t val = 0;
 		for (size_t p = 0; p < audioData->getFormat().numPlanes; ++p) {
@@ -217,9 +215,8 @@ unittest("audio gap filler") {
 	}
 	recorder->process(nullptr);
 
-	Data dataRec;
 	size_t idx = 0;
-	while ((dataRec = recorder->pop())) {
+	while (auto dataRec = recorder->pop()) {
 		Log::msg(Debug, " %s - %s", dataRec->getMediaTime(), timescaleToClock(out[idx] * numSamples, format.sampleRate));
 		ASSERT(std::abs(dataRec->getMediaTime() - timescaleToClock(out[idx] * numSamples, format.sampleRate)) < 6);
 		idx++;
