@@ -64,7 +64,7 @@ void LibavFilter::process(Data data) {
 		avFrameIn->get()->data[i] = (uint8_t*)pic->getPlane(i);
 		avFrameIn->get()->linesize[i] = (int)pic->getPitch(i);
 	}
-	avFrameIn->get()->pts++;
+	avFrameIn->get()->pts = data->getMediaTime();
 
 	if (av_buffersrc_add_frame_flags(buffersrc_ctx, avFrameIn->get(), AV_BUFFERSRC_FLAG_KEEP_REF) < 0)
 		throw error("Error while feeding the filtergraph");
@@ -80,7 +80,7 @@ void LibavFilter::process(Data data) {
 		auto output = safe_cast<OutputPicture>(outputs[0].get());
 		auto pic = DataPicture::create(output, Resolution(avFrameIn->get()->width, avFrameIn->get()->height), libavPixFmt2PixelFormat((AVPixelFormat)avFrameIn->get()->format));
 		copyToPicture(avFrameOut->get(), pic.get());
-		pic->setMediaTime(times.pop());
+		pic->setMediaTime(avFrameOut->get()->pts);
 		outputs[0]->emit(pic);
 		av_frame_unref(avFrameOut->get());
 	}
