@@ -8,10 +8,10 @@ namespace Modules {
 
 static const int64_t ANALYZE_WINDOW_MAX = std::numeric_limits<int64_t>::max() / 2;
 
-TimeRectifier::TimeRectifier(Fraction frameRate, uint64_t analyzeWindowIn180k)
+TimeRectifier::TimeRectifier(IScheduler* scheduler_, Fraction frameRate, uint64_t analyzeWindowIn180k)
 	: frameRate(frameRate),
 	  threshold(timescaleToClock(frameRate.den, frameRate.num)),
-	  scheduler(new Scheduler(clock)) {
+	  scheduler(scheduler_) {
 	if (clock->getSpeed() == 0.0) {
 		this->analyzeWindowIn180k = ANALYZE_WINDOW_MAX;
 	} else {
@@ -63,7 +63,7 @@ void TimeRectifier::declareScheduler(std::unique_ptr<IInput> &input, std::unique
 		if (hasVideo)
 			throw error("Only one video stream is allowed");
 		hasVideo = true;
-		scheduleEvery(scheduler.get(), std::bind(&TimeRectifier::awakeOnFPS, this, std::placeholders::_1), frameRate.inverse(), 0);
+		scheduleEvery(scheduler, std::bind(&TimeRectifier::awakeOnFPS, this, std::placeholders::_1), frameRate.inverse(), 0);
 	}
 }
 

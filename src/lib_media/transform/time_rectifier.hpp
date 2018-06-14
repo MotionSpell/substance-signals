@@ -1,7 +1,7 @@
 #pragma once
 
 #include "lib_modules/modules.hpp"
-#include "lib_utils/scheduler.hpp"
+#include "lib_utils/i_scheduler.hpp"
 #include <condition_variable>
 #include <list>
 #include <memory>
@@ -36,7 +36,7 @@ Remarks:
 */
 class TimeRectifier : public ModuleDynI {
 	public:
-		TimeRectifier(Fraction frameRate, uint64_t analyzeWindowIn180k = ANALYZE_WINDOW_IN_180K);
+		TimeRectifier(IScheduler* scheduler, Fraction frameRate, uint64_t analyzeWindowIn180k = ANALYZE_WINDOW_IN_180K);
 
 		void process() override;
 		void flush() override;
@@ -73,7 +73,7 @@ class TimeRectifier : public ModuleDynI {
 		std::vector<Stream> streams;
 		std::mutex inputMutex;
 		std::condition_variable flushedCond;
-		std::unique_ptr<IScheduler> scheduler;
+		IScheduler* const scheduler;
 		bool hasVideo = false, flushing = false;
 };
 

@@ -1,5 +1,6 @@
 #include "tests/tests.hpp"
 #include "lib_utils/queue_inspect.hpp"
+#include "lib_utils/scheduler.hpp"
 #include "lib_media/transform/time_rectifier.hpp"
 #include "lib_media/utils/recorder.hpp"
 #include "lib_media/common/pcm.hpp"
@@ -136,7 +137,8 @@ vector<vector<TimePair>> input) {
 
 	std::sort(events.begin(), events.end());
 
-	auto rectifier = createModule<TimeRectifier>(1, clock, fps);
+	auto scheduler = make_unique<Scheduler>(clock);
+	auto rectifier = createModule<TimeRectifier>(1, clock, scheduler.get(), fps);
 	vector<unique_ptr<Utils::Recorder>> recorders;
 	for (int i = 0; i < N; ++i) {
 		ConnectModules(generators[i].get(), 0, rectifier.get(), i);
@@ -167,6 +169,7 @@ vector<vector<TimePair>> input) {
 	}
 
 	clock->setTime(numeric_limits<int32_t>::max());
+	scheduler.reset(); // stop callbacks
 
 	return actualTimes;
 }
