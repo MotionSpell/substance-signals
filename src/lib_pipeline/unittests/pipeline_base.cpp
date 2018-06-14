@@ -13,6 +13,17 @@ using namespace Pipelines;
 
 namespace {
 
+class DummySource : public Module {
+	public:
+		DummySource() {
+			output = addOutput<OutputDefault>();
+		}
+		void process() {
+			output->emit(output->getBuffer(1));
+		}
+		OutputDefault* output;
+};
+
 unittest("pipeline: empty") {
 	{
 		Pipeline p;
@@ -34,14 +45,14 @@ unittest("pipeline: empty") {
 
 unittest("pipeline: connect inputs to outputs") {
 	Pipeline p;
-	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
+	auto demux = p.addModule<DummySource>();
 	auto null = p.addModule<Out::Null>();
 	ASSERT_THROWN(p.connect(null, 0, demux, 0));
 }
 
 unittest("pipeline: connect incompatible i/o") {
 	Pipeline p(false, 0.0, Pipeline::Mono | Pipeline::RegulationOffFlag);
-	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
+	auto demux = p.addModule<DummySource>();
 	PcmFormat fmt;
 	auto aconv = p.addModule<Transform::AudioConvert>(fmt, fmt);
 	p.connect(demux, 0, aconv, 0);
@@ -80,7 +91,7 @@ unittest("pipeline: longer pipeline with join") {
 
 unittest("pipeline: input data is manually queued while module is running") {
 	Pipeline p;
-	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
+	auto demux = p.addModule<DummySource>();
 	auto dualInput = p.addModule<DualInput>(false);
 	p.connect(demux, 0, dualInput, 0);
 	p.start();
@@ -92,7 +103,7 @@ unittest("pipeline: input data is manually queued while module is running") {
 
 unittest("pipeline: multiple inputs (send same packets to 2 inputs and check call number)") {
 	Pipeline p;
-	auto generator = p.addModule<In::VideoGenerator>();
+	auto generator = p.addModule<DummySource>();
 	auto dualInput = p.addModule<DualInput>(true);
 	p.connect(generator, 0, dualInput, 0);
 	p.connect(generator, 0, dualInput, 1);
