@@ -28,7 +28,7 @@ void TimeRectifier::process() {
 	std::unique_lock<std::mutex> lock(inputMutex);
 	fillInputQueuesUnsafe();
 	sanityChecks();
-	removeOutdatedAllUnsafe((fractionToClock(clock->now()) - analyzeWindowIn180k));
+	discardOutdatedData((fractionToClock(clock->now()) - analyzeWindowIn180k));
 }
 
 void TimeRectifier::flush() {
@@ -38,7 +38,7 @@ void TimeRectifier::flush() {
 	log(TR_DEBUG, "Schedule final removal at time %s (max:%s|%s)", finalClockTime, maxClockTimeIn180k, fractionToClock(clock->now()));
 	scheduler->scheduleAt([this](Fraction f) {
 		log(TR_DEBUG, "Final removal at time %s", fractionToClock(f));
-		removeOutdatedAllUnsafe(fractionToClock(f)+1);
+		discardOutdatedData(fractionToClock(f)+1);
 	}, Fraction(finalClockTime, IClock::Rate));
 	flushedCond.wait(lock);
 }
@@ -81,13 +81,13 @@ void TimeRectifier::fillInputQueuesUnsafe() {
 	}
 }
 
-void TimeRectifier::removeOutdatedAllUnsafe(int64_t removalClockTime) {
+void TimeRectifier::discardOutdatedData(int64_t removalClockTime) {
 	for (auto i : getInputs()) {
-		removeOutdatedIndexUnsafe(i, removalClockTime);
+		discardStreamOutdatedData(i, removalClockTime);
 	}
 }
 
-void TimeRectifier::removeOutdatedIndexUnsafe(size_t inputIdx, int64_t removalClockTime) {
+void TimeRectifier::discardStreamOutdatedData(size_t inputIdx, int64_t removalClockTime) {
 	auto data = streams[inputIdx].data.begin();
 	while (data != streams[inputIdx].data.end()) {
 		if ((*data)->getCreationTime() < removalClockTime) {
@@ -165,7 +165,7 @@ size_t TimeRectifier::getMasterStreamId() const {
 
 void TimeRectifier::awakeOnFPS(Fraction time) {
 	std::unique_lock<std::mutex> lock(inputMutex);
-	removeOutdatedAllUnsafe(fractionToClock(time) - analyzeWindowIn180k);
+	discardOutdatedData(fractionToClock(time) - analyzeWindowIn180k);
 
 	Data refData;
 
@@ -188,7 +188,7 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 		data->setMediaTime(fractionToClock(Fraction(master.numTicks++ * frameRate.den, frameRate.num)));
 		log(TR_DEBUG, "Video: send[%s:%s] t=%s (data=%s/%s) (ref %s/%s)", i, master.data.size(), data->getMediaTime(), data->getMediaTime(), data->getCreationTime(), refData->getMediaTime(), refData->getCreationTime());
 		outputs[i]->emit(data);
-		removeOutdatedIndexUnsafe(i, data->getCreationTime());
+		discardStreamOutdatedData(i, data->getCreationTime());
 	}
 
 	//TODO: Notes:
@@ -215,7 +215,7 @@ void TimeRectifier::awakeOnFPS(Fraction time) {
 				data->setMediaTime(fractionToClock(Fraction(streams[i].numTicks++ * audioData->getPlaneSize(0) / audioData->getFormat().getBytesPerSample(), audioData->getFormat().sampleRate)));
 				log(TR_DEBUG, "Other: send[%s:%s] t=%s (data=%s/%s) (ref %s/%s)", i, streams[i].data.size(), data->getMediaTime(), data->getMediaTime(), data->getCreationTime(), refData->getMediaTime(), refData->getCreationTime());
 				outputs[i]->emit(data);
-				removeOutdatedIndexUnsafe(i, data->getCreationTime());
+				discardStreamOutdatedData(i, data->getCreationTime());
 			}
 			break;
 		}
