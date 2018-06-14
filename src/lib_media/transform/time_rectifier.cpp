@@ -48,7 +48,7 @@ void TimeRectifier::flush() {
 		return true;
 	};
 
-	flushedCond.wait(lock, allQueuesEmpty);
+	inputQueueWasReduced.wait(lock, allQueuesEmpty);
 }
 
 void TimeRectifier::mimicOutputs() {
@@ -107,7 +107,7 @@ void TimeRectifier::discardStreamOutdatedData(size_t inputIdx, int64_t removalCl
 			data++;
 		}
 	}
-	flushedCond.notify_one();
+	inputQueueWasReduced.notify_one();
 }
 
 Data TimeRectifier::findNearestData(Stream& stream, Fraction time) {

@@ -72,7 +72,7 @@ class TimeRectifier : public ModuleDynI {
 		int64_t analyzeWindowIn180k = 0, maxClockTimeIn180k = 0;
 		std::vector<Stream> streams;
 		std::mutex inputMutex;
-		std::condition_variable flushedCond;
+		std::condition_variable inputQueueWasReduced;
 		IScheduler* const scheduler;
 		bool hasVideo = false, flushing = false;
 };
