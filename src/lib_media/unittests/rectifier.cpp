@@ -16,14 +16,26 @@ struct TimePair {
 	int64_t clockTime;
 };
 
-// allows ASSERT_EQUALS on TimePair
-static std::ostream& operator<<(std::ostream& o, TimePair t) {
-	o << t.mediaTime << "-" << t.clockTime;
+struct Event {
+	int index;
+	int64_t clockTime;
+	int64_t mediaTime;
+	bool operator<(Event other) const {
+		if(clockTime != other.clockTime)
+			return clockTime < other.clockTime;
+		else
+			return mediaTime < other.mediaTime;
+	}
+};
+
+// allows ASSERT_EQUALS on Event
+static std::ostream& operator<<(std::ostream& o, Event t) {
+	o << "{ #" << t.index << " " << t.mediaTime << "-" << t.clockTime << "}";
 	return o;
 }
 
-static bool operator==(TimePair a, TimePair b) {
-	return a.clockTime == b.clockTime && a.mediaTime == b.mediaTime;
+static bool operator==(Event a, Event b) {
+	return a.index == b.index && a.clockTime == b.clockTime && a.mediaTime == b.mediaTime;
 }
 
 class ClockMock : public IClock, public IScheduler {
@@ -77,15 +89,6 @@ class ClockMock : public IClock, public IScheduler {
 		vector<Task> m_tasks; // keep this sorted
 };
 
-struct Event {
-	int index;
-	int64_t clockTime;
-	int64_t mediaTime;
-	bool operator<(Event other) const {
-		return clockTime < other.clockTime;
-	}
-};
-
 template<typename METADATA, typename PORT>
 struct DataGenerator : public ModuleS, public virtual IOutputCap {
 	DataGenerator() {
@@ -118,11 +121,11 @@ vector<Event> mergeEvents(vector<vector<TimePair>> input) {
 	return r;
 }
 
-vector<vector<TimePair>> runRectifier(
-        Fraction fps,
-        shared_ptr<ClockMock> clock,
-        const vector<unique_ptr<ModuleS>> &generators,
-vector<Event> events) {
+vector<Event> runRectifier(
+    Fraction fps,
+    shared_ptr<ClockMock> clock,
+    const vector<unique_ptr<ModuleS>> &generators,
+    vector<Event> events) {
 
 	const int N = (int)generators.size();
 
@@ -154,19 +157,20 @@ vector<Event> events) {
 		flushThread.join();
 	}
 
-	vector<vector<TimePair>> actualTimes(generators.size());
+	vector<Event> actualTimes;
 
 	for(int i=0; i < N; ++i) {
 		recorders[i]->process(nullptr);
 		while (auto data = recorders[i]->pop()) {
-			actualTimes[i].push_back(TimePair{data->getMediaTime(), data->getCreationTime()});
+			actualTimes.push_back(Event{i, data->getCreationTime(), data->getMediaTime()});
 		}
 	}
+	sort(actualTimes.begin(), actualTimes.end());
 
 	return actualTimes;
 }
 
-static void fixupTimes(vector<TimePair>& expectedTimes, vector<TimePair>& actualTimes) {
+static void fixupTimes(vector<Event>& expectedTimes, vector<Event>& actualTimes) {
 	// cut the surplus 'actual' times
 	if(actualTimes.size() > expectedTimes.size())
 		actualTimes.resize(expectedTimes.size());
@@ -178,7 +182,7 @@ static void fixupTimes(vector<TimePair>& expectedTimes, vector<TimePair>& actual
 template<typename Metadata, typename PortType>
 void testRectifierSinglePort(Fraction fps, const vector<TimePair> &inTimes, const vector<TimePair> &outTimes) {
 	const vector<vector<TimePair>> in { inTimes };
-	vector<vector<TimePair>> expectedTimes { outTimes };
+	auto expectedTimes = mergeEvents({ outTimes });
 	vector<unique_ptr<ModuleS>> generators;
 	auto clock = make_shared<ClockMock>();
 	generators.push_back(createModule<DataGenerator<Metadata, PortType>>(in[0].size(), clock));
@@ -187,9 +191,7 @@ void testRectifierSinglePort(Fraction fps, const vector<TimePair> &inTimes, cons
 
 	auto actualTimes = runRectifier(fps, clock, generators, events);
 
-	for (size_t g = 0; g < generators.size(); ++g) {
-		fixupTimes(expectedTimes[g], actualTimes[g]);
-	}
+	fixupTimes(expectedTimes, actualTimes);
 
 	ASSERT_EQUALS(expectedTimes, actualTimes);
 
@@ -320,11 +322,10 @@ unittest("rectifier: multiple media types simple") {
 
 	auto actualTimes = runRectifier(videoRate, clock, generators, mergeEvents(times));
 
-	for (size_t g = 0; g < generators.size(); ++g) {
-		fixupTimes(times[g], actualTimes[g]);
-	}
+	auto expectedTimes = mergeEvents(times);
+	fixupTimes(expectedTimes, actualTimes);
 
-	ASSERT_EQUALS(times, actualTimes);
+	ASSERT_EQUALS(expectedTimes, actualTimes);
 }
 
 unittest("rectifier: two streams, only the first receives data") {
@@ -341,8 +342,9 @@ unittest("rectifier: two streams, only the first receives data") {
 
 	auto actualTimes = runRectifier(videoRate, clock, generators, mergeEvents(times));
 
-	fixupTimes(times[0], actualTimes[0]);
-	ASSERT_EQUALS(times[0], actualTimes[0]);
+	auto expectedTimes = mergeEvents(times);
+	fixupTimes(expectedTimes, actualTimes);
+	ASSERT_EQUALS(expectedTimes, actualTimes);
 }
 
 unittest("rectifier: fail when no video") {
