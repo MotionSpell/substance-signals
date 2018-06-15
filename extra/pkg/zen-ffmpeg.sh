@@ -22,6 +22,7 @@ function ffmpeg_build {
   mkdir -p ffmpeg/build/$host
   pushDir ffmpeg/build/$host
 
+  CFLAGS="-I$PREFIX/include" \
   LDFLAGS="-L$PREFIX/lib -lz" \
   ../../configure \
       --prefix=$PREFIX \
