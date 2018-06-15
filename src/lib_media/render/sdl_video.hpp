@@ -2,7 +2,6 @@
 
 #include "../common/picture.hpp"
 #include "lib_modules/utils/helper.hpp"
-#include <mutex>
 #include <thread>
 
 struct SDL_Renderer;
