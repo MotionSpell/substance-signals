@@ -111,8 +111,7 @@ vector<Event> runRectifier(
 
 	const int N = (int)generators.size();
 
-	auto scheduler = clock.get();
-	auto rectifier = createModule<TimeRectifier>(1, clock, scheduler, fps);
+	auto rectifier = createModule<TimeRectifier>(1, clock, clock.get(), fps);
 	vector<unique_ptr<Utils::Recorder>> recorders;
 	for (int i = 0; i < N; ++i) {
 		ConnectModules(generators[i].get(), 0, rectifier.get(), i);
