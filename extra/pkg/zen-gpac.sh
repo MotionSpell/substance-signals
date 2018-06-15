@@ -24,6 +24,7 @@ function gpac_build {
     --extra-ldflags="-L$PREFIX/lib -Wl,-rpath-link=$PREFIX/lib" \
     --sdl-cfg=":$PREFIX/bin" \
     --disable-jack \
+    --disable-ssl \
     --disable-player \
     --prefix=$PREFIX
 
