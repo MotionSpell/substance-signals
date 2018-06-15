@@ -97,7 +97,7 @@ struct DataGenerator : public ModuleS, public virtual IOutputCap {
 			dataPcm->setPlane(0, nullptr, 1024 * dataPcm->getFormat().getBytesPerSample());
 		}
 		data->setMediaTime(dataIn->getMediaTime());
-		data->setCreationTime(dataIn->getCreationTime());
+		data->setCreationTime(fractionToClock(clock->now()));
 		output->emit(data);
 	}
 	PORT *output;

@@ -103,16 +103,16 @@ static Signals::ExecutorSync<void(Data)> g_executorOutputSync;
 typedef SignalSync SignalDefaultSync;
 
 template<typename DataType>
-class OutputDataDefault : public IOutput, public MetadataCap, public ClockCap {
+class OutputDataDefault : public IOutput, public MetadataCap {
 	public:
 		typedef PacketAllocator Allocator;
 		typedef SignalDefaultSync Signal;
 
-		OutputDataDefault(size_t allocatorBaseSize, size_t allocatorMaxSize, std::shared_ptr<IClock> clock, std::shared_ptr<const IMetadata> metadata = nullptr)
-			: MetadataCap(metadata), ClockCap(clock), signal(g_executorOutputSync), allocator(new Allocator(allocatorBaseSize, allocatorMaxSize)) {
+		OutputDataDefault(size_t allocatorBaseSize, size_t allocatorMaxSize, std::shared_ptr<const IMetadata> metadata = nullptr)
+			: MetadataCap(metadata), signal(g_executorOutputSync), allocator(new Allocator(allocatorBaseSize, allocatorMaxSize)) {
 		}
-		OutputDataDefault(size_t allocatorSize, std::shared_ptr<IClock> clock, const IMetadata *metadata = nullptr)
-			: OutputDataDefault(allocatorSize, allocatorSize, clock, metadata) {
+		OutputDataDefault(size_t allocatorSize, const IMetadata *metadata = nullptr)
+			: OutputDataDefault(allocatorSize, allocatorSize, metadata) {
 		}
 		virtual ~OutputDataDefault() noexcept(false) {
 			allocator->unblock();
@@ -127,9 +127,7 @@ class OutputDataDefault : public IOutput, public MetadataCap, public ClockCap {
 
 		template<typename T = DataType>
 		std::shared_ptr<T> getBuffer(size_t size) {
-			auto buffer = allocator->template getBuffer<T>(size, allocator);
-			if (clock) buffer->setCreationTime(fractionToClock(clock->now()));
-			return buffer;
+			return allocator->template getBuffer<T>(size, allocator);
 		}
 
 		Signals::ISignal<void(Data)>& getSignal() override {
@@ -168,13 +166,13 @@ class Module : public IModule, public ErrorCap, public LogCap, public InputCap {
 
 		template <typename InstanceType, typename ...Args>
 		InstanceType* addOutput(Args&&... args) {
-			auto p = new InstanceType(allocatorSize, allocatorSize, clock, std::forward<Args>(args)...);
+			auto p = new InstanceType(allocatorSize, allocatorSize, std::forward<Args>(args)...);
 			outputs.push_back(uptr(p));
 			return p;
 		}
 		template <typename InstanceType, typename ...Args>
 		InstanceType* addOutputDynAlloc(size_t allocatorMaxSize, Args&&... args) {
-			auto p = new InstanceType(allocatorSize, allocatorMaxSize, clock, std::forward<Args>(args)...);
+			auto p = new InstanceType(allocatorSize, allocatorMaxSize, std::forward<Args>(args)...);
 			outputs.push_back(uptr(p));
 			return p;
 		}
