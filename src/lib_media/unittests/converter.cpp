@@ -191,9 +191,6 @@ unittest("video converter: different sizes") {
 	ASSERT_EQUALS(1, numFrames);
 }
 
-// TODO: remove this, we don't want system clock in unit tests
-#include "lib_utils/default_clock.hpp"
-
 unittest("audio gap filler") {
 	PcmFormat format;
 	auto data = make_shared<DataPcm>(0);
@@ -208,7 +205,7 @@ unittest("audio gap filler") {
 	const std::vector<int64_t> in =  { 1, 2, 3, 5,    6, 7, 8, 9, 10, 11, 12, 12, 12, 1000, 1001, 1002, 3, 4, 5 };
 	const std::vector<int64_t> out = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1000, 1001, 1002, 3, 4, 5 };
 	auto recorder = create<Utils::Recorder>();
-	auto gapFiller = createModule<Transform::AudioGapFiller>(out.size(), g_DefaultClock);
+	auto gapFiller = create<Transform::AudioGapFiller>(out.size());
 	ConnectOutputToInput(gapFiller->getOutput(0), recorder->getInput(0));
 	for (auto &val : in) {
 		data->setMediaTime(val * numSamples, format.sampleRate);
