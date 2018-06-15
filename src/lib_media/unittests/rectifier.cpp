@@ -180,14 +180,12 @@ static void fixupTimes(vector<Event>& expectedTimes, vector<Event>& actualTimes)
 }
 
 template<typename Metadata, typename PortType>
-void testRectifierSinglePort(Fraction fps, const vector<TimePair> &inTimes, const vector<TimePair> &outTimes) {
-	auto const in = mergeEvents( {inTimes} );
-	auto expectedTimes = mergeEvents({ outTimes });
+void testRectifierSinglePort(Fraction fps, vector<Event> inTimes, vector<Event> expectedTimes) {
 	vector<unique_ptr<ModuleS>> generators;
 	auto clock = make_shared<ClockMock>();
-	generators.push_back(createModule<DataGenerator<Metadata, PortType>>(in.size(), clock));
+	generators.push_back(createModule<DataGenerator<Metadata, PortType>>(inTimes.size(), clock));
 
-	auto actualTimes = runRectifier(fps, clock, generators, in);
+	auto actualTimes = runRectifier(fps, clock, generators, inTimes);
 
 	fixupTimes(expectedTimes, actualTimes);
 
@@ -200,13 +198,13 @@ auto const generateValuesDefault = [](uint64_t step, Fraction fps) {
 	return TimePair{t, t};
 };
 
-vector<TimePair> generateData(Fraction fps, function<TimePair(uint64_t, Fraction)> generateValue = generateValuesDefault) {
+vector<Event> generateData(Fraction fps, function<TimePair(uint64_t, Fraction)> generateValue = generateValuesDefault) {
 	auto const numItems = (size_t)(Fraction(15) * fps / Fraction(25, 1));
 	vector<TimePair> times(numItems);
 	for (size_t i = 0; i < numItems; ++i) {
 		times[i] = generateValue(i, fps);
 	}
-	return times;
+	return mergeEvents({times});
 }
 
 void testFPSFactor(Fraction fps, Fraction factor) {
@@ -307,20 +305,31 @@ unittest("rectifier: deal with backward discontinuity (single port)") {
 
 unittest("rectifier: multiple media types simple") {
 	ScopedLogLevel lev(Quiet);
+
+	vector<Event> times;
+
 	const auto videoRate = Fraction(25, 1);
+	for(auto ev : generateData(videoRate)) {
+		ev.index = 0;
+		times.push_back(ev);
+	}
+
 	const auto audioRate = Fraction(44100, 1024);
-	vector<vector<TimePair>> times = {
-		generateData(videoRate),
-		generateData(audioRate),
-	};
+	for(auto ev : generateData(audioRate)) {
+		ev.index = 1;
+		times.push_back(ev);
+	}
+
+	sort(times.begin(), times.end());
+
 	vector<unique_ptr<ModuleS>> generators;
 	auto clock = make_shared<ClockMock>();
-	generators.push_back(createModule<DataGenerator<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>>(times[0].size(), clock));
-	generators.push_back(createModule<DataGenerator<MetadataRawAudio, OutputPcm>>(times[1].size(), clock));
+	generators.push_back(createModule<DataGenerator<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>>(times.size(), clock));
+	generators.push_back(createModule<DataGenerator<MetadataRawAudio, OutputPcm>>(times.size(), clock));
 
-	auto actualTimes = runRectifier(videoRate, clock, generators, mergeEvents(times));
+	auto actualTimes = runRectifier(videoRate, clock, generators, times);
 
-	auto expectedTimes = mergeEvents(times);
+	auto expectedTimes = times;
 	fixupTimes(expectedTimes, actualTimes);
 
 	ASSERT_EQUALS(expectedTimes, actualTimes);
@@ -329,23 +338,20 @@ unittest("rectifier: multiple media types simple") {
 unittest("rectifier: two streams, only the first receives data") {
 	ScopedLogLevel lev(Quiet);
 	const auto videoRate = Fraction(25, 1);
-	vector<vector<TimePair>> times = {
-		generateData(videoRate),
-		vector<TimePair>(),
-	};
+	auto times = generateData(videoRate);
 	vector<unique_ptr<ModuleS>> generators;
 	auto clock = make_shared<ClockMock>();
 	generators.push_back(createModule<DataGenerator<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>>(100, clock));
 	generators.push_back(createModule<DataGenerator<MetadataRawAudio, OutputPcm>>(100, clock));
 
-	auto actualTimes = runRectifier(videoRate, clock, generators, mergeEvents(times));
+	auto actualTimes = runRectifier(videoRate, clock, generators, times);
 
-	auto expectedTimes = mergeEvents(times);
+	auto expectedTimes = times;
 	fixupTimes(expectedTimes, actualTimes);
 	ASSERT_EQUALS(expectedTimes, actualTimes);
 }
 
 unittest("rectifier: fail when no video") {
 	ScopedLogLevel lev(Quiet);
-	ASSERT_THROWN((testRectifierSinglePort<MetadataRawAudio, OutputPcm>(Fraction(25, 1), { { 0, 0 } }, { { 0, 0 } })));
+	ASSERT_THROWN((testRectifierSinglePort<MetadataRawAudio, OutputPcm>(Fraction(25, 1), {}, {})));
 }
