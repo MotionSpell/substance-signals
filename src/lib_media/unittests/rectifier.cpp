@@ -120,12 +120,12 @@ vector<Event> runRectifier(
 	}
 
 	for (auto event : events) {
+		if(event.clockTime > 0)
+			clock->setTime(Fraction(event.clockTime, IClock::Rate));
 		shared_ptr<DataRaw> data(new DataRaw(0));
 		data->setMediaTime(event.mediaTime);
 		data->setCreationTime(event.clockTime);
 		generators[event.index]->process(data);
-		if(event.clockTime > 0)
-			clock->setTime(Fraction(event.clockTime, IClock::Rate));
 	}
 
 	{
