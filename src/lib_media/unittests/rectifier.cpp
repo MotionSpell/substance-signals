@@ -181,7 +181,7 @@ struct TimePair {
 };
 
 TimePair generateValuesDefault(uint64_t step, Fraction fps) {
-	auto const t = (int64_t)timescaleToClock(step * fps.den, fps.num);
+	auto const t = (int64_t)fractionToClock(fps.inverse() * step);
 	return TimePair{t, t};
 };
 
