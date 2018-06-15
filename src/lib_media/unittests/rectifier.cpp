@@ -108,19 +108,6 @@ struct DataGenerator : public ModuleS, public virtual IOutputCap {
 	PORT *output;
 };
 
-vector<Event> mergeEvents(vector<vector<TimePair>> input) {
-	std::vector<Event> r;
-
-	for (int i = 0; i < (int)input.size(); ++i) {
-		for (auto times : input[i]) {
-			r.push_back(Event{i, times.clockTime, times.mediaTime});
-		}
-	}
-
-	std::sort(r.begin(), r.end());
-	return r;
-}
-
 vector<Event> runRectifier(
     Fraction fps,
     shared_ptr<ClockMock> clock,
@@ -200,11 +187,12 @@ auto const generateValuesDefault = [](uint64_t step, Fraction fps) {
 
 vector<Event> generateData(Fraction fps, function<TimePair(uint64_t, Fraction)> generateValue = generateValuesDefault) {
 	auto const numItems = (size_t)(Fraction(15) * fps / Fraction(25, 1));
-	vector<TimePair> times(numItems);
+	vector<Event> times(numItems);
 	for (size_t i = 0; i < numItems; ++i) {
-		times[i] = generateValue(i, fps);
+		auto tp = generateValue(i, fps);
+		times[i] = Event{0, tp.clockTime, tp.mediaTime};
 	}
-	return mergeEvents({times});
+	return times;
 }
 
 void testFPSFactor(Fraction fps, Fraction factor) {
