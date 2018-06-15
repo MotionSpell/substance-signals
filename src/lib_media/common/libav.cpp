@@ -6,7 +6,6 @@
 #include "lib_utils/tools.hpp"
 #include <cassert>
 #include <cstdio>
-#include <mutex>
 #include <cstring>
 
 extern "C" {
@@ -25,39 +24,6 @@ std::shared_ptr<AVCodecContext> shptr(AVCodecContext *p) {
 }
 
 namespace {
-
-int av_lockmgr(void **mutex, enum AVLockOp op) {
-	if (NULL == mutex) {
-		return -1;
-	}
-
-	switch (op) {
-	case AV_LOCK_CREATE: {
-		auto m = new std::mutex();
-		*mutex = static_cast<void*>(m);
-		break;
-	}
-	case AV_LOCK_OBTAIN: {
-		auto m = static_cast<std::mutex*>(*mutex);
-		m->lock();
-		break;
-	}
-	case AV_LOCK_RELEASE: {
-		auto m = static_cast<std::mutex*>(*mutex);
-		m->unlock();
-		break;
-	}
-	case AV_LOCK_DESTROY: {
-		auto m = static_cast<std::mutex*>(*mutex);
-		delete m;
-		break;
-	}
-	default:
-		assert(0);
-		break;
-	}
-	return 0;
-}
 
 Level avLogLevel(int level) {
 	switch (level) {
@@ -129,7 +95,6 @@ void avLog(void* /*avcl*/, int level, const char *fmt, va_list vl) {
 }
 
 int do_ffmpeg_static_initialization() {
-	av_lockmgr_register(&av_lockmgr);
 	avdevice_register_all();
 	avformat_network_init();
 	av_log_set_callback(&avLog);
