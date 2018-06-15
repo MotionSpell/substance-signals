@@ -11,11 +11,6 @@ using namespace std;
 using namespace Tests;
 using namespace Modules;
 
-struct TimePair {
-	int64_t mediaTime;
-	int64_t clockTime;
-};
-
 struct Event {
 	int index;
 	int64_t clockTime;
@@ -180,7 +175,12 @@ void testRectifierSinglePort(Fraction fps, vector<Event> inTimes, vector<Event> 
 
 }
 
-auto const generateValuesDefault = [](uint64_t step, Fraction fps) {
+struct TimePair {
+	int64_t mediaTime;
+	int64_t clockTime;
+};
+
+TimePair generateValuesDefault(uint64_t step, Fraction fps) {
 	auto const t = (int64_t)timescaleToClock(step * fps.den, fps.num);
 	return TimePair{t, t};
 };
