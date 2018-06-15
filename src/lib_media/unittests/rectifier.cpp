@@ -181,15 +181,13 @@ static void fixupTimes(vector<Event>& expectedTimes, vector<Event>& actualTimes)
 
 template<typename Metadata, typename PortType>
 void testRectifierSinglePort(Fraction fps, const vector<TimePair> &inTimes, const vector<TimePair> &outTimes) {
-	const vector<vector<TimePair>> in { inTimes };
+	auto const in = mergeEvents( {inTimes} );
 	auto expectedTimes = mergeEvents({ outTimes });
 	vector<unique_ptr<ModuleS>> generators;
 	auto clock = make_shared<ClockMock>();
-	generators.push_back(createModule<DataGenerator<Metadata, PortType>>(in[0].size(), clock));
+	generators.push_back(createModule<DataGenerator<Metadata, PortType>>(in.size(), clock));
 
-	auto const events = mergeEvents(in);
-
-	auto actualTimes = runRectifier(fps, clock, generators, events);
+	auto actualTimes = runRectifier(fps, clock, generators, in);
 
 	fixupTimes(expectedTimes, actualTimes);
 
