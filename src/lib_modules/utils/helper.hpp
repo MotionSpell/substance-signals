@@ -7,7 +7,7 @@
 #include "../core/allocator.hpp"
 #include "../core/log.hpp"
 #include "../core/error.hpp"
-#include "lib_signals/utils/helper.hpp"
+#include "lib_signals/helper.hpp"
 #include "lib_utils/queue.hpp"
 #include "lib_utils/default_clock.hpp"
 #include <memory>
