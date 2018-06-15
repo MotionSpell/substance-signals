@@ -71,7 +71,7 @@ class ClockMock : public IClock, public IScheduler {
 		}
 
 	private:
-		Fraction m_time = Fraction(-1, 1000);
+		Fraction m_time = 0;
 
 		struct Task {
 			Fraction time;
