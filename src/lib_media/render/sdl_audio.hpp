@@ -1,6 +1,7 @@
 #pragma once
 
 #include "lib_modules/utils/helper.hpp"
+#include "lib_utils/default_clock.hpp"
 #include "../common/pcm.hpp"
 #include "lib_utils/fifo.hpp"
 #include <memory>

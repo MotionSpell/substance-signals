@@ -11,8 +11,6 @@
 using namespace Tests;
 using namespace Modules;
 
-namespace {
-
 unittest("audio converter: interleaved to planar to interleaved") {
 	auto soundGen = create<In::SoundGenerator>();
 	auto comparator = create<Utils::PcmComparator>();
@@ -193,6 +191,9 @@ unittest("video converter: different sizes") {
 	ASSERT_EQUALS(1, numFrames);
 }
 
+// TODO: remove this, we don't want system clock in unit tests
+#include "lib_utils/default_clock.hpp"
+
 unittest("audio gap filler") {
 	PcmFormat format;
 	auto data = make_shared<DataPcm>(0);
@@ -225,4 +226,3 @@ unittest("audio gap filler") {
 
 }
 
-}

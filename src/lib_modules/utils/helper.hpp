@@ -9,7 +9,7 @@
 #include "../core/error.hpp"
 #include "lib_signals/helper.hpp"
 #include "lib_utils/queue.hpp"
-#include "lib_utils/default_clock.hpp"
+#include "lib_utils/clock.hpp"
 #include <memory>
 #include <atomic>
 
@@ -194,7 +194,7 @@ std::unique_ptr<InstanceType> createModule(size_t allocatorSize, const std::shar
 
 template <typename InstanceType, typename ...Args>
 std::unique_ptr<InstanceType> create(Args&&... args) {
-	return createModule<InstanceType>(ALLOC_NUM_BLOCKS_DEFAULT, g_DefaultClock, std::forward<Args>(args)...);
+	return createModule<InstanceType>(ALLOC_NUM_BLOCKS_DEFAULT, nullptr, std::forward<Args>(args)...);
 }
 
 //single input specialized module

@@ -74,6 +74,9 @@ unittest("timestamps start at a negative value (GPACDemuxMP4Simple)") {
 	checkTimestamps<Demux::GPACDemuxMP4Simple>(correct, correct);
 }
 
+// TODO: remove this, we don't want system clock in unit tests
+#include "lib_utils/default_clock.hpp"
+
 unittest("transcoder with reframers: test a/v sync recovery") {
 	ScopedLogLevel lev(Quiet); // some corrupt frames will be detected
 	const int64_t maxDurIn180k = 2 * IClock::Rate;

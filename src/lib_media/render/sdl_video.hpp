@@ -2,6 +2,7 @@
 
 #include "../common/picture.hpp"
 #include "lib_modules/utils/helper.hpp"
+#include "lib_utils/default_clock.hpp"
 #include <thread>
 
 struct SDL_Renderer;

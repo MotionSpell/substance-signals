@@ -2,6 +2,7 @@
 #include "lib_modules/core/data_utc.hpp"
 #include "lib_utils/time.hpp"
 #include "lib_utils/os.hpp"
+#include "lib_utils/default_clock.hpp"
 #include <cstring> // memcpy
 #include <cassert>
 #include <thread>
