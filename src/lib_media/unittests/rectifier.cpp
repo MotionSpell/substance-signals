@@ -122,11 +122,9 @@ vector<vector<TimePair>> runRectifier(
         Fraction fps,
         shared_ptr<ClockMock> clock,
         const vector<unique_ptr<ModuleS>> &generators,
-vector<vector<TimePair>> input) {
+vector<Event> events) {
 
 	const int N = (int)generators.size();
-
-	auto const events = mergeEvents(input);
 
 	auto scheduler = clock.get();
 	auto rectifier = createModule<TimeRectifier>(1, clock, scheduler, fps);
@@ -185,7 +183,9 @@ void testRectifierSinglePort(Fraction fps, const vector<TimePair> &inTimes, cons
 	auto clock = make_shared<ClockMock>();
 	generators.push_back(createModule<DataGenerator<Metadata, PortType>>(in[0].size(), clock));
 
-	auto actualTimes = runRectifier(fps, clock, generators, in);
+	auto const events = mergeEvents(in);
+
+	auto actualTimes = runRectifier(fps, clock, generators, events);
 
 	for (size_t g = 0; g < generators.size(); ++g) {
 		fixupTimes(expectedTimes[g], actualTimes[g]);
@@ -318,7 +318,7 @@ unittest("rectifier: multiple media types simple") {
 	generators.push_back(createModule<DataGenerator<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>>(times[0].size(), clock));
 	generators.push_back(createModule<DataGenerator<MetadataRawAudio, OutputPcm>>(times[1].size(), clock));
 
-	auto actualTimes = runRectifier(videoRate, clock, generators, times);
+	auto actualTimes = runRectifier(videoRate, clock, generators, mergeEvents(times));
 
 	for (size_t g = 0; g < generators.size(); ++g) {
 		fixupTimes(times[g], actualTimes[g]);
@@ -339,7 +339,7 @@ unittest("rectifier: two streams, only the first receives data") {
 	generators.push_back(createModule<DataGenerator<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>>(100, clock));
 	generators.push_back(createModule<DataGenerator<MetadataRawAudio, OutputPcm>>(100, clock));
 
-	auto actualTimes = runRectifier(videoRate, clock, generators, times);
+	auto actualTimes = runRectifier(videoRate, clock, generators, mergeEvents(times));
 
 	fixupTimes(times[0], actualTimes[0]);
 	ASSERT_EQUALS(times[0], actualTimes[0]);
