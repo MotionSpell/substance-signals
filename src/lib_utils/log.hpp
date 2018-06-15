@@ -31,7 +31,6 @@ class Log {
 			}
 		}
 
-		static void setLevel(std::string level);
 		static void setLevel(Level level);
 		static Level getLevel();
 
@@ -57,6 +56,8 @@ class Log {
 		static void sendToSyslog(int level, std::string msg);
 #endif
 };
+
+Level parseLogLevel(std::string level);
 
 struct ScopedLogLevel {
 		ScopedLogLevel(Level level) : oldLevel(Log::getLevel()) {

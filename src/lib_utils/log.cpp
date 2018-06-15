@@ -83,15 +83,15 @@ std::string Log::getColorEnd(Level /*level*/) {
 	return "";
 }
 
-void Log::setLevel(std::string level) {
+Level parseLogLevel(std::string level) {
 	if (level == "error") {
-		globalLogLevel = Error;
+		return Error;
 	} else if (level == "warning") {
-		globalLogLevel = Warning;
+		return Warning;
 	} else if (level == "info") {
-		globalLogLevel = Info;
+		return Info;
 	} else if (level == "debug") {
-		globalLogLevel = Debug;
+		return Debug;
 	} else
 		throw std::runtime_error(format("Unknown log level: \"%s\"", level));
 }
