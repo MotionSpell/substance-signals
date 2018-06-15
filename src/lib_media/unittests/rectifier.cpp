@@ -77,6 +77,15 @@ class ClockMock : public IClock, public IScheduler {
 		vector<Task> m_tasks; // keep this sorted
 };
 
+struct Event {
+	int index;
+	int64_t clockTime;
+	int64_t mediaTime;
+	bool operator<(Event other) const {
+		return clockTime < other.clockTime;
+	}
+};
+
 template<typename METADATA, typename PORT>
 struct DataGenerator : public ModuleS, public virtual IOutputCap {
 	DataGenerator() {
@@ -96,6 +105,19 @@ struct DataGenerator : public ModuleS, public virtual IOutputCap {
 	PORT *output;
 };
 
+vector<Event> mergeEvents(vector<vector<TimePair>> input) {
+	std::vector<Event> r;
+
+	for (int i = 0; i < (int)input.size(); ++i) {
+		for (auto times : input[i]) {
+			r.push_back(Event{i, times.clockTime, times.mediaTime});
+		}
+	}
+
+	std::sort(r.begin(), r.end());
+	return r;
+}
+
 vector<vector<TimePair>> runRectifier(
         Fraction fps,
         shared_ptr<ClockMock> clock,
@@ -104,23 +126,7 @@ vector<vector<TimePair>> input) {
 
 	const int N = (int)generators.size();
 
-	struct Event {
-		int index;
-		int64_t clockTime;
-		int64_t mediaTime;
-		bool operator<(Event other) const {
-			return clockTime < other.clockTime;
-		}
-	};
-
-	std::vector<Event> events;
-	for (int i = 0; i < N; ++i) {
-		for (auto times : input[i]) {
-			events.push_back(Event{i, times.clockTime, times.mediaTime});
-		}
-	}
-
-	std::sort(events.begin(), events.end());
+	auto const events = mergeEvents(input);
 
 	auto scheduler = clock.get();
 	auto rectifier = createModule<TimeRectifier>(1, clock, scheduler, fps);
