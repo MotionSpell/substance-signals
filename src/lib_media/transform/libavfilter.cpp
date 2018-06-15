@@ -14,7 +14,7 @@ LibavFilter::LibavFilter(const PictureFormat &format, const std::string &filterA
 	: graph(avfilter_graph_alloc()), avFrameIn(new ffpp::Frame), avFrameOut(new ffpp::Frame) {
 	char args[512];
 	AVPixelFormat pf = pixelFormat2libavPixFmt(format.format);
-	snprintf(args, sizeof(args), "video_size=%dx%d:pix_fmt=%d:time_base=%d/%d:pixel_aspect=%d/%d", format.res.width, format.res.height, pf, 90000, 1, format.res.width, format.res.height);
+	snprintf(args, sizeof(args), "video_size=%dx%d:pix_fmt=%d:time_base=%d/%d:pixel_aspect=%d/%d", format.res.width, format.res.height, pf, (int)IClock::Rate, 1, format.res.width, format.res.height);
 
 	auto ret = avfilter_graph_create_filter(&buffersrc_ctx, avfilter_get_by_name("buffer"), "in", args, nullptr, graph);
 	if (ret < 0)
@@ -79,7 +79,7 @@ void LibavFilter::process(Data data) {
 		auto output = safe_cast<OutputPicture>(outputs[0].get());
 		auto pic = DataPicture::create(output, Resolution(avFrameIn->get()->width, avFrameIn->get()->height), libavPixFmt2PixelFormat((AVPixelFormat)avFrameIn->get()->format));
 		copyToPicture(avFrameOut->get(), pic.get());
-		pic->setMediaTime(avFrameOut->get()->pts);
+		pic->setMediaTime(av_rescale_q(avFrameOut->get()->pts, buffersink_ctx->inputs[0]->time_base, buffersrc_ctx->outputs[0]->time_base));
 		outputs[0]->emit(pic);
 		av_frame_unref(avFrameOut->get());
 	}
