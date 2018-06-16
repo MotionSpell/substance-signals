@@ -22,6 +22,9 @@ enum StreamType {
 
 struct IMetadata {
 	virtual ~IMetadata() {}
+	inline bool operator==(const IMetadata &right) const {
+		return typeid(*this) == typeid(right);
+	}
 	virtual StreamType getStreamType() const = 0;
 	bool isVideo() const {
 		switch (getStreamType()) {

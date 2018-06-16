@@ -2,10 +2,6 @@
 
 namespace Modules {
 
-static bool operator==(const IMetadata &left, const IMetadata &right) {
-	return typeid(left) == typeid(right);
-}
-
 MetadataCap::MetadataCap(std::shared_ptr<const IMetadata> metadata) : m_metadata(metadata) {
 }
 
