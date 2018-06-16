@@ -131,6 +131,9 @@
     <ClInclude Include="transform\telx_structs.hpp">
       <Filter>src\transform</Filter>
     </ClInclude>
+    <ClInclude Include="demux\dash_demux.hpp">
+      <Filter>src\demux</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="src">
@@ -287,6 +290,9 @@
     </ClCompile>
     <ClCompile Include="common\iso8601.cpp">
       <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="demux\dash_demux.cpp">
+      <Filter>src\demux</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -51,5 +51,8 @@
     <ClCompile Include="core\connection.cpp">
       <Filter>core</Filter>
     </ClCompile>
+    <ClCompile Include="utils\helper.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

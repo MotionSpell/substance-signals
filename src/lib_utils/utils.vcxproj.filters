@@ -5,9 +5,12 @@
     <ClCompile Include="time.cpp" />
     <ClCompile Include="clock.cpp" />
     <ClCompile Include="scheduler.cpp" />
-    <ClCompile Include="version.cpp" />
     <ClCompile Include="os.cpp" />
     <ClCompile Include="profiler.cpp" />
+    <ClCompile Include="timer.cpp" />
+    <ClCompile Include="version.cpp">
+      <Filter>version</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="log.hpp" />
