@@ -4,6 +4,8 @@
 #include <cassert>
 #include <string>
 
+extern const char *g_version;
+
 namespace Modules {
 namespace Mux {
 
@@ -42,7 +44,7 @@ LibavMux::LibavMux(const std::string &baseName, const std::string &fmt, const st
 		}
 	}
 	strncpy(m_formatCtx->filename, fileName.str().c_str(), sizeof(m_formatCtx->filename));
-
+	av_dict_set(&m_formatCtx->metadata, "service_provider", format("GPAC Licensing Signals %s", g_version).c_str(), 0);
 	av_dump_format(m_formatCtx, 0, baseName.c_str(), 1);
 
 	if (!fmt.compare(0, 5, "mpegts") || !fmt.compare(0, 3, "hls")) {
