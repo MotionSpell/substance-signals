@@ -1,0 +1,16 @@
+pipeline:
+  build_sysroot:
+    image: ${DISTRO}
+    commands:
+      - apt-get update && apt-get -y install build-essential git mercurial subversion gperf gettext libtool libtool-bin cmake yasm zlib1g-dev autoconf pkg-config autopoint wget curl&&  update-ca-certificates
+      - ./extra.sh
+  build:
+    image: ${DISTRO}
+    commands:
+      - apt-get update && apt-get install -y build-essential git mercurial subversion gperf gettext libtool libtool-bin cmake yasm zlib1g-dev autoconf pkg-config autopoint wget curl
+      - EXTRA=$PWD/sysroot ./check.sh
+
+matrix:
+  DISTRO:
+    - debian:stretch
+    - debian:buster
