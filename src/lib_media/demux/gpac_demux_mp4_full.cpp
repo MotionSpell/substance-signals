@@ -98,7 +98,7 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 	auto newSampleCount = reader->movie->getSampleCount(FIRST_TRACK);
 	if (newSampleCount > reader->sampleCount) {
 		/* New samples have been added to the file */
-		log(Info, "Found %s new samples (total: %s)",
+		log(Debug, "Found %s new samples (total: %s)",
 		    newSampleCount - reader->sampleCount,
 		    newSampleCount);
 		if (reader->sampleCount == 0) {
