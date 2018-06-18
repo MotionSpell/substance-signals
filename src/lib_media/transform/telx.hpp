@@ -8,6 +8,12 @@
 #include "lib_utils/log.hpp"
 #include "telx2ttml.hpp"
 
+template<typename T, size_t N>
+constexpr size_t NELEMENTS(T const (&array)[N]) {
+	(void)array;
+	return N;
+}
+
 //this code was written really fast to cover the teletext to ttml conversion
 //sticks to the spec
 //in this file we extract pages to convert them later

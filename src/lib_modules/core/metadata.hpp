@@ -2,12 +2,6 @@
 
 #include <typeinfo>
 
-template<typename T, size_t N>
-constexpr size_t NELEMENTS(T const (&array)[N]) {
-	(void)array;
-	return N;
-}
-
 namespace Modules {
 
 enum StreamType {
