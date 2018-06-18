@@ -1,10 +1,6 @@
-#include <cstdio>
-#include <cstdlib>
 #include <iostream>
-#include <memory>
 #include "lib_appcommon/options.hpp"
 #include "options.hpp"
-
 
 mp42tsXOptions parseCommandLine(int argc, char const* argv[]) {
 	mp42tsXOptions cfg;
