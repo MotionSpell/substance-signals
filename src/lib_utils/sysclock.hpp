@@ -3,9 +3,9 @@
 #include "clock.hpp"
 #include <chrono>
 
-class Clock : public IClock {
+class SystemClock : public IClock {
 	public:
-		Clock(double speed);
+		SystemClock(double speed);
 		Fraction now() const override;
 		double getSpeed() const override;
 		void sleep(Fraction time) const override;

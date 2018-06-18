@@ -2,7 +2,7 @@
 #include "lib_modules/core/data_utc.hpp"
 #include "lib_utils/time.hpp"
 #include "lib_utils/os.hpp"
-#include "lib_utils/default_clock.hpp"
+#include "lib_utils/system_clock.hpp"
 #include <cstring> // memcpy
 #include <cassert>
 #include <thread>
@@ -268,7 +268,7 @@ void AdaptiveStreamingCommon::threadProc() {
 				break;
 			} else {
 				assert((type == LiveNonBlocking) && ((int)qualities.size() < numInputs));
-				g_DefaultClock->sleep(Fraction(1, 1000));
+				g_SystemClock->sleep(Fraction(1, 1000));
 				continue;
 			}
 		}

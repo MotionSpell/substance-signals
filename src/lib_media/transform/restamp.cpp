@@ -1,5 +1,5 @@
 #include "restamp.hpp"
-#include "lib_utils/default_clock.hpp"
+#include "lib_utils/system_clock.hpp"
 
 namespace Modules {
 namespace Transform {
@@ -24,7 +24,7 @@ int64_t Restamp::restamp(int64_t time) {
 		}
 		break;
 	case ClockSystem:
-		time = fractionToClock(g_DefaultClock->now());
+		time = fractionToClock(g_SystemClock->now());
 		if (!isInitTime) {
 			isInitTime = true;
 			offset -= time;

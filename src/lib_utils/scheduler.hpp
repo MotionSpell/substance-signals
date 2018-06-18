@@ -3,7 +3,7 @@
 #include "i_scheduler.hpp"
 
 #include "clock.hpp"
-#include "lib_utils/default_clock.hpp"
+#include "lib_utils/system_clock.hpp"
 #include "time.hpp"
 #include "timer.hpp"
 #include <mutex>
@@ -11,7 +11,7 @@
 
 class Scheduler : public IScheduler {
 	public:
-		Scheduler(std::shared_ptr<IClock> clock = g_DefaultClock, std::shared_ptr<ITimer> timer = std::shared_ptr<ITimer>(new SystemTimer));
+		Scheduler(std::shared_ptr<IClock> clock = g_SystemClock, std::shared_ptr<ITimer> timer = std::shared_ptr<ITimer>(new SystemTimer));
 		void scheduleAt(TaskFunc &&task, Fraction time) override;
 		void scheduleIn(TaskFunc &&task, Fraction time) override {
 			scheduleAt(std::move(task), clock->now() + time);

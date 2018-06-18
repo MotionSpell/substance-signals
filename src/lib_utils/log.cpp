@@ -3,7 +3,7 @@
 #include <cassert>
 #include <ctime>
 #include <iostream>
-#include "lib_utils/default_clock.hpp"
+#include "lib_utils/system_clock.hpp"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -39,7 +39,7 @@ std::string Log::getTime() {
 	const std::time_t t = std::time(nullptr);
 	const std::tm tm = *std::gmtime(&t);
 	auto const size = strftime(szOut, 255, "%Y/%m/%d %H:%M:%S", &tm);
-	return format("[%s][%s] ", std::string(szOut, size), (double)g_DefaultClock->now());
+	return format("[%s][%s] ", std::string(szOut, size), (double)g_SystemClock->now());
 }
 
 std::string Log::getColorBegin(Level level) {
