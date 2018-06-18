@@ -17,7 +17,6 @@ class IExecutor<void(Args...)> {
 template<typename> class ExecutorSync;
 template<typename> class ExecutorLazy;
 template<typename> class ExecutorAsync;
-template<typename> class ExecutorAuto;
 
 //synchronous calls
 template<typename... Args>
@@ -47,15 +46,6 @@ class ExecutorAsync<void(Args...)> : public IExecutor<void(Args...)> {
 	public:
 		std::shared_future<void> operator() (const std::function<void(Args...)> &fn, Args... args) {
 			return std::async(std::launch::async, fn, args...);
-		}
-};
-
-//asynchronous or synchronous calls at the runtime convenience
-template< typename... Args>
-class ExecutorAuto<void(Args...)> : public IExecutor<void(Args...)> {
-	public:
-		std::shared_future<void> operator() (const std::function<void(Args...)> &fn, Args... args) {
-			return std::async(std::launch::async | std::launch::deferred, fn, args...);
 		}
 };
 

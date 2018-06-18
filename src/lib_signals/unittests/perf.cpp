@@ -130,9 +130,6 @@ unittest("connect and disconnect a high number of callbacks on one signal") {
 unittest("unsafe emit dummy  on async") {
 	emitTest<int(int), ResultVector<void>, ExecutorAsync, int>(dummy, 1789);
 }
-unittest("unsafe emit dummy  on auto") {
-	emitTest<int(int), ResultVector<void>, ExecutorAuto, int>(dummy, 1789);
-}
 unittest("unsafe emit dummy  on pool") {
 	emitTest<int(int), ResultVector<void>, ExecutorThreadPool, int>(dummy, 1789);
 }
@@ -146,9 +143,6 @@ unittest("unsafe emit dummy  on  lazy") {
 //dummy safe
 unittest("safe emit dummy  on async") {
 	emitTest<int(int), ResultQueue<int>, ExecutorAsync, int>(dummy, 1789);
-}
-unittest("safe emit dummy  on auto") {
-	emitTest<int(int), ResultQueue<int>, ExecutorAuto, int>(dummy, 1789);
 }
 unittest("safe emit dummy  on pool") {
 	emitTest<int(int), ResultQueue<int>, ExecutorThreadPool, int>(dummy, 1789);
@@ -164,9 +158,6 @@ unittest("safe emit dummy  on  lazy") {
 unittest("unsafe emit dummy  on async") {
 	emitTest<int(int), ResultVector<void>, ExecutorAsync, int>(dummy, 1789);
 }
-unittest("unsafe emit dummy  on auto") {
-	emitTest<int(int), ResultVector<void>, ExecutorAuto, int>(dummy, 1789);
-}
 unittest("unsafe emit dummy  on pool") {
 	emitTest<int(int), ResultVector<void>, ExecutorThreadPool, int>(dummy, 1789);
 }
@@ -180,9 +171,6 @@ unittest("unsafe emit dummy  on  lazy") {
 //dummy safe
 unittest("safe emit dummy  on async") {
 	emitTest<int(int), ResultQueue<int>, ExecutorAsync, int>(dummy, 1789);
-}
-unittest("safe emit dummy  on auto") {
-	emitTest<int(int), ResultQueue<int>, ExecutorAuto, int>(dummy, 1789);
 }
 unittest("safe emit dummy  on pool") {
 	emitTest<int(int), ResultQueue<int>, ExecutorThreadPool, int>(dummy, 1789);
@@ -198,9 +186,6 @@ unittest("safe emit dummy  on  lazy") {
 unittest("unsafe emit light computation on async") {
 	emitTest<int(int), ResultVector<void>, ExecutorAsync, int>(compute, 12);
 }
-unittest("unsafe emit light computation on auto") {
-	emitTest<int(int), ResultVector<void>, ExecutorAuto, int>(compute, 12);
-}
 unittest("unsafe emit light computation on pool") {
 	emitTest<int(int), ResultVector<void>, ExecutorThreadPool, int>(compute, 12);
 }
@@ -214,9 +199,6 @@ unittest("unsafe emit light computation on  lazy") {
 //light computation (~1us) safe
 unittest("safe emit light computation on async") {
 	emitTest<int(int), ResultQueue<int>, ExecutorAsync, int>(compute, 12);
-}
-unittest("safe emit light computation on auto") {
-	emitTest<int(int), ResultQueue<int>, ExecutorAuto, int>(compute, 12);
 }
 unittest("safe emit light computation on pool") {
 	emitTest<int(int), ResultQueue<int>, ExecutorThreadPool, int>(compute, 12);
@@ -232,9 +214,6 @@ unittest("safe emit light computation on  lazy") {
 unittest("unsafe emit heavy computation on async") {
 	emitTest<int(int), ResultVector<void>, ExecutorAsync, int>(compute, 25);
 }
-unittest("unsafe emit heavy computation on auto") {
-	emitTest<int(int), ResultVector<void>, ExecutorAuto, int>(compute, 25);
-}
 unittest("unsafe emit heavy computation on pool") {
 	emitTest<int(int), ResultVector<void>, ExecutorThreadPool, int>(compute, 25);
 }
@@ -248,9 +227,6 @@ unittest("unsafe emit heavy computation on  lazy") {
 //heavy computation (~40ms) safe
 unittest("safe emit heavy computation on async") {
 	emitTest<int(int), ResultQueue<int>, ExecutorAsync, int>(compute, 25);
-}
-unittest("safe emit heavy computation on auto") {
-	emitTest<int(int), ResultQueue<int>, ExecutorAuto, int>(compute, 25);
 }
 unittest("safe emit heavy computation on pool") {
 	emitTest<int(int), ResultQueue<int>, ExecutorThreadPool, int>(compute, 25);
@@ -266,9 +242,6 @@ unittest("safe emit heavy computation on  lazy") {
 unittest("unsafe emit sleep   on async") {
 	emitTest<void(int), ResultVector<void>, ExecutorAsync, int>(sleepInMs, 100);
 }
-unittest("unsafe emit sleep   on  auto") {
-	emitTest<void(int), ResultVector<void>, ExecutorAuto, int>(sleepInMs, 100);
-}
 unittest("unsafe emit sleep   on  pool") {
 	emitTest<void(int), ResultVector<void>, ExecutorThreadPool, int>(sleepInMs, 100);
 }
@@ -282,9 +255,6 @@ unittest("unsafe emit sleep   on  lazy") {
 //sleep safe
 unittest("safe emit sleep   on async") {
 	emitTest<void(int), ResultQueue<void>, ExecutorAsync, int>(sleepInMs, 100);
-}
-unittest("safe emit sleep   on  auto") {
-	emitTest<void(int), ResultQueue<void>, ExecutorAuto, int>(sleepInMs, 100);
 }
 unittest("safe emit sleep   on  pool") {
 	emitTest<void(int), ResultQueue<void>, ExecutorThreadPool, int>(sleepInMs, 100);
