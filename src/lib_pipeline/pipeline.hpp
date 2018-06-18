@@ -22,6 +22,8 @@ struct IPipelineNotifier {
 
 class IPipeline {
 	public:
+		virtual ~IPipeline() = default;
+
 		template <typename InstanceType, int NumBlocks = 0, typename ...Args>
 		IPipelinedModule* addModule(Args&&... args) {
 			return addModuleInternal(Modules::createModule<InstanceType>(getNumBlocks(NumBlocks), getClock(), std::forward<Args>(args)...));
