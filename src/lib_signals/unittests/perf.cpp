@@ -136,9 +136,6 @@ unittest("unsafe emit dummy  on pool") {
 unittest("unsafe emit dummy  on  sync") {
 	emitTest<int(int), ResultVector<void>, ExecutorSync, int>(dummy, 1789);
 }
-unittest("unsafe emit dummy  on  lazy") {
-	emitTest<int(int), ResultVector<void>, ExecutorLazy, int>(dummy, 1789);
-}
 
 //dummy safe
 unittest("safe emit dummy  on async") {
@@ -149,9 +146,6 @@ unittest("safe emit dummy  on pool") {
 }
 unittest("safe emit dummy  on  sync") {
 	emitTest<int(int), ResultQueue<int>, ExecutorSync, int>(dummy, 1789);
-}
-unittest("safe emit dummy  on  lazy") {
-	emitTest<int(int), ResultQueue<int>, ExecutorLazy, int>(dummy, 1789);
 }
 
 //dummy unsafe - the result type is set to void to avoid crashed
@@ -164,9 +158,6 @@ unittest("unsafe emit dummy  on pool") {
 unittest("unsafe emit dummy  on  sync") {
 	emitTest<int(int), ResultVector<void>, ExecutorSync, int>(dummy, 1789);
 }
-unittest("unsafe emit dummy  on  lazy") {
-	emitTest<int(int), ResultVector<void>, ExecutorLazy, int>(dummy, 1789);
-}
 
 //dummy safe
 unittest("safe emit dummy  on async") {
@@ -177,9 +168,6 @@ unittest("safe emit dummy  on pool") {
 }
 unittest("safe emit dummy  on  sync") {
 	emitTest<int(int), ResultQueue<int>, ExecutorSync, int>(dummy, 1789);
-}
-unittest("safe emit dummy  on  lazy") {
-	emitTest<int(int), ResultQueue<int>, ExecutorLazy, int>(dummy, 1789);
 }
 
 //light computation (~1us) unsafe - the result type is set to void to avoid crashed
@@ -192,9 +180,6 @@ unittest("unsafe emit light computation on pool") {
 unittest("unsafe emit light computation on  sync") {
 	emitTest<int(int), ResultVector<void>, ExecutorSync, int>(compute, 12);
 }
-unittest("unsafe emit light computation on  lazy") {
-	emitTest<int(int), ResultVector<void>, ExecutorLazy, int>(compute, 12);
-}
 
 //light computation (~1us) safe
 unittest("safe emit light computation on async") {
@@ -205,9 +190,6 @@ unittest("safe emit light computation on pool") {
 }
 unittest("safe emit light computation on  sync") {
 	emitTest<int(int), ResultQueue<int>, ExecutorSync, int>(compute, 12);
-}
-unittest("safe emit light computation on  lazy") {
-	emitTest<int(int), ResultQueue<int>, ExecutorLazy, int>(compute, 12);
 }
 
 //heavy computation (~40ms) unsafe - the result type is set to void to avoid crashed
@@ -220,9 +202,6 @@ unittest("unsafe emit heavy computation on pool") {
 unittest("unsafe emit heavy computation on  sync") {
 	emitTest<int(int), ResultVector<void>, ExecutorSync, int>(compute, 25);
 }
-unittest("unsafe emit heavy computation on  lazy") {
-	emitTest<int(int), ResultVector<void>, ExecutorLazy, int>(compute, 25);
-}
 
 //heavy computation (~40ms) safe
 unittest("safe emit heavy computation on async") {
@@ -233,9 +212,6 @@ unittest("safe emit heavy computation on pool") {
 }
 unittest("safe emit heavy computation on  sync") {
 	emitTest<int(int), ResultQueue<int>, ExecutorSync, int>(compute, 25);
-}
-unittest("safe emit heavy computation on  lazy") {
-	emitTest<int(int), ResultQueue<int>, ExecutorLazy, int>(compute, 25);
 }
 
 //sleep unsafe
@@ -248,9 +224,6 @@ unittest("unsafe emit sleep   on  pool") {
 unittest("unsafe emit sleep   on  sync") {
 	emitTest<void(int), ResultVector<void>, ExecutorSync, int>(sleepInMs, 100);
 }
-unittest("unsafe emit sleep   on  lazy") {
-	emitTest<void(int), ResultVector<void>, ExecutorLazy, int>(sleepInMs, 100);
-}
 
 //sleep safe
 unittest("safe emit sleep   on async") {
@@ -261,9 +234,6 @@ unittest("safe emit sleep   on  pool") {
 }
 unittest("safe emit sleep   on  sync") {
 	emitTest<void(int), ResultQueue<void>, ExecutorSync, int>(sleepInMs, 100);
-}
-unittest("safe emit sleep   on  lazy") {
-	emitTest<void(int), ResultQueue<void>, ExecutorLazy, int>(sleepInMs, 100);
 }
 
 }
