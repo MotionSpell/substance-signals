@@ -1,5 +1,6 @@
 #pragma once
 
+#include "lib_signals/executor_threadpool.hpp"
 #include "pipeline.hpp"
 #include "lib_modules/modules.hpp"
 

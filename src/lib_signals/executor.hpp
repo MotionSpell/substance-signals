@@ -1,6 +1,5 @@
 #pragma once
 
-#include "lib_utils/threadpool.hpp"
 #include <functional>
 #include <future>
 
@@ -19,8 +18,6 @@ template<typename> class ExecutorSync;
 template<typename> class ExecutorLazy;
 template<typename> class ExecutorAsync;
 template<typename> class ExecutorAuto;
-template<typename> class ExecutorThread;
-template<typename> class ExecutorThreadPool;
 
 //synchronous calls
 template<typename... Args>
@@ -60,39 +57,6 @@ class ExecutorAuto<void(Args...)> : public IExecutor<void(Args...)> {
 		std::shared_future<void> operator() (const std::function<void(Args...)> &fn, Args... args) {
 			return std::async(std::launch::async | std::launch::deferred, fn, args...);
 		}
-};
-
-//tasks occur in a thread
-template< typename... Args>
-class ExecutorThread<void(Args...)> : public IExecutor<void(Args...)> {
-	public:
-		ExecutorThread(const std::string &name) : threadPool(name, 1) {
-		}
-
-		std::shared_future<void> operator() (const std::function<void(Args...)> &fn, Args... args) {
-			return threadPool.submit(fn, args...);
-		}
-
-	private:
-		ThreadPool threadPool;
-};
-
-//tasks occur in the pool
-template< typename... Args>
-class ExecutorThreadPool<void(Args...)> : public IExecutor<void(Args...)> {
-	public:
-		ExecutorThreadPool() : threadPool(std::make_shared<ThreadPool>()) {
-		}
-
-		ExecutorThreadPool(std::shared_ptr<ThreadPool> threadPool) : threadPool(threadPool) {
-		}
-
-		std::shared_future<void> operator() (const std::function<void(Args...)> &fn, Args... args) {
-			return threadPool->submit(fn, args...);
-		}
-
-	private:
-		std::shared_ptr<ThreadPool> threadPool;
 };
 
 }
