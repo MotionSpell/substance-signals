@@ -15,7 +15,7 @@ class GPACDemuxMP4Full : public ModuleS {
 
 	private:
 		bool openData();
-		bool updateData();
+		void updateData();
 		bool processSample();
 		bool safeProcessSample();
 
