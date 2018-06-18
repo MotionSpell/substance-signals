@@ -20,11 +20,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="version.cpp" />
-    <ClCompile Include="clock.cpp" />
     <ClCompile Include="os.cpp" />
     <ClCompile Include="profiler.cpp" />
     <ClCompile Include="log.cpp" />
     <ClCompile Include="scheduler.cpp" />
+    <ClCompile Include="sysclock.cpp" />
     <ClCompile Include="time.cpp" />
     <ClCompile Include="timer.cpp" />
   </ItemGroup>
@@ -32,7 +32,6 @@
     <ClInclude Include="..\lib_ffpp\ffpp.hpp" />
     <ClInclude Include="..\lib_gpacpp\gpacpp.hpp" />
     <ClInclude Include="clock.hpp" />
-    <ClInclude Include="default_clock.hpp" />
     <ClInclude Include="fifo.hpp" />
     <ClInclude Include="format.hpp" />
     <ClInclude Include="fraction.hpp" />
@@ -44,6 +43,7 @@
     <ClInclude Include="resolution.hpp" />
     <ClInclude Include="scheduler.hpp" />
     <ClInclude Include="sysclock.hpp" />
+    <ClInclude Include="system_clock.hpp" />
     <ClInclude Include="threadpool.hpp" />
     <ClInclude Include="time.hpp" />
     <ClInclude Include="tools.hpp" />
