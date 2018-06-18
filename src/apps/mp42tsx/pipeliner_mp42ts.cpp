@@ -11,10 +11,6 @@ using namespace Modules;
 using namespace Pipelines;
 
 void declarePipeline(Pipeline &pipeline, const mp42tsXOptions &opt) {
-	auto connect = [&](auto src, auto dst) {
-		pipeline.connect(src, 0, dst, 0);
-	};
-
 	auto createSink = [&](bool isHLS)->IPipelinedModule* {
 		if (isHLS) {
 			const bool isLive = false; //TODO
@@ -37,5 +33,5 @@ void declarePipeline(Pipeline &pipeline, const mp42tsXOptions &opt) {
 		}
 	}
 
-	connect(m2tsmux, sink);
+	pipeline.connect(m2tsmux, 0, sink, 0);
 }
