@@ -90,7 +90,8 @@ SDLAudio::~SDLAudio() {
 }
 
 void SDLAudio::process(Data data) {
-	m_converter->process(data);
+	m_converter->getInput(0)->push(data);
+	m_converter->process();
 }
 
 void SDLAudio::flush() {

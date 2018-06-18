@@ -41,7 +41,7 @@ class SDLAudio : public ModuleS {
 		const std::shared_ptr<IClock> m_clock;
 		PcmFormat m_outputFormat;
 		PcmFormat m_inputFormat;
-		std::unique_ptr<ModuleS> m_converter;
+		std::unique_ptr<IModule> m_converter;
 		std::mutex m_Mutex;
 		Fifo m_Fifo;
 		int64_t fifoTimeIn180k, m_LatencyIn180k;
