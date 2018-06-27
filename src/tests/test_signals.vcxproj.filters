@@ -14,9 +14,6 @@
     <ClCompile Include="..\lib_signals\unittests\simple.cpp">
       <Filter>signals</Filter>
     </ClCompile>
-    <ClCompile Include="..\lib_signals\unittests\unit_result.cpp">
-      <Filter>signals</Filter>
-    </ClCompile>
     <ClCompile Include="..\lib_utils\unittests\clock.cpp">
       <Filter>utils</Filter>
     </ClCompile>
@@ -56,18 +53,6 @@
     <ClCompile Include="..\lib_media\unittests\render.cpp">
       <Filter>media</Filter>
     </ClCompile>
-    <ClCompile Include="..\lib_modules\unittests\erasure.cpp">
-      <Filter>modules</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lib_modules\unittests\generator.cpp">
-      <Filter>modules</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lib_modules\unittests\metadata.cpp">
-      <Filter>modules</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lib_modules\unittests\simple.cpp">
-      <Filter>modules</Filter>
-    </ClCompile>
     <ClCompile Include="..\lib_media\unittests\decoder.cpp">
       <Filter>media</Filter>
     </ClCompile>
@@ -100,6 +85,21 @@
     </ClCompile>
     <ClCompile Include="..\lib_utils\unittests\fraction.cpp">
       <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib_media\unittests\demux_decoder.cpp">
+      <Filter>media</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib_media\unittests\erasure.cpp">
+      <Filter>media</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib_media\unittests\generator.cpp">
+      <Filter>media</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib_media\unittests\metadata.cpp">
+      <Filter>media</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib_media\unittests\simple.cpp">
+      <Filter>media</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
