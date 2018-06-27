@@ -32,6 +32,35 @@ unittest("encoder: video simple") {
 	ASSERT_EQUALS(37, numEncodedFrames);
 }
 
+unittest("encoder: audio with first negative timestamp") {
+	vector<int64_t> times;
+	PcmFormat fmt;
+	auto const numSamplesPerFrame = 1024LL;
+	const int64_t inFrameSizeInBytes = numSamplesPerFrame * fmt.getBytesPerSample() / fmt.numPlanes;
+
+	auto onFrame = [&](Data data) {
+		times.push_back(data->getMediaTime());
+	};
+
+	auto encode = create<Encode::LibavEncode>(Encode::LibavEncode::Audio);
+	ConnectOutput(encode.get(), onFrame);
+	for (int i = 0; i < 4; ++i) {
+		auto pcm = make_shared<DataPcm>(0);
+		pcm->setFormat(fmt);
+		std::vector<uint8_t> input(inFrameSizeInBytes);
+		auto inputRaw = input.data();
+		for (uint8_t i = 0; i < fmt.numPlanes; ++i) {
+			pcm->setPlane(i, inputRaw, inFrameSizeInBytes);
+		}
+		pcm->setMediaTime(i * timescaleToClock(numSamplesPerFrame, fmt.sampleRate));
+		encode->process(pcm);
+	}
+	encode->flush();
+
+	vector<int64_t> expected = { -4180, 0, 4180, 8360, 12540 };
+	ASSERT_EQUALS(expected, times);
+}
+
 unittest("encoder: timestamp passthrough") {
 	vector<int64_t> times;
 	auto onFrame = [&](Data data) {
