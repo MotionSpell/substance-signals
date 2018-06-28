@@ -86,13 +86,7 @@ class GPACMuxMP4 : public ModuleDynI {
 		void startSegment();
 		void closeSegment(bool isLastSeg);
 		const SegmentPolicy segmentPolicy;
-		Fraction segmentDuration;
-
-		// don't add new calls to this, use 'segmentDuration' instead
-		uint64_t segmentDurationIn180k() const {
-			return (segmentDuration * Fraction(IClock::Rate, segmentDuration.den)).num;
-		}
-
+		Fraction segmentDuration {};
 		uint64_t curSegmentDurInTs = 0, curSegmentDeltaInTs = 0, segmentNum = 0, lastSegmentSize = 0;
 		bool segmentStartsWithRAP = true;
 		std::string segmentName;
