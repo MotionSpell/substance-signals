@@ -922,9 +922,13 @@ void GPACMuxMP4::closeChunk(bool nextSampleIsRAP) {
 	if (segmentPolicy <= SingleSegment)
 		return;
 
+	auto chunkBoundaryAllowedHere = nextSampleIsRAP || (compatFlags & SegmentAtAny);
+	auto segmentNextDuration = Fraction(curSegmentDurInTs + curSegmentDeltaInTs, mediaTs);
+	auto segmentPeriod = Fraction(segmentDurationIn180k, IClock::Rate);
+
 	if ((!(compatFlags & Browsers) || curFragmentDurInTs > 0 || fragmentPolicy == OneFragmentPerFrame) && /*avoid 0-sized mdat interpreted as EOS in browsers*/
-	    ((curSegmentDurInTs + curSegmentDeltaInTs) * IClock::Rate) >= (mediaTs * segmentDurationIn180k) &&
-	    (nextSampleIsRAP || (compatFlags & SegmentAtAny))) {
+	    segmentNextDuration >= segmentPeriod &&
+	    chunkBoundaryAllowedHere) {
 		if ((compatFlags & SegConstantDur) && (timescaleToClock(curSegmentDurInTs + curSegmentDeltaInTs, mediaTs) != segmentDurationIn180k) && (curSegmentDurInTs != 0)) {
 			if ((DTS / clockToTimescale(segmentDurationIn180k, mediaTs)) <= 1) {
 				segmentDurationIn180k = timescaleToClock(curSegmentDurInTs + curSegmentDeltaInTs, mediaTs);
