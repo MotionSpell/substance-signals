@@ -919,19 +919,20 @@ void GPACMuxMP4::addData(gpacpp::IsoSample const * const sample, int64_t lastDat
 }
 
 void GPACMuxMP4::closeChunk(bool nextSampleIsRAP) {
-	if (segmentPolicy > SingleSegment) {
-		if ((!(compatFlags & Browsers) || curFragmentDurInTs > 0 || fragmentPolicy == OneFragmentPerFrame) && /*avoid 0-sized mdat interpreted as EOS in browsers*/
-		    ((curSegmentDurInTs + curSegmentDeltaInTs) * IClock::Rate) >= (mediaTs * segmentDurationIn180k) &&
-		    (nextSampleIsRAP || (compatFlags & SegmentAtAny))) {
-			if ((compatFlags & SegConstantDur) && (timescaleToClock(curSegmentDurInTs + curSegmentDeltaInTs, mediaTs) != segmentDurationIn180k) && (curSegmentDurInTs != 0)) {
-				if ((DTS / clockToTimescale(segmentDurationIn180k, mediaTs)) <= 1) {
-					segmentDurationIn180k = timescaleToClock(curSegmentDurInTs + curSegmentDeltaInTs, mediaTs);
-				}
+	if (segmentPolicy <= SingleSegment)
+		return;
+
+	if ((!(compatFlags & Browsers) || curFragmentDurInTs > 0 || fragmentPolicy == OneFragmentPerFrame) && /*avoid 0-sized mdat interpreted as EOS in browsers*/
+	    ((curSegmentDurInTs + curSegmentDeltaInTs) * IClock::Rate) >= (mediaTs * segmentDurationIn180k) &&
+	    (nextSampleIsRAP || (compatFlags & SegmentAtAny))) {
+		if ((compatFlags & SegConstantDur) && (timescaleToClock(curSegmentDurInTs + curSegmentDeltaInTs, mediaTs) != segmentDurationIn180k) && (curSegmentDurInTs != 0)) {
+			if ((DTS / clockToTimescale(segmentDurationIn180k, mediaTs)) <= 1) {
+				segmentDurationIn180k = timescaleToClock(curSegmentDurInTs + curSegmentDeltaInTs, mediaTs);
 			}
-			closeSegment(false);
-			segmentNum++;
-			startSegment();
 		}
+		closeSegment(false);
+		segmentNum++;
+		startSegment();
 	}
 }
 
