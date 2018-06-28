@@ -207,7 +207,7 @@ void LibavEncode::encodeFrame(AVFrame* f) {
 		if(ret != 0)
 			break;
 
-		out->setMediaTime(pkt->pts >= 0 ? pkt->pts : timescaleToClock(pkt->pts * codecCtx->time_base.num, codecCtx->time_base.den));
+		out->setMediaTime(pkt->pts);
 		output->emit(out);
 	}
 }
