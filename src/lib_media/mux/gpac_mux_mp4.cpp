@@ -928,7 +928,7 @@ void GPACMuxMP4::closeChunk(bool nextSampleIsRAP) {
 	if ((!(compatFlags & Browsers) || curFragmentDurInTs > 0 || fragmentPolicy == OneFragmentPerFrame) && /*avoid 0-sized mdat interpreted as EOS in browsers*/
 	    segmentNextDuration >= segmentDuration &&
 	    chunkBoundaryAllowedHere) {
-		if ((compatFlags & SegConstantDur) && (timescaleToClock(curSegmentDurInTs + curSegmentDeltaInTs, mediaTs) != segmentDurationIn180k()) && (curSegmentDurInTs != 0)) {
+		if ((compatFlags & SegConstantDur) && (segmentNextDuration != segmentDuration) && (curSegmentDurInTs != 0)) {
 			if ((DTS / clockToTimescale(segmentDurationIn180k(), mediaTs)) <= 1) {
 				segmentDuration = segmentNextDuration;
 			}
@@ -1008,7 +1008,7 @@ bool GPACMuxMP4::processInit(Data &data) {
 		}
 
 		setupFragments();
-		if (segmentDurationIn180k() && !(compatFlags & SegNumStartsAtZero)) {
+		if (segmentDuration && !(compatFlags & SegNumStartsAtZero)) {
 			segmentNum = firstDataAbsTimeInMs / clockToTimescale(segmentDurationIn180k(), 1000);
 		}
 		startSegment();
