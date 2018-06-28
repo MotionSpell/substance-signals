@@ -55,6 +55,7 @@ class LibavEncode : public ModuleS {
 	private:
 		void encodeFrame(AVFrame* frame);
 		void computeFrameAttributes(AVFrame * const f, const int64_t currMediaTime);
+		void setMediaTime(std::shared_ptr<DataAVPacket> data);
 
 		std::shared_ptr<AVCodecContext> codecCtx;
 		std::unique_ptr<PcmFormat> pcmFormat = nullptr;
