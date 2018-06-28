@@ -12,7 +12,7 @@ extern "C" {
 #include <gpac/internal/media_dev.h>
 }
 
-//#define AVC_INBAND_CONFIG
+auto const AVC_INBAND_CONFIG = 0;
 #define TIMESCALE_MUL 100 /*offers a tolerance on VFR or faulty streams*/
 
 namespace Modules {
@@ -762,14 +762,14 @@ void GPACMuxMP4::declareStreamVideo(const std::shared_ptr<const MetadataPktLibav
 	gf_isom_set_visual_info(isoCur, gf_isom_get_track_by_id(isoCur, trackId), di, res.width, res.height);
 	gf_isom_set_sync_table(isoCur, trackNum);
 
-#ifdef AVC_INBAND_CONFIG
-	//inband SPS/PPS
-	if (m_useSegments) {
-		e = gf_isom_avc_set_inband_config(isoCur, trackNum, di);
-		if (e != GF_OK)
-			throw error(format("Cannot set inband PPS/SPS for AVC track: %s", gf_error_to_string(e)));
+	if(AVC_INBAND_CONFIG) {
+		//inband SPS/PPS
+		if (segmentPolicy != NoSegment) {
+			e = gf_isom_avc_set_inband_config(isoCur, trackNum, di);
+			if (e != GF_OK)
+				throw error(format("Cannot set inband PPS/SPS for AVC track: %s", gf_error_to_string(e)));
+		}
 	}
-#endif
 }
 
 void GPACMuxMP4::declareStream(const std::shared_ptr<const IMetadata> &metadata) {
@@ -834,12 +834,7 @@ void GPACMuxMP4::sendOutput(bool EOS) {
 	case GF_ISOM_MEDIA_TEXT: streamType = SUBTITLE_PKT; mimeType = "application/mp4"; break;
 	default: throw error(format("Unknown media type for segment: %s", (int)mediaType));
 	}
-	Bool isInband =
-#ifdef AVC_INBAND_CONFIG
-	    GF_TRUE;
-#else
-	    GF_FALSE;
-#endif
+	Bool isInband = AVC_INBAND_CONFIG ?  GF_TRUE : GF_FALSE;
 	char codecName[40];
 	GF_Err e = gf_media_get_rfc_6381_codec_name(isoCur, gf_isom_get_track_by_id(isoCur, trackId), codecName, isInband, GF_FALSE);
 	if (e)
