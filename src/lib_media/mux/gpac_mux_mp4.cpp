@@ -535,7 +535,9 @@ void GPACMuxMP4::closeFragment() {
 			auto const curFragmentStartInTs = DTS - curFragmentDurInTs;
 			auto const absTimeInTs = convertToTimescale(firstDataAbsTimeInMs, 1000, mediaTs) + curFragmentStartInTs;
 			auto const deltaRealTimeInMs = 1000 * (double)(getUTC() - Fraction(absTimeInTs, mediaTs));
-			log(deltaRealTimeInMs < 0 || deltaRealTimeInMs > curFragmentStartInTs || curFragmentDurInTs != clockToTimescale((uint64_t)fractionToClock(segmentDuration), mediaTs) ? Warning : Debug,
+
+			auto const isSuspicious = deltaRealTimeInMs < 0 || deltaRealTimeInMs > curFragmentStartInTs || curFragmentDurInTs != clockToTimescale((uint64_t)fractionToClock(segmentDuration), mediaTs);
+			log(isSuspicious ? Warning : Debug,
 			    "Closing MSS fragment with absolute time %s %s UTC and duration %s (timescale %s, time=%s, deltaRT=%s)",
 			    getDay(), getTimeFromUTC(), curFragmentDurInTs, mediaTs, absTimeInTs, deltaRealTimeInMs);
 			GF_Err e = gf_isom_set_traf_mss_timeext(isoCur, trackId, absTimeInTs, curFragmentDurInTs);
