@@ -371,7 +371,7 @@ void fillVideoSampleData(const u8 *bufPtr, u32 bufLen, GF_ISOSample &sample) {
 namespace Mux {
 
 GPACMuxMP4::GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs, SegmentPolicy segmentPolicy, FragmentPolicy fragmentPolicy, CompatibilityFlag compatFlags)
-	: compatFlags(compatFlags), fragmentPolicy(fragmentPolicy), segmentPolicy(segmentPolicy), segmentDurationIn180k(timescaleToClock(segmentDurationInMs, 1000)) {
+	: compatFlags(compatFlags), fragmentPolicy(fragmentPolicy), segmentPolicy(segmentPolicy), segmentDuration(segmentDurationInMs, 1000) {
 	if ((segmentDurationInMs == 0) ^ (segmentPolicy == NoSegment || segmentPolicy == SingleSegment))
 		throw error(format("Inconsistent parameters: segment duration is %sms but no segment.", segmentDurationInMs));
 	if ((segmentDurationInMs == 0) && (fragmentPolicy == Mux::GPACMuxMP4::OneFragmentPerSegment))
@@ -535,7 +535,7 @@ void GPACMuxMP4::closeFragment() {
 			auto const curFragmentStartInTs = DTS - curFragmentDurInTs;
 			auto const absTimeInTs = convertToTimescale(firstDataAbsTimeInMs, 1000, mediaTs) + curFragmentStartInTs;
 			auto const deltaRealTimeInMs = 1000 * (double)(getUTC() - Fraction(absTimeInTs, mediaTs));
-			log(deltaRealTimeInMs < 0 || deltaRealTimeInMs > curFragmentStartInTs || curFragmentDurInTs != clockToTimescale(segmentDurationIn180k, mediaTs) ? Warning : Debug,
+			log(deltaRealTimeInMs < 0 || deltaRealTimeInMs > curFragmentStartInTs || curFragmentDurInTs != clockToTimescale(segmentDurationIn180k(), mediaTs) ? Warning : Debug,
 			    "Closing MSS fragment with absolute time %s %s UTC and duration %s (timescale %s, time=%s, deltaRT=%s)",
 			    getDay(), getTimeFromUTC(), curFragmentDurInTs, mediaTs, absTimeInTs, deltaRealTimeInMs);
 			GF_Err e = gf_isom_set_traf_mss_timeext(isoCur, trackId, absTimeInTs, curFragmentDurInTs);
@@ -842,7 +842,7 @@ void GPACMuxMP4::sendOutput(bool EOS) {
 
 	auto const consideredDurationIn180k = (compatFlags & FlushFragMemory) ? timescaleToClock(curFragmentDurInTs, mediaTs) : timescaleToClock(curSegmentDurInTs, mediaTs);
 	auto const containerLatency =
-	    fragmentPolicy == OneFragmentPerFrame ? timescaleToClock(defaultSampleIncInTs, mediaTs) : std::min<uint64_t>(consideredDurationIn180k, segmentDurationIn180k);
+	    fragmentPolicy == OneFragmentPerFrame ? timescaleToClock(defaultSampleIncInTs, mediaTs) : std::min<uint64_t>(consideredDurationIn180k, segmentDurationIn180k());
 	auto metadata = make_shared<MetadataFile>(segmentName, streamType, mimeType, codecName, consideredDurationIn180k, lastSegmentSize, containerLatency, segmentStartsWithRAP, EOS);
 	switch (mediaType) {
 	case GF_ISOM_MEDIA_VISUAL: metadata->resolution = resolution; break;
@@ -866,7 +866,7 @@ void GPACMuxMP4::startChunk(gpacpp::IsoSample * const sample) {
 	if (curSegmentDurInTs == 0) {
 		segmentStartsWithRAP = sample->IsRAP == RAP;
 		if (segmentPolicy > SingleSegment) {
-			const u64 oneSegDurInTs = clockToTimescale(segmentDurationIn180k, mediaTs);
+			const u64 oneSegDurInTs = clockToTimescale(segmentDurationIn180k(), mediaTs);
 			if (oneSegDurInTs * (DTS / oneSegDurInTs) == 0) { /*initial delay*/
 				curSegmentDeltaInTs = curSegmentDurInTs + curSegmentDeltaInTs - oneSegDurInTs * ((curSegmentDurInTs + curSegmentDeltaInTs) / oneSegDurInTs);
 			} else {
@@ -924,14 +924,14 @@ void GPACMuxMP4::closeChunk(bool nextSampleIsRAP) {
 
 	auto chunkBoundaryAllowedHere = nextSampleIsRAP || (compatFlags & SegmentAtAny);
 	auto segmentNextDuration = Fraction(curSegmentDurInTs + curSegmentDeltaInTs, mediaTs);
-	auto segmentPeriod = Fraction(segmentDurationIn180k, IClock::Rate);
+	auto segmentPeriod = Fraction(segmentDurationIn180k(), IClock::Rate);
 
 	if ((!(compatFlags & Browsers) || curFragmentDurInTs > 0 || fragmentPolicy == OneFragmentPerFrame) && /*avoid 0-sized mdat interpreted as EOS in browsers*/
 	    segmentNextDuration >= segmentPeriod &&
 	    chunkBoundaryAllowedHere) {
-		if ((compatFlags & SegConstantDur) && (timescaleToClock(curSegmentDurInTs + curSegmentDeltaInTs, mediaTs) != segmentDurationIn180k) && (curSegmentDurInTs != 0)) {
-			if ((DTS / clockToTimescale(segmentDurationIn180k, mediaTs)) <= 1) {
-				segmentDurationIn180k = timescaleToClock(curSegmentDurInTs + curSegmentDeltaInTs, mediaTs);
+		if ((compatFlags & SegConstantDur) && (timescaleToClock(curSegmentDurInTs + curSegmentDeltaInTs, mediaTs) != segmentDurationIn180k()) && (curSegmentDurInTs != 0)) {
+			if ((DTS / clockToTimescale(segmentDurationIn180k(), mediaTs)) <= 1) {
+				segmentDuration = segmentNextDuration;
 			}
 		}
 		closeSegment(false);
@@ -1009,8 +1009,8 @@ bool GPACMuxMP4::processInit(Data &data) {
 		}
 
 		setupFragments();
-		if (segmentDurationIn180k && !(compatFlags & SegNumStartsAtZero)) {
-			segmentNum = firstDataAbsTimeInMs / clockToTimescale(segmentDurationIn180k, 1000);
+		if (segmentDurationIn180k() && !(compatFlags & SegNumStartsAtZero)) {
+			segmentNum = firstDataAbsTimeInMs / clockToTimescale(segmentDurationIn180k(), 1000);
 		}
 		startSegment();
 	}
