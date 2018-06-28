@@ -474,23 +474,23 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 
 	if (!isLastSeg && segmentPolicy <= SingleSegment) {
 		return;
-	} else {
-		if (segmentPolicy == FragmentedSegment) {
-			GF_Err e = gf_isom_close_segment(isoCur, 0, 0, 0, 0, 0, GF_FALSE, (Bool)isLastSeg, (Bool)(gf_isom_get_filename(isoInit) != nullptr),
-			        (compatFlags & Browsers) ? 0 : GF_4CC('e', 'o', 'd', 's'), nullptr, nullptr, &lastSegmentSize);
-			if (e != GF_OK) {
-				if (DTS == 0) {
-					return;
-				} else
-					throw error(format("gf_isom_close_segment: %s", gf_error_to_string(e)));
-			}
-		}
-
-		sendOutput(true);
-		log(Debug, "Segment %s completed (size %s) (startsWithSAP=%s)", segmentName.empty() ? "[in memory]" : segmentName, lastSegmentSize, segmentStartsWithRAP);
-
-		curSegmentDurInTs = 0;
 	}
+
+	if (segmentPolicy == FragmentedSegment) {
+		GF_Err e = gf_isom_close_segment(isoCur, 0, 0, 0, 0, 0, GF_FALSE, (Bool)isLastSeg, (Bool)(gf_isom_get_filename(isoInit) != nullptr),
+		        (compatFlags & Browsers) ? 0 : GF_4CC('e', 'o', 'd', 's'), nullptr, nullptr, &lastSegmentSize);
+		if (e != GF_OK) {
+			if (DTS == 0) {
+				return;
+			} else
+				throw error(format("gf_isom_close_segment: %s", gf_error_to_string(e)));
+		}
+	}
+
+	sendOutput(true);
+	log(Debug, "Segment %s completed (size %s) (startsWithSAP=%s)", segmentName.empty() ? "[in memory]" : segmentName, lastSegmentSize, segmentStartsWithRAP);
+
+	curSegmentDurInTs = 0;
 }
 
 void GPACMuxMP4::startFragment(uint64_t DTS, uint64_t PTS) {
