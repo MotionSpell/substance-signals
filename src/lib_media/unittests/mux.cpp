@@ -91,12 +91,12 @@ unittest("mux GPAC mp4: no segment, one fragment per RAP") {
 	ASSERT_EQUALS(ref, runMux(create<Mux::GPACMuxMP4>("out/output_video_gpac_03", 0, Mux::GPACMuxMP4::NoSegment, Mux::GPACMuxMP4::OneFragmentPerRAP)));
 }
 
-unittest("mux GPAC mp4: independent segment, no fragments") {
+unittest("mux GPAC mp4: no segment, one fragment per frame") {
 	std::vector<Meta> ref = { { "out/output_video_gpac_04.mp4", "audio/mp4", "mp4a.40.2", 0, 29869, 4180, 1, 1 } };
 	ASSERT_EQUALS(ref, runMux(create<Mux::GPACMuxMP4>("out/output_video_gpac_04", 0, Mux::GPACMuxMP4::NoSegment, Mux::GPACMuxMP4::OneFragmentPerFrame)));
 }
 
-unittest("mux GPAC mp4: independent segment, no fragments (another)") {
+unittest("mux GPAC mp4: independent segment, no fragments") {
 	std::vector<Meta> ref = {
 		{ "", "audio/mp4", "mp4a.40.2", 363629, 5226, 360000, 1, 1 },
 		{ "", "audio/mp4", "mp4a.40.2", 359445, 5336, 359445, 1, 1 },
