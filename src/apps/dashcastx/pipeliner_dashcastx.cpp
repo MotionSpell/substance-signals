@@ -135,7 +135,7 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 	auto dasher = pipeline->addModule<Stream::MPEG_DASH>(DASH_SUBDIR, format("%s.mpd", g_appName), type, opt->segmentDurationInMs, opt->segmentDurationInMs * opt->timeshiftInSegNum);
 
 	bool isVertical = false;
-	const bool transcode = opt->v.size() > 0 ? true : false;
+	const bool transcode = opt->v.size() > 0;
 	if (!transcode) {
 		Log::msg(Warning, "[%s] No transcode. Make passthru.", g_appName);
 		if (opt->autoRotate)
