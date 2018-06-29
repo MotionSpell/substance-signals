@@ -12,7 +12,6 @@ using namespace Modules;
 namespace {
 
 std::ostream& operator<<(std::ostream& o, Meta const& meta) {
-	o << "internalTestIdx=" << meta.internalTestIdx << std::endl;
 	o << "filename='" << meta.filename << "'" << std::endl;
 	o << "mimeType='" << meta.mimeType << "'" << std::endl;
 	o << "codecName='" << meta.codecName << "'" << std::endl;
@@ -73,7 +72,7 @@ std::vector<Meta> runMux(std::shared_ptr<IModule> m) {
 	assert(audioPin);
 
 	ConnectOutputToInput(audioPin, m->getInput(0));
-	auto listener = create<Listener>(0);
+	auto listener = create<Listener>();
 	ConnectModules(m.get(), 0, listener.get(), 0);
 
 	demux->process(nullptr);
@@ -83,25 +82,25 @@ std::vector<Meta> runMux(std::shared_ptr<IModule> m) {
 }
 
 unittest("mux GPAC mp4: no segment, no fragment") {
-	std::vector<Meta> ref = { { 0, "out/output_video_gpac_01.mp4", "audio/mp4", "mp4a.40.2", 0, 10437, 0, 1, 1 } };
+	std::vector<Meta> ref = { { "out/output_video_gpac_01.mp4", "audio/mp4", "mp4a.40.2", 0, 10437, 0, 1, 1 } };
 	ASSERT_EQUALS(ref, runMux(create<Mux::GPACMuxMP4>("out/output_video_gpac_01", 0, Mux::GPACMuxMP4::NoSegment, Mux::GPACMuxMP4::NoFragment)));
 }
 
 unittest("mux GPAC mp4: no segment, one fragment per RAP") {
-	std::vector<Meta> ref = { { 1, "out/output_video_gpac_03.mp4", "audio/mp4", "mp4a.40.2", 0, 29869, 0, 1, 1 } };
+	std::vector<Meta> ref = { { "out/output_video_gpac_03.mp4", "audio/mp4", "mp4a.40.2", 0, 29869, 0, 1, 1 } };
 	ASSERT_EQUALS(ref, runMux(create<Mux::GPACMuxMP4>("out/output_video_gpac_03", 0, Mux::GPACMuxMP4::NoSegment, Mux::GPACMuxMP4::OneFragmentPerRAP)));
 }
 
 unittest("mux GPAC mp4: independent segment, no fragments") {
-	std::vector<Meta> ref = { { 2, "out/output_video_gpac_04.mp4", "audio/mp4", "mp4a.40.2", 0, 29869, 4180, 1, 1 } };
+	std::vector<Meta> ref = { { "out/output_video_gpac_04.mp4", "audio/mp4", "mp4a.40.2", 0, 29869, 4180, 1, 1 } };
 	ASSERT_EQUALS(ref, runMux(create<Mux::GPACMuxMP4>("out/output_video_gpac_04", 0, Mux::GPACMuxMP4::NoSegment, Mux::GPACMuxMP4::OneFragmentPerFrame)));
 }
 
 unittest("mux GPAC mp4: independent segment, no fragments (another)") {
 	std::vector<Meta> ref = {
-		{ 4, "", "audio/mp4", "mp4a.40.2", 363629, 5226, 360000, 1, 1 },
-		{ 4, "", "audio/mp4", "mp4a.40.2", 359445, 5336, 359445, 1, 1 },
-		{ 4, "", "audio/mp4", "mp4a.40.2", 175543, 3022, 175543, 1, 1 },
+		{ "", "audio/mp4", "mp4a.40.2", 363629, 5226, 360000, 1, 1 },
+		{ "", "audio/mp4", "mp4a.40.2", 359445, 5336, 359445, 1, 1 },
+		{ "", "audio/mp4", "mp4a.40.2", 175543, 3022, 175543, 1, 1 },
 	};
 
 	const uint64_t segmentDurationInMs = 2000;
@@ -110,10 +109,10 @@ unittest("mux GPAC mp4: independent segment, no fragments (another)") {
 
 unittest("mux GPAC mp4: fragmented segments, one fragment per segment") {
 	std::vector<Meta> ref = {
-		{ 9, "", "audio/mp4", "mp4a.40.2", 0, 0, 0, 1, 1 },
-		{ 9, "", "audio/mp4", "mp4a.40.2", 363629, 4957, 360000, 1, 1 },
-		{ 9, "", "audio/mp4", "mp4a.40.2", 359445, 5047, 359445, 1, 1 },
-		{ 9, "", "audio/mp4", "mp4a.40.2", 175543, 2597, 175543, 1, 1 },
+		{ "", "audio/mp4", "mp4a.40.2", 0, 0, 0, 1, 1 },
+		{ "", "audio/mp4", "mp4a.40.2", 363629, 4957, 360000, 1, 1 },
+		{ "", "audio/mp4", "mp4a.40.2", 359445, 5047, 359445, 1, 1 },
+		{ "", "audio/mp4", "mp4a.40.2", 175543, 2597, 175543, 1, 1 },
 	};
 
 	const uint64_t segmentDurationInMs = 2000;
@@ -122,10 +121,10 @@ unittest("mux GPAC mp4: fragmented segments, one fragment per segment") {
 
 unittest("mux GPAC mp4: fragmented segments, one fragment per RAP") {
 	std::vector<Meta> ref = {
-		{ 10, "", "audio/mp4", "mp4a.40.2", 0, 0, 0, 1, 1 },
-		{ 10, "", "audio/mp4", "mp4a.40.2", 363629, 15629, 360000, 1, 1 },
-		{ 10, "", "audio/mp4", "mp4a.40.2", 359445, 15599, 359445, 1, 1 },
-		{ 10, "", "audio/mp4", "mp4a.40.2", 175543, 7685, 175543, 1, 1 },
+		{ "", "audio/mp4", "mp4a.40.2", 0, 0, 0, 1, 1 },
+		{ "", "audio/mp4", "mp4a.40.2", 363629, 15629, 360000, 1, 1 },
+		{ "", "audio/mp4", "mp4a.40.2", 359445, 15599, 359445, 1, 1 },
+		{ "", "audio/mp4", "mp4a.40.2", 175543, 7685, 175543, 1, 1 },
 	};
 
 	const uint64_t segmentDurationInMs = 2000;
@@ -134,10 +133,10 @@ unittest("mux GPAC mp4: fragmented segments, one fragment per RAP") {
 
 unittest("mux GPAC mp4: fragmented segments, one fragment per frame") {
 	std::vector<Meta> ref = {
-		{ 11, "", "audio/mp4", "mp4a.40.2", 0, 0, 4180, 1, 1 },
-		{ 11, "", "audio/mp4", "mp4a.40.2", 363629, 15629, 4180, 1, 1 },
-		{ 11, "", "audio/mp4", "mp4a.40.2", 359445, 15599, 4180, 1, 1 },
-		{ 11, "", "audio/mp4", "mp4a.40.2", 175543, 7685, 4180, 1, 1 },
+		{ "", "audio/mp4", "mp4a.40.2", 0, 0, 4180, 1, 1 },
+		{ "", "audio/mp4", "mp4a.40.2", 363629, 15629, 4180, 1, 1 },
+		{ "", "audio/mp4", "mp4a.40.2", 359445, 15599, 4180, 1, 1 },
+		{ "", "audio/mp4", "mp4a.40.2", 175543, 7685, 4180, 1, 1 },
 	};
 
 	const uint64_t segmentDurationInMs = 2000;
@@ -153,30 +152,30 @@ void operator+=(std::vector<Meta>& dst, std::vector<Meta> const& src) {
 // causes valgrind errors and GPAC warnings
 secondclasstest("mux GPAC mp4 combination coverage: ugly") {
 	std::vector<Meta> results, ref = {
-		{ 3, "", "audio/mp4", "mp4a.40.2", 0, 10437, 0, 1, 1 },
-		{ 5, "output_video_gpac_12-0.mp4", "audio/mp4", "mp4a.40.2", 363629, 4838, 360000, 1, 1 },
-		{ 5, "output_video_gpac_12-1.mp4", "audio/mp4", "mp4a.40.2", 359445, 4936, 359445, 1, 1 },
-		{ 5, "output_video_gpac_12-2.mp4", "audio/mp4", "mp4a.40.2", 175543, 2838, 175543, 1, 1 },
-		{ 6, "output_video_gpac_13-0.mp4", "audio/mp4", "mp4a.40.2", 363629, 19298, 360000, 1, 1 },
-		{ 6, "output_video_gpac_13-1.mp4", "audio/mp4", "mp4a.40.2", 359445, 19232, 359445, 1, 1 },
-		{ 6, "output_video_gpac_13-2.mp4", "audio/mp4", "mp4a.40.2", 175543, 9734, 175543, 1, 1 },
-		{ 7, "output_video_gpac_14-0.mp4", "audio/mp4", "mp4a.40.2", 363629, 19298, 4180, 1, 1 },
-		{ 7, "output_video_gpac_14-1.mp4", "audio/mp4", "mp4a.40.2", 359445, 19232, 4180, 1, 1 },
-		{ 7, "output_video_gpac_14-2.mp4", "audio/mp4", "mp4a.40.2", 175543, 9734, 4180, 1, 1 },
-		{ 8, "", "audio/mp4", "mp4a.40.2", 363629, 5226, 360000, 1, 1 },
-		{ 8, "", "audio/mp4", "mp4a.40.2", 359445, 5336, 359445, 1, 1 },
-		{ 8, "", "audio/mp4", "mp4a.40.2", 175543, 3022, 175543, 1, 1 },
-		{ 12, "", "audio/mp4", "mp4a.40.2", 0, 729, 0, 1, 1 },
-		{ 12, "", "audio/mp4", "mp4a.40.2", 363629, 4957, 360000, 1, 1 },
-		{ 12, "", "audio/mp4", "mp4a.40.2", 359445, 5047, 359445, 1, 1 },
-		{ 12, "", "audio/mp4", "mp4a.40.2", 175543, 2597, 175543, 1, 1 },
-		{ 13, "", "audio/mp4", "mp4a.40.2", 0, 729, 0, 1, 1 },
-		{ 13, "", "audio/mp4", "mp4a.40.2", 363629, 4949, 360000, 1, 0 },
-		{ 13, "", "audio/mp4", "mp4a.40.2", 0, 8, 0, 1, 1 },
-		{ 13, "", "audio/mp4", "mp4a.40.2", 359445, 5039, 359445, 1, 0 },
-		{ 13, "", "audio/mp4", "mp4a.40.2", 0, 8, 0, 1, 1 },
-		{ 13, "", "audio/mp4", "mp4a.40.2", 175543, 2589, 175543, 1, 0 },
-		{ 13, "", "audio/mp4", "mp4a.40.2", 0, 8, 0, 1, 1 },
+		/* 03 */ { "", "audio/mp4", "mp4a.40.2", 0, 10437, 0, 1, 1 },
+		/* 05 */ { "output_video_gpac_12-0.mp4", "audio/mp4", "mp4a.40.2", 363629, 4838, 360000, 1, 1 },
+		/* 05 */ { "output_video_gpac_12-1.mp4", "audio/mp4", "mp4a.40.2", 359445, 4936, 359445, 1, 1 },
+		/* 05 */ { "output_video_gpac_12-2.mp4", "audio/mp4", "mp4a.40.2", 175543, 2838, 175543, 1, 1 },
+		/* 06 */ { "output_video_gpac_13-0.mp4", "audio/mp4", "mp4a.40.2", 363629, 19298, 360000, 1, 1 },
+		/* 06 */ { "output_video_gpac_13-1.mp4", "audio/mp4", "mp4a.40.2", 359445, 19232, 359445, 1, 1 },
+		/* 06 */ { "output_video_gpac_13-2.mp4", "audio/mp4", "mp4a.40.2", 175543, 9734, 175543, 1, 1 },
+		/* 07 */ { "output_video_gpac_14-0.mp4", "audio/mp4", "mp4a.40.2", 363629, 19298, 4180, 1, 1 },
+		/* 07 */ { "output_video_gpac_14-1.mp4", "audio/mp4", "mp4a.40.2", 359445, 19232, 4180, 1, 1 },
+		/* 07 */ { "output_video_gpac_14-2.mp4", "audio/mp4", "mp4a.40.2", 175543, 9734, 4180, 1, 1 },
+		/* 08 */ { "", "audio/mp4", "mp4a.40.2", 363629, 5226, 360000, 1, 1 },
+		/* 08 */ { "", "audio/mp4", "mp4a.40.2", 359445, 5336, 359445, 1, 1 },
+		/* 08 */ { "", "audio/mp4", "mp4a.40.2", 175543, 3022, 175543, 1, 1 },
+		/* 12 */ {  "", "audio/mp4", "mp4a.40.2", 0, 729, 0, 1, 1 },
+		/* 12 */ {  "", "audio/mp4", "mp4a.40.2", 363629, 4957, 360000, 1, 1 },
+		/* 12 */ {  "", "audio/mp4", "mp4a.40.2", 359445, 5047, 359445, 1, 1 },
+		/* 12 */ {  "", "audio/mp4", "mp4a.40.2", 175543, 2597, 175543, 1, 1 },
+		/* 13 */ {  "", "audio/mp4", "mp4a.40.2", 0, 729, 0, 1, 1 },
+		/* 13 */ {  "", "audio/mp4", "mp4a.40.2", 363629, 4949, 360000, 1, 0 },
+		/* 13 */ {  "", "audio/mp4", "mp4a.40.2", 0, 8, 0, 1, 1 },
+		/* 13 */ {  "", "audio/mp4", "mp4a.40.2", 359445, 5039, 359445, 1, 0 },
+		/* 13 */ {  "", "audio/mp4", "mp4a.40.2", 0, 8, 0, 1, 1 },
+		/* 13 */ {  "", "audio/mp4", "mp4a.40.2", 175543, 2589, 175543, 1, 0 },
+		/* 13 */ {  "", "audio/mp4", "mp4a.40.2", 0, 8, 0, 1, 1 },
 	};
 
 	const uint64_t segmentDurationInMs = 2000;
