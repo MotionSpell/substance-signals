@@ -52,8 +52,7 @@ void TimeRectifier::flush() {
 }
 
 void TimeRectifier::mimicOutputs() {
-	for(auto i : getInputs()) {
-		(void)i;
+	while(streams.size() < getInputs().size()) {
 		std::unique_lock<std::mutex> lock(inputMutex);
 		addOutput<OutputDefault>();
 		streams.push_back(Stream());
