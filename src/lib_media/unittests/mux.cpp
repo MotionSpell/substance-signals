@@ -57,6 +57,37 @@ unittest("mux GPAC mp4 failure tests") {
 	ASSERT_THROWN(create<Mux::GPACMuxMP4>("out/output_video_gpac_20", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::NoFragment, Mux::GPACMuxMP4::SegNumStartsAtZero););
 }
 
+std::vector<Meta> runMux(std::shared_ptr<IModule> m) {
+	IOutput* audioPin = nullptr;
+
+	auto demux = create<Demux::LibavDemux>("data/beepbop.mp4");
+
+	for (int i = 0; i < demux->getNumOutputs(); ++i) {
+		auto pin = demux->getOutput(i);
+		auto metadata = pin->getMetadata();
+		if (metadata->isAudio()) {
+			audioPin = pin;
+		}
+	}
+
+	assert(audioPin);
+
+	ConnectOutputToInput(audioPin, m->getInput(0));
+	auto listener = create<Listener>(0);
+	ConnectModules(m.get(), 0, listener.get(), 0);
+
+	demux->process(nullptr);
+	m->flush();
+
+	return std::vector<Meta>(listener->results.begin(), listener->results.end());
+}
+
+// remove this when the tests are split
+void operator+=(std::vector<Meta>& dst, std::vector<Meta> const& src) {
+	for(auto& val : src)
+		dst.push_back(val);
+}
+
 unittest("mux GPAC mp4 combination coverage") {
 	std::vector<Meta> results, ref = {
 		{ 0, "out/output_video_gpac_01.mp4", "audio/mp4", "mp4a.40.2", 0, 10437, 0, 1, 1 },
@@ -79,45 +110,15 @@ unittest("mux GPAC mp4 combination coverage") {
 		{ 11, "", "audio/mp4", "mp4a.40.2", 175543, 7685, 4180, 1, 1 },
 	};
 
-	auto demux = create<Demux::LibavDemux>("data/beepbop.mp4");
-	std::vector<std::unique_ptr<Mux::GPACMuxMP4>> muxers;
 	const uint64_t segmentDurationInMs = 2000;
 
-	muxers.push_back(create<Mux::GPACMuxMP4>("out/output_video_gpac_01", 0, Mux::GPACMuxMP4::NoSegment, Mux::GPACMuxMP4::NoFragment));
-	muxers.push_back(create<Mux::GPACMuxMP4>("out/output_video_gpac_03", 0, Mux::GPACMuxMP4::NoSegment, Mux::GPACMuxMP4::OneFragmentPerRAP));
-	muxers.push_back(create<Mux::GPACMuxMP4>("out/output_video_gpac_04", 0, Mux::GPACMuxMP4::NoSegment, Mux::GPACMuxMP4::OneFragmentPerFrame));
-	muxers.push_back(create<Mux::GPACMuxMP4>("", segmentDurationInMs, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::NoFragment, Mux::GPACMuxMP4::SegNumStartsAtZero));
-	muxers.push_back(create<Mux::GPACMuxMP4>("", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerSegment, Mux::GPACMuxMP4::SegNumStartsAtZero));
-	muxers.push_back(create<Mux::GPACMuxMP4>("", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerRAP, Mux::GPACMuxMP4::SegNumStartsAtZero));
-	muxers.push_back(create<Mux::GPACMuxMP4>("", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerFrame, Mux::GPACMuxMP4::SegNumStartsAtZero));
-
-	std::vector<std::unique_ptr<Listener>> listeners;
-
-	IOutput* audioPin = nullptr;
-
-	for (int i = 0; i < demux->getNumOutputs(); ++i) {
-		auto pin  =demux->getOutput(i);
-		auto metadata = pin->getMetadata();
-		if (metadata->isAudio()) {
-			audioPin = pin;
-		}
-	}
-
-	assert(audioPin);
-
-	for (auto &m : muxers) {
-		ConnectOutputToInput(audioPin, m->getInput(0));
-		listeners.push_back(create<Listener>(listeners.size()));
-		ConnectModules(m.get(), 0, listeners.back().get(), 0);
-	}
-
-	demux->process(nullptr);
-	for (auto &m : muxers) {
-		m->flush();
-	}
-	for (auto &l : listeners) {
-		for (auto &r : l->results) results.push_back(r);
-	}
+	results += runMux(create<Mux::GPACMuxMP4>("out/output_video_gpac_01", 0, Mux::GPACMuxMP4::NoSegment, Mux::GPACMuxMP4::NoFragment));
+	results += runMux(create<Mux::GPACMuxMP4>("out/output_video_gpac_03", 0, Mux::GPACMuxMP4::NoSegment, Mux::GPACMuxMP4::OneFragmentPerRAP));
+	results += runMux(create<Mux::GPACMuxMP4>("out/output_video_gpac_04", 0, Mux::GPACMuxMP4::NoSegment, Mux::GPACMuxMP4::OneFragmentPerFrame));
+	results += runMux(create<Mux::GPACMuxMP4>("", segmentDurationInMs, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::NoFragment, Mux::GPACMuxMP4::SegNumStartsAtZero));
+	results += runMux(create<Mux::GPACMuxMP4>("", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerSegment, Mux::GPACMuxMP4::SegNumStartsAtZero));
+	results += runMux(create<Mux::GPACMuxMP4>("", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerRAP, Mux::GPACMuxMP4::SegNumStartsAtZero));
+	results += runMux(create<Mux::GPACMuxMP4>("", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerFrame, Mux::GPACMuxMP4::SegNumStartsAtZero));
 
 	ASSERT_EQUALS(ref, results);
 }
@@ -151,45 +152,15 @@ secondclasstest("mux GPAC mp4 combination coverage: ugly") {
 		{ 13, "", "audio/mp4", "mp4a.40.2", 0, 8, 0, 1, 1 },
 	};
 
-	auto demux = create<Demux::LibavDemux>("data/beepbop.mp4");
-	std::vector<std::unique_ptr<Mux::GPACMuxMP4>> muxers;
 	const uint64_t segmentDurationInMs = 2000;
 
-	muxers.push_back(create<Mux::GPACMuxMP4>("", 0, Mux::GPACMuxMP4::NoSegment, Mux::GPACMuxMP4::NoFragment)); // causes gpac warning: "[BS] Attempt to write on unassigned bitstream"
-	muxers.push_back(create<Mux::GPACMuxMP4>("output_video_gpac_12", segmentDurationInMs, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::OneFragmentPerSegment, Mux::GPACMuxMP4::SegNumStartsAtZero)); // valgrind reports writes of uninitialized bytes
-	muxers.push_back(create<Mux::GPACMuxMP4>("output_video_gpac_13", segmentDurationInMs, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::OneFragmentPerRAP, Mux::GPACMuxMP4::SegNumStartsAtZero)); // valgrind reports writes of uninitialized bytes
-	muxers.push_back(create<Mux::GPACMuxMP4>("output_video_gpac_14", segmentDurationInMs, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::OneFragmentPerFrame, Mux::GPACMuxMP4::SegNumStartsAtZero)); // valgrind reports writes of uninitialized bytes
-	muxers.push_back(create<Mux::GPACMuxMP4>("", segmentDurationInMs, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::NoFragment, Mux::GPACMuxMP4::SegNumStartsAtZero)); // causes gpac warning: "[BS] Attempt to write on unassigned bitstream"
-	muxers.push_back(create<Mux::GPACMuxMP4>("", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerSegment, Mux::GPACMuxMP4::SegNumStartsAtZero));// causes gpac warning: "[BS] Attempt to write on unassigned bitstream"
-	muxers.push_back(create<Mux::GPACMuxMP4>("", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerSegment, Mux::GPACMuxMP4::SegNumStartsAtZero | Mux::GPACMuxMP4::FlushFragMemory));// causes gpac warning: "[BS] Attempt to write on unassigned bitstream"
-
-	std::vector<std::unique_ptr<Listener>> listeners;
-
-	IOutput* audioPin = nullptr;
-
-	for (int i = 0; i < demux->getNumOutputs(); ++i) {
-		auto pin  =demux->getOutput(i);
-		auto metadata = pin->getMetadata();
-		if (metadata->isAudio()) {
-			audioPin = pin;
-		}
-	}
-
-	assert(audioPin);
-
-	for (auto &m : muxers) {
-		ConnectOutputToInput(audioPin, m->getInput(0));
-		listeners.push_back(create<Listener>(listeners.size()));
-		ConnectModules(m.get(), 0, listeners.back().get(), 0);
-	}
-
-	demux->process(nullptr);
-	for (auto &m : muxers) {
-		m->flush();
-	}
-	for (auto &l : listeners) {
-		for (auto &r : l->results) results.push_back(r);
-	}
+	results += runMux(create<Mux::GPACMuxMP4>("", 0, Mux::GPACMuxMP4::NoSegment, Mux::GPACMuxMP4::NoFragment)); // causes gpac warning: "[BS] Attempt to write on unassigned bitstream"
+	results += runMux(create<Mux::GPACMuxMP4>("output_video_gpac_12", segmentDurationInMs, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::OneFragmentPerSegment, Mux::GPACMuxMP4::SegNumStartsAtZero)); // valgrind reports writes of uninitialized bytes
+	results += runMux(create<Mux::GPACMuxMP4>("output_video_gpac_13", segmentDurationInMs, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::OneFragmentPerRAP, Mux::GPACMuxMP4::SegNumStartsAtZero)); // valgrind reports writes of uninitialized bytes
+	results += runMux(create<Mux::GPACMuxMP4>("output_video_gpac_14", segmentDurationInMs, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::OneFragmentPerFrame, Mux::GPACMuxMP4::SegNumStartsAtZero)); // valgrind reports writes of uninitialized bytes
+	results += runMux(create<Mux::GPACMuxMP4>("", segmentDurationInMs, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::NoFragment, Mux::GPACMuxMP4::SegNumStartsAtZero)); // causes gpac warning: "[BS] Attempt to write on unassigned bitstream"
+	results += runMux(create<Mux::GPACMuxMP4>("", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerSegment, Mux::GPACMuxMP4::SegNumStartsAtZero));// causes gpac warning: "[BS] Attempt to write on unassigned bitstream"
+	results += runMux(create<Mux::GPACMuxMP4>("", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerSegment, Mux::GPACMuxMP4::SegNumStartsAtZero | Mux::GPACMuxMP4::FlushFragMemory));// causes gpac warning: "[BS] Attempt to write on unassigned bitstream"
 
 	ASSERT_EQUALS(ref, results);
 }
