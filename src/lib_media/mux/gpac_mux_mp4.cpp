@@ -392,7 +392,7 @@ GPACMuxMP4::GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs
 			segmentName = format("%s.mp4", baseName);
 		}
 
-		log(Info, "Working in file mode: %s.", segmentName);
+		log(Warning, "Working in file mode: %s. This is deprecated.", segmentName);
 	}
 
 	isoInit = gf_isom_open(segmentName.empty() ? nullptr : segmentName.c_str(), GF_ISOM_OPEN_WRITE, nullptr);
