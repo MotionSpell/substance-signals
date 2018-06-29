@@ -425,10 +425,8 @@ void GPACMuxMP4::flush() {
 
 	if (segmentPolicy == IndependentSegment) {
 		gf_isom_delete(isoInit);
-		if (gf_isom_get_filename(isoInit)) {
-			const std::string fn = gf_isom_get_filename(isoInit);
-			gf_delete_file(fn.c_str());
-		}
+		if (auto fn = gf_isom_get_filename(isoInit))
+			gf_delete_file(fn);
 	} else {
 		GF_Err e = gf_isom_close(isoCur);
 		if (e != GF_OK && e != GF_ISOM_INVALID_FILE)
