@@ -4,7 +4,6 @@
 #include "lib_gpacpp/gpacpp.hpp"
 #include "lib_ffpp/ffpp.hpp"
 #include "lib_modules/core/data_utc.hpp"
-#include <sstream>
 
 extern "C" {
 #include <gpac/base_coding.h>
