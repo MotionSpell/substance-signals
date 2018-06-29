@@ -7,7 +7,7 @@ namespace Modules {
 class DataRawGPAC : public DataRaw {
 	public:
 		/*takes ownership*/
-		DataRawGPAC(size_t /*size*/) : DataRaw(0), buffer(nullptr), bufferSize(0) {
+		DataRawGPAC(size_t /*size*/) : DataRaw(0) {
 		}
 		~DataRawGPAC();
 		void setData(uint8_t *buffer, const size_t size) {
@@ -31,8 +31,8 @@ class DataRawGPAC : public DataRaw {
 		}
 
 	private:
-		uint8_t *buffer;
-		size_t bufferSize;
+		uint8_t *buffer = nullptr;
+		size_t bufferSize = 0;
 };
 
 }
