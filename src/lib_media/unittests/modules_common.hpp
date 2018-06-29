@@ -1,7 +1,6 @@
 #pragma once
 
 #include "lib_modules/modules.hpp"
-#include <list>
 #include <iostream> // std::cout
 
 namespace {
@@ -37,7 +36,7 @@ struct Listener : public Modules::ModuleS {
 		}
 	}
 
-	std::list<Meta> results;
+	std::vector<Meta> results;
 };
 
 }

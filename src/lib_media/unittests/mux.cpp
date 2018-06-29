@@ -78,7 +78,7 @@ std::vector<Meta> runMux(std::shared_ptr<IModule> m) {
 	demux->process(nullptr);
 	m->flush();
 
-	return std::vector<Meta>(listener->results.begin(), listener->results.end());
+	return listener->results;
 }
 
 unittest("mux GPAC mp4: no segment, no fragment") {
