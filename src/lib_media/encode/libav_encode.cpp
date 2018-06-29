@@ -193,6 +193,7 @@ void LibavEncode::computeFrameAttributes(AVFrame * const f, const int64_t currMe
 void LibavEncode::setMediaTime(std::shared_ptr<DataAVPacket> data) {
 	AVPacket *pkt = data->getPacket();
 	if (pkt->pts < 0 && pkt->pts == -pkt->duration) {
+		pkt->dts = timescaleToClock(pkt->pts * codecCtx->time_base.num, codecCtx->time_base.den);
 		pkt->pts = timescaleToClock(pkt->pts * codecCtx->time_base.num, codecCtx->time_base.den);
 	}
 	data->setMediaTime(pkt->pts);
