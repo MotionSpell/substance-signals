@@ -13,9 +13,9 @@ namespace {
 
 std::ostream& operator<<(std::ostream& o, Meta const& meta) {
 	o << "internalTestIdx=" << meta.internalTestIdx << std::endl;
-	o << "filename=" << meta.filename << std::endl;
-	o << "mimeType=" << meta.mimeType << std::endl;
-	o << "codecName=" << meta.codecName << std::endl;
+	o << "filename='" << meta.filename << "'" << std::endl;
+	o << "mimeType='" << meta.mimeType << "'" << std::endl;
+	o << "codecName='" << meta.codecName << "'" << std::endl;
 	o << "durationIn180k=" << meta.durationIn180k << std::endl;
 	o << "filesize=" << meta.filesize << std::endl;
 	o << "latencyIn180k=" << meta.latencyIn180k << std::endl;
