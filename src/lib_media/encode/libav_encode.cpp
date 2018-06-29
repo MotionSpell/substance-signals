@@ -168,14 +168,21 @@ void LibavEncode::flush() {
 LibavEncode::~LibavEncode() {
 }
 
+int64_t LibavEncode::computeNearestGOPNum(int64_t timeDiff) const {
+	auto const num = timeDiff * GOPSize.den * codecCtx->time_base.den;
+	auto const den = GOPSize.num * codecCtx->time_base.num * (int64_t)IClock::Rate;
+	auto const halfStep = (den * codecCtx->time_base.num) / (codecCtx->time_base.den * 2);
+	return (num + halfStep - 1) / den;
+}
+
 void LibavEncode::computeFrameAttributes(AVFrame * const f, const int64_t currMediaTime) {
 	if (f->pts == std::numeric_limits<int64_t>::min()) {
 		firstMediaTime = currMediaTime;
 		f->key_frame = 1;
 		f->pict_type = AV_PICTURE_TYPE_I;
 	} else {
-		auto const prevGOP = ((prevMediaTime - firstMediaTime) * GOPSize.den * codecCtx->time_base.den) / (GOPSize.num * codecCtx->time_base.num * (int64_t)IClock::Rate);
-		auto const currGOP = ((currMediaTime - firstMediaTime) * GOPSize.den * codecCtx->time_base.den) / (GOPSize.num * codecCtx->time_base.num * (int64_t)IClock::Rate);
+		auto const prevGOP = computeNearestGOPNum(prevMediaTime - firstMediaTime);
+		auto const currGOP = computeNearestGOPNum(currMediaTime - firstMediaTime);
 		if (prevGOP != currGOP) {
 			if (currGOP != prevGOP + 1) {
 				log(Warning, "Invalid content: switching from GOP %s to GOP %s - inserting RAP.", prevGOP, currGOP);

@@ -133,6 +133,13 @@ unittest("encoder: RAP placement (30000/1001 fps)") {
 	RAPTest(Fraction(30000, 1001), times, RAPs);
 }
 
+unittest("encoder: RAP placement (noisy)") {
+	const auto &ms = std::bind(timescaleToClock<uint64_t>, std::placeholders::_1, 1000);
+	const vector<uint64_t> times = { 0, ms(330), ms(660), ms(990), ms(1330), ms(1660) };
+	const vector<bool> RAPs = { true, false, false, true, false, false };
+	RAPTest(Fraction(3, 1), times, RAPs);
+}
+
 unittest("encoder: RAP placement (incorrect timings)") {
 	const vector<uint64_t> times = { 0, 0, IClock::Rate };
 	const vector<bool> RAPs = { true, false, true };

@@ -111,4 +111,3 @@ template<typename T>
 T divUp(T num, T divisor) {
 	return (num + sign(num) * (divisor - 1)) / divisor;
 }
-
