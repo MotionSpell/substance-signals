@@ -82,28 +82,58 @@ std::vector<Meta> runMux(std::shared_ptr<IModule> m) {
 	return std::vector<Meta>(listener->results.begin(), listener->results.end());
 }
 
-// remove this when the tests are split
-void operator+=(std::vector<Meta>& dst, std::vector<Meta> const& src) {
-	for(auto& val : src)
-		dst.push_back(val);
+unittest("mux GPAC mp4: no segment, no fragment") {
+	std::vector<Meta> ref = { { 0, "out/output_video_gpac_01.mp4", "audio/mp4", "mp4a.40.2", 0, 10437, 0, 1, 1 } };
+	ASSERT_EQUALS(ref, runMux(create<Mux::GPACMuxMP4>("out/output_video_gpac_01", 0, Mux::GPACMuxMP4::NoSegment, Mux::GPACMuxMP4::NoFragment)));
 }
 
-unittest("mux GPAC mp4 combination coverage") {
-	std::vector<Meta> results, ref = {
-		{ 0, "out/output_video_gpac_01.mp4", "audio/mp4", "mp4a.40.2", 0, 10437, 0, 1, 1 },
-		{ 1, "out/output_video_gpac_03.mp4", "audio/mp4", "mp4a.40.2", 0, 29869, 0, 1, 1 },
-		{ 2, "out/output_video_gpac_04.mp4", "audio/mp4", "mp4a.40.2", 0, 29869, 4180, 1, 1 },
+unittest("mux GPAC mp4: no segment, one fragment per RAP") {
+	std::vector<Meta> ref = { { 1, "out/output_video_gpac_03.mp4", "audio/mp4", "mp4a.40.2", 0, 29869, 0, 1, 1 } };
+	ASSERT_EQUALS(ref, runMux(create<Mux::GPACMuxMP4>("out/output_video_gpac_03", 0, Mux::GPACMuxMP4::NoSegment, Mux::GPACMuxMP4::OneFragmentPerRAP)));
+}
+
+unittest("mux GPAC mp4: independent segment, no fragments") {
+	std::vector<Meta> ref = { { 2, "out/output_video_gpac_04.mp4", "audio/mp4", "mp4a.40.2", 0, 29869, 4180, 1, 1 } };
+	ASSERT_EQUALS(ref, runMux(create<Mux::GPACMuxMP4>("out/output_video_gpac_04", 0, Mux::GPACMuxMP4::NoSegment, Mux::GPACMuxMP4::OneFragmentPerFrame)));
+}
+
+unittest("mux GPAC mp4: independent segment, no fragments (another)") {
+	std::vector<Meta> ref = {
 		{ 4, "", "audio/mp4", "mp4a.40.2", 363629, 5226, 360000, 1, 1 },
 		{ 4, "", "audio/mp4", "mp4a.40.2", 359445, 5336, 359445, 1, 1 },
 		{ 4, "", "audio/mp4", "mp4a.40.2", 175543, 3022, 175543, 1, 1 },
+	};
+
+	const uint64_t segmentDurationInMs = 2000;
+	ASSERT_EQUALS(ref, runMux(create<Mux::GPACMuxMP4>("", segmentDurationInMs, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::NoFragment, Mux::GPACMuxMP4::SegNumStartsAtZero)));
+}
+
+unittest("mux GPAC mp4: fragmented segments, one fragment per segment") {
+	std::vector<Meta> ref = {
 		{ 9, "", "audio/mp4", "mp4a.40.2", 0, 0, 0, 1, 1 },
 		{ 9, "", "audio/mp4", "mp4a.40.2", 363629, 4957, 360000, 1, 1 },
 		{ 9, "", "audio/mp4", "mp4a.40.2", 359445, 5047, 359445, 1, 1 },
 		{ 9, "", "audio/mp4", "mp4a.40.2", 175543, 2597, 175543, 1, 1 },
+	};
+
+	const uint64_t segmentDurationInMs = 2000;
+	ASSERT_EQUALS(ref, runMux(create<Mux::GPACMuxMP4>("", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerSegment, Mux::GPACMuxMP4::SegNumStartsAtZero)));
+}
+
+unittest("mux GPAC mp4: fragmented segments, one fragment per RAP") {
+	std::vector<Meta> ref = {
 		{ 10, "", "audio/mp4", "mp4a.40.2", 0, 0, 0, 1, 1 },
 		{ 10, "", "audio/mp4", "mp4a.40.2", 363629, 15629, 360000, 1, 1 },
 		{ 10, "", "audio/mp4", "mp4a.40.2", 359445, 15599, 359445, 1, 1 },
 		{ 10, "", "audio/mp4", "mp4a.40.2", 175543, 7685, 175543, 1, 1 },
+	};
+
+	const uint64_t segmentDurationInMs = 2000;
+	ASSERT_EQUALS(ref, runMux(create<Mux::GPACMuxMP4>("", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerRAP, Mux::GPACMuxMP4::SegNumStartsAtZero)));
+}
+
+unittest("mux GPAC mp4: fragmented segments, one fragment per frame") {
+	std::vector<Meta> ref = {
 		{ 11, "", "audio/mp4", "mp4a.40.2", 0, 0, 4180, 1, 1 },
 		{ 11, "", "audio/mp4", "mp4a.40.2", 363629, 15629, 4180, 1, 1 },
 		{ 11, "", "audio/mp4", "mp4a.40.2", 359445, 15599, 4180, 1, 1 },
@@ -111,16 +141,13 @@ unittest("mux GPAC mp4 combination coverage") {
 	};
 
 	const uint64_t segmentDurationInMs = 2000;
+	ASSERT_EQUALS(ref, runMux(create<Mux::GPACMuxMP4>("", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerFrame, Mux::GPACMuxMP4::SegNumStartsAtZero)));
+}
 
-	results += runMux(create<Mux::GPACMuxMP4>("out/output_video_gpac_01", 0, Mux::GPACMuxMP4::NoSegment, Mux::GPACMuxMP4::NoFragment));
-	results += runMux(create<Mux::GPACMuxMP4>("out/output_video_gpac_03", 0, Mux::GPACMuxMP4::NoSegment, Mux::GPACMuxMP4::OneFragmentPerRAP));
-	results += runMux(create<Mux::GPACMuxMP4>("out/output_video_gpac_04", 0, Mux::GPACMuxMP4::NoSegment, Mux::GPACMuxMP4::OneFragmentPerFrame));
-	results += runMux(create<Mux::GPACMuxMP4>("", segmentDurationInMs, Mux::GPACMuxMP4::IndependentSegment, Mux::GPACMuxMP4::NoFragment, Mux::GPACMuxMP4::SegNumStartsAtZero));
-	results += runMux(create<Mux::GPACMuxMP4>("", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerSegment, Mux::GPACMuxMP4::SegNumStartsAtZero));
-	results += runMux(create<Mux::GPACMuxMP4>("", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerRAP, Mux::GPACMuxMP4::SegNumStartsAtZero));
-	results += runMux(create<Mux::GPACMuxMP4>("", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerFrame, Mux::GPACMuxMP4::SegNumStartsAtZero));
-
-	ASSERT_EQUALS(ref, results);
+// remove this when the below tests are split
+void operator+=(std::vector<Meta>& dst, std::vector<Meta> const& src) {
+	for(auto& val : src)
+		dst.push_back(val);
 }
 
 // causes valgrind errors and GPAC warnings
