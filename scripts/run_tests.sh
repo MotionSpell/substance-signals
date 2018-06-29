@@ -56,7 +56,7 @@ function unittests
 {
   rm -rf out
   mkdir -p out
-  $BIN/src/tests/test_other.exe
+  $BIN/unittests.exe
   rm -rf out
 }
 
