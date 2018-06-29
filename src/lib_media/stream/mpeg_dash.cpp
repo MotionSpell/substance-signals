@@ -95,8 +95,8 @@ void MPEG_DASH::ensureManifest() {
 				continue;
 			}
 			switch (meta->getStreamType()) {
-			case AUDIO_PKT: audioAS ? as = audioAS : as = audioAS = createAS(segDurationInMs, period, mpd.get()); break;
-			case VIDEO_PKT: videoAS ? as = videoAS : as = videoAS = createAS(segDurationInMs, period, mpd.get()); break;
+			case AUDIO_PKT: as = audioAS ? audioAS : audioAS = createAS(segDurationInMs, period, mpd.get()); break;
+			case VIDEO_PKT: as = videoAS ? videoAS : videoAS = createAS(segDurationInMs, period, mpd.get()); break;
 			case SUBTITLE_PKT: as = createAS(segDurationInMs, period, mpd.get()); break;
 			default: assert(0);
 			}
