@@ -436,31 +436,31 @@ void GPACMuxMP4::flush() {
 }
 
 void GPACMuxMP4::startSegment() {
-	if (segmentPolicy > SingleSegment) {
-		if (gf_isom_get_filename(isoInit)) {
-			std::stringstream ss;
-			std::string fn = gf_isom_get_filename(isoInit);
-			ss << fn.substr(0, fn.find("-init")) << "-" << segmentNum;
-			if (segmentPolicy == FragmentedSegment) ss << ".m4s";
-			else ss << ".mp4";
-			segmentName = ss.str();
-		}
-
-		if (segmentPolicy == FragmentedSegment) {
-			GF_Err e = gf_isom_start_segment(isoCur, segmentName.empty() ? nullptr : segmentName.c_str(), GF_TRUE);
-			if (e != GF_OK)
-				throw error(format("Impossible to start segment %s (%s): %s", segmentNum, segmentName, gf_error_to_string(e)));
-		} else if (segmentPolicy == IndependentSegment) {
-			isoCur = gf_isom_open(segmentName.empty() ? nullptr : segmentName.c_str(), GF_ISOM_OPEN_WRITE, nullptr);
-			if (!isoCur)
-				throw error(format("Cannot open isoCur file %s"));
-			declareStream(inputs[0]->getMetadata());
-			startSegmentPostAction();
-			setupFragments();
-			gf_isom_set_next_moof_number(isoCur, (u32)nextFragmentNum);
-		} else
-			throw error("Unknown segment policy (2)");
+	if (segmentPolicy <= SingleSegment)
+		return;
+	if (gf_isom_get_filename(isoInit)) {
+		std::stringstream ss;
+		std::string fn = gf_isom_get_filename(isoInit);
+		ss << fn.substr(0, fn.find("-init")) << "-" << segmentNum;
+		if (segmentPolicy == FragmentedSegment) ss << ".m4s";
+		else ss << ".mp4";
+		segmentName = ss.str();
 	}
+
+	if (segmentPolicy == FragmentedSegment) {
+		GF_Err e = gf_isom_start_segment(isoCur, segmentName.empty() ? nullptr : segmentName.c_str(), GF_TRUE);
+		if (e != GF_OK)
+			throw error(format("Impossible to start segment %s (%s): %s", segmentNum, segmentName, gf_error_to_string(e)));
+	} else if (segmentPolicy == IndependentSegment) {
+		isoCur = gf_isom_open(segmentName.empty() ? nullptr : segmentName.c_str(), GF_ISOM_OPEN_WRITE, nullptr);
+		if (!isoCur)
+			throw error(format("Cannot open isoCur file %s"));
+		declareStream(inputs[0]->getMetadata());
+		startSegmentPostAction();
+		setupFragments();
+		gf_isom_set_next_moof_number(isoCur, (u32)nextFragmentNum);
+	} else
+		throw error("Unknown segment policy (2)");
 }
 
 void GPACMuxMP4::closeSegment(bool isLastSeg) {
