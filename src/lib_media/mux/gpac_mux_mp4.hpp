@@ -65,6 +65,7 @@ class GPACMuxMP4 : public ModuleDynI {
 		void addData(gpacpp::IsoSample const * const sample, int64_t lastDataDurationInTs);
 		void closeChunk(bool nextSampleIsRAP);
 		void processSample(std::unique_ptr<gpacpp::IsoSample> sample, int64_t lastDataDurationInTs);
+		void updateSegmentName();
 
 		CompatibilityFlag compatFlags;
 		Data lastData = nullptr; //used with ExactInputDur flag
