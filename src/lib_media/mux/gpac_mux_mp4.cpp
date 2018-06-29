@@ -447,16 +447,13 @@ void GPACMuxMP4::updateSegmentName() {
 }
 
 void GPACMuxMP4::startSegment() {
-	if (segmentPolicy <= SingleSegment)
-		return;
 
-	updateSegmentName();
-
-	if (segmentPolicy == FragmentedSegment) {
-		GF_Err e = gf_isom_start_segment(isoCur, segmentName.empty() ? nullptr : segmentName.c_str(), GF_TRUE);
-		if (e != GF_OK)
-			throw error(format("Impossible to start segment %s (%s): %s", segmentNum, segmentName, gf_error_to_string(e)));
-	} else if (segmentPolicy == IndependentSegment) {
+	switch(segmentPolicy) {
+	case NoSegment:
+	case SingleSegment:
+		break;
+	case IndependentSegment:
+		updateSegmentName();
 		isoCur = gf_isom_open(segmentName.empty() ? nullptr : segmentName.c_str(), GF_ISOM_OPEN_WRITE, nullptr);
 		if (!isoCur)
 			throw error(format("Cannot open isoCur file %s"));
@@ -464,8 +461,14 @@ void GPACMuxMP4::startSegment() {
 		startSegmentPostAction();
 		setupFragments();
 		gf_isom_set_next_moof_number(isoCur, (u32)nextFragmentNum);
-	} else
-		throw error("Unknown segment policy (2)");
+		break;
+	case FragmentedSegment:
+		updateSegmentName();
+		GF_Err e = gf_isom_start_segment(isoCur, segmentName.empty() ? nullptr : segmentName.c_str(), GF_TRUE);
+		if (e != GF_OK)
+			throw error(format("Impossible to start segment %s (%s): %s", segmentNum, segmentName, gf_error_to_string(e)));
+		break;
+	}
 }
 
 void GPACMuxMP4::closeSegment(bool isLastSeg) {
