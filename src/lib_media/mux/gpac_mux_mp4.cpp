@@ -1017,7 +1017,7 @@ bool GPACMuxMP4::processInit(Data &data) {
 		}
 
 		setupFragments();
-		if (segmentDuration && !(compatFlags & SegNumStartsAtZero)) {
+		if ((segmentDuration != 0) && !(compatFlags & SegNumStartsAtZero)) {
 			segmentNum = firstDataAbsTimeInMs / clockToTimescale(fractionToClock(segmentDuration), 1000);
 		}
 		startSegment();
