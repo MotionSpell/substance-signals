@@ -4,10 +4,10 @@
 
 namespace Modules {
 
-class DataRawGPAC : public DataRaw {
+class DataRawGPAC : public DataBase {
 	public:
 		/*takes ownership*/
-		DataRawGPAC(size_t /*size*/) : DataRaw(0) {
+		DataRawGPAC(size_t /*size*/) {
 		}
 		~DataRawGPAC();
 		void setData(uint8_t *buffer, const size_t size) {
