@@ -55,7 +55,9 @@ class ClockMock : public IClock, public IScheduler {
 		}
 
 		void scheduleAt(TaskFunc &&task, Fraction time) {
-			assert(time >= m_time);
+			if(time < m_time)
+				throw runtime_error("The rectifier is scheduling events in the past");
+
 			m_tasks.push_back({time, task});
 			std::sort(m_tasks.begin(), m_tasks.end());
 		}
@@ -182,18 +184,18 @@ unittest("rectifier: simple offset") {
 	auto fps = Fraction(IClock::Rate, 1000);
 
 	auto const inTimes = vector<Event>({
-		Event{0, 0, 301007},
-		Event{0, 1000, 301007},
-		Event{0, 2000, 302007},
-		Event{0, 3000, 303007},
-		Event{0, 4000, 304007},
+		Event{0, 8801000, 301007},
+		Event{0, 8802000, 301007},
+		Event{0, 8803000, 302007},
+		Event{0, 8804000, 303007},
+		Event{0, 8805000, 304007},
 	});
 	auto const expectedTimes = vector<Event>({
-		Event{0, 0, 0},
-		Event{0, 1000, 1000},
-		Event{0, 2000, 2000},
-		Event{0, 3000, 3000},
-		Event{0, 4000, 4000},
+		Event{0, 8801000, 0},
+		Event{0, 8802000, 1000},
+		Event{0, 8803000, 2000},
+		Event{0, 8804000, 3000},
+		Event{0, 8805000, 4000},
 	});
 
 	vector<unique_ptr<ModuleS>> generators;
