@@ -346,10 +346,7 @@ unittest("rectifier: multiple media types simple") {
 
 	auto actualTimes = runRectifier(videoRate, clock, generators, times);
 
-	auto expectedTimes = times;
-	fixupTimes(expectedTimes, actualTimes);
-
-	ASSERT_EQUALS(expectedTimes, actualTimes);
+	ASSERT_EQUALS(times, actualTimes);
 }
 
 unittest("rectifier: two streams, only the first receives data") {
@@ -363,9 +360,7 @@ unittest("rectifier: two streams, only the first receives data") {
 
 	auto actualTimes = runRectifier(videoRate, clock, generators, times);
 
-	auto expectedTimes = times;
-	fixupTimes(expectedTimes, actualTimes);
-	ASSERT_EQUALS(expectedTimes, actualTimes);
+	ASSERT_EQUALS(times, actualTimes);
 }
 
 unittest("rectifier: fail when no video") {
