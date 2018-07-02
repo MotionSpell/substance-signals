@@ -136,7 +136,7 @@ vector<Event> runRectifier(
 			rectifier->flush();
 		});
 		std::this_thread::sleep_for(10ms);
-		for(int i=1; i < 100; ++i)
+		for(int i=1; i < 25; ++i)
 			clock->setTime(clock->now() + 1);
 		flushThread.join();
 	}
