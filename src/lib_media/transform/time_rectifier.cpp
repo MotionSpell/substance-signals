@@ -135,7 +135,7 @@ Data TimeRectifier::findNearestData(Stream& stream, Fraction time) {
 	return refData;
 }
 
-void TimeRectifier::findNearestDataAudio(size_t i, Fraction time, Data& selectedData, Data refData) {
+void TimeRectifier::findNearestDataAudio(size_t i, Fraction time, Data& selectedData, int64_t masterTime) {
 	int currDataIdx = -1, idx = -1;
 	for (auto &currData : streams[i].data) {
 		idx++;
@@ -143,8 +143,8 @@ void TimeRectifier::findNearestDataAudio(size_t i, Fraction time, Data& selected
 			selectedData = nullptr;
 			continue;
 		}
-		auto const currDistMedia = refData->getMediaTime() - currData->getMediaTime();
-		log(Debug, "Other: considering data (%s/%s) at time %s (ref=%s/%s, currDist=%s)", currData->getMediaTime(), currData->getCreationTime(), fractionToClock(time), refData->getMediaTime(), refData->getCreationTime(), currDistMedia);
+		auto const currDistMedia = masterTime - currData->getMediaTime();
+		log(Debug, "Other: considering data (%s/%s) at time %s (ref=%s, currDist=%s)", currData->getMediaTime(), currData->getCreationTime(), fractionToClock(time), masterTime, currDistMedia);
 		if ((currDistMedia >= 0) && (currDistMedia < threshold)) {
 			selectedData = currData;
 			currDataIdx = idx;
@@ -170,12 +170,13 @@ void TimeRectifier::emitOnePeriod(Fraction time) {
 	std::unique_lock<std::mutex> lock(inputMutex);
 	discardOutdatedData(fractionToClock(time) - analyzeWindowIn180k);
 
-	Data refData;
+	// media time corresponding to now (now='time' argument)
+	int64_t masterTime = 0;
 
 	{
 		auto const i = getMasterStreamId();
 		auto& master = streams[i];
-		refData = findNearestData(master, time);
+		auto refData = findNearestData(master, time);
 		if (!refData) {
 			// No reference data found but neither starting nor flushing
 			assert(master.numTicks == 0 || flushing);
@@ -183,6 +184,9 @@ void TimeRectifier::emitOnePeriod(Fraction time) {
 			log(Warning, "No available reference data for clock time %s", fractionToClock(time));
 			return;
 		}
+
+		masterTime = refData->getMediaTime();
+
 		if (master.numTicks == 0) {
 			log(Info, "First available reference clock time: %s", fractionToClock(time));
 		}
@@ -208,7 +212,7 @@ void TimeRectifier::emitOnePeriod(Fraction time) {
 
 			while (1) {
 
-				findNearestDataAudio(i, time, selectedData, refData);
+				findNearestDataAudio(i, time, selectedData, masterTime);
 				if (!selectedData) {
 					break;
 				}
@@ -216,7 +220,7 @@ void TimeRectifier::emitOnePeriod(Fraction time) {
 				auto const audioData = safe_cast<const DataPcm>(selectedData);
 				auto data = make_shared<DataBaseRef>(selectedData);
 				data->setMediaTime(fractionToClock(Fraction(streams[i].numTicks++ * audioData->getPlaneSize(0) / audioData->getFormat().getBytesPerSample(), audioData->getFormat().sampleRate)));
-				log(TR_DEBUG, "Other: send[%s:%s] t=%s (data=%s/%s) (ref %s/%s)", i, streams[i].data.size(), data->getMediaTime(), data->getMediaTime(), data->getCreationTime(), refData->getMediaTime(), refData->getCreationTime());
+				log(TR_DEBUG, "Other: send[%s:%s] t=%s (data=%s/%s) (ref=%s)", i, streams[i].data.size(), data->getMediaTime(), data->getMediaTime(), data->getCreationTime(), masterTime);
 				outputs[i]->emit(data);
 				discardStreamOutdatedData(i, data->getCreationTime());
 			}

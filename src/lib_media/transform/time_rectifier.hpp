@@ -63,7 +63,7 @@ class TimeRectifier : public ModuleDynI {
 		void declareScheduler(std::unique_ptr<IInput> &input, std::unique_ptr<IOutput> &output);
 		void emitOnePeriod(Fraction time);
 		Data findNearestData(Stream& stream, Fraction time);
-		void findNearestDataAudio(size_t i, Fraction time, Data& selectedData, Data refData);
+		void findNearestDataAudio(size_t i, Fraction time, Data& selectedData, int64_t masterTime);
 		size_t getMasterStreamId() const;
 
 		Fraction const frameRate;
