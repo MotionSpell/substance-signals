@@ -155,7 +155,7 @@ vector<Event> runRectifier(
 }
 
 unittest("rectifier: simple offset") {
-	ScopedLogLevel lev(Quiet);
+	ScopedLogLevel lev(Error);
 
 	// use '1000' as a human-readable frame period
 	auto fps = Fraction(IClock::Rate, 1000);
@@ -225,7 +225,7 @@ vector<Event> generateData(Fraction fps, function<TimePair(uint64_t, Fraction)> 
 }
 
 void testFPSFactor(Fraction fps, Fraction factor) {
-	ScopedLogLevel lev(Quiet);
+	ScopedLogLevel lev(Error);
 	auto const genVal = [&](uint64_t step, Fraction fps) {
 		auto const tIn = timescaleToClock(step * fps.den, fps.num);
 		auto const stepOutIn180k = (IClock::Rate * fps.den * factor.num) / (fps.num * factor.den);
@@ -263,7 +263,7 @@ unittest("rectifier: FPS factor (single port) 29.97 fps, x1/2") {
 }
 
 unittest("rectifier: initial offset (single port)") {
-	ScopedLogLevel lev(Quiet);
+	ScopedLogLevel lev(Error);
 	auto const fps = Fraction(25, 1);
 	auto const inGenVal = [&](uint64_t step, Fraction fps, int shift) {
 		auto const t = (int64_t)(IClock::Rate * (step + shift) * fps.den) / fps.num;
@@ -279,7 +279,7 @@ unittest("rectifier: initial offset (single port)") {
 }
 
 unittest("rectifier: deal with missing frames (single port)") {
-	ScopedLogLevel lev(Quiet);
+	ScopedLogLevel lev(Error);
 	const uint64_t freq = 2;
 	auto const fps = Fraction(25, 1);
 
@@ -304,7 +304,7 @@ unittest("rectifier: deal with missing frames (single port)") {
 }
 
 unittest("rectifier: deal with backward discontinuity (single port)") {
-	ScopedLogLevel lev(Quiet);
+	ScopedLogLevel lev(Error);
 	auto const fps = Fraction(25, 1);
 	auto const outGenVal = [&](uint64_t step, Fraction fps, int64_t clockTimeOffset, int64_t mediaTimeOffset) {
 		auto const mediaTime = (int64_t)(IClock::Rate * (step + mediaTimeOffset) * fps.den) / fps.num;
@@ -321,7 +321,7 @@ unittest("rectifier: deal with backward discontinuity (single port)") {
 }
 
 unittest("rectifier: multiple media types simple") {
-	ScopedLogLevel lev(Quiet);
+	ScopedLogLevel lev(Error);
 
 	vector<Event> times;
 
@@ -350,7 +350,7 @@ unittest("rectifier: multiple media types simple") {
 }
 
 unittest("rectifier: two streams, only the first receives data") {
-	ScopedLogLevel lev(Quiet);
+	ScopedLogLevel lev(Error);
 	const auto videoRate = Fraction(25, 1);
 	auto times = generateData(videoRate);
 	vector<unique_ptr<ModuleS>> generators;
