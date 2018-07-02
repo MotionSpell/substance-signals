@@ -35,7 +35,7 @@ class DataBase : public IData {
 		uint32_t flags = 0;
 
 	private:
-		int64_t mediaTimeIn180k = 0, clockTimeIn180k = 0;
+		int64_t mediaTimeIn180k = 0;
 		std::shared_ptr<const IMetadata> metadata;
 };
 
