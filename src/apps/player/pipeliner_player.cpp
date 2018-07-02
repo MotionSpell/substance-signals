@@ -42,7 +42,9 @@ void declarePipeline(Pipeline &pipeline, const char *url) {
 
 	auto demuxer = createDemuxer(url);
 
-	assert(demuxer->getNumOutputs() > 0);
+	if(demuxer->getNumOutputs() == 0)
+		throw std::runtime_error("No streams found");
+
 	for (int k = 0; k < (int)demuxer->getNumOutputs(); ++k) {
 		auto metadata = safe_cast<const MetadataPkt>(demuxer->getOutput(k)->getMetadata());
 		if (!metadata || metadata->isSubtitle()/*only render audio and video*/) {
