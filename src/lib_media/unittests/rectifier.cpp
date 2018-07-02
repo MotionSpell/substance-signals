@@ -308,7 +308,7 @@ vector<Event> generateData(Fraction fps, function<TimePair(uint64_t, Fraction)> 
 
 void testFPSFactor(Fraction fps, Fraction factor) {
 	ScopedLogLevel lev(Error);
-	auto const genVal = [&](uint64_t step, Fraction fps) {
+	auto const genVal = [](uint64_t step, Fraction fps) {
 		auto const tIn = timescaleToClock(step * fps.den, fps.num);
 		return TimePair{(int64_t)tIn, (int64_t)tIn};
 	};
@@ -345,7 +345,7 @@ unittest("rectifier: FPS factor (single port) 29.97 fps, x1/2") {
 unittest("rectifier: initial offset (single port)") {
 	ScopedLogLevel lev(Error);
 	auto const fps = Fraction(25, 1);
-	auto const inGenVal = [&](uint64_t step, Fraction fps, int shift) {
+	auto const inGenVal = [](uint64_t step, Fraction fps, int shift) {
 		auto const t = (int64_t)(IClock::Rate * (step + shift) * fps.den) / fps.num;
 		return TimePair{t, int64_t((IClock::Rate * step * fps.den) / fps.num)};
 	};
@@ -363,7 +363,7 @@ unittest("rectifier: deal with missing frames (single port)") {
 	const uint64_t freq = 2;
 	auto const fps = Fraction(25, 1);
 
-	auto const inGenVal = [&](uint64_t step, Fraction fps) {
+	auto const inGenVal = [](uint64_t step, Fraction fps) {
 		static uint64_t i = 0;
 		if (step && !(step % freq)) i++;
 		auto const t = int64_t((IClock::Rate * (step+i) * fps.den) / fps.num);
@@ -371,7 +371,7 @@ unittest("rectifier: deal with missing frames (single port)") {
 	};
 	auto const inTimes = generateData(fps, inGenVal);
 
-	auto const outGenVal = [&](uint64_t step, Fraction fps) {
+	auto const outGenVal = [](uint64_t step, Fraction fps) {
 		auto const t = int64_t((IClock::Rate * step * fps.den) / fps.num);
 		return TimePair{t, t};
 	};
@@ -383,7 +383,7 @@ unittest("rectifier: deal with missing frames (single port)") {
 unittest("rectifier: deal with backward discontinuity (single port)") {
 	ScopedLogLevel lev(Error);
 	auto const fps = Fraction(25, 1);
-	auto const outGenVal = [&](uint64_t step, Fraction fps, int64_t clockTimeOffset, int64_t mediaTimeOffset) {
+	auto const outGenVal = [](uint64_t step, Fraction fps, int64_t clockTimeOffset, int64_t mediaTimeOffset) {
 		auto const mediaTime = (int64_t)(IClock::Rate * (step + mediaTimeOffset) * fps.den) / fps.num;
 		auto const clockTime = (int64_t)(IClock::Rate * (step + clockTimeOffset) * fps.den) / fps.num;
 		return TimePair{mediaTime, clockTime};
