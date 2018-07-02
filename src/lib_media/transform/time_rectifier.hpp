@@ -3,7 +3,6 @@
 #include "lib_modules/modules.hpp"
 #include "lib_utils/i_scheduler.hpp"
 #include <condition_variable>
-#include <list>
 #include <memory>
 #include <vector>
 
@@ -51,7 +50,7 @@ class TimeRectifier : public ModuleDynI {
 
 	private:
 		struct Stream {
-			std::list<Data> data;
+			std::vector<Data> data;
 			int64_t numTicks = 0;
 		};
 
