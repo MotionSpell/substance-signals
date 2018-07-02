@@ -165,6 +165,7 @@ size_t TimeRectifier::getMasterStreamId() const {
 	return 0;
 }
 
+// emit one period of data on every output
 void TimeRectifier::emitOnePeriod(Fraction time) {
 	std::unique_lock<std::mutex> lock(inputMutex);
 	discardOutdatedData(fractionToClock(time) - analyzeWindowIn180k);
