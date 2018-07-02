@@ -76,12 +76,13 @@ void TimeRectifier::declareScheduler(std::unique_ptr<IInput> &input, std::unique
 
 void TimeRectifier::fillInputQueuesUnsafe() {
 	auto now = fractionToClock(clock->now());
+	maxClockTimeIn180k = std::max(maxClockTimeIn180k, now);
+
 	for (auto i : getInputs()) {
 		auto &currInput = inputs[i];
 		Data data;
 		while (currInput->tryPop(data)) {
 			(const_cast<DataBase*>(data.get()))->setCreationTime(now);
-			maxClockTimeIn180k = std::max<int64_t>(maxClockTimeIn180k, data->getCreationTime());
 			streams[i].data.push_back(data);
 			if (currInput->updateMetadata(data)) {
 				declareScheduler(currInput, outputs[i]);
