@@ -18,6 +18,8 @@ struct Event {
 	bool operator<(Event other) const {
 		if(clockTime != other.clockTime)
 			return clockTime < other.clockTime;
+		if(index != other.index)
+			return index < other.index;
 		else
 			return mediaTime < other.mediaTime;
 	}
