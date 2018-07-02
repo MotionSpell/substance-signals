@@ -105,17 +105,24 @@ struct DataGenerator : public ModuleS, public virtual IOutputCap {
 };
 
 struct DataRecorder : ModuleS {
-	DataRecorder() {
+	DataRecorder(shared_ptr<IClock> clock_) : clock(clock_) {
 		addInput(new Input<DataBase>(this));
 	}
 
 	void process(Data data) {
 		if(!data)
 			return;
-		record.push_back(data);
+		auto now = fractionToClock(clock->now());
+		record.push_back({now, data});
 	}
 
-	vector<Data> record;
+	struct Rec {
+		int64_t when;
+		Data data;
+	};
+
+	vector<Rec> record;
+	shared_ptr<IClock> clock;
 };
 
 typedef DataGenerator<MetadataRawVideo, OutputDataDefault<PictureYUV420P>> VideoGenerator;
@@ -133,7 +140,7 @@ vector<Event> runRectifier(
 	vector<unique_ptr<DataRecorder>> recorders;
 	for (int i = 0; i < N; ++i) {
 		ConnectModules(generators[i].get(), 0, rectifier.get(), i);
-		recorders.push_back(create<DataRecorder>());
+		recorders.push_back(create<DataRecorder>(clock));
 		ConnectModules(rectifier.get(), i, recorders[i].get(), 0);
 	}
 
@@ -159,8 +166,8 @@ vector<Event> runRectifier(
 
 	for(int i=0; i < N; ++i) {
 		recorders[i]->process(nullptr);
-		for (auto data : recorders[i]->record) {
-			actualTimes.push_back(Event{i, data->getCreationTime(), data->getMediaTime()});
+		for (auto& rec : recorders[i]->record) {
+			actualTimes.push_back(Event{i, rec.when, rec.data->getMediaTime()});
 		}
 	}
 	sort(actualTimes.begin(), actualTimes.end());
@@ -242,9 +249,7 @@ void testFPSFactor(Fraction fps, Fraction factor) {
 	ScopedLogLevel lev(Error);
 	auto const genVal = [&](uint64_t step, Fraction fps) {
 		auto const tIn = timescaleToClock(step * fps.den, fps.num);
-		auto const stepOutIn180k = (IClock::Rate * fps.den * factor.num) / (fps.num * factor.den);
-		auto const tOut = tIn / stepOutIn180k * stepOutIn180k;
-		return TimePair{(int64_t)tIn, (int64_t)tOut};
+		return TimePair{(int64_t)tIn, (int64_t)tIn};
 	};
 
 	auto const outTimes = generateData(fps * factor, genVal);
@@ -307,9 +312,9 @@ unittest("rectifier: deal with missing frames (single port)") {
 
 	auto const outGenVal = [&](uint64_t step, Fraction fps) {
 		auto const t = (IClock::Rate * step * fps.den) / fps.num;
-		static uint64_t prevT = 0, i = 1;
-		const uint64_t val = !(i % (freq+1)) ? prevT : t;
-		i++; prevT = t;
+		static uint64_t i = 1;
+		const uint64_t val = t;
+		i++;
 		return TimePair{int64_t((IClock::Rate * step * fps.den) / fps.num), (int64_t)val};
 	};
 	auto const outTimes = generateData(fps, outGenVal);
@@ -359,6 +364,13 @@ unittest("rectifier: multiple media types simple") {
 	generators.push_back(createModule<AudioGenerator>(times.size(), clock));
 
 	auto actualTimes = runRectifier(videoRate, clock, generators, times);
+
+	{
+		auto const outputPeriod = fractionToClock(videoRate.inverse());
+		for(auto& event : times)
+			event.clockTime = int64_t((event.clockTime + outputPeriod - 1) / outputPeriod) * outputPeriod;
+		sort(times.begin(), times.end());
+	}
 
 	ASSERT_EQUALS(times, actualTimes);
 }
