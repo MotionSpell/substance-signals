@@ -154,6 +154,34 @@ vector<Event> runRectifier(
 	return actualTimes;
 }
 
+unittest("rectifier: simple offset") {
+	ScopedLogLevel lev(Quiet);
+
+	// use '1000' as a human-readable frame period
+	auto fps = Fraction(IClock::Rate, 1000);
+
+	auto const inTimes = vector<Event>({
+		Event{0, 0, 301007},
+		Event{0, 1000, 301007},
+		Event{0, 2000, 302007},
+		Event{0, 3000, 303007},
+		Event{0, 4000, 304007},
+	});
+	auto const expectedTimes = vector<Event>({
+		Event{0, 0, 0},
+		Event{0, 1000, 1000},
+		Event{0, 2000, 2000},
+		Event{0, 3000, 3000},
+		Event{0, 4000, 4000},
+	});
+
+	vector<unique_ptr<ModuleS>> generators;
+	auto clock = make_shared<ClockMock>();
+	generators.push_back(createModule<VideoGenerator>(inTimes.size(), clock));
+
+	ASSERT_EQUALS(expectedTimes, runRectifier(fps, clock, generators, inTimes));
+}
+
 static void fixupTimes(vector<Event>& expectedTimes, vector<Event>& actualTimes) {
 	// cut the surplus 'actual' times
 	if(actualTimes.size() > expectedTimes.size())
