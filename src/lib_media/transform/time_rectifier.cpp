@@ -165,12 +165,12 @@ size_t TimeRectifier::getMasterStreamId() const {
 	return 0;
 }
 
-// emit one period of data on every output
+// emit one "media period" on every output
 void TimeRectifier::emitOnePeriod(Fraction time) {
 	std::unique_lock<std::mutex> lock(inputMutex);
 	discardOutdatedData(fractionToClock(time) - analyzeWindowIn180k);
 
-	// media time corresponding to now (now='time' argument)
+	// media time corresponding to the start of the "media period"
 	int64_t masterTime = 0;
 
 	{
