@@ -2,21 +2,16 @@
 #include "lib_utils/scheduler.hpp"
 #include "../common/pcm.hpp"
 
+static auto const analyzeWindowIn180k = IClock::Rate / 2; // 500 ms
+
 namespace Modules {
 
 #define TR_DEBUG Debug
 
-static const int64_t ANALYZE_WINDOW_MAX = std::numeric_limits<int64_t>::max() / 2;
-
-TimeRectifier::TimeRectifier(IScheduler* scheduler_, Fraction frameRate, uint64_t analyzeWindowIn180k)
+TimeRectifier::TimeRectifier(IScheduler* scheduler_, Fraction frameRate)
 	: frameRate(frameRate),
 	  threshold(timescaleToClock(frameRate.den, frameRate.num)),
 	  scheduler(scheduler_) {
-	if (clock->getSpeed() == 0.0) {
-		this->analyzeWindowIn180k = ANALYZE_WINDOW_MAX;
-	} else {
-		this->analyzeWindowIn180k = (int64_t)(analyzeWindowIn180k * clock->getSpeed());
-	}
 }
 
 void TimeRectifier::sanityChecks() {

@@ -35,7 +35,7 @@ Remarks:
 */
 class TimeRectifier : public ModuleDynI {
 	public:
-		TimeRectifier(IScheduler* scheduler, Fraction frameRate, uint64_t analyzeWindowIn180k = ANALYZE_WINDOW_IN_180K);
+		TimeRectifier(IScheduler* scheduler, Fraction frameRate);
 
 		void process() override;
 		void flush() override;
@@ -72,7 +72,7 @@ class TimeRectifier : public ModuleDynI {
 
 		Fraction const frameRate;
 		int64_t const threshold;
-		int64_t analyzeWindowIn180k = 0, maxClockTimeIn180k = 0;
+		int64_t maxClockTimeIn180k = 0;
 		std::vector<Stream> streams;
 		std::mutex inputMutex;
 		std::condition_variable inputQueueWasReduced;
