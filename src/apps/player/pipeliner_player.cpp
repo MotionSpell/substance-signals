@@ -13,34 +13,37 @@ using namespace Modules;
 using namespace Pipelines;
 using namespace Demux;
 
-static
+namespace {
+
 bool startsWith(std::string s, std::string prefix) {
 	return s.substr(0, prefix.size()) == prefix;
 }
 
+IPipelinedModule* createRenderer(Pipeline& pipeline, int codecType) {
+	if (codecType == VIDEO_PKT) {
+		Log::msg(Info, "Found video stream");
+		return pipeline.addModule<Render::SDLVideo>();
+	} else if (codecType == AUDIO_PKT) {
+		Log::msg(Info, "Found audio stream");
+		return pipeline.addModule<Render::SDLAudio>();
+	} else {
+		Log::msg(Info, "Found unknown stream");
+		return pipeline.addModule<Out::Null>();
+	}
+}
+
+IPipelinedModule* createDemuxer(Pipeline& pipeline, std::string url) {
+	if(startsWith(url, "http://")) {
+		return pipeline.addModule<DashDemuxer>(url);
+	} else {
+		return pipeline.addModule<Demux::LibavDemux>(url);
+	}
+}
+
+}
+
 void declarePipeline(Pipeline &pipeline, const char *url) {
-	auto createRenderer = [&](int codecType)->IPipelinedModule* {
-		if (codecType == VIDEO_PKT) {
-			Log::msg(Info, "Found video stream");
-			return pipeline.addModule<Render::SDLVideo>();
-		} else if (codecType == AUDIO_PKT) {
-			Log::msg(Info, "Found audio stream");
-			return pipeline.addModule<Render::SDLAudio>();
-		} else {
-			Log::msg(Info, "Found unknown stream");
-			return pipeline.addModule<Out::Null>();
-		}
-	};
-
-	auto createDemuxer = [&](std::string url) {
-		if(startsWith(url, "http://")) {
-			return pipeline.addModule<DashDemuxer>(url);
-		} else {
-			return pipeline.addModule<Demux::LibavDemux>(url);
-		}
-	};
-
-	auto demuxer = createDemuxer(url);
+	auto demuxer = createDemuxer(pipeline, url);
 
 	if(demuxer->getNumOutputs() == 0)
 		throw std::runtime_error("No streams found");
@@ -55,7 +58,7 @@ void declarePipeline(Pipeline &pipeline, const char *url) {
 		auto decode = pipeline.addModule<Decode::Decoder>(metadata->getStreamType());
 		pipeline.connect(demuxer, k, decode, 0);
 
-		auto render = createRenderer(metadata->getStreamType());
+		auto render = createRenderer(pipeline, metadata->getStreamType());
 		pipeline.connect(decode, 0, render, 0);
 	}
 }
