@@ -203,6 +203,35 @@ unittest("rectifier: simple offset") {
 	ASSERT_EQUALS(expectedTimes, runRectifier(fps, clock, generators, inTimes));
 }
 
+unittest("rectifier: missing frame") {
+	ScopedLogLevel lev(Error);
+
+	// use '100' as a human-readable frame period
+	auto fps = Fraction(IClock::Rate, 100);
+
+	auto const inTimes = vector<Event>({
+		Event{0, 0, 30107},
+		Event{0, 100, 30107},
+		// missing Event{0, 2000, 302007},
+		Event{0, 300, 30307},
+		Event{0, 400, 30407},
+		Event{0, 500, 30507},
+	});
+	auto const expectedTimes = vector<Event>({
+		Event{0, 0, 0},
+		Event{0, 100, 100},
+		Event{0, 200, 200},
+		Event{0, 300, 300},
+		Event{0, 400, 400},
+	});
+
+	vector<unique_ptr<ModuleS>> generators;
+	auto clock = make_shared<ClockMock>();
+	generators.push_back(createModule<VideoGenerator>(inTimes.size(), clock));
+
+	ASSERT_EQUALS(expectedTimes, runRectifier(fps, clock, generators, inTimes));
+}
+
 static void fixupTimes(vector<Event>& expectedTimes, vector<Event>& actualTimes) {
 	// cut the surplus 'actual' times
 	if(actualTimes.size() > expectedTimes.size())
