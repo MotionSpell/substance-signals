@@ -53,7 +53,6 @@ class TimeRectifier : public ModuleDynI {
 		struct Stream {
 			std::list<Data> data;
 			int64_t numTicks = 0;
-			//Data defaultTypeData; //TODO: black screen for video, etc.
 		};
 
 		void sanityChecks();
