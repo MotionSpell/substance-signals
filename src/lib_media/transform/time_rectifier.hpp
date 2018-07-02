@@ -50,7 +50,12 @@ class TimeRectifier : public ModuleDynI {
 
 	private:
 		struct Stream {
-			std::vector<Data> data;
+			struct Rec {
+				int64_t creationTime;
+				Data data;
+			};
+
+			std::vector<Rec> data;
 			int64_t numTicks = 0;
 		};
 

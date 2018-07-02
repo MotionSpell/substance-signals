@@ -32,10 +32,6 @@ class DataBase : public IData {
 		void setMediaTime(int64_t timeIn180k, uint64_t timescale = IClock::Rate);
 		int64_t getMediaTime() const;
 
-		// FIXME: move this elsewhere
-		void setCreationTime(int64_t timeIn180k, uint64_t timescale = IClock::Rate); /*should be set automatically after data is allocated*/
-		int64_t getCreationTime(uint64_t timescale = IClock::Rate) const;
-
 		uint32_t flags = 0;
 
 	private:

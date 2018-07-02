@@ -82,8 +82,8 @@ void TimeRectifier::fillInputQueuesUnsafe() {
 		auto &currInput = inputs[i];
 		Data data;
 		while (currInput->tryPop(data)) {
-			(const_cast<DataBase*>(data.get()))->setCreationTime(now);
-			streams[i].data.push_back(data);
+			maxClockTimeIn180k = std::max(maxClockTimeIn180k, now);
+			streams[i].data.push_back({now, data});
 			if (currInput->updateMetadata(data)) {
 				declareScheduler(currInput, outputs[i]);
 			}
@@ -102,8 +102,8 @@ void TimeRectifier::discardStreamOutdatedData(size_t inputIdx, int64_t removalCl
 	auto& stream = streams[inputIdx];
 	auto data = stream.data.begin();
 	while ((int)stream.data.size() > minQueueSize && data != stream.data.end()) {
-		if ((*data)->getCreationTime() < removalClockTime) {
-			log(TR_DEBUG, "Remove last streams[%s] data time media=%s clock=%s (removalClockTime=%s)", inputIdx, (*data)->getMediaTime(), (*data)->getCreationTime(), removalClockTime);
+		if ((*data).creationTime < removalClockTime) {
+			log(TR_DEBUG, "Remove last streams[%s] data time media=%s clock=%s (removalClockTime=%s)", inputIdx, (*data).data->getMediaTime(), (*data).creationTime, removalClockTime);
 			data = stream.data.erase(data);
 		} else {
 			data++;
@@ -118,13 +118,13 @@ Data TimeRectifier::findNearestData(Stream& stream, Fraction time) {
 	int currDataIdx = -1, idx = -1;
 	for (auto &currData : stream.data) {
 		idx++;
-		auto const currDistClock = currData->getCreationTime() - fractionToClock(time);
-		log(Debug, "Video: considering data (%s/%s) at time %s (currDist=%s, dist=%s, threshold=%s)", currData->getMediaTime(), currData->getCreationTime(), fractionToClock(time), currDistClock, distClock, threshold);
+		auto const currDistClock = currData.creationTime - fractionToClock(time);
+		log(Debug, "Video: considering data (%s/%s) at time %s (currDist=%s, dist=%s, threshold=%s)", currData.data->getMediaTime(), currData.creationTime, fractionToClock(time), currDistClock, distClock, threshold);
 		if (std::abs(currDistClock) < distClock) {
 			/*timings are monotonic so check for a previous data with distance less than one frame*/
 			if (currDistClock <= 0 || (currDistClock > 0 && distClock > threshold)) {
 				distClock = std::abs(currDistClock);
-				refData = currData;
+				refData = currData.data;
 				currDataIdx = idx;
 			}
 		}
@@ -144,10 +144,10 @@ void TimeRectifier::findNearestDataAudio(size_t i, Fraction time, Data& selected
 			selectedData = nullptr;
 			continue;
 		}
-		auto const currDistMedia = masterTime - currData->getMediaTime();
-		log(Debug, "Other: considering data (%s/%s) at time %s (ref=%s, currDist=%s)", currData->getMediaTime(), currData->getCreationTime(), fractionToClock(time), masterTime, currDistMedia);
+		auto const currDistMedia = masterTime - currData.data->getMediaTime();
+		log(Debug, "Other: considering data (%s/%s) at time %s (ref=%s, currDist=%s)", currData.data->getMediaTime(), currData.creationTime, fractionToClock(time), masterTime, currDistMedia);
 		if ((currDistMedia >= 0) && (currDistMedia < threshold)) {
-			selectedData = currData;
+			selectedData = currData.data;
 			currDataIdx = idx;
 			break;
 		}
@@ -194,9 +194,9 @@ void TimeRectifier::emitOnePeriod(Fraction time) {
 
 		auto data = make_shared<DataBaseRef>(refData);
 		data->setMediaTime(fractionToClock(Fraction(master.numTicks++ * frameRate.den, frameRate.num)));
-		log(TR_DEBUG, "Video: send[%s:%s] t=%s (data=%s/%s) (ref %s/%s)", i, master.data.size(), data->getMediaTime(), data->getMediaTime(), data->getCreationTime(), refData->getMediaTime(), refData->getCreationTime());
+		log(TR_DEBUG, "Video: send[%s:%s] t=%s (data=%s) (ref %s)", i, master.data.size(), data->getMediaTime(), data->getMediaTime(), refData->getMediaTime());
 		outputs[i]->emit(data);
-		discardStreamOutdatedData(i, data->getCreationTime());
+		discardStreamOutdatedData(i, data->getMediaTime());
 	}
 
 	//TODO: Notes:
@@ -221,9 +221,9 @@ void TimeRectifier::emitOnePeriod(Fraction time) {
 				auto const audioData = safe_cast<const DataPcm>(selectedData);
 				auto data = make_shared<DataBaseRef>(selectedData);
 				data->setMediaTime(fractionToClock(Fraction(streams[i].numTicks++ * audioData->getPlaneSize(0) / audioData->getFormat().getBytesPerSample(), audioData->getFormat().sampleRate)));
-				log(TR_DEBUG, "Other: send[%s:%s] t=%s (data=%s/%s) (ref=%s)", i, streams[i].data.size(), data->getMediaTime(), data->getMediaTime(), data->getCreationTime(), masterTime);
+				log(TR_DEBUG, "Other: send[%s:%s] t=%s (data=%s) (ref=%s)", i, streams[i].data.size(), data->getMediaTime(), data->getMediaTime(), masterTime);
 				outputs[i]->emit(data);
-				discardStreamOutdatedData(i, data->getCreationTime());
+				discardStreamOutdatedData(i, data->getMediaTime());
 			}
 			break;
 		}
