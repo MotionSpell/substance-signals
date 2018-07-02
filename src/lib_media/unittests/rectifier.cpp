@@ -102,6 +102,20 @@ struct DataGenerator : public ModuleS, public virtual IOutputCap {
 	PORT *output;
 };
 
+struct DataRecorder : ModuleS {
+	DataRecorder() {
+		addInput(new Input<DataBase>(this));
+	}
+
+	void process(Data data) {
+		if(!data)
+			return;
+		record.push_back(data);
+	}
+
+	vector<Data> record;
+};
+
 typedef DataGenerator<MetadataRawVideo, OutputDataDefault<PictureYUV420P>> VideoGenerator;
 typedef DataGenerator<MetadataRawAudio, OutputPcm> AudioGenerator;
 
@@ -114,10 +128,10 @@ vector<Event> runRectifier(
 	const int N = (int)generators.size();
 
 	auto rectifier = createModule<TimeRectifier>(1, clock, clock.get(), fps);
-	vector<unique_ptr<Utils::Recorder>> recorders;
+	vector<unique_ptr<DataRecorder>> recorders;
 	for (int i = 0; i < N; ++i) {
 		ConnectModules(generators[i].get(), 0, rectifier.get(), i);
-		recorders.push_back(create<Utils::Recorder>());
+		recorders.push_back(create<DataRecorder>());
 		ConnectModules(rectifier.get(), i, recorders[i].get(), 0);
 	}
 
@@ -143,7 +157,7 @@ vector<Event> runRectifier(
 
 	for(int i=0; i < N; ++i) {
 		recorders[i]->process(nullptr);
-		while (auto data = recorders[i]->pop()) {
+		for (auto data : recorders[i]->record) {
 			actualTimes.push_back(Event{i, data->getCreationTime(), data->getMediaTime()});
 		}
 	}
