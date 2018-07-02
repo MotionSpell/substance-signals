@@ -11,7 +11,6 @@
 
 using namespace Modules;
 using namespace Pipelines;
-using namespace Demux;
 
 namespace {
 
@@ -34,7 +33,7 @@ IPipelinedModule* createRenderer(Pipeline& pipeline, int codecType) {
 
 IPipelinedModule* createDemuxer(Pipeline& pipeline, std::string url) {
 	if(startsWith(url, "http://")) {
-		return pipeline.addModule<DashDemuxer>(url);
+		return pipeline.addModule<Demux::DashDemuxer>(url);
 	} else {
 		return pipeline.addModule<Demux::LibavDemux>(url);
 	}
