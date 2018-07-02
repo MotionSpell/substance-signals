@@ -160,18 +160,17 @@ static void fixupTimes(vector<Event>& expectedTimes, vector<Event>& actualTimes)
 		expectedTimes.resize(actualTimes.size());
 }
 
-template<typename Metadata, typename PortType>
+template<typename GeneratorType>
 void testRectifierSinglePort(Fraction fps, vector<Event> inTimes, vector<Event> expectedTimes) {
 	vector<unique_ptr<ModuleS>> generators;
 	auto clock = make_shared<ClockMock>();
-	generators.push_back(createModule<DataGenerator<Metadata, PortType>>(inTimes.size(), clock));
+	generators.push_back(createModule<GeneratorType>(inTimes.size(), clock));
 
 	auto actualTimes = runRectifier(fps, clock, generators, inTimes);
 
 	fixupTimes(expectedTimes, actualTimes);
 
 	ASSERT_EQUALS(expectedTimes, actualTimes);
-
 }
 
 struct TimePair {
@@ -205,7 +204,7 @@ void testFPSFactor(Fraction fps, Fraction factor) {
 
 	auto const outTimes = generateData(fps * factor, genVal);
 	auto const inTimes = generateData(fps);
-	testRectifierSinglePort<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>(fps * factor, inTimes, outTimes);
+	testRectifierSinglePort<DataGenerator<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>>(fps * factor, inTimes, outTimes);
 }
 
 unittest("rectifier: FPS factor (single port) 9 fps, x1") {
@@ -242,10 +241,10 @@ unittest("rectifier: initial offset (single port)") {
 
 	auto const outTimes = generateData(fps, bind(inGenVal, placeholders::_1, placeholders::_2, 0));
 	auto const inTimes1 = generateData(fps, bind(inGenVal, placeholders::_1, placeholders::_2, 5));
-	testRectifierSinglePort<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>(fps, inTimes1, outTimes);
+	testRectifierSinglePort<DataGenerator<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>>(fps, inTimes1, outTimes);
 
 	auto const inTimes2 = generateData(fps, bind(inGenVal, placeholders::_1, placeholders::_2, -5));
-	testRectifierSinglePort<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>(fps, inTimes1, outTimes);
+	testRectifierSinglePort<DataGenerator<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>>(fps, inTimes1, outTimes);
 }
 
 unittest("rectifier: deal with missing frames (single port)") {
@@ -270,7 +269,7 @@ unittest("rectifier: deal with missing frames (single port)") {
 	};
 	auto const outTimes = generateData(fps, outGenVal);
 
-	testRectifierSinglePort<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>(fps, inTimes, outTimes);
+	testRectifierSinglePort<DataGenerator<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>>(fps, inTimes, outTimes);
 }
 
 unittest("rectifier: deal with backward discontinuity (single port)") {
@@ -287,7 +286,7 @@ unittest("rectifier: deal with backward discontinuity (single port)") {
 	auto outTimes2 = generateData(fps, bind(outGenVal, placeholders::_1, placeholders::_2, inTimes1.size(), inTimes1.size()));
 	inTimes1.insert(inTimes1.end(), inTimes2.begin(), inTimes2.end());
 	outTimes1.insert(outTimes1.end(), outTimes2.begin(), outTimes2.end());
-	testRectifierSinglePort<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>(fps, inTimes1, outTimes1);
+	testRectifierSinglePort<DataGenerator<MetadataRawVideo, OutputDataDefault<PictureYUV420P>>>(fps, inTimes1, outTimes1);
 }
 
 unittest("rectifier: multiple media types simple") {
