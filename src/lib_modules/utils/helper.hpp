@@ -135,7 +135,7 @@ class OutputDataDefault : public IOutput, public MetadataCap {
 		}
 
 		void resetAllocator(size_t allocatorSize) {
-			allocator = make_shared<Allocator>(allocatorSize, allocatorSize);
+			allocator = make_shared<Allocator>(1, allocatorSize);
 		}
 
 	private:

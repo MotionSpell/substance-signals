@@ -49,7 +49,10 @@ void Decoder::openDecoder(const MetadataPkt* metadata) {
 			codecCtx->thread_safe_callbacks = 1;
 			codecCtx->opaque = static_cast<PictureAllocator*>(this);
 			codecCtx->get_buffer2 = avGetBuffer2;
-			allocatorSize = std::thread::hardware_concurrency() * 4;
+
+			// use a large number: some H.264 streams require up to 14 simultaneous buffers.
+			// this memory is lazily allocated anyway.
+			allocatorSize = 64;
 			videoOutput->resetAllocator(allocatorSize);
 		}
 	}
