@@ -97,7 +97,6 @@ struct DataGenerator : public ModuleS, public virtual IOutputCap {
 			dataPcm->setPlane(0, nullptr, 1024 * dataPcm->getFormat().getBytesPerSample());
 		}
 		data->setMediaTime(dataIn->getMediaTime());
-		data->setCreationTime(fractionToClock(clock->now()));
 		output->emit(data);
 	}
 	PORT *output;
@@ -127,7 +126,6 @@ vector<Event> runRectifier(
 			clock->setTime(Fraction(event.clockTime, IClock::Rate));
 		shared_ptr<DataRaw> data(new DataRaw(0));
 		data->setMediaTime(event.mediaTime);
-		data->setCreationTime(event.clockTime);
 		generators[event.index]->process(data);
 	}
 
