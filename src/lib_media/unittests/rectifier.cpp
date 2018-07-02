@@ -344,7 +344,7 @@ unittest("rectifier: fail when no video") {
 	ScopedLogLevel lev(Quiet);
 	vector<unique_ptr<ModuleS>> generators;
 	auto clock = make_shared<ClockMock>();
-	generators.push_back(createModule<DataGenerator<MetadataRawAudio, OutputPcm>>(1, clock));
+	generators.push_back(createModule<AudioGenerator>(1, clock));
 
 	ASSERT_THROWN(runRectifier(Fraction(25, 1), clock, generators, {Event()}));
 }
