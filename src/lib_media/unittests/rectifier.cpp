@@ -365,6 +365,8 @@ unittest("rectifier: multiple media types simple") {
 
 	auto actualTimes = runRectifier(videoRate, clock, generators, times);
 
+	// Quantize output delivery times to the internal media period
+	// of the rectifier. We don't expect it to wake up more often than that.
 	{
 		auto const outputPeriod = fractionToClock(videoRate.inverse());
 		for(auto& event : times)
