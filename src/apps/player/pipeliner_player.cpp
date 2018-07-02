@@ -54,9 +54,6 @@ void declarePipeline(Pipeline &pipeline, const char *url) {
 		pipeline.connect(demuxer, k, decode, 0);
 
 		auto render = createRenderer(metadata->getStreamType());
-		if (!render)
-			continue;
-
 		pipeline.connect(decode, 0, render, 0);
 	}
 }
