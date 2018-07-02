@@ -340,5 +340,9 @@ unittest("rectifier: two streams, only the first receives data") {
 
 unittest("rectifier: fail when no video") {
 	ScopedLogLevel lev(Quiet);
-	ASSERT_THROWN((testRectifierSinglePort<MetadataRawAudio, OutputPcm>(Fraction(25, 1), {Event()}, {})));
+	vector<unique_ptr<ModuleS>> generators;
+	auto clock = make_shared<ClockMock>();
+	generators.push_back(createModule<DataGenerator<MetadataRawAudio, OutputPcm>>(1, clock));
+
+	ASSERT_THROWN(runRectifier(Fraction(25, 1), clock, generators, {Event()}));
 }
