@@ -340,5 +340,5 @@ unittest("rectifier: two streams, only the first receives data") {
 
 unittest("rectifier: fail when no video") {
 	ScopedLogLevel lev(Quiet);
-	ASSERT_THROWN((testRectifierSinglePort<MetadataRawAudio, OutputPcm>(Fraction(25, 1), {}, {})));
+	ASSERT_THROWN((testRectifierSinglePort<MetadataRawAudio, OutputPcm>(Fraction(25, 1), {Event()}, {})));
 }
