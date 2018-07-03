@@ -42,7 +42,7 @@ class PacketAllocator {
 				if (!block.data) {
 					block.data = new T(size);
 				} else {
-					auto data = safe_cast<T>(block.data);
+					auto data = block.data;
 					if (data->size() < size) {
 						data->resize(size);
 					}
