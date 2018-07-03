@@ -1,13 +1,10 @@
 #pragma once
 
 #include "data.hpp"
-#include "lib_utils/log.hpp"
 #include "lib_utils/queue.hpp"
 #include "lib_utils/tools.hpp"
-#include <algorithm>
 #include <atomic>
 #include <memory>
-#include <stdexcept>
 
 namespace Modules {
 
@@ -20,26 +17,8 @@ auto const ALLOC_NUM_BLOCKS_MAX_DYN_FREE = 0 ;/*free the dynamically allocated b
 
 class PacketAllocator {
 	public:
-		PacketAllocator(size_t minBlocks, size_t maxBlocks) :
-			minBlocks(minBlocks),
-			maxBlocks(maxBlocks), curNumBlocks(minBlocks) {
-			if (minBlocks == 0)
-				throw std::runtime_error("Cannot create an allocator with 0 block.");
-			if (maxBlocks < minBlocks) {
-				Log::msg(Warning, "Max block number %s is smaller than min block number %s. Aligning values.", maxBlocks, minBlocks);
-				maxBlocks = minBlocks;
-			}
-			for (size_t i=0; i<minBlocks; ++i) {
-				freeBlocks.push(Block{});
-			}
-		}
-
-		~PacketAllocator() {
-			Block block;
-			while (freeBlocks.tryPop(block)) {
-				delete block.data;
-			}
-		}
+		PacketAllocator(size_t minBlocks, size_t maxBlocks);
+		~PacketAllocator();
 
 		struct Deleter {
 			Deleter(std::shared_ptr<PacketAllocator> allocator) : allocator(allocator) {}

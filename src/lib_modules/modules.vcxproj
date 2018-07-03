@@ -33,6 +33,7 @@
     <ClInclude Include="modules.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="core\allocator.cpp" />
     <ClCompile Include="core\connection.cpp" />
     <ClCompile Include="core\data.cpp" />
     <ClCompile Include="utils\helper.cpp" />
