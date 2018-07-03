@@ -365,7 +365,7 @@ unittest("rectifier: deal with missing frames (single port)") {
 	const uint64_t freq = 2;
 	auto const fps = Fraction(25, 1);
 
-	auto const inGenVal = [](uint64_t step, Fraction fps) {
+	auto const inGenVal = [=](uint64_t step, Fraction fps) {
 		static uint64_t i = 0;
 		if (step && !(step % freq)) i++;
 		auto const t = int64_t((IClock::Rate * (step+i) * fps.den) / fps.num);
