@@ -52,7 +52,7 @@ class LibavDemux : public ModuleS {
 		bool highPriority = false;
 		std::thread workingThread;
 		std::atomic_bool done;
-		std::unique_ptr<QueueLockFree<AVPacket>> packetQueue;
+		QueueLockFree<AVPacket> packetQueue;
 		AVFormatContext* m_formatCtx;
 		AVIOContext* m_avioCtx = nullptr;
 		ReadFunc m_read;
