@@ -65,8 +65,6 @@ class PacketAllocator {
 		}
 
 	private:
-		PacketAllocator& operator= (const PacketAllocator&) = delete;
-
 		void recycle(IData *p);
 
 		enum EventType {
