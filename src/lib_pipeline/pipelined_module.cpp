@@ -74,13 +74,10 @@ void PipelinedModule::disconnect(int inputIdx, IOutput * const output) {
 }
 
 void PipelinedModule::mimicInputs() {
-	auto const delegateInputs = delegate->getNumInputs();
-	auto const thisInputs = (int)inputs.size();
-	if (thisInputs < delegateInputs) {
-		for (int i = thisInputs; i < delegateInputs; ++i) {
-			inputExecutor.push_back(EXECUTOR_INPUT_DEFAULT);
-			addInput(new PipelinedInput(delegate->getInput(i), getDelegateName(), inputExecutor[i], this->delegateExecutor, this, clock));
-		}
+	while ((int)inputs.size()< delegate->getNumInputs()) {
+		auto const i = (int)inputs.size();
+		inputExecutor.push_back(EXECUTOR_INPUT_DEFAULT);
+		addInput(new PipelinedInput(delegate->getInput(i), getDelegateName(), inputExecutor[i], this->delegateExecutor, this, clock));
 	}
 }
 
