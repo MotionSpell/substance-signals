@@ -11,7 +11,6 @@ class ThreadPool {
 	public:
 		ThreadPool(const std::string &name = "", int threadCount = std::thread::hardware_concurrency())
 			: name(name) {
-			done = false;
 			waitAndExit = false;
 			for (int i = 0; i < threadCount; ++i) {
 				threads.push_back(std::thread(&ThreadPool::run, this));
@@ -51,7 +50,7 @@ class ThreadPool {
 		ThreadPool(const ThreadPool&) = delete;
 
 		void run() {
-			while (!done) {
+			while (true) {
 				auto task = workQueue.pop();
 				try {
 					task();
@@ -59,12 +58,12 @@ class ThreadPool {
 					eptr = std::current_exception(); //will be caught by next submit()
 				}
 				if (waitAndExit) {
-					done = true;
+					break;
 				}
 			}
 		}
 
-		std::atomic_bool done, waitAndExit;
+		std::atomic_bool waitAndExit;
 		Queue<std::function<void(void)>> workQueue;
 		std::vector<std::thread> threads;
 		std::string name;
