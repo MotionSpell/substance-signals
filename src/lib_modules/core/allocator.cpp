@@ -3,6 +3,8 @@
 
 #include <stdexcept>
 
+auto const ALLOC_NUM_BLOCKS_MAX_DYN_FREE = 0 ;/*free the dynamically allocated blocks*/
+
 namespace Modules {
 
 PacketAllocator::PacketAllocator(size_t minBlocks, size_t maxBlocks) :
@@ -27,4 +29,18 @@ PacketAllocator::~PacketAllocator() {
 	}
 }
 
+void PacketAllocator::recycle(IData *p) {
+	if(ALLOC_NUM_BLOCKS_MAX_DYN_FREE) {
+		if (curNumBlocks > minBlocks) {
+			curNumBlocks--;
+			delete p;
+			return;
+		}
+	}
+	if (!p->isRecyclable()) {
+		delete p;
+		p = nullptr;
+	}
+	eventQueue.push(Event{OneBufferIsFree, p});
+}
 }

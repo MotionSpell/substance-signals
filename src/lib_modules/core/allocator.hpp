@@ -12,7 +12,6 @@ namespace Modules {
 static const size_t ALLOC_NUM_BLOCKS_DEFAULT = 10;
 static const size_t ALLOC_NUM_BLOCKS_LOW_LATENCY = 2;
 
-auto const ALLOC_NUM_BLOCKS_MAX_DYN_FREE = 0 ;/*free the dynamically allocated blocks*/
 //#define ALLOC_DEBUG_TRACK_BLOCKS
 
 class PacketAllocator {
@@ -68,20 +67,7 @@ class PacketAllocator {
 	private:
 		PacketAllocator& operator= (const PacketAllocator&) = delete;
 
-		void recycle(IData *p) {
-			if(ALLOC_NUM_BLOCKS_MAX_DYN_FREE) {
-				if (curNumBlocks > minBlocks) {
-					curNumBlocks--;
-					delete p;
-					return;
-				}
-			}
-			if (!p->isRecyclable()) {
-				delete p;
-				p = nullptr;
-			}
-			eventQueue.push(Event{OneBufferIsFree, p});
-		}
+		void recycle(IData *p);
 
 		enum EventType {
 			OneBufferIsFree,
