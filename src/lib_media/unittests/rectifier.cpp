@@ -7,6 +7,8 @@
 #include "lib_media/common/picture.hpp"
 #include "lib_media/common/metadata.hpp"
 
+#include <algorithm> // sort
+
 using namespace std;
 using namespace Tests;
 using namespace Modules;
