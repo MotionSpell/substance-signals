@@ -25,9 +25,7 @@ class ThreadPool {
 				workQueue.push([] {});
 			}
 			for(auto& t : threads) {
-				if (t.joinable()) {
-					t.join();
-				}
+				t.join();
 			}
 		}
 
