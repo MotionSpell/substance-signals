@@ -30,15 +30,15 @@ class PacketAllocator {
 
 		template<typename T>
 		std::shared_ptr<T> getBuffer(size_t size, std::shared_ptr<PacketAllocator> allocator) {
-			Block block;
-			if (!freeBlocks.tryPop(block)) {
+			Event block;
+			if (!eventQueue.tryPop(block)) {
 				if (curNumBlocks < maxBlocks) {
-					freeBlocks.push(Block{});
+					eventQueue.push(Event{});
 					curNumBlocks++;
 				}
-				block = freeBlocks.pop();
+				block = eventQueue.pop();
 			}
-			switch (block.event) {
+			switch (block.type) {
 			case OneBufferIsFree: {
 				if (!block.data) {
 					block.data = new T(size);
@@ -62,7 +62,7 @@ class PacketAllocator {
 		}
 
 		void unblock() {
-			freeBlocks.push(Block{Exit});
+			eventQueue.push(Event{Exit});
 		}
 
 	private:
@@ -80,22 +80,22 @@ class PacketAllocator {
 				delete p;
 				p = nullptr;
 			}
-			freeBlocks.push(Block{OneBufferIsFree, p});
+			eventQueue.push(Event{OneBufferIsFree, p});
 		}
 
-		enum Event {
+		enum EventType {
 			OneBufferIsFree,
 			Exit,
 		};
-		struct Block {
-			Event event = OneBufferIsFree;
+		struct Event {
+			EventType type {};
 			IData*data = nullptr;
 		};
 
 		const size_t minBlocks;
 		const size_t maxBlocks;
 		std::atomic_size_t curNumBlocks;
-		Queue<Block> freeBlocks;
+		Queue<Event> eventQueue;
 #ifdef ALLOC_DEBUG_TRACK_BLOCKS
 		Queue<std::weak_ptr<IData>> usedBlocks;
 #endif

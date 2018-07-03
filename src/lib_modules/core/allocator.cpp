@@ -16,14 +16,14 @@ PacketAllocator::PacketAllocator(size_t minBlocks, size_t maxBlocks) :
 		maxBlocks = minBlocks;
 	}
 	for (size_t i=0; i<minBlocks; ++i) {
-		freeBlocks.push(Block{});
+		eventQueue.push(Event{OneBufferIsFree});
 	}
 }
 
 PacketAllocator::~PacketAllocator() {
-	Block block;
-	while (freeBlocks.tryPop(block)) {
-		delete block.data;
+	Event event;
+	while (eventQueue.tryPop(event)) {
+		delete event.data;
 	}
 }
 
