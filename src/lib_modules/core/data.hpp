@@ -10,7 +10,6 @@ namespace Modules {
 struct IMetadata;
 
 struct IData {
-	IData() = default;
 	virtual ~IData() {}
 	virtual bool isRecyclable() const = 0;
 	virtual uint8_t* data() = 0;
