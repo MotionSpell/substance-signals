@@ -1,4 +1,5 @@
 #include "pipeliner_player.hpp"
+#include "config.hpp"
 #include "lib_appcommon/options.hpp"
 #include <iostream>
 #include <chrono>
@@ -6,14 +7,6 @@
 
 using namespace std;
 using namespace Pipelines;
-
-struct Config {
-	std::string url;
-	double speed = 1.0;
-	bool lowLatency = false;
-	int logLevel = 1;
-	int stopAfterMs = -1; // by default, wait until the end of stream
-};
 
 namespace {
 Config parseCommandLine(int argc, char const* argv[]) {
@@ -25,6 +18,7 @@ Config parseCommandLine(int argc, char const* argv[]) {
 	opt.add("s", "speed", &cfg.speed, "Speed ratio");
 	opt.add("g", "loglevel", &cfg.logLevel, "Log level");
 	opt.add("a", "stop-after", &cfg.stopAfterMs, "Stop after X ms");
+	opt.add("n", "no-renderer", &cfg.noRenderer, "Stop after X ms");
 
 	auto files = opt.parse(argc, argv);
 	if (files.size() != 1) {
@@ -45,7 +39,7 @@ int safeMain(int argc, char const* argv[]) {
 	Log::setLevel((Level)cfg.logLevel);
 
 	Pipeline pipeline(cfg.lowLatency, cfg.speed);
-	declarePipeline(pipeline, cfg.url.c_str());
+	declarePipeline(cfg, pipeline, cfg.url.c_str());
 	pipeline.start();
 
 	if(cfg.stopAfterMs >= 0)

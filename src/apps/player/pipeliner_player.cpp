@@ -1,3 +1,4 @@
+#include "pipeliner_player.hpp"
 #include "lib_pipeline/pipeline.hpp"
 
 // modules
@@ -18,17 +19,19 @@ bool startsWith(std::string s, std::string prefix) {
 	return s.substr(0, prefix.size()) == prefix;
 }
 
-IPipelinedModule* createRenderer(Pipeline& pipeline, int codecType) {
-	if (codecType == VIDEO_PKT) {
-		Log::msg(Info, "Found video stream");
-		return pipeline.addModule<Render::SDLVideo>();
-	} else if (codecType == AUDIO_PKT) {
-		Log::msg(Info, "Found audio stream");
-		return pipeline.addModule<Render::SDLAudio>();
-	} else {
-		Log::msg(Info, "Found unknown stream");
-		return pipeline.addModule<Out::Null>();
+IPipelinedModule* createRenderer(Pipeline& pipeline, Config cfg, int codecType) {
+	if(!cfg.noRenderer) {
+		if (codecType == VIDEO_PKT) {
+			Log::msg(Info, "Found video stream");
+			return pipeline.addModule<Render::SDLVideo>();
+		} else if (codecType == AUDIO_PKT) {
+			Log::msg(Info, "Found audio stream");
+			return pipeline.addModule<Render::SDLAudio>();
+		}
 	}
+
+	Log::msg(Info, "Found unknown stream");
+	return pipeline.addModule<Out::Null>();
 }
 
 IPipelinedModule* createDemuxer(Pipeline& pipeline, std::string url) {
@@ -41,7 +44,7 @@ IPipelinedModule* createDemuxer(Pipeline& pipeline, std::string url) {
 
 }
 
-void declarePipeline(Pipeline &pipeline, const char *url) {
+void declarePipeline(Config cfg, Pipeline &pipeline, const char *url) {
 	auto demuxer = createDemuxer(pipeline, url);
 
 	if(demuxer->getNumOutputs() == 0)
@@ -57,7 +60,7 @@ void declarePipeline(Pipeline &pipeline, const char *url) {
 		auto decode = pipeline.addModule<Decode::Decoder>(metadata->getStreamType());
 		pipeline.connect(demuxer, k, decode, 0);
 
-		auto render = createRenderer(pipeline, metadata->getStreamType());
+		auto render = createRenderer(pipeline, cfg, metadata->getStreamType());
 		pipeline.connect(decode, 0, render, 0);
 	}
 }
