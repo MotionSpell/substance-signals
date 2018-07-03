@@ -55,7 +55,7 @@ class LibavDemux : public ModuleS {
 		QueueLockFree<AVPacket> packetQueue;
 		AVFormatContext* m_formatCtx;
 		AVIOContext* m_avioCtx = nullptr;
-		ReadFunc m_read;
+		const ReadFunc m_read;
 		int64_t curTimeIn180k = 0, startPTSIn180k = std::numeric_limits<int64_t>::min();
 
 		static int read(void* user, uint8_t* data, int size) {
