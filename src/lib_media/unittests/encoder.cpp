@@ -47,7 +47,7 @@ unittest("encoder: audio with first negative timestamp") {
 	for (int i = 0; i < 4; ++i) {
 		auto pcm = make_shared<DataPcm>(0);
 		pcm->setFormat(fmt);
-		std::vector<uint8_t> input(inFrameSizeInBytes);
+		std::vector<uint8_t> input((size_t)inFrameSizeInBytes);
 		auto inputRaw = input.data();
 		for (uint8_t i = 0; i < fmt.numPlanes; ++i) {
 			pcm->setPlane(i, inputRaw, inFrameSizeInBytes);
