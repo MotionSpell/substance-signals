@@ -20,7 +20,6 @@ class PacketAllocator {
 		~PacketAllocator();
 
 		struct Deleter {
-			Deleter(std::shared_ptr<PacketAllocator> allocator) : allocator(allocator) {}
 			void operator()(IData *p) const {
 				allocator->recycle(p);
 			}
@@ -47,7 +46,7 @@ class PacketAllocator {
 					block.data->resize(size);
 				}
 
-				auto ret = std::shared_ptr<T>(safe_cast<T>(block.data), Deleter(allocator));
+				auto ret = std::shared_ptr<T>(safe_cast<T>(block.data), Deleter{allocator});
 #ifdef ALLOC_DEBUG_TRACK_BLOCKS
 				usedBlocks.push(ret);
 #endif
