@@ -21,10 +21,10 @@ bool startsWith(std::string s, std::string prefix) {
 
 IPipelinedModule* createRenderer(Pipeline& pipeline, Config cfg, int codecType) {
 	if(!cfg.noRenderer) {
-		if (codecType == VIDEO_PKT) {
+		if (codecType == VIDEO_RAW) {
 			Log::msg(Info, "Found video stream");
 			return pipeline.addModule<Render::SDLVideo>();
-		} else if (codecType == AUDIO_PKT) {
+		} else if (codecType == AUDIO_RAW) {
 			Log::msg(Info, "Found audio stream");
 			return pipeline.addModule<Render::SDLAudio>();
 		}
@@ -59,6 +59,8 @@ void declarePipeline(Config cfg, Pipeline &pipeline, const char *url) {
 
 		auto decode = pipeline.addModule<Decode::Decoder>(metadata->getStreamType());
 		pipeline.connect(demuxer, k, decode, 0);
+
+		metadata = decode->getOutput(0)->getMetadata();
 
 		auto render = createRenderer(pipeline, cfg, metadata->getStreamType());
 		pipeline.connect(decode, 0, render, 0);
