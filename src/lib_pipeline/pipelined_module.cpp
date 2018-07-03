@@ -15,6 +15,12 @@ PipelinedModule::PipelinedModule(std::unique_ptr<IModule> module, IPipelineNotif
 	  delegateExecutor(*localDelegateExecutor), threading(threading), m_notify(notify), eosCount(0) {
 }
 
+PipelinedModule::~PipelinedModule() {
+	// inputs, which hold the executors,
+	// must be destroyed *before* the 'delegate' module.
+	inputs.clear();
+}
+
 std::string PipelinedModule::getDelegateName() const {
 	auto const &dref = *delegate.get();
 	return typeid(dref).name();

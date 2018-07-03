@@ -20,7 +20,7 @@ function main
 {
   run_test unittests
   run_test dashcast_crashtest
-  # run_test player_crashtest
+  run_test player_crashtest
 
   # blind-run the apps so they appear in coverage reports
   run_test player_blindtest
