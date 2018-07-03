@@ -1,7 +1,10 @@
 #include "pipeliner_player.hpp"
 #include "lib_appcommon/options.hpp"
 #include <iostream>
+#include <chrono>
+#include <thread>
 
+using namespace std;
 using namespace Pipelines;
 
 struct Config {
@@ -9,6 +12,7 @@ struct Config {
 	double speed = 1.0;
 	bool lowLatency = false;
 	int logLevel = 1;
+	int stopAfterMs = -1; // by default, wait until the end of stream
 };
 
 namespace {
@@ -20,6 +24,7 @@ Config parseCommandLine(int argc, char const* argv[]) {
 	opt.addFlag("l", "lowlatency", &cfg.lowLatency, "Use low latency");
 	opt.add("s", "speed", &cfg.speed, "Speed ratio");
 	opt.add("g", "loglevel", &cfg.logLevel, "Log level");
+	opt.add("a", "stop-after", &cfg.stopAfterMs, "Stop after X ms");
 
 	auto files = opt.parse(argc, argv);
 	if (files.size() != 1) {
@@ -42,7 +47,11 @@ int safeMain(int argc, char const* argv[]) {
 	Pipeline pipeline(cfg.lowLatency, cfg.speed);
 	declarePipeline(pipeline, cfg.url.c_str());
 	pipeline.start();
-	pipeline.waitForEndOfStream();
+
+	if(cfg.stopAfterMs >= 0)
+		this_thread::sleep_for(chrono::milliseconds(cfg.stopAfterMs));
+	else
+		pipeline.waitForEndOfStream();
 
 	return 0;
 }
