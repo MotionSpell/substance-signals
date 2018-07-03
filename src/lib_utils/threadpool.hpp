@@ -20,12 +20,13 @@ class ThreadPool {
 		~ThreadPool() {
 			waitAndExit = true;
 			workQueue.clear(); // speedup exit
-			for (size_t i = 0; i < threads.size(); ++i) {
+			for(auto& t : threads) {
+				(void)t;
 				workQueue.push([] {});
 			}
-			for (size_t i = 0; i < threads.size(); ++i) {
-				if (threads[i].joinable()) {
-					threads[i].join();
+			for(auto& t : threads) {
+				if (t.joinable()) {
+					t.join();
 				}
 			}
 		}
