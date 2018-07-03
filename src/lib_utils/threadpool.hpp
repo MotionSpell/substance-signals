@@ -18,10 +18,6 @@ class ThreadPool {
 		}
 
 		~ThreadPool() {
-			WaitForCompletion();
-		}
-
-		void WaitForCompletion() {
 			waitAndExit = true;
 			for (size_t i = 0; i < threads.size(); ++i) {
 				workQueue.push([] {});
