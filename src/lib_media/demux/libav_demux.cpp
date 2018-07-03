@@ -74,7 +74,7 @@ void LibavDemux::initRestamp() {
 	}
 }
 
-LibavDemux::LibavDemux(const std::string &url, const bool loop, const std::string &avformatCustom, const uint64_t seekTimeInMs, const std::string &formatName, LibavDemux::ReadFunc avioCustom)
+LibavDemux::LibavDemux(const std::string &url, bool loop, const std::string &avformatCustom, uint64_t seekTimeInMs, const std::string &formatName, LibavDemux::ReadFunc avioCustom)
 	: loop(loop), done(false), packetQueue(PKT_QUEUE_SIZE), m_read(std::move(avioCustom)) {
 	if (!(m_formatCtx = avformat_alloc_context()))
 		throw error("Can't allocate format context");

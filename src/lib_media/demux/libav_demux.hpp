@@ -22,7 +22,7 @@ class LibavDemux : public ModuleS {
 
 		typedef std::function<int(uint8_t* buf, int bufSize)> ReadFunc;
 		//@param url may be a file, a remote URL, or a webcam (set "webcam" to list the available devices)
-		LibavDemux(const std::string &url, const bool loop = false, const std::string &avformatCustom = "", const uint64_t seekTimeInMs = 0, const std::string &formatName = "", ReadFunc func = nullptr);
+		LibavDemux(const std::string &url, bool loop = false, const std::string &avformatCustom = "", uint64_t seekTimeInMs = 0, const std::string &formatName = "", ReadFunc func = nullptr);
 		~LibavDemux();
 		void process(Data data) override;
 
@@ -48,7 +48,7 @@ class LibavDemux : public ModuleS {
 
 		std::vector<Stream> m_streams;
 
-		bool loop;
+		const bool loop;
 		bool highPriority = false;
 		std::thread workingThread;
 		std::atomic_bool done;
