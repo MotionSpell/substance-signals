@@ -52,6 +52,8 @@ class ThreadPool {
 					task();
 				} catch (...) {
 					eptr = std::current_exception(); //will be caught by next submit()
+					// FIXME: shouldn't 'eptr' be protected from concurrent read/write?
+					// FIXME: what if there's no next submit? is the exception lost?
 				}
 			}
 		}
