@@ -34,6 +34,8 @@ class ThreadPool {
 			if (eptr)
 				std::rethrow_exception(eptr);
 
+			assert(callback);
+
 			const std::shared_future<Callback> &future = std::async(std::launch::deferred, callback, args...);
 			std::function<void(void)> f = [future]() {
 				future.get();
