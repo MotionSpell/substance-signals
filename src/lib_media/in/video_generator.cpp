@@ -1,4 +1,5 @@
 #include "video_generator.hpp"
+#include "../common/metadata.hpp"
 #include <string.h> // memset
 
 auto const FRAMERATE = 25;
@@ -8,6 +9,7 @@ namespace In {
 
 VideoGenerator::VideoGenerator() {
 	output = addOutput<OutputPicture>();
+	output->setMetadata(std::make_shared<MetadataRawVideo>());
 }
 
 void VideoGenerator::process(Data /*data*/) {

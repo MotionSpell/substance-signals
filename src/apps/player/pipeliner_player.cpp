@@ -5,6 +5,7 @@
 #include "lib_media/demux/dash_demux.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/in/mpeg_dash_input.hpp"
+#include "lib_media/in/video_generator.hpp"
 #include "lib_media/out/null.hpp"
 #include "lib_media/render/sdl_audio.hpp"
 #include "lib_media/render/sdl_video.hpp"
@@ -35,6 +36,9 @@ IPipelinedModule* createRenderer(Pipeline& pipeline, Config cfg, int codecType) 
 }
 
 IPipelinedModule* createDemuxer(Pipeline& pipeline, std::string url) {
+	if(startsWith(url, "videogen://")) {
+		return pipeline.addModule<In::VideoGenerator>();
+	}
 	if(startsWith(url, "http://")) {
 		return pipeline.addModule<Demux::DashDemuxer>(url);
 	} else {
@@ -52,17 +56,28 @@ void declarePipeline(Config cfg, Pipeline &pipeline, const char *url) {
 
 	for (int k = 0; k < (int)demuxer->getNumOutputs(); ++k) {
 		auto metadata = demuxer->getOutput(k)->getMetadata();
-		if (!metadata || metadata->isSubtitle()/*only render audio and video*/) {
+		if(!metadata) {
+			Log::msg(Debug, "Ignoring stream #%s (no metadata)", k);
+			continue;
+		}
+		if (metadata->isSubtitle()/*only render audio and video*/) {
 			Log::msg(Debug, "Ignoring stream #%s", k);
 			continue;
 		}
 
-		auto decode = pipeline.addModule<Decode::Decoder>(metadata->getStreamType());
-		pipeline.connect(demuxer, k, decode, 0);
+		IPipelinedModule* avSource = demuxer;
+		int avPin = k;
 
-		metadata = decode->getOutput(0)->getMetadata();
+		if(metadata->getStreamType() != VIDEO_RAW) {
+			auto decode = pipeline.addModule<Decode::Decoder>(metadata->getStreamType());
+			pipeline.connect(demuxer, k, decode, 0);
+			avSource = decode;
+			avPin = 0;
+		}
+
+		metadata = avSource->getOutput(avPin)->getMetadata();
 
 		auto render = createRenderer(pipeline, cfg, metadata->getStreamType());
-		pipeline.connect(decode, 0, render, 0);
+		pipeline.connect(avSource, avPin, render, 0);
 	}
 }
