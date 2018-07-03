@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "pipelined_module.hpp"
 #include "pipeline.hpp"
 #include "lib_utils/sysclock.hpp"
@@ -20,14 +21,16 @@ IPipelinedModule* Pipeline::addModuleInternal(std::unique_ptr<IModule> rawModule
 }
 
 void Pipeline::removeModule(IPipelinedModule *module) {
+	auto removeIt = [module](std::unique_ptr<IPipelinedModule> const& m) {
+		return m.get() == module;
+	};
+
 	std::unique_lock<std::mutex> lock(mutex);
-	for (auto &m : modules) {
-		if (m.get() == module) {
-			modules.remove(m);
-			return;
-		}
-	}
-	throw std::runtime_error("Could not remove module from pipeline");
+	auto i_mod = std::find_if(modules.begin(), modules.end(), removeIt);
+	if(i_mod == modules.end())
+		throw std::runtime_error("Could not remove module from pipeline");
+
+	modules.erase(i_mod);
 }
 
 void Pipeline::connect(IPipelinedModule * const prev, int outputIdx, IPipelinedModule * const next, int inputIdx, bool inputAcceptMultipleConnections) {

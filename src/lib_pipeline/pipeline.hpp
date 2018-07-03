@@ -2,7 +2,7 @@
 
 #include "lib_modules/modules.hpp"
 #include <atomic>
-#include <list>
+#include <vector>
 #include <memory>
 #include <stdexcept>
 
@@ -82,7 +82,7 @@ class Pipeline : public IPipeline, public IPipelineNotifier {
 		void endOfStream() override;
 		void exception(std::exception_ptr eptr) override;
 
-		std::list<std::unique_ptr<IPipelinedModule>> modules;
+		std::vector<std::unique_ptr<IPipelinedModule>> modules;
 		const int allocatorNumBlocks;
 		const std::shared_ptr<IClock> clock;
 		const Threading threading;
