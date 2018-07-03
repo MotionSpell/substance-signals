@@ -20,6 +20,7 @@ function main
 {
   run_test unittests
   run_test dashcast_crashtest
+  # run_test player_crashtest
 
   # blind-run the apps so they appear in coverage reports
   run_test player_blindtest
@@ -40,6 +41,11 @@ function dashcast_crashtest
   $BIN/src/apps/dashcastx/dashcastx.exe \
     -w $tmpDir/dashcastx \
     $PWD/data/h264.ts 1>/dev/null 2>/dev/null
+}
+
+function player_crashtest
+{
+  $BIN/player.exe data/simple.ts -n -a 0 1>/dev/null 2>/dev/null || true
 }
 
 function player_blindtest
