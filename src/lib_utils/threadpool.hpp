@@ -20,7 +20,6 @@ class ThreadPool {
 
 		~ThreadPool() {
 			WaitForCompletion();
-			done = true;
 		}
 
 		void WaitForCompletion() {
