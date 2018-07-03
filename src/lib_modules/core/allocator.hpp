@@ -41,11 +41,9 @@ class PacketAllocator {
 				if (!block.data) {
 					block.data = new T(size);
 				}
-
 				if (block.data->size() < size) {
 					block.data->resize(size);
 				}
-
 				auto ret = std::shared_ptr<T>(safe_cast<T>(block.data), Deleter{allocator});
 #ifdef ALLOC_DEBUG_TRACK_BLOCKS
 				usedBlocks.push(ret);
