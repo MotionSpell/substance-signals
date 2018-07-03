@@ -280,7 +280,7 @@ void LibavDemux::threadProc() {
 	}
 }
 
-void LibavDemux::setMediaTime(std::shared_ptr<DataAVPacket> data) {
+void LibavDemux::setTimestamp(std::shared_ptr<DataAVPacket> data) {
 	auto pkt = data->getPacket();
 	if (!pkt->duration) {
 		pkt->duration = pkt->dts - m_streams[pkt->stream_index].lastDTS;
@@ -327,7 +327,7 @@ void LibavDemux::dispatch(AVPacket *pkt) {
 	av_packet_move_ref(outPkt, pkt);
 	if(pkt->flags & AV_PKT_FLAG_RESET_DECODER)
 		out->flags |= DATA_FLAGS_DISCONTINUITY;
-	setMediaTime(out);
+	setTimestamp(out);
 	output->emit(out);
 	sparseStreamsHeartbeat(outPkt);
 }
