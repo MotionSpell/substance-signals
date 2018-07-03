@@ -41,11 +41,10 @@ class PacketAllocator {
 			case OneBufferIsFree: {
 				if (!block.data) {
 					block.data = new T(size);
-				} else {
-					auto data = block.data;
-					if (data->size() < size) {
-						data->resize(size);
-					}
+				}
+
+				if (block.data->size() < size) {
+					block.data->resize(size);
 				}
 
 				auto ret = std::shared_ptr<T>(safe_cast<T>(block.data), Deleter(allocator));
