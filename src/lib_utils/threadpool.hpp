@@ -53,7 +53,7 @@ class ThreadPool {
 
 		void run() {
 			while (!done) {
-				std::function<void(void)> task = workQueue.pop();
+				auto task = workQueue.pop();
 				try {
 					task();
 				} catch (...) {
