@@ -33,7 +33,7 @@ void Pipeline::removeModule(IPipelinedModule *module) {
 	modules.erase(i_mod);
 }
 
-void Pipeline::connect(IPipelinedModule * const prev, int outputIdx, IPipelinedModule * const next, int inputIdx, bool inputAcceptMultipleConnections) {
+void Pipeline::connect(IPipelinedModule * prev, int outputIdx, IPipelinedModule * next, int inputIdx, bool inputAcceptMultipleConnections) {
 	if (!next || !prev) return;
 	std::unique_lock<std::mutex> lock(mutex);
 	if (remainingNotifications != notifications)
@@ -42,7 +42,7 @@ void Pipeline::connect(IPipelinedModule * const prev, int outputIdx, IPipelinedM
 	computeTopology();
 }
 
-void Pipeline::disconnect(IPipelinedModule * const prev, int outputIdx, IPipelinedModule * const next, int inputIdx) {
+void Pipeline::disconnect(IPipelinedModule * prev, int outputIdx, IPipelinedModule * next, int inputIdx) {
 	if (!prev) return;
 	std::unique_lock<std::mutex> lock(mutex);
 	if (remainingNotifications != notifications)
