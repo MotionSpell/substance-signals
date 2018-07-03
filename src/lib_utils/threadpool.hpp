@@ -19,6 +19,7 @@ class ThreadPool {
 
 		~ThreadPool() {
 			waitAndExit = true;
+			workQueue.clear(); // speedup exit
 			for (size_t i = 0; i < threads.size(); ++i) {
 				workQueue.push([] {});
 			}
