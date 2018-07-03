@@ -156,14 +156,17 @@ vector<Event> runRectifier(
 		generators[event.index]->process(data);
 	}
 
+	// We don't want concurrency in our tests,
+	// however, 'TimeRectifier::Flush' currently blocks until some event occurs.
+	// This event is triggered by us, and must occur while 'flush' is already waiting.
 	{
-		std::thread flushThread([&]() {
-			rectifier->flush();
+		std::thread setTimeThread([&]() {
+			std::this_thread::sleep_for(10ms);
+			for(int i=1; i < 25; ++i)
+				clock->setTime(clock->now() + 1);
 		});
-		std::this_thread::sleep_for(10ms);
-		for(int i=1; i < 25; ++i)
-			clock->setTime(clock->now() + 1);
-		flushThread.join();
+		rectifier->flush();
+		setTimeThread.join();
 	}
 
 	vector<Event> actualTimes;
