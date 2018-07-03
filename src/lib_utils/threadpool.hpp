@@ -1,7 +1,6 @@
 #pragma once
 
 #include "queue.hpp"
-#include <atomic>
 #include <functional>
 #include <future>
 #include <stdexcept>
@@ -11,18 +10,16 @@ class ThreadPool {
 	public:
 		ThreadPool(const std::string &name = "", int threadCount = std::thread::hardware_concurrency())
 			: name(name) {
-			waitAndExit = false;
 			for (int i = 0; i < threadCount; ++i) {
 				threads.push_back(std::thread(&ThreadPool::run, this));
 			}
 		}
 
 		~ThreadPool() {
-			waitAndExit = true;
 			workQueue.clear(); // speedup exit
 			for(auto& t : threads) {
 				(void)t;
-				workQueue.push([] {});
+				workQueue.push(nullptr);
 			}
 			for(auto& t : threads) {
 				t.join();
@@ -48,8 +45,10 @@ class ThreadPool {
 		ThreadPool(const ThreadPool&) = delete;
 
 		void run() {
-			while (!waitAndExit) {
+			while (true) {
 				auto task = workQueue.pop();
+				if(!task)
+					break; // exit thread
 				try {
 					task();
 				} catch (...) {
@@ -60,7 +59,6 @@ class ThreadPool {
 			}
 		}
 
-		std::atomic_bool waitAndExit;
 		Queue<std::function<void(void)>> workQueue;
 		std::vector<std::thread> threads;
 		std::string name;
