@@ -50,15 +50,12 @@ class ThreadPool {
 		ThreadPool(const ThreadPool&) = delete;
 
 		void run() {
-			while (true) {
+			while (!waitAndExit) {
 				auto task = workQueue.pop();
 				try {
 					task();
 				} catch (...) {
 					eptr = std::current_exception(); //will be caught by next submit()
-				}
-				if (waitAndExit) {
-					break;
 				}
 			}
 		}
