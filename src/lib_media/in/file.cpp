@@ -24,10 +24,7 @@ File::~File() {
 }
 
 void File::process(Data) {
-	for (;;) {
-		if (sourceMustExit(this))
-			break;
-
+	while (!sourceMustExit(this)) {
 		auto out = output->getBuffer(IOSIZE);
 		size_t read = fread(out->data(), 1, IOSIZE, file);
 		if (read == 0) {
