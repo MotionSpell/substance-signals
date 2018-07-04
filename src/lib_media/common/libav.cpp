@@ -400,9 +400,7 @@ void copyToPicture(AVFrame const* avFrame, DataPicture* pic) {
 }
 
 static void lavc_ReleaseFrame(void *opaque, uint8_t * /*data*/) {
-	if (opaque) {
-		delete static_cast<PictureAllocator::PictureContext*>(opaque);
-	}
+	delete static_cast<PictureAllocator::PictureContext*>(opaque);
 }
 
 int avGetBuffer2(struct AVCodecContext *ctx, AVFrame *frame, int /*flags*/) {
@@ -417,7 +415,7 @@ int avGetBuffer2(struct AVCodecContext *ctx, AVFrame *frame, int /*flags*/) {
 	auto picCtx = dr->getPicture(Resolution(frame->width, frame->height), Resolution(width, height), libavPixFmt2PixelFormat((AVPixelFormat)frame->format));
 	if (!picCtx->pic)
 		return -1;
-	frame->opaque = static_cast<void*>(picCtx);
+	frame->opaque = picCtx;
 	auto pic = picCtx->pic.get();
 
 	for (size_t i = 0; i < AV_NUM_DATA_POINTERS; ++i) {
