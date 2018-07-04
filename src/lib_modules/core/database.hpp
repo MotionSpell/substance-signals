@@ -68,22 +68,16 @@ template<class T>
 std::shared_ptr<T> safe_cast(std::shared_ptr<const Modules::DataBase> p) {
 	if (!p)
 		return nullptr;
-	auto r = std::dynamic_pointer_cast<T>(p);
-	if (r) {
+	if (auto r = std::dynamic_pointer_cast<T>(p))
 		return r;
-	} else {
-		auto s = std::dynamic_pointer_cast<const Modules::DataBaseRef>(p);
-		if (s) {
-			auto t = std::dynamic_pointer_cast<T>(s->getData());
-			if (t) {
-				return t;
-			} else {
-				auto u = std::dynamic_pointer_cast<const Modules::DataBase>(s->getData());
-				if (u)
-					return safe_cast<T>(u);
-			}
-		}
+
+	if (auto ref = std::dynamic_pointer_cast<const Modules::DataBaseRef>(p)) {
+		if (auto r = std::dynamic_pointer_cast<T>(ref->getData()))
+			return r;
+		if (auto r = std::dynamic_pointer_cast<const Modules::DataBase>(ref->getData()))
+			return safe_cast<T>(r);
 	}
+
 	throw std::runtime_error("dynamic cast error: could not convert from Modules::Data to " + std::string(typeid(T).name()));
 }
 
