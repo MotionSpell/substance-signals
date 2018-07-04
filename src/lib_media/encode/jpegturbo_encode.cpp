@@ -46,7 +46,7 @@ void JPEGTurboEncode::process(Data data_) {
 		break;
 	}
 	case RGB24: case RGBA32: {
-		if (tjCompress2(jtHandle, (unsigned char*)jpegBuf, w, 0/*pitch*/, h, TJPF_RGB, &buf, &jpegSize, TJSAMP_420, quality, TJFLAG_FASTDCT) < 0) {
+		if (tjCompress2(jtHandle, (unsigned char*)jpegBuf, w, 0/*pitch*/, h, TJPF_RGB, &buf, &jpegSize, TJSAMP_420, quality, TJFLAG_NOREALLOC | TJFLAG_FASTDCT) < 0) {
 			log(Warning, "error encountered while compressing (RGB).");
 			return;
 		}
