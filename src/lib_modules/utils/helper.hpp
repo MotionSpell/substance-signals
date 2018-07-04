@@ -202,8 +202,6 @@ std::unique_ptr<InstanceType> create(Args&&... args) {
 //single input specialized module
 class ModuleS : public Module {
 	public:
-		ModuleS() = default;
-		virtual ~ModuleS() noexcept(false) {}
 		virtual void process(Data data) = 0;
 		void process() override {
 			process(getInput(0)->pop());
