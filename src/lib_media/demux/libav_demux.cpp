@@ -365,7 +365,6 @@ void LibavDemux::process(Data) {
 
 	while (1) {
 		if(sourceMustExit(this)) {
-			done = true;
 			log(Info, "Exit from an external event.");
 			return;
 		}
