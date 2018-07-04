@@ -14,7 +14,7 @@ class GPACDemuxMP4Simple : public ActiveModule {
 	public:
 		GPACDemuxMP4Simple(std::string const& path);
 		~GPACDemuxMP4Simple();
-		void work() override;
+		bool work() override;
 
 	private:
 		std::unique_ptr<ISOFileReader> reader;

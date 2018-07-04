@@ -9,7 +9,7 @@ class File : public ActiveModule {
 	public:
 		File(std::string const& fn);
 		~File();
-		void work() override;
+		bool work() override;
 
 	private:
 		FILE *file;

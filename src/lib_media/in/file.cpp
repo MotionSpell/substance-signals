@@ -23,18 +23,17 @@ File::~File() {
 	fclose(file);
 }
 
-void File::work() {
-	while (!mustExit()) {
-		auto out = output->getBuffer(IOSIZE);
-		size_t read = fread(out->data(), 1, IOSIZE, file);
-		if (read == 0) {
-			break;
-		}
-		if (read < IOSIZE) {
-			out->resize(read);
-		}
-		output->emit(out);
+bool File::work() {
+	auto out = output->getBuffer(IOSIZE);
+	size_t read = fread(out->data(), 1, IOSIZE, file);
+	if (read == 0) {
+		return false;
 	}
+	if (read < IOSIZE) {
+		out->resize(read);
+	}
+	output->emit(out);
+	return true;
 }
 
 }

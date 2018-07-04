@@ -35,31 +35,30 @@ GPACDemuxMP4Simple::GPACDemuxMP4Simple(std::string const& path)
 GPACDemuxMP4Simple::~GPACDemuxMP4Simple() {
 }
 
-void GPACDemuxMP4Simple::work() {
+bool GPACDemuxMP4Simple::work() {
 	auto const DTSOffset = reader->movie->getDTSOffet(reader->trackNumber);
-	for (;;) {
-		try {
-			int sampleDescriptionIndex;
-			std::unique_ptr<gpacpp::IsoSample> ISOSample = reader->movie->getSample(reader->trackNumber, reader->sampleIndex, sampleDescriptionIndex);
+	try {
+		int sampleDescriptionIndex;
+		std::unique_ptr<gpacpp::IsoSample> ISOSample = reader->movie->getSample(reader->trackNumber, reader->sampleIndex, sampleDescriptionIndex);
 
-			log(Debug, "Found sample #%s/%s of length %s, RAP %s, DTS: %s, CTS: %s",
-			    reader->sampleIndex, reader->sampleCount, ISOSample->dataLength,
-			    ISOSample->IsRAP, ISOSample->DTS + DTSOffset, ISOSample->DTS + DTSOffset + ISOSample->CTS_Offset);
-			reader->sampleIndex++;
+		log(Debug, "Found sample #%s/%s of length %s, RAP %s, DTS: %s, CTS: %s",
+		    reader->sampleIndex, reader->sampleCount, ISOSample->dataLength,
+		    ISOSample->IsRAP, ISOSample->DTS + DTSOffset, ISOSample->DTS + DTSOffset + ISOSample->CTS_Offset);
+		reader->sampleIndex++;
 
-			auto out = output->getBuffer(ISOSample->dataLength);
-			memcpy(out->data(), ISOSample->data, ISOSample->dataLength);
-			out->setMediaTime(ISOSample->DTS + DTSOffset + ISOSample->CTS_Offset, reader->movie->getMediaTimescale(reader->trackNumber));
-			output->emit(out);
-		} catch (gpacpp::Error const& err) {
-			if (err.error_ == GF_ISOM_INCOMPLETE_FILE) {
-				u64 missingBytes = reader->movie->getMissingBytes(reader->trackNumber);
-				log(Error, "Missing %s bytes on input file", missingBytes);
-			} else {
-				return;
-			}
+		auto out = output->getBuffer(ISOSample->dataLength);
+		memcpy(out->data(), ISOSample->data, ISOSample->dataLength);
+		out->setMediaTime(ISOSample->DTS + DTSOffset + ISOSample->CTS_Offset, reader->movie->getMediaTimescale(reader->trackNumber));
+		output->emit(out);
+	} catch (gpacpp::Error const& err) {
+		if (err.error_ == GF_ISOM_INCOMPLETE_FILE) {
+			u64 missingBytes = reader->movie->getMissingBytes(reader->trackNumber);
+			log(Error, "Missing %s bytes on input file", missingBytes);
+		} else {
+			return false;
 		}
 	}
+	return true;
 }
 
 }

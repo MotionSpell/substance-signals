@@ -24,7 +24,7 @@ class LibavDemux : public ActiveModule {
 		//@param url may be a file, a remote URL, or a webcam (set "webcam" to list the available devices)
 		LibavDemux(const std::string &url, bool loop = false, const std::string &avformatCustom = "", uint64_t seekTimeInMs = 0, const std::string &formatName = "", ReadFunc func = nullptr);
 		~LibavDemux();
-		void work() override;
+		bool work() override;
 
 	private:
 		int readFrame(AVPacket* pkt);

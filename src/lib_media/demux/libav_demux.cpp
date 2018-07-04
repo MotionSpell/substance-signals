@@ -373,23 +373,25 @@ void LibavDemux::sparseStreamsHeartbeat(AVPacket const * const pkt) {
 	}
 }
 
-void LibavDemux::work() {
-	workingThread = std::thread(&LibavDemux::inputThread, this);
+bool LibavDemux::work() {
+	if(!workingThread.joinable())
+		workingThread = std::thread(&LibavDemux::inputThread, this);
 
-	while (!mustExit()) {
-		AVPacket pkt;
-		if (!packetQueue.read(pkt)) {
-			if (done) {
-				log(Info, "All data consumed: exit process().");
-				return;
-			}
-			std::this_thread::sleep_for(std::chrono::milliseconds(10));
-			continue;
+	AVPacket pkt;
+	if (!packetQueue.read(pkt)) {
+		if (done) {
+			log(Info, "All data consumed: exit process().");
+			return false;
 		}
-		if (dispatchable(&pkt)) {
-			dispatch(&pkt);
-		}
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		return true;
 	}
+
+	if (dispatchable(&pkt)) {
+		dispatch(&pkt);
+	}
+
+	return true;
 }
 
 }
