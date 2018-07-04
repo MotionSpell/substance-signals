@@ -247,7 +247,7 @@ void LibavDemux::inputThread() {
 
 		int status = readFrame(&pkt);
 
-		if (status < 0 || !rectifyTimestamps(pkt)) {
+		if (status < 0) {
 			av_free_packet(&pkt);
 
 			if (status == (int)AVERROR_EOF || (m_formatCtx->pb && m_formatCtx->pb->eof_reached)) {
@@ -260,6 +260,12 @@ void LibavDemux::inputThread() {
 			} else if (m_formatCtx->pb && m_formatCtx->pb->error) {
 				log(Error, "Stream contains an irrecoverable error (%s) - leaving", status);
 			}
+			done = true;
+			return;
+		}
+
+		if (!rectifyTimestamps(pkt)) {
+			av_free_packet(&pkt);
 			done = true;
 			return;
 		}
