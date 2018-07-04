@@ -409,8 +409,8 @@ int avGetBuffer2(struct AVCodecContext *ctx, AVFrame *frame, int /*flags*/) {
 	auto size = dim; // size in memory
 	int linesize_align[AV_NUM_DATA_POINTERS];
 	avcodec_align_dimensions2(ctx, &size.width, &size.height, linesize_align);
-	if (size.width % (2 * linesize_align[0])) {
-		size.width += 2 * linesize_align[0] - (size.width % (2 * linesize_align[0]));
+	if (auto extra = size.width % (2 * linesize_align[0])) {
+		size.width += 2 * linesize_align[0] - extra;
 	}
 	auto picCtx = dr->getPicture(dim, size, libavPixFmt2PixelFormat((AVPixelFormat)frame->format));
 	if (!picCtx->pic)
