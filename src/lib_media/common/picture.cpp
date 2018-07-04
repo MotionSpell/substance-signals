@@ -251,8 +251,8 @@ class PictureRGB24 : public DataPicture {
 		}
 		void setInternalResolution(Resolution res) override {
 			internalFormat.res = res;
-			resize(internalFormat.getSize());
-
+			// 16 bytes of padding, as required by most SIMD processing (e.g swscale)
+			resize(internalFormat.getSize() + 16);
 		}
 		void setVisibleResolution(Resolution res) override {
 			format.res = res;
