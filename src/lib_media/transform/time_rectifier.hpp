@@ -38,7 +38,6 @@ class TimeRectifier : public ModuleDynI {
 		TimeRectifier(IScheduler* scheduler, Fraction frameRate);
 
 		void process() override;
-		void flush() override;
 
 		int getNumOutputs() const override {
 			return (int)outputs.size();
@@ -75,9 +74,8 @@ class TimeRectifier : public ModuleDynI {
 		int64_t maxClockTimeIn180k = 0;
 		std::vector<Stream> streams;
 		std::mutex inputMutex;
-		std::condition_variable inputQueueWasReduced;
 		IScheduler* const scheduler;
-		bool hasVideo = false, flushing = false;
+		bool hasVideo = false;
 };
 
 template <>

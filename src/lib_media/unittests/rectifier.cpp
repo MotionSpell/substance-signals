@@ -156,18 +156,8 @@ vector<Event> runRectifier(
 		generators[event.index]->process(data);
 	}
 
-	// We don't want concurrency in our tests,
-	// however, 'TimeRectifier::Flush' currently blocks until some event occurs.
-	// This event is triggered by us, and must occur while 'flush' is already waiting.
-	{
-		std::thread setTimeThread([&]() {
-			std::this_thread::sleep_for(10ms);
-			for(int i=1; i < 25; ++i)
-				clock->setTime(clock->now() + 1);
-		});
-		rectifier->flush();
-		setTimeThread.join();
-	}
+	for(int i=0; i < 100; ++i)
+		clock->setTime(clock->now());
 
 	vector<Event> actualTimes;
 
@@ -230,6 +220,7 @@ unittest("rectifier: missing frame") {
 		Event{0, 200, 200},
 		Event{0, 300, 300},
 		Event{0, 400, 400},
+		Event{0, 500, 500},
 	});
 
 	vector<unique_ptr<ModuleS>> generators;

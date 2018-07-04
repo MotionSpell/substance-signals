@@ -26,26 +26,6 @@ void TimeRectifier::process() {
 	discardOutdatedData((fractionToClock(clock->now()) - analyzeWindowIn180k));
 }
 
-void TimeRectifier::flush() {
-	std::unique_lock<std::mutex> lock(inputMutex);
-	flushing = true;
-	auto const finalClockTime = std::max<int64_t>(maxClockTimeIn180k, fractionToClock(clock->now()));
-	log(TR_DEBUG, "Schedule final removal at time %s (max:%s|%s)", finalClockTime, maxClockTimeIn180k, fractionToClock(clock->now()));
-	scheduler->scheduleAt([this](Fraction f) {
-		log(TR_DEBUG, "Final removal at time %s", fractionToClock(f));
-		discardOutdatedData(INT64_MAX);
-	}, Fraction(finalClockTime, IClock::Rate));
-
-	auto allQueuesEmpty = [this]() {
-		for(auto& s : streams)
-			if(!s.data.empty())
-				return false;
-		return true;
-	};
-
-	inputQueueWasReduced.wait(lock, allQueuesEmpty);
-}
-
 void TimeRectifier::mimicOutputs() {
 	while(streams.size() < getInputs().size()) {
 		std::unique_lock<std::mutex> lock(inputMutex);
@@ -93,7 +73,7 @@ void TimeRectifier::discardOutdatedData(int64_t removalClockTime) {
 }
 
 void TimeRectifier::discardStreamOutdatedData(size_t inputIdx, int64_t removalClockTime) {
-	auto minQueueSize = flushing ? 0 : 1;
+	auto minQueueSize = 1;
 	auto& stream = streams[inputIdx];
 	auto data = stream.data.begin();
 	while ((int)stream.data.size() > minQueueSize && data != stream.data.end()) {
@@ -104,7 +84,6 @@ void TimeRectifier::discardStreamOutdatedData(size_t inputIdx, int64_t removalCl
 			data++;
 		}
 	}
-	inputQueueWasReduced.notify_one();
 }
 
 Data TimeRectifier::findNearestData(Stream& stream, Fraction time) {
@@ -174,8 +153,7 @@ void TimeRectifier::emitOnePeriod(Fraction time) {
 		auto& master = streams[i];
 		auto refData = findNearestData(master, time);
 		if (!refData) {
-			// No reference data found but neither starting nor flushing
-			assert(master.numTicks == 0 || flushing);
+			assert(master.numTicks == 0);
 
 			log(Warning, "No available reference data for clock time %s", fractionToClock(time));
 			return;
