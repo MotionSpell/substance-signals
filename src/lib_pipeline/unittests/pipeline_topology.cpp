@@ -104,7 +104,7 @@ unittest("pipeline: sink only (incorrect topology)") {
 
 unittest("pipeline: null after split") {
 	Pipeline p;
-	auto generator = p.addModule<In::VideoGenerator>();
+	auto generator = p.addModule<In::VideoGenerator>(10);
 	auto dualInput = p.addModule<ThreadedDualInput>();
 	p.connect(generator, 0, dualInput, 0);
 	p.connect(generator, 0, dualInput, 1);

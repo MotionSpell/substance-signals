@@ -7,12 +7,16 @@ auto const FRAMERATE = 25;
 namespace Modules {
 namespace In {
 
-VideoGenerator::VideoGenerator() {
+VideoGenerator::VideoGenerator(int maxFrames_) : maxFrames(maxFrames_) {
 	output = addOutput<OutputPicture>();
 	output->setMetadata(std::make_shared<MetadataRawVideo>());
 }
 
-void VideoGenerator::process(Data /*data*/) {
+bool VideoGenerator::work() {
+
+	if(maxFrames && m_numFrames >= (uint64_t)maxFrames)
+		return false;
+
 	auto const dim = Resolution(320, 180);
 	auto pic = DataPicture::create(output, dim, YUV420P);
 
@@ -31,6 +35,7 @@ void VideoGenerator::process(Data /*data*/) {
 		output->emit(pic);
 
 	++m_numFrames;
+	return true;
 }
 
 }
