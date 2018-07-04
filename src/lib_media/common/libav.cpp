@@ -405,14 +405,14 @@ static void lavc_ReleaseFrame(void *opaque, uint8_t * /*data*/) {
 
 int avGetBuffer2(struct AVCodecContext *ctx, AVFrame *frame, int /*flags*/) {
 	auto dr = static_cast<PictureAllocator*>(ctx->opaque);
-	int width = frame->width;
-	int height = frame->height;
+	auto dim = Resolution(frame->width, frame->height);
+	auto size = dim; // size in memory
 	int linesize_align[AV_NUM_DATA_POINTERS];
-	avcodec_align_dimensions2(ctx, &width, &height, linesize_align);
-	if (width % (2 * linesize_align[0])) {
-		width += 2 * linesize_align[0] - (width % (2 * linesize_align[0]));
+	avcodec_align_dimensions2(ctx, &size.width, &size.height, linesize_align);
+	if (size.width % (2 * linesize_align[0])) {
+		size.width += 2 * linesize_align[0] - (size.width % (2 * linesize_align[0]));
 	}
-	auto picCtx = dr->getPicture(Resolution(frame->width, frame->height), Resolution(width, height), libavPixFmt2PixelFormat((AVPixelFormat)frame->format));
+	auto picCtx = dr->getPicture(dim, size, libavPixFmt2PixelFormat((AVPixelFormat)frame->format));
 	if (!picCtx->pic)
 		return -1;
 	frame->opaque = picCtx;
