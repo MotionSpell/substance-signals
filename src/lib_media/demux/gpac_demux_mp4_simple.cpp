@@ -35,7 +35,7 @@ GPACDemuxMP4Simple::GPACDemuxMP4Simple(std::string const& path)
 GPACDemuxMP4Simple::~GPACDemuxMP4Simple() {
 }
 
-void GPACDemuxMP4Simple::process(Data /*data*/) {
+void GPACDemuxMP4Simple::work() {
 	auto const DTSOffset = reader->movie->getDTSOffet(reader->trackNumber);
 	for (;;) {
 		try {

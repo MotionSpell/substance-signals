@@ -373,10 +373,10 @@ void LibavDemux::sparseStreamsHeartbeat(AVPacket const * const pkt) {
 	}
 }
 
-void LibavDemux::process(Data) {
+void LibavDemux::work() {
 	workingThread = std::thread(&LibavDemux::inputThread, this);
 
-	while (!sourceMustExit(this)) {
+	while (!mustExit()) {
 		AVPacket pkt;
 		if (!packetQueue.read(pkt)) {
 			if (done) {

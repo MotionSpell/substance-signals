@@ -27,5 +27,5 @@ unittest("print packets size from file: File -> Out::Print") {
 
 	ConnectOutputToInput(f->getOutput(0), p->getInput(0));
 
-	f->process(nullptr);
+	f->process();
 }

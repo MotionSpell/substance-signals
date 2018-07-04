@@ -23,8 +23,8 @@ File::~File() {
 	fclose(file);
 }
 
-void File::process(Data) {
-	while (!sourceMustExit(this)) {
+void File::work() {
+	while (!mustExit()) {
 		auto out = output->getBuffer(IOSIZE);
 		size_t read = fread(out->data(), 1, IOSIZE, file);
 		if (read == 0) {

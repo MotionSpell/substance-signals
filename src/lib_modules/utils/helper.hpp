@@ -208,7 +208,13 @@ class ModuleS : public Module {
 		}
 };
 
-bool sourceMustExit(IModule* m);
+//module with no input (=source module)
+class ActiveModule : public Module {
+	public:
+		virtual void work() = 0;
+		void process() override;
+		bool mustExit();
+};
 
 //dynamic input number specialized module
 //note: ports added automatically will carry the DataLoose type which doesn't

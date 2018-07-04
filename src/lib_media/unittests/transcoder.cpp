@@ -44,7 +44,7 @@ void libav_mux(std::string format) {
 	ConnectOutputToInput(decode->getOutput(0), encode->getInput(0));
 	ConnectOutputToInput(encode->getOutput(0), mux->getInput(0));
 
-	demux->process(nullptr);
+	demux->process();
 }
 
 unittest("transcoder: video simple (libav mux MP4)") {
@@ -81,7 +81,7 @@ unittest("transcoder: video simple (gpac mux MP4)") {
 	ConnectOutputToInput(decode->getOutput(0), encode->getInput(0));
 	ConnectOutputToInput(encode->getOutput(0), mux->getInput(0));
 
-	demux->process(nullptr);
+	demux->process();
 }
 
 unittest("transcoder: jpg to jpg") {
@@ -90,7 +90,7 @@ unittest("transcoder: jpg to jpg") {
 	{
 		auto preReader = create<In::File>(filename);
 		ConnectOutputToInput(preReader->getOutput(0), decode->getInput(0));
-		preReader->process(nullptr);
+		preReader->process();
 	}
 
 	auto reader = create<In::File>(filename);
@@ -101,7 +101,7 @@ unittest("transcoder: jpg to jpg") {
 	ConnectOutputToInput(decode->getOutput(0), encoder->getInput(0));
 	ConnectOutputToInput(encoder->getOutput(0), writer->getInput(0));
 
-	reader->process(nullptr);
+	reader->process();
 }
 
 void resizeJPGTest(PixelFormat pf) {
@@ -110,7 +110,7 @@ void resizeJPGTest(PixelFormat pf) {
 	{
 		auto preReader = create<In::File>(filename);
 		ConnectOutputToInput(preReader->getOutput(0), decode->getInput(0));
-		preReader->process(nullptr);
+		preReader->process();
 	}
 	auto reader = create<In::File>(filename);
 
@@ -124,7 +124,7 @@ void resizeJPGTest(PixelFormat pf) {
 	ConnectOutputToInput(converter->getOutput(0), encoder->getInput(0));
 	ConnectOutputToInput(encoder->getOutput(0), writer->getInput(0));
 
-	reader->process(nullptr);
+	reader->process();
 }
 
 unittest("transcoder: jpg to resized jpg (RGB24)") {
@@ -154,7 +154,7 @@ unittest("transcoder: h264/mp4 to jpg") {
 	ConnectOutputToInput(converter->getOutput(0), encoder->getInput(0));
 	ConnectOutputToInput(encoder->getOutput(0), writer->getInput(0));
 
-	demux->process(nullptr);
+	demux->process();
 }
 
 unittest("transcoder: jpg to h264/mp4 (gpac)") {
@@ -163,7 +163,7 @@ unittest("transcoder: jpg to h264/mp4 (gpac)") {
 	{
 		auto preReader = create<In::File>(filename);
 		ConnectOutputToInput(preReader->getOutput(0), decode->getInput(0));
-		preReader->process(nullptr);
+		preReader->process();
 	}
 	auto reader = create<In::File>(filename);
 
@@ -178,7 +178,7 @@ unittest("transcoder: jpg to h264/mp4 (gpac)") {
 	ConnectOutputToInput(converter->getOutput(0), encoder->getInput(0));
 	ConnectOutputToInput(encoder->getOutput(0), mux->getInput(0));
 
-	reader->process(nullptr);
+	reader->process();
 	converter->flush();
 	encoder->flush();
 	mux->flush();

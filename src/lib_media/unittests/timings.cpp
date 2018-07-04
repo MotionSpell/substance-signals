@@ -38,7 +38,7 @@ void checkTimestampsMux(const std::vector<int64_t> &timesIn, const std::vector<i
 	};
 	auto demux = create<T>("out/random_ts.mp4");
 	ConnectOutput(demux.get(), onFrame);
-	demux->process(nullptr);
+	demux->process();
 	ASSERT_EQUALS(i, timesOut.size());
 }
 
@@ -157,7 +157,7 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 		modules.push_back(std::move(encoder));
 	}
 
-	demux->process(nullptr);
+	demux->process();
 	for (auto &m : modules) {
 		m->flush();
 	}

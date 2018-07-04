@@ -5,11 +5,11 @@
 namespace Modules {
 namespace In {
 
-class File : public ModuleS {
+class File : public ActiveModule {
 	public:
 		File(std::string const& fn);
 		~File();
-		void process(Data data) override;
+		void work() override;
 
 	private:
 		FILE *file;

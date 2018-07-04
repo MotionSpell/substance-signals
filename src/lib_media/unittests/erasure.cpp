@@ -29,7 +29,7 @@ secondclasstest("packet type erasure + multi-output: libav Demux -> {libav Decod
 		printers.push_back(std::move(p));
 	}
 
-	demux->process(nullptr);
+	demux->process();
 }
 
 }

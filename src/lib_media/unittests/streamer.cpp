@@ -725,7 +725,7 @@ unittest("[DISABLED] adaptive streaming combination coverage")
 		}
 	}
 
-	demux->process(nullptr);
+	demux->process();
 
 	for (auto &m : muxMP4File) m->flush();
 	for (auto &m : muxMP4Mem) m->flush();

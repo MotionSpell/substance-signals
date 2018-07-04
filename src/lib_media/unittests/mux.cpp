@@ -30,7 +30,7 @@ unittest("[DISABLED] remux test: GPAC mp4 mux") {
 		ConnectModules(demux.get(), i, mux.get(), i);
 	}
 
-	demux->process(nullptr);
+	demux->process();
 }
 
 //ffmpeg extradata seems to be different (non annex B ?) when output from the muxer
@@ -41,7 +41,7 @@ unittest("[DISABLED] remux test: libav mp4 mux") {
 		ConnectModules(demux.get(), i, mux.get(), i);
 	}
 
-	demux->process(nullptr);
+	demux->process();
 }
 
 unittest("mux GPAC mp4 failure tests") {
@@ -75,7 +75,7 @@ std::vector<Meta> runMux(std::shared_ptr<IModule> m) {
 	auto listener = create<Listener>();
 	ConnectModules(m.get(), 0, listener.get(), 0);
 
-	demux->process(nullptr);
+	demux->process();
 	m->flush();
 
 	return listener->results;

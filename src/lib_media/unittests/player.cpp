@@ -35,7 +35,7 @@ secondclasstest("packet type erasure + multi-output: libav Demux -> libav Decode
 	ConnectOutputToInput(demux->getOutput(videoIndex), decode->getInput(0));
 	ConnectOutputToInput(decode->getOutput(0), render->getInput(0));
 
-	demux->process(nullptr);
+	demux->process();
 }
 
 secondclasstest("packet type erasure + multi-output: libav Demux -> libav Decoder (Audio Only) -> Render::SDL2") {
@@ -62,7 +62,7 @@ secondclasstest("packet type erasure + multi-output: libav Demux -> libav Decode
 	ConnectOutputToInput(decode->getOutput(0), converter->getInput(0));
 	ConnectOutputToInput(converter->getOutput(0), render->getInput(0));
 
-	demux->process(nullptr);
+	demux->process();
 }
 #endif
 

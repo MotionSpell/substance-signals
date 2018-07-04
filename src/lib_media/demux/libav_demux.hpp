@@ -17,14 +17,14 @@ class Restamp;
 
 namespace Demux {
 
-class LibavDemux : public ModuleS {
+class LibavDemux : public ActiveModule {
 	public:
 
 		typedef std::function<int(uint8_t* buf, int bufSize)> ReadFunc;
 		//@param url may be a file, a remote URL, or a webcam (set "webcam" to list the available devices)
 		LibavDemux(const std::string &url, bool loop = false, const std::string &avformatCustom = "", uint64_t seekTimeInMs = 0, const std::string &formatName = "", ReadFunc func = nullptr);
 		~LibavDemux();
-		void process(Data data) override;
+		void work() override;
 
 	private:
 		int readFrame(AVPacket* pkt);
