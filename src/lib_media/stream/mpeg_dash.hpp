@@ -2,7 +2,7 @@
 
 #include "adaptive_streaming_common.hpp"
 #include "lib_gpacpp/gpacpp.hpp"
-#include <list>
+#include <vector>
 
 namespace Modules {
 namespace Stream {
@@ -24,7 +24,7 @@ class MPEG_DASH : public AdaptiveStreamingCommon, public gpacpp::Init {
 				std::shared_ptr<const MetadataFile> file;
 				int retry = 5;
 			};
-			std::list<SegmentToDelete> timeshiftSegments;
+			std::vector<SegmentToDelete> timeshiftSegments;
 		};
 
 		void ensureManifest();
