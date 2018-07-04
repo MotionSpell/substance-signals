@@ -6,10 +6,10 @@
 namespace Modules {
 namespace In {
 
-class SoundGenerator : public ModuleS {
+class SoundGenerator : public ActiveModule {
 	public:
 		SoundGenerator();
-		void process(Data data) override;
+		bool work() override;
 
 	private:
 		double nextSample();

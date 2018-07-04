@@ -20,7 +20,7 @@ SoundGenerator::SoundGenerator()
 	output = addOutput<OutputPcm>();
 }
 
-void SoundGenerator::process(Data /*data*/) {
+bool SoundGenerator::work() {
 	auto const bytesPerSample = pcmFormat.getBytesPerSample();
 	auto const sampleDurationInMs = 40;
 	auto const bufferSize = bytesPerSample * sampleDurationInMs * pcmFormat.sampleRate / 1000;
@@ -48,6 +48,7 @@ void SoundGenerator::process(Data /*data*/) {
 	}
 
 	output->emit(out);
+	return false;
 }
 
 double SoundGenerator::nextSample() {

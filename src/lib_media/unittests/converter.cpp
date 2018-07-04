@@ -29,7 +29,7 @@ unittest("audio converter: interleaved to planar to interleaved") {
 	ConnectOutputToInput(converter1->getOutput(0), converter2->getInput(0));
 	Connect(converter2->getOutput(0)->getSignal(), pushOther);
 
-	soundGen->process(nullptr);
+	soundGen->work();
 	comparator->process(nullptr);
 }
 
@@ -50,7 +50,7 @@ unittest("audio converter: 44100 to 48000") {
 	ConnectOutputToInput(converter1->getOutput(0), converter2->getInput(0));
 	Connect(converter2->getOutput(0)->getSignal(), pushOther);
 
-	soundGen->process(nullptr);
+	soundGen->work();
 
 	converter1->flush();
 	converter2->flush();
@@ -67,9 +67,9 @@ unittest("audio converter: dynamic formats") {
 	ConnectOutputToInput(soundGen->getOutput(0), converter->getInput(0));
 	ConnectOutputToInput(converter->getOutput(0), recorder->getInput(0));
 
-	soundGen->process(nullptr);
+	soundGen->work();
 
-	soundGen->process(nullptr);
+	soundGen->work();
 
 	converter->flush();
 	converter->getOutput(0)->getSignal().disconnect(0);
