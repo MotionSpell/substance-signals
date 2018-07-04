@@ -229,9 +229,9 @@ void LibavDemux::inputThread() {
 	if(highPriority && !setHighThreadPriority())
 		log(Warning, "Couldn't change reception thread priority to realtime.");
 
-	AVPacket pkt;
 	bool nextPacketResetFlag = false;
 	while (!done) {
+		AVPacket pkt;
 		av_init_packet(&pkt);
 		int status = av_read_frame(m_formatCtx, &pkt);
 
