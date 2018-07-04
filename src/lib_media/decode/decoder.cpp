@@ -46,7 +46,7 @@ void Decoder::openDecoder(const MetadataPkt* metadata) {
 
 	if (videoOutput) {
 		if (codecCtx->codec->capabilities & AV_CODEC_CAP_DR1) {
-			codecCtx->thread_safe_callbacks = 1;
+			codecCtx->thread_safe_callbacks = 0;
 			codecCtx->opaque = static_cast<PictureAllocator*>(this);
 			codecCtx->get_buffer2 = avGetBuffer2;
 
