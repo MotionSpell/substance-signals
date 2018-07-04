@@ -25,6 +25,7 @@ class PipelinedModule :
 		/* source modules are stopped manually - then the message propagates to other connected modules */
 		bool isSource() override;
 		bool isSink() override;
+		void stopSource() override;
 
 	private:
 		std::string getDelegateName() const;

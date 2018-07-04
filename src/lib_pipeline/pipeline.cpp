@@ -84,7 +84,7 @@ void Pipeline::exitSync() {
 	Log::msg(Warning, "Pipeline: asked to exit now.");
 	for (auto &m : modules) {
 		if (m->isSource()) {
-			m->process(); //FIXME: ok but then we don't flush() so some module may stuck in waitForEndOfStream
+			m->stopSource();
 		}
 	}
 }

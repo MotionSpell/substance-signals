@@ -9,6 +9,7 @@
 namespace Pipelines {
 
 struct IPipelinedModule : public Modules::IModule {
+	virtual void stopSource() = 0;
 	virtual bool isSource() = 0;
 	virtual bool isSink() = 0;
 	virtual void connect(Modules::IOutput *output, int inputIdx, bool forceAsync, bool inputAcceptMultipleConnections) = 0;
