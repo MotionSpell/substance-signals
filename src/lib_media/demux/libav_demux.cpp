@@ -270,7 +270,6 @@ void LibavDemux::inputThread() {
 			continue;
 		}
 
-
 		if (nextPacketResetFlag) {
 			pkt.flags |= AV_PKT_FLAG_RESET_DECODER;
 			nextPacketResetFlag = false;
@@ -382,13 +381,11 @@ bool LibavDemux::work() {
 	}
 
 	if (dispatchable(&pkt)) {
-
 		if (!rectifyTimestamps(pkt)) {
 			av_free_packet(&pkt);
 			done = true;
 			return false;
 		}
-
 		dispatch(&pkt);
 	}
 
