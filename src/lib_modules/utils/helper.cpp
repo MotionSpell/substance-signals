@@ -44,4 +44,9 @@ bool MetadataCap::setMetadataInternal(const std::shared_ptr<const IMetadata> &me
 	return true;
 }
 
+bool sourceMustExit(IModule* m) {
+	Data data;
+	return m->getNumInputs() && m->getInput(0)->tryPop(data);
+}
+
 }

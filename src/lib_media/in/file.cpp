@@ -23,9 +23,9 @@ File::~File() {
 	fclose(file);
 }
 
-void File::process(Data data) {
+void File::process(Data) {
 	for (;;) {
-		if (getNumInputs() && getInput(0)->tryPop(data))
+		if (sourceMustExit(this))
 			break;
 
 		auto out = output->getBuffer(IOSIZE);

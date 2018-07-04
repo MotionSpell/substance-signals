@@ -364,8 +364,7 @@ void LibavDemux::process(Data) {
 	workingThread = std::thread(&LibavDemux::inputThread, this);
 
 	while (1) {
-		Data data;
-		if (getNumInputs() && getInput(0)->tryPop(data)) {
+		if(sourceMustExit(this)) {
 			done = true;
 			log(Info, "Exit from an external event.");
 			return;

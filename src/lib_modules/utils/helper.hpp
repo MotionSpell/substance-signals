@@ -210,6 +210,8 @@ class ModuleS : public Module {
 		}
 };
 
+bool sourceMustExit(IModule* m);
+
 //dynamic input number specialized module
 //note: ports added automatically will carry the DataLoose type which doesn't
 //      allow to perform all safety checks ; consider adding ports manually if
