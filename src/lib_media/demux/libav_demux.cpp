@@ -264,12 +264,6 @@ void LibavDemux::inputThread() {
 			return;
 		}
 
-		if (!rectifyTimestamps(pkt)) {
-			av_free_packet(&pkt);
-			done = true;
-			return;
-		}
-
 		if (pkt.stream_index >= (int)m_streams.size()) {
 			log(Warning, "Detected stream index %s that was not initially detected (adding streams dynamically is not supported yet). Discarding packet.", pkt.stream_index);
 			av_free_packet(&pkt);
@@ -388,6 +382,13 @@ bool LibavDemux::work() {
 	}
 
 	if (dispatchable(&pkt)) {
+
+		if (!rectifyTimestamps(pkt)) {
+			av_free_packet(&pkt);
+			done = true;
+			return false;
+		}
+
 		dispatch(&pkt);
 	}
 
