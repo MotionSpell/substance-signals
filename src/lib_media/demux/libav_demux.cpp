@@ -234,14 +234,16 @@ void LibavDemux::inputThread() {
 	while (!done) {
 		av_init_packet(&pkt);
 		int status = av_read_frame(m_formatCtx, &pkt);
+
+		if (status == (int)AVERROR(EAGAIN)) {
+			av_free_packet(&pkt);
+			log(Debug, "Stream asks to try again later. Sleeping for a short period of time.");
+			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+			continue;
+		}
+
 		if (status < 0 || !rectifyTimestamps(pkt)) {
 			av_free_packet(&pkt);
-
-			if (status == (int)AVERROR(EAGAIN)) {
-				log(Debug, "Stream asks to try again later. Sleeping for a short period of time.");
-				std::this_thread::sleep_for(std::chrono::milliseconds(10));
-				continue;
-			}
 
 			if (status == (int)AVERROR_EOF || (m_formatCtx->pb && m_formatCtx->pb->eof_reached)) {
 				log(Info, "End of stream detected - %s", loop ? "looping" : "leaving");
