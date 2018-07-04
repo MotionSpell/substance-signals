@@ -27,6 +27,7 @@ class LibavDemux : public ModuleS {
 		void process(Data data) override;
 
 	private:
+		int readFrame(AVPacket* pkt);
 		void clean();
 		void webcamList();
 		bool webcamOpen(const std::string &options);

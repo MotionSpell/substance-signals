@@ -224,6 +224,17 @@ bool LibavDemux::rectifyTimestamps(AVPacket &pkt) {
 	return true;
 }
 
+int LibavDemux::readFrame(AVPacket* pkt) {
+	for(;;) {
+		int status = av_read_frame(m_formatCtx, pkt);
+		if (status != (int)AVERROR(EAGAIN))
+			return status;
+
+		log(Debug, "Stream asks to try again later. Sleeping for a short period of time.");
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	}
+}
+
 void LibavDemux::inputThread() {
 
 	if(highPriority && !setHighThreadPriority())
@@ -233,14 +244,8 @@ void LibavDemux::inputThread() {
 	while (!done) {
 		AVPacket pkt;
 		av_init_packet(&pkt);
-		int status = av_read_frame(m_formatCtx, &pkt);
 
-		if (status == (int)AVERROR(EAGAIN)) {
-			av_free_packet(&pkt);
-			log(Debug, "Stream asks to try again later. Sleeping for a short period of time.");
-			std::this_thread::sleep_for(std::chrono::milliseconds(10));
-			continue;
-		}
+		int status = readFrame(&pkt);
 
 		if (status < 0 || !rectifyTimestamps(pkt)) {
 			av_free_packet(&pkt);
