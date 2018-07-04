@@ -33,7 +33,7 @@ class LibavDemux : public ModuleS {
 		void initRestamp();
 		void seekToStart();
 		bool rectifyTimestamps(AVPacket &pkt);
-		void threadProc();
+		void inputThread();
 		void setTimestamp(std::shared_ptr<DataAVPacket> data);
 		bool dispatchable(AVPacket * const pkt);
 		void dispatch(AVPacket *pkt);

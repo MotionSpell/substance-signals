@@ -224,7 +224,7 @@ bool LibavDemux::rectifyTimestamps(AVPacket &pkt) {
 	return true;
 }
 
-void LibavDemux::threadProc() {
+void LibavDemux::inputThread() {
 
 	if(highPriority && !setHighThreadPriority())
 		log(Warning, "Couldn't change reception thread priority to realtime.");
@@ -361,7 +361,7 @@ void LibavDemux::sparseStreamsHeartbeat(AVPacket const * const pkt) {
 }
 
 void LibavDemux::process(Data) {
-	workingThread = std::thread(&LibavDemux::threadProc, this);
+	workingThread = std::thread(&LibavDemux::inputThread, this);
 
 	while (1) {
 		Data data;
