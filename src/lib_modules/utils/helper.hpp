@@ -100,18 +100,13 @@ class InputCap : public virtual IInputCap {
 		std::vector<std::unique_ptr<IInput>> inputs;
 };
 
-typedef Signals::Signal<void(Data)> SignalSync;
 static Signals::ExecutorSync<void(Data)> g_executorOutputSync;
-typedef SignalSync SignalDefaultSync;
 
 template<typename DataType>
 class OutputDataDefault : public IOutput, public MetadataCap {
 	public:
-		typedef PacketAllocator Allocator;
-		typedef SignalDefaultSync Signal;
-
 		OutputDataDefault(size_t allocatorBaseSize, size_t allocatorMaxSize, std::shared_ptr<const IMetadata> metadata = nullptr)
-			: MetadataCap(metadata), signal(g_executorOutputSync), allocator(new Allocator(allocatorBaseSize, allocatorMaxSize)) {
+			: MetadataCap(metadata), signal(g_executorOutputSync), allocator(new PacketAllocator(allocatorBaseSize, allocatorMaxSize)) {
 		}
 		OutputDataDefault(size_t allocatorSize, const IMetadata *metadata = nullptr)
 			: OutputDataDefault(allocatorSize, allocatorSize, metadata) {
@@ -137,12 +132,12 @@ class OutputDataDefault : public IOutput, public MetadataCap {
 		}
 
 		void resetAllocator(size_t allocatorSize) {
-			allocator = make_shared<Allocator>(1, allocatorSize);
+			allocator = make_shared<PacketAllocator>(1, allocatorSize);
 		}
 
 	private:
-		Signal signal;
-		std::shared_ptr<Allocator> allocator;
+		Signals::Signal<void(Data)> signal;
+		std::shared_ptr<PacketAllocator> allocator;
 };
 
 typedef OutputDataDefault<DataRaw> OutputDefault;
