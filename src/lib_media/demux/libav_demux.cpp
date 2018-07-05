@@ -319,7 +319,6 @@ bool LibavDemux::dispatchable(AVPacket * const pkt) {
 		auto stream = m_formatCtx->streams[pkt->stream_index];
 		auto minPts = clockToTimescale(startPTSIn180k*stream->time_base.num, stream->time_base.den);
 		if(pkt->pts < minPts) {
-			av_free_packet(pkt);
 			return false;
 		}
 	}
@@ -385,8 +384,10 @@ bool LibavDemux::work() {
 		return true;
 	}
 
-	if (!dispatchable(&pkt))
+	if (!dispatchable(&pkt)) {
+		av_free_packet(&pkt);
 		return true;
+	}
 
 	dispatch(&pkt);
 	return true;
