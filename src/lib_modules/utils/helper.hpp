@@ -15,6 +15,11 @@
 #include <memory>
 #include <atomic>
 
+struct Span {
+	uint8_t* ptr;
+	size_t len;
+};
+
 namespace Modules {
 
 class MetadataCap : public virtual IMetadataCap {

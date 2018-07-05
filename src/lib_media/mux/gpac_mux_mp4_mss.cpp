@@ -17,12 +17,10 @@ GPACMuxMP4MSS::GPACMuxMP4MSS(const std::string &baseName, uint64_t segmentDurati
 void GPACMuxMP4MSS::declareStreamAudio(const std::shared_ptr<const MetadataPktLibavAudio> &metadata) {
 	GPACMuxMP4::declareStreamAudio(metadata);
 
-	const uint8_t *extradata;
-	size_t extradataSize;
-	metadata->getExtradata(extradata, extradataSize);
+	auto extradata = metadata->getExtradata();
 
 	auto const bitsPerSample = metadata->getBitsPerSample() >= 16 ? 16 : metadata->getBitsPerSample();
-	ISMLManifest = writeISMLManifest(codec4CC, string2hex(extradata, extradataSize), metadata->getBitrate(), 0, 0, metadata->getSampleRate(), metadata->getNumChannels(), bitsPerSample);
+	ISMLManifest = writeISMLManifest(codec4CC, string2hex(extradata.ptr, extradata.len), metadata->getBitrate(), 0, 0, metadata->getSampleRate(), metadata->getNumChannels(), bitsPerSample);
 	auto ptr = (uint32_t*)ISMLManifest.c_str();
 	ptr[0] = 0;
 }
@@ -37,11 +35,9 @@ void GPACMuxMP4MSS::declareStreamSubtitle(const std::shared_ptr<const MetadataPk
 void GPACMuxMP4MSS::declareStreamVideo(const std::shared_ptr<const MetadataPktLibavVideo> &metadata) {
 	GPACMuxMP4::declareStreamVideo(metadata);
 
-	const uint8_t *extradata;
-	size_t extradataSize;
-	metadata->getExtradata(extradata, extradataSize);
+	auto extradata = metadata->getExtradata();
 	auto const res = metadata->getResolution();
-	ISMLManifest = writeISMLManifest(codec4CC, string2hex(extradata, extradataSize), metadata->getBitrate(), res.width, res.height, 0, 0, 0);
+	ISMLManifest = writeISMLManifest(codec4CC, string2hex(extradata.ptr, extradata.len), metadata->getBitrate(), res.width, res.height, 0, 0, 0);
 	auto ptr = (uint32_t*)ISMLManifest.c_str();
 	ptr[0] = 0;
 }

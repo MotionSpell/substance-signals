@@ -9,11 +9,6 @@
 namespace Modules {
 namespace Render {
 
-struct Span {
-	uint8_t* ptr;
-	size_t len;
-};
-
 class SDLAudio : public ModuleS {
 	public:
 		SDLAudio(std::shared_ptr<IClock> clock = nullptr);

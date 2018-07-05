@@ -41,7 +41,7 @@ class MetadataPktLibavVideo : public MetadataPktLibav {
 		PixelFormat getPixelFormat() const;
 		Resolution getResolution() const;
 		Fraction getFrameRate() const;
-		void getExtradata(const uint8_t *&extradata, size_t &extradataSize) const;
+		Span getExtradata() const;
 };
 
 class MetadataPktLibavAudio : public MetadataPktLibav {
@@ -52,7 +52,7 @@ class MetadataPktLibavAudio : public MetadataPktLibav {
 		uint32_t getSampleRate() const;
 		uint8_t getBitsPerSample() const;
 		uint32_t getFrameSize() const;
-		void getExtradata(const uint8_t *&extradata, size_t &extradataSize) const;
+		Span getExtradata() const;
 };
 
 class MetadataPktLibavSubtitle : public MetadataPktLibav {

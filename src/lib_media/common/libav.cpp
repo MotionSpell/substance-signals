@@ -163,9 +163,8 @@ Fraction MetadataPktLibavVideo::getFrameRate() const {
 	return Fraction(codecCtx->framerate.num, codecCtx->framerate.den);
 }
 
-void MetadataPktLibavVideo::getExtradata(const uint8_t *&extradata, size_t &extradataSize) const {
-	extradata = codecCtx->extradata;
-	extradataSize = codecCtx->extradata_size;
+Span MetadataPktLibavVideo::getExtradata() const {
+	return Span { codecCtx->extradata, (size_t)codecCtx->extradata_size };
 }
 
 //MetadataPktLibavAudio
@@ -189,9 +188,8 @@ uint32_t MetadataPktLibavAudio::getFrameSize() const {
 	return codecCtx->frame_size;
 }
 
-void MetadataPktLibavAudio::getExtradata(const uint8_t *&extradata, size_t &extradataSize) const {
-	extradata = codecCtx->extradata;
-	extradataSize = codecCtx->extradata_size;
+Span MetadataPktLibavAudio::getExtradata() const {
+	return Span { codecCtx->extradata, (size_t)codecCtx->extradata_size };
 }
 
 //conversions

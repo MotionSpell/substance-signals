@@ -596,9 +596,7 @@ void GPACMuxMP4::declareStreamAudio(const std::shared_ptr<const MetadataPktLibav
 	if (!esd)
 		throw error(format("Cannot create GF_ESD"));
 
-	const uint8_t *extradata;
-	size_t extradataSize;
-	metadata->getExtradata(extradata, extradataSize);
+	auto extradata = metadata->getExtradata();
 	esd->decoderConfig->streamType = GF_STREAM_AUDIO;
 	sampleRate = metadata->getSampleRate();
 	if (metadata->getCodecName() == "aac") { //TODO: find an automatic table, we only know about MPEG1 Layer 2 and AAC-LC
@@ -609,9 +607,9 @@ void GPACMuxMP4::declareStreamAudio(const std::shared_ptr<const MetadataPktLibav
 		esd->slConfig->timestampResolution = sampleRate;
 		esd->ESID = 1;
 
-		esd->decoderConfig->decoderSpecificInfo->dataLength = (u32)extradataSize;
-		esd->decoderConfig->decoderSpecificInfo->data = (char*)gf_malloc(extradataSize);
-		memcpy(esd->decoderConfig->decoderSpecificInfo->data, extradata, extradataSize);
+		esd->decoderConfig->decoderSpecificInfo->dataLength = (u32)extradata.len;
+		esd->decoderConfig->decoderSpecificInfo->data = (char*)gf_malloc(extradata.len);
+		memcpy(esd->decoderConfig->decoderSpecificInfo->data, extradata.ptr, extradata.len);
 
 		acfg.base_object_type = GF_M4A_AAC_LC;
 		acfg.base_sr = sampleRate;
@@ -711,9 +709,7 @@ void GPACMuxMP4::declareStreamVideo(const std::shared_ptr<const MetadataPktLibav
 	if (e != GF_OK)
 		throw error(format("Cannot enable track: %s", gf_error_to_string(e)));
 
-	const uint8_t *extradata;
-	size_t extradataSize;
-	metadata->getExtradata(extradata, extradataSize);
+	auto extradata = metadata->getExtradata();
 
 	u32 di = 0;
 	if (metadata->getAVCodecContext()->codec_id == AV_CODEC_ID_H264) {
@@ -722,7 +718,7 @@ void GPACMuxMP4::declareStreamVideo(const std::shared_ptr<const MetadataPktLibav
 		if (!avccfg)
 			throw error(format("Container format import failed (AVC)"));
 
-		e = avc_import_ffextradata(extradata, extradataSize, avccfg.get());
+		e = avc_import_ffextradata(extradata.ptr, extradata.len, avccfg.get());
 		if (e == GF_OK) {
 			e = gf_isom_avc_config_new(isoCur, trackNum, avccfg.get(), nullptr, nullptr, &di);
 			if (e != GF_OK)
@@ -734,7 +730,7 @@ void GPACMuxMP4::declareStreamVideo(const std::shared_ptr<const MetadataPktLibav
 		if (!hevccfg)
 			throw error(format("Container format import failed (HEVC)"));
 
-		e = hevc_import_ffextradata(extradata, extradataSize, hevccfg.get());
+		e = hevc_import_ffextradata(extradata.ptr, extradata.len, hevccfg.get());
 		if (e == GF_OK) {
 			e = gf_isom_hevc_config_new(isoCur, trackNum, hevccfg.get(), nullptr, nullptr, &di);
 			if (e != GF_OK)
@@ -753,9 +749,9 @@ void GPACMuxMP4::declareStreamVideo(const std::shared_ptr<const MetadataPktLibav
 			esd->decoderConfig->streamType = GF_STREAM_VISUAL;
 			esd->decoderConfig->avgBitrate = esd->decoderConfig->maxBitrate = 0;
 			esd->decoderConfig->objectTypeIndication = metadata->getAVCodecContext()->codec_id == AV_CODEC_ID_H264 ? GPAC_OTI_VIDEO_AVC : GPAC_OTI_VIDEO_HEVC;
-			esd->decoderConfig->decoderSpecificInfo->dataLength = (u32)extradataSize;
-			esd->decoderConfig->decoderSpecificInfo->data = (char*)gf_malloc(extradataSize);
-			memcpy(esd->decoderConfig->decoderSpecificInfo->data, extradata, extradataSize);
+			esd->decoderConfig->decoderSpecificInfo->dataLength = (u32)extradata.len;
+			esd->decoderConfig->decoderSpecificInfo->data = (char*)gf_malloc(extradata.len);
+			memcpy(esd->decoderConfig->decoderSpecificInfo->data, extradata.ptr, extradata.len);
 			esd->slConfig->predefined = SLPredef_MP4;
 
 			e = gf_isom_new_mpeg4_description(isoCur, trackNum, esd, nullptr, nullptr, &di);
