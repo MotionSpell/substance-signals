@@ -1,7 +1,6 @@
 #pragma once
 
 #include <functional>
-#include <future>
 
 namespace Signals {
 
@@ -11,7 +10,7 @@ template <typename... Args>
 class IExecutor<void(Args...)> {
 	public:
 		virtual ~IExecutor() noexcept(false) {}
-		virtual std::shared_future<void> operator() (const std::function<void(Args...)> &fn, Args... args) = 0;
+		virtual void operator() (const std::function<void(Args...)> &fn, Args... args) = 0;
 };
 
 template<typename> class ExecutorSync;
@@ -21,21 +20,23 @@ template<typename> class ExecutorAsync;
 template<typename... Args>
 class ExecutorSync<void(Args...)> : public IExecutor<void(Args...)> {
 	public:
-		std::shared_future<void> operator() (const std::function<void(Args...)> &fn, Args... args) {
-			std::packaged_task<void(Args...)> task(fn);
-			const std::shared_future<void> &f = task.get_future();
-			task(args...);
-			f.get();
-			return f;
+		void operator() (const std::function<void(Args...)> &fn, Args... args) {
+			fn(args...);
 		}
 };
+}
+
+// TODO: move this elsewhere
+#include <future>
+
+namespace Signals {
 
 //asynchronous calls with std::launch::async (spawns a thread)
 template< typename... Args>
 class ExecutorAsync<void(Args...)> : public IExecutor<void(Args...)> {
 	public:
-		std::shared_future<void> operator() (const std::function<void(Args...)> &fn, Args... args) {
-			return std::async(std::launch::async, fn, args...);
+		void operator() (const std::function<void(Args...)> &fn, Args... args) {
+			std::async(std::launch::async, fn, args...);
 		}
 };
 

@@ -18,8 +18,8 @@ class ExecutorThreadPool<void(Args...)> : public IExecutor<void(Args...)> {
 		ExecutorThreadPool(std::shared_ptr<ThreadPool> threadPool) : threadPool(threadPool) {
 		}
 
-		std::shared_future<void> operator() (const std::function<void(Args...)> &fn, Args... args) {
-			return threadPool->submit(fn, args...);
+		void operator() (const std::function<void(Args...)> &fn, Args... args) {
+			threadPool->submit(fn, args...);
 		}
 
 	private:
@@ -33,8 +33,8 @@ class ExecutorThread<void(Args...)> : public IExecutor<void(Args...)> {
 		ExecutorThread(const std::string &name) : threadPool(name, 1) {
 		}
 
-		std::shared_future<void> operator() (const std::function<void(Args...)> &fn, Args... args) {
-			return threadPool.submit(fn, args...);
+		void operator() (const std::function<void(Args...)> &fn, Args... args) {
+			threadPool.submit(fn, args...);
 		}
 
 	private:
