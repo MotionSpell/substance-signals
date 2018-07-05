@@ -380,14 +380,15 @@ bool LibavDemux::work() {
 		return true;
 	}
 
-	if (dispatchable(&pkt)) {
-		if (!rectifyTimestamps(pkt)) {
-			av_free_packet(&pkt);
-			return true;
-		}
-		dispatch(&pkt);
+	if (!rectifyTimestamps(pkt)) {
+		av_free_packet(&pkt);
+		return true;
 	}
 
+	if (!dispatchable(&pkt))
+		return true;
+
+	dispatch(&pkt);
 	return true;
 }
 
