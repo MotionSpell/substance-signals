@@ -383,8 +383,7 @@ bool LibavDemux::work() {
 	if (dispatchable(&pkt)) {
 		if (!rectifyTimestamps(pkt)) {
 			av_free_packet(&pkt);
-			done = true;
-			return false;
+			return true;
 		}
 		dispatch(&pkt);
 	}
