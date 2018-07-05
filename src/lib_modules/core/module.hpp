@@ -50,10 +50,13 @@ struct IOutput : virtual IMetadataCap {
 	virtual void emit(Data data) = 0;
 	virtual Signals::ISignal<void(Data)>& getSignal() = 0;
 };
+}
 
 // FIXME: remove this (see below)
 #include <memory>
 #include <vector>
+
+namespace Modules {
 
 struct IOutputCap {
 		virtual ~IOutputCap() noexcept(false) {}
