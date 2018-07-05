@@ -738,7 +738,7 @@ void GPACMuxMP4::declareStreamVideo(const std::shared_ptr<const MetadataPktLibav
 		if (e == GF_OK) {
 			e = gf_isom_hevc_config_new(isoCur, trackNum, hevccfg.get(), nullptr, nullptr, &di);
 			if (e != GF_OK)
-				throw error(format("Cannot create AVC config: %s", gf_error_to_string(e)));
+				throw error(format("Cannot create HEVC config: %s", gf_error_to_string(e)));
 		}
 	} else
 		throw error("Unknown codec");
