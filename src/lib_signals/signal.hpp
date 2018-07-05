@@ -11,13 +11,13 @@ namespace Signals {
 template<typename> class ISignal;
 
 template <typename Callback, typename Arg>
-class ISignal<Callback(Arg)> {
-	public:
-		virtual size_t connect(const std::function<Callback(Arg)> &cb, IExecutor<Callback(Arg)> &executor) = 0;
-		virtual size_t connect(const std::function<Callback(Arg)> &cb) = 0;
-		virtual bool disconnect(size_t connectionId) = 0;
-		virtual size_t getNumConnections() const = 0;
-		virtual size_t emit(Arg arg) = 0;
+struct ISignal<Callback(Arg)> {
+	virtual ~ISignal() = default;
+	virtual size_t connect(const std::function<Callback(Arg)> &cb, IExecutor<Callback(Arg)> &executor) = 0;
+	virtual size_t connect(const std::function<Callback(Arg)> &cb) = 0;
+	virtual bool disconnect(size_t connectionId) = 0;
+	virtual size_t getNumConnections() const = 0;
+	virtual size_t emit(Arg arg) = 0;
 };
 
 template<typename> class Signal;
@@ -63,9 +63,6 @@ class Signal<Callback(Arg)> : public ISignal<Callback(Arg)> {
 		}
 
 		Signal(IExecutor<Callback(Arg)> &executor) : executor(executor) {
-		}
-
-		virtual ~Signal() {
 		}
 
 	private:
