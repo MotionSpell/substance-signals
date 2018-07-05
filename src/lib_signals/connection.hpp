@@ -12,7 +12,6 @@ class ConnectionList {
 		IExecutor<ResultType(Args...)> &executor;
 		std::function<ResultType(Args...)> const callback;
 		size_t const uid;
-		std::vector<std::shared_future<FutureResultType>> futures;
 
 		explicit ConnectionList(IExecutor<ResultType(Args...)> &executor, const std::function<ResultType(Args...)> &callback, const size_t uid) : executor(executor), callback(callback), uid(uid) {
 		}

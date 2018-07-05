@@ -54,7 +54,7 @@ class Signal<Callback(Arg)> : public ISignal<Callback(Arg)> {
 		size_t emit(Arg arg) {
 			std::lock_guard<std::mutex> lg(callbacksMutex);
 			for (auto &cb : callbacks) {
-				cb.second->futures.push_back(cb.second->executor(cb.second->callback, arg));
+				cb.second->executor(cb.second->callback, arg);
 			}
 			return callbacks.size();
 		}
