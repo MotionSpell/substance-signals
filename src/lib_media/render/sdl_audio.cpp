@@ -70,7 +70,7 @@ bool SDLAudio::reconfigure(PcmFormat inputFormat) {
 	return true;
 }
 
-SDLAudio::SDLAudio(const std::shared_ptr<IClock> clock)
+SDLAudio::SDLAudio(std::shared_ptr<IClock> clock)
 	: m_clock(clock ? clock : g_SystemClock), m_inputFormat(PcmFormat(44100, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Interleaved)) {
 
 	if (SDL_InitSubSystem(SDL_INIT_AUDIO | SDL_INIT_NOPARACHUTE) == -1)
