@@ -46,6 +46,8 @@ class Signal<Callback(Arg)> : public ISignal<Callback(Arg)> {
 			return disconnectUnsafe(connectionId);
 		}
 
+		// FIXME: in a concurrent context, what's returned by this function
+		// immediately becomes obsolete.
 		size_t getNumConnections() const {
 			std::lock_guard<std::mutex> lg(callbacksMutex);
 			return callbacks.size();
