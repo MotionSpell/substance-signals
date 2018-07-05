@@ -1,6 +1,7 @@
 #include "sdl_audio.hpp"
 #include "render_common.hpp"
 #include "lib_utils/tools.hpp"
+#include "lib_utils/system_clock.hpp"
 #include "SDL2/SDL.h"
 #include "../common/metadata.hpp"
 #include "../transform/audio_convert.hpp"
@@ -70,7 +71,7 @@ bool SDLAudio::reconfigure(PcmFormat inputFormat) {
 }
 
 SDLAudio::SDLAudio(const std::shared_ptr<IClock> clock)
-	: m_clock(clock), m_inputFormat(PcmFormat(44100, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Interleaved)) {
+	: m_clock(clock ? clock : g_SystemClock), m_inputFormat(PcmFormat(44100, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Interleaved)) {
 
 	if (SDL_InitSubSystem(SDL_INIT_AUDIO | SDL_INIT_NOPARACHUTE) == -1)
 		throw std::runtime_error(format("Couldn't initialize: %s", SDL_GetError()));

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "lib_modules/utils/helper.hpp"
-#include "lib_utils/system_clock.hpp"
 #include "../common/pcm.hpp"
 #include "lib_utils/fifo.hpp"
 #include <memory>
@@ -17,7 +16,7 @@ struct Span {
 
 class SDLAudio : public ModuleS {
 	public:
-		SDLAudio(std::shared_ptr<IClock> clock = g_SystemClock);
+		SDLAudio(std::shared_ptr<IClock> clock = nullptr);
 		~SDLAudio();
 		void process(Data data) override;
 		void flush() override;
