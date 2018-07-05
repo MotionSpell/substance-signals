@@ -589,7 +589,10 @@ void GPACMuxMP4::declareStreamAudio(const std::shared_ptr<const MetadataPktLibav
 	u32 di=0, trackNum=0;
 	GF_M4ADecSpecInfo acfg {};
 
-	GF_ESD *esd = gf_odf_desc_esd_new(2);
+	auto deleteEsd = [](GF_ESD* p) {
+		gf_odf_desc_del((GF_Descriptor*)p);
+	};
+	auto esd = std::shared_ptr<GF_ESD>(gf_odf_desc_esd_new(2), deleteEsd);
 	if (!esd)
 		throw error(format("Cannot create GF_ESD"));
 
@@ -650,12 +653,11 @@ void GPACMuxMP4::declareStreamAudio(const std::shared_ptr<const MetadataPktLibav
 	if (e != GF_OK)
 		throw error(format("gf_isom_set_track_enabled: %s", gf_error_to_string(e)));
 
-	e = gf_isom_new_mpeg4_description(isoCur, trackNum, esd, nullptr, nullptr, &di);
+	e = gf_isom_new_mpeg4_description(isoCur, trackNum, esd.get(), nullptr, nullptr, &di);
 	if (e != GF_OK)
 		throw error(format("gf_isom_new_mpeg4_description: %s", gf_error_to_string(e)));
 
-	gf_odf_desc_del((GF_Descriptor *)esd);
-	esd = nullptr;
+	esd.reset();
 
 	auto const bitsPerSample = metadata->getBitsPerSample() >= 16 ? 16 : metadata->getBitsPerSample();
 	e = gf_isom_set_audio_info(isoCur, trackNum, di, sampleRate, metadata->getNumChannels(), bitsPerSample);
