@@ -33,7 +33,7 @@ class Signal<Callback(Arg)> : public ISignal<Callback(Arg)> {
 		size_t connect(const CallbackType &cb, IExecutor &executor) {
 			std::lock_guard<std::mutex> lg(callbacksMutex);
 			const size_t connectionId = uid++;
-			callbacks[connectionId] = std::make_unique<ConnectionType>(executor, cb, connectionId);
+			callbacks[connectionId] = std::make_unique<ConnectionType>(executor, cb);
 			return connectionId;
 		}
 
