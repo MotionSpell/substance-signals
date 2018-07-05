@@ -44,7 +44,11 @@ void getBsContent(GF_ISOFile *iso, char *&output, u32 &size, bool newBs) {
 	}
 }
 
-static GF_Err avc_import_ffextradata(const u8 *extradata, const u64 extradataSize, GF_AVCConfig *dstcfg) {
+static GF_Err avc_import_ffextradata(Span extradataSpan, GF_AVCConfig *dstcfg) {
+
+	const auto extradata = extradataSpan.ptr;
+	const auto extradataSize = extradataSpan.len;
+
 	if (!extradata || !extradataSize) {
 		Log::msg(Warning, "No initial SPS/PPS provided.");
 		return GF_OK;
@@ -162,8 +166,11 @@ parse_sps:
 * @param dstcfg
 * @returns GF_OK is the extradata was parsed and is valid, other values otherwise.
 */
-static GF_Err hevc_import_ffextradata(const u8 *extradata, const u64 extradata_size, GF_HEVCConfig *dstCfg) {
+static GF_Err hevc_import_ffextradata(Span extradataSpan, GF_HEVCConfig *dstCfg) {
 	GF_HEVCParamArray *vpss = nullptr, *spss = nullptr, *ppss = nullptr;
+
+	const auto extradata = extradataSpan.ptr;
+	const auto extradata_size = extradataSpan.len;
 
 	char *buffer = nullptr;
 	u32 bufferSize = 0;
@@ -718,7 +725,7 @@ void GPACMuxMP4::declareStreamVideo(const std::shared_ptr<const MetadataPktLibav
 		if (!avccfg)
 			throw error(format("Container format import failed (AVC)"));
 
-		e = avc_import_ffextradata(extradata.ptr, extradata.len, avccfg.get());
+		e = avc_import_ffextradata(extradata, avccfg.get());
 		if (e == GF_OK) {
 			e = gf_isom_avc_config_new(isoCur, trackNum, avccfg.get(), nullptr, nullptr, &di);
 			if (e != GF_OK)
@@ -730,7 +737,7 @@ void GPACMuxMP4::declareStreamVideo(const std::shared_ptr<const MetadataPktLibav
 		if (!hevccfg)
 			throw error(format("Container format import failed (HEVC)"));
 
-		e = hevc_import_ffextradata(extradata.ptr, extradata.len, hevccfg.get());
+		e = hevc_import_ffextradata(extradata, hevccfg.get());
 		if (e == GF_OK) {
 			e = gf_isom_hevc_config_new(isoCur, trackNum, hevccfg.get(), nullptr, nullptr, &di);
 			if (e != GF_OK)
