@@ -45,7 +45,6 @@ void getBsContent(GF_ISOFile *iso, char *&output, u32 &size, bool newBs) {
 }
 
 static GF_Err avc_import_ffextradata(const u8 *extradata, const u64 extradataSize, GF_AVCConfig *dstcfg) {
-	auto avc = make_unique<AVCState>();
 	if (!extradata || !extradataSize) {
 		Log::msg(Warning, "No initial SPS/PPS provided.");
 		return GF_OK;
@@ -55,6 +54,9 @@ static GF_Err avc_import_ffextradata(const u8 *extradata, const u64 extradataSiz
 	if (!bs) {
 		return GF_BAD_PARAM;
 	}
+
+	auto avc = make_unique<AVCState>();
+	memset(avc.get(), 0, sizeof(*avc));
 
 	//Find start code
 	{
@@ -161,7 +163,6 @@ parse_sps:
 * @returns GF_OK is the extradata was parsed and is valid, other values otherwise.
 */
 static GF_Err hevc_import_ffextradata(const u8 *extradata, const u64 extradata_size, GF_HEVCConfig *dstCfg) {
-	auto hevc = make_unique<HEVCState>();
 	GF_HEVCParamArray *vpss = nullptr, *spss = nullptr, *ppss = nullptr;
 
 	char *buffer = nullptr;
@@ -172,6 +173,7 @@ static GF_Err hevc_import_ffextradata(const u8 *extradata, const u64 extradata_s
 	if (!bs)
 		return GF_BAD_PARAM;
 
+	auto hevc = make_unique<HEVCState>();
 	memset(hevc.get(), 0, sizeof(HEVCState));
 	hevc->sps_active_idx = -1;
 
