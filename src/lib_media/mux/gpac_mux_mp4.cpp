@@ -766,9 +766,8 @@ void GPACMuxMP4::declareStreamVideo(const std::shared_ptr<const MetadataPktLibav
 			throw error("Container format import failed");
 	}
 
-	auto const res = metadata->getResolution();
-	resolution = res;
-	gf_isom_set_visual_info(isoCur, gf_isom_get_track_by_id(isoCur, trackId), di, res.width, res.height);
+	resolution = metadata->getResolution();
+	gf_isom_set_visual_info(isoCur, gf_isom_get_track_by_id(isoCur, trackId), di, resolution.width, resolution.height);
 	gf_isom_set_sync_table(isoCur, trackNum);
 
 	if(AVC_INBAND_CONFIG) {
