@@ -36,9 +36,14 @@ class SDLAudio : public ModuleS {
 		PcmFormat m_outputFormat;
 		PcmFormat m_inputFormat;
 		std::unique_ptr<IModule> m_converter;
-		std::mutex m_Mutex;
-		Fifo m_Fifo;
-		int64_t fifoTimeIn180k, m_LatencyIn180k;
+		int64_t m_LatencyIn180k;
+
+		// shared state between:
+		// - the producer thread ('push')
+		// - the SDL thread ('fillAudio')
+		std::mutex m_protectFifo;
+		Fifo m_fifo;
+		int64_t m_fifoTime;
 };
 
 }

@@ -99,8 +99,8 @@ void SDLAudio::flush() {
 	// wait for everything to be consumed by the audio callback
 	for(;;) {
 		{
-			std::lock_guard<std::mutex> lg(m_Mutex);
-			if(m_Fifo.bytesToRead() == 0)
+			std::lock_guard<std::mutex> lg(m_protectFifo);
+			if(m_fifo.bytesToRead() == 0)
 				break;
 		}
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -109,26 +109,26 @@ void SDLAudio::flush() {
 
 void SDLAudio::push(Data data) {
 	auto pcmData = safe_cast<const DataPcm>(data);
-	std::lock_guard<std::mutex> lg(m_Mutex);
-	if (m_Fifo.bytesToRead() == 0) {
-		fifoTimeIn180k = pcmData->getMediaTime() + PREROLL_DELAY;
+	std::lock_guard<std::mutex> lg(m_protectFifo);
+	if (m_fifo.bytesToRead() == 0) {
+		m_fifoTime = pcmData->getMediaTime() + PREROLL_DELAY;
 	}
 	for (int i = 0; i < pcmData->getFormat().numPlanes; ++i) {
-		m_Fifo.write(pcmData->getPlane(i), (size_t)pcmData->getPlaneSize(i));
+		m_fifo.write(pcmData->getPlane(i), (size_t)pcmData->getPlaneSize(i));
 	}
 }
 
 void SDLAudio::fillAudio(Span buffer) {
 	// timestamp of the first sample of the buffer
 	auto const bufferTimeIn180k = fractionToClock(m_clock->now()) + m_LatencyIn180k;
-	std::lock_guard<std::mutex> lg(m_Mutex);
-	if(m_Fifo.bytesToRead() == 0) {
+	std::lock_guard<std::mutex> lg(m_protectFifo);
+	if(m_fifo.bytesToRead() == 0) {
 		// consider an empty fifo as being very far in the future:
 		// this avoids lots of warning messages in "normal" conditions
-		fifoTimeIn180k = std::numeric_limits<int>::max();
+		m_fifoTime = std::numeric_limits<int>::max();
 	}
 	int64_t numSamplesToProduce = buffer.len / m_outputFormat.getBytesPerSample();
-	auto const relativeTimePositionIn180k = std::min<int64_t>(fifoTimeIn180k - bufferTimeIn180k, IClock::Rate * 10); // clamp to 10s to avoid integer overflows below
+	auto const relativeTimePositionIn180k = std::min<int64_t>(m_fifoTime - bufferTimeIn180k, IClock::Rate * 10); // clamp to 10s to avoid integer overflows below
 	auto const relativeSamplePosition = relativeTimePositionIn180k * m_outputFormat.sampleRate / int64_t(IClock::Rate);
 
 	if (relativeTimePositionIn180k < -TOLERANCE) {
@@ -144,7 +144,7 @@ void SDLAudio::fillAudio(Span buffer) {
 
 	auto const numSamplesToConsume = std::min<int64_t>(numSamplesToProduce, fifoSamplesToRead());
 	if (numSamplesToConsume > 0) {
-		writeSamples(buffer, m_Fifo.readPointer(), (int)numSamplesToConsume);
+		writeSamples(buffer, m_fifo.readPointer(), (int)numSamplesToConsume);
 		fifoConsumeSamples((size_t)numSamplesToConsume);
 		numSamplesToProduce -= numSamplesToConsume;
 	}
@@ -161,12 +161,12 @@ void SDLAudio::staticFillAudio(void *udata, uint8_t *stream, int len) {
 }
 
 uint64_t SDLAudio::fifoSamplesToRead() const {
-	return m_Fifo.bytesToRead() / m_outputFormat.getBytesPerSample();
+	return m_fifo.bytesToRead() / m_outputFormat.getBytesPerSample();
 }
 
 void SDLAudio::fifoConsumeSamples(size_t n) {
-	m_Fifo.consume(n * m_outputFormat.getBytesPerSample());
-	fifoTimeIn180k += (n * IClock::Rate) / m_outputFormat.sampleRate;
+	m_fifo.consume(n * m_outputFormat.getBytesPerSample());
+	m_fifoTime += (n * IClock::Rate) / m_outputFormat.sampleRate;
 }
 
 void SDLAudio::writeSamples(Span& dst, uint8_t const* src, int n) {
