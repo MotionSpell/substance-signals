@@ -6,14 +6,15 @@ set -euo pipefail
 readonly scriptDir=$(dirname $(readlink -f $0))
 
 # Build instrumented version
-export BIN=bin-san
 
 # the 'thread' sanitizer doesn't play well with the others
 # (change the below condition to thread-sanitize your code)
 if false ; then
+  BIN=bin-tsan
   CFLAGS=-fsanitize=thread
   LDFLAGS=-fsanitize=thread
 else
+  BIN=bin-asan
   CFLAGS=-fsanitize=address,undefined
   LDFLAGS=-fsanitize=address,undefined
 fi
@@ -21,7 +22,7 @@ fi
 CFLAGS="$CFLAGS -g3"
 LDFLAGS="$LDFLAGS -g"
 
-export CFLAGS LDFLAGS
+export BIN CFLAGS LDFLAGS
 
 make -j`nproc`
 
