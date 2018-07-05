@@ -5,12 +5,8 @@
 
 namespace Signals {
 
-template<typename> class ExecutorThreadPool;
-template<typename> class ExecutorThread;
-
 //tasks occur in the pool
-template< typename... Args>
-class ExecutorThreadPool<void(Args...)> : public IExecutor<void(Args...)> {
+class ExecutorThreadPool : public IExecutor {
 	public:
 		ExecutorThreadPool() : threadPool(std::make_shared<ThreadPool>()) {
 		}
@@ -18,8 +14,8 @@ class ExecutorThreadPool<void(Args...)> : public IExecutor<void(Args...)> {
 		ExecutorThreadPool(std::shared_ptr<ThreadPool> threadPool) : threadPool(threadPool) {
 		}
 
-		void operator() (const std::function<void(Args...)> &fn, Args... args) {
-			threadPool->submit(fn, args...);
+		void operator() (const std::function<void()> &fn) {
+			threadPool->submit(fn);
 		}
 
 	private:
@@ -27,14 +23,13 @@ class ExecutorThreadPool<void(Args...)> : public IExecutor<void(Args...)> {
 };
 
 //tasks occur in a thread
-template< typename... Args>
-class ExecutorThread<void(Args...)> : public IExecutor<void(Args...)> {
+class ExecutorThread : public IExecutor {
 	public:
 		ExecutorThread(const std::string &name) : threadPool(name, 1) {
 		}
 
-		void operator() (const std::function<void(Args...)> &fn, Args... args) {
-			threadPool.submit(fn, args...);
+		void operator() (const std::function<void()> &fn) {
+			threadPool.submit(fn);
 		}
 
 	private:

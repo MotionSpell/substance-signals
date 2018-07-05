@@ -13,7 +13,7 @@ template<typename> class ISignal;
 template <typename Callback, typename Arg>
 struct ISignal<Callback(Arg)> {
 	virtual ~ISignal() = default;
-	virtual size_t connect(const std::function<Callback(Arg)> &cb, IExecutor<Callback(Arg)> &executor) = 0;
+	virtual size_t connect(const std::function<Callback(Arg)> &cb, IExecutor &executor) = 0;
 	virtual size_t connect(const std::function<Callback(Arg)> &cb) = 0;
 	virtual bool disconnect(size_t connectionId) = 0;
 	virtual size_t getNumConnections() const = 0;
@@ -30,7 +30,7 @@ class Signal<Callback(Arg)> : public ISignal<Callback(Arg)> {
 		typedef ConnectionList<ResultType, Arg> ConnectionType;
 
 	public:
-		size_t connect(const CallbackType &cb, IExecutor<Callback(Arg)> &executor) {
+		size_t connect(const CallbackType &cb, IExecutor &executor) {
 			std::lock_guard<std::mutex> lg(callbacksMutex);
 			const size_t connectionId = uid++;
 			callbacks[connectionId] = std::make_unique<ConnectionType>(executor, cb, connectionId);
@@ -54,15 +54,15 @@ class Signal<Callback(Arg)> : public ISignal<Callback(Arg)> {
 		size_t emit(Arg arg) {
 			std::lock_guard<std::mutex> lg(callbacksMutex);
 			for (auto &cb : callbacks) {
-				cb.second->executor(cb.second->callback, arg);
+				cb.second->executor(std::bind(cb.second->callback, arg));
 			}
 			return callbacks.size();
 		}
 
-		Signal() : defaultExecutor(new ExecutorAsync<Callback(Arg)>()), executor(*defaultExecutor.get()) {
+		Signal() : defaultExecutor(new ExecutorAsync()), executor(*defaultExecutor.get()) {
 		}
 
-		Signal(IExecutor<Callback(Arg)> &executor) : executor(executor) {
+		Signal(IExecutor &executor) : executor(executor) {
 		}
 
 	private:
@@ -81,8 +81,8 @@ class Signal<Callback(Arg)> : public ISignal<Callback(Arg)> {
 		std::map<size_t, std::unique_ptr<ConnectionType>> callbacks; //protected by callbacksMutex
 		size_t uid = 0;                              //protected by callbacksMutex
 
-		std::unique_ptr<IExecutor<Callback(Arg)>> const defaultExecutor;
-		IExecutor<Callback(Arg)> &executor;
+		std::unique_ptr<IExecutor> const defaultExecutor;
+		IExecutor &executor;
 };
 
 }

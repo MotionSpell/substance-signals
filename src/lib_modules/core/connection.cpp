@@ -5,7 +5,7 @@
 
 namespace Modules {
 
-Signals::ExecutorSync<void()> g_executorSync;
+Signals::ExecutorSync g_executorSync;
 
 void ConnectOutputToInput(IOutput *prev, IInput *next, IProcessExecutor * const executor) {
 	auto prevMetadata = prev->getMetadata();

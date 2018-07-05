@@ -4,24 +4,16 @@
 
 namespace Signals {
 
-template<typename> class IExecutor;
-
-template <typename... Args>
-class IExecutor<void(Args...)> {
-	public:
-		virtual ~IExecutor() noexcept(false) {}
-		virtual void operator() (const std::function<void(Args...)> &fn, Args... args) = 0;
+struct IExecutor {
+	virtual ~IExecutor() noexcept(false) {}
+	virtual void operator() (const std::function<void()> &fn) = 0;
 };
 
-template<typename> class ExecutorSync;
-template<typename> class ExecutorAsync;
-
 //synchronous calls
-template<typename... Args>
-class ExecutorSync<void(Args...)> : public IExecutor<void(Args...)> {
+class ExecutorSync : public IExecutor {
 	public:
-		void operator() (const std::function<void(Args...)> &fn, Args... args) {
-			fn(args...);
+		void operator() (const std::function<void()> &fn) {
+			fn();
 		}
 };
 }
@@ -32,11 +24,10 @@ class ExecutorSync<void(Args...)> : public IExecutor<void(Args...)> {
 namespace Signals {
 
 //asynchronous calls with std::launch::async (spawns a thread)
-template< typename... Args>
-class ExecutorAsync<void(Args...)> : public IExecutor<void(Args...)> {
+class ExecutorAsync : public IExecutor {
 	public:
-		void operator() (const std::function<void(Args...)> &fn, Args... args) {
-			std::async(std::launch::async, fn, args...);
+		void operator() (const std::function<void()> &fn) {
+			std::async(std::launch::async, fn);
 		}
 };
 

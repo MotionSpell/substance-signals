@@ -4,8 +4,8 @@
 #include "pipeline.hpp"
 #include "lib_modules/modules.hpp"
 
-#define EXECUTOR_SYNC              Signals::ExecutorSync<void()>
-#define EXECUTOR_ASYNC_THREAD      Signals::ExecutorThread<void()>(getDelegateName())
+#define EXECUTOR_SYNC              Signals::ExecutorSync
+#define EXECUTOR_ASYNC_THREAD      Signals::ExecutorThread(getDelegateName())
 
 #define EXECUTOR                   EXECUTOR_ASYNC_THREAD
 #define EXECUTOR_LIVE              EXECUTOR_SYNC

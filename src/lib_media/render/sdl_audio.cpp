@@ -14,7 +14,7 @@ namespace Modules {
 
 namespace {
 
-static Signals::ExecutorSync<void(Data)> executorSync;
+static Signals::ExecutorSync executorSync;
 
 SDL_AudioSpec toSdlAudioSpec(PcmFormat cfg) {
 	SDL_AudioSpec audioSpec {};

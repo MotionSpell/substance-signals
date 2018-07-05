@@ -100,7 +100,7 @@ class InputCap : public virtual IInputCap {
 		std::vector<std::unique_ptr<IInput>> inputs;
 };
 
-static Signals::ExecutorSync<void(Data)> g_executorOutputSync;
+static Signals::ExecutorSync g_executorOutputSync;
 
 template<typename DataType>
 class OutputDataDefault : public IOutput, public MetadataCap {
