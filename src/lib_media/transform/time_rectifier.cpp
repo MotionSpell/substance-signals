@@ -51,13 +51,11 @@ void TimeRectifier::declareScheduler(std::unique_ptr<IInput> &input, std::unique
 
 void TimeRectifier::fillInputQueuesUnsafe() {
 	auto now = fractionToClock(clock->now());
-	maxClockTimeIn180k = std::max(maxClockTimeIn180k, now);
 
 	for (auto i : getInputs()) {
 		auto &currInput = inputs[i];
 		Data data;
 		while (currInput->tryPop(data)) {
-			maxClockTimeIn180k = std::max(maxClockTimeIn180k, now);
 			streams[i].data.push_back({now, data});
 			if (currInput->updateMetadata(data)) {
 				declareScheduler(currInput, outputs[i]);
