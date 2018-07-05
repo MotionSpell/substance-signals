@@ -211,8 +211,9 @@ class ModuleS : public Module {
 //module with no input (=source module)
 class ActiveModule : public Module {
 	public:
-		virtual bool work() = 0;
 		void process() override;
+	protected:
+		virtual bool work() = 0;
 		bool mustExit();
 };
 
