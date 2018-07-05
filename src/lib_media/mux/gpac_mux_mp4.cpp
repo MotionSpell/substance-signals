@@ -163,12 +163,12 @@ parse_sps:
 static GF_Err hevc_import_ffextradata(const u8 *extradata, const u64 extradata_size, GF_HEVCConfig *dstCfg) {
 	auto hevc = make_unique<HEVCState>();
 	GF_HEVCParamArray *vpss = nullptr, *spss = nullptr, *ppss = nullptr;
-	GF_BitStream *bs = nullptr;
+
 	char *buffer = nullptr;
 	u32 bufferSize = 0;
 	if (!extradata || (extradata_size < sizeof(u32)))
 		return GF_BAD_PARAM;
-	bs = gf_bs_new((const char*)extradata, extradata_size, GF_BITSTREAM_READ);
+	auto bs = gf_bs_new((const char*)extradata, extradata_size, GF_BITSTREAM_READ);
 	if (!bs)
 		return GF_BAD_PARAM;
 
@@ -585,7 +585,7 @@ void GPACMuxMP4::setupFragments() {
 void GPACMuxMP4::declareStreamAudio(const std::shared_ptr<const MetadataPktLibavAudio> &metadata) {
 	GF_Err e;
 	u32 di=0, trackNum=0;
-	GF_M4ADecSpecInfo acfg;
+	GF_M4ADecSpecInfo acfg {};
 
 	GF_ESD *esd = gf_odf_desc_esd_new(2);
 	if (!esd)
@@ -608,7 +608,6 @@ void GPACMuxMP4::declareStreamAudio(const std::shared_ptr<const MetadataPktLibav
 		esd->decoderConfig->decoderSpecificInfo->data = (char*)gf_malloc(extradataSize);
 		memcpy(esd->decoderConfig->decoderSpecificInfo->data, extradata, extradataSize);
 
-		memset(&acfg, 0, sizeof(GF_M4ADecSpecInfo));
 		acfg.base_object_type = GF_M4A_AAC_LC;
 		acfg.base_sr = sampleRate;
 		acfg.nb_chan = metadata->getNumChannels();
@@ -627,7 +626,6 @@ void GPACMuxMP4::declareStreamAudio(const std::shared_ptr<const MetadataPktLibav
 		esd->decoderConfig->decoderSpecificInfo = (GF_DefaultDescriptor *)gf_odf_desc_new(GF_ODF_DSI_TAG);
 		esd->ESID = 1;
 
-		memset(&acfg, 0, sizeof(GF_M4ADecSpecInfo));
 		acfg.base_object_type = GF_M4A_LAYER2;
 		acfg.base_sr = sampleRate;
 		acfg.nb_chan = metadata->getNumChannels();
