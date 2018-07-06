@@ -43,10 +43,10 @@ class PipelinedModule :
 		void exception(std::exception_ptr eptr) override ;
 
 		std::unique_ptr<IModule> delegate;
-		std::unique_ptr<IProcessExecutor> const localDelegateExecutor;
-		IProcessExecutor &delegateExecutor;
+		std::unique_ptr<IExecutor> const localDelegateExecutor;
+		IExecutor &delegateExecutor;
 
-		std::vector<IProcessExecutor*> inputExecutor; /*needed to sleep when using a clock*/
+		std::vector<IExecutor*> inputExecutor; /*needed to sleep when using a clock*/
 		Pipeline::Threading threading;
 
 		IPipelineNotifier * const m_notify;

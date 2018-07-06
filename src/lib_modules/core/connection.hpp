@@ -2,7 +2,7 @@
 
 namespace Modules {
 
-typedef Signals::IExecutor IProcessExecutor;
+using Signals::IExecutor;
 
 template<typename Class, typename Function>
 Signals::MemberFunctor<Class, void(Class::*)()>
@@ -11,7 +11,7 @@ Bind(Function func, Class* objectPtr) {
 }
 
 extern Signals::ExecutorSync g_executorSync;
-void ConnectOutputToInput(IOutput *prev, IInput *next, IProcessExecutor * const executor = &g_executorSync);
-void ConnectModules(IModule *prev, int outputIdx, IModule *next, int inputIdx, IProcessExecutor &executor = g_executorSync);
+void ConnectOutputToInput(IOutput *prev, IInput *next, IExecutor * const executor = &g_executorSync);
+void ConnectModules(IModule *prev, int outputIdx, IModule *next, int inputIdx, IExecutor &executor = g_executorSync);
 
 }

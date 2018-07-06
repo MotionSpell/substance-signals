@@ -19,7 +19,7 @@ namespace Pipelines {
 /* take ownership of module and executor */
 PipelinedModule::PipelinedModule(std::unique_ptr<IModule> module, IPipelineNotifier *notify, Pipeline::Threading threading)
 	:
-	delegate(std::move(module)), localDelegateExecutor(threading & Pipeline::Mono ? (IProcessExecutor*)new EXECUTOR_LIVE : (IProcessExecutor*)new EXECUTOR),
+	delegate(std::move(module)), localDelegateExecutor(threading & Pipeline::Mono ? (IExecutor*)new EXECUTOR_LIVE : (IExecutor*)new EXECUTOR),
 	delegateExecutor(*localDelegateExecutor), threading(threading), m_notify(notify), eosCount(0) {
 }
 

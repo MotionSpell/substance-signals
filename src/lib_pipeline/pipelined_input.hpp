@@ -12,7 +12,7 @@ namespace Pipelines {
    Data is nullptr at completion. */
 class PipelinedInput : public IInput, public MetadataCap {
 	public:
-		PipelinedInput(IInput *input, const std::string &moduleName, IProcessExecutor &delegateExecutor, IPipelineNotifier * const notify)
+		PipelinedInput(IInput *input, const std::string &moduleName, IExecutor &delegateExecutor, IPipelineNotifier * const notify)
 			: delegate(input), delegateName(moduleName), notify(notify), delegateExecutor(delegateExecutor) {}
 		virtual ~PipelinedInput() noexcept(false) {}
 
@@ -63,7 +63,7 @@ class PipelinedInput : public IInput, public MetadataCap {
 		IInput *delegate;
 		std::string delegateName;
 		IPipelineNotifier * const notify;
-		IProcessExecutor &delegateExecutor;
+		IExecutor &delegateExecutor;
 };
 
 }
