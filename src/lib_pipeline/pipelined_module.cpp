@@ -1,5 +1,13 @@
+#include "lib_signals/executor_threadpool.hpp"
 #include "pipelined_module.hpp"
 #include "pipelined_input.hpp"
+
+#define EXECUTOR_SYNC              Signals::ExecutorSync
+#define EXECUTOR_ASYNC_THREAD      Signals::ExecutorThread(getDelegateName())
+
+#define EXECUTOR                   EXECUTOR_ASYNC_THREAD
+#define EXECUTOR_LIVE              EXECUTOR_SYNC
+#define EXECUTOR_INPUT_DEFAULT     (&g_executorSync)
 
 using namespace Modules;
 
