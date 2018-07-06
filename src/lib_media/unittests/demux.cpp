@@ -16,7 +16,7 @@ using namespace std;
 namespace {
 vector<int64_t> deltas(vector<int64_t> times) {
 	vector<int64_t> r;
-	for(size_t i=0; i < times.size()-1; ++i)
+	for(int i=0; i < (int)times.size()-1; ++i)
 		r.push_back(times[i+1] - times[i]);
 	return r;
 }
