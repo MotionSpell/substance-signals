@@ -7,8 +7,6 @@ using namespace Tests;
 using namespace Modules;
 using namespace Pipelines;
 
-namespace {
-
 unittest("pipeline: interrupted") {
 	Pipeline p;
 	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
@@ -24,8 +22,8 @@ unittest("pipeline: interrupted") {
 	tf.join();
 }
 
-class ExceptionModule : public ModuleS {
-	public:
+unittest("pipeline: intercept exception") {
+	struct ExceptionModule : ModuleS {
 		ExceptionModule() {
 			addInput(new Input<DataBase>(this));
 		}
@@ -35,12 +33,9 @@ class ExceptionModule : public ModuleS {
 				throw error("Test exception");
 			}
 		}
-
-	private:
 		bool raised = false;
-};
+	};
 
-unittest("pipeline: intercept exception") {
 	ScopedLogLevel lev(Quiet);
 	Pipeline p;
 	auto exception = p.addModule<ExceptionModule>();
@@ -50,4 +45,3 @@ unittest("pipeline: intercept exception") {
 	ASSERT_THROWN(p.waitForEndOfStream());
 }
 
-}
