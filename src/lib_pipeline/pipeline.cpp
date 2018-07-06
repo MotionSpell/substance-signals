@@ -1,7 +1,6 @@
 #include <algorithm>
 #include "pipelined_module.hpp"
 #include "pipeline.hpp"
-#include "lib_utils/sysclock.hpp"
 #include "lib_modules/utils/helper.hpp"
 
 #define COMPLETION_GRANULARITY_IN_MS 200
