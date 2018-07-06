@@ -279,7 +279,7 @@ void AdaptiveStreamingCommon::threadProc() {
 		if (segmentReady()) {
 			generateManifest();
 			totalDurationInMs += segDurationInMs;
-			auto utcInMs = getUTC().num;
+			auto utcInMs = int64_t(getUTC() * 1000);
 			log(Info, "Processes segment (total processed: %ss, UTC: %sms (deltaAST=%s, deltaInput=%s).",
 			    (double)totalDurationInMs / 1000, utcInMs, utcInMs - startTimeInMs, (int64_t)(utcInMs - curMediaTimeInMs));
 
