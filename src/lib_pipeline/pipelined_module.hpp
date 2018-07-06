@@ -43,7 +43,7 @@ class PipelinedModule :
 		void exception(std::exception_ptr eptr) override ;
 
 		std::unique_ptr<IModule> delegate;
-		std::unique_ptr<IExecutor> const localDelegateExecutor;
+		std::unique_ptr<IExecutor> const localExecutor;
 		IExecutor &executor;
 
 		std::vector<IExecutor*> inputExecutor; /*needed to sleep when using a clock*/
