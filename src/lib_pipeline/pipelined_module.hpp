@@ -44,7 +44,7 @@ class PipelinedModule :
 
 		std::unique_ptr<IModule> delegate;
 		std::unique_ptr<IExecutor> const localDelegateExecutor;
-		IExecutor &delegateExecutor;
+		IExecutor &executor;
 
 		std::vector<IExecutor*> inputExecutor; /*needed to sleep when using a clock*/
 		Pipeline::Threading threading;

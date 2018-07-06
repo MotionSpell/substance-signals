@@ -20,7 +20,7 @@ namespace Pipelines {
 PipelinedModule::PipelinedModule(std::unique_ptr<IModule> module, IPipelineNotifier *notify, Pipeline::Threading threading)
 	:
 	delegate(std::move(module)), localDelegateExecutor(threading & Pipeline::Mono ? (IExecutor*)new EXECUTOR_LIVE : (IExecutor*)new EXECUTOR),
-	delegateExecutor(*localDelegateExecutor), threading(threading), m_notify(notify), eosCount(0) {
+	executor(*localDelegateExecutor), threading(threading), m_notify(notify), eosCount(0) {
 }
 
 PipelinedModule::~PipelinedModule() {
@@ -79,7 +79,7 @@ void PipelinedModule::mimicInputs() {
 	while ((int)inputs.size()< delegate->getNumInputs()) {
 		auto const i = (int)inputs.size();
 		inputExecutor.push_back(EXECUTOR_INPUT_DEFAULT);
-		addInput(new PipelinedInput(delegate->getInput(i), getDelegateName(), this->delegateExecutor, this));
+		addInput(new PipelinedInput(delegate->getInput(i), getDelegateName(), executor, this));
 	}
 }
 
@@ -112,8 +112,8 @@ void PipelinedModule::process() {
 	auto input = getInput(0);
 	input->push(nullptr);
 	delegate->getInput(0)->push(nullptr);
-	delegateExecutor(Bind(&IProcessor::process, delegate.get()));
-	delegateExecutor(Bind(&IProcessor::process, input));
+	executor(Bind(&IProcessor::process, delegate.get()));
+	executor(Bind(&IProcessor::process, input));
 }
 
 // IPipelineNotifier implementation

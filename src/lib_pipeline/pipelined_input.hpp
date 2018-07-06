@@ -12,8 +12,8 @@ namespace Pipelines {
    Data is nullptr at completion. */
 class PipelinedInput : public IInput, public MetadataCap {
 	public:
-		PipelinedInput(IInput *input, const std::string &moduleName, IExecutor &delegateExecutor, IPipelineNotifier * const notify)
-			: delegate(input), delegateName(moduleName), notify(notify), delegateExecutor(delegateExecutor) {}
+		PipelinedInput(IInput *input, const std::string &moduleName, IExecutor &executor, IPipelineNotifier * const notify)
+			: delegate(input), delegateName(moduleName), notify(notify), executor(executor) {}
 		virtual ~PipelinedInput() noexcept(false) {}
 
 		void push(Data data) override {
@@ -34,13 +34,13 @@ class PipelinedInput : public IInput, public MetadataCap {
 			// receiving 'nullptr' means 'end of stream'
 			if (!data) {
 				Log::msg(Debug, "Module %s: notify end-of-stream.", delegateName);
-				delegateExecutor(Bind(&IPipelineNotifier::endOfStream, notify));
+				executor(Bind(&IPipelineNotifier::endOfStream, notify));
 				return;
 			}
 
 			delegate->push(data);
 			try {
-				delegateExecutor(Bind(&IProcessor::process, delegate));
+				executor(Bind(&IProcessor::process, delegate));
 			} catch (...) { //stop now
 				auto const &eptr = std::current_exception();
 				notify->exception(eptr);
@@ -63,7 +63,7 @@ class PipelinedInput : public IInput, public MetadataCap {
 		IInput *delegate;
 		std::string delegateName;
 		IPipelineNotifier * const notify;
-		IExecutor &delegateExecutor;
+		IExecutor &executor;
 };
 
 }
