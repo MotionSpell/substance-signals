@@ -109,10 +109,11 @@ void PipelinedModule::process() {
 	// and push null to trigger execution
 	safe_cast<InputCap>(delegate.get())->addInput(new Input<DataLoosePipeline>(delegate.get()));
 	connections = 1;
-	getInput(0)->push(nullptr);
+	auto input = getInput(0);
+	input->push(nullptr);
 	delegate->getInput(0)->push(nullptr);
 	delegateExecutor(Bind(&IProcessor::process, delegate.get()));
-	delegateExecutor(Bind(&IProcessor::process, getInput(0)));
+	delegateExecutor(Bind(&IProcessor::process, input));
 }
 
 // IPipelineNotifier implementation
