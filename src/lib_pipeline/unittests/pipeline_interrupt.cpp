@@ -40,7 +40,8 @@ class ExceptionModule : public ModuleS {
 		bool raised = false;
 };
 
-unittest("[DISABLED] pipeline: intercept exception") {
+unittest("pipeline: intercept exception") {
+	ScopedLogLevel lev(Quiet);
 	Pipeline p;
 	auto exception = p.addModule<ExceptionModule>();
 	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
