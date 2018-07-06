@@ -6,17 +6,20 @@ using namespace Tests;
 using namespace Modules;
 using namespace Pipelines;
 
-unittest("pipeline: interrupted") {
-	struct InfiniteSource : ActiveModule {
-		InfiniteSource() {
-			out = addOutput<OutputDefault>();
-		}
-		bool work() {
-			out->emit(out->getBuffer(0));
-			return true;
-		}
-		OutputDefault* out;
-	};
+namespace {
+struct InfiniteSource : ActiveModule {
+	InfiniteSource() {
+		out = addOutput<OutputDefault>();
+	}
+	bool work() {
+		out->emit(out->getBuffer(0));
+		return true;
+	}
+	OutputDefault* out;
+};
+}
+
+unittest("pipeline: EOS injection (exitSync)") {
 	Pipeline p;
 	auto demux = p.addModule<InfiniteSource>();
 	auto null = p.addModule<Out::Null>();
@@ -28,6 +31,14 @@ unittest("pipeline: interrupted") {
 	std::thread tf(f);
 	p.waitForEndOfStream();
 	tf.join();
+}
+
+unittest("[DISABLED] pipeline: destroy while running") {
+	Pipeline p;
+	auto demux = p.addModule<InfiniteSource>();
+	auto null = p.addModule<Out::Null>();
+	p.connect(demux, 0, null, 0);
+	p.start();
 }
 
 unittest("pipeline: intercept exception") {
