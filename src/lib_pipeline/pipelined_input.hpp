@@ -66,17 +66,12 @@ class PipelinedInput : public IInput, public MetadataCap {
 			delegate->disconnect();
 		}
 
-		void setLocalExecutor(std::unique_ptr<IProcessExecutor> e) {
-			localExecutor = std::move(e);
-		}
-
 	private:
 		Queue<Data> queue;
 		IInput *delegate;
 		std::string delegateName;
 		IPipelineNotifier * const notify;
 		IProcessExecutor &delegateExecutor;
-		std::unique_ptr<IProcessExecutor> localExecutor;
 };
 
 }
