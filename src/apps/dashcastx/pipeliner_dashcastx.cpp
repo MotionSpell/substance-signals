@@ -12,6 +12,7 @@
 #include "lib_media/transform/audio_convert.hpp"
 #include "lib_media/transform/video_convert.hpp"
 #include "lib_media/mux/gpac_mux_mp4.hpp"
+#include "lib_media/utils/regulator.hpp"
 
 using namespace Modules;
 using namespace Pipelines;
@@ -148,6 +149,17 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 		if (!metadataDemux) {
 			Log::msg(Warning, "[%s] Unknown metadataDemux for stream %s. Ignoring.", g_appName, i);
 			continue;
+		}
+
+		auto sourceModule = demux;
+		auto sourcePin = i;
+
+		if(opt->isLive) {
+			auto regulator = pipeline->addModule<Regulator>(g_SystemClock);
+			pipeline->connect(sourceModule, sourcePin, regulator, 0);
+
+			sourceModule = regulator;
+			sourcePin = 0;
 		}
 
 		IPipelinedModule *decode = nullptr;

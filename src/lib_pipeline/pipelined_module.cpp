@@ -9,10 +9,10 @@ struct DataLoosePipeline : public DataBase {};
 namespace Pipelines {
 
 /* take ownership of module and executor */
-PipelinedModule::PipelinedModule(std::unique_ptr<IModule> module, IPipelineNotifier *notify, const std::shared_ptr<IClock> clock, Pipeline::Threading threading)
-	: ClockCap(clock),
-	  delegate(std::move(module)), localDelegateExecutor(threading & Pipeline::Mono ? (IProcessExecutor*)new EXECUTOR_LIVE : (IProcessExecutor*)new EXECUTOR),
-	  delegateExecutor(*localDelegateExecutor), threading(threading), m_notify(notify), eosCount(0) {
+PipelinedModule::PipelinedModule(std::unique_ptr<IModule> module, IPipelineNotifier *notify, Pipeline::Threading threading)
+	:
+	delegate(std::move(module)), localDelegateExecutor(threading & Pipeline::Mono ? (IProcessExecutor*)new EXECUTOR_LIVE : (IProcessExecutor*)new EXECUTOR),
+	delegateExecutor(*localDelegateExecutor), threading(threading), m_notify(notify), eosCount(0) {
 }
 
 PipelinedModule::~PipelinedModule() {
@@ -76,7 +76,7 @@ void PipelinedModule::mimicInputs() {
 	while ((int)inputs.size()< delegate->getNumInputs()) {
 		auto const i = (int)inputs.size();
 		inputExecutor.push_back(EXECUTOR_INPUT_DEFAULT);
-		addInput(new PipelinedInput(delegate->getInput(i), getDelegateName(), inputExecutor[i], this->delegateExecutor, this, clock));
+		addInput(new PipelinedInput(delegate->getInput(i), getDelegateName(), this->delegateExecutor, this));
 	}
 }
 
