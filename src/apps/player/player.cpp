@@ -15,7 +15,6 @@ Config parseCommandLine(int argc, char const* argv[]) {
 
 	CmdLineOptions opt;
 	opt.addFlag("l", "lowlatency", &cfg.lowLatency, "Use low latency");
-	opt.add("s", "speed", &cfg.speed, "Speed ratio");
 	opt.add("g", "loglevel", &cfg.logLevel, "Log level");
 	opt.add("a", "stop-after", &cfg.stopAfterMs, "Stop after X ms");
 	opt.add("n", "no-renderer", &cfg.noRenderer, "Stop after X ms");
@@ -38,7 +37,7 @@ int safeMain(int argc, char const* argv[]) {
 
 	Log::setLevel((Level)cfg.logLevel);
 
-	Pipeline pipeline(cfg.lowLatency, cfg.speed);
+	Pipeline pipeline(cfg.lowLatency);
 	declarePipeline(cfg, pipeline, cfg.url.c_str());
 	pipeline.start();
 

@@ -4,7 +4,6 @@
 
 struct Config {
 	std::string url;
-	double speed = 1.0;
 	bool lowLatency = false;
 	int logLevel = 1;
 	int stopAfterMs = -1; // by default, wait until the end of stream

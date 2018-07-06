@@ -28,7 +28,7 @@ auto const MP4_MONITOR = 0;
 
 std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 	auto opt = safe_cast<const AppOptions>(&config);
-	auto pipeline = make_unique<Pipeline>(opt->ultraLowLatency, opt->isLive ? 1.0 : 0.0, opt->ultraLowLatency ? Pipeline::Mono : Pipeline::OnePerModule);
+	auto pipeline = make_unique<Pipeline>(opt->ultraLowLatency, opt->ultraLowLatency ? Pipeline::Mono : Pipeline::OnePerModule);
 
 	auto connect = [&](auto src, auto dst) {
 		pipeline->connect(src, 0, dst, 0);

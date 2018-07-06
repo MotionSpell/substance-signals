@@ -26,7 +26,7 @@ class IPipeline {
 
 		template <typename InstanceType, int NumBlocks = 0, typename ...Args>
 		IPipelinedModule* addModule(Args&&... args) {
-			return addModuleInternal(Modules::createModule<InstanceType>(getNumBlocks(NumBlocks), getClock(), std::forward<Args>(args)...));
+			return addModuleInternal(Modules::createModule<InstanceType>(getNumBlocks(NumBlocks), nullptr, std::forward<Args>(args)...));
 		}
 
 		// Remove a module from a pipeline.
@@ -45,7 +45,6 @@ class IPipeline {
 		virtual IPipelinedModule* addModuleInternal(std::unique_ptr<Modules::IModule> rawModule) = 0;
 		/*FIXME: the block below won't be necessary once we inject correctly*/
 		virtual int getNumBlocks(int numBlock) const = 0;
-		virtual std::shared_ptr<IClock> getClock() const = 0;
 };
 
 /* not thread-safe */
@@ -58,9 +57,8 @@ class Pipeline : public IPipeline, public IPipelineNotifier {
 		};
 
 		/* @isLowLatency Controls the default number of buffers.
-			@clockSpeed   Controls the execution speed (0.0 is "as fast as possible"): this may create threads.
 			@threading    Controls the threading. */
-		Pipeline(bool isLowLatency = false, double clockSpeed = 0.0, Threading threading = OnePerModule);
+		Pipeline(bool isLowLatency = false, Threading threading = OnePerModule);
 
 		IPipelinedModule* addModuleInternal(std::unique_ptr<Modules::IModule> rawModule) override;
 		void removeModule(IPipelinedModule * module) override;
@@ -73,9 +71,6 @@ class Pipeline : public IPipeline, public IPipelineNotifier {
 		int getNumBlocks(int numBlock) const override {
 			return numBlock ? numBlock : allocatorNumBlocks;
 		}
-		std::shared_ptr<IClock> getClock() const override {
-			return clock;
-		}
 
 	private:
 		void computeTopology();
@@ -84,7 +79,6 @@ class Pipeline : public IPipeline, public IPipelineNotifier {
 
 		std::vector<std::unique_ptr<IPipelinedModule>> modules;
 		const int allocatorNumBlocks;
-		const std::shared_ptr<IClock> clock;
 		const Threading threading;
 
 		std::mutex mutex;

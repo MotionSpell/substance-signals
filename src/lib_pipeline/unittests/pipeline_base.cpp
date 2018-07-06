@@ -51,7 +51,7 @@ unittest("pipeline: connect inputs to outputs") {
 }
 
 unittest("pipeline: connect incompatible i/o") {
-	Pipeline p(false, 0.0, Pipeline::Mono | Pipeline::RegulationOffFlag);
+	Pipeline p(false, Pipeline::Mono | Pipeline::RegulationOffFlag);
 	auto demux = p.addModule<DummySource>();
 	PcmFormat fmt;
 	auto aconv = p.addModule<Transform::AudioConvert>(fmt, fmt);
