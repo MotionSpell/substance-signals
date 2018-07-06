@@ -92,17 +92,8 @@ IInput* PipelinedModule::getInput(int i) {
 	return inputs[i].get();
 }
 
-
-void PipelinedModule::stopSource() {
-	assert(isSource());
-
-	// the source is likely processing: push EOS in the loop
-	// and let things follow their way*/
-	delegate->getInput(0)->push(nullptr);
-}
-
 /* uses the executor (i.e. may defer the call) */
-void PipelinedModule::process() {
+void PipelinedModule::startSource() {
 	assert(isSource());
 
 	Log::msg(Debug, "Module %s: dispatch data", getDelegateName());
@@ -116,6 +107,18 @@ void PipelinedModule::process() {
 	delegate->getInput(0)->push(nullptr);
 	(*executor)(Bind(&IProcessor::process, delegate.get()));
 	(*executor)(Bind(&IProcessor::process, input));
+}
+
+void PipelinedModule::stopSource() {
+	assert(isSource());
+
+	// the source is likely processing: push EOS in the loop
+	// and let things follow their way*/
+	delegate->getInput(0)->push(nullptr);
+}
+
+void PipelinedModule::process() {
+	startSource();
 }
 
 // IPipelineNotifier implementation

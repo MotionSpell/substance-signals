@@ -36,6 +36,7 @@ class PipelinedModule :
 
 		/* uses the executor (i.e. may defer the call) */
 		void process();
+		void startSource();
 
 		// IPipelineNotifier implementation
 
