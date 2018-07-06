@@ -23,6 +23,17 @@ unittest("pipeline: interrupted") {
 }
 
 unittest("pipeline: intercept exception") {
+	struct FakeSource : ActiveModule {
+		FakeSource() {
+			out = addOutput<OutputDefault>();
+		}
+		bool work() {
+			out->emit(out->getBuffer(0));
+			return ++i < 50;
+		}
+		int i = 0;
+		OutputDefault* out;
+	};
 	struct ExceptionModule : ModuleS {
 		ExceptionModule() {
 			addInput(new Input<DataBase>(this));
@@ -39,7 +50,7 @@ unittest("pipeline: intercept exception") {
 	ScopedLogLevel lev(Quiet);
 	Pipeline p;
 	auto exception = p.addModule<ExceptionModule>();
-	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
+	auto demux = p.addModule<FakeSource>();
 	p.connect(demux, 0, exception, 0);
 	p.start();
 	ASSERT_THROWN(p.waitForEndOfStream());
