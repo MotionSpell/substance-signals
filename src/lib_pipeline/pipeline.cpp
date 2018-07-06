@@ -109,7 +109,6 @@ void Pipeline::computeTopology() {
 }
 
 void Pipeline::endOfStream() {
-	std::unique_lock<std::mutex> lock(mutex);
 	assert(remainingNotifications > 0);
 	--remainingNotifications;
 	condition.notify_one();
