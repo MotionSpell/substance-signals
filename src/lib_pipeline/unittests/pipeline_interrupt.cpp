@@ -1,5 +1,4 @@
 #include "tests/tests.hpp"
-#include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/out/null.hpp"
 #include "lib_pipeline/pipeline.hpp"
 
@@ -8,9 +7,18 @@ using namespace Modules;
 using namespace Pipelines;
 
 unittest("pipeline: interrupted") {
+	struct InfiniteSource : ActiveModule {
+		InfiniteSource() {
+			out = addOutput<OutputDefault>();
+		}
+		bool work() {
+			out->emit(out->getBuffer(0));
+			return true;
+		}
+		OutputDefault* out;
+	};
 	Pipeline p;
-	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
-	ASSERT(demux->getNumOutputs() > 1);
+	auto demux = p.addModule<InfiniteSource>();
 	auto null = p.addModule<Out::Null>();
 	p.connect(demux, 0, null, 0);
 	p.start();
