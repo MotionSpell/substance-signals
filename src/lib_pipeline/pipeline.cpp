@@ -92,15 +92,13 @@ void Pipeline::exitSync() {
 void Pipeline::computeTopology() {
 	notifications = 0;
 	for (auto &m : modules) {
-		if (m->isSink()) {
-			if (m->isSource()) {
-				notifications++;
-			} else {
-				for (int i = 0; i < m->getNumInputs(); ++i) {
-					if (m->getInput(i)->getNumConnections()) {
-						notifications++;
-						break;
-					}
+		if (m->isSource()) {
+			notifications++;
+		} else {
+			for (int i = 0; i < m->getNumInputs(); ++i) {
+				if (m->getInput(i)->getNumConnections()) {
+					notifications++;
+					break;
 				}
 			}
 		}

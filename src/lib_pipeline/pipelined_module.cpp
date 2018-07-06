@@ -48,13 +48,6 @@ bool PipelinedModule::isSource() {
 		return false;
 	}
 }
-bool PipelinedModule::isSink() {
-	for (int i = 0; i < getNumOutputs(); ++i) {
-		if (getOutput(i)->getSignal().getNumConnections() > 0)
-			return false;
-	}
-	return true;
-}
 
 void PipelinedModule::connect(IOutput *output, int inputIdx, bool forceAsync, bool inputAcceptMultipleConnections) {
 	auto input = safe_cast<PipelinedInput>(getInput(inputIdx));
@@ -136,10 +129,8 @@ void PipelinedModule::endOfStream() {
 			delegate->getOutput(i)->emit(nullptr);
 		}
 
-		if (isSink()) {
-			if (connections) {
-				m_notify->endOfStream();
-			}
+		if (connections) {
+			m_notify->endOfStream();
 		}
 	}
 }
