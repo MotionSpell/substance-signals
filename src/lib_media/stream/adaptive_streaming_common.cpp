@@ -279,11 +279,12 @@ void AdaptiveStreamingCommon::threadProc() {
 		if (segmentReady()) {
 			generateManifest();
 			totalDurationInMs += segDurationInMs;
+			auto utcInMs = getUTC().num;
 			log(Info, "Processes segment (total processed: %ss, UTC: %sms (deltaAST=%s, deltaInput=%s).",
-			    (double)totalDurationInMs / 1000, getUTC().num, getUTC().num - startTimeInMs, (int64_t)(getUTC().num - curMediaTimeInMs));
+			    (double)totalDurationInMs / 1000, utcInMs, utcInMs - startTimeInMs, (int64_t)(utcInMs - curMediaTimeInMs));
 
 			if (type != Static) {
-				const int64_t durInMs = startTimeInMs + totalDurationInMs - getUTC().num;
+				const int64_t durInMs = startTimeInMs + totalDurationInMs - utcInMs;
 				if (durInMs > 0) {
 					log(Debug, "Going to sleep for %s ms.", durInMs);
 					clock->sleep(Fraction(durInMs, 1000));
