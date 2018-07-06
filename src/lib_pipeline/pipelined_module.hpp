@@ -28,7 +28,7 @@ class PipelinedModule :
 	private:
 		std::string getDelegateName() const;
 
-		void connect(IOutput *output, int inputIdx, bool forceAsync, bool inputAcceptMultipleConnections) override ;
+		void connect(IOutput *output, int inputIdx, bool inputAcceptMultipleConnections) override ;
 		void disconnect(int inputIdx, IOutput * const output) override ;
 		void mimicInputs() ;
 

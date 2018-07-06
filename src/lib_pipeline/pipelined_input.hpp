@@ -11,16 +11,12 @@
 #define EXECUTOR_LIVE              EXECUTOR_SYNC
 #define EXECUTOR_INPUT_DEFAULT     (&g_executorSync)
 
-#define REGULATION_EXECUTOR        EXECUTOR_ASYNC_THREAD
-
 using namespace Modules;
 
 namespace Pipelines {
 
 /* Wrapper around the module's inputs.
    Data is queued in the calling thread, then always dispatched by the executor
-       (with a delay if the clock is set: this assumes the connection is made
-       using an asynchronous executor and the start time is zero).
    Data is nullptr at completion. */
 class PipelinedInput : public IInput, public MetadataCap {
 	public:

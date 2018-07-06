@@ -49,13 +49,8 @@ bool PipelinedModule::isSource() {
 	}
 }
 
-void PipelinedModule::connect(IOutput *output, int inputIdx, bool forceAsync, bool inputAcceptMultipleConnections) {
+void PipelinedModule::connect(IOutput *output, int inputIdx, bool inputAcceptMultipleConnections) {
 	auto input = safe_cast<PipelinedInput>(getInput(inputIdx));
-	if (forceAsync && !(threading & Pipeline::RegulationOffFlag) && (inputExecutor[inputIdx] == EXECUTOR_INPUT_DEFAULT)) {
-		auto executor = uptr(new REGULATION_EXECUTOR);
-		inputExecutor[inputIdx] = executor.get();
-		input->setLocalExecutor(std::move(executor));
-	}
 	ConnectOutputToInput(output, input, inputExecutor[inputIdx]);
 	if (!inputAcceptMultipleConnections && (input->getNumConnections() != 1))
 		throw std::runtime_error(format("PipelinedModule %s: input %s has %s connections.", getDelegateName(), inputIdx, input->getNumConnections()));

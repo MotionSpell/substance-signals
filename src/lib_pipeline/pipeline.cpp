@@ -38,7 +38,7 @@ void Pipeline::connect(IPipelinedModule * prev, int outputIdx, IPipelinedModule 
 	std::unique_lock<std::mutex> lock(mutex);
 	if (remainingNotifications != notifications)
 		throw std::runtime_error("Connection but the topology has changed. Not supported yet."); //TODO: to change that, we need to store a state of the PipelinedModule.
-	next->connect(prev->getOutput(outputIdx), inputIdx, prev->isSource(), inputAcceptMultipleConnections);
+	next->connect(prev->getOutput(outputIdx), inputIdx, inputAcceptMultipleConnections);
 	computeTopology();
 }
 

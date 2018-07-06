@@ -11,7 +11,7 @@ namespace Pipelines {
 struct IPipelinedModule : public Modules::IModule {
 	virtual void stopSource() = 0;
 	virtual bool isSource() = 0;
-	virtual void connect(Modules::IOutput *output, int inputIdx, bool forceAsync, bool inputAcceptMultipleConnections) = 0;
+	virtual void connect(Modules::IOutput *output, int inputIdx, bool inputAcceptMultipleConnections) = 0;
 	virtual void disconnect(int inputIdx, Modules::IOutput * output) = 0;
 };
 
@@ -53,7 +53,6 @@ class Pipeline : public IPipeline, public IPipelineNotifier {
 		enum Threading {
 			Mono              = 1,
 			OnePerModule      = 2,
-			RegulationOffFlag = 1 << 10, //disable thread creation for each module connected from a source.
 		};
 
 		/* @isLowLatency Controls the default number of buffers.
