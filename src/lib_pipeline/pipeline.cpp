@@ -90,18 +90,18 @@ void Pipeline::exitSync() {
 }
 
 void Pipeline::computeTopology() {
+	auto hasAtLeastOneInputConnected = [](IPipelinedModule* m) {
+		for (int i = 0; i < m->getNumInputs(); ++i) {
+			if (m->getInput(i)->getNumConnections())
+				return true;
+		}
+		return false;
+	};
+
 	notifications = 0;
 	for (auto &m : modules) {
-		if (m->isSource()) {
+		if (m->isSource() || hasAtLeastOneInputConnected(m.get()))
 			notifications++;
-		} else {
-			for (int i = 0; i < m->getNumInputs(); ++i) {
-				if (m->getInput(i)->getNumConnections()) {
-					notifications++;
-					break;
-				}
-			}
-		}
 	}
 	remainingNotifications = notifications;
 }
