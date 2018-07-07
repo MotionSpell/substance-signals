@@ -61,7 +61,7 @@ void MPEG_DASH::ensureManifest() {
 		mpd->mpd->availabilityStartTime = startTimeInMs + initialOffsetInMs;
 		mpd->mpd->time_shift_buffer_depth = (u32)timeShiftBufferDepthInMs;
 	}
-	mpd->mpd->publishTime = getUTC().num;
+	mpd->mpd->publishTime = int64_t(getUTC() * 1000);
 
 	if ((type == LiveNonBlocking) && (mpd->mpd->media_presentation_duration == 0)) {
 		auto mpdOld = std::move(mpd);

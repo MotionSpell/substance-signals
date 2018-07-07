@@ -16,7 +16,7 @@ void DataBase::setMetadata(std::shared_ptr<const IMetadata> metadata) {
 void DataBase::setMediaTime(int64_t time, uint64_t timescale) {
 	mediaTimeIn180k = timescaleToClock(time, timescale);
 	if (!absUTCOffsetInMs) {
-		absUTCOffsetInMs = getUTC().num;
+		absUTCOffsetInMs = int64_t(getUTC() * 1000);
 	}
 }
 
