@@ -35,6 +35,7 @@
     <ClInclude Include="fifo.hpp" />
     <ClInclude Include="format.hpp" />
     <ClInclude Include="fraction.hpp" />
+    <ClInclude Include="i_scheduler.hpp" />
     <ClInclude Include="log.hpp" />
     <ClInclude Include="os.hpp" />
     <ClInclude Include="profiler.hpp" />
@@ -46,6 +47,7 @@
     <ClInclude Include="system_clock.hpp" />
     <ClInclude Include="threadpool.hpp" />
     <ClInclude Include="time.hpp" />
+    <ClInclude Include="timer.hpp" />
     <ClInclude Include="tools.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

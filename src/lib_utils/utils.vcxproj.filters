@@ -3,7 +3,6 @@
   <ItemGroup>
     <ClCompile Include="log.cpp" />
     <ClCompile Include="time.cpp" />
-    <ClCompile Include="clock.cpp" />
     <ClCompile Include="scheduler.cpp" />
     <ClCompile Include="os.cpp" />
     <ClCompile Include="profiler.cpp" />
@@ -11,6 +10,7 @@
     <ClCompile Include="version.cpp">
       <Filter>version</Filter>
     </ClCompile>
+    <ClCompile Include="sysclock.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="log.hpp" />
@@ -31,10 +31,12 @@
     <ClInclude Include="scheduler.hpp" />
     <ClInclude Include="clock.hpp" />
     <ClInclude Include="fraction.hpp" />
-    <ClInclude Include="default_clock.hpp" />
     <ClInclude Include="os.hpp" />
     <ClInclude Include="queue_inspect.hpp" />
     <ClInclude Include="sysclock.hpp" />
+    <ClInclude Include="system_clock.hpp" />
+    <ClInclude Include="i_scheduler.hpp" />
+    <ClInclude Include="timer.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="gpacpp">

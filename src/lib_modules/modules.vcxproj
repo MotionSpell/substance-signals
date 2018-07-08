@@ -23,6 +23,8 @@
     <ClInclude Include="core\clock.hpp" />
     <ClInclude Include="core\connection.hpp" />
     <ClInclude Include="core\data.hpp" />
+    <ClInclude Include="core\database.hpp" />
+    <ClInclude Include="core\data_utc.hpp" />
     <ClInclude Include="core\error.hpp" />
     <ClInclude Include="core\input.hpp" />
     <ClInclude Include="core\log.hpp" />

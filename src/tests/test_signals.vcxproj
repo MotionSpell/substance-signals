@@ -255,7 +255,6 @@
     <ClCompile Include="tests.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\lib_modules\unittests\modules_common.hpp" />
     <ClInclude Include="..\lib_pipeline\unittests\pipeline_common.hpp" />
     <ClInclude Include="tests.hpp" />
   </ItemGroup>

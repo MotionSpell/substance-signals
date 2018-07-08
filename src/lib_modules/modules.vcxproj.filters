@@ -43,6 +43,12 @@
     <ClInclude Include="core\connection.hpp">
       <Filter>core</Filter>
     </ClInclude>
+    <ClInclude Include="core\data_utc.hpp">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="core\database.hpp">
+      <Filter>core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="core\data.cpp">
@@ -53,6 +59,9 @@
     </ClCompile>
     <ClCompile Include="utils\helper.cpp">
       <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="core\allocator.cpp">
+      <Filter>core</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

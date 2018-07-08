@@ -127,8 +127,5 @@
     <ClInclude Include="..\lib_pipeline\unittests\pipeline_common.hpp">
       <Filter>pipeline</Filter>
     </ClInclude>
-    <ClInclude Include="..\lib_modules\unittests\modules_common.hpp">
-      <Filter>modules</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>
