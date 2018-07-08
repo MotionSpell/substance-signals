@@ -743,8 +743,10 @@ void GPACMuxMP4::declareStreamVideo(const std::shared_ptr<const MetadataPktLibav
 			if (e != GF_OK)
 				throw error(format("Cannot create HEVC config: %s", gf_error_to_string(e)));
 		}
-	} else
-		throw error("Unknown codec");
+	} else {
+		log(Warning, "Unknown codec: using generic packaging.");
+		e = GF_NON_COMPLIANT_BITSTREAM;
+	}
 
 	if (e) {
 		if (e == GF_NON_COMPLIANT_BITSTREAM) {
