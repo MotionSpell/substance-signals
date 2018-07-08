@@ -160,12 +160,6 @@ bool MPEG_DASH_Input::wakeUp() {
 ///////////////////////////////////////////////////////////////////////////////
 // nothing above this line should depend upon gpac
 
-void enforce(bool condition, char const* msg) {
-	if(condition)
-		return;
-	throw std::runtime_error(msg);
-}
-
 extern "C" {
 #include <gpac/xml.h>
 }

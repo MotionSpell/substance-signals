@@ -114,6 +114,7 @@ void AVCodecContextDeleter(AVCodecContext *p) {
 
 MetadataPktLibav::MetadataPktLibav(std::shared_ptr<AVCodecContext> codecCtx, int id)
 	: codecCtx(codecCtx), id(id) {
+	enforce(codecCtx == nullptr, "MetadataPktLibav 'codecCtx' can't be null.");
 	codec = avcodec_get_name(codecCtx->codec_id);
 	codecSpecificInfo.assign(codecCtx->extradata, codecCtx->extradata + codecCtx->extradata_size);
 }

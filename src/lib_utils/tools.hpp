@@ -64,3 +64,9 @@ template<typename T>
 constexpr T operator & (T a, T b) {
 	return static_cast<T>(static_cast<int>(a) & static_cast<int>(b));
 }
+
+inline
+void enforce(bool condition, const char* msg) {
+	if (!condition)
+		throw std::runtime_error(msg);
+}
