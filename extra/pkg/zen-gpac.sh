@@ -2,7 +2,7 @@
 function gpac_build {
   host=$1
 
-  lazy_git_clone https://github.com/gpac/gpac.git gpac e0ac0849fea
+  lazy_git_clone https://github.com/gpac/gpac.git gpac ef8b230
 
   local OS=$(get_os $host)
   local crossPrefix=$(get_cross_prefix $BUILD $host)
