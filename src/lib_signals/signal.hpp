@@ -4,6 +4,7 @@
 #include "connection.hpp"
 #include <functional>
 #include <map>
+#include <memory>
 #include <mutex>
 
 namespace Signals {
@@ -61,7 +62,7 @@ class Signal<Callback(Arg)> : public ISignal<Callback(Arg)> {
 			return callbacks.size();
 		}
 
-		Signal() : defaultExecutor(new ExecutorAsync()), executor(*defaultExecutor.get()) {
+		Signal() : defaultExecutor(new ExecutorSync()), executor(*defaultExecutor.get()) {
 		}
 
 		Signal(IExecutor &executor) : executor(executor) {

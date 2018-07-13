@@ -17,18 +17,3 @@ class ExecutorSync : public IExecutor {
 		}
 };
 }
-
-// TODO: move this elsewhere
-#include <future>
-
-namespace Signals {
-
-//asynchronous calls with std::launch::async (spawns a thread)
-class ExecutorAsync : public IExecutor {
-	public:
-		void operator() (const std::function<void()> &fn) {
-			std::async(std::launch::async, fn);
-		}
-};
-
-}
