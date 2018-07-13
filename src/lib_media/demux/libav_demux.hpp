@@ -2,6 +2,7 @@
 
 #include "lib_modules/utils/helper.hpp"
 #include <atomic>
+#include <thread>
 #include <vector>
 
 struct AVFormatContext;

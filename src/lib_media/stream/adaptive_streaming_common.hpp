@@ -5,6 +5,7 @@
 #include "lib_utils/resolution.hpp"
 #include <memory>
 #include <string>
+#include <thread>
 
 namespace Modules {
 namespace Stream {

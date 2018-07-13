@@ -1,6 +1,7 @@
 #include "tests/tests.hpp"
 #include "lib_media/out/null.hpp"
 #include "lib_pipeline/pipeline.hpp"
+#include <thread>
 
 using namespace Tests;
 using namespace Modules;

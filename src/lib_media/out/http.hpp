@@ -2,6 +2,7 @@
 
 #include "../common/metadata.hpp"
 #include "lib_modules/utils/helper.hpp"
+#include <thread>
 
 typedef void CURL;
 struct curl_slist;
