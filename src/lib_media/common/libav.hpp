@@ -39,6 +39,7 @@ class MetadataPktLibavVideo : public MetadataPktLibav {
 	public:
 		MetadataPktLibavVideo(std::shared_ptr<AVCodecContext> codecCtx, int id = -1) : MetadataPktLibav(codecCtx, id) {}
 		PixelFormat getPixelFormat() const;
+		Fraction getSampleAspectRatio() const;
 		Resolution getResolution() const;
 		Fraction getFrameRate() const;
 		Span getExtradata() const;

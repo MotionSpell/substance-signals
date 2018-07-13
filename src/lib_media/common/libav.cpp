@@ -154,6 +154,11 @@ PixelFormat MetadataPktLibavVideo::getPixelFormat() const {
 	return libavPixFmt2PixelFormat(codecCtx->pix_fmt);
 }
 
+Fraction MetadataPktLibavVideo::getSampleAspectRatio() const {
+	auto const &sar = codecCtx->sample_aspect_ratio;
+	return Fraction(sar.num, sar.den);
+}
+
 Resolution MetadataPktLibavVideo::getResolution() const {
 	return Resolution(codecCtx->width, codecCtx->height);
 }
