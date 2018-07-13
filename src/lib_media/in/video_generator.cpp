@@ -9,7 +9,7 @@ namespace In {
 
 VideoGenerator::VideoGenerator(int maxFrames_) : maxFrames(maxFrames_) {
 	output = addOutput<OutputPicture>();
-	output->setMetadata(std::make_shared<MetadataRawVideo>());
+	output->setMetadata(make_shared<MetadataRawVideo>());
 }
 
 bool VideoGenerator::work() {
