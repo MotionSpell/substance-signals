@@ -26,11 +26,9 @@
     <ClInclude Include="core\database.hpp" />
     <ClInclude Include="core\data_utc.hpp" />
     <ClInclude Include="core\error.hpp" />
-    <ClInclude Include="core\input.hpp" />
     <ClInclude Include="core\log.hpp" />
     <ClInclude Include="core\metadata.hpp" />
     <ClInclude Include="core\module.hpp" />
-    <ClInclude Include="core\output.hpp" />
     <ClInclude Include="utils\helper.hpp" />
     <ClInclude Include="modules.hpp" />
   </ItemGroup>
