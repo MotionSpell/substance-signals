@@ -1036,9 +1036,11 @@ void GPACMuxMP4::process() {
 	if (!processInit(data))
 		return;
 
+	auto const timescale = safe_cast<const MetadataPktLibav>(data->getMetadata())->getTimeScale();
+	auto const dataDTS = timescaleToClock(safe_cast<const DataAVPacket>(data)->getPacket()->dts * timescale.den, timescale.num);
 	if (compatFlags & ExactInputDur) {
 		if (lastData) {
-			auto dataDurationInTs = clockToTimescale(data->getMediaTime() - initTimeIn180k, mediaTs) - DTS;
+			auto dataDurationInTs = clockToTimescale(dataDTS - initTimeIn180k, mediaTs) - DTS;
 			if (dataDurationInTs <= 0) {
 				log(Warning, "Computed duration is inferior or equal to zero (%s). Inferring to %s", dataDurationInTs, defaultSampleIncInTs);
 				dataDurationInTs = defaultSampleIncInTs;
@@ -1048,9 +1050,9 @@ void GPACMuxMP4::process() {
 
 		lastData = data;
 	} else {
-		auto lastDataDurationInTs = clockToTimescale(data->getMediaTime() - initTimeIn180k, mediaTs) + defaultSampleIncInTs - DTS;
+		auto lastDataDurationInTs = clockToTimescale(dataDTS - initTimeIn180k, mediaTs) + defaultSampleIncInTs - DTS;
 		if (DTS > 0) {
-			if (!data->getMediaTime()) {
+			if (!dataDTS) {
 				lastDataDurationInTs = defaultSampleIncInTs;
 				log(Warning, "Received time 0: inferring duration of %s", lastDataDurationInTs);
 			}
