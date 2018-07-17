@@ -143,7 +143,7 @@ int64_t MetadataPktLibav::getBitrate() const {
 Fraction MetadataPktLibav::getTimeScale() const {
 	if (!codecCtx->time_base.num || !codecCtx->time_base.den)
 		throw std::runtime_error(format("Unsupported time scale %s/%s.", codecCtx->time_base.den, codecCtx->time_base.num));
-	return Fraction(codecCtx->time_base.den, codecCtx->time_base.num * codecCtx->ticks_per_frame);
+	return Fraction(codecCtx->time_base.den, codecCtx->time_base.num);
 }
 
 std::string MetadataPktLibav::getCodecName() const {

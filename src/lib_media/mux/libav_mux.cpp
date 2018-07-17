@@ -166,7 +166,7 @@ void LibavMux::process() {
 	auto pkt = getFormattedPkt(data);
 	assert(pkt->pts != (int64_t)AV_NOPTS_VALUE);
 	auto const pktTimescale = safe_cast<const MetadataPktLibav>(data->getMetadata())->getTimeScale();
-	const AVRational inputTimebase = { (int)pktTimescale.num, (int)pktTimescale.den };
+	const AVRational inputTimebase = { (int)pktTimescale.den, (int)pktTimescale.num };
 	auto const avStream = m_formatCtx->streams[inputIdx2AvStream[inputIdx]];
 	pkt->dts = av_rescale_q(pkt->dts, inputTimebase, avStream->time_base);
 	pkt->pts = av_rescale_q(pkt->pts, inputTimebase, avStream->time_base);
