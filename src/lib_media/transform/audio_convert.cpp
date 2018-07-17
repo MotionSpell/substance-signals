@@ -9,7 +9,7 @@ namespace Transform {
 
 AudioConvert::AudioConvert(const PcmFormat &dstFormat, int64_t dstNumSamples)
 	: dstPcmFormat(dstFormat), dstNumSamples(dstNumSamples), m_Swr(nullptr), autoConfigure(true) {
-	memset(&srcPcmFormat, 0, sizeof(srcPcmFormat));
+	srcPcmFormat = { 0 };
 	auto input = addInput(new Input<DataPcm>(this));
 	input->setMetadata(make_shared<MetadataRawAudio>());
 	output = addOutput<OutputPcm>();
