@@ -624,8 +624,8 @@ void GPACMuxMP4::declareStreamAudio(const std::shared_ptr<const MetadataPktLibav
 		acfg.sbr_object_type = 0;
 		acfg.audioPL = gf_m4a_get_profile(&acfg);
 
-		/*e = gf_m4a_write_config(&acfg, &esd->decoderConfig->decoderSpecificInfo->data, &esd->decoderConfig->decoderSpecificInfo->dataLength);
-		assert(e == GF_OK);*/
+		e = gf_m4a_write_config(&acfg, &esd->decoderConfig->decoderSpecificInfo->data, &esd->decoderConfig->decoderSpecificInfo->dataLength);
+		assert(e == GF_OK);
 	} else {
 		if (metadata->getCodecName() != "mp2") {
 			log(Warning, "Unlisted codec, setting GPAC_OTI_AUDIO_MPEG1 descriptor.");
