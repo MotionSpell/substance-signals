@@ -2,6 +2,7 @@
 
 #include "../common/metadata.hpp"
 #include "lib_modules/utils/helper.hpp"
+#include "lib_modules/utils/helper_dyn.hpp"
 #include "lib_utils/resolution.hpp"
 #include <memory>
 #include <string>
