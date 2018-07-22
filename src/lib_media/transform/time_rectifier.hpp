@@ -3,7 +3,6 @@
 #include "lib_modules/modules.hpp"
 #include "lib_modules/utils/helper_dyn.hpp"
 #include "lib_utils/i_scheduler.hpp"
-#include <condition_variable>
 #include <memory>
 #include <vector>
 
