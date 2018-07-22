@@ -20,61 +20,44 @@ struct IPipelineNotifier {
 	virtual void exception(std::exception_ptr eptr) = 0;
 };
 
-class IPipeline {
-	public:
-		virtual ~IPipeline() = default;
-
-		template <typename InstanceType, int NumBlocks = 0, typename ...Args>
-		IPipelinedModule* addModule(Args&&... args) {
-			return addModuleInternal(Modules::createModule<InstanceType>(getNumBlocks(NumBlocks), nullptr, std::forward<Args>(args)...));
-		}
-
-		// Remove a module from a pipeline.
-		// This is only possible when the module is disconnected and flush()ed
-		// (which is the caller responsibility - FIXME)
-		virtual void removeModule(IPipelinedModule * module) = 0;
-
-		virtual void connect(IPipelinedModule * prev, int outputIdx, IPipelinedModule * next, int inputIdx, bool inputAcceptMultipleConnections = false) = 0;
-		virtual void disconnect(IPipelinedModule * prev, int outputIdx, IPipelinedModule * next, int inputIdx) = 0;
-
-		virtual void start() = 0;
-		virtual void waitForEndOfStream() = 0;
-		virtual void exitSync() = 0; /*ask for all sources to finish*/
-
-	protected:
-		virtual IPipelinedModule* addModuleInternal(std::unique_ptr<Modules::IModule> rawModule) = 0;
-		/*FIXME: the block below won't be necessary once we inject correctly*/
-		virtual int getNumBlocks(int numBlock) const = 0;
-};
-
 /* not thread-safe */
-class Pipeline : public IPipeline, public IPipelineNotifier {
+class Pipeline : public IPipelineNotifier {
 	public:
 		enum Threading {
 			Mono              = 1,
 			OnePerModule      = 2,
 		};
 
+		template <typename InstanceType, int NumBlocks = 0, typename ...Args>
+		IPipelinedModule * addModule(Args&&... args) {
+			return addModuleInternal(Modules::createModule<InstanceType>(getNumBlocks(NumBlocks), nullptr, std::forward<Args>(args)...));
+		}
+
 		/* @isLowLatency Controls the default number of buffers.
 			@threading    Controls the threading. */
 		Pipeline(bool isLowLatency = false, Threading threading = OnePerModule);
 
-		IPipelinedModule* addModuleInternal(std::unique_ptr<Modules::IModule> rawModule) override;
-		void removeModule(IPipelinedModule * module) override;
-		void connect   (IPipelinedModule * prev, int outputIdx, IPipelinedModule * next, int inputIdx, bool inputAcceptMultipleConnections = false) override;
-		void disconnect(IPipelinedModule * prev, int outputIdx, IPipelinedModule * next, int inputIdx) override;
-		void start() override;
-		void waitForEndOfStream() override;
-		void exitSync() override;
+		IPipelinedModule* addModuleInternal(std::unique_ptr<Modules::IModule> rawModule);
 
-		int getNumBlocks(int numBlock) const override {
-			return numBlock ? numBlock : allocatorNumBlocks;
-		}
+		// Remove a module from a pipeline.
+		// This is only possible when the module is disconnected and flush()ed
+		// (which is the caller responsibility - FIXME)
+		void removeModule(IPipelinedModule * module);
+		void connect   (IPipelinedModule * prev, int outputIdx, IPipelinedModule * next, int inputIdx, bool inputAcceptMultipleConnections = false);
+		void disconnect(IPipelinedModule * prev, int outputIdx, IPipelinedModule * next, int inputIdx);
+		void start();
+		void waitForEndOfStream();
+		void exitSync(); /*ask for all sources to finish*/
 
 	private:
 		void computeTopology();
-		void endOfStream() override;
-		void exception(std::exception_ptr eptr) override;
+		void endOfStream();
+		void exception(std::exception_ptr eptr);
+
+		/*FIXME: the block below won't be necessary once we inject correctly*/
+		int getNumBlocks(int numBlock) const { //Romain: public?
+			return numBlock ? numBlock : allocatorNumBlocks;
+		}
 
 		std::vector<std::unique_ptr<IPipelinedModule>> modules;
 		const int allocatorNumBlocks;
