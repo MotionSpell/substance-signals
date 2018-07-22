@@ -1,4 +1,5 @@
 #include "sdl_video.hpp"
+#include "lib_utils/system_clock.hpp"
 #include "lib_utils/tools.hpp"
 #include "../common/metadata.hpp"
 #include "SDL2/SDL.h"
@@ -35,7 +36,8 @@ Uint32 queueOneUserEvent(Uint32, void*) {
 }
 
 SDLVideo::SDLVideo(const std::shared_ptr<IClock> clock)
-	: m_clock(clock), texture(nullptr), workingThread(&SDLVideo::doRender, this) {
+	: m_clock(clock ? clock : g_SystemClock),
+	  texture(nullptr), workingThread(&SDLVideo::doRender, this) {
 	auto input = addInput(new Input<DataPicture>(this));
 	input->setMetadata(make_shared<MetadataRawVideo>());
 	m_dataQueue.pop();

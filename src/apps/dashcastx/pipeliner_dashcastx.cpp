@@ -1,5 +1,6 @@
 #include "lib_pipeline/pipeline.hpp"
 #include "lib_appcommon/pipeliner.hpp"
+#include "lib_utils/system_clock.hpp"
 #include <sstream>
 #include "lib_utils/os.hpp"
 

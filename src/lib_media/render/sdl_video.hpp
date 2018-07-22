@@ -2,7 +2,6 @@
 
 #include "../common/picture.hpp"
 #include "lib_modules/utils/helper.hpp"
-#include "lib_utils/system_clock.hpp"
 #include <thread>
 
 struct SDL_Renderer;
@@ -14,7 +13,7 @@ namespace Render {
 
 class SDLVideo : public ModuleS {
 	public:
-		SDLVideo(std::shared_ptr<IClock> clock = g_SystemClock);
+		SDLVideo(std::shared_ptr<IClock> clock = nullptr);
 		~SDLVideo();
 		void process(Data data) override;
 
