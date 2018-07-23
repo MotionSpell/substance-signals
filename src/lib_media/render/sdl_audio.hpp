@@ -11,7 +11,7 @@ namespace Render {
 
 class SDLAudio : public ModuleS {
 	public:
-		SDLAudio(std::shared_ptr<IClock> clock = nullptr);
+		SDLAudio(IClock* clock = nullptr);
 		~SDLAudio();
 		void process(Data data) override;
 		void flush() override;
@@ -27,7 +27,7 @@ class SDLAudio : public ModuleS {
 		void writeSamples(Span& dst, uint8_t const* src, int n);
 		void silenceSamples(Span& dst, int n);
 
-		const std::shared_ptr<IClock> m_clock;
+		IClock* const m_clock;
 		PcmFormat m_outputFormat;
 		PcmFormat m_inputFormat;
 		std::unique_ptr<IModule> m_converter;

@@ -13,7 +13,7 @@ namespace Render {
 
 class SDLVideo : public ModuleS {
 	public:
-		SDLVideo(std::shared_ptr<IClock> clock = nullptr);
+		SDLVideo(IClock* clock = nullptr);
 		~SDLVideo();
 		void process(Data data) override;
 
@@ -24,7 +24,7 @@ class SDLVideo : public ModuleS {
 		bool processEvents();
 		void createTexture();
 
-		const std::shared_ptr<IClock> m_clock;
+		IClock* const m_clock;
 
 		SDL_Window *window = nullptr;
 		SDL_Renderer *renderer;

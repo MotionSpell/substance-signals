@@ -15,7 +15,7 @@ namespace {
 #if SIGNALS_HAS_X11
 secondclasstest("render: sound generator") {
 	auto soundGen = create<In::SoundGenerator>();
-	auto render = create<Render::SDLAudio>(make_shared<SystemClock>(1.0));
+	auto render = create<Render::SDLAudio>();
 
 	ConnectOutputToInput(soundGen->getOutput(0), render->getInput(0));
 
@@ -28,7 +28,7 @@ secondclasstest("render: sound generator") {
 
 secondclasstest("render: sound generator, evil samples") {
 	auto clock = make_shared<SystemClock>(1.0);
-	auto render = create<Render::SDLAudio>(clock);
+	auto render = create<Render::SDLAudio>(clock.get());
 
 	PcmFormat fmt {};
 	fmt.sampleFormat = S16;
