@@ -196,7 +196,7 @@ std::unique_ptr<InstanceType> createModule(size_t allocatorSize, std::shared_ptr
 
 template <typename InstanceType, typename ...Args>
 std::unique_ptr<InstanceType> create(Args&&... args) {
-	return createModule<InstanceType>(ALLOC_NUM_BLOCKS_DEFAULT, nullptr, std::forward<Args>(args)...);
+	return make_unique<ModuleDefault<InstanceType>>(ALLOC_NUM_BLOCKS_DEFAULT, nullptr, std::forward<Args>(args)...);
 }
 
 //single input specialized module
