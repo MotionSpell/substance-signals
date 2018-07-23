@@ -15,7 +15,7 @@ namespace {
 #if SIGNALS_HAS_X11
 secondclasstest("render: sound generator") {
 	auto soundGen = create<In::SoundGenerator>();
-	auto render = create<Render::SDLAudio>();
+	auto render = uptr(createSdlAudio());
 
 	ConnectOutputToInput(soundGen->getOutput(0), render->getInput(0));
 
@@ -28,7 +28,7 @@ secondclasstest("render: sound generator") {
 
 secondclasstest("render: sound generator, evil samples") {
 	auto clock = make_shared<SystemClock>(1.0);
-	auto render = create<Render::SDLAudio>(clock.get());
+	auto render = uptr(createSdlAudio(clock.get()));
 
 	PcmFormat fmt {};
 	fmt.sampleFormat = S16;
@@ -39,7 +39,8 @@ secondclasstest("render: sound generator, evil samples") {
 	sample->setMediaTime(299454611464360LL);
 	sample->setFormat(fmt);
 	sample->setPlane(0, nullptr, 100);
-	render->process(sample);
+	render->getInput(0)->push(sample);
+	render->process();
 
 	clock->sleep(1); // wait for crash
 }
@@ -50,7 +51,7 @@ secondclasstest("render: A/V sync, one thread") {
 	ConnectOutputToInput(videoGen->getOutput(0), videoRender->getInput(0));
 
 	auto soundGen = create<In::SoundGenerator>();
-	auto soundRender = create<Render::SDLAudio>();
+	auto soundRender = uptr(createSdlAudio());
 	ConnectOutputToInput(soundGen->getOutput(0), soundRender->getInput(0));
 
 	for(int i=0; i < 25*5; ++i) {
