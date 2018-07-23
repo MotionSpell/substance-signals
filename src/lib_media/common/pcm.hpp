@@ -2,6 +2,7 @@
 
 #include <cstring> // memset
 #include "lib_modules/core/data.hpp"
+#include "lib_utils/log.hpp"
 
 namespace Modules {
 
