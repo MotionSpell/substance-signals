@@ -4,7 +4,7 @@
 #include <atomic>
 #include <vector>
 #include <memory>
-#include <sstream>
+#include <string>
 #include <stdexcept>
 
 namespace Pipelines {
@@ -52,7 +52,7 @@ class Pipeline : public IPipelineNotifier {
 		void connect   (IPipelinedModule * prev, int outputIdx, IPipelinedModule * next, int inputIdx, bool inputAcceptMultipleConnections = false);
 		void disconnect(IPipelinedModule * prev, int outputIdx, IPipelinedModule * next, int inputIdx);
 
-		std::stringstream dump(); /*dump pipeline using DOT Language*/
+		std::string dump(); /*dump pipeline using DOT Language*/
 
 		void start();
 		void waitForEndOfStream();

@@ -1,8 +1,9 @@
 #include "graph.hpp"
-#include <algorithm>
 #include "pipelined_module.hpp"
 #include "pipeline.hpp"
 #include "lib_modules/utils/helper.hpp"
+#include <algorithm>
+#include <sstream>
 
 #define COMPLETION_GRANULARITY_IN_MS 200
 
@@ -87,7 +88,7 @@ void Pipeline::disconnect(IPipelinedModule * prev, int outputIdx, IPipelinedModu
 	computeTopology();
 }
 
-std::stringstream Pipeline::dump() {
+std::string Pipeline::dump() {
 	std::stringstream ss;
 	ss << "graph {" << std::endl;
 
@@ -118,7 +119,7 @@ std::stringstream Pipeline::dump() {
 	}
 
 	ss << "}" << std::endl;
-	return ss;
+	return ss.str();
 }
 
 void Pipeline::start() {

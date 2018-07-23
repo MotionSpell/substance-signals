@@ -24,7 +24,7 @@ unittest("pipeline graph: empty") {
 	auto str = p.dump();
 	std::stringstream expected;
 	expected << "graph {" << std::endl << "}" << std::endl;
-	ASSERT_EQUALS(expected.str(), str.str());
+	ASSERT_EQUALS(expected.str(), str);
 }
 
 unittest("pipeline graph: add module") {
@@ -45,7 +45,7 @@ unittest("pipeline graph: add module") {
 	    << "\t\t}" << std::endl
 	    << "\t}" << std::endl << std::endl
 	    << "}" << std::endl;
-	ASSERT_EQUALS(expected.str(), str.str());
+	ASSERT_EQUALS(expected.str(), str);
 }
 
 unittest("pipeline graph: add connection") {
@@ -80,7 +80,7 @@ unittest("pipeline graph: add connection") {
 	    << "\t}" << std::endl << std::endl
 	    << "\t\"" << ptr1 << "_output_0\" -> \"" << ptr2 << "_input_0\";" << std::endl
 	    << "}" << std::endl;
-	ASSERT_EQUALS(expected.str(), str.str());
+	ASSERT_EQUALS(expected.str(), str);
 }
 
 unittest("pipeline graph: disconnect") {
@@ -115,7 +115,7 @@ unittest("pipeline graph: disconnect") {
 	    << "\t\t}" << std::endl
 	    << "\t}" << std::endl << std::endl
 	    << "}" << std::endl;
-	ASSERT_EQUALS(expected.str(), str.str());
+	ASSERT_EQUALS(expected.str(), str);
 }
 
 unittest("pipeline graph: remove module") {
@@ -125,7 +125,7 @@ unittest("pipeline graph: remove module") {
 	auto str = p.dump();
 	std::stringstream expected;
 	expected << "graph {" << std::endl << "}" << std::endl;
-	ASSERT_EQUALS(expected.str(), str.str());
+	ASSERT_EQUALS(expected.str(), str);
 }
 
 unittest("pipeline graph: remove wrong connection") {
