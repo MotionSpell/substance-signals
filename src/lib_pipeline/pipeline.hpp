@@ -41,8 +41,6 @@ class Pipeline : public IPipelineNotifier {
 		Pipeline(bool isLowLatency = false, Threading threading = OnePerModule);
 		~Pipeline();
 
-		IPipelinedModule* addModuleInternal(std::unique_ptr<Modules::IModule> rawModule);
-
 		// Remove a module from a pipeline.
 		// This is only possible when the module is disconnected and flush()ed
 		// (which is the caller responsibility - FIXME)
@@ -57,6 +55,7 @@ class Pipeline : public IPipelineNotifier {
 		void exitSync(); /*ask for all sources to finish*/
 
 	private:
+		IPipelinedModule * addModuleInternal(std::unique_ptr<Modules::IModule> rawModule);
 		void computeTopology();
 		void endOfStream();
 		void exception(std::exception_ptr eptr);
