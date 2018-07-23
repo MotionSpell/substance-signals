@@ -17,4 +17,3 @@ EXE_OTHER_SRCS+=$(shell find src -path "*/unittests/*.cpp" | sort)
 TARGETS+=$(BIN)/unittests.exe
 $(BIN)/unittests.exe: $(EXE_OTHER_SRCS:%=$(BIN)/%.o)
 TESTS_DIR+=$(CURDIR)/$(SRC)/tests
-

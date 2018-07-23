@@ -101,6 +101,9 @@
     <ClCompile Include="..\lib_media\unittests\simple.cpp">
       <Filter>media</Filter>
     </ClCompile>
+    <ClCompile Include="..\lib_pipeline\unittests\graph.cpp">
+      <Filter>pipeline</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="signals">

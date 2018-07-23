@@ -4,9 +4,12 @@
 #include <atomic>
 #include <vector>
 #include <memory>
+#include <sstream>
 #include <stdexcept>
 
 namespace Pipelines {
+
+struct Graph;
 
 struct IPipelinedModule : public Modules::IModule {
 	virtual void stopSource() = 0;
@@ -36,6 +39,7 @@ class Pipeline : public IPipelineNotifier {
 		/* @isLowLatency Controls the default number of buffers.
 			@threading    Controls the threading. */
 		Pipeline(bool isLowLatency = false, Threading threading = OnePerModule);
+		~Pipeline();
 
 		IPipelinedModule* addModuleInternal(std::unique_ptr<Modules::IModule> rawModule);
 
@@ -45,6 +49,9 @@ class Pipeline : public IPipelineNotifier {
 		void removeModule(IPipelinedModule * module);
 		void connect   (IPipelinedModule * prev, int outputIdx, IPipelinedModule * next, int inputIdx, bool inputAcceptMultipleConnections = false);
 		void disconnect(IPipelinedModule * prev, int outputIdx, IPipelinedModule * next, int inputIdx);
+
+		std::stringstream dump(); /*dump pipeline using DOT Language*/
+
 		void start();
 		void waitForEndOfStream();
 		void exitSync(); /*ask for all sources to finish*/
@@ -55,11 +62,12 @@ class Pipeline : public IPipelineNotifier {
 		void exception(std::exception_ptr eptr);
 
 		/*FIXME: the block below won't be necessary once we inject correctly*/
-		int getNumBlocks(int numBlock) const { //Romain: public?
+		int getNumBlocks(int numBlock) const {
 			return numBlock ? numBlock : allocatorNumBlocks;
 		}
 
 		std::vector<std::unique_ptr<IPipelinedModule>> modules;
+		std::unique_ptr<Graph> graph;
 		const int allocatorNumBlocks;
 		const Threading threading;
 

@@ -28,6 +28,7 @@
     <ClCompile Include="pipelined_module.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="graph.hpp" />
     <ClInclude Include="pipeline.hpp" />
     <ClInclude Include="pipelined_input.hpp" />
     <ClInclude Include="pipelined_module.hpp" />

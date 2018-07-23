@@ -1,3 +1,4 @@
+#include "graph.hpp"
 #include <algorithm>
 #include "pipelined_module.hpp"
 #include "pipeline.hpp"
@@ -8,14 +9,19 @@
 namespace Pipelines {
 
 Pipeline::Pipeline(bool isLowLatency, Threading threading)
-	: allocatorNumBlocks(isLowLatency ? Modules::ALLOC_NUM_BLOCKS_LOW_LATENCY : Modules::ALLOC_NUM_BLOCKS_DEFAULT),
-	  threading(threading) {
+: graph(new Graph),
+  allocatorNumBlocks(isLowLatency ? Modules::ALLOC_NUM_BLOCKS_LOW_LATENCY : Modules::ALLOC_NUM_BLOCKS_DEFAULT),
+  threading(threading) {
+}
+
+Pipeline::~Pipeline() {
 }
 
 IPipelinedModule* Pipeline::addModuleInternal(std::unique_ptr<IModule> rawModule) {
 	auto module = make_unique<PipelinedModule>(std::move(rawModule), this, threading);
 	auto ret = module.get();
 	modules.push_back(std::move(module));
+	graph->nodes.push_back(Graph::Node(ret));
 	return ret;
 }
 
@@ -25,9 +31,13 @@ void Pipeline::removeModule(IPipelinedModule *module) {
 	};
 
 	auto i_mod = std::find_if(modules.begin(), modules.end(), removeIt);
-	if(i_mod == modules.end())
-		throw std::runtime_error("Could not remove module from pipeline: not found");
+	if (i_mod == modules.end())
+		throw std::runtime_error("Could not remove from pipeline: module not found");
 	modules.erase(i_mod);
+
+	auto i_node = std::find_if(graph->nodes.begin(), graph->nodes.end(), [module](Pipelines::Graph::Node const& n) { return n.id == module; });
+	assert(i_node != graph->nodes.end());
+	graph->nodes.erase(i_node);
 }
 
 void Pipeline::connect(IPipelinedModule * prev, int outputIdx, IPipelinedModule * next, int inputIdx, bool inputAcceptMultipleConnections) {
@@ -41,6 +51,8 @@ void Pipeline::connect(IPipelinedModule * prev, int outputIdx, IPipelinedModule 
 
 	next->connect(prev->getOutput(outputIdx), inputIdx, inputAcceptMultipleConnections);
 	computeTopology();
+
+	graph->connections.push_back(Graph::Connection(graph->nodeFromId(prev), outputIdx, graph->nodeFromId(next), inputIdx));
 }
 
 void Pipeline::disconnect(IPipelinedModule * prev, int outputIdx, IPipelinedModule * next, int inputIdx) {
@@ -53,6 +65,47 @@ void Pipeline::disconnect(IPipelinedModule * prev, int outputIdx, IPipelinedModu
 	}
 	next->disconnect(inputIdx, prev->getOutput(outputIdx));
 	computeTopology();
+
+	auto removeIf = [prev, outputIdx, next, inputIdx](Pipelines::Graph::Connection const& c) {
+		return c.src.id == prev && c.srcPort == outputIdx && c.dst.id == next && c.dstPort == inputIdx;
+	};
+	auto i_conn = std::find_if(graph->connections.begin(), graph->connections.end(), removeIf);
+	assert(i_conn != graph->connections.end());
+	graph->connections.erase(i_conn);
+}
+
+std::stringstream Pipeline::dump() {
+	std::stringstream ss;
+	ss << "graph {" << std::endl;
+
+	int idx = 0;
+	for (auto &node : graph->nodes) {
+		ss << "\t" << "subgraph cluster_" << idx++ << " {" << std::endl;
+		ss << "\t\tlabel = \"" << node.id << "\";" << std::endl;
+
+		ss << "\t\t" << "subgraph cluster_inputs {" << std::endl;
+		ss << "\t\t\tlabel = \"inputs\";" << std::endl;
+		for (int i = 0; i < node.id->getNumInputs(); ++i) {
+			ss << "\t\t\t\"" << node.id << "_input_" << i << "\";" << std::endl;
+		}
+		ss << "\t\t" << "}" << std::endl;
+
+		ss << "\t\t" << "subgraph cluster_outputs {" << std::endl;
+		ss << "\t\t\tlabel = \"outputs\";" << std::endl;
+		for (int i = 0; i < node.id->getNumOutputs(); ++i) {
+			ss << "\t\t\t\"" << node.id << "_output_" << i << "\";" << std::endl;
+		}
+		ss << "\t\t" << "}" << std::endl;
+
+		ss << "\t" << "}" << std::endl << std::endl;
+	}
+
+	for (auto &conn : graph->connections) {
+		ss << "\t\"" << conn.src.id << "_output_" << conn.srcPort << "\" -> \"" << conn.dst.id << "_input_" << conn.dstPort << "\";" << std::endl;
+	}
+
+	ss << "}" << std::endl;
+	return ss;
 }
 
 void Pipeline::start() {
