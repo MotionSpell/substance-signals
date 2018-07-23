@@ -1,21 +1,24 @@
 #pragma once
 
-// This is how the framework sees custom module implementations.
 // This is the binary boundary between:
 // - binary applications (plugin host for binary 'signals' plugins).
-// - binary third-party 'signals' modules.
-//
-// As these interfaces are implemented by third-parties,
-// they should be kept small and leave almost no room for errors.
-// (stuff like connection lists and pin lists should be kept in the framework).
+// - binary third-party 'signals' modules ("UM").
 //
 // This is the only header file that third-parties are expected to include.
+// Do not pass or return STL objects or concrete classes here.
 
 #include "data.hpp"
 #include "metadata.hpp"
 #include "lib_signals/signals.hpp"
 
 namespace Modules {
+
+// This is how the framework sees custom module implementations.
+//
+// As these interfaces are implemented by third-parties,
+// they should be kept small and leave almost no room for errors.
+// (stuff like connection lists and pin lists should be kept in the framework).
+//
 
 struct IProcessor {
 	virtual ~IProcessor() noexcept(false) {}
