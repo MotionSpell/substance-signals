@@ -63,7 +63,7 @@ class Pipeline : public IPipelineNotifier {
 		const int allocatorNumBlocks;
 		const Threading threading;
 
-		std::mutex mutex;
+		std::mutex remainingNotificationsMutex;
 		std::condition_variable condition;
 		size_t notifications = 0;
 		std::atomic_size_t remainingNotifications;

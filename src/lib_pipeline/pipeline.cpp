@@ -24,28 +24,33 @@ void Pipeline::removeModule(IPipelinedModule *module) {
 		return m.get() == module;
 	};
 
-	std::unique_lock<std::mutex> lock(mutex);
 	auto i_mod = std::find_if(modules.begin(), modules.end(), removeIt);
 	if(i_mod == modules.end())
 		throw std::runtime_error("Could not remove module from pipeline: not found");
-
 	modules.erase(i_mod);
 }
 
 void Pipeline::connect(IPipelinedModule * prev, int outputIdx, IPipelinedModule * next, int inputIdx, bool inputAcceptMultipleConnections) {
 	if (!next || !prev) return;
-	std::unique_lock<std::mutex> lock(mutex);
-	if (remainingNotifications != notifications)
-		throw std::runtime_error("Connection but the topology has changed. Not supported yet."); //TODO: to change that, we need to store a state of the PipelinedModule.
+
+	{
+		std::unique_lock<std::mutex> lock(remainingNotificationsMutex);
+		if (remainingNotifications != notifications)
+			throw std::runtime_error("Connection but the topology has changed. Not supported yet."); //TODO: to change that, we need to store a state of the PipelinedModule.
+	}
+
 	next->connect(prev->getOutput(outputIdx), inputIdx, inputAcceptMultipleConnections);
 	computeTopology();
 }
 
 void Pipeline::disconnect(IPipelinedModule * prev, int outputIdx, IPipelinedModule * next, int inputIdx) {
 	if (!prev) return;
-	std::unique_lock<std::mutex> lock(mutex);
-	if (remainingNotifications != notifications)
-		throw std::runtime_error("Disconnection but the topology has changed. Not supported yet.");
+
+	{
+		std::unique_lock<std::mutex> lock(remainingNotificationsMutex);
+		if (remainingNotifications != notifications)
+			throw std::runtime_error("Disconnection but the topology has changed. Not supported yet.");
+	}
 	next->disconnect(inputIdx, prev->getOutput(outputIdx));
 	computeTopology();
 }
@@ -63,7 +68,7 @@ void Pipeline::start() {
 
 void Pipeline::waitForEndOfStream() {
 	Log::msg(Info, "Pipeline: waiting for completion");
-	std::unique_lock<std::mutex> lock(mutex);
+	std::unique_lock<std::mutex> lock(remainingNotificationsMutex);
 	while (remainingNotifications > 0) {
 		Log::msg(Debug, "Pipeline: condition (remaining: %s) (%s modules in the pipeline)", (int)remainingNotifications, modules.size());
 		condition.wait_for(lock, std::chrono::milliseconds(COMPLETION_GRANULARITY_IN_MS));
@@ -102,17 +107,22 @@ void Pipeline::computeTopology() {
 		if (m->isSource() || hasAtLeastOneInputConnected(m.get()))
 			notifications++;
 	}
+
+	std::unique_lock<std::mutex> lock(remainingNotificationsMutex);
 	remainingNotifications = notifications;
 }
 
 void Pipeline::endOfStream() {
-	assert(remainingNotifications > 0);
-	--remainingNotifications;
+	{
+		std::unique_lock<std::mutex> lock(remainingNotificationsMutex);
+		assert(remainingNotifications > 0);
+		--remainingNotifications;
+	}
+
 	condition.notify_one();
 }
 
 void Pipeline::exception(std::exception_ptr e) {
-	std::unique_lock<std::mutex> lock(mutex);
 	eptr = e;
 	condition.notify_one();
 }
