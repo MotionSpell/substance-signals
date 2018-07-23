@@ -9,7 +9,7 @@ namespace Pipelines {
 
 Pipeline::Pipeline(bool isLowLatency, Threading threading)
 	: allocatorNumBlocks(isLowLatency ? Modules::ALLOC_NUM_BLOCKS_LOW_LATENCY : Modules::ALLOC_NUM_BLOCKS_DEFAULT),
-	  threading(threading), remainingNotifications(0) {
+	  threading(threading) {
 }
 
 IPipelinedModule* Pipeline::addModuleInternal(std::unique_ptr<IModule> rawModule) {
@@ -70,7 +70,7 @@ void Pipeline::waitForEndOfStream() {
 	Log::msg(Info, "Pipeline: waiting for completion");
 	std::unique_lock<std::mutex> lock(remainingNotificationsMutex);
 	while (remainingNotifications > 0) {
-		Log::msg(Debug, "Pipeline: condition (remaining: %s) (%s modules in the pipeline)", (int)remainingNotifications, modules.size());
+		Log::msg(Debug, "Pipeline: condition (remaining: %s) (%s modules in the pipeline)", remainingNotifications, modules.size());
 		condition.wait_for(lock, std::chrono::milliseconds(COMPLETION_GRANULARITY_IN_MS));
 		try {
 			if (eptr)
