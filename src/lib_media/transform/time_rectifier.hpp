@@ -35,7 +35,7 @@ Remarks:
 */
 class TimeRectifier : public ModuleDynI {
 	public:
-		TimeRectifier(IScheduler* scheduler, Fraction frameRate);
+		TimeRectifier(std::shared_ptr<IClock> clock_, IScheduler* scheduler, Fraction frameRate);
 
 		void process() override;
 
@@ -73,15 +73,16 @@ class TimeRectifier : public ModuleDynI {
 		int64_t const threshold;
 		std::vector<Stream> streams;
 		std::mutex inputMutex;
+		std::shared_ptr<IClock> clock;
 		IScheduler* const scheduler;
 		bool hasVideo = false;
 };
 
 template <>
-struct ModuleDefault<TimeRectifier> : public ClockCap, public TimeRectifier {
+struct ModuleDefault<TimeRectifier> : public TimeRectifier {
 	template <typename ...Args>
-	ModuleDefault(size_t allocatorSize, const std::shared_ptr<IClock> clock, Args&&... args)
-		: ClockCap(clock), TimeRectifier(std::forward<Args>(args)...) {
+	ModuleDefault(size_t allocatorSize, const std::shared_ptr<IClock> /*clock*/, Args&&... args)
+		: TimeRectifier(std::forward<Args>(args)...) {
 		this->allocatorSize = allocatorSize;
 	}
 };

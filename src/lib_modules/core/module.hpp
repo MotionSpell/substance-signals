@@ -11,7 +11,6 @@
 //
 // This is the only header file that third-parties are expected to include.
 
-#include "clock.hpp"
 #include "data.hpp"
 #include "metadata.hpp"
 #include "lib_signals/signals.hpp"
@@ -69,7 +68,7 @@ struct IOutputCap {
 		/*const*/ size_t allocatorSize = 0;
 };
 
-struct IModule : IProcessor, virtual IInputCap, virtual IOutputCap, virtual IClockCap {
+struct IModule : IProcessor, virtual IInputCap, virtual IOutputCap {
 	virtual ~IModule() noexcept(false) {}
 	virtual void flush() {}
 };

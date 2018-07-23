@@ -182,16 +182,16 @@ class Module : public IModule, public ErrorCap, public LogCap, public InputCap {
 
 /* this default factory creates output ports with the default output - create another one for other uses such as low latency */
 template <class InstanceType>
-struct ModuleDefault : public ClockCap, public OutputCap, public InstanceType {
+struct ModuleDefault : public OutputCap, public InstanceType {
 	template <typename ...Args>
-	ModuleDefault(size_t allocatorSize, std::shared_ptr<IClock> clock, Args&&... args)
-		: ClockCap(clock), OutputCap(allocatorSize), InstanceType(std::forward<Args>(args)...) {
+	ModuleDefault(size_t allocatorSize, std::shared_ptr<IClock> /*clock*/, Args&&... args)
+		: OutputCap(allocatorSize), InstanceType(std::forward<Args>(args)...) {
 	}
 };
 
 template <typename InstanceType, typename ...Args>
-std::unique_ptr<InstanceType> createModule(size_t allocatorSize, std::shared_ptr<IClock> clock, Args&&... args) {
-	return make_unique<ModuleDefault<InstanceType>>(allocatorSize, clock, std::forward<Args>(args)...);
+std::unique_ptr<InstanceType> createModule(size_t allocatorSize, std::shared_ptr<IClock> /*clock*/, Args&&... args) {
+	return make_unique<ModuleDefault<InstanceType>>(allocatorSize, nullptr, std::forward<Args>(args)...);
 }
 
 template <typename InstanceType, typename ...Args>

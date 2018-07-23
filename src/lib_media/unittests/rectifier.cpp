@@ -140,7 +140,7 @@ vector<Event> runRectifier(
 
 	const int N = (int)generators.size();
 
-	auto rectifier = createModule<TimeRectifier>(1, clock, clock.get(), fps);
+	auto rectifier = createModule<TimeRectifier>(1, clock, clock, clock.get(), fps);
 	vector<unique_ptr<DataRecorder>> recorders;
 	for (int i = 0; i < N; ++i) {
 		ConnectModules(generators[i].get(), 0, rectifier.get(), i);
