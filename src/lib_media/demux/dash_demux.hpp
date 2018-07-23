@@ -17,7 +17,7 @@ class DashDemuxer : public Module {
 		virtual void process() override;
 
 	private:
-		void addStream(IOutput* downloadOutput);
+		void addStream(Pipelines::IPipelinedModule* downloadOutput, int outputPort);
 
 		std::unique_ptr<Pipelines::Pipeline> pipeline;
 };

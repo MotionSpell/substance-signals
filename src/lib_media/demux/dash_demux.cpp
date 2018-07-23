@@ -14,34 +14,40 @@ namespace Demux {
 using namespace In;
 using namespace Transform;
 
+struct OutStub : ModuleS {
+	OutStub(OutputDefault *output) : output(output) {
+		addInput(new Input<DataBase>(this));
+	}
+	void process(Data data) override {
+		output->emit(data);
+	}
+
+private:
+	OutputDefault *output;
+};
+
 DashDemuxer::DashDemuxer(std::string url) {
 	auto downloader = pipeline->addModule<MPEG_DASH_Input>(createHttpSource(), url);
 
 	for (int i = 0; i < (int)downloader->getNumOutputs(); ++i)
-		addStream(downloader->getOutput(i));
+		addStream(downloader, i);
 }
 
-void DashDemuxer::addStream(IOutput* downloadOutput) {
-	auto meta = downloadOutput->getMetadata();
-
+void DashDemuxer::addStream(Pipelines::IPipelinedModule* downloadOutput, int outputPort) {
 	// create our own output
 	auto output = addOutput<OutputDefault>();
-	output->setMetadata(meta);
+	output->setMetadata(downloadOutput->getOutput(outputPort)->getMetadata());
 
 	// add MP4 demuxer
 	auto decap = pipeline->addModule<GPACDemuxMP4Full>();
-	ConnectOutputToInput(downloadOutput, decap->getInput(0));
+	pipeline->connect(downloadOutput, 0, decap, 0);
 
 	// add restamper (so the timestamps start at zero)
 	auto restamp = pipeline->addModule<Restamp>(Transform::Restamp::Reset);
-	ConnectOutputToInput(decap->getOutput(0), restamp->getInput(0));
+	pipeline->connect(decap, 0, restamp, 0);
 
-	ConnectOutput(restamp, [output](Data data) {
-		output->emit(data);
-	});
-
-	auto null = pipeline->addModule<Out::Null>();
-	pipeline->connect(restamp, 0, null, 0);
+	auto stub = pipeline->addModule<OutStub>(output);
+	pipeline->connect(restamp, 0, stub, 0);
 }
 
 void DashDemuxer::process() {

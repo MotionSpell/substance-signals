@@ -50,6 +50,7 @@ void Pipeline::removeModule(IPipelinedModule *module) {
 
 void Pipeline::connect(IPipelinedModule * prev, int outputIdx, IPipelinedModule * next, int inputIdx, bool inputAcceptMultipleConnections) {
 	if (!next || !prev) return;
+	auto n = safe_cast<PipelinedModule>(next);
 
 	{
 		std::unique_lock<std::mutex> lock(remainingNotificationsMutex);
@@ -57,7 +58,7 @@ void Pipeline::connect(IPipelinedModule * prev, int outputIdx, IPipelinedModule 
 			throw std::runtime_error("Connection but the topology has changed. Not supported yet."); //TODO: to change that, we need to store a state of the PipelinedModule.
 	}
 
-	next->connect(prev->getOutput(outputIdx), inputIdx, inputAcceptMultipleConnections);
+	n->connect(prev->getOutput(outputIdx), inputIdx, inputAcceptMultipleConnections);
 	computeTopology();
 
 	graph->connections.push_back(Graph::Connection(graph->nodeFromId(prev), outputIdx, graph->nodeFromId(next), inputIdx));
@@ -65,6 +66,7 @@ void Pipeline::connect(IPipelinedModule * prev, int outputIdx, IPipelinedModule 
 
 void Pipeline::disconnect(IPipelinedModule * prev, int outputIdx, IPipelinedModule * next, int inputIdx) {
 	if (!prev) return;
+	auto n = safe_cast<PipelinedModule>(next);
 
 	auto removeIf = [prev, outputIdx, next, inputIdx](Pipelines::Graph::Connection const& c) {
 		return c.src.id == prev && c.srcPort == outputIdx && c.dst.id == next && c.dstPort == inputIdx;
@@ -79,7 +81,7 @@ void Pipeline::disconnect(IPipelinedModule * prev, int outputIdx, IPipelinedModu
 		if (remainingNotifications != notifications)
 			throw std::runtime_error("Disconnection but the topology has changed. Not supported yet.");
 	}
-	next->disconnect(inputIdx, prev->getOutput(outputIdx));
+	n->disconnect(inputIdx, prev->getOutput(outputIdx));
 	computeTopology();
 }
 
@@ -120,7 +122,8 @@ std::stringstream Pipeline::dump() {
 void Pipeline::start() {
 	Log::msg(Info, "Pipeline: starting");
 	computeTopology();
-	for (auto &m : modules) {
+	for (auto &module : modules) {
+		auto m = safe_cast<PipelinedModule>(module.get());
 		if (m->isSource()) {
 			m->process();
 		}
@@ -148,7 +151,8 @@ void Pipeline::waitForEndOfStream() {
 
 void Pipeline::exitSync() {
 	Log::msg(Warning, "Pipeline: asked to exit now.");
-	for (auto &m : modules) {
+	for (auto &module : modules) {
+		auto m = safe_cast<PipelinedModule>(module.get());
 		if (m->isSource()) {
 			m->stopSource();
 		}
@@ -156,7 +160,7 @@ void Pipeline::exitSync() {
 }
 
 void Pipeline::computeTopology() {
-	auto hasAtLeastOneInputConnected = [](IPipelinedModule* m) {
+	auto hasAtLeastOneInputConnected = [](PipelinedModule* m) {
 		for (int i = 0; i < m->getNumInputs(); ++i) {
 			if (m->getInput(i)->getNumConnections())
 				return true;
@@ -165,8 +169,9 @@ void Pipeline::computeTopology() {
 	};
 
 	notifications = 0;
-	for (auto &m : modules) {
-		if (m->isSource() || hasAtLeastOneInputConnected(m.get()))
+	for (auto &module : modules) {
+		auto m = safe_cast<PipelinedModule>(module.get());
+		if (m->isSource() || hasAtLeastOneInputConnected(m))
 			notifications++;
 	}
 

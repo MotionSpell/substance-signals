@@ -17,29 +17,29 @@ class PipelinedModule :
 		PipelinedModule(std::unique_ptr<IModule> module, IPipelineNotifier *notify, Pipeline::Threading threading);
 		~PipelinedModule() noexcept(false);
 
+		void connect(IOutput *output, int inputIdx, bool inputAcceptMultipleConnections);
+		void disconnect(int inputIdx, IOutput * const output);
+
 		int getNumInputs() const override;
 		int getNumOutputs() const override;
 		IOutput* getOutput(int i) override;
-
-		/* source modules are stopped manually - then the message propagates to other connected modules */
-		bool isSource() override;
-		void stopSource() override;
-
-	private:
-		std::string getDelegateName() const;
-
-		void connect(IOutput *output, int inputIdx, bool inputAcceptMultipleConnections) override ;
-		void disconnect(int inputIdx, IOutput * const output) override ;
-		void mimicInputs() ;
-
 		IInput* getInput(int i) override;
 
 		/* uses the executor (i.e. may defer the call) */
 		void process();
+
+		/* source modules are stopped manually - then the message propagates to other connected modules */
+		bool isSource();
+		void stopSource();
+
+	private:
+		std::string getDelegateName() const;
+		void mimicInputs();
+
+		/* uses the executor (i.e. may defer the call) */
 		void startSource();
 
 		// IPipelineNotifier implementation
-
 		void endOfStream() override;
 		void exception(std::exception_ptr eptr) override ;
 

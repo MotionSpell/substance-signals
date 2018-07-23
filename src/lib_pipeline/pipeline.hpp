@@ -11,11 +11,11 @@ namespace Pipelines {
 
 struct Graph;
 
-struct IPipelinedModule : public Modules::IModule {
-	virtual void stopSource() = 0;
-	virtual bool isSource() = 0;
-	virtual void connect(Modules::IOutput *output, int inputIdx, bool inputAcceptMultipleConnections) = 0;
-	virtual void disconnect(int inputIdx, Modules::IOutput * output) = 0;
+struct IPipelinedModule {
+	virtual int getNumInputs() const = 0;
+	virtual int getNumOutputs() const = 0;
+	virtual Modules::IInput* getInput(int i) = 0;  //TODO: hide this
+	virtual Modules::IOutput* getOutput(int i) = 0;//TODO: hide this
 };
 
 struct IPipelineNotifier {
