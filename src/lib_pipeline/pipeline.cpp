@@ -58,6 +58,14 @@ void Pipeline::connect(IPipelinedModule * prev, int outputIdx, IPipelinedModule 
 void Pipeline::disconnect(IPipelinedModule * prev, int outputIdx, IPipelinedModule * next, int inputIdx) {
 	if (!prev) return;
 
+	auto removeIf = [prev, outputIdx, next, inputIdx](Pipelines::Graph::Connection const& c) {
+		return c.src.id == prev && c.srcPort == outputIdx && c.dst.id == next && c.dstPort == inputIdx;
+	};
+	auto i_conn = std::find_if(graph->connections.begin(), graph->connections.end(), removeIf);
+	if (i_conn == graph->connections.end())
+		throw std::runtime_error("Could not disconnect: connection not found");
+	graph->connections.erase(i_conn);
+
 	{
 		std::unique_lock<std::mutex> lock(remainingNotificationsMutex);
 		if (remainingNotifications != notifications)
@@ -65,13 +73,6 @@ void Pipeline::disconnect(IPipelinedModule * prev, int outputIdx, IPipelinedModu
 	}
 	next->disconnect(inputIdx, prev->getOutput(outputIdx));
 	computeTopology();
-
-	auto removeIf = [prev, outputIdx, next, inputIdx](Pipelines::Graph::Connection const& c) {
-		return c.src.id == prev && c.srcPort == outputIdx && c.dst.id == next && c.dstPort == inputIdx;
-	};
-	auto i_conn = std::find_if(graph->connections.begin(), graph->connections.end(), removeIf);
-	assert(i_conn != graph->connections.end());
-	graph->connections.erase(i_conn);
 }
 
 std::stringstream Pipeline::dump() {
