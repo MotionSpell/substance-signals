@@ -1,6 +1,11 @@
 #pragma once
 
-#include "lib_pipeline/pipeline.hpp"
+#include <lib_modules/utils/helper.hpp>
+
+namespace Pipelines {
+	class Pipeline;
+	struct IPipelinedModule;
+}
 
 namespace Modules {
 namespace Demux {
@@ -9,15 +14,12 @@ class DashDemuxer : public Module {
 	public:
 		DashDemuxer(std::string url);
 
-		virtual void process() override {
-			pipeline.start();
-			pipeline.waitForEndOfStream();
-		}
+		virtual void process() override;
 
 	private:
 		void addStream(IOutput* downloadOutput);
 
-		Pipelines::Pipeline pipeline;
+		std::unique_ptr<Pipelines::Pipeline> pipeline;
 };
 
 }
