@@ -1,13 +1,12 @@
 #pragma once
 
-#include "pipeline.hpp"
-#include "lib_modules/modules.hpp"
 #include <algorithm>
+#include <cassert>
 #include <list>
 
-using namespace Modules;
-
 namespace Pipelines {
+
+struct IPipelinedModule;
 
 struct Graph {
 	struct Node {
