@@ -36,6 +36,10 @@ class Pipeline : public IPipelineNotifier {
 			return addModuleInternal(Modules::createModule<InstanceType>(getNumBlocks(NumBlocks), std::forward<Args>(args)...));
 		}
 
+		IPipelinedModule * add(std::unique_ptr<Modules::IModule> mod) {
+			return addModuleInternal(std::move(mod));
+		}
+
 		/* @isLowLatency Controls the default number of buffers.
 			@threading    Controls the threading. */
 		Pipeline(bool isLowLatency = false, Threading threading = OnePerModule);

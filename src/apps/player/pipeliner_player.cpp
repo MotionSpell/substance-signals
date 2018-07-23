@@ -24,7 +24,7 @@ IPipelinedModule* createRenderer(Pipeline& pipeline, Config cfg, int codecType) 
 	if(!cfg.noRenderer) {
 		if (codecType == VIDEO_RAW) {
 			Log::msg(Info, "Found video stream");
-			return pipeline.addModule<Render::SDLVideo>();
+			return pipeline.add(uptr(createSdlVideo()));
 		} else if (codecType == AUDIO_RAW) {
 			Log::msg(Info, "Found audio stream");
 			return pipeline.addModule<Render::SDLAudio>();

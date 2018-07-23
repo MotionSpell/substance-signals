@@ -30,7 +30,7 @@ secondclasstest("packet type erasure + multi-output: libav Demux -> libav Decode
 	ASSERT(videoIndex != -1);
 	auto metadata = demux->getOutput(videoIndex)->getMetadata();
 	auto decode = create<Decode::Decoder>(metadata->getStreamType());
-	auto render = create<Render::SDLVideo>();
+	auto render = uptr(createSdlVideo());
 
 	ConnectOutputToInput(demux->getOutput(videoIndex), decode->getInput(0));
 	ConnectOutputToInput(decode->getOutput(0), render->getInput(0));

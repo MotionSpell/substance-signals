@@ -46,7 +46,7 @@ secondclasstest("render: sound generator, evil samples") {
 
 secondclasstest("render: A/V sync, one thread") {
 	auto videoGen = create<In::VideoGenerator>();
-	auto videoRender = create<Render::SDLVideo>();
+	auto videoRender = uptr(createSdlVideo());
 	ConnectOutputToInput(videoGen->getOutput(0), videoRender->getInput(0));
 
 	auto soundGen = create<In::SoundGenerator>();
@@ -60,15 +60,17 @@ secondclasstest("render: A/V sync, one thread") {
 }
 
 secondclasstest("render: dynamic resolution") {
-	auto videoRender = create<Render::SDLVideo>();
+	auto videoRender = uptr(createSdlVideo());
 
 	auto pic1 = make_shared<PictureYUV420P>(Resolution(128, 64));
 	pic1->setMediaTime(1000);
-	videoRender->process(pic1);
+	videoRender->getInput(0)->push(pic1);
+	videoRender->process();
 
 	auto pic2 = make_shared<PictureYUV420P>(Resolution(64, 256));
 	pic2->setMediaTime(2000);
-	videoRender->process(pic2);
+	videoRender->getInput(0)->push(pic2);
+	videoRender->process();
 }
 #endif
 

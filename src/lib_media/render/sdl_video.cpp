@@ -1,9 +1,12 @@
 #include "sdl_video.hpp"
 #include "lib_utils/system_clock.hpp"
 #include "lib_utils/tools.hpp"
+#include "lib_modules/utils/helper.hpp"
+#include "../common/picture.hpp"
 #include "../common/metadata.hpp"
 #include "SDL2/SDL.h"
 #include "render_common.hpp"
+#include <thread>
 #include <csignal>
 #ifdef _MSC_VER
 #include <Windows.h>
@@ -11,6 +14,7 @@
 #ifdef __linux__
 #include <signal.h>
 #endif
+
 
 namespace Modules {
 namespace Render {
@@ -35,6 +39,31 @@ Uint32 queueOneUserEvent(Uint32, void*) {
 }
 }
 
+class SDLVideo : public ModuleS {
+	public:
+		SDLVideo(IClock* clock);
+		~SDLVideo();
+		void process(Data data) override;
+
+	private:
+		void doRender();
+		void displayFrame(Data data);
+		void present();
+		bool processEvents();
+		void createTexture();
+
+		IClock* const m_clock;
+
+		SDL_Window *window = nullptr;
+		SDL_Renderer *renderer;
+		SDL_Texture *texture;
+		Resolution displaySize;
+		PictureFormat pictureFormat;
+		bool respectTimestamps;
+
+		Queue<Data> m_dataQueue; //FIXME: useless now we have input ports
+		std::thread workingThread;
+};
 SDLVideo::SDLVideo(IClock* clock)
 	: m_clock(clock ? clock : g_SystemClock.get()),
 	  texture(nullptr), workingThread(&SDLVideo::doRender, this) {
@@ -188,4 +217,11 @@ void SDLVideo::process(Data data) {
 }
 
 }
+
+IModule* createSdlVideo(IClock* clock) {
+	return create<Render::SDLVideo>(clock).release();
 }
+
+}
+
+
