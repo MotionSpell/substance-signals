@@ -100,7 +100,7 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 		auto const codecType = metadataDemux->getStreamType();
 		if (codecType == VIDEO_PKT) {
 			Encode::LibavEncode::Params p;
-			auto m = createModule<Encode::LibavEncode>(bufferSize, g_SystemClock, Encode::LibavEncode::Video, p);
+			auto m = createModule<Encode::LibavEncode>(bufferSize, Encode::LibavEncode::Video, p);
 			dstFmt.format = p.pixelFormat;
 			return std::move(m);
 		} else if (codecType == AUDIO_PKT) {
@@ -109,7 +109,7 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 			Encode::LibavEncode::Params p;
 			p.sampleRate = demuxFmt.sampleRate;
 			p.numChannels = demuxFmt.numChannels;
-			return createModule<Encode::LibavEncode>(bufferSize, g_SystemClock, Encode::LibavEncode::Audio, p);
+			return createModule<Encode::LibavEncode>(bufferSize, Encode::LibavEncode::Audio, p);
 		} else
 			throw std::runtime_error("[Converter] Found unknown stream");
 	};

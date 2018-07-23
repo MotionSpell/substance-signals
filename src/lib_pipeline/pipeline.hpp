@@ -30,7 +30,7 @@ class Pipeline : public IPipelineNotifier {
 
 		template <typename InstanceType, int NumBlocks = 0, typename ...Args>
 		IPipelinedModule * addModule(Args&&... args) {
-			return addModuleInternal(Modules::createModule<InstanceType>(getNumBlocks(NumBlocks), nullptr, std::forward<Args>(args)...));
+			return addModuleInternal(Modules::createModule<InstanceType>(getNumBlocks(NumBlocks), std::forward<Args>(args)...));
 		}
 
 		/* @isLowLatency Controls the default number of buffers.
