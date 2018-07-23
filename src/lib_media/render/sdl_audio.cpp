@@ -1,18 +1,21 @@
-#include "sdl_audio.hpp"
-#include "render_common.hpp"
-#include "lib_utils/tools.hpp"
-#include "lib_utils/system_clock.hpp"
-#include "SDL2/SDL.h"
-#include "../common/metadata.hpp"
-#include "../transform/audio_convert.hpp"
-#include "lib_modules/utils/helper.hpp"
-#include "../common/pcm.hpp"
-#include "lib_utils/fifo.hpp"
+#include <cstring> // memcpy
 #include <memory>
 #include <mutex>
 #include <algorithm>
-#include <cstring>
 #include <thread>
+#include "SDL2/SDL.h"
+
+#include "lib_utils/tools.hpp"
+#include "lib_utils/system_clock.hpp"
+#include "lib_utils/fifo.hpp"
+#include "lib_modules/utils/helper.hpp"
+
+#include "../common/metadata.hpp"
+#include "../common/pcm.hpp"
+#include "../transform/audio_convert.hpp"
+
+#include "render_common.hpp"
+#include "sdl_audio.hpp"
 
 static const int64_t TOLERANCE = IClock::Rate / 20;
 
