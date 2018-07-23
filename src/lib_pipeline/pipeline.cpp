@@ -51,6 +51,7 @@ void Pipeline::removeModule(IPipelinedModule *module) {
 void Pipeline::connect(IPipelinedModule * prev, int outputIdx, IPipelinedModule * next, int inputIdx, bool inputAcceptMultipleConnections) {
 	if (!next || !prev) return;
 	auto n = safe_cast<PipelinedModule>(next);
+	auto p = safe_cast<PipelinedModule>(prev);
 
 	{
 		std::unique_lock<std::mutex> lock(remainingNotificationsMutex);
@@ -58,7 +59,7 @@ void Pipeline::connect(IPipelinedModule * prev, int outputIdx, IPipelinedModule 
 			throw std::runtime_error("Connection but the topology has changed. Not supported yet."); //TODO: to change that, we need to store a state of the PipelinedModule.
 	}
 
-	n->connect(prev->getOutput(outputIdx), inputIdx, inputAcceptMultipleConnections);
+	n->connect(p->getOutput(outputIdx), inputIdx, inputAcceptMultipleConnections);
 	computeTopology();
 
 	graph->connections.push_back(Graph::Connection(graph->nodeFromId(prev), outputIdx, graph->nodeFromId(next), inputIdx));
@@ -67,6 +68,7 @@ void Pipeline::connect(IPipelinedModule * prev, int outputIdx, IPipelinedModule 
 void Pipeline::disconnect(IPipelinedModule * prev, int outputIdx, IPipelinedModule * next, int inputIdx) {
 	if (!prev) return;
 	auto n = safe_cast<PipelinedModule>(next);
+	auto p = safe_cast<PipelinedModule>(prev);
 
 	auto removeIf = [prev, outputIdx, next, inputIdx](Pipelines::Graph::Connection const& c) {
 		return c.src.id == prev && c.srcPort == outputIdx && c.dst.id == next && c.dstPort == inputIdx;
@@ -81,7 +83,7 @@ void Pipeline::disconnect(IPipelinedModule * prev, int outputIdx, IPipelinedModu
 		if (remainingNotifications != notifications)
 			throw std::runtime_error("Disconnection but the topology has changed. Not supported yet.");
 	}
-	n->disconnect(inputIdx, prev->getOutput(outputIdx));
+	n->disconnect(inputIdx, p->getOutput(outputIdx));
 	computeTopology();
 }
 

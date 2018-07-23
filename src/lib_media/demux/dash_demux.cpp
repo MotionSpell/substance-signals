@@ -36,7 +36,7 @@ DashDemuxer::DashDemuxer(std::string url) {
 void DashDemuxer::addStream(Pipelines::IPipelinedModule* downloadOutput, int outputPort) {
 	// create our own output
 	auto output = addOutput<OutputDefault>();
-	output->setMetadata(downloadOutput->getOutput(outputPort)->getMetadata());
+	output->setMetadata(downloadOutput->getOutputMetadata(outputPort));
 
 	// add MP4 demuxer
 	auto decap = pipeline->addModule<GPACDemuxMP4Full>();

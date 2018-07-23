@@ -15,7 +15,7 @@ struct IPipelinedModule {
 	virtual int getNumInputs() const = 0;
 	virtual int getNumOutputs() const = 0;
 	virtual Modules::IInput* getInput(int i) = 0;  //TODO: hide this
-	virtual Modules::IOutput* getOutput(int i) = 0;//TODO: hide this
+	virtual std::shared_ptr<const Modules::IMetadata>  getOutputMetadata(int i) = 0;
 };
 
 struct IPipelineNotifier {

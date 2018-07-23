@@ -48,6 +48,10 @@ IOutput* PipelinedModule::getOutput(int i) {
 	return delegate->getOutput(i);
 }
 
+std::shared_ptr<const IMetadata> PipelinedModule::getOutputMetadata(int i) {
+	return getOutput(i)->getMetadata();
+}
+
 /* source modules are stopped manually - then the message propagates to other connected modules */
 bool PipelinedModule::isSource() {
 	if (delegate->getNumInputs() == 0) {

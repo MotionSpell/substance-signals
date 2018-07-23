@@ -55,7 +55,7 @@ void declarePipeline(Config cfg, Pipeline &pipeline, const char *url) {
 		throw std::runtime_error("No streams found");
 
 	for (int k = 0; k < (int)demuxer->getNumOutputs(); ++k) {
-		auto metadata = demuxer->getOutput(k)->getMetadata();
+		auto metadata = demuxer->getOutputMetadata(k);
 		if(!metadata) {
 			Log::msg(Debug, "Ignoring stream #%s (no metadata)", k);
 			continue;
@@ -75,7 +75,7 @@ void declarePipeline(Config cfg, Pipeline &pipeline, const char *url) {
 			avPin = 0;
 		}
 
-		metadata = avSource->getOutput(avPin)->getMetadata();
+		metadata = avSource->getOutputMetadata(avPin);
 
 		auto render = createRenderer(pipeline, cfg, metadata->getStreamType());
 		pipeline.connect(avSource, avPin, render, 0);

@@ -22,8 +22,9 @@ class PipelinedModule :
 
 		int getNumInputs() const override;
 		int getNumOutputs() const override;
-		IOutput* getOutput(int i) override;
 		IInput* getInput(int i) override;
+		IOutput* getOutput(int i);
+		std::shared_ptr<const IMetadata>  getOutputMetadata(int i) override;
 
 		/* uses the executor (i.e. may defer the call) */
 		void process();
