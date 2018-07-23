@@ -27,7 +27,7 @@ void Pipeline::removeModule(IPipelinedModule *module) {
 	std::unique_lock<std::mutex> lock(mutex);
 	auto i_mod = std::find_if(modules.begin(), modules.end(), removeIt);
 	if(i_mod == modules.end())
-		throw std::runtime_error("Could not remove module from pipeline");
+		throw std::runtime_error("Could not remove module from pipeline: not found");
 
 	modules.erase(i_mod);
 }
