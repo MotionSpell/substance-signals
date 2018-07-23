@@ -184,19 +184,19 @@ class Module : public IModule, public ErrorCap, public LogCap, public InputCap {
 template <class InstanceType>
 struct ModuleDefault : public OutputCap, public InstanceType {
 	template <typename ...Args>
-	ModuleDefault(size_t allocatorSize, std::shared_ptr<IClock> /*clock*/, Args&&... args)
+	ModuleDefault(size_t allocatorSize, Args&&... args)
 		: OutputCap(allocatorSize), InstanceType(std::forward<Args>(args)...) {
 	}
 };
 
 template <typename InstanceType, typename ...Args>
 std::unique_ptr<InstanceType> createModule(size_t allocatorSize, std::shared_ptr<IClock> /*clock*/, Args&&... args) {
-	return make_unique<ModuleDefault<InstanceType>>(allocatorSize, nullptr, std::forward<Args>(args)...);
+	return make_unique<ModuleDefault<InstanceType>>(allocatorSize, std::forward<Args>(args)...);
 }
 
 template <typename InstanceType, typename ...Args>
 std::unique_ptr<InstanceType> create(Args&&... args) {
-	return make_unique<ModuleDefault<InstanceType>>(ALLOC_NUM_BLOCKS_DEFAULT, nullptr, std::forward<Args>(args)...);
+	return make_unique<ModuleDefault<InstanceType>>(ALLOC_NUM_BLOCKS_DEFAULT, std::forward<Args>(args)...);
 }
 
 //single input specialized module

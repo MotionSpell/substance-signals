@@ -81,7 +81,7 @@ class TimeRectifier : public ModuleDynI {
 template <>
 struct ModuleDefault<TimeRectifier> : public TimeRectifier {
 	template <typename ...Args>
-	ModuleDefault(size_t allocatorSize, const std::shared_ptr<IClock> /*clock*/, Args&&... args)
+	ModuleDefault(size_t allocatorSize, Args&&... args)
 		: TimeRectifier(std::forward<Args>(args)...) {
 		this->allocatorSize = allocatorSize;
 	}
