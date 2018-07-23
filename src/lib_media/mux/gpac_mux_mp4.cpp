@@ -68,7 +68,6 @@ static GF_Err avc_import_ffextradata(Span extradataSpan, GF_AVCConfig *dstcfg) {
 		if ((a << 16) + (b << 8) + c != 0x000001) {
 			u8 d = gf_bs_read_u8(bs);
 			if ((a << 24) + (b << 16) + (c << 8) + d != 0x00000001) {
-				gf_bs_del(bs);
 				return GF_NON_COMPLIANT_BITSTREAM;
 			}
 		}
