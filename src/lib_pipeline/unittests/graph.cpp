@@ -33,18 +33,18 @@ unittest("pipeline graph: add module") {
 	auto str = p.dump();
 	std::stringstream expected;
 	expected << "graph {" << std::endl
-		<< "\tsubgraph cluster_0 {" << std::endl
-		<< "\t\tlabel = \"" << ptr << "\";" << std::endl
-		<< "\t\tsubgraph cluster_inputs {" << std::endl
-		<< "\t\t\tlabel = \"inputs\";" << std::endl
-		<< "\t\t\t\"" << ptr << "_input_0\";" << std::endl
-		<< "\t\t}" << std::endl
-		<< "\t\tsubgraph cluster_outputs {" << std::endl
-		<< "\t\t\tlabel = \"outputs\";" << std::endl
-		<< "\t\t\t\"" << ptr << "_output_0\";" << std::endl
-		<< "\t\t}" << std::endl
-		<< "\t}" << std::endl << std::endl
-		<< "}" << std::endl;
+	    << "\tsubgraph cluster_0 {" << std::endl
+	    << "\t\tlabel = \"" << ptr << "\";" << std::endl
+	    << "\t\tsubgraph cluster_inputs {" << std::endl
+	    << "\t\t\tlabel = \"inputs\";" << std::endl
+	    << "\t\t\t\"" << ptr << "_input_0\";" << std::endl
+	    << "\t\t}" << std::endl
+	    << "\t\tsubgraph cluster_outputs {" << std::endl
+	    << "\t\t\tlabel = \"outputs\";" << std::endl
+	    << "\t\t\t\"" << ptr << "_output_0\";" << std::endl
+	    << "\t\t}" << std::endl
+	    << "\t}" << std::endl << std::endl
+	    << "}" << std::endl;
 	ASSERT_EQUALS(expected.str(), str.str());
 }
 
@@ -56,30 +56,30 @@ unittest("pipeline graph: add connection") {
 	auto str = p.dump();
 	std::stringstream expected;
 	expected << "graph {" << std::endl
-		<< "\tsubgraph cluster_0 {" << std::endl
-		<< "\t\tlabel = \"" << ptr1 << "\";" << std::endl
-		<< "\t\tsubgraph cluster_inputs {" << std::endl
-		<< "\t\t\tlabel = \"inputs\";" << std::endl
-		<< "\t\t\t\"" << ptr1 << "_input_0\";" << std::endl
-		<< "\t\t}" << std::endl
-		<< "\t\tsubgraph cluster_outputs {" << std::endl
-		<< "\t\t\tlabel = \"outputs\";" << std::endl
-		<< "\t\t\t\"" << ptr1 << "_output_0\";" << std::endl
-		<< "\t\t}" << std::endl
-		<< "\t}" << std::endl << std::endl
-		<< "\tsubgraph cluster_1 {" << std::endl
-		<< "\t\tlabel = \"" << ptr2 << "\";" << std::endl
-		<< "\t\tsubgraph cluster_inputs {" << std::endl
-		<< "\t\t\tlabel = \"inputs\";" << std::endl
-		<< "\t\t\t\"" << ptr2 << "_input_0\";" << std::endl
-		<< "\t\t}" << std::endl
-		<< "\t\tsubgraph cluster_outputs {" << std::endl
-		<< "\t\t\tlabel = \"outputs\";" << std::endl
-		<< "\t\t\t\"" << ptr2 << "_output_0\";" << std::endl
-		<< "\t\t}" << std::endl
-		<< "\t}" << std::endl << std::endl
-		<< "\t\"" << ptr1 << "_output_0\" -> \"" << ptr2 << "_input_0\";" << std::endl
-		<< "}" << std::endl;
+	    << "\tsubgraph cluster_0 {" << std::endl
+	    << "\t\tlabel = \"" << ptr1 << "\";" << std::endl
+	    << "\t\tsubgraph cluster_inputs {" << std::endl
+	    << "\t\t\tlabel = \"inputs\";" << std::endl
+	    << "\t\t\t\"" << ptr1 << "_input_0\";" << std::endl
+	    << "\t\t}" << std::endl
+	    << "\t\tsubgraph cluster_outputs {" << std::endl
+	    << "\t\t\tlabel = \"outputs\";" << std::endl
+	    << "\t\t\t\"" << ptr1 << "_output_0\";" << std::endl
+	    << "\t\t}" << std::endl
+	    << "\t}" << std::endl << std::endl
+	    << "\tsubgraph cluster_1 {" << std::endl
+	    << "\t\tlabel = \"" << ptr2 << "\";" << std::endl
+	    << "\t\tsubgraph cluster_inputs {" << std::endl
+	    << "\t\t\tlabel = \"inputs\";" << std::endl
+	    << "\t\t\t\"" << ptr2 << "_input_0\";" << std::endl
+	    << "\t\t}" << std::endl
+	    << "\t\tsubgraph cluster_outputs {" << std::endl
+	    << "\t\t\tlabel = \"outputs\";" << std::endl
+	    << "\t\t\t\"" << ptr2 << "_output_0\";" << std::endl
+	    << "\t\t}" << std::endl
+	    << "\t}" << std::endl << std::endl
+	    << "\t\"" << ptr1 << "_output_0\" -> \"" << ptr2 << "_input_0\";" << std::endl
+	    << "}" << std::endl;
 	ASSERT_EQUALS(expected.str(), str.str());
 }
 
@@ -92,29 +92,29 @@ unittest("pipeline graph: disconnect") {
 	auto str = p.dump();
 	std::stringstream expected;
 	expected << "graph {" << std::endl
-		<< "\tsubgraph cluster_0 {" << std::endl
-		<< "\t\tlabel = \"" << ptr1 << "\";" << std::endl
-		<< "\t\tsubgraph cluster_inputs {" << std::endl
-		<< "\t\t\tlabel = \"inputs\";" << std::endl
-		<< "\t\t\t\"" << ptr1 << "_input_0\";" << std::endl
-		<< "\t\t}" << std::endl
-		<< "\t\tsubgraph cluster_outputs {" << std::endl
-		<< "\t\t\tlabel = \"outputs\";" << std::endl
-		<< "\t\t\t\"" << ptr1 << "_output_0\";" << std::endl
-		<< "\t\t}" << std::endl
-		<< "\t}" << std::endl << std::endl
-		<< "\tsubgraph cluster_1 {" << std::endl
-		<< "\t\tlabel = \"" << ptr2 << "\";" << std::endl
-		<< "\t\tsubgraph cluster_inputs {" << std::endl
-		<< "\t\t\tlabel = \"inputs\";" << std::endl
-		<< "\t\t\t\"" << ptr2 << "_input_0\";" << std::endl
-		<< "\t\t}" << std::endl
-		<< "\t\tsubgraph cluster_outputs {" << std::endl
-		<< "\t\t\tlabel = \"outputs\";" << std::endl
-		<< "\t\t\t\"" << ptr2 << "_output_0\";" << std::endl
-		<< "\t\t}" << std::endl
-		<< "\t}" << std::endl << std::endl
-		<< "}" << std::endl;
+	    << "\tsubgraph cluster_0 {" << std::endl
+	    << "\t\tlabel = \"" << ptr1 << "\";" << std::endl
+	    << "\t\tsubgraph cluster_inputs {" << std::endl
+	    << "\t\t\tlabel = \"inputs\";" << std::endl
+	    << "\t\t\t\"" << ptr1 << "_input_0\";" << std::endl
+	    << "\t\t}" << std::endl
+	    << "\t\tsubgraph cluster_outputs {" << std::endl
+	    << "\t\t\tlabel = \"outputs\";" << std::endl
+	    << "\t\t\t\"" << ptr1 << "_output_0\";" << std::endl
+	    << "\t\t}" << std::endl
+	    << "\t}" << std::endl << std::endl
+	    << "\tsubgraph cluster_1 {" << std::endl
+	    << "\t\tlabel = \"" << ptr2 << "\";" << std::endl
+	    << "\t\tsubgraph cluster_inputs {" << std::endl
+	    << "\t\t\tlabel = \"inputs\";" << std::endl
+	    << "\t\t\t\"" << ptr2 << "_input_0\";" << std::endl
+	    << "\t\t}" << std::endl
+	    << "\t\tsubgraph cluster_outputs {" << std::endl
+	    << "\t\t\tlabel = \"outputs\";" << std::endl
+	    << "\t\t\t\"" << ptr2 << "_output_0\";" << std::endl
+	    << "\t\t}" << std::endl
+	    << "\t}" << std::endl << std::endl
+	    << "}" << std::endl;
 	ASSERT_EQUALS(expected.str(), str.str());
 }
 

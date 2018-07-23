@@ -3,8 +3,8 @@
 #include <lib_modules/utils/helper.hpp>
 
 namespace Pipelines {
-	class Pipeline;
-	struct IPipelinedModule;
+class Pipeline;
+struct IPipelinedModule;
 }
 
 namespace Modules {

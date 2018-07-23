@@ -9,9 +9,9 @@
 namespace Pipelines {
 
 Pipeline::Pipeline(bool isLowLatency, Threading threading)
-: graph(new Graph),
-  allocatorNumBlocks(isLowLatency ? Modules::ALLOC_NUM_BLOCKS_LOW_LATENCY : Modules::ALLOC_NUM_BLOCKS_DEFAULT),
-  threading(threading) {
+	: graph(new Graph),
+	  allocatorNumBlocks(isLowLatency ? Modules::ALLOC_NUM_BLOCKS_LOW_LATENCY : Modules::ALLOC_NUM_BLOCKS_DEFAULT),
+	  threading(threading) {
 }
 
 Pipeline::~Pipeline() {
@@ -41,7 +41,9 @@ void Pipeline::removeModule(IPipelinedModule *module) {
 		throw std::runtime_error("Could not remove from pipeline: module not found");
 	modules.erase(i_mod);
 
-	auto i_node = std::find_if(graph->nodes.begin(), graph->nodes.end(), [module](Pipelines::Graph::Node const& n) { return n.id == module; });
+	auto i_node = std::find_if(graph->nodes.begin(), graph->nodes.end(), [module](Pipelines::Graph::Node const& n) {
+		return n.id == module;
+	});
 	assert(i_node != graph->nodes.end());
 	graph->nodes.erase(i_node);
 }
