@@ -135,4 +135,13 @@ unittest("pipeline graph: remove wrong connection") {
 	ASSERT_THROWN(p.disconnect(ptr1, 0, ptr2, 0));
 }
 
+unittest("pipeline graph: remove module still connected") {
+	Pipeline p;
+	auto ptr1 = p.addModule<Dummy>();
+	auto ptr2 = p.addModule<Dummy>();
+	p.connect(ptr1, 0, ptr2, 0);
+	ASSERT_THROWN(p.removeModule(ptr1));
+	ASSERT_THROWN(p.removeModule(ptr2));
+}
+
 }

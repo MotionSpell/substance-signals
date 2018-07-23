@@ -26,10 +26,16 @@ IPipelinedModule* Pipeline::addModuleInternal(std::unique_ptr<IModule> rawModule
 }
 
 void Pipeline::removeModule(IPipelinedModule *module) {
+	auto findIf = [module](Pipelines::Graph::Connection const& c) {
+		return c.src.id == module || c.dst.id == module;
+	};
+	auto i_conn = std::find_if(graph->connections.begin(), graph->connections.end(), findIf);
+	if (i_conn != graph->connections.end())
+		throw std::runtime_error("Could not remove module: conenctions found");
+
 	auto removeIt = [module](std::unique_ptr<IPipelinedModule> const& m) {
 		return m.get() == module;
 	};
-
 	auto i_mod = std::find_if(modules.begin(), modules.end(), removeIt);
 	if (i_mod == modules.end())
 		throw std::runtime_error("Could not remove from pipeline: module not found");
