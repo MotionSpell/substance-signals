@@ -23,7 +23,7 @@ unittest("pipeline graph: empty") {
 	Pipeline p;
 	auto str = p.dump();
 	std::stringstream expected;
-	expected << "graph {" << std::endl << "}" << std::endl;
+	expected << "digraph {" << std::endl << "}" << std::endl;
 	ASSERT_EQUALS(expected.str(), str);
 }
 
@@ -32,7 +32,7 @@ unittest("pipeline graph: add module") {
 	auto ptr = p.addModule<Dummy>();
 	auto str = p.dump();
 	std::stringstream expected;
-	expected << "graph {" << std::endl
+	expected << "digraph {" << std::endl
 	    << "\tsubgraph cluster_0 {" << std::endl
 	    << "\t\tlabel = \"" << ptr << "\";" << std::endl
 	    << "\t\tsubgraph cluster_inputs {" << std::endl
@@ -55,7 +55,7 @@ unittest("pipeline graph: add connection") {
 	p.connect(ptr1, 0, ptr2, 0);
 	auto str = p.dump();
 	std::stringstream expected;
-	expected << "graph {" << std::endl
+	expected << "digraph {" << std::endl
 	    << "\tsubgraph cluster_0 {" << std::endl
 	    << "\t\tlabel = \"" << ptr1 << "\";" << std::endl
 	    << "\t\tsubgraph cluster_inputs {" << std::endl
@@ -91,7 +91,7 @@ unittest("pipeline graph: disconnect") {
 	p.disconnect(ptr1, 0, ptr2, 0);
 	auto str = p.dump();
 	std::stringstream expected;
-	expected << "graph {" << std::endl
+	expected << "digraph {" << std::endl
 	    << "\tsubgraph cluster_0 {" << std::endl
 	    << "\t\tlabel = \"" << ptr1 << "\";" << std::endl
 	    << "\t\tsubgraph cluster_inputs {" << std::endl
@@ -124,7 +124,7 @@ unittest("pipeline graph: remove module") {
 	p.removeModule(ptr);
 	auto str = p.dump();
 	std::stringstream expected;
-	expected << "graph {" << std::endl << "}" << std::endl;
+	expected << "digraph {" << std::endl << "}" << std::endl;
 	ASSERT_EQUALS(expected.str(), str);
 }
 

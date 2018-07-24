@@ -90,7 +90,7 @@ void Pipeline::disconnect(IPipelinedModule * prev, int outputIdx, IPipelinedModu
 
 std::string Pipeline::dump() {
 	std::stringstream ss;
-	ss << "graph {" << std::endl;
+	ss << "digraph {" << std::endl;
 
 	int idx = 0;
 	for (auto &node : graph->nodes) {
