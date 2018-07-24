@@ -43,6 +43,12 @@
     <ClInclude Include="core\database.hpp">
       <Filter>core</Filter>
     </ClInclude>
+    <ClInclude Include="utils\factory.hpp">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\helper_dyn.hpp">
+      <Filter>utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="core\data.cpp">
@@ -56,6 +62,9 @@
     </ClCompile>
     <ClCompile Include="core\allocator.cpp">
       <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\factory.cpp">
+      <Filter>utils</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

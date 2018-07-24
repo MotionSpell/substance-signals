@@ -29,13 +29,16 @@
     <ClInclude Include="core\log.hpp" />
     <ClInclude Include="core\metadata.hpp" />
     <ClInclude Include="core\module.hpp" />
+    <ClInclude Include="utils\factory.hpp" />
     <ClInclude Include="utils\helper.hpp" />
     <ClInclude Include="modules.hpp" />
+    <ClInclude Include="utils\helper_dyn.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="core\allocator.cpp" />
     <ClCompile Include="core\connection.cpp" />
     <ClCompile Include="core\data.cpp" />
+    <ClCompile Include="utils\factory.cpp" />
     <ClCompile Include="utils\helper.cpp" />
   </ItemGroup>
   <ItemGroup>
