@@ -1,5 +1,6 @@
 #include "pipeliner_player.hpp"
 #include "lib_pipeline/pipeline.hpp"
+#include "lib_modules/utils/factory.hpp" // instanciate
 
 // modules
 #include "lib_media/demux/dash_demux.hpp"
@@ -8,7 +9,6 @@
 #include "lib_media/in/video_generator.hpp"
 #include "lib_media/out/null.hpp"
 #include "lib_media/render/sdl_audio.hpp"
-#include "lib_media/render/sdl_video.hpp"
 #include "lib_media/decode/decoder.hpp"
 
 using namespace Modules;
@@ -24,7 +24,7 @@ IPipelinedModule* createRenderer(Pipeline& pipeline, Config cfg, int codecType) 
 	if(!cfg.noRenderer) {
 		if (codecType == VIDEO_RAW) {
 			Log::msg(Info, "Found video stream");
-			return pipeline.add(uptr(createSdlVideo()));
+			return pipeline.add(uptr(Modules::instanciate("SDLVideo", nullptr)));
 		} else if (codecType == AUDIO_RAW) {
 			Log::msg(Info, "Found audio stream");
 			return pipeline.add(uptr(createSdlAudio()));

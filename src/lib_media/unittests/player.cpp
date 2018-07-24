@@ -5,7 +5,6 @@
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/out/null.hpp"
 #include "lib_media/render/sdl_audio.hpp"
-#include "lib_media/render/sdl_video.hpp"
 #include "lib_media/transform/audio_convert.hpp"
 #include "lib_utils/tools.hpp"
 
@@ -30,7 +29,7 @@ secondclasstest("packet type erasure + multi-output: libav Demux -> libav Decode
 	ASSERT(videoIndex != -1);
 	auto metadata = demux->getOutput(videoIndex)->getMetadata();
 	auto decode = create<Decode::Decoder>(metadata->getStreamType());
-	auto render = uptr(createSdlVideo());
+	auto render = uptr(Modules::instanciate("SDLVideo", nullptr));
 
 	ConnectOutputToInput(demux->getOutput(videoIndex), decode->getInput(0));
 	ConnectOutputToInput(decode->getOutput(0), render->getInput(0));

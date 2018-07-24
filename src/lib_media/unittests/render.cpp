@@ -1,7 +1,6 @@
 #include "tests/tests.hpp"
 #include "lib_modules/modules.hpp"
 #include "lib_media/render/sdl_audio.hpp"
-#include "lib_media/render/sdl_video.hpp"
 #include "lib_media/in/sound_generator.hpp"
 #include "lib_media/in/video_generator.hpp"
 #include "lib_utils/tools.hpp"
@@ -47,7 +46,7 @@ secondclasstest("render: sound generator, evil samples") {
 
 secondclasstest("render: A/V sync, one thread") {
 	auto videoGen = create<In::VideoGenerator>();
-	auto videoRender = uptr(createSdlVideo());
+	auto videoRender = uptr(Modules::instanciate("SDLVideo", nullptr));
 	ConnectOutputToInput(videoGen->getOutput(0), videoRender->getInput(0));
 
 	auto soundGen = create<In::SoundGenerator>();
@@ -61,7 +60,7 @@ secondclasstest("render: A/V sync, one thread") {
 }
 
 secondclasstest("render: dynamic resolution") {
-	auto videoRender = uptr(createSdlVideo());
+	auto videoRender = uptr(Modules::instanciate("SDLVideo", nullptr));
 
 	auto pic1 = make_shared<PictureYUV420P>(Resolution(128, 64));
 	pic1->setMediaTime(1000);

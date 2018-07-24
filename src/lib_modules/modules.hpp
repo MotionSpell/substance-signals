@@ -3,3 +3,4 @@
 #include "core/connection.hpp"
 #include "core/module.hpp"
 #include "utils/helper.hpp"
+#include "utils/factory.hpp"

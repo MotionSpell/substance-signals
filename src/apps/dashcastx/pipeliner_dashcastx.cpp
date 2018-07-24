@@ -8,7 +8,6 @@
 #include "lib_media/decode/decoder.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/encode/libav_encode.hpp"
-#include "lib_media/render/sdl_video.hpp"
 #include "lib_media/stream/mpeg_dash.hpp"
 #include "lib_media/transform/audio_convert.hpp"
 #include "lib_media/transform/video_convert.hpp"
@@ -192,7 +191,7 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 
 				if(DEBUG_MONITOR) {
 					if (metadataDemux->isVideo() && r == 0) {
-						auto webcamPreview = pipeline->add(uptr(createSdlVideo()));
+						auto webcamPreview = pipeline->add(uptr(Modules::instanciate("SDLVideo", nullptr)));
 						connect(converter, webcamPreview);
 					}
 				}

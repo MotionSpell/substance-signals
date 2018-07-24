@@ -1,7 +1,7 @@
-#include "sdl_video.hpp"
 #include "lib_utils/system_clock.hpp"
 #include "lib_utils/tools.hpp"
 #include "lib_modules/utils/helper.hpp"
+#include "lib_modules/utils/factory.hpp"
 #include "../common/picture.hpp"
 #include "../common/metadata.hpp"
 #include "SDL2/SDL.h"
@@ -224,4 +224,15 @@ IModule* createSdlVideo(IClock* clock) {
 
 }
 
+static Modules::IModule* createSdlVideoVarargs(va_list va) {
+	auto clock = va_arg(va, IClock*);
+	return Modules::createSdlVideo(clock);
+}
+
+static int registerMe() {
+	registerModule("SDLVideo", &createSdlVideoVarargs);
+	return 0;
+}
+
+static int registered = registerMe();
 
