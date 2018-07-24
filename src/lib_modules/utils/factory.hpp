@@ -5,5 +5,6 @@ namespace Modules {
 IModule* instanciate(const char* name, ...);
 
 using ModuleCreationFunc = IModule* (va_list);
-void registerModule(const char* name, ModuleCreationFunc* func);
+int registerModule(const char* name, ModuleCreationFunc* func);
 }
+

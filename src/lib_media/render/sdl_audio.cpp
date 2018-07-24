@@ -214,10 +214,5 @@ Modules::IModule* instanciateModule(va_list va) {
 	return create<SDLAudio>(clock).release();
 }
 
-int registerMe() {
-	registerModule("SDLAudio", &instanciateModule);
-	return 0;
-}
-
-int registered = registerMe();
+auto const registered = registerModule("SDLAudio", &instanciateModule);
 }

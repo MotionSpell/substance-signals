@@ -28,7 +28,7 @@ Entry* findFreeEntry() {
 	return nullptr;
 }
 
-void registerModule(const char* name, ModuleCreationFunc* func) {
+int registerModule(const char* name, ModuleCreationFunc* func) {
 
 	if(findEntry(name))
 		throw runtime_error("Module '" + string(name) + "' is already registered");
@@ -39,6 +39,8 @@ void registerModule(const char* name, ModuleCreationFunc* func) {
 
 	entry->name = name;
 	entry->func = func;
+
+	return 0;
 }
 
 IModule* instanciate(const char* name, ...) {

@@ -209,11 +209,6 @@ Modules::IModule* instanciateModule(va_list va) {
 	return Modules::create<SDLVideo>(clock).release();
 }
 
-int registerMe() {
-	registerModule("SDLVideo", &instanciateModule);
-	return 0;
-}
-
-int registered = registerMe();
+auto const registered = registerModule("SDLVideo", &instanciateModule);
 }
 
