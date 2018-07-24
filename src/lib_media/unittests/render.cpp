@@ -1,6 +1,5 @@
 #include "tests/tests.hpp"
 #include "lib_modules/modules.hpp"
-#include "lib_media/render/sdl_audio.hpp"
 #include "lib_media/in/sound_generator.hpp"
 #include "lib_media/in/video_generator.hpp"
 #include "lib_utils/tools.hpp"
@@ -14,7 +13,7 @@ namespace {
 #if SIGNALS_HAS_X11
 secondclasstest("render: sound generator") {
 	auto soundGen = create<In::SoundGenerator>();
-	auto render = uptr(createSdlAudio());
+	auto render = uptr(Modules::instanciate("SDLAudio", nullptr));
 
 	ConnectOutputToInput(soundGen->getOutput(0), render->getInput(0));
 
@@ -27,7 +26,7 @@ secondclasstest("render: sound generator") {
 
 secondclasstest("render: sound generator, evil samples") {
 	auto clock = make_shared<SystemClock>(1.0);
-	auto render = uptr(createSdlAudio(clock.get()));
+	auto render = uptr(Modules::instanciate("SDLAudio", clock.get()));
 
 	PcmFormat fmt {};
 	fmt.sampleFormat = S16;
@@ -50,7 +49,7 @@ secondclasstest("render: A/V sync, one thread") {
 	ConnectOutputToInput(videoGen->getOutput(0), videoRender->getInput(0));
 
 	auto soundGen = create<In::SoundGenerator>();
-	auto soundRender = uptr(createSdlAudio());
+	auto soundRender = uptr(Modules::instanciate("SDLAudio", nullptr));
 	ConnectOutputToInput(soundGen->getOutput(0), soundRender->getInput(0));
 
 	for(int i=0; i < 25*5; ++i) {

@@ -9,17 +9,18 @@
 #include "lib_utils/system_clock.hpp"
 #include "lib_utils/fifo.hpp"
 #include "lib_modules/utils/helper.hpp"
+#include "lib_modules/utils/factory.hpp"
 
 #include "../common/metadata.hpp"
 #include "../common/pcm.hpp"
 #include "../transform/audio_convert.hpp"
 
 #include "render_common.hpp"
-#include "sdl_audio.hpp"
 
 static const int64_t TOLERANCE = IClock::Rate / 20;
 
-namespace Modules {
+using namespace Modules;
+using namespace Modules::Render;
 
 namespace {
 
@@ -47,9 +48,6 @@ PcmFormat toPcmFormat(SDL_AudioSpec audioSpec) {
 	}
 	return fmt;
 }
-}
-
-namespace Render {
 
 class SDLAudio : public ModuleS {
 	public:
@@ -228,10 +226,15 @@ void SDLAudio::silenceSamples(Span& dst, int n) {
 	dst.len -= bytes;
 }
 
+Modules::IModule* instanciateModule(va_list va) {
+	auto clock = va_arg(va, IClock*);
+	return create<SDLAudio>(clock).release();
 }
 
-IModule* createSdlAudio(IClock* clock) {
-	return create<Render::SDLAudio>(clock).release();
+int registerMe() {
+	registerModule("SDLAudio", &instanciateModule);
+	return 0;
 }
 
+int registered = registerMe();
 }

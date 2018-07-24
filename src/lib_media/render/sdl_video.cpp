@@ -204,13 +204,13 @@ struct SDLVideo : ModuleS {
 	}
 };
 
-Modules::IModule* createSdlVideoVarargs(va_list va) {
+Modules::IModule* instanciateModule(va_list va) {
 	auto clock = va_arg(va, IClock*);
 	return Modules::create<SDLVideo>(clock).release();
 }
 
 int registerMe() {
-	registerModule("SDLVideo", &createSdlVideoVarargs);
+	registerModule("SDLVideo", &instanciateModule);
 	return 0;
 }
 

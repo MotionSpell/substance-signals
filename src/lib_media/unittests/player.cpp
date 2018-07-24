@@ -4,7 +4,6 @@
 #include "lib_media/decode/decoder.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/out/null.hpp"
-#include "lib_media/render/sdl_audio.hpp"
 #include "lib_media/transform/audio_convert.hpp"
 #include "lib_utils/tools.hpp"
 
@@ -55,7 +54,7 @@ secondclasstest("packet type erasure + multi-output: libav Demux -> libav Decode
 	auto srcFormat = PcmFormat(44100, 1, AudioLayout::Mono, AudioSampleFormat::F32, AudioStruct::Planar);
 	auto dstFormat = PcmFormat(44100, 2, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Interleaved);
 	auto converter = create<Transform::AudioConvert>(srcFormat, dstFormat);
-	auto render = uptr(createSdlAudio());
+	auto render = uptr(Modules::instanciate("SDLAudio", nullptr));
 
 	ConnectOutputToInput(demux->getOutput(audioIndex), decode->getInput(0));
 	ConnectOutputToInput(decode->getOutput(0), converter->getInput(0));

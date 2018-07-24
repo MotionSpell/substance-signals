@@ -8,7 +8,6 @@
 #include "lib_media/in/mpeg_dash_input.hpp"
 #include "lib_media/in/video_generator.hpp"
 #include "lib_media/out/null.hpp"
-#include "lib_media/render/sdl_audio.hpp"
 #include "lib_media/decode/decoder.hpp"
 
 using namespace Modules;
@@ -27,7 +26,7 @@ IPipelinedModule* createRenderer(Pipeline& pipeline, Config cfg, int codecType) 
 			return pipeline.add(uptr(Modules::instanciate("SDLVideo", nullptr)));
 		} else if (codecType == AUDIO_RAW) {
 			Log::msg(Info, "Found audio stream");
-			return pipeline.add(uptr(createSdlAudio()));
+			return pipeline.add(uptr(Modules::instanciate("SDLAudio", nullptr)));
 		}
 	}
 
