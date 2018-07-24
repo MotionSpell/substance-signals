@@ -1,5 +1,5 @@
 #include "tests/tests.hpp"
-#include "lib_media/out/null.hpp"
+#include "pipeline_common.hpp"
 #include "lib_pipeline/pipeline.hpp"
 #include <thread>
 
@@ -7,24 +7,11 @@ using namespace Tests;
 using namespace Modules;
 using namespace Pipelines;
 
-namespace {
-struct InfiniteSource : ActiveModule {
-	InfiniteSource() {
-		out = addOutput<OutputDefault>();
-	}
-	bool work() {
-		out->emit(out->getBuffer(0));
-		return true;
-	}
-	OutputDefault* out;
-};
-}
-
 unittest("pipeline: EOS injection (exitSync)") {
 	Pipeline p;
-	auto demux = p.addModule<InfiniteSource>();
-	auto null = p.addModule<Out::Null>();
-	p.connect(demux, 0, null, 0);
+	auto src = p.addModule<InfiniteSource>();
+	auto stub = p.addModule<Stub>();
+	p.connect(src, 0, stub, 0);
 	p.start();
 	auto f = [&]() {
 		p.exitSync();
@@ -36,24 +23,13 @@ unittest("pipeline: EOS injection (exitSync)") {
 
 unittest("[DISABLED] pipeline: destroy while running") {
 	Pipeline p;
-	auto demux = p.addModule<InfiniteSource>();
-	auto null = p.addModule<Out::Null>();
-	p.connect(demux, 0, null, 0);
+	auto src = p.addModule<InfiniteSource>();
+	auto stub = p.addModule<Stub>();
+	p.connect(src, 0, stub, 0);
 	p.start();
 }
 
 unittest("pipeline: intercept exception") {
-	struct FakeSource : ActiveModule {
-		FakeSource() {
-			out = addOutput<OutputDefault>();
-		}
-		bool work() {
-			out->emit(out->getBuffer(0));
-			return ++i < 50;
-		}
-		int i = 0;
-		OutputDefault* out;
-	};
 	struct ExceptionModule : ModuleS {
 		ExceptionModule() {
 			addInput(new Input<DataBase>(this));
@@ -70,9 +46,8 @@ unittest("pipeline: intercept exception") {
 	ScopedLogLevel lev(Quiet);
 	Pipeline p;
 	auto exception = p.addModule<ExceptionModule>();
-	auto demux = p.addModule<FakeSource>();
-	p.connect(demux, 0, exception, 0);
+	auto src = p.addModule<FakeSource>();
+	p.connect(src, 0, exception, 0);
 	p.start();
 	ASSERT_THROWN(p.waitForEndOfStream());
 }
-

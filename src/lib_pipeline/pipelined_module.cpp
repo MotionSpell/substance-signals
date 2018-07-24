@@ -152,5 +152,4 @@ void PipelinedModule::exception(std::exception_ptr eptr) {
 	m_notify->exception(eptr);
 }
 
-
 }

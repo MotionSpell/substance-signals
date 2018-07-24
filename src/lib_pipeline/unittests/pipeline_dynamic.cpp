@@ -1,6 +1,5 @@
 #include "tests/tests.hpp"
-#include "lib_media/demux/libav_demux.hpp"
-#include "lib_media/out/null.hpp"
+#include "pipeline_common.hpp"
 #include "lib_pipeline/pipeline.hpp"
 #include "pipeline_common.hpp"
 
@@ -8,28 +7,26 @@ using namespace Tests;
 using namespace Modules;
 using namespace Pipelines;
 
-namespace {
-
 unittest("pipeline: dynamic module connection of an existing module (without modifying the topology)") {
 	Pipeline p;
-	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
+	auto src = p.addModule<FakeSource>();
 	auto dualInput = p.addModule<DualInput>();
-	p.connect(demux, 0, dualInput, 0);
-	p.connect(demux, 0, dualInput, 1);
+	p.connect(src, 0, dualInput, 0);
+	p.connect(src, 0, dualInput, 1);
 	p.start();
 	p.waitForEndOfStream();
 }
 
 unittest("pipeline: connect while running") {
 	Pipeline p;
-	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
-	ASSERT(demux->getNumOutputs() > 1);
-	auto null1 = p.addModule<Out::Null>();
-	auto null2 = p.addModule<Out::Null>();
-	p.connect(demux, 0, null1, 0);
+	auto src = p.addModule<FakeSource>();
+	ASSERT(src->getNumOutputs() >= 1);
+	auto null1 = p.addModule<Stub>();
+	auto null2 = p.addModule<Stub>();
+	p.connect(src, 0, null1, 0);
 	p.start();
 	auto f = [&]() {
-		p.connect(demux, 0, null2, 0);
+		p.connect(src, 0, null2, 0);
 	};
 	std::thread tf(f);
 	p.waitForEndOfStream();
@@ -38,65 +35,65 @@ unittest("pipeline: connect while running") {
 
 unittest("[DISABLED] pipeline: dynamic module connection of a new module") {
 	Pipeline p;
-	auto demux = p.addModule<Demux::LibavDemux, 1>("data/beepbop.mp4");
+	auto src = p.addModule<FakeSource, 1>();
 	auto dualInput = p.addModule<DualInput>();
-	p.connect(demux, 0, dualInput, 0);
+	p.connect(src, 0, dualInput, 0);
 	p.start();
-	auto demux2 = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
+	auto demux2 = p.addModule<FakeSource>();
 	p.connect(demux2, 0, dualInput, 1);
 	//FIXME: if (demux2->isSource()) demux2->process(); //only sources need to be triggered
 	p.waitForEndOfStream();
 }
 
-unittest("[DISABLED]` pipeline: wrong disconnection") {
+unittest("[DISABLED] pipeline: wrong disconnection") {
 	Pipeline p;
-	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
-	auto null = p.addModule<Out::Null>();
+	auto src = p.addModule<FakeSource>();
+	auto stub = p.addModule<Stub>();
 	p.start();
-	ASSERT_THROWN(p.disconnect(demux, 0, null, 0));
+	ASSERT_THROWN(p.disconnect(src, 0, stub, 0));
 }
 
 unittest("pipeline: dynamic module disconnection (single ref decrease)") {
 	Pipeline p;
-	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
-	auto null = p.addModule<Out::Null>();
-	p.connect(demux, 0, null, 0);
+	auto src = p.addModule<FakeSource>();
+	auto stub = p.addModule<Stub>();
+	p.connect(src, 0, stub, 0);
 	p.start();
-	p.disconnect(demux, 0, null, 0);
+	p.disconnect(src, 0, stub, 0);
 	p.waitForEndOfStream();
 }
 
 unittest("pipeline: dynamic module disconnection (multiple ref decrease)") {
 	Pipeline p;
-	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
+	auto src = p.addModule<FakeSource>();
 	auto dualInput = p.addModule<DualInput>();
-	p.connect(demux, 0, dualInput, 0);
-	p.connect(demux, 0, dualInput, 1);
+	p.connect(src, 0, dualInput, 0);
+	p.connect(src, 0, dualInput, 1);
 	p.start();
-	p.disconnect(demux, 0, dualInput, 0);
-	p.disconnect(demux, 0, dualInput, 1);
+	p.disconnect(src, 0, dualInput, 0);
+	p.disconnect(src, 0, dualInput, 1);
 	p.waitForEndOfStream();
 }
 
 unittest("pipeline: dynamic module disconnection (remove module dynamically)") {
 	Pipeline p;
-	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
+	auto src = p.addModule<FakeSource>();
 	auto dualInput = p.addModule<DualInput>();
-	p.connect(demux, 0, dualInput, 0);
-	p.connect(demux, 0, dualInput, 1);
+	p.connect(src, 0, dualInput, 0);
+	p.connect(src, 0, dualInput, 1);
 	p.start();
-	p.disconnect(demux, 0, dualInput, 0);
-	p.disconnect(demux, 0, dualInput, 1);
+	p.disconnect(src, 0, dualInput, 0);
+	p.disconnect(src, 0, dualInput, 1);
 	p.removeModule(dualInput);
 	p.waitForEndOfStream();
 }
 
 unittest("[DISABLED] pipeline: dynamic module disconnection (remove sink without disconnect)") {
 	Pipeline p;
-	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
+	auto src = p.addModule<FakeSource>();
 	auto dualInput = p.addModule<DualInput>();
-	p.connect(demux, 0, dualInput, 0);
-	p.connect(demux, 0, dualInput, 1);
+	p.connect(src, 0, dualInput, 0);
+	p.connect(src, 0, dualInput, 1);
 	p.start();
 	p.removeModule(dualInput);
 	p.waitForEndOfStream();
@@ -104,41 +101,39 @@ unittest("[DISABLED] pipeline: dynamic module disconnection (remove sink without
 
 unittest("[DISABLED] pipeline: dynamic module disconnection (remove source without disconnect)") {
 	Pipeline p;
-	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
+	auto src = p.addModule<FakeSource>();
 	auto dualInput = p.addModule<DualInput>();
-	p.connect(demux, 0, dualInput, 0);
-	p.connect(demux, 0, dualInput, 1);
+	p.connect(src, 0, dualInput, 0);
+	p.connect(src, 0, dualInput, 1);
 	p.start();
-	p.removeModule(demux);
+	p.removeModule(src);
 	p.waitForEndOfStream();
 }
 
 unittest("[DISABLED] pipeline: dynamic module disconnection (remove source)") {
 	Pipeline p;
-	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
+	auto src = p.addModule<FakeSource>();
 	auto dualInput = p.addModule<DualInput>();
-	p.connect(demux, 0, dualInput, 0);
-	p.connect(demux, 0, dualInput, 1);
+	p.connect(src, 0, dualInput, 0);
+	p.connect(src, 0, dualInput, 1);
 	p.start();
-	p.disconnect(demux, 0, dualInput, 0);
-	p.disconnect(demux, 0, dualInput, 1);
-	//TODO: demux->flush(); //we want to keep all the data
-	p.removeModule(demux);
+	p.disconnect(src, 0, dualInput, 0);
+	p.disconnect(src, 0, dualInput, 1);
+	//TODO: src->flush(); //we want to keep all the data
+	p.removeModule(src);
 	p.waitForEndOfStream();
 }
 
 //TODO: we should fuzz the creation because it is actually stored with a vector (not thread-safe)
 unittest("[DISABLED] pipeline: dynamic module addition") {
 	Pipeline p;
-	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4", true);
+	auto src = p.addModule<InfiniteSource>();
 	p.start();
 	/*TODO: auto f = [&]() {
 		p.exitSync();
 	};
 	std::thread tf(f);*/
-	auto null = p.addModule<Out::Null>();
-	p.connect(demux, 0, null, 0);
+	auto stub = p.addModule<Stub>();
+	p.connect(src, 0, stub, 0);
 	p.waitForEndOfStream();
-}
-
 }

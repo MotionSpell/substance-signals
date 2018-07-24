@@ -1,13 +1,58 @@
 #pragma once
 
-using namespace Modules;
+#include <lib_modules/utils/helper.hpp>
+#include <thread>
+#include <condition_variable>
+#include <mutex>
 
-class DualInput : public Module {
+namespace {
+
+struct Passthru : public Modules::ModuleS {
+	Passthru() {
+		addInput(new Modules::Input<Modules::DataBase>(this));
+		addOutput<Modules::OutputDefault>();
+	}
+	void process(Modules::Data) override {
+	}
+};
+
+struct InfiniteSource : Modules::ActiveModule {
+	InfiniteSource() {
+		out = addOutput<Modules::OutputDefault>();
+	}
+	bool work() {
+		out->emit(out->getBuffer(0));
+		return true;
+	}
+	Modules::OutputDefault* out;
+};
+
+struct FakeSource : Modules::Module {
+	FakeSource(int maxNumRepetition = 50) : maxNumRepetition(maxNumRepetition) {
+		out = addOutput<Modules::OutputDefault>();
+	}
+	void process() {
+		while(++i <= maxNumRepetition)
+			out->emit(out->getBuffer(0));
+	}
+	int i = 0, maxNumRepetition;
+	Modules::OutputDefault* out;
+};
+
+struct Stub : public Modules::ModuleS {
+	Stub() {
+		addInput(new Modules::Input<Modules::DataBase>(this));
+	}
+	void process(Modules::Data) override {
+	}
+};
+
+class DualInput : public Modules::Module {
 	public:
 		DualInput() {
-			input0 = (Input<DataBase>*)addInput(new Input<DataBase>(this));
-			input1 = (Input<DataBase>*)addInput(new Input<DataBase>(this));
-			addOutput<OutputDefault>();
+			input0 = (Modules::Input<Modules::DataBase>*)addInput(new Modules::Input<Modules::DataBase>(this));
+			input1 = (Modules::Input<Modules::DataBase>*)addInput(new Modules::Input<Modules::DataBase>(this));
+			addOutput<Modules::OutputDefault>();
 		}
 
 		void process() {
@@ -24,20 +69,16 @@ class DualInput : public Module {
 
 	private:
 		bool done = false;
-		Input<DataBase>* input0;
-		Input<DataBase>* input1;
+		Modules::Input<Modules::DataBase>* input0;
+		Modules::Input<Modules::DataBase>* input1;
 };
 
-#include <thread>
-#include <condition_variable>
-#include <mutex>
-
-class ThreadedDualInput : public Module {
+class ThreadedDualInput : public Modules::Module {
 	public:
 		ThreadedDualInput() {
-			input0 = (Input<DataBase>*)addInput(new Input<DataBase>(this));
-			input1 = (Input<DataBase>*)addInput(new Input<DataBase>(this));
-			addOutput<OutputDefault>();
+			input0 = (Modules::Input<Modules::DataBase>*)addInput(new Modules::Input<Modules::DataBase>(this));
+			input1 = (Modules::Input<Modules::DataBase>*)addInput(new Modules::Input<Modules::DataBase>(this));
+			addOutput<Modules::OutputDefault>();
 			numCalls = 0;
 			workingThread = std::thread(&ThreadedDualInput::threadProc, this);
 		}
@@ -85,6 +126,8 @@ class ThreadedDualInput : public Module {
 		std::thread workingThread;
 		std::mutex m_protectDone;
 		std::condition_variable flushed;
-		Input<DataBase>* input0;
-		Input<DataBase>* input1;
+		Modules::Input<Modules::DataBase>* input0;
+		Modules::Input<Modules::DataBase>* input1;
 };
+
+}
