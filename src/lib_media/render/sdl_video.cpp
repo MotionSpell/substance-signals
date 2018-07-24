@@ -15,11 +15,11 @@
 #include <signal.h>
 #endif
 
-
-namespace Modules {
-namespace Render {
+using namespace Modules;
+using namespace Modules::Render;
 
 namespace {
+
 Uint32 pixelFormat2SDLFormat(const Modules::PixelFormat format) {
 	switch (format) {
 	case YUV420P: return SDL_PIXELFORMAT_IYUV;
@@ -36,7 +36,6 @@ Uint32 queueOneUserEvent(Uint32, void*) {
 	event.type = SDL_USEREVENT;
 	SDL_PushEvent(&event);
 	return 0;
-}
 }
 
 struct SDLVideo : ModuleS {
@@ -204,23 +203,17 @@ struct SDLVideo : ModuleS {
 		SDL_AddTimer((Uint32)delayInMs, &queueOneUserEvent, nullptr);
 	}
 };
-}
 
-IModule* createSdlVideo(IClock* clock) {
-	return create<Render::SDLVideo>(clock).release();
-}
-
-}
-
-static Modules::IModule* createSdlVideoVarargs(va_list va) {
+Modules::IModule* createSdlVideoVarargs(va_list va) {
 	auto clock = va_arg(va, IClock*);
-	return Modules::createSdlVideo(clock);
+	return Modules::create<SDLVideo>(clock).release();
 }
 
-static int registerMe() {
+int registerMe() {
 	registerModule("SDLVideo", &createSdlVideoVarargs);
 	return 0;
 }
 
-static int registered = registerMe();
+int registered = registerMe();
+}
 
