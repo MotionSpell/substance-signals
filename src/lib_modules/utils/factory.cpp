@@ -44,12 +44,16 @@ int registerModule(const char* name, ModuleCreationFunc* func) {
 }
 
 IModule* instanciate(const char* name, ...) {
+	va_list va;
+	va_start(va, name);
+	return vInstanciate(name, va);
+}
+
+IModule* vInstanciate(const char* name, va_list va) {
 	auto entry = findEntry(name);
 	if(!entry)
 		throw runtime_error("Unknown module '" + string(name) + "'");
 
-	va_list va;
-	va_start(va, name);
 	return entry->func(va);
 }
 

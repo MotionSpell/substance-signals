@@ -191,7 +191,7 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 
 				if(DEBUG_MONITOR) {
 					if (metadataDemux->isVideo() && r == 0) {
-						auto webcamPreview = pipeline->add(uptr(Modules::instanciate("SDLVideo", nullptr)));
+						auto webcamPreview = pipeline->add("SDLVideo", nullptr);
 						connect(converter, webcamPreview);
 					}
 				}

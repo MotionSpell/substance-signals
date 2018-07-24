@@ -26,6 +26,12 @@ IPipelinedModule* Pipeline::addModuleInternal(std::unique_ptr<IModule> rawModule
 	return ret;
 }
 
+IPipelinedModule * Pipeline::add(char const* name, ...) {
+	va_list va;
+	va_start(va, name);
+	return addModuleInternal(uptr(Modules::vInstanciate(name, va)));
+}
+
 void Pipeline::removeModule(IPipelinedModule *module) {
 	auto findIf = [module](Pipelines::Graph::Connection const& c) {
 		return c.src.id == module || c.dst.id == module;
