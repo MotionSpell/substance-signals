@@ -60,7 +60,11 @@ IModule* vInstantiate(const char* name, va_list va) {
 }
 
 // binary entry-point
+#ifdef _MSC_VER
+#define EXPORT
+#else
 #define EXPORT __attribute__((visibility("default")))
+#endif
 
 extern "C"
 {
