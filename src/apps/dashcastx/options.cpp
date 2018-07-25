@@ -10,10 +10,6 @@ extern const char *g_appName;
 
 namespace {
 
-inline std::string toString(option::Option& opt) {
-	return std::string(opt.name, opt.name + opt.namelen);
-}
-
 struct Arg : public option::Arg {
 	static void printError(std::string msg) {
 		fprintf(stderr, "%s\n", msg.c_str());
