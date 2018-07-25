@@ -24,7 +24,7 @@ PipelinedModule::PipelinedModule(std::shared_ptr<IModule> module, IPipelineNotif
 	  eosCount(0) {
 }
 
-PipelinedModule::~PipelinedModule() {
+PipelinedModule::~PipelinedModule() noexcept(false) {
 	// inputs, which hold the executors,
 	// must be destroyed *before* the 'delegate' module.
 	inputs.clear();

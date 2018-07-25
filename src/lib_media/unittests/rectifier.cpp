@@ -56,7 +56,7 @@ class ClockMock : public IClock, public IScheduler {
 			return m_time;
 		}
 
-		void scheduleAt(TaskFunc &&task, Fraction time) {
+		void scheduleAt(TaskFunc &&task, Fraction time) override {
 			if(time < m_time)
 				throw runtime_error("The rectifier is scheduling events in the past");
 
@@ -72,7 +72,7 @@ class ClockMock : public IClock, public IScheduler {
 			assert(0);
 		}
 
-		void scheduleIn(TaskFunc &&, Fraction) {
+		void scheduleIn(TaskFunc &&, Fraction) override {
 			assert(0);
 		}
 
