@@ -75,6 +75,8 @@ class DualInput : public Modules::Module {
 		Modules::OutputDefault* out;
 };
 
+}
+
 class ThreadedDualInput : public Modules::Module {
 	public:
 		ThreadedDualInput() {
@@ -132,4 +134,3 @@ class ThreadedDualInput : public Modules::Module {
 		Modules::Input<Modules::DataBase>* input1;
 };
 
-}

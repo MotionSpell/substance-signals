@@ -8,8 +8,6 @@ using namespace Pipelines;
 
 namespace {
 
-uint64_t ThreadedDualInput::numCalls = 0;
-
 class DataCustom : public DataRaw {};
 
 struct CustomDataTypeSink : public Modules::ModuleS {
