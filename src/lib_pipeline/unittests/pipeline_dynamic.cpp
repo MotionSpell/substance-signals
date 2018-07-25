@@ -19,7 +19,7 @@ unittest("pipeline: dynamic module connection of an existing module (without mod
 
 unittest("pipeline: connect while running") {
 	Pipeline p;
-	auto src = p.addModule<FakeSource>();
+	auto src = p.addModule<InfiniteSource>();
 	ASSERT(src->getNumOutputs() >= 1);
 	auto null1 = p.addModule<FakeSink>();
 	auto null2 = p.addModule<FakeSink>();
@@ -27,9 +27,10 @@ unittest("pipeline: connect while running") {
 	p.start();
 	auto f = [&]() {
 		p.connect(src, 0, null2, 0);
+		p.exitSync();
+		p.waitForEndOfStream();
 	};
 	std::thread tf(f);
-	p.waitForEndOfStream();
 	tf.join();
 }
 
