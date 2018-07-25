@@ -117,7 +117,7 @@ void PipelinedModule::stopSource() {
 	assert(isSource());
 
 	// the source is likely processing: push EOS in the loop
-	// and let things follow their way*/
+	// and let things follow their way
 	delegate->getInput(0)->push(nullptr);
 }
 
