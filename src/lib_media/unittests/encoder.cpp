@@ -146,26 +146,34 @@ unittest("encoder: RAP placement (incorrect timings)") {
 	RAPTest(Fraction(25, 1), times, RAPs);
 }
 
-unittest("[DISABLED] GPAC mp4 mux: don't create empty fragments") {
+unittest("GPAC mp4 mux: don't create empty fragments") {
+	struct Recorder : ModuleS {
+		Recorder() {
+			addInput(new Input<DataBase>(this));
+		}
+		void process(Data data) {
+			if (initFound)
+				ASSERT(safe_cast<const MetadataFile>(data->getMetadata())->durationIn180k > 0);
+			initFound = true;
+		}
+		bool initFound = false;
+	};
 	auto const segmentDurationInMs = 1000;
-	const vector<uint64_t> times = { IClock::Rate, 0, 3*IClock::Rate };
+	const vector<uint64_t> times = { IClock::Rate, 0, 3 * IClock::Rate, (7 * IClock::Rate) / 2, 4 * IClock::Rate };
 	Encode::LibavEncode::Params p;
 	p.frameRate.num = 1;
 	auto picture = make_shared<PictureYUV420P>(VIDEO_RESOLUTION);
 	auto encode = create<Encode::LibavEncode>(Encode::LibavEncode::Video, p);
-	auto mux = create<Mux::GPACMuxMP4>("chrome", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerRAP, Mux::GPACMuxMP4::Browsers | Mux::GPACMuxMP4::SegmentAtAny);
+	auto mux = create<Mux::GPACMuxMP4>("", segmentDurationInMs, Mux::GPACMuxMP4::FragmentedSegment, Mux::GPACMuxMP4::OneFragmentPerRAP, Mux::GPACMuxMP4::Browsers | Mux::GPACMuxMP4::SegmentAtAny);
 	ConnectOutputToInput(encode->getOutput(0), mux->getInput(0));
+	auto recorder = create<Recorder>();
+	ConnectOutputToInput(mux->getOutput(0), recorder->getInput(0));
 	for (size_t i = 0; i < times.size(); ++i) {
 		picture->setMediaTime(times[i]);
 		encode->process(picture);
 	}
 	encode->flush();
 	mux->flush();
-
-	/*TODO: find segment names: auto demux = create<Demux::LibavDemux>("tmp.mp4");
-	ConnectOutput(demux.get(), onFrame);
-	demux->process(nullptr);
-	ASSERT(i == times.size());*/
 }
 
 //TODO: add a more complex test for each module!
