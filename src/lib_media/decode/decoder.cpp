@@ -107,7 +107,7 @@ void Decoder::process(Data data) {
 			meta = inputs[0]->getMetadata();
 
 		if(!meta)
-			throw error("Can't instanciate decoder: no metadata for input data");
+			throw error("Can't instantiate decoder: no metadata for input data");
 
 		openDecoder(safe_cast<const MetadataPkt>(meta.get()));
 	}

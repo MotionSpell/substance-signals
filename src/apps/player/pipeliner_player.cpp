@@ -1,6 +1,5 @@
 #include "pipeliner_player.hpp"
 #include "lib_pipeline/pipeline.hpp"
-#include "lib_modules/utils/factory.hpp" // instanciate
 
 // modules
 #include "lib_media/demux/dash_demux.hpp"
