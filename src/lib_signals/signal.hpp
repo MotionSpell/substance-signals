@@ -9,7 +9,7 @@
 
 namespace Signals {
 
-template<typename> class ISignal;
+template<typename> struct ISignal;
 
 template <typename Callback, typename Arg>
 struct ISignal<Callback(Arg)> {

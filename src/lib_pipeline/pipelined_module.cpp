@@ -20,7 +20,6 @@ namespace Pipelines {
 PipelinedModule::PipelinedModule(std::shared_ptr<IModule> module, IPipelineNotifier *notify, Pipeline::Threading threading)
 	: delegate(std::move(module)),
 	  executor(threading & Pipeline::Mono ? (IExecutor*)new EXECUTOR_LIVE : (IExecutor*)new EXECUTOR),
-	  threading(threading),
 	  m_notify(notify),
 	  eosCount(0) {
 }
