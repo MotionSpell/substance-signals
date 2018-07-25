@@ -60,6 +60,11 @@ IModule* vInstantiate(const char* name, va_list va) {
 }
 
 // binary entry-point
-Modules::IModule* instantiate(const char* name, va_list va) {
-	return Modules::vInstantiate(name, va);
+#define EXPORT __attribute__((visibility("default")))
+
+extern "C"
+{
+	EXPORT Modules::IModule* instantiate(const char* name, va_list va) {
+		return Modules::vInstantiate(name, va);
+	}
 }
