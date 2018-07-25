@@ -39,8 +39,8 @@ struct FakeSource : Modules::Module {
 	Modules::OutputDefault* out;
 };
 
-struct Stub : public Modules::ModuleS {
-	Stub() {
+struct FakeSink : public Modules::ModuleS {
+	FakeSink() {
 		addInput(new Modules::Input<Modules::DataBase>(this));
 	}
 	void process(Modules::Data) override {

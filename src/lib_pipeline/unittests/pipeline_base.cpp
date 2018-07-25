@@ -54,8 +54,8 @@ unittest("pipeline: empty") {
 unittest("pipeline: connect inputs to outputs") {
 	Pipeline p;
 	auto src = p.addModule<InfiniteSource>();
-	auto stub = p.addModule<Stub>();
-	ASSERT_THROWN(p.connect(stub, 0, src, 0));
+	auto sink = p.addModule<FakeSink>();
+	ASSERT_THROWN(p.connect(sink, 0, src, 0));
 }
 
 unittest("pipeline: connect incompatible i/o") {
@@ -73,8 +73,8 @@ unittest("pipeline: pipeline with split (no join)") {
 	for (int i = 0; i < (int)src->getNumOutputs(); ++i) {
 		auto passthru = p.addModule<Passthru>();
 		p.connect(src, i, passthru, 0);
-		auto stub = p.addModule<Stub>();
-		p.connect(passthru, 0, stub, 0);
+		auto sink = p.addModule<FakeSink>();
+		p.connect(passthru, 0, sink, 0);
 	}
 
 	p.start();
@@ -85,11 +85,11 @@ unittest("pipeline: pipeline with split (join)") {
 	Pipeline p;
 	auto src = p.addModule<Split>();
 	ASSERT(src->getNumOutputs() >= 2);
-	auto stub = p.addModule<Stub>();
+	auto sink = p.addModule<FakeSink>();
 	for (int i = 0; i < (int)src->getNumOutputs(); ++i) {
 		auto passthru = p.addModule<Passthru>();
 		p.connect(src, i, passthru, 0);
-		p.connect(passthru, 0, stub, 0, true);
+		p.connect(passthru, 0, sink, 0, true);
 	}
 
 	p.start();

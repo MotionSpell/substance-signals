@@ -21,8 +21,8 @@ unittest("pipeline: connect while running") {
 	Pipeline p;
 	auto src = p.addModule<FakeSource>();
 	ASSERT(src->getNumOutputs() >= 1);
-	auto null1 = p.addModule<Stub>();
-	auto null2 = p.addModule<Stub>();
+	auto null1 = p.addModule<FakeSink>();
+	auto null2 = p.addModule<FakeSink>();
 	p.connect(src, 0, null1, 0);
 	p.start();
 	auto f = [&]() {
@@ -50,26 +50,26 @@ unittest("pipeline: dynamic module connection of a new sink module") {
 	auto passthru = p.addModule<Passthru>();
 	p.connect(src, 0, passthru, 0);
 	p.start();
-	auto stub = p.addModule<Stub>();
-	p.connect(src, 0, stub, 0);
+	auto sink = p.addModule<FakeSink>();
+	p.connect(src, 0, sink, 0);
 	p.waitForEndOfStream();
 }
 
 unittest("pipeline: wrong disconnection") {
 	Pipeline p;
 	auto src = p.addModule<FakeSource>();
-	auto stub = p.addModule<Stub>();
+	auto sink = p.addModule<FakeSink>();
 	p.start();
-	ASSERT_THROWN(p.disconnect(src, 0, stub, 0));
+	ASSERT_THROWN(p.disconnect(src, 0, sink, 0));
 }
 
 unittest("pipeline: dynamic module disconnection (single ref decrease)") {
 	Pipeline p;
 	auto src = p.addModule<FakeSource>();
-	auto stub = p.addModule<Stub>();
-	p.connect(src, 0, stub, 0);
+	auto sink = p.addModule<FakeSink>();
+	p.connect(src, 0, sink, 0);
 	p.start();
-	p.disconnect(src, 0, stub, 0);
+	p.disconnect(src, 0, sink, 0);
 	p.waitForEndOfStream();
 }
 
@@ -137,8 +137,8 @@ unittest("pipeline: dynamic module addition") {
 	Pipeline p;
 	auto src = p.addModule<InfiniteSource>();
 	p.start();
-	auto stub = p.addModule<Stub>();
-	p.connect(src, 0, stub, 0);
+	auto sink = p.addModule<FakeSink>();
+	p.connect(src, 0, sink, 0);
 	p.exitSync(); //stop src
 	p.waitForEndOfStream();
 }

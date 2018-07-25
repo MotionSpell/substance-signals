@@ -19,7 +19,7 @@ unittest("pipeline: source only") {
 unittest("pipeline: a non left-connected module is not a source") {
 	Pipeline p;
 	auto data = make_shared<DataRaw>(0);
-	p.addModule<Stub>();
+	p.addModule<FakeSink>();
 	p.start();
 	p.waitForEndOfStream();
 }
@@ -28,8 +28,8 @@ unittest("pipeline: connect one input (out of 2) to one output") {
 	Pipeline p;
 	auto src = p.addModule<FakeSource>();
 	ASSERT(src->getNumOutputs() >= 1);
-	auto stub = p.addModule<Stub>();
-	p.connect(src, 0, stub, 0);
+	auto sink = p.addModule<FakeSink>();
+	p.connect(src, 0, sink, 0);
 	p.start();
 	p.waitForEndOfStream();
 }
@@ -38,9 +38,9 @@ unittest("pipeline: connect two outputs to the same input") {
 	Pipeline p;
 	auto src1 = p.addModule<FakeSource>();
 	auto src2 = p.addModule<FakeSource>();
-	auto stub = p.addModule<Stub>();
-	p.connect(src1, 0, stub, 0);
-	p.connect(src2, 0, stub, 0, true);
+	auto sink = p.addModule<FakeSink>();
+	p.connect(src1, 0, sink, 0);
+	p.connect(src2, 0, sink, 0, true);
 	p.start();
 	p.waitForEndOfStream();
 }
@@ -78,16 +78,16 @@ unittest("pipeline: connect passthru to a multiple input module (2)") {
 unittest("pipeline: orphan dynamic inputs sink") {
 	Pipeline p;
 	auto src = p.addModule<FakeSource>();
-	auto sink = p.addModule<Stub>();
+	auto sink = p.addModule<FakeSink>();
 	p.connect(src, 0, sink, 0);
-	p.addModule<Stub>();
+	p.addModule<FakeSink>();
 	p.start();
 	p.waitForEndOfStream();
 }
 
 unittest("pipeline: sink only (incorrect topology)") {
 	Pipeline p;
-	p.addModule<Stub>();
+	p.addModule<FakeSink>();
 	p.start();
 	p.waitForEndOfStream();
 }

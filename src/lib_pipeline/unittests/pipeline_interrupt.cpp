@@ -10,8 +10,8 @@ using namespace Pipelines;
 unittest("pipeline: EOS injection (exitSync)") {
 	Pipeline p;
 	auto src = p.addModule<InfiniteSource>();
-	auto stub = p.addModule<Stub>();
-	p.connect(src, 0, stub, 0);
+	auto sink = p.addModule<FakeSink>();
+	p.connect(src, 0, sink, 0);
 	p.start();
 	auto f = [&]() {
 		p.exitSync();
@@ -24,8 +24,8 @@ unittest("pipeline: EOS injection (exitSync)") {
 unittest("[DISABLED] pipeline: destroy while running") {
 	Pipeline p;
 	auto src = p.addModule<InfiniteSource>();
-	auto stub = p.addModule<Stub>();
-	p.connect(src, 0, stub, 0);
+	auto sink = p.addModule<FakeSink>();
+	p.connect(src, 0, sink, 0);
 	p.start();
 }
 
