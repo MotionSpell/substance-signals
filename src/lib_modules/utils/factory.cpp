@@ -43,7 +43,13 @@ int registerModule(const char* name, ModuleCreationFunc* func) {
 	return 0;
 }
 
-IModule* vInstanciate(const char* name, va_list va) {
+IModule* instantiate(const char* name, ...) {
+	va_list va;
+	va_start(va, name);
+	return vInstantiate(name, va);
+}
+
+IModule* vInstantiate(const char* name, va_list va) {
 	auto entry = findEntry(name);
 	if(!entry)
 		throw runtime_error("Unknown module '" + string(name) + "'");
@@ -55,5 +61,5 @@ IModule* vInstanciate(const char* name, va_list va) {
 
 // binary entry-point
 Modules::IModule* instantiate(const char* name, va_list va) {
-	return Modules::vInstanciate(name, va);
+	return Modules::vInstantiate(name, va);
 }

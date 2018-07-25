@@ -59,6 +59,8 @@ $(BIN)/%.smd: $(LIB_MODULES_SRCS:%=$(BIN)/%.o) $(LIB_UTILS_SRCS:%=$(BIN)/%.o)
 
 ifeq ($(SIGNALS_HAS_X11), 1)
 
+CFLAGS+=-DSIGNALS_HAS_X11
+
 TARGETS+=$(BIN)/SDLVideo.smd
 $(BIN)/$(SRC)/lib_media/render/sdl_video.cpp.o: CFLAGS+=$(shell sdl2-config --cflags)
 $(BIN)/SDLVideo.smd: LDFLAGS+=$(shell sdl2-config --libs)
