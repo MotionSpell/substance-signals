@@ -59,16 +59,13 @@ $(BIN)/%.smd: $(LIB_MODULES_SRCS:%=$(BIN)/%.o) $(LIB_UTILS_SRCS:%=$(BIN)/%.o)
 
 ifeq ($(SIGNALS_HAS_X11), 1)
 
+PKGS+=sdl2
 CFLAGS+=-DSIGNALS_HAS_X11
 
 TARGETS+=$(BIN)/SDLVideo.smd
-$(BIN)/$(SRC)/lib_media/render/sdl_video.cpp.o: CFLAGS+=$(shell sdl2-config --cflags)
-$(BIN)/SDLVideo.smd: LDFLAGS+=$(shell pkg-config sdl2 --libs)
 $(BIN)/SDLVideo.smd: $(MYDIR)/render/sdl_video.cpp
 
 TARGETS+=$(BIN)/SDLAudio.smd
-$(BIN)/$(SRC)/lib_media/render/sdl_audio.cpp.o: CFLAGS+=$(shell sdl2-config --cflags)
-$(BIN)/SDLAudio.smd: LDFLAGS+=$(shell pkg-config sdl2 --libs)
 $(BIN)/SDLAudio.smd: \
 	$(BIN)/$(SRC)/lib_media/render/sdl_audio.cpp.o \
 	$(BIN)/$(SRC)/lib_media/transform/audio_convert.cpp.o \
