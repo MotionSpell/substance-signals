@@ -86,15 +86,45 @@ unittest("pipeline: dynamic module disconnection (multiple ref decrease)") {
 }
 
 unittest("pipeline: dynamic module disconnection (remove module dynamically)") {
+	struct Source : Modules::Module {
+		Source(bool &sent) : sent(sent) {
+			out = addOutput<Modules::OutputDefault>();
+		}
+		void process() {
+			while (!sent)
+				out->emit(out->getBuffer(0));
+		}
+		bool &sent;
+		Modules::OutputDefault* out;
+	};
+	struct Receiver : Module {
+		Receiver(bool &sent) : sent(sent) {
+			addInput(new Modules::Input<Modules::DataBase>(this));
+		}
+		void process() {
+			sent = true;
+		}
+		bool &sent;
+	};
+
 	Pipeline p;
-	auto src = p.addModule<FakeSource>(1000);
+	bool trigger = false;
+	auto src = p.addModule<Source>(trigger);
 	auto dualInput = p.addModule<DualInput>();
 	p.connect(src, 0, dualInput, 0);
 	p.connect(src, 0, dualInput, 1);
+	bool received = false;
+	auto receiver = p.addModule<Receiver>(received);
+	p.connect(dualInput, 0, receiver, 0);
 	p.start();
+	while (!received) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	}
 	p.disconnect(src, 0, dualInput, 0);
 	p.disconnect(src, 0, dualInput, 1);
+	p.disconnect(dualInput, 0, receiver, 0);
 	p.removeModule(dualInput);
+	trigger = true;
 	p.waitForEndOfStream();
 }
 

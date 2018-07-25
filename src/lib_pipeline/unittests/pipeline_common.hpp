@@ -52,13 +52,14 @@ class DualInput : public Modules::Module {
 		DualInput() {
 			input0 = (Modules::Input<Modules::DataBase>*)addInput(new Modules::Input<Modules::DataBase>(this));
 			input1 = (Modules::Input<Modules::DataBase>*)addInput(new Modules::Input<Modules::DataBase>(this));
-			addOutput<Modules::OutputDefault>();
+			out = addOutput<Modules::OutputDefault>();
 		}
 
 		void process() {
 			if (!done) {
 				input0->pop();
 				input1->pop();
+				out->emit(out->getBuffer(0));
 			}
 
 			done = true;
@@ -71,6 +72,7 @@ class DualInput : public Modules::Module {
 		bool done = false;
 		Modules::Input<Modules::DataBase>* input0;
 		Modules::Input<Modules::DataBase>* input1;
+		Modules::OutputDefault* out;
 };
 
 class ThreadedDualInput : public Modules::Module {
