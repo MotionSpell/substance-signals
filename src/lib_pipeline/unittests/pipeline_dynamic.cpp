@@ -41,31 +41,17 @@ unittest("[DISABLED] pipeline: dynamic module connection of a new source module"
 	p.start();
 	auto demux2 = p.addModule<FakeSource>();
 	p.connect(demux2, 0, dualInput, 1);
-	p.start();
 	p.waitForEndOfStream();
 }
 
-unittest("[DISABLED] pipeline: dynamic module connection of a new intermediate module") {
+unittest("pipeline: dynamic module connection of a new sink module") {
 	Pipeline p;
 	auto src = p.addModule<FakeSource, 1>();
-	auto dualInput = p.addModule<DualInput>();
-	p.connect(src, 0, dualInput, 0);
+	auto passthru = p.addModule<Passthru>();
+	p.connect(src, 0, passthru, 0);
 	p.start();
-	auto demux2 = p.addModule<FakeSource>();
-	p.connect(demux2, 0, dualInput, 1);
-	//FIXME: if (demux2->isSource()) demux2->process(); //only sources need to be triggered
-	p.waitForEndOfStream();
-}
-
-unittest("[DISABLED] pipeline: dynamic module connection of a new sink module") {
-	Pipeline p;
-	auto src = p.addModule<FakeSource, 1>();
-	auto dualInput = p.addModule<DualInput>();
-	p.connect(src, 0, dualInput, 0);
-	p.start();
-	auto demux2 = p.addModule<FakeSource>();
-	p.connect(demux2, 0, dualInput, 1);
-	//FIXME: if (demux2->isSource()) demux2->process(); //only sources need to be triggered
+	auto stub = p.addModule<Stub>();
+	p.connect(src, 0, stub, 0);
 	p.waitForEndOfStream();
 }
 
