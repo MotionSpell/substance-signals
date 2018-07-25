@@ -2,14 +2,11 @@
 #include "pipelined_module.hpp"
 #include "pipeline.hpp"
 #include "lib_modules/utils/helper.hpp"
+#include "lib_modules/utils/loader.hpp"
 #include <algorithm>
 #include <sstream>
 
 #define COMPLETION_GRANULARITY_IN_MS 200
-
-namespace Modules {
-std::shared_ptr<IModule> loadModule(const char* name, va_list);
-}
 
 namespace Pipelines {
 
@@ -33,7 +30,7 @@ IPipelinedModule* Pipeline::addModuleInternal(std::shared_ptr<IModule> rawModule
 IPipelinedModule * Pipeline::add(char const* name, ...) {
 	va_list va;
 	va_start(va, name);
-	return addModuleInternal(loadModule(name, va));
+	return addModuleInternal(vLoadModule(name, va));
 }
 
 void Pipeline::removeModule(IPipelinedModule *module) {
