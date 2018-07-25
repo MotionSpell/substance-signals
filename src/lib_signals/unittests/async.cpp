@@ -8,9 +8,6 @@ using namespace Signals;
 
 namespace {
 
-inline int dummy(int a) {
-	return a;
-}
 inline void sleepInMs(int ms) {
 	std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 }
