@@ -55,7 +55,7 @@ PKGS+=\
 CFLAGS+=-fPIC
 
 $(BIN)/%.smd: $(LIB_MODULES_SRCS:%=$(BIN)/%.o) $(LIB_UTILS_SRCS:%=$(BIN)/%.o)
-	$(CXX) $(LDFLAGS) $(CFLAGS) -pthread -shared -Wl,--no-undefined -o "$@" $^
+	$(CXX) $(CFLAGS) -pthread -shared -Wl,--no-undefined -o "$@" $^ $(LDFLAGS)
 
 ifeq ($(SIGNALS_HAS_X11), 1)
 
@@ -63,12 +63,12 @@ CFLAGS+=-DSIGNALS_HAS_X11
 
 TARGETS+=$(BIN)/SDLVideo.smd
 $(BIN)/$(SRC)/lib_media/render/sdl_video.cpp.o: CFLAGS+=$(shell sdl2-config --cflags)
-$(BIN)/SDLVideo.smd: LDFLAGS+=$(shell sdl2-config --libs)
+$(BIN)/SDLVideo.smd: LDFLAGS+=$(shell pkg-config sdl2 --libs)
 $(BIN)/SDLVideo.smd: $(MYDIR)/render/sdl_video.cpp
 
 TARGETS+=$(BIN)/SDLAudio.smd
 $(BIN)/$(SRC)/lib_media/render/sdl_audio.cpp.o: CFLAGS+=$(shell sdl2-config --cflags)
-$(BIN)/SDLAudio.smd: LDFLAGS+=$(shell sdl2-config --libs)
+$(BIN)/SDLAudio.smd: LDFLAGS+=$(shell pkg-config sdl2 --libs)
 $(BIN)/SDLAudio.smd: \
 	$(BIN)/$(SRC)/lib_media/render/sdl_audio.cpp.o \
 	$(BIN)/$(SRC)/lib_media/transform/audio_convert.cpp.o \
