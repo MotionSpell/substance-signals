@@ -54,6 +54,8 @@ void Pipeline::removeModule(IPipelinedModule *module) {
 	});
 	assert(i_node != graph->nodes.end());
 	graph->nodes.erase(i_node);
+
+	computeTopology();
 }
 
 void Pipeline::connect(IPipelinedModule * prev, int outputIdx, IPipelinedModule * next, int inputIdx, bool inputAcceptMultipleConnections) {

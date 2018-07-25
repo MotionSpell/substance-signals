@@ -28,14 +28,14 @@ struct InfiniteSource : Modules::ActiveModule {
 };
 
 struct FakeSource : Modules::Module {
-	FakeSource(int maxNumRepetition = 50) : maxNumRepetition(maxNumRepetition) {
+	FakeSource(int maxNumRepetition = 50) : numRepetition(maxNumRepetition) {
 		out = addOutput<Modules::OutputDefault>();
 	}
 	void process() {
-		while(++i <= maxNumRepetition)
+		while (--numRepetition >= 0)
 			out->emit(out->getBuffer(0));
 	}
-	int i = 0, maxNumRepetition;
+	int numRepetition;
 	Modules::OutputDefault* out;
 };
 

@@ -12,8 +12,8 @@ unittest("pipeline: dynamic module connection of an existing module (without mod
 	auto src = p.addModule<FakeSource>();
 	auto dualInput = p.addModule<DualInput>();
 	p.connect(src, 0, dualInput, 0);
-	p.connect(src, 0, dualInput, 1);
 	p.start();
+	p.connect(src, 0, dualInput, 1);
 	p.waitForEndOfStream();
 }
 
@@ -33,7 +33,19 @@ unittest("pipeline: connect while running") {
 	tf.join();
 }
 
-unittest("[DISABLED] pipeline: dynamic module connection of a new module") {
+unittest("[DISABLED] pipeline: dynamic module connection of a new source module") {
+	Pipeline p;
+	auto src = p.addModule<FakeSource, 1>();
+	auto dualInput = p.addModule<DualInput>();
+	p.connect(src, 0, dualInput, 0);
+	p.start();
+	auto demux2 = p.addModule<FakeSource>();
+	p.connect(demux2, 0, dualInput, 1);
+	p.start();
+	p.waitForEndOfStream();
+}
+
+unittest("[DISABLED] pipeline: dynamic module connection of a new intermediate module") {
 	Pipeline p;
 	auto src = p.addModule<FakeSource, 1>();
 	auto dualInput = p.addModule<DualInput>();
@@ -45,7 +57,19 @@ unittest("[DISABLED] pipeline: dynamic module connection of a new module") {
 	p.waitForEndOfStream();
 }
 
-unittest("[DISABLED] pipeline: wrong disconnection") {
+unittest("[DISABLED] pipeline: dynamic module connection of a new sink module") {
+	Pipeline p;
+	auto src = p.addModule<FakeSource, 1>();
+	auto dualInput = p.addModule<DualInput>();
+	p.connect(src, 0, dualInput, 0);
+	p.start();
+	auto demux2 = p.addModule<FakeSource>();
+	p.connect(demux2, 0, dualInput, 1);
+	//FIXME: if (demux2->isSource()) demux2->process(); //only sources need to be triggered
+	p.waitForEndOfStream();
+}
+
+unittest("pipeline: wrong disconnection") {
 	Pipeline p;
 	auto src = p.addModule<FakeSource>();
 	auto stub = p.addModule<Stub>();
@@ -77,7 +101,7 @@ unittest("pipeline: dynamic module disconnection (multiple ref decrease)") {
 
 unittest("pipeline: dynamic module disconnection (remove module dynamically)") {
 	Pipeline p;
-	auto src = p.addModule<FakeSource>();
+	auto src = p.addModule<FakeSource>(1000);
 	auto dualInput = p.addModule<DualInput>();
 	p.connect(src, 0, dualInput, 0);
 	p.connect(src, 0, dualInput, 1);
@@ -88,29 +112,29 @@ unittest("pipeline: dynamic module disconnection (remove module dynamically)") {
 	p.waitForEndOfStream();
 }
 
-unittest("[DISABLED] pipeline: dynamic module disconnection (remove sink without disconnect)") {
+unittest("pipeline: dynamic module disconnection (remove sink without disconnect)") {
 	Pipeline p;
 	auto src = p.addModule<FakeSource>();
 	auto dualInput = p.addModule<DualInput>();
 	p.connect(src, 0, dualInput, 0);
 	p.connect(src, 0, dualInput, 1);
 	p.start();
-	p.removeModule(dualInput);
+	ASSERT_THROWN(p.removeModule(dualInput));
 	p.waitForEndOfStream();
 }
 
-unittest("[DISABLED] pipeline: dynamic module disconnection (remove source without disconnect)") {
+unittest("pipeline: dynamic module disconnection (remove source without disconnect)") {
 	Pipeline p;
 	auto src = p.addModule<FakeSource>();
 	auto dualInput = p.addModule<DualInput>();
 	p.connect(src, 0, dualInput, 0);
 	p.connect(src, 0, dualInput, 1);
 	p.start();
-	p.removeModule(src);
+	ASSERT_THROWN(p.removeModule(src));
 	p.waitForEndOfStream();
 }
 
-unittest("[DISABLED] pipeline: dynamic module disconnection (remove source)") {
+unittest("pipeline: dynamic module disconnection (remove source)") {
 	Pipeline p;
 	auto src = p.addModule<FakeSource>();
 	auto dualInput = p.addModule<DualInput>();
@@ -119,21 +143,16 @@ unittest("[DISABLED] pipeline: dynamic module disconnection (remove source)") {
 	p.start();
 	p.disconnect(src, 0, dualInput, 0);
 	p.disconnect(src, 0, dualInput, 1);
-	//TODO: src->flush(); //we want to keep all the data
 	p.removeModule(src);
 	p.waitForEndOfStream();
 }
 
-//TODO: we should fuzz the creation because it is actually stored with a vector (not thread-safe)
-unittest("[DISABLED] pipeline: dynamic module addition") {
+unittest("pipeline: dynamic module addition") {
 	Pipeline p;
 	auto src = p.addModule<InfiniteSource>();
 	p.start();
-	/*TODO: auto f = [&]() {
-		p.exitSync();
-	};
-	std::thread tf(f);*/
 	auto stub = p.addModule<Stub>();
 	p.connect(src, 0, stub, 0);
+	p.exitSync(); //stop src
 	p.waitForEndOfStream();
 }
