@@ -23,13 +23,10 @@ std::ostream& operator<<(std::ostream& o, Meta const& meta) {
 	return o;
 }
 
-unittest("[DISABLED] remux test: GPAC mp4 mux") {
+unittest("remux test: GPAC mp4 mux") {
 	auto demux = create<Demux::LibavDemux>("data/beepbop.mp4");
-	auto mux = create<Mux::GPACMuxMP4>("out/output_video_gpac");
-	for (int i = 0; i < demux->getNumOutputs(); ++i) {
-		ConnectModules(demux.get(), i, mux.get(), i);
-	}
-
+	auto mux = create<Mux::GPACMuxMP4>("");
+	ConnectModules(demux.get(), 0, mux.get(), 0); //FIXME: reimplement with multiple inputs
 	demux->process();
 }
 
@@ -37,6 +34,7 @@ unittest("[DISABLED] remux test: GPAC mp4 mux") {
 unittest("[DISABLED] remux test: libav mp4 mux") {
 	auto demux = create<Demux::LibavDemux>("data/beepbop.mp4");
 	auto mux = create<Mux::LibavMux>("out/output_libav", "mp4");
+	ASSERT(demux->getNumOutputs() > 1);
 	for (int i = 0; i < demux->getNumOutputs(); ++i) {
 		ConnectModules(demux.get(), i, mux.get(), i);
 	}
