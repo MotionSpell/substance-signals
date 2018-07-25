@@ -7,6 +7,7 @@ LIB_UTILS_SRCS:=\
   $(MYDIR)/profiler.cpp\
   $(MYDIR)/scheduler.cpp\
   $(MYDIR)/time.cpp\
-  $(MYDIR)/os.cpp\
   $(MYDIR)/timer.cpp\
+
+-include $(MYDIR)/$(shell $(CXX) -dumpmachine | sed "s/.*-//").mk
 
