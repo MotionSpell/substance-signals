@@ -61,6 +61,7 @@ ifeq ($(SIGNALS_HAS_X11), 1)
 
 PKGS+=sdl2
 CFLAGS+=-DSIGNALS_HAS_X11
+CFLAGS+=-Umain
 
 TARGETS+=$(BIN)/SDLVideo.smd
 $(BIN)/SDLVideo.smd: $(MYDIR)/render/sdl_video.cpp
