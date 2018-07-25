@@ -1,8 +1,9 @@
 #include "tests/tests.hpp"
 #include "lib_modules/modules.hpp"
-#include "../demux/libav_demux.hpp"
-#include "../mux/libav_mux.hpp"
-#include "../mux/gpac_mux_mp4.hpp"
+#include "lib_media/demux/libav_demux.hpp"
+#include "lib_media/mux/libav_mux.hpp"
+#include "lib_media/mux/gpac_mux_mp4.hpp"
+#include "lib_media/transform/avcc2annexb.hpp"
 #include "lib_utils/tools.hpp"
 #include "modules_common.hpp"
 
@@ -30,13 +31,26 @@ unittest("remux test: GPAC mp4 mux") {
 	demux->process();
 }
 
-//ffmpeg extradata seems to be different (non annex B ?) when output from the muxer
-unittest("[DISABLED] remux test: libav mp4 mux") {
+unittest("remux test: libav mp4 mux") {
 	auto demux = create<Demux::LibavDemux>("data/beepbop.mp4");
+	std::unique_ptr<IModule> avcc2annexB;
 	auto mux = create<Mux::LibavMux>("out/output_libav", "mp4");
 	ASSERT(demux->getNumOutputs() > 1);
 	for (int i = 0; i < demux->getNumOutputs(); ++i) {
-		ConnectModules(demux.get(), i, mux.get(), i);
+		//FIXME: declare statically metadata to avoid missing data at start
+		auto data = make_shared<DataBaseRef>(nullptr);
+		data->setMetadata(demux->getOutput(i)->getMetadata());
+		mux->getInput(i)->push(data);
+		mux->getInput(i)->process();
+
+		if (demux->getOutput(i)->getMetadata()->isVideo()) {
+			assert(!avcc2annexB);
+			avcc2annexB = create<Transform::AVCC2AnnexBConverter>();
+			ConnectModules(demux.get(), i, avcc2annexB.get(), 0);
+			ConnectModules(avcc2annexB.get(), 0, mux.get(), i);
+		} else {
+			ConnectModules(demux.get(), i, mux.get(), i);
+		}
 	}
 
 	demux->process();

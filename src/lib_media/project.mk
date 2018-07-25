@@ -29,6 +29,7 @@ LIB_MEDIA_SRCS:=\
   $(MYDIR)/stream/mpeg_dash.cpp\
   $(MYDIR)/stream/ms_hss.cpp\
   $(MYDIR)/stream/adaptive_streaming_common.cpp\
+  $(MYDIR)/transform/avcc2annexb.cpp\
   $(MYDIR)/transform/audio_convert.cpp\
   $(MYDIR)/transform/audio_gap_filler.cpp\
   $(MYDIR)/transform/libavfilter.cpp\

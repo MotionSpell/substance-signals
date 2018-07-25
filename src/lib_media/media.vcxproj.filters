@@ -134,6 +134,9 @@
     <ClInclude Include="demux\dash_demux.hpp">
       <Filter>src\demux</Filter>
     </ClInclude>
+    <ClInclude Include="transform\avcc2annexb.hpp">
+      <Filter>src\transform</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="src">
@@ -293,6 +296,9 @@
     </ClCompile>
     <ClCompile Include="demux\dash_demux.cpp">
       <Filter>src\demux</Filter>
+    </ClCompile>
+    <ClCompile Include="transform\avcc2annexb.cpp">
+      <Filter>src\transform</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

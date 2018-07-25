@@ -53,6 +53,7 @@
     <ClInclude Include="stream\ms_hss.hpp" />
     <ClInclude Include="transform\audio_convert.hpp" />
     <ClInclude Include="transform\audio_gap_filler.hpp" />
+    <ClInclude Include="transform\avcc2annexb.hpp" />
     <ClInclude Include="transform\libavfilter.hpp" />
     <ClInclude Include="transform\restamp.hpp" />
     <ClInclude Include="transform\telx.hpp" />
@@ -106,6 +107,7 @@
     <ClCompile Include="stream\ms_hss.cpp" />
     <ClCompile Include="transform\audio_convert.cpp" />
     <ClCompile Include="transform\audio_gap_filler.cpp" />
+    <ClCompile Include="transform\avcc2annexb.cpp" />
     <ClCompile Include="transform\libavfilter.cpp" />
     <ClCompile Include="transform\restamp.cpp" />
     <ClCompile Include="transform\telx2ttml.cpp" />
