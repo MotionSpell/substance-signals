@@ -9,3 +9,10 @@ using ModuleCreationFunc = IModule* (va_list);
 int registerModule(const char* name, ModuleCreationFunc* func);
 }
 
+#define EXPORT __attribute__((visibility("default")))
+
+extern "C"
+{
+	// binary entry-point
+	EXPORT Modules::IModule* instantiate(const char* name, va_list va);
+}

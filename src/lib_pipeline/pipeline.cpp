@@ -7,6 +7,10 @@
 
 #define COMPLETION_GRANULARITY_IN_MS 200
 
+namespace Modules {
+std::shared_ptr<IModule> loadModule(const char* name, va_list);
+}
+
 namespace Pipelines {
 
 Pipeline::Pipeline(bool isLowLatency, Threading threading)
@@ -18,8 +22,8 @@ Pipeline::Pipeline(bool isLowLatency, Threading threading)
 Pipeline::~Pipeline() {
 }
 
-IPipelinedModule* Pipeline::addModuleInternal(std::unique_ptr<IModule> rawModule) {
-	auto module = make_unique<PipelinedModule>(std::move(rawModule), this, threading);
+IPipelinedModule* Pipeline::addModuleInternal(std::shared_ptr<IModule> rawModule) {
+	auto module = make_unique<PipelinedModule>(rawModule, this, threading);
 	auto ret = module.get();
 	modules.push_back(std::move(module));
 	graph->nodes.push_back(Graph::Node(ret));
@@ -29,7 +33,7 @@ IPipelinedModule* Pipeline::addModuleInternal(std::unique_ptr<IModule> rawModule
 IPipelinedModule * Pipeline::add(char const* name, ...) {
 	va_list va;
 	va_start(va, name);
-	return addModuleInternal(uptr(Modules::vInstanciate(name, va)));
+	return addModuleInternal(loadModule(name, va));
 }
 
 void Pipeline::removeModule(IPipelinedModule *module) {

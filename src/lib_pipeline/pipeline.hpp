@@ -58,7 +58,7 @@ class Pipeline : public IPipelineNotifier {
 		void exitSync(); /*ask for all sources to finish*/
 
 	private:
-		IPipelinedModule * addModuleInternal(std::unique_ptr<Modules::IModule> rawModule);
+		IPipelinedModule * addModuleInternal(std::shared_ptr<Modules::IModule> rawModule);
 		void computeTopology();
 		void endOfStream();
 		void exception(std::exception_ptr eptr);

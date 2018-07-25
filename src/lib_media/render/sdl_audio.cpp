@@ -209,10 +209,10 @@ struct SDLAudio : ModuleS {
 	}
 };
 
-Modules::IModule* instanciateModule(va_list va) {
+Modules::IModule* createObject(va_list va) {
 	auto clock = va_arg(va, IClock*);
 	return create<SDLAudio>(clock).release();
 }
 
-auto const registered = registerModule("SDLAudio", &instanciateModule);
+auto const registered = registerModule("SDLAudio", &createObject);
 }

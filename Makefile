@@ -54,7 +54,6 @@ $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))
 endef
 
 include $(SRC)/lib_utils/project.mk
-include $(SRC)/lib_media/project.mk
 
 #------------------------------------------------------------------------------
 
@@ -70,11 +69,16 @@ LIB_MODULES_SRCS:=\
   $(SRC)/lib_modules/core/data.cpp\
   $(SRC)/lib_modules/utils/helper.cpp\
   $(SRC)/lib_modules/utils/factory.cpp\
+  $(SRC)/lib_modules/utils/loader.cpp\
 
 #------------------------------------------------------------------------------
 
 LIB_APPCOMMON_SRCS:=\
   $(SRC)/lib_appcommon/options.cpp \
+
+#------------------------------------------------------------------------------
+
+include $(SRC)/lib_media/project.mk
 
 #------------------------------------------------------------------------------
 
@@ -100,6 +104,8 @@ $(BIN)/$(SRC)/lib_utils/version.cpp.o: CFLAGS+=-I$(BIN)
 
 targets: $(TARGETS)
 
+#------------------------------------------------------------------------------
+-include $(SRC)/../$(shell $(CXX) -dumpmachine | sed "s/.*-//").mk
 #------------------------------------------------------------------------------
 
 $(BIN)/%.exe:

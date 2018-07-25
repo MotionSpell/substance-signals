@@ -43,12 +43,6 @@ int registerModule(const char* name, ModuleCreationFunc* func) {
 	return 0;
 }
 
-IModule* instanciate(const char* name, ...) {
-	va_list va;
-	va_start(va, name);
-	return vInstanciate(name, va);
-}
-
 IModule* vInstanciate(const char* name, va_list va) {
 	auto entry = findEntry(name);
 	if(!entry)
@@ -59,3 +53,8 @@ IModule* vInstanciate(const char* name, va_list va) {
 
 }
 
+// binary entry-point
+Modules::IModule* instantiate(const char* name, va_list va) {
+	printf("binary-entry-point\n");
+	return Modules::vInstanciate(name, va);
+}

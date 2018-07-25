@@ -14,7 +14,7 @@ class PipelinedModule :
 	private IPipelineNotifier {
 	public:
 		/* take ownership of module and executor */
-		PipelinedModule(std::unique_ptr<IModule> module, IPipelineNotifier *notify, Pipeline::Threading threading);
+		PipelinedModule(std::shared_ptr<IModule> module, IPipelineNotifier *notify, Pipeline::Threading threading);
 		~PipelinedModule() noexcept(false);
 
 		void connect(IOutput *output, int inputIdx, bool inputAcceptMultipleConnections);
@@ -44,7 +44,7 @@ class PipelinedModule :
 		void endOfStream() override;
 		void exception(std::exception_ptr eptr) override ;
 
-		std::unique_ptr<IModule> delegate;
+		std::shared_ptr<IModule> delegate;
 		std::unique_ptr<IExecutor> const executor;
 
 		std::vector<IExecutor*> inputExecutor; /*needed to sleep when using a clock*/

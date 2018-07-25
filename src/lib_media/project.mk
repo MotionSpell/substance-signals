@@ -52,13 +52,16 @@ PKGS+=\
   libswscale\
   libturbojpeg\
 
+CFLAGS+=-fPIC
+
 ifeq ($(SIGNALS_HAS_X11), 1)
-PKGS+=sdl2
-CFLAGS+=-Umain
-CFLAGS+=-DSIGNALS_HAS_X11
-LIB_MEDIA_SRCS+=\
-  $(MYDIR)/render/sdl_audio.cpp\
-  $(MYDIR)/render/sdl_video.cpp
+TARGETS+=$(BIN)/SDLVideo.smd
+$(BIN)/SDLVideo.smd: $(LIB_MODULES_SRCS) $(LIB_UTILS_SRCS:%=$(BIN)/%.o) $(MYDIR)/render/sdl_video.cpp 
+	$(CXX) `sdl2-config --libs --cflags` $(LDFLAGS) $(CFLAGS) -pthread -shared -Wl,--no-undefined -o "$@" $^
+
+TARGETS+=$(BIN)/SDLAudio.smd
+$(BIN)/SDLAudio.smd: $(LIB_MODULES_SRCS) $(LIB_UTILS_SRCS:%=$(BIN)/%.o) $(MYDIR)/render/sdl_audio.cpp $(MYDIR)/transform/audio_convert.cpp $(BIN)/$(SRC)/lib_media/common/libav.cpp.o
+	$(CXX) `sdl2-config --libs --cflags` $(LDFLAGS) $(CFLAGS) -pthread -shared -Wl,--no-undefined -o "$@" $^
 endif
 
 # Warning derogations. TODO: make this list empty
