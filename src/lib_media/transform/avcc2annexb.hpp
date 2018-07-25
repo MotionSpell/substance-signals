@@ -10,11 +10,11 @@ class DataAVPacket;
 namespace Transform {
 
 struct AVCC2AnnexBConverter : public ModuleS {
-	AVCC2AnnexBConverter();
-	void process(Data data) override;
+		AVCC2AnnexBConverter();
+		void process(Data data) override;
 
-private:
-	OutputDataDefault<DataAVPacket> *output;
+	private:
+		OutputDataDefault<DataAVPacket> *output;
 };
 
 }
