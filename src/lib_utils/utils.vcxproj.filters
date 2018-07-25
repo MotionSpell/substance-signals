@@ -4,13 +4,14 @@
     <ClCompile Include="log.cpp" />
     <ClCompile Include="time.cpp" />
     <ClCompile Include="scheduler.cpp" />
-    <ClCompile Include="os.cpp" />
     <ClCompile Include="profiler.cpp" />
     <ClCompile Include="timer.cpp" />
     <ClCompile Include="version.cpp">
       <Filter>version</Filter>
     </ClCompile>
     <ClCompile Include="sysclock.cpp" />
+    <ClCompile Include="os_gnu.cpp" />
+    <ClCompile Include="os_mingw.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="log.hpp" />

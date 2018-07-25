@@ -54,7 +54,7 @@ string thisExeDir() {
 }
 
 struct DynLibWin : DynLib {
-	DynLibWin(const char* name) : handle(LoadLibrary(name)) {
+	DynLibWin(const char* name) : handle(LoadLibraryA(name)) {
 		if(!handle) {
 			string msg = "can't load '";
 			msg += name;

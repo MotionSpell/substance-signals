@@ -33,6 +33,7 @@
     <ClInclude Include="utils\helper.hpp" />
     <ClInclude Include="modules.hpp" />
     <ClInclude Include="utils\helper_dyn.hpp" />
+    <ClInclude Include="utils\loader.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="core\allocator.cpp" />
@@ -40,6 +41,7 @@
     <ClCompile Include="core\data.cpp" />
     <ClCompile Include="utils\factory.cpp" />
     <ClCompile Include="utils\helper.cpp" />
+    <ClCompile Include="utils\loader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\lib_utils\utils.vcxproj">

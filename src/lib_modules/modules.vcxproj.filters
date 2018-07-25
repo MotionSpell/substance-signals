@@ -49,6 +49,9 @@
     <ClInclude Include="utils\helper_dyn.hpp">
       <Filter>utils</Filter>
     </ClInclude>
+    <ClInclude Include="utils\loader.hpp">
+      <Filter>utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="core\data.cpp">
@@ -64,6 +67,9 @@
       <Filter>core</Filter>
     </ClCompile>
     <ClCompile Include="utils\factory.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\loader.cpp">
       <Filter>utils</Filter>
     </ClCompile>
   </ItemGroup>
