@@ -55,6 +55,5 @@ IModule* vInstanciate(const char* name, va_list va) {
 
 // binary entry-point
 Modules::IModule* instantiate(const char* name, va_list va) {
-	printf("binary-entry-point\n");
 	return Modules::vInstanciate(name, va);
 }
