@@ -91,8 +91,8 @@ unique_ptr<DynLib> loadLibrary(const char* name) {
 }
 
 struct SharedMemRWCGnu : SharedMemory {
-	SharedMemRWCGnu(int size, const char* name) : size(size) {
-		int fd = shm_open(name, (O_CREAT | O_RDWR | O_EXCL), (S_IRUSR | S_IWUSR));
+	SharedMemRWCGnu(int size, const char* name) : filename(name), size(size) {
+		fd = shm_open(name, (O_CREAT | O_RDWR), (S_IRUSR | S_IWUSR));
 		if (fd == -1) {
 			string msg = "SharedMemRWCGnu: shm_open could not create \"";
 			msg += name;
@@ -109,18 +109,20 @@ struct SharedMemRWCGnu : SharedMemory {
 			msg += "\"";
 			throw runtime_error(msg);
 		}
-		close(fd);
-		shm_unlink(name);
 	}
 
 	~SharedMemRWCGnu() {
 		munmap(ptr, size);
+		close(fd);
+		shm_unlink(filename.c_str());
 	}
 
 	void* data() override {
 		return ptr;
 	}
 
+	int fd;
+	string filename;
 	int size;
 	void *ptr;
 };
