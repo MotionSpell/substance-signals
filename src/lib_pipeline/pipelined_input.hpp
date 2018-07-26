@@ -2,6 +2,7 @@
 
 #include "pipeline.hpp"
 #include "lib_modules/modules.hpp"
+#include <cstring>
 
 using namespace Modules;
 
@@ -12,8 +13,10 @@ namespace Pipelines {
    Data is nullptr at completion. */
 class PipelinedInput : public IInput, public MetadataCap {
 	public:
-		PipelinedInput(IInput *input, const std::string &moduleName, IExecutor &executor, IPipelineNotifier * const notify)
-			: delegate(input), delegateName(moduleName), notify(notify), executor(executor) {}
+		PipelinedInput(IInput *input, const std::string &moduleName, IExecutor &executor, StatsEntry *statsEntry, IPipelineNotifier * const notify)
+			: delegate(input), delegateName(moduleName), notify(notify), executor(executor), statsEntry(statsEntry) {
+			strncpy(statsEntry->name, delegateName.c_str(), sizeof(statsEntry->name));
+		}
 		virtual ~PipelinedInput() {}
 
 		void push(Data data) override {
@@ -30,6 +33,7 @@ class PipelinedInput : public IInput, public MetadataCap {
 
 		void process() override {
 			auto data = pop();
+			statsEntry->value = samplingCounter++;
 
 			// receiving 'nullptr' means 'end of stream'
 			if (!data) {
@@ -64,6 +68,8 @@ class PipelinedInput : public IInput, public MetadataCap {
 		std::string delegateName;
 		IPipelineNotifier * const notify;
 		IExecutor &executor;
+		decltype(StatsEntry::value) samplingCounter = 0;
+		StatsEntry * const statsEntry;
 };
 
 }

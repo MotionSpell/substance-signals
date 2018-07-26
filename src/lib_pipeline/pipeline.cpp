@@ -1,26 +1,50 @@
+#include "stats.hpp"
 #include "graph.hpp"
 #include "pipelined_module.hpp"
 #include "pipeline.hpp"
 #include "lib_modules/utils/helper.hpp"
 #include "lib_modules/utils/loader.hpp"
+#include "lib_utils/os.hpp"
 #include <algorithm>
+#include <cstring>
 #include <sstream>
+#include <string>
 
 #define COMPLETION_GRANULARITY_IN_MS 200
 
 namespace Pipelines {
 
+struct StatsRegistry : IStatsRegistry {
+	StatsRegistry() : shmem(createSharedMemRWC(size, std::to_string(getPid()).c_str())), entryIdx(0) {
+		memset(shmem->data(), 0, size);
+	}
+
+	StatsEntry* getNewEntry() override {
+		entryIdx++;
+		if (entryIdx >= maxNumEntry)
+			throw std::runtime_error(format("SharedMemWrite: accessing too far (%s with max=%s).", entryIdx - 1, maxNumEntry - 1));
+
+		return (StatsEntry*)shmem->data() + entryIdx - 1;
+	}
+
+	std::unique_ptr<SharedMemWrite> shmem;
+	static const auto size = 256 * sizeof(StatsEntry);
+	static const int maxNumEntry = size / sizeof(StatsEntry);
+	StatsEntry **entries;
+	std::atomic_int64_t entryIdx;
+};
+
 Pipeline::Pipeline(bool isLowLatency, Threading threading)
 	: graph(new Graph),
 	  allocatorNumBlocks(isLowLatency ? Modules::ALLOC_NUM_BLOCKS_LOW_LATENCY : Modules::ALLOC_NUM_BLOCKS_DEFAULT),
-	  threading(threading) {
+	  threading(threading), statsMem(new StatsRegistry) {
 }
 
 Pipeline::~Pipeline() {
 }
 
 IPipelinedModule* Pipeline::addModuleInternal(std::shared_ptr<IModule> rawModule) {
-	auto module = make_unique<PipelinedModule>(rawModule, this, threading);
+	auto module = make_unique<PipelinedModule>(rawModule, this, threading, statsMem.get());
 	auto ret = module.get();
 	modules.push_back(std::move(module));
 	graph->nodes.push_back(Graph::Node(ret));

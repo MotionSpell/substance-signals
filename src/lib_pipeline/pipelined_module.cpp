@@ -1,4 +1,5 @@
 #include "lib_signals/executor_threadpool.hpp"
+#include "stats.hpp"
 #include "pipelined_module.hpp"
 #include "pipelined_input.hpp"
 
@@ -17,11 +18,12 @@ struct DataLoosePipeline : public DataBase {};
 namespace Pipelines {
 
 /* take ownership of module and executor */
-PipelinedModule::PipelinedModule(std::shared_ptr<IModule> module, IPipelineNotifier *notify, Pipeline::Threading threading)
+PipelinedModule::PipelinedModule(std::shared_ptr<IModule> module, IPipelineNotifier *notify, Pipeline::Threading threading, IStatsRegistry *statsRegistry)
 	: delegate(std::move(module)),
 	  executor(threading & Pipeline::Mono ? (IExecutor*)new EXECUTOR_LIVE : (IExecutor*)new EXECUTOR),
 	  m_notify(notify),
-	  eosCount(0) {
+	  eosCount(0),
+	  statsRegistry(statsRegistry) {
 }
 
 PipelinedModule::~PipelinedModule() {
@@ -84,7 +86,7 @@ void PipelinedModule::mimicInputs() {
 	while ((int)inputs.size()< delegate->getNumInputs()) {
 		auto const i = (int)inputs.size();
 		inputExecutor.push_back(EXECUTOR_INPUT_DEFAULT);
-		addInput(new PipelinedInput(delegate->getInput(i), getDelegateName(), *executor, this));
+		addInput(new PipelinedInput(delegate->getInput(i), getDelegateName(), *executor, statsRegistry->getNewEntry(), this));
 	}
 }
 

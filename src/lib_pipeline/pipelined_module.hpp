@@ -14,7 +14,7 @@ class PipelinedModule :
 	private IPipelineNotifier {
 	public:
 		/* take ownership of module and executor */
-		PipelinedModule(std::shared_ptr<IModule> module, IPipelineNotifier *notify, Pipeline::Threading threading);
+		PipelinedModule(std::shared_ptr<IModule> module, IPipelineNotifier *notify, Pipeline::Threading threading, IStatsRegistry *statsRegistry);
 		~PipelinedModule();
 
 		void connect(IOutput *output, int inputIdx, bool inputAcceptMultipleConnections);
@@ -52,6 +52,8 @@ class PipelinedModule :
 		IPipelineNotifier * const m_notify;
 		int connections = 0;
 		std::atomic<int> eosCount;
+
+		IStatsRegistry * const statsRegistry;
 };
 
 }

@@ -4,10 +4,16 @@
 using namespace std;
 
 #include <pthread.h>
-#include <sys/stat.h>
-#include <unistd.h> //chdir
-#include <dlfcn.h> // dlopen
-#include <libgen.h> // dirname
+#include <sys/stat.h> // mode constants
+#include <fcntl.h> // O_CREAT
+#include <unistd.h>   //chdir, getpid
+#include <dlfcn.h>    // dlopen
+#include <libgen.h>   // dirname
+#include <sys/mman.h>
+
+int getPid() {
+  return getpid();
+}
 
 bool setHighThreadPriority() {
 	sched_param sp {};
@@ -82,5 +88,43 @@ struct DynLibGnu : DynLib {
 
 unique_ptr<DynLib> loadLibrary(const char* name) {
 	return make_unique<DynLibGnu>(name);
+}
+
+struct SharedMemRWCGnu : SharedMemWrite {
+	SharedMemRWCGnu(int size, const char* name) : size(size) {
+		fullname = std::string("/") + name;
+		fd = shm_open(fullname.c_str(), (O_CREAT | O_RDWR | O_EXCL), (S_IRUSR | S_IWUSR));
+		if (fd == -1) {
+			string msg = "SharedMemRWCGnu: shm_open could not create \"";
+			msg += fullname;
+			msg += "\"";
+			throw runtime_error(msg);
+		}
+		ptr = mmap(0, size, (PROT_READ | PROT_WRITE), MAP_SHARED, fd, 0);
+		if (ptr == MAP_FAILED) {
+			string msg = "SharedMemRWCGnu: mmap could not create for name \"";
+			msg += fullname;
+			msg += "\"";
+			throw runtime_error(msg);
+		}
+	}
+
+	~SharedMemRWCGnu() {
+		munmap(ptr, size);
+		close(fd);
+		shm_unlink(fullname.c_str());
+	}
+
+	void* data() override {
+		return ptr;
+	}
+
+	int fd, size;
+	void *ptr;
+	std::string fullname;
+};
+
+unique_ptr<SharedMemWrite> createSharedMemRWC(int size, const char* name) {
+	return make_unique<SharedMemRWCGnu>(size, name);
 }
 

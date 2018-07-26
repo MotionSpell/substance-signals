@@ -3,6 +3,7 @@
 #include "lib_utils/fraction.hpp"
 #include "lib_utils/log.hpp"
 
+#include "lib_utils/os.hpp"
 using namespace Tests;
 
 namespace {
@@ -73,6 +74,16 @@ unittest("divUp") {
 	ASSERT(res1 == 3);
 	res1 = divUp(-5, 2);
 	ASSERT(res1 == -3);
+}
+
+unittest("shmem") {
+	auto const val = 0xdeadbeef;
+	auto shmemW = createSharedMemRWC(256, "test_signals");
+	auto data1 = (uint32_t*)shmemW->data();
+	*data1 = val;
+	auto shmemR = createSharedMemRWC(256, "test_signals");
+	auto data2 = (uint32_t*)shmemW->data();
+	ASSERT_EQUALS(val, *data2);
 }
 
 }

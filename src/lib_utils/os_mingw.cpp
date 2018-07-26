@@ -1,10 +1,17 @@
 #include "os.hpp"
 #include <stdexcept>
+#include <string> //to_string
 
 using namespace std;
 
 #include <windows.h>
 #include <direct.h> //chdir
+#include <process.h> //getpid
+
+int getPid() {
+  return getpid();
+}
+
 bool setHighThreadPriority() {
 	return SetThreadPriority(NULL, THREAD_PRIORITY_TIME_CRITICAL);
 }
@@ -86,3 +93,39 @@ unique_ptr<DynLib> loadLibrary(const char* name) {
 	return make_unique<DynLibWin>(name);
 }
 
+struct SharedMemRWCWin : SharedMemWrite {
+	SharedMemRWCWin(int size, const char* name) {
+		hMapFile = CreateFileMappingA(INVALID_HANDLE_VALUE, NULL,
+		        PAGE_READWRITE, 0, size, name);
+		if (hMapFile == NULL) {
+			string msg = "SharedMemRWCWin: could not create \"";
+			msg += name;
+			msg += "\": ";
+			msg += to_string(GetLastError());
+			throw runtime_error(msg);
+		}
+
+		ptr = (void*)MapViewOfFile(hMapFile, FILE_MAP_ALL_ACCESS, 0, 0, size);
+		if (ptr == nullptr) {
+			string msg = "SharedMemRWCWin: could not retrieve data pointer: ";
+			msg += to_string(GetLastError());
+			throw runtime_error(msg);
+		}
+	}
+
+	~SharedMemRWCWin() {
+		UnmapViewOfFile(ptr);
+		CloseHandle(hMapFile);
+	}
+
+	void* data() override {
+		return ptr;
+	}
+
+	HANDLE hMapFile;
+	void *ptr;
+};
+
+unique_ptr<SharedMemWrite> createSharedMemRWC(int size, const char* name) {
+	return make_unique<SharedMemRWCWin>(size, name);
+}

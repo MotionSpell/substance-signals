@@ -32,6 +32,7 @@
     <ClInclude Include="pipeline.hpp" />
     <ClInclude Include="pipelined_input.hpp" />
     <ClInclude Include="pipelined_module.hpp" />
+    <ClInclude Include="stats.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{574FF783-7940-4C5F-996F-93431AEA2F1A}</ProjectGuid>

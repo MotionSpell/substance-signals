@@ -10,13 +10,14 @@
 namespace Pipelines {
 
 struct Graph;
+struct IStatsRegistry;
 
 struct IPipelinedModule {
 	virtual ~IPipelinedModule() {};
 	virtual int getNumInputs() const = 0;
 	virtual int getNumOutputs() const = 0;
 	virtual Modules::IInput* getInput(int i) = 0;  //TODO: hide this
-	virtual std::shared_ptr<const Modules::IMetadata>  getOutputMetadata(int i) = 0;
+	virtual std::shared_ptr<const Modules::IMetadata> getOutputMetadata(int i) = 0;
 };
 
 struct IPipelineNotifier {
@@ -77,6 +78,8 @@ class Pipeline : public IPipelineNotifier {
 		std::condition_variable condition;
 		size_t notifications = 0, remainingNotifications = 0;
 		std::exception_ptr eptr;
+
+		std::unique_ptr<IStatsRegistry> statsMem;
 };
 
 }

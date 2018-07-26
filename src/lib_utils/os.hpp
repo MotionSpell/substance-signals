@@ -2,6 +2,8 @@
 
 #include <string>
 
+// process
+int getPid();
 bool setHighThreadPriority();
 
 // filesystem
@@ -22,3 +24,12 @@ struct DynLib {
 
 std::unique_ptr<DynLib> loadLibrary(const char* name);
 
+
+// shared inter-process memory
+
+struct SharedMemWrite {
+	virtual ~SharedMemWrite() {}
+	virtual void* data() = 0;
+};
+
+std::unique_ptr<SharedMemWrite> createSharedMemRWC(int size, const char* name);
