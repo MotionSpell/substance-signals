@@ -92,36 +92,37 @@ unique_ptr<DynLib> loadLibrary(const char* name) {
 
 struct SharedMemRWCGnu : SharedMemWrite {
 	SharedMemRWCGnu(int size, const char* name) : size(size) {
-		fullname = std::string("/") + name;
-		fd = shm_open(fullname.c_str(), (O_CREAT | O_RDWR | O_EXCL), (S_IRUSR | S_IWUSR));
+		int fd = shm_open(name, (O_CREAT | O_RDWR | O_EXCL), (S_IRUSR | S_IWUSR));
 		if (fd == -1) {
 			string msg = "SharedMemRWCGnu: shm_open could not create \"";
-			msg += fullname;
+			msg += name;
 			msg += "\"";
 			throw runtime_error(msg);
 		}
+		int rc = ftruncate(fd, size);
+		if(rc == -1)
+			throw runtime_error("SharedMemRWCGnu: shm_open can't set map size");
 		ptr = mmap(0, size, (PROT_READ | PROT_WRITE), MAP_SHARED, fd, 0);
 		if (ptr == MAP_FAILED) {
 			string msg = "SharedMemRWCGnu: mmap could not create for name \"";
-			msg += fullname;
+			msg += name;
 			msg += "\"";
 			throw runtime_error(msg);
 		}
+		close(fd);
+		shm_unlink(name);
 	}
 
 	~SharedMemRWCGnu() {
 		munmap(ptr, size);
-		close(fd);
-		shm_unlink(fullname.c_str());
 	}
 
 	void* data() override {
 		return ptr;
 	}
 
-	int fd, size;
+	int size;
 	void *ptr;
-	std::string fullname;
 };
 
 unique_ptr<SharedMemWrite> createSharedMemRWC(int size, const char* name) {
