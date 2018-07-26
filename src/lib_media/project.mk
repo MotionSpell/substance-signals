@@ -54,11 +54,6 @@ PKGS+=\
   libswscale\
   libturbojpeg\
 
-CFLAGS+=-fPIC
-
-$(BIN)/%.smd: $(LIB_MODULES_SRCS:%=$(BIN)/%.o) $(LIB_UTILS_SRCS:%=$(BIN)/%.o)
-	$(CXX) $(CFLAGS) -pthread -shared -Wl,--no-undefined -o "$@" $^ $(LDFLAGS)
-
 ifeq ($(SIGNALS_HAS_X11), 1)
 
 PKGS+=sdl2
