@@ -26,19 +26,16 @@ class PipelinedModule :
 		IOutput* getOutput(int i);
 		std::shared_ptr<const IMetadata>  getOutputMetadata(int i) override;
 
-		/* uses the executor (i.e. may defer the call) */
-		void process();
-
 		/* source modules are stopped manually - then the message propagates to other connected modules */
 		bool isSource();
+		/* uses the executor (i.e. may defer the call) */
+		void startSource();
 		void stopSource();
 
 	private:
 		std::string getDelegateName() const;
 		void mimicInputs();
 
-		/* uses the executor (i.e. may defer the call) */
-		void startSource();
 
 		// IPipelineNotifier implementation
 		void endOfStream() override;

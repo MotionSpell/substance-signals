@@ -162,7 +162,7 @@ void Pipeline::start() {
 	for (auto &module : modules) {
 		auto m = safe_cast<PipelinedModule>(module.get());
 		if (m->isSource()) {
-			m->process();
+			m->startSource();
 		}
 	}
 	Log::msg(Info, "Pipeline: started");

@@ -137,10 +137,6 @@ void PipelinedModule::stopSource() {
 	}
 }
 
-void PipelinedModule::process() {
-	startSource();
-}
-
 // IPipelineNotifier implementation
 
 void PipelinedModule::endOfStream() {
