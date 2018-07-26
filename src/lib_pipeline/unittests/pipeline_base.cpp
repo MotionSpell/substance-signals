@@ -50,10 +50,10 @@ unittest("pipeline: empty") {
 }
 
 unittest("pipeline: connect inputs to outputs") {
-	Pipeline p;
-	auto src = p.addModule<InfiniteSource>();
-	auto sink = p.addModule<FakeSink>();
-	ASSERT_THROWN(p.connect(sink, 0, src, 0));
+	auto p = std::make_unique<Pipeline>();
+	auto src = p->addModule<InfiniteSource>();
+	auto sink = p->addModule<FakeSink>();
+	ASSERT_THROWN(p->connect(sink, 0, src, 0));
 }
 
 unittest("pipeline: connect incompatible i/o") {

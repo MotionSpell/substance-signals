@@ -27,9 +27,15 @@ PipelinedModule::PipelinedModule(std::shared_ptr<IModule> module, IPipelineNotif
 }
 
 PipelinedModule::~PipelinedModule() {
-	// inputs, which hold the executors,
-	// must be destroyed *before* the 'delegate' module.
-	inputs.clear();
+	if (isSource()) {
+		// FIXME: we shouldn't do semantics here, but it is needed as long as
+		//        the ActiveModule loop is not included in PipelinedModule
+		stopSource();
+	} else {
+		// inputs, which hold the executors,
+		// must be destroyed *before* the 'delegate' module.
+		inputs.clear();
+	}
 }
 
 std::string PipelinedModule::getDelegateName() const {
@@ -101,7 +107,10 @@ IInput* PipelinedModule::getInput(int i) {
 void PipelinedModule::startSource() {
 	assert(isSource());
 
-	Log::msg(Debug, "Module %s: dispatch data", getDelegateName());
+	if (started)
+		throw std::runtime_error("Pipeline: cannot started already started source");
+
+	Log::msg(Debug, "Module %s: start source - dispatching data", getDelegateName());
 
 	// first time: create a fake input port
 	// and push null to trigger execution
@@ -112,14 +121,20 @@ void PipelinedModule::startSource() {
 	delegate->getInput(0)->push(nullptr);
 	(*executor)(Bind(&IProcessor::process, delegate.get()));
 	(*executor)(Bind(&IProcessor::process, input));
+
+	started = true;
 }
 
 void PipelinedModule::stopSource() {
 	assert(isSource());
 
-	// the source is likely processing: push EOS in the loop
-	// and let things follow their way
-	delegate->getInput(0)->push(nullptr);
+	if (started) {
+		// the source is likely processing: push EOS in the loop
+		// and let things follow their way
+		delegate->getInput(0)->push(nullptr);
+	} else {
+		Log::msg(Warning, "Pipeline: cannot stop unstarted source. Ignoring.");
+	}
 }
 
 void PipelinedModule::process() {

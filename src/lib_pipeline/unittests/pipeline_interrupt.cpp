@@ -21,15 +21,15 @@ unittest("pipeline: EOS injection (exitSync)") {
 	tf.join();
 }
 
-unittest("[DISABLED] pipeline: destroy while running") {
-	Pipeline p;
-	auto src = p.addModule<InfiniteSource>();
-	auto sink = p.addModule<FakeSink>();
-	p.connect(src, 0, sink, 0);
-	p.start();
+unittest("pipeline: destroy while running") {
+	auto p = std::make_unique<Pipeline>();
+	auto src = p->addModule<InfiniteSource>();
+	auto sink = p->addModule<FakeSink>();
+	p->connect(src, 0, sink, 0);
+	p->start();
 }
 
-unittest("[DISABLED] pipeline: intercept exception") {
+unittest("pipeline: intercept exception") {
 	struct ExceptionModule : ModuleS {
 		ExceptionModule() {
 			addInput(new Input<DataBase>(this));

@@ -48,6 +48,7 @@ class PipelinedModule :
 		std::unique_ptr<IExecutor> const executor;
 
 		std::vector<IExecutor*> inputExecutor; /*needed to sleep when using a clock*/
+		bool started = false;
 
 		IPipelineNotifier * const m_notify;
 		int connections = 0;

@@ -27,8 +27,6 @@ unittest("pipeline: connect while running") {
 	p.start();
 	auto f = [&]() {
 		p.connect(src, 0, null2, 0);
-		p.exitSync();
-		p.waitForEndOfStream();
 	};
 	std::thread tf(f);
 	tf.join();
