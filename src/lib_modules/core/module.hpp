@@ -21,19 +21,19 @@ namespace Modules {
 //
 
 struct IProcessor {
-	virtual ~IProcessor() noexcept(false) {}
+	virtual ~IProcessor() {}
 	virtual void process() = 0;
 };
 
 struct IConnectedCap {
-	virtual ~IConnectedCap() noexcept(false) {}
+	virtual ~IConnectedCap() {}
 	virtual int getNumConnections() const = 0;
 	virtual void connect() = 0;
 	virtual void disconnect() = 0;
 };
 
 struct IInput : public IProcessor, public virtual IConnectedCap, public virtual IMetadataCap {
-	virtual ~IInput() noexcept(false) {}
+	virtual ~IInput() {}
 	virtual void push(Data) = 0;
 
 	// TODO: remove this, should only be visible to the module implementations.
@@ -42,13 +42,13 @@ struct IInput : public IProcessor, public virtual IConnectedCap, public virtual 
 };
 
 struct IInputCap {
-	virtual ~IInputCap() noexcept(false) {}
+	virtual ~IInputCap() {}
 	virtual int getNumInputs() const = 0;
 	virtual IInput* getInput(int i) = 0;
 };
 
 struct IOutput : virtual IMetadataCap {
-	virtual ~IOutput() noexcept(false) {}
+	virtual ~IOutput() {}
 	virtual void emit(Data data) = 0;
 	virtual Signals::ISignal<void(Data)>& getSignal() = 0;
 };
@@ -61,7 +61,7 @@ struct IOutput : virtual IMetadataCap {
 namespace Modules {
 
 struct IOutputCap {
-		virtual ~IOutputCap() noexcept(false) {}
+		virtual ~IOutputCap() {}
 		virtual int getNumOutputs() const = 0;
 		virtual IOutput* getOutput(int i) = 0;
 
@@ -72,7 +72,7 @@ struct IOutputCap {
 };
 
 struct IModule : IProcessor, virtual IInputCap, virtual IOutputCap {
-	virtual ~IModule() noexcept(false) {}
+	virtual ~IModule() {}
 	virtual void flush() {}
 };
 

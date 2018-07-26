@@ -24,7 +24,7 @@ struct Quality {
 };
 
 struct IAdaptiveStreamingCommon {
-	virtual ~IAdaptiveStreamingCommon() noexcept(false) {}
+	virtual ~IAdaptiveStreamingCommon() {}
 	/*created each quality private data*/
 	virtual std::unique_ptr<Quality> createQuality() const = 0;
 	/*called each time segments are ready*/

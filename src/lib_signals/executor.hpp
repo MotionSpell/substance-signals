@@ -5,7 +5,7 @@
 namespace Signals {
 
 struct IExecutor {
-	virtual ~IExecutor() noexcept(false) {}
+	virtual ~IExecutor() {}
 	virtual void operator() (const std::function<void()> &fn) = 0;
 };
 

@@ -57,7 +57,7 @@ class DataBase;
 typedef std::shared_ptr<const DataBase> Data;
 
 struct IMetadataCap {
-	virtual ~IMetadataCap() noexcept(false) {}
+	virtual ~IMetadataCap() {}
 	virtual std::shared_ptr<const IMetadata> getMetadata() const = 0;
 	virtual void setMetadata(std::shared_ptr<const IMetadata> metadata) = 0;
 	virtual bool updateMetadata(Data&) {

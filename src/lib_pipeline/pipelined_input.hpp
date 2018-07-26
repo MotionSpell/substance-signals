@@ -14,7 +14,7 @@ class PipelinedInput : public IInput, public MetadataCap {
 	public:
 		PipelinedInput(IInput *input, const std::string &moduleName, IExecutor &executor, IPipelineNotifier * const notify)
 			: delegate(input), delegateName(moduleName), notify(notify), executor(executor) {}
-		virtual ~PipelinedInput() noexcept(false) {}
+		virtual ~PipelinedInput() {}
 
 		void push(Data data) override {
 			queue.push(data);

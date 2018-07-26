@@ -11,7 +11,7 @@ namespace Modules {
 class ModuleDynI : public Module {
 	public:
 		ModuleDynI() = default;
-		virtual ~ModuleDynI() noexcept(false) {}
+		virtual ~ModuleDynI() {}
 
 		IInput* addInput(IInput *p) { //takes ownership
 			bool isDyn = false;

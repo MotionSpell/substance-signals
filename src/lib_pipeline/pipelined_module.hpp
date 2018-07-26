@@ -15,7 +15,7 @@ class PipelinedModule :
 	public:
 		/* take ownership of module and executor */
 		PipelinedModule(std::shared_ptr<IModule> module, IPipelineNotifier *notify, Pipeline::Threading threading);
-		~PipelinedModule() noexcept(false);
+		~PipelinedModule();
 
 		void connect(IOutput *output, int inputIdx, bool inputAcceptMultipleConnections);
 		void disconnect(int inputIdx, IOutput * const output);

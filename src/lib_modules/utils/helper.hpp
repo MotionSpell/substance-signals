@@ -24,7 +24,7 @@ namespace Modules {
 class MetadataCap : public virtual IMetadataCap {
 	public:
 		MetadataCap(std::shared_ptr<const IMetadata> metadata = nullptr);
-		virtual ~MetadataCap() noexcept(false) {}
+		virtual ~MetadataCap() {}
 
 		std::shared_ptr<const IMetadata> getMetadata() const override {
 			return m_metadata;
@@ -41,7 +41,7 @@ class MetadataCap : public virtual IMetadataCap {
 class ConnectedCap : public virtual IConnectedCap {
 	public:
 		ConnectedCap() : connections(0) {}
-		virtual ~ConnectedCap() noexcept(false) {}
+		virtual ~ConnectedCap() {}
 		virtual int getNumConnections() const {
 			return connections;
 		}
@@ -88,7 +88,7 @@ class Input : public IInput, public ConnectedCap, public MetadataCap {
 
 class InputCap : public virtual IInputCap {
 	public:
-		virtual ~InputCap() noexcept(false) {}
+		virtual ~InputCap() {}
 		IInput* addInput(IInput* p) { //Takes ownership
 			inputs.push_back(uptr(p));
 			return p;
@@ -115,7 +115,7 @@ class OutputDataDefault : public IOutput, public MetadataCap {
 		OutputDataDefault(size_t allocatorSize, const IMetadata *metadata = nullptr)
 			: OutputDataDefault(allocatorSize, allocatorSize, metadata) {
 		}
-		virtual ~OutputDataDefault() noexcept(false) {
+		virtual ~OutputDataDefault() {
 			allocator->unblock();
 		}
 
@@ -163,7 +163,7 @@ class OutputCap : public virtual IOutputCap {
 class Module : public IModule, public ErrorCap, public LogCap, public InputCap {
 	public:
 		Module() = default;
-		virtual ~Module() noexcept(false) {}
+		virtual ~Module() {}
 
 		template <typename InstanceType, typename ...Args>
 		InstanceType* addOutput(Args&&... args) {

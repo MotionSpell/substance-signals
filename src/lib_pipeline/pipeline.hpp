@@ -12,7 +12,7 @@ namespace Pipelines {
 struct Graph;
 
 struct IPipelinedModule {
-	virtual ~IPipelinedModule() noexcept(false) {};
+	virtual ~IPipelinedModule() {};
 	virtual int getNumInputs() const = 0;
 	virtual int getNumOutputs() const = 0;
 	virtual Modules::IInput* getInput(int i) = 0;  //TODO: hide this
