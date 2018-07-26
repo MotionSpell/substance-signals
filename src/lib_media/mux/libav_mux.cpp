@@ -43,7 +43,7 @@ LibavMux::LibavMux(const std::string &baseName, const std::string &fmt, const st
 			throw error(format("could not open %s, disable output.", baseName));
 		}
 	}
-	strncpy(m_formatCtx->filename, fileName.str().c_str(), sizeof(m_formatCtx->filename));
+	strncpy(m_formatCtx->filename, fileName.str().c_str(), sizeof(m_formatCtx->filename) - 1);
 	av_dict_set(&m_formatCtx->metadata, "service_provider", format("GPAC Licensing Signals %s", g_version).c_str(), 0);
 	av_dump_format(m_formatCtx, 0, baseName.c_str(), 1);
 
