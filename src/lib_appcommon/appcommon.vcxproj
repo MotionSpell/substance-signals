@@ -120,6 +120,7 @@
       <XMLDocumentationFileName>$(IntDir)%(RelativeDir)</XMLDocumentationFileName>
       <AdditionalIncludeDirectories>.;$(ProjectDir)\..</AdditionalIncludeDirectories>
       <EnablePREfast>false</EnablePREfast>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -147,6 +148,7 @@
       <XMLDocumentationFileName>$(IntDir)%(RelativeDir)</XMLDocumentationFileName>
       <AdditionalIncludeDirectories>.;$(ProjectDir)\..</AdditionalIncludeDirectories>
       <EnablePREfast>false</EnablePREfast>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -172,6 +174,7 @@
       <XMLDocumentationFileName>$(IntDir)%(RelativeDir)</XMLDocumentationFileName>
       <AdditionalIncludeDirectories>.;$(ProjectDir)\..</AdditionalIncludeDirectories>
       <EnablePREfast>false</EnablePREfast>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -199,6 +202,7 @@
       <XMLDocumentationFileName>$(IntDir)%(RelativeDir)</XMLDocumentationFileName>
       <AdditionalIncludeDirectories>.;$(ProjectDir)\..</AdditionalIncludeDirectories>
       <EnablePREfast>false</EnablePREfast>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
