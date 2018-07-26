@@ -17,6 +17,8 @@ enum StreamType {
 };
 
 struct IMetadata {
+	IMetadata(StreamType type_) : type(type_) {
+	}
 	virtual ~IMetadata() {}
 	inline bool operator==(const IMetadata &right) const {
 		return typeid(*this) == typeid(right) && type == right.type;
@@ -42,7 +44,7 @@ struct IMetadata {
 		default: return false;
 		}
 	}
-	StreamType type;
+	StreamType const type;
 };
 }
 

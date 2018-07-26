@@ -9,8 +9,7 @@ namespace Modules {
 
 struct MetadataFile : IMetadata {
 	MetadataFile(const std::string& filename, StreamType type_, const std::string& mimeType, const std::string& codecName, uint64_t durationIn180k, uint64_t filesize, uint64_t latencyIn180k, bool startsWithRAP, bool EOS)
-		: filename(filename), mimeType(mimeType), codecName(codecName), durationIn180k(durationIn180k), filesize(filesize), latencyIn180k(latencyIn180k), startsWithRAP(startsWithRAP), EOS(EOS) {
-		type = type_;
+		: IMetadata(type_), filename(filename), mimeType(mimeType), codecName(codecName), durationIn180k(durationIn180k), filesize(filesize), latencyIn180k(latencyIn180k), startsWithRAP(startsWithRAP), EOS(EOS) {
 	}
 
 	union {
@@ -25,31 +24,29 @@ struct MetadataFile : IMetadata {
 
 //TODO: should be picture and Pcm and return the same fields as MetadataPkt
 struct MetadataRawVideo : public IMetadata {
-	MetadataRawVideo() {
-		type = VIDEO_RAW;
+	MetadataRawVideo() : IMetadata(VIDEO_RAW) {
 	}
 };
 
 struct MetadataRawAudio : public IMetadata {
-	MetadataRawAudio() {
-		type = AUDIO_RAW;
+	MetadataRawAudio() : IMetadata(AUDIO_RAW) {
 	}
 };
 
 struct MetadataPkt : public IMetadata {
+	MetadataPkt(StreamType type) : IMetadata(type) {
+	}
 	std::string codec; // do not replace this with an enum!
 	std::vector<uint8_t> codecSpecificInfo;
 };
 
 struct MetadataPktVideo : public MetadataPkt {
-	MetadataPktVideo() {
-		type = VIDEO_PKT;
+	MetadataPktVideo() : MetadataPkt(VIDEO_PKT) {
 	}
 };
 
 struct MetadataPktAudio : public MetadataPkt {
-	MetadataPktAudio() {
-		type = AUDIO_PKT;
+	MetadataPktAudio() : MetadataPkt(AUDIO_PKT) {
 	}
 };
 
