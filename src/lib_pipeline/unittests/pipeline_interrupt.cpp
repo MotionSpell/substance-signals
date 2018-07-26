@@ -29,7 +29,7 @@ unittest("[DISABLED] pipeline: destroy while running") {
 	p.start();
 }
 
-unittest("pipeline: intercept exception") {
+unittest("[DISABLED] pipeline: intercept exception") {
 	struct ExceptionModule : ModuleS {
 		ExceptionModule() {
 			addInput(new Input<DataBase>(this));
