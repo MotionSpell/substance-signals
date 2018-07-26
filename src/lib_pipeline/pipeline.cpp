@@ -32,7 +32,7 @@ struct StatsRegistry : IStatsRegistry {
 	static const auto size = 256 * sizeof(StatsEntry);
 	static const int maxNumEntry = size / sizeof(StatsEntry);
 	StatsEntry **entries;
-	std::atomic_int64_t entryIdx;
+	std::atomic<int> entryIdx;
 };
 
 Pipeline::Pipeline(bool isLowLatency, Threading threading)
