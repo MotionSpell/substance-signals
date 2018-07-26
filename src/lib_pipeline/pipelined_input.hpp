@@ -15,7 +15,8 @@ class PipelinedInput : public IInput, public MetadataCap {
 	public:
 		PipelinedInput(IInput *input, const std::string &moduleName, IExecutor &executor, StatsEntry *statsEntry, IPipelineNotifier * const notify)
 			: delegate(input), delegateName(moduleName), notify(notify), executor(executor), statsEntry(statsEntry) {
-			strncpy(statsEntry->name, delegateName.c_str(), sizeof(statsEntry->name));
+			strncpy(statsEntry->name, delegateName.c_str(), sizeof(statsEntry->name)-1);
+			statsEntry->name[sizeof(statsEntry->name)-1] = 0;
 		}
 		virtual ~PipelinedInput() {}
 
