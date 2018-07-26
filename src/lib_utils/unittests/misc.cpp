@@ -78,10 +78,10 @@ unittest("divUp") {
 
 unittest("shmem") {
 	auto const val = 0xdeadbeef;
-	auto shmemW = createSharedMemRWC(256, "test_signals");
+	auto shmemW = createSharedMemory(256, "test_signals");
 	auto data1 = (uint32_t*)shmemW->data();
 	*data1 = val;
-	auto shmemR = createSharedMemRWC(256, "test_signals");
+	auto shmemR = createSharedMemory(256, "test_signals");
 	auto data2 = (uint32_t*)shmemW->data();
 	ASSERT_EQUALS(val, *data2);
 }

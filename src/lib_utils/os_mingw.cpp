@@ -93,7 +93,7 @@ unique_ptr<DynLib> loadLibrary(const char* name) {
 	return make_unique<DynLibWin>(name);
 }
 
-struct SharedMemRWCWin : SharedMemWrite {
+struct SharedMemRWCWin : SharedMemory {
 	SharedMemRWCWin(int size, const char* name) {
 		hMapFile = CreateFileMappingA(INVALID_HANDLE_VALUE, NULL,
 		        PAGE_READWRITE, 0, size, name);
@@ -126,6 +126,6 @@ struct SharedMemRWCWin : SharedMemWrite {
 	void *ptr;
 };
 
-unique_ptr<SharedMemWrite> createSharedMemRWC(int size, const char* name) {
+unique_ptr<SharedMemory> createSharedMemory(int size, const char* name) {
 	return make_unique<SharedMemRWCWin>(size, name);
 }

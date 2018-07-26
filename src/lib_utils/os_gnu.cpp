@@ -90,7 +90,7 @@ unique_ptr<DynLib> loadLibrary(const char* name) {
 	return make_unique<DynLibGnu>(name);
 }
 
-struct SharedMemRWCGnu : SharedMemWrite {
+struct SharedMemRWCGnu : SharedMemory {
 	SharedMemRWCGnu(int size, const char* name) : size(size) {
 		int fd = shm_open(name, (O_CREAT | O_RDWR | O_EXCL), (S_IRUSR | S_IWUSR));
 		if (fd == -1) {
@@ -125,7 +125,7 @@ struct SharedMemRWCGnu : SharedMemWrite {
 	void *ptr;
 };
 
-unique_ptr<SharedMemWrite> createSharedMemRWC(int size, const char* name) {
+unique_ptr<SharedMemory> createSharedMemory(int size, const char* name) {
 	return make_unique<SharedMemRWCGnu>(size, name);
 }
 

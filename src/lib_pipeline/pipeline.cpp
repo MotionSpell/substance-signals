@@ -15,19 +15,19 @@
 namespace Pipelines {
 
 struct StatsRegistry : IStatsRegistry {
-	StatsRegistry() : shmem(createSharedMemRWC(size, std::to_string(getPid()).c_str())), entryIdx(0) {
+	StatsRegistry() : shmem(createSharedMemory(size, std::to_string(getPid()).c_str())), entryIdx(0) {
 		memset(shmem->data(), 0, size);
 	}
 
 	StatsEntry* getNewEntry() override {
 		entryIdx++;
 		if (entryIdx >= maxNumEntry)
-			throw std::runtime_error(format("SharedMemWrite: accessing too far (%s with max=%s).", entryIdx - 1, maxNumEntry - 1));
+			throw std::runtime_error(format("SharedMemory: accessing too far (%s with max=%s).", entryIdx - 1, maxNumEntry - 1));
 
 		return (StatsEntry*)shmem->data() + entryIdx - 1;
 	}
 
-	std::unique_ptr<SharedMemWrite> shmem;
+	std::unique_ptr<SharedMemory> shmem;
 	static const auto size = 256 * sizeof(StatsEntry);
 	static const int maxNumEntry = size / sizeof(StatsEntry);
 	StatsEntry **entries;
