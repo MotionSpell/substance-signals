@@ -9,7 +9,7 @@ using namespace std;
 #include <process.h> //getpid
 
 int getPid() {
-  return getpid();
+	return getpid();
 }
 
 bool setHighThreadPriority() {
