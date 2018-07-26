@@ -20,6 +20,11 @@ static unique_ptr<DynLib> loadPlugin(const char* name) {
 	return loadLibrary(path.c_str());
 }
 
+extern "C"
+{
+	Modules::IModule* instantiate(const char* name, va_list va);
+}
+
 shared_ptr<IModule> vLoadModule(const char* name, va_list va) {
 	string libName = name + string(".smd");
 	auto lib = shared_ptr<DynLib>(loadPlugin(libName.c_str()));

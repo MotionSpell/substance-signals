@@ -2,7 +2,6 @@
 #include <cstdarg> // va_list
 
 namespace Modules {
-IModule* instantiate(const char* name, ...);
 IModule* vInstantiate(const char* name, va_list);
 
 using ModuleCreationFunc = IModule* (va_list);

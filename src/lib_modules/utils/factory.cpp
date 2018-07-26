@@ -43,12 +43,6 @@ int registerModule(const char* name, ModuleCreationFunc* func) {
 	return 0;
 }
 
-IModule* instantiate(const char* name, ...) {
-	va_list va;
-	va_start(va, name);
-	return vInstantiate(name, va);
-}
-
 IModule* vInstantiate(const char* name, va_list va) {
 	auto entry = findEntry(name);
 	if(!entry)
