@@ -5,8 +5,8 @@ using namespace std;
 
 #include <pthread.h>
 #include <sys/stat.h> // mode constants
-#include <fcntl.h> // O_CREAT
-#include <unistd.h>   //chdir, getpid
+#include <fcntl.h>    // O_CREAT
+#include <unistd.h>   // chdir, getpid
 #include <dlfcn.h>    // dlopen
 #include <libgen.h>   // dirname
 #include <sys/mman.h>
@@ -130,4 +130,3 @@ struct SharedMemRWCGnu : SharedMemory {
 unique_ptr<SharedMemory> createSharedMemory(int size, const char* name) {
 	return make_unique<SharedMemRWCGnu>(size, name);
 }
-
