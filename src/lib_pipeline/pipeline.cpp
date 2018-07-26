@@ -35,9 +35,9 @@ struct StatsRegistry : IStatsRegistry {
 };
 
 Pipeline::Pipeline(bool isLowLatency, Threading threading)
-	: graph(new Graph),
+	: statsMem(new StatsRegistry), graph(new Graph),
 	  allocatorNumBlocks(isLowLatency ? Modules::ALLOC_NUM_BLOCKS_LOW_LATENCY : Modules::ALLOC_NUM_BLOCKS_DEFAULT),
-	  threading(threading), statsMem(new StatsRegistry) {
+	  threading(threading) {
 }
 
 Pipeline::~Pipeline() {

@@ -69,6 +69,7 @@ class Pipeline : public IPipelineNotifier {
 			return numBlock ? numBlock : allocatorNumBlocks;
 		}
 
+		std::unique_ptr<IStatsRegistry> statsMem;
 		std::vector<std::unique_ptr<IPipelinedModule>> modules;
 		std::unique_ptr<Graph> graph;
 		const int allocatorNumBlocks;
@@ -78,8 +79,6 @@ class Pipeline : public IPipelineNotifier {
 		std::condition_variable condition;
 		size_t notifications = 0, remainingNotifications = 0;
 		std::exception_ptr eptr;
-
-		std::unique_ptr<IStatsRegistry> statsMem;
 };
 
 }
