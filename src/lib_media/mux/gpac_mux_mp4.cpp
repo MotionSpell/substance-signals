@@ -377,26 +377,26 @@ void fillVideoSampleData(const u8 *bufPtr, u32 bufLen, GF_ISOSample &sample) {
 
 namespace Mux {
 
-GPACMuxMP4::GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs, SegmentPolicy segmentPolicy, FragmentPolicy fragmentPolicy, CompatibilityFlag compatFlags)
-	: compatFlags(compatFlags), fragmentPolicy(fragmentPolicy), segmentPolicy(segmentPolicy), segmentDuration(segmentDurationInMs, 1000) {
-	if ((segmentDurationInMs == 0) ^ (segmentPolicy == NoSegment || segmentPolicy == SingleSegment))
-		throw error(format("Inconsistent parameters: segment duration is %sms but no segment.", segmentDurationInMs));
-	if ((segmentDurationInMs == 0) && (fragmentPolicy == Mux::GPACMuxMP4::OneFragmentPerSegment))
+GPACMuxMP4::GPACMuxMP4(Mp4MuxConfig const& cfg)
+	: compatFlags(cfg.compatFlags), fragmentPolicy(cfg.fragmentPolicy), segmentPolicy(cfg.segmentPolicy), segmentDuration(cfg.segmentDurationInMs, 1000) {
+	if ((cfg.segmentDurationInMs == 0) ^ (segmentPolicy == NoSegment || segmentPolicy == SingleSegment))
+		throw error(format("Inconsistent parameters: segment duration is %sms but no segment.", cfg.segmentDurationInMs));
+	if ((cfg.segmentDurationInMs == 0) && (fragmentPolicy == OneFragmentPerSegment))
 		throw error("Inconsistent parameters: segment duration is 0 ms but requested one fragment by segment.");
 	if ((segmentPolicy == SingleSegment || segmentPolicy == FragmentedSegment) && (fragmentPolicy == NoFragment))
 		throw error("Inconsistent parameters: segmented policies require fragmentation to be enabled.");
 	if ((compatFlags & SmoothStreaming) && (segmentPolicy != IndependentSegment))
 		throw error("Inconsistent parameters: SmoothStreaming compatibility requires IndependentSegment policy.");
-	if ((compatFlags & FlushFragMemory) && ((!baseName.empty()) || (segmentPolicy != FragmentedSegment)))
+	if ((compatFlags & FlushFragMemory) && ((!cfg.baseName.empty()) || (segmentPolicy != FragmentedSegment)))
 		throw error("Inconsistent parameters: FlushFragMemory requires an empty segment name and FragmentedSegment policy.");
 
-	if (baseName.empty()) {
+	if (cfg.baseName.empty()) {
 		log(Info, "Working in memory mode.");
 	} else {
 		if (segmentPolicy > NoSegment) {
-			segmentName = format("%s-init.mp4", baseName);
+			segmentName = format("%s-init.mp4", cfg.baseName);
 		} else {
-			segmentName = format("%s.mp4", baseName);
+			segmentName = format("%s.mp4", cfg.baseName);
 		}
 
 		log(Warning, "Working in file mode: %s. This is deprecated.", segmentName);
@@ -409,7 +409,7 @@ GPACMuxMP4::GPACMuxMP4(const std::string &baseName, uint64_t segmentDurationInMs
 
 	GF_Err e = gf_isom_set_storage_mode(isoCur, GF_ISOM_STORE_INTERLEAVED);
 	if (e != GF_OK)
-		throw error(format("Cannot make iso file %s interleaved", baseName));
+		throw error(format("Cannot make iso file %s interleaved", cfg.baseName));
 
 	if (compatFlags & FlushFragMemory) {
 		output = addOutputDynAlloc<OutputDataDefault<DataRawGPAC>>(100 * ALLOC_NUM_BLOCKS_DEFAULT); //TODO: retrieve framerate, and multiply the allocator size

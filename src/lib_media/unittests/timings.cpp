@@ -44,8 +44,8 @@ void checkTimestampsMux(const std::vector<int64_t> &timesIn, const std::vector<i
 
 template<typename T>
 void checkTimestamps(const std::vector<int64_t> &timesIn, const std::vector<int64_t> &timesOut) {
-	checkTimestampsMux<T>(timesIn, timesOut, create<Mux::GPACMuxMP4>("out/random_ts"));
-	checkTimestampsMux<T>(timesIn, timesOut, create<Mux::GPACMuxMP4>("out/random_ts", 0, Mux::GPACMuxMP4::NoSegment, Mux::GPACMuxMP4::NoFragment, Mux::GPACMuxMP4::ExactInputDur));
+	checkTimestampsMux<T>(timesIn, timesOut, create<Mux::GPACMuxMP4>(Mp4MuxConfig{"out/random_ts"}));
+	checkTimestampsMux<T>(timesIn, timesOut, create<Mux::GPACMuxMP4>(Mp4MuxConfig{"out/random_ts", 0, NoSegment, NoFragment, ExactInputDur}));
 }
 
 unittest("timestamps start at random values (LibavDemux)") {
