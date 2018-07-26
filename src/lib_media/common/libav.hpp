@@ -21,7 +21,6 @@ class MetadataPktLibav : public MetadataPkt {
 	public:
 		MetadataPktLibav(std::shared_ptr<AVCodecContext> codecCtx, int id = -1);
 		virtual ~MetadataPktLibav() {}
-		StreamType getStreamType() const override;
 		int64_t getBitrate() const;
 		Fraction getTimeScale() const;
 		std::string getCodecName() const;

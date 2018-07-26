@@ -33,13 +33,11 @@ MetadataPktLibav::MetadataPktLibav(std::shared_ptr<AVCodecContext> codecCtx, int
 	enforce(codecCtx != nullptr, "MetadataPktLibav 'codecCtx' can't be null.");
 	codec = avcodec_get_name(codecCtx->codec_id);
 	codecSpecificInfo.assign(codecCtx->extradata, codecCtx->extradata + codecCtx->extradata_size);
-}
 
-StreamType MetadataPktLibav::getStreamType() const {
 	switch (codecCtx->codec_type) {
-	case AVMEDIA_TYPE_VIDEO: return VIDEO_PKT;
-	case AVMEDIA_TYPE_AUDIO: return AUDIO_PKT;
-	case AVMEDIA_TYPE_SUBTITLE: return SUBTITLE_PKT;
+	case AVMEDIA_TYPE_VIDEO: type = VIDEO_PKT; break;
+	case AVMEDIA_TYPE_AUDIO: type = AUDIO_PKT; break;
+	case AVMEDIA_TYPE_SUBTITLE: type = SUBTITLE_PKT; break;
 	default: throw std::runtime_error("Unknown stream type. Only audio, video and subtitle handled.");
 	}
 }

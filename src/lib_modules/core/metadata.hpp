@@ -19,27 +19,30 @@ enum StreamType {
 struct IMetadata {
 	virtual ~IMetadata() {}
 	inline bool operator==(const IMetadata &right) const {
-		return typeid(*this) == typeid(right);
+		return typeid(*this) == typeid(right) && type == right.type;
 	}
-	virtual StreamType getStreamType() const = 0;
+	StreamType getStreamType() const {
+		return type;
+	}
 	bool isVideo() const {
-		switch (getStreamType()) {
+		switch (type) {
 		case VIDEO_RAW: case VIDEO_PKT: return true;
 		default: return false;
 		}
 	}
 	bool isAudio() const {
-		switch (getStreamType()) {
+		switch (type) {
 		case AUDIO_RAW: case AUDIO_PKT: return true;
 		default: return false;
 		}
 	}
 	bool isSubtitle() const {
-		switch (getStreamType()) {
+		switch (type) {
 		case SUBTITLE_PKT: return true;
 		default: return false;
 		}
 	}
+	StreamType type;
 };
 }
 

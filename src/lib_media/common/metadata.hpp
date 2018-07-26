@@ -8,11 +8,9 @@
 namespace Modules {
 
 struct MetadataFile : IMetadata {
-	MetadataFile(const std::string& filename, StreamType streamType, const std::string& mimeType, const std::string& codecName, uint64_t durationIn180k, uint64_t filesize, uint64_t latencyIn180k, bool startsWithRAP, bool EOS)
-		: streamType(streamType), filename(filename), mimeType(mimeType), codecName(codecName), durationIn180k(durationIn180k), filesize(filesize), latencyIn180k(latencyIn180k), startsWithRAP(startsWithRAP), EOS(EOS) {
-	}
-	StreamType getStreamType() const override {
-		return streamType;
+	MetadataFile(const std::string& filename, StreamType type_, const std::string& mimeType, const std::string& codecName, uint64_t durationIn180k, uint64_t filesize, uint64_t latencyIn180k, bool startsWithRAP, bool EOS)
+		: filename(filename), mimeType(mimeType), codecName(codecName), durationIn180k(durationIn180k), filesize(filesize), latencyIn180k(latencyIn180k), startsWithRAP(startsWithRAP), EOS(EOS) {
+		type = type_;
 	}
 
 	union {
@@ -20,7 +18,6 @@ struct MetadataFile : IMetadata {
 		    int sampleRate;
 		};
 
-	StreamType streamType;
 	std::string filename, mimeType, codecName/*as per RFC6381*/;
 	uint64_t durationIn180k, filesize, latencyIn180k;
 	bool startsWithRAP, EOS;
@@ -28,14 +25,14 @@ struct MetadataFile : IMetadata {
 
 //TODO: should be picture and Pcm and return the same fields as MetadataPkt
 struct MetadataRawVideo : public IMetadata {
-	StreamType getStreamType() const override {
-		return VIDEO_RAW;
+	MetadataRawVideo() {
+		type = VIDEO_RAW;
 	}
 };
 
 struct MetadataRawAudio : public IMetadata {
-	StreamType getStreamType() const override {
-		return AUDIO_RAW;
+	MetadataRawAudio() {
+		type = AUDIO_RAW;
 	}
 };
 
@@ -45,14 +42,14 @@ struct MetadataPkt : public IMetadata {
 };
 
 struct MetadataPktVideo : public MetadataPkt {
-	StreamType getStreamType() const override {
-		return VIDEO_PKT;
+	MetadataPktVideo() {
+		type = VIDEO_PKT;
 	}
 };
 
 struct MetadataPktAudio : public MetadataPkt {
-	StreamType getStreamType() const override {
-		return AUDIO_PKT;
+	MetadataPktAudio() {
+		type = AUDIO_PKT;
 	}
 };
 
