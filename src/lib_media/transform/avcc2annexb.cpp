@@ -28,7 +28,12 @@ void AVCC2AnnexBConverter::process(Data in) {
 			log(Error, "Too much data read: %s (available: %s - 4) (total %s). Exit current conversion.", size, availableBytes, in->size());
 			break;
 		}
-		*((uint32_t*)(out->data() + pos)) = 0x01000000; /*big endian*/
+		// write start code
+		auto bytes = out->data() + pos;
+		*bytes++ = 0x00;
+		*bytes++ = 0x00;
+		*bytes++ = 0x00;
+		*bytes++ = 0x01;
 		gf_bs_read_data(bs, (char*)out->data() + pos + 4, size);
 	}
 	gf_bs_del(bs);
