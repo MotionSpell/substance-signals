@@ -12,7 +12,7 @@ namespace Decode {
 JPEGTurboDecode::JPEGTurboDecode()
 	: jtHandle(tjInitDecompress()) {
 	auto input = addInput(new Input<DataBase>(this));
-	input->setMetadata(make_shared<MetadataPktVideo>());
+	input->setMetadata(make_shared<MetadataPkt>(VIDEO_PKT));
 	output = addOutput<OutputPicture>(make_shared<MetadataRawVideo>());
 }
 

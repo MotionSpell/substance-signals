@@ -40,14 +40,4 @@ struct MetadataPkt : public IMetadata {
 	std::vector<uint8_t> codecSpecificInfo;
 };
 
-struct MetadataPktVideo : public MetadataPkt {
-	MetadataPktVideo() : MetadataPkt(VIDEO_PKT) {
-	}
-};
-
-struct MetadataPktAudio : public MetadataPkt {
-	MetadataPktAudio() : MetadataPkt(AUDIO_PKT) {
-	}
-};
-
 }

@@ -47,7 +47,7 @@ std::shared_ptr<DataBase> getTestMp3Frame() {
 	auto r = createPacket(mp3_sine_frame);
 
 	{
-		auto meta = make_shared<MetadataPktAudio>();
+		auto meta = make_shared<MetadataPkt>(AUDIO_PKT);
 		meta->codec = "mp3";
 		r->setMetadata(meta);
 	}
@@ -122,7 +122,7 @@ std::shared_ptr<DataBase> getTestH264Frame() {
 	auto r = createPacket(h264_gray_frame);
 
 	{
-		auto meta = make_shared<MetadataPktVideo>();
+		auto meta = make_shared<MetadataPkt>(VIDEO_PKT);
 		meta->codec = "h264";
 		r->setMetadata(meta);
 	}
