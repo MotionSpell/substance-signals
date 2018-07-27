@@ -2,7 +2,7 @@
 
 #include <algorithm>
 #include <cassert>
-#include <list>
+#include <vector>
 
 namespace Pipelines {
 
@@ -30,8 +30,8 @@ struct Graph {
 		return *i_node;
 	}
 
-	std::list<Node> nodes;
-	std::list<Connection> connections;
+	std::vector<Node> nodes;
+	std::vector<Connection> connections;
 };
 
 }
