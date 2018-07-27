@@ -4,6 +4,7 @@
 #include "lib_gpacpp/gpacpp.hpp"
 #include "lib_ffpp/ffpp.hpp"
 #include "lib_modules/core/data_utc.hpp"
+#include "lib_modules/utils/factory.hpp"
 
 extern "C" {
 #include <gpac/base_coding.h>
@@ -377,8 +378,8 @@ void fillVideoSampleData(const u8 *bufPtr, u32 bufLen, GF_ISOSample &sample) {
 
 namespace Mux {
 
-GPACMuxMP4::GPACMuxMP4(Mp4MuxConfig const& cfg)
-	: compatFlags(cfg.compatFlags), fragmentPolicy(cfg.fragmentPolicy), segmentPolicy(cfg.segmentPolicy), segmentDuration(cfg.segmentDurationInMs, 1000) {
+GPACMuxMP4::GPACMuxMP4(IModuleHost* host, Mp4MuxConfig const& cfg)
+	: m_host(host), compatFlags(cfg.compatFlags), fragmentPolicy(cfg.fragmentPolicy), segmentPolicy(cfg.segmentPolicy), segmentDuration(cfg.segmentDurationInMs, 1000) {
 	if ((cfg.segmentDurationInMs == 0) ^ (segmentPolicy == NoSegment || segmentPolicy == SingleSegment))
 		throw error(format("Inconsistent parameters: segment duration is %sms but no segment.", cfg.segmentDurationInMs));
 	if ((cfg.segmentDurationInMs == 0) && (fragmentPolicy == OneFragmentPerSegment))
@@ -1063,3 +1064,12 @@ void GPACMuxMP4::process() {
 
 }
 }
+
+using namespace Modules;
+
+Modules::IModule* createObject(IModuleHost* host, va_list va) {
+	auto config = va_arg(va, Mp4MuxConfig);
+	return Modules::create<Mux::GPACMuxMP4>(host, config).release();
+}
+
+auto const registered = registerModule("GPACMuxMP4", &createObject);

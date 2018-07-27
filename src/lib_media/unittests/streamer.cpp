@@ -680,9 +680,9 @@ unittest("[DISABLED] adaptive streaming combination coverage")
 		if ((gf_dir_exists(prefix.c_str()) == GF_FALSE) && gf_mkdir(prefix.c_str()))
 			throw std::runtime_error(format("couldn't create subdir \"%s\": please check you have sufficient rights", prefix));
 
-		muxMP4File.push_back(create<Mux::GPACMuxMP4>(Mp4MuxConfig{format("%s/%s", prefix, prefix), segmentDurationInMs, FragmentedSegment, OneFragmentPerFrame}));
-		muxMP4Mem.push_back(create<Mux::GPACMuxMP4>(Mp4MuxConfig{"", segmentDurationInMs, FragmentedSegment, OneFragmentPerSegment}));
-		muxMP4MemFlushFrags.push_back(create<Mux::GPACMuxMP4>(Mp4MuxConfig{"", segmentDurationInMs, FragmentedSegment, OneFragmentPerFrame, FlushFragMemory}));
+		muxMP4File.push_back(create<Mux::GPACMuxMP4>(&NullHost, Mp4MuxConfig{format("%s/%s", prefix, prefix), segmentDurationInMs, FragmentedSegment, OneFragmentPerFrame}));
+		muxMP4Mem.push_back(create<Mux::GPACMuxMP4>(&NullHost, Mp4MuxConfig{"", segmentDurationInMs, FragmentedSegment, OneFragmentPerSegment}));
+		muxMP4MemFlushFrags.push_back(create<Mux::GPACMuxMP4>(&NullHost, Mp4MuxConfig{"", segmentDurationInMs, FragmentedSegment, OneFragmentPerFrame, FlushFragMemory}));
 
 		ConnectModules(encode.back().get(), 0, muxMP4File[i].get(), 0);
 		ConnectModules(encode.back().get(), 0, muxMP4Mem[i].get(), 0);

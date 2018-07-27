@@ -86,7 +86,7 @@ secondclasstest("H265 encode and GPAC mp4 mux") {
 	p.avcodecCustom = "-vcodec libx265";
 	try {
 		auto encode = create<Encode::LibavEncode>(Encode::LibavEncode::Video, p);
-		auto mux = create<Mux::GPACMuxMP4>(Mp4MuxConfig{"tmp"});
+		auto mux = create<Mux::GPACMuxMP4>(&NullHost, Mp4MuxConfig{"tmp"});
 		ConnectOutputToInput(encode->getOutput(0), mux->getInput(0));
 
 		auto picture = make_shared<PictureYUV420P>(VIDEO_RESOLUTION);
@@ -164,7 +164,7 @@ unittest("GPAC mp4 mux: don't create empty fragments") {
 	p.frameRate.num = 1;
 	auto picture = make_shared<PictureYUV420P>(VIDEO_RESOLUTION);
 	auto encode = create<Encode::LibavEncode>(Encode::LibavEncode::Video, p);
-	auto mux = create<Mux::GPACMuxMP4>(Mp4MuxConfig{"", segmentDurationInMs, FragmentedSegment, OneFragmentPerRAP, Browsers | SegmentAtAny});
+	auto mux = create<Mux::GPACMuxMP4>(&NullHost, Mp4MuxConfig{"", segmentDurationInMs, FragmentedSegment, OneFragmentPerRAP, Browsers | SegmentAtAny});
 	ConnectOutputToInput(encode->getOutput(0), mux->getInput(0));
 	auto recorder = create<Recorder>();
 	ConnectOutputToInput(mux->getOutput(0), recorder->getInput(0));

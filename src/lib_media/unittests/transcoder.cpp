@@ -75,7 +75,7 @@ unittest("transcoder: video simple (gpac mux MP4)") {
 	//create the video decode
 	auto decode = create<Decode::Decoder>(VIDEO_PKT);
 	auto encode = create<Encode::LibavEncode>(Encode::LibavEncode::Video);
-	auto mux = create<Mux::GPACMuxMP4>(Mp4MuxConfig{"out/output_video_gpac"});
+	auto mux = create<Mux::GPACMuxMP4>(&NullHost, Mp4MuxConfig{"out/output_video_gpac"});
 
 	ConnectOutputToInput(demux->getOutput(videoIndex), decode->getInput(0));
 	ConnectOutputToInput(decode->getOutput(0), encode->getInput(0));
@@ -171,7 +171,7 @@ unittest("transcoder: jpg to h264/mp4 (gpac)") {
 	auto converter = create<Transform::VideoConvert>(dstFormat);
 
 	auto encoder = create<Encode::LibavEncode>(Encode::LibavEncode::Video);
-	auto mux = create<Mux::GPACMuxMP4>(Mp4MuxConfig{"out/test"});
+	auto mux = create<Mux::GPACMuxMP4>(&NullHost, Mp4MuxConfig{"out/test"});
 
 	ConnectOutputToInput(reader->getOutput(0), decode->getInput(0));
 	ConnectOutputToInput(decode->getOutput(0), converter->getInput(0));

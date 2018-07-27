@@ -218,7 +218,7 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 			if (!dirExists(subdir))
 				mkdir(subdir);
 
-			auto muxer = pipeline->addModule<Mux::GPACMuxMP4>(Mp4MuxConfig{subdir + prefix, opt->segmentDurationInMs, FragmentedSegment, opt->ultraLowLatency ? OneFragmentPerFrame : OneFragmentPerSegment});
+			auto muxer = pipeline->addModule<Mux::GPACMuxMP4>(&NullHost, Mp4MuxConfig{subdir + prefix, opt->segmentDurationInMs, FragmentedSegment, opt->ultraLowLatency ? OneFragmentPerFrame : OneFragmentPerSegment});
 			if (transcode) {
 				connect(encoder, muxer);
 			} else {
@@ -229,7 +229,7 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 
 			if(MP4_MONITOR) {
 				//auto muxermp4 = pipeline->addModule<Mux::LibavMux>("monitor_" + prefix.str(), "mp4");
-				auto muxermp4 = pipeline->addModule<Mux::GPACMuxMP4>(Mp4MuxConfig{"monitor_" + prefix});
+				auto muxermp4 = pipeline->addModule<Mux::GPACMuxMP4>(&NullHost, Mp4MuxConfig{"monitor_" + prefix});
 				if (transcode) {
 					connect(encoder, muxermp4);
 				} else {

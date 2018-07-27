@@ -51,7 +51,7 @@ namespace Mux {
 
 class GPACMuxMP4 : public ModuleDynI, private LogCap {
 	public:
-		GPACMuxMP4(Mp4MuxConfig const& config);
+		GPACMuxMP4(IModuleHost* host, Mp4MuxConfig const& config);
 		virtual ~GPACMuxMP4();
 		void process() override;
 		void flush() override;
@@ -66,6 +66,8 @@ class GPACMuxMP4 : public ModuleDynI, private LogCap {
 		GF_ISOFile *isoInit, *isoCur;
 
 	private:
+		IModuleHost * const m_host;
+
 		bool processInit(Data &data);
 		void declareStream(const std::shared_ptr<const IMetadata> &metadata);
 		void handleInitialTimeOffset();

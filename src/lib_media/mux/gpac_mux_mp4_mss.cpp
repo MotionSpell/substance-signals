@@ -7,8 +7,8 @@ extern "C" {
 namespace Modules {
 namespace Mux {
 
-GPACMuxMP4MSS::GPACMuxMP4MSS(const std::string &baseName, uint64_t segmentDurationInMs, const std::string &audioLang, const std::string &audioName)
-	: GPACMuxMP4(
+GPACMuxMP4MSS::GPACMuxMP4MSS(IModuleHost* host, const std::string &baseName, uint64_t segmentDurationInMs, const std::string &audioLang, const std::string &audioName)
+	: GPACMuxMP4(host,
 	      Mp4MuxConfig{
 	baseName, segmentDurationInMs,
 	IndependentSegment, OneFragmentPerSegment,

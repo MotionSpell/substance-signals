@@ -215,4 +215,3 @@ Modules::IModule* createObject(IModuleHost* host, va_list va) {
 
 auto const registered = registerModule("SDLVideo", &createObject);
 }
-
