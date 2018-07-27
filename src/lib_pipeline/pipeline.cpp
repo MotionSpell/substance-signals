@@ -73,7 +73,7 @@ void Pipeline::removeModule(IPipelinedModule *module) {
 	};
 	auto i_conn = std::find_if(graph->connections.begin(), graph->connections.end(), findIf);
 	if (i_conn != graph->connections.end())
-		throw std::runtime_error("Could not remove module: conenctions found");
+		throw std::runtime_error("Could not remove module: connections found");
 
 	auto removeIt = [module](std::unique_ptr<IPipelinedModule> const& m) {
 		return m.get() == module;
