@@ -45,8 +45,6 @@
     <ClInclude Include="out\null.hpp" />
     <ClInclude Include="out\print.hpp" />
     <ClInclude Include="render\render_common.hpp" />
-    <ClInclude Include="render\sdl_audio.hpp" />
-    <ClInclude Include="render\sdl_video.hpp" />
     <ClInclude Include="stream\adaptive_streaming_common.hpp" />
     <ClInclude Include="stream\apple_hls.hpp" />
     <ClInclude Include="stream\mpeg_dash.hpp" />
