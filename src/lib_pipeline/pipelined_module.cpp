@@ -18,8 +18,9 @@ struct DataLoosePipeline : public DataBase {};
 namespace Pipelines {
 
 /* take ownership of module and executor */
-PipelinedModule::PipelinedModule(std::shared_ptr<IModule> module, IPipelineNotifier *notify, Pipeline::Threading threading, IStatsRegistry *statsRegistry)
-	: delegate(std::move(module)),
+PipelinedModule::PipelinedModule(std::unique_ptr<Modules::IModuleHost> host, std::shared_ptr<IModule> module, IPipelineNotifier *notify, Pipeline::Threading threading, IStatsRegistry *statsRegistry)
+	: m_host(std::move(host)),
+	  delegate(std::move(module)),
 	  executor(threading & Pipeline::Mono ? (IExecutor*)new EXECUTOR_LIVE : (IExecutor*)new EXECUTOR),
 	  m_notify(notify),
 	  eosCount(0),

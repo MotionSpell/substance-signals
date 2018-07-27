@@ -65,7 +65,7 @@ struct SDLAudio : ModuleS {
 
 	bool reconfigure(PcmFormat inputFormat) {
 		if (inputFormat.numPlanes > 1) {
-			log(Warning, "Support for planar audio is buggy. Please set an audio converter.");
+			m_host->log(Warning, "Support for planar audio is buggy. Please set an audio converter.");
 			return false;
 		}
 
@@ -77,7 +77,7 @@ struct SDLAudio : ModuleS {
 
 		SDL_CloseAudio();
 		if (SDL_OpenAudio(&audioSpec, &realSpec) < 0) {
-			log(Warning, "Couldn't open audio: %s", SDL_GetError());
+			m_host->log(Warning, format("Couldn't open audio: %s", SDL_GetError()).c_str());
 			return false;
 		}
 
@@ -85,14 +85,14 @@ struct SDLAudio : ModuleS {
 		m_converter = create<Transform::AudioConvert>(m_outputFormat);
 
 		m_LatencyIn180k = timescaleToClock((uint64_t)realSpec.samples, realSpec.freq);
-		log(Info, "%s Hz %s ms", realSpec.freq, m_LatencyIn180k * 1000.0f / IClock::Rate);
+		m_host->log(Info, format("%s Hz %s ms", realSpec.freq, m_LatencyIn180k * 1000.0f / IClock::Rate).c_str());
 		m_inputFormat = inputFormat;
 		SDL_PauseAudio(0);
 		return true;
 	}
 
-	SDLAudio(IClock* clock)
-		: m_clock(clock ? clock : g_SystemClock.get()), m_inputFormat(PcmFormat(44100, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Interleaved)) {
+	SDLAudio(IModuleHost* host, IClock* clock)
+		: m_clock(clock ? clock : g_SystemClock.get()), m_inputFormat(PcmFormat(44100, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Interleaved)), m_host(host) {
 
 		if (SDL_InitSubSystem(SDL_INIT_AUDIO | SDL_INIT_NOPARACHUTE) == -1)
 			throw std::runtime_error(format("Couldn't initialize: %s", SDL_GetError()));
@@ -154,11 +154,11 @@ struct SDLAudio : ModuleS {
 
 		if (relativeTimePositionIn180k < -TOLERANCE) {
 			auto const numSamplesToDrop = std::min<int64_t>(fifoSamplesToRead(), -relativeSamplePosition);
-			log(Warning, "must drop fifo data (%s ms)", numSamplesToDrop * 1000.0f / m_outputFormat.sampleRate);
+			m_host->log(Warning, format("must drop fifo data (%s ms)", numSamplesToDrop * 1000.0f / m_outputFormat.sampleRate).c_str());
 			fifoConsumeSamples((size_t)numSamplesToDrop);
 		} else if (relativeTimePositionIn180k > TOLERANCE) {
 			auto const numSilenceSamples = std::min<int64_t>(numSamplesToProduce, relativeSamplePosition);
-			log(Warning, "insert silence (%s ms)", numSilenceSamples * 1000.0f / m_outputFormat.sampleRate);
+			m_host->log(Warning, format("insert silence (%s ms)", numSilenceSamples * 1000.0f / m_outputFormat.sampleRate).c_str());
 			silenceSamples(buffer, (int)numSilenceSamples);
 			numSamplesToProduce -= numSilenceSamples;
 		}
@@ -171,7 +171,7 @@ struct SDLAudio : ModuleS {
 		}
 
 		if (numSamplesToProduce > 0) {
-			log(Warning, "underflow");
+			m_host->log(Warning, "underflow");
 			silenceSamples(buffer, (int)numSamplesToProduce);
 		}
 	}
@@ -207,11 +207,13 @@ struct SDLAudio : ModuleS {
 		dst.ptr += bytes;
 		dst.len -= bytes;
 	}
+
+	IModuleHost* const m_host;
 };
 
-Modules::IModule* createObject(va_list va) {
+Modules::IModule* createObject(IModuleHost* host, va_list va) {
 	auto clock = va_arg(va, IClock*);
-	return create<SDLAudio>(clock).release();
+	return create<SDLAudio>(host, clock).release();
 }
 
 auto const registered = registerModule("SDLAudio", &createObject);

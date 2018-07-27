@@ -43,26 +43,16 @@ int registerModule(const char* name, ModuleCreationFunc* func) {
 	return 0;
 }
 
-IModule* vInstantiate(const char* name, va_list va) {
+IModule* vInstantiate(const char* name, IModuleHost* host, va_list va) {
 	auto entry = findEntry(name);
 	if(!entry)
 		throw runtime_error("Unknown module '" + string(name) + "'");
 
-	return entry->func(va);
+	return entry->func(host, va);
 }
 
 }
 
-// binary entry-point
-#ifdef _MSC_VER
-#define EXPORT
-#else
-#define EXPORT __attribute__((visibility("default")))
-#endif
-
-extern "C"
-{
-	EXPORT Modules::IModule* instantiate(const char* name, va_list va) {
-		return Modules::vInstantiate(name, va);
-	}
+Modules::IModule* instantiate(const char* name, Modules::IModuleHost* host, va_list va) {
+	return Modules::vInstantiate(name, host, va);
 }

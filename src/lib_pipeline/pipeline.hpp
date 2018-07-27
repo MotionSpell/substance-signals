@@ -35,7 +35,7 @@ class Pipeline : public IPipelineNotifier {
 
 		template <typename InstanceType, int NumBlocks = 0, typename ...Args>
 		IPipelinedModule * addModule(Args&&... args) {
-			return addModuleInternal(Modules::createModule<InstanceType>(getNumBlocks(NumBlocks), std::forward<Args>(args)...));
+			return addModuleInternal(make_unique<Modules::NullHostType>(), Modules::createModule<InstanceType>(getNumBlocks(NumBlocks), std::forward<Args>(args)...));
 		}
 
 		IPipelinedModule * add(char const* name, ...);
@@ -59,7 +59,7 @@ class Pipeline : public IPipelineNotifier {
 		void exitSync(); /*ask for all sources to finish*/
 
 	private:
-		IPipelinedModule * addModuleInternal(std::shared_ptr<Modules::IModule> rawModule);
+		IPipelinedModule * addModuleInternal(std::unique_ptr<Modules::IModuleHost> host, std::shared_ptr<Modules::IModule> rawModule);
 		void computeTopology();
 		void endOfStream();
 		void exception(std::exception_ptr eptr);

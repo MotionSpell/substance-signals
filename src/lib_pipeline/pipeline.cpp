@@ -44,8 +44,8 @@ Pipeline::Pipeline(bool isLowLatency, Threading threading)
 Pipeline::~Pipeline() {
 }
 
-IPipelinedModule* Pipeline::addModuleInternal(std::shared_ptr<IModule> rawModule) {
-	auto module = make_unique<PipelinedModule>(rawModule, this, threading, statsMem.get());
+IPipelinedModule* Pipeline::addModuleInternal(std::unique_ptr<IModuleHost> host, std::shared_ptr<IModule> rawModule) {
+	auto module = make_unique<PipelinedModule>(move(host), rawModule, this, threading, statsMem.get());
 	auto ret = module.get();
 	modules.push_back(std::move(module));
 	graph->nodes.push_back(Graph::Node(ret));
@@ -55,7 +55,16 @@ IPipelinedModule* Pipeline::addModuleInternal(std::shared_ptr<IModule> rawModule
 IPipelinedModule * Pipeline::add(char const* name, ...) {
 	va_list va;
 	va_start(va, name);
-	return addModuleInternal(vLoadModule(name, va));
+	struct MyHost : Modules::IModuleHost {
+		void log(int level, char const* msg) override {
+			Log::msg((Level)level, "[%s] %s", name.c_str(), msg);
+		}
+		std::string name;
+	};
+	auto myHost = make_unique<MyHost>();
+	auto pHost = myHost.get();
+	myHost->name = format("%s (#%s)", name, (int)modules.size());
+	return addModuleInternal(std::move(myHost), vLoadModule(name, pHost, va));
 }
 
 void Pipeline::removeModule(IPipelinedModule *module) {

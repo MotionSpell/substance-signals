@@ -39,8 +39,9 @@ Uint32 queueOneUserEvent(Uint32, void*) {
 }
 
 struct SDLVideo : ModuleS {
-	SDLVideo(IClock* clock)
-		: m_clock(clock ? clock : g_SystemClock.get()),
+	SDLVideo(IModuleHost* host, IClock* clock)
+		: m_host(host),
+		  m_clock(clock ? clock : g_SystemClock.get()),
 		  texture(nullptr), workingThread(&SDLVideo::doRender, this) {
 		auto input = addInput(new Input<DataPicture>(this));
 		input->setMetadata(make_shared<MetadataRawVideo>());
@@ -53,6 +54,7 @@ struct SDLVideo : ModuleS {
 		workingThread.join();
 	}
 
+	IModuleHost* const m_host;
 	IClock* const m_clock;
 
 	SDL_Window *window = nullptr;
@@ -178,7 +180,7 @@ struct SDLVideo : ModuleS {
 	}
 
 	void createTexture() {
-		log(Info, format("%sx%s", pictureFormat.res.width, pictureFormat.res.height));
+		m_host->log(Info, format("%sx%s", pictureFormat.res.width, pictureFormat.res.height).c_str());
 
 		if (texture)
 			SDL_DestroyTexture(texture);
@@ -204,9 +206,9 @@ struct SDLVideo : ModuleS {
 	}
 };
 
-Modules::IModule* createObject(va_list va) {
+Modules::IModule* createObject(IModuleHost* host, va_list va) {
 	auto clock = va_arg(va, IClock*);
-	return Modules::create<SDLVideo>(clock).release();
+	return Modules::create<SDLVideo>(host, clock).release();
 }
 
 auto const registered = registerModule("SDLVideo", &createObject);

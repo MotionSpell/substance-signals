@@ -14,7 +14,7 @@ namespace {
 #if SIGNALS_HAS_X11
 secondclasstest("render: sound generator") {
 	auto soundGen = create<In::SoundGenerator>();
-	auto render = Modules::loadModule("SDLAudio", nullptr);
+	auto render = Modules::loadModule("SDLAudio", &NullHost, nullptr);
 
 	ConnectOutputToInput(soundGen->getOutput(0), render->getInput(0));
 
@@ -27,7 +27,7 @@ secondclasstest("render: sound generator") {
 
 secondclasstest("render: sound generator, evil samples") {
 	auto clock = make_shared<SystemClock>(1.0);
-	auto render = Modules::loadModule("SDLAudio", clock.get());
+	auto render = Modules::loadModule("SDLAudio", &NullHost, clock.get());
 
 	PcmFormat fmt {};
 	fmt.sampleFormat = S16;
@@ -46,11 +46,11 @@ secondclasstest("render: sound generator, evil samples") {
 
 secondclasstest("render: A/V sync, one thread") {
 	auto videoGen = create<In::VideoGenerator>();
-	auto videoRender = Modules::loadModule("SDLVideo", nullptr);
+	auto videoRender = Modules::loadModule("SDLVideo", &NullHost, nullptr);
 	ConnectOutputToInput(videoGen->getOutput(0), videoRender->getInput(0));
 
 	auto soundGen = create<In::SoundGenerator>();
-	auto soundRender = Modules::loadModule("SDLAudio", nullptr);
+	auto soundRender = Modules::loadModule("SDLAudio", &NullHost, nullptr);
 	ConnectOutputToInput(soundGen->getOutput(0), soundRender->getInput(0));
 
 	for(int i=0; i < 25*5; ++i) {
@@ -60,7 +60,7 @@ secondclasstest("render: A/V sync, one thread") {
 }
 
 secondclasstest("render: dynamic resolution") {
-	auto videoRender = Modules::loadModule("SDLVideo", nullptr);
+	auto videoRender = Modules::loadModule("SDLVideo", &NullHost, nullptr);
 
 	auto pic1 = make_shared<PictureYUV420P>(Resolution(128, 64));
 	pic1->setMediaTime(1000);

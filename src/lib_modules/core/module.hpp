@@ -13,6 +13,18 @@
 
 namespace Modules {
 
+// This is how user modules see the outside world.
+struct IModuleHost {
+	virtual ~IModuleHost() = default;
+	virtual void log(int level, char const* msg) = 0;
+};
+
+struct NullHostType : IModuleHost {
+	void log(int, char const*) override {}
+};
+
+static NullHostType NullHost;
+
 // This is how the framework sees custom module implementations.
 //
 // As these interfaces are implemented by third-parties,

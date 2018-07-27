@@ -20,12 +20,7 @@ static unique_ptr<DynLib> loadPlugin(const char* name) {
 	return loadLibrary(path.c_str());
 }
 
-extern "C"
-{
-	Modules::IModule* instantiate(const char* name, va_list va);
-}
-
-shared_ptr<IModule> vLoadModule(const char* name, va_list va) {
+shared_ptr<IModule> vLoadModule(const char* name, IModuleHost* host, va_list va) {
 	string libName = name + string(".smd");
 	auto lib = shared_ptr<DynLib>(loadPlugin(libName.c_str()));
 	auto func = (decltype(instantiate)*)lib->getSymbol("instantiate");
@@ -34,13 +29,13 @@ shared_ptr<IModule> vLoadModule(const char* name, va_list va) {
 		delete mod;
 	};
 
-	return shared_ptr<IModule>(func(name, va), deleter);
+	return shared_ptr<IModule>(func(name, host, va), deleter);
 }
 
-shared_ptr<IModule> loadModule(const char* name, ...) {
+shared_ptr<IModule> loadModule(const char* name, IModuleHost* host, ...) {
 	va_list va;
-	va_start(va, name);
-	return vLoadModule(name, va);
+	va_start(va, host);
+	return vLoadModule(name, host, va);
 }
 
 }
