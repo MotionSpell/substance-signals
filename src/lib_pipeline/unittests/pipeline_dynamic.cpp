@@ -7,14 +7,38 @@ using namespace Tests;
 using namespace Modules;
 using namespace Pipelines;
 
+namespace {
+
+struct Source : Modules::Module {
+	Source(bool &sent) : sent(sent) {
+		out = addOutput<Modules::OutputDefault>();
+	}
+	void process() {
+		while (!sent)
+			out->emit(out->getBuffer(0));
+	}
+	bool &sent;
+	Modules::OutputDefault* out;
+};
+struct Receiver : Module {
+	Receiver(bool &sent) : sent(sent) {
+		addInput(new Modules::Input<Modules::DataBase>(this));
+	}
+	void process() {
+		sent = true;
+	}
+	bool &sent;
+};
+
+}
+
 unittest("pipeline: dynamic module connection of an existing module (without modifying the topology)") {
 	Pipeline p;
-	auto src = p.addModule<FakeSource>();
+	auto src = p.addModule<InfiniteSource>();
 	auto dualInput = p.addModule<DualInput>();
 	p.connect(src, 0, dualInput, 0);
 	p.start();
 	p.connect(src, 0, dualInput, 1);
-	p.waitForEndOfStream();
 }
 
 unittest("pipeline: connect while running") {
@@ -37,10 +61,16 @@ unittest("pipeline: dynamic module connection of a new source module") {
 	auto src = p.addModule<InfiniteSource>();
 	auto dualInput = p.addModule<DualInput>();
 	p.connect(src, 0, dualInput, 0);
+	bool received = false;
+	auto receiver = p.addModule<Receiver>(received);
+	p.connect(dualInput, 0, receiver, 0);
 	p.start();
 	auto src2 = p.addModule<FakeSource>(1);
 	p.connect(src2, 0, dualInput, 1);
 	p.start(); //start the new source
+	while (!received) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	}
 	p.exitSync(); //stop src
 	p.waitForEndOfStream();
 }
@@ -92,27 +122,6 @@ unittest("pipeline: dynamic module disconnection (multiple ref decrease)") {
 }
 
 unittest("pipeline: dynamic module disconnection (remove module dynamically)") {
-	struct Source : Modules::Module {
-		Source(bool &sent) : sent(sent) {
-			out = addOutput<Modules::OutputDefault>();
-		}
-		void process() {
-			while (!sent)
-				out->emit(out->getBuffer(0));
-		}
-		bool &sent;
-		Modules::OutputDefault* out;
-	};
-	struct Receiver : Module {
-		Receiver(bool &sent) : sent(sent) {
-			addInput(new Modules::Input<Modules::DataBase>(this));
-		}
-		void process() {
-			sent = true;
-		}
-		bool &sent;
-	};
-
 	Pipeline p;
 	bool trigger = false;
 	auto src = p.addModule<Source>(trigger);
