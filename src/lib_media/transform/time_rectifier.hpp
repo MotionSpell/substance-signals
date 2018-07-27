@@ -1,6 +1,7 @@
 #pragma once
 
 #include "lib_modules/modules.hpp"
+#include "lib_modules/core/log.hpp"
 #include "lib_modules/utils/helper_dyn.hpp"
 #include "lib_utils/i_scheduler.hpp"
 #include <memory>

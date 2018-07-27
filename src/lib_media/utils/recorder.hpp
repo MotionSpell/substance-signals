@@ -1,5 +1,6 @@
 #pragma once
 
+#include "lib_modules/core/log.hpp"
 #include "lib_modules/utils/helper.hpp"
 
 namespace Modules {

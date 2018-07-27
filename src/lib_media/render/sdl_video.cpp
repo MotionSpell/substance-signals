@@ -1,5 +1,6 @@
 #include "lib_utils/system_clock.hpp"
 #include "lib_utils/tools.hpp"
+#include "lib_utils/log.hpp"
 #include "lib_modules/utils/helper.hpp"
 #include "lib_modules/utils/factory.hpp"
 #include "../common/picture.hpp"

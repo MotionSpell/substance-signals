@@ -2,6 +2,7 @@
 
 #include "../common/metadata.hpp"
 #include "lib_modules/utils/helper.hpp"
+#include "lib_modules/core/log.hpp"
 #include <thread>
 
 typedef void CURL;

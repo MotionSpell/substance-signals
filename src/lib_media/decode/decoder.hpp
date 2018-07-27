@@ -1,5 +1,6 @@
 #pragma once
 
+#include "lib_modules/core/log.hpp"
 #include "../common/metadata.hpp"
 #include "../common/picture_allocator.hpp"
 #include "../common/pcm.hpp"

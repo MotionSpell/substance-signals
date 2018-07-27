@@ -2,6 +2,7 @@
 
 #include <stdexcept>
 #include <string>
+#include "lib_utils/format.hpp"
 
 namespace Modules {
 

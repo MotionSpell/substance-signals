@@ -5,7 +5,6 @@
 
 #include "../core/module.hpp"
 #include "../core/allocator.hpp"
-#include "../core/log.hpp"
 #include "../core/error.hpp"
 #include "../core/database.hpp" // Data, DataLoose
 #include "lib_signals/helper.hpp"
@@ -121,9 +120,7 @@ class OutputDataDefault : public IOutput, public MetadataCap {
 
 		void emit(Data data) override {
 			updateMetadata(data);
-			auto numReceivers = signal.emit(data);
-			if (numReceivers == 0)
-				Log::msg(Debug, "emit(): Output had no receiver");
+			signal.emit(data);
 		}
 
 		template<typename T = DataType>

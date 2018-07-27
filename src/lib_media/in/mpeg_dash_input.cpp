@@ -1,5 +1,6 @@
 #include "lib_utils/tools.hpp"
 #include "lib_utils/time.hpp" // getUTC
+#include "lib_modules/core/log.hpp"
 #include "../common/metadata.hpp" // MetadataPkt
 #include "mpeg_dash_input.hpp"
 #include <vector>

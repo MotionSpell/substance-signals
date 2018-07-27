@@ -1,6 +1,7 @@
 #pragma once
 
 #include "lib_modules/utils/helper.hpp"
+#include "lib_modules/core/log.hpp"
 
 namespace Modules {
 namespace In {
