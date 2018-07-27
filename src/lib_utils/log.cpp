@@ -25,12 +25,23 @@ bool Log::globalSysLog = false;
 Level Log::globalLogLevel = Warning;
 bool Log::globalColor = true;
 
-std::ostream& Log::get(Level level) {
+static std::ostream& get(Level level) {
 	switch (level) {
 	case Info:
 		return std::cout;
 	default:
 		return std::cerr;
+	}
+}
+
+void Log::send(Level level, std::string const& msg) {
+#ifndef _WIN32
+	if (globalSysLog) {
+		sendToSyslog(level, msg);
+	} else
+#endif
+	{
+		get(level) << getColorBegin(level) << getTime() << msg << getColorEnd(level) << std::endl;
 	}
 }
 

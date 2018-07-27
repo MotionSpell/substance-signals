@@ -1,7 +1,6 @@
 #pragma once
 
 #include "format.hpp"
-#include <ostream>
 #include <string>
 
 #define LOG_MSG_REPETITION_MAX 100
@@ -20,14 +19,7 @@ class Log {
 		static void msg(Level level, const std::string& fmt, Arguments... args) {
 			if ((level != Quiet) && (level <= globalLogLevel)) {
 				auto msg = format(fmt, args...);
-#ifndef _WIN32
-				if (globalSysLog) {
-					sendToSyslog(level, msg);
-				} else
-#endif
-				{
-					get(level) << getColorBegin(level) << getTime() << msg << getColorEnd(level) << std::endl;
-				}
+				send(level, msg);
 			}
 		}
 
@@ -44,7 +36,7 @@ class Log {
 
 	private:
 		Log() {}
-		static std::ostream& get(Level level);
+		static void send(Level level, std::string const& msg);
 		static std::string getTime();
 		static std::string getColorBegin(Level level);
 		static std::string getColorEnd(Level level);
