@@ -12,7 +12,7 @@ struct AVFilterContext;
 namespace Modules {
 namespace Transform {
 
-class LibavFilter : public ModuleS {
+class LibavFilter : public ModuleS, private LogCap {
 	public:
 		LibavFilter(const PictureFormat &format, const std::string &filterArgs);
 		~LibavFilter();

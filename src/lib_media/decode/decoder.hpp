@@ -14,7 +14,7 @@ class Frame;
 namespace Modules {
 namespace Decode {
 
-class Decoder : public ModuleS, private PictureAllocator {
+class Decoder : public ModuleS, private PictureAllocator, private LogCap {
 	public:
 		Decoder(StreamType type);
 		~Decoder();

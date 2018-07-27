@@ -5,7 +5,7 @@
 namespace Modules {
 namespace Utils {
 
-class IComparator : public ModuleS {
+class IComparator : public ModuleS, private LogCap {
 	public:
 		void process(Data data) override;
 		virtual bool compare(Data original, Data other) const = 0;

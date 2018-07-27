@@ -160,7 +160,7 @@ class OutputCap : public virtual IOutputCap {
 		}
 };
 
-class Module : public IModule, public ErrorCap, public LogCap, public InputCap {
+class Module : public IModule, public ErrorCap, public InputCap {
 	public:
 		Module() = default;
 		virtual ~Module() {}

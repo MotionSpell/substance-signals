@@ -9,7 +9,7 @@ class DataAVPacket;
 
 namespace Transform {
 
-struct AVCC2AnnexBConverter : public ModuleS {
+struct AVCC2AnnexBConverter : public ModuleS, private LogCap {
 		AVCC2AnnexBConverter();
 		void process(Data data) override;
 

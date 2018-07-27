@@ -33,7 +33,7 @@ struct IAdaptiveStreamingCommon {
 	virtual void finalizeManifest() = 0;
 };
 
-class AdaptiveStreamingCommon : public IAdaptiveStreamingCommon, public ModuleDynI {
+class AdaptiveStreamingCommon : public IAdaptiveStreamingCommon, public ModuleDynI, public LogCap {
 	public:
 		enum Type {
 			Static,

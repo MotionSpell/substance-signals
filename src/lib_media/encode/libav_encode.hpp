@@ -19,7 +19,7 @@ class DataAVPacket;
 
 namespace Encode {
 
-class LibavEncode : public ModuleS {
+class LibavEncode : public ModuleS, private LogCap {
 	public:
 		enum Type {
 			Video,

@@ -33,7 +33,7 @@ Remarks:
  - This module feeds compositors or mux with some clean data.
  - TODO (currently handled by demux): This module deprecates heartbeat mechanisms for sparse streams.
 */
-class TimeRectifier : public ModuleDynI {
+class TimeRectifier : public ModuleDynI, private LogCap {
 	public:
 		TimeRectifier(std::shared_ptr<IClock> clock_, IScheduler* scheduler, Fraction frameRate);
 

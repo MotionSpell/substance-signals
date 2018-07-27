@@ -5,7 +5,7 @@
 namespace Modules {
 namespace Transform {
 
-class Restamp : public ModuleS {
+class Restamp : public ModuleS, private LogCap {
 	public:
 		enum Mode {
 			Passthru,            /*offset only*/

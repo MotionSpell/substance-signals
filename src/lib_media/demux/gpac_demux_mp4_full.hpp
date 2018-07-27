@@ -7,7 +7,7 @@ namespace Demux {
 
 struct ISOProgressiveReader;
 
-class GPACDemuxMP4Full : public ModuleS {
+class GPACDemuxMP4Full : public ModuleS, private LogCap {
 	public:
 		GPACDemuxMP4Full();
 		~GPACDemuxMP4Full();

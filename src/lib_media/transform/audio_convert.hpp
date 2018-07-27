@@ -11,7 +11,7 @@ class Frame;
 namespace Modules {
 namespace Transform {
 
-class AudioConvert : public ModuleS {
+class AudioConvert : public ModuleS, private LogCap {
 	public:
 		/*dstFrameSize is the number of output sample - '-1' is same as input*/
 		AudioConvert(const PcmFormat &dstFormat, int64_t dstNumSamples = -1);

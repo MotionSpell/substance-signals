@@ -10,7 +10,7 @@ struct AVPacket;
 namespace Modules {
 namespace Mux {
 
-class LibavMux : public ModuleDynI {
+class LibavMux : public ModuleDynI, private LogCap {
 	public:
 		LibavMux(const std::string &baseName, const std::string &format, const std::string &options = "");
 		~LibavMux();

@@ -12,7 +12,7 @@ extern const char *g_version;
 namespace Modules {
 namespace Out {
 
-class HTTP : public Module {
+class HTTP : public Module, public LogCap {
 	public:
 		enum Flag {
 			InitialEmptyPost = 1,

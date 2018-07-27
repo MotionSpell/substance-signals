@@ -6,7 +6,7 @@
 namespace Modules {
 namespace Transform {
 
-class AudioGapFiller : public ModuleS {
+class AudioGapFiller : public ModuleS, private LogCap {
 	public:
 		AudioGapFiller(uint64_t toleranceInFrames = 10);
 		void process(Data data) override;

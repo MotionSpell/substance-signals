@@ -5,7 +5,7 @@
 namespace Modules {
 namespace Utils {
 
-class Recorder : public ModuleS {
+class Recorder : public ModuleS, private LogCap {
 	public:
 		Recorder();
 		void process(Data data) override;

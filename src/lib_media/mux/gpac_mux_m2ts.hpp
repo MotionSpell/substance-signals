@@ -20,7 +20,7 @@ namespace Mux {
 
 typedef Queue<AVPacket*> DataInput;
 
-class GPACMuxMPEG2TS : public ModuleDynI, public gpacpp::Init {
+class GPACMuxMPEG2TS : public ModuleDynI, public gpacpp::Init, private LogCap {
 	public:
 		GPACMuxMPEG2TS(bool real_time, unsigned mux_rate, unsigned pcr_ms = 100, int64_t pcr_init_val = -1);
 		~GPACMuxMPEG2TS();

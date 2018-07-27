@@ -10,7 +10,7 @@ namespace Encode {
 
 typedef void* tjhandle;
 
-class JPEGTurboEncode : public ModuleS {
+class JPEGTurboEncode : public ModuleS, private LogCap {
 	public:
 		JPEGTurboEncode(int quality = JPEG_DEFAULT_QUALITY);
 		~JPEGTurboEncode();

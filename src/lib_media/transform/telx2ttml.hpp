@@ -24,7 +24,7 @@ struct ITelxConfig {
 	virtual ~ITelxConfig() {}
 };
 
-class TeletextToTTML : public ModuleS {
+class TeletextToTTML : public ModuleS, private LogCap {
 	public:
 		enum TimingPolicy {
 			AbsoluteUTC,     //USP

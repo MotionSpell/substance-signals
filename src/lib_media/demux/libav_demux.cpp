@@ -38,10 +38,10 @@ namespace Demux {
 static const int avioCtxBufferSize = 1024 * 1024;
 
 void LibavDemux::webcamList() {
-	log(Warning, "Webcam list:");
+	m_host->log(Warning, "Webcam list:");
 	ffpp::Dict dict(typeid(*this).name(), "-list_devices true");
 	avformat_open_input(&m_formatCtx, "video=dummy:audio=dummy", av_find_input_format(webcamFormat()), &dict);
-	log(Warning, "Webcam example: webcam:video=\"Integrated Webcam\":audio=\"Microphone (Realtek High Defini\"");
+	m_host->log(Warning, "Webcam example: webcam:video=\"Integrated Webcam\":audio=\"Microphone (Realtek High Defini\"");
 }
 
 bool LibavDemux::webcamOpen(const std::string &options) {

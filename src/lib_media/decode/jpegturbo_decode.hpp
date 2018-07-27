@@ -8,7 +8,7 @@ namespace Decode {
 
 typedef void* tjhandle;
 
-class JPEGTurboDecode : public ModuleS {
+class JPEGTurboDecode : public ModuleS, private LogCap {
 	public:
 		JPEGTurboDecode();
 		~JPEGTurboDecode();

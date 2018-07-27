@@ -48,7 +48,7 @@ struct Mp4MuxConfig {
 
 namespace Mux {
 
-class GPACMuxMP4 : public ModuleDynI {
+class GPACMuxMP4 : public ModuleDynI, private LogCap {
 	public:
 		GPACMuxMP4(Mp4MuxConfig const& config);
 		virtual ~GPACMuxMP4();
