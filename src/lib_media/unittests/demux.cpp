@@ -35,7 +35,7 @@ unittest("LibavDemux: simple: 75 frames") {
 		int frameCount = 0;
 	};
 
-	auto demux = create<Demux::LibavDemux>("data/simple.ts");
+	auto demux = create<Demux::LibavDemux>(&NullHost, "data/simple.ts");
 	auto rec = create<MyOutput>();
 	ConnectOutputToInput(demux->getOutput(0), rec->getInput(0));
 
@@ -57,7 +57,7 @@ unittest("LibavDemux: rollover") {
 		}
 	};
 
-	auto demux = create<Demux::LibavDemux>("data/rollover.ts");
+	auto demux = create<Demux::LibavDemux>(&NullHost, "data/rollover.ts");
 	auto rec = create<MyOutput>();
 	ConnectOutputToInput(demux->getOutput(0), rec->getInput(0));
 
@@ -70,11 +70,11 @@ unittest("LibavDemux: rollover") {
 
 unittest("empty param test: Demux") {
 	ScopedLogLevel lev(Quiet);
-	ASSERT_THROWN(create<Demux::GPACDemuxMP4Simple>(""));
+	ASSERT_THROWN(create<Demux::GPACDemuxMP4Simple>(&NullHost, ""));
 }
 
 secondclasstest("demux one track: Demux::GPACDemuxMP4Simple -> Out::Print") {
-	auto mp4Demux = create<Demux::GPACDemuxMP4Simple>("data/beepbop.mp4");
+	auto mp4Demux = create<Demux::GPACDemuxMP4Simple>(&NullHost, "data/beepbop.mp4");
 	auto p = create<Out::Print>(std::cout);
 
 	ConnectOutputToInput(mp4Demux->getOutput(0), p->getInput(0));

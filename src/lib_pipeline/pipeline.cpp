@@ -55,16 +55,10 @@ IPipelinedModule* Pipeline::addModuleInternal(std::unique_ptr<IModuleHost> host,
 IPipelinedModule * Pipeline::add(char const* name, ...) {
 	va_list va;
 	va_start(va, name);
-	struct MyHost : Modules::IModuleHost {
-		void log(int level, char const* msg) override {
-			Log::msg((Level)level, "[%s] %s", name.c_str(), msg);
-		}
-		std::string name;
-	};
-	auto myHost = make_unique<MyHost>();
-	auto pHost = myHost.get();
-	myHost->name = format("%s (#%s)", name, (int)modules.size());
-	return addModuleInternal(std::move(myHost), vLoadModule(name, pHost, va));
+	auto host = make_unique<ModuleHost>();
+	auto pHost = host.get();
+	host->name = format("%s (#%s)", name, (int)modules.size());
+	return addModuleInternal(std::move(host), vLoadModule(name, pHost, va));
 }
 
 void Pipeline::removeModule(IPipelinedModule *module) {

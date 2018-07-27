@@ -18,7 +18,7 @@ unittest("LibavDemux => Decoder: output media times must increase") {
 		mediaTimes.push_back(data->getMediaTime());
 	};
 
-	auto demux = create<Demux::LibavDemux>("data/h264.ts");
+	auto demux = create<Demux::LibavDemux>(&NullHost, "data/h264.ts");
 	auto decoder = create<Decode::Decoder>(VIDEO_PKT);
 	ConnectOutputToInput(demux->getOutput(0), decoder->getInput(0));
 	ConnectOutput(decoder.get(), onPic);

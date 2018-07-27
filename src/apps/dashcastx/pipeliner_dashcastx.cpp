@@ -130,7 +130,7 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 
 	changeDir(opt->workingDir);
 
-	auto demux = pipeline->addModule<Demux::LibavDemux>(opt->input, opt->loop);
+	auto demux = pipeline->addModule<Demux::LibavDemux>(&NullHost, opt->input, opt->loop);
 	createSubdir();
 	auto const type = (opt->isLive || opt->ultraLowLatency) ? Stream::AdaptiveStreamingCommon::Live : Stream::AdaptiveStreamingCommon::Static;
 	auto dasher = pipeline->addModule<Stream::MPEG_DASH>(DASH_SUBDIR, format("%s.mpd", g_appName), type, opt->segmentDurationInMs, opt->segmentDurationInMs * opt->timeshiftInSegNum);

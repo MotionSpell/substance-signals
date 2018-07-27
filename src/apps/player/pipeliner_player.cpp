@@ -40,7 +40,7 @@ IPipelinedModule* createDemuxer(Pipeline& pipeline, std::string url) {
 	if(startsWith(url, "http://")) {
 		return pipeline.addModule<Demux::DashDemuxer>(url);
 	} else {
-		return pipeline.addModule<Demux::LibavDemux>(url);
+		return pipeline.addModuleWithHost<Demux::LibavDemux>(url);
 	}
 }
 

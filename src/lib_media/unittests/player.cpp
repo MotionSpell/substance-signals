@@ -15,7 +15,7 @@ namespace {
 
 #if SIGNALS_HAS_X11
 secondclasstest("packet type erasure + multi-output: libav Demux -> libav Decoder (Video Only) -> Render::SDL2") {
-	auto demux = create<Demux::LibavDemux>("data/beepbop.mp4");
+	auto demux = create<Demux::LibavDemux>(&NullHost, "data/beepbop.mp4");
 	auto null = create<Out::Null>();
 
 	int videoIndex = -1;
@@ -38,7 +38,7 @@ secondclasstest("packet type erasure + multi-output: libav Demux -> libav Decode
 }
 
 secondclasstest("packet type erasure + multi-output: libav Demux -> libav Decoder (Audio Only) -> Render::SDL2") {
-	auto demux = create<Demux::LibavDemux>("data/beepbop.mp4");
+	auto demux = create<Demux::LibavDemux>(&NullHost, "data/beepbop.mp4");
 	auto null = create<Out::Null>();
 
 	int audioIndex = -1;

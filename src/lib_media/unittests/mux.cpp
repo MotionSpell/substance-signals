@@ -25,14 +25,14 @@ std::ostream& operator<<(std::ostream& o, Meta const& meta) {
 }
 
 unittest("remux test: GPAC mp4 mux") {
-	auto demux = create<Demux::LibavDemux>("data/beepbop.mp4");
+	auto demux = create<Demux::LibavDemux>(&NullHost, "data/beepbop.mp4");
 	auto mux = create<Mux::GPACMuxMP4>(Mp4MuxConfig{});
 	ConnectModules(demux.get(), 0, mux.get(), 0); //FIXME: reimplement with multiple inputs
 	demux->process();
 }
 
 unittest("remux test: libav mp4 mux") {
-	auto demux = create<Demux::LibavDemux>("data/beepbop.mp4");
+	auto demux = create<Demux::LibavDemux>(&NullHost, "data/beepbop.mp4");
 	std::unique_ptr<IModule> avcc2annexB;
 	auto mux = create<Mux::LibavMux>("out/output_libav", "mp4");
 	ASSERT(demux->getNumOutputs() > 1);
@@ -71,7 +71,7 @@ unittest("mux GPAC mp4 failure tests") {
 std::vector<Meta> runMux(std::shared_ptr<IModule> m) {
 	IOutput* audioPin = nullptr;
 
-	auto demux = create<Demux::LibavDemux>("data/beepbop.mp4");
+	auto demux = create<Demux::LibavDemux>(&NullHost, "data/beepbop.mp4");
 
 	for (int i = 0; i < demux->getNumOutputs(); ++i) {
 		auto pin = demux->getOutput(i);

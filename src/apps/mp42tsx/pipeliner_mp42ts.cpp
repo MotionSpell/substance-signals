@@ -23,7 +23,7 @@ void declarePipeline(Pipeline &pipeline, const mp42tsXOptions &opt) {
 
 	const bool isHLS = false; //TODO
 
-	auto demux = pipeline.addModule<Demux::LibavDemux>(opt.url);
+	auto demux = pipeline.addModuleWithHost<Demux::LibavDemux>(opt.url);
 	auto m2tsmux = pipeline.addModule<Mux::GPACMuxMPEG2TS>(GF_FALSE, 0);
 	auto sink = createSink(isHLS);
 	for (int i = 0; i < demux->getNumOutputs(); ++i) {

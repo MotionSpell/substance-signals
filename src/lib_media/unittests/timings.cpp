@@ -36,7 +36,7 @@ void checkTimestampsMux(const std::vector<int64_t> &timesIn, const std::vector<i
 		}
 		i++;
 	};
-	auto demux = create<T>("out/random_ts.mp4");
+	auto demux = create<T>(&NullHost, "out/random_ts.mp4");
 	ConnectOutput(demux.get(), onFrame);
 	demux->process();
 	ASSERT_EQUALS(i, timesOut.size());
@@ -125,7 +125,7 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 			throw std::runtime_error("[Converter] Found unknown stream");
 	};
 
-	auto demux = create<Demux::LibavDemux>("data/beepbop.mp4");
+	auto demux = create<Demux::LibavDemux>(&NullHost, "data/beepbop.mp4");
 	std::vector<std::unique_ptr<IModule>> modules;
 	std::vector<std::unique_ptr<Utils::Recorder>> recorders;
 	for (int i = 0; i < demux->getNumOutputs(); ++i) {

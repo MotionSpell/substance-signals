@@ -33,12 +33,33 @@ class Pipeline : public IPipelineNotifier {
 			OnePerModule      = 2,
 		};
 
+		struct ModuleHost : Modules::IModuleHost {
+			void log(int level, char const* msg) override {
+				Log::msg((Level)level, "[%s] %s", name.c_str(), msg);
+			}
+			std::string name;
+		};
+
 		template <typename InstanceType, int NumBlocks = 0, typename ...Args>
 		IPipelinedModule * addModule(Args&&... args) {
 			return addModuleInternal(
 			        make_unique<Modules::NullHostType>(),
 			        Modules::createModule<InstanceType>(
 			            getNumBlocks(NumBlocks),
+			            std::forward<Args>(args)...)
+			    );
+		}
+
+		template <typename InstanceType, int NumBlocks = 0, typename ...Args>
+		IPipelinedModule * addModuleWithHost(Args&&... args) {
+			auto host = make_unique<ModuleHost>();
+			host->name = format("%s (#%s)", typeid(InstanceType).name(), (int)modules.size());
+			auto pHost = host.get();
+			return addModuleInternal(
+			        std::move(host),
+			        Modules::createModule<InstanceType>(
+			            getNumBlocks(NumBlocks),
+			            pHost,
 			            std::forward<Args>(args)...)
 			    );
 		}

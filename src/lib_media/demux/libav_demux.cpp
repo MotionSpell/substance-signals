@@ -74,8 +74,9 @@ void LibavDemux::initRestamp() {
 	}
 }
 
-LibavDemux::LibavDemux(const std::string &url, bool loop, const std::string &avformatCustom, uint64_t seekTimeInMs, const std::string &formatName, LibavDemux::ReadFunc avioCustom)
-	: loop(loop), done(false), packetQueue(PKT_QUEUE_SIZE), m_read(std::move(avioCustom)) {
+LibavDemux::LibavDemux(IModuleHost* host, const std::string &url, bool loop, const std::string &avformatCustom, uint64_t seekTimeInMs, const std::string &formatName, LibavDemux::ReadFunc avioCustom)
+	: m_host(host),
+	  loop(loop), done(false), packetQueue(PKT_QUEUE_SIZE), m_read(std::move(avioCustom)) {
 	if (!(m_formatCtx = avformat_alloc_context()))
 		throw error("Can't allocate format context");
 
@@ -114,7 +115,7 @@ LibavDemux::LibavDemux(const std::string &url, bool loop, const std::string &avf
 				throw error(format("Couldn't seek to time %sms", seekTimeInMs));
 			}
 
-			log(Info, "Successful initial seek to %sms", seekTimeInMs);
+			m_host->log(Info, format("Successful initial seek to %sms", seekTimeInMs).c_str());
 		}
 
 		//if you don't call you may miss the first frames
@@ -135,7 +136,7 @@ LibavDemux::LibavDemux(const std::string &url, bool loop, const std::string &avf
 		if (parser) {
 			st->codec->ticks_per_frame = parser->repeat_pict + 1;
 		} else {
-			log(Debug, format("No parser found for stream %s (%s). Couldn't use full metadata to get the timescale.", i, avcodec_get_name(st->codecpar->codec_id)));
+			m_host->log(Debug, format("No parser found for stream %s (%s). Couldn't use full metadata to get the timescale.", i, avcodec_get_name(st->codecpar->codec_id)).c_str());
 		}
 		st->codec->time_base = st->time_base; //allows to keep trace of the pkt timebase in the output metadata
 		if (!st->codec->framerate.num) {
@@ -201,8 +202,8 @@ bool LibavDemux::rectifyTimestamps(AVPacket &pkt) {
 		if (demuxStream.lastDTS && pkt.dts < demuxStream.lastDTS
 		    && (1LL << stream->pts_wrap_bits) - demuxStream.lastDTS < thresholdInBase && pkt.dts + (1LL << stream->pts_wrap_bits) > demuxStream.lastDTS) {
 			demuxStream.offsetIn180k += timescaleToClock((1LL << stream->pts_wrap_bits) * stream->time_base.num, stream->time_base.den);
-			log(Warning, "Stream %s: overflow detecting on DTS (%s, last=%s, timescale=%s/%s, offset=%s).",
-			    pkt.stream_index, pkt.dts, demuxStream.lastDTS, stream->time_base.num, stream->time_base.den, clockToTimescale(demuxStream.offsetIn180k * stream->time_base.num, stream->time_base.den));
+			m_host->log(Warning, format("Stream %s: overflow detecting on DTS (%s, last=%s, timescale=%s/%s, offset=%s).",
+			        pkt.stream_index, pkt.dts, demuxStream.lastDTS, stream->time_base.num, stream->time_base.den, clockToTimescale(demuxStream.offsetIn180k * stream->time_base.num, stream->time_base.den)).c_str());
 		}
 	}
 
@@ -210,14 +211,14 @@ bool LibavDemux::rectifyTimestamps(AVPacket &pkt) {
 		pkt.pts += clockToTimescale(demuxStream.offsetIn180k * stream->time_base.num, stream->time_base.den);
 		if (pkt.pts < pkt.dts && (1LL << stream->pts_wrap_bits) + pkt.pts - pkt.dts < thresholdInBase) {
 			auto const localOffsetIn180k = timescaleToClock((1LL << stream->pts_wrap_bits) * stream->time_base.num, stream->time_base.den);
-			log(Warning, "Stream %s: overflow detecting on PTS (%s, new=%s, timescale=%s/%s, offset=%s).",
-			    pkt.stream_index, pkt.pts, pkt.pts + localOffsetIn180k, stream->time_base.num, stream->time_base.den, clockToTimescale(demuxStream.offsetIn180k * stream->time_base.num, stream->time_base.den));
+			m_host->log(Warning, format("Stream %s: overflow detecting on PTS (%s, new=%s, timescale=%s/%s, offset=%s).",
+			        pkt.stream_index, pkt.pts, pkt.pts + localOffsetIn180k, stream->time_base.num, stream->time_base.den, clockToTimescale(demuxStream.offsetIn180k * stream->time_base.num, stream->time_base.den)).c_str());
 			pkt.pts += localOffsetIn180k;
 		}
 	}
 
 	if (pkt.pts != AV_NOPTS_VALUE && pkt.dts != AV_NOPTS_VALUE && pkt.pts < pkt.dts) {
-		log(Error, "Stream %s: pts < dts (%s < %s)", pkt.stream_index, pkt.pts, pkt.dts);
+		m_host->log(Error, format("Stream %s: pts < dts (%s < %s)", pkt.stream_index, pkt.pts, pkt.dts).c_str());
 		return false;
 	}
 
@@ -230,7 +231,7 @@ int LibavDemux::readFrame(AVPacket* pkt) {
 		if (status != (int)AVERROR(EAGAIN))
 			return status;
 
-		log(Debug, "Stream asks to try again later. Sleeping for a short period of time.");
+		m_host->log(Debug, format("Stream asks to try again later. Sleeping for a short period of time.").c_str());
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
 }
@@ -238,7 +239,7 @@ int LibavDemux::readFrame(AVPacket* pkt) {
 void LibavDemux::inputThread() {
 
 	if(highPriority && !setHighThreadPriority())
-		log(Warning, "Couldn't change reception thread priority to realtime.");
+		m_host->log(Warning, format("Couldn't change reception thread priority to realtime.").c_str());
 
 	bool nextPacketResetFlag = false;
 	while (!done) {
@@ -251,21 +252,21 @@ void LibavDemux::inputThread() {
 			av_free_packet(&pkt);
 
 			if (status == (int)AVERROR_EOF || (m_formatCtx->pb && m_formatCtx->pb->eof_reached)) {
-				log(Info, "End of stream detected - %s", loop ? "looping" : "leaving");
+				m_host->log(Info, format("End of stream detected - %s", loop ? "looping" : "leaving").c_str());
 				if (loop) {
 					seekToStart();
 					nextPacketResetFlag = true;
 					continue;
 				}
 			} else if (m_formatCtx->pb && m_formatCtx->pb->error) {
-				log(Error, "Stream contains an irrecoverable error (%s) - leaving", status);
+				m_host->log(Error, format("Stream contains an irrecoverable error (%s) - leaving", status).c_str());
 			}
 			done = true;
 			return;
 		}
 
 		if (pkt.stream_index >= (int)m_streams.size()) {
-			log(Warning, "Detected stream index %s that was not initially detected (adding streams dynamically is not supported yet). Discarding packet.", pkt.stream_index);
+			m_host->log(Warning, format("Detected stream index %s that was not initially detected (adding streams dynamically is not supported yet). Discarding packet.", pkt.stream_index).c_str());
 			av_free_packet(&pkt);
 			continue;
 		}
@@ -280,7 +281,8 @@ void LibavDemux::inputThread() {
 				av_free_packet(&pkt);
 				return;
 			}
-			log(m_formatCtx->pb && !m_formatCtx->pb->seekable ? Warning : Debug, "Dispatch queue is full - regulating.");
+			m_host->log(m_formatCtx->pb && !m_formatCtx->pb->seekable ? Warning : Debug,
+			    "Dispatch queue is full - regulating.");
 			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 		}
 	}
@@ -309,11 +311,11 @@ void LibavDemux::setTimestamp(std::shared_ptr<DataAVPacket> data) {
 
 bool LibavDemux::dispatchable(AVPacket * const pkt) {
 	if (pkt->flags & AV_PKT_FLAG_CORRUPT) {
-		log(Error, "Corrupted packet received (DTS=%s).", pkt->dts);
+		m_host->log(Error, format("Corrupted packet received (DTS=%s).", pkt->dts).c_str());
 	}
 	if (pkt->dts == AV_NOPTS_VALUE) {
 		pkt->dts = m_streams[pkt->stream_index].lastDTS;
-		log(Debug, "No DTS: setting last value %s.", pkt->dts);
+		m_host->log(Debug, format("No DTS: setting last value %s.", pkt->dts).c_str());
 	}
 	if (!m_streams[pkt->stream_index].lastDTS) {
 		auto stream = m_formatCtx->streams[pkt->stream_index];
@@ -372,7 +374,7 @@ bool LibavDemux::work() {
 	AVPacket pkt;
 	if (!packetQueue.read(pkt)) {
 		if (done) {
-			log(Info, "All data consumed: exit process().");
+			m_host->log(Info, "All data consumed: exit process().");
 			return false;
 		}
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));

@@ -20,8 +20,9 @@ class ISOFileReader {
 		uint32_t sampleIndex, sampleCount;
 };
 
-GPACDemuxMP4Simple::GPACDemuxMP4Simple(std::string const& path)
-	: reader(new ISOFileReader) {
+GPACDemuxMP4Simple::GPACDemuxMP4Simple(IModuleHost* host, std::string const& path)
+	: m_host(host),
+	  reader(new ISOFileReader) {
 	GF_ISOFile *movie;
 	u64 missingBytes;
 	GF_Err e = gf_isom_open_progressive(path.c_str(), 0, 0, &movie, &missingBytes);
@@ -41,9 +42,9 @@ bool GPACDemuxMP4Simple::work() {
 		int sampleDescriptionIndex;
 		std::unique_ptr<gpacpp::IsoSample> ISOSample = reader->movie->getSample(reader->trackNumber, reader->sampleIndex, sampleDescriptionIndex);
 
-		log(Debug, "Found sample #%s/%s of length %s, RAP %s, DTS: %s, CTS: %s",
-		    reader->sampleIndex, reader->sampleCount, ISOSample->dataLength,
-		    ISOSample->IsRAP, ISOSample->DTS + DTSOffset, ISOSample->DTS + DTSOffset + ISOSample->CTS_Offset);
+		m_host->log(Debug, format("Found sample #%s/%s of length %s, RAP %s, DTS: %s, CTS: %s",
+		        reader->sampleIndex, reader->sampleCount, ISOSample->dataLength,
+		        ISOSample->IsRAP, ISOSample->DTS + DTSOffset, ISOSample->DTS + DTSOffset + ISOSample->CTS_Offset).c_str());
 		reader->sampleIndex++;
 
 		auto out = output->getBuffer(ISOSample->dataLength);
@@ -53,7 +54,7 @@ bool GPACDemuxMP4Simple::work() {
 	} catch (gpacpp::Error const& err) {
 		if (err.error_ == GF_ISOM_INCOMPLETE_FILE) {
 			u64 missingBytes = reader->movie->getMissingBytes(reader->trackNumber);
-			log(Error, "Missing %s bytes on input file", missingBytes);
+			m_host->log(Error, format("Missing %s bytes on input file", missingBytes).c_str());
 		} else {
 			return false;
 		}
