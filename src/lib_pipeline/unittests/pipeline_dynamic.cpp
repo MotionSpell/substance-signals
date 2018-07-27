@@ -32,31 +32,40 @@ unittest("pipeline: connect while running") {
 	tf.join();
 }
 
-unittest("[DISABLED] pipeline: dynamic module connection of a new source module") {
+unittest("pipeline: dynamic module connection of a new source module") {
 	Pipeline p;
-	auto src = p.addModule<FakeSource, 1>();
+	auto src = p.addModule<InfiniteSource>();
 	auto dualInput = p.addModule<DualInput>();
 	p.connect(src, 0, dualInput, 0);
 	p.start();
-	auto demux2 = p.addModule<FakeSource>();
-	p.connect(demux2, 0, dualInput, 1);
+	auto src2 = p.addModule<FakeSource>(1);
+	p.connect(src2, 0, dualInput, 1);
+	p.start(); //start the new source
+	p.exitSync(); //stop src
 	p.waitForEndOfStream();
+}
+
+unittest("pipeline: remove a running source module") {
+	Pipeline p;
+	auto src1 = p.addModule<InfiniteSource>();
+	p.addModule<InfiniteSource>();
+	p.start();
+	p.removeModule(src1);
 }
 
 unittest("pipeline: dynamic module connection of a new sink module") {
 	Pipeline p;
-	auto src = p.addModule<FakeSource, 1>();
+	auto src = p.addModule<InfiniteSource>();
 	auto passthru = p.addModule<Passthru>();
 	p.connect(src, 0, passthru, 0);
 	p.start();
 	auto sink = p.addModule<FakeSink>();
 	p.connect(src, 0, sink, 0);
-	p.waitForEndOfStream();
 }
 
 unittest("pipeline: wrong disconnection") {
 	Pipeline p;
-	auto src = p.addModule<FakeSource>();
+	auto src = p.addModule<InfiniteSource>();
 	auto sink = p.addModule<FakeSink>();
 	p.start();
 	ASSERT_THROWN(p.disconnect(src, 0, sink, 0));
@@ -64,24 +73,22 @@ unittest("pipeline: wrong disconnection") {
 
 unittest("pipeline: dynamic module disconnection (single ref decrease)") {
 	Pipeline p;
-	auto src = p.addModule<FakeSource>();
+	auto src = p.addModule<InfiniteSource>();
 	auto sink = p.addModule<FakeSink>();
 	p.connect(src, 0, sink, 0);
 	p.start();
 	p.disconnect(src, 0, sink, 0);
-	p.waitForEndOfStream();
 }
 
 unittest("pipeline: dynamic module disconnection (multiple ref decrease)") {
 	Pipeline p;
-	auto src = p.addModule<FakeSource>();
+	auto src = p.addModule<InfiniteSource>();
 	auto dualInput = p.addModule<DualInput>();
 	p.connect(src, 0, dualInput, 0);
 	p.connect(src, 0, dualInput, 1);
 	p.start();
 	p.disconnect(src, 0, dualInput, 0);
 	p.disconnect(src, 0, dualInput, 1);
-	p.waitForEndOfStream();
 }
 
 unittest("pipeline: dynamic module disconnection (remove module dynamically)") {
@@ -129,29 +136,27 @@ unittest("pipeline: dynamic module disconnection (remove module dynamically)") {
 
 unittest("pipeline: dynamic module disconnection (remove sink without disconnect)") {
 	Pipeline p;
-	auto src = p.addModule<FakeSource>();
+	auto src = p.addModule<InfiniteSource>();
 	auto dualInput = p.addModule<DualInput>();
 	p.connect(src, 0, dualInput, 0);
 	p.connect(src, 0, dualInput, 1);
 	p.start();
 	ASSERT_THROWN(p.removeModule(dualInput));
-	p.waitForEndOfStream();
 }
 
 unittest("pipeline: dynamic module disconnection (remove source without disconnect)") {
 	Pipeline p;
-	auto src = p.addModule<FakeSource>();
+	auto src = p.addModule<InfiniteSource>();
 	auto dualInput = p.addModule<DualInput>();
 	p.connect(src, 0, dualInput, 0);
 	p.connect(src, 0, dualInput, 1);
 	p.start();
 	ASSERT_THROWN(p.removeModule(src));
-	p.waitForEndOfStream();
 }
 
 unittest("pipeline: dynamic module disconnection (remove source)") {
 	Pipeline p;
-	auto src = p.addModule<FakeSource>();
+	auto src = p.addModule<InfiniteSource>();
 	auto dualInput = p.addModule<DualInput>();
 	p.connect(src, 0, dualInput, 0);
 	p.connect(src, 0, dualInput, 1);
@@ -159,7 +164,6 @@ unittest("pipeline: dynamic module disconnection (remove source)") {
 	p.disconnect(src, 0, dualInput, 0);
 	p.disconnect(src, 0, dualInput, 1);
 	p.removeModule(src);
-	p.waitForEndOfStream();
 }
 
 unittest("pipeline: dynamic module addition") {
@@ -168,6 +172,4 @@ unittest("pipeline: dynamic module addition") {
 	p.start();
 	auto sink = p.addModule<FakeSink>();
 	p.connect(src, 0, sink, 0);
-	p.exitSync(); //stop src
-	p.waitForEndOfStream();
 }
