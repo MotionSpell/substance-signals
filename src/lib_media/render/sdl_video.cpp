@@ -209,6 +209,7 @@ struct SDLVideo : ModuleS {
 
 Modules::IModule* createObject(IModuleHost* host, va_list va) {
 	auto clock = va_arg(va, IClock*);
+	enforce(host, "SDLVideo: host can't be NULL");
 	return Modules::create<SDLVideo>(host, clock).release();
 }
 
