@@ -11,15 +11,14 @@ struct IPipelinedModule;
 struct Graph {
 	struct Node {
 		typedef IPipelinedModule* NodeId;
-		Node(NodeId id) : id(id) {}
 		NodeId id;
 	};
 
 	struct Connection {
-		Connection(Node src, int srcPort, Node dst, int dstPort)
-			: src(src), dst(dst), srcPort(srcPort), dstPort(dstPort) {}
-		Node src, dst;
-		int srcPort, dstPort;
+		Node src;
+		int srcPort;
+		Node dst;
+		int dstPort;
 	};
 
 	Node& nodeFromId(Node::NodeId &id) {

@@ -48,7 +48,7 @@ IPipelinedModule* Pipeline::addModuleInternal(std::unique_ptr<IModuleHost> host,
 	auto module = make_unique<PipelinedModule>(move(host), rawModule, this, threading, statsMem.get());
 	auto ret = module.get();
 	modules.push_back(std::move(module));
-	graph->nodes.push_back(Graph::Node(ret));
+	graph->nodes.push_back(Graph::Node{ret});
 	return ret;
 }
 
@@ -106,7 +106,7 @@ void Pipeline::connect(IPipelinedModule * prev, int outputIdx, IPipelinedModule 
 	n->connect(p->getOutput(outputIdx), inputIdx, inputAcceptMultipleConnections);
 	computeTopology();
 
-	graph->connections.push_back(Graph::Connection(graph->nodeFromId(prev), outputIdx, graph->nodeFromId(next), inputIdx));
+	graph->connections.push_back(Graph::Connection{graph->nodeFromId(prev), outputIdx, graph->nodeFromId(next), inputIdx});
 }
 
 void Pipeline::disconnect(IPipelinedModule * prev, int outputIdx, IPipelinedModule * next, int inputIdx) {
