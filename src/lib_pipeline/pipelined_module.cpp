@@ -107,8 +107,10 @@ IInput* PipelinedModule::getInput(int i) {
 void PipelinedModule::startSource() {
 	assert(isSource());
 
-	if (started)
-		throw std::runtime_error("Pipeline: cannot started already started source");
+	if (started) {
+		Log::msg(Info, "Pipeline: source already started . Doing nothing.");
+		return;
+	}
 
 	Log::msg(Debug, "Module %s: start source - dispatching data", getDelegateName());
 
