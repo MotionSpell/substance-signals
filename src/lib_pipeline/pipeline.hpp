@@ -69,7 +69,7 @@ class Pipeline : public IPipelineNotifier {
 		/* @isLowLatency Controls the default number of buffers.
 			@threading    Controls the threading. */
 		Pipeline(bool isLowLatency = false, Threading threading = OnePerModule);
-		~Pipeline();
+		virtual ~Pipeline();
 
 		// Remove a module from a pipeline.
 		// This is only possible when the module is disconnected and flush()ed

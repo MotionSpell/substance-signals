@@ -9,7 +9,7 @@ struct StatsEntry {
 	int32_t value = 0;
 };
 
-static_assert(sizeof(StatsEntry) == 256);
+static_assert(sizeof(StatsEntry) == 256, "StatsEntry size must be 256");
 
 struct IStatsRegistry {
 	virtual ~IStatsRegistry() {}

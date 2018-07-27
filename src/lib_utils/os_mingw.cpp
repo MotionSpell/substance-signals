@@ -6,10 +6,9 @@ using namespace std;
 
 #include <windows.h>
 #include <direct.h> //chdir
-#include <process.h> //getpid
 
 int getPid() {
-	return getpid();
+	return (int)GetCurrentProcessId();
 }
 
 bool setHighThreadPriority() {
@@ -39,7 +38,7 @@ void moveFile(string src, string dst) {
 }
 
 void changeDir(string path) {
-	if (chdir(path.c_str()) < 0)
+	if (SetCurrentDirectoryA(path.c_str()))
 		throw runtime_error("can't change to dir '" + path + "'");
 }
 

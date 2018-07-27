@@ -3,6 +3,7 @@
 #include "lib_utils/fraction.hpp"
 
 struct IClock {
+	virtual ~IClock() = default;
 	static auto const Rate = 180000ULL;
 	virtual Fraction now() const = 0;
 	virtual void sleep(Fraction time) const = 0;
