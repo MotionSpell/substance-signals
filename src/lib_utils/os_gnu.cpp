@@ -56,7 +56,7 @@ string thisExeDir() {
 }
 
 struct DynLibGnu : DynLib {
-	DynLibGnu(const char* name) : handle(dlopen(name, RTLD_NOW)) {
+	DynLibGnu(const char* name) : handle(dlopen(name, RTLD_NOW | RTLD_NODELETE)) {
 		if(!handle) {
 			string msg = "can't load '";
 			msg += name;
