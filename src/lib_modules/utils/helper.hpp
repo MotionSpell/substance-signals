@@ -11,7 +11,6 @@
 #include "lib_utils/queue.hpp"
 #include "lib_utils/tools.hpp" // uptr
 #include <memory>
-#include <atomic>
 
 struct Span {
 	uint8_t* ptr;
@@ -39,8 +38,6 @@ class MetadataCap : public virtual IMetadataCap {
 
 class ConnectedCap : public virtual IConnectedCap {
 	public:
-		ConnectedCap() : connections(0) {}
-		virtual ~ConnectedCap() {}
 		virtual int getNumConnections() const {
 			return connections;
 		}
@@ -52,7 +49,7 @@ class ConnectedCap : public virtual IConnectedCap {
 		}
 
 	private:
-		std::atomic<int> connections;
+		int connections = 0;
 };
 
 template<typename DataType>
