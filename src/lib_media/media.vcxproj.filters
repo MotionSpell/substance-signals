@@ -29,12 +29,6 @@
     <ClInclude Include="render\render_common.hpp">
       <Filter>src\render</Filter>
     </ClInclude>
-    <ClInclude Include="render\sdl_audio.hpp">
-      <Filter>src\render</Filter>
-    </ClInclude>
-    <ClInclude Include="render\sdl_video.hpp">
-      <Filter>src\render</Filter>
-    </ClInclude>
     <ClInclude Include="encode\jpegturbo_encode.hpp">
       <Filter>src\encode</Filter>
     </ClInclude>
