@@ -1,9 +1,6 @@
 #pragma once
 
 #include "lib_modules/utils/helper.hpp"
-#include <cstdint>
-
-typedef struct __tag_isom GF_ISOFile;
 
 namespace Modules {
 namespace Demux {
