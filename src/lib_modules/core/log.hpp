@@ -1,6 +1,7 @@
 #pragma once
 
 #include "lib_utils/log.hpp"
+#include <typeinfo>
 
 namespace Modules {
 
