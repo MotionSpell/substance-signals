@@ -47,19 +47,22 @@ unittest("pipeline graph: add module") {
 	Pipeline p;
 	auto A = p.addModule<Dummy>();
 	string expected =
-	    "digraph {\n"
-	    "\tsubgraph cluster_0 {\n"
-	    "\t\tlabel = \"A\";\n"
-	    "\t\tsubgraph cluster_inputs {\n"
-	    "\t\t\tlabel = \"inputs\";\n"
-	    "\t\t\t\"A_input_0\";\n"
-	    "\t\t}\n"
-	    "\t\tsubgraph cluster_outputs {\n"
-	    "\t\t\tlabel = \"outputs\";\n"
-	    "\t\t\t\"A_output_0\";\n"
-	    "\t\t}\n"
-	    "\t}\n\n"
-	    "}\n";
+	    R"(digraph {
+	subgraph cluster_0 {
+		label = "A";
+		subgraph cluster_inputs {
+			label = "inputs";
+			"A_input_0";
+		}
+		subgraph cluster_outputs {
+			label = "outputs";
+			"A_output_0";
+		}
+	}
+
+}
+)";
+
 	auto str = replaceAll(p.dump(), formatPtr(A), "A");
 	ASSERT_EQUALS(expected, str);
 }
@@ -70,31 +73,35 @@ unittest("pipeline graph: add connection") {
 	auto B = p.addModule<Dummy>();
 	p.connect(A, 0, B, 0);
 	string expected =
-	    "digraph {\n"
-	    "\tsubgraph cluster_0 {\n"
-	    "\t\tlabel = \"A\";\n"
-	    "\t\tsubgraph cluster_inputs {\n"
-	    "\t\t\tlabel = \"inputs\";\n"
-	    "\t\t\t\"A_input_0\";\n"
-	    "\t\t}\n"
-	    "\t\tsubgraph cluster_outputs {\n"
-	    "\t\t\tlabel = \"outputs\";\n"
-	    "\t\t\t\"A_output_0\";\n"
-	    "\t\t}\n"
-	    "\t}\n\n"
-	    "\tsubgraph cluster_1 {\n"
-	    "\t\tlabel = \"B\";\n"
-	    "\t\tsubgraph cluster_inputs {\n"
-	    "\t\t\tlabel = \"inputs\";\n"
-	    "\t\t\t\"B_input_0\";\n"
-	    "\t\t}\n"
-	    "\t\tsubgraph cluster_outputs {\n"
-	    "\t\t\tlabel = \"outputs\";\n"
-	    "\t\t\t\"B_output_0\";\n"
-	    "\t\t}\n"
-	    "\t}\n\n"
-	    "\t\"A_output_0\" -> \"B_input_0\";\n"
-	    "}\n";
+	    R"(digraph {
+	subgraph cluster_0 {
+		label = "A";
+		subgraph cluster_inputs {
+			label = "inputs";
+			"A_input_0";
+		}
+		subgraph cluster_outputs {
+			label = "outputs";
+			"A_output_0";
+		}
+	}
+
+	subgraph cluster_1 {
+		label = "B";
+		subgraph cluster_inputs {
+			label = "inputs";
+			"B_input_0";
+		}
+		subgraph cluster_outputs {
+			label = "outputs";
+			"B_output_0";
+		}
+	}
+
+	"A_output_0" -> "B_input_0";
+}
+)";
+
 	auto str = p.dump();
 	str = replaceAll(str, formatPtr(A), "A");
 	str = replaceAll(str, formatPtr(B), "B");
@@ -108,30 +115,34 @@ unittest("pipeline graph: disconnect") {
 	p.connect(A, 0, B, 0);
 	p.disconnect(A, 0, B, 0);
 	string expected =
-	    "digraph {\n"
-	    "\tsubgraph cluster_0 {\n"
-	    "\t\tlabel = \"A\";\n"
-	    "\t\tsubgraph cluster_inputs {\n"
-	    "\t\t\tlabel = \"inputs\";\n"
-	    "\t\t\t\"A_input_0\";\n"
-	    "\t\t}\n"
-	    "\t\tsubgraph cluster_outputs {\n"
-	    "\t\t\tlabel = \"outputs\";\n"
-	    "\t\t\t\"A_output_0\";\n"
-	    "\t\t}\n"
-	    "\t}\n\n"
-	    "\tsubgraph cluster_1 {\n"
-	    "\t\tlabel = \"B\";\n"
-	    "\t\tsubgraph cluster_inputs {\n"
-	    "\t\t\tlabel = \"inputs\";\n"
-	    "\t\t\t\"B_input_0\";\n"
-	    "\t\t}\n"
-	    "\t\tsubgraph cluster_outputs {\n"
-	    "\t\t\tlabel = \"outputs\";\n"
-	    "\t\t\t\"B_output_0\";\n"
-	    "\t\t}\n"
-	    "\t}\n\n"
-	    "}\n";
+	    R"(digraph {
+	subgraph cluster_0 {
+		label = "A";
+		subgraph cluster_inputs {
+			label = "inputs";
+			"A_input_0";
+		}
+		subgraph cluster_outputs {
+			label = "outputs";
+			"A_output_0";
+		}
+	}
+
+	subgraph cluster_1 {
+		label = "B";
+		subgraph cluster_inputs {
+			label = "inputs";
+			"B_input_0";
+		}
+		subgraph cluster_outputs {
+			label = "outputs";
+			"B_output_0";
+		}
+	}
+
+}
+)";
+
 	auto str = p.dump();
 	str = replaceAll(str, formatPtr(A), "A");
 	str = replaceAll(str, formatPtr(B), "B");
