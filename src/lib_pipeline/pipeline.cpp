@@ -10,6 +10,7 @@
 #include <sstream>
 #include <string>
 #include <atomic>
+#include <typeinfo>
 
 #define COMPLETION_GRANULARITY_IN_MS 200
 
