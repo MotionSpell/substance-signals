@@ -103,9 +103,6 @@ IInput* PipelinedModule::getInput(int i) {
 void PipelinedModule::startSource() {
 	assert(isSource());
 
-	//return dynamic_cast<ActiveModule>(delegate.get());
-	auto s = safe_cast<ActiveModule>(delegate);
-
 	if (started) {
 		Log::msg(Info, "Pipeline: source already started . Doing nothing.");
 		return;
