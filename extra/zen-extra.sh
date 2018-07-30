@@ -29,6 +29,8 @@ function get_root_packages
 
   echo openssl
   echo sqlite3
+  echo postgres
+  echo postgres_tao
   echo asio
   echo ffmpeg
   echo freetype2
