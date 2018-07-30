@@ -1065,6 +1065,8 @@ void GPACMuxMP4::process() {
 }
 }
 
+namespace {
+
 using namespace Modules;
 
 Modules::IModule* createObject(IModuleHost* host, va_list va) {
@@ -1075,3 +1077,4 @@ Modules::IModule* createObject(IModuleHost* host, va_list va) {
 }
 
 auto const registered = registerModule("GPACMuxMP4", &createObject);
+}
