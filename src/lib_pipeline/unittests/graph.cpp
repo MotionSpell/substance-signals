@@ -23,7 +23,7 @@ unittest("pipeline graph: empty") {
 	Pipeline p;
 	auto str = p.dump();
 	std::stringstream expected;
-	expected << "digraph {" << std::endl << "}" << std::endl;
+	expected << "digraph {\n}\n";
 	ASSERT_EQUALS(expected.str(), str);
 }
 
@@ -32,19 +32,19 @@ unittest("pipeline graph: add module") {
 	auto ptr = p.addModule<Dummy>();
 	auto str = p.dump();
 	std::stringstream expected;
-	expected << "digraph {" << std::endl
-	    << "\tsubgraph cluster_0 {" << std::endl
-	    << "\t\tlabel = \"" << ptr << "\";" << std::endl
-	    << "\t\tsubgraph cluster_inputs {" << std::endl
-	    << "\t\t\tlabel = \"inputs\";" << std::endl
-	    << "\t\t\t\"" << ptr << "_input_0\";" << std::endl
-	    << "\t\t}" << std::endl
-	    << "\t\tsubgraph cluster_outputs {" << std::endl
-	    << "\t\t\tlabel = \"outputs\";" << std::endl
-	    << "\t\t\t\"" << ptr << "_output_0\";" << std::endl
-	    << "\t\t}" << std::endl
-	    << "\t}" << std::endl << std::endl
-	    << "}" << std::endl;
+	expected << "digraph {\n"
+	    << "\tsubgraph cluster_0 {\n"
+	    << "\t\tlabel = \"" << ptr << "\";\n"
+	    << "\t\tsubgraph cluster_inputs {\n"
+	    << "\t\t\tlabel = \"inputs\";\n"
+	    << "\t\t\t\"" << ptr << "_input_0\";\n"
+	    << "\t\t}\n"
+	    << "\t\tsubgraph cluster_outputs {\n"
+	    << "\t\t\tlabel = \"outputs\";\n"
+	    << "\t\t\t\"" << ptr << "_output_0\";\n"
+	    << "\t\t}\n"
+	    << "\t}\n\n"
+	    << "}\n";
 	ASSERT_EQUALS(expected.str(), str);
 }
 
@@ -55,31 +55,31 @@ unittest("pipeline graph: add connection") {
 	p.connect(ptr1, 0, ptr2, 0);
 	auto str = p.dump();
 	std::stringstream expected;
-	expected << "digraph {" << std::endl
-	    << "\tsubgraph cluster_0 {" << std::endl
-	    << "\t\tlabel = \"" << ptr1 << "\";" << std::endl
-	    << "\t\tsubgraph cluster_inputs {" << std::endl
-	    << "\t\t\tlabel = \"inputs\";" << std::endl
-	    << "\t\t\t\"" << ptr1 << "_input_0\";" << std::endl
-	    << "\t\t}" << std::endl
-	    << "\t\tsubgraph cluster_outputs {" << std::endl
-	    << "\t\t\tlabel = \"outputs\";" << std::endl
-	    << "\t\t\t\"" << ptr1 << "_output_0\";" << std::endl
-	    << "\t\t}" << std::endl
-	    << "\t}" << std::endl << std::endl
-	    << "\tsubgraph cluster_1 {" << std::endl
-	    << "\t\tlabel = \"" << ptr2 << "\";" << std::endl
-	    << "\t\tsubgraph cluster_inputs {" << std::endl
-	    << "\t\t\tlabel = \"inputs\";" << std::endl
-	    << "\t\t\t\"" << ptr2 << "_input_0\";" << std::endl
-	    << "\t\t}" << std::endl
-	    << "\t\tsubgraph cluster_outputs {" << std::endl
-	    << "\t\t\tlabel = \"outputs\";" << std::endl
-	    << "\t\t\t\"" << ptr2 << "_output_0\";" << std::endl
-	    << "\t\t}" << std::endl
-	    << "\t}" << std::endl << std::endl
-	    << "\t\"" << ptr1 << "_output_0\" -> \"" << ptr2 << "_input_0\";" << std::endl
-	    << "}" << std::endl;
+	expected << "digraph {\n"
+	    << "\tsubgraph cluster_0 {\n"
+	    << "\t\tlabel = \"" << ptr1 << "\";\n"
+	    << "\t\tsubgraph cluster_inputs {\n"
+	    << "\t\t\tlabel = \"inputs\";\n"
+	    << "\t\t\t\"" << ptr1 << "_input_0\";\n"
+	    << "\t\t}\n"
+	    << "\t\tsubgraph cluster_outputs {\n"
+	    << "\t\t\tlabel = \"outputs\";\n"
+	    << "\t\t\t\"" << ptr1 << "_output_0\";\n"
+	    << "\t\t}\n"
+	    << "\t}\n\n"
+	    << "\tsubgraph cluster_1 {\n"
+	    << "\t\tlabel = \"" << ptr2 << "\";\n"
+	    << "\t\tsubgraph cluster_inputs {\n"
+	    << "\t\t\tlabel = \"inputs\";\n"
+	    << "\t\t\t\"" << ptr2 << "_input_0\";\n"
+	    << "\t\t}\n"
+	    << "\t\tsubgraph cluster_outputs {\n"
+	    << "\t\t\tlabel = \"outputs\";\n"
+	    << "\t\t\t\"" << ptr2 << "_output_0\";\n"
+	    << "\t\t}\n"
+	    << "\t}\n\n"
+	    << "\t\"" << ptr1 << "_output_0\" -> \"" << ptr2 << "_input_0\";\n"
+	    << "}\n";
 	ASSERT_EQUALS(expected.str(), str);
 }
 
@@ -91,30 +91,30 @@ unittest("pipeline graph: disconnect") {
 	p.disconnect(ptr1, 0, ptr2, 0);
 	auto str = p.dump();
 	std::stringstream expected;
-	expected << "digraph {" << std::endl
-	    << "\tsubgraph cluster_0 {" << std::endl
-	    << "\t\tlabel = \"" << ptr1 << "\";" << std::endl
-	    << "\t\tsubgraph cluster_inputs {" << std::endl
-	    << "\t\t\tlabel = \"inputs\";" << std::endl
-	    << "\t\t\t\"" << ptr1 << "_input_0\";" << std::endl
-	    << "\t\t}" << std::endl
-	    << "\t\tsubgraph cluster_outputs {" << std::endl
-	    << "\t\t\tlabel = \"outputs\";" << std::endl
-	    << "\t\t\t\"" << ptr1 << "_output_0\";" << std::endl
-	    << "\t\t}" << std::endl
-	    << "\t}" << std::endl << std::endl
-	    << "\tsubgraph cluster_1 {" << std::endl
-	    << "\t\tlabel = \"" << ptr2 << "\";" << std::endl
-	    << "\t\tsubgraph cluster_inputs {" << std::endl
-	    << "\t\t\tlabel = \"inputs\";" << std::endl
-	    << "\t\t\t\"" << ptr2 << "_input_0\";" << std::endl
-	    << "\t\t}" << std::endl
-	    << "\t\tsubgraph cluster_outputs {" << std::endl
-	    << "\t\t\tlabel = \"outputs\";" << std::endl
-	    << "\t\t\t\"" << ptr2 << "_output_0\";" << std::endl
-	    << "\t\t}" << std::endl
-	    << "\t}" << std::endl << std::endl
-	    << "}" << std::endl;
+	expected << "digraph {\n"
+	    << "\tsubgraph cluster_0 {\n"
+	    << "\t\tlabel = \"" << ptr1 << "\";\n"
+	    << "\t\tsubgraph cluster_inputs {\n"
+	    << "\t\t\tlabel = \"inputs\";\n"
+	    << "\t\t\t\"" << ptr1 << "_input_0\";\n"
+	    << "\t\t}\n"
+	    << "\t\tsubgraph cluster_outputs {\n"
+	    << "\t\t\tlabel = \"outputs\";\n"
+	    << "\t\t\t\"" << ptr1 << "_output_0\";\n"
+	    << "\t\t}\n"
+	    << "\t}\n\n"
+	    << "\tsubgraph cluster_1 {\n"
+	    << "\t\tlabel = \"" << ptr2 << "\";\n"
+	    << "\t\tsubgraph cluster_inputs {\n"
+	    << "\t\t\tlabel = \"inputs\";\n"
+	    << "\t\t\t\"" << ptr2 << "_input_0\";\n"
+	    << "\t\t}\n"
+	    << "\t\tsubgraph cluster_outputs {\n"
+	    << "\t\t\tlabel = \"outputs\";\n"
+	    << "\t\t\t\"" << ptr2 << "_output_0\";\n"
+	    << "\t\t}\n"
+	    << "\t}\n\n"
+	    << "}\n";
 	ASSERT_EQUALS(expected.str(), str);
 }
 
@@ -124,7 +124,7 @@ unittest("pipeline graph: remove module") {
 	p.removeModule(ptr);
 	auto str = p.dump();
 	std::stringstream expected;
-	expected << "digraph {" << std::endl << "}" << std::endl;
+	expected << "digraph {\n}\n";
 	ASSERT_EQUALS(expected.str(), str);
 }
 
