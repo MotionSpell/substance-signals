@@ -10,7 +10,6 @@ namespace Pipelines {
 /* wrapper around the module */
 class PipelinedModule :
 	public IPipelinedModule,
-	private InputCap,
 	private IPipelineNotifier {
 	public:
 		/* take ownership of module and executor */
@@ -53,6 +52,13 @@ class PipelinedModule :
 		std::atomic<int> eosCount;
 
 		IStatsRegistry * const statsRegistry;
+
+		IInput* addInput(IInput* p) { //Takes ownership
+			inputs.push_back(uptr(p));
+			return p;
+		}
+
+		std::vector<std::unique_ptr<IInput>> inputs;
 };
 
 }
