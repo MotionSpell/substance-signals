@@ -9,7 +9,7 @@ void Print::process(Data data_) {
 }
 
 Print::Print(std::ostream &os) : os(os) {
-	addInput(new Input(this));
+	createInput(this);
 }
 
 }

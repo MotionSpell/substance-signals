@@ -36,7 +36,7 @@ struct ISOProgressiveReader {
 
 GPACDemuxMP4Full::GPACDemuxMP4Full()
 	: reader(new ISOProgressiveReader) {
-	addInput(new Input(this));
+	createInput(this);
 	output = addOutput<OutputDefault>();
 }
 

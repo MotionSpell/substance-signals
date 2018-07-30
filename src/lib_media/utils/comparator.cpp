@@ -38,7 +38,7 @@ void IComparator::pushOther(Data data) {
 
 
 PcmComparator::PcmComparator() {
-	auto input = addInput(new Input(this));
+	auto input = createInput(this);
 	input->setMetadata(make_shared<MetadataRawAudio>());
 }
 

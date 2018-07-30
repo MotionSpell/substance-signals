@@ -100,7 +100,7 @@ struct SDLAudio : ModuleS {
 		if (!reconfigure(m_inputFormat))
 			throw error("Audio output creation failed");
 
-		auto input = addInput(new Input(this));
+		auto input = createInput(this);
 		input->setMetadata(make_shared<MetadataRawAudio>());
 		auto pushAudio = Signals::BindMember(this, &SDLAudio::push);
 		Signals::Connect(m_converter->getOutput(0)->getSignal(), pushAudio, executorSync);

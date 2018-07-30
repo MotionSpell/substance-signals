@@ -59,7 +59,7 @@ std::shared_ptr<DataBase> getTestMp3Frame() {
 unittest("decoder: audio simple") {
 	struct FrameCounter : ModuleS {
 		FrameCounter() {
-			addInput(new Input(this));
+			createInput(this);
 		}
 		void process(Data) override {
 			++frameCount;
@@ -83,7 +83,7 @@ unittest("decoder: audio simple") {
 unittest("decoder: timestamp propagation") {
 	struct FrameCounter : ModuleS {
 		FrameCounter() {
-			addInput(new Input(this));
+			createInput(this);
 		}
 		void process(Data data) override {
 			mediaTimes.push_back(data->getMediaTime());

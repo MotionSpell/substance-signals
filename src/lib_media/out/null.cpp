@@ -4,11 +4,10 @@ namespace Modules {
 namespace Out {
 
 Null::Null() {
-	addInput(new Input(this));
+	createInput(this);
 }
 
-void Null::process(Data data) {
-	(void)data;
+void Null::process(Data) {
 }
 
 }

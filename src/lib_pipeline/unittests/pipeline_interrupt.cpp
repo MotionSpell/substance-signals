@@ -32,7 +32,7 @@ unittest("pipeline: destroy while running") {
 unittest("pipeline: intercept exception") {
 	struct ExceptionModule : ModuleS {
 		ExceptionModule() {
-			addInput(new Input(this));
+			createInput(this);
 		}
 		void process(Data) {
 			if (!raised) {

@@ -10,7 +10,7 @@ using namespace std::chrono;
 
 Repeater::Repeater(int64_t ms) : periodInMs(ms) {
 	done = false;
-	addInput(new Input(this));
+	createInput(this);
 	addOutput<OutputDataDefault<DataBase>>();
 	lastNow = high_resolution_clock::now();
 	workingThread = std::thread(&Repeater::threadProc, this);

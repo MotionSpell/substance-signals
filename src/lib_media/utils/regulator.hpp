@@ -7,7 +7,7 @@ namespace Modules {
 class Regulator : public ModuleS {
 	public:
 		Regulator(std::shared_ptr<IClock> clock_) : clock(clock_) {
-			addInput(new Input(this));
+			createInput(this);
 			addOutput<OutputDefault>();
 		}
 

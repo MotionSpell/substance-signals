@@ -44,7 +44,7 @@ struct SDLVideo : ModuleS {
 		: m_host(host),
 		  m_clock(clock ? clock : g_SystemClock.get()),
 		  texture(nullptr), workingThread(&SDLVideo::doRender, this) {
-		auto input = addInput(new Input(this));
+		auto input = createInput(this);
 		input->setMetadata(make_shared<MetadataRawVideo>());
 		m_dataQueue.pop();
 	}

@@ -84,9 +84,9 @@ class Input : public IInput, public ConnectedCap, public MetadataCap {
 class InputCap : public virtual IInputCap {
 	public:
 		virtual ~InputCap() {}
-		IInput* addInput(IInput* p) { //Takes ownership
-			inputs.push_back(uptr(p));
-			return p;
+		IInput* createInput(IProcessor* p) { //Takes ownership
+			inputs.push_back(std::make_unique<Input>(p));
+			return inputs.back().get();
 		}
 		int getNumInputs() const override {
 			return (int)inputs.size();

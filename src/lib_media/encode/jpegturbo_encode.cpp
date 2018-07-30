@@ -10,7 +10,7 @@ namespace Encode {
 
 JPEGTurboEncode::JPEGTurboEncode(int quality)
 	: jtHandle(tjInitCompress()), quality(quality) {
-	auto input = addInput(new Input(this));
+	auto input = createInput(this);
 	input->setMetadata(make_shared<MetadataRawVideo>());
 	output = addOutput<OutputDefault>();
 }

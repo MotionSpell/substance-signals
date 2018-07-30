@@ -73,7 +73,7 @@ HTTP::HTTP(const std::string &url, Flag flags, const std::string &userAgent, con
 		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
 	}
 
-	addInput(new Input(this));
+	createInput(this);
 	outputFinished = addOutput<OutputDefault>();
 }
 

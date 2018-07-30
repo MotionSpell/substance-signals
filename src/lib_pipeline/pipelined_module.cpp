@@ -106,7 +106,7 @@ void PipelinedModule::startSource() {
 
 	// first time: create a fake input port
 	// and push null to trigger execution
-	safe_cast<InputCap>(delegate.get())->addInput(new Input(delegate.get()));
+	safe_cast<InputCap>(delegate.get())->createInput(delegate.get());
 	connections = 1;
 	auto input = getInput(0);
 	input->push(nullptr);
