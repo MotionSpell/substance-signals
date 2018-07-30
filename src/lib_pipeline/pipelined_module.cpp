@@ -28,15 +28,14 @@ PipelinedModule::PipelinedModule(std::unique_ptr<Modules::IModuleHost> host, std
 }
 
 PipelinedModule::~PipelinedModule() {
-	if (isSource()) {
-		// FIXME: we shouldn't do semantics here, but it is needed as long as
-		//        the ActiveModule loop is not included in PipelinedModule
+	// FIXME: we shouldn't do semantics here, but it is needed as long as
+	//        the ActiveModule loop is not included in PipelinedModule
+	if (isSource())
 		stopSource();
-	} else {
-		// inputs, which hold the executors,
-		// must be destroyed *before* the 'delegate' module.
-		inputs.clear();
-	}
+
+	// inputs, which hold the executors,
+	// must be destroyed *before* the 'delegate' module.
+	inputs.clear();
 }
 
 std::string PipelinedModule::getDelegateName() const {
