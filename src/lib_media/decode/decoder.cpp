@@ -120,8 +120,8 @@ void Decoder::process(Data data) {
 
 	AVPacket pkt {};
 	pkt.pts = data->getMediaTime();
-	pkt.data = (uint8_t*)data->data();
-	pkt.size = (int)data->size();
+	pkt.data = (uint8_t*)data->data().ptr;
+	pkt.size = (int)data->data().len;
 	processPacket(&pkt);
 }
 

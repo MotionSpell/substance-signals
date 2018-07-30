@@ -35,9 +35,8 @@ class DataBaseRef : public DataBase {
 		std::shared_ptr<const DataBase> getData() const;
 
 		bool isRecyclable() const override;
-		uint8_t* data() override;
-		const uint8_t* data() const override;
-		uint64_t size() const override;
+		Span data() override;
+		SpanC data() const override;
 		void resize(size_t size) override;
 
 	private:
@@ -50,10 +49,9 @@ struct DataLoose : public DataBase {};
 class DataRaw : public DataBase {
 	public:
 		DataRaw(size_t size);
-		uint8_t* data() override;
 		bool isRecyclable() const override;
-		const uint8_t* data() const override;
-		uint64_t size() const override;
+		Span data() override;
+		SpanC data() const override;
 		void resize(size_t size) override;
 
 	private:

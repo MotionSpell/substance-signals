@@ -122,9 +122,9 @@ class PictureYUV420P : public DataPicture {
 			internalFormat.res = res;
 			resize(internalFormat.getSize());
 			auto const numPixels = res.width * res.height;
-			m_planes[0] = data();
-			m_planes[1] = data() + numPixels;
-			m_planes[2] = data() + numPixels + numPixels / 4;
+			m_planes[0] = data().ptr;
+			m_planes[1] = data().ptr + numPixels;
+			m_planes[2] = data().ptr + numPixels + numPixels / 4;
 			m_pitch[0] = res.width;
 			m_pitch[1] = res.width / 2;
 			m_pitch[2] = res.width / 2;

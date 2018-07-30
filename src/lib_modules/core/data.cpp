@@ -45,16 +45,12 @@ bool DataBaseRef::isRecyclable() const {
 	return dataRef->isRecyclable();
 }
 
-uint8_t* DataBaseRef::data() {
+Span DataBaseRef::data() {
 	throw std::runtime_error("DataBaseRef::data(): non-const operations not allowed. Aborting.");
 }
 
-const uint8_t* DataBaseRef::data() const {
+SpanC DataBaseRef::data() const {
 	return dataRef->data();
-}
-
-uint64_t DataBaseRef::size() const {
-	return dataRef->size();
 }
 
 void DataBaseRef::resize(size_t /*size*/) {
@@ -64,20 +60,16 @@ void DataBaseRef::resize(size_t /*size*/) {
 DataRaw::DataRaw(size_t size) : buffer(size) {
 }
 
-uint8_t* DataRaw::data() {
-	return buffer.data();
+Span DataRaw::data() {
+	return Span { buffer.data(), buffer.size() };
+}
+
+SpanC DataRaw::data() const {
+	return SpanC { buffer.data(), buffer.size() };
 }
 
 bool DataRaw::isRecyclable() const {
 	return true;
-}
-
-const uint8_t* DataRaw::data() const {
-	return buffer.data();
-}
-
-uint64_t DataRaw::size() const {
-	return buffer.size();
 }
 
 void DataRaw::resize(size_t size) {

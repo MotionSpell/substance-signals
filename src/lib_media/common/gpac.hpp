@@ -14,17 +14,14 @@ class DataRawGPAC : public DataBase {
 			this->buffer = buffer;
 			bufferSize = size;
 		}
-		uint8_t* data() override {
-			throw std::runtime_error("DataRawGPAC: forbidden operation non-const data().");
+		Span data() override {
+			return { buffer, bufferSize };
 		}
 		bool isRecyclable() const override {
 			return false;
 		}
-		const uint8_t* data() const override {
-			return buffer;
-		}
-		uint64_t size() const override {
-			return bufferSize;
+		SpanC data() const override {
+			return { buffer, bufferSize };
 		}
 		void resize(size_t /*size*/) override {
 			throw std::runtime_error("DataRawGPAC: forbidden operation resize().");

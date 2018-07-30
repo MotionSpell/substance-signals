@@ -221,7 +221,7 @@ void TeletextToTTML::process(Data data) {
 	//14. add flush() for ondemand samples
 	//15. UTF8 to TTML formatting? accent
 	auto sub = safe_cast<const DataAVPacket>(data);
-	if (sub->size()) {
+	if (sub->data().len) {
 		processTelx(sub.get());
 	}
 	dispatch();

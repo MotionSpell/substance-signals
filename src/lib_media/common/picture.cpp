@@ -25,7 +25,7 @@ class PictureY8 : public DataPicture {
 		void setInternalResolution(Resolution res) override {
 			internalFormat.res = res;
 			resize(internalFormat.getSize());
-			m_planes[0] = data();
+			m_planes[0] = data().ptr;
 			m_pitch[0] = res.width;
 		}
 		void setVisibleResolution(Resolution res) override {
@@ -62,9 +62,9 @@ class PictureYUV420P10LE : public DataPicture {
 			internalFormat.res = res;
 			resize(internalFormat.getSize());
 			auto const numPlaneBytes = res.width * divUp(10, 8) * res.height;
-			m_planes[0] = data();
-			m_planes[1] = data() + numPlaneBytes;
-			m_planes[2] = data() + numPlaneBytes + numPlaneBytes / 4;
+			m_planes[0] = data().ptr;
+			m_planes[1] = data().ptr + numPlaneBytes;
+			m_planes[2] = data().ptr + numPlaneBytes + numPlaneBytes / 4;
 			m_pitch[0] = res.width * divUp(10, 8);
 			m_pitch[1] = res.width * divUp(10, 8) / 2;
 			m_pitch[2] = res.width * divUp(10, 8) / 2;
@@ -103,9 +103,9 @@ class PictureYUV422P : public DataPicture {
 			internalFormat.res = res;
 			resize(internalFormat.getSize());
 			auto const numPixels = res.width * res.height;
-			m_planes[0] = data();
-			m_planes[1] = data() + numPixels;
-			m_planes[2] = data() + numPixels + numPixels / 2;
+			m_planes[0] = data().ptr;
+			m_planes[1] = data().ptr + numPixels;
+			m_planes[2] = data().ptr + numPixels + numPixels / 2;
 			m_pitch[0] = res.width;
 			m_pitch[1] = res.width / 2;
 			m_pitch[2] = res.width / 2;
@@ -144,9 +144,9 @@ class PictureYUV422P10LE : public DataPicture {
 			internalFormat.res = res;
 			resize(internalFormat.getSize());
 			auto const numPixels = res.width * res.height;
-			m_planes[0] = data();
-			m_planes[1] = data() + numPixels;
-			m_planes[2] = data() + numPixels + numPixels / 2;
+			m_planes[0] = data().ptr;
+			m_planes[1] = data().ptr + numPixels;
+			m_planes[2] = data().ptr + numPixels + numPixels / 2;
 			m_pitch[0] = res.width * divUp(10, 8);
 			m_pitch[1] = res.width * divUp(10, 8) / 2;
 			m_pitch[2] = res.width * divUp(10, 8) / 2;
@@ -173,10 +173,10 @@ class PictureYUYV422 : public DataPicture {
 			return 1;
 		}
 		const uint8_t* getPlane(size_t /*planeIdx*/) const override {
-			return data();
+			return data().ptr;
 		}
 		uint8_t* getPlane(size_t /*planeIdx*/) override {
-			return data();
+			return data().ptr;
 		}
 		size_t getPitch(size_t /*planeIdx*/) const override {
 			return internalFormat.res.width * 2;
@@ -215,8 +215,8 @@ class PictureNV12 : public DataPicture {
 			internalFormat.res = res;
 			resize(internalFormat.getSize());
 			auto const numPixels = res.width * res.height;
-			m_planes[0] = data();
-			m_planes[1] = data() + numPixels;
+			m_planes[0] = data().ptr;
+			m_planes[1] = data().ptr + numPixels;
 			m_pitch[0] = m_pitch[1] = res.width;
 		}
 		void setVisibleResolution(Resolution res) override {
@@ -241,10 +241,10 @@ class PictureRGB24 : public DataPicture {
 			return 1;
 		}
 		const uint8_t* getPlane(size_t /*planeIdx*/) const override {
-			return data();
+			return data().ptr;
 		}
 		uint8_t* getPlane(size_t /*planeIdx*/) override {
-			return data();
+			return data().ptr;
 		}
 		size_t getPitch(size_t /*planeIdx*/) const override {
 			return internalFormat.res.width * 3;
@@ -272,10 +272,10 @@ class PictureRGBA32 : public DataPicture {
 			return 1;
 		}
 		const uint8_t* getPlane(size_t /*planeIdx*/) const override {
-			return data();
+			return data().ptr;
 		}
 		uint8_t* getPlane(size_t /*planeIdx*/) override {
-			return data();
+			return data().ptr;
 		}
 		size_t getPitch(size_t /*planeIdx*/) const override {
 			return internalFormat.res.width * 4;

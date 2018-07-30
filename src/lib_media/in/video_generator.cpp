@@ -21,7 +21,7 @@ bool VideoGenerator::work() {
 	auto pic = DataPicture::create(output, dim, YUV420P);
 
 	// generate video
-	auto const p = pic->data();
+	auto const p = pic->data().ptr;
 	auto const FLASH_PERIOD = FRAMERATE;
 	auto const flash = (m_numFrames % FLASH_PERIOD) == 0;
 	auto const val = flash ? 0xCC : 0x80;

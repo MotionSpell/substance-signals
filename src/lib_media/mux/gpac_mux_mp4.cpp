@@ -956,8 +956,8 @@ void GPACMuxMP4::processSample(std::unique_ptr<gpacpp::IsoSample> sample, int64_
 std::unique_ptr<gpacpp::IsoSample> GPACMuxMP4::fillSample(Data data_) {
 	auto data = safe_cast<const DataAVPacket>(data_);
 	auto sample = make_unique<gpacpp::IsoSample>();
-	u32 bufLen = (u32)data->size();
-	const u8 *bufPtr = data->data();
+	u32 bufLen = (u32)data->data().len;
+	const u8 *bufPtr = data->data().ptr;
 
 	const u32 mediaType = gf_isom_get_media_type(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
 	if (mediaType == GF_ISOM_MEDIA_VISUAL) {

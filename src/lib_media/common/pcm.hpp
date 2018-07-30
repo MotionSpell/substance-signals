@@ -138,19 +138,15 @@ class DataPcm : public DataRaw {
 			this->format = format;
 		}
 
-		uint8_t* data() override {
-			if (format.numPlanes > 1)
-				throw std::runtime_error("Forbidden operation. Use audio planes to access the data.");
-			return planes[0];
+		Span data() override {
+			return Span { planes[0], size() };
 		}
 
-		uint8_t const* data() const override {
-			if (format.numPlanes > 1)
-				throw std::runtime_error("Forbidden operation. Use audio planes to access the data.");
-			return planes[0];
+		SpanC data() const override {
+			return SpanC { planes[0], size() };
 		}
 
-		uint64_t size() const override {
+		uint64_t size() const {
 			uint64_t size = 0;
 			for (size_t i = 0; i < format.numPlanes; ++i) {
 				size += planeSize[i];

@@ -270,16 +270,12 @@ DataAVPacket::~DataAVPacket() {
 	Log::msg(Debug, "Freeing %s, pts=%s", this, pkt->pts);
 }
 
-uint8_t* DataAVPacket::data() {
-	return pkt->data;
+Span DataAVPacket::data() {
+	return Span { pkt->data, (size_t)pkt->size };
 }
 
-uint8_t const* DataAVPacket::data() const {
-	return pkt->data;
-}
-
-uint64_t DataAVPacket::size() const {
-	return pkt->size;
+SpanC DataAVPacket::data() const {
+	return SpanC { pkt->data, (size_t)pkt->size };
 }
 
 AVPacket* DataAVPacket::getPacket() const {

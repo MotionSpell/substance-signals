@@ -18,7 +18,7 @@ File::~File() {
 
 void File::process(Data data_) {
 	auto data = safe_cast<const DataBase>(data_);
-	fwrite(data->data(), 1, (size_t)data->size(), file);
+	fwrite(data->data().ptr, 1, data->data().len, file);
 }
 
 }

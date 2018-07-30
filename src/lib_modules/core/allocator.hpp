@@ -41,7 +41,7 @@ class PacketAllocator {
 				if (!block.data) {
 					block.data = new T(size);
 				}
-				if (block.data->size() < size) {
+				if (block.data->data().len < size) {
 					block.data->resize(size);
 				}
 				auto ret = std::shared_ptr<T>(safe_cast<T>(block.data), Deleter{allocator});

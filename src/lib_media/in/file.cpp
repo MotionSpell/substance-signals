@@ -25,7 +25,7 @@ File::~File() {
 
 bool File::work() {
 	auto out = output->getBuffer(IOSIZE);
-	size_t read = fread(out->data(), 1, IOSIZE, file);
+	size_t read = fread(out->data().ptr, 1, IOSIZE, file);
 	if (read == 0) {
 		return false;
 	}

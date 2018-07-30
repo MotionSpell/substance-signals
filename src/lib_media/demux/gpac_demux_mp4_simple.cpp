@@ -49,7 +49,7 @@ bool GPACDemuxMP4Simple::work() {
 		reader->sampleIndex++;
 
 		auto out = output->getBuffer(ISOSample->dataLength);
-		memcpy(out->data(), ISOSample->data, ISOSample->dataLength);
+		memcpy(out->data().ptr, ISOSample->data, ISOSample->dataLength);
 		out->setMediaTime(ISOSample->DTS + DTSOffset + ISOSample->CTS_Offset, reader->movie->getMediaTimescale(reader->trackNumber));
 		output->emit(out);
 	} catch (gpacpp::Error const& err) {

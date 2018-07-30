@@ -200,7 +200,7 @@ void GPACMuxMPEG2TS::process() {
 	u32 status, usec_till_next;
 	while ((ts_pck = muxer->process(status, usec_till_next))) {
 		auto data = output->getBuffer(188);
-		memcpy(data->data(), ts_pck, 188);
+		memcpy(data->data().ptr, ts_pck, 188);
 		getOutput(0)->emit(data);
 	}
 }

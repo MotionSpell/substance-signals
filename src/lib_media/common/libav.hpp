@@ -71,9 +71,8 @@ class DataAVPacket : public DataBase {
 		bool isRecyclable() const override {
 			return false;
 		}
-		uint8_t* data() override;
-		uint8_t const* data() const override;
-		uint64_t size() const override;
+		Span data() override;
+		SpanC data() const override;
 		void resize(size_t size) override;
 
 		AVPacket* getPacket() const;

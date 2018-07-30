@@ -124,7 +124,7 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 
 		auto out = output->getBuffer(ISOSample->dataLength);
 		out->resize(ISOSample->dataLength); // workaround allocator bug
-		memcpy(out->data(), ISOSample->data, ISOSample->dataLength);
+		memcpy(out->data().ptr, ISOSample->data, ISOSample->dataLength);
 		out->setMediaTime(ISOSample->DTS + DTSOffset + ISOSample->CTS_Offset, reader->movie->getMediaTimescale(FIRST_TRACK));
 		output->emit(out);
 	}
@@ -157,7 +157,7 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 }
 
 void GPACDemuxMP4Full::process(Data data) {
-	reader->pushData(data->data(), (size_t)data->size());
+	reader->pushData(data->data().ptr, data->data().len);
 
 	if (!reader->movie) {
 		if (!openData()) {

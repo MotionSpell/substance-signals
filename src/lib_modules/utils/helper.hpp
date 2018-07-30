@@ -12,11 +12,6 @@
 #include "lib_utils/tools.hpp" // uptr
 #include <memory>
 
-struct Span {
-	uint8_t* ptr;
-	size_t len;
-};
-
 namespace Modules {
 
 class MetadataCap : public virtual IMetadataCap {

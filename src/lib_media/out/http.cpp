@@ -107,12 +107,12 @@ bool HTTP::open(std::shared_ptr<const MetadataFile> meta) {
 		throw error("Unknown data received on input");
 	assert(!curTransferedBs && !curTransferedFile);
 	auto const fn = meta->filename;
-	if (fn.empty() || curTransferedData->size()) {
-		curTransferedBs = gf_bs_new((const char*)curTransferedData->data(), curTransferedData->size(), GF_BITSTREAM_READ);
+	if (fn.empty() || curTransferedData->data().len) {
+		curTransferedBs = gf_bs_new((const char*)curTransferedData->data().ptr, curTransferedData->data().len, GF_BITSTREAM_READ);
 	} else {
 		curTransferedFile = gf_fopen(fn.c_str(), "rb");
 		if (!curTransferedFile) {
-			if (curTransferedData->size()) {
+			if (curTransferedData->data().len) {
 				log(Error, "File %s cannot be opened", fn);
 			}
 			return false;

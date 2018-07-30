@@ -24,8 +24,8 @@ void JPEGTurboEncode::process(Data data_) {
 	auto const w = videoData->getFormat().res.width, h = videoData->getFormat().res.height;
 	auto const dataSize = tjBufSize(w, h, TJSAMP_420);
 	auto out = output->getBuffer(dataSize);
-	unsigned char *buf = (unsigned char*)out->data();
-	auto jpegBuf = videoData->data();
+	unsigned char *buf = (unsigned char*)out->data().ptr;
+	auto jpegBuf = videoData->data().ptr;
 	unsigned long jpegSize;
 
 	switch (videoData->getFormat().format) {

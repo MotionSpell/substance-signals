@@ -147,7 +147,7 @@ bool MPEG_DASH_Input::wakeUp() {
 		}
 
 		auto data = make_shared<DataRaw>(chunk.size());
-		memcpy(data->data(), chunk.data(), chunk.size());
+		memcpy(data->data().ptr, chunk.data(), chunk.size());
 		stream->out->emit(data);
 	}
 
