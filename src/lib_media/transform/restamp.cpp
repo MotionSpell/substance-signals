@@ -6,7 +6,7 @@ namespace Transform {
 
 Restamp::Restamp(Mode mode, int64_t offsetIn180k)
 	: offset(offsetIn180k), mode(mode) {
-	addInput(new Input<DataBase>(this));
+	addInput(new Input(this));
 	addOutput<OutputDefault>();
 }
 

@@ -140,13 +140,13 @@ LibavEncode::LibavEncode(Type type, Params &params)
 	output = addOutput<OutputDataDefault<DataAVPacket>>();
 	switch (type) {
 	case Video: {
-		auto input = addInput(new Input<DataPicture>(this));
+		auto input = addInput(new Input(this));
 		input->setMetadata(make_shared<MetadataRawVideo>());
 		output->setMetadata(make_shared<MetadataPktLibavVideo>(codecCtx));
 		break;
 	}
 	case Audio: {
-		auto input = addInput(new Input<DataPcm>(this));
+		auto input = addInput(new Input(this));
 		input->setMetadata(make_shared<MetadataRawAudio>());
 		output->setMetadata(make_shared<MetadataPktLibavAudio>(codecCtx));
 		break;

@@ -12,7 +12,7 @@ class DataCustom : public DataRaw {};
 
 struct CustomDataTypeSink : public Modules::ModuleS {
 	CustomDataTypeSink() {
-		addInput(new Input<DataCustom>(this));
+		addInput(new Input(this));
 	}
 	void process(Modules::Data data) override {
 		safe_cast<const DataCustom>(data);

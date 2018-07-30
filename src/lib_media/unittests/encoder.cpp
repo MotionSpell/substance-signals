@@ -149,7 +149,7 @@ unittest("encoder: RAP placement (incorrect timings)") {
 unittest("GPAC mp4 mux: don't create empty fragments") {
 	struct Recorder : ModuleS {
 		Recorder() {
-			addInput(new Input<DataBase>(this));
+			addInput(new Input(this));
 		}
 		void process(Data data) {
 			if (initFound)

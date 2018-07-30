@@ -7,7 +7,7 @@ namespace Modules {
 namespace Transform {
 
 AVCC2AnnexBConverter::AVCC2AnnexBConverter() {
-	auto input = addInput(new Input<DataAVPacket>(this));
+	auto input = addInput(new Input(this));
 	output = addOutput<OutputDataDefault<DataAVPacket>>(input->getMetadata());
 }
 

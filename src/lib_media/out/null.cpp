@@ -4,7 +4,7 @@ namespace Modules {
 namespace Out {
 
 Null::Null() {
-	addInput(new Input<DataBase>(this));
+	addInput(new Input(this));
 }
 
 void Null::process(Data data) {

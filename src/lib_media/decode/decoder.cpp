@@ -10,7 +10,7 @@ namespace Decode {
 
 Decoder::Decoder(StreamType type)
 	: avFrame(new ffpp::Frame) {
-	addInput(new Input<DataBase>(this));
+	addInput(new Input(this));
 
 	if(type == VIDEO_PKT) {
 		videoOutput = addOutput<OutputPicture>(make_shared<MetadataRawVideo>());

@@ -60,11 +60,17 @@ std::shared_ptr<const IMetadata> PipelinedModule::getOutputMetadata(int i) {
 	return getOutput(i)->getMetadata();
 }
 
+class HackInput : public Input {
+	public:
+		HackInput(IProcessor* proc) : Input(proc) {
+		}
+};
+
 /* source modules are stopped manually - then the message propagates to other connected modules */
 bool PipelinedModule::isSource() {
 	if (delegate->getNumInputs() == 0) {
 		return true;
-	} else if (delegate->getNumInputs() == 1 && dynamic_cast<Input<DataLoosePipeline>*>(delegate->getInput(0))) {
+	} else if (delegate->getNumInputs() == 1 && dynamic_cast<HackInput*>(delegate->getInput(0))) {
 		return true;
 	} else {
 		return false;
@@ -117,7 +123,7 @@ void PipelinedModule::startSource() {
 
 	// first time: create a fake input port
 	// and push null to trigger execution
-	safe_cast<InputCap>(delegate.get())->addInput(new Input<DataLoosePipeline>(delegate.get()));
+	safe_cast<InputCap>(delegate.get())->addInput(new HackInput(delegate.get()));
 	connections = 1;
 	auto input = getInput(0);
 	input->push(nullptr);

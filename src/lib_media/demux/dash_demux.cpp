@@ -16,7 +16,7 @@ using namespace Transform;
 
 struct OutStub : ModuleS {
 		OutStub(OutputDefault *output) : output(output) {
-			addInput(new Input<DataBase>(this));
+			addInput(new Input(this));
 		}
 		void process(Data data) override {
 			output->emit(data);

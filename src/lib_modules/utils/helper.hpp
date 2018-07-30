@@ -52,7 +52,6 @@ class ConnectedCap : public virtual IConnectedCap {
 		int connections = 0;
 };
 
-template<typename DataType>
 class Input : public IInput, public ConnectedCap, public MetadataCap {
 	public:
 		Input(IProcessor * const processor) : processor(processor) {}

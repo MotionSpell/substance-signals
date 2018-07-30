@@ -10,7 +10,7 @@ namespace {
 
 struct Dummy : public Module {
 	Dummy() {
-		addInput(new Input<DataBase>(this));
+		addInput(new Input(this));
 		output = addOutput<OutputDefault>();
 	}
 	void process() {

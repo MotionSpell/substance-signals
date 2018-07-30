@@ -36,7 +36,7 @@ class ModuleDynI : public Module {
 		}
 		IInput* getInput(int i) override {
 			if (i == (int)inputs.size())
-				addInput(new Input<DataLoose>(this));
+				addInput(new Input(this));
 			else if (i > (int)inputs.size())
 				throw std::runtime_error(format("Incorrect port number %s for dynamic input.", i));
 

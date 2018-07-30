@@ -9,7 +9,7 @@ namespace {
 
 struct Passthru : public Modules::ModuleS {
 	Passthru() {
-		addInput(new Modules::Input<Modules::DataBase>(this));
+		addInput(new Modules::Input(this));
 		addOutput<Modules::OutputDefault>();
 	}
 	void process(Modules::Data) override {
@@ -41,7 +41,7 @@ struct FakeSource : Modules::Module {
 
 struct FakeSink : public Modules::ModuleS {
 	FakeSink() {
-		addInput(new Modules::Input<Modules::DataBase>(this));
+		addInput(new Modules::Input(this));
 	}
 	void process(Modules::Data) override {
 	}
@@ -50,8 +50,8 @@ struct FakeSink : public Modules::ModuleS {
 class DualInput : public Modules::Module {
 	public:
 		DualInput() {
-			input0 = (Modules::Input<Modules::DataBase>*)addInput(new Modules::Input<Modules::DataBase>(this));
-			input1 = (Modules::Input<Modules::DataBase>*)addInput(new Modules::Input<Modules::DataBase>(this));
+			input0 = (Modules::Input*)addInput(new Modules::Input(this));
+			input1 = (Modules::Input*)addInput(new Modules::Input(this));
 			out = addOutput<Modules::OutputDefault>();
 		}
 
@@ -70,8 +70,8 @@ class DualInput : public Modules::Module {
 
 	private:
 		bool done = false;
-		Modules::Input<Modules::DataBase>* input0;
-		Modules::Input<Modules::DataBase>* input1;
+		Modules::Input* input0;
+		Modules::Input* input1;
 		Modules::OutputDefault* out;
 };
 
@@ -80,8 +80,8 @@ class DualInput : public Modules::Module {
 class ThreadedDualInput : public Modules::Module {
 	public:
 		ThreadedDualInput() {
-			input0 = (Modules::Input<Modules::DataBase>*)addInput(new Modules::Input<Modules::DataBase>(this));
-			input1 = (Modules::Input<Modules::DataBase>*)addInput(new Modules::Input<Modules::DataBase>(this));
+			input0 = (Modules::Input*)addInput(new Modules::Input(this));
+			input1 = (Modules::Input*)addInput(new Modules::Input(this));
 			addOutput<Modules::OutputDefault>();
 			numCalls = 0;
 			workingThread = std::thread(&ThreadedDualInput::threadProc, this);
@@ -130,7 +130,7 @@ class ThreadedDualInput : public Modules::Module {
 		std::thread workingThread;
 		std::mutex m_protectDone;
 		std::condition_variable flushed;
-		Modules::Input<Modules::DataBase>* input0;
-		Modules::Input<Modules::DataBase>* input1;
+		Modules::Input* input0;
+		Modules::Input* input1;
 };
 

@@ -9,7 +9,7 @@ File::File(std::string const& path) {
 	if (!file)
 		throw error(format("Can't open file for writing: %s", path));
 
-	addInput(new Input<DataBase>(this));
+	addInput(new Input(this));
 }
 
 File::~File() {

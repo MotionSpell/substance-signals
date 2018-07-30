@@ -19,7 +19,7 @@ AdaptiveStreamingCommon::AdaptiveStreamingCommon(Type type, uint64_t segDuration
 		throw error("Inconsistent parameters: ForceRealDurations flag requires a non-null segment duration.");
 	if (!manifestDir.empty() && (flags & SegmentsNotOwned))
 		throw error(format("Inconsistent parameters: manifestDir (%s) should be empty when segments are not owned.", manifestDir));
-	addInput(new Input<DataRaw>(this));
+	addInput(new Input(this));
 	outputSegments = addOutput<OutputDefault>();
 	outputManifest = addOutput<OutputDefault>();
 }
