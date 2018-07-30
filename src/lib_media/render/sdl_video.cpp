@@ -55,19 +55,6 @@ struct SDLVideo : ModuleS {
 		workingThread.join();
 	}
 
-	IModuleHost* const m_host;
-	IClock* const m_clock;
-
-	SDL_Window* window = nullptr;
-	SDL_Renderer* renderer = nullptr;
-	SDL_Texture* texture = nullptr;
-	Resolution displaySize {};
-	PictureFormat pictureFormat {};
-	bool respectTimestamps = true;
-
-	Queue<Data> m_dataQueue; //FIXME: useless now we have input ports
-	std::thread workingThread;
-
 	void doRender() {
 
 		{
@@ -205,6 +192,19 @@ struct SDLVideo : ModuleS {
 
 		SDL_AddTimer((Uint32)delayInMs, &queueOneUserEvent, nullptr);
 	}
+
+	IModuleHost* const m_host;
+	IClock* const m_clock;
+
+	SDL_Window* window = nullptr;
+	SDL_Renderer* renderer = nullptr;
+	SDL_Texture* texture = nullptr;
+	Resolution displaySize {};
+	PictureFormat pictureFormat {};
+	bool respectTimestamps = true;
+
+	Queue<Data> m_dataQueue; //FIXME: useless now we have input ports
+	std::thread workingThread;
 };
 
 Modules::IModule* createObject(IModuleHost* host, va_list va) {
