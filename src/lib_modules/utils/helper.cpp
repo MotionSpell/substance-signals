@@ -29,8 +29,8 @@ bool MetadataCap::setMetadataInternal(const std::shared_ptr<const IMetadata> &me
 	if (metadata == m_metadata)
 		return false;
 	if (m_metadata) {
-		if (metadata->getStreamType() != m_metadata->getStreamType()) {
-			throw std::runtime_error(format("Metadata update: incompatible types %s for data and %s for attached", metadata->getStreamType(), m_metadata->getStreamType()));
+		if (metadata->type != m_metadata->type) {
+			throw std::runtime_error(format("Metadata update: incompatible types %s for data and %s for attached", metadata->type, m_metadata->type));
 		}
 		if (*m_metadata == *metadata) {
 			Log::msg(Debug, "Output: metadata not equal but comparable by value. Updating.");

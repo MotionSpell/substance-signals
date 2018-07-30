@@ -94,7 +94,7 @@ void MPEG_DASH::ensureManifest() {
 			if (!meta) {
 				continue;
 			}
-			switch (meta->getStreamType()) {
+			switch (meta->type) {
 			case AUDIO_PKT: as = audioAS ? audioAS : audioAS = createAS(segDurationInMs, period, mpd.get()); break;
 			case VIDEO_PKT: as = videoAS ? videoAS : videoAS = createAS(segDurationInMs, period, mpd.get()); break;
 			case SUBTITLE_PKT: as = createAS(segDurationInMs, period, mpd.get()); break;
@@ -125,7 +125,7 @@ void MPEG_DASH::ensureManifest() {
 				rep->segment_template->availability_time_offset = std::max<double>(0.0,  (double)(segDurationInMs - clockToTimescale(meta->latencyIn180k, 1000)) / 1000);
 				mpd->mpd->min_buffer_time = (u32)clockToTimescale(meta->latencyIn180k, 1000);
 			}
-			switch (meta->getStreamType()) {
+			switch (meta->type) {
 			case AUDIO_PKT:
 				rep->samplerate = meta->sampleRate;
 				break;
@@ -136,7 +136,7 @@ void MPEG_DASH::ensureManifest() {
 			default: break;
 			}
 
-			switch (meta->getStreamType()) {
+			switch (meta->type) {
 			case AUDIO_PKT: case VIDEO_PKT: case SUBTITLE_PKT:
 				rep->segment_template->initialization = gf_strdup(getInitName(quality, i).c_str());
 				rep->segment_template->media = gf_strdup(getSegmentName(quality, i, templateName).c_str());
@@ -210,7 +210,7 @@ void MPEG_DASH::generateManifest() {
 			}
 		}
 		auto metaFn = make_shared<MetadataFile>(fn, SEGMENT, meta->mimeType, meta->codecName, meta->durationIn180k, meta->filesize, meta->latencyIn180k, meta->startsWithRAP, true);
-		switch (meta->getStreamType()) {
+		switch (meta->type) {
 		case AUDIO_PKT: metaFn->sampleRate = meta->sampleRate; break;
 		case VIDEO_PKT: metaFn->resolution = meta->resolution; break;
 		case SUBTITLE_PKT: break;
@@ -235,7 +235,7 @@ void MPEG_DASH::generateManifest() {
 			if (!fnNext.empty()) {
 				auto out = getPresignalledData(0, quality->lastData, false);
 				if (out) {
-					out->setMetadata(make_shared<MetadataFile>(fnNext, metaFn->getStreamType(), metaFn->mimeType, metaFn->codecName, metaFn->durationIn180k, 0, metaFn->latencyIn180k, metaFn->startsWithRAP, false));
+					out->setMetadata(make_shared<MetadataFile>(fnNext, metaFn->type, metaFn->mimeType, metaFn->codecName, metaFn->durationIn180k, 0, metaFn->latencyIn180k, metaFn->startsWithRAP, false));
 					out->setMediaTime(totalDurationInMs, 1000);
 					outputSegments->emit(out);
 				}

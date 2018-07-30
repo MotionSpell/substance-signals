@@ -11,7 +11,7 @@ void ConnectOutputToInput(IOutput *prev, IInput *next, IExecutor * const executo
 	auto prevMetadata = prev->getMetadata();
 	auto nextMetadata = next->getMetadata();
 	if (prevMetadata && nextMetadata) {
-		if (prevMetadata->getStreamType() != next->getMetadata()->getStreamType())
+		if (prevMetadata->type != next->getMetadata()->type)
 			throw std::runtime_error("Module connection: incompatible types");
 		Log::msg(Info, "--------- Connect: metadata OK");
 	} else {

@@ -29,7 +29,7 @@ std::unique_ptr<Quality> Apple_HLS::createQuality() const {
 
 std::string Apple_HLS::getVariantPlaylistName(HLSQuality const * const quality, const std::string &subDir, size_t index) {
 	auto const &meta = quality->getMeta();
-	switch (meta->getStreamType()) {
+	switch (meta->type) {
 	case AUDIO_PKT:               return format("%s%s_.m3u8", subDir, getCommonPrefixAudio(index));
 	case VIDEO_PKT: case SEGMENT: return format("%s%s_.m3u8", subDir, getCommonPrefixVideo(index, meta->resolution));
 	case SUBTITLE_PKT:            return format("%s%s", subDir, getCommonPrefixSubtitle(index));
@@ -53,7 +53,7 @@ std::string Apple_HLS::getManifestMasterInternal() {
 		for (int i = 0; i < getNumInputs() - 1; ++i) {
 			auto quality = safe_cast<HLSQuality>(qualities[i].get());
 			auto const &meta = quality->getMeta();
-			if (meta->getStreamType() == AUDIO_PKT) {
+			if (meta->type == AUDIO_PKT) {
 				audioSpecs.push_back({ meta->codecName, quality->avg_bitrate_in_bps });
 				playlistMaster << "#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"" << audioGroupName << "\",NAME=\"Main\",LANGUAGE=\"en\",AUTOSELECT=YES,URI=\"" << getVariantPlaylistName(quality, "", i) << "\"" << std::endl;
 			}
@@ -71,7 +71,7 @@ std::string Apple_HLS::getManifestMasterInternal() {
 				bandwidth += audioSpecs[0].bandwidth;
 			}
 			auto const &meta = quality->getMeta();
-			switch (meta->getStreamType()) {
+			switch (meta->type) {
 			case AUDIO_PKT: break;
 			case VIDEO_PKT:
 				playlistMaster << "#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=" << bandwidth<< ",CODECS=\"" << meta->codecName;
@@ -90,7 +90,7 @@ std::string Apple_HLS::getManifestMasterInternal() {
 			auto quality = safe_cast<HLSQuality>(qualities[i].get());
 			playlistMaster << "#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=" << quality->avg_bitrate_in_bps;
 			auto const &meta = quality->getMeta();
-			switch (meta->getStreamType()) {
+			switch (meta->type) {
 			case SEGMENT: playlistMaster << ",RESOLUTION=" << meta->resolution.width << "x" << meta->resolution.height << std::endl; break;
 			default: assert(0);
 			}

@@ -26,7 +26,7 @@ void libav_mux(std::string format) {
 	int videoIndex = -1;
 	for (int i = 0; i < demux->getNumOutputs(); ++i) {
 		auto metadata = demux->getOutput(i)->getMetadata();
-		if (metadata->getStreamType() == VIDEO_PKT) {
+		if (metadata->type == VIDEO_PKT) {
 			videoIndex = i;
 		} else {
 			ConnectOutputToInput(demux->getOutput(i), null->getInput(0));
@@ -64,7 +64,7 @@ unittest("transcoder: video simple (gpac mux MP4)") {
 	//find video signal from demux
 	int videoIndex = -1;
 	for (int i = 0; i < demux->getNumOutputs(); ++i) {
-		if (demux->getOutput(i)->getMetadata()->getStreamType() == VIDEO_PKT) {
+		if (demux->getOutput(i)->getMetadata()->type == VIDEO_PKT) {
 			videoIndex = i;
 		} else {
 			ConnectOutputToInput(demux->getOutput(i), null->getInput(0));

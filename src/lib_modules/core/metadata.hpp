@@ -23,9 +23,6 @@ struct IMetadata {
 	inline bool operator==(const IMetadata &right) const {
 		return typeid(*this) == typeid(right) && type == right.type;
 	}
-	StreamType getStreamType() const {
-		return type;
-	}
 	bool isVideo() const {
 		switch (type) {
 		case VIDEO_RAW: case VIDEO_PKT: return true;

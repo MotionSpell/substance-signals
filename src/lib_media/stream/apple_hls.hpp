@@ -36,7 +36,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 			delegate->getInput(inputIdx)->push(data);
 			delegate->process();
 
-			if (data->getMetadata()->getStreamType() == VIDEO_PKT) {
+			if (data->getMetadata()->type == VIDEO_PKT) {
 				const int64_t DTS = data->getMediaTime();
 				if (firstDTS == -1) {
 					firstDTS = DTS;
@@ -52,7 +52,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 					auto out = outputSegment->getBuffer(0);
 					out->setMediaTime(timescaleToClock((uint64_t)Modules::absUTCOffsetInMs, 1000) + data->getMediaTime());
 					auto metadata = make_shared<MetadataFile>(hlsDir + fn, SEGMENT, "", "", segDuration, fsize, 1, false, true);
-					switch (data->getMetadata()->getStreamType()) {
+					switch (data->getMetadata()->type) {
 					case AUDIO_PKT: metadata->sampleRate = safe_cast<const MetadataPktLibavAudio>(data->getMetadata())->getSampleRate(); break;
 					case VIDEO_PKT: {
 						auto const res = safe_cast<const MetadataPktLibavVideo>(data->getMetadata())->getResolution();

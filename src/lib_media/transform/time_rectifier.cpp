@@ -39,10 +39,10 @@ void TimeRectifier::declareScheduler(std::unique_ptr<IInput> &input, std::unique
 	auto const oMeta = output->getMetadata();
 	if (!oMeta) {
 		log(Debug, "Output isn't connected or doesn't expose a metadata: impossible to check.");
-	} else if (input->getMetadata()->getStreamType() != oMeta->getStreamType())
+	} else if (input->getMetadata()->type != oMeta->type)
 		throw error("Metadata I/O inconsistency");
 
-	if (input->getMetadata()->getStreamType() == VIDEO_RAW) {
+	if (input->getMetadata()->type == VIDEO_RAW) {
 		if (hasVideo)
 			throw error("Only one video stream is allowed");
 		hasVideo = true;
@@ -132,7 +132,7 @@ void TimeRectifier::findNearestDataAudio(size_t i, Fraction time, Data& selected
 
 size_t TimeRectifier::getMasterStreamId() const {
 	for(auto i : getInputs()) {
-		if (inputs[i]->getMetadata()->getStreamType() == VIDEO_RAW) {
+		if (inputs[i]->getMetadata()->type == VIDEO_RAW) {
 			return i;
 		}
 	}
@@ -179,7 +179,7 @@ void TimeRectifier::emitOnePeriod(Fraction time) {
 	for (auto i : getInputs()) {
 		if(!inputs[i]->getMetadata())
 			continue;
-		switch (inputs[i]->getMetadata()->getStreamType()) {
+		switch (inputs[i]->getMetadata()->type) {
 		case AUDIO_RAW: {
 			Data selectedData;
 

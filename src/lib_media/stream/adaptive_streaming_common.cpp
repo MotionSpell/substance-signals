@@ -56,7 +56,7 @@ bool AdaptiveStreamingCommon::moveFile(const std::string &src, const std::string
 
 void AdaptiveStreamingCommon::processInitSegment(Quality const * const quality, size_t index) {
 	auto const &meta = quality->getMeta();
-	switch (meta->getStreamType()) {
+	switch (meta->type) {
 	case AUDIO_PKT: case VIDEO_PKT: case SUBTITLE_PKT: {
 		auto out = make_shared<DataBaseRef>(quality->lastData);
 		std::string initFn = safe_cast<const MetadataFile>(quality->lastData->getMetadata())->filename;
@@ -77,14 +77,14 @@ void AdaptiveStreamingCommon::processInitSegment(Quality const * const quality, 
 }
 
 std::string AdaptiveStreamingCommon::getInitName(Quality const * const quality, size_t index) const {
-	switch (quality->getMeta()->getStreamType()) {
+	switch (quality->getMeta()->type) {
 	case AUDIO_PKT: case VIDEO_PKT: case SUBTITLE_PKT: return format("%s-init.mp4", getPrefix(quality, index));
 	default: return "";
 	}
 }
 
 std::string AdaptiveStreamingCommon::getPrefix(Quality const * const quality, size_t index) const {
-	switch (quality->getMeta()->getStreamType()) {
+	switch (quality->getMeta()->type) {
 	case AUDIO_PKT:    return format("%s%s", quality->prefix, getCommonPrefixAudio(index));
 	case VIDEO_PKT:    return format("%s%s", quality->prefix, getCommonPrefixVideo(index, quality->getMeta()->resolution));
 	case SUBTITLE_PKT: return format("%s%s", quality->prefix, getCommonPrefixSubtitle(index));
@@ -93,7 +93,7 @@ std::string AdaptiveStreamingCommon::getPrefix(Quality const * const quality, si
 }
 
 std::string AdaptiveStreamingCommon::getSegmentName(Quality const * const quality, size_t index, const std::string &segmentNumSymbol) const {
-	switch (quality->getMeta()->getStreamType()) {
+	switch (quality->getMeta()->type) {
 	case AUDIO_PKT: case VIDEO_PKT: case SUBTITLE_PKT: return format("%s-%s.m4s", getPrefix(quality, index), segmentNumSymbol);
 	default: return "";
 	}

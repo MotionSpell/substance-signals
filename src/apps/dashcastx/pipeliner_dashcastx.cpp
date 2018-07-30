@@ -63,7 +63,7 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 	};
 
 	auto createEncoder = [&](std::shared_ptr<const IMetadata> metadataDemux, bool ultraLowLatency, VideoCodecType videoCodecType, PictureFormat &dstFmt, int bitrate, uint64_t segmentDurationInMs)->IPipelinedModule* {
-		auto const codecType = metadataDemux->getStreamType();
+		auto const codecType = metadataDemux->type;
 		if (codecType == VIDEO_PKT) {
 			Log::msg(Info, "[Encoder] Found video stream");
 			Encode::LibavEncode::Params p;
@@ -102,7 +102,7 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 
 	/*video is forced, audio is as passthru as possible*/
 	auto createConverter = [&](std::shared_ptr<const IMetadata> metadataDemux, std::shared_ptr<const IMetadata> metadataEncoder, const PictureFormat &dstFmt)->IPipelinedModule* {
-		auto const codecType = metadataDemux->getStreamType();
+		auto const codecType = metadataDemux->type;
 		if (codecType == VIDEO_PKT) {
 			Log::msg(Info, "[Converter] Found video stream");
 			return pipeline->addModule<Transform::VideoConvert>(dstFmt);
@@ -164,7 +164,7 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 
 		IPipelinedModule *decode = nullptr;
 		if (transcode) {
-			decode = pipeline->addModule<Decode::Decoder>(metadataDemux->getStreamType());
+			decode = pipeline->addModule<Decode::Decoder>(metadataDemux->type);
 			pipeline->connect(demux, i, decode, 0);
 
 			if (metadataDemux->isVideo() && opt->autoRotate) {

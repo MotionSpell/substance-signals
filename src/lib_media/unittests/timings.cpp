@@ -94,7 +94,7 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 	};
 
 	auto createEncoder = [&](std::shared_ptr<const IMetadata> metadataDemux, PictureFormat &dstFmt)->std::unique_ptr<IModule> {
-		auto const codecType = metadataDemux->getStreamType();
+		auto const codecType = metadataDemux->type;
 		if (codecType == VIDEO_PKT) {
 			Encode::LibavEncode::Params p;
 			auto m = createModule<Encode::LibavEncode>(bufferSize, Encode::LibavEncode::Video, p);
@@ -111,7 +111,7 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 			throw std::runtime_error("[Converter] Found unknown stream");
 	};
 	auto createConverter = [&](std::shared_ptr<const IMetadata> metadataDemux, std::shared_ptr<const IMetadata> metadataEncoder, const PictureFormat &dstFmt)->std::unique_ptr<IModule> {
-		auto const codecType = metadataDemux->getStreamType();
+		auto const codecType = metadataDemux->type;
 		if (codecType == VIDEO_PKT) {
 			return create<Transform::VideoConvert>(dstFmt);
 		} else if (codecType == AUDIO_PKT) {
@@ -135,7 +135,7 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 
 		auto gapper = create<Gapper>();
 		ConnectOutputToInput(demux->getOutput(i), gapper->getInput(0));
-		auto decoder = create<Decode::Decoder>(metadataDemux->getStreamType());
+		auto decoder = create<Decode::Decoder>(metadataDemux->type);
 		ConnectOutputToInput(gapper->getOutput(0), decoder->getInput(0));
 
 		auto inputRes = safe_cast<const MetadataPktLibavVideo>(demux->getOutput(i)->getMetadata())->getResolution();
