@@ -132,13 +132,14 @@ void PipelinedModule::startSource() {
 void PipelinedModule::stopSource() {
 	assert(isSource());
 
-	if (started) {
-		// the source is likely processing: push EOS in the loop
-		// and let things follow their way
-		delegate->getInput(0)->push(nullptr);
-	} else {
+	if (!started) {
 		Log::msg(Warning, "Pipeline: cannot stop unstarted source. Ignoring.");
+		return;
 	}
+
+	// the source is likely processing: push EOS in the loop
+	// and let things follow their way
+	delegate->getInput(0)->push(nullptr);
 }
 
 // IPipelineNotifier implementation
