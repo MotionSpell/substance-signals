@@ -392,7 +392,7 @@ GPACMuxMP4::GPACMuxMP4(IModuleHost* host, Mp4MuxConfig const& cfg)
 		throw error("Inconsistent parameters: FlushFragMemory requires an empty segment name and FragmentedSegment policy.");
 
 	if (cfg.baseName.empty()) {
-		log(Info, "Working in memory mode.");
+		m_host->log(Info, "Working in memory mode.");
 	} else {
 		if (segmentPolicy > NoSegment) {
 			segmentName = format("%s-init.mp4", cfg.baseName);
@@ -400,7 +400,7 @@ GPACMuxMP4::GPACMuxMP4(IModuleHost* host, Mp4MuxConfig const& cfg)
 			segmentName = format("%s.mp4", cfg.baseName);
 		}
 
-		log(Warning, "Working in file mode: %s. This is deprecated.", segmentName);
+		m_host->log(Warning, format("Working in file mode: %s. This is deprecated.", segmentName).c_str());
 	}
 
 	isoInit = gf_isom_open(segmentName.empty() ? nullptr : segmentName.c_str(), GF_ISOM_OPEN_WRITE, nullptr);
@@ -504,7 +504,7 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 	}
 
 	sendOutput(true);
-	log(Debug, "Segment %s completed (size %s) (startsWithSAP=%s)", segmentName.empty() ? "[in memory]" : segmentName, lastSegmentSize, segmentStartsWithRAP);
+	m_host->log(Debug, format("Segment %s completed (size %s) (startsWithSAP=%s)", segmentName.empty() ? "[in memory]" : segmentName, lastSegmentSize, segmentStartsWithRAP).c_str());
 
 	curSegmentDurInTs = 0;
 }
@@ -540,11 +540,11 @@ void GPACMuxMP4::startFragment(uint64_t DTS, uint64_t PTS) {
 void GPACMuxMP4::closeFragment() {
 	if (fragmentPolicy > NoFragment) {
 		if (!curFragmentDurInTs) {
-			log((compatFlags & Browsers) ? Error : Warning, "Writing an empty fragment. Some players may stop playing here.");
+			m_host->log((compatFlags & Browsers) ? Error : Warning, "Writing an empty fragment. Some players may stop playing here.");
 		}
 		if (compatFlags & SmoothStreaming) {
 			if (mediaTs == 0) {
-				log(Warning, "Media timescale is 0. Fragment cannot be closed.");
+				m_host->log(Warning, "Media timescale is 0. Fragment cannot be closed.");
 				return;
 			}
 
@@ -553,9 +553,9 @@ void GPACMuxMP4::closeFragment() {
 			auto const deltaRealTimeInMs = 1000 * (double)(getUTC() - Fraction(absTimeInTs, mediaTs));
 
 			auto const isSuspicious = deltaRealTimeInMs < 0 || deltaRealTimeInMs > curFragmentStartInTs || curFragmentDurInTs != fractionToTimescale(segmentDuration, mediaTs);
-			log(isSuspicious ? Warning : Debug,
-			    "Closing MSS fragment with absolute time %s %s UTC and duration %s (timescale %s, time=%s, deltaRT=%s)",
-			    getDay(), getTimeFromUTC(), curFragmentDurInTs, mediaTs, absTimeInTs, deltaRealTimeInMs);
+			m_host->log(isSuspicious ? Warning : Debug,
+			    format("Closing MSS fragment with absolute time %s %s UTC and duration %s (timescale %s, time=%s, deltaRT=%s)",
+			        getDay(), getTimeFromUTC(), curFragmentDurInTs, mediaTs, absTimeInTs, deltaRealTimeInMs).c_str());
 			GF_Err e = gf_isom_set_traf_mss_timeext(isoCur, trackId, absTimeInTs, curFragmentDurInTs);
 			if (e != GF_OK)
 				throw error(format("Impossible to create UTC marker: %s", gf_error_to_string(e)));
@@ -622,7 +622,7 @@ void GPACMuxMP4::declareStreamAudio(const std::shared_ptr<const MetadataPktLibav
 		assert(e == GF_OK);
 	} else {
 		if (metadata->getCodecName() != "mp2") {
-			log(Warning, "Unlisted codec, setting GPAC_OTI_AUDIO_MPEG1 descriptor.");
+			m_host->log(Warning, "Unlisted codec, setting GPAC_OTI_AUDIO_MPEG1 descriptor.");
 		}
 		esd->decoderConfig->objectTypeIndication = GPAC_OTI_AUDIO_MPEG1;
 		esd->decoderConfig->bufferSizeDB = 20;
@@ -642,7 +642,7 @@ void GPACMuxMP4::declareStreamAudio(const std::shared_ptr<const MetadataPktLibav
 
 	mediaTs = sampleRate;
 	trackNum = gf_isom_new_track(isoCur, esd->ESID, GF_ISOM_MEDIA_AUDIO, mediaTs);
-	log(Debug, "TimeScale: %s", mediaTs);
+	m_host->log(Debug, format("TimeScale: %s", mediaTs).c_str());
 	if (!trackNum)
 		throw error(format("Cannot create new track"));
 	trackId = gf_isom_get_track_id(isoCur, trackNum);
@@ -668,7 +668,7 @@ void GPACMuxMP4::declareStreamAudio(const std::shared_ptr<const MetadataPktLibav
 		throw error(format("Container format import failed: %s", gf_error_to_string(e)));
 
 	if (!(compatFlags & SegmentAtAny)) {
-		log(Info, "Audio detected: assuming all segments are RAPs.");
+		m_host->log(Info, "Audio detected: assuming all segments are RAPs.");
 		compatFlags = compatFlags | SegmentAtAny;
 	}
 }
@@ -692,7 +692,7 @@ void GPACMuxMP4::declareStreamSubtitle(const std::shared_ptr<const MetadataPktLi
 
 	codec4CC = "TTML";
 	if (!(compatFlags & SegmentAtAny)) {
-		log(Info, "Subtitles detected: assuming all segments are RAPs.");
+		m_host->log(Info, "Subtitles detected: assuming all segments are RAPs.");
 		compatFlags = compatFlags | SegmentAtAny;
 	}
 }
@@ -738,13 +738,13 @@ void GPACMuxMP4::declareStreamVideo(const std::shared_ptr<const MetadataPktLibav
 				throw error(format("Cannot create HEVC config: %s", gf_error_to_string(e)));
 		}
 	} else {
-		log(Warning, "Unknown codec: using generic packaging.");
+		m_host->log(Warning, "Unknown codec: using generic packaging.");
 		e = GF_NON_COMPLIANT_BITSTREAM;
 	}
 
 	if (e) {
 		if (e == GF_NON_COMPLIANT_BITSTREAM) {
-			log(Debug, "non Annex B: assume this is AVCC");
+			m_host->log(Debug, "non Annex B: assume this is AVCC");
 			isAnnexB = false;
 
 			GF_ESD *esd = (GF_ESD *)gf_odf_desc_esd_new(0);
@@ -792,7 +792,7 @@ void GPACMuxMP4::declareStream(const std::shared_ptr<const IMetadata> &metadata)
 
 void GPACMuxMP4::handleInitialTimeOffset() {
 	if (initTimeIn180k) { /*first timestamp is not zero*/
-		log(Info, "Initial offset: %ss (4CC=%s, \"%s\", timescale=%s/%s)", initTimeIn180k / (double)IClock::Rate, codec4CC, segmentName, mediaTs, gf_isom_get_timescale(isoCur));
+		m_host->log(Info, format("Initial offset: %ss (4CC=%s, \"%s\", timescale=%s/%s)", initTimeIn180k / (double)IClock::Rate, codec4CC, segmentName, mediaTs, gf_isom_get_timescale(isoCur)).c_str());
 		if (compatFlags & NoEditLists) {
 			firstDataAbsTimeInMs += clockToTimescale(initTimeIn180k, 1000);
 		} else {
@@ -825,7 +825,7 @@ void GPACMuxMP4::sendOutput(bool EOS) {
 		getBsContent(isoCur, output, size, (compatFlags & FlushFragMemory) && curFragmentDurInTs);
 		if (!size && !EOS) {
 			assert((segmentPolicy == FragmentedSegment) && (fragmentPolicy > NoFragment));
-			log(Debug, "Empty segment. Ignore.");
+			m_host->log(Debug, "Empty segment. Ignore.");
 			return;
 		}
 		out->setData((uint8_t*)output, size);
@@ -903,7 +903,7 @@ void GPACMuxMP4::addData(gpacpp::IsoSample const * const sample, int64_t lastDat
 
 		GF_Err e = gf_isom_fragment_add_sample(isoCur, trackId, sample, 1, (u32)lastDataDurationInTs, 0, 0, GF_FALSE);
 		if (e != GF_OK) {
-			log(Error, "gf_isom_fragment_add_sample: %s", gf_error_to_string(e));
+			m_host->log(Error, format("gf_isom_fragment_add_sample: %s", gf_error_to_string(e)).c_str());
 			return;
 		}
 		curFragmentDurInTs += lastDataDurationInTs;
@@ -914,7 +914,7 @@ void GPACMuxMP4::addData(gpacpp::IsoSample const * const sample, int64_t lastDat
 	} else {
 		GF_Err e = gf_isom_add_sample(isoCur, trackId, 1, sample);
 		if (e != GF_OK) {
-			log(Error, "gf_isom_add_sample: %s", gf_error_to_string(e));
+			m_host->log(Error, format("gf_isom_add_sample: %s", gf_error_to_string(e)).c_str());
 			return;
 		}
 	}
@@ -1001,9 +1001,9 @@ bool GPACMuxMP4::processInit(Data &data) {
 			if (pkt && pkt->getPacket()->duration) {
 				auto const metaPkt = std::dynamic_pointer_cast<const MetadataPktLibav>(metadata);
 				defaultSampleIncInTs = convertToTimescale(pkt->getPacket()->duration, metaPkt->getTimeScale().num, metaPkt->getTimeScale().den * mediaTs);
-				log(Warning, "Codec defaultSampleIncInTs=0 but first data contains a duration (%s/%s).", defaultSampleIncInTs, mediaTs);
+				m_host->log(Warning, format("Codec defaultSampleIncInTs=0 but first data contains a duration (%s/%s).", defaultSampleIncInTs, mediaTs).c_str());
 			} else {
-				log(Warning, "Computed defaultSampleIncInTs=0, forcing the ExactInputDur flag.");
+				m_host->log(Warning, "Computed defaultSampleIncInTs=0, forcing the ExactInputDur flag.");
 				compatFlags = compatFlags | ExactInputDur;
 			}
 		}
@@ -1036,7 +1036,7 @@ void GPACMuxMP4::process() {
 		if (lastData) {
 			auto dataDurationInTs = clockToTimescale(dataDTS - initTimeIn180k, mediaTs) - DTS;
 			if (dataDurationInTs <= 0) {
-				log(Warning, "Computed duration is inferior or equal to zero (%s). Inferring to %s", dataDurationInTs, defaultSampleIncInTs);
+				m_host->log(Warning, format("Computed duration is inferior or equal to zero (%s). Inferring to %s", dataDurationInTs, defaultSampleIncInTs).c_str());
 				dataDurationInTs = defaultSampleIncInTs;
 			}
 			processSample(fillSample(lastData), dataDurationInTs);
@@ -1048,13 +1048,13 @@ void GPACMuxMP4::process() {
 		if (DTS > 0) {
 			if (!dataDTS) {
 				lastDataDurationInTs = defaultSampleIncInTs;
-				log(Warning, "Received time 0: inferring duration of %s", lastDataDurationInTs);
+				m_host->log(Warning, format("Received time 0: inferring duration of %s", lastDataDurationInTs).c_str());
 			}
 			if (lastDataDurationInTs - defaultSampleIncInTs != 0) {
 				if (lastDataDurationInTs <= 0) {
 					lastDataDurationInTs = 1;
 				}
-				log(Debug, "VFR: adding sample with duration %ss", lastDataDurationInTs / (double)mediaTs);
+				m_host->log(Debug, format("VFR: adding sample with duration %ss", lastDataDurationInTs / (double)mediaTs).c_str());
 			}
 		}
 

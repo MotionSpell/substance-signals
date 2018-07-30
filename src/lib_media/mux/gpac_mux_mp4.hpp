@@ -1,6 +1,5 @@
 #pragma once
 
-#include "lib_modules/core/log.hpp"
 #include "lib_modules/utils/helper.hpp"
 #include "lib_modules/utils/helper_dyn.hpp"
 #include "../common/libav.hpp"
@@ -49,7 +48,7 @@ struct Mp4MuxConfig {
 
 namespace Mux {
 
-class GPACMuxMP4 : public ModuleDynI, private LogCap {
+class GPACMuxMP4 : public ModuleDynI {
 	public:
 		GPACMuxMP4(IModuleHost* host, Mp4MuxConfig const& config);
 		virtual ~GPACMuxMP4();
