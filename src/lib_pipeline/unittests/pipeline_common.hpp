@@ -27,13 +27,13 @@ struct InfiniteSource : Modules::ActiveModule {
 	Modules::OutputDefault* out;
 };
 
-struct FakeSource : Modules::Module {
+struct FakeSource : Modules::ActiveModule {
 	FakeSource(int maxNumRepetition = 50) : numRepetition(maxNumRepetition) {
 		out = addOutput<Modules::OutputDefault>();
 	}
-	void process() {
-		while (--numRepetition >= 0)
-			out->emit(out->getBuffer(0));
+	bool work() {
+		out->emit(out->getBuffer(0));
+		return --numRepetition > 0;
 	}
 	int numRepetition;
 	Modules::OutputDefault* out;

@@ -63,13 +63,7 @@ class HackInput : public Input {
 
 /* source modules are stopped manually - then the message propagates to other connected modules */
 bool PipelinedModule::isSource() {
-	if (delegate->getNumInputs() == 0) {
-		return true;
-	} else if (delegate->getNumInputs() == 1 && dynamic_cast<HackInput*>(delegate->getInput(0))) {
-		return true;
-	} else {
-		return false;
-	}
+	return dynamic_cast<ActiveModule*>(delegate.get());
 }
 
 void PipelinedModule::connect(IOutput *output, int inputIdx, bool inputAcceptMultipleConnections) {
@@ -108,6 +102,9 @@ IInput* PipelinedModule::getInput(int i) {
 /* uses the executor (i.e. may defer the call) */
 void PipelinedModule::startSource() {
 	assert(isSource());
+
+	//return dynamic_cast<ActiveModule>(delegate.get());
+	auto s = safe_cast<ActiveModule>(delegate);
 
 	if (started) {
 		Log::msg(Info, "Pipeline: source already started . Doing nothing.");

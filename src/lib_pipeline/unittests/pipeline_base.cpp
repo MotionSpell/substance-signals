@@ -19,12 +19,13 @@ struct CustomDataTypeSink : public Modules::ModuleS {
 	}
 };
 
-struct Split : public Modules::ModuleS {
+struct Split : public Modules::ActiveModule {
 	Split() {
 		addOutput<Modules::OutputDefault>();
 		addOutput<Modules::OutputDefault>();
 	}
-	void process(Modules::Data) override {
+	bool work() override {
+		return false;
 	}
 };
 

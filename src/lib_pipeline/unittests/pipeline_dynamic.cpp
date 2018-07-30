@@ -9,13 +9,13 @@ using namespace Pipelines;
 
 namespace {
 
-struct Source : Modules::Module {
+struct Source : Modules::ActiveModule {
 	Source(bool &sent) : sent(sent) {
 		out = addOutput<Modules::OutputDefault>();
 	}
-	void process() {
-		while (!sent)
-			out->emit(out->getBuffer(0));
+	bool work() {
+		out->emit(out->getBuffer(0));
+		return !sent;
 	}
 	bool &sent;
 	Modules::OutputDefault* out;
