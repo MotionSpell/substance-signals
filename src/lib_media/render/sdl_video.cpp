@@ -43,7 +43,7 @@ struct SDLVideo : ModuleS {
 	SDLVideo(IModuleHost* host, IClock* clock)
 		: m_host(host),
 		  m_clock(clock ? clock : g_SystemClock.get()),
-		  texture(nullptr), workingThread(&SDLVideo::doRender, this) {
+		  workingThread(&SDLVideo::doRender, this) {
 		auto input = createInput(this);
 		input->setMetadata(make_shared<MetadataRawVideo>());
 		m_dataQueue.pop();
@@ -58,12 +58,12 @@ struct SDLVideo : ModuleS {
 	IModuleHost* const m_host;
 	IClock* const m_clock;
 
-	SDL_Window *window = nullptr;
-	SDL_Renderer *renderer;
-	SDL_Texture *texture;
-	Resolution displaySize;
-	PictureFormat pictureFormat;
-	bool respectTimestamps;
+	SDL_Window* window = nullptr;
+	SDL_Renderer* renderer = nullptr;
+	SDL_Texture* texture = nullptr;
+	Resolution displaySize {};
+	PictureFormat pictureFormat {};
+	bool respectTimestamps = true;
 
 	Queue<Data> m_dataQueue; //FIXME: useless now we have input ports
 	std::thread workingThread;
