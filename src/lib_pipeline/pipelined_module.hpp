@@ -38,7 +38,7 @@ class PipelinedModule :
 
 		// IPipelineNotifier implementation
 		void endOfStream() override;
-		void exception(std::exception_ptr eptr) override ;
+		void exception(std::exception_ptr eptr) override;
 
 		std::unique_ptr<IModuleHost> m_host;
 		std::string const m_name;
