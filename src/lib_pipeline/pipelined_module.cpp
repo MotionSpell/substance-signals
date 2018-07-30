@@ -4,7 +4,7 @@
 #include "pipelined_input.hpp"
 
 #define EXECUTOR_SYNC              Signals::ExecutorSync
-#define EXECUTOR_ASYNC_THREAD      Signals::ExecutorThread(getDelegateName())
+#define EXECUTOR_ASYNC_THREAD      Signals::ExecutorThread(m_name)
 
 #define EXECUTOR                   EXECUTOR_ASYNC_THREAD
 #define EXECUTOR_LIVE              EXECUTOR_SYNC
@@ -18,8 +18,9 @@ struct DataLoosePipeline : public DataBase {};
 namespace Pipelines {
 
 /* take ownership of module and executor */
-PipelinedModule::PipelinedModule(std::unique_ptr<Modules::IModuleHost> host, std::shared_ptr<IModule> module, IPipelineNotifier *notify, Pipeline::Threading threading, IStatsRegistry *statsRegistry)
+PipelinedModule::PipelinedModule(const char* name, std::unique_ptr<Modules::IModuleHost> host, std::shared_ptr<IModule> module, IPipelineNotifier *notify, Pipeline::Threading threading, IStatsRegistry *statsRegistry)
 	: m_host(std::move(host)),
+	  m_name(name),
 	  delegate(std::move(module)),
 	  executor(threading & Pipeline::Mono ? (IExecutor*)new EXECUTOR_LIVE : (IExecutor*)new EXECUTOR),
 	  m_notify(notify),
@@ -38,11 +39,6 @@ PipelinedModule::~PipelinedModule() {
 	inputs.clear();
 }
 
-std::string PipelinedModule::getDelegateName() const {
-	auto const &dref = *delegate.get();
-	return typeid(dref).name();
-}
-
 int PipelinedModule::getNumInputs() const {
 	return delegate->getNumInputs();
 }
@@ -51,7 +47,7 @@ int PipelinedModule::getNumOutputs() const {
 }
 IOutput* PipelinedModule::getOutput(int i) {
 	if (i >= delegate->getNumOutputs())
-		throw std::runtime_error(format("PipelinedModule %s: no output %s.", getDelegateName(), i));
+		throw std::runtime_error(format("PipelinedModule %s: no output %s.", m_name, i));
 	return delegate->getOutput(i);
 }
 
@@ -80,7 +76,7 @@ void PipelinedModule::connect(IOutput *output, int inputIdx, bool inputAcceptMul
 	auto input = safe_cast<PipelinedInput>(getInput(inputIdx));
 	ConnectOutputToInput(output, input, inputExecutor[inputIdx]);
 	if (!inputAcceptMultipleConnections && (input->getNumConnections() != 1))
-		throw std::runtime_error(format("PipelinedModule %s: input %s has %s connections.", getDelegateName(), inputIdx, input->getNumConnections()));
+		throw std::runtime_error(format("PipelinedModule %s: input %s has %s connections.", m_name, inputIdx, input->getNumConnections()));
 	connections++;
 }
 
@@ -98,14 +94,14 @@ void PipelinedModule::mimicInputs() {
 	while ((int)inputs.size()< delegate->getNumInputs()) {
 		auto const i = (int)inputs.size();
 		inputExecutor.push_back(EXECUTOR_INPUT_DEFAULT);
-		addInput(new PipelinedInput(delegate->getInput(i), getDelegateName(), *executor, statsRegistry->getNewEntry(), this));
+		addInput(new PipelinedInput(delegate->getInput(i), m_name, *executor, statsRegistry->getNewEntry(), this));
 	}
 }
 
 IInput* PipelinedModule::getInput(int i) {
 	mimicInputs();
 	if (i >= (int)inputs.size())
-		throw std::runtime_error(format("PipelinedModule %s: no input %s.", getDelegateName(), i));
+		throw std::runtime_error(format("PipelinedModule %s: no input %s.", m_name, i));
 	return inputs[i].get();
 }
 
@@ -118,7 +114,7 @@ void PipelinedModule::startSource() {
 		return;
 	}
 
-	Log::msg(Debug, "Module %s: start source - dispatching data", getDelegateName());
+	Log::msg(Debug, "Module %s: start source - dispatching data", m_name);
 
 	// first time: create a fake input port
 	// and push null to trigger execution
@@ -151,7 +147,7 @@ void PipelinedModule::endOfStream() {
 	++eosCount;
 
 	if (eosCount > connections) {
-		auto const msg = format("PipelinedModule %s: received too many EOS (%s/%s)", getDelegateName(), (int)eosCount, (int)connections);
+		auto const msg = format("PipelinedModule %s: received too many EOS (%s/%s)", m_name, (int)eosCount, (int)connections);
 		throw std::runtime_error(msg);
 	}
 

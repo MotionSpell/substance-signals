@@ -45,7 +45,8 @@ Pipeline::~Pipeline() {
 }
 
 IPipelinedModule* Pipeline::addModuleInternal(std::unique_ptr<IModuleHost> host, std::shared_ptr<IModule> rawModule) {
-	auto module = make_unique<PipelinedModule>(move(host), rawModule, this, threading, statsMem.get());
+	auto name = typeid(*rawModule).name();
+	auto module = make_unique<PipelinedModule>(name, move(host), rawModule, this, threading, statsMem.get());
 	auto ret = module.get();
 	modules.push_back(std::move(module));
 	graph->nodes.push_back(Graph::Node{ret});
