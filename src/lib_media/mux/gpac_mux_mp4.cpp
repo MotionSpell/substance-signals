@@ -1069,6 +1069,8 @@ using namespace Modules;
 
 Modules::IModule* createObject(IModuleHost* host, va_list va) {
 	auto config = va_arg(va, Mp4MuxConfig*);
+	enforce(host, "GPACMuxMP4: host can't be NULL");
+	enforce(config, "GPACMuxMP4: config can't be NULL");
 	return Modules::create<Mux::GPACMuxMP4>(host, *config).release();
 }
 
