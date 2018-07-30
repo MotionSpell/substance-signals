@@ -50,18 +50,27 @@ PcmFormat toPcmFormat(SDL_AudioSpec audioSpec) {
 }
 
 struct SDLAudio : ModuleS {
-	IClock* const m_clock;
-	PcmFormat m_outputFormat;
-	PcmFormat m_inputFormat;
-	std::unique_ptr<IModule> m_converter;
-	int64_t m_LatencyIn180k;
+	SDLAudio(IModuleHost* host, IClock* clock)
+		: m_host(host),
+		  m_clock(clock ? clock : g_SystemClock.get()),
+		  m_inputFormat(PcmFormat(44100, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Interleaved)) {
 
-	// shared state between:
-	// - the producer thread ('push')
-	// - the SDL thread ('fillAudio')
-	std::mutex m_protectFifo;
-	Fifo m_fifo;
-	int64_t m_fifoTime;
+		if (SDL_InitSubSystem(SDL_INIT_AUDIO | SDL_INIT_NOPARACHUTE) == -1)
+			throw std::runtime_error(format("Couldn't initialize: %s", SDL_GetError()));
+
+		if (!reconfigure(m_inputFormat))
+			throw error("Audio output creation failed");
+
+		auto input = createInput(this);
+		input->setMetadata(make_shared<MetadataRawAudio>());
+		auto pushAudio = Signals::BindMember(this, &SDLAudio::push);
+		Signals::Connect(m_converter->getOutput(0)->getSignal(), pushAudio, executorSync);
+	}
+
+	~SDLAudio() {
+		SDL_CloseAudio();
+		SDL_QuitSubSystem(SDL_INIT_AUDIO);
+	}
 
 	bool reconfigure(PcmFormat inputFormat) {
 		if (inputFormat.numPlanes > 1) {
@@ -89,26 +98,6 @@ struct SDLAudio : ModuleS {
 		m_inputFormat = inputFormat;
 		SDL_PauseAudio(0);
 		return true;
-	}
-
-	SDLAudio(IModuleHost* host, IClock* clock)
-		: m_clock(clock ? clock : g_SystemClock.get()), m_inputFormat(PcmFormat(44100, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Interleaved)), m_host(host) {
-
-		if (SDL_InitSubSystem(SDL_INIT_AUDIO | SDL_INIT_NOPARACHUTE) == -1)
-			throw std::runtime_error(format("Couldn't initialize: %s", SDL_GetError()));
-
-		if (!reconfigure(m_inputFormat))
-			throw error("Audio output creation failed");
-
-		auto input = createInput(this);
-		input->setMetadata(make_shared<MetadataRawAudio>());
-		auto pushAudio = Signals::BindMember(this, &SDLAudio::push);
-		Signals::Connect(m_converter->getOutput(0)->getSignal(), pushAudio, executorSync);
-	}
-
-	~SDLAudio() {
-		SDL_CloseAudio();
-		SDL_QuitSubSystem(SDL_INIT_AUDIO);
 	}
 
 	void process(Data data) override {
@@ -209,6 +198,19 @@ struct SDLAudio : ModuleS {
 	}
 
 	IModuleHost* const m_host;
+	IClock* const m_clock;
+
+	PcmFormat m_outputFormat {};
+	PcmFormat m_inputFormat {};
+	std::unique_ptr<IModule> m_converter;
+	int64_t m_LatencyIn180k = 0;
+
+	// shared state between:
+	// - the producer thread ('push')
+	// - the SDL thread ('fillAudio')
+	std::mutex m_protectFifo;
+	Fifo m_fifo;
+	int64_t m_fifoTime;
 };
 
 Modules::IModule* createObject(IModuleHost* host, va_list va) {
