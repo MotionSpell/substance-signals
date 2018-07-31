@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cstring> // memset
+#include <cstring> // memcpy
 #include "lib_modules/core/data.hpp"
 #include "lib_modules/core/database.hpp"
 #include "lib_utils/log.hpp"
@@ -115,8 +115,6 @@ class PcmFormat {
 class DataPcm : public DataRaw {
 	public:
 		DataPcm(size_t size) : DataRaw(0) {
-			memset(planes, 0, sizeof(planes));
-			memset(planeSize, 0, sizeof(planeSize));
 			if (size > 0) {
 				throw std::runtime_error("Forbidden operation. Requested size must be 0. Then call setFormat().");
 				format.numPlanes = 1;
@@ -202,8 +200,8 @@ class DataPcm : public DataRaw {
 		}
 
 		PcmFormat format;
-		uint8_t* planes[AUDIO_PCM_PLANES_MAX]; //TODO: use std::vector
-		uint64_t planeSize[AUDIO_PCM_PLANES_MAX];
+		uint8_t* planes[AUDIO_PCM_PLANES_MAX] {}; //TODO: use std::vector
+		uint64_t planeSize[AUDIO_PCM_PLANES_MAX] {};
 };
 
 typedef OutputDataDefault<DataPcm> OutputPcm;
