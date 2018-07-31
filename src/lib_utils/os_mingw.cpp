@@ -38,7 +38,7 @@ void moveFile(string src, string dst) {
 }
 
 void changeDir(string path) {
-	if (SetCurrentDirectoryA(path.c_str()))
+	if (!SetCurrentDirectoryA())
 		throw runtime_error("can't change to dir '" + path + "'");
 }
 
