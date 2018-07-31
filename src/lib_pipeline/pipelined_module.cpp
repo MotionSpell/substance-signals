@@ -99,8 +99,6 @@ void PipelinedModule::startSource() {
 		return;
 	}
 
-	Log::msg(Debug, "Module %s: start source - dispatching data", m_name);
-
 	// first time: create a fake input port
 	// and push null to trigger execution
 	safe_cast<InputCap>(delegate.get())->createInput(delegate.get());
