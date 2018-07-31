@@ -20,14 +20,14 @@ secondclasstest("destroy on execution") {
 
 secondclasstest("disconnect before execution") {
 	Signal<void(int)> sig;
-	size_t uid = sig.connect(sleepInMs);
+	auto uid = sig.connect(sleepInMs);
 	sig.disconnect(uid);
 	sig.emit(1000);
 }
 
 secondclasstest("disconnect on execution") {
 	Signal<void(int)> sig;
-	size_t uid = sig.connect(sleepInMs);
+	auto uid = sig.connect(sleepInMs);
 	sig.emit(1000);
 	sig.disconnect(uid);
 }

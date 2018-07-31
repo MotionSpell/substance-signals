@@ -76,7 +76,7 @@ void PipelinedModule::disconnect(int inputIdx, IOutput * const output) {
 
 void PipelinedModule::mimicInputs() {
 	while ((int)inputs.size()< delegate->getNumInputs()) {
-		auto dgInput = delegate->getInput(inputs.size());
+		auto dgInput = delegate->getInput((int)inputs.size());
 		inputs.push_back(uptr(new PipelinedInput(dgInput, m_name, *executor, statsRegistry->getNewEntry(), this)));
 	}
 }
