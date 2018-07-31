@@ -99,15 +99,14 @@ void PipelinedModule::startSource() {
 		return;
 	}
 
-	// first time: create a fake input port
-	// and push null to trigger execution
-	safe_cast<InputCap>(delegate.get())->createInput(delegate.get());
 	connections = 1;
-	auto input = getInput(0);
-	input->push(nullptr);
-	delegate->getInput(0)->push(nullptr);
-	(*executor)(Bind(&IProcessor::process, delegate.get()));
-	(*executor)(Bind(&IProcessor::process, input));
+
+	auto task = [this]() {
+		delegate->process();
+		endOfStream();
+	};
+
+	(*executor)(task);
 
 	started = true;
 }
