@@ -13,10 +13,10 @@ template<typename> struct ISignal;
 template <typename Callback, typename Arg>
 struct ISignal<Callback(Arg)> {
 	virtual ~ISignal() = default;
-	virtual size_t connect(const std::function<Callback(Arg)> &cb, IExecutor &executor) = 0;
-	virtual size_t connect(const std::function<Callback(Arg)> &cb) = 0;
-	virtual bool disconnect(size_t connectionId) = 0;
-	virtual size_t getNumConnections() const = 0;
+	virtual int connect(const std::function<Callback(Arg)> &cb, IExecutor &executor) = 0;
+	virtual int connect(const std::function<Callback(Arg)> &cb) = 0;
+	virtual bool disconnect(int connectionId) = 0;
+	virtual int getNumConnections() const = 0;
 	virtual void emit(Arg arg) = 0;
 };
 
@@ -33,27 +33,27 @@ class Signal<Callback(Arg)> : public ISignal<Callback(Arg)> {
 		};
 
 	public:
-		size_t connect(const CallbackType &cb, IExecutor &executor) {
+		int connect(const CallbackType &cb, IExecutor &executor) {
 			std::lock_guard<std::mutex> lg(callbacksMutex);
-			const size_t connectionId = uid++;
+			const int connectionId = uid++;
 			callbacks[connectionId] = {&executor, cb};
 			return connectionId;
 		}
 
-		size_t connect(const CallbackType &cb) {
+		int connect(const CallbackType &cb) {
 			return connect(cb, executor);
 		}
 
-		bool disconnect(size_t connectionId) {
+		bool disconnect(int connectionId) {
 			std::lock_guard<std::mutex> lg(callbacksMutex);
 			return disconnectUnsafe(connectionId);
 		}
 
 		// FIXME: in a concurrent context, what's returned by this function
 		// immediately becomes obsolete.
-		size_t getNumConnections() const {
+		int getNumConnections() const {
 			std::lock_guard<std::mutex> lg(callbacksMutex);
-			return callbacks.size();
+			return (int)callbacks.size();
 		}
 
 		void emit(Arg arg) {
@@ -73,7 +73,7 @@ class Signal<Callback(Arg)> : public ISignal<Callback(Arg)> {
 		Signal(const Signal&) = delete;
 		Signal& operator= (const Signal&) = delete;
 
-		bool disconnectUnsafe(size_t connectionId) {
+		bool disconnectUnsafe(int connectionId) {
 			auto conn = callbacks.find(connectionId);
 			if (conn == callbacks.end())
 				return false;
@@ -82,8 +82,8 @@ class Signal<Callback(Arg)> : public ISignal<Callback(Arg)> {
 		}
 
 		mutable std::mutex callbacksMutex;
-		std::map<size_t, ConnectionType> callbacks;  //protected by callbacksMutex
-		size_t uid = 0;                              //protected by callbacksMutex
+		std::map<int, ConnectionType> callbacks;  //protected by callbacksMutex
+		int uid = 0;                              //protected by callbacksMutex
 
 		std::unique_ptr<IExecutor> const defaultExecutor;
 		IExecutor &executor;

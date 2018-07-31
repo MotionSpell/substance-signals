@@ -72,7 +72,7 @@ void PipelinedModule::disconnect(int inputIdx, IOutput * const output) {
 	getInput(inputIdx)->disconnect();
 	auto &sig = output->getSignal();
 	auto const numConn = sig.getNumConnections();
-	for (size_t i = 0; i < numConn; ++i) {
+	for (int i = 0; i < numConn; ++i) {
 		sig.disconnect(i);
 	}
 	connections--;

@@ -31,7 +31,7 @@ unittest("signals_simple") {
 	sig.emit(100);
 	ASSERT_EQUALS(makeVector({100}), results);
 
-	size_t id2 = sig.connect(dummy2);
+	auto id2 = sig.connect(dummy2);
 	sig.connect(dummy);
 	sig.connect(dummy2);
 	results.clear();
