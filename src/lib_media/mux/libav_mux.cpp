@@ -17,12 +17,12 @@ void LibavMux::formatsList() {
 	}
 }
 
-LibavMux::LibavMux(const std::string &baseName, const std::string &fmt, const std::string &options)
-	: m_formatCtx(avformat_alloc_context()), optionsDict(typeid(*this).name(), options) {
+LibavMux::LibavMux(MuxConfig cfg)
+	: m_formatCtx(avformat_alloc_context()), optionsDict(typeid(*this).name(), cfg.options) {
 	if (!m_formatCtx)
 		throw error("Format context couldn't be allocated.");
 
-	auto const of = av_guess_format(fmt.c_str(), nullptr, nullptr);
+	auto const of = av_guess_format(cfg.format.c_str(), nullptr, nullptr);
 	if (!of) {
 		formatsList();
 		throw error("Couldn't guess output format. Check list above for supported ones.");
@@ -30,7 +30,7 @@ LibavMux::LibavMux(const std::string &baseName, const std::string &fmt, const st
 	m_formatCtx->oformat = of;
 
 	std::stringstream fileName;
-	fileName << baseName;
+	fileName << cfg.baseName;
 	std::stringstream formatExts(of->extensions); //get the first extension recommended by ffmpeg
 	std::string fileNameExt;
 	std::getline(formatExts, fileNameExt, ',');
@@ -40,16 +40,16 @@ LibavMux::LibavMux(const std::string &baseName, const std::string &fmt, const st
 	if (!(m_formatCtx->oformat->flags & AVFMT_NOFILE)) { /* open the output file, if needed */
 		if (avio_open2(&m_formatCtx->pb, fileName.str().c_str(), AVIO_FLAG_READ_WRITE, nullptr, &optionsDict) < 0) {
 			avformat_free_context(m_formatCtx);
-			throw error(format("could not open %s, disable output.", baseName));
+			throw error(format("could not open %s, disable output.", cfg.baseName));
 		}
 	}
 	strncpy(m_formatCtx->filename, fileName.str().c_str(), sizeof(m_formatCtx->filename) - 1);
 	m_formatCtx->filename[(sizeof m_formatCtx->filename)-1] = 0;
 
 	av_dict_set(&m_formatCtx->metadata, "service_provider", format("GPAC Licensing Signals %s", g_version).c_str(), 0);
-	av_dump_format(m_formatCtx, 0, baseName.c_str(), 1);
+	av_dump_format(m_formatCtx, 0, cfg.baseName.c_str(), 1);
 
-	if (!fmt.compare(0, 5, "mpegts") || !fmt.compare(0, 3, "hls")) {
+	if (!cfg.format.compare(0, 5, "mpegts") || !cfg.format.compare(0, 3, "hls")) {
 		m_inbandMetadata = true;
 	}
 }

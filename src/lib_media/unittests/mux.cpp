@@ -36,7 +36,7 @@ unittest("remux test: GPAC mp4 mux") {
 unittest("remux test: libav mp4 mux") {
 	auto demux = create<Demux::LibavDemux>(&NullHost, "data/beepbop.mp4");
 	std::unique_ptr<IModule> avcc2annexB;
-	auto mux = create<Mux::LibavMux>("out/output_libav", "mp4");
+	auto mux = create<Mux::LibavMux>(MuxConfig{"out/output_libav", "mp4", ""});
 	ASSERT(demux->getNumOutputs() > 1);
 	for (int i = 0; i < demux->getNumOutputs(); ++i) {
 		//FIXME: declare statically metadata to avoid missing data at start

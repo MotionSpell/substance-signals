@@ -8,12 +8,18 @@
 struct AVFormatContext;
 struct AVPacket;
 
+struct MuxConfig {
+	std::string baseName;
+	std::string format;
+	std::string options;
+};
+
 namespace Modules {
 namespace Mux {
 
 class LibavMux : public ModuleDynI, private LogCap {
 	public:
-		LibavMux(const std::string &baseName, const std::string &format, const std::string &options = "");
+		LibavMux(MuxConfig cfg);
 		~LibavMux();
 		void process() override;
 
