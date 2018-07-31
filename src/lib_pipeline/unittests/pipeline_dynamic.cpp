@@ -93,7 +93,7 @@ unittest("pipeline: dynamic module connection of a new sink module") {
 	p.connect(src, 0, sink, 0);
 }
 
-unittest("pipeline: wrong disconnection") {
+unittest("pipeline: disconnecting not-connected modules throws an error") {
 	Pipeline p;
 	auto src = p.addModule<InfiniteSource>();
 	auto sink = p.addModule<FakeSink>();
@@ -143,7 +143,7 @@ unittest("pipeline: dynamic module disconnection (remove module dynamically)") {
 	p.waitForEndOfStream();
 }
 
-unittest("pipeline: dynamic module disconnection (remove sink without disconnect)") {
+unittest("pipeline: removing a connected sink module throws an error") {
 	Pipeline p;
 	auto src = p.addModule<InfiniteSource>();
 	auto dualInput = p.addModule<DualInput>();
@@ -153,7 +153,7 @@ unittest("pipeline: dynamic module disconnection (remove sink without disconnect
 	ASSERT_THROWN(p.removeModule(dualInput));
 }
 
-unittest("pipeline: dynamic module disconnection (remove source without disconnect)") {
+unittest("pipeline: removing a connected source module throws an error") {
 	Pipeline p;
 	auto src = p.addModule<InfiniteSource>();
 	auto dualInput = p.addModule<DualInput>();
