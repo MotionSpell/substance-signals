@@ -1,6 +1,6 @@
 
 function aws_build {
-  lazy_download "aws.tar.gz" "https://github.com/aws/aws-sdk-cpp/archive/1.4.40.tar.gz"
+  lazy_download "aws.tar.gz" "https://github.com/aws/aws-sdk-cpp/archive/1.4.93.tar.gz"
   lazy_extract "aws.tar.gz"
   mkgit "aws"
 
