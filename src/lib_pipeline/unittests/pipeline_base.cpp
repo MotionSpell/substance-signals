@@ -50,14 +50,14 @@ unittest("pipeline: empty") {
 	}
 }
 
-unittest("pipeline: connect inputs to outputs") {
+unittest("pipeline: connecting an input to and output throws an error") {
 	auto p = std::make_unique<Pipeline>();
 	auto src = p->addModule<InfiniteSource>();
 	auto sink = p->addModule<FakeSink>();
 	ASSERT_THROWN(p->connect(sink, 0, src, 0));
 }
 
-unittest("pipeline: connect incompatible i/o") {
+unittest("pipeline: connecting incompatible i/o throws an error") {
 	Pipeline p(false, Pipeline::Mono);
 	auto src = p.addModule<InfiniteSource>();
 	auto aconv = p.addModule<CustomDataTypeSink>();
@@ -107,7 +107,7 @@ unittest("pipeline: input data is manually queued while module is running") {
 	p.waitForEndOfStream();
 }
 
-unittest("pipeline: multiple inputs (send same packets to 2 inputs and check call number)") {
+unittest("pipeline: multiple inputs (send same packets to 2 inputs and check call count)") {
 	Pipeline p;
 	auto generator = p.addModule<FakeSource>(1);
 	auto dualInput = p.addModule<ThreadedDualInput>();
