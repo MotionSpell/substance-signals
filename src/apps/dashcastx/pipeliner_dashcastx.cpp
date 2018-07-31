@@ -165,7 +165,7 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 		IPipelinedModule *decode = nullptr;
 		if (transcode) {
 			decode = pipeline->addModule<Decode::Decoder>(metadataDemux->type);
-			pipeline->connect(demux, i, decode, 0);
+			pipeline->connect(sourceModule, sourcePin, decode, 0);
 
 			if (metadataDemux->isVideo() && opt->autoRotate) {
 				auto const res = safe_cast<const MetadataPktLibavVideo>(demux->getOutputMetadata(i))->getResolution();
@@ -222,7 +222,7 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 			if (transcode) {
 				connect(encoder, muxer);
 			} else {
-				pipeline->connect(demux, i, muxer, 0);
+				pipeline->connect(sourceModule, sourcePin, muxer, 0);
 			}
 
 			pipeline->connect(muxer, 0, dasher, numDashInputs);
@@ -233,7 +233,7 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 				if (transcode) {
 					connect(encoder, muxermp4);
 				} else {
-					pipeline->connect(demux, i, muxermp4, 0);
+					pipeline->connect(sourceModule, sourcePin, muxermp4, 0);
 				}
 			}
 		}
