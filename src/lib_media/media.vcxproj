@@ -60,7 +60,6 @@
     <ClInclude Include="transform\telx_tables.hpp" />
     <ClInclude Include="transform\time_rectifier.hpp" />
     <ClInclude Include="transform\video_convert.hpp" />
-    <ClInclude Include="utils\comparator.hpp" />
     <ClInclude Include="utils\recorder.hpp" />
     <ClInclude Include="utils\repeater.hpp" />
   </ItemGroup>
@@ -111,7 +110,6 @@
     <ClCompile Include="transform\telx2ttml.cpp" />
     <ClCompile Include="transform\time_rectifier.cpp" />
     <ClCompile Include="transform\video_convert.cpp" />
-    <ClCompile Include="utils\comparator.cpp" />
     <ClCompile Include="utils\recorder.cpp" />
     <ClCompile Include="utils\repeater.cpp" />
   </ItemGroup>

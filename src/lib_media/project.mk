@@ -38,7 +38,6 @@ LIB_MEDIA_SRCS:=\
   $(MYDIR)/transform/telx2ttml.cpp\
   $(MYDIR)/transform/time_rectifier.cpp\
   $(MYDIR)/transform/video_convert.cpp\
-  $(MYDIR)/utils/comparator.cpp\
   $(MYDIR)/utils/recorder.cpp\
   $(MYDIR)/utils/repeater.cpp
 

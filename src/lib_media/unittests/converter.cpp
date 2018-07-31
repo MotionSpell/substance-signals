@@ -1,61 +1,106 @@
 #include "tests/tests.hpp"
 #include "lib_modules/modules.hpp"
-#include "lib_media/in/sound_generator.hpp"
+#include "lib_media/common/metadata.hpp"
 #include "lib_media/transform/audio_convert.hpp"
 #include "lib_media/transform/audio_gap_filler.hpp"
 #include "lib_media/transform/video_convert.hpp"
-#include "lib_media/utils/comparator.hpp"
 #include "lib_media/utils/recorder.hpp"
 #include "lib_utils/tools.hpp"
 
 using namespace Tests;
 using namespace Modules;
+using namespace std;
 
-unittest("audio converter: interleaved to planar to interleaved") {
-	auto soundGen = create<In::SoundGenerator>();
-	auto comparator = create<Utils::PcmComparator>();
-	auto pushOrig = Signals::BindMember(comparator.get(), &Utils::PcmComparator::pushOriginal);
-	auto pushOther = Signals::BindMember(comparator.get(), &Utils::PcmComparator::pushOther);
+namespace {
+shared_ptr<DataPcm> getInterleavedPcmData() {
 
-	Connect(soundGen->getOutput(0)->getSignal(), pushOrig);
+	auto fmt = PcmFormat(44100, 2, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Interleaved);
 
-	auto baseFormat  = PcmFormat(44100, 2, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Interleaved);
-	auto otherFormat = PcmFormat(44100, 2, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Planar);
+	static const short data[] = {
+		// L,R
+		40, 80,
+		41, 81,
+		42, 82,
+		43, 83,
+		44, 84,
+		45, 85,
+		46, 86,
+		47, 87,
+	};
 
-	auto converter1 = create<Transform::AudioConvert>(baseFormat, otherFormat);
-	auto converter2 = create<Transform::AudioConvert>(otherFormat, baseFormat);
+	auto r = make_shared<DataPcm>(0);
+	r->setFormat(fmt);
+	r->setPlane(0, (uint8_t*)data, sizeof data);
+	r->setMetadata(make_shared<MetadataRawAudio>());
+	return r;
+}
 
-	ConnectOutputToInput(soundGen->getOutput(0), converter1->getInput(0));
-	ConnectOutputToInput(converter1->getOutput(0), converter2->getInput(0));
-	Connect(converter2->getOutput(0)->getSignal(), pushOther);
+vector<short> getPlane(DataPcm const* data, int idx) {
+	auto ptr = (short*)data->getPlane(idx);
+	auto len = (size_t)(data->getPlaneSize(idx) / sizeof(short));
+	return vector<short>(ptr, ptr + len);
+}
 
-	soundGen->work();
-	comparator->process(nullptr);
+struct Recorder : ModuleS {
+	Recorder() {
+		createInput(this);
+	}
+	void process(Data frame_) override {
+		out = frame_;
+	}
+	Data out;
+};
+}
+
+unittest("audio converter: interleaved to planar") {
+	auto in = getInterleavedPcmData();
+	auto planar = PcmFormat(44100, 2, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Planar);
+
+	auto converter = create<Transform::AudioConvert>(in->getFormat(), planar);
+
+	auto rec = create<Recorder>();
+	ConnectOutputToInput(converter->getOutput(0), rec->getInput(0));
+	converter->process(in);
+
+	auto out = safe_cast<const DataPcm>(rec->out);
+	ASSERT_EQUALS(2, (int)out->getFormat().numPlanes);
+	ASSERT_EQUALS(vector<short>({40, 41, 42, 43, 44, 45, 46, 47 }), getPlane(out.get(), 0));
+	ASSERT_EQUALS(vector<short>({80, 81, 82, 83, 84, 85, 86, 87 }), getPlane(out.get(), 1));
 }
 
 unittest("audio converter: 44100 to 48000") {
-	auto soundGen = create<In::SoundGenerator>();
-	auto comparator = create<Utils::PcmComparator>();
-	auto pushOrig = Signals::BindMember(comparator.get(), &Utils::PcmComparator::pushOriginal);
-	auto pushOther = Signals::BindMember(comparator.get(), &Utils::PcmComparator::pushOther);
 
-	Connect(soundGen->getOutput(0)->getSignal(), pushOrig);
+	auto in = getInterleavedPcmData();
+	auto dstFormat = PcmFormat(48000, 2, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Interleaved);
 
-	auto baseFormat  = PcmFormat(44100, 2, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Interleaved);
-	auto otherFormat = PcmFormat(48000, 2, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Interleaved);
-	auto converter1 = create<Transform::AudioConvert>(baseFormat, otherFormat);
-	auto converter2 = create<Transform::AudioConvert>(otherFormat, baseFormat);
+	auto converter = create<Transform::AudioConvert>(in->getFormat(), dstFormat);
 
-	ConnectOutputToInput(soundGen->getOutput(0), converter1->getInput(0));
-	ConnectOutputToInput(converter1->getOutput(0), converter2->getInput(0));
-	Connect(converter2->getOutput(0)->getSignal(), pushOther);
+	auto rec = create<Recorder>();
+	ConnectOutputToInput(converter->getOutput(0), rec->getInput(0));
+	converter->process(in);
+	converter->process(in);
+	converter->process(in);
+	converter->flush();
 
-	soundGen->work();
-
-	converter1->flush();
-	converter2->flush();
-	comparator->process(nullptr);
+	assert(rec->out);
+	auto out = safe_cast<const DataPcm>(rec->out);
+	ASSERT_EQUALS(1, (int)out->getFormat().numPlanes);
+	short expected[] = {
+		// L, R
+		39, 79,
+		42, 82,
+		42, 82,
+		43, 83,
+		44, 84,
+		45, 85,
+		45, 85,
+		48, 88,
+		43, 83,
+	};
+	ASSERT_EQUALS(vector<short>(expected, expected+18), getPlane(out.get(), 0));
 }
+
+#include "lib_media/in/sound_generator.hpp"
 
 unittest("audio converter: dynamic formats") {
 	auto soundGen = create<In::SoundGenerator>();
@@ -72,7 +117,6 @@ unittest("audio converter: dynamic formats") {
 	soundGen->work();
 
 	converter->flush();
-	converter->getOutput(0)->getSignal().disconnect(0);
 	recorder->process(nullptr);
 
 	while (auto data = recorder->pop()) {
@@ -107,7 +151,6 @@ void framingTest(const size_t inFrameFrames, const size_t outFrameFrames) {
 		converter->process(data);
 	}
 	converter->flush();
-	converter->getOutput(0)->getSignal().disconnect(0);
 	recorder->process(nullptr);
 
 	size_t idx = 0;
