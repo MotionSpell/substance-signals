@@ -53,11 +53,6 @@ class PipelinedModule :
 
 		IStatsRegistry * const statsRegistry;
 
-		IInput* addInput(IInput* p) { //Takes ownership
-			inputs.push_back(uptr(p));
-			return p;
-		}
-
 		std::vector<std::unique_ptr<IInput>> inputs;
 };
 

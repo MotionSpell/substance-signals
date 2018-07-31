@@ -79,7 +79,7 @@ void PipelinedModule::mimicInputs() {
 	while ((int)inputs.size()< delegate->getNumInputs()) {
 		auto const i = (int)inputs.size();
 		inputExecutor.push_back(EXECUTOR_INPUT_DEFAULT);
-		addInput(new PipelinedInput(delegate->getInput(i), m_name, *executor, statsRegistry->getNewEntry(), this));
+		inputs.push_back(uptr(new PipelinedInput(delegate->getInput(i), m_name, *executor, statsRegistry->getNewEntry(), this)));
 	}
 }
 
