@@ -8,7 +8,6 @@
 
 #define EXECUTOR                   EXECUTOR_ASYNC_THREAD
 #define EXECUTOR_LIVE              EXECUTOR_SYNC
-#define EXECUTOR_INPUT_DEFAULT     (&g_executorSync)
 
 using namespace Modules;
 
@@ -59,7 +58,7 @@ bool PipelinedModule::isSource() {
 
 void PipelinedModule::connect(IOutput *output, int inputIdx, bool inputAcceptMultipleConnections) {
 	auto input = getInput(inputIdx);
-	ConnectOutputToInput(output, input, inputExecutor[inputIdx]);
+	ConnectOutputToInput(output, input);
 	if (!inputAcceptMultipleConnections && (input->getNumConnections() != 1))
 		throw std::runtime_error(format("PipelinedModule %s: input %s has %s connections.", m_name, inputIdx, input->getNumConnections()));
 	connections++;
@@ -78,7 +77,6 @@ void PipelinedModule::disconnect(int inputIdx, IOutput * const output) {
 void PipelinedModule::mimicInputs() {
 	while ((int)inputs.size()< delegate->getNumInputs()) {
 		auto dgInput = delegate->getInput(inputs.size());
-		inputExecutor.push_back(EXECUTOR_INPUT_DEFAULT);
 		inputs.push_back(uptr(new PipelinedInput(dgInput, m_name, *executor, statsRegistry->getNewEntry(), this)));
 	}
 }
