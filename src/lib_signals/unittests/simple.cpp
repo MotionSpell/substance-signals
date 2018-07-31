@@ -35,8 +35,7 @@ unittest("signals_simple") {
 	sig.connect(dummy);
 	sig.connect(dummy2);
 	results.clear();
-	auto numVal = sig.emit(777);
-	ASSERT_EQUALS(4u, numVal);
+	sig.emit(777);
 
 	auto expected = makeVector({777, 778, 777, 778});
 	ASSERT_EQUALS(expected, results);

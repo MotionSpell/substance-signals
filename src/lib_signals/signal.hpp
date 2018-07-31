@@ -17,7 +17,7 @@ struct ISignal<Callback(Arg)> {
 	virtual size_t connect(const std::function<Callback(Arg)> &cb) = 0;
 	virtual bool disconnect(size_t connectionId) = 0;
 	virtual size_t getNumConnections() const = 0;
-	virtual size_t emit(Arg arg) = 0;
+	virtual void emit(Arg arg) = 0;
 };
 
 template<typename> class Signal;
@@ -56,12 +56,11 @@ class Signal<Callback(Arg)> : public ISignal<Callback(Arg)> {
 			return callbacks.size();
 		}
 
-		size_t emit(Arg arg) {
+		void emit(Arg arg) {
 			std::lock_guard<std::mutex> lg(callbacksMutex);
 			for (auto &cb : callbacks) {
 				(*cb.second.executor)(std::bind(cb.second.callback, arg));
 			}
-			return callbacks.size();
 		}
 
 		Signal() : defaultExecutor(new ExecutorSync()), executor(*defaultExecutor.get()) {
