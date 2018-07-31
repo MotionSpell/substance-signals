@@ -27,8 +27,7 @@ template<typename Callback, typename Arg>
 class Signal<Callback(Arg)> : public ISignal<Callback(Arg)> {
 	private:
 		typedef std::function<Callback(Arg)> CallbackType;
-		typedef typename CallbackType::result_type ResultType;
-		typedef ConnectionList<ResultType, Arg> ConnectionType;
+		typedef ConnectionList<Arg> ConnectionType;
 
 	public:
 		size_t connect(const CallbackType &cb, IExecutor &executor) {
