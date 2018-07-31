@@ -6,7 +6,12 @@
 namespace Modules {
 namespace Utils {
 
-void IComparator::process(Data data) {
+PcmComparator::PcmComparator() {
+	auto input = createInput(this);
+	input->setMetadata(make_shared<MetadataRawAudio>());
+}
+
+void PcmComparator::process(Data data) {
 	if (data != nullptr)
 		throw error("Data not expected");
 
@@ -28,18 +33,12 @@ void IComparator::process(Data data) {
 }
 
 //FIXME: re-implement with multiple inputs
-void IComparator::pushOriginal(Data data) {
+void PcmComparator::pushOriginal(Data data) {
 	original.push(data);
 }
 
-void IComparator::pushOther(Data data) {
+void PcmComparator::pushOther(Data data) {
 	other.push(data);
-}
-
-
-PcmComparator::PcmComparator() {
-	auto input = createInput(this);
-	input->setMetadata(make_shared<MetadataRawAudio>());
 }
 
 bool PcmComparator::compare(Data data1, Data data2) const {
@@ -68,14 +67,6 @@ bool PcmComparator::compare(Data data1, Data data2) const {
 	}
 
 	return true;
-}
-
-void PcmComparator::pushOriginal(Data data) {
-	IComparator::pushOriginal(data);
-}
-
-void PcmComparator::pushOther(Data data) {
-	IComparator::pushOther(data);
 }
 
 }

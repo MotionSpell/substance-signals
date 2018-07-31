@@ -6,27 +6,17 @@
 namespace Modules {
 namespace Utils {
 
-class IComparator : public ModuleS, private LogCap {
-	public:
-		void process(Data data) override;
-		virtual bool compare(Data original, Data other) const = 0;
-		virtual void pushOriginal(Data data);
-		virtual void pushOther(Data data);
-
-	private:
-		Queue<Data> original, other;
-};
-
-
-class PcmComparator : public IComparator {
+class PcmComparator : public ModuleS, private LogCap {
 	public:
 		PcmComparator();
-		bool compare(Data data1, Data data2) const override;
-		void pushOriginal(Data data) override;
-		void pushOther(Data data) override;
+		void process(Data data) override;
+		bool compare(Data data1, Data data2) const;
+		void pushOriginal(Data data);
+		void pushOther(Data data);
 
 	private:
 		const float tolerance = 0.0;
+		Queue<Data> original, other;
 };
 
 }
