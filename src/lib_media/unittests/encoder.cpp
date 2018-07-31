@@ -36,7 +36,7 @@ unittest("encoder: audio with first negative timestamp") {
 	vector<int64_t> times;
 	PcmFormat fmt;
 	auto const numSamplesPerFrame = 1024LL;
-	const int64_t inFrameSizeInBytes = numSamplesPerFrame * fmt.getBytesPerSample() / fmt.numPlanes;
+	const auto inFrameSizeInBytes = (size_t)(numSamplesPerFrame * fmt.getBytesPerSample() / fmt.numPlanes);
 
 	auto onFrame = [&](Data data) {
 		times.push_back(data->getMediaTime());
@@ -47,7 +47,7 @@ unittest("encoder: audio with first negative timestamp") {
 	for (int i = 0; i < 4; ++i) {
 		auto pcm = make_shared<DataPcm>(0);
 		pcm->setFormat(fmt);
-		std::vector<uint8_t> input((size_t)inFrameSizeInBytes);
+		std::vector<uint8_t> input(inFrameSizeInBytes);
 		auto inputRaw = input.data();
 		for (uint8_t i = 0; i < fmt.numPlanes; ++i) {
 			pcm->setPlane(i, inputRaw, inFrameSizeInBytes);

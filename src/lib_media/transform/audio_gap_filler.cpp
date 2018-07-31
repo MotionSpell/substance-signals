@@ -26,7 +26,7 @@ void AudioGapFiller::process(Data data) {
 			log(Debug, "Fixing gap of %s samples (input=%s, accumulation=%s)", diff, timeInSR, accumulatedTimeInSR);
 			if (diff > 0) {
 				auto dataInThePast = make_shared<DataBaseRef>(data);
-				dataInThePast->setMediaTime(data->getMediaTime() - timescaleToClock(srcNumSamples, sampleRate));
+				dataInThePast->setMediaTime(data->getMediaTime() - timescaleToClock((uint64_t)srcNumSamples, sampleRate));
 				process(dataInThePast);
 			} else {
 				return;

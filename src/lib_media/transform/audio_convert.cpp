@@ -92,7 +92,7 @@ void AudioConvert::process(Data data) {
 		out = output->getBuffer(0);
 		out->setFormat(dstPcmFormat);
 		for (uint8_t i = 0; i < dstPcmFormat.numPlanes; ++i) {
-			out->setPlane(i, nullptr, dstBufferSize / dstPcmFormat.numPlanes);
+			out->setPlane(i, nullptr, (size_t)dstBufferSize / dstPcmFormat.numPlanes);
 		}
 	}
 
@@ -123,7 +123,7 @@ void AudioConvert::process(Data data) {
 
 		auto const outPlaneSize = dstNumSamples * dstPcmFormat.getBytesPerSample() / dstPcmFormat.numPlanes;
 		for (uint8_t i = 0; i < dstPcmFormat.numPlanes; ++i)
-			out->setPlane(i, out->getPlane(i), outPlaneSize);
+			out->setPlane(i, out->getPlane(i), (size_t)outPlaneSize);
 
 		auto const accumulatedTimeIn180k = timescaleToClock(accumulatedTimeInDstSR, dstPcmFormat.sampleRate);
 		out->setMediaTime(accumulatedTimeIn180k);

@@ -144,8 +144,8 @@ class DataPcm : public DataRaw {
 			return SpanC { planes[0], size() };
 		}
 
-		uint64_t size() const {
-			uint64_t size = 0;
+		size_t size() const {
+			size_t size = 0;
 			for (size_t i = 0; i < format.numPlanes; ++i) {
 				size += planeSize[i];
 			}
@@ -172,7 +172,7 @@ class DataPcm : public DataRaw {
 			return planes;
 		}
 
-		void setPlane(uint8_t planeIdx, uint8_t *plane, uint64_t size) {
+		void setPlane(uint8_t planeIdx, uint8_t *plane, size_t size) {
 			if (planeIdx > format.numPlanes)
 				throw std::runtime_error("Pcm plane doesn't exist.");
 			if ((planes[planeIdx] == nullptr) ||
@@ -201,7 +201,7 @@ class DataPcm : public DataRaw {
 
 		PcmFormat format;
 		uint8_t* planes[AUDIO_PCM_PLANES_MAX] {}; //TODO: use std::vector
-		uint64_t planeSize[AUDIO_PCM_PLANES_MAX] {};
+		size_t planeSize[AUDIO_PCM_PLANES_MAX] {};
 };
 
 typedef OutputDataDefault<DataPcm> OutputPcm;
