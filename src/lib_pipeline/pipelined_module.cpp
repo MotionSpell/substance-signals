@@ -122,9 +122,8 @@ void PipelinedModule::stopSource() {
 		return;
 	}
 
-	// the source is likely processing: push EOS in the loop
-	// and let things follow their way
-	delegate->getInput(0)->push(nullptr);
+	auto active = safe_cast<ActiveModule>(delegate.get());
+	active->mustExit = true;
 }
 
 // IPipelineNotifier implementation

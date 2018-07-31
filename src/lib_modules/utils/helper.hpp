@@ -199,9 +199,9 @@ class ModuleS : public Module {
 class ActiveModule : public Module {
 	public:
 		void process() override;
+		bool mustExit = false;
 	protected:
 		virtual bool work() = 0;
-		bool mustExit();
 };
 
 template<typename Lambda>

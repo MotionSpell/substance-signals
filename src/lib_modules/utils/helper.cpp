@@ -46,15 +46,7 @@ bool MetadataCap::setMetadataInternal(const std::shared_ptr<const IMetadata> &me
 }
 
 void ActiveModule::process() {
-	if(getNumInputs() > 0)
-		getInput(0)->pop();
-
-	while (!mustExit() && work()) {}
-}
-
-bool ActiveModule::mustExit() {
-	Data data;
-	return getNumInputs() && getInput(0)->tryPop(data);
+	while (!mustExit && work()) {}
 }
 
 }
