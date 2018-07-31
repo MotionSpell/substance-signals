@@ -1,7 +1,6 @@
 #pragma once
 
 #include "executor.hpp"
-#include "connection.hpp"
 #include <functional>
 #include <map>
 #include <memory>
@@ -27,13 +26,17 @@ template<typename Callback, typename Arg>
 class Signal<Callback(Arg)> : public ISignal<Callback(Arg)> {
 	private:
 		typedef std::function<Callback(Arg)> CallbackType;
-		typedef ConnectionList<Arg> ConnectionType;
+
+		struct ConnectionType {
+			IExecutor* executor;
+			std::function<void(Arg)> callback;
+		};
 
 	public:
 		size_t connect(const CallbackType &cb, IExecutor &executor) {
 			std::lock_guard<std::mutex> lg(callbacksMutex);
 			const size_t connectionId = uid++;
-			callbacks[connectionId] = std::make_unique<ConnectionType>(executor, cb);
+			callbacks[connectionId] = {&executor, cb};
 			return connectionId;
 		}
 
@@ -56,7 +59,7 @@ class Signal<Callback(Arg)> : public ISignal<Callback(Arg)> {
 		size_t emit(Arg arg) {
 			std::lock_guard<std::mutex> lg(callbacksMutex);
 			for (auto &cb : callbacks) {
-				cb.second->executor(std::bind(cb.second->callback, arg));
+				(*cb.second.executor)(std::bind(cb.second.callback, arg));
 			}
 			return callbacks.size();
 		}
@@ -80,7 +83,7 @@ class Signal<Callback(Arg)> : public ISignal<Callback(Arg)> {
 		}
 
 		mutable std::mutex callbacksMutex;
-		std::map<size_t, std::unique_ptr<ConnectionType>> callbacks; //protected by callbacksMutex
+		std::map<size_t, ConnectionType> callbacks;  //protected by callbacksMutex
 		size_t uid = 0;                              //protected by callbacksMutex
 
 		std::unique_ptr<IExecutor> const defaultExecutor;
