@@ -90,7 +90,6 @@ IInput* PipelinedModule::getInput(int i) {
 	return inputs[i].get();
 }
 
-/* uses the executor (i.e. may defer the call) */
 void PipelinedModule::startSource() {
 	assert(isSource());
 

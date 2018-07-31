@@ -27,7 +27,7 @@ class PipelinedModule :
 
 		/* source modules are stopped manually - then the message propagates to other connected modules */
 		bool isSource();
-		/* uses the executor (i.e. may defer the call) */
+
 		void startSource();
 		void stopSource();
 
