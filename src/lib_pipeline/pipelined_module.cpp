@@ -14,7 +14,12 @@ using namespace Modules;
 namespace Pipelines {
 
 /* take ownership of module and executor */
-PipelinedModule::PipelinedModule(const char* name, std::unique_ptr<Modules::IModuleHost> host, std::shared_ptr<IModule> module, IPipelineNotifier *notify, Pipeline::Threading threading, IStatsRegistry *statsRegistry)
+PipelinedModule::PipelinedModule(const char* name,
+    std::unique_ptr<Modules::IModuleHost> host,
+    std::shared_ptr<IModule> module,
+    IPipelineNotifier *notify,
+    Pipeline::Threading threading,
+    IStatsRegistry *statsRegistry)
 	: m_host(std::move(host)),
 	  m_name(name),
 	  delegate(std::move(module)),
