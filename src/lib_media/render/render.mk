@@ -15,7 +15,6 @@ $(BIN)/$(SRC)/lib_media/render/sdl_video.cpp.o: CFLAGS+=$(RENDER_CFLAGS)
 TARGETS+=$(BIN)/SDLAudio.smd
 $(BIN)/SDLAudio.smd: \
 	$(BIN)/$(SRC)/lib_media/render/sdl_audio.cpp.o \
-	$(BIN)/$(SRC)/lib_media/transform/audio_convert.cpp.o \
 	$(BIN)/$(SRC)/lib_media/common/libav.cpp.o
 $(BIN)/SDLAudio.smd: LDFLAGS+=$(RENDER_LDFLAGS)
 $(BIN)/$(SRC)/lib_media/render/sdl_audio.cpp.o: CFLAGS+=$(RENDER_CFLAGS)

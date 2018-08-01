@@ -29,7 +29,6 @@ LIB_MEDIA_SRCS:=\
   $(MYDIR)/stream/ms_hss.cpp\
   $(MYDIR)/stream/adaptive_streaming_common.cpp\
   $(MYDIR)/transform/avcc2annexb.cpp\
-  $(MYDIR)/transform/audio_convert.cpp\
   $(MYDIR)/transform/audio_gap_filler.cpp\
   $(MYDIR)/transform/libavfilter.cpp\
   $(MYDIR)/transform/restamp.cpp\
@@ -47,24 +46,43 @@ PKGS+=\
   libavformat\
   libavutil\
   libcurl\
-  libswresample\
   libswscale\
-  libturbojpeg\
 
 ifeq ($(SIGNALS_HAS_X11), 1)
 include $(MYDIR)/render/render.mk
 endif
 
+$(BIN)/media-config.mk: $(SRC)/../scripts/configure
+	@mkdir -p $(BIN)
+	$(SRC)/../scripts/configure libswresample libturbojpeg | sed 's/^CFLAGS/MEDIA_CFLAGS/g' | sed 's/^LDFLAGS/MEDIA_LDFLAGS/g'> "$@"
 
+include $(BIN)/media-config.mk
+
+#------------------------------------------------------------------------------
+TARGETS+=$(BIN)/AudioConvert.smd
+$(BIN)/AudioConvert.smd: \
+  $(BIN)/$(SRC)/lib_media/transform/audio_convert.cpp.o\
+  $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
+
+$(BIN)/AudioConvert.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
+$(BIN)/$(SRC)/lib_media/transform/audio_convert.cpp.o: CFLAGS+=$(MEDIA_CFLAGS)
+#------------------------------------------------------------------------------
 TARGETS+=$(BIN)/JPEGTurboDecode.smd
 $(BIN)/JPEGTurboDecode.smd: \
   $(BIN)/$(SRC)/lib_media/decode/jpegturbo_decode.cpp.o\
   $(BIN)/$(SRC)/lib_media/common/picture.cpp.o\
 
+$(BIN)/JPEGTurboDecode.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
+$(BIN)/$(SRC)/lib_media/encode/jpegturbo_decode.cpp.o: CFLAGS+=$(MEDIA_CFLAGS)
+#------------------------------------------------------------------------------
 TARGETS+=$(BIN)/JPEGTurboEncode.smd
 $(BIN)/JPEGTurboEncode.smd: \
   $(BIN)/$(SRC)/lib_media/encode/jpegturbo_encode.cpp.o\
   $(BIN)/$(SRC)/lib_media/common/picture.cpp.o\
+
+$(BIN)/JPEGTurboEncode.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
+$(BIN)/$(SRC)/lib_media/encode/jpegturbo_encode.cpp.o: CFLAGS+=$(MEDIA_CFLAGS)
+#------------------------------------------------------------------------------
 
 # Warning derogations. TODO: make this list empty
 $(BIN)/$(SRC)/lib_media/common/libav.cpp.o: CFLAGS+=-Wno-deprecated-declarations

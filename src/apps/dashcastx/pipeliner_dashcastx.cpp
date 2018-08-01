@@ -3,13 +3,13 @@
 #include "lib_utils/system_clock.hpp"
 #include <sstream>
 #include "lib_utils/os.hpp"
+#include "lib_modules/utils/loader.hpp"
 
 // modules
 #include "lib_media/decode/decoder.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/encode/libav_encode.hpp"
 #include "lib_media/stream/mpeg_dash.hpp"
-#include "lib_media/transform/audio_convert.hpp"
 #include "lib_media/transform/video_convert.hpp"
 #include "lib_media/mux/gpac_mux_mp4.hpp"
 #include "lib_media/utils/regulator.hpp"
@@ -113,7 +113,7 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 			auto const metaEnc = safe_cast<const MetadataPktLibavAudio>(metadataEncoder);
 			auto format = PcmFormat(demuxFmt.sampleRate, demuxFmt.numChannels, demuxFmt.layout, encFmt.sampleFormat, (encFmt.numPlanes == 1) ? Interleaved : Planar);
 			libavAudioCtx2pcmConvert(metaEnc, &encFmt);
-			return pipeline->addModule<Transform::AudioConvert>(format, metaEnc->getFrameSize());
+			return pipeline->add("AudioConvert", nullptr, format, metaEnc->getFrameSize());
 		} else {
 			Log::msg(Info, "[Converter] Found unknown stream");
 			return nullptr;

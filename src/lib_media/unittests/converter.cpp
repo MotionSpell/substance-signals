@@ -1,7 +1,7 @@
 #include "tests/tests.hpp"
 #include "lib_modules/modules.hpp"
+#include "lib_modules/utils/loader.hpp"
 #include "lib_media/common/metadata.hpp"
-#include "lib_media/transform/audio_convert.hpp"
 #include "lib_media/transform/audio_gap_filler.hpp"
 #include "lib_media/transform/video_convert.hpp"
 #include "lib_media/utils/recorder.hpp"
@@ -56,11 +56,12 @@ unittest("audio converter: interleaved to planar") {
 	auto in = getInterleavedPcmData();
 	auto planar = PcmFormat(44100, 2, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Planar);
 
-	auto converter = create<Transform::AudioConvert>(in->getFormat(), planar);
+	auto converter = loadModule("AudioConvert", &NullHost, &in->getFormat(), &planar, -1);
 
 	auto rec = create<Recorder>();
 	ConnectOutputToInput(converter->getOutput(0), rec->getInput(0));
-	converter->process(in);
+	converter->getInput(0)->push(in);
+	converter->process();
 
 	auto out = safe_cast<const DataPcm>(rec->out);
 	ASSERT_EQUALS(2, (int)out->getFormat().numPlanes);
@@ -73,13 +74,14 @@ unittest("audio converter: 44100 to 48000") {
 	auto in = getInterleavedPcmData();
 	auto dstFormat = PcmFormat(48000, 2, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Interleaved);
 
-	auto converter = create<Transform::AudioConvert>(in->getFormat(), dstFormat);
+	auto converter = loadModule("AudioConvert", &NullHost, &in->getFormat(), &dstFormat, -1);
 
 	auto rec = create<Recorder>();
 	ConnectOutputToInput(converter->getOutput(0), rec->getInput(0));
-	converter->process(in);
-	converter->process(in);
-	converter->process(in);
+	for(int i=0; i < 3; ++i) {
+		converter->getInput(0)->push(in);
+		converter->process();
+	}
 	converter->flush();
 
 	assert(rec->out);
@@ -107,7 +109,7 @@ unittest("audio converter: dynamic formats") {
 	auto recorder = create<Utils::Recorder>();
 
 	PcmFormat format;
-	auto converter = create<Transform::AudioConvert>(format);
+	auto converter = loadModule("AudioConvert", &NullHost, nullptr, &format, -1);
 
 	ConnectOutputToInput(soundGen->getOutput(0), converter->getInput(0));
 	ConnectOutputToInput(converter->getOutput(0), recorder->getInput(0));
@@ -120,7 +122,8 @@ unittest("audio converter: dynamic formats") {
 	recorder->process(nullptr);
 
 	while (auto data = recorder->pop()) {
-		converter->process(data);
+		converter->getInput(0)->push(data);
+		converter->process();
 	}
 }
 
@@ -142,13 +145,14 @@ void framingTest(const size_t inFrameFrames, const size_t outFrameFrames) {
 	}
 
 	auto recorder = create<Utils::Recorder>();
-	auto converter = create<Transform::AudioConvert>(format, format, outFrameFrames);
+	auto converter = loadModule("AudioConvert", &NullHost, &format, &format, outFrameFrames);
 	ConnectOutputToInput(converter->getOutput(0), recorder->getInput(0));
 
 	auto const numIter = 3;
 	for (size_t i = 0; i < numIter; ++i) {
 		data->setMediaTime(inFrameFrames * i, format.sampleRate);
-		converter->process(data);
+		converter->getInput(0)->push(data);
+		converter->process();
 	}
 	converter->flush();
 	recorder->process(nullptr);

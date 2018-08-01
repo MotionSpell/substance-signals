@@ -4,12 +4,12 @@
 #include "lib_media/demux/gpac_demux_mp4_simple.hpp"
 #include "lib_media/encode/libav_encode.hpp"
 #include "lib_media/mux/gpac_mux_mp4.hpp"
-#include "lib_media/transform/audio_convert.hpp"
 #include "lib_media/transform/audio_gap_filler.hpp"
 #include "lib_media/transform/restamp.hpp"
 #include "lib_media/transform/video_convert.hpp"
 #include "lib_media/utils/recorder.hpp"
 #include "lib_modules/modules.hpp"
+#include "lib_modules/utils/loader.hpp"
 #include <cmath>
 
 using namespace Tests;
@@ -110,7 +110,7 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 		} else
 			throw std::runtime_error("[Converter] Found unknown stream");
 	};
-	auto createConverter = [&](std::shared_ptr<const IMetadata> metadataDemux, std::shared_ptr<const IMetadata> metadataEncoder, const PictureFormat &dstFmt)->std::unique_ptr<IModule> {
+	auto createConverter = [&](std::shared_ptr<const IMetadata> metadataDemux, std::shared_ptr<const IMetadata> metadataEncoder, const PictureFormat &dstFmt)->std::shared_ptr<IModule> {
 		auto const codecType = metadataDemux->type;
 		if (codecType == VIDEO_PKT) {
 			return create<Transform::VideoConvert>(dstFmt);
@@ -120,13 +120,13 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 			auto const metaEnc = safe_cast<const MetadataPktLibavAudio>(metadataEncoder);
 			auto format = PcmFormat(demuxFmt.sampleRate, demuxFmt.numChannels, demuxFmt.layout, encFmt.sampleFormat, (encFmt.numPlanes == 1) ? Interleaved : Planar);
 			libavAudioCtx2pcmConvert(metaEnc, &encFmt);
-			return create<Transform::AudioConvert>(format, metaEnc->getFrameSize());
+			return loadModule("AudioConvert", &NullHost, nullptr, &format, metaEnc->getFrameSize());
 		} else
 			throw std::runtime_error("[Converter] Found unknown stream");
 	};
 
 	auto demux = create<Demux::LibavDemux>(&NullHost, "data/beepbop.mp4");
-	std::vector<std::unique_ptr<IModule>> modules;
+	std::vector<std::shared_ptr<IModule>> modules;
 	std::vector<std::unique_ptr<Utils::Recorder>> recorders;
 	for (int i = 0; i < demux->getNumOutputs(); ++i) {
 		auto const metadataDemux = safe_cast<const MetadataPktLibav>(demux->getOutput(i)->getMetadata());

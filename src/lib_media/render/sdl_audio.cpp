@@ -13,7 +13,7 @@
 
 #include "../common/metadata.hpp"
 #include "../common/pcm.hpp"
-#include "../transform/audio_convert.hpp"
+#include "lib_modules/utils/loader.hpp"
 
 #include "render_common.hpp"
 
@@ -91,7 +91,7 @@ struct SDLAudio : ModuleS {
 		}
 
 		m_outputFormat = toPcmFormat(realSpec);
-		m_converter = create<Transform::AudioConvert>(m_outputFormat);
+		m_converter = loadModule("AudioConvert", m_host, nullptr, &m_outputFormat, -1);
 
 		m_LatencyIn180k = timescaleToClock((uint64_t)realSpec.samples, realSpec.freq);
 		m_host->log(Info, format("%s Hz %s ms", realSpec.freq, m_LatencyIn180k * 1000.0f / IClock::Rate).c_str());
@@ -202,7 +202,7 @@ struct SDLAudio : ModuleS {
 
 	PcmFormat m_outputFormat {};
 	PcmFormat m_inputFormat {};
-	std::unique_ptr<IModule> m_converter;
+	std::shared_ptr<IModule> m_converter;
 	int64_t m_LatencyIn180k = 0;
 
 	// shared state between:

@@ -1,11 +1,11 @@
 #include "tests/tests.hpp"
 #include "lib_modules/modules.hpp"
+#include "lib_modules/utils/loader.hpp"
 #include "lib_media/common/libav.hpp"
 #include "lib_media/decode/decoder.hpp"
 #include "lib_media/encode/libav_encode.hpp"
 #include "lib_media/in/file.hpp"
 #include "lib_media/out/null.hpp"
-#include "lib_media/transform/audio_convert.hpp"
 #include "lib_utils/tools.hpp"
 
 using namespace Tests;
@@ -205,7 +205,8 @@ unittest("decoder: audio mp3 to converter to AAC") {
 	auto const dstFormat = PcmFormat(44100, 2, AudioLayout::Stereo, AudioSampleFormat::F32, AudioStruct::Planar);
 	auto const metadataEncoder = encoder->getOutput(0)->getMetadata();
 	auto const metaEnc = safe_cast<const MetadataPktLibavAudio>(metadataEncoder);
-	auto converter = create<Transform::AudioConvert>(dstFormat, metaEnc->getFrameSize());
+
+	auto converter = loadModule("AudioConvert", &NullHost, nullptr, &dstFormat, metaEnc->getFrameSize());
 
 	ConnectOutputToInput(decoder->getOutput(0), converter->getInput(0));
 	ConnectOutputToInput(converter->getOutput(0), encoder->getInput(0));
