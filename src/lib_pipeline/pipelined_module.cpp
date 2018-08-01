@@ -30,10 +30,6 @@ PipelinedModule::PipelinedModule(const char* name,
 }
 
 PipelinedModule::~PipelinedModule() {
-	// FIXME: we shouldn't do semantics here, but it is needed as long as
-	//        the ActiveModule loop is not included in PipelinedModule
-	if (isSource())
-		stopSource();
 }
 
 int PipelinedModule::getNumInputs() const {
