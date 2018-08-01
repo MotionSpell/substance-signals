@@ -54,20 +54,7 @@ PKGS+=\
   libturbojpeg\
 
 ifeq ($(SIGNALS_HAS_X11), 1)
-
-PKGS+=sdl2
-CFLAGS+=-DSIGNALS_HAS_X11
-CFLAGS+=-Umain
-
-TARGETS+=$(BIN)/SDLVideo.smd
-$(BIN)/SDLVideo.smd: $(MYDIR)/render/sdl_video.cpp
-
-TARGETS+=$(BIN)/SDLAudio.smd
-$(BIN)/SDLAudio.smd: \
-	$(BIN)/$(SRC)/lib_media/render/sdl_audio.cpp.o \
-	$(BIN)/$(SRC)/lib_media/transform/audio_convert.cpp.o \
-	$(BIN)/$(SRC)/lib_media/common/libav.cpp.o
-
+include $(MYDIR)/render/render.mk
 endif
 
 # Warning derogations. TODO: make this list empty
