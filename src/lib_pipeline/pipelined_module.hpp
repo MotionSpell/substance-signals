@@ -16,7 +16,7 @@ class PipelinedModule :
 		~PipelinedModule();
 
 		void connect(IOutput *output, int inputIdx, bool inputAcceptMultipleConnections);
-		void disconnect(int inputIdx, IOutput * const output);
+		void disconnect(int inputIdx, IOutput* output);
 
 		int getNumInputs() const override;
 		int getNumOutputs() const override;

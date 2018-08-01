@@ -64,7 +64,7 @@ void PipelinedModule::connect(IOutput *output, int inputIdx, bool inputAcceptMul
 	connections++;
 }
 
-void PipelinedModule::disconnect(int inputIdx, IOutput * const output) {
+void PipelinedModule::disconnect(int inputIdx, IOutput* output) {
 	getInput(inputIdx)->disconnect();
 	auto &sig = output->getSignal();
 	auto const numConn = sig.getNumConnections();
