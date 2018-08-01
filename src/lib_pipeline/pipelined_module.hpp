@@ -12,7 +12,6 @@ class PipelinedModule :
 	public IPipelinedModule,
 	private IPipelineNotifier {
 	public:
-		/* take ownership of module and executor */
 		PipelinedModule(const char* name, std::unique_ptr<IModuleHost> host, std::shared_ptr<IModule> module, IPipelineNotifier *notify, Pipeline::Threading threading, IStatsRegistry *statsRegistry);
 		~PipelinedModule();
 
