@@ -37,7 +37,7 @@ class PipelinedModule :
 
 	private:
 		void mimicInputs();
-
+		void processSource();
 
 		// IPipelineNotifier implementation
 		void endOfStream() override;

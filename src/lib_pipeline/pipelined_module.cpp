@@ -89,6 +89,12 @@ IInput* PipelinedModule::getInput(int i) {
 	return inputs[i].get();
 }
 
+void PipelinedModule::processSource() {
+	assert(isSource());
+	delegate->process();
+	endOfStream();
+}
+
 void PipelinedModule::startSource() {
 	assert(isSource());
 
@@ -99,12 +105,7 @@ void PipelinedModule::startSource() {
 
 	connections = 1;
 
-	auto task = [this]() {
-		delegate->process();
-		endOfStream();
-	};
-
-	(*executor)(task);
+	(*executor)(std::bind(&PipelinedModule::processSource, this));
 
 	started = true;
 }
