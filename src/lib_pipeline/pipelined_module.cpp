@@ -13,7 +13,6 @@ using namespace Modules;
 
 namespace Pipelines {
 
-/* take ownership of module and executor */
 PipelinedModule::PipelinedModule(const char* name,
     std::unique_ptr<Modules::IModuleHost> host,
     std::shared_ptr<IModule> module,
