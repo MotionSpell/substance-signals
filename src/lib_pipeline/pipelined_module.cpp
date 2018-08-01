@@ -29,10 +29,6 @@ PipelinedModule::~PipelinedModule() {
 	//        the ActiveModule loop is not included in PipelinedModule
 	if (isSource())
 		stopSource();
-
-	// inputs, which hold the executors,
-	// must be destroyed *before* the 'delegate' module.
-	inputs.clear();
 }
 
 int PipelinedModule::getNumInputs() const {
