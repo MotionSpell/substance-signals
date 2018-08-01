@@ -2,7 +2,6 @@
 
 #include "queue.hpp"
 #include <functional>
-#include <future>
 #include <stdexcept>
 #include <thread>
 
@@ -26,19 +25,13 @@ class ThreadPool {
 			}
 		}
 
-		template<typename Callback, typename... Args>
-		std::shared_future<Callback> submit(const std::function<Callback(Args...)> &callback, Args... args)	{
+		void submit(std::function<void()> f)	{
 			if (eptr)
 				std::rethrow_exception(eptr);
 
-			assert(callback);
+			assert(f);
 
-			const std::shared_future<Callback> &future = std::async(std::launch::deferred, callback, args...);
-			std::function<void(void)> f = [future]() {
-				future.get();
-			};
 			workQueue.push(f);
-			return future;
 		}
 
 	private:
