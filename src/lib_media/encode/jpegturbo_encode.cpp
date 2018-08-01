@@ -1,13 +1,31 @@
-#include "jpegturbo_encode.hpp"
+#include "lib_modules/utils/factory.hpp"
+#include "lib_modules/utils/helper.hpp"
 #include "lib_utils/tools.hpp"
 #include "lib_utils/log.hpp"
 #include "../common/metadata.hpp"
+#include "../common/picture.hpp"
 extern "C" {
 #include <turbojpeg.h>
 }
 
-namespace Modules {
-namespace Encode {
+#define JPEG_DEFAULT_QUALITY 70
+
+using namespace Modules;
+
+namespace {
+
+class JPEGTurboEncode : public ModuleS {
+	public:
+		JPEGTurboEncode(IModuleHost* host, int quality = JPEG_DEFAULT_QUALITY);
+		~JPEGTurboEncode();
+		void process(Data data) override;
+
+	private:
+		IModuleHost* const m_host;
+		OutputDefault* output;
+		tjhandle jtHandle;
+		int quality;
+};
 
 JPEGTurboEncode::JPEGTurboEncode(IModuleHost* host_, int quality)
 	: m_host(host_),
@@ -63,5 +81,11 @@ void JPEGTurboEncode::process(Data data_) {
 	output->emit(out);
 }
 
+IModule* createObject(IModuleHost* host, va_list va) {
+	(void)va;
+	enforce(host, "JPEGTurboEncode: host can't be NULL");
+	return create<JPEGTurboEncode>(host).release();
 }
+
+auto const registered = registerModule("JPEGTurboEncode", &createObject);
 }

@@ -11,7 +11,6 @@ LIB_MEDIA_SRCS:=\
   $(MYDIR)/demux/gpac_demux_mp4_full.cpp\
   $(MYDIR)/demux/libav_demux.cpp\
   $(MYDIR)/demux/dash_demux.cpp\
-  $(MYDIR)/encode/jpegturbo_encode.cpp\
   $(MYDIR)/encode/libav_encode.cpp\
   $(MYDIR)/in/file.cpp\
   $(MYDIR)/in/mpeg_dash_input.cpp\
@@ -60,6 +59,11 @@ endif
 TARGETS+=$(BIN)/JPEGTurboDecode.smd
 $(BIN)/JPEGTurboDecode.smd: \
   $(BIN)/$(SRC)/lib_media/decode/jpegturbo_decode.cpp.o\
+  $(BIN)/$(SRC)/lib_media/common/picture.cpp.o\
+
+TARGETS+=$(BIN)/JPEGTurboEncode.smd
+$(BIN)/JPEGTurboEncode.smd: \
+  $(BIN)/$(SRC)/lib_media/encode/jpegturbo_encode.cpp.o\
   $(BIN)/$(SRC)/lib_media/common/picture.cpp.o\
 
 # Warning derogations. TODO: make this list empty
