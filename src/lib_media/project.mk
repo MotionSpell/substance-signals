@@ -60,28 +60,28 @@ include $(BIN)/media-config.mk
 
 #------------------------------------------------------------------------------
 TARGETS+=$(BIN)/AudioConvert.smd
+$(BIN)/AudioConvert.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
+$(BIN)/AudioConvert.smd: CFLAGS+=$(MEDIA_CFLAGS)
 $(BIN)/AudioConvert.smd: \
   $(BIN)/$(SRC)/lib_media/transform/audio_convert.cpp.o\
   $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
 
-$(BIN)/AudioConvert.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
-$(BIN)/$(SRC)/lib_media/transform/audio_convert.cpp.o: CFLAGS+=$(MEDIA_CFLAGS)
 #------------------------------------------------------------------------------
 TARGETS+=$(BIN)/JPEGTurboDecode.smd
+$(BIN)/JPEGTurboDecode.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
+$(BIN)/JPEGTurboDecode.smd: CFLAGS+=$(MEDIA_CFLAGS)
 $(BIN)/JPEGTurboDecode.smd: \
   $(BIN)/$(SRC)/lib_media/decode/jpegturbo_decode.cpp.o\
   $(BIN)/$(SRC)/lib_media/common/picture.cpp.o\
 
-$(BIN)/JPEGTurboDecode.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
-$(BIN)/$(SRC)/lib_media/encode/jpegturbo_decode.cpp.o: CFLAGS+=$(MEDIA_CFLAGS)
 #------------------------------------------------------------------------------
 TARGETS+=$(BIN)/JPEGTurboEncode.smd
+$(BIN)/JPEGTurboEncode.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
+$(BIN)/JPEGTurboEncode.smd: CFLAGS+=$(MEDIA_CFLAGS)
 $(BIN)/JPEGTurboEncode.smd: \
   $(BIN)/$(SRC)/lib_media/encode/jpegturbo_encode.cpp.o\
   $(BIN)/$(SRC)/lib_media/common/picture.cpp.o\
 
-$(BIN)/JPEGTurboEncode.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
-$(BIN)/$(SRC)/lib_media/encode/jpegturbo_encode.cpp.o: CFLAGS+=$(MEDIA_CFLAGS)
 #------------------------------------------------------------------------------
 
 # Warning derogations. TODO: make this list empty
