@@ -1,5 +1,6 @@
 #include "jpegturbo_encode.hpp"
 #include "lib_utils/tools.hpp"
+#include "lib_utils/log.hpp"
 #include "../common/metadata.hpp"
 extern "C" {
 #include <turbojpeg.h>
@@ -8,8 +9,9 @@ extern "C" {
 namespace Modules {
 namespace Encode {
 
-JPEGTurboEncode::JPEGTurboEncode(int quality)
-	: jtHandle(tjInitCompress()), quality(quality) {
+JPEGTurboEncode::JPEGTurboEncode(IModuleHost* host_, int quality)
+	: m_host(host_),
+	  jtHandle(tjInitCompress()), quality(quality) {
 	auto input = createInput(this);
 	input->setMetadata(make_shared<MetadataRawVideo>());
 	output = addOutput<OutputDefault>();
@@ -40,14 +42,14 @@ void JPEGTurboEncode::process(Data data_) {
 		if (tjCompressFromYUVPlanes(jtHandle,
 		        srcSlice, videoData->getFormat().res.width, srcStride, videoData->getFormat().res.height, TJSAMP_420,
 		        &buf, &jpegSize, quality, TJFLAG_NOREALLOC | TJFLAG_FASTDCT)) {
-			log(Warning, "error encountered while compressing (YUV).");
+			m_host->log(Warning, "error encountered while compressing (YUV).");
 			return;
 		}
 		break;
 	}
 	case RGB24: case RGBA32: {
 		if (tjCompress2(jtHandle, (unsigned char*)jpegBuf, w, 0/*pitch*/, h, TJPF_RGB, &buf, &jpegSize, TJSAMP_420, quality, TJFLAG_NOREALLOC | TJFLAG_FASTDCT) < 0) {
-			log(Warning, "error encountered while compressing (RGB).");
+			m_host->log(Warning, "error encountered while compressing (RGB).");
 			return;
 		}
 		break;

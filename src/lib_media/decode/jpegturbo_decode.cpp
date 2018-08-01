@@ -1,6 +1,7 @@
 #include "jpegturbo_decode.hpp"
 #include "../common/metadata.hpp"
 #include "lib_utils/tools.hpp"
+#include "lib_utils/log.hpp"
 
 extern "C" {
 #include <turbojpeg.h>
@@ -9,8 +10,9 @@ extern "C" {
 namespace Modules {
 namespace Decode {
 
-JPEGTurboDecode::JPEGTurboDecode()
-	: jtHandle(tjInitDecompress()) {
+JPEGTurboDecode::JPEGTurboDecode(IModuleHost* host_)
+	: m_host(host_),
+	  jtHandle(tjInitDecompress()) {
 	auto input = createInput(this);
 	input->setMetadata(make_shared<MetadataPkt>(VIDEO_PKT));
 	output = addOutput<OutputPicture>(make_shared<MetadataRawVideo>());
@@ -38,12 +40,12 @@ void JPEGTurboDecode::process(Data data_) {
 	auto buf = (unsigned char*)data->data().ptr;
 	auto size = (unsigned long)data->data().len;
 	if (tjDecompressHeader2(jtHandle, buf, size, &w, &h, &jpegSubsamp) < 0) {
-		log(Warning, "error encountered while decompressing header.");
+		m_host->log(Warning, "error encountered while decompressing header.");
 		return;
 	}
 	auto out = DataPicture::create(output, Resolution(w, h), RGB24);
 	if (tjDecompress2(jtHandle, buf, size, out->data().ptr, w, 0/*pitch*/, h, pixelFmt, TJFLAG_FASTDCT) < 0) {
-		log(Warning, "error encountered while decompressing frame.");
+		m_host->log(Warning, "error encountered while decompressing frame.");
 		return;
 	}
 	ensureMetadata(w, h, pixelFmt);

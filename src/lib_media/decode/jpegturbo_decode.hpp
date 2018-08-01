@@ -1,6 +1,5 @@
 #pragma once
 
-#include "lib_modules/core/log.hpp"
 #include "lib_modules/utils/helper.hpp"
 #include "../common/picture.hpp"
 
@@ -9,13 +8,14 @@ namespace Decode {
 
 typedef void* tjhandle;
 
-class JPEGTurboDecode : public ModuleS, private LogCap {
+class JPEGTurboDecode : public ModuleS {
 	public:
-		JPEGTurboDecode();
+		JPEGTurboDecode(IModuleHost* host);
 		~JPEGTurboDecode();
 		void process(Data data) override;
 
 	private:
+		IModuleHost* const m_host;
 		OutputPicture* output;
 		void ensureMetadata(int width, int height, int pixelFmt);
 		tjhandle jtHandle;

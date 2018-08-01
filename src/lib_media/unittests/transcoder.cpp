@@ -86,7 +86,7 @@ unittest("transcoder: video simple (gpac mux MP4)") {
 
 unittest("transcoder: jpg to jpg") {
 	const std::string filename("data/sample.jpg");
-	auto decode = create<Decode::JPEGTurboDecode>();
+	auto decode = create<Decode::JPEGTurboDecode>(&NullHost);
 	{
 		auto preReader = create<In::File>(filename);
 		ConnectOutputToInput(preReader->getOutput(0), decode->getInput(0));
@@ -94,7 +94,7 @@ unittest("transcoder: jpg to jpg") {
 	}
 
 	auto reader = create<In::File>(filename);
-	auto encoder = create<Encode::JPEGTurboEncode>();
+	auto encoder = create<Encode::JPEGTurboEncode>(&NullHost);
 	auto writer = create<Out::File>("out/test2.jpg");
 
 	ConnectOutputToInput(reader->getOutput(0), decode->getInput(0));
@@ -106,7 +106,7 @@ unittest("transcoder: jpg to jpg") {
 
 void resizeJPGTest(PixelFormat pf) {
 	const std::string filename("data/sample.jpg");
-	auto decode = create<Decode::JPEGTurboDecode>();
+	auto decode = create<Decode::JPEGTurboDecode>(&NullHost);
 	{
 		auto preReader = create<In::File>(filename);
 		ConnectOutputToInput(preReader->getOutput(0), decode->getInput(0));
@@ -116,7 +116,7 @@ void resizeJPGTest(PixelFormat pf) {
 
 	auto const dstFormat = PictureFormat(Resolution(320, 180) / 2, pf);
 	auto converter = create<Transform::VideoConvert>(dstFormat);
-	auto encoder = create<Encode::JPEGTurboEncode>();
+	auto encoder = create<Encode::JPEGTurboEncode>(&NullHost);
 	auto writer = create<Out::File>("out/test1.jpg");
 
 	ConnectOutputToInput(reader->getOutput(0), decode->getInput(0));
@@ -141,7 +141,7 @@ unittest("transcoder: h264/mp4 to jpg") {
 	auto metadata = safe_cast<const MetadataPktLibavVideo>(demux->getOutput(1)->getMetadata());
 	auto decode = create<Decode::Decoder>(VIDEO_PKT);
 
-	auto encoder = create<Encode::JPEGTurboEncode>();
+	auto encoder = create<Encode::JPEGTurboEncode>(&NullHost);
 	auto writer = create<Out::File>("out/test3.jpg");
 
 	auto const dstRes = metadata->getResolution();
@@ -159,7 +159,7 @@ unittest("transcoder: h264/mp4 to jpg") {
 
 unittest("transcoder: jpg to h264/mp4 (gpac)") {
 	const std::string filename("data/sample.jpg");
-	auto decode = create<Decode::JPEGTurboDecode>();
+	auto decode = create<Decode::JPEGTurboDecode>(&NullHost);
 	{
 		auto preReader = create<In::File>(filename);
 		ConnectOutputToInput(preReader->getOutput(0), decode->getInput(0));
