@@ -1,14 +1,30 @@
-#include "jpegturbo_decode.hpp"
 #include "../common/metadata.hpp"
+#include "lib_modules/utils/factory.hpp"
+#include "lib_modules/utils/helper.hpp"
 #include "lib_utils/tools.hpp"
 #include "lib_utils/log.hpp"
+#include "lib_media/common/picture.hpp"
 
 extern "C" {
 #include <turbojpeg.h>
 }
 
-namespace Modules {
-namespace Decode {
+using namespace Modules;
+
+namespace {
+
+class JPEGTurboDecode : public ModuleS {
+	public:
+		JPEGTurboDecode(IModuleHost* host);
+		~JPEGTurboDecode();
+		void process(Data data) override;
+
+	private:
+		IModuleHost* const m_host;
+		OutputPicture* output;
+		void ensureMetadata(int width, int height, int pixelFmt);
+		tjhandle jtHandle;
+};
 
 JPEGTurboDecode::JPEGTurboDecode(IModuleHost* host_)
 	: m_host(host_),
@@ -53,5 +69,11 @@ void JPEGTurboDecode::process(Data data_) {
 	output->emit(out);
 }
 
+IModule* createObject(IModuleHost* host, va_list va) {
+	(void)va;
+	enforce(host, "JPEGTurboDecode: host can't be NULL");
+	return create<JPEGTurboDecode>(host).release();
 }
+
+auto const registered = registerModule("JPEGTurboDecode", &createObject);
 }

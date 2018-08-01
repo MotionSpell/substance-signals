@@ -1,6 +1,6 @@
 #include "tests/tests.hpp"
 #include "lib_modules/modules.hpp"
-#include "lib_media/decode/jpegturbo_decode.hpp"
+#include "lib_modules/utils/loader.hpp"
 #include "lib_media/decode/decoder.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/encode/jpegturbo_encode.hpp"
@@ -86,7 +86,7 @@ unittest("transcoder: video simple (gpac mux MP4)") {
 
 unittest("transcoder: jpg to jpg") {
 	const std::string filename("data/sample.jpg");
-	auto decode = create<Decode::JPEGTurboDecode>(&NullHost);
+	auto decode = loadModule("JPEGTurboDecode", &NullHost);
 	{
 		auto preReader = create<In::File>(filename);
 		ConnectOutputToInput(preReader->getOutput(0), decode->getInput(0));
@@ -106,7 +106,7 @@ unittest("transcoder: jpg to jpg") {
 
 void resizeJPGTest(PixelFormat pf) {
 	const std::string filename("data/sample.jpg");
-	auto decode = create<Decode::JPEGTurboDecode>(&NullHost);
+	auto decode = loadModule("JPEGTurboDecode", &NullHost);
 	{
 		auto preReader = create<In::File>(filename);
 		ConnectOutputToInput(preReader->getOutput(0), decode->getInput(0));
@@ -159,7 +159,7 @@ unittest("transcoder: h264/mp4 to jpg") {
 
 unittest("transcoder: jpg to h264/mp4 (gpac)") {
 	const std::string filename("data/sample.jpg");
-	auto decode = create<Decode::JPEGTurboDecode>(&NullHost);
+	auto decode = loadModule("JPEGTurboDecode", &NullHost);
 	{
 		auto preReader = create<In::File>(filename);
 		ConnectOutputToInput(preReader->getOutput(0), decode->getInput(0));

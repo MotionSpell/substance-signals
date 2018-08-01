@@ -6,7 +6,6 @@ LIB_MEDIA_SRCS:=\
   $(MYDIR)/common/gpac.cpp\
   $(MYDIR)/common/picture.cpp\
   $(MYDIR)/common/iso8601.cpp\
-  $(MYDIR)/decode/jpegturbo_decode.cpp\
   $(MYDIR)/decode/decoder.cpp\
   $(MYDIR)/demux/gpac_demux_mp4_simple.cpp\
   $(MYDIR)/demux/gpac_demux_mp4_full.cpp\
@@ -56,6 +55,12 @@ PKGS+=\
 ifeq ($(SIGNALS_HAS_X11), 1)
 include $(MYDIR)/render/render.mk
 endif
+
+
+TARGETS+=$(BIN)/JPEGTurboDecode.smd
+$(BIN)/JPEGTurboDecode.smd: \
+  $(BIN)/$(SRC)/lib_media/decode/jpegturbo_decode.cpp.o\
+  $(BIN)/$(SRC)/lib_media/common/picture.cpp.o\
 
 # Warning derogations. TODO: make this list empty
 $(BIN)/$(SRC)/lib_media/common/libav.cpp.o: CFLAGS+=-Wno-deprecated-declarations
