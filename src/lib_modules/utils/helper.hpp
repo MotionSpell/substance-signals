@@ -200,7 +200,6 @@ class ActiveModule : public Module {
 	public:
 		void process() override;
 		bool mustExit = false;
-	protected:
 		virtual bool work() = 0;
 };
 

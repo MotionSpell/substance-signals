@@ -90,9 +90,20 @@ IInput* PipelinedModule::getInput(int i) {
 }
 
 void PipelinedModule::processSource() {
-	assert(isSource());
-	delegate->process();
-	endOfStream();
+	auto source = safe_cast<ActiveModule>(delegate.get());
+
+	if(source->mustExit) {
+		endOfStream();
+		return;
+	}
+
+	if(!source->work()) {
+		endOfStream();
+		return;
+	}
+
+	// reschedule
+	(*executor)(std::bind(&PipelinedModule::processSource, this));
 }
 
 void PipelinedModule::startSource() {
