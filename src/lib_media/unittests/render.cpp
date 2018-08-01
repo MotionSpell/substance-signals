@@ -11,7 +11,6 @@ using namespace Modules;
 
 namespace {
 
-#if SIGNALS_HAS_X11
 secondclasstest("render: sound generator") {
 	auto soundGen = create<In::SoundGenerator>();
 	auto render = Modules::loadModule("SDLAudio", &NullHost, nullptr);
@@ -72,6 +71,5 @@ secondclasstest("render: dynamic resolution") {
 	videoRender->getInput(0)->push(pic2);
 	videoRender->process();
 }
-#endif
 
 }
