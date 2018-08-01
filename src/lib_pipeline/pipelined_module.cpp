@@ -29,9 +29,6 @@ PipelinedModule::PipelinedModule(const char* name,
 	  statsRegistry(statsRegistry) {
 }
 
-PipelinedModule::~PipelinedModule() {
-}
-
 int PipelinedModule::getNumInputs() const {
 	return delegate->getNumInputs();
 }

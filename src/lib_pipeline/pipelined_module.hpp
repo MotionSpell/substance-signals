@@ -18,7 +18,6 @@ class PipelinedModule :
 		    IPipelineNotifier *notify,
 		    Pipeline::Threading threading,
 		    IStatsRegistry *statsRegistry);
-		~PipelinedModule();
 
 		void connect(IOutput *output, int inputIdx, bool inputAcceptMultipleConnections);
 		void disconnect(int inputIdx, IOutput* output);
