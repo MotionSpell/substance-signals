@@ -29,10 +29,8 @@ class Log {
 		static void setColor(bool isColored);
 		static bool getColor();
 
-#ifndef _WIN32
 		static void setSysLog(bool isSysLog);
 		static bool getSysLog();
-#endif
 
 	private:
 		Log() {}
@@ -43,10 +41,8 @@ class Log {
 
 		static Level globalLogLevel;
 		static bool globalColor;
-#ifndef _WIN32
 		static bool globalSysLog;
 		static void sendToSyslog(int level, std::string msg);
-#endif
 };
 
 Level parseLogLevel(std::string level);

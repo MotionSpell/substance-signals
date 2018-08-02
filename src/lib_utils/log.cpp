@@ -12,15 +12,16 @@ static HANDLE console = NULL;
 static WORD console_attr_ori = 0;
 #else /*_WIN32*/
 #include <syslog.h>
-const int levelToSysLog[] = { 3, 4, 6, 7 };
 #define RED    "\x1b[31m"
 #define YELLOW "\x1b[33m"
 #define GREEN  "\x1b[32m"
 #define CYAN   "\x1b[36m"
 #define WHITE  "\x1b[37m"
 #define RESET  "\x1b[0m"
-bool Log::globalSysLog = false;
 #endif /*_WIN32*/
+
+const int levelToSysLog[] = { 3, 4, 6, 7 };
+bool Log::globalSysLog = false;
 
 Level Log::globalLogLevel = Warning;
 bool Log::globalColor = true;
@@ -35,12 +36,9 @@ static std::ostream& get(Level level) {
 }
 
 void Log::send(Level level, std::string const& msg) {
-#ifndef _WIN32
 	if (globalSysLog) {
 		sendToSyslog(level, msg);
-	} else
-#endif
-	{
+	} else {
 		get(level) << getColorBegin(level) << getTime() << msg << getColorEnd(level) << std::endl;
 	}
 }
@@ -123,21 +121,29 @@ bool Log::getColor() {
 	return globalColor;
 }
 
-#ifndef _WIN32
 void Log::setSysLog(bool isSysLog) {
+#ifndef _WIN32
 	if (!globalSysLog && isSysLog) {
 		openlog(nullptr, 0, LOG_USER);
 	} else if (globalSysLog && !isSysLog) {
 		closelog();
 	}
 	globalSysLog = isSysLog;
+#else
+	if(isSysLog)
+		throw std::runtime_error("Syslog is not supported on this platform");
+#endif
 }
 
 void Log::sendToSyslog(int level, std::string msg) {
+#ifndef _WIN32
 	::syslog(levelToSysLog[level], "%s", msg.c_str());
+#else
+	(void)level;
+	(void)msg;
+#endif
 }
 
 bool Log::getSysLog() {
 	return globalSysLog;
 }
-#endif
