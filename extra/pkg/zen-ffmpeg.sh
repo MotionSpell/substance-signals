@@ -36,6 +36,7 @@ function ffmpeg_build {
       --enable-gpl \
       --enable-libx264 \
       --enable-zlib \
+      --disable-programs \
       --disable-gnutls \
       --disable-openssl \
       --disable-iconv \
