@@ -184,7 +184,7 @@ class IsoFile : public Init {
 			return gf_isom_get_media_timescale(movie_, trackNumber);
 		}
 
-		int64_t getDTSOffet(int trackNumber) const {
+		int64_t getDTSOffset(int trackNumber) const {
 			s64 DTSOffset = 0;
 			gf_isom_get_edit_list_type(movie_, trackNumber, &DTSOffset);
 			return DTSOffset;

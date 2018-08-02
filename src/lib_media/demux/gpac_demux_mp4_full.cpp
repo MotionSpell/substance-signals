@@ -115,7 +115,7 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 		auto ISOSample = reader->movie->getSample(FIRST_TRACK, reader->sampleIndex, di);
 
 		reader->samplesProcessed++;
-		auto const DTSOffset = reader->movie->getDTSOffet(FIRST_TRACK);
+		auto const DTSOffset = reader->movie->getDTSOffset(FIRST_TRACK);
 		/*here we dump some sample info: samp->data, samp->dataLength, samp->isRAP, samp->DTS, samp->CTS_Offset */
 		log(Debug, "Found sample #%s(#%s) of length %s , RAP: %s, DTS: %s, CTS: %s",
 		    reader->sampleIndex, reader->samplesProcessed, ISOSample->dataLength,

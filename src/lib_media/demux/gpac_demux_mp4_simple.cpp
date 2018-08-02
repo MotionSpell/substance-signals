@@ -38,7 +38,7 @@ GPACDemuxMP4Simple::~GPACDemuxMP4Simple() {
 }
 
 bool GPACDemuxMP4Simple::work() {
-	auto const DTSOffset = reader->movie->getDTSOffet(reader->trackNumber);
+	auto const DTSOffset = reader->movie->getDTSOffset(reader->trackNumber);
 	try {
 		int sampleDescriptionIndex;
 		std::unique_ptr<gpacpp::IsoSample> ISOSample = reader->movie->getSample(reader->trackNumber, reader->sampleIndex, sampleDescriptionIndex);
