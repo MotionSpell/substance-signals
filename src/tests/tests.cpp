@@ -13,11 +13,23 @@ struct UnitTest {
 	const char* name;
 
 	// To be "FIRST" class, a test must be:
-	// * Fast
-	// * Isolated
-	// * Repeatable
-	// * Self-Validating
-	// * Timely
+	//
+	// * Fast: the total time of the unit tests must be less than 30s,
+	//         otherwise developers will run them less often.
+	//
+	// * Isolated: the outcome of the test must only depend on the behavior of a
+	//             single module.
+	//
+	// * Repeatable: tests must be deterministic, and must not depend on the
+	//               environment (e.g must not interact with the outside world).
+	//
+	// * Self-Validating: the test result must be "Yes" or "No". It must not be
+	//                    "Maybe", or some number that must be manually checked.
+	//
+	// * Timely: tests must look like they were written *before* the production
+	//           code: this way, the API of the production code is designed
+	//           from the point of view of the user of the API, not the implementer.
+	//
 	bool secondClass;
 };
 
