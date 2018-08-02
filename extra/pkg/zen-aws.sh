@@ -11,12 +11,13 @@ function aws_build {
   mkdir -p aws/bin/$host
   pushDir aws/bin/$host
   cmake \
+    -DOPENSSL_ROOT_DIR=$EXTRA \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_CXX_FLAGS=-I$PREFIX/include \
     -DCMAKE_LD_FLAGS=-L$PREFIX/lib \
     -DCMAKE_INSTALL_PREFIX=$PREFIX \
     -DENABLE_TESTING=OFF \
-    -DNO_ENCRYPTION=ON \
+    -DNO_ENCRYPTION=OFF \
     -DBUILD_ONLY="s3;mediastore;mediastore-data" \
     ../..
   $MAKE
