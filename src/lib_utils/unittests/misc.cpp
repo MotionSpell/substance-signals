@@ -51,14 +51,11 @@ unittest("format: string argument") {
 }
 
 unittest("format: vector argument") {
-	std::vector<int> v;
-	v.push_back(1);
-	v.push_back(2);
-	v.push_back(3);
+	std::vector<int> v { 1, 2, 3 };
 	ASSERT_EQUALS("[1, 2, 3]", format("%s", v));
 }
 
-unittest("format: vector argument") {
+unittest("format: nested vector argument") {
 	std::vector<std::vector<int>> v;
 	v.resize(3);
 	v[1].resize(2);
