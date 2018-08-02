@@ -23,7 +23,7 @@ unittest("signals_simple: disconnect non existing") {
 }
 
 unittest("signals_simple") {
-	Signal<void(int)> sig;
+	Signal<int> sig;
 
 	auto const id = sig.connect(dummy);
 
@@ -61,14 +61,14 @@ unittest("signals_simple") {
 }
 
 unittest("signals_simple (void return value)") {
-	Signal<void(int)> sig;
+	Signal<int> sig;
 	sig.connect(dummy);
 	sig.emit(100);
 }
 
 unittest("connect to lambda") {
 	int result = 0;
-	Signal<void(int)> sig;
+	Signal<int> sig;
 	Connect(sig, [&](int val) {
 		result = val * val;
 	});

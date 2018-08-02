@@ -119,7 +119,7 @@ class OutputDataDefault : public IOutput, public MetadataCap {
 			return allocator->template getBuffer<T>(size, allocator);
 		}
 
-		Signals::ISignal<void(Data)>& getSignal() override {
+		Signals::ISignal<Data>& getSignal() override {
 			return signal;
 		}
 
@@ -128,7 +128,7 @@ class OutputDataDefault : public IOutput, public MetadataCap {
 		}
 
 	private:
-		Signals::Signal<void(Data)> signal;
+		Signals::Signal<Data> signal;
 		std::shared_ptr<PacketAllocator> allocator;
 };
 

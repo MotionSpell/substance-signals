@@ -11,7 +11,7 @@ namespace Signals {
 template<typename> struct ISignal;
 
 template <typename Arg>
-struct ISignal<void(Arg)> {
+struct ISignal {
 	virtual ~ISignal() = default;
 	virtual int connect(const std::function<void(Arg)> &cb, IExecutor &executor) = 0;
 	virtual int connect(const std::function<void(Arg)> &cb) = 0;
@@ -23,7 +23,7 @@ struct ISignal<void(Arg)> {
 template<typename> class Signal;
 
 template<typename Arg>
-class Signal<void(Arg)> : public ISignal<void(Arg)> {
+class Signal : public ISignal<Arg> {
 	private:
 		typedef std::function<void(Arg)> CallbackType;
 

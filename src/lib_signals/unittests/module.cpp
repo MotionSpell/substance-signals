@@ -8,7 +8,7 @@ using namespace Signals;
 
 namespace {
 struct Signaler {
-	Signal<void(int)> signal;
+	Signal<int> signal;
 };
 
 inline int dummyPrint(int a) {
