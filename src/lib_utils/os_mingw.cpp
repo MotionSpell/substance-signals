@@ -70,9 +70,8 @@ struct DynLibWin : DynLib {
 	}
 
 	~DynLibWin() {
-		/*HACK: modules virtual destructors will be unloaded too,
-		        which will lead a crash. Don't unload until we inject
-		        allocators for shared data (metadata, etc.)*/
+		// Don't unload the library, as some library-allocated polymorphic
+		// objects might still be used by the rest of the code.
 		//FreeLibrary(handle);
 	}
 
