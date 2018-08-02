@@ -6,7 +6,6 @@ CFLAGS+=-Wall
 CFLAGS+=-Wextra
 CFLAGS+=-Werror
 CFLAGS+=-fvisibility=hidden -fvisibility-inlines-hidden
-CFLAGS+=-D__STDC_CONSTANT_MACROS
 
 BIN?=bin
 SRC?=src
