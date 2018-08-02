@@ -64,7 +64,7 @@ struct SDLVideo : ModuleS {
 			sigaction(SIGINT, nullptr, &action);
 #endif
 
-			if (SDL_InitSubSystem(SDL_INIT_VIDEO | SDL_INIT_NOPARACHUTE) == -1)
+			if (SDL_InitSubSystem(SDL_INIT_VIDEO) == -1)
 				throw std::runtime_error(format("Couldn't initialize: %s", SDL_GetError()));
 
 #ifdef __linux__

@@ -55,7 +55,7 @@ struct SDLAudio : ModuleS {
 		  m_clock(clock ? clock : g_SystemClock.get()),
 		  m_inputFormat(PcmFormat(44100, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Interleaved)) {
 
-		if (SDL_InitSubSystem(SDL_INIT_AUDIO | SDL_INIT_NOPARACHUTE) == -1)
+		if (SDL_InitSubSystem(SDL_INIT_AUDIO) == -1)
 			throw std::runtime_error(format("Couldn't initialize: %s", SDL_GetError()));
 
 		if (!reconfigure(m_inputFormat))
