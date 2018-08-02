@@ -12,6 +12,9 @@ function aws_build {
   pushDir aws/bin/$host
   cmake \
     -DOPENSSL_ROOT_DIR=$EXTRA \
+    -DCURL_ROOT_DIR=$EXTRA \
+    -DCURL_LIBRARY=$EXTRA/lib/libcurl.a \
+    -DCURL_INCLUDE_DIR=$EXTRA/include \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_CXX_FLAGS=-I$PREFIX/include \
     -DCMAKE_LD_FLAGS=-L$PREFIX/lib \
@@ -27,6 +30,7 @@ function aws_build {
 
 function aws_get_deps {
   echo libcurl
+  echo openssl
   echo zlib
 }
 
