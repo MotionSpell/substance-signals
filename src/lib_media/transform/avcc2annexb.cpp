@@ -3,6 +3,10 @@
 #include "lib_media/common/libav.hpp"
 #include "lib_ffpp/ffpp.hpp"
 
+extern "C" {
+#include <libavformat/avformat.h> // av_packet_copy_props
+}
+
 namespace Modules {
 namespace Transform {
 

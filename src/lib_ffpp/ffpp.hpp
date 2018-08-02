@@ -2,13 +2,10 @@
 
 #include <stdexcept>
 #include <lib_utils/log.hpp>
-#include <lib_utils/tools.hpp>
 
 extern "C" {
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-#include <libavformat/avio.h>
-#include <libavutil/opt.h>
+#include <libavutil/frame.h>
+#include <libavutil/dict.h>
 }
 
 namespace ffpp {

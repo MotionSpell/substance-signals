@@ -5,6 +5,10 @@
 #include "lib_ffpp/ffpp.hpp"
 #include "../common/libav.hpp"
 
+extern "C" {
+#include <libavformat/avformat.h> // av_find_input_format
+}
+
 #define PKT_QUEUE_SIZE 256
 
 #define AV_PKT_FLAG_RESET_DECODER (1 << 30)
@@ -397,3 +401,4 @@ bool LibavDemux::work() {
 
 }
 }
+

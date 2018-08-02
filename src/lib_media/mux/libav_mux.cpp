@@ -4,6 +4,11 @@
 #include <cassert>
 #include <string>
 
+extern "C" {
+#include <libavformat/avformat.h> // AVOutputFormat
+#include <libavformat/avio.h> // avio_open2
+}
+
 extern const char *g_version;
 
 namespace Modules {

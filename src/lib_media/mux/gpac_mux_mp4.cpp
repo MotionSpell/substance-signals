@@ -10,6 +10,7 @@ extern "C" {
 #include <gpac/base_coding.h>
 #include <gpac/constants.h>
 #include <gpac/internal/media_dev.h>
+#include <libavcodec/avcodec.h> // AVCodecContext
 }
 
 auto const AVC_INBAND_CONFIG = 0;

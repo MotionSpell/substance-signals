@@ -7,6 +7,7 @@
 
 extern "C" {
 #include <libavutil/pixdesc.h>
+#include <libavcodec/avcodec.h> // avcodec_open2
 }
 
 namespace Modules {

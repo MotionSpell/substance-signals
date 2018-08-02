@@ -5,6 +5,10 @@
 #include "lib_ffpp/ffpp.hpp"
 #include <cassert>
 
+extern "C" {
+#include <libavcodec/avcodec.h> // avcodec_open2
+}
+
 namespace Modules {
 namespace Decode {
 
