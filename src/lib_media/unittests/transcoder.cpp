@@ -9,7 +9,6 @@
 #include "lib_media/mux/gpac_mux_mp4.hpp"
 #include "lib_media/out/file.hpp"
 #include "lib_media/out/null.hpp"
-#include "lib_media/transform/video_convert.hpp"
 #include "lib_utils/tools.hpp"
 
 using namespace Tests;
@@ -114,7 +113,7 @@ void resizeJPGTest(PixelFormat pf) {
 	auto reader = create<In::File>(filename);
 
 	auto const dstFormat = PictureFormat(Resolution(320, 180) / 2, pf);
-	auto converter = create<Transform::VideoConvert>(dstFormat);
+	auto converter = loadModule("VideoConvert", &NullHost, &dstFormat);
 	auto encoder = loadModule("JPEGTurboEncode", &NullHost);
 	auto writer = create<Out::File>("out/test1.jpg");
 
@@ -146,7 +145,7 @@ unittest("transcoder: h264/mp4 to jpg") {
 	auto const dstRes = metadata->getResolution();
 	ASSERT(metadata->getPixelFormat() == YUV420P);
 	auto const dstFormat = PictureFormat(dstRes, RGB24);
-	auto converter = create<Transform::VideoConvert>(dstFormat);
+	auto converter = loadModule("VideoConvert", &NullHost, &dstFormat);
 
 	ConnectOutputToInput(demux->getOutput(1), decode->getInput(0));
 	ConnectOutputToInput(decode->getOutput(0), converter->getInput(0));
@@ -167,7 +166,7 @@ unittest("transcoder: jpg to h264/mp4 (gpac)") {
 	auto reader = create<In::File>(filename);
 
 	auto const dstFormat = PictureFormat(Resolution(320, 180), YUV420P);
-	auto converter = create<Transform::VideoConvert>(dstFormat);
+	auto converter = loadModule("VideoConvert", &NullHost, &dstFormat);
 
 	auto encoder = create<Encode::LibavEncode>(Encode::LibavEncode::Video);
 	auto mux = create<Mux::GPACMuxMP4>(&NullHost, Mp4MuxConfig{"out/test"});

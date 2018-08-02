@@ -10,7 +10,6 @@
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/encode/libav_encode.hpp"
 #include "lib_media/stream/mpeg_dash.hpp"
-#include "lib_media/transform/video_convert.hpp"
 #include "lib_media/mux/gpac_mux_mp4.hpp"
 #include "lib_media/utils/regulator.hpp"
 
@@ -104,7 +103,7 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 		auto const codecType = metadataDemux->type;
 		if (codecType == VIDEO_PKT) {
 			Log::msg(Info, "[Converter] Found video stream");
-			return pipeline->addModule<Transform::VideoConvert>(dstFmt);
+			return pipeline->add("VideoConvert", &dstFmt);
 		} else if (codecType == AUDIO_PKT) {
 			Log::msg(Info, "[Converter] Found audio stream");
 			auto const demuxFmt = toPcmFormat(safe_cast<const MetadataPktLibavAudio>(metadataDemux));

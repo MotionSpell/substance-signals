@@ -6,7 +6,6 @@
 #include "lib_media/mux/gpac_mux_mp4.hpp"
 #include "lib_media/transform/audio_gap_filler.hpp"
 #include "lib_media/transform/restamp.hpp"
-#include "lib_media/transform/video_convert.hpp"
 #include "lib_media/utils/recorder.hpp"
 #include "lib_modules/modules.hpp"
 #include "lib_modules/utils/loader.hpp"
@@ -127,7 +126,7 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 	auto createConverter = [&](std::shared_ptr<const IMetadata> metadataDemux, std::shared_ptr<const IMetadata> metadataEncoder, const PictureFormat &dstFmt)->std::shared_ptr<IModule> {
 		auto const codecType = metadataDemux->type;
 		if (codecType == VIDEO_PKT) {
-			return create<Transform::VideoConvert>(dstFmt);
+			return loadModule("VideoConvert", &NullHost, &dstFmt);
 		} else if (codecType == AUDIO_PKT) {
 			auto const demuxFmt = toPcmFormat(safe_cast<const MetadataPktLibavAudio>(metadataDemux));
 			auto const metaEnc = safe_cast<const MetadataPktLibavAudio>(metadataEncoder);

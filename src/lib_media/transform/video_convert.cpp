@@ -1,5 +1,7 @@
+#include "lib_modules/utils/helper.hpp" // ModuleS
+#include "lib_modules/utils/factory.hpp" // registerModule
+#include "lib_media/common/picture.hpp" // PictureFormat
 #include "lib_utils/tools.hpp"
-#include "video_convert.hpp"
 #include "lib_ffpp/ffpp.hpp"
 #include "../common/libav.hpp"
 
@@ -9,11 +11,28 @@ extern "C" {
 
 #define ALIGN_PAD(n, align, pad) ((n/align + 1) * align + pad)
 
-namespace Modules {
-namespace Transform {
+using namespace Modules;
 
-VideoConvert::VideoConvert(const PictureFormat &dstFormat)
-	: m_SwContext(nullptr), dstFormat(dstFormat) {
+namespace {
+
+class VideoConvert : public ModuleS {
+	public:
+		VideoConvert(IModuleHost* host, const PictureFormat &dstFormat);
+		~VideoConvert();
+		void process(Data data) override;
+
+	private:
+		void reconfigure(const PictureFormat &format);
+
+		IModuleHost* const m_host;
+		SwsContext *m_SwContext;
+		PictureFormat srcFormat, dstFormat;
+		OutputPicture* output;
+};
+
+VideoConvert::VideoConvert(IModuleHost* host, const PictureFormat &dstFormat)
+	: m_host(host),
+	  m_SwContext(nullptr), dstFormat(dstFormat) {
 	auto input = createInput(this);
 	input->setMetadata(make_shared<MetadataRawVideo>());
 	output = addOutput<OutputPicture>();
@@ -37,7 +56,7 @@ void VideoConvert::process(Data data) {
 	auto videoData = safe_cast<const DataPicture>(data);
 	if (videoData->getFormat() != srcFormat) {
 		if (m_SwContext)
-			log(Info, "Incompatible input video data. Reconfiguring.");
+			m_host->log(Info, "Incompatible input video data. Reconfiguring.");
 		reconfigure(videoData->getFormat());
 	}
 
@@ -72,5 +91,11 @@ void VideoConvert::process(Data data) {
 	output->emit(out);
 }
 
+Modules::IModule* createObject(IModuleHost* host, va_list va) {
+	auto fmt = va_arg(va, PictureFormat*);
+	enforce(host, "VideoConvert: host can't be NULL");
+	return Modules::create<VideoConvert>(host, *fmt).release();
 }
+
+auto const registered = registerModule("VideoConvert", &createObject);
 }

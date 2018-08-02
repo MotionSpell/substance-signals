@@ -2,8 +2,8 @@
 #include "lib_modules/modules.hpp"
 #include "lib_modules/utils/loader.hpp"
 #include "lib_media/common/metadata.hpp"
+#include "lib_media/common/picture.hpp"
 #include "lib_media/transform/audio_gap_filler.hpp"
-#include "lib_media/transform/video_convert.hpp"
 #include "lib_media/utils/recorder.hpp"
 #include "lib_utils/tools.hpp"
 
@@ -205,11 +205,12 @@ unittest("video converter: pass-through") {
 	};
 
 	{
-		auto convert = create<Transform::VideoConvert>(format);
+		auto convert = loadModule("VideoConvert", &NullHost, &format);
 		ConnectOutput(convert.get(), onFrame);
 
 		auto pic = make_shared<PictureYUV420P>(res);
-		convert->process(pic);
+		convert->getInput(0)->push(pic);
+		convert->process();
 	}
 
 	ASSERT_EQUALS(1, numFrames);
@@ -228,11 +229,12 @@ unittest("video converter: different sizes") {
 	};
 
 	{
-		auto convert = create<Transform::VideoConvert>(format);
+		auto convert = loadModule("VideoConvert", &NullHost, &format);
 		ConnectOutput(convert.get(), onFrame);
 
 		auto pic = make_shared<PictureYUV420P>(srcRes);
-		convert->process(pic);
+		convert->getInput(0)->push(pic);
+		convert->process();
 	}
 
 	ASSERT_EQUALS(1, numFrames);

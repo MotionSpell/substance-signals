@@ -34,7 +34,6 @@ LIB_MEDIA_SRCS:=\
   $(MYDIR)/transform/restamp.cpp\
   $(MYDIR)/transform/telx2ttml.cpp\
   $(MYDIR)/transform/time_rectifier.cpp\
-  $(MYDIR)/transform/video_convert.cpp\
   $(MYDIR)/utils/recorder.cpp\
   $(MYDIR)/utils/repeater.cpp
 
@@ -46,7 +45,6 @@ PKGS+=\
   libavformat\
   libavutil\
   libcurl\
-  libswscale\
 
 ifeq ($(SIGNALS_HAS_X11), 1)
 include $(MYDIR)/render/render.mk
@@ -54,11 +52,20 @@ endif
 
 $(BIN)/media-config.mk: $(SRC)/../scripts/configure
 	@mkdir -p $(BIN)
-	$(SRC)/../scripts/configure libswresample libturbojpeg | sed 's/^CFLAGS/MEDIA_CFLAGS/g' | sed 's/^LDFLAGS/MEDIA_LDFLAGS/g'> "$@"
+	$(SRC)/../scripts/configure libswresample libswscale libturbojpeg | sed 's/^CFLAGS/MEDIA_CFLAGS/g' | sed 's/^LDFLAGS/MEDIA_LDFLAGS/g'> "$@"
 
 ifneq ($(MAKECMDGOALS),clean)
 include $(BIN)/media-config.mk
 endif
+
+#------------------------------------------------------------------------------
+TARGETS+=$(BIN)/VideoConvert.smd
+$(BIN)/VideoConvert.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
+$(BIN)/VideoConvert.smd: CFLAGS+=$(MEDIA_CFLAGS)
+$(BIN)/VideoConvert.smd: \
+  $(BIN)/$(SRC)/lib_media/transform/video_convert.cpp.o\
+  $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
+  $(BIN)/$(SRC)/lib_media/common/picture.cpp.o\
 
 #------------------------------------------------------------------------------
 TARGETS+=$(BIN)/AudioConvert.smd
