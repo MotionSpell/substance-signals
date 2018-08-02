@@ -5,7 +5,6 @@ function openssl_build {
 
   mkdir -p openssl/bin/$host
   pushDir openssl/bin/$host
-  pwd
   $WORK/src/openssl/config \
     --prefix=$PREFIX
   $MAKE depend
