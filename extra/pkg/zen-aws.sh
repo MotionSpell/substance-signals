@@ -16,6 +16,7 @@ function aws_build {
     -DCMAKE_LD_FLAGS=-L$PREFIX/lib \
     -DCMAKE_INSTALL_PREFIX=$PREFIX \
     -DENABLE_TESTING=OFF \
+    -DNO_ENCRYPTION=ON \
     -DBUILD_ONLY="s3;mediastore;mediastore-data" \
     ../..
   $MAKE
