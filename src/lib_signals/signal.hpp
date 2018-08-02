@@ -10,11 +10,11 @@ namespace Signals {
 
 template<typename> struct ISignal;
 
-template <typename Callback, typename Arg>
-struct ISignal<Callback(Arg)> {
+template <typename Arg>
+struct ISignal<void(Arg)> {
 	virtual ~ISignal() = default;
-	virtual int connect(const std::function<Callback(Arg)> &cb, IExecutor &executor) = 0;
-	virtual int connect(const std::function<Callback(Arg)> &cb) = 0;
+	virtual int connect(const std::function<void(Arg)> &cb, IExecutor &executor) = 0;
+	virtual int connect(const std::function<void(Arg)> &cb) = 0;
 	virtual bool disconnect(int connectionId) = 0;
 	virtual int getNumConnections() const = 0;
 	virtual void emit(Arg arg) = 0;
@@ -22,10 +22,10 @@ struct ISignal<Callback(Arg)> {
 
 template<typename> class Signal;
 
-template<typename Callback, typename Arg>
-class Signal<Callback(Arg)> : public ISignal<Callback(Arg)> {
+template<typename Arg>
+class Signal<void(Arg)> : public ISignal<void(Arg)> {
 	private:
-		typedef std::function<Callback(Arg)> CallbackType;
+		typedef std::function<void(Arg)> CallbackType;
 
 		struct ConnectionType {
 			IExecutor* executor;
