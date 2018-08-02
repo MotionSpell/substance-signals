@@ -1,7 +1,6 @@
 #pragma once
 
 #include "format.hpp"
-#include <string>
 
 enum Level {
 	Quiet = -1,
@@ -14,10 +13,10 @@ enum Level {
 class Log {
 	public:
 		template<typename... Arguments>
-		static void msg(Level level, const std::string& fmt, Arguments... args) {
+		static void msg(Level level, const char* fmt, Arguments... args) {
 			if ((level != Quiet) && (level <= globalLogLevel)) {
 				auto msg = format(fmt, args...);
-				send(level, msg);
+				send(level, msg.c_str());
 			}
 		}
 
@@ -32,18 +31,15 @@ class Log {
 
 	private:
 		Log() {}
-		static void send(Level level, std::string const& msg);
-		static std::string getTime();
-		static std::string getColorBegin(Level level);
-		static std::string getColorEnd(Level level);
+		static void send(Level level, const char* msg);
 
 		static Level globalLogLevel;
 		static bool globalColor;
 		static bool globalSysLog;
-		static void sendToSyslog(int level, std::string msg);
+		static void sendToSyslog(int level, const char* msg);
 };
 
-Level parseLogLevel(std::string level);
+Level parseLogLevel(const char* level);
 
 struct ScopedLogLevel {
 		ScopedLogLevel(Level level) : oldLevel(Log::getLevel()) {

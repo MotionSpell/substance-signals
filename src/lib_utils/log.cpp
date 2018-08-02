@@ -35,7 +35,11 @@ static std::ostream& get(Level level) {
 	}
 }
 
-void Log::send(Level level, std::string const& msg) {
+static std::string getTime();
+static std::string getColorBegin(Level level);
+static std::string getColorEnd(Level level);
+
+void Log::send(Level level, const char* msg) {
 	if (globalSysLog) {
 		sendToSyslog(level, msg);
 	} else {
@@ -43,7 +47,7 @@ void Log::send(Level level, std::string const& msg) {
 	}
 }
 
-std::string Log::getTime() {
+std::string getTime() {
 	char szOut[255];
 	const std::time_t t = std::time(nullptr);
 	const std::tm tm = *std::gmtime(&t);
@@ -51,8 +55,8 @@ std::string Log::getTime() {
 	return format("[%s][%s] ", std::string(szOut, size), (double)g_SystemClock->now());
 }
 
-std::string Log::getColorBegin(Level level) {
-	if (!getColor()) return "";
+std::string getColorBegin(Level level) {
+	if (!Log::getColor()) return "";
 #ifdef _WIN32
 	if (console == NULL) {
 		CONSOLE_SCREEN_BUFFER_INFO console_info;
@@ -82,8 +86,8 @@ std::string Log::getColorBegin(Level level) {
 	return "";
 }
 
-std::string Log::getColorEnd(Level /*level*/) {
-	if (!getColor()) return "";
+std::string getColorEnd(Level /*level*/) {
+	if (!Log::getColor()) return "";
 #ifdef _WIN32
 	SetConsoleTextAttribute(console, console_attr_ori);
 #else
@@ -135,9 +139,9 @@ void Log::setSysLog(bool isSysLog) {
 #endif
 }
 
-void Log::sendToSyslog(int level, std::string msg) {
+void Log::sendToSyslog(int level, const char* msg) {
 #ifndef _WIN32
-	::syslog(levelToSysLog[level], "%s", msg.c_str());
+	::syslog(levelToSysLog[level], "%s", msg);
 #else
 	(void)level;
 	(void)msg;
