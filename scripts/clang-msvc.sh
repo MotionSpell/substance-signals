@@ -10,6 +10,15 @@ for p in "$@" ; do
       ;;
     -Wl,-rpath*)
       ;;
+    -g*)
+	params+=("$p")
+        params+=("-gcodeview")
+	;;
+    -O*)
+	if [ $DEBUG != 1 ] ; then
+	    params+=("$p")
+	fi
+	;;
     *)
       params+=("$p")
       ;;
