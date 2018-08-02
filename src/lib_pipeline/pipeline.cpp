@@ -9,7 +9,6 @@
 #include <cstring>
 #include <sstream>
 #include <string>
-#include <atomic>
 #include <typeinfo>
 
 #define COMPLETION_GRANULARITY_IN_MS 200
@@ -33,7 +32,7 @@ struct StatsRegistry : IStatsRegistry {
 	static const auto size = 256 * sizeof(StatsEntry);
 	static const int maxNumEntry = size / sizeof(StatsEntry);
 	StatsEntry **entries;
-	std::atomic<int> entryIdx;
+	int entryIdx;
 };
 
 Pipeline::Pipeline(bool isLowLatency, Threading threading)
