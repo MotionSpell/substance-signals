@@ -57,7 +57,7 @@ class AudioConvert : public ModuleS {
 		void configure(const PcmFormat &srcFormat);
 		void reconfigure(const PcmFormat &srcFormat);
 
-		IModuleHost* m_host;
+		IModuleHost* const m_host;
 		PcmFormat srcPcmFormat;
 		PcmFormat const dstPcmFormat;
 		int64_t dstNumSamples, curDstNumSamples = 0;
