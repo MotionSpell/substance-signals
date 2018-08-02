@@ -60,8 +60,8 @@ string thisExeDir() {
 }
 
 struct DynLibWin : DynLib {
-	DynLibWin(const char* name) : handle(LoadLibraryA(name)) {
-		if(!handle) {
+	DynLibWin(const char* name) : hmodule(LoadLibraryA(name)) {
+		if(!hmodule) {
 			string msg = "can't load '";
 			msg += name;
 			msg += "'";
@@ -72,11 +72,11 @@ struct DynLibWin : DynLib {
 	~DynLibWin() {
 		// Don't unload the library, as some library-allocated polymorphic
 		// objects might still be used by the rest of the code.
-		//FreeLibrary(handle);
+		//FreeLibrary(hmodule);
 	}
 
 	virtual void* getSymbol(const char* name) {
-		auto func = GetProcAddress(handle, name);
+		auto func = GetProcAddress(hmodule, name);
 		if(!func) {
 			string msg = "can't find symbol '";
 			msg += name;
@@ -87,7 +87,7 @@ struct DynLibWin : DynLib {
 		return (void*)func;
 	}
 
-	HMODULE const handle;
+	HMODULE const hmodule;
 };
 
 unique_ptr<DynLib> loadLibrary(const char* name) {
