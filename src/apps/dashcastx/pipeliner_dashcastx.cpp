@@ -88,7 +88,7 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 			return m;
 		} else if (codecType == AUDIO_PKT) {
 			Log::msg(Info, "[Encoder] Found audio stream");
-			PcmFormat encFmt, demuxFmt;
+			PcmFormat demuxFmt;
 			libavAudioCtx2pcmConvert(safe_cast<const MetadataPktLibavAudio>(metadataDemux), &demuxFmt);
 			Encode::LibavEncode::Params p;
 			p.sampleRate = demuxFmt.sampleRate;
@@ -108,11 +108,12 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 			return pipeline->addModule<Transform::VideoConvert>(dstFmt);
 		} else if (codecType == AUDIO_PKT) {
 			Log::msg(Info, "[Converter] Found audio stream");
-			PcmFormat encFmt, demuxFmt;
+			PcmFormat demuxFmt;
 			libavAudioCtx2pcmConvert(safe_cast<const MetadataPktLibavAudio>(metadataDemux), &demuxFmt);
 			auto const metaEnc = safe_cast<const MetadataPktLibavAudio>(metadataEncoder);
-			auto format = PcmFormat(demuxFmt.sampleRate, demuxFmt.numChannels, demuxFmt.layout, encFmt.sampleFormat, (encFmt.numPlanes == 1) ? Interleaved : Planar);
+			PcmFormat encFmt;
 			libavAudioCtx2pcmConvert(metaEnc, &encFmt);
+			auto format = PcmFormat(demuxFmt.sampleRate, demuxFmt.numChannels, demuxFmt.layout, encFmt.sampleFormat, (encFmt.numPlanes == 1) ? Interleaved : Planar);
 			return pipeline->add("AudioConvert", nullptr, format, metaEnc->getFrameSize());
 		} else {
 			Log::msg(Info, "[Converter] Found unknown stream");
