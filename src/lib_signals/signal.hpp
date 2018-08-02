@@ -20,19 +20,11 @@ struct ISignal {
 	virtual void emit(Arg arg) = 0;
 };
 
-template<typename> class Signal;
-
 template<typename Arg>
 class Signal : public ISignal<Arg> {
-	private:
+	public:
 		typedef std::function<void(Arg)> CallbackType;
 
-		struct ConnectionType {
-			IExecutor* executor;
-			std::function<void(Arg)> callback;
-		};
-
-	public:
 		int connect(const CallbackType &cb, IExecutor &executor) {
 			std::lock_guard<std::mutex> lg(callbacksMutex);
 			const int connectionId = uid++;
@@ -72,6 +64,11 @@ class Signal : public ISignal<Arg> {
 	private:
 		Signal(const Signal&) = delete;
 		Signal& operator= (const Signal&) = delete;
+
+		struct ConnectionType {
+			IExecutor* executor;
+			std::function<void(Arg)> callback;
+		};
 
 		bool disconnectUnsafe(int connectionId) {
 			auto conn = callbacks.find(connectionId);
