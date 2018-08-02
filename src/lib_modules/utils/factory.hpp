@@ -10,7 +10,7 @@ int registerModule(const char* name, ModuleCreationFunc* func);
 
 // binary entry-point
 #ifdef _MSC_VER
-#define EXPORT
+#define EXPORT __declspec(dllexport)
 #else
 #define EXPORT __attribute__((visibility("default")))
 #endif
