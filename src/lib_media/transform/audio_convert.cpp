@@ -116,7 +116,7 @@ void AudioConvert::configure(const PcmFormat &srcFormat) {
 }
 
 void AudioConvert::flush() {
-	if (m_Swr.get())
+	if (m_Swr)
 		process(nullptr);
 }
 
