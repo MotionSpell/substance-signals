@@ -791,13 +791,13 @@ void GPACMuxMP4::declareStream(const std::shared_ptr<const IMetadata> &metadata)
 }
 
 void GPACMuxMP4::handleInitialTimeOffset() {
-	if (initTimeIn180k) { /*first timestamp is not zero*/
-		m_host->log(Info, format("Initial offset: %ss (4CC=%s, \"%s\", timescale=%s/%s)", initTimeIn180k / (double)IClock::Rate, codec4CC, segmentName, mediaTs, gf_isom_get_timescale(isoCur)).c_str());
+	if (initDTSIn180k) { /*first timestamp is not zero*/
+		m_host->log(Info, format("Initial offset: %ss (4CC=%s, \"%s\", timescale=%s/%s)", initDTSIn180k / (double)IClock::Rate, codec4CC, segmentName, mediaTs, gf_isom_get_timescale(isoCur)).c_str());
 		if (compatFlags & NoEditLists) {
-			firstDataAbsTimeInMs += clockToTimescale(initTimeIn180k, 1000);
+			firstDataAbsTimeInMs += clockToTimescale(initDTSIn180k, 1000);
 		} else {
-			auto const edtsInMovieTs = clockToTimescale(initTimeIn180k, gf_isom_get_timescale(isoCur));
-			auto const edtsInMediaTs = clockToTimescale(initTimeIn180k, mediaTs);
+			auto const edtsInMovieTs = clockToTimescale(initDTSIn180k, gf_isom_get_timescale(isoCur));
+			auto const edtsInMediaTs = clockToTimescale(initDTSIn180k, mediaTs);
 			if (edtsInMovieTs > 0) {
 				gf_isom_append_edit_segment(isoCur, gf_isom_get_track_by_id(isoCur, trackId), edtsInMovieTs, 0, GF_ISOM_EDIT_EMPTY);
 				gf_isom_append_edit_segment(isoCur, gf_isom_get_track_by_id(isoCur, trackId), edtsInMovieTs, 0, GF_ISOM_EDIT_NORMAL);
@@ -1010,7 +1010,8 @@ bool GPACMuxMP4::processInit(Data &data) {
 
 		if (!firstDataAbsTimeInMs) {
 			firstDataAbsTimeInMs = Modules::absUTCOffsetInMs;
-			initTimeIn180k = data->getMediaTime();
+			auto const timescale = safe_cast<const MetadataPktLibav>(data->getMetadata())->getTimeScale();
+			initDTSIn180k = timescaleToClock(safe_cast<const DataAVPacket>(data)->getPacket()->dts * timescale.den, timescale.num);
 			handleInitialTimeOffset();
 		}
 
@@ -1034,7 +1035,7 @@ void GPACMuxMP4::process() {
 	auto const dataDTS = timescaleToClock(safe_cast<const DataAVPacket>(data)->getPacket()->dts * timescale.den, timescale.num);
 	if (compatFlags & ExactInputDur) {
 		if (lastData) {
-			auto dataDurationInTs = clockToTimescale(dataDTS - initTimeIn180k, mediaTs) - DTS;
+			auto dataDurationInTs = clockToTimescale(dataDTS - initDTSIn180k, mediaTs) - DTS;
 			if (dataDurationInTs <= 0) {
 				m_host->log(Warning, format("Computed duration is inferior or equal to zero (%s). Inferring to %s", dataDurationInTs, defaultSampleIncInTs).c_str());
 				dataDurationInTs = defaultSampleIncInTs;
@@ -1044,7 +1045,7 @@ void GPACMuxMP4::process() {
 
 		lastData = data;
 	} else {
-		auto lastDataDurationInTs = clockToTimescale(dataDTS - initTimeIn180k, mediaTs) + defaultSampleIncInTs - DTS;
+		auto lastDataDurationInTs = clockToTimescale(dataDTS - initDTSIn180k, mediaTs) + defaultSampleIncInTs - DTS;
 		if (DTS > 0) {
 			if (!dataDTS) {
 				lastDataDurationInTs = defaultSampleIncInTs;

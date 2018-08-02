@@ -39,7 +39,7 @@ unittest("remux test: libav mp4 mux") {
 	auto mux = create<Mux::LibavMux>(MuxConfig{"out/output_libav", "mp4", ""});
 	ASSERT(demux->getNumOutputs() > 1);
 	for (int i = 0; i < demux->getNumOutputs(); ++i) {
-		//FIXME: declare statically metadata to avoid missing data at start
+		//declare statically metadata to avoid missing data at start
 		auto data = make_shared<DataBaseRef>(nullptr);
 		data->setMetadata(demux->getOutput(i)->getMetadata());
 		mux->getInput(i)->push(data);
