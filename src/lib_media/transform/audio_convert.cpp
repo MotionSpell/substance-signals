@@ -5,9 +5,12 @@
 #include "../common/pcm.hpp"
 #include "../common/libav.hpp"
 #include "../common/pcm.hpp"
-#include "lib_ffpp/ffpp.hpp"
 
-namespace ffpp {
+extern "C" {
+#include <libswresample/swresample.h>
+}
+
+namespace {
 struct Resampler {
 	Resampler() {
 		m_SwrContext = swr_alloc();
@@ -59,7 +62,7 @@ class AudioConvert : public ModuleS {
 		PcmFormat const dstPcmFormat;
 		int64_t dstNumSamples, curDstNumSamples = 0;
 		std::shared_ptr<DataPcm> curOut;
-		std::unique_ptr<ffpp::Resampler> m_Swr;
+		std::unique_ptr<Resampler> m_Swr;
 		uint64_t accumulatedTimeInDstSR = 0;
 		OutputPcm *output;
 		bool autoConfigure;
@@ -76,7 +79,7 @@ AudioConvert::AudioConvert(IModuleHost* host, const PcmFormat &dstFormat, int64_
 
 AudioConvert::AudioConvert(IModuleHost* host, const PcmFormat &srcFormat, const PcmFormat &dstFormat, int64_t dstNumSamples)
 	:m_host(host),
-	 srcPcmFormat(srcFormat), dstPcmFormat(dstFormat), dstNumSamples(dstNumSamples), m_Swr(new ffpp::Resampler), autoConfigure(false) {
+	 srcPcmFormat(srcFormat), dstPcmFormat(dstFormat), dstNumSamples(dstNumSamples), m_Swr(new Resampler), autoConfigure(false) {
 	configure(srcPcmFormat);
 	auto input = createInput(this);
 	input->setMetadata(make_shared<MetadataRawAudio>());
@@ -88,7 +91,7 @@ AudioConvert::~AudioConvert() {
 
 void AudioConvert::reconfigure(const PcmFormat &srcFormat) {
 	flush();
-	m_Swr = make_unique<ffpp::Resampler>();
+	m_Swr = make_unique<Resampler>();
 	configure(srcFormat);
 	srcPcmFormat = srcFormat;
 }

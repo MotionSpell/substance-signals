@@ -9,7 +9,6 @@ extern "C" {
 #include <libavformat/avformat.h>
 #include <libavformat/avio.h>
 #include <libavutil/opt.h>
-#include <libswresample/swresample.h>
 }
 
 namespace ffpp {
