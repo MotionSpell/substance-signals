@@ -55,8 +55,7 @@ unittest("format: vector argument") {
 	v.push_back(1);
 	v.push_back(2);
 	v.push_back(3);
-	auto const s = format("%s", v);
-	ASSERT(s == "[1, 2, 3]");
+	ASSERT_EQUALS("[1, 2, 3]", format("%s", v));
 }
 
 unittest("format: vector argument") {
@@ -65,15 +64,12 @@ unittest("format: vector argument") {
 	v[1].resize(2);
 	v[1][1] = 7;
 	v[2].resize(1);
-	auto const s = format("%s", v);
-	ASSERT(s == "[[], [0, 7], [0]]");
+	ASSERT_EQUALS("[[], [0, 7], [0]]", format("%s", v));
 }
 
 unittest("divUp") {
-	auto res1 = divUp(5, 2);
-	ASSERT(res1 == 3);
-	res1 = divUp(-5, 2);
-	ASSERT(res1 == -3);
+	ASSERT_EQUALS(3, divUp(5, 2));
+	ASSERT_EQUALS(-3, divUp(-5, 2));
 }
 
 unittest("shmem") {
