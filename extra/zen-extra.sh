@@ -36,7 +36,6 @@ function get_root_packages
   echo gpac
   echo libcurl
   echo libjpeg-turbo
-  echo libogg
   echo libsdl2
   echo optionparser
   echo rapidjson
