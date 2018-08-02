@@ -1,5 +1,4 @@
 #include "avcc2annexb.hpp"
-#include "lib_gpacpp/gpacpp.hpp"
 #include "lib_media/common/libav.hpp"
 #include "lib_ffpp/ffpp.hpp"
 
@@ -10,6 +9,33 @@ extern "C" {
 namespace Modules {
 namespace Transform {
 
+struct ByteReader {
+	SpanC data;
+	size_t pos = 0;
+
+	size_t available() const {
+		return data.len - pos;
+	}
+
+	uint8_t u8() {
+		return data.ptr[pos++];
+	}
+
+	uint32_t u32() {
+		uint32_t r = 0;
+		for(int i=0; i < 4; ++i) {
+			r <<= 8;
+			r += u8();
+		}
+		return r;
+	}
+
+	void read(Span out) {
+		memcpy(out.ptr, data.ptr+pos, out.len);
+		pos+=out.len;
+	}
+};
+
 AVCC2AnnexBConverter::AVCC2AnnexBConverter() {
 	auto input = createInput(this);
 	output = addOutput<OutputDataDefault<DataAVPacket>>(input->getMetadata());
@@ -19,27 +45,25 @@ void AVCC2AnnexBConverter::process(Data in) {
 	auto out = output->getBuffer(in->data().len);
 	av_packet_copy_props(out->getPacket(), safe_cast<const DataAVPacket>(in)->getPacket());
 
-	auto bs = gf_bs_new((const char*)in->data().ptr, in->data().len, GF_BITSTREAM_READ);
-	while ( auto availableBytes = gf_bs_available(bs) ) {
+	auto bs = ByteReader { in->data() };
+	while ( auto availableBytes = bs.available() ) {
 		if (availableBytes < 4) {
 			log(Error, "Need to read 4 byte start-code, only %s available. Exit current conversion.", availableBytes);
 			break;
 		}
-		auto pos = gf_bs_get_position(bs);
-		auto const size = gf_bs_read_u32(bs);
+		auto const size = bs.u32();
 		if (size + 4 > availableBytes) {
 			log(Error, "Too much data read: %s (available: %s - 4) (total %s). Exit current conversion.", size, availableBytes, in->data().len);
 			break;
 		}
 		// write start code
-		auto bytes = out->data().ptr + pos;
+		auto bytes = out->data().ptr + bs.pos;
 		*bytes++ = 0x00;
 		*bytes++ = 0x00;
 		*bytes++ = 0x00;
 		*bytes++ = 0x01;
-		gf_bs_read_data(bs, (char*)out->data().ptr + pos + 4, size);
+		bs.read({out->data().ptr + bs.pos + 4, size});
 	}
-	gf_bs_del(bs);
 
 	out->setMetadata(in->getMetadata());
 	out->setMediaTime(in->getMediaTime());
