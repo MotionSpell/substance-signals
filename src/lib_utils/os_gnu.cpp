@@ -68,7 +68,10 @@ struct DynLibGnu : DynLib {
 	}
 
 	~DynLibGnu() {
-		dlclose(handle);
+		/*HACK: modules virtual destructors will be unloaded too,
+		        which will lead a crash. Don't unload until we inject
+				allocators for shared data (metadata, etc.)*/
+		//dlclose(handle); 
 	}
 
 	virtual void* getSymbol(const char* name) {
