@@ -56,7 +56,9 @@ $(BIN)/media-config.mk: $(SRC)/../scripts/configure
 	@mkdir -p $(BIN)
 	$(SRC)/../scripts/configure libswresample libturbojpeg | sed 's/^CFLAGS/MEDIA_CFLAGS/g' | sed 's/^LDFLAGS/MEDIA_LDFLAGS/g'> "$@"
 
+ifneq ($(MAKECMDGOALS),clean)
 include $(BIN)/media-config.mk
+endif
 
 #------------------------------------------------------------------------------
 TARGETS+=$(BIN)/AudioConvert.smd

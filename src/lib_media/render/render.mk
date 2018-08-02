@@ -2,7 +2,9 @@ $(BIN)/render-config.mk: $(SRC)/../scripts/configure
 	@mkdir -p $(BIN)
 	$(SRC)/../scripts/configure sdl2 | sed 's/^CFLAGS/RENDER_CFLAGS/g' | sed 's/^LDFLAGS/RENDER_LDFLAGS/g'> "$@"
 
+ifneq ($(MAKECMDGOALS),clean)
 include $(BIN)/render-config.mk
+endif
 
 TARGETS+=$(BIN)/SDLVideo.smd
 $(BIN)/SDLVideo.smd: $(BIN)/$(SRC)/lib_media/render/sdl_video.cpp.o
