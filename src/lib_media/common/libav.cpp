@@ -138,7 +138,9 @@ void libavAudioCtxConvert(const PcmFormat *cfg, AVCodecContext *codecCtx) {
 	libavAudioCtxConvertLibav(cfg, codecCtx->sample_rate, codecCtx->sample_fmt, codecCtx->channels, codecCtx->channel_layout);
 }
 
-void libavAudioCtx2pcmConvert(std::shared_ptr<const MetadataPktLibavAudio> meta, PcmFormat *cfg) {
+PcmFormat toPcmFormat(std::shared_ptr<const MetadataPktLibavAudio> meta) {
+	PcmFormat cfg_;
+	PcmFormat *cfg = &cfg_;
 	auto codecCtx = meta->getAVCodecContext();
 	cfg->sampleRate = codecCtx->sample_rate;
 
@@ -172,6 +174,8 @@ void libavAudioCtx2pcmConvert(std::shared_ptr<const MetadataPktLibavAudio> meta,
 		default: throw std::runtime_error("Unknown libav audio layout");
 		}
 	}
+
+	return *cfg;
 }
 
 void libavFrame2pcmConvert(const AVFrame *frame, PcmFormat *cfg) {

@@ -116,8 +116,7 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 			dstFmt.format = p.pixelFormat;
 			return std::move(m);
 		} else if (codecType == AUDIO_PKT) {
-			PcmFormat demuxFmt;
-			libavAudioCtx2pcmConvert(safe_cast<const MetadataPktLibavAudio>(metadataDemux), &demuxFmt);
+			auto const demuxFmt = toPcmFormat(safe_cast<const MetadataPktLibavAudio>(metadataDemux));
 			Encode::LibavEncode::Params p;
 			p.sampleRate = demuxFmt.sampleRate;
 			p.numChannels = demuxFmt.numChannels;
@@ -130,12 +129,10 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 		if (codecType == VIDEO_PKT) {
 			return create<Transform::VideoConvert>(dstFmt);
 		} else if (codecType == AUDIO_PKT) {
-			PcmFormat demuxFmt;
-			libavAudioCtx2pcmConvert(safe_cast<const MetadataPktLibavAudio>(metadataDemux), &demuxFmt);
+			auto const demuxFmt = toPcmFormat(safe_cast<const MetadataPktLibavAudio>(metadataDemux));
 			auto const metaEnc = safe_cast<const MetadataPktLibavAudio>(metadataEncoder);
-			PcmFormat encFmt;
-			libavAudioCtx2pcmConvert(metaEnc, &encFmt);
-			auto format = PcmFormat(demuxFmt.sampleRate, demuxFmt.numChannels, demuxFmt.layout, encFmt.sampleFormat, (encFmt.numPlanes == 1) ? Interleaved : Planar);
+			auto const encFmt = toPcmFormat(metaEnc);
+			auto const format = PcmFormat(demuxFmt.sampleRate, demuxFmt.numChannels, demuxFmt.layout, encFmt.sampleFormat, (encFmt.numPlanes == 1) ? Interleaved : Planar);
 			return loadModule("AudioConvert", &NullHost, nullptr, &format, metaEnc->getFrameSize());
 		} else
 			throw std::runtime_error("[Converter] Found unknown stream");
