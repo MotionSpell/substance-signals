@@ -7,6 +7,37 @@
 #include "../common/pcm.hpp"
 #include "lib_ffpp/ffpp.hpp"
 
+namespace ffpp {
+struct Resampler {
+	Resampler() {
+		m_SwrContext = swr_alloc();
+	}
+
+	~Resampler() {
+		swr_free(&m_SwrContext);
+	}
+
+	void init() {
+		auto const ret = swr_init(m_SwrContext);
+		if(ret < 0)
+			throw std::runtime_error("Resampler: swr_init failed");
+	}
+
+	int convert(uint8_t **out, int out_count, const uint8_t **in, int in_count) {
+		auto const ret = swr_convert(m_SwrContext, out, out_count, in, in_count);
+		if(ret < 0)
+			throw std::runtime_error("Resampler: convert failed");
+		return ret;
+	}
+
+	int64_t getDelay(int64_t rate) {
+		return swr_get_delay(m_SwrContext, rate);
+	}
+
+	SwrContext* m_SwrContext;
+};
+}
+
 using namespace Modules;
 
 namespace {
@@ -28,7 +59,7 @@ class AudioConvert : public ModuleS {
 		PcmFormat const dstPcmFormat;
 		int64_t dstNumSamples, curDstNumSamples = 0;
 		std::shared_ptr<DataPcm> curOut;
-		std::unique_ptr<ffpp::SwResampler> m_Swr;
+		std::unique_ptr<ffpp::Resampler> m_Swr;
 		uint64_t accumulatedTimeInDstSR = 0;
 		OutputPcm *output;
 		bool autoConfigure;
@@ -45,7 +76,7 @@ AudioConvert::AudioConvert(IModuleHost* host, const PcmFormat &dstFormat, int64_
 
 AudioConvert::AudioConvert(IModuleHost* host, const PcmFormat &srcFormat, const PcmFormat &dstFormat, int64_t dstNumSamples)
 	:m_host(host),
-	 srcPcmFormat(srcFormat), dstPcmFormat(dstFormat), dstNumSamples(dstNumSamples), m_Swr(new ffpp::SwResampler), autoConfigure(false) {
+	 srcPcmFormat(srcFormat), dstPcmFormat(dstFormat), dstNumSamples(dstNumSamples), m_Swr(new ffpp::Resampler), autoConfigure(false) {
 	configure(srcPcmFormat);
 	auto input = createInput(this);
 	input->setMetadata(make_shared<MetadataRawAudio>());
@@ -57,7 +88,7 @@ AudioConvert::~AudioConvert() {
 
 void AudioConvert::reconfigure(const PcmFormat &srcFormat) {
 	flush();
-	m_Swr = make_unique<ffpp::SwResampler>();
+	m_Swr = make_unique<ffpp::Resampler>();
 	configure(srcFormat);
 	srcPcmFormat = srcFormat;
 }
@@ -69,12 +100,15 @@ void AudioConvert::configure(const PcmFormat &srcFormat) {
 	libavAudioCtxConvertLibav(&srcFormat, avSrcSampleRate, avSrcFmt, avSrcNumChannels, avSrcChannelLayout);
 	libavAudioCtxConvertLibav(&dstPcmFormat, avDstSampleRate, avDstFmt, avDstNumChannels, avDstChannelLayout);
 
-	m_Swr->setInputSampleFmt(avSrcFmt);
-	m_Swr->setInputLayout(avSrcChannelLayout);
-	m_Swr->setInputSampleRate(avSrcSampleRate);
-	m_Swr->setOutputSampleFmt(avDstFmt);
-	m_Swr->setOutputLayout(avDstChannelLayout);
-	m_Swr->setOutputSampleRate(avDstSampleRate);
+	swr_alloc_set_opts(m_Swr->m_SwrContext,
+	    avDstChannelLayout,
+	    avDstFmt,
+	    avDstSampleRate,
+	    avSrcChannelLayout,
+	    avSrcFmt,
+	    avSrcSampleRate,
+	    0, nullptr);
+
 	m_Swr->init();
 }
 
