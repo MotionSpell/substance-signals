@@ -4,6 +4,7 @@ function postgres_build {
 
   ac_cv_file__dev_urandom=yes \
   autoconf_build $host "postgres" \
+    --without-openssl \
     "--without-readline" \
     "--with-system-tzdata=/usr/share/zoneinfo"
 }
