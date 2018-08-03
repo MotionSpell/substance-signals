@@ -8,6 +8,7 @@ function aws_build {
   sed '/list(APPEND AWS_COMPILER_FLAGS "-fno-exceptions" "-std=c++${CPP_STANDARD}")/d' \
     -i aws/cmake/compiler_settings.cmake
 
+  rm -rf aws/bin/$host
   mkdir -p aws/bin/$host
   pushDir aws/bin/$host
   cmake \
