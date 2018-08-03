@@ -23,7 +23,7 @@ function openssl_build {
       exit 1
   esac
 
-  $WORK/src/openssl/Configure \
+  ../../Configure \
     $openssl_os \
     shared \
     --cross-compile-prefix="$host-" \
