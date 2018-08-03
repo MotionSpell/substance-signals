@@ -5,7 +5,28 @@ function openssl_build {
 
   mkdir -p openssl/bin/$host
   pushDir openssl/bin/$host
-  $WORK/src/openssl/config \
+
+  # OpenSSL uses its own OS naming scheme
+  # and doesn't support standard compiler prefix
+  case $host in
+    x86_64-*-gnu)
+      openssl_os="linux-x86_64"
+      ;;
+    i686-*-gnu)
+      openssl_os="linux-x86"
+      ;;
+    *-mingw32)
+      openssl_os="mingw"
+      ;;
+    *)
+      echo "ERROR: platform not implemented: $host" >&2
+      exit 1
+  esac
+
+  $WORK/src/openssl/Configure \
+    $openssl_os \
+    shared \
+    --cross-compile-prefix="$host-" \
     --prefix=$PREFIX
   $MAKE depend
   $MAKE
