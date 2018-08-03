@@ -2,6 +2,8 @@ function postgres_build {
   lazy_download "postgres.tar.bz2" "https://ftp.postgresql.org/pub/source/v10.4/postgresql-10.4.tar.bz2"
   lazy_extract "postgres.tar.bz2"
 
+  CFLAGS="-I$PREFIX/include" \
+  LDFLAGS="-L$PREFIX/lib -lz" \
   ac_cv_file__dev_urandom=yes \
   autoconf_build $host "postgres" \
     --without-openssl \
