@@ -27,6 +27,7 @@ function get_root_packages
     echo aws
   fi
 
+  echo libepoxy
   echo openssl
   echo sqlite3
   echo postgres
