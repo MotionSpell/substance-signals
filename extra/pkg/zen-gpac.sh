@@ -21,8 +21,7 @@ function gpac_build {
     --target-os=$os \
     --cross-prefix="$crossPrefix" \
     --extra-cflags="-I$PREFIX/include -w -fPIC" \
-    --extra-ldflags="-L$PREFIX/lib -Wl,-rpath-link=$PREFIX/lib" \
-    --sdl-cfg=":$PREFIX/bin" \
+    --extra-ldflags="-L$PREFIX/lib" \
     --disable-jack \
     --disable-ssl \
     --use-png=no \
