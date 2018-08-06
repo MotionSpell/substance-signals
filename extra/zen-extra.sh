@@ -3,6 +3,7 @@
 set -euo pipefail
 
 readonly workDir=${workDir-/tmp/mem/zen-work}
+readonly cacheDir=${cacheDir-/tmp/mem/zen-cache}
 
 function main {
   readonly scriptDir=$(get_abs_dir $(dirname $0))
@@ -83,13 +84,14 @@ function lazy_download {
 
   local hashKey=$(echo "$url" | md5sum - | sed 's/ .*//')
 
-  if [ ! -e "$CACHE/$hashKey" ]; then
+  mkdir -p $cacheDir
+  if [ ! -e "$cacheDir/$hashKey" ]; then
     echo "Downloading: $file"
-    wget "$url" -c -O "$CACHE/${hashKey}.tmp" --no-verbose
-    mv "$CACHE/${hashKey}.tmp" "$CACHE/$hashKey" # ensure atomicity
+    wget "$url" -c -O "$cacheDir/${hashKey}.tmp" --no-verbose
+    mv "$cacheDir/${hashKey}.tmp" "$cacheDir/$hashKey" # ensure atomicity
   fi
 
-  cp "$CACHE/${hashKey}" "$file"
+  cp "$cacheDir/${hashKey}" "$file"
 }
 
 function lazy_extract {
@@ -223,8 +225,6 @@ function buildPackage {
     alreadyDone="yes"
   fi
 
-  CACHE=$WORK/cache
-  mkdir -p $CACHE
   mkdir -p $WORK/src
 
   export PREFIX
