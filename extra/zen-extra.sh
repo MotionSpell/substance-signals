@@ -158,7 +158,7 @@ function mkgit {
     git config user.name "Nobody"
     git config core.autocrlf false
     git add -f *
-    git commit -m "MinGW/GDC restore point"
+    git commit --quiet -m "Zenbuild restore point"
   fi
   popDir
 }
