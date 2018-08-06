@@ -12,10 +12,10 @@ function aws_build {
   mkdir -p aws/bin/$host
   pushDir aws/bin/$host
   cmake \
-    -DOPENSSL_ROOT_DIR=$EXTRA \
-    -DCURL_ROOT_DIR=$EXTRA \
-    -DCURL_LIBRARY=$EXTRA/lib/libcurl.a \
-    -DCURL_INCLUDE_DIR=$EXTRA/include \
+    -DOPENSSL_ROOT_DIR=$PREFIX \
+    -DCURL_ROOT_DIR=$PREFIX \
+    -DCURL_LIBRARY=$PREFIX/lib/libcurl.a \
+    -DCURL_INCLUDE_DIR=$PREFIX/include \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_CXX_FLAGS=-I$PREFIX/include \
     -DCMAKE_LD_FLAGS=-L$PREFIX/lib \
