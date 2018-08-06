@@ -38,8 +38,6 @@ fi
 
 echo "LDFLAGS+= -lpthread"
 
-# Workaround: linking with libgpac and libavfilter currently requires this,
-# otherwise link fails with undefined references to libass, libjpeg and libpng.
-# (extra.sh builds libgpac/libavfilter with 'rpath' options, this might be root cause).
+# For convenience: allows running binaries without specifying LD_LIBRARY_PATH
 echo "LDFLAGS+=-Wl,-rpath,$EXTRA/lib"
 
