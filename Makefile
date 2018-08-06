@@ -2,9 +2,7 @@
 
 CFLAGS:=$(CFLAGS)
 CFLAGS+=-std=c++14
-CFLAGS+=-Wall
-CFLAGS+=-Wextra
-CFLAGS+=-Werror
+CFLAGS+=-Wall -Wextra -Werror
 CFLAGS+=-fvisibility=hidden -fvisibility-inlines-hidden
 
 BIN?=bin
@@ -52,52 +50,33 @@ define get-my-dir
 $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))
 endef
 
-include $(SRC)/lib_utils/project.mk
-
 #------------------------------------------------------------------------------
+
+include $(SRC)/lib_utils/project.mk
 
 LIB_PIPELINE_SRCS:=\
   $(SRC)/lib_pipeline/pipelined_module.cpp\
   $(SRC)/lib_pipeline/pipeline.cpp
 
-#------------------------------------------------------------------------------
-
 include $(SRC)/lib_modules/project.mk
-
-#------------------------------------------------------------------------------
 
 LIB_APPCOMMON_SRCS:=\
   $(SRC)/lib_appcommon/options.cpp \
 
-#------------------------------------------------------------------------------
-
 include $(SRC)/lib_media/project.mk
-
-#------------------------------------------------------------------------------
-
 include $(SRC)/tests/project.mk
-
-#------------------------------------------------------------------------------
-
 include $(SRC)/apps/dashcastx/project.mk
-
-#------------------------------------------------------------------------------
-
-ifeq ($(SIGNALS_HAS_X11), 1)
 include $(SRC)/apps/player/project.mk
-endif
-
-#------------------------------------------------------------------------------
-
 include $(SRC)/apps/mp42tsx/project.mk
 
 #------------------------------------------------------------------------------
 
 $(BIN)/$(SRC)/lib_utils/version.cpp.o: CFLAGS+=-I$(BIN)
 
-targets: $(TARGETS)
-
 #------------------------------------------------------------------------------
+# Generic rules
+
+targets: $(TARGETS)
 
 $(BIN)/%.exe:
 	@mkdir -p $(dir $@)
@@ -112,6 +91,5 @@ $(BIN)/%.cpp.o: %.cpp
 clean:
 	rm -rf $(BIN)
 
-#-------------------------------------------------------------------------------
-
 -include $(shell test -d $(BIN) && find $(BIN) -name "*.deps")
+
