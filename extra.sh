@@ -4,9 +4,8 @@
 #
 
 set -e
-EXTRA_DIR=$PWD/extra
+unset EXTRA # security: 'EXTRA' is a signals-specific var, don't use it in zenbuild
 export CFLAGS=-w
-export PKG_CONFIG_PATH=$EXTRA_DIR/lib/pkgconfig
 
 if [ -z "$MAKE" ]; then
 	if [ $(uname -s) == "Darwin" ]; then
