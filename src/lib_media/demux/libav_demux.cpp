@@ -106,9 +106,23 @@ LibavDemux::LibavDemux(IModuleHost* host, const std::string &url, bool loop, con
 			m_formatCtx->pb = m_avioCtx;
 			m_formatCtx->flags = AVFMT_FLAG_CUSTOM_IO;
 		}
-		if (avformat_open_input(&m_formatCtx, url.c_str(), av_find_input_format(formatName.c_str()), &dict)) {
+
+		AVInputFormat* avInputFormat = nullptr;
+
+		if(!formatName.empty()) {
+			avInputFormat = av_find_input_format(formatName.c_str());
+			if(!avInputFormat) {
+				clean();
+				throw error(format("Error when opening input '%s': unsupported input format '%s'", url, formatName));
+			}
+		}
+
+		int err = avformat_open_input(&m_formatCtx, url.c_str(), avInputFormat, &dict);
+		if (err) {
 			clean();
-			throw error(format("Error when opening input '%s'", url));
+			char buffer[256];
+			av_strerror(err, buffer, sizeof buffer);
+			throw error(format("Error when opening input '%s': %s", url, buffer));
 		}
 
 		m_formatCtx->flags |= AVFMT_FLAG_KEEP_SIDE_DATA; //deprecated >= 3.5 https://github.com/FFmpeg/FFmpeg/commit/ca2b779423
