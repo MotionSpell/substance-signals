@@ -125,6 +125,10 @@ LibavDemux::LibavDemux(IModuleHost* host, const std::string &url, bool loop, con
 			throw error(format("Error when opening input '%s': %s", url, buffer));
 		}
 
+		if(!avInputFormat) {
+			m_host->log(Info, format("Using input format '%s'", m_formatCtx->iformat->name).c_str());
+		}
+
 		m_formatCtx->flags |= AVFMT_FLAG_KEEP_SIDE_DATA; //deprecated >= 3.5 https://github.com/FFmpeg/FFmpeg/commit/ca2b779423
 
 		if (seekTimeInMs) {
