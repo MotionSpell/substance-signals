@@ -15,9 +15,10 @@ for p in "$@" ; do
         params+=("-gcodeview")
 	;;
     -O*)
-	if [ $DEBUG != 1 ] ; then
-	    params+=("$p")
-	fi
+      debug=${DEBUG-""}
+      if [ "debug" != 1 ] ; then
+        params+=("$p")
+      fi
 	;;
     *)
       params+=("$p")
