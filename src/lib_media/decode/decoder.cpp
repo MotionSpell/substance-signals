@@ -1,8 +1,8 @@
 #include "decoder.hpp"
 #include "../common/pcm.hpp"
 #include "../common/libav.hpp"
+#include "../common/ffpp.hpp"
 #include "lib_utils/tools.hpp"
-#include "lib_ffpp/ffpp.hpp"
 #include <cassert>
 
 extern "C" {

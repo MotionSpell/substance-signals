@@ -35,8 +35,6 @@
     <ClCompile Include="timer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\lib_ffpp\ffpp.hpp" />
-    <ClInclude Include="..\lib_gpacpp\gpacpp.hpp" />
     <ClInclude Include="clock.hpp" />
     <ClInclude Include="fifo.hpp" />
     <ClInclude Include="format.hpp" />

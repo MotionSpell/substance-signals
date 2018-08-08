@@ -1,5 +1,5 @@
 #include "gpac.hpp"
-#include "lib_gpacpp/gpacpp.hpp"
+#include "gpacpp.hpp"
 
 namespace Modules {
 

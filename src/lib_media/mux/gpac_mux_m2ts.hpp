@@ -3,7 +3,7 @@
 #include "lib_modules/core/log.hpp"
 #include "lib_modules/utils/helper.hpp"
 #include "lib_modules/utils/helper_dyn.hpp"
-#include "lib_gpacpp/gpacpp.hpp"
+#include "../common/gpacpp.hpp"
 #include <vector>
 
 struct AVPacket;

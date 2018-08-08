@@ -2,7 +2,7 @@
 #include "../transform/restamp.hpp"
 #include "lib_utils/tools.hpp"
 #include "lib_utils/os.hpp"
-#include "lib_ffpp/ffpp.hpp"
+#include "../common/ffpp.hpp"
 #include "../common/libav.hpp"
 
 extern "C" {

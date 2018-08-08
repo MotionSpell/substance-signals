@@ -1,6 +1,6 @@
 #include "gpac_demux_mp4_full.hpp"
 #include <string>
-#include "lib_gpacpp/gpacpp.hpp"
+#include "../common/gpacpp.hpp"
 #include "../common/metadata.hpp"
 
 namespace Modules {

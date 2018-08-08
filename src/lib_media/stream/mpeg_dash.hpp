@@ -1,7 +1,7 @@
 #pragma once
 
 #include "adaptive_streaming_common.hpp"
-#include "lib_gpacpp/gpacpp.hpp"
+#include "../common/gpacpp.hpp"
 #include <vector>
 
 namespace Modules {

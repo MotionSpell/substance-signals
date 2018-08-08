@@ -1,6 +1,6 @@
 #include "gpac_demux_mp4_simple.hpp"
 #include "lib_utils/tools.hpp"
-#include "lib_gpacpp/gpacpp.hpp"
+#include "../common/gpacpp.hpp"
 #include "lib_modules/core/log.hpp" // Debug
 
 namespace Modules {

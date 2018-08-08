@@ -1,6 +1,6 @@
 #include "avcc2annexb.hpp"
 #include "lib_media/common/libav.hpp"
-#include "lib_ffpp/ffpp.hpp"
+#include "../common/ffpp.hpp"
 
 extern "C" {
 #include <libavformat/avformat.h> // av_packet_copy_props

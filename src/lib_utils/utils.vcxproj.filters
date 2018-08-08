@@ -16,12 +16,6 @@
   <ItemGroup>
     <ClInclude Include="log.hpp" />
     <ClInclude Include="tools.hpp" />
-    <ClInclude Include="..\lib_gpacpp\gpacpp.hpp">
-      <Filter>gpacpp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\lib_ffpp\ffpp.hpp">
-      <Filter>ffpp</Filter>
-    </ClInclude>
     <ClInclude Include="format.hpp" />
     <ClInclude Include="profiler.hpp" />
     <ClInclude Include="fifo.hpp" />

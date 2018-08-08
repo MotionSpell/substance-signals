@@ -1,6 +1,6 @@
 #include "libav_encode.hpp"
 #include "lib_utils/tools.hpp"
-#include "lib_ffpp/ffpp.hpp"
+#include "../common/ffpp.hpp"
 #include "../common/pcm.hpp"
 #include "../common/libav.hpp"
 #include <cassert>
