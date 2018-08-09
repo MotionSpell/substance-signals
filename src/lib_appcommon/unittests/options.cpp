@@ -48,17 +48,17 @@ unittest("CmdLineOptions: long names") {
 }
 
 unittest("CmdLineOptions: vector and flag") {
-	std::vector<std::string> values;
+	std::vector<int> values;
 	bool keepGoing = false;
 	CmdLineOptions opt;
-	opt.add("f", "flags", &values);
+	opt.add("v", "value", &values);
 	opt.addFlag("k", "keepGoing", &keepGoing);
 
 	const char* argv[] = {
-		"cmd", "--flags", "red", "green", "blue", "-k"
+		"cmd", "--value", "1", "--value", "3", "-v", "7", "-k"
 	};
 	opt.parse(NELEMENTS(argv), argv);
-	ASSERT_EQUALS(std::vector<std::string>({"red", "green", "blue"}), values);
+	ASSERT_EQUALS(std::vector<int>({1, 3, 7}), values);
 	ASSERT_EQUALS(true, keepGoing);
 }
 

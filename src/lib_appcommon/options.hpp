@@ -26,11 +26,11 @@ static inline void parseValue(std::string& var, ArgQueue& args) {
 	var = safePop(args);
 }
 
-static inline void parseValue(std::vector<std::string>& var, ArgQueue& args) {
-	var.clear();
-	while(!args.empty() && args.front()[0] != '-') {
-		var.push_back(safePop(args));
-	}
+template<typename Element>
+static inline void parseValue(std::vector<Element>& var, ArgQueue& args) {
+	Element e;
+	parseValue(e, args);
+	var.push_back(e);
 }
 
 struct CmdLineOptions {
