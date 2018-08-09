@@ -223,7 +223,6 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 			pipeline->connect(muxer, 0, dasher, numDashInputs);
 
 			if(MP4_MONITOR) {
-				//auto muxer = pipeline->addModule<Mux::LibavMux>("monitor_" + prefix.str(), "mp4");
 				auto cfg = Mp4MuxConfig {"monitor_" + prefix };
 				auto muxer = pipeline->addModuleWithHost<Mux::GPACMuxMP4>(cfg);
 				if (transcode) {
