@@ -10,6 +10,8 @@ extern "C" {
 #include <libswresample/swresample.h>
 }
 
+using namespace Modules;
+
 namespace {
 struct Resampler {
 	Resampler() {
@@ -39,11 +41,7 @@ struct Resampler {
 
 	SwrContext* m_SwrContext;
 };
-}
 
-using namespace Modules;
-
-namespace {
 struct AudioConvert : ModuleS {
 		/*dstFrameSize is the number of output sample - '-1' is same as input*/
 		AudioConvert(IModuleHost* host, const PcmFormat &dstFormat, int64_t dstNumSamples)
