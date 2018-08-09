@@ -13,7 +13,6 @@ struct Video { //FIXME: this can be factorized with other params
 struct Config {
 	std::string input;
 	std::string workingDir = ".";
-	std::string postCommand;
 	std::string id;
 	std::vector<std::string> outputs;
 	std::vector<Video> v;

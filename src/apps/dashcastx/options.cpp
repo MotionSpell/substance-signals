@@ -109,7 +109,6 @@ Config processArgs(int argc, char const* argv[]) {
 		{ VIDEO,    0, "v", "video",              Arg::Video,    "  --video wxh[:b[:t]], -v wxh:b[:t]   \tSet a video resolution and optionally bitrate (enables resize and/or transcoding) and encoder type (supported 0 (software (default)), 1 (QuickSync), 2 (NVEnc)." },
 		{ OPT,      0, "r", "autorotate",         Arg::None,     "  --autorotate,        -r             \tAuto-rotate if the input height is bigger than the width." },
 		{ NONEMPTY, 0, "w", "working-dir",        Arg::NonEmpty, "  --working-dir,       -w             \tSet a working directory." },
-		{ NONEMPTY, 0, "p", "post-cmd",           Arg::NonEmpty, "  --post-cmd,          -p             \tExecute a command when a segment or a manifest are created/updated. Shall contain one '%s' to be replaced by the filename." },
 		{ OPT,      0, "n", "no-watermark",       Arg::None,     "  --no-watermark,      -n             \tRemove the watermark (when applicable)." },
 		{ UNKNOWN,  0, "",  "",                   Arg::None, examples.c_str() },
 		{ 0, 0, 0, 0, 0, 0 }
@@ -173,8 +172,6 @@ Config processArgs(int argc, char const* argv[]) {
 	for (option::Option *o = options[NONEMPTY]; o; o = o->next()) {
 		if (o->desc->shortopt == std::string("w"))
 			opt->workingDir = o->arg;
-		if (o->desc->shortopt == std::string("p"))
-			opt->postCommand = o->arg;
 	}
 
 	return *opt;
