@@ -110,7 +110,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 			auto const metaEnc = safe_cast<const MetadataPktLibavAudio>(metadataEncoder);
 			auto encFmt = toPcmFormat(metaEnc);
 			auto format = PcmFormat(demuxFmt.sampleRate, demuxFmt.numChannels, demuxFmt.layout, encFmt.sampleFormat, (encFmt.numPlanes == 1) ? Interleaved : Planar);
-			return pipeline->add("AudioConvert", nullptr, format, metaEnc->getFrameSize());
+			return pipeline->add("AudioConvert", nullptr, &format, metaEnc->getFrameSize());
 		} else {
 			Log::msg(Info, "[Converter] Found unknown stream");
 			return nullptr;

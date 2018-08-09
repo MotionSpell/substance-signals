@@ -40,7 +40,7 @@ function dashcast_crashtest
   # dashcastx simple crash test
   $BIN/dashcastx.exe \
     -w $tmpDir/dashcastx \
-    $PWD/data/h264.ts 1>/dev/null 2>/dev/null
+    $PWD/data/beepbop.mp4 1>/dev/null 2>/dev/null
 }
 
 function player_crashtest
