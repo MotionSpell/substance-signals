@@ -1,7 +1,7 @@
 #include "lib_pipeline/pipeline.hpp"
 #include "lib_utils/system_clock.hpp"
 #include "lib_utils/os.hpp"
-#include "lib_modules/utils/loader.hpp"
+#include "config.hpp"
 
 // modules
 #include "lib_media/demux/libav_demux.hpp"
@@ -9,7 +9,6 @@
 #include "lib_media/mux/gpac_mux_mp4.hpp"
 #include "lib_media/stream/mpeg_dash.hpp"
 #include "lib_media/utils/regulator.hpp"
-#include "config.hpp"
 
 using namespace Modules;
 using namespace Pipelines;
