@@ -4,12 +4,13 @@
 #include <csignal>
 #include <iostream> // cerr
 
+// user-provided
 extern std::unique_ptr<const IConfig> processArgs(int argc, char const* argv[]);
 extern std::unique_ptr<Pipelines::Pipeline> buildPipeline(const IConfig &config);
-
-static Pipelines::Pipeline *g_Pipeline = nullptr;
 extern const char *g_appName;
 extern const char *g_version;
+
+static Pipelines::Pipeline *g_Pipeline = nullptr;
 
 namespace {
 #ifdef _MSC_VER
