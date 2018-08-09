@@ -11,12 +11,22 @@ struct Video { //FIXME: this can be factorized with other params
 };
 
 struct Config {
-	std::string input, workingDir = ".", postCommand, id;
+	std::string input;
+	std::string workingDir = ".";
+	std::string postCommand;
+	std::string id;
 	std::vector<std::string> outputs;
 	std::vector<Video> v;
-	uint64_t seekTimeInMs = 0, segmentDurationInMs = 2000, timeshiftInSegNum = 0, minUpdatePeriodInMs = 0;
+	uint64_t seekTimeInMs = 0;
+	uint64_t segmentDurationInMs = 2000;
+	uint64_t timeshiftInSegNum = 0;
+	uint64_t minUpdatePeriodInMs = 0;
 	uint32_t minBufferTimeInMs = 0;
 	int64_t astOffset = 0;
-	bool isLive = false, loop = false, ultraLowLatency = false, autoRotate = false, watermark = true;
+	bool isLive = false;
+	bool loop = false;
+	bool ultraLowLatency = false;
+	bool autoRotate = false;
+	bool watermark = true;
 };
 
