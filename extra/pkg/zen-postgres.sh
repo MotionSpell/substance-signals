@@ -7,21 +7,26 @@ function postgres_build {
   # Let the build system regenerate those files, where it can find them aftewards.
   find postgres -name "*.def" -delete
 
+  mkdir -p postgres/build/$host
+  pushDir postgres/build/$host
+
   CFLAGS="-I$PREFIX/include" \
   LDFLAGS="-L$PREFIX/lib -lz" \
   ac_cv_file__dev_urandom=yes \
-  autoconf_build $host "postgres" \
+  ../../configure \
+    --build=$BUILD \
+    --host=$host \
+    --prefix=$PREFIX \
     --without-openssl \
     "--without-readline" \
-    "--with-system-tzdata=/usr/share/zoneinfo" || true
+    "--with-system-tzdata=/usr/share/zoneinfo"
 
-  # Workaround: mingw build always fails the first time,
-  # (w32obj.o not found) but succeeds after resuming.
-  # Ignore the return value of the above "autoconf_build",
-  # and resumt the build ourselves.
-  pushDir postgres/build/$host
-  $MAKE
-  $MAKE install
+  # only build the strict minimum for postgresql client
+  $MAKE -C src/include
+  $MAKE -C src/common
+  $MAKE -C src/interfaces
+  $MAKE -C src/interfaces install
+
   popDir
 }
 
