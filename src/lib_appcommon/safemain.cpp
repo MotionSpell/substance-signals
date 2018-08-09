@@ -55,20 +55,11 @@ static void sigTermHandler(int sig) {
 }
 #endif
 
-void appInfo(int argc, char const* argv[]) {
-	std::string argvs;
-	for (int i = 1; i < argc; ++i) {
-		argvs += " ";
-		argvs += argv[i];
-	}
-	std::cout << format("EXECUTING: %s(%s)%s", g_appName, argv[0], argvs) << std::endl;
-	std::cout << format("BUILD:     %s-%s", g_appName, g_version) << std::endl;
-}
 }
 
 int safeMain(int argc, char const* argv[]) {
 	Tools::Profiler profilerGlobal(g_appName);
-	appInfo(argc, argv);
+	std::cout << format("BUILD:     %s-%s", g_appName, g_version) << std::endl;
 #ifdef _MSC_VER
 	SetConsoleCtrlHandler(signalHandler, TRUE);
 #else
