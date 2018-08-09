@@ -10,6 +10,19 @@ extern const char *g_appName;
 extern const char *g_version;
 
 namespace {
+
+void onInterruption() {
+	static int numSig = 0;
+	numSig++;
+	if (numSig >= 3) {
+		std::cerr << "Caught " << numSig-1 << " signals, hard exit." << std::endl;
+		exit(3);
+	} else {
+		std::cerr << "Caught signal, exiting." << std::endl;
+		safeStop();
+	}
+}
+
 #ifdef _MSC_VER
 static BOOL WINAPI signalHandler(_In_ DWORD dwCtrlType) {
 	switch (dwCtrlType) {
@@ -18,8 +31,7 @@ static BOOL WINAPI signalHandler(_In_ DWORD dwCtrlType) {
 	case CTRL_CLOSE_EVENT:
 	case CTRL_LOGOFF_EVENT:
 	case CTRL_SHUTDOWN_EVENT:
-		printf("Exit event received.\n\n");
-		safeStop();
+		onInterruption();
 		return TRUE;
 	default:
 		return FALSE;
@@ -30,15 +42,7 @@ static void sigTermHandler(int sig) {
 	switch (sig) {
 	case SIGINT:
 	case SIGTERM: {
-		static int numSig = 0;
-		numSig++;
-		if (numSig >= 3) {
-			std::cerr << "Caught " << numSig-1 << " signals, hard exit." << std::endl;
-			exit(3);
-		} else {
-			std::cerr << "Caught signal, exiting." << std::endl;
-			safeStop();
-		}
+		onInterruption();
 	}
 	break;
 	default:
