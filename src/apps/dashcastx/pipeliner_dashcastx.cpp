@@ -17,8 +17,8 @@ extern const char *g_appName;
 
 #define DASH_SUBDIR "dash/"
 
-auto const DEBUG_MONITOR = 0;
-auto const MP4_MONITOR = 0;
+auto const DEBUG_MONITOR = false;
+auto const MP4_MONITOR = false;
 
 #define MAX_GOP_DURATION_IN_MS 2000
 
@@ -77,7 +77,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 				if ((p.frameRate.den % 1001) || ((segmentDurationInMs * p.frameRate.num * 1001) % (1000 * GOPDurationDivisor * p.frameRate.den * 1000)))
 					throw std::runtime_error("GOP size checks failed. Please read previous log messages.");
 			}
-			if (GOPDurationDivisor > 1) Log::msg(Info, "[Encoder] Setting GOP duration to %sms (%s/%s frames)", segmentDurationInMs / GOPDurationDivisor, p.GOPSize.num, p.GOPSize.den);
+			if (GOPDurationDivisor > 1) Log::msg(Info, "[Encoder] Setting GOP duration to %sms (%s frames)", segmentDurationInMs / GOPDurationDivisor, (double)p.GOPSize);
 
 			auto m = pipeline->addModule<Encode::LibavEncode>(Encode::LibavEncode::Video, p);
 			dstFmt.format = p.pixelFormat;
@@ -105,7 +105,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 			Log::msg(Info, "[Converter] Found audio stream");
 			auto const demuxFmt = toPcmFormat(safe_cast<const MetadataPktLibavAudio>(metadataDemux));
 			auto const metaEnc = safe_cast<const MetadataPktLibavAudio>(metadataEncoder);
-			auto encFmt = toPcmFormat(metaEnc);
+			auto const encFmt = toPcmFormat(metaEnc);
 			auto format = PcmFormat(demuxFmt.sampleRate, demuxFmt.numChannels, demuxFmt.layout, encFmt.sampleFormat, (encFmt.numPlanes == 1) ? Interleaved : Planar);
 			return pipeline->add("AudioConvert", nullptr, &format, metaEnc->getFrameSize());
 		} else {
