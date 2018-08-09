@@ -58,6 +58,7 @@ static void sigTermHandler(int sig) {
 
 }
 
+static
 int safeMain(int argc, char const* argv[]) {
 	Tools::Profiler profilerGlobal(g_appName);
 	std::cout << format("BUILD:     %s-%s", g_appName, g_version) << std::endl;
@@ -84,3 +85,13 @@ int safeMain(int argc, char const* argv[]) {
 
 	return 0;
 }
+
+int main(int argc, char const* argv[]) {
+	try {
+		return safeMain(argc, argv);
+	} catch (std::exception const& e) {
+		std::cerr << "[" << g_appName << "] " << "Error: " << e.what() << std::endl;
+		return 1;
+	}
+}
+
