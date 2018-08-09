@@ -189,7 +189,7 @@ struct AudioConvert : ModuleS {
 		std::unique_ptr<Resampler> m_Swr;
 		uint64_t accumulatedTimeInDstSR = 0;
 		OutputPcm *output;
-		bool autoConfigure;
+		const bool autoConfigure;
 
 };
 
