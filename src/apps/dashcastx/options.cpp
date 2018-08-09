@@ -134,8 +134,6 @@ Config processArgs(int argc, char const* argv[]) {
 
 	auto opt = make_unique<Config>();
 	opt->input = parse.nonOption(0);
-	for (int i = 1; i < parse.nonOptionsCount(); ++i)
-		opt->outputs.push_back(parse.nonOption(i));
 	for (option::Option *o = options[OPT]; o; o = o->next()) {
 		if (o->desc->shortopt == std::string("l")) {
 			opt->isLive = true;

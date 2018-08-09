@@ -11,7 +11,6 @@ struct Video { //FIXME: this can be factorized with other params
 struct Config {
 	std::string input;
 	std::string workingDir = ".";
-	std::vector<std::string> outputs;
 	std::vector<Video> v;
 	uint64_t segmentDurationInMs = 2000;
 	uint64_t timeshiftInSegNum = 0;
