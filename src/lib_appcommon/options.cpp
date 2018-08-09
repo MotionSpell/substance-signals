@@ -1,5 +1,6 @@
 #include <iostream>
 #include <stdexcept>
+#include <sstream>
 #include "options.hpp"
 
 std::vector<std::string> CmdLineOptions::parse(int argc, const char* argv[]) {
@@ -44,5 +45,15 @@ void CmdLineOptions::printHelp(std::ostream& out) {
 			s += " ";
 		out << "    " << s << o->desc << std::endl;
 	}
+}
+
+void parseValue(double& var, ArgQueue& args) {
+	std::stringstream ss(safePop(args));
+	ss >> var;
+}
+
+void parseValue(int& var, ArgQueue& args) {
+	std::stringstream ss(safePop(args));
+	ss >> var;
 }
 
