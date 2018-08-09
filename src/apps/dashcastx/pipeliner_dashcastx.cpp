@@ -138,11 +138,11 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 	}
 
 	int numDashInputs = 0;
-	for (int i = 0; i < demux->getNumOutputs(); ++i) {
+	auto processDemuxOutput = [&](const int i) {
 		auto const metadataDemux = safe_cast<const MetadataPktLibav>(demux->getOutputMetadata(i));
 		if (!metadataDemux) {
 			Log::msg(Warning, "[%s] Unknown metadataDemux for stream %s. Ignoring.", g_appName, i);
-			continue;
+			return;
 		}
 
 		auto sourceModule = demux;
@@ -178,11 +178,11 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 				PictureFormat encoderInputPicFmt(outputRes, UNKNOWN_PF);
 				encoder = createEncoder(metadataDemux, opt->ultraLowLatency, (VideoCodecType)opt->v[r].type, encoderInputPicFmt, opt->v[r].bitrate, opt->segmentDurationInMs);
 				if (!encoder)
-					continue;
+					return;
 
 				auto converter = createConverter(metadataDemux, encoder->getOutputMetadata(0), encoderInputPicFmt);
 				if (!converter)
-					continue;
+					return;
 
 				if(DEBUG_MONITOR) {
 					if (metadataDemux->isVideo() && r == 0) {
@@ -233,6 +233,10 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 				}
 			}
 		}
+	};
+
+	for (int i = 0; i < demux->getNumOutputs(); ++i) {
+		processDemuxOutput(i);
 	}
 
 	return pipeline;
