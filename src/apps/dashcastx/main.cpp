@@ -1,6 +1,4 @@
-#include <exception>
 #include <memory>
-#include <iostream>
 #include "lib_appcommon/options.hpp"
 #include "lib_utils/profiler.hpp"
 #include "lib_pipeline/pipeline.hpp"
