@@ -1,16 +1,13 @@
-#include "lib_pipeline/pipeline.hpp"
 #include "lib_utils/profiler.hpp"
-#include "options.hpp"
 #include <csignal>
 #include <iostream> // cerr
 
 // user-provided
-extern std::unique_ptr<const IConfig> processArgs(int argc, char const* argv[]);
-extern std::unique_ptr<Pipelines::Pipeline> buildPipeline(const IConfig &config);
+extern void safeMain(int argc, const char* argv[]);
+extern void safeStop();
+
 extern const char *g_appName;
 extern const char *g_version;
-
-static Pipelines::Pipeline *g_Pipeline = nullptr;
 
 namespace {
 #ifdef _MSC_VER
@@ -22,10 +19,7 @@ static BOOL WINAPI signalHandler(_In_ DWORD dwCtrlType) {
 	case CTRL_LOGOFF_EVENT:
 	case CTRL_SHUTDOWN_EVENT:
 		printf("Exit event received.\n\n");
-		if (g_Pipeline) {
-			g_Pipeline->exitSync();
-			g_Pipeline = nullptr;
-		}
+		safeStop();
 		return TRUE;
 	default:
 		return FALSE;
@@ -43,10 +37,7 @@ static void sigTermHandler(int sig) {
 			exit(3);
 		} else {
 			std::cerr << "Caught signal, exiting." << std::endl;
-			if (g_Pipeline) {
-				g_Pipeline->exitSync();
-				g_Pipeline = nullptr;
-			}
+			safeStop();
 		}
 	}
 	break;
@@ -58,37 +49,21 @@ static void sigTermHandler(int sig) {
 
 }
 
-static
-int safeMain(int argc, char const* argv[]) {
-	Tools::Profiler profilerGlobal(g_appName);
-	std::cout << format("BUILD:     %s-%s", g_appName, g_version) << std::endl;
-#ifdef _MSC_VER
-	SetConsoleCtrlHandler(signalHandler, TRUE);
-#else
-	std::signal(SIGINT, sigTermHandler);
-	std::signal(SIGTERM, sigTermHandler);
-#endif
-
-	auto config = processArgs(argc, argv);
-	auto pipeline = buildPipeline(*config);
-	g_Pipeline = pipeline.get();
-
-	Tools::Profiler profilerProcessing(format("%s - processing time", g_appName));
-	std::cout << g_appName << " - send SIGINT (ctrl-c) to exit cleanly." << std::endl;
-	try {
-		pipeline->start();
-		pipeline->waitForEndOfStream();
-	} catch (std::exception const& e) {
-		std::cerr << "Error: " << e.what() << std::endl;
-	}
-	g_Pipeline = nullptr;
-
-	return 0;
-}
-
 int main(int argc, char const* argv[]) {
 	try {
-		return safeMain(argc, argv);
+		Tools::Profiler profilerGlobal(g_appName);
+		std::cout << "BUILD:     " << g_appName << "-" << g_version << std::endl;
+#ifdef _MSC_VER
+		SetConsoleCtrlHandler(signalHandler, TRUE);
+#else
+		std::signal(SIGINT, sigTermHandler);
+		std::signal(SIGTERM, sigTermHandler);
+#endif
+
+		std::cout << g_appName << " - send SIGINT (ctrl-c) to exit cleanly." << std::endl;
+		safeMain(argc, argv);
+
+		return 0;
 	} catch (std::exception const& e) {
 		std::cerr << "[" << g_appName << "] " << "Error: " << e.what() << std::endl;
 		return 1;
