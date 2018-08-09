@@ -15,7 +15,10 @@ function openssl_build {
     i686-*-gnu)
       openssl_os="linux-x86"
       ;;
-    *-mingw32)
+    x86_64-*-mingw32)
+      openssl_os="mingw64"
+      ;;
+    i686-*-mingw32)
       openssl_os="mingw"
       ;;
     *)
