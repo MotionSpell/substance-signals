@@ -177,7 +177,8 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 			IPipelinedModule *encoder = nullptr;
 			if (transcode) {
 				auto inputRes = metadataDemux->isVideo() ? safe_cast<const MetadataPktLibavVideo>(demux->getOutputMetadata(i))->getResolution() : Resolution();
-				PictureFormat encoderInputPicFmt(autoRotate(autoFit(inputRes, opt->v[r].res), isVertical), UNKNOWN_PF);
+				auto const outputRes = autoRotate(autoFit(inputRes, opt->v[r].res), isVertical);
+				PictureFormat encoderInputPicFmt(outputRes, UNKNOWN_PF);
 				encoder = createEncoder(metadataDemux, opt->ultraLowLatency, (VideoCodecType)opt->v[r].type, encoderInputPicFmt, opt->v[r].bitrate, opt->segmentDurationInMs);
 				if (!encoder)
 					continue;
@@ -198,8 +199,8 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 			}
 
 			std::string prefix;
-			Resolution reso;
 			if (metadataDemux->isVideo()) {
+				Resolution reso;
 				auto const resolutionFromDemux = safe_cast<const MetadataPktLibavVideo>(demux->getOutputMetadata(i))->getResolution();
 				if (transcode) {
 					reso = autoFit(resolutionFromDemux, opt->v[r].res);
@@ -225,12 +226,13 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 			pipeline->connect(muxer, 0, dasher, numDashInputs);
 
 			if(MP4_MONITOR) {
-				//auto muxermp4 = pipeline->addModule<Mux::LibavMux>("monitor_" + prefix.str(), "mp4");
-				auto muxermp4 = pipeline->addModuleWithHost<Mux::GPACMuxMP4>(Mp4MuxConfig{"monitor_" + prefix});
+				//auto muxer = pipeline->addModule<Mux::LibavMux>("monitor_" + prefix.str(), "mp4");
+				auto cfg = Mp4MuxConfig {"monitor_" + prefix };
+				auto muxer = pipeline->addModuleWithHost<Mux::GPACMuxMP4>(cfg);
 				if (transcode) {
-					connect(encoder, muxermp4);
+					connect(encoder, muxer);
 				} else {
-					pipeline->connect(sourceModule, sourcePin, muxermp4, 0);
+					pipeline->connect(sourceModule, sourcePin, muxer, 0);
 				}
 			}
 		}
