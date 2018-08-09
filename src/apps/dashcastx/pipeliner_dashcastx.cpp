@@ -215,7 +215,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 			if (!dirExists(subdir))
 				mkdir(subdir);
 
-			auto muxer = pipeline->addModuleWithHost<Mux::GPACMuxMP4>(Mp4MuxConfig{subdir + prefix, opt->segmentDurationInMs, FragmentedSegment, opt->ultraLowLatency ? OneFragmentPerFrame : OneFragmentPerSegment});
+			auto muxer = pipeline->addModuleWithHost<Mux::GPACMuxMP4>(Mp4MuxConfig{subdir + prefix, (uint64_t)opt->segmentDurationInMs, FragmentedSegment, opt->ultraLowLatency ? OneFragmentPerFrame : OneFragmentPerSegment});
 			if (transcode) {
 				connect(encoder, muxer);
 			} else {

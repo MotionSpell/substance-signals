@@ -12,11 +12,12 @@ struct Config {
 	std::string input;
 	std::string workingDir = ".";
 	std::vector<Video> v;
-	uint64_t segmentDurationInMs = 2000;
-	uint64_t timeshiftInSegNum = 0;
+	int segmentDurationInMs = 2000;
+	int timeshiftInSegNum = 0;
 	bool isLive = false;
 	bool loop = false;
 	bool ultraLowLatency = false;
 	bool autoRotate = false;
+	bool help = false;
 };
 

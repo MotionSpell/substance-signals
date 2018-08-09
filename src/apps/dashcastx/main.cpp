@@ -12,6 +12,8 @@ static Pipelines::Pipeline *g_Pipeline = nullptr;
 
 void safeMain(int argc, const char* argv[]) {
 	auto config = processArgs(argc, argv);
+	if(config.help)
+		return;
 	auto pipeline = buildPipeline(config);
 	g_Pipeline = pipeline.get();
 
