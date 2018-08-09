@@ -1,11 +1,11 @@
 #include <vector>
 #include <algorithm> // is_sorted
 #include "tests/tests.hpp"
+#include "lib_modules/utils/loader.hpp"
 #include "lib_modules/core/data.hpp"
 #include "lib_modules/core/connection.hpp"
 #include "lib_media/common/metadata.hpp"
 #include "lib_media/demux/libav_demux.hpp"
-#include "lib_media/decode/decoder.hpp"
 
 using namespace Tests;
 using namespace Modules;
@@ -19,7 +19,7 @@ unittest("LibavDemux => Decoder: output media times must increase") {
 	};
 
 	auto demux = create<Demux::LibavDemux>(&NullHost, "data/h264.ts");
-	auto decoder = create<Decode::Decoder>(VIDEO_PKT);
+	auto decoder = loadModule("Decoder", &NullHost, VIDEO_PKT);
 	ConnectOutputToInput(demux->getOutput(0), decoder->getInput(0));
 	ConnectOutput(decoder.get(), onPic);
 

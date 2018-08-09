@@ -1,9 +1,9 @@
 #include "tests/tests.hpp"
 #include "lib_modules/modules.hpp"
+#include "lib_modules/utils/loader.hpp"
 #include "lib_modules/core/data_utc.hpp"
 #include <stdexcept>
 #include "lib_media/demux/libav_demux.hpp"
-#include "lib_media/decode/decoder.hpp"
 #include "lib_media/encode/libav_encode.hpp"
 #include "lib_media/mux/gpac_mux_mp4.hpp"
 #include "lib_media/stream/apple_hls.hpp"
@@ -631,21 +631,21 @@ static const std::vector<Meta> ref = {
 //TODO: test LiveNonBlocking
 //#define TEST_DASH_TIMELINE //FIXME: DASH segment timeline requires segments to be owned.
 #ifdef _MSC_VER
-unittest("adaptive streaming combination coverage")
+unittest("[DISABLED] adaptive streaming combination coverage")
 #else
 unittest("[DISABLED] adaptive streaming combination coverage")
 #endif
 {
 	auto const segmentDurationInMs = 2000;
 	Modules::absUTCOffsetInMs = 1000000;
-	std::vector<std::unique_ptr<Decode::Decoder>> decode;
-	std::vector<std::unique_ptr<Encode::LibavEncode>> encode;
+	std::vector<std::shared_ptr<IModule>> decode;
+	std::vector<std::unique_ptr<IModule>> encode;
 
-	std::vector<std::unique_ptr<Mux::GPACMuxMP4>> muxMP4File, muxMP4Mem, muxMP4MemFlushFrags;
+	std::vector<std::unique_ptr<IModule>> muxMP4File, muxMP4Mem, muxMP4MemFlushFrags;
 	auto muxTSSeg = create<Stream::LibavMuxHLSTS>(segmentDurationInMs, "", "muxTSSeg_", format("-hls_time %s -hls_playlist_type event", segmentDurationInMs / 1000));
 
 	auto hls_ts = create<Stream::Apple_HLS>("", "hls_ts.m3u8", Stream::AdaptiveStreamingCommon::Live, segmentDurationInMs, 0, false, Stream::AdaptiveStreamingCommon::SegmentsNotOwned | Stream::AdaptiveStreamingCommon::PresignalNextSegment | Stream::AdaptiveStreamingCommon::ForceRealDurations);
-	std::vector<std::unique_ptr<Stream::AdaptiveStreamingCommon>> hls_mp4, dash, dashTimeline;
+	std::vector<std::unique_ptr<IModule>> hls_mp4, dash, dashTimeline;
 	for (auto i = 0; i < 3; ++i) {
 		hls_mp4.push_back(create<Stream::Apple_HLS>("", "hls_mp4.m3u8", Stream::AdaptiveStreamingCommon::Live, segmentDurationInMs, 0, true, Stream::AdaptiveStreamingCommon::SegmentsNotOwned | Stream::AdaptiveStreamingCommon::PresignalNextSegment | Stream::AdaptiveStreamingCommon::ForceRealDurations));
 		dash.push_back(create<Stream::MPEG_DASH>("", "dash.mpd", Stream::AdaptiveStreamingCommon::Live, segmentDurationInMs, 0, segmentDurationInMs, 0, std::vector<std::string>(), "id", 0, Stream::AdaptiveStreamingCommon::SegmentsNotOwned | Stream::AdaptiveStreamingCommon::PresignalNextSegment | Stream::AdaptiveStreamingCommon::ForceRealDurations));
@@ -658,7 +658,7 @@ unittest("[DISABLED] adaptive streaming combination coverage")
 	for (int i = 0; i < demux->getNumOutputs(); ++i) {
 		std::string prefix;
 		if (demux->getOutput(i)->getMetadata()->isVideo()) {
-			decode.push_back(create<Decode::Decoder>(VIDEO_PKT));
+			decode.push_back(loadModule("Decoder", &NullHost, VIDEO_PKT));
 			Encode::LibavEncode::Params p;
 			auto const metaVideo = safe_cast<const MetadataPktLibavVideo>(demux->getOutput(i)->getMetadata());
 			p.res = metaVideo->getResolution();
@@ -666,7 +666,7 @@ unittest("[DISABLED] adaptive streaming combination coverage")
 			encode.push_back(create<Encode::LibavEncode>(Encode::LibavEncode::Video, p));
 			prefix = Stream::AdaptiveStreamingCommon::getCommonPrefixVideo(i, p.res);
 		} else if (demux->getOutput(i)->getMetadata()->isAudio()) {
-			decode.push_back(create<Decode::Decoder>(AUDIO_PKT));
+			decode.push_back(loadModule("Decoder", &NullHost, AUDIO_PKT));
 			Encode::LibavEncode::Params p;
 			auto const metaAudio = safe_cast<const MetadataPktLibavAudio>(demux->getOutput(i)->getMetadata());
 			p.numChannels = metaAudio->getNumChannels();

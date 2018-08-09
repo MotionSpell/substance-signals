@@ -1,4 +1,7 @@
-#include "decoder.hpp"
+#include "lib_modules/core/log.hpp"
+#include "lib_modules/utils/factory.hpp" // registerModule
+#include "../common/metadata.hpp"
+#include "../common/picture_allocator.hpp"
 #include "../common/pcm.hpp"
 #include "../common/libav.hpp"
 #include "../common/ffpp.hpp"
@@ -9,11 +12,35 @@ extern "C" {
 #include <libavcodec/avcodec.h> // avcodec_open2
 }
 
-namespace Modules {
-namespace Decode {
+using namespace Modules;
 
-Decoder::Decoder(StreamType type)
-	: avFrame(new ffpp::Frame) {
+namespace {
+
+class Decoder : public ModuleS, private PictureAllocator, private LogCap {
+public:
+	Decoder(IModuleHost* host, StreamType type);
+	~Decoder();
+	void process(Data data) override;
+	void flush() override;
+
+private:
+	void openDecoder(const MetadataPkt* metadata);
+	void processPacket(AVPacket const * pkt);
+	std::shared_ptr<DataBase> processAudio();
+	std::shared_ptr<DataBase> processVideo();
+	void setMediaTime(DataBase* data);
+	PictureAllocator::PictureContext* getPicture(Resolution res, Resolution resInternal, PixelFormat format) override;
+
+	IModuleHost* const m_host;
+	std::shared_ptr<AVCodecContext> codecCtx;
+	std::unique_ptr<ffpp::Frame> const avFrame;
+	OutputPicture *videoOutput = nullptr;
+	OutputPcm *audioOutput = nullptr;
+	std::function<std::shared_ptr<DataBase>(void)> getDecompressedData;
+};
+
+Decoder::Decoder(IModuleHost* host, StreamType type)
+	: m_host(host), avFrame(new ffpp::Frame) {
 	createInput(this);
 
 	if(type == VIDEO_PKT) {
@@ -66,7 +93,6 @@ Decoder::~Decoder() {
 }
 
 std::shared_ptr<DataBase> Decoder::processAudio() {
-
 	auto out = audioOutput->getBuffer(0);
 	PcmFormat pcmFormat;
 	libavFrame2pcmConvert(avFrame->get(), &pcmFormat);
@@ -154,9 +180,16 @@ void Decoder::processPacket(AVPacket const * pkt) {
 }
 
 void Decoder::flush() {
-	if(codecCtx.get())
+	if (codecCtx.get())
 		processPacket(nullptr);
 }
 
+Modules::IModule* createObject(IModuleHost* host, va_list va) {
+	auto type = (StreamType)va_arg(va, int);
+	enforce(host, "Decoder: host can't be NULL");
+	return Modules::create<Decoder>(host, type).release();
 }
+
+auto const registered = registerModule("Decoder", &createObject);
+
 }

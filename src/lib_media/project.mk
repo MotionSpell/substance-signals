@@ -6,7 +6,6 @@ LIB_MEDIA_SRCS:=\
   $(MYDIR)/common/gpac.cpp\
   $(MYDIR)/common/picture.cpp\
   $(MYDIR)/common/iso8601.cpp\
-  $(MYDIR)/decode/decoder.cpp\
   $(MYDIR)/demux/gpac_demux_mp4_simple.cpp\
   $(MYDIR)/demux/gpac_demux_mp4_full.cpp\
   $(MYDIR)/demux/libav_demux.cpp\
@@ -89,6 +88,15 @@ $(BIN)/JPEGTurboEncode.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
 $(BIN)/JPEGTurboEncode.smd: CFLAGS+=$(MEDIA_CFLAGS)
 $(BIN)/JPEGTurboEncode.smd: \
   $(BIN)/$(SRC)/lib_media/encode/jpegturbo_encode.cpp.o\
+  $(BIN)/$(SRC)/lib_media/common/picture.cpp.o\
+
+#------------------------------------------------------------------------------
+TARGETS+=$(BIN)/Decoder.smd
+$(BIN)/Decoder.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
+$(BIN)/Decoder.smd: CFLAGS+=$(MEDIA_CFLAGS)
+$(BIN)/Decoder.smd: \
+  $(BIN)/$(SRC)/lib_media/decode/decoder.cpp.o\
+  $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
   $(BIN)/$(SRC)/lib_media/common/picture.cpp.o\
 
 #------------------------------------------------------------------------------

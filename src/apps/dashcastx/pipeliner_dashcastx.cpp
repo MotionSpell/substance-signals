@@ -6,7 +6,6 @@
 #include "lib_modules/utils/loader.hpp"
 
 // modules
-#include "lib_media/decode/decoder.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/encode/libav_encode.hpp"
 #include "lib_media/stream/mpeg_dash.hpp"
@@ -161,7 +160,7 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 
 		IPipelinedModule *decode = nullptr;
 		if (transcode) {
-			decode = pipeline->addModule<Decode::Decoder>(metadataDemux->type);
+			decode = pipeline->add("Decoder", metadataDemux->type);
 			pipeline->connect(sourceModule, sourcePin, decode, 0);
 
 			if (metadataDemux->isVideo() && opt->autoRotate) {

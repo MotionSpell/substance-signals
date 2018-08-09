@@ -2,7 +2,6 @@
 #include "lib_modules/modules.hpp"
 #include "lib_modules/utils/loader.hpp"
 #include "lib_media/common/libav.hpp"
-#include "lib_media/decode/decoder.hpp"
 #include "lib_media/encode/libav_encode.hpp"
 #include "lib_media/in/file.hpp"
 #include "lib_media/out/null.hpp"
@@ -67,13 +66,14 @@ unittest("decoder: audio simple") {
 		int frameCount = 0;
 	};
 
-	auto decode = create<Decode::Decoder>(AUDIO_PKT);
+	auto decode = loadModule("Decoder", &NullHost, AUDIO_PKT);
 	auto rec = create<FrameCounter>();
 	ConnectOutputToInput(decode->getOutput(0), rec->getInput(0));
 
 	for(int i=0; i < 3; ++i) {
 		auto frame = getTestMp3Frame();
-		decode->process(frame);
+		decode->getInput(0)->push(frame);
+		decode->process();
 	}
 	decode->flush();
 
@@ -91,14 +91,15 @@ unittest("decoder: timestamp propagation") {
 		std::vector<int64_t> mediaTimes;
 	};
 
-	auto decode = create<Decode::Decoder>(AUDIO_PKT);
+	auto decode = loadModule("Decoder", &NullHost, AUDIO_PKT);
 	auto rec = create<FrameCounter>();
 	ConnectOutputToInput(decode->getOutput(0), rec->getInput(0));
 
 	for(int i=0; i < 5; ++i) {
 		auto frame = getTestMp3Frame();
 		frame->setMediaTime(i);
-		decode->process(frame);
+		decode->getInput(0)->push(frame);
+		decode->process();
 	}
 	decode->flush();
 
@@ -132,7 +133,7 @@ std::shared_ptr<DataBase> getTestH264Frame() {
 }
 
 unittest("decoder: video simple") {
-	auto decode = create<Decode::Decoder>(VIDEO_PKT);
+	auto decode = loadModule("Decoder", &NullHost, VIDEO_PKT);
 	auto data = getTestH264Frame();
 
 	std::vector<std::string> actualFrames;
@@ -154,14 +155,16 @@ unittest("decoder: video simple") {
 	});
 
 	ConnectOutput(decode.get(), onPic);
-	decode->process(data);
-	decode->process(data);
+	decode->getInput(0)->push(data);
+	decode->process();
+	decode->getInput(0)->push(data);
+	decode->process();
 	decode->flush();
 	ASSERT_EQUALS(expectedFrames, actualFrames);
 }
 
 unittest("decoder: destroy without flushing") {
-	auto decode = create<Decode::Decoder>(VIDEO_PKT);
+	auto decode = loadModule("Decoder", &NullHost, VIDEO_PKT);
 
 	int picCount = 0;
 	auto onPic = [&](Data) {
@@ -169,12 +172,13 @@ unittest("decoder: destroy without flushing") {
 	};
 
 	ConnectOutput(decode.get(), onPic);
-	decode->process(getTestH264Frame());
+	decode->getInput(0)->push(getTestH264Frame());
+	decode->process();
 	ASSERT_EQUALS(0, picCount);
 }
 
 unittest("decoder: flush without feeding") {
-	auto decode = create<Decode::Decoder>(VIDEO_PKT);
+	auto decode = loadModule("Decoder", &NullHost, VIDEO_PKT);
 
 	int picCount = 0;
 	auto onPic = [&](Data) {
@@ -187,7 +191,7 @@ unittest("decoder: flush without feeding") {
 }
 
 unittest("decoder: audio mp3 manual frame to AAC") {
-	auto decode = create<Decode::Decoder>(AUDIO_PKT);
+	auto decode = loadModule("Decoder", &NullHost, AUDIO_PKT);
 	auto encoder = create<Encode::LibavEncode>(Encode::LibavEncode::Audio);
 
 	ConnectOutputToInput(decode->getOutput(0), encoder->getInput(0));
@@ -195,11 +199,12 @@ unittest("decoder: audio mp3 manual frame to AAC") {
 	auto frame = getTestMp3Frame();
 
 	ScopedLogLevel lev(Quiet);
-	ASSERT_THROWN(decode->process(frame));
+	decode->getInput(0)->push(frame);
+	ASSERT_THROWN(decode->process());
 }
 
 unittest("decoder: audio mp3 to converter to AAC") {
-	auto decoder = create<Decode::Decoder>(AUDIO_PKT);
+	auto decoder = loadModule("Decoder", &NullHost, AUDIO_PKT);
 	auto encoder = create<Encode::LibavEncode>(Encode::LibavEncode::Audio);
 
 	auto const dstFormat = PcmFormat(44100, 2, AudioLayout::Stereo, AudioSampleFormat::F32, AudioStruct::Planar);
@@ -212,7 +217,8 @@ unittest("decoder: audio mp3 to converter to AAC") {
 	ConnectOutputToInput(converter->getOutput(0), encoder->getInput(0));
 
 	auto frame = getTestMp3Frame();
-	decoder->process(frame);
+	decoder->getInput(0)->push(frame);
+	decoder->process();
 	decoder->flush();
 	converter->flush();
 	encoder->flush();

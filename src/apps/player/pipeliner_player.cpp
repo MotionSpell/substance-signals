@@ -1,5 +1,6 @@
 #include "pipeliner_player.hpp"
 #include "lib_pipeline/pipeline.hpp"
+#include "lib_modules/utils/loader.hpp"
 
 // modules
 #include "lib_media/demux/dash_demux.hpp"
@@ -7,7 +8,6 @@
 #include "lib_media/in/mpeg_dash_input.hpp"
 #include "lib_media/in/video_generator.hpp"
 #include "lib_media/out/null.hpp"
-#include "lib_media/decode/decoder.hpp"
 
 using namespace Modules;
 using namespace Pipelines;
@@ -67,7 +67,7 @@ void declarePipeline(Config cfg, Pipeline &pipeline, const char *url) {
 		int avPin = k;
 
 		if(metadata->type != VIDEO_RAW) {
-			auto decode = pipeline.addModule<Decode::Decoder>(metadata->type);
+			auto decode = pipeline.add("Decoder", metadata->type);
 			pipeline.connect(demuxer, k, decode, 0);
 			avSource = decode;
 			avPin = 0;
