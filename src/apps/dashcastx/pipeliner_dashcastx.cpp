@@ -1,5 +1,4 @@
 #include "lib_pipeline/pipeline.hpp"
-#include "lib_appcommon/pipeliner.hpp"
 #include "lib_utils/system_clock.hpp"
 #include <sstream>
 #include "lib_utils/os.hpp"
@@ -11,6 +10,8 @@
 #include "lib_media/stream/mpeg_dash.hpp"
 #include "lib_media/mux/gpac_mux_mp4.hpp"
 #include "lib_media/utils/regulator.hpp"
+
+#include "config.hpp"
 
 using namespace Modules;
 using namespace Pipelines;
@@ -24,8 +25,8 @@ auto const MP4_MONITOR = 0;
 
 #define MAX_GOP_DURATION_IN_MS 2000
 
-std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
-	auto opt = safe_cast<const AppOptions>(&config);
+std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
+	auto opt = &config;
 	auto pipeline = make_unique<Pipeline>(opt->ultraLowLatency, opt->ultraLowLatency ? Pipeline::Mono : Pipeline::OnePerModule);
 
 	auto connect = [&](auto src, auto dst) {

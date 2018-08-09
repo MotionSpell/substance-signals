@@ -5,6 +5,7 @@
 #include "lib_appcommon/options.hpp"
 #include "lib_utils/format.hpp"
 #include "lib_utils/tools.hpp"
+#include "config.hpp"
 
 extern const char *g_appName;
 
@@ -83,7 +84,7 @@ void printDetectedOptions(option::Parser &parse, option::Option * const options)
 
 }
 
-std::unique_ptr<const IConfig> processArgs(int argc, char const* argv[]) {
+Config processArgs(int argc, char const* argv[]) {
 	auto const usage0 = format("Usage: %s [options] <URL>\n\nOptions:", g_appName);
 	auto const examples = format(
 	        "\nExamples:\n"
@@ -132,7 +133,7 @@ std::unique_ptr<const IConfig> processArgs(int argc, char const* argv[]) {
 
 	printDetectedOptions(parse, options.get());
 
-	auto opt = make_unique<AppOptions>();
+	auto opt = make_unique<Config>();
 	opt->input = parse.nonOption(0);
 	for (int i = 1; i < parse.nonOptionsCount(); ++i)
 		opt->outputs.push_back(parse.nonOption(i));
@@ -176,5 +177,5 @@ std::unique_ptr<const IConfig> processArgs(int argc, char const* argv[]) {
 			opt->postCommand = o->arg;
 	}
 
-	return std::move(opt);
+	return *opt;
 }
