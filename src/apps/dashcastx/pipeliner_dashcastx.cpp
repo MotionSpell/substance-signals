@@ -136,7 +136,7 @@ std::unique_ptr<Pipeline> buildPipeline(const IConfig &config) {
 	if (!transcode) {
 		Log::msg(Warning, "[%s] No transcode. Make passthru.", g_appName);
 		if (opt->autoRotate)
-			throw std::runtime_error(format("cannot autorotate when transcoding is disabled", DASH_SUBDIR));
+			throw std::runtime_error("cannot autorotate when transcoding is disabled");
 	}
 
 	int numDashInputs = 0;
