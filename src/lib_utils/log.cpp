@@ -96,7 +96,8 @@ std::string getColorEnd(Level /*level*/) {
 	return "";
 }
 
-Level parseLogLevel(std::string level) {
+Level parseLogLevel(const char* slevel) {
+	auto level = std::string(slevel);
 	if (level == "error") {
 		return Error;
 	} else if (level == "warning") {
