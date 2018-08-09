@@ -1,4 +1,4 @@
-#include "lib_modules/core/log.hpp"
+#include "lib_utils/log.hpp"
 #include "lib_modules/utils/factory.hpp" // registerModule
 #include "../common/metadata.hpp"
 #include "../common/picture_allocator.hpp"
@@ -16,7 +16,7 @@ using namespace Modules;
 
 namespace {
 
-class Decoder : public ModuleS, private PictureAllocator, private LogCap {
+class Decoder : public ModuleS, private PictureAllocator {
 	public:
 		Decoder(IModuleHost* host, StreamType type);
 		~Decoder();
@@ -160,7 +160,7 @@ void Decoder::processPacket(AVPacket const * pkt) {
 
 	ret = avcodec_send_packet(codecCtx.get(), pkt);
 	if (ret < 0) {
-		log(Warning, "Decoding error: %s", avStrError(ret));
+		m_host->log(Warning, format("Decoding error: %s", avStrError(ret)).c_str());
 		return;
 	}
 
@@ -170,7 +170,7 @@ void Decoder::processPacket(AVPacket const * pkt) {
 			break; // no more frames
 
 		if (avFrame->get()->decode_error_flags || (avFrame->get()->flags & AV_FRAME_FLAG_CORRUPT)) {
-			log(Error, "Corrupted frame decoded");
+			m_host->log(Error, "Corrupted frame decoded");
 		}
 
 		auto data = getDecompressedData();
