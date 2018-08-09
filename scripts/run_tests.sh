@@ -38,7 +38,7 @@ function run_test
 function dashcast_crashtest
 {
   # dashcastx simple crash test
-  $BIN/src/apps/dashcastx/dashcastx.exe \
+  $BIN/dashcastx.exe \
     -w $tmpDir/dashcastx \
     $PWD/data/h264.ts 1>/dev/null 2>/dev/null
 }

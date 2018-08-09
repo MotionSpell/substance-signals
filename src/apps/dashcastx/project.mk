@@ -1,16 +1,16 @@
 MYDIR=$(call get-my-dir)
-OUTDIR:=$(BIN)/$(MYDIR)
-TARGET:=$(OUTDIR)/$(notdir $(MYDIR)).exe
-TARGETS+=$(TARGET)
+
 EXE_DASHCASTX_SRCS:=\
+	$(MYDIR)/main.cpp\
+	$(MYDIR)/pipeliner_dashcastx.cpp\
+	$(MYDIR)/options.cpp\
+	$(MYDIR)/../../lib_appcommon/safemain.cpp\
 	$(LIB_MEDIA_SRCS)\
 	$(LIB_MODULES_SRCS)\
 	$(LIB_PIPELINE_SRCS)\
 	$(LIB_UTILS_SRCS)\
 	$(LIB_APPCOMMON_SRCS)\
-	$(MYDIR)/../../lib_appcommon/safemain.cpp\
-	$(MYDIR)/main.cpp\
-	$(MYDIR)/options.cpp\
-	$(MYDIR)/pipeliner_dashcastx.cpp\
 
-$(TARGET): $(EXE_DASHCASTX_SRCS:%=$(BIN)/%.o)
+$(BIN)/dashcastx.exe: $(EXE_DASHCASTX_SRCS:%=$(BIN)/%.o)
+TARGETS+=$(BIN)/dashcastx.exe
+
