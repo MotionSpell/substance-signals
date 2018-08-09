@@ -161,12 +161,13 @@ Config processArgs(int argc, char const* argv[]) {
 		}
 	}
 	if (options[VIDEO].first()->desc && options[VIDEO].first()->desc->shortopt == std::string("v")) {
-		unsigned w=0, h=0, bitrate=0, type=0;
+		unsigned w=0, h=0, type=0;
+		int bitrate = 0;
 		for (option::Option* o = options[VIDEO]; o; o = o->next()) {
 			auto const parsed = sscanf(o->arg, "%ux%u:%u:%u", &w, &h, &bitrate, &type);
 			if (parsed < 2) /*bitrate is optional*/
 				throw std::runtime_error("Internal error while retrieving resolution.");
-			opt->v.push_back(Video(Resolution(w, h), bitrate, type));
+			opt->v.push_back(Video{Resolution(w, h), bitrate, (int)type});
 		}
 	}
 	for (option::Option *o = options[NONEMPTY]; o; o = o->next()) {

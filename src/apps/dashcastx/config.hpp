@@ -3,8 +3,6 @@
 #include "lib_utils/resolution.hpp"
 
 struct Video { //FIXME: this can be factorized with other params
-	Video(Resolution res, int bitrate, int type)
-		: res(res), bitrate(bitrate), type(type) {}
 	Resolution res;
 	int bitrate;
 	int type;
