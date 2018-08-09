@@ -64,7 +64,6 @@ int main(int argc, char const* argv[]) {
 		std::signal(SIGTERM, sigTermHandler);
 #endif
 
-		std::cout << g_appName << " - send SIGINT (ctrl-c) to exit cleanly." << std::endl;
 		safeMain(argc, argv);
 
 		return 0;
