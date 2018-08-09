@@ -109,7 +109,6 @@ Config processArgs(int argc, char const* argv[]) {
 		{ VIDEO,    0, "v", "video",              Arg::Video,    "  --video wxh[:b[:t]], -v wxh:b[:t]   \tSet a video resolution and optionally bitrate (enables resize and/or transcoding) and encoder type (supported 0 (software (default)), 1 (QuickSync), 2 (NVEnc)." },
 		{ OPT,      0, "r", "autorotate",         Arg::None,     "  --autorotate,        -r             \tAuto-rotate if the input height is bigger than the width." },
 		{ NONEMPTY, 0, "w", "working-dir",        Arg::NonEmpty, "  --working-dir,       -w             \tSet a working directory." },
-		{ OPT,      0, "n", "no-watermark",       Arg::None,     "  --no-watermark,      -n             \tRemove the watermark (when applicable)." },
 		{ UNKNOWN,  0, "",  "",                   Arg::None, examples.c_str() },
 		{ 0, 0, 0, 0, 0, 0 }
 	};
@@ -146,9 +145,6 @@ Config processArgs(int argc, char const* argv[]) {
 		}
 		if (o->desc->shortopt == std::string("r")) {
 			opt->autoRotate = true;
-		}
-		if (o->desc->shortopt == std::string("n")) {
-			opt->watermark = false;
 		}
 	}
 	if (options[NUMERIC].first()->desc) {

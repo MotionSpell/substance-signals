@@ -18,6 +18,5 @@ struct Config {
 	bool loop = false;
 	bool ultraLowLatency = false;
 	bool autoRotate = false;
-	bool watermark = true;
 };
 
