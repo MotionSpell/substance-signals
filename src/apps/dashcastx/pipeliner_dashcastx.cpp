@@ -21,27 +21,27 @@ auto const MP4_MONITOR = false;
 
 #define MAX_GOP_DURATION_IN_MS 2000
 
+Resolution autoFit(Resolution input, Resolution output) {
+	if (input == Resolution())
+		return output;
+	if (output.width == -1) {
+		assert((input.width * output.height % input.height) == 0); //TODO: add SAR at the DASH level to handle rounding errors
+		Resolution oRes((input.width * output.height) / input.height, output.height);
+		Log::msg(Info, "[autoFit] Switched resolution from -1x%s to %sx%s", input.height, oRes.width, oRes.height);
+		return oRes;
+	} else if (output.height == -1) {
+		assert((input.height * output.width % input.width) == 0); //TODO: add SAR at the DASH level to handle rounding errors
+		Resolution oRes(output.width, (input.height * output.width) / input.width);
+		Log::msg(Info, "[autoFit] Switched resolution from %sx-1 to %sx%s", input.width, oRes.width, oRes.height);
+		return oRes;
+	} else {
+		return output;
+	}
+};
+
 std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 	auto opt = &config;
 	auto pipeline = make_unique<Pipeline>(opt->ultraLowLatency, opt->ultraLowLatency ? Pipeline::Mono : Pipeline::OnePerModule);
-
-	auto autoFit = [&](const Resolution &input, const Resolution &output)->Resolution {
-		if (input == Resolution()) {
-			return output;
-		} else if (output.width == -1) {
-			assert((input.width * output.height % input.height) == 0); //TODO: add SAR at the DASH level to handle rounding errors
-			Resolution oRes((input.width * output.height) / input.height, output.height);
-			Log::msg(Info, "[autoFit] Switched resolution from -1x%s to %sx%s", input.height, oRes.width, oRes.height);
-			return oRes;
-		} else if (output.height == -1) {
-			assert((input.height * output.width % input.width) == 0); //TODO: add SAR at the DASH level to handle rounding errors
-			Resolution oRes(output.width, (input.height * output.width) / input.width);
-			Log::msg(Info, "[autoFit] Switched resolution from %sx-1 to %sx%s", input.width, oRes.width, oRes.height);
-			return oRes;
-		} else {
-			return output;
-		}
-	};
 
 	auto autoRotate = [&](const Resolution &res, bool verticalize)->Resolution {
 		if (verticalize && res.height < res.width) {
