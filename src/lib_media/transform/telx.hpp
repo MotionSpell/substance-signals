@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <memory>
+#include <sstream>
 #include "telx_tables.hpp"
 #include "telx_structs.hpp"
 #include "lib_utils/log.hpp"

@@ -1,4 +1,5 @@
 #include "gpac_mux_mp4_mss.hpp"
+#include <sstream>
 
 extern "C" {
 #include <gpac/isomedia.h>

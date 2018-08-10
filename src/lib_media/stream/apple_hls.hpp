@@ -8,6 +8,7 @@
 #include <lib_modules/utils/helper.hpp>
 #include <lib_modules/core/data_utc.hpp>
 #include <vector>
+#include <sstream>
 
 namespace Modules {
 namespace Stream {

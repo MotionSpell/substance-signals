@@ -3,6 +3,7 @@
 #include "../common/libav.hpp"
 #include <cassert>
 #include <string>
+#include <sstream>
 
 extern "C" {
 #include <libavformat/avformat.h> // AVOutputFormat

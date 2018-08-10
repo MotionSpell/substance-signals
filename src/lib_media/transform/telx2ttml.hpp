@@ -4,6 +4,7 @@
 #include "lib_modules/utils/helper.hpp"
 #include "../common/libav.hpp"
 #include <vector>
+#include <iosfwd> // stringstream
 
 namespace Modules {
 namespace Transform {

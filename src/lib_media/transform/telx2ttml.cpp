@@ -2,6 +2,7 @@
 #include "telx2ttml.hpp"
 #include "telx.hpp"
 #include "lib_utils/time.hpp"
+#include <sstream>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
