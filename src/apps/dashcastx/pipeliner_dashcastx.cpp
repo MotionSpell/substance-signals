@@ -21,6 +21,16 @@ auto const MP4_MONITOR = false;
 
 #define MAX_GOP_DURATION_IN_MS 2000
 
+Resolution autoRotate(Resolution res, bool verticalize) {
+	if (verticalize && res.height < res.width) {
+		Resolution oRes(res.height, res.height);
+		Log::msg(Info, "[autoRotate] Switched resolution from %sx%s to %sx%s", res.width, res.height, oRes.width, oRes.height);
+		return oRes;
+	} else {
+		return res;
+	}
+};
+
 Resolution autoFit(Resolution input, Resolution output) {
 	if (input == Resolution())
 		return output;
@@ -42,16 +52,6 @@ Resolution autoFit(Resolution input, Resolution output) {
 std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 	auto opt = &config;
 	auto pipeline = make_unique<Pipeline>(opt->ultraLowLatency, opt->ultraLowLatency ? Pipeline::Mono : Pipeline::OnePerModule);
-
-	auto autoRotate = [&](const Resolution &res, bool verticalize)->Resolution {
-		if (verticalize && res.height < res.width) {
-			Resolution oRes(res.height, res.height);
-			Log::msg(Info, "[autoRotate] Switched resolution from %sx%s to %sx%s", res.width, res.height, oRes.width, oRes.height);
-			return oRes;
-		} else {
-			return res;
-		}
-	};
 
 	auto createEncoder = [&](std::shared_ptr<const IMetadata> metadataDemux, bool ultraLowLatency, VideoCodecType videoCodecType, PictureFormat &dstFmt, int bitrate, uint64_t segmentDurationInMs)->IPipelinedModule* {
 		auto const codecType = metadataDemux->type;
