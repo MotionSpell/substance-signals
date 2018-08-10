@@ -15,7 +15,7 @@ if false ; then
   LDFLAGS=-fsanitize=thread
 else
   BIN=bin-asan
-  CFLAGS=-fsanitize=address,undefined
+  CFLAGS="-fsanitize=address,undefined -fno-sanitize=vptr"
   LDFLAGS=-fsanitize=address,undefined
 fi
 
@@ -24,7 +24,7 @@ LDFLAGS="$LDFLAGS -g"
 
 export BIN CFLAGS LDFLAGS
 
-make -j`nproc`
+make -j$((`nproc`/2))
 
 export TSAN_OPTIONS=halt_on_error=1
 export ASAN_OPTIONS=halt_on_error=1
