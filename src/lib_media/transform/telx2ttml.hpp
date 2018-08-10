@@ -3,8 +3,7 @@
 #include "lib_modules/core/log.hpp"
 #include "lib_modules/utils/helper.hpp"
 #include "../common/libav.hpp"
-#include <list>
-#include <sstream>
+#include <vector>
 
 namespace Modules {
 namespace Transform {
@@ -49,7 +48,7 @@ class TeletextToTTML : public ModuleS, private LogCap {
 		int64_t intClock = 0, extClock = 0;
 		const uint64_t maxPageDurIn180k, splitDurationIn180k;
 		uint64_t firstDataAbsTimeInMs = 0;
-		std::list<std::unique_ptr<Page>> currentPages;
+		std::vector<std::unique_ptr<Page>> currentPages;
 		std::unique_ptr<ITelxConfig> config;
 };
 
