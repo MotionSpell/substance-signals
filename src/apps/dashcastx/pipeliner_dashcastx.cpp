@@ -17,7 +17,6 @@ extern const char *g_appName;
 
 #define DASH_SUBDIR "dash/"
 
-auto const DEBUG_MONITOR = false;
 auto const MP4_MONITOR = false;
 
 #define MAX_GOP_DURATION_IN_MS 2000
@@ -180,7 +179,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 				if (!converter)
 					return;
 
-				if(DEBUG_MONITOR) {
+				if(opt->debugMonitor) {
 					if (metadataDemux->isVideo() && r == 0) {
 						auto webcamPreview = pipeline->add("SDLVideo", nullptr);
 						pipeline->connect(converter, 0, webcamPreview, 0);

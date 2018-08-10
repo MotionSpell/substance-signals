@@ -21,5 +21,6 @@ struct Config {
 	bool ultraLowLatency = false;
 	bool autoRotate = false;
 	bool help = false;
+	bool debugMonitor = false;
 };
 

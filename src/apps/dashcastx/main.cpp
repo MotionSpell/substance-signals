@@ -33,6 +33,7 @@ Config parseCommandLine(int argc, char const* argv[]) {
 	opt.addFlag("h", "help", &cfg.help, "Print usage and exit.");
 	opt.addFlag("l", "live", &cfg.isLive, "Run at system clock pace (otherwise runs as fast as possible).");
 	opt.addFlag("i", "loop", &cfg.loop, "Loops the input indefinitely.");
+	opt.addFlag("m", "monitor", &cfg.debugMonitor, "Show the transcoded video in monitor window (slows the transcoding down to live speed)");
 
 	auto args = opt.parse(argc, argv);
 
