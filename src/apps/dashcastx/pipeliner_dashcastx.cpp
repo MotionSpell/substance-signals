@@ -26,10 +26,6 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 	auto opt = &config;
 	auto pipeline = make_unique<Pipeline>(opt->ultraLowLatency, opt->ultraLowLatency ? Pipeline::Mono : Pipeline::OnePerModule);
 
-	auto connect = [&](auto src, auto dst) {
-		pipeline->connect(src, 0, dst, 0);
-	};
-
 	auto autoFit = [&](const Resolution &input, const Resolution &output)->Resolution {
 		if (input == Resolution()) {
 			return output;
@@ -187,12 +183,12 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 				if(DEBUG_MONITOR) {
 					if (metadataDemux->isVideo() && r == 0) {
 						auto webcamPreview = pipeline->add("SDLVideo", nullptr);
-						connect(converter, webcamPreview);
+						pipeline->connect(converter, 0, webcamPreview, 0);
 					}
 				}
 
-				connect(decode, converter);
-				connect(converter, encoder);
+				pipeline->connect(decode, 0, converter, 0);
+				pipeline->connect(converter, 0, encoder, 0);
 			}
 
 			std::string prefix;
@@ -215,7 +211,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 
 			auto muxer = pipeline->addModuleWithHost<Mux::GPACMuxMP4>(Mp4MuxConfig{subdir + prefix, (uint64_t)opt->segmentDurationInMs, FragmentedSegment, opt->ultraLowLatency ? OneFragmentPerFrame : OneFragmentPerSegment});
 			if (transcode) {
-				connect(encoder, muxer);
+				pipeline->connect(encoder, 0, muxer, 0);
 			} else {
 				pipeline->connect(sourceModule, sourcePin, muxer, 0);
 			}
@@ -226,7 +222,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 				auto cfg = Mp4MuxConfig {"monitor_" + prefix };
 				auto muxer = pipeline->addModuleWithHost<Mux::GPACMuxMP4>(cfg);
 				if (transcode) {
-					connect(encoder, muxer);
+					pipeline->connect(encoder, 0, muxer, 0);
 				} else {
 					pipeline->connect(sourceModule, sourcePin, muxer, 0);
 				}
