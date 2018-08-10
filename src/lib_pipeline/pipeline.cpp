@@ -184,7 +184,6 @@ void Pipeline::waitForEndOfStream() {
 				std::rethrow_exception(eptr);
 		} catch (const std::exception &e) {
 			Log::msg(Error, "Pipeline: exception caught: %s. Exiting.", e.what());
-			exitSync();
 			std::rethrow_exception(eptr); //FIXME: at this point the exception forward in submit() already lost some data
 		}
 	}
