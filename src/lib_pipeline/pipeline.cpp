@@ -88,10 +88,6 @@ void Pipeline::removeModule(IPipelinedModule *module) {
 	computeTopology();
 }
 
-void Pipeline::connect(IPipelinedModule * prev, int outputIdx, IPipelinedModule * next, int inputIdx, bool inputAcceptMultipleConnections) {
-	connect(OutputPin{prev, outputIdx}, InputPin{next, inputIdx}, inputAcceptMultipleConnections);
-}
-
 void Pipeline::connect(OutputPin prev, InputPin next, bool inputAcceptMultipleConnections) {
 	if (!next.mod || !prev.mod) return;
 	auto n = safe_cast<PipelinedModule>(next.mod);

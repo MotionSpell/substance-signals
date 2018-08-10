@@ -40,14 +40,14 @@ void DashDemuxer::addStream(Pipelines::IPipelinedModule* downloadOutput, int out
 
 	// add MP4 demuxer
 	auto decap = pipeline->addModule<GPACDemuxMP4Full>();
-	pipeline->connect(downloadOutput, 0, decap, 0);
+	pipeline->connect(downloadOutput, decap);
 
 	// add restamper (so the timestamps start at zero)
 	auto restamp = pipeline->addModule<Restamp>(Transform::Restamp::Reset);
-	pipeline->connect(decap, 0, restamp, 0);
+	pipeline->connect(decap, restamp);
 
 	auto stub = pipeline->addModule<OutStub>(output);
-	pipeline->connect(restamp, 0, stub, 0);
+	pipeline->connect(restamp, stub);
 }
 
 void DashDemuxer::process() {

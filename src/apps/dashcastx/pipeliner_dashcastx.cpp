@@ -177,12 +177,12 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 				if(opt->debugMonitor) {
 					if (metadataDemux->isVideo() && r == 0) {
 						auto webcamPreview = pipeline->add("SDLVideo", nullptr);
-						pipeline->connect(converter, 0, webcamPreview, 0);
+						pipeline->connect(converter, webcamPreview);
 					}
 				}
 
-				pipeline->connect(decode, 0, converter, 0);
-				pipeline->connect(converter, 0, encoder, 0);
+				pipeline->connect(decode, converter);
+				pipeline->connect(converter, encoder);
 				compressed = GetOutputPin(encoder);
 			}
 
@@ -207,7 +207,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 			auto muxer = pipeline->addModuleWithHost<Mux::GPACMuxMP4>(Mp4MuxConfig{subdir + prefix, (uint64_t)opt->segmentDurationInMs, FragmentedSegment, opt->ultraLowLatency ? OneFragmentPerFrame : OneFragmentPerSegment});
 			pipeline->connect(compressed, GetInputPin(muxer));
 
-			pipeline->connect(muxer, 0, dasher, numDashInputs);
+			pipeline->connect(muxer, GetInputPin(dasher, numDashInputs));
 			++numDashInputs;
 
 			if(MP4_MONITOR) {

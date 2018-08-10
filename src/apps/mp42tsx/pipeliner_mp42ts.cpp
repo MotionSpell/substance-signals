@@ -28,10 +28,10 @@ void declarePipeline(Pipeline &pipeline, const mp42tsXOptions &opt) {
 	auto sink = createSink(isHLS);
 	for (int i = 0; i < demux->getNumOutputs(); ++i) {
 		if (demux->getOutputMetadata(i)->isVideo()) { //FIXME
-			pipeline.connect(demux, i, m2tsmux, 0);
+			pipeline.connect(GetOutputPin(demux, i), m2tsmux);
 			break; //FIXME
 		}
 	}
 
-	pipeline.connect(m2tsmux, 0, sink, 0);
+	pipeline.connect(m2tsmux, sink);
 }

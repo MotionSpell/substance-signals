@@ -11,7 +11,7 @@ unittest("pipeline: EOS injection (exitSync)") {
 	Pipeline p;
 	auto src = p.addModule<InfiniteSource>();
 	auto sink = p.addModule<FakeSink>();
-	p.connect(src, 0, sink, 0);
+	p.connect(src, sink);
 	p.start();
 	auto f = [&]() {
 		p.exitSync();
@@ -25,7 +25,7 @@ unittest("pipeline: destroy while running") {
 	auto p = std::make_unique<Pipeline>();
 	auto src = p->addModule<InfiniteSource>();
 	auto sink = p->addModule<FakeSink>();
-	p->connect(src, 0, sink, 0);
+	p->connect(src, sink);
 	p->start();
 }
 
@@ -47,7 +47,7 @@ unittest("pipeline: intercept exception") {
 	Pipeline p;
 	auto exception = p.addModule<ExceptionModule>();
 	auto src = p.addModule<FakeSource>();
-	p.connect(src, 0, exception, 0);
+	p.connect(src, exception);
 	p.start();
 	ASSERT_THROWN(p.waitForEndOfStream());
 }

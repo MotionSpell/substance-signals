@@ -29,7 +29,7 @@ unittest("pipeline: connect one input (out of 2) to one output") {
 	auto src = p.addModule<FakeSource>();
 	ASSERT(src->getNumOutputs() >= 1);
 	auto sink = p.addModule<FakeSink>();
-	p.connect(src, 0, sink, 0);
+	p.connect(src, sink);
 	p.start();
 	p.waitForEndOfStream();
 }
@@ -39,8 +39,8 @@ unittest("pipeline: connect two outputs to the same input") {
 	auto src1 = p.addModule<FakeSource>();
 	auto src2 = p.addModule<FakeSource>();
 	auto sink = p.addModule<FakeSink>();
-	p.connect(src1, 0, sink, 0);
-	p.connect(src2, 0, sink, 0, true);
+	p.connect(src1, sink);
+	p.connect(src2, sink, true);
 	p.start();
 	p.waitForEndOfStream();
 }
@@ -51,9 +51,9 @@ unittest("pipeline: connect passthru to a multiple input module (1)") {
 	ASSERT(src->getNumOutputs() >= 1);
 	auto passthru = p.addModule<Passthru>();
 	auto dualInput = p.addModule<DualInput>();
-	p.connect(src, 0, passthru, 0);
-	p.connect(passthru, 0, dualInput, 0);
-	p.connect(passthru, 0, dualInput, 1);
+	p.connect(src, passthru);
+	p.connect(passthru, GetInputPin(dualInput, 0));
+	p.connect(passthru, GetInputPin(dualInput, 1));
 	p.start();
 	p.waitForEndOfStream();
 }
@@ -66,11 +66,11 @@ unittest("pipeline: connect passthru to a multiple input module (2)") {
 	auto passthru1 = p.addModule<Passthru>();
 	auto passthru2 = p.addModule<Passthru>();
 	auto dualInput = p.addModule<DualInput>();
-	p.connect(src, 0, passthru0, 0);
-	p.connect(passthru0, 0, passthru1, 0);
-	p.connect(passthru0, 0, passthru2, 0);
-	p.connect(passthru1, 0, dualInput, 0);
-	p.connect(passthru2, 0, dualInput, 1);
+	p.connect(src, passthru0);
+	p.connect(passthru0, passthru1);
+	p.connect(passthru0, passthru2);
+	p.connect(passthru1, GetInputPin(dualInput, 0));
+	p.connect(passthru2, GetInputPin(dualInput, 1));
 	p.start();
 	p.waitForEndOfStream();
 }
@@ -79,7 +79,7 @@ unittest("pipeline: orphan dynamic inputs sink") {
 	Pipeline p;
 	auto src = p.addModule<FakeSource>();
 	auto sink = p.addModule<FakeSink>();
-	p.connect(src, 0, sink, 0);
+	p.connect(src, sink);
 	p.addModule<FakeSink>();
 	p.start();
 	p.waitForEndOfStream();
@@ -96,10 +96,10 @@ unittest("pipeline: passthru after split") {
 	Pipeline p;
 	auto generator = p.addModule<FakeSource>(1);
 	auto dualInput = p.addModule<ThreadedDualInput>();
-	p.connect(generator, 0, dualInput, 0);
-	p.connect(generator, 0, dualInput, 1);
+	p.connect(generator, GetInputPin(dualInput, 0));
+	p.connect(generator, GetInputPin(dualInput, 1));
 	auto passthru = p.addModule<Passthru>();
-	p.connect(dualInput, 0, passthru, 0);
+	p.connect(dualInput, passthru);
 	p.start();
 	p.waitForEndOfStream();
 }

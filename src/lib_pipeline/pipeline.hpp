@@ -20,11 +20,13 @@ struct IPipelinedModule {
 };
 
 struct InputPin {
+	InputPin(IPipelinedModule* m, int idx=0) : mod(m), index(idx) {};
 	IPipelinedModule* mod;
 	int index = 0;
 };
 
 struct OutputPin {
+	OutputPin(IPipelinedModule* m, int idx=0) : mod(m), index(idx) {};
 	IPipelinedModule* mod;
 	int index = 0;
 };
@@ -92,7 +94,6 @@ class Pipeline : public IPipelineNotifier {
 		// This is only possible when the module is disconnected and flush()ed
 		// (which is the caller responsibility - FIXME)
 		void removeModule(IPipelinedModule * module);
-		void connect   (IPipelinedModule * prev, int outputIdx, IPipelinedModule * next, int inputIdx, bool inputAcceptMultipleConnections = false);
 		void connect   (OutputPin out, InputPin in, bool inputAcceptMultipleConnections = false);
 		void disconnect(IPipelinedModule * prev, int outputIdx, IPipelinedModule * next, int inputIdx);
 

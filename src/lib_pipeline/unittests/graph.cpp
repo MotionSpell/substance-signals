@@ -71,7 +71,7 @@ unittest("pipeline graph: add connection") {
 	Pipeline p;
 	auto A = p.addModule<Dummy>();
 	auto B = p.addModule<Dummy>();
-	p.connect(A, 0, B, 0);
+	p.connect(A, B);
 	string expected =
 	    R"(digraph {
 	subgraph cluster_0 {
@@ -112,7 +112,7 @@ unittest("pipeline graph: disconnect") {
 	Pipeline p;
 	auto A = p.addModule<Dummy>();
 	auto B = p.addModule<Dummy>();
-	p.connect(A, 0, B, 0);
+	p.connect(A, B);
 	p.disconnect(A, 0, B, 0);
 	string expected =
 	    R"(digraph {
@@ -167,7 +167,7 @@ unittest("pipeline graph: remove module still connected") {
 	Pipeline p;
 	auto ptr1 = p.addModule<Dummy>();
 	auto ptr2 = p.addModule<Dummy>();
-	p.connect(ptr1, 0, ptr2, 0);
+	p.connect(ptr1, ptr2);
 	ASSERT_THROWN(p.removeModule(ptr1));
 	ASSERT_THROWN(p.removeModule(ptr2));
 }
