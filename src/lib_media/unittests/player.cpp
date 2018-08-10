@@ -15,7 +15,7 @@ namespace {
 secondclasstest("packet type erasure + multi-output: libav Demux -> libav Decoder (Video Only) -> Render::SDL2") {
 	DemuxConfig cfg;
 	cfg.url = "data/beepbop.mp4";
-	auto demux = create<Demux::LibavDemux>(&NullHost, cfg);
+	auto demux = loadModule("LibavDemux", &NullHost, &cfg);
 	auto null = create<Out::Null>();
 
 	int videoIndex = -1;
@@ -40,7 +40,7 @@ secondclasstest("packet type erasure + multi-output: libav Demux -> libav Decode
 secondclasstest("packet type erasure + multi-output: libav Demux -> libav Decoder (Audio Only) -> Render::SDL2") {
 	DemuxConfig cfg;
 	cfg.url = "data/beepbop.mp4";
-	auto demux = create<Demux::LibavDemux>(&NullHost, cfg);
+	auto demux = loadModule("LibavDemux", &NullHost, &cfg);
 	auto null = create<Out::Null>();
 
 	int audioIndex = -1;

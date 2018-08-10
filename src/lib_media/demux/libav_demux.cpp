@@ -1,9 +1,14 @@
+#include "lib_modules/utils/helper.hpp"
+#include "lib_modules/utils/factory.hpp" // registerModule
 #include "libav_demux.hpp"
 #include "../transform/restamp.hpp"
 #include "lib_utils/tools.hpp"
 #include "lib_utils/os.hpp"
 #include "../common/ffpp.hpp"
 #include "../common/libav.hpp"
+#include <atomic>
+#include <thread>
+#include <vector>
 
 extern "C" {
 #include <libavformat/avformat.h> // av_find_input_format
@@ -13,7 +18,9 @@ extern "C" {
 
 #define AV_PKT_FLAG_RESET_DECODER (1 << 30)
 
-namespace Modules {
+static const int avioCtxBufferSize = 1024 * 1024;
+
+using namespace Modules;
 
 namespace {
 
@@ -35,11 +42,54 @@ bool startsWith(std::string s, std::string prefix) {
 	return s.compare(0, prefix.size(), prefix) == 0;
 }
 
-}
+class LibavDemux : public ActiveModule {
+	public:
 
-namespace Demux {
+		//@param url may be a file, a remote URL, or a webcam (set "webcam" to list the available devices)
+		LibavDemux(IModuleHost* host, DemuxConfig const& config);
+		~LibavDemux();
+		bool work() override;
 
-static const int avioCtxBufferSize = 1024 * 1024;
+	private:
+		int readFrame(AVPacket* pkt);
+		void clean();
+		void webcamList();
+		bool webcamOpen(const std::string &options);
+		void initRestamp();
+		void seekToStart();
+		bool rectifyTimestamps(AVPacket &pkt);
+		void inputThread();
+		void setTimestamp(std::shared_ptr<DataAVPacket> data);
+		bool dispatchable(AVPacket * const pkt);
+		void dispatch(AVPacket *pkt);
+		void sparseStreamsHeartbeat(AVPacket const * const pkt);
+
+		struct Stream {
+			OutputDataDefault<DataAVPacket>* output = nullptr;
+			uint64_t offsetIn180k = 0;
+			int64_t lastDTS = 0;
+			std::unique_ptr<Transform::Restamp> restamper;
+		};
+
+		IModuleHost* const m_host;
+
+		std::vector<Stream> m_streams;
+
+		const bool loop;
+		bool highPriority = false;
+		std::thread workingThread;
+		std::atomic_bool done;
+		QueueLockFree<AVPacket> packetQueue;
+		AVFormatContext* m_formatCtx;
+		AVIOContext* m_avioCtx = nullptr;
+		const DemuxConfig::ReadFunc m_read;
+		int64_t curTimeIn180k = 0, startPTSIn180k = std::numeric_limits<int64_t>::min();
+
+		static int read(void* user, uint8_t* data, int size) {
+			auto pThis = (LibavDemux*)user;
+			return pThis->m_read(data, size);
+		}
+};
 
 void LibavDemux::webcamList() {
 	m_host->log(Warning, "Webcam list:");
@@ -419,6 +469,13 @@ bool LibavDemux::work() {
 	return true;
 }
 
-}
+Modules::IModule* createObject(IModuleHost* host, va_list va) {
+	auto config = va_arg(va, DemuxConfig*);
+	enforce(host, "LibavDemux: host can't be NULL");
+	enforce(config, "LibavDemux: config can't be NULL");
+	return Modules::create<LibavDemux>(host, *config).release();
 }
 
+auto const registered = registerModule("LibavDemux", &createObject);
+
+}

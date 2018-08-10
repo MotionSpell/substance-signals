@@ -8,7 +8,6 @@ LIB_MEDIA_SRCS:=\
   $(MYDIR)/common/iso8601.cpp\
   $(MYDIR)/demux/gpac_demux_mp4_simple.cpp\
   $(MYDIR)/demux/gpac_demux_mp4_full.cpp\
-  $(MYDIR)/demux/libav_demux.cpp\
   $(MYDIR)/demux/dash_demux.cpp\
   $(MYDIR)/encode/libav_encode.cpp\
   $(MYDIR)/in/file.cpp\
@@ -101,6 +100,15 @@ $(BIN)/Decoder.smd: \
 
 #------------------------------------------------------------------------------
 
+TARGETS+=$(BIN)/LibavDemux.smd
+$(BIN)/LibavDemux.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
+$(BIN)/LibavDemux.smd: CFLAGS+=$(MEDIA_CFLAGS)
+$(BIN)/LibavDemux.smd: \
+  $(BIN)/$(SRC)/lib_media/demux/libav_demux.cpp.o\
+  $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
+  $(BIN)/$(SRC)/lib_media/transform/restamp.cpp.o\
+
+#------------------------------------------------------------------------------
 # Warning derogations. TODO: make this list empty
 $(BIN)/$(SRC)/lib_media/common/libav.cpp.o: CFLAGS+=-Wno-deprecated-declarations
 $(BIN)/$(SRC)/lib_media/demux/libav_demux.cpp.o: CFLAGS+=-Wno-deprecated-declarations

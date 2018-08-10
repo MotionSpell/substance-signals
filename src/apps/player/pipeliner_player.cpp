@@ -42,7 +42,7 @@ IPipelinedModule* createDemuxer(Pipeline& pipeline, std::string url) {
 	} else {
 		DemuxConfig cfg;
 		cfg.url = url;
-		return pipeline.addModuleWithHost<Demux::LibavDemux>(cfg);
+		return pipeline.add("LibavDemux", &cfg);
 	}
 }
 

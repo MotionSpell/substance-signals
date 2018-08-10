@@ -46,7 +46,7 @@ void checkTimestampsMux(CreateDemuxFunc createDemux, int numBFrame, const std::v
 std:: shared_ptr<IModule> createLibavDemux(const char* path) {
 	DemuxConfig cfg;
 	cfg.url = path;
-	return create<Demux::LibavDemux>(&NullHost, cfg);
+	return loadModule("LibavDemux", &NullHost, &cfg);
 }
 
 std:: shared_ptr<IModule> createGpacDemux(const char* path) {
@@ -149,7 +149,7 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 
 	DemuxConfig cfg;
 	cfg.url = "data/beepbop.mp4";
-	auto demux = create<Demux::LibavDemux>(&NullHost, cfg);
+	auto demux = loadModule("LibavDemux", &NullHost, &cfg);
 	std::vector<std::shared_ptr<IModule>> modules;
 	std::vector<std::unique_ptr<Utils::Recorder>> recorders;
 	for (int i = 0; i < demux->getNumOutputs(); ++i) {

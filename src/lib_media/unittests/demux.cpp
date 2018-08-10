@@ -1,5 +1,6 @@
 #include "tests/tests.hpp"
 #include "lib_modules/modules.hpp"
+#include "lib_modules/utils/loader.hpp"
 #include "lib_media/common/metadata.hpp"
 #include "lib_media/demux/gpac_demux_mp4_simple.hpp"
 #include "lib_media/demux/gpac_demux_mp4_full.hpp"
@@ -37,7 +38,7 @@ unittest("LibavDemux: simple: 75 frames") {
 
 	DemuxConfig cfg;
 	cfg.url = "data/simple.ts";
-	auto demux = create<Demux::LibavDemux>(&NullHost, cfg);
+	auto demux = loadModule("LibavDemux", &NullHost, &cfg);
 	auto rec = create<MyOutput>();
 	ConnectOutputToInput(demux->getOutput(0), rec->getInput(0));
 
@@ -61,7 +62,7 @@ unittest("LibavDemux: rollover") {
 
 	DemuxConfig cfg;
 	cfg.url = "data/rollover.ts";
-	auto demux = create<Demux::LibavDemux>(&NullHost, cfg);
+	auto demux = loadModule("LibavDemux", &NullHost, &cfg);
 	auto rec = create<MyOutput>();
 	ConnectOutputToInput(demux->getOutput(0), rec->getInput(0));
 
