@@ -140,16 +140,16 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 
 		if(opt->isLive) {
 			auto regulator = pipeline->addModule<Regulator>(g_SystemClock);
-			pipeline->connect(source, GetInputPin(regulator, 0));
+			pipeline->connect(source, GetInputPin(regulator));
 
-			source = GetOutputPin(regulator, 0);
+			source = GetOutputPin(regulator);
 		}
 
 		IPipelinedModule *decode = nullptr;
 		if (transcode) {
 			decode = pipeline->add("Decoder", metadataDemux->type);
 
-			pipeline->connect(source, GetInputPin(decode, 0));
+			pipeline->connect(source, GetInputPin(decode));
 
 			if (metadataDemux->isVideo() && opt->autoRotate) {
 				auto const res = safe_cast<const MetadataPktLibavVideo>(demux->getOutputMetadata(streamIndex))->getResolution();
@@ -183,7 +183,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 
 				pipeline->connect(decode, 0, converter, 0);
 				pipeline->connect(converter, 0, encoder, 0);
-				compressed = GetOutputPin(encoder, 0);
+				compressed = GetOutputPin(encoder);
 			}
 
 			std::string prefix;
@@ -205,7 +205,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 				mkdir(subdir);
 
 			auto muxer = pipeline->addModuleWithHost<Mux::GPACMuxMP4>(Mp4MuxConfig{subdir + prefix, (uint64_t)opt->segmentDurationInMs, FragmentedSegment, opt->ultraLowLatency ? OneFragmentPerFrame : OneFragmentPerSegment});
-			pipeline->connect(compressed, GetInputPin(muxer, 0));
+			pipeline->connect(compressed, GetInputPin(muxer));
 
 			pipeline->connect(muxer, 0, dasher, numDashInputs);
 			++numDashInputs;
@@ -213,7 +213,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 			if(MP4_MONITOR) {
 				auto cfg = Mp4MuxConfig {"monitor_" + prefix };
 				auto muxer = pipeline->addModuleWithHost<Mux::GPACMuxMP4>(cfg);
-				pipeline->connect(compressed, GetInputPin(muxer, 0));
+				pipeline->connect(compressed, GetInputPin(muxer));
 			}
 		}
 	};

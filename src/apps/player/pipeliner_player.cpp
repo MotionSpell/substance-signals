@@ -68,12 +68,12 @@ void declarePipeline(Config cfg, Pipeline &pipeline, const char *url) {
 		if(metadata->type != VIDEO_RAW) {
 			auto decode = pipeline.add("Decoder", metadata->type);
 			pipeline.connect(demuxer, k, decode, 0);
-			source = GetOutputPin(decode, 0);
+			source = GetOutputPin(decode);
 		}
 
 		metadata = source.mod->getOutputMetadata(source.index);
 
 		auto render = createRenderer(pipeline, cfg, metadata->type);
-		pipeline.connect(source, GetInputPin(render, 0));
+		pipeline.connect(source, GetInputPin(render));
 	}
 }

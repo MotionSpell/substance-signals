@@ -29,11 +29,11 @@ struct OutputPin {
 	int index = 0;
 };
 
-inline InputPin GetInputPin(IPipelinedModule* mod, int index) {
+inline InputPin GetInputPin(IPipelinedModule* mod, int index=0) {
 	return InputPin { mod, index };
 }
 
-inline OutputPin GetOutputPin(IPipelinedModule* mod, int index) {
+inline OutputPin GetOutputPin(IPipelinedModule* mod, int index=0) {
 	return OutputPin { mod, index };
 }
 
