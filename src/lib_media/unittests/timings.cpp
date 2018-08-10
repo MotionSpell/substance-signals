@@ -22,8 +22,9 @@ void checkTimestampsMux(CreateDemuxFunc createDemux, int numBFrame, const std::v
 	auto picture = make_shared<PictureYUV420P>(Resolution(320, 180));
 	auto encode = create<Encode::LibavEncode>(Encode::LibavEncode::Video, p);
 	ConnectOutputToInput(encode->getOutput(0), mux->getInput(0));
-	for (size_t i = 0; i < timesIn.size(); ++i) {
-		picture->setMediaTime(timesIn[i]);
+
+	for(auto time : timesIn) {
+		picture->setMediaTime(time);
 		encode->process(picture);
 	}
 	encode->flush();
