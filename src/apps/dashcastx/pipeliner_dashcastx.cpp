@@ -129,7 +129,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 	}
 
 	int numDashInputs = 0;
-	auto processDemuxOutput = [&](const int i) {
+	auto processElementaryStream = [&](const int i) {
 		auto const metadataDemux = safe_cast<const MetadataPktLibav>(demux->getOutputMetadata(i));
 		if (!metadataDemux) {
 			Log::msg(Warning, "[%s] Unknown metadataDemux for stream %s. Ignoring.", g_appName, i);
@@ -226,7 +226,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 	};
 
 	for (int i = 0; i < demux->getNumOutputs(); ++i) {
-		processDemuxOutput(i);
+		processElementaryStream(i);
 	}
 
 	return pipeline;
