@@ -13,6 +13,29 @@
 using namespace Modules;
 using namespace Pipelines;
 
+struct InputPin {
+	IPipelinedModule* mod;
+	int index = 0;
+};
+
+struct OutputPin {
+	IPipelinedModule* mod;
+	int index = 0;
+};
+
+InputPin GetInputPin(IPipelinedModule* mod, int index) {
+	return InputPin { mod, index };
+}
+
+OutputPin GetOutputPin(IPipelinedModule* mod, int index) {
+	return OutputPin { mod, index };
+}
+
+template<typename Pipeline>
+void Connect(Pipeline& pipeline, OutputPin out, InputPin in) {
+	pipeline->connect(out.mod, out.index, in.mod, in.index);
+}
+
 extern const char *g_appName;
 
 #define DASH_SUBDIR "dash/"
@@ -136,21 +159,20 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 			return;
 		}
 
-		auto sourceModule = demux;
-		auto sourcePin = i;
+		auto source = GetOutputPin(demux, i);
 
 		if(opt->isLive) {
 			auto regulator = pipeline->addModule<Regulator>(g_SystemClock);
-			pipeline->connect(sourceModule, sourcePin, regulator, 0);
+			Connect(pipeline, source, GetInputPin(regulator, 0));
 
-			sourceModule = regulator;
-			sourcePin = 0;
+			source = GetOutputPin(regulator, 0);
 		}
 
 		IPipelinedModule *decode = nullptr;
 		if (transcode) {
 			decode = pipeline->add("Decoder", metadataDemux->type);
-			pipeline->connect(sourceModule, sourcePin, decode, 0);
+
+			Connect(pipeline, source, GetInputPin(decode, 0));
 
 			if (metadataDemux->isVideo() && opt->autoRotate) {
 				auto const res = safe_cast<const MetadataPktLibavVideo>(demux->getOutputMetadata(i))->getResolution();
@@ -208,7 +230,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 			if (transcode) {
 				pipeline->connect(encoder, 0, muxer, 0);
 			} else {
-				pipeline->connect(sourceModule, sourcePin, muxer, 0);
+				Connect(pipeline, source, GetInputPin(muxer, 0));
 			}
 
 			pipeline->connect(muxer, 0, dasher, numDashInputs);
@@ -220,7 +242,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 				if (transcode) {
 					pipeline->connect(encoder, 0, muxer, 0);
 				} else {
-					pipeline->connect(sourceModule, sourcePin, muxer, 0);
+					Connect(pipeline, source, GetInputPin(muxer, 0));
 				}
 			}
 		}
