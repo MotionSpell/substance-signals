@@ -161,7 +161,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 		}
 
 		auto const numRes = metadataDemux->isVideo() ? std::max<int>(opt->v.size(), 1) : 1;
-		for (int r = 0; r < numRes; ++r, ++numDashInputs) {
+		for (int r = 0; r < numRes; ++r) {
 			IPipelinedModule *encoder = nullptr;
 			if (transcode) {
 				auto inputRes = metadataDemux->isVideo() ? safe_cast<const MetadataPktLibavVideo>(demux->getOutputMetadata(i))->getResolution() : Resolution();
@@ -212,6 +212,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 			}
 
 			pipeline->connect(muxer, 0, dasher, numDashInputs);
+			++numDashInputs;
 
 			if(MP4_MONITOR) {
 				auto cfg = Mp4MuxConfig {"monitor_" + prefix };
