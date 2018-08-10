@@ -16,7 +16,9 @@ using namespace Modules;
 namespace {
 
 void libav_mux(std::string format) {
-	auto demux = create<Demux::LibavDemux>(&NullHost, "data/beepbop.mp4");
+	DemuxConfig cfg;
+	cfg.url = "data/beepbop.mp4";
+	auto demux = create<Demux::LibavDemux>(&NullHost, cfg);
 	auto null = create<Out::Null>();
 
 	//find video signal from demux
@@ -53,7 +55,9 @@ unittest("transcoder: video simple (libav mux TS)") {
 }
 
 unittest("transcoder: video simple (gpac mux MP4)") {
-	auto demux = create<Demux::LibavDemux>(&NullHost, "data/beepbop.mp4");
+	DemuxConfig cfg;
+	cfg.url = "data/beepbop.mp4";
+	auto demux = create<Demux::LibavDemux>(&NullHost, cfg);
 
 	//create stub output (for unused demuxer's outputs)
 	auto null = create<Out::Null>();
@@ -133,7 +137,9 @@ unittest("transcoder: jpg to resized jpg (YUV420)") {
 }
 
 unittest("transcoder: h264/mp4 to jpg") {
-	auto demux = create<Demux::LibavDemux>(&NullHost, "data/beepbop.mp4");
+	DemuxConfig cfg;
+	cfg.url = "data/beepbop.mp4";
+	auto demux = create<Demux::LibavDemux>(&NullHost, cfg);
 
 	auto metadata = safe_cast<const MetadataPktLibavVideo>(demux->getOutput(1)->getMetadata());
 	auto decode = loadModule("Decoder", &NullHost, VIDEO_PKT);

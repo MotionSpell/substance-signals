@@ -12,7 +12,9 @@ using namespace Modules;
 namespace {
 
 secondclasstest("packet type erasure + multi-output: libav Demux -> {libav Decoder -> Out::Print}*") {
-	auto demux = create<Demux::LibavDemux>(&NullHost, "data/beepbop.mp4");
+	DemuxConfig cfg;
+	cfg.url = "data/beepbop.mp4";
+	auto demux = create<Demux::LibavDemux>(&NullHost, cfg);
 
 	std::vector<std::shared_ptr<IModule>> decoders;
 	std::vector<std::shared_ptr<IModule>> printers;

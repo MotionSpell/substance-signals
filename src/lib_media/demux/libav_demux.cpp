@@ -78,11 +78,13 @@ void LibavDemux::initRestamp() {
 	}
 }
 
-LibavDemux::LibavDemux(IModuleHost* host, const std::string &url, bool loop, const std::string &avformatCustom, uint64_t seekTimeInMs, const std::string &formatName, LibavDemux::ReadFunc avioCustom)
+LibavDemux::LibavDemux(IModuleHost* host, DemuxConfig const& config)
 	: m_host(host),
-	  loop(loop), done(false), packetQueue(PKT_QUEUE_SIZE), m_read(std::move(avioCustom)) {
+	  loop(config.loop), done(false), packetQueue(PKT_QUEUE_SIZE), m_read(config.func) {
 	if (!(m_formatCtx = avformat_alloc_context()))
 		throw error("Can't allocate format context");
+
+	auto& url = config.url;
 
 	const std::string device = url.substr(0, url.find(":"));
 	if (device == "webcam") {
@@ -97,7 +99,7 @@ LibavDemux::LibavDemux(IModuleHost* host, const std::string &url, bool loop, con
 			m_streams[i].restamper = create<Transform::Restamp>(Transform::Restamp::ClockSystem); /*some webcams timestamps don't start at 0 (based on UTC)*/
 		}
 	} else {
-		ffpp::Dict dict(typeid(*this).name(), "-buffer_size 1M -fifo_size 1M -probesize 10M -analyzeduration 10M -overrun_nonfatal 1 -protocol_whitelist file,udp,rtp,http,https,tcp,tls,rtmp -rtsp_flags prefer_tcp -correct_ts_overflow 1 " + avformatCustom);
+		ffpp::Dict dict(typeid(*this).name(), "-buffer_size 1M -fifo_size 1M -probesize 10M -analyzeduration 10M -overrun_nonfatal 1 -protocol_whitelist file,udp,rtp,http,https,tcp,tls,rtmp -rtsp_flags prefer_tcp -correct_ts_overflow 1 " + config.avformatCustom);
 
 		if (m_read) {
 			m_avioCtx = avio_alloc_context((unsigned char*)av_malloc(avioCtxBufferSize), avioCtxBufferSize, 0, this, &LibavDemux::read, nullptr, nullptr);
@@ -109,11 +111,11 @@ LibavDemux::LibavDemux(IModuleHost* host, const std::string &url, bool loop, con
 
 		AVInputFormat* avInputFormat = nullptr;
 
-		if(!formatName.empty()) {
-			avInputFormat = av_find_input_format(formatName.c_str());
+		if(!config.formatName.empty()) {
+			avInputFormat = av_find_input_format(config.formatName.c_str());
 			if(!avInputFormat) {
 				clean();
-				throw error(format("Error when opening input '%s': unsupported input format '%s'", url, formatName));
+				throw error(format("Error when opening input '%s': unsupported input format '%s'", url, config.formatName));
 			}
 		}
 
@@ -131,13 +133,13 @@ LibavDemux::LibavDemux(IModuleHost* host, const std::string &url, bool loop, con
 
 		m_formatCtx->flags |= AVFMT_FLAG_KEEP_SIDE_DATA; //deprecated >= 3.5 https://github.com/FFmpeg/FFmpeg/commit/ca2b779423
 
-		if (seekTimeInMs) {
-			if (avformat_seek_file(m_formatCtx, -1, INT64_MIN, convertToTimescale(seekTimeInMs, 1000, AV_TIME_BASE), INT64_MAX, 0) < 0) {
+		if (config.seekTimeInMs) {
+			if (avformat_seek_file(m_formatCtx, -1, INT64_MIN, convertToTimescale(config.seekTimeInMs, 1000, AV_TIME_BASE), INT64_MAX, 0) < 0) {
 				clean();
-				throw error(format("Couldn't seek to time %sms", seekTimeInMs));
+				throw error(format("Couldn't seek to time %sms", config.seekTimeInMs));
 			}
 
-			m_host->log(Info, format("Successful initial seek to %sms", seekTimeInMs).c_str());
+			m_host->log(Info, format("Successful initial seek to %sms", config.seekTimeInMs).c_str());
 		}
 
 		//if you don't call you may miss the first frames

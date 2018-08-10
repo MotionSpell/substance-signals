@@ -16,14 +16,23 @@ namespace Transform {
 class Restamp;
 }
 
+struct DemuxConfig {
+	typedef std::function<int(uint8_t* buf, int bufSize)> ReadFunc;
+	std::string url;
+	bool loop = false;
+	std::string avformatCustom;
+	uint64_t seekTimeInMs = 0;
+	std::string formatName;
+	ReadFunc func = nullptr;
+};
+
 namespace Demux {
 
 class LibavDemux : public ActiveModule {
 	public:
 
-		typedef std::function<int(uint8_t* buf, int bufSize)> ReadFunc;
 		//@param url may be a file, a remote URL, or a webcam (set "webcam" to list the available devices)
-		LibavDemux(IModuleHost* host, const std::string &url, bool loop = false, const std::string &avformatCustom = "", uint64_t seekTimeInMs = 0, const std::string &formatName = "", ReadFunc func = nullptr);
+		LibavDemux(IModuleHost* host, DemuxConfig const& config);
 		~LibavDemux();
 		bool work() override;
 
@@ -59,7 +68,7 @@ class LibavDemux : public ActiveModule {
 		QueueLockFree<AVPacket> packetQueue;
 		AVFormatContext* m_formatCtx;
 		AVIOContext* m_avioCtx = nullptr;
-		const ReadFunc m_read;
+		const DemuxConfig::ReadFunc m_read;
 		int64_t curTimeIn180k = 0, startPTSIn180k = std::numeric_limits<int64_t>::min();
 
 		static int read(void* user, uint8_t* data, int size) {

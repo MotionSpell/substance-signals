@@ -35,7 +35,9 @@ unittest("LibavDemux: simple: 75 frames") {
 		int frameCount = 0;
 	};
 
-	auto demux = create<Demux::LibavDemux>(&NullHost, "data/simple.ts");
+	DemuxConfig cfg;
+	cfg.url = "data/simple.ts";
+	auto demux = create<Demux::LibavDemux>(&NullHost, cfg);
 	auto rec = create<MyOutput>();
 	ConnectOutputToInput(demux->getOutput(0), rec->getInput(0));
 
@@ -57,7 +59,9 @@ unittest("LibavDemux: rollover") {
 		}
 	};
 
-	auto demux = create<Demux::LibavDemux>(&NullHost, "data/rollover.ts");
+	DemuxConfig cfg;
+	cfg.url = "data/rollover.ts";
+	auto demux = create<Demux::LibavDemux>(&NullHost, cfg);
 	auto rec = create<MyOutput>();
 	ConnectOutputToInput(demux->getOutput(0), rec->getInput(0));
 
