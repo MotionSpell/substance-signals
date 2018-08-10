@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+#include <vector>
 #include "lib_utils/resolution.hpp"
 
 struct Video { //FIXME: this can be factorized with other params

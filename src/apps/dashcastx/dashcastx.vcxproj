@@ -224,7 +224,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="options.cpp" />
     <ClCompile Include="pipeliner_dashcastx.cpp" />
   </ItemGroup>
   <ItemGroup>

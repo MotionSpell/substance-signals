@@ -3,7 +3,6 @@ MYDIR=$(call get-my-dir)
 EXE_DASHCASTX_SRCS:=\
 	$(MYDIR)/main.cpp\
 	$(MYDIR)/pipeliner_dashcastx.cpp\
-	$(MYDIR)/options.cpp\
 	$(MYDIR)/../../lib_appcommon/safemain.cpp\
 	$(LIB_MEDIA_SRCS)\
 	$(LIB_MODULES_SRCS)\
