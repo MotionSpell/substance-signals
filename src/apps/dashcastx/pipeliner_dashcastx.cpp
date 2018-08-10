@@ -109,20 +109,16 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 		}
 	};
 
-	auto createSubdir = [&]() {
-		if (!dirExists(DASH_SUBDIR))
-			mkdir(DASH_SUBDIR);
-	};
-
 	if(!dirExists(opt->workingDir))
 		mkdir(opt->workingDir);
 
 	changeDir(opt->workingDir);
 
 	auto demux = pipeline->addModuleWithHost<Demux::LibavDemux>(opt->input, opt->loop);
-	createSubdir();
 	auto const type = (opt->isLive || opt->ultraLowLatency) ? Stream::AdaptiveStreamingCommon::Live : Stream::AdaptiveStreamingCommon::Static;
 	auto dasher = pipeline->addModule<Stream::MPEG_DASH>(DASH_SUBDIR, format("%s.mpd", g_appName), type, opt->segmentDurationInMs, opt->segmentDurationInMs * opt->timeshiftInSegNum);
+	if (!dirExists(DASH_SUBDIR))
+		mkdir(DASH_SUBDIR);
 
 	bool isVertical = false;
 	const bool transcode = opt->v.size() > 0;
