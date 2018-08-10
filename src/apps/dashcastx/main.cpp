@@ -23,11 +23,14 @@ Config parseCommandLine(int argc, char const* argv[]) {
 
 	Config cfg;
 
+	int logLevel = -1;
+
 	CmdLineOptions opt;
 	opt.add("w", "working-dir", &cfg.workingDir, "Set a working directory.");
 	opt.add("s", "seg-dur", &cfg.segmentDurationInMs, "Set the segment duration (in ms) (default value: 2000).");
 	opt.add("t", "dvr", &cfg.timeshiftInSegNum, "Set the timeshift buffer depth in segment number (default value: infinite(0)).");
 	opt.add("v", "video", &cfg.v, "Set a video resolution and optionally bitrate (wxh[:b[:t]]) (enables resize and/or transcoding) and encoder type (supported 0 (software (default)), 1 (QuickSync), 2 (NVEnc).");
+	opt.add("g", "loglevel", &logLevel, "Log level");
 	opt.addFlag("u", "ultra-low-latency", &cfg.ultraLowLatency, "Lower the latency as much as possible (quality may be degraded).");
 	opt.addFlag("r", "autorotate", &cfg.autoRotate, "Auto-rotate if the input height is bigger than the width.");
 	opt.addFlag("h", "help", &cfg.help, "Print usage and exit.");
@@ -62,6 +65,9 @@ Config parseCommandLine(int argc, char const* argv[]) {
 		throw std::runtime_error("Must give exactly one input file");
 
 	cfg.input = args[0];
+
+	if(logLevel != -1)
+		Log::setLevel((Level)logLevel);
 
 	return cfg;
 }
