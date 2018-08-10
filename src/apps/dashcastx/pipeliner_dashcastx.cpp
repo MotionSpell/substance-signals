@@ -160,8 +160,8 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 			}
 		}
 
-		auto const numRes = metadataDemux->isVideo() ? std::max<size_t>(opt->v.size(), 1) : 1;
-		for (size_t r = 0; r < numRes; ++r, ++numDashInputs) {
+		auto const numRes = metadataDemux->isVideo() ? std::max<int>(opt->v.size(), 1) : 1;
+		for (int r = 0; r < numRes; ++r, ++numDashInputs) {
 			IPipelinedModule *encoder = nullptr;
 			if (transcode) {
 				auto inputRes = metadataDemux->isVideo() ? safe_cast<const MetadataPktLibavVideo>(demux->getOutputMetadata(i))->getResolution() : Resolution();
