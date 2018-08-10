@@ -13,8 +13,9 @@
 using namespace Tests;
 using namespace Modules;
 
-template<typename T>
-void checkTimestampsMux(int numBFrame, const std::vector<int64_t> &timesIn, const std::vector<int64_t> &timesOut, std::unique_ptr<IModule> mux) {
+typedef std::shared_ptr<IModule> (*CreateDemuxFunc)(const char* path);
+
+void checkTimestampsMux(CreateDemuxFunc createDemux, int numBFrame, const std::vector<int64_t> &timesIn, const std::vector<int64_t> &timesOut, std::unique_ptr<IModule> mux) {
 	Encode::LibavEncode::Params p;
 	p.frameRate.num = 1;
 	p.avcodecCustom = format("-bf %s", numBFrame);
@@ -35,56 +36,63 @@ void checkTimestampsMux(int numBFrame, const std::vector<int64_t> &timesIn, cons
 		}
 		i++;
 	};
-	auto demux = create<T>(&NullHost, "out/random_ts.mp4");
+	auto demux = createDemux("out/random_ts.mp4");
 	ConnectOutput(demux.get(), onFrame);
 	demux->process();
 	ASSERT_EQUALS(i, timesOut.size());
 }
 
-template<typename T>
-void checkTimestamps(int numBFrame, const std::vector<int64_t> &timesIn, const std::vector<int64_t> &timesOut) {
-	checkTimestampsMux<T>(numBFrame, timesIn, timesOut, create<Mux::GPACMuxMP4>(&NullHost, Mp4MuxConfig{"out/random_ts"}));
-	checkTimestampsMux<T>(numBFrame, timesIn, timesOut, create<Mux::GPACMuxMP4>(&NullHost, Mp4MuxConfig{"out/random_ts", 0, NoSegment, NoFragment, ExactInputDur}));
+std:: shared_ptr<IModule> createLibavDemux(const char* path) {
+	return create<Demux::LibavDemux>(&NullHost, path);
+}
+
+std:: shared_ptr<IModule> createGpacDemux(const char* path) {
+	return create<Demux::GPACDemuxMP4Simple>(&NullHost, path);
+}
+
+void checkTimestamps(CreateDemuxFunc createDemux, int numBFrame, const std::vector<int64_t> &timesIn, const std::vector<int64_t> &timesOut) {
+	checkTimestampsMux(createDemux, numBFrame, timesIn, timesOut, create<Mux::GPACMuxMP4>(&NullHost, Mp4MuxConfig{"out/random_ts"}));
+	checkTimestampsMux(createDemux, numBFrame, timesIn, timesOut, create<Mux::GPACMuxMP4>(&NullHost, Mp4MuxConfig{"out/random_ts", 0, NoSegment, NoFragment, ExactInputDur}));
 }
 
 unittest("timestamps start at random values (LibavDemux)") {
 	const int64_t interval = (int64_t)IClock::Rate;
 	const std::vector<int64_t> correct = { interval, 2 * interval, 3 * interval };
 	const std::vector<int64_t> incorrect = { 0 };
-	checkTimestamps<Demux::LibavDemux>(0, correct, incorrect);
+	checkTimestamps(&createLibavDemux, 0, correct, incorrect);
 }
 
 unittest("timestamps start at random values (GPACDemuxMP4Simple)") {
 	const int64_t interval = (int64_t)IClock::Rate;
 	const std::vector<int64_t> correct = { interval, 2 * interval, 3 * interval };
-	checkTimestamps<Demux::GPACDemuxMP4Simple>(0, correct, correct);
+	checkTimestamps(&createGpacDemux, 0, correct, correct);
 }
 
 unittest("timestamps start at a negative value (LibavDemux)") {
 	const int64_t interval = (int64_t)IClock::Rate;
 	const std::vector<int64_t> correct = { -interval, 0, interval };
 	const std::vector<int64_t> incorrect = { 0 };
-	checkTimestamps<Demux::LibavDemux>(0, correct, incorrect);
+	checkTimestamps(&createLibavDemux, 0, correct, incorrect);
 }
 
 unittest("timestamps start at a negative value (GPACDemuxMP4Simple)") {
 	const int64_t interval = (int64_t)IClock::Rate;
 	const std::vector<int64_t> correct = { -interval, 0, interval };
-	checkTimestamps<Demux::GPACDemuxMP4Simple>(0, correct, correct);
+	checkTimestamps(&createGpacDemux, 0, correct, correct);
 }
 
 unittest("timestamps start at zero with B-Frames (GPACDemuxMP4Simple)") {
 	const int64_t interval = (int64_t)IClock::Rate;
 	const std::vector<int64_t> correctIn  = { 0, interval, 2 * interval };
 	const std::vector<int64_t> correctOut = { 0, 2 * interval, interval };
-	checkTimestamps<Demux::GPACDemuxMP4Simple>(1, correctIn, correctOut);
+	checkTimestamps(&createGpacDemux, 1, correctIn, correctOut);
 }
 
 unittest("timestamps start at a negative value with B-Frames (GPACDemuxMP4Simple)") {
 	const int64_t interval = (int64_t)IClock::Rate;
 	const std::vector<int64_t> correctIn = { -interval, 0, interval };
 	const std::vector<int64_t> correctOut = { -interval, interval, 0 };
-	checkTimestamps<Demux::GPACDemuxMP4Simple>(1, correctIn, correctOut);
+	checkTimestamps(&createGpacDemux, 1, correctIn, correctOut);
 }
 
 unittest("transcoder with reframers: test a/v sync recovery") {
