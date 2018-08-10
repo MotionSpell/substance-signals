@@ -184,12 +184,12 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 
 		auto const numRes = metadataDemux->isVideo() ? std::max<int>(opt->v.size(), 1) : 1;
 		for (int r = 0; r < numRes; ++r) {
-			IPipelinedModule *encoder = nullptr;
+			auto compressed = source;
 			if (transcode) {
 				auto inputRes = metadataDemux->isVideo() ? safe_cast<const MetadataPktLibavVideo>(demux->getOutputMetadata(i))->getResolution() : Resolution();
 				auto const outputRes = autoRotate(autoFit(inputRes, opt->v[r].res), isVertical);
 				PictureFormat encoderInputPicFmt(outputRes, UNKNOWN_PF);
-				encoder = createEncoder(metadataDemux, opt->ultraLowLatency, (VideoCodecType)opt->v[r].type, encoderInputPicFmt, opt->v[r].bitrate, opt->segmentDurationInMs);
+				auto encoder = createEncoder(metadataDemux, opt->ultraLowLatency, (VideoCodecType)opt->v[r].type, encoderInputPicFmt, opt->v[r].bitrate, opt->segmentDurationInMs);
 				if (!encoder)
 					return;
 
@@ -206,6 +206,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 
 				pipeline->connect(decode, 0, converter, 0);
 				pipeline->connect(converter, 0, encoder, 0);
+				compressed = GetOutputPin(encoder, 0);
 			}
 
 			std::string prefix;
@@ -227,11 +228,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 				mkdir(subdir);
 
 			auto muxer = pipeline->addModuleWithHost<Mux::GPACMuxMP4>(Mp4MuxConfig{subdir + prefix, (uint64_t)opt->segmentDurationInMs, FragmentedSegment, opt->ultraLowLatency ? OneFragmentPerFrame : OneFragmentPerSegment});
-			if (transcode) {
-				pipeline->connect(encoder, 0, muxer, 0);
-			} else {
-				Connect(pipeline, source, GetInputPin(muxer, 0));
-			}
+			Connect(pipeline, compressed, GetInputPin(muxer, 0));
 
 			pipeline->connect(muxer, 0, dasher, numDashInputs);
 			++numDashInputs;
@@ -239,11 +236,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 			if(MP4_MONITOR) {
 				auto cfg = Mp4MuxConfig {"monitor_" + prefix };
 				auto muxer = pipeline->addModuleWithHost<Mux::GPACMuxMP4>(cfg);
-				if (transcode) {
-					pipeline->connect(encoder, 0, muxer, 0);
-				} else {
-					Connect(pipeline, source, GetInputPin(muxer, 0));
-				}
+				Connect(pipeline, compressed, GetInputPin(muxer, 0));
 			}
 		}
 	};
