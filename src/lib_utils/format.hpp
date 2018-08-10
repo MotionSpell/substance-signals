@@ -13,22 +13,20 @@ std::string toString(T const& val) {
 }
 
 inline std::string toString(uint8_t val) {
-	std::stringstream ss;
-	ss << (int)val;
-	return ss.str();
+	return std::to_string((int)val);
 }
 
 template<typename T, typename MustBeIterable = decltype(T::begin())>
 std::string toString(T const& val) {
-	std::stringstream ss;
-	ss << "[";
+	std::string ss;
+	ss += "[";
 	for (size_t i = 0; i < val.size(); ++i) {
 		if (i > 0)
-			ss << ", ";
-		ss << toString(val[i]);
+			ss += ", ";
+		ss += toString(val[i]);
 	}
-	ss << "]";
-	return ss.str();
+	ss += "]";
+	return ss;
 }
 
 inline std::string format(const std::string& format) {
