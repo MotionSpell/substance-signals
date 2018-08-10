@@ -68,6 +68,7 @@ include $(SRC)/tests/project.mk
 include $(SRC)/apps/dashcastx/project.mk
 include $(SRC)/apps/player/project.mk
 include $(SRC)/apps/mp42tsx/project.mk
+include $(SRC)/apps/monitor/project.mk
 
 #------------------------------------------------------------------------------
 
