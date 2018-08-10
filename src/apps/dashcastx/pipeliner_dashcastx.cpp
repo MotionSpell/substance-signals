@@ -13,29 +13,6 @@
 using namespace Modules;
 using namespace Pipelines;
 
-struct InputPin {
-	IPipelinedModule* mod;
-	int index = 0;
-};
-
-struct OutputPin {
-	IPipelinedModule* mod;
-	int index = 0;
-};
-
-InputPin GetInputPin(IPipelinedModule* mod, int index) {
-	return InputPin { mod, index };
-}
-
-OutputPin GetOutputPin(IPipelinedModule* mod, int index) {
-	return OutputPin { mod, index };
-}
-
-template<typename Pipeline>
-void Connect(Pipeline& pipeline, OutputPin out, InputPin in) {
-	pipeline->connect(out.mod, out.index, in.mod, in.index);
-}
-
 extern const char *g_appName;
 
 #define DASH_SUBDIR "dash/"
@@ -163,7 +140,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 
 		if(opt->isLive) {
 			auto regulator = pipeline->addModule<Regulator>(g_SystemClock);
-			Connect(pipeline, source, GetInputPin(regulator, 0));
+			pipeline->connect(source, GetInputPin(regulator, 0));
 
 			source = GetOutputPin(regulator, 0);
 		}
@@ -172,7 +149,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 		if (transcode) {
 			decode = pipeline->add("Decoder", metadataDemux->type);
 
-			Connect(pipeline, source, GetInputPin(decode, 0));
+			pipeline->connect(source, GetInputPin(decode, 0));
 
 			if (metadataDemux->isVideo() && opt->autoRotate) {
 				auto const res = safe_cast<const MetadataPktLibavVideo>(demux->getOutputMetadata(streamIndex))->getResolution();
@@ -228,7 +205,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 				mkdir(subdir);
 
 			auto muxer = pipeline->addModuleWithHost<Mux::GPACMuxMP4>(Mp4MuxConfig{subdir + prefix, (uint64_t)opt->segmentDurationInMs, FragmentedSegment, opt->ultraLowLatency ? OneFragmentPerFrame : OneFragmentPerSegment});
-			Connect(pipeline, compressed, GetInputPin(muxer, 0));
+			pipeline->connect(compressed, GetInputPin(muxer, 0));
 
 			pipeline->connect(muxer, 0, dasher, numDashInputs);
 			++numDashInputs;
@@ -236,7 +213,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 			if(MP4_MONITOR) {
 				auto cfg = Mp4MuxConfig {"monitor_" + prefix };
 				auto muxer = pipeline->addModuleWithHost<Mux::GPACMuxMP4>(cfg);
-				Connect(pipeline, compressed, GetInputPin(muxer, 0));
+				pipeline->connect(compressed, GetInputPin(muxer, 0));
 			}
 		}
 	};

@@ -19,6 +19,24 @@ struct IPipelinedModule {
 	virtual std::shared_ptr<const Modules::IMetadata> getOutputMetadata(int i) = 0;
 };
 
+struct InputPin {
+	IPipelinedModule* mod;
+	int index = 0;
+};
+
+struct OutputPin {
+	IPipelinedModule* mod;
+	int index = 0;
+};
+
+inline InputPin GetInputPin(IPipelinedModule* mod, int index) {
+	return InputPin { mod, index };
+}
+
+inline OutputPin GetOutputPin(IPipelinedModule* mod, int index) {
+	return OutputPin { mod, index };
+}
+
 struct IPipelineNotifier {
 	virtual void endOfStream() = 0;
 	virtual void exception(std::exception_ptr eptr) = 0;
@@ -75,6 +93,7 @@ class Pipeline : public IPipelineNotifier {
 		// (which is the caller responsibility - FIXME)
 		void removeModule(IPipelinedModule * module);
 		void connect   (IPipelinedModule * prev, int outputIdx, IPipelinedModule * next, int inputIdx, bool inputAcceptMultipleConnections = false);
+		void connect   (OutputPin out, InputPin in, bool inputAcceptMultipleConnections = false);
 		void disconnect(IPipelinedModule * prev, int outputIdx, IPipelinedModule * next, int inputIdx);
 
 		std::string dump(); /*dump pipeline using DOT Language*/

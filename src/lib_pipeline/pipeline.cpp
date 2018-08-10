@@ -89,9 +89,13 @@ void Pipeline::removeModule(IPipelinedModule *module) {
 }
 
 void Pipeline::connect(IPipelinedModule * prev, int outputIdx, IPipelinedModule * next, int inputIdx, bool inputAcceptMultipleConnections) {
-	if (!next || !prev) return;
-	auto n = safe_cast<PipelinedModule>(next);
-	auto p = safe_cast<PipelinedModule>(prev);
+	connect(OutputPin{prev, outputIdx}, InputPin{next, inputIdx}, inputAcceptMultipleConnections);
+}
+
+void Pipeline::connect(OutputPin prev, InputPin next, bool inputAcceptMultipleConnections) {
+	if (!next.mod || !prev.mod) return;
+	auto n = safe_cast<PipelinedModule>(next.mod);
+	auto p = safe_cast<PipelinedModule>(prev.mod);
 
 	{
 		std::unique_lock<std::mutex> lock(remainingNotificationsMutex);
@@ -99,10 +103,10 @@ void Pipeline::connect(IPipelinedModule * prev, int outputIdx, IPipelinedModule 
 			throw std::runtime_error("Connection but the topology has changed. Not supported yet."); //TODO: to change that, we need to store a state of the PipelinedModule.
 	}
 
-	n->connect(p->getOutput(outputIdx), inputIdx, inputAcceptMultipleConnections);
+	n->connect(p->getOutput(prev.index), next.index, inputAcceptMultipleConnections);
 	computeTopology();
 
-	graph->connections.push_back(Graph::Connection{graph->nodeFromId(prev), outputIdx, graph->nodeFromId(next), inputIdx});
+	graph->connections.push_back(Graph::Connection{graph->nodeFromId(prev.mod), prev.index, graph->nodeFromId(next.mod), next.index});
 }
 
 void Pipeline::disconnect(IPipelinedModule * prev, int outputIdx, IPipelinedModule * next, int inputIdx) {

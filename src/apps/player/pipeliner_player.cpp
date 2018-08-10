@@ -63,19 +63,17 @@ void declarePipeline(Config cfg, Pipeline &pipeline, const char *url) {
 			continue;
 		}
 
-		IPipelinedModule* avSource = demuxer;
-		int avPin = k;
+		auto source = GetOutputPin(demuxer, k);
 
 		if(metadata->type != VIDEO_RAW) {
 			auto decode = pipeline.add("Decoder", metadata->type);
 			pipeline.connect(demuxer, k, decode, 0);
-			avSource = decode;
-			avPin = 0;
+			source = GetOutputPin(decode, 0);
 		}
 
-		metadata = avSource->getOutputMetadata(avPin);
+		metadata = source.mod->getOutputMetadata(source.index);
 
 		auto render = createRenderer(pipeline, cfg, metadata->type);
-		pipeline.connect(avSource, avPin, render, 0);
+		pipeline.connect(source, GetInputPin(render, 0));
 	}
 }
