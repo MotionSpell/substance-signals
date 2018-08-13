@@ -9,7 +9,6 @@ LIB_MEDIA_SRCS:=\
   $(MYDIR)/demux/gpac_demux_mp4_simple.cpp\
   $(MYDIR)/demux/gpac_demux_mp4_full.cpp\
   $(MYDIR)/demux/dash_demux.cpp\
-  $(MYDIR)/encode/libav_encode.cpp\
   $(MYDIR)/in/file.cpp\
   $(MYDIR)/in/mpeg_dash_input.cpp\
   $(MYDIR)/in/sound_generator.cpp\
