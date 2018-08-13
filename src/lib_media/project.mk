@@ -107,7 +107,6 @@ $(BIN)/Decoder.smd: \
   $(BIN)/$(SRC)/lib_media/common/picture.cpp.o\
 
 #------------------------------------------------------------------------------
-
 TARGETS+=$(BIN)/LibavDemux.smd
 $(BIN)/LibavDemux.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
 $(BIN)/LibavDemux.smd: CFLAGS+=$(MEDIA_CFLAGS)
