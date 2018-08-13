@@ -29,7 +29,6 @@ struct ISOProgressiveReader {
 	/* The ISO file structure created for the parsing of data */
 	std::unique_ptr<gpacpp::IsoFile> movie;
 	/* Boolean state to indicate if the needs to be parsed */
-	u32 samplesProcessed = 0;
 	u32 sampleIndex = 1; /* samples are numbered starting from 1 */
 	u32 sampleCount = 0;
 };
@@ -114,11 +113,10 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 		int di /*descriptor index*/;
 		auto ISOSample = reader->movie->getSample(FIRST_TRACK, reader->sampleIndex, di);
 
-		reader->samplesProcessed++;
 		auto const DTSOffset = reader->movie->getDTSOffset(FIRST_TRACK);
 		/*here we dump some sample info: samp->data, samp->dataLength, samp->isRAP, samp->DTS, samp->CTS_Offset */
 		log(Debug, "Found sample #%s(#%s) of length %s , RAP: %s, DTS: %s, CTS: %s",
-		    reader->sampleIndex, reader->samplesProcessed, ISOSample->dataLength,
+		    reader->sampleIndex, ISOSample->dataLength,
 		    ISOSample->IsRAP, ISOSample->DTS + DTSOffset, ISOSample->DTS + DTSOffset + ISOSample->CTS_Offset);
 		reader->sampleIndex++;
 
