@@ -630,12 +630,7 @@ static const std::vector<Meta> ref = {
 
 //TODO: test LiveNonBlocking
 //#define TEST_DASH_TIMELINE //FIXME: DASH segment timeline requires segments to be owned.
-#ifdef _MSC_VER
-unittest("[DISABLED] adaptive streaming combination coverage")
-#else
-unittest("[DISABLED] adaptive streaming combination coverage")
-#endif
-{
+unittest("[DISABLED] adaptive streaming combination coverage") {
 	auto const segmentDurationInMs = 2000;
 	Modules::absUTCOffsetInMs = 1000000;
 	std::vector<std::shared_ptr<IModule>> decode;
