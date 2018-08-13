@@ -14,15 +14,13 @@ class Signal : public ISignal<Arg> {
 	public:
 		typedef std::function<void(Arg)> CallbackType;
 
-		int connect(const CallbackType &cb, IExecutor &executor) {
+		int connect(const CallbackType &cb, IExecutor* executor = nullptr) {
+			if(!executor)
+				executor = &this->executor;
 			std::lock_guard<std::mutex> lg(callbacksMutex);
 			const int connectionId = uid++;
-			callbacks[connectionId] = {&executor, cb};
+			callbacks[connectionId] = {executor, cb};
 			return connectionId;
-		}
-
-		int connect(const CallbackType &cb) {
-			return connect(cb, executor);
 		}
 
 		bool disconnect(int connectionId) {

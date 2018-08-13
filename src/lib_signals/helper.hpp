@@ -27,7 +27,7 @@ BindMember(Class* objectPtr, Result (Class::*memberFunction) (Args...)) {
 
 template<typename SignalType, typename LambdaType, typename Executor>
 size_t Connect(SignalType& sig, LambdaType lambda, Executor& executor) {
-	return sig.connect(lambda, executor);
+	return sig.connect(lambda, &executor);
 }
 
 template<typename SignalType, typename LambdaType>
