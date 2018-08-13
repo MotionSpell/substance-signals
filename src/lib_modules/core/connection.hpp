@@ -1,6 +1,7 @@
 #pragma once
 
 #include "module.hpp"
+#include "lib_signals/helper.hpp" // Signals::MemberFunctor
 
 namespace Modules {
 
