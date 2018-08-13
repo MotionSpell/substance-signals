@@ -13,7 +13,7 @@ extern "C" {
 namespace Modules {
 namespace Encode {
 
-LibavEncode::LibavEncode(Type type, Params &params)
+LibavEncode::LibavEncode(Type type, EncoderConfig &params)
 	: avFrame(new ffpp::Frame) {
 	std::string codecOptions, generalOptions, codecName;
 	switch (type) {

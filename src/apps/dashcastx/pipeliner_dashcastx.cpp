@@ -54,7 +54,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 		auto const codecType = metadataDemux->type;
 		if (codecType == VIDEO_PKT) {
 			Log::msg(Info, "[Encoder] Found video stream");
-			Encode::LibavEncode::Params p;
+			EncoderConfig p;
 			p.isLowLatency = ultraLowLatency;
 			p.codecType = videoCodecType;
 			p.res = dstFmt.res;
@@ -77,7 +77,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 		} else if (codecType == AUDIO_PKT) {
 			Log::msg(Info, "[Encoder] Found audio stream");
 			auto const demuxFmt = toPcmFormat(safe_cast<const MetadataPktLibavAudio>(metadataDemux));
-			Encode::LibavEncode::Params p;
+			EncoderConfig p;
 			p.sampleRate = demuxFmt.sampleRate;
 			p.numChannels = demuxFmt.numChannels;
 			return pipeline->addModule<Encode::LibavEncode>(Encode::LibavEncode::Audio, p);

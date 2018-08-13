@@ -81,7 +81,7 @@ unittest("encoder: timestamp passthrough") {
 }
 
 secondclasstest("H265 encode and GPAC mp4 mux") {
-	Encode::LibavEncode::Params p;
+	EncoderConfig p;
 	p.frameRate.num = 1;
 	p.avcodecCustom = "-vcodec libx265";
 	try {
@@ -99,7 +99,7 @@ secondclasstest("H265 encode and GPAC mp4 mux") {
 }
 
 void RAPTest(const Fraction fps, const vector<uint64_t> &times, const vector<bool> &RAPs) {
-	Encode::LibavEncode::Params p;
+	EncoderConfig p;
 	p.frameRate = fps;
 	p.GOPSize = fps;
 	auto picture = make_shared<PictureYUV420P>(VIDEO_RESOLUTION);
@@ -160,7 +160,7 @@ unittest("GPAC mp4 mux: don't create empty fragments") {
 	};
 	auto const segmentDurationInMs = 1000;
 	const vector<uint64_t> times = { IClock::Rate, 0, 3 * IClock::Rate, (7 * IClock::Rate) / 2, 4 * IClock::Rate };
-	Encode::LibavEncode::Params p;
+	EncoderConfig p;
 	p.frameRate.num = 1;
 	auto picture = make_shared<PictureYUV420P>(VIDEO_RESOLUTION);
 	auto encode = create<Encode::LibavEncode>(Encode::LibavEncode::Video, p);

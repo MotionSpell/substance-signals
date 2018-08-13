@@ -7,6 +7,24 @@
 #include "lib_utils/queue.hpp"
 #include <string>
 
+struct EncoderConfig {
+	//video only
+	Resolution res = Resolution(320, 180);
+	int bitrate_v = 300000;
+	Fraction GOPSize = Fraction(25, 1);
+	Fraction frameRate = Fraction(25, 1);
+	bool isLowLatency = false;
+	Modules::VideoCodecType codecType = Modules::Software;
+	Modules::PixelFormat pixelFormat = Modules::UNKNOWN_PF; //set by the encoder
+
+	//audio only
+	int bitrate_a = 128000;
+	int sampleRate = 44100;
+	int numChannels = 2;
+
+	std::string avcodecCustom;
+};
+
 struct AVCodecContext;
 struct AVStream;
 struct AVFrame;
@@ -28,27 +46,7 @@ class LibavEncode : public ModuleS, private LogCap {
 			Unknown
 		};
 
-		struct Params {
-			Params() {}
-
-			//video only
-			Resolution res = Resolution(320, 180);
-			int bitrate_v = 300000;
-			Fraction GOPSize = Fraction(25, 1);
-			Fraction frameRate = Fraction(25, 1);
-			bool isLowLatency = false;
-			VideoCodecType codecType = Software;
-			PixelFormat pixelFormat = UNKNOWN_PF; //set by the encoder
-
-			//audio only
-			int bitrate_a = 128000;
-			int sampleRate = 44100;
-			int numChannels = 2;
-
-			std::string avcodecCustom;
-		};
-
-		LibavEncode(Type type, Params &params = *make_unique<Params>());
+		LibavEncode(Type type, EncoderConfig &params = *make_unique<EncoderConfig>());
 		~LibavEncode();
 		void process(Data data) override;
 		void flush() override;
