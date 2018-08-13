@@ -665,14 +665,14 @@ unittest("[DISABLED] adaptive streaming combination coverage")
 			auto const metaVideo = safe_cast<const MetadataPktLibavVideo>(demux->getOutput(i)->getMetadata());
 			p.res = metaVideo->getResolution();
 			p.frameRate = metaVideo->getFrameRate();
-			encode.push_back(create<Encode::LibavEncode>(Encode::LibavEncode::Video, p));
+			encode.push_back(create<Encode::LibavEncode>(Encode::LibavEncode::Video, &p));
 			prefix = Stream::AdaptiveStreamingCommon::getCommonPrefixVideo(i, p.res);
 		} else if (demux->getOutput(i)->getMetadata()->isAudio()) {
 			decode.push_back(loadModule("Decoder", &NullHost, AUDIO_PKT));
 			EncoderConfig p;
 			auto const metaAudio = safe_cast<const MetadataPktLibavAudio>(demux->getOutput(i)->getMetadata());
 			p.numChannels = metaAudio->getNumChannels();
-			encode.push_back(create<Encode::LibavEncode>(Encode::LibavEncode::Audio, p));
+			encode.push_back(create<Encode::LibavEncode>(Encode::LibavEncode::Audio, &p));
 			prefix = Stream::AdaptiveStreamingCommon::getCommonPrefixAudio(i);
 		} else
 			throw std::runtime_error("unhandled media type");

@@ -85,7 +85,7 @@ secondclasstest("H265 encode and GPAC mp4 mux") {
 	p.frameRate.num = 1;
 	p.avcodecCustom = "-vcodec libx265";
 	try {
-		auto encode = create<Encode::LibavEncode>(Encode::LibavEncode::Video, p);
+		auto encode = create<Encode::LibavEncode>(Encode::LibavEncode::Video, &p);
 		auto mux = create<Mux::GPACMuxMP4>(&NullHost, Mp4MuxConfig{"tmp"});
 		ConnectOutputToInput(encode->getOutput(0), mux->getInput(0));
 
@@ -103,7 +103,7 @@ void RAPTest(const Fraction fps, const vector<uint64_t> &times, const vector<boo
 	p.frameRate = fps;
 	p.GOPSize = fps;
 	auto picture = make_shared<PictureYUV420P>(VIDEO_RESOLUTION);
-	auto encode = create<Encode::LibavEncode>(Encode::LibavEncode::Video, p);
+	auto encode = create<Encode::LibavEncode>(Encode::LibavEncode::Video, &p);
 	size_t i = 0;
 	auto onFrame = [&](Data data) {
 		if (i < RAPs.size()) {
@@ -163,7 +163,7 @@ unittest("GPAC mp4 mux: don't create empty fragments") {
 	EncoderConfig p;
 	p.frameRate.num = 1;
 	auto picture = make_shared<PictureYUV420P>(VIDEO_RESOLUTION);
-	auto encode = create<Encode::LibavEncode>(Encode::LibavEncode::Video, p);
+	auto encode = create<Encode::LibavEncode>(Encode::LibavEncode::Video, &p);
 	auto mux = create<Mux::GPACMuxMP4>(&NullHost, Mp4MuxConfig{"", segmentDurationInMs, FragmentedSegment, OneFragmentPerRAP, Browsers | SegmentAtAny});
 	ConnectOutputToInput(encode->getOutput(0), mux->getInput(0));
 	auto recorder = create<Recorder>();

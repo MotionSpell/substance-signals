@@ -46,7 +46,7 @@ class LibavEncode : public ModuleS, private LogCap {
 			Unknown
 		};
 
-		LibavEncode(Type type, EncoderConfig &params = *make_unique<EncoderConfig>());
+		LibavEncode(Type type, EncoderConfig* params = nullptr);
 		~LibavEncode();
 		void process(Data data) override;
 		void flush() override;
