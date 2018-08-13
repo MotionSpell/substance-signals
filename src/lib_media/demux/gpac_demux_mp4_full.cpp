@@ -86,9 +86,12 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 		if(desc->streamType == GF_STREAM_AUDIO) {
 			meta = make_shared<MetadataPkt>(AUDIO_PKT);
 			meta->codec = "aac";
-		} else {
+		} else if (desc->streamType == GF_STREAM_VISUAL) {
 			meta = make_shared<MetadataPkt>(VIDEO_PKT);
 			meta->codec = "h264";
+		} else {
+			meta = make_shared<MetadataPkt>(UNKNOWN_ST);
+			meta->codec = "";
 		}
 		meta->codecSpecificInfo.assign(dsi->data, dsi->data+dsi->dataLength);
 		output->setMetadata(meta);
