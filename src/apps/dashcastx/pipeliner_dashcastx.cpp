@@ -47,9 +47,8 @@ Resolution autoFit(Resolution input, Resolution output) {
 	}
 };
 
-std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
-	auto opt = &config;
-	auto pipeline = make_unique<Pipeline>(opt->ultraLowLatency, opt->ultraLowLatency ? Pipeline::Mono : Pipeline::OnePerModule);
+std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
+	auto pipeline = make_unique<Pipeline>(cfg.ultraLowLatency, cfg.ultraLowLatency ? Pipeline::Mono : Pipeline::OnePerModule);
 
 	auto createEncoder = [&](std::shared_ptr<const IMetadata> metadataDemux, bool ultraLowLatency, VideoCodecType videoCodecType, PictureFormat &dstFmt, int bitrate, uint64_t segmentDurationInMs)->IPipelinedModule* {
 		auto const codecType = metadataDemux->type;
@@ -107,25 +106,25 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 		}
 	};
 
-	if(!dirExists(opt->workingDir))
-		mkdir(opt->workingDir);
+	if(!dirExists(cfg.workingDir))
+		mkdir(cfg.workingDir);
 
-	changeDir(opt->workingDir);
+	changeDir(cfg.workingDir);
 
-	DemuxConfig cfg;
-	cfg.url = opt->input;
-	cfg.loop = opt->loop;
-	auto demux = pipeline->add("LibavDemux", &cfg);
-	auto const type = (opt->isLive || opt->ultraLowLatency) ? Stream::AdaptiveStreamingCommon::Live : Stream::AdaptiveStreamingCommon::Static;
-	auto dasher = pipeline->addModule<Stream::MPEG_DASH>(DASH_SUBDIR, format("%s.mpd", g_appName), type, opt->segmentDurationInMs, opt->segmentDurationInMs * opt->timeshiftInSegNum);
+	DemuxConfig demuxCfg;
+	demuxCfg.url = cfg.input;
+	demuxCfg.loop = cfg.loop;
+	auto demux = pipeline->add("LibavDemux", &demuxCfg);
+	auto const type = (cfg.isLive || cfg.ultraLowLatency) ? Stream::AdaptiveStreamingCommon::Live : Stream::AdaptiveStreamingCommon::Static;
+	auto dasher = pipeline->addModule<Stream::MPEG_DASH>(DASH_SUBDIR, format("%s.mpd", g_appName), type, cfg.segmentDurationInMs, cfg.segmentDurationInMs * cfg.timeshiftInSegNum);
 	if (!dirExists(DASH_SUBDIR))
 		mkdir(DASH_SUBDIR);
 
 	bool isVertical = false;
-	const bool transcode = opt->v.size() > 0;
+	const bool transcode = cfg.v.size() > 0;
 	if (!transcode) {
 		Log::msg(Warning, "[%s] No transcode. Make passthru.", g_appName);
-		if (opt->autoRotate)
+		if (cfg.autoRotate)
 			throw std::runtime_error("cannot autorotate when transcoding is disabled");
 	}
 
@@ -139,7 +138,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 
 		auto source = GetOutputPin(demux, streamIndex);
 
-		if(opt->isLive) {
+		if(cfg.isLive) {
 			auto regulator = pipeline->addModule<Regulator>(g_SystemClock);
 			pipeline->connect(source, GetInputPin(regulator));
 
@@ -152,7 +151,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 
 			pipeline->connect(source, GetInputPin(decode));
 
-			if (metadataDemux->isVideo() && opt->autoRotate) {
+			if (metadataDemux->isVideo() && cfg.autoRotate) {
 				auto const res = safe_cast<const MetadataPktLibavVideo>(demux->getOutputMetadata(streamIndex))->getResolution();
 				if (res.height > res.width) {
 					isVertical = true;
@@ -160,14 +159,14 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 			}
 		}
 
-		auto const numRes = metadataDemux->isVideo() ? std::max<int>(opt->v.size(), 1) : 1;
+		auto const numRes = metadataDemux->isVideo() ? std::max<int>(cfg.v.size(), 1) : 1;
 		for (int r = 0; r < numRes; ++r) {
 			auto compressed = source;
 			if (transcode) {
 				auto inputRes = metadataDemux->isVideo() ? safe_cast<const MetadataPktLibavVideo>(demux->getOutputMetadata(streamIndex))->getResolution() : Resolution();
-				auto const outputRes = autoRotate(autoFit(inputRes, opt->v[r].res), isVertical);
+				auto const outputRes = autoRotate(autoFit(inputRes, cfg.v[r].res), isVertical);
 				PictureFormat encoderInputPicFmt(outputRes, UNKNOWN_PF);
-				auto encoder = createEncoder(metadataDemux, opt->ultraLowLatency, (VideoCodecType)opt->v[r].type, encoderInputPicFmt, opt->v[r].bitrate, opt->segmentDurationInMs);
+				auto encoder = createEncoder(metadataDemux, cfg.ultraLowLatency, (VideoCodecType)cfg.v[r].type, encoderInputPicFmt, cfg.v[r].bitrate, cfg.segmentDurationInMs);
 				if (!encoder)
 					return;
 
@@ -175,7 +174,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 				if (!converter)
 					return;
 
-				if(opt->debugMonitor) {
+				if(cfg.debugMonitor) {
 					if (metadataDemux->isVideo() && r == 0) {
 						auto webcamPreview = pipeline->add("SDLVideo", nullptr);
 						pipeline->connect(converter, webcamPreview);
@@ -192,7 +191,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 				Resolution reso;
 				auto const resolutionFromDemux = safe_cast<const MetadataPktLibavVideo>(demux->getOutputMetadata(streamIndex))->getResolution();
 				if (transcode) {
-					reso = autoFit(resolutionFromDemux, opt->v[r].res);
+					reso = autoFit(resolutionFromDemux, cfg.v[r].res);
 				} else {
 					reso = resolutionFromDemux;
 				}
@@ -205,7 +204,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &config) {
 			if (!dirExists(subdir))
 				mkdir(subdir);
 
-			auto muxer = pipeline->addModuleWithHost<Mux::GPACMuxMP4>(Mp4MuxConfig{subdir + prefix, (uint64_t)opt->segmentDurationInMs, FragmentedSegment, opt->ultraLowLatency ? OneFragmentPerFrame : OneFragmentPerSegment});
+			auto muxer = pipeline->addModuleWithHost<Mux::GPACMuxMP4>(Mp4MuxConfig{subdir + prefix, (uint64_t)cfg.segmentDurationInMs, FragmentedSegment, cfg.ultraLowLatency ? OneFragmentPerFrame : OneFragmentPerSegment});
 			pipeline->connect(compressed, GetInputPin(muxer));
 
 			pipeline->connect(muxer, GetInputPin(dasher, numDashInputs));
