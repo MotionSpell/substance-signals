@@ -9,13 +9,12 @@
 namespace Modules {
 namespace In {
 
-auto const SAMPLE_RATE = AUDIO_SAMPLERATE;
 auto const SINE_FREQ = 880.0;
 
 SoundGenerator::SoundGenerator()
 	: m_numSamples(20000) {
 	pcmFormat.sampleFormat = S16;
-	pcmFormat.sampleRate = SAMPLE_RATE;
+	pcmFormat.sampleRate = 44100;
 	pcmFormat.numPlanes = 1;
 	output = addOutput<OutputPcm>();
 }
