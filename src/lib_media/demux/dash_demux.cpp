@@ -51,9 +51,10 @@ void DashDemuxer::addStream(Pipelines::IPipelinedModule* downloadOutput, int out
 	pipeline->connect(restamp, stub);
 }
 
-void DashDemuxer::process() {
+bool DashDemuxer::work() {
 	pipeline->start();
 	pipeline->waitForEndOfStream();
+	return true;
 }
 
 }

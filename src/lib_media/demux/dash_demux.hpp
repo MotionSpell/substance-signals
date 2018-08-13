@@ -10,11 +10,11 @@ struct IPipelinedModule;
 namespace Modules {
 namespace Demux {
 
-class DashDemuxer : public Module {
+class DashDemuxer : public ActiveModule {
 	public:
 		DashDemuxer(std::string url);
 
-		virtual void process() override;
+		virtual bool work() override;
 
 	private:
 		void addStream(Pipelines::IPipelinedModule* downloadOutput, int outputPort);

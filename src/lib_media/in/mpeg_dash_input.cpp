@@ -102,12 +102,7 @@ MPEG_DASH_Input::MPEG_DASH_Input(std::unique_ptr<IFilePuller> source, std::strin
 MPEG_DASH_Input::~MPEG_DASH_Input() {
 }
 
-void MPEG_DASH_Input::process() {
-	while(wakeUp()) {
-	}
-}
-
-bool MPEG_DASH_Input::wakeUp() {
+bool MPEG_DASH_Input::work() {
 	for(auto& stream : m_streams) {
 		auto& set = *stream->set;
 

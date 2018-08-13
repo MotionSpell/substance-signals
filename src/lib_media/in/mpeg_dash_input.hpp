@@ -13,11 +13,11 @@ struct IFilePuller {
 	virtual std::vector<uint8_t> get(std::string url) = 0;
 };
 
-class MPEG_DASH_Input : public Module {
+class MPEG_DASH_Input : public ActiveModule {
 	public:
 		MPEG_DASH_Input(std::unique_ptr<IFilePuller> filePuller, std::string const &url);
 		~MPEG_DASH_Input();
-		void process() override;
+		bool work() override;
 
 	private:
 		std::unique_ptr<IFilePuller> const m_source;
