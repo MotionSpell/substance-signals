@@ -80,24 +80,6 @@ unittest("encoder: timestamp passthrough") {
 	ASSERT_EQUALS(expected, times);
 }
 
-secondclasstest("H265 encode and GPAC mp4 mux") {
-	EncoderConfig p;
-	p.frameRate.num = 1;
-	p.avcodecCustom = "-vcodec libx265";
-	try {
-		auto encode = create<Encode::LibavEncode>(Encode::LibavEncode::Video, &p);
-		auto mux = create<Mux::GPACMuxMP4>(&NullHost, Mp4MuxConfig{"tmp"});
-		ConnectOutputToInput(encode->getOutput(0), mux->getInput(0));
-
-		auto picture = make_shared<PictureYUV420P>(VIDEO_RESOLUTION);
-		encode->process(picture);
-		encode->flush();
-		mux->flush();
-	} catch (exception const &e) {
-		cerr << "No support for \"" << p.avcodecCustom << "\". Skipping test (" << e.what() << ")" << endl;
-	}
-}
-
 void RAPTest(const Fraction fps, const vector<uint64_t> &times, const vector<bool> &RAPs) {
 	EncoderConfig p;
 	p.frameRate = fps;
