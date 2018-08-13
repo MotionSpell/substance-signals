@@ -35,11 +35,13 @@ struct ISOProgressiveReader {
 
 GPACDemuxMP4Full::GPACDemuxMP4Full()
 	: reader(new ISOProgressiveReader) {
+	gf_sys_init(GF_MemTrackerNone);
 	createInput(this);
 	output = addOutput<OutputDefault>();
 }
 
 GPACDemuxMP4Full::~GPACDemuxMP4Full() {
+	gf_sys_close();
 }
 
 bool GPACDemuxMP4Full::openData() {
