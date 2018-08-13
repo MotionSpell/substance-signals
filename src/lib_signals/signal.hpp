@@ -5,8 +5,6 @@
 
 namespace Signals {
 
-template<typename> struct ISignal;
-
 template <typename Arg>
 struct ISignal {
 	virtual ~ISignal() = default;
@@ -15,5 +13,6 @@ struct ISignal {
 	virtual int getNumConnections() const = 0;
 	virtual void emit(Arg arg) = 0;
 };
+
 }
 
