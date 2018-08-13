@@ -204,6 +204,10 @@ class DataPcm : public DataRaw {
 		size_t planeSize[AUDIO_PCM_PLANES_MAX] {};
 };
 
-typedef OutputDataDefault<DataPcm> OutputPcm;
+}
 
+#include "lib_modules/utils/helper.hpp" // OutputDataDefault
+
+namespace Modules {
+typedef OutputDataDefault<DataPcm> OutputPcm;
 }
