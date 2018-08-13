@@ -2,6 +2,7 @@
 
 #include "helper.hpp"
 #include "signal.hpp"
+#include "executor.hpp" // ExecutorSync
 
 #include <map>
 #include <memory>

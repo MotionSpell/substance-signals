@@ -1,9 +1,10 @@
 #pragma once
 
 #include <functional>
-#include "executor.hpp"
 
 namespace Signals {
+
+struct IExecutor;
 
 template <typename Arg>
 struct ISignal {
