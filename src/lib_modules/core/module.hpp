@@ -9,7 +9,7 @@
 
 #include "data.hpp"
 #include "metadata.hpp"
-#include "lib_signals/signals.hpp"
+#include "lib_signals/signal.hpp"
 
 namespace Modules {
 
