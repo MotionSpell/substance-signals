@@ -17,11 +17,6 @@ void dummy2(int a) {
 	results.push_back(1 + a);
 }
 
-unittest("signals_simple: disconnect non existing") {
-	Signal<void(int)> sig;
-	ASSERT(!sig.disconnect(0));
-}
-
 unittest("signals_simple") {
 	Signal<int> sig;
 
@@ -43,20 +38,14 @@ unittest("signals_simple") {
 	ASSERT(sig.getNumConnections() == 4);
 
 	{
-		bool res;
-		res = sig.disconnect(id2);
-		ASSERT(res);
-
-		res = sig.disconnect(id);
-		ASSERT(res);
+		sig.disconnect(id2);
+		sig.disconnect(id);
 
 		//disconnect again
-		res = sig.disconnect(id);
-		ASSERT(!res);
+		sig.disconnect(id);
 
 		//wrong id
-		res = sig.disconnect(id + 1);
-		ASSERT(!res);
+		sig.disconnect(id + 1);
 	}
 }
 

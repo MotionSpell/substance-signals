@@ -23,9 +23,9 @@ class Signal : public ISignal<Arg> {
 			return connectionId;
 		}
 
-		bool disconnect(int connectionId) {
+		void disconnect(int connectionId) {
 			std::lock_guard<std::mutex> lg(callbacksMutex);
-			return disconnectUnsafe(connectionId);
+			disconnectUnsafe(connectionId);
 		}
 
 		// FIXME: in a concurrent context, what's returned by this function
