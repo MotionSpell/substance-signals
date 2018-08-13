@@ -111,19 +111,19 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 	{
 		// let's analyze the samples we have parsed so far one by one
 		int descriptorIndex;
-		auto ISOSample = reader->movie->getSample(FIRST_TRACK, reader->sampleIndex, descriptorIndex);
+		auto sample = reader->movie->getSample(FIRST_TRACK, reader->sampleIndex, descriptorIndex);
 
 		auto const DTSOffset = reader->movie->getDTSOffset(FIRST_TRACK);
 		//here we dump some sample info: samp->data, samp->dataLength, samp->isRAP, samp->DTS, samp->CTS_Offset
 		log(Debug, "Found sample #%s(#%s) of length %s , RAP: %s, DTS: %s, CTS: %s",
-		    reader->sampleIndex, ISOSample->dataLength,
-		    ISOSample->IsRAP, ISOSample->DTS + DTSOffset, ISOSample->DTS + DTSOffset + ISOSample->CTS_Offset);
+		    reader->sampleIndex, sample->dataLength,
+		    sample->IsRAP, sample->DTS + DTSOffset, sample->DTS + DTSOffset + sample->CTS_Offset);
 		reader->sampleIndex++;
 
-		auto out = output->getBuffer(ISOSample->dataLength);
-		out->resize(ISOSample->dataLength); // workaround allocator bug
-		memcpy(out->data().ptr, ISOSample->data, ISOSample->dataLength);
-		out->setMediaTime(ISOSample->DTS + DTSOffset + ISOSample->CTS_Offset, reader->movie->getMediaTimescale(FIRST_TRACK));
+		auto out = output->getBuffer(sample->dataLength);
+		out->resize(sample->dataLength); // workaround allocator bug
+		memcpy(out->data().ptr, sample->data, sample->dataLength);
+		out->setMediaTime(sample->DTS + DTSOffset + sample->CTS_Offset, reader->movie->getMediaTimescale(FIRST_TRACK));
 		output->emit(out);
 	}
 
