@@ -194,7 +194,7 @@ unittest("decoder: audio mp3 manual frame to AAC") {
 	EncoderConfig cfg { EncoderConfig::Audio };
 
 	auto decode = loadModule("Decoder", &NullHost, AUDIO_PKT);
-	auto encoder = create<Encode::LibavEncode>(&cfg);
+	auto encoder = create<Encode::LibavEncode>(&NullHost, &cfg);
 
 	ConnectOutputToInput(decode->getOutput(0), encoder->getInput(0));
 
@@ -209,7 +209,7 @@ unittest("decoder: audio mp3 to converter to AAC") {
 	EncoderConfig cfg { EncoderConfig::Audio };
 
 	auto decoder = loadModule("Decoder", &NullHost, AUDIO_PKT);
-	auto encoder = create<Encode::LibavEncode>(&cfg);
+	auto encoder = create<Encode::LibavEncode>(&NullHost, &cfg);
 
 	auto const dstFormat = PcmFormat(44100, 2, AudioLayout::Stereo, AudioSampleFormat::F32, AudioStruct::Planar);
 	auto const metadataEncoder = encoder->getOutput(0)->getMetadata();

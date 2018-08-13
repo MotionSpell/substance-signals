@@ -44,9 +44,9 @@ class DataAVPacket;
 
 namespace Encode {
 
-class LibavEncode : public ModuleS, private LogCap {
+class LibavEncode : public ModuleS {
 	public:
-		LibavEncode(EncoderConfig* params);
+		LibavEncode(IModuleHost* host, EncoderConfig* params);
 		~LibavEncode();
 		void process(Data data) override;
 		void flush() override;
@@ -57,12 +57,14 @@ class LibavEncode : public ModuleS, private LogCap {
 		void computeFrameAttributes(AVFrame * const f, const int64_t currMediaTime);
 		void setMediaTime(std::shared_ptr<DataAVPacket> data);
 
+		IModuleHost* const m_host;
 		std::shared_ptr<AVCodecContext> codecCtx;
-		std::unique_ptr<PcmFormat> pcmFormat = nullptr;
+		std::unique_ptr<PcmFormat> pcmFormat;
 		std::unique_ptr<ffpp::Frame> const avFrame;
-		OutputDataDefault<DataAVPacket>* output;
-		int64_t firstMediaTime, prevMediaTime;
-		Fraction GOPSize;
+		OutputDataDefault<DataAVPacket>* output {};
+		int64_t firstMediaTime = 0;
+		int64_t prevMediaTime = 0;
+		Fraction GOPSize {};
 };
 
 }

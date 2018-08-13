@@ -12,8 +12,9 @@ extern "C" {
 namespace Modules {
 namespace Encode {
 
-LibavEncode::LibavEncode(EncoderConfig *pparams)
-	: avFrame(new ffpp::Frame) {
+LibavEncode::LibavEncode(IModuleHost* host, EncoderConfig *pparams)
+	: m_host(host),
+	  avFrame(new ffpp::Frame) {
 	auto const type = pparams->type;
 	auto& params = *pparams;
 	std::string codecOptions, generalOptions, codecName;
@@ -187,7 +188,7 @@ void LibavEncode::computeFrameAttributes(AVFrame * const f, const int64_t currMe
 		auto const currGOP = computeNearestGOPNum(currMediaTime - firstMediaTime);
 		if (prevGOP != currGOP) {
 			if (currGOP != prevGOP + 1) {
-				log(Warning, "Invalid content: switching from GOP %s to GOP %s - inserting RAP.", prevGOP, currGOP);
+				m_host->log(Warning, format("Invalid content: switching from GOP %s to GOP %s - inserting RAP.", prevGOP, currGOP).c_str());
 			}
 			f->key_frame = 1;
 			f->pict_type = AV_PICTURE_TYPE_I;
@@ -218,7 +219,7 @@ void LibavEncode::encodeFrame(AVFrame* f) {
 	ret = avcodec_send_frame(codecCtx.get(), f);
 	if (ret != 0) {
 		auto desc = f ? format("pts=%s", f->pts) : format("flush");
-		log(Warning, "error encountered while encoding frame (%s) : %s", desc, avStrError(ret));
+		m_host->log(Warning, format("error encountered while encoding frame (%s) : %s", desc, avStrError(ret)).c_str());
 		return;
 	}
 
