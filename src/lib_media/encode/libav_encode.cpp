@@ -3,7 +3,6 @@
 #include "../common/ffpp.hpp"
 #include "../common/pcm.hpp"
 #include "../common/libav.hpp"
-#include <cassert>
 
 extern "C" {
 #include <libavutil/pixdesc.h>
@@ -129,7 +128,7 @@ LibavEncode::LibavEncode(Type type, EncoderConfig *pparams)
 		libavAudioCtxConvert(pcmFormat.get(), codecCtx.get());
 		break;
 	default:
-		assert(0);
+		throw error(format("Invalid codec type: %d", type));
 	}
 
 	/* open it */
@@ -155,7 +154,7 @@ LibavEncode::LibavEncode(Type type, EncoderConfig *pparams)
 		break;
 	}
 	default:
-		assert(0);
+		throw error(format("Invalid codec type: %d", type));
 	}
 
 	av_dict_free(&generalDict);
@@ -257,7 +256,8 @@ void LibavEncode::process(Data data) {
 		libavFrameDataConvert(pcmData.get(), f);
 	}
 	break;
-	default: assert(0);
+	default:
+		throw error(format("Invalid codec_type: %d", codecCtx->codec_type));
 	}
 
 	f->pts = data->getMediaTime();
