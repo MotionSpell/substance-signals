@@ -8,6 +8,12 @@
 #include <string>
 
 struct EncoderConfig {
+	enum Type {
+		Video,
+		Audio,
+	};
+
+	Type type;
 	int bitrate = 128000;
 
 	//video only
@@ -22,7 +28,7 @@ struct EncoderConfig {
 	int sampleRate = 44100;
 	int numChannels = 2;
 
-	std::string avcodecCustom;
+	std::string avcodecCustom = "";
 };
 
 struct AVCodecContext;
@@ -40,12 +46,7 @@ namespace Encode {
 
 class LibavEncode : public ModuleS, private LogCap {
 	public:
-		enum Type {
-			Video,
-			Audio,
-		};
-
-		LibavEncode(Type type, EncoderConfig* params = nullptr);
+		LibavEncode(EncoderConfig* params);
 		~LibavEncode();
 		void process(Data data) override;
 		void flush() override;

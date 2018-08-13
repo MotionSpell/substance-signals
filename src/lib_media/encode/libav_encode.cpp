@@ -12,13 +12,13 @@ extern "C" {
 namespace Modules {
 namespace Encode {
 
-LibavEncode::LibavEncode(Type type, EncoderConfig *pparams)
+LibavEncode::LibavEncode(EncoderConfig *pparams)
 	: avFrame(new ffpp::Frame) {
-	EncoderConfig defaultConfig;
-	auto& params = pparams ? *pparams : defaultConfig;
+	auto const type = pparams->type;
+	auto& params = *pparams;
 	std::string codecOptions, generalOptions, codecName;
 	switch (type) {
-	case Video: {
+	case EncoderConfig::Video: {
 		GOPSize = params.GOPSize;
 		codecOptions += format(" -b %s", params.bitrate);
 		codecName = "vcodec";
@@ -56,7 +56,7 @@ LibavEncode::LibavEncode(Type type, EncoderConfig *pparams)
 		codecOptions += " -bf 0";
 		break;
 	}
-	case Audio: {
+	case EncoderConfig::Audio: {
 		codecName = "acodec";
 		ffpp::Dict customDict(typeid(*this).name(), params.avcodecCustom);
 		auto const codec = customDict.get("acodec");
@@ -95,7 +95,7 @@ LibavEncode::LibavEncode(Type type, EncoderConfig *pparams)
 
 	/* parameters */
 	switch (type) {
-	case Video: {
+	case EncoderConfig::Video: {
 		codecCtx->width = params.res.width;
 		codecCtx->height = params.res.height;
 		if (generalDict.get("pix_fmt")) {
@@ -117,7 +117,7 @@ LibavEncode::LibavEncode(Type type, EncoderConfig *pparams)
 		codecCtx->time_base = fps;
 		break;
 	}
-	case Audio:
+	case EncoderConfig::Audio:
 		AudioLayout layout;
 		switch (params.numChannels) {
 		case 1: layout = Modules::Mono; break;
@@ -141,13 +141,13 @@ LibavEncode::LibavEncode(Type type, EncoderConfig *pparams)
 
 	output = addOutput<OutputDataDefault<DataAVPacket>>();
 	switch (type) {
-	case Video: {
+	case EncoderConfig::Video: {
 		auto input = createInput(this);
 		input->setMetadata(make_shared<MetadataRawVideo>());
 		output->setMetadata(make_shared<MetadataPktLibavVideo>(codecCtx));
 		break;
 	}
-	case Audio: {
+	case EncoderConfig::Audio: {
 		auto input = createInput(this);
 		input->setMetadata(make_shared<MetadataRawAudio>());
 		output->setMetadata(make_shared<MetadataPktLibavAudio>(codecCtx));

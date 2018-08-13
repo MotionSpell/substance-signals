@@ -36,7 +36,8 @@ void libav_mux(std::string format) {
 	//create the video decode
 	auto metadata = safe_cast<const MetadataPkt>(demux->getOutput(videoIndex)->getMetadata());
 	auto decode = loadModule("Decoder", &NullHost, VIDEO_PKT);
-	auto encode = create<Encode::LibavEncode>(Encode::LibavEncode::Video);
+	EncoderConfig encCfg { EncoderConfig::Video };
+	auto encode = create<Encode::LibavEncode>(&encCfg);
 	auto mux = create<Mux::LibavMux>(MuxConfig{"out/output_video_libav", format, ""});
 
 	ConnectOutputToInput(demux->getOutput(videoIndex), decode->getInput(0));
@@ -75,7 +76,8 @@ unittest("transcoder: video simple (gpac mux MP4)") {
 
 	//create the video decode
 	auto decode = loadModule("Decoder", &NullHost, VIDEO_PKT);
-	auto encode = create<Encode::LibavEncode>(Encode::LibavEncode::Video);
+	EncoderConfig encCfg { EncoderConfig::Video };
+	auto encode = create<Encode::LibavEncode>(&encCfg);
 	auto mux = create<Mux::GPACMuxMP4>(&NullHost, Mp4MuxConfig{"out/output_video_gpac"});
 
 	ConnectOutputToInput(demux->getOutput(videoIndex), decode->getInput(0));
@@ -173,7 +175,8 @@ unittest("transcoder: jpg to h264/mp4 (gpac)") {
 	auto const dstFormat = PictureFormat(Resolution(320, 180), YUV420P);
 	auto converter = loadModule("VideoConvert", &NullHost, &dstFormat);
 
-	auto encoder = create<Encode::LibavEncode>(Encode::LibavEncode::Video);
+	EncoderConfig cfg { EncoderConfig::Video };
+	auto encoder = create<Encode::LibavEncode>(&cfg);
 	auto mux = create<Mux::GPACMuxMP4>(&NullHost, Mp4MuxConfig{"out/test"});
 
 	ConnectOutputToInput(reader->getOutput(0), decode->getInput(0));

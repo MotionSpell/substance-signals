@@ -16,11 +16,11 @@ using namespace Modules;
 typedef std::shared_ptr<IModule> (*CreateDemuxFunc)(const char* path);
 
 void checkTimestampsMux(CreateDemuxFunc createDemux, int numBFrame, const std::vector<int64_t> &timesIn, const std::vector<int64_t> &timesOut, std::unique_ptr<IModule> mux) {
-	EncoderConfig p;
+	EncoderConfig p { EncoderConfig::Video };
 	p.frameRate.num = 1;
 	p.avcodecCustom = format("-bf %s", numBFrame);
 	auto picture = make_shared<PictureYUV420P>(Resolution(320, 180));
-	auto encode = create<Encode::LibavEncode>(Encode::LibavEncode::Video, &p);
+	auto encode = create<Encode::LibavEncode>(&p);
 	ConnectOutputToInput(encode->getOutput(0), mux->getInput(0));
 
 	for(auto time : timesIn) {
@@ -120,16 +120,16 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 	auto createEncoder = [&](std::shared_ptr<const IMetadata> metadataDemux, PictureFormat &dstFmt)->std::unique_ptr<IModule> {
 		auto const codecType = metadataDemux->type;
 		if (codecType == VIDEO_PKT) {
-			EncoderConfig p;
-			auto m = createModule<Encode::LibavEncode>(bufferSize, Encode::LibavEncode::Video, &p);
+			EncoderConfig p { EncoderConfig::Video };
+			auto m = createModule<Encode::LibavEncode>(bufferSize, &p);
 			dstFmt.format = p.pixelFormat;
 			return std::move(m);
 		} else if (codecType == AUDIO_PKT) {
 			auto const demuxFmt = toPcmFormat(safe_cast<const MetadataPktLibavAudio>(metadataDemux));
-			EncoderConfig p;
+			EncoderConfig p { EncoderConfig::Audio };
 			p.sampleRate = demuxFmt.sampleRate;
 			p.numChannels = demuxFmt.numChannels;
-			return createModule<Encode::LibavEncode>(bufferSize, Encode::LibavEncode::Audio, &p);
+			return createModule<Encode::LibavEncode>(bufferSize, &p);
 		} else
 			throw std::runtime_error("[Converter] Found unknown stream");
 	};
