@@ -15,11 +15,9 @@ using namespace Pipelines;
 
 extern const char *g_appName;
 
-#define DASH_SUBDIR "dash/"
-
+auto const DASH_SUBDIR = "dash/";
 auto const MP4_MONITOR = false;
-
-#define MAX_GOP_DURATION_IN_MS 2000
+auto const MAX_GOP_DURATION_IN_MS = 2000;
 
 Resolution autoRotate(Resolution res, bool verticalize) {
 	if (verticalize && res.height < res.width) {
