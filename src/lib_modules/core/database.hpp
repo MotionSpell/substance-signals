@@ -59,6 +59,7 @@ class DataRaw : public DataBase {
 };
 
 typedef std::shared_ptr<const DataBase> Data;
+typedef std::shared_ptr<const IMetadata> Metadata;
 
 }
 

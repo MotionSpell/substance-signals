@@ -6,7 +6,7 @@
 #include "../core/module.hpp"
 #include "../core/allocator.hpp"
 #include "../core/error.hpp"
-#include "../core/database.hpp" // Data, DataLoose
+#include "../core/database.hpp" // Data, Metadata, DataLoose
 #include "lib_signals/helper.hpp"
 #include "lib_utils/queue.hpp"
 #include "lib_utils/tools.hpp" // uptr
@@ -16,19 +16,19 @@ namespace Modules {
 
 class MetadataCap : public virtual IMetadataCap {
 	public:
-		MetadataCap(std::shared_ptr<const IMetadata> metadata = nullptr);
+		MetadataCap(Metadata metadata = nullptr);
 		virtual ~MetadataCap() {}
 
-		std::shared_ptr<const IMetadata> getMetadata() const override {
+		Metadata getMetadata() const override {
 			return m_metadata;
 		}
-		void setMetadata(std::shared_ptr<const IMetadata> metadata) override;
+		void setMetadata(Metadata metadata) override;
 		bool updateMetadata(Data &data) override;
 
 	private:
-		bool setMetadataInternal(const std::shared_ptr<const IMetadata> &metadata);
+		bool setMetadataInternal(Metadata metadata);
 
-		std::shared_ptr<const IMetadata> m_metadata;
+		Metadata m_metadata;
 };
 
 class ConnectedCap : public virtual IConnectedCap {
@@ -99,7 +99,7 @@ static Signals::ExecutorSync g_executorOutputSync;
 template<typename DataType>
 class OutputDataDefault : public IOutput, public MetadataCap {
 	public:
-		OutputDataDefault(size_t allocatorBaseSize, size_t allocatorMaxSize, std::shared_ptr<const IMetadata> metadata = nullptr)
+		OutputDataDefault(size_t allocatorBaseSize, size_t allocatorMaxSize, Metadata metadata = nullptr)
 			: MetadataCap(metadata), signal(g_executorOutputSync), allocator(new PacketAllocator(allocatorBaseSize, allocatorMaxSize)) {
 		}
 		OutputDataDefault(size_t allocatorSize, const IMetadata *metadata = nullptr)

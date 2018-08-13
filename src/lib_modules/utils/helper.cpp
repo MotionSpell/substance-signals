@@ -3,10 +3,10 @@
 
 namespace Modules {
 
-MetadataCap::MetadataCap(std::shared_ptr<const IMetadata> metadata) : m_metadata(metadata) {
+MetadataCap::MetadataCap(Metadata metadata) : m_metadata(metadata) {
 }
 
-void MetadataCap::setMetadata(std::shared_ptr<const IMetadata> metadata) {
+void MetadataCap::setMetadata(Metadata metadata) {
 	if (!setMetadataInternal(metadata))
 		throw std::runtime_error("Metadata could not be set.");
 }
@@ -25,7 +25,7 @@ bool MetadataCap::updateMetadata(Data &data) {
 	}
 }
 
-bool MetadataCap::setMetadataInternal(const std::shared_ptr<const IMetadata> &metadata) {
+bool MetadataCap::setMetadataInternal(Metadata metadata) {
 	if (metadata == m_metadata)
 		return false;
 	if (m_metadata) {

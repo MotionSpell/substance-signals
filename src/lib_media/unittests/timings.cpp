@@ -117,7 +117,7 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 		OutputDefault *output;
 	};
 
-	auto createEncoder = [&](std::shared_ptr<const IMetadata> metadataDemux, PictureFormat &dstFmt)->std::unique_ptr<IModule> {
+	auto createEncoder = [&](Metadata metadataDemux, PictureFormat &dstFmt)->std::unique_ptr<IModule> {
 		auto const codecType = metadataDemux->type;
 		if (codecType == VIDEO_PKT) {
 			EncoderConfig p { EncoderConfig::Video };
@@ -133,7 +133,7 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 		} else
 			throw std::runtime_error("[Converter] Found unknown stream");
 	};
-	auto createConverter = [&](std::shared_ptr<const IMetadata> metadataDemux, std::shared_ptr<const IMetadata> metadataEncoder, const PictureFormat &dstFmt)->std::shared_ptr<IModule> {
+	auto createConverter = [&](Metadata metadataDemux, Metadata metadataEncoder, const PictureFormat &dstFmt)->std::shared_ptr<IModule> {
 		auto const codecType = metadataDemux->type;
 		if (codecType == VIDEO_PKT) {
 			return loadModule("VideoConvert", &NullHost, &dstFmt);

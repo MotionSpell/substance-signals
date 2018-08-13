@@ -50,7 +50,7 @@ Resolution autoFit(Resolution input, Resolution output) {
 std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 	auto pipeline = make_unique<Pipeline>(cfg.ultraLowLatency, cfg.ultraLowLatency ? Pipeline::Mono : Pipeline::OnePerModule);
 
-	auto createEncoder = [&](std::shared_ptr<const IMetadata> metadataDemux, bool ultraLowLatency, VideoCodecType videoCodecType, PictureFormat &dstFmt, int bitrate, uint64_t segmentDurationInMs)->IPipelinedModule* {
+	auto createEncoder = [&](Metadata metadataDemux, bool ultraLowLatency, VideoCodecType videoCodecType, PictureFormat &dstFmt, int bitrate, uint64_t segmentDurationInMs)->IPipelinedModule* {
 		auto const codecType = metadataDemux->type;
 		if (codecType == VIDEO_PKT) {
 			Log::msg(Info, "[Encoder] Found video stream");
@@ -88,7 +88,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 	};
 
 	/*video is forced, audio is as passthru as possible*/
-	auto createConverter = [&](std::shared_ptr<const IMetadata> metadataDemux, std::shared_ptr<const IMetadata> metadataEncoder, const PictureFormat &dstFmt)->IPipelinedModule* {
+	auto createConverter = [&](Metadata metadataDemux, Metadata metadataEncoder, const PictureFormat &dstFmt)->IPipelinedModule* {
 		auto const codecType = metadataDemux->type;
 		if (codecType == VIDEO_PKT) {
 			Log::msg(Info, "[Converter] Found video stream");
