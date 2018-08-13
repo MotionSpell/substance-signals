@@ -18,18 +18,18 @@ struct ISOProgressiveReader {
 		memcpy(data.data() + currSize, buffer, len);
 	}
 
-	/* data buffer to be read by the parser */
+	// data buffer to be read by the parser
 	std::vector<u8> data;
-	/* URL used to pass a buffer to the parser */
+	// URL used to pass a buffer to the parser
 	std::string dataUrl() const {
 		char buffer[256];
 		sprintf(buffer, "gmem://%lld@%p", (long long)data.size(), data.data());
 		return buffer;
 	}
-	/* The ISO file structure created for the parsing of data */
+	// The ISO file structure created for the parsing of data
 	std::unique_ptr<gpacpp::IsoFile> movie;
-	/* Boolean state to indicate if the needs to be parsed */
-	u32 sampleIndex = 1; /* samples are numbered starting from 1 */
+	// Boolean state to indicate if the needs to be parsed
+	u32 sampleIndex = 1; // samples are numbered starting from 1
 	u32 sampleCount = 0;
 };
 
@@ -43,7 +43,7 @@ GPACDemuxMP4Full::~GPACDemuxMP4Full() {
 }
 
 bool GPACDemuxMP4Full::openData() {
-	/* if the file is not yet opened (no movie), open it in progressive mode (to update its data later on) */
+	// if the file is not yet opened (no movie), open it in progressive mode (to update its data later on)
 	u64 missingBytes;
 	GF_ISOFile *movie;
 	GF_Err e = gf_isom_open_progressive(reader->dataUrl().c_str(), 0, 0, &movie, &missingBytes);
@@ -57,7 +57,7 @@ bool GPACDemuxMP4Full::openData() {
 }
 
 void GPACDemuxMP4Full::updateData() {
-	/* let inform the parser that the buffer has been updated with new data */
+	// let inform the parser that the buffer has been updated with new data
 	if (reader->movie->isFragmented()) {
 		if(!reader->data.empty())
 			reader->movie->refreshFragmented(reader->dataUrl());
@@ -92,10 +92,10 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 		output->setMetadata(meta);
 	}
 
-	/* let's see how many samples we have since the last parsed */
+	// let's see how many samples we have since the last parsed
 	auto newSampleCount = reader->movie->getSampleCount(FIRST_TRACK);
 	if (newSampleCount > reader->sampleCount) {
-		/* New samples have been added to the file */
+		// New samples have been added to the file
 		log(Debug, "Found %s new samples (total: %s)",
 		    newSampleCount - reader->sampleCount,
 		    newSampleCount);
@@ -103,18 +103,18 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 			reader->sampleCount = newSampleCount;
 		}
 	}
-	if (reader->sampleCount == 0) {
-		// no sample yet
+
+	// no sample yet?
+	if (reader->sampleCount == 0)
 		return false;
-	}
 
 	{
-		/* let's analyze the samples we have parsed so far one by one */
-		int di /*descriptor index*/;
-		auto ISOSample = reader->movie->getSample(FIRST_TRACK, reader->sampleIndex, di);
+		// let's analyze the samples we have parsed so far one by one
+		int descriptorIndex;
+		auto ISOSample = reader->movie->getSample(FIRST_TRACK, reader->sampleIndex, descriptorIndex);
 
 		auto const DTSOffset = reader->movie->getDTSOffset(FIRST_TRACK);
-		/*here we dump some sample info: samp->data, samp->dataLength, samp->isRAP, samp->DTS, samp->CTS_Offset */
+		//here we dump some sample info: samp->data, samp->dataLength, samp->isRAP, samp->DTS, samp->CTS_Offset
 		log(Debug, "Found sample #%s(#%s) of length %s , RAP: %s, DTS: %s, CTS: %s",
 		    reader->sampleIndex, ISOSample->dataLength,
 		    ISOSample->IsRAP, ISOSample->DTS + DTSOffset, ISOSample->DTS + DTSOffset + ISOSample->CTS_Offset);
@@ -127,16 +127,16 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 		output->emit(out);
 	}
 
-	/* once we have read all the samples, we can release some data and force a reparse of the input buffer */
+	// once we have read all the samples, we can release some data and force a reparse of the input buffer
 	if (reader->sampleIndex > reader->sampleCount) {
 		reader->sampleCount = newSampleCount - reader->sampleCount;
 		reader->sampleIndex = 1;
 
 		log(Debug, "Releasing unnecessary buffers");
-		/* release internal structures associated with the samples read so far */
+		// free internal structures associated with the samples read so far
 		reader->movie->resetTables(true);
 
-		/* release the associated input data as well */
+		// release the associated input data as well
 		u64 newBufferStart = 0;
 		reader->movie->resetDataOffset(newBufferStart);
 		if (newBufferStart) {
