@@ -71,7 +71,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 			}
 			if (GOPDurationDivisor > 1) Log::msg(Info, "[Encoder] Setting GOP duration to %sms (%s frames)", segmentDurationInMs / GOPDurationDivisor, (double)p.GOPSize);
 
-			auto m = pipeline->addModuleWithHost<Encode::LibavEncode>(&p);
+			auto m = pipeline->add("Encoder", &p);
 			dstFmt.format = p.pixelFormat;
 			return m;
 		} else if (codecType == AUDIO_PKT) {
@@ -80,7 +80,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 			EncoderConfig p { EncoderConfig::Audio };
 			p.sampleRate = demuxFmt.sampleRate;
 			p.numChannels = demuxFmt.numChannels;
-			return pipeline->addModuleWithHost<Encode::LibavEncode>(&p);
+			return pipeline->add("Encoder", &p);
 		} else {
 			Log::msg(Info, "[Encoder] Found unknown stream");
 			return nullptr;

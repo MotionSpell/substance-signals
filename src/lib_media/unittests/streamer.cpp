@@ -634,7 +634,7 @@ unittest("[DISABLED] adaptive streaming combination coverage") {
 	auto const segmentDurationInMs = 2000;
 	Modules::absUTCOffsetInMs = 1000000;
 	std::vector<std::shared_ptr<IModule>> decode;
-	std::vector<std::unique_ptr<IModule>> encode;
+	std::vector<std::shared_ptr<IModule>> encode;
 
 	std::vector<std::unique_ptr<IModule>> muxMP4File, muxMP4Mem, muxMP4MemFlushFrags;
 	auto muxTSSeg = create<Stream::LibavMuxHLSTS>(segmentDurationInMs, "", "muxTSSeg_", format("-hls_time %s -hls_playlist_type event", segmentDurationInMs / 1000));
@@ -660,14 +660,14 @@ unittest("[DISABLED] adaptive streaming combination coverage") {
 			auto const metaVideo = safe_cast<const MetadataPktLibavVideo>(demux->getOutput(i)->getMetadata());
 			p.res = metaVideo->getResolution();
 			p.frameRate = metaVideo->getFrameRate();
-			encode.push_back(create<Encode::LibavEncode>(&NullHost, &p));
+			encode.push_back(loadModule("Encoder", &NullHost, &p));
 			prefix = Stream::AdaptiveStreamingCommon::getCommonPrefixVideo(i, p.res);
 		} else if (demux->getOutput(i)->getMetadata()->isAudio()) {
 			decode.push_back(loadModule("Decoder", &NullHost, AUDIO_PKT));
 			EncoderConfig p { EncoderConfig::Audio };
 			auto const metaAudio = safe_cast<const MetadataPktLibavAudio>(demux->getOutput(i)->getMetadata());
 			p.numChannels = metaAudio->getNumChannels();
-			encode.push_back(create<Encode::LibavEncode>(&NullHost, &p));
+			encode.push_back(loadModule("Encoder", &NullHost, &p));
 			prefix = Stream::AdaptiveStreamingCommon::getCommonPrefixAudio(i);
 		} else
 			throw std::runtime_error("unhandled media type");

@@ -1,5 +1,6 @@
 #include "tests/tests.hpp"
 #include "lib_modules/modules.hpp"
+#include "lib_modules/utils/loader.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/encode/libav_encode.hpp"
 #include "lib_media/mux/gpac_mux_mp4.hpp"
@@ -22,11 +23,12 @@ unittest("encoder: video simple") {
 	};
 
 	EncoderConfig cfg { EncoderConfig::Video };
-	auto encode = create<Encode::LibavEncode>(&NullHost, &cfg);
+	auto encode = loadModule("Encoder", &NullHost, &cfg);
 	ConnectOutput(encode.get(), onFrame);
 	for (int i = 0; i < 37; ++i) {
 		picture->setMediaTime(i); // avoid warning about non-monotonic pts
-		encode->process(picture);
+		encode->getInput(0)->push(picture);
+		encode->process();
 	}
 	encode->flush();
 
@@ -44,7 +46,7 @@ unittest("encoder: audio with first negative timestamp") {
 	};
 
 	EncoderConfig cfg { EncoderConfig::Audio };
-	auto encode = create<Encode::LibavEncode>(&NullHost, &cfg);
+	auto encode = loadModule("Encoder", &NullHost, &cfg);
 	ConnectOutput(encode.get(), onFrame);
 	for (int i = 0; i < 4; ++i) {
 		auto pcm = make_shared<DataPcm>(0);
@@ -55,7 +57,8 @@ unittest("encoder: audio with first negative timestamp") {
 			pcm->setPlane(i, inputRaw, inFrameSizeInBytes);
 		}
 		pcm->setMediaTime(i * timescaleToClock(numSamplesPerFrame, fmt.sampleRate));
-		encode->process(pcm);
+		encode->getInput(0)->push(pcm);
+		encode->process();
 	}
 	encode->flush();
 
@@ -70,12 +73,13 @@ unittest("encoder: timestamp passthrough") {
 	};
 
 	EncoderConfig cfg { EncoderConfig::Video };
-	auto encode = create<Encode::LibavEncode>(&NullHost, &cfg);
+	auto encode = loadModule("Encoder", &NullHost, &cfg);
 	ConnectOutput(encode.get(), onFrame);
 	for (int i = 0; i < 5; ++i) {
 		auto picture = make_shared<PictureYUV420P>(VIDEO_RESOLUTION);
 		picture->setMediaTime(i);
-		encode->process(picture);
+		encode->getInput(0)->push(picture);
+		encode->process();
 	}
 	encode->flush();
 
@@ -88,7 +92,7 @@ void RAPTest(const Fraction fps, const vector<uint64_t> &times, const vector<boo
 	p.frameRate = fps;
 	p.GOPSize = fps;
 	auto picture = make_shared<PictureYUV420P>(VIDEO_RESOLUTION);
-	auto encode = create<Encode::LibavEncode>(&NullHost, &p);
+	auto encode = loadModule("Encoder", &NullHost, &p);
 	size_t i = 0;
 	auto onFrame = [&](Data data) {
 		if (i < RAPs.size()) {
@@ -100,7 +104,8 @@ void RAPTest(const Fraction fps, const vector<uint64_t> &times, const vector<boo
 	ConnectOutput(encode.get(), onFrame);
 	for (size_t i = 0; i < times.size(); ++i) {
 		picture->setMediaTime(times[i]);
-		encode->process(picture);
+		encode->getInput(0)->push(picture);
+		encode->process();
 	}
 	encode->flush();
 	ASSERT(i == RAPs.size());
@@ -148,14 +153,15 @@ unittest("GPAC mp4 mux: don't create empty fragments") {
 	EncoderConfig p { EncoderConfig::Video };
 	p.frameRate.num = 1;
 	auto picture = make_shared<PictureYUV420P>(VIDEO_RESOLUTION);
-	auto encode = create<Encode::LibavEncode>(&NullHost, &p);
+	auto encode = loadModule("Encoder", &NullHost, &p);
 	auto mux = create<Mux::GPACMuxMP4>(&NullHost, Mp4MuxConfig{"", segmentDurationInMs, FragmentedSegment, OneFragmentPerRAP, Browsers | SegmentAtAny});
 	ConnectOutputToInput(encode->getOutput(0), mux->getInput(0));
 	auto recorder = create<Recorder>();
 	ConnectOutputToInput(mux->getOutput(0), recorder->getInput(0));
 	for (size_t i = 0; i < times.size(); ++i) {
 		picture->setMediaTime(times[i]);
-		encode->process(picture);
+		encode->getInput(0)->push(picture);
+		encode->process();
 	}
 	encode->flush();
 	mux->flush();

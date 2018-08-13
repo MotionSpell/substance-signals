@@ -90,6 +90,15 @@ $(BIN)/JPEGTurboEncode.smd: \
   $(BIN)/$(SRC)/lib_media/common/picture.cpp.o\
 
 #------------------------------------------------------------------------------
+TARGETS+=$(BIN)/Encoder.smd
+$(BIN)/Encoder.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
+$(BIN)/Encoder.smd: CFLAGS+=$(MEDIA_CFLAGS)
+$(BIN)/Encoder.smd: \
+  $(BIN)/$(SRC)/lib_media/encode/libav_encode.cpp.o\
+  $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
+  $(BIN)/$(SRC)/lib_media/common/picture.cpp.o\
+
+#------------------------------------------------------------------------------
 TARGETS+=$(BIN)/Decoder.smd
 $(BIN)/Decoder.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
 $(BIN)/Decoder.smd: CFLAGS+=$(MEDIA_CFLAGS)

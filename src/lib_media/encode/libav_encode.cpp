@@ -1,4 +1,6 @@
 #include "libav_encode.hpp"
+#include "lib_modules/utils/helper.hpp" // ModuleS
+#include "lib_modules/utils/factory.hpp"
 #include "lib_utils/tools.hpp"
 #include "lib_utils/log.hpp"
 #include "../common/ffpp.hpp"
@@ -10,8 +12,32 @@ extern "C" {
 #include <libavcodec/avcodec.h> // avcodec_open2
 }
 
-namespace Modules {
-namespace Encode {
+using namespace Modules;
+
+namespace {
+
+class LibavEncode : public ModuleS {
+	public:
+		LibavEncode(IModuleHost* host, EncoderConfig* params);
+		~LibavEncode();
+		void process(Data data) override;
+		void flush() override;
+
+	private:
+		void encodeFrame(AVFrame* frame);
+		int64_t computeNearestGOPNum(int64_t timeDiff) const;
+		void computeFrameAttributes(AVFrame * const f, const int64_t currMediaTime);
+		void setMediaTime(std::shared_ptr<DataAVPacket> data);
+
+		IModuleHost* const m_host;
+		std::shared_ptr<AVCodecContext> codecCtx;
+		std::unique_ptr<PcmFormat> pcmFormat;
+		std::unique_ptr<ffpp::Frame> const avFrame;
+		OutputDataDefault<DataAVPacket>* output {};
+		int64_t firstMediaTime = 0;
+		int64_t prevMediaTime = 0;
+		Fraction GOPSize {};
+};
 
 LibavEncode::LibavEncode(IModuleHost* host, EncoderConfig *pparams)
 	: m_host(host),
@@ -266,5 +292,11 @@ void LibavEncode::process(Data data) {
 	encodeFrame(f);
 }
 
+Modules::IModule* createObject(IModuleHost* host, va_list va) {
+	auto config = va_arg(va, EncoderConfig*);
+	enforce(host, "Encoder: host can't be NULL");
+	return Modules::createModule<LibavEncode>(config->bufferSize, host, config).release();
 }
+
+auto const registered = registerModule("Encoder", &createObject);
 }
