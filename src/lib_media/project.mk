@@ -3,7 +3,6 @@ MYDIR=$(call get-my-dir)
 LIB_MEDIA_SRCS:=\
   $(MYDIR)/common/libav.cpp\
   $(MYDIR)/common/libav_init.cpp\
-  $(MYDIR)/common/gpac.cpp\
   $(MYDIR)/common/picture.cpp\
   $(MYDIR)/common/iso8601.cpp\
   $(MYDIR)/demux/gpac_demux_mp4_simple.cpp\

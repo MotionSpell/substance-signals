@@ -3,7 +3,6 @@
 #include "lib_modules/utils/helper.hpp"
 #include "lib_modules/utils/helper_dyn.hpp"
 #include "../common/libav.hpp"
-#include "../common/gpac.hpp"
 #include <string>
 
 typedef struct __tag_isom GF_ISOFile;
@@ -13,6 +12,8 @@ class IsoSample;
 }
 
 namespace Modules {
+
+class DataRawGPAC;
 
 enum SegmentPolicy {
 	NoSegment,
