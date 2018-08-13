@@ -58,7 +58,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 			p.isLowLatency = ultraLowLatency;
 			p.codecType = videoCodecType;
 			p.res = dstFmt.res;
-			p.bitrate_v = bitrate;
+			p.bitrate = bitrate;
 
 			auto const metaVideo = safe_cast<const MetadataPktLibavVideo>(metadataDemux);
 			p.frameRate = metaVideo->getFrameRate();

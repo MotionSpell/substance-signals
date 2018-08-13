@@ -20,7 +20,7 @@ LibavEncode::LibavEncode(Type type, EncoderConfig *pparams)
 	switch (type) {
 	case Video: {
 		GOPSize = params.GOPSize;
-		codecOptions += format(" -b %s", params.bitrate_v);
+		codecOptions += format(" -b %s", params.bitrate);
 		codecName = "vcodec";
 		ffpp::Dict customDict(typeid(*this).name(), params.avcodecCustom);
 		auto const pixFmt = customDict.get("pix_fmt");
@@ -66,7 +66,7 @@ LibavEncode::LibavEncode(Type type, EncoderConfig *pparams)
 			break;
 		}
 		av_dict_free(&customDict);
-		codecOptions += format(" -b %s -ar %s -ac %s", params.bitrate_a, params.sampleRate, params.numChannels);
+		codecOptions += format(" -b %s -ar %s -ac %s", params.bitrate, params.sampleRate, params.numChannels);
 		generalOptions += " -acodec aac -profile aac_low";
 		GOPSize = 1;
 		break;

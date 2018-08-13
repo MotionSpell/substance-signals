@@ -8,9 +8,10 @@
 #include <string>
 
 struct EncoderConfig {
+	int bitrate = 128000;
+
 	//video only
 	Resolution res = Resolution(320, 180);
-	int bitrate_v = 300000;
 	Fraction GOPSize = Fraction(25, 1);
 	Fraction frameRate = Fraction(25, 1);
 	bool isLowLatency = false;
@@ -18,7 +19,6 @@ struct EncoderConfig {
 	Modules::PixelFormat pixelFormat = Modules::UNKNOWN_PF; //set by the encoder
 
 	//audio only
-	int bitrate_a = 128000;
 	int sampleRate = 44100;
 	int numChannels = 2;
 
