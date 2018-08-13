@@ -1,10 +1,7 @@
 #pragma once
 
-#include "lib_modules/core/log.hpp"
-#include "lib_modules/utils/helper.hpp"
 #include "../common/pcm.hpp"
 #include "../common/picture.hpp"
-#include "lib_utils/queue.hpp"
 #include <string>
 
 struct EncoderConfig {
@@ -30,6 +27,8 @@ struct EncoderConfig {
 
 	std::string avcodecCustom = "";
 };
+
+#include "lib_modules/utils/helper.hpp" // ModuleS
 
 struct AVCodecContext;
 struct AVStream;
