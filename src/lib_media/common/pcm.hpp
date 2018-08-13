@@ -22,7 +22,7 @@ enum AudioStruct {
 	Planar
 };
 
-static const uint8_t AUDIO_PCM_PLANES_MAX = 8;
+static const int AUDIO_PCM_PLANES_MAX = 8;
 }
 
 namespace {
@@ -39,12 +39,12 @@ namespace Modules {
 
 class PcmFormat {
 	public:
-		PcmFormat(uint32_t sampleRate = 44100, uint8_t numChannels = 2,
+		PcmFormat(int sampleRate = 44100, int numChannels = 2,
 		    AudioLayout layout = Stereo, AudioSampleFormat sampleFormat = F32, AudioStruct structa = Planar) :
 			sampleRate(sampleRate), numChannels(numChannels), layout(layout), sampleFormat(sampleFormat), numPlanes((structa == Planar) ? numChannels : 1) {
 		}
 
-		PcmFormat(uint32_t sampleRate, AudioLayout layout, AudioSampleFormat sampleFormat, AudioStruct structa) :
+		PcmFormat(int sampleRate, AudioLayout layout, AudioSampleFormat sampleFormat, AudioStruct structa) :
 			sampleRate(sampleRate), numChannels(getNumChannelsFromLayout(layout)), layout(layout), sampleFormat(sampleFormat), numPlanes((structa == Planar) ? numChannels : 1) {
 		}
 
@@ -88,8 +88,8 @@ class PcmFormat {
 			return true;
 		}
 
-		uint8_t getBytesPerSample() const {
-			uint8_t b = 1;
+		int getBytesPerSample() const {
+			int b = 1;
 			switch (sampleFormat) {
 			case S16: b *= 2; break;
 			case F32: b *= 4; break;
@@ -99,12 +99,12 @@ class PcmFormat {
 			return b;
 		}
 
-		uint32_t sampleRate;
-		uint8_t numChannels;
+		int sampleRate;
+		int numChannels;
 		AudioLayout layout;
 
 		AudioSampleFormat sampleFormat;
-		uint8_t numPlanes;
+		int numPlanes;
 };
 
 class DataPcm : public DataRaw {
@@ -141,7 +141,7 @@ class DataPcm : public DataRaw {
 
 		size_t size() const {
 			size_t size = 0;
-			for (size_t i = 0; i < format.numPlanes; ++i) {
+			for (int i = 0; i < format.numPlanes; ++i) {
 				size += planeSize[i];
 			}
 			return size;
@@ -151,13 +151,13 @@ class DataPcm : public DataRaw {
 			throw std::runtime_error("Forbidden operation. You cannot resize PCM data.");
 		}
 
-		uint8_t* getPlane(size_t planeIdx) const {
+		uint8_t* getPlane(int planeIdx) const {
 			if (planeIdx > format.numPlanes)
 				throw std::runtime_error("Pcm plane doesn't exist.");
 			return planes[planeIdx];
 		}
 
-		uint64_t getPlaneSize(size_t planeIdx) const {
+		uint64_t getPlaneSize(int planeIdx) const {
 			if (planeIdx > format.numPlanes)
 				throw std::runtime_error("Pcm plane doesn't exist.");
 			return planeSize[planeIdx];
@@ -167,7 +167,7 @@ class DataPcm : public DataRaw {
 			return planes;
 		}
 
-		void setPlane(uint8_t planeIdx, uint8_t *plane, size_t size) {
+		void setPlane(int planeIdx, uint8_t *plane, size_t size) {
 			if (planeIdx > format.numPlanes)
 				throw std::runtime_error("Pcm plane doesn't exist.");
 			if ((planes[planeIdx] == nullptr) ||
@@ -183,13 +183,13 @@ class DataPcm : public DataRaw {
 		}
 
 	private:
-		void freePlane(uint8_t planeIdx) {
+		void freePlane(int planeIdx) {
 			delete [] planes[planeIdx];
 			planes[planeIdx] = nullptr;
 			planeSize[planeIdx] = 0;
 		}
 		void freePlanes() {
-			for (uint8_t i = 0; i < format.numPlanes; ++i) {
+			for (int i = 0; i < format.numPlanes; ++i) {
 				freePlane(i);
 			}
 		}

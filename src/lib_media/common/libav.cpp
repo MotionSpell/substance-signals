@@ -216,7 +216,7 @@ void libavFrame2pcmConvert(const AVFrame *frame, PcmFormat *cfg) {
 void libavFrameDataConvert(const DataPcm *pcmData, AVFrame *frame) {
 	auto const& format = pcmData->getFormat();
 	AVSampleFormat avsf; libavAudioCtxConvertLibav(&format, frame->sample_rate, avsf, frame->channels, frame->channel_layout); frame->format = (int)avsf;
-	for (size_t i = 0; i < format.numPlanes; ++i) {
+	for (int i = 0; i < format.numPlanes; ++i) {
 		frame->data[i] = pcmData->getPlane(i);
 		if (i == 0)
 			frame->linesize[i] = (int)pcmData->getPlaneSize(i) / format.numChannels;

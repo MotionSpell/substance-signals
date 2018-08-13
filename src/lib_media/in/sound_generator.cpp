@@ -52,7 +52,7 @@ bool SoundGenerator::work() {
 
 double SoundGenerator::nextSample() {
 	auto const BEEP_PERIOD = pcmFormat.sampleRate;
-	auto const beepPhase = m_numSamples % BEEP_PERIOD;
+	auto const beepPhase = int(m_numSamples % BEEP_PERIOD);
 	auto const phase = m_numSamples * 2.0 * SINE_FREQ * M_PI / pcmFormat.sampleRate;
 	auto const fVal = beepPhase < BEEP_PERIOD/8 ? sin(phase) : 0;
 	m_numSamples++;
