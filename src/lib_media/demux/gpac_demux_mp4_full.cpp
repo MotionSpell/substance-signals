@@ -129,8 +129,6 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 
 	/* once we have read all the samples, we can release some data and force a reparse of the input buffer */
 	if (reader->sampleIndex > reader->sampleCount) {
-
-		/* update the sample count and sample index */
 		reader->sampleCount = newSampleCount - reader->sampleCount;
 		reader->sampleIndex = 1;
 
