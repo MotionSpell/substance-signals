@@ -43,7 +43,6 @@ class LibavEncode : public ModuleS, private LogCap {
 		enum Type {
 			Video,
 			Audio,
-			Unknown
 		};
 
 		LibavEncode(Type type, EncoderConfig* params = nullptr);
