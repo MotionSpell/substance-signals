@@ -2,12 +2,12 @@ pipeline:
   build_sysroot:
     image: ${DISTRO}
     commands:
-      - apt-get update && apt-get -y install build-essential git mercurial subversion gperf gettext libtool libtool-bin cmake yasm zlib1g-dev autoconf pkg-config autopoint wget curl&&  update-ca-certificates
+      - apt-get update && apt-get -y install build-essential git mercurial subversion gperf gettext libtool libtool-bin cmake yasm zlib1g-dev autoconf pkg-config autopoint wget curl libgles2-mesa-dev&&  update-ca-certificates
       - ./extra.sh
   build:
     image: ${DISTRO}
     commands:
-      - apt-get update && apt-get install -y build-essential git mercurial subversion gperf gettext libtool libtool-bin cmake yasm zlib1g-dev autoconf pkg-config autopoint wget curl
+      - apt-get update && apt-get install -y build-essential git mercurial subversion gperf gettext libtool libtool-bin cmake yasm zlib1g-dev autoconf pkg-config autopoint wget curl libgles2-mesa-dev
       - EXTRA=$PWD/sysroot ./check.sh
 
 matrix:
