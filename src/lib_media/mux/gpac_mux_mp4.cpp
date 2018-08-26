@@ -775,7 +775,7 @@ void GPACMuxMP4::declareStreamVideo(const std::shared_ptr<const MetadataPktLibav
 
 	if (e) {
 		if (e == GF_NON_COMPLIANT_BITSTREAM) {
-			m_host->log(Debug, "non Annex B: assume this is AVCC");
+			m_host->log(Debug, "Non Annex B: assume this is MP4 already");
 			isAnnexB = false;
 
 			GF_ESD *esd = (GF_ESD *)gf_odf_desc_esd_new(0);
