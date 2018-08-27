@@ -6,7 +6,8 @@
 namespace Modules {
 namespace In {
 
-File::File(std::string const& fn) {
+File::File(IModuleHost* host, std::string const& fn)
+	: m_host(host) {
 	file = fopen(fn.c_str(), "rb");
 	if (!file)
 		throw error(format("Can't open file for reading: %s", fn));

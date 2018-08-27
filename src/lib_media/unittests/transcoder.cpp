@@ -91,12 +91,12 @@ unittest("transcoder: jpg to jpg") {
 	const std::string filename("data/sample.jpg");
 	auto decode = loadModule("JPEGTurboDecode", &NullHost);
 	{
-		auto preReader = create<In::File>(filename);
+		auto preReader = create<In::File>(&NullHost, filename);
 		ConnectOutputToInput(preReader->getOutput(0), decode->getInput(0));
 		preReader->process();
 	}
 
-	auto reader = create<In::File>(filename);
+	auto reader = create<In::File>(&NullHost, filename);
 	auto encoder = loadModule("JPEGTurboEncode", &NullHost);
 	auto writer = create<Out::File>("out/test2.jpg");
 
@@ -111,11 +111,11 @@ void resizeJPGTest(PixelFormat pf) {
 	const std::string filename("data/sample.jpg");
 	auto decode = loadModule("JPEGTurboDecode", &NullHost);
 	{
-		auto preReader = create<In::File>(filename);
+		auto preReader = create<In::File>(&NullHost, filename);
 		ConnectOutputToInput(preReader->getOutput(0), decode->getInput(0));
 		preReader->process();
 	}
-	auto reader = create<In::File>(filename);
+	auto reader = create<In::File>(&NullHost, filename);
 
 	auto const dstFormat = PictureFormat(Resolution(320, 180) / 2, pf);
 	auto converter = loadModule("VideoConvert", &NullHost, &dstFormat);
@@ -166,11 +166,11 @@ unittest("transcoder: jpg to h264/mp4 (gpac)") {
 	const std::string filename("data/sample.jpg");
 	auto decode = loadModule("JPEGTurboDecode", &NullHost);
 	{
-		auto preReader = create<In::File>(filename);
+		auto preReader = create<In::File>(&NullHost, filename);
 		ConnectOutputToInput(preReader->getOutput(0), decode->getInput(0));
 		preReader->process();
 	}
-	auto reader = create<In::File>(filename);
+	auto reader = create<In::File>(&NullHost, filename);
 
 	auto const dstFormat = PictureFormat(Resolution(320, 180), YUV420P);
 	auto converter = loadModule("VideoConvert", &NullHost, &dstFormat);

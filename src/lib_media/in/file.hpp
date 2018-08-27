@@ -8,11 +8,12 @@ namespace In {
 
 class File : public ActiveModule, private LogCap {
 	public:
-		File(std::string const& fn);
+		File(IModuleHost* host, std::string const& fn);
 		~File();
 		bool work() override;
 
 	private:
+		IModuleHost* const m_host;
 		FILE *file;
 		OutputDefault *output;
 };
