@@ -30,12 +30,12 @@ IPipelinedModule* createRenderer(Pipeline& pipeline, Config cfg, int codecType) 
 	}
 
 	Log::msg(Info, "Found unknown stream");
-	return pipeline.addModule<Out::Null>();
+	return pipeline.addModule<Out::Null>(&NullHost);
 }
 
 IPipelinedModule* createDemuxer(Pipeline& pipeline, std::string url) {
 	if(startsWith(url, "videogen://")) {
-		return pipeline.addModule<In::VideoGenerator>();
+		return pipeline.addModule<In::VideoGenerator>(&NullHost);
 	}
 	if(startsWith(url, "http://")) {
 		return pipeline.addModule<Demux::DashDemuxer>(&NullHost, url);

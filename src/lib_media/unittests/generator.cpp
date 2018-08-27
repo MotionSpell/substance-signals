@@ -8,7 +8,7 @@ using namespace Tests;
 using namespace Modules;
 
 unittest("video generator") {
-	auto videoGen = create<In::VideoGenerator>();
+	auto videoGen = create<In::VideoGenerator>(&NullHost);
 
 	std::vector<int> times;
 	auto onFrame = [&](Data data) {

@@ -8,7 +8,8 @@ const int64_t maxTimeInMs = 500;
 
 using namespace std::chrono;
 
-Repeater::Repeater(int64_t ms) : periodInMs(ms) {
+Repeater::Repeater(IModuleHost* host, int64_t ms)
+	: m_host(host), periodInMs(ms) {
 	done = false;
 	createInput(this);
 	addOutput<OutputDataDefault<DataBase>>();

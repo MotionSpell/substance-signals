@@ -9,7 +9,7 @@ namespace Stream {
 
 class MPEG_DASH : public AdaptiveStreamingCommon, public gpacpp::Init {
 	public:
-		MPEG_DASH(const std::string &mpdDir, const std::string &mpdName, Type type, uint64_t segDurationInMs, uint64_t timeShiftBufferDepthInMs = 0, uint64_t minUpdatePeriodInMs = 0, uint32_t minBufferTimeInMs = 0, const std::vector<std::string> &baseURLs = {}, const std::string &id = "id", int64_t initialOffsetInMs = 0, AdaptiveStreamingCommonFlags flags = None);
+		MPEG_DASH(IModuleHost* host, const std::string &mpdDir, const std::string &mpdName, Type type, uint64_t segDurationInMs, uint64_t timeShiftBufferDepthInMs = 0, uint64_t minUpdatePeriodInMs = 0, uint32_t minBufferTimeInMs = 0, const std::vector<std::string> &baseURLs = {}, const std::string &id = "id", int64_t initialOffsetInMs = 0, AdaptiveStreamingCommonFlags flags = None);
 		virtual ~MPEG_DASH();
 
 	private:
@@ -30,6 +30,8 @@ class MPEG_DASH : public AdaptiveStreamingCommon, public gpacpp::Init {
 		void ensureManifest();
 		void writeManifest();
 		std::string getPrefixedSegmentName(DASHQuality const * const quality, size_t index, u64 segmentNum) const;
+
+		IModuleHost* const m_host;
 		std::unique_ptr<gpacpp::MPD> mpd;
 		const std::string mpdFn;
 		const std::vector<std::string> baseURLs;

@@ -6,7 +6,7 @@
 namespace Modules {
 namespace In {
 
-class File : public ActiveModule, private LogCap {
+class File : public ActiveModule {
 	public:
 		File(IModuleHost* host, std::string const& fn);
 		~File();

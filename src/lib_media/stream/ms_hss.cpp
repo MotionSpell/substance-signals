@@ -9,7 +9,8 @@ extern "C" {
 namespace Modules {
 namespace Stream {
 
-MS_HSS::MS_HSS(const std::string &url) : HTTP(url) {
+MS_HSS::MS_HSS(IModuleHost* host, const std::string &url)
+	: HTTP(host, url), m_host(host) {
 }
 
 void MS_HSS::newFileCallback(void *ptr) {
@@ -59,14 +60,14 @@ void MS_HSS::newFileCallback(void *ptr) {
 size_t MS_HSS::endOfSession(void *ptr, size_t size) {
 	auto const mfraSize = 8;
 	if (size < mfraSize) {
-		log(Warning, "endOfSession: needed to write %s bytes but buffer size is %s.", mfraSize, size);
+		m_host->log(Warning, format( "endOfSession: needed to write %s bytes but buffer size is %s.", mfraSize, size).c_str());
 		return 0;
 	}
 	auto bs = gf_bs_new((const char*)ptr, size, GF_BITSTREAM_WRITE);
 	gf_bs_write_u32(bs, mfraSize); //size (Box)
 	gf_bs_write_u32(bs, GF_4CC('m', 'f', 'r', 'a'));
 	if (gf_bs_get_position(bs) != mfraSize) {
-		log(Warning, "endOfSession: mfra size is %s but buffer index is %s.", mfraSize, gf_bs_get_position(bs));
+		m_host->log(Warning, format("endOfSession: mfra size is %s but buffer index is %s.", mfraSize, gf_bs_get_position(bs)).c_str());
 	}
 	gf_bs_del(bs);
 	return mfraSize;

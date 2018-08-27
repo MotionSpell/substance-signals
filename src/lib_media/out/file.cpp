@@ -4,7 +4,8 @@
 namespace Modules {
 namespace Out {
 
-File::File(std::string const& path) {
+File::File(IModuleHost* host, std::string const& path)
+	:  m_host(host) {
 	file = fopen(path.c_str(), "wb");
 	if (!file)
 		throw error(format("Can't open file for writing: %s", path));

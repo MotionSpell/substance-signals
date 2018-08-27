@@ -12,8 +12,10 @@
 namespace Modules {
 namespace Stream {
 
-Apple_HLS::Apple_HLS(const std::string &m3u8Dir, const std::string &m3u8Filename, Type type, uint64_t segDurationInMs, uint64_t timeShiftBufferDepthInMs, bool genVariantPlaylist, AdaptiveStreamingCommonFlags flags)
-	: AdaptiveStreamingCommon(type, segDurationInMs, m3u8Dir, flags | (genVariantPlaylist ? SegmentsNotOwned : None)), playlistMasterPath(format("%s%s", m3u8Dir, m3u8Filename)),
+Apple_HLS::Apple_HLS(IModuleHost* host, const std::string &m3u8Dir, const std::string &m3u8Filename, Type type, uint64_t segDurationInMs, uint64_t timeShiftBufferDepthInMs, bool genVariantPlaylist, AdaptiveStreamingCommonFlags flags)
+	: AdaptiveStreamingCommon(type, segDurationInMs, m3u8Dir, flags | (genVariantPlaylist ? SegmentsNotOwned : None)),
+	  m_host(host),
+	  playlistMasterPath(format("%s%s", m3u8Dir, m3u8Filename)),
 	  genVariantPlaylist(genVariantPlaylist), timeShiftBufferDepthInMs(timeShiftBufferDepthInMs) {
 	if (segDurationInMs % 1000)
 		throw error("Segment duration must be an integer number of seconds.");
@@ -193,7 +195,7 @@ void Apple_HLS::generateManifestVariantFull(bool isLast) {
 					time_t sec = tv.tv_sec;
 					auto *tm = gmtime(&sec);
 					if (!tm) {
-						log(Warning, "Segment \"%s\": could not convert UTC start time %sms. Skippping PROGRAM-DATE-TIME.", seg.startTimeInMs, seg.path);
+						m_host->log(Warning, format("Segment \"%s\": could not convert UTC start time %sms. Skippping PROGRAM-DATE-TIME.", seg.startTimeInMs, seg.path).c_str());
 					} else {
 						snprintf(cmd, sizeof(cmd), "%d-%02d-%02dT%02d:%02d:%02d.%03d+00:00", 1900 + tm->tm_year, 1 + tm->tm_mon, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, (int)(seg.startTimeInMs % 1000));
 						quality->playlistVariant << "#EXT-X-PROGRAM-DATE-TIME:" << cmd << std::endl;

@@ -15,7 +15,7 @@ File::File(IModuleHost* host, std::string const& fn)
 	auto const size = ftell(file);
 	fseek(file, 0, SEEK_SET);
 	if (size > IOSIZE)
-		log(Info, "File %s size is %s, will be sent by %s bytes chunks. Check the downstream modules are able to agregate data frames.", fn, size, IOSIZE);
+		m_host->log(Info, format("File %s size is %s, will be sent by %s bytes chunks. Check the downstream modules are able to agregate data frames.", fn, size, IOSIZE).c_str());
 
 	output = addOutput<OutputDefault>();
 }

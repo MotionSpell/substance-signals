@@ -172,7 +172,7 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 		ConnectOutputToInput(decoder->getOutput(0), converter->getInput(0));
 		ConnectOutputToInput(converter->getOutput(0), encoder->getInput(0));
 
-		auto recorder = create<Utils::Recorder>();
+		auto recorder = create<Utils::Recorder>(&NullHost);
 		ConnectOutputToInput(encoder->getOutput(0), recorder->getInput(0));
 		recorders.push_back(std::move(recorder));
 		modules.push_back(std::move(gapper));

@@ -4,7 +4,8 @@
 namespace Modules {
 namespace Utils {
 
-Recorder::Recorder() {
+Recorder::Recorder(IModuleHost* host)
+	: m_host(host) {
 	createInput(this);
 }
 
@@ -14,7 +15,7 @@ void Recorder::flush() {
 
 void Recorder::process(Data data) {
 	if (data) {
-		log(Debug, "Data[%s] recorded at media time %s", data, data->getMediaTime());
+		m_host->log(Debug, format("Data[%s] recorded at media time %s", data, data->getMediaTime()).c_str());
 	}
 	record.push(data);
 }

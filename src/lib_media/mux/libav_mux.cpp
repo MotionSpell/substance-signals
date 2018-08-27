@@ -19,12 +19,12 @@ void LibavMux::formatsList() {
 	Log::msg(Warning, "Output formats list:");
 	AVOutputFormat *fmt = nullptr;
 	while ((fmt = av_oformat_next(fmt))) {
-		Log::msg(Warning, "fmt->name=%s, fmt->mime_type=%s, fmt->extensions=%s", fmt->name ? fmt->name : "", fmt->mime_type ? fmt->mime_type : "", fmt->extensions ? fmt->extensions : "");
+		Log::msg(Warning, format("fmt->name=%s, fmt->mime_type=%s, fmt->extensions=%s", fmt->name ? fmt->name : "", fmt->mime_type ? fmt->mime_type : "", fmt->extensions ? fmt->extensions : "").c_str());
 	}
 }
 
-LibavMux::LibavMux(MuxConfig cfg)
-	: m_formatCtx(avformat_alloc_context()), optionsDict(typeid(*this).name(), cfg.options) {
+LibavMux::LibavMux(IModuleHost* host, MuxConfig cfg)
+	: m_host(host), m_formatCtx(avformat_alloc_context()), optionsDict(typeid(*this).name(), cfg.options) {
 	if (!m_formatCtx)
 		throw error("Format context couldn't be allocated.");
 
@@ -109,10 +109,10 @@ bool LibavMux::declareStream(Data data, size_t inputIdx) {
 void LibavMux::ensureHeader() {
 	if (!m_headerWritten) {
 		if (avformat_write_header(m_formatCtx, &optionsDict) != 0) {
-			log(Warning, "fatal error: can't write the container header");
+			m_host->log(Warning, "fatal error: can't write the container header");
 			for (unsigned i = 0; i < m_formatCtx->nb_streams; i++) {
 				if (m_formatCtx->streams[i]->codec && m_formatCtx->streams[i]->codec->codec) {
-					log(Debug, "codec[%s] is \"%s\" (%s)", i, m_formatCtx->streams[i]->codec->codec->name, m_formatCtx->streams[i]->codec->codec->long_name);
+					m_host->log(Debug, format("codec[%s] is \"%s\" (%s)", i, m_formatCtx->streams[i]->codec->codec->name, m_formatCtx->streams[i]->codec->codec->long_name).c_str());
 					if (!m_formatCtx->streams[i]->codec->extradata) {
 						if (m_formatCtx->streams[i]->codecpar->extradata) {
 							m_formatCtx->streams[i]->codec->extradata = (uint8_t*)av_malloc(m_formatCtx->streams[i]->codec->extradata_size);
@@ -161,12 +161,12 @@ void LibavMux::process() {
 	auto prevInputMeta = inputs[inputIdx]->getMetadata();
 	if (inputs[inputIdx]->updateMetadata(data)) {
 		if (prevInputMeta) {
-			log(*prevInputMeta == *inputs[inputIdx]->getMetadata() ? Debug : Error, "Updating existing metadata on input port %s. Not supported but continuing execution.", inputIdx);
+			m_host->log(*prevInputMeta == *inputs[inputIdx]->getMetadata() ? Debug : Error, format("Updating existing metadata on input port %s. Not supported but continuing execution.", inputIdx).c_str());
 		} else if (!declareStream(data, inputIdx))
 			return; //stream declared statically: no data to process.
 	}
 	if (m_formatCtx->nb_streams < (size_t)getNumInputs() - 1) {
-		log(Warning, "Data loss due to undeclared streams on input ports. Consider declaring them statically.");
+		m_host->log(Warning, "Data loss due to undeclared streams on input ports. Consider declaring them statically.");
 		return;
 	}
 	ensureHeader();
@@ -182,7 +182,7 @@ void LibavMux::process() {
 	pkt->stream_index = avStream->index;
 
 	if (av_interleaved_write_frame(m_formatCtx, pkt) != 0) {
-		log(Warning, "can't write frame.");
+		m_host->log(Warning, "can't write frame.");
 		return;
 	}
 	av_packet_free(&pkt);

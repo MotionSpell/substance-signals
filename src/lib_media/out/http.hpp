@@ -21,7 +21,7 @@ class HTTP : public Module, public LogCap {
 			UsePUT           = 1 << 2, //use PUT instead of POST
 		};
 
-		HTTP(const std::string &url, Flag flags = InitialEmptyPost | Chunked, const std::string &userAgent = std::string("GPAC Signals/") + std::string(g_version), const std::vector<std::string> &headers = {});
+		HTTP(IModuleHost* host, const std::string &url, Flag flags = InitialEmptyPost | Chunked, const std::string &userAgent = std::string("GPAC Signals/") + std::string(g_version), const std::vector<std::string> &headers = {});
 		virtual ~HTTP();
 
 		void process() final;
@@ -49,6 +49,9 @@ class HTTP : public Module, public LogCap {
 
 		void threadProc();
 		bool performTransfer();
+
+		IModuleHost* const m_host;
+
 		std::thread workingThread;
 		FILE *curTransferedFile = nullptr;
 		Data curTransferedData;

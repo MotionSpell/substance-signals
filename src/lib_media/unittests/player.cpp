@@ -16,7 +16,7 @@ secondclasstest("packet type erasure + multi-output: libav Demux -> libav Decode
 	DemuxConfig cfg;
 	cfg.url = "data/beepbop.mp4";
 	auto demux = loadModule("LibavDemux", &NullHost, &cfg);
-	auto null = create<Out::Null>();
+	auto null = create<Out::Null>(&NullHost);
 
 	int videoIndex = -1;
 	for (int i = 0; i < demux->getNumOutputs(); ++i) {
@@ -41,7 +41,7 @@ secondclasstest("packet type erasure + multi-output: libav Demux -> libav Decode
 	DemuxConfig cfg;
 	cfg.url = "data/beepbop.mp4";
 	auto demux = loadModule("LibavDemux", &NullHost, &cfg);
-	auto null = create<Out::Null>();
+	auto null = create<Out::Null>(&NullHost);
 
 	int audioIndex = -1;
 	for (int i = 0; i < demux->getNumOutputs(); ++i) {

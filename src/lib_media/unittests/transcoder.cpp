@@ -19,7 +19,7 @@ void libav_mux(std::string format) {
 	DemuxConfig cfg;
 	cfg.url = "data/beepbop.mp4";
 	auto demux = loadModule("LibavDemux", &NullHost, &cfg);
-	auto null = create<Out::Null>();
+	auto null = create<Out::Null>(&NullHost);
 
 	//find video signal from demux
 	int videoIndex = -1;
@@ -38,7 +38,7 @@ void libav_mux(std::string format) {
 	auto decode = loadModule("Decoder", &NullHost, VIDEO_PKT);
 	EncoderConfig encCfg { EncoderConfig::Video };
 	auto encode = loadModule("Encoder", &NullHost, &encCfg);
-	auto mux = create<Mux::LibavMux>(MuxConfig{"out/output_video_libav", format, ""});
+	auto mux = create<Mux::LibavMux>(&NullHost, MuxConfig{"out/output_video_libav", format, ""});
 
 	ConnectOutputToInput(demux->getOutput(videoIndex), decode->getInput(0));
 	ConnectOutputToInput(decode->getOutput(0), encode->getInput(0));
@@ -61,7 +61,7 @@ unittest("transcoder: video simple (gpac mux MP4)") {
 	auto demux = loadModule("LibavDemux", &NullHost, &cfg);
 
 	//create stub output (for unused demuxer's outputs)
-	auto null = create<Out::Null>();
+	auto null = create<Out::Null>(&NullHost);
 
 	//find video signal from demux
 	int videoIndex = -1;
@@ -98,7 +98,7 @@ unittest("transcoder: jpg to jpg") {
 
 	auto reader = create<In::File>(&NullHost, filename);
 	auto encoder = loadModule("JPEGTurboEncode", &NullHost);
-	auto writer = create<Out::File>("out/test2.jpg");
+	auto writer = create<Out::File>(&NullHost, "out/test2.jpg");
 
 	ConnectOutputToInput(reader->getOutput(0), decode->getInput(0));
 	ConnectOutputToInput(decode->getOutput(0), encoder->getInput(0));
@@ -120,7 +120,7 @@ void resizeJPGTest(PixelFormat pf) {
 	auto const dstFormat = PictureFormat(Resolution(320, 180) / 2, pf);
 	auto converter = loadModule("VideoConvert", &NullHost, &dstFormat);
 	auto encoder = loadModule("JPEGTurboEncode", &NullHost);
-	auto writer = create<Out::File>("out/test1.jpg");
+	auto writer = create<Out::File>(&NullHost, "out/test1.jpg");
 
 	ConnectOutputToInput(reader->getOutput(0), decode->getInput(0));
 	ConnectOutputToInput(decode->getOutput(0), converter->getInput(0));
@@ -147,7 +147,7 @@ unittest("transcoder: h264/mp4 to jpg") {
 	auto decode = loadModule("Decoder", &NullHost, VIDEO_PKT);
 
 	auto encoder = loadModule("JPEGTurboEncode", &NullHost);
-	auto writer = create<Out::File>("out/test3.jpg");
+	auto writer = create<Out::File>(&NullHost, "out/test3.jpg");
 
 	auto const dstRes = metadata->getResolution();
 	ASSERT(metadata->getPixelFormat() == YUV420P);

@@ -8,11 +8,13 @@ namespace Stream {
 
 class MS_HSS : public Out::HTTP {
 	public:
-		MS_HSS(const std::string &url);
+		MS_HSS(IModuleHost* host, const std::string &url);
 
 	private:
 		void newFileCallback(void *ptr) final;             //remove ftyp/moov
 		size_t endOfSession(void *ptr, size_t size) final; //empty mfra
+
+		IModuleHost* const m_host;
 };
 
 }

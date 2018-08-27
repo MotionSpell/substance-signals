@@ -16,9 +16,9 @@ namespace Stream {
 #ifdef LIBAVMUXHLS
 class LibavMuxHLSTS : public ModuleDynI {
 	public:
-		LibavMuxHLSTS(uint64_t segDurationInMs, const std::string &baseDir, const std::string &baseName, const std::string &options = "")
-			: segDuration(timescaleToClock(segDurationInMs, 1000)), hlsDir(baseDir), segBasename(baseName) {
-			delegate = create<Mux::LibavMux>(MuxConfig{format("%s%s", hlsDir, baseName), "hls", options});
+		LibavMuxHLSTS(IModuleHost* host, uint64_t segDurationInMs, const std::string &baseDir, const std::string &baseName, const std::string &options = "")
+			: m_host(host), segDuration(timescaleToClock(segDurationInMs, 1000)), hlsDir(baseDir), segBasename(baseName) {
+			delegate = create<Mux::LibavMux>(m_host, MuxConfig{format("%s%s", hlsDir, baseName), "hls", options});
 			addInput(new Input(this));
 			outputSegment  = addOutput<OutputDataDefault<DataRaw>>();
 			outputManifest = addOutput<OutputDataDefault<DataRaw>>();
@@ -87,6 +87,8 @@ class LibavMuxHLSTS : public ModuleDynI {
 				delegate->getInput(i);
 			}
 		}
+
+		IModuleHost* const m_host;
 		std::unique_ptr<Modules::Mux::LibavMux> delegate;
 		OutputDataDefault<DataRaw> *outputSegment, *outputManifest;
 		int64_t firstDTS = -1, segDuration, segIdx = 0;
@@ -96,7 +98,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 
 class Apple_HLS : public AdaptiveStreamingCommon {
 	public:
-		Apple_HLS(const std::string &m3u8Dir, const std::string &m3u8Filename, Type type, uint64_t segDurationInMs, uint64_t timeShiftBufferDepthInMs = 0, bool genVariantPlaylist = false, AdaptiveStreamingCommonFlags flags = None);
+		Apple_HLS(IModuleHost* host, const std::string &m3u8Dir, const std::string &m3u8Filename, Type type, uint64_t segDurationInMs, uint64_t timeShiftBufferDepthInMs = 0, bool genVariantPlaylist = false, AdaptiveStreamingCommonFlags flags = None);
 		virtual ~Apple_HLS();
 
 	private:
@@ -119,6 +121,9 @@ class Apple_HLS : public AdaptiveStreamingCommon {
 
 		std::string getManifestMasterInternal();
 		void generateManifestMaster();
+
+		IModuleHost* const m_host;
+
 		std::string playlistMasterPath;
 		const bool genVariantPlaylist;
 

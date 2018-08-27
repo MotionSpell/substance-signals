@@ -80,7 +80,7 @@ unittest("empty param test: Demux") {
 
 secondclasstest("demux one track: Demux::GPACDemuxMP4Simple -> Out::Print") {
 	auto mp4Demux = create<Demux::GPACDemuxMP4Simple>(&NullHost, "data/beepbop.mp4");
-	auto p = create<Out::Print>(std::cout);
+	auto p = create<Out::Print>(&NullHost, std::cout);
 
 	ConnectOutputToInput(mp4Demux->getOutput(0), p->getInput(0));
 

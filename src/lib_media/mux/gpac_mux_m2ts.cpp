@@ -61,8 +61,8 @@ struct UserData {
 	size_t inputIdx; //TODO: constify?
 };
 
-GPACMuxMPEG2TS::GPACMuxMPEG2TS(bool real_time, unsigned mux_rate, unsigned pcr_ms, int64_t pcr_init_val)
-	: muxer(new gpacpp::M2TSMux(real_time, mux_rate, pcr_ms, pcr_init_val)) {
+GPACMuxMPEG2TS::GPACMuxMPEG2TS(IModuleHost* host, bool real_time, unsigned mux_rate, unsigned pcr_ms, int64_t pcr_init_val)
+	:  m_host(host), muxer(new gpacpp::M2TSMux(real_time, mux_rate, pcr_ms, pcr_init_val)) {
 	output = addOutput<OutputDefault>();
 }
 
@@ -116,7 +116,7 @@ GF_Err GPACMuxMPEG2TS::fillInput(GF_ESInterface *esi, u32 ctrl_type, size_t inpu
 			pck.duration = (u32)pkt->duration;
 
 			esi->output_ctrl(esi, GF_ESI_OUTPUT_DATA_DISPATCH, &pck);
-			log(Debug, "Dispatch CTS %s\n", pck.cts);
+			m_host->log(Debug, format("Dispatch CTS %s\n", pck.cts).c_str());
 
 			av_packet_free(&pkt);
 		}

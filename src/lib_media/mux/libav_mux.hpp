@@ -17,13 +17,15 @@ struct MuxConfig {
 namespace Modules {
 namespace Mux {
 
-class LibavMux : public ModuleDynI, private LogCap {
+class LibavMux : public ModuleDynI {
 	public:
-		LibavMux(MuxConfig cfg);
+		LibavMux(IModuleHost* host, MuxConfig cfg);
 		~LibavMux();
 		void process() override;
 
 	private:
+		IModuleHost* const m_host;
+
 		static void formatsList();
 		void ensureHeader();
 		AVPacket * getFormattedPkt(Data data);

@@ -40,7 +40,7 @@ unittest("remux test: libav mp4 mux") {
 	cfg.url = "data/beepbop.mp4";
 	auto demux = loadModule("LibavDemux", &NullHost, &cfg);
 	std::unique_ptr<IModule> avcc2annexB;
-	auto mux = create<Mux::LibavMux>(MuxConfig{"out/output_libav", "mp4", ""});
+	auto mux = create<Mux::LibavMux>(&NullHost, MuxConfig{"out/output_libav", "mp4", ""});
 	ASSERT(demux->getNumOutputs() > 1);
 	for (int i = 0; i < demux->getNumOutputs(); ++i) {
 		//declare statically metadata to avoid missing data at start

@@ -37,10 +37,11 @@ std::unique_ptr<gpacpp::MPD> createMPD(Stream::AdaptiveStreamingCommon::Type typ
 
 namespace Stream {
 
-MPEG_DASH::MPEG_DASH(const std::string &mpdDir, const std::string &mpdFilename, Type type, uint64_t segDurationInMs,
+MPEG_DASH::MPEG_DASH(IModuleHost* host, const std::string &mpdDir, const std::string &mpdFilename, Type type, uint64_t segDurationInMs,
     uint64_t timeShiftBufferDepthInMs, uint64_t minUpdatePeriodInMs, uint32_t minBufferTimeInMs,
     const std::vector<std::string> &baseURLs, const std::string &id, int64_t initialOffsetInMs, AdaptiveStreamingCommonFlags flags)
 	: AdaptiveStreamingCommon(type, segDurationInMs, mpdDir, flags),
+	  m_host(host),
 	  mpd(createMPD(type, minBufferTimeInMs, id)), mpdFn(mpdFilename), baseURLs(baseURLs),
 	  minUpdatePeriodInMs(minUpdatePeriodInMs ? minUpdatePeriodInMs : (segDurationInMs ? segDurationInMs : 1000)),
 	  timeShiftBufferDepthInMs(timeShiftBufferDepthInMs), initialOffsetInMs(initialOffsetInMs), useSegmentTimeline(segDurationInMs == 0) {
@@ -149,13 +150,13 @@ void MPEG_DASH::ensureManifest() {
 
 void MPEG_DASH::writeManifest() {
 	if (!mpd->write(mpdFn)) {
-		log(Warning, "Can't write MPD at %s (1). Check you have sufficient rights.", mpdFn);
+		m_host->log(Warning, format("Can't write MPD at %s (1). Check you have sufficient rights.", mpdFn).c_str());
 		return;
 	}
 
 	auto const mpdPath = format("%s%s", manifestDir, mpdFn);
 	if (!moveFile(mpdFn, mpdPath)) {
-		log(Error, "Can't move MPD at %s (2). Check you have sufficient rights.", mpdPath);
+		m_host->log(Error, format("Can't move MPD at %s (2). Check you have sufficient rights.", mpdPath).c_str());
 		return;
 	}
 
@@ -221,7 +222,7 @@ void MPEG_DASH::generateManifest() {
 			if(meta->filename != fn) {
 				log(Debug, "Rename segment \"%s\" -> \"%s\".", meta->filename, fn);
 				if (!moveFile(meta->filename, fn)) {
-					log(Error, "Couldn't rename segment \"%s\" -> \"%s\". You may encounter playback errors.", meta->filename, fn);
+					m_host->log(Error, format("Couldn't rename segment \"%s\" -> \"%s\". You may encounter playback errors.", meta->filename, fn).c_str());
 				}
 			}
 
@@ -248,11 +249,11 @@ void MPEG_DASH::generateManifest() {
 			while (seg != quality->timeshiftSegments.end()) {
 				timeShiftSegmentsInMs += clockToTimescale((*seg).file->durationIn180k, 1000);
 				if (timeShiftSegmentsInMs > timeShiftBufferDepthInMs) {
-					log(Debug, "Delete segment \"%s\".", (*seg).file->filename);
+					m_host->log(Debug, format( "Delete segment \"%s\".", (*seg).file->filename).c_str());
 					if (gf_delete_file((*seg).file->filename.c_str()) == GF_OK || (*seg).retry == 0) {
 						seg = quality->timeshiftSegments.erase(seg);
 					} else {
-						log(Warning, "Couldn't delete old segment \"%s\" (retry=%s).", (*seg).file->filename, (*seg).retry);
+						m_host->log(Warning, format("Couldn't delete old segment \"%s\" (retry=%s).", (*seg).file->filename, (*seg).retry).c_str());
 						(*seg).retry--;
 					}
 				} else {
@@ -287,22 +288,22 @@ void MPEG_DASH::generateManifest() {
 void MPEG_DASH::finalizeManifest() {
 	if (mpd->mpd->time_shift_buffer_depth) {
 		if (!(flags & SegmentsNotOwned)) {
-			log(Info, "Manifest was not rewritten for on-demand and all file are being deleted.");
+			m_host->log(Info, "Manifest was not rewritten for on-demand and all file are being deleted.");
 			auto const mpdPath = format("%s%s", manifestDir, mpdFn);
 			if (gf_delete_file(mpdPath.c_str()) != GF_OK) {
-				log(Error, "Couldn't delete MPD: \"%s\".", mpdPath);
+				m_host->log(Error, format("Couldn't delete MPD: \"%s\".", mpdPath).c_str());
 			}
 
 			for(auto i : getInputs()) {
 				auto quality = safe_cast<DASHQuality>(qualities[i].get());
 				std::string fn = manifestDir + getInitName(quality, i);
 				if (gf_delete_file(fn.c_str()) != GF_OK) {
-					log(Error, "Couldn't delete initialization segment \"%s\".", fn);
+					m_host->log(Error, format("Couldn't delete initialization segment \"%s\".", fn).c_str());
 				}
 
 				for (auto const &seg : quality->timeshiftSegments) {
 					if (gf_delete_file(seg.file->filename.c_str()) != GF_OK) {
-						log(Error, "Couldn't delete media segment \"%s\".", seg.file->filename);
+						m_host->log(Error, format("Couldn't delete media segment \"%s\".", seg.file->filename).c_str());
 					}
 				}
 			}
