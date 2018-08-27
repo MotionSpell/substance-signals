@@ -15,11 +15,13 @@ struct IFilePuller {
 
 class MPEG_DASH_Input : public ActiveModule {
 	public:
-		MPEG_DASH_Input(std::unique_ptr<IFilePuller> filePuller, std::string const &url);
+		MPEG_DASH_Input(IModuleHost* host, std::unique_ptr<IFilePuller> filePuller, std::string const &url);
 		~MPEG_DASH_Input();
 		bool work() override;
 
 	private:
+		IModuleHost* const m_host;
+
 		std::unique_ptr<IFilePuller> const m_source;
 		bool wakeUp();
 

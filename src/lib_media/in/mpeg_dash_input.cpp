@@ -62,7 +62,8 @@ static shared_ptr<IMetadata> createMetadata(AdaptationSet const& set) {
 	}
 }
 
-MPEG_DASH_Input::MPEG_DASH_Input(std::unique_ptr<IFilePuller> source, std::string const& url) : m_source(move(source)) {
+MPEG_DASH_Input::MPEG_DASH_Input(IModuleHost* host, std::unique_ptr<IFilePuller> source, std::string const& url)
+	:  m_host(host), m_source(move(source)) {
 	//GET MPD FROM HTTP
 	auto mpdAsText = m_source->get(url);
 	if(mpdAsText.empty())
@@ -108,7 +109,7 @@ bool MPEG_DASH_Input::work() {
 
 		if(mpd->periodDuration) {
 			if(stream->segmentDuration * (stream->currNumber - set.startNumber) >= mpd->periodDuration) {
-				Log::msg(Info, "End of period");
+				m_host->log(Info, "End of period");
 				return false;
 			}
 		}
@@ -129,7 +130,7 @@ bool MPEG_DASH_Input::work() {
 			}
 		}
 
-		Log::msg(Debug, "wget: '%s'", url);
+		m_host->log(Debug, format("wget: '%s'", url).c_str());
 
 		auto chunk = m_source->get(url);
 		if(chunk.empty()) {
@@ -137,7 +138,7 @@ bool MPEG_DASH_Input::work() {
 				stream->currNumber--; // too early, retry
 				continue;
 			}
-			Log::msg(Error, "can't download file: '%s'", url);
+			m_host->log(Error, format("can't download file: '%s'", url).c_str());
 			return false;
 		}
 
