@@ -38,7 +38,7 @@ IPipelinedModule* createDemuxer(Pipeline& pipeline, std::string url) {
 		return pipeline.addModule<In::VideoGenerator>();
 	}
 	if(startsWith(url, "http://")) {
-		return pipeline.addModule<Demux::DashDemuxer>(url);
+		return pipeline.addModule<Demux::DashDemuxer>(&NullHost, url);
 	} else {
 		DemuxConfig cfg;
 		cfg.url = url;
