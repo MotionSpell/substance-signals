@@ -7,12 +7,13 @@
 namespace Modules {
 namespace Transform {
 
-class AudioGapFiller : public ModuleS, private LogCap {
+class AudioGapFiller : public ModuleS {
 	public:
-		AudioGapFiller(uint64_t toleranceInFrames = 10);
+		AudioGapFiller(IModuleHost* host, uint64_t toleranceInFrames = 10);
 		void process(Data data) override;
 
 	private:
+		IModuleHost* const m_host;
 		uint64_t toleranceInFrames, accumulatedTimeInSR = std::numeric_limits<uint64_t>::max();
 		OutputPcm *output;
 };

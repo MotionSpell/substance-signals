@@ -51,7 +51,7 @@ unittest("remux test: libav mp4 mux") {
 
 		if (demux->getOutput(i)->getMetadata()->isVideo()) {
 			assert(!avcc2annexB);
-			avcc2annexB = create<Transform::AVCC2AnnexBConverter>();
+			avcc2annexB = create<Transform::AVCC2AnnexBConverter>(&NullHost);
 			ConnectModules(demux.get(), i, avcc2annexB.get(), 0);
 			ConnectModules(avcc2annexB.get(), 0, mux.get(), i);
 		} else {

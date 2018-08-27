@@ -8,8 +8,9 @@ namespace Modules {
 
 #define TR_DEBUG Debug
 
-TimeRectifier::TimeRectifier(std::shared_ptr<IClock> clock_, IScheduler* scheduler_, Fraction frameRate)
-	: frameRate(frameRate),
+TimeRectifier::TimeRectifier(IModuleHost* host, std::shared_ptr<IClock> clock_, IScheduler* scheduler_, Fraction frameRate)
+	: m_host(host),
+	  frameRate(frameRate),
 	  threshold(timescaleToClock(frameRate.den, frameRate.num)),
 	  clock(clock_),
 	  scheduler(scheduler_) {
@@ -38,7 +39,7 @@ void TimeRectifier::mimicOutputs() {
 void TimeRectifier::declareScheduler(std::unique_ptr<IInput> &input, std::unique_ptr<IOutput> &output) {
 	auto const oMeta = output->getMetadata();
 	if (!oMeta) {
-		log(Debug, "Output isn't connected or doesn't expose a metadata: impossible to check.");
+		m_host->log(Debug, "Output isn't connected or doesn't expose a metadata: impossible to check.");
 	} else if (input->getMetadata()->type != oMeta->type)
 		throw error("Metadata I/O inconsistency");
 
@@ -77,7 +78,7 @@ void TimeRectifier::discardStreamOutdatedData(size_t inputIdx, int64_t removalCl
 	auto data = stream.data.begin();
 	while ((int)stream.data.size() > minQueueSize && data != stream.data.end()) {
 		if ((*data).creationTime < removalClockTime) {
-			log(TR_DEBUG, "Remove last streams[%s] data time media=%s clock=%s (removalClockTime=%s)", inputIdx, (*data).data->getMediaTime(), (*data).creationTime, removalClockTime);
+			m_host->log(TR_DEBUG, format("Remove last streams[%s] data time media=%s clock=%s (removalClockTime=%s)", inputIdx, (*data).data->getMediaTime(), (*data).creationTime, removalClockTime).c_str());
 			data = stream.data.erase(data);
 		} else {
 			data++;
@@ -92,7 +93,7 @@ Data TimeRectifier::findNearestData(Stream& stream, Fraction time) {
 	for (auto &currData : stream.data) {
 		idx++;
 		auto const currDistClock = currData.creationTime - fractionToClock(time);
-		log(Debug, "Video: considering data (%s/%s) at time %s (currDist=%s, dist=%s, threshold=%s)", currData.data->getMediaTime(), currData.creationTime, fractionToClock(time), currDistClock, distClock, threshold);
+		m_host->log(Debug, format("Video: considering data (%s/%s) at time %s (currDist=%s, dist=%s, threshold=%s)", currData.data->getMediaTime(), currData.creationTime, fractionToClock(time), currDistClock, distClock, threshold).c_str());
 		if (std::abs(currDistClock) < distClock) {
 			/*timings are monotonic so check for a previous data with distance less than one frame*/
 			if (currDistClock <= 0 || (currDistClock > 0 && distClock > threshold)) {
@@ -103,7 +104,7 @@ Data TimeRectifier::findNearestData(Stream& stream, Fraction time) {
 		}
 	}
 	if ((stream.numTicks > 0) && (stream.data.size() >= 2) && (currDataIdx != 1)) {
-		log(Debug, "Selected reference data is not contiguous to the last one (index=%s).", currDataIdx);
+		m_host->log(Debug, format("Selected reference data is not contiguous to the last one (index=%s).", currDataIdx).c_str());
 		//TODO: pass in error mode: flush all the data where the clock time removeOutdatedAllUnsafe(refData->getCreationTime());
 	}
 	return refData;
@@ -118,7 +119,7 @@ void TimeRectifier::findNearestDataAudio(size_t i, Fraction time, Data& selected
 			continue;
 		}
 		auto const currDistMedia = masterTime - currData.data->getMediaTime();
-		log(Debug, "Other: considering data (%s/%s) at time %s (ref=%s, currDist=%s)", currData.data->getMediaTime(), currData.creationTime, fractionToClock(time), masterTime, currDistMedia);
+		m_host->log(Debug, format("Other: considering data (%s/%s) at time %s (ref=%s, currDist=%s)", currData.data->getMediaTime(), currData.creationTime, fractionToClock(time), masterTime, currDistMedia).c_str());
 		if ((currDistMedia >= 0) && (currDistMedia < threshold)) {
 			selectedData = currData.data;
 			currDataIdx = idx;
@@ -126,7 +127,7 @@ void TimeRectifier::findNearestDataAudio(size_t i, Fraction time, Data& selected
 		}
 	}
 	if ((streams[i].numTicks > 0) && (streams[i].data.size() >= 2) && (currDataIdx != 1)) {
-		log(Warning, "[%s] Selected data is not contiguous to the last one (index=%s). Expect discontinuity in the signal.", i, currDataIdx);
+		m_host->log(Warning, format("[%s] Selected data is not contiguous to the last one (index=%s). Expect discontinuity in the signal.", i, currDataIdx).c_str());
 	}
 }
 
@@ -154,19 +155,19 @@ void TimeRectifier::emitOnePeriod(Fraction time) {
 		if (!refData) {
 			assert(master.numTicks == 0);
 
-			log(Warning, "No available reference data for clock time %s", fractionToClock(time));
+			m_host->log(Warning, format("No available reference data for clock time %s", fractionToClock(time)).c_str());
 			return;
 		}
 
 		masterTime = refData->getMediaTime();
 
 		if (master.numTicks == 0) {
-			log(Info, "First available reference clock time: %s", fractionToClock(time));
+			m_host->log(Info, format("First available reference clock time: %s", fractionToClock(time)).c_str());
 		}
 
 		auto data = make_shared<DataBaseRef>(refData);
 		data->setMediaTime(fractionToClock(Fraction(master.numTicks++ * frameRate.den, frameRate.num)));
-		log(TR_DEBUG, "Video: send[%s:%s] t=%s (data=%s) (ref %s)", i, master.data.size(), data->getMediaTime(), data->getMediaTime(), refData->getMediaTime());
+		m_host->log(TR_DEBUG, format("Video: send[%s:%s] t=%s (data=%s) (ref %s)", i, master.data.size(), data->getMediaTime(), data->getMediaTime(), refData->getMediaTime()).c_str());
 		outputs[i]->emit(data);
 		discardStreamOutdatedData(i, data->getMediaTime());
 	}
@@ -193,7 +194,7 @@ void TimeRectifier::emitOnePeriod(Fraction time) {
 				auto const audioData = safe_cast<const DataPcm>(selectedData);
 				auto data = make_shared<DataBaseRef>(selectedData);
 				data->setMediaTime(fractionToClock(Fraction(streams[i].numTicks++ * audioData->getPlaneSize(0) / audioData->getFormat().getBytesPerSample(), audioData->getFormat().sampleRate)));
-				log(TR_DEBUG, "Other: send[%s:%s] t=%s (data=%s) (ref=%s)", i, streams[i].data.size(), data->getMediaTime(), data->getMediaTime(), masterTime);
+				m_host->log(TR_DEBUG, format("Other: send[%s:%s] t=%s (data=%s) (ref=%s)", i, streams[i].data.size(), data->getMediaTime(), data->getMediaTime(), masterTime).c_str());
 				outputs[i]->emit(data);
 				discardStreamOutdatedData(i, data->getMediaTime());
 			}

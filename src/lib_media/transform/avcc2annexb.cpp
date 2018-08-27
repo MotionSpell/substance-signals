@@ -36,7 +36,8 @@ struct ByteReader {
 	}
 };
 
-AVCC2AnnexBConverter::AVCC2AnnexBConverter() {
+AVCC2AnnexBConverter::AVCC2AnnexBConverter(IModuleHost* host)
+	: m_host(host) {
 	auto input = createInput(this);
 	output = addOutput<OutputDataDefault<DataAVPacket>>(input->getMetadata());
 }
@@ -48,12 +49,12 @@ void AVCC2AnnexBConverter::process(Data in) {
 	auto bs = ByteReader { in->data() };
 	while ( auto availableBytes = bs.available() ) {
 		if (availableBytes < 4) {
-			log(Error, "Need to read 4 byte start-code, only %s available. Exit current conversion.", availableBytes);
+			m_host->log(Error, format("Need to read 4 byte start-code, only %s available. Exit current conversion.", availableBytes).c_str());
 			break;
 		}
 		auto const size = bs.u32();
 		if (size + 4 > availableBytes) {
-			log(Error, "Too much data read: %s (available: %s - 4) (total %s). Exit current conversion.", size, availableBytes, in->data().len);
+			m_host->log(Error, format("Too much data read: %s (available: %s - 4) (total %s). Exit current conversion.", size, availableBytes, in->data().len).c_str());
 			break;
 		}
 		// write start code

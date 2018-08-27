@@ -4,8 +4,8 @@
 namespace Modules {
 namespace Transform {
 
-Restamp::Restamp(Mode mode, int64_t offsetIn180k)
-	: offset(offsetIn180k), mode(mode) {
+Restamp::Restamp(IModuleHost* host, Mode mode, int64_t offsetIn180k)
+	: m_host(host), offset(offsetIn180k), mode(mode) {
 	createInput(this);
 	addOutput<OutputDefault>();
 }
@@ -41,7 +41,7 @@ int64_t Restamp::restamp(int64_t time) {
 
 	if (time + offset < 0) {
 		if (time / IClock::Rate < 2) {
-			log(Error, "reset offset [%s -> %ss (time=%s, offset=%s)]", (double)time / IClock::Rate, (double)(std::max<int64_t>(0, time + offset)) / IClock::Rate, time, offset);
+			m_host->log(Error, format("reset offset [%s -> %ss (time=%s, offset=%s)]", (double)time / IClock::Rate, (double)(std::max<int64_t>(0, time + offset)) / IClock::Rate, time, offset).c_str());
 			offset = 0;
 		}
 	}
@@ -52,7 +52,7 @@ int64_t Restamp::restamp(int64_t time) {
 void Restamp::process(Data data) {
 	auto const time = data->getMediaTime();
 	auto const restampedTime = restamp(time);
-	log(((time != 0) && (time + offset < 0)) ? Info : Debug, "%s -> %ss (time=%s, offset=%s)", (double)time / IClock::Rate, (double)(restampedTime) / IClock::Rate, time, offset);
+	m_host->log(((time != 0) && (time + offset < 0)) ? Info : Debug, format("%s -> %ss (time=%s, offset=%s)", (double)time / IClock::Rate, (double)(restampedTime) / IClock::Rate, time, offset).c_str());
 	auto dataOut = make_shared<DataBaseRef>(data);
 	dataOut->setMediaTime(restampedTime);
 	getOutput(0)->emit(dataOut);

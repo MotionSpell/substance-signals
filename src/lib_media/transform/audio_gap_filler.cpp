@@ -4,8 +4,8 @@
 namespace Modules {
 namespace Transform {
 
-AudioGapFiller::AudioGapFiller(uint64_t toleranceInFrames)
-	: toleranceInFrames(toleranceInFrames) {
+AudioGapFiller::AudioGapFiller(IModuleHost* host, uint64_t toleranceInFrames)
+	: m_host(host), toleranceInFrames(toleranceInFrames) {
 	auto input = createInput(this);
 	input->setMetadata(make_shared<MetadataRawAudio>());
 	output = addOutput<OutputPcm>();
@@ -23,7 +23,7 @@ void AudioGapFiller::process(Data data) {
 	auto const diff = (int64_t)(timeInSR - accumulatedTimeInSR);
 	if ((uint64_t)std::abs(diff) >= srcNumSamples) {
 		if ((uint64_t)std::abs(diff) <= srcNumSamples * (1 + toleranceInFrames)) {
-			log(Debug, "Fixing gap of %s samples (input=%s, accumulation=%s)", diff, timeInSR, accumulatedTimeInSR);
+			m_host->log(Debug, format("Fixing gap of %s samples (input=%s, accumulation=%s)", diff, timeInSR, accumulatedTimeInSR).c_str());
 			if (diff > 0) {
 				auto dataInThePast = make_shared<DataBaseRef>(data);
 				dataInThePast->setMediaTime(data->getMediaTime() - timescaleToClock((uint64_t)srcNumSamples, sampleRate));
@@ -32,7 +32,7 @@ void AudioGapFiller::process(Data data) {
 				return;
 			}
 		} else {
-			log(Warning, "Discontinuity detected. Reset at time %s (previous: %s).", data->getMediaTime(), timescaleToClock(accumulatedTimeInSR, sampleRate));
+			m_host->log(Warning, format("Discontinuity detected. Reset at time %s (previous: %s).", data->getMediaTime(), timescaleToClock(accumulatedTimeInSR, sampleRate)).c_str());
 			accumulatedTimeInSR = timeInSR;
 		}
 	}

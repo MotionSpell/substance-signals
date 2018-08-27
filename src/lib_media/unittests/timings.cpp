@@ -206,17 +206,17 @@ unittest("restamp: passthru with offsets") {
 	auto data = make_shared<DataRaw>(0);
 
 	data->setMediaTime(time);
-	auto restamp = create<Transform::Restamp>(Transform::Restamp::Reset);
+	auto restamp = create<Transform::Restamp>(&NullHost, Transform::Restamp::Reset);
 	ConnectOutput(restamp.get(), onFrame);
 	restamp->process(data);
 
 	data->setMediaTime(time);
-	restamp = create<Transform::Restamp>(Transform::Restamp::Reset, 0);
+	restamp = create<Transform::Restamp>(&NullHost, Transform::Restamp::Reset, 0);
 	ConnectOutput(restamp.get(), onFrame);
 	restamp->process(data);
 
 	data->setMediaTime(time);
-	restamp = create<Transform::Restamp>(Transform::Restamp::Reset, time);
+	restamp = create<Transform::Restamp>(&NullHost, Transform::Restamp::Reset, time);
 	expected = time;
 	ConnectOutput(restamp.get(), onFrame);
 	restamp->process(data);
@@ -232,23 +232,23 @@ unittest("restamp: reset with offsets") {
 	auto data = make_shared<DataRaw>(0);
 
 	data->setMediaTime(time);
-	auto restamp = create<Transform::Restamp>(Transform::Restamp::Passthru);
+	auto restamp = create<Transform::Restamp>(&NullHost, Transform::Restamp::Passthru);
 	ConnectOutput(restamp.get(), onFrame);
 	restamp->process(data);
 
 	data->setMediaTime(time);
-	restamp = create<Transform::Restamp>(Transform::Restamp::Passthru, 0);
+	restamp = create<Transform::Restamp>(&NullHost, Transform::Restamp::Passthru, 0);
 	ConnectOutput(restamp.get(), onFrame);
 	restamp->process(data);
 
 	data->setMediaTime(time);
-	restamp = create<Transform::Restamp>(Transform::Restamp::Passthru, offset);
+	restamp = create<Transform::Restamp>(&NullHost, Transform::Restamp::Passthru, offset);
 	expected = time + offset;
 	ConnectOutput(restamp.get(), onFrame);
 	restamp->process(data);
 
 	data->setMediaTime(time);
-	restamp = create<Transform::Restamp>(Transform::Restamp::Passthru, time);
+	restamp = create<Transform::Restamp>(&NullHost, Transform::Restamp::Passthru, time);
 	expected = time + time;
 	ConnectOutput(restamp.get(), onFrame);
 	restamp->process(data);

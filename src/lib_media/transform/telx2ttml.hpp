@@ -25,7 +25,7 @@ struct ITelxConfig {
 	virtual ~ITelxConfig() {}
 };
 
-class TeletextToTTML : public ModuleS, private LogCap {
+class TeletextToTTML : public ModuleS {
 	public:
 		enum TimingPolicy {
 			AbsoluteUTC,     //USP
@@ -33,7 +33,7 @@ class TeletextToTTML : public ModuleS, private LogCap {
 			RelativeToSplit  //MSS
 		};
 
-		TeletextToTTML(unsigned pageNum, const std::string &lang, uint64_t splitDurationIn180k, uint64_t maxDelayBeforeEmptyInMs, TimingPolicy timingPolicy);
+		TeletextToTTML(IModuleHost* host, unsigned pageNum, const std::string &lang, uint64_t splitDurationIn180k, uint64_t maxDelayBeforeEmptyInMs, TimingPolicy timingPolicy);
 		void process(Data data) override;
 
 	private:
@@ -42,6 +42,7 @@ class TeletextToTTML : public ModuleS, private LogCap {
 		void processTelx(DataAVPacket const * const pkt);
 		void dispatch();
 
+		IModuleHost* const m_host;
 		OutputDataDefault<DataAVPacket> *output;
 		const unsigned pageNum;
 		std::string lang;

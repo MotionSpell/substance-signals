@@ -45,7 +45,7 @@ void DashDemuxer::addStream(Pipelines::IPipelinedModule* downloadOutput, int out
 	pipeline->connect(GetOutputPin(downloadOutput, outputPort), decap);
 
 	// add restamper (so the timestamps start at zero)
-	auto restamp = pipeline->addModule<Restamp>(Transform::Restamp::Reset);
+	auto restamp = pipeline->addModule<Restamp>(&NullHost, Transform::Restamp::Reset);
 	pipeline->connect(decap, restamp);
 
 	auto stub = pipeline->addModule<OutStub>(output);

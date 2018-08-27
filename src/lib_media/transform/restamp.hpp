@@ -6,7 +6,7 @@
 namespace Modules {
 namespace Transform {
 
-class Restamp : public ModuleS, private LogCap {
+class Restamp : public ModuleS {
 	public:
 		enum Mode {
 			Passthru,            /*offset only*/
@@ -16,12 +16,13 @@ class Restamp : public ModuleS, private LogCap {
 		};
 
 		/*offset will be added to the current time*/
-		Restamp(Mode mode, int64_t offsetIn180k = 0);
+		Restamp(IModuleHost* host, Mode mode, int64_t offsetIn180k = 0);
 		~Restamp();
 		int64_t restamp(int64_t time);
 		void process(Data data) override;
 
 	private:
+		IModuleHost* const m_host;
 		int64_t offset;
 		Mode mode;
 		bool isInitTime = false;

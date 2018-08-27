@@ -10,8 +10,8 @@ extern "C" {
 namespace Modules {
 namespace Transform {
 
-LibavFilter::LibavFilter(const PictureFormat &format, const std::string &filterArgs)
-	: graph(avfilter_graph_alloc()), avFrameIn(new ffpp::Frame), avFrameOut(new ffpp::Frame) {
+LibavFilter::LibavFilter(IModuleHost* host, const PictureFormat &format, const std::string &filterArgs)
+	: m_host(host), graph(avfilter_graph_alloc()), avFrameIn(new ffpp::Frame), avFrameOut(new ffpp::Frame) {
 	char args[512];
 	AVPixelFormat pf = pixelFormat2libavPixFmt(format.format);
 	snprintf(args, sizeof(args), "video_size=%dx%d:pix_fmt=%d:time_base=%d/%d:pixel_aspect=%d/%d", format.res.width, format.res.height, pf, (int)IClock::Rate, 1, format.res.width, format.res.height);
@@ -74,7 +74,7 @@ void LibavFilter::process(Data data) {
 			break;
 		}
 		if (ret < 0) {
-			log(Error, "Corrupted filter video frame.");
+			m_host->log(Error, "Corrupted filter video frame.");
 		}
 		auto output = safe_cast<OutputPicture>(outputs[0].get());
 		auto pic = DataPicture::create(output, Resolution(avFrameIn->get()->width, avFrameIn->get()->height), libavPixFmt2PixelFormat((AVPixelFormat)avFrameIn->get()->format));

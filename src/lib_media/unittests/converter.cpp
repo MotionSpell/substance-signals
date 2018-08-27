@@ -254,7 +254,7 @@ unittest("audio gap filler") {
 	const std::vector<int64_t> in =  { 1, 2, 3, 5,    6, 7, 8, 9, 10, 11, 12, 12, 12, 1000, 1001, 1002, 3, 4, 5 };
 	const std::vector<int64_t> out = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1000, 1001, 1002, 3, 4, 5 };
 	auto recorder = create<Utils::Recorder>(&NullHost);
-	auto gapFiller = create<Transform::AudioGapFiller>(out.size());
+	auto gapFiller = create<Transform::AudioGapFiller>(&NullHost, out.size());
 	ConnectOutputToInput(gapFiller->getOutput(0), recorder->getInput(0));
 	for (auto &val : in) {
 		data->setMediaTime(val * numSamples, format.sampleRate);

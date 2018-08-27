@@ -34,9 +34,9 @@ Remarks:
  - This module feeds compositors or mux with some clean data.
  - TODO (currently handled by demux): This module deprecates heartbeat mechanisms for sparse streams.
 */
-class TimeRectifier : public ModuleDynI, private LogCap {
+class TimeRectifier : public ModuleDynI {
 	public:
-		TimeRectifier(std::shared_ptr<IClock> clock_, IScheduler* scheduler, Fraction frameRate);
+		TimeRectifier(IModuleHost* host, std::shared_ptr<IClock> clock_, IScheduler* scheduler, Fraction frameRate);
 
 		void process() override;
 
@@ -69,6 +69,8 @@ class TimeRectifier : public ModuleDynI, private LogCap {
 		Data findNearestData(Stream& stream, Fraction time);
 		void findNearestDataAudio(size_t i, Fraction time, Data& selectedData, int64_t masterTime);
 		size_t getMasterStreamId() const;
+
+		IModuleHost* const m_host;
 
 		Fraction const frameRate;
 		int64_t const threshold;

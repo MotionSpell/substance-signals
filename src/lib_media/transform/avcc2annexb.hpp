@@ -10,11 +10,12 @@ class DataAVPacket;
 
 namespace Transform {
 
-struct AVCC2AnnexBConverter : public ModuleS, private LogCap {
-		AVCC2AnnexBConverter();
+struct AVCC2AnnexBConverter : public ModuleS {
+		AVCC2AnnexBConverter(IModuleHost* host);
 		void process(Data data) override;
 
 	private:
+		IModuleHost* const m_host;
 		OutputDataDefault<DataAVPacket> *output;
 };
 

@@ -13,13 +13,14 @@ struct AVFilterContext;
 namespace Modules {
 namespace Transform {
 
-class LibavFilter : public ModuleS, private LogCap {
+class LibavFilter : public ModuleS {
 	public:
-		LibavFilter(const PictureFormat &format, const std::string &filterArgs);
+		LibavFilter(IModuleHost* host, const PictureFormat &format, const std::string &filterArgs);
 		~LibavFilter();
 		void process(Data data) override;
 
 	private:
+		IModuleHost* const m_host;
 		AVFilterGraph *graph;
 		AVFilterContext *buffersrc_ctx, *buffersink_ctx;
 		std::unique_ptr<ffpp::Frame> const avFrameIn, avFrameOut;
