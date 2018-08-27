@@ -89,7 +89,7 @@ secondclasstest("demux one track: Demux::GPACDemuxMP4Simple -> Out::Print") {
 
 unittest("GPACDemuxMP4Full: simple demux one track") {
 	auto f = create<In::File>("data/beepbop.mp4");
-	auto mp4Demux = create<Demux::GPACDemuxMP4Full>();
+	auto mp4Demux = create<Demux::GPACDemuxMP4Full>(&NullHost);
 
 	int sampleCount = 0;
 	auto onSample = [&](Data) {
@@ -106,7 +106,7 @@ unittest("GPACDemuxMP4Full: simple demux one track") {
 
 unittest("GPACDemuxMP4Full: simple demux one empty track") {
 	auto f = create<In::File>("data/emptytrack.mp4");
-	auto mp4Demux = create<Demux::GPACDemuxMP4Full>();
+	auto mp4Demux = create<Demux::GPACDemuxMP4Full>(&NullHost);
 
 	int sampleCount = 0;
 	auto onSample = [&](Data) {
@@ -127,7 +127,7 @@ unittest("GPACDemuxMP4Full: simple demux one empty track") {
 
 unittest("GPACDemuxMP4Full: demux fragments") {
 	auto f = create<In::File>("data/fragments.mp4");
-	auto mp4Demux = create<Demux::GPACDemuxMP4Full>();
+	auto mp4Demux = create<Demux::GPACDemuxMP4Full>(&NullHost);
 
 	int sampleCount = 0;
 	auto onSample = [&](Data) {

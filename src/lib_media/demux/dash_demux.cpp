@@ -27,7 +27,7 @@ struct OutStub : ModuleS {
 };
 
 DashDemuxer::DashDemuxer(IModuleHost* host, std::string url)
-: m_host(host) {
+	: m_host(host) {
 	pipeline = make_unique<Pipelines::Pipeline>();
 	auto downloader = pipeline->addModule<MPEG_DASH_Input>(createHttpSource(), url);
 
@@ -41,7 +41,7 @@ void DashDemuxer::addStream(Pipelines::IPipelinedModule* downloadOutput, int out
 	output->setMetadata(downloadOutput->getOutputMetadata(outputPort));
 
 	// add MP4 demuxer
-	auto decap = pipeline->addModule<GPACDemuxMP4Full>();
+	auto decap = pipeline->addModule<GPACDemuxMP4Full>(m_host);
 	pipeline->connect(GetOutputPin(downloadOutput, outputPort), decap);
 
 	// add restamper (so the timestamps start at zero)

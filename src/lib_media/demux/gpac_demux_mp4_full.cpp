@@ -33,8 +33,8 @@ struct ISOProgressiveReader {
 	u32 sampleCount = 0;
 };
 
-GPACDemuxMP4Full::GPACDemuxMP4Full()
-	: reader(new ISOProgressiveReader) {
+GPACDemuxMP4Full::GPACDemuxMP4Full(IModuleHost* host)
+	: m_host(host), reader(new ISOProgressiveReader) {
 	gf_sys_init(GF_MemTrackerNone);
 	createInput(this);
 	output = addOutput<OutputDefault>();
@@ -50,7 +50,7 @@ bool GPACDemuxMP4Full::openData() {
 	GF_ISOFile *movie;
 	GF_Err e = gf_isom_open_progressive(reader->dataUrl().c_str(), 0, 0, &movie, &missingBytes);
 	if ((e != GF_OK && e != GF_ISOM_INCOMPLETE_FILE) || reader->movie) {
-		log(Warning, "Error opening fragmented mp4 in progressive mode: %s (missing %s bytes)", gf_error_to_string(e), missingBytes);
+		m_host->log(Warning, format("Error opening fragmented mp4 in progressive mode: %s (missing %s bytes)", gf_error_to_string(e), missingBytes).c_str());
 		return false;
 	}
 	reader->movie.reset(new gpacpp::IsoFile(movie));
@@ -70,7 +70,7 @@ bool GPACDemuxMP4Full::processSample() {
 	try {
 		return safeProcessSample();
 	} catch(gpacpp::Error const& e) {
-		log(Warning, "Could not get sample: %s", e.what());
+		m_host->log(Warning, format("Could not get sample: %s", e.what()).c_str());
 		return false;
 	}
 }
@@ -80,7 +80,7 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 		auto dsi = desc->decoderSpecificInfo;
 		{
 			auto infoString = string2hex((uint8_t*)dsi->data, dsi->dataLength);
-			log(Debug, "Found decoder specific info: \"%s\"", infoString);
+			m_host->log(Debug, format("Found decoder specific info: \"%s\"", infoString).c_str());
 		}
 		std::shared_ptr<MetadataPkt> meta;
 		if(desc->streamType == GF_STREAM_AUDIO) {
@@ -101,9 +101,8 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 	auto newSampleCount = reader->movie->getSampleCount(FIRST_TRACK);
 	if (newSampleCount > reader->sampleCount) {
 		// New samples have been added to the file
-		log(Debug, "Found %s new samples (total: %s)",
-		    newSampleCount - reader->sampleCount,
-		    newSampleCount);
+		m_host->log(Debug, format("Found %s new samples (total: %s)",
+		        newSampleCount - reader->sampleCount, newSampleCount).c_str());
 		if (reader->sampleCount == 0) {
 			reader->sampleCount = newSampleCount;
 		}
@@ -120,9 +119,9 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 
 		auto const DTSOffset = reader->movie->getDTSOffset(FIRST_TRACK);
 		//here we dump some sample info: samp->data, samp->dataLength, samp->isRAP, samp->DTS, samp->CTS_Offset
-		log(Debug, "Found sample #%s(#%s) of length %s , RAP: %s, DTS: %s, CTS: %s",
-		    reader->sampleIndex, sample->dataLength,
-		    sample->IsRAP, sample->DTS + DTSOffset, sample->DTS + DTSOffset + sample->CTS_Offset);
+		m_host->log(Debug, format("Found sample #%s(#%s) of length %s , RAP: %s, DTS: %s, CTS: %s",
+		        reader->sampleIndex, sample->dataLength,
+		        sample->IsRAP, sample->DTS + DTSOffset, sample->DTS + DTSOffset + sample->CTS_Offset).c_str());
 		reader->sampleIndex++;
 
 		auto out = output->getBuffer(sample->dataLength);
@@ -137,7 +136,7 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 		reader->sampleCount = newSampleCount - reader->sampleCount;
 		reader->sampleIndex = 1;
 
-		log(Debug, "Releasing unnecessary buffers");
+		m_host->log(Debug, "Releasing unnecessary buffers");
 		// free internal structures associated with the samples read so far
 		reader->movie->resetTables(true);
 
