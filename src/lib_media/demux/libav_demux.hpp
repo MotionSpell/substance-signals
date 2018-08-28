@@ -12,4 +12,3 @@ struct DemuxConfig {
 	std::string formatName;
 	ReadFunc func = nullptr;
 };
-

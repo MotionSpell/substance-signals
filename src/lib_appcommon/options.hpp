@@ -17,6 +17,7 @@ static inline std::string safePop(ArgQueue& args) {
 
 void parseValue(double& var, ArgQueue& args);
 void parseValue(int& var, ArgQueue& args);
+void parseValue(uint64_t& var, ArgQueue& args);
 
 static inline void parseValue(bool& var, ArgQueue&) {
 	var = true;
