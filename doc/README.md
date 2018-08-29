@@ -180,10 +180,10 @@ The type of the input (here DataBase) can be:
  - DataRaw: raw data.
  - DataPcm: raw audio specialization.
  - DataPicture: raw video specialization.
- - PictureYUV420P: picture specialization for YUV420P colospace.
- - PictureYUYV422: picture specialization for YUYV422 colospace.
- - PictureNV12: picture specialization for NV12 colospace.
- - PictureRGB24: picture specialization for RGB24 colospace.
+ - PictureYUV420P: picture specialization for YUV420P colorspace.
+ - PictureYUYV422: picture specialization for YUYV422 colorspace.
+ - PictureNV12: picture specialization for NV12 colorspace.
+ - PictureRGB24: picture specialization for RGB24 colorspace.
  - DataAVPacket: libav packet wrapper.
  
 Constructor: use hard types.
