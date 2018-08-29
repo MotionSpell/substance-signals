@@ -15,6 +15,7 @@ enum PixelFormat {
 	YUV422P10LE,
 	YUYV422,
 	NV12,
+	NV12P010LE, /*10-bit variant of NV12 with 16 bits per component (10 bits of data plus 6 LSB bits zeroed)*/
 	RGB24,
 	RGBA32,
 	SIZE_OF_ENUM_PIXEL_FORMAT
@@ -46,6 +47,7 @@ class PictureFormat {
 			case YUV422P10LE: return res.width * divUp(10, 8) * res.height * 2;
 			case YUYV422: return res.width * res.height * 2;
 			case NV12: return res.width * res.height * 3 / 2;
+			case NV12P010LE: return res.width * res.height * 3;
 			case RGB24: return res.width * res.height * 3;
 			case RGBA32: return res.width * res.height * 4;
 			default: throw std::runtime_error("Unknown pixel format. Please contact your vendor.");

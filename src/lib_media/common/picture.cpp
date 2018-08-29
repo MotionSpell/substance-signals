@@ -228,6 +228,44 @@ class PictureNV12 : public DataPicture {
 		uint8_t* m_planes[2];
 };
 
+class PictureNV12P010LE : public DataPicture {
+	public:
+		PictureNV12P010LE(size_t /*unused*/) : DataPicture(0) {
+			internalFormat.format = format.format = NV12P010LE;
+		}
+		PictureNV12P010LE(const Resolution &res) : DataPicture(res, NV12P010LE) {
+			setInternalResolution(res);
+			setVisibleResolution(res);
+		}
+		size_t getNumPlanes() const override {
+			return 2;
+		}
+		const uint8_t* getPlane(size_t planeIdx) const override {
+			return m_planes[planeIdx];
+		}
+		uint8_t* getPlane(size_t planeIdx) override {
+			return m_planes[planeIdx];
+		}
+		size_t getPitch(size_t planeIdx) const override {
+			return m_pitch[planeIdx];
+		}
+		void setInternalResolution(Resolution res) override {
+			internalFormat.res = res;
+			resize(internalFormat.getSize());
+			auto const numPixels = res.width * res.height;
+			m_planes[0] = data().ptr;
+			m_planes[1] = data().ptr + numPixels * 2;
+			m_pitch[0] = m_pitch[1] = res.width * 2;
+		}
+		void setVisibleResolution(Resolution res) override {
+			format.res = res;
+		}
+
+	private:
+		size_t m_pitch[2];
+		uint8_t* m_planes[2];
+};
+
 class PictureRGB24 : public DataPicture {
 	public:
 		PictureRGB24(size_t /*unused*/) : DataPicture(0) {
@@ -301,6 +339,7 @@ std::shared_ptr<DataPicture> DataPicture::create(OutputPicture *out, Resolution 
 	case YUV422P10LE: r = out->getBuffer<PictureYUV422P10LE>(size); break;
 	case YUYV422:     r = out->getBuffer<PictureYUYV422>(size);     break;
 	case NV12:        r = out->getBuffer<PictureNV12   >(size);     break;
+	case NV12P010LE:  r = out->getBuffer<PictureNV12P010LE>(size);  break;
 	case RGB24:       r = out->getBuffer<PictureRGB24  >(size);     break;
 	case RGBA32:      r = out->getBuffer<PictureRGBA32 >(size);     break;
 	default: throw std::runtime_error("Unknown pixel format for DataPicture. Please contact your vendor");

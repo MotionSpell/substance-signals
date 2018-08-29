@@ -235,6 +235,7 @@ AVPixelFormat pixelFormat2libavPixFmt(PixelFormat format) {
 	case YUV422P10LE: return AV_PIX_FMT_YUV422P10LE;
 	case YUYV422: return AV_PIX_FMT_YUYV422;
 	case NV12: return AV_PIX_FMT_NV12;
+	case NV12P010LE: return AV_PIX_FMT_P010LE;
 	case RGB24: return AV_PIX_FMT_RGB24;
 	case RGBA32: return AV_PIX_FMT_RGBA;
 	default: throw std::runtime_error("Unknown pixel format to convert (1). Please contact your vendor.");
@@ -250,6 +251,7 @@ PixelFormat libavPixFmt2PixelFormat(AVPixelFormat avPixfmt) {
 	case AV_PIX_FMT_YUV422P10LE: return YUV422P10LE;
 	case AV_PIX_FMT_YUYV422: return YUYV422;
 	case AV_PIX_FMT_NV12: return NV12;
+	case AV_PIX_FMT_P010LE: return NV12P010LE;
 	case AV_PIX_FMT_RGB24: return RGB24;
 	case AV_PIX_FMT_RGBA: return RGBA32;
 	default: throw std::runtime_error("Unknown pixel format to convert (2). Please contact your vendor.");
