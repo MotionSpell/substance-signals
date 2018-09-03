@@ -7,6 +7,12 @@ extern "C" {
 
 #define U32LE(p) (((((u8*)p)[0]) << 24) | ((((u8*)p)[1]) << 16) | ((((u8*)p)[2]) << 8) | (((u8*)p)[3]))
 
+template<size_t N>
+constexpr uint32_t FOURCC(const char (&a)[N]) {
+	static_assert(N == 5, "FOURCC must be composed of 4 characters");
+	return (a[0]<<24) | (a[1]<<16) | (a[2]<<8) | a[3];
+}
+
 namespace Modules {
 namespace Stream {
 
@@ -21,7 +27,7 @@ void MS_HSS::newFileCallback(void *ptr) {
 		throw error("I/O error (1)");
 	u32 size = U32LE(ptr);
 	u32 type = U32LE(ptr + 4);
-	if (type != GF_4CC('f', 't', 'y', 'p'))
+	if (type != FOURCC("ftyp"))
 		throw error("ftyp not found");
 	read = gf_bs_read_data(curTransferedBs, datac, size - 8);
 	if (read != size - 8)
@@ -40,7 +46,7 @@ void MS_HSS::newFileCallback(void *ptr) {
 		throw error("I/O error (5)");
 	size = U32LE(ptr);
 	type = U32LE(ptr + 4);
-	if (type != GF_4CC('f', 'r', 'e', 'e'))
+	if (type != FOURCC("free"))
 		throw error("free not found");
 	read = gf_bs_read_data(curTransferedBs, datac, size - 8);
 	if (read != size - 8)
@@ -51,7 +57,7 @@ void MS_HSS::newFileCallback(void *ptr) {
 		throw error("I/O error (7)");
 	size = U32LE(ptr);
 	type = U32LE(ptr + 4);
-	if (type != GF_4CC('m', 'o', 'o', 'v'))
+	if (type != FOURCC("moov"))
 		throw error("moov not found");
 	read = gf_bs_read_data(curTransferedBs, datac, size - 8);
 	if (read != size - 8)
@@ -66,7 +72,7 @@ size_t MS_HSS::endOfSession(void *ptr, size_t size) {
 	}
 	auto bs = gf_bs_new((const char*)ptr, size, GF_BITSTREAM_WRITE);
 	gf_bs_write_u32(bs, mfraSize); //size (Box)
-	gf_bs_write_u32(bs, GF_4CC('m', 'f', 'r', 'a'));
+	gf_bs_write_u32(bs, FOURCC("mfra"));
 	if (gf_bs_get_position(bs) != mfraSize) {
 		m_host->log(Warning, format("endOfSession: mfra size is %s but buffer index is %s.", mfraSize, gf_bs_get_position(bs)).c_str());
 	}
