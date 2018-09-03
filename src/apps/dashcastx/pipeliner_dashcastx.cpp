@@ -84,27 +84,27 @@ IPipelinedModule* createEncoder(Pipeline* pipeline, Metadata metadataDemux, bool
 	}
 }
 
+/*video is forced, audio is as passthru as possible*/
+IPipelinedModule* createConverter(Pipeline* pipeline, Metadata metadataDemux, Metadata metadataEncoder, const PictureFormat &dstFmt) {
+	auto const codecType = metadataDemux->type;
+	if (codecType == VIDEO_PKT) {
+		Log::msg(Info, "[Converter] Found video stream");
+		return pipeline->add("VideoConvert", &dstFmt);
+	} else if (codecType == AUDIO_PKT) {
+		Log::msg(Info, "[Converter] Found audio stream");
+		auto const demuxFmt = toPcmFormat(safe_cast<const MetadataPktLibavAudio>(metadataDemux));
+		auto const metaEnc = safe_cast<const MetadataPktLibavAudio>(metadataEncoder);
+		auto const encFmt = toPcmFormat(metaEnc);
+		auto format = PcmFormat(demuxFmt.sampleRate, demuxFmt.numChannels, demuxFmt.layout, encFmt.sampleFormat, (encFmt.numPlanes == 1) ? Interleaved : Planar);
+		return pipeline->add("AudioConvert", nullptr, &format, metaEnc->getFrameSize());
+	} else {
+		Log::msg(Info, "[Converter] Found unknown stream");
+		return nullptr;
+	}
+}
+
 std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 	auto pipeline = make_unique<Pipeline>(cfg.ultraLowLatency, cfg.ultraLowLatency ? Pipeline::Mono : Pipeline::OnePerModule);
-
-	/*video is forced, audio is as passthru as possible*/
-	auto createConverter = [&](Metadata metadataDemux, Metadata metadataEncoder, const PictureFormat &dstFmt)->IPipelinedModule* {
-		auto const codecType = metadataDemux->type;
-		if (codecType == VIDEO_PKT) {
-			Log::msg(Info, "[Converter] Found video stream");
-			return pipeline->add("VideoConvert", &dstFmt);
-		} else if (codecType == AUDIO_PKT) {
-			Log::msg(Info, "[Converter] Found audio stream");
-			auto const demuxFmt = toPcmFormat(safe_cast<const MetadataPktLibavAudio>(metadataDemux));
-			auto const metaEnc = safe_cast<const MetadataPktLibavAudio>(metadataEncoder);
-			auto const encFmt = toPcmFormat(metaEnc);
-			auto format = PcmFormat(demuxFmt.sampleRate, demuxFmt.numChannels, demuxFmt.layout, encFmt.sampleFormat, (encFmt.numPlanes == 1) ? Interleaved : Planar);
-			return pipeline->add("AudioConvert", nullptr, &format, metaEnc->getFrameSize());
-		} else {
-			Log::msg(Info, "[Converter] Found unknown stream");
-			return nullptr;
-		}
-	};
 
 	if(!dirExists(cfg.workingDir))
 		mkdir(cfg.workingDir);
@@ -170,7 +170,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 				if (!encoder)
 					return;
 
-				auto converter = createConverter(metadataDemux, encoder->getOutputMetadata(0), encoderInputPicFmt);
+				auto converter = createConverter(pipeline.get(), metadataDemux, encoder->getOutputMetadata(0), encoderInputPicFmt);
 				if (!converter)
 					return;
 
