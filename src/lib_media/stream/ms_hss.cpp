@@ -1,4 +1,5 @@
 #include "ms_hss.hpp"
+#include "lib_modules/core/log.hpp" // Warning
 
 extern "C" {
 #include <gpac/bitstream.h>
