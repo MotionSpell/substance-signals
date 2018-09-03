@@ -38,10 +38,7 @@ class ThreadPool {
 		ThreadPool(const ThreadPool&) = delete;
 
 		void run() {
-			while (true) {
-				auto task = workQueue.pop();
-				if(!task)
-					break; // exit thread
+			while (auto task = workQueue.pop()) {
 				try {
 					task();
 				} catch (...) {
