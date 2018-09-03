@@ -12,6 +12,17 @@
 namespace Modules {
 namespace Stream {
 
+struct LogCap : protected Modules::LogRepetition {
+		virtual ~LogCap() {}
+
+	protected:
+		template<typename... Arguments>
+		void log(Level level, const std::string& fmt, Arguments... args) {
+			auto const id = format("[%s %s]", this, typeid(*this).name());
+			msg(level, id, fmt, args...);
+		}
+};
+
 struct Quality {
 	virtual ~Quality() {}
 

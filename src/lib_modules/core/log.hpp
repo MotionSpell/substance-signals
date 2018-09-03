@@ -35,15 +35,4 @@ class LogRepetition {
 		uint64_t lastMsgCount = 0;
 };
 
-struct LogCap : protected LogRepetition {
-		virtual ~LogCap() {}
-
-	protected:
-		template<typename... Arguments>
-		void log(Level level, const std::string& fmt, Arguments... args) {
-			auto const id = format("[%s %s]", this, typeid(*this).name());
-			msg(level, id, fmt, args...);
-		}
-};
-
 }
