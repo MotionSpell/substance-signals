@@ -152,7 +152,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 			pipeline->connect(source, GetInputPin(decode));
 
 			if (metadataDemux->isVideo() && cfg.autoRotate) {
-				auto const res = safe_cast<const MetadataPktLibavVideo>(demux->getOutputMetadata(streamIndex))->getResolution();
+				auto const res = safe_cast<const MetadataPktLibavVideo>(metadataDemux)->getResolution();
 				if (res.height > res.width) {
 					isVertical = true;
 				}
@@ -163,7 +163,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 		for (int r = 0; r < numRes; ++r) {
 			auto compressed = source;
 			if (transcode) {
-				auto inputRes = metadataDemux->isVideo() ? safe_cast<const MetadataPktLibavVideo>(demux->getOutputMetadata(streamIndex))->getResolution() : Resolution();
+				auto inputRes = metadataDemux->isVideo() ? safe_cast<const MetadataPktLibavVideo>(metadataDemux)->getResolution() : Resolution();
 				auto const outputRes = autoRotate(autoFit(inputRes, cfg.v[r].res), isVertical);
 				PictureFormat encoderInputPicFmt(outputRes, UNKNOWN_PF);
 				auto encoder = createEncoder(pipeline.get(), metadataDemux, cfg.ultraLowLatency, (VideoCodecType)cfg.v[r].type, encoderInputPicFmt, cfg.v[r].bitrate, cfg.segmentDurationInMs);
