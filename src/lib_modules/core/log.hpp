@@ -1,7 +1,6 @@
 #pragma once
 
 #include "lib_utils/log.hpp"
-#include <typeinfo>
 
 #define LOG_MSG_REPETITION_MAX 100
 

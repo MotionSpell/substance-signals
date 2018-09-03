@@ -8,6 +8,7 @@
 #include <memory>
 #include <string>
 #include <thread>
+#include <typeinfo>
 
 namespace Modules {
 namespace Stream {
