@@ -1,5 +1,4 @@
 #include "pipeliner_mp42ts.hpp"
-#include <sstream>
 
 // modules
 #include "lib_media/stream/apple_hls.hpp"
