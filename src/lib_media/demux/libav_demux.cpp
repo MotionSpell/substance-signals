@@ -11,6 +11,7 @@
 #include <vector>
 
 extern "C" {
+#include <libavdevice/avdevice.h> // avdevice_register_all
 #include <libavformat/avformat.h> // av_find_input_format
 }
 
@@ -53,6 +54,7 @@ class LibavDemux : public ActiveModule {
 
 			auto& url = config.url;
 
+			avdevice_register_all();
 			const std::string device = url.substr(0, url.find(":"));
 			if (device == "webcam") {
 				if (url == device || !webcamOpen(url.substr(url.find(":") + 1))) {

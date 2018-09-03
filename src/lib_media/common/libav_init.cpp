@@ -9,7 +9,6 @@
 #include <cstring>
 
 extern "C" {
-#include <libavdevice/avdevice.h>
 #include <libavformat/avformat.h>
 }
 
@@ -85,7 +84,6 @@ void avLog(void* /*avcl*/, int level, const char *fmt, va_list vl) {
 }
 
 int do_ffmpeg_static_initialization() {
-	avdevice_register_all();
 	avformat_network_init();
 	av_log_set_callback(&avLog);
 	return 0;

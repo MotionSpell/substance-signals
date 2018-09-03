@@ -36,7 +36,6 @@ LIB_MEDIA_SRCS:=\
 PKGS+=\
   gpac\
   libavcodec\
-  libavdevice\
   libavfilter\
   libavformat\
   libavutil\
@@ -48,7 +47,7 @@ endif
 
 $(BIN)/media-config.mk: $(SRC)/../scripts/configure
 	@mkdir -p $(BIN)
-	$(SRC)/../scripts/configure libswresample libswscale libturbojpeg | sed 's/^CFLAGS/MEDIA_CFLAGS/g' | sed 's/^LDFLAGS/MEDIA_LDFLAGS/g'> "$@"
+	$(SRC)/../scripts/configure libswresample libavdevice libswscale libturbojpeg | sed 's/^CFLAGS/MEDIA_CFLAGS/g' | sed 's/^LDFLAGS/MEDIA_LDFLAGS/g'> "$@"
 
 ifneq ($(MAKECMDGOALS),clean)
 include $(BIN)/media-config.mk
