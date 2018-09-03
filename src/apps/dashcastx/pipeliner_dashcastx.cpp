@@ -116,7 +116,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 	demuxCfg.loop = cfg.loop;
 	auto demux = pipeline->add("LibavDemux", &demuxCfg);
 	auto const type = (cfg.isLive || cfg.ultraLowLatency) ? Stream::AdaptiveStreamingCommon::Live : Stream::AdaptiveStreamingCommon::Static;
-	auto dasher = pipeline->addModule<Stream::MPEG_DASH>(&NullHost, DASH_SUBDIR, format("%s.mpd", g_appName), type, cfg.segmentDurationInMs, cfg.segmentDurationInMs * cfg.timeshiftInSegNum);
+	auto dasher = pipeline->addModuleWithHost<Stream::MPEG_DASH>(DASH_SUBDIR, format("%s.mpd", g_appName), type, cfg.segmentDurationInMs, cfg.segmentDurationInMs * cfg.timeshiftInSegNum);
 	if (!dirExists(DASH_SUBDIR))
 		mkdir(DASH_SUBDIR);
 
@@ -139,7 +139,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 		auto source = GetOutputPin(demux, streamIndex);
 
 		if(cfg.isLive) {
-			auto regulator = pipeline->addModule<Regulator>(&NullHost, g_SystemClock);
+			auto regulator = pipeline->addModuleWithHost<Regulator>(g_SystemClock);
 			pipeline->connect(source, GetInputPin(regulator));
 
 			source = GetOutputPin(regulator);
