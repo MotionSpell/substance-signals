@@ -57,7 +57,3 @@ void parseValue(int& var, ArgQueue& args) {
 	ss >> var;
 }
 
-void parseValue(uint64_t& var, ArgQueue& args) {
-	std::stringstream ss(safePop(args));
-	ss >> var;
-}
