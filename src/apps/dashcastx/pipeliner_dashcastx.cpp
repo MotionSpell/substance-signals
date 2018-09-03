@@ -188,13 +188,9 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 
 			std::string prefix;
 			if (metadataDemux->isVideo()) {
-				Resolution reso;
-				auto const resolutionFromDemux = safe_cast<const MetadataPktLibavVideo>(demux->getOutputMetadata(streamIndex))->getResolution();
-				if (transcode) {
-					reso = autoFit(resolutionFromDemux, cfg.v[r].res);
-				} else {
-					reso = resolutionFromDemux;
-				}
+				auto reso = safe_cast<const MetadataPktLibavVideo>(demux->getOutputMetadata(streamIndex))->getResolution();
+				if (transcode)
+					reso = autoFit(reso, cfg.v[r].res);
 				prefix = Stream::AdaptiveStreamingCommon::getCommonPrefixVideo(numDashInputs, reso);
 			} else {
 				prefix = Stream::AdaptiveStreamingCommon::getCommonPrefixAudio(numDashInputs);
