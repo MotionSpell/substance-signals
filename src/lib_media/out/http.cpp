@@ -1,4 +1,5 @@
 #include "http.hpp"
+#include "lib_modules/core/log.hpp"
 
 extern "C" {
 #include <curl/curl.h>
@@ -113,7 +114,7 @@ bool HTTP::open(std::shared_ptr<const MetadataFile> meta) {
 		curTransferedFile = gf_fopen(fn.c_str(), "rb");
 		if (!curTransferedFile) {
 			if (curTransferedData->data().len) {
-				log(Error, "File %s cannot be opened", fn);
+				m_host->log(Error, format("File %s cannot be opened", fn).c_str());
 			}
 			return false;
 		}
@@ -145,7 +146,7 @@ size_t HTTP::curlCallback(void *ptr, size_t size, size_t nmemb) {
 	if (state == RunNewConnection && curTransferedData) {
 		if (curTransferedBs) {
 			auto meta = safe_cast<const MetadataFile>(curTransferedData->getMetadata());
-			log(Warning, "Reconnect: file %s", meta->filename);
+			m_host->log(Warning, format("Reconnect: file %s", meta->filename).c_str());
 			gf_bs_seek(curTransferedBs, 0);
 		} else { /*we may be exiting because of an exception*/
 			curTransferedData = nullptr;
@@ -199,7 +200,7 @@ size_t HTTP::curlCallback(void *ptr, size_t size, size_t nmemb) {
 bool HTTP::performTransfer() {
 	CURLcode res = curl_easy_perform(curl);
 	if (res != CURLE_OK) {
-		log(Warning, "curl_easy_perform() failed for URL %s: %s", url, curl_easy_strerror(res));
+		m_host->log(Warning, format("curl_easy_perform() failed for URL %s: %s", url, curl_easy_strerror(res)).c_str());
 	}
 
 	if (state == Stop) {

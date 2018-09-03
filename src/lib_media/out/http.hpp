@@ -2,7 +2,6 @@
 
 #include "../common/metadata.hpp"
 #include "lib_modules/utils/helper.hpp"
-#include "lib_modules/core/log.hpp"
 #include <thread>
 
 typedef void CURL;
@@ -13,7 +12,7 @@ extern const char *g_version;
 namespace Modules {
 namespace Out {
 
-class HTTP : public Module, public LogCap {
+class HTTP : public Module {
 	public:
 		enum Flag {
 			InitialEmptyPost = 1,
