@@ -47,45 +47,45 @@ Resolution autoFit(Resolution input, Resolution output) {
 	}
 };
 
+IPipelinedModule* createEncoder(Pipeline* pipeline, Metadata metadataDemux, bool ultraLowLatency, VideoCodecType videoCodecType, PictureFormat &dstFmt, int bitrate, uint64_t segmentDurationInMs) {
+	auto const codecType = metadataDemux->type;
+	if (codecType == VIDEO_PKT) {
+		Log::msg(Info, "[Encoder] Found video stream");
+		EncoderConfig p { EncoderConfig::Video };
+		p.isLowLatency = ultraLowLatency;
+		p.codecType = videoCodecType;
+		p.res = dstFmt.res;
+		p.bitrate = bitrate;
+
+		auto const metaVideo = safe_cast<const MetadataPktLibavVideo>(metadataDemux);
+		p.frameRate = metaVideo->getFrameRate();
+		auto const GOPDurationDivisor = 1 + (segmentDurationInMs / (MAX_GOP_DURATION_IN_MS+1));
+		p.GOPSize = ultraLowLatency ? 1 : (Fraction(segmentDurationInMs, 1000) * p.frameRate) / Fraction(GOPDurationDivisor, 1);
+		if ((segmentDurationInMs * p.frameRate.num) % (1000 * GOPDurationDivisor * p.frameRate.den)) {
+			Log::msg(Warning, "[%s] Couldn't align GOP size (%s/%s, divisor=%s) with segment duration (%sms). Segment duration may vary.", g_appName, p.GOPSize.num, p.GOPSize.den, GOPDurationDivisor, segmentDurationInMs);
+			if ((p.frameRate.den % 1001) || ((segmentDurationInMs * p.frameRate.num * 1001) % (1000 * GOPDurationDivisor * p.frameRate.den * 1000)))
+				throw std::runtime_error("GOP size checks failed. Please read previous log messages.");
+		}
+		if (GOPDurationDivisor > 1) Log::msg(Info, "[Encoder] Setting GOP duration to %sms (%s frames)", segmentDurationInMs / GOPDurationDivisor, (double)p.GOPSize);
+
+		auto m = pipeline->add("Encoder", &p);
+		dstFmt.format = p.pixelFormat;
+		return m;
+	} else if (codecType == AUDIO_PKT) {
+		Log::msg(Info, "[Encoder] Found audio stream");
+		auto const demuxFmt = toPcmFormat(safe_cast<const MetadataPktLibavAudio>(metadataDemux));
+		EncoderConfig p { EncoderConfig::Audio };
+		p.sampleRate = demuxFmt.sampleRate;
+		p.numChannels = demuxFmt.numChannels;
+		return pipeline->add("Encoder", &p);
+	} else {
+		Log::msg(Info, "[Encoder] Found unknown stream");
+		return nullptr;
+	}
+}
+
 std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 	auto pipeline = make_unique<Pipeline>(cfg.ultraLowLatency, cfg.ultraLowLatency ? Pipeline::Mono : Pipeline::OnePerModule);
-
-	auto createEncoder = [&](Metadata metadataDemux, bool ultraLowLatency, VideoCodecType videoCodecType, PictureFormat &dstFmt, int bitrate, uint64_t segmentDurationInMs)->IPipelinedModule* {
-		auto const codecType = metadataDemux->type;
-		if (codecType == VIDEO_PKT) {
-			Log::msg(Info, "[Encoder] Found video stream");
-			EncoderConfig p { EncoderConfig::Video };
-			p.isLowLatency = ultraLowLatency;
-			p.codecType = videoCodecType;
-			p.res = dstFmt.res;
-			p.bitrate = bitrate;
-
-			auto const metaVideo = safe_cast<const MetadataPktLibavVideo>(metadataDemux);
-			p.frameRate = metaVideo->getFrameRate();
-			auto const GOPDurationDivisor = 1 + (segmentDurationInMs / (MAX_GOP_DURATION_IN_MS+1));
-			p.GOPSize = ultraLowLatency ? 1 : (Fraction(segmentDurationInMs, 1000) * p.frameRate) / Fraction(GOPDurationDivisor, 1);
-			if ((segmentDurationInMs * p.frameRate.num) % (1000 * GOPDurationDivisor * p.frameRate.den)) {
-				Log::msg(Warning, "[%s] Couldn't align GOP size (%s/%s, divisor=%s) with segment duration (%sms). Segment duration may vary.", g_appName, p.GOPSize.num, p.GOPSize.den, GOPDurationDivisor, segmentDurationInMs);
-				if ((p.frameRate.den % 1001) || ((segmentDurationInMs * p.frameRate.num * 1001) % (1000 * GOPDurationDivisor * p.frameRate.den * 1000)))
-					throw std::runtime_error("GOP size checks failed. Please read previous log messages.");
-			}
-			if (GOPDurationDivisor > 1) Log::msg(Info, "[Encoder] Setting GOP duration to %sms (%s frames)", segmentDurationInMs / GOPDurationDivisor, (double)p.GOPSize);
-
-			auto m = pipeline->add("Encoder", &p);
-			dstFmt.format = p.pixelFormat;
-			return m;
-		} else if (codecType == AUDIO_PKT) {
-			Log::msg(Info, "[Encoder] Found audio stream");
-			auto const demuxFmt = toPcmFormat(safe_cast<const MetadataPktLibavAudio>(metadataDemux));
-			EncoderConfig p { EncoderConfig::Audio };
-			p.sampleRate = demuxFmt.sampleRate;
-			p.numChannels = demuxFmt.numChannels;
-			return pipeline->add("Encoder", &p);
-		} else {
-			Log::msg(Info, "[Encoder] Found unknown stream");
-			return nullptr;
-		}
-	};
 
 	/*video is forced, audio is as passthru as possible*/
 	auto createConverter = [&](Metadata metadataDemux, Metadata metadataEncoder, const PictureFormat &dstFmt)->IPipelinedModule* {
@@ -166,7 +166,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 				auto inputRes = metadataDemux->isVideo() ? safe_cast<const MetadataPktLibavVideo>(demux->getOutputMetadata(streamIndex))->getResolution() : Resolution();
 				auto const outputRes = autoRotate(autoFit(inputRes, cfg.v[r].res), isVertical);
 				PictureFormat encoderInputPicFmt(outputRes, UNKNOWN_PF);
-				auto encoder = createEncoder(metadataDemux, cfg.ultraLowLatency, (VideoCodecType)cfg.v[r].type, encoderInputPicFmt, cfg.v[r].bitrate, cfg.segmentDurationInMs);
+				auto encoder = createEncoder(pipeline.get(), metadataDemux, cfg.ultraLowLatency, (VideoCodecType)cfg.v[r].type, encoderInputPicFmt, cfg.v[r].bitrate, cfg.segmentDurationInMs);
 				if (!encoder)
 					return;
 
