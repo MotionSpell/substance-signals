@@ -152,7 +152,7 @@ TeletextToTTML::TeletextToTTML(IModuleHost* host, unsigned pageNum, const std::s
 	: m_host(host),
 	  pageNum(pageNum), lang(lang), timingPolicy(timingPolicy), maxPageDurIn180k(timescaleToClock(maxDelayBeforeEmptyInMs, 1000)), splitDurationIn180k(timescaleToClock(splitDurationInMs, 1000)) {
 	config = make_unique<Config>();
-	createInput(this);
+	addInput(this);
 	output = addOutput<OutputDataDefault<DataAVPacket>>();
 }
 

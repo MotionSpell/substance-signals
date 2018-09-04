@@ -5,7 +5,7 @@ namespace Out {
 
 Null::Null(IModuleHost* host)
 	: m_host(host) {
-	createInput(this);
+	addInput(this);
 }
 
 void Null::process(Data) {

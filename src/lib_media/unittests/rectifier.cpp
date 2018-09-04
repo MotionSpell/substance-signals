@@ -110,7 +110,7 @@ struct DataGenerator : public ModuleS, public virtual IOutputCap {
 
 struct DataRecorder : ModuleS {
 	DataRecorder(shared_ptr<IClock> clock_) : clock(clock_) {
-		createInput(this);
+		addInput(this);
 	}
 
 	void process(Data data) {

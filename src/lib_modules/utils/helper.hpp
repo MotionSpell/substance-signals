@@ -80,7 +80,7 @@ class Input : public IInput, public ConnectedCap, public MetadataCap {
 class InputCap : public virtual IInputCap {
 	public:
 		virtual ~InputCap() {}
-		IInput* createInput(IProcessor* p) {
+		IInput* addInput(IProcessor* p) {
 			inputs.push_back(std::make_unique<Input>(p));
 			return inputs.back().get();
 		}

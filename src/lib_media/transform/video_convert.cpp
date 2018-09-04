@@ -33,7 +33,7 @@ class VideoConvert : public ModuleS {
 VideoConvert::VideoConvert(IModuleHost* host, const PictureFormat &dstFormat)
 	: m_host(host),
 	  m_SwContext(nullptr), dstFormat(dstFormat) {
-	auto input = createInput(this);
+	auto input = addInput(this);
 	input->setMetadata(make_shared<MetadataRawVideo>());
 	output = addOutput<OutputPicture>();
 }

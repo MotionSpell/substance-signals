@@ -74,7 +74,7 @@ HTTP::HTTP(IModuleHost* host, const std::string &url, Flag flags, const std::str
 		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
 	}
 
-	createInput(this);
+	addInput(this);
 	outputFinished = addOutput<OutputDefault>();
 }
 

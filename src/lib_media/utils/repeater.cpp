@@ -11,7 +11,7 @@ using namespace std::chrono;
 Repeater::Repeater(IModuleHost* host, int64_t ms)
 	: m_host(host), periodInMs(ms) {
 	done = false;
-	createInput(this);
+	addInput(this);
 	addOutput<OutputDataDefault<DataBase>>();
 	lastNow = high_resolution_clock::now();
 	workingThread = std::thread(&Repeater::threadProc, this);

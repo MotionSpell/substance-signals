@@ -10,7 +10,7 @@ void Print::process(Data data_)  {
 
 Print::Print(IModuleHost* host, std::ostream &os)
 	: m_host(host), os(os) {
-	createInput(this);
+	addInput(this);
 }
 
 }

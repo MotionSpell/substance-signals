@@ -22,7 +22,7 @@ struct Source : Modules::ActiveModule {
 };
 struct Receiver : Module {
 	Receiver(bool &sent) : sent(sent) {
-		createInput(this);
+		addInput(this);
 	}
 	void process() {
 		sent = true;

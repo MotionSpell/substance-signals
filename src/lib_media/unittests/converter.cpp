@@ -43,7 +43,7 @@ vector<short> getPlane(DataPcm const* data, int idx) {
 
 struct Recorder : ModuleS {
 	Recorder() {
-		createInput(this);
+		addInput(this);
 	}
 	void process(Data frame_) override {
 		out = frame_;

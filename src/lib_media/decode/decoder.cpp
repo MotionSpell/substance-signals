@@ -20,7 +20,7 @@ struct Decoder : ModuleS, PictureAllocator {
 
 		Decoder(IModuleHost* host, StreamType type)
 			: m_host(host), avFrame(new ffpp::Frame) {
-			createInput(this);
+			addInput(this);
 
 			if(type == VIDEO_PKT) {
 				videoOutput = addOutput<OutputPicture>(make_shared<MetadataRawVideo>());

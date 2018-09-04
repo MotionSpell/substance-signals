@@ -6,7 +6,7 @@ namespace Utils {
 
 Recorder::Recorder(IModuleHost* host)
 	: m_host(host) {
-	createInput(this);
+	addInput(this);
 }
 
 void Recorder::flush() {

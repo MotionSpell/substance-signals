@@ -11,7 +11,7 @@ namespace {
 
 struct Dummy : public Module {
 	Dummy() {
-		createInput(this);
+		addInput(this);
 		output = addOutput<OutputDefault>();
 	}
 	void process() {

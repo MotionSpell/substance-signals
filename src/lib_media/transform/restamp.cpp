@@ -6,7 +6,7 @@ namespace Transform {
 
 Restamp::Restamp(IModuleHost* host, Mode mode, int64_t offsetIn180k)
 	: m_host(host), offset(offsetIn180k), mode(mode) {
-	createInput(this);
+	addInput(this);
 	addOutput<OutputDefault>();
 }
 

@@ -30,7 +30,7 @@ class JPEGTurboEncode : public ModuleS {
 JPEGTurboEncode::JPEGTurboEncode(IModuleHost* host_, int quality)
 	: m_host(host_),
 	  jtHandle(tjInitCompress()), quality(quality) {
-	auto input = createInput(this);
+	auto input = addInput(this);
 	input->setMetadata(make_shared<MetadataRawVideo>());
 	output = addOutput<OutputDefault>();
 }

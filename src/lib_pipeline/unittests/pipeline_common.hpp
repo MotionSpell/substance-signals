@@ -9,7 +9,7 @@ namespace {
 
 struct Passthru : public Modules::ModuleS {
 	Passthru() {
-		createInput(this);
+		addInput(this);
 		addOutput<Modules::OutputDefault>();
 	}
 	void process(Modules::Data) override {
@@ -41,7 +41,7 @@ struct FakeSource : Modules::ActiveModule {
 
 struct FakeSink : public Modules::ModuleS {
 	FakeSink() {
-		createInput(this);
+		addInput(this);
 	}
 	void process(Modules::Data) override {
 	}
@@ -50,8 +50,8 @@ struct FakeSink : public Modules::ModuleS {
 class DualInput : public Modules::Module {
 	public:
 		DualInput() {
-			input0 = (Modules::Input*)createInput(this);
-			input1 = (Modules::Input*)createInput(this);
+			input0 = (Modules::Input*)addInput(this);
+			input1 = (Modules::Input*)addInput(this);
 			out = addOutput<Modules::OutputDefault>();
 		}
 
@@ -80,8 +80,8 @@ class DualInput : public Modules::Module {
 class ThreadedDualInput : public Modules::Module {
 	public:
 		ThreadedDualInput() {
-			input0 = (Modules::Input*)createInput(this);
-			input1 = (Modules::Input*)createInput(this);
+			input0 = (Modules::Input*)addInput(this);
+			input1 = (Modules::Input*)addInput(this);
 			addOutput<Modules::OutputDefault>();
 			numCalls = 0;
 			workingThread = std::thread(&ThreadedDualInput::threadProc, this);

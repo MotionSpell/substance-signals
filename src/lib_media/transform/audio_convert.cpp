@@ -47,7 +47,7 @@ struct AudioConvert : ModuleS {
 			: m_host(host),
 			  dstPcmFormat(dstFormat), dstNumSamples(dstNumSamples), m_Swr(nullptr), autoConfigure(true) {
 			srcPcmFormat = { 0 };
-			auto input = createInput(this);
+			auto input = addInput(this);
 			input->setMetadata(make_shared<MetadataRawAudio>());
 			output = addOutput<OutputPcm>();
 		}
@@ -56,7 +56,7 @@ struct AudioConvert : ModuleS {
 			:m_host(host),
 			 srcPcmFormat(srcFormat), dstPcmFormat(dstFormat), dstNumSamples(dstNumSamples), m_Swr(new Resampler), autoConfigure(false) {
 			configure(srcPcmFormat);
-			auto input = createInput(this);
+			auto input = addInput(this);
 			input->setMetadata(make_shared<MetadataRawAudio>());
 			output = addOutput<OutputPcm>();
 		}

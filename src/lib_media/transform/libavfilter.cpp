@@ -44,7 +44,7 @@ LibavFilter::LibavFilter(IModuleHost* host, const PictureFormat &format, const s
 	if (ret < 0)
 		throw error("Cannot config filter graph");
 
-	auto input = createInput(this);
+	auto input = addInput(this);
 	input->setMetadata(make_shared<MetadataRawVideo>());
 	addOutput<OutputPicture>(make_shared<MetadataRawVideo>());
 }
