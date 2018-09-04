@@ -51,9 +51,9 @@ bool PipelinedModule::isSource() {
 
 void PipelinedModule::connect(IOutput *output, int inputIdx, bool inputAcceptMultipleConnections) {
 	auto input = getInput(inputIdx);
-	ConnectOutputToInput(output, input);
-	if (!inputAcceptMultipleConnections && (input->getNumConnections() != 1))
+	if (!inputAcceptMultipleConnections && input->getNumConnections())
 		throw std::runtime_error(format("PipelinedModule %s: input %s has %s connections.", m_name, inputIdx, input->getNumConnections()));
+	ConnectOutputToInput(output, input);
 	connections++;
 }
 
