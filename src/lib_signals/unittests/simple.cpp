@@ -35,8 +35,6 @@ unittest("signals_simple") {
 	auto expected = makeVector({777, 778, 777, 778});
 	ASSERT_EQUALS(expected, results);
 
-	ASSERT(sig.getNumConnections() == 4);
-
 	{
 		sig.disconnect(id2);
 		sig.disconnect(id);
