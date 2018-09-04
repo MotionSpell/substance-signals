@@ -84,14 +84,9 @@ IInput* PipelinedModule::getInput(int i) {
 void PipelinedModule::processSource() {
 	auto source = safe_cast<ActiveModule>(delegate.get());
 
-	if(stopped) {
+	if(stopped || !source->work()) {
 		endOfStream();
-		return;
-	}
-
-	if(!source->work()) {
-		endOfStream();
-		return;
+		return; // don't reschedule
 	}
 
 	// reschedule
