@@ -103,11 +103,15 @@ IPipelinedModule* createConverter(Pipeline* pipeline, Metadata metadataDemux, Me
 	}
 }
 
+void ensureDir(std::string path) {
+	if(!dirExists(path))
+		mkdir(path);
+}
+
 std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 	auto pipeline = make_unique<Pipeline>(cfg.ultraLowLatency, cfg.ultraLowLatency ? Pipeline::Mono : Pipeline::OnePerModule);
 
-	if(!dirExists(cfg.workingDir))
-		mkdir(cfg.workingDir);
+	ensureDir(cfg.workingDir);
 
 	changeDir(cfg.workingDir);
 
@@ -117,8 +121,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 	auto demux = pipeline->add("LibavDemux", &demuxCfg);
 	auto const type = (cfg.isLive || cfg.ultraLowLatency) ? Stream::AdaptiveStreamingCommon::Live : Stream::AdaptiveStreamingCommon::Static;
 	auto dasher = pipeline->addModuleWithHost<Stream::MPEG_DASH>(DASH_SUBDIR, format("%s.mpd", g_appName), type, cfg.segmentDurationInMs, cfg.segmentDurationInMs * cfg.timeshiftInSegNum);
-	if (!dirExists(DASH_SUBDIR))
-		mkdir(DASH_SUBDIR);
+	ensureDir(DASH_SUBDIR);
 
 	bool isVertical = false;
 	const bool transcode = cfg.v.size() > 0;
@@ -197,8 +200,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 			}
 
 			auto const subdir = DASH_SUBDIR + prefix + "/";
-			if (!dirExists(subdir))
-				mkdir(subdir);
+			ensureDir(subdir);
 
 			auto muxer = pipeline->addModuleWithHost<Mux::GPACMuxMP4>(Mp4MuxConfig{subdir + prefix, (uint64_t)cfg.segmentDurationInMs, FragmentedSegment, cfg.ultraLowLatency ? OneFragmentPerFrame : OneFragmentPerSegment});
 			pipeline->connect(compressed, GetInputPin(muxer));
