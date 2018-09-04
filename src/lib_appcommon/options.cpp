@@ -38,12 +38,12 @@ std::vector<std::string> CmdLineOptions::parse(int argc, const char* argv[]) {
 	return remaining;
 }
 
-void CmdLineOptions::printHelp(std::ostream& out) {
+void CmdLineOptions::printHelp() {
 	for(auto& o : m_Options) {
 		auto s = o->shortName + ", " + o->longName;
 		while(s.size()< 40)
 			s += " ";
-		out << "    " << s << o->desc << std::endl;
+		std::cout << "    " << s << o->desc << std::endl;
 	}
 }
 

@@ -49,7 +49,7 @@ struct CmdLineOptions {
 		}
 
 		std::vector<std::string> parse(int argc, const char* argv[]);
-		void printHelp(std::ostream& out);
+		void printHelp();
 
 	private:
 		struct AbstractOption {

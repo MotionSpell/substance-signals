@@ -4,7 +4,6 @@
 #include "lib_pipeline/pipeline.hpp"
 #include "config.hpp"
 #include <cstdio> // sscanf
-#include <iostream> // cout
 
 const char *g_appName = "dashcastx";
 
@@ -44,7 +43,7 @@ Config parseCommandLine(int argc, char const* argv[]) {
 		printf("Usage: %s [options] <URL>\nOptions:\n", g_appName);
 
 		auto name = std::string(g_appName);
-		opt.printHelp(std::cout);
+		opt.printHelp();
 		auto const examples =
 		    "\nExamples:\n"
 		    "No transcode:\n"
