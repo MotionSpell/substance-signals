@@ -1,4 +1,5 @@
 #include "lib_utils/tools.hpp"
+#include "lib_utils/format.hpp"
 #include "file.hpp"
 
 namespace Modules {
