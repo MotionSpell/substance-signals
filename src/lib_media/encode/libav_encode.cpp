@@ -145,16 +145,15 @@ struct LibavEncode : ModuleS {
 				throw error(format("Could not open codec %s, disable output.", codecName));
 			codecDict.ensureAllOptionsConsumed();
 
+			auto input = addInput(this);
 			output = addOutput<OutputDataDefault<DataAVPacket>>();
 			switch (type) {
 			case EncoderConfig::Video: {
-				auto input = addInput(this);
 				input->setMetadata(make_shared<MetadataRawVideo>());
 				output->setMetadata(make_shared<MetadataPktLibavVideo>(codecCtx));
 				break;
 			}
 			case EncoderConfig::Audio: {
-				auto input = addInput(this);
 				input->setMetadata(make_shared<MetadataRawAudio>());
 				output->setMetadata(make_shared<MetadataPktLibavAudio>(codecCtx));
 				break;
