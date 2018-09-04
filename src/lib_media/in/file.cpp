@@ -32,9 +32,7 @@ bool File::work() {
 	if (read == 0) {
 		return false;
 	}
-	if (read < IOSIZE) {
-		out->resize(read);
-	}
+	out->resize(read);
 	output->emit(out);
 	return true;
 }
