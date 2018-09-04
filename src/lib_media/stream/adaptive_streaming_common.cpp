@@ -13,6 +13,11 @@
 namespace Modules {
 namespace Stream {
 
+void ensureDir(std::string path) {
+	if(!dirExists(path))
+		mkdir(path);
+}
+
 AdaptiveStreamingCommon::AdaptiveStreamingCommon(Type type, uint64_t segDurationInMs, const std::string &manifestDir, AdaptiveStreamingCommonFlags flags)
 	: type(type), segDurationInMs(segDurationInMs), manifestDir(manifestDir), flags(flags) {
 	if ((flags & ForceRealDurations) && !segDurationInMs)
@@ -35,8 +40,7 @@ bool AdaptiveStreamingCommon::moveFile(const std::string &src, const std::string
 		throw error(format("Segments not owned require similar filenames (%s != %s)", src, dst));
 
 	auto subdir = dst.substr(0, dst.find_last_of("/") + 1);
-	if (!dirExists(subdir))
-		mkdir(subdir);
+	ensureDir(subdir);
 
 	int retry = MOVE_FILE_NUM_RETRY + 1;
 	while (--retry) {
@@ -109,8 +113,7 @@ void AdaptiveStreamingCommon::ensurePrefix(size_t i) {
 		//if (!(flags & SegmentsNotOwned)) //FIXME: HLS manifests still requires the subdir presence
 		{
 			auto const dir = format("%s%s", manifestDir, qualities[i]->prefix);
-			if (!dirExists(dir))
-				mkdir(dir);
+			ensureDir(dir);
 		}
 	}
 }
