@@ -38,7 +38,7 @@ class ModuleDynI : public Module {
 			if (i == (int)inputs.size())
 				addInput(new Input(this));
 			else if (i > (int)inputs.size())
-				throw std::runtime_error(format("Incorrect port number %s for dynamic input.", i));
+				throw std::runtime_error("Incorrect port number " + std::to_string(i) + " for dynamic input.");
 
 			return inputs[i].get();
 		}
