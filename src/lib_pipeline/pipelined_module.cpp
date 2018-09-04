@@ -84,7 +84,7 @@ IInput* PipelinedModule::getInput(int i) {
 void PipelinedModule::processSource() {
 	auto source = safe_cast<ActiveModule>(delegate.get());
 
-	if(source->mustExit) {
+	if(stopped) {
 		endOfStream();
 		return;
 	}
@@ -121,8 +121,7 @@ void PipelinedModule::stopSource() {
 		return;
 	}
 
-	auto active = safe_cast<ActiveModule>(delegate.get());
-	active->mustExit = true;
+	stopped = true;
 }
 
 // IPipelineNotifier implementation

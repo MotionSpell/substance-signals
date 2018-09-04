@@ -48,6 +48,7 @@ class PipelinedModule :
 		std::unique_ptr<IExecutor> const executor;
 
 		bool started = false;
+		bool stopped = false;
 
 		IPipelineNotifier * const m_notify;
 		int connections = 0;

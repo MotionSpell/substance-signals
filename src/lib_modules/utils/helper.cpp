@@ -46,7 +46,7 @@ bool MetadataCap::setMetadataInternal(Metadata metadata) {
 }
 
 void ActiveModule::process() {
-	while (!mustExit && work()) {}
+	while (work()) {}
 }
 
 }
