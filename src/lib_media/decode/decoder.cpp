@@ -176,6 +176,6 @@ Modules::IModule* createObject(IModuleHost* host, va_list va) {
 	return Modules::create<Decoder>(host, type).release();
 }
 
-auto const registered = registerModule("Decoder", &createObject);
+auto const registered = Factory::registerModule("Decoder", &createObject);
 
 }

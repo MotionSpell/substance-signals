@@ -205,5 +205,5 @@ IModule* createObject(IModuleHost* host, va_list va) {
 		return Modules::create<AudioConvert>(host, *src, *dst, samples).release();
 }
 
-auto const registered = registerModule("AudioConvert", &createObject);
+auto const registered = Factory::registerModule("AudioConvert", &createObject);
 }

@@ -219,5 +219,5 @@ Modules::IModule* createObject(IModuleHost* host, va_list va) {
 	return create<SDLAudio>(host, clock).release();
 }
 
-auto const registered = registerModule("SDLAudio", &createObject);
+auto const registered = Factory::registerModule("SDLAudio", &createObject);
 }

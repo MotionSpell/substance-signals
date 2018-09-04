@@ -213,5 +213,5 @@ Modules::IModule* createObject(IModuleHost* host, va_list va) {
 	return Modules::create<SDLVideo>(host, clock).release();
 }
 
-auto const registered = registerModule("SDLVideo", &createObject);
+auto const registered = Factory::registerModule("SDLVideo", &createObject);
 }

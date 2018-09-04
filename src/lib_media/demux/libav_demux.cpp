@@ -459,6 +459,6 @@ Modules::IModule* createObject(IModuleHost* host, va_list va) {
 	return Modules::create<LibavDemux>(host, *config).release();
 }
 
-auto const registered = registerModule("LibavDemux", &createObject);
+auto const registered = Factory::registerModule("LibavDemux", &createObject);
 
 }

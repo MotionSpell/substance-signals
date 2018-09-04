@@ -1112,5 +1112,5 @@ Modules::IModule* createObject(IModuleHost* host, va_list va) {
 	return Modules::create<Mux::GPACMuxMP4>(host, *config).release();
 }
 
-auto const registered = registerModule("GPACMuxMP4", &createObject);
+auto const registered = Factory::registerModule("GPACMuxMP4", &createObject);
 }

@@ -87,5 +87,5 @@ IModule* createObject(IModuleHost* host, va_list va) {
 	return create<JPEGTurboEncode>(host).release();
 }
 
-auto const registered = registerModule("JPEGTurboEncode", &createObject);
+auto const registered = Factory::registerModule("JPEGTurboEncode", &createObject);
 }

@@ -9,7 +9,7 @@ namespace Modules {
 
 struct Entry {
 	const char* name;
-	ModuleCreationFunc* func;
+	Factory::CreationFunc* func;
 };
 
 static Entry registry[1024];
@@ -28,7 +28,8 @@ Entry* findFreeEntry() {
 	return nullptr;
 }
 
-int registerModule(const char* name, ModuleCreationFunc* func) {
+namespace Factory {
+int registerModule(const char* name, CreationFunc* func) {
 
 	if(findEntry(name))
 		throw runtime_error("Module '" + string(name) + "' is already registered");
@@ -43,16 +44,17 @@ int registerModule(const char* name, ModuleCreationFunc* func) {
 	return 0;
 }
 
-IModule* vInstantiate(const char* name, IModuleHost* host, va_list va) {
+IModule* instanciateModule(const char* name, IModuleHost* host, va_list va) {
 	auto entry = findEntry(name);
 	if(!entry)
 		throw runtime_error("Unknown module '" + string(name) + "'");
 
 	return entry->func(host, va);
 }
+}
 
 }
 
 Modules::IModule* instantiate(const char* name, Modules::IModuleHost* host, va_list va) {
-	return Modules::vInstantiate(name, host, va);
+	return Modules::Factory::instanciateModule(name, host, va);
 }

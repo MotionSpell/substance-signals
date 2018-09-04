@@ -97,5 +97,5 @@ Modules::IModule* createObject(IModuleHost* host, va_list va) {
 	return Modules::create<VideoConvert>(host, *fmt).release();
 }
 
-auto const registered = registerModule("VideoConvert", &createObject);
+auto const registered = Factory::registerModule("VideoConvert", &createObject);
 }

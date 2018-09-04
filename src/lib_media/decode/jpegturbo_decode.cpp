@@ -75,5 +75,5 @@ IModule* createObject(IModuleHost* host, va_list va) {
 	return create<JPEGTurboDecode>(host).release();
 }
 
-auto const registered = registerModule("JPEGTurboDecode", &createObject);
+auto const registered = Factory::registerModule("JPEGTurboDecode", &createObject);
 }

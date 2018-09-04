@@ -284,5 +284,5 @@ Modules::IModule* createObject(IModuleHost* host, va_list va) {
 	return Modules::createModule<LibavEncode>(config->bufferSize, host, config).release();
 }
 
-auto const registered = registerModule("Encoder", &createObject);
+auto const registered = Factory::registerModule("Encoder", &createObject);
 }
