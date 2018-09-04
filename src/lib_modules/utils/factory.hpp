@@ -14,7 +14,7 @@ int registerModule(const char* name, CreationFunc* func);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// prototype for binary entry-point (implemented by user modules)
+// prototype for binary entry-point to the UM shared library
 ///////////////////////////////////////////////////////////////////////////////
 #ifdef _MSC_VER
 #define EXPORT __declspec(dllexport)
