@@ -51,8 +51,8 @@ bool PipelinedModule::isSource() {
 
 void PipelinedModule::connect(IOutput *output, int inputIdx, bool inputAcceptMultipleConnections) {
 	auto input = getInput(inputIdx);
-	if (!inputAcceptMultipleConnections && input->getNumConnections())
-		throw std::runtime_error(format("PipelinedModule %s: input %s has %s connections.", m_name, inputIdx, input->getNumConnections()));
+	if (!inputAcceptMultipleConnections && input->isConnected())
+		throw std::runtime_error(format("PipelinedModule %s: input %s is already connected.", m_name, inputIdx));
 	ConnectOutputToInput(output, input);
 	connections++;
 }

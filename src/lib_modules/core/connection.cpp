@@ -30,6 +30,7 @@ void ConnectOutputToInput(IOutput *prev, IInput *next, IExecutor * const executo
 	CheckMetadataCompatibility(prev, next);
 
 	next->connect();
+
 	prev->getSignal().connect([=](Data data) {
 		next->push(data);
 		(*executor)(Bind(&IProcessor::process, next));

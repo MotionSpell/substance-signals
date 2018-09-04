@@ -34,8 +34,8 @@ class MetadataCap : public virtual IMetadataCap {
 
 class ConnectedCap : public virtual IConnectedCap {
 	public:
-		virtual int getNumConnections() const {
-			return connections;
+		virtual int isConnected() const {
+			return connections > 0;
 		}
 		virtual void connect() {
 			connections++;

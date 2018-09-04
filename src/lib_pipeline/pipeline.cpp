@@ -203,7 +203,7 @@ void Pipeline::exitSync() {
 void Pipeline::computeTopology() {
 	auto hasAtLeastOneInputConnected = [](PipelinedModule* m) {
 		for (int i = 0; i < m->getNumInputs(); ++i) {
-			if (m->getInput(i)->getNumConnections())
+			if (m->getInput(i)->isConnected())
 				return true;
 		}
 		return false;

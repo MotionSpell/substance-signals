@@ -29,7 +29,7 @@ class ModuleDynI : public Module {
 		int getNumInputs() const override {
 			if (inputs.size() == 0)
 				return 1;
-			else if (inputs[inputs.size() - 1]->getNumConnections() == 0)
+			else if (!inputs[inputs.size() - 1]->isConnected())
 				return (int)inputs.size();
 			else
 				return (int)inputs.size() + 1;

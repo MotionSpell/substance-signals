@@ -53,8 +53,8 @@ class PipelinedInput : public IInput, public MetadataCap {
 			}
 		}
 
-		int getNumConnections() const override {
-			return delegate->getNumConnections();
+		int isConnected() const override {
+			return delegate->isConnected();
 		}
 		void connect() override {
 			delegate->connect();

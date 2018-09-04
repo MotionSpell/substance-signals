@@ -39,7 +39,7 @@ struct IProcessor {
 
 struct IConnectedCap {
 	virtual ~IConnectedCap() {}
-	virtual int getNumConnections() const = 0;
+	virtual int isConnected() const = 0;
 	virtual void connect() = 0;
 	virtual void disconnect() = 0;
 };
