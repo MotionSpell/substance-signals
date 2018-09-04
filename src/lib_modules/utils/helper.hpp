@@ -32,25 +32,21 @@ class MetadataCap : public virtual IMetadataCap {
 		Metadata m_metadata;
 };
 
-class ConnectedCap : public virtual IConnectedCap {
-	public:
-		virtual int isConnected() const {
-			return connections > 0;
-		}
-		virtual void connect() {
-			connections++;
-		}
-		virtual void disconnect() {
-			connections--;
-		}
-
-	private:
-		int connections = 0;
-};
-
-class Input : public IInput, public ConnectedCap, public MetadataCap {
+class Input : public IInput, public MetadataCap {
 	public:
 		Input(IProcessor * const processor) : processor(processor) {}
+
+		virtual int isConnected() const override {
+			return connections > 0;
+		}
+
+		virtual void connect() override {
+			connections++;
+		}
+
+		virtual void disconnect() override {
+			connections--;
+		}
 
 		void push(Data data) override {
 			queue.push(data);
@@ -75,6 +71,7 @@ class Input : public IInput, public ConnectedCap, public MetadataCap {
 	private:
 		IProcessor * const processor;
 		Queue<Data> queue;
+		int connections = 0;
 };
 
 class InputCap : public virtual IInputCap {

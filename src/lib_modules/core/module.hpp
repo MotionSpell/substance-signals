@@ -37,15 +37,13 @@ struct IProcessor {
 	virtual void process() = 0;
 };
 
-struct IConnectedCap {
-	virtual ~IConnectedCap() {}
+struct IInput : public IProcessor, public virtual IMetadataCap {
+	virtual ~IInput() {}
+
 	virtual int isConnected() const = 0;
 	virtual void connect() = 0;
 	virtual void disconnect() = 0;
-};
 
-struct IInput : public IProcessor, public virtual IConnectedCap, public virtual IMetadataCap {
-	virtual ~IInput() {}
 	virtual void push(Data) = 0;
 
 	// TODO: remove this, should only be visible to the module implementations.
