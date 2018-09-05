@@ -13,6 +13,14 @@ if [ ! -d "$EXTRA" ] ; then
   exit 1
 fi
 
+SCOPE=""
+
+if [ "${1:-}" = "--scope" ] ; then
+  shift
+  SCOPE="${1:-}"
+  shift
+fi
+
 readonly PKGS="$@"
 if [ ! -z "$PKGS" ] ; then
 
@@ -29,15 +37,15 @@ if [ ! -z "$PKGS" ] ; then
     exit 1
   fi
 
-  echo -n 'CFLAGS+='
+  echo -n "${SCOPE}CFLAGS+="
   pkg-config --cflags "$PKGS"
 
-  echo -n 'LDFLAGS+='
+  echo -n "${SCOPE}LDFLAGS+="
   pkg-config --libs "$PKGS"
 fi
 
-echo "LDFLAGS+= -lpthread"
+echo "${SCOPE}LDFLAGS+= -lpthread"
 
 # For convenience: allows running binaries without specifying LD_LIBRARY_PATH
-echo "LDFLAGS+=-Wl,-rpath,$EXTRA/lib"
+echo "${SCOPE}LDFLAGS+=-Wl,-rpath,$EXTRA/lib"
 

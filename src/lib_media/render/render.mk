@@ -1,6 +1,6 @@
 $(BIN)/render-config.mk: $(SRC)/../scripts/configure
 	@mkdir -p $(BIN)
-	$(SRC)/../scripts/configure sdl2 | sed 's/^CFLAGS/RENDER_CFLAGS/g' | sed 's/^LDFLAGS/RENDER_LDFLAGS/g'> "$@"
+	$(SRC)/../scripts/configure --scope RENDER_ sdl2 > "$@"
 
 ifneq ($(MAKECMDGOALS),clean)
 include $(BIN)/render-config.mk
