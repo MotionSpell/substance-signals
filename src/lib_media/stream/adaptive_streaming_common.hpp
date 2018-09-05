@@ -36,18 +36,16 @@ struct Quality {
 	std::string prefix; //typically a subdir, ending with a folder separator '/'
 };
 
-struct IAdaptiveStreamingCommon {
-	virtual ~IAdaptiveStreamingCommon() {}
-	/*created each quality private data*/
-	virtual std::unique_ptr<Quality> createQuality() const = 0;
-	/*called each time segments are ready*/
-	virtual void generateManifest() = 0;
-	/*last manifest to be written: usually the VoD one*/
-	virtual void finalizeManifest() = 0;
-};
-
-class AdaptiveStreamingCommon : public IAdaptiveStreamingCommon, public ModuleDynI, public LogCap {
+class AdaptiveStreamingCommon : public ModuleDynI, public LogCap {
 	public:
+
+		/*created each quality private data*/
+		virtual std::unique_ptr<Quality> createQuality() const = 0;
+		/*called each time segments are ready*/
+		virtual void generateManifest() = 0;
+		/*last manifest to be written: usually the VoD one*/
+		virtual void finalizeManifest() = 0;
+
 		enum Type {
 			Static,
 			Live,
