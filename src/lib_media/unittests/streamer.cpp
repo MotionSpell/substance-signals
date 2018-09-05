@@ -637,7 +637,7 @@ unittest("[DISABLED] adaptive streaming combination coverage") {
 	std::vector<std::shared_ptr<IModule>> decode;
 	std::vector<std::shared_ptr<IModule>> encode;
 
-	std::vector<std::unique_ptr<IModule>> muxMP4File, muxMP4Mem, muxMP4MemFlushFrags;
+	std::vector<std::shared_ptr<IModule>> muxMP4File, muxMP4Mem, muxMP4MemFlushFrags;
 	auto muxTSSeg = create<Stream::LibavMuxHLSTS>(&NullHost, segmentDurationInMs, "", "muxTSSeg_", format("-hls_time %s -hls_playlist_type event", segmentDurationInMs / 1000));
 
 	auto hls_ts = create<Stream::Apple_HLS>(&NullHost, "", "hls_ts.m3u8", Stream::AdaptiveStreamingCommon::Live, segmentDurationInMs, 0, false, Stream::AdaptiveStreamingCommon::SegmentsNotOwned | Stream::AdaptiveStreamingCommon::PresignalNextSegment | Stream::AdaptiveStreamingCommon::ForceRealDurations);
@@ -680,9 +680,9 @@ unittest("[DISABLED] adaptive streaming combination coverage") {
 		if (!dirExists(prefix))
 			mkdir(prefix);
 
-		muxMP4File.push_back(create<Mux::GPACMuxMP4>(&NullHost, Mp4MuxConfig{format("%s/%s", prefix, prefix), segmentDurationInMs, FragmentedSegment, OneFragmentPerFrame}));
-		muxMP4Mem.push_back(create<Mux::GPACMuxMP4>(&NullHost, Mp4MuxConfig{"", segmentDurationInMs, FragmentedSegment, OneFragmentPerSegment}));
-		muxMP4MemFlushFrags.push_back(create<Mux::GPACMuxMP4>(&NullHost, Mp4MuxConfig{"", segmentDurationInMs, FragmentedSegment, OneFragmentPerFrame, FlushFragMemory}));
+		muxMP4File.push_back(loadModule("GPACMuxMP4", &NullHost, Mp4MuxConfig{format("%s/%s", prefix, prefix), segmentDurationInMs, FragmentedSegment, OneFragmentPerFrame}));
+		muxMP4Mem.push_back(loadModule("GPACMuxMP4", &NullHost, Mp4MuxConfig{"", segmentDurationInMs, FragmentedSegment, OneFragmentPerSegment}));
+		muxMP4MemFlushFrags.push_back(loadModule("GPACMuxMP4", &NullHost, Mp4MuxConfig{"", segmentDurationInMs, FragmentedSegment, OneFragmentPerFrame, FlushFragMemory}));
 
 		ConnectModules(encode.back().get(), 0, muxMP4File[i].get(), 0);
 		ConnectModules(encode.back().get(), 0, muxMP4Mem[i].get(), 0);
