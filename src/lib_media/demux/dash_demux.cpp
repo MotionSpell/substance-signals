@@ -15,7 +15,7 @@ using namespace In;
 using namespace Transform;
 
 struct OutStub : ModuleS {
-		OutStub(OutputDefault *output) : output(output) {
+		OutStub(IModuleHost*, OutputDefault *output) : output(output) {
 			addInput(this);
 		}
 		void process(Data data) override {
@@ -29,7 +29,7 @@ struct OutStub : ModuleS {
 DashDemuxer::DashDemuxer(IModuleHost* host, std::string url)
 	: m_host(host) {
 	pipeline = make_unique<Pipelines::Pipeline>();
-	auto downloader = pipeline->addModule<MPEG_DASH_Input>(&NullHost, createHttpSource(), url);
+	auto downloader = pipeline->addModuleWithHost<MPEG_DASH_Input>(createHttpSource(), url);
 
 	for (int i = 0; i < (int)downloader->getNumOutputs(); ++i)
 		addStream(downloader, i);
@@ -41,14 +41,14 @@ void DashDemuxer::addStream(Pipelines::IPipelinedModule* downloadOutput, int out
 	output->setMetadata(downloadOutput->getOutputMetadata(outputPort));
 
 	// add MP4 demuxer
-	auto decap = pipeline->addModule<GPACDemuxMP4Full>(m_host);
+	auto decap = pipeline->addModuleWithHost<GPACDemuxMP4Full>();
 	pipeline->connect(GetOutputPin(downloadOutput, outputPort), decap);
 
 	// add restamper (so the timestamps start at zero)
-	auto restamp = pipeline->addModule<Restamp>(&NullHost, Transform::Restamp::Reset);
+	auto restamp = pipeline->addModuleWithHost<Restamp>(Transform::Restamp::Reset);
 	pipeline->connect(decap, restamp);
 
-	auto stub = pipeline->addModule<OutStub>(output);
+	auto stub = pipeline->addModuleWithHost<OutStub>(output);
 	pipeline->connect(restamp, stub);
 }
 
