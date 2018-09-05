@@ -1,6 +1,7 @@
 #include "lib_utils/tools.hpp"
 #include "lib_utils/time.hpp" // getUTC
-#include "lib_modules/core/log.hpp"
+#include "lib_utils/log_sink.hpp"
+#include "lib_utils/format.hpp"
 #include "../common/metadata.hpp" // MetadataPkt
 #include "mpeg_dash_input.hpp"
 #include <vector>
@@ -57,7 +58,6 @@ static shared_ptr<IMetadata> createMetadata(AdaptationSet const& set) {
 	} else if(set.mimeType == "video/mp4" || set.contentType == "video") {
 		return make_shared<MetadataPkt>(VIDEO_PKT);
 	} else {
-		Log::msg(Warning, "Ignoring adaptation set with unrecognized mime type: '%s'", set.mimeType);
 		return nullptr;
 	}
 }
@@ -77,8 +77,10 @@ MPEG_DASH_Input::MPEG_DASH_Input(IModuleHost* host, std::unique_ptr<IFilePuller>
 	//DECLARE OUTPUT PORTS
 	for(auto& set : mpd->sets) {
 		auto meta = createMetadata(set);
-		if(!meta)
+		if(!meta) {
+			m_host->log(Warning, format("Ignoring adaptation set with unrecognized mime type: '%s'", set.mimeType).c_str());
 			continue;
+		}
 
 		auto stream = make_unique<Stream>();
 		stream->out = addOutput<OutputDefault>();

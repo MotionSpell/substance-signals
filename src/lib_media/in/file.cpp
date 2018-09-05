@@ -1,6 +1,6 @@
 #include "lib_utils/tools.hpp"
 #include "lib_utils/format.hpp"
-#include "lib_modules/core/log.hpp"
+#include "lib_utils/log_sink.hpp" // Info
 #include "file.hpp"
 
 #define IOSIZE (64*1024)

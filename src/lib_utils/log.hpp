@@ -1,14 +1,7 @@
 #pragma once
 
 #include "format.hpp"
-
-enum Level {
-	Quiet = -1,
-	Error = 0,
-	Warning,
-	Info,
-	Debug
-};
+#include "log_sink.hpp"
 
 class Log {
 	public:

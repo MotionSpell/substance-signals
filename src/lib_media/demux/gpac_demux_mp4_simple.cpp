@@ -1,7 +1,7 @@
 #include "gpac_demux_mp4_simple.hpp"
 #include "lib_utils/tools.hpp"
 #include "../common/gpacpp.hpp"
-#include "lib_modules/core/log.hpp" // Debug
+#include "lib_utils/log_sink.hpp"
 
 namespace Modules {
 namespace Demux {

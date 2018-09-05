@@ -1,5 +1,6 @@
 #include "http.hpp"
-#include "lib_modules/core/log.hpp"
+#include "lib_utils/log_sink.hpp" // Warning
+#include "lib_utils/format.hpp"
 
 extern "C" {
 #include <curl/curl.h>

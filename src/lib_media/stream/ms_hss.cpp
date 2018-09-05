@@ -1,5 +1,6 @@
 #include "ms_hss.hpp"
-#include "lib_modules/core/log.hpp" // Warning
+#include "lib_utils/log_sink.hpp" // Warning
+#include "lib_utils/format.hpp"
 
 extern "C" {
 #include <gpac/bitstream.h>

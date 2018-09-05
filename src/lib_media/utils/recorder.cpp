@@ -1,5 +1,6 @@
 #include "lib_utils/tools.hpp"
-#include "lib_modules/core/log.hpp"
+#include "lib_utils/log_sink.hpp" // Warning
+#include "lib_utils/format.hpp"
 #include "recorder.hpp"
 
 namespace Modules {

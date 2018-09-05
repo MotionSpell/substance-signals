@@ -1,6 +1,7 @@
 #pragma once
 
 #include "telx_tables.hpp"
+#include "lib_utils/log.hpp"
 
 namespace {
 

@@ -1,6 +1,7 @@
 #include "restamp.hpp"
 #include "lib_utils/system_clock.hpp"
-#include "lib_modules/core/log.hpp"
+#include "lib_utils/log_sink.hpp" // Info
+#include "lib_utils/format.hpp"
 
 namespace Modules {
 namespace Transform {
