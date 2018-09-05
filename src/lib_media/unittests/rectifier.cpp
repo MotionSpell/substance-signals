@@ -64,10 +64,6 @@ class ClockMock : public IClock, public IScheduler {
 			std::sort(m_tasks.begin(), m_tasks.end());
 		}
 
-		double getSpeed() const override {
-			return 0.0;
-		}
-
 		void sleep(Fraction) const override {
 			assert(0);
 		}

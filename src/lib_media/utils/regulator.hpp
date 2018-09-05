@@ -14,14 +14,12 @@ class Regulator : public ModuleS {
 
 		void process(Data data) override {
 			auto const dataTime = data->getMediaTime();
-			if (clock->getSpeed() > 0.0) {
-				auto const delayInMs = clockToTimescale(dataTime - fractionToClock(clock->now()), 1000);
-				if (delayInMs > 0) {
-					m_host->log(delayInMs < REGULATION_TOLERANCE_IN_MS ? Debug : Warning, format("received data for time %ss (will sleep for %s ms)", dataTime / (double)IClock::Rate, delayInMs).c_str());
-					clock->sleep(Fraction(delayInMs, 1000));
-				} else if (delayInMs + REGULATION_TOLERANCE_IN_MS < 0) {
-					m_host->log(dataTime > 0 ? Warning : Debug, format("received data for time %ss is late from %sms", dataTime / (double)IClock::Rate, -delayInMs).c_str());
-				}
+			auto const delayInMs = clockToTimescale(dataTime - fractionToClock(clock->now()), 1000);
+			if (delayInMs > 0) {
+				m_host->log(delayInMs < REGULATION_TOLERANCE_IN_MS ? Debug : Warning, format("received data for time %ss (will sleep for %s ms)", dataTime / (double)IClock::Rate, delayInMs).c_str());
+				clock->sleep(Fraction(delayInMs, 1000));
+			} else if (delayInMs + REGULATION_TOLERANCE_IN_MS < 0) {
+				m_host->log(dataTime > 0 ? Warning : Debug, format("received data for time %ss is late from %sms", dataTime / (double)IClock::Rate, -delayInMs).c_str());
 			}
 			getOutput(0)->emit(data);
 		}

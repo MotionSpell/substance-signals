@@ -7,11 +7,6 @@ struct IClock {
 	static auto const Rate = 180000ULL;
 	virtual Fraction now() const = 0;
 	virtual void sleep(Fraction time) const = 0;
-
-	// FIXME: what are the units of this?
-	// how is the caller supposed to do anything with this value,
-	// without needing another time reference? (i.e another IClock)
-	virtual double getSpeed() const = 0;
 };
 
 template<typename T>

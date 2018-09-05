@@ -7,7 +7,6 @@ class SystemClock : public IClock {
 	public:
 		SystemClock(double speed);
 		Fraction now() const override;
-		double getSpeed() const override;
 		void sleep(Fraction time) const override;
 
 	private:
