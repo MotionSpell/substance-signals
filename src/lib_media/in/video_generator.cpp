@@ -9,6 +9,7 @@ namespace In {
 
 VideoGenerator::VideoGenerator(IModuleHost* host, int maxFrames_)
 	:  m_host(host), maxFrames(maxFrames_) {
+	(void)m_host;
 	output = addOutput<OutputPicture>();
 	output->setMetadata(make_shared<MetadataRawVideo>());
 }

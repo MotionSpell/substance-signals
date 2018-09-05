@@ -2,8 +2,8 @@
 
 namespace Modules {
 
-class IModule;
-class IModuleHost;
+struct IModule;
+struct IModuleHost;
 
 namespace Factory {
 using CreationFunc = IModule* (IModuleHost*, va_list);

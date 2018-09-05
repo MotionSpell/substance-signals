@@ -125,7 +125,7 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 			p.bufferSize = bufferSize;
 			auto m = loadModule("Encoder", &NullHost, &p);
 			dstFmt.format = p.pixelFormat;
-			return std::move(m);
+			return m;
 		} else if (codecType == AUDIO_PKT) {
 			auto const demuxFmt = toPcmFormat(safe_cast<const MetadataPktLibavAudio>(metadataDemux));
 			EncoderConfig p { EncoderConfig::Audio };
