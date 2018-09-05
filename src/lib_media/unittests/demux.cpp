@@ -74,7 +74,6 @@ unittest("LibavDemux: rollover") {
 }
 
 unittest("empty param test: Demux") {
-	ScopedLogLevel lev(Quiet);
 	ASSERT_THROWN(create<Demux::GPACDemuxMP4Simple>(&NullHost, ""));
 }
 

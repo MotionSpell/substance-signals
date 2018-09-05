@@ -65,7 +65,6 @@ unittest("remux test: libav mp4 mux") {
 
 unittest("mux GPAC mp4 failure tests") {
 	const uint64_t segmentDurationInMs = 2000;
-	ScopedLogLevel lev(Quiet);
 
 	ASSERT_THROWN(loadModule("GPACMuxMP4", &NullHost, Mp4MuxConfig{"out/output_video_gpac_00", segmentDurationInMs, NoSegment, NoFragment}));
 	ASSERT_THROWN(loadModule("GPACMuxMP4", &NullHost, Mp4MuxConfig{"out/output_video_gpac_02", 0, NoSegment, OneFragmentPerSegment}));
