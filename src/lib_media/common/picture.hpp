@@ -140,24 +140,5 @@ class PictureYUV420P : public DataPicture {
 		uint8_t* m_planes[3];
 };
 
-enum VideoCodecType {
-	Software,
-	Hardware_qsv,
-	Hardware_nvenc
-};
-
 }
 
-namespace { //FIXME: should be put in .cpp when lib_media/common is made a separate lib
-
-inline Modules::VideoCodecType encoderType(const std::string &opt_encoder_type) {
-	if (opt_encoder_type == "software") {
-		return Modules::Software;
-	} else if (opt_encoder_type == "quicksync") {
-		return Modules::Hardware_qsv;
-	} else if (opt_encoder_type == "nvenc") {
-		return Modules::Hardware_nvenc;
-	} else
-		throw std::runtime_error("Unknown encoder type. Aborting.");
-}
-}

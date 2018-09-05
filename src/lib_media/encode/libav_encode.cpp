@@ -42,7 +42,7 @@ struct LibavEncode : ModuleS {
 				av_dict_free(&customDict);
 				codecOptions += " -forced-idr 1";
 				switch (params.codecType) {
-				case Software:
+				case VideoCodecType::Software:
 					generalOptions += " -vcodec libx264";
 					if (params.isLowLatency) {
 						codecOptions += " -preset ultrafast -tune zerolatency";
@@ -50,10 +50,10 @@ struct LibavEncode : ModuleS {
 						codecOptions += " -preset veryfast";
 					}
 					break;
-				case Hardware_qsv:
+				case VideoCodecType::Hardware_qsv:
 					generalOptions += " -vcodec h264_qsv";
 					break;
-				case Hardware_nvenc:
+				case VideoCodecType::Hardware_nvenc:
 					generalOptions += " -vcodec h264_nvenc";
 					break;
 				default:

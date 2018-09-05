@@ -4,6 +4,12 @@
 #include "../common/picture.hpp"
 #include <string>
 
+enum class VideoCodecType {
+	Software,
+	Hardware_qsv,
+	Hardware_nvenc
+};
+
 struct EncoderConfig {
 	enum Type {
 		Video,
@@ -19,13 +25,15 @@ struct EncoderConfig {
 	Fraction GOPSize = Fraction(25, 1);
 	Fraction frameRate = Fraction(25, 1);
 	bool isLowLatency = false;
-	Modules::VideoCodecType codecType = Modules::Software;
-	Modules::PixelFormat pixelFormat = Modules::UNKNOWN_PF; //set by the encoder
+	VideoCodecType codecType = VideoCodecType::Software;
 
 	//audio only
 	int sampleRate = 44100;
 	int numChannels = 2;
 
 	std::string avcodecCustom = "";
+
+	// OUTPUT: set by the encoder
+	Modules::PixelFormat pixelFormat = Modules::UNKNOWN_PF;
 };
 
