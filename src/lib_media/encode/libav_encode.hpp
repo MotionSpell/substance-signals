@@ -1,7 +1,8 @@
 #pragma once
 
+#include "lib_utils/resolution.hpp"
 #include "../common/pcm.hpp"
-#include "../common/picture.hpp"
+#include "../common/pixel_format.hpp"
 #include <string>
 
 enum class VideoCodecType {
