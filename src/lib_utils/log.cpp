@@ -149,6 +149,3 @@ void Log::sendToSyslog(int level, const char* msg) {
 #endif
 }
 
-bool Log::getSysLog() {
-	return globalSysLog;
-}

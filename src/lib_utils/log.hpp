@@ -27,7 +27,6 @@ class Log {
 		static bool getColor();
 
 		static void setSysLog(bool isSysLog);
-		static bool getSysLog();
 
 	private:
 		Log() {}
