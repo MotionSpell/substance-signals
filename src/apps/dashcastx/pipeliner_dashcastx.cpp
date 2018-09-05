@@ -5,6 +5,7 @@
 
 // modules
 #include "lib_media/common/metadata.hpp"
+#include "lib_media/common/pcm.hpp"
 #include "lib_media/common/libav.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/encode/libav_encode.hpp"

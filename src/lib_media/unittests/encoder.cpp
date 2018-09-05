@@ -2,6 +2,7 @@
 #include "lib_modules/modules.hpp"
 #include "lib_modules/utils/loader.hpp"
 #include "lib_media/common/libav.hpp"
+#include "lib_media/common/pcm.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/encode/libav_encode.hpp"
 #include "lib_media/mux/mux_mp4_config.hpp"

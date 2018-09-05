@@ -2,6 +2,7 @@
 #include "lib_modules/modules.hpp"
 #include "lib_modules/utils/loader.hpp"
 #include "lib_media/common/libav.hpp"
+#include "lib_media/common/pcm.hpp"
 #include "lib_media/encode/libav_encode.hpp"
 #include "lib_media/in/file.hpp"
 #include "lib_media/out/null.hpp"
@@ -200,7 +201,6 @@ unittest("decoder: audio mp3 manual frame to AAC") {
 
 	auto frame = getTestMp3Frame();
 
-	ScopedLogLevel lev(Quiet);
 	decode->getInput(0)->push(frame);
 	ASSERT_THROWN(decode->process());
 }
