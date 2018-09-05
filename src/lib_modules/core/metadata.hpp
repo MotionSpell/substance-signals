@@ -13,7 +13,6 @@ enum StreamType {
 	SUBTITLE_PKT, //subtitles and captions
 	PLAYLIST,     //playlist and adaptive streaming manifests
 	SEGMENT,      //adaptive streaming init and media segments
-	SIZE_OF_ENUM_STREAM_TYPE
 };
 
 struct IMetadata {
