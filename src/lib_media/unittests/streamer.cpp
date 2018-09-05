@@ -640,13 +640,13 @@ unittest("[DISABLED] adaptive streaming combination coverage") {
 	auto muxTSSeg = create<Stream::LibavMuxHLSTS>(&NullHost, segmentDurationInMs, "", "muxTSSeg_", format("-hls_time %s -hls_playlist_type event", segmentDurationInMs / 1000));
 
 	auto hls_ts = create<Stream::Apple_HLS>(&NullHost, "", "hls_ts.m3u8", Stream::AdaptiveStreamingCommon::Live, segmentDurationInMs, 0, false, Stream::AdaptiveStreamingCommon::SegmentsNotOwned | Stream::AdaptiveStreamingCommon::PresignalNextSegment | Stream::AdaptiveStreamingCommon::ForceRealDurations);
-	std::vector<std::unique_ptr<IModule>> hls_mp4, dash, dashTimeline;
+	std::vector<std::shared_ptr<IModule>> hls_mp4, dash, dashTimeline;
 	for (auto i = 0; i < 3; ++i) {
 		hls_mp4.push_back(create<Stream::Apple_HLS>(&NullHost, "", "hls_mp4.m3u8", Stream::AdaptiveStreamingCommon::Live, segmentDurationInMs, 0, true, Stream::AdaptiveStreamingCommon::SegmentsNotOwned | Stream::AdaptiveStreamingCommon::PresignalNextSegment | Stream::AdaptiveStreamingCommon::ForceRealDurations));
 		auto dashCfg = Modules::DasherConfig { "", "dash.mpd", Stream::AdaptiveStreamingCommon::Live, segmentDurationInMs, 0, segmentDurationInMs, 0, std::vector<std::string>(), "id", 0, Stream::AdaptiveStreamingCommon::SegmentsNotOwned | Stream::AdaptiveStreamingCommon::PresignalNextSegment | Stream::AdaptiveStreamingCommon::ForceRealDurations };
-		dash.push_back(create<Stream::MPEG_DASH>(&NullHost, &dashCfg));
+		dash.push_back(loadModule("MPEG_DASH", &NullHost, &dashCfg));
 		auto dashTimelineCfg = Modules::DasherConfig {"", "dash.mpd", Stream::AdaptiveStreamingCommon::Live, 0, 0, segmentDurationInMs, 0, std::vector<std::string>(), "id", 0};
-		dashTimeline.push_back(create<Stream::MPEG_DASH>(&NullHost, &dashTimelineCfg));
+		dashTimeline.push_back(loadModule("MPEG_DASH", &NullHost, &dashTimelineCfg));
 	}
 
 	//FIXME: transcoding is only needed because "data/beepbop.mp4" exposes a VFR (timescale 25000/1) that prevents correct latency computation in the MP4 mux

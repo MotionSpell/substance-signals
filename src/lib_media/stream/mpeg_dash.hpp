@@ -20,40 +20,4 @@ struct DasherConfig {
 	Stream::AdaptiveStreamingCommon::AdaptiveStreamingCommonFlags flags = Stream::AdaptiveStreamingCommon::None;
 };
 
-namespace Stream {
-
-class MPEG_DASH : public AdaptiveStreamingCommon, public gpacpp::Init {
-	public:
-		MPEG_DASH(IModuleHost* host, DasherConfig* config);
-		virtual ~MPEG_DASH();
-
-	private:
-		std::unique_ptr<Quality> createQuality() const override;
-		void generateManifest() override;
-		void finalizeManifest() override;
-
-		struct DASHQuality : public Quality {
-			GF_MPD_Representation *rep = nullptr;
-			struct SegmentToDelete {
-				SegmentToDelete(std::shared_ptr<const MetadataFile> file) : file(file) {}
-				std::shared_ptr<const MetadataFile> file;
-				int retry = 5;
-			};
-			std::vector<SegmentToDelete> timeshiftSegments;
-		};
-
-		void ensureManifest();
-		void writeManifest();
-		std::string getPrefixedSegmentName(DASHQuality const * const quality, size_t index, u64 segmentNum) const;
-
-		IModuleHost* const m_host;
-		std::unique_ptr<gpacpp::MPD> mpd;
-		const std::string mpdFn;
-		const std::vector<std::string> baseURLs;
-		const uint64_t minUpdatePeriodInMs, timeShiftBufferDepthInMs;
-		const int64_t initialOffsetInMs;
-		const bool useSegmentTimeline = false;
-};
-
-}
 }
