@@ -78,7 +78,9 @@ unittest("transcoder: video simple (gpac mux MP4)") {
 	auto decode = loadModule("Decoder", &NullHost, VIDEO_PKT);
 	EncoderConfig encCfg { EncoderConfig::Video };
 	auto encode = loadModule("Encoder", &NullHost, &encCfg);
-	auto mux = create<Mux::GPACMuxMP4>(&NullHost, Mp4MuxConfig{"out/output_video_gpac"});
+
+	auto muxCfg = Mp4MuxConfig{"out/output_video_gpac"};
+	auto mux = loadModule("GPACMuxMP4", &NullHost, &muxCfg);
 
 	ConnectOutputToInput(demux->getOutput(videoIndex), decode->getInput(0));
 	ConnectOutputToInput(decode->getOutput(0), encode->getInput(0));
@@ -177,7 +179,8 @@ unittest("transcoder: jpg to h264/mp4 (gpac)") {
 
 	EncoderConfig cfg { EncoderConfig::Video };
 	auto encoder = loadModule("Encoder", &NullHost, &cfg);
-	auto mux = create<Mux::GPACMuxMP4>(&NullHost, Mp4MuxConfig{"out/test"});
+	auto muxCfg = Mp4MuxConfig{"out/test"};
+	auto mux = loadModule("GPACMuxMP4", &NullHost, &muxCfg);
 
 	ConnectOutputToInput(reader->getOutput(0), decode->getInput(0));
 	ConnectOutputToInput(decode->getOutput(0), converter->getInput(0));
