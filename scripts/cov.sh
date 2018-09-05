@@ -7,7 +7,10 @@ rm -rf bin-cov
 readonly scriptDir=$(dirname $(readlink -f $0))
 
 # Build instrumented version
-export BIN=bin-cov
+readonly BIN=bin-cov
+trap "rm -rf $BIN" EXIT # free disk space
+
+export BIN
 export CFLAGS=--coverage
 export LDFLAGS=--coverage
 make -j`nproc`
@@ -19,8 +22,5 @@ find $BIN -path "*/unittests/*.gcda" -delete
 lcov --capture -d $BIN -o $BIN/profile-full.txt
 lcov --remove $BIN/profile-full.txt '/usr/include/*' '/usr/lib/*' -o $BIN/profile.txt
 genhtml -o cov-html $BIN/profile.txt
-
-# free disk space
-rm -rf $BIN
 
 echo "Coverage report is available in cov-html/index.html"
