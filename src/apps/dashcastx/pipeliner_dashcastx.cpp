@@ -120,7 +120,8 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 	demuxCfg.loop = cfg.loop;
 	auto demux = pipeline->add("LibavDemux", &demuxCfg);
 	auto const type = (cfg.isLive || cfg.ultraLowLatency) ? Stream::AdaptiveStreamingCommon::Live : Stream::AdaptiveStreamingCommon::Static;
-	auto dasher = pipeline->addModuleWithHost<Stream::MPEG_DASH>(DASH_SUBDIR, format("%s.mpd", g_appName), type, cfg.segmentDurationInMs, cfg.segmentDurationInMs * cfg.timeshiftInSegNum);
+	auto dasherCfg = Modules::DasherConfig { DASH_SUBDIR, format("%s.mpd", g_appName), type, (uint64_t)cfg.segmentDurationInMs, (uint64_t)cfg.segmentDurationInMs * cfg.timeshiftInSegNum};
+	auto dasher = pipeline->addModuleWithHost<Stream::MPEG_DASH>(&dasherCfg);
 	ensureDir(DASH_SUBDIR);
 
 	bool isVertical = false;

@@ -5,11 +5,26 @@
 #include <vector>
 
 namespace Modules {
+
+struct DasherConfig {
+	std::string mpdDir;
+	std::string mpdName;
+	Stream::AdaptiveStreamingCommon::Type type;
+	uint64_t segDurationInMs;
+	uint64_t timeShiftBufferDepthInMs = 0;
+	uint64_t minUpdatePeriodInMs = 0;
+	uint32_t minBufferTimeInMs = 0;
+	std::vector<std::string> baseURLs {};
+	std::string id = "id";
+	int64_t initialOffsetInMs = 0;
+	Stream::AdaptiveStreamingCommon::AdaptiveStreamingCommonFlags flags = Stream::AdaptiveStreamingCommon::None;
+};
+
 namespace Stream {
 
 class MPEG_DASH : public AdaptiveStreamingCommon, public gpacpp::Init {
 	public:
-		MPEG_DASH(IModuleHost* host, const std::string &mpdDir, const std::string &mpdName, Type type, uint64_t segDurationInMs, uint64_t timeShiftBufferDepthInMs = 0, uint64_t minUpdatePeriodInMs = 0, uint32_t minBufferTimeInMs = 0, const std::vector<std::string> &baseURLs = {}, const std::string &id = "id", int64_t initialOffsetInMs = 0, AdaptiveStreamingCommonFlags flags = None);
+		MPEG_DASH(IModuleHost* host, DasherConfig* config);
 		virtual ~MPEG_DASH();
 
 	private:

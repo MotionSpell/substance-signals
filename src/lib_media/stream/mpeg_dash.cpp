@@ -37,14 +37,12 @@ std::unique_ptr<gpacpp::MPD> createMPD(Stream::AdaptiveStreamingCommon::Type typ
 
 namespace Stream {
 
-MPEG_DASH::MPEG_DASH(IModuleHost* host, const std::string &mpdDir, const std::string &mpdFilename, Type type, uint64_t segDurationInMs,
-    uint64_t timeShiftBufferDepthInMs, uint64_t minUpdatePeriodInMs, uint32_t minBufferTimeInMs,
-    const std::vector<std::string> &baseURLs, const std::string &id, int64_t initialOffsetInMs, AdaptiveStreamingCommonFlags flags)
-	: AdaptiveStreamingCommon(type, segDurationInMs, mpdDir, flags),
+MPEG_DASH::MPEG_DASH(IModuleHost* host, DasherConfig* cfg)
+	: AdaptiveStreamingCommon(cfg->type, cfg->segDurationInMs, cfg->mpdDir, cfg->flags),
 	  m_host(host),
-	  mpd(createMPD(type, minBufferTimeInMs, id)), mpdFn(mpdFilename), baseURLs(baseURLs),
-	  minUpdatePeriodInMs(minUpdatePeriodInMs ? minUpdatePeriodInMs : (segDurationInMs ? segDurationInMs : 1000)),
-	  timeShiftBufferDepthInMs(timeShiftBufferDepthInMs), initialOffsetInMs(initialOffsetInMs), useSegmentTimeline(segDurationInMs == 0) {
+	  mpd(createMPD(cfg->type, cfg->minBufferTimeInMs, cfg->id)), mpdFn(cfg->mpdName), baseURLs(cfg->baseURLs),
+	  minUpdatePeriodInMs(minUpdatePeriodInMs ? minUpdatePeriodInMs : (segDurationInMs ? cfg->segDurationInMs : 1000)),
+	  timeShiftBufferDepthInMs(cfg->timeShiftBufferDepthInMs), initialOffsetInMs(cfg->initialOffsetInMs), useSegmentTimeline(cfg->segDurationInMs == 0) {
 	if (useSegmentTimeline && ((flags & PresignalNextSegment) || (flags & SegmentsNotOwned)))
 		throw error("Next segment pre-signalling or segments not owned cannot be used with segment timeline.");
 }
