@@ -1,4 +1,5 @@
 #include "mpeg_dash.hpp"
+#include "../common/gpacpp.hpp"
 #include "lib_modules/utils/factory.hpp"
 #include "lib_utils/time.hpp"
 #include "../common/libav.hpp"
