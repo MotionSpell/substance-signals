@@ -146,7 +146,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 		auto source = GetOutputPin(demux, streamIndex);
 
 		if(cfg.isLive) {
-			auto regulator = pipeline->addModuleWithHost<Regulator>(g_SystemClock);
+			auto regulator = pipeline->addModule<Regulator>(g_SystemClock);
 			pipeline->connect(source, GetInputPin(regulator));
 
 			source = GetOutputPin(regulator);

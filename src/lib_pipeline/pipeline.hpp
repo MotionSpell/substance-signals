@@ -61,16 +61,6 @@ class Pipeline : public IPipelineNotifier {
 
 		template <typename InstanceType, int NumBlocks = 0, typename ...Args>
 		IPipelinedModule * addModule(Args&&... args) {
-			return addModuleInternal(
-			        make_unique<Modules::NullHostType>(),
-			        Modules::createModule<InstanceType>(
-			            getNumBlocks(NumBlocks),
-			            std::forward<Args>(args)...)
-			    );
-		}
-
-		template <typename InstanceType, int NumBlocks = 0, typename ...Args>
-		IPipelinedModule * addModuleWithHost(Args&&... args) {
 			auto host = make_unique<ModuleHost>();
 			host->name = format("%s (#%s)", typeid(InstanceType).name(), (int)modules.size());
 			auto pHost = host.get();

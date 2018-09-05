@@ -14,9 +14,9 @@ void declarePipeline(Pipeline &pipeline, const mp42tsXOptions &opt) {
 		if (isHLS) {
 			const bool isLive = false; //TODO
 			const uint64_t segmentDurationInMs = 10000; //TODO
-			return pipeline.addModuleWithHost<Stream::Apple_HLS>("", "mp42tsx.m3u8", isLive ? Modules::Stream::Apple_HLS::Live : Modules::Stream::Apple_HLS::Static, segmentDurationInMs);
+			return pipeline.addModule<Stream::Apple_HLS>("", "mp42tsx.m3u8", isLive ? Modules::Stream::Apple_HLS::Live : Modules::Stream::Apple_HLS::Static, segmentDurationInMs);
 		} else {
-			return pipeline.addModuleWithHost<Out::File>(opt.output);
+			return pipeline.addModule<Out::File>(opt.output);
 		}
 	};
 
@@ -25,7 +25,7 @@ void declarePipeline(Pipeline &pipeline, const mp42tsXOptions &opt) {
 	DemuxConfig cfg;
 	cfg.url = opt.url;
 	auto demux = pipeline.add("LibavDemux", &cfg);
-	auto m2tsmux = pipeline.addModuleWithHost<Mux::GPACMuxMPEG2TS>(GF_FALSE, 0);
+	auto m2tsmux = pipeline.addModule<Mux::GPACMuxMPEG2TS>(GF_FALSE, 0);
 	auto sink = createSink(isHLS);
 	for (int i = 0; i < demux->getNumOutputs(); ++i) {
 		if (demux->getOutputMetadata(i)->isVideo()) { //FIXME

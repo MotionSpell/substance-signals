@@ -31,7 +31,7 @@ unittest("pipeline: destroy while running") {
 
 unittest("pipeline: intercept exception") {
 	struct ExceptionModule : ModuleS {
-		ExceptionModule() {
+		ExceptionModule(Modules::IModuleHost*) {
 			addInput(this);
 		}
 		void process(Data) {

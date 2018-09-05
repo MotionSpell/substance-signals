@@ -10,7 +10,7 @@ using namespace Pipelines;
 namespace {
 
 struct Source : Modules::ActiveModule {
-	Source(bool &sent) : sent(sent) {
+	Source(IModuleHost*, bool &sent) : sent(sent) {
 		out = addOutput<Modules::OutputDefault>();
 	}
 	bool work() {
@@ -21,7 +21,7 @@ struct Source : Modules::ActiveModule {
 	Modules::OutputDefault* out;
 };
 struct Receiver : Module {
-	Receiver(bool &sent) : sent(sent) {
+	Receiver(IModuleHost*, bool &sent) : sent(sent) {
 		addInput(this);
 	}
 	void process() {
