@@ -11,7 +11,7 @@
 #include "lib_media/stream/ms_hss.hpp"
 #include "modules_common.hpp"
 #include "lib_utils/sysclock.hpp"
-#include "../common/gpacpp.hpp" // gf_mkdir
+#include "lib_utils/os.hpp"
 
 using namespace Tests;
 using namespace Modules;
@@ -677,8 +677,8 @@ unittest("[DISABLED] adaptive streaming combination coverage") {
 
 		ConnectModules(demux.get(), i, decode.back().get(), 0);
 		ConnectModules(decode.back().get(), 0, encode.back().get(), 0);
-		if ((gf_dir_exists(prefix.c_str()) == GF_FALSE) && gf_mkdir(prefix.c_str()))
-			throw std::runtime_error(format("couldn't create subdir \"%s\": please check you have sufficient rights", prefix));
+		if (!dirExists(prefix))
+			mkdir(prefix);
 
 		muxMP4File.push_back(create<Mux::GPACMuxMP4>(&NullHost, Mp4MuxConfig{format("%s/%s", prefix, prefix), segmentDurationInMs, FragmentedSegment, OneFragmentPerFrame}));
 		muxMP4Mem.push_back(create<Mux::GPACMuxMP4>(&NullHost, Mp4MuxConfig{"", segmentDurationInMs, FragmentedSegment, OneFragmentPerSegment}));
