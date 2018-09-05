@@ -264,7 +264,7 @@ unittest("audio gap filler") {
 
 	size_t idx = 0;
 	while (auto dataRec = recorder->pop()) {
-		Log::msg(Debug, " %s - %s", dataRec->getMediaTime(), timescaleToClock(out[idx] * numSamples, format.sampleRate));
+		g_Log->log(Debug, ::format(" %s - %s", dataRec->getMediaTime(), timescaleToClock(out[idx] * numSamples, format.sampleRate)).c_str());
 		ASSERT(std::abs(dataRec->getMediaTime() - timescaleToClock(out[idx] * numSamples, format.sampleRate)) < 6);
 		idx++;
 	}

@@ -1,5 +1,6 @@
 #include "allocator.hpp"
 #include "lib_utils/log.hpp"
+#include "lib_utils/format.hpp"
 
 #include <stdexcept>
 
@@ -14,7 +15,7 @@ PacketAllocator::PacketAllocator(size_t minBlocks, size_t maxBlocks) :
 	if (minBlocks == 0)
 		throw std::runtime_error("Cannot create an allocator with 0 block.");
 	if (maxBlocks < minBlocks) {
-		Log::msg(Warning, "Max block number %s is smaller than min block number %s. Aligning values.", maxBlocks, minBlocks);
+		g_Log->log(Warning, format("Max block number %s is smaller than min block number %s. Aligning values.", maxBlocks, minBlocks).c_str());
 		maxBlocks = minBlocks;
 	}
 	for (size_t i=0; i<minBlocks; ++i) {

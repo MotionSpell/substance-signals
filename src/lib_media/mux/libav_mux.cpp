@@ -16,10 +16,10 @@ namespace Modules {
 namespace Mux {
 
 void LibavMux::formatsList() {
-	Log::msg(Warning, "Output formats list:");
+	g_Log->log(Warning, "Output formats list:");
 	AVOutputFormat *fmt = nullptr;
 	while ((fmt = av_oformat_next(fmt))) {
-		Log::msg(Warning, format("fmt->name=%s, fmt->mime_type=%s, fmt->extensions=%s", fmt->name ? fmt->name : "", fmt->mime_type ? fmt->mime_type : "", fmt->extensions ? fmt->extensions : "").c_str());
+		g_Log->log(Warning, format("fmt->name=%s, fmt->mime_type=%s, fmt->extensions=%s", fmt->name ? fmt->name : "", fmt->mime_type ? fmt->mime_type : "", fmt->extensions ? fmt->extensions : "").c_str());
 	}
 }
 

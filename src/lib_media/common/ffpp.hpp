@@ -47,7 +47,7 @@ class Dict {
 		Dict(const std::string &moduleName, const std::string &options)
 			: avDict(nullptr), options(options), moduleName(moduleName) {
 			if (av_dict_parse_string(&avDict, options.c_str(), " ", " ", 0) != 0) {
-				Log::msg(Warning, "[%s] could not parse option list \"%s\".", moduleName, options);
+				g_Log->log(Warning, format("[%s] could not parse option list \"%s\".", moduleName, options).c_str());
 			}
 
 			AVDictionaryEntry *avde = nullptr;
@@ -57,7 +57,7 @@ class Dict {
 						avde->key[i-1] = avde->key[i];
 					}
 				}
-				Log::msg(Debug, "[%s] detected option \"%s\", value \"%s\".", moduleName, avde->key, avde->value);
+				g_Log->log(Debug, format("[%s] detected option \"%s\", value \"%s\".", moduleName, avde->key, avde->value).c_str());
 			}
 
 			if (av_dict_copy(&avDictOri, avDict, 0) != 0)
@@ -82,7 +82,7 @@ class Dict {
 			AVDictionaryEntry *avde = nullptr;
 			while ( (avde = av_dict_get(avDictOri, "", avde, AV_DICT_IGNORE_SUFFIX)) ) {
 				if (get(avde->key)) {
-					Log::msg(Warning, "codec option \"%s\", value \"%s\" was ignored.", avde->key, avde->value);
+					g_Log->log(Warning, format("codec option \"%s\", value \"%s\" was ignored.", avde->key, avde->value).c_str());
 				}
 			}
 		}

@@ -65,23 +65,23 @@ class PcmFormat {
 
 		bool operator==(const PcmFormat& other) const {
 			if (other.sampleRate != sampleRate) {
-				Log::msg(Debug, "[Audio] Incompatible configuration: sample rate is %s, expect %s.", other.sampleRate, sampleRate);
+				g_Log->log(Debug, format("[Audio] Incompatible configuration: sample rate is %s, expect %s.", other.sampleRate, sampleRate).c_str());
 				return false;
 			}
 			if (other.numChannels != numChannels) {
-				Log::msg(Debug, "[Audio] Incompatible configuration: channel number is %s, expect %s.", other.numChannels, numChannels);
+				g_Log->log(Debug, format("[Audio] Incompatible configuration: channel number is %s, expect %s.", other.numChannels, numChannels).c_str());
 				return false;
 			}
 			if (other.layout != layout) {
-				Log::msg(Debug, "[Audio] Incompatible configuration: layout is %s, expect %s.", other.layout, layout);
+				g_Log->log(Debug, format("[Audio] Incompatible configuration: layout is %s, expect %s.", other.layout, layout).c_str());
 				return false;
 			}
 			if (other.sampleFormat != sampleFormat) {
-				Log::msg(Debug, "[Audio] Incompatible configuration: sample format is %s, expect %s.", other.sampleFormat, sampleFormat);
+				g_Log->log(Debug, format("[Audio] Incompatible configuration: sample format is %s, expect %s.", other.sampleFormat, sampleFormat).c_str());
 				return false;
 			}
 			if (other.numPlanes != numPlanes) {
-				Log::msg(Debug, "[Audio] Incompatible configuration: plane number is %s, expect %s.", other.numPlanes, numPlanes);
+				g_Log->log(Debug, format("[Audio] Incompatible configuration: plane number is %s, expect %s.", other.numPlanes, numPlanes).c_str());
 				return false;
 			}
 

@@ -21,15 +21,15 @@ bool startsWith(std::string s, std::string prefix) {
 IPipelinedModule* createRenderer(Pipeline& pipeline, Config cfg, int codecType) {
 	if(!cfg.noRenderer) {
 		if (codecType == VIDEO_RAW) {
-			Log::msg(Info, "Found video stream");
+			g_Log->log(Info, "Found video stream");
 			return pipeline.add("SDLVideo", nullptr);
 		} else if (codecType == AUDIO_RAW) {
-			Log::msg(Info, "Found audio stream");
+			g_Log->log(Info, "Found audio stream");
 			return pipeline.add("SDLAudio", nullptr);
 		}
 	}
 
-	Log::msg(Info, "Found unknown stream");
+	g_Log->log(Info, "Found unknown stream");
 	return pipeline.addModule<Out::Null>();
 }
 
@@ -57,11 +57,11 @@ void declarePipeline(Config cfg, Pipeline &pipeline, const char *url) {
 	for (int k = 0; k < (int)demuxer->getNumOutputs(); ++k) {
 		auto metadata = demuxer->getOutputMetadata(k);
 		if(!metadata) {
-			Log::msg(Debug, "Ignoring stream #%s (no metadata)", k);
+			g_Log->log(Debug, format("Ignoring stream #%s (no metadata)", k).c_str());
 			continue;
 		}
 		if (metadata->isSubtitle()/*only render audio and video*/) {
-			Log::msg(Debug, "Ignoring stream #%s", k);
+			g_Log->log(Debug, format("Ignoring stream #%s", k).c_str());
 			continue;
 		}
 

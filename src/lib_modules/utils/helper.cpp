@@ -1,5 +1,6 @@
 #include "helper.hpp"
 #include "lib_utils/log.hpp"
+#include "lib_utils/format.hpp"
 
 namespace Modules {
 
@@ -33,14 +34,14 @@ bool MetadataCap::setMetadataInternal(Metadata metadata) {
 			throw std::runtime_error(format("Metadata update: incompatible types %s for data and %s for attached", metadata->type, m_metadata->type));
 		}
 		if (*m_metadata == *metadata) {
-			Log::msg(Debug, "Output: metadata not equal but comparable by value. Updating.");
+			g_Log->log(Debug, "Output: metadata not equal but comparable by value. Updating.");
 			m_metadata = metadata;
 		} else {
-			Log::msg(Info, "Metadata update from data not supported yet: output port and data won't carry the same metadata.");
+			g_Log->log(Info, "Metadata update from data not supported yet: output port and data won't carry the same metadata.");
 		}
 		return true;
 	}
-	Log::msg(Debug, "Output: metadata transported by data changed. Updating.");
+	g_Log->log(Debug, "Output: metadata transported by data changed. Updating.");
 	m_metadata = metadata;
 	return true;
 }

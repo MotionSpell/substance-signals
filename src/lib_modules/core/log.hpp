@@ -1,6 +1,7 @@
 #pragma once
 
 #include "lib_utils/log.hpp"
+#include "lib_utils/format.hpp"
 
 #define LOG_MSG_REPETITION_MAX 100
 
@@ -17,10 +18,10 @@ class LogRepetition {
 					lastMsgCount++;
 				} else {
 					if (lastMsgCount) {
-						Log::msg(l, "%sLast message repeated %s times.", id, lastMsgCount);
+						g_Log->log(l, format("%sLast message repeated %s times.", id, lastMsgCount).c_str());
 					}
 
-					Log::msg(l, "%s%s", id, msg);
+					g_Log->log(l, format("%s%s", id, msg).c_str());
 					lastLevel = l;
 					lastMsg = msg;
 					lastMsgCount = 0;
@@ -29,7 +30,8 @@ class LogRepetition {
 		}
 
 	private:
-		Level level = Log::getLevel(), lastLevel = Debug;
+		Level level = Info;
+		Level lastLevel = Debug;
 		std::string lastMsg;
 		uint64_t lastMsgCount = 0;
 };

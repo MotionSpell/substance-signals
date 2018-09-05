@@ -190,7 +190,7 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 		recorders[g]->process(nullptr);
 		int64_t lastMediaTime = 0;
 		while (auto data = recorders[g]->pop()) {
-			Log::msg(Debug, "recv[%s] %s", g, data->getMediaTime());
+			g_Log->log(Debug, format("recv[%s] %s", g, data->getMediaTime()).c_str());
 			lastMediaTime = data->getMediaTime();
 		}
 		ASSERT(llabs(maxDurIn180k - lastMediaTime) < maxDurIn180k / 30);

@@ -26,7 +26,7 @@ auto const MAX_GOP_DURATION_IN_MS = 2000;
 Resolution autoRotate(Resolution res, bool verticalize) {
 	if (verticalize && res.height < res.width) {
 		Resolution oRes(res.height, res.height);
-		Log::msg(Info, "[autoRotate] Switched resolution from %sx%s to %sx%s", res.width, res.height, oRes.width, oRes.height);
+		g_Log->log(Info, format("[autoRotate] Switched resolution from %sx%s to %sx%s", res.width, res.height, oRes.width, oRes.height).c_str());
 		return oRes;
 	} else {
 		return res;
@@ -39,12 +39,12 @@ Resolution autoFit(Resolution input, Resolution output) {
 	if (output.width == -1) {
 		assert((input.width * output.height % input.height) == 0); //TODO: add SAR at the DASH level to handle rounding errors
 		Resolution oRes((input.width * output.height) / input.height, output.height);
-		Log::msg(Info, "[autoFit] Switched resolution from -1x%s to %sx%s", input.height, oRes.width, oRes.height);
+		g_Log->log(Info, format("[autoFit] Switched resolution from -1x%s to %sx%s", input.height, oRes.width, oRes.height).c_str());
 		return oRes;
 	} else if (output.height == -1) {
 		assert((input.height * output.width % input.width) == 0); //TODO: add SAR at the DASH level to handle rounding errors
 		Resolution oRes(output.width, (input.height * output.width) / input.width);
-		Log::msg(Info, "[autoFit] Switched resolution from %sx-1 to %sx%s", input.width, oRes.width, oRes.height);
+		g_Log->log(Info, format("[autoFit] Switched resolution from %sx-1 to %sx%s", input.width, oRes.width, oRes.height).c_str());
 		return oRes;
 	} else {
 		return output;
@@ -54,7 +54,7 @@ Resolution autoFit(Resolution input, Resolution output) {
 IPipelinedModule* createEncoder(Pipeline* pipeline, Metadata metadata, bool ultraLowLatency, VideoCodecType videoCodecType, PictureFormat &dstFmt, int bitrate, uint64_t segmentDurationInMs) {
 	auto const codecType = metadata->type;
 	if (codecType == VIDEO_PKT) {
-		Log::msg(Info, "[Encoder] Found video stream");
+		g_Log->log(Info, "[Encoder] Found video stream");
 		EncoderConfig p { EncoderConfig::Video };
 		p.isLowLatency = ultraLowLatency;
 		p.codecType = videoCodecType;
@@ -66,24 +66,24 @@ IPipelinedModule* createEncoder(Pipeline* pipeline, Metadata metadata, bool ultr
 		auto const GOPDurationDivisor = 1 + (segmentDurationInMs / (MAX_GOP_DURATION_IN_MS+1));
 		p.GOPSize = ultraLowLatency ? 1 : (Fraction(segmentDurationInMs, 1000) * p.frameRate) / Fraction(GOPDurationDivisor, 1);
 		if ((segmentDurationInMs * p.frameRate.num) % (1000 * GOPDurationDivisor * p.frameRate.den)) {
-			Log::msg(Warning, "[%s] Couldn't align GOP size (%s/%s, divisor=%s) with segment duration (%sms). Segment duration may vary.", g_appName, p.GOPSize.num, p.GOPSize.den, GOPDurationDivisor, segmentDurationInMs);
+			g_Log->log(Warning, format("[%s] Couldn't align GOP size (%s/%s, divisor=%s) with segment duration (%sms). Segment duration may vary.", g_appName, p.GOPSize.num, p.GOPSize.den, GOPDurationDivisor, segmentDurationInMs).c_str());
 			if ((p.frameRate.den % 1001) || ((segmentDurationInMs * p.frameRate.num * 1001) % (1000 * GOPDurationDivisor * p.frameRate.den * 1000)))
 				throw std::runtime_error("GOP size checks failed. Please read previous log messages.");
 		}
-		if (GOPDurationDivisor > 1) Log::msg(Info, "[Encoder] Setting GOP duration to %sms (%s frames)", segmentDurationInMs / GOPDurationDivisor, (double)p.GOPSize);
+		if (GOPDurationDivisor > 1) g_Log->log(Info, format("[Encoder] Setting GOP duration to %sms (%s frames)", segmentDurationInMs / GOPDurationDivisor, (double)p.GOPSize).c_str());
 
 		auto m = pipeline->add("Encoder", &p);
 		dstFmt.format = p.pixelFormat;
 		return m;
 	} else if (codecType == AUDIO_PKT) {
-		Log::msg(Info, "[Encoder] Found audio stream");
+		g_Log->log(Info, "[Encoder] Found audio stream");
 		auto const demuxFmt = toPcmFormat(safe_cast<const MetadataPktLibavAudio>(metadata));
 		EncoderConfig p { EncoderConfig::Audio };
 		p.sampleRate = demuxFmt.sampleRate;
 		p.numChannels = demuxFmt.numChannels;
 		return pipeline->add("Encoder", &p);
 	} else {
-		Log::msg(Info, "[Encoder] Found unknown stream");
+		g_Log->log(Info, "[Encoder] Found unknown stream");
 		return nullptr;
 	}
 }
@@ -92,17 +92,17 @@ IPipelinedModule* createEncoder(Pipeline* pipeline, Metadata metadata, bool ultr
 IPipelinedModule* createConverter(Pipeline* pipeline, Metadata metadata, Metadata metadataEncoder, const PictureFormat &dstFmt) {
 	auto const codecType = metadata->type;
 	if (codecType == VIDEO_PKT) {
-		Log::msg(Info, "[Converter] Found video stream");
+		g_Log->log(Info, "[Converter] Found video stream");
 		return pipeline->add("VideoConvert", &dstFmt);
 	} else if (codecType == AUDIO_PKT) {
-		Log::msg(Info, "[Converter] Found audio stream");
+		g_Log->log(Info, "[Converter] Found audio stream");
 		auto const demuxFmt = toPcmFormat(safe_cast<const MetadataPktLibavAudio>(metadata));
 		auto const metaEnc = safe_cast<const MetadataPktLibavAudio>(metadataEncoder);
 		auto const encFmt = toPcmFormat(metaEnc);
 		auto format = PcmFormat(demuxFmt.sampleRate, demuxFmt.numChannels, demuxFmt.layout, encFmt.sampleFormat, (encFmt.numPlanes == 1) ? Interleaved : Planar);
 		return pipeline->add("AudioConvert", nullptr, &format, metaEnc->getFrameSize());
 	} else {
-		Log::msg(Info, "[Converter] Found unknown stream");
+		g_Log->log(Info, "[Converter] Found unknown stream");
 		return nullptr;
 	}
 }
@@ -130,7 +130,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 	bool isVertical = false;
 	const bool transcode = cfg.v.size() > 0;
 	if (!transcode) {
-		Log::msg(Warning, "[%s] No transcode. Make passthru.", g_appName);
+		g_Log->log(Warning, format("[%s] No transcode. Make passthru.", g_appName).c_str());
 		if (cfg.autoRotate)
 			throw std::runtime_error("cannot autorotate when transcoding is disabled");
 	}
@@ -139,7 +139,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 	auto processElementaryStream = [&](int streamIndex) {
 		auto const metadata = demux->getOutputMetadata(streamIndex);
 		if (!metadata) {
-			Log::msg(Warning, "[%s] Unknown metadata for stream %s. Ignoring.", g_appName, streamIndex);
+			g_Log->log(Warning, format("[%s] Unknown metadata for stream %s. Ignoring.", g_appName, streamIndex).c_str());
 			return;
 		}
 

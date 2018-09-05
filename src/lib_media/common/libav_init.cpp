@@ -80,7 +80,7 @@ void avLog(void* /*avcl*/, int level, const char *fmt, va_list vl) {
 		if (N > 0 && buffer[N-1] == '\n')
 			buffer[N-1] = 0;
 	}
-	Log::msg(avLogLevel(level), "[libav-log::%s] %s", avlogLevelName(level), buffer);
+	g_Log->log(avLogLevel(level), format("[libav-log::%s] %s", avlogLevelName(level), buffer).c_str());
 }
 
 int do_ffmpeg_static_initialization() {

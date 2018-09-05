@@ -54,7 +54,7 @@ class Pipeline : public IPipelineNotifier {
 
 		struct ModuleHost : Modules::IModuleHost {
 			void log(int level, char const* msg) override {
-				Log::msg((Level)level, "[%s] %s", name.c_str(), msg);
+				g_Log->log((Level)level, format("[%s] %s", name.c_str(), msg).c_str());
 			}
 			std::string name;
 		};

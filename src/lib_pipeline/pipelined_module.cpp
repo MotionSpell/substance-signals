@@ -93,7 +93,7 @@ void PipelinedModule::startSource() {
 	assert(isSource());
 
 	if (started) {
-		Log::msg(Info, "Pipeline: source already started . Doing nothing.");
+		g_Log->log(Info, "Pipeline: source already started . Doing nothing.");
 		return;
 	}
 
@@ -108,7 +108,7 @@ void PipelinedModule::stopSource() {
 	assert(isSource());
 
 	if (!started) {
-		Log::msg(Warning, "Pipeline: cannot stop unstarted source. Ignoring.");
+		g_Log->log(Warning, "Pipeline: cannot stop unstarted source. Ignoring.");
 		return;
 	}
 

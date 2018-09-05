@@ -66,7 +66,7 @@ Config parseCommandLine(int argc, char const* argv[]) {
 	cfg.input = args[0];
 
 	if(logLevel != -1)
-		Log::setLevel((Level)logLevel);
+		setGlobalLogLevel((Level)logLevel);
 
 	return cfg;
 }

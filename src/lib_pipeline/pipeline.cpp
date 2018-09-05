@@ -162,7 +162,7 @@ std::string Pipeline::dump() {
 }
 
 void Pipeline::start() {
-	Log::msg(Info, "Pipeline: starting");
+	g_Log->log(Info, "Pipeline: starting");
 	computeTopology();
 	for (auto &module : modules) {
 		auto m = safe_cast<PipelinedModule>(module.get());
@@ -170,28 +170,28 @@ void Pipeline::start() {
 			m->startSource();
 		}
 	}
-	Log::msg(Info, "Pipeline: started");
+	g_Log->log(Info, "Pipeline: started");
 }
 
 void Pipeline::waitForEndOfStream() {
-	Log::msg(Info, "Pipeline: waiting for completion");
+	g_Log->log(Info, "Pipeline: waiting for completion");
 	std::unique_lock<std::mutex> lock(remainingNotificationsMutex);
 	while (remainingNotifications > 0) {
-		Log::msg(Debug, "Pipeline: condition (remaining: %s) (%s modules in the pipeline)", remainingNotifications, modules.size());
+		g_Log->log(Debug, format("Pipeline: condition (remaining: %s) (%s modules in the pipeline)", remainingNotifications, modules.size()).c_str());
 		condition.wait_for(lock, std::chrono::milliseconds(COMPLETION_GRANULARITY_IN_MS));
 		try {
 			if (eptr)
 				std::rethrow_exception(eptr);
 		} catch (const std::exception &e) {
-			Log::msg(Error, "Pipeline: exception caught: %s. Exiting.", e.what());
+			g_Log->log(Error, format("Pipeline: exception caught: %s. Exiting.", e.what()).c_str());
 			std::rethrow_exception(eptr); //FIXME: at this point the exception forward in submit() already lost some data
 		}
 	}
-	Log::msg(Info, "Pipeline: completed");
+	g_Log->log(Info, "Pipeline: completed");
 }
 
 void Pipeline::exitSync() {
-	Log::msg(Warning, "Pipeline: asked to exit now.");
+	g_Log->log(Warning, "Pipeline: asked to exit now.");
 	for (auto &module : modules) {
 		auto m = safe_cast<PipelinedModule>(module.get());
 		if (m->isSource()) {

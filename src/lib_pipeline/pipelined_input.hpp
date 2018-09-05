@@ -38,7 +38,7 @@ class PipelinedInput : public IInput, public MetadataCap {
 
 			// receiving 'nullptr' means 'end of stream'
 			if (!data) {
-				Log::msg(Debug, "Module %s: notify end-of-stream.", delegateName);
+				g_Log->log(Debug, format("Module %s: notify end-of-stream.", delegateName).c_str());
 				executor(Bind(&IPipelineNotifier::endOfStream, notify));
 				return;
 			}

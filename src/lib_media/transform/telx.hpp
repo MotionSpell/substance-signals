@@ -93,7 +93,7 @@ struct Config : public Modules::Transform::ITelxConfig {
 
 uint16_t telx_to_ucs2(uint8_t c, Config &config) {
 	if (Parity8[c] == 0) {
-		Log::msg(Warning, "Teletext: Unrecoverable data error (5): %s", c);
+		g_Log->log(Warning, format("Teletext: Unrecoverable data error (5): %s", c).c_str());
 		return 0x20;
 	}
 
@@ -108,7 +108,7 @@ void remap_g0_charset(uint8_t c, Config &config) {
 	if (c != config.primaryCharset.current) {
 		uint8_t m = G0_LatinNationalSubsetsMap[c];
 		if (m == 0xff) {
-			Log::msg(Warning, "Teletext: G0 subset %s.%s is not implemented", (c >> 3), (c & 0x7));
+			g_Log->log(Warning, format("Teletext: G0 subset %s.%s is not implemented", (c >> 3), (c & 0x7)).c_str());
 		} else {
 			for (uint8_t j = 0; j < 13; j++) {
 				config.G0[LATIN][G0_LatinNationalSubsetsPositions[j]] = G0_LatinNationalSubsets[m].characters[j];
@@ -306,7 +306,7 @@ std::unique_ptr<Modules::Transform::Page> process_telx_packet(Config &config, Da
 
 		for (uint8_t j = 0; j < 13; j++) {
 			if (triplets[j] == 0xffffffff) {
-				Log::msg(Warning, "Teletext: unrecoverable data error (1): %s", triplets[j]);
+				g_Log->log(Warning, format("Teletext: unrecoverable data error (1): %s", triplets[j]).c_str());
 				continue;
 			}
 
@@ -343,7 +343,7 @@ std::unique_ptr<Modules::Transform::Page> process_telx_packet(Config &config, Da
 		if ((designationCode == 0) || (designationCode == 4)) {
 			uint32_t triplet0 = unham_24_18((packet->data[3] << 16) | (packet->data[2] << 8) | packet->data[1]);
 			if (triplet0 == 0xffffffff) {
-				Log::msg(Warning, "Teletext: unrecoverable data error (2): %s", triplet0);
+				g_Log->log(Warning, format("Teletext: unrecoverable data error (2): %s", triplet0).c_str());
 			} else {
 				if ((triplet0 & 0x0f) == 0x00) {
 					config.primaryCharset.G0_X28 = (triplet0 & 0x3f80) >> 7;
@@ -356,7 +356,7 @@ std::unique_ptr<Modules::Transform::Page> process_telx_packet(Config &config, Da
 		if ((designationCode == 0) || (designationCode == 4)) {
 			uint32_t triplet0 = unham_24_18((packet->data[3] << 16) | (packet->data[2] << 8) | packet->data[1]);
 			if (triplet0 == 0xffffffff) {
-				Log::msg(Warning, "Teletext: unrecoverable data error (3): %s", triplet0);
+				g_Log->log(Warning, format("Teletext: unrecoverable data error (3): %s", triplet0).c_str());
 			} else {
 				if ((triplet0 & 0xff) == 0x00) {
 					config.primaryCharset.G0_M29 = (triplet0 & 0x3f80) >> 7;

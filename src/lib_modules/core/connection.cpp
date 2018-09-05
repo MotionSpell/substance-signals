@@ -13,15 +13,15 @@ void CheckMetadataCompatibility(IOutput *prev, IInput *next) {
 	if (prevMetadata && nextMetadata) {
 		if (prevMetadata->type != next->getMetadata()->type)
 			throw std::runtime_error("Module connection: incompatible types");
-		Log::msg(Info, "--------- Connect: metadata OK");
+		g_Log->log(Info, "--------- Connect: metadata OK");
 	} else {
 		if (prevMetadata && !nextMetadata) {
-			Log::msg(Debug, "--------- Connect: metadata doesn't propagate to next (forward)");
+			g_Log->log(Debug, "--------- Connect: metadata doesn't propagate to next (forward)");
 		} else if (!prevMetadata && nextMetadata) {
 			prev->setMetadata(nextMetadata);
-			Log::msg(Info, "--------- Connect: metadata propagates to previous (backward).");
+			g_Log->log(Info, "--------- Connect: metadata propagates to previous (backward).");
 		} else {
-			Log::msg(Debug, "--------- Connect: no metadata");
+			g_Log->log(Debug, "--------- Connect: no metadata");
 		}
 	}
 }

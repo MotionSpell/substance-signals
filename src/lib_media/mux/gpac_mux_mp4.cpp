@@ -82,7 +82,7 @@ static GF_Err avc_import_ffextradata(Span extradataSpan, GF_AVCConfig *dstcfg) {
 	const auto extradataSize = extradataSpan.len;
 
 	if (!extradata || !extradataSize) {
-		Log::msg(Warning, "No initial SPS/PPS provided.");
+		g_Log->log(Warning, "No initial SPS/PPS provided.");
 		return GF_OK;
 	}
 	auto bs2 = std::shared_ptr<GF_BitStream>(gf_bs_new((const char*)extradata, extradataSize, GF_BITSTREAM_READ), &gf_bs_del);

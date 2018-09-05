@@ -35,7 +35,7 @@ Config parseCommandLine(int argc, char const* argv[]) {
 int safeMain(int argc, char const* argv[]) {
 	auto const cfg = parseCommandLine(argc, argv);
 
-	Log::setLevel((Level)cfg.logLevel);
+	setGlobalLogLevel((Level)cfg.logLevel);
 
 	Pipeline pipeline(cfg.lowLatency);
 	declarePipeline(cfg, pipeline, cfg.url.c_str());

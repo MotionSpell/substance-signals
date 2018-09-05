@@ -273,7 +273,7 @@ DataAVPacket::DataAVPacket(size_t size)
 }
 
 DataAVPacket::~DataAVPacket() {
-	Log::msg(Debug, "Freeing %s, pts=%s", this, pkt->pts);
+	g_Log->log(Debug, format("Freeing %s, pts=%s", this, pkt->pts).c_str());
 }
 
 Span DataAVPacket::data() {

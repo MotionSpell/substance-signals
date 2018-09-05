@@ -4,6 +4,7 @@
 #include <ctime>
 #include <iostream>
 #include "lib_utils/system_clock.hpp"
+#include "lib_utils/format.hpp"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -20,11 +21,74 @@ static WORD console_attr_ori = 0;
 #define RESET  "\x1b[0m"
 #endif /*_WIN32*/
 
-const int levelToSysLog[] = { 3, 4, 6, 7 };
-bool Log::globalSysLog = false;
+class Log : public LogSink {
+	public:
 
-Level Log::globalLogLevel = Warning;
-bool Log::globalColor = true;
+		void log(Level level, const char* msg) override {
+			if ((level != Quiet) && (level <= globalLogLevel))
+				send(level, msg);
+		}
+
+		void setLevel(Level level);
+		Level getLevel();
+
+		void setColor(bool isColored);
+		bool getColor();
+
+		void setSysLog(bool isSysLog);
+
+	private:
+		void send(Level level, const char* msg);
+
+		Level globalLogLevel = Warning;
+		bool globalColor = true;
+		bool globalSysLog = false;
+		void sendToSyslog(int level, const char* msg);
+
+		std::string getColorBegin(Level level) {
+			if (!Log::getColor()) return "";
+#ifdef _WIN32
+			if (console == NULL) {
+				CONSOLE_SCREEN_BUFFER_INFO console_info;
+				console = GetStdHandle(STD_ERROR_HANDLE);
+				assert(console != INVALID_HANDLE_VALUE);
+				if (console != INVALID_HANDLE_VALUE) {
+					GetConsoleScreenBufferInfo(console, &console_info);
+					console_attr_ori = console_info.wAttributes;
+				}
+			}
+			switch (level) {
+			case Error: SetConsoleTextAttribute(console, FOREGROUND_RED | FOREGROUND_INTENSITY); break;
+			case Warning: SetConsoleTextAttribute(console, FOREGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN); break;
+			case Info: SetConsoleTextAttribute(console, FOREGROUND_INTENSITY | FOREGROUND_GREEN); break;
+			case Debug: SetConsoleTextAttribute(console, FOREGROUND_GREEN); break;
+			default: break;
+			}
+#else
+			switch (level) {
+			case Error: fprintf(stderr, RED); break;
+			case Warning: fprintf(stderr, YELLOW); break;
+			case Info: fprintf(stderr, GREEN); break;
+			case Debug: fprintf(stderr, CYAN); break;
+			default: break;
+			}
+#endif
+			return "";
+		}
+
+		std::string getColorEnd(Level /*level*/) {
+			if (!Log::getColor()) return "";
+#ifdef _WIN32
+			SetConsoleTextAttribute(console, console_attr_ori);
+#else
+			fprintf(stderr, RESET);
+#endif
+			return "";
+		}
+
+};
+
+const int levelToSysLog[] = { 3, 4, 6, 7 };
 
 static std::ostream& get(Level level) {
 	switch (level) {
@@ -36,8 +100,6 @@ static std::ostream& get(Level level) {
 }
 
 static std::string getTime();
-static std::string getColorBegin(Level level);
-static std::string getColorEnd(Level level);
 
 void Log::send(Level level, const char* msg) {
 	if (globalSysLog) {
@@ -53,47 +115,6 @@ std::string getTime() {
 	const std::tm tm = *std::gmtime(&t);
 	auto const size = strftime(szOut, 255, "%Y/%m/%d %H:%M:%S", &tm);
 	return format("[%s][%s] ", std::string(szOut, size), (double)g_SystemClock->now());
-}
-
-std::string getColorBegin(Level level) {
-	if (!Log::getColor()) return "";
-#ifdef _WIN32
-	if (console == NULL) {
-		CONSOLE_SCREEN_BUFFER_INFO console_info;
-		console = GetStdHandle(STD_ERROR_HANDLE);
-		assert(console != INVALID_HANDLE_VALUE);
-		if (console != INVALID_HANDLE_VALUE) {
-			GetConsoleScreenBufferInfo(console, &console_info);
-			console_attr_ori = console_info.wAttributes;
-		}
-	}
-	switch (level) {
-	case Error: SetConsoleTextAttribute(console, FOREGROUND_RED | FOREGROUND_INTENSITY); break;
-	case Warning: SetConsoleTextAttribute(console, FOREGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN); break;
-	case Info: SetConsoleTextAttribute(console, FOREGROUND_INTENSITY | FOREGROUND_GREEN); break;
-	case Debug: SetConsoleTextAttribute(console, FOREGROUND_GREEN); break;
-	default: break;
-	}
-#else
-	switch (level) {
-	case Error: fprintf(stderr, RED); break;
-	case Warning: fprintf(stderr, YELLOW); break;
-	case Info: fprintf(stderr, GREEN); break;
-	case Debug: fprintf(stderr, CYAN); break;
-	default: break;
-	}
-#endif
-	return "";
-}
-
-std::string getColorEnd(Level /*level*/) {
-	if (!Log::getColor()) return "";
-#ifdef _WIN32
-	SetConsoleTextAttribute(console, console_attr_ori);
-#else
-	fprintf(stderr, RESET);
-#endif
-	return "";
 }
 
 Level parseLogLevel(const char* slevel) {
@@ -147,5 +168,16 @@ void Log::sendToSyslog(int level, const char* msg) {
 	(void)level;
 	(void)msg;
 #endif
+}
+
+static Log globalLogger;
+LogSink* g_Log = &globalLogger;
+
+void setGlobalLogLevel(Level level) {
+	globalLogger.setLevel(level);
+}
+
+void setGlobalSyslog(bool enable) {
+	globalLogger.setSysLog(enable);
 }
 

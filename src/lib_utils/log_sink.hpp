@@ -8,3 +8,6 @@ enum Level {
 	Debug
 };
 
+struct LogSink {
+	virtual void log(Level level, const char* msg) = 0;
+};
