@@ -1,9 +1,10 @@
 #include "tests/tests.hpp"
 #include "lib_modules/modules.hpp"
 #include "lib_modules/utils/loader.hpp"
+#include "lib_media/common/libav.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/encode/libav_encode.hpp"
-#include "lib_media/mux/gpac_mux_mp4.hpp"
+#include "lib_media/mux/mux_mp4_config.hpp"
 #include "lib_utils/tools.hpp"
 #include <iostream> // cerr
 #include <vector>
@@ -154,7 +155,7 @@ unittest("GPAC mp4 mux: don't create empty fragments") {
 	p.frameRate.num = 1;
 	auto picture = make_shared<PictureYUV420P>(VIDEO_RESOLUTION);
 	auto encode = loadModule("Encoder", &NullHost, &p);
-	auto mux = create<Mux::GPACMuxMP4>(&NullHost, Mp4MuxConfig{"", segmentDurationInMs, FragmentedSegment, OneFragmentPerRAP, Browsers | SegmentAtAny});
+	auto mux = loadModule("GPACMuxMP4", &NullHost, Mp4MuxConfig{"", segmentDurationInMs, FragmentedSegment, OneFragmentPerRAP, Browsers | SegmentAtAny});
 	ConnectOutputToInput(encode->getOutput(0), mux->getInput(0));
 	auto recorder = create<Recorder>();
 	ConnectOutputToInput(mux->getOutput(0), recorder->getInput(0));

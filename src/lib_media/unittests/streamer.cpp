@@ -5,7 +5,7 @@
 #include <stdexcept>
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/encode/libav_encode.hpp"
-#include "lib_media/mux/gpac_mux_mp4.hpp"
+#include "lib_media/mux/mux_mp4_config.hpp"
 #include "lib_media/stream/apple_hls.hpp"
 #include "lib_media/stream/mpeg_dash.hpp"
 #include "lib_media/stream/ms_hss.hpp"

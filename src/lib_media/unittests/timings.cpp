@@ -1,8 +1,9 @@
 #include "tests/tests.hpp"
+#include "lib_media/common/libav.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/demux/gpac_demux_mp4_simple.hpp"
 #include "lib_media/encode/libav_encode.hpp"
-#include "lib_media/mux/gpac_mux_mp4.hpp"
+#include "lib_media/mux/mux_mp4_config.hpp"
 #include "lib_media/transform/audio_gap_filler.hpp"
 #include "lib_media/transform/restamp.hpp"
 #include "lib_media/utils/recorder.hpp"
@@ -15,7 +16,7 @@ using namespace Modules;
 
 typedef std::shared_ptr<IModule> (*CreateDemuxFunc)(const char* path);
 
-void checkTimestampsMux(CreateDemuxFunc createDemux, int numBFrame, const std::vector<int64_t> &timesIn, const std::vector<int64_t> &timesOut, std::unique_ptr<IModule> mux) {
+void checkTimestampsMux(CreateDemuxFunc createDemux, int numBFrame, const std::vector<int64_t> &timesIn, const std::vector<int64_t> &timesOut, std::shared_ptr<IModule> mux) {
 	EncoderConfig p { EncoderConfig::Video };
 	p.frameRate.num = 1;
 	p.avcodecCustom = format("-bf %s", numBFrame);
@@ -55,8 +56,8 @@ std:: shared_ptr<IModule> createGpacDemux(const char* path) {
 }
 
 void checkTimestamps(CreateDemuxFunc createDemux, int numBFrame, const std::vector<int64_t> &timesIn, const std::vector<int64_t> &timesOut) {
-	checkTimestampsMux(createDemux, numBFrame, timesIn, timesOut, create<Mux::GPACMuxMP4>(&NullHost, Mp4MuxConfig{"out/random_ts"}));
-	checkTimestampsMux(createDemux, numBFrame, timesIn, timesOut, create<Mux::GPACMuxMP4>(&NullHost, Mp4MuxConfig{"out/random_ts", 0, NoSegment, NoFragment, ExactInputDur}));
+	checkTimestampsMux(createDemux, numBFrame, timesIn, timesOut, loadModule("GPACMuxMP4", &NullHost, Mp4MuxConfig{"out/random_ts"}));
+	checkTimestampsMux(createDemux, numBFrame, timesIn, timesOut, loadModule("GPACMuxMP4", &NullHost, Mp4MuxConfig{"out/random_ts", 0, NoSegment, NoFragment, ExactInputDur}));
 }
 
 unittest("timestamps start at random values (LibavDemux)") {
