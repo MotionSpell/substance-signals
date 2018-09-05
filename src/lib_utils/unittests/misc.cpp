@@ -2,6 +2,7 @@
 #include "lib_utils/tools.hpp"
 #include "lib_utils/fraction.hpp"
 #include "lib_utils/log.hpp"
+#include "lib_utils/format.hpp"
 
 #include "lib_utils/os.hpp"
 using namespace Tests;

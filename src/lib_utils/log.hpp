@@ -1,6 +1,5 @@
 #pragma once
 
-#include "lib_utils/format.hpp"
 #include "log_sink.hpp"
 extern LogSink* g_Log;
 
