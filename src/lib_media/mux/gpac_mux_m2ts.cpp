@@ -1,4 +1,5 @@
 #include "gpac_mux_m2ts.hpp"
+#include "lib_modules/core/log.hpp"
 #include "../common/libav.hpp"
 #include <cassert>
 

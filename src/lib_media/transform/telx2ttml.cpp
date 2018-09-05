@@ -1,4 +1,5 @@
 #include "lib_modules/core/data_utc.hpp"
+#include "lib_modules/core/log.hpp"
 #include "telx2ttml.hpp"
 #include "telx.hpp"
 #include "lib_utils/time.hpp"

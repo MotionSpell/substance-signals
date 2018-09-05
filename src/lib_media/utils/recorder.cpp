@@ -1,4 +1,5 @@
 #include "lib_utils/tools.hpp"
+#include "lib_modules/core/log.hpp"
 #include "recorder.hpp"
 
 namespace Modules {
