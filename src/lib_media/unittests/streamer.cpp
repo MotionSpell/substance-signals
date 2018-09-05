@@ -11,6 +11,7 @@
 #include "lib_media/stream/ms_hss.hpp"
 #include "modules_common.hpp"
 #include "lib_utils/sysclock.hpp"
+#include "../common/gpacpp.hpp" // gf_mkdir
 
 using namespace Tests;
 using namespace Modules;
