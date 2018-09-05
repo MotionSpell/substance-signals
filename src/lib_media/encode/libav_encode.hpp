@@ -19,7 +19,7 @@ struct EncoderConfig {
 
 	Type type;
 	int bitrate = 128000;
-	size_t bufferSize = Modules::ALLOC_NUM_BLOCKS_DEFAULT;
+	size_t bufferSize = 10;
 
 	//video only
 	Resolution res = Resolution(320, 180);

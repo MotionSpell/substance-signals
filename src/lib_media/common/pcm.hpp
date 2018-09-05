@@ -201,8 +201,8 @@ class DataPcm : public DataRaw {
 
 }
 
-#include "lib_modules/utils/helper.hpp" // OutputDataDefault
-
 namespace Modules {
+template<typename DataType>
+class OutputDataDefault;
 typedef OutputDataDefault<DataPcm> OutputPcm;
 }
