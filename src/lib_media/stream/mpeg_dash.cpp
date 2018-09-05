@@ -1,4 +1,5 @@
 #include "mpeg_dash.hpp"
+#include "adaptive_streaming_common.hpp"
 #include "../common/gpacpp.hpp"
 #include "lib_modules/utils/factory.hpp"
 #include "lib_utils/time.hpp"
@@ -40,12 +41,34 @@ std::unique_ptr<gpacpp::MPD> createMPD(Stream::AdaptiveStreamingCommon::Type typ
 
 namespace Stream {
 
+AdaptiveStreamingCommon::Type getType(DasherConfig* cfg) {
+	if(!cfg->live)
+		return AdaptiveStreamingCommon::Static;
+	else if(cfg->blocking)
+		return AdaptiveStreamingCommon::Live;
+	else
+		return AdaptiveStreamingCommon::LiveNonBlocking;
+}
+
+AdaptiveStreamingCommon::AdaptiveStreamingCommonFlags getFlags(DasherConfig* cfg) {
+	uint32_t r = 0;
+
+	if(cfg->segmentsNotOwned)
+		r |= AdaptiveStreamingCommon::SegmentsNotOwned;
+	if(cfg->presignalNextSegment)
+		r |= AdaptiveStreamingCommon::PresignalNextSegment;
+	if(cfg->forceRealDurations)
+		r |= AdaptiveStreamingCommon::ForceRealDurations;
+
+	return AdaptiveStreamingCommon::AdaptiveStreamingCommonFlags(r);
+}
+
 class MPEG_DASH : public AdaptiveStreamingCommon, public gpacpp::Init {
 	public:
 		MPEG_DASH(IModuleHost* host, DasherConfig* cfg)
-			: AdaptiveStreamingCommon(cfg->type, cfg->segDurationInMs, cfg->mpdDir, cfg->flags),
+			: AdaptiveStreamingCommon(getType(cfg), cfg->segDurationInMs, cfg->mpdDir, getFlags(cfg)),
 			  m_host(host),
-			  mpd(createMPD(cfg->type, cfg->minBufferTimeInMs, cfg->id)), mpdFn(cfg->mpdName), baseURLs(cfg->baseURLs),
+			  mpd(createMPD(getType(cfg), cfg->minBufferTimeInMs, cfg->id)), mpdFn(cfg->mpdName), baseURLs(cfg->baseURLs),
 			  minUpdatePeriodInMs(minUpdatePeriodInMs ? minUpdatePeriodInMs : (segDurationInMs ? cfg->segDurationInMs : 1000)),
 			  timeShiftBufferDepthInMs(cfg->timeShiftBufferDepthInMs), initialOffsetInMs(cfg->initialOffsetInMs), useSegmentTimeline(cfg->segDurationInMs == 0) {
 			if (useSegmentTimeline && ((flags & PresignalNextSegment) || (flags & SegmentsNotOwned)))

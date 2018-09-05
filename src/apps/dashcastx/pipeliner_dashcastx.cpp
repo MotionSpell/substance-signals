@@ -11,6 +11,7 @@
 #include "lib_media/mux/mux_mp4_config.hpp"
 #include "lib_media/stream/mpeg_dash.hpp"
 #include "lib_media/utils/regulator.hpp"
+#include "lib_media/stream/adaptive_streaming_common.hpp" // AdaptiveStreamingCommon::getCommonPrefixAudio
 
 using namespace Modules;
 using namespace Pipelines;
@@ -121,8 +122,8 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 	demuxCfg.url = cfg.input;
 	demuxCfg.loop = cfg.loop;
 	auto demux = pipeline->add("LibavDemux", &demuxCfg);
-	auto const type = (cfg.isLive || cfg.ultraLowLatency) ? Stream::AdaptiveStreamingCommon::Live : Stream::AdaptiveStreamingCommon::Static;
-	auto dasherCfg = Modules::DasherConfig { DASH_SUBDIR, format("%s.mpd", g_appName), type, (uint64_t)cfg.segmentDurationInMs, (uint64_t)cfg.segmentDurationInMs * cfg.timeshiftInSegNum};
+	auto const live = cfg.isLive || cfg.ultraLowLatency;
+	auto dasherCfg = Modules::DasherConfig { DASH_SUBDIR, format("%s.mpd", g_appName), live, (uint64_t)cfg.segmentDurationInMs, (uint64_t)cfg.segmentDurationInMs * cfg.timeshiftInSegNum};
 	auto dasher = pipeline->add("MPEG_DASH", &dasherCfg);
 	ensureDir(DASH_SUBDIR);
 
