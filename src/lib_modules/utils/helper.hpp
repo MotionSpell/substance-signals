@@ -74,24 +74,6 @@ class Input : public IInput, public MetadataCap {
 		int connections = 0;
 };
 
-class InputCap : public virtual IInputCap {
-	public:
-		virtual ~InputCap() {}
-		IInput* addInput(IProcessor* p) {
-			inputs.push_back(std::make_unique<Input>(p));
-			return inputs.back().get();
-		}
-		int getNumInputs() const override {
-			return (int)inputs.size();
-		}
-		IInput* getInput(int i) override {
-			return inputs[i].get();
-		}
-
-	protected:
-		std::vector<std::unique_ptr<IInput>> inputs;
-};
-
 static Signals::ExecutorSync g_executorOutputSync;
 
 template<typename DataType>
@@ -146,10 +128,21 @@ class OutputCap : public virtual IOutputCap {
 		}
 };
 
-class Module : public IModule, public ErrorCap, public InputCap {
+class Module : public IModule, public ErrorCap {
 	public:
 		Module() = default;
 		virtual ~Module() {}
+
+		IInput* addInput(IProcessor* p) {
+			inputs.push_back(std::make_unique<Input>(p));
+			return inputs.back().get();
+		}
+		int getNumInputs() const override {
+			return (int)inputs.size();
+		}
+		IInput* getInput(int i) override {
+			return inputs[i].get();
+		}
 
 		template <typename InstanceType, typename ...Args>
 		InstanceType* addOutput(Args&&... args) {
@@ -163,6 +156,9 @@ class Module : public IModule, public ErrorCap, public InputCap {
 			outputs.push_back(uptr(p));
 			return p;
 		}
+
+	protected:
+		std::vector<std::unique_ptr<IInput>> inputs;
 };
 
 /* this default factory creates output ports with the default output - create another one for other uses such as low latency */

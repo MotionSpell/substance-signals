@@ -51,12 +51,6 @@ struct IInput : public IProcessor, public virtual IMetadataCap {
 	virtual bool tryPop(Data &value) = 0;
 };
 
-struct IInputCap {
-	virtual ~IInputCap() {}
-	virtual int getNumInputs() const = 0;
-	virtual IInput* getInput(int i) = 0;
-};
-
 struct IOutput : virtual IMetadataCap {
 	virtual ~IOutput() {}
 	virtual void emit(Data data) = 0;
@@ -81,8 +75,12 @@ struct IOutputCap {
 		/*const*/ size_t allocatorSize = 0;
 };
 
-struct IModule : IProcessor, virtual IInputCap, virtual IOutputCap {
+struct IModule : IProcessor,  virtual IOutputCap {
 	virtual ~IModule() {}
+
+	virtual int getNumInputs() const = 0;
+	virtual IInput* getInput(int i) = 0;
+
 	virtual void flush() {}
 };
 
