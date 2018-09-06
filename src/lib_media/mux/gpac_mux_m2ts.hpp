@@ -15,6 +15,13 @@ namespace gpacpp {
 class M2TSMux;
 }
 
+struct TsMuxConfig {
+	bool real_time = false;
+	unsigned mux_rate = 1000 * 1000;
+	unsigned pcr_ms = 100;
+	int64_t pcr_init_val = -1;
+};
+
 namespace Modules {
 namespace Mux {
 
@@ -22,7 +29,7 @@ typedef Queue<AVPacket*> DataInput;
 
 class GPACMuxMPEG2TS : public ModuleDynI, public gpacpp::Init {
 	public:
-		GPACMuxMPEG2TS(IModuleHost* host, bool real_time, unsigned mux_rate, unsigned pcr_ms = 100, int64_t pcr_init_val = -1);
+		GPACMuxMPEG2TS(IModuleHost* host, TsMuxConfig* cfg);
 		~GPACMuxMPEG2TS();
 		void process() override;
 

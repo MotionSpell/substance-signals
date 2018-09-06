@@ -62,8 +62,8 @@ struct UserData {
 	size_t inputIdx; //TODO: constify?
 };
 
-GPACMuxMPEG2TS::GPACMuxMPEG2TS(IModuleHost* host, bool real_time, unsigned mux_rate, unsigned pcr_ms, int64_t pcr_init_val)
-	:  m_host(host), muxer(new gpacpp::M2TSMux(real_time, mux_rate, pcr_ms, pcr_init_val)) {
+GPACMuxMPEG2TS::GPACMuxMPEG2TS(IModuleHost* host, TsMuxConfig* cfg)
+	:  m_host(host), muxer(new gpacpp::M2TSMux(cfg->real_time, cfg->mux_rate, cfg->pcr_ms, cfg->pcr_init_val)) {
 	output = addOutput<OutputDefault>();
 }
 
