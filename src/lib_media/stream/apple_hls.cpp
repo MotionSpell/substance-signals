@@ -1,9 +1,22 @@
 #include "apple_hls.hpp"
 #include <fstream>
 #include <sstream>
+#include <vector>
+#include <sstream>
 
 namespace Modules {
 namespace Stream {
+
+struct Apple_HLS::HLSQuality : public Quality {
+	struct Segment {
+		std::string path;
+		uint64_t startTimeInMs;
+	};
+	HLSQuality() {}
+	std::stringstream playlistVariant;
+	std::vector<Segment> segments;
+};
+
 
 Apple_HLS::Apple_HLS(IModuleHost* host, HlsMuxConfig* cfg)
 	: AdaptiveStreamingCommon(cfg->type, cfg->segDurationInMs, cfg->m3u8Dir, cfg->flags | (cfg->genVariantPlaylist ? SegmentsNotOwned : None)),

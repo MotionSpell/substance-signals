@@ -3,8 +3,6 @@
 #include "adaptive_streaming_common.hpp"
 
 #include <lib_modules/utils/helper.hpp>
-#include <vector>
-#include <sstream>
 
 struct HlsMuxConfig {
 	std::string m3u8Dir;
@@ -29,15 +27,8 @@ class Apple_HLS : public AdaptiveStreamingCommon {
 		void generateManifest() override;
 		void finalizeManifest() override;
 
-		struct HLSQuality : public Quality {
-			struct Segment {
-				std::string path;
-				uint64_t startTimeInMs;
-			};
-			HLSQuality() {}
-			std::stringstream playlistVariant;
-			std::vector<Segment> segments;
-		};
+		struct HLSQuality;
+
 		std::string getVariantPlaylistName(HLSQuality const * const quality, const std::string &subDir, size_t index);
 		void updateManifestVariants();
 		void generateManifestVariantFull(bool isLast);
