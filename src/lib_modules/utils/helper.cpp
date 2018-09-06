@@ -50,4 +50,9 @@ void ActiveModule::process() {
 	while (work()) {}
 }
 
+void NullHostType::log(int level, char const* msg) {
+	if(0)
+		printf("[%d] %s\n", level, msg);
+}
+
 }

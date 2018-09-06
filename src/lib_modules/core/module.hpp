@@ -20,7 +20,7 @@ struct IModuleHost {
 };
 
 struct NullHostType : IModuleHost {
-	void log(int, char const*) override {}
+	void log(int, char const*) override;
 };
 
 static NullHostType NullHost;
