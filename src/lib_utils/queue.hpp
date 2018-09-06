@@ -3,12 +3,11 @@
 #include <atomic>
 #include <cassert>
 #include <condition_variable>
-#include <cstdlib>
+#include <cstdlib> // malloc, free
 #include <memory>
 #include <mutex>
 #include <queue>
 #include <stdexcept>
-#include <type_traits>
 #include <utility>
 
 template<typename T>
@@ -80,14 +79,12 @@ struct QueueLockFree {
 			// We need to destruct anything that may still exist in our queue.
 			// (No real synchronization needed at destructor time: only one
 			// thread can be doing this.)
-			if (!std::is_trivially_destructible<T>::value) {
-				size_t read = readIndex_;
-				size_t end = writeIndex_;
-				while (read != end) {
-					records_[read].~T();
-					if (++read == size_) {
-						read = 0;
-					}
+			size_t read = readIndex_;
+			size_t end = writeIndex_;
+			while (read != end) {
+				records_[read].~T();
+				if (++read == size_) {
+					read = 0;
 				}
 			}
 
@@ -127,61 +124,6 @@ struct QueueLockFree {
 			records_[currentRead].~T();
 			readIndex_.store(nextRecord, std::memory_order_release);
 			return true;
-		}
-
-		// pointer to the value at the front of the queue (for use in-place) or
-		// nullptr if empty.
-		T* frontPtr() {
-			auto const currentRead = readIndex_.load(std::memory_order_relaxed);
-			if (currentRead == writeIndex_.load(std::memory_order_acquire)) {
-				// queue is empty
-				return nullptr;
-			}
-			return &records_[currentRead];
-		}
-
-		// queue must not be empty
-		void popFront() {
-			auto const currentRead = readIndex_.load(std::memory_order_relaxed);
-			assert(currentRead != writeIndex_.load(std::memory_order_acquire));
-
-			auto nextRecord = currentRead + 1;
-			if (nextRecord == size_) {
-				nextRecord = 0;
-			}
-			records_[currentRead].~T();
-			readIndex_.store(nextRecord, std::memory_order_release);
-		}
-
-		bool isEmpty() const {
-			return readIndex_.load(std::memory_order_acquire) ==
-			    writeIndex_.load(std::memory_order_acquire);
-		}
-
-		bool isFull() const {
-			auto nextRecord = writeIndex_.load(std::memory_order_acquire) + 1;
-			if (nextRecord == size_) {
-				nextRecord = 0;
-			}
-			if (nextRecord != readIndex_.load(std::memory_order_acquire)) {
-				return false;
-			}
-			// queue is full
-			return true;
-		}
-
-		// * If called by consumer, then true size may be more (because producer may
-		//   be adding items concurrently).
-		// * If called by producer, then true size may be less (because consumer may
-		//   be removing items concurrently).
-		// * It is undefined to call this from any other thread.
-		size_t sizeGuess() const {
-			int ret = writeIndex_.load(std::memory_order_acquire) -
-			    readIndex_.load(std::memory_order_acquire);
-			if (ret < 0) {
-				ret += size_;
-			}
-			return ret;
 		}
 
 	private:
