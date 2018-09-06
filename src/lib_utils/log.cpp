@@ -25,7 +25,7 @@ class Log : public LogSink {
 	public:
 
 		void log(Level level, const char* msg) override {
-			if ((level != Quiet) && (level <= globalLogLevel))
+			if ((level != Quiet) && (level <= m_logLevel))
 				send(level, msg);
 		}
 
@@ -36,13 +36,13 @@ class Log : public LogSink {
 	private:
 		void send(Level level, const char* msg);
 
-		Level globalLogLevel = Warning;
-		bool globalColor = true;
-		bool globalSysLog = false;
+		Level m_logLevel = Warning;
+		bool m_color = true;
+		bool m_syslog = false;
 		void sendToSyslog(int level, const char* msg);
 
 		std::string getColorBegin(Level level) {
-			if (!globalColor) return "";
+			if (!m_color) return "";
 #ifdef _WIN32
 			if (console == NULL) {
 				CONSOLE_SCREEN_BUFFER_INFO console_info;
@@ -73,7 +73,7 @@ class Log : public LogSink {
 		}
 
 		std::string getColorEnd(Level /*level*/) {
-			if (!globalColor) return "";
+			if (!m_color) return "";
 #ifdef _WIN32
 			SetConsoleTextAttribute(console, console_attr_ori);
 #else
@@ -103,7 +103,7 @@ static std::string getTime() {
 
 
 void Log::send(Level level, const char* msg) {
-	if (globalSysLog) {
+	if (m_syslog) {
 		sendToSyslog(level, msg);
 	} else {
 		get(level) << getColorBegin(level) << getTime() << msg << getColorEnd(level) << std::endl;
@@ -111,21 +111,21 @@ void Log::send(Level level, const char* msg) {
 }
 
 void Log::setLevel(Level level) {
-	globalLogLevel = level;
+	m_logLevel = level;
 }
 
 void Log::setColor(bool isColored) {
-	globalColor = isColored;
+	m_color = isColored;
 }
 
 void Log::setSysLog(bool isSysLog) {
 #ifndef _WIN32
-	if (!globalSysLog && isSysLog) {
+	if (!m_syslog && isSysLog) {
 		openlog(nullptr, 0, LOG_USER);
-	} else if (globalSysLog && !isSysLog) {
+	} else if (m_syslog && !isSysLog) {
 		closelog();
 	}
-	globalSysLog = isSysLog;
+	m_syslog = isSysLog;
 #else
 	if(isSysLog)
 		throw std::runtime_error("Syslog is not supported on this platform");
