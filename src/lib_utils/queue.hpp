@@ -4,11 +4,8 @@
 #include <cassert>
 #include <condition_variable>
 #include <cstdlib> // malloc, free
-#include <memory>
 #include <mutex>
 #include <queue>
-#include <stdexcept>
-#include <utility>
 
 template<typename T>
 class Queue {
