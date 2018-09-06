@@ -57,11 +57,11 @@ unittest("pipeline graph: add module") {
 		label = "A";
 		subgraph cluster_inputs {
 			label = "inputs";
-			"A_input_0";
+			"A_input_0" [ label = "0" ];
 		}
 		subgraph cluster_outputs {
 			label = "outputs";
-			"A_output_0";
+			"A_output_0" [ label = "0" ];
 		}
 	}
 
@@ -84,11 +84,11 @@ unittest("pipeline graph: add connection") {
 		label = "A";
 		subgraph cluster_inputs {
 			label = "inputs";
-			"A_input_0";
+			"A_input_0" [ label = "0" ];
 		}
 		subgraph cluster_outputs {
 			label = "outputs";
-			"A_output_0";
+			"A_output_0" [ label = "0" ];
 		}
 	}
 
@@ -96,11 +96,11 @@ unittest("pipeline graph: add connection") {
 		label = "B";
 		subgraph cluster_inputs {
 			label = "inputs";
-			"B_input_0";
+			"B_input_0" [ label = "0" ];
 		}
 		subgraph cluster_outputs {
 			label = "outputs";
-			"B_output_0";
+			"B_output_0" [ label = "0" ];
 		}
 	}
 
@@ -127,11 +127,11 @@ unittest("pipeline graph: disconnect") {
 		label = "A";
 		subgraph cluster_inputs {
 			label = "inputs";
-			"A_input_0";
+			"A_input_0" [ label = "0" ];
 		}
 		subgraph cluster_outputs {
 			label = "outputs";
-			"A_output_0";
+			"A_output_0" [ label = "0" ];
 		}
 	}
 
@@ -139,11 +139,11 @@ unittest("pipeline graph: disconnect") {
 		label = "B";
 		subgraph cluster_inputs {
 			label = "inputs";
-			"B_input_0";
+			"B_input_0" [ label = "0" ];
 		}
 		subgraph cluster_outputs {
 			label = "outputs";
-			"B_output_0";
+			"B_output_0" [ label = "0" ];
 		}
 	}
 

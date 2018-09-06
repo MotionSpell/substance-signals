@@ -140,14 +140,18 @@ std::string Pipeline::dump() {
 		ss << "\t\t" << "subgraph cluster_inputs {" << std::endl;
 		ss << "\t\t\tlabel = \"inputs\";" << std::endl;
 		for (int i = 0; i < node.id->getNumInputs(); ++i) {
-			ss << "\t\t\t\"" << node.id << "_input_" << i << "\";" << std::endl;
+			ss << "\t\t\t\"" << node.id << "_input_" << i << "\"";
+			ss << " [ label = \"" << i << "\" ]";
+			ss << ";" << std::endl;
 		}
 		ss << "\t\t" << "}" << std::endl;
 
 		ss << "\t\t" << "subgraph cluster_outputs {" << std::endl;
 		ss << "\t\t\tlabel = \"outputs\";" << std::endl;
 		for (int i = 0; i < node.id->getNumOutputs(); ++i) {
-			ss << "\t\t\t\"" << node.id << "_output_" << i << "\";" << std::endl;
+			ss << "\t\t\t\"" << node.id << "_output_" << i << "\"";
+			ss << " [ label = \"" << i << "\" ]";
+			ss << ";" << std::endl;
 		}
 		ss << "\t\t" << "}" << std::endl;
 
