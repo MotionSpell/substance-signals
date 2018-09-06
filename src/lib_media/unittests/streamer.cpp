@@ -3,6 +3,7 @@
 #include "lib_modules/utils/loader.hpp"
 #include "lib_modules/core/data_utc.hpp"
 #include <stdexcept>
+#include "lib_media/common/libav.hpp" // MetadataPktLibavVideo
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/encode/libav_encode.hpp"
 #include "lib_media/mux/mux_mp4_config.hpp"
