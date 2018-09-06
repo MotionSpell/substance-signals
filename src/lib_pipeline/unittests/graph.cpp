@@ -39,7 +39,11 @@ string formatPtr(void* p) {
 
 unittest("pipeline graph: empty") {
 	Pipeline p;
-	string expected = "digraph {\n}\n";
+	string expected =
+	    R"(digraph {
+	rankdir = "LR";
+}
+)";
 	ASSERT_EQUALS(expected, p.dump());
 }
 
@@ -48,6 +52,7 @@ unittest("pipeline graph: add module") {
 	auto A = p.addModule<Dummy>();
 	string expected =
 	    R"(digraph {
+	rankdir = "LR";
 	subgraph cluster_0 {
 		label = "A";
 		subgraph cluster_inputs {
@@ -74,6 +79,7 @@ unittest("pipeline graph: add connection") {
 	p.connect(A, B);
 	string expected =
 	    R"(digraph {
+	rankdir = "LR";
 	subgraph cluster_0 {
 		label = "A";
 		subgraph cluster_inputs {
@@ -116,6 +122,7 @@ unittest("pipeline graph: disconnect") {
 	p.disconnect(A, 0, B, 0);
 	string expected =
 	    R"(digraph {
+	rankdir = "LR";
 	subgraph cluster_0 {
 		label = "A";
 		subgraph cluster_inputs {
@@ -153,7 +160,12 @@ unittest("pipeline graph: remove module") {
 	Pipeline p;
 	auto ptr = p.addModule<Dummy>();
 	p.removeModule(ptr);
-	ASSERT_EQUALS("digraph {\n}\n", p.dump());
+	string expected =
+	    R"(digraph {
+	rankdir = "LR";
+}
+)";
+	ASSERT_EQUALS(expected, p.dump());
 }
 
 unittest("pipeline graph: remove wrong connection") {

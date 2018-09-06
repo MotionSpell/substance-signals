@@ -130,6 +130,7 @@ void Pipeline::disconnect(IPipelinedModule * prev, int outputIdx, IPipelinedModu
 std::string Pipeline::dump() {
 	std::stringstream ss;
 	ss << "digraph {" << std::endl;
+	ss << "\trankdir = \"LR\";" << std::endl;
 
 	int idx = 0;
 	for (auto &node : graph->nodes) {
