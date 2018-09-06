@@ -8,21 +8,9 @@
 #include <memory>
 #include <string>
 #include <thread>
-#include <typeinfo>
 
 namespace Modules {
 namespace Stream {
-
-struct LogCap : protected Modules::LogRepetition {
-		virtual ~LogCap() {}
-
-	protected:
-		template<typename... Arguments>
-		void log(Level level, const std::string& fmt, Arguments... args) {
-			auto const id = format("[%s %s]", this, typeid(*this).name());
-			msg(level, id, fmt, args...);
-		}
-};
 
 struct Quality {
 	virtual ~Quality() {}
@@ -36,7 +24,7 @@ struct Quality {
 	std::string prefix; //typically a subdir, ending with a folder separator '/'
 };
 
-class AdaptiveStreamingCommon : public ModuleDynI, public LogCap {
+class AdaptiveStreamingCommon : public ModuleDynI {
 	public:
 
 		/*created each quality private data*/
@@ -58,7 +46,7 @@ class AdaptiveStreamingCommon : public ModuleDynI, public LogCap {
 			ForceRealDurations   = 1 << 2
 		};
 
-		AdaptiveStreamingCommon(Type type, uint64_t segDurationInMs, const std::string &manifestDir, AdaptiveStreamingCommonFlags flags);
+		AdaptiveStreamingCommon(IModuleHost* host, Type type, uint64_t segDurationInMs, const std::string &manifestDir, AdaptiveStreamingCommonFlags flags);
 		virtual ~AdaptiveStreamingCommon() {}
 
 		void process() override final;
@@ -75,6 +63,7 @@ class AdaptiveStreamingCommon : public ModuleDynI, public LogCap {
 		}
 
 	protected:
+		IModuleHost* const m_host;
 		bool moveFile(const std::string &src, const std::string &dst) const;
 		void processInitSegment(Quality const * const quality, size_t index);
 		std::string getInitName(Quality const * const quality, size_t index) const;

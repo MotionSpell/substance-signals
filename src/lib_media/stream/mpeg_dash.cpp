@@ -66,7 +66,7 @@ AdaptiveStreamingCommon::AdaptiveStreamingCommonFlags getFlags(DasherConfig* cfg
 class MPEG_DASH : public AdaptiveStreamingCommon, public gpacpp::Init {
 	public:
 		MPEG_DASH(IModuleHost* host, DasherConfig* cfg)
-			: AdaptiveStreamingCommon(getType(cfg), cfg->segDurationInMs, cfg->mpdDir, getFlags(cfg)),
+			: AdaptiveStreamingCommon(host, getType(cfg), cfg->segDurationInMs, cfg->mpdDir, getFlags(cfg)),
 			  m_host(host),
 			  mpd(createMPD(cfg->live, cfg->minBufferTimeInMs, cfg->id)), mpdFn(cfg->mpdName), baseURLs(cfg->baseURLs),
 			  minUpdatePeriodInMs(minUpdatePeriodInMs ? minUpdatePeriodInMs : (segDurationInMs ? cfg->segDurationInMs : 1000)),
@@ -265,7 +265,7 @@ class MPEG_DASH : public AdaptiveStreamingCommon, public gpacpp::Init {
 
 				if (!fn.empty()) {
 					if(meta->filename != fn) {
-						log(Debug, "Rename segment \"%s\" -> \"%s\".", meta->filename, fn);
+						m_host->log(Debug, format("Rename segment \"%s\" -> \"%s\".", meta->filename, fn).c_str());
 						if (!moveFile(meta->filename, fn)) {
 							m_host->log(Error, format("Couldn't rename segment \"%s\" -> \"%s\". You may encounter playback errors.", meta->filename, fn).c_str());
 						}
@@ -354,7 +354,7 @@ class MPEG_DASH : public AdaptiveStreamingCommon, public gpacpp::Init {
 					}
 				}
 			} else {
-				log(Info, "Manifest rewritten for on-demand. Media files untouched.");
+				m_host->log(Info, "Manifest rewritten for on-demand. Media files untouched.");
 				mpd->mpd->type = GF_MPD_TYPE_STATIC;
 				mpd->mpd->minimum_update_period = 0;
 				mpd->mpd->media_presentation_duration = totalDurationInMs;

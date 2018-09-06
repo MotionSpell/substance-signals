@@ -18,8 +18,9 @@ void ensureDir(std::string path) {
 		mkdir(path);
 }
 
-AdaptiveStreamingCommon::AdaptiveStreamingCommon(Type type, uint64_t segDurationInMs, const std::string &manifestDir, AdaptiveStreamingCommonFlags flags)
-	: type(type), segDurationInMs(segDurationInMs), manifestDir(manifestDir), flags(flags) {
+AdaptiveStreamingCommon::AdaptiveStreamingCommon(IModuleHost* host, Type type, uint64_t segDurationInMs, const std::string &manifestDir, AdaptiveStreamingCommonFlags flags)
+	: m_host(host),
+	  type(type), segDurationInMs(segDurationInMs), manifestDir(manifestDir), flags(flags) {
 	if ((flags & ForceRealDurations) && !segDurationInMs)
 		throw error("Inconsistent parameters: ForceRealDurations flag requires a non-null segment duration.");
 	if (!manifestDir.empty() && (flags & SegmentsNotOwned))
@@ -163,7 +164,7 @@ std::shared_ptr<DataBase> AdaptiveStreamingCommon::getPresignalledData(uint64_t 
 }
 
 void AdaptiveStreamingCommon::threadProc() {
-	log(Info, "start processing at UTC: %sms.", (uint64_t)Modules::absUTCOffsetInMs);
+	m_host->log(Info, format("start processing at UTC: %sms.", (uint64_t)Modules::absUTCOffsetInMs).c_str());
 
 	auto const numInputs = getNumInputs() - 1;
 	for (int i = 0; i < numInputs; ++i) {
@@ -283,16 +284,16 @@ void AdaptiveStreamingCommon::threadProc() {
 			generateManifest();
 			totalDurationInMs += segDurationInMs;
 			auto utcInMs = int64_t(getUTC() * 1000);
-			log(Info, "Processes segment (total processed: %ss, UTC: %sms (deltaAST=%s, deltaInput=%s).",
-			    (double)totalDurationInMs / 1000, utcInMs, utcInMs - startTimeInMs, (int64_t)(utcInMs - curMediaTimeInMs));
+			m_host->log(Info, format("Processes segment (total processed: %ss, UTC: %sms (deltaAST=%s, deltaInput=%s).",
+			        (double)totalDurationInMs / 1000, utcInMs, utcInMs - startTimeInMs, (int64_t)(utcInMs - curMediaTimeInMs)).c_str());
 
 			if (type != Static) {
 				const int64_t durInMs = startTimeInMs + totalDurationInMs - utcInMs;
 				if (durInMs > 0) {
-					log(Debug, "Going to sleep for %s ms.", durInMs);
+					m_host->log(Debug, format("Going to sleep for %s ms.", durInMs).c_str());
 					std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 				} else {
-					log(Warning, "Late from %s ms.", -durInMs);
+					m_host->log(Warning, format("Late from %s ms.", -durInMs).c_str());
 				}
 			}
 		}
