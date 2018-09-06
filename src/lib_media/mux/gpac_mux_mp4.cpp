@@ -419,22 +419,24 @@ GPACMuxMP4::GPACMuxMP4(IModuleHost* host, Mp4MuxConfig const& cfg)
 		throw error("Inconsistent parameters: segmented policies require fragmentation to be enabled.");
 	if ((compatFlags & SmoothStreaming) && (segmentPolicy != IndependentSegment))
 		throw error("Inconsistent parameters: SmoothStreaming compatibility requires IndependentSegment policy.");
-	if ((compatFlags & FlushFragMemory) && ((!cfg.baseName.empty()) || (segmentPolicy != FragmentedSegment)))
+	if ((compatFlags & FlushFragMemory) && (!cfg.baseName.empty() || segmentPolicy != FragmentedSegment))
 		throw error("Inconsistent parameters: FlushFragMemory requires an empty segment name and FragmentedSegment policy.");
 
-	if (cfg.baseName.empty()) {
-		m_host->log(Info, "Working in memory mode.");
-	} else {
+	const char* pSegmentName = nullptr;
+
+	if (!cfg.baseName.empty()) {
 		if (segmentPolicy > NoSegment) {
 			segmentName = format("%s-init.mp4", cfg.baseName);
 		} else {
 			segmentName = format("%s.mp4", cfg.baseName);
 		}
 
-		m_host->log(Warning, format("Working in file mode: %s. This is deprecated.", segmentName).c_str());
+		pSegmentName = segmentName.c_str();
+
+		m_host->log(Warning, "File mode is deprecated");
 	}
 
-	isoInit = gf_isom_open(segmentName.empty() ? nullptr : segmentName.c_str(), GF_ISOM_OPEN_WRITE, nullptr);
+	isoInit = gf_isom_open(pSegmentName, GF_ISOM_OPEN_WRITE, nullptr);
 	if (!isoInit)
 		throw error(format("Cannot open isoInit file %s", segmentName));
 	isoCur = isoInit;
