@@ -2,10 +2,7 @@
 
 #include "adaptive_streaming_common.hpp"
 
-#include "../mux/libav_mux.hpp"
-#include "../common/libav.hpp"
 #include <lib_modules/utils/helper.hpp>
-#include <lib_modules/core/data_utc.hpp>
 #include <vector>
 #include <sstream>
 
