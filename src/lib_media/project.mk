@@ -21,6 +21,7 @@ LIB_MEDIA_SRCS:=\
   $(MYDIR)/out/null.cpp\
   $(MYDIR)/out/print.cpp\
   $(MYDIR)/stream/apple_hls.cpp\
+  $(MYDIR)/stream/hls_muxer_libav.cpp\
   $(MYDIR)/stream/mpeg_dash.cpp\
   $(MYDIR)/stream/ms_hss.cpp\
   $(MYDIR)/stream/adaptive_streaming_common.cpp\

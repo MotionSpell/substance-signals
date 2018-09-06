@@ -7,6 +7,7 @@
 #include "lib_media/encode/libav_encode.hpp"
 #include "lib_media/mux/mux_mp4_config.hpp"
 #include "lib_media/stream/apple_hls.hpp"
+#include "lib_media/stream/hls_muxer_libav.hpp"
 #include "lib_media/stream/mpeg_dash.hpp"
 #include "lib_media/stream/ms_hss.hpp"
 #include "modules_common.hpp"
@@ -639,7 +640,7 @@ unittest("[DISABLED] adaptive streaming combination coverage") {
 
 	std::vector<std::shared_ptr<IModule>> muxMP4File, muxMP4Mem, muxMP4MemFlushFrags;
 	auto muxCfgLibav = HlsMuxConfigLibav {segmentDurationInMs, "", "muxTSSeg_", format("-hls_time %s -hls_playlist_type event", segmentDurationInMs / 1000) };
-	auto muxTSSeg = create<Stream::LibavMuxHLSTS>(&NullHost, &muxCfgLibav);
+	auto muxTSSeg = loadModule("LibavMuxHLSTS", &NullHost, &muxCfgLibav);
 
 	auto muxCfg = HlsMuxConfig { "", "hls_ts.m3u8", Stream::AdaptiveStreamingCommon::Live, segmentDurationInMs, 0, false, Stream::AdaptiveStreamingCommon::SegmentsNotOwned | Stream::AdaptiveStreamingCommon::PresignalNextSegment | Stream::AdaptiveStreamingCommon::ForceRealDurations };
 	auto hls_ts = create<Stream::Apple_HLS>(&NullHost, &muxCfg);
