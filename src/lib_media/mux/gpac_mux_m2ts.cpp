@@ -11,47 +11,15 @@
 extern "C" {
 #include <libavformat/avformat.h>
 #include <gpac/mpegts.h>
-}
-
-struct AVPacket;
-
-extern "C" {
 #include <gpac/esi.h> // GF_ESInterface
 }
 
-namespace gpacpp {
-class M2TSMux;
-}
+using namespace Modules;
 
-namespace Modules {
-namespace Mux {
+namespace {
 
-typedef Queue<AVPacket*> DataInput;
-
-class GPACMuxMPEG2TS : public ModuleDynI, public gpacpp::Init {
-	public:
-		GPACMuxMPEG2TS(IModuleHost* host, TsMuxConfig* cfg);
-		~GPACMuxMPEG2TS();
-		void process() override;
-
-	private:
-		IModuleHost* const m_host;
-
-		void declareStream(Data data);
-		GF_Err fillInput(GF_ESInterface *esi, u32 ctrl_type, size_t inputIdx);
-		static GF_Err staticFillInput(GF_ESInterface *esi, u32 ctrl_type, void *param);
-
-		std::unique_ptr<gpacpp::M2TSMux> muxer;
-		std::vector<std::unique_ptr<DataInput>> inputData;
-		OutputDefault *output;
-};
-
-}
-}
-
-namespace gpacpp {
 // wrapper for GF_M2TS_Mux
-class M2TSMux : public Init {
+class M2TSMux : public gpacpp::Init {
 	public:
 		M2TSMux(bool real_time, unsigned mux_rate, unsigned pcr_ms = 100, int64_t pcr_init_val = -1) {
 			const GF_M2TS_PackMode single_au_pes = GF_M2TS_PACK_AUDIO_ONLY;
@@ -92,10 +60,26 @@ class M2TSMux : public Init {
 		GF_M2TS_Mux_Program *program = nullptr;
 		std::vector<std::unique_ptr<GF_ESInterface>> ifces;
 };
-}
 
-namespace Modules  {
-namespace Mux  {
+typedef Queue<AVPacket*> DataInput;
+
+class GPACMuxMPEG2TS : public ModuleDynI, public gpacpp::Init {
+	public:
+		GPACMuxMPEG2TS(IModuleHost* host, TsMuxConfig* cfg);
+		~GPACMuxMPEG2TS();
+		void process() override;
+
+	private:
+		IModuleHost* const m_host;
+
+		void declareStream(Data data);
+		GF_Err fillInput(GF_ESInterface *esi, u32 ctrl_type, size_t inputIdx);
+		static GF_Err staticFillInput(GF_ESInterface *esi, u32 ctrl_type, void *param);
+
+		std::unique_ptr<M2TSMux> muxer;
+		std::vector<std::unique_ptr<DataInput>> inputData;
+		OutputDefault *output;
+};
 
 struct UserData {
 	UserData(GPACMuxMPEG2TS *muxer, size_t inputIdx) : muxer(muxer), inputIdx(inputIdx) {}
@@ -104,7 +88,7 @@ struct UserData {
 };
 
 GPACMuxMPEG2TS::GPACMuxMPEG2TS(IModuleHost* host, TsMuxConfig* cfg)
-	:  m_host(host), muxer(new gpacpp::M2TSMux(cfg->real_time, cfg->mux_rate, cfg->pcr_ms, cfg->pcr_init_val)) {
+	:  m_host(host), muxer(new M2TSMux(cfg->real_time, cfg->mux_rate, cfg->pcr_ms, cfg->pcr_init_val)) {
 	output = addOutput<OutputDefault>();
 }
 
@@ -247,19 +231,11 @@ void GPACMuxMPEG2TS::process() {
 	}
 }
 
-}
-}
-
-
-namespace {
-
-using namespace Modules;
-
 Modules::IModule* createObject(IModuleHost* host, va_list va) {
 	auto config = va_arg(va, TsMuxConfig*);
 	enforce(host, "GPACMuxMPEG2TS: host can't be NULL");
 	enforce(config, "GPACMuxMPEG2TS: config can't be NULL");
-	return Modules::create<Mux::GPACMuxMPEG2TS>(host, config).release();
+	return Modules::create<GPACMuxMPEG2TS>(host, config).release();
 }
 
 auto const registered = Factory::registerModule("GPACMuxMPEG2TS", &createObject);
