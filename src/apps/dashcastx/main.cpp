@@ -36,6 +36,7 @@ Config parseCommandLine(int argc, char const* argv[]) {
 	opt.addFlag("l", "live", &cfg.isLive, "Run at system clock pace (otherwise runs as fast as possible).");
 	opt.addFlag("i", "loop", &cfg.loop, "Loops the input indefinitely.");
 	opt.addFlag("m", "monitor", &cfg.debugMonitor, "Show the transcoded video in monitor window (slows the transcoding down to live speed)");
+	opt.addFlag("d", "dump", &cfg.dumpGraph, "Dump the processing graph as .dot file");
 
 	auto args = opt.parse(argc, argv);
 
@@ -80,6 +81,9 @@ void safeMain(int argc, const char* argv[]) {
 	if(config.help)
 		return;
 	auto pipeline = buildPipeline(config);
+	if(config.dumpGraph)
+		printf("%s\n", pipeline->dump().c_str());
+
 	g_Pipeline = pipeline.get();
 
 	Tools::Profiler profilerProcessing(format("%s - processing time", g_appName));

@@ -22,5 +22,6 @@ struct Config {
 	bool autoRotate = false;
 	bool help = false;
 	bool debugMonitor = false;
+	bool dumpGraph = false;
 };
 
