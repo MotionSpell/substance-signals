@@ -1,7 +1,6 @@
 #include "tests/tests.hpp"
 #include "lib_pipeline/pipeline.hpp"
 #include "lib_modules/utils/helper.hpp"
-#include <sstream>
 
 using namespace Modules;
 using namespace Pipelines;
@@ -20,23 +19,6 @@ struct Dummy : public Module {
 	OutputDefault* output;
 };
 
-string replaceAll(string haystack, string needle, string with) {
-	auto pos = haystack.find(needle);
-
-	while( pos != std::string::npos) {
-		haystack.replace(pos, needle.size(), with);
-		pos = haystack.find(needle, pos + needle.size());
-	}
-
-	return haystack;
-}
-
-string formatPtr(void* p) {
-	stringstream ss;
-	ss << p;
-	return ss.str();
-}
-
 unittest("pipeline graph: empty") {
 	Pipeline p;
 	string expected =
@@ -49,7 +31,7 @@ unittest("pipeline graph: empty") {
 
 unittest("pipeline graph: add module") {
 	Pipeline p;
-	auto A = p.addModule<Dummy>();
+	p.addModule<Dummy>();
 	string expected =
 	    R"(digraph {
 	rankdir = "LR";
@@ -57,8 +39,7 @@ unittest("pipeline graph: add module") {
 }
 )";
 
-	auto str = replaceAll(p.dump(), formatPtr(A), "A");
-	ASSERT_EQUALS(expected, str);
+	ASSERT_EQUALS(expected, p.dump());
 }
 
 unittest("pipeline graph: add connection") {
@@ -75,10 +56,7 @@ unittest("pipeline graph: add connection") {
 }
 )";
 
-	auto str = p.dump();
-	str = replaceAll(str, formatPtr(A), "A");
-	str = replaceAll(str, formatPtr(B), "B");
-	ASSERT_EQUALS(expected, str);
+	ASSERT_EQUALS(expected, p.dump());
 }
 
 unittest("pipeline graph: disconnect") {
@@ -95,10 +73,7 @@ unittest("pipeline graph: disconnect") {
 }
 )";
 
-	auto str = p.dump();
-	str = replaceAll(str, formatPtr(A), "A");
-	str = replaceAll(str, formatPtr(B), "B");
-	ASSERT_EQUALS(expected, str);
+	ASSERT_EQUALS(expected, p.dump());
 }
 
 unittest("pipeline graph: remove module") {
