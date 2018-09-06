@@ -208,7 +208,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 
 			auto mp4config = Mp4MuxConfig{subdir + prefix, (uint64_t)cfg.segmentDurationInMs, FragmentedSegment, cfg.ultraLowLatency ? OneFragmentPerFrame : OneFragmentPerSegment};
 			auto muxer = pipeline->add("GPACMuxMP4", &mp4config);
-			pipeline->connect(compressed, GetInputPin(muxer));
+			pipeline->connect(compressed, muxer);
 
 			pipeline->connect(muxer, GetInputPin(dasher, numDashInputs));
 			++numDashInputs;
