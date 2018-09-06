@@ -24,8 +24,6 @@ class LibavMuxHLSTS : public ModuleDynI {
 			outputManifest = addOutput<OutputDataDefault<DataRaw>>();
 		}
 
-		virtual ~LibavMuxHLSTS() {}
-
 		void process() override {
 			ensureDelegateInputs();
 
