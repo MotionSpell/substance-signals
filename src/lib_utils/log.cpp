@@ -30,11 +30,7 @@ class Log : public LogSink {
 		}
 
 		void setLevel(Level level);
-		Level getLevel();
-
 		void setColor(bool isColored);
-		bool getColor();
-
 		void setSysLog(bool isSysLog);
 
 	private:
@@ -46,7 +42,7 @@ class Log : public LogSink {
 		void sendToSyslog(int level, const char* msg);
 
 		std::string getColorBegin(Level level) {
-			if (!Log::getColor()) return "";
+			if (!globalColor) return "";
 #ifdef _WIN32
 			if (console == NULL) {
 				CONSOLE_SCREEN_BUFFER_INFO console_info;
@@ -77,7 +73,7 @@ class Log : public LogSink {
 		}
 
 		std::string getColorEnd(Level /*level*/) {
-			if (!Log::getColor()) return "";
+			if (!globalColor) return "";
 #ifdef _WIN32
 			SetConsoleTextAttribute(console, console_attr_ori);
 #else
@@ -88,8 +84,6 @@ class Log : public LogSink {
 
 };
 
-const int levelToSysLog[] = { 3, 4, 6, 7 };
-
 static std::ostream& get(Level level) {
 	switch (level) {
 	case Info:
@@ -99,7 +93,14 @@ static std::ostream& get(Level level) {
 	}
 }
 
-static std::string getTime();
+static std::string getTime() {
+	char szOut[255];
+	const std::time_t t = std::time(nullptr);
+	const std::tm tm = *std::gmtime(&t);
+	auto const size = strftime(szOut, 255, "%Y/%m/%d %H:%M:%S", &tm);
+	return format("[%s][%s] ", std::string(szOut, size), (double)g_SystemClock->now());
+}
+
 
 void Log::send(Level level, const char* msg) {
 	if (globalSysLog) {
@@ -109,42 +110,12 @@ void Log::send(Level level, const char* msg) {
 	}
 }
 
-std::string getTime() {
-	char szOut[255];
-	const std::time_t t = std::time(nullptr);
-	const std::tm tm = *std::gmtime(&t);
-	auto const size = strftime(szOut, 255, "%Y/%m/%d %H:%M:%S", &tm);
-	return format("[%s][%s] ", std::string(szOut, size), (double)g_SystemClock->now());
-}
-
-Level parseLogLevel(const char* slevel) {
-	auto level = std::string(slevel);
-	if (level == "error") {
-		return Error;
-	} else if (level == "warning") {
-		return Warning;
-	} else if (level == "info") {
-		return Info;
-	} else if (level == "debug") {
-		return Debug;
-	} else
-		throw std::runtime_error(format("Unknown log level: \"%s\"", level));
-}
-
 void Log::setLevel(Level level) {
 	globalLogLevel = level;
 }
 
-Level Log::getLevel() {
-	return globalLogLevel;
-}
-
 void Log::setColor(bool isColored) {
 	globalColor = isColored;
-}
-
-bool Log::getColor() {
-	return globalColor;
 }
 
 void Log::setSysLog(bool isSysLog) {
@@ -163,6 +134,7 @@ void Log::setSysLog(bool isSysLog) {
 
 void Log::sendToSyslog(int level, const char* msg) {
 #ifndef _WIN32
+	static const int levelToSysLog[] = { 3, 4, 6, 7 };
 	::syslog(levelToSysLog[level], "%s", msg);
 #else
 	(void)level;
@@ -179,5 +151,24 @@ void setGlobalLogLevel(Level level) {
 
 void setGlobalSyslog(bool enable) {
 	globalLogger.setSysLog(enable);
+}
+
+void setGlobalLogColor(bool enable) {
+	globalLogger.setColor(enable);
+}
+
+// TODO: get rid of this
+Level parseLogLevel(const char* slevel) {
+	auto level = std::string(slevel);
+	if (level == "error") {
+		return Error;
+	} else if (level == "warning") {
+		return Warning;
+	} else if (level == "info") {
+		return Info;
+	} else if (level == "debug") {
+		return Debug;
+	} else
+		throw std::runtime_error(format("Unknown log level: \"%s\"", level));
 }
 
