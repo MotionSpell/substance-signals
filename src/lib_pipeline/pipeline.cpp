@@ -44,13 +44,12 @@ Pipeline::Pipeline(bool isLowLatency, Threading threading)
 Pipeline::~Pipeline() {
 }
 
-IPipelinedModule* Pipeline::addModuleInternal(std::unique_ptr<IModuleHost> host, std::shared_ptr<IModule> rawModule) {
-	auto& refMod = *rawModule;
-	auto name = typeid(refMod).name();
-	auto module = make_unique<PipelinedModule>(name, move(host), rawModule, this, threading, statsMem.get());
+IPipelinedModule* Pipeline::addModuleInternal(std::unique_ptr<ModuleHost> host, std::shared_ptr<IModule> rawModule) {
+	auto name = host->name;
+	auto module = make_unique<PipelinedModule>(name.c_str(), std::unique_ptr<IModuleHost>(host.release()), rawModule, this, threading, statsMem.get());
 	auto ret = module.get();
 	modules.push_back(std::move(module));
-	graph->nodes.push_back(Graph::Node{ret});
+	graph->nodes.push_back(Graph::Node{ret, name});
 	return ret;
 }
 
@@ -132,35 +131,11 @@ std::string Pipeline::dump() {
 	ss << "digraph {" << std::endl;
 	ss << "\trankdir = \"LR\";" << std::endl;
 
-	int idx = 0;
-	for (auto &node : graph->nodes) {
-		ss << "\t" << "subgraph cluster_" << idx++ << " {" << std::endl;
-		ss << "\t\tlabel = \"" << node.id << "\";" << std::endl;
+	for (auto &node : graph->nodes)
+		ss << "\t\"" << node.caption << "\";" << std::endl;
 
-		ss << "\t\t" << "subgraph cluster_inputs {" << std::endl;
-		ss << "\t\t\tlabel = \"inputs\";" << std::endl;
-		for (int i = 0; i < node.id->getNumInputs(); ++i) {
-			ss << "\t\t\t\"" << node.id << "_input_" << i << "\"";
-			ss << " [ label = \"" << i << "\" ]";
-			ss << ";" << std::endl;
-		}
-		ss << "\t\t" << "}" << std::endl;
-
-		ss << "\t\t" << "subgraph cluster_outputs {" << std::endl;
-		ss << "\t\t\tlabel = \"outputs\";" << std::endl;
-		for (int i = 0; i < node.id->getNumOutputs(); ++i) {
-			ss << "\t\t\t\"" << node.id << "_output_" << i << "\"";
-			ss << " [ label = \"" << i << "\" ]";
-			ss << ";" << std::endl;
-		}
-		ss << "\t\t" << "}" << std::endl;
-
-		ss << "\t" << "}" << std::endl << std::endl;
-	}
-
-	for (auto &conn : graph->connections) {
-		ss << "\t\"" << conn.src.id << "_output_" << conn.srcPort << "\" -> \"" << conn.dst.id << "_input_" << conn.dstPort << "\";" << std::endl;
-	}
+	for (auto &conn : graph->connections)
+		ss << "\t\"" << conn.src.caption << "\" -> \"" << conn.dst.caption << "\";" << std::endl;
 
 	ss << "}" << std::endl;
 	return ss.str();

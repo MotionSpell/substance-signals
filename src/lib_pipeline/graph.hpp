@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cassert>
 #include <vector>
+#include <string>
 
 namespace Pipelines {
 
@@ -12,6 +13,7 @@ struct Graph {
 	struct Node {
 		typedef IPipelinedModule* NodeId;
 		NodeId id;
+		std::string caption;
 	};
 
 	struct Connection {

@@ -53,18 +53,7 @@ unittest("pipeline graph: add module") {
 	string expected =
 	    R"(digraph {
 	rankdir = "LR";
-	subgraph cluster_0 {
-		label = "A";
-		subgraph cluster_inputs {
-			label = "inputs";
-			"A_input_0" [ label = "0" ];
-		}
-		subgraph cluster_outputs {
-			label = "outputs";
-			"A_output_0" [ label = "0" ];
-		}
-	}
-
+	"0";
 }
 )";
 
@@ -80,31 +69,9 @@ unittest("pipeline graph: add connection") {
 	string expected =
 	    R"(digraph {
 	rankdir = "LR";
-	subgraph cluster_0 {
-		label = "A";
-		subgraph cluster_inputs {
-			label = "inputs";
-			"A_input_0" [ label = "0" ];
-		}
-		subgraph cluster_outputs {
-			label = "outputs";
-			"A_output_0" [ label = "0" ];
-		}
-	}
-
-	subgraph cluster_1 {
-		label = "B";
-		subgraph cluster_inputs {
-			label = "inputs";
-			"B_input_0" [ label = "0" ];
-		}
-		subgraph cluster_outputs {
-			label = "outputs";
-			"B_output_0" [ label = "0" ];
-		}
-	}
-
-	"A_output_0" -> "B_input_0";
+	"0";
+	"1";
+	"0" -> "1";
 }
 )";
 
@@ -123,30 +90,8 @@ unittest("pipeline graph: disconnect") {
 	string expected =
 	    R"(digraph {
 	rankdir = "LR";
-	subgraph cluster_0 {
-		label = "A";
-		subgraph cluster_inputs {
-			label = "inputs";
-			"A_input_0" [ label = "0" ];
-		}
-		subgraph cluster_outputs {
-			label = "outputs";
-			"A_output_0" [ label = "0" ];
-		}
-	}
-
-	subgraph cluster_1 {
-		label = "B";
-		subgraph cluster_inputs {
-			label = "inputs";
-			"B_input_0" [ label = "0" ];
-		}
-		subgraph cluster_outputs {
-			label = "outputs";
-			"B_output_0" [ label = "0" ];
-		}
-	}
-
+	"0";
+	"1";
 }
 )";
 
