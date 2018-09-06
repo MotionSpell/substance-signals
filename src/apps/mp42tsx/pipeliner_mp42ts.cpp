@@ -28,7 +28,7 @@ void declarePipeline(Pipeline &pipeline, const mp42tsXOptions &opt) {
 
 	TsMuxConfig muxCfg;
 	muxCfg.mux_rate = 0;
-	auto m2tsmux = pipeline.addModule<Mux::GPACMuxMPEG2TS>(&muxCfg);
+	auto m2tsmux = pipeline.add("GPACMuxMPEG2TS", &muxCfg);
 	auto sink = createSink(isHLS);
 	for (int i = 0; i < demux->getNumOutputs(); ++i) {
 		if (demux->getOutputMetadata(i)->isVideo()) { //FIXME

@@ -1,11 +1,52 @@
 #include "gpac_mux_m2ts.hpp"
-#include "lib_utils/log_sink.hpp" // Debug
+#include "../common/gpacpp.hpp"
 #include "../common/libav.hpp"
+#include "lib_modules/utils/helper.hpp"
+#include "lib_modules/utils/helper_dyn.hpp"
+#include "lib_modules/utils/factory.hpp"
+#include "lib_utils/log_sink.hpp" // Debug
 #include <cassert>
+#include <vector>
 
 extern "C" {
 #include <libavformat/avformat.h>
 #include <gpac/mpegts.h>
+}
+
+struct AVPacket;
+
+extern "C" {
+#include <gpac/esi.h> // GF_ESInterface
+}
+
+namespace gpacpp {
+class M2TSMux;
+}
+
+namespace Modules {
+namespace Mux {
+
+typedef Queue<AVPacket*> DataInput;
+
+class GPACMuxMPEG2TS : public ModuleDynI, public gpacpp::Init {
+	public:
+		GPACMuxMPEG2TS(IModuleHost* host, TsMuxConfig* cfg);
+		~GPACMuxMPEG2TS();
+		void process() override;
+
+	private:
+		IModuleHost* const m_host;
+
+		void declareStream(Data data);
+		GF_Err fillInput(GF_ESInterface *esi, u32 ctrl_type, size_t inputIdx);
+		static GF_Err staticFillInput(GF_ESInterface *esi, u32 ctrl_type, void *param);
+
+		std::unique_ptr<gpacpp::M2TSMux> muxer;
+		std::vector<std::unique_ptr<DataInput>> inputData;
+		OutputDefault *output;
+};
+
+}
 }
 
 namespace gpacpp {
@@ -207,4 +248,19 @@ void GPACMuxMPEG2TS::process() {
 }
 
 }
+}
+
+
+namespace {
+
+using namespace Modules;
+
+Modules::IModule* createObject(IModuleHost* host, va_list va) {
+	auto config = va_arg(va, TsMuxConfig*);
+	enforce(host, "GPACMuxMPEG2TS: host can't be NULL");
+	enforce(config, "GPACMuxMPEG2TS: config can't be NULL");
+	return Modules::create<Mux::GPACMuxMPEG2TS>(host, config).release();
+}
+
+auto const registered = Factory::registerModule("GPACMuxMPEG2TS", &createObject);
 }
