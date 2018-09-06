@@ -2,11 +2,14 @@
 
 #include <lib_modules/utils/helper.hpp>
 #include <lib_modules/utils/helper_dyn.hpp>
+#include "lib_modules/utils/factory.hpp"
 #include <lib_modules/core/data_utc.hpp>
 #include "../mux/libav_mux.hpp"
 #include "../common/libav.hpp"
 
 using namespace Modules;
+
+namespace {
 
 class LibavMuxHLSTS : public ModuleDynI {
 	public:
@@ -86,4 +89,14 @@ class LibavMuxHLSTS : public ModuleDynI {
 		int64_t firstDTS = -1, segDuration, segIdx = 0;
 		std::string hlsDir, segBasename;
 };
+
+Modules::IModule* createObject(IModuleHost* host, va_list va) {
+	auto config = va_arg(va, HlsMuxConfigLibav*);
+	enforce(host, "LibavMuxHLSTS: host can't be NULL");
+	enforce(config, "LibavMuxHLSTS: config can't be NULL");
+	return Modules::create<LibavMuxHLSTS>(host, config).release();
+}
+
+auto const registered = Factory::registerModule("LibavMuxHLSTS", &createObject);
+}
 
