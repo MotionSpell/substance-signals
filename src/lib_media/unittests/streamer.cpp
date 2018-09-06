@@ -638,12 +638,15 @@ unittest("[DISABLED] adaptive streaming combination coverage") {
 	std::vector<std::shared_ptr<IModule>> encode;
 
 	std::vector<std::shared_ptr<IModule>> muxMP4File, muxMP4Mem, muxMP4MemFlushFrags;
-	auto muxTSSeg = create<Stream::LibavMuxHLSTS>(&NullHost, segmentDurationInMs, "", "muxTSSeg_", format("-hls_time %s -hls_playlist_type event", segmentDurationInMs / 1000));
+	auto muxCfgLibav = HlsMuxConfigLibav {segmentDurationInMs, "", "muxTSSeg_", format("-hls_time %s -hls_playlist_type event", segmentDurationInMs / 1000) };
+	auto muxTSSeg = create<Stream::LibavMuxHLSTS>(&NullHost, &muxCfgLibav);
 
-	auto hls_ts = create<Stream::Apple_HLS>(&NullHost, "", "hls_ts.m3u8", Stream::AdaptiveStreamingCommon::Live, segmentDurationInMs, 0, false, Stream::AdaptiveStreamingCommon::SegmentsNotOwned | Stream::AdaptiveStreamingCommon::PresignalNextSegment | Stream::AdaptiveStreamingCommon::ForceRealDurations);
+	auto muxCfg = HlsMuxConfig { "", "hls_ts.m3u8", Stream::AdaptiveStreamingCommon::Live, segmentDurationInMs, 0, false, Stream::AdaptiveStreamingCommon::SegmentsNotOwned | Stream::AdaptiveStreamingCommon::PresignalNextSegment | Stream::AdaptiveStreamingCommon::ForceRealDurations };
+	auto hls_ts = create<Stream::Apple_HLS>(&NullHost, &muxCfg);
 	std::vector<std::shared_ptr<IModule>> hls_mp4, dash, dashTimeline;
 	for (auto i = 0; i < 3; ++i) {
-		hls_mp4.push_back(create<Stream::Apple_HLS>(&NullHost, "", "hls_mp4.m3u8", Stream::AdaptiveStreamingCommon::Live, segmentDurationInMs, 0, true, Stream::AdaptiveStreamingCommon::SegmentsNotOwned | Stream::AdaptiveStreamingCommon::PresignalNextSegment | Stream::AdaptiveStreamingCommon::ForceRealDurations));
+		auto muxCfgMp4 = HlsMuxConfig {"", "hls_mp4.m3u8", Stream::AdaptiveStreamingCommon::Live, segmentDurationInMs, 0, true, Stream::AdaptiveStreamingCommon::SegmentsNotOwned | Stream::AdaptiveStreamingCommon::PresignalNextSegment | Stream::AdaptiveStreamingCommon::ForceRealDurations };
+		hls_mp4.push_back(create<Stream::Apple_HLS>(&NullHost, &muxCfgMp4));
 		auto dashCfg = Modules::DasherConfig { "", "dash.mpd", true, segmentDurationInMs, 0, segmentDurationInMs, 0, std::vector<std::string>(), "id", 0, Stream::AdaptiveStreamingCommon::SegmentsNotOwned | Stream::AdaptiveStreamingCommon::PresignalNextSegment | Stream::AdaptiveStreamingCommon::ForceRealDurations };
 		dash.push_back(loadModule("MPEG_DASH", &NullHost, &dashCfg));
 		auto dashTimelineCfg = Modules::DasherConfig {"", "dash.mpd", true, 0, 0, segmentDurationInMs, 0, std::vector<std::string>(), "id", 0};

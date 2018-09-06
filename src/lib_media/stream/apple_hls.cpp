@@ -5,11 +5,11 @@
 namespace Modules {
 namespace Stream {
 
-Apple_HLS::Apple_HLS(IModuleHost* host, const std::string &m3u8Dir, const std::string &m3u8Filename, Type type, uint64_t segDurationInMs, uint64_t timeShiftBufferDepthInMs, bool genVariantPlaylist, AdaptiveStreamingCommonFlags flags)
-	: AdaptiveStreamingCommon(type, segDurationInMs, m3u8Dir, flags | (genVariantPlaylist ? SegmentsNotOwned : None)),
+Apple_HLS::Apple_HLS(IModuleHost* host, HlsMuxConfig* cfg)
+	: AdaptiveStreamingCommon(cfg->type, cfg->segDurationInMs, cfg->m3u8Dir, cfg->flags | (cfg->genVariantPlaylist ? SegmentsNotOwned : None)),
 	  m_host(host),
-	  playlistMasterPath(format("%s%s", m3u8Dir, m3u8Filename)),
-	  genVariantPlaylist(genVariantPlaylist), timeShiftBufferDepthInMs(timeShiftBufferDepthInMs) {
+	  playlistMasterPath(format("%s%s", cfg->m3u8Dir, cfg->m3u8Filename)),
+	  genVariantPlaylist(cfg->genVariantPlaylist), timeShiftBufferDepthInMs(cfg->timeShiftBufferDepthInMs) {
 	if (segDurationInMs % 1000)
 		throw error("Segment duration must be an integer number of seconds.");
 }

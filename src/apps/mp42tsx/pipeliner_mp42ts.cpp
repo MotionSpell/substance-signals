@@ -14,7 +14,8 @@ void declarePipeline(Pipeline &pipeline, const mp42tsXOptions &opt) {
 		if (isHLS) {
 			const bool isLive = false; //TODO
 			const uint64_t segmentDurationInMs = 10000; //TODO
-			return pipeline.addModule<Stream::Apple_HLS>("", "mp42tsx.m3u8", isLive ? Modules::Stream::Apple_HLS::Live : Modules::Stream::Apple_HLS::Static, segmentDurationInMs);
+			auto cfg = HlsMuxConfig {"", "mp42tsx.m3u8", isLive ? Modules::Stream::Apple_HLS::Live : Modules::Stream::Apple_HLS::Static, segmentDurationInMs };
+			return pipeline.addModule<Stream::Apple_HLS>(&cfg);
 		} else {
 			return pipeline.addModule<Out::File>(opt.output);
 		}

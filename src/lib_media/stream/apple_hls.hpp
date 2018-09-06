@@ -10,15 +10,33 @@
 #include <vector>
 #include <sstream>
 
+struct HlsMuxConfigLibav {
+	uint64_t segDurationInMs;
+	std::string baseDir;
+	std::string baseName;
+	std::string options = "";
+};
+
+struct HlsMuxConfig {
+	std::string m3u8Dir;
+	std::string m3u8Filename;
+	Modules::Stream::AdaptiveStreamingCommon::Type type;
+	uint64_t segDurationInMs;
+	uint64_t timeShiftBufferDepthInMs = 0;
+	bool genVariantPlaylist = false;
+	Modules::Stream::AdaptiveStreamingCommon::AdaptiveStreamingCommonFlags flags = Modules::Stream::AdaptiveStreamingCommon::None;
+};
+
 namespace Modules {
 namespace Stream {
 
 #ifdef LIBAVMUXHLS
+
 class LibavMuxHLSTS : public ModuleDynI {
 	public:
-		LibavMuxHLSTS(IModuleHost* host, uint64_t segDurationInMs, const std::string &baseDir, const std::string &baseName, const std::string &options = "")
-			: m_host(host), segDuration(timescaleToClock(segDurationInMs, 1000)), hlsDir(baseDir), segBasename(baseName) {
-			delegate = create<Mux::LibavMux>(m_host, MuxConfig{format("%s%s", hlsDir, baseName), "hls", options});
+		LibavMuxHLSTS(IModuleHost* host, HlsMuxConfigLibav* cfg)
+			: m_host(host), segDuration(timescaleToClock(cfg->segDurationInMs, 1000)), hlsDir(cfg->baseDir), segBasename(cfg->baseName) {
+			delegate = create<Mux::LibavMux>(m_host, MuxConfig{format("%s%s", hlsDir, cfg->baseName), "hls", cfg->options});
 			addInput(new Input(this));
 			outputSegment  = addOutput<OutputDataDefault<DataRaw>>();
 			outputManifest = addOutput<OutputDataDefault<DataRaw>>();
@@ -96,7 +114,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 
 class Apple_HLS : public AdaptiveStreamingCommon {
 	public:
-		Apple_HLS(IModuleHost* host, const std::string &m3u8Dir, const std::string &m3u8Filename, Type type, uint64_t segDurationInMs, uint64_t timeShiftBufferDepthInMs = 0, bool genVariantPlaylist = false, AdaptiveStreamingCommonFlags flags = None);
+		Apple_HLS(IModuleHost* host, HlsMuxConfig* cfg);
 		virtual ~Apple_HLS();
 
 	private:
