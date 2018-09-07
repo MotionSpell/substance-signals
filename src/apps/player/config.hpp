@@ -8,5 +8,6 @@ struct Config {
 	int logLevel = 1;
 	int stopAfterMs = -1; // by default, wait until the end of stream
 	bool noRenderer = false;
+	bool help = false;
 };
 

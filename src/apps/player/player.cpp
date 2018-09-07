@@ -16,14 +16,19 @@ Config parseCommandLine(int argc, char const* argv[]) {
 	opt.addFlag("l", "lowlatency", &cfg.lowLatency, "Use low latency");
 	opt.add("g", "loglevel", &cfg.logLevel, "Log level");
 	opt.add("a", "stop-after", &cfg.stopAfterMs, "Stop after X ms");
-	opt.add("n", "no-renderer", &cfg.noRenderer, "Stop after X ms");
+	opt.add("n", "no-renderer", &cfg.noRenderer, "Don't render anything (headless), decode only");
+	opt.addFlag("h", "help", &cfg.help, "Print usage and exit.");
 
 	auto files = opt.parse(argc, argv);
-	if (files.size() != 1) {
-		printf("Usage: player <URL>\n");
+
+	if(cfg.help) {
+		printf("Usage: %s [options] <URL>\nOptions:\n", argv[0]);
 		opt.printHelp();
-		throw std::runtime_error("invalid command line");
+		return cfg;
 	}
+
+	if (files.size() != 1)
+		throw std::runtime_error("invalid command line, use --help");
 
 	cfg.url = files[0];
 
@@ -33,6 +38,8 @@ Config parseCommandLine(int argc, char const* argv[]) {
 
 int safeMain(int argc, char const* argv[]) {
 	auto const cfg = parseCommandLine(argc, argv);
+	if(cfg.help)
+		return 0;
 
 	setGlobalLogLevel((Level)cfg.logLevel);
 
