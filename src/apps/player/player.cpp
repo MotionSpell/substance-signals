@@ -1,7 +1,6 @@
 #include "pipeliner_player.hpp"
 #include "config.hpp"
 #include "lib_appcommon/options.hpp"
-#include <iostream>
 #include <chrono>
 #include <thread>
 
@@ -21,7 +20,7 @@ Config parseCommandLine(int argc, char const* argv[]) {
 
 	auto files = opt.parse(argc, argv);
 	if (files.size() != 1) {
-		std::cout << "Usage: player <URL>" << std::endl;
+		printf("Usage: player <URL>\n");
 		opt.printHelp();
 		throw std::runtime_error("invalid command line");
 	}
@@ -53,7 +52,7 @@ int main(int argc, char const* argv[]) {
 	try {
 		return safeMain(argc, argv);
 	} catch(std::exception const& e) {
-		std::cerr << "Error: " << e.what() << std::endl;
+		fprintf(stderr, "Error: %s\n", e.what());
 		return 1;
 	}
 }
