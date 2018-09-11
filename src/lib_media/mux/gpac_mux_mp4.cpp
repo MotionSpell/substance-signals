@@ -1018,7 +1018,7 @@ std::unique_ptr<gpacpp::IsoSample> GPACMuxMP4::fillSample(Data data_) {
 		auto const ctsOffset = data->getPacket()->pts - data->getPacket()->dts;
 		sample->CTS_Offset = (s32)convertToTimescale(ctsOffset, metaPkt->getTimeScale().num, metaPkt->getTimeScale().den * mediaTs);
 	} else {
-		m_host->log(Warning, format("Missing PTS (input DTS=%s, ts=%s/%s): output MP4 may be incorrect.", data->getPacket()->dts, metaPkt->getTimeScale().num, metaPkt->getTimeScale().den).c_str());
+		m_host->log(Error, format("Missing PTS (input DTS=%s, ts=%s/%s): output MP4 may be incorrect.", data->getPacket()->dts, metaPkt->getTimeScale().num, metaPkt->getTimeScale().den).c_str());
 	}
 	sample->IsRAP = (SAPType)(data->getPacket()->flags & AV_PKT_FLAG_KEY);
 
