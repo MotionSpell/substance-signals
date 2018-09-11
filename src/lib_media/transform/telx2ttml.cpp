@@ -9,7 +9,7 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 }
 
-//#define DEBUG_DISPLAY_TIMESTAMPS
+auto const DEBUG_DISPLAY_TIMESTAMPS = false;
 
 namespace Modules {
 namespace Transform {
@@ -29,10 +29,8 @@ const std::string Page::toString() const {
 
 const std::string Page::toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs, uint64_t idx) const {
 	std::stringstream ttml;
-#ifndef DEBUG_DISPLAY_TIMESTAMPS
-	if (!lines.empty())
-#endif
-	{
+
+	if (!lines.empty() || DEBUG_DISPLAY_TIMESTAMPS) {
 		const size_t timecodeSize = 24;
 		char timecodeShow[timecodeSize] = { 0 };
 		timeInMsToStr(startTimeInMs, timecodeShow, ".");
@@ -42,24 +40,24 @@ const std::string Page::toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs, uin
 		timecodeHide[timecodeSize-1] = 0;
 
 		ttml << "      <p region=\"Region\" style=\"textAlignment_0\" begin=\"" << timecodeShow << "\" end=\"" << timecodeHide << "\" xml:id=\"s" << idx << "\">\n";
-#ifdef DEBUG_DISPLAY_TIMESTAMPS
-		ttml << "        <span style=\"Style0_0\">" << timecodeShow << " - " << timecodeHide << "</span>\n";
-#else
-		ttml << "        <span style=\"Style0_0\">";
+		if(DEBUG_DISPLAY_TIMESTAMPS) {
+			ttml << "        <span style=\"Style0_0\">" << timecodeShow << " - " << timecodeHide << "</span>\n";
+		} else {
+			ttml << "        <span style=\"Style0_0\">";
 
-		auto const numLines = lines.size();
-		if (numLines > 0) {
-			auto const numEffectiveLines = lines[numLines-1]->str().empty() ? numLines-1 : numLines;
-			if (numEffectiveLines > 0) {
-				for (size_t i = 0; i < numEffectiveLines - 1; ++i) {
-					ttml << lines[i]->str() << "<br/>\r\n";
+			auto const numLines = lines.size();
+			if (numLines > 0) {
+				auto const numEffectiveLines = lines[numLines-1]->str().empty() ? numLines-1 : numLines;
+				if (numEffectiveLines > 0) {
+					for (size_t i = 0; i < numEffectiveLines - 1; ++i) {
+						ttml << lines[i]->str() << "<br/>\r\n";
+					}
+					ttml << lines[numEffectiveLines - 1]->str();
 				}
-				ttml << lines[numEffectiveLines - 1]->str();
 			}
-		}
 
-		ttml << "</span>\n";
-#endif
+			ttml << "</span>\n";
+		}
 		ttml << "      </p>\n";
 	}
 	return ttml.str();
@@ -123,25 +121,25 @@ const std::string TeletextToTTML::toTTML(uint64_t startTimeInMs, uint64_t endTim
 	default: throw error("Unknown timing policy (1)");
 	}
 
-#ifdef DEBUG_DISPLAY_TIMESTAMPS
-	auto pageOut = make_unique<Page>();
-	ttml << pageOut->toTTML(offsetInMs + startTimeInMs, offsetInMs + endTimeInMs, startTimeInMs / clockToTimescale(this->splitDurationIn180k, 1000));
-#else
-	auto page = currentPages.begin();
-	while (page != currentPages.end()) {
-		if ((*page)->endTimeInMs > startTimeInMs && (*page)->startTimeInMs < endTimeInMs) {
-			auto localStartTimeInMs = std::max<uint64_t>((*page)->startTimeInMs, startTimeInMs);
-			auto localEndTimeInMs = std::min<uint64_t>((*page)->endTimeInMs, endTimeInMs);
-			m_host->log(Debug, format("[%s-%s]: %s - %s: %s", startTimeInMs, endTimeInMs, localStartTimeInMs, localEndTimeInMs, (*page)->toString()).c_str());
-			ttml << (*page)->toTTML(localStartTimeInMs + offsetInMs, localEndTimeInMs + offsetInMs, startTimeInMs / clockToTimescale(this->splitDurationIn180k, 1000));
-		}
-		if ((*page)->endTimeInMs <= endTimeInMs) {
-			page = currentPages.erase(page);
-		} else {
-			++page;
+	if(DEBUG_DISPLAY_TIMESTAMPS) {
+		auto pageOut = make_unique<Page>();
+		ttml << pageOut->toTTML(offsetInMs + startTimeInMs, offsetInMs + endTimeInMs, startTimeInMs / clockToTimescale(this->splitDurationIn180k, 1000));
+	} else {
+		auto page = currentPages.begin();
+		while (page != currentPages.end()) {
+			if ((*page)->endTimeInMs > startTimeInMs && (*page)->startTimeInMs < endTimeInMs) {
+				auto localStartTimeInMs = std::max<uint64_t>((*page)->startTimeInMs, startTimeInMs);
+				auto localEndTimeInMs = std::min<uint64_t>((*page)->endTimeInMs, endTimeInMs);
+				m_host->log(Debug, format("[%s-%s]: %s - %s: %s", startTimeInMs, endTimeInMs, localStartTimeInMs, localEndTimeInMs, (*page)->toString()).c_str());
+				ttml << (*page)->toTTML(localStartTimeInMs + offsetInMs, localEndTimeInMs + offsetInMs, startTimeInMs / clockToTimescale(this->splitDurationIn180k, 1000));
+			}
+			if ((*page)->endTimeInMs <= endTimeInMs) {
+				page = currentPages.erase(page);
+			} else {
+				++page;
+			}
 		}
 	}
-#endif /*DEBUG_DISPLAY_TIMESTAMPS*/
 
 	ttml << "    </div>\n";
 	ttml << "  </body>\n";
