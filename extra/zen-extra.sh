@@ -39,7 +39,6 @@ function get_root_packages
   echo libcurl
   echo libjpeg-turbo
   echo libsdl2
-  echo optionparser
   echo rapidjson
 }
 
