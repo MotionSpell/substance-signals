@@ -198,7 +198,7 @@ IModule* createObject(IModuleHost* host, va_list va) {
 	auto samples = va_arg(va, int);
 	enforce(host, "AudioConvert: host can't be NULL");
 	enforce(dst, "AudioConvert: dst format can't be NULL");
-	enforce(samples == -1 || (samples >= 0 && samples < 1024 * 1024), "AudioConvert: sample count must be valid");
+	enforce(samples == -1 || (samples >= 0 && samples < 1024 * 1024), format("AudioConvert: sample count (%s) must be valid", samples).c_str());
 	if(!src)
 		return Modules::create<AudioConvert>(host, *dst, samples).release();
 	else
