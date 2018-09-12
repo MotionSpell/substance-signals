@@ -20,7 +20,6 @@ typedef struct {
 
 typedef struct {
 	Bool progInfoProcessed;
-	Bool PTSIsInit;
 } State;
 
 // entities, used in color mode, to replace unsafe HTML tag chars

@@ -25,10 +25,9 @@ namespace {
 struct Config : public Modules::Transform::ITelxConfig {
 	uint16_t page = 0;
 	uint8_t colors = No;   // output <font...></font> tags
-	uint64_t UTCReferenceTime = 0;
 	uint8_t seMode = No;
 	PrimaryCharset primaryCharset = { 0x00, Undef, Undef };
-	State states = { No, No };
+	State states = { No };
 	uint32_t framesProduced = 0;
 	uint8_t cc_map[256] = { 0 };
 	TransmissionMode transmissionMode = Serial;
@@ -392,10 +391,6 @@ std::unique_ptr<Modules::Transform::Page> process_telx_packet(Config &config, Da
 				t += (((packet->data[15] & 0xf0) >> 4) * 10 + (packet->data[15] & 0x0f));
 				t -= 40271;
 
-				if (config.seMode == Yes) {
-					config.UTCReferenceTime = t;
-					config.states.PTSIsInit = No;
-				}
 				config.states.progInfoProcessed = Yes;
 			}
 		}
