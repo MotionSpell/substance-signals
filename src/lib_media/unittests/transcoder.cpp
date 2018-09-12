@@ -1,6 +1,6 @@
 #include "tests/tests.hpp"
 #include "lib_modules/modules.hpp"
-#include "lib_media/common/libav.hpp" // MetadataPktLibavVideo
+#include "lib_media/common/picture.hpp" // PictureFormat
 #include "lib_modules/utils/loader.hpp"
 #include "lib_media/common/metadata.hpp"
 #include "lib_media/demux/libav_demux.hpp"
@@ -47,6 +47,7 @@ void libav_mux(std::string format) {
 	ConnectOutputToInput(encode->getOutput(0), mux->getInput(0));
 
 	demux->process();
+}
 }
 
 unittest("transcoder: video simple (libav mux MP4)") {
@@ -142,6 +143,8 @@ unittest("transcoder: jpg to resized jpg (YUV420)") {
 	resizeJPGTest(YUV420P);
 }
 
+#include "lib_media/common/libav.hpp" // MetadataPktLibavVideo
+
 unittest("transcoder: h264/mp4 to jpg") {
 	DemuxConfig cfg;
 	cfg.url = "data/beepbop.mp4";
@@ -195,4 +198,3 @@ unittest("transcoder: jpg to h264/mp4 (gpac)") {
 	mux->flush();
 }
 
-}
