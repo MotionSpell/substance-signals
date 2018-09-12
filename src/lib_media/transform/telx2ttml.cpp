@@ -212,8 +212,8 @@ void TeletextToTTML::processTelx(Data sub) {
 	auto data = sub->data();
 	auto &cfg = *dynamic_cast<Config*>(config.get());
 	cfg.page = pageNum;
-	size_t i = 1;
-	while (i <= data.len - 6) {
+	int i = 1;
+	while (i <= int(data.len) - 6) {
 		auto dataUnitId = (DataUnit)data.ptr[i++];
 		auto const dataUnitSize = data.ptr[i++];
 		const uint8_t telxPayloadSize = 44;
