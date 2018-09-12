@@ -1,14 +1,26 @@
 #include "telx2ttml.hpp"
-
-#include "lib_modules/utils/helper.hpp"
 #include "../common/libav.hpp"
+#include "lib_modules/utils/factory.hpp"
+#include "lib_modules/utils/helper.hpp"
+#include "lib_utils/log_sink.hpp" // Warning
+#include "lib_utils/time.hpp" // timeInMsToStr
 #include <vector>
+
+extern "C" {
+#include <libavcodec/avcodec.h> // AVCodecContext
+}
+
+auto const DEBUG_DISPLAY_TIMESTAMPS = false;
 
 namespace Modules {
 namespace Transform {
 
 struct Page {
-	Page();
+	Page() {
+		lines.push_back(make_unique<std::stringstream>());
+		ss = lines[0].get();
+	}
+
 	std::string toString() const;
 	std::string toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs, uint64_t idx) const;
 	std::string toSRT();
@@ -56,33 +68,10 @@ class TeletextToTTML : public ModuleS {
 }
 }
 
-
-#include "lib_utils/time.hpp" // timeInMsToStr
-#include "lib_utils/log_sink.hpp" // Warning
-#include "lib_modules/utils/factory.hpp"
-#include <sstream>
-
-extern "C" {
-#include <libavcodec/avcodec.h>
-}
-
-auto const DEBUG_DISPLAY_TIMESTAMPS = false;
-
-namespace Modules {
-namespace Transform {
-
-}
-}
-
 #include "telx.hpp"
 
 namespace Modules {
 namespace Transform {
-
-Page::Page() {
-	lines.push_back(make_unique<std::stringstream>());
-	ss = lines[0].get();
-}
 
 std::string Page::toString() const {
 	std::stringstream str;
