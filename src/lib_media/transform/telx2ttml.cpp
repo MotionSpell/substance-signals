@@ -81,8 +81,10 @@ struct ITelxConfig {
 
 #include "telx.hpp" // requires 'Page' definition
 
-namespace Modules {
-namespace Transform {
+using namespace Modules;
+using namespace Transform;
+
+namespace {
 
 class TeletextToTTML : public ModuleS {
 	public:
@@ -255,18 +257,11 @@ void TeletextToTTML::process(Data data) {
 	dispatch();
 }
 
-}
-}
-
-namespace {
-
-using namespace Modules;
-
 Modules::IModule* createObject(IModuleHost* host, va_list va) {
 	auto config = va_arg(va, TeletextToTtmlConfig*);
 	enforce(host, "TeletextToTTML: host can't be NULL");
 	enforce(config, "TeletextToTTML: config can't be NULL");
-	return Modules::create<Transform::TeletextToTTML>(host, config).release();
+	return Modules::create<TeletextToTTML>(host, config).release();
 }
 
 auto const registered = Factory::registerModule("TeletextToTTML", &createObject);
