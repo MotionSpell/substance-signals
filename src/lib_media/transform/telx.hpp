@@ -23,12 +23,8 @@ constexpr size_t NELEMENTS(T const (&array)[N]) {
 namespace {
 
 struct Config : public Modules::Transform::ITelxConfig {
-	uint8_t verbose = No;
 	uint16_t page = 0;
-	uint16_t tid = 0;      // 13 bits packet ID for teletext stream
 	uint8_t colors = No;   // output <font...></font> tags
-	uint8_t bom = Yes;
-	uint8_t nonempty = No; // produce at least one (dummy) frame
 	uint64_t UTCReferenceTime = 0;
 	uint8_t seMode = No;
 	PrimaryCharset primaryCharset = { 0x00, Undef, Undef };
