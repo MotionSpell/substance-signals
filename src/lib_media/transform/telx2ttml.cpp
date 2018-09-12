@@ -1,13 +1,8 @@
 #include "telx2ttml.hpp"
-#include "lib_utils/time.hpp"
-#include "lib_utils/log_sink.hpp" // Warning
-#include <sstream>
 
-extern "C" {
-#include <libavcodec/avcodec.h>
-}
-
-auto const DEBUG_DISPLAY_TIMESTAMPS = false;
+#include "lib_modules/utils/helper.hpp"
+#include "../common/libav.hpp"
+#include <vector>
 
 namespace Modules {
 namespace Transform {
@@ -23,6 +18,59 @@ struct Page {
 	std::vector<std::unique_ptr<std::stringstream>> lines;
 	std::stringstream *ss = nullptr;
 };
+
+struct ITelxConfig {
+	virtual ~ITelxConfig() {}
+};
+
+class TeletextToTTML : public ModuleS {
+	public:
+		enum TimingPolicy {
+			AbsoluteUTC,     //USP
+			RelativeToMedia, //14496-30
+			RelativeToSplit  //MSS
+		};
+
+		TeletextToTTML(IModuleHost* host, TeletextToTtmlConfig* cfg);
+		void process(Data data) override;
+
+	private:
+		const std::string toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs);
+		void sendSample(const std::string &sample);
+		void processTelx(DataAVPacket const * const pkt);
+		void dispatch();
+
+		IModuleHost* const m_host;
+		std::function<int64_t()> getUtcPipelineStartTime;
+		OutputDataDefault<DataAVPacket> *output;
+		const unsigned pageNum;
+		std::string lang;
+		const TeletextToTtmlConfig::TimingPolicy timingPolicy;
+		int64_t intClock = 0, extClock = 0;
+		const uint64_t maxPageDurIn180k, splitDurationIn180k;
+		uint64_t firstDataAbsTimeInMs = 0;
+		std::vector<std::unique_ptr<Page>> currentPages;
+		std::unique_ptr<ITelxConfig> config;
+};
+
+}
+}
+
+
+#include "lib_utils/time.hpp" // timeInMsToStr
+#include "lib_utils/log_sink.hpp" // Warning
+#include "lib_modules/utils/factory.hpp"
+#include <sstream>
+
+extern "C" {
+#include <libavcodec/avcodec.h>
+}
+
+auto const DEBUG_DISPLAY_TIMESTAMPS = false;
+
+namespace Modules {
+namespace Transform {
+
 }
 }
 
@@ -180,9 +228,6 @@ TeletextToTTML::TeletextToTTML(IModuleHost* host, TeletextToTtmlConfig* cfg)
 	output = addOutput<OutputDataDefault<DataAVPacket>>();
 }
 
-TeletextToTTML::~TeletextToTTML() {
-}
-
 void TeletextToTTML::sendSample(const std::string &sample) {
 	auto out = output->getBuffer(0);
 	out->setMediaTime(intClock);
@@ -257,4 +302,18 @@ void TeletextToTTML::process(Data data) {
 }
 
 }
+}
+
+namespace {
+
+using namespace Modules;
+
+Modules::IModule* createObject(IModuleHost* host, va_list va) {
+	auto config = va_arg(va, TeletextToTtmlConfig*);
+	enforce(host, "TeletextToTTML: host can't be NULL");
+	enforce(config, "TeletextToTTML: config can't be NULL");
+	return Modules::create<Transform::TeletextToTTML>(host, config).release();
+}
+
+auto const registered = Factory::registerModule("TeletextToTTML", &createObject);
 }
