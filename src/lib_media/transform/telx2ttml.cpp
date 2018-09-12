@@ -105,7 +105,7 @@ class TeletextToTTML : public ModuleS {
 		std::function<int64_t()> getUtcPipelineStartTime;
 		OutputDataDefault<DataAVPacket> *output;
 		const unsigned pageNum;
-		std::string lang;
+		const std::string lang;
 		const TeletextToTtmlConfig::TimingPolicy timingPolicy;
 		int64_t intClock = 0, extClock = 0;
 		const uint64_t maxPageDurIn180k, splitDurationIn180k;
