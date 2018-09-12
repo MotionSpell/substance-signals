@@ -20,7 +20,7 @@ std::shared_ptr<DataBase> createPacket(uint8_t const (&bytes)[numBytes]) {
 std::shared_ptr<DataBase> getTeletextTestFrame() {
 	static const uint8_t teletext[] = {
 		// garbage data
-		0xde, 0xad, 0xbe, 0xef, 0x4a, 0xce, 0x00, 0x00,
+		0xde, 0x03, 0x2c, 0x03, 0xde, 0x07, 0x55, 0x00, 0x00,
 	};
 
 	auto r= createPacket(teletext);
