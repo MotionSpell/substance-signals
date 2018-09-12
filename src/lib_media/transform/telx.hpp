@@ -93,7 +93,7 @@ struct Config : public Modules::Transform::ITelxConfig {
 
 uint16_t telx_to_ucs2(uint8_t c, Config &config) {
 	if (Parity8[c] == 0) {
-		g_Log->log(Warning, format("Teletext: Unrecoverable data error (5): %s", c).c_str());
+		g_Log->log(Warning, format("Teletext: unrecoverable data error (5): %s", c).c_str());
 		return 0x20;
 	}
 

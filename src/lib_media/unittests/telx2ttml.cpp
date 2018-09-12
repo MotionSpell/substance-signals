@@ -3,6 +3,8 @@
 #include "lib_modules/utils/loader.hpp"
 #include "lib_media/common/metadata.hpp"
 #include "lib_media/transform/telx2ttml.hpp"
+#include "lib_utils/log_sink.hpp"
+#include "lib_utils/log.hpp" // g_Log
 #include <string.h>
 
 using namespace Tests;
@@ -29,6 +31,22 @@ std::shared_ptr<DataBase> getTeletextTestFrame() {
 }
 }
 unittest("telx2ttml: simple") {
+
+	struct ScopedNullLogger : private LogSink {
+			ScopedNullLogger() : oldLog(g_Log) {
+				g_Log= this;
+			}
+			~ScopedNullLogger() {
+				g_Log = oldLog;
+			}
+
+			void log(Level, const char* ) {}
+		private:
+			LogSink* const oldLog;
+	};
+
+	ScopedNullLogger silence_logging;
+
 	TeletextToTtmlConfig cfg;
 	auto reader = loadModule("TeletextToTTML", &NullHost, &cfg);
 	reader->getInput(0)->push(getTeletextTestFrame());
