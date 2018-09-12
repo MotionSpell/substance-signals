@@ -1,4 +1,3 @@
-#include "lib_modules/core/data_utc.hpp"
 #include "telx2ttml.hpp"
 #include "telx.hpp"
 #include "lib_utils/time.hpp"
@@ -155,7 +154,9 @@ const std::string TeletextToTTML::toTTML(uint64_t startTimeInMs, uint64_t endTim
 
 TeletextToTTML::TeletextToTTML(IModuleHost* host, TeletextToTtmlConfig* cfg)
 	: m_host(host),
+	  getUtcPipelineStartTime(cfg->getUtcPipelineStartTime),
 	  pageNum(cfg->pageNum), lang(cfg->lang), timingPolicy(cfg->timingPolicy), maxPageDurIn180k(timescaleToClock(cfg->maxDelayBeforeEmptyInMs, 1000)), splitDurationIn180k(timescaleToClock(cfg->splitDurationInMs, 1000)) {
+	enforce(getUtcPipelineStartTime != nullptr, "TeletextToTTML: getUtcPipelineStartTime can't be NULL");
 	config = make_unique<Config>();
 	addInput(this);
 	output = addOutput<OutputDataDefault<DataAVPacket>>();
@@ -222,7 +223,7 @@ void TeletextToTTML::process(Data data) {
 	if (inputs[0]->updateMetadata(data))
 		output->setMetadata(data->getMetadata());
 	if (!firstDataAbsTimeInMs)
-		firstDataAbsTimeInMs = Modules::absUTCOffsetInMs;
+		firstDataAbsTimeInMs = getUtcPipelineStartTime();
 	extClock = data->getMediaTime();
 	//TODO
 	//14. add flush() for ondemand samples

@@ -36,6 +36,7 @@ struct TeletextToTtmlConfig {
 	uint64_t splitDurationInMs;
 	uint64_t maxDelayBeforeEmptyInMs;
 	TimingPolicy timingPolicy;
+	std::function<int64_t()> getUtcPipelineStartTime;
 };
 
 class TeletextToTTML : public ModuleS {
@@ -56,6 +57,7 @@ class TeletextToTTML : public ModuleS {
 		void dispatch();
 
 		IModuleHost* const m_host;
+		std::function<int64_t()> getUtcPipelineStartTime;
 		OutputDataDefault<DataAVPacket> *output;
 		const unsigned pageNum;
 		std::string lang;
