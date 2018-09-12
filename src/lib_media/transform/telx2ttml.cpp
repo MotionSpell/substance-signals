@@ -1,5 +1,4 @@
 #include "telx2ttml.hpp"
-#include "telx.hpp"
 #include "lib_utils/time.hpp"
 #include "lib_utils/log_sink.hpp" // Warning
 #include <sstream>
@@ -9,6 +8,25 @@ extern "C" {
 }
 
 auto const DEBUG_DISPLAY_TIMESTAMPS = false;
+
+namespace Modules {
+namespace Transform {
+
+struct Page {
+	Page();
+	const std::string toString() const;
+	const std::string toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs, uint64_t idx) const;
+	const std::string toSRT();
+
+	uint64_t tsInMs=0, startTimeInMs=0, endTimeInMs=0, showTimestamp=0, hideTimestamp=0;
+	uint32_t framesProduced = 0;
+	std::vector<std::unique_ptr<std::stringstream>> lines;
+	std::stringstream *ss = nullptr;
+};
+}
+}
+
+#include "telx.hpp"
 
 namespace Modules {
 namespace Transform {
@@ -160,6 +178,9 @@ TeletextToTTML::TeletextToTTML(IModuleHost* host, TeletextToTtmlConfig* cfg)
 	config = make_unique<Config>();
 	addInput(this);
 	output = addOutput<OutputDataDefault<DataAVPacket>>();
+}
+
+TeletextToTTML::~TeletextToTTML() {
 }
 
 void TeletextToTTML::sendSample(const std::string &sample) {

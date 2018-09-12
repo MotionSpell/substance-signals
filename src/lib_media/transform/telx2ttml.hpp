@@ -3,22 +3,11 @@
 #include "lib_modules/utils/helper.hpp"
 #include "../common/libav.hpp"
 #include <vector>
-#include <iosfwd> // stringstream
 
 namespace Modules {
 namespace Transform {
 
-struct Page {
-	Page();
-	const std::string toString() const;
-	const std::string toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs, uint64_t idx) const;
-	const std::string toSRT();
-
-	uint64_t tsInMs=0, startTimeInMs=0, endTimeInMs=0, showTimestamp=0, hideTimestamp=0;
-	uint32_t framesProduced = 0;
-	std::vector<std::unique_ptr<std::stringstream>> lines;
-	std::stringstream *ss = nullptr;
-};
+struct Page;
 
 struct ITelxConfig {
 	virtual ~ITelxConfig() {}
@@ -36,7 +25,9 @@ struct TeletextToTtmlConfig {
 	uint64_t splitDurationInMs;
 	uint64_t maxDelayBeforeEmptyInMs;
 	TimingPolicy timingPolicy;
-	std::function<int64_t()> getUtcPipelineStartTime;
+	std::function<int64_t()> getUtcPipelineStartTime = []() {
+		return 0;
+	};
 };
 
 class TeletextToTTML : public ModuleS {
@@ -48,6 +39,7 @@ class TeletextToTTML : public ModuleS {
 		};
 
 		TeletextToTTML(IModuleHost* host, TeletextToTtmlConfig* cfg);
+		virtual ~TeletextToTTML();
 		void process(Data data) override;
 
 	private:
