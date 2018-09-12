@@ -206,21 +206,21 @@ void TeletextToTTML::dispatch() {
 }
 
 void TeletextToTTML::processTelx(DataAVPacket const * const sub) {
-	auto pkt = sub->getPacket();
+	auto data = sub->data();
 	auto &cfg = *dynamic_cast<Config*>(config.get());
 	cfg.page = pageNum;
-	int i = 1;
-	while (i <= pkt->size - 6) {
-		auto dataUnitId = (DataUnit)pkt->data[i++];
-		auto const dataUnitSize = pkt->data[i++];
+	size_t i = 1;
+	while (i <= data.len - 6) {
+		auto dataUnitId = (DataUnit)data.ptr[i++];
+		auto const dataUnitSize = data.ptr[i++];
 		const uint8_t telxPayloadSize = 44;
 		if ( ((dataUnitId == NonSubtitle) || (dataUnitId == Subtitle)) && (dataUnitSize == telxPayloadSize) ) {
 			uint8_t entitiesData[telxPayloadSize];
 			for (uint8_t j = 0; j < dataUnitSize; j++) {
-				entitiesData[j] = Reverse8[pkt->data[i + j]]; //reverse endianess
+				entitiesData[j] = Reverse8[data.ptr[i + j]]; //reverse endianess
 			}
 
-			auto page = process_telx_packet(cfg, dataUnitId, (Payload*)entitiesData, pkt->pts);
+			auto page = process_telx_packet(cfg, dataUnitId, (Payload*)entitiesData, sub->getPacket()->pts);
 			if (page) {
 				auto const codecCtx = safe_cast<const MetadataPktLibav>(sub->getMetadata())->getAVCodecContext();
 				m_host->log((int64_t)convertToTimescale(page->showTimestamp * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000) < clockToTimescale(intClock, 1000) ? Warning : Debug,
