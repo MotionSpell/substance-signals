@@ -5,6 +5,7 @@
 #include "lib_utils/log_sink.hpp" // Warning
 #include "lib_utils/time.hpp" // timeInMsToStr
 #include <vector>
+#include <sstream>
 
 extern "C" {
 #include <libavcodec/avcodec.h> // AVCodecContext
@@ -21,9 +22,78 @@ struct Page {
 		ss = lines[0].get();
 	}
 
-	std::string toString() const;
-	std::string toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs, uint64_t idx) const;
-	std::string toSRT();
+	std::string toString() const {
+		std::stringstream str;
+		for (auto &ss : lines) {
+			str << ss->str() << std::endl;
+		}
+		return str.str();
+	}
+
+	std::string toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs, uint64_t idx) const {
+		std::stringstream ttml;
+
+		if (!lines.empty() || DEBUG_DISPLAY_TIMESTAMPS) {
+			const size_t timecodeSize = 24;
+			char timecodeShow[timecodeSize] = { 0 };
+			timeInMsToStr(startTimeInMs, timecodeShow, ".");
+			timecodeShow[timecodeSize-1] = 0;
+			char timecodeHide[timecodeSize] = { 0 };
+			timeInMsToStr(endTimeInMs, timecodeHide, ".");
+			timecodeHide[timecodeSize-1] = 0;
+
+			ttml << "      <p region=\"Region\" style=\"textAlignment_0\" begin=\"" << timecodeShow << "\" end=\"" << timecodeHide << "\" xml:id=\"s" << idx << "\">\n";
+			if(DEBUG_DISPLAY_TIMESTAMPS) {
+				ttml << "        <span style=\"Style0_0\">" << timecodeShow << " - " << timecodeHide << "</span>\n";
+			} else {
+				ttml << "        <span style=\"Style0_0\">";
+
+				auto const numLines = lines.size();
+				if (numLines > 0) {
+					auto const numEffectiveLines = lines[numLines-1]->str().empty() ? numLines-1 : numLines;
+					if (numEffectiveLines > 0) {
+						for (size_t i = 0; i < numEffectiveLines - 1; ++i) {
+							ttml << lines[i]->str() << "<br/>\r\n";
+						}
+						ttml << lines[numEffectiveLines - 1]->str();
+					}
+				}
+
+				ttml << "</span>\n";
+			}
+			ttml << "      </p>\n";
+		}
+		return ttml.str();
+	}
+
+	std::string toSRT() {
+		std::stringstream srt;
+		{
+			char buf[255];
+			snprintf(buf, 255, "%.3f|", (double)tsInMs / 1000.0);
+			srt << buf;
+		}
+
+		{
+			char timecode_show[24] = { 0 };
+			timeInMsToStr(showTimestamp, timecode_show);
+			timecode_show[12] = 0;
+
+			char timecode_hide[24] = { 0 };
+			timeInMsToStr(hideTimestamp, timecode_hide);
+			timecode_hide[12] = 0;
+
+			char buf[255];
+			snprintf(buf, 255, "%u\r\n%s --> %s\r\n", (unsigned)++framesProduced, timecode_show, timecode_hide);
+			srt << buf;
+		}
+
+		for (auto &ss : lines) {
+			srt << ss->str() << "\r\n";
+		}
+
+		return srt.str();
+	}
 
 	uint64_t tsInMs=0, startTimeInMs=0, endTimeInMs=0, showTimestamp=0, hideTimestamp=0;
 	uint32_t framesProduced = 0;
@@ -34,6 +104,14 @@ struct Page {
 struct ITelxConfig {
 	virtual ~ITelxConfig() {}
 };
+
+}
+}
+
+#include "telx.hpp" // requires 'Page' definition
+
+namespace Modules {
+namespace Transform {
 
 class TeletextToTTML : public ModuleS {
 	public:
@@ -64,87 +142,6 @@ class TeletextToTTML : public ModuleS {
 		std::vector<std::unique_ptr<Page>> currentPages;
 		std::unique_ptr<ITelxConfig> config;
 };
-
-}
-}
-
-#include "telx.hpp"
-
-namespace Modules {
-namespace Transform {
-
-std::string Page::toString() const {
-	std::stringstream str;
-	for (auto &ss : lines) {
-		str << ss->str() << std::endl;
-	}
-	return str.str();
-}
-
-std::string Page::toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs, uint64_t idx) const {
-	std::stringstream ttml;
-
-	if (!lines.empty() || DEBUG_DISPLAY_TIMESTAMPS) {
-		const size_t timecodeSize = 24;
-		char timecodeShow[timecodeSize] = { 0 };
-		timeInMsToStr(startTimeInMs, timecodeShow, ".");
-		timecodeShow[timecodeSize-1] = 0;
-		char timecodeHide[timecodeSize] = { 0 };
-		timeInMsToStr(endTimeInMs, timecodeHide, ".");
-		timecodeHide[timecodeSize-1] = 0;
-
-		ttml << "      <p region=\"Region\" style=\"textAlignment_0\" begin=\"" << timecodeShow << "\" end=\"" << timecodeHide << "\" xml:id=\"s" << idx << "\">\n";
-		if(DEBUG_DISPLAY_TIMESTAMPS) {
-			ttml << "        <span style=\"Style0_0\">" << timecodeShow << " - " << timecodeHide << "</span>\n";
-		} else {
-			ttml << "        <span style=\"Style0_0\">";
-
-			auto const numLines = lines.size();
-			if (numLines > 0) {
-				auto const numEffectiveLines = lines[numLines-1]->str().empty() ? numLines-1 : numLines;
-				if (numEffectiveLines > 0) {
-					for (size_t i = 0; i < numEffectiveLines - 1; ++i) {
-						ttml << lines[i]->str() << "<br/>\r\n";
-					}
-					ttml << lines[numEffectiveLines - 1]->str();
-				}
-			}
-
-			ttml << "</span>\n";
-		}
-		ttml << "      </p>\n";
-	}
-	return ttml.str();
-}
-
-std::string Page::toSRT() {
-	std::stringstream srt;
-	{
-		char buf[255];
-		snprintf(buf, 255, "%.3f|", (double)tsInMs / 1000.0);
-		srt << buf;
-	}
-
-	{
-		char timecode_show[24] = { 0 };
-		timeInMsToStr(showTimestamp, timecode_show);
-		timecode_show[12] = 0;
-
-		char timecode_hide[24] = { 0 };
-		timeInMsToStr(hideTimestamp, timecode_hide);
-		timecode_hide[12] = 0;
-
-		char buf[255];
-		snprintf(buf, 255, "%u\r\n%s --> %s\r\n", (unsigned)++framesProduced, timecode_show, timecode_hide);
-		srt << buf;
-	}
-
-	for (auto &ss : lines) {
-		srt << ss->str() << "\r\n";
-	}
-
-	return srt.str();
-}
 
 std::string TeletextToTTML::toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs) {
 	std::stringstream ttml;
