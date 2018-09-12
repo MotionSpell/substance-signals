@@ -9,9 +9,9 @@ namespace Transform {
 
 struct Page {
 	Page();
-	const std::string toString() const;
-	const std::string toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs, uint64_t idx) const;
-	const std::string toSRT();
+	std::string toString() const;
+	std::string toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs, uint64_t idx) const;
+	std::string toSRT();
 
 	uint64_t tsInMs=0, startTimeInMs=0, endTimeInMs=0, showTimestamp=0, hideTimestamp=0;
 	uint32_t framesProduced = 0;
@@ -35,7 +35,7 @@ class TeletextToTTML : public ModuleS {
 		void process(Data data) override;
 
 	private:
-		const std::string toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs);
+		std::string toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs);
 		void sendSample(const std::string &sample);
 		void processTelx(DataAVPacket const * const pkt);
 		void dispatch();
@@ -84,7 +84,7 @@ Page::Page() {
 	ss = lines[0].get();
 }
 
-const std::string Page::toString() const {
+std::string Page::toString() const {
 	std::stringstream str;
 	for (auto &ss : lines) {
 		str << ss->str() << std::endl;
@@ -92,7 +92,7 @@ const std::string Page::toString() const {
 	return str.str();
 }
 
-const std::string Page::toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs, uint64_t idx) const {
+std::string Page::toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs, uint64_t idx) const {
 	std::stringstream ttml;
 
 	if (!lines.empty() || DEBUG_DISPLAY_TIMESTAMPS) {
@@ -128,7 +128,7 @@ const std::string Page::toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs, uin
 	return ttml.str();
 }
 
-const std::string Page::toSRT() {
+std::string Page::toSRT() {
 	std::stringstream srt;
 	{
 		char buf[255];
@@ -157,7 +157,7 @@ const std::string Page::toSRT() {
 	return srt.str();
 }
 
-const std::string TeletextToTTML::toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs) {
+std::string TeletextToTTML::toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs) {
 	std::stringstream ttml;
 	ttml << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n";
 	ttml << "<tt xmlns=\"http://www.w3.org/ns/ttml\" xmlns:tt=\"http://www.w3.org/ns/ttml\" xmlns:ttm=\"http://www.w3.org/ns/ttml#metadata\" xmlns:tts=\"http://www.w3.org/ns/ttml#styling\" xmlns:ttp=\"http://www.w3.org/ns/ttml#parameter\" xmlns:ebutts=\"urn:ebu:tt:style\" xmlns:ebuttm=\"urn:ebu:tt:metadata\" xml:lang=\"" << lang << "\" ttp:timeBase=\"media\">\n";
