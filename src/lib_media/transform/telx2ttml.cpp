@@ -100,7 +100,7 @@ class TeletextToTTML : public ModuleS {
 	private:
 		std::string toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs);
 		void sendSample(const std::string &sample);
-		void processTelx(DataAVPacket const * const pkt);
+		void processTelx(Data pkt);
 		void dispatch();
 
 		IModuleHost* const m_host;
@@ -208,7 +208,7 @@ void TeletextToTTML::dispatch() {
 	}
 }
 
-void TeletextToTTML::processTelx(DataAVPacket const * const sub) {
+void TeletextToTTML::processTelx(Data sub) {
 	auto data = sub->data();
 	auto &cfg = *dynamic_cast<Config*>(config.get());
 	cfg.page = pageNum;
@@ -223,16 +223,15 @@ void TeletextToTTML::processTelx(DataAVPacket const * const sub) {
 				entitiesData[j] = Reverse8[data.ptr[i + j]]; //reverse endianess
 			}
 
-			auto page = process_telx_packet(cfg, dataUnitId, (Payload*)entitiesData, sub->getPacket()->pts);
+			auto page = process_telx_packet(cfg, dataUnitId, (Payload*)entitiesData, sub->getMediaTime());
 			if (page) {
-				auto const codecCtx = safe_cast<const MetadataPktLibav>(sub->getMetadata())->getAVCodecContext();
-				m_host->log((int64_t)convertToTimescale(page->showTimestamp * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000) < clockToTimescale(intClock, 1000) ? Warning : Debug,
+				m_host->log((int64_t)page->showTimestamp < intClock ? Warning : Debug,
 				    format("framesProduced %s, show=%s:hide=%s, clocks:data=%s:int=%s,ext=%s, content=%s",
-				        page->framesProduced, convertToTimescale(page->showTimestamp * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000), convertToTimescale(page->hideTimestamp * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000),
+				        page->framesProduced, clockToTimescale(page->showTimestamp, 1000), clockToTimescale(page->hideTimestamp, 1000),
 				        clockToTimescale(sub->getMediaTime(), 1000), clockToTimescale(intClock, 1000), clockToTimescale(extClock, 1000), page->toString()).c_str());
 
-				auto const startTimeInMs = convertToTimescale(page->showTimestamp * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000);
-				auto const durationInMs = convertToTimescale((page->hideTimestamp - page->showTimestamp) * codecCtx->pkt_timebase.num, codecCtx->pkt_timebase.den, 1000);
+				auto const startTimeInMs = clockToTimescale(page->showTimestamp, 1000);
+				auto const durationInMs = clockToTimescale((page->hideTimestamp - page->showTimestamp), 1000);
 				page->startTimeInMs = startTimeInMs;
 				page->endTimeInMs = startTimeInMs + durationInMs;
 				currentPages.push_back(std::move(page));
@@ -250,9 +249,8 @@ void TeletextToTTML::process(Data data) {
 	//TODO
 	//14. add flush() for ondemand samples
 	//15. UTF8 to TTML formatting? accent
-	auto sub = safe_cast<const DataAVPacket>(data);
-	if (sub->data().len) {
-		processTelx(sub.get());
+	if (data->data().len) {
+		processTelx(data);
 	}
 	dispatch();
 }
