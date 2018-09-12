@@ -66,35 +66,6 @@ struct Page {
 		return ttml.str();
 	}
 
-	std::string toSRT() {
-		std::stringstream srt;
-		{
-			char buf[255];
-			snprintf(buf, 255, "%.3f|", (double)tsInMs / 1000.0);
-			srt << buf;
-		}
-
-		{
-			char timecode_show[24] = { 0 };
-			timeInMsToStr(showTimestamp, timecode_show);
-			timecode_show[12] = 0;
-
-			char timecode_hide[24] = { 0 };
-			timeInMsToStr(hideTimestamp, timecode_hide);
-			timecode_hide[12] = 0;
-
-			char buf[255];
-			snprintf(buf, 255, "%u\r\n%s --> %s\r\n", (unsigned)++framesProduced, timecode_show, timecode_hide);
-			srt << buf;
-		}
-
-		for (auto &ss : lines) {
-			srt << ss->str() << "\r\n";
-		}
-
-		return srt.str();
-	}
-
 	uint64_t tsInMs=0, startTimeInMs=0, endTimeInMs=0, showTimestamp=0, hideTimestamp=0;
 	uint32_t framesProduced = 0;
 	std::vector<std::unique_ptr<std::stringstream>> lines;
