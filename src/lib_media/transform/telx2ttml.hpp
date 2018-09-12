@@ -24,6 +24,20 @@ struct ITelxConfig {
 	virtual ~ITelxConfig() {}
 };
 
+struct TeletextToTtmlConfig {
+	enum TimingPolicy {
+		AbsoluteUTC,     //USP
+		RelativeToMedia, //14496-30
+		RelativeToSplit  //MSS
+	};
+
+	unsigned pageNum;
+	std::string lang;
+	uint64_t splitDurationInMs;
+	uint64_t maxDelayBeforeEmptyInMs;
+	TimingPolicy timingPolicy;
+};
+
 class TeletextToTTML : public ModuleS {
 	public:
 		enum TimingPolicy {
@@ -32,7 +46,7 @@ class TeletextToTTML : public ModuleS {
 			RelativeToSplit  //MSS
 		};
 
-		TeletextToTTML(IModuleHost* host, unsigned pageNum, const std::string &lang, uint64_t splitDurationInMs, uint64_t maxDelayBeforeEmptyInMs, TimingPolicy timingPolicy);
+		TeletextToTTML(IModuleHost* host, TeletextToTtmlConfig* cfg);
 		void process(Data data) override;
 
 	private:
@@ -45,7 +59,7 @@ class TeletextToTTML : public ModuleS {
 		OutputDataDefault<DataAVPacket> *output;
 		const unsigned pageNum;
 		std::string lang;
-		const TimingPolicy timingPolicy;
+		const TeletextToTtmlConfig::TimingPolicy timingPolicy;
 		int64_t intClock = 0, extClock = 0;
 		const uint64_t maxPageDurIn180k, splitDurationIn180k;
 		uint64_t firstDataAbsTimeInMs = 0;

@@ -115,9 +115,15 @@ const std::string TeletextToTTML::toTTML(uint64_t startTimeInMs, uint64_t endTim
 
 	int64_t offsetInMs;
 	switch (timingPolicy) {
-	case AbsoluteUTC: offsetInMs = (int64_t)(firstDataAbsTimeInMs); break;
-	case RelativeToMedia: offsetInMs = 0; break;
-	case RelativeToSplit: offsetInMs = -1 * startTimeInMs; break;
+	case TeletextToTtmlConfig::AbsoluteUTC:
+		offsetInMs = (int64_t)(firstDataAbsTimeInMs);
+		break;
+	case TeletextToTtmlConfig::RelativeToMedia:
+		offsetInMs = 0;
+		break;
+	case TeletextToTtmlConfig::RelativeToSplit:
+		offsetInMs = -1 * startTimeInMs;
+		break;
 	default: throw error("Unknown timing policy (1)");
 	}
 
@@ -147,9 +153,9 @@ const std::string TeletextToTTML::toTTML(uint64_t startTimeInMs, uint64_t endTim
 	return ttml.str();
 }
 
-TeletextToTTML::TeletextToTTML(IModuleHost* host, unsigned pageNum, const std::string &lang, uint64_t splitDurationInMs, uint64_t maxDelayBeforeEmptyInMs, TimingPolicy timingPolicy)
+TeletextToTTML::TeletextToTTML(IModuleHost* host, TeletextToTtmlConfig* cfg)
 	: m_host(host),
-	  pageNum(pageNum), lang(lang), timingPolicy(timingPolicy), maxPageDurIn180k(timescaleToClock(maxDelayBeforeEmptyInMs, 1000)), splitDurationIn180k(timescaleToClock(splitDurationInMs, 1000)) {
+	  pageNum(cfg->pageNum), lang(cfg->lang), timingPolicy(cfg->timingPolicy), maxPageDurIn180k(timescaleToClock(cfg->maxDelayBeforeEmptyInMs, 1000)), splitDurationIn180k(timescaleToClock(cfg->splitDurationInMs, 1000)) {
 	config = make_unique<Config>();
 	addInput(this);
 	output = addOutput<OutputDataDefault<DataAVPacket>>();
