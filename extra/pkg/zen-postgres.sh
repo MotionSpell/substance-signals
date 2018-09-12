@@ -26,6 +26,8 @@ function postgres_build {
   $MAKE -C src/common
   $MAKE -C src/interfaces
   $MAKE -C src/interfaces install
+  cp ../../src/include/postgres_ext.h $PREFIX/include
+  cp src/include/pg_config_ext.h $PREFIX/include
 
   popDir
 }
