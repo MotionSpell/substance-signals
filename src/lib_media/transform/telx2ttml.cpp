@@ -109,7 +109,6 @@ class TeletextToTTML : public ModuleS {
 		const TeletextToTtmlConfig::TimingPolicy timingPolicy;
 		int64_t intClock = 0, extClock = 0;
 		const uint64_t maxPageDurIn180k, splitDurationIn180k;
-		uint64_t firstDataAbsTimeInMs = 0;
 		std::vector<std::unique_ptr<Page>> currentPages;
 		std::unique_ptr<ITelxConfig> config;
 };
@@ -138,7 +137,7 @@ std::string TeletextToTTML::toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs)
 	int64_t offsetInMs;
 	switch (timingPolicy) {
 	case TeletextToTtmlConfig::AbsoluteUTC:
-		offsetInMs = (int64_t)(firstDataAbsTimeInMs);
+		offsetInMs = getUtcPipelineStartTime();
 		break;
 	case TeletextToTtmlConfig::RelativeToMedia:
 		offsetInMs = 0;
@@ -245,8 +244,6 @@ void TeletextToTTML::processTelx(DataAVPacket const * const sub) {
 void TeletextToTTML::process(Data data) {
 	if (inputs[0]->updateMetadata(data))
 		output->setMetadata(data->getMetadata());
-	if (!firstDataAbsTimeInMs)
-		firstDataAbsTimeInMs = getUtcPipelineStartTime();
 	extClock = data->getMediaTime();
 	//TODO
 	//14. add flush() for ondemand samples
