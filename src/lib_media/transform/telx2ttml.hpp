@@ -32,7 +32,7 @@ class TeletextToTTML : public ModuleS {
 			RelativeToSplit  //MSS
 		};
 
-		TeletextToTTML(IModuleHost* host, unsigned pageNum, const std::string &lang, uint64_t splitDurationIn180k, uint64_t maxDelayBeforeEmptyInMs, TimingPolicy timingPolicy);
+		TeletextToTTML(IModuleHost* host, unsigned pageNum, const std::string &lang, uint64_t splitDurationInMs, uint64_t maxDelayBeforeEmptyInMs, TimingPolicy timingPolicy);
 		void process(Data data) override;
 
 	private:
