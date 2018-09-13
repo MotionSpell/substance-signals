@@ -2,7 +2,12 @@
 function gpac_build {
   host=$1
 
-  lazy_git_clone https://github.com/gpac/gpac.git gpac b6f7409
+  # do not use a truncated hash here, use the full hash!
+  # (collisions DO occur with truncated hashes, in practice this would
+  # have the effect of stopping the whole build)
+  readonly hash="b6f7409ce2ad68b6820dacb48430c25e0d0854a0"
+
+  lazy_git_clone https://github.com/gpac/gpac.git gpac "$hash"
 
   local OS=$(get_os $host)
   local crossPrefix=$(get_cross_prefix $BUILD $host)
