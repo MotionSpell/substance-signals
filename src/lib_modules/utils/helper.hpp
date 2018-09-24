@@ -193,7 +193,7 @@ class ModuleS : public Module {
 class ActiveModule : public Module {
 	public:
 		void process() override;
-		virtual bool work() = 0;
+		virtual bool work() = 0; // return false to stop processing (e.g eos)
 };
 
 template<typename Lambda>
