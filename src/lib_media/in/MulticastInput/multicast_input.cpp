@@ -5,8 +5,7 @@
 
 using namespace Modules;
 
-namespace
-{
+namespace {
 
 struct MulticastInput : ActiveModule {
 	MulticastInput(IModuleHost* host, MulticastInputConfig const& config)
