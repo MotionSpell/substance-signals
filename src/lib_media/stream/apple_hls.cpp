@@ -4,6 +4,14 @@
 #include <vector>
 #include <sstream>
 
+
+#ifdef _WIN32
+#include <sys/timeb.h>
+#include <winsock2.h>
+#else
+#include <sys/time.h>
+#endif
+
 namespace Modules {
 namespace Stream {
 
