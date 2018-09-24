@@ -115,6 +115,9 @@ $(BIN)/LibavDemux.smd: \
   $(BIN)/$(SRC)/lib_media/transform/restamp.cpp.o\
 
 #------------------------------------------------------------------------------
+include $(SRC)/lib_media/in/MulticastInput/project.mk
+
+#------------------------------------------------------------------------------
 # Warning derogations. TODO: make this list empty
 $(BIN)/$(SRC)/lib_media/common/libav.cpp.o: CFLAGS+=-Wno-deprecated-declarations
 $(BIN)/$(SRC)/lib_media/demux/libav_demux.cpp.o: CFLAGS+=-Wno-deprecated-declarations

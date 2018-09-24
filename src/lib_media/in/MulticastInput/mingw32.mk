@@ -1,0 +1,1 @@
+LDFLAGS+=-lws2_32
