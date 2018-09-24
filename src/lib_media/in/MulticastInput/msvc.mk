@@ -1,3 +1,3 @@
 MULTICASTINPUT_OS_SOCKET:=$(BIN)/$(PLUG_DIR)/socket_mingw32.cpp.o
-
+  
 LDFLAGS+=-lws2_32

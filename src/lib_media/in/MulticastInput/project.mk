@@ -1,9 +1,9 @@
 PLUG_DIR:=$(call get-my-dir)
 PLUG_OS:=$(shell $(CXX) -dumpmachine | sed "s/.*-//")
 
+-include $(PLUG_DIR)/$(PLUG_OS).mk
+
 TARGETS+=$(BIN)/MulticastInput.smd
 $(BIN)/MulticastInput.smd: \
   $(BIN)/$(PLUG_DIR)/multicast_input.cpp.o\
-  $(BIN)/$(PLUG_DIR)/socket_$(PLUG_OS).cpp.o\
-
--include $(PLUG_DIR)/$(PLUG_OS).mk
+  $(MULTICASTINPUT_OS_SOCKET)\
