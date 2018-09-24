@@ -5,6 +5,9 @@
 
 using namespace Modules;
 
+namespace
+{
+
 struct MulticastInput : ActiveModule {
 	MulticastInput(IModuleHost* host, MulticastInputConfig const& config)
 		: m_host(host) {
@@ -38,6 +41,8 @@ Modules::IModule* createObject(IModuleHost* host, va_list va) {
 	enforce(host, "MulticastInput: host can't be NULL");
 	enforce(config, "MulticastInput: config can't be NULL");
 	return Modules::create<MulticastInput>(host, *config).release();
+}
+
 }
 
 auto const registered = Factory::registerModule("MulticastInput", &createObject);
