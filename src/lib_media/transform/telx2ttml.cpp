@@ -220,7 +220,8 @@ void TeletextToTTML::processTelx(Data sub) {
 		if ( ((dataUnitId == NonSubtitle) || (dataUnitId == Subtitle)) && (dataUnitSize == telxPayloadSize) ) {
 			uint8_t entitiesData[telxPayloadSize];
 			for (uint8_t j = 0; j < dataUnitSize; j++) {
-				entitiesData[j] = Reverse8[data.ptr[i + j]]; //reverse endianess
+				auto byte = data.ptr[i + j];
+				entitiesData[j] = Reverse8[byte]; //reverse endianess
 			}
 
 			auto page = process_telx_packet(cfg, dataUnitId, (Payload*)entitiesData, sub->getMediaTime());
