@@ -4,14 +4,6 @@
 #include <vector>
 #include <sstream>
 
-
-#ifdef _WIN32
-#include <sys/timeb.h>
-#include <winsock2.h>
-#else
-#include <sys/time.h>
-#endif
-
 namespace Modules {
 namespace Stream {
 
@@ -202,11 +194,9 @@ void Apple_HLS::generateManifestVariantFull(bool isLast) {
 				quality->playlistVariant << "#EXTINF:" << segDurationInMs / 1000.0 << std::endl;
 				if (type != Static) {
 					char cmd[100];
-					struct timeval tv;
-					tv.tv_sec = (long)(seg.startTimeInMs/1000);
-					assert(!(tv.tv_sec & 0xFFFFFFFF00000000));
-					tv.tv_usec = 0;
-					time_t sec = tv.tv_sec;
+					long tv_sec = (long)(seg.startTimeInMs/1000);
+					assert(!(tv_sec & 0xFFFFFFFF00000000));
+					time_t sec = tv_sec;
 					auto *tm = gmtime(&sec);
 					if (!tm) {
 						m_host->log(Warning, format("Segment \"%s\": could not convert UTC start time %sms. Skippping PROGRAM-DATE-TIME.", seg.startTimeInMs, seg.path).c_str());
