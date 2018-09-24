@@ -69,7 +69,7 @@ class MPEG_DASH : public AdaptiveStreamingCommon, public gpacpp::Init {
 			: AdaptiveStreamingCommon(host, getType(cfg), cfg->segDurationInMs, cfg->mpdDir, getFlags(cfg)),
 			  m_host(host),
 			  mpd(createMPD(cfg->live, cfg->minBufferTimeInMs, cfg->id)), mpdFn(cfg->mpdName), baseURLs(cfg->baseURLs),
-			  minUpdatePeriodInMs(minUpdatePeriodInMs ? minUpdatePeriodInMs : (segDurationInMs ? cfg->segDurationInMs : 1000)),
+			  minUpdatePeriodInMs(cfg->minUpdatePeriodInMs ? cfg->minUpdatePeriodInMs : (segDurationInMs ? cfg->segDurationInMs : 1000)),
 			  timeShiftBufferDepthInMs(cfg->timeShiftBufferDepthInMs), initialOffsetInMs(cfg->initialOffsetInMs), useSegmentTimeline(cfg->segDurationInMs == 0) {
 			if (useSegmentTimeline && ((flags & PresignalNextSegment) || (flags & SegmentsNotOwned)))
 				throw error("Next segment pre-signalling or segments not owned cannot be used with segment timeline.");

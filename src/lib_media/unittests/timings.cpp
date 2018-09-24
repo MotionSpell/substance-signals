@@ -56,8 +56,10 @@ std:: shared_ptr<IModule> createGpacDemux(const char* path) {
 }
 
 void checkTimestamps(CreateDemuxFunc createDemux, int numBFrame, const std::vector<int64_t> &timesIn, const std::vector<int64_t> &timesOut) {
-	checkTimestampsMux(createDemux, numBFrame, timesIn, timesOut, loadModule("GPACMuxMP4", &NullHost, Mp4MuxConfig{"out/random_ts"}));
-	checkTimestampsMux(createDemux, numBFrame, timesIn, timesOut, loadModule("GPACMuxMP4", &NullHost, Mp4MuxConfig{"out/random_ts", 0, NoSegment, NoFragment, ExactInputDur}));
+	auto cfg1 = Mp4MuxConfig{"out/random_ts"};
+	auto cfg2 = Mp4MuxConfig{"out/random_ts", 0, NoSegment, NoFragment, ExactInputDur};
+	checkTimestampsMux(createDemux, numBFrame, timesIn, timesOut, loadModule("GPACMuxMP4", &NullHost, &cfg1));
+	checkTimestampsMux(createDemux, numBFrame, timesIn, timesOut, loadModule("GPACMuxMP4", &NullHost, &cfg2));
 }
 
 unittest("timestamps start at random values (LibavDemux)") {

@@ -13,6 +13,7 @@ auto const SINE_FREQ = 880.0;
 
 SoundGenerator::SoundGenerator(IModuleHost* host)
 	:  m_host(host), m_numSamples(20000) {
+	(void)m_host;
 	pcmFormat.sampleFormat = S16;
 	pcmFormat.sampleRate = 44100;
 	pcmFormat.numPlanes = 1;

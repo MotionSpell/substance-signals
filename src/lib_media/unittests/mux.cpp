@@ -30,7 +30,8 @@ unittest("remux test: GPAC mp4 mux") {
 	DemuxConfig cfg;
 	cfg.url = "data/beepbop.mp4";
 	auto demux = loadModule("LibavDemux", &NullHost, &cfg);
-	auto mux = loadModule("GPACMuxMP4", &NullHost, Mp4MuxConfig{});
+	Mp4MuxConfig muxCfg {};
+	auto mux = loadModule("GPACMuxMP4", &NullHost, &muxCfg);
 
 	ConnectModules(demux.get(), 0, mux.get(), 0); //FIXME: reimplement with multiple inputs
 	demux->process();
@@ -66,12 +67,30 @@ unittest("remux test: libav mp4 mux") {
 unittest("mux GPAC mp4 failure tests") {
 	const uint64_t segmentDurationInMs = 2000;
 
-	ASSERT_THROWN(loadModule("GPACMuxMP4", &NullHost, Mp4MuxConfig{"out/output_video_gpac_00", segmentDurationInMs, NoSegment, NoFragment}));
-	ASSERT_THROWN(loadModule("GPACMuxMP4", &NullHost, Mp4MuxConfig{"out/output_video_gpac_02", 0, NoSegment, OneFragmentPerSegment}));
-	ASSERT_THROWN(loadModule("GPACMuxMP4", &NullHost, Mp4MuxConfig{"", 0, NoSegment, NoFragment, FlushFragMemory}));
-	ASSERT_THROWN(loadModule("GPACMuxMP4", &NullHost, Mp4MuxConfig{"out/output_video_gpac_10", 0, IndependentSegment, NoFragment, SegNumStartsAtZero}));
-	ASSERT_THROWN(loadModule("GPACMuxMP4", &NullHost, Mp4MuxConfig{"", segmentDurationInMs, IndependentSegment, NoFragment, SegNumStartsAtZero | FlushFragMemory}););
-	ASSERT_THROWN(loadModule("GPACMuxMP4", &NullHost, Mp4MuxConfig{"out/output_video_gpac_20", segmentDurationInMs, FragmentedSegment, NoFragment, SegNumStartsAtZero}););
+	{
+		auto cfg = Mp4MuxConfig{"out/output_video_gpac_00", segmentDurationInMs, NoSegment, NoFragment};
+		ASSERT_THROWN(loadModule("GPACMuxMP4", &NullHost, &cfg));
+	}
+	{
+		auto cfg = Mp4MuxConfig{"out/output_video_gpac_02", 0, NoSegment, OneFragmentPerSegment};
+		ASSERT_THROWN(loadModule("GPACMuxMP4", &NullHost, &cfg));
+	}
+	{
+		auto cfg = Mp4MuxConfig{"", 0, NoSegment, NoFragment, FlushFragMemory};
+		ASSERT_THROWN(loadModule("GPACMuxMP4", &NullHost, &cfg));
+	}
+	{
+		auto cfg = Mp4MuxConfig{"out/output_video_gpac_10", 0, IndependentSegment, NoFragment, SegNumStartsAtZero};
+		ASSERT_THROWN(loadModule("GPACMuxMP4", &NullHost, &cfg));
+	}
+	{
+		auto cfg = Mp4MuxConfig{"", segmentDurationInMs, IndependentSegment, NoFragment, SegNumStartsAtZero | FlushFragMemory};
+		ASSERT_THROWN(loadModule("GPACMuxMP4", &NullHost, &cfg););
+	}
+	{
+		auto cfg = Mp4MuxConfig{"out/output_video_gpac_20", segmentDurationInMs, FragmentedSegment, NoFragment, SegNumStartsAtZero};
+		ASSERT_THROWN(loadModule("GPACMuxMP4", &NullHost, &cfg););
+	}
 }
 
 std::vector<Meta> runMux(std::shared_ptr<IModule> m) {
@@ -103,17 +122,20 @@ std::vector<Meta> runMux(std::shared_ptr<IModule> m) {
 
 unittest("mux GPAC mp4: no segment, no fragment") {
 	std::vector<Meta> ref = { { "out/output_video_gpac_01.mp4", "audio/mp4", "mp4a.40.2", 0, 10437, 0, 1, 1 } };
-	ASSERT_EQUALS(ref, runMux(loadModule("GPACMuxMP4", &NullHost, Mp4MuxConfig{"out/output_video_gpac_01", 0, NoSegment, NoFragment})));
+	auto cfg = Mp4MuxConfig{"out/output_video_gpac_01", 0, NoSegment, NoFragment};
+	ASSERT_EQUALS(ref, runMux(loadModule("GPACMuxMP4", &NullHost, &cfg)));
 }
 
 unittest("mux GPAC mp4: no segment, one fragment per RAP") {
 	std::vector<Meta> ref = { { "out/output_video_gpac_03.mp4", "audio/mp4", "mp4a.40.2", 0, 29869, 0, 1, 1 } };
-	ASSERT_EQUALS(ref, runMux(loadModule("GPACMuxMP4", &NullHost, Mp4MuxConfig{"out/output_video_gpac_03", 0, NoSegment, OneFragmentPerRAP})));
+	auto cfg = Mp4MuxConfig{"out/output_video_gpac_03", 0, NoSegment, OneFragmentPerRAP};
+	ASSERT_EQUALS(ref, runMux(loadModule("GPACMuxMP4", &NullHost, &cfg)));
 }
 
 unittest("mux GPAC mp4: no segment, one fragment per frame") {
 	std::vector<Meta> ref = { { "out/output_video_gpac_04.mp4", "audio/mp4", "mp4a.40.2", 0, 29869, 4180, 1, 1 } };
-	ASSERT_EQUALS(ref, runMux(loadModule("GPACMuxMP4", &NullHost, Mp4MuxConfig{"out/output_video_gpac_04", 0, NoSegment, OneFragmentPerFrame})));
+	auto cfg = Mp4MuxConfig{"out/output_video_gpac_04", 0, NoSegment, OneFragmentPerFrame};
+	ASSERT_EQUALS(ref, runMux(loadModule("GPACMuxMP4", &NullHost, &cfg)));
 }
 
 unittest("mux GPAC mp4: independent segment, no fragments") {
@@ -124,7 +146,8 @@ unittest("mux GPAC mp4: independent segment, no fragments") {
 	};
 
 	const uint64_t segmentDurationInMs = 2000;
-	ASSERT_EQUALS(ref, runMux(loadModule("GPACMuxMP4", &NullHost, Mp4MuxConfig{"", segmentDurationInMs, IndependentSegment, NoFragment, SegNumStartsAtZero})));
+	auto cfg = Mp4MuxConfig{"", segmentDurationInMs, IndependentSegment, NoFragment, SegNumStartsAtZero};
+	ASSERT_EQUALS(ref, runMux(loadModule("GPACMuxMP4", &NullHost, &cfg)));
 }
 
 unittest("mux GPAC mp4: fragmented segments, one fragment per segment") {
@@ -136,7 +159,8 @@ unittest("mux GPAC mp4: fragmented segments, one fragment per segment") {
 	};
 
 	const uint64_t segmentDurationInMs = 2000;
-	ASSERT_EQUALS(ref, runMux(loadModule("GPACMuxMP4", &NullHost, Mp4MuxConfig{"", segmentDurationInMs, FragmentedSegment, OneFragmentPerSegment, SegNumStartsAtZero})));
+	auto cfg = Mp4MuxConfig{"", segmentDurationInMs, FragmentedSegment, OneFragmentPerSegment, SegNumStartsAtZero};
+	ASSERT_EQUALS(ref, runMux(loadModule("GPACMuxMP4", &NullHost, &cfg)));
 }
 
 unittest("mux GPAC mp4: fragmented segments, one fragment per RAP") {
@@ -148,7 +172,8 @@ unittest("mux GPAC mp4: fragmented segments, one fragment per RAP") {
 	};
 
 	const uint64_t segmentDurationInMs = 2000;
-	ASSERT_EQUALS(ref, runMux(loadModule("GPACMuxMP4", &NullHost, Mp4MuxConfig{"", segmentDurationInMs, FragmentedSegment, OneFragmentPerRAP, SegNumStartsAtZero})));
+	auto cfg = Mp4MuxConfig{"", segmentDurationInMs, FragmentedSegment, OneFragmentPerRAP, SegNumStartsAtZero};
+	ASSERT_EQUALS(ref, runMux(loadModule("GPACMuxMP4", &NullHost, &cfg)));
 }
 
 unittest("mux GPAC mp4: fragmented segments, one fragment per frame") {
@@ -160,7 +185,8 @@ unittest("mux GPAC mp4: fragmented segments, one fragment per frame") {
 	};
 
 	const uint64_t segmentDurationInMs = 2000;
-	ASSERT_EQUALS(ref, runMux(loadModule("GPACMuxMP4", &NullHost, Mp4MuxConfig{"", segmentDurationInMs, FragmentedSegment, OneFragmentPerFrame, SegNumStartsAtZero})));
+	auto cfg = Mp4MuxConfig{"", segmentDurationInMs, FragmentedSegment, OneFragmentPerFrame, SegNumStartsAtZero};
+	ASSERT_EQUALS(ref, runMux(loadModule("GPACMuxMP4", &NullHost, &cfg)));
 }
 
 // remove this when the below tests are split
@@ -190,11 +216,16 @@ secondclasstest("mux GPAC mp4 combination coverage: ugly") {
 
 	const uint64_t segmentDurationInMs = 2000;
 
+	auto cfg1 = Mp4MuxConfig{"", 0, NoSegment, NoFragment};
+	auto cfg2 = Mp4MuxConfig{"output_video_gpac_12", segmentDurationInMs, IndependentSegment, OneFragmentPerSegment, SegNumStartsAtZero};
+	auto cfg3 = Mp4MuxConfig{"output_video_gpac_13", segmentDurationInMs, IndependentSegment, OneFragmentPerRAP, SegNumStartsAtZero};
+	auto cfg4 = Mp4MuxConfig{"output_video_gpac_14", segmentDurationInMs, IndependentSegment, OneFragmentPerFrame, SegNumStartsAtZero};
+
 	ASSERT_EQUALS(ref,
-	    runMux(loadModule("GPACMuxMP4", &NullHost, Mp4MuxConfig{"", 0, NoSegment, NoFragment})) // causes gpac warning: "[BS] Attempt to write on unassigned bitstream"
-	    + runMux(loadModule("GPACMuxMP4", &NullHost, Mp4MuxConfig{"output_video_gpac_12", segmentDurationInMs, IndependentSegment, OneFragmentPerSegment, SegNumStartsAtZero})) // valgrind reports writes of uninitialized bytes
-	    + runMux(loadModule("GPACMuxMP4", &NullHost, Mp4MuxConfig{"output_video_gpac_13", segmentDurationInMs, IndependentSegment, OneFragmentPerRAP, SegNumStartsAtZero})) // valgrind reports writes of uninitialized bytes
-	    + runMux(loadModule("GPACMuxMP4", &NullHost, Mp4MuxConfig{"output_video_gpac_14", segmentDurationInMs, IndependentSegment, OneFragmentPerFrame, SegNumStartsAtZero})) // valgrind reports writes of uninitialized bytes
+	    runMux(loadModule("GPACMuxMP4", &NullHost, &cfg1)) // causes gpac warning: "[BS] Attempt to write on unassigned bitstream"
+	    + runMux(loadModule("GPACMuxMP4", &NullHost, &cfg2)) // valgrind reports writes of uninitialized bytes
+	    + runMux(loadModule("GPACMuxMP4", &NullHost, &cfg3)) // valgrind reports writes of uninitialized bytes
+	    + runMux(loadModule("GPACMuxMP4", &NullHost, &cfg4)) // valgrind reports writes of uninitialized bytes
 	);
 }
 
@@ -218,10 +249,14 @@ secondclasstest("mux GPAC mp4 combination coverage: ugly 2") {
 
 	const uint64_t segmentDurationInMs = 2000;
 
+	auto cfg1 = Mp4MuxConfig{"", segmentDurationInMs, IndependentSegment, NoFragment, SegNumStartsAtZero};
+	auto cfg2 = Mp4MuxConfig{"", segmentDurationInMs, FragmentedSegment, OneFragmentPerSegment, SegNumStartsAtZero};
+	auto cfg3 = Mp4MuxConfig{"", segmentDurationInMs, FragmentedSegment, OneFragmentPerSegment, SegNumStartsAtZero | FlushFragMemory};
+
 	ASSERT_EQUALS(ref,
-	    runMux(loadModule("GPACMuxMP4", &NullHost, Mp4MuxConfig{"", segmentDurationInMs, IndependentSegment, NoFragment, SegNumStartsAtZero})) // causes gpac warning: "[BS] Attempt to write on unassigned bitstream"
-	    + runMux(loadModule("GPACMuxMP4", &NullHost, Mp4MuxConfig{"", segmentDurationInMs, FragmentedSegment, OneFragmentPerSegment, SegNumStartsAtZero}))// causes gpac warning: "[BS] Attempt to write on unassigned bitstream"
-	    + runMux(loadModule("GPACMuxMP4", &NullHost, Mp4MuxConfig{"", segmentDurationInMs, FragmentedSegment, OneFragmentPerSegment, SegNumStartsAtZero | FlushFragMemory}))// causes gpac warning: "[BS] Attempt to write on unassigned bitstream"
+	    runMux(loadModule("GPACMuxMP4", &NullHost, &cfg1)) // causes gpac warning: "[BS] Attempt to write on unassigned bitstream"
+	    + runMux(loadModule("GPACMuxMP4", &NullHost, &cfg2))// causes gpac warning: "[BS] Attempt to write on unassigned bitstream"
+	    + runMux(loadModule("GPACMuxMP4", &NullHost, &cfg3))// causes gpac warning: "[BS] Attempt to write on unassigned bitstream"
 	);
 }
 

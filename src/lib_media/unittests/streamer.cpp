@@ -685,9 +685,13 @@ unittest("[DISABLED] adaptive streaming combination coverage") {
 		if (!dirExists(prefix))
 			mkdir(prefix);
 
-		muxMP4File.push_back(loadModule("GPACMuxMP4", &NullHost, Mp4MuxConfig{format("%s/%s", prefix, prefix), segmentDurationInMs, FragmentedSegment, OneFragmentPerFrame}));
-		muxMP4Mem.push_back(loadModule("GPACMuxMP4", &NullHost, Mp4MuxConfig{"", segmentDurationInMs, FragmentedSegment, OneFragmentPerSegment}));
-		muxMP4MemFlushFrags.push_back(loadModule("GPACMuxMP4", &NullHost, Mp4MuxConfig{"", segmentDurationInMs, FragmentedSegment, OneFragmentPerFrame, FlushFragMemory}));
+		auto cfg1 = Mp4MuxConfig{format("%s/%s", prefix, prefix), segmentDurationInMs, FragmentedSegment, OneFragmentPerFrame};
+		auto cfg2 = Mp4MuxConfig{"", segmentDurationInMs, FragmentedSegment, OneFragmentPerSegment};
+		auto cfg3 = Mp4MuxConfig{"", segmentDurationInMs, FragmentedSegment, OneFragmentPerFrame, FlushFragMemory};
+
+		muxMP4File.push_back(loadModule("GPACMuxMP4", &NullHost, &cfg1));
+		muxMP4Mem.push_back(loadModule("GPACMuxMP4", &NullHost, &cfg2));
+		muxMP4MemFlushFrags.push_back(loadModule("GPACMuxMP4", &NullHost, &cfg2));
 
 		ConnectModules(encode.back().get(), 0, muxMP4File[i].get(), 0);
 		ConnectModules(encode.back().get(), 0, muxMP4Mem[i].get(), 0);
