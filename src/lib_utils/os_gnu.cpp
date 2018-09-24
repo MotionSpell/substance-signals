@@ -35,7 +35,7 @@ void mkdir(string path) {
 }
 
 void moveFile(string src, string dst) {
-	if(system(("mv " +  src + " " +  dst).c_str()) != 0)
+	if(rename(src.c_str(), dst.c_str()))
 		throw runtime_error("can't move file");
 }
 
