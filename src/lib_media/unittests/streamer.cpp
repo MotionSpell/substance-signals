@@ -699,7 +699,7 @@ unittest("[DISABLED] adaptive streaming combination coverage") {
 
 		muxMP4File.push_back(loadModule("GPACMuxMP4", &NullHost, &cfg1));
 		muxMP4Mem.push_back(loadModule("GPACMuxMP4", &NullHost, &cfg2));
-		muxMP4MemFlushFrags.push_back(loadModule("GPACMuxMP4", &NullHost, &cfg2));
+		muxMP4MemFlushFrags.push_back(loadModule("GPACMuxMP4", &NullHost, &cfg3));
 
 		ConnectModules(encode.back().get(), 0, muxMP4File[i].get(), 0);
 		ConnectModules(encode.back().get(), 0, muxMP4Mem[i].get(), 0);
