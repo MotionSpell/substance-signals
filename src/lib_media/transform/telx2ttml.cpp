@@ -219,6 +219,12 @@ void TeletextToTTML::processTelx(Data sub) {
 		const uint8_t telxPayloadSize = 44;
 		if ( ((dataUnitId == NonSubtitle) || (dataUnitId == Subtitle)) && (dataUnitSize == telxPayloadSize) ) {
 			uint8_t entitiesData[telxPayloadSize];
+
+			if(i+dataUnitSize > (int)data.len) {
+				m_host->log(Warning, "truncated data unit");
+				return;
+			}
+
 			for (uint8_t j = 0; j < dataUnitSize; j++) {
 				auto byte = data.ptr[i + j];
 				entitiesData[j] = Reverse8[byte]; //reverse endianess
