@@ -67,9 +67,9 @@ unittest("TsDemuxer: simple") {
 	};
 
 	TsDemuxerConfig cfg;
-	cfg.pids[0].pid = 120;
+	cfg.pids[0].pid = 130;
 	cfg.pids[0].type = 1;
-	cfg.pids[1].pid = 130;
+	cfg.pids[1].pid = 120;
 	cfg.pids[1].type = 1;
 
 	auto demux = loadModule("TsDemuxer", &NullHost, &cfg);
@@ -82,7 +82,7 @@ unittest("TsDemuxer: simple") {
 	demux->getInput(0)->push(frame);
 	demux->process();
 
-	ASSERT_EQUALS(1, rec120->frameCount);
-	ASSERT_EQUALS(0, rec130->frameCount);
+	ASSERT_EQUALS(0, rec120->frameCount);
+	ASSERT_EQUALS(1, rec130->frameCount);
 }
 
