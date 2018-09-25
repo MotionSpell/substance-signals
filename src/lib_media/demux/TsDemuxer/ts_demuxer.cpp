@@ -39,6 +39,17 @@ struct Stream {
 	int pid;
 	OutputDefault* m_output = nullptr;
 	vector<uint8_t> pesBuffer {};
+
+	void flush() {
+		if(pesBuffer.empty())
+			return;
+
+		auto buf = m_output->getBuffer(pesBuffer.size());
+		memcpy(buf->data().ptr, pesBuffer.data(),pesBuffer.size());
+		m_output->emit(buf);
+
+		pesBuffer.clear();
+	}
 };
 
 struct TsDemuxer : ModuleS {
@@ -70,6 +81,11 @@ struct TsDemuxer : ModuleS {
 		}
 	}
 
+	void flush() {
+		for(auto& s : m_streams)
+			s.flush();
+	}
+
 	void processTsPacket(SpanC pkt) {
 		BitReader r = {pkt};
 		const int syncByte = r.u(8);
@@ -97,12 +113,8 @@ struct TsDemuxer : ModuleS {
 		if(!stream)
 			return; // we're not interested in this PID
 
-		if(payloadUnitStartIndicator && !stream->pesBuffer.empty()) {
-			auto buf = stream->m_output->getBuffer(stream->pesBuffer.size());
-			memcpy(buf->data().ptr, stream->pesBuffer.data(),stream->pesBuffer.size());
-			stream->m_output->emit(buf);
-
-			stream->pesBuffer.clear();
+		if(payloadUnitStartIndicator)  {
+			stream->flush();
 		}
 
 		for(int i=4; i < TS_PACKET_LEN; ++i)

@@ -81,6 +81,33 @@ unittest("TsDemuxer: simple") {
 	};
 
 	TsDemuxerConfig cfg;
+	cfg.pids[0].pid = 120;
+	cfg.pids[0].type = 1;
+
+	auto demux = loadModule("TsDemuxer", &NullHost, &cfg);
+	auto rec = create<FrameCounter>();
+	ConnectOutputToInput(demux->getOutput(0), rec->getInput(0));
+
+	auto frame = getTestTs();
+	demux->getInput(0)->push(frame);
+	demux->process();
+	demux->flush();
+
+	ASSERT_EQUALS(2, rec->frameCount);
+}
+
+unittest("TsDemuxer: keep only one PID") {
+	struct FrameCounter : ModuleS {
+		FrameCounter() {
+			addInput(this);
+		}
+		void process(Data) override {
+			++frameCount;
+		}
+		int frameCount = 0;
+	};
+
+	TsDemuxerConfig cfg;
 	cfg.pids[0].pid = 130;
 	cfg.pids[0].type = 1;
 	cfg.pids[1].pid = 120;
@@ -95,6 +122,8 @@ unittest("TsDemuxer: simple") {
 	auto frame = getTestTs();
 	demux->getInput(0)->push(frame);
 	demux->process();
+
+	// don't flush
 
 	ASSERT_EQUALS(0, rec120->frameCount);
 	ASSERT_EQUALS(1, rec130->frameCount);
