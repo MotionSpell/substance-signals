@@ -36,7 +36,7 @@ struct BitReader {
 };
 
 struct Stream {
-	int pid;
+	const int pid;
 	OutputDefault* m_output = nullptr;
 	vector<uint8_t> pesBuffer {};
 
