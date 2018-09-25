@@ -261,3 +261,38 @@ secondclasstest("mux GPAC mp4 combination coverage: ugly 2") {
 }
 
 }
+
+extern "C" {
+#include <libavcodec/avcodec.h> // avcodec_open2
+}
+#include "lib_media/common/libav.hpp"
+
+namespace {
+
+unittest("remux test: canonical to H.264 Annex B bitstream converter") {
+	auto data = make_shared<Modules::DataAVPacket>();
+	auto pkt = data->getPacket();
+	auto res = av_grow_packet(pkt, 8);
+	ASSERT_EQUALS(0, res);
+	pkt->data[0] = 0; pkt->data[1] = 0; pkt->data[2] = 0; pkt->data[3] = 4;
+	pkt->data[4] = 4; pkt->data[5] = 5; pkt->data[6] = 6; pkt->data[7] = 7;
+
+	bool received = false;
+	auto onSample = [&](Data data) {
+		received = true;
+		auto pkt = safe_cast<const Modules::DataAVPacket>(data)->getPacket();
+		ASSERT(pkt->data);
+		ASSERT_EQUALS(8, pkt->size);
+		ASSERT_EQUALS(0, pkt->data[0]); ASSERT_EQUALS(0, pkt->data[1]);
+		ASSERT_EQUALS(0, pkt->data[2]);	ASSERT_EQUALS(1, pkt->data[3]);
+		ASSERT_EQUALS(4, pkt->data[4]); ASSERT_EQUALS(5, pkt->data[5]);
+		ASSERT_EQUALS(6, pkt->data[6]); ASSERT_EQUALS(7, pkt->data[7]);
+	};
+
+	auto avcc2annexB = create<Transform::AVCC2AnnexBConverter>(&NullHost);
+	ConnectOutput(avcc2annexB.get(), onSample);
+	avcc2annexB->process(data);
+	ASSERT_EQUALS(true, received);
+}
+
+}

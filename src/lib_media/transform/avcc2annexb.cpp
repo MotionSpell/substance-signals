@@ -58,12 +58,12 @@ void AVCC2AnnexBConverter::process(Data in) {
 			break;
 		}
 		// write start code
-		auto bytes = out->data().ptr + bs.pos;
+		auto bytes = out->data().ptr + bs.pos - 4;
 		*bytes++ = 0x00;
 		*bytes++ = 0x00;
 		*bytes++ = 0x00;
 		*bytes++ = 0x01;
-		bs.read({out->data().ptr + bs.pos + 4, size});
+		bs.read({out->data().ptr + bs.pos, size});
 	}
 
 	out->setMetadata(in->getMetadata());

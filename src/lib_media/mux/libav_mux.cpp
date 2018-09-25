@@ -27,6 +27,7 @@ LibavMux::LibavMux(IModuleHost* host, MuxConfig cfg)
 	: m_host(host), m_formatCtx(avformat_alloc_context()), optionsDict(typeid(*this).name(), cfg.options) {
 	if (!m_formatCtx)
 		throw error("Format context couldn't be allocated.");
+	m_formatCtx->flags &= ~AVFMT_FLAG_AUTO_BSF;
 
 	auto const of = av_guess_format(cfg.format.c_str(), nullptr, nullptr);
 	if (!of) {
