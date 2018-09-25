@@ -1,4 +1,5 @@
 #include "tests/tests.hpp"
+#include "lib_media/common/metadata.hpp"
 #include "lib_modules/modules.hpp"
 #include "lib_modules/utils/loader.hpp"
 #include "../ts_demuxer.hpp"
@@ -178,5 +179,49 @@ unittest("TsDemuxer: two pins, two PIDs") {
 
 	ASSERT_EQUALS(1, pid0->frameCount);
 	ASSERT_EQUALS(1, pid1->frameCount);
+}
+
+unittest("[DISABLED] TsDemuxer: get codec from PMT") {
+
+	uint8_t tsPackets[2 * 188] {};
+	BitWriter w { {tsPackets, sizeof tsPackets} };
+
+	// PAT
+	{
+		w.seek(0 * 188);
+		w.u(8, 0x47); // sync byte
+		w.u(1, 0); // TEI
+		w.u(1, 1); // PUSI
+		w.u(1, 0); // priority
+		w.u(13, 0); // PID=0: PAT
+		w.u(2, 0); // scrambling control
+		w.u(2, 0b01); // adaptation field control
+		w.u(4, 0); // continuity counter
+	}
+
+	// PMT
+	{
+		w.seek(1 * 188);
+		w.u(8, 0x47); // sync byte
+		w.u(1, 0); // TEI
+		w.u(1, 1); // PUSI
+		w.u(1, 0); // priority
+		w.u(13, 50); // PID
+		w.u(2, 0); // scrambling control
+		w.u(2, 0b01); // adaptation field control
+		w.u(4, 0); // continuity counter
+	}
+
+	TsDemuxerConfig cfg;
+	cfg.pids[0] = { 666, 1 };
+
+	auto demux = loadModule("TsDemuxer", &NullHost, &cfg);
+
+	demux->getInput(0)->push(createPacket(tsPackets));
+	demux->process();
+	demux->flush();
+
+	auto meta = safe_cast<const MetadataPkt>(demux->getOutput(0)->getMetadata());
+	ASSERT_EQUALS("h264", meta->codec);
 }
 
