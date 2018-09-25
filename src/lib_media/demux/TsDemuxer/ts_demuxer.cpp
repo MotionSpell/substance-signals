@@ -3,6 +3,7 @@
 #include "lib_modules/utils/helper.hpp"
 #include "lib_utils/log_sink.hpp" // Error
 #include <vector>
+#include <string.h> // memcpy
 using namespace std;
 
 using namespace Modules;
@@ -37,6 +38,7 @@ struct BitReader {
 struct Stream {
 	int pid;
 	OutputDefault* m_output = nullptr;
+	vector<uint8_t> pesBuffer {};
 };
 
 struct TsDemuxer : ModuleS {
@@ -91,12 +93,28 @@ struct TsDemuxer : ModuleS {
 			return;
 		}
 
-		for(auto& s : m_streams) {
-			if(s.pid == packetId) {
-				auto buf = s.m_output->getBuffer(184);
-				s.m_output->emit(buf);
-			}
+		auto stream = findStreamForPid(packetId);
+		if(!stream)
+			return; // we're not interested in this PID
+
+		if(payloadUnitStartIndicator && !stream->pesBuffer.empty()) {
+			auto buf = stream->m_output->getBuffer(stream->pesBuffer.size());
+			memcpy(buf->data().ptr, stream->pesBuffer.data(),stream->pesBuffer.size());
+			stream->m_output->emit(buf);
+
+			stream->pesBuffer.clear();
 		}
+
+		for(int i=4; i < TS_PACKET_LEN; ++i)
+			stream->pesBuffer.push_back(pkt.ptr[i]);
+	}
+
+	Stream* findStreamForPid(int packetId) {
+		for(auto& s : m_streams) {
+			if(s.pid == packetId)
+				return &s;
+		}
+		return nullptr;
 	}
 
 	IModuleHost* const m_host;

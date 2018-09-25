@@ -40,18 +40,32 @@ struct BitWriter {
 };
 
 std::shared_ptr<DataBase> getTestTs() {
-	uint8_t tsPacket[188] {};
-	BitWriter w { {tsPacket, sizeof tsPacket} };
+	uint8_t tsPackets[2 * 188] {};
+	BitWriter w { {tsPackets, sizeof tsPackets} };
+
 	w.u(8, 0x47); // sync byte
 	w.u(1, 0); // TEI
-	w.u(1, 0); // PUSI
+	w.u(1, 1); // PUSI
 	w.u(1, 0); // priority
 	w.u(13, 120); // PID
 	w.u(2, 0); // scrambling control
 	w.u(2, 0); // adaptation field control
 	w.u(4, 0); // continuity counter
+	for(int i=0; i < 184; ++i)
+		w.u(8, 0x77);
 
-	return createPacket(tsPacket);
+	w.u(8, 0x47); // sync byte
+	w.u(1, 0); // TEI
+	w.u(1, 1); // PUSI
+	w.u(1, 0); // priority
+	w.u(13, 120); // PID
+	w.u(2, 0); // scrambling control
+	w.u(2, 0); // adaptation field control
+	w.u(4, 0); // continuity counter
+	for(int i=0; i < 184; ++i)
+		w.u(8, 0x88);
+
+	return createPacket(tsPackets);
 }
 }
 
