@@ -634,16 +634,23 @@ void GPACMuxMP4::declareStreamAudio(const std::shared_ptr<const MetadataPktLibav
 	};
 	auto esd = std::shared_ptr<GF_ESD>(gf_odf_desc_esd_new(2), deleteEsd);
 	if (!esd)
-		throw error(format("Cannot create GF_ESD"));
+		throw error(format("Cannot create GF_ESD for audio"));
 
 	esd->decoderConfig->streamType = GF_STREAM_AUDIO;
-	sampleRate = metadata->getSampleRate();
-	if (metadata->getCodecName() == "aac") { //TODO: find an automatic table, we only know about MPEG1 Layer 2 and AAC-LC
+	mediaTs = sampleRate = metadata->getSampleRate();
+	m_host->log(Debug, format("TimeScale: %s", mediaTs).c_str());
+	defaultSampleIncInTs = metadata->getFrameSize();
+
+	trackNum = gf_isom_new_track(isoCur, esd->ESID, GF_ISOM_MEDIA_AUDIO, mediaTs);
+	if (!trackNum)
+		throw error(format("Cannot create new track"));
+	trackId = gf_isom_get_track_id(isoCur, trackNum);
+
+	esd->ESID = 1;
+	if (metadata->getCodecName() == "aac") {
 		codec4CC = "AACL";
 		esd->decoderConfig->objectTypeIndication = GPAC_OTI_AUDIO_AAC_MPEG4;
-
 		esd->slConfig->timestampResolution = sampleRate;
-		esd->ESID = 1;
 
 		acfg.base_object_type = GF_M4A_AAC_LC;
 		acfg.base_sr = sampleRate;
@@ -653,15 +660,11 @@ void GPACMuxMP4::declareStreamAudio(const std::shared_ptr<const MetadataPktLibav
 
 		e = gf_m4a_write_config(&acfg, &esd->decoderConfig->decoderSpecificInfo->data, &esd->decoderConfig->decoderSpecificInfo->dataLength);
 		assert(e == GF_OK);
-	} else {
-		if (metadata->getCodecName() != "mp2") {
-			m_host->log(Warning, "Unlisted codec, setting GPAC_OTI_AUDIO_MPEG1 descriptor.");
-		}
+	} else if (metadata->getCodecName() == "mp2")	{
 		esd->decoderConfig->objectTypeIndication = GPAC_OTI_AUDIO_MPEG1;
 		esd->decoderConfig->bufferSizeDB = 20;
 		esd->slConfig->timestampResolution = sampleRate;
 		esd->decoderConfig->decoderSpecificInfo = (GF_DefaultDescriptor *)gf_odf_desc_new(GF_ODF_DSI_TAG);
-		esd->ESID = 1;
 
 		acfg.base_object_type = GF_M4A_LAYER2;
 		acfg.base_sr = sampleRate;
@@ -671,15 +674,40 @@ void GPACMuxMP4::declareStreamAudio(const std::shared_ptr<const MetadataPktLibav
 
 		e = gf_m4a_write_config(&acfg, &esd->decoderConfig->decoderSpecificInfo->data, &esd->decoderConfig->decoderSpecificInfo->dataLength);
 		assert(e == GF_OK);
-	}
+	} else if (metadata->getCodecName() == "ac3" || metadata->getCodecName() == "eac3") {
+		bool is_EAC3 = metadata->getCodecName() == "eac3";
+		GF_AC3Header hdr = { };
+		GF_AC3Config cfg = { };
 
-	mediaTs = sampleRate;
-	trackNum = gf_isom_new_track(isoCur, esd->ESID, GF_ISOM_MEDIA_AUDIO, mediaTs);
-	m_host->log(Debug, format("TimeScale: %s", mediaTs).c_str());
-	if (!trackNum)
-		throw error(format("Cannot create new track"));
-	trackId = gf_isom_get_track_id(isoCur, trackNum);
-	defaultSampleIncInTs = metadata->getFrameSize();
+		auto extradata = metadata->getExtradata();
+		auto bs2 = std::shared_ptr<GF_BitStream>(gf_bs_new((const char*)extradata.ptr, extradata.len, GF_BITSTREAM_READ), &gf_bs_del);
+		auto bs = bs2.get();
+		if (!bs)
+			throw error(format("(E)AC-3: impossible to create extradata bitstream (\"%s\", size=%s)", metadata->getCodecName(), extradata.len));
+
+		if (is_EAC3 || !gf_ac3_parser_bs(bs, &hdr, GF_TRUE)) {
+			if (!gf_eac3_parser_bs(bs, &hdr, GF_TRUE)) {
+				m_host->log(Error, format("Parsing: audio is neither AC3 or E-AC3 audio (\"%s\", size=%s)", metadata->getCodecName(), extradata.len).c_str());
+			}
+		}
+		assert(sampleRate == (int)hdr.sample_rate);
+
+		esd->decoderConfig->objectTypeIndication = is_EAC3 ? GPAC_OTI_AUDIO_EAC3 : GPAC_OTI_AUDIO_AC3;
+		esd->decoderConfig->bufferSizeDB = 20;
+		esd->slConfig->timestampResolution = sampleRate;
+
+		cfg.is_ec3 = is_EAC3;
+		cfg.nb_streams = 1;
+		cfg.brcode = hdr.brcode;
+		cfg.streams[0].acmod = hdr.acmod;
+		cfg.streams[0].bsid = hdr.bsid;
+		cfg.streams[0].bsmod = hdr.bsmod;
+		cfg.streams[0].fscod = hdr.fscod;
+		cfg.streams[0].lfon = hdr.lfon;
+
+		gf_isom_ac3_config_new(isoCur, trackNum, &cfg, nullptr, nullptr, &di);
+	} else
+		throw error(format("Unsupported audio codec \"%s\"", metadata->getCodecName()));
 
 	e = gf_isom_set_track_enabled(isoCur, trackNum, GF_TRUE);
 	if (e != GF_OK)
