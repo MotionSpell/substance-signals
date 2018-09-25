@@ -18,6 +18,8 @@ struct MulticastInput : ActiveModule {
 
 		m_output = addOutput<OutputDefault>();
 	}
+
+	// must be able to receive at least 35Mbps
 	bool work() override {
 		auto buf = m_output->getBuffer(4096);
 
