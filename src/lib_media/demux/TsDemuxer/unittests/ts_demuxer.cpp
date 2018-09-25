@@ -96,8 +96,7 @@ struct FrameCounter : ModuleS {
 
 unittest("TsDemuxer: simple") {
 	TsDemuxerConfig cfg;
-	cfg.pids[0].pid = 120;
-	cfg.pids[0].type = 1;
+	cfg.pids[0] = { 120, 1 };
 
 	auto demux = loadModule("TsDemuxer", &NullHost, &cfg);
 	auto rec = create<FrameCounter>();
@@ -114,10 +113,8 @@ unittest("TsDemuxer: simple") {
 
 unittest("TsDemuxer: two pins, one PID") {
 	TsDemuxerConfig cfg;
-	cfg.pids[0].pid = 130;
-	cfg.pids[0].type = 1;
-	cfg.pids[1].pid = 120;
-	cfg.pids[1].type = 1;
+	cfg.pids[0] = { 130, 1 };
+	cfg.pids[1] = { 120, 1 };
 
 	auto demux = loadModule("TsDemuxer", &NullHost, &cfg);
 	auto rec130 = create<FrameCounter>();
@@ -165,10 +162,8 @@ unittest("TsDemuxer: two pins, two PIDs") {
 	}
 
 	TsDemuxerConfig cfg;
-	cfg.pids[0].pid = 666;
-	cfg.pids[0].type = 1;
-	cfg.pids[1].pid = 777;
-	cfg.pids[1].type = 1;
+	cfg.pids[0] = { 666, 1 };
+	cfg.pids[1] = { 777, 1 };
 
 	auto demux = loadModule("TsDemuxer", &NullHost, &cfg);
 	auto pid0 = create<FrameCounter>();
