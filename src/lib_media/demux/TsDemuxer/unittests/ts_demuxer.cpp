@@ -112,7 +112,7 @@ unittest("TsDemuxer: simple") {
 	ASSERT_EQUALS(184 - 4 + 184, rec->totalLength);
 }
 
-unittest("TsDemuxer: keep only one PID") {
+unittest("TsDemuxer: two pins, one PID") {
 	TsDemuxerConfig cfg;
 	cfg.pids[0].pid = 130;
 	cfg.pids[0].type = 1;
@@ -135,7 +135,7 @@ unittest("TsDemuxer: keep only one PID") {
 	ASSERT_EQUALS(1, rec120->frameCount);
 }
 
-unittest("TsDemuxer: keep two PIDs") {
+unittest("TsDemuxer: two pins, two PIDs") {
 
 	uint8_t tsPackets[2 * 188] {};
 	BitWriter w { {tsPackets, sizeof tsPackets} };
