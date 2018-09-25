@@ -35,9 +35,9 @@ struct BitWriter {
 		auto byteIndex = m_pos/8;
 		auto mask = (1 << (7-bitIndex));
 		if(bit)
-			dst.ptr[byteIndex] |= mask;
+			dst[byteIndex] |= mask;
 		else
-			dst.ptr[byteIndex] &= ~mask;
+			dst[byteIndex] &= ~mask;
 		m_pos++;
 	}
 

@@ -184,8 +184,7 @@ struct SDLAudio : ModuleS {
 		auto const bytes = (size_t)n * m_outputFormat.getBytesPerSample();
 		assert(bytes <= dst.len);
 		memcpy(dst.ptr, src, bytes);
-		dst.ptr += bytes;
-		dst.len -= bytes;
+		dst += bytes;
 	}
 
 	void silenceSamples(Span& dst, int n) {
@@ -193,8 +192,7 @@ struct SDLAudio : ModuleS {
 		auto const bytes = (size_t)n * m_outputFormat.getBytesPerSample();
 		assert(bytes <= dst.len);
 		memset(dst.ptr, 0, bytes);
-		dst.ptr += bytes;
-		dst.len -= bytes;
+		dst += bytes;
 	}
 
 	IModuleHost* const m_host;

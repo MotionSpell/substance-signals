@@ -24,6 +24,13 @@ struct BitReader {
 		return r;
 	}
 
+	SpanC payload() const {
+		assert(m_pos%8 == 0);
+		auto r = src;
+		r += m_pos/8;
+		return r;
+	}
+
 	bool empty() const {
 		return size_t(m_pos/8) >= src.len;
 	}
@@ -31,7 +38,7 @@ struct BitReader {
 	int bit() {
 		auto bitIndex = m_pos%8;
 		auto byteIndex = m_pos/8;
-		int bit = (src.ptr[byteIndex] >> (7-bitIndex)) & 1;
+		int bit = (src[byteIndex] >> (7-bitIndex)) & 1;
 		m_pos++;
 		return bit;
 	}
@@ -43,6 +50,11 @@ struct Stream {
 	const int pid;
 	OutputDefault* m_output = nullptr;
 	vector<uint8_t> pesBuffer {};
+
+	void push(SpanC data) {
+		for(auto b : data)
+			pesBuffer.push_back(b);
+	}
 
 	void flush() {
 		if(pesBuffer.empty())
@@ -78,8 +90,7 @@ struct TsDemuxer : ModuleS {
 
 			processTsPacket({buf.ptr, TS_PACKET_LEN});
 
-			buf.ptr += TS_PACKET_LEN;
-			buf.len -= TS_PACKET_LEN;
+			buf += TS_PACKET_LEN;
 		}
 	}
 
@@ -124,10 +135,8 @@ struct TsDemuxer : ModuleS {
 		if(payloadUnitStartIndicator)
 			stream->flush();
 
-		if(adaptationFieldControl & 0x1) {
-			while(!r.empty())
-				stream->pesBuffer.push_back(r.u(8));
-		}
+		if(adaptationFieldControl & 0x1)
+			stream->push(r.payload());
 	}
 
 	Stream* findStreamForPid(int packetId) {

@@ -18,7 +18,7 @@ struct ByteReader {
 	}
 
 	uint8_t u8() {
-		return data.ptr[pos++];
+		return data[pos++];
 	}
 
 	uint32_t u32() {

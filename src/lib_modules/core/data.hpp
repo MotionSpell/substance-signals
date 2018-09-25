@@ -3,15 +3,31 @@
 #include <cstdint>
 #include <cstddef> // size_t
 
-struct Span {
-	uint8_t* ptr;
+template<typename T>
+struct span {
+	T* ptr;
 	size_t len;
+
+	void operator+=(size_t n) {
+		ptr += n;
+		len -= n;
+	}
+
+	T& operator [] (int i) {
+		return ptr[i];
+	}
+
+	T* begin() {
+		return ptr;
+	}
+
+	T* end() {
+		return ptr + len;
+	}
 };
 
-struct SpanC {
-	const uint8_t* ptr;
-	size_t len;
-};
+typedef span<uint8_t> Span;
+typedef span<const uint8_t> SpanC;
 
 namespace Modules {
 

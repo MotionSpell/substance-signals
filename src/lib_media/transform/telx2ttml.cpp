@@ -214,8 +214,8 @@ void TeletextToTTML::processTelx(Data sub) {
 	cfg.page = pageNum;
 	int i = 1;
 	while (i <= int(data.len) - 6) {
-		auto dataUnitId = (DataUnit)data.ptr[i++];
-		auto const dataUnitSize = data.ptr[i++];
+		auto dataUnitId = (DataUnit)data[i++];
+		auto const dataUnitSize = data[i++];
 		const uint8_t telxPayloadSize = 44;
 		if ( ((dataUnitId == NonSubtitle) || (dataUnitId == Subtitle)) && (dataUnitSize == telxPayloadSize) ) {
 			uint8_t entitiesData[telxPayloadSize];
@@ -226,7 +226,7 @@ void TeletextToTTML::processTelx(Data sub) {
 			}
 
 			for (uint8_t j = 0; j < dataUnitSize; j++) {
-				auto byte = data.ptr[i + j];
+				auto byte = data[i + j];
 				entitiesData[j] = Reverse8[byte]; //reverse endianess
 			}
 
