@@ -1,7 +1,6 @@
 PLUG_DIR:=$(call get-my-dir)
-PLUG_OS:=$(shell $(CXX) -dumpmachine | sed "s/.*-//")
 
--include $(PLUG_DIR)/$(PLUG_OS).mk
+-include $(PLUG_DIR)/$(shell $(CXX) -dumpmachine | sed "s/.*-//").mk
 
 TARGETS+=$(BIN)/MulticastInput.smd
 $(BIN)/MulticastInput.smd: \
