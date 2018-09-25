@@ -68,8 +68,6 @@ struct TsDemuxer : ModuleS {
 	}
 
 	void process(Data data) override {
-
-		assert(data);
 		auto buf = data->data();
 
 		while(buf.len > 0) {
