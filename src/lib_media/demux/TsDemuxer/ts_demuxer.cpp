@@ -123,9 +123,8 @@ struct TsDemuxer : ModuleS {
 		if(!stream)
 			return; // we're not interested in this PID
 
-		if(payloadUnitStartIndicator)  {
+		if(payloadUnitStartIndicator)
 			stream->flush();
-		}
 
 		if(adaptationFieldControl & 0x1) {
 			while(!r.empty())
