@@ -25,6 +25,11 @@ struct BitWriter {
 		}
 	}
 
+	void seek(int offset) {
+		m_pos = offset*8;
+	}
+
+
 	void putBit(int bit) {
 		auto bitIndex = m_pos%8;
 		auto byteIndex = m_pos/8;
@@ -44,6 +49,7 @@ std::shared_ptr<DataBase> getTestTs() {
 	BitWriter w { {tsPackets, sizeof tsPackets} };
 
 	{
+		w.seek(0);
 		w.u(8, 0x47); // sync byte
 		w.u(1, 0); // TEI
 		w.u(1, 1); // PUSI
@@ -57,13 +63,10 @@ std::shared_ptr<DataBase> getTestTs() {
 		w.u(8, 3); // adaptation field length
 		for(int i=0; i < 3; ++i)
 			w.u(8, 0x99); // adaptation field raw byte
-
-		// payload
-		while(w.m_pos/8 < 188)
-			w.u(8, 0x77);
 	}
 
 	{
+		w.seek(188);
 		w.u(8, 0x47); // sync byte
 		w.u(1, 0); // TEI
 		w.u(1, 1); // PUSI
@@ -72,8 +75,6 @@ std::shared_ptr<DataBase> getTestTs() {
 		w.u(2, 0); // scrambling control
 		w.u(2, 0b01); // adaptation field control
 		w.u(4, 0); // continuity counter
-		for(int i=0; i < 184; ++i)
-			w.u(8, 0x88);
 	}
 
 	return createPacket(tsPackets);
@@ -140,6 +141,7 @@ unittest("TsDemuxer: keep two PIDs") {
 	BitWriter w { {tsPackets, sizeof tsPackets} };
 
 	{
+		w.seek(0);
 		w.u(8, 0x47); // sync byte
 		w.u(1, 0); // TEI
 		w.u(1, 1); // PUSI
@@ -148,13 +150,10 @@ unittest("TsDemuxer: keep two PIDs") {
 		w.u(2, 0); // scrambling control
 		w.u(2, 0b01); // adaptation field control
 		w.u(4, 0); // continuity counter
-
-		// payload
-		while(w.m_pos/8 < 188)
-			w.u(8, 0x77);
 	}
 
 	{
+		w.seek(188);
 		w.u(8, 0x47); // sync byte
 		w.u(1, 0); // TEI
 		w.u(1, 1); // PUSI
@@ -163,10 +162,6 @@ unittest("TsDemuxer: keep two PIDs") {
 		w.u(2, 0); // scrambling control
 		w.u(2, 0b01); // adaptation field control
 		w.u(4, 0); // continuity counter
-
-		// payload
-		while(w.m_pos/8 < 188)
-			w.u(8, 0x77);
 	}
 
 	TsDemuxerConfig cfg;
