@@ -43,27 +43,38 @@ std::shared_ptr<DataBase> getTestTs() {
 	uint8_t tsPackets[2 * 188] {};
 	BitWriter w { {tsPackets, sizeof tsPackets} };
 
-	w.u(8, 0x47); // sync byte
-	w.u(1, 0); // TEI
-	w.u(1, 1); // PUSI
-	w.u(1, 0); // priority
-	w.u(13, 120); // PID
-	w.u(2, 0); // scrambling control
-	w.u(2, 0); // adaptation field control
-	w.u(4, 0); // continuity counter
-	for(int i=0; i < 184; ++i)
-		w.u(8, 0x77);
+	{
+		w.u(8, 0x47); // sync byte
+		w.u(1, 0); // TEI
+		w.u(1, 1); // PUSI
+		w.u(1, 0); // priority
+		w.u(13, 120); // PID
+		w.u(2, 0); // scrambling control
+		w.u(2, 0b11); // adaptation field control
+		w.u(4, 0); // continuity counter
 
-	w.u(8, 0x47); // sync byte
-	w.u(1, 0); // TEI
-	w.u(1, 1); // PUSI
-	w.u(1, 0); // priority
-	w.u(13, 120); // PID
-	w.u(2, 0); // scrambling control
-	w.u(2, 0); // adaptation field control
-	w.u(4, 0); // continuity counter
-	for(int i=0; i < 184; ++i)
-		w.u(8, 0x88);
+		// adaptation field
+		w.u(8, 3); // adaptation field length
+		for(int i=0; i < 3; ++i)
+			w.u(8, 0x99); // adaptation field raw byte
+
+		// payload
+		while(w.m_pos/8 < 188)
+			w.u(8, 0x77);
+	}
+
+	{
+		w.u(8, 0x47); // sync byte
+		w.u(1, 0); // TEI
+		w.u(1, 1); // PUSI
+		w.u(1, 0); // priority
+		w.u(13, 120); // PID
+		w.u(2, 0); // scrambling control
+		w.u(2, 0b01); // adaptation field control
+		w.u(4, 0); // continuity counter
+		for(int i=0; i < 184; ++i)
+			w.u(8, 0x88);
+	}
 
 	return createPacket(tsPackets);
 }
@@ -74,10 +85,12 @@ unittest("TsDemuxer: simple") {
 		FrameCounter() {
 			addInput(this);
 		}
-		void process(Data) override {
+		void process(Data data) override {
 			++frameCount;
+			totalLength += (int)data->data().len;
 		}
 		int frameCount = 0;
+		int totalLength = 0;
 	};
 
 	TsDemuxerConfig cfg;
@@ -94,6 +107,7 @@ unittest("TsDemuxer: simple") {
 	demux->flush();
 
 	ASSERT_EQUALS(2, rec->frameCount);
+	ASSERT_EQUALS(184 - 4 + 184, rec->totalLength);
 }
 
 unittest("TsDemuxer: keep only one PID") {

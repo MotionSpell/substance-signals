@@ -24,6 +24,10 @@ struct BitReader {
 		return r;
 	}
 
+	bool empty() const {
+		return size_t(m_pos/8) >= src.len;
+	}
+
 	int bit() {
 		auto bitIndex = m_pos%8;
 		auto byteIndex = m_pos/8;
@@ -94,19 +98,25 @@ struct TsDemuxer : ModuleS {
 		const int priority = r.u(1);
 		const int packetId = r.u(13);
 		const int scrambling = r.u(2);
-		const int adaptationField = r.u(2);
+		const int adaptationFieldControl = r.u(2);
 		const int continuityCounter = r.u(4);
 
 		(void)transportErrorIndicator;
 		(void)payloadUnitStartIndicator;
 		(void)priority;
 		(void)scrambling;
-		(void)adaptationField;
 		(void)continuityCounter;
 
 		if(syncByte != 0x47) {
 			m_host->log(Error, "TS sync byte not found");
 			return;
+		}
+
+		// skip adaptation field if any
+		if(adaptationFieldControl & 0x2) {
+			auto length = r.u(8);
+			for(int i=0; i < length; ++i)
+				r.u(8);
 		}
 
 		auto stream = findStreamForPid(packetId);
@@ -117,8 +127,10 @@ struct TsDemuxer : ModuleS {
 			stream->flush();
 		}
 
-		for(int i=4; i < TS_PACKET_LEN; ++i)
-			stream->pesBuffer.push_back(pkt.ptr[i]);
+		if(adaptationFieldControl & 0x1) {
+			while(!r.empty())
+				stream->pesBuffer.push_back(r.u(8));
+		}
 	}
 
 	Stream* findStreamForPid(int packetId) {
