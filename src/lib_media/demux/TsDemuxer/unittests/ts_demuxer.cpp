@@ -128,10 +128,10 @@ unittest("TsDemuxer: keep only one PID") {
 	cfg.pids[1].type = 1;
 
 	auto demux = loadModule("TsDemuxer", &NullHost, &cfg);
-	auto rec120 = create<FrameCounter>();
 	auto rec130 = create<FrameCounter>();
-	ConnectOutputToInput(demux->getOutput(0), rec120->getInput(0));
-	ConnectOutputToInput(demux->getOutput(1), rec130->getInput(0));
+	auto rec120 = create<FrameCounter>();
+	ConnectOutputToInput(demux->getOutput(0), rec130->getInput(0));
+	ConnectOutputToInput(demux->getOutput(1), rec120->getInput(0));
 
 	auto frame = getTestTs();
 	demux->getInput(0)->push(frame);
@@ -139,7 +139,7 @@ unittest("TsDemuxer: keep only one PID") {
 
 	// don't flush
 
-	ASSERT_EQUALS(0, rec120->frameCount);
-	ASSERT_EQUALS(1, rec130->frameCount);
+	ASSERT_EQUALS(0, rec130->frameCount);
+	ASSERT_EQUALS(1, rec120->frameCount);
 }
 
