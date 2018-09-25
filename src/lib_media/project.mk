@@ -116,6 +116,7 @@ $(BIN)/LibavDemux.smd: \
 
 #------------------------------------------------------------------------------
 include $(SRC)/lib_media/in/MulticastInput/project.mk
+include $(SRC)/lib_media/demux/TsDemuxer/project.mk
 
 #------------------------------------------------------------------------------
 # Warning derogations. TODO: make this list empty
