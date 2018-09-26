@@ -274,10 +274,9 @@ unittest("remux test: canonical to H.264 Annex B bitstream converter") {
 	auto onSample = [&](Data pkt) {
 		received = true;
 		auto data = pkt->data().ptr;
-		ASSERT_EQUALS(8u, pkt->data().len);
 
 		auto const expected = std::vector<uint8_t>({0, 0, 0, 1, 4, 5, 6, 7 });
-		ASSERT_EQUALS(expected, std::vector<uint8_t>(data, data + 8));
+		ASSERT_EQUALS(expected, std::vector<uint8_t>(data, data + pkt->data().len));
 	};
 
 	auto avcc2annexB = create<Transform::AVCC2AnnexBConverter>(&NullHost);
