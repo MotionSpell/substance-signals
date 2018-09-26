@@ -266,7 +266,7 @@ secondclasstest("mux GPAC mp4 combination coverage: ugly 2") {
 #include "lib_media/common/libav.hpp"
 
 unittest("remux test: canonical to H.264 Annex B bitstream converter") {
-	const uint8_t input[] = {0, 0, 0, 4, 4, 5, 6, 7 };
+	const uint8_t input[] = {0, 0, 0, 4, 44, 55, 66, 77 };
 	auto pkt = make_shared<Modules::DataAVPacket>(sizeof input);
 	memcpy(pkt->data().ptr, input, sizeof input);
 
@@ -283,7 +283,7 @@ unittest("remux test: canonical to H.264 Annex B bitstream converter") {
 	avcc2annexB->process(pkt);
 	ASSERT(received);
 
-	auto const expected = std::vector<uint8_t>({0, 0, 0, 1, 4, 5, 6, 7 });
+	auto const expected = std::vector<uint8_t>({0, 0, 0, 1, 44, 55, 66, 77 });
 	ASSERT_EQUALS(expected, actual);
 }
 
