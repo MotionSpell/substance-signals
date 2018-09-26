@@ -37,4 +37,11 @@ struct Mp4MuxConfig {
 	FragmentPolicy fragmentPolicy = NoFragment;
 	CompatibilityFlag compatFlags = None;
 };
+
+struct Mp4MuxConfigMss {
+	std::string baseName;
+	uint64_t segmentDurationInMs = 1000;
+	std::string audioLang {};
+	std::string audioName {};
+};
 }

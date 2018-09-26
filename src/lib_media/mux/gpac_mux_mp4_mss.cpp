@@ -8,13 +8,13 @@ extern "C" {
 namespace Modules {
 namespace Mux {
 
-GPACMuxMP4MSS::GPACMuxMP4MSS(IModuleHost* host, const std::string &baseName, uint64_t segmentDurationInMs, const std::string &audioLang, const std::string &audioName)
+GPACMuxMP4MSS::GPACMuxMP4MSS(IModuleHost* host, Mp4MuxConfigMss& cfg)
 	: GPACMuxMP4(host,
 	      Mp4MuxConfig{
-	baseName, segmentDurationInMs,
+	cfg.baseName, cfg.segmentDurationInMs,
 	IndependentSegment, OneFragmentPerSegment,
-	SmoothStreaming | Browsers | NoEditLists | (!audioName.empty() ? SegConstantDur : None) | ((!audioLang.empty() || audioName.empty()) ? ExactInputDur : None)}),
-audioLang(audioLang), audioName(audioName) {
+	SmoothStreaming | Browsers | NoEditLists | (!cfg.audioName.empty() ? SegConstantDur : None) | ((!cfg.audioLang.empty() || cfg.audioName.empty()) ? ExactInputDur : None)}),
+audioLang(cfg.audioLang), audioName(cfg.audioName) {
 }
 
 void GPACMuxMP4MSS::declareStreamAudio(const std::shared_ptr<const MetadataPktLibavAudio> &metadata) {

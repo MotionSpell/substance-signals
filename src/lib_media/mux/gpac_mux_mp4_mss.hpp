@@ -7,7 +7,7 @@ namespace Mux {
 
 class GPACMuxMP4MSS : public GPACMuxMP4 {
 	public:
-		GPACMuxMP4MSS(IModuleHost* host, const std::string &baseName, uint64_t segmentDurationInMs, const std::string &audioLang = "", const std::string &audioName = "");
+		GPACMuxMP4MSS(IModuleHost* host, Mp4MuxConfigMss& cfg);
 
 	private:
 		void declareStreamVideo(const std::shared_ptr<const MetadataPktLibavVideo> &metadata) final;
