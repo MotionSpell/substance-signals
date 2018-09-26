@@ -16,12 +16,20 @@ struct BitReader {
 	SpanC src;
 
 	int u(int n) {
-		int r = 0;
-		for(int i=0; i < n; ++i) {
-			r <<= 1;
-			r |= bit();
+		const int firstByte = m_pos/8;
+		const int lastByte = (m_pos+n-1)/8;
+		m_pos += n;
+
+		uint64_t acc = 0;
+
+		for(int k = firstByte; k <= lastByte; ++k) {
+			acc <<= 8;
+			acc |= src[k];
 		}
-		return r;
+
+		auto mask = ((1u << n)-1);
+		auto shift = m_pos % 8 ? 8 - m_pos % 8 : 0;
+		return (acc >> shift) & mask;
 	}
 
 	SpanC payload() const {
@@ -33,14 +41,6 @@ struct BitReader {
 
 	bool empty() const {
 		return size_t(m_pos/8) >= src.len;
-	}
-
-	int bit() {
-		auto bitIndex = m_pos%8;
-		auto byteIndex = m_pos/8;
-		int bit = (src[byteIndex] >> (7-bitIndex)) & 1;
-		m_pos++;
-		return bit;
 	}
 
 	int m_pos = 0;
