@@ -104,7 +104,7 @@ class TeletextToTTML : public ModuleS {
 		void dispatch();
 
 		IModuleHost* const m_host;
-		std::function<int64_t()> getUtcPipelineStartTime;
+		IUtcStartTimeQuery* const m_utcStartTime;
 		OutputDataDefault<DataAVPacket> *output;
 		const unsigned pageNum;
 		const std::string lang;
@@ -139,7 +139,7 @@ std::string TeletextToTTML::toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs)
 	int64_t offsetInMs;
 	switch (timingPolicy) {
 	case TeletextToTtmlConfig::AbsoluteUTC:
-		offsetInMs = getUtcPipelineStartTime();
+		offsetInMs = m_utcStartTime->query();
 		break;
 	case TeletextToTtmlConfig::RelativeToMedia:
 		offsetInMs = 0;
@@ -178,9 +178,9 @@ std::string TeletextToTTML::toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs)
 
 TeletextToTTML::TeletextToTTML(IModuleHost* host, TeletextToTtmlConfig* cfg)
 	: m_host(host),
-	  getUtcPipelineStartTime(cfg->getUtcPipelineStartTime),
+	  m_utcStartTime(cfg->utcStartTime),
 	  pageNum(cfg->pageNum), lang(cfg->lang), timingPolicy(cfg->timingPolicy), maxPageDurIn180k(timescaleToClock(cfg->maxDelayBeforeEmptyInMs, 1000)), splitDurationIn180k(timescaleToClock(cfg->splitDurationInMs, 1000)) {
-	enforce(getUtcPipelineStartTime != nullptr, "TeletextToTTML: getUtcPipelineStartTime can't be NULL");
+	enforce(cfg->utcStartTime != nullptr, "TeletextToTTML: utcStartTime can't be NULL");
 	config = make_unique<Config>();
 	addInput(this);
 	output = addOutput<OutputDataDefault<DataAVPacket>>();

@@ -33,6 +33,7 @@ class GPACMuxMP4 : public ModuleDynI {
 
 	private:
 		IModuleHost * const m_host;
+		IUtcStartTimeQuery* const m_utcStartTime;
 
 		bool processInit(Data &data);
 		void declareStream(const std::shared_ptr<const IMetadata> &metadata);

@@ -11,10 +11,15 @@ namespace Mux {
 GPACMuxMP4MSS::GPACMuxMP4MSS(IModuleHost* host, Mp4MuxConfigMss& cfg)
 	: GPACMuxMP4(host,
 	      Mp4MuxConfig{
-	cfg.baseName, cfg.segmentDurationInMs,
-	IndependentSegment, OneFragmentPerSegment,
-	SmoothStreaming | Browsers | NoEditLists | (!cfg.audioName.empty() ? SegConstantDur : None) | ((!cfg.audioLang.empty() || cfg.audioName.empty()) ? ExactInputDur : None)}),
-audioLang(cfg.audioLang), audioName(cfg.audioName) {
+	cfg.baseName,
+	cfg.segmentDurationInMs,
+	IndependentSegment,
+	OneFragmentPerSegment,
+	SmoothStreaming | Browsers | NoEditLists | (!cfg.audioName.empty() ? SegConstantDur : None) | ((!cfg.audioLang.empty() || cfg.audioName.empty()) ? ExactInputDur : None),
+	cfg.utcStartTime
+}),
+audioLang(cfg.audioLang),
+audioName(cfg.audioName) {
 }
 
 void GPACMuxMP4MSS::declareStreamAudio(const std::shared_ptr<const MetadataPktLibavAudio> &metadata) {

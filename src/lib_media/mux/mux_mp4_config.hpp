@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include "../common/utc_start_time.hpp"
 
 namespace Modules {
 
@@ -36,6 +37,7 @@ struct Mp4MuxConfig {
 	SegmentPolicy segmentPolicy = NoSegment;
 	FragmentPolicy fragmentPolicy = NoFragment;
 	CompatibilityFlag compatFlags = None;
+	IUtcStartTimeQuery* utcStartTime = &g_NullStartTime;
 };
 
 struct Mp4MuxConfigMss {
@@ -43,5 +45,6 @@ struct Mp4MuxConfigMss {
 	uint64_t segmentDurationInMs = 1000;
 	std::string audioLang {};
 	std::string audioName {};
+	IUtcStartTimeQuery* utcStartTime = &g_NullStartTime;
 };
 }

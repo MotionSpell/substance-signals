@@ -1,7 +1,6 @@
 #include "tests/tests.hpp"
 #include "lib_modules/modules.hpp"
 #include "lib_modules/utils/loader.hpp"
-#include "lib_modules/core/data_utc.hpp"
 #include <stdexcept>
 #include "lib_media/common/libav.hpp" // MetadataPktLibavVideo
 #include "lib_media/demux/libav_demux.hpp"
@@ -635,7 +634,13 @@ static const std::vector<Meta> ref = {
 //#define TEST_DASH_TIMELINE //FIXME: DASH segment timeline requires segments to be owned.
 unittest("[DISABLED] adaptive streaming combination coverage") {
 	auto const segmentDurationInMs = 2000;
-	Modules::absUTCOffsetInMs = 1000000;
+
+	struct UtcStartTime : IUtcStartTimeQuery {
+		uint64_t query() override {
+			return 1000000;
+		}
+	} UtcStartTime;
+
 	std::vector<std::shared_ptr<IModule>> decode;
 	std::vector<std::shared_ptr<IModule>> encode;
 

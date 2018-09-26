@@ -3,7 +3,6 @@
 #include "lib_utils/time.hpp"
 #include "../common/gpacpp.hpp"
 #include "../common/ffpp.hpp"
-#include "lib_modules/core/data_utc.hpp"
 #include "lib_modules/utils/factory.hpp"
 
 extern "C" {
@@ -410,7 +409,7 @@ void fillVideoSampleData(const u8 *bufPtr, u32 bufLen, GF_ISOSample &sample) {
 namespace Mux {
 
 GPACMuxMP4::GPACMuxMP4(IModuleHost* host, Mp4MuxConfig const& cfg)
-	: m_host(host), compatFlags(cfg.compatFlags), fragmentPolicy(cfg.fragmentPolicy), segmentPolicy(cfg.segmentPolicy), segmentDuration(cfg.segmentDurationInMs, 1000) {
+	: m_host(host), m_utcStartTime(cfg.utcStartTime), compatFlags(cfg.compatFlags), fragmentPolicy(cfg.fragmentPolicy), segmentPolicy(cfg.segmentPolicy), segmentDuration(cfg.segmentDurationInMs, 1000) {
 	if ((cfg.segmentDurationInMs == 0) ^ (segmentPolicy == NoSegment || segmentPolicy == SingleSegment))
 		throw error(format("Inconsistent parameters: segment duration is %sms but no segment.", cfg.segmentDurationInMs));
 	if ((cfg.segmentDurationInMs == 0) && (fragmentPolicy == OneFragmentPerSegment))
@@ -1074,7 +1073,7 @@ bool GPACMuxMP4::processInit(Data &data) {
 		}
 
 		if (!firstDataAbsTimeInMs) {
-			firstDataAbsTimeInMs = Modules::absUTCOffsetInMs;
+			firstDataAbsTimeInMs = m_utcStartTime->query();
 			auto const timescale = safe_cast<const MetadataPktLibav>(data->getMetadata())->getTimeScale();
 			initDTSIn180k = timescaleToClock(safe_cast<const DataAVPacket>(data)->getPacket()->dts * timescale.den, timescale.num);
 			handleInitialTimeOffset();

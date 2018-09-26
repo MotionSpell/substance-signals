@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include <functional>
+#include "../common/utc_start_time.hpp"
 
 struct TeletextToTtmlConfig {
 	enum TimingPolicy {
@@ -15,8 +15,6 @@ struct TeletextToTtmlConfig {
 	uint64_t splitDurationInMs = 1000;
 	uint64_t maxDelayBeforeEmptyInMs = 2000;
 	TimingPolicy timingPolicy = TimingPolicy::RelativeToSplit;
-	std::function<int64_t()> getUtcPipelineStartTime = []() {
-		return 0;
-	};
+	IUtcStartTimeQuery* utcStartTime = &g_NullStartTime;
 };
 
