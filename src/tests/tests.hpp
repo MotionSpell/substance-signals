@@ -18,6 +18,11 @@
 #define secondclasstest(prettyName) \
 	unittestLine(__COUNTER__, prettyName, 1)
 
+namespace Tests {
+template<typename T>
+std::string ToString(T const& val);
+}
+
 // TODO: find a way not to explicitly depend on 'vector'.
 template<typename T>
 inline std::ostream& operator<<(std::ostream& o, std::vector<T> iterable) {
@@ -26,7 +31,7 @@ inline std::ostream& operator<<(std::ostream& o, std::vector<T> iterable) {
 	for(auto& val : iterable) {
 		if(!first)
 			o << ", ";
-		o << val;
+		o << Tests::ToString(val);
 		first = false;
 	}
 	o << "]";
@@ -41,6 +46,13 @@ template<typename T>
 std::string ToString(T const& val) {
 	std::stringstream ss;
 	ss << val;
+	return ss.str();
+}
+
+template<>
+inline std::string ToString<uint8_t>(uint8_t const& val) {
+	std::stringstream ss;
+	ss << (int)val;
 	return ss.str();
 }
 
