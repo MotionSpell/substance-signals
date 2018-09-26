@@ -264,7 +264,7 @@ secondclasstest("mux GPAC mp4 combination coverage: ugly 2") {
 }
 
 extern "C" {
-#include <libavcodec/avcodec.h> // avcodec_open2
+#include <libavcodec/avcodec.h> // AVPacket
 }
 #include "lib_media/common/libav.hpp"
 
