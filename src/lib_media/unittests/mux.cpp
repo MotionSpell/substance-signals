@@ -26,6 +26,8 @@ std::ostream& operator<<(std::ostream& o, Meta const& meta) {
 	return o;
 }
 
+}
+
 unittest("remux test: GPAC mp4 mux") {
 	DemuxConfig cfg;
 	cfg.url = "data/beepbop.mp4";
@@ -93,6 +95,7 @@ unittest("mux GPAC mp4 failure tests") {
 	}
 }
 
+static
 std::vector<Meta> runMux(std::shared_ptr<IModule> m) {
 	IOutput* audioPin = nullptr;
 
@@ -260,14 +263,10 @@ secondclasstest("mux GPAC mp4 combination coverage: ugly 2") {
 	);
 }
 
-}
-
 extern "C" {
 #include <libavcodec/avcodec.h> // avcodec_open2
 }
 #include "lib_media/common/libav.hpp"
-
-namespace {
 
 unittest("remux test: canonical to H.264 Annex B bitstream converter") {
 	auto data = make_shared<Modules::DataAVPacket>();
@@ -295,4 +294,3 @@ unittest("remux test: canonical to H.264 Annex B bitstream converter") {
 	ASSERT_EQUALS(true, received);
 }
 
-}
