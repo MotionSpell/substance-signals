@@ -5,8 +5,10 @@
 // modules
 #include "lib_media/demux/dash_demux.hpp"
 #include "lib_media/demux/libav_demux.hpp"
+#include "lib_media/demux/TsDemuxer/ts_demuxer.hpp"
 #include "lib_media/in/mpeg_dash_input.hpp"
 #include "lib_media/in/video_generator.hpp"
+#include "lib_media/in/file.hpp"
 #include "lib_media/out/null.hpp"
 
 using namespace Modules;
@@ -34,6 +36,15 @@ IPipelinedModule* createRenderer(Pipeline& pipeline, Config cfg, int codecType) 
 }
 
 IPipelinedModule* createDemuxer(Pipeline& pipeline, std::string url) {
+	if(startsWith(url, "mpegts://")) {
+		url = url.substr(9);
+		auto file = pipeline.addModule<In::File>(url);
+		TsDemuxerConfig cfg {};
+		cfg.pids[0].pid = 512;
+		auto demux = pipeline.add("TsDemuxer", &cfg);
+		pipeline.connect(file, demux);
+		return demux;
+	}
 	if(startsWith(url, "videogen://")) {
 		return pipeline.addModule<In::VideoGenerator>();
 	}

@@ -268,15 +268,17 @@ struct TsDemuxer : ModuleS, PsiStream::Listener {
 
 		// PsiStream::Listener implementation
 		void onPat(span<int> pmtPids) override {
+			m_host->log(Debug, format("Found PAT (%s programs)", pmtPids.len).c_str());
 			for(auto pid : pmtPids)
 				m_streams.push_back(make_unique<PsiStream>(pid, this));
 		}
 
 		void onPmt(span<PsiStream::EsInfo> esInfo) override {
+			m_host->log(Debug, format("Found PMT (%s streams)", esInfo.len).c_str());
 			for(auto es : esInfo) {
 				if(auto stream = dynamic_cast<PesStream*>(findStreamForPid(es.pid))) {
 					if(!stream->setType(es.streamType)) {
-						m_host->log(Warning, format("Unknown stream type for PID=%d: 0x%.2X", es.pid, es.streamType).c_str());
+						m_host->log(Warning, format("Unknown stream type for PID=%s: %s", es.pid, es.streamType).c_str());
 					}
 				}
 			}
