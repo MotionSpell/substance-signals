@@ -265,7 +265,11 @@ unittest("TsDemuxer: get codec from PMT") {
 		w.u(3, 0x7); // reserved
 		w.u(13, 777); // PID
 		w.u(4, 0xf); // reserved
-		w.u(12, 0x0); // ES info length
+		w.u(12, 0x3); // ES info length
+
+		w.u(8, 0x77); // garbage byte (ES info)
+		w.u(8, 0x77); // garbage byte (ES info)
+		w.u(8, 0x77); // garbage byte (ES info)
 
 		// Elementary stream info
 		w.u(8, 0x1b); // stream type: H.264

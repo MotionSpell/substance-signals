@@ -132,7 +132,11 @@ struct PsiStream : Stream {
 					/*auto const reserved5 =*/ r.u(3);
 					auto const pid = r.u(13);
 					/*auto const reserved6 =*/ r.u(4);
-					/*auto const es_info_length =*/ r.u(12);
+					auto const es_info_length = r.u(12);
+
+					// skip es_info
+					for(int i=0; i < es_info_length; ++i)
+						r.u(8);
 
 					info.push_back({ pid, stream_type });
 				}
