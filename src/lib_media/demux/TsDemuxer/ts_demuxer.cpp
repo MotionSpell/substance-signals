@@ -211,11 +211,11 @@ struct TsDemuxer : ModuleS, PsiStream::Listener {
 		void processTsPacket(SpanC pkt) {
 			BitReader r = {pkt};
 			const int syncByte = r.u(8);
-			/*const int transportErrorIndicator =*/ r.u(1);
+			const int transportErrorIndicator = r.u(1);
 			const int payloadUnitStartIndicator = r.u(1);
 			/*const int priority =*/ r.u(1);
 			const int packetId = r.u(13);
-			/*const int scrambling =*/ r.u(2);
+			const int scrambling = r.u(2);
 			const int adaptationFieldControl = r.u(2);
 			/*const int continuityCounter =*/ r.u(4);
 
@@ -234,6 +234,16 @@ struct TsDemuxer : ModuleS, PsiStream::Listener {
 			auto stream = findStreamForPid(packetId);
 			if(!stream)
 				return; // we're not interested in this PID
+
+			if(transportErrorIndicator) {
+				m_host->log(Error, "Discarding TS packet with TEI=1");
+				return;
+			}
+
+			if(scrambling) {
+				m_host->log(Error, "Discarding scrambled TS packet");
+				return;
+			}
 
 			if(payloadUnitStartIndicator)
 				stream->flush();
