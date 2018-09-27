@@ -43,6 +43,11 @@ struct BitReader {
 		return (acc >> shift) & mask;
 	}
 
+	int byteOffset() const {
+		assert(m_pos%8 == 0);
+		return m_pos/8;
+	}
+
 	SpanC payload() const {
 		assert(m_pos%8 == 0);
 		auto r = src;
@@ -91,7 +96,9 @@ struct PsiStream : Stream {
 			/*auto const section_syntax_indicator =*/ r.u(1);
 			/*auto const private_bit =*/ r.u(1);
 			/*auto const reserved1 =*/ r.u(2);
-			/*auto const section_length =*/ r.u(12);
+			auto const section_length = r.u(12);
+
+			auto sectionStart = r.byteOffset();
 
 			/*auto const table_id_extension =*/ r.u(16);
 			/*auto const reserved2 =*/ r.u(2);
@@ -117,16 +124,20 @@ struct PsiStream : Stream {
 				/*auto const reserved4 =*/ r.u(4);
 				/*auto const program_info_length =*/ r.u(12);
 
-				// Elementary stream info
-				auto const stream_type = r.u(8);
-				/*auto const reserved5 =*/ r.u(3);
-				auto const pid = r.u(13);
-				/*auto const reserved6 =*/ r.u(4);
-				/*auto const es_info_length =*/ r.u(12);
+				vector<EsInfo> info;
 
-				EsInfo info[] = {{ pid, stream_type }};
+				while(r.byteOffset() < sectionStart + section_length) {
+					// Elementary stream info
+					auto const stream_type = r.u(8);
+					/*auto const reserved5 =*/ r.u(3);
+					auto const pid = r.u(13);
+					/*auto const reserved6 =*/ r.u(4);
+					/*auto const es_info_length =*/ r.u(12);
 
-				listener->onPmt(info);
+					info.push_back({ pid, stream_type });
+				}
+
+				listener->onPmt({info.data(), info.size()});
 				break;
 			}
 			break;

@@ -245,7 +245,7 @@ unittest("TsDemuxer: get codec from PMT") {
 		w.u(1, 0x1); // section syntax indicator
 		w.u(1, 0x0); // private bit
 		w.u(2, 0x3); // reserved
-		w.u(12, 0x12); // section_length
+		w.u(12, 0x17); // section_length
 
 		w.u(16, 0x01); // program_number (Table ID extension)
 		w.u(2, 0x3); // reserved
@@ -259,6 +259,13 @@ unittest("TsDemuxer: get codec from PMT") {
 		w.u(13, 0x100); // PCR_PID
 		w.u(4, 0xf); // reserved
 		w.u(12, 0x0); // program_info_length
+
+		// Elementary stream info
+		w.u(8, 0x04); // stream type: MPEG2 audio
+		w.u(3, 0x7); // reserved
+		w.u(13, 777); // PID
+		w.u(4, 0xf); // reserved
+		w.u(12, 0x0); // ES info length
 
 		// Elementary stream info
 		w.u(8, 0x1b); // stream type: H.264
