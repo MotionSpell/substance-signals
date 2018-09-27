@@ -3,7 +3,10 @@
 #include "lib_utils/log_sink.hpp" // Info
 #include "file.hpp"
 
-#define IOSIZE (64*1024)
+#define IOSIZE (66176)
+
+static_assert(IOSIZE % 32 == 0);
+static_assert(IOSIZE % 188 == 0);
 
 namespace Modules {
 namespace In {
