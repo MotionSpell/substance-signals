@@ -82,72 +82,41 @@ struct PsiStream : Stream {
 			BitReader r = {data};
 
 			auto const table_id = r.u(8);
-			auto const section_syntax_indicator = r.u(1);
-			auto const private_bit = r.u(1);
-			auto const reserved1 = r.u(2);
-			auto const section_length = r.u(12);
+			/*auto const section_syntax_indicator =*/ r.u(1);
+			/*auto const private_bit =*/ r.u(1);
+			/*auto const reserved1 =*/ r.u(2);
+			/*auto const section_length =*/ r.u(12);
 
-			auto const table_id_extension = r.u(16);
-			auto const reserved2 = r.u(2);
-			auto const version_number = r.u(5);
-			auto const current_next_indicator = r.u(1);
-			auto const section_number = r.u(8);
-			auto const last_section_number = r.u(8);
-
-			// prevent compiler warnings about unused variables
-#define BIND(a) (void)a
-
-			BIND(table_id);
-			BIND(section_syntax_indicator);
-			BIND(private_bit);
-			BIND(reserved1);
-			BIND(section_length);
-
-			BIND(table_id_extension);
-			BIND(reserved2);
-			BIND(version_number);
-			BIND(current_next_indicator);
-			BIND(section_number);
-			BIND(last_section_number);
+			/*auto const table_id_extension =*/ r.u(16);
+			/*auto const reserved2 =*/ r.u(2);
+			/*auto const version_number =*/ r.u(5);
+			/*auto const current_next_indicator =*/ r.u(1);
+			/*auto const section_number =*/ r.u(8);
+			/*auto const last_section_number =*/ r.u(8);
 
 			switch(table_id) {
 			case TABLE_ID_PAT: {
 				// actual PAT data
-				auto const program_number = r.u(16);
-				auto const reserved3 = r.u(3);
+				/*auto const program_number =*/ r.u(16);
+				/*auto const reserved3 =*/ r.u(3);
 				auto const program_map_pid = r.u(13);
-
-				BIND(program_number);
-				BIND(reserved3);
-				BIND(program_map_pid);
 
 				int pids[] = { program_map_pid };
 				listener->onPat(pids);
 				break;
 			}
 			case TABLE_ID_PMT: {
-				auto const reserved3 = r.u(3); // reserved
-				auto const pcr_pid = r.u(13); // PCR_PID
-				auto const reserved4 = r.u(4); // reserved
-				auto const program_info_length = r.u(12); // program_info_length
+				/*auto const reserved3 =*/ r.u(3);
+				/*auto const pcr_pid =*/ r.u(13);
+				/*auto const reserved4 =*/ r.u(4);
+				/*auto const program_info_length =*/ r.u(12);
 
 				// Elementary stream info
-				auto const stream_type = r.u(8); // stream type: H.264
-				auto const reserved5 = r.u(3); // reserved
-				auto const pid = r.u(13); // PID
-				auto const reserved6 = r.u(4); // reserved
-				auto const es_info_length = r.u(12); // ES info length
-
-				BIND(reserved3);
-				BIND(pcr_pid);
-				BIND(reserved4);
-				BIND(program_info_length);
-
-				BIND(stream_type);
-				BIND(reserved5);
-				BIND(pid);
-				BIND(reserved6);
-				BIND(es_info_length);
+				auto const stream_type = r.u(8);
+				/*auto const reserved5 =*/ r.u(3);
+				auto const pid = r.u(13);
+				/*auto const reserved6 =*/ r.u(4);
+				/*auto const es_info_length =*/ r.u(12);
 
 				EsInfo info[] = {{ pid, stream_type }};
 
@@ -241,19 +210,13 @@ struct TsDemuxer : ModuleS, PsiStream::Listener {
 	void processTsPacket(SpanC pkt) {
 		BitReader r = {pkt};
 		const int syncByte = r.u(8);
-		const int transportErrorIndicator = r.u(1);
+		/*const int transportErrorIndicator =*/ r.u(1);
 		const int payloadUnitStartIndicator = r.u(1);
-		const int priority = r.u(1);
+		/*const int priority =*/ r.u(1);
 		const int packetId = r.u(13);
-		const int scrambling = r.u(2);
+		/*const int scrambling =*/ r.u(2);
 		const int adaptationFieldControl = r.u(2);
-		const int continuityCounter = r.u(4);
-
-		(void)transportErrorIndicator;
-		(void)payloadUnitStartIndicator;
-		(void)priority;
-		(void)scrambling;
-		(void)continuityCounter;
+		/*const int continuityCounter =*/ r.u(4);
 
 		if(syncByte != 0x47) {
 			m_host->log(Error, "TS sync byte not found");
