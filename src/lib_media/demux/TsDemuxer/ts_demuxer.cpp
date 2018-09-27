@@ -3,6 +3,7 @@
 #include "lib_modules/utils/helper.hpp"
 #include "lib_media/common/metadata.hpp"
 #include "lib_utils/log_sink.hpp" // Error
+#include "lib_utils/format.hpp"
 #include <vector>
 #include <string.h> // memcpy
 using namespace std;
@@ -67,7 +68,7 @@ struct Stream {
 struct PsiStream : Stream {
 
 		struct EsInfo {
-			int pid, stream_type;
+			int pid, streamType;
 		};
 
 		struct Listener {
@@ -156,18 +157,24 @@ struct PesStream : Stream {
 			pesBuffer.clear();
 		}
 
-		void setType(int streamType) {
+		bool setType(int streamType) {
 			switch(streamType) {
-			case 0x1b: { // H.264
+			case 0x1b: {
 				auto meta = make_shared<MetadataPkt>(VIDEO_PKT);
 				meta->codec = "h264";
 				m_output->setMetadata(meta);
 				break;
 			}
-			default:
-				// unknown stream type
+			case 0x24: {
+				auto meta = make_shared<MetadataPkt>(VIDEO_PKT);
+				meta->codec = "hevc";
+				m_output->setMetadata(meta);
 				break;
 			}
+			default:
+				return false; // unknown stream type
+			}
+			return true;
 		}
 
 	private:
@@ -267,8 +274,11 @@ struct TsDemuxer : ModuleS, PsiStream::Listener {
 
 		void onPmt(span<PsiStream::EsInfo> esInfo) override {
 			for(auto es : esInfo) {
-				if(auto stream = dynamic_cast<PesStream*>(findStreamForPid(es.pid)))
-					stream->setType(es.stream_type);
+				if(auto stream = dynamic_cast<PesStream*>(findStreamForPid(es.pid))) {
+					if(!stream->setType(es.streamType)) {
+						m_host->log(Warning, format("Unknown stream type for PID=%d: 0x%.2X", es.pid, es.streamType).c_str());
+					}
+				}
 			}
 		}
 
