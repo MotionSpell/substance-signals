@@ -215,11 +215,11 @@ unittest("[DISABLED] TsDemuxer: get codec from PMT") {
 		w.u(8, 0x00); // last_section_number
 
 		// actual PAT data
-		w.u(8, 0x0001); // program_number
+		w.u(16, 0x0001); // program_number
 		w.u(3, 0x7); // reserved bits
 		w.u(13, 50); // program map PID
 
-		w.u(8, 0x2ab104b2); // CRC32
+		w.u(32, 0x2ab104b2); // CRC32
 	}
 
 	// PMT
@@ -262,7 +262,7 @@ unittest("[DISABLED] TsDemuxer: get codec from PMT") {
 		w.u(4, 0xf); // reserved
 		w.u(12, 0x0); // ES info length
 
-		w.u(32, 0x15bd4d56); // CRC32
+		w.u(32, 0x896249fe); // CRC32
 	}
 
 	TsDemuxerConfig cfg;
