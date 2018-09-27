@@ -8,10 +8,10 @@
 using namespace Tests;
 using namespace Modules;
 
-template<size_t N>
-std::shared_ptr<DataBase> createPacket(uint8_t const (&bytes)[N]) {
+std::shared_ptr<DataBase> createPacket(SpanC span) {
+	auto N = span.len;
 	auto pkt = make_shared<DataRaw>(N);
-	memcpy(pkt->data().ptr, bytes, N);
+	memcpy(pkt->data().ptr, span.ptr, N);
 	return pkt;
 }
 
