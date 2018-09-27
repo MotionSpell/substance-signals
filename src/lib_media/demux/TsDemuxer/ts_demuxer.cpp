@@ -195,9 +195,8 @@ struct TsDemuxer : ModuleS, PsiStream::Listener {
 
 			m_streams.push_back(make_unique<PsiStream>(PID_PAT, this));
 
-			for(auto& pid : config.pids) {
+			for(auto& pid : config.pids)
 				m_streams.push_back(make_unique<PesStream>(pid.pid, addOutput<OutputDefault>()));
-			}
 		}
 
 		void process(Data data) override {
@@ -210,7 +209,6 @@ struct TsDemuxer : ModuleS, PsiStream::Listener {
 				}
 
 				processTsPacket({buf.ptr, TS_PACKET_LEN});
-
 				buf += TS_PACKET_LEN;
 			}
 		}
@@ -282,9 +280,8 @@ struct TsDemuxer : ModuleS, PsiStream::Listener {
 			m_host->log(Debug, format("Found PMT (%s streams)", esInfo.len).c_str());
 			for(auto es : esInfo) {
 				if(auto stream = dynamic_cast<PesStream*>(findStreamForPid(es.pid))) {
-					if(!stream->setType(es.streamType)) {
+					if(!stream->setType(es.streamType))
 						m_host->log(Warning, format("Unknown stream type for PID=%s: %s", es.pid, es.streamType).c_str());
-					}
 				}
 			}
 		}
