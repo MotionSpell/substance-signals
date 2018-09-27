@@ -689,7 +689,6 @@ void GPACMuxMP4::declareStreamAudio(const std::shared_ptr<const MetadataPktLibav
 				m_host->log(Error, format("Parsing: audio is neither AC3 or E-AC3 audio (\"%s\", size=%s)", metadata->getCodecName(), extradata.len).c_str());
 			}
 		}
-		assert(sampleRate == (int)hdr.sample_rate);
 
 		esd->decoderConfig->objectTypeIndication = is_EAC3 ? GPAC_OTI_AUDIO_EAC3 : GPAC_OTI_AUDIO_AC3;
 		esd->decoderConfig->bufferSizeDB = 20;
