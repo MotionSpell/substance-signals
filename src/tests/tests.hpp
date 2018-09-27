@@ -4,19 +4,22 @@
 #include <vector>
 
 // generate a file-unique identifier, based on current line
-#define unittestSuffix(suffix, prettyName, secondClass) \
+#define unittestSuffix(suffix, prettyName, type) \
 	static void testFunction##suffix(); \
-	static int g_isRegistered##suffix = Tests::RegisterTest(&testFunction##suffix, prettyName, secondClass, g_isRegistered##suffix); \
+	static int g_isRegistered##suffix = Tests::RegisterTest(&testFunction##suffix, prettyName, type, g_isRegistered##suffix); \
 	static void testFunction##suffix()
 
-#define unittestLine(counter, prettyName, secondClass) \
-	unittestSuffix(counter, prettyName, secondClass)
+#define unittestLine(counter, prettyName, type) \
+	unittestSuffix(counter, prettyName, type)
 
 #define unittest(prettyName) \
 	unittestLine(__COUNTER__, prettyName, 0)
 
 #define secondclasstest(prettyName) \
 	unittestLine(__COUNTER__, prettyName, 1)
+
+#define fuzztest(prettyName) \
+	unittestLine(__COUNTER__, prettyName, 2)
 
 namespace Tests {
 template<typename T>
@@ -41,6 +44,7 @@ inline std::ostream& operator<<(std::ostream& o, std::vector<T> iterable) {
 namespace Tests {
 
 void Fail(char const* file, int line, const char* msg);
+void GetFuzzTestData(uint8_t const*& ptr, size_t& len);
 
 template<typename T>
 std::string ToString(T const& val) {
@@ -99,6 +103,6 @@ inline void AssertEquals(char const* file, int line, const char* caption, T cons
 	} catch (...) { \
 	} \
 
-int RegisterTest(void (*f)(), const char* testName, bool secondClass, int& dummy);
+int RegisterTest(void (*f)(), const char* testName, int type, int& dummy);
 
 }

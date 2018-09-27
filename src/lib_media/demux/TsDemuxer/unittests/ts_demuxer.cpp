@@ -295,3 +295,17 @@ unittest("TsDemuxer: get codec from PMT") {
 	ASSERT_EQUALS("h264", meta->codec);
 }
 
+fuzztest("TsDemuxer") {
+	SpanC testdata;
+	GetFuzzTestData(testdata.ptr, testdata.len);
+
+	TsDemuxerConfig cfg;
+	cfg.pids[0] = { 666, 1 };
+
+	auto demux = loadModule("TsDemuxer", &NullHost, &cfg);
+
+	demux->getInput(0)->push(createPacket(testdata));
+	demux->process();
+	demux->flush();
+}
+
