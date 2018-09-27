@@ -196,7 +196,8 @@ struct TsDemuxer : ModuleS, PsiStream::Listener {
 			m_streams.push_back(make_unique<PsiStream>(PID_PAT, this));
 
 			for(auto& pid : config.pids)
-				m_streams.push_back(make_unique<PesStream>(pid.pid, addOutput<OutputDefault>()));
+				if(pid.type != TsDemuxerConfig::NONE)
+					m_streams.push_back(make_unique<PesStream>(pid.pid, addOutput<OutputDefault>()));
 		}
 
 		void process(Data data) override {
