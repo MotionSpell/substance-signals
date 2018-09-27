@@ -171,6 +171,8 @@ unittest("TsDemuxer: two pins, two PIDs") {
 	cfg.pids[1] = { 777, 1 };
 
 	auto demux = loadModule("TsDemuxer", &NullHost, &cfg);
+	ASSERT_EQUALS(2, demux->getNumOutputs());
+
 	auto pid0 = create<FrameCounter>();
 	auto pid1 = create<FrameCounter>();
 	ConnectOutputToInput(demux->getOutput(0), pid0->getInput(0));
