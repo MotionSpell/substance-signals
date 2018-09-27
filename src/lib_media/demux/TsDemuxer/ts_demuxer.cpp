@@ -1,3 +1,8 @@
+// MPEG-TS push demuxer.
+//
+// The design goal here is to discard the biggest amount of input
+// data (which is often erroneous) while still getting the job done.
+//
 #include "ts_demuxer.hpp"
 #include "lib_modules/utils/factory.hpp" // registerModule
 #include "lib_modules/utils/helper.hpp"
@@ -179,7 +184,7 @@ struct PesStream : Stream {
 
 	private:
 		OutputDefault* m_output = nullptr;
-		vector<uint8_t> pesBuffer {};
+		vector<uint8_t> pesBuffer;
 };
 
 struct TsDemuxer : ModuleS, PsiStream::Listener {
