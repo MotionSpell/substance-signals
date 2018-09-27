@@ -137,140 +137,142 @@ struct PsiStream : Stream {
 };
 
 struct PesStream : Stream {
-	PesStream(int pid_, OutputDefault* output_) : Stream(pid_), m_output(output_) {
-	}
-
-	OutputDefault* m_output = nullptr;
-	vector<uint8_t> pesBuffer {};
-
-	void push(SpanC data) override {
-		for(auto b : data)
-			pesBuffer.push_back(b);
-	}
-
-	void flush() override {
-		if(pesBuffer.empty())
-			return;
-
-		auto buf = m_output->getBuffer(pesBuffer.size());
-		memcpy(buf->data().ptr, pesBuffer.data(),pesBuffer.size());
-		m_output->emit(buf);
-
-		pesBuffer.clear();
-	}
-
-	void setType(int streamType) {
-		switch(streamType) {
-		case 0x1b: { // H.264
-			auto meta = make_shared<MetadataPkt>(VIDEO_PKT);
-			meta->codec = "h264";
-			m_output->setMetadata(meta);
-			break;
+		PesStream(int pid_, OutputDefault* output_) : Stream(pid_), m_output(output_) {
 		}
-		default:
-			// unknown stream type
-			break;
+
+		void push(SpanC data) override {
+			for(auto b : data)
+				pesBuffer.push_back(b);
 		}
-	}
+
+		void flush() override {
+			if(pesBuffer.empty())
+				return;
+
+			auto buf = m_output->getBuffer(pesBuffer.size());
+			memcpy(buf->data().ptr, pesBuffer.data(),pesBuffer.size());
+			m_output->emit(buf);
+
+			pesBuffer.clear();
+		}
+
+		void setType(int streamType) {
+			switch(streamType) {
+			case 0x1b: { // H.264
+				auto meta = make_shared<MetadataPkt>(VIDEO_PKT);
+				meta->codec = "h264";
+				m_output->setMetadata(meta);
+				break;
+			}
+			default:
+				// unknown stream type
+				break;
+			}
+		}
+
+	private:
+		OutputDefault* m_output = nullptr;
+		vector<uint8_t> pesBuffer {};
 };
 
 struct TsDemuxer : ModuleS, PsiStream::Listener {
-	TsDemuxer(IModuleHost* host, TsDemuxerConfig const& config)
-		: m_host(host) {
+		TsDemuxer(IModuleHost* host, TsDemuxerConfig const& config)
+			: m_host(host) {
 
-		addInput(this);
+			addInput(this);
 
-		m_streams.push_back(make_unique<PsiStream>(PID_PAT, this));
+			m_streams.push_back(make_unique<PsiStream>(PID_PAT, this));
 
-		for(auto& pid : config.pids) {
-			m_streams.push_back(make_unique<PesStream>(pid.pid, addOutput<OutputDefault>()));
+			for(auto& pid : config.pids) {
+				m_streams.push_back(make_unique<PesStream>(pid.pid, addOutput<OutputDefault>()));
+			}
 		}
-	}
 
-	void process(Data data) override {
-		auto buf = data->data();
+		void process(Data data) override {
+			auto buf = data->data();
 
-		while(buf.len > 0) {
-			if(buf.len < TS_PACKET_LEN) {
-				m_host->log(Error, "Truncated TS packet");
+			while(buf.len > 0) {
+				if(buf.len < TS_PACKET_LEN) {
+					m_host->log(Error, "Truncated TS packet");
+					return;
+				}
+
+				processTsPacket({buf.ptr, TS_PACKET_LEN});
+
+				buf += TS_PACKET_LEN;
+			}
+		}
+
+		void flush() {
+			for(auto& s : m_streams)
+				s->flush();
+		}
+
+		void processTsPacket(SpanC pkt) {
+			BitReader r = {pkt};
+			const int syncByte = r.u(8);
+			/*const int transportErrorIndicator =*/ r.u(1);
+			const int payloadUnitStartIndicator = r.u(1);
+			/*const int priority =*/ r.u(1);
+			const int packetId = r.u(13);
+			/*const int scrambling =*/ r.u(2);
+			const int adaptationFieldControl = r.u(2);
+			/*const int continuityCounter =*/ r.u(4);
+
+			if(syncByte != 0x47) {
+				m_host->log(Error, "TS sync byte not found");
 				return;
 			}
 
-			processTsPacket({buf.ptr, TS_PACKET_LEN});
-
-			buf += TS_PACKET_LEN;
-		}
-	}
-
-	void flush() {
-		for(auto& s : m_streams)
-			s->flush();
-	}
-
-	void processTsPacket(SpanC pkt) {
-		BitReader r = {pkt};
-		const int syncByte = r.u(8);
-		/*const int transportErrorIndicator =*/ r.u(1);
-		const int payloadUnitStartIndicator = r.u(1);
-		/*const int priority =*/ r.u(1);
-		const int packetId = r.u(13);
-		/*const int scrambling =*/ r.u(2);
-		const int adaptationFieldControl = r.u(2);
-		/*const int continuityCounter =*/ r.u(4);
-
-		if(syncByte != 0x47) {
-			m_host->log(Error, "TS sync byte not found");
-			return;
-		}
-
-		// skip adaptation field if any
-		if(adaptationFieldControl & 0x2) {
-			auto length = r.u(8);
-			for(int i=0; i < length; ++i)
-				r.u(8);
-		}
-
-		auto stream = findStreamForPid(packetId);
-		if(!stream)
-			return; // we're not interested in this PID
-
-		if(payloadUnitStartIndicator)
-			stream->flush();
-
-		if(adaptationFieldControl & 0x1) {
-			if(payloadUnitStartIndicator) {
-				int pointerField = r.u(8);
-				for(int i=0; i < pointerField; ++i)
+			// skip adaptation field if any
+			if(adaptationFieldControl & 0x2) {
+				auto length = r.u(8);
+				for(int i=0; i < length; ++i)
 					r.u(8);
 			}
 
-			stream->push(r.payload());
+			auto stream = findStreamForPid(packetId);
+			if(!stream)
+				return; // we're not interested in this PID
+
+			if(payloadUnitStartIndicator)
+				stream->flush();
+
+			if(adaptationFieldControl & 0x1) {
+				if(payloadUnitStartIndicator) {
+					int pointerField = r.u(8);
+					for(int i=0; i < pointerField; ++i)
+						r.u(8);
+				}
+
+				stream->push(r.payload());
+			}
 		}
-	}
 
-	// PsiStream::Listener implementation
-	void onPat(span<int> pmtPids) override {
-		for(auto pid : pmtPids)
-			m_streams.push_back(make_unique<PsiStream>(pid, this));
-	}
-
-	void onPmt(span<PsiStream::EsInfo> esInfo) override {
-		for(auto es : esInfo) {
-			if(auto stream = dynamic_cast<PesStream*>(findStreamForPid(es.pid)))
-				stream->setType(es.stream_type);
+		// PsiStream::Listener implementation
+		void onPat(span<int> pmtPids) override {
+			for(auto pid : pmtPids)
+				m_streams.push_back(make_unique<PsiStream>(pid, this));
 		}
-	}
 
-	Stream* findStreamForPid(int packetId) {
-		for(auto& s : m_streams) {
-			if(s->pid == packetId)
-				return s.get();
+		void onPmt(span<PsiStream::EsInfo> esInfo) override {
+			for(auto es : esInfo) {
+				if(auto stream = dynamic_cast<PesStream*>(findStreamForPid(es.pid)))
+					stream->setType(es.stream_type);
+			}
 		}
-		return nullptr;
-	}
 
-	IModuleHost* const m_host;
-	vector<unique_ptr<Stream>> m_streams;
+	private:
+		Stream* findStreamForPid(int packetId) {
+			for(auto& s : m_streams) {
+				if(s->pid == packetId)
+					return s.get();
+			}
+			return nullptr;
+		}
+
+		IModuleHost* const m_host;
+		vector<unique_ptr<Stream>> m_streams;
 };
 
 Modules::IModule* createObject(IModuleHost* host, va_list va) {
