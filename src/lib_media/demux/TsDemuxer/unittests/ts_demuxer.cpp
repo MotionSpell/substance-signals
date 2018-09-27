@@ -64,6 +64,10 @@ std::shared_ptr<DataBase> getTestTs() {
 		w.u(8, 3); // adaptation field length
 		for(int i=0; i < 3; ++i)
 			w.u(8, 0x99); // adaptation field raw byte
+
+		w.u(8, 2); // pointer field
+		w.u(8, 0x77); // garbage byte
+		w.u(8, 0x77); // garbage byte
 	}
 
 	{
@@ -109,7 +113,7 @@ unittest("TsDemuxer: simple") {
 	demux->flush();
 
 	ASSERT_EQUALS(2, rec->frameCount);
-	ASSERT_EQUALS(184 - 4 + 184, rec->totalLength);
+	ASSERT_EQUALS(360, rec->totalLength);
 }
 
 unittest("TsDemuxer: two pins, one PID") {

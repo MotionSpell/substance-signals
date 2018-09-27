@@ -135,8 +135,15 @@ struct TsDemuxer : ModuleS {
 		if(payloadUnitStartIndicator)
 			stream->flush();
 
-		if(adaptationFieldControl & 0x1)
+		if(adaptationFieldControl & 0x1) {
+			if(payloadUnitStartIndicator) {
+				int pointerField = r.u(8);
+				for(int i=0; i < pointerField; ++i)
+					r.u(8);
+			}
+
 			stream->push(r.payload());
+		}
 	}
 
 	Stream* findStreamForPid(int packetId) {
