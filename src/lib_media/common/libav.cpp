@@ -300,8 +300,9 @@ bool DataAVPacket::isRap() const {
 	return (pkt->flags & AV_PKT_FLAG_KEY) ? 1 : 0;
 }
 
-void DataAVPacket::resize(size_t /*size*/) {
-	assert(0);
+void DataAVPacket::resize(size_t size) {
+	if (av_grow_packet(pkt.get(), size))
+		throw std::runtime_error(format("Cannot resize DataAVPacket to size %s (cur=%s)", size, pkt->size));
 }
 
 void copyToPicture(AVFrame const* avFrame, DataPicture* pic) {
