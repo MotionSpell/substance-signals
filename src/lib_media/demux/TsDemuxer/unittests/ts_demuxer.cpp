@@ -197,6 +197,29 @@ unittest("[DISABLED] TsDemuxer: get codec from PMT") {
 		w.u(2, 0); // scrambling control
 		w.u(2, 0b01); // adaptation field control
 		w.u(4, 0); // continuity counter
+
+		w.u(8, 0x00); // pointer field
+
+		w.u(8, 0x0); // table id: PAT
+		w.u(1, 0x1); // section syntax indicator
+		w.u(1, 0x0); // private bit
+		w.u(2, 0x3); // reserved bits
+		w.u(2, 0x0); // section length unused bits
+		w.u(10, 0xd); // section length
+
+		w.u(16, 0x01); // transport_stream_id (Table ID extension)
+		w.u(2, 0x3); // reserved
+		w.u(5, 0x0); // version_number
+		w.u(1, 0x1); // current_next_indicator
+		w.u(8, 0x00); // section_number
+		w.u(8, 0x00); // last_section_number
+
+		// actual PAT data
+		w.u(8, 0x0001); // program_number
+		w.u(3, 0x7); // reserved bits
+		w.u(13, 50); // program map PID
+
+		w.u(8, 0x2ab104b2); // CRC32
 	}
 
 	// PMT
@@ -210,6 +233,36 @@ unittest("[DISABLED] TsDemuxer: get codec from PMT") {
 		w.u(2, 0); // scrambling control
 		w.u(2, 0b01); // adaptation field control
 		w.u(4, 0); // continuity counter
+
+		w.u(8, 0x00); // pointer field
+
+		w.u(8, 0x02); // table id: PMT
+		w.u(1, 0x1); // section syntax indicator
+		w.u(1, 0x0); // private bit
+		w.u(2, 0x3); // reserved
+		w.u(12, 0x12); // section_length
+
+		w.u(16, 0x01); // program_number (Table ID extension)
+		w.u(2, 0x3); // reserved
+		w.u(5, 0x0); // version_number
+		w.u(1, 0x1); // current_section_indicator
+		w.u(8, 0x00); // section_number
+		w.u(8, 0x00); // last_section_number
+
+		// actual PMT data
+		w.u(3, 0x7); // reserved
+		w.u(13, 0x100); // PCR_PID
+		w.u(4, 0xf); // reserved
+		w.u(12, 0x0); // program_info_length
+
+		// Elementary stream info
+		w.u(8, 0x1b); // stream type: H.264
+		w.u(3, 0x7); // reserved
+		w.u(13, 666); // PID
+		w.u(4, 0xf); // reserved
+		w.u(12, 0x0); // ES info length
+
+		w.u(32, 0x15bd4d56); // CRC32
 	}
 
 	TsDemuxerConfig cfg;
@@ -222,6 +275,7 @@ unittest("[DISABLED] TsDemuxer: get codec from PMT") {
 	demux->flush();
 
 	auto meta = safe_cast<const MetadataPkt>(demux->getOutput(0)->getMetadata());
+	ASSERT(meta != nullptr);
 	ASSERT_EQUALS("h264", meta->codec);
 }
 
