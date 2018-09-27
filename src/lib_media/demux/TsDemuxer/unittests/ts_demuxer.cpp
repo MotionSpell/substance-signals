@@ -185,7 +185,7 @@ unittest("TsDemuxer: two pins, two PIDs") {
 	ASSERT_EQUALS(1, pid1->frameCount);
 }
 
-unittest("[DISABLED] TsDemuxer: get codec from PMT") {
+unittest("TsDemuxer: get codec from PMT") {
 
 	uint8_t tsPackets[2 * 188] {};
 	BitWriter w { {tsPackets, sizeof tsPackets} };

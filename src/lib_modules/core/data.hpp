@@ -8,6 +8,15 @@ struct span {
 	T* ptr;
 	size_t len;
 
+	span() = default;
+
+	template<size_t N>
+	span(T (&tab)[N]) : ptr(tab), len(N) {
+	}
+
+	span(T* ptr_, size_t len_) : ptr(ptr_), len(len_) {
+	}
+
 	void operator+=(size_t n) {
 		ptr += n;
 		len -= n;
