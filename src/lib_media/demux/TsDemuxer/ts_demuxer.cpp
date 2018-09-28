@@ -166,6 +166,22 @@ struct PsiStream : Stream {
 		Listener* const listener;
 };
 
+Metadata createMetadata(int mpegStreamType) {
+	auto make = [](Modules::StreamType majorType, const char* codecName) {
+		auto meta = make_shared<MetadataPkt>(majorType);
+		meta->codec = codecName;
+		return meta;
+	};
+
+	switch(mpegStreamType) {
+	case 0x02: return make(VIDEO_PKT, "m2v");
+	case 0x04: return make(AUDIO_PKT, "m2a");
+	case 0x1b: return make(VIDEO_PKT, "h264");
+	case 0x24: return make(VIDEO_PKT, "hevc");
+	default: return nullptr; // unknown stream type
+	}
+}
+
 struct PesStream : Stream {
 		PesStream(int pid_, int type_, OutputDefault* output_) : Stream(pid_), type(type_), m_output(output_) {
 		}
@@ -193,22 +209,6 @@ struct PesStream : Stream {
 
 			m_output->setMetadata(meta);
 			return true;
-		}
-
-		static Metadata createMetadata(int mpegStreamType) {
-			auto make = [](Modules::StreamType majorType, const char* codecName) {
-				auto meta = make_shared<MetadataPkt>(majorType);
-				meta->codec = codecName;
-				return meta;
-			};
-
-			switch(mpegStreamType) {
-			case 0x02: return make(VIDEO_PKT, "m2v");
-			case 0x04: return make(AUDIO_PKT, "m2a");
-			case 0x1b: return make(VIDEO_PKT, "h264");
-			case 0x24: return make(VIDEO_PKT, "hevc");
-			default: return nullptr; // unknown stream type
-			}
 		}
 
 		int type;
@@ -340,7 +340,7 @@ struct TsDemuxer : ModuleS, PsiStream::Listener {
 
 		static bool matches(PesStream* stream, PsiStream::EsInfo es) {
 			if(stream->pid == TsDemuxerConfig::ANY) {
-				auto meta = PesStream::createMetadata(es.mpegStreamType);
+				auto meta = createMetadata(es.mpegStreamType);
 				if(!meta)
 					return false;
 				switch(stream->type) {
