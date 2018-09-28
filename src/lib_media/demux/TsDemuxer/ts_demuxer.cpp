@@ -344,10 +344,8 @@ struct TsDemuxer : ModuleS, PsiStream::Listener {
 				if(!meta)
 					return false;
 				switch(stream->type) {
-				case TsDemuxerConfig::AUDIO:
-					return meta->type == AUDIO_PKT;
-				case TsDemuxerConfig::VIDEO:
-					return meta->type == VIDEO_PKT;
+				case TsDemuxerConfig::AUDIO: return meta->type == AUDIO_PKT;
+				case TsDemuxerConfig::VIDEO: return meta->type == VIDEO_PKT;
 				default: // invalid configuration
 					assert(0);
 					return false;
