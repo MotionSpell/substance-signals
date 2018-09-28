@@ -187,35 +187,39 @@ struct PesStream : Stream {
 		}
 
 		bool setType(int streamType) {
+			auto meta = createMetadata(streamType);
+			if(!meta)
+				return false;
+
+			m_output->setMetadata(meta);
+			return true;
+		}
+
+		static Metadata createMetadata(int streamType) {
 			switch(streamType) {
 			case 0x02: {
 				auto meta = make_shared<MetadataPkt>(VIDEO_PKT);
 				meta->codec = "m2v";
-				m_output->setMetadata(meta);
-				break;
+				return meta;
 			}
 			case 0x04: {
 				auto meta = make_shared<MetadataPkt>(AUDIO_PKT);
 				meta->codec = "m2a";
-				m_output->setMetadata(meta);
-				break;
+				return meta;
 			}
 			case 0x1b: {
 				auto meta = make_shared<MetadataPkt>(VIDEO_PKT);
 				meta->codec = "h264";
-				m_output->setMetadata(meta);
-				break;
+				return meta;
 			}
 			case 0x24: {
 				auto meta = make_shared<MetadataPkt>(VIDEO_PKT);
 				meta->codec = "hevc";
-				m_output->setMetadata(meta);
-				break;
+				return meta;
 			}
 			default:
-				return false; // unknown stream type
+				return nullptr; // unknown stream type
 			}
-			return true;
 		}
 
 		int type;
