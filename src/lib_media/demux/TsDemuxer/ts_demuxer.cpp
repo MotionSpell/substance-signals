@@ -197,29 +197,18 @@ struct PesStream : Stream {
 
 		static Metadata createMetadata(int streamType) {
 			switch(streamType) {
-			case 0x02: {
-				auto meta = make_shared<MetadataPkt>(VIDEO_PKT);
-				meta->codec = "m2v";
-				return meta;
+			case 0x02: return createMetadata(VIDEO_PKT, "m2v");
+			case 0x04: return createMetadata(AUDIO_PKT, "m2a");
+			case 0x1b: return createMetadata(VIDEO_PKT, "h264");
+			case 0x24: return createMetadata(VIDEO_PKT, "hevc");
+			default: return nullptr; // unknown stream type
 			}
-			case 0x04: {
-				auto meta = make_shared<MetadataPkt>(AUDIO_PKT);
-				meta->codec = "m2a";
-				return meta;
-			}
-			case 0x1b: {
-				auto meta = make_shared<MetadataPkt>(VIDEO_PKT);
-				meta->codec = "h264";
-				return meta;
-			}
-			case 0x24: {
-				auto meta = make_shared<MetadataPkt>(VIDEO_PKT);
-				meta->codec = "hevc";
-				return meta;
-			}
-			default:
-				return nullptr; // unknown stream type
-			}
+		}
+
+		static Metadata createMetadata(Modules::StreamType majorType, const char* codecName) {
+			auto meta = make_shared<MetadataPkt>(majorType);
+			meta->codec = codecName;
+			return meta;
 		}
 
 		int type;
