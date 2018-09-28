@@ -338,12 +338,15 @@ struct TsDemuxer : ModuleS, PsiStream::Listener {
 
 		static bool matches(PesStream* stream, PsiStream::EsInfo es) {
 			if(stream->pid == TsDemuxerConfig::ANY) {
+				auto meta = PesStream::createMetadata(es.streamType);
+				if(!meta)
+					return false;
 				switch(stream->type) {
 				case TsDemuxerConfig::AUDIO:
-					return es.streamType == 0x4;
+					return meta->type == AUDIO_PKT;
 				case TsDemuxerConfig::VIDEO:
-					return es.streamType == 0x2 || es.streamType == 0x1b || es.streamType == 0x24;
-				default:
+					return meta->type == VIDEO_PKT;
+				default: // invalid configuration
 					assert(0);
 					return false;
 				}
