@@ -48,6 +48,10 @@ struct BitReader {
 		return m_pos/8;
 	}
 
+	int remaining() const {
+		return (int)src.len - m_pos/8;
+	}
+
 	SpanC payload() const {
 		assert(m_pos%8 == 0);
 		auto r = src;
@@ -90,7 +94,10 @@ struct PsiStream : Stream {
 		}
 
 		void push(SpanC data) override {
+			auto const PSI_HEADER_SIZE = 8;
 			BitReader r = {data};
+			if(r.remaining() < PSI_HEADER_SIZE)
+				return; // truncated PSI header
 
 			auto const table_id = r.u(8);
 			/*auto const section_syntax_indicator =*/ r.u(1);
@@ -106,6 +113,8 @@ struct PsiStream : Stream {
 			/*auto const current_next_indicator =*/ r.u(1);
 			/*auto const section_number =*/ r.u(8);
 			/*auto const last_section_number =*/ r.u(8);
+
+			assert(PSI_HEADER_SIZE == r.byteOffset());
 
 			switch(table_id) {
 			case TABLE_ID_PAT: {
@@ -253,6 +262,10 @@ struct TsDemuxer : ModuleS, PsiStream::Listener {
 			// skip adaptation field if any
 			if(adaptationFieldControl & 0x2) {
 				auto length = r.u(8);
+				if(length > r.remaining()) {
+					m_host->log(Error, "Invalid adaptation_field length in TS header");
+					return;
+				}
 				for(int i=0; i < length; ++i)
 					r.u(8);
 			}
@@ -277,6 +290,10 @@ struct TsDemuxer : ModuleS, PsiStream::Listener {
 			if(adaptationFieldControl & 0x1) {
 				if(payloadUnitStartIndicator) {
 					int pointerField = r.u(8);
+					if(pointerField > r.remaining()) {
+						m_host->log(Error, "Invalid pointer_field before TS payload");
+						return;
+					}
 					for(int i=0; i < pointerField; ++i)
 						r.u(8);
 				}
