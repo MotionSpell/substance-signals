@@ -139,7 +139,7 @@ std::string TeletextToTTML::toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs)
 	int64_t offsetInMs;
 	switch (timingPolicy) {
 	case TeletextToTtmlConfig::AbsoluteUTC:
-		offsetInMs = m_utcStartTime->query();
+		offsetInMs = clockToTimescale(m_utcStartTime->query(), 1000);
 		break;
 	case TeletextToTtmlConfig::RelativeToMedia:
 		offsetInMs = 0;

@@ -47,7 +47,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 					auto const fsize = ftell(file);
 
 					auto out = outputSegment->getBuffer(0);
-					out->setMediaTime(timescaleToClock(m_utcStartTime->query(), 1000) + data->getMediaTime());
+					out->setMediaTime(clockToTimescale(m_utcStartTime->query(), 1000) + data->getMediaTime());
 					auto metadata = make_shared<MetadataFile>(hlsDir + fn, SEGMENT, "", "", segDuration, fsize, 1, false, true);
 					switch (data->getMetadata()->type) {
 					case AUDIO_PKT: metadata->sampleRate = safe_cast<const MetadataPktLibavAudio>(data->getMetadata())->getSampleRate(); break;
