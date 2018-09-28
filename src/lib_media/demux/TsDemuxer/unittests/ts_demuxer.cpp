@@ -282,8 +282,8 @@ unittest("TsDemuxer: get codec from PMT") {
 	}
 
 	TsDemuxerConfig cfg;
-	cfg.pids[0] = { 666, 1 };
-	cfg.pids[1] = TsDemuxerConfig::AUTO_AUDIO;
+	cfg.pids[0] = TsDemuxerConfig::ANY_VIDEO;
+	cfg.pids[1] = TsDemuxerConfig::ANY_AUDIO;
 
 	auto demux = loadModule("TsDemuxer", &NullHost, &cfg);
 

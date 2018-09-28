@@ -76,7 +76,7 @@ struct Stream {
 	// tell the stream when the payload unit is finished (e.g PUSI=1 or EOS)
 	virtual void flush() = 0;
 
-	int pid = TsDemuxerConfig::AUTO;
+	int pid = TsDemuxerConfig::ANY;
 };
 
 struct PsiStream : Stream {
@@ -167,7 +167,7 @@ struct PsiStream : Stream {
 };
 
 struct PesStream : Stream {
-		PesStream(int pid_, OutputDefault* output_) : Stream(pid_), m_output(output_) {
+		PesStream(int pid_, int type_, OutputDefault* output_) : Stream(pid_), type(type_), m_output(output_) {
 		}
 
 		void push(SpanC data) override {
@@ -218,6 +218,7 @@ struct PesStream : Stream {
 			return true;
 		}
 
+		int type;
 	private:
 		OutputDefault* m_output = nullptr;
 		vector<uint8_t> pesBuffer;
@@ -233,7 +234,7 @@ struct TsDemuxer : ModuleS, PsiStream::Listener {
 
 			for(auto& pid : config.pids)
 				if(pid.type != TsDemuxerConfig::NONE)
-					m_streams.push_back(make_unique<PesStream>(pid.pid, addOutput<OutputDefault>()));
+					m_streams.push_back(make_unique<PesStream>(pid.pid, pid.type, addOutput<OutputDefault>()));
 		}
 
 		void process(Data data) override {
@@ -323,31 +324,38 @@ struct TsDemuxer : ModuleS, PsiStream::Listener {
 
 		void onPmt(span<PsiStream::EsInfo> esInfo) override {
 			m_host->log(Debug, format("Found PMT (%s streams)", esInfo.len).c_str());
-			vector<PsiStream::EsInfo> orphanEs;
 			for(auto es : esInfo) {
-				if(auto stream = dynamic_cast<PesStream*>(findStreamForPid(es.pid))) {
-					if(!stream->setType(es.streamType))
-						m_host->log(Warning, format("Unknown stream type for PID=%s: %s", es.pid, es.streamType).c_str());
-				} else {
-					orphanEs.push_back(es);
-				}
-			}
-
-			// for each automatic PES stream, find a matching orphan ES
-			for(auto& s : m_streams) {
-				if(orphanEs.empty())
-					break;
-
-				if(s->pid != TsDemuxerConfig::AUTO)
-					continue;
-
-				if(auto stream = dynamic_cast<PesStream*>(s.get())) {
-					auto es = orphanEs[0];
+				if(auto stream = findMatchingStream(es)) {
 					stream->pid = es.pid;
 					if(!stream->setType(es.streamType))
 						m_host->log(Warning, format("Unknown stream type for PID=%s: %s", es.pid, es.streamType).c_str());
-					orphanEs.erase(orphanEs.begin());
 				}
+			}
+		}
+
+		PesStream* findMatchingStream(PsiStream::EsInfo es) {
+			for(auto& s : m_streams) {
+				if(auto stream = dynamic_cast<PesStream*>(s.get()))
+					if(matches(stream, es))
+						return stream;
+			}
+
+			return nullptr;
+		}
+
+		static bool matches(PesStream* stream, PsiStream::EsInfo es) {
+			if(stream->pid == TsDemuxerConfig::ANY) {
+				switch(stream->type) {
+				case TsDemuxerConfig::AUDIO:
+					return es.streamType == 0x4;
+				case TsDemuxerConfig::VIDEO:
+					return es.streamType == 0x2 || es.streamType == 0x1b || es.streamType == 0x24;
+				default:
+					assert(0);
+					return false;
+				}
+			} else {
+				return stream->pid == es.pid;
 			}
 		}
 

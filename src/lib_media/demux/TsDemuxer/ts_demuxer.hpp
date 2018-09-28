@@ -1,16 +1,17 @@
 #pragma once
 
 struct TsDemuxerConfig {
-	enum { AUTO = 0, NONE = -1 };
+	enum { ANY = 0 };
+	enum { NONE = -1, VIDEO = 1, AUDIO = 2 };
 
 	struct Pid {
-		int pid = AUTO;
+		int pid = ANY;
 		int type = NONE;
 	};
 
-	static constexpr Pid AUTO_VIDEO = { AUTO, 1 };
-	static constexpr Pid AUTO_AUDIO = { AUTO, 2 };
+	static constexpr Pid ANY_VIDEO = { ANY, VIDEO };
+	static constexpr Pid ANY_AUDIO = { ANY, AUDIO };
 
-	Pid pids[8] = { AUTO_VIDEO, AUTO_AUDIO };
+	Pid pids[8] = { ANY_VIDEO, ANY_AUDIO };
 };
 
