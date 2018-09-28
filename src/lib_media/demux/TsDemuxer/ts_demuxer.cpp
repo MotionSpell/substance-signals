@@ -82,7 +82,7 @@ struct Stream {
 struct PsiStream : Stream {
 
 		struct EsInfo {
-			int pid, streamType;
+			int pid, mpegStreamType;
 		};
 
 		struct Listener {
@@ -186,8 +186,8 @@ struct PesStream : Stream {
 			pesBuffer.clear();
 		}
 
-		bool setType(int streamType) {
-			auto meta = createMetadata(streamType);
+		bool setType(int mpegStreamType) {
+			auto meta = createMetadata(mpegStreamType);
 			if(!meta)
 				return false;
 
@@ -195,8 +195,8 @@ struct PesStream : Stream {
 			return true;
 		}
 
-		static Metadata createMetadata(int streamType) {
-			switch(streamType) {
+		static Metadata createMetadata(int mpegStreamType) {
+			switch(mpegStreamType) {
 			case 0x02: return createMetadata(VIDEO_PKT, "m2v");
 			case 0x04: return createMetadata(AUDIO_PKT, "m2a");
 			case 0x1b: return createMetadata(VIDEO_PKT, "h264");
@@ -320,8 +320,10 @@ struct TsDemuxer : ModuleS, PsiStream::Listener {
 			for(auto es : esInfo) {
 				if(auto stream = findMatchingStream(es)) {
 					stream->pid = es.pid;
-					if(!stream->setType(es.streamType))
-						m_host->log(Warning, format("Unknown stream type for PID=%s: %s", es.pid, es.streamType).c_str());
+					if(stream->setType(es.mpegStreamType))
+						m_host->log(Debug, format("PID=%s has MPEG stream type %s", es.pid, es.mpegStreamType).c_str());
+					else
+						m_host->log(Warning, format("PID=%s has unknown MPEG stream type: %s", es.pid, es.mpegStreamType).c_str());
 				}
 			}
 		}
@@ -338,7 +340,7 @@ struct TsDemuxer : ModuleS, PsiStream::Listener {
 
 		static bool matches(PesStream* stream, PsiStream::EsInfo es) {
 			if(stream->pid == TsDemuxerConfig::ANY) {
-				auto meta = PesStream::createMetadata(es.streamType);
+				auto meta = PesStream::createMetadata(es.mpegStreamType);
 				if(!meta)
 					return false;
 				switch(stream->type) {

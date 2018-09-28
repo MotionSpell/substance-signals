@@ -40,7 +40,6 @@ IPipelinedModule* createDemuxer(Pipeline& pipeline, std::string url) {
 		url = url.substr(9);
 		auto file = pipeline.addModule<In::File>(url);
 		TsDemuxerConfig cfg {};
-		cfg.pids[0].pid = 512;
 		auto demux = pipeline.add("TsDemuxer", &cfg);
 		pipeline.connect(file, demux);
 		return demux;
