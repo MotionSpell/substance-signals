@@ -283,6 +283,7 @@ unittest("TsDemuxer: get codec from PMT") {
 
 	TsDemuxerConfig cfg;
 	cfg.pids[0] = { 666, 1 };
+	cfg.pids[1] = TsDemuxerConfig::AUTO_AUDIO;
 
 	auto demux = loadModule("TsDemuxer", &NullHost, &cfg);
 
@@ -290,9 +291,13 @@ unittest("TsDemuxer: get codec from PMT") {
 	demux->process();
 	demux->flush();
 
-	auto meta = safe_cast<const MetadataPkt>(demux->getOutput(0)->getMetadata());
-	ASSERT(meta != nullptr);
-	ASSERT_EQUALS("h264", meta->codec);
+	auto meta0 = safe_cast<const MetadataPkt>(demux->getOutput(0)->getMetadata());
+	ASSERT(meta0 != nullptr);
+	ASSERT_EQUALS("h264", meta0->codec);
+
+	auto meta1 = safe_cast<const MetadataPkt>(demux->getOutput(1)->getMetadata());
+	ASSERT(meta1 != nullptr);
+	ASSERT_EQUALS("m2a", meta1->codec);
 }
 
 fuzztest("TsDemuxer") {

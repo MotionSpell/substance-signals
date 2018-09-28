@@ -76,7 +76,7 @@ struct Stream {
 	// tell the stream when the payload unit is finished (e.g PUSI=1 or EOS)
 	virtual void flush() = 0;
 
-	const int pid;
+	int pid = TsDemuxerConfig::AUTO;
 };
 
 struct PsiStream : Stream {
@@ -188,6 +188,18 @@ struct PesStream : Stream {
 
 		bool setType(int streamType) {
 			switch(streamType) {
+			case 0x02: {
+				auto meta = make_shared<MetadataPkt>(VIDEO_PKT);
+				meta->codec = "m2v";
+				m_output->setMetadata(meta);
+				break;
+			}
+			case 0x04: {
+				auto meta = make_shared<MetadataPkt>(AUDIO_PKT);
+				meta->codec = "m2a";
+				m_output->setMetadata(meta);
+				break;
+			}
 			case 0x1b: {
 				auto meta = make_shared<MetadataPkt>(VIDEO_PKT);
 				meta->codec = "h264";
@@ -311,10 +323,30 @@ struct TsDemuxer : ModuleS, PsiStream::Listener {
 
 		void onPmt(span<PsiStream::EsInfo> esInfo) override {
 			m_host->log(Debug, format("Found PMT (%s streams)", esInfo.len).c_str());
+			vector<PsiStream::EsInfo> orphanEs;
 			for(auto es : esInfo) {
 				if(auto stream = dynamic_cast<PesStream*>(findStreamForPid(es.pid))) {
 					if(!stream->setType(es.streamType))
 						m_host->log(Warning, format("Unknown stream type for PID=%s: %s", es.pid, es.streamType).c_str());
+				} else {
+					orphanEs.push_back(es);
+				}
+			}
+
+			// for each automatic PES stream, find a matching orphan ES
+			for(auto& s : m_streams) {
+				if(orphanEs.empty())
+					break;
+
+				if(s->pid != TsDemuxerConfig::AUTO)
+					continue;
+
+				if(auto stream = dynamic_cast<PesStream*>(s.get())) {
+					auto es = orphanEs[0];
+					stream->pid = es.pid;
+					if(!stream->setType(es.streamType))
+						m_host->log(Warning, format("Unknown stream type for PID=%s: %s", es.pid, es.streamType).c_str());
+					orphanEs.erase(orphanEs.begin());
 				}
 			}
 		}
