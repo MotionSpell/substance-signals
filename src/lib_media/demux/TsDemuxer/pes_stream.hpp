@@ -88,6 +88,7 @@ struct PesStream : Stream {
 
 			auto pesPayloadSize = pesBuffer.size() - r.byteOffset();
 			auto buf = m_output->getBuffer(pesPayloadSize);
+			buf->resize(pesPayloadSize);
 			memcpy(buf->data().ptr, pesBuffer.data()+r.byteOffset(),pesPayloadSize);
 			m_output->emit(buf);
 
