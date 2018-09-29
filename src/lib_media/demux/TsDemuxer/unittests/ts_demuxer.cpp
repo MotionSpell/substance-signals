@@ -305,7 +305,12 @@ unittest("TsDemuxer: get codec from PMT") {
 		w.u(3, 0x7); // reserved
 		w.u(13, 0x100); // PCR_PID
 		w.u(4, 0xf); // reserved
-		w.u(12, 0x0); // program_info_length
+		w.u(12, 0x3); // program_info_length
+
+		// program info
+		w.u(8, 0x33); // garbage byte
+		w.u(8, 0x33); // garbage byte
+		w.u(8, 0x33); // garbage byte
 
 		// Elementary stream info
 		w.u(8, 0x04); // stream type: MPEG2 audio

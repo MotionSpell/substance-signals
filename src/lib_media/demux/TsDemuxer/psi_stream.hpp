@@ -49,6 +49,10 @@ struct PsiStream : Stream {
 			auto const section_length = r.u(12);
 
 			auto sectionStart = r.byteOffset();
+			if(r.remaining() < section_length) {
+				m_host->log(Error, "Invalid section_length in PSI header");
+				return;
+			}
 
 			/*auto const table_id_extension =*/ r.u(16);
 			/*auto const reserved2 =*/ r.u(2);
@@ -74,7 +78,17 @@ struct PsiStream : Stream {
 				/*auto const reserved3 =*/ r.u(3);
 				/*auto const pcr_pid =*/ r.u(13);
 				/*auto const reserved4 =*/ r.u(4);
-				/*auto const program_info_length =*/ r.u(12);
+				auto const program_info_length = r.u(12);
+
+				// skip program descriptors
+				{
+					if(r.remaining() < program_info_length) {
+						m_host->log(Error, "Invalid program_info_length in PSI header");
+						return;
+					}
+					for(int i=0; i < program_info_length; ++i)
+						r.u(8);
+				}
 
 				vector<EsInfo> info;
 
