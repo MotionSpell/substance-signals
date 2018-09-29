@@ -100,9 +100,8 @@ struct PsiStream : Stream {
 					/*auto const reserved6 =*/ r.u(4);
 					auto const es_info_length = r.u(12);
 
-					// skip es_info
-					for(int i=0; i < es_info_length; ++i)
-						r.u(8);
+					if(!skip(r, es_info_length, m_host, "es_info_length in PSI header"))
+						return;
 
 					info.push_back({ pid, stream_type });
 				}
