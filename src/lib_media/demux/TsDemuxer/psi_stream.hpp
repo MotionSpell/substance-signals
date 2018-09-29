@@ -37,8 +37,10 @@ struct PsiStream : Stream {
 			r = BitReader{r.payload()};
 
 			auto const PSI_HEADER_SIZE = 8;
-			if(r.remaining() < PSI_HEADER_SIZE)
-				return; // truncated PSI header
+			if(r.remaining() < PSI_HEADER_SIZE) {
+				m_host->log(Error, "Truncated PSI header");
+				return;
+			}
 
 			auto const table_id = r.u(8);
 			/*auto const section_syntax_indicator =*/ r.u(1);
