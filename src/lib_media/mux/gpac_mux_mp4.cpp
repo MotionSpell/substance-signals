@@ -850,6 +850,7 @@ void GPACMuxMP4::declareStream(const std::shared_ptr<const IMetadata> &metadata)
 }
 
 void GPACMuxMP4::handleInitialTimeOffset() {
+	//FIXME: we use DTS here: that's convenient (because the DTS is monotonic) and *most of the time* right when we control the encoding
 	if (initDTSIn180k) { /*first timestamp is not zero*/
 		m_host->log(Info, format("Initial offset: %ss (4CC=%s, \"%s\", timescale=%s/%s)", initDTSIn180k / (double)IClock::Rate, codec4CC, segmentName, mediaTs, gf_isom_get_timescale(isoCur)).c_str());
 		if (compatFlags & NoEditLists) {
@@ -918,6 +919,8 @@ void GPACMuxMP4::sendOutput(bool EOS) {
 	}
 
 	out->setMetadata(metadata);
+	//FIXME: this mediaTime should be a PTS (is currently a DTS)
+	//FIXME: this mediaTime is already shifted by the absolute start time (also shifted according the edit lists)
 	auto const curSegmentStartInTs = DTS - curSegmentDurInTs;
 	out->setMediaTime(convertToTimescale(firstDataAbsTimeInMs, 1000, mediaTs) + curSegmentStartInTs, mediaTs);
 	output->emit(out);
