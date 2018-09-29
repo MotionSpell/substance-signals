@@ -7,6 +7,16 @@
 auto const TABLE_ID_PAT = 0;
 auto const TABLE_ID_PMT = 2;
 
+static bool skip(BitReader& r, int byteCount, IModuleHost* m_host, const char* what) {
+	if(r.remaining() < byteCount) {
+		m_host->log(Error, format("Invalid %s (value: %s)", what, byteCount).c_str());
+		return false;
+	}
+	for(int i=0; i < byteCount; ++i)
+		r.u(8);
+	return true;
+}
+
 struct PsiStream : Stream {
 
 		struct EsInfo {
@@ -26,12 +36,8 @@ struct PsiStream : Stream {
 			BitReader r = {data};
 			if(/*FIXME: payloadUnitStartIndicator*/1) {
 				int pointerField = r.u(8);
-				if(pointerField > r.remaining()) {
-					m_host->log(Error, "Invalid pointer_field before PSI section");
+				if(!skip(r, pointerField, m_host, "pointer_field before PSI section"))
 					return;
-				}
-				for(int i=0; i < pointerField; ++i)
-					r.u(8);
 			}
 
 			r = BitReader{r.payload()};
@@ -80,15 +86,8 @@ struct PsiStream : Stream {
 				/*auto const reserved4 =*/ r.u(4);
 				auto const program_info_length = r.u(12);
 
-				// skip program descriptors
-				{
-					if(r.remaining() < program_info_length) {
-						m_host->log(Error, "Invalid program_info_length in PSI header");
-						return;
-					}
-					for(int i=0; i < program_info_length; ++i)
-						r.u(8);
-				}
+				if(!skip(r, program_info_length, m_host, "program_info_length in PSI header"))
+					return;
 
 				vector<EsInfo> info;
 

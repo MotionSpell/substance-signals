@@ -74,12 +74,8 @@ struct TsDemuxer : ModuleS, PsiStream::Listener {
 			// skip adaptation field if any
 			if(adaptationFieldControl & 0b10) {
 				auto length = r.u(8);
-				if(length > r.remaining()) {
-					m_host->log(Error, "Invalid adaptation_field length in TS header");
+				if(!skip(r, length, m_host, "adaptation_field length in TS header"))
 					return;
-				}
-				for(int i=0; i < length; ++i)
-					r.u(8);
 			}
 
 			auto stream = findStreamForPid(packetId);
