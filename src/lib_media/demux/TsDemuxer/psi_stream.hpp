@@ -91,7 +91,8 @@ struct PsiStream : Stream {
 
 				vector<EsInfo> info;
 
-				while(r.byteOffset() < sectionStart + section_length) {
+				auto const crcSize = 4;
+				while(r.byteOffset() < sectionStart + section_length - crcSize) {
 					// Elementary stream info
 					auto const stream_type = r.u(8);
 					/*auto const reserved5 =*/ r.u(3);

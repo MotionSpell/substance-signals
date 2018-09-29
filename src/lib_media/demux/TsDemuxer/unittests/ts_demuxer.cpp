@@ -292,7 +292,7 @@ unittest("TsDemuxer: get codec from PMT") {
 		w.u(1, 0x1); // section syntax indicator
 		w.u(1, 0x0); // private bit
 		w.u(2, 0x3); // reserved
-		w.u(12, 0x17); // section_length
+		w.u(12, 0x1D); // section_length
 
 		w.u(16, 0x01); // program_number (Table ID extension)
 		w.u(2, 0x3); // reserved
