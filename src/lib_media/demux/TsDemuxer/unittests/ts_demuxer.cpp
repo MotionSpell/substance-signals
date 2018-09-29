@@ -123,7 +123,24 @@ struct FrameCounter : ModuleS {
 
 }
 
-unittest("TsDemuxer: simple") {
+unittest("TsDemuxer: pins with proper metadata are created based on config, not input data") {
+	TsDemuxerConfig cfg;
+	cfg.pids[0] = { TsDemuxerConfig::ANY, TsDemuxerConfig::AUDIO };
+	cfg.pids[1] = { TsDemuxerConfig::ANY, TsDemuxerConfig::VIDEO };
+
+	auto demux = loadModule("TsDemuxer", &NullHost, &cfg);
+	ASSERT_EQUALS(2, demux->getNumOutputs());
+
+	auto meta0 = demux->getOutput(0)->getMetadata();
+	ASSERT(meta0);
+	ASSERT_EQUALS(AUDIO_PKT, meta0->type);
+
+	auto meta1 = demux->getOutput(1)->getMetadata();
+	ASSERT(meta1);
+	ASSERT_EQUALS(VIDEO_PKT, meta1->type);
+}
+
+unittest("TsDemuxer: PES demux") {
 	TsDemuxerConfig cfg;
 	cfg.pids[0] = { 120, 1 };
 

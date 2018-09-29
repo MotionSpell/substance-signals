@@ -25,6 +25,10 @@ Metadata createMetadata(int mpegStreamType) {
 
 struct PesStream : Stream {
 		PesStream(int pid_, int type_, IModuleHost* host, OutputDefault* output_) : Stream(pid_, host), type(type_), m_output(output_) {
+			if(type == TsDemuxerConfig::VIDEO)
+				m_output->setMetadata(make_shared<MetadataPkt>(VIDEO_PKT));
+			else
+				m_output->setMetadata(make_shared<MetadataPkt>(AUDIO_PKT));
 		}
 
 		void push(SpanC data) override {
