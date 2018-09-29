@@ -305,7 +305,8 @@ fuzztest("TsDemuxer") {
 	GetFuzzTestData(testdata.ptr, testdata.len);
 
 	TsDemuxerConfig cfg;
-	cfg.pids[0] = { 666, 1 };
+	cfg.pids[0] = TsDemuxerConfig::ANY_VIDEO;
+	cfg.pids[1] = TsDemuxerConfig::ANY_AUDIO;
 
 	auto demux = loadModule("TsDemuxer", &NullHost, &cfg);
 
