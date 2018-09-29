@@ -67,7 +67,7 @@ struct BitReader {
 };
 
 struct Stream {
-	Stream(int pid_) : pid(pid_) {}
+	Stream(int pid_, IModuleHost* host) : pid(pid_), m_host(host) {}
 	virtual ~Stream() = default;
 
 	// send data for processing
@@ -77,6 +77,7 @@ struct Stream {
 	virtual void flush() = 0;
 
 	int pid = TsDemuxerConfig::ANY;
+	IModuleHost* const m_host; // for logs
 };
 
 struct PsiStream : Stream {
@@ -90,12 +91,25 @@ struct PsiStream : Stream {
 			virtual void onPmt(span<EsInfo> esInfo) = 0;
 		};
 
-		PsiStream(int pid_, Listener* listener_) : Stream(pid_), listener(listener_) {
+		PsiStream(int pid_, IModuleHost* host, Listener* listener_) : Stream(pid_, host), listener(listener_) {
 		}
 
 		void push(SpanC data) override {
-			auto const PSI_HEADER_SIZE = 8;
+
 			BitReader r = {data};
+			if(/*FIXME: payloadUnitStartIndicator*/1) {
+				int pointerField = r.u(8);
+				if(pointerField > r.remaining()) {
+					m_host->log(Error, "Invalid pointer_field before PSI section");
+					return;
+				}
+				for(int i=0; i < pointerField; ++i)
+					r.u(8);
+			}
+
+			r = BitReader{r.payload()};
+
+			auto const PSI_HEADER_SIZE = 8;
 			if(r.remaining() < PSI_HEADER_SIZE)
 				return; // truncated PSI header
 
@@ -183,7 +197,7 @@ Metadata createMetadata(int mpegStreamType) {
 }
 
 struct PesStream : Stream {
-		PesStream(int pid_, int type_, OutputDefault* output_) : Stream(pid_), type(type_), m_output(output_) {
+		PesStream(int pid_, int type_, IModuleHost* host, OutputDefault* output_) : Stream(pid_, host), type(type_), m_output(output_) {
 		}
 
 		void push(SpanC data) override {
@@ -195,8 +209,54 @@ struct PesStream : Stream {
 			if(pesBuffer.empty())
 				return;
 
-			auto buf = m_output->getBuffer(pesBuffer.size());
-			memcpy(buf->data().ptr, pesBuffer.data(),pesBuffer.size());
+			BitReader r = {SpanC(pesBuffer.data(), pesBuffer.size())};
+
+			auto const start_code_prefix = r.u(24);
+			if(start_code_prefix != 0x000001) {
+				m_host->log(Error, format("invalid PES start code (%s)", start_code_prefix).c_str());
+				return;
+			}
+
+			/*auto const stream_id =*/ r.u(8);
+			/*auto const pes_packet_length =*/ r.u(16);
+
+			// optional PES header
+			auto const markerBits = r.u(2);
+			if(markerBits != 0x2) {
+				m_host->log(Error, "invalid PES header");
+				return;
+			}
+
+			auto const scramblingControl = r.u(2); //	00 implies not scrambled
+			/*auto const Priority =*/ r.u(1);
+			/*auto const Data_alignment_indicator =*/ r.u(1);
+			/*auto const copyrighted =*/ r.u(1);
+			/*auto const original =*/ r.u(1);
+			/*auto const PTS_DTS_indicator =*/ r.u(2); 	// 11 = both present, 01 is forbidden, 10 = only PTS, 00 = no PTS or DTS
+			/*auto const ESCR_flag =*/ r.u(1);
+			/*auto const ES_rate_flag =*/ r.u(1);
+			/*auto const DSM_trick_mode_flag =*/ r.u(1);
+			/*auto const Additional_copy_info_flag =*/ r.u(1);
+			/*auto const CRC_flag =*/ r.u(1);
+			/*auto const extension_flag =*/ r.u(1);
+			auto const PES_header_length = r.u(8);
+
+			// skip extra remaining headers
+			if(PES_header_length > r.remaining()) {
+				m_host->log(Error, "Invalid PES_header_length");
+				return;
+			}
+			for(int i=0; i < PES_header_length; ++i)
+				r.u(8);
+
+			if(scramblingControl) {
+				m_host->log(Warning, "discarding scrambled PES packet");
+				return;
+			}
+
+			auto pesPayloadSize = pesBuffer.size() - r.byteOffset();
+			auto buf = m_output->getBuffer(pesPayloadSize);
+			memcpy(buf->data().ptr, pesBuffer.data()+r.byteOffset(),pesPayloadSize);
 			m_output->emit(buf);
 
 			pesBuffer.clear();
@@ -223,11 +283,11 @@ struct TsDemuxer : ModuleS, PsiStream::Listener {
 
 			addInput(this);
 
-			m_streams.push_back(make_unique<PsiStream>(PID_PAT, this));
+			m_streams.push_back(make_unique<PsiStream>(PID_PAT, m_host, this));
 
 			for(auto& pid : config.pids)
 				if(pid.type != TsDemuxerConfig::NONE)
-					m_streams.push_back(make_unique<PesStream>(pid.pid, pid.type, addOutput<OutputDefault>()));
+					m_streams.push_back(make_unique<PesStream>(pid.pid, pid.type, m_host, addOutput<OutputDefault>()));
 		}
 
 		void process(Data data) override {
@@ -266,7 +326,7 @@ struct TsDemuxer : ModuleS, PsiStream::Listener {
 			}
 
 			// skip adaptation field if any
-			if(adaptationFieldControl & 0x2) {
+			if(adaptationFieldControl & 0b10) {
 				auto length = r.u(8);
 				if(length > r.remaining()) {
 					m_host->log(Error, "Invalid adaptation_field length in TS header");
@@ -293,17 +353,7 @@ struct TsDemuxer : ModuleS, PsiStream::Listener {
 			if(payloadUnitStartIndicator)
 				stream->flush();
 
-			if(adaptationFieldControl & 0x1) {
-				if(payloadUnitStartIndicator) {
-					int pointerField = r.u(8);
-					if(pointerField > r.remaining()) {
-						m_host->log(Error, "Invalid pointer_field before TS payload");
-						return;
-					}
-					for(int i=0; i < pointerField; ++i)
-						r.u(8);
-				}
-
+			if(adaptationFieldControl & 0b01) {
 				stream->push(r.payload());
 			}
 		}
@@ -312,7 +362,7 @@ struct TsDemuxer : ModuleS, PsiStream::Listener {
 		void onPat(span<int> pmtPids) override {
 			m_host->log(Debug, format("Found PAT (%s programs)", pmtPids.len).c_str());
 			for(auto pid : pmtPids)
-				m_streams.push_back(make_unique<PsiStream>(pid, this));
+				m_streams.push_back(make_unique<PsiStream>(pid, m_host, this));
 		}
 
 		void onPmt(span<PsiStream::EsInfo> esInfo) override {

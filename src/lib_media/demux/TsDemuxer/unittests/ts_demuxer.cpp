@@ -45,6 +45,30 @@ struct BitWriter {
 	int m_pos = 0;
 };
 
+static void writeSimplePes(BitWriter& w) {
+	// PES packet
+	w.u(24, 0x000001); // start_code_prefix
+	w.u(8, 0x0); // stream_id
+	w.u(16, 0x0000); // PES_packet_length
+
+	w.u(2, 0x2); // optional_PES_header
+	w.u(2, 0x0); // scrambling control
+	w.u(1, 0x0); // priority
+	w.u(1, 0x0); // Data_alignment_indicator
+	w.u(1, 0x0); // copyrighted
+	w.u(1, 0x0); // original
+
+	w.u(2, 0x0); // PTS_DTS_indicator
+	w.u(1, 0x0); // ESCR_flag
+	w.u(1, 0x0); // ES_rate_flag
+	w.u(1, 0x0); // DSM_trick_mode_flag
+	w.u(1, 0x0); // Additional_copy_info_flag
+	w.u(1, 0x0); // CRC_flag
+	w.u(1, 0x0); // extension_flag
+
+	w.u(8, 0x0); // PES_header_length
+}
+
 std::shared_ptr<DataBase> getTestTs() {
 	uint8_t tsPackets[2 * 188] {};
 	BitWriter w { {tsPackets, sizeof tsPackets} };
@@ -65,9 +89,7 @@ std::shared_ptr<DataBase> getTestTs() {
 		for(int i=0; i < 3; ++i)
 			w.u(8, 0x99); // adaptation field raw byte
 
-		w.u(8, 2); // pointer field
-		w.u(8, 0x77); // garbage byte
-		w.u(8, 0x77); // garbage byte
+		writeSimplePes(w);
 	}
 
 	{
@@ -80,6 +102,8 @@ std::shared_ptr<DataBase> getTestTs() {
 		w.u(2, 0); // scrambling control
 		w.u(2, 0b01); // adaptation field control
 		w.u(4, 0); // continuity counter
+
+		writeSimplePes(w);
 	}
 
 	return createPacket(tsPackets);
@@ -113,7 +137,7 @@ unittest("TsDemuxer: simple") {
 	demux->flush();
 
 	ASSERT_EQUALS(2, rec->frameCount);
-	ASSERT_EQUALS(360, rec->totalLength);
+	ASSERT_EQUALS(346, rec->totalLength);
 }
 
 unittest("TsDemuxer: two pins, one PID") {
@@ -152,6 +176,8 @@ unittest("TsDemuxer: two pins, two PIDs") {
 		w.u(2, 0); // scrambling control
 		w.u(2, 0b01); // adaptation field control
 		w.u(4, 0); // continuity counter
+
+		writeSimplePes(w);
 	}
 
 	{
@@ -164,6 +190,8 @@ unittest("TsDemuxer: two pins, two PIDs") {
 		w.u(2, 0); // scrambling control
 		w.u(2, 0b01); // adaptation field control
 		w.u(4, 0); // continuity counter
+
+		writeSimplePes(w);
 	}
 
 	TsDemuxerConfig cfg;
@@ -204,7 +232,9 @@ unittest("TsDemuxer: get codec from PMT") {
 		w.u(2, 0b01); // adaptation field control
 		w.u(4, 0); // continuity counter
 
-		w.u(8, 0x00); // pointer field
+		w.u(8, 2); // pointer field
+		w.u(8, 0x77); // garbage byte
+		w.u(8, 0x77); // garbage byte
 
 		w.u(8, 0x0); // table id: PAT
 		w.u(1, 0x1); // section syntax indicator
