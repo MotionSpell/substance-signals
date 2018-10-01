@@ -67,7 +67,6 @@ struct PsiStream : Stream {
 
 			switch(table_id) {
 			case TABLE_ID_PAT: {
-				// actual PAT data
 				/*auto const program_number =*/ r.u(16);
 				/*auto const reserved3 =*/ r.u(3);
 				auto const program_map_pid = r.u(13);
@@ -94,7 +93,6 @@ struct PsiStream : Stream {
 					auto const pid = r.u(13);
 					/*auto const reserved6 =*/ r.u(4);
 					auto const es_info_length = r.u(12);
-
 					skip(r, es_info_length, "es_info_length in PSI header");
 
 					info.push_back({ pid, stream_type });
@@ -104,8 +102,6 @@ struct PsiStream : Stream {
 				break;
 			}
 			break;
-			default:
-				break;
 			}
 		}
 
