@@ -349,7 +349,7 @@ unittest("TsDemuxer: get codec from PMT") {
 
 	auto meta1 = safe_cast<const MetadataPkt>(demux->getOutput(1)->getMetadata());
 	ASSERT(meta1 != nullptr);
-	ASSERT_EQUALS("m2a", meta1->codec);
+	ASSERT_EQUALS("mp2", meta1->codec);
 }
 
 fuzztest("TsDemuxer") {
