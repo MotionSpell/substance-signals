@@ -39,10 +39,8 @@ struct PsiStream : Stream {
 			r = BitReader{r.payload()};
 
 			auto const PSI_HEADER_SIZE = 8;
-			if(r.remaining() < PSI_HEADER_SIZE) {
-				m_host->log(Error, "Truncated PSI header");
-				return;
-			}
+			if(r.remaining() < PSI_HEADER_SIZE)
+				throw runtime_error("Truncated PSI header");
 
 			auto const table_id = r.u(8);
 			/*auto const section_syntax_indicator =*/ r.u(1);
@@ -51,10 +49,8 @@ struct PsiStream : Stream {
 			auto const section_length = r.u(12);
 
 			auto sectionStart = r.byteOffset();
-			if(r.remaining() < section_length) {
-				m_host->log(Error, "Invalid section_length in PSI header");
-				return;
-			}
+			if(r.remaining() < section_length)
+				throw runtime_error("Invalid section_length in PSI header");
 
 			/*auto const table_id_extension =*/ r.u(16);
 			/*auto const reserved2 =*/ r.u(2);

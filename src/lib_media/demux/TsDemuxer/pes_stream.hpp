@@ -42,9 +42,9 @@ struct PesStream : Stream {
 		}
 
 		void push(SpanC data, bool pusi) override {
-			// don't aggregate data if we missed the start of the PES packet
+			// if we missed the start of the PES packet ...
 			if(!pusi && m_pesBuffer.empty())
-				return;
+				return; // ... discard the rest
 
 			for(auto b : data)
 				m_pesBuffer.push_back(b);
@@ -63,29 +63,23 @@ struct PesStream : Stream {
 			auto pesBuffer = move(m_pesBuffer);
 
 			if(pesBuffer.empty())
-				return;
+				return; // nothing to flush
 
 			BitReader r = {SpanC(pesBuffer.data(), pesBuffer.size())};
-			if(pesBuffer.size() < 3) {
-				m_host->log(Error, format("[%s] truncated PES packet", pid).c_str());
-				return;
-			}
+			if(pesBuffer.size() < 3)
+				throw runtime_error(format("[%s] truncated PES packet", pid));
 
 			auto const start_code_prefix = r.u(24);
-			if(start_code_prefix != 0x000001) {
-				m_host->log(Error, format("[%s] invalid PES start code (%s)", pid, start_code_prefix).c_str());
-				return;
-			}
+			if(start_code_prefix != 0x000001)
+				throw runtime_error(format("[%s] invalid PES start code (%s)", pid, start_code_prefix));
 
 			/*auto const stream_id =*/ r.u(8);
 			/*auto const pes_packet_length =*/ r.u(16);
 
 			// optional PES header
 			auto const markerBits = r.u(2);
-			if(markerBits != 0x2) {
-				m_host->log(Error, "invalid PES header");
-				return;
-			}
+			if(markerBits != 0x2)
+				throw runtime_error("invalid PES header");
 
 			auto const scramblingControl = r.u(2); // 00 implies not scrambled
 			/*auto const Priority =*/ r.u(1);
@@ -102,15 +96,11 @@ struct PesStream : Stream {
 			auto const PES_header_data_length = r.u(8);
 			auto const PES_header_data_end = r.byteOffset() + PES_header_data_length;
 
-			if(scramblingControl) {
-				m_host->log(Warning, "discarding scrambled PES packet");
-				return;
-			}
+			if(scramblingControl)
+				throw runtime_error("discarding scrambled PES packet");
 
-			if(PES_header_data_length > r.remaining()) {
-				m_host->log(Error, "Invalid PES_header_data_length");
-				return;
-			}
+			if(PES_header_data_length > r.remaining())
+				throw runtime_error("Invalid PES_header_data_length");
 
 			int64_t pts = 0;
 
