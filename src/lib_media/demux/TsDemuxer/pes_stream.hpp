@@ -41,6 +41,8 @@ struct PesStream : Stream {
 			if(pesBuffer.empty())
 				return;
 
+			auto pesBuffer = move(this->pesBuffer);
+
 			BitReader r = {SpanC(pesBuffer.data(), pesBuffer.size())};
 
 			auto const start_code_prefix = r.u(24);
@@ -91,8 +93,6 @@ struct PesStream : Stream {
 			buf->resize(pesPayloadSize);
 			memcpy(buf->data().ptr, pesBuffer.data()+r.byteOffset(),pesPayloadSize);
 			m_output->emit(buf);
-
-			pesBuffer.clear();
 		}
 
 		bool setType(int mpegStreamType) {
