@@ -44,6 +44,10 @@ struct PesStream : Stream {
 			auto pesBuffer = move(this->pesBuffer);
 
 			BitReader r = {SpanC(pesBuffer.data(), pesBuffer.size())};
+			if(pesBuffer.size() < 3) {
+				m_host->log(Error, format("[%s] truncated PES packet", pid).c_str());
+				return;
+			}
 
 			auto const start_code_prefix = r.u(24);
 			if(start_code_prefix != 0x000001) {
