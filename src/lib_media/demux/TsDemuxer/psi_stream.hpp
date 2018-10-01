@@ -31,10 +31,10 @@ struct PsiStream : Stream {
 		PsiStream(int pid_, IModuleHost* host, Listener* listener_) : Stream(pid_, host), listener(listener_) {
 		}
 
-		void push(SpanC data) override {
+		void push(SpanC data, bool pusi) override {
 
 			BitReader r = {data};
-			if(/*FIXME: payloadUnitStartIndicator*/1) {
+			if(pusi) {
 				int pointerField = r.u(8);
 				if(!skip(r, pointerField, m_host, "pointer_field before PSI section"))
 					return;

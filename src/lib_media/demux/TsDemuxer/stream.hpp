@@ -7,7 +7,7 @@ struct Stream {
 	virtual ~Stream() = default;
 
 	// send data for processing
-	virtual void push(SpanC data) = 0;
+	virtual void push(SpanC data, bool pusi) = 0;
 
 	// tell the stream when the payload unit is finished (e.g PUSI=1 or EOS)
 	virtual void flush() = 0;

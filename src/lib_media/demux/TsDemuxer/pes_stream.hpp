@@ -32,7 +32,12 @@ struct PesStream : Stream {
 				m_output->setMetadata(make_shared<MetadataPkt>(AUDIO_PKT));
 		}
 
-		void push(SpanC data) override {
+		void push(SpanC data, bool pusi) override {
+
+			// don't aggregate data if we missed the start of the PES packet
+			if(!pusi && pesBuffer.empty())
+				return;
+
 			for(auto b : data)
 				pesBuffer.push_back(b);
 		}

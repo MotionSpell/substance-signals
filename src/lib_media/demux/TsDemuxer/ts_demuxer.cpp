@@ -96,7 +96,7 @@ struct TsDemuxer : ModuleS, PsiStream::Listener {
 				stream->flush();
 
 			if(adaptationFieldControl & 0b01) {
-				stream->push(r.payload());
+				stream->push(r.payload(), payloadUnitStartIndicator);
 			}
 		}
 
