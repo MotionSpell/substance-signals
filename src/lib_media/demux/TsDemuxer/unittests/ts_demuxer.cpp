@@ -157,6 +157,61 @@ unittest("TsDemuxer: PES demux") {
 	ASSERT_EQUALS(346, rec->totalLength);
 }
 
+unittest("TsDemuxer: PES demux should not wait for next AU") {
+	uint8_t tsPackets[188] {};
+	BitWriter w { {tsPackets, sizeof tsPackets} };
+
+	{
+		// TS packet
+		w.seek(0);
+		w.u(8, 0x47); // sync byte
+		w.u(1, 0); // TEI
+		w.u(1, 1); // PUSI
+		w.u(1, 0); // priority
+		w.u(13, 222); // PID
+		w.u(2, 0); // scrambling control
+		w.u(2, 0b01); // adaptation field control: only payload
+		w.u(4, 0); // continuity counter
+
+		// PES packet
+		w.u(24, 0x000001); // start_code_prefix
+		w.u(8, 0x0); // stream_id
+		w.u(16, 0x0008); // PES_packet_length: make it non-zero: 8 bytes
+
+		w.u(2, 0x2); // marker_bits
+		w.u(2, 0x0); // scrambling control
+		w.u(1, 0x0); // priority
+		w.u(1, 0x0); // Data_alignment_indicator
+		w.u(1, 0x0); // copyrighted
+		w.u(1, 0x0); // original
+
+		w.u(2, 0x0); // PTS_DTS_indicator
+		w.u(1, 0x0); // ESCR_flag
+		w.u(1, 0x0); // ES_rate_flag
+		w.u(1, 0x0); // DSM_trick_mode_flag
+		w.u(1, 0x0); // Additional_copy_info_flag
+		w.u(1, 0x0); // CRC_flag
+		w.u(1, 0x0); // extension_flag
+
+		w.u(8, 0x0); // PES_header_data_length
+	}
+
+	TsDemuxerConfig cfg;
+	cfg.pids[0] = { 222, 1 };
+
+	auto demux = loadModule("TsDemuxer", &NullHost, &cfg);
+	auto rec = create<FrameCounter>();
+	ConnectOutputToInput(demux->getOutput(0), rec->getInput(0));
+
+	auto frame = createPacket(tsPackets);
+	demux->getInput(0)->push(frame);
+	demux->process();
+	// don't flush
+
+	ASSERT_EQUALS(1, rec->frameCount);
+	ASSERT_EQUALS(5, rec->totalLength);
+}
+
 unittest("TsDemuxer: two pins, one PID") {
 	TsDemuxerConfig cfg;
 	cfg.pids[0] = { 130, 1 };

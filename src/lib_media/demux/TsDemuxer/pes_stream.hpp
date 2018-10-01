@@ -42,13 +42,21 @@ struct PesStream : Stream {
 		}
 
 		void push(SpanC data, bool pusi) override {
-
 			// don't aggregate data if we missed the start of the PES packet
 			if(!pusi && m_pesBuffer.empty())
 				return;
 
 			for(auto b : data)
 				m_pesBuffer.push_back(b);
+
+			// try to early-parse PES_packet_length
+			if(m_pesBuffer.size() >= 6) {
+				auto PES_packet_length = (m_pesBuffer[4] << 8) + m_pesBuffer[5];
+				if(PES_packet_length > 0 && (int)m_pesBuffer.size() >= PES_packet_length + 6) {
+					m_pesBuffer.resize(6 + PES_packet_length);
+					flush();
+				}
+			}
 		}
 
 		void flush() override {
