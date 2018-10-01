@@ -16,7 +16,9 @@ Metadata createMetadata(int mpegStreamType) {
 
 	// remap MPEG-2 stream_type to internal codec names
 	switch(mpegStreamType) {
+	case 0x01: return make(VIDEO_PKT, "mpeg2video");
 	case 0x02: return make(VIDEO_PKT, "mpeg2video");
+	case 0x03: return make(AUDIO_PKT, "mp1");
 	case 0x04: return make(AUDIO_PKT, "mp2");
 	case 0x1b: return make(VIDEO_PKT, "h264");
 	case 0x24: return make(VIDEO_PKT, "hevc");
