@@ -35,18 +35,18 @@ struct PesStream : Stream {
 		void push(SpanC data, bool pusi) override {
 
 			// don't aggregate data if we missed the start of the PES packet
-			if(!pusi && pesBuffer.empty())
+			if(!pusi && m_pesBuffer.empty())
 				return;
 
 			for(auto b : data)
-				pesBuffer.push_back(b);
+				m_pesBuffer.push_back(b);
 		}
 
 		void flush() override {
+			auto pesBuffer = move(m_pesBuffer);
+
 			if(pesBuffer.empty())
 				return;
-
-			auto pesBuffer = move(this->pesBuffer);
 
 			BitReader r = {SpanC(pesBuffer.data(), pesBuffer.size())};
 			if(pesBuffer.size() < 3) {
@@ -116,6 +116,6 @@ struct PesStream : Stream {
 		int type;
 	private:
 		OutputDefault* m_output = nullptr;
-		vector<uint8_t> pesBuffer;
+		vector<uint8_t> m_pesBuffer;
 };
 
