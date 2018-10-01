@@ -23,7 +23,7 @@ auto const PID_PAT = 0;
 #include "pes_stream.hpp"
 #include "psi_stream.hpp"
 
-struct TsDemuxer : ModuleS, PsiStream::Listener {
+struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::Restamper {
 		TsDemuxer(IModuleHost* host, TsDemuxerConfig const& config)
 			: m_host(host) {
 
@@ -33,7 +33,7 @@ struct TsDemuxer : ModuleS, PsiStream::Listener {
 
 			for(auto& pid : config.pids)
 				if(pid.type != TsDemuxerConfig::NONE)
-					m_streams.push_back(make_unique<PesStream>(pid.pid, pid.type, m_host, addOutput<OutputDefault>()));
+					m_streams.push_back(make_unique<PesStream>(pid.pid, pid.type, this, m_host, addOutput<OutputDefault>()));
 		}
 
 		void process(Data data) override {
@@ -120,6 +120,14 @@ struct TsDemuxer : ModuleS, PsiStream::Listener {
 			}
 		}
 
+		// PesStream::Restamper implementation
+		void restamp(int64_t& time) override {
+			if(m_timeOrigin == INT64_MAX)
+				m_timeOrigin = time; // start at zero
+
+			time -= m_timeOrigin;
+		}
+
 		PesStream* findMatchingStream(PsiStream::EsInfo es) {
 			for(auto& s : m_streams) {
 				if(auto stream = dynamic_cast<PesStream*>(s.get()))
@@ -158,6 +166,7 @@ struct TsDemuxer : ModuleS, PsiStream::Listener {
 
 		IModuleHost* const m_host;
 		vector<unique_ptr<Stream>> m_streams;
+		int64_t m_timeOrigin = INT64_MAX;
 };
 
 Modules::IModule* createObject(IModuleHost* host, va_list va) {

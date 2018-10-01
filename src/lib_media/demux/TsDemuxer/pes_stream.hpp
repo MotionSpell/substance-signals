@@ -25,7 +25,16 @@ Metadata createMetadata(int mpegStreamType) {
 }
 
 struct PesStream : Stream {
-		PesStream(int pid_, int type_, IModuleHost* host, OutputDefault* output_) : Stream(pid_, host), type(type_), m_output(output_) {
+
+		struct Restamper {
+			virtual void restamp(int64_t& time) = 0;
+		};
+
+		PesStream(int pid_, int type_, Restamper* restamper_, IModuleHost* host, OutputDefault* output_) :
+			Stream(pid_, host),
+			type(type_),
+			m_restamper(restamper_),
+			m_output(output_) {
 			if(type == TsDemuxerConfig::VIDEO)
 				m_output->setMetadata(make_shared<MetadataPkt>(VIDEO_PKT));
 			else
@@ -75,31 +84,52 @@ struct PesStream : Stream {
 			/*auto const Data_alignment_indicator =*/ r.u(1);
 			/*auto const copyrighted =*/ r.u(1);
 			/*auto const original =*/ r.u(1);
-			/*auto const PTS_DTS_indicator =*/ r.u(2); // 11 = both present, 01 is forbidden, 10 = only PTS, 00 = no PTS or DTS
+			auto const PTS_DTS_indicator = r.u(2); // 11 = both present, 01 is forbidden, 10 = only PTS, 00 = no PTS or DTS
 			/*auto const ESCR_flag =*/ r.u(1);
 			/*auto const ES_rate_flag =*/ r.u(1);
 			/*auto const DSM_trick_mode_flag =*/ r.u(1);
 			/*auto const Additional_copy_info_flag =*/ r.u(1);
 			/*auto const CRC_flag =*/ r.u(1);
 			/*auto const extension_flag =*/ r.u(1);
-			auto const PES_header_length = r.u(8);
-
-			// skip extra remaining headers
-			if(PES_header_length > r.remaining()) {
-				m_host->log(Error, "Invalid PES_header_length");
-				return;
-			}
-			for(int i=0; i < PES_header_length; ++i)
-				r.u(8);
+			auto const PES_header_data_length = r.u(8);
+			auto const PES_header_data_end = r.byteOffset() + PES_header_data_length;
 
 			if(scramblingControl) {
 				m_host->log(Warning, "discarding scrambled PES packet");
 				return;
 			}
 
+			if(PES_header_data_length > r.remaining()) {
+				m_host->log(Error, "Invalid PES_header_data_length");
+				return;
+			}
+
+			int64_t pts = 0;
+
+			if(PTS_DTS_indicator & 0b10) {
+				/*auto const reservedBits =*/ r.u(4); // 0b0010
+				pts |= r.u(3); // PTS [32..30]
+				/*auto marker_bit0 =*/ r.u(1);
+				pts <<= 15;
+				pts |= r.u(15); // PTS [29..15]
+				/*auto marker_bit1 =*/ r.u(1);
+				pts <<= 15;
+				pts |= r.u(15); // PTS [14..0]
+				/*auto marker_bit2 =*/ r.u(1);
+			}
+
+			// skip extra remaining headers
+			while(r.byteOffset() < PES_header_data_end)
+				r.u(8);
+
 			auto pesPayloadSize = pesBuffer.size() - r.byteOffset();
 			auto buf = m_output->getBuffer(pesPayloadSize);
 			buf->resize(pesPayloadSize);
+			if(PTS_DTS_indicator & 0b10) {
+				int64_t mediaTime = (pts * IClock::Rate) / 90000; // PTS are in 90kHz units
+				m_restamper->restamp(mediaTime);
+				buf->setMediaTime(mediaTime);
+			}
 			memcpy(buf->data().ptr, pesBuffer.data()+r.byteOffset(),pesPayloadSize);
 			m_output->emit(buf);
 		}
@@ -115,6 +145,7 @@ struct PesStream : Stream {
 
 		int type;
 	private:
+		Restamper* const m_restamper;
 		OutputDefault* m_output = nullptr;
 		vector<uint8_t> m_pesBuffer;
 };
