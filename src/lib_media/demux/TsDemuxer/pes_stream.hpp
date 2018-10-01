@@ -45,7 +45,7 @@ struct PesStream : Stream {
 
 			auto const start_code_prefix = r.u(24);
 			if(start_code_prefix != 0x000001) {
-				m_host->log(Error, format("invalid PES start code (%s)", start_code_prefix).c_str());
+				m_host->log(Error, format("[%s] invalid PES start code (%s)", pid, start_code_prefix).c_str());
 				return;
 			}
 

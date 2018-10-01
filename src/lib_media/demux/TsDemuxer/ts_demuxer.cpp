@@ -113,9 +113,9 @@ struct TsDemuxer : ModuleS, PsiStream::Listener {
 				if(auto stream = findMatchingStream(es)) {
 					stream->pid = es.pid;
 					if(stream->setType(es.mpegStreamType))
-						m_host->log(Debug, format("PID=%s has MPEG stream type %s", es.pid, es.mpegStreamType).c_str());
+						m_host->log(Debug, format("[%s] MPEG stream type %s", es.pid, es.mpegStreamType).c_str());
 					else
-						m_host->log(Warning, format("PID=%s has unknown MPEG stream type: %s", es.pid, es.mpegStreamType).c_str());
+						m_host->log(Warning, format("[%s] unknown MPEG stream type: %s", es.pid, es.mpegStreamType).c_str());
 				}
 			}
 		}
