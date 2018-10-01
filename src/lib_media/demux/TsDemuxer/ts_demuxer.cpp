@@ -68,7 +68,7 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::Restamper {
 			const int packetId = r.u(13);
 			const int scrambling = r.u(2);
 			const int adaptationFieldControl = r.u(2);
-			/*const int continuityCounter =*/ r.u(4);
+			const int continuityCounter = r.u(4);
 
 			if(syncByte != 0x47) {
 				m_host->log(Error, "TS sync byte not found");
@@ -94,6 +94,11 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::Restamper {
 				m_host->log(Error, "Discarding scrambled TS packet");
 				return;
 			}
+
+			if(continuityCounter == stream->cc)
+				return; // discard duplicated packet
+
+			stream->cc = continuityCounter;
 
 			if(payloadUnitStartIndicator)
 				stream->flush();

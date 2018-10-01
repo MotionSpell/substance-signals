@@ -110,7 +110,7 @@ std::shared_ptr<DataBase> getTestTs() {
 		w.u(13, 120); // PID
 		w.u(2, 0); // scrambling control
 		w.u(2, 0b01); // adaptation field control
-		w.u(4, 0); // continuity counter
+		w.u(4, 1); // continuity counter
 
 		writeSimplePes(w);
 	}
@@ -256,7 +256,7 @@ unittest("TsDemuxer: two pins, two PIDs") {
 		w.u(13, 666); // PID
 		w.u(2, 0); // scrambling control
 		w.u(2, 0b01); // adaptation field control
-		w.u(4, 0); // continuity counter
+		w.u(4, 5); // continuity counter
 
 		writeSimplePes(w);
 	}
@@ -270,7 +270,7 @@ unittest("TsDemuxer: two pins, two PIDs") {
 		w.u(13, 777); // PID
 		w.u(2, 0); // scrambling control
 		w.u(2, 0b01); // adaptation field control
-		w.u(4, 0); // continuity counter
+		w.u(4, 6); // continuity counter
 
 		writeSimplePes(w);
 	}
