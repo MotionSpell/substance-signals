@@ -122,10 +122,22 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::Restamper {
 
 		// PesStream::Restamper implementation
 		void restamp(int64_t& time) override {
-			if(m_timeOrigin == INT64_MAX)
-				m_timeOrigin = time; // start at zero
 
-			time -= m_timeOrigin;
+			// unroll PTS
+			{
+				auto const PTS_PERIOD = 1LL << 33;
+				while(time < (m_lastUnrolledTime-PTS_PERIOD/2))
+					time += PTS_PERIOD;
+				m_lastUnrolledTime = time;
+			}
+
+			// make the timestamp start from zero
+			{
+				if(m_timeOrigin == INT64_MAX)
+					m_timeOrigin = time;
+
+				time -= m_timeOrigin;
+			}
 		}
 
 		PesStream* findMatchingStream(PsiStream::EsInfo es) {
@@ -167,6 +179,7 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::Restamper {
 		IModuleHost* const m_host;
 		vector<unique_ptr<Stream>> m_streams;
 		int64_t m_timeOrigin = INT64_MAX;
+		int64_t m_lastUnrolledTime = 0;
 };
 
 Modules::IModule* createObject(IModuleHost* host, va_list va) {

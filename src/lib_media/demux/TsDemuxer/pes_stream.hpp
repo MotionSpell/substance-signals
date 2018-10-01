@@ -126,8 +126,8 @@ struct PesStream : Stream {
 			auto buf = m_output->getBuffer(pesPayloadSize);
 			buf->resize(pesPayloadSize);
 			if(PTS_DTS_indicator & 0b10) {
+				m_restamper->restamp(pts);
 				int64_t mediaTime = (pts * IClock::Rate) / 90000; // PTS are in 90kHz units
-				m_restamper->restamp(mediaTime);
 				buf->setMediaTime(mediaTime);
 			}
 			memcpy(buf->data().ptr, pesBuffer.data()+r.byteOffset(),pesPayloadSize);
