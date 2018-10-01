@@ -45,7 +45,11 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::Restamper {
 					return;
 				}
 
-				processTsPacket({buf.ptr, TS_PACKET_LEN});
+				try {
+					processTsPacket({buf.ptr, TS_PACKET_LEN});
+				} catch(exception const& e) {
+					m_host->log(Error, e.what());
+				}
 				buf += TS_PACKET_LEN;
 			}
 		}
@@ -74,8 +78,7 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::Restamper {
 			// skip adaptation field if any
 			if(adaptationFieldControl & 0b10) {
 				auto length = r.u(8);
-				if(!skip(r, length, m_host, "adaptation_field length in TS header"))
-					return;
+				skip(r, length, "adaptation_field length in TS header");
 			}
 
 			auto stream = findStreamForPid(packetId);
