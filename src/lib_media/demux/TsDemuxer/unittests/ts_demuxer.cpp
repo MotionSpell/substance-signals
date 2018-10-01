@@ -58,7 +58,7 @@ static void writeSimplePes(BitWriter& w) {
 	w.u(1, 0x0); // copyrighted
 	w.u(1, 0x0); // original
 
-	w.u(2, 0x0); // PTS_DTS_indicator
+	w.u(2, 0b10); // PTS_DTS_indicator
 	w.u(1, 0x0); // ESCR_flag
 	w.u(1, 0x0); // ES_rate_flag
 	w.u(1, 0x0); // DSM_trick_mode_flag
@@ -66,7 +66,16 @@ static void writeSimplePes(BitWriter& w) {
 	w.u(1, 0x0); // CRC_flag
 	w.u(1, 0x0); // extension_flag
 
-	w.u(8, 0x0); // PES_header_length
+	w.u(8, 0x5); // PES_header_length
+
+	// PTS
+	w.u(4, 0b0010); // reserved
+	w.u(3, 0); // PTS[32..30]
+	w.u(1, 0); // marker_bit
+	w.u(15, 0); // PTS[29..15]
+	w.u(1, 0); // marker_bit
+	w.u(15, 0); // PTS[14..0]
+	w.u(1, 0); // marker_bit
 }
 
 std::shared_ptr<DataBase> getTestTs() {
@@ -154,7 +163,7 @@ unittest("TsDemuxer: PES demux") {
 	demux->flush();
 
 	ASSERT_EQUALS(2, rec->frameCount);
-	ASSERT_EQUALS(346, rec->totalLength);
+	ASSERT_EQUALS(336, rec->totalLength);
 }
 
 unittest("TsDemuxer: PES demux should not wait for next AU") {
