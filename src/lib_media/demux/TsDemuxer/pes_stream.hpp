@@ -70,12 +70,12 @@ struct PesStream : Stream {
 				return;
 			}
 
-			auto const scramblingControl = r.u(2); //	00 implies not scrambled
+			auto const scramblingControl = r.u(2); // 00 implies not scrambled
 			/*auto const Priority =*/ r.u(1);
 			/*auto const Data_alignment_indicator =*/ r.u(1);
 			/*auto const copyrighted =*/ r.u(1);
 			/*auto const original =*/ r.u(1);
-			/*auto const PTS_DTS_indicator =*/ r.u(2); 	// 11 = both present, 01 is forbidden, 10 = only PTS, 00 = no PTS or DTS
+			/*auto const PTS_DTS_indicator =*/ r.u(2); // 11 = both present, 01 is forbidden, 10 = only PTS, 00 = no PTS or DTS
 			/*auto const ESCR_flag =*/ r.u(1);
 			/*auto const ES_rate_flag =*/ r.u(1);
 			/*auto const DSM_trick_mode_flag =*/ r.u(1);
