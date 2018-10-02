@@ -67,13 +67,13 @@ IPipelinedModule* Pipeline::addModuleInternal(std::string name, std::unique_ptr<
 	return ret;
 }
 
-IPipelinedModule * Pipeline::add(char const* name, ...) {
+IPipelinedModule * Pipeline::add(char const* type, ...) {
 	va_list va;
-	va_start(va, name);
+	va_start(va, type);
 	auto host = make_unique<ModuleHost>("");
 	auto pHost = host.get();
-	host->name = format("%s (#%s)", name, (int)modules.size());
-	return addModuleInternal(name, std::move(host), vLoadModule(name, pHost, va));
+	host->name = format("%s (#%s)", type, (int)modules.size());
+	return addModuleInternal(type, std::move(host), vLoadModule(type, pHost, va));
 }
 
 void Pipeline::removeModule(IPipelinedModule *module) {
