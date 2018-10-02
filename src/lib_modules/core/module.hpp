@@ -40,7 +40,7 @@ struct IProcessor {
 	virtual void process() = 0;
 };
 
-struct IInput : public IProcessor, public virtual IMetadataCap {
+struct IInput : IProcessor, virtual IMetadataCap {
 	virtual ~IInput() = default;
 
 	virtual int isConnected() const = 0;
