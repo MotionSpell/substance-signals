@@ -142,12 +142,17 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 
 		if (metadata->isVideo() && cfg.autoRotate) {
 			auto const res = safe_cast<const MetadataPktLibavVideo>(metadata)->getResolution();
-			if (res.height > res.width) {
+			if (res.height > res.width)
 				isVertical = true;
-			}
 		}
 
 		return decoder;
+	};
+
+	auto regulate = [&](OutputPin source) -> OutputPin {
+		auto regulator = pipeline->addModule<Regulator>(g_SystemClock);
+		pipeline->connect(source, regulator);
+		return GetOutputPin(regulator);
 	};
 
 	auto processElementaryStream = [&](int streamIndex) {
@@ -159,12 +164,8 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 
 		auto source = GetOutputPin(demux, streamIndex);
 
-		if(cfg.isLive) {
-			auto regulator = pipeline->addModule<Regulator>(g_SystemClock);
-			pipeline->connect(source, regulator);
-
-			source = GetOutputPin(regulator);
-		}
+		if(cfg.isLive)
+			source = regulate(source);
 
 		OutputPin decoded(nullptr);
 
