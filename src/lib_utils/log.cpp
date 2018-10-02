@@ -157,18 +157,3 @@ void setGlobalLogColor(bool enable) {
 	globalLogger.setColor(enable);
 }
 
-// TODO: get rid of this
-Level parseLogLevel(const char* slevel) {
-	auto level = std::string(slevel);
-	if (level == "error") {
-		return Error;
-	} else if (level == "warning") {
-		return Warning;
-	} else if (level == "info") {
-		return Info;
-	} else if (level == "debug") {
-		return Debug;
-	} else
-		throw std::runtime_error(format("Unknown log level: \"%s\"", level));
-}
-
