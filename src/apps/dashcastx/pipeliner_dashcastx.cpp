@@ -126,7 +126,6 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 	auto dasher = pipeline->add("MPEG_DASH", &dasherCfg);
 	ensureDir(DASH_SUBDIR);
 
-	bool isVertical = false;
 	const bool transcode = cfg.v.size() > 0;
 	if (!transcode) {
 		g_Log->log(Warning, format("[%s] No transcode. Make passthru.", g_appName).c_str());
@@ -152,24 +151,27 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 			source = GetOutputPin(regulator);
 		}
 
-		IPipelinedModule *decode = nullptr;
-		if (transcode) {
-			decode = pipeline->add("Decoder", metadata->type);
-
-			pipeline->connect(source, decode);
-
-			if (metadata->isVideo() && cfg.autoRotate) {
-				auto const res = safe_cast<const MetadataPktLibavVideo>(metadata)->getResolution();
-				if (res.height > res.width) {
-					isVertical = true;
-				}
-			}
-		}
+		bool isVertical = false;
+		OutputPin decoded(nullptr);
 
 		auto const numRes = metadata->isVideo() ? std::max<int>(cfg.v.size(), 1) : 1;
 		for (int r = 0; r < numRes; ++r) {
 			auto compressed = source;
 			if (transcode) {
+
+				if(!decoded.mod) {
+					auto decoder = pipeline->add("Decoder", metadata->type);
+					pipeline->connect(source, decoder);
+					decoded = GetOutputPin(decoder, 0);
+
+					if (metadata->isVideo() && cfg.autoRotate) {
+						auto const res = safe_cast<const MetadataPktLibavVideo>(metadata)->getResolution();
+						if (res.height > res.width) {
+							isVertical = true;
+						}
+					}
+				}
+
 				auto inputRes = metadata->isVideo() ? safe_cast<const MetadataPktLibavVideo>(metadata)->getResolution() : Resolution();
 				auto const outputRes = autoRotate(autoFit(inputRes, cfg.v[r].res), isVertical);
 				PictureFormat encoderInputPicFmt(outputRes, UNKNOWN_PF);
@@ -186,7 +188,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 					}
 				}
 
-				pipeline->connect(decode, converter);
+				pipeline->connect(decoded, converter);
 				pipeline->connect(converter, encoder);
 				compressed = GetOutputPin(encoder);
 			}
