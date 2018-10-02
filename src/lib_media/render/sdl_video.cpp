@@ -13,9 +13,7 @@
 #ifdef _MSC_VER
 #include <Windows.h>
 #endif
-#ifdef __linux__
-#include <signal.h>
-#endif
+#include <csignal>
 
 using namespace Modules;
 using namespace Modules::Render;
@@ -59,19 +57,14 @@ struct SDLVideo : ModuleS {
 	void doRender() {
 
 		{
-#ifdef __linux__
 			// save current Ctrl-C handler
-			struct sigaction action;
-			sigaction(SIGINT, nullptr, &action);
-#endif
+			auto savedHandler = std::signal(SIGINT, nullptr);
 
 			if (SDL_InitSubSystem(SDL_INIT_VIDEO) == -1)
 				throw std::runtime_error(format("Couldn't initialize: %s", SDL_GetError()));
 
-#ifdef __linux__
 			// restore Ctrl-C handler
-			sigaction(SIGINT, &action, nullptr);
-#endif
+			std::signal(SIGINT, savedHandler);
 		}
 
 		// display the first frame as fast as possible, to avoid a black screen
