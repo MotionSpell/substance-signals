@@ -206,7 +206,13 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 			auto const subdir = DASH_SUBDIR + prefix + "/";
 			ensureDir(subdir);
 
-			auto mp4config = Mp4MuxConfig{subdir + prefix, (uint64_t)cfg.segmentDurationInMs, FragmentedSegment, cfg.ultraLowLatency ? OneFragmentPerFrame : OneFragmentPerSegment};
+			Mp4MuxConfig mp4config;
+
+			mp4config.baseName = subdir + prefix;
+			mp4config.segmentDurationInMs =  cfg.segmentDurationInMs;
+			mp4config.segmentPolicy = FragmentedSegment;
+			mp4config.fragmentPolicy = cfg.ultraLowLatency ? OneFragmentPerFrame : OneFragmentPerSegment;
+
 			auto muxer = pipeline->add("GPACMuxMP4", &mp4config);
 			pipeline->connect(compressed, muxer);
 
@@ -214,7 +220,8 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 			++numDashInputs;
 
 			if(MP4_MONITOR) {
-				auto cfg = Mp4MuxConfig {"monitor_" + prefix };
+				Mp4MuxConfig cfg;
+				cfg.baseName = "monitor_" + prefix;
 				auto muxer = pipeline->add("GPACMuxMP4", &cfg);
 				pipeline->connect(compressed, GetInputPin(muxer));
 			}
