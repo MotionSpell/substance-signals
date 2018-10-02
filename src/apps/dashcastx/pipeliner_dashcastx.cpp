@@ -134,6 +134,21 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 	}
 
 	int numDashInputs = 0;
+	bool isVertical = false;
+
+	auto decode = [&](OutputPin source, Metadata metadata) -> OutputPin {
+		auto decoder = pipeline->add("Decoder", metadata->type);
+		pipeline->connect(source, decoder);
+
+		if (metadata->isVideo() && cfg.autoRotate) {
+			auto const res = safe_cast<const MetadataPktLibavVideo>(metadata)->getResolution();
+			if (res.height > res.width) {
+				isVertical = true;
+			}
+		}
+
+		return decoder;
+	};
 
 	auto processElementaryStream = [&](int streamIndex) {
 		auto const metadata = demux->getOutputMetadata(streamIndex);
@@ -151,7 +166,6 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 			source = GetOutputPin(regulator);
 		}
 
-		bool isVertical = false;
 		OutputPin decoded(nullptr);
 
 		auto const numRes = metadata->isVideo() ? std::max<int>(cfg.v.size(), 1) : 1;
@@ -159,18 +173,8 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 			auto compressed = source;
 			if (transcode) {
 
-				if(!decoded.mod) {
-					auto decoder = pipeline->add("Decoder", metadata->type);
-					pipeline->connect(source, decoder);
-					decoded = GetOutputPin(decoder, 0);
-
-					if (metadata->isVideo() && cfg.autoRotate) {
-						auto const res = safe_cast<const MetadataPktLibavVideo>(metadata)->getResolution();
-						if (res.height > res.width) {
-							isVertical = true;
-						}
-					}
-				}
+				if(!decoded.mod)
+					decoded = decode(source, metadata);
 
 				auto inputRes = metadata->isVideo() ? safe_cast<const MetadataPktLibavVideo>(metadata)->getResolution() : Resolution();
 				auto const outputRes = autoRotate(autoFit(inputRes, cfg.v[r].res), isVertical);
