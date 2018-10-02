@@ -59,15 +59,11 @@ class Pipeline : public IPipelineNotifier {
 		IPipelinedModule * addModule(Args&&... args) {
 			auto name = format("%s", modules.size());
 			auto host = createModuleHost(name);
-			auto pHost = host.get();
-			return addModuleInternal(
-			        name,
-			        std::move(host),
-			        Modules::createModule<InstanceType>(
-			            getNumBlocks(NumBlocks),
-			            pHost,
-			            std::forward<Args>(args)...)
-			    );
+			auto mod = Modules::createModule<InstanceType>(
+			        getNumBlocks(NumBlocks),
+			        host.get(),
+			        std::forward<Args>(args)...);
+			return addModuleInternal(name, std::move(host), std::move(mod));
 		}
 
 		IPipelinedModule * add(char const* name, ...);
