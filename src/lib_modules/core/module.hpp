@@ -33,12 +33,12 @@ static NullHostType NullHost;
 //
 
 struct IProcessor {
-	virtual ~IProcessor() {}
+	virtual ~IProcessor() = default;
 	virtual void process() = 0;
 };
 
 struct IInput : public IProcessor, public virtual IMetadataCap {
-	virtual ~IInput() {}
+	virtual ~IInput() = default;
 
 	virtual int isConnected() const = 0;
 	virtual void connect() = 0;
@@ -52,7 +52,7 @@ struct IInput : public IProcessor, public virtual IMetadataCap {
 };
 
 struct IOutput : virtual IMetadataCap {
-	virtual ~IOutput() {}
+	virtual ~IOutput() = default;
 	virtual void emit(Data data) = 0;
 	virtual Signals::ISignal<Data>& getSignal() = 0;
 };
@@ -65,7 +65,7 @@ struct IOutput : virtual IMetadataCap {
 namespace Modules {
 
 struct IOutputCap {
-		virtual ~IOutputCap() {}
+		virtual ~IOutputCap() = default;
 		virtual int getNumOutputs() const = 0;
 		virtual IOutput* getOutput(int i) = 0;
 
@@ -76,7 +76,7 @@ struct IOutputCap {
 };
 
 struct IModule : IProcessor,  virtual IOutputCap {
-	virtual ~IModule() {}
+	virtual ~IModule() = default;
 
 	virtual int getNumInputs() const = 0;
 	virtual IInput* getInput(int i) = 0;
