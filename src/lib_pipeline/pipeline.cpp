@@ -16,13 +16,12 @@
 namespace Pipelines {
 
 struct ModuleHost : Modules::IModuleHost {
-	ModuleHost(std::string name_) {
-		name = name_;
+	ModuleHost(std::string name_) : name(name_) {
 	}
 	void log(int level, char const* msg) override {
 		g_Log->log((Level)level, format("[%s] %s", name.c_str(), msg).c_str());
 	}
-	std::string name;
+	const std::string name;
 };
 
 
@@ -70,9 +69,9 @@ IPipelinedModule* Pipeline::addModuleInternal(std::string name, std::unique_ptr<
 IPipelinedModule * Pipeline::add(char const* type, ...) {
 	va_list va;
 	va_start(va, type);
-	auto host = make_unique<ModuleHost>("");
+	auto name = format("%s (#%s)", type, (int)modules.size());
+	auto host = make_unique<ModuleHost>(name);
 	auto pHost = host.get();
-	host->name = format("%s (#%s)", type, (int)modules.size());
 	return addModuleInternal(type, std::move(host), vLoadModule(type, pHost, va));
 }
 
