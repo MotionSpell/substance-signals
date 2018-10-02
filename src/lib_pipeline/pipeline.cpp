@@ -171,7 +171,7 @@ void Pipeline::waitForEndOfStream() {
 }
 
 void Pipeline::exitSync() {
-	g_Log->log(Warning, "Pipeline: asked to exit now.");
+	g_Log->log(Info, "Pipeline: asked to exit now.");
 	for (auto &module : modules) {
 		auto m = safe_cast<PipelinedModule>(module.get());
 		if (m->isSource()) {
