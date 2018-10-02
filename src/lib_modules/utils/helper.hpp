@@ -119,13 +119,6 @@ class OutputCap : public virtual IOutputCap {
 		OutputCap(size_t allocatorSize) {
 			this->allocatorSize = allocatorSize;
 		}
-
-		int getNumOutputs() const override {
-			return (int)outputs.size();
-		}
-		IOutput* getOutput(int i) override {
-			return outputs[i].get();
-		}
 };
 
 class Module : public IModule, public ErrorCap {
@@ -156,9 +149,16 @@ class Module : public IModule, public ErrorCap {
 			outputs.push_back(uptr(p));
 			return p;
 		}
+		int getNumOutputs() const override {
+			return (int)outputs.size();
+		}
+		IOutput* getOutput(int i) override {
+			return outputs[i].get();
+		}
 
 	protected:
 		std::vector<std::unique_ptr<IInput>> inputs;
+		std::vector<std::unique_ptr<IOutput>> outputs;
 };
 
 /* this default factory creates output ports with the default output - create another one for other uses such as low latency */

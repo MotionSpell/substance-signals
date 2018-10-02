@@ -59,22 +59,11 @@ struct IOutput : virtual IMetadataCap {
 	virtual void emit(Data data) = 0;
 	virtual Signals::ISignal<Data>& getSignal() = 0;
 };
-}
-
-// FIXME: remove this (see below)
-#include <memory>
-#include <vector>
-
-namespace Modules {
 
 struct IOutputCap {
 		virtual ~IOutputCap() = default;
-		virtual int getNumOutputs() const = 0;
-		virtual IOutput* getOutput(int i) = 0;
 
 	protected:
-		/*FIXME: we need to have factories to move these back to the implementation - otherwise ports created from the constructor may crash*/
-		std::vector<std::unique_ptr<IOutput>> outputs;
 		/*const*/ size_t allocatorSize = 0;
 };
 
@@ -83,6 +72,9 @@ struct IModule : IProcessor,  virtual IOutputCap {
 
 	virtual int getNumInputs() const = 0;
 	virtual IInput* getInput(int i) = 0;
+
+	virtual int getNumOutputs() const = 0;
+	virtual IOutput* getOutput(int i) = 0;
 
 	virtual void flush() {}
 };
