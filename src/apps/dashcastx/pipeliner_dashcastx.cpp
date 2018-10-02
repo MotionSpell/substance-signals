@@ -155,6 +155,21 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 		return GetOutputPin(regulator);
 	};
 
+	auto mux = [&](OutputPin compressed, std::string prefix) -> OutputPin {
+		auto const subdir = DASH_SUBDIR + prefix + "/";
+		ensureDir(subdir);
+
+		Mp4MuxConfig mp4config;
+		mp4config.baseName = subdir + prefix;
+		mp4config.segmentDurationInMs =  cfg.segmentDurationInMs;
+		mp4config.segmentPolicy = FragmentedSegment;
+		mp4config.fragmentPolicy = cfg.ultraLowLatency ? OneFragmentPerFrame : OneFragmentPerSegment;
+
+		auto muxer = pipeline->add("GPACMuxMP4", &mp4config);
+		pipeline->connect(compressed, muxer);
+		return muxer;
+	};
+
 	auto processElementaryStream = [&](int streamIndex) {
 		auto const metadata = demux->getOutputMetadata(streamIndex);
 		if (!metadata) {
@@ -208,18 +223,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 				prefix = Stream::AdaptiveStreamingCommon::getCommonPrefixAudio(numDashInputs);
 			}
 
-			auto const subdir = DASH_SUBDIR + prefix + "/";
-			ensureDir(subdir);
-
-			Mp4MuxConfig mp4config;
-
-			mp4config.baseName = subdir + prefix;
-			mp4config.segmentDurationInMs =  cfg.segmentDurationInMs;
-			mp4config.segmentPolicy = FragmentedSegment;
-			mp4config.fragmentPolicy = cfg.ultraLowLatency ? OneFragmentPerFrame : OneFragmentPerSegment;
-
-			auto muxer = pipeline->add("GPACMuxMP4", &mp4config);
-			pipeline->connect(compressed, muxer);
+			auto muxer = mux(compressed, prefix);
 
 			pipeline->connect(muxer, GetInputPin(dasher, numDashInputs));
 			++numDashInputs;
