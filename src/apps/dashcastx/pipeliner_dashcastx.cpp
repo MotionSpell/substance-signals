@@ -136,6 +136,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 	}
 
 	int numDashInputs = 0;
+
 	auto processElementaryStream = [&](int streamIndex) {
 		auto const metadata = demux->getOutputMetadata(streamIndex);
 		if (!metadata) {
@@ -223,7 +224,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 				Mp4MuxConfig cfg;
 				cfg.baseName = "monitor_" + prefix;
 				auto muxer = pipeline->add("GPACMuxMP4", &cfg);
-				pipeline->connect(compressed, GetInputPin(muxer));
+				pipeline->connect(compressed, muxer);
 			}
 		}
 	};
