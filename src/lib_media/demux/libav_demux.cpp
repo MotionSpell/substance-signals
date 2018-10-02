@@ -169,12 +169,12 @@ class LibavDemux : public ActiveModule {
 			}
 
 			if (!rectifyTimestamps(pkt)) {
-				av_free_packet(&pkt);
+				av_packet_unref(&pkt);
 				return true;
 			}
 
 			if (!dispatchable(&pkt)) {
-				av_free_packet(&pkt);
+				av_packet_unref(&pkt);
 				return true;
 			}
 
@@ -207,7 +207,7 @@ class LibavDemux : public ActiveModule {
 
 			AVPacket p;
 			while (packetQueue.read(p)) {
-				av_free_packet(&p);
+				av_packet_unref(&p);
 			}
 
 			if(m_avioCtx)
@@ -307,7 +307,7 @@ class LibavDemux : public ActiveModule {
 				int status = readFrame(&pkt);
 
 				if (status < 0) {
-					av_free_packet(&pkt);
+					av_packet_unref(&pkt);
 
 					if (status == (int)AVERROR_EOF || (m_formatCtx->pb && m_formatCtx->pb->eof_reached)) {
 						m_host->log(Info, format("End of stream detected - %s", loop ? "looping" : "leaving").c_str());
@@ -325,7 +325,7 @@ class LibavDemux : public ActiveModule {
 
 				if (pkt.stream_index >= (int)m_streams.size()) {
 					m_host->log(Warning, format("Detected stream index %s that was not initially detected (adding streams dynamically is not supported yet). Discarding packet.", pkt.stream_index).c_str());
-					av_free_packet(&pkt);
+					av_packet_unref(&pkt);
 					continue;
 				}
 
@@ -336,7 +336,7 @@ class LibavDemux : public ActiveModule {
 
 				while (!packetQueue.write(pkt)) {
 					if (done) {
-						av_free_packet(&pkt);
+						av_packet_unref(&pkt);
 						return;
 					}
 					m_host->log(m_formatCtx->pb && !m_formatCtx->pb->seekable ? Warning : Debug,
