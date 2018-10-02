@@ -53,19 +53,15 @@ class Pipeline : public IPipelineNotifier {
 			OnePerModule      = 2,
 		};
 
-		struct ModuleHost : Modules::IModuleHost {
-			void log(int level, char const* msg) override {
-				g_Log->log((Level)level, format("[%s] %s", name.c_str(), msg).c_str());
-			}
-			std::string name;
-		};
+		static std::unique_ptr<Modules::IModuleHost> createModuleHost(std::string name);
 
 		template <typename InstanceType, int NumBlocks = 0, typename ...Args>
 		IPipelinedModule * addModule(Args&&... args) {
-			auto host = make_unique<ModuleHost>();
-			host->name = format("%s", modules.size());
+			auto name = format("%s", modules.size());
+			auto host = createModuleHost(name);
 			auto pHost = host.get();
 			return addModuleInternal(
+			        name,
 			        std::move(host),
 			        Modules::createModule<InstanceType>(
 			            getNumBlocks(NumBlocks),
@@ -95,7 +91,7 @@ class Pipeline : public IPipelineNotifier {
 		void exitSync(); /*ask for all sources to finish*/
 
 	private:
-		IPipelinedModule * addModuleInternal(std::unique_ptr<ModuleHost> host, std::shared_ptr<Modules::IModule> rawModule);
+		IPipelinedModule * addModuleInternal(std::string name, std::unique_ptr<Modules::IModuleHost> host, std::shared_ptr<Modules::IModule> rawModule);
 		void computeTopology();
 		void endOfStream();
 		void exception(std::exception_ptr eptr);

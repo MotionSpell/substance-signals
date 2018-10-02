@@ -15,6 +15,17 @@
 
 namespace Pipelines {
 
+struct ModuleHost : Modules::IModuleHost {
+	ModuleHost(std::string name_) {
+		name = name_;
+	}
+	void log(int level, char const* msg) override {
+		g_Log->log((Level)level, format("[%s] %s", name.c_str(), msg).c_str());
+	}
+	std::string name;
+};
+
+
 struct StatsRegistry : IStatsRegistry {
 	StatsRegistry() : shmem(createSharedMemory(size, std::to_string(getPid()).c_str())), entryIdx(0) {
 		memset(shmem->data(), 0, size);
@@ -35,6 +46,10 @@ struct StatsRegistry : IStatsRegistry {
 	int entryIdx;
 };
 
+std::unique_ptr<Modules::IModuleHost> Pipeline::createModuleHost(std::string name) {
+	return make_unique<ModuleHost>(name);
+}
+
 Pipeline::Pipeline(bool isLowLatency, Threading threading)
 	: statsMem(new StatsRegistry), graph(new Graph),
 	  allocatorNumBlocks(isLowLatency ? Modules::ALLOC_NUM_BLOCKS_LOW_LATENCY : Modules::ALLOC_NUM_BLOCKS_DEFAULT),
@@ -44,9 +59,8 @@ Pipeline::Pipeline(bool isLowLatency, Threading threading)
 Pipeline::~Pipeline() {
 }
 
-IPipelinedModule* Pipeline::addModuleInternal(std::unique_ptr<ModuleHost> host, std::shared_ptr<IModule> rawModule) {
-	auto name = host->name;
-	auto module = make_unique<PipelinedModule>(name.c_str(), std::unique_ptr<IModuleHost>(host.release()), rawModule, this, threading, statsMem.get());
+IPipelinedModule* Pipeline::addModuleInternal(std::string name, std::unique_ptr<IModuleHost> host, std::shared_ptr<IModule> rawModule) {
+	auto module = make_unique<PipelinedModule>(name.c_str(), move(host), rawModule, this, threading, statsMem.get());
 	auto ret = module.get();
 	modules.push_back(std::move(module));
 	graph->nodes.push_back(Graph::Node{ret, name});
@@ -56,10 +70,10 @@ IPipelinedModule* Pipeline::addModuleInternal(std::unique_ptr<ModuleHost> host, 
 IPipelinedModule * Pipeline::add(char const* name, ...) {
 	va_list va;
 	va_start(va, name);
-	auto host = make_unique<ModuleHost>();
+	auto host = make_unique<ModuleHost>("");
 	auto pHost = host.get();
 	host->name = format("%s (#%s)", name, (int)modules.size());
-	return addModuleInternal(std::move(host), vLoadModule(name, pHost, va));
+	return addModuleInternal(name, std::move(host), vLoadModule(name, pHost, va));
 }
 
 void Pipeline::removeModule(IPipelinedModule *module) {
