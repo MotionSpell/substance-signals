@@ -148,7 +148,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 
 		if(cfg.isLive) {
 			auto regulator = pipeline->addModule<Regulator>(g_SystemClock);
-			pipeline->connect(source, GetInputPin(regulator));
+			pipeline->connect(source, regulator);
 
 			source = GetOutputPin(regulator);
 		}
@@ -157,7 +157,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 		if (transcode) {
 			decode = pipeline->add("Decoder", metadata->type);
 
-			pipeline->connect(source, GetInputPin(decode));
+			pipeline->connect(source, decode);
 
 			if (metadata->isVideo() && cfg.autoRotate) {
 				auto const res = safe_cast<const MetadataPktLibavVideo>(metadata)->getResolution();
