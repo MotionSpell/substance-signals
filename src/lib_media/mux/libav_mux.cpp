@@ -112,13 +112,15 @@ void LibavMux::ensureHeader() {
 		if (avformat_write_header(m_formatCtx, &optionsDict) != 0) {
 			m_host->log(Warning, "fatal error: can't write the container header");
 			for (unsigned i = 0; i < m_formatCtx->nb_streams; i++) {
-				if (m_formatCtx->streams[i]->codec && m_formatCtx->streams[i]->codec->codec) {
-					m_host->log(Debug, format("codec[%s] is \"%s\" (%s)", i, m_formatCtx->streams[i]->codec->codec->name, m_formatCtx->streams[i]->codec->codec->long_name).c_str());
-					if (!m_formatCtx->streams[i]->codec->extradata) {
-						if (m_formatCtx->streams[i]->codecpar->extradata) {
-							m_formatCtx->streams[i]->codec->extradata = (uint8_t*)av_malloc(m_formatCtx->streams[i]->codec->extradata_size);
-							m_formatCtx->streams[i]->codec->extradata_size = m_formatCtx->streams[i]->codecpar->extradata_size;
-							memcpy(m_formatCtx->streams[i]->codec->extradata, m_formatCtx->streams[i]->codecpar->extradata, m_formatCtx->streams[i]->codecpar->extradata_size);
+				auto codec = m_formatCtx->streams[i]->codec;
+				auto codecPar = m_formatCtx->streams[i]->codecpar;
+				if (codec && codec->codec) {
+					m_host->log(Debug, format("codec[%s] is \"%s\" (%s)", i, codec->codec->name, codec->codec->long_name).c_str());
+					if (!codec->extradata) {
+						if (codecPar->extradata) {
+							codec->extradata = (uint8_t*)av_malloc(codec->extradata_size);
+							codec->extradata_size = codecPar->extradata_size;
+							memcpy(codec->extradata, codecPar->extradata, codecPar->extradata_size);
 						} else
 							throw error("Bitstream format is not raw. Check your encoder settings.");
 					}
