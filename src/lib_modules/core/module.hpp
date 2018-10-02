@@ -9,7 +9,10 @@
 
 #include "data.hpp"
 #include "metadata.hpp"
-#include "lib_signals/signal.hpp"
+
+namespace Signals {
+template<typename T> struct ISignal;
+}
 
 namespace Modules {
 

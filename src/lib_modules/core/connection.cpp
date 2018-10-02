@@ -1,5 +1,6 @@
 #include "connection.hpp"
 #include "metadata.hpp"
+#include "lib_signals/signal.hpp"
 #include "lib_signals/helper.hpp"
 #include "log.hpp"
 
