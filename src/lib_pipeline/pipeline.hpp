@@ -53,7 +53,7 @@ class Pipeline : public IPipelineNotifier {
 			OnePerModule      = 2,
 		};
 
-		static std::unique_ptr<Modules::IModuleHost> createModuleHost(std::string name);
+		std::unique_ptr<Modules::IModuleHost> createModuleHost(std::string name);
 
 		template <typename InstanceType, int NumBlocks = 0, typename ...Args>
 		IPipelinedModule * addModule(Args&&... args) {
@@ -70,7 +70,7 @@ class Pipeline : public IPipelineNotifier {
 
 		/* @isLowLatency Controls the default number of buffers.
 			@threading    Controls the threading. */
-		Pipeline(bool isLowLatency = false, Threading threading = OnePerModule);
+		Pipeline(LogSink* log = nullptr, bool isLowLatency = false, Threading threading = OnePerModule);
 		virtual ~Pipeline();
 
 		// Remove a module from a pipeline.
@@ -100,6 +100,7 @@ class Pipeline : public IPipelineNotifier {
 		std::unique_ptr<IStatsRegistry> statsMem;
 		std::vector<std::unique_ptr<IPipelinedModule>> modules;
 		std::unique_ptr<Graph> graph;
+		LogSink* const m_log;
 		const int allocatorNumBlocks;
 		const Threading threading;
 

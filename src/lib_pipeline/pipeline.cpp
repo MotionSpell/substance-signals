@@ -16,12 +16,13 @@
 namespace Pipelines {
 
 struct ModuleHost : Modules::IModuleHost {
-	ModuleHost(std::string name_) : name(name_) {
+	ModuleHost(std::string name_, LogSink* log_) : name(name_), m_log(log_) {
 	}
 	void log(int level, char const* msg) override {
-		g_Log->log((Level)level, format("[%s] %s", name.c_str(), msg).c_str());
+		m_log->log((Level)level, format("[%s] %s", name.c_str(), msg).c_str());
 	}
 	const std::string name;
+	LogSink* const m_log;
 };
 
 
@@ -46,11 +47,12 @@ struct StatsRegistry : IStatsRegistry {
 };
 
 std::unique_ptr<Modules::IModuleHost> Pipeline::createModuleHost(std::string name) {
-	return make_unique<ModuleHost>(name);
+	return make_unique<ModuleHost>(name, m_log);
 }
 
-Pipeline::Pipeline(bool isLowLatency, Threading threading)
+Pipeline::Pipeline(LogSink* log, bool isLowLatency, Threading threading)
 	: statsMem(new StatsRegistry), graph(new Graph),
+	  m_log(log ? log : g_Log),
 	  allocatorNumBlocks(isLowLatency ? Modules::ALLOC_NUM_BLOCKS_LOW_LATENCY : Modules::ALLOC_NUM_BLOCKS_DEFAULT),
 	  threading(threading) {
 }
@@ -70,7 +72,7 @@ IPipelinedModule * Pipeline::add(char const* type, ...) {
 	va_list va;
 	va_start(va, type);
 	auto name = format("%s (#%s)", type, (int)modules.size());
-	auto host = make_unique<ModuleHost>(name);
+	auto host = createModuleHost(name);
 	auto pHost = host.get();
 	return addModuleInternal(type, std::move(host), vLoadModule(type, pHost, va));
 }
@@ -155,7 +157,7 @@ std::string Pipeline::dump() {
 }
 
 void Pipeline::start() {
-	g_Log->log(Info, "Pipeline: starting");
+	m_log->log(Info, "Pipeline: starting");
 	computeTopology();
 	for (auto &module : modules) {
 		auto m = safe_cast<PipelinedModule>(module.get());
@@ -163,28 +165,28 @@ void Pipeline::start() {
 			m->startSource();
 		}
 	}
-	g_Log->log(Info, "Pipeline: started");
+	m_log->log(Info, "Pipeline: started");
 }
 
 void Pipeline::waitForEndOfStream() {
-	g_Log->log(Info, "Pipeline: waiting for completion");
+	m_log->log(Info, "Pipeline: waiting for completion");
 	std::unique_lock<std::mutex> lock(remainingNotificationsMutex);
 	while (remainingNotifications > 0) {
-		g_Log->log(Debug, format("Pipeline: condition (remaining: %s) (%s modules in the pipeline)", remainingNotifications, modules.size()).c_str());
+		m_log->log(Debug, format("Pipeline: condition (remaining: %s) (%s modules in the pipeline)", remainingNotifications, modules.size()).c_str());
 		condition.wait_for(lock, std::chrono::milliseconds(COMPLETION_GRANULARITY_IN_MS));
 		try {
 			if (eptr)
 				std::rethrow_exception(eptr);
 		} catch (const std::exception &e) {
-			g_Log->log(Error, format("Pipeline: exception caught: %s. Exiting.", e.what()).c_str());
+			m_log->log(Error, format("Pipeline: exception caught: %s. Exiting.", e.what()).c_str());
 			std::rethrow_exception(eptr); //FIXME: at this point the exception forward in submit() already lost some data
 		}
 	}
-	g_Log->log(Info, "Pipeline: completed");
+	m_log->log(Info, "Pipeline: completed");
 }
 
 void Pipeline::exitSync() {
-	g_Log->log(Info, "Pipeline: asked to exit now.");
+	m_log->log(Info, "Pipeline: asked to exit now.");
 	for (auto &module : modules) {
 		auto m = safe_cast<PipelinedModule>(module.get());
 		if (m->isSource()) {

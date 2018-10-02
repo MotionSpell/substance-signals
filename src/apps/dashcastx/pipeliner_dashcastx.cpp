@@ -112,7 +112,7 @@ void ensureDir(std::string path) {
 }
 
 std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
-	auto pipeline = make_unique<Pipeline>(cfg.ultraLowLatency, cfg.ultraLowLatency ? Pipeline::Mono : Pipeline::OnePerModule);
+	auto pipeline = make_unique<Pipeline>(g_Log, cfg.ultraLowLatency, cfg.ultraLowLatency ? Pipeline::Mono : Pipeline::OnePerModule);
 
 	ensureDir(cfg.workingDir);
 	changeDir(cfg.workingDir);

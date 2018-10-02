@@ -43,7 +43,7 @@ int safeMain(int argc, char const* argv[]) {
 
 	setGlobalLogLevel((Level)cfg.logLevel);
 
-	Pipeline pipeline(cfg.lowLatency);
+	Pipeline pipeline(g_Log, cfg.lowLatency);
 	declarePipeline(cfg, pipeline, cfg.url.c_str());
 	pipeline.start();
 

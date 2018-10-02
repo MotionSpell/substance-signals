@@ -9,7 +9,7 @@ int safeMain(int argc, char const* argv[]) {
 
 	Tools::Profiler profilerGlobal("MP42TS");
 
-	Pipeline pipeline(opt.isLive);
+	Pipeline pipeline(g_Log, opt.isLive);
 	declarePipeline(pipeline, opt);
 
 	Tools::Profiler profilerProcessing("MP42TS - processing time");
