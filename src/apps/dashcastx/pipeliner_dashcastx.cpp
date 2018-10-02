@@ -102,8 +102,7 @@ IPipelinedModule* createConverter(Pipeline* pipeline, Metadata metadata, Metadat
 		auto format = PcmFormat(demuxFmt.sampleRate, demuxFmt.numChannels, demuxFmt.layout, encFmt.sampleFormat, (encFmt.numPlanes == 1) ? Interleaved : Planar);
 		return pipeline->add("AudioConvert", nullptr, &format, metaEnc->getFrameSize());
 	} else {
-		g_Log->log(Info, "[Converter] Found unknown stream");
-		return nullptr;
+		throw std::runtime_error("can only create converter for audio/video");
 	}
 }
 
@@ -179,8 +178,6 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 					return;
 
 				auto converter = createConverter(pipeline.get(), metadata, encoder->getOutputMetadata(0), encoderInputPicFmt);
-				if (!converter)
-					return;
 
 				if(cfg.debugMonitor) {
 					if (metadata->isVideo() && r == 0) {
