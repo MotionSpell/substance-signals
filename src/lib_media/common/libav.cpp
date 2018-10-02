@@ -260,14 +260,14 @@ PixelFormat libavPixFmt2PixelFormat(AVPixelFormat avPixfmt) {
 
 //DataAVPacket
 void AVPacketDeleter::operator()(AVPacket *p) {
-	av_free_packet(p);
+	av_packet_unref(p);
 	delete(p);
 }
 
 DataAVPacket::DataAVPacket(size_t size)
 	: pkt(std::unique_ptr<AVPacket, AVPacketDeleter>(new AVPacket)) {
 	av_init_packet(pkt.get());
-	av_free_packet(pkt.get());
+	av_packet_unref(pkt.get());
 	if (size)
 		av_new_packet(pkt.get(), (int)size);
 }
