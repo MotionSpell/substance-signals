@@ -186,7 +186,7 @@ struct AudioConvert : ModuleS {
 		int64_t dstNumSamples, curDstNumSamples = 0;
 		std::shared_ptr<DataPcm> curOut;
 		std::unique_ptr<Resampler> m_Swr;
-		uint64_t accumulatedTimeInDstSR = 0;
+		int64_t accumulatedTimeInDstSR = 0;
 		OutputPcm *output;
 		const bool autoConfigure;
 
