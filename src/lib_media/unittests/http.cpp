@@ -21,6 +21,7 @@ secondclasstest("HTTP post") {
 	cfg.url = "http://example.com";
 	auto mod = loadModule("HTTP", &NullHost, &cfg);
 	mod->getInput(0)->push(createPacket("Hello World"));
+	mod->getInput(0)->push(createPacket("Goodbye World"));
 	mod->process();
 	mod->flush();
 }
