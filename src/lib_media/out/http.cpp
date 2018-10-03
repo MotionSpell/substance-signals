@@ -112,23 +112,9 @@ void HTTP::readTransferedBs(uint8_t* dst, size_t size) {
 		throw error("Short read on transfered bitstream");
 }
 
-bool HTTP::open(std::shared_ptr<const MetadataFile> meta) {
-	if (!meta)
-		throw error("Unknown data received on input");
-	assert(!curTransferedBs && !curTransferedFile);
-	auto const fn = meta->filename;
-	if (fn.empty() || curTransferedData->data().len) {
-		curTransferedBs = gf_bs_new((const char*)curTransferedData->data().ptr, curTransferedData->data().len, GF_BITSTREAM_READ);
-	} else {
-		curTransferedFile = gf_fopen(fn.c_str(), "rb");
-		if (!curTransferedFile) {
-			if (curTransferedData->data().len) {
-				m_host->log(Error, format("File %s cannot be opened", fn).c_str());
-			}
-			return false;
-		}
-		curTransferedBs = gf_bs_from_file(curTransferedFile, GF_BITSTREAM_READ);
-	}
+bool HTTP::open() {
+	assert(!curTransferedBs);
+	curTransferedBs = gf_bs_new((const char*)curTransferedData->data().ptr, curTransferedData->data().len, GF_BITSTREAM_READ);
 	if (!curTransferedBs)
 		throw error("Bitstream cannot be created");
 	return true;
@@ -136,10 +122,6 @@ bool HTTP::open(std::shared_ptr<const MetadataFile> meta) {
 
 void HTTP::clean() {
 	if (curTransferedBs) {
-		if (curTransferedFile) {
-			gf_fclose(curTransferedFile);
-			curTransferedFile = nullptr;
-		}
 		gf_bs_del(curTransferedBs);
 		curTransferedBs = nullptr;
 		curTransferedData = nullptr;
@@ -181,7 +163,7 @@ size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 		}
 
 		curTransferedMeta = safe_cast<const MetadataFile>(curTransferedData->getMetadata());
-		if (!open(curTransferedMeta)) {
+		if (!open()) {
 			return 0;
 		}
 		if (state != RunNewConnection) {

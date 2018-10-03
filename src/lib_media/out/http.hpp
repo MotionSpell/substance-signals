@@ -53,7 +53,7 @@ class HTTP : public Module {
 			Stop,             //execute endOfSession()
 		};
 
-		bool open(std::shared_ptr<const MetadataFile> meta);
+		bool open();
 		void clean();
 		void endOfStream();
 
@@ -63,7 +63,6 @@ class HTTP : public Module {
 		IModuleHost* const m_host;
 
 		std::thread workingThread;
-		FILE *curTransferedFile = nullptr;
 		Data curTransferedData;
 		std::shared_ptr<const MetadataFile> curTransferedMeta;
 		static size_t staticCurlCallback(void *ptr, size_t size, size_t nmemb, void *userp);
