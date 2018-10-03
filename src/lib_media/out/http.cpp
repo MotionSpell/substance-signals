@@ -153,10 +153,8 @@ bool HTTP::open() {
 }
 
 void HTTP::clean() {
-	if (m_currBs.ptr) {
-		m_currBs = {};
-		m_currData = nullptr;
-	}
+	m_currBs = {};
+	m_currData = nullptr;
 }
 
 size_t HTTP::staticCurlCallback(void *buffer, size_t size, size_t nmemb, void *userp) {
