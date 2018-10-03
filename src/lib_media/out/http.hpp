@@ -42,7 +42,7 @@ class HTTP : public Module {
 		virtual size_t endOfSession(span<uint8_t>) {
 			return 0;
 		}
-		GF_BitStream *curTransferedBs = nullptr;
+		void readTransferedBs(uint8_t* dst, size_t size);
 
 	private:
 		enum State {
@@ -75,6 +75,7 @@ class HTTP : public Module {
 		State state = Init;
 		HttpOutputConfig::Flags flags;
 		OutputDataDefault<DataRaw> *outputFinished;
+		GF_BitStream *curTransferedBs = nullptr;
 };
 
 }

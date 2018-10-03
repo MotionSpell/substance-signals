@@ -22,47 +22,30 @@ MS_HSS::MS_HSS(IModuleHost* host, const std::string &url)
 }
 
 void MS_HSS::newFileCallback(void *ptr) {
-	auto const datac = (char*)ptr;
-	auto read = gf_bs_read_data(curTransferedBs, datac, 8);
-	if (read != 8)
-		throw error("I/O error (1)");
+	auto const datac = (uint8_t*)ptr;
+	readTransferedBs(datac, 8);
 	u32 size = U32LE(ptr);
 	u32 type = U32LE(ptr + 4);
 	if (type != FOURCC("ftyp"))
 		throw error("ftyp not found");
-	read = gf_bs_read_data(curTransferedBs, datac, size - 8);
-	if (read != size - 8)
-		throw error("I/O error (2)");
-
-	read = gf_bs_read_data(curTransferedBs, datac, 8);
-	if (read != 8)
-		throw error("I/O error (3)");
+	readTransferedBs(datac, size - 8);
+	readTransferedBs(datac, 8);
 	size = U32LE(ptr);
-	read = gf_bs_read_data(curTransferedBs, datac, size - 8);
-	if (read != size - 8)
-		throw error("I/O error (4)");
 
-	read = gf_bs_read_data(curTransferedBs, datac, 8);
-	if (read != 8)
-		throw error("I/O error (5)");
+	readTransferedBs(datac, size - 8);
+	readTransferedBs(datac, 8);
 	size = U32LE(ptr);
 	type = U32LE(ptr + 4);
 	if (type != FOURCC("free"))
 		throw error("free not found");
-	read = gf_bs_read_data(curTransferedBs, datac, size - 8);
-	if (read != size - 8)
-		throw error("I/O error (6)");
+	readTransferedBs(datac, size - 8);
 
-	read = gf_bs_read_data(curTransferedBs, datac, 8);
-	if (read != 8)
-		throw error("I/O error (7)");
+	readTransferedBs(datac, 8);
 	size = U32LE(ptr);
 	type = U32LE(ptr + 4);
 	if (type != FOURCC("moov"))
 		throw error("moov not found");
-	read = gf_bs_read_data(curTransferedBs, datac, size - 8);
-	if (read != size - 8)
-		throw error("I/O error (8)");
+	readTransferedBs(datac, size - 8);
 }
 
 size_t MS_HSS::endOfSession(span<uint8_t> buffer) {
