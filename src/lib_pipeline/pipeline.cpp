@@ -73,7 +73,7 @@ IFilter * Pipeline::add(char const* type, ...) {
 	auto name = format("%s (#%s)", type, (int)modules.size());
 	auto host = createModuleHost(name);
 	auto pHost = host.get();
-	return addModuleInternal(type, std::move(host), vLoadModule(type, pHost, va));
+	return addModuleInternal(name, std::move(host), vLoadModule(type, pHost, va));
 }
 
 void Pipeline::removeModule(IFilter *module) {
