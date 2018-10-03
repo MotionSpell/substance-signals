@@ -10,7 +10,6 @@ extern "C" {
 }
 
 using namespace Modules;
-//#define CURL_DEBUG
 
 namespace Modules {
 namespace Out {
@@ -35,9 +34,8 @@ CURL* createCurl() {
 		throw std::runtime_error("Couldn't init the HTTP stack.");
 
 	curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
-#ifdef CURL_DEBUG
-	curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-#endif
+	if(0)
+		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
