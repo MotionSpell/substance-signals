@@ -11,7 +11,7 @@ class MS_HSS : public Out::HTTP {
 		MS_HSS(IModuleHost* host, const std::string &url);
 
 	private:
-		void newFileCallback(void *ptr) final;             //remove ftyp/moov
+		void newFileCallback(uint8_t* ptr) final; //remove ftyp/moov
 		size_t endOfSession(span<uint8_t> buffer) final; //empty mfra
 
 		IModuleHost* const m_host;

@@ -38,7 +38,7 @@ class HTTP : public Module {
 		void flush() final;
 
 	protected:
-		virtual void newFileCallback(void*) {}
+		virtual void newFileCallback(uint8_t*) {}
 		virtual size_t endOfSession(span<uint8_t>) {
 			return 0;
 		}

@@ -21,31 +21,30 @@ MS_HSS::MS_HSS(IModuleHost* host, const std::string &url)
 	: HTTP(host, HttpOutputConfig{url}), m_host(host) {
 }
 
-void MS_HSS::newFileCallback(void *ptr) {
-	auto const datac = (uint8_t*)ptr;
-	readTransferedBs(datac, 8);
-	u32 size = U32LE(ptr);
-	u32 type = U32LE(ptr + 4);
+void MS_HSS::newFileCallback(uint8_t* buf) {
+	readTransferedBs(buf, 8);
+	u32 size = U32LE(buf);
+	u32 type = U32LE(buf + 4);
 	if (type != FOURCC("ftyp"))
 		throw error("ftyp not found");
-	readTransferedBs(datac, size - 8);
-	readTransferedBs(datac, 8);
-	size = U32LE(ptr);
+	readTransferedBs(buf, size - 8);
+	readTransferedBs(buf, 8);
+	size = U32LE(buf);
 
-	readTransferedBs(datac, size - 8);
-	readTransferedBs(datac, 8);
-	size = U32LE(ptr);
-	type = U32LE(ptr + 4);
+	readTransferedBs(buf, size - 8);
+	readTransferedBs(buf, 8);
+	size = U32LE(buf);
+	type = U32LE(buf + 4);
 	if (type != FOURCC("free"))
 		throw error("free not found");
-	readTransferedBs(datac, size - 8);
+	readTransferedBs(buf, size - 8);
 
-	readTransferedBs(datac, 8);
-	size = U32LE(ptr);
-	type = U32LE(ptr + 4);
+	readTransferedBs(buf, 8);
+	size = U32LE(buf);
+	type = U32LE(buf + 4);
 	if (type != FOURCC("moov"))
 		throw error("moov not found");
-	readTransferedBs(datac, size - 8);
+	readTransferedBs(buf, size - 8);
 }
 
 size_t MS_HSS::endOfSession(span<uint8_t> buffer) {
