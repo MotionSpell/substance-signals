@@ -9,9 +9,7 @@
 
 namespace Pipelines {
 
-struct Graph;
-struct IStatsRegistry;
-
+// interconnected pipeline elements, as the application sees them.
 struct IFilter {
 	virtual ~IFilter() {};
 	virtual int getNumInputs() const = 0;
@@ -44,7 +42,10 @@ struct IPipelineNotifier {
 	virtual void exception(std::exception_ptr eptr) = 0;
 };
 
-/* not thread-safe */
+struct IStatsRegistry;
+struct Graph;
+
+// A set of interconnected processing filters.
 class Pipeline : public IPipelineNotifier {
 	public:
 		enum Threading {
