@@ -3,15 +3,16 @@
 #include "pipelined_module.hpp"
 #include "pipelined_input.hpp"
 
-#define EXECUTOR_SYNC              Signals::ExecutorSync
-#define EXECUTOR_ASYNC_THREAD      Signals::ExecutorThread(m_name)
-
-#define EXECUTOR                   EXECUTOR_ASYNC_THREAD
-#define EXECUTOR_LIVE              EXECUTOR_SYNC
-
 using namespace Modules;
 
 namespace Pipelines {
+
+std::unique_ptr<IExecutor> createExecutor(Pipeline::Threading threading, const char* name) {
+	if(threading & Pipeline::Mono)
+		return make_unique<Signals::ExecutorSync>();
+	else
+		return make_unique<Signals::ExecutorThread>(name);
+}
 
 PipelinedModule::PipelinedModule(const char* name,
     std::unique_ptr<Modules::IModuleHost> host,
@@ -22,7 +23,7 @@ PipelinedModule::PipelinedModule(const char* name,
 	: m_host(std::move(host)),
 	  m_name(name),
 	  delegate(std::move(module)),
-	  executor(threading & Pipeline::Mono ? (IExecutor*)new EXECUTOR_LIVE : (IExecutor*)new EXECUTOR),
+	  executor(createExecutor(threading, name)),
 	  m_notify(notify),
 	  eosCount(0),
 	  statsRegistry(statsRegistry) {
