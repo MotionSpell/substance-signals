@@ -24,7 +24,7 @@ MS_HSS::MS_HSS(IModuleHost* host, const std::string &url)
 void MS_HSS::newFileCallback(uint8_t* buf) {
 	// skip 'ftyp' box
 	readTransferedBs(buf, 8);
-	u32 size = U32LE(buf);
+	u32 size = U32LE(buf + 0);
 	u32 type = U32LE(buf + 4);
 	if (type != FOURCC("ftyp"))
 		throw error("ftyp not found");
@@ -37,7 +37,7 @@ void MS_HSS::newFileCallback(uint8_t* buf) {
 
 	// skip 'free' box
 	readTransferedBs(buf, 8);
-	size = U32LE(buf);
+	size = U32LE(buf + 0);
 	type = U32LE(buf + 4);
 	if (type != FOURCC("free"))
 		throw error("free not found");
@@ -45,7 +45,7 @@ void MS_HSS::newFileCallback(uint8_t* buf) {
 
 	// put the contents of 'moov' box into 'buf'
 	readTransferedBs(buf, 8);
-	size = U32LE(buf);
+	size = U32LE(buf + 0);
 	type = U32LE(buf + 4);
 	if (type != FOURCC("moov"))
 		throw error("moov not found");

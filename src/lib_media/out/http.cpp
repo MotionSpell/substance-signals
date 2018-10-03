@@ -109,7 +109,7 @@ void HTTP::process() {
 void HTTP::readTransferedBs(uint8_t* dst, size_t size) {
 	auto n = gf_bs_read_data(curTransferedBs, (char*)dst, size);
 	if (n != size)
-		throw error("I/O error");
+		throw error("Short read on transfered bitstream");
 }
 
 bool HTTP::open(std::shared_ptr<const MetadataFile> meta) {
