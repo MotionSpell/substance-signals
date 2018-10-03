@@ -67,7 +67,7 @@ class HTTP : public Module {
 		Data curTransferedData;
 		std::shared_ptr<const MetadataFile> curTransferedMeta;
 		static size_t staticCurlCallback(void *ptr, size_t size, size_t nmemb, void *userp);
-		size_t curlCallback(void *ptr, size_t size, size_t nmemb);
+		size_t curlCallback(void *ptr, size_t size);
 
 		const std::string url, userAgent;
 		CURL *curl;
