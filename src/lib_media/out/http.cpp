@@ -192,7 +192,7 @@ size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 	if (state == RunNewConnection) {
 		state = RunResume;
 	} else if (state == RunNewFile) {
-		newFileCallback(buffer.ptr);
+		newFileCallback(buffer);
 		state = RunResume;
 	}
 

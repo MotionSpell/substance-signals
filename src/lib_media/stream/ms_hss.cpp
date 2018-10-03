@@ -21,7 +21,9 @@ MS_HSS::MS_HSS(IModuleHost* host, const std::string &url)
 	: HTTP(host, HttpOutputConfig{url}), m_host(host) {
 }
 
-void MS_HSS::newFileCallback(uint8_t* buf) {
+void MS_HSS::newFileCallback(span<uint8_t> out) {
+	auto buf = out.ptr;
+
 	// skip 'ftyp' box
 	readTransferedBs(buf, 8);
 	u32 size = U32LE(buf + 0);
