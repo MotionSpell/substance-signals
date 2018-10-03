@@ -2,12 +2,16 @@
 #include "lib_utils/log_sink.hpp" // Warning
 #include "lib_utils/format.hpp"
 
-extern "C" {
-#include <gpac/bitstream.h>
-}
-
 inline uint32_t U32BE(uint8_t* p) {
 	return (p[0] << 24) | (p[1] << 16) | (p[2] << 8) | (p[3] << 0);
+}
+
+inline void Write_U32BE(uint8_t*& p, uint32_t val) {
+	p[0] = (val >> 24) & 0xFF;
+	p[1] = (val >> 16) & 0xFF;
+	p[2] = (val >> 8) & 0xFF;
+	p[3] = (val >> 0) & 0xFF;
+	p+=4;
 }
 
 template<size_t N>
@@ -28,8 +32,8 @@ void MS_HSS::newFileCallback(span<uint8_t> out) {
 
 	// skip 'ftyp' box
 	readTransferedBs(buf, 8);
-	u32 size = U32BE(buf + 0);
-	u32 type = U32BE(buf + 4);
+	auto size = U32BE(buf + 0);
+	auto type = U32BE(buf + 4);
 	if (type != FOURCC("ftyp"))
 		throw error("ftyp not found");
 	readTransferedBs(buf, size - 8);
@@ -58,15 +62,15 @@ void MS_HSS::newFileCallback(span<uint8_t> out) {
 
 size_t MS_HSS::endOfSession(span<uint8_t> buffer) {
 	auto const mfraSize = 8;
+
 	if (buffer.len < mfraSize) {
 		m_host->log(Warning, format( "endOfSession: needed to write %s bytes but buffer size is %s.", mfraSize, buffer.len).c_str());
 		return 0;
 	}
-	auto bs = gf_bs_new((const char*)buffer.ptr, buffer.len, GF_BITSTREAM_WRITE);
-	gf_bs_write_u32(bs, mfraSize); //size (Box)
-	gf_bs_write_u32(bs, FOURCC("mfra"));
-	assert(gf_bs_get_position(bs) == mfraSize);
-	gf_bs_del(bs);
+
+	auto bs = buffer.ptr;
+	Write_U32BE(bs, mfraSize); //size (Box)
+	Write_U32BE(bs, FOURCC("mfra"));
 
 	return mfraSize;
 }
