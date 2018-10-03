@@ -29,8 +29,15 @@ size_t read(span<const uint8_t>& stream, uint8_t* dst, size_t dstLen) {
 	return readCount;
 }
 
+CURL* createCurl() {
+	auto curl = curl_easy_init();
+	if (!curl)
+		throw std::runtime_error("Couldn't init the HTTP stack.");
+	return curl;
+}
+
 void enforceConnection(std::string url, bool usePUT) {
-	std::shared_ptr<void> curlPointer(curl_easy_init(), &curl_easy_cleanup);
+	std::shared_ptr<void> curlPointer(createCurl(), &curl_easy_cleanup);
 	auto curl = curlPointer.get();
 
 	curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
@@ -57,10 +64,7 @@ struct HTTP::Private {
 
 	Private() {
 		curl_global_init(CURL_GLOBAL_ALL);
-
-		curl = curl_easy_init();
-		if (!curl)
-			throw std::runtime_error("Couldn't init the HTTP stack.");
+		curl = createCurl();
 	}
 
 	~Private() {
