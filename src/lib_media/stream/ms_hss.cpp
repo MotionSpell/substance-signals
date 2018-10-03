@@ -74,10 +74,9 @@ size_t MS_HSS::endOfSession(span<uint8_t> buffer) {
 	auto bs = gf_bs_new((const char*)buffer.ptr, buffer.len, GF_BITSTREAM_WRITE);
 	gf_bs_write_u32(bs, mfraSize); //size (Box)
 	gf_bs_write_u32(bs, FOURCC("mfra"));
-	if (gf_bs_get_position(bs) != mfraSize) {
-		m_host->log(Warning, format("endOfSession: mfra size is %s but buffer index is %s.", mfraSize, gf_bs_get_position(bs)).c_str());
-	}
+	assert(gf_bs_get_position(bs) == mfraSize);
 	gf_bs_del(bs);
+
 	return mfraSize;
 }
 
