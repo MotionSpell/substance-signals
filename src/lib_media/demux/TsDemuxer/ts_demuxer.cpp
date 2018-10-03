@@ -59,6 +59,48 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::Restamper {
 				s->flush();
 		}
 
+		// PsiStream::Listener implementation
+		void onPat(span<int> pmtPids) override {
+			m_host->log(Debug, format("Found PAT (%s programs)", pmtPids.len).c_str());
+			for(auto pid : pmtPids)
+				m_streams.push_back(make_unique<PsiStream>(pid, m_host, this));
+		}
+
+		void onPmt(span<PsiStream::EsInfo> esInfo) override {
+			m_host->log(Debug, format("Found PMT (%s streams)", esInfo.len).c_str());
+			for(auto es : esInfo) {
+				if(auto stream = findMatchingStream(es)) {
+					stream->pid = es.pid;
+					if(stream->setType(es.mpegStreamType))
+						m_host->log(Debug, format("[%s] MPEG stream type %s", es.pid, es.mpegStreamType).c_str());
+					else
+						m_host->log(Warning, format("[%s] unknown MPEG stream type: %s", es.pid, es.mpegStreamType).c_str());
+				}
+			}
+		}
+
+		// PesStream::Restamper implementation
+		void restamp(int64_t& pts) override {
+
+			// unroll PTS: ensure it's not too far from the last unrolled PTS
+			{
+				auto const PTS_PERIOD = 1LL << 33;
+				while(pts < (m_lastUnrolledPts-PTS_PERIOD/2))
+					pts += PTS_PERIOD;
+
+				m_lastUnrolledPts = pts;
+			}
+
+			// make the timestamp start from zero
+			{
+				if(m_ptsOrigin == INT64_MAX)
+					m_ptsOrigin = pts;
+
+				pts -= m_ptsOrigin;
+			}
+		}
+
+	private:
 		void processTsPacket(SpanC pkt) {
 			BitReader r = {pkt};
 			const int syncByte = r.u(8);
@@ -108,47 +150,6 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::Restamper {
 			}
 		}
 
-		// PsiStream::Listener implementation
-		void onPat(span<int> pmtPids) override {
-			m_host->log(Debug, format("Found PAT (%s programs)", pmtPids.len).c_str());
-			for(auto pid : pmtPids)
-				m_streams.push_back(make_unique<PsiStream>(pid, m_host, this));
-		}
-
-		void onPmt(span<PsiStream::EsInfo> esInfo) override {
-			m_host->log(Debug, format("Found PMT (%s streams)", esInfo.len).c_str());
-			for(auto es : esInfo) {
-				if(auto stream = findMatchingStream(es)) {
-					stream->pid = es.pid;
-					if(stream->setType(es.mpegStreamType))
-						m_host->log(Debug, format("[%s] MPEG stream type %s", es.pid, es.mpegStreamType).c_str());
-					else
-						m_host->log(Warning, format("[%s] unknown MPEG stream type: %s", es.pid, es.mpegStreamType).c_str());
-				}
-			}
-		}
-
-		// PesStream::Restamper implementation
-		void restamp(int64_t& pts) override {
-
-			// unroll PTS: ensure it's not too far from the last unrolled PTS
-			{
-				auto const PTS_PERIOD = 1LL << 33;
-				while(pts < (m_lastUnrolledPts-PTS_PERIOD/2))
-					pts += PTS_PERIOD;
-
-				m_lastUnrolledPts = pts;
-			}
-
-			// make the timestamp start from zero
-			{
-				if(m_ptsOrigin == INT64_MAX)
-					m_ptsOrigin = pts;
-
-				pts -= m_ptsOrigin;
-			}
-		}
-
 		PesStream* findMatchingStream(PsiStream::EsInfo es) {
 			for(auto& s : m_streams) {
 				if(auto stream = dynamic_cast<PesStream*>(s.get()))
@@ -176,7 +177,6 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::Restamper {
 			}
 		}
 
-	private:
 		Stream* findStreamForPid(int packetId) {
 			for(auto& s : m_streams) {
 				if(s->pid == packetId)
