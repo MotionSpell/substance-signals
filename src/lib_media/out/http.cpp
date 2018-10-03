@@ -39,6 +39,8 @@ CURL* createCurl() {
 	curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 #endif
 
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 	return curl;
 }
 
@@ -98,8 +100,6 @@ HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
 	} else {
 		curl_easy_setopt(curl, CURLOPT_POST, 1L);
 	}
-	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeVoid);
 	curl_easy_setopt(curl, CURLOPT_READFUNCTION, &HTTP::staticCurlCallback);
