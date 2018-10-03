@@ -1,4 +1,5 @@
 #include "http.hpp"
+#include "lib_modules/utils/factory.hpp" // registerModule
 #include "lib_utils/log_sink.hpp" // Warning
 #include "lib_utils/format.hpp"
 
@@ -7,6 +8,7 @@ extern "C" {
 #include <gpac/bitstream.h>
 }
 
+using namespace Modules;
 //#define CURL_DEBUG
 
 namespace Modules {
@@ -20,8 +22,8 @@ size_t writeVoid(void *buffer, size_t size, size_t nmemb, void *userp) {
 }
 }
 
-HTTP::HTTP(IModuleHost* host, const std::string &url, Flag flags, const std::string &userAgent, const std::vector<std::string> &headers)
-	: m_host(host), url(url), userAgent(userAgent), flags(flags) {
+HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
+	: m_host(host), url(cfg.url), userAgent(cfg.userAgent), flags(cfg.flags) {
 	if (url.compare(0, 7, "http://") && url.compare(0, 8, "https://"))
 		throw error(format("can only handle URLs starting with 'http://' or 'https://', not %s.", url));
 
@@ -35,10 +37,10 @@ HTTP::HTTP(IModuleHost* host, const std::string &url, Flag flags, const std::str
 	curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 #endif
 
-	if (flags & InitialEmptyPost) { //make an empty POST to check the end point exists
+	if (flags.InitialEmptyPost) { //make an empty POST to check the end point exists
 		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 		curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent.c_str());
-		if (flags & UsePUT) {
+		if (flags.UsePUT) {
 			curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
 			curl_easy_setopt(curl, CURLOPT_INFILESIZE_LARGE, 0);
 		} else {
@@ -54,7 +56,7 @@ HTTP::HTTP(IModuleHost* host, const std::string &url, Flag flags, const std::str
 
 	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 	curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent.c_str());
-	if (flags & UsePUT) {
+	if (flags.UsePUT) {
 		curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
 	} else {
 		curl_easy_setopt(curl, CURLOPT_POST, 1L);
@@ -66,11 +68,11 @@ HTTP::HTTP(IModuleHost* host, const std::string &url, Flag flags, const std::str
 	curl_easy_setopt(curl, CURLOPT_READFUNCTION, &HTTP::staticCurlCallback);
 	curl_easy_setopt(curl, CURLOPT_READDATA, this);
 
-	if (flags & Chunked) {
+	if (flags.Chunked) {
 		chunk = curl_slist_append(chunk, "Transfer-Encoding: chunked");
 		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
 	}
-	for (auto &h : headers) {
+	for (auto &h : cfg.headers) {
 		chunk = curl_slist_append(chunk, h.c_str());
 		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
 	}
@@ -213,7 +215,7 @@ bool HTTP::performTransfer() {
 }
 
 void HTTP::threadProc() {
-	if (flags & Chunked) {
+	if (flags.Chunked) {
 		while (state != Stop) {
 			if (!performTransfer()) {
 				break;
@@ -226,3 +228,15 @@ void HTTP::threadProc() {
 
 }
 }
+
+namespace {
+
+IModule* createObject(IModuleHost* host, va_list va) {
+	auto cfg = va_arg(va, HttpOutputConfig*);
+	enforce(host, "HTTP: host can't be NULL");
+	return create<Out::HTTP>(host, *cfg).release();
+}
+
+auto const registered = Factory::registerModule("HTTP", &createObject);
+}
+

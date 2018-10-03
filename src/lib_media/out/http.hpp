@@ -1,5 +1,22 @@
 #pragma once
 
+#include <string>
+#include <vector>
+
+struct HttpOutputConfig {
+	struct Flags {
+		bool InitialEmptyPost = true;
+		bool Chunked = true; //not enabling it is experimental
+		bool UsePUT = false; //use PUT instead of POST
+	};
+
+	std::string url;
+	std::string userAgent = "GPAC Signals/";
+	std::vector<std::string> headers {};
+
+	Flags flags {};
+};
+
 #include "../common/metadata.hpp"
 #include "lib_modules/utils/helper.hpp"
 #include <thread>
@@ -7,20 +24,14 @@
 typedef void CURL;
 struct curl_slist;
 typedef struct __tag_bitstream GF_BitStream;
-extern const char *g_version;
 
 namespace Modules {
 namespace Out {
 
 class HTTP : public Module {
 	public:
-		enum Flag {
-			InitialEmptyPost = 1,
-			Chunked          = 1 << 1, //not enabling it is experimental
-			UsePUT           = 1 << 2, //use PUT instead of POST
-		};
 
-		HTTP(IModuleHost* host, const std::string &url, Flag flags = InitialEmptyPost | Chunked, const std::string &userAgent = std::string("GPAC Signals/") + std::string(g_version), const std::vector<std::string> &headers = {});
+		HTTP(IModuleHost* host, HttpOutputConfig const& cfg);
 		virtual ~HTTP();
 
 		void process() final;
@@ -62,7 +73,7 @@ class HTTP : public Module {
 		CURL *curl;
 		struct curl_slist *chunk = nullptr;
 		State state = Init;
-		Flag flags;
+		HttpOutputConfig::Flags flags;
 		OutputDataDefault<DataRaw> *outputFinished;
 };
 

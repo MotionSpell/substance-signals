@@ -18,7 +18,7 @@ namespace Modules {
 namespace Stream {
 
 MS_HSS::MS_HSS(IModuleHost* host, const std::string &url)
-	: HTTP(host, url), m_host(host) {
+	: HTTP(host, HttpOutputConfig{url}), m_host(host) {
 }
 
 void MS_HSS::newFileCallback(void *ptr) {
