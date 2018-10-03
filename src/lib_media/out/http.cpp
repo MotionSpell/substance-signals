@@ -29,6 +29,28 @@ size_t read(span<const uint8_t>& stream, uint8_t* dst, size_t dstLen) {
 	return readCount;
 }
 
+void enforceConnection(std::string url, bool usePUT) {
+	std::shared_ptr<void> curlPointer(curl_easy_init(), &curl_easy_cleanup);
+	auto curl = curlPointer.get();
+
+	curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
+#ifdef CURL_DEBUG
+	curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+#endif
+
+	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+	if (usePUT) {
+		curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
+		curl_easy_setopt(curl, CURLOPT_INFILESIZE_LARGE, 0);
+	} else {
+		curl_easy_setopt(curl, CURLOPT_POST, 1L);
+		curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, 0);
+	}
+	auto const res = curl_easy_perform(curl);
+	if (res != CURLE_OK)
+		throw std::runtime_error(format("curl_easy_perform() failed for URL: %s", url));
+}
+
 }
 
 struct HTTP::Private {
@@ -65,22 +87,9 @@ HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
 	curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 #endif
 
-	if (flags.InitialEmptyPost) { //make an empty POST to check the end point exists
-		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-		curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent.c_str());
-		if (flags.UsePUT) {
-			curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
-			curl_easy_setopt(curl, CURLOPT_INFILESIZE_LARGE, 0);
-		} else {
-			curl_easy_setopt(curl, CURLOPT_POST, 1L);
-			curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, 0);
-		}
-		auto const res = curl_easy_perform(curl);
-		if (res != CURLE_OK)
-			throw error(format("curl_easy_perform() failed for URL: %s", url));
-
-		curl_easy_reset(curl);
-	}
+	//make an empty POST to check the end point exists
+	if (flags.InitialEmptyPost)
+		enforceConnection(url, flags.UsePUT);
 
 	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 	curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent.c_str());
