@@ -63,7 +63,7 @@ class HTTP : public Module {
 
 		Data m_currData;
 		Metadata m_currMetadata;
-		span<const uint8_t> m_currBs; // points into the contents of m_currData
+		span<const uint8_t> m_currBs {}; // points into the contents of m_currData
 
 		static size_t staticCurlCallback(void *ptr, size_t size, size_t nmemb, void *userp);
 		size_t fillBuffer(span<uint8_t> buffer);
