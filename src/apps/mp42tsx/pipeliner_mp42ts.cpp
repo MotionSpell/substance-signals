@@ -10,7 +10,7 @@ using namespace Modules;
 using namespace Pipelines;
 
 void declarePipeline(Pipeline &pipeline, const mp42tsXOptions &opt) {
-	auto createSink = [&](bool isHLS)->IPipelinedModule* {
+	auto createSink = [&](bool isHLS)->IFilter* {
 		if (isHLS) {
 			const bool isLive = false; //TODO
 			const uint64_t segmentDurationInMs = 10000; //TODO

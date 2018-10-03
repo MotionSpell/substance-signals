@@ -20,7 +20,7 @@ bool startsWith(std::string s, std::string prefix) {
 	return s.substr(0, prefix.size()) == prefix;
 }
 
-IPipelinedModule* createRenderer(Pipeline& pipeline, Config cfg, int codecType) {
+IFilter* createRenderer(Pipeline& pipeline, Config cfg, int codecType) {
 	if(!cfg.noRenderer) {
 		if (codecType == VIDEO_RAW) {
 			g_Log->log(Info, "Found video stream");
@@ -35,7 +35,7 @@ IPipelinedModule* createRenderer(Pipeline& pipeline, Config cfg, int codecType) 
 	return pipeline.addModule<Out::Null>();
 }
 
-IPipelinedModule* createDemuxer(Pipeline& pipeline, std::string url) {
+IFilter* createDemuxer(Pipeline& pipeline, std::string url) {
 	if(startsWith(url, "mpegts://")) {
 		url = url.substr(9);
 		auto file = pipeline.addModule<In::File>(url);

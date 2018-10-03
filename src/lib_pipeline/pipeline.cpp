@@ -1,7 +1,7 @@
+#include "pipeline.hpp"
 #include "stats.hpp"
 #include "graph.hpp"
-#include "pipelined_module.hpp"
-#include "pipeline.hpp"
+#include "filter.hpp"
 #include "lib_modules/utils/helper.hpp"
 #include "lib_modules/utils/loader.hpp"
 #include "lib_utils/os.hpp"
@@ -59,15 +59,15 @@ Pipeline::Pipeline(LogSink* log, bool isLowLatency, Threading threading)
 Pipeline::~Pipeline() {
 }
 
-IPipelinedModule* Pipeline::addModuleInternal(std::string name, std::unique_ptr<IModuleHost> host, std::shared_ptr<IModule> rawModule) {
-	auto module = make_unique<PipelinedModule>(name.c_str(), move(host), rawModule, this, threading, statsMem.get());
+IFilter* Pipeline::addModuleInternal(std::string name, std::unique_ptr<IModuleHost> host, std::shared_ptr<IModule> rawModule) {
+	auto module = make_unique<Filter>(name.c_str(), move(host), rawModule, this, threading, statsMem.get());
 	auto ret = module.get();
 	modules.push_back(std::move(module));
 	graph->nodes.push_back(Graph::Node{ret, name});
 	return ret;
 }
 
-IPipelinedModule * Pipeline::add(char const* type, ...) {
+IFilter * Pipeline::add(char const* type, ...) {
 	va_list va;
 	va_start(va, type);
 	auto name = format("%s (#%s)", type, (int)modules.size());
@@ -76,7 +76,7 @@ IPipelinedModule * Pipeline::add(char const* type, ...) {
 	return addModuleInternal(type, std::move(host), vLoadModule(type, pHost, va));
 }
 
-void Pipeline::removeModule(IPipelinedModule *module) {
+void Pipeline::removeModule(IFilter *module) {
 	auto findIf = [module](Pipelines::Graph::Connection const& c) {
 		return c.src.id == module || c.dst.id == module;
 	};
@@ -84,7 +84,7 @@ void Pipeline::removeModule(IPipelinedModule *module) {
 	if (i_conn != graph->connections.end())
 		throw std::runtime_error("Could not remove module: connections found");
 
-	auto removeIt = [module](std::unique_ptr<IPipelinedModule> const& m) {
+	auto removeIt = [module](std::unique_ptr<IFilter> const& m) {
 		return m.get() == module;
 	};
 	auto i_mod = std::find_if(modules.begin(), modules.end(), removeIt);
@@ -103,13 +103,13 @@ void Pipeline::removeModule(IPipelinedModule *module) {
 
 void Pipeline::connect(OutputPin prev, InputPin next, bool inputAcceptMultipleConnections) {
 	if (!next.mod || !prev.mod) return;
-	auto n = safe_cast<PipelinedModule>(next.mod);
-	auto p = safe_cast<PipelinedModule>(prev.mod);
+	auto n = safe_cast<Filter>(next.mod);
+	auto p = safe_cast<Filter>(prev.mod);
 
 	{
 		std::unique_lock<std::mutex> lock(remainingNotificationsMutex);
 		if (remainingNotifications != notifications)
-			throw std::runtime_error("Connection but the topology has changed. Not supported yet."); //TODO: to change that, we need to store a state of the PipelinedModule.
+			throw std::runtime_error("Connection but the topology has changed. Not supported yet."); //TODO: to change that, we need to store a state of the Filter.
 	}
 
 	n->connect(p->getOutput(prev.index), next.index, inputAcceptMultipleConnections);
@@ -118,10 +118,10 @@ void Pipeline::connect(OutputPin prev, InputPin next, bool inputAcceptMultipleCo
 	graph->connections.push_back(Graph::Connection{graph->nodeFromId(prev.mod), prev.index, graph->nodeFromId(next.mod), next.index});
 }
 
-void Pipeline::disconnect(IPipelinedModule * prev, int outputIdx, IPipelinedModule * next, int inputIdx) {
+void Pipeline::disconnect(IFilter * prev, int outputIdx, IFilter * next, int inputIdx) {
 	if (!prev) return;
-	auto n = safe_cast<PipelinedModule>(next);
-	auto p = safe_cast<PipelinedModule>(prev);
+	auto n = safe_cast<Filter>(next);
+	auto p = safe_cast<Filter>(prev);
 
 	auto removeIf = [prev, outputIdx, next, inputIdx](Pipelines::Graph::Connection const& c) {
 		return c.src.id == prev && c.srcPort == outputIdx && c.dst.id == next && c.dstPort == inputIdx;
@@ -159,7 +159,7 @@ void Pipeline::start() {
 	m_log->log(Info, "Pipeline: starting");
 	computeTopology();
 	for (auto &module : modules) {
-		auto m = safe_cast<PipelinedModule>(module.get());
+		auto m = safe_cast<Filter>(module.get());
 		if (m->isSource()) {
 			m->startSource();
 		}
@@ -187,7 +187,7 @@ void Pipeline::waitForEndOfStream() {
 void Pipeline::exitSync() {
 	m_log->log(Info, "Pipeline: asked to exit now.");
 	for (auto &module : modules) {
-		auto m = safe_cast<PipelinedModule>(module.get());
+		auto m = safe_cast<Filter>(module.get());
 		if (m->isSource()) {
 			m->stopSource();
 		}
@@ -195,7 +195,7 @@ void Pipeline::exitSync() {
 }
 
 void Pipeline::computeTopology() {
-	auto hasAtLeastOneInputConnected = [](PipelinedModule* m) {
+	auto hasAtLeastOneInputConnected = [](Filter* m) {
 		for (int i = 0; i < m->getNumInputs(); ++i) {
 			if (m->getInput(i)->isConnected())
 				return true;
@@ -205,7 +205,7 @@ void Pipeline::computeTopology() {
 
 	notifications = 0;
 	for (auto &module : modules) {
-		auto m = safe_cast<PipelinedModule>(module.get());
+		auto m = safe_cast<Filter>(module.get());
 		if (m->isSource() || hasAtLeastOneInputConnected(m))
 			notifications++;
 	}

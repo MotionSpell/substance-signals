@@ -51,7 +51,7 @@ Resolution autoFit(Resolution input, Resolution output) {
 	}
 };
 
-IPipelinedModule* createEncoder(Pipeline* pipeline, Metadata metadata, bool ultraLowLatency, VideoCodecType videoCodecType, PictureFormat &dstFmt, int bitrate, uint64_t segmentDurationInMs) {
+IFilter* createEncoder(Pipeline* pipeline, Metadata metadata, bool ultraLowLatency, VideoCodecType videoCodecType, PictureFormat &dstFmt, int bitrate, uint64_t segmentDurationInMs) {
 	auto const codecType = metadata->type;
 	if (codecType == VIDEO_PKT) {
 		g_Log->log(Info, "[Encoder] Found video stream");
@@ -89,7 +89,7 @@ IPipelinedModule* createEncoder(Pipeline* pipeline, Metadata metadata, bool ultr
 }
 
 /*video is forced, audio is as passthru as possible*/
-IPipelinedModule* createConverter(Pipeline* pipeline, Metadata metadata, Metadata metadataEncoder, const PictureFormat &dstFmt) {
+IFilter* createConverter(Pipeline* pipeline, Metadata metadata, Metadata metadataEncoder, const PictureFormat &dstFmt) {
 	auto const codecType = metadata->type;
 	if (codecType == VIDEO_PKT) {
 		g_Log->log(Info, "[Converter] Found video stream");

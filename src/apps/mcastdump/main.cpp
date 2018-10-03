@@ -48,7 +48,7 @@ Config parseCommandLine(int argc, char const* argv[]) {
 
 void declarePipeline(Config const& cfg, Pipeline& pipeline) {
 	auto receiver = pipeline.add("MulticastInput", &cfg.mcast);
-	IPipelinedModule* sink;
+	IFilter* sink;
 	if(cfg.outputPath.empty())
 		sink = pipeline.addModule<Out::Null>();
 	else

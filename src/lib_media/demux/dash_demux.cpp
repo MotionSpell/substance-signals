@@ -36,7 +36,7 @@ DashDemuxer::DashDemuxer(IModuleHost* host, std::string url)
 		addStream(downloader, i);
 }
 
-void DashDemuxer::addStream(Pipelines::IPipelinedModule* downloadOutput, int outputPort) {
+void DashDemuxer::addStream(Pipelines::IFilter* downloadOutput, int outputPort) {
 	// create our own output
 	auto output = addOutput<OutputDefault>();
 	output->setMetadata(downloadOutput->getOutputMetadata(outputPort));

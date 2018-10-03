@@ -7,11 +7,11 @@
 
 namespace Pipelines {
 
-struct IPipelinedModule;
+struct IFilter;
 
 struct Graph {
 	struct Node {
-		typedef IPipelinedModule* NodeId;
+		typedef IFilter* NodeId;
 		NodeId id;
 		std::string caption;
 	};

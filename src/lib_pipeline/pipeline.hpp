@@ -12,30 +12,30 @@ namespace Pipelines {
 struct Graph;
 struct IStatsRegistry;
 
-struct IPipelinedModule {
-	virtual ~IPipelinedModule() {};
+struct IFilter {
+	virtual ~IFilter() {};
 	virtual int getNumInputs() const = 0;
 	virtual int getNumOutputs() const = 0;
 	virtual std::shared_ptr<const Modules::IMetadata> getOutputMetadata(int i) = 0;
 };
 
 struct InputPin {
-	InputPin(IPipelinedModule* m, int idx=0) : mod(m), index(idx) {};
-	IPipelinedModule* mod;
+	InputPin(IFilter* m, int idx=0) : mod(m), index(idx) {};
+	IFilter* mod;
 	int index = 0;
 };
 
 struct OutputPin {
-	OutputPin(IPipelinedModule* m, int idx=0) : mod(m), index(idx) {};
-	IPipelinedModule* mod;
+	OutputPin(IFilter* m, int idx=0) : mod(m), index(idx) {};
+	IFilter* mod;
 	int index = 0;
 };
 
-inline InputPin GetInputPin(IPipelinedModule* mod, int index=0) {
+inline InputPin GetInputPin(IFilter* mod, int index=0) {
 	return InputPin { mod, index };
 }
 
-inline OutputPin GetOutputPin(IPipelinedModule* mod, int index=0) {
+inline OutputPin GetOutputPin(IFilter* mod, int index=0) {
 	return OutputPin { mod, index };
 }
 
@@ -55,7 +55,7 @@ class Pipeline : public IPipelineNotifier {
 		std::unique_ptr<Modules::IModuleHost> createModuleHost(std::string name);
 
 		template <typename InstanceType, int NumBlocks = 0, typename ...Args>
-		IPipelinedModule * addModule(Args&&... args) {
+		IFilter * addModule(Args&&... args) {
 			auto name = format("%s", modules.size());
 			auto host = createModuleHost(name);
 			auto mod = Modules::createModule<InstanceType>(
@@ -65,7 +65,7 @@ class Pipeline : public IPipelineNotifier {
 			return addModuleInternal(name, std::move(host), std::move(mod));
 		}
 
-		IPipelinedModule * add(char const* name, ...);
+		IFilter * add(char const* name, ...);
 
 		/* @isLowLatency Controls the default number of buffers.
 			@threading    Controls the threading. */
@@ -75,9 +75,9 @@ class Pipeline : public IPipelineNotifier {
 		// Remove a module from a pipeline.
 		// This is only possible when the module is disconnected and flush()ed
 		// (which is the caller responsibility - FIXME)
-		void removeModule(IPipelinedModule * module);
+		void removeModule(IFilter * module);
 		void connect   (OutputPin out, InputPin in, bool inputAcceptMultipleConnections = false);
-		void disconnect(IPipelinedModule * prev, int outputIdx, IPipelinedModule * next, int inputIdx);
+		void disconnect(IFilter * prev, int outputIdx, IFilter * next, int inputIdx);
 
 		std::string dump(); /*dump pipeline using DOT Language*/
 
@@ -86,7 +86,7 @@ class Pipeline : public IPipelineNotifier {
 		void exitSync(); /*ask for all sources to finish*/
 
 	private:
-		IPipelinedModule * addModuleInternal(std::string name, std::unique_ptr<Modules::IModuleHost> host, std::shared_ptr<Modules::IModule> rawModule);
+		IFilter * addModuleInternal(std::string name, std::unique_ptr<Modules::IModuleHost> host, std::shared_ptr<Modules::IModule> rawModule);
 		void computeTopology();
 		void endOfStream();
 		void exception(std::exception_ptr eptr);
@@ -97,7 +97,7 @@ class Pipeline : public IPipelineNotifier {
 		}
 
 		std::unique_ptr<IStatsRegistry> statsMem;
-		std::vector<std::unique_ptr<IPipelinedModule>> modules;
+		std::vector<std::unique_ptr<IFilter>> modules;
 		std::unique_ptr<Graph> graph;
 		LogSink* const m_log;
 		const int allocatorNumBlocks;

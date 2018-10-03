@@ -1,6 +1,6 @@
+#include "filter.hpp"
 #include "lib_signals/executor_threadpool.hpp"
 #include "stats.hpp"
-#include "pipelined_module.hpp"
 #include "pipelined_input.hpp"
 
 using namespace Modules;
@@ -14,7 +14,7 @@ std::unique_ptr<IExecutor> createExecutor(Pipeline::Threading threading, const c
 		return make_unique<Signals::ExecutorThread>(name);
 }
 
-PipelinedModule::PipelinedModule(const char* name,
+Filter::Filter(const char* name,
     std::unique_ptr<Modules::IModuleHost> host,
     std::shared_ptr<IModule> module,
     IPipelineNotifier *notify,
@@ -29,56 +29,56 @@ PipelinedModule::PipelinedModule(const char* name,
 	  statsRegistry(statsRegistry) {
 }
 
-int PipelinedModule::getNumInputs() const {
+int Filter::getNumInputs() const {
 	return delegate->getNumInputs();
 }
-int PipelinedModule::getNumOutputs() const {
+int Filter::getNumOutputs() const {
 	return delegate->getNumOutputs();
 }
-IOutput* PipelinedModule::getOutput(int i) {
+IOutput* Filter::getOutput(int i) {
 	if (i >= delegate->getNumOutputs())
-		throw std::runtime_error(format("PipelinedModule %s: no output %s.", m_name, i));
+		throw std::runtime_error(format("Filter %s: no output %s.", m_name, i));
 	return delegate->getOutput(i);
 }
 
-std::shared_ptr<const IMetadata> PipelinedModule::getOutputMetadata(int i) {
+std::shared_ptr<const IMetadata> Filter::getOutputMetadata(int i) {
 	return getOutput(i)->getMetadata();
 }
 
 /* source modules are stopped manually - then the message propagates to other connected modules */
-bool PipelinedModule::isSource() {
+bool Filter::isSource() {
 	return dynamic_cast<ActiveModule*>(delegate.get());
 }
 
-void PipelinedModule::connect(IOutput *output, int inputIdx, bool inputAcceptMultipleConnections) {
+void Filter::connect(IOutput *output, int inputIdx, bool inputAcceptMultipleConnections) {
 	auto input = getInput(inputIdx);
 	if (!inputAcceptMultipleConnections && input->isConnected())
-		throw std::runtime_error(format("PipelinedModule %s: input %s is already connected.", m_name, inputIdx));
+		throw std::runtime_error(format("Filter %s: input %s is already connected.", m_name, inputIdx));
 	ConnectOutputToInput(output, input);
 	connections++;
 }
 
-void PipelinedModule::disconnect(int inputIdx, IOutput* output) {
+void Filter::disconnect(int inputIdx, IOutput* output) {
 	getInput(inputIdx)->disconnect();
 	output->getSignal().disconnectAll();
 	connections--;
 }
 
-void PipelinedModule::mimicInputs() {
+void Filter::mimicInputs() {
 	while ((int)inputs.size()< delegate->getNumInputs()) {
 		auto dgInput = delegate->getInput((int)inputs.size());
-		inputs.push_back(uptr(new PipelinedInput(dgInput, m_name, *executor, statsRegistry->getNewEntry(), this)));
+		inputs.push_back(uptr(new FilterInput(dgInput, m_name, *executor, statsRegistry->getNewEntry(), this)));
 	}
 }
 
-IInput* PipelinedModule::getInput(int i) {
+IInput* Filter::getInput(int i) {
 	mimicInputs();
 	if (i >= (int)inputs.size())
-		throw std::runtime_error(format("PipelinedModule %s: no input %s.", m_name, i));
+		throw std::runtime_error(format("Filter %s: no input %s.", m_name, i));
 	return inputs[i].get();
 }
 
-void PipelinedModule::processSource() {
+void Filter::processSource() {
 	auto source = safe_cast<ActiveModule>(delegate.get());
 
 	if(stopped || !source->work()) {
@@ -87,10 +87,10 @@ void PipelinedModule::processSource() {
 	}
 
 	// reschedule
-	(*executor)(std::bind(&PipelinedModule::processSource, this));
+	(*executor)(std::bind(&Filter::processSource, this));
 }
 
-void PipelinedModule::startSource() {
+void Filter::startSource() {
 	assert(isSource());
 
 	if (started) {
@@ -100,12 +100,12 @@ void PipelinedModule::startSource() {
 
 	connections = 1;
 
-	(*executor)(std::bind(&PipelinedModule::processSource, this));
+	(*executor)(std::bind(&Filter::processSource, this));
 
 	started = true;
 }
 
-void PipelinedModule::stopSource() {
+void Filter::stopSource() {
 	assert(isSource());
 
 	if (!started) {
@@ -118,11 +118,11 @@ void PipelinedModule::stopSource() {
 
 // IPipelineNotifier implementation
 
-void PipelinedModule::endOfStream() {
+void Filter::endOfStream() {
 	++eosCount;
 
 	if (eosCount > connections) {
-		auto const msg = format("PipelinedModule %s: received too many EOS (%s/%s)", m_name, (int)eosCount, (int)connections);
+		auto const msg = format("Filter %s: received too many EOS (%s/%s)", m_name, (int)eosCount, (int)connections);
 		throw std::runtime_error(msg);
 	}
 
@@ -139,7 +139,7 @@ void PipelinedModule::endOfStream() {
 	}
 }
 
-void PipelinedModule::exception(std::exception_ptr eptr) {
+void Filter::exception(std::exception_ptr eptr) {
 	m_notify->exception(eptr);
 }
 

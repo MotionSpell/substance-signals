@@ -8,11 +8,11 @@ using namespace Modules;
 namespace Pipelines {
 
 /* wrapper around the module */
-class PipelinedModule :
-	public IPipelinedModule,
+class Filter :
+	public IFilter,
 	private IPipelineNotifier {
 	public:
-		PipelinedModule(const char* name,
+		Filter(const char* name,
 		    std::unique_ptr<IModuleHost> host,
 		    std::shared_ptr<IModule> module,
 		    IPipelineNotifier *notify,
