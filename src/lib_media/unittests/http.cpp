@@ -7,6 +7,7 @@ using namespace Modules;
 
 secondclasstest("HTTP post") {
 	HttpOutputConfig cfg {};
+	cfg.url = "http://example.com";
 	auto demux = loadModule("HTTP", &NullHost, &cfg);
 }
 
