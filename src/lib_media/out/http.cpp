@@ -32,6 +32,20 @@ size_t read(span<const uint8_t>& stream, uint8_t* dst, size_t dstLen) {
 }
 
 struct HTTP::Private {
+
+	Private() {
+		curl_global_init(CURL_GLOBAL_ALL);
+
+		curl = curl_easy_init();
+		if (!curl)
+			throw std::runtime_error("Couldn't init the HTTP stack.");
+	}
+
+	~Private() {
+		curl_slist_free_all(chunk);
+		curl_easy_cleanup(curl);
+		curl_global_cleanup();
+	}
 	struct curl_slist *chunk = nullptr;
 	CURL *curl;
 	std::thread workingThread;
@@ -45,11 +59,6 @@ HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
 	m_pImpl = make_unique<Private>();
 
 	auto& curl = m_pImpl->curl;
-
-	curl_global_init(CURL_GLOBAL_ALL);
-	curl = curl_easy_init();
-	if (!curl)
-		throw error("Couldn't init the HTTP stack.");
 
 	curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
 #ifdef CURL_DEBUG
@@ -102,9 +111,6 @@ HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
 
 HTTP::~HTTP() {
 	endOfStream();
-	curl_slist_free_all(m_pImpl->chunk);
-	curl_easy_cleanup(m_pImpl->curl);
-	curl_global_cleanup();
 }
 
 void HTTP::endOfStream() {
