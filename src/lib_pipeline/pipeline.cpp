@@ -9,7 +9,6 @@
 #include <cstring>
 #include <sstream>
 #include <string>
-#include <typeinfo>
 
 #define COMPLETION_GRANULARITY_IN_MS 200
 
