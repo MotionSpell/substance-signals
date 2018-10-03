@@ -83,7 +83,7 @@ struct HTTP::Private {
 HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
 	: m_host(host), url(cfg.url), userAgent(cfg.userAgent), flags(cfg.flags) {
 	if (url.compare(0, 7, "http://") && url.compare(0, 8, "https://"))
-		throw error(format("can only handle URLs starting with 'http://' or 'https://', not %s.", url));
+		throw error(format("can only handle URLs starting with 'http://' or 'https://', not '%s'.", url));
 
 	m_pImpl = make_unique<Private>();
 
