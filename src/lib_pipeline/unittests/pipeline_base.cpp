@@ -95,18 +95,6 @@ unittest("pipeline: pipeline with split (join)") {
 	p.waitForEndOfStream();
 }
 
-unittest("pipeline: input data is manually queued while module is running") {
-	Pipeline p;
-	auto src = p.addModule<FakeSource>();
-	auto dualInput = p.addModule<DualInput>();
-	p.connect(src, dualInput);
-	p.start();
-	auto data = make_shared<DataRaw>(0);
-	dualInput->getInput(1)->push(data);
-	dualInput->getInput(1)->process();
-	p.waitForEndOfStream();
-}
-
 unittest("pipeline: multiple inputs (send same packets to 2 inputs and check call count)") {
 	Pipeline p;
 	auto generator = p.addModule<FakeSource>(1);
