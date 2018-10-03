@@ -65,13 +65,13 @@ void MS_HSS::newFileCallback(void *ptr) {
 		throw error("I/O error (8)");
 }
 
-size_t MS_HSS::endOfSession(void *ptr, size_t size) {
+size_t MS_HSS::endOfSession(span<uint8_t> buffer) {
 	auto const mfraSize = 8;
-	if (size < mfraSize) {
-		m_host->log(Warning, format( "endOfSession: needed to write %s bytes but buffer size is %s.", mfraSize, size).c_str());
+	if (buffer.len < mfraSize) {
+		m_host->log(Warning, format( "endOfSession: needed to write %s bytes but buffer size is %s.", mfraSize, buffer.len).c_str());
 		return 0;
 	}
-	auto bs = gf_bs_new((const char*)ptr, size, GF_BITSTREAM_WRITE);
+	auto bs = gf_bs_new((const char*)buffer.ptr, buffer.len, GF_BITSTREAM_WRITE);
 	gf_bs_write_u32(bs, mfraSize); //size (Box)
 	gf_bs_write_u32(bs, FOURCC("mfra"));
 	if (gf_bs_get_position(bs) != mfraSize) {

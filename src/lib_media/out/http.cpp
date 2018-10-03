@@ -166,7 +166,7 @@ size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 
 			if (state != Stop) {
 				state = Stop;
-				auto n = endOfSession(buffer.ptr, buffer.len);
+				auto n = endOfSession(buffer);
 				if (n) inputs[0]->push(nullptr);
 				return n;
 			} else {

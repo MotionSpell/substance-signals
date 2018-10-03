@@ -12,7 +12,7 @@ class MS_HSS : public Out::HTTP {
 
 	private:
 		void newFileCallback(void *ptr) final;             //remove ftyp/moov
-		size_t endOfSession(void *ptr, size_t size) final; //empty mfra
+		size_t endOfSession(span<uint8_t> buffer) final; //empty mfra
 
 		IModuleHost* const m_host;
 };
