@@ -41,7 +41,7 @@ IOutput* Filter::getOutput(int i) {
 	return delegate->getOutput(i);
 }
 
-std::shared_ptr<const IMetadata> Filter::getOutputMetadata(int i) {
+Metadata Filter::getOutputMetadata(int i) {
 	return getOutput(i)->getMetadata();
 }
 

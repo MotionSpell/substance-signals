@@ -16,7 +16,7 @@ struct IFilter {
 	virtual ~IFilter() {};
 	virtual int getNumInputs() const = 0;
 	virtual int getNumOutputs() const = 0;
-	virtual std::shared_ptr<const Modules::IMetadata> getOutputMetadata(int i) = 0;
+	virtual Modules::Metadata getOutputMetadata(int i) = 0;
 };
 
 struct InputPin {

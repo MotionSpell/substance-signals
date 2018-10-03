@@ -838,7 +838,7 @@ void GPACMuxMP4::declareStreamVideo(const std::shared_ptr<const MetadataPktLibav
 	}
 }
 
-void GPACMuxMP4::declareStream(const std::shared_ptr<const IMetadata> &metadata) {
+void GPACMuxMP4::declareStream(const Metadata &metadata) {
 	if (auto video = std::dynamic_pointer_cast<const MetadataPktLibavVideo>(metadata)) {
 		declareStreamVideo(video);
 	} else if (auto audio = std::dynamic_pointer_cast<const MetadataPktLibavAudio>(metadata)) {
