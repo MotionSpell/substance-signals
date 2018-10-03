@@ -19,10 +19,6 @@ struct HttpOutputConfig {
 
 #include "../common/metadata.hpp"
 #include "lib_modules/utils/helper.hpp"
-#include <thread>
-
-typedef void CURL;
-struct curl_slist;
 
 namespace Modules {
 namespace Out {
@@ -61,7 +57,9 @@ class HTTP : public Module {
 
 		IModuleHost* const m_host;
 
-		std::thread workingThread;
+		struct Private;
+
+		std::unique_ptr<Private> m_pImpl;
 
 		Data m_currData;
 		Metadata m_currMetadata;
@@ -71,8 +69,6 @@ class HTTP : public Module {
 		size_t fillBuffer(span<uint8_t> buffer);
 
 		const std::string url, userAgent;
-		CURL *curl;
-		struct curl_slist *chunk = nullptr;
 		State state = Init;
 		HttpOutputConfig::Flags flags;
 		OutputDataDefault<DataRaw> *outputFinished;

@@ -3,6 +3,7 @@
 #include "lib_utils/log_sink.hpp" // Warning
 #include "lib_utils/format.hpp"
 #include <string.h> // memcpy
+#include <thread>
 
 extern "C" {
 #include <curl/curl.h>
@@ -30,10 +31,20 @@ size_t read(span<const uint8_t>& stream, uint8_t* dst, size_t dstLen) {
 
 }
 
+struct HTTP::Private {
+	struct curl_slist *chunk = nullptr;
+	CURL *curl;
+	std::thread workingThread;
+};
+
 HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
 	: m_host(host), url(cfg.url), userAgent(cfg.userAgent), flags(cfg.flags) {
 	if (url.compare(0, 7, "http://") && url.compare(0, 8, "https://"))
 		throw error(format("can only handle URLs starting with 'http://' or 'https://', not %s.", url));
+
+	m_pImpl = make_unique<Private>();
+
+	auto& curl = m_pImpl->curl;
 
 	curl_global_init(CURL_GLOBAL_ALL);
 	curl = curl_easy_init();
@@ -77,12 +88,12 @@ HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
 	curl_easy_setopt(curl, CURLOPT_READDATA, this);
 
 	if (flags.Chunked) {
-		chunk = curl_slist_append(chunk, "Transfer-Encoding: chunked");
-		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
+		m_pImpl->chunk = curl_slist_append(m_pImpl->chunk, "Transfer-Encoding: chunked");
+		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, m_pImpl->chunk);
 	}
 	for (auto &h : cfg.headers) {
-		chunk = curl_slist_append(chunk, h.c_str());
-		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
+		m_pImpl->chunk = curl_slist_append(m_pImpl->chunk, h.c_str());
+		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, m_pImpl->chunk);
 	}
 
 	addInput(this);
@@ -91,15 +102,15 @@ HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
 
 HTTP::~HTTP() {
 	endOfStream();
-	curl_slist_free_all(chunk);
-	curl_easy_cleanup(curl);
+	curl_slist_free_all(m_pImpl->chunk);
+	curl_easy_cleanup(m_pImpl->curl);
 	curl_global_cleanup();
 }
 
 void HTTP::endOfStream() {
-	if (workingThread.joinable()) {
+	if (m_pImpl->workingThread.joinable()) {
 		inputs[0]->push(nullptr);
-		workingThread.join();
+		m_pImpl->workingThread.join();
 	}
 }
 
@@ -108,9 +119,9 @@ void HTTP::flush() {
 }
 
 void HTTP::process() {
-	if (!workingThread.joinable() && state == Init) {
+	if (!m_pImpl->workingThread.joinable() && state == Init) {
 		state = RunNewConnection;
-		workingThread = std::thread(&HTTP::threadProc, this);
+		m_pImpl->workingThread = std::thread(&HTTP::threadProc, this);
 	}
 }
 
@@ -194,7 +205,7 @@ size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 }
 
 bool HTTP::performTransfer() {
-	CURLcode res = curl_easy_perform(curl);
+	CURLcode res = curl_easy_perform(m_pImpl->curl);
 	if (res != CURLE_OK) {
 		m_host->log(Warning, format("curl_easy_perform() failed for URL %s: %s", url, curl_easy_strerror(res)).c_str());
 	}
