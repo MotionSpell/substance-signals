@@ -1,7 +1,7 @@
 #include "filter.hpp"
 #include "lib_signals/executor_threadpool.hpp"
 #include "stats.hpp"
-#include "pipelined_input.hpp"
+#include "filter_input.hpp"
 
 using namespace Modules;
 
