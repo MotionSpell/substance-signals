@@ -6,7 +6,9 @@ extern "C" {
 #include <gpac/bitstream.h>
 }
 
-#define U32LE(p) (((((u8*)p)[0]) << 24) | ((((u8*)p)[1]) << 16) | ((((u8*)p)[2]) << 8) | (((u8*)p)[3]))
+inline uint32_t U32LE(uint8_t* p) {
+	return (p[0] << 24) | (p[1] << 16) | (p[2] << 8) | (p[3] << 0);
+}
 
 template<size_t N>
 constexpr uint32_t FOURCC(const char (&a)[N]) {
