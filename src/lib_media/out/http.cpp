@@ -33,17 +33,18 @@ CURL* createCurl() {
 	auto curl = curl_easy_init();
 	if (!curl)
 		throw std::runtime_error("Couldn't init the HTTP stack.");
+
+	curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
+#ifdef CURL_DEBUG
+	curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+#endif
+
 	return curl;
 }
 
 void enforceConnection(std::string url, bool usePUT) {
 	std::shared_ptr<void> curlPointer(createCurl(), &curl_easy_cleanup);
 	auto curl = curlPointer.get();
-
-	curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
-#ifdef CURL_DEBUG
-	curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-#endif
 
 	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 	if (usePUT) {
@@ -85,11 +86,6 @@ HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
 	m_pImpl = make_unique<Private>();
 
 	auto& curl = m_pImpl->curl;
-
-	curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
-#ifdef CURL_DEBUG
-	curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-#endif
 
 	//make an empty POST to check the end point exists
 	if (flags.InitialEmptyPost)
