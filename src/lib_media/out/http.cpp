@@ -140,12 +140,12 @@ void HTTP::clean() {
 	}
 }
 
-size_t HTTP::staticCurlCallback(void *ptr, size_t size, size_t nmemb, void *userp) {
+size_t HTTP::staticCurlCallback(void *buffer, size_t size, size_t nmemb, void *userp) {
 	auto pThis = (HTTP*)userp;
-	return pThis->curlCallback(ptr, size, nmemb);
+	return pThis->curlCallback(buffer, size, nmemb);
 }
 
-size_t HTTP::curlCallback(void *ptr, size_t size, size_t nmemb) {
+size_t HTTP::curlCallback(void *buffer, size_t size, size_t nmemb) {
 	if (state == RunNewConnection && curTransferedData) {
 		if (curTransferedBs) {
 			auto meta = safe_cast<const MetadataFile>(curTransferedData->getMetadata());
@@ -166,7 +166,7 @@ size_t HTTP::curlCallback(void *ptr, size_t size, size_t nmemb) {
 
 			if (state != Stop) {
 				state = Stop;
-				auto n = endOfSession(ptr, size*nmemb);
+				auto n = endOfSession(buffer, size*nmemb);
 				if (n) inputs[0]->push(nullptr);
 				return n;
 			} else {
@@ -186,15 +186,15 @@ size_t HTTP::curlCallback(void *ptr, size_t size, size_t nmemb) {
 	if (state == RunNewConnection) {
 		state = RunResume;
 	} else if (state == RunNewFile) {
-		newFileCallback(ptr);
+		newFileCallback(buffer);
 		state = RunResume;
 	}
 
 	auto const transferSize = size*nmemb;
-	auto const read = gf_bs_read_data(curTransferedBs, (char*)ptr, std::min<u32>((u32)gf_bs_available(curTransferedBs), (u32)transferSize));
+	auto const read = gf_bs_read_data(curTransferedBs, (char*)buffer, std::min<u32>((u32)gf_bs_available(curTransferedBs), (u32)transferSize));
 	if (read == 0) {
 		clean();
-		return curlCallback(ptr, transferSize, 1);
+		return curlCallback(buffer, transferSize, 1);
 	} else {
 		return read;
 	}
