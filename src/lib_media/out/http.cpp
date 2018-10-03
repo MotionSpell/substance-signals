@@ -2,10 +2,10 @@
 #include "lib_modules/utils/factory.hpp" // registerModule
 #include "lib_utils/log_sink.hpp" // Warning
 #include "lib_utils/format.hpp"
+#include <string.h> // memcpy
 
 extern "C" {
 #include <curl/curl.h>
-#include <gpac/bitstream.h>
 }
 
 using namespace Modules;
@@ -20,6 +20,14 @@ size_t writeVoid(void *buffer, size_t size, size_t nmemb, void *userp) {
 	(void)userp;
 	return size * nmemb;
 }
+
+size_t read(span<const uint8_t>& stream, uint8_t* dst, size_t dstLen) {
+	auto readCount = std::min(stream.len, dstLen);
+	memcpy(dst, stream.ptr, readCount);
+	stream += readCount;
+	return readCount;
+}
+
 }
 
 HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
@@ -107,23 +115,20 @@ void HTTP::process() {
 }
 
 void HTTP::readTransferedBs(uint8_t* dst, size_t size) {
-	auto n = gf_bs_read_data(curTransferedBs, (char*)dst, size);
+	auto n = read(m_currBs, dst, size);
 	if (n != size)
 		throw error("Short read on transfered bitstream");
 }
 
 bool HTTP::open() {
-	assert(!curTransferedBs);
-	curTransferedBs = gf_bs_new((const char*)m_currData->data().ptr, m_currData->data().len, GF_BITSTREAM_READ);
-	if (!curTransferedBs)
-		throw error("Bitstream cannot be created");
+	assert(!m_currBs.ptr);
+	m_currBs = m_currData->data();
 	return true;
 }
 
 void HTTP::clean() {
-	if (curTransferedBs) {
-		gf_bs_del(curTransferedBs);
-		curTransferedBs = nullptr;
+	if (m_currBs.ptr) {
+		m_currBs = {};
 		m_currData = nullptr;
 	}
 }
@@ -135,10 +140,10 @@ size_t HTTP::staticCurlCallback(void *buffer, size_t size, size_t nmemb, void *u
 
 size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 	if (state == RunNewConnection && m_currData) {
-		if (curTransferedBs) {
+		if (m_currBs.ptr) {
 			auto meta = safe_cast<const MetadataFile>(m_currData->getMetadata());
 			m_host->log(Warning, format("Reconnect: file %s", meta->filename).c_str());
-			gf_bs_seek(curTransferedBs, 0);
+			m_currBs = m_currData->data();
 		} else { /*we may be exiting because of an exception*/
 			m_currData = nullptr;
 			inputs[0]->push(nullptr);
@@ -178,12 +183,13 @@ size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 		state = RunResume;
 	}
 
-	auto const read = gf_bs_read_data(curTransferedBs, (char*)buffer.ptr, std::min<u32>((u32)gf_bs_available(curTransferedBs), (u32)buffer.len));
-	if (read == 0) {
+	auto const desiredCount = std::min(m_currBs.len, buffer.len);
+	auto const readCount = read(m_currBs, buffer.ptr, desiredCount);
+	if (readCount == 0) {
 		clean();
 		return fillBuffer(buffer);
 	} else {
-		return read;
+		return readCount;
 	}
 }
 

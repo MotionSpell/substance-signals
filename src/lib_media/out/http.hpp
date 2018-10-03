@@ -23,7 +23,6 @@ struct HttpOutputConfig {
 
 typedef void CURL;
 struct curl_slist;
-typedef struct __tag_bitstream GF_BitStream;
 
 namespace Modules {
 namespace Out {
@@ -63,8 +62,11 @@ class HTTP : public Module {
 		IModuleHost* const m_host;
 
 		std::thread workingThread;
+
 		Data m_currData;
 		Metadata m_currMetadata;
+		span<const uint8_t> m_currBs; // points into the contents of m_currData
+
 		static size_t staticCurlCallback(void *ptr, size_t size, size_t nmemb, void *userp);
 		size_t fillBuffer(span<uint8_t> buffer);
 
@@ -74,7 +76,6 @@ class HTTP : public Module {
 		State state = Init;
 		HttpOutputConfig::Flags flags;
 		OutputDataDefault<DataRaw> *outputFinished;
-		GF_BitStream *curTransferedBs = nullptr;
 };
 
 }
