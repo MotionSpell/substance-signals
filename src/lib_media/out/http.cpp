@@ -114,7 +114,7 @@ void HTTP::readTransferedBs(uint8_t* dst, size_t size) {
 
 bool HTTP::open() {
 	assert(!curTransferedBs);
-	curTransferedBs = gf_bs_new((const char*)curTransferedData->data().ptr, curTransferedData->data().len, GF_BITSTREAM_READ);
+	curTransferedBs = gf_bs_new((const char*)m_currData->data().ptr, m_currData->data().len, GF_BITSTREAM_READ);
 	if (!curTransferedBs)
 		throw error("Bitstream cannot be created");
 	return true;
@@ -124,7 +124,7 @@ void HTTP::clean() {
 	if (curTransferedBs) {
 		gf_bs_del(curTransferedBs);
 		curTransferedBs = nullptr;
-		curTransferedData = nullptr;
+		m_currData = nullptr;
 	}
 }
 
@@ -134,22 +134,22 @@ size_t HTTP::staticCurlCallback(void *buffer, size_t size, size_t nmemb, void *u
 }
 
 size_t HTTP::fillBuffer(span<uint8_t> buffer) {
-	if (state == RunNewConnection && curTransferedData) {
+	if (state == RunNewConnection && m_currData) {
 		if (curTransferedBs) {
-			auto meta = safe_cast<const MetadataFile>(curTransferedData->getMetadata());
+			auto meta = safe_cast<const MetadataFile>(m_currData->getMetadata());
 			m_host->log(Warning, format("Reconnect: file %s", meta->filename).c_str());
 			gf_bs_seek(curTransferedBs, 0);
 		} else { /*we may be exiting because of an exception*/
-			curTransferedData = nullptr;
+			m_currData = nullptr;
 			inputs[0]->push(nullptr);
 		}
 	}
 
-	if (!curTransferedData) {
-		curTransferedData = inputs[0]->pop();
-		if (!curTransferedData) {
+	if (!m_currData) {
+		m_currData = inputs[0]->pop();
+		if (!m_currData) {
 			auto out = outputFinished->getBuffer(0);
-			out->setMetadata(curTransferedMeta);
+			out->setMetadata(m_currMetadata);
 			outputFinished->emit(out);
 
 			if (state != Stop) {
@@ -162,7 +162,7 @@ size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 			}
 		}
 
-		curTransferedMeta = safe_cast<const MetadataFile>(curTransferedData->getMetadata());
+		m_currMetadata = m_currData->getMetadata();
 		if (!open()) {
 			return 0;
 		}

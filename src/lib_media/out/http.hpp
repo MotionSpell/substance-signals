@@ -63,8 +63,8 @@ class HTTP : public Module {
 		IModuleHost* const m_host;
 
 		std::thread workingThread;
-		Data curTransferedData;
-		std::shared_ptr<const MetadataFile> curTransferedMeta;
+		Data m_currData;
+		Metadata m_currMetadata;
 		static size_t staticCurlCallback(void *ptr, size_t size, size_t nmemb, void *userp);
 		size_t fillBuffer(span<uint8_t> buffer);
 
