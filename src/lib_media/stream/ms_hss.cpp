@@ -6,7 +6,7 @@ extern "C" {
 #include <gpac/bitstream.h>
 }
 
-inline uint32_t U32LE(uint8_t* p) {
+inline uint32_t U32BE(uint8_t* p) {
 	return (p[0] << 24) | (p[1] << 16) | (p[2] << 8) | (p[3] << 0);
 }
 
@@ -28,29 +28,29 @@ void MS_HSS::newFileCallback(span<uint8_t> out) {
 
 	// skip 'ftyp' box
 	readTransferedBs(buf, 8);
-	u32 size = U32LE(buf + 0);
-	u32 type = U32LE(buf + 4);
+	u32 size = U32BE(buf + 0);
+	u32 type = U32BE(buf + 4);
 	if (type != FOURCC("ftyp"))
 		throw error("ftyp not found");
 	readTransferedBs(buf, size - 8);
 
 	// skip some box
 	readTransferedBs(buf, 8);
-	size = U32LE(buf);
+	size = U32BE(buf);
 	readTransferedBs(buf, size - 8);
 
 	// skip 'free' box
 	readTransferedBs(buf, 8);
-	size = U32LE(buf + 0);
-	type = U32LE(buf + 4);
+	size = U32BE(buf + 0);
+	type = U32BE(buf + 4);
 	if (type != FOURCC("free"))
 		throw error("free not found");
 	readTransferedBs(buf, size - 8);
 
 	// put the contents of 'moov' box into 'buf'
 	readTransferedBs(buf, 8);
-	size = U32LE(buf + 0);
-	type = U32LE(buf + 4);
+	size = U32BE(buf + 0);
+	type = U32BE(buf + 4);
 	if (type != FOURCC("moov"))
 		throw error("moov not found");
 	readTransferedBs(buf, size - 8);
