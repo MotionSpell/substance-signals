@@ -181,14 +181,13 @@ size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 			out->setMetadata(m_currMetadata);
 			outputFinished->emit(out);
 
-			if (state != Stop) {
-				state = Stop;
-				auto n = endOfSession(buffer);
-				if (n) inputs[0]->push(nullptr);
-				return n;
-			} else {
+			if (state == Stop)
 				return 0;
-			}
+
+			state = Stop;
+			auto n = endOfSession(buffer);
+			if (n) inputs[0]->push(nullptr);
+			return n;
 		}
 
 		m_currMetadata = m_currData->getMetadata();
@@ -212,9 +211,9 @@ size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 	if (readCount == 0) {
 		clean();
 		return fillBuffer(buffer);
-	} else {
-		return readCount;
 	}
+
+	return readCount;
 }
 
 bool HTTP::performTransfer() {
