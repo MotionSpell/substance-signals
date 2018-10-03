@@ -140,7 +140,7 @@ void Pipeline::disconnect(IFilter * prev, int outputIdx, IFilter * next, int inp
 	computeTopology();
 }
 
-std::string Pipeline::dump() {
+std::string Pipeline::dump() const {
 	std::stringstream ss;
 	ss << "digraph {" << std::endl;
 	ss << "\trankdir = \"LR\";" << std::endl;

@@ -80,7 +80,7 @@ class Pipeline : public IPipelineNotifier {
 		void connect   (OutputPin out, InputPin in, bool inputAcceptMultipleConnections = false);
 		void disconnect(IFilter * prev, int outputIdx, IFilter * next, int inputIdx);
 
-		std::string dump(); /*dump pipeline using DOT Language*/
+		std::string dump() const; // dump pipeline using DOT Language
 
 		void start();
 		void waitForEndOfStream();
