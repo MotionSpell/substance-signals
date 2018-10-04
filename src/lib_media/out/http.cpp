@@ -134,8 +134,7 @@ void HTTP::flush() {
 }
 
 void HTTP::process() {
-	if (!m_pImpl->workingThread.joinable() && state == Init) {
-		state = RunNewConnection;
+	if (!m_pImpl->workingThread.joinable()) {
 		m_pImpl->workingThread = std::thread(&HTTP::threadProc, this);
 	}
 }
@@ -224,6 +223,9 @@ bool HTTP::performTransfer() {
 }
 
 void HTTP::threadProc() {
+
+	state = RunNewConnection;
+
 	if (flags.Chunked) {
 		while (state != Stop && performTransfer()) {
 		}

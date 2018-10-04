@@ -46,7 +46,6 @@ class HTTP : public Module {
 		Controller m_nullController;
 
 		enum State {
-			Init,
 			RunNewConnection, //untouched, send from previous ftyp/moov
 			RunNewFile,       //execute newFileCallback()
 			RunResume,        //untouched
@@ -73,7 +72,7 @@ class HTTP : public Module {
 		size_t fillBuffer(span<uint8_t> buffer);
 
 		const std::string url, userAgent;
-		State state = Init;
+		State state {};
 		HttpOutputConfig::Flags flags;
 		OutputDataDefault<DataRaw> *outputFinished;
 };
