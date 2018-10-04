@@ -16,7 +16,14 @@ std::shared_ptr<DataBase> createPacket(span<const char> contents) {
 
 }
 
-secondclasstest("HTTP post") {
+unittest("HTTP: should fail if the server doesn't exist") {
+	HttpOutputConfig cfg {};
+	cfg.flags.InitialEmptyPost = true;
+	cfg.url = "http://unexisting_domain_name/nonexisting_page:1234";
+	ASSERT_THROWN(loadModule("HTTP", &NullHost, &cfg));
+}
+
+secondclasstest("HTTP: post data to real server") {
 	HttpOutputConfig cfg {};
 	cfg.url = "http://example.com";
 	auto mod = loadModule("HTTP", &NullHost, &cfg);
