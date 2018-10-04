@@ -53,7 +53,6 @@ class HTTP : public Module {
 			Stop,             //execute endOfSession()
 		};
 
-		void open();
 		void clean();
 		void endOfStream();
 

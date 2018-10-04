@@ -146,11 +146,6 @@ void HTTP::readTransferedBs(uint8_t* dst, size_t size) {
 		throw error("Short read on transfered bitstream");
 }
 
-void HTTP::open() {
-	assert(!m_currBs.ptr);
-	m_currBs = m_currData->data();
-}
-
 void HTTP::clean() {
 	m_currBs = {};
 	m_currData = nullptr;
@@ -189,8 +184,10 @@ size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 			return n;
 		}
 
+		assert(!m_currBs.ptr);
+		m_currBs = m_currData->data();
 		m_currMetadata = m_currData->getMetadata();
-		open();
+
 		if (state != RunNewConnection) {
 			state = RunNewFile; //on new connection, don't call newFileCallback()
 		}
