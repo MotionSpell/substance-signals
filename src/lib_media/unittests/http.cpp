@@ -23,6 +23,13 @@ unittest("HTTP: should fail if the server doesn't exist") {
 	ASSERT_THROWN(loadModule("HTTP", &NullHost, &cfg));
 }
 
+unittest("HTTP: empty post should succeed if the server exists") {
+	HttpOutputConfig cfg {};
+	cfg.flags.InitialEmptyPost = true;
+	cfg.url = "http://127.0.0.1:9000";
+	loadModule("HTTP", &NullHost, &cfg);
+}
+
 secondclasstest("HTTP: post data to real server") {
 	HttpOutputConfig cfg {};
 	cfg.flags.InitialEmptyPost = false;
