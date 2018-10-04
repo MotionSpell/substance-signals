@@ -46,17 +46,8 @@ class HTTP : public ModuleS {
 	private:
 		Controller m_nullController;
 
-		enum State {
-			RunNewConnection, //untouched, send from previous ftyp/moov
-			RunNewFile,       //execute newFileCallback()
-			RunResume,        //untouched
-			Stop,             //close the connection
-		};
-
 		bool loadNextData();
 		void clean();
-
-		void threadProc(bool chunked);
 
 		IModuleHost* const m_host;
 
@@ -70,7 +61,6 @@ class HTTP : public ModuleS {
 
 		const std::string url;
 		const std::vector<uint8_t> endOfSessionSuffix;
-		State state {};
 		OutputDataDefault<DataRaw> *outputFinished;
 };
 

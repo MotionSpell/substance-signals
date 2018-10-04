@@ -72,6 +72,13 @@ bool startsWith(std::string s, std::string prefix) {
 
 }
 
+enum State {
+	RunNewConnection, //untouched, send from previous ftyp/moov
+	RunNewFile,       //execute newFileCallback()
+	RunResume,        //untouched
+	Stop,             //close the connection
+};
+
 struct Private {
 
 	Private(std::string url, bool usePUT) {
@@ -84,6 +91,12 @@ struct Private {
 		curl_easy_cleanup(curl);
 		curl_global_cleanup();
 	}
+
+	void threadProc(bool chunked);
+
+	State state {};
+
+	IModuleHost* m_log {};
 	curl_slist* headers {};
 	CURL *curl;
 	std::thread workingThread;
@@ -107,6 +120,7 @@ HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
 
 	// initialize the sender object
 	m_pImpl = make_unique<Private>(url, cfg.flags.UsePUT);
+	m_pImpl->m_log = host;
 
 	auto& curl = m_pImpl->curl;
 
@@ -114,16 +128,12 @@ HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
 	curl_easy_setopt(curl, CURLOPT_READFUNCTION, &HTTP::staticCurlCallback);
 	curl_easy_setopt(curl, CURLOPT_READDATA, this);
 
-	if (cfg.flags.Chunked) {
-		m_pImpl->headers = curl_slist_append(m_pImpl->headers, "Transfer-Encoding: chunked");
-		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, m_pImpl->headers);
-	}
 	for (auto &h : cfg.headers) {
 		m_pImpl->headers = curl_slist_append(m_pImpl->headers, h.c_str());
 		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, m_pImpl->headers);
 	}
 
-	m_pImpl->workingThread = std::thread(&HTTP::threadProc, this, cfg.flags.Chunked);
+	m_pImpl->workingThread = std::thread(&Private::threadProc, m_pImpl.get(), cfg.flags.Chunked);
 }
 
 HTTP::~HTTP() {
@@ -173,7 +183,7 @@ bool HTTP::loadNextData() {
 }
 
 size_t HTTP::fillBuffer(span<uint8_t> buffer) {
-	if (state == RunNewConnection && m_currData) {
+	if (m_pImpl->state == RunNewConnection && m_currData) {
 		// restart transfer of the current chunk from the beginning
 		m_currBs = m_currData->data();
 		m_host->log(Warning, "Reconnect");
@@ -181,20 +191,20 @@ size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 
 	if (!m_currData) {
 		if (!loadNextData()) {
-			state = Stop;
+			m_pImpl->state = Stop;
 			return 0;
 		}
 
-		if (state != RunNewConnection) {
-			state = RunNewFile; //on new connection, don't call newFileCallback()
+		if (m_pImpl->state != RunNewConnection) {
+			m_pImpl->state = RunNewFile; //on new connection, don't call newFileCallback()
 		}
 	}
 
-	if (state == RunNewConnection) {
-		state = RunResume;
-	} else if (state == RunNewFile) {
+	if (m_pImpl->state == RunNewConnection) {
+		m_pImpl->state = RunResume;
+	} else if (m_pImpl->state == RunNewFile) {
 		m_controller->newFileCallback(buffer);
-		state = RunResume;
+		m_pImpl->state = RunResume;
 	}
 
 	auto const desiredCount = std::min(m_currBs.len, buffer.len);
@@ -207,12 +217,18 @@ size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 	return readCount;
 }
 
-void HTTP::threadProc(bool chunked) {
+void Private::threadProc(bool chunked) {
+
+	if (chunked) {
+		headers = curl_slist_append(headers, "Transfer-Encoding: chunked");
+		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+	}
+
 	auto performTransfer = [&]() {
 		state = RunNewConnection;
-		CURLcode res = curl_easy_perform(m_pImpl->curl);
+		CURLcode res = curl_easy_perform(curl);
 		if (res != CURLE_OK)
-			m_host->log(Warning, format("Transfer failed for '%s': %s", url, curl_easy_strerror(res)).c_str());
+			m_log->log(Warning, format("Transfer failed: %s", curl_easy_strerror(res)).c_str());
 
 		return state == Stop;
 	};
