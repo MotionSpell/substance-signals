@@ -25,7 +25,8 @@ unittest("HTTP: should fail if the server doesn't exist") {
 
 secondclasstest("HTTP: post data to real server") {
 	HttpOutputConfig cfg {};
-	cfg.url = "http://example.com";
+	cfg.flags.InitialEmptyPost = false;
+	cfg.url = "http://127.0.0.1:9000";
 	auto mod = loadModule("HTTP", &NullHost, &cfg);
 	mod->getInput(0)->push(createPacket("Hello World"));
 	mod->getInput(0)->push(createPacket("Goodbye World"));
