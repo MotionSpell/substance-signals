@@ -6,9 +6,12 @@
 namespace Modules {
 namespace Stream {
 
-class MS_HSS : public Module, private Out::HTTP::Controller {
+class MS_HSS : public ModuleS, private Out::HTTP::Controller {
 	public:
 		MS_HSS(IModuleHost* host, const std::string &url);
+
+		void process(Data data) override;
+		void flush() override;
 
 	private:
 		void newFileCallback(span<uint8_t> out) final; //remove ftyp/moov

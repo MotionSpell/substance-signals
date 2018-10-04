@@ -23,6 +23,14 @@ MS_HSS::MS_HSS(IModuleHost* host, const std::string &url)
 	m_http->m_controller = this;
 }
 
+void MS_HSS::process(Data data) {
+	m_http->process(data);
+}
+
+void MS_HSS::flush() {
+	m_http->flush();
+}
+
 void MS_HSS::newFileCallback(span<uint8_t> out) {
 	auto buf = out.ptr;
 
