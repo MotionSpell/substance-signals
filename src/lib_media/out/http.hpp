@@ -74,7 +74,6 @@ class HTTP : public ModuleS {
 
 		const std::string url;
 		State state {};
-		HttpOutputConfig::Flags flags;
 		OutputDataDefault<DataRaw> *outputFinished;
 };
 

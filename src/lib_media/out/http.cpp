@@ -93,7 +93,7 @@ struct HTTP::Private {
 };
 
 HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
-	: m_host(host), url(cfg.url), flags(cfg.flags) {
+	: m_host(host), url(cfg.url) {
 	if (!startsWith(url, "http://") && !startsWith(url, "https://"))
 		throw error(format("can only handle URLs starting with 'http://' or 'https://', not '%s'.", url));
 
@@ -102,14 +102,14 @@ HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
 	auto& curl = m_pImpl->curl;
 
 	//make an empty POST to check the end point exists
-	if (flags.InitialEmptyPost)
-		enforceConnection(url, flags.UsePUT);
+	if (cfg.flags.InitialEmptyPost)
+		enforceConnection(url, cfg.flags.UsePUT);
 
 	curl_easy_setopt(curl, CURLOPT_USERAGENT, cfg.userAgent.c_str());
 	curl_easy_setopt(curl, CURLOPT_READFUNCTION, &HTTP::staticCurlCallback);
 	curl_easy_setopt(curl, CURLOPT_READDATA, this);
 
-	if (flags.Chunked) {
+	if (cfg.flags.Chunked) {
 		m_pImpl->chunk = curl_slist_append(m_pImpl->chunk, "Transfer-Encoding: chunked");
 		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, m_pImpl->chunk);
 	}
@@ -121,7 +121,7 @@ HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
 	addInput(this);
 	outputFinished = addOutput<OutputDefault>();
 
-	m_pImpl->workingThread = std::thread(&HTTP::threadProc, this, flags.Chunked);
+	m_pImpl->workingThread = std::thread(&HTTP::threadProc, this, cfg.flags.Chunked);
 }
 
 HTTP::~HTTP() {
