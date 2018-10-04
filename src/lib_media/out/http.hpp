@@ -6,7 +6,7 @@
 struct HttpOutputConfig {
 	struct Flags {
 		bool InitialEmptyPost = true;
-		bool Chunked = true; //not enabling it is experimental
+		bool Chunked = true; //use HTTP chunked transfer mode (disabling it is experimental).
 		bool UsePUT = false; //use PUT instead of POST
 	};
 
