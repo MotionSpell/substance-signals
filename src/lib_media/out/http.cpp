@@ -131,6 +131,10 @@ void HTTP::endOfStream() {
 
 void HTTP::flush() {
 	endOfStream();
+
+	auto out = outputFinished->getBuffer(0);
+	out->setMetadata(m_currMetadata);
+	outputFinished->emit(out);
 }
 
 void HTTP::process() {
@@ -228,10 +232,6 @@ void HTTP::threadProc() {
 	} else {
 		performTransfer();
 	}
-
-	auto out = outputFinished->getBuffer(0);
-	out->setMetadata(m_currMetadata);
-	outputFinished->emit(out);
 }
 
 }
