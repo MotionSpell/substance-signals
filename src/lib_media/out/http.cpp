@@ -92,6 +92,10 @@ struct Private {
 		curl_global_cleanup();
 	}
 
+	void send(Data data) {
+		m_fifo.push(data);
+	}
+
 	void threadProc(bool chunked);
 
 	State state {};
@@ -140,21 +144,21 @@ HTTP::~HTTP() {
 	{
 		auto r = make_shared<DataRaw>(endOfSessionSuffix.size());
 		memcpy(r->data().ptr, endOfSessionSuffix.data(), endOfSessionSuffix.size());
-		m_pImpl->m_fifo.push(r);
+		m_pImpl->send(r);
 	}
-	m_pImpl->m_fifo.push(nullptr);
+	m_pImpl->send(nullptr);
 	m_pImpl->workingThread.join();
 }
 
 void HTTP::flush() {
-	m_pImpl->m_fifo.push(nullptr);
+	m_pImpl->send(nullptr);
 
 	auto out = outputFinished->getBuffer(0);
 	outputFinished->emit(out);
 }
 
 void HTTP::process(Data data) {
-	m_pImpl->m_fifo.push(data);
+	m_pImpl->send(data);
 }
 
 void HTTP::readTransferedBs(uint8_t* dst, size_t size) {
