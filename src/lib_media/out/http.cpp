@@ -185,7 +185,7 @@ size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 				return 0;
 
 			state = Stop;
-			auto n = endOfSession(buffer);
+			auto n = m_controller->endOfSession(buffer);
 			if (n) inputs[0]->push(nullptr);
 			return n;
 		}
@@ -202,7 +202,7 @@ size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 	if (state == RunNewConnection) {
 		state = RunResume;
 	} else if (state == RunNewFile) {
-		newFileCallback(buffer);
+		m_controller->newFileCallback(buffer);
 		state = RunResume;
 	}
 

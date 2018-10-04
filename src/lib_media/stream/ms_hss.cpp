@@ -24,40 +24,41 @@ namespace Modules {
 namespace Stream {
 
 MS_HSS::MS_HSS(IModuleHost* host, const std::string &url)
-	: HTTP(host, HttpOutputConfig{url}), m_host(host) {
+	: m_http(make_unique<Out::HTTP>(host, HttpOutputConfig{url})), m_host(host) {
+	m_http->m_controller = this;
 }
 
 void MS_HSS::newFileCallback(span<uint8_t> out) {
 	auto buf = out.ptr;
 
 	// skip 'ftyp' box
-	readTransferedBs(buf, 8);
+	m_http->readTransferedBs(buf, 8);
 	auto size = U32BE(buf + 0);
 	auto type = U32BE(buf + 4);
 	if (type != FOURCC("ftyp"))
 		throw error("ftyp not found");
-	readTransferedBs(buf, size - 8);
+	m_http->readTransferedBs(buf, size - 8);
 
 	// skip some box
-	readTransferedBs(buf, 8);
+	m_http->readTransferedBs(buf, 8);
 	size = U32BE(buf);
-	readTransferedBs(buf, size - 8);
+	m_http->readTransferedBs(buf, size - 8);
 
 	// skip 'free' box
-	readTransferedBs(buf, 8);
+	m_http->readTransferedBs(buf, 8);
 	size = U32BE(buf + 0);
 	type = U32BE(buf + 4);
 	if (type != FOURCC("free"))
 		throw error("free not found");
-	readTransferedBs(buf, size - 8);
+	m_http->readTransferedBs(buf, size - 8);
 
 	// put the contents of 'moov' box into 'buf'
-	readTransferedBs(buf, 8);
+	m_http->readTransferedBs(buf, 8);
 	size = U32BE(buf + 0);
 	type = U32BE(buf + 4);
 	if (type != FOURCC("moov"))
 		throw error("moov not found");
-	readTransferedBs(buf, size - 8);
+	m_http->readTransferedBs(buf, size - 8);
 }
 
 bool MS_HSS::endOfSession(span<uint8_t> buffer) {

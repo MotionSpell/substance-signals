@@ -32,13 +32,19 @@ class HTTP : public Module {
 		void process() final;
 		void flush() final;
 
-		virtual void newFileCallback(span<uint8_t>) {}
-		virtual bool endOfSession(span<uint8_t>) {
-			return false;
-		}
+		struct Controller {
+			virtual void newFileCallback(span<uint8_t>) {}
+			virtual bool endOfSession(span<uint8_t>) {
+				return false;
+			}
+		};
+		Controller* m_controller = &m_nullController;
+
 		void readTransferedBs(uint8_t* dst, size_t size);
 
 	private:
+		Controller m_nullController;
+
 		enum State {
 			Init,
 			RunNewConnection, //untouched, send from previous ftyp/moov
