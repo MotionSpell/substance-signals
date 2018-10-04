@@ -170,10 +170,6 @@ size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 	if (!m_currData) {
 		m_currData = inputs[0]->pop();
 		if (!m_currData) {
-			auto out = outputFinished->getBuffer(0);
-			out->setMetadata(m_currMetadata);
-			outputFinished->emit(out);
-
 			if (state == Stop)
 				return 0;
 
@@ -232,6 +228,10 @@ void HTTP::threadProc() {
 	} else {
 		performTransfer();
 	}
+
+	auto out = outputFinished->getBuffer(0);
+	out->setMetadata(m_currMetadata);
+	outputFinished->emit(out);
 }
 
 }
