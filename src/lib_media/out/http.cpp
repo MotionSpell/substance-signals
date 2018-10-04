@@ -28,7 +28,7 @@ size_t read(span<const uint8_t>& stream, uint8_t* dst, size_t dstLen) {
 	return readCount;
 }
 
-CURL* createCurl() {
+CURL* createCurl(std::string url, bool usePUT) {
 	auto curl = curl_easy_init();
 	if (!curl)
 		throw std::runtime_error("Couldn't init the HTTP stack.");
@@ -42,22 +42,25 @@ CURL* createCurl() {
 
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+
+	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+	if (usePUT)
+		curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
+	else
+		curl_easy_setopt(curl, CURLOPT_POST, 1L);
+
 	return curl;
 }
 
 void enforceConnection(std::string url, bool usePUT) {
-	std::shared_ptr<void> curlPointer(createCurl(), &curl_easy_cleanup);
-	auto curl = curlPointer.get();
+	std::shared_ptr<void> curl(createCurl(url, usePUT), &curl_easy_cleanup);
 
-	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-	if (usePUT) {
-		curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
-		curl_easy_setopt(curl, CURLOPT_INFILESIZE_LARGE, 0);
-	} else {
-		curl_easy_setopt(curl, CURLOPT_POST, 1L);
-		curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, 0);
-	}
-	auto const res = curl_easy_perform(curl);
+	if (usePUT)
+		curl_easy_setopt(curl.get(), CURLOPT_INFILESIZE_LARGE, 0);
+	else
+		curl_easy_setopt(curl.get(), CURLOPT_POSTFIELDSIZE, 0);
+
+	auto const res = curl_easy_perform(curl.get());
 	if (res != CURLE_OK)
 		throw std::runtime_error(format("Can't connect to '%s'", url));
 }
@@ -66,9 +69,9 @@ void enforceConnection(std::string url, bool usePUT) {
 
 struct HTTP::Private {
 
-	Private() {
+	Private(std::string url, bool usePUT) {
 		curl_global_init(CURL_GLOBAL_ALL);
-		curl = createCurl();
+		curl = createCurl(url, usePUT);
 	}
 
 	~Private() {
@@ -86,7 +89,7 @@ HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
 	if (url.compare(0, 7, "http://") && url.compare(0, 8, "https://"))
 		throw error(format("can only handle URLs starting with 'http://' or 'https://', not '%s'.", url));
 
-	m_pImpl = make_unique<Private>();
+	m_pImpl = make_unique<Private>(url, cfg.flags.UsePUT);
 
 	auto& curl = m_pImpl->curl;
 
@@ -94,13 +97,7 @@ HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
 	if (flags.InitialEmptyPost)
 		enforceConnection(url, flags.UsePUT);
 
-	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 	curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent.c_str());
-	if (flags.UsePUT) {
-		curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
-	} else {
-		curl_easy_setopt(curl, CURLOPT_POST, 1L);
-	}
 
 	curl_easy_setopt(curl, CURLOPT_READFUNCTION, &HTTP::staticCurlCallback);
 	curl_easy_setopt(curl, CURLOPT_READDATA, this);
