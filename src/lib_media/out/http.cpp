@@ -98,7 +98,6 @@ HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
 		enforceConnection(url, flags.UsePUT);
 
 	curl_easy_setopt(curl, CURLOPT_USERAGENT, cfg.userAgent.c_str());
-
 	curl_easy_setopt(curl, CURLOPT_READFUNCTION, &HTTP::staticCurlCallback);
 	curl_easy_setopt(curl, CURLOPT_READDATA, this);
 
