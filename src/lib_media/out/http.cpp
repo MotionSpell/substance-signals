@@ -173,7 +173,7 @@ size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 		assert (m_currBs.ptr);
 		m_host->log(Warning, "Reconnect");
 
-		// restart chunk transfer
+		// restart transfer of the current chunk from the beginning
 		m_currBs = m_currData->data();
 	}
 
