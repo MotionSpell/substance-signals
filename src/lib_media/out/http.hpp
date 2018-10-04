@@ -56,7 +56,6 @@ class HTTP : public ModuleS {
 		void endOfStream();
 
 		void threadProc(bool chunked);
-		bool performTransfer();
 
 		IModuleHost* const m_host;
 
