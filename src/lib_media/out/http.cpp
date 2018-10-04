@@ -33,21 +33,21 @@ CURL* createCurl(std::string url, bool usePUT) {
 	if (!curl)
 		throw std::runtime_error("Couldn't init the HTTP stack.");
 
-	curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
-	if(0)
-		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-
-	// trash all the replies from the server
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeVoid);
-
-	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-
+	// setup HTTP request
 	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 	if (usePUT)
 		curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
 	else
 		curl_easy_setopt(curl, CURLOPT_POST, 1L);
+
+	// don't check certifcates
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+
+	// keep execution silent
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeVoid);
+	curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
+	curl_easy_setopt(curl, CURLOPT_VERBOSE, 0L);
 
 	return curl;
 }
