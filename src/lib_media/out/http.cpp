@@ -96,7 +96,7 @@ struct Private {
 		m_fifo.push(data);
 	}
 
-	void threadProc(bool chunked);
+	void threadProc();
 
 	State state {};
 
@@ -135,7 +135,7 @@ HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
 		curl_easy_setopt(m_pImpl->curl, CURLOPT_HTTPHEADER, m_pImpl->headers);
 	}
 
-	m_pImpl->workingThread = std::thread(&Private::threadProc, m_pImpl.get(), cfg.flags.Chunked);
+	m_pImpl->workingThread = std::thread(&Private::threadProc, m_pImpl.get());
 }
 
 HTTP::~HTTP() {
@@ -219,12 +219,10 @@ size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 	return readCount;
 }
 
-void Private::threadProc(bool chunked) {
+void Private::threadProc() {
 
-	if (chunked) {
-		headers = curl_slist_append(headers, "Transfer-Encoding: chunked");
-		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-	}
+	headers = curl_slist_append(headers, "Transfer-Encoding: chunked");
+	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
 	auto performTransfer = [&]() {
 		state = RunNewConnection;
@@ -235,11 +233,7 @@ void Private::threadProc(bool chunked) {
 		return state == Stop;
 	};
 
-	if (chunked) {
-		while (performTransfer()) {
-		}
-	} else {
-		performTransfer();
+	while (performTransfer()) {
 	}
 }
 
