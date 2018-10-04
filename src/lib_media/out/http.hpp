@@ -20,7 +20,6 @@ struct HttpOutputConfig {
 	Flags flags {};
 };
 
-#include "../common/metadata.hpp"
 #include "lib_modules/utils/helper.hpp"
 
 namespace Modules {
@@ -66,7 +65,6 @@ class HTTP : public ModuleS {
 		std::unique_ptr<Private> m_pImpl;
 
 		Data m_currData;
-		Metadata m_currMetadata;
 		span<const uint8_t> m_currBs {}; // points into the contents of m_currData
 
 		static size_t staticCurlCallback(void *ptr, size_t size, size_t nmemb, void *userp);

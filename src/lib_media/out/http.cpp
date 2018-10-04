@@ -139,7 +139,6 @@ void HTTP::flush() {
 	endOfStream();
 
 	auto out = outputFinished->getBuffer(0);
-	out->setMetadata(m_currMetadata);
 	outputFinished->emit(out);
 }
 
@@ -171,7 +170,6 @@ bool HTTP::loadNextData() {
 		return false;
 
 	m_currBs = m_currData->data();
-	m_currMetadata = m_currData->getMetadata();
 	return true;
 }
 
