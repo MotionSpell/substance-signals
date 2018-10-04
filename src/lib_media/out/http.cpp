@@ -97,13 +97,13 @@ HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
 	if (!startsWith(url, "http://") && !startsWith(url, "https://"))
 		throw error(format("can only handle URLs starting with 'http://' or 'https://', not '%s'.", url));
 
+	// before any other connection, make an empty POST to check the end point exists
+	if (cfg.flags.InitialEmptyPost)
+		enforceConnection(url, cfg.flags.UsePUT);
+
 	m_pImpl = make_unique<Private>(url, cfg.flags.UsePUT);
 
 	auto& curl = m_pImpl->curl;
-
-	//make an empty POST to check the end point exists
-	if (cfg.flags.InitialEmptyPost)
-		enforceConnection(url, cfg.flags.UsePUT);
 
 	curl_easy_setopt(curl, CURLOPT_USERAGENT, cfg.userAgent.c_str());
 	curl_easy_setopt(curl, CURLOPT_READFUNCTION, &HTTP::staticCurlCallback);
