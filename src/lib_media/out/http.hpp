@@ -32,10 +32,9 @@ class HTTP : public Module {
 		void process() final;
 		void flush() final;
 
-	protected:
 		virtual void newFileCallback(span<uint8_t>) {}
-		virtual size_t endOfSession(span<uint8_t>) {
-			return 0;
+		virtual bool endOfSession(span<uint8_t>) {
+			return false;
 		}
 		void readTransferedBs(uint8_t* dst, size_t size);
 

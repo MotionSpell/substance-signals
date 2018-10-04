@@ -60,7 +60,7 @@ void MS_HSS::newFileCallback(span<uint8_t> out) {
 	readTransferedBs(buf, size - 8);
 }
 
-size_t MS_HSS::endOfSession(span<uint8_t> buffer) {
+bool MS_HSS::endOfSession(span<uint8_t> buffer) {
 	auto const mfraSize = 8;
 
 	if (buffer.len < mfraSize) {
@@ -72,7 +72,7 @@ size_t MS_HSS::endOfSession(span<uint8_t> buffer) {
 	Write_U32BE(bs, mfraSize); //size (Box)
 	Write_U32BE(bs, FOURCC("mfra"));
 
-	return mfraSize;
+	return true;
 }
 
 }
