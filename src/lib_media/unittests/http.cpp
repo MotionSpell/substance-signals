@@ -28,9 +28,18 @@ secondclasstest("HTTP: post data to real server") {
 	cfg.flags.InitialEmptyPost = false;
 	cfg.url = "http://127.0.0.1:9000";
 	auto mod = loadModule("HTTP", &NullHost, &cfg);
-	mod->getInput(0)->push(createPacket("Hello World"));
-	mod->getInput(0)->push(createPacket("Goodbye World"));
+	mod->getInput(0)->push(createPacket("Hello"));
+	mod->getInput(0)->push(createPacket("Goodbye"));
 	mod->process();
 	mod->flush();
+}
+
+secondclasstest("HTTP: post data to real server, no flush") {
+	HttpOutputConfig cfg {};
+	cfg.flags.InitialEmptyPost = false;
+	cfg.url = "http://127.0.0.1:9000";
+	auto mod = loadModule("HTTP", &NullHost, &cfg);
+	mod->getInput(0)->push(createPacket("ThisIsPostData"));
+	mod->process();
 }
 

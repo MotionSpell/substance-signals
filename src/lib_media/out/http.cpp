@@ -116,17 +116,17 @@ HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
 
 	addInput(this);
 	outputFinished = addOutput<OutputDefault>();
+
+	m_pImpl->workingThread = std::thread(&HTTP::threadProc, this);
 }
 
 HTTP::~HTTP() {
-	endOfStream();
+	inputs[0]->push(nullptr);
+	m_pImpl->workingThread.join();
 }
 
 void HTTP::endOfStream() {
-	if (m_pImpl->workingThread.joinable()) {
-		inputs[0]->push(nullptr);
-		m_pImpl->workingThread.join();
-	}
+	inputs[0]->push(nullptr);
 }
 
 void HTTP::flush() {
@@ -138,9 +138,6 @@ void HTTP::flush() {
 }
 
 void HTTP::process() {
-	if (!m_pImpl->workingThread.joinable()) {
-		m_pImpl->workingThread = std::thread(&HTTP::threadProc, this);
-	}
 }
 
 void HTTP::readTransferedBs(uint8_t* dst, size_t size) {
