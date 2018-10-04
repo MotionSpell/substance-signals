@@ -163,8 +163,6 @@ size_t HTTP::staticCurlCallback(void *buffer, size_t size, size_t nmemb, void *u
 }
 
 bool HTTP::loadNextData() {
-	assert(!m_currBs.ptr);
-
 	m_currData = m_pImpl->m_fifo.pop();
 	if(!m_currData)
 		return false;
@@ -175,11 +173,9 @@ bool HTTP::loadNextData() {
 
 size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 	if (state == RunNewConnection && m_currData) {
-		assert (m_currBs.ptr);
-		m_host->log(Warning, "Reconnect");
-
 		// restart transfer of the current chunk from the beginning
 		m_currBs = m_currData->data();
+		m_host->log(Warning, "Reconnect");
 	}
 
 	if (!m_currData) {
