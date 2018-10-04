@@ -72,7 +72,7 @@ bool startsWith(std::string s, std::string prefix) {
 
 }
 
-struct HTTP::Private {
+struct Private {
 
 	Private(std::string url, bool usePUT) {
 		curl_global_init(CURL_GLOBAL_ALL);

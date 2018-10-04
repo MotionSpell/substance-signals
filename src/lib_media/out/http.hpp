@@ -25,6 +25,8 @@ struct HttpOutputConfig {
 namespace Modules {
 namespace Out {
 
+struct Private;
+
 class HTTP : public ModuleS {
 	public:
 
@@ -57,8 +59,6 @@ class HTTP : public ModuleS {
 		void threadProc(bool chunked);
 
 		IModuleHost* const m_host;
-
-		struct Private;
 
 		std::unique_ptr<Private> m_pImpl;
 
