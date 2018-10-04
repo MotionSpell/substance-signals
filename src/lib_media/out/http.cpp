@@ -65,6 +65,11 @@ void enforceConnection(std::string url, bool usePUT) {
 		throw std::runtime_error(format("Can't connect to '%s'", url));
 }
 
+static
+bool startsWith(std::string s, std::string prefix) {
+	return !s.compare(0, prefix.size(), prefix);
+}
+
 }
 
 struct HTTP::Private {
@@ -86,7 +91,7 @@ struct HTTP::Private {
 
 HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
 	: m_host(host), url(cfg.url), flags(cfg.flags) {
-	if (url.compare(0, 7, "http://") && url.compare(0, 8, "https://"))
+	if (!startsWith(url, "http://") && !startsWith(url, "https://"))
 		throw error(format("can only handle URLs starting with 'http://' or 'https://', not '%s'.", url));
 
 	m_pImpl = make_unique<Private>(url, cfg.flags.UsePUT);
