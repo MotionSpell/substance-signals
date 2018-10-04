@@ -48,7 +48,7 @@ class HTTP : public ModuleS {
 			RunNewConnection, //untouched, send from previous ftyp/moov
 			RunNewFile,       //execute newFileCallback()
 			RunResume,        //untouched
-			Stop,             //send endOfSessionSuffix
+			Stop,             //close the connection
 		};
 
 		bool loadNextData();
