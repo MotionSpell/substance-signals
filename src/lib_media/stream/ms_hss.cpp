@@ -6,14 +6,6 @@ inline uint32_t U32BE(uint8_t* p) {
 	return (p[0] << 24) | (p[1] << 16) | (p[2] << 8) | (p[3] << 0);
 }
 
-inline void Write_U32BE(uint8_t*& p, uint32_t val) {
-	p[0] = (val >> 24) & 0xFF;
-	p[1] = (val >> 16) & 0xFF;
-	p[2] = (val >> 8) & 0xFF;
-	p[3] = (val >> 0) & 0xFF;
-	p+=4;
-}
-
 template<size_t N>
 constexpr uint32_t FOURCC(const char (&a)[N]) {
 	static_assert(N == 5, "FOURCC must be composed of 4 characters");
@@ -26,13 +18,7 @@ namespace Stream {
 MS_HSS::MS_HSS(IModuleHost* host, const std::string &url)
 	: m_host(host) {
 	auto cfg = HttpOutputConfig{url};
-	{
-		auto const mfraSize = 8;
-		cfg.endOfSessionSuffix.resize(mfraSize);
-		auto bs = cfg.endOfSessionSuffix.data();
-		Write_U32BE(bs, mfraSize); //size (Box)
-		Write_U32BE(bs, FOURCC("mfra"));
-	}
+	cfg.endOfSessionSuffix = { 0, 0, 0, 8, 'm', 'f', 'r', 'a' };
 	m_http = make_unique<Out::HTTP>(host, cfg);
 	m_http->m_controller = this;
 }
