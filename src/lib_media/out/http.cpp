@@ -179,7 +179,6 @@ size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 			m_currBs = m_currData->data();
 		} else { /*we may be exiting because of an exception*/
 			clean();
-			inputs[0]->push(nullptr);
 		}
 	}
 
@@ -189,9 +188,7 @@ size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 				return 0;
 
 			state = Stop;
-			auto n = m_controller->endOfSession(buffer);
-			if (n) inputs[0]->push(nullptr);
-			return n;
+			return m_controller->endOfSession(buffer);
 		}
 
 		if (state != RunNewConnection) {
