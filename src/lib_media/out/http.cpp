@@ -136,12 +136,8 @@ HTTP::~HTTP() {
 	m_pImpl->workingThread.join();
 }
 
-void HTTP::endOfStream() {
-	m_pImpl->m_fifo.push(nullptr);
-}
-
 void HTTP::flush() {
-	endOfStream();
+	m_pImpl->m_fifo.push(nullptr);
 
 	auto out = outputFinished->getBuffer(0);
 	outputFinished->emit(out);

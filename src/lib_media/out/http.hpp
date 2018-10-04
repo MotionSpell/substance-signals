@@ -53,7 +53,6 @@ class HTTP : public ModuleS {
 
 		bool loadNextData();
 		void clean();
-		void endOfStream();
 
 		void threadProc(bool chunked);
 
