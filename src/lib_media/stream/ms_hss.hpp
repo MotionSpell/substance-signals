@@ -12,7 +12,7 @@ class MS_HSS : public Module, private Out::HTTP::Controller {
 
 	private:
 		void newFileCallback(span<uint8_t> out) final; //remove ftyp/moov
-		bool endOfSession(span<uint8_t> buffer) final; //empty mfra
+		size_t endOfSession(span<uint8_t> buffer) final; //empty mfra
 
 		std::unique_ptr<Out::HTTP> m_http;
 		IModuleHost* const m_host;

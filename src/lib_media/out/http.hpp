@@ -34,8 +34,8 @@ class HTTP : public Module {
 
 		struct Controller {
 			virtual void newFileCallback(span<uint8_t>) {}
-			virtual bool endOfSession(span<uint8_t>) {
-				return false;
+			virtual size_t endOfSession(span<uint8_t>) {
+				return 0;
 			}
 		};
 		Controller* m_controller = &m_nullController;
