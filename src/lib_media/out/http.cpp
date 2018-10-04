@@ -171,8 +171,9 @@ bool HTTP::loadNextData() {
 size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 	if (state == RunNewConnection && m_currData) {
 		assert (m_currBs.ptr);
-		auto meta = safe_cast<const MetadataFile>(m_currData->getMetadata());
-		m_host->log(Warning, format("Reconnect: file %s", meta->filename).c_str());
+		m_host->log(Warning, "Reconnect");
+
+		// restart chunk transfer
 		m_currBs = m_currData->data();
 	}
 
