@@ -178,7 +178,7 @@ size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 			m_host->log(Warning, format("Reconnect: file %s", meta->filename).c_str());
 			m_currBs = m_currData->data();
 		} else { /*we may be exiting because of an exception*/
-			m_currData = nullptr;
+			clean();
 			inputs[0]->push(nullptr);
 		}
 	}
