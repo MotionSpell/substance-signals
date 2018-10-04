@@ -127,6 +127,11 @@ HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
 }
 
 HTTP::~HTTP() {
+	{
+		auto r = make_shared<DataRaw>(endOfSessionSuffix.size());
+		memcpy(r->data().ptr, endOfSessionSuffix.data(), endOfSessionSuffix.size());
+		m_pImpl->m_fifo.push(r);
+	}
 	m_pImpl->m_fifo.push(nullptr);
 	m_pImpl->workingThread.join();
 }
@@ -184,9 +189,7 @@ size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 				return 0;
 
 			state = Stop;
-			enforce(buffer.len >= endOfSessionSuffix.size(), "The end-of-session suffix must fit into the buffer");
-			memcpy(buffer.ptr, endOfSessionSuffix.data(), endOfSessionSuffix.size());
-			return endOfSessionSuffix.size();
+			return 0;
 		}
 
 		if (state != RunNewConnection) {

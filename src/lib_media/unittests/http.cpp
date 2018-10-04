@@ -41,10 +41,11 @@ secondclasstest("HTTP: post data to real server") {
 	mod->flush();
 }
 
-secondclasstest("HTTP: post data to real server, no flush") {
+secondclasstest("HTTP: post data to real server, suffix but no flush") {
 	HttpOutputConfig cfg {};
 	cfg.flags.InitialEmptyPost = false;
 	cfg.url = "http://127.0.0.1:9000";
+	cfg.endOfSessionSuffix = { 'G', 'o', 'o', 'd', 'b', 'y', 'e'};
 	auto mod = loadModule("HTTP", &NullHost, &cfg);
 	mod->getInput(0)->push(createPacket("ThisIsPostData"));
 	mod->process();
