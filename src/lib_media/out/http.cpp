@@ -222,7 +222,7 @@ void HTTP::threadProc(bool chunked) {
 	};
 
 	if (chunked) {
-		while (state != Stop && performTransfer()) {
+		while (performTransfer()) {
 		}
 	} else {
 		performTransfer();
