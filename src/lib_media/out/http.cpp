@@ -126,15 +126,13 @@ HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
 	m_pImpl = make_unique<Private>(cfg.url, cfg.flags.UsePUT);
 	m_pImpl->m_log = host;
 
-	auto& curl = m_pImpl->curl;
-
-	curl_easy_setopt(curl, CURLOPT_USERAGENT, cfg.userAgent.c_str());
-	curl_easy_setopt(curl, CURLOPT_READFUNCTION, &HTTP::staticCurlCallback);
-	curl_easy_setopt(curl, CURLOPT_READDATA, this);
+	curl_easy_setopt(m_pImpl->curl, CURLOPT_USERAGENT, cfg.userAgent.c_str());
+	curl_easy_setopt(m_pImpl->curl, CURLOPT_READFUNCTION, &HTTP::staticCurlCallback);
+	curl_easy_setopt(m_pImpl->curl, CURLOPT_READDATA, this);
 
 	for (auto &h : cfg.headers) {
 		m_pImpl->headers = curl_slist_append(m_pImpl->headers, h.c_str());
-		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, m_pImpl->headers);
+		curl_easy_setopt(m_pImpl->curl, CURLOPT_HTTPHEADER, m_pImpl->headers);
 	}
 
 	m_pImpl->workingThread = std::thread(&Private::threadProc, m_pImpl.get(), cfg.flags.Chunked);
