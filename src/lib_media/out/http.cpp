@@ -185,9 +185,6 @@ size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 
 	if (!m_currData) {
 		if (!loadNextData()) {
-			if (state == Stop)
-				return 0;
-
 			state = Stop;
 			return 0;
 		}
