@@ -214,14 +214,10 @@ size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 bool HTTP::performTransfer() {
 	state = RunNewConnection;
 	CURLcode res = curl_easy_perform(m_pImpl->curl);
-	if (res != CURLE_OK) {
+	if (res != CURLE_OK)
 		m_host->log(Warning, format("Transfer failed for '%s': %s", url, curl_easy_strerror(res)).c_str());
-	}
 
-	if (state == Stop)
-		return false;
-
-	return true;
+	return state == Stop;
 }
 
 void HTTP::threadProc(bool chunked) {
