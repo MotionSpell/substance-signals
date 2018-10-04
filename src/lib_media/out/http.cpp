@@ -159,6 +159,18 @@ size_t HTTP::staticCurlCallback(void *buffer, size_t size, size_t nmemb, void *u
 	return pThis->fillBuffer(span<uint8_t>((uint8_t*)buffer, size * nmemb));
 }
 
+bool HTTP::loadNextData() {
+	assert(!m_currBs.ptr);
+
+	m_currData = inputs[0]->pop();
+	if(!m_currData)
+		return false;
+
+	m_currBs = m_currData->data();
+	m_currMetadata = m_currData->getMetadata();
+	return true;
+}
+
 size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 	if (state == RunNewConnection && m_currData) {
 		if (m_currBs.ptr) {
@@ -172,8 +184,7 @@ size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 	}
 
 	if (!m_currData) {
-		m_currData = inputs[0]->pop();
-		if (!m_currData) {
+		if (!loadNextData()) {
 			if (state == Stop)
 				return 0;
 
@@ -182,10 +193,6 @@ size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 			if (n) inputs[0]->push(nullptr);
 			return n;
 		}
-
-		assert(!m_currBs.ptr);
-		m_currBs = m_currData->data();
-		m_currMetadata = m_currData->getMetadata();
 
 		if (state != RunNewConnection) {
 			state = RunNewFile; //on new connection, don't call newFileCallback()

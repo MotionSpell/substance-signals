@@ -52,6 +52,7 @@ class HTTP : public Module {
 			Stop,             //execute endOfSession()
 		};
 
+		bool loadNextData();
 		void clean();
 		void endOfStream();
 
