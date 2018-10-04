@@ -85,7 +85,7 @@ struct HTTP::Private {
 };
 
 HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
-	: m_host(host), url(cfg.url), userAgent(cfg.userAgent), flags(cfg.flags) {
+	: m_host(host), url(cfg.url), flags(cfg.flags) {
 	if (url.compare(0, 7, "http://") && url.compare(0, 8, "https://"))
 		throw error(format("can only handle URLs starting with 'http://' or 'https://', not '%s'.", url));
 
@@ -97,7 +97,7 @@ HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
 	if (flags.InitialEmptyPost)
 		enforceConnection(url, flags.UsePUT);
 
-	curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent.c_str());
+	curl_easy_setopt(curl, CURLOPT_USERAGENT, cfg.userAgent.c_str());
 
 	curl_easy_setopt(curl, CURLOPT_READFUNCTION, &HTTP::staticCurlCallback);
 	curl_easy_setopt(curl, CURLOPT_READDATA, this);
