@@ -87,6 +87,9 @@ struct HTTP::Private {
 	struct curl_slist *chunk = nullptr;
 	CURL *curl;
 	std::thread workingThread;
+
+	// data to upload
+	Queue<Data> m_fifo;
 };
 
 HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
@@ -122,12 +125,12 @@ HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
 }
 
 HTTP::~HTTP() {
-	inputs[0]->push(nullptr);
+	m_pImpl->m_fifo.push(nullptr);
 	m_pImpl->workingThread.join();
 }
 
 void HTTP::endOfStream() {
-	inputs[0]->push(nullptr);
+	m_pImpl->m_fifo.push(nullptr);
 }
 
 void HTTP::flush() {
@@ -138,7 +141,8 @@ void HTTP::flush() {
 	outputFinished->emit(out);
 }
 
-void HTTP::process() {
+void HTTP::process(Data data) {
+	m_pImpl->m_fifo.push(data);
 }
 
 void HTTP::readTransferedBs(uint8_t* dst, size_t size) {
@@ -160,7 +164,7 @@ size_t HTTP::staticCurlCallback(void *buffer, size_t size, size_t nmemb, void *u
 bool HTTP::loadNextData() {
 	assert(!m_currBs.ptr);
 
-	m_currData = inputs[0]->pop();
+	m_currData = m_pImpl->m_fifo.pop();
 	if(!m_currData)
 		return false;
 

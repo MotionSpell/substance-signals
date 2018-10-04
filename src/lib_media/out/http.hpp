@@ -23,13 +23,13 @@ struct HttpOutputConfig {
 namespace Modules {
 namespace Out {
 
-class HTTP : public Module {
+class HTTP : public ModuleS {
 	public:
 
 		HTTP(IModuleHost* host, HttpOutputConfig const& cfg);
 		virtual ~HTTP();
 
-		void process() final;
+		void process(Data data) final;
 		void flush() final;
 
 		struct Controller {
