@@ -44,24 +44,21 @@ class HTTP : public ModuleS {
 		void readTransferedBs(uint8_t* dst, size_t size);
 
 	private:
-		Controller m_nullController;
-
 		bool loadNextData();
 		void clean();
+		size_t fillBuffer(span<uint8_t> buffer);
+		static size_t staticCurlCallback(void *ptr, size_t size, size_t nmemb, void *userp);
 
 		IModuleHost* const m_host;
 
 		std::unique_ptr<Private> m_pImpl;
-
 		Data m_currData;
 		span<const uint8_t> m_currBs {}; // points into the contents of m_currData
 
-		static size_t staticCurlCallback(void *ptr, size_t size, size_t nmemb, void *userp);
-		size_t fillBuffer(span<uint8_t> buffer);
-
-		const std::string url;
 		const std::vector<uint8_t> endOfSessionSuffix;
-		OutputDataDefault<DataRaw> *outputFinished;
+		OutputDataDefault<DataRaw>* outputFinished;
+
+		Controller m_nullController;
 };
 
 }

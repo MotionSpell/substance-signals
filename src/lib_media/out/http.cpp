@@ -110,20 +110,20 @@ struct Private {
 };
 
 HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
-	: m_host(host), url(cfg.url), endOfSessionSuffix(cfg.endOfSessionSuffix) {
-	if (!startsWith(url, "http://") && !startsWith(url, "https://"))
-		throw error(format("can only handle URLs starting with 'http://' or 'https://', not '%s'.", url));
+	: m_host(host), endOfSessionSuffix(cfg.endOfSessionSuffix) {
+	if (!startsWith(cfg.url, "http://") && !startsWith(cfg.url, "https://"))
+		throw error(format("can only handle URLs starting with 'http://' or 'https://', not '%s'.", cfg.url));
 
 	// before any other connection, make an empty POST to check the end point exists
 	if (cfg.flags.InitialEmptyPost)
-		enforceConnection(url, cfg.flags.UsePUT);
+		enforceConnection(cfg.url, cfg.flags.UsePUT);
 
 	// create pins
 	addInput(this);
 	outputFinished = addOutput<OutputDefault>();
 
 	// initialize the sender object
-	m_pImpl = make_unique<Private>(url, cfg.flags.UsePUT);
+	m_pImpl = make_unique<Private>(cfg.url, cfg.flags.UsePUT);
 	m_pImpl->m_log = host;
 
 	auto& curl = m_pImpl->curl;
