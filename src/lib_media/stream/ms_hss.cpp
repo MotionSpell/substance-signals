@@ -24,7 +24,16 @@ namespace Modules {
 namespace Stream {
 
 MS_HSS::MS_HSS(IModuleHost* host, const std::string &url)
-	: m_http(make_unique<Out::HTTP>(host, HttpOutputConfig{url})), m_host(host) {
+	: m_host(host) {
+	auto cfg = HttpOutputConfig{url};
+	{
+		auto const mfraSize = 8;
+		cfg.endOfSessionSuffix.resize(mfraSize);
+		auto bs = cfg.endOfSessionSuffix.data();
+		Write_U32BE(bs, mfraSize); //size (Box)
+		Write_U32BE(bs, FOURCC("mfra"));
+	}
+	m_http = make_unique<Out::HTTP>(host, cfg);
 	m_http->m_controller = this;
 }
 
@@ -59,21 +68,6 @@ void MS_HSS::newFileCallback(span<uint8_t> out) {
 	if (type != FOURCC("moov"))
 		throw error("moov not found");
 	m_http->readTransferedBs(buf, size - 8);
-}
-
-size_t MS_HSS::endOfSession(span<uint8_t> buffer) {
-	auto const mfraSize = 8;
-
-	if (buffer.len < mfraSize) {
-		m_host->log(Warning, format( "endOfSession: needed to write %s bytes but buffer size is %s.", mfraSize, buffer.len).c_str());
-		return 0;
-	}
-
-	auto bs = buffer.ptr;
-	Write_U32BE(bs, mfraSize); //size (Box)
-	Write_U32BE(bs, FOURCC("mfra"));
-
-	return mfraSize;
 }
 
 }

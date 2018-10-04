@@ -93,7 +93,7 @@ struct HTTP::Private {
 };
 
 HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
-	: m_host(host), url(cfg.url) {
+	: m_host(host), url(cfg.url), endOfSessionSuffix(cfg.endOfSessionSuffix) {
 	if (!startsWith(url, "http://") && !startsWith(url, "https://"))
 		throw error(format("can only handle URLs starting with 'http://' or 'https://', not '%s'.", url));
 
@@ -190,7 +190,9 @@ size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 				return 0;
 
 			state = Stop;
-			return m_controller->endOfSession(buffer);
+			enforce(buffer.len >= endOfSessionSuffix.size(), "The end-of-session suffix must fit into the buffer");
+			memcpy(buffer.ptr, endOfSessionSuffix.data(), endOfSessionSuffix.size());
+			return endOfSessionSuffix.size();
 		}
 
 		if (state != RunNewConnection) {

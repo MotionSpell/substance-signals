@@ -14,6 +14,9 @@ struct HttpOutputConfig {
 	std::string userAgent = "GPAC Signals/";
 	std::vector<std::string> headers {};
 
+	// optional: data to transfer just before closing the connection
+	std::vector<uint8_t> endOfSessionSuffix {};
+
 	Flags flags {};
 };
 
@@ -34,9 +37,6 @@ class HTTP : public ModuleS {
 
 		struct Controller {
 			virtual void newFileCallback(span<uint8_t>) {}
-			virtual size_t endOfSession(span<uint8_t>) {
-				return 0;
-			}
 		};
 		Controller* m_controller = &m_nullController;
 
@@ -49,7 +49,7 @@ class HTTP : public ModuleS {
 			RunNewConnection, //untouched, send from previous ftyp/moov
 			RunNewFile,       //execute newFileCallback()
 			RunResume,        //untouched
-			Stop,             //execute endOfSession()
+			Stop,             //send endOfSessionSuffix
 		};
 
 		bool loadNextData();
@@ -73,6 +73,7 @@ class HTTP : public ModuleS {
 		size_t fillBuffer(span<uint8_t> buffer);
 
 		const std::string url;
+		const std::vector<uint8_t> endOfSessionSuffix;
 		State state {};
 		OutputDataDefault<DataRaw> *outputFinished;
 };
