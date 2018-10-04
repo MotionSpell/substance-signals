@@ -216,20 +216,16 @@ bool HTTP::performTransfer() {
 		m_host->log(Warning, format("curl_easy_perform() failed for URL %s: %s", url, curl_easy_strerror(res)).c_str());
 	}
 
-	if (state == Stop) {
+	if (state == Stop)
 		return false;
-	} else {
-		state = RunNewConnection;
-		return true;
-	}
+
+	state = RunNewConnection;
+	return true;
 }
 
 void HTTP::threadProc() {
 	if (flags.Chunked) {
-		while (state != Stop) {
-			if (!performTransfer()) {
-				break;
-			}
+		while (state != Stop && performTransfer()) {
 		}
 	} else {
 		performTransfer();
