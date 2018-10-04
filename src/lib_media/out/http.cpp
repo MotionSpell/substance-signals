@@ -59,7 +59,7 @@ void enforceConnection(std::string url, bool usePUT) {
 	}
 	auto const res = curl_easy_perform(curl);
 	if (res != CURLE_OK)
-		throw std::runtime_error(format("curl_easy_perform() failed for URL: %s", url));
+		throw std::runtime_error(format("Can't connect to '%s'", url));
 }
 
 }
