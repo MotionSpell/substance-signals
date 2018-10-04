@@ -80,11 +80,11 @@ struct HTTP::Private {
 	}
 
 	~Private() {
-		curl_slist_free_all(chunk);
+		curl_slist_free_all(headers);
 		curl_easy_cleanup(curl);
 		curl_global_cleanup();
 	}
-	struct curl_slist *chunk = nullptr;
+	curl_slist* headers {};
 	CURL *curl;
 	std::thread workingThread;
 
@@ -101,6 +101,11 @@ HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
 	if (cfg.flags.InitialEmptyPost)
 		enforceConnection(url, cfg.flags.UsePUT);
 
+	// create pins
+	addInput(this);
+	outputFinished = addOutput<OutputDefault>();
+
+	// initialize the sender object
 	m_pImpl = make_unique<Private>(url, cfg.flags.UsePUT);
 
 	auto& curl = m_pImpl->curl;
@@ -110,16 +115,13 @@ HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
 	curl_easy_setopt(curl, CURLOPT_READDATA, this);
 
 	if (cfg.flags.Chunked) {
-		m_pImpl->chunk = curl_slist_append(m_pImpl->chunk, "Transfer-Encoding: chunked");
-		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, m_pImpl->chunk);
+		m_pImpl->headers = curl_slist_append(m_pImpl->headers, "Transfer-Encoding: chunked");
+		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, m_pImpl->headers);
 	}
 	for (auto &h : cfg.headers) {
-		m_pImpl->chunk = curl_slist_append(m_pImpl->chunk, h.c_str());
-		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, m_pImpl->chunk);
+		m_pImpl->headers = curl_slist_append(m_pImpl->headers, h.c_str());
+		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, m_pImpl->headers);
 	}
-
-	addInput(this);
-	outputFinished = addOutput<OutputDefault>();
 
 	m_pImpl->workingThread = std::thread(&HTTP::threadProc, this, cfg.flags.Chunked);
 }
