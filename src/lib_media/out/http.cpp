@@ -121,7 +121,7 @@ HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
 	addInput(this);
 	outputFinished = addOutput<OutputDefault>();
 
-	m_pImpl->workingThread = std::thread(&HTTP::threadProc, this);
+	m_pImpl->workingThread = std::thread(&HTTP::threadProc, this, flags.Chunked);
 }
 
 HTTP::~HTTP() {
@@ -214,6 +214,7 @@ size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 }
 
 bool HTTP::performTransfer() {
+	state = RunNewConnection;
 	CURLcode res = curl_easy_perform(m_pImpl->curl);
 	if (res != CURLE_OK) {
 		m_host->log(Warning, format("Transfer failed for '%s': %s", url, curl_easy_strerror(res)).c_str());
@@ -222,15 +223,11 @@ bool HTTP::performTransfer() {
 	if (state == Stop)
 		return false;
 
-	state = RunNewConnection;
 	return true;
 }
 
-void HTTP::threadProc() {
-
-	state = RunNewConnection;
-
-	if (flags.Chunked) {
+void HTTP::threadProc(bool chunked) {
+	if (chunked) {
 		while (state != Stop && performTransfer()) {
 		}
 	} else {
