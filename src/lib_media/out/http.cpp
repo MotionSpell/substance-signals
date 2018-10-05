@@ -165,11 +165,6 @@ void HTTP::readTransferedBs(uint8_t* dst, size_t size) {
 		throw error("Short read on transfered bitstream");
 }
 
-void HTTP::clean() {
-	m_currBs = {};
-	m_currData = nullptr;
-}
-
 size_t HTTP::staticCurlCallback(void *buffer, size_t size, size_t nmemb, void *userp) {
 	auto pThis = (HTTP*)userp;
 	return pThis->fillBuffer(span<uint8_t>((uint8_t*)buffer, size * nmemb));
@@ -212,7 +207,8 @@ size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 	auto const desiredCount = std::min(m_currBs.len, buffer.len);
 	auto const readCount = read(m_currBs, buffer.ptr, desiredCount);
 	if (readCount == 0) {
-		clean();
+		m_currBs = {};
+		m_currData = nullptr;
 		return fillBuffer(buffer);
 	}
 

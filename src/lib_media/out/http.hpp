@@ -44,7 +44,6 @@ class HTTP : public ModuleS {
 
 	private:
 		bool loadNextBs();
-		void clean();
 		size_t fillBuffer(span<uint8_t> buffer);
 		static size_t staticCurlCallback(void *ptr, size_t size, size_t nmemb, void *userp);
 
