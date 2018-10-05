@@ -18,7 +18,7 @@ MS_HSS::MS_HSS(IModuleHost* host, const std::string &url)
 	: m_host(host) {
 	auto cfg = HttpOutputConfig{url};
 	cfg.endOfSessionSuffix = { 0, 0, 0, 8, 'm', 'f', 'r', 'a' };
-	m_http = make_unique<Out::HTTP>(host, cfg);
+	m_http = create<Out::HTTP>(host, cfg);
 	m_http->m_controller = this;
 }
 
