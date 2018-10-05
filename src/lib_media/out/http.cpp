@@ -78,14 +78,14 @@ Data createData(std::vector<uint8_t> const& contents) {
 }
 }
 
-struct Private {
+struct HttpSender {
 
-	Private(std::string url, bool usePUT) {
+	HttpSender(std::string url, bool usePUT) {
 		curl_global_init(CURL_GLOBAL_ALL);
 		curl = createCurl(url, usePUT);
 	}
 
-	~Private() {
+	~HttpSender() {
 		curl_slist_free_all(headers);
 		curl_easy_cleanup(curl);
 		curl_global_cleanup();
@@ -128,48 +128,48 @@ HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
 	outputFinished = addOutput<OutputDefault>();
 
 	// initialize the sender object
-	m_pImpl = make_unique<Private>(cfg.url, cfg.flags.UsePUT);
-	m_pImpl->m_log = host;
+	m_sender = make_unique<HttpSender>(cfg.url, cfg.flags.UsePUT);
+	m_sender->m_log = host;
 
-	curl_easy_setopt(m_pImpl->curl, CURLOPT_USERAGENT, cfg.userAgent.c_str());
-	curl_easy_setopt(m_pImpl->curl, CURLOPT_READFUNCTION, &Private::staticCurlCallback);
-	curl_easy_setopt(m_pImpl->curl, CURLOPT_READDATA, m_pImpl.get());
+	curl_easy_setopt(m_sender->curl, CURLOPT_USERAGENT, cfg.userAgent.c_str());
+	curl_easy_setopt(m_sender->curl, CURLOPT_READFUNCTION, &HttpSender::staticCurlCallback);
+	curl_easy_setopt(m_sender->curl, CURLOPT_READDATA, m_sender.get());
 
 	for (auto &h : cfg.headers) {
-		m_pImpl->headers = curl_slist_append(m_pImpl->headers, h.c_str());
-		curl_easy_setopt(m_pImpl->curl, CURLOPT_HTTPHEADER, m_pImpl->headers);
+		m_sender->headers = curl_slist_append(m_sender->headers, h.c_str());
+		curl_easy_setopt(m_sender->curl, CURLOPT_HTTPHEADER, m_sender->headers);
 	}
 
-	m_pImpl->workingThread = std::thread(&Private::threadProc, m_pImpl.get());
+	m_sender->workingThread = std::thread(&HttpSender::threadProc, m_sender.get());
 }
 
 HTTP::~HTTP() {
-	m_pImpl->send(m_suffixData);
-	m_pImpl->send(nullptr);
-	m_pImpl->workingThread.join();
+	m_sender->send(m_suffixData);
+	m_sender->send(nullptr);
+	m_sender->workingThread.join();
 }
 
 void HTTP::setPrefix(span<const uint8_t> prefix) {
-	m_pImpl->m_prefixData = createData({prefix.ptr, prefix.ptr+prefix.len});
+	m_sender->m_prefixData = createData({prefix.ptr, prefix.ptr+prefix.len});
 }
 
 void HTTP::flush() {
-	m_pImpl->send(nullptr);
+	m_sender->send(nullptr);
 
 	auto out = outputFinished->getBuffer(0);
 	outputFinished->emit(out);
 }
 
 void HTTP::process(Data data) {
-	m_pImpl->send(data);
+	m_sender->send(data);
 }
 
-size_t Private::staticCurlCallback(void *buffer, size_t size, size_t nmemb, void *userp) {
-	auto pThis = (Private*)userp;
+size_t HttpSender::staticCurlCallback(void *buffer, size_t size, size_t nmemb, void *userp) {
+	auto pThis = (HttpSender*)userp;
 	return pThis->fillBuffer(span<uint8_t>((uint8_t*)buffer, size * nmemb));
 }
 
-size_t Private::fillBuffer(span<uint8_t> buffer) {
+size_t HttpSender::fillBuffer(span<uint8_t> buffer) {
 	// curl stops calling us when we return 0.
 	if(finished)
 		return 0;
@@ -191,7 +191,7 @@ size_t Private::fillBuffer(span<uint8_t> buffer) {
 	return writer.ptr - buffer.ptr;
 }
 
-void Private::threadProc() {
+void HttpSender::threadProc() {
 	headers = curl_slist_append(headers, "Transfer-Encoding: chunked");
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 

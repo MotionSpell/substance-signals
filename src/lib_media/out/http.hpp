@@ -24,7 +24,7 @@ struct HttpOutputConfig {
 namespace Modules {
 namespace Out {
 
-struct Private;
+struct HttpSender;
 
 class HTTP : public ModuleS {
 	public:
@@ -39,7 +39,7 @@ class HTTP : public ModuleS {
 
 	private:
 		IModuleHost* const m_host;
-		std::unique_ptr<Private> m_pImpl;
+		std::unique_ptr<HttpSender> m_sender;
 		Data m_suffixData;
 		OutputDataDefault<DataRaw>* outputFinished;
 };
