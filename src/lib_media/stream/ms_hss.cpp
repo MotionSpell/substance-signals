@@ -31,35 +31,19 @@ void MS_HSS::flush() {
 }
 
 void MS_HSS::newFileCallback(span<uint8_t> out) {
-	auto buf = out.ptr;
+	skipBox(FOURCC("ftyp"), out);
+	skipBox(0, out);
+	skipBox(FOURCC("free"), out);
+	skipBox(FOURCC("moov"), out);
+}
 
-	// skip 'ftyp' box
+void MS_HSS::skipBox(uint32_t boxName, span<uint8_t> out) {
+	auto buf = out.ptr;
 	m_http->readTransferedBs(buf, 8);
 	auto size = U32BE(buf + 0);
 	auto type = U32BE(buf + 4);
-	if (type != FOURCC("ftyp"))
-		throw error("ftyp not found");
-	m_http->readTransferedBs(buf, size - 8);
-
-	// skip some box
-	m_http->readTransferedBs(buf, 8);
-	size = U32BE(buf);
-	m_http->readTransferedBs(buf, size - 8);
-
-	// skip 'free' box
-	m_http->readTransferedBs(buf, 8);
-	size = U32BE(buf + 0);
-	type = U32BE(buf + 4);
-	if (type != FOURCC("free"))
-		throw error("free not found");
-	m_http->readTransferedBs(buf, size - 8);
-
-	// put the contents of 'moov' box into 'buf'
-	m_http->readTransferedBs(buf, 8);
-	size = U32BE(buf + 0);
-	type = U32BE(buf + 4);
-	if (type != FOURCC("moov"))
-		throw error("moov not found");
+	if (boxName && type != boxName)
+		throw error("box not found");
 	m_http->readTransferedBs(buf, size - 8);
 }
 
