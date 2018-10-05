@@ -4,6 +4,9 @@
 #include "lib_modules/modules.hpp"
 #include <string.h> // memcpy
 
+// To run the below tests, you must first launch the fake webserver:
+// $ ./scripts/http-post-server.sh
+
 using namespace Modules;
 
 namespace {

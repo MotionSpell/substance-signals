@@ -229,7 +229,7 @@ void Private::threadProc() {
 		return state == Stop;
 	};
 
-	while (performTransfer()) {
+	while (!performTransfer()) {
 	}
 }
 
