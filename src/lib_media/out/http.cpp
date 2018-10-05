@@ -132,8 +132,6 @@ HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
 	m_sender->m_log = host;
 
 	curl_easy_setopt(m_sender->curl, CURLOPT_USERAGENT, cfg.userAgent.c_str());
-	curl_easy_setopt(m_sender->curl, CURLOPT_READFUNCTION, &HttpSender::staticCurlCallback);
-	curl_easy_setopt(m_sender->curl, CURLOPT_READDATA, m_sender.get());
 
 	for (auto &h : cfg.headers) {
 		m_sender->headers = curl_slist_append(m_sender->headers, h.c_str());
@@ -194,6 +192,9 @@ size_t HttpSender::fillBuffer(span<uint8_t> buffer) {
 void HttpSender::threadProc() {
 	headers = curl_slist_append(headers, "Transfer-Encoding: chunked");
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
+	curl_easy_setopt(curl, CURLOPT_READFUNCTION, &HttpSender::staticCurlCallback);
+	curl_easy_setopt(curl, CURLOPT_READDATA, this);
 
 	do {
 		finished = false;
