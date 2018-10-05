@@ -106,6 +106,10 @@ struct Private {
 
 	State state {};
 
+	Data m_prefixData;
+	Data m_currData;
+	span<const uint8_t> m_currBs {}; // points to the contents of m_currData/m_suffixData
+
 	IModuleHost* m_log {};
 	curl_slist* headers {};
 	CURL *curl;
@@ -151,7 +155,7 @@ HTTP::~HTTP() {
 }
 
 void HTTP::setPrefix(span<const uint8_t> prefix) {
-	m_prefixData = createData({prefix.ptr, prefix.ptr+prefix.len});
+	m_pImpl->m_prefixData = createData({prefix.ptr, prefix.ptr+prefix.len});
 }
 
 void HTTP::flush() {
@@ -171,25 +175,25 @@ size_t HTTP::staticCurlCallback(void *buffer, size_t size, size_t nmemb, void *u
 }
 
 bool HTTP::loadNextBs() {
-	m_currData = m_pImpl->m_fifo.pop();
-	if(!m_currData)
+	m_pImpl->m_currData = m_pImpl->m_fifo.pop();
+	if(!m_pImpl->m_currData)
 		return false;
 
-	m_currBs = m_currData->data();
+	m_pImpl->m_currBs = m_pImpl->m_currData->data();
 	return true;
 }
 
 size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 	while(1) {
 		if (m_pImpl->state == RunNewConnection) {
-			m_currBs = {};
+			m_pImpl->m_currBs = {};
 
 			// load prefix if any
-			if(m_prefixData)
-				m_currBs = m_prefixData->data();
+			if(m_pImpl->m_prefixData)
+				m_pImpl->m_currBs = m_pImpl->m_prefixData->data();
 		}
 
-		if (!m_currBs.ptr) {
+		if (!m_pImpl->m_currBs.ptr) {
 			if (!loadNextBs()) {
 				m_pImpl->state = Stop;
 				return 0;
@@ -202,14 +206,14 @@ size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 
 		m_pImpl->state = RunResume;
 
-		auto const desiredCount = std::min(m_currBs.len, buffer.len);
-		auto const readCount = read(m_currBs, buffer.ptr, desiredCount);
+		auto const desiredCount = std::min(m_pImpl->m_currBs.len, buffer.len);
+		auto const readCount = read(m_pImpl->m_currBs, buffer.ptr, desiredCount);
 		if (readCount != 0) {
 			return readCount;
 		}
 
-		m_currBs = {};
-		m_currData = nullptr;
+		m_pImpl->m_currBs = {};
+		m_pImpl->m_currData = nullptr;
 	}
 }
 
