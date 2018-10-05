@@ -1,5 +1,4 @@
 #include "ms_hss.hpp"
-#include "lib_utils/log_sink.hpp" // Warning
 #include "lib_utils/format.hpp"
 
 inline uint32_t U32BE(uint8_t* p) {
