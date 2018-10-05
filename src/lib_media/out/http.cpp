@@ -190,11 +190,7 @@ size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 			}
 		}
 
-		auto const readCount = read(m_pImpl->m_currBs, writer.ptr, writer.len);
-		m_pImpl->m_currBs += readCount;
-		writer += readCount;
-
-		m_pImpl->m_currBs = {};
+		writer += read(m_pImpl->m_currBs, writer.ptr, writer.len);
 	}
 
 	return writer.ptr - buffer.ptr;
