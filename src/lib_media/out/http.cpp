@@ -70,9 +70,9 @@ Data createData(std::vector<uint8_t> const& contents) {
 }
 }
 
-struct HttpSender {
+struct CurlHttpSender : HttpSender {
 
-		HttpSender(std::string url, std::string userAgent, bool usePUT, std::vector<std::string> extraHeaders, IModuleHost* log) {
+		CurlHttpSender(std::string url, std::string userAgent, bool usePUT, std::vector<std::string> extraHeaders, IModuleHost* log) {
 			m_log = log;
 			curl_global_init(CURL_GLOBAL_ALL);
 			curl = createCurl(url, usePUT);
@@ -84,10 +84,10 @@ struct HttpSender {
 				curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 			}
 
-			workingThread = std::thread(&HttpSender::threadProc, this);
+			workingThread = std::thread(&CurlHttpSender::threadProc, this);
 		}
 
-		~HttpSender() {
+		~CurlHttpSender() {
 			m_fifo.push(nullptr);
 			workingThread.join();
 
@@ -96,11 +96,11 @@ struct HttpSender {
 			curl_global_cleanup();
 		}
 
-		void send(Data data) {
+		void send(Data data) override {
 			m_fifo.push(data);
 		}
 
-		void setPrefix(Data data) {
+		void setPrefix(Data data) override {
 			m_prefixData = data;
 		}
 
@@ -109,7 +109,7 @@ struct HttpSender {
 			headers = curl_slist_append(headers, "Transfer-Encoding: chunked");
 			curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
-			curl_easy_setopt(curl, CURLOPT_READFUNCTION, &HttpSender::staticCurlCallback);
+			curl_easy_setopt(curl, CURLOPT_READFUNCTION, &CurlHttpSender::staticCurlCallback);
 			curl_easy_setopt(curl, CURLOPT_READDATA, this);
 
 			do {
@@ -127,7 +127,7 @@ struct HttpSender {
 		}
 
 		static size_t staticCurlCallback(void *buffer, size_t size, size_t nmemb, void *userp) {
-			auto pThis = (HttpSender*)userp;
+			auto pThis = (CurlHttpSender*)userp;
 			return pThis->fillBuffer(span<uint8_t>((uint8_t*)buffer, size * nmemb));
 		}
 
@@ -189,7 +189,7 @@ HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
 	addInput(this);
 	outputFinished = addOutput<OutputDefault>();
 
-	m_sender = make_unique<HttpSender>(cfg.url, cfg.userAgent, cfg.flags.UsePUT, cfg.headers, host);
+	m_sender = make_unique<CurlHttpSender>(cfg.url, cfg.userAgent, cfg.flags.UsePUT, cfg.headers, host);
 }
 
 HTTP::~HTTP() {

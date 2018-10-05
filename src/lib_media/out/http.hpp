@@ -24,7 +24,11 @@ struct HttpOutputConfig {
 namespace Modules {
 namespace Out {
 
-struct HttpSender;
+struct HttpSender {
+	virtual ~HttpSender() = default;
+	virtual void send(Data data) = 0;
+	virtual void setPrefix(Data data) = 0;
+};
 
 class HTTP : public ModuleS {
 	public:
