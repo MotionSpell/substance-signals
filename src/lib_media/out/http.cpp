@@ -100,7 +100,10 @@ struct HttpSender {
 			m_fifo.push(data);
 		}
 
-		Data m_prefixData;
+		void setPrefix(Data data) {
+			m_prefixData = data;
+		}
+
 	private:
 		void threadProc() {
 			headers = curl_slist_append(headers, "Transfer-Encoding: chunked");
@@ -152,8 +155,9 @@ struct HttpSender {
 
 		bool finished;
 
+		Data m_prefixData;
 		Data m_currData;
-		span<const uint8_t> m_currBs {}; // points to the contents of m_currData/m_suffixData
+		span<const uint8_t> m_currBs {}; // points to the contents of m_currData/m_prefixData
 
 		IModuleHost* m_log {};
 		curl_slist* headers {};
@@ -193,7 +197,7 @@ HTTP::~HTTP() {
 }
 
 void HTTP::setPrefix(span<const uint8_t> prefix) {
-	m_sender->m_prefixData = createData({prefix.ptr, prefix.ptr+prefix.len});
+	m_sender->setPrefix(createData({prefix.ptr, prefix.ptr+prefix.len}));
 }
 
 void HTTP::flush() {
