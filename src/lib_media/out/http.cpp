@@ -198,11 +198,7 @@ size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 			}
 		}
 
-		if (m_pImpl->state == RunNewConnection) {
-			m_pImpl->state = RunResume;
-		} else if (m_pImpl->state == RunNewFile) {
-			m_pImpl->state = RunResume;
-		}
+		m_pImpl->state = RunResume;
 
 		auto const desiredCount = std::min(m_currBs.len, buffer.len);
 		auto const readCount = read(m_currBs, buffer.ptr, desiredCount);
