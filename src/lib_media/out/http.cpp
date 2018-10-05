@@ -97,6 +97,7 @@ struct Private {
 
 	void threadProc();
 	size_t fillBuffer(span<uint8_t> buffer);
+	static size_t staticCurlCallback(void *ptr, size_t size, size_t nmemb, void *userp);
 
 	bool finished;
 
@@ -131,8 +132,8 @@ HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
 	m_pImpl->m_log = host;
 
 	curl_easy_setopt(m_pImpl->curl, CURLOPT_USERAGENT, cfg.userAgent.c_str());
-	curl_easy_setopt(m_pImpl->curl, CURLOPT_READFUNCTION, &HTTP::staticCurlCallback);
-	curl_easy_setopt(m_pImpl->curl, CURLOPT_READDATA, this);
+	curl_easy_setopt(m_pImpl->curl, CURLOPT_READFUNCTION, &Private::staticCurlCallback);
+	curl_easy_setopt(m_pImpl->curl, CURLOPT_READDATA, m_pImpl.get());
 
 	for (auto &h : cfg.headers) {
 		m_pImpl->headers = curl_slist_append(m_pImpl->headers, h.c_str());
@@ -163,9 +164,9 @@ void HTTP::process(Data data) {
 	m_pImpl->send(data);
 }
 
-size_t HTTP::staticCurlCallback(void *buffer, size_t size, size_t nmemb, void *userp) {
-	auto pThis = (HTTP*)userp;
-	return pThis->m_pImpl->fillBuffer(span<uint8_t>((uint8_t*)buffer, size * nmemb));
+size_t Private::staticCurlCallback(void *buffer, size_t size, size_t nmemb, void *userp) {
+	auto pThis = (Private*)userp;
+	return pThis->fillBuffer(span<uint8_t>((uint8_t*)buffer, size * nmemb));
 }
 
 size_t Private::fillBuffer(span<uint8_t> buffer) {

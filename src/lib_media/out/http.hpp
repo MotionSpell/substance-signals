@@ -38,8 +38,6 @@ class HTTP : public ModuleS {
 		void flush() final;
 
 	private:
-		static size_t staticCurlCallback(void *ptr, size_t size, size_t nmemb, void *userp);
-
 		IModuleHost* const m_host;
 		std::unique_ptr<Private> m_pImpl;
 		Data m_suffixData;
