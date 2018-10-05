@@ -100,6 +100,8 @@ struct HttpSender {
 			m_fifo.push(data);
 		}
 
+		Data m_prefixData;
+	private:
 		void threadProc() {
 			headers = curl_slist_append(headers, "Transfer-Encoding: chunked");
 			curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
@@ -150,7 +152,6 @@ struct HttpSender {
 
 		bool finished;
 
-		Data m_prefixData;
 		Data m_currData;
 		span<const uint8_t> m_currBs {}; // points to the contents of m_currData/m_suffixData
 
@@ -162,7 +163,6 @@ struct HttpSender {
 		// data to upload
 		Queue<Data> m_fifo;
 
-	private:
 		static size_t read(span<const uint8_t>& stream, uint8_t* dst, size_t dstLen) {
 			auto readCount = std::min(stream.len, dstLen);
 			if(readCount > 0)
