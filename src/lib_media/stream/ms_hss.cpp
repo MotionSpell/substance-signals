@@ -1,5 +1,4 @@
 #include "ms_hss.hpp"
-#include "lib_utils/format.hpp"
 
 inline uint32_t U32BE(uint8_t* p) {
 	return (p[0] << 24) | (p[1] << 16) | (p[2] << 8) | (p[3] << 0);
@@ -43,7 +42,7 @@ void MS_HSS::skipBox(uint32_t boxName, span<uint8_t> out) {
 	auto size = U32BE(buf + 0);
 	auto type = U32BE(buf + 4);
 	if (boxName && type != boxName)
-		throw error("box not found");
+		throw error("skipBox: unexpected box");
 	m_http->readTransferedBs(buf, size - 8);
 }
 
