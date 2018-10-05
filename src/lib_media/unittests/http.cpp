@@ -38,6 +38,7 @@ secondclasstest("HTTP: post data to real server") {
 	mod->getInput(0)->push(createPacket("Hello"));
 	mod->getInput(0)->push(createPacket("Goodbye"));
 	mod->process();
+	mod->process();
 	mod->flush();
 }
 
