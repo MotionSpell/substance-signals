@@ -187,9 +187,8 @@ size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 
 		auto const desiredCount = std::min(m_pImpl->m_currBs.len, buffer.len);
 		auto const readCount = read(m_pImpl->m_currBs, buffer.ptr, desiredCount);
-		if (readCount != 0) {
+		if (readCount != 0)
 			return readCount;
-		}
 
 		m_pImpl->m_currBs = {};
 		m_pImpl->m_currData = nullptr;
@@ -197,16 +196,14 @@ size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 }
 
 void Private::threadProc() {
-
 	headers = curl_slist_append(headers, "Transfer-Encoding: chunked");
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
 	while(!finished) {
 		finished = false;
-
 		m_currBs = {};
 
-		// load prefix if any
+		// load prefix, if any
 		if(m_prefixData)
 			m_currBs = m_prefixData->data();
 
