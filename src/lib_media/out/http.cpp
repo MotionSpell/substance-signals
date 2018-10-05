@@ -23,7 +23,8 @@ size_t writeVoid(void *buffer, size_t size, size_t nmemb, void *userp) {
 
 size_t read(span<const uint8_t>& stream, uint8_t* dst, size_t dstLen) {
 	auto readCount = std::min(stream.len, dstLen);
-	memcpy(dst, stream.ptr, readCount);
+	if(readCount > 0)
+		memcpy(dst, stream.ptr, readCount);
 	stream += readCount;
 	return readCount;
 }
@@ -71,7 +72,8 @@ bool startsWith(std::string s, std::string prefix) {
 
 Data createData(std::vector<uint8_t> const& contents) {
 	auto r = make_shared<DataRaw>(contents.size());
-	memcpy(r->data().ptr, contents.data(), contents.size());
+	if(contents.size())
+		memcpy(r->data().ptr, contents.data(), contents.size());
 	return r;
 }
 }
