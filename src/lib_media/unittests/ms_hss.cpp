@@ -43,6 +43,9 @@ secondclasstest("MS_HSS: simple") {
 		'm', 'o', 'o', 'v',
 		0x11, 0x22, 0x22, 0x22,
 		0x22, 0x22, 0x22, 0x33,
+
+		// actual data
+		0xAA, 0xAA, 0xAA, 0xAA, 0xFF,
 	};
 	mod->process(createPacket(data));
 	mod->process(createPacket(data));

@@ -48,7 +48,7 @@ function handle_post
       if [ -z "$data" ] ; then
         break
       fi
-      echo "$data" | hexdump -C >&2
+      echo "$data" | hexdump -vC >&2
     done
     echo "POST data OK" >&2
   fi
