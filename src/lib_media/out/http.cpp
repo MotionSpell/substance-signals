@@ -96,6 +96,8 @@ struct Private {
 	}
 
 	void threadProc();
+	bool loadNextBs();
+	size_t fillBuffer(span<uint8_t> buffer);
 
 	bool finished;
 
@@ -164,33 +166,33 @@ void HTTP::process(Data data) {
 
 size_t HTTP::staticCurlCallback(void *buffer, size_t size, size_t nmemb, void *userp) {
 	auto pThis = (HTTP*)userp;
-	return pThis->fillBuffer(span<uint8_t>((uint8_t*)buffer, size * nmemb));
+	return pThis->m_pImpl->fillBuffer(span<uint8_t>((uint8_t*)buffer, size * nmemb));
 }
 
-bool HTTP::loadNextBs() {
-	m_pImpl->m_currData = m_pImpl->m_fifo.pop();
-	if(!m_pImpl->m_currData)
+bool Private::loadNextBs() {
+	m_currData = m_fifo.pop();
+	if(!m_currData)
 		return false;
 
-	m_pImpl->m_currBs = m_pImpl->m_currData->data();
+	m_currBs = m_currData->data();
 	return true;
 }
 
-size_t HTTP::fillBuffer(span<uint8_t> buffer) {
+size_t Private::fillBuffer(span<uint8_t> buffer) {
 	// curl stops calling us when we return 0.
-	if(m_pImpl->finished)
+	if(finished)
 		return 0;
 
 	auto writer = buffer;
 	while(writer.len > 0) {
-		if (m_pImpl->m_currBs.len == 0) {
+		if (m_currBs.len == 0) {
 			if (!loadNextBs()) {
-				m_pImpl->finished = true;
+				finished = true;
 				break;
 			}
 		}
 
-		writer += read(m_pImpl->m_currBs, writer.ptr, writer.len);
+		writer += read(m_currBs, writer.ptr, writer.len);
 	}
 
 	return writer.ptr - buffer.ptr;
