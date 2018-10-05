@@ -51,9 +51,10 @@ class HTTP : public ModuleS {
 		IModuleHost* const m_host;
 
 		std::unique_ptr<Private> m_pImpl;
+
 		Data m_suffixData;
 		Data m_currData;
-		span<const uint8_t> m_currBs {}; // points into the contents of m_currData
+		span<const uint8_t> m_currBs {}; // points to the contents of m_currData/m_suffixData
 
 		OutputDataDefault<DataRaw>* outputFinished;
 
