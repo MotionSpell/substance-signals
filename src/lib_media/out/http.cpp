@@ -15,9 +15,7 @@ namespace Modules {
 namespace Out {
 
 namespace {
-size_t writeVoid(void *buffer, size_t size, size_t nmemb, void *userp) {
-	(void)buffer;
-	(void)userp;
+size_t writeVoid(void*, size_t size, size_t nmemb, void*) {
 	return size * nmemb;
 }
 
