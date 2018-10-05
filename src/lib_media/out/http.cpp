@@ -175,7 +175,7 @@ size_t HTTP::staticCurlCallback(void *buffer, size_t size, size_t nmemb, void *u
 	return pThis->fillBuffer(span<uint8_t>((uint8_t*)buffer, size * nmemb));
 }
 
-bool HTTP::loadNextData() {
+bool HTTP::loadNextBs() {
 	m_currData = m_pImpl->m_fifo.pop();
 	if(!m_currData)
 		return false;
@@ -191,8 +191,8 @@ size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 		m_host->log(Warning, "Reconnect");
 	}
 
-	if (!m_currData) {
-		if (!loadNextData()) {
+	if (!m_currBs.ptr) {
+		if (!loadNextBs()) {
 			m_pImpl->state = Stop;
 			return 0;
 		}
