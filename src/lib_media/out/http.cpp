@@ -96,7 +96,6 @@ struct Private {
 	}
 
 	void threadProc();
-	bool loadNextBs();
 	size_t fillBuffer(span<uint8_t> buffer);
 
 	bool finished;
@@ -169,15 +168,6 @@ size_t HTTP::staticCurlCallback(void *buffer, size_t size, size_t nmemb, void *u
 	return pThis->m_pImpl->fillBuffer(span<uint8_t>((uint8_t*)buffer, size * nmemb));
 }
 
-bool Private::loadNextBs() {
-	m_currData = m_fifo.pop();
-	if(!m_currData)
-		return false;
-
-	m_currBs = m_currData->data();
-	return true;
-}
-
 size_t Private::fillBuffer(span<uint8_t> buffer) {
 	// curl stops calling us when we return 0.
 	if(finished)
@@ -186,10 +176,12 @@ size_t Private::fillBuffer(span<uint8_t> buffer) {
 	auto writer = buffer;
 	while(writer.len > 0) {
 		if (m_currBs.len == 0) {
-			if (!loadNextBs()) {
+			m_currData = m_fifo.pop();
+			if(!m_currData) {
 				finished = true;
 				break;
 			}
+			m_currBs = m_currData->data();
 		}
 
 		writer += read(m_currBs, writer.ptr, writer.len);
