@@ -6,7 +6,7 @@
 namespace Modules {
 namespace Stream {
 
-class MS_HSS : public ModuleS, private Out::HTTP::Controller {
+class MS_HSS : public ModuleS {
 	public:
 		MS_HSS(IModuleHost* host, const std::string &url);
 
@@ -14,9 +14,6 @@ class MS_HSS : public ModuleS, private Out::HTTP::Controller {
 		void flush() override;
 
 	private:
-		void newFileCallback(span<uint8_t> out) final; //remove ftyp/moov
-		void skipBox(uint32_t name, span<uint8_t> out);
-
 		std::unique_ptr<Out::HTTP> m_http;
 		IModuleHost* const m_host;
 };

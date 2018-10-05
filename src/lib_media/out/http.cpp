@@ -148,6 +148,10 @@ HTTP::~HTTP() {
 	m_pImpl->workingThread.join();
 }
 
+void HTTP::setPrefix(span<const uint8_t> prefix) {
+	m_prefixData = createData({prefix.ptr, prefix.ptr+prefix.len});
+}
+
 void HTTP::flush() {
 	m_pImpl->send(nullptr);
 
@@ -157,12 +161,6 @@ void HTTP::flush() {
 
 void HTTP::process(Data data) {
 	m_pImpl->send(data);
-}
-
-void HTTP::readTransferedBs(uint8_t* dst, size_t size) {
-	auto n = read(m_currBs, dst, size);
-	if (n != size)
-		throw error("Short read on transfered bitstream");
 }
 
 size_t HTTP::staticCurlCallback(void *buffer, size_t size, size_t nmemb, void *userp) {
@@ -181,10 +179,12 @@ bool HTTP::loadNextBs() {
 
 size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 	while(1) {
-		if (m_pImpl->state == RunNewConnection && m_currData) {
-			// restart transfer of the current chunk from the beginning
-			m_currBs = m_currData->data();
-			m_host->log(Warning, "Reconnect");
+		if (m_pImpl->state == RunNewConnection) {
+			m_currBs = {};
+
+			// load prefix if any
+			if(m_prefixData)
+				m_currBs = m_prefixData->data();
 		}
 
 		if (!m_currBs.ptr) {
@@ -201,7 +201,6 @@ size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 		if (m_pImpl->state == RunNewConnection) {
 			m_pImpl->state = RunResume;
 		} else if (m_pImpl->state == RunNewFile) {
-			m_controller->newFileCallback(buffer);
 			m_pImpl->state = RunResume;
 		}
 

@@ -32,15 +32,10 @@ class HTTP : public ModuleS {
 		HTTP(IModuleHost* host, HttpOutputConfig const& cfg);
 		virtual ~HTTP();
 
+		void setPrefix(span<const uint8_t> prefix);
+
 		void process(Data data) final;
 		void flush() final;
-
-		struct Controller {
-			virtual void newFileCallback(span<uint8_t>) {}
-		};
-		Controller* m_controller = &m_nullController;
-
-		void readTransferedBs(uint8_t* dst, size_t size);
 
 	private:
 		bool loadNextBs();
@@ -51,13 +46,12 @@ class HTTP : public ModuleS {
 
 		std::unique_ptr<Private> m_pImpl;
 
+		Data m_prefixData;
 		Data m_suffixData;
 		Data m_currData;
 		span<const uint8_t> m_currBs {}; // points to the contents of m_currData/m_suffixData
 
 		OutputDataDefault<DataRaw>* outputFinished;
-
-		Controller m_nullController;
 };
 
 }
