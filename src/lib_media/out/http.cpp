@@ -180,39 +180,40 @@ bool HTTP::loadNextBs() {
 }
 
 size_t HTTP::fillBuffer(span<uint8_t> buffer) {
-	if (m_pImpl->state == RunNewConnection && m_currData) {
-		// restart transfer of the current chunk from the beginning
-		m_currBs = m_currData->data();
-		m_host->log(Warning, "Reconnect");
-	}
-
-	if (!m_currBs.ptr) {
-		if (!loadNextBs()) {
-			m_pImpl->state = Stop;
-			return 0;
+	while(1) {
+		if (m_pImpl->state == RunNewConnection && m_currData) {
+			// restart transfer of the current chunk from the beginning
+			m_currBs = m_currData->data();
+			m_host->log(Warning, "Reconnect");
 		}
 
-		if (m_pImpl->state != RunNewConnection) {
-			m_pImpl->state = RunNewFile; //on new connection, don't call newFileCallback()
+		if (!m_currBs.ptr) {
+			if (!loadNextBs()) {
+				m_pImpl->state = Stop;
+				return 0;
+			}
+
+			if (m_pImpl->state != RunNewConnection) {
+				m_pImpl->state = RunNewFile; //on new connection, don't call newFileCallback()
+			}
 		}
-	}
 
-	if (m_pImpl->state == RunNewConnection) {
-		m_pImpl->state = RunResume;
-	} else if (m_pImpl->state == RunNewFile) {
-		m_controller->newFileCallback(buffer);
-		m_pImpl->state = RunResume;
-	}
+		if (m_pImpl->state == RunNewConnection) {
+			m_pImpl->state = RunResume;
+		} else if (m_pImpl->state == RunNewFile) {
+			m_controller->newFileCallback(buffer);
+			m_pImpl->state = RunResume;
+		}
 
-	auto const desiredCount = std::min(m_currBs.len, buffer.len);
-	auto const readCount = read(m_currBs, buffer.ptr, desiredCount);
-	if (readCount == 0) {
+		auto const desiredCount = std::min(m_currBs.len, buffer.len);
+		auto const readCount = read(m_currBs, buffer.ptr, desiredCount);
+		if (readCount != 0) {
+			return readCount;
+		}
+
 		m_currBs = {};
 		m_currData = nullptr;
-		return fillBuffer(buffer);
 	}
-
-	return readCount;
 }
 
 void Private::threadProc() {
