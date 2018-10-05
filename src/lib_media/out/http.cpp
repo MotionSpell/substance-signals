@@ -221,16 +221,11 @@ void Private::threadProc() {
 	headers = curl_slist_append(headers, "Transfer-Encoding: chunked");
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
-	auto performTransfer = [&]() {
+	while(state != Stop) {
 		state = RunNewConnection;
-		CURLcode res = curl_easy_perform(curl);
+		auto res = curl_easy_perform(curl);
 		if (res != CURLE_OK)
 			m_log->log(Warning, format("Transfer failed: %s", curl_easy_strerror(res)).c_str());
-
-		return state == Stop;
-	};
-
-	while (!performTransfer()) {
 	}
 }
 
