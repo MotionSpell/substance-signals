@@ -22,7 +22,28 @@ std::shared_ptr<DataBase> createPacket(span<uint8_t> contents) {
 
 secondclasstest("MS_HSS: simple") {
 	auto mod = create<MS_HSS>(&NullHost, "http://127.0.0.1:9000");
-	uint8_t data[256] = { 0x00, 0x10 };
+	uint8_t data[] = {
+		// 'ftyp' box
+		0x00, 0x00, 0x00, 0x0A,
+		'f', 't', 'y', 'p',
+		0x77, 0x77,
+
+		// 'evil' box
+		0x00, 0x00, 0x00, 0x0C,
+		'e', 'v', 'i', 'l',
+		0x66, 0x66, 0x66, 0x66,
+
+		// 'free' box
+		0x00, 0x00, 0x00, 0x0A,
+		'f', 'r', 'e', 'e',
+		0x55, 0x55,
+
+		// 'moov' box
+		0x00, 0x00, 0x00, 0x10,
+		'm', 'o', 'o', 'v',
+		0x11, 0x22, 0x22, 0x22,
+		0x22, 0x22, 0x22, 0x33,
+	};
 	mod->process(createPacket(data));
 	mod->process(createPacket(data));
 	mod->process(createPacket(data));
