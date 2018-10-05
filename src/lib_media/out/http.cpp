@@ -78,13 +78,6 @@ Data createData(std::vector<uint8_t> const& contents) {
 }
 }
 
-enum State {
-	RunNewConnection, //untouched, send from previous ftyp/moov
-	RunNewFile,       //execute newFileCallback()
-	RunResume,        //untouched
-	Stop,             //close the connection
-};
-
 struct Private {
 
 	Private(std::string url, bool usePUT) {
@@ -104,7 +97,7 @@ struct Private {
 
 	void threadProc();
 
-	State state {};
+	bool finished;
 
 	Data m_prefixData;
 	Data m_currData;
@@ -185,26 +178,12 @@ bool HTTP::loadNextBs() {
 
 size_t HTTP::fillBuffer(span<uint8_t> buffer) {
 	while(1) {
-		if (m_pImpl->state == RunNewConnection) {
-			m_pImpl->m_currBs = {};
-
-			// load prefix if any
-			if(m_pImpl->m_prefixData)
-				m_pImpl->m_currBs = m_pImpl->m_prefixData->data();
-		}
-
 		if (!m_pImpl->m_currBs.ptr) {
 			if (!loadNextBs()) {
-				m_pImpl->state = Stop;
+				m_pImpl->finished = true;
 				return 0;
 			}
-
-			if (m_pImpl->state != RunNewConnection) {
-				m_pImpl->state = RunNewFile; //on new connection, don't call newFileCallback()
-			}
 		}
-
-		m_pImpl->state = RunResume;
 
 		auto const desiredCount = std::min(m_pImpl->m_currBs.len, buffer.len);
 		auto const readCount = read(m_pImpl->m_currBs, buffer.ptr, desiredCount);
@@ -222,8 +201,15 @@ void Private::threadProc() {
 	headers = curl_slist_append(headers, "Transfer-Encoding: chunked");
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
-	while(state != Stop) {
-		state = RunNewConnection;
+	while(!finished) {
+		finished = false;
+
+		m_currBs = {};
+
+		// load prefix if any
+		if(m_prefixData)
+			m_currBs = m_prefixData->data();
+
 		auto res = curl_easy_perform(curl);
 		if (res != CURLE_OK)
 			m_log->log(Warning, format("Transfer failed: %s", curl_easy_strerror(res)).c_str());
