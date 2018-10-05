@@ -65,11 +65,15 @@ void enforceConnection(std::string url, bool usePUT) {
 		throw std::runtime_error(format("Can't connect to '%s'", url));
 }
 
-static
 bool startsWith(std::string s, std::string prefix) {
 	return !s.compare(0, prefix.size(), prefix);
 }
 
+Data createData(std::vector<uint8_t> const& contents) {
+	auto r = make_shared<DataRaw>(contents.size());
+	memcpy(r->data().ptr, contents.data(), contents.size());
+	return r;
+}
 }
 
 enum State {
@@ -110,7 +114,7 @@ struct Private {
 };
 
 HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
-	: m_host(host), endOfSessionSuffix(cfg.endOfSessionSuffix) {
+	: m_host(host), m_suffixData(createData(cfg.endOfSessionSuffix)) {
 	if (!startsWith(cfg.url, "http://") && !startsWith(cfg.url, "https://"))
 		throw error(format("can only handle URLs starting with 'http://' or 'https://', not '%s'.", cfg.url));
 
@@ -139,11 +143,7 @@ HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
 }
 
 HTTP::~HTTP() {
-	{
-		auto r = make_shared<DataRaw>(endOfSessionSuffix.size());
-		memcpy(r->data().ptr, endOfSessionSuffix.data(), endOfSessionSuffix.size());
-		m_pImpl->send(r);
-	}
+	m_pImpl->send(m_suffixData);
 	m_pImpl->send(nullptr);
 	m_pImpl->workingThread.join();
 }
