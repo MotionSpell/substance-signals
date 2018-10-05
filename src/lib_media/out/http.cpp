@@ -21,14 +21,6 @@ size_t writeVoid(void *buffer, size_t size, size_t nmemb, void *userp) {
 	return size * nmemb;
 }
 
-size_t read(span<const uint8_t>& stream, uint8_t* dst, size_t dstLen) {
-	auto readCount = std::min(stream.len, dstLen);
-	if(readCount > 0)
-		memcpy(dst, stream.ptr, readCount);
-	stream += readCount;
-	return readCount;
-}
-
 CURL* createCurl(std::string url, bool usePUT) {
 	auto curl = curl_easy_init();
 	if (!curl)
@@ -80,51 +72,104 @@ Data createData(std::vector<uint8_t> const& contents) {
 
 struct HttpSender {
 
-	HttpSender(std::string url, std::string userAgent, bool usePUT, std::vector<std::string> extraHeaders, IModuleHost* log) {
-		m_log = log;
-		curl_global_init(CURL_GLOBAL_ALL);
-		curl = createCurl(url, usePUT);
+		HttpSender(std::string url, std::string userAgent, bool usePUT, std::vector<std::string> extraHeaders, IModuleHost* log) {
+			m_log = log;
+			curl_global_init(CURL_GLOBAL_ALL);
+			curl = createCurl(url, usePUT);
 
-		curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent.c_str());
+			curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent.c_str());
 
-		for (auto &h : extraHeaders) {
-			headers = curl_slist_append(headers, h.c_str());
-			curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+			for (auto &h : extraHeaders) {
+				headers = curl_slist_append(headers, h.c_str());
+				curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+			}
+
+			workingThread = std::thread(&HttpSender::threadProc, this);
 		}
 
-		workingThread = std::thread(&HttpSender::threadProc, this);
-	}
+		~HttpSender() {
+			m_fifo.push(nullptr);
+			workingThread.join();
 
-	~HttpSender() {
-		m_fifo.push(nullptr);
-		workingThread.join();
+			curl_slist_free_all(headers);
+			curl_easy_cleanup(curl);
+			curl_global_cleanup();
+		}
 
-		curl_slist_free_all(headers);
-		curl_easy_cleanup(curl);
-		curl_global_cleanup();
-	}
+		void send(Data data) {
+			m_fifo.push(data);
+		}
 
-	void send(Data data) {
-		m_fifo.push(data);
-	}
+		void threadProc() {
+			headers = curl_slist_append(headers, "Transfer-Encoding: chunked");
+			curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
-	void threadProc();
-	size_t fillBuffer(span<uint8_t> buffer);
-	static size_t staticCurlCallback(void *ptr, size_t size, size_t nmemb, void *userp);
+			curl_easy_setopt(curl, CURLOPT_READFUNCTION, &HttpSender::staticCurlCallback);
+			curl_easy_setopt(curl, CURLOPT_READDATA, this);
 
-	bool finished;
+			do {
+				finished = false;
+				m_currBs = {};
 
-	Data m_prefixData;
-	Data m_currData;
-	span<const uint8_t> m_currBs {}; // points to the contents of m_currData/m_suffixData
+				// load prefix, if any
+				if(m_prefixData)
+					m_currBs = m_prefixData->data();
 
-	IModuleHost* m_log {};
-	curl_slist* headers {};
-	CURL *curl;
-	std::thread workingThread;
+				auto res = curl_easy_perform(curl);
+				if (res != CURLE_OK)
+					m_log->log(Warning, format("Transfer failed: %s", curl_easy_strerror(res)).c_str());
+			} while(!finished);
+		}
 
-	// data to upload
-	Queue<Data> m_fifo;
+		static size_t staticCurlCallback(void *buffer, size_t size, size_t nmemb, void *userp) {
+			auto pThis = (HttpSender*)userp;
+			return pThis->fillBuffer(span<uint8_t>((uint8_t*)buffer, size * nmemb));
+		}
+
+		size_t fillBuffer(span<uint8_t> buffer) {
+			// curl stops calling us when we return 0.
+			if(finished)
+				return 0;
+
+			auto writer = buffer;
+			while(writer.len > 0) {
+				if (m_currBs.len == 0) {
+					m_currData = m_fifo.pop();
+					if(!m_currData) {
+						finished = true;
+						break;
+					}
+					m_currBs = m_currData->data();
+				}
+
+				writer += read(m_currBs, writer.ptr, writer.len);
+			}
+
+			return writer.ptr - buffer.ptr;
+		}
+
+		bool finished;
+
+		Data m_prefixData;
+		Data m_currData;
+		span<const uint8_t> m_currBs {}; // points to the contents of m_currData/m_suffixData
+
+		IModuleHost* m_log {};
+		curl_slist* headers {};
+		CURL *curl;
+		std::thread workingThread;
+
+		// data to upload
+		Queue<Data> m_fifo;
+
+	private:
+		static size_t read(span<const uint8_t>& stream, uint8_t* dst, size_t dstLen) {
+			auto readCount = std::min(stream.len, dstLen);
+			if(readCount > 0)
+				memcpy(dst, stream.ptr, readCount);
+			stream += readCount;
+			return readCount;
+		}
 };
 
 HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
@@ -162,59 +207,10 @@ void HTTP::process(Data data) {
 	m_sender->send(data);
 }
 
-size_t HttpSender::staticCurlCallback(void *buffer, size_t size, size_t nmemb, void *userp) {
-	auto pThis = (HttpSender*)userp;
-	return pThis->fillBuffer(span<uint8_t>((uint8_t*)buffer, size * nmemb));
-}
-
-size_t HttpSender::fillBuffer(span<uint8_t> buffer) {
-	// curl stops calling us when we return 0.
-	if(finished)
-		return 0;
-
-	auto writer = buffer;
-	while(writer.len > 0) {
-		if (m_currBs.len == 0) {
-			m_currData = m_fifo.pop();
-			if(!m_currData) {
-				finished = true;
-				break;
-			}
-			m_currBs = m_currData->data();
-		}
-
-		writer += read(m_currBs, writer.ptr, writer.len);
-	}
-
-	return writer.ptr - buffer.ptr;
-}
-
-void HttpSender::threadProc() {
-	headers = curl_slist_append(headers, "Transfer-Encoding: chunked");
-	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-
-	curl_easy_setopt(curl, CURLOPT_READFUNCTION, &HttpSender::staticCurlCallback);
-	curl_easy_setopt(curl, CURLOPT_READDATA, this);
-
-	do {
-		finished = false;
-		m_currBs = {};
-
-		// load prefix, if any
-		if(m_prefixData)
-			m_currBs = m_prefixData->data();
-
-		auto res = curl_easy_perform(curl);
-		if (res != CURLE_OK)
-			m_log->log(Warning, format("Transfer failed: %s", curl_easy_strerror(res)).c_str());
-	} while(!finished);
-}
-
 }
 }
 
 namespace {
-
 IModule* createObject(IModuleHost* host, va_list va) {
 	auto cfg = va_arg(va, HttpOutputConfig*);
 	enforce(host, "HTTP: host can't be NULL");
