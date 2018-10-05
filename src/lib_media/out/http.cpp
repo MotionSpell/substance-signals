@@ -80,12 +80,25 @@ Data createData(std::vector<uint8_t> const& contents) {
 
 struct HttpSender {
 
-	HttpSender(std::string url, bool usePUT) {
+	HttpSender(std::string url, std::string userAgent, bool usePUT, std::vector<std::string> extraHeaders, IModuleHost* log) {
+		m_log = log;
 		curl_global_init(CURL_GLOBAL_ALL);
 		curl = createCurl(url, usePUT);
+
+		curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent.c_str());
+
+		for (auto &h : extraHeaders) {
+			headers = curl_slist_append(headers, h.c_str());
+			curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+		}
+
+		workingThread = std::thread(&HttpSender::threadProc, this);
 	}
 
 	~HttpSender() {
+		m_fifo.push(nullptr);
+		workingThread.join();
+
 		curl_slist_free_all(headers);
 		curl_easy_cleanup(curl);
 		curl_global_cleanup();
@@ -127,24 +140,11 @@ HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
 	addInput(this);
 	outputFinished = addOutput<OutputDefault>();
 
-	// initialize the sender object
-	m_sender = make_unique<HttpSender>(cfg.url, cfg.flags.UsePUT);
-	m_sender->m_log = host;
-
-	curl_easy_setopt(m_sender->curl, CURLOPT_USERAGENT, cfg.userAgent.c_str());
-
-	for (auto &h : cfg.headers) {
-		m_sender->headers = curl_slist_append(m_sender->headers, h.c_str());
-		curl_easy_setopt(m_sender->curl, CURLOPT_HTTPHEADER, m_sender->headers);
-	}
-
-	m_sender->workingThread = std::thread(&HttpSender::threadProc, m_sender.get());
+	m_sender = make_unique<HttpSender>(cfg.url, cfg.userAgent, cfg.flags.UsePUT, cfg.headers, host);
 }
 
 HTTP::~HTTP() {
 	m_sender->send(m_suffixData);
-	m_sender->send(nullptr);
-	m_sender->workingThread.join();
 }
 
 void HTTP::setPrefix(span<const uint8_t> prefix) {
