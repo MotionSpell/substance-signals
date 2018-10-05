@@ -49,10 +49,11 @@ void MS_HSS::process(Data data) {
 	skipBox(bs, FOURCC("free"));
 	skipBox(bs, FOURCC("moov"));
 
-	auto prefix = data->data();
-	prefix.len = bs.ptr - prefix.ptr;
-
-	m_http->setPrefix(prefix);
+	{
+		auto prefix = data->data();
+		prefix.len = bs.ptr - prefix.ptr;
+		m_http->setPrefix(prefix);
+	}
 
 	m_http->process(createData(bs));
 }
