@@ -177,22 +177,27 @@ bool HTTP::loadNextBs() {
 }
 
 size_t HTTP::fillBuffer(span<uint8_t> buffer) {
-	while(1) {
-		if (!m_pImpl->m_currBs.ptr) {
+	// curl stops calling us when we return 0.
+	if(m_pImpl->finished)
+		return 0;
+
+	auto writer = buffer;
+	while(writer.len > 0) {
+		if (m_pImpl->m_currBs.len == 0) {
 			if (!loadNextBs()) {
 				m_pImpl->finished = true;
-				return 0;
+				break;
 			}
 		}
 
-		auto const desiredCount = std::min(m_pImpl->m_currBs.len, buffer.len);
-		auto const readCount = read(m_pImpl->m_currBs, buffer.ptr, desiredCount);
-		if (readCount != 0)
-			return readCount;
+		auto const readCount = read(m_pImpl->m_currBs, writer.ptr, writer.len);
+		m_pImpl->m_currBs += readCount;
+		writer += readCount;
 
 		m_pImpl->m_currBs = {};
-		m_pImpl->m_currData = nullptr;
 	}
+
+	return writer.ptr - buffer.ptr;
 }
 
 void Private::threadProc() {
