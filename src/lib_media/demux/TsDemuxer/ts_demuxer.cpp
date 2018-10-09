@@ -14,14 +14,14 @@ using namespace std;
 
 using namespace Modules;
 
+#include "stream.hpp"
+#include "pes_stream.hpp"
+#include "psi_stream.hpp"
+
 namespace {
 
 auto const TS_PACKET_LEN = 188;
 auto const PID_PAT = 0;
-
-#include "stream.hpp"
-#include "pes_stream.hpp"
-#include "psi_stream.hpp"
 
 struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::Restamper {
 		TsDemuxer(IModuleHost* host, TsDemuxerConfig const& config)
