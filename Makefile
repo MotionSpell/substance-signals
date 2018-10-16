@@ -27,6 +27,7 @@ ifeq ($(DEBUG), 0)
 endif
 
 SIGNALS_HAS_X11?=1
+SIGNALS_NO_APPS?=0
 
 CFLAGS+=-I$(SRC)
 
@@ -64,12 +65,15 @@ LIB_APPCOMMON_SRCS:=\
   $(SRC)/lib_appcommon/options.cpp \
 
 include $(SRC)/lib_media/project.mk
-include $(SRC)/tests/project.mk
-include $(SRC)/apps/dashcastx/project.mk
-include $(SRC)/apps/player/project.mk
-include $(SRC)/apps/mp42tsx/project.mk
-include $(SRC)/apps/monitor/project.mk
-include $(SRC)/apps/mcastdump/project.mk
+
+ifeq ($(SIGNALS_NO_APPS), 0)
+  include $(SRC)/tests/project.mk
+  include $(SRC)/apps/dashcastx/project.mk
+  include $(SRC)/apps/player/project.mk
+  include $(SRC)/apps/mp42tsx/project.mk
+  include $(SRC)/apps/monitor/project.mk
+  include $(SRC)/apps/mcastdump/project.mk
+endif
 
 #------------------------------------------------------------------------------
 
