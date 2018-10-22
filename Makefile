@@ -27,7 +27,7 @@ ifeq ($(DEBUG), 0)
 endif
 
 SIGNALS_HAS_X11?=1
-SIGNALS_NO_APPS?=0
+SIGNALS_HAS_APPS?=1
 
 CFLAGS+=-I$(SRC)
 
@@ -66,7 +66,7 @@ LIB_APPCOMMON_SRCS:=\
 
 include $(SRC)/lib_media/project.mk
 
-ifeq ($(SIGNALS_NO_APPS), 0)
+ifeq ($(SIGNALS_HAS_APPS), 1)
   include $(SRC)/tests/project.mk
   include $(SRC)/apps/dashcastx/project.mk
   include $(SRC)/apps/player/project.mk
