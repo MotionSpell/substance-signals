@@ -109,16 +109,9 @@ LibavMux::~LibavMux() {
 
 bool LibavMux::declareStream(Data data, size_t inputIdx) {
 	auto const metadata_ = data->getMetadata();
-	auto metadataVideo = std::dynamic_pointer_cast<const MetadataPktLibavVideo>(metadata_);
-	auto metadataAudio = std::dynamic_pointer_cast<const MetadataPktLibavAudio>(metadata_);
-	std::shared_ptr<const MetadataPktLibav> metadata;
-	if (metadataVideo) {
-		metadata = metadataVideo;
-	} else if (metadataAudio) {
-		metadata = metadataAudio;
-	} else {
+	auto metadata = std::dynamic_pointer_cast<const MetadataPktLibav>(metadata_);
+	if(!metadata)
 		throw error("Stream creation failed: unknown type.");
-	}
 
 	AVStream *avStream = avformat_new_stream(m_formatCtx, metadata->getAVCodecContext()->codec);
 	if (!avStream)
