@@ -40,7 +40,8 @@ void libav_mux(std::string format) {
 	auto decode = loadModule("Decoder", &NullHost, VIDEO_PKT);
 	EncoderConfig encCfg { EncoderConfig::Video };
 	auto encode = loadModule("Encoder", &NullHost, &encCfg);
-	auto mux = create<Mux::LibavMux>(&NullHost, MuxConfig{"out/output_video_libav", format, ""});
+	MuxConfig muxConfig = {"out/output_video_libav", format, ""};
+	auto mux = loadModule("LibavMux", &NullHost, &muxConfig);
 
 	ConnectOutputToInput(demux->getOutput(videoIndex), decode->getInput(0));
 	ConnectOutputToInput(decode->getOutput(0), encode->getInput(0));

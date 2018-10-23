@@ -15,7 +15,6 @@ LIB_MEDIA_SRCS:=\
   $(MYDIR)/mux/gpac_mux_m2ts.cpp\
   $(MYDIR)/mux/gpac_mux_mp4.cpp\
   $(MYDIR)/mux/gpac_mux_mp4_mss.cpp\
-  $(MYDIR)/mux/libav_mux.cpp\
   $(MYDIR)/out/file.cpp\
   $(MYDIR)/out/http.cpp\
   $(MYDIR)/out/null.cpp\
@@ -113,6 +112,14 @@ $(BIN)/LibavDemux.smd: \
   $(BIN)/$(SRC)/lib_media/demux/libav_demux.cpp.o\
   $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
   $(BIN)/$(SRC)/lib_media/transform/restamp.cpp.o\
+
+#------------------------------------------------------------------------------
+TARGETS+=$(BIN)/LibavMux.smd
+$(BIN)/LibavMux.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
+$(BIN)/LibavMux.smd: CFLAGS+=$(MEDIA_CFLAGS)
+$(BIN)/LibavMux.smd: \
+  $(BIN)/$(SRC)/lib_media/mux/libav_mux.cpp.o\
+  $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
 
 #------------------------------------------------------------------------------
 include $(SRC)/lib_media/in/MulticastInput/project.mk

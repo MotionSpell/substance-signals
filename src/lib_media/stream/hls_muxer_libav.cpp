@@ -1,10 +1,13 @@
 #include "hls_muxer_libav.hpp"
 
-#include <lib_modules/utils/helper.hpp>
-#include <lib_modules/utils/helper_dyn.hpp>
+#include "lib_modules/utils/helper.hpp"
+#include "lib_modules/utils/helper_dyn.hpp"
 #include "lib_modules/utils/factory.hpp"
+#include "lib_modules/utils/loader.hpp"
 #include "../mux/libav_mux.hpp"
 #include "../common/libav.hpp"
+
+#include "lib_utils/format.hpp"
 
 using namespace Modules;
 
@@ -16,7 +19,10 @@ class LibavMuxHLSTS : public ModuleDynI {
 			: m_host(host),
 			  m_utcStartTime(cfg->utcStartTime),
 			  segDuration(timescaleToClock(cfg->segDurationInMs, 1000)), hlsDir(cfg->baseDir), segBasename(cfg->baseName) {
-			delegate = create<Mux::LibavMux>(m_host, MuxConfig{format("%s%s", hlsDir, cfg->baseName), "hls", cfg->options});
+			{
+				MuxConfig muxCfg = {format("%s%s", hlsDir, cfg->baseName), "hls", cfg->options};
+				delegate = loadModule("LibavMux", m_host, &muxCfg);
+			}
 			addInput(new Input(this));
 			outputSegment  = addOutput<OutputDataDefault<DataRaw>>();
 			outputManifest = addOutput<OutputDataDefault<DataRaw>>();
@@ -86,7 +92,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 
 		IModuleHost* const m_host;
 		IUtcStartTimeQuery* const m_utcStartTime;
-		std::unique_ptr<Modules::Mux::LibavMux> delegate;
+		std::shared_ptr<IModule> delegate;
 		OutputDataDefault<DataRaw> *outputSegment, *outputManifest;
 		int64_t firstDTS = -1, segDuration, segIdx = 0;
 		std::string hlsDir, segBasename;

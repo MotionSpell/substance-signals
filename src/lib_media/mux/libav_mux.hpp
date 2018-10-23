@@ -1,11 +1,6 @@
 #pragma once
 
-#include "lib_modules/utils/helper.hpp"
-#include "lib_modules/utils/helper_dyn.hpp"
-#include "../common/ffpp.hpp"
-
-struct AVFormatContext;
-struct AVPacket;
+#include <string>
 
 struct MuxConfig {
 	std::string baseName;
@@ -13,29 +8,3 @@ struct MuxConfig {
 	std::string options;
 };
 
-namespace Modules {
-namespace Mux {
-
-class LibavMux : public ModuleDynI {
-	public:
-		LibavMux(IModuleHost* host, MuxConfig cfg);
-		~LibavMux();
-		void process() override;
-
-	private:
-		IModuleHost* const m_host;
-
-		static void formatsList();
-		void ensureHeader();
-		AVPacket * getFormattedPkt(Data data);
-		bool declareStream(Data stream, size_t inputIdx);
-
-		struct AVFormatContext *m_formatCtx;
-		std::map<size_t, size_t> inputIdx2AvStream;
-		ffpp::Dict optionsDict;
-		bool m_headerWritten = false;
-		bool m_inbandMetadata = false;
-};
-
-}
-}

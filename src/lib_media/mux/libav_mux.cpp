@@ -1,5 +1,9 @@
 #include "libav_mux.hpp"
+#include "lib_modules/utils/helper.hpp"
+#include "lib_modules/utils/helper_dyn.hpp"
+#include "lib_modules/utils/factory.hpp"
 #include "lib_utils/tools.hpp"
+#include "../common/ffpp.hpp"
 #include "../common/libav.hpp"
 #include <cassert>
 #include <string>
@@ -14,6 +18,27 @@ extern const char *g_version;
 
 namespace Modules {
 namespace Mux {
+
+class LibavMux : public ModuleDynI {
+	public:
+		LibavMux(IModuleHost* host, MuxConfig cfg);
+		~LibavMux();
+		void process() override;
+
+	private:
+		IModuleHost* const m_host;
+
+		static void formatsList();
+		void ensureHeader();
+		AVPacket * getFormattedPkt(Data data);
+		bool declareStream(Data stream, size_t inputIdx);
+
+		struct AVFormatContext *m_formatCtx;
+		std::map<size_t, size_t> inputIdx2AvStream;
+		ffpp::Dict optionsDict;
+		bool m_headerWritten = false;
+		bool m_inbandMetadata = false;
+};
 
 void LibavMux::formatsList() {
 	g_Log->log(Warning, "Output formats list:");
@@ -192,4 +217,18 @@ void LibavMux::process() {
 }
 
 }
+}
+
+namespace {
+
+using namespace Modules;
+
+Modules::IModule* createObject(IModuleHost* host, va_list va) {
+	auto config = va_arg(va, MuxConfig*);
+	enforce(host, "LibavMux: host can't be NULL");
+	enforce(config, "LibavMux: config can't be NULL");
+	return Modules::create<Mux::LibavMux>(host, *config).release();
+}
+
+auto const registered = Factory::registerModule("LibavMux", &createObject);
 }
