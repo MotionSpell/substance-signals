@@ -12,7 +12,6 @@ LIB_MEDIA_SRCS:=\
   $(MYDIR)/in/mpeg_dash_input.cpp\
   $(MYDIR)/in/sound_generator.cpp\
   $(MYDIR)/in/video_generator.cpp\
-  $(MYDIR)/mux/gpac_mux_m2ts.cpp\
   $(MYDIR)/mux/gpac_mux_mp4.cpp\
   $(MYDIR)/mux/gpac_mux_mp4_mss.cpp\
   $(MYDIR)/out/file.cpp\
@@ -118,6 +117,14 @@ $(BIN)/LibavMux.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
 $(BIN)/LibavMux.smd: CFLAGS+=$(MEDIA_CFLAGS)
 $(BIN)/LibavMux.smd: \
   $(BIN)/$(SRC)/lib_media/mux/libav_mux.cpp.o\
+  $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
+
+#------------------------------------------------------------------------------
+TARGETS+=$(BIN)/GpacMuxM2ts.smd
+$(BIN)/GpacMuxM2ts.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
+$(BIN)/GpacMuxM2ts.smd: CFLAGS+=$(MEDIA_CFLAGS)
+$(BIN)/GpacMuxM2ts.smd: \
+  $(BIN)/$(SRC)/lib_media/mux/gpac_mux_m2ts.cpp.o\
   $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
 
 #------------------------------------------------------------------------------
