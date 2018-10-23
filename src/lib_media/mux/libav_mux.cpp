@@ -120,7 +120,7 @@ class LibavMux : public ModuleDynI {
 		IModuleHost* const m_host;
 
 
-		struct AVFormatContext *m_formatCtx;
+		AVFormatContext* const m_formatCtx;
 		std::map<size_t, size_t> inputIdx2AvStream;
 		ffpp::Dict optionsDict;
 		bool m_headerWritten = false;
