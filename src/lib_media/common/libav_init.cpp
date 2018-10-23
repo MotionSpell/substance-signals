@@ -8,10 +8,6 @@
 #include <cstdio>
 #include <cstring>
 
-extern "C" {
-#include <libavformat/avformat.h>
-}
-
 namespace {
 
 Level avLogLevel(int level) {
@@ -84,7 +80,6 @@ void avLog(void* /*avcl*/, int level, const char *fmt, va_list vl) {
 }
 
 int do_ffmpeg_static_initialization() {
-	avformat_network_init();
 	av_log_set_callback(&avLog);
 	return 0;
 }

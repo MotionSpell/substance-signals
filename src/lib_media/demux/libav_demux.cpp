@@ -52,6 +52,8 @@ class LibavDemux : public ActiveModule {
 			if (!(m_formatCtx = avformat_alloc_context()))
 				throw error("Can't allocate format context");
 
+			avformat_network_init();
+
 			auto& url = config.url;
 
 			avdevice_register_all();

@@ -227,6 +227,9 @@ Modules::IModule* createObject(IModuleHost* host, va_list va) {
 	auto config = va_arg(va, MuxConfig*);
 	enforce(host, "LibavMux: host can't be NULL");
 	enforce(config, "LibavMux: config can't be NULL");
+
+	avformat_network_init();
+
 	return Modules::create<Mux::LibavMux>(host, *config).release();
 }
 

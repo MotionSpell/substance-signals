@@ -37,7 +37,6 @@ PKGS+=\
   gpac\
   libavcodec\
   libavfilter\
-  libavformat\
   libavutil\
   libcurl\
 
@@ -47,7 +46,7 @@ endif
 
 $(BIN)/media-config.mk: $(SRC)/../scripts/configure
 	@mkdir -p $(BIN)
-	$(SRC)/../scripts/configure --scope MEDIA_ libswresample libavdevice libswscale libturbojpeg > "$@"
+	$(SRC)/../scripts/configure --scope MEDIA_ libswresample libavdevice libavformat libswscale libturbojpeg > "$@"
 
 ifneq ($(MAKECMDGOALS),clean)
 include $(BIN)/media-config.mk
