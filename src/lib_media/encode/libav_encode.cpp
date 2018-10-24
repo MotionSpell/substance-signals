@@ -16,6 +16,10 @@ using namespace Modules;
 
 namespace {
 
+AVRational toAVRational(Fraction f) {
+	return {(int)f.num, (int)f.den};
+}
+
 struct LibavEncode : ModuleS {
 		LibavEncode(IModuleHost* host, EncoderConfig *pparams)
 			: m_host(host),
@@ -118,9 +122,8 @@ struct LibavEncode : ModuleS {
 				}
 				params.pixelFormat = libavPixFmt2PixelFormat(codecCtx->pix_fmt);
 
-				//for time_base, 'num' and 'den' are inverted
-				AVRational fps { (int)params.frameRate.den, (int)params.frameRate.num };
-				codecCtx->time_base = fps;
+				auto framePeriod = params.frameRate.inverse();
+				codecCtx->time_base = toAVRational(framePeriod);
 				break;
 			}
 			case EncoderConfig::Audio:
