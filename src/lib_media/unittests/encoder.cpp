@@ -79,10 +79,12 @@ unittest("encoder: timestamp passthrough") {
 		times.push_back(data->getMediaTime());
 	};
 
+	vector<int64_t> inputTimes = {0, 1, 2, 3, 4, 10, 11, 12};
+
 	EncoderConfig cfg { EncoderConfig::Video };
 	auto encode = loadModule("Encoder", &NullHost, &cfg);
 	ConnectOutput(encode.get(), onFrame);
-	for (int i = 0; i < 5; ++i) {
+	for(auto i : inputTimes) {
 		auto picture = make_shared<PictureYUV420P>(VIDEO_RESOLUTION);
 		picture->setMediaTime(i);
 		encode->getInput(0)->push(picture);
@@ -90,7 +92,7 @@ unittest("encoder: timestamp passthrough") {
 	}
 	encode->flush();
 
-	vector<int64_t> expected = {0, 1, 2, 3, 4};
+	vector<int64_t> expected = {0, 1, 2, 3, 4, 10, 11, 12};
 	ASSERT_EQUALS(expected, times);
 }
 
