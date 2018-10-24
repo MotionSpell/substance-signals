@@ -37,18 +37,20 @@ unittest("encoder: video simple") {
 	ASSERT_EQUALS(37, numEncodedFrames);
 }
 
-unittest("encoder: audio with first negative timestamp") {
-	auto createPcm = [](int samples) {
-		PcmFormat fmt;
-		const auto inFrameSizeInBytes = (size_t)(samples * fmt.getBytesPerSample() / fmt.numPlanes);
-		auto pcm = make_shared<DataPcm>(0);
-		pcm->setFormat(fmt);
-		std::vector<uint8_t> input(inFrameSizeInBytes);
-		auto inputRaw = input.data();
-		for (uint8_t i = 0; i < fmt.numPlanes; ++i)
-			pcm->setPlane(i, inputRaw, inFrameSizeInBytes);
-		return pcm;
-	};
+static
+shared_ptr<DataBase> createPcm(int samples) {
+	PcmFormat fmt;
+	const auto inFrameSizeInBytes = (size_t)(samples * fmt.getBytesPerSample() / fmt.numPlanes);
+	auto pcm = make_shared<DataPcm>(0);
+	pcm->setFormat(fmt);
+	std::vector<uint8_t> input(inFrameSizeInBytes);
+	auto inputRaw = input.data();
+	for (uint8_t i = 0; i < fmt.numPlanes; ++i)
+		pcm->setPlane(i, inputRaw, inFrameSizeInBytes);
+	return pcm;
+}
+
+unittest("encoder: audio timestamp passthrough (modulo priming)") {
 
 	vector<int64_t> times;
 	auto onFrame = [&](Data data) {
@@ -73,7 +75,7 @@ unittest("encoder: audio with first negative timestamp") {
 	ASSERT_EQUALS(expected, times);
 }
 
-unittest("encoder: timestamp passthrough") {
+unittest("encoder: video timestamp passthrough") {
 	vector<int64_t> times;
 	auto onFrame = [&](Data data) {
 		times.push_back(data->getMediaTime());
@@ -84,9 +86,9 @@ unittest("encoder: timestamp passthrough") {
 	EncoderConfig cfg { EncoderConfig::Video };
 	auto encode = loadModule("Encoder", &NullHost, &cfg);
 	ConnectOutput(encode.get(), onFrame);
-	for(auto i : inputTimes) {
+	for(auto time : inputTimes) {
 		auto picture = make_shared<PictureYUV420P>(VIDEO_RESOLUTION);
-		picture->setMediaTime(i);
+		picture->setMediaTime(time);
 		encode->getInput(0)->push(picture);
 		encode->process();
 	}
