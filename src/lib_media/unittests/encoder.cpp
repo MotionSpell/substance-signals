@@ -38,27 +38,32 @@ unittest("encoder: video simple") {
 }
 
 unittest("encoder: audio with first negative timestamp") {
-	vector<int64_t> times;
-	PcmFormat fmt;
-	auto const numSamplesPerFrame = 1024LL;
-	const auto inFrameSizeInBytes = (size_t)(numSamplesPerFrame * fmt.getBytesPerSample() / fmt.numPlanes);
-
-	auto onFrame = [&](Data data) {
-		times.push_back(data->getMediaTime());
-	};
-
-	EncoderConfig cfg { EncoderConfig::Audio };
-	auto encode = loadModule("Encoder", &NullHost, &cfg);
-	ConnectOutput(encode.get(), onFrame);
-	for (int i = 0; i < 4; ++i) {
+	auto createPcm = [](int samples) {
+		PcmFormat fmt;
+		const auto inFrameSizeInBytes = (size_t)(samples * fmt.getBytesPerSample() / fmt.numPlanes);
 		auto pcm = make_shared<DataPcm>(0);
 		pcm->setFormat(fmt);
 		std::vector<uint8_t> input(inFrameSizeInBytes);
 		auto inputRaw = input.data();
-		for (uint8_t i = 0; i < fmt.numPlanes; ++i) {
+		for (uint8_t i = 0; i < fmt.numPlanes; ++i)
 			pcm->setPlane(i, inputRaw, inFrameSizeInBytes);
-		}
-		pcm->setMediaTime(i * timescaleToClock(numSamplesPerFrame, fmt.sampleRate));
+		return pcm;
+	};
+
+	vector<int64_t> times;
+	auto onFrame = [&](Data data) {
+		times.push_back(data->getMediaTime());
+	};
+
+	vector<int64_t> inputTimes = { 0, 4180, 8360, 12540 };
+
+	EncoderConfig cfg { EncoderConfig::Audio };
+	auto encode = loadModule("Encoder", &NullHost, &cfg);
+	ConnectOutput(encode.get(), onFrame);
+
+	for(auto time : inputTimes) {
+		auto pcm = createPcm(1024);
+		pcm->setMediaTime(time);
 		encode->getInput(0)->push(pcm);
 		encode->process();
 	}
