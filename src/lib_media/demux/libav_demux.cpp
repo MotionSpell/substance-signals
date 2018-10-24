@@ -419,9 +419,9 @@ class LibavDemux : public ActiveModule {
 					}
 					auto const st = m_formatCtx->streams[i];
 					if (st->codecpar->codec_type == AVMEDIA_TYPE_SUBTITLE) {
-						auto outParse = m_streams[i].output->getBuffer(0);
-						outParse->setMediaTime(curTimeIn180k);
-						m_streams[i].output->emit(outParse);
+						auto sparse = m_streams[i].output->getBuffer(0);
+						sparse->setMediaTime(curTimeIn180k);
+						m_streams[i].output->emit(sparse);
 					}
 				}
 			}
