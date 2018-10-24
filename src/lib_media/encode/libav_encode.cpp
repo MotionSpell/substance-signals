@@ -103,6 +103,9 @@ struct LibavEncode : ModuleS {
 			if (!codecCtx)
 				throw error(format("Could not allocate the codec context (\"%s\").", codecName));
 
+			auto input = addInput(this);
+			output = addOutput<OutputDataDefault<DataAVPacket>>();
+
 			/* parameters */
 			switch (type) {
 			case EncoderConfig::Video: {
@@ -124,6 +127,10 @@ struct LibavEncode : ModuleS {
 
 				framePeriod = params.frameRate.inverse();
 				codecCtx->time_base = toAVRational(framePeriod);
+
+				prepareFrame = std::bind(&LibavEncode::prepareVideoFrame, this, std::placeholders::_1);
+				input->setMetadata(make_shared<MetadataRawVideo>());
+				output->setMetadata(make_shared<MetadataPktLibavVideo>(codecCtx));
 				break;
 			}
 			case EncoderConfig::Audio:
@@ -135,6 +142,10 @@ struct LibavEncode : ModuleS {
 				}
 				pcmFormat = make_unique<PcmFormat>(params.sampleRate, params.numChannels, layout);
 				libavAudioCtxConvert(pcmFormat.get(), codecCtx.get());
+
+				prepareFrame = std::bind(&LibavEncode::prepareAudioFrame, this, std::placeholders::_1);
+				input->setMetadata(make_shared<MetadataRawAudio>());
+				output->setMetadata(make_shared<MetadataPktLibavAudio>(codecCtx));
 				break;
 			default:
 				throw error(format("Invalid codec type: %d", type));
@@ -147,25 +158,6 @@ struct LibavEncode : ModuleS {
 			if (avcodec_open2(codecCtx.get(), codec, &codecDict) < 0)
 				throw error(format("Could not open codec %s, disable output.", codecName));
 			codecDict.ensureAllOptionsConsumed();
-
-			auto input = addInput(this);
-			output = addOutput<OutputDataDefault<DataAVPacket>>();
-			switch (type) {
-			case EncoderConfig::Video: {
-				input->setMetadata(make_shared<MetadataRawVideo>());
-				output->setMetadata(make_shared<MetadataPktLibavVideo>(codecCtx));
-				prepareFrame = std::bind(&LibavEncode::prepareVideoFrame, this, std::placeholders::_1);
-				break;
-			}
-			case EncoderConfig::Audio: {
-				input->setMetadata(make_shared<MetadataRawAudio>());
-				output->setMetadata(make_shared<MetadataPktLibavAudio>(codecCtx));
-				prepareFrame = std::bind(&LibavEncode::prepareAudioFrame, this, std::placeholders::_1);
-				break;
-			}
-			default:
-				throw error(format("Invalid codec type: %d", type));
-			}
 
 			av_dict_free(&generalDict);
 			avFrame->get()->pts = std::numeric_limits<int64_t>::min();
