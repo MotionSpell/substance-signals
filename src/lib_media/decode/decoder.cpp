@@ -67,8 +67,6 @@ struct Decoder : ModuleS, PictureAllocator {
 
 	private:
 		void openDecoder(const MetadataPkt* metadata) {
-			auto const extradata = metadata->codecSpecificInfo;
-
 			auto const codec = avcodec_find_decoder_by_name(metadata->codec.c_str());
 			if (!codec)
 				throw error(format("Decoder not found for codec '%s'.", metadata->codec));
@@ -78,6 +76,8 @@ struct Decoder : ModuleS, PictureAllocator {
 			// copy extradata: this allows decoding headerless bitstreams
 			// (i.e AVCC / H264-in-mp4).
 			{
+				auto const extradata = metadata->codecSpecificInfo;
+
 				codecCtx->extradata = (uint8_t*)av_calloc(1, extradata.size() + AV_INPUT_BUFFER_PADDING_SIZE);
 				codecCtx->extradata_size = (int)extradata.size();
 				if(extradata.data())
