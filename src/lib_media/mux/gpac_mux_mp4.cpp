@@ -561,7 +561,7 @@ void GPACMuxMP4::startFragment(uint64_t DTS, uint64_t PTS) {
 			}
 
 			if (!(compatFlags & Browsers)) {
-				e = gf_isom_set_fragment_reference_time(isoCur, trackId, UTC2NTP(firstDataAbsTimeInMs + convertToTimescale(PTS, mediaTs, 1000)), PTS);
+				e = gf_isom_set_fragment_reference_time(isoCur, trackId, UTC2NTP(firstDataAbsTimeInMs + convertToTimescale(PTS, timeScale, 1000)), PTS);
 				if (e != GF_OK)
 					throw error(format("Impossible to create UTC marquer: %s", gf_error_to_string(e)));
 			}
@@ -575,19 +575,19 @@ void GPACMuxMP4::closeFragment() {
 			m_host->log((compatFlags & Browsers) ? Error : Warning, "Writing an empty fragment. Some players may stop playing here.");
 		}
 		if (compatFlags & SmoothStreaming) {
-			if (mediaTs == 0) {
+			if (timeScale == 0) {
 				m_host->log(Warning, "Media timescale is 0. Fragment cannot be closed.");
 				return;
 			}
 
 			auto const curFragmentStartInTs = DTS - curFragmentDurInTs;
-			auto const absTimeInTs = convertToTimescale(firstDataAbsTimeInMs, 1000, mediaTs) + curFragmentStartInTs;
-			auto const deltaRealTimeInMs = 1000 * (double)(getUTC() - Fraction(absTimeInTs, mediaTs));
+			auto const absTimeInTs = convertToTimescale(firstDataAbsTimeInMs, 1000, timeScale) + curFragmentStartInTs;
+			auto const deltaRealTimeInMs = 1000 * (double)(getUTC() - Fraction(absTimeInTs, timeScale));
 
-			auto const isSuspicious = deltaRealTimeInMs < 0 || deltaRealTimeInMs > curFragmentStartInTs || curFragmentDurInTs != fractionToTimescale(segmentDuration, mediaTs);
+			auto const isSuspicious = deltaRealTimeInMs < 0 || deltaRealTimeInMs > curFragmentStartInTs || curFragmentDurInTs != fractionToTimescale(segmentDuration, timeScale);
 			m_host->log(isSuspicious ? Warning : Debug,
 			    format("Closing MSS fragment with absolute time %s %s UTC and duration %s (timescale %s, time=%s, deltaRT=%s)",
-			        getDay(), getTimeFromUTC(), curFragmentDurInTs, mediaTs, absTimeInTs, deltaRealTimeInMs).c_str());
+			        getDay(), getTimeFromUTC(), curFragmentDurInTs, timeScale, absTimeInTs, deltaRealTimeInMs).c_str());
 			GF_Err e = gf_isom_set_traf_mss_timeext(isoCur, trackId, absTimeInTs, curFragmentDurInTs);
 			if (e != GF_OK)
 				throw error(format("Impossible to create UTC marker: %s", gf_error_to_string(e)));
@@ -636,11 +636,11 @@ void GPACMuxMP4::declareStreamAudio(const std::shared_ptr<const MetadataPktLibav
 		throw error(format("Cannot create GF_ESD for audio"));
 
 	esd->decoderConfig->streamType = GF_STREAM_AUDIO;
-	mediaTs = sampleRate = metadata->getSampleRate();
-	m_host->log(Debug, format("TimeScale: %s", mediaTs).c_str());
+	timeScale = sampleRate = metadata->getSampleRate();
+	m_host->log(Debug, format("TimeScale: %s", timeScale).c_str());
 	defaultSampleIncInTs = metadata->getFrameSize();
 
-	trackNum = gf_isom_new_track(isoCur, esd->ESID, GF_ISOM_MEDIA_AUDIO, mediaTs);
+	trackNum = gf_isom_new_track(isoCur, esd->ESID, GF_ISOM_MEDIA_AUDIO, timeScale);
 	if (!trackNum)
 		throw error(format("Cannot create new track"));
 	trackId = gf_isom_get_track_id(isoCur, trackNum);
@@ -733,9 +733,9 @@ void GPACMuxMP4::declareStreamAudio(const std::shared_ptr<const MetadataPktLibav
 }
 
 void GPACMuxMP4::declareStreamSubtitle(const std::shared_ptr<const MetadataPktLibavSubtitle> & /*metadata*/) {
-	mediaTs = 10 * TIMESCALE_MUL;
-	assert((mediaTs % 1000) == 0); /*ms accuracy mandatory*/
-	u32 trackNum = gf_isom_new_track(isoCur, 0, GF_ISOM_MEDIA_TEXT, mediaTs);
+	timeScale = 10 * TIMESCALE_MUL;
+	assert((timeScale % 1000) == 0); /*ms accuracy mandatory*/
+	u32 trackNum = gf_isom_new_track(isoCur, 0, GF_ISOM_MEDIA_TEXT, timeScale);
 	if (!trackNum)
 		throw error(format("Cannot create new track"));
 	trackId = gf_isom_get_track_id(isoCur, trackNum);
@@ -757,8 +757,8 @@ void GPACMuxMP4::declareStreamSubtitle(const std::shared_ptr<const MetadataPktLi
 }
 
 void GPACMuxMP4::declareStreamVideo(const std::shared_ptr<const MetadataPktLibavVideo> &metadata) {
-	mediaTs = (uint32_t)(metadata->getTimeScale().num * TIMESCALE_MUL);
-	u32 trackNum = gf_isom_new_track(isoCur, 0, GF_ISOM_MEDIA_VISUAL, mediaTs);
+	timeScale = (uint32_t)(metadata->getTimeScale().num * TIMESCALE_MUL);
+	u32 trackNum = gf_isom_new_track(isoCur, 0, GF_ISOM_MEDIA_VISUAL, timeScale);
 	if (!trackNum)
 		throw error(format("Cannot create new track"));
 	trackId = gf_isom_get_track_id(isoCur, trackNum);
@@ -852,12 +852,12 @@ void GPACMuxMP4::declareStream(const Metadata &metadata) {
 void GPACMuxMP4::handleInitialTimeOffset() {
 	//FIXME: we use DTS here: that's convenient (because the DTS is monotonic) and *most of the time* right when we control the encoding
 	if (initDTSIn180k) { /*first timestamp is not zero*/
-		m_host->log(Info, format("Initial offset: %ss (4CC=%s, \"%s\", timescale=%s/%s)", initDTSIn180k / (double)IClock::Rate, codec4CC, segmentName, mediaTs, gf_isom_get_timescale(isoCur)).c_str());
+		m_host->log(Info, format("Initial offset: %ss (4CC=%s, \"%s\", timescale=%s/%s)", initDTSIn180k / (double)IClock::Rate, codec4CC, segmentName, timeScale, gf_isom_get_timescale(isoCur)).c_str());
 		if (compatFlags & NoEditLists) {
 			firstDataAbsTimeInMs += clockToTimescale(initDTSIn180k, 1000);
 		} else {
 			auto const edtsInMovieTs = clockToTimescale(initDTSIn180k, gf_isom_get_timescale(isoCur));
-			auto const edtsInMediaTs = clockToTimescale(initDTSIn180k, mediaTs);
+			auto const edtsInMediaTs = clockToTimescale(initDTSIn180k, timeScale);
 			if (edtsInMovieTs > 0) {
 				gf_isom_append_edit_segment(isoCur, gf_isom_get_track_by_id(isoCur, trackId), edtsInMovieTs, 0, GF_ISOM_EDIT_EMPTY);
 				gf_isom_append_edit_segment(isoCur, gf_isom_get_track_by_id(isoCur, trackId), edtsInMovieTs, 0, GF_ISOM_EDIT_NORMAL);
@@ -907,9 +907,9 @@ void GPACMuxMP4::sendOutput(bool EOS) {
 	if (e)
 		throw error(format("Could not compute codec name (RFC 6381)"));
 
-	auto const consideredDurationIn180k = (compatFlags & FlushFragMemory) ? timescaleToClock(curFragmentDurInTs, mediaTs) : timescaleToClock(curSegmentDurInTs, mediaTs);
+	auto const consideredDurationIn180k = (compatFlags & FlushFragMemory) ? timescaleToClock(curFragmentDurInTs, timeScale) : timescaleToClock(curSegmentDurInTs, timeScale);
 	auto const containerLatency =
-	    fragmentPolicy == OneFragmentPerFrame ? timescaleToClock(defaultSampleIncInTs, mediaTs) : std::min<uint64_t>(consideredDurationIn180k, fractionToClock(segmentDuration));
+	    fragmentPolicy == OneFragmentPerFrame ? timescaleToClock(defaultSampleIncInTs, timeScale) : std::min<uint64_t>(consideredDurationIn180k, fractionToClock(segmentDuration));
 	auto metadata = make_shared<MetadataFile>(segmentName, streamType, mimeType, codecName, consideredDurationIn180k, lastSegmentSize, containerLatency, segmentStartsWithRAP, EOS);
 	switch (mediaType) {
 	case GF_ISOM_MEDIA_VISUAL: metadata->resolution = resolution; break;
@@ -922,7 +922,7 @@ void GPACMuxMP4::sendOutput(bool EOS) {
 	//FIXME: this mediaTime should be a PTS (is currently a DTS)
 	//FIXME: this mediaTime is already shifted by the absolute start time (also shifted according the edit lists)
 	auto const curSegmentStartInTs = DTS - curSegmentDurInTs;
-	out->setMediaTime(convertToTimescale(firstDataAbsTimeInMs, 1000, mediaTs) + curSegmentStartInTs, mediaTs);
+	out->setMediaTime(convertToTimescale(firstDataAbsTimeInMs, 1000, timeScale) + curSegmentStartInTs, timeScale);
 	output->emit(out);
 
 	if (segmentPolicy == IndependentSegment) {
@@ -935,7 +935,7 @@ void GPACMuxMP4::startChunk(gpacpp::IsoSample * const sample) {
 	if (curSegmentDurInTs == 0) {
 		segmentStartsWithRAP = sample->IsRAP == RAP;
 		if (segmentPolicy > SingleSegment) {
-			const u64 oneSegDurInTs = clockToTimescale(fractionToClock(segmentDuration), mediaTs);
+			const u64 oneSegDurInTs = clockToTimescale(fractionToClock(segmentDuration), timeScale);
 			if (oneSegDurInTs * (DTS / oneSegDurInTs) == 0) { /*initial delay*/
 				curSegmentDeltaInTs = curSegmentDurInTs + curSegmentDeltaInTs - oneSegDurInTs * ((curSegmentDurInTs + curSegmentDeltaInTs) / oneSegDurInTs);
 			} else {
@@ -992,13 +992,13 @@ void GPACMuxMP4::closeChunk(bool nextSampleIsRAP) {
 		return;
 
 	auto chunkBoundaryAllowedHere = nextSampleIsRAP || (compatFlags & SegmentAtAny);
-	auto segmentNextDuration = Fraction(curSegmentDurInTs + curSegmentDeltaInTs, mediaTs);
+	auto segmentNextDuration = Fraction(curSegmentDurInTs + curSegmentDeltaInTs, timeScale);
 
 	if ((!(compatFlags & Browsers) || curFragmentDurInTs > 0 || fragmentPolicy == OneFragmentPerFrame) && /*avoid 0-sized mdat interpreted as EOS in browsers*/
 	    segmentNextDuration >= segmentDuration &&
 	    chunkBoundaryAllowedHere) {
 		if ((compatFlags & SegConstantDur) && (segmentNextDuration != segmentDuration) && (curSegmentDurInTs != 0)) {
-			if ((DTS / clockToTimescale(fractionToClock(segmentDuration), mediaTs)) <= 1) {
+			if ((DTS / clockToTimescale(fractionToClock(segmentDuration), timeScale)) <= 1) {
 				segmentDuration = segmentNextDuration;
 			}
 		}
@@ -1045,7 +1045,7 @@ std::unique_ptr<gpacpp::IsoSample> GPACMuxMP4::fillSample(Data data_) {
 	auto const &metaPkt = safe_cast<const MetadataPktLibav>(data->getMetadata());
 	if (data->getPacket()->pts != AV_NOPTS_VALUE) {
 		auto const ctsOffset = data->getPacket()->pts - data->getPacket()->dts;
-		sample->CTS_Offset = (s32)convertToTimescale(ctsOffset, metaPkt->getTimeScale().num, metaPkt->getTimeScale().den * mediaTs);
+		sample->CTS_Offset = (s32)convertToTimescale(ctsOffset, metaPkt->getTimeScale().num, metaPkt->getTimeScale().den * timeScale);
 	} else {
 		m_host->log(Error, format("Missing PTS (input DTS=%s, ts=%s/%s): output MP4 may be incorrect.", data->getPacket()->dts, metaPkt->getTimeScale().num, metaPkt->getTimeScale().den).c_str());
 	}
@@ -1066,8 +1066,8 @@ bool GPACMuxMP4::processInit(Data &data) {
 			auto pkt = safe_cast<const DataAVPacket>(data);
 			if (pkt && pkt->getPacket()->duration) {
 				auto const metaPkt = std::dynamic_pointer_cast<const MetadataPktLibav>(metadata);
-				defaultSampleIncInTs = convertToTimescale(pkt->getPacket()->duration, metaPkt->getTimeScale().num, metaPkt->getTimeScale().den * mediaTs);
-				m_host->log(Warning, format("Codec defaultSampleIncInTs=0 but first data contains a duration (%s/%s).", defaultSampleIncInTs, mediaTs).c_str());
+				defaultSampleIncInTs = convertToTimescale(pkt->getPacket()->duration, metaPkt->getTimeScale().num, metaPkt->getTimeScale().den * timeScale);
+				m_host->log(Warning, format("Codec defaultSampleIncInTs=0 but first data contains a duration (%s/%s).", defaultSampleIncInTs, timeScale).c_str());
 			} else {
 				m_host->log(Warning, "Computed defaultSampleIncInTs=0, forcing the ExactInputDur flag.");
 				compatFlags = compatFlags | ExactInputDur;
@@ -1101,7 +1101,7 @@ void GPACMuxMP4::process() {
 	auto const dataDTS = timescaleToClock(safe_cast<const DataAVPacket>(data)->getPacket()->dts * timescale.den, timescale.num);
 	if (compatFlags & ExactInputDur) {
 		if (lastData) {
-			auto dataDurationInTs = clockToTimescale(dataDTS - initDTSIn180k, mediaTs) - DTS;
+			auto dataDurationInTs = clockToTimescale(dataDTS - initDTSIn180k, timeScale) - DTS;
 			if (dataDurationInTs <= 0) {
 				m_host->log(Warning, format("Computed duration is inferior or equal to zero (%s). Inferring to %s", dataDurationInTs, defaultSampleIncInTs).c_str());
 				dataDurationInTs = defaultSampleIncInTs;
@@ -1111,7 +1111,7 @@ void GPACMuxMP4::process() {
 
 		lastData = data;
 	} else {
-		auto lastDataDurationInTs = clockToTimescale(dataDTS - initDTSIn180k, mediaTs) + defaultSampleIncInTs - DTS;
+		auto lastDataDurationInTs = clockToTimescale(dataDTS - initDTSIn180k, timeScale) + defaultSampleIncInTs - DTS;
 		if (DTS > 0) {
 			if (!dataDTS) {
 				lastDataDurationInTs = defaultSampleIncInTs;
@@ -1121,7 +1121,7 @@ void GPACMuxMP4::process() {
 				if (lastDataDurationInTs <= 0) {
 					lastDataDurationInTs = 1;
 				}
-				m_host->log(Debug, format("VFR: adding sample with duration %ss", lastDataDurationInTs / (double)mediaTs).c_str());
+				m_host->log(Debug, format("VFR: adding sample with duration %ss", lastDataDurationInTs / (double)timeScale).c_str());
 			}
 		}
 
