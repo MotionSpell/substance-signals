@@ -57,7 +57,7 @@ unittest("encoder: audio timestamp passthrough (modulo priming)") {
 		times.push_back(data->getMediaTime());
 	};
 
-	vector<int64_t> inputTimes = { 0, 4180, 8360, 12540, 777000 };
+	vector<int64_t> inputTimes = { 10000, 20000, 30000, 777000 };
 
 	EncoderConfig cfg { EncoderConfig::Audio };
 	auto encode = loadModule("Encoder", &NullHost, &cfg);
@@ -71,7 +71,7 @@ unittest("encoder: audio timestamp passthrough (modulo priming)") {
 	}
 	encode->flush();
 
-	vector<int64_t> expected = { -4180, 0, 4180, 8360, 12540, 777000 };
+	vector<int64_t> expected = { 10000 - 1024, 10000, 20000, 30000, 777000 };
 	ASSERT_EQUALS(expected, times);
 }
 
