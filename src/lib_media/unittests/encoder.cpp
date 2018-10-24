@@ -79,7 +79,7 @@ unittest("encoder: timestamp passthrough") {
 		times.push_back(data->getMediaTime());
 	};
 
-	vector<int64_t> inputTimes = {0, 1, 2, 3, 4, 10, 11, 12};
+	vector<int64_t> inputTimes = {0, 1, 2, 3, 4, 20, 21, 22, 10, 11, 12};
 
 	EncoderConfig cfg { EncoderConfig::Video };
 	auto encode = loadModule("Encoder", &NullHost, &cfg);
@@ -92,7 +92,7 @@ unittest("encoder: timestamp passthrough") {
 	}
 	encode->flush();
 
-	vector<int64_t> expected = {0, 1, 2, 3, 4, 10, 11, 12};
+	vector<int64_t> expected = {0, 1, 2, 3, 4, 20, 21, 22, 10, 11, 12};
 	ASSERT_EQUALS(expected, times);
 }
 
