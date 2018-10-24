@@ -122,7 +122,7 @@ struct LibavEncode : ModuleS {
 				}
 				params.pixelFormat = libavPixFmt2PixelFormat(codecCtx->pix_fmt);
 
-				auto framePeriod = params.frameRate.inverse();
+				framePeriod = params.frameRate.inverse();
 				codecCtx->time_base = toAVRational(framePeriod);
 				break;
 			}
@@ -207,9 +207,9 @@ struct LibavEncode : ModuleS {
 		}
 
 		int64_t computeNearestGOPNum(int64_t timeDiff) const {
-			auto const num = timeDiff * GOPSize.den * codecCtx->time_base.den;
-			auto const den = GOPSize.num * codecCtx->time_base.num * (int64_t)IClock::Rate;
-			auto const halfStep = (den * codecCtx->time_base.num) / (codecCtx->time_base.den * 2);
+			auto const num = timeDiff * GOPSize.den * framePeriod.den;
+			auto const den = GOPSize.num * framePeriod.num * (int64_t)IClock::Rate;
+			auto const halfStep = (den * framePeriod.num) / (framePeriod.den * 2);
 			return (num + halfStep - 1) / den;
 		}
 
@@ -278,6 +278,7 @@ struct LibavEncode : ModuleS {
 		int64_t firstMediaTime = 0;
 		int64_t prevMediaTime = 0;
 		Fraction GOPSize {};
+		Fraction framePeriod {};
 };
 
 Modules::IModule* createObject(IModuleHost* host, va_list va) {
