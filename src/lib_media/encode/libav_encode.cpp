@@ -23,10 +23,11 @@ AVRational toAVRational(Fraction f) {
 struct LibavEncode : ModuleS {
 		LibavEncode(IModuleHost* host, EncoderConfig *pparams)
 			: m_host(host),
+			  params(*pparams),
 			  avFrame(new ffpp::Frame) {
-			auto const type = pparams->type;
-			auto& params = *pparams;
-			std::string codecOptions, generalOptions, codecName;
+
+			auto const type = params.type;
+			std::string generalOptions;
 			switch (type) {
 			case EncoderConfig::Video: {
 				GOPSize = params.GOPSize;
@@ -90,18 +91,18 @@ struct LibavEncode : ModuleS {
 			auto const entry = generalDict.get(codecName);
 			if (!entry)
 				throw error(format("Could not get codecName (\"%s\").", codecName));
-			auto codec = avcodec_find_encoder_by_name(entry->value);
-			if (!codec) {
+			m_codec = avcodec_find_encoder_by_name(entry->value);
+			if (!m_codec) {
 				auto desc = avcodec_descriptor_get_by_name(entry->value);
 				if (!desc)
 					throw error(format("Codec descriptor '%s' not found, disable output.", entry->value));
-				codec = avcodec_find_encoder(desc->id);
+				m_codec = avcodec_find_encoder(desc->id);
 			}
-			if (!codec)
+			if (!m_codec)
 				throw error(format("Codec '%s' not found, disable output.", entry->value));
-			codecCtx = shptr(avcodec_alloc_context3(codec));
+			codecCtx = shptr(avcodec_alloc_context3(m_codec));
 			if (!codecCtx)
-				throw error(format("Could not allocate the codec context (\"%s\").", codecName));
+				throw error(format("Could not allocate the m_codec context (\"%s\").", codecName));
 
 			auto input = addInput(this);
 			output = addOutput<OutputDataDefault<DataAVPacket>>();
@@ -121,7 +122,9 @@ struct LibavEncode : ModuleS {
 				} else {
 					codecCtx->pix_fmt = AV_PIX_FMT_YUV420P;
 				}
-				params.pixelFormat = libavPixFmt2PixelFormat(codecCtx->pix_fmt);
+
+				// output
+				pparams->pixelFormat = libavPixFmt2PixelFormat(codecCtx->pix_fmt);
 
 				framePeriod = params.frameRate.inverse();
 				codecCtx->time_base = toAVRational(framePeriod);
@@ -141,39 +144,10 @@ struct LibavEncode : ModuleS {
 				throw error(format("Invalid codec type: %d", type));
 			}
 
-			// input format configuration
-			switch (type) {
-			case EncoderConfig::Video: {
-				codecCtx->width = params.res.width;
-				codecCtx->height = params.res.height;
-				break;
-			}
-			case EncoderConfig::Audio: {
-				AudioLayout layout;
-				switch (params.numChannels) {
-				case 1: layout = Modules::Mono; break;
-				case 2: layout = Modules::Stereo; break;
-				default: throw error("Unknown libav audio layout");
-				}
-				pcmFormat = make_unique<PcmFormat>(params.sampleRate, params.numChannels, layout);
-				libavAudioCtxConvert(pcmFormat.get(), codecCtx.get());
-				codecOptions += format(" -ar %s -ac %s", params.sampleRate, params.numChannels);
-				break;
-			}
-			default:
-				throw error(format("Invalid codec type: %d", type));
-			}
-
-			/* open it */
-			codecCtx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER; //gives access to the extradata (e.g. H264 SPS/PPS, etc.)
-			ffpp::Dict codecDict(typeid(*this).name(), codecOptions + " -threads auto " + params.avcodecCustom);
-			av_dict_set(&codecDict, codecName.c_str(), nullptr, 0);
-			if (avcodec_open2(codecCtx.get(), codec, &codecDict) < 0)
-				throw error(format("Could not open codec %s, disable output.", codecName));
-			codecDict.ensureAllOptionsConsumed();
-
 			av_dict_free(&generalDict);
 			avFrame->get()->pts = std::numeric_limits<int64_t>::min();
+
+			openEncoder();
 		}
 
 		AVFrame* prepareAudioFrame(Data data) {
@@ -276,6 +250,7 @@ struct LibavEncode : ModuleS {
 
 	private:
 		IModuleHost* const m_host;
+		EncoderConfig const params;
 		std::shared_ptr<AVCodecContext> codecCtx;
 		std::unique_ptr<PcmFormat> pcmFormat;
 		std::unique_ptr<ffpp::Frame> const avFrame;
@@ -285,6 +260,44 @@ struct LibavEncode : ModuleS {
 		Fraction GOPSize {};
 		Fraction framePeriod {};
 		std::function<AVFrame*(Data)> prepareFrame;
+		std::string codecOptions, codecName;
+		AVCodec* m_codec;
+
+		void openEncoder() {
+			auto codecOptions = this->codecOptions;
+
+			// input format configuration
+			switch (params.type) {
+			case EncoderConfig::Video: {
+				codecCtx->width = params.res.width;
+				codecCtx->height = params.res.height;
+				break;
+			}
+			case EncoderConfig::Audio: {
+				AudioLayout layout;
+				switch (params.numChannels) {
+				case 1: layout = Modules::Mono; break;
+				case 2: layout = Modules::Stereo; break;
+				default: throw error("Unknown libav audio layout");
+				}
+				pcmFormat = make_unique<PcmFormat>(params.sampleRate, params.numChannels, layout);
+				libavAudioCtxConvert(pcmFormat.get(), codecCtx.get());
+				codecOptions += format(" -ar %s -ac %s", params.sampleRate, params.numChannels);
+				break;
+			}
+			default:
+				throw error(format("Invalid codec type: %d", params.type));
+			}
+
+			/* open it */
+			codecCtx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER; //gives access to the extradata (e.g. H264 SPS/PPS, etc.)
+			ffpp::Dict codecDict(typeid(*this).name(), codecOptions + " -threads auto " + params.avcodecCustom);
+			av_dict_set(&codecDict, codecName.c_str(), nullptr, 0);
+			if (avcodec_open2(codecCtx.get(), m_codec, &codecDict) < 0)
+				throw error(format("Could not open codec %s, disable output.", codecName));
+			codecDict.ensureAllOptionsConsumed();
+		}
+
 };
 
 Modules::IModule* createObject(IModuleHost* host, va_list va) {
