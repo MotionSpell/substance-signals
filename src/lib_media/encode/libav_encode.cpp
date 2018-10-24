@@ -154,13 +154,13 @@ struct LibavEncode : ModuleS {
 			case EncoderConfig::Video: {
 				input->setMetadata(make_shared<MetadataRawVideo>());
 				output->setMetadata(make_shared<MetadataPktLibavVideo>(codecCtx));
-				processFrame = std::bind(&LibavEncode::processVideo, this, std::placeholders::_1);
+				prepareFrame = std::bind(&LibavEncode::prepareVideoFrame, this, std::placeholders::_1);
 				break;
 			}
 			case EncoderConfig::Audio: {
 				input->setMetadata(make_shared<MetadataRawAudio>());
 				output->setMetadata(make_shared<MetadataPktLibavAudio>(codecCtx));
-				processFrame = std::bind(&LibavEncode::processAudio, this, std::placeholders::_1);
+				prepareFrame = std::bind(&LibavEncode::prepareAudioFrame, this, std::placeholders::_1);
 				break;
 			}
 			default:
@@ -171,15 +171,16 @@ struct LibavEncode : ModuleS {
 			avFrame->get()->pts = std::numeric_limits<int64_t>::min();
 		}
 
-		void processAudio(Data data) {
+		AVFrame* prepareAudioFrame(Data data) {
 			AVFrame *f = avFrame->get();
 			const auto pcmData = safe_cast<const DataPcm>(data);
 			if (pcmData->getFormat() != *pcmFormat)
 				throw error("Incompatible audio data (1)");
 			libavFrameDataConvert(pcmData.get(), f);
+			return f;
 		}
 
-		void processVideo(Data data) {
+		AVFrame* prepareVideoFrame(Data data) {
 			const auto pic = safe_cast<const DataPicture>(data);
 			AVFrame *f = avFrame->get();
 			f->format = (int)pixelFormat2libavPixFmt(pic->getFormat().format);
@@ -190,13 +191,11 @@ struct LibavEncode : ModuleS {
 				f->linesize[i] = (int)pic->getPitch(i);
 			}
 			computeFrameAttributes(f, data->getMediaTime());
+			return f;
 		}
 
 		void process(Data data) {
-
-			processFrame(data);
-
-			AVFrame *f = avFrame->get();
+			auto f = prepareFrame(data);
 			f->pts = data->getMediaTime();
 			encodeFrame(f);
 		}
@@ -280,7 +279,7 @@ struct LibavEncode : ModuleS {
 		int64_t prevMediaTime = 0;
 		Fraction GOPSize {};
 		Fraction framePeriod {};
-		std::function<void(Data)> processFrame;
+		std::function<AVFrame*(Data)> prepareFrame;
 };
 
 Modules::IModule* createObject(IModuleHost* host, va_list va) {
