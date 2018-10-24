@@ -76,7 +76,7 @@ struct LibavEncode : ModuleS {
 					break;
 				}
 				av_dict_free(&customDict);
-				codecOptions += format(" -b %s -ar %s -ac %s", params.bitrate, params.sampleRate, params.numChannels);
+				codecOptions += format(" -b %s", params.bitrate);
 				generalOptions += " -acodec aac -profile aac_low";
 				GOPSize = 1;
 				break;
@@ -106,11 +106,9 @@ struct LibavEncode : ModuleS {
 			auto input = addInput(this);
 			output = addOutput<OutputDataDefault<DataAVPacket>>();
 
-			/* parameters */
+			// encoder configuration
 			switch (type) {
 			case EncoderConfig::Video: {
-				codecCtx->width = params.res.width;
-				codecCtx->height = params.res.height;
 				if (generalDict.get("pix_fmt")) {
 					codecCtx->pix_fmt = av_get_pix_fmt(generalDict.get("pix_fmt")->value);
 					if (codecCtx->pix_fmt == AV_PIX_FMT_NONE)
@@ -134,6 +132,23 @@ struct LibavEncode : ModuleS {
 				break;
 			}
 			case EncoderConfig::Audio:
+
+				prepareFrame = std::bind(&LibavEncode::prepareAudioFrame, this, std::placeholders::_1);
+				input->setMetadata(make_shared<MetadataRawAudio>());
+				output->setMetadata(make_shared<MetadataPktLibavAudio>(codecCtx));
+				break;
+			default:
+				throw error(format("Invalid codec type: %d", type));
+			}
+
+			// input format configuration
+			switch (type) {
+			case EncoderConfig::Video: {
+				codecCtx->width = params.res.width;
+				codecCtx->height = params.res.height;
+				break;
+			}
+			case EncoderConfig::Audio: {
 				AudioLayout layout;
 				switch (params.numChannels) {
 				case 1: layout = Modules::Mono; break;
@@ -142,11 +157,9 @@ struct LibavEncode : ModuleS {
 				}
 				pcmFormat = make_unique<PcmFormat>(params.sampleRate, params.numChannels, layout);
 				libavAudioCtxConvert(pcmFormat.get(), codecCtx.get());
-
-				prepareFrame = std::bind(&LibavEncode::prepareAudioFrame, this, std::placeholders::_1);
-				input->setMetadata(make_shared<MetadataRawAudio>());
-				output->setMetadata(make_shared<MetadataPktLibavAudio>(codecCtx));
+				codecOptions += format(" -ar %s -ac %s", params.sampleRate, params.numChannels);
 				break;
+			}
 			default:
 				throw error(format("Invalid codec type: %d", type));
 			}
