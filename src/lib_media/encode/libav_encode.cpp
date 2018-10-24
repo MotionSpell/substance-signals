@@ -154,11 +154,13 @@ struct LibavEncode : ModuleS {
 			case EncoderConfig::Video: {
 				input->setMetadata(make_shared<MetadataRawVideo>());
 				output->setMetadata(make_shared<MetadataPktLibavVideo>(codecCtx));
+				processFrame = std::bind(&LibavEncode::processVideo, this, std::placeholders::_1);
 				break;
 			}
 			case EncoderConfig::Audio: {
 				input->setMetadata(make_shared<MetadataRawAudio>());
 				output->setMetadata(make_shared<MetadataPktLibavAudio>(codecCtx));
+				processFrame = std::bind(&LibavEncode::processAudio, this, std::placeholders::_1);
 				break;
 			}
 			default:
@@ -192,18 +194,7 @@ struct LibavEncode : ModuleS {
 
 		void process(Data data) {
 
-			switch (codecCtx->codec_type) {
-			case AVMEDIA_TYPE_VIDEO: {
-				processVideo(data);
-			}
-			break;
-			case AVMEDIA_TYPE_AUDIO: {
-				processAudio(data);
-			}
-			break;
-			default:
-				throw error(format("Invalid codec_type: %d", codecCtx->codec_type));
-			}
+			processFrame(data);
 
 			AVFrame *f = avFrame->get();
 			f->pts = data->getMediaTime();
@@ -289,6 +280,7 @@ struct LibavEncode : ModuleS {
 		int64_t prevMediaTime = 0;
 		Fraction GOPSize {};
 		Fraction framePeriod {};
+		std::function<void(Data)> processFrame;
 };
 
 Modules::IModule* createObject(IModuleHost* host, va_list va) {
