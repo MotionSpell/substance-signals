@@ -176,7 +176,6 @@ To declare an input (more likely in the constructor), call ```addInput()```:
 addInput(new Input<DataBase>(this));
 ```
 The type of the input (here DataBase) can be:
- - DataLoose when the data type is not known (necessary for dynamic inputs (e.g. Muxers) but lazy-typing has some drawbacks.
  - DataRaw: raw data.
  - DataPcm: raw audio specialization.
  - DataPicture: raw video specialization.
@@ -207,10 +206,6 @@ void module::process(Data data) {
 
 TODO: metadata don't propagate to the connected input yet. This easily allows modules to catch the updates.
 TODO: add a test framework for modules (to prove they behave as expected by the API).
-
-If your last input pin has the type DataLoose, you should ignore it. It means it is a fake input pin for:
- - Dynamic input pins (e.g. muxers).
- - Sources which need to receive input null data.
 
 TODO
 

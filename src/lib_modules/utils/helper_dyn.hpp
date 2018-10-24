@@ -5,25 +5,13 @@
 namespace Modules {
 
 //dynamic input number specialized module
-//note: ports added automatically will carry the DataLoose type which doesn't
-//      allow to perform all safety checks ; consider adding ports manually if
-//      you can
 class ModuleDynI : public Module {
 	public:
 		ModuleDynI() = default;
 		virtual ~ModuleDynI() {}
 
 		IInput* addInput(IInput *p) { //takes ownership
-			bool isDyn = false;
-			std::unique_ptr<IInput> pEx;
-			if (inputs.size() && dynamic_cast<DataLoose*>(inputs.back().get())) {
-				isDyn = true;
-				pEx = std::move(inputs.back());
-				inputs.pop_back();
-			}
 			inputs.push_back(uptr(p));
-			if (isDyn)
-				inputs.push_back(std::move(pEx));
 			return p;
 		}
 		int getNumInputs() const override {
