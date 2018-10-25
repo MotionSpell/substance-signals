@@ -146,8 +146,6 @@ struct LibavEncode : ModuleS {
 
 			av_dict_free(&generalDict);
 			avFrame->get()->pts = std::numeric_limits<int64_t>::min();
-
-			openEncoder();
 		}
 
 		AVFrame* prepareAudioFrame(Data data) {
@@ -174,6 +172,11 @@ struct LibavEncode : ModuleS {
 		}
 
 		void process(Data data) {
+			if(!m_isOpen) {
+				openEncoder(data);
+				m_isOpen = true;
+			}
+
 			auto f = prepareFrame(data);
 			f->pts = data->getMediaTime();
 			encodeFrame(f);
@@ -261,28 +264,33 @@ struct LibavEncode : ModuleS {
 		Fraction framePeriod {};
 		std::function<AVFrame*(Data)> prepareFrame;
 		std::string codecOptions, codecName;
-		AVCodec* m_codec;
+		AVCodec* m_codec = nullptr;
+		bool m_isOpen = false;
 
-		void openEncoder() {
+		void openEncoder(Data data) {
 			auto codecOptions = this->codecOptions;
+			if(!data)
+				throw error("Can't open encoder: no data");
 
 			// input format configuration
 			switch (params.type) {
 			case EncoderConfig::Video: {
-				codecCtx->width = params.res.width;
-				codecCtx->height = params.res.height;
+				const auto fmt = safe_cast<const DataPicture>(data.get())->getFormat();
+				codecCtx->width = fmt.res.width;
+				codecCtx->height = fmt.res.height;
 				break;
 			}
 			case EncoderConfig::Audio: {
+				const auto fmt = safe_cast<const DataPcm>(data)->getFormat();
 				AudioLayout layout;
-				switch (params.numChannels) {
+				switch (fmt.numChannels) {
 				case 1: layout = Modules::Mono; break;
 				case 2: layout = Modules::Stereo; break;
 				default: throw error("Unknown libav audio layout");
 				}
-				pcmFormat = make_unique<PcmFormat>(params.sampleRate, params.numChannels, layout);
+				pcmFormat = make_unique<PcmFormat>(fmt.sampleRate, fmt.numChannels, layout);
 				libavAudioCtxConvert(pcmFormat.get(), codecCtx.get());
-				codecOptions += format(" -ar %s -ac %s", params.sampleRate, params.numChannels);
+				codecOptions += format(" -ar %s -ac %s", fmt.sampleRate, fmt.numChannels);
 				break;
 			}
 			default:

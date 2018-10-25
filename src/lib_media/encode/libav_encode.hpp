@@ -21,11 +21,6 @@ struct EncoderConfig {
 	int bitrate = 128000;
 	size_t bufferSize = 10;
 
-	// input format configuration (TODO: deduce it from metadata)
-	Resolution res = Resolution(320, 180);
-	int sampleRate = 44100;
-	int numChannels = 2;
-
 	//video only
 	Fraction GOPSize = Fraction(25, 1);
 	Fraction frameRate = Fraction(25, 1);

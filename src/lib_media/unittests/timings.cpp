@@ -129,11 +129,8 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 			dstFmt.format = p.pixelFormat;
 			return m;
 		} else if (codecType == AUDIO_PKT) {
-			auto const demuxFmt = toPcmFormat(safe_cast<const MetadataPktLibavAudio>(metadataDemux));
 			EncoderConfig p { EncoderConfig::Audio };
 			p.bufferSize = bufferSize;
-			p.sampleRate = demuxFmt.sampleRate;
-			p.numChannels = demuxFmt.numChannels;
 			return loadModule("Encoder", &NullHost, &p);
 		} else
 			throw std::runtime_error("[Converter] Found unknown stream");

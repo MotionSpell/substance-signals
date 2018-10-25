@@ -679,15 +679,14 @@ unittest("[DISABLED] adaptive streaming combination coverage") {
 			decode.push_back(loadModule("Decoder", &NullHost, VIDEO_PKT));
 			EncoderConfig p { EncoderConfig::Video };
 			auto const metaVideo = safe_cast<const MetadataPktLibavVideo>(demux->getOutput(i)->getMetadata());
-			p.res = metaVideo->getResolution();
+			auto res = metaVideo->getResolution();
 			p.frameRate = metaVideo->getFrameRate();
 			encode.push_back(loadModule("Encoder", &NullHost, &p));
-			prefix = Stream::AdaptiveStreamingCommon::getCommonPrefixVideo(i, p.res);
+			prefix = Stream::AdaptiveStreamingCommon::getCommonPrefixVideo(i, res);
 		} else if (demux->getOutput(i)->getMetadata()->isAudio()) {
 			decode.push_back(loadModule("Decoder", &NullHost, AUDIO_PKT));
 			EncoderConfig p { EncoderConfig::Audio };
 			auto const metaAudio = safe_cast<const MetadataPktLibavAudio>(demux->getOutput(i)->getMetadata());
-			p.numChannels = metaAudio->getNumChannels();
 			encode.push_back(loadModule("Encoder", &NullHost, &p));
 			prefix = Stream::AdaptiveStreamingCommon::getCommonPrefixAudio(i);
 		} else

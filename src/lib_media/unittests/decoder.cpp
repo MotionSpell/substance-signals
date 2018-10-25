@@ -212,10 +212,7 @@ unittest("decoder: audio mp3 to converter to AAC") {
 	auto encoder = loadModule("Encoder", &NullHost, &cfg);
 
 	auto const dstFormat = PcmFormat(44100, 2, AudioLayout::Stereo, AudioSampleFormat::F32, AudioStruct::Planar);
-	auto const metadataEncoder = encoder->getOutput(0)->getMetadata();
-	auto const metaEnc = safe_cast<const MetadataPktLibavAudio>(metadataEncoder);
-
-	auto converter = loadModule("AudioConvert", &NullHost, nullptr, &dstFormat, metaEnc->getFrameSize());
+	auto converter = loadModule("AudioConvert", &NullHost, nullptr, &dstFormat, 1024);
 
 	ConnectOutputToInput(decoder->getOutput(0), converter->getInput(0));
 	ConnectOutputToInput(converter->getOutput(0), encoder->getInput(0));

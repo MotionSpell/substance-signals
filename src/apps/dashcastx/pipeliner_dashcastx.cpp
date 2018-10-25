@@ -58,7 +58,6 @@ IFilter* createEncoder(Pipeline* pipeline, Metadata metadata, bool ultraLowLaten
 		EncoderConfig p { EncoderConfig::Video };
 		p.isLowLatency = ultraLowLatency;
 		p.codecType = videoCodecType;
-		p.res = dstFmt.res;
 		p.bitrate = bitrate;
 
 		auto const metaVideo = safe_cast<const MetadataPktLibavVideo>(metadata);
@@ -77,10 +76,7 @@ IFilter* createEncoder(Pipeline* pipeline, Metadata metadata, bool ultraLowLaten
 		return m;
 	} else if (codecType == AUDIO_PKT) {
 		g_Log->log(Info, "[Encoder] Found audio stream");
-		auto const demuxFmt = toPcmFormat(safe_cast<const MetadataPktLibavAudio>(metadata));
 		EncoderConfig p { EncoderConfig::Audio };
-		p.sampleRate = demuxFmt.sampleRate;
-		p.numChannels = demuxFmt.numChannels;
 		return pipeline->add("Encoder", &p);
 	} else {
 		g_Log->log(Info, "[Encoder] Found unknown stream");
@@ -89,7 +85,7 @@ IFilter* createEncoder(Pipeline* pipeline, Metadata metadata, bool ultraLowLaten
 }
 
 /*video is forced, audio is as passthru as possible*/
-IFilter* createConverter(Pipeline* pipeline, Metadata metadata, Metadata metadataEncoder, const PictureFormat &dstFmt) {
+IFilter* createConverter(Pipeline* pipeline, Metadata metadata, const PictureFormat &dstFmt) {
 	auto const codecType = metadata->type;
 	if (codecType == VIDEO_PKT) {
 		g_Log->log(Info, "[Converter] Found video stream");
@@ -97,10 +93,8 @@ IFilter* createConverter(Pipeline* pipeline, Metadata metadata, Metadata metadat
 	} else if (codecType == AUDIO_PKT) {
 		g_Log->log(Info, "[Converter] Found audio stream");
 		auto const demuxFmt = toPcmFormat(safe_cast<const MetadataPktLibavAudio>(metadata));
-		auto const metaEnc = safe_cast<const MetadataPktLibavAudio>(metadataEncoder);
-		auto const encFmt = toPcmFormat(metaEnc);
-		auto format = PcmFormat(demuxFmt.sampleRate, demuxFmt.numChannels, demuxFmt.layout, encFmt.sampleFormat, (encFmt.numPlanes == 1) ? Interleaved : Planar);
-		return pipeline->add("AudioConvert", nullptr, &format, metaEnc->getFrameSize());
+		auto format = PcmFormat(demuxFmt.sampleRate, demuxFmt.numChannels, demuxFmt.layout, demuxFmt.sampleFormat, (demuxFmt.numPlanes == 1) ? Interleaved : Planar);
+		return pipeline->add("AudioConvert", nullptr, &format, 1024);
 	} else {
 		throw std::runtime_error("can only create converter for audio/video");
 	}
@@ -199,7 +193,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 				if (!encoder)
 					return;
 
-				auto converter = createConverter(pipeline.get(), metadata, encoder->getOutputMetadata(0), encoderInputPicFmt);
+				auto converter = createConverter(pipeline.get(), metadata, encoderInputPicFmt);
 
 				if(cfg.debugMonitor) {
 					if (metadata->isVideo() && r == 0) {
