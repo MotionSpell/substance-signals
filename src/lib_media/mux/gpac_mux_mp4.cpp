@@ -24,9 +24,9 @@ class DataRawGPAC : public DataBase {
 		~DataRawGPAC() {
 			gf_free((void*)buffer);
 		}
-		void setData(uint8_t *buffer, const size_t size) {
-			this->buffer = buffer;
-			bufferSize = size;
+		void setData(Span contents) {
+			this->buffer = contents.ptr;
+			bufferSize = contents.len;
 		}
 		Span data() override {
 			return { buffer, bufferSize };
@@ -61,18 +61,26 @@ uint64_t fileSize(const std::string &fn) {
 	return size;
 }
 
-void getBsContent(GF_ISOFile *iso, char *&output, u32 &size, bool newBs) {
+Span getBsContent(GF_ISOFile *iso, bool newBs) {
+	Span r;
+
 	GF_BitStream *bs = NULL;
 	GF_Err e = gf_isom_get_bs(iso, &bs);
 	if (e)
 		throw std::runtime_error(format("gf_isom_get_bs: %s", gf_error_to_string(e)));
+	char* output;
+	u32 size;
 	gf_bs_get_content(bs, &output, &size);
+	r.ptr = (uint8_t*)output;
+	r.len = (size_t)size;
 	if (newBs) {
 		auto bsNew = gf_bs_new(nullptr, 0, GF_BITSTREAM_WRITE);
 		memcpy(bs, bsNew, 2*sizeof(void*)); //HACK: GPAC GF_BitStream.original needs to be non-NULL
 		memset(bsNew,  0, 2*sizeof(void*));
 		gf_bs_del(bsNew);
 	}
+
+	return r;
 }
 
 static GF_Err avc_import_ffextradata(Span extradataSpan, GF_AVCConfig *dstcfg) {
@@ -886,15 +894,14 @@ void GPACMuxMP4::sendOutput(bool EOS) {
 	if (gf_isom_get_filename(isoCur)) {
 		lastSegmentSize = fileSize(segmentName);
 	} else {
-		char *output = nullptr; u32 size = 0;
-		getBsContent(isoCur, output, size, (compatFlags & FlushFragMemory) && curFragmentDurInTs);
-		if (!size && !EOS) {
+		auto contents = getBsContent(isoCur, (compatFlags & FlushFragMemory) && curFragmentDurInTs);
+		if (!contents.len && !EOS) {
 			assert((segmentPolicy == FragmentedSegment) && (fragmentPolicy > NoFragment));
 			m_host->log(Debug, "Empty segment. Ignore.");
 			return;
 		}
-		out->setData((uint8_t*)output, size);
-		lastSegmentSize = size;
+		out->setData(contents);
+		lastSegmentSize = contents.len;
 	}
 
 	StreamType streamType;
