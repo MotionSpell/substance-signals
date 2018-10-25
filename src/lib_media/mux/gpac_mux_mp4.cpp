@@ -598,7 +598,9 @@ void GPACMuxMP4::closeFragment() {
 		}
 
 		if ((segmentPolicy == FragmentedSegment) || (segmentPolicy == SingleSegment)) {
-			gf_isom_flush_fragments(isoCur, GF_FALSE); //writes a 'styp'
+			GF_Err e = gf_isom_flush_fragments(isoCur, GF_FALSE); //writes a 'styp'
+			if (e != GF_OK)
+				throw error("Can't flush fragments");
 
 			if (compatFlags & FlushFragMemory) {
 				sendOutput(false);
@@ -648,6 +650,7 @@ void GPACMuxMP4::declareStreamAudio(const MetadataPktLibavAudio* metadata) {
 	trackNum = gf_isom_new_track(isoCur, esd->ESID, GF_ISOM_MEDIA_AUDIO, timeScale);
 	if (!trackNum)
 		throw error(format("Cannot create new track"));
+
 	trackId = gf_isom_get_track_id(isoCur, trackNum);
 
 	esd->ESID = 1;
