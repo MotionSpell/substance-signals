@@ -479,8 +479,8 @@ void GPACMuxMP4::flush() {
 }
 
 void GPACMuxMP4::updateSegmentName() {
-	if (auto name = gf_isom_get_filename(isoInit)) {
-		std::string fn = name;
+	if (!initName.empty()) {
+		std::string fn = initName;
 		auto ss = fn.substr(0, fn.find("-init")) + "-" + std::to_string(segmentNum);
 		if (segmentPolicy == FragmentedSegment)
 			ss += ".m4s";
@@ -525,7 +525,7 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 	}
 
 	if (segmentPolicy == FragmentedSegment) {
-		GF_Err e = gf_isom_close_segment(isoCur, 0, 0, 0, 0, 0, GF_FALSE, (Bool)isLastSeg, (Bool)(gf_isom_get_filename(isoInit) != nullptr),
+		GF_Err e = gf_isom_close_segment(isoCur, 0, 0, 0, 0, 0, GF_FALSE, (Bool)isLastSeg, (Bool)(!initName.empty()),
 		        (compatFlags & Browsers) ? 0 : GF_4CC('e', 'o', 'd', 's'), nullptr, nullptr, &lastSegmentSize);
 		if (e != GF_OK) {
 			if (DTS == 0) {
