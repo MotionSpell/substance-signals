@@ -488,8 +488,7 @@ void GPACMuxMP4::flush() {
 
 void GPACMuxMP4::updateSegmentName() {
 	if (!initName.empty()) {
-		std::string fn = initName;
-		auto ss = fn.substr(0, fn.find("-init")) + "-" + std::to_string(segmentNum);
+		auto ss = initName.substr(0, initName.find("-init")) + "-" + std::to_string(segmentNum);
 		if (segmentPolicy == FragmentedSegment)
 			ss += ".m4s";
 		else
