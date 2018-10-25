@@ -3,6 +3,7 @@
 #include "lib_utils/time.hpp"
 #include "../common/gpacpp.hpp"
 #include "../common/ffpp.hpp"
+#include "../common/metadata_file.hpp"
 #include "lib_modules/utils/factory.hpp"
 
 extern "C" {

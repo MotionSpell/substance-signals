@@ -6,6 +6,7 @@
 #include "lib_modules/utils/loader.hpp"
 #include "../mux/libav_mux.hpp"
 #include "../common/libav.hpp"
+#include "../common/metadata_file.hpp"
 
 #include "lib_utils/format.hpp"
 

@@ -1,9 +1,10 @@
 #include "mpeg_dash.hpp"
 #include "adaptive_streaming_common.hpp"
 #include "../common/gpacpp.hpp"
+#include "../common/libav.hpp"
+#include "../common/metadata_file.hpp"
 #include "lib_modules/utils/factory.hpp"
 #include "lib_utils/time.hpp"
-#include "../common/libav.hpp"
 
 #define DASH_TIMESCALE 1000 // /!\ there are some ms already hardcoded from the GPAC calls
 #define MIN_UPDATE_PERIOD_FACTOR 1 //should be 0, but dash.js doesn't support MPDs with no refresh time

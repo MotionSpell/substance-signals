@@ -1,5 +1,5 @@
 #include "tests/tests.hpp"
-#include "lib_media/common/metadata.hpp"
+#include "lib_media/common/metadata_file.hpp"
 #include "lib_media/stream/ms_hss.hpp"
 #include "lib_modules/modules.hpp"
 #include <string.h> // memcpy

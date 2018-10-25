@@ -1,6 +1,7 @@
 #include "tests/tests.hpp"
 #include "lib_modules/modules.hpp"
 #include "lib_modules/utils/loader.hpp"
+#include "lib_media/common/metadata_file.hpp"
 #include "lib_media/common/libav.hpp"
 #include "lib_media/common/pcm.hpp"
 #include "lib_media/demux/libav_demux.hpp"

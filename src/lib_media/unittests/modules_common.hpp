@@ -1,6 +1,7 @@
 #pragma once
 
 #include "lib_modules/modules.hpp"
+#include "lib_media/common/metadata_file.hpp"
 #include <iostream> // std::cout
 
 namespace {
