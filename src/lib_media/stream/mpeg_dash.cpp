@@ -296,11 +296,11 @@ class MPEG_DASH : public AdaptiveStreamingCommon, public gpacpp::Init {
 						timeShiftSegmentsInMs += clockToTimescale((*seg).file->durationIn180k, 1000);
 						if (timeShiftSegmentsInMs > timeShiftBufferDepthInMs) {
 							m_host->log(Debug, format( "Delete segment \"%s\".", (*seg).file->filename).c_str());
-							if (gf_delete_file((*seg).file->filename.c_str()) == GF_OK || (*seg).retry == 0) {
+							if (gf_delete_file(seg->file->filename.c_str()) == GF_OK || seg->retry == 0) {
 								seg = quality->timeshiftSegments.erase(seg);
 							} else {
 								m_host->log(Warning, format("Couldn't delete old segment \"%s\" (retry=%s).", (*seg).file->filename, (*seg).retry).c_str());
-								(*seg).retry--;
+								seg->retry--;
 							}
 						} else {
 							++seg;
