@@ -907,7 +907,8 @@ void GPACMuxMP4::sendOutput(bool EOS) {
 	if (e)
 		throw error(format("Could not compute codec name (RFC 6381)"));
 
-	auto const consideredDurationIn180k = (compatFlags & FlushFragMemory) ? timescaleToClock(curFragmentDurInTs, timeScale) : timescaleToClock(curSegmentDurInTs, timeScale);
+	auto const consideredDurationInTs = (compatFlags & FlushFragMemory) ? curFragmentDurInTs : curSegmentDurInTs;
+	auto const consideredDurationIn180k = timescaleToClock(consideredDurationInTs, timeScale);
 	auto const containerLatency =
 	    fragmentPolicy == OneFragmentPerFrame ? timescaleToClock(defaultSampleIncInTs, timeScale) : std::min<uint64_t>(consideredDurationIn180k, fractionToClock(segmentDuration));
 	auto metadata = make_shared<MetadataFile>(segmentName, streamType, mimeType, codecName, consideredDurationIn180k, lastSegmentSize, containerLatency, segmentStartsWithRAP, EOS);
