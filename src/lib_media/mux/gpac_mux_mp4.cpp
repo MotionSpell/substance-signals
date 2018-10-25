@@ -646,7 +646,7 @@ void GPACMuxMP4::setupFragments() {
 
 void GPACMuxMP4::declareStreamAudio(const MetadataPktLibavAudio* metadata) {
 	GF_Err e;
-	u32 di=0, trackNum=0;
+	u32 di=0;
 	GF_M4ADecSpecInfo acfg {};
 
 	auto deleteEsd = [](GF_ESD* p) {
@@ -661,7 +661,7 @@ void GPACMuxMP4::declareStreamAudio(const MetadataPktLibavAudio* metadata) {
 	m_host->log(Debug, format("TimeScale: %s", timeScale).c_str());
 	defaultSampleIncInTs = metadata->getFrameSize();
 
-	trackNum = gf_isom_new_track(isoCur, esd->ESID, GF_ISOM_MEDIA_AUDIO, timeScale);
+	auto const trackNum = gf_isom_new_track(isoCur, esd->ESID, GF_ISOM_MEDIA_AUDIO, timeScale);
 	if (!trackNum)
 		throw error(format("Cannot create new track"));
 
