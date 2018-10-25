@@ -783,25 +783,21 @@ void GPACMuxMP4::declareStreamVideo(const MetadataPktLibavVideo* metadata) {
 	u32 di = 0;
 	if (metadata->getAVCodecContext()->codec_id == AV_CODEC_ID_H264) {
 		codec4CC = "H264";
-		std::shared_ptr<GF_AVCConfig> avccfg(gf_odf_avc_cfg_new(), &gf_odf_avc_cfg_del);
-		if (!avccfg)
-			throw error(format("Container format import failed (AVC)"));
+		GF_AVCConfig avccfg {};
 
-		e = avc_import_ffextradata(extradata, avccfg.get());
+		e = avc_import_ffextradata(extradata, &avccfg);
 		if (e == GF_OK) {
-			e = gf_isom_avc_config_new(isoCur, trackNum, avccfg.get(), nullptr, nullptr, &di);
+			e = gf_isom_avc_config_new(isoCur, trackNum, &avccfg, nullptr, nullptr, &di);
 			if (e != GF_OK)
 				throw error(format("Cannot create AVC config: %s", gf_error_to_string(e)));
 		}
 	} else if (metadata->getAVCodecContext()->codec_id == AV_CODEC_ID_H265) {
 		codec4CC = "H265";
-		std::shared_ptr<GF_HEVCConfig> hevccfg(gf_odf_hevc_cfg_new(), &gf_odf_hevc_cfg_del);
-		if (!hevccfg)
-			throw error(format("Container format import failed (HEVC)"));
+		GF_HEVCConfig hevccfg {};
 
-		e = hevc_import_ffextradata(extradata, hevccfg.get());
+		e = hevc_import_ffextradata(extradata, &hevccfg);
 		if (e == GF_OK) {
-			e = gf_isom_hevc_config_new(isoCur, trackNum, hevccfg.get(), nullptr, nullptr, &di);
+			e = gf_isom_hevc_config_new(isoCur, trackNum, &hevccfg, nullptr, nullptr, &di);
 			if (e != GF_OK)
 				throw error(format("Cannot create HEVC config: %s", gf_error_to_string(e)));
 		}
