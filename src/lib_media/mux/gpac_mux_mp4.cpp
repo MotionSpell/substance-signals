@@ -1101,8 +1101,8 @@ void GPACMuxMP4::process() {
 	if (!processInit(data))
 		return;
 
-	auto const timescale = safe_cast<const MetadataPktLibav>(data->getMetadata())->getTimeScale();
-	auto const dataDTS = timescaleToClock(safe_cast<const DataAVPacket>(data)->getPacket()->dts * timescale.den, timescale.num);
+	auto const srcTimeScale = safe_cast<const MetadataPktLibav>(data->getMetadata())->getTimeScale();
+	auto const dataDTS = timescaleToClock(safe_cast<const DataAVPacket>(data)->getPacket()->dts * srcTimeScale.den, srcTimeScale.num);
 	if (compatFlags & ExactInputDur) {
 		if (lastData) {
 			auto dataDurationInTs = clockToTimescale(dataDTS - initDTSIn180k, timeScale) - DTS;
