@@ -17,7 +17,6 @@
 #include "lib_utils/format.hpp"
 #include <cstdint>
 #include <memory>
-#include <stdexcept>
 
 extern "C" {
 #include <gpac/tools.h>
@@ -67,39 +66,6 @@ struct Init {
 	~Init() {
 		gf_sys_close();
 	}
-};
-
-//------------------------------------------------
-// wrapper for GF_Config
-//------------------------------------------------
-class Config {
-	public:
-		Config(const char *filePath, const char *fileName) {
-			cfg = gf_cfg_new(filePath, fileName);
-		}
-
-		~Config() {
-			gf_cfg_del(cfg);
-		}
-
-		GF_Config* get() const {
-			return cfg;
-		}
-
-		void setKey(const char *secName, const char *keyName, const char *keyValue) {
-			GF_Err e = gf_cfg_set_key(cfg, secName, keyName, keyValue);
-			if (e < 0)
-				throw Error(format("[GPACPP] Cannot set config (%s) key [%s] %s=%s", cfg, secName, keyName, keyValue).c_str(), e);
-		}
-
-		const char* getKey(const char *secName, const char *keyName) const {
-			return gf_cfg_get_key(cfg, secName, keyName);
-		}
-
-		Config const& operator=(Config const&) = delete;
-
-	private:
-		GF_Config *cfg;
 };
 
 #ifndef GPAC_DISABLE_ISOM
