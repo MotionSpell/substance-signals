@@ -18,30 +18,6 @@ auto const AVC_INBAND_CONFIG = 0;
 
 namespace Modules {
 
-class DataMp4Segment : public DataBase {
-	public:
-		DataMp4Segment(size_t) {
-		}
-		void setData(Span contents) {
-			buffer.assign(contents.ptr, contents.ptr + contents.len);
-		}
-		Span data() override {
-			return { buffer.data(), buffer.size() };
-		}
-		bool isRecyclable() const override {
-			return false;
-		}
-		SpanC data() const override {
-			return { buffer.data(), buffer.size() };
-		}
-		void resize(size_t size) override {
-			buffer.resize(size);
-		}
-
-	private:
-		std::vector<uint8_t> buffer;
-};
-
 
 namespace {
 
@@ -456,9 +432,9 @@ GPACMuxMP4::GPACMuxMP4(IModuleHost* host, Mp4MuxConfig const& cfg)
 
 	addInput(this);
 	if (compatFlags & FlushFragMemory) {
-		output = addOutputDynAlloc<OutputDataDefault<DataMp4Segment>>(100 * ALLOC_NUM_BLOCKS_DEFAULT); //TODO: retrieve framerate, and multiply the allocator size
+		output = addOutputDynAlloc<OutputDataDefault<DataRaw>>(100 * ALLOC_NUM_BLOCKS_DEFAULT); //TODO: retrieve framerate, and multiply the allocator size
 	} else {
-		output = addOutput<OutputDataDefault<DataMp4Segment>>();
+		output = addOutput<OutputDataDefault<DataRaw>>();
 	}
 }
 
@@ -904,7 +880,8 @@ void GPACMuxMP4::sendOutput(bool EOS) {
 			m_host->log(Debug, "Empty segment. Ignore.");
 			return;
 		}
-		out->setData(contents);
+		out->resize(contents.len);
+		memcpy(out->data().ptr, contents.ptr, contents.len);
 		gf_free(contents.ptr);
 		lastSegmentSize = contents.len;
 	}
