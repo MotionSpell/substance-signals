@@ -1063,11 +1063,10 @@ std::unique_ptr<gpacpp::IsoSample> GPACMuxMP4::fillSample(Data data_) {
 
 bool GPACMuxMP4::processInit(Data &data) {
 	if (inputs[0]->updateMetadata(data)) {
-		auto const &metadata = data->getMetadata();
-		declareStream(metadata.get());
+		auto const metadata = dynamic_cast<const MetadataPktLibav*>(data->getMetadata().get());
+		declareStream(metadata);
 
-		auto const metaPkt = std::dynamic_pointer_cast<const MetadataPktLibav>(metadata);
-		auto srcTimeScale = metaPkt->getTimeScale();
+		auto srcTimeScale = metadata->getTimeScale();
 
 		if (!defaultSampleIncInTs) {
 			auto pkt = safe_cast<const DataAVPacket>(data);
