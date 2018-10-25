@@ -421,24 +421,26 @@ GPACMuxMP4::GPACMuxMP4(IModuleHost* host, Mp4MuxConfig const& cfg)
 	if ((compatFlags & FlushFragMemory) && (!cfg.baseName.empty() || segmentPolicy != FragmentedSegment))
 		throw error("Inconsistent parameters: FlushFragMemory requires an empty segment name and FragmentedSegment policy.");
 
-	const char* pSegmentName = nullptr;
+	const char* pInitName = nullptr;
 
 	if (!cfg.baseName.empty()) {
 		if (segmentPolicy > NoSegment) {
-			segmentName = format("%s-init.mp4", cfg.baseName);
+			initName = format("%s-init.mp4", cfg.baseName);
 		} else {
-			segmentName = format("%s.mp4", cfg.baseName);
+			initName = format("%s.mp4", cfg.baseName);
 		}
 
-		pSegmentName = segmentName.c_str();
+		pInitName = initName.c_str();
 
 		m_host->log(Warning, "File mode is deprecated");
 	}
 
-	isoInit = gf_isom_open(pSegmentName, GF_ISOM_OPEN_WRITE, nullptr);
+	isoInit = gf_isom_open(pInitName, GF_ISOM_OPEN_WRITE, nullptr);
 	if (!isoInit)
 		throw error(format("Cannot open isoInit file %s", segmentName));
+
 	isoCur = isoInit;
+	segmentName = initName;
 
 	GF_Err e = gf_isom_set_storage_mode(isoCur, GF_ISOM_STORE_INTERLEAVED);
 	if (e != GF_OK)
@@ -464,13 +466,10 @@ void GPACMuxMP4::flush() {
 	closeSegment(true);
 
 	if (segmentPolicy == IndependentSegment) {
-		std::string fileToDelete;
-		if (auto fn = gf_isom_get_filename(isoInit))
-			fileToDelete = fn;
 		gf_isom_delete(isoInit);
 		isoInit = nullptr;
-		if (!fileToDelete.empty())
-			gf_delete_file(fileToDelete.c_str());
+		if (!initName.empty())
+			gf_delete_file(initName.c_str());
 	} else {
 		GF_Err e = gf_isom_close(isoCur);
 		if (e != GF_OK && e != GF_ISOM_INVALID_FILE)

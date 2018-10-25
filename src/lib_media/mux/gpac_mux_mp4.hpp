@@ -70,6 +70,7 @@ class GPACMuxMP4 : public ModuleDynI {
 		uint64_t curSegmentDurInTs = 0, curSegmentDeltaInTs = 0, segmentNum = 0, lastSegmentSize = 0;
 		bool segmentStartsWithRAP = true;
 		std::string segmentName;
+		std::string initName;
 
 		OutputDataDefault<DataRawGPAC> *output;
 		union {
