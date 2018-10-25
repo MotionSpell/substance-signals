@@ -711,7 +711,8 @@ void GPACMuxMP4::declareStreamAudio(const MetadataPktLibavAudio* metadata) {
 		cfg.streams[0].fscod = hdr.fscod;
 		cfg.streams[0].lfon = hdr.lfon;
 
-		gf_isom_ac3_config_new(isoCur, trackNum, &cfg, nullptr, nullptr, &di);
+		e = gf_isom_ac3_config_new(isoCur, trackNum, &cfg, nullptr, nullptr, &di);
+		assert(e == GF_OK);
 	} else
 		throw error(format("Unsupported audio codec \"%s\"", metadata->getCodecName()));
 
