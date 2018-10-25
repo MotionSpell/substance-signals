@@ -11,7 +11,7 @@ class IsoSample;
 }
 namespace Modules {
 
-class DataRawGPAC;
+class DataMp4Segment;
 
 namespace Mux {
 
@@ -73,7 +73,7 @@ class GPACMuxMP4 : public ModuleS {
 		std::string initName;
 		std::string baseName;
 
-		OutputDataDefault<DataRawGPAC> *output;
+		OutputDataDefault<DataMp4Segment>* output;
 		union {
 			Resolution resolution;
 			int sampleRate;

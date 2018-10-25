@@ -18,33 +18,28 @@ auto const AVC_INBAND_CONFIG = 0;
 
 namespace Modules {
 
-class DataRawGPAC : public DataBase {
+class DataMp4Segment : public DataBase {
 	public:
-		DataRawGPAC(size_t) {
-		}
-		~DataRawGPAC() {
-			gf_free((void*)buffer);
+		DataMp4Segment(size_t) {
 		}
 		void setData(Span contents) {
-			this->buffer = contents.ptr;
-			bufferSize = contents.len;
+			buffer.assign(contents.ptr, contents.ptr + contents.len);
 		}
 		Span data() override {
-			return { buffer, bufferSize };
+			return { buffer.data(), buffer.size() };
 		}
 		bool isRecyclable() const override {
 			return false;
 		}
 		SpanC data() const override {
-			return { buffer, bufferSize };
+			return { buffer.data(), buffer.size() };
 		}
-		void resize(size_t /*size*/) override {
-			throw std::runtime_error("DataRawGPAC: forbidden operation resize().");
+		void resize(size_t size) override {
+			buffer.resize(size);
 		}
 
 	private:
-		uint8_t *buffer = nullptr;
-		size_t bufferSize = 0;
+		std::vector<uint8_t> buffer;
 };
 
 
@@ -461,9 +456,9 @@ GPACMuxMP4::GPACMuxMP4(IModuleHost* host, Mp4MuxConfig const& cfg)
 
 	addInput(this);
 	if (compatFlags & FlushFragMemory) {
-		output = addOutputDynAlloc<OutputDataDefault<DataRawGPAC>>(100 * ALLOC_NUM_BLOCKS_DEFAULT); //TODO: retrieve framerate, and multiply the allocator size
+		output = addOutputDynAlloc<OutputDataDefault<DataMp4Segment>>(100 * ALLOC_NUM_BLOCKS_DEFAULT); //TODO: retrieve framerate, and multiply the allocator size
 	} else {
-		output = addOutput<OutputDataDefault<DataRawGPAC>>();
+		output = addOutput<OutputDataDefault<DataMp4Segment>>();
 	}
 }
 
@@ -910,6 +905,7 @@ void GPACMuxMP4::sendOutput(bool EOS) {
 			return;
 		}
 		out->setData(contents);
+		gf_free(contents.ptr);
 		lastSegmentSize = contents.len;
 	}
 
