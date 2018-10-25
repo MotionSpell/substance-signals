@@ -501,7 +501,7 @@ void GPACMuxMP4::startSegment() {
 		isoCur = gf_isom_open(segmentName.empty() ? nullptr : segmentName.c_str(), GF_ISOM_OPEN_WRITE, nullptr);
 		if (!isoCur)
 			throw error(format("Cannot open isoCur file %s"));
-		declareStream(inputs[0]->getMetadata());
+		declareStream(inputs[0]->getMetadata().get());
 		startSegmentPostAction();
 		setupFragments();
 		gf_isom_set_next_moof_number(isoCur, (u32)nextFragmentNum);
@@ -838,12 +838,12 @@ void GPACMuxMP4::declareStreamVideo(const MetadataPktLibavVideo* metadata) {
 	}
 }
 
-void GPACMuxMP4::declareStream(const Metadata &metadata) {
-	if (auto video = dynamic_cast<const MetadataPktLibavVideo*>(metadata.get())) {
+void GPACMuxMP4::declareStream(const IMetadata* metadata) {
+	if (auto video = dynamic_cast<const MetadataPktLibavVideo*>(metadata)) {
 		declareStreamVideo(video);
-	} else if (auto audio = dynamic_cast<const MetadataPktLibavAudio*>(metadata.get())) {
+	} else if (auto audio = dynamic_cast<const MetadataPktLibavAudio*>(metadata)) {
 		declareStreamAudio(audio);
-	} else if (auto subs = dynamic_cast<const MetadataPktLibavSubtitle*>(metadata.get())) {
+	} else if (auto subs = dynamic_cast<const MetadataPktLibavSubtitle*>(metadata)) {
 		declareStreamSubtitle(subs);
 	} else
 		throw error("Stream creation failed: unknown type.");
@@ -1064,7 +1064,7 @@ std::unique_ptr<gpacpp::IsoSample> GPACMuxMP4::fillSample(Data data_) {
 bool GPACMuxMP4::processInit(Data &data) {
 	if (inputs[0]->updateMetadata(data)) {
 		auto const &metadata = data->getMetadata();
-		declareStream(metadata);
+		declareStream(metadata.get());
 
 		auto const metaPkt = std::dynamic_pointer_cast<const MetadataPktLibav>(metadata);
 		auto srcTimeScale = metaPkt->getTimeScale();

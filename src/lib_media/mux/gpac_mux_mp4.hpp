@@ -36,7 +36,7 @@ class GPACMuxMP4 : public ModuleDynI {
 		IUtcStartTimeQuery* const m_utcStartTime;
 
 		bool processInit(Data &data);
-		void declareStream(const Metadata &metadata);
+		void declareStream(const IMetadata* metadata);
 		void handleInitialTimeOffset();
 		void sendOutput(bool EOS);
 		std::unique_ptr<gpacpp::IsoSample> fillSample(Data data);
