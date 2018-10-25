@@ -1076,7 +1076,7 @@ bool GPACMuxMP4::processInit(Data &data) {
 
 		if (!firstDataAbsTimeInMs) {
 			firstDataAbsTimeInMs = clockToTimescale(m_utcStartTime->query(), 1000);
-			auto const timescale = safe_cast<const MetadataPktLibav>(data->getMetadata())->getTimeScale();
+			auto const timescale = safe_cast<const MetadataPktLibav>(metadata)->getTimeScale();
 			initDTSIn180k = timescaleToClock(safe_cast<const DataAVPacket>(data)->getPacket()->dts * timescale.den, timescale.num);
 			handleInitialTimeOffset();
 		}
