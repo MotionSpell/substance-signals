@@ -625,9 +625,15 @@ void GPACMuxMP4::setupFragments() {
 		if (e != GF_OK)
 			throw error(format("Cannot setup track as fragmented: %s", gf_error_to_string(e)));
 
-		int mode = 1;
-		if (segmentPolicy == NoSegment || segmentPolicy == IndependentSegment) mode = 0;
-		else if (segmentPolicy == SingleSegment) mode = 2;
+		int mode;
+
+		if (segmentPolicy == NoSegment || segmentPolicy == IndependentSegment)
+			mode = 0;
+		else if (segmentPolicy == SingleSegment)
+			mode = 2;
+		else
+			mode = 1;
+
 		e = gf_isom_finalize_for_fragment(isoCur, mode); //writes moov
 		if (e != GF_OK)
 			throw error(format("Cannot prepare track for movie fragmentation: %s", gf_error_to_string(e)));
