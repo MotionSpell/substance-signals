@@ -105,7 +105,7 @@ class LibavDemux : public ActiveModule {
 				m_formatCtx->flags |= AVFMT_FLAG_KEEP_SIDE_DATA; //deprecated >= 3.5 https://github.com/FFmpeg/FFmpeg/commit/ca2b779423
 
 				if (config.seekTimeInMs) {
-					if (avformat_seek_file(m_formatCtx, -1, INT64_MIN, convertToTimescale(config.seekTimeInMs, 1000, AV_TIME_BASE), INT64_MAX, 0) < 0) {
+					if (avformat_seek_file(m_formatCtx, -1, INT64_MIN, rescale(config.seekTimeInMs, 1000, AV_TIME_BASE), INT64_MAX, 0) < 0) {
 						clean();
 						throw error(format("Couldn't seek to time %sms", config.seekTimeInMs));
 					}

@@ -561,7 +561,7 @@ void GPACMuxMP4::startFragment(uint64_t DTS, uint64_t PTS) {
 			}
 
 			if (!(compatFlags & Browsers)) {
-				e = gf_isom_set_fragment_reference_time(isoCur, trackId, UTC2NTP(firstDataAbsTimeInMs + convertToTimescale(PTS, timeScale, 1000)), PTS);
+				e = gf_isom_set_fragment_reference_time(isoCur, trackId, UTC2NTP(firstDataAbsTimeInMs + rescale(PTS, timeScale, 1000)), PTS);
 				if (e != GF_OK)
 					throw error(format("Impossible to create UTC marquer: %s", gf_error_to_string(e)));
 			}
@@ -581,7 +581,7 @@ void GPACMuxMP4::closeFragment() {
 			}
 
 			auto const curFragmentStartInTs = DTS - curFragmentDurInTs;
-			auto const absTimeInTs = convertToTimescale(firstDataAbsTimeInMs, 1000, timeScale) + curFragmentStartInTs;
+			auto const absTimeInTs = rescale(firstDataAbsTimeInMs, 1000, timeScale) + curFragmentStartInTs;
 			auto const deltaRealTimeInMs = 1000 * (double)(getUTC() - Fraction(absTimeInTs, timeScale));
 
 			auto const isSuspicious = deltaRealTimeInMs < 0 || deltaRealTimeInMs > curFragmentStartInTs || curFragmentDurInTs != fractionToTimescale(segmentDuration, timeScale);
@@ -922,7 +922,7 @@ void GPACMuxMP4::sendOutput(bool EOS) {
 	//FIXME: this mediaTime should be a PTS (is currently a DTS)
 	//FIXME: this mediaTime is already shifted by the absolute start time (also shifted according the edit lists)
 	auto const curSegmentStartInTs = DTS - curSegmentDurInTs;
-	out->setMediaTime(convertToTimescale(firstDataAbsTimeInMs, 1000, timeScale) + curSegmentStartInTs, timeScale);
+	out->setMediaTime(rescale(firstDataAbsTimeInMs, 1000, timeScale) + curSegmentStartInTs, timeScale);
 	output->emit(out);
 
 	if (segmentPolicy == IndependentSegment) {
@@ -1045,7 +1045,7 @@ std::unique_ptr<gpacpp::IsoSample> GPACMuxMP4::fillSample(Data data_) {
 	auto const &metaPkt = safe_cast<const MetadataPktLibav>(data->getMetadata());
 	if (data->getPacket()->pts != AV_NOPTS_VALUE) {
 		auto const ctsOffset = data->getPacket()->pts - data->getPacket()->dts;
-		sample->CTS_Offset = (s32)convertToTimescale(ctsOffset, metaPkt->getTimeScale().num, metaPkt->getTimeScale().den * timeScale);
+		sample->CTS_Offset = (s32)rescale(ctsOffset, metaPkt->getTimeScale().num, metaPkt->getTimeScale().den * timeScale);
 	} else {
 		m_host->log(Error, format("Missing PTS (input DTS=%s, ts=%s/%s): output MP4 may be incorrect.", data->getPacket()->dts, metaPkt->getTimeScale().num, metaPkt->getTimeScale().den).c_str());
 	}
@@ -1066,7 +1066,7 @@ bool GPACMuxMP4::processInit(Data &data) {
 			auto pkt = safe_cast<const DataAVPacket>(data);
 			if (pkt && pkt->getPacket()->duration) {
 				auto const metaPkt = std::dynamic_pointer_cast<const MetadataPktLibav>(metadata);
-				defaultSampleIncInTs = convertToTimescale(pkt->getPacket()->duration, metaPkt->getTimeScale().num, metaPkt->getTimeScale().den * timeScale);
+				defaultSampleIncInTs = rescale(pkt->getPacket()->duration, metaPkt->getTimeScale().num, metaPkt->getTimeScale().den * timeScale);
 				m_host->log(Warning, format("Codec defaultSampleIncInTs=0 but first data contains a duration (%s/%s).", defaultSampleIncInTs, timeScale).c_str());
 			} else {
 				m_host->log(Warning, "Computed defaultSampleIncInTs=0, forcing the ExactInputDur flag.");

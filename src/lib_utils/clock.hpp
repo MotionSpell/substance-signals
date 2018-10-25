@@ -10,23 +10,23 @@ struct IClock {
 };
 
 template<typename T>
-static T convertToTimescale(T time, uint64_t timescaleSrc, uint64_t timescaleDst) {
-	simplifyFraction(timescaleSrc, timescaleDst);
-	return divUp<T>(time * timescaleDst, timescaleSrc);
+static T rescale(T time, uint64_t srcScale, uint64_t dstScale) {
+	simplifyFraction(srcScale, dstScale);
+	return divUp<T>(time * dstScale, srcScale);
 }
 
 template<typename T>
 static T timescaleToClock(T time, uint64_t timescale) {
-	return convertToTimescale(time, timescale, IClock::Rate);
+	return rescale(time, timescale, IClock::Rate);
 }
 
 template<typename T>
 static T clockToTimescale(T time, uint64_t timescale) {
-	return convertToTimescale(time, IClock::Rate, timescale);
+	return rescale(time, IClock::Rate, timescale);
 }
 
 static inline int64_t fractionToTimescale(Fraction time, uint64_t timescale) {
-	return convertToTimescale(time.num, time.den, timescale);
+	return rescale(time.num, time.den, timescale);
 }
 
 static inline int64_t fractionToClock(Fraction time) {
