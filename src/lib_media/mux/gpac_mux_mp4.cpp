@@ -537,10 +537,9 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 		GF_Err e = gf_isom_close_segment(isoCur, 0, 0, 0, 0, 0, GF_FALSE, (Bool)isLastSeg, (Bool)(!initName.empty()),
 		        (compatFlags & Browsers) ? 0 : GF_4CC('e', 'o', 'd', 's'), nullptr, nullptr, &lastSegmentSize);
 		if (e != GF_OK) {
-			if (m_DTS == 0) {
+			if (m_DTS == 0)
 				return;
-			} else
-				throw error(format("gf_isom_close_segment: %s", gf_error_to_string(e)));
+			throw error(format("gf_isom_close_segment: %s", gf_error_to_string(e)));
 		}
 	}
 
