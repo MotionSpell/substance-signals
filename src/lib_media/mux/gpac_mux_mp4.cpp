@@ -537,7 +537,7 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 		GF_Err e = gf_isom_close_segment(isoCur, 0, 0, 0, 0, 0, GF_FALSE, (Bool)isLastSeg, (Bool)(!initName.empty()),
 		        (compatFlags & Browsers) ? 0 : GF_4CC('e', 'o', 'd', 's'), nullptr, nullptr, &lastSegmentSize);
 		if (e != GF_OK) {
-			if (DTS == 0) {
+			if (m_DTS == 0) {
 				return;
 			} else
 				throw error(format("gf_isom_close_segment: %s", gf_error_to_string(e)));
@@ -590,7 +590,7 @@ void GPACMuxMP4::closeFragment() {
 				return;
 			}
 
-			auto const curFragmentStartInTs = DTS - curFragmentDurInTs;
+			auto const curFragmentStartInTs = m_DTS - curFragmentDurInTs;
 			auto const absTimeInTs = rescale(firstDataAbsTimeInMs, 1000, timeScale) + curFragmentStartInTs;
 			auto const deltaRealTimeInMs = 1000 * (double)(getUTC() - Fraction(absTimeInTs, timeScale));
 
@@ -941,7 +941,7 @@ void GPACMuxMP4::sendOutput(bool EOS) {
 	out->setMetadata(metadata);
 	//FIXME: this mediaTime should be a PTS (is currently a DTS)
 	//FIXME: this mediaTime is already shifted by the absolute start time (also shifted according the edit lists)
-	auto const curSegmentStartInTs = DTS - curSegmentDurInTs;
+	auto const curSegmentStartInTs = m_DTS - curSegmentDurInTs;
 	out->setMediaTime(rescale(firstDataAbsTimeInMs, 1000, timeScale) + curSegmentStartInTs, timeScale);
 	output->emit(out);
 
@@ -956,12 +956,12 @@ void GPACMuxMP4::startChunk(gpacpp::IsoSample * const sample) {
 		segmentStartsWithRAP = sample->IsRAP == RAP;
 		if (segmentPolicy > SingleSegment) {
 			const u64 oneSegDurInTs = clockToTimescale(fractionToClock(segmentDuration), timeScale);
-			if (oneSegDurInTs * (DTS / oneSegDurInTs) == 0) { /*initial delay*/
+			if (oneSegDurInTs * (m_DTS / oneSegDurInTs) == 0) { /*initial delay*/
 				curSegmentDeltaInTs = curSegmentDurInTs + curSegmentDeltaInTs - oneSegDurInTs * ((curSegmentDurInTs + curSegmentDeltaInTs) / oneSegDurInTs);
 			} else {
 				auto const num = (curSegmentDurInTs + curSegmentDeltaInTs) / oneSegDurInTs;
-				auto const rem = DTS - (num ? num - 1 : 0) * oneSegDurInTs;
-				curSegmentDeltaInTs = DTS - oneSegDurInTs * (rem / oneSegDurInTs);
+				auto const rem = m_DTS - (num ? num - 1 : 0) * oneSegDurInTs;
+				curSegmentDeltaInTs = m_DTS - oneSegDurInTs * (rem / oneSegDurInTs);
 			}
 			if (segmentPolicy == IndependentSegment) {
 				sample->DTS = 0;
@@ -1001,7 +1001,7 @@ void GPACMuxMP4::addData(gpacpp::IsoSample const * const sample, int64_t lastDat
 		}
 	}
 
-	DTS += lastDataDurationInTs;
+	m_DTS += lastDataDurationInTs;
 	if (segmentPolicy > SingleSegment) {
 		curSegmentDurInTs += lastDataDurationInTs;
 	}
@@ -1018,7 +1018,7 @@ void GPACMuxMP4::closeChunk(bool nextSampleIsRAP) {
 	    segmentNextDuration >= segmentDuration &&
 	    chunkBoundaryAllowedHere) {
 		if ((compatFlags & SegConstantDur) && (segmentNextDuration != segmentDuration) && (curSegmentDurInTs != 0)) {
-			if ((DTS / clockToTimescale(fractionToClock(segmentDuration), timeScale)) <= 1) {
+			if ((m_DTS / clockToTimescale(fractionToClock(segmentDuration), timeScale)) <= 1) {
 				segmentDuration = segmentNextDuration;
 			}
 		}
@@ -1060,7 +1060,7 @@ std::unique_ptr<gpacpp::IsoSample> GPACMuxMP4::fillSample(Data data_) {
 	if (segmentPolicy == IndependentSegment) {
 		sample->DTS = curSegmentDurInTs + curSegmentDeltaInTs;
 	} else {
-		sample->DTS = DTS;
+		sample->DTS = m_DTS;
 	}
 	auto const &metaPkt = safe_cast<const MetadataPktLibav>(data->getMetadata());
 
@@ -1123,7 +1123,7 @@ void GPACMuxMP4::process(Data data) {
 	auto const dataDTS = timescaleToClock(safe_cast<const DataAVPacket>(data)->getPacket()->dts * srcTimeScale.den, srcTimeScale.num);
 	if (compatFlags & ExactInputDur) {
 		if (lastData) {
-			auto dataDurationInTs = clockToTimescale(dataDTS - initDTSIn180k, timeScale) - DTS;
+			auto dataDurationInTs = clockToTimescale(dataDTS - initDTSIn180k, timeScale) - m_DTS;
 			if (dataDurationInTs <= 0) {
 				m_host->log(Warning, format("Computed duration is inferior or equal to zero (%s). Inferring to %s", dataDurationInTs, defaultSampleIncInTs).c_str());
 				dataDurationInTs = defaultSampleIncInTs;
@@ -1133,8 +1133,8 @@ void GPACMuxMP4::process(Data data) {
 
 		lastData = data;
 	} else {
-		auto lastDataDurationInTs = clockToTimescale(dataDTS - initDTSIn180k, timeScale) + defaultSampleIncInTs - DTS;
-		if (DTS > 0) {
+		auto lastDataDurationInTs = clockToTimescale(dataDTS - initDTSIn180k, timeScale) + defaultSampleIncInTs - m_DTS;
+		if (m_DTS > 0) {
 			if (!dataDTS) {
 				lastDataDurationInTs = defaultSampleIncInTs;
 				m_host->log(Warning, format("Received time 0: inferring duration of %s", lastDataDurationInTs).c_str());
