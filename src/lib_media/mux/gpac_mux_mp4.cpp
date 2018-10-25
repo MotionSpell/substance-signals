@@ -623,7 +623,7 @@ void GPACMuxMP4::setupFragments() {
 	}
 }
 
-void GPACMuxMP4::declareStreamAudio(const std::shared_ptr<const MetadataPktLibavAudio> &metadata) {
+void GPACMuxMP4::declareStreamAudio(const MetadataPktLibavAudio* metadata) {
 	GF_Err e;
 	u32 di=0, trackNum=0;
 	GF_M4ADecSpecInfo acfg {};
@@ -732,7 +732,7 @@ void GPACMuxMP4::declareStreamAudio(const std::shared_ptr<const MetadataPktLibav
 	}
 }
 
-void GPACMuxMP4::declareStreamSubtitle(const std::shared_ptr<const MetadataPktLibavSubtitle> & /*metadata*/) {
+void GPACMuxMP4::declareStreamSubtitle(const MetadataPktLibavSubtitle* /*metadata*/) {
 	timeScale = 10 * TIMESCALE_MUL;
 	assert((timeScale % 1000) == 0); /*ms accuracy mandatory*/
 	u32 trackNum = gf_isom_new_track(isoCur, 0, GF_ISOM_MEDIA_TEXT, timeScale);
@@ -756,7 +756,7 @@ void GPACMuxMP4::declareStreamSubtitle(const std::shared_ptr<const MetadataPktLi
 	}
 }
 
-void GPACMuxMP4::declareStreamVideo(const std::shared_ptr<const MetadataPktLibavVideo> &metadata) {
+void GPACMuxMP4::declareStreamVideo(const MetadataPktLibavVideo* metadata) {
 	timeScale = (uint32_t)(metadata->getTimeScale().num * TIMESCALE_MUL);
 	u32 trackNum = gf_isom_new_track(isoCur, 0, GF_ISOM_MEDIA_VISUAL, timeScale);
 	if (!trackNum)
@@ -840,11 +840,11 @@ void GPACMuxMP4::declareStreamVideo(const std::shared_ptr<const MetadataPktLibav
 
 void GPACMuxMP4::declareStream(const Metadata &metadata) {
 	if (auto video = std::dynamic_pointer_cast<const MetadataPktLibavVideo>(metadata)) {
-		declareStreamVideo(video);
+		declareStreamVideo(video.get());
 	} else if (auto audio = std::dynamic_pointer_cast<const MetadataPktLibavAudio>(metadata)) {
-		declareStreamAudio(audio);
+		declareStreamAudio(audio.get());
 	} else if (auto subs = std::dynamic_pointer_cast<const MetadataPktLibavSubtitle>(metadata)) {
-		declareStreamSubtitle(subs);
+		declareStreamSubtitle(subs.get());
 	} else
 		throw error("Stream creation failed: unknown type.");
 }

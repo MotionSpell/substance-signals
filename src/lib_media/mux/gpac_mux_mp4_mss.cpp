@@ -22,7 +22,7 @@ audioLang(cfg.audioLang),
 audioName(cfg.audioName) {
 }
 
-void GPACMuxMP4MSS::declareStreamAudio(const std::shared_ptr<const MetadataPktLibavAudio> &metadata) {
+void GPACMuxMP4MSS::declareStreamAudio(const MetadataPktLibavAudio* metadata) {
 	GPACMuxMP4::declareStreamAudio(metadata);
 
 	auto extradata = metadata->getExtradata();
@@ -33,14 +33,14 @@ void GPACMuxMP4MSS::declareStreamAudio(const std::shared_ptr<const MetadataPktLi
 		ISMLManifest[k] = 0;
 }
 
-void GPACMuxMP4MSS::declareStreamSubtitle(const std::shared_ptr<const MetadataPktLibavSubtitle> &metadata) {
+void GPACMuxMP4MSS::declareStreamSubtitle(const MetadataPktLibavSubtitle* metadata) {
 	GPACMuxMP4::declareStreamSubtitle(metadata);
 	ISMLManifest = writeISMLManifest(codec4CC, "", metadata->getBitrate(), 0, 0, 0, 0, 0);
 	for(int k=0; k < 4; ++k)
 		ISMLManifest[k] = 0;
 }
 
-void GPACMuxMP4MSS::declareStreamVideo(const std::shared_ptr<const MetadataPktLibavVideo> &metadata) {
+void GPACMuxMP4MSS::declareStreamVideo(const MetadataPktLibavVideo* metadata) {
 	GPACMuxMP4::declareStreamVideo(metadata);
 
 	auto extradata = metadata->getExtradata();
