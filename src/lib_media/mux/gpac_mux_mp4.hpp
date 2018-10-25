@@ -71,6 +71,7 @@ class GPACMuxMP4 : public ModuleDynI {
 		bool segmentStartsWithRAP = true;
 		std::string segmentName;
 		std::string initName;
+		std::string baseName;
 
 		OutputDataDefault<DataRawGPAC> *output;
 		union {

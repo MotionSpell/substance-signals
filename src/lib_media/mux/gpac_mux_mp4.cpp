@@ -431,11 +431,13 @@ GPACMuxMP4::GPACMuxMP4(IModuleHost* host, Mp4MuxConfig const& cfg)
 
 	const char* pInitName = nullptr;
 
-	if (!cfg.baseName.empty()) {
+	baseName = cfg.baseName;
+
+	if (!baseName.empty()) {
 		if (segmentPolicy > NoSegment) {
-			initName = format("%s-init.mp4", cfg.baseName);
+			initName = baseName + "-init.mp4";
 		} else {
-			initName = format("%s.mp4", cfg.baseName);
+			initName = baseName + ".mp4";
 		}
 
 		pInitName = initName.c_str();
@@ -488,7 +490,7 @@ void GPACMuxMP4::flush() {
 
 void GPACMuxMP4::updateSegmentName() {
 	if (!initName.empty()) {
-		auto ss = initName.substr(0, initName.find("-init")) + "-" + std::to_string(segmentNum);
+		auto ss = baseName + "-" + std::to_string(segmentNum);
 		if (segmentPolicy == FragmentedSegment)
 			ss += ".m4s";
 		else
