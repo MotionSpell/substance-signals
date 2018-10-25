@@ -224,9 +224,7 @@ static GF_Err hevc_import_ffextradata(Span extradataSpan, GF_HEVCConfig *dstCfg)
 	hevc->sps_active_idx = -1;
 
 	while (gf_bs_available(bs)) {
-		s32 idx = 0;
 		GF_AVCConfigSlot *slc = nullptr;
-		u8 NALUnitType, temporalId, layerId;
 		u64 NALStart = 0;
 		u32 NALSize = 0;
 		const u32 startCode = gf_bs_read_u24(bs);
@@ -248,6 +246,7 @@ static GF_Err hevc_import_ffextradata(Span extradataSpan, GF_HEVCConfig *dstCfg)
 		gf_bs_read_data(bs, buffer, NALSize);
 		gf_bs_seek(bs, NALStart);
 
+		u8 NALUnitType, temporalId, layerId;
 		gf_media_hevc_parse_nalu(buffer, NALSize, hevc.get(), &NALUnitType, &temporalId, &layerId);
 		if (layerId) {
 			gf_bs_del(bs);
@@ -256,8 +255,8 @@ static GF_Err hevc_import_ffextradata(Span extradataSpan, GF_HEVCConfig *dstCfg)
 		}
 
 		switch (NALUnitType) {
-		case GF_HEVC_NALU_VID_PARAM:
-			idx = gf_media_hevc_read_vps(buffer, NALSize, hevc.get());
+		case GF_HEVC_NALU_VID_PARAM: {
+			auto const idx = gf_media_hevc_read_vps(buffer, NALSize, hevc.get());
 			if (idx < 0) {
 				gf_bs_del(bs);
 				gf_free(buffer);
@@ -291,8 +290,9 @@ static GF_Err hevc_import_ffextradata(Span extradataSpan, GF_HEVCConfig *dstCfg)
 				gf_list_add(vpss->nalus, slc);
 			}
 			break;
-		case GF_HEVC_NALU_SEQ_PARAM:
-			idx = gf_media_hevc_read_sps(buffer, NALSize, hevc.get());
+		}
+		case GF_HEVC_NALU_SEQ_PARAM: {
+			auto const idx = gf_media_hevc_read_sps(buffer, NALSize, hevc.get());
 			if (idx < 0) {
 				gf_bs_del(bs);
 				gf_free(buffer);
@@ -337,8 +337,9 @@ static GF_Err hevc_import_ffextradata(Span extradataSpan, GF_HEVCConfig *dstCfg)
 			memcpy(slc->data, buffer, sizeof(char)*slc->size);
 			gf_list_add(spss->nalus, slc);
 			break;
-		case GF_HEVC_NALU_PIC_PARAM:
-			idx = gf_media_hevc_read_pps(buffer, NALSize, hevc.get());
+		}
+		case GF_HEVC_NALU_PIC_PARAM: {
+			auto const idx = gf_media_hevc_read_pps(buffer, NALSize, hevc.get());
 			if (idx < 0) {
 				gf_bs_del(bs);
 				gf_free(buffer);
@@ -367,6 +368,7 @@ static GF_Err hevc_import_ffextradata(Span extradataSpan, GF_HEVCConfig *dstCfg)
 				gf_list_add(ppss->nalus, slc);
 			}
 			break;
+		}
 		default:
 			break;
 		}
