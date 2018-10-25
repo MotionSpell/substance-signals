@@ -481,11 +481,12 @@ void GPACMuxMP4::flush() {
 
 void GPACMuxMP4::updateSegmentName() {
 	if (auto name = gf_isom_get_filename(isoInit)) {
-		std::string ss;
 		std::string fn = name;
-		ss += fn.substr(0, fn.find("-init")) + "-" + std::to_string(segmentNum);
-		if (segmentPolicy == FragmentedSegment) ss += ".m4s";
-		else ss += ".mp4";
+		auto ss = fn.substr(0, fn.find("-init")) + "-" + std::to_string(segmentNum);
+		if (segmentPolicy == FragmentedSegment)
+			ss += ".m4s";
+		else
+			ss += ".mp4";
 		segmentName = ss;
 	}
 }
