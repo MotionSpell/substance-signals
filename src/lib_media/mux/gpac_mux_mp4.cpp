@@ -456,6 +456,7 @@ GPACMuxMP4::GPACMuxMP4(IModuleHost* host, Mp4MuxConfig const& cfg)
 	if (e != GF_OK)
 		throw error(format("Cannot make iso file %s interleaved", cfg.baseName));
 
+	addInput(this);
 	if (compatFlags & FlushFragMemory) {
 		output = addOutputDynAlloc<OutputDataDefault<DataRawGPAC>>(100 * ALLOC_NUM_BLOCKS_DEFAULT); //TODO: retrieve framerate, and multiply the allocator size
 	} else {
@@ -469,8 +470,7 @@ GPACMuxMP4::~GPACMuxMP4() {
 
 void GPACMuxMP4::flush() {
 	if (compatFlags & ExactInputDur) {
-		inputs[0]->push(lastData);
-		process();
+		process(lastData);
 		lastData = nullptr;
 	}
 	closeSegment(true);
@@ -1115,8 +1115,7 @@ bool GPACMuxMP4::processInit(Data &data) {
 	return !(refData && !refData->getData());
 }
 
-void GPACMuxMP4::process() {
-	auto data = inputs[0]->pop(); //FIXME: reimplement with multiple inputs
+void GPACMuxMP4::process(Data data) {
 	if (!processInit(data))
 		return;
 

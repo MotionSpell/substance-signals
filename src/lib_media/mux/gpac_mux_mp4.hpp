@@ -15,11 +15,11 @@ class DataRawGPAC;
 
 namespace Mux {
 
-class GPACMuxMP4 : public ModuleDynI {
+class GPACMuxMP4 : public ModuleS {
 	public:
 		GPACMuxMP4(IModuleHost* host, Mp4MuxConfig const& config);
 		virtual ~GPACMuxMP4();
-		void process() override;
+		void process(Data data) override;
 		void flush() override;
 
 	protected:
