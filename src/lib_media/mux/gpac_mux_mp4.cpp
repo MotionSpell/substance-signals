@@ -526,7 +526,8 @@ void GPACMuxMP4::startSegment() {
 
 void GPACMuxMP4::closeSegment(bool isLastSeg) {
 	if (curFragmentDurInTs) {
-		closeFragment();
+		if(fragmentPolicy != NoFragment)
+			closeFragment();
 	}
 
 	if (!isLastSeg && segmentPolicy <= SingleSegment) {
@@ -579,45 +580,43 @@ void GPACMuxMP4::startFragment(uint64_t DTS, uint64_t PTS) {
 }
 
 void GPACMuxMP4::closeFragment() {
-	if (fragmentPolicy > NoFragment) {
-		if (!curFragmentDurInTs) {
-			m_host->log((compatFlags & Browsers) ? Error : Warning, "Writing an empty fragment. Some players may stop playing here.");
-		}
-
-		if (compatFlags & SmoothStreaming) {
-			if (timeScale == 0) {
-				m_host->log(Warning, "Media timescale is 0. Fragment cannot be closed.");
-				return;
-			}
-
-			auto const curFragmentStartInTs = m_DTS - curFragmentDurInTs;
-			auto const absTimeInTs = rescale(firstDataAbsTimeInMs, 1000, timeScale) + curFragmentStartInTs;
-			auto const deltaRealTimeInMs = 1000 * (double)(getUTC() - Fraction(absTimeInTs, timeScale));
-
-			{
-				auto const isSuspicious = deltaRealTimeInMs < 0 || deltaRealTimeInMs > curFragmentStartInTs || curFragmentDurInTs != fractionToTimescale(segmentDuration, timeScale);
-				m_host->log(isSuspicious ? Warning : Debug,
-				    format("Closing MSS fragment with absolute time %s %s UTC and duration %s (timescale %s, time=%s, deltaRT=%s)",
-				        getDay(), getTimeFromUTC(), curFragmentDurInTs, timeScale, absTimeInTs, deltaRealTimeInMs).c_str());
-			}
-
-			GF_Err e = gf_isom_set_traf_mss_timeext(isoCur, trackId, absTimeInTs, curFragmentDurInTs);
-			if (e != GF_OK)
-				throw error(format("Impossible to create UTC marker: %s", gf_error_to_string(e)));
-		}
-
-		if ((segmentPolicy == FragmentedSegment) || (segmentPolicy == SingleSegment)) {
-			GF_Err e = gf_isom_flush_fragments(isoCur, GF_FALSE); //writes a 'styp'
-			if (e != GF_OK)
-				throw error("Can't flush fragments");
-
-			if (compatFlags & FlushFragMemory) {
-				sendOutput(false);
-			}
-		}
-
-		curFragmentDurInTs = 0;
+	if (!curFragmentDurInTs) {
+		m_host->log((compatFlags & Browsers) ? Error : Warning, "Writing an empty fragment. Some players may stop playing here.");
 	}
+
+	if (compatFlags & SmoothStreaming) {
+		if (timeScale == 0) {
+			m_host->log(Warning, "Media timescale is 0. Fragment cannot be closed.");
+			return;
+		}
+
+		auto const curFragmentStartInTs = m_DTS - curFragmentDurInTs;
+		auto const absTimeInTs = rescale(firstDataAbsTimeInMs, 1000, timeScale) + curFragmentStartInTs;
+		auto const deltaRealTimeInMs = 1000 * (double)(getUTC() - Fraction(absTimeInTs, timeScale));
+
+		{
+			auto const isSuspicious = deltaRealTimeInMs < 0 || deltaRealTimeInMs > curFragmentStartInTs || curFragmentDurInTs != fractionToTimescale(segmentDuration, timeScale);
+			m_host->log(isSuspicious ? Warning : Debug,
+			    format("Closing MSS fragment with absolute time %s %s UTC and duration %s (timescale %s, time=%s, deltaRT=%s)",
+			        getDay(), getTimeFromUTC(), curFragmentDurInTs, timeScale, absTimeInTs, deltaRealTimeInMs).c_str());
+		}
+
+		GF_Err e = gf_isom_set_traf_mss_timeext(isoCur, trackId, absTimeInTs, curFragmentDurInTs);
+		if (e != GF_OK)
+			throw error(format("Impossible to create UTC marker: %s", gf_error_to_string(e)));
+	}
+
+	if ((segmentPolicy == FragmentedSegment) || (segmentPolicy == SingleSegment)) {
+		GF_Err e = gf_isom_flush_fragments(isoCur, GF_FALSE); //writes a 'styp'
+		if (e != GF_OK)
+			throw error("Can't flush fragments");
+
+		if (compatFlags & FlushFragMemory) {
+			sendOutput(false);
+		}
+	}
+
+	curFragmentDurInTs = 0;
 }
 
 void GPACMuxMP4::setupFragments() {
