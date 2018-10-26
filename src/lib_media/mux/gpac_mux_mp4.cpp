@@ -379,7 +379,12 @@ void fillVideoSampleData(const u8 *bufPtr, u32 bufLen, GF_ISOSample &sample) {
 namespace Mux {
 
 GPACMuxMP4::GPACMuxMP4(IModuleHost* host, Mp4MuxConfig const& cfg)
-	: m_host(host), m_utcStartTime(cfg.utcStartTime), compatFlags(cfg.compatFlags), fragmentPolicy(cfg.fragmentPolicy), segmentPolicy(cfg.segmentPolicy), segmentDuration(cfg.segmentDurationInMs, 1000) {
+	: m_host(host),
+	  m_utcStartTime(cfg.utcStartTime),
+	  compatFlags(cfg.compatFlags),
+	  fragmentPolicy(cfg.fragmentPolicy),
+	  segmentPolicy(cfg.segmentPolicy),
+	  segmentDuration(cfg.segmentDurationInMs, 1000) {
 	if ((cfg.segmentDurationInMs == 0) ^ (segmentPolicy == NoSegment || segmentPolicy == SingleSegment))
 		throw error(format("Inconsistent parameters: segment duration is %sms but no segment.", cfg.segmentDurationInMs));
 	if ((cfg.segmentDurationInMs == 0) && (fragmentPolicy == OneFragmentPerSegment))
