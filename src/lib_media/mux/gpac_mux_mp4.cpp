@@ -1066,10 +1066,11 @@ void GPACMuxMP4::updateFormat(Data data) {
 
 	auto srcTimeScale = metadata->getTimeScale();
 
+	auto pkt = safe_cast<const DataAVPacket>(data)->getPacket();
+
 	if (!defaultSampleIncInTs) {
-		auto pkt = safe_cast<const DataAVPacket>(data);
-		if (pkt && pkt->getPacket()->duration) {
-			defaultSampleIncInTs = rescale(pkt->getPacket()->duration, srcTimeScale.num, srcTimeScale.den * timeScale);
+		if (pkt->duration) {
+			defaultSampleIncInTs = rescale(pkt->duration, srcTimeScale.num, srcTimeScale.den * timeScale);
 			m_host->log(Warning, format("Codec defaultSampleIncInTs=0 but first data contains a duration (%s/%s).", defaultSampleIncInTs, timeScale).c_str());
 		} else {
 			m_host->log(Warning, "Computed defaultSampleIncInTs=0, forcing the ExactInputDur flag.");
@@ -1079,7 +1080,7 @@ void GPACMuxMP4::updateFormat(Data data) {
 
 	if (!firstDataAbsTimeInMs) {
 		firstDataAbsTimeInMs = clockToTimescale(m_utcStartTime->query(), 1000);
-		initDTSIn180k = timescaleToClock(safe_cast<const DataAVPacket>(data)->getPacket()->dts * srcTimeScale.den, srcTimeScale.num);
+		initDTSIn180k = timescaleToClock(pkt->dts * srcTimeScale.den, srcTimeScale.num);
 		handleInitialTimeOffset();
 	}
 
