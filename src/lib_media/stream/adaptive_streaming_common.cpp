@@ -71,7 +71,17 @@ void AdaptiveStreamingCommon::processInitSegment(Quality const * const quality, 
 			moveFile(initFn, dst);
 			initFn = dst;
 		}
-		out->setMetadata(make_shared<const MetadataFile>(initFn, SEGMENT, meta->mimeType, meta->codecName, meta->durationIn180k, meta->filesize, meta->latencyIn180k, meta->startsWithRAP, true));
+
+		auto metaFn = make_shared<MetadataFile>(SEGMENT);
+		metaFn->filename = initFn;
+		metaFn->mimeType = meta->mimeType;
+		metaFn->codecName = meta->codecName;
+		metaFn->durationIn180k = meta->durationIn180k;
+		metaFn->filesize = meta->filesize;
+		metaFn->latencyIn180k = meta->latencyIn180k;
+		metaFn->startsWithRAP = meta->startsWithRAP;
+
+		out->setMetadata(metaFn);
 		out->setMediaTime(totalDurationInMs, 1000);
 		outputSegments->emit(out);
 		break;
@@ -198,7 +208,18 @@ void AdaptiveStreamingCommon::threadProc() {
 		auto out = getPresignalledData(size, data, EOS);
 		if (out) {
 			auto const &meta = qualities[i]->getMeta();
-			out->setMetadata(make_shared<const MetadataFile>(getSegmentName(qualities[i].get(), i, std::to_string(getCurSegNum())), SEGMENT, meta->mimeType, meta->codecName, meta->durationIn180k, size, meta->latencyIn180k, meta->startsWithRAP, EOS));
+
+			auto metaFn = make_shared<MetadataFile>(SEGMENT);
+			metaFn->filename = getSegmentName(qualities[i].get(), i, std::to_string(getCurSegNum()));
+			metaFn->mimeType = meta->mimeType;
+			metaFn->codecName = meta->codecName;
+			metaFn->durationIn180k = meta->durationIn180k;
+			metaFn->filesize = size;
+			metaFn->latencyIn180k = meta->latencyIn180k;
+			metaFn->startsWithRAP = meta->startsWithRAP;
+			metaFn->EOS = EOS;
+
+			out->setMetadata(metaFn);
 			out->setMediaTime(totalDurationInMs + timescaleToClock(curSegDurIn180k[i], 1000));
 			outputSegments->emit(out);
 		}

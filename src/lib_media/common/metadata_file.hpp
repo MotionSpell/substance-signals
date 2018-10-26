@@ -7,18 +7,35 @@
 namespace Modules {
 
 struct MetadataFile : IMetadata {
-	MetadataFile(const std::string& filename, StreamType type_, const std::string& mimeType, const std::string& codecName, uint64_t durationIn180k, uint64_t filesize, uint64_t latencyIn180k, bool startsWithRAP, bool EOS)
-		: IMetadata(type_), filename(filename), mimeType(mimeType), codecName(codecName), durationIn180k(durationIn180k), filesize(filesize), latencyIn180k(latencyIn180k), startsWithRAP(startsWithRAP), EOS(EOS) {
+	MetadataFile(StreamType type_)
+		: IMetadata(type_) {
 	}
 
-	union {
-		    Resolution resolution;
-		    int sampleRate;
-		};
+	MetadataFile(const MetadataFile& other) :
+		IMetadata(other.type) {
+		resolution     = other.resolution;
+		sampleRate     = other.sampleRate;
+		filename       = other.filename;
+		mimeType       = other.mimeType;
+		codecName      = other.codecName;
+		durationIn180k = other.durationIn180k;
+		filesize       = other.filesize;
+		latencyIn180k  = other.latencyIn180k;
+		startsWithRAP  = other.startsWithRAP;
+		EOS            = other.EOS;
+	}
 
-	std::string filename, mimeType, codecName/*as per RFC6381*/;
-	uint64_t durationIn180k, filesize, latencyIn180k;
-	bool startsWithRAP, EOS;
+	Resolution resolution;
+	int sampleRate;
+
+	std::string filename {};
+	std::string mimeType {};
+	std::string codecName {}; /*as per RFC6381*/
+	uint64_t durationIn180k = 0;
+	uint64_t filesize = 0;
+	uint64_t latencyIn180k = 1;
+	bool startsWithRAP = false;
+	bool EOS = true;
 };
 
 }

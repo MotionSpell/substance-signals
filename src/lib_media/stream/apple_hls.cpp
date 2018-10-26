@@ -118,7 +118,11 @@ void Apple_HLS::generateManifestMaster() {
 
 		if (type != Static) {
 			auto out = outputManifest->getBuffer(0);
-			auto metadata = make_shared<const MetadataFile>(playlistMasterPath, PLAYLIST, "", "", timescaleToClock(segDurationInMs, 1000), 0, 1, false, true);
+
+			auto metadata = make_shared<MetadataFile>(PLAYLIST);
+			metadata->filename = playlistMasterPath;
+			metadata->durationIn180k = timescaleToClock(segDurationInMs, 1000);
+
 			out->setMetadata(metadata);
 			out->setMediaTime(totalDurationInMs, 1000);
 			outputManifest->emit(out);
@@ -152,7 +156,19 @@ void Apple_HLS::updateManifestVariants() {
 			buffer >> firstSegNums[i];
 
 			auto out = make_shared<DataBaseRef>(quality->lastData);
-			out->setMetadata(make_shared<const MetadataFile>(format("%s%s", manifestDir, fn), SEGMENT, meta->mimeType, meta->codecName, meta->durationIn180k, meta->filesize, meta->latencyIn180k, meta->startsWithRAP, true));
+			{
+				auto file = make_shared<MetadataFile>(SEGMENT);
+
+				file->filename = manifestDir + fn;
+				file->mimeType = meta->mimeType;
+				file->codecName = meta->codecName;
+				file->durationIn180k = meta->durationIn180k;
+				file->filesize = meta->filesize;
+				file->latencyIn180k = meta->latencyIn180k;
+				file->startsWithRAP = meta->startsWithRAP;
+
+				out->setMetadata(file);
+			}
 			out->setMediaTime(totalDurationInMs, 1000);
 			outputSegments->emit(out);
 
@@ -233,8 +249,14 @@ void Apple_HLS::generateManifestVariantFull(bool isLast) {
 			vpl.close();
 
 			auto out = outputManifest->getBuffer(0);
-			auto metadata = make_shared<const MetadataFile>(playlistCurVariantPath, PLAYLIST, "", "", timescaleToClock(segDurationInMs, 1000), 0, 1, false, true);
-			out->setMetadata(metadata);
+
+			{
+				auto meta = make_shared<MetadataFile>(PLAYLIST);
+				meta->filename = playlistCurVariantPath;
+				meta->durationIn180k = timescaleToClock(segDurationInMs, 1000);
+				out->setMetadata(meta);
+			}
+
 			out->setMediaTime(totalDurationInMs, 1000);
 			outputManifest->emit(out);
 		}

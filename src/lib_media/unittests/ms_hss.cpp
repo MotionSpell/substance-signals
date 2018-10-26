@@ -10,7 +10,16 @@ using namespace Stream;
 namespace {
 
 std::shared_ptr<DataBase> createPacket(span<uint8_t> contents) {
-	auto meta = make_shared<MetadataFile>( "filename", VIDEO_PKT, "mimetype", "codecName", 100, 0, 0, false, false);
+	auto meta = make_shared<MetadataFile>( VIDEO_PKT);
+	meta->filename = "filename";
+	meta->mimeType = "mimetype";
+	meta->codecName = "codecName";
+	meta->durationIn180k = 100;
+	meta->filesize = 0;
+	meta->latencyIn180k = 0;
+	meta->startsWithRAP = false;
+	meta->EOS = false;
+
 	auto r = make_shared<DataRaw>(contents.len);
 	r->setMetadata(meta);
 	memcpy(r->data().ptr, contents.ptr, contents.len);

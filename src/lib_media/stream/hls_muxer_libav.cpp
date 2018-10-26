@@ -53,25 +53,40 @@ class LibavMuxHLSTS : public ModuleDynI {
 					fseek(file, 0, SEEK_END);
 					auto const fsize = ftell(file);
 
-					auto out = outputSegment->getBuffer(0);
-					out->setMediaTime(clockToTimescale(m_utcStartTime->query(), 1000) + data->getMediaTime());
-					auto metadata = make_shared<MetadataFile>(hlsDir + fn, SEGMENT, "", "", segDuration, fsize, 1, false, true);
-					switch (data->getMetadata()->type) {
-					case AUDIO_PKT: metadata->sampleRate = safe_cast<const MetadataPktLibavAudio>(data->getMetadata())->getSampleRate(); break;
-					case VIDEO_PKT: {
-						auto const res = safe_cast<const MetadataPktLibavVideo>(data->getMetadata())->getResolution();
-						metadata->resolution = res;
-						break;
-					}
-					default: assert(0);
-					}
-					out->setMetadata(metadata);
-					outputSegment->emit(out);
+					{
+						auto out = outputSegment->getBuffer(0);
+						out->setMediaTime(clockToTimescale(m_utcStartTime->query(), 1000) + data->getMediaTime());
 
-					out = outputManifest->getBuffer(0);
-					metadata = make_shared<MetadataFile>(format("%s%s.m3u8", hlsDir, segBasename), PLAYLIST, "", "", 0, 0, 1, false, true);
-					out->setMetadata(metadata);
-					outputManifest->emit(out);
+						auto metadata = make_shared<MetadataFile>(SEGMENT);
+						metadata->filename = hlsDir + fn;
+						metadata->durationIn180k = segDuration;
+						metadata->filesize = fsize;
+
+						switch (data->getMetadata()->type) {
+						case AUDIO_PKT:
+							metadata->sampleRate = safe_cast<const MetadataPktLibavAudio>(data->getMetadata())->getSampleRate(); break;
+						case VIDEO_PKT: {
+							auto const res = safe_cast<const MetadataPktLibavVideo>(data->getMetadata())->getResolution();
+							metadata->resolution = res;
+							break;
+						}
+						default: assert(0);
+						}
+						out->setMetadata(metadata);
+
+						outputSegment->emit(out);
+					}
+
+					{
+						auto out = outputManifest->getBuffer(0);
+
+						auto metadata = make_shared<MetadataFile>(PLAYLIST);
+						metadata->filename = hlsDir + segBasename + ".m3u8";
+
+						out->setMetadata(metadata);
+						outputManifest->emit(out);
+					}
+
 					segIdx++;
 				}
 			}

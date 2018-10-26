@@ -207,7 +207,9 @@ class MPEG_DASH : public AdaptiveStreamingCommon, public gpacpp::Init {
 			}
 
 			auto out = outputManifest->getBuffer(0);
-			auto metadata = make_shared<MetadataFile>(mpdPath, PLAYLIST, "", "", timescaleToClock(segDurationInMs, 1000), 0, 1, false, true);
+			auto metadata = make_shared<MetadataFile>(PLAYLIST);
+			metadata->filename = mpdPath;
+			metadata->durationIn180k = timescaleToClock(segDurationInMs, 1000);
 			out->setMetadata(metadata);
 			out->setMediaTime(totalDurationInMs, 1000);
 			outputManifest->emit(out);
@@ -256,7 +258,15 @@ class MPEG_DASH : public AdaptiveStreamingCommon, public gpacpp::Init {
 						fnNext = getPrefixedSegmentName(quality, i, n + 1);
 					}
 				}
-				auto metaFn = make_shared<MetadataFile>(fn, SEGMENT, meta->mimeType, meta->codecName, meta->durationIn180k, meta->filesize, meta->latencyIn180k, meta->startsWithRAP, true);
+				auto metaFn = make_shared<MetadataFile>(SEGMENT);
+				metaFn->filename = fn;
+				metaFn->mimeType = meta->mimeType;
+				metaFn->codecName= meta->codecName;
+				metaFn->durationIn180k= meta->durationIn180k;
+				metaFn->filesize= meta->filesize;
+				metaFn->latencyIn180k= meta->latencyIn180k;
+				metaFn->startsWithRAP= meta->startsWithRAP;
+
 				switch (meta->type) {
 				case AUDIO_PKT: metaFn->sampleRate = meta->sampleRate; break;
 				case VIDEO_PKT: metaFn->resolution = meta->resolution; break;
@@ -282,7 +292,10 @@ class MPEG_DASH : public AdaptiveStreamingCommon, public gpacpp::Init {
 					if (!fnNext.empty()) {
 						auto out = getPresignalledData(0, quality->lastData, false);
 						if (out) {
-							out->setMetadata(make_shared<MetadataFile>(fnNext, metaFn->type, metaFn->mimeType, metaFn->codecName, metaFn->durationIn180k, 0, metaFn->latencyIn180k, metaFn->startsWithRAP, false));
+							auto meta = make_shared<MetadataFile>(*metaFn);
+							meta->filename = fnNext;
+							meta->EOS = false;
+							out->setMetadata(meta);
 							out->setMediaTime(totalDurationInMs, 1000);
 							outputSegments->emit(out);
 						}
