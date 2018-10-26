@@ -471,7 +471,7 @@ void GPACMuxMP4::startSegment() {
 		updateSegmentName();
 		isoCur = gf_isom_open(segmentName.empty() ? nullptr : segmentName.c_str(), GF_ISOM_OPEN_WRITE, nullptr);
 		if (!isoCur)
-			throw error(format("Cannot open isoCur file %s"));
+			throw error("Cannot open isoCur file");
 		declareStream(inputs[0]->getMetadata().get());
 		startSegmentPostAction();
 		setupFragments();
@@ -616,7 +616,7 @@ void GPACMuxMP4::declareStreamAudio(const MetadataPktLibavAudio* metadata) {
 	};
 	auto esd = std::shared_ptr<GF_ESD>(gf_odf_desc_esd_new(2), deleteEsd);
 	if (!esd)
-		throw error(format("Cannot create GF_ESD for audio"));
+		throw error("Cannot create GF_ESD for audio");
 
 	esd->decoderConfig->streamType = GF_STREAM_AUDIO;
 	timeScale = sampleRate = metadata->getSampleRate();
@@ -625,7 +625,7 @@ void GPACMuxMP4::declareStreamAudio(const MetadataPktLibavAudio* metadata) {
 
 	auto const trackNum = gf_isom_new_track(isoCur, esd->ESID, GF_ISOM_MEDIA_AUDIO, timeScale);
 	if (!trackNum)
-		throw error(format("Cannot create new track"));
+		throw error("Cannot create new track");
 
 	trackId = gf_isom_get_track_id(isoCur, trackNum);
 
@@ -722,7 +722,7 @@ void GPACMuxMP4::declareStreamSubtitle(const MetadataPktLibavSubtitle* /*metadat
 	assert((timeScale % 1000) == 0); /*ms accuracy mandatory*/
 	u32 trackNum = gf_isom_new_track(isoCur, 0, GF_ISOM_MEDIA_TEXT, timeScale);
 	if (!trackNum)
-		throw error(format("Cannot create new track"));
+		throw error("Cannot create new track");
 	trackId = gf_isom_get_track_id(isoCur, trackNum);
 
 	GF_Err e = gf_isom_set_track_enabled(isoCur, trackNum, GF_TRUE);
@@ -745,7 +745,7 @@ void GPACMuxMP4::declareStreamVideo(const MetadataPktLibavVideo* metadata) {
 	timeScale = (uint32_t)(metadata->getTimeScale().num * TIMESCALE_MUL);
 	u32 trackNum = gf_isom_new_track(isoCur, 0, GF_ISOM_MEDIA_VISUAL, timeScale);
 	if (!trackNum)
-		throw error(format("Cannot create new track"));
+		throw error("Cannot create new track");
 	trackId = gf_isom_get_track_id(isoCur, trackNum);
 	defaultSampleIncInTs = metadata->getTimeScale().den * TIMESCALE_MUL;
 	resolution = metadata->getResolution();
@@ -761,7 +761,7 @@ void GPACMuxMP4::declareStreamVideo(const MetadataPktLibavVideo* metadata) {
 		codec4CC = "H264";
 		std::shared_ptr<GF_AVCConfig> avccfg(gf_odf_avc_cfg_new(), &gf_odf_avc_cfg_del);
 		if (!avccfg)
-			throw error(format("Container format import failed (AVC)"));
+			throw error("Container format import failed (AVC)");
 
 		e = avc_import_ffextradata(extradata, avccfg.get());
 		if (e == GF_OK) {
@@ -773,7 +773,7 @@ void GPACMuxMP4::declareStreamVideo(const MetadataPktLibavVideo* metadata) {
 		codec4CC = "H265";
 		std::shared_ptr<GF_HEVCConfig> hevccfg(gf_odf_hevc_cfg_new(), &gf_odf_hevc_cfg_del);
 		if (!hevccfg)
-			throw error(format("Container format import failed (HEVC)"));
+			throw error("Container format import failed (HEVC)");
 
 		e = hevc_import_ffextradata(extradata, hevccfg.get());
 		if (e == GF_OK) {
@@ -891,7 +891,7 @@ void GPACMuxMP4::sendOutput(bool EOS) {
 	char codecName[40];
 	GF_Err e = gf_media_get_rfc_6381_codec_name(isoCur, gf_isom_get_track_by_id(isoCur, trackId), codecName, isInband, GF_FALSE);
 	if (e)
-		throw error(format("Could not compute codec name (RFC 6381)"));
+		throw error("Could not compute codec name (RFC 6381)");
 
 	auto const consideredDurationInTs = (compatFlags & FlushFragMemory) ? curFragmentDurInTs : curSegmentDurInTs;
 	auto const consideredDurationIn180k = timescaleToClock(consideredDurationInTs, timeScale);
