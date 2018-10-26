@@ -251,7 +251,7 @@ class MPEG_DASH : public AdaptiveStreamingCommon, public gpacpp::Init {
 					}
 
 					fn = getPrefixedSegmentName(quality, i, segTime);
-				} else if (mpd->mpd->type != GF_MPD_TYPE_STATIC) { //We are live and not exiting
+				} else {
 					auto n = getCurSegNum();
 					fn = getPrefixedSegmentName(quality, i, n);
 					if (flags & PresignalNextSegment) {
@@ -275,13 +275,6 @@ class MPEG_DASH : public AdaptiveStreamingCommon, public gpacpp::Init {
 				}
 
 				if (!fn.empty()) {
-					if(meta->filename != fn) {
-						m_host->log(Debug, format("Rename segment \"%s\" -> \"%s\".", meta->filename, fn).c_str());
-						if (!moveFile(meta->filename, fn)) {
-							m_host->log(Error, format("Couldn't rename segment \"%s\" -> \"%s\". You may encounter playback errors.", meta->filename, fn).c_str());
-						}
-					}
-
 					auto out = getPresignalledData(meta->filesize, quality->lastData, true);
 					if (!out)
 						throw error("Unexpected null pointer detected which getting data.");

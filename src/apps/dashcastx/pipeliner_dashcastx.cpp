@@ -13,6 +13,7 @@
 #include "lib_media/stream/mpeg_dash.hpp"
 #include "lib_media/utils/regulator.hpp"
 #include "lib_media/stream/adaptive_streaming_common.hpp" // AdaptiveStreamingCommon::getCommonPrefixAudio
+#include "lib_media/out/filesystem.hpp"
 
 using namespace Modules;
 using namespace Pipelines;
@@ -118,6 +119,13 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 	auto const live = cfg.isLive || cfg.ultraLowLatency;
 	auto dasherCfg = Modules::DasherConfig { DASH_SUBDIR, format("%s.mpd", g_appName), live, (uint64_t)cfg.segmentDurationInMs, (uint64_t)cfg.segmentDurationInMs * cfg.timeshiftInSegNum};
 	auto dasher = pipeline->add("MPEG_DASH", &dasherCfg);
+	auto fsCfg = FileSystemSinkConfig { "." };
+	auto filesystemPlaylist = pipeline->add("FileSystemSink", &fsCfg);
+	auto filesystemChunks = pipeline->add("FileSystemSink", &fsCfg);
+
+	pipeline->connect(GetOutputPin(dasher, 0), filesystemPlaylist);
+	pipeline->connect(GetOutputPin(dasher, 1), filesystemChunks);
+
 	ensureDir(DASH_SUBDIR);
 
 	const bool transcode = cfg.v.size() > 0;
@@ -154,7 +162,6 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 		ensureDir(subdir);
 
 		Mp4MuxConfig mp4config;
-		mp4config.baseName = subdir + prefix;
 		mp4config.segmentDurationInMs =  cfg.segmentDurationInMs;
 		mp4config.segmentPolicy = FragmentedSegment;
 		mp4config.fragmentPolicy = cfg.ultraLowLatency ? OneFragmentPerFrame : OneFragmentPerSegment;
