@@ -934,9 +934,6 @@ void GPACMuxMP4::sendOutput(bool EOS) {
 }
 
 void GPACMuxMP4::startChunk(gpacpp::IsoSample * const sample) {
-	if (curSegmentDurInTs != 0)
-		return; // already inside a segment
-
 	segmentStartsWithRAP = sample->isRap();
 	if (segmentPolicy > SingleSegment) {
 		const u64 oneSegDurInTs = clockToTimescale(fractionToClock(segmentDuration), timeScale);
@@ -1022,7 +1019,10 @@ void GPACMuxMP4::processSample(Data data, int64_t lastDataDurationInTs) {
 	{
 		gpacpp::IsoSample sample {};
 		fillSample(data, &sample, rap);
-		startChunk(&sample);
+
+		if (curSegmentDurInTs == 0)
+			startChunk(&sample);
+
 		addData(&sample, lastDataDurationInTs);
 	}
 	closeChunk(false); //close it now if possible, otherwise wait for the next sample to be available
