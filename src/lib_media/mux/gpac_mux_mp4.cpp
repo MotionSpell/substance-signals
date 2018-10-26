@@ -1057,44 +1057,44 @@ std::unique_ptr<gpacpp::IsoSample> GPACMuxMP4::fillSample(Data data_) {
 	return sample;
 }
 
-bool GPACMuxMP4::processInit(Data &data) {
-	if (inputs[0]->updateMetadata(data)) {
-		auto const metadata = safe_cast<const MetadataPktLibav>(data->getMetadata().get());
-		declareStream(metadata);
+void GPACMuxMP4::updateFormat(Data data) {
+	auto const metadata = safe_cast<const MetadataPktLibav>(data->getMetadata().get());
+	declareStream(metadata);
 
-		auto srcTimeScale = metadata->getTimeScale();
+	auto srcTimeScale = metadata->getTimeScale();
 
-		if (!defaultSampleIncInTs) {
-			auto pkt = safe_cast<const DataAVPacket>(data);
-			if (pkt && pkt->getPacket()->duration) {
-				defaultSampleIncInTs = rescale(pkt->getPacket()->duration, srcTimeScale.num, srcTimeScale.den * timeScale);
-				m_host->log(Warning, format("Codec defaultSampleIncInTs=0 but first data contains a duration (%s/%s).", defaultSampleIncInTs, timeScale).c_str());
-			} else {
-				m_host->log(Warning, "Computed defaultSampleIncInTs=0, forcing the ExactInputDur flag.");
-				compatFlags = compatFlags | ExactInputDur;
-			}
+	if (!defaultSampleIncInTs) {
+		auto pkt = safe_cast<const DataAVPacket>(data);
+		if (pkt && pkt->getPacket()->duration) {
+			defaultSampleIncInTs = rescale(pkt->getPacket()->duration, srcTimeScale.num, srcTimeScale.den * timeScale);
+			m_host->log(Warning, format("Codec defaultSampleIncInTs=0 but first data contains a duration (%s/%s).", defaultSampleIncInTs, timeScale).c_str());
+		} else {
+			m_host->log(Warning, "Computed defaultSampleIncInTs=0, forcing the ExactInputDur flag.");
+			compatFlags = compatFlags | ExactInputDur;
 		}
-
-		if (!firstDataAbsTimeInMs) {
-			firstDataAbsTimeInMs = clockToTimescale(m_utcStartTime->query(), 1000);
-			initDTSIn180k = timescaleToClock(safe_cast<const DataAVPacket>(data)->getPacket()->dts * srcTimeScale.den, srcTimeScale.num);
-			handleInitialTimeOffset();
-		}
-
-		setupFragments();
-		if ((segmentDuration != 0) && !(compatFlags & SegNumStartsAtZero)) {
-			segmentNum = firstDataAbsTimeInMs / clockToTimescale(fractionToClock(segmentDuration), 1000);
-		}
-		startSegment();
 	}
 
-	auto refData = std::dynamic_pointer_cast<const DataBaseRef>(data);
-	return !(refData && !refData->getData());
+	if (!firstDataAbsTimeInMs) {
+		firstDataAbsTimeInMs = clockToTimescale(m_utcStartTime->query(), 1000);
+		initDTSIn180k = timescaleToClock(safe_cast<const DataAVPacket>(data)->getPacket()->dts * srcTimeScale.den, srcTimeScale.num);
+		handleInitialTimeOffset();
+	}
+
+	setupFragments();
+	if ((segmentDuration != 0) && !(compatFlags & SegNumStartsAtZero)) {
+		segmentNum = firstDataAbsTimeInMs / clockToTimescale(fractionToClock(segmentDuration), 1000);
+	}
+	startSegment();
 }
 
 void GPACMuxMP4::process(Data data) {
-	if (!processInit(data))
-		return;
+	if (inputs[0]->updateMetadata(data)) {
+		updateFormat(data);
+
+		auto refData = std::dynamic_pointer_cast<const DataBaseRef>(data);
+		if(refData && !refData->getData())
+			return;
+	}
 
 	auto const srcTimeScale = safe_cast<const MetadataPktLibav>(data->getMetadata())->getTimeScale();
 	auto const dataDTS = timescaleToClock(safe_cast<const DataAVPacket>(data)->getPacket()->dts * srcTimeScale.den, srcTimeScale.num);

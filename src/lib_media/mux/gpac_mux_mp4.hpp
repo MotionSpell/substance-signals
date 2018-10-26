@@ -33,7 +33,7 @@ class GPACMuxMP4 : public ModuleS {
 		IModuleHost * const m_host;
 		IUtcStartTimeQuery* const m_utcStartTime;
 
-		bool processInit(Data &data);
+		void updateFormat(Data data);
 		void declareStream(const IMetadata* metadata);
 		void handleInitialTimeOffset();
 		void sendOutput(bool EOS);
