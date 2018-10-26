@@ -28,7 +28,6 @@ uint64_t fileSize(const std::string &fn) {
 	}
 	gf_fseek(file, 0, SEEK_END);
 	auto const size = gf_ftell(file);
-	gf_fseek(file, 0, SEEK_SET);
 	gf_fclose(file);
 	return size;
 }
