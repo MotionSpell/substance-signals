@@ -512,7 +512,7 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 		}
 	}
 
-	sendOutput(true);
+	sendSegmentToOutput(true);
 	m_host->log(Debug, format("Segment %s completed (size %s) (startsWithSAP=%s)", segmentName.empty() ? "[in memory]" : segmentName, lastSegmentSize, segmentStartsWithRAP).c_str());
 
 	curSegmentDurInTs = 0;
@@ -580,7 +580,7 @@ void GPACMuxMP4::closeFragment() {
 			throw error("Can't flush fragments");
 
 		if (compatFlags & FlushFragMemory) {
-			sendOutput(false);
+			sendSegmentToOutput(false);
 		}
 	}
 
@@ -607,7 +607,7 @@ void GPACMuxMP4::setupFragments() {
 			throw error(format("Cannot prepare track for movie fragmentation: %s", gf_error_to_string(e)));
 
 		if (segmentPolicy == FragmentedSegment) {
-			sendOutput(true); //init
+			sendSegmentToOutput(true); //init
 		}
 	}
 }
@@ -859,7 +859,7 @@ void GPACMuxMP4::handleInitialTimeOffset() {
 	}
 }
 
-void GPACMuxMP4::sendOutput(bool EOS) {
+void GPACMuxMP4::sendSegmentToOutput(bool EOS) {
 	if (segmentPolicy == IndependentSegment) {
 		nextFragmentNum = gf_isom_get_next_moof_number(isoCur);
 		GF_Err e = gf_isom_write(isoCur);
