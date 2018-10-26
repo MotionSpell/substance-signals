@@ -37,7 +37,7 @@ class GPACMuxMP4 : public ModuleS {
 		void declareStream(const IMetadata* metadata);
 		void handleInitialTimeOffset();
 		void sendOutput(bool EOS);
-		void fillSample(Data data, gpacpp::IsoSample* sample);
+		void fillSample(Data data, gpacpp::IsoSample* sample, bool isRap);
 		void startChunk(gpacpp::IsoSample * const sample);
 		void addData(gpacpp::IsoSample const * const sample, int64_t lastDataDurationInTs);
 		void closeChunk(bool nextSampleIsRAP);

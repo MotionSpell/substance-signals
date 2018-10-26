@@ -1017,17 +1017,18 @@ static bool isRap(Data data) {
 }
 
 void GPACMuxMP4::processSample(Data data, int64_t lastDataDurationInTs) {
-	closeChunk(isRap(data));
+	auto rap = isRap(data);
+	closeChunk(rap);
 	{
 		gpacpp::IsoSample sample {};
-		fillSample(data, &sample);
+		fillSample(data, &sample, rap);
 		startChunk(&sample);
 		addData(&sample, lastDataDurationInTs);
 	}
 	closeChunk(false); //close it now if possible, otherwise wait for the next sample to be available
 }
 
-void GPACMuxMP4::fillSample(Data data, gpacpp::IsoSample* sample) {
+void GPACMuxMP4::fillSample(Data data, gpacpp::IsoSample* sample, bool isRap) {
 	const u32 mediaType = gf_isom_get_media_type(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
 	if (mediaType == GF_ISOM_MEDIA_VISUAL || mediaType == GF_ISOM_MEDIA_AUDIO || mediaType == GF_ISOM_MEDIA_TEXT) {
 		if (isAnnexB) {
@@ -1057,7 +1058,7 @@ void GPACMuxMP4::fillSample(Data data, gpacpp::IsoSample* sample) {
 		} else {
 			m_host->log(Error, format("Missing PTS (input DTS=%s, ts=%s/%s): output MP4 may be incorrect.", pkt->dts, srcTimeScale.num, srcTimeScale.den).c_str());
 		}
-		sample->IsRAP = isRap(data) ? RAP : RAP_NO;
+		sample->IsRAP = isRap ? RAP : RAP_NO;
 	}
 
 	if(sample->CTS_Offset < 0)
