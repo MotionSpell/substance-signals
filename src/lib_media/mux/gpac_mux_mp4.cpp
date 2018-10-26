@@ -344,32 +344,33 @@ static GF_Err hevc_import_ffextradata(Span extradata, GF_HEVCConfig *dstCfg) {
 	return GF_OK;
 }
 
-void fillVideoSampleData(const u8 *bufPtr, u32 bufLen, GF_ISOSample &sample) {
-	u32 scSize = 0, NALUSize = 0;
-	GF_BitStream *out_bs = gf_bs_new(nullptr, 2 * bufLen, GF_BITSTREAM_WRITE);
-	NALUSize = gf_media_nalu_next_start_code(bufPtr, bufLen, &scSize);
+void fillVideoSampleData(SpanC buf, GF_ISOSample &sample) {
+	u32 scSize = 0;
+
+	GF_BitStream* out_bs = gf_bs_new(nullptr, 2 * buf.len, GF_BITSTREAM_WRITE);
+	auto NALUSize = gf_media_nalu_next_start_code(buf.ptr, buf.len, &scSize);
 	if (NALUSize != 0) {
 		gf_bs_write_u32(out_bs, NALUSize);
-		gf_bs_write_data(out_bs, (const char*)bufPtr, NALUSize);
+		gf_bs_write_data(out_bs, (const char*)buf.ptr, NALUSize);
 	}
 	if (scSize) {
-		bufPtr += (NALUSize + scSize);
-		bufLen -= (NALUSize + scSize);
+		buf.ptr += (NALUSize + scSize);
+		buf.len -= (NALUSize + scSize);
 	}
 
-	while (bufLen) {
-		NALUSize = gf_media_nalu_next_start_code(bufPtr, bufLen, &scSize);
+	while (buf.len) {
+		NALUSize = gf_media_nalu_next_start_code(buf.ptr, buf.len, &scSize);
 		if (NALUSize != 0) {
 			gf_bs_write_u32(out_bs, NALUSize);
-			gf_bs_write_data(out_bs, (const char*)bufPtr, NALUSize);
+			gf_bs_write_data(out_bs, (const char*)buf.ptr, NALUSize);
 		}
 
-		bufPtr += NALUSize;
+		buf.ptr += NALUSize;
 
-		if (!scSize || (bufLen < NALUSize + scSize))
+		if (!scSize || (buf.len < NALUSize + scSize))
 			break;
-		bufLen -= NALUSize + scSize;
-		bufPtr += scSize;
+		buf.len -= NALUSize + scSize;
+		buf.ptr += scSize;
 	}
 	gf_bs_get_content(out_bs, &sample.data, &sample.dataLength);
 	gf_bs_del(out_bs);
@@ -1026,7 +1027,7 @@ std::unique_ptr<gpacpp::IsoSample> GPACMuxMP4::fillSample(Data data_) {
 	const u32 mediaType = gf_isom_get_media_type(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
 	if (mediaType == GF_ISOM_MEDIA_VISUAL) {
 		if (isAnnexB) {
-			fillVideoSampleData(bufPtr, bufLen, *sample);
+			fillVideoSampleData({bufPtr, (size_t)bufLen}, *sample);
 		} else {
 			sample->data = (char*)bufPtr;
 			sample->dataLength = bufLen;
