@@ -1019,10 +1019,9 @@ void GPACMuxMP4::processSample(Data data, int64_t lastDataDurationInTs) {
 }
 
 std::unique_ptr<gpacpp::IsoSample> GPACMuxMP4::fillSample(Data data_) {
-	auto data = safe_cast<const DataAVPacket>(data_);
 	auto sample = make_unique<gpacpp::IsoSample>();
-	u32 bufLen = (u32)data->data().len;
-	const u8 *bufPtr = data->data().ptr;
+	u32 bufLen = (u32)data_->data().len;
+	const u8 *bufPtr = data_->data().ptr;
 
 	const u32 mediaType = gf_isom_get_media_type(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
 	if (mediaType == GF_ISOM_MEDIA_VISUAL || mediaType == GF_ISOM_MEDIA_AUDIO || mediaType == GF_ISOM_MEDIA_TEXT) {
@@ -1041,10 +1040,11 @@ std::unique_ptr<gpacpp::IsoSample> GPACMuxMP4::fillSample(Data data_) {
 	} else {
 		sample->DTS = m_DTS;
 	}
-	auto const &metaPkt = safe_cast<const MetadataPktLibav>(data->getMetadata());
+	auto const &metaPkt = safe_cast<const MetadataPktLibav>(data_->getMetadata());
 
 	auto srcTimeScale = metaPkt->getTimeScale();
 
+	auto data = safe_cast<const DataAVPacket>(data_);
 	if (data->getPacket()->pts != AV_NOPTS_VALUE) {
 		auto const ctsOffset = data->getPacket()->pts - data->getPacket()->dts;
 		sample->CTS_Offset = (s32)rescale(ctsOffset, srcTimeScale.num, srcTimeScale.den * timeScale);
