@@ -649,6 +649,11 @@ void GPACMuxMP4::declareStreamAudio(const MetadataPktLibavAudio* metadata) {
 
 		e = gf_m4a_write_config(&acfg, &esd->decoderConfig->decoderSpecificInfo->data, &esd->decoderConfig->decoderSpecificInfo->dataLength);
 		assert(e == GF_OK);
+
+		e = gf_isom_new_mpeg4_description(isoCur, trackNum, esd.get(), nullptr, nullptr, &di);
+		if (e != GF_OK)
+			throw error(format("gf_isom_new_mpeg4_description: %s", gf_error_to_string(e)));
+
 	} else if (metadata->getCodecName() == "mp2")	{
 		esd->decoderConfig->objectTypeIndication = GPAC_OTI_AUDIO_MPEG1;
 		esd->decoderConfig->bufferSizeDB = 20;
@@ -663,6 +668,11 @@ void GPACMuxMP4::declareStreamAudio(const MetadataPktLibavAudio* metadata) {
 
 		e = gf_m4a_write_config(&acfg, &esd->decoderConfig->decoderSpecificInfo->data, &esd->decoderConfig->decoderSpecificInfo->dataLength);
 		assert(e == GF_OK);
+
+		e = gf_isom_new_mpeg4_description(isoCur, trackNum, esd.get(), nullptr, nullptr, &di);
+		if (e != GF_OK)
+			throw error(format("gf_isom_new_mpeg4_description: %s", gf_error_to_string(e)));
+
 	} else if (metadata->getCodecName() == "ac3" || metadata->getCodecName() == "eac3") {
 		bool is_EAC3 = metadata->getCodecName() == "eac3";
 
@@ -678,10 +688,6 @@ void GPACMuxMP4::declareStreamAudio(const MetadataPktLibavAudio* metadata) {
 				m_host->log(Error, format("Parsing: audio is neither AC3 or E-AC3 audio (\"%s\", size=%s)", metadata->getCodecName(), extradata.len).c_str());
 			}
 		}
-
-		esd->decoderConfig->objectTypeIndication = is_EAC3 ? GPAC_OTI_AUDIO_EAC3 : GPAC_OTI_AUDIO_AC3;
-		esd->decoderConfig->bufferSizeDB = 20;
-		esd->slConfig->timestampResolution = sampleRate;
 
 		GF_AC3Config cfg {};
 		cfg.is_ec3 = is_EAC3;
@@ -701,12 +707,6 @@ void GPACMuxMP4::declareStreamAudio(const MetadataPktLibavAudio* metadata) {
 	e = gf_isom_set_track_enabled(isoCur, trackNum, GF_TRUE);
 	if (e != GF_OK)
 		throw error(format("gf_isom_set_track_enabled: %s", gf_error_to_string(e)));
-
-	e = gf_isom_new_mpeg4_description(isoCur, trackNum, esd.get(), nullptr, nullptr, &di);
-	if (e != GF_OK)
-		throw error(format("gf_isom_new_mpeg4_description: %s", gf_error_to_string(e)));
-
-	esd.reset();
 
 	auto const bitsPerSample = metadata->getBitsPerSample() >= 16 ? 16 : metadata->getBitsPerSample();
 	e = gf_isom_set_audio_info(isoCur, trackNum, di, sampleRate, metadata->getNumChannels(), bitsPerSample);
