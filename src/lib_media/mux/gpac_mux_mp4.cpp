@@ -809,9 +809,9 @@ void GPACMuxMP4::declareStreamVideo(const MetadataPktLibavVideo* metadata) {
 			esd->slConfig->predefined = SLPredef_MP4;
 
 			e = gf_isom_new_mpeg4_description(isoCur, trackNum, esd, nullptr, nullptr, &di);
+			gf_odf_desc_del((GF_Descriptor*)esd);
 			if (e != GF_OK)
 				throw error(format("Cannot create MPEG-4 config: %s", gf_error_to_string(e)));
-			gf_odf_desc_del((GF_Descriptor*)esd);
 		} else
 			throw error("Container format import failed");
 	}
