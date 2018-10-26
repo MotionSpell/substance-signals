@@ -422,7 +422,7 @@ GPACMuxMP4::GPACMuxMP4(IModuleHost* host, Mp4MuxConfig const& cfg)
 
 	GF_Err e = gf_isom_set_storage_mode(isoCur, GF_ISOM_STORE_INTERLEAVED);
 	if (e != GF_OK)
-		throw error(format("Cannot make iso file %s interleaved", cfg.baseName));
+		throw error(format("Cannot make iso file %s interleaved", baseName));
 
 	addInput(this);
 	if (compatFlags & FlushFragMemory) {
