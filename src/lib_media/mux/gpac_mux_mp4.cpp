@@ -34,8 +34,6 @@ uint64_t fileSize(const std::string &fn) {
 }
 
 Span getBsContent(GF_ISOFile *iso, bool newBs) {
-	Span r;
-
 	GF_BitStream *bs = NULL;
 	GF_Err e = gf_isom_get_bs(iso, &bs);
 	if (e)
@@ -43,8 +41,7 @@ Span getBsContent(GF_ISOFile *iso, bool newBs) {
 	char* output;
 	u32 size;
 	gf_bs_get_content(bs, &output, &size);
-	r.ptr = (uint8_t*)output;
-	r.len = (size_t)size;
+
 	if (newBs) {
 		auto bsNew = gf_bs_new(nullptr, 0, GF_BITSTREAM_WRITE);
 		memcpy(bs, bsNew, 2*sizeof(void*)); //HACK: GPAC GF_BitStream.original needs to be non-NULL
@@ -52,7 +49,7 @@ Span getBsContent(GF_ISOFile *iso, bool newBs) {
 		gf_bs_del(bsNew);
 	}
 
-	return r;
+	return {(uint8_t*)output, (size_t)size};
 }
 
 static GF_Err avc_import_ffextradata(Span extradataSpan, GF_AVCConfig *dstcfg) {
