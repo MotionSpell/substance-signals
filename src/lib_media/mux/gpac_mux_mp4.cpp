@@ -14,7 +14,7 @@ extern "C" {
 }
 
 auto const AVC_INBAND_CONFIG = 0;
-#define TIMESCALE_MUL 100 /*offers a tolerance on VFR or faulty streams*/
+auto const TIMESCALE_MUL = 100; // offers a tolerance on VFR or faulty streams
 
 namespace Modules {
 
