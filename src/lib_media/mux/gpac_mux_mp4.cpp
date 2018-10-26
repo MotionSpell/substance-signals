@@ -345,21 +345,21 @@ static GF_Err hevc_import_ffextradata(Span extradata, GF_HEVCConfig *dstCfg) {
 }
 
 void fillVideoSampleData(SpanC buf, GF_ISOSample &sample) {
-	u32 scSize = 0;
+	u32 startCodeSize = 0;
 
 	GF_BitStream* out_bs = gf_bs_new(nullptr, 2 * buf.len, GF_BITSTREAM_WRITE);
-	auto NALUSize = gf_media_nalu_next_start_code(buf.ptr, buf.len, &scSize);
+	auto NALUSize = gf_media_nalu_next_start_code(buf.ptr, buf.len, &startCodeSize);
 	if (NALUSize != 0) {
 		gf_bs_write_u32(out_bs, NALUSize);
 		gf_bs_write_data(out_bs, (const char*)buf.ptr, NALUSize);
 	}
-	if (scSize) {
-		buf.ptr += (NALUSize + scSize);
-		buf.len -= (NALUSize + scSize);
+	if (startCodeSize) {
+		buf.ptr += (NALUSize + startCodeSize);
+		buf.len -= (NALUSize + startCodeSize);
 	}
 
 	while (buf.len) {
-		NALUSize = gf_media_nalu_next_start_code(buf.ptr, buf.len, &scSize);
+		NALUSize = gf_media_nalu_next_start_code(buf.ptr, buf.len, &startCodeSize);
 		if (NALUSize != 0) {
 			gf_bs_write_u32(out_bs, NALUSize);
 			gf_bs_write_data(out_bs, (const char*)buf.ptr, NALUSize);
@@ -367,10 +367,10 @@ void fillVideoSampleData(SpanC buf, GF_ISOSample &sample) {
 
 		buf.ptr += NALUSize;
 
-		if (!scSize || (buf.len < NALUSize + scSize))
+		if (!startCodeSize || (buf.len < NALUSize + startCodeSize))
 			break;
-		buf.len -= NALUSize + scSize;
-		buf.ptr += scSize;
+		buf.len -= NALUSize + startCodeSize;
+		buf.ptr += startCodeSize;
 	}
 	gf_bs_get_content(out_bs, &sample.data, &sample.dataLength);
 	gf_bs_del(out_bs);
