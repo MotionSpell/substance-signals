@@ -385,7 +385,7 @@ GPACMuxMP4::GPACMuxMP4(IModuleHost* host, Mp4MuxConfig const& cfg)
 	  fragmentPolicy(cfg.fragmentPolicy),
 	  segmentPolicy(cfg.segmentPolicy),
 	  segmentDuration(cfg.segmentDurationInMs, 1000) {
-	if ((cfg.segmentDurationInMs == 0) ^ (segmentPolicy == NoSegment || segmentPolicy == SingleSegment))
+	if ((cfg.segmentDurationInMs == 0) != (segmentPolicy == NoSegment || segmentPolicy == SingleSegment))
 		throw error(format("Inconsistent parameters: segment duration is %sms but no segment.", cfg.segmentDurationInMs));
 	if ((cfg.segmentDurationInMs == 0) && (fragmentPolicy == OneFragmentPerSegment))
 		throw error("Inconsistent parameters: segment duration is 0 ms but requested one fragment by segment.");
