@@ -164,21 +164,17 @@ parse_sps:
 /**
 * A function which takes FFmpeg H265 extradata (SPS/PPS) and bring them ready to be pushed to the MP4 muxer.
 * @param extradata
-* @param extradata_size
 * @param dstcfg
 * @returns GF_OK is the extradata was parsed and is valid, other values otherwise.
 */
-static GF_Err hevc_import_ffextradata(Span extradataSpan, GF_HEVCConfig *dstCfg) {
+static GF_Err hevc_import_ffextradata(Span extradata, GF_HEVCConfig *dstCfg) {
 	GF_HEVCParamArray *vpss = nullptr, *spss = nullptr, *ppss = nullptr;
-
-	const auto extradata = extradataSpan.ptr;
-	const auto extradata_size = extradataSpan.len;
 
 	char *buffer = nullptr;
 	u32 bufferSize = 0;
-	if (!extradata || (extradata_size < sizeof(u32)))
+	if (!extradata.ptr || (extradata.len < sizeof(u32)))
 		return GF_BAD_PARAM;
-	auto bs = gf_bs_new((const char*)extradata, extradata_size, GF_BITSTREAM_READ);
+	auto bs = gf_bs_new((const char*)extradata.ptr, extradata.len, GF_BITSTREAM_READ);
 	if (!bs)
 		return GF_BAD_PARAM;
 
@@ -197,7 +193,7 @@ static GF_Err hevc_import_ffextradata(Span extradataSpan, GF_HEVCConfig *dstCfg)
 		}
 		NALStart = gf_bs_get_position(bs);
 		NALSize = gf_media_nalu_next_start_code_bs(bs);
-		if (NALStart + NALSize > extradata_size) {
+		if (NALStart + NALSize > extradata.len) {
 			gf_bs_del(bs);
 			return GF_BAD_PARAM;
 		}
