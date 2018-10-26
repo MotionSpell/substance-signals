@@ -51,16 +51,12 @@ Span getBsContent(GF_ISOFile *iso, bool newBs) {
 	return {(uint8_t*)output, (size_t)size};
 }
 
-static GF_Err avc_import_ffextradata(Span extradataSpan, GF_AVCConfig *dstcfg) {
-
-	const auto extradata = extradataSpan.ptr;
-	const auto extradataSize = extradataSpan.len;
-
-	if (!extradata || !extradataSize) {
+static GF_Err avc_import_ffextradata(Span extradata, GF_AVCConfig *dstcfg) {
+	if (!extradata.ptr || !extradata.len) {
 		g_Log->log(Warning, "No initial SPS/PPS provided.");
 		return GF_OK;
 	}
-	auto bs2 = std::shared_ptr<GF_BitStream>(gf_bs_new((const char*)extradata, extradataSize, GF_BITSTREAM_READ), &gf_bs_del);
+	auto bs2 = std::shared_ptr<GF_BitStream>(gf_bs_new((const char*)extradata.ptr, extradata.len, GF_BITSTREAM_READ), &gf_bs_del);
 	auto bs = bs2.get();
 	if (!bs) {
 		return GF_BAD_PARAM;
@@ -88,7 +84,7 @@ static GF_Err avc_import_ffextradata(Span extradataSpan, GF_AVCConfig *dstcfg) {
 		char *buffer = nullptr;
 parse_sps:
 		nalSize = gf_media_nalu_next_start_code_bs(bs);
-		if (nalStart + nalSize > extradataSize) {
+		if (nalStart + nalSize > extradata.len) {
 			return GF_BAD_PARAM;
 		}
 		buffer = (char*)gf_malloc(nalSize);
@@ -136,7 +132,7 @@ parse_sps:
 		nalStart += 4 + nalSize;
 		gf_bs_seek(bs, nalStart);
 		nalSize = gf_media_nalu_next_start_code_bs(bs);
-		if (nalStart + nalSize > extradataSize) {
+		if (nalStart + nalSize > extradata.len) {
 			return GF_BAD_PARAM;
 		}
 		buffer = (char*)gf_malloc(nalSize);
