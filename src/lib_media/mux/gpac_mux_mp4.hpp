@@ -38,7 +38,7 @@ class GPACMuxMP4 : public ModuleS {
 		void handleInitialTimeOffset();
 		void sendOutput(bool EOS);
 		void fillSample(Data data, gpacpp::IsoSample* sample);
-		void startSegment(gpacpp::IsoSample * const sample);
+		void startChunk(gpacpp::IsoSample * const sample);
 		void addData(gpacpp::IsoSample const * const sample, int64_t lastDataDurationInTs);
 		void closeChunk(bool nextSampleIsRAP);
 		void processSample(Data data, int64_t lastDataDurationInTs);
