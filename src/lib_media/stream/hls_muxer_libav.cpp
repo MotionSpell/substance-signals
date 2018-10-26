@@ -58,16 +58,15 @@ class LibavMuxHLSTS : public ModuleDynI {
 				}
 				if (DTS >= (segIdx + 1) * segDuration + firstDTS) {
 					auto const fn = format("%s%s.ts", segBasename, segIdx);
-					auto const path = format("%s%s", hlsDir, fn);
 
 					{
 						auto out = outputSegment->getBuffer(0);
 						out->setMediaTime(clockToTimescale(m_utcStartTime->query(), 1000) + data->getMediaTime());
 
 						auto metadata = make_shared<MetadataFile>(SEGMENT);
-						metadata->filename = hlsDir + fn;
 						metadata->durationIn180k = segDuration;
-						metadata->filesize = fileSize(path);
+						metadata->filename = hlsDir + fn;
+						metadata->filesize = fileSize(hlsDir + fn);
 
 						switch (data->getMetadata()->type) {
 						case AUDIO_PKT:
