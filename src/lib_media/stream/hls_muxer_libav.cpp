@@ -14,6 +14,17 @@ using namespace Modules;
 
 namespace {
 
+
+uint64_t fileSize(std::string path) {
+	auto file = fopen(path.c_str(), "rt");
+	if (!file)
+		throw std::runtime_error(format("Can't open segment for reading: '%s'", path));
+	fseek(file, 0, SEEK_END);
+	auto const fsize = ftell(file);
+	fclose(file);
+	return fsize;
+}
+
 class LibavMuxHLSTS : public ModuleDynI {
 	public:
 		LibavMuxHLSTS(IModuleHost* host, HlsMuxConfigLibav* cfg)
@@ -48,12 +59,8 @@ class LibavMuxHLSTS : public ModuleDynI {
 				if (DTS >= (segIdx + 1) * segDuration + firstDTS) {
 					auto const fn = format("%s%s.ts", segBasename, segIdx);
 					auto const path = format("%s%s", hlsDir, fn);
-					auto file = fopen(path.c_str(), "rt");
-					if (!file)
-						throw error(format("Can't open segment in read mode: %s", path));
-					fseek(file, 0, SEEK_END);
-					auto const fsize = ftell(file);
-					fclose(file);
+
+					auto const fsize = fileSize(path);
 
 					{
 						auto out = outputSegment->getBuffer(0);
