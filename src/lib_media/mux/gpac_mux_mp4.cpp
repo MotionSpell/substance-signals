@@ -1020,16 +1020,14 @@ void GPACMuxMP4::processSample(Data data, int64_t lastDataDurationInTs) {
 
 std::unique_ptr<gpacpp::IsoSample> GPACMuxMP4::fillSample(Data data) {
 	auto sample = make_unique<gpacpp::IsoSample>();
-	u32 bufLen = (u32)data->data().len;
-	const u8 *bufPtr = data->data().ptr;
 
 	const u32 mediaType = gf_isom_get_media_type(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
 	if (mediaType == GF_ISOM_MEDIA_VISUAL || mediaType == GF_ISOM_MEDIA_AUDIO || mediaType == GF_ISOM_MEDIA_TEXT) {
 		if (isAnnexB) {
-			annexbToAvcc({bufPtr, (size_t)bufLen}, *sample);
+			annexbToAvcc(data->data(), *sample);
 		} else {
-			sample->data = (char*)bufPtr;
-			sample->dataLength = bufLen;
+			sample->data = (char*)data->data().ptr;
+			sample->dataLength = (u32)data->data().len;
 			sample->setDataOwnership(false);
 		}
 	} else
