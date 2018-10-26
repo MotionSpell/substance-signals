@@ -798,18 +798,16 @@ void GPACMuxMP4::declareStreamVideo(const MetadataPktLibavVideo* metadata) {
 			m_host->log(Debug, "Non Annex B: assume this is MP4 already");
 			isAnnexB = false;
 
-			GF_ESD *esd = (GF_ESD *)gf_odf_desc_esd_new(0);
-			esd->ESID = 1; /*FIXME: only one track: set trackID?*/
-			esd->decoderConfig->streamType = GF_STREAM_VISUAL;
-			esd->decoderConfig->avgBitrate = esd->decoderConfig->maxBitrate = 0;
-			esd->decoderConfig->objectTypeIndication = metadata->getAVCodecContext()->codec_id == AV_CODEC_ID_H264 ? GPAC_OTI_VIDEO_AVC : GPAC_OTI_VIDEO_HEVC;
-			esd->decoderConfig->decoderSpecificInfo->dataLength = (u32)extradata.len;
-			esd->decoderConfig->decoderSpecificInfo->data = (char*)gf_malloc(extradata.len);
-			memcpy(esd->decoderConfig->decoderSpecificInfo->data, extradata.ptr, extradata.len);
-			esd->slConfig->predefined = SLPredef_MP4;
+			GF_ESD esd {};
+			esd.ESID = 1; /*FIXME: only one track: set trackID?*/
+			esd.decoderConfig->streamType = GF_STREAM_VISUAL;
+			esd.decoderConfig->objectTypeIndication = metadata->getAVCodecContext()->codec_id == AV_CODEC_ID_H264 ? GPAC_OTI_VIDEO_AVC : GPAC_OTI_VIDEO_HEVC;
+			esd.decoderConfig->decoderSpecificInfo->dataLength = (u32)extradata.len;
+			esd.decoderConfig->decoderSpecificInfo->data = (char*)gf_malloc(extradata.len);
+			memcpy(esd.decoderConfig->decoderSpecificInfo->data, extradata.ptr, extradata.len);
+			esd.slConfig->predefined = SLPredef_MP4;
 
-			e = gf_isom_new_mpeg4_description(isoCur, trackNum, esd, nullptr, nullptr, &di);
-			gf_odf_desc_del((GF_Descriptor*)esd);
+			e = gf_isom_new_mpeg4_description(isoCur, trackNum, &esd, nullptr, nullptr, &di);
 			if (e != GF_OK)
 				throw error(format("Cannot create MPEG-4 config: %s", gf_error_to_string(e)));
 		} else
