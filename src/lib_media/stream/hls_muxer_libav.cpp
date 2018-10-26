@@ -52,6 +52,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 						throw error(format("Can't open segment in read mode: %s", fn));
 					fseek(file, 0, SEEK_END);
 					auto const fsize = ftell(file);
+					fclose(file);
 
 					{
 						auto out = outputSegment->getBuffer(0);
