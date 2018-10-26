@@ -344,7 +344,7 @@ static GF_Err hevc_import_ffextradata(Span extradata, GF_HEVCConfig *dstCfg) {
 	return GF_OK;
 }
 
-void fillVideoSampleData(SpanC buf, GF_ISOSample &sample) {
+void annexbToAvcc(SpanC buf, GF_ISOSample &sample) {
 	u32 startCodeSize = 0;
 
 	GF_BitStream* out_bs = gf_bs_new(nullptr, 2 * buf.len, GF_BITSTREAM_WRITE);
@@ -760,6 +760,7 @@ void GPACMuxMP4::declareStreamVideo(const MetadataPktLibavVideo* metadata) {
 	if (e != GF_OK)
 		throw error(format("Cannot enable track: %s", gf_error_to_string(e)));
 
+	isAnnexB = true;
 	auto extradata = metadata->getExtradata();
 
 	u32 di = 0;
@@ -1025,18 +1026,14 @@ std::unique_ptr<gpacpp::IsoSample> GPACMuxMP4::fillSample(Data data_) {
 	const u8 *bufPtr = data->data().ptr;
 
 	const u32 mediaType = gf_isom_get_media_type(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
-	if (mediaType == GF_ISOM_MEDIA_VISUAL) {
+	if (mediaType == GF_ISOM_MEDIA_VISUAL || mediaType == GF_ISOM_MEDIA_AUDIO || mediaType == GF_ISOM_MEDIA_TEXT) {
 		if (isAnnexB) {
-			fillVideoSampleData({bufPtr, (size_t)bufLen}, *sample);
+			annexbToAvcc({bufPtr, (size_t)bufLen}, *sample);
 		} else {
 			sample->data = (char*)bufPtr;
 			sample->dataLength = bufLen;
 			sample->setDataOwnership(false);
 		}
-	} else if (mediaType == GF_ISOM_MEDIA_AUDIO || mediaType == GF_ISOM_MEDIA_TEXT) {
-		sample->data = (char*)bufPtr;
-		sample->dataLength = bufLen;
-		sample->setDataOwnership(false);
 	} else
 		throw error("Only audio, video or text supported");
 
