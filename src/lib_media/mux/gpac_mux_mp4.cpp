@@ -1012,16 +1012,15 @@ void GPACMuxMP4::closeChunk(bool nextSampleIsRAP) {
 }
 
 void GPACMuxMP4::processSample(Data data, int64_t lastDataDurationInTs) {
-	auto sample = fillSample(data);
-	closeChunk(sample->isRap());
-	startSegment(sample.get());
-	addData(sample.get(), lastDataDurationInTs);
+	gpacpp::IsoSample sample {};
+	fillSample(data, &sample);
+	closeChunk(sample.isRap());
+	startSegment(&sample);
+	addData(&sample, lastDataDurationInTs);
 	closeChunk(false); //close it now if possible, otherwise wait for the next sample to be available
 }
 
-std::unique_ptr<gpacpp::IsoSample> GPACMuxMP4::fillSample(Data data) {
-	auto sample = make_unique<gpacpp::IsoSample>();
-
+void GPACMuxMP4::fillSample(Data data, gpacpp::IsoSample* sample) {
 	const u32 mediaType = gf_isom_get_media_type(isoCur, gf_isom_get_track_by_id(isoCur, trackId));
 	if (mediaType == GF_ISOM_MEDIA_VISUAL || mediaType == GF_ISOM_MEDIA_AUDIO || mediaType == GF_ISOM_MEDIA_TEXT) {
 		if (isAnnexB) {
@@ -1056,8 +1055,6 @@ std::unique_ptr<gpacpp::IsoSample> GPACMuxMP4::fillSample(Data data) {
 
 	if(sample->CTS_Offset < 0)
 		throw error("Negative CTS offset is not supported");
-
-	return sample;
 }
 
 void GPACMuxMP4::updateFormat(Data data) {
