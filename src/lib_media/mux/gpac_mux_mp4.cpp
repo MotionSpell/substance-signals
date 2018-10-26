@@ -708,7 +708,7 @@ void GPACMuxMP4::declareStreamAudio(const MetadataPktLibavAudio* metadata) {
 	if (e != GF_OK)
 		throw error(format("gf_isom_set_track_enabled: %s", gf_error_to_string(e)));
 
-	auto const bitsPerSample = metadata->getBitsPerSample() >= 16 ? 16 : metadata->getBitsPerSample();
+	auto const bitsPerSample = std::min(16, (int)metadata->getBitsPerSample());
 	e = gf_isom_set_audio_info(isoCur, trackNum, di, sampleRate, metadata->getNumChannels(), bitsPerSample);
 	if (e != GF_OK)
 		throw error(format("gf_isom_set_audio_info: %s", gf_error_to_string(e)));
