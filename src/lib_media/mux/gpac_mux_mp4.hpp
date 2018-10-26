@@ -72,10 +72,8 @@ class GPACMuxMP4 : public ModuleS {
 		std::string baseName;
 
 		OutputDataDefault<DataRaw>* output;
-		union {
-			Resolution resolution;
-			int sampleRate;
-		};
+		Resolution resolution;
+		int sampleRate;
 };
 
 }
