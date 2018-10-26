@@ -665,8 +665,6 @@ void GPACMuxMP4::declareStreamAudio(const MetadataPktLibavAudio* metadata) {
 		assert(e == GF_OK);
 	} else if (metadata->getCodecName() == "ac3" || metadata->getCodecName() == "eac3") {
 		bool is_EAC3 = metadata->getCodecName() == "eac3";
-		GF_AC3Header hdr = { };
-		GF_AC3Config cfg = { };
 
 		auto extradata = metadata->getExtradata();
 		auto bs2 = std::shared_ptr<GF_BitStream>(gf_bs_new((const char*)extradata.ptr, extradata.len, GF_BITSTREAM_READ), &gf_bs_del);
@@ -674,6 +672,7 @@ void GPACMuxMP4::declareStreamAudio(const MetadataPktLibavAudio* metadata) {
 		if (!bs)
 			throw error(format("(E)AC-3: impossible to create extradata bitstream (\"%s\", size=%s)", metadata->getCodecName(), extradata.len));
 
+		GF_AC3Header hdr  {};
 		if (is_EAC3 || !gf_ac3_parser_bs(bs, &hdr, GF_TRUE)) {
 			if (!gf_eac3_parser_bs(bs, &hdr, GF_TRUE)) {
 				m_host->log(Error, format("Parsing: audio is neither AC3 or E-AC3 audio (\"%s\", size=%s)", metadata->getCodecName(), extradata.len).c_str());
@@ -684,6 +683,7 @@ void GPACMuxMP4::declareStreamAudio(const MetadataPktLibavAudio* metadata) {
 		esd->decoderConfig->bufferSizeDB = 20;
 		esd->slConfig->timestampResolution = sampleRate;
 
+		GF_AC3Config cfg {};
 		cfg.is_ec3 = is_EAC3;
 		cfg.nb_streams = 1;
 		cfg.brcode = hdr.brcode;
