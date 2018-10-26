@@ -935,7 +935,7 @@ void GPACMuxMP4::sendOutput(bool EOS) {
 
 void GPACMuxMP4::startChunk(gpacpp::IsoSample * const sample) {
 	if (curSegmentDurInTs == 0) {
-		segmentStartsWithRAP = sample->IsRAP == RAP;
+		segmentStartsWithRAP = sample->isRap();
 		if (segmentPolicy > SingleSegment) {
 			const u64 oneSegDurInTs = clockToTimescale(fractionToClock(segmentDuration), timeScale);
 			if (oneSegDurInTs * (m_DTS / oneSegDurInTs) == 0) { /*initial delay*/
@@ -957,7 +957,7 @@ void GPACMuxMP4::startChunk(gpacpp::IsoSample * const sample) {
 
 void GPACMuxMP4::addData(gpacpp::IsoSample const * const sample, int64_t lastDataDurationInTs) {
 	if (fragmentPolicy > NoFragment) {
-		if (curFragmentDurInTs && (fragmentPolicy == OneFragmentPerRAP) && (sample->IsRAP == RAP)) {
+		if (curFragmentDurInTs && (fragmentPolicy == OneFragmentPerRAP) && (sample->isRap())) {
 			closeFragment();
 			startFragment(sample->DTS, sample->DTS + sample->CTS_Offset);
 		}
@@ -1011,7 +1011,7 @@ void GPACMuxMP4::closeChunk(bool nextSampleIsRAP) {
 }
 
 void GPACMuxMP4::processSample(std::unique_ptr<gpacpp::IsoSample> sample, int64_t lastDataDurationInTs) {
-	closeChunk(sample->IsRAP == RAP);
+	closeChunk(sample->isRap());
 	startChunk(sample.get());
 	addData(sample.get(), lastDataDurationInTs);
 	closeChunk(false); //close it now if possible, otherwise wait for the next sample to be available

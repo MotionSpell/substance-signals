@@ -94,6 +94,10 @@ class IsoSample : public GF_ISOSample {
 			this->ownsData = ownsData;
 		}
 
+		bool isRap() const {
+			return this->IsRAP == RAP;
+		}
+
 	private:
 		IsoSample const& operator=(IsoSample const&) = delete;
 		bool ownsData = true;
