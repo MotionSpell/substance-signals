@@ -1010,7 +1010,8 @@ void GPACMuxMP4::closeChunk(bool nextSampleIsRAP) {
 	}
 }
 
-void GPACMuxMP4::processSample(std::unique_ptr<gpacpp::IsoSample> sample, int64_t lastDataDurationInTs) {
+void GPACMuxMP4::processSample(Data data, int64_t lastDataDurationInTs) {
+	auto sample = fillSample(data);
 	closeChunk(sample->isRap());
 	startChunk(sample.get());
 	addData(sample.get(), lastDataDurationInTs);
@@ -1106,7 +1107,7 @@ void GPACMuxMP4::process(Data data) {
 				m_host->log(Warning, format("Computed duration is inferior or equal to zero (%s). Inferring to %s", dataDurationInTs, defaultSampleIncInTs).c_str());
 				dataDurationInTs = defaultSampleIncInTs;
 			}
-			processSample(fillSample(lastData), dataDurationInTs);
+			processSample(lastData, dataDurationInTs);
 		}
 
 		lastData = data;
@@ -1125,7 +1126,7 @@ void GPACMuxMP4::process(Data data) {
 			}
 		}
 
-		processSample(fillSample(data), lastDataDurationInTs);
+		processSample(data, lastDataDurationInTs);
 	}
 }
 
