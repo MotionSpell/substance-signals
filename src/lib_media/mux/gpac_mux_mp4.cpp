@@ -1011,12 +1011,19 @@ void GPACMuxMP4::closeChunk(bool nextSampleIsRAP) {
 	}
 }
 
+static bool isRap(Data data) {
+	auto pkt = safe_cast<const DataAVPacket>(data)->getPacket();
+	return pkt->flags & AV_PKT_FLAG_KEY;
+}
+
 void GPACMuxMP4::processSample(Data data, int64_t lastDataDurationInTs) {
-	gpacpp::IsoSample sample {};
-	fillSample(data, &sample);
-	closeChunk(sample.isRap());
-	startChunk(&sample);
-	addData(&sample, lastDataDurationInTs);
+	closeChunk(isRap(data));
+	{
+		gpacpp::IsoSample sample {};
+		fillSample(data, &sample);
+		startChunk(&sample);
+		addData(&sample, lastDataDurationInTs);
+	}
 	closeChunk(false); //close it now if possible, otherwise wait for the next sample to be available
 }
 
@@ -1050,7 +1057,7 @@ void GPACMuxMP4::fillSample(Data data, gpacpp::IsoSample* sample) {
 		} else {
 			m_host->log(Error, format("Missing PTS (input DTS=%s, ts=%s/%s): output MP4 may be incorrect.", pkt->dts, srcTimeScale.num, srcTimeScale.den).c_str());
 		}
-		sample->IsRAP = (SAPType)(pkt->flags & AV_PKT_FLAG_KEY);
+		sample->IsRAP = isRap(data) ? RAP : RAP_NO;
 	}
 
 	if(sample->CTS_Offset < 0)
