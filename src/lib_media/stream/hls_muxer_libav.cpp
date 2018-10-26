@@ -47,9 +47,10 @@ class LibavMuxHLSTS : public ModuleDynI {
 				}
 				if (DTS >= (segIdx + 1) * segDuration + firstDTS) {
 					auto const fn = format("%s%s.ts", segBasename, segIdx);
-					auto file = fopen(format("%s%s", hlsDir, fn).c_str(), "rt");
+					auto const path = format("%s%s", hlsDir, fn);
+					auto file = fopen(path.c_str(), "rt");
 					if (!file)
-						throw error(format("Can't open segment in read mode: %s", fn));
+						throw error(format("Can't open segment in read mode: %s", path));
 					fseek(file, 0, SEEK_END);
 					auto const fsize = ftell(file);
 					fclose(file);
