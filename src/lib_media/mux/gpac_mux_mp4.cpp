@@ -933,25 +933,26 @@ void GPACMuxMP4::sendOutput(bool EOS) {
 	}
 }
 
-void GPACMuxMP4::startChunk(gpacpp::IsoSample * const sample) {
-	if (curSegmentDurInTs == 0) {
-		segmentStartsWithRAP = sample->isRap();
-		if (segmentPolicy > SingleSegment) {
-			const u64 oneSegDurInTs = clockToTimescale(fractionToClock(segmentDuration), timeScale);
-			if (oneSegDurInTs * (m_DTS / oneSegDurInTs) == 0) { /*initial delay*/
-				curSegmentDeltaInTs = curSegmentDurInTs + curSegmentDeltaInTs - oneSegDurInTs * ((curSegmentDurInTs + curSegmentDeltaInTs) / oneSegDurInTs);
-			} else {
-				auto const num = (curSegmentDurInTs + curSegmentDeltaInTs) / oneSegDurInTs;
-				auto const rem = m_DTS - (num ? num - 1 : 0) * oneSegDurInTs;
-				curSegmentDeltaInTs = m_DTS - oneSegDurInTs * (rem / oneSegDurInTs);
-			}
-			if (segmentPolicy == IndependentSegment) {
-				sample->DTS = 0;
-			}
+void GPACMuxMP4::startSegment(gpacpp::IsoSample * const sample) {
+	if (curSegmentDurInTs != 0)
+		return; // already inside a segment
+
+	segmentStartsWithRAP = sample->isRap();
+	if (segmentPolicy > SingleSegment) {
+		const u64 oneSegDurInTs = clockToTimescale(fractionToClock(segmentDuration), timeScale);
+		if (oneSegDurInTs * (m_DTS / oneSegDurInTs) == 0) { /*initial delay*/
+			curSegmentDeltaInTs = curSegmentDurInTs + curSegmentDeltaInTs - oneSegDurInTs * ((curSegmentDurInTs + curSegmentDeltaInTs) / oneSegDurInTs);
+		} else {
+			auto const num = (curSegmentDurInTs + curSegmentDeltaInTs) / oneSegDurInTs;
+			auto const rem = m_DTS - (num ? num - 1 : 0) * oneSegDurInTs;
+			curSegmentDeltaInTs = m_DTS - oneSegDurInTs * (rem / oneSegDurInTs);
 		}
-		if (fragmentPolicy > NoFragment) {
-			startFragment(sample->DTS, sample->DTS + sample->CTS_Offset);
+		if (segmentPolicy == IndependentSegment) {
+			sample->DTS = 0;
 		}
+	}
+	if (fragmentPolicy > NoFragment) {
+		startFragment(sample->DTS, sample->DTS + sample->CTS_Offset);
 	}
 }
 
@@ -1013,7 +1014,7 @@ void GPACMuxMP4::closeChunk(bool nextSampleIsRAP) {
 void GPACMuxMP4::processSample(Data data, int64_t lastDataDurationInTs) {
 	auto sample = fillSample(data);
 	closeChunk(sample->isRap());
-	startChunk(sample.get());
+	startSegment(sample.get());
 	addData(sample.get(), lastDataDurationInTs);
 	closeChunk(false); //close it now if possible, otherwise wait for the next sample to be available
 }
