@@ -147,6 +147,10 @@ class LibavMux : public ModuleDynI {
 			avStream->time_base = avStream->codec->time_base = metadata->getAVCodecContext()->time_base;
 			inputIdx2AvStream[inputIdx] = m_formatCtx->nb_streams - 1;
 
+			return isEvent(data);
+		}
+
+		bool isEvent(Data data) {
 			auto refData = std::dynamic_pointer_cast<const DataBaseRef>(data);
 			return !(refData && !refData->getData());
 		}
