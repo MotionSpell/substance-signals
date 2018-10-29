@@ -148,6 +148,10 @@ unittest("encoder: RAP placement (incorrect timings)") {
 	RAPTest(Fraction(25, 1), times, RAPs);
 }
 
+extern "C" {
+#include <libavcodec/avcodec.h> // AVCodecContext
+}
+
 unittest("GPAC mp4 mux: don't create empty fragments") {
 	struct Recorder : ModuleS {
 		Recorder() {
@@ -160,14 +164,31 @@ unittest("GPAC mp4 mux: don't create empty fragments") {
 		vector<int64_t> durations;
 	};
 
-	EncoderConfig p { EncoderConfig::Video };
-	p.frameRate = 1;
-	auto encode = loadModule("Encoder", &NullHost, &p);
 	auto cfg = Mp4MuxConfig{"", 1000, FragmentedSegment, OneFragmentPerRAP, Browsers | SegmentAtAny};
 	auto mux = loadModule("GPACMuxMP4", &NullHost, &cfg);
-	ConnectOutputToInput(encode->getOutput(0), mux->getInput(0));
 	auto recorder = create<Recorder>();
 	ConnectOutputToInput(mux->getOutput(0), recorder->getInput(0));
+
+	auto createH264AccessUnit = []() {
+		static const uint8_t h264_gray_frame[] = {
+			0x00, 0x00, 0x00, 0x01,
+			0x67, 0x4d, 0x40, 0x0a, 0xe8, 0x8f, 0x42, 0x00,
+			0x00, 0x03, 0x00, 0x02, 0x00, 0x00, 0x03, 0x00,
+			0x64, 0x1e, 0x24, 0x4a, 0x24,
+			0x00, 0x00, 0x00, 0x01, 0x68, 0xeb, 0xc3, 0xcb,
+			0x20, 0x00, 0x00, 0x01, 0x65, 0x88, 0x84, 0x00,
+			0xaf, 0xfd, 0x0f, 0xdf,
+		};
+
+		auto ctx = make_shared<AVCodecContext>();
+		ctx->time_base = {1, 1};
+		ctx->codec_id = AV_CODEC_ID_H264;
+		auto accessUnit = make_shared<DataAVPacket>(sizeof h264_gray_frame);
+		static const auto meta = make_shared<MetadataPktLibavVideo>(ctx);
+		accessUnit->setMetadata(meta);
+		memcpy(accessUnit->data().ptr, h264_gray_frame, sizeof h264_gray_frame);
+		return accessUnit;
+	};
 
 	auto const times = vector<int64_t>({
 		(1 * IClock::Rate),
@@ -177,12 +198,11 @@ unittest("GPAC mp4 mux: don't create empty fragments") {
 		(4 * IClock::Rate),
 	});
 	for(auto time : times) {
-		auto picture = make_shared<PictureYUV420P>(VIDEO_RESOLUTION);
+		auto picture = createH264AccessUnit();
 		picture->setMediaTime(time);
-		encode->getInput(0)->push(picture);
-		encode->process();
+		mux->getInput(0)->push(picture);
+		mux->process();
 	}
-	encode->flush();
 	mux->flush();
 
 	auto const expected = vector<int64_t>({
@@ -191,7 +211,8 @@ unittest("GPAC mp4 mux: don't create empty fragments") {
 		(1 * IClock::Rate),
 		(1 * IClock::Rate),
 		(1 * IClock::Rate),
-		(1 * IClock::Rate) / 100,
+		(1 * IClock::Rate),
+		(0 * IClock::Rate),
 	});
 	ASSERT_EQUALS(expected, recorder->durations);
 }
