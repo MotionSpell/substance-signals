@@ -32,17 +32,15 @@ void checkTimestampsMux(CreateDemuxFunc createDemux, int numBFrame, const std::v
 	encode->flush();
 	mux->flush();
 
-	size_t i = 0;
+	std::vector<int64_t> actualTimes;
 	auto onFrame = [&](Data data) {
-		if (i < timesOut.size()) {
-			ASSERT_EQUALS(timesOut[i], data->getMediaTime());
-		}
-		i++;
+		actualTimes.push_back(data->getMediaTime());
 	};
+
 	auto demux = createDemux("out/random_ts.mp4");
 	ConnectOutput(demux.get(), onFrame);
 	demux->process();
-	ASSERT_EQUALS(i, timesOut.size());
+	ASSERT_EQUALS(timesOut, actualTimes);
 }
 
 std:: shared_ptr<IModule> createLibavDemux(const char* path) {
