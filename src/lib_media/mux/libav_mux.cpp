@@ -143,9 +143,7 @@ class LibavMux : public ModuleDynI {
 
 		void declareStream(Data data, size_t inputIdx) {
 			auto const metadata_ = data->getMetadata();
-			auto metadata = dynamic_cast<const MetadataPktLibav*>(metadata_.get());
-			if(!metadata)
-				throw error("Stream creation failed: unknown type.");
+			auto metadata = safe_cast<const MetadataPktLibav>(metadata_.get());
 
 			auto avCtx = metadata->getAVCodecContext().get();
 
