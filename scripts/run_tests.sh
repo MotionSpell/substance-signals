@@ -5,7 +5,7 @@ readonly tmpDir=/tmp/signals-test-$$
 trap "rm -rf $tmpDir" EXIT
 mkdir -p $tmpDir
 
-EXTRA=${EXTRA-$PWD/sysroot}
+EXTRA=${EXTRA-"/opt/msprod/sysroot"}
 
 # required for MSYS
 export PATH=$PATH:$EXTRA/bin:/mingw64/bin
