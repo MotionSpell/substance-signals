@@ -196,13 +196,13 @@ class LibavMux : public ModuleDynI {
 			auto meta = data->getMetadata().get();
 			auto videoMetadata = dynamic_cast<const MetadataPktLibavVideo*>(meta); //video only ATM
 			if (m_inbandMetadata && videoMetadata && (pkt->flags & AV_PKT_FLAG_KEY)) {
-				auto const eSize = videoMetadata->codecSpecificInfo.size();
-				auto const outSize = pkt->size + eSize;
+				auto const& headers = videoMetadata->codecSpecificInfo;
+				auto const outSize = pkt->size + headers.size();
 				auto newPkt = av_packet_alloc();
 				av_init_packet(newPkt);
 				av_new_packet(newPkt, (int)outSize);
-				memcpy(newPkt->data, videoMetadata->codecSpecificInfo.data(), eSize);
-				memcpy(newPkt->data + eSize, pkt->data, pkt->size);
+				memcpy(newPkt->data, headers.data(), headers.size());
+				memcpy(newPkt->data + headers.size(), pkt->data, pkt->size);
 				newPkt->size = (int)outSize;
 				newPkt->flags = pkt->flags;
 				newPkt->dts = pkt->dts;
