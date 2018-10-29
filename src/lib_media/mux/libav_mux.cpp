@@ -145,14 +145,16 @@ class LibavMux : public ModuleDynI {
 			if(!metadata)
 				throw error("Stream creation failed: unknown type.");
 
-			AVStream *avStream = avformat_new_stream(m_formatCtx, metadata->getAVCodecContext()->codec);
+			auto avCtx = metadata->getAVCodecContext().get();
+
+			AVStream *avStream = avformat_new_stream(m_formatCtx, avCtx->codec);
 			if (!avStream)
 				throw error("Stream creation failed.");
 
-			if (avcodec_parameters_from_context(avStream->codecpar, metadata->getAVCodecContext().get()) < 0)
+			if (avcodec_parameters_from_context(avStream->codecpar, avCtx) < 0)
 				throw error("Stream parameters copy failed.");
 
-			avStream->time_base = avStream->codec->time_base = metadata->getAVCodecContext()->time_base;
+			avStream->time_base = avStream->codec->time_base = avCtx->time_base;
 			inputIdx2AvStream[inputIdx] = m_formatCtx->nb_streams - 1;
 		}
 
