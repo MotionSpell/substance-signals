@@ -871,7 +871,8 @@ void GPACMuxMP4::sendSegmentToOutput(bool EOS) {
 	if (gf_isom_get_filename(isoCur)) {
 		lastSegmentSize = fileSize(segmentName);
 	} else {
-		auto contents = getBsContent(isoCur, (compatFlags & FlushFragMemory) && curFragmentDurInTs);
+		auto const newBsNeeded = EOS || ( (compatFlags & FlushFragMemory) && curFragmentDurInTs );
+		auto contents = getBsContent(isoCur, newBsNeeded);
 		if (!contents.len && !EOS) {
 			assert((segmentPolicy == FragmentedSegment) && (fragmentPolicy > NoFragment));
 			m_host->log(Debug, "Empty segment. Ignore.");

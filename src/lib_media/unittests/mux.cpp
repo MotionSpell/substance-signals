@@ -126,20 +126,20 @@ std::vector<Meta> runMux(std::shared_ptr<IModule> m) {
 }
 
 unittest("mux GPAC mp4: no segment, no fragment") {
-	std::vector<Meta> ref = { { "out/output_video_gpac_01.mp4", "audio/mp4", "mp4a.40.2", 0, 10437, 0, 1, 1 } };
-	auto cfg = Mp4MuxConfig{"out/output_video_gpac_01", 0, NoSegment, NoFragment};
+	std::vector<Meta> ref = { { "", "audio/mp4", "mp4a.40.2", 0, 10437, 0, 1, 1 } };
+	auto cfg = Mp4MuxConfig{"", 0, NoSegment, NoFragment};
 	ASSERT_EQUALS(ref, runMux(loadModule("GPACMuxMP4", &NullHost, &cfg)));
 }
 
 unittest("mux GPAC mp4: no segment, one fragment per RAP") {
-	std::vector<Meta> ref = { { "out/output_video_gpac_03.mp4", "audio/mp4", "mp4a.40.2", 0, 29869, 0, 1, 1 } };
-	auto cfg = Mp4MuxConfig{"out/output_video_gpac_03", 0, NoSegment, OneFragmentPerRAP};
+	std::vector<Meta> ref = { { "", "audio/mp4", "mp4a.40.2", 0, 29869, 0, 1, 1 } };
+	auto cfg = Mp4MuxConfig{"", 0, NoSegment, OneFragmentPerRAP};
 	ASSERT_EQUALS(ref, runMux(loadModule("GPACMuxMP4", &NullHost, &cfg)));
 }
 
 unittest("mux GPAC mp4: no segment, one fragment per frame") {
-	std::vector<Meta> ref = { { "out/output_video_gpac_04.mp4", "audio/mp4", "mp4a.40.2", 0, 29869, 4180, 1, 1 } };
-	auto cfg = Mp4MuxConfig{"out/output_video_gpac_04", 0, NoSegment, OneFragmentPerFrame};
+	std::vector<Meta> ref = { { "", "audio/mp4", "mp4a.40.2", 0, 29869, 4180, 1, 1 } };
+	auto cfg = Mp4MuxConfig{"", 0, NoSegment, OneFragmentPerFrame};
 	ASSERT_EQUALS(ref, runMux(loadModule("GPACMuxMP4", &NullHost, &cfg)));
 }
 
