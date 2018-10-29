@@ -141,15 +141,17 @@ class LibavMux : public ModuleDynI {
 
 		void declareStream(Data data, size_t inputIdx) {
 			auto const metadata_ = data->getMetadata();
-			auto metadata = std::dynamic_pointer_cast<const MetadataPktLibav>(metadata_);
+			auto metadata = dynamic_cast<const MetadataPktLibav*>(metadata_.get());
 			if(!metadata)
 				throw error("Stream creation failed: unknown type.");
 
 			AVStream *avStream = avformat_new_stream(m_formatCtx, metadata->getAVCodecContext()->codec);
 			if (!avStream)
 				throw error("Stream creation failed.");
+
 			if (avcodec_parameters_from_context(avStream->codecpar, metadata->getAVCodecContext().get()) < 0)
 				throw error("Stream parameters copy failed.");
+
 			avStream->time_base = avStream->codec->time_base = metadata->getAVCodecContext()->time_base;
 			inputIdx2AvStream[inputIdx] = m_formatCtx->nb_streams - 1;
 		}
