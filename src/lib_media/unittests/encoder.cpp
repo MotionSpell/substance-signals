@@ -185,7 +185,14 @@ unittest("GPAC mp4 mux: don't create empty fragments") {
 	encode->flush();
 	mux->flush();
 
-	auto const expected = vector<int64_t>({0, 180000, 180000, 180000, 180000, 1800});
+	auto const expected = vector<int64_t>({
+		(0 * IClock::Rate),
+		(1 * IClock::Rate),
+		(1 * IClock::Rate),
+		(1 * IClock::Rate),
+		(1 * IClock::Rate),
+		(1 * IClock::Rate) / 100,
+	});
 	ASSERT_EQUALS(expected, recorder->durations);
 }
 
