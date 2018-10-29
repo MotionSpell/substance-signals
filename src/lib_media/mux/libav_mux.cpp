@@ -15,6 +15,7 @@ extern "C" {
 }
 
 using namespace Modules;
+using namespace std;
 
 namespace {
 
@@ -113,11 +114,10 @@ class LibavMux : public ModuleDynI {
 			pkt->duration = (int64_t)av_rescale_q(pkt->duration, inputTimebase, avStream->time_base);
 			pkt->stream_index = avStream->index;
 
-			if (av_interleaved_write_frame(m_formatCtx, pkt) != 0) {
+			if (av_interleaved_write_frame(m_formatCtx, pkt.get()) != 0) {
 				m_host->log(Warning, "can't write frame.");
 				return;
 			}
-			av_packet_free(&pkt);
 		}
 
 	private:
@@ -185,7 +185,7 @@ class LibavMux : public ModuleDynI {
 			}
 		}
 
-		AVPacket * getFormattedPkt(Data data) {
+		shared_ptr<AVPacket> getFormattedPkt(Data data) {
 			auto pkt = safe_cast<const DataAVPacket>(data)->getPacket();
 			auto meta = data->getMetadata().get();
 			auto videoMetadata = dynamic_cast<const MetadataPktLibavVideo*>(meta); //video only ATM
@@ -202,10 +202,16 @@ class LibavMux : public ModuleDynI {
 				newPkt->dts = pkt->dts;
 				newPkt->pts = pkt->pts;
 				newPkt->duration = pkt->duration;
-				return newPkt;
+				pkt = newPkt;
 			} else {
-				return av_packet_clone(pkt);
+				pkt = av_packet_clone(pkt);
 			}
+
+			return shared_ptr<AVPacket>(pkt, &my_av_packet_deleter);
+		}
+
+		static void my_av_packet_deleter(AVPacket* pkt) {
+			av_packet_free(&pkt);
 		}
 
 		void formatsList() {
