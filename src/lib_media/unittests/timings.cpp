@@ -35,13 +35,13 @@ void runMux(int numBFrame, const std::vector<int64_t> &timesIn,  Mp4MuxConfig mu
 	mux->flush();
 }
 
-std::vector<int64_t> runDemux(CreateDemuxFunc createDemux) {
+std::vector<int64_t> runDemux(std::string basename, CreateDemuxFunc createDemux) {
 	std::vector<int64_t> actualTimes;
 	auto onFrame = [&](Data data) {
 		actualTimes.push_back(data->getMediaTime());
 	};
 
-	auto demux = createDemux("out/random_ts.mp4");
+	auto demux = createDemux((basename + ".mp4").c_str());
 	ConnectOutput(demux.get(), onFrame);
 	demux->process();
 	return actualTimes;
@@ -60,10 +60,10 @@ std:: shared_ptr<IModule> createGpacDemux(const char* path) {
 
 void checkTimestamps(CreateDemuxFunc createDemux, int numBFrame, const std::vector<int64_t> &timesIn, const std::vector<int64_t> &timesOut) {
 	runMux(numBFrame, timesIn, {"out/random_ts"});
-	ASSERT_EQUALS(timesOut, runDemux(createDemux));
+	ASSERT_EQUALS(timesOut, runDemux("out/random_ts", createDemux));
 
 	runMux(numBFrame, timesIn, {"out/random_ts", 0, NoSegment, NoFragment, ExactInputDur});
-	ASSERT_EQUALS(timesOut, runDemux(createDemux));
+	ASSERT_EQUALS(timesOut, runDemux("out/random_ts", createDemux));
 }
 
 unittest("timestamps start at random values (LibavDemux)") {
