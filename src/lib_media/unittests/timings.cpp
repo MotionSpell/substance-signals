@@ -61,9 +61,6 @@ std:: shared_ptr<IModule> createGpacDemux(const char* path) {
 void checkTimestamps(CreateDemuxFunc createDemux, int numBFrame, const std::vector<int64_t> &timesIn, const std::vector<int64_t> &timesOut) {
 	runMux(numBFrame, timesIn, {"out/timestamps"});
 	ASSERT_EQUALS(timesOut, runDemux("out/timestamps", createDemux));
-
-	runMux(numBFrame, timesIn, {"out/timestamps_exact_input_duration", 0, NoSegment, NoFragment, ExactInputDur});
-	ASSERT_EQUALS(timesOut, runDemux("out/timestamps_exact_input_duration", createDemux));
 }
 
 unittest("timestamps start at random values (LibavDemux)") {
