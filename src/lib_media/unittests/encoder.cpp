@@ -154,11 +154,10 @@ unittest("GPAC mp4 mux: don't create empty fragments") {
 			addInput(this);
 		}
 		void process(Data data) {
-			if (initFound)
-				ASSERT(safe_cast<const MetadataFile>(data->getMetadata())->durationIn180k > 0);
-			initFound = true;
+			auto meta = safe_cast<const MetadataFile>(data->getMetadata());
+			durations.push_back(meta->durationIn180k);
 		}
-		bool initFound = false;
+		vector<int64_t> durations;
 	};
 	auto const segmentDurationInMs = 1000;
 	const vector<uint64_t> times = { IClock::Rate, 0, 3 * IClock::Rate, (7 * IClock::Rate) / 2, 4 * IClock::Rate };
@@ -178,6 +177,8 @@ unittest("GPAC mp4 mux: don't create empty fragments") {
 	}
 	encode->flush();
 	mux->flush();
+	auto const expected = vector<int64_t>({0, 180000, 180000, 180000, 180000, 1800});
+	ASSERT_EQUALS(expected, recorder->durations);
 }
 
 //TODO: add a more complex test for each module!
