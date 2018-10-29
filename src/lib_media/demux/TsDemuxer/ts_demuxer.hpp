@@ -9,9 +9,13 @@ struct TsDemuxerConfig {
 		int type = NONE;
 	};
 
-	static constexpr Pid ANY_VIDEO = { ANY, VIDEO };
-	static constexpr Pid ANY_AUDIO = { ANY, AUDIO };
+	static constexpr Pid ANY_VIDEO() {
+		return { ANY, VIDEO };
+	};
+	static constexpr Pid ANY_AUDIO() {
+		return { ANY, AUDIO };
+	};
 
-	Pid pids[8] = { ANY_VIDEO, ANY_AUDIO };
+	Pid pids[8] = { ANY_VIDEO(), ANY_AUDIO() };
 };
 

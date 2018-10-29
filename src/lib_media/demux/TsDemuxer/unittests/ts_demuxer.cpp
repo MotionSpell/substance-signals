@@ -398,8 +398,8 @@ unittest("TsDemuxer: get codec from PMT") {
 	}
 
 	TsDemuxerConfig cfg;
-	cfg.pids[0] = TsDemuxerConfig::ANY_VIDEO;
-	cfg.pids[1] = TsDemuxerConfig::ANY_AUDIO;
+	cfg.pids[0] = TsDemuxerConfig::ANY_VIDEO();
+	cfg.pids[1] = TsDemuxerConfig::ANY_AUDIO();
 
 	auto demux = loadModule("TsDemuxer", &NullHost, &cfg);
 
@@ -421,8 +421,8 @@ fuzztest("TsDemuxer") {
 	GetFuzzTestData(testdata.ptr, testdata.len);
 
 	TsDemuxerConfig cfg;
-	cfg.pids[0] = TsDemuxerConfig::ANY_VIDEO;
-	cfg.pids[1] = TsDemuxerConfig::ANY_AUDIO;
+	cfg.pids[0] = TsDemuxerConfig::ANY_VIDEO();
+	cfg.pids[1] = TsDemuxerConfig::ANY_AUDIO();
 
 	auto demux = loadModule("TsDemuxer", &NullHost, &cfg);
 
