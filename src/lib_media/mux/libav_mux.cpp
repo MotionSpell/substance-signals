@@ -35,21 +35,20 @@ class LibavMux : public ModuleDynI {
 			}
 			m_formatCtx->oformat = of;
 
-			std::stringstream fileName;
-			fileName << cfg.baseName;
+			std::string fileName = cfg.baseName;
 			std::stringstream formatExts(of->extensions); //get the first extension recommended by ffmpeg
 			std::string fileNameExt;
 			std::getline(formatExts, fileNameExt, ',');
-			if (fileName.str().find("://") == std::string::npos) {
-				fileName << "." << fileNameExt;
+			if (fileName.find("://") == std::string::npos) {
+				fileName += "." + fileNameExt;
 			}
 			if (!(m_formatCtx->oformat->flags & AVFMT_NOFILE)) { /* open the output file, if needed */
-				if (avio_open2(&m_formatCtx->pb, fileName.str().c_str(), AVIO_FLAG_READ_WRITE, nullptr, &optionsDict) < 0) {
+				if (avio_open2(&m_formatCtx->pb, fileName.c_str(), AVIO_FLAG_READ_WRITE, nullptr, &optionsDict) < 0) {
 					avformat_free_context(m_formatCtx);
 					throw error(format("could not open %s, disable output.", cfg.baseName));
 				}
 			}
-			strncpy(m_formatCtx->filename, fileName.str().c_str(), sizeof(m_formatCtx->filename) - 1);
+			strncpy(m_formatCtx->filename, fileName.c_str(), sizeof(m_formatCtx->filename) - 1);
 			m_formatCtx->filename[(sizeof m_formatCtx->filename)-1] = 0;
 
 			av_dict_set(&m_formatCtx->metadata, "service_provider", "GPAC Licensing Signals", 0);
