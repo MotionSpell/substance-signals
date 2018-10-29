@@ -159,12 +159,12 @@ unittest("GPAC mp4 mux: don't create empty fragments") {
 		}
 		vector<int64_t> durations;
 	};
-	auto const segmentDurationInMs = 1000;
+
 	EncoderConfig p { EncoderConfig::Video };
-	p.frameRate.num = 1;
+	p.frameRate = {1, 1};
 	auto picture = make_shared<PictureYUV420P>(VIDEO_RESOLUTION);
 	auto encode = loadModule("Encoder", &NullHost, &p);
-	auto cfg = Mp4MuxConfig{"", segmentDurationInMs, FragmentedSegment, OneFragmentPerRAP, Browsers | SegmentAtAny};
+	auto cfg = Mp4MuxConfig{"", 1000, FragmentedSegment, OneFragmentPerRAP, Browsers | SegmentAtAny};
 	auto mux = loadModule("GPACMuxMP4", &NullHost, &cfg);
 	ConnectOutputToInput(encode->getOutput(0), mux->getInput(0));
 	auto recorder = create<Recorder>();
@@ -178,6 +178,7 @@ unittest("GPAC mp4 mux: don't create empty fragments") {
 	}
 	encode->flush();
 	mux->flush();
+
 	auto const expected = vector<int64_t>({0, 180000, 180000, 180000, 180000, 1800});
 	ASSERT_EQUALS(expected, recorder->durations);
 }
