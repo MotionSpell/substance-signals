@@ -160,7 +160,6 @@ unittest("GPAC mp4 mux: don't create empty fragments") {
 		vector<int64_t> durations;
 	};
 	auto const segmentDurationInMs = 1000;
-	const vector<uint64_t> times = { IClock::Rate, 0, 3 * IClock::Rate, (7 * IClock::Rate) / 2, 4 * IClock::Rate };
 	EncoderConfig p { EncoderConfig::Video };
 	p.frameRate.num = 1;
 	auto picture = make_shared<PictureYUV420P>(VIDEO_RESOLUTION);
@@ -170,8 +169,10 @@ unittest("GPAC mp4 mux: don't create empty fragments") {
 	ConnectOutputToInput(encode->getOutput(0), mux->getInput(0));
 	auto recorder = create<Recorder>();
 	ConnectOutputToInput(mux->getOutput(0), recorder->getInput(0));
-	for (size_t i = 0; i < times.size(); ++i) {
-		picture->setMediaTime(times[i]);
+
+	const vector<uint64_t> times = { IClock::Rate, 0, 3 * IClock::Rate, (7 * IClock::Rate) / 2, 4 * IClock::Rate };
+	for(auto time : times) {
+		picture->setMediaTime(time);
 		encode->getInput(0)->push(picture);
 		encode->process();
 	}
