@@ -88,8 +88,13 @@ class LibavMux : public ModuleDynI {
 			if (inputs[inputIdx]->updateMetadata(data)) {
 				if (prevInputMeta) {
 					m_host->log(*prevInputMeta == *inputs[inputIdx]->getMetadata() ? Debug : Error, format("Updating existing metadata on input port %s. Not supported but continuing execution.", inputIdx).c_str());
-				} else if (!declareStream(data, inputIdx))
-					return; //stream declared statically: no data to process.
+				} else {
+					declareStream(data, inputIdx);
+
+					// if stream is declared statically, there's no data to process.
+					if (isEvent(data))
+						return;
+				}
 			}
 			if (m_formatCtx->nb_streams < (size_t)getNumInputs() - 1) {
 				m_host->log(Warning, "Data loss due to undeclared streams on input ports. Consider declaring them statically.");
@@ -133,7 +138,7 @@ class LibavMux : public ModuleDynI {
 			return data;
 		}
 
-		bool declareStream(Data data, size_t inputIdx) {
+		void declareStream(Data data, size_t inputIdx) {
 			auto const metadata_ = data->getMetadata();
 			auto metadata = std::dynamic_pointer_cast<const MetadataPktLibav>(metadata_);
 			if(!metadata)
@@ -146,13 +151,11 @@ class LibavMux : public ModuleDynI {
 				throw error("Stream parameters copy failed.");
 			avStream->time_base = avStream->codec->time_base = metadata->getAVCodecContext()->time_base;
 			inputIdx2AvStream[inputIdx] = m_formatCtx->nb_streams - 1;
-
-			return isEvent(data);
 		}
 
 		bool isEvent(Data data) {
 			auto refData = std::dynamic_pointer_cast<const DataBaseRef>(data);
-			return !(refData && !refData->getData());
+			return refData && !refData->getData();
 		}
 
 		void ensureHeader() {
