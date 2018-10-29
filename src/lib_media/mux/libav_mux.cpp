@@ -94,8 +94,9 @@ class LibavMux : public ModuleDynI {
 					declareStream(data, inputIdx);
 				}
 			}
+
 			if (m_formatCtx->nb_streams < (size_t)getNumInputs() - 1) {
-				m_host->log(Warning, "Data loss due to undeclared streams on input ports. Consider declaring them statically.");
+				m_host->log(Warning, "Some inputs didn't declare their streams yet, dropping input data");
 				return;
 			}
 
