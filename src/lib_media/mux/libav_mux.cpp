@@ -81,11 +81,9 @@ class LibavMux : public ModuleDynI {
 		}
 
 		void process() override {
-			size_t inputIdx = 0;
-			Data data;
-			while (!inputs[inputIdx]->tryPop(data)) {
-				inputIdx++;
-			}
+
+			int inputIdx;
+			auto data = popAny(inputIdx);
 			auto prevInputMeta = inputs[inputIdx]->getMetadata();
 			if (inputs[inputIdx]->updateMetadata(data)) {
 				if (prevInputMeta) {
@@ -125,6 +123,15 @@ class LibavMux : public ModuleDynI {
 		ffpp::Dict optionsDict;
 		bool m_headerWritten = false;
 		bool m_inbandMetadata = false;
+
+		Data popAny(int& inputIdx) {
+			Data data;
+			inputIdx = 0;
+			while (!inputs[inputIdx]->tryPop(data)) {
+				inputIdx++;
+			}
+			return data;
+		}
 
 		bool declareStream(Data data, size_t inputIdx) {
 			auto const metadata_ = data->getMetadata();
