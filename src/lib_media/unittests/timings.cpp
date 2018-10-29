@@ -18,7 +18,7 @@ typedef std::shared_ptr<IModule> (*CreateDemuxFunc)(const char* path);
 
 std::vector<int64_t> runMux(CreateDemuxFunc createDemux, int numBFrame, const std::vector<int64_t> &timesIn,  std::shared_ptr<IModule> mux) {
 	EncoderConfig p { EncoderConfig::Video };
-	p.frameRate.num = 1;
+	p.frameRate = 1;
 	p.avcodecCustom = format("-bf %s", numBFrame);
 	auto encode = loadModule("Encoder", &NullHost, &p);
 	ConnectOutputToInput(encode->getOutput(0), mux->getInput(0));
