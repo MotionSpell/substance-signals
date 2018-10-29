@@ -21,14 +21,14 @@ class ISOFileReader {
 		uint32_t sampleIndex, sampleCount;
 };
 
-GPACDemuxMP4Simple::GPACDemuxMP4Simple(IModuleHost* host, std::string const& path)
+GPACDemuxMP4Simple::GPACDemuxMP4Simple(IModuleHost* host, Mp4DemuxConfig const* cfg)
 	: m_host(host),
 	  reader(new ISOFileReader) {
 	GF_ISOFile *movie;
 	u64 missingBytes;
-	GF_Err e = gf_isom_open_progressive(path.c_str(), 0, 0, &movie, &missingBytes);
+	GF_Err e = gf_isom_open_progressive(cfg->path.c_str(), 0, 0, &movie, &missingBytes);
 	if ((e != GF_OK && e != GF_ISOM_INCOMPLETE_FILE) || movie == nullptr) {
-		throw error(format("Could not open file %s for reading (%s).", path, gf_error_to_string(e)));
+		throw error(format("Could not open file %s for reading (%s).", cfg->path, gf_error_to_string(e)));
 	}
 	reader->init(movie);
 	output = addOutput<OutputDefault>();

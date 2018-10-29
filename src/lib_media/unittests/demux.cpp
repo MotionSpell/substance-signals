@@ -74,11 +74,13 @@ unittest("LibavDemux: rollover") {
 }
 
 unittest("empty param test: Demux") {
-	ASSERT_THROWN(create<Demux::GPACDemuxMP4Simple>(&NullHost, ""));
+	Mp4DemuxConfig cfg {};
+	ASSERT_THROWN(create<Demux::GPACDemuxMP4Simple>(&NullHost, &cfg));
 }
 
 secondclasstest("demux one track: Demux::GPACDemuxMP4Simple -> Out::Print") {
-	auto mp4Demux = create<Demux::GPACDemuxMP4Simple>(&NullHost, "data/beepbop.mp4");
+	Mp4DemuxConfig cfg { "data/beepbop.mp4"};
+	auto mp4Demux = create<Demux::GPACDemuxMP4Simple>(&NullHost, &cfg);
 	auto p = create<Out::Print>(&NullHost, std::cout);
 
 	ConnectOutputToInput(mp4Demux->getOutput(0), p->getInput(0));

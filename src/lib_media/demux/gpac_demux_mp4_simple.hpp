@@ -1,5 +1,11 @@
 #pragma once
 
+#include <string>
+
+struct Mp4DemuxConfig {
+	std::string path;
+};
+
 #include "lib_modules/utils/helper.hpp"
 
 namespace Modules {
@@ -9,7 +15,7 @@ class ISOFileReader;
 
 class GPACDemuxMP4Simple : public ActiveModule {
 	public:
-		GPACDemuxMP4Simple(IModuleHost* host, std::string const& path);
+		GPACDemuxMP4Simple(IModuleHost* host, Mp4DemuxConfig const* cfg);
 		~GPACDemuxMP4Simple();
 		bool work() override;
 
