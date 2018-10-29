@@ -19,30 +19,26 @@ class FileSystemSink : public ModuleS {
 			addInput(this);
 		}
 
-		void flush() override {
-			if(m_contents.empty())
-				return;
-			std::ofstream fp(m_config.directory + "/" + m_currentFilename);
-			fp.write((char*)m_contents.data(), m_contents.size());
-			m_contents.clear();
-		}
-
 		void process(Data data) override {
 			auto meta = safe_cast<const MetadataFile>(data->getMetadata());
 
-			m_currentFilename = meta->filename;
-			if (data->data().len != 0)
-				m_contents.insert(m_contents.end(), data->data().ptr, data->data().ptr + data->data().len);
+			auto const path = m_config.directory + "/" + meta->filename;
 
-			if (meta->EOS)
-				flush();
+			if(m_files.find(path) == m_files.end())
+				m_files[path] = std::ofstream(path, std::ios::binary);
+
+			auto& fp = m_files[path];
+			auto contents = data->data();
+			fp.write((char*)contents.ptr, contents.len);
+
+			if(meta->EOS)
+				m_files.erase(path);
 		}
 
 	private:
 		IModuleHost* const m_host;
 		FileSystemSinkConfig const m_config;
-		std::vector<uint8_t> m_contents;
-		std::string m_currentFilename;
+		std::map<std::string, std::ofstream> m_files;
 };
 
 Modules::IModule* createObject(IModuleHost* host, va_list va) {
