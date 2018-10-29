@@ -200,7 +200,7 @@ void GPACMuxMPEG2TS::declareStream(Data data) {
 	//TODO: Fill the interface with test content; the current GPAC importer needs to be generalized
 	//ifce->caps |= GF_ESI_AU_PULL_CAP;
 	ifce->input_ctrl = &GPACMuxMPEG2TS::staticFillInput;
-	ifce->input_udta = (void*)new UserData(this, inputIdx);
+	ifce->input_udta = new UserData(this, inputIdx);
 	ifce->output_udta = nullptr;
 
 	Bool isPCR = GF_TRUE; //FIXME: crash if no PCR (ifce.stream_type == GF_STREAM_AUDIO) ? GF_TRUE : GF_FALSE;
