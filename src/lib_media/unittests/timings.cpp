@@ -16,7 +16,9 @@ using namespace Modules;
 
 typedef std::shared_ptr<IModule> (*CreateDemuxFunc)(const char* path);
 
-void runMux(int numBFrame, const std::vector<int64_t> &timesIn,  std::shared_ptr<IModule> mux) {
+void runMux(int numBFrame, const std::vector<int64_t> &timesIn,  Mp4MuxConfig muxConfig) {
+	auto mux = loadModule("GPACMuxMP4", &NullHost, &muxConfig);
+
 	EncoderConfig p { EncoderConfig::Video };
 	p.frameRate = 1;
 	p.avcodecCustom = format("-bf %s", numBFrame);
@@ -58,11 +60,11 @@ std:: shared_ptr<IModule> createGpacDemux(const char* path) {
 
 void checkTimestamps(CreateDemuxFunc createDemux, int numBFrame, const std::vector<int64_t> &timesIn, const std::vector<int64_t> &timesOut) {
 	auto cfg1 = Mp4MuxConfig{"out/random_ts"};
-	runMux(numBFrame, timesIn, loadModule("GPACMuxMP4", &NullHost, &cfg1));
+	runMux(numBFrame, timesIn, cfg1);
 	ASSERT_EQUALS(timesOut, runDemux(createDemux));
 
 	auto cfg2 = Mp4MuxConfig{"out/random_ts", 0, NoSegment, NoFragment, ExactInputDur};
-	runMux(numBFrame, timesIn, loadModule("GPACMuxMP4", &NullHost, &cfg2));
+	runMux(numBFrame, timesIn, cfg2);
 	ASSERT_EQUALS(timesOut, runDemux(createDemux));
 }
 
