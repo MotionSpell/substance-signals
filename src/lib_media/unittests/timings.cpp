@@ -53,7 +53,7 @@ std:: shared_ptr<IModule> createLibavDemux(const char* path) {
 
 std:: shared_ptr<IModule> createGpacDemux(const char* path) {
 	Mp4DemuxConfig cfg { path };
-	return create<Demux::GPACDemuxMP4Simple>(&NullHost, &cfg);
+	return loadModule("GPACDemuxMP4Simple", &NullHost, &cfg);
 }
 
 void checkTimestamps(CreateDemuxFunc createDemux, int numBFrame, const std::vector<int64_t> &timesIn, const std::vector<int64_t> &timesOut) {

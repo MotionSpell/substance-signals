@@ -1,10 +1,27 @@
 #include "gpac_demux_mp4_simple.hpp"
 #include "lib_utils/tools.hpp"
-#include "../common/gpacpp.hpp"
 #include "lib_utils/log_sink.hpp"
+#include "lib_modules/utils/helper.hpp"
+#include "lib_modules/utils/factory.hpp"
+#include "../common/gpacpp.hpp"
 
-namespace Modules {
-namespace Demux {
+using namespace Modules;
+
+namespace {
+
+class ISOFileReader;
+
+class GPACDemuxMP4Simple : public ActiveModule {
+	public:
+		GPACDemuxMP4Simple(IModuleHost* host, Mp4DemuxConfig const* cfg);
+		~GPACDemuxMP4Simple();
+		bool work() override;
+
+	private:
+		IModuleHost* const m_host;
+		std::unique_ptr<ISOFileReader> reader;
+		OutputDefault* output;
+};
 
 class ISOFileReader {
 	public:
@@ -63,5 +80,13 @@ bool GPACDemuxMP4Simple::work() {
 	return true;
 }
 
+
+Modules::IModule* createObject(IModuleHost* host, va_list va) {
+	auto config = va_arg(va, Mp4DemuxConfig*);
+	enforce(host, "GPACDemuxMP4Simple: host can't be NULL");
+	enforce(config, "GPACDemuxMP4Simple: config can't be NULL");
+	return Modules::create<GPACDemuxMP4Simple>(host, config).release();
 }
+
+auto const registered = Factory::registerModule("GPACDemuxMP4Simple", &createObject);
 }
