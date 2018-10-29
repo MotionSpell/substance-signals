@@ -58,49 +58,56 @@ std:: shared_ptr<IModule> createGpacDemux(const char* path) {
 	return loadModule("GPACDemuxMP4Simple", &NullHost, &cfg);
 }
 
-void checkTimestamps(CreateDemuxFunc createDemux, int numBFrame, const std::vector<int64_t> &timesIn, const std::vector<int64_t> &timesOut) {
-	runMux(numBFrame, timesIn, {"out/timestamps"});
-	ASSERT_EQUALS(timesOut, runDemux("out/timestamps", createDemux));
-}
-
 unittest("timestamps start at random values (LibavDemux)") {
 	const int64_t interval = (int64_t)IClock::Rate;
-	const std::vector<int64_t> correct = { interval, 2 * interval, 3 * interval };
-	const std::vector<int64_t> incorrect = { 0 };
-	checkTimestamps(&createLibavDemux, 0, correct, incorrect);
+	const std::vector<int64_t> timesIn = { interval, 2 * interval, 3 * interval };
+	const std::vector<int64_t> timesOut = { 0 };
+
+	runMux(0, timesIn, {"out/start_at_random_value"});
+	ASSERT_EQUALS(timesOut, runDemux("out/start_at_random_value", &createLibavDemux));
 }
 
 unittest("timestamps start at random values (GPACDemuxMP4Simple)") {
 	const int64_t interval = (int64_t)IClock::Rate;
-	const std::vector<int64_t> correct = { interval, 2 * interval, 3 * interval };
-	checkTimestamps(&createGpacDemux, 0, correct, correct);
+	const std::vector<int64_t> timesIn = { interval, 2 * interval, 3 * interval };
+
+	runMux(0, timesIn, {"out/start_at_random_value"});
+	ASSERT_EQUALS(timesIn, runDemux("out/start_at_random_value", createGpacDemux));
 }
 
 unittest("timestamps start at a negative value (LibavDemux)") {
 	const int64_t interval = (int64_t)IClock::Rate;
-	const std::vector<int64_t> correct = { -interval, 0, interval };
-	const std::vector<int64_t> incorrect = { 0 };
-	checkTimestamps(&createLibavDemux, 0, correct, incorrect);
+	const std::vector<int64_t> timesIn = { -interval, 0, interval };
+	const std::vector<int64_t> timesOut = { 0 };
+
+	runMux(0, timesIn, {"out/timestamps"});
+	ASSERT_EQUALS(timesOut, runDemux("out/timestamps", &createLibavDemux));
 }
 
 unittest("timestamps start at a negative value (GPACDemuxMP4Simple)") {
 	const int64_t interval = (int64_t)IClock::Rate;
-	const std::vector<int64_t> correct = { -interval, 0, interval };
-	checkTimestamps(&createGpacDemux, 0, correct, correct);
+	const std::vector<int64_t> timesIn = { -interval, 0, interval };
+
+	runMux(0, timesIn, {"out/timestamps"});
+	ASSERT_EQUALS(timesIn, runDemux("out/timestamps", &createGpacDemux));
 }
 
 unittest("timestamps start at zero with B-Frames (GPACDemuxMP4Simple)") {
 	const int64_t interval = (int64_t)IClock::Rate;
-	const std::vector<int64_t> correctIn  = { 0, interval, 2 * interval };
-	const std::vector<int64_t> correctOut = { 0, 2 * interval, interval };
-	checkTimestamps(&createGpacDemux, 1, correctIn, correctOut);
+	const std::vector<int64_t> timesIn  = { 0, interval, 2 * interval };
+	const std::vector<int64_t> timesOut = { 0, 2 * interval, interval };
+
+	runMux(1, timesIn, {"out/timestamps"});
+	ASSERT_EQUALS(timesOut, runDemux("out/timestamps", &createGpacDemux));
 }
 
 unittest("timestamps start at a negative value with B-Frames (GPACDemuxMP4Simple)") {
 	const int64_t interval = (int64_t)IClock::Rate;
-	const std::vector<int64_t> correctIn = { -interval, 0, interval };
-	const std::vector<int64_t> correctOut = { -interval, interval, 0 };
-	checkTimestamps(&createGpacDemux, 1, correctIn, correctOut);
+	const std::vector<int64_t> timesIn = { -interval, 0, interval };
+	const std::vector<int64_t> timesOut = { -interval, interval, 0 };
+
+	runMux(1, timesIn, {"out/timestamps"});
+	ASSERT_EQUALS(timesOut, runDemux("out/timestamps", &createGpacDemux));
 }
 
 unittest("transcoder with reframers: test a/v sync recovery") {
