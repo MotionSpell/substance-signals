@@ -187,7 +187,8 @@ class LibavMux : public ModuleDynI {
 
 		AVPacket * getFormattedPkt(Data data) {
 			auto pkt = safe_cast<const DataAVPacket>(data)->getPacket();
-			auto videoMetadata = std::dynamic_pointer_cast<const MetadataPktLibavVideo>(data->getMetadata()); //video only ATM
+			auto meta = data->getMetadata().get();
+			auto videoMetadata = dynamic_cast<const MetadataPktLibavVideo*>(meta); //video only ATM
 			if (m_inbandMetadata && videoMetadata && (pkt->flags & AV_PKT_FLAG_KEY)) {
 				auto const eSize = videoMetadata->codecSpecificInfo.size();
 				auto const outSize = pkt->size + eSize;
