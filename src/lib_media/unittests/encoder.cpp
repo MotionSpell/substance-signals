@@ -169,7 +169,13 @@ unittest("GPAC mp4 mux: don't create empty fragments") {
 	auto recorder = create<Recorder>();
 	ConnectOutputToInput(mux->getOutput(0), recorder->getInput(0));
 
-	auto const times = vector<int64_t>({ IClock::Rate, 0, 3 * IClock::Rate, (7 * IClock::Rate) / 2, 4 * IClock::Rate });
+	auto const times = vector<int64_t>({
+		(1 * IClock::Rate),
+		(0 * IClock::Rate),
+		(3 * IClock::Rate),
+		(7 * IClock::Rate) / 2,
+		(4 * IClock::Rate),
+	});
 	for(auto time : times) {
 		auto picture = make_shared<PictureYUV420P>(VIDEO_RESOLUTION);
 		picture->setMediaTime(time);
