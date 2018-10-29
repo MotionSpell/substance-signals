@@ -2,8 +2,6 @@
 #include "lib_media/common/libav.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/demux/gpac_demux_mp4_simple.hpp"
-#include "lib_media/encode/libav_encode.hpp"
-#include "lib_media/mux/mux_mp4_config.hpp"
 #include "lib_media/transform/audio_gap_filler.hpp"
 #include "lib_media/transform/restamp.hpp"
 #include "lib_media/utils/recorder.hpp"
@@ -15,25 +13,6 @@ using namespace Tests;
 using namespace Modules;
 
 typedef std::shared_ptr<IModule> (*CreateDemuxFunc)(const char* path);
-
-void runMux(int numBFrame, const std::vector<int64_t> &timesIn,  Mp4MuxConfig muxConfig) {
-	auto mux = loadModule("GPACMuxMP4", &NullHost, &muxConfig);
-
-	EncoderConfig p { EncoderConfig::Video };
-	p.frameRate = 1;
-	p.avcodecCustom = format("-bf %s", numBFrame);
-	auto encode = loadModule("Encoder", &NullHost, &p);
-	ConnectOutputToInput(encode->getOutput(0), mux->getInput(0));
-
-	for(auto time : timesIn) {
-		auto picture = make_shared<PictureYUV420P>(Resolution(64, 64));
-		picture->setMediaTime(time);
-		encode->getInput(0)->push(picture);
-		encode->process();
-	}
-	encode->flush();
-	mux->flush();
-}
 
 std::vector<int64_t> runDemux(std::string basename, CreateDemuxFunc createDemux) {
 	std::vector<int64_t> actualTimes;
@@ -59,56 +38,45 @@ std:: shared_ptr<IModule> createGpacDemux(const char* path) {
 }
 
 unittest("timestamps start at random values (LibavDemux)") {
-	const int64_t interval = (int64_t)IClock::Rate;
-	const std::vector<int64_t> timesIn = { interval, 2 * interval, 3 * interval };
 	const std::vector<int64_t> timesOut = { 0 };
-
-	runMux(0, timesIn, {"out/start_at_random_value"});
-	ASSERT_EQUALS(timesOut, runDemux("out/start_at_random_value", &createLibavDemux));
+	ASSERT_EQUALS(timesOut, runDemux("data/start_at_random_value", &createLibavDemux));
 }
 
 unittest("timestamps start at random values (GPACDemuxMP4Simple)") {
 	const int64_t interval = (int64_t)IClock::Rate;
 	const std::vector<int64_t> timesIn = { interval, 2 * interval, 3 * interval };
 
-	runMux(0, timesIn, {"out/start_at_random_value"});
-	ASSERT_EQUALS(timesIn, runDemux("out/start_at_random_value", createGpacDemux));
+	ASSERT_EQUALS(timesIn, runDemux("data/start_at_random_value", createGpacDemux));
 }
 
 unittest("timestamps start at a negative value (LibavDemux)") {
-	const int64_t interval = (int64_t)IClock::Rate;
-	const std::vector<int64_t> timesIn = { -interval, 0, interval };
 	const std::vector<int64_t> timesOut = { 0 };
 
-	runMux(0, timesIn, {"out/start_at_negative_value"});
-	ASSERT_EQUALS(timesOut, runDemux("out/start_at_negative_value", &createLibavDemux));
+	ASSERT_EQUALS(timesOut, runDemux("data/start_at_negative_value", &createLibavDemux));
 }
 
 unittest("timestamps start at a negative value (GPACDemuxMP4Simple)") {
 	const int64_t interval = (int64_t)IClock::Rate;
 	const std::vector<int64_t> timesIn = { -interval, 0, interval };
 
-	runMux(0, timesIn, {"out/start_at_negative_value"});
-	ASSERT_EQUALS(timesIn, runDemux("out/start_at_negative_value", &createGpacDemux));
+	ASSERT_EQUALS(timesIn, runDemux("data/start_at_negative_value", &createGpacDemux));
 }
 
 unittest("timestamps start at zero with B-Frames (GPACDemuxMP4Simple)") {
 	const int64_t interval = (int64_t)IClock::Rate;
-	const std::vector<int64_t> timesIn  = { 0, interval, 2 * interval };
 	const std::vector<int64_t> timesOut = { 0, 2 * interval, interval };
 
-	runMux(1, timesIn, {"out/start_at_zero_with_b_frames"});
-	ASSERT_EQUALS(timesOut, runDemux("out/start_at_zero_with_b_frames", &createGpacDemux));
+	ASSERT_EQUALS(timesOut, runDemux("data/start_at_zero_with_b_frames", &createGpacDemux));
 }
 
 unittest("timestamps start at a negative value with B-Frames (GPACDemuxMP4Simple)") {
 	const int64_t interval = (int64_t)IClock::Rate;
-	const std::vector<int64_t> timesIn = { -interval, 0, interval };
 	const std::vector<int64_t> timesOut = { -interval, interval, 0 };
 
-	runMux(1, timesIn, {"out/start_at_negative_value_with_b_frames"});
-	ASSERT_EQUALS(timesOut, runDemux("out/start_at_negative_value_with_b_frames", &createGpacDemux));
+	ASSERT_EQUALS(timesOut, runDemux("data/start_at_negative_value_with_b_frames", &createGpacDemux));
 }
+
+#include "lib_media/encode/libav_encode.hpp"
 
 unittest("transcoder with reframers: test a/v sync recovery") {
 	const int64_t maxDurIn180k = 2 * IClock::Rate;
