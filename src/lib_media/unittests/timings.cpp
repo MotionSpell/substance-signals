@@ -20,7 +20,7 @@ std::vector<int64_t> runMux(CreateDemuxFunc createDemux, int numBFrame, const st
 	EncoderConfig p { EncoderConfig::Video };
 	p.frameRate.num = 1;
 	p.avcodecCustom = format("-bf %s", numBFrame);
-	auto picture = make_shared<PictureYUV420P>(Resolution(320, 180));
+	auto picture = make_shared<PictureYUV420P>(Resolution(64, 64));
 	auto encode = loadModule("Encoder", &NullHost, &p);
 	ConnectOutputToInput(encode->getOutput(0), mux->getInput(0));
 
