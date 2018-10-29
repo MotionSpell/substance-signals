@@ -59,12 +59,10 @@ std:: shared_ptr<IModule> createGpacDemux(const char* path) {
 }
 
 void checkTimestamps(CreateDemuxFunc createDemux, int numBFrame, const std::vector<int64_t> &timesIn, const std::vector<int64_t> &timesOut) {
-	auto cfg1 = Mp4MuxConfig{"out/random_ts"};
-	runMux(numBFrame, timesIn, cfg1);
+	runMux(numBFrame, timesIn, {"out/random_ts"});
 	ASSERT_EQUALS(timesOut, runDemux(createDemux));
 
-	auto cfg2 = Mp4MuxConfig{"out/random_ts", 0, NoSegment, NoFragment, ExactInputDur};
-	runMux(numBFrame, timesIn, cfg2);
+	runMux(numBFrame, timesIn, {"out/random_ts", 0, NoSegment, NoFragment, ExactInputDur});
 	ASSERT_EQUALS(timesOut, runDemux(createDemux));
 }
 
