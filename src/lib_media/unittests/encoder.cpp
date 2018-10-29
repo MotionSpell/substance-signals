@@ -161,7 +161,7 @@ unittest("GPAC mp4 mux: don't create empty fragments") {
 	};
 
 	EncoderConfig p { EncoderConfig::Video };
-	p.frameRate = {1, 1};
+	p.frameRate = 1;
 	auto encode = loadModule("Encoder", &NullHost, &p);
 	auto cfg = Mp4MuxConfig{"", 1000, FragmentedSegment, OneFragmentPerRAP, Browsers | SegmentAtAny};
 	auto mux = loadModule("GPACMuxMP4", &NullHost, &cfg);
