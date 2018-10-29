@@ -90,16 +90,17 @@ class LibavMux : public ModuleDynI {
 					m_host->log(*prevInputMeta == *inputs[inputIdx]->getMetadata() ? Debug : Error, format("Updating existing metadata on input port %s. Not supported but continuing execution.", inputIdx).c_str());
 				} else {
 					declareStream(data, inputIdx);
-
-					// if stream is declared statically, there's no data to process.
-					if (isEvent(data))
-						return;
 				}
 			}
 			if (m_formatCtx->nb_streams < (size_t)getNumInputs() - 1) {
 				m_host->log(Warning, "Data loss due to undeclared streams on input ports. Consider declaring them statically.");
 				return;
 			}
+
+			// if stream is declared statically, there's no data to process.
+			if (isEvent(data))
+				return;
+
 			ensureHeader();
 
 			auto pkt = getFormattedPkt(data);
