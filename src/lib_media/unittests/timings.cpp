@@ -80,16 +80,16 @@ unittest("timestamps start at a negative value (LibavDemux)") {
 	const std::vector<int64_t> timesIn = { -interval, 0, interval };
 	const std::vector<int64_t> timesOut = { 0 };
 
-	runMux(0, timesIn, {"out/timestamps"});
-	ASSERT_EQUALS(timesOut, runDemux("out/timestamps", &createLibavDemux));
+	runMux(0, timesIn, {"out/start_at_negative_value"});
+	ASSERT_EQUALS(timesOut, runDemux("out/start_at_negative_value", &createLibavDemux));
 }
 
 unittest("timestamps start at a negative value (GPACDemuxMP4Simple)") {
 	const int64_t interval = (int64_t)IClock::Rate;
 	const std::vector<int64_t> timesIn = { -interval, 0, interval };
 
-	runMux(0, timesIn, {"out/timestamps"});
-	ASSERT_EQUALS(timesIn, runDemux("out/timestamps", &createGpacDemux));
+	runMux(0, timesIn, {"out/start_at_negative_value"});
+	ASSERT_EQUALS(timesIn, runDemux("out/start_at_negative_value", &createGpacDemux));
 }
 
 unittest("timestamps start at zero with B-Frames (GPACDemuxMP4Simple)") {
@@ -97,8 +97,8 @@ unittest("timestamps start at zero with B-Frames (GPACDemuxMP4Simple)") {
 	const std::vector<int64_t> timesIn  = { 0, interval, 2 * interval };
 	const std::vector<int64_t> timesOut = { 0, 2 * interval, interval };
 
-	runMux(1, timesIn, {"out/timestamps"});
-	ASSERT_EQUALS(timesOut, runDemux("out/timestamps", &createGpacDemux));
+	runMux(1, timesIn, {"out/start_at_zero_with_b_frames"});
+	ASSERT_EQUALS(timesOut, runDemux("out/start_at_zero_with_b_frames", &createGpacDemux));
 }
 
 unittest("timestamps start at a negative value with B-Frames (GPACDemuxMP4Simple)") {
@@ -106,8 +106,8 @@ unittest("timestamps start at a negative value with B-Frames (GPACDemuxMP4Simple
 	const std::vector<int64_t> timesIn = { -interval, 0, interval };
 	const std::vector<int64_t> timesOut = { -interval, interval, 0 };
 
-	runMux(1, timesIn, {"out/timestamps"});
-	ASSERT_EQUALS(timesOut, runDemux("out/timestamps", &createGpacDemux));
+	runMux(1, timesIn, {"out/start_at_negative_value_with_b_frames"});
+	ASSERT_EQUALS(timesOut, runDemux("out/start_at_negative_value_with_b_frames", &createGpacDemux));
 }
 
 unittest("transcoder with reframers: test a/v sync recovery") {
