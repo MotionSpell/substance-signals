@@ -107,6 +107,11 @@ struct LibavEncode : ModuleS {
 			auto input = addInput(this);
 			output = addOutput<OutputDataDefault<DataAVPacket>>();
 
+			// Make ffmpeg use the same time scale as the framework:
+			// thus, no timestamp conversion is needed.
+			codecCtx->time_base.num = 1;
+			codecCtx->time_base.den = IClock::Rate;
+
 			// encoder configuration
 			switch (type) {
 			case EncoderConfig::Video: {
@@ -127,7 +132,6 @@ struct LibavEncode : ModuleS {
 				pparams->pixelFormat = libavPixFmt2PixelFormat(codecCtx->pix_fmt);
 
 				framePeriod = params.frameRate.inverse();
-				codecCtx->time_base = toAVRational(framePeriod);
 
 				prepareFrame = std::bind(&LibavEncode::prepareVideoFrame, this, std::placeholders::_1);
 				input->setMetadata(make_shared<MetadataRawVideo>());
@@ -219,15 +223,7 @@ struct LibavEncode : ModuleS {
 
 		void setMediaTime(std::shared_ptr<DataAVPacket> data) {
 			AVPacket *pkt = data->getPacket();
-			if (pkt->pts < 0 && pkt->pts == -pkt->duration) {
-				pkt->dts = timescaleToClock(pkt->dts * codecCtx->time_base.num, codecCtx->time_base.den);
-				pkt->pts = timescaleToClock(pkt->pts * codecCtx->time_base.num, codecCtx->time_base.den);
-				data->setMediaTime(pkt->pts);
-			} else {
-				data->setMediaTime(pkt->pts);
-				pkt->dts = clockToTimescale(pkt->dts * codecCtx->time_base.num, codecCtx->time_base.den);
-				pkt->pts = clockToTimescale(pkt->pts * codecCtx->time_base.num, codecCtx->time_base.den);
-			}
+			data->setMediaTime(pkt->pts);
 		}
 
 		void encodeFrame(AVFrame* f) {
@@ -278,6 +274,13 @@ struct LibavEncode : ModuleS {
 				const auto fmt = safe_cast<const DataPicture>(data.get())->getFormat();
 				codecCtx->width = fmt.res.width;
 				codecCtx->height = fmt.res.height;
+
+				// for VUI signalisation
+				codecCtx->framerate = toAVRational(framePeriod.inverse());
+
+				// for encoding level checks (MB rate) and rate control
+				codecCtx->ticks_per_frame = int(framePeriod * IClock::Rate);
+
 				break;
 			}
 			case EncoderConfig::Audio: {

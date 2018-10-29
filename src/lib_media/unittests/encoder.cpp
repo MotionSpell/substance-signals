@@ -41,6 +41,7 @@ unittest("encoder: video simple") {
 static
 shared_ptr<DataBase> createPcm(int samples) {
 	PcmFormat fmt;
+	fmt.sampleRate = 44100;
 	const auto inFrameSizeInBytes = (size_t)(samples * fmt.getBytesPerSample() / fmt.numPlanes);
 	auto pcm = make_shared<DataPcm>(0);
 	pcm->setFormat(fmt);
@@ -72,7 +73,8 @@ unittest("encoder: audio timestamp passthrough (modulo priming)") {
 	}
 	encode->flush();
 
-	vector<int64_t> expected = { 10000 - 1024, 10000, 20000, 30000, 777000 };
+	int primingDuration = (1024 * IClock::Rate + 44100 - 1) / 44100;
+	vector<int64_t> expected = { 10000 - primingDuration, 10000, 20000, 30000, 777000 };
 	ASSERT_EQUALS(expected, times);
 }
 
