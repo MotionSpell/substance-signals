@@ -131,7 +131,7 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 	std::vector<std::shared_ptr<IModule>> modules;
 	std::vector<std::unique_ptr<Utils::Recorder>> recorders;
 	for (int i = 0; i < demux->getNumOutputs(); ++i) {
-		auto const metadataDemux = safe_cast<const MetadataPktLibav>(demux->getOutput(i)->getMetadata());
+		auto const metadataDemux = safe_cast<const MetadataPkt>(demux->getOutput(i)->getMetadata());
 		if (!metadataDemux->isVideo())
 			continue;
 

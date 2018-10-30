@@ -1048,7 +1048,7 @@ void GPACMuxMP4::fillSample(Data data, gpacpp::IsoSample* sample, bool isRap) {
 		sample->DTS = m_DTS;
 	}
 
-	auto srcTimeScale = safe_cast<const MetadataPktLibav>(data->getMetadata())->timeScale;
+	auto srcTimeScale = safe_cast<const MetadataPkt>(data->getMetadata())->timeScale;
 
 	{
 		auto pkt = safe_cast<const DataAVPacket>(data)->getPacket();
@@ -1068,7 +1068,7 @@ void GPACMuxMP4::fillSample(Data data, gpacpp::IsoSample* sample, bool isRap) {
 void GPACMuxMP4::updateFormat(Data data) {
 	declareStream(data->getMetadata().get());
 
-	auto srcTimeScale = safe_cast<const MetadataPktLibav>(data->getMetadata().get())->timeScale;
+	auto srcTimeScale = safe_cast<const MetadataPkt>(data->getMetadata().get())->timeScale;
 
 	auto pkt = safe_cast<const DataAVPacket>(data)->getPacket();
 
@@ -1104,7 +1104,7 @@ void GPACMuxMP4::process(Data data) {
 			return;
 	}
 
-	auto const srcTimeScale = safe_cast<const MetadataPktLibav>(data->getMetadata())->timeScale;
+	auto const srcTimeScale = safe_cast<const MetadataPkt>(data->getMetadata())->timeScale;
 	auto const dataDTS = timescaleToClock(safe_cast<const DataAVPacket>(data)->getPacket()->dts * srcTimeScale.den, srcTimeScale.num);
 	if (compatFlags & ExactInputDur) {
 		if (lastData) {
