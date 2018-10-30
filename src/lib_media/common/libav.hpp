@@ -33,7 +33,6 @@ struct MetadataPktLibavVideo : MetadataPktLibav {
 	Fraction getSampleAspectRatio() const;
 	Resolution getResolution() const;
 	Fraction getFrameRate() const;
-	Span getExtradata() const;
 };
 
 struct MetadataPktLibavAudio : MetadataPktLibav {
@@ -45,7 +44,6 @@ struct MetadataPktLibavAudio : MetadataPktLibav {
 	bool isPlanar() const;
 	AudioSampleFormat getFormat() const;
 	AudioLayout getLayout() const;
-	Span getExtradata() const;
 };
 
 struct MetadataPktLibavSubtitle : MetadataPktLibav {

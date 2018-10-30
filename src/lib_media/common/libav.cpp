@@ -74,10 +74,6 @@ Fraction MetadataPktLibavVideo::getFrameRate() const {
 	return Fraction(codecCtx->framerate.num, codecCtx->framerate.den);
 }
 
-Span MetadataPktLibavVideo::getExtradata() const {
-	return Span { codecCtx->extradata, (size_t)codecCtx->extradata_size };
-}
-
 //MetadataPktLibavAudio
 uint32_t MetadataPktLibavAudio::getNumChannels() const {
 	return codecCtx->channels;
@@ -130,10 +126,6 @@ AudioLayout MetadataPktLibavAudio::getLayout() const {
 		default: throw std::runtime_error("Unknown libav audio layout");
 		}
 	}
-}
-
-Span MetadataPktLibavAudio::getExtradata() const {
-	return Span { codecCtx->extradata, (size_t)codecCtx->extradata_size };
 }
 
 //conversions

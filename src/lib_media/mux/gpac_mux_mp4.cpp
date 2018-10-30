@@ -51,7 +51,7 @@ Span getBsContent(GF_ISOFile *iso, bool newBs) {
 	return {(uint8_t*)output, (size_t)size};
 }
 
-static GF_Err import_extradata_avc(Span extradata, GF_AVCConfig *dstcfg) {
+static GF_Err import_extradata_avc(SpanC extradata, GF_AVCConfig *dstcfg) {
 	if (!extradata.ptr || !extradata.len) {
 		g_Log->log(Warning, "No initial SPS/PPS provided.");
 		return GF_OK;
@@ -167,7 +167,7 @@ parse_sps:
 * @param dstcfg
 * @returns GF_OK is the extradata was parsed and is valid, other values otherwise.
 */
-static GF_Err import_extradata_hevc(Span extradata, GF_HEVCConfig *dstCfg) {
+static GF_Err import_extradata_hevc(SpanC extradata, GF_HEVCConfig *dstCfg) {
 	GF_HEVCParamArray *vpss = nullptr, *spss = nullptr, *ppss = nullptr;
 
 	char *buffer = nullptr;

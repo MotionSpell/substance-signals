@@ -4,6 +4,7 @@
 #include <vector>
 #include "lib_utils/resolution.hpp"
 #include "lib_modules/core/metadata.hpp"
+#include "lib_modules/core/data.hpp" // SpanC
 
 namespace Modules {
 
@@ -23,6 +24,10 @@ struct MetadataPkt : public IMetadata {
 	}
 	std::string codec; // do not replace this with an enum!
 	std::vector<uint8_t> codecSpecificInfo;
+
+	SpanC getExtradata() const {
+		return SpanC { codecSpecificInfo.data(), codecSpecificInfo.size() };
+	}
 };
 
 }
