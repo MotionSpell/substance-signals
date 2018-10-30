@@ -125,8 +125,6 @@ class LibavMux : public ModuleDynI {
 
 	private:
 		IModuleHost* const m_host;
-
-
 		AVFormatContext* const m_formatCtx;
 		std::map<size_t, size_t> inputIdx2AvStream;
 		ffpp::Dict optionsDict;
