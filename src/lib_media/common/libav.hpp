@@ -21,7 +21,6 @@ struct MetadataPktLibav : MetadataPkt {
 		MetadataPktLibav(std::shared_ptr<AVCodecContext> codecCtx);
 		int64_t getBitrate() const;
 		Fraction getTimeScale() const;
-		std::string getCodecName() const;
 
 		// deprecated, as it fails to isolate the caller from ffmpeg
 		std::shared_ptr<AVCodecContext> getAVCodecContext() const;

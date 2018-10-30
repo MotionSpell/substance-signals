@@ -59,10 +59,6 @@ Fraction MetadataPktLibav::getTimeScale() const {
 	return Fraction(codecCtx->time_base.den, codecCtx->time_base.num);
 }
 
-std::string MetadataPktLibav::getCodecName() const {
-	return codec;
-}
-
 PixelFormat MetadataPktLibavVideo::getPixelFormat() const {
 	return libavPixFmt2PixelFormat(codecCtx->pix_fmt);
 }

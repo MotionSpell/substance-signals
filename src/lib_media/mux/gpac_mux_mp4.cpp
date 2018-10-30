@@ -636,7 +636,7 @@ void GPACMuxMP4::declareStreamAudio(const MetadataPktLibavAudio* metadata) {
 	trackId = gf_isom_get_track_id(isoCur, trackNum);
 
 	esd->ESID = 1;
-	if (metadata->getCodecName() == "aac") {
+	if (metadata->codec == "aac") {
 		codec4CC = "AACL";
 		esd->decoderConfig->objectTypeIndication = GPAC_OTI_AUDIO_AAC_MPEG4;
 		esd->slConfig->timestampResolution = sampleRate;
@@ -654,7 +654,7 @@ void GPACMuxMP4::declareStreamAudio(const MetadataPktLibavAudio* metadata) {
 		if (e != GF_OK)
 			throw error(format("gf_isom_new_mpeg4_description: %s", gf_error_to_string(e)));
 
-	} else if (metadata->getCodecName() == "mp2")	{
+	} else if (metadata->codec == "mp2")	{
 		esd->decoderConfig->objectTypeIndication = GPAC_OTI_AUDIO_MPEG1;
 		esd->decoderConfig->bufferSizeDB = 20;
 		esd->slConfig->timestampResolution = sampleRate;
@@ -673,19 +673,19 @@ void GPACMuxMP4::declareStreamAudio(const MetadataPktLibavAudio* metadata) {
 		if (e != GF_OK)
 			throw error(format("gf_isom_new_mpeg4_description: %s", gf_error_to_string(e)));
 
-	} else if (metadata->getCodecName() == "ac3" || metadata->getCodecName() == "eac3") {
-		bool is_EAC3 = metadata->getCodecName() == "eac3";
+	} else if (metadata->codec == "ac3" || metadata->codec == "eac3") {
+		bool is_EAC3 = metadata->codec == "eac3";
 
 		auto extradata = metadata->getExtradata();
 		auto bs2 = std::shared_ptr<GF_BitStream>(gf_bs_new((const char*)extradata.ptr, extradata.len, GF_BITSTREAM_READ), &gf_bs_del);
 		auto bs = bs2.get();
 		if (!bs)
-			throw error(format("(E)AC-3: impossible to create extradata bitstream (\"%s\", size=%s)", metadata->getCodecName(), extradata.len));
+			throw error(format("(E)AC-3: impossible to create extradata bitstream (\"%s\", size=%s)", metadata->codec, extradata.len));
 
 		GF_AC3Header hdr  {};
 		if (is_EAC3 || !gf_ac3_parser_bs(bs, &hdr, GF_TRUE)) {
 			if (!gf_eac3_parser_bs(bs, &hdr, GF_TRUE)) {
-				m_host->log(Error, format("Parsing: audio is neither AC3 or E-AC3 audio (\"%s\", size=%s)", metadata->getCodecName(), extradata.len).c_str());
+				m_host->log(Error, format("Parsing: audio is neither AC3 or E-AC3 audio (\"%s\", size=%s)", metadata->codec, extradata.len).c_str());
 			}
 		}
 
@@ -702,7 +702,7 @@ void GPACMuxMP4::declareStreamAudio(const MetadataPktLibavAudio* metadata) {
 		e = gf_isom_ac3_config_new(isoCur, trackNum, &cfg, nullptr, nullptr, &di);
 		assert(e == GF_OK);
 	} else
-		throw error(format("Unsupported audio codec \"%s\"", metadata->getCodecName()));
+		throw error(format("Unsupported audio codec \"%s\"", metadata->codec));
 
 	e = gf_isom_set_track_enabled(isoCur, trackNum, GF_TRUE);
 	if (e != GF_OK)
@@ -764,7 +764,7 @@ void GPACMuxMP4::declareStreamVideo(const MetadataPktLibavVideo* metadata) {
 	auto extradata = metadata->getExtradata();
 
 	u32 di = 0;
-	if (metadata->getCodecName() == "h264") {
+	if (metadata->codec == "h264") {
 		codec4CC = "H264";
 		std::shared_ptr<GF_AVCConfig> avccfg(gf_odf_avc_cfg_new(), &gf_odf_avc_cfg_del);
 		if (!avccfg)
@@ -776,7 +776,7 @@ void GPACMuxMP4::declareStreamVideo(const MetadataPktLibavVideo* metadata) {
 			if (e != GF_OK)
 				throw error(format("Cannot create AVC config: %s", gf_error_to_string(e)));
 		}
-	} else if (metadata->getCodecName() == "h265") {
+	} else if (metadata->codec == "h265") {
 		codec4CC = "H265";
 		std::shared_ptr<GF_HEVCConfig> hevccfg(gf_odf_hevc_cfg_new(), &gf_odf_hevc_cfg_del);
 		if (!hevccfg)
@@ -801,7 +801,7 @@ void GPACMuxMP4::declareStreamVideo(const MetadataPktLibavVideo* metadata) {
 			GF_ESD esd {};
 			esd.ESID = 1; /*FIXME: only one track: set trackID?*/
 			esd.decoderConfig->streamType = GF_STREAM_VISUAL;
-			esd.decoderConfig->objectTypeIndication = metadata->getCodecName() == "h264" ? GPAC_OTI_VIDEO_AVC : GPAC_OTI_VIDEO_HEVC;
+			esd.decoderConfig->objectTypeIndication = metadata->codec == "h264" ? GPAC_OTI_VIDEO_AVC : GPAC_OTI_VIDEO_HEVC;
 			esd.decoderConfig->decoderSpecificInfo->dataLength = (u32)extradata.len;
 			esd.decoderConfig->decoderSpecificInfo->data = (char*)gf_malloc(extradata.len);
 			memcpy(esd.decoderConfig->decoderSpecificInfo->data, extradata.ptr, extradata.len);
