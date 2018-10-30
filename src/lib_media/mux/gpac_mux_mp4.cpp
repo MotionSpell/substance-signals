@@ -10,7 +10,7 @@ extern "C" {
 #include <gpac/base_coding.h>
 #include <gpac/constants.h>
 #include <gpac/internal/media_dev.h>
-#include <libavcodec/avcodec.h> // AVCodecContext
+#include <libavcodec/avcodec.h> // AVPacket
 }
 
 auto const AVC_INBAND_CONFIG = 0;
@@ -764,7 +764,7 @@ void GPACMuxMP4::declareStreamVideo(const MetadataPktLibavVideo* metadata) {
 	auto extradata = metadata->getExtradata();
 
 	u32 di = 0;
-	if (metadata->getAVCodecContext()->codec_id == AV_CODEC_ID_H264) {
+	if (metadata->getCodecName() == "h264") {
 		codec4CC = "H264";
 		std::shared_ptr<GF_AVCConfig> avccfg(gf_odf_avc_cfg_new(), &gf_odf_avc_cfg_del);
 		if (!avccfg)
@@ -776,7 +776,7 @@ void GPACMuxMP4::declareStreamVideo(const MetadataPktLibavVideo* metadata) {
 			if (e != GF_OK)
 				throw error(format("Cannot create AVC config: %s", gf_error_to_string(e)));
 		}
-	} else if (metadata->getAVCodecContext()->codec_id == AV_CODEC_ID_H265) {
+	} else if (metadata->getCodecName() == "h265") {
 		codec4CC = "H265";
 		std::shared_ptr<GF_HEVCConfig> hevccfg(gf_odf_hevc_cfg_new(), &gf_odf_hevc_cfg_del);
 		if (!hevccfg)
@@ -801,7 +801,7 @@ void GPACMuxMP4::declareStreamVideo(const MetadataPktLibavVideo* metadata) {
 			GF_ESD esd {};
 			esd.ESID = 1; /*FIXME: only one track: set trackID?*/
 			esd.decoderConfig->streamType = GF_STREAM_VISUAL;
-			esd.decoderConfig->objectTypeIndication = metadata->getAVCodecContext()->codec_id == AV_CODEC_ID_H264 ? GPAC_OTI_VIDEO_AVC : GPAC_OTI_VIDEO_HEVC;
+			esd.decoderConfig->objectTypeIndication = metadata->getCodecName() == "h264" ? GPAC_OTI_VIDEO_AVC : GPAC_OTI_VIDEO_HEVC;
 			esd.decoderConfig->decoderSpecificInfo->dataLength = (u32)extradata.len;
 			esd.decoderConfig->decoderSpecificInfo->data = (char*)gf_malloc(extradata.len);
 			memcpy(esd.decoderConfig->decoderSpecificInfo->data, extradata.ptr, extradata.len);
