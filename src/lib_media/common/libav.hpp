@@ -17,10 +17,8 @@ std::shared_ptr<AVCodecContext> shptr(AVCodecContext *p);
 
 namespace Modules {
 
-class MetadataPktLibav : public MetadataPkt {
-	public:
+struct MetadataPktLibav : MetadataPkt {
 		MetadataPktLibav(std::shared_ptr<AVCodecContext> codecCtx);
-		virtual ~MetadataPktLibav() {}
 		int64_t getBitrate() const;
 		Fraction getTimeScale() const;
 		std::string getCodecName() const;
@@ -32,30 +30,27 @@ class MetadataPktLibav : public MetadataPkt {
 		std::shared_ptr<AVCodecContext> codecCtx;
 };
 
-class MetadataPktLibavVideo : public MetadataPktLibav {
-	public:
-		MetadataPktLibavVideo(std::shared_ptr<AVCodecContext> codecCtx) : MetadataPktLibav(codecCtx) {}
-		PixelFormat getPixelFormat() const;
-		Fraction getSampleAspectRatio() const;
-		Resolution getResolution() const;
-		Fraction getFrameRate() const;
-		Span getExtradata() const;
+struct MetadataPktLibavVideo : MetadataPktLibav {
+	MetadataPktLibavVideo(std::shared_ptr<AVCodecContext> codecCtx) : MetadataPktLibav(codecCtx) {}
+	PixelFormat getPixelFormat() const;
+	Fraction getSampleAspectRatio() const;
+	Resolution getResolution() const;
+	Fraction getFrameRate() const;
+	Span getExtradata() const;
 };
 
-class MetadataPktLibavAudio : public MetadataPktLibav {
-	public:
-		MetadataPktLibavAudio(std::shared_ptr<AVCodecContext> codecCtx) : MetadataPktLibav(codecCtx) {}
-		std::string getCodecName() const;
-		uint32_t getNumChannels() const;
-		uint32_t getSampleRate() const;
-		uint8_t getBitsPerSample() const;
-		uint32_t getFrameSize() const;
-		Span getExtradata() const;
+struct MetadataPktLibavAudio : MetadataPktLibav {
+	MetadataPktLibavAudio(std::shared_ptr<AVCodecContext> codecCtx) : MetadataPktLibav(codecCtx) {}
+	std::string getCodecName() const;
+	uint32_t getNumChannels() const;
+	uint32_t getSampleRate() const;
+	uint8_t getBitsPerSample() const;
+	uint32_t getFrameSize() const;
+	Span getExtradata() const;
 };
 
-class MetadataPktLibavSubtitle : public MetadataPktLibav {
-	public:
-		MetadataPktLibavSubtitle(std::shared_ptr<AVCodecContext>codecCtx) : MetadataPktLibav(codecCtx) {}
+struct MetadataPktLibavSubtitle : MetadataPktLibav {
+	MetadataPktLibavSubtitle(std::shared_ptr<AVCodecContext>codecCtx) : MetadataPktLibav(codecCtx) {}
 };
 
 struct AVPacketDeleter {
