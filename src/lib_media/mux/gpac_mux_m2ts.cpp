@@ -178,8 +178,8 @@ void GPACMuxMPEG2TS::declareStream(Data data) {
 		ifce->object_type_indication = metadata->codec == "h264" ? GPAC_OTI_VIDEO_AVC : GPAC_OTI_VIDEO_HEVC;
 		ifce->fourcc = 0;
 		ifce->lang = 0;
-		ifce->timescale = (u32)metadata->getTimeScale().num;
-		assert(metadata->getTimeScale().den == 1);
+		ifce->timescale = (u32)metadata->timeScale.num;
+		assert(metadata->timeScale.den == 1);
 		ifce->duration = 0;
 		ifce->bit_rate = 0;
 		ifce->repeat_rate = 0;

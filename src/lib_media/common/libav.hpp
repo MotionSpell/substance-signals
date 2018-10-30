@@ -20,8 +20,6 @@ namespace Modules {
 
 struct MetadataPktLibav : MetadataPkt {
 		MetadataPktLibav(std::shared_ptr<AVCodecContext> codecCtx);
-		int64_t getBitrate() const;
-		Fraction getTimeScale() const;
 
 	protected:
 		std::shared_ptr<AVCodecContext> codecCtx;

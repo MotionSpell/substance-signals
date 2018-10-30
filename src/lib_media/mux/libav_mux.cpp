@@ -107,7 +107,7 @@ class LibavMux : public ModuleDynI {
 
 			auto pkt = getFormattedPkt(data);
 			assert(pkt->pts != (int64_t)AV_NOPTS_VALUE);
-			auto const pktTimescale = safe_cast<const MetadataPktLibav>(data->getMetadata())->getTimeScale();
+			auto const pktTimescale = safe_cast<const MetadataPktLibav>(data->getMetadata())->timeScale;
 			const AVRational inputTimebase = { (int)pktTimescale.den, (int)pktTimescale.num };
 			auto const avStream = m_formatCtx->streams[inputIdx2AvStream[inputIdx]];
 			pkt->dts = av_rescale_q(pkt->dts, inputTimebase, avStream->time_base);

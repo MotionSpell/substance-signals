@@ -42,17 +42,11 @@ MetadataPktLibav::MetadataPktLibav(std::shared_ptr<AVCodecContext> codecCtx)
 	enforce(codecCtx != nullptr, "MetadataPktLibav 'codecCtx' can't be null.");
 	codec = avcodec_get_name(codecCtx->codec_id);
 	codecSpecificInfo.assign(codecCtx->extradata, codecCtx->extradata + codecCtx->extradata_size);
+	bitrate = codecCtx->bit_rate;
 
-}
-
-int64_t MetadataPktLibav::getBitrate() const {
-	return codecCtx->bit_rate;
-}
-
-Fraction MetadataPktLibav::getTimeScale() const {
 	if (!codecCtx->time_base.num || !codecCtx->time_base.den)
 		throw std::runtime_error(format("Unsupported time scale %s/%s.", codecCtx->time_base.den, codecCtx->time_base.num));
-	return Fraction(codecCtx->time_base.den, codecCtx->time_base.num);
+	timeScale = Fraction(codecCtx->time_base.den, codecCtx->time_base.num);
 }
 
 PixelFormat MetadataPktLibavVideo::getPixelFormat() const {

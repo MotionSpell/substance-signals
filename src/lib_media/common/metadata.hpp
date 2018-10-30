@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include "lib_utils/resolution.hpp"
+#include "lib_utils/fraction.hpp"
 #include "lib_modules/core/metadata.hpp"
 #include "lib_modules/core/data.hpp" // SpanC
 
@@ -24,6 +25,8 @@ struct MetadataPkt : public IMetadata {
 	}
 	std::string codec; // do not replace this with an enum!
 	std::vector<uint8_t> codecSpecificInfo;
+	int64_t bitrate = -1; // -1 if not available
+	Fraction timeScale = {1, 1};
 
 	SpanC getExtradata() const {
 		return SpanC { codecSpecificInfo.data(), codecSpecificInfo.size() };

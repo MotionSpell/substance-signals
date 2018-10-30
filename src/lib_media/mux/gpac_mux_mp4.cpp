@@ -748,12 +748,12 @@ void GPACMuxMP4::declareStreamSubtitle(const MetadataPktLibavSubtitle* /*metadat
 }
 
 void GPACMuxMP4::declareStreamVideo(const MetadataPktLibavVideo* metadata) {
-	timeScale = (uint32_t)(metadata->getTimeScale().num * TIMESCALE_MUL);
+	timeScale = (uint32_t)(metadata->timeScale.num * TIMESCALE_MUL);
 	u32 trackNum = gf_isom_new_track(isoCur, 0, GF_ISOM_MEDIA_VISUAL, timeScale);
 	if (!trackNum)
 		throw error("Cannot create new track");
 	trackId = gf_isom_get_track_id(isoCur, trackNum);
-	defaultSampleIncInTs = metadata->getTimeScale().den * TIMESCALE_MUL;
+	defaultSampleIncInTs = metadata->timeScale.den * TIMESCALE_MUL;
 	resolution = metadata->getResolution();
 
 	GF_Err e = gf_isom_set_track_enabled(isoCur, trackNum, GF_TRUE);
@@ -1048,7 +1048,7 @@ void GPACMuxMP4::fillSample(Data data, gpacpp::IsoSample* sample, bool isRap) {
 		sample->DTS = m_DTS;
 	}
 
-	auto srcTimeScale = safe_cast<const MetadataPktLibav>(data->getMetadata())->getTimeScale();
+	auto srcTimeScale = safe_cast<const MetadataPktLibav>(data->getMetadata())->timeScale;
 
 	{
 		auto pkt = safe_cast<const DataAVPacket>(data)->getPacket();
@@ -1068,7 +1068,7 @@ void GPACMuxMP4::fillSample(Data data, gpacpp::IsoSample* sample, bool isRap) {
 void GPACMuxMP4::updateFormat(Data data) {
 	declareStream(data->getMetadata().get());
 
-	auto srcTimeScale = safe_cast<const MetadataPktLibav>(data->getMetadata().get())->getTimeScale();
+	auto srcTimeScale = safe_cast<const MetadataPktLibav>(data->getMetadata().get())->timeScale;
 
 	auto pkt = safe_cast<const DataAVPacket>(data)->getPacket();
 
@@ -1104,7 +1104,7 @@ void GPACMuxMP4::process(Data data) {
 			return;
 	}
 
-	auto const srcTimeScale = safe_cast<const MetadataPktLibav>(data->getMetadata())->getTimeScale();
+	auto const srcTimeScale = safe_cast<const MetadataPktLibav>(data->getMetadata())->timeScale;
 	auto const dataDTS = timescaleToClock(safe_cast<const DataAVPacket>(data)->getPacket()->dts * srcTimeScale.den, srcTimeScale.num);
 	if (compatFlags & ExactInputDur) {
 		if (lastData) {
