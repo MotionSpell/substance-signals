@@ -151,10 +151,27 @@ class LibavMux : public ModuleDynI {
 			if (!stream)
 				throw error("Stream creation failed.");
 
-			auto avCtx = safe_cast<const MetadataPktLibav>(metadata)->getAVCodecContext().get();
+			auto codecpar = stream->codecpar;
 
-			if (avcodec_parameters_from_context(stream->codecpar, avCtx) < 0)
-				throw error("Stream parameters copy failed.");
+			codecpar->codec_id = codec->id;
+
+			if(auto info = dynamic_cast<const MetadataPktLibavVideo*>(metadata)) {
+				codecpar->codec_type = AVMEDIA_TYPE_VIDEO;
+				codecpar->width  = info->getResolution().width;
+				codecpar->height = info->getResolution().height;
+			} else if(auto info = dynamic_cast<const MetadataPktLibavAudio*>(metadata)) {
+				codecpar->codec_type = AVMEDIA_TYPE_AUDIO;
+				codecpar->sample_rate = info->getSampleRate();
+				codecpar->channels = info->getNumChannels();
+				codecpar->frame_size = info->getFrameSize();
+			} else {
+				// anything to do for subtitles?
+			}
+
+			auto& extradata = metadata->codecSpecificInfo;
+			codecpar->extradata_size = extradata.size();
+			codecpar->extradata = (uint8_t*)av_malloc(extradata.size());
+			memcpy(codecpar->extradata, extradata.data(), extradata.size());
 
 			stream->time_base = {1, IClock::Rate};
 			inputIdx2AvStream[inputIdx] = m_formatCtx->nb_streams - 1;
