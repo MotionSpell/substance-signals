@@ -19,7 +19,7 @@ namespace Modules {
 
 class MetadataPktLibav : public MetadataPkt {
 	public:
-		MetadataPktLibav(std::shared_ptr<AVCodecContext> codecCtx, int id = -1);
+		MetadataPktLibav(std::shared_ptr<AVCodecContext> codecCtx);
 		virtual ~MetadataPktLibav() {}
 		int64_t getBitrate() const;
 		Fraction getTimeScale() const;
@@ -30,12 +30,11 @@ class MetadataPktLibav : public MetadataPkt {
 
 	protected:
 		std::shared_ptr<AVCodecContext> codecCtx;
-		int id; /*format specific id e.g. PID for MPEG2-TS. -1 is uninitialized*/
 };
 
 class MetadataPktLibavVideo : public MetadataPktLibav {
 	public:
-		MetadataPktLibavVideo(std::shared_ptr<AVCodecContext> codecCtx, int id = -1) : MetadataPktLibav(codecCtx, id) {}
+		MetadataPktLibavVideo(std::shared_ptr<AVCodecContext> codecCtx) : MetadataPktLibav(codecCtx) {}
 		PixelFormat getPixelFormat() const;
 		Fraction getSampleAspectRatio() const;
 		Resolution getResolution() const;
@@ -45,7 +44,7 @@ class MetadataPktLibavVideo : public MetadataPktLibav {
 
 class MetadataPktLibavAudio : public MetadataPktLibav {
 	public:
-		MetadataPktLibavAudio(std::shared_ptr<AVCodecContext> codecCtx, int id = -1) : MetadataPktLibav(codecCtx, id) {}
+		MetadataPktLibavAudio(std::shared_ptr<AVCodecContext> codecCtx) : MetadataPktLibav(codecCtx) {}
 		std::string getCodecName() const;
 		uint32_t getNumChannels() const;
 		uint32_t getSampleRate() const;
@@ -56,7 +55,7 @@ class MetadataPktLibavAudio : public MetadataPktLibav {
 
 class MetadataPktLibavSubtitle : public MetadataPktLibav {
 	public:
-		MetadataPktLibavSubtitle(std::shared_ptr<AVCodecContext>codecCtx, int id = -1) : MetadataPktLibav(codecCtx, id) {}
+		MetadataPktLibavSubtitle(std::shared_ptr<AVCodecContext>codecCtx) : MetadataPktLibav(codecCtx) {}
 };
 
 struct AVPacketDeleter {

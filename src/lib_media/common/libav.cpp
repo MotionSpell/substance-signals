@@ -37,8 +37,8 @@ StreamType getType(AVCodecContext* codecCtx) {
 	}
 }
 
-MetadataPktLibav::MetadataPktLibav(std::shared_ptr<AVCodecContext> codecCtx, int id)
-	: MetadataPkt(getType(codecCtx.get())), codecCtx(codecCtx), id(id) {
+MetadataPktLibav::MetadataPktLibav(std::shared_ptr<AVCodecContext> codecCtx)
+	: MetadataPkt(getType(codecCtx.get())), codecCtx(codecCtx) {
 	enforce(codecCtx != nullptr, "MetadataPktLibav 'codecCtx' can't be null.");
 	codec = avcodec_get_name(codecCtx->codec_id);
 	codecSpecificInfo.assign(codecCtx->extradata, codecCtx->extradata + codecCtx->extradata_size);
