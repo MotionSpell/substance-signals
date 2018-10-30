@@ -61,6 +61,11 @@ class LibavMux : public ModuleDynI {
 
 		~LibavMux() {
 			if (m_formatCtx) {
+				if (!(m_formatCtx->oformat->flags & AVFMT_NOFILE)) {
+					if (!(m_formatCtx->flags & AVFMT_FLAG_CUSTOM_IO)) {
+						avio_close(m_formatCtx->pb); //close output file
+					}
+				}
 				for (unsigned i = 0; i < m_formatCtx->nb_streams; ++i) {
 					avcodec_close(m_formatCtx->streams[i]->codec);
 				}
@@ -117,9 +122,6 @@ class LibavMux : public ModuleDynI {
 
 			if (!(m_formatCtx->oformat->flags & AVFMT_NOFILE)) {
 				avio_flush(m_formatCtx->pb);
-				if (!(m_formatCtx->flags & AVFMT_FLAG_CUSTOM_IO)) {
-					avio_close(m_formatCtx->pb); //close output file
-				}
 			}
 		}
 
