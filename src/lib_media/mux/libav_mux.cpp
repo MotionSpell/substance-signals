@@ -88,7 +88,7 @@ class LibavMux : public ModuleDynI {
 			if (inputs[inputIdx]->updateMetadata(data)) {
 				if (prevInputMeta) {
 					if(!(*prevInputMeta == *inputs[inputIdx]->getMetadata()))
-						m_host->log(Error, format("input #%d: updating existing metadata. Not supported but continuing execution.", inputIdx).c_str());
+						m_host->log(Error, format("input #%s: updating existing metadata. Not supported but continuing execution.", inputIdx).c_str());
 				} else {
 					declareStream(data, inputIdx);
 				}
