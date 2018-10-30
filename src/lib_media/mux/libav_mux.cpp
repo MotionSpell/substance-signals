@@ -147,16 +147,16 @@ class LibavMux : public ModuleDynI {
 			if (!codec)
 				throw error(format("Codec not found: '%s'.", metadata->codec));
 
-			AVStream *avStream = avformat_new_stream(m_formatCtx, codec);
-			if (!avStream)
+			auto stream = avformat_new_stream(m_formatCtx, codec);
+			if (!stream)
 				throw error("Stream creation failed.");
 
 			auto avCtx = safe_cast<const MetadataPktLibav>(metadata)->getAVCodecContext().get();
 
-			if (avcodec_parameters_from_context(avStream->codecpar, avCtx) < 0)
+			if (avcodec_parameters_from_context(stream->codecpar, avCtx) < 0)
 				throw error("Stream parameters copy failed.");
 
-			avStream->time_base = avStream->codec->time_base = avCtx->time_base;
+			stream->time_base = avCtx->time_base;
 			inputIdx2AvStream[inputIdx] = m_formatCtx->nb_streams - 1;
 		}
 
