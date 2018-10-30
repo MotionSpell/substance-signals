@@ -45,6 +45,7 @@ struct MetadataPktLibavAudio : MetadataPktLibav {
 	uint32_t getSampleRate() const;
 	uint8_t getBitsPerSample() const;
 	uint32_t getFrameSize() const;
+	bool isPlanar() const;
 	AudioSampleFormat getFormat() const;
 	Span getExtradata() const;
 };

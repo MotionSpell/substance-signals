@@ -87,6 +87,19 @@ uint32_t MetadataPktLibavAudio::getNumChannels() const {
 	return codecCtx->channels;
 }
 
+bool MetadataPktLibavAudio::isPlanar() const {
+	switch (codecCtx->sample_fmt) {
+	case AV_SAMPLE_FMT_S16:
+	case AV_SAMPLE_FMT_FLT:
+		return false;
+	case AV_SAMPLE_FMT_S16P:
+	case AV_SAMPLE_FMT_FLTP:
+		return true;
+	default:
+		throw std::runtime_error(format("Unknown libav audio format [%s] (2)", codecCtx->sample_fmt));
+	}
+}
+
 uint32_t MetadataPktLibavAudio::getSampleRate() const {
 	return codecCtx->sample_rate;
 }
@@ -141,25 +154,11 @@ PcmFormat toPcmFormat(std::shared_ptr<const MetadataPktLibavAudio> meta) {
 	PcmFormat cfg_;
 	PcmFormat *cfg = &cfg_;
 	cfg->sampleRate = meta->getSampleRate();
-	cfg->numChannels = cfg->numPlanes = meta->getNumChannels();
+	cfg->numChannels = meta->getNumChannels();
 	cfg->sampleFormat = meta->getFormat();
+	cfg->numPlanes = meta->isPlanar() ? cfg->numChannels : 1;
 
 	auto codecCtx = meta->getAVCodecContext();
-	switch (codecCtx->sample_fmt) {
-	case AV_SAMPLE_FMT_S16:
-		cfg->numPlanes = 1;
-		break;
-	case AV_SAMPLE_FMT_S16P:
-		break;
-	case AV_SAMPLE_FMT_FLT:
-		cfg->numPlanes = 1;
-		break;
-	case AV_SAMPLE_FMT_FLTP:
-		break;
-	default:
-		throw std::runtime_error(format("Unknown libav audio format [%s] (2)", codecCtx->sample_fmt));
-	}
-
 	switch (codecCtx->channel_layout) {
 	case AV_CH_LAYOUT_MONO:   cfg->layout = Modules::Mono; break;
 	case AV_CH_LAYOUT_STEREO: cfg->layout = Modules::Stereo; break;
