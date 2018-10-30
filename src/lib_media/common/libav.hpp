@@ -41,7 +41,6 @@ struct MetadataPktLibavVideo : MetadataPktLibav {
 
 struct MetadataPktLibavAudio : MetadataPktLibav {
 	MetadataPktLibavAudio(std::shared_ptr<AVCodecContext> codecCtx) : MetadataPktLibav(codecCtx) {}
-	std::string getCodecName() const;
 	uint32_t getNumChannels() const;
 	uint32_t getSampleRate() const;
 	uint8_t getBitsPerSample() const;

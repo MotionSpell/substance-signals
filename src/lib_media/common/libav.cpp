@@ -87,10 +87,6 @@ Span MetadataPktLibavVideo::getExtradata() const {
 }
 
 //MetadataPktLibavAudio
-std::string MetadataPktLibavAudio::getCodecName() const {
-	return avcodec_get_name(codecCtx->codec_id);
-}
-
 uint32_t MetadataPktLibavAudio::getNumChannels() const {
 	return codecCtx->channels;
 }
