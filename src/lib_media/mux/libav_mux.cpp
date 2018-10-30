@@ -156,7 +156,7 @@ class LibavMux : public ModuleDynI {
 			if (avcodec_parameters_from_context(stream->codecpar, avCtx) < 0)
 				throw error("Stream parameters copy failed.");
 
-			stream->time_base = avCtx->time_base;
+			stream->time_base = {1, IClock::Rate};
 			inputIdx2AvStream[inputIdx] = m_formatCtx->nb_streams - 1;
 		}
 
