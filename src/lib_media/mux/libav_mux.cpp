@@ -48,8 +48,8 @@ class LibavMux : public ModuleDynI {
 					throw error(format("could not open %s, disable output.", cfg.baseName));
 				}
 			}
-			strncpy(m_formatCtx->filename, fileName.c_str(), sizeof(m_formatCtx->filename) - 1);
-			m_formatCtx->filename[(sizeof m_formatCtx->filename)-1] = 0;
+
+			m_formatCtx->url = av_strdup(fileName.c_str());
 
 			av_dict_set(&m_formatCtx->metadata, "service_provider", "GPAC Licensing Signals", 0);
 			av_dump_format(m_formatCtx, 0, cfg.baseName.c_str(), 1);
