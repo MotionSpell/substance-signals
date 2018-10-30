@@ -61,17 +61,6 @@ class LibavMux : public ModuleDynI {
 
 		~LibavMux() {
 			if (m_formatCtx) {
-				if (m_headerWritten) {
-					av_write_trailer(m_formatCtx); //write the trailer if any
-				}
-
-				if (!(m_formatCtx->oformat->flags & AVFMT_NOFILE)) {
-					avio_flush(m_formatCtx->pb);
-					if (!(m_formatCtx->flags & AVFMT_FLAG_CUSTOM_IO)) {
-						avio_close(m_formatCtx->pb); //close output file
-					}
-				}
-
 				for (unsigned i = 0; i < m_formatCtx->nb_streams; ++i) {
 					avcodec_close(m_formatCtx->streams[i]->codec);
 				}
@@ -118,6 +107,19 @@ class LibavMux : public ModuleDynI {
 			if (av_interleaved_write_frame(m_formatCtx, pkt.get()) != 0) {
 				m_host->log(Warning, "can't write frame.");
 				return;
+			}
+		}
+
+		void flush() override {
+			if (m_headerWritten) {
+				av_write_trailer(m_formatCtx); //write the trailer if any
+			}
+
+			if (!(m_formatCtx->oformat->flags & AVFMT_NOFILE)) {
+				avio_flush(m_formatCtx->pb);
+				if (!(m_formatCtx->flags & AVFMT_FLAG_CUSTOM_IO)) {
+					avio_close(m_formatCtx->pb); //close output file
+				}
 			}
 		}
 
