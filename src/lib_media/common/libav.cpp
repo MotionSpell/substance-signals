@@ -123,6 +123,19 @@ AudioSampleFormat MetadataPktLibavAudio::getFormat() const {
 	}
 }
 
+AudioLayout MetadataPktLibavAudio::getLayout() const {
+	switch (codecCtx->channel_layout) {
+	case AV_CH_LAYOUT_MONO:   return Mono; break;
+	case AV_CH_LAYOUT_STEREO: return Stereo; break;
+	default:
+		switch (getNumChannels()) {
+		case 1: return Mono; break;
+		case 2: return Stereo; break;
+		default: throw std::runtime_error("Unknown libav audio layout");
+		}
+	}
+}
+
 Span MetadataPktLibavAudio::getExtradata() const {
 	return Span { codecCtx->extradata, (size_t)codecCtx->extradata_size };
 }
@@ -157,18 +170,7 @@ PcmFormat toPcmFormat(std::shared_ptr<const MetadataPktLibavAudio> meta) {
 	cfg->numChannels = meta->getNumChannels();
 	cfg->sampleFormat = meta->getFormat();
 	cfg->numPlanes = meta->isPlanar() ? cfg->numChannels : 1;
-
-	auto codecCtx = meta->getAVCodecContext();
-	switch (codecCtx->channel_layout) {
-	case AV_CH_LAYOUT_MONO:   cfg->layout = Modules::Mono; break;
-	case AV_CH_LAYOUT_STEREO: cfg->layout = Modules::Stereo; break;
-	default:
-		switch (cfg->numChannels) {
-		case 1: cfg->layout = Modules::Mono; break;
-		case 2: cfg->layout = Modules::Stereo; break;
-		default: throw std::runtime_error("Unknown libav audio layout");
-		}
-	}
+	cfg->layout = meta->getLayout();
 
 	return *cfg;
 }
