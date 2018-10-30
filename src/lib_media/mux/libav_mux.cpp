@@ -223,10 +223,9 @@ class LibavMux : public ModuleDynI {
 
 		void formatsList() {
 			g_Log->log(Warning, "Output formats list:");
-			AVOutputFormat *fmt = nullptr;
-			while ((fmt = av_oformat_next(fmt))) {
+			void* iterator = nullptr;
+			while (auto fmt = av_muxer_iterate(&iterator))
 				g_Log->log(Warning, format("fmt->name=%s, fmt->mime_type=%s, fmt->extensions=%s", fmt->name ? fmt->name : "", fmt->mime_type ? fmt->mime_type : "", fmt->extensions ? fmt->extensions : "").c_str());
-			}
 		}
 
 };
