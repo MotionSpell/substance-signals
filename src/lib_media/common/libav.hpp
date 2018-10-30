@@ -1,6 +1,7 @@
 #pragma once
 
 #include "picture.hpp"
+#include "pcm.hpp"
 #include "metadata.hpp"
 #include <memory>
 
@@ -44,6 +45,7 @@ struct MetadataPktLibavAudio : MetadataPktLibav {
 	uint32_t getSampleRate() const;
 	uint8_t getBitsPerSample() const;
 	uint32_t getFrameSize() const;
+	AudioSampleFormat getFormat() const;
 	Span getExtradata() const;
 };
 

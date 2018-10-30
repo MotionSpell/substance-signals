@@ -99,6 +99,17 @@ uint32_t MetadataPktLibavAudio::getFrameSize() const {
 	return codecCtx->frame_size;
 }
 
+AudioSampleFormat MetadataPktLibavAudio::getFormat() const {
+	switch (codecCtx->sample_fmt) {
+	case AV_SAMPLE_FMT_S16: return Modules::S16;
+	case AV_SAMPLE_FMT_S16P: return Modules::S16;
+	case AV_SAMPLE_FMT_FLT: return Modules::F32;
+	case AV_SAMPLE_FMT_FLTP: return Modules::F32;
+	default:
+		throw std::runtime_error(format("Unknown libav audio format [%s] (2)", codecCtx->sample_fmt));
+	}
+}
+
 Span MetadataPktLibavAudio::getExtradata() const {
 	return Span { codecCtx->extradata, (size_t)codecCtx->extradata_size };
 }
@@ -131,22 +142,19 @@ PcmFormat toPcmFormat(std::shared_ptr<const MetadataPktLibavAudio> meta) {
 	PcmFormat *cfg = &cfg_;
 	cfg->sampleRate = meta->getSampleRate();
 	cfg->numChannels = cfg->numPlanes = meta->getNumChannels();
+	cfg->sampleFormat = meta->getFormat();
 
 	auto codecCtx = meta->getAVCodecContext();
 	switch (codecCtx->sample_fmt) {
 	case AV_SAMPLE_FMT_S16:
-		cfg->sampleFormat = Modules::S16;
 		cfg->numPlanes = 1;
 		break;
 	case AV_SAMPLE_FMT_S16P:
-		cfg->sampleFormat = Modules::S16;
 		break;
 	case AV_SAMPLE_FMT_FLT:
-		cfg->sampleFormat = Modules::F32;
 		cfg->numPlanes = 1;
 		break;
 	case AV_SAMPLE_FMT_FLTP:
-		cfg->sampleFormat = Modules::F32;
 		break;
 	default:
 		throw std::runtime_error(format("Unknown libav audio format [%s] (2)", codecCtx->sample_fmt));
