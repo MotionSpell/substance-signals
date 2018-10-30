@@ -49,10 +49,6 @@ std::shared_ptr<AVCodecContext> MetadataPktLibav::getAVCodecContext() const {
 	return codecCtx;
 }
 
-int MetadataPktLibav::getId() const {
-	return id;
-}
-
 int64_t MetadataPktLibav::getBitrate() const {
 	return codecCtx->bit_rate;
 }

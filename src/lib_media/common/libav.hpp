@@ -24,7 +24,6 @@ class MetadataPktLibav : public MetadataPkt {
 		int64_t getBitrate() const;
 		Fraction getTimeScale() const;
 		std::string getCodecName() const;
-		int getId() const;
 
 		// deprecated, as it fails to isolate the caller from ffmpeg
 		std::shared_ptr<AVCodecContext> getAVCodecContext() const;
