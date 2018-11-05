@@ -135,14 +135,12 @@ struct LibavEncode : ModuleS {
 
 				prepareFrame = std::bind(&LibavEncode::prepareVideoFrame, this, std::placeholders::_1);
 				input->setMetadata(make_shared<MetadataRawVideo>());
-				output->setMetadata(make_shared<MetadataPktLibavVideo>(codecCtx));
 				break;
 			}
 			case EncoderConfig::Audio:
 
 				prepareFrame = std::bind(&LibavEncode::prepareAudioFrame, this, std::placeholders::_1);
 				input->setMetadata(make_shared<MetadataRawAudio>());
-				output->setMetadata(make_shared<MetadataPktLibavAudio>(codecCtx));
 				break;
 			default:
 				throw error(format("Invalid codec type: %d", type));
@@ -281,6 +279,7 @@ struct LibavEncode : ModuleS {
 				// for encoding level checks (MB rate) and rate control
 				codecCtx->ticks_per_frame = int(framePeriod * IClock::Rate);
 
+				output->setMetadata(make_shared<MetadataPktLibavVideo>(codecCtx));
 				break;
 			}
 			case EncoderConfig::Audio: {
@@ -294,6 +293,8 @@ struct LibavEncode : ModuleS {
 				pcmFormat = make_unique<PcmFormat>(fmt.sampleRate, fmt.numChannels, layout);
 				libavAudioCtxConvert(pcmFormat.get(), codecCtx.get());
 				codecOptions += format(" -ar %s -ac %s", fmt.sampleRate, fmt.numChannels);
+
+				output->setMetadata(make_shared<MetadataPktLibavAudio>(codecCtx));
 				break;
 			}
 			default:
