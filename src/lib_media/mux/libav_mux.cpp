@@ -211,13 +211,8 @@ class LibavMux : public ModuleDynI {
 			memcpy(newPkt->data, headers.data(), headers.size());
 			memcpy(newPkt->data + headers.size(), data->data().ptr, data->data().len);
 			newPkt->size = (int)outSize;
-
-			{
-				auto srcPkt = safe_cast<const DataPacket>(data);
-				newPkt->dts = srcPkt->getDecodingTime();
-			}
-
 			newPkt->pts = data->getMediaTime();
+			newPkt->dts = safe_cast<const DataPacket>(data)->getDecodingTime();
 
 			return shared_ptr<AVPacket>(newPkt, &my_av_packet_deleter);
 		}
