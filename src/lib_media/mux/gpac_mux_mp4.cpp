@@ -612,7 +612,7 @@ void GPACMuxMP4::setupFragments() {
 	}
 }
 
-void GPACMuxMP4::declareStreamAudio(const MetadataPktLibavAudio* metadata) {
+void GPACMuxMP4::declareStreamAudio(const MetadataPktAudio* metadata) {
 	GF_Err e;
 	u32 di=0;
 	GF_M4ADecSpecInfo acfg {};
@@ -723,7 +723,7 @@ void GPACMuxMP4::declareStreamAudio(const MetadataPktLibavAudio* metadata) {
 	}
 }
 
-void GPACMuxMP4::declareStreamSubtitle(const MetadataPktLibavSubtitle* /*metadata*/) {
+void GPACMuxMP4::declareStreamSubtitle(const MetadataPktSubtitle* /*metadata*/) {
 	timeScale = 10 * TIMESCALE_MUL;
 	assert((timeScale % 1000) == 0); /*ms accuracy mandatory*/
 	u32 trackNum = gf_isom_new_track(isoCur, 0, GF_ISOM_MEDIA_TEXT, timeScale);
@@ -747,7 +747,7 @@ void GPACMuxMP4::declareStreamSubtitle(const MetadataPktLibavSubtitle* /*metadat
 	}
 }
 
-void GPACMuxMP4::declareStreamVideo(const MetadataPktLibavVideo* metadata) {
+void GPACMuxMP4::declareStreamVideo(const MetadataPktVideo* metadata) {
 	timeScale = (uint32_t)(metadata->timeScale.num * TIMESCALE_MUL);
 	u32 trackNum = gf_isom_new_track(isoCur, 0, GF_ISOM_MEDIA_VISUAL, timeScale);
 	if (!trackNum)
@@ -829,11 +829,11 @@ void GPACMuxMP4::declareStreamVideo(const MetadataPktLibavVideo* metadata) {
 }
 
 void GPACMuxMP4::declareStream(const IMetadata* metadata) {
-	if (auto video = dynamic_cast<const MetadataPktLibavVideo*>(metadata)) {
+	if (auto video = dynamic_cast<const MetadataPktVideo*>(metadata)) {
 		declareStreamVideo(video);
-	} else if (auto audio = dynamic_cast<const MetadataPktLibavAudio*>(metadata)) {
+	} else if (auto audio = dynamic_cast<const MetadataPktAudio*>(metadata)) {
 		declareStreamAudio(audio);
-	} else if (auto subs = dynamic_cast<const MetadataPktLibavSubtitle*>(metadata)) {
+	} else if (auto subs = dynamic_cast<const MetadataPktSubtitle*>(metadata)) {
 		declareStreamSubtitle(subs);
 	} else
 		throw error("Stream creation failed: unknown type.");

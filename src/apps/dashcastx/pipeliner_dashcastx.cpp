@@ -61,7 +61,7 @@ IFilter* createEncoder(Pipeline* pipeline, Metadata metadata, bool ultraLowLaten
 		p.codecType = videoCodecType;
 		p.bitrate = bitrate;
 
-		auto const metaVideo = safe_cast<const MetadataPktLibavVideo>(metadata);
+		auto const metaVideo = safe_cast<const MetadataPktVideo>(metadata);
 		p.frameRate = metaVideo->framerate;
 		auto const GOPDurationDivisor = 1 + (segmentDurationInMs / (MAX_GOP_DURATION_IN_MS+1));
 		p.GOPSize = ultraLowLatency ? 1 : (Fraction(segmentDurationInMs, 1000) * p.frameRate) / Fraction(GOPDurationDivisor, 1);
@@ -93,7 +93,7 @@ IFilter* createConverter(Pipeline* pipeline, Metadata metadata, const PictureFor
 		return pipeline->add("VideoConvert", &dstFmt);
 	} else if (codecType == AUDIO_PKT) {
 		g_Log->log(Info, "[Converter] Found audio stream");
-		auto const demuxFmt = toPcmFormat(safe_cast<const MetadataPktLibavAudio>(metadata));
+		auto const demuxFmt = toPcmFormat(safe_cast<const MetadataPktAudio>(metadata));
 		auto format = PcmFormat(demuxFmt.sampleRate, demuxFmt.numChannels, demuxFmt.layout, demuxFmt.sampleFormat, (demuxFmt.numPlanes == 1) ? Interleaved : Planar);
 		return pipeline->add("AudioConvert", nullptr, &format, 1024);
 	} else {
@@ -143,7 +143,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 		pipeline->connect(source, decoder);
 
 		if (metadata->isVideo() && cfg.autoRotate) {
-			auto const res = safe_cast<const MetadataPktLibavVideo>(metadata)->resolution;
+			auto const res = safe_cast<const MetadataPktVideo>(metadata)->resolution;
 			if (res.height > res.width)
 				isVertical = true;
 		}
@@ -193,7 +193,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 				if(!decoded.mod)
 					decoded = decode(source, metadata);
 
-				auto inputRes = metadata->isVideo() ? safe_cast<const MetadataPktLibavVideo>(metadata)->resolution : Resolution();
+				auto inputRes = metadata->isVideo() ? safe_cast<const MetadataPktVideo>(metadata)->resolution : Resolution();
 				auto const outputRes = autoRotate(autoFit(inputRes, cfg.v[r].res), isVertical);
 				PictureFormat encoderInputPicFmt(outputRes, UNKNOWN_PF);
 				auto encoder = createEncoder(pipeline.get(), metadata, cfg.ultraLowLatency, (VideoCodecType)cfg.v[r].type, encoderInputPicFmt, cfg.v[r].bitrate, cfg.segmentDurationInMs);
@@ -216,7 +216,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 
 			std::string prefix;
 			if (metadata->isVideo()) {
-				auto reso = safe_cast<const MetadataPktLibavVideo>(demux->getOutputMetadata(streamIndex))->resolution;
+				auto reso = safe_cast<const MetadataPktVideo>(demux->getOutputMetadata(streamIndex))->resolution;
 				if (transcode)
 					reso = autoFit(reso, cfg.v[r].res);
 				prefix = Stream::AdaptiveStreamingCommon::getCommonPrefixVideo(numDashInputs, reso);

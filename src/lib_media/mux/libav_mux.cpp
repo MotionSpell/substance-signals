@@ -159,11 +159,11 @@ class LibavMux : public ModuleDynI {
 
 			codecpar->codec_id = codec->id;
 
-			if(auto info = dynamic_cast<const MetadataPktLibavVideo*>(metadata)) {
+			if(auto info = dynamic_cast<const MetadataPktVideo*>(metadata)) {
 				codecpar->codec_type = AVMEDIA_TYPE_VIDEO;
 				codecpar->width  = info->resolution.width;
 				codecpar->height = info->resolution.height;
-			} else if(auto info = dynamic_cast<const MetadataPktLibavAudio*>(metadata)) {
+			} else if(auto info = dynamic_cast<const MetadataPktAudio*>(metadata)) {
 				codecpar->codec_type = AVMEDIA_TYPE_AUDIO;
 				codecpar->sample_rate = info->sampleRate;
 				codecpar->channels = info->numChannels;

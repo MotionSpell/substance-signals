@@ -144,14 +144,12 @@ unittest("transcoder: jpg to resized jpg (YUV420)") {
 	resizeJPGTest(YUV420P);
 }
 
-#include "lib_media/common/libav.hpp" // MetadataPktLibavVideo
-
 unittest("transcoder: h264/mp4 to jpg") {
 	DemuxConfig cfg;
 	cfg.url = "data/beepbop.mp4";
 	auto demux = loadModule("LibavDemux", &NullHost, &cfg);
 
-	auto metadata = safe_cast<const MetadataPktLibavVideo>(demux->getOutput(1)->getMetadata());
+	auto metadata = safe_cast<const MetadataPktVideo>(demux->getOutput(1)->getMetadata());
 	auto decode = loadModule("Decoder", &NullHost, VIDEO_PKT);
 
 	auto encoder = loadModule("JPEGTurboEncode", &NullHost);

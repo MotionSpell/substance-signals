@@ -50,7 +50,7 @@ void initMetadatPkt(MetadataPkt* meta, AVCodecContext* codecCtx) {
 }
 
 Metadata createMetadataPktLibavVideo(AVCodecContext* codecCtx) {
-	auto meta = make_shared<MetadataPktLibavVideo>();
+	auto meta = make_shared<MetadataPktVideo>();
 	initMetadatPkt(meta.get(), codecCtx);
 	meta->timeScale = Fraction(codecCtx->time_base.den, codecCtx->time_base.num);
 	meta->pixelFormat = libavPixFmt2PixelFormat(codecCtx->pix_fmt);
@@ -104,7 +104,7 @@ AudioLayout getLayout(const AVCodecContext* codecCtx) {
 }
 
 Metadata createMetadataPktLibavAudio(AVCodecContext* codecCtx) {
-	auto meta = make_shared<MetadataPktLibavAudio>();
+	auto meta = make_shared<MetadataPktAudio>();
 	initMetadatPkt(meta.get(), codecCtx);
 	meta->numChannels = codecCtx->channels;
 	meta->planar = meta->numChannels > 1 ? isPlanar(codecCtx) : true;
@@ -117,7 +117,7 @@ Metadata createMetadataPktLibavAudio(AVCodecContext* codecCtx) {
 }
 
 Metadata createMetadataPktLibavSubtitle(AVCodecContext* codecCtx) {
-	auto meta = make_shared<MetadataPktLibavAudio>();
+	auto meta = make_shared<MetadataPktAudio>();
 	initMetadatPkt(meta.get(), codecCtx);
 	return meta;
 }
@@ -145,7 +145,7 @@ void libavAudioCtxConvert(const PcmFormat *cfg, AVCodecContext *codecCtx) {
 	libavAudioCtxConvertLibav(cfg, codecCtx->sample_rate, codecCtx->sample_fmt, codecCtx->channels, codecCtx->channel_layout);
 }
 
-PcmFormat toPcmFormat(std::shared_ptr<const MetadataPktLibavAudio> meta) {
+PcmFormat toPcmFormat(std::shared_ptr<const MetadataPktAudio> meta) {
 	PcmFormat cfg;
 	cfg.sampleRate = meta->sampleRate;
 	cfg.numChannels = meta->numChannels;

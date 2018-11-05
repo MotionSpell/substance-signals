@@ -22,28 +22,6 @@ Metadata createMetadataPktLibavVideo(AVCodecContext* codecCtx);
 Metadata createMetadataPktLibavAudio(AVCodecContext* codecCtx);
 Metadata createMetadataPktLibavSubtitle(AVCodecContext* codecCtx);
 
-struct MetadataPktLibavVideo : MetadataPkt {
-	MetadataPktLibavVideo() : MetadataPkt(VIDEO_PKT) {}
-	PixelFormat pixelFormat;
-	Fraction sampleAspectRatio;
-	Resolution resolution;
-	Fraction framerate;
-};
-
-struct MetadataPktLibavAudio : MetadataPkt {
-	MetadataPktLibavAudio() : MetadataPkt(AUDIO_PKT) {}
-	uint32_t numChannels;
-	uint32_t sampleRate;
-	uint8_t bitsPerSample;
-	uint32_t frameSize;
-	bool planar;
-	AudioSampleFormat format;
-	AudioLayout layout;
-};
-
-struct MetadataPktLibavSubtitle : MetadataPkt {
-};
-
 struct AVPacketDeleter {
 	void operator()(AVPacket *p);
 };
@@ -74,7 +52,7 @@ void libavAudioCtxConvert(const PcmFormat *cfg, AVCodecContext *codecCtx);
 void libavFrameDataConvert(const DataPcm *data, AVFrame *frame);
 void libavFrame2pcmConvert(const AVFrame *frame, PcmFormat *cfg);
 
-PcmFormat toPcmFormat(std::shared_ptr<const MetadataPktLibavAudio> meta);
+PcmFormat toPcmFormat(std::shared_ptr<const MetadataPktAudio> meta);
 
 AVPixelFormat pixelFormat2libavPixFmt(PixelFormat format);
 PixelFormat libavPixFmt2PixelFormat(AVPixelFormat avPixfmt);

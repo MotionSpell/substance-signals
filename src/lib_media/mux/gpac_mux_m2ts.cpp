@@ -168,7 +168,7 @@ void GPACMuxMPEG2TS::declareStream(Data data) {
 	memset(ifce.get(), 0, sizeof(GF_ESInterface));
 
 	auto const metadata_ = data->getMetadata();
-	if (auto metadata = std::dynamic_pointer_cast<const MetadataPktLibavVideo>(metadata_)) {
+	if (auto metadata = std::dynamic_pointer_cast<const MetadataPktVideo>(metadata_)) {
 		addInput(new Input(this));
 
 		ifce->caps = GF_ESI_SIGNAL_DTS;
@@ -186,7 +186,7 @@ void GPACMuxMPEG2TS::declareStream(Data data) {
 		(void)ifce->decoder_config;
 		(void)ifce->decoder_config_size;
 #if 0
-	} else if (auto metadata2 = std::dynamic_pointer_cast<const MetadataPktLibavAudio>(metadata_)) {
+	} else if (auto metadata2 = std::dynamic_pointer_cast<const MetadataPktAudio>(metadata_)) {
 #if 0 //TODO
 		auto input = addInput(new Input(this));
 		throw std::runtime_error("[GPACMuxMPEG2TS] Stream (audio) creation failed: unknown type.");

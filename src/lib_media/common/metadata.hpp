@@ -6,6 +6,8 @@
 #include "lib_utils/fraction.hpp"
 #include "lib_modules/core/metadata.hpp"
 #include "lib_modules/core/data.hpp" // SpanC
+#include "pcm.hpp" // AudioSampleFormat
+#include "pixel_format.hpp" // PixelFormat
 
 namespace Modules {
 
@@ -31,6 +33,28 @@ struct MetadataPkt : public IMetadata {
 	SpanC getExtradata() const {
 		return SpanC { codecSpecificInfo.data(), codecSpecificInfo.size() };
 	}
+};
+
+struct MetadataPktVideo : MetadataPkt {
+	MetadataPktVideo() : MetadataPkt(VIDEO_PKT) {}
+	PixelFormat pixelFormat;
+	Fraction sampleAspectRatio;
+	Resolution resolution;
+	Fraction framerate;
+};
+
+struct MetadataPktAudio : MetadataPkt {
+	MetadataPktAudio() : MetadataPkt(AUDIO_PKT) {}
+	uint32_t numChannels;
+	uint32_t sampleRate;
+	uint8_t bitsPerSample;
+	uint32_t frameSize;
+	bool planar;
+	AudioSampleFormat format;
+	AudioLayout layout;
+};
+
+struct MetadataPktSubtitle : MetadataPkt {
 };
 
 }

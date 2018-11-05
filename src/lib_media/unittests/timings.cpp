@@ -116,8 +116,8 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 		if (codecType == VIDEO_PKT) {
 			return loadModule("VideoConvert", &NullHost, &dstFmt);
 		} else if (codecType == AUDIO_PKT) {
-			auto const demuxFmt = toPcmFormat(safe_cast<const MetadataPktLibavAudio>(metadataDemux));
-			auto const metaEnc = safe_cast<const MetadataPktLibavAudio>(metadataEncoder);
+			auto const demuxFmt = toPcmFormat(safe_cast<const MetadataPktAudio>(metadataDemux));
+			auto const metaEnc = safe_cast<const MetadataPktAudio>(metadataEncoder);
 			auto const encFmt = toPcmFormat(metaEnc);
 			auto const format = PcmFormat(demuxFmt.sampleRate, demuxFmt.numChannels, demuxFmt.layout, encFmt.sampleFormat, (encFmt.numPlanes == 1) ? Interleaved : Planar);
 			return loadModule("AudioConvert", &NullHost, nullptr, &format, metaEnc->frameSize);
@@ -140,7 +140,7 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 		auto decoder = loadModule("Decoder", &NullHost, metadataDemux->type);
 		ConnectOutputToInput(gapper->getOutput(0), decoder->getInput(0));
 
-		auto inputRes = safe_cast<const MetadataPktLibavVideo>(demux->getOutput(i)->getMetadata())->resolution;
+		auto inputRes = safe_cast<const MetadataPktVideo>(demux->getOutput(i)->getMetadata())->resolution;
 		PictureFormat encoderInputPicFmt(inputRes, UNKNOWN_PF);
 		auto encoder = createEncoder(metadataDemux, encoderInputPicFmt);
 		auto converter = createConverter(metadataDemux, encoder->getOutput(0)->getMetadata(), encoderInputPicFmt);

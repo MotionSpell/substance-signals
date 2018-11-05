@@ -21,9 +21,9 @@ class GPACMuxMP4 : public ModuleS {
 		void flush() override;
 
 	protected:
-		virtual void declareStreamVideo(const MetadataPktLibavVideo* metadata);
-		virtual void declareStreamAudio(const MetadataPktLibavAudio* metadata);
-		virtual void declareStreamSubtitle(const MetadataPktLibavSubtitle* metadata);
+		virtual void declareStreamVideo(const MetadataPktVideo* metadata);
+		virtual void declareStreamAudio(const MetadataPktAudio* metadata);
+		virtual void declareStreamSubtitle(const MetadataPktSubtitle* metadata);
 		virtual void startSegmentPostAction() {}
 		uint32_t trackId = 0;
 		std::string codec4CC;
