@@ -1,8 +1,9 @@
 #include "tests/tests.hpp"
 #include "lib_modules/modules.hpp"
 #include "lib_modules/utils/loader.hpp"
-#include "lib_media/common/libav.hpp" // DataPicture
+#include "lib_media/common/picture.hpp" // DataPicture
 #include "lib_media/common/pcm.hpp"
+#include "lib_media/common/metadata.hpp" // MetadataPkt
 #include "lib_media/encode/libav_encode.hpp"
 #include "lib_media/in/file.hpp"
 #include "lib_media/out/null.hpp"
