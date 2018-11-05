@@ -18,6 +18,14 @@ int64_t DataBase::getMediaTime() const {
 	return mediaTimeIn180k;
 }
 
+void DataPacket::setDecodingTime(int64_t time) {
+	decodingTimeIn180k = time;
+}
+
+int64_t DataPacket::getDecodingTime() const {
+	return decodingTimeIn180k;
+}
+
 DataBaseRef::DataBaseRef(std::shared_ptr<const DataBase> data) {
 	if (data) {
 		setMediaTime(data->getMediaTime());

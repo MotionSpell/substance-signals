@@ -30,6 +30,14 @@ class DataBase : public IData {
 		std::shared_ptr<const IMetadata> metadata;
 };
 
+// A generic double-timed container with metadata
+struct DataPacket : DataBase {
+		void setDecodingTime(int64_t timeIn180k);
+		int64_t getDecodingTime() const;
+	private:
+		int64_t decodingTimeIn180k = 0;
+};
+
 class DataBaseRef : public DataBase {
 	public:
 		DataBaseRef(std::shared_ptr<const DataBase> data);

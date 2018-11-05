@@ -46,6 +46,10 @@ void AVCC2AnnexBConverter::process(Data in) {
 	auto out = output->getBuffer(in->data().len);
 	av_packet_copy_props(out->getPacket(), safe_cast<const DataAVPacket>(in)->getPacket());
 
+	auto pkt = safe_cast<const DataPacket>(in);
+	out->setDecodingTime(pkt->getDecodingTime());
+	out->setMediaTime(pkt->getMediaTime());
+
 	auto bs = ByteReader { in->data() };
 	while ( auto availableBytes = bs.available() ) {
 		if (availableBytes < 4) {

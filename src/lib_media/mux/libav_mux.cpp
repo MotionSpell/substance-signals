@@ -4,7 +4,7 @@
 #include "lib_modules/utils/factory.hpp"
 #include "lib_utils/tools.hpp"
 #include "../common/ffpp.hpp"
-#include "../common/libav.hpp"
+#include "../common/metadata.hpp"
 #include <cassert>
 #include <string>
 #include <sstream>
@@ -213,9 +213,8 @@ class LibavMux : public ModuleDynI {
 			newPkt->size = (int)outSize;
 
 			{
-				auto srcPkt = safe_cast<const DataAVPacket>(data)->getPacket();
-				newPkt->flags = srcPkt->flags;
-				newPkt->dts = srcPkt->dts;
+				auto srcPkt = safe_cast<const DataPacket>(data);
+				newPkt->dts = srcPkt->getDecodingTime();
 			}
 
 			newPkt->pts = data->getMediaTime();
