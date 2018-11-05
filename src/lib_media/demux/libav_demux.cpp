@@ -357,6 +357,8 @@ class LibavDemux : public ActiveModule {
 			auto const base = m_formatCtx->streams[pkt->stream_index]->time_base;
 			auto const time = timescaleToClock(pkt->pts * base.num, base.den);
 			data->setMediaTime(time - startPTSIn180k);
+			auto const decodingTime = timescaleToClock(pkt->dts * base.num, base.den);
+			data->setDecodingTime(decodingTime - startPTSIn180k);
 			int64_t offset;
 			if (startPTSIn180k) {
 				offset = -startPTSIn180k; //a global offset is applied to all streams (since it is a PTS we may have negative DTSs)

@@ -239,6 +239,7 @@ struct LibavEncode : ModuleS {
 					out->flags |= DATA_FLAGS_KEYFRAME;
 
 				out->setMediaTime(out->getPacket()->pts);
+				out->setDecodingTime(out->getPacket()->dts);
 				output->emit(out);
 			}
 		}
