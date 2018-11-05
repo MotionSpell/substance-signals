@@ -1012,8 +1012,7 @@ void GPACMuxMP4::closeChunk(bool nextSampleIsRAP) {
 }
 
 static bool isRap(Data data) {
-	auto pkt = safe_cast<const DataAVPacket>(data)->getPacket();
-	return pkt->flags & AV_PKT_FLAG_KEY;
+	return data->flags & DATA_FLAGS_KEYFRAME;
 }
 
 void GPACMuxMP4::processSample(Data data, int64_t lastDataDurationInTs) {
