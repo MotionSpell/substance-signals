@@ -37,27 +37,30 @@ StreamType getType(AVCodecContext* codecCtx) {
 	}
 }
 
-MetadataPktLibav::MetadataPktLibav(AVCodecContext* codecCtx)
-	: MetadataPkt(getType(codecCtx)) {
+static
+void initMetadatPkt(MetadataPktLibav* meta, AVCodecContext* codecCtx) {
 	enforce(codecCtx != nullptr, "MetadataPktLibav 'codecCtx' can't be null.");
-	codec = avcodec_get_name(codecCtx->codec_id);
-	codecSpecificInfo.assign(codecCtx->extradata, codecCtx->extradata + codecCtx->extradata_size);
-	bitrate = codecCtx->bit_rate;
+	meta->codec = avcodec_get_name(codecCtx->codec_id);
+	meta->codecSpecificInfo.assign(codecCtx->extradata, codecCtx->extradata + codecCtx->extradata_size);
+	meta->bitrate = codecCtx->bit_rate;
 
 	if (!codecCtx->time_base.num || !codecCtx->time_base.den)
 		throw std::runtime_error(format("Unsupported time scale %s/%s.", codecCtx->time_base.den, codecCtx->time_base.num));
-	timeScale = Fraction(codecCtx->time_base.den, codecCtx->time_base.num);
+	meta->timeScale = Fraction(codecCtx->time_base.den, codecCtx->time_base.num);
 }
 
-MetadataPktLibavVideo::MetadataPktLibavVideo(AVCodecContext* codecCtx) : MetadataPktLibav(codecCtx) {
-	timeScale = Fraction(codecCtx->time_base.den, codecCtx->time_base.num);
-	pixelFormat = libavPixFmt2PixelFormat(codecCtx->pix_fmt);
+Metadata createMetadataPktLibavVideo(AVCodecContext* codecCtx) {
+	auto meta = make_shared<MetadataPktLibavVideo>();
+	initMetadatPkt(meta.get(), codecCtx);
+	meta->timeScale = Fraction(codecCtx->time_base.den, codecCtx->time_base.num);
+	meta->pixelFormat = libavPixFmt2PixelFormat(codecCtx->pix_fmt);
 	auto const &sar = codecCtx->sample_aspect_ratio;
-	sampleAspectRatio =	Fraction(sar.num, sar.den);
-	resolution = Resolution(codecCtx->width, codecCtx->height);
+	meta->sampleAspectRatio =	Fraction(sar.num, sar.den);
+	meta->resolution = Resolution(codecCtx->width, codecCtx->height);
 	if (!codecCtx->framerate.num || !codecCtx->framerate.den)
 		throw std::runtime_error(format("Unsupported video frame rate %s/%s.", codecCtx->framerate.den, codecCtx->framerate.num));
-	framerate = Fraction(codecCtx->framerate.num, codecCtx->framerate.den);
+	meta->framerate = Fraction(codecCtx->framerate.num, codecCtx->framerate.den);
+	return meta;
 }
 
 static
@@ -100,14 +103,23 @@ AudioLayout getLayout(const AVCodecContext* codecCtx) {
 	}
 }
 
-MetadataPktLibavAudio::MetadataPktLibavAudio(AVCodecContext* codecCtx) : MetadataPktLibav(codecCtx) {
-	numChannels = codecCtx->channels;
-	planar = numChannels > 1 ? isPlanar(codecCtx) : true;
-	sampleRate = codecCtx->sample_rate;
-	bitsPerSample = av_get_bytes_per_sample(codecCtx->sample_fmt) * 8;
-	frameSize = codecCtx->frame_size;
-	format = getFormat(codecCtx);
-	layout = getLayout(codecCtx);
+Metadata createMetadataPktLibavAudio(AVCodecContext* codecCtx) {
+	auto meta = make_shared<MetadataPktLibavAudio>();
+	initMetadatPkt(meta.get(), codecCtx);
+	meta->numChannels = codecCtx->channels;
+	meta->planar = meta->numChannels > 1 ? isPlanar(codecCtx) : true;
+	meta->sampleRate = codecCtx->sample_rate;
+	meta->bitsPerSample = av_get_bytes_per_sample(codecCtx->sample_fmt) * 8;
+	meta->frameSize = codecCtx->frame_size;
+	meta->format = getFormat(codecCtx);
+	meta->layout = getLayout(codecCtx);
+	return meta;
+}
+
+Metadata createMetadataPktLibavSubtitle(AVCodecContext* codecCtx) {
+	auto meta = make_shared<MetadataPktLibavAudio>();
+	initMetadatPkt(meta.get(), codecCtx);
+	return meta;
 }
 
 //conversions

@@ -18,12 +18,16 @@ std::shared_ptr<AVCodecContext> shptr(AVCodecContext *p);
 
 namespace Modules {
 
+Metadata createMetadataPktLibavVideo(AVCodecContext* codecCtx);
+Metadata createMetadataPktLibavAudio(AVCodecContext* codecCtx);
+Metadata createMetadataPktLibavSubtitle(AVCodecContext* codecCtx);
+
 struct MetadataPktLibav : MetadataPkt {
-	MetadataPktLibav(AVCodecContext* codecCtx);
+	MetadataPktLibav(StreamType type) : MetadataPkt(type) {}
 };
 
 struct MetadataPktLibavVideo : MetadataPktLibav {
-	MetadataPktLibavVideo(AVCodecContext* codecCtx);
+	MetadataPktLibavVideo() : MetadataPktLibav(VIDEO_PKT) {}
 	PixelFormat pixelFormat;
 	Fraction sampleAspectRatio;
 	Resolution resolution;
@@ -31,7 +35,7 @@ struct MetadataPktLibavVideo : MetadataPktLibav {
 };
 
 struct MetadataPktLibavAudio : MetadataPktLibav {
-	MetadataPktLibavAudio(AVCodecContext* codecCtx);
+	MetadataPktLibavAudio() : MetadataPktLibav(AUDIO_PKT) {}
 	uint32_t numChannels;
 	uint32_t sampleRate;
 	uint8_t bitsPerSample;
@@ -42,7 +46,6 @@ struct MetadataPktLibavAudio : MetadataPktLibav {
 };
 
 struct MetadataPktLibavSubtitle : MetadataPktLibav {
-	MetadataPktLibavSubtitle(AVCodecContext* codecCtx) : MetadataPktLibav(codecCtx) {}
 };
 
 struct AVPacketDeleter {

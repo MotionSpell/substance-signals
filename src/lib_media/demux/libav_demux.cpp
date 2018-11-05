@@ -138,13 +138,13 @@ class LibavDemux : public ActiveModule {
 					st->codec->framerate = st->avg_frame_rate; //it is our reponsibility to provide the application with a reference framerate
 				}
 
-				std::shared_ptr<IMetadata> m;
+				std::shared_ptr<const IMetadata> m;
 				auto codecCtx = shptr(avcodec_alloc_context3(nullptr));
 				avcodec_copy_context(codecCtx.get(), st->codec);
 				switch (st->codecpar->codec_type) {
-				case AVMEDIA_TYPE_AUDIO: m = make_shared<MetadataPktLibavAudio>(codecCtx.get()); break;
-				case AVMEDIA_TYPE_VIDEO: m = make_shared<MetadataPktLibavVideo>(codecCtx.get()); break;
-				case AVMEDIA_TYPE_SUBTITLE: m = make_shared<MetadataPktLibavSubtitle>(codecCtx.get()); break;
+				case AVMEDIA_TYPE_AUDIO: m = createMetadataPktLibavAudio(codecCtx.get()); break;
+				case AVMEDIA_TYPE_VIDEO: m = createMetadataPktLibavVideo(codecCtx.get()); break;
+				case AVMEDIA_TYPE_SUBTITLE: m = createMetadataPktLibavSubtitle(codecCtx.get()); break;
 				default: break;
 				}
 				m_streams[i].output = addOutput<OutputDataDefault<DataAVPacket>>(m);
