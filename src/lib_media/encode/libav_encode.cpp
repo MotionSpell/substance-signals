@@ -219,11 +219,6 @@ struct LibavEncode : ModuleS {
 			prevMediaTime = currMediaTime;
 		}
 
-		void setMediaTime(std::shared_ptr<DataAVPacket> data) {
-			AVPacket *pkt = data->getPacket();
-			data->setMediaTime(pkt->pts);
-		}
-
 		void encodeFrame(AVFrame* f) {
 			int ret;
 
@@ -243,7 +238,7 @@ struct LibavEncode : ModuleS {
 				if(out->getPacket()->flags & AV_PKT_FLAG_KEY)
 					out->flags |= DATA_FLAGS_KEYFRAME;
 
-				setMediaTime(out);
+				out->setMediaTime(out->getPacket()->pts);
 				output->emit(out);
 			}
 		}
