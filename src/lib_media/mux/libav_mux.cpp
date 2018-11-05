@@ -60,7 +60,8 @@ class LibavMux : public ModuleDynI {
 		}
 
 		~LibavMux() {
-			if (m_formatCtx) {
+			assert(m_formatCtx);
+			{
 				if (!(m_formatCtx->oformat->flags & AVFMT_NOFILE)) {
 					if (!(m_formatCtx->flags & AVFMT_FLAG_CUSTOM_IO)) {
 						avio_close(m_formatCtx->pb); //close output file
@@ -84,6 +85,7 @@ class LibavMux : public ModuleDynI {
 					if(!(*prevInputMeta == *inputs[inputIdx]->getMetadata()))
 						m_host->log(Error, format("input #%s: updating existing metadata. Not supported but continuing execution.", inputIdx).c_str());
 				} else {
+					assert(!m_headerWritten);
 					declareStream(data, inputIdx);
 				}
 			}
