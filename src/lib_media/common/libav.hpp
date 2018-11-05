@@ -22,20 +22,16 @@ Metadata createMetadataPktLibavVideo(AVCodecContext* codecCtx);
 Metadata createMetadataPktLibavAudio(AVCodecContext* codecCtx);
 Metadata createMetadataPktLibavSubtitle(AVCodecContext* codecCtx);
 
-struct MetadataPktLibav : MetadataPkt {
-	MetadataPktLibav(StreamType type) : MetadataPkt(type) {}
-};
-
-struct MetadataPktLibavVideo : MetadataPktLibav {
-	MetadataPktLibavVideo() : MetadataPktLibav(VIDEO_PKT) {}
+struct MetadataPktLibavVideo : MetadataPkt {
+	MetadataPktLibavVideo() : MetadataPkt(VIDEO_PKT) {}
 	PixelFormat pixelFormat;
 	Fraction sampleAspectRatio;
 	Resolution resolution;
 	Fraction framerate;
 };
 
-struct MetadataPktLibavAudio : MetadataPktLibav {
-	MetadataPktLibavAudio() : MetadataPktLibav(AUDIO_PKT) {}
+struct MetadataPktLibavAudio : MetadataPkt {
+	MetadataPktLibavAudio() : MetadataPkt(AUDIO_PKT) {}
 	uint32_t numChannels;
 	uint32_t sampleRate;
 	uint8_t bitsPerSample;
@@ -45,7 +41,7 @@ struct MetadataPktLibavAudio : MetadataPktLibav {
 	AudioLayout layout;
 };
 
-struct MetadataPktLibavSubtitle : MetadataPktLibav {
+struct MetadataPktLibavSubtitle : MetadataPkt {
 };
 
 struct AVPacketDeleter {

@@ -38,8 +38,8 @@ StreamType getType(AVCodecContext* codecCtx) {
 }
 
 static
-void initMetadatPkt(MetadataPktLibav* meta, AVCodecContext* codecCtx) {
-	enforce(codecCtx != nullptr, "MetadataPktLibav 'codecCtx' can't be null.");
+void initMetadatPkt(MetadataPkt* meta, AVCodecContext* codecCtx) {
+	enforce(codecCtx != nullptr, "MetadataPkt 'codecCtx' can't be null.");
 	meta->codec = avcodec_get_name(codecCtx->codec_id);
 	meta->codecSpecificInfo.assign(codecCtx->extradata, codecCtx->extradata + codecCtx->extradata_size);
 	meta->bitrate = codecCtx->bit_rate;
