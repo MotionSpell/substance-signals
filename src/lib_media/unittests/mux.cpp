@@ -265,7 +265,7 @@ secondclasstest("mux GPAC mp4 combination coverage: ugly 2") {
 	);
 }
 
-#include "lib_media/common/libav.hpp"
+#include "lib_media/common/libav.hpp" // DataAVPacket
 
 unittest("remux test: canonical to H.264 Annex B bitstream converter") {
 	const uint8_t input[] = {0, 0, 0, 4, 44, 55, 66, 77 };

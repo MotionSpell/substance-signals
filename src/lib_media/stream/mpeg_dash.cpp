@@ -1,7 +1,6 @@
 #include "mpeg_dash.hpp"
 #include "adaptive_streaming_common.hpp"
 #include "../common/gpacpp.hpp"
-#include "../common/libav.hpp"
 #include "../common/metadata_file.hpp"
 #include "lib_modules/utils/factory.hpp"
 #include "lib_utils/time.hpp"
