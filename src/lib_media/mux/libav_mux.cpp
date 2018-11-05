@@ -212,12 +212,12 @@ class LibavMux : public ModuleDynI {
 				newPkt->size = (int)outSize;
 				newPkt->flags = pkt->flags;
 				newPkt->dts = pkt->dts;
-				newPkt->pts = pkt->pts;
-				newPkt->duration = pkt->duration;
 				pkt = newPkt;
 			} else {
 				pkt = av_packet_clone(pkt);
 			}
+
+			pkt->pts = data->getMediaTime();
 
 			return shared_ptr<AVPacket>(pkt, &my_av_packet_deleter);
 		}
