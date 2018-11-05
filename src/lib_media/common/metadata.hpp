@@ -57,4 +57,14 @@ struct MetadataPktAudio : MetadataPkt {
 struct MetadataPktSubtitle : MetadataPkt {
 };
 
+inline PcmFormat toPcmFormat(std::shared_ptr<const MetadataPktAudio> meta) {
+	PcmFormat cfg;
+	cfg.sampleRate = meta->sampleRate;
+	cfg.numChannels = meta->numChannels;
+	cfg.sampleFormat = meta->format;
+	cfg.numPlanes = meta->planar ? cfg.numChannels : 1;
+	cfg.layout = meta->layout;
+	return cfg;
+}
+
 }
