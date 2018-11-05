@@ -39,7 +39,6 @@ class DataAVPacket : public DataBase {
 
 		AVPacket* getPacket() const;
 		void restamp(int64_t offsetIn180k, uint64_t pktTimescale) const;
-		bool isRap() const;
 
 	private:
 		std::unique_ptr<AVPacket, AVPacketDeleter> const pkt;

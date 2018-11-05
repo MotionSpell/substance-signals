@@ -101,8 +101,6 @@ unittest("encoder: video timestamp passthrough") {
 	ASSERT_EQUALS(expected, times);
 }
 
-#include "lib_media/common/libav.hpp" // DataAVPacket
-
 void RAPTest(const Fraction fps, const vector<uint64_t> &times, const vector<bool> &RAPs) {
 	EncoderConfig p { EncoderConfig::Video };
 	p.frameRate = fps;
@@ -112,8 +110,7 @@ void RAPTest(const Fraction fps, const vector<uint64_t> &times, const vector<boo
 	size_t i = 0;
 	auto onFrame = [&](Data data) {
 		if (i < RAPs.size()) {
-			auto pkt = safe_cast<const DataAVPacket>(data);
-			ASSERT(pkt->isRap() == RAPs[i]);
+			ASSERT((data->flags & DATA_FLAGS_KEYFRAME ? 1 : 0) == RAPs[i]);
 		}
 		i++;
 	};
