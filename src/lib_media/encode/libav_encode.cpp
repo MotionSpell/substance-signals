@@ -279,7 +279,7 @@ struct LibavEncode : ModuleS {
 				// for encoding level checks (MB rate) and rate control
 				codecCtx->ticks_per_frame = int(framePeriod * IClock::Rate);
 
-				output->setMetadata(make_shared<MetadataPktLibavVideo>(codecCtx));
+				output->setMetadata(make_shared<MetadataPktLibavVideo>(codecCtx.get()));
 				break;
 			}
 			case EncoderConfig::Audio: {
@@ -294,7 +294,7 @@ struct LibavEncode : ModuleS {
 				libavAudioCtxConvert(pcmFormat.get(), codecCtx.get());
 				codecOptions += format(" -ar %s -ac %s", fmt.sampleRate, fmt.numChannels);
 
-				output->setMetadata(make_shared<MetadataPktLibavAudio>(codecCtx));
+				output->setMetadata(make_shared<MetadataPktLibavAudio>(codecCtx.get()));
 				break;
 			}
 			default:

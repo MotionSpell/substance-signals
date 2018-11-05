@@ -37,8 +37,8 @@ StreamType getType(AVCodecContext* codecCtx) {
 	}
 }
 
-MetadataPktLibav::MetadataPktLibav(std::shared_ptr<AVCodecContext> codecCtx)
-	: MetadataPkt(getType(codecCtx.get())) {
+MetadataPktLibav::MetadataPktLibav(AVCodecContext* codecCtx)
+	: MetadataPkt(getType(codecCtx)) {
 	enforce(codecCtx != nullptr, "MetadataPktLibav 'codecCtx' can't be null.");
 	codec = avcodec_get_name(codecCtx->codec_id);
 	codecSpecificInfo.assign(codecCtx->extradata, codecCtx->extradata + codecCtx->extradata_size);
@@ -49,7 +49,7 @@ MetadataPktLibav::MetadataPktLibav(std::shared_ptr<AVCodecContext> codecCtx)
 	timeScale = Fraction(codecCtx->time_base.den, codecCtx->time_base.num);
 }
 
-MetadataPktLibavVideo::MetadataPktLibavVideo(std::shared_ptr<AVCodecContext> codecCtx) : MetadataPktLibav(codecCtx) {
+MetadataPktLibavVideo::MetadataPktLibavVideo(AVCodecContext* codecCtx) : MetadataPktLibav(codecCtx) {
 	timeScale = Fraction(codecCtx->time_base.den, codecCtx->time_base.num);
 	pixelFormat = libavPixFmt2PixelFormat(codecCtx->pix_fmt);
 	auto const &sar = codecCtx->sample_aspect_ratio;
@@ -100,14 +100,14 @@ AudioLayout getLayout(const AVCodecContext* codecCtx) {
 	}
 }
 
-MetadataPktLibavAudio::MetadataPktLibavAudio(std::shared_ptr<AVCodecContext> codecCtx) : MetadataPktLibav(codecCtx) {
+MetadataPktLibavAudio::MetadataPktLibavAudio(AVCodecContext* codecCtx) : MetadataPktLibav(codecCtx) {
 	numChannels = codecCtx->channels;
-	planar = numChannels > 1 ? isPlanar(codecCtx.get()) : true;
+	planar = numChannels > 1 ? isPlanar(codecCtx) : true;
 	sampleRate = codecCtx->sample_rate;
 	bitsPerSample = av_get_bytes_per_sample(codecCtx->sample_fmt) * 8;
 	frameSize = codecCtx->frame_size;
-	format = getFormat(codecCtx.get());
-	layout = getLayout(codecCtx.get());
+	format = getFormat(codecCtx);
+	layout = getLayout(codecCtx);
 }
 
 //conversions
