@@ -208,7 +208,8 @@ class LibavMux : public ModuleDynI {
 			auto const& headers = insertHeaders ? videoMetadata->codecSpecificInfo : std::vector<uint8_t>();
 			auto const outSize = data->data().len + headers.size();
 			av_new_packet(newPkt, (int)outSize);
-			memcpy(newPkt->data, headers.data(), headers.size());
+			if(headers.size())
+				memcpy(newPkt->data, headers.data(), headers.size());
 			memcpy(newPkt->data + headers.size(), data->data().ptr, data->data().len);
 			newPkt->size = (int)outSize;
 			newPkt->pts = data->getMediaTime();
