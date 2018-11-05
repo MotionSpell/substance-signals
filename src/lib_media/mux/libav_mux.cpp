@@ -68,7 +68,7 @@ class LibavMux : public ModuleDynI {
 					}
 				}
 				for (unsigned i = 0; i < m_formatCtx->nb_streams; ++i) {
-					avcodec_close(m_formatCtx->streams[i]->codec);
+					avcodec_parameters_free(&m_formatCtx->streams[i]->codecpar);
 				}
 
 				avformat_free_context(m_formatCtx);

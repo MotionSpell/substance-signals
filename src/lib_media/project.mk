@@ -139,4 +139,3 @@ include $(SRC)/lib_media/demux/TsDemuxer/project.mk
 #------------------------------------------------------------------------------
 # Warning derogations. TODO: make this list empty
 $(BIN)/$(SRC)/lib_media/demux/libav_demux.cpp.o: CFLAGS+=-Wno-deprecated-declarations
-$(BIN)/$(SRC)/lib_media/mux/libav_mux.cpp.o: CFLAGS+=-Wno-deprecated-declarations
