@@ -54,9 +54,11 @@ unittest("LibavDemux: rollover") {
 		MyOutput() {
 			addInput(this);
 		}
-		vector<int64_t> times;
+		vector<int64_t> times, decodingTimes;
 		void process(Data data) override {
-			times.push_back(data->getMediaTime());
+			auto pkt = safe_cast<const DataPacket>(data.get());
+			times.push_back(pkt->getMediaTime());
+			decodingTimes.push_back(pkt->getDecodingTime());
 		}
 	};
 
@@ -71,6 +73,7 @@ unittest("LibavDemux: rollover") {
 
 	vector<int64_t> expected(74, 7200);
 	ASSERT_EQUALS(expected, deltas(rec->times));
+	ASSERT_EQUALS(expected, deltas(rec->decodingTimes));
 }
 
 unittest("empty param test: Demux") {
