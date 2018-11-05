@@ -3,8 +3,6 @@
 #include <cstring> // memcpy
 #include "lib_modules/core/data.hpp"
 #include "lib_modules/core/database.hpp"
-#include "lib_utils/log.hpp"
-#include "lib_utils/format.hpp"
 
 namespace Modules {
 
@@ -65,26 +63,20 @@ class PcmFormat {
 		}
 
 		bool operator==(const PcmFormat& other) const {
-			if (other.sampleRate != sampleRate) {
-				g_Log->log(Debug, format("[Audio] Incompatible configuration: sample rate is %s, expect %s.", other.sampleRate, sampleRate).c_str());
+			if (other.sampleRate != sampleRate)
 				return false;
-			}
-			if (other.numChannels != numChannels) {
-				g_Log->log(Debug, format("[Audio] Incompatible configuration: channel number is %s, expect %s.", other.numChannels, numChannels).c_str());
+
+			if (other.numChannels != numChannels)
 				return false;
-			}
-			if (other.layout != layout) {
-				g_Log->log(Debug, format("[Audio] Incompatible configuration: layout is %s, expect %s.", other.layout, layout).c_str());
+
+			if (other.layout != layout)
 				return false;
-			}
-			if (other.sampleFormat != sampleFormat) {
-				g_Log->log(Debug, format("[Audio] Incompatible configuration: sample format is %s, expect %s.", other.sampleFormat, sampleFormat).c_str());
+
+			if (other.sampleFormat != sampleFormat)
 				return false;
-			}
-			if (other.numPlanes != numPlanes) {
-				g_Log->log(Debug, format("[Audio] Incompatible configuration: plane number is %s, expect %s.", other.numPlanes, numPlanes).c_str());
+
+			if (other.numPlanes != numPlanes)
 				return false;
-			}
 
 			return true;
 		}
