@@ -19,29 +19,26 @@ std::shared_ptr<AVCodecContext> shptr(AVCodecContext *p);
 namespace Modules {
 
 struct MetadataPktLibav : MetadataPkt {
-		MetadataPktLibav(std::shared_ptr<AVCodecContext> codecCtx);
-
-	protected:
-		std::shared_ptr<AVCodecContext> codecCtx;
+	MetadataPktLibav(std::shared_ptr<AVCodecContext> codecCtx);
 };
 
 struct MetadataPktLibavVideo : MetadataPktLibav {
-	MetadataPktLibavVideo(std::shared_ptr<AVCodecContext> codecCtx) : MetadataPktLibav(codecCtx) {}
-	PixelFormat getPixelFormat() const;
-	Fraction getSampleAspectRatio() const;
-	Resolution getResolution() const;
-	Fraction getFrameRate() const;
+	MetadataPktLibavVideo(std::shared_ptr<AVCodecContext> codecCtx);
+	PixelFormat pixelFormat;
+	Fraction sampleAspectRatio;
+	Resolution resolution;
+	Fraction framerate;
 };
 
 struct MetadataPktLibavAudio : MetadataPktLibav {
-	MetadataPktLibavAudio(std::shared_ptr<AVCodecContext> codecCtx) : MetadataPktLibav(codecCtx) {}
-	uint32_t getNumChannels() const;
-	uint32_t getSampleRate() const;
-	uint8_t getBitsPerSample() const;
-	uint32_t getFrameSize() const;
-	bool isPlanar() const;
-	AudioSampleFormat getFormat() const;
-	AudioLayout getLayout() const;
+	MetadataPktLibavAudio(std::shared_ptr<AVCodecContext> codecCtx);
+	uint32_t numChannels;
+	uint32_t sampleRate;
+	uint8_t bitsPerSample;
+	uint32_t frameSize;
+	bool planar;
+	AudioSampleFormat format;
+	AudioLayout layout;
 };
 
 struct MetadataPktLibavSubtitle : MetadataPktLibav {

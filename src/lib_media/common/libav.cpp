@@ -38,7 +38,7 @@ StreamType getType(AVCodecContext* codecCtx) {
 }
 
 MetadataPktLibav::MetadataPktLibav(std::shared_ptr<AVCodecContext> codecCtx)
-	: MetadataPkt(getType(codecCtx.get())), codecCtx(codecCtx) {
+	: MetadataPkt(getType(codecCtx.get())) {
 	enforce(codecCtx != nullptr, "MetadataPktLibav 'codecCtx' can't be null.");
 	codec = avcodec_get_name(codecCtx->codec_id);
 	codecSpecificInfo.assign(codecCtx->extradata, codecCtx->extradata + codecCtx->extradata_size);
@@ -49,31 +49,19 @@ MetadataPktLibav::MetadataPktLibav(std::shared_ptr<AVCodecContext> codecCtx)
 	timeScale = Fraction(codecCtx->time_base.den, codecCtx->time_base.num);
 }
 
-PixelFormat MetadataPktLibavVideo::getPixelFormat() const {
-	return libavPixFmt2PixelFormat(codecCtx->pix_fmt);
-}
-
-Fraction MetadataPktLibavVideo::getSampleAspectRatio() const {
+MetadataPktLibavVideo::MetadataPktLibavVideo(std::shared_ptr<AVCodecContext> codecCtx) : MetadataPktLibav(codecCtx) {
+	timeScale = Fraction(codecCtx->time_base.den, codecCtx->time_base.num);
+	pixelFormat = libavPixFmt2PixelFormat(codecCtx->pix_fmt);
 	auto const &sar = codecCtx->sample_aspect_ratio;
-	return Fraction(sar.num, sar.den);
-}
-
-Resolution MetadataPktLibavVideo::getResolution() const {
-	return Resolution(codecCtx->width, codecCtx->height);
-}
-
-Fraction MetadataPktLibavVideo::getFrameRate() const {
+	sampleAspectRatio =	Fraction(sar.num, sar.den);
+	resolution = Resolution(codecCtx->width, codecCtx->height);
 	if (!codecCtx->framerate.num || !codecCtx->framerate.den)
 		throw std::runtime_error(format("Unsupported video frame rate %s/%s.", codecCtx->framerate.den, codecCtx->framerate.num));
-	return Fraction(codecCtx->framerate.num, codecCtx->framerate.den);
+	framerate = Fraction(codecCtx->framerate.num, codecCtx->framerate.den);
 }
 
-//MetadataPktLibavAudio
-uint32_t MetadataPktLibavAudio::getNumChannels() const {
-	return codecCtx->channels;
-}
-
-bool MetadataPktLibavAudio::isPlanar() const {
+static
+bool isPlanar(const AVCodecContext* codecCtx) {
 	switch (codecCtx->sample_fmt) {
 	case AV_SAMPLE_FMT_S16:
 	case AV_SAMPLE_FMT_FLT:
@@ -86,40 +74,40 @@ bool MetadataPktLibavAudio::isPlanar() const {
 	}
 }
 
-uint32_t MetadataPktLibavAudio::getSampleRate() const {
-	return codecCtx->sample_rate;
-}
-
-uint8_t MetadataPktLibavAudio::getBitsPerSample() const {
-	return av_get_bytes_per_sample(codecCtx->sample_fmt) * 8;
-}
-
-uint32_t MetadataPktLibavAudio::getFrameSize() const {
-	return codecCtx->frame_size;
-}
-
-AudioSampleFormat MetadataPktLibavAudio::getFormat() const {
+static
+AudioSampleFormat getFormat(const AVCodecContext* codecCtx) {
 	switch (codecCtx->sample_fmt) {
 	case AV_SAMPLE_FMT_S16: return Modules::S16;
 	case AV_SAMPLE_FMT_S16P: return Modules::S16;
 	case AV_SAMPLE_FMT_FLT: return Modules::F32;
 	case AV_SAMPLE_FMT_FLTP: return Modules::F32;
 	default:
-		throw std::runtime_error(format("Unknown libav audio format [%s] (2)", codecCtx->sample_fmt));
+		throw std::runtime_error(format("Unknown libav audio format [%s] (3)", codecCtx->sample_fmt));
 	}
 }
 
-AudioLayout MetadataPktLibavAudio::getLayout() const {
+static
+AudioLayout getLayout(const AVCodecContext* codecCtx) {
 	switch (codecCtx->channel_layout) {
 	case AV_CH_LAYOUT_MONO:   return Mono; break;
 	case AV_CH_LAYOUT_STEREO: return Stereo; break;
 	default:
-		switch (getNumChannels()) {
+		switch (codecCtx->channels) {
 		case 1: return Mono; break;
 		case 2: return Stereo; break;
 		default: throw std::runtime_error("Unknown libav audio layout");
 		}
 	}
+}
+
+MetadataPktLibavAudio::MetadataPktLibavAudio(std::shared_ptr<AVCodecContext> codecCtx) : MetadataPktLibav(codecCtx) {
+	numChannels = codecCtx->channels;
+	planar = numChannels > 1 ? isPlanar(codecCtx.get()) : true;
+	sampleRate = codecCtx->sample_rate;
+	bitsPerSample = av_get_bytes_per_sample(codecCtx->sample_fmt) * 8;
+	frameSize = codecCtx->frame_size;
+	format = getFormat(codecCtx.get());
+	layout = getLayout(codecCtx.get());
 }
 
 //conversions
@@ -146,15 +134,13 @@ void libavAudioCtxConvert(const PcmFormat *cfg, AVCodecContext *codecCtx) {
 }
 
 PcmFormat toPcmFormat(std::shared_ptr<const MetadataPktLibavAudio> meta) {
-	PcmFormat cfg_;
-	PcmFormat *cfg = &cfg_;
-	cfg->sampleRate = meta->getSampleRate();
-	cfg->numChannels = meta->getNumChannels();
-	cfg->sampleFormat = meta->getFormat();
-	cfg->numPlanes = meta->isPlanar() ? cfg->numChannels : 1;
-	cfg->layout = meta->getLayout();
-
-	return *cfg;
+	PcmFormat cfg;
+	cfg.sampleRate = meta->sampleRate;
+	cfg.numChannels = meta->numChannels;
+	cfg.sampleFormat = meta->format;
+	cfg.numPlanes = meta->planar ? cfg.numChannels : 1;
+	cfg.layout = meta->layout;
+	return cfg;
 }
 
 void libavFrame2pcmConvert(const AVFrame *frame, PcmFormat *cfg) {

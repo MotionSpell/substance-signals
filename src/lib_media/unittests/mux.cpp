@@ -323,6 +323,7 @@ unittest("GPAC mp4 mux: don't create empty fragments") {
 
 		auto ctx = make_shared<AVCodecContext>();
 		ctx->time_base = {1, 1};
+		ctx->framerate = {1, 1};
 		ctx->codec_id = AV_CODEC_ID_H264;
 		auto accessUnit = make_shared<DataAVPacket>(sizeof h264_gray_frame);
 		static const auto meta = make_shared<MetadataPktLibavVideo>(ctx);

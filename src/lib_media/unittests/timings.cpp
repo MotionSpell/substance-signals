@@ -120,7 +120,7 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 			auto const metaEnc = safe_cast<const MetadataPktLibavAudio>(metadataEncoder);
 			auto const encFmt = toPcmFormat(metaEnc);
 			auto const format = PcmFormat(demuxFmt.sampleRate, demuxFmt.numChannels, demuxFmt.layout, encFmt.sampleFormat, (encFmt.numPlanes == 1) ? Interleaved : Planar);
-			return loadModule("AudioConvert", &NullHost, nullptr, &format, metaEnc->getFrameSize());
+			return loadModule("AudioConvert", &NullHost, nullptr, &format, metaEnc->frameSize);
 		} else
 			throw std::runtime_error("[Converter] Found unknown stream");
 	};
@@ -140,7 +140,7 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 		auto decoder = loadModule("Decoder", &NullHost, metadataDemux->type);
 		ConnectOutputToInput(gapper->getOutput(0), decoder->getInput(0));
 
-		auto inputRes = safe_cast<const MetadataPktLibavVideo>(demux->getOutput(i)->getMetadata())->getResolution();
+		auto inputRes = safe_cast<const MetadataPktLibavVideo>(demux->getOutput(i)->getMetadata())->resolution;
 		PictureFormat encoderInputPicFmt(inputRes, UNKNOWN_PF);
 		auto encoder = createEncoder(metadataDemux, encoderInputPicFmt);
 		auto converter = createConverter(metadataDemux, encoder->getOutput(0)->getMetadata(), encoderInputPicFmt);

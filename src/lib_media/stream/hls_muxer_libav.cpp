@@ -70,9 +70,9 @@ class LibavMuxHLSTS : public ModuleDynI {
 
 						switch (data->getMetadata()->type) {
 						case AUDIO_PKT:
-							metadata->sampleRate = safe_cast<const MetadataPktLibavAudio>(data->getMetadata())->getSampleRate(); break;
+							metadata->sampleRate = safe_cast<const MetadataPktLibavAudio>(data->getMetadata())->sampleRate; break;
 						case VIDEO_PKT: {
-							auto const res = safe_cast<const MetadataPktLibavVideo>(data->getMetadata())->getResolution();
+							auto const res = safe_cast<const MetadataPktLibavVideo>(data->getMetadata())->resolution;
 							metadata->resolution = res;
 							break;
 						}

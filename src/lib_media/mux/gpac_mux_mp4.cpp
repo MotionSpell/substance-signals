@@ -625,9 +625,9 @@ void GPACMuxMP4::declareStreamAudio(const MetadataPktLibavAudio* metadata) {
 		throw error("Cannot create GF_ESD for audio");
 
 	esd->decoderConfig->streamType = GF_STREAM_AUDIO;
-	timeScale = sampleRate = metadata->getSampleRate();
+	timeScale = sampleRate = metadata->sampleRate;
 	m_host->log(Debug, format("TimeScale: %s", timeScale).c_str());
-	defaultSampleIncInTs = metadata->getFrameSize();
+	defaultSampleIncInTs = metadata->frameSize;
 
 	auto const trackNum = gf_isom_new_track(isoCur, esd->ESID, GF_ISOM_MEDIA_AUDIO, timeScale);
 	if (!trackNum)
@@ -643,7 +643,7 @@ void GPACMuxMP4::declareStreamAudio(const MetadataPktLibavAudio* metadata) {
 
 		acfg.base_object_type = GF_M4A_AAC_LC;
 		acfg.base_sr = sampleRate;
-		acfg.nb_chan = metadata->getNumChannels();
+		acfg.nb_chan = metadata->numChannels;
 		acfg.sbr_object_type = 0;
 		acfg.audioPL = gf_m4a_get_profile(&acfg);
 
@@ -662,7 +662,7 @@ void GPACMuxMP4::declareStreamAudio(const MetadataPktLibavAudio* metadata) {
 
 		acfg.base_object_type = GF_M4A_LAYER2;
 		acfg.base_sr = sampleRate;
-		acfg.nb_chan = metadata->getNumChannels();
+		acfg.nb_chan = metadata->numChannels;
 		acfg.sbr_object_type = 0;
 		acfg.audioPL = gf_m4a_get_profile(&acfg);
 
@@ -708,8 +708,8 @@ void GPACMuxMP4::declareStreamAudio(const MetadataPktLibavAudio* metadata) {
 	if (e != GF_OK)
 		throw error(format("gf_isom_set_track_enabled: %s", gf_error_to_string(e)));
 
-	auto const bitsPerSample = std::min(16, (int)metadata->getBitsPerSample());
-	e = gf_isom_set_audio_info(isoCur, trackNum, di, sampleRate, metadata->getNumChannels(), bitsPerSample);
+	auto const bitsPerSample = std::min(16, (int)metadata->bitsPerSample);
+	e = gf_isom_set_audio_info(isoCur, trackNum, di, sampleRate, metadata->numChannels, bitsPerSample);
 	if (e != GF_OK)
 		throw error(format("gf_isom_set_audio_info: %s", gf_error_to_string(e)));
 
@@ -754,7 +754,7 @@ void GPACMuxMP4::declareStreamVideo(const MetadataPktLibavVideo* metadata) {
 		throw error("Cannot create new track");
 	trackId = gf_isom_get_track_id(isoCur, trackNum);
 	defaultSampleIncInTs = metadata->timeScale.den * TIMESCALE_MUL;
-	resolution = metadata->getResolution();
+	resolution = metadata->resolution;
 
 	GF_Err e = gf_isom_set_track_enabled(isoCur, trackNum, GF_TRUE);
 	if (e != GF_OK)
@@ -814,7 +814,7 @@ void GPACMuxMP4::declareStreamVideo(const MetadataPktLibavVideo* metadata) {
 			throw error("Container format import failed");
 	}
 
-	resolution = metadata->getResolution();
+	resolution = metadata->resolution;
 	gf_isom_set_visual_info(isoCur, gf_isom_get_track_by_id(isoCur, trackId), di, resolution.width, resolution.height);
 	gf_isom_set_sync_table(isoCur, trackNum);
 

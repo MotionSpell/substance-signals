@@ -161,13 +161,13 @@ class LibavMux : public ModuleDynI {
 
 			if(auto info = dynamic_cast<const MetadataPktLibavVideo*>(metadata)) {
 				codecpar->codec_type = AVMEDIA_TYPE_VIDEO;
-				codecpar->width  = info->getResolution().width;
-				codecpar->height = info->getResolution().height;
+				codecpar->width  = info->resolution.width;
+				codecpar->height = info->resolution.height;
 			} else if(auto info = dynamic_cast<const MetadataPktLibavAudio*>(metadata)) {
 				codecpar->codec_type = AVMEDIA_TYPE_AUDIO;
-				codecpar->sample_rate = info->getSampleRate();
-				codecpar->channels = info->getNumChannels();
-				codecpar->frame_size = info->getFrameSize();
+				codecpar->sample_rate = info->sampleRate;
+				codecpar->channels = info->numChannels;
+				codecpar->frame_size = info->frameSize;
 			} else {
 				// anything to do for subtitles?
 			}

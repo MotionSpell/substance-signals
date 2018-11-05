@@ -157,8 +157,8 @@ unittest("transcoder: h264/mp4 to jpg") {
 	auto encoder = loadModule("JPEGTurboEncode", &NullHost);
 	auto writer = create<Out::File>(&NullHost, "out/test3.jpg");
 
-	auto const dstRes = metadata->getResolution();
-	ASSERT(metadata->getPixelFormat() == YUV420P);
+	auto const dstRes = metadata->resolution;
+	ASSERT(metadata->pixelFormat == YUV420P);
 	auto const dstFormat = PictureFormat(dstRes, RGB24);
 	auto converter = loadModule("VideoConvert", &NullHost, &dstFormat);
 
