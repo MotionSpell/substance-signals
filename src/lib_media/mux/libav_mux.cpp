@@ -173,7 +173,8 @@ class LibavMux : public ModuleDynI {
 			auto& extradata = metadata->codecSpecificInfo;
 			codecpar->extradata_size = extradata.size();
 			codecpar->extradata = (uint8_t*)av_malloc(extradata.size());
-			memcpy(codecpar->extradata, extradata.data(), extradata.size());
+			if(extradata.size())
+				memcpy(codecpar->extradata, extradata.data(), extradata.size());
 
 			stream->time_base = {1, IClock::Rate};
 			inputIdx2AvStream[inputIdx] = m_formatCtx->nb_streams - 1;
