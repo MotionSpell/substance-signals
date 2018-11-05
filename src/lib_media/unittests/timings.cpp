@@ -1,5 +1,6 @@
 #include "tests/tests.hpp"
-#include "lib_media/common/libav.hpp"
+#include "lib_media/common/picture.hpp"
+#include "lib_media/common/metadata.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/demux/gpac_demux_mp4_simple.hpp"
 #include "lib_media/transform/audio_gap_filler.hpp"
