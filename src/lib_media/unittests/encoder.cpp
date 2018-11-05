@@ -2,7 +2,7 @@
 #include "lib_modules/modules.hpp"
 #include "lib_modules/utils/loader.hpp"
 #include "lib_media/common/metadata_file.hpp"
-#include "lib_media/common/libav.hpp"
+#include "lib_media/common/picture.hpp"
 #include "lib_media/common/pcm.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/encode/libav_encode.hpp"
@@ -100,6 +100,8 @@ unittest("encoder: video timestamp passthrough") {
 	vector<int64_t> expected = {0, 1, 2, 3, 4, 20, 21, 22, 10, 11, 12};
 	ASSERT_EQUALS(expected, times);
 }
+
+#include "lib_media/common/libav.hpp" // DataAVPacket
 
 void RAPTest(const Fraction fps, const vector<uint64_t> &times, const vector<bool> &RAPs) {
 	EncoderConfig p { EncoderConfig::Video };
