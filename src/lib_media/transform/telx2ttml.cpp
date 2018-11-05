@@ -1,5 +1,4 @@
 #include "telx2ttml.hpp"
-#include "../common/libav.hpp"
 #include "lib_modules/utils/factory.hpp"
 #include "lib_modules/utils/helper.hpp"
 #include "lib_utils/log_sink.hpp" // Warning
@@ -105,7 +104,7 @@ class TeletextToTTML : public ModuleS {
 
 		IModuleHost* const m_host;
 		IUtcStartTimeQuery* const m_utcStartTime;
-		OutputDataDefault<DataAVPacket> *output;
+		OutputDataDefault<DataRaw> *output;
 		const unsigned pageNum;
 		const std::string lang;
 		const TeletextToTtmlConfig::TimingPolicy timingPolicy;
@@ -183,17 +182,15 @@ TeletextToTTML::TeletextToTTML(IModuleHost* host, TeletextToTtmlConfig* cfg)
 	enforce(cfg->utcStartTime != nullptr, "TeletextToTTML: utcStartTime can't be NULL");
 	config = make_unique<Config>();
 	addInput(this);
-	output = addOutput<OutputDataDefault<DataAVPacket>>();
+	output = addOutput<OutputDataDefault<DataRaw>>();
 }
 
 void TeletextToTTML::sendSample(const std::string &sample) {
 	auto out = output->getBuffer(0);
 	out->setMediaTime(intClock);
-	auto pkt = out->getPacket();
-	pkt->size = (int)sample.size();
-	pkt->data = (uint8_t*)av_malloc(pkt->size);
-	pkt->flags |= AV_PKT_FLAG_KEY;
-	memcpy(pkt->data, (uint8_t*)sample.c_str(), pkt->size);
+	out->resize(sample.size());
+	out->flags |= DATA_FLAGS_KEYFRAME;
+	memcpy(out->data().ptr, (uint8_t*)sample.c_str(), sample.size());
 	output->emit(out);
 }
 
