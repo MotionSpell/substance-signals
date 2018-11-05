@@ -198,28 +198,31 @@ class LibavMux : public ModuleDynI {
 		}
 
 		shared_ptr<AVPacket> getFormattedPkt(Data data) {
-			auto pkt = safe_cast<const DataAVPacket>(data)->getPacket();
+			AVPacket* newPkt;
 			auto meta = data->getMetadata().get();
 			auto videoMetadata = dynamic_cast<const MetadataPkt*>(meta); //video only ATM
 			if (m_inbandMetadata && videoMetadata && (data->flags & DATA_FLAGS_KEYFRAME)) {
 				auto const& headers = videoMetadata->codecSpecificInfo;
 				auto const outSize = data->data().len + headers.size();
-				auto newPkt = av_packet_alloc();
+				newPkt = av_packet_alloc();
 				av_init_packet(newPkt);
 				av_new_packet(newPkt, (int)outSize);
 				memcpy(newPkt->data, headers.data(), headers.size());
 				memcpy(newPkt->data + headers.size(), data->data().ptr, data->data().len);
 				newPkt->size = (int)outSize;
-				newPkt->flags = pkt->flags;
-				newPkt->dts = pkt->dts;
-				pkt = newPkt;
+				{
+					auto srcPkt = safe_cast<const DataAVPacket>(data)->getPacket();
+					newPkt->flags = srcPkt->flags;
+					newPkt->dts = srcPkt->dts;
+				}
 			} else {
-				pkt = av_packet_clone(pkt);
+				auto srcPkt = safe_cast<const DataAVPacket>(data)->getPacket();
+				newPkt = av_packet_clone(srcPkt);
 			}
 
-			pkt->pts = data->getMediaTime();
+			newPkt->pts = data->getMediaTime();
 
-			return shared_ptr<AVPacket>(pkt, &my_av_packet_deleter);
+			return shared_ptr<AVPacket>(newPkt, &my_av_packet_deleter);
 		}
 
 		static void my_av_packet_deleter(AVPacket* pkt) {
