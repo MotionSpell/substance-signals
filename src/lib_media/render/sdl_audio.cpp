@@ -8,6 +8,8 @@
 #include "lib_utils/tools.hpp"
 #include "lib_utils/system_clock.hpp"
 #include "lib_utils/fifo.hpp"
+#include "lib_utils/log_sink.hpp"
+#include "lib_utils/format.hpp"
 #include "lib_modules/utils/helper.hpp"
 #include "lib_modules/utils/factory.hpp"
 

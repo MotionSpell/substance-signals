@@ -8,6 +8,8 @@
 #include "lib_media/utils/recorder.hpp"
 #include "lib_modules/modules.hpp"
 #include "lib_modules/utils/loader.hpp"
+#include "lib_utils/log.hpp"
+#include "lib_utils/format.hpp"
 #include <cmath>
 
 using namespace Tests;

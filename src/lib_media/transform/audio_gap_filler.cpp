@@ -1,5 +1,7 @@
 #include "audio_gap_filler.hpp"
 #include "../common/metadata.hpp"
+#include "lib_utils/format.hpp"
+#include "lib_utils/log_sink.hpp"
 
 namespace Modules {
 namespace Transform {

@@ -6,6 +6,8 @@
 #include "lib_media/transform/audio_gap_filler.hpp"
 #include "lib_media/utils/recorder.hpp"
 #include "lib_utils/tools.hpp"
+#include "lib_utils/log.hpp"
+#include "lib_utils/format.hpp"
 
 using namespace Tests;
 using namespace Modules;
