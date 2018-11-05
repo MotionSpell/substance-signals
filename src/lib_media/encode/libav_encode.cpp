@@ -240,6 +240,9 @@ struct LibavEncode : ModuleS {
 				if(ret != 0)
 					break;
 
+				if(out->getPacket()->flags & AV_PKT_FLAG_KEY)
+					out->flags |= DATA_FLAGS_KEYFRAME;
+
 				setMediaTime(out);
 				output->emit(out);
 			}

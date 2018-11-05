@@ -9,7 +9,8 @@ namespace Modules {
 
 struct IMetadata;
 
-auto const DATA_FLAGS_DISCONTINUITY = 0x0001;
+auto const DATA_FLAGS_DISCONTINUITY = 0b0001;
+auto const DATA_FLAGS_KEYFRAME      = 0b0010;
 
 //A generic timed data container with metadata.
 class DataBase : public IData {
