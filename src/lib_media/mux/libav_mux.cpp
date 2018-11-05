@@ -198,26 +198,24 @@ class LibavMux : public ModuleDynI {
 		}
 
 		shared_ptr<AVPacket> getFormattedPkt(Data data) {
-			AVPacket* newPkt;
+			auto newPkt = av_packet_alloc();
+			av_init_packet(newPkt);
+
 			auto meta = data->getMetadata().get();
-			auto videoMetadata = dynamic_cast<const MetadataPkt*>(meta); //video only ATM
-			if (m_inbandMetadata && videoMetadata && (data->flags & DATA_FLAGS_KEYFRAME)) {
-				auto const& headers = videoMetadata->codecSpecificInfo;
-				auto const outSize = data->data().len + headers.size();
-				newPkt = av_packet_alloc();
-				av_init_packet(newPkt);
-				av_new_packet(newPkt, (int)outSize);
-				memcpy(newPkt->data, headers.data(), headers.size());
-				memcpy(newPkt->data + headers.size(), data->data().ptr, data->data().len);
-				newPkt->size = (int)outSize;
-				{
-					auto srcPkt = safe_cast<const DataAVPacket>(data)->getPacket();
-					newPkt->flags = srcPkt->flags;
-					newPkt->dts = srcPkt->dts;
-				}
-			} else {
+			auto videoMetadata = dynamic_cast<const MetadataPkt*>(meta);
+			bool insertHeaders = m_inbandMetadata && videoMetadata && (data->flags & DATA_FLAGS_KEYFRAME);
+
+			auto const& headers = insertHeaders ? videoMetadata->codecSpecificInfo : std::vector<uint8_t>();
+			auto const outSize = data->data().len + headers.size();
+			av_new_packet(newPkt, (int)outSize);
+			memcpy(newPkt->data, headers.data(), headers.size());
+			memcpy(newPkt->data + headers.size(), data->data().ptr, data->data().len);
+			newPkt->size = (int)outSize;
+
+			{
 				auto srcPkt = safe_cast<const DataAVPacket>(data)->getPacket();
-				newPkt = av_packet_clone(srcPkt);
+				newPkt->flags = srcPkt->flags;
+				newPkt->dts = srcPkt->dts;
 			}
 
 			newPkt->pts = data->getMediaTime();
