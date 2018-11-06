@@ -56,7 +56,7 @@ class LibavMux : public ModuleDynI {
 			av_dict_set(&m_formatCtx->metadata, "service_provider", "GPAC Licensing Signals", 0);
 			av_dump_format(m_formatCtx, 0, cfg.baseName.c_str(), 1);
 
-			if (!cfg.format.compare(0, 5, "mpegts") || !cfg.format.compare(0, 3, "hls")) {
+			if (!cfg.format.compare(0, 6, "mpegts") || !cfg.format.compare(0, 3, "hls")) {
 				m_inbandMetadata = true;
 			}
 		}
