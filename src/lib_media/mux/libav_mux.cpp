@@ -145,6 +145,9 @@ class LibavMux : public ModuleDynI {
 		}
 
 		void declareStream(Data data, size_t inputIdx) {
+			if(!data->getMetadata())
+				throw error("Can't declare stream without metadata");
+
 			auto const metadata = safe_cast<const MetadataPkt>(data->getMetadata().get());
 
 			auto const codec = avcodec_find_decoder_by_name(metadata->codec.c_str());
