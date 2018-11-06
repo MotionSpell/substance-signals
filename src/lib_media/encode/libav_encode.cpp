@@ -3,6 +3,7 @@
 #include "lib_modules/utils/factory.hpp"
 #include "lib_utils/tools.hpp"
 #include "lib_utils/log.hpp"
+#include "lib_utils/clock.hpp" // IClock::Rate
 #include "../common/ffpp.hpp"
 #include "../common/pcm.hpp"
 #include "../common/libav.hpp"

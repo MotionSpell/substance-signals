@@ -4,6 +4,7 @@
 #include "lib_modules/core/buffer.hpp"
 #include "lib_modules/utils/helper.hpp"
 #include "lib_utils/resolution.hpp"
+#include "lib_utils/fraction.hpp" // divUp
 
 namespace Modules {
 
