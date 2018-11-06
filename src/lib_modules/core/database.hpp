@@ -1,6 +1,6 @@
 #pragma once
 
-#include "data.hpp"
+#include "buffer.hpp"
 #include <memory>
 #include <vector>
 #include <map>
@@ -14,7 +14,7 @@ auto const DATA_FLAGS_DISCONTINUITY = 0b0001;
 auto const DATA_FLAGS_KEYFRAME      = 0b0010;
 
 //A generic timed data container with metadata.
-class DataBase : public IData {
+class DataBase : public IBuffer {
 	public:
 		virtual ~DataBase() = default;
 

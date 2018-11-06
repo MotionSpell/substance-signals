@@ -30,7 +30,7 @@ PacketAllocator::~PacketAllocator() {
 	}
 }
 
-void PacketAllocator::recycle(IData *p) {
+void PacketAllocator::recycle(IBuffer *p) {
 	if(ALLOC_NUM_BLOCKS_MAX_DYN_FREE) {
 		if (curNumBlocks > minBlocks) {
 			curNumBlocks--;

@@ -7,7 +7,7 @@
 // This is the only header file that third-parties are expected to include.
 // Do not pass or return STL objects or concrete classes here.
 
-#include "data.hpp"
+#include "buffer.hpp"
 #include "metadata.hpp"
 
 namespace Signals {

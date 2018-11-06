@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstring> // memcpy
-#include "lib_modules/core/data.hpp"
+#include "lib_modules/core/buffer.hpp"
 #include "lib_modules/core/database.hpp"
 
 namespace Modules {

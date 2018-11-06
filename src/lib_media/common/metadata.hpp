@@ -5,7 +5,7 @@
 #include "lib_utils/resolution.hpp"
 #include "lib_utils/fraction.hpp"
 #include "lib_modules/core/metadata.hpp"
-#include "lib_modules/core/data.hpp" // SpanC
+#include "lib_modules/core/buffer.hpp" // SpanC
 #include "pcm.hpp" // AudioSampleFormat
 #include "pixel_format.hpp" // PixelFormat
 

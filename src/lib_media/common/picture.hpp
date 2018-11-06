@@ -1,7 +1,7 @@
 #pragma once
 
 #include "pixel_format.hpp"
-#include "lib_modules/core/data.hpp"
+#include "lib_modules/core/buffer.hpp"
 #include "lib_modules/utils/helper.hpp"
 #include "lib_utils/resolution.hpp"
 

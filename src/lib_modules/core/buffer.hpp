@@ -40,8 +40,8 @@ typedef span<const uint8_t> SpanC;
 
 namespace Modules {
 
-struct IData {
-	virtual ~IData() {}
+struct IBuffer {
+	virtual ~IBuffer() = default;
 	virtual bool isRecyclable() const = 0;
 	virtual Span data() = 0;
 	virtual SpanC data() const = 0;

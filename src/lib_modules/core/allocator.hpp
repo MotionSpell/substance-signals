@@ -1,6 +1,6 @@
 #pragma once
 
-#include "data.hpp"
+#include "buffer.hpp"
 #include "lib_utils/queue.hpp"
 #include "lib_utils/tools.hpp"
 #include <atomic>
@@ -20,7 +20,7 @@ class PacketAllocator {
 		~PacketAllocator();
 
 		struct Deleter {
-			void operator()(IData *p) const {
+			void operator()(IBuffer *p) const {
 				allocator->recycle(p);
 			}
 			std::shared_ptr<PacketAllocator> const allocator;
@@ -61,7 +61,7 @@ class PacketAllocator {
 		}
 
 	private:
-		void recycle(IData *p);
+		void recycle(IBuffer *p);
 
 		enum EventType {
 			OneBufferIsFree,
@@ -69,7 +69,7 @@ class PacketAllocator {
 		};
 		struct Event {
 			EventType type {};
-			IData*data = nullptr;
+			IBuffer*data = nullptr;
 		};
 
 		const size_t minBlocks;
@@ -77,7 +77,7 @@ class PacketAllocator {
 		std::atomic_size_t curNumBlocks;
 		Queue<Event> eventQueue;
 #ifdef ALLOC_DEBUG_TRACK_BLOCKS
-		Queue<std::weak_ptr<IData>> usedBlocks;
+		Queue<std::weak_ptr<IBuffer>> usedBlocks;
 #endif
 };
 
