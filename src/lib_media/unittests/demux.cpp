@@ -1,6 +1,7 @@
 #include "tests/tests.hpp"
 #include "lib_modules/modules.hpp"
 #include "lib_modules/utils/loader.hpp"
+#include "lib_media/common/attributes.hpp"
 #include "lib_media/common/metadata.hpp"
 #include "lib_media/demux/gpac_demux_mp4_simple.hpp"
 #include "lib_media/demux/gpac_demux_mp4_full.hpp"
@@ -56,9 +57,8 @@ unittest("LibavDemux: rollover") {
 		}
 		vector<int64_t> times, decodingTimes;
 		void process(Data data) override {
-			auto pkt = safe_cast<const DataPacket>(data.get());
-			times.push_back(pkt->getMediaTime());
-			decodingTimes.push_back(pkt->getDecodingTime());
+			times.push_back(data->getMediaTime());
+			decodingTimes.push_back(data->getAttribute<AttributeDecodingTime>().decodingTime);
 		}
 	};
 

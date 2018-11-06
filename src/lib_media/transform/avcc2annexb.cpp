@@ -1,6 +1,7 @@
 #include "avcc2annexb.hpp"
 #include "lib_media/common/libav.hpp"
 #include "../common/ffpp.hpp"
+#include "../common/attributes.hpp"
 
 extern "C" {
 #include <libavformat/avformat.h> // av_packet_copy_props
@@ -46,9 +47,8 @@ void AVCC2AnnexBConverter::process(Data in) {
 	auto out = output->getBuffer(in->data().len);
 	av_packet_copy_props(out->getPacket(), safe_cast<const DataAVPacket>(in)->getPacket());
 
-	auto pkt = safe_cast<const DataPacket>(in);
-	out->setDecodingTime(pkt->getDecodingTime());
-	out->setMediaTime(pkt->getMediaTime());
+	out->copyAttributes(*in);
+	out->setMediaTime(in->getMediaTime());
 
 	auto bs = ByteReader { in->data() };
 	while ( auto availableBytes = bs.available() ) {

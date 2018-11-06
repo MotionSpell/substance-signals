@@ -6,6 +6,7 @@
 #include "../common/ffpp.hpp"
 #include "../common/pcm.hpp"
 #include "../common/libav.hpp"
+#include "../common/attributes.hpp"
 
 extern "C" {
 #include <libavutil/pixdesc.h>
@@ -239,7 +240,7 @@ struct LibavEncode : ModuleS {
 					out->flags |= DATA_FLAGS_KEYFRAME;
 
 				out->setMediaTime(out->getPacket()->pts);
-				out->setDecodingTime(out->getPacket()->dts);
+				out->setAttribute(AttributeDecodingTime { out->getPacket()->dts });
 				output->emit(out);
 			}
 		}

@@ -26,7 +26,7 @@ struct AVPacketDeleter {
 	void operator()(AVPacket *p);
 };
 
-class DataAVPacket : public DataPacket {
+class DataAVPacket : public DataBase {
 	public:
 		DataAVPacket(size_t size = 0);
 		~DataAVPacket();

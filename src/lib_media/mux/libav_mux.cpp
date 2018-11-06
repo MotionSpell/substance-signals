@@ -5,6 +5,7 @@
 #include "lib_utils/tools.hpp"
 #include "../common/ffpp.hpp"
 #include "../common/metadata.hpp"
+#include "../common/attributes.hpp"
 #include <cassert>
 #include <string>
 #include <sstream>
@@ -216,7 +217,7 @@ class LibavMux : public ModuleDynI {
 			memcpy(newPkt->data + headers.size(), data->data().ptr, data->data().len);
 			newPkt->size = (int)outSize;
 			newPkt->pts = data->getMediaTime();
-			newPkt->dts = safe_cast<const DataPacket>(data)->getDecodingTime();
+			newPkt->dts = data->getAttribute<AttributeDecodingTime>().decodingTime;
 
 			return shared_ptr<AVPacket>(newPkt, &my_av_packet_deleter);
 		}

@@ -1,4 +1,5 @@
 #include "database.hpp"
+#include <cstring> // memcpy
 
 namespace Modules {
 
@@ -18,12 +19,26 @@ int64_t DataBase::getMediaTime() const {
 	return mediaTimeIn180k;
 }
 
-void DataPacket::setDecodingTime(int64_t time) {
-	decodingTimeIn180k = time;
+SpanC DataBase::getAttribute(int typeId) const {
+	auto first = attributeOffset.find(typeId);
+	if(first == attributeOffset.end())
+		return {};
+	return {attributes.data() + first->second, 0};
 }
 
-int64_t DataPacket::getDecodingTime() const {
-	return decodingTimeIn180k;
+void DataBase::setAttribute(int typeId, SpanC data) {
+	if(!data.ptr)
+		throw std::runtime_error("Can't set a NULL attribute");
+
+	auto offset = attributes.size();
+	attributeOffset[typeId] = offset;
+	attributes.resize(offset + data.len);
+	memcpy(attributes.data() + offset, data.ptr, data.len);
+}
+
+void DataBase::copyAttributes(DataBase const& from) {
+	attributeOffset = from.attributeOffset;
+	attributes = from.attributes;
 }
 
 DataBaseRef::DataBaseRef(std::shared_ptr<const DataBase> data) {

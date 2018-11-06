@@ -3,6 +3,7 @@
 #include "data.hpp"
 #include <memory>
 #include <vector>
+#include <map>
 #include "lib_utils/clock.hpp"
 
 namespace Modules {
@@ -20,6 +21,22 @@ class DataBase : public IData {
 		std::shared_ptr<const IMetadata> getMetadata() const;
 		void setMetadata(std::shared_ptr<const IMetadata> metadata);
 
+		SpanC getAttribute(int typeId) const;
+		void setAttribute(int typeId, SpanC data);
+		void copyAttributes(DataBase const& from);
+
+		template<typename Type>
+		Type getAttribute() const {
+			auto data = getAttribute(Type::TypeId);
+			return *reinterpret_cast<const Type*>(data.ptr);
+		}
+
+		template<typename Type>
+		void setAttribute(const Type& attribute) {
+			static_assert(std::is_pod<Type>::value);
+			setAttribute(Type::TypeId, {(const uint8_t*)&attribute, sizeof attribute});
+		}
+
 		void setMediaTime(int64_t timeIn180k, uint64_t timescale = IClock::Rate);
 		int64_t getMediaTime() const;
 
@@ -28,14 +45,8 @@ class DataBase : public IData {
 	private:
 		int64_t mediaTimeIn180k = 0;
 		std::shared_ptr<const IMetadata> metadata;
-};
-
-// A generic double-timed container with metadata
-struct DataPacket : DataBase {
-		void setDecodingTime(int64_t timeIn180k);
-		int64_t getDecodingTime() const;
-	private:
-		int64_t decodingTimeIn180k = 0;
+		std::vector<uint8_t> attributes;
+		std::map<int, int> attributeOffset;
 };
 
 class DataBaseRef : public DataBase {
