@@ -54,7 +54,7 @@ std::shared_ptr<DataBase> getTestMp3Frame() {
 		r->setMetadata(meta);
 	}
 
-	r->setAttribute(AttributeCueFlags {});
+	r->set(CueFlags {});
 
 	return r;
 }
@@ -133,7 +133,7 @@ std::shared_ptr<DataBase> getTestH264Frame() {
 		r->setMetadata(meta);
 	}
 
-	r->setAttribute(AttributeCueFlags {});
+	r->set(CueFlags {});
 
 	return r;
 }

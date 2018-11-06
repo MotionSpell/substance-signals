@@ -237,13 +237,13 @@ struct LibavEncode : ModuleS {
 				if(ret != 0)
 					break;
 
-				AttributeCueFlags flags {};
+				CueFlags flags {};
 				if(out->getPacket()->flags & AV_PKT_FLAG_KEY)
 					flags.keyframe = true;
-				out->setAttribute(flags);
+				out->set(flags);
 
 				out->setMediaTime(out->getPacket()->pts);
-				out->setAttribute(AttributeDecodingTime { out->getPacket()->dts });
+				out->set(DecodingTime { out->getPacket()->dts });
 				output->emit(out);
 			}
 		}

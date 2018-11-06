@@ -208,7 +208,7 @@ class LibavMux : public ModuleDynI {
 			auto meta = data->getMetadata().get();
 
 			auto videoMetadata = dynamic_cast<const MetadataPkt*>(meta);
-			bool insertHeaders = m_inbandMetadata && videoMetadata && data->getAttribute<AttributeCueFlags>().keyframe;
+			bool insertHeaders = m_inbandMetadata && videoMetadata && data->get<CueFlags>().keyframe;
 
 			auto const& headers = insertHeaders ? videoMetadata->codecSpecificInfo : std::vector<uint8_t>();
 			auto const outSize = data->data().len + headers.size();
@@ -218,7 +218,7 @@ class LibavMux : public ModuleDynI {
 			memcpy(newPkt->data + headers.size(), data->data().ptr, data->data().len);
 			newPkt->size = (int)outSize;
 			newPkt->pts = data->getMediaTime();
-			newPkt->dts = data->getAttribute<AttributeDecodingTime>().decodingTime;
+			newPkt->dts = data->get<DecodingTime>().time;
 
 			return shared_ptr<AVPacket>(newPkt, &my_av_packet_deleter);
 		}

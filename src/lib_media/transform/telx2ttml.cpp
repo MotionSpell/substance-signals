@@ -191,9 +191,9 @@ void TeletextToTTML::sendSample(const std::string &sample) {
 	out->setMediaTime(intClock);
 	out->resize(sample.size());
 
-	AttributeCueFlags flags {};
+	CueFlags flags {};
 	flags.keyframe = true;
-	out->setAttribute(flags);
+	out->set(flags);
 
 	memcpy(out->data().ptr, (uint8_t*)sample.c_str(), sample.size());
 	output->emit(out);

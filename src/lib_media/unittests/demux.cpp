@@ -58,7 +58,7 @@ unittest("LibavDemux: rollover") {
 		vector<int64_t> times, decodingTimes;
 		void process(Data data) override {
 			times.push_back(data->getMediaTime());
-			decodingTimes.push_back(data->getAttribute<AttributeDecodingTime>().decodingTime);
+			decodingTimes.push_back(data->get<DecodingTime>().time);
 		}
 	};
 

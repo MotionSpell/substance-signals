@@ -1013,7 +1013,7 @@ void GPACMuxMP4::closeChunk(bool nextSampleIsRAP) {
 }
 
 static bool isRap(Data data) {
-	return data->getAttribute<AttributeCueFlags>().keyframe;
+	return data->get<CueFlags>().keyframe;
 }
 
 void GPACMuxMP4::processSample(Data data, int64_t lastDataDurationInTs) {

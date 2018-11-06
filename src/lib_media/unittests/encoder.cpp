@@ -111,7 +111,7 @@ void RAPTest(const Fraction fps, const vector<uint64_t> &times, const vector<boo
 	size_t i = 0;
 	auto onFrame = [&](Data data) {
 		if (i < RAPs.size()) {
-			auto keyframe = data->getAttribute<AttributeCueFlags>().keyframe;
+			auto keyframe = data->get<CueFlags>().keyframe;
 			ASSERT(keyframe == RAPs[i]);
 		}
 		i++;

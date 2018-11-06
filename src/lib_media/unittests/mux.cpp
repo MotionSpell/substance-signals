@@ -329,7 +329,7 @@ unittest("GPAC mp4 mux: don't create empty fragments") {
 		auto accessUnit = make_shared<DataAVPacket>(sizeof h264_gray_frame);
 		static const auto meta = createMetadataPktLibavVideo(ctx.get());
 		accessUnit->setMetadata(meta);
-		accessUnit->setAttribute(AttributeCueFlags{});
+		accessUnit->set(CueFlags{});
 		memcpy(accessUnit->data().ptr, h264_gray_frame, sizeof h264_gray_frame);
 		return accessUnit;
 	};

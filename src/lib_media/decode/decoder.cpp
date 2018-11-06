@@ -50,7 +50,7 @@ struct Decoder : ModuleS, PictureAllocator {
 
 			assert(codecCtx);
 
-			auto flags = data->getAttribute<AttributeCueFlags>();
+			auto flags = data->get<CueFlags>();
 			if (flags.discontinuity) {
 				avcodec_flush_buffers(codecCtx.get());
 			}

@@ -23,7 +23,7 @@ class DataBase : public IBuffer {
 		void copyAttributes(DataBase const& from);
 
 		template<typename Type>
-		Type getAttribute() const {
+		Type get() const {
 			auto data = getAttribute(Type::TypeId);
 			Type r;
 			memcpy(&r, data.ptr, sizeof r);
@@ -31,7 +31,7 @@ class DataBase : public IBuffer {
 		}
 
 		template<typename Type>
-		void setAttribute(const Type& attribute) {
+		void set(const Type& attribute) {
 			static_assert(std::is_pod<Type>::value);
 			setAttribute(Type::TypeId, {(const uint8_t*)&attribute, sizeof attribute});
 		}

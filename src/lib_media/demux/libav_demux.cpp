@@ -360,7 +360,7 @@ class LibavDemux : public ActiveModule {
 			auto const time = timescaleToClock(pkt->pts * base.num, base.den);
 			data->setMediaTime(time - startPTSIn180k);
 			auto const decodingTime = timescaleToClock(pkt->dts * base.num, base.den);
-			data->setAttribute(AttributeDecodingTime { decodingTime - startPTSIn180k });
+			data->set(DecodingTime { decodingTime - startPTSIn180k });
 			int64_t offset;
 			if (startPTSIn180k) {
 				offset = -startPTSIn180k; //a global offset is applied to all streams (since it is a PTS we may have negative DTSs)
@@ -397,12 +397,12 @@ class LibavDemux : public ActiveModule {
 			auto outPkt = out->getPacket();
 			av_packet_move_ref(outPkt, pkt);
 
-			AttributeCueFlags flags {};
+			CueFlags flags {};
 			if(outPkt->flags & AV_PKT_FLAG_RESET_DECODER)
 				flags.discontinuity = true;
 			if(outPkt->flags & AV_PKT_FLAG_KEY)
 				flags.keyframe = true;
-			out->setAttribute(flags);
+			out->set(flags);
 
 			setTimestamp(out);
 			output->emit(out);
