@@ -4,6 +4,7 @@
 #include "lib_modules/utils/factory.hpp"
 #include "lib_utils/tools.hpp"
 #include "../common/ffpp.hpp"
+#include "../common/libav.hpp" // avStrError
 #include "../common/metadata.hpp"
 #include "../common/attributes.hpp"
 #include <cassert>
@@ -112,8 +113,9 @@ class LibavMux : public ModuleDynI {
 			pkt->duration = (int64_t)av_rescale_q(pkt->duration, inputTimebase, avStream->time_base);
 			pkt->stream_index = avStream->index;
 
-			if (av_interleaved_write_frame(m_formatCtx, pkt.get()) != 0) {
-				m_host->log(Warning, "can't write frame.");
+			int ret = av_interleaved_write_frame(m_formatCtx, pkt.get());
+			if (ret) {
+				m_host->log(Warning, format("can't write frame: %s", avStrError(ret)).c_str());
 				return;
 			}
 		}
