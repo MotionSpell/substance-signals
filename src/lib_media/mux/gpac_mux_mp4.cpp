@@ -4,6 +4,7 @@
 #include "../common/gpacpp.hpp"
 #include "../common/ffpp.hpp"
 #include "../common/libav.hpp"
+#include "../common/attributes.hpp"
 #include "../common/metadata_file.hpp"
 #include "lib_modules/utils/factory.hpp"
 
@@ -1012,7 +1013,7 @@ void GPACMuxMP4::closeChunk(bool nextSampleIsRAP) {
 }
 
 static bool isRap(Data data) {
-	return data->flags & DATA_FLAGS_KEYFRAME;
+	return data->getAttribute<AttributeCueFlags>().keyframe;
 }
 
 void GPACMuxMP4::processSample(Data data, int64_t lastDataDurationInTs) {

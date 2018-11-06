@@ -22,7 +22,7 @@ int64_t DataBase::getMediaTime() const {
 SpanC DataBase::getAttribute(int typeId) const {
 	auto first = attributeOffset.find(typeId);
 	if(first == attributeOffset.end())
-		return {};
+		throw std::runtime_error("Attribute not found");
 	return {attributes.data() + first->second, 0};
 }
 

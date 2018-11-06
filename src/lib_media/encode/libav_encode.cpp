@@ -236,8 +236,10 @@ struct LibavEncode : ModuleS {
 				if(ret != 0)
 					break;
 
+				AttributeCueFlags flags {};
 				if(out->getPacket()->flags & AV_PKT_FLAG_KEY)
-					out->flags |= DATA_FLAGS_KEYFRAME;
+					flags.keyframe = true;
+				out->setAttribute(flags);
 
 				out->setMediaTime(out->getPacket()->pts);
 				out->setAttribute(AttributeDecodingTime { out->getPacket()->dts });

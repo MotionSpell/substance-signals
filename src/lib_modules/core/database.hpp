@@ -10,9 +10,6 @@ namespace Modules {
 
 struct IMetadata;
 
-auto const DATA_FLAGS_DISCONTINUITY = 0b0001;
-auto const DATA_FLAGS_KEYFRAME      = 0b0010;
-
 //A generic timed data container with metadata.
 class DataBase : public IBuffer {
 	public:
@@ -28,7 +25,9 @@ class DataBase : public IBuffer {
 		template<typename Type>
 		Type getAttribute() const {
 			auto data = getAttribute(Type::TypeId);
-			return *reinterpret_cast<const Type*>(data.ptr);
+			Type r;
+			memcpy(&r, data.ptr, sizeof r);
+			return r;
 		}
 
 		template<typename Type>
@@ -39,8 +38,6 @@ class DataBase : public IBuffer {
 
 		void setMediaTime(int64_t timeIn180k, uint64_t timescale = IClock::Rate);
 		int64_t getMediaTime() const;
-
-		uint32_t flags = 0;
 
 	private:
 		int64_t mediaTimeIn180k = 0;

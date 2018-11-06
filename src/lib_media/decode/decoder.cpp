@@ -1,6 +1,7 @@
 #include "lib_utils/log.hpp"
 #include "lib_modules/utils/factory.hpp" // registerModule
 #include "../common/metadata.hpp"
+#include "../common/attributes.hpp"
 #include "../common/picture_allocator.hpp"
 #include "../common/pcm.hpp"
 #include "../common/libav.hpp"
@@ -49,7 +50,8 @@ struct Decoder : ModuleS, PictureAllocator {
 
 			assert(codecCtx);
 
-			if (data->flags & DATA_FLAGS_DISCONTINUITY) {
+			auto flags = data->getAttribute<AttributeCueFlags>();
+			if (flags.discontinuity) {
 				avcodec_flush_buffers(codecCtx.get());
 			}
 

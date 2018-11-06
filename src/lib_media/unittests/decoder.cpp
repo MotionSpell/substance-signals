@@ -1,6 +1,7 @@
 #include "tests/tests.hpp"
 #include "lib_modules/modules.hpp"
 #include "lib_modules/utils/loader.hpp"
+#include "lib_media/common/attributes.hpp"
 #include "lib_media/common/picture.hpp" // DataPicture
 #include "lib_media/common/pcm.hpp"
 #include "lib_media/common/metadata.hpp" // MetadataPkt
@@ -52,6 +53,8 @@ std::shared_ptr<DataBase> getTestMp3Frame() {
 		meta->codec = "mp3";
 		r->setMetadata(meta);
 	}
+
+	r->setAttribute(AttributeCueFlags {});
 
 	return r;
 }
@@ -129,6 +132,8 @@ std::shared_ptr<DataBase> getTestH264Frame() {
 		meta->codec = "h264";
 		r->setMetadata(meta);
 	}
+
+	r->setAttribute(AttributeCueFlags {});
 
 	return r;
 }

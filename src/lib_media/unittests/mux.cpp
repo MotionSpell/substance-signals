@@ -2,6 +2,7 @@
 #include "lib_modules/modules.hpp"
 #include "lib_modules/utils/loader.hpp"
 #include "lib_media/common/metadata.hpp"
+#include "lib_media/common/attributes.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/mux/libav_mux.hpp"
 #include "lib_media/mux/mux_mp4_config.hpp"
@@ -328,6 +329,7 @@ unittest("GPAC mp4 mux: don't create empty fragments") {
 		auto accessUnit = make_shared<DataAVPacket>(sizeof h264_gray_frame);
 		static const auto meta = createMetadataPktLibavVideo(ctx.get());
 		accessUnit->setMetadata(meta);
+		accessUnit->setAttribute(AttributeCueFlags{});
 		memcpy(accessUnit->data().ptr, h264_gray_frame, sizeof h264_gray_frame);
 		return accessUnit;
 	};

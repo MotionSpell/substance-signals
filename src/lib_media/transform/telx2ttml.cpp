@@ -1,4 +1,5 @@
 #include "telx2ttml.hpp"
+#include "lib_media/common/attributes.hpp"
 #include "lib_modules/utils/factory.hpp"
 #include "lib_modules/utils/helper.hpp"
 #include "lib_utils/log_sink.hpp" // Warning
@@ -189,7 +190,11 @@ void TeletextToTTML::sendSample(const std::string &sample) {
 	auto out = output->getBuffer(0);
 	out->setMediaTime(intClock);
 	out->resize(sample.size());
-	out->flags |= DATA_FLAGS_KEYFRAME;
+
+	AttributeCueFlags flags {};
+	flags.keyframe = true;
+	out->setAttribute(flags);
+
 	memcpy(out->data().ptr, (uint8_t*)sample.c_str(), sample.size());
 	output->emit(out);
 }

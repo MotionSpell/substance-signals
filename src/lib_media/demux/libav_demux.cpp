@@ -395,10 +395,14 @@ class LibavDemux : public ActiveModule {
 			auto out = output->getBuffer(0);
 			auto outPkt = out->getPacket();
 			av_packet_move_ref(outPkt, pkt);
+
+			AttributeCueFlags flags {};
 			if(outPkt->flags & AV_PKT_FLAG_RESET_DECODER)
-				out->flags |= DATA_FLAGS_DISCONTINUITY;
+				flags.discontinuity = true;
 			if(outPkt->flags & AV_PKT_FLAG_KEY)
-				out->flags |= DATA_FLAGS_KEYFRAME;
+				flags.keyframe = true;
+			out->setAttribute(flags);
+
 			setTimestamp(out);
 			output->emit(out);
 			sparseStreamsHeartbeat(outPkt);

@@ -206,8 +206,9 @@ class LibavMux : public ModuleDynI {
 			av_init_packet(newPkt);
 
 			auto meta = data->getMetadata().get();
+
 			auto videoMetadata = dynamic_cast<const MetadataPkt*>(meta);
-			bool insertHeaders = m_inbandMetadata && videoMetadata && (data->flags & DATA_FLAGS_KEYFRAME);
+			bool insertHeaders = m_inbandMetadata && videoMetadata && data->getAttribute<AttributeCueFlags>().keyframe;
 
 			auto const& headers = insertHeaders ? videoMetadata->codecSpecificInfo : std::vector<uint8_t>();
 			auto const outSize = data->data().len + headers.size();

@@ -2,6 +2,7 @@
 #include "lib_modules/modules.hpp"
 #include "lib_modules/utils/loader.hpp"
 #include "lib_media/common/metadata_file.hpp"
+#include "lib_media/common/attributes.hpp"
 #include "lib_media/common/picture.hpp"
 #include "lib_media/common/pcm.hpp"
 #include "lib_media/demux/libav_demux.hpp"
@@ -110,7 +111,8 @@ void RAPTest(const Fraction fps, const vector<uint64_t> &times, const vector<boo
 	size_t i = 0;
 	auto onFrame = [&](Data data) {
 		if (i < RAPs.size()) {
-			ASSERT((data->flags & DATA_FLAGS_KEYFRAME ? 1 : 0) == RAPs[i]);
+			auto keyframe = data->getAttribute<AttributeCueFlags>().keyframe;
+			ASSERT(keyframe == RAPs[i]);
 		}
 		i++;
 	};
