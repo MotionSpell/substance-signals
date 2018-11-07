@@ -45,7 +45,7 @@ class LibavMux : public ModuleDynI {
 				fileName += "." + fileNameExt;
 			}
 			if (!(m_formatCtx->oformat->flags & AVFMT_NOFILE)) { /* open the output file, if needed */
-				if (avio_open2(&m_formatCtx->pb, fileName.c_str(), AVIO_FLAG_READ_WRITE, nullptr, &optionsDict) < 0) {
+				if (avio_open2(&m_formatCtx->pb, fileName.c_str(), AVIO_FLAG_WRITE, nullptr, &optionsDict) < 0) {
 					avformat_free_context(m_formatCtx);
 					throw error(format("could not open %s, disable output.", cfg.baseName));
 				}
