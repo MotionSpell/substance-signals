@@ -11,8 +11,8 @@ readonly BIN=bin-cov
 trap "rm -rf $BIN" EXIT # free disk space
 
 export BIN
-export CFLAGS=--coverage
-export LDFLAGS=--coverage
+export CFLAGS="--coverage -fno-inline -fno-elide-constructors"
+export LDFLAGS="--coverage"
 make -j`nproc`
 
 $scriptDir/run_tests.sh
