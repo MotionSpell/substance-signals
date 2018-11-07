@@ -29,9 +29,9 @@ IFilter* createRenderer(Pipeline& pipeline, Config cfg, int codecType) {
 			g_Log->log(Info, "Found audio stream");
 			return pipeline.add("SDLAudio", nullptr);
 		}
+		g_Log->log(Info, "Found unknown stream");
 	}
 
-	g_Log->log(Info, "Found unknown stream");
 	return pipeline.addModule<Out::Null>();
 }
 
