@@ -12,8 +12,6 @@ namespace Modules {
 static const size_t ALLOC_NUM_BLOCKS_DEFAULT = 10;
 static const size_t ALLOC_NUM_BLOCKS_LOW_LATENCY = 2;
 
-//#define ALLOC_DEBUG_TRACK_BLOCKS
-
 class PacketAllocator {
 	public:
 		PacketAllocator(size_t minBlocks, size_t maxBlocks);
@@ -45,9 +43,6 @@ class PacketAllocator {
 					block.data->resize(size);
 				}
 				auto ret = std::shared_ptr<T>(safe_cast<T>(block.data), Deleter{allocator});
-#ifdef ALLOC_DEBUG_TRACK_BLOCKS
-				usedBlocks.push(ret);
-#endif
 				return ret;
 			}
 			case Exit:
@@ -76,9 +71,6 @@ class PacketAllocator {
 		const size_t maxBlocks;
 		std::atomic_size_t curNumBlocks;
 		Queue<Event> eventQueue;
-#ifdef ALLOC_DEBUG_TRACK_BLOCKS
-		Queue<std::weak_ptr<IBuffer>> usedBlocks;
-#endif
 };
 
 }
