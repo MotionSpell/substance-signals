@@ -26,7 +26,9 @@ class Signal : public ISignal<Arg> {
 
 		void disconnect(int connectionId) {
 			std::lock_guard<std::mutex> lg(callbacksMutex);
-			disconnectUnsafe(connectionId);
+			auto conn = callbacks.find(connectionId);
+			if (conn != callbacks.end())
+				callbacks.erase(connectionId);
 		}
 
 		void disconnectAll() {
@@ -55,14 +57,6 @@ class Signal : public ISignal<Arg> {
 			IExecutor* executor;
 			std::function<void(Arg)> callback;
 		};
-
-		bool disconnectUnsafe(int connectionId) {
-			auto conn = callbacks.find(connectionId);
-			if (conn == callbacks.end())
-				return false;
-			callbacks.erase(connectionId);
-			return true;
-		}
 
 		mutable std::mutex callbacksMutex;
 		std::map<int, ConnectionType> callbacks;  //protected by callbacksMutex
