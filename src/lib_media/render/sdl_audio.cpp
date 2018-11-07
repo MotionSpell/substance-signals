@@ -26,8 +26,6 @@ using namespace Modules::Render;
 
 namespace {
 
-static Signals::ExecutorSync executorSync;
-
 SDL_AudioSpec toSdlAudioSpec(PcmFormat cfg) {
 	SDL_AudioSpec audioSpec {};
 	audioSpec.freq = cfg.sampleRate;
@@ -66,7 +64,7 @@ struct SDLAudio : ModuleS {
 		auto input = addInput(this);
 		input->setMetadata(make_shared<MetadataRawAudio>());
 		auto pushAudio = Signals::BindMember(this, &SDLAudio::push);
-		Signals::Connect(m_converter->getOutput(0)->getSignal(), pushAudio, executorSync);
+		ConnectOutput(m_converter.get(), pushAudio);
 	}
 
 	~SDLAudio() {
@@ -94,7 +92,6 @@ struct SDLAudio : ModuleS {
 
 		m_outputFormat = toPcmFormat(realSpec);
 		m_converter = loadModule("AudioConvert", m_host, nullptr, &m_outputFormat, -1);
-
 		m_LatencyIn180k = timescaleToClock((uint64_t)realSpec.samples, realSpec.freq);
 		m_host->log(Info, format("%s Hz %s ms", realSpec.freq, m_LatencyIn180k * 1000.0f / IClock::Rate).c_str());
 		m_inputFormat = inputFormat;
