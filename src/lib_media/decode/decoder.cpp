@@ -17,6 +17,43 @@ using namespace Modules;
 
 namespace {
 
+void lavc_ReleaseFrame(void *opaque, uint8_t * /*data*/) {
+	delete static_cast<PictureAllocator::PictureContext*>(opaque);
+}
+
+int avGetBuffer2(struct AVCodecContext *ctx, AVFrame *frame, int /*flags*/) {
+	try {
+		auto dr = static_cast<PictureAllocator*>(ctx->opaque);
+		auto dim = Resolution(frame->width, frame->height);
+		auto size = dim; // size in memory
+		int linesize_align[AV_NUM_DATA_POINTERS];
+		avcodec_align_dimensions2(ctx, &size.width, &size.height, linesize_align);
+		if (auto extra = size.width % (2 * linesize_align[0])) {
+			size.width += 2 * linesize_align[0] - extra;
+		}
+		auto picCtx = dr->getPicture(dim, size, libavPixFmt2PixelFormat((AVPixelFormat)frame->format));
+		if (!picCtx->pic)
+			return -1;
+		frame->opaque = picCtx;
+		auto pic = picCtx->pic.get();
+
+		for (size_t i = 0; i < AV_NUM_DATA_POINTERS; ++i) {
+			frame->data[i] = NULL;
+			frame->linesize[i] = 0;
+			frame->buf[i] = NULL;
+		}
+		for (size_t i = 0; i < pic->getNumPlanes(); ++i) {
+			frame->data[i] = pic->getPlane(i);
+			frame->linesize[i] = (int)pic->getPitch(i);
+			assert(!(pic->getPitch(i) % linesize_align[i]));
+			frame->buf[i] = av_buffer_create(frame->data[i], frame->linesize[i], lavc_ReleaseFrame, i == 0 ? (void*)picCtx : nullptr, 0);
+		}
+		return 0;
+	} catch(...) {
+		return -1;
+	}
+}
+
 struct Decoder : ModuleS, PictureAllocator {
 
 		Decoder(IModuleHost* host, StreamType type)
