@@ -1,8 +1,14 @@
 #pragma once
 
+#include "../common/picture.hpp"
+
+struct AvFilterConfig {
+	Modules::PictureFormat format;
+	std::string filterArgs;
+};
+
 #include "lib_modules/utils/helper.hpp"
 #include "../common/ffpp.hpp"
-#include "../common/picture.hpp"
 #include <string>
 
 struct AVFilter;
@@ -14,7 +20,7 @@ namespace Transform {
 
 class LibavFilter : public ModuleS {
 	public:
-		LibavFilter(IModuleHost* host, const PictureFormat &format, const std::string &filterArgs);
+		LibavFilter(IModuleHost* host, const AvFilterConfig& cfg);
 		~LibavFilter();
 		void process(Data data) override;
 

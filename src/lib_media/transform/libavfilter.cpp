@@ -10,11 +10,12 @@ extern "C" {
 namespace Modules {
 namespace Transform {
 
-LibavFilter::LibavFilter(IModuleHost* host, const PictureFormat &format, const std::string &filterArgs)
+
+LibavFilter::LibavFilter(IModuleHost* host, const AvFilterConfig& cfg)
 	: m_host(host), graph(avfilter_graph_alloc()), avFrameIn(new ffpp::Frame), avFrameOut(new ffpp::Frame) {
 	char args[512];
-	AVPixelFormat pf = pixelFormat2libavPixFmt(format.format);
-	snprintf(args, sizeof(args), "video_size=%dx%d:pix_fmt=%d:time_base=%d/%d:pixel_aspect=%d/%d", format.res.width, format.res.height, pf, (int)IClock::Rate, 1, format.res.width, format.res.height);
+	AVPixelFormat pf = pixelFormat2libavPixFmt(cfg.format.format);
+	snprintf(args, sizeof(args), "video_size=%dx%d:pix_fmt=%d:time_base=%d/%d:pixel_aspect=%d/%d", cfg.format.res.width, cfg.format.res.height, pf, (int)IClock::Rate, 1, cfg.format.res.width, cfg.format.res.height);
 
 	auto ret = avfilter_graph_create_filter(&buffersrc_ctx, avfilter_get_by_name("buffer"), "in", args, nullptr, graph);
 	if (ret < 0)
@@ -36,7 +37,7 @@ LibavFilter::LibavFilter(IModuleHost* host, const PictureFormat &format, const s
 	inputs->pad_idx = 0;
 	inputs->next = nullptr;
 
-	ret = avfilter_graph_parse(graph, filterArgs.c_str(), inputs, outputs, NULL);
+	ret = avfilter_graph_parse(graph, cfg.filterArgs.c_str(), inputs, outputs, NULL);
 	if (ret < 0)
 		throw error("Cannot parse filter graph");
 
