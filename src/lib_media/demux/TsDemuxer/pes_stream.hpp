@@ -4,6 +4,7 @@
 
 #include "stream.hpp"
 #include "lib_utils/format.hpp"
+#include "lib_media/common/attributes.hpp"
 #include <vector>
 #include <string.h> // memcpy
 
@@ -118,6 +119,20 @@ struct PesStream : Stream {
 				/*auto marker_bit2 =*/ r.u(1);
 			}
 
+			int64_t dts = pts;
+
+			if(PTS_DTS_indicator & 0b01) {
+				/*auto const reservedBits =*/ r.u(4); // 0b0010
+				dts |= r.u(3); // PTS [32..30]
+				/*auto marker_bit0 =*/ r.u(1);
+				dts <<= 15;
+				dts |= r.u(15); // PTS [29..15]
+				/*auto marker_bit1 =*/ r.u(1);
+				dts <<= 15;
+				dts |= r.u(15); // PTS [14..0]
+				/*auto marker_bit2 =*/ r.u(1);
+			}
+
 			// skip extra remaining headers
 			while(r.byteOffset() < PES_header_data_end)
 				r.u(8);
@@ -125,11 +140,18 @@ struct PesStream : Stream {
 			auto pesPayloadSize = pesBuffer.size() - r.byteOffset();
 			auto buf = m_output->getBuffer(pesPayloadSize);
 			buf->resize(pesPayloadSize);
+
 			if(PTS_DTS_indicator & 0b10) {
 				m_restamper->restamp(pts);
 				int64_t mediaTime = timescaleToClock(pts, 90000); // PTS are in 90kHz units
 				buf->setMediaTime(mediaTime);
 			}
+			{
+				m_restamper->restamp(dts);
+				int64_t decodingTime = timescaleToClock(dts, 90000); // DTS are in 90kHz units
+				buf->set(DecodingTime {decodingTime});
+			}
+			buf->set(CueFlags{});
 			memcpy(buf->data().ptr, pesBuffer.data()+r.byteOffset(),pesPayloadSize);
 			m_output->emit(buf);
 		}
