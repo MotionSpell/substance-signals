@@ -38,7 +38,7 @@ class LibavMux : public ModuleDynI {
 			m_formatCtx->oformat = of;
 
 			std::string fileName = cfg.baseName;
-			std::stringstream formatExts(of->extensions); //get the first extension recommended by ffmpeg
+			std::stringstream formatExts(of->extensions ? of->extensions : ""); //get the first extension recommended by ffmpeg
 			std::string fileNameExt;
 			std::getline(formatExts, fileNameExt, ',');
 			if (fileName.find("://") == std::string::npos) {
