@@ -96,7 +96,7 @@ class OutputDataDefault : public IOutput, public MetadataCap {
 
 		template<typename T = DataType>
 		std::shared_ptr<T> getBuffer(size_t size) {
-			return allocator->getBuffer<T>(size, allocator);
+			return allocator->alloc<T>(size, allocator);
 		}
 
 		Signals::ISignal<Data>& getSignal() override {

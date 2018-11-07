@@ -25,7 +25,7 @@ class PacketAllocator {
 		};
 
 		template<typename T>
-		std::shared_ptr<T> getBuffer(size_t size, std::shared_ptr<PacketAllocator> allocator) {
+		std::shared_ptr<T> alloc(size_t size, std::shared_ptr<PacketAllocator> allocator) {
 			Event block;
 			if (!eventQueue.tryPop(block)) {
 				if (curNumBlocks < maxBlocks) {
@@ -42,8 +42,7 @@ class PacketAllocator {
 				if (block.data->data().len < size) {
 					block.data->resize(size);
 				}
-				auto ret = std::shared_ptr<T>(safe_cast<T>(block.data), Deleter{allocator});
-				return ret;
+				return std::shared_ptr<T>(safe_cast<T>(block.data), Deleter{allocator});
 			}
 			case Exit:
 				return nullptr;
@@ -64,7 +63,7 @@ class PacketAllocator {
 		};
 		struct Event {
 			EventType type {};
-			IBuffer*data = nullptr;
+			IBuffer* data = nullptr;
 		};
 
 		const size_t minBlocks;
