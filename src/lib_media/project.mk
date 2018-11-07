@@ -25,7 +25,6 @@ LIB_MEDIA_SRCS:=\
   $(MYDIR)/stream/adaptive_streaming_common.cpp\
   $(MYDIR)/transform/avcc2annexb.cpp\
   $(MYDIR)/transform/audio_gap_filler.cpp\
-  $(MYDIR)/transform/libavfilter.cpp\
   $(MYDIR)/transform/restamp.cpp\
   $(MYDIR)/transform/telx2ttml.cpp\
   $(MYDIR)/transform/time_rectifier.cpp\
@@ -117,6 +116,15 @@ $(BIN)/LibavMux.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
 $(BIN)/LibavMux.smd: CFLAGS+=$(MEDIA_CFLAGS)
 $(BIN)/LibavMux.smd: \
   $(BIN)/$(SRC)/lib_media/mux/libav_mux.cpp.o\
+  $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
+
+#------------------------------------------------------------------------------
+TARGETS+=$(BIN)/LibavFilter.smd
+$(BIN)/LibavFilter.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
+$(BIN)/LibavFilter.smd: CFLAGS+=$(MEDIA_CFLAGS)
+$(BIN)/LibavFilter.smd: \
+  $(BIN)/$(SRC)/lib_media/transform/libavfilter.cpp.o\
+  $(BIN)/$(SRC)/lib_media/common/picture.cpp.o\
   $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
 
 #------------------------------------------------------------------------------

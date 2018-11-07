@@ -1,4 +1,5 @@
 #include "libavfilter.hpp"
+#include "lib_modules/utils/factory.hpp"
 #include "lib_utils/tools.hpp"
 #include "../common/libav.hpp"
 
@@ -7,9 +8,36 @@ extern "C" {
 #include <libavfilter/buffersrc.h>
 }
 
+#include "lib_modules/utils/helper.hpp"
+#include "../common/ffpp.hpp"
+#include <string>
+
+struct AVFilter;
+struct AVFilterGraph;
+struct AVFilterContext;
+
 namespace Modules {
 namespace Transform {
 
+class LibavFilter : public ModuleS {
+	public:
+		LibavFilter(IModuleHost* host, const AvFilterConfig& cfg);
+		~LibavFilter();
+		void process(Data data) override;
+
+	private:
+		IModuleHost* const m_host;
+		AVFilterGraph *graph;
+		AVFilterContext *buffersrc_ctx, *buffersink_ctx;
+		std::unique_ptr<ffpp::Frame> const avFrameIn, avFrameOut;
+};
+
+}
+}
+
+namespace Modules {
+
+using namespace Transform;
 
 LibavFilter::LibavFilter(IModuleHost* host, const AvFilterConfig& cfg)
 	: m_host(host), graph(avfilter_graph_alloc()), avFrameIn(new ffpp::Frame), avFrameOut(new ffpp::Frame) {
@@ -88,4 +116,17 @@ void LibavFilter::process(Data data) {
 }
 
 }
+
+namespace {
+
+using namespace Modules;
+
+Modules::IModule* createObject(IModuleHost* host, va_list va) {
+	auto config = va_arg(va, AvFilterConfig*);
+	enforce(host, "LibavFilter: host can't be NULL");
+	enforce(config, "LibavFilter: config can't be NULL");
+	return Modules::create<LibavFilter>(host, *config).release();
+}
+
+auto const registered = Factory::registerModule("LibavFilter", &createObject);
 }
