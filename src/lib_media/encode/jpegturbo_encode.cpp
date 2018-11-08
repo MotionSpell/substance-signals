@@ -17,18 +17,18 @@ namespace {
 
 class JPEGTurboEncode : public ModuleS {
 	public:
-		JPEGTurboEncode(IModuleHost* host, int quality = JPEG_DEFAULT_QUALITY);
+		JPEGTurboEncode(KHost* host, int quality = JPEG_DEFAULT_QUALITY);
 		~JPEGTurboEncode();
 		void process(Data data) override;
 
 	private:
-		IModuleHost* const m_host;
+		KHost* const m_host;
 		OutputDefault* output;
 		tjhandle jtHandle;
 		int quality;
 };
 
-JPEGTurboEncode::JPEGTurboEncode(IModuleHost* host_, int quality)
+JPEGTurboEncode::JPEGTurboEncode(KHost* host_, int quality)
 	: m_host(host_),
 	  jtHandle(tjInitCompress()), quality(quality) {
 	auto input = addInput(this);
@@ -82,7 +82,7 @@ void JPEGTurboEncode::process(Data data_) {
 	output->emit(out);
 }
 
-IModule* createObject(IModuleHost* host, va_list va) {
+IModule* createObject(KHost* host, va_list va) {
 	(void)va;
 	enforce(host, "JPEGTurboEncode: host can't be NULL");
 	return create<JPEGTurboEncode>(host).release();

@@ -8,7 +8,7 @@
 namespace {
 
 struct Passthru : public Modules::ModuleS {
-	Passthru(Modules::IModuleHost*) {
+	Passthru(Modules::KHost*) {
 		addInput(this);
 		addOutput<Modules::OutputDefault>();
 	}
@@ -17,7 +17,7 @@ struct Passthru : public Modules::ModuleS {
 };
 
 struct InfiniteSource : Modules::ActiveModule {
-	InfiniteSource(Modules::IModuleHost*) {
+	InfiniteSource(Modules::KHost*) {
 		out = addOutput<Modules::OutputDefault>();
 	}
 	bool work() {
@@ -28,7 +28,7 @@ struct InfiniteSource : Modules::ActiveModule {
 };
 
 struct FakeSource : Modules::ActiveModule {
-	FakeSource(Modules::IModuleHost*, int maxNumRepetition = 50) : numRepetition(maxNumRepetition) {
+	FakeSource(Modules::KHost*, int maxNumRepetition = 50) : numRepetition(maxNumRepetition) {
 		out = addOutput<Modules::OutputDefault>();
 	}
 	bool work() {
@@ -40,7 +40,7 @@ struct FakeSource : Modules::ActiveModule {
 };
 
 struct FakeSink : public Modules::ModuleS {
-	FakeSink(Modules::IModuleHost*) {
+	FakeSink(Modules::KHost*) {
 		addInput(this);
 	}
 	void process(Modules::Data) override {
@@ -49,7 +49,7 @@ struct FakeSink : public Modules::ModuleS {
 
 class DualInput : public Modules::Module {
 	public:
-		DualInput(Modules::IModuleHost*) {
+		DualInput(Modules::KHost*) {
 			input0 = (Modules::Input*)addInput(this);
 			input1 = (Modules::Input*)addInput(this);
 			out = addOutput<Modules::OutputDefault>();
@@ -79,7 +79,7 @@ class DualInput : public Modules::Module {
 
 class ThreadedDualInput : public Modules::Module {
 	public:
-		ThreadedDualInput(Modules::IModuleHost*) {
+		ThreadedDualInput(Modules::KHost*) {
 			input0 = (Modules::Input*)addInput(this);
 			input1 = (Modules::Input*)addInput(this);
 			addOutput<Modules::OutputDefault>();

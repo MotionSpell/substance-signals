@@ -8,7 +8,7 @@ void Print::process(Data data_)  {
 	os << "Print: Received data of size: " << data->data().len << std::endl;
 }
 
-Print::Print(IModuleHost* host, std::ostream &os)
+Print::Print(KHost* host, std::ostream &os)
 	: m_host(host), os(os) {
 	(void)m_host;
 	addInput(this);

@@ -10,7 +10,7 @@ namespace Utils {
 /*repeats the last received data every n ms*/
 class Repeater : public ModuleS {
 	public:
-		Repeater(IModuleHost* host, int64_t ms);
+		Repeater(KHost* host, int64_t ms);
 		virtual ~Repeater();
 		void process(Data data) override;
 		void flush() override;
@@ -18,7 +18,7 @@ class Repeater : public ModuleS {
 	private:
 		void threadProc();
 
-		IModuleHost* const m_host;
+		KHost* const m_host;
 		std::thread workingThread;
 		std::atomic_bool done;
 		int64_t periodInMs;

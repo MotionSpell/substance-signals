@@ -21,12 +21,12 @@ namespace Transform {
 
 class LibavFilter : public ModuleS {
 	public:
-		LibavFilter(IModuleHost* host, const AvFilterConfig& cfg);
+		LibavFilter(KHost* host, const AvFilterConfig& cfg);
 		~LibavFilter();
 		void process(Data data) override;
 
 	private:
-		IModuleHost* const m_host;
+		KHost* const m_host;
 		AVFilterGraph *graph;
 		AVFilterContext *buffersrc_ctx, *buffersink_ctx;
 		std::unique_ptr<ffpp::Frame> const avFrameIn, avFrameOut;
@@ -39,7 +39,7 @@ namespace Modules {
 
 using namespace Transform;
 
-LibavFilter::LibavFilter(IModuleHost* host, const AvFilterConfig& cfg)
+LibavFilter::LibavFilter(KHost* host, const AvFilterConfig& cfg)
 	: m_host(host), graph(avfilter_graph_alloc()), avFrameIn(new ffpp::Frame), avFrameOut(new ffpp::Frame) {
 	char args[512];
 	AVPixelFormat pf = pixelFormat2libavPixFmt(cfg.format.format);
@@ -121,7 +121,7 @@ namespace {
 
 using namespace Modules;
 
-Modules::IModule* createObject(IModuleHost* host, va_list va) {
+Modules::IModule* createObject(KHost* host, va_list va) {
 	auto config = va_arg(va, AvFilterConfig*);
 	enforce(host, "LibavFilter: host can't be NULL");
 	enforce(config, "LibavFilter: config can't be NULL");

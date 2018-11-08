@@ -27,7 +27,7 @@ uint64_t fileSize(std::string path) {
 
 class LibavMuxHLSTS : public ModuleDynI {
 	public:
-		LibavMuxHLSTS(IModuleHost* host, HlsMuxConfigLibav* cfg)
+		LibavMuxHLSTS(KHost* host, HlsMuxConfigLibav* cfg)
 			: m_host(host),
 			  m_utcStartTime(cfg->utcStartTime),
 			  segDuration(timescaleToClock(cfg->segDurationInMs, 1000)), hlsDir(cfg->baseDir), segBasename(cfg->baseName) {
@@ -112,7 +112,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 			}
 		}
 
-		IModuleHost* const m_host;
+		KHost* const m_host;
 		IUtcStartTimeQuery* const m_utcStartTime;
 		std::shared_ptr<IModule> delegate;
 		OutputDataDefault<DataRaw> *outputSegment, *outputManifest;
@@ -120,7 +120,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 		std::string hlsDir, segBasename;
 };
 
-Modules::IModule* createObject(IModuleHost* host, va_list va) {
+Modules::IModule* createObject(KHost* host, va_list va) {
 	auto config = va_arg(va, HlsMuxConfigLibav*);
 	enforce(host, "LibavMuxHLSTS: host can't be NULL");
 	enforce(config, "LibavMuxHLSTS: config can't be NULL");

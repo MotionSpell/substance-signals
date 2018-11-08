@@ -3,7 +3,7 @@
 namespace Modules {
 namespace Out {
 
-Null::Null(IModuleHost* host)
+Null::Null(KHost* host)
 	: m_host(host) {
 	(void)m_host;
 	addInput(this);

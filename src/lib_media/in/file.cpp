@@ -11,7 +11,7 @@ static_assert(IOSIZE % 188 == 0);
 namespace Modules {
 namespace In {
 
-File::File(IModuleHost* host, std::string const& fn)
+File::File(KHost* host, std::string const& fn)
 	: m_host(host) {
 	file = fopen(fn.c_str(), "rb");
 	if (!file)

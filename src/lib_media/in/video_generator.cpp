@@ -7,7 +7,7 @@ auto const FRAMERATE = 25;
 namespace Modules {
 namespace In {
 
-VideoGenerator::VideoGenerator(IModuleHost* host, int maxFrames_)
+VideoGenerator::VideoGenerator(KHost* host, int maxFrames_)
 	:  m_host(host), maxFrames(maxFrames_) {
 	(void)m_host;
 	output = addOutput<OutputPicture>();

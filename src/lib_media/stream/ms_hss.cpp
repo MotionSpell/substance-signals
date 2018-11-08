@@ -32,7 +32,7 @@ Data createData(span<const uint8_t> contents) {
 	return r;
 }
 
-MS_HSS::MS_HSS(IModuleHost* host, const std::string &url)
+MS_HSS::MS_HSS(KHost* host, const std::string &url)
 	: m_host(host) {
 	auto cfg = HttpOutputConfig{url};
 	cfg.endOfSessionSuffix = { 0, 0, 0, 8, 'm', 'f', 'r', 'a' };

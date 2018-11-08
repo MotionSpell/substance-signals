@@ -9,7 +9,7 @@ using namespace std;
 namespace {
 
 struct Dummy : public Module {
-	Dummy(IModuleHost*) {
+	Dummy(KHost*) {
 		addInput(this);
 		output = addOutput<OutputDefault>();
 	}

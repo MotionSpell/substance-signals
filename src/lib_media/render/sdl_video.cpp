@@ -39,7 +39,7 @@ Uint32 queueOneUserEvent(Uint32, void*) {
 }
 
 struct SDLVideo : ModuleS {
-	SDLVideo(IModuleHost* host, IClock* clock)
+	SDLVideo(KHost* host, IClock* clock)
 		: m_host(host),
 		  m_clock(clock ? clock : g_SystemClock.get()),
 		  workingThread(&SDLVideo::doRender, this) {
@@ -187,7 +187,7 @@ struct SDLVideo : ModuleS {
 		SDL_AddTimer((Uint32)delayInMs, &queueOneUserEvent, nullptr);
 	}
 
-	IModuleHost* const m_host;
+	KHost* const m_host;
 	IClock* const m_clock;
 
 	SDL_Window* window = nullptr;
@@ -201,7 +201,7 @@ struct SDLVideo : ModuleS {
 	std::thread workingThread;
 };
 
-Modules::IModule* createObject(IModuleHost* host, va_list va) {
+Modules::IModule* createObject(KHost* host, va_list va) {
 	auto clock = va_arg(va, IClock*);
 	enforce(host, "SDLVideo: host can't be NULL");
 	return Modules::create<SDLVideo>(host, clock).release();

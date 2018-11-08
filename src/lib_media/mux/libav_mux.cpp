@@ -24,7 +24,7 @@ namespace {
 class LibavMux : public ModuleDynI {
 	public:
 
-		LibavMux(IModuleHost* host, MuxConfig cfg)
+		LibavMux(KHost* host, MuxConfig cfg)
 			: m_host(host), m_formatCtx(avformat_alloc_context()), optionsDict(typeid(*this).name(), cfg.options) {
 			if (!m_formatCtx)
 				throw error("Format context couldn't be allocated.");
@@ -131,7 +131,7 @@ class LibavMux : public ModuleDynI {
 		}
 
 	private:
-		IModuleHost* const m_host;
+		KHost* const m_host;
 		AVFormatContext* const m_formatCtx;
 		std::map<size_t, size_t> inputIdx2AvStream;
 		ffpp::Dict optionsDict;
@@ -238,7 +238,7 @@ class LibavMux : public ModuleDynI {
 
 };
 
-Modules::IModule* createObject(IModuleHost* host, va_list va) {
+Modules::IModule* createObject(KHost* host, va_list va) {
 	auto config = va_arg(va, MuxConfig*);
 	enforce(host, "LibavMux: host can't be NULL");
 	enforce(config, "LibavMux: config can't be NULL");

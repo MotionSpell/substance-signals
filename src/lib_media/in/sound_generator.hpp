@@ -8,11 +8,11 @@ namespace In {
 
 class SoundGenerator : public ActiveModule {
 	public:
-		SoundGenerator(IModuleHost* host);
+		SoundGenerator(KHost* host);
 		bool work() override;
 
 	private:
-		IModuleHost* const m_host;
+		KHost* const m_host;
 		double nextSample();
 		uint64_t m_numSamples;
 		PcmFormat pcmFormat;

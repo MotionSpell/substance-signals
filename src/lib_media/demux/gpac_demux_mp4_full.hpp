@@ -10,7 +10,7 @@ struct ISOProgressiveReader;
 
 class GPACDemuxMP4Full : public ModuleS {
 	public:
-		GPACDemuxMP4Full(IModuleHost* host);
+		GPACDemuxMP4Full(KHost* host);
 		~GPACDemuxMP4Full();
 		void process(Data data) override;
 
@@ -20,7 +20,7 @@ class GPACDemuxMP4Full : public ModuleS {
 		bool processSample();
 		bool safeProcessSample();
 
-		IModuleHost* const m_host;
+		KHost* const m_host;
 
 		std::unique_ptr<ISOProgressiveReader> reader;
 		OutputDefault* output;

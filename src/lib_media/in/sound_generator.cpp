@@ -11,7 +11,7 @@ namespace In {
 
 auto const SINE_FREQ = 880.0;
 
-SoundGenerator::SoundGenerator(IModuleHost* host)
+SoundGenerator::SoundGenerator(KHost* host)
 	:  m_host(host), m_numSamples(20000) {
 	(void)m_host;
 	pcmFormat.sampleFormat = S16;

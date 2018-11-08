@@ -7,14 +7,14 @@ namespace Utils {
 
 class Recorder : public ModuleS {
 	public:
-		Recorder(IModuleHost* host);
+		Recorder(KHost* host);
 		void process(Data data) override;
 		void flush() override;
 
 		Data pop();
 
 	private:
-		IModuleHost* const m_host;
+		KHost* const m_host;
 		Queue<Data> record;
 };
 

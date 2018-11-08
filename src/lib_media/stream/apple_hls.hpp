@@ -19,7 +19,7 @@ namespace Stream {
 
 class Apple_HLS : public AdaptiveStreamingCommon {
 	public:
-		Apple_HLS(IModuleHost* host, HlsMuxConfig* cfg);
+		Apple_HLS(KHost* host, HlsMuxConfig* cfg);
 		virtual ~Apple_HLS();
 
 	private:
@@ -36,7 +36,7 @@ class Apple_HLS : public AdaptiveStreamingCommon {
 		std::string getManifestMasterInternal();
 		void generateManifestMaster();
 
-		IModuleHost* const m_host;
+		KHost* const m_host;
 
 		std::string playlistMasterPath;
 		const bool genVariantPlaylist;

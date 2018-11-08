@@ -6,7 +6,7 @@ namespace Modules {
 
 class Regulator : public ModuleS {
 	public:
-		Regulator(IModuleHost* host, std::shared_ptr<IClock> clock_)
+		Regulator(KHost* host, std::shared_ptr<IClock> clock_)
 			: clock(clock_), m_host(host) {
 			addInput(this);
 			addOutput<OutputDefault>();
@@ -29,7 +29,7 @@ class Regulator : public ModuleS {
 		static auto const REGULATION_TOLERANCE_IN_MS = 300;
 
 	private:
-		IModuleHost* const m_host;
+		KHost* const m_host;
 };
 }
 

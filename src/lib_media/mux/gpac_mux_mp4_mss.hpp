@@ -7,7 +7,7 @@ namespace Mux {
 
 class GPACMuxMP4MSS : public GPACMuxMP4 {
 	public:
-		GPACMuxMP4MSS(IModuleHost* host, Mp4MuxConfigMss& cfg);
+		GPACMuxMP4MSS(KHost* host, Mp4MuxConfigMss& cfg);
 
 	private:
 		void declareStreamVideo(const MetadataPktVideo* metadata) final;

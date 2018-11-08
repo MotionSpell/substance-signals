@@ -3,11 +3,11 @@
 namespace Modules {
 
 struct IModule;
-struct IModuleHost;
+struct KHost;
 
 namespace Factory {
-using CreationFunc = IModule* (IModuleHost*, va_list);
-IModule* instantiateModule(const char* name, IModuleHost* host, va_list);
+using CreationFunc = IModule* (KHost*, va_list);
+IModule* instantiateModule(const char* name, KHost* host, va_list);
 int registerModule(const char* name, CreationFunc* func);
 }
 
@@ -24,5 +24,5 @@ int registerModule(const char* name, CreationFunc* func);
 
 extern "C"
 {
-	EXPORT Modules::IModule* instantiate(const char* name, Modules::IModuleHost* host, va_list va);
+	EXPORT Modules::IModule* instantiate(const char* name, Modules::KHost* host, va_list va);
 }

@@ -27,7 +27,7 @@ class ISOFileReader {
 
 class GPACDemuxMP4Simple : public ActiveModule {
 	public:
-		GPACDemuxMP4Simple(IModuleHost* host, Mp4DemuxConfig const* cfg)
+		GPACDemuxMP4Simple(KHost* host, Mp4DemuxConfig const* cfg)
 			: m_host(host),
 			  reader(new ISOFileReader) {
 			GF_ISOFile *movie;
@@ -67,13 +67,13 @@ class GPACDemuxMP4Simple : public ActiveModule {
 		}
 
 	private:
-		IModuleHost* const m_host;
+		KHost* const m_host;
 		std::unique_ptr<ISOFileReader> reader;
 		OutputDefault* output;
 };
 
 
-Modules::IModule* createObject(IModuleHost* host, va_list va) {
+Modules::IModule* createObject(KHost* host, va_list va) {
 	auto config = va_arg(va, Mp4DemuxConfig*);
 	enforce(host, "GPACDemuxMP4Simple: host can't be NULL");
 	enforce(config, "GPACDemuxMP4Simple: config can't be NULL");

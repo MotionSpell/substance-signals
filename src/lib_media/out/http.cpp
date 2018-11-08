@@ -70,7 +70,7 @@ Data createData(std::vector<uint8_t> const& contents) {
 
 struct CurlHttpSender : HttpSender {
 
-		CurlHttpSender(std::string url, std::string userAgent, bool usePUT, std::vector<std::string> extraHeaders, IModuleHost* log) {
+		CurlHttpSender(std::string url, std::string userAgent, bool usePUT, std::vector<std::string> extraHeaders, KHost* log) {
 			m_log = log;
 			curl_global_init(CURL_GLOBAL_ALL);
 			curl = createCurl(url, usePUT);
@@ -157,7 +157,7 @@ struct CurlHttpSender : HttpSender {
 		Data m_currData;
 		span<const uint8_t> m_currBs {}; // points to the contents of m_currData/m_prefixData
 
-		IModuleHost* m_log {};
+		KHost* m_log {};
 		curl_slist* headers {};
 		CURL *curl;
 		std::thread workingThread;
@@ -174,7 +174,7 @@ struct CurlHttpSender : HttpSender {
 		}
 };
 
-HTTP::HTTP(IModuleHost* host, HttpOutputConfig const& cfg)
+HTTP::HTTP(KHost* host, HttpOutputConfig const& cfg)
 	: m_host(host), m_suffixData(createData(cfg.endOfSessionSuffix)) {
 	if (!startsWith(cfg.url, "http://") && !startsWith(cfg.url, "https://"))
 		throw error(format("can only handle URLs starting with 'http://' or 'https://', not '%s'.", cfg.url));
@@ -213,7 +213,7 @@ void HTTP::process(Data data) {
 }
 
 namespace {
-IModule* createObject(IModuleHost* host, va_list va) {
+IModule* createObject(KHost* host, va_list va) {
 	auto cfg = va_arg(va, HttpOutputConfig*);
 	enforce(host, "HTTP: host can't be NULL");
 	return create<Out::HTTP>(host, *cfg).release();

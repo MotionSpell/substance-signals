@@ -15,7 +15,7 @@ namespace Mux {
 
 class GPACMuxMP4 : public ModuleS {
 	public:
-		GPACMuxMP4(IModuleHost* host, Mp4MuxConfig const& config);
+		GPACMuxMP4(KHost* host, Mp4MuxConfig const& config);
 		virtual ~GPACMuxMP4();
 		void process(Data data) override;
 		void flush() override;
@@ -30,7 +30,7 @@ class GPACMuxMP4 : public ModuleS {
 		GF_ISOFile *isoInit, *isoCur;
 
 	private:
-		IModuleHost * const m_host;
+		KHost * const m_host;
 		IUtcStartTimeQuery* const m_utcStartTime;
 
 		void updateFormat(Data data);

@@ -48,7 +48,7 @@ bool startsWith(std::string s, std::string prefix) {
 class LibavDemux : public ActiveModule {
 	public:
 		//@param url may be a file, a remote URL, or a webcam (set "webcam" to list the available devices)
-		LibavDemux(IModuleHost* host, DemuxConfig const& config)
+		LibavDemux(KHost* host, DemuxConfig const& config)
 			: m_host(host),
 			  loop(config.loop), done(false), packetQueue(PKT_QUEUE_SIZE), m_read(config.func) {
 			if (!(m_formatCtx = avformat_alloc_context()))
@@ -444,7 +444,7 @@ class LibavDemux : public ActiveModule {
 			std::unique_ptr<Transform::Restamp> restamper;
 		};
 
-		IModuleHost* const m_host;
+		KHost* const m_host;
 
 		std::vector<Stream> m_streams;
 
@@ -464,7 +464,7 @@ class LibavDemux : public ActiveModule {
 		}
 };
 
-Modules::IModule* createObject(IModuleHost* host, va_list va) {
+Modules::IModule* createObject(KHost* host, va_list va) {
 	auto config = va_arg(va, DemuxConfig*);
 	enforce(host, "LibavDemux: host can't be NULL");
 	enforce(config, "LibavDemux: config can't be NULL");

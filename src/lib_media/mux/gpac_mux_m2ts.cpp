@@ -65,12 +65,12 @@ typedef Queue<AVPacket*> DataInput;
 
 class GPACMuxMPEG2TS : public ModuleDynI, public gpacpp::Init {
 	public:
-		GPACMuxMPEG2TS(IModuleHost* host, TsMuxConfig* cfg);
+		GPACMuxMPEG2TS(KHost* host, TsMuxConfig* cfg);
 		~GPACMuxMPEG2TS();
 		void process() override;
 
 	private:
-		IModuleHost* const m_host;
+		KHost* const m_host;
 
 		void declareStream(Data data);
 		GF_Err fillInput(GF_ESInterface *esi, u32 ctrl_type, size_t inputIdx);
@@ -87,7 +87,7 @@ struct UserData {
 	size_t inputIdx; //TODO: constify?
 };
 
-GPACMuxMPEG2TS::GPACMuxMPEG2TS(IModuleHost* host, TsMuxConfig* cfg)
+GPACMuxMPEG2TS::GPACMuxMPEG2TS(KHost* host, TsMuxConfig* cfg)
 	:  m_host(host), muxer(new M2TSMux(cfg->real_time, cfg->mux_rate, cfg->pcr_ms, cfg->pcr_init_val)) {
 	output = addOutput<OutputDefault>();
 }
@@ -231,7 +231,7 @@ void GPACMuxMPEG2TS::process() {
 	}
 }
 
-Modules::IModule* createObject(IModuleHost* host, va_list va) {
+Modules::IModule* createObject(KHost* host, va_list va) {
 	auto config = va_arg(va, TsMuxConfig*);
 	enforce(host, "GPACMuxMPEG2TS: host can't be NULL");
 	enforce(config, "GPACMuxMPEG2TS: config can't be NULL");

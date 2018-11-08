@@ -17,7 +17,7 @@ void ensureDir(std::string path) {
 		mkdir(path);
 }
 
-AdaptiveStreamingCommon::AdaptiveStreamingCommon(IModuleHost* host, Type type, uint64_t segDurationInMs, const std::string &manifestDir, AdaptiveStreamingCommonFlags flags)
+AdaptiveStreamingCommon::AdaptiveStreamingCommon(KHost* host, Type type, uint64_t segDurationInMs, const std::string &manifestDir, AdaptiveStreamingCommonFlags flags)
 	: m_host(host),
 	  type(type), segDurationInMs(segDurationInMs), manifestDir(manifestDir), flags(flags) {
 	if ((flags & ForceRealDurations) && !segDurationInMs)

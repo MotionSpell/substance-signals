@@ -46,7 +46,7 @@ class AdaptiveStreamingCommon : public ModuleDynI {
 			ForceRealDurations   = 1 << 2
 		};
 
-		AdaptiveStreamingCommon(IModuleHost* host, Type type, uint64_t segDurationInMs, const std::string &manifestDir, AdaptiveStreamingCommonFlags flags);
+		AdaptiveStreamingCommon(KHost* host, Type type, uint64_t segDurationInMs, const std::string &manifestDir, AdaptiveStreamingCommonFlags flags);
 		virtual ~AdaptiveStreamingCommon() {}
 
 		void process() override final;
@@ -63,7 +63,7 @@ class AdaptiveStreamingCommon : public ModuleDynI {
 		}
 
 	protected:
-		IModuleHost* const m_host;
+		KHost* const m_host;
 		bool moveFile(const std::string &src, const std::string &dst) const;
 		void processInitSegment(Quality const * const quality, size_t index);
 		std::string getInitName(Quality const * const quality, size_t index) const;

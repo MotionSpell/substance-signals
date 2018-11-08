@@ -33,7 +33,7 @@ struct PesStream : Stream {
 			virtual void restamp(int64_t& time) = 0;
 		};
 
-		PesStream(int pid_, int type_, Restamper* restamper_, IModuleHost* host, OutputDefault* output_) :
+		PesStream(int pid_, int type_, Restamper* restamper_, KHost* host, OutputDefault* output_) :
 			Stream(pid_, host),
 			type(type_),
 			m_restamper(restamper_),

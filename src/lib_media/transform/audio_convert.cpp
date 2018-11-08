@@ -46,7 +46,7 @@ struct Resampler {
 
 struct AudioConvert : ModuleS {
 		/*dstFrameSize is the number of output sample - '-1' is same as input*/
-		AudioConvert(IModuleHost* host, const PcmFormat &dstFormat, int64_t dstNumSamples)
+		AudioConvert(KHost* host, const PcmFormat &dstFormat, int64_t dstNumSamples)
 			: m_host(host),
 			  dstPcmFormat(dstFormat), dstNumSamples(dstNumSamples), m_Swr(nullptr), autoConfigure(true) {
 			srcPcmFormat = { 0 };
@@ -55,7 +55,7 @@ struct AudioConvert : ModuleS {
 			output = addOutput<OutputPcm>();
 		}
 
-		AudioConvert(IModuleHost* host, const PcmFormat &srcFormat, const PcmFormat &dstFormat, int64_t dstNumSamples)
+		AudioConvert(KHost* host, const PcmFormat &srcFormat, const PcmFormat &dstFormat, int64_t dstNumSamples)
 			:m_host(host),
 			 srcPcmFormat(srcFormat), dstPcmFormat(dstFormat), dstNumSamples(dstNumSamples), m_Swr(new Resampler), autoConfigure(false) {
 			configure(srcPcmFormat);
@@ -183,7 +183,7 @@ struct AudioConvert : ModuleS {
 		}
 
 	private:
-		IModuleHost* const m_host;
+		KHost* const m_host;
 		PcmFormat srcPcmFormat;
 		PcmFormat const dstPcmFormat;
 		int64_t dstNumSamples, curDstNumSamples = 0;
@@ -195,7 +195,7 @@ struct AudioConvert : ModuleS {
 
 };
 
-IModule* createObject(IModuleHost* host, va_list va) {
+IModule* createObject(KHost* host, va_list va) {
 	auto src = va_arg(va, PcmFormat*);
 	auto dst = va_arg(va, PcmFormat*);
 	auto samples = va_arg(va, int);

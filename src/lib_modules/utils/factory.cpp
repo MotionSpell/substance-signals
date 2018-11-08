@@ -44,7 +44,7 @@ int registerModule(const char* name, CreationFunc* func) {
 	return 0;
 }
 
-IModule* instantiateModule(const char* name, IModuleHost* host, va_list va) {
+IModule* instantiateModule(const char* name, KHost* host, va_list va) {
 	auto entry = findEntry(name);
 	if(!entry)
 		throw runtime_error("Unknown module '" + string(name) + "'");
@@ -55,6 +55,6 @@ IModule* instantiateModule(const char* name, IModuleHost* host, va_list va) {
 
 }
 
-Modules::IModule* instantiate(const char* name, Modules::IModuleHost* host, va_list va) {
+Modules::IModule* instantiate(const char* name, Modules::KHost* host, va_list va) {
 	return Modules::Factory::instantiateModule(name, host, va);
 }

@@ -10,7 +10,7 @@ namespace Modules {
 
 #define TR_DEBUG Debug
 
-TimeRectifier::TimeRectifier(IModuleHost* host, std::shared_ptr<IClock> clock_, IScheduler* scheduler_, Fraction frameRate)
+TimeRectifier::TimeRectifier(KHost* host, std::shared_ptr<IClock> clock_, IScheduler* scheduler_, Fraction frameRate)
 	: m_host(host),
 	  frameRate(frameRate),
 	  threshold(timescaleToClock(frameRate.den, frameRate.num)),

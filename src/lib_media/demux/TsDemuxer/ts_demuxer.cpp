@@ -24,7 +24,7 @@ auto const TS_PACKET_LEN = 188;
 auto const PID_PAT = 0;
 
 struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::Restamper {
-		TsDemuxer(IModuleHost* host, TsDemuxerConfig const& config)
+		TsDemuxer(KHost* host, TsDemuxerConfig const& config)
 			: m_host(host) {
 
 			addInput(this);
@@ -185,13 +185,13 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::Restamper {
 			return nullptr;
 		}
 
-		IModuleHost* const m_host;
+		KHost* const m_host;
 		vector<unique_ptr<Stream>> m_streams;
 		int64_t m_ptsOrigin = INT64_MAX;
 		int64_t m_lastUnrolledPts = 0;
 };
 
-Modules::IModule* createObject(IModuleHost* host, va_list va) {
+Modules::IModule* createObject(KHost* host, va_list va) {
 	auto config = va_arg(va, TsDemuxerConfig*);
 	enforce(host, "TsDemuxer: host can't be NULL");
 	enforce(config, "TsDemuxer: config can't be NULL");

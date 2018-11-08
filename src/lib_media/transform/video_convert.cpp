@@ -17,20 +17,20 @@ namespace {
 
 class VideoConvert : public ModuleS {
 	public:
-		VideoConvert(IModuleHost* host, const PictureFormat &dstFormat);
+		VideoConvert(KHost* host, const PictureFormat &dstFormat);
 		~VideoConvert();
 		void process(Data data) override;
 
 	private:
 		void reconfigure(const PictureFormat &format);
 
-		IModuleHost* const m_host;
+		KHost* const m_host;
 		SwsContext *m_SwContext;
 		PictureFormat srcFormat, dstFormat;
 		OutputPicture* output;
 };
 
-VideoConvert::VideoConvert(IModuleHost* host, const PictureFormat &dstFormat)
+VideoConvert::VideoConvert(KHost* host, const PictureFormat &dstFormat)
 	: m_host(host),
 	  m_SwContext(nullptr), dstFormat(dstFormat) {
 	auto input = addInput(this);
@@ -91,7 +91,7 @@ void VideoConvert::process(Data data) {
 	output->emit(out);
 }
 
-Modules::IModule* createObject(IModuleHost* host, va_list va) {
+Modules::IModule* createObject(KHost* host, va_list va) {
 	auto fmt = va_arg(va, PictureFormat*);
 	enforce(host, "VideoConvert: host can't be NULL");
 	return Modules::create<VideoConvert>(host, *fmt).release();

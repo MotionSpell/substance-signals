@@ -11,7 +11,7 @@ namespace {
 class DataCustom : public DataRaw {};
 
 struct CustomDataTypeSink : public Modules::ModuleS {
-	CustomDataTypeSink(Modules::IModuleHost*) {
+	CustomDataTypeSink(Modules::KHost*) {
 		addInput(this);
 	}
 	void process(Modules::Data data) override {
@@ -20,7 +20,7 @@ struct CustomDataTypeSink : public Modules::ModuleS {
 };
 
 struct Split : public Modules::ActiveModule {
-	Split(Modules::IModuleHost*) {
+	Split(Modules::KHost*) {
 		addOutput<Modules::OutputDefault>();
 		addOutput<Modules::OutputDefault>();
 	}

@@ -15,13 +15,13 @@ class Restamp : public ModuleS {
 		};
 
 		/*offset will be added to the current time*/
-		Restamp(IModuleHost* host, Mode mode, int64_t offsetIn180k = 0);
+		Restamp(KHost* host, Mode mode, int64_t offsetIn180k = 0);
 		~Restamp();
 		int64_t restamp(int64_t time);
 		void process(Data data) override;
 
 	private:
-		IModuleHost* const m_host;
+		KHost* const m_host;
 		int64_t offset;
 		Mode mode;
 		bool isInitTime = false;

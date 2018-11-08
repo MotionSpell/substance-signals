@@ -8,11 +8,11 @@ namespace Out {
 
 class Print : public ModuleS {
 	public:
-		Print(IModuleHost* host, std::ostream &os);
+		Print(KHost* host, std::ostream &os);
 		void process(Data data) override;
 
 	private:
-		IModuleHost* const m_host;
+		KHost* const m_host;
 		std::ostream &os;
 };
 

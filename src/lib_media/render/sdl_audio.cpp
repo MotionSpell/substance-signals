@@ -50,7 +50,7 @@ PcmFormat toPcmFormat(SDL_AudioSpec audioSpec) {
 }
 
 struct SDLAudio : ModuleS {
-	SDLAudio(IModuleHost* host, IClock* clock)
+	SDLAudio(KHost* host, IClock* clock)
 		: m_host(host),
 		  m_clock(clock ? clock : g_SystemClock.get()),
 		  m_inputFormat(PcmFormat(44100, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Interleaved)) {
@@ -194,7 +194,7 @@ struct SDLAudio : ModuleS {
 		dst += bytes;
 	}
 
-	IModuleHost* const m_host;
+	KHost* const m_host;
 	IClock* const m_clock;
 
 	PcmFormat m_outputFormat {};
@@ -210,7 +210,7 @@ struct SDLAudio : ModuleS {
 	int64_t m_fifoTime;
 };
 
-Modules::IModule* createObject(IModuleHost* host, va_list va) {
+Modules::IModule* createObject(KHost* host, va_list va) {
 	auto clock = va_arg(va, IClock*);
 	enforce(host, "SDLAudio: host can't be NULL");
 	return create<SDLAudio>(host, clock).release();

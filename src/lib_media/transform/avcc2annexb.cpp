@@ -37,7 +37,7 @@ struct ByteReader {
 	}
 };
 
-AVCC2AnnexBConverter::AVCC2AnnexBConverter(IModuleHost* host)
+AVCC2AnnexBConverter::AVCC2AnnexBConverter(KHost* host)
 	: m_host(host) {
 	auto input = addInput(this);
 	output = addOutput<OutputDataDefault<DataAVPacket>>(input->getMetadata());

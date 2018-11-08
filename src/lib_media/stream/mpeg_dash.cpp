@@ -65,7 +65,7 @@ AdaptiveStreamingCommon::AdaptiveStreamingCommonFlags getFlags(DasherConfig* cfg
 
 class MPEG_DASH : public AdaptiveStreamingCommon, public gpacpp::Init {
 	public:
-		MPEG_DASH(IModuleHost* host, DasherConfig* cfg)
+		MPEG_DASH(KHost* host, DasherConfig* cfg)
 			: AdaptiveStreamingCommon(host, getType(cfg), cfg->segDurationInMs, cfg->mpdDir, getFlags(cfg)),
 			  m_host(host),
 			  mpd(createMPD(cfg->live, cfg->minBufferTimeInMs, cfg->id)), mpdFn(cfg->mpdName), baseURLs(cfg->baseURLs),
@@ -90,7 +90,7 @@ class MPEG_DASH : public AdaptiveStreamingCommon, public gpacpp::Init {
 			std::vector<SegmentToDelete> timeshiftSegments;
 		};
 
-		IModuleHost* const m_host;
+		KHost* const m_host;
 		std::unique_ptr<gpacpp::MPD> mpd;
 		const std::string mpdFn;
 		const std::vector<std::string> baseURLs;
@@ -378,7 +378,7 @@ namespace {
 
 using namespace Modules;
 
-Modules::IModule* createObject(IModuleHost* host, va_list va) {
+Modules::IModule* createObject(KHost* host, va_list va) {
 	auto config = va_arg(va, DasherConfig*);
 	enforce(host, "MPEG_DASH: host can't be NULL");
 	enforce(config, "MPEG_DASH: config can't be NULL");

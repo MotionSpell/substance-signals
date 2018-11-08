@@ -94,7 +94,7 @@ class TeletextToTTML : public ModuleS {
 			RelativeToSplit  //MSS
 		};
 
-		TeletextToTTML(IModuleHost* host, TeletextToTtmlConfig* cfg);
+		TeletextToTTML(KHost* host, TeletextToTtmlConfig* cfg);
 		void process(Data data) override;
 
 	private:
@@ -103,7 +103,7 @@ class TeletextToTTML : public ModuleS {
 		void processTelx(Data pkt);
 		void dispatch();
 
-		IModuleHost* const m_host;
+		KHost* const m_host;
 		IUtcStartTimeQuery* const m_utcStartTime;
 		OutputDataDefault<DataRaw> *output;
 		const unsigned pageNum;
@@ -176,7 +176,7 @@ std::string TeletextToTTML::toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs)
 	return ttml.str();
 }
 
-TeletextToTTML::TeletextToTTML(IModuleHost* host, TeletextToTtmlConfig* cfg)
+TeletextToTTML::TeletextToTTML(KHost* host, TeletextToTtmlConfig* cfg)
 	: m_host(host),
 	  m_utcStartTime(cfg->utcStartTime),
 	  pageNum(cfg->pageNum), lang(cfg->lang), timingPolicy(cfg->timingPolicy), maxPageDurIn180k(timescaleToClock(cfg->maxDelayBeforeEmptyInMs, 1000)), splitDurationIn180k(timescaleToClock(cfg->splitDurationInMs, 1000)) {
@@ -264,7 +264,7 @@ void TeletextToTTML::process(Data data) {
 	dispatch();
 }
 
-Modules::IModule* createObject(IModuleHost* host, va_list va) {
+Modules::IModule* createObject(KHost* host, va_list va) {
 	auto config = va_arg(va, TeletextToTtmlConfig*);
 	enforce(host, "TeletextToTTML: host can't be NULL");
 	enforce(config, "TeletextToTTML: config can't be NULL");

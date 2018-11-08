@@ -33,7 +33,7 @@ struct HttpSender {
 class HTTP : public ModuleS {
 	public:
 
-		HTTP(IModuleHost* host, HttpOutputConfig const& cfg);
+		HTTP(KHost* host, HttpOutputConfig const& cfg);
 		virtual ~HTTP();
 
 		void setPrefix(span<const uint8_t> prefix);
@@ -42,7 +42,7 @@ class HTTP : public ModuleS {
 		void flush() final;
 
 	private:
-		IModuleHost* const m_host;
+		KHost* const m_host;
 		std::unique_ptr<HttpSender> m_sender;
 		Data m_suffixData;
 		OutputDataDefault<DataRaw>* outputFinished;

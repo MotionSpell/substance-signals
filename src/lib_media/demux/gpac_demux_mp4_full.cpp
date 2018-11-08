@@ -34,7 +34,7 @@ struct ISOProgressiveReader {
 	u32 sampleCount = 0;
 };
 
-GPACDemuxMP4Full::GPACDemuxMP4Full(IModuleHost* host)
+GPACDemuxMP4Full::GPACDemuxMP4Full(KHost* host)
 	: m_host(host), reader(new ISOProgressiveReader) {
 	gf_sys_init(GF_MemTrackerNone);
 	addInput(this);

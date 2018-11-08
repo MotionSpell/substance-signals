@@ -13,7 +13,7 @@ namespace {
 class FileSystemSink : public ModuleS {
 	public:
 
-		FileSystemSink(IModuleHost* host, FileSystemSinkConfig cfg)
+		FileSystemSink(KHost* host, FileSystemSinkConfig cfg)
 			: m_host(host),
 			  m_config(cfg) {
 			addInput(this);
@@ -36,12 +36,12 @@ class FileSystemSink : public ModuleS {
 		}
 
 	private:
-		IModuleHost* const m_host;
+		KHost* const m_host;
 		FileSystemSinkConfig const m_config;
 		std::map<std::string, std::ofstream> m_files;
 };
 
-Modules::IModule* createObject(IModuleHost* host, va_list va) {
+Modules::IModule* createObject(KHost* host, va_list va) {
 	auto config = va_arg(va, FileSystemSinkConfig*);
 	enforce(host, "FileSystemSink: host can't be NULL");
 	enforce(config, "FileSystemSink: config can't be NULL");

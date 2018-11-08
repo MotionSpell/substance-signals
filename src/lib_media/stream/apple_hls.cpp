@@ -18,7 +18,7 @@ struct Apple_HLS::HLSQuality : public Quality {
 };
 
 
-Apple_HLS::Apple_HLS(IModuleHost* host, HlsMuxConfig* cfg)
+Apple_HLS::Apple_HLS(KHost* host, HlsMuxConfig* cfg)
 	: AdaptiveStreamingCommon(host, cfg->type, cfg->segDurationInMs, cfg->m3u8Dir, cfg->flags | (cfg->genVariantPlaylist ? SegmentsNotOwned : None)),
 	  m_host(host),
 	  playlistMasterPath(format("%s%s", cfg->m3u8Dir, cfg->m3u8Filename)),

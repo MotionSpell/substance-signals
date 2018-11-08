@@ -13,7 +13,7 @@ class Filter :
 	private IPipelineNotifier {
 	public:
 		Filter(const char* name,
-		    std::unique_ptr<IModuleHost> host,
+		    std::unique_ptr<KHost> host,
 		    std::shared_ptr<IModule> module,
 		    IPipelineNotifier *notify,
 		    Pipeline::Threading threading,
@@ -42,7 +42,7 @@ class Filter :
 		void endOfStream() override;
 		void exception(std::exception_ptr eptr) override;
 
-		std::unique_ptr<IModuleHost> m_host;
+		std::unique_ptr<KHost> m_host;
 		std::string const m_name;
 		std::shared_ptr<IModule> delegate;
 		std::unique_ptr<IExecutor> const executor;

@@ -62,7 +62,7 @@ static shared_ptr<IMetadata> createMetadata(AdaptationSet const& set) {
 	}
 }
 
-MPEG_DASH_Input::MPEG_DASH_Input(IModuleHost* host, std::unique_ptr<IFilePuller> source, std::string const& url)
+MPEG_DASH_Input::MPEG_DASH_Input(KHost* host, std::unique_ptr<IFilePuller> source, std::string const& url)
 	:  m_host(host), m_source(move(source)) {
 	//GET MPD FROM HTTP
 	auto mpdAsText = m_source->get(url);

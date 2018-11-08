@@ -14,7 +14,7 @@
 
 namespace Pipelines {
 
-struct ModuleHost : Modules::IModuleHost {
+struct ModuleHost : Modules::KHost {
 	ModuleHost(std::string name_, LogSink* log_) : name(name_), m_log(log_) {
 	}
 	void log(int level, char const* msg) override {
@@ -45,7 +45,7 @@ struct StatsRegistry : IStatsRegistry {
 	int entryIdx;
 };
 
-std::unique_ptr<Modules::IModuleHost> Pipeline::createModuleHost(std::string name) {
+std::unique_ptr<Modules::KHost> Pipeline::createModuleHost(std::string name) {
 	return make_unique<ModuleHost>(name, m_log);
 }
 
@@ -59,7 +59,7 @@ Pipeline::Pipeline(LogSink* log, bool isLowLatency, Threading threading)
 Pipeline::~Pipeline() {
 }
 
-IFilter* Pipeline::addModuleInternal(std::string name, std::unique_ptr<IModuleHost> host, std::shared_ptr<IModule> rawModule) {
+IFilter* Pipeline::addModuleInternal(std::string name, std::unique_ptr<KHost> host, std::shared_ptr<IModule> rawModule) {
 	auto module = make_unique<Filter>(name.c_str(), move(host), rawModule, this, threading, statsMem.get());
 	auto ret = module.get();
 	modules.push_back(std::move(module));

@@ -381,7 +381,7 @@ void annexbToAvcc(SpanC buf, GF_ISOSample &sample) {
 
 namespace Mux {
 
-GPACMuxMP4::GPACMuxMP4(IModuleHost* host, Mp4MuxConfig const& cfg)
+GPACMuxMP4::GPACMuxMP4(KHost* host, Mp4MuxConfig const& cfg)
 	: m_host(host),
 	  m_utcStartTime(cfg.utcStartTime),
 	  compatFlags(cfg.compatFlags),
@@ -1145,7 +1145,7 @@ namespace {
 
 using namespace Modules;
 
-Modules::IModule* createObject(IModuleHost* host, va_list va) {
+Modules::IModule* createObject(KHost* host, va_list va) {
 	auto config = va_arg(va, Mp4MuxConfig*);
 	enforce(host, "GPACMuxMP4: host can't be NULL");
 	enforce(config, "GPACMuxMP4: config can't be NULL");

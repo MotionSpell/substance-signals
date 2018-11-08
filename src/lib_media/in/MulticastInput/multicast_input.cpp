@@ -8,7 +8,7 @@ using namespace Modules;
 namespace {
 
 struct MulticastInput : ActiveModule {
-	MulticastInput(IModuleHost* host, MulticastInputConfig const& config)
+	MulticastInput(KHost* host, MulticastInputConfig const& config)
 		: m_host(host) {
 		m_socket = createSocket();
 
@@ -32,12 +32,12 @@ struct MulticastInput : ActiveModule {
 		return true;
 	}
 
-	IModuleHost* const m_host;
+	KHost* const m_host;
 	std::unique_ptr<ISocket> m_socket;
 	OutputDefault* m_output;
 };
 
-Modules::IModule* createObject(IModuleHost* host, va_list va) {
+Modules::IModule* createObject(KHost* host, va_list va) {
 	auto config = va_arg(va, MulticastInputConfig*);
 	enforce(host, "MulticastInput: host can't be NULL");
 	enforce(config, "MulticastInput: config can't be NULL");

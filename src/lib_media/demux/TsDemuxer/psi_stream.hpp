@@ -25,7 +25,7 @@ struct PsiStream : Stream {
 			virtual void onPmt(span<EsInfo> esInfo) = 0;
 		};
 
-		PsiStream(int pid_, IModuleHost* host, Listener* listener_) : Stream(pid_, host), listener(listener_) {
+		PsiStream(int pid_, KHost* host, Listener* listener_) : Stream(pid_, host), listener(listener_) {
 		}
 
 		void push(SpanC data, bool pusi) override {

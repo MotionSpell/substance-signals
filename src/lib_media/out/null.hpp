@@ -7,11 +7,11 @@ namespace Out {
 
 //Open bar output. Thread-safe by design �
 struct Null : public ModuleS {
-		Null(IModuleHost* host);
+		Null(KHost* host);
 		void process(Data data) override;
 
 	private:
-		IModuleHost* const m_host;
+		KHost* const m_host;
 };
 
 }

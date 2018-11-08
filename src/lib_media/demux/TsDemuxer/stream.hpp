@@ -3,7 +3,7 @@
 #pragma once
 
 struct Stream {
-	Stream(int pid_, IModuleHost* host) : pid(pid_), m_host(host) {}
+	Stream(int pid_, KHost* host) : pid(pid_), m_host(host) {}
 	virtual ~Stream() = default;
 
 	// send data for processing
@@ -13,7 +13,7 @@ struct Stream {
 	virtual void flush() = 0;
 
 	int pid = TsDemuxerConfig::ANY;
-	IModuleHost* const m_host; // for logs
+	KHost* const m_host; // for logs
 	int cc = -1; // continuity counter
 };
 

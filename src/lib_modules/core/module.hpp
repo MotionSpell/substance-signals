@@ -25,12 +25,12 @@ struct KOutput {
 	virtual void emit(Data data) = 0;
 };
 
-struct IModuleHost {
-	virtual ~IModuleHost() = default;
+struct KHost {
+	virtual ~KHost() = default;
 	virtual void log(int level, char const* msg) = 0;
 };
 
-struct NullHostType : IModuleHost {
+struct NullHostType : KHost {
 	void log(int, char const*) override;
 };
 

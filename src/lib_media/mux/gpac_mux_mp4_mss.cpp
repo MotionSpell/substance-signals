@@ -8,7 +8,7 @@ extern "C" {
 namespace Modules {
 namespace Mux {
 
-GPACMuxMP4MSS::GPACMuxMP4MSS(IModuleHost* host, Mp4MuxConfigMss& cfg)
+GPACMuxMP4MSS::GPACMuxMP4MSS(KHost* host, Mp4MuxConfigMss& cfg)
 	: GPACMuxMP4(host,
 	      Mp4MuxConfig{
 	cfg.baseName,

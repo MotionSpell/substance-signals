@@ -7,12 +7,12 @@ namespace Out {
 
 class File : public ModuleS {
 	public:
-		File(IModuleHost* host, std::string const& path);
+		File(KHost* host, std::string const& path);
 		~File();
 		void process(Data data) override;
 
 	private:
-		IModuleHost* const m_host;
+		KHost* const m_host;
 		FILE *file;
 };
 

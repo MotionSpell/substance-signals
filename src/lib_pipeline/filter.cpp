@@ -15,7 +15,7 @@ std::unique_ptr<IExecutor> createExecutor(Pipeline::Threading threading, const c
 }
 
 Filter::Filter(const char* name,
-    std::unique_ptr<Modules::IModuleHost> host,
+    std::unique_ptr<Modules::KHost> host,
     std::shared_ptr<IModule> module,
     IPipelineNotifier *notify,
     Pipeline::Threading threading,

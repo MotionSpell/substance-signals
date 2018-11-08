@@ -5,7 +5,7 @@
 namespace Modules {
 namespace Out {
 
-File::File(IModuleHost* host, std::string const& path)
+File::File(KHost* host, std::string const& path)
 	:  m_host(host) {
 	(void)m_host;
 	file = fopen(path.c_str(), "wb");

@@ -56,7 +56,7 @@ int avGetBuffer2(struct AVCodecContext *ctx, AVFrame *frame, int /*flags*/) {
 
 struct Decoder : ModuleS, PictureAllocator {
 
-		Decoder(IModuleHost* host, StreamType type)
+		Decoder(KHost* host, StreamType type)
 			: m_host(host), avFrame(new ffpp::Frame) {
 			addInput(this);
 
@@ -201,7 +201,7 @@ struct Decoder : ModuleS, PictureAllocator {
 			}
 		}
 
-		IModuleHost* const m_host;
+		KHost* const m_host;
 		std::shared_ptr<AVCodecContext> codecCtx;
 		std::unique_ptr<ffpp::Frame> const avFrame;
 		OutputPicture *videoOutput = nullptr;
@@ -209,7 +209,7 @@ struct Decoder : ModuleS, PictureAllocator {
 		std::function<std::shared_ptr<DataBase>(void)> getDecompressedData;
 };
 
-Modules::IModule* createObject(IModuleHost* host, va_list va) {
+Modules::IModule* createObject(KHost* host, va_list va) {
 	auto type = (StreamType)va_arg(va, int);
 	enforce(host, "Decoder: host can't be NULL");
 	return Modules::create<Decoder>(host, type).release();

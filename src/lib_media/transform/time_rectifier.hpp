@@ -35,7 +35,7 @@ Remarks:
 */
 class TimeRectifier : public ModuleDynI {
 	public:
-		TimeRectifier(IModuleHost* host, std::shared_ptr<IClock> clock_, IScheduler* scheduler, Fraction frameRate);
+		TimeRectifier(KHost* host, std::shared_ptr<IClock> clock_, IScheduler* scheduler, Fraction frameRate);
 
 		void process() override;
 
@@ -69,7 +69,7 @@ class TimeRectifier : public ModuleDynI {
 		void findNearestDataAudio(size_t i, Fraction time, Data& selectedData, int64_t masterTime);
 		size_t getMasterStreamId() const;
 
-		IModuleHost* const m_host;
+		KHost* const m_host;
 
 		Fraction const frameRate;
 		int64_t const threshold;

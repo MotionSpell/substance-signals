@@ -8,14 +8,14 @@ namespace Stream {
 
 class MS_HSS : public ModuleS {
 	public:
-		MS_HSS(IModuleHost* host, const std::string &url);
+		MS_HSS(KHost* host, const std::string &url);
 
 		void process(Data data) override;
 		void flush() override;
 
 	private:
 		std::unique_ptr<Out::HTTP> m_http;
-		IModuleHost* const m_host;
+		KHost* const m_host;
 };
 
 }

@@ -53,7 +53,7 @@ class Pipeline : public IPipelineNotifier {
 			OnePerModule      = 2,
 		};
 
-		std::unique_ptr<Modules::IModuleHost> createModuleHost(std::string name);
+		std::unique_ptr<Modules::KHost> createModuleHost(std::string name);
 
 		template <typename InstanceType, int NumBlocks = 0, typename ...Args>
 		IFilter * addModule(Args&&... args) {
@@ -87,7 +87,7 @@ class Pipeline : public IPipelineNotifier {
 		void exitSync(); /*ask for all sources to finish*/
 
 	private:
-		IFilter * addModuleInternal(std::string name, std::unique_ptr<Modules::IModuleHost> host, std::shared_ptr<Modules::IModule> rawModule);
+		IFilter * addModuleInternal(std::string name, std::unique_ptr<Modules::KHost> host, std::shared_ptr<Modules::IModule> rawModule);
 		void computeTopology();
 		void endOfStream();
 		void exception(std::exception_ptr eptr);

@@ -23,7 +23,7 @@ AVRational toAVRational(Fraction f) {
 }
 
 struct LibavEncode : ModuleS {
-		LibavEncode(IModuleHost* host, EncoderConfig *pparams)
+		LibavEncode(KHost* host, EncoderConfig *pparams)
 			: m_host(host),
 			  params(*pparams),
 			  avFrame(new ffpp::Frame) {
@@ -249,7 +249,7 @@ struct LibavEncode : ModuleS {
 		}
 
 	private:
-		IModuleHost* const m_host;
+		KHost* const m_host;
 		EncoderConfig const params;
 		std::shared_ptr<AVCodecContext> codecCtx;
 		std::unique_ptr<PcmFormat> pcmFormat;
@@ -315,7 +315,7 @@ struct LibavEncode : ModuleS {
 
 };
 
-Modules::IModule* createObject(IModuleHost* host, va_list va) {
+Modules::IModule* createObject(KHost* host, va_list va) {
 	auto config = va_arg(va, EncoderConfig*);
 	enforce(host, "Encoder: host can't be NULL");
 	return Modules::createModule<LibavEncode>(config->bufferSize, host, config).release();

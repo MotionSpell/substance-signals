@@ -34,7 +34,7 @@ static unique_ptr<DynLib> loadPlugin(const char* name) {
 	return loadLibrary(path.c_str());
 }
 
-shared_ptr<IModule> vLoadModule(const char* name, IModuleHost* host, va_list va) {
+shared_ptr<IModule> vLoadModule(const char* name, KHost* host, va_list va) {
 	string libName = name + string(".smd");
 
 	if(locatePlugin(libName.c_str()) == "") {
@@ -53,7 +53,7 @@ shared_ptr<IModule> vLoadModule(const char* name, IModuleHost* host, va_list va)
 	}
 }
 
-shared_ptr<IModule> loadModule(const char* name, IModuleHost* host, ...) {
+shared_ptr<IModule> loadModule(const char* name, KHost* host, ...) {
 	va_list va;
 	va_start(va, host);
 	return vLoadModule(name, host, va);

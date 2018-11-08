@@ -13,14 +13,14 @@ namespace Demux {
 
 class DashDemuxer : public ActiveModule {
 	public:
-		DashDemuxer(IModuleHost* host, std::string url);
+		DashDemuxer(KHost* host, std::string url);
 
 		virtual bool work() override;
 
 	private:
 		void addStream(Pipelines::IFilter* downloadOutput, int outputPort);
 
-		IModuleHost* const m_host;
+		KHost* const m_host;
 		std::unique_ptr<Pipelines::Pipeline> pipeline;
 };
 

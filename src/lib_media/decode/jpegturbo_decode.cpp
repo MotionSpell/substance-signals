@@ -15,18 +15,18 @@ namespace {
 
 class JPEGTurboDecode : public ModuleS {
 	public:
-		JPEGTurboDecode(IModuleHost* host);
+		JPEGTurboDecode(KHost* host);
 		~JPEGTurboDecode();
 		void process(Data data) override;
 
 	private:
-		IModuleHost* const m_host;
+		KHost* const m_host;
 		OutputPicture* output;
 		void ensureMetadata(int width, int height, int pixelFmt);
 		tjhandle jtHandle;
 };
 
-JPEGTurboDecode::JPEGTurboDecode(IModuleHost* host_)
+JPEGTurboDecode::JPEGTurboDecode(KHost* host_)
 	: m_host(host_),
 	  jtHandle(tjInitDecompress()) {
 	auto input = addInput(this);
@@ -69,7 +69,7 @@ void JPEGTurboDecode::process(Data data_) {
 	output->emit(out);
 }
 
-IModule* createObject(IModuleHost* host, va_list va) {
+IModule* createObject(KHost* host, va_list va) {
 	(void)va;
 	enforce(host, "JPEGTurboDecode: host can't be NULL");
 	return create<JPEGTurboDecode>(host).release();

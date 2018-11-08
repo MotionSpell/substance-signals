@@ -6,7 +6,7 @@
 namespace Modules {
 namespace Utils {
 
-Recorder::Recorder(IModuleHost* host)
+Recorder::Recorder(KHost* host)
 	: m_host(host) {
 	addInput(this);
 }

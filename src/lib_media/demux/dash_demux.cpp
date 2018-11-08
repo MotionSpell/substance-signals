@@ -15,7 +15,7 @@ using namespace In;
 using namespace Transform;
 
 struct OutStub : ModuleS {
-		OutStub(IModuleHost*, OutputDefault *output) : output(output) {
+		OutStub(KHost*, OutputDefault *output) : output(output) {
 			addInput(this);
 		}
 		void process(Data data) override {
@@ -26,7 +26,7 @@ struct OutStub : ModuleS {
 		OutputDefault *output;
 };
 
-DashDemuxer::DashDemuxer(IModuleHost* host, std::string url)
+DashDemuxer::DashDemuxer(KHost* host, std::string url)
 	: m_host(host) {
 	(void)m_host;
 	pipeline = make_unique<Pipelines::Pipeline>();
