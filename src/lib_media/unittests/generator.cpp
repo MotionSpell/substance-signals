@@ -17,10 +17,15 @@ unittest("video generator") {
 	};
 	ConnectOutput(videoGen.get(), onFrame);
 
-	for (int i = 0; i < 50; ++i) {
+	for (int i = 0; i < 4; ++i) {
 		videoGen->work();
 	}
 
-	ASSERT_EQUALS(makeVector({0, 7200, 180000, 187200}), times);
+	ASSERT_EQUALS(makeVector({
+		0 * 7200,
+		1 * 7200,
+		2 * 7200,
+		3 * 7200,
+	}), times);
 }
 

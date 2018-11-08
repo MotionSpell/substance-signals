@@ -30,11 +30,10 @@ bool VideoGenerator::work() {
 	memset(p, val, pic->getSize());
 
 	auto const framePeriodIn180k = IClock::Rate / FRAMERATE;
-	assert(IClock::Rate % FRAMERATE == 0);
+	static_assert(IClock::Rate % FRAMERATE == 0);
 	pic->setMediaTime(m_numFrames * framePeriodIn180k);
 
-	if (m_numFrames % 25 < 2)
-		output->emit(pic);
+	output->emit(pic);
 
 	++m_numFrames;
 	return true;
