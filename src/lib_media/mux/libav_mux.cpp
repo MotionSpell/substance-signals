@@ -79,6 +79,12 @@ class LibavMux : public ModuleDynI {
 
 		void process() override {
 
+			// av_interleaved_write_frame will segfault if already flushed
+			if(m_flushed) {
+				m_host->log(Warning, "Ignoring input data after flush");
+				return;
+			}
+
 			int inputIdx;
 			auto data = popAny(inputIdx);
 			auto prevInputMeta = inputs[inputIdx]->getMetadata();
@@ -128,6 +134,8 @@ class LibavMux : public ModuleDynI {
 			if (!(m_formatCtx->oformat->flags & AVFMT_NOFILE)) {
 				avio_flush(m_formatCtx->pb);
 			}
+
+			m_flushed = true;
 		}
 
 	private:
@@ -136,6 +144,7 @@ class LibavMux : public ModuleDynI {
 		std::map<size_t, size_t> inputIdx2AvStream;
 		ffpp::Dict optionsDict;
 		bool m_headerWritten = false;
+		bool m_flushed = false;
 		bool m_inbandMetadata = false;
 
 		Data popAny(int& inputIdx) {
