@@ -10,13 +10,21 @@
 #include "buffer.hpp"
 #include "metadata.hpp"
 
-namespace Signals {
-template<typename T> struct ISignal;
-}
-
 namespace Modules {
 
 // This is how user modules see the outside world.
+// 'K' interfaces are called by the user module implementations.
+struct KInput {
+	virtual ~KInput() = default;
+	virtual Data pop() = 0;
+	virtual bool tryPop(Data &value) = 0;
+};
+
+struct KOutput {
+	virtual ~KOutput() = default;
+	virtual void emit(Data data) = 0;
+};
+
 struct IModuleHost {
 	virtual ~IModuleHost() = default;
 	virtual void log(int level, char const* msg) = 0;
@@ -27,6 +35,7 @@ struct NullHostType : IModuleHost {
 };
 
 static NullHostType NullHost;
+}
 
 // This is how the framework sees custom module implementations.
 //
@@ -35,12 +44,18 @@ static NullHostType NullHost;
 // (stuff like connection lists and pin lists should be kept in the framework).
 //
 
+namespace Signals {
+template<typename T> struct ISignal;
+}
+
+namespace Modules {
+
 struct IProcessor {
 	virtual ~IProcessor() = default;
 	virtual void process() = 0;
 };
 
-struct IInput : IProcessor, virtual IMetadataCap {
+struct IInput : IProcessor, virtual IMetadataCap, KInput {
 	virtual ~IInput() = default;
 
 	virtual int isConnected() const = 0;
@@ -48,15 +63,10 @@ struct IInput : IProcessor, virtual IMetadataCap {
 	virtual void disconnect() = 0;
 
 	virtual void push(Data) = 0;
-
-	// TODO: remove this, should only be visible to the module implementations.
-	virtual Data pop() = 0;
-	virtual bool tryPop(Data &value) = 0;
 };
 
-struct IOutput : virtual IMetadataCap {
+struct IOutput : virtual IMetadataCap, KOutput {
 	virtual ~IOutput() = default;
-	virtual void emit(Data data) = 0;
 	virtual Signals::ISignal<Data>& getSignal() = 0;
 };
 
