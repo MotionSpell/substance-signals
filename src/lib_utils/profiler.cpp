@@ -5,20 +5,18 @@
 #include <iostream>
 #include <iomanip>
 
-#define FORMAT(i, max) std::setw(1+(std::streamsize)log10(max)) << i
-
 namespace Tools {
 Profiler::Profiler(const std::string &name) : name(name) {
 	startTime = std::chrono::high_resolution_clock::now();
 }
 
 Profiler::~Profiler() {
-	std::cout << "[" << name.c_str() << "] " << FORMAT(elapsedInUs(), maxDurationInSec*unit) << " us" << std::endl;
+	std::cout << "[" << name.c_str() << "] " << elapsedInSeconds() << " s" << std::endl;
 }
 
-uint64_t Profiler::elapsedInUs() {
+double Profiler::elapsedInSeconds() {
 	auto stopTime = std::chrono::high_resolution_clock::now();
-	auto value = std::chrono::duration_cast<std::chrono::microseconds>(stopTime - startTime);
+	auto value = std::chrono::duration_cast<std::chrono::duration<double>>(stopTime - startTime);
 	return value.count();
 }
 

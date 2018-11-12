@@ -10,7 +10,7 @@ class Profiler {
 		Profiler(const std::string &name);
 		~Profiler();
 
-		uint64_t elapsedInUs();
+		double elapsedInSeconds();
 
 	private:
 		Profiler& operator= (const Profiler&) = delete;
