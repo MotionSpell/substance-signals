@@ -1,12 +1,7 @@
 #pragma once
 
 #include <string>
-
-#ifdef _WIN32
-#include <windows.h>
-#else
-#include <sys/time.h>
-#endif
+#include <chrono>
 
 namespace Tools {
 
@@ -21,11 +16,7 @@ class Profiler {
 		Profiler& operator= (const Profiler&) = delete;
 
 		std::string name;
-#ifdef _WIN32
-		LARGE_INTEGER startTime;
-#else
-		struct timeval startTime;
-#endif
+		std::chrono::high_resolution_clock::time_point startTime;
 		const int unit = 1000000;
 		const int maxDurationInSec = 100;
 };

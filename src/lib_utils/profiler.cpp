@@ -9,11 +9,7 @@
 
 namespace Tools {
 Profiler::Profiler(const std::string &name) : name(name) {
-#ifdef _WIN32
-	QueryPerformanceCounter(&startTime);
-#else
-	gettimeofday(&startTime, nullptr);
-#endif
+	startTime = std::chrono::high_resolution_clock::now();
 }
 
 Profiler::~Profiler() {
@@ -21,17 +17,9 @@ Profiler::~Profiler() {
 }
 
 uint64_t Profiler::elapsedInUs() {
-#ifdef _WIN32
-	LARGE_INTEGER stopTime;
-	QueryPerformanceCounter(&stopTime);
-	LARGE_INTEGER countsPerSecond;
-	QueryPerformanceFrequency(&countsPerSecond);
-	return (uint64_t)((unit * (stopTime.QuadPart - startTime.QuadPart)) / countsPerSecond.QuadPart);
-#else
-	struct timeval stopTime;
-	gettimeofday(&stopTime, nullptr);
-	return ((uint64_t)stopTime.tv_sec * 1000000 + stopTime.tv_usec) - ((uint64_t)startTime.tv_sec * 1000000 + startTime.tv_usec);
-#endif
+	auto stopTime = std::chrono::high_resolution_clock::now();
+	auto value = std::chrono::duration_cast<std::chrono::microseconds>(stopTime - startTime);
+	return value.count();
 }
 
 }
