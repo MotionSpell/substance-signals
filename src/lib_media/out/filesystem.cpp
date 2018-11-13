@@ -13,8 +13,8 @@ namespace {
 class FileSystemSink : public ModuleS {
 	public:
 
-		FileSystemSink(KHost* host, FileSystemSinkConfig cfg)
-			: m_host(host),
+		FileSystemSink(KHost* /*host*/, FileSystemSinkConfig cfg)
+			: /*m_host(host),*/
 			  m_config(cfg) {
 			addInput(this);
 		}
@@ -36,7 +36,7 @@ class FileSystemSink : public ModuleS {
 		}
 
 	private:
-		KHost* const m_host;
+		/*KHost* const m_host;*/
 		FileSystemSinkConfig const m_config;
 		std::map<std::string, std::ofstream> m_files;
 };
