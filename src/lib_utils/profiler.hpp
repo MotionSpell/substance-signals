@@ -17,8 +17,6 @@ class Profiler {
 
 		std::string name;
 		std::chrono::high_resolution_clock::time_point startTime;
-		const int unit = 1000000;
-		const int maxDurationInSec = 100;
 };
 
 }
