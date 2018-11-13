@@ -243,7 +243,7 @@ function buildPackage {
 function initSymlinks {
   local symlink_dir=$WORK/symlinks
   mkdir -p $symlink_dir
-  local tools="gcc g++ ar as nm strings strip"
+  local tools="cc gcc g++ ar as nm strings strip"
   case $hostPlatform in
    # *darwin*)
    #   echo "Detected new Darwin host ($host): disabling ranlib"

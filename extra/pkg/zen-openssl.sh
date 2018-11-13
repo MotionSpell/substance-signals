@@ -1,6 +1,6 @@
 
 function openssl_build {
-  lazy_download "openssl.tar.gz" https://www.openssl.org/source/openssl-1.1.0h.tar.gz
+  lazy_download "openssl.tar.gz" https://www.openssl.org/source/openssl-1.1.1.tar.gz
   lazy_extract "openssl.tar.gz"
 
   mkdir -p openssl/bin/$host
@@ -20,6 +20,9 @@ function openssl_build {
       ;;
     i686-*-mingw32)
       openssl_os="mingw"
+      ;;
+    x86_64-apple-darwin*)
+      openssl_os="darwin64-x86_64-cc"
       ;;
     *)
       echo "ERROR: platform not implemented: $host" >&2
