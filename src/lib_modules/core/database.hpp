@@ -32,7 +32,7 @@ class DataBase : public IBuffer {
 
 		template<typename Type>
 		void set(const Type& attribute) {
-			static_assert(std::is_pod<Type>::value);
+			static_assert(std::is_pod<Type>::value, "Type must be POD");
 			setAttribute(Type::TypeId, {(const uint8_t*)&attribute, sizeof attribute});
 		}
 

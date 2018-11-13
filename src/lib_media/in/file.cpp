@@ -5,8 +5,8 @@
 
 #define IOSIZE (66176)
 
-static_assert(IOSIZE % 32 == 0);
-static_assert(IOSIZE % 188 == 0);
+static_assert(IOSIZE % 32 == 0, "IOSIZE must be a multiple of 32");
+static_assert(IOSIZE % 188 == 0, "IOSIZE must be a multiple of 188");
 
 namespace Modules {
 namespace In {
