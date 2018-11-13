@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 #include <map>
+#include <string>
 #include "lib_utils/clock.hpp"
 
 namespace Modules {
