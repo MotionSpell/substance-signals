@@ -54,7 +54,7 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::Restamper {
 			}
 		}
 
-		void flush() {
+		void flush() override {
 			for(auto& s : m_streams)
 				s->flush();
 		}
