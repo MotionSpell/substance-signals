@@ -187,7 +187,7 @@ HTTP::HTTP(KHost* host, HttpOutputConfig const& cfg)
 	addInput(this);
 	outputFinished = addOutput<OutputDefault>();
 
-	m_sender = make_unique<CurlHttpSender>(cfg.url, cfg.userAgent, cfg.flags.UsePUT, cfg.headers, host);
+	m_sender = make_unique<CurlHttpSender>(cfg.url, cfg.userAgent, cfg.flags.UsePUT, cfg.headers, m_host);
 }
 
 HTTP::~HTTP() {

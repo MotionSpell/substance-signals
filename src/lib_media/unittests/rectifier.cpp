@@ -78,7 +78,7 @@ class ClockMock : public IClock, public IScheduler {
 		struct Task {
 			Fraction time;
 			TaskFunc func;
-			bool operator<(Task const& other) {
+			bool operator<(Task const& other) const {
 				return time < other.time;
 			}
 		};

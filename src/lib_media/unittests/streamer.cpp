@@ -635,12 +635,6 @@ static const std::vector<Meta> ref = {
 unittest("[DISABLED] adaptive streaming combination coverage") {
 	auto const segmentDurationInMs = 2000;
 
-	struct UtcStartTime : IUtcStartTimeQuery {
-		uint64_t query() override {
-			return 1000000;
-		}
-	} UtcStartTime;
-
 	std::vector<std::shared_ptr<IModule>> decode;
 	std::vector<std::shared_ptr<IModule>> encode;
 
