@@ -9,5 +9,4 @@ LIB_UTILS_SRCS:=\
   $(MYDIR)/time.cpp\
   $(MYDIR)/timer.cpp\
 
--include $(MYDIR)/$(shell $(CXX) -dumpmachine | sed "s/.*-//").mk
-
+-include $(MYDIR)/$(shell $(CXX) -dumpmachine | sed "s/.*-\([a-zA-Z]*\)[0-9.]*/\1/").mk

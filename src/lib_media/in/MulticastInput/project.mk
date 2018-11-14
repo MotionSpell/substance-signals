@@ -1,6 +1,6 @@
 PLUG_DIR:=$(call get-my-dir)
 
--include $(PLUG_DIR)/$(shell $(CXX) -dumpmachine | sed "s/.*-//").mk
+-include $(PLUG_DIR)/$(shell $(CXX) -dumpmachine | sed "s/.*-\([a-zA-Z]*\)[0-9.]*/\1/").mk
 
 TARGETS+=$(BIN)/MulticastInput.smd
 $(BIN)/MulticastInput.smd: \
