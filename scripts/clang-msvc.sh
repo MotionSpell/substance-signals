@@ -11,9 +11,9 @@ for p in "$@" ; do
     -Wl,-rpath*)
       ;;
     -g*)
-	params+=("$p")
+        params+=("$p")
         params+=("-gcodeview")
-	;;
+      ;;
     *)
       params+=("$p")
       ;;
