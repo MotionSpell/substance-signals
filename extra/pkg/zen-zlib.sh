@@ -6,11 +6,13 @@ function zlib_build {
 
   local options=()
 
+  options+=(-DCMAKE_INSTALL_PREFIX=$PREFIX)
+
   # prevent CMAKE from adding -rdynamic,
   # which mingw doesn't support
   case $host in
     *mingw*)
-      options+=(-DCMAKE_SYSTEM_NAME=Windows) 
+      options+=(-DCMAKE_SYSTEM_NAME=Windows)
       ;;
   esac
 
@@ -18,7 +20,6 @@ function zlib_build {
   mkdir -p zlib/bin/$host
   pushDir zlib/bin/$host
   cmake \
-    -DCMAKE_INSTALL_PREFIX=$PREFIX    \
     -DCMAKE_C_COMPILER=$host-gcc      \
     -DCMAKE_CXX_COMPILER=$host-g++    \
     -DCMAKE_RC_COMPILER=$host-windres \
