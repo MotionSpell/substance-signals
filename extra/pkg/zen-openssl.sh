@@ -32,6 +32,8 @@ function openssl_build {
   ../../Configure \
     $openssl_os \
     shared \
+    no-unit-test \
+    no-tests \
     --cross-compile-prefix="$host-" \
     --prefix=$PREFIX
   $MAKE depend
