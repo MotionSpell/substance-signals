@@ -1,21 +1,31 @@
 
 function zlib_build {
-  host=$1
-  lazy_download "zlib-$host.tar.gz" "http://zlib.net/fossils/zlib-1.2.11.tar.gz"
-  lazy_extract "zlib-$host.tar.gz"
-  mkgit "zlib-$host"
-  pushDir zlib-$host
+  lazy_download "zlib.tar.gz" "http://zlib.net/fossils/zlib-1.2.11.tar.gz"
+  lazy_extract "zlib.tar.gz"
+  mkgit "zlib"
 
-  zlib_patches
+  local options=()
 
-  chmod +x ./configure
-  CFLAGS="-w -fPIC" \
-  CHOST=$host \
-    ./configure \
-    --prefix=$PREFIX
+  # prevent CMAKE from adding -rdynamic,
+  # which mingw doesn't support
+  case $host in
+    *mingw*)
+      options+=(-DCMAKE_SYSTEM_NAME=Windows) 
+      ;;
+  esac
+
+  rm -rf zlib/bin/$host
+  mkdir -p zlib/bin/$host
+  pushDir zlib/bin/$host
+  cmake \
+    -DCMAKE_INSTALL_PREFIX=$PREFIX    \
+    -DCMAKE_C_COMPILER=$host-gcc      \
+    -DCMAKE_CXX_COMPILER=$host-g++    \
+    -DCMAKE_RC_COMPILER=$host-windres \
+    ${options[@]} \
+    ../..
   $MAKE
   $MAKE install
-
   popDir
 }
 
@@ -23,25 +33,3 @@ function zlib_get_deps {
   local a=0
 }
 
-function zlib_patches {
-  local patchFile=$scriptDir/patches/zlib_01_nobypass.diff
-  cat << 'EOF' > $patchFile
-diff --git a/configure b/configure
-index b77a8a8..c82aea1 100644
---- a/configure
-+++ b/configure
-@@ -191,10 +191,6 @@ if test "$gcc" -eq 1 && ($cc -c $test.c) >> configure.log 2>&1; then
-   CYGWIN* | Cygwin* | cygwin* | OS/2*)
-         EXE='.exe' ;;
-   MINGW* | mingw*)
--# temporary bypass
--        rm -f $test.[co] $test $test$shared_ext
--        echo "Please use win32/Makefile.gcc instead." | tee -a configure.log
--        leave 1
-         LDSHARED=${LDSHARED-"$cc -shared"}
-         LDSHAREDLIBC=""
-         EXE='.exe' ;;
-EOF
-
-  applyPatch $patchFile
-}

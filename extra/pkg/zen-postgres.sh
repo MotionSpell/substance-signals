@@ -11,13 +11,14 @@ function postgres_build {
   pushDir postgres/build/$host
 
   CFLAGS="-I$PREFIX/include" \
-  LDFLAGS="-L$PREFIX/lib -lz" \
+  LDFLAGS="-L$PREFIX/lib" \
   ac_cv_file__dev_urandom=yes \
   ../../configure \
     --build=$BUILD \
     --host=$host \
     --prefix=$PREFIX \
     --without-openssl \
+    --without-zlib \
     "--without-readline" \
     "--with-system-tzdata=/usr/share/zoneinfo"
 
@@ -33,5 +34,5 @@ function postgres_build {
 }
 
 function postgres_get_deps {
-  echo zlib
+  local a=0
 }
