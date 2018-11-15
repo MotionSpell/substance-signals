@@ -23,7 +23,7 @@ function ffmpeg_build {
   pushDir ffmpeg/build/$host
 
   CFLAGS="-I$PREFIX/include" \
-  LDFLAGS="-L$PREFIX/lib -lz" \
+  LDFLAGS="-L$PREFIX/lib" \
   ../../configure \
       --prefix=$PREFIX \
       --enable-pthreads \

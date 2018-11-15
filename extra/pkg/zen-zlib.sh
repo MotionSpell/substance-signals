@@ -27,6 +27,15 @@ function zlib_build {
   $MAKE
   $MAKE install
   popDir
+
+  # zlib's pkg-config does '-lz', but this won't work as the
+  # mingw build of zlib doesn't build a 'libz.a'.
+  # So make one.
+  case $host in
+    *mingw*)
+      cp $PREFIX/lib/libzlib.dll.a $PREFIX/lib/libz.a
+      ;;
+  esac
 }
 
 function zlib_get_deps {
