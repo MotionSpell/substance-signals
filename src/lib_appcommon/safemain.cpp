@@ -15,7 +15,7 @@ void onInterruption() {
 	static int numSig = 0;
 	numSig++;
 	if (numSig >= 3) {
-		std::cerr << "Caught " << numSig-1 << " signals, hard exit." << std::endl;
+		std::cerr << "Caught " << numSig << " signals, hard exit." << std::endl;
 		exit(3);
 	} else {
 		std::cerr << "Caught signal, exiting." << std::endl;
