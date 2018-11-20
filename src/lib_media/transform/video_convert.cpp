@@ -45,6 +45,10 @@ void VideoConvert::reconfigure(const PictureFormat &format) {
 	        SWS_BILINEAR, nullptr, nullptr, nullptr);
 	if (!m_SwContext)
 		throw error("Impossible to set up video converter.");
+	m_host->log(Info, ::format("Converter configured to: %sx%s:%s -> %sx%s:%s",
+	        format.res.width, format.res.height, (int)format.format,
+	        dstFormat.res.width, dstFormat.res.height, (int)dstFormat.format
+	    ).c_str());
 	srcFormat = format;
 }
 
@@ -55,8 +59,6 @@ VideoConvert::~VideoConvert() {
 void VideoConvert::process(Data data) {
 	auto videoData = safe_cast<const DataPicture>(data);
 	if (videoData->getFormat() != srcFormat) {
-		if (m_SwContext)
-			m_host->log(Info, "Incompatible input video data. Reconfiguring.");
 		reconfigure(videoData->getFormat());
 	}
 
