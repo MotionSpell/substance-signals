@@ -9,7 +9,9 @@ extern "C" {
 #include <libswscale/swscale.h>
 }
 
-#define ALIGN_PAD(n, align, pad) ((n/align + 1) * align + pad)
+static size_t ALIGN_PAD(size_t n, size_t align) {
+	return ((n/align + 1) * align);
+}
 
 using namespace Modules;
 
@@ -83,7 +85,7 @@ void VideoConvert::process(Data data) {
 	case PixelFormat::NV12P010LE:
 	case PixelFormat::RGB24:
 	case PixelFormat::RGBA32: {
-		auto resInternal = Resolution(ALIGN_PAD(dstFormat.res.width, 16, 0), ALIGN_PAD(dstFormat.res.height, 8, 0));
+		auto resInternal = Resolution(ALIGN_PAD(dstFormat.res.width, 16), ALIGN_PAD(dstFormat.res.height, 8));
 		auto pic = DataPicture::create(output, dstFormat.res, resInternal, dstFormat.format);
 		for (size_t i=0; i<pic->getNumPlanes(); ++i) {
 			pDst[i] = pic->getPlane(i);
