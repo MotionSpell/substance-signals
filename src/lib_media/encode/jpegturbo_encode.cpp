@@ -51,7 +51,7 @@ void JPEGTurboEncode::process(Data data_) {
 
 	switch (videoData->getFormat().format) {
 	case PixelFormat::Y8:
-	case PixelFormat::YUV420P:
+	case PixelFormat::I420:
 	case PixelFormat::YUV420P10LE:
 	case PixelFormat::YUV422P:
 	case PixelFormat::YUV422P10LE:

@@ -197,7 +197,7 @@ unittest("audio converter: bigger framing size.") {
 
 unittest("video converter: pass-through") {
 	auto const res = Resolution(16, 32);
-	auto const format = PictureFormat(res, PixelFormat::YUV420P);
+	auto const format = PictureFormat(res, PixelFormat::I420);
 	int numFrames = 0;
 
 	auto onFrame = [&](Data data) {
@@ -221,7 +221,7 @@ unittest("video converter: pass-through") {
 unittest("video converter: different sizes") {
 	auto const srcRes = Resolution(16, 32);
 	auto const dstRes = Resolution(24, 8);
-	auto const format = PictureFormat(dstRes, PixelFormat::YUV420P);
+	auto const format = PictureFormat(dstRes, PixelFormat::I420);
 	int numFrames = 0;
 
 	auto onFrame = [&](Data data) {

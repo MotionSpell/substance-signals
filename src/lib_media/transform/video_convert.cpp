@@ -72,7 +72,7 @@ void VideoConvert::process(Data data) {
 	int dstStride[8] {};
 	switch (dstFormat.format) {
 	case PixelFormat::Y8:
-	case PixelFormat::YUV420P:
+	case PixelFormat::I420:
 	case PixelFormat::YUV420P10LE:
 	case PixelFormat::YUV422P:
 	case PixelFormat::YUV422P10LE:

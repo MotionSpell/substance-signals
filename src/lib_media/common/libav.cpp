@@ -199,7 +199,7 @@ void libavFrameDataConvert(const DataPcm *pcmData, AVFrame *frame) {
 AVPixelFormat pixelFormat2libavPixFmt(PixelFormat format) {
 	switch (format) {
 	case PixelFormat::Y8: return AV_PIX_FMT_GRAY8;
-	case PixelFormat::YUV420P: return AV_PIX_FMT_YUV420P;
+	case PixelFormat::I420: return AV_PIX_FMT_YUV420P;
 	case PixelFormat::YUV420P10LE: return AV_PIX_FMT_YUV420P10LE;
 	case PixelFormat::YUV422P: return AV_PIX_FMT_YUV422P;
 	case PixelFormat::YUV422P10LE: return AV_PIX_FMT_YUV422P10LE;
@@ -215,7 +215,7 @@ AVPixelFormat pixelFormat2libavPixFmt(PixelFormat format) {
 PixelFormat libavPixFmt2PixelFormat(AVPixelFormat avPixfmt) {
 	switch (avPixfmt) {
 	case AV_PIX_FMT_GRAY8: return PixelFormat::Y8;
-	case AV_PIX_FMT_YUV420P: case AV_PIX_FMT_YUVJ420P: return PixelFormat::YUV420P;
+	case AV_PIX_FMT_YUV420P: case AV_PIX_FMT_YUVJ420P: return PixelFormat::I420;
 	case AV_PIX_FMT_YUV420P10LE: return PixelFormat::YUV420P10LE;
 	case AV_PIX_FMT_YUV422P: return PixelFormat::YUV422P;
 	case AV_PIX_FMT_YUV422P10LE: return PixelFormat::YUV422P10LE;

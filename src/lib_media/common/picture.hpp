@@ -28,7 +28,7 @@ class PictureFormat {
 		static size_t getSize(Resolution res, PixelFormat format) {
 			switch (format) {
 			case PixelFormat::Y8: return res.width * res.height;
-			case PixelFormat::YUV420P: return res.width * res.height * 3 / 2;
+			case PixelFormat::I420: return res.width * res.height * 3 / 2;
 			case PixelFormat::YUV420P10LE: return res.width * divUp(10, 8) * res.height * 3 / 2;
 			case PixelFormat::YUV422P: return res.width * res.height * 2;
 			case PixelFormat::YUV422P10LE: return res.width * divUp(10, 8) * res.height * 2;
@@ -89,9 +89,9 @@ class DataPicture : public DataRaw {
 class PictureYUV420P : public DataPicture {
 	public:
 		PictureYUV420P(size_t /*unused*/) : DataPicture(0) {
-			internalFormat.format = format.format = PixelFormat::YUV420P;
+			internalFormat.format = format.format = PixelFormat::I420;
 		}
-		PictureYUV420P(Resolution res) : DataPicture(res, PixelFormat::YUV420P) {
+		PictureYUV420P(Resolution res) : DataPicture(res, PixelFormat::I420) {
 			setInternalResolution(res);
 			setVisibleResolution(res);
 		}
