@@ -195,7 +195,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 
 				auto inputRes = metadata->isVideo() ? safe_cast<const MetadataPktVideo>(metadata)->resolution : Resolution();
 				auto const outputRes = autoRotate(autoFit(inputRes, cfg.v[r].res), isVertical);
-				PictureFormat encoderInputPicFmt(outputRes, UNKNOWN_PF);
+				PictureFormat encoderInputPicFmt(outputRes, PixelFormat::UNKNOWN);
 				auto encoder = createEncoder(pipeline.get(), metadata, cfg.ultraLowLatency, (VideoCodecType)cfg.v[r].type, encoderInputPicFmt, cfg.v[r].bitrate, cfg.segmentDurationInMs);
 				if (!encoder)
 					return;

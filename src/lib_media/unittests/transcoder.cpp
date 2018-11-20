@@ -137,11 +137,11 @@ void resizeJPGTest(PixelFormat pf) {
 }
 
 unittest("transcoder: jpg to resized jpg (RGB24)") {
-	resizeJPGTest(RGB24);
+	resizeJPGTest(PixelFormat::RGB24);
 }
 
 unittest("transcoder: jpg to resized jpg (YUV420)") {
-	resizeJPGTest(YUV420P);
+	resizeJPGTest(PixelFormat::YUV420P);
 }
 
 unittest("transcoder: h264/mp4 to jpg") {
@@ -156,8 +156,8 @@ unittest("transcoder: h264/mp4 to jpg") {
 	auto writer = create<Out::File>(&NullHost, "out/test3.jpg");
 
 	auto const dstRes = metadata->resolution;
-	ASSERT(metadata->pixelFormat == YUV420P);
-	auto const dstFormat = PictureFormat(dstRes, RGB24);
+	ASSERT(metadata->pixelFormat == PixelFormat::YUV420P);
+	auto const dstFormat = PictureFormat(dstRes, PixelFormat::RGB24);
 	auto converter = loadModule("VideoConvert", &NullHost, &dstFormat);
 
 	ConnectOutputToInput(demux->getOutput(1), decode->getInput(0));
@@ -178,7 +178,7 @@ unittest("transcoder: jpg to h264/mp4 (gpac)") {
 	}
 	auto reader = create<In::File>(&NullHost, filename);
 
-	auto const dstFormat = PictureFormat(Resolution(320, 180), YUV420P);
+	auto const dstFormat = PictureFormat(Resolution(320, 180), PixelFormat::YUV420P);
 	auto converter = loadModule("VideoConvert", &NullHost, &dstFormat);
 
 	EncoderConfig cfg { EncoderConfig::Video };

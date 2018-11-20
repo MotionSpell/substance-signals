@@ -152,7 +152,7 @@ unittest("decoder: video simple") {
 		auto const lastPixel = *(pic->getPlane(0) + pic->getPitch(0) * (format.res.height-1) + format.res.width - 1);
 
 		char info[256];
-		sprintf(info, "'%dx%d %d %.2X %.2X'", format.res.width, format.res.height, format.format, firstPixel, lastPixel);
+		sprintf(info, "'%dx%d %d %.2X %.2X'", format.res.width, format.res.height, (int)format.format, firstPixel, lastPixel);
 		actualFrames.push_back(info);
 	};
 

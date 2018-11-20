@@ -10,7 +10,7 @@ namespace Modules {
 
 class PictureFormat {
 	public:
-		PictureFormat() : format(UNKNOWN_PF) {
+		PictureFormat() : format(PixelFormat::UNKNOWN) {
 		}
 		PictureFormat(Resolution res, PixelFormat format)
 			: res(res), format(format) {
@@ -27,22 +27,22 @@ class PictureFormat {
 		}
 		static size_t getSize(Resolution res, PixelFormat format) {
 			switch (format) {
-			case Y8: return res.width * res.height;
-			case YUV420P: return res.width * res.height * 3 / 2;
-			case YUV420P10LE: return res.width * divUp(10, 8) * res.height * 3 / 2;
-			case YUV422P: return res.width * res.height * 2;
-			case YUV422P10LE: return res.width * divUp(10, 8) * res.height * 2;
-			case YUYV422: return res.width * res.height * 2;
-			case NV12: return res.width * res.height * 3 / 2;
-			case NV12P010LE: return res.width * res.height * 3;
-			case RGB24: return res.width * res.height * 3;
-			case RGBA32: return res.width * res.height * 4;
+			case PixelFormat::Y8: return res.width * res.height;
+			case PixelFormat::YUV420P: return res.width * res.height * 3 / 2;
+			case PixelFormat::YUV420P10LE: return res.width * divUp(10, 8) * res.height * 3 / 2;
+			case PixelFormat::YUV422P: return res.width * res.height * 2;
+			case PixelFormat::YUV422P10LE: return res.width * divUp(10, 8) * res.height * 2;
+			case PixelFormat::YUYV422: return res.width * res.height * 2;
+			case PixelFormat::NV12: return res.width * res.height * 3 / 2;
+			case PixelFormat::NV12P010LE: return res.width * res.height * 3;
+			case PixelFormat::RGB24: return res.width * res.height * 3;
+			case PixelFormat::RGBA32: return res.width * res.height * 4;
 			default: throw std::runtime_error("Unknown pixel format. Please contact your vendor.");
 			}
 		}
 
 		bool hasTransparency() const {
-			return format == RGBA32;
+			return format == PixelFormat::RGBA32;
 		}
 
 		Resolution res;
@@ -89,9 +89,9 @@ class DataPicture : public DataRaw {
 class PictureYUV420P : public DataPicture {
 	public:
 		PictureYUV420P(size_t /*unused*/) : DataPicture(0) {
-			internalFormat.format = format.format = YUV420P;
+			internalFormat.format = format.format = PixelFormat::YUV420P;
 		}
-		PictureYUV420P(Resolution res) : DataPicture(res, YUV420P) {
+		PictureYUV420P(Resolution res) : DataPicture(res, PixelFormat::YUV420P) {
 			setInternalResolution(res);
 			setVisibleResolution(res);
 		}

@@ -22,11 +22,11 @@ namespace {
 
 Uint32 pixelFormat2SDLFormat(const Modules::PixelFormat format) {
 	switch (format) {
-	case YUV420P: return SDL_PIXELFORMAT_IYUV;
-	case YUYV422: return SDL_PIXELFORMAT_YUY2;
-	case NV12   : return SDL_PIXELFORMAT_NV12;
-	case RGB24  : return SDL_PIXELFORMAT_RGB24;
-	case RGBA32 : return SDL_PIXELFORMAT_RGBX8888;
+	case PixelFormat::YUV420P: return SDL_PIXELFORMAT_IYUV;
+	case PixelFormat::YUYV422: return SDL_PIXELFORMAT_YUY2;
+	case PixelFormat::NV12   : return SDL_PIXELFORMAT_NV12;
+	case PixelFormat::RGB24  : return SDL_PIXELFORMAT_RGB24;
+	case PixelFormat::RGBA32 : return SDL_PIXELFORMAT_RGBX8888;
 	default: throw std::runtime_error("Pixel format not supported.");
 	}
 }
@@ -71,7 +71,7 @@ struct SDLVideo : ModuleS {
 		respectTimestamps = false;
 
 		pictureFormat.res = Resolution(320, 180);
-		pictureFormat.format = YUV420P;
+		pictureFormat.format = PixelFormat::YUV420P;
 		window = SDL_CreateWindow("Signals SDLVideo renderer", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, pictureFormat.res.width, pictureFormat.res.height, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
 		if (!window)
 			throw error(format("Couldn't set create window: %s", SDL_GetError()));
@@ -138,7 +138,7 @@ struct SDLVideo : ModuleS {
 			createTexture();
 		}
 
-		if (pictureFormat.format == YUV420P) {
+		if (pictureFormat.format == PixelFormat::YUV420P) {
 			SDL_UpdateYUVTexture(texture, nullptr,
 			    pic->getPlane(0), (int)pic->getPitch(0),
 			    pic->getPlane(1), (int)pic->getPitch(1),

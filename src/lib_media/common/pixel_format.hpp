@@ -2,8 +2,8 @@
 
 namespace Modules {
 
-enum PixelFormat {
-	UNKNOWN_PF = -1,
+enum class PixelFormat : int {
+	UNKNOWN = -1,
 	Y8,
 	YUV420P,
 	YUV420P10LE,

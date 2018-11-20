@@ -50,7 +50,13 @@ void JPEGTurboEncode::process(Data data_) {
 	unsigned long jpegSize;
 
 	switch (videoData->getFormat().format) {
-	case Y8: case YUV420P: case YUV420P10LE: case YUV422P: case YUV422P10LE: case YUYV422: case NV12: {
+	case PixelFormat::Y8:
+	case PixelFormat::YUV420P:
+	case PixelFormat::YUV420P10LE:
+	case PixelFormat::YUV422P:
+	case PixelFormat::YUV422P10LE:
+	case PixelFormat::YUYV422:
+	case PixelFormat::NV12: {
 		uint8_t const* srcSlice[8] {};
 		int srcStride[8] {};
 		for (size_t i = 0; i<videoData->getNumPlanes(); ++i) {
@@ -66,7 +72,8 @@ void JPEGTurboEncode::process(Data data_) {
 		}
 		break;
 	}
-	case RGB24: case RGBA32: {
+	case PixelFormat::RGB24:
+	case PixelFormat::RGBA32: {
 		if (tjCompress2(jtHandle, (unsigned char*)jpegBuf, w, 0/*pitch*/, h, TJPF_RGB, &buf, &jpegSize, TJSAMP_420, quality, TJFLAG_NOREALLOC | TJFLAG_FASTDCT) < 0) {
 			m_host->log(Warning, "error encountered while compressing (RGB).");
 			return;
@@ -74,7 +81,7 @@ void JPEGTurboEncode::process(Data data_) {
 		break;
 	}
 	default:
-		throw error(format("Unsupported colorspace %s", videoData->getFormat().format));
+		throw error(format("Unsupported colorspace %s", (int)videoData->getFormat().format));
 	}
 
 	out->resize(jpegSize);

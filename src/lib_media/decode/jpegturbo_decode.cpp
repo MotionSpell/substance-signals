@@ -59,7 +59,7 @@ void JPEGTurboDecode::process(Data data_) {
 		m_host->log(Warning, "error encountered while decompressing header.");
 		return;
 	}
-	auto out = DataPicture::create(output, Resolution(w, h), RGB24);
+	auto out = DataPicture::create(output, Resolution(w, h), PixelFormat::RGB24);
 	if (tjDecompress2(jtHandle, buf, size, out->data().ptr, w, 0/*pitch*/, h, pixelFmt, TJFLAG_FASTDCT) < 0) {
 		m_host->log(Warning, "error encountered while decompressing frame.");
 		return;

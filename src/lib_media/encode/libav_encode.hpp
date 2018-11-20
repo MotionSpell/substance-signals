@@ -29,6 +29,6 @@ struct EncoderConfig {
 	std::string avcodecCustom = "";
 
 	// OUTPUT: set by the encoder
-	Modules::PixelFormat pixelFormat = Modules::UNKNOWN_PF;
+	Modules::PixelFormat pixelFormat = Modules::PixelFormat::UNKNOWN;
 };
 

@@ -20,7 +20,7 @@ bool VideoGenerator::work() {
 		return false;
 
 	auto const dim = Resolution(320, 180);
-	auto pic = DataPicture::create(output, dim, YUV420P);
+	auto pic = DataPicture::create(output, dim, PixelFormat::YUV420P);
 
 	// generate video
 	auto const p = pic->data().ptr;

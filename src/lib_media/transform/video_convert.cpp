@@ -71,7 +71,16 @@ void VideoConvert::process(Data data) {
 	uint8_t* pDst[8] {};
 	int dstStride[8] {};
 	switch (dstFormat.format) {
-	case Y8: case YUV420P: case YUV420P10LE: case YUV422P: case YUV422P10LE: case YUYV422: case NV12: case NV12P010LE: case RGB24: case RGBA32: {
+	case PixelFormat::Y8:
+	case PixelFormat::YUV420P:
+	case PixelFormat::YUV420P10LE:
+	case PixelFormat::YUV422P:
+	case PixelFormat::YUV422P10LE:
+	case PixelFormat::YUYV422:
+	case PixelFormat::NV12:
+	case PixelFormat::NV12P010LE:
+	case PixelFormat::RGB24:
+	case PixelFormat::RGBA32: {
 		auto resInternal = Resolution(ALIGN_PAD(dstFormat.res.width, 16, 0), ALIGN_PAD(dstFormat.res.height, 8, 0));
 		auto pic = DataPicture::create(output, dstFormat.res, resInternal, dstFormat.format);
 		for (size_t i=0; i<pic->getNumPlanes(); ++i) {
