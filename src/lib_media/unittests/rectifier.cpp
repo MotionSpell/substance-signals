@@ -5,6 +5,7 @@
 #include "lib_media/utils/recorder.hpp"
 #include "lib_media/common/pcm.hpp"
 #include "lib_media/common/picture.hpp"
+#include "lib_media/common/picture_types.hpp"
 #include "lib_media/common/metadata.hpp"
 
 #include <algorithm> // sort

@@ -2,6 +2,7 @@
 #include "lib_modules/modules.hpp"
 #include "lib_modules/utils/loader.hpp"
 #include "lib_media/common/picture.hpp"
+#include "lib_media/common/picture_types.hpp"
 
 using namespace Tests;
 using namespace Modules;

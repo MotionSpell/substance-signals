@@ -3,6 +3,7 @@
 #include "lib_modules/utils/loader.hpp"
 #include "lib_media/in/sound_generator.hpp"
 #include "lib_media/in/video_generator.hpp"
+#include "lib_media/common/picture_types.hpp"
 #include "lib_utils/tools.hpp"
 #include "lib_utils/sysclock.hpp"
 

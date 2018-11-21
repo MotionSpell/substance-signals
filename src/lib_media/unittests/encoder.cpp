@@ -4,6 +4,7 @@
 #include "lib_media/common/metadata_file.hpp"
 #include "lib_media/common/attributes.hpp"
 #include "lib_media/common/picture.hpp"
+#include "lib_media/common/picture_types.hpp"
 #include "lib_media/common/pcm.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/encode/libav_encode.hpp"
