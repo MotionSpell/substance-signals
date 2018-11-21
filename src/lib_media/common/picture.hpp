@@ -72,7 +72,7 @@ class DataPicture : public DataRaw {
 		virtual size_t getNumPlanes() const = 0;
 		virtual const uint8_t* getPlane(size_t planeIdx) const = 0;
 		virtual uint8_t* getPlane(size_t planeIdx) = 0;
-		virtual size_t getPitch(size_t planeIdx) const = 0;
+		virtual size_t getStride(size_t planeIdx) const = 0;
 		virtual void setInternalResolution(Resolution res) = 0;
 		virtual void setVisibleResolution(Resolution res) = 0;
 
@@ -104,8 +104,8 @@ class PictureYUV420P : public DataPicture {
 		uint8_t* getPlane(size_t planeIdx) override {
 			return m_planes[planeIdx];
 		}
-		size_t getPitch(size_t planeIdx) const override {
-			return m_pitch[planeIdx];
+		size_t getStride(size_t planeIdx) const override {
+			return m_stride[planeIdx];
 		}
 		void setInternalResolution(Resolution res) override {
 			internalFormat.res = res;
@@ -114,16 +114,16 @@ class PictureYUV420P : public DataPicture {
 			m_planes[0] = data().ptr;
 			m_planes[1] = data().ptr + numPixels;
 			m_planes[2] = data().ptr + numPixels + numPixels / 4;
-			m_pitch[0] = res.width;
-			m_pitch[1] = res.width / 2;
-			m_pitch[2] = res.width / 2;
+			m_stride[0] = res.width;
+			m_stride[1] = res.width / 2;
+			m_stride[2] = res.width / 2;
 		}
 		void setVisibleResolution(Resolution res) override {
 			format.res = res;
 		}
 
 	private:
-		size_t m_pitch[3];
+		size_t m_stride[3];
 		uint8_t* m_planes[3];
 };
 

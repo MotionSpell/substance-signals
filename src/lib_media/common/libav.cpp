@@ -280,7 +280,7 @@ void copyToPicture(AVFrame const* avFrame, DataPicture* pic) {
 		auto src = avFrame->data[comp];
 		auto const srcPitch = avFrame->linesize[comp];
 		auto dst = pic->getPlane(comp);
-		auto const dstPitch = pic->getPitch(comp);
+		auto const dstPitch = pic->getStride(comp);
 		for (int y = 0; y<h; ++y) {
 			memcpy(dst, src, w);
 			src += srcPitch;

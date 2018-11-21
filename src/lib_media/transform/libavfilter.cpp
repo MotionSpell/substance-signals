@@ -90,7 +90,7 @@ void LibavFilter::process(Data data) {
 		avFrameIn->get()->width = pic->getFormat().res.width;
 		avFrameIn->get()->height = pic->getFormat().res.height;
 		avFrameIn->get()->data[i] = (uint8_t*)pic->getPlane(i);
-		avFrameIn->get()->linesize[i] = (int)pic->getPitch(i);
+		avFrameIn->get()->linesize[i] = (int)pic->getStride(i);
 	}
 	avFrameIn->get()->pts = data->getMediaTime();
 

@@ -169,7 +169,7 @@ struct LibavEncode : ModuleS {
 				f->width = pic->getFormat().res.width;
 				f->height = pic->getFormat().res.height;
 				f->data[i] = (uint8_t*)pic->getPlane(i);
-				f->linesize[i] = (int)pic->getPitch(i);
+				f->linesize[i] = (int)pic->getStride(i);
 			}
 			computeFrameAttributes(f, data->getMediaTime());
 			return f;

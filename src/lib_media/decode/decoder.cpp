@@ -44,8 +44,8 @@ int avGetBuffer2(struct AVCodecContext *ctx, AVFrame *frame, int /*flags*/) {
 		}
 		for (size_t i = 0; i < pic->getNumPlanes(); ++i) {
 			frame->data[i] = pic->getPlane(i);
-			frame->linesize[i] = (int)pic->getPitch(i);
-			assert(!(pic->getPitch(i) % linesize_align[i]));
+			frame->linesize[i] = (int)pic->getStride(i);
+			assert(!(pic->getStride(i) % linesize_align[i]));
 			frame->buf[i] = av_buffer_create(frame->data[i], frame->linesize[i], lavc_ReleaseFrame, i == 0 ? (void*)picCtx : nullptr, 0);
 		}
 		return 0;

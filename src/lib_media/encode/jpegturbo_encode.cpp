@@ -61,7 +61,7 @@ void JPEGTurboEncode::process(Data data_) {
 		int srcStride[8] {};
 		for (size_t i = 0; i<videoData->getNumPlanes(); ++i) {
 			srcSlice[i] = videoData->getPlane(i);
-			srcStride[i] = (int)videoData->getPitch(i);
+			srcStride[i] = (int)videoData->getStride(i);
 		}
 
 		if (tjCompressFromYUVPlanes(jtHandle,

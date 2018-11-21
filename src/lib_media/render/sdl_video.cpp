@@ -140,11 +140,11 @@ struct SDLVideo : ModuleS {
 
 		if (pictureFormat.format == PixelFormat::I420) {
 			SDL_UpdateYUVTexture(texture, nullptr,
-			    pic->getPlane(0), (int)pic->getPitch(0),
-			    pic->getPlane(1), (int)pic->getPitch(1),
-			    pic->getPlane(2), (int)pic->getPitch(2));
+			    pic->getPlane(0), (int)pic->getStride(0),
+			    pic->getPlane(1), (int)pic->getStride(1),
+			    pic->getPlane(2), (int)pic->getStride(2));
 		} else {
-			SDL_UpdateTexture(texture, nullptr, pic->getPlane(0), (int)pic->getPitch(0));
+			SDL_UpdateTexture(texture, nullptr, pic->getPlane(0), (int)pic->getStride(0));
 		}
 
 		present();

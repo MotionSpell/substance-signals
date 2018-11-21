@@ -19,21 +19,21 @@ class PictureY8 : public DataPicture {
 		uint8_t* getPlane(size_t planeIdx) override {
 			return m_planes[planeIdx];
 		}
-		size_t getPitch(size_t planeIdx) const override {
-			return m_pitch[planeIdx];
+		size_t getStride(size_t planeIdx) const override {
+			return m_stride[planeIdx];
 		}
 		void setInternalResolution(Resolution res) override {
 			internalFormat.res = res;
 			resize(internalFormat.getSize());
 			m_planes[0] = data().ptr;
-			m_pitch[0] = res.width;
+			m_stride[0] = res.width;
 		}
 		void setVisibleResolution(Resolution res) override {
 			format.res = res;
 		}
 
 	private:
-		size_t m_pitch[1];
+		size_t m_stride[1];
 		uint8_t* m_planes[1];
 };
 
@@ -55,8 +55,8 @@ class PictureYUV420P10LE : public DataPicture {
 		uint8_t* getPlane(size_t planeIdx) override {
 			return m_planes[planeIdx];
 		}
-		size_t getPitch(size_t planeIdx) const override {
-			return m_pitch[planeIdx];
+		size_t getStride(size_t planeIdx) const override {
+			return m_stride[planeIdx];
 		}
 		void setInternalResolution(Resolution res) override {
 			internalFormat.res = res;
@@ -65,16 +65,16 @@ class PictureYUV420P10LE : public DataPicture {
 			m_planes[0] = data().ptr;
 			m_planes[1] = data().ptr + numPlaneBytes;
 			m_planes[2] = data().ptr + numPlaneBytes + numPlaneBytes / 4;
-			m_pitch[0] = res.width * divUp(10, 8);
-			m_pitch[1] = res.width * divUp(10, 8) / 2;
-			m_pitch[2] = res.width * divUp(10, 8) / 2;
+			m_stride[0] = res.width * divUp(10, 8);
+			m_stride[1] = res.width * divUp(10, 8) / 2;
+			m_stride[2] = res.width * divUp(10, 8) / 2;
 		}
 		void setVisibleResolution(Resolution res) override {
 			format.res = res;
 		}
 
 	private:
-		size_t m_pitch[3];
+		size_t m_stride[3];
 		uint8_t* m_planes[3];
 };
 
@@ -96,8 +96,8 @@ class PictureYUV422P : public DataPicture {
 		uint8_t* getPlane(size_t planeIdx) override {
 			return m_planes[planeIdx];
 		}
-		size_t getPitch(size_t planeIdx) const override {
-			return m_pitch[planeIdx];
+		size_t getStride(size_t planeIdx) const override {
+			return m_stride[planeIdx];
 		}
 		void setInternalResolution(Resolution res) override {
 			internalFormat.res = res;
@@ -106,16 +106,16 @@ class PictureYUV422P : public DataPicture {
 			m_planes[0] = data().ptr;
 			m_planes[1] = data().ptr + numPixels;
 			m_planes[2] = data().ptr + numPixels + numPixels / 2;
-			m_pitch[0] = res.width;
-			m_pitch[1] = res.width / 2;
-			m_pitch[2] = res.width / 2;
+			m_stride[0] = res.width;
+			m_stride[1] = res.width / 2;
+			m_stride[2] = res.width / 2;
 		}
 		void setVisibleResolution(Resolution res) override {
 			format.res = res;
 		}
 
 	private:
-		size_t m_pitch[3];
+		size_t m_stride[3];
 		uint8_t* m_planes[3];
 };
 
@@ -137,8 +137,8 @@ class PictureYUV422P10LE : public DataPicture {
 		uint8_t* getPlane(size_t planeIdx) override {
 			return m_planes[planeIdx];
 		}
-		size_t getPitch(size_t planeIdx) const override {
-			return m_pitch[planeIdx];
+		size_t getStride(size_t planeIdx) const override {
+			return m_stride[planeIdx];
 		}
 		void setInternalResolution(Resolution res) override {
 			internalFormat.res = res;
@@ -147,16 +147,16 @@ class PictureYUV422P10LE : public DataPicture {
 			m_planes[0] = data().ptr;
 			m_planes[1] = data().ptr + numPixels;
 			m_planes[2] = data().ptr + numPixels + numPixels / 2;
-			m_pitch[0] = res.width * divUp(10, 8);
-			m_pitch[1] = res.width * divUp(10, 8) / 2;
-			m_pitch[2] = res.width * divUp(10, 8) / 2;
+			m_stride[0] = res.width * divUp(10, 8);
+			m_stride[1] = res.width * divUp(10, 8) / 2;
+			m_stride[2] = res.width * divUp(10, 8) / 2;
 		}
 		void setVisibleResolution(Resolution res) override {
 			format.res = res;
 		}
 
 	private:
-		size_t m_pitch[3];
+		size_t m_stride[3];
 		uint8_t* m_planes[3];
 };
 
@@ -178,7 +178,7 @@ class PictureYUYV422 : public DataPicture {
 		uint8_t* getPlane(size_t /*planeIdx*/) override {
 			return data().ptr;
 		}
-		size_t getPitch(size_t /*planeIdx*/) const override {
+		size_t getStride(size_t /*planeIdx*/) const override {
 			return internalFormat.res.width * 2;
 		}
 		void setInternalResolution(Resolution res) override {
@@ -208,8 +208,8 @@ class PictureNV12 : public DataPicture {
 		uint8_t* getPlane(size_t planeIdx) override {
 			return m_planes[planeIdx];
 		}
-		size_t getPitch(size_t planeIdx) const override {
-			return m_pitch[planeIdx];
+		size_t getStride(size_t planeIdx) const override {
+			return m_stride[planeIdx];
 		}
 		void setInternalResolution(Resolution res) override {
 			internalFormat.res = res;
@@ -217,14 +217,14 @@ class PictureNV12 : public DataPicture {
 			auto const numPixels = res.width * res.height;
 			m_planes[0] = data().ptr;
 			m_planes[1] = data().ptr + numPixels;
-			m_pitch[0] = m_pitch[1] = res.width;
+			m_stride[0] = m_stride[1] = res.width;
 		}
 		void setVisibleResolution(Resolution res) override {
 			format.res = res;
 		}
 
 	private:
-		size_t m_pitch[2];
+		size_t m_stride[2];
 		uint8_t* m_planes[2];
 };
 
@@ -246,8 +246,8 @@ class PictureNV12P010LE : public DataPicture {
 		uint8_t* getPlane(size_t planeIdx) override {
 			return m_planes[planeIdx];
 		}
-		size_t getPitch(size_t planeIdx) const override {
-			return m_pitch[planeIdx];
+		size_t getStride(size_t planeIdx) const override {
+			return m_stride[planeIdx];
 		}
 		void setInternalResolution(Resolution res) override {
 			internalFormat.res = res;
@@ -255,14 +255,14 @@ class PictureNV12P010LE : public DataPicture {
 			auto const numPixels = res.width * res.height;
 			m_planes[0] = data().ptr;
 			m_planes[1] = data().ptr + numPixels * 2;
-			m_pitch[0] = m_pitch[1] = res.width * 2;
+			m_stride[0] = m_stride[1] = res.width * 2;
 		}
 		void setVisibleResolution(Resolution res) override {
 			format.res = res;
 		}
 
 	private:
-		size_t m_pitch[2];
+		size_t m_stride[2];
 		uint8_t* m_planes[2];
 };
 
@@ -284,7 +284,7 @@ class PictureRGB24 : public DataPicture {
 		uint8_t* getPlane(size_t /*planeIdx*/) override {
 			return data().ptr;
 		}
-		size_t getPitch(size_t /*planeIdx*/) const override {
+		size_t getStride(size_t /*planeIdx*/) const override {
 			return internalFormat.res.width * 3;
 		}
 		void setInternalResolution(Resolution res) override {
@@ -315,7 +315,7 @@ class PictureRGBA32 : public DataPicture {
 		uint8_t* getPlane(size_t /*planeIdx*/) override {
 			return data().ptr;
 		}
-		size_t getPitch(size_t /*planeIdx*/) const override {
+		size_t getStride(size_t /*planeIdx*/) const override {
 			return internalFormat.res.width * 4;
 		}
 		void setInternalResolution(Resolution res) override {

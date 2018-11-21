@@ -68,7 +68,7 @@ void VideoConvert::process(Data data) {
 	int srcStride[8] {};
 	for (size_t i=0; i<videoData->getNumPlanes(); ++i) {
 		srcSlice[i] = videoData->getPlane(i);
-		srcStride[i] = (int)videoData->getPitch(i);
+		srcStride[i] = (int)videoData->getStride(i);
 	}
 
 	std::shared_ptr<DataBase> out;
@@ -89,7 +89,7 @@ void VideoConvert::process(Data data) {
 		auto pic = DataPicture::create(output, dstFormat.res, resInternal, dstFormat.format);
 		for (size_t i=0; i<pic->getNumPlanes(); ++i) {
 			pDst[i] = pic->getPlane(i);
-			dstStride[i] = (int)pic->getPitch(i);
+			dstStride[i] = (int)pic->getStride(i);
 		}
 		out = pic;
 		break;

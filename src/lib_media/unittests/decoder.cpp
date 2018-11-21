@@ -149,7 +149,7 @@ unittest("decoder: video simple") {
 		auto const pic = safe_cast<const DataPicture>(data);
 		auto const format = pic->getFormat();
 		auto const firstPixel = *pic->getPlane(0);
-		auto const lastPixel = *(pic->getPlane(0) + pic->getPitch(0) * (format.res.height-1) + format.res.width - 1);
+		auto const lastPixel = *(pic->getPlane(0) + pic->getStride(0) * (format.res.height-1) + format.res.width - 1);
 
 		char info[256];
 		sprintf(info, "'%dx%d %d %.2X %.2X'", format.res.width, format.res.height, (int)format.format, firstPixel, lastPixel);
