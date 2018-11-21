@@ -49,11 +49,12 @@ class VideoConvert : public ModuleS {
 			if(dstFormat.format == PixelFormat::UNKNOWN)
 				throw error("Destination colorspace not supported.");
 
-			auto resInternal = Resolution(ALIGN_PAD(dstFormat.res.width, 16), ALIGN_PAD(dstFormat.res.height, 8));
+			auto resInternal = Resolution(ALIGN_PAD(dstFormat.res.width, 16 * 2), ALIGN_PAD(dstFormat.res.height, 8));
 			auto pic = DataPicture::create(output, dstFormat.res, resInternal, dstFormat.format);
 			for (size_t i=0; i<pic->getNumPlanes(); ++i) {
 				pDst[i] = pic->getPlane(i);
 				dstStride[i] = (int)pic->getStride(i);
+				assert(dstStride[i]%16 == 0); // otherwise, sws_scale will crash
 			}
 
 			sws_scale(m_SwContext, srcSlice, srcStride, 0, srcFormat.res.height, pDst, dstStride);

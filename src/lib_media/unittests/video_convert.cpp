@@ -55,7 +55,7 @@ unittest("video converter: different sizes") {
 	ASSERT_EQUALS(1, numFrames);
 }
 
-unittest("[DISABLED] video converter: format conversion (NV12 to I420)") {
+unittest("video converter: format conversion (NV12 to I420)") {
 	auto const res = Resolution(128, 20);
 	auto const format = PictureFormat(res, PixelFormat::I420);
 	int numFrames = 0;
