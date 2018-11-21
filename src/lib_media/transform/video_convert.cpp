@@ -24,7 +24,7 @@ class VideoConvert : public ModuleS {
 		void process(Data data) override;
 
 	private:
-		void reconfigure(const PictureFormat &format);
+		void reconfigure(const PictureFormat &srcFormat);
 
 		KHost* const m_host;
 		SwsContext *m_SwContext;
@@ -40,18 +40,21 @@ VideoConvert::VideoConvert(KHost* host, const PictureFormat &dstFormat)
 	output = addOutput<OutputPicture>();
 }
 
-void VideoConvert::reconfigure(const PictureFormat &format) {
+void VideoConvert::reconfigure(const PictureFormat &srcFormat) {
 	sws_freeContext(m_SwContext);
-	m_SwContext = sws_getContext(format.res.width, format.res.height, pixelFormat2libavPixFmt(format.format),
-	        dstFormat.res.width, dstFormat.res.height, pixelFormat2libavPixFmt(dstFormat.format),
+	m_SwContext = sws_getContext(
+	        srcFormat.res.width, srcFormat.res.height,
+	        pixelFormat2libavPixFmt(srcFormat.format),
+	        dstFormat.res.width, dstFormat.res.height,
+	        pixelFormat2libavPixFmt(dstFormat.format),
 	        SWS_BILINEAR, nullptr, nullptr, nullptr);
 	if (!m_SwContext)
 		throw error("Impossible to set up video converter.");
-	m_host->log(Info, ::format("Converter configured to: %sx%s:%s -> %sx%s:%s",
-	        format.res.width, format.res.height, (int)format.format,
+	m_host->log(Info, format("Converter configured to: %sx%s:%s -> %sx%s:%s",
+	        srcFormat.res.width, srcFormat.res.height, (int)srcFormat.format,
 	        dstFormat.res.width, dstFormat.res.height, (int)dstFormat.format
 	    ).c_str());
-	srcFormat = format;
+	this->srcFormat = srcFormat;
 }
 
 VideoConvert::~VideoConvert() {
