@@ -44,37 +44,22 @@ class VideoConvert : public ModuleS {
 				srcStride[i] = (int)videoData->getStride(i);
 			}
 
-			std::shared_ptr<DataBase> out;
 			uint8_t* pDst[8] {};
 			int dstStride[8] {};
-			switch (dstFormat.format) {
-			case PixelFormat::Y8:
-			case PixelFormat::I420:
-			case PixelFormat::YUV420P10LE:
-			case PixelFormat::YUV422P:
-			case PixelFormat::YUV422P10LE:
-			case PixelFormat::YUYV422:
-			case PixelFormat::NV12:
-			case PixelFormat::NV12P010LE:
-			case PixelFormat::RGB24:
-			case PixelFormat::RGBA32: {
-				auto resInternal = Resolution(ALIGN_PAD(dstFormat.res.width, 16), ALIGN_PAD(dstFormat.res.height, 8));
-				auto pic = DataPicture::create(output, dstFormat.res, resInternal, dstFormat.format);
-				for (size_t i=0; i<pic->getNumPlanes(); ++i) {
-					pDst[i] = pic->getPlane(i);
-					dstStride[i] = (int)pic->getStride(i);
-				}
-				out = pic;
-				break;
-			}
-			default:
+			if(dstFormat.format == PixelFormat::UNKNOWN)
 				throw error("Destination colorspace not supported.");
+
+			auto resInternal = Resolution(ALIGN_PAD(dstFormat.res.width, 16), ALIGN_PAD(dstFormat.res.height, 8));
+			auto pic = DataPicture::create(output, dstFormat.res, resInternal, dstFormat.format);
+			for (size_t i=0; i<pic->getNumPlanes(); ++i) {
+				pDst[i] = pic->getPlane(i);
+				dstStride[i] = (int)pic->getStride(i);
 			}
 
 			sws_scale(m_SwContext, srcSlice, srcStride, 0, srcFormat.res.height, pDst, dstStride);
 
-			out->setMediaTime(data->getMediaTime());
-			output->emit(out);
+			pic->setMediaTime(data->getMediaTime());
+			output->emit(pic);
 		}
 
 	private:
