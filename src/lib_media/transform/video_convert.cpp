@@ -10,7 +10,7 @@ extern "C" {
 }
 
 static size_t ALIGN_PAD(size_t n, size_t align) {
-	return ((n/align + 1) * align);
+	return ((n + align - 1)/align) * align;
 }
 
 using namespace Modules;
