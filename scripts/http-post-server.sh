@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Under Debian: apt install ucspi-tcp
 set -eou pipefail
 
 readonly scriptDir=$(dirname $0)
