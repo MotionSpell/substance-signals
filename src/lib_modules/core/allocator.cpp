@@ -18,9 +18,14 @@ PacketAllocator::PacketAllocator(size_t minBlocks, size_t maxBlocks) :
 		g_Log->log(Warning, format("Max block number %s is smaller than min block number %s. Aligning values.", maxBlocks, minBlocks).c_str());
 		maxBlocks = minBlocks;
 	}
+	allocatedBlockCount = 0;
 	for (size_t i=0; i<minBlocks; ++i) {
 		eventQueue.push(Event{OneBufferIsFree});
 	}
+}
+
+PacketAllocator::~PacketAllocator() {
+	assert(allocatedBlockCount == 0);
 }
 
 void PacketAllocator::recycle(IBuffer *p) {
@@ -31,6 +36,7 @@ void PacketAllocator::recycle(IBuffer *p) {
 			return;
 		}
 	}
+	allocatedBlockCount --;
 	eventQueue.push(Event{OneBufferIsFree});
 }
 }

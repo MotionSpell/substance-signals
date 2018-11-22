@@ -15,6 +15,7 @@ static const size_t ALLOC_NUM_BLOCKS_LOW_LATENCY = 2;
 class PacketAllocator {
 	public:
 		PacketAllocator(size_t minBlocks, size_t maxBlocks);
+		~PacketAllocator();
 
 		struct Deleter {
 			void operator()(IBuffer *p) const {
@@ -35,6 +36,7 @@ class PacketAllocator {
 			}
 			switch (block.type) {
 			case OneBufferIsFree: {
+				allocatedBlockCount ++;
 				auto data = new T(size);
 				return std::shared_ptr<T>(data, Deleter{allocator});
 			}
@@ -62,6 +64,7 @@ class PacketAllocator {
 		const size_t minBlocks;
 		const size_t maxBlocks;
 		std::atomic_size_t curNumBlocks;
+		std::atomic<int> allocatedBlockCount; // number of blocks 'in the wild'
 		Queue<Event> eventQueue;
 };
 
