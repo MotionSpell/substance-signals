@@ -14,7 +14,7 @@ static const size_t ALLOC_NUM_BLOCKS_LOW_LATENCY = 2;
 
 class PacketAllocator {
 	public:
-		PacketAllocator(size_t minBlocks, size_t maxBlocks);
+		PacketAllocator(size_t /*unused*/, size_t maxBlocks);
 		~PacketAllocator();
 
 		struct Deleter {
@@ -61,7 +61,6 @@ class PacketAllocator {
 			EventType type {};
 		};
 
-		const size_t minBlocks;
 		const size_t maxBlocks;
 		std::atomic_size_t curNumBlocks;
 		std::atomic<int> allocatedBlockCount; // number of blocks 'in the wild'

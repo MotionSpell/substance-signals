@@ -4,22 +4,15 @@
 
 #include <stdexcept>
 
-auto const ALLOC_NUM_BLOCKS_MAX_DYN_FREE = 0 ;/*free the dynamically allocated blocks*/
-
 namespace Modules {
 
-PacketAllocator::PacketAllocator(size_t minBlocks, size_t maxBlocks) :
-	minBlocks(minBlocks),
+PacketAllocator::PacketAllocator(size_t /*unused*/, size_t maxBlocks) :
 	maxBlocks(maxBlocks),
-	curNumBlocks(minBlocks) {
-	if (minBlocks == 0)
+	curNumBlocks(maxBlocks) {
+	if (maxBlocks == 0)
 		throw std::runtime_error("Cannot create an allocator with 0 block.");
-	if (maxBlocks < minBlocks) {
-		g_Log->log(Warning, format("Max block number %s is smaller than min block number %s. Aligning values.", maxBlocks, minBlocks).c_str());
-		maxBlocks = minBlocks;
-	}
 	allocatedBlockCount = 0;
-	for (size_t i=0; i<minBlocks; ++i) {
+	for (size_t i=0; i<maxBlocks; ++i) {
 		eventQueue.push(Event{OneBufferIsFree});
 	}
 }
@@ -30,12 +23,6 @@ PacketAllocator::~PacketAllocator() {
 
 void PacketAllocator::recycle(IBuffer *p) {
 	delete p;
-	if(ALLOC_NUM_BLOCKS_MAX_DYN_FREE) {
-		if (curNumBlocks > minBlocks) {
-			curNumBlocks--;
-			return;
-		}
-	}
 	allocatedBlockCount --;
 	eventQueue.push(Event{OneBufferIsFree});
 }
