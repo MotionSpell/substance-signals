@@ -24,14 +24,13 @@ PacketAllocator::PacketAllocator(size_t minBlocks, size_t maxBlocks) :
 }
 
 void PacketAllocator::recycle(IBuffer *p) {
+	delete p;
 	if(ALLOC_NUM_BLOCKS_MAX_DYN_FREE) {
 		if (curNumBlocks > minBlocks) {
 			curNumBlocks--;
-			delete p;
 			return;
 		}
 	}
-	delete p;
 	eventQueue.push(Event{OneBufferIsFree, nullptr});
 }
 }
