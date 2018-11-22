@@ -30,6 +30,12 @@ void DataBase::setAttribute(int typeId, SpanC data) {
 	if(!data.ptr)
 		throw std::runtime_error("Can't set a NULL attribute");
 
+	{
+		auto first = attributeOffset.find(typeId);
+		if(first != attributeOffset.end())
+			throw std::runtime_error("Attribute is already set");
+	}
+
 	auto offset = attributes.size();
 	attributeOffset[typeId] = offset;
 	attributes.resize(offset + data.len);
