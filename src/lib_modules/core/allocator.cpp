@@ -31,6 +31,6 @@ void PacketAllocator::recycle(IBuffer *p) {
 			return;
 		}
 	}
-	eventQueue.push(Event{OneBufferIsFree, nullptr});
+	eventQueue.push(Event{OneBufferIsFree});
 }
 }

@@ -28,20 +28,15 @@ class PacketAllocator {
 			Event block;
 			if (!eventQueue.tryPop(block)) {
 				if (curNumBlocks < maxBlocks) {
-					eventQueue.push(Event{});
+					eventQueue.push(Event{OneBufferIsFree});
 					curNumBlocks++;
 				}
 				block = eventQueue.pop();
 			}
 			switch (block.type) {
 			case OneBufferIsFree: {
-				if (!block.data) {
-					block.data = new T(size);
-				}
-				if (block.data->data().len < size) {
-					block.data->resize(size);
-				}
-				return std::shared_ptr<T>(safe_cast<T>(block.data), Deleter{allocator});
+				auto data = new T(size);
+				return std::shared_ptr<T>(data, Deleter{allocator});
 			}
 			case Exit:
 				return nullptr;
@@ -62,7 +57,6 @@ class PacketAllocator {
 		};
 		struct Event {
 			EventType type {};
-			IBuffer* data = nullptr;
 		};
 
 		const size_t minBlocks;
