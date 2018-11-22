@@ -52,7 +52,6 @@ class DataBaseRef : public DataBase {
 		DataBaseRef(std::shared_ptr<const DataBase> data);
 		std::shared_ptr<const DataBase> getData() const;
 
-		bool isRecyclable() const override;
 		Span data() override;
 		SpanC data() const override;
 		void resize(size_t size) override;
@@ -64,7 +63,6 @@ class DataBaseRef : public DataBase {
 class DataRaw : public DataBase {
 	public:
 		DataRaw(size_t size);
-		bool isRecyclable() const override;
 		Span data() override;
 		SpanC data() const override;
 		void resize(size_t size) override;

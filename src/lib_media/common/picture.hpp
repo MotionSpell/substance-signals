@@ -59,10 +59,6 @@ class DataPicture : public DataRaw {
 		static std::shared_ptr<DataPicture> create(OutputPicture *out, Resolution res, PixelFormat format);
 		static std::shared_ptr<DataPicture> create(OutputPicture *out, Resolution res, Resolution resInternal, PixelFormat format);
 
-		bool isRecyclable() const override {
-			return true;
-		}
-
 		PictureFormat getFormat() const {
 			return format;
 		}

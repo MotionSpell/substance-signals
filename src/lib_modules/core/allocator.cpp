@@ -23,13 +23,6 @@ PacketAllocator::PacketAllocator(size_t minBlocks, size_t maxBlocks) :
 	}
 }
 
-PacketAllocator::~PacketAllocator() {
-	Event event;
-	while (eventQueue.tryPop(event)) {
-		delete event.data;
-	}
-}
-
 void PacketAllocator::recycle(IBuffer *p) {
 	if(ALLOC_NUM_BLOCKS_MAX_DYN_FREE) {
 		if (curNumBlocks > minBlocks) {
@@ -38,10 +31,7 @@ void PacketAllocator::recycle(IBuffer *p) {
 			return;
 		}
 	}
-	if (!p->isRecyclable()) {
-		delete p;
-		p = nullptr;
-	}
-	eventQueue.push(Event{OneBufferIsFree, p});
+	delete p;
+	eventQueue.push(Event{OneBufferIsFree, nullptr});
 }
 }

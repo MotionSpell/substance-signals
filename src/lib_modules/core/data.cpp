@@ -64,10 +64,6 @@ std::shared_ptr<const DataBase> DataBaseRef::getData() const {
 	return dataRef;
 }
 
-bool DataBaseRef::isRecyclable() const {
-	return dataRef->isRecyclable();
-}
-
 Span DataBaseRef::data() {
 	throw std::runtime_error("DataBaseRef::data(): non-const operations not allowed. Aborting.");
 }
@@ -89,10 +85,6 @@ Span DataRaw::data() {
 
 SpanC DataRaw::data() const {
 	return SpanC { buffer.data(), buffer.size() };
-}
-
-bool DataRaw::isRecyclable() const {
-	return true;
 }
 
 void DataRaw::resize(size_t size) {

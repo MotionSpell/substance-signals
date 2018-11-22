@@ -42,7 +42,6 @@ namespace Modules {
 
 struct IBuffer {
 	virtual ~IBuffer() = default;
-	virtual bool isRecyclable() const = 0;
 	virtual Span data() = 0;
 	virtual SpanC data() const = 0;
 	virtual void resize(size_t size) = 0;

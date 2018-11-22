@@ -30,9 +30,6 @@ class DataAVPacket : public DataBase {
 	public:
 		DataAVPacket(size_t size = 0);
 		~DataAVPacket();
-		bool isRecyclable() const override {
-			return false;
-		}
 		Span data() override;
 		SpanC data() const override;
 		void resize(size_t size) override;
