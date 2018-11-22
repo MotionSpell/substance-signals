@@ -6,7 +6,7 @@
 
 namespace Modules {
 
-PacketAllocator::PacketAllocator(size_t /*unused*/, size_t maxBlocks) :
+PacketAllocator::PacketAllocator(size_t maxBlocks) :
 	maxBlocks(maxBlocks),
 	curNumBlocks(maxBlocks) {
 	if (maxBlocks == 0)

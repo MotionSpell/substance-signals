@@ -79,11 +79,8 @@ static Signals::ExecutorSync g_executorOutputSync;
 template<typename DataType>
 class OutputDataDefault : public IOutput, public MetadataCap {
 	public:
-		OutputDataDefault(size_t allocatorBaseSize, size_t allocatorMaxSize, Metadata metadata = nullptr)
-			: MetadataCap(metadata), signal(g_executorOutputSync), allocator(new PacketAllocator(allocatorBaseSize, allocatorMaxSize)) {
-		}
-		OutputDataDefault(size_t allocatorSize, const IMetadata *metadata = nullptr)
-			: OutputDataDefault(allocatorSize, allocatorSize, metadata) {
+		OutputDataDefault(size_t allocatorMaxSize, Metadata metadata = nullptr)
+			: MetadataCap(metadata), signal(g_executorOutputSync), allocator(new PacketAllocator(allocatorMaxSize)) {
 		}
 		virtual ~OutputDataDefault() {
 			allocator->unblock();
@@ -104,7 +101,7 @@ class OutputDataDefault : public IOutput, public MetadataCap {
 		}
 
 		void resetAllocator(size_t allocatorSize) {
-			allocator = make_shared<PacketAllocator>(1, allocatorSize);
+			allocator = make_shared<PacketAllocator>(allocatorSize);
 		}
 
 	private:
@@ -136,13 +133,13 @@ class Module : public IModule, public ErrorCap {
 
 		template <typename InstanceType, typename ...Args>
 		InstanceType* addOutput(Args&&... args) {
-			auto p = new InstanceType(allocatorSize, allocatorSize, std::forward<Args>(args)...);
+			auto p = new InstanceType(allocatorSize, std::forward<Args>(args)...);
 			outputs.push_back(uptr(p));
 			return p;
 		}
 		template <typename InstanceType, typename ...Args>
 		InstanceType* addOutputDynAlloc(size_t allocatorMaxSize, Args&&... args) {
-			auto p = new InstanceType(allocatorSize, allocatorMaxSize, std::forward<Args>(args)...);
+			auto p = new InstanceType(allocatorMaxSize, std::forward<Args>(args)...);
 			outputs.push_back(uptr(p));
 			return p;
 		}

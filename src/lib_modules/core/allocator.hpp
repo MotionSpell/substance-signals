@@ -14,7 +14,7 @@ static const size_t ALLOC_NUM_BLOCKS_LOW_LATENCY = 2;
 
 class PacketAllocator {
 	public:
-		PacketAllocator(size_t /*unused*/, size_t maxBlocks);
+		PacketAllocator(size_t maxBlocks);
 		~PacketAllocator();
 
 		struct Deleter {
