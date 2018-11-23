@@ -47,6 +47,14 @@ function dashcast_crashtest
 function player_crashtest
 {
   $BIN/player.exe data/simple.ts -n -a 0 1>/dev/null 2>/dev/null || true
+  if ! test -f dash/dashcastx.mpd ; then
+    echo "Manifest was not created" >&2
+    return 1
+  fi
+  if ! test -s dash/dashcastx.mpd ; then
+    echo "Manifest is empty" >&2
+    return 1
+  fi
 }
 
 function player_blindtest

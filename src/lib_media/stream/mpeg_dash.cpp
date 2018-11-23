@@ -205,13 +205,15 @@ class MPEG_DASH : public AdaptiveStreamingCommon, public gpacpp::Init {
 				return;
 			}
 
-			auto out = outputManifest->getBuffer(0);
-			auto metadata = make_shared<MetadataFile>(PLAYLIST);
-			metadata->filename = mpdPath;
-			metadata->durationIn180k = timescaleToClock(segDurationInMs, 1000);
-			out->setMetadata(metadata);
-			out->setMediaTime(totalDurationInMs, 1000);
-			outputManifest->emit(out);
+			if(0) {
+				auto out = outputManifest->getBuffer(0);
+				auto metadata = make_shared<MetadataFile>(PLAYLIST);
+				metadata->filename = mpdPath;
+				metadata->durationIn180k = timescaleToClock(segDurationInMs, 1000);
+				out->setMetadata(metadata);
+				out->setMediaTime(totalDurationInMs, 1000);
+				outputManifest->emit(out);
+			}
 		}
 
 		std::string getPrefixedSegmentName(DASHQuality const * const quality, size_t index, u64 segmentNum) const {
