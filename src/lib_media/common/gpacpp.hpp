@@ -265,7 +265,9 @@ class MPD {
 			std::string r;
 			r.resize(ftell(fp.get()));
 			fseek(fp.get(), 0, SEEK_SET);
-			fread(&r[0], 1, r.size(), fp.get());
+			auto nread = fread(&r[0], 1, r.size(), fp.get());
+			if(nread != r.size())
+				throw Error(format("[MPEG-DASH MPD] Can't read serialized manifest").c_str(), e);
 
 			return r;
 		}
