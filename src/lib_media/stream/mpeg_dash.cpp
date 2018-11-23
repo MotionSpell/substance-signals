@@ -194,26 +194,16 @@ class MPEG_DASH : public AdaptiveStreamingCommon, public gpacpp::Init {
 		}
 
 		void writeManifest() {
-			if (!mpd->write(mpdFn)) {
-				m_host->log(Warning, format("Can't write MPD at %s (1). Check you have sufficient rights.", mpdFn).c_str());
-				return;
-			}
+			auto contents = mpd->serialize();
 
-			auto const mpdPath = format("%s%s", manifestDir, mpdFn);
-			if (!moveFile(mpdFn, mpdPath)) {
-				m_host->log(Error, format("Can't move MPD at %s (2). Check you have sufficient rights.", mpdPath).c_str());
-				return;
-			}
-
-			if(0) {
-				auto out = outputManifest->getBuffer(0);
-				auto metadata = make_shared<MetadataFile>(PLAYLIST);
-				metadata->filename = mpdPath;
-				metadata->durationIn180k = timescaleToClock(segDurationInMs, 1000);
-				out->setMetadata(metadata);
-				out->setMediaTime(totalDurationInMs, 1000);
-				outputManifest->emit(out);
-			}
+			auto out = outputManifest->getBuffer(contents.size());
+			auto metadata = make_shared<MetadataFile>(PLAYLIST);
+			metadata->filename = manifestDir + mpdFn;
+			metadata->durationIn180k = timescaleToClock(segDurationInMs, 1000);
+			out->setMetadata(metadata);
+			out->setMediaTime(totalDurationInMs, 1000);
+			memcpy(out->data().ptr, contents.data(), contents.size());
+			outputManifest->emit(out);
 		}
 
 		std::string getPrefixedSegmentName(DASHQuality const * const quality, size_t index, u64 segmentNum) const {

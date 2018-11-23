@@ -253,15 +253,21 @@ class MPD {
 			gf_mpd_del(mpd);
 		}
 
-		bool write(std::string const& url) const {
-			if (!minimalCheck())
-				return false;
+		std::string serialize() const {
+			auto fp = std::shared_ptr<FILE>(tmpfile(), &fclose);
+			if(!fp)
+				throw Error(format("[MPEG-DASH MPD] Can't serialize manifest (2)").c_str(), GF_IO_ERR);
 
-			GF_Err e = gf_mpd_write_file(mpd, url.c_str());
+			GF_Err e = gf_mpd_write(mpd, fp.get());
 			if (e != GF_OK)
-				throw Error(format("[MPEG-DASH MPD] Can't write file %s", url).c_str(), e);
+				throw Error(format("[MPEG-DASH MPD] Can't serialize manifest (1)").c_str(), e);
 
-			return true;
+			std::string r;
+			r.resize(ftell(fp.get()));
+			fseek(fp.get(), 0, SEEK_SET);
+			fread(&r[0], 1, r.size(), fp.get());
+
+			return r;
 		}
 
 		GF_MPD_Representation* addRepresentation(GF_MPD_AdaptationSet *as, const char *id, u32 bandwidth) {
