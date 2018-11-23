@@ -42,11 +42,7 @@ function dashcast_crashtest
     -w $tmpDir/dashcastx \
     -v 320x240 -v 160x120 \
     $PWD/data/beepbop.mp4 1>/dev/null
-}
 
-function player_crashtest
-{
-  $BIN/player.exe data/simple.ts -n -a 0 1>/dev/null 2>/dev/null || true
   if ! test -f dash/dashcastx.mpd ; then
     echo "Manifest was not created" >&2
     return 1
@@ -55,6 +51,11 @@ function player_crashtest
     echo "Manifest is empty" >&2
     return 1
   fi
+}
+
+function player_crashtest
+{
+  $BIN/player.exe data/simple.ts -n -a 0 1>/dev/null 2>/dev/null || true
 }
 
 function player_blindtest
