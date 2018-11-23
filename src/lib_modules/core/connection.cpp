@@ -38,9 +38,9 @@ void ConnectOutputToInput(IOutput *prev, IInput *next, IExecutor * const executo
 	});
 }
 
-void ConnectModules(IModule *prev, int outputIdx, IModule *next, int inputIdx, IExecutor &executor) {
+void ConnectModules(IModule *prev, int outputIdx, IModule *next, int inputIdx) {
 	auto output = prev->getOutput(outputIdx);
-	ConnectOutputToInput(output, next->getInput(inputIdx), &executor);
+	ConnectOutputToInput(output, next->getInput(inputIdx));
 }
 
 }
