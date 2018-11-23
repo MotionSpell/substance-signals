@@ -69,7 +69,8 @@ void Filter::mimicInputs() {
 		auto idx = (int)inputs.size();
 		auto dgInput = delegate->getInput(idx);
 		auto name = format("%s, input (#%s)", m_name, idx);
-		inputs.push_back(uptr(new FilterInput(dgInput, name, executor.get(), statsRegistry->getNewEntry(), this)));
+		auto statEntry = statsRegistry->getNewEntry();
+		inputs.push_back(uptr(new FilterInput(dgInput, name, executor.get(), statEntry, this)));
 	}
 }
 
