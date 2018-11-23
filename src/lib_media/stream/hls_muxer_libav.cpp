@@ -61,7 +61,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 
 					{
 						auto out = outputSegment->getBuffer(0);
-						out->setMediaTime(clockToTimescale(m_utcStartTime->query(), 1000) + data->getMediaTime());
+						out->setMediaTime(m_utcStartTime->query() + data->getMediaTime());
 
 						auto metadata = make_shared<MetadataFile>(SEGMENT);
 						metadata->durationIn180k = segDuration;
