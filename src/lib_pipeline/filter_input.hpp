@@ -44,13 +44,7 @@ class FilterInput : public IInput, public MetadataCap {
 			}
 
 			delegate->push(data);
-			try {
-				(*executor)(Bind(&IProcessor::process, delegate));
-			} catch (...) { //stop now
-				auto const &eptr = std::current_exception();
-				notify->exception(eptr);
-				std::rethrow_exception(eptr);
-			}
+			(*executor)(Bind(&IProcessor::process, delegate));
 		}
 
 		int isConnected() const override {
