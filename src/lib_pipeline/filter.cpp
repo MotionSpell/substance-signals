@@ -66,8 +66,10 @@ void Filter::disconnect(int inputIdx, IOutput* output) {
 
 void Filter::mimicInputs() {
 	while ((int)inputs.size()< delegate->getNumInputs()) {
-		auto dgInput = delegate->getInput((int)inputs.size());
-		inputs.push_back(uptr(new FilterInput(dgInput, m_name, *executor, statsRegistry->getNewEntry(), this)));
+		auto idx = (int)inputs.size();
+		auto dgInput = delegate->getInput(idx);
+		auto name = format("%s, input (#%s)", m_name, idx);
+		inputs.push_back(uptr(new FilterInput(dgInput, name, *executor, statsRegistry->getNewEntry(), this)));
 	}
 }
 
