@@ -9,6 +9,11 @@ function gpac_build {
 
   lazy_git_clone https://github.com/gpac/gpac.git gpac "$hash"
 
+  (
+    cd gpac
+    gpac_patches
+  )
+
   local OS=$(get_os $host)
   local crossPrefix=$(get_cross_prefix $BUILD $host)
 
@@ -118,3 +123,51 @@ function gpac_get_deps {
   echo libogg
   echo zlib
 }
+
+function gpac_patches {
+  local patchFile=$scriptDir/patches/gpac_01_export_gf_mpd_write.diff
+  cat << 'EOF' > $patchFile
+diff --git a/include/gpac/internal/mpd.h b/include/gpac/internal/mpd.h
+index ea36ac6..eff465b 100644
+--- a/include/gpac/internal/mpd.h
++++ b/include/gpac/internal/mpd.h
+@@ -396,6 +396,7 @@ void gf_mpd_segment_base_free(void *ptr);
+ 
+ void gf_mpd_period_free(void *_item);
+ 
++GF_Err gf_mpd_write(GF_MPD const * const mpd, FILE *out);
+ GF_Err gf_mpd_write_file(GF_MPD const * const mpd, const char *file_name);
+ 
+ 
+diff --git a/src/export.cpp b/src/export.cpp
+index aac037e..8c8648c 100644
+--- a/src/export.cpp
++++ b/src/export.cpp
+@@ -1997,6 +1997,7 @@
+ #pragma comment (linker, EXPORT_SYMBOL(gf_mpd_solve_segment_list_xlink) )
+ #pragma comment (linker, EXPORT_SYMBOL(gf_mpd_delete_segment_list) )
+ #pragma comment (linker, EXPORT_SYMBOL(gf_m3u8_parse_master_playlist) )
++#pragma comment (linker, EXPORT_SYMBOL(gf_mpd_write) )
+ #pragma comment (linker, EXPORT_SYMBOL(gf_mpd_write_file) )
+ #pragma comment (linker, EXPORT_SYMBOL(gf_mpd_get_base_url_count) )
+ #pragma comment (linker, EXPORT_SYMBOL(gf_mpd_resolve_url) )
+diff --git a/src/media_tools/mpd.c b/src/media_tools/mpd.c
+index 3a75450..89ff7ee 100644
+--- a/src/media_tools/mpd.c
++++ b/src/media_tools/mpd.c
+@@ -2351,7 +2351,8 @@ static void gf_mpd_print_period(GF_MPD_Period const * const period, Bool is_dyna
+ 
+ }
+ 
+-static GF_Err gf_mpd_write(GF_MPD const * const mpd, FILE *out)
++GF_EXPORT
++GF_Err gf_mpd_write(GF_MPD const * const mpd, FILE *out)
+ {
+ 	u32 i;
+ 	GF_MPD_ProgramInfo *info;
+EOF
+
+  applyPatch $patchFile
+}
+
+
