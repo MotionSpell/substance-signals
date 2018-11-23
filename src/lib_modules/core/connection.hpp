@@ -15,7 +15,7 @@ Bind(Function func, Class* objectPtr) {
 }
 
 extern Signals::ExecutorSync g_executorSync;
-void ConnectOutputToInput(IOutput *prev, IInput *next, IExecutor * const executor = &g_executorSync);
+void ConnectOutputToInput(IOutput *prev, IInput *next);
 void ConnectModules(IModule *prev, int outputIdx, IModule *next, int inputIdx);
 
 }
