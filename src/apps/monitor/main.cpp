@@ -2,8 +2,10 @@
 #include "lib_pipeline/stats.hpp"
 
 int main(int argc, char* argv[]) {
-	if(argc != 2)
+	if(argc != 2) {
+		fprintf(stderr, "Usage: %s <pid>\n", argv[0]);
 		return 1;
+	}
 
 	auto const size = sizeof(Pipelines::StatsEntry) * 256;
 	auto mem = createSharedMemory(size, argv[1]);
