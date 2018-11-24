@@ -2,6 +2,10 @@
 #include <csignal>
 #include <iostream> // cerr
 
+#ifdef _MSC_VER
+#include <Windows.h>
+#endif
+
 // user-provided
 extern void safeMain(int argc, const char* argv[]);
 extern void safeStop();
