@@ -43,11 +43,11 @@ function dashcast_crashtest
     -v 320x240 -v 160x120 \
     $PWD/data/beepbop.mp4 1>/dev/null
 
-  if ! test -f dash/dashcastx.mpd ; then
+  if ! test -f $tmpDir/dashcastx/dash/dashcastx.mpd ; then
     echo "Manifest was not created" >&2
     return 1
   fi
-  if ! test -s dash/dashcastx.mpd ; then
+  if ! test -s $tmpDir/dashcastx/dash/dashcastx.mpd ; then
     echo "Manifest is empty" >&2
     return 1
   fi

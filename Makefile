@@ -9,7 +9,7 @@ BIN?=bin
 SRC?=src
 
 # always optimize
-#CFLAGS+=-O3
+CFLAGS+=-O3
 
 # default to: no debug info, full warnings
 DEBUG?=2
