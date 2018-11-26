@@ -9,9 +9,7 @@ extern void safeStop();
 extern const char *g_appName;
 extern const char *g_version;
 
-namespace {
-
-void onInterruption() {
+static void onInterruption() {
 	static int numSig = 0;
 	numSig++;
 	if (numSig >= 3) {
@@ -62,8 +60,6 @@ static void installSignalHandler() {
 }
 
 #endif
-
-}
 
 int main(int argc, char const* argv[]) {
 	try {
