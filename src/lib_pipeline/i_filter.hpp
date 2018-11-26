@@ -1,7 +1,9 @@
 #pragma once
 
+// Filters are interconnected pipeline elements.
+// They're seen as such by the applications.
+
 #include "lib_modules/modules.hpp"
-#include <memory>
 
 namespace Pipelines {
 
@@ -10,7 +12,6 @@ enum class Threading {
 	OnePerModule      = 2,
 };
 
-// interconnected pipeline elements, as the application sees them.
 struct IFilter {
 	virtual ~IFilter() {};
 	virtual int getNumInputs() const = 0;
