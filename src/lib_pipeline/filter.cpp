@@ -15,16 +15,21 @@ std::unique_ptr<IExecutor> createExecutor(Pipelines::Threading threading, const 
 }
 
 Filter::Filter(const char* name,
-    std::unique_ptr<Modules::KHost> host,
+    LogSink* pLog,
     IPipelineNotifier *notify,
     Pipelines::Threading threading,
     IStatsRegistry *statsRegistry)
-	: m_host(std::move(host)),
+	: m_log(pLog),
 	  m_name(name),
 	  executor(createExecutor(threading, name)),
 	  m_notify(notify),
 	  eosCount(0),
 	  statsRegistry(statsRegistry) {
+}
+
+// KHost implementation
+void Filter::log(int level, char const* msg) {
+	m_log->log((Level)level, format("[%s] %s", m_name.c_str(), msg).c_str());
 }
 
 void Filter::setDelegate(std::shared_ptr<IModule> module) {

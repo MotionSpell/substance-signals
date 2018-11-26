@@ -14,17 +14,6 @@
 
 namespace Pipelines {
 
-struct ModuleHost : Modules::KHost {
-	ModuleHost(std::string name_, LogSink* log_) : name(name_), m_log(log_) {
-	}
-	void log(int level, char const* msg) override {
-		m_log->log((Level)level, format("[%s] %s", name.c_str(), msg).c_str());
-	}
-	const std::string name;
-	LogSink* const m_log;
-};
-
-
 struct StatsRegistry : IStatsRegistry {
 	StatsRegistry() : shmem(createSharedMemory(size, std::to_string(getPid()).c_str())), entryIdx(0) {
 		memset(shmem->data(), 0, size);
@@ -45,10 +34,6 @@ struct StatsRegistry : IStatsRegistry {
 	int entryIdx;
 };
 
-std::unique_ptr<Modules::KHost> Pipeline::createModuleHost(std::string name) {
-	return make_unique<ModuleHost>(name, m_log);
-}
-
 Pipeline::Pipeline(LogSink* log, bool isLowLatency, Threading threading)
 	: statsMem(new StatsRegistry), graph(new Graph),
 	  m_log(log ? log : g_Log),
@@ -60,14 +45,12 @@ Pipeline::~Pipeline() {
 }
 
 IFilter* Pipeline::addModuleInternal(std::string name, CreationFunc createModule) {
-	auto host = make_unique<ModuleHost>(name, m_log);
-	auto pHost = host.get();
-	auto module = make_unique<Filter>(name.c_str(), move(host), this, threading, statsMem.get());
-	module->setDelegate(createModule(pHost));
-	auto pModule = module.get();
-	modules.push_back(std::move(module));
-	graph->nodes.push_back(Graph::Node{pModule, name});
-	return pModule;
+	auto filter = make_unique<Filter>(name.c_str(), m_log, this, threading, statsMem.get());
+	filter->setDelegate(createModule(filter.get()));
+	auto pFilter = filter.get();
+	modules.push_back(std::move(filter));
+	graph->nodes.push_back(Graph::Node{pFilter, name});
+	return pFilter;
 }
 
 IFilter * Pipeline::add(char const* type, ...) {

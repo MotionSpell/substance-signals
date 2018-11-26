@@ -18,8 +18,6 @@ using CreationFunc = std::function<std::shared_ptr<Modules::IModule>(Modules::KH
 // A set of interconnected processing filters.
 class Pipeline : public IPipelineNotifier {
 	public:
-		std::unique_ptr<Modules::KHost> createModuleHost(std::string name);
-
 		template <typename InstanceType, int NumBlocks = 0, typename ...Args>
 		IFilter * addModule(Args&&... args) {
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "i_filter.hpp"
+#include "lib_utils/log_sink.hpp"
 #include "lib_modules/core/module.hpp"
 
 using namespace Modules;
@@ -12,10 +13,11 @@ struct IStatsRegistry;
 /* wrapper around the module */
 class Filter :
 	public IFilter,
+	public KHost,
 	private IPipelineNotifier {
 	public:
 		Filter(const char* name,
-		    std::unique_ptr<KHost> host,
+		    LogSink* pLog,
 		    IPipelineNotifier *notify,
 		    Pipelines::Threading threading,
 		    IStatsRegistry *statsRegistry);
@@ -41,11 +43,14 @@ class Filter :
 		void mimicInputs();
 		void processSource();
 
+		// KHost implementation
+		void log(int level, char const* msg) override;
+
 		// IPipelineNotifier implementation
 		void endOfStream() override;
 		void exception(std::exception_ptr eptr) override;
 
-		std::unique_ptr<KHost> m_host;
+		LogSink* const m_log;
 		std::string const m_name;
 		std::shared_ptr<IModule> delegate;
 		std::unique_ptr<IExecutor> const executor;
