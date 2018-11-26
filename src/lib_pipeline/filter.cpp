@@ -7,8 +7,8 @@ using namespace Modules;
 
 namespace Pipelines {
 
-std::unique_ptr<IExecutor> createExecutor(Pipeline::Threading threading, const char* name) {
-	if(threading & Pipeline::Mono)
+std::unique_ptr<IExecutor> createExecutor(Pipelines::Threading threading, const char* name) {
+	if(int(threading & (Pipelines::Threading::Mono)))
 		return make_unique<Signals::ExecutorSync>();
 	else
 		return make_unique<Signals::ExecutorThread>(name);
@@ -18,7 +18,7 @@ Filter::Filter(const char* name,
     std::unique_ptr<Modules::KHost> host,
     std::shared_ptr<IModule> module,
     IPipelineNotifier *notify,
-    Pipeline::Threading threading,
+    Pipelines::Threading threading,
     IStatsRegistry *statsRegistry)
 	: m_host(std::move(host)),
 	  m_name(name),

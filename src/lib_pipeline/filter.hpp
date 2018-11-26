@@ -1,11 +1,13 @@
 #pragma once
 
-#include "pipeline.hpp"
+#include "i_filter.hpp"
 #include "lib_modules/core/module.hpp"
 
 using namespace Modules;
 
 namespace Pipelines {
+
+struct IStatsRegistry;
 
 /* wrapper around the module */
 class Filter :
@@ -16,7 +18,7 @@ class Filter :
 		    std::unique_ptr<KHost> host,
 		    std::shared_ptr<IModule> module,
 		    IPipelineNotifier *notify,
-		    Pipeline::Threading threading,
+		    Pipelines::Threading threading,
 		    IStatsRegistry *statsRegistry);
 
 		void connect(IOutput *output, int inputIdx, bool inputAcceptMultipleConnections);

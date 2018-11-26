@@ -1,5 +1,6 @@
 #pragma once
 
+#include "i_filter.hpp"
 #include "lib_utils/log.hpp"
 #include "lib_utils/format.hpp"
 #include "lib_modules/modules.hpp"
@@ -9,50 +10,12 @@
 
 namespace Pipelines {
 
-// interconnected pipeline elements, as the application sees them.
-struct IFilter {
-	virtual ~IFilter() {};
-	virtual int getNumInputs() const = 0;
-	virtual int getNumOutputs() const = 0;
-	virtual Modules::Metadata getOutputMetadata(int i) = 0;
-};
-
-struct InputPin {
-	InputPin(IFilter* m, int idx=0) : mod(m), index(idx) {};
-	IFilter* mod;
-	int index = 0;
-};
-
-struct OutputPin {
-	OutputPin(IFilter* m, int idx=0) : mod(m), index(idx) {};
-	IFilter* mod;
-	int index = 0;
-};
-
-inline InputPin GetInputPin(IFilter* mod, int index=0) {
-	return InputPin { mod, index };
-}
-
-inline OutputPin GetOutputPin(IFilter* mod, int index=0) {
-	return OutputPin { mod, index };
-}
-
-struct IPipelineNotifier {
-	virtual void endOfStream() = 0;
-	virtual void exception(std::exception_ptr eptr) = 0;
-};
-
 struct IStatsRegistry;
 struct Graph;
 
 // A set of interconnected processing filters.
 class Pipeline : public IPipelineNotifier {
 	public:
-		enum Threading {
-			Mono              = 1,
-			OnePerModule      = 2,
-		};
-
 		std::unique_ptr<Modules::KHost> createModuleHost(std::string name);
 
 		template <typename InstanceType, int NumBlocks = 0, typename ...Args>
@@ -70,7 +33,7 @@ class Pipeline : public IPipelineNotifier {
 
 		/* @isLowLatency Controls the default number of buffers.
 			@threading    Controls the threading. */
-		Pipeline(LogSink* log = nullptr, bool isLowLatency = false, Threading threading = OnePerModule);
+		Pipeline(LogSink* log = nullptr, bool isLowLatency = false, Threading threading = Threading::OnePerModule);
 		virtual ~Pipeline();
 
 		// Remove a module from a pipeline.

@@ -58,7 +58,7 @@ unittest("pipeline: connecting an input to and output throws an error") {
 }
 
 unittest("pipeline: connecting incompatible i/o throws an error") {
-	Pipeline p(nullptr, false, Pipeline::Mono);
+	Pipeline p(nullptr, false, Pipelines::Threading::Mono);
 	auto src = p.addModule<InfiniteSource>();
 	auto aconv = p.addModule<CustomDataTypeSink>();
 	p.connect(src, aconv);
