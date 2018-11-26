@@ -262,7 +262,7 @@ class MPD {
 
 			GF_Err e = gf_mpd_write(mpd, fp.get());
 			if (e != GF_OK)
-				throw Error(format("[MPEG-DASH MPD] Can't serialize manifest (1): %s", fn, fn.get()).c_str(), e);
+				throw Error(format("[MPEG-DASH MPD] Can't serialize manifest (1): %s", fn.get()).c_str(), e);
 
 			std::string r;
 			r.resize(ftell(fp.get()));
