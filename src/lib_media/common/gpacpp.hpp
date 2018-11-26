@@ -254,22 +254,20 @@ class MPD {
 		}
 
 		std::string serialize() const {
-			char *pfn = nullptr;
-			auto fp = std::shared_ptr<FILE>(gf_temp_file_new(&pfn), &fclose);
-			auto fn = std::shared_ptr<char>(pfn, &gf_free);
+			auto fp = std::shared_ptr<FILE>(gf_temp_file_new(nullptr), &fclose);
 			if(!fp)
-				throw Error(format("[MPEG-DASH MPD] Can't serialize manifest (2): %s", fn.get()).c_str(), GF_IO_ERR);
+				throw Error("[MPEG-DASH MPD] Can't serialize manifest (2)", GF_IO_ERR);
 
 			GF_Err e = gf_mpd_write(mpd, fp.get());
 			if (e != GF_OK)
-				throw Error(format("[MPEG-DASH MPD] Can't serialize manifest (1): %s", fn.get()).c_str(), e);
+				throw Error("[MPEG-DASH MPD] Can't serialize manifest (1)", e);
 
 			std::string r;
 			r.resize(ftell(fp.get()));
 			fseek(fp.get(), 0, SEEK_SET);
 			auto nread = fread(&r[0], 1, r.size(), fp.get());
 			if(nread != r.size())
-				throw Error(format("[MPEG-DASH MPD] Can't read serialized manifest (read %s out of %s bytes from \"%s\")", nread, r.size(), fn.get()).c_str(), GF_IO_ERR);
+				throw Error("[MPEG-DASH MPD] Can't read serialized manifest", GF_IO_ERR);
 
 			return r;
 		}
