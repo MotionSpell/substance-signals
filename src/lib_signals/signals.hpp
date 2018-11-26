@@ -39,7 +39,7 @@ class Signal : public ISignal<Arg> {
 		void emit(Arg arg) {
 			std::lock_guard<std::mutex> lg(callbacksMutex);
 			for (auto &cb : callbacks) {
-				(*cb.second.executor)(std::bind(cb.second.callback, arg));
+				cb.second.executor->call(std::bind(cb.second.callback, arg));
 			}
 		}
 

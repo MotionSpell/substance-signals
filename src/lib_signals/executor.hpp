@@ -6,13 +6,13 @@ namespace Signals {
 
 struct IExecutor {
 	virtual ~IExecutor() {}
-	virtual void operator() (const std::function<void()> &fn) = 0;
+	virtual void call(const std::function<void()> &fn) = 0;
 };
 
 //synchronous calls
 class ExecutorSync : public IExecutor {
 	public:
-		void operator() (const std::function<void()> &fn) {
+		void call(const std::function<void()> &fn) {
 			fn();
 		}
 };

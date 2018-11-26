@@ -28,7 +28,7 @@ class ExecutorThread : public IExecutor {
 		ExecutorThread(const std::string &name) : threadPool(name, 1) {
 		}
 
-		void operator() (const std::function<void()> &fn) {
+		void call(const std::function<void()> &fn) override {
 			threadPool.submit(fn);
 		}
 

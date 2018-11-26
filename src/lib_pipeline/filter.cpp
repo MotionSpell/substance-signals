@@ -61,7 +61,16 @@ void Filter::connect(IOutput *output, int inputIdx, bool inputAcceptMultipleConn
 	auto input = getInput(inputIdx);
 	if (!inputAcceptMultipleConnections && input->isConnected())
 		throw std::runtime_error(format("Filter %s: input %s is already connected.", m_name, inputIdx));
-	ConnectOutputToInput(output, input);
+
+	input->connect();
+
+	CheckMetadataCompatibility(output, input);
+
+	output->getSignal().connect([=](Data data) {
+		input->push(data);
+		input->process();
+	});
+
 	connections++;
 }
 
@@ -97,7 +106,7 @@ void Filter::processSource() {
 	}
 
 	// reschedule
-	(*executor)(std::bind(&Filter::processSource, this));
+	executor->call(std::bind(&Filter::processSource, this));
 }
 
 void Filter::startSource() {
@@ -110,7 +119,7 @@ void Filter::startSource() {
 
 	connections = 1;
 
-	(*executor)(std::bind(&Filter::processSource, this));
+	executor->call(std::bind(&Filter::processSource, this));
 
 	started = true;
 }
