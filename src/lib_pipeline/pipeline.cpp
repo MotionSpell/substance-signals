@@ -59,7 +59,9 @@ Pipeline::Pipeline(LogSink* log, bool isLowLatency, Threading threading)
 Pipeline::~Pipeline() {
 }
 
-IFilter* Pipeline::addModuleInternal(std::string name, std::unique_ptr<KHost> host, std::shared_ptr<IModule> rawModule) {
+IFilter* Pipeline::addModuleInternal(std::string name, CreationFunc createModule) {
+	auto host = make_unique<ModuleHost>(name, m_log);
+	auto rawModule = createModule(host.get());
 	auto module = make_unique<Filter>(name.c_str(), move(host), rawModule, this, threading, statsMem.get());
 	auto ret = module.get();
 	modules.push_back(std::move(module));
@@ -71,9 +73,12 @@ IFilter * Pipeline::add(char const* type, ...) {
 	va_list va;
 	va_start(va, type);
 	auto name = format("%s (#%s)", type, (int)modules.size());
-	auto host = createModuleHost(name);
-	auto pHost = host.get();
-	return addModuleInternal(name, std::move(host), vLoadModule(type, pHost, va));
+
+	auto createModule = [&](Modules::KHost* host) {
+		return vLoadModule(type, host, va);
+	};
+
+	return addModuleInternal(name, createModule);
 }
 
 void Pipeline::removeModule(IFilter *module) {

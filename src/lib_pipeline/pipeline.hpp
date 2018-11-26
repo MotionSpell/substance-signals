@@ -13,6 +13,8 @@ namespace Pipelines {
 struct IStatsRegistry;
 struct Graph;
 
+using CreationFunc = std::function<std::shared_ptr<Modules::IModule>(Modules::KHost*)>;
+
 // A set of interconnected processing filters.
 class Pipeline : public IPipelineNotifier {
 	public:
@@ -20,13 +22,16 @@ class Pipeline : public IPipelineNotifier {
 
 		template <typename InstanceType, int NumBlocks = 0, typename ...Args>
 		IFilter * addModule(Args&&... args) {
+
+			auto createModule = [&](Modules::KHost* host) {
+				return Modules::createModule<InstanceType>(
+				        getNumBlocks(NumBlocks),
+				        host,
+				        std::forward<Args>(args)...);
+			};
+
 			auto name = format("%s", modules.size());
-			auto host = createModuleHost(name);
-			auto mod = Modules::createModule<InstanceType>(
-			        getNumBlocks(NumBlocks),
-			        host.get(),
-			        std::forward<Args>(args)...);
-			return addModuleInternal(name, std::move(host), std::move(mod));
+			return addModuleInternal(name, createModule);
 		}
 
 		IFilter * add(char const* name, ...);
@@ -50,7 +55,7 @@ class Pipeline : public IPipelineNotifier {
 		void exitSync(); /*ask for all sources to finish*/
 
 	private:
-		IFilter * addModuleInternal(std::string name, std::unique_ptr<Modules::KHost> host, std::shared_ptr<Modules::IModule> rawModule);
+		IFilter * addModuleInternal(std::string name, CreationFunc createModule);
 		void computeTopology();
 		void endOfStream();
 		void exception(std::exception_ptr eptr);
