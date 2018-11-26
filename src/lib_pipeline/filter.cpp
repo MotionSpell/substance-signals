@@ -39,9 +39,11 @@ void Filter::setDelegate(std::shared_ptr<IModule> module) {
 int Filter::getNumInputs() const {
 	return delegate->getNumInputs();
 }
+
 int Filter::getNumOutputs() const {
 	return delegate->getNumOutputs();
 }
+
 IOutput* Filter::getOutput(int i) {
 	if (i >= delegate->getNumOutputs())
 		throw std::runtime_error(format("Filter %s: no output %s.", m_name, i));
