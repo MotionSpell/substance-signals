@@ -61,12 +61,13 @@ Pipeline::~Pipeline() {
 
 IFilter* Pipeline::addModuleInternal(std::string name, CreationFunc createModule) {
 	auto host = make_unique<ModuleHost>(name, m_log);
-	auto rawModule = createModule(host.get());
-	auto module = make_unique<Filter>(name.c_str(), move(host), rawModule, this, threading, statsMem.get());
-	auto ret = module.get();
+	auto pHost = host.get();
+	auto module = make_unique<Filter>(name.c_str(), move(host), this, threading, statsMem.get());
+	module->setDelegate(createModule(pHost));
+	auto pModule = module.get();
 	modules.push_back(std::move(module));
-	graph->nodes.push_back(Graph::Node{ret, name});
-	return ret;
+	graph->nodes.push_back(Graph::Node{pModule, name});
+	return pModule;
 }
 
 IFilter * Pipeline::add(char const* type, ...) {

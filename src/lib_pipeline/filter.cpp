@@ -16,17 +16,19 @@ std::unique_ptr<IExecutor> createExecutor(Pipelines::Threading threading, const 
 
 Filter::Filter(const char* name,
     std::unique_ptr<Modules::KHost> host,
-    std::shared_ptr<IModule> module,
     IPipelineNotifier *notify,
     Pipelines::Threading threading,
     IStatsRegistry *statsRegistry)
 	: m_host(std::move(host)),
 	  m_name(name),
-	  delegate(std::move(module)),
 	  executor(createExecutor(threading, name)),
 	  m_notify(notify),
 	  eosCount(0),
 	  statsRegistry(statsRegistry) {
+}
+
+void Filter::setDelegate(std::shared_ptr<IModule> module) {
+	delegate = module;
 }
 
 int Filter::getNumInputs() const {

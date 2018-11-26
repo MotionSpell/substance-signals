@@ -16,10 +16,11 @@ class Filter :
 	public:
 		Filter(const char* name,
 		    std::unique_ptr<KHost> host,
-		    std::shared_ptr<IModule> module,
 		    IPipelineNotifier *notify,
 		    Pipelines::Threading threading,
 		    IStatsRegistry *statsRegistry);
+
+		void setDelegate(std::shared_ptr<IModule> module);
 
 		void connect(IOutput *output, int inputIdx, bool inputAcceptMultipleConnections);
 		void disconnect(int inputIdx, IOutput* output);
