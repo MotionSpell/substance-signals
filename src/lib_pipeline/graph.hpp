@@ -7,11 +7,9 @@
 
 namespace Pipelines {
 
-struct IFilter;
-
 struct Graph {
 	struct Node {
-		typedef IFilter* NodeId;
+		typedef void* NodeId;
 		NodeId id;
 		std::string caption;
 	};
@@ -23,7 +21,7 @@ struct Graph {
 		int dstPort;
 	};
 
-	Node& nodeFromId(Node::NodeId &id) {
+	Node& nodeFromId(Node::NodeId id) {
 		auto i_node = std::find_if(nodes.begin(), nodes.end(), [id](Pipelines::Graph::Node const& n) {
 			return n.id == id;
 		});
