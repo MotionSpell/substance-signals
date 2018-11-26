@@ -26,7 +26,7 @@ class Filter :
 		int getNumOutputs() const override;
 		IInput* getInput(int i);
 		IOutput* getOutput(int i);
-		Metadata  getOutputMetadata(int i) override;
+		Metadata getOutputMetadata(int i) override;
 
 		/* source modules are stopped manually - then the message propagates to other connected modules */
 		bool isSource();
