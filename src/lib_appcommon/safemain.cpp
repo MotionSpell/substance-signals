@@ -2,10 +2,6 @@
 #include <csignal>
 #include <iostream> // cerr
 
-#ifdef _MSC_VER
-#include <Windows.h>
-#endif
-
 // user-provided
 extern void safeMain(int argc, const char* argv[]);
 extern void safeStop();
@@ -28,6 +24,7 @@ void onInterruption() {
 }
 
 #ifdef _MSC_VER
+#include <Windows.h>
 static BOOL WINAPI signalHandler(_In_ DWORD dwCtrlType) {
 	switch (dwCtrlType) {
 	case CTRL_C_EVENT:
@@ -41,6 +38,11 @@ static BOOL WINAPI signalHandler(_In_ DWORD dwCtrlType) {
 		return FALSE;
 	}
 }
+
+static void installSignalHandler() {
+	SetConsoleCtrlHandler(signalHandler, TRUE);
+}
+
 #else
 static void sigTermHandler(int sig) {
 	switch (sig) {
@@ -53,6 +55,12 @@ static void sigTermHandler(int sig) {
 		break;
 	}
 }
+
+static void installSignalHandler() {
+	std::signal(SIGINT, sigTermHandler);
+	std::signal(SIGTERM, sigTermHandler);
+}
+
 #endif
 
 }
@@ -61,13 +69,8 @@ int main(int argc, char const* argv[]) {
 	try {
 		Tools::Profiler profilerGlobal(g_appName);
 		std::cout << "BUILD:     " << g_appName << "-" << g_version << std::endl;
-#ifdef _MSC_VER
-		SetConsoleCtrlHandler(signalHandler, TRUE);
-#else
-		std::signal(SIGINT, sigTermHandler);
-		std::signal(SIGTERM, sigTermHandler);
-#endif
 
+		installSignalHandler();
 		safeMain(argc, argv);
 
 		return 0;
