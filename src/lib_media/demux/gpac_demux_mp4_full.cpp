@@ -1,5 +1,6 @@
 #include "gpac_demux_mp4_full.hpp"
 #include "lib_utils/log_sink.hpp"
+#include "lib_utils/format.hpp"
 #include <string>
 #include "../common/gpacpp.hpp"
 #include "../common/metadata.hpp"

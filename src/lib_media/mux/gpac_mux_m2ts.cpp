@@ -5,6 +5,7 @@
 #include "lib_modules/utils/helper_dyn.hpp"
 #include "lib_modules/utils/factory.hpp"
 #include "lib_utils/log_sink.hpp" // Debug
+#include "lib_utils/format.hpp"
 #include <cassert>
 #include <vector>
 
