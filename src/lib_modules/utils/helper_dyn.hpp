@@ -1,7 +1,6 @@
 #pragma once
 
 #include "helper.hpp"
-#include "helper_input.hpp"
 
 namespace Modules {
 
@@ -11,10 +10,8 @@ class ModuleDynI : public Module {
 		ModuleDynI() = default;
 		virtual ~ModuleDynI() {}
 
-		KInput* addInput(IProcessor* p) { //takes ownership
-			inputs.push_back(make_unique<Input>(p));
-			return inputs.back().get();
-		}
+		KInput* addInput(IProcessor* p);
+
 		int getNumInputs() const override {
 			if (inputs.size() == 0)
 				return 1;
