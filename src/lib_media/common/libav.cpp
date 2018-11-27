@@ -11,6 +11,7 @@
 
 extern "C" {
 #include <libavformat/avformat.h>
+#include <libavutil/pixdesc.h> // av_get_pix_fmt_name
 }
 
 namespace Modules {
@@ -224,7 +225,7 @@ PixelFormat libavPixFmt2PixelFormat(AVPixelFormat avPixfmt) {
 	case AV_PIX_FMT_P010LE: return PixelFormat::NV12P010LE;
 	case AV_PIX_FMT_RGB24: return PixelFormat::RGB24;
 	case AV_PIX_FMT_RGBA: return PixelFormat::RGBA32;
-	default: throw std::runtime_error("Unknown pixel format to convert (2). Please contact your vendor.");
+	default: throw std::runtime_error("Unsupported pixel format '" + std::string(av_get_pix_fmt_name(avPixfmt)) + "'. Please contact your vendor.");
 	}
 }
 
