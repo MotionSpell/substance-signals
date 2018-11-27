@@ -35,7 +35,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 				MuxConfig muxCfg = {format("%s%s", hlsDir, cfg->baseName), "hls", cfg->options};
 				delegate = loadModule("LibavMux", m_host, &muxCfg);
 			}
-			addInput(new Input(this));
+			addInput(this);
 			outputSegment  = addOutput<OutputDataDefault<DataRaw>>();
 			outputManifest = addOutput<OutputDataDefault<DataRaw>>();
 		}
