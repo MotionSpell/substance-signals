@@ -133,7 +133,7 @@ class OutputCap : public virtual IOutputCap {
 
 class Module : public IModule, public ErrorCap {
 	public:
-		IInput* addInput(IProcessor* p) {
+		KInput* addInput(IProcessor* p) {
 			inputs.push_back(std::make_unique<Input>(p));
 			return inputs.back().get();
 		}

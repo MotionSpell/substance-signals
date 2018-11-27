@@ -21,6 +21,7 @@ struct KInput {
 	virtual ~KInput() = default;
 	virtual Data pop() = 0;
 	virtual bool tryPop(Data &value) = 0;
+	virtual void setMetadata(std::shared_ptr<const IMetadata> metadata) = 0;
 };
 
 struct KOutput {
@@ -68,7 +69,6 @@ struct IInput : IProcessor, KInput {
 	virtual void push(Data) = 0;
 
 	virtual std::shared_ptr<const IMetadata> getMetadata() const = 0;
-	virtual void setMetadata(std::shared_ptr<const IMetadata> metadata) = 0;
 	virtual bool updateMetadata(Data&) = 0;
 };
 

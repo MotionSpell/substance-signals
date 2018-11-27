@@ -40,7 +40,7 @@ class FakeInput : public Module {
 		}
 
 	private:
-		IInput *input;
+		KInput *input;
 };
 }
 
