@@ -10,9 +10,9 @@ class ModuleDynI : public Module {
 		ModuleDynI() = default;
 		virtual ~ModuleDynI() {}
 
-		IInput* addInput(IInput *p) { //takes ownership
-			inputs.push_back(uptr(p));
-			return p;
+		KInput* addInput(IProcessor* p) { //takes ownership
+			inputs.push_back(make_unique<Input>(p));
+			return inputs.back().get();
 		}
 		int getNumInputs() const override {
 			if (inputs.size() == 0)
@@ -24,7 +24,7 @@ class ModuleDynI : public Module {
 		}
 		IInput* getInput(int i) override {
 			if (i == (int)inputs.size())
-				addInput(new Input(this));
+				addInput(this);
 			else if (i > (int)inputs.size())
 				throw std::runtime_error("Incorrect port number " + std::to_string(i) + " for dynamic input.");
 

@@ -170,7 +170,7 @@ void GPACMuxMPEG2TS::declareStream(Data data) {
 
 	auto const metadata_ = data->getMetadata();
 	if (auto metadata = std::dynamic_pointer_cast<const MetadataPktVideo>(metadata_)) {
-		addInput(new Input(this));
+		addInput(this);
 
 		ifce->caps = GF_ESI_SIGNAL_DTS;
 		ifce->stream_id = 1;
