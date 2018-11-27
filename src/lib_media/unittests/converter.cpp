@@ -7,6 +7,7 @@
 #include "lib_utils/tools.hpp"
 #include "lib_utils/log.hpp"
 #include "lib_utils/format.hpp"
+#include <cassert>
 
 using namespace Tests;
 using namespace Modules;

@@ -9,6 +9,7 @@
 #include "lib_media/transform/avcc2annexb.hpp"
 #include "lib_utils/tools.hpp"
 #include "modules_common.hpp"
+#include <cassert>
 
 using namespace std;
 using namespace Tests;

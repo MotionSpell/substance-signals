@@ -2,6 +2,8 @@
 // corresponding to one single PID.
 #pragma once
 
+#include <cassert>
+
 struct Stream {
 	Stream(int pid_, KHost* host) : pid(pid_), m_host(host) {}
 	virtual ~Stream() = default;

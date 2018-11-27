@@ -3,6 +3,7 @@
 #include "lib_utils/log_sink.hpp"
 #include "lib_utils/format.hpp"
 #include "../common/pcm.hpp"
+#include <cassert>
 
 static auto const analyzeWindowIn180k = IClock::Rate / 2; // 500 ms
 

@@ -9,6 +9,7 @@
 #include "lib_media/common/metadata.hpp"
 
 #include <algorithm> // sort
+#include <cassert>
 
 using namespace std;
 using namespace Tests;

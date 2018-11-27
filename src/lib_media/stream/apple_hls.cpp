@@ -3,6 +3,7 @@
 #include <sstream>
 #include <vector>
 #include <sstream>
+#include <cassert>
 
 namespace Modules {
 namespace Stream {

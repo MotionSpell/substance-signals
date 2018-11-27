@@ -3,6 +3,7 @@
 #include "lib_utils/format.hpp"
 
 #include <stdexcept>
+#include <cassert>
 
 namespace Modules {
 

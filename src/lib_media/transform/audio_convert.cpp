@@ -8,6 +8,8 @@
 #include "../common/libav.hpp"
 #include "../common/pcm.hpp"
 
+#include <cassert>
+
 extern "C" {
 #include <libswresample/swresample.h>
 }

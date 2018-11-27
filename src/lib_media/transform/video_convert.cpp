@@ -5,6 +5,8 @@
 #include "../common/ffpp.hpp"
 #include "../common/libav.hpp"
 
+#include <cassert>
+
 extern "C" {
 #include <libswscale/swscale.h>
 }

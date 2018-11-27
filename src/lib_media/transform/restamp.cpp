@@ -3,6 +3,8 @@
 #include "lib_utils/log_sink.hpp" // Info
 #include "lib_utils/format.hpp"
 
+#include <cassert>
+
 namespace Modules {
 namespace Transform {
 

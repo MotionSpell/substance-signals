@@ -4,6 +4,7 @@
 #include <functional>
 #include <stdexcept>
 #include <thread>
+#include <cassert>
 
 class ThreadPool {
 	public:

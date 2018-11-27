@@ -2,6 +2,7 @@
 #include "lib_utils/system_clock.hpp"
 #include "lib_utils/os.hpp"
 #include "config.hpp"
+#include <cassert>
 
 // modules
 #include "lib_media/common/metadata.hpp"

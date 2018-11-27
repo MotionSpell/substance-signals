@@ -1,6 +1,7 @@
 #include "lib_utils/tools.hpp"
 #include "sound_generator.hpp"
 #include <cmath>
+#include <cassert>
 
 #ifndef M_PI //Cygwin does not have maths.h extensions
 #define M_PI 3.14159265358979323846
