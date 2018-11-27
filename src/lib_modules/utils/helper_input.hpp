@@ -1,5 +1,6 @@
-namespace Modules {
+#include "lib_utils/queue.hpp"
 
+namespace Modules {
 
 class Input : public IInput {
 	public:

@@ -9,7 +9,6 @@
 #include "../core/database.hpp" // Data, Metadata, DataLoose
 #include "lib_signals/helper.hpp"
 #include "lib_signals/signals.hpp" // Signals::Signal
-#include "lib_utils/queue.hpp"
 #include "lib_utils/tools.hpp" // uptr
 #include <memory>
 
