@@ -3,7 +3,6 @@
 #include <atomic>
 #include <cassert>
 #include <condition_variable>
-#include <cstdlib> // malloc, free
 #include <mutex>
 #include <queue>
 
@@ -63,7 +62,7 @@ struct QueueLockFree {
 		// isFull() will return true after size-1 insertions.
 		explicit QueueLockFree(uint32_t size)
 			: size_(size)
-			, records_(static_cast<T*>(std::malloc(sizeof(T) * size)))
+			, records_(reinterpret_cast<T*>(new uint8_t[sizeof(T) * size]))
 			, readIndex_(0)
 			, writeIndex_(0) {
 			assert(size >= 2);
@@ -85,7 +84,7 @@ struct QueueLockFree {
 				}
 			}
 
-			std::free(records_);
+			delete [] (uint8_t*)records_;
 		}
 
 		template<class ...Args>
