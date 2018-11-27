@@ -3,8 +3,6 @@
 #include "lib_media/in/MulticastInput/multicast_input.hpp"
 #include "lib_media/out/file.hpp"
 #include "lib_media/out/null.hpp"
-#include <chrono>
-#include <thread>
 
 using namespace std;
 using namespace Modules;
