@@ -32,7 +32,7 @@ class MetadataCap : public virtual IMetadataCap {
 		Metadata m_metadata;
 };
 
-class Input : public IInput, public MetadataCap {
+class Input : public IInput {
 	public:
 		Input(IProcessor * const processor) : processor(processor) {}
 
@@ -60,6 +60,16 @@ class Input : public IInput, public MetadataCap {
 			return queue.tryPop(data);
 		}
 
+		Metadata getMetadata() const override {
+			return m_metadataCap.getMetadata();
+		}
+		void setMetadata(Metadata metadata) override {
+			m_metadataCap.setMetadata(metadata);
+		}
+		bool updateMetadata(Data &data) override {
+			return m_metadataCap.updateMetadata(data);
+		}
+
 		void clear() {
 			return queue.clear();
 		}
@@ -69,6 +79,9 @@ class Input : public IInput, public MetadataCap {
 		}
 
 	private:
+		bool setMetadataInternal(Metadata metadata);
+
+		MetadataCap m_metadataCap;
 		IProcessor * const processor;
 		Queue<Data> queue;
 		int connections = 0;

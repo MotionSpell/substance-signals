@@ -11,7 +11,7 @@ namespace Pipelines {
 /* Wrapper around the module's inputs.
    Data is queued in the calling thread, then always dispatched by the executor
    Data is nullptr at completion. */
-class FilterInput : public IInput, public MetadataCap {
+class FilterInput : public IInput {
 	public:
 		FilterInput(IInput *input, const std::string &moduleName, IExecutor* executor, StatsEntry *statsEntry, IPipelineNotifier * const notify)
 			: delegate(input), delegateName(moduleName), notify(notify), executor(executor), statsEntry(statsEntry) {
@@ -57,6 +57,16 @@ class FilterInput : public IInput, public MetadataCap {
 			delegate->disconnect();
 		}
 
+		Metadata getMetadata() const override {
+			return m_metadataCap.getMetadata();
+		}
+		void setMetadata(Metadata metadata) override {
+			m_metadataCap.setMetadata(metadata);
+		}
+		bool updateMetadata(Data &data) override {
+			return m_metadataCap.updateMetadata(data);
+		}
+
 	private:
 		Queue<Data> queue;
 		IInput *delegate;
@@ -65,6 +75,7 @@ class FilterInput : public IInput, public MetadataCap {
 		IExecutor * const executor;
 		decltype(StatsEntry::value) samplingCounter = 0;
 		StatsEntry * const statsEntry;
+		MetadataCap m_metadataCap;
 };
 
 }

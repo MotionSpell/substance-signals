@@ -10,6 +10,9 @@
 #include "buffer.hpp"
 #include "metadata.hpp"
 
+// FIXME: remove this, only needed for metadata
+#include <memory>
+
 namespace Modules {
 
 // This is how user modules see the outside world.
@@ -55,7 +58,7 @@ struct IProcessor {
 	virtual void process() = 0;
 };
 
-struct IInput : IProcessor, virtual IMetadataCap, KInput {
+struct IInput : IProcessor, KInput {
 	virtual ~IInput() = default;
 
 	virtual int isConnected() const = 0;
@@ -63,6 +66,10 @@ struct IInput : IProcessor, virtual IMetadataCap, KInput {
 	virtual void disconnect() = 0;
 
 	virtual void push(Data) = 0;
+
+	virtual std::shared_ptr<const IMetadata> getMetadata() const = 0;
+	virtual void setMetadata(std::shared_ptr<const IMetadata> metadata) = 0;
+	virtual bool updateMetadata(Data&) = 0;
 };
 
 struct IOutput : virtual IMetadataCap, KOutput {
