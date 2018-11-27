@@ -1,6 +1,7 @@
 #pragma once
 
 #include "helper.hpp"
+#include "helper_input.hpp"
 
 namespace Modules {
 

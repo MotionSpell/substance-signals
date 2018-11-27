@@ -32,61 +32,6 @@ class MetadataCap : public virtual IMetadataCap {
 		Metadata m_metadata;
 };
 
-class Input : public IInput {
-	public:
-		Input(IProcessor * const processor) : processor(processor) {}
-
-		virtual int isConnected() const override {
-			return connections > 0;
-		}
-
-		virtual void connect() override {
-			connections++;
-		}
-
-		virtual void disconnect() override {
-			connections--;
-		}
-
-		void push(Data data) override {
-			queue.push(data);
-		}
-
-		Data pop() override {
-			return queue.pop();
-		}
-
-		bool tryPop(Data& data) override {
-			return queue.tryPop(data);
-		}
-
-		Metadata getMetadata() const override {
-			return m_metadataCap.getMetadata();
-		}
-		void setMetadata(Metadata metadata) override {
-			m_metadataCap.setMetadata(metadata);
-		}
-		bool updateMetadata(Data &data) override {
-			return m_metadataCap.updateMetadata(data);
-		}
-
-		void clear() {
-			return queue.clear();
-		}
-
-		void process() override {
-			processor->process();
-		}
-
-	private:
-		bool setMetadataInternal(Metadata metadata);
-
-		MetadataCap m_metadataCap;
-		IProcessor * const processor;
-		Queue<Data> queue;
-		int connections = 0;
-};
-
 static Signals::ExecutorSync g_executorOutputSync;
 
 template<typename DataType>
@@ -133,10 +78,7 @@ class OutputCap : public virtual IOutputCap {
 
 class Module : public IModule, public ErrorCap {
 	public:
-		KInput* addInput(IProcessor* p) {
-			inputs.push_back(std::make_unique<Input>(p));
-			return inputs.back().get();
-		}
+		KInput* addInput(IProcessor* p);
 		int getNumInputs() const override {
 			return (int)inputs.size();
 		}

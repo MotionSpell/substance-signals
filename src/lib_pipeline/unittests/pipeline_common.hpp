@@ -1,6 +1,7 @@
 #pragma once
 
 #include <lib_modules/utils/helper.hpp>
+#include <lib_modules/utils/helper_input.hpp> // Modules::Input
 #include <thread>
 #include <condition_variable>
 #include <mutex>

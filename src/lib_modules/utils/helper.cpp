@@ -1,8 +1,14 @@
 #include "helper.hpp"
+#include "helper_input.hpp"
 #include "lib_utils/log.hpp"
 #include "lib_utils/format.hpp"
 
 namespace Modules {
+
+KInput* Module::addInput(IProcessor* p) {
+	inputs.push_back(std::make_unique<Input>(p));
+	return inputs.back().get();
+}
 
 MetadataCap::MetadataCap(Metadata metadata) : m_metadata(metadata) {
 }
