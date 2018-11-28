@@ -18,7 +18,6 @@ LIB_MEDIA_SRCS:=\
   $(MYDIR)/out/print.cpp\
   $(MYDIR)/stream/apple_hls.cpp\
   $(MYDIR)/stream/hls_muxer_libav.cpp\
-  $(MYDIR)/stream/mpeg_dash.cpp\
   $(MYDIR)/stream/ms_hss.cpp\
   $(MYDIR)/stream/adaptive_streaming_common.cpp\
   $(MYDIR)/transform/avcc2annexb.cpp\
@@ -142,6 +141,13 @@ $(BIN)/GPACMuxMP4MSS.smd: \
   $(BIN)/$(SRC)/lib_media/mux/gpac_mux_mp4.cpp.o\
   $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
 
+#------------------------------------------------------------------------------
+TARGETS+=$(BIN)/MPEG_DASH.smd
+$(BIN)/MPEG_DASH.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
+$(BIN)/MPEG_DASH.smd: CFLAGS+=$(MEDIA_CFLAGS)
+$(BIN)/MPEG_DASH.smd: \
+  $(BIN)/$(SRC)/lib_media/stream/mpeg_dash.cpp.o\
+  $(BIN)/$(SRC)/lib_media/stream/adaptive_streaming_common.cpp.o\
 #------------------------------------------------------------------------------
 TARGETS+=$(BIN)/FileSystemSink.smd
 $(BIN)/FileSystemSink.smd: \
