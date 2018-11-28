@@ -291,10 +291,6 @@ unittest("remux test: canonical to H.264 Annex B bitstream converter") {
 	ASSERT_EQUALS(expected, actual);
 }
 
-extern "C" {
-#include <libavcodec/avcodec.h> // AVCodecContext
-}
-
 unittest("GPAC mp4 mux: don't create empty fragments") {
 	struct Recorder : ModuleS {
 		Recorder() {
@@ -323,12 +319,11 @@ unittest("GPAC mp4 mux: don't create empty fragments") {
 			0xaf, 0xfd, 0x0f, 0xdf,
 		};
 
-		auto ctx = make_shared<AVCodecContext>();
-		ctx->time_base = {1, 1};
-		ctx->framerate = {1, 1};
-		ctx->codec_id = AV_CODEC_ID_H264;
+		static const auto meta = make_shared<MetadataPktVideo>();
+		meta->timeScale = {1, 1};
+		meta->framerate = {1, 1};
+		meta->codec = "h264";
 		auto accessUnit = make_shared<DataAVPacket>(sizeof h264_gray_frame);
-		static const auto meta = createMetadataPktLibavVideo(ctx.get());
 		accessUnit->setMetadata(meta);
 		accessUnit->set(CueFlags{});
 		memcpy(accessUnit->data().ptr, h264_gray_frame, sizeof h264_gray_frame);
