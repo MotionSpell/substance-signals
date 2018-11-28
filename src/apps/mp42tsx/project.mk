@@ -1,6 +1,6 @@
 MYDIR=$(call get-my-dir)
 OUTDIR:=$(BIN)/$(MYDIR)
-TARGET:=$(OUTDIR)/$(notdir $(MYDIR)).exe
+TARGET:=$(BIN)/mp42tsx.exe
 TARGETS+=$(TARGET)
 EXE_MP42TSX_SRCS:=\
   $(LIB_MEDIA_SRCS)\
