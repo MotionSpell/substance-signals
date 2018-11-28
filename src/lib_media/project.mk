@@ -41,7 +41,7 @@ endif
 
 $(BIN)/media-config.mk: $(SRC)/../scripts/configure
 	@mkdir -p $(BIN)
-	$(SRC)/../scripts/configure --scope MEDIA_ libswresample libavdevice libavformat libswscale libturbojpeg > "$@"
+	$(SRC)/../scripts/configure --scope MEDIA_ gpac libswresample libavdevice libavformat libswscale libturbojpeg > "$@"
 
 ifneq ($(MAKECMDGOALS),clean)
 include $(BIN)/media-config.mk
