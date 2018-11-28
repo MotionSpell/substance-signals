@@ -5,8 +5,6 @@ LIB_MEDIA_SRCS:=\
   $(MYDIR)/common/libav_init.cpp\
   $(MYDIR)/common/picture.cpp\
   $(MYDIR)/common/iso8601.cpp\
-  $(MYDIR)/demux/gpac_demux_mp4_simple.cpp\
-  $(MYDIR)/demux/gpac_demux_mp4_full.cpp\
   $(MYDIR)/demux/dash_demux.cpp\
   $(MYDIR)/in/file.cpp\
   $(MYDIR)/in/mpeg_dash_input.cpp\
@@ -148,6 +146,21 @@ $(BIN)/MPEG_DASH.smd: CFLAGS+=$(MEDIA_CFLAGS)
 $(BIN)/MPEG_DASH.smd: \
   $(BIN)/$(SRC)/lib_media/stream/mpeg_dash.cpp.o\
   $(BIN)/$(SRC)/lib_media/stream/adaptive_streaming_common.cpp.o\
+
+#------------------------------------------------------------------------------
+TARGETS+=$(BIN)/GPACDemuxMP4Simple.smd
+$(BIN)/GPACDemuxMP4Simple.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
+$(BIN)/GPACDemuxMP4Simple.smd: CFLAGS+=$(MEDIA_CFLAGS)
+$(BIN)/GPACDemuxMP4Simple.smd: \
+  $(BIN)/$(SRC)/lib_media/demux/gpac_demux_mp4_simple.cpp.o\
+
+#------------------------------------------------------------------------------
+TARGETS+=$(BIN)/GPACDemuxMP4Full.smd
+$(BIN)/GPACDemuxMP4Full.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
+$(BIN)/GPACDemuxMP4Full.smd: CFLAGS+=$(MEDIA_CFLAGS)
+$(BIN)/GPACDemuxMP4Full.smd: \
+  $(BIN)/$(SRC)/lib_media/demux/gpac_demux_mp4_full.cpp.o\
+
 #------------------------------------------------------------------------------
 TARGETS+=$(BIN)/FileSystemSink.smd
 $(BIN)/FileSystemSink.smd: \
