@@ -6,7 +6,7 @@
 #include "../core/module.hpp"
 #include "../core/allocator.hpp"
 #include "../core/error.hpp"
-#include "../core/database.hpp" // Data, Metadata, DataLoose
+#include "../core/database.hpp" // Data, Metadata
 #include "lib_signals/helper.hpp"
 #include "lib_signals/signals.hpp" // Signals::Signal
 #include "lib_utils/tools.hpp" // uptr
