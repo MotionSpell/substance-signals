@@ -133,14 +133,6 @@ $(BIN)/FileSystemSink.smd: \
   $(BIN)/$(SRC)/lib_media/out/filesystem.cpp.o\
 
 #------------------------------------------------------------------------------
-TARGETS+=$(BIN)/GpacMuxM2ts.smd
-$(BIN)/GpacMuxM2ts.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
-$(BIN)/GpacMuxM2ts.smd: CFLAGS+=$(MEDIA_CFLAGS)
-$(BIN)/GpacMuxM2ts.smd: \
-  $(BIN)/$(SRC)/lib_media/mux/gpac_mux_m2ts.cpp.o\
-  $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
-
-#------------------------------------------------------------------------------
 include $(SRC)/lib_media/in/MulticastInput/project.mk
 include $(SRC)/lib_media/demux/TsDemuxer/project.mk
 
