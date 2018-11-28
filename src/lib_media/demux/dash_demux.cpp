@@ -1,6 +1,5 @@
 // holds the chain: [dash downloader] => ( [mp4demuxer] => [restamper] )*
 #include "lib_media/demux/dash_demux.hpp"
-#include "lib_media/demux/gpac_demux_mp4_full.hpp"
 #include "lib_media/in/mpeg_dash_input.hpp"
 #include "lib_media/out/null.hpp"
 #include "lib_media/transform/restamp.hpp"
@@ -42,7 +41,7 @@ void DashDemuxer::addStream(Pipelines::IFilter* downloadOutput, int outputPort) 
 	output->setMetadata(downloadOutput->getOutputMetadata(outputPort));
 
 	// add MP4 demuxer
-	auto decap = pipeline->addModule<GPACDemuxMP4Full>();
+	auto decap = pipeline->add("GPACDemuxMP4Full");
 	pipeline->connect(GetOutputPin(downloadOutput, outputPort), decap);
 
 	// add restamper (so the timestamps start at zero)

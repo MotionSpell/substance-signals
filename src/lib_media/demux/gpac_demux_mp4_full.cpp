@@ -1,12 +1,14 @@
-#include "gpac_demux_mp4_full.hpp"
 #include "lib_utils/log_sink.hpp"
 #include "lib_utils/format.hpp"
+#include "lib_modules/utils/helper.hpp"
+#include "lib_modules/utils/factory.hpp"
 #include <string>
 #include "../common/gpacpp.hpp"
 #include "../common/metadata.hpp"
 
+using namespace Modules;
+
 namespace Modules {
-namespace Demux {
 
 const int FIRST_TRACK = 1;
 
@@ -33,6 +35,24 @@ struct ISOProgressiveReader {
 	// Boolean state to indicate if the needs to be parsed
 	u32 sampleIndex = 1; // samples are numbered starting from 1
 	u32 sampleCount = 0;
+};
+
+class GPACDemuxMP4Full : public ModuleS {
+	public:
+		GPACDemuxMP4Full(KHost* host);
+		~GPACDemuxMP4Full();
+		void process(Data data) override;
+
+	private:
+		bool openData();
+		void updateData();
+		bool processSample();
+		bool safeProcessSample();
+
+		KHost* const m_host;
+
+		std::unique_ptr<ISOProgressiveReader> reader;
+		OutputDefault* output;
 };
 
 GPACDemuxMP4Full::GPACDemuxMP4Full(KHost* host)
@@ -174,4 +194,13 @@ void GPACDemuxMP4Full::process(Data data) {
 }
 
 }
+
+namespace {
+Modules::IModule* createObject(KHost* host, va_list va) {
+	(void)va;
+	enforce(host, "GPACDemuxMP4Full: host can't be NULL");
+	return Modules::create<GPACDemuxMP4Full>(host).release();
+}
+
+auto const registered = Factory::registerModule("GPACDemuxMP4Full", &createObject);
 }
