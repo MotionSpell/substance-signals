@@ -1,4 +1,4 @@
-#include "gpac_mux_mp4_mss.hpp"
+#include "gpac_mux_mp4.hpp"
 #include "lib_modules/utils/factory.hpp"
 #include <sstream>
 
@@ -6,8 +6,25 @@ extern "C" {
 #include <gpac/isomedia.h>
 }
 
-namespace Modules {
-namespace Mux {
+using namespace Modules;
+using namespace Mux;
+
+namespace {
+
+class GPACMuxMP4MSS : public GPACMuxMP4 {
+	public:
+		GPACMuxMP4MSS(KHost* host, Mp4MuxConfigMss& cfg);
+
+	private:
+		void declareStreamVideo(const MetadataPktVideo* metadata) final;
+		void declareStreamAudio(const MetadataPktAudio* metadata) final;
+		void declareStreamSubtitle(const MetadataPktSubtitle* metadata) final;
+		void startSegmentPostAction() final;
+
+		std::string writeISMLManifest(std::string codec4CC, std::string codecPrivate, int64_t bitrate, int width, int height, uint32_t sampleRate, uint32_t channels, uint16_t bitsPerSample);
+		std::string ISMLManifest;
+		const std::string audioLang, audioName;
+};
 
 GPACMuxMP4MSS::GPACMuxMP4MSS(KHost* host, Mp4MuxConfigMss& cfg)
 	: GPACMuxMP4(host,
@@ -117,17 +134,14 @@ std::string GPACMuxMP4MSS::writeISMLManifest(std::string codec4CC, std::string c
 }
 
 }
-}
 
 namespace {
-
-using namespace Modules;
 
 Modules::IModule* createObject(KHost* host, va_list va) {
 	auto config = va_arg(va, Mp4MuxConfigMss*);
 	enforce(host, "GPACMuxMP4MSS: host can't be NULL");
 	enforce(config, "GPACMuxMP4MSS: config can't be NULL");
-	return Modules::create<Mux::GPACMuxMP4MSS>(host, *config).release();
+	return Modules::create<GPACMuxMP4MSS>(host, *config).release();
 }
 
 auto const registered = Factory::registerModule("GPACMuxMP4MSS", &createObject);
