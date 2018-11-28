@@ -12,8 +12,6 @@ LIB_MEDIA_SRCS:=\
   $(MYDIR)/in/mpeg_dash_input.cpp\
   $(MYDIR)/in/sound_generator.cpp\
   $(MYDIR)/in/video_generator.cpp\
-  $(MYDIR)/mux/gpac_mux_mp4.cpp\
-  $(MYDIR)/mux/gpac_mux_mp4_mss.cpp\
   $(MYDIR)/out/file.cpp\
   $(MYDIR)/out/http.cpp\
   $(MYDIR)/out/null.cpp\
@@ -125,6 +123,23 @@ $(BIN)/LibavFilter.smd: CFLAGS+=$(MEDIA_CFLAGS)
 $(BIN)/LibavFilter.smd: \
   $(BIN)/$(SRC)/lib_media/transform/libavfilter.cpp.o\
   $(BIN)/$(SRC)/lib_media/common/picture.cpp.o\
+  $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
+
+#------------------------------------------------------------------------------
+TARGETS+=$(BIN)/GPACMuxMP4.smd
+$(BIN)/GPACMuxMP4.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
+$(BIN)/GPACMuxMP4.smd: CFLAGS+=$(MEDIA_CFLAGS)
+$(BIN)/GPACMuxMP4.smd: \
+  $(BIN)/$(SRC)/lib_media/mux/gpac_mux_mp4.cpp.o\
+  $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
+
+#------------------------------------------------------------------------------
+TARGETS+=$(BIN)/GPACMuxMP4MSS.smd
+$(BIN)/GPACMuxMP4MSS.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
+$(BIN)/GPACMuxMP4MSS.smd: CFLAGS+=$(MEDIA_CFLAGS)
+$(BIN)/GPACMuxMP4MSS.smd: \
+  $(BIN)/$(SRC)/lib_media/mux/gpac_mux_mp4_mss.cpp.o\
+  $(BIN)/$(SRC)/lib_media/mux/gpac_mux_mp4.cpp.o\
   $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
 
 #------------------------------------------------------------------------------

@@ -1,4 +1,5 @@
 #include "gpac_mux_mp4_mss.hpp"
+#include "lib_modules/utils/factory.hpp"
 #include <sstream>
 
 extern "C" {
@@ -116,4 +117,18 @@ std::string GPACMuxMP4MSS::writeISMLManifest(std::string codec4CC, std::string c
 }
 
 }
+}
+
+namespace {
+
+using namespace Modules;
+
+Modules::IModule* createObject(KHost* host, va_list va) {
+	auto config = va_arg(va, Mp4MuxConfigMss*);
+	enforce(host, "GPACMuxMP4MSS: host can't be NULL");
+	enforce(config, "GPACMuxMP4MSS: config can't be NULL");
+	return Modules::create<Mux::GPACMuxMP4MSS>(host, *config).release();
+}
+
+auto const registered = Factory::registerModule("GPACMuxMP4MSS", &createObject);
 }
