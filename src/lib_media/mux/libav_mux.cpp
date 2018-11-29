@@ -105,17 +105,18 @@ class LibavMux : public ModuleDynI {
 
 			ensureHeader();
 
-			auto pkt = getFormattedPkt(data);
-			assert(pkt->pts != (int64_t)AV_NOPTS_VALUE);
+			AVPacket pkt;
+			fillAvPacket(data, &pkt);
+			assert(pkt.pts != (int64_t)AV_NOPTS_VALUE);
 			auto const pktTimescale = safe_cast<const MetadataPkt>(data->getMetadata())->timeScale;
 			const AVRational inputTimebase = { (int)pktTimescale.den, (int)pktTimescale.num };
 			auto const avStream = m_formatCtx->streams[inputIdx2AvStream[inputIdx]];
-			pkt->dts = av_rescale_q(pkt->dts, inputTimebase, avStream->time_base);
-			pkt->pts = av_rescale_q(pkt->pts, inputTimebase, avStream->time_base);
-			pkt->duration = (int64_t)av_rescale_q(pkt->duration, inputTimebase, avStream->time_base);
-			pkt->stream_index = avStream->index;
+			pkt.dts = av_rescale_q(pkt.dts, inputTimebase, avStream->time_base);
+			pkt.pts = av_rescale_q(pkt.pts, inputTimebase, avStream->time_base);
+			pkt.duration = (int64_t)av_rescale_q(pkt.duration, inputTimebase, avStream->time_base);
+			pkt.stream_index = avStream->index;
 
-			int ret = av_interleaved_write_frame(m_formatCtx, pkt.get());
+			int ret = av_interleaved_write_frame(m_formatCtx, &pkt);
 			if (ret) {
 				m_host->log(Warning, format("can't write frame: %s", avStrError(ret)).c_str());
 				return;
@@ -208,8 +209,7 @@ class LibavMux : public ModuleDynI {
 			}
 		}
 
-		shared_ptr<AVPacket> getFormattedPkt(Data data) {
-			auto newPkt = av_packet_alloc();
+		void fillAvPacket(Data data, AVPacket* newPkt) {
 			av_init_packet(newPkt);
 
 			auto meta = data->getMetadata().get();
@@ -226,12 +226,6 @@ class LibavMux : public ModuleDynI {
 			newPkt->size = (int)outSize;
 			newPkt->pts = data->getMediaTime();
 			newPkt->dts = data->get<DecodingTime>().time;
-
-			return shared_ptr<AVPacket>(newPkt, &my_av_packet_deleter);
-		}
-
-		static void my_av_packet_deleter(AVPacket* pkt) {
-			av_packet_free(&pkt);
 		}
 
 		void formatsList() {
