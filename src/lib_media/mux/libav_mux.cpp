@@ -9,7 +9,6 @@
 #include "../common/attributes.hpp"
 #include <cassert>
 #include <string>
-#include <sstream>
 
 extern "C" {
 #include <libavformat/avformat.h> // AVOutputFormat
@@ -37,24 +36,17 @@ class LibavMux : public ModuleDynI {
 			}
 			m_formatCtx->oformat = of;
 
-			std::string fileName = cfg.baseName;
-			std::stringstream formatExts(of->extensions ? of->extensions : ""); //get the first extension recommended by ffmpeg
-			std::string fileNameExt;
-			std::getline(formatExts, fileNameExt, ',');
-			if (fileName.find("://") == std::string::npos) {
-				fileName += "." + fileNameExt;
-			}
 			if (!(m_formatCtx->oformat->flags & AVFMT_NOFILE)) { /* open the output file, if needed */
-				if (avio_open2(&m_formatCtx->pb, fileName.c_str(), AVIO_FLAG_WRITE, nullptr, &optionsDict) < 0) {
+				if (avio_open2(&m_formatCtx->pb, cfg.path.c_str(), AVIO_FLAG_WRITE, nullptr, &optionsDict) < 0) {
 					avformat_free_context(m_formatCtx);
-					throw error(format("could not open %s, disable output.", cfg.baseName));
+					throw error(format("could not open '%s', disable output.", cfg.path));
 				}
 			}
 
-			m_formatCtx->url = av_strdup(fileName.c_str());
+			m_formatCtx->url = av_strdup(cfg.path.c_str());
 
 			av_dict_set(&m_formatCtx->metadata, "service_provider", "GPAC Licensing Signals", 0);
-			av_dump_format(m_formatCtx, 0, cfg.baseName.c_str(), 1);
+			av_dump_format(m_formatCtx, 0, cfg.path.c_str(), 1);
 
 			if (!cfg.format.compare(0, 6, "mpegts") || !cfg.format.compare(0, 3, "hls")) {
 				m_inbandMetadata = true;
