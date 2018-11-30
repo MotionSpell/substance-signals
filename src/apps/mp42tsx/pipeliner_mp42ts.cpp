@@ -18,6 +18,6 @@ void declarePipeline(Pipeline &pipeline, const mp42tsXOptions &opt) {
 	muxCfg.baseName = opt.output;
 	auto mux = pipeline.add("LibavMux", &muxCfg);
 	for (int i = 0; i < demux->getNumOutputs(); ++i) {
-		pipeline.connect(GetOutputPin(demux, i), mux);
+		pipeline.connect(GetOutputPin(demux, i), GetInputPin(mux, i));
 	}
 }
