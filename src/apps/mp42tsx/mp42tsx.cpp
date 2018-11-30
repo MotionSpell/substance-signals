@@ -5,14 +5,11 @@
 using namespace Pipelines;
 
 int safeMain(int argc, char const* argv[]) {
-	mp42tsXOptions opt = parseCommandLine(argc, argv);
-
-	Tools::Profiler profilerGlobal("MP42TS");
+	auto opt = parseCommandLine(argc, argv);
 
 	Pipeline pipeline(g_Log, opt.isLive);
 	declarePipeline(pipeline, opt);
 
-	Tools::Profiler profilerProcessing("MP42TS - processing time");
 	pipeline.start();
 	pipeline.waitForEndOfStream();
 
