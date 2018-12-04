@@ -5,7 +5,7 @@
 
 struct DemuxConfig {
 	typedef std::function<int(uint8_t* buf, int bufSize)> ReadFunc;
-	std::string url;
+	std::string url; // may be a file, a remote URL, or a webcam (set "webcam" to list the available devices)
 	bool loop = false;
 	std::string avformatCustom;
 	uint64_t seekTimeInMs = 0;
