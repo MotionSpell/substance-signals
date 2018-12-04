@@ -34,7 +34,7 @@ struct DashMpd {
 	vector<AdaptationSet> sets;
 };
 
-static DashMpd parseMpd(std::string text);
+static DashMpd parseMpd(span<const char> text);
 
 namespace Modules {
 namespace In {
@@ -73,7 +73,7 @@ MPEG_DASH_Input::MPEG_DASH_Input(KHost* host, std::unique_ptr<IFilePuller> sourc
 
 	//PARSE MPD
 	mpd = make_unique<DashMpd>();
-	*mpd = parseMpd(string(mpdAsText.begin(), mpdAsText.end()));
+	*mpd = parseMpd({(const char*)mpdAsText.data(), mpdAsText.size()});
 
 	//DECLARE OUTPUT PORTS
 	for(auto& set : mpd->sets) {
@@ -160,71 +160,40 @@ bool MPEG_DASH_Input::work() {
 ///////////////////////////////////////////////////////////////////////////////
 // nothing above this line should depend upon gpac
 
-extern "C" {
-#include <gpac/xml.h>
-}
+#include "../common/sax_xml_parser.hpp"
 
-DashMpd parseMpd(std::string text) {
-	GF_Err err;
+DashMpd parseMpd(span<const char> text) {
 
-	struct Context {
+	DashMpd r {};
+	DashMpd* mpd = &r;
 
-		DashMpd* mpd;
-
-		static
-		void onNodeStartCallback(void* user, const char* name, const char* namespace_, const GF_XMLAttribute *attributes, u32 nb_attributes) {
-			(void)namespace_;
-			auto pThis = (Context*)user;
-
-			map<string,string> attr;
-			for(int i=0; i < (int)nb_attributes; ++i) {
-				auto& attribute = attributes[i];
-				attr[attribute.name] = attribute.value;
-			}
-
-			pThis->onNodeStart(name, attr);
-		}
-
-		void onNodeStart(std::string name, map<string, string>& attr) {
-			if(name == "AdaptationSet") {
-				AdaptationSet set;
-				set.contentType = attr["contentType"];
-				mpd->sets.push_back(set);
-			} else if(name == "Period") {
-				if(!attr["duration"].empty())
-					mpd->periodDuration = parseIso8601Period(attr["duration"]);
-			} else if(name == "MPD") {
-				mpd->dynamic = attr["type"] == "dynamic";
-			} else if(name == "SegmentTemplate") {
-				auto& set = mpd->sets.back();
-				set.initialization = attr["initialization"];
-				set.media = attr["media"];
-				set.startNumber = atoi(attr["startNumber"].c_str());
-				set.duration = atoi(attr["duration"].c_str());
-				if(!attr["timescale"].empty())
-					set.timescale = atoi(attr["timescale"].c_str());
-			} else if(name == "Representation") {
-				auto& set = mpd->sets.back();
-				set.representationId = attr["id"];
-				set.codecs = attr["codecs"];
-				set.mimeType = attr["mimeType"];
-			}
+	auto onNodeStart = [mpd](std::string name, map<string, string>& attr) {
+		if(name == "AdaptationSet") {
+			AdaptationSet set;
+			set.contentType = attr["contentType"];
+			mpd->sets.push_back(set);
+		} else if(name == "Period") {
+			if(!attr["duration"].empty())
+				mpd->periodDuration = parseIso8601Period(attr["duration"]);
+		} else if(name == "MPD") {
+			mpd->dynamic = attr["type"] == "dynamic";
+		} else if(name == "SegmentTemplate") {
+			auto& set = mpd->sets.back();
+			set.initialization = attr["initialization"];
+			set.media = attr["media"];
+			set.startNumber = atoi(attr["startNumber"].c_str());
+			set.duration = atoi(attr["duration"].c_str());
+			if(!attr["timescale"].empty())
+				set.timescale = atoi(attr["timescale"].c_str());
+		} else if(name == "Representation") {
+			auto& set = mpd->sets.back();
+			set.representationId = attr["id"];
+			set.codecs = attr["codecs"];
+			set.mimeType = attr["mimeType"];
 		}
 	};
 
-	DashMpd r {};
-	Context ctx { &r };
-
-	auto parser = gf_xml_sax_new(&Context::onNodeStartCallback, nullptr, nullptr, &ctx);
-	enforce(parser, "XML parser creation failed");
-
-	err = gf_xml_sax_init(parser, nullptr);
-	enforce(!err, "XML parser init failed");
-
-	err = gf_xml_sax_parse(parser, text.c_str());
-	enforce(!err, "XML parsing failed");
-
-	gf_xml_sax_del(parser);
+	saxParse(text, onNodeStart);
 
 	return  r;
 }

@@ -27,7 +27,6 @@ LIB_MEDIA_SRCS:=\
   $(MYDIR)/utils/repeater.cpp
 
 PKGS+=\
-  gpac\
   libavcodec\
   libavfilter\
   libavutil\
