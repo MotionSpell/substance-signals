@@ -119,8 +119,32 @@ struct SyslogLogger : LogSink {
 };
 #endif
 
+struct CsvLogger : LogSink {
+	CsvLogger(const char* path) : m_fp(fopen(path, "w")) {
+		if(!m_fp)
+			throw std::runtime_error("Can't open '" + std::string(path) + "' for writing");
+	}
+	~CsvLogger() {
+		fclose(m_fp);
+	}
+	void log(Level level, const char* msg) override {
+		fprintf(m_fp, "%d, \"%s\", \"%s\"\n", level, getTime().c_str(), msg);
+	}
+	FILE* const m_fp;
+};
+
 static ConsoleLogger consoleLogger;
-LogSink* g_Log = &consoleLogger;
+
+static
+LogSink* getDefaultLogger() {
+	if(auto path = std::getenv("SIGNALS_LOGPATH")) {
+		static CsvLogger csvLogger(path);
+		return &csvLogger;
+	}
+	return &consoleLogger;
+}
+
+LogSink* g_Log = getDefaultLogger();
 
 void setGlobalSyslog(bool enable) {
 #ifndef _WIN32
