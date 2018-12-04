@@ -36,7 +36,7 @@ static std::string getTime() {
 	const std::time_t t = std::time(nullptr);
 	const std::tm tm = *std::gmtime(&t);
 	auto const size = strftime(szOut, 255, "%Y/%m/%d %H:%M:%S", &tm);
-	return format("[%s][%s] ", std::string(szOut, size), (double)g_SystemClock->now());
+	return format("[%s][%s]", std::string(szOut, size), (double)g_SystemClock->now());
 }
 
 struct ConsoleLogger : LogSink {
@@ -99,7 +99,7 @@ struct ConsoleLogger : LogSink {
 	}
 
 	void send(Level level, const char* msg) {
-		get(level) << getColorBegin(level) << getTime() << msg << getColorEnd(level) << std::endl;
+		get(level) << getColorBegin(level) << getTime() << " " << msg << getColorEnd(level) << std::endl;
 	}
 };
 
