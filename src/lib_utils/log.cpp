@@ -38,7 +38,7 @@ static std::string getTime() {
 	return format("[%s][%s] ", std::string(szOut, size), (double)g_SystemClock->now());
 }
 
-struct Log : LogSink {
+struct ConsoleLogger : LogSink {
 	void log(Level level, const char* msg) override {
 		if ((level != Quiet) && (level <= m_logLevel))
 			send(level, msg);
@@ -128,21 +128,20 @@ struct Log : LogSink {
 		(void)msg;
 #endif
 	}
-
 };
 
-static Log globalLogger;
-LogSink* g_Log = &globalLogger;
+static ConsoleLogger consoleLogger;
+LogSink* g_Log = &consoleLogger;
 
 void setGlobalLogLevel(Level level) {
-	globalLogger.setLevel(level);
+	consoleLogger.setLevel(level);
 }
 
 void setGlobalSyslog(bool enable) {
-	globalLogger.setSysLog(enable);
+	consoleLogger.setSysLog(enable);
 }
 
 void setGlobalLogColor(bool enable) {
-	globalLogger.setColor(enable);
+	consoleLogger.setColor(enable);
 }
 
