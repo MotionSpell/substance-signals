@@ -11,8 +11,9 @@
 #include <wincon.h>
 static HANDLE console = NULL;
 static WORD console_attr_ori = 0;
+
 #else /*_WIN32*/
-#include <syslog.h>
+
 #define RED    "\x1b[31m"
 #define YELLOW "\x1b[33m"
 #define GREEN  "\x1b[32m"
@@ -50,20 +51,6 @@ struct ConsoleLogger : LogSink {
 
 	void setColor(bool isColored) {
 		m_color = isColored;
-	}
-
-	void setSysLog(bool isSysLog) {
-#ifndef _WIN32
-		if (!m_syslog && isSysLog) {
-			openlog(nullptr, 0, LOG_USER);
-		} else if (m_syslog && !isSysLog) {
-			closelog();
-		}
-		m_syslog = isSysLog;
-#else
-		if(isSysLog)
-			throw std::runtime_error("Syslog is not supported on this platform");
-#endif
 	}
 
 	Level m_logLevel = Warning;
@@ -112,33 +99,44 @@ struct ConsoleLogger : LogSink {
 	}
 
 	void send(Level level, const char* msg) {
-		if (m_syslog) {
-			sendToSyslog(level, msg);
-		} else {
-			get(level) << getColorBegin(level) << getTime() << msg << getColorEnd(level) << std::endl;
-		}
-	}
-
-	void sendToSyslog(int level, const char* msg) {
-#ifndef _WIN32
-		static const int levelToSysLog[] = { 3, 4, 6, 7 };
-		::syslog(levelToSysLog[level], "%s", msg);
-#else
-		(void)level;
-		(void)msg;
-#endif
+		get(level) << getColorBegin(level) << getTime() << msg << getColorEnd(level) << std::endl;
 	}
 };
+
+#ifndef _WIN32
+#include <syslog.h>
+struct SyslogLogger : LogSink {
+	SyslogLogger() {
+		openlog(nullptr, 0, LOG_USER);
+	}
+	~SyslogLogger() {
+		closelog();
+	}
+	void log(Level level, const char* msg) override {
+		static const int levelToSysLog[] = { 3, 4, 6, 7 };
+		::syslog(levelToSysLog[level], "%s", msg);
+	}
+};
+#endif
 
 static ConsoleLogger consoleLogger;
 LogSink* g_Log = &consoleLogger;
 
-void setGlobalLogLevel(Level level) {
-	consoleLogger.setLevel(level);
+void setGlobalSyslog(bool enable) {
+#ifndef _WIN32
+	static SyslogLogger syslogLogger;
+	if(enable)
+		g_Log = &syslogLogger;
+	else
+		g_Log = &consoleLogger;
+#else
+	if(enable)
+		throw std::runtime_error("Syslog is not supported on this platform");
+#endif
 }
 
-void setGlobalSyslog(bool enable) {
-	consoleLogger.setSysLog(enable);
+void setGlobalLogLevel(Level level) {
+	consoleLogger.setLevel(level);
 }
 
 void setGlobalLogColor(bool enable) {
