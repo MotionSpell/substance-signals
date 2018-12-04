@@ -25,6 +25,7 @@ extern "C" {
 static const int avioCtxBufferSize = 1024 * 1024;
 
 using namespace Modules;
+using namespace std::chrono;
 
 namespace {
 
@@ -167,7 +168,7 @@ struct LibavDemux : ActiveModule {
 				m_host->log(Info, "All data consumed: exit process().");
 				return false;
 			}
-			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+			std::this_thread::sleep_for(10ms);
 			return true;
 		}
 
@@ -183,7 +184,7 @@ struct LibavDemux : ActiveModule {
 
 		dispatch(&pkt);
 		return true;
-	};
+	}
 
 	int readFrame(AVPacket* pkt) {
 		for(;;) {
@@ -192,7 +193,7 @@ struct LibavDemux : ActiveModule {
 				return status;
 
 			m_host->log(Debug, format("Stream asks to try again later. Sleeping for a short period of time.").c_str());
-			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+			std::this_thread::sleep_for(10ms);
 		}
 	}
 
@@ -343,7 +344,7 @@ struct LibavDemux : ActiveModule {
 				}
 				m_host->log(m_formatCtx->pb && !m_formatCtx->pb->seekable ? Warning : Debug,
 				    "Dispatch queue is full - regulating.");
-				std::this_thread::sleep_for(std::chrono::milliseconds(10));
+				std::this_thread::sleep_for(10ms);
 			}
 		}
 	}
