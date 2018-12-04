@@ -7,6 +7,7 @@
 #include <vector>
 #include <map>
 #include <cstring> // memcpy
+#include <cassert>
 
 std::string expandVars(std::string input, std::map<std::string,std::string> const& values);
 int64_t parseIso8601Period(std::string input);
