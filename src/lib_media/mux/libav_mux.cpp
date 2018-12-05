@@ -86,7 +86,7 @@ class LibavMux : public ModuleDynI {
 				}
 			}
 
-			if (m_formatCtx->nb_streams < (size_t)getNumInputs() - 1) {
+			if ((int)m_formatCtx->nb_streams < getNumInputs() - 1) {
 				m_host->log(Warning, "Some inputs didn't declare their streams yet, dropping input data");
 				return;
 			}
