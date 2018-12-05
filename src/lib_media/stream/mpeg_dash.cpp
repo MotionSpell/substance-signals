@@ -370,8 +370,8 @@ namespace {
 
 using namespace Modules;
 
-Modules::IModule* createObject(KHost* host, va_list va) {
-	auto config = va_arg(va, DasherConfig*);
+Modules::IModule* createObject(KHost* host, void* va) {
+	auto config = (DasherConfig*)va;
 	enforce(host, "MPEG_DASH: host can't be NULL");
 	enforce(config, "MPEG_DASH: config can't be NULL");
 	return Modules::create<Stream::MPEG_DASH>(host, config).release();

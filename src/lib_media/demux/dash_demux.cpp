@@ -41,7 +41,7 @@ void DashDemuxer::addStream(Pipelines::IFilter* downloadOutput, int outputPort) 
 	output->setMetadata(downloadOutput->getOutputMetadata(outputPort));
 
 	// add MP4 demuxer
-	auto decap = pipeline->add("GPACDemuxMP4Full");
+	auto decap = pipeline->add("GPACDemuxMP4Full", nullptr);
 	pipeline->connect(GetOutputPin(downloadOutput, outputPort), decap);
 
 	// add restamper (so the timestamps start at zero)

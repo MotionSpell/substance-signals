@@ -463,8 +463,8 @@ struct LibavDemux : ActiveModule {
 	}
 };
 
-Modules::IModule* createObject(KHost* host, va_list va) {
-	auto config = va_arg(va, DemuxConfig*);
+Modules::IModule* createObject(KHost* host, void* va) {
+	auto config = (DemuxConfig*)va;
 	enforce(host, "LibavDemux: host can't be NULL");
 	enforce(config, "LibavDemux: config can't be NULL");
 	return Modules::create<LibavDemux>(host, *config).release();

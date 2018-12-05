@@ -69,7 +69,7 @@ void JPEGTurboDecode::process(Data data_) {
 	output->emit(out);
 }
 
-IModule* createObject(KHost* host, va_list va) {
+IModule* createObject(KHost* host, void* va) {
 	(void)va;
 	enforce(host, "JPEGTurboDecode: host can't be NULL");
 	return create<JPEGTurboDecode>(host).release();

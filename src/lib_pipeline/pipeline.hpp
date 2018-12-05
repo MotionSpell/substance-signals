@@ -32,7 +32,7 @@ class Pipeline : public IPipelineNotifier {
 			return addModuleInternal(name, createModule);
 		}
 
-		IFilter * add(char const* name, ...);
+		IFilter * add(char const* name, const void* va);
 
 		/* @isLowLatency Controls the default number of buffers.
 			@threading    Controls the threading. */

@@ -34,12 +34,12 @@ static unique_ptr<DynLib> loadPlugin(const char* name) {
 	return loadLibrary(path.c_str());
 }
 
-shared_ptr<IModule> vLoadModule(const char* name, KHost* host, va_list va) {
+shared_ptr<IModule> vLoadModule(const char* name, KHost* host, const void* va) {
 	string libName = name + string(".smd");
 
 	if(locatePlugin(libName.c_str()) == "") {
 		// create plugin from our own static (internal) factory
-		return shared_ptr<IModule>(Factory::instantiateModule(name, host, va));
+		return shared_ptr<IModule>(Factory::instantiateModule(name, host, const_cast<void*>(va)));
 	} else {
 		// create plugin from the shared library's factory
 		auto lib = shared_ptr<DynLib>(loadPlugin(libName.c_str()));
@@ -49,13 +49,11 @@ shared_ptr<IModule> vLoadModule(const char* name, KHost* host, va_list va) {
 			delete mod;
 		};
 
-		return shared_ptr<IModule>(func(name, host, va), deleter);
+		return shared_ptr<IModule>(func(name, host, const_cast<void*>(va)), deleter);
 	}
 }
 
-shared_ptr<IModule> loadModule(const char* name, KHost* host, ...) {
-	va_list va;
-	va_start(va, host);
+shared_ptr<IModule> loadModule(const char* name, KHost* host, const void* va) {
 	return vLoadModule(name, host, va);
 }
 

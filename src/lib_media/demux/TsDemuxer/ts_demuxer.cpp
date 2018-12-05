@@ -191,8 +191,8 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::Restamper {
 		int64_t m_lastUnrolledPts = 0;
 };
 
-Modules::IModule* createObject(KHost* host, va_list va) {
-	auto config = va_arg(va, TsDemuxerConfig*);
+Modules::IModule* createObject(KHost* host, void* va) {
+	auto config = (TsDemuxerConfig*)va;
 	enforce(host, "TsDemuxer: host can't be NULL");
 	enforce(config, "TsDemuxer: config can't be NULL");
 	return Modules::create<TsDemuxer>(host, *config).release();

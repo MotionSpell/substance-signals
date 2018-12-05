@@ -213,8 +213,8 @@ void HTTP::process(Data data) {
 }
 
 namespace {
-IModule* createObject(KHost* host, va_list va) {
-	auto cfg = va_arg(va, HttpOutputConfig*);
+IModule* createObject(KHost* host, void* va) {
+	auto cfg = (HttpOutputConfig*)va;
 	enforce(host, "HTTP: host can't be NULL");
 	return create<Out::HTTP>(host, *cfg).release();
 }

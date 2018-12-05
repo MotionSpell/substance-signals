@@ -234,8 +234,8 @@ class LibavMux : public ModuleDynI {
 
 };
 
-Modules::IModule* createObject(KHost* host, va_list va) {
-	auto config = va_arg(va, MuxConfig*);
+Modules::IModule* createObject(KHost* host, void* va) {
+	auto config = (MuxConfig*)va;
 	enforce(host, "LibavMux: host can't be NULL");
 	enforce(config, "LibavMux: config can't be NULL");
 

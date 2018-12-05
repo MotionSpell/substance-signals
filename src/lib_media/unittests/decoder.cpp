@@ -72,7 +72,7 @@ unittest("decoder: audio simple") {
 		int frameCount = 0;
 	};
 
-	auto decode = loadModule("Decoder", &NullHost, AUDIO_PKT);
+	auto decode = loadModule("Decoder", &NullHost, (void*)(uintptr_t)AUDIO_PKT);
 	auto rec = create<FrameCounter>();
 	ConnectOutputToInput(decode->getOutput(0), rec->getInput(0));
 
@@ -97,7 +97,7 @@ unittest("decoder: timestamp propagation") {
 		std::vector<int64_t> mediaTimes;
 	};
 
-	auto decode = loadModule("Decoder", &NullHost, AUDIO_PKT);
+	auto decode = loadModule("Decoder", &NullHost, (void*)(uintptr_t)AUDIO_PKT);
 	auto rec = create<FrameCounter>();
 	ConnectOutputToInput(decode->getOutput(0), rec->getInput(0));
 
@@ -141,7 +141,7 @@ std::shared_ptr<DataBase> getTestH264Frame() {
 }
 
 unittest("decoder: video simple") {
-	auto decode = loadModule("Decoder", &NullHost, VIDEO_PKT);
+	auto decode = loadModule("Decoder", &NullHost, (void*)(uintptr_t)VIDEO_PKT);
 	auto data = getTestH264Frame();
 
 	std::vector<std::string> actualFrames;
@@ -172,7 +172,7 @@ unittest("decoder: video simple") {
 }
 
 unittest("decoder: destroy without flushing") {
-	auto decode = loadModule("Decoder", &NullHost, VIDEO_PKT);
+	auto decode = loadModule("Decoder", &NullHost, (void*)(uintptr_t)VIDEO_PKT);
 
 	int picCount = 0;
 	auto onPic = [&](Data) {
@@ -186,7 +186,7 @@ unittest("decoder: destroy without flushing") {
 }
 
 unittest("decoder: flush without feeding") {
-	auto decode = loadModule("Decoder", &NullHost, VIDEO_PKT);
+	auto decode = loadModule("Decoder", &NullHost, (void*)(uintptr_t)VIDEO_PKT);
 
 	int picCount = 0;
 	auto onPic = [&](Data) {
@@ -201,7 +201,7 @@ unittest("decoder: flush without feeding") {
 unittest("decoder: audio mp3 manual frame to AAC") {
 	EncoderConfig cfg { EncoderConfig::Audio };
 
-	auto decode = loadModule("Decoder", &NullHost, AUDIO_PKT);
+	auto decode = loadModule("Decoder", &NullHost, (void*)(uintptr_t)AUDIO_PKT);
 	auto encoder = loadModule("Encoder", &NullHost, &cfg);
 
 	ConnectOutputToInput(decode->getOutput(0), encoder->getInput(0));
@@ -215,7 +215,7 @@ unittest("decoder: audio mp3 manual frame to AAC") {
 unittest("decoder: audio mp3 to converter to AAC") {
 	EncoderConfig cfg { EncoderConfig::Audio };
 
-	auto decoder = loadModule("Decoder", &NullHost, AUDIO_PKT);
+	auto decoder = loadModule("Decoder", &NullHost, (void*)(uintptr_t)AUDIO_PKT);
 	auto encoder = loadModule("Encoder", &NullHost, &cfg);
 
 	auto const dstFormat = PcmFormat(44100, 2, AudioLayout::Stereo, AudioSampleFormat::F32, AudioStruct::Planar);

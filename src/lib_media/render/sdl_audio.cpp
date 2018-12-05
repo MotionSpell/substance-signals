@@ -213,8 +213,8 @@ struct SDLAudio : ModuleS {
 	int64_t m_fifoTime;
 };
 
-Modules::IModule* createObject(KHost* host, va_list va) {
-	auto clock = va_arg(va, IClock*);
+Modules::IModule* createObject(KHost* host, void* va) {
+	auto clock = (IClock*)va;
 	enforce(host, "SDLAudio: host can't be NULL");
 	return create<SDLAudio>(host, clock).release();
 }

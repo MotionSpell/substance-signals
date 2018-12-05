@@ -121,8 +121,8 @@ namespace {
 
 using namespace Modules;
 
-Modules::IModule* createObject(KHost* host, va_list va) {
-	auto config = va_arg(va, AvFilterConfig*);
+Modules::IModule* createObject(KHost* host, void* va) {
+	auto config = (AvFilterConfig*)va;
 	enforce(host, "LibavFilter: host can't be NULL");
 	enforce(config, "LibavFilter: config can't be NULL");
 	return Modules::create<LibavFilter>(host, *config).release();

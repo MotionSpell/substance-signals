@@ -20,7 +20,7 @@ secondclasstest("packet type erasure + multi-output: libav Demux -> {libav Decod
 	std::vector<std::shared_ptr<IModule>> printers;
 	for (int i = 0; i < demux->getNumOutputs(); ++i) {
 		auto metadata = demux->getOutput(i)->getMetadata();
-		auto decode = loadModule("Decoder", &NullHost, metadata->type);
+		auto decode = loadModule("Decoder", &NullHost, (void*)(uintptr_t)metadata->type);
 
 		auto p = create<Out::Print>(&NullHost, std::cout);
 

@@ -264,8 +264,8 @@ void TeletextToTTML::process(Data data) {
 	dispatch();
 }
 
-Modules::IModule* createObject(KHost* host, va_list va) {
-	auto config = va_arg(va, TeletextToTtmlConfig*);
+Modules::IModule* createObject(KHost* host, void* va) {
+	auto config = (TeletextToTtmlConfig*)va;
 	enforce(host, "TeletextToTTML: host can't be NULL");
 	enforce(config, "TeletextToTTML: config can't be NULL");
 	return Modules::create<TeletextToTTML>(host, config).release();

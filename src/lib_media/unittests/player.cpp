@@ -29,7 +29,7 @@ secondclasstest("packet type erasure + multi-output: libav Demux -> libav Decode
 	}
 	ASSERT(videoIndex != -1);
 	auto metadata = demux->getOutput(videoIndex)->getMetadata();
-	auto decode = loadModule("Decoder", &NullHost, metadata->type);
+	auto decode = loadModule("Decoder", &NullHost, (void*)(uintptr_t)metadata->type);
 	auto render = Modules::loadModule("SDLVideo", &NullHost, nullptr);
 
 	ConnectOutputToInput(demux->getOutput(videoIndex), decode->getInput(0));
@@ -54,7 +54,7 @@ secondclasstest("packet type erasure + multi-output: libav Demux -> libav Decode
 	}
 	ASSERT(audioIndex != -1);
 	auto metadata = demux->getOutput(audioIndex)->getMetadata();
-	auto decode = loadModule("Decoder", &NullHost, metadata->type);
+	auto decode = loadModule("Decoder", &NullHost, (void*)(uintptr_t)metadata->type);
 	auto srcFormat = PcmFormat(44100, 1, AudioLayout::Mono, AudioSampleFormat::F32, AudioStruct::Planar);
 	auto dstFormat = PcmFormat(44100, 2, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Interleaved);
 	auto converterCfg = AudioConvertConfig { srcFormat, dstFormat, -1 };

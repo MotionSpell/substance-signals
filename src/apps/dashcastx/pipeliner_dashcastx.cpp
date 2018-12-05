@@ -142,7 +142,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 	bool isVertical = false;
 
 	auto decode = [&](OutputPin source, Metadata metadata) -> OutputPin {
-		auto decoder = pipeline->add("Decoder", metadata->type);
+		auto decoder = pipeline->add("Decoder", (void*)(uintptr_t)metadata->type);
 		pipeline->connect(source, decoder);
 
 		if (metadata->isVideo() && cfg.autoRotate) {

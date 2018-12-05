@@ -41,8 +41,8 @@ class FileSystemSink : public ModuleS {
 		std::map<std::string, std::ofstream> m_files;
 };
 
-Modules::IModule* createObject(KHost* host, va_list va) {
-	auto config = va_arg(va, FileSystemSinkConfig*);
+Modules::IModule* createObject(KHost* host, void* va) {
+	auto config = (FileSystemSinkConfig*)va;
 	enforce(host, "FileSystemSink: host can't be NULL");
 	enforce(config, "FileSystemSink: config can't be NULL");
 	return Modules::create<FileSystemSink>(host, *config).release();

@@ -315,8 +315,8 @@ struct LibavEncode : ModuleS {
 
 };
 
-Modules::IModule* createObject(KHost* host, va_list va) {
-	auto config = va_arg(va, EncoderConfig*);
+Modules::IModule* createObject(KHost* host, void* va) {
+	auto config = (EncoderConfig*)va;
 	enforce(host, "Encoder: host can't be NULL");
 	return Modules::createModule<LibavEncode>(config->bufferSize, host, config).release();
 }

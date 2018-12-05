@@ -196,7 +196,7 @@ void GPACDemuxMP4Full::process(Data data) {
 }
 
 namespace {
-Modules::IModule* createObject(KHost* host, va_list va) {
+Modules::IModule* createObject(KHost* host, void* va) {
 	(void)va;
 	enforce(host, "GPACDemuxMP4Full: host can't be NULL");
 	return Modules::create<GPACDemuxMP4Full>(host).release();

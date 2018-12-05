@@ -78,7 +78,7 @@ void declarePipeline(Config cfg, Pipeline &pipeline, const char *url) {
 		auto source = GetOutputPin(demuxer, k);
 
 		if(metadata->type != VIDEO_RAW) {
-			auto decode = pipeline.add("Decoder", metadata->type);
+			auto decode = pipeline.add("Decoder", (void*)(uintptr_t)metadata->type);
 			pipeline.connect(source, decode);
 			source = GetOutputPin(decode);
 		}

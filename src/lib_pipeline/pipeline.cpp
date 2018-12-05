@@ -53,9 +53,7 @@ IFilter* Pipeline::addModuleInternal(std::string name, CreationFunc createModule
 	return pFilter;
 }
 
-IFilter * Pipeline::add(char const* type, ...) {
-	va_list va;
-	va_start(va, type);
+IFilter * Pipeline::add(char const* type, const void* va) {
 	auto name = format("%s (#%s)", type, (int)modules.size());
 
 	auto createModule = [&](Modules::KHost* host) {

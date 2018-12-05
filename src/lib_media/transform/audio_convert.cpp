@@ -199,8 +199,8 @@ struct AudioConvert : ModuleS {
 
 };
 
-IModule* createObject(KHost* host, va_list va) {
-	auto cfg = va_arg(va, AudioConvertConfig*);
+IModule* createObject(KHost* host, void* va) {
+	auto cfg = (AudioConvertConfig*)va;
 	enforce(host, "AudioConvert: host can't be NULL");
 	enforce(cfg, "AudioConvert: config can't be NULL");
 
