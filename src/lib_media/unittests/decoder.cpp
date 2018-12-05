@@ -5,6 +5,7 @@
 #include "lib_media/common/picture.hpp" // DataPicture
 #include "lib_media/common/pcm.hpp"
 #include "lib_media/common/metadata.hpp" // MetadataPkt
+#include "lib_media/transform/audio_convert.hpp"
 #include "lib_media/encode/libav_encode.hpp"
 #include "lib_media/in/file.hpp"
 #include "lib_media/out/null.hpp"
@@ -218,7 +219,8 @@ unittest("decoder: audio mp3 to converter to AAC") {
 	auto encoder = loadModule("Encoder", &NullHost, &cfg);
 
 	auto const dstFormat = PcmFormat(44100, 2, AudioLayout::Stereo, AudioSampleFormat::F32, AudioStruct::Planar);
-	auto converter = loadModule("AudioConvert", &NullHost, nullptr, &dstFormat, 1024);
+	auto converterCfg = AudioConvertConfig { {0}, dstFormat, 1024 };
+	auto converter = loadModule("AudioConvert", &NullHost, &converterCfg);
 
 	ConnectOutputToInput(decoder->getOutput(0), converter->getInput(0));
 	ConnectOutputToInput(converter->getOutput(0), encoder->getInput(0));

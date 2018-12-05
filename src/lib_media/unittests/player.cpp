@@ -5,6 +5,7 @@
 #include "lib_media/common/pcm.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/out/null.hpp"
+#include "lib_media/transform/audio_convert.hpp"
 #include "lib_utils/tools.hpp"
 
 using namespace Tests;
@@ -56,7 +57,8 @@ secondclasstest("packet type erasure + multi-output: libav Demux -> libav Decode
 	auto decode = loadModule("Decoder", &NullHost, metadata->type);
 	auto srcFormat = PcmFormat(44100, 1, AudioLayout::Mono, AudioSampleFormat::F32, AudioStruct::Planar);
 	auto dstFormat = PcmFormat(44100, 2, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Interleaved);
-	auto converter = Modules::loadModule("AudioConvert", &NullHost, &srcFormat, &dstFormat, -1);
+	auto converterCfg = AudioConvertConfig { srcFormat, dstFormat, -1 };
+	auto converter = Modules::loadModule("AudioConvert", &NullHost, &converterCfg);
 	auto render = Modules::loadModule("SDLAudio", &NullHost, nullptr);
 
 	ConnectOutputToInput(demux->getOutput(audioIndex), decode->getInput(0));

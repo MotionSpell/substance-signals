@@ -5,6 +5,7 @@
 #include "lib_media/demux/gpac_demux_mp4_simple.hpp"
 #include "lib_media/transform/audio_gap_filler.hpp"
 #include "lib_media/transform/restamp.hpp"
+#include "lib_media/transform/audio_convert.hpp"
 #include "lib_media/utils/recorder.hpp"
 #include "lib_modules/modules.hpp"
 #include "lib_modules/utils/loader.hpp"
@@ -123,7 +124,8 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 			auto const metaEnc = safe_cast<const MetadataPktAudio>(metadataEncoder);
 			auto const encFmt = toPcmFormat(metaEnc);
 			auto const format = PcmFormat(demuxFmt.sampleRate, demuxFmt.numChannels, demuxFmt.layout, encFmt.sampleFormat, (encFmt.numPlanes == 1) ? Interleaved : Planar);
-			return loadModule("AudioConvert", &NullHost, nullptr, &format, metaEnc->frameSize);
+			auto cfg = AudioConvertConfig  { {0}, format, metaEnc->frameSize} ;
+			return loadModule("AudioConvert", &NullHost, &cfg);
 		} else
 			throw std::runtime_error("[Converter] Found unknown stream");
 	};

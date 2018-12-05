@@ -15,6 +15,7 @@
 #include "lib_media/utils/regulator.hpp"
 #include "lib_media/stream/adaptive_streaming_common.hpp" // AdaptiveStreamingCommon::getCommonPrefixAudio
 #include "lib_media/out/filesystem.hpp"
+#include "lib_media/transform/audio_convert.hpp"
 
 using namespace Modules;
 using namespace Pipelines;
@@ -96,7 +97,8 @@ IFilter* createConverter(Pipeline* pipeline, Metadata metadata, const PictureFor
 		g_Log->log(Info, "[Converter] Found audio stream");
 		auto const demuxFmt = toPcmFormat(safe_cast<const MetadataPktAudio>(metadata));
 		auto format = PcmFormat(demuxFmt.sampleRate, demuxFmt.numChannels, demuxFmt.layout, demuxFmt.sampleFormat, (demuxFmt.numPlanes == 1) ? Interleaved : Planar);
-		return pipeline->add("AudioConvert", nullptr, &format, 1024);
+		auto cfg = AudioConvertConfig{ {0}, format, 1024};
+		return pipeline->add("AudioConvert", &cfg);
 	} else {
 		throw std::runtime_error("can only create converter for audio/video");
 	}

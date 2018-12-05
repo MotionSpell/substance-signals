@@ -1,3 +1,5 @@
+#include "audio_convert.hpp"
+
 #include "lib_utils/tools.hpp"
 #include "lib_utils/log.hpp"
 #include "lib_utils/format.hpp"
@@ -198,16 +200,19 @@ struct AudioConvert : ModuleS {
 };
 
 IModule* createObject(KHost* host, va_list va) {
-	auto src = va_arg(va, PcmFormat*);
-	auto dst = va_arg(va, PcmFormat*);
-	auto samples = va_arg(va, int);
+	auto cfg = va_arg(va, AudioConvertConfig*);
 	enforce(host, "AudioConvert: host can't be NULL");
-	enforce(dst, "AudioConvert: dst format can't be NULL");
+	enforce(cfg, "AudioConvert: config can't be NULL");
+
+	auto src = cfg->srcFormat;
+	auto dst = cfg->dstFormat;
+	auto samples = cfg->dstNumSamples;
+
 	enforce(samples == -1 || (samples >= 0 && samples < 1024 * 1024), format("AudioConvert: sample count (%s) must be valid", samples).c_str());
-	if(!src)
-		return Modules::create<AudioConvert>(host, *dst, samples).release();
+	if(src.sampleRate == 0)
+		return Modules::create<AudioConvert>(host, dst, samples).release();
 	else
-		return Modules::create<AudioConvert>(host, *src, *dst, samples).release();
+		return Modules::create<AudioConvert>(host, src, dst, samples).release();
 }
 
 auto const registered = Factory::registerModule("AudioConvert", &createObject);

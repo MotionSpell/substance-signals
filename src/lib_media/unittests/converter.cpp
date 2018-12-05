@@ -3,6 +3,7 @@
 #include "lib_modules/utils/loader.hpp"
 #include "lib_media/common/metadata.hpp"
 #include "lib_media/transform/audio_gap_filler.hpp"
+#include "lib_media/transform/audio_convert.hpp"
 #include "lib_media/utils/recorder.hpp"
 #include "lib_utils/tools.hpp"
 #include "lib_utils/log.hpp"
@@ -58,7 +59,8 @@ unittest("audio converter: interleaved to planar") {
 	auto in = getInterleavedPcmData();
 	auto planar = PcmFormat(44100, 2, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Planar);
 
-	auto converter = loadModule("AudioConvert", &NullHost, &in->getFormat(), &planar, -1);
+	auto cfg = AudioConvertConfig { in->getFormat(), planar, -1 };
+	auto converter = loadModule("AudioConvert", &NullHost, &cfg);
 
 	auto rec = create<Recorder>();
 	ConnectOutputToInput(converter->getOutput(0), rec->getInput(0));
@@ -76,7 +78,8 @@ unittest("audio converter: 44100 to 48000") {
 	auto in = getInterleavedPcmData();
 	auto dstFormat = PcmFormat(48000, 2, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Interleaved);
 
-	auto converter = loadModule("AudioConvert", &NullHost, &in->getFormat(), &dstFormat, -1);
+	auto cfg = AudioConvertConfig { in->getFormat(), dstFormat, -1 };
+	auto converter = loadModule("AudioConvert", &NullHost, &cfg);
 
 	auto rec = create<Recorder>();
 	ConnectOutputToInput(converter->getOutput(0), rec->getInput(0));
@@ -111,7 +114,8 @@ unittest("audio converter: dynamic formats") {
 	auto recorder = create<Utils::Recorder>(&NullHost);
 
 	PcmFormat format;
-	auto converter = loadModule("AudioConvert", &NullHost, nullptr, &format, -1);
+	auto cfg = AudioConvertConfig { {0}, format, -1 };
+	auto converter = loadModule("AudioConvert", &NullHost, &cfg);
 
 	ConnectOutputToInput(soundGen->getOutput(0), converter->getInput(0));
 	ConnectOutputToInput(converter->getOutput(0), recorder->getInput(0));
@@ -147,7 +151,8 @@ void framingTest(const size_t inFrameFrames, const size_t outFrameFrames) {
 	}
 
 	auto recorder = create<Utils::Recorder>(&NullHost);
-	auto converter = loadModule("AudioConvert", &NullHost, &format, &format, outFrameFrames);
+	auto cfg = AudioConvertConfig { format, format, (int64_t)outFrameFrames};
+	auto converter = loadModule("AudioConvert", &NullHost, &cfg);
 	ConnectOutputToInput(converter->getOutput(0), recorder->getInput(0));
 
 	auto const numIter = 3;
