@@ -43,7 +43,7 @@ LibavFilter::LibavFilter(KHost* host, const AvFilterConfig& cfg)
 	: m_host(host), graph(avfilter_graph_alloc()), avFrameIn(new ffpp::Frame), avFrameOut(new ffpp::Frame) {
 	char args[512];
 	AVPixelFormat pf = pixelFormat2libavPixFmt(cfg.format.format);
-	snprintf(args, sizeof(args), "video_size=%dx%d:pix_fmt=%d:time_base=%d/%d:pixel_aspect=%d/%d", cfg.format.res.width, cfg.format.res.height, pf, (int)IClock::Rate, 1, cfg.format.res.width, cfg.format.res.height);
+	snprintf(args, sizeof(args), "video_size=%dx%d:pix_fmt=%d:time_base=%d/%d:pixel_aspect=%d/%d", cfg.format.res.width, cfg.format.res.height, pf, 1, (int)IClock::Rate, cfg.format.res.width, cfg.format.res.height);
 
 	auto ret = avfilter_graph_create_filter(&buffersrc_ctx, avfilter_get_by_name("buffer"), "in", args, nullptr, graph);
 	if (ret < 0)
