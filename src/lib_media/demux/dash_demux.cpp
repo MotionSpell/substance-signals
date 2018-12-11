@@ -7,11 +7,11 @@
 
 std::unique_ptr<Modules::In::IFilePuller> createHttpSource();
 
-namespace Modules {
-namespace Demux {
-
+using namespace Modules;
 using namespace In;
 using namespace Transform;
+
+namespace {
 
 struct OutStub : ModuleS {
 		OutStub(KHost*, OutputDefault *output) : output(output) {
@@ -25,13 +25,28 @@ struct OutStub : ModuleS {
 		OutputDefault *output;
 };
 
-DashDemuxer::DashDemuxer(KHost* host, std::string url)
+class DashDemuxer : public ActiveModule {
+	public:
+		DashDemuxer(KHost* host, DashDemuxConfig* cfg);
+		~DashDemuxer();
+
+		virtual bool work() override;
+
+	private:
+		void addStream(Pipelines::IFilter* downloadOutput, int outputPort);
+
+		KHost* const m_host;
+		std::unique_ptr<Pipelines::Pipeline> pipeline;
+		std::unique_ptr<Modules::In::IFilePuller> filePuller;
+};
+
+DashDemuxer::DashDemuxer(KHost* host, DashDemuxConfig* cfg)
 	: m_host(host) {
 	(void)m_host;
 
 	filePuller = createHttpSource();
 	pipeline = make_unique<Pipelines::Pipeline>();
-	auto downloader = pipeline->addModule<MPEG_DASH_Input>(filePuller.get(), url);
+	auto downloader = pipeline->addModule<MPEG_DASH_Input>(filePuller.get(), cfg->url);
 
 	for (int i = 0; i < (int)downloader->getNumOutputs(); ++i)
 		addStream(downloader, i);
@@ -63,6 +78,12 @@ bool DashDemuxer::work() {
 	return true;
 }
 
-}
+Modules::IModule* createObject(KHost* host, void* va) {
+	auto config = (DashDemuxConfig*)va;
+	enforce(host, "DashDemuxer: host can't be NULL");
+	enforce(config, "DashDemuxer: config can't be NULL");
+	return Modules::create<DashDemuxer>(host, config).release();
 }
 
+auto const registered = Factory::registerModule("DashDemuxer", &createObject);
+}
