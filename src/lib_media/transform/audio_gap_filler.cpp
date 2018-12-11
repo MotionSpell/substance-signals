@@ -24,11 +24,15 @@ void AudioGapFiller::process(Data data) {
 	auto const srcNumSamples = audioData->size() / audioData->getFormat().getBytesPerSample();
 	auto const diff = (int64_t)(timeInSR - accumulatedTimeInSR);
 	if ((uint64_t)std::abs(diff) >= srcNumSamples) {
-		if (diff > 0 && (uint64_t)std::abs(diff) <= srcNumSamples * (1 + toleranceInFrames)) {
-			m_host->log(Warning, format("Fixing gap of %s samples (input=%s, accumulation=%s)", diff, timeInSR, accumulatedTimeInSR).c_str());
-			auto dataInThePast = make_shared<DataBaseRef>(data);
-			dataInThePast->setMediaTime(data->getMediaTime() - timescaleToClock((uint64_t)srcNumSamples, sampleRate));
-			process(dataInThePast);
+		if ((uint64_t)std::abs(diff) <= srcNumSamples * (1 + toleranceInFrames)) {
+			if (diff > 0) {
+				m_host->log(Warning, format("Fixing gap of %s samples (input=%s, accumulation=%s)", diff, timeInSR, accumulatedTimeInSR).c_str());
+				auto dataInThePast = make_shared<DataBaseRef>(data);
+				dataInThePast->setMediaTime(data->getMediaTime() - timescaleToClock((uint64_t)srcNumSamples, sampleRate));
+				process(dataInThePast);
+			} else {
+				return; /*small overlap: thrash current sample*/
+			}
 		} else {
 			m_host->log(Warning, format("Discontinuity detected. Reset at time %s (previous: %s).", data->getMediaTime(), timescaleToClock(accumulatedTimeInSR, sampleRate)).c_str());
 			accumulatedTimeInSR = timeInSR;

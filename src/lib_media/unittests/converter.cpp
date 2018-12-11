@@ -211,8 +211,8 @@ unittest("audio gap filler") {
 		data->setPlane(i, input.data(), inFrameSizeInBytes);
 	}
 
-	const std::vector<int64_t> in =  { 1, 2, 3,    5, 6, 7, 8, 5, 6, 7, 1000, 1001, 1002, 3, 4, 5 };
-	const std::vector<int64_t> out = { 1, 2, 3, 4, 5, 6, 7, 8, 5, 6, 7, 1000, 1001, 1002, 3, 4, 5 };
+	const std::vector<int64_t> in =  { 1, 2, 3,    5, 6, 7, 8, 7, 8, 9, 1000, 1001, 1002, 3, 4, 5 };
+	const std::vector<int64_t> out = { 1, 2, 3, 4, 5, 6, 7, 8,       9, 1000, 1001, 1002, 3, 4, 5 };
 	auto recorder = create<Utils::Recorder>(&NullHost);
 	auto gapFiller = create<Transform::AudioGapFiller>(&NullHost, out.size());
 	ConnectOutputToInput(gapFiller->getOutput(0), recorder->getInput(0));
