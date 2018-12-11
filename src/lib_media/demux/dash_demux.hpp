@@ -9,11 +9,18 @@ struct IFilter;
 }
 
 namespace Modules {
+namespace In {
+struct IFilePuller;
+}
+}
+
+namespace Modules {
 namespace Demux {
 
 class DashDemuxer : public ActiveModule {
 	public:
 		DashDemuxer(KHost* host, std::string url);
+		~DashDemuxer();
 
 		virtual bool work() override;
 
@@ -22,6 +29,7 @@ class DashDemuxer : public ActiveModule {
 
 		KHost* const m_host;
 		std::unique_ptr<Pipelines::Pipeline> pipeline;
+		std::unique_ptr<Modules::In::IFilePuller> filePuller;
 };
 
 }

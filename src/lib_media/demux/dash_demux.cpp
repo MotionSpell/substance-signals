@@ -28,11 +28,16 @@ struct OutStub : ModuleS {
 DashDemuxer::DashDemuxer(KHost* host, std::string url)
 	: m_host(host) {
 	(void)m_host;
+
+	filePuller = createHttpSource();
 	pipeline = make_unique<Pipelines::Pipeline>();
-	auto downloader = pipeline->addModule<MPEG_DASH_Input>(createHttpSource(), url);
+	auto downloader = pipeline->addModule<MPEG_DASH_Input>(filePuller.get(), url);
 
 	for (int i = 0; i < (int)downloader->getNumOutputs(); ++i)
 		addStream(downloader, i);
+}
+
+DashDemuxer::~DashDemuxer() {
 }
 
 void DashDemuxer::addStream(Pipelines::IFilter* downloadOutput, int outputPort) {

@@ -20,24 +20,9 @@ struct LocalFilesystem : IFilePuller {
 	std::vector<std::string> requests;
 };
 
-// will be owned by the dash input
-struct Proxy : IFilePuller {
-	IFilePuller* delegate;
-
-	std::vector<uint8_t> get(const char* url) override {
-		return delegate->get(url);
-	}
-};
-
-std::unique_ptr<IFilePuller> proxify(IFilePuller& delegate) {
-	auto r = make_unique<Proxy>();
-	r->delegate = &delegate;
-	return r;
-}
-
 unittest("mpeg_dash_input: fail to get MPD") {
 	LocalFilesystem source;
-	ASSERT_THROWN(create<MPEG_DASH_Input>(&NullHost, proxify(source), "http://toto.mpd"));
+	ASSERT_THROWN(create<MPEG_DASH_Input>(&NullHost, &source, "http://toto.mpd"));
 }
 
 unittest("mpeg_dash_input: get MPD") {
@@ -60,7 +45,7 @@ unittest("mpeg_dash_input: get MPD") {
 
 	LocalFilesystem source;
 	source.resources["http://toto.mpd"] = MPD;
-	auto dash = create<MPEG_DASH_Input>(&NullHost, proxify(source), "http://toto.mpd");
+	auto dash = create<MPEG_DASH_Input>(&NullHost, &source, "http://toto.mpd");
 	ASSERT_EQUALS(2, dash->getNumOutputs());
 }
 
@@ -78,7 +63,7 @@ unittest("mpeg_dash_input: get MPD, one input") {
 </MPD>)|";
 	LocalFilesystem source;
 	source.resources["http://single.mpd"] = MPD;
-	auto dash = create<MPEG_DASH_Input>(&NullHost, proxify(source), "http://single.mpd");
+	auto dash = create<MPEG_DASH_Input>(&NullHost, &source, "http://single.mpd");
 	ASSERT_EQUALS(1, dash->getNumOutputs());
 }
 
@@ -103,7 +88,7 @@ unittest("mpeg_dash_input: get chunks") {
 	source.resources["main/sub/x3y77z"] = "data3";
 	source.resources["main/sub/x4y77z"] = "data4";
 	source.resources["main/sub/x5y77z"] = "data5";
-	auto dash = create<MPEG_DASH_Input>(&NullHost, proxify(source), "main/live.mpd");
+	auto dash = create<MPEG_DASH_Input>(&NullHost, &source, "main/live.mpd");
 	int chunkCount = 0;
 	auto receive = [&](Data data) {
 		++chunkCount;
@@ -129,12 +114,14 @@ std::unique_ptr<IFilePuller> createHttpSource();
 
 secondclasstest("mpeg_dash_input: get MPD from remote server") {
 	auto url = "http://download.tsi.telecom-paristech.fr/gpac/DASH_CONFORMANCE/TelecomParisTech/mp4-live/mp4-live-mpd-AV-NBS.mpd";
-	auto dash = create<MPEG_DASH_Input>(&NullHost, createHttpSource(), url);
+	auto source = createHttpSource();
+	auto dash = create<MPEG_DASH_Input>(&NullHost, source.get(), url);
 	ASSERT_EQUALS(2, dash->getNumOutputs());
 }
 
 secondclasstest("mpeg_dash_input: non-existing MPD") {
 	auto url = "http://example.com/this_url_doesnt_exist_121324315235";
-	ASSERT_THROWN(create<MPEG_DASH_Input>(&NullHost, createHttpSource(), url));
+	auto source = createHttpSource();
+	ASSERT_THROWN(create<MPEG_DASH_Input>(&NullHost, source.get(), url));
 }
 
