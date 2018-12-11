@@ -28,12 +28,12 @@ struct LocalFileSystem : IFilePuller {
 
 unittest("hls demux: download main playlist") {
 	LocalFileSystem fs;
-	fs.resources["playlist.m3u8"] = R"(
+	fs.resources["http://test.com/playlist.m3u8"] = R"(
 #EXTM3U
 sub.m3u8
 )";
 
-	fs.resources["sub.m3u8"] = R"(
+	fs.resources["http://test.com/sub.m3u8"] = R"(
 #EXTM3U
 chunk-01.ts
 chunk-next.ts
@@ -41,17 +41,17 @@ chunk-last.ts
 )";
 
 	HlsDemuxConfig cfg {};
-	cfg.url = "playlist.m3u8";
+	cfg.url = "http://test.com/playlist.m3u8";
 	cfg.filePuller = &fs;
 	auto demux = loadModule("HlsDemuxer", &NullHost, &cfg);
 	demux->process();
 	ASSERT_EQUALS(
 	vector<string>({
-		"playlist.m3u8",
-		"sub.m3u8",
-		"chunk-01.ts",
-		"chunk-next.ts",
-		"chunk-last.ts",
+		"http://test.com/playlist.m3u8",
+		"http://test.com/sub.m3u8",
+		"http://test.com/chunk-01.ts",
+		"http://test.com/chunk-next.ts",
+		"http://test.com/chunk-last.ts",
 	}),
 	fs.requests);
 }

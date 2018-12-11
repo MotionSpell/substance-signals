@@ -16,6 +16,13 @@ unique_ptr<Modules::In::IFilePuller> createHttpSource();
 
 namespace {
 
+string dirName(string path) {
+	auto i = path.rfind('/');
+	if(i != path.npos)
+		path = path.substr(0, i);
+	return path + "/";
+}
+
 class HlsDemuxer : public ActiveModule {
 	public:
 		HlsDemuxer(KHost* host, HlsDemuxConfig* cfg)
@@ -26,6 +33,8 @@ class HlsDemuxer : public ActiveModule {
 				m_internalPuller = createHttpSource();
 				m_puller = m_internalPuller.get();
 			}
+
+			m_dirName = dirName(cfg->url);
 		}
 
 		virtual bool work() override {
@@ -38,14 +47,14 @@ class HlsDemuxer : public ActiveModule {
 
 				string subUrl = main[0];
 
-				m_chunks = downloadPlaylist(subUrl);
+				m_chunks = downloadPlaylist(m_dirName + subUrl);
 				m_hasPlaylist = true;
 			}
 
 			if(m_chunks.empty())
 				return false;
 
-			m_puller->get(m_chunks[0].c_str());
+			m_puller->get((m_dirName + m_chunks[0]).c_str());
 			m_chunks.erase(m_chunks.begin());
 
 			return true;
@@ -69,6 +78,7 @@ class HlsDemuxer : public ActiveModule {
 		string const m_playlistUrl;
 		IFilePuller* m_puller;
 		bool m_hasPlaylist = false;
+		string m_dirName;
 		vector<string> m_chunks;
 		unique_ptr<IFilePuller> m_internalPuller;
 };
