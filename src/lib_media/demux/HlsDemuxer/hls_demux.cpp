@@ -17,7 +17,8 @@ namespace {
 class HlsDemuxer : public ActiveModule {
 	public:
 		HlsDemuxer(KHost* host, HlsDemuxConfig* cfg)
-			: m_host(host) {
+			: m_host(host),
+			  m_playlistUrl(cfg->url) {
 			m_puller = cfg->filePuller;
 			if(!m_puller) {
 				m_internalPuller = createHttpSource();
@@ -26,12 +27,14 @@ class HlsDemuxer : public ActiveModule {
 		}
 
 		virtual bool work() override {
+			m_puller->get(m_playlistUrl.c_str());
 			m_host->log(Error, "Not implemented");
-			return true;
+			return false;
 		}
 
 	private:
 		KHost* const m_host;
+		std::string const m_playlistUrl;
 		IFilePuller* m_puller;
 		std::unique_ptr<IFilePuller> m_internalPuller;
 };
