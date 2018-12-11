@@ -2,16 +2,12 @@
 
 #include <vector>
 #include "lib_modules/utils/helper.hpp"
+#include "lib_media/common/file_puller.hpp"
 
 struct DashMpd;
 
 namespace Modules {
 namespace In {
-
-struct IFilePuller {
-	virtual ~IFilePuller() = default;
-	virtual std::vector<uint8_t> get(std::string url) = 0;
-};
 
 class MPEG_DASH_Input : public ActiveModule {
 	public:
