@@ -33,6 +33,10 @@ class HlsDemuxer : public ActiveModule {
 			stringstream ss(std::string(main.begin(), main.end()));
 			string line;
 			while(getline(ss, line)) {
+				if(line.empty())
+					continue;
+				if(line[0] == '#')
+					continue;
 				m_puller->get(line.c_str());
 			}
 			m_host->log(Error, "Not implemented");

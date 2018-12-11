@@ -28,7 +28,10 @@ struct LocalFileSystem : IFilePuller {
 
 unittest("hls demux: download main playlist") {
 	LocalFileSystem fs;
-	fs.resources["playlist.m3u8"] = "sub.m3u8\n";
+	fs.resources["playlist.m3u8"] = R"(
+#EXTM3U
+sub.m3u8
+)";
 
 	HlsDemuxConfig cfg {};
 	cfg.url = "playlist.m3u8";
