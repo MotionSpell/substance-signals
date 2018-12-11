@@ -5,12 +5,14 @@
 #include "lib_media/in/mpeg_dash_input.hpp"
 #include "lib_media/out/null.hpp"
 #include "lib_media/transform/restamp.hpp"
+#include <sstream>
 
-std::unique_ptr<Modules::In::IFilePuller> createHttpSource();
-
+using namespace std;
 using namespace Modules;
 using namespace In;
 using namespace Transform;
+
+unique_ptr<Modules::In::IFilePuller> createHttpSource();
 
 namespace {
 
@@ -27,16 +29,21 @@ class HlsDemuxer : public ActiveModule {
 		}
 
 		virtual bool work() override {
-			m_puller->get(m_playlistUrl.c_str());
+			auto main = m_puller->get(m_playlistUrl.c_str());
+			stringstream ss(std::string(main.begin(), main.end()));
+			string line;
+			while(getline(ss, line)) {
+				m_puller->get(line.c_str());
+			}
 			m_host->log(Error, "Not implemented");
 			return false;
 		}
 
 	private:
 		KHost* const m_host;
-		std::string const m_playlistUrl;
+		string const m_playlistUrl;
 		IFilePuller* m_puller;
-		std::unique_ptr<IFilePuller> m_internalPuller;
+		unique_ptr<IFilePuller> m_internalPuller;
 };
 
 Modules::IModule* createObject(KHost* host, void* va) {
