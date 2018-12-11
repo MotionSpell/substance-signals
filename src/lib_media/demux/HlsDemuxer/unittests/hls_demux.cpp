@@ -37,6 +37,7 @@ sub.m3u8
 #EXTM3U
 chunk-01.ts
 chunk-next.ts
+chunk-last.ts
 )";
 
 	HlsDemuxConfig cfg {};
@@ -50,6 +51,7 @@ chunk-next.ts
 		"sub.m3u8",
 		"chunk-01.ts",
 		"chunk-next.ts",
+		"chunk-last.ts",
 	}),
 	fs.requests);
 }

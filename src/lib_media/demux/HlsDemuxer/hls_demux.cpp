@@ -29,18 +29,26 @@ class HlsDemuxer : public ActiveModule {
 		}
 
 		virtual bool work() override {
-			auto main = downloadPlaylist(m_playlistUrl);
-			if(main.empty()) {
-				m_host->log(Error, "No main playlist");
-				return false;
+			if(!m_hasPlaylist) {
+				auto main = downloadPlaylist(m_playlistUrl);
+				if(main.empty()) {
+					m_host->log(Error, "No main playlist");
+					return false;
+				}
+
+				string subUrl = main[0];
+
+				m_chunks = downloadPlaylist(subUrl);
+				m_hasPlaylist = true;
 			}
 
-			string subUrl = main[0];
+			if(m_chunks.empty())
+				return false;
 
-			for(auto chunkUrl : downloadPlaylist(subUrl))
-				m_puller->get(chunkUrl.c_str());
+			m_puller->get(m_chunks[0].c_str());
+			m_chunks.erase(m_chunks.begin());
 
-			return false;
+			return true;
 		}
 
 		vector<string> downloadPlaylist(string url) {
@@ -60,6 +68,8 @@ class HlsDemuxer : public ActiveModule {
 		KHost* const m_host;
 		string const m_playlistUrl;
 		IFilePuller* m_puller;
+		bool m_hasPlaylist = false;
+		vector<string> m_chunks;
 		unique_ptr<IFilePuller> m_internalPuller;
 };
 
