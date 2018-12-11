@@ -161,6 +161,14 @@ $(BIN)/GPACDemuxMP4Full.smd: \
   $(BIN)/$(SRC)/lib_media/demux/gpac_demux_mp4_full.cpp.o\
 
 #------------------------------------------------------------------------------
+TARGETS+=$(BIN)/HlsDemuxer.smd
+$(BIN)/HlsDemuxer.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
+$(BIN)/HlsDemuxer.smd: CFLAGS+=$(MEDIA_CFLAGS)
+$(BIN)/HlsDemuxer.smd: \
+  $(BIN)/$(SRC)/lib_media/demux/HlsDemuxer/hls_demux.cpp.o\
+  $(BIN)/$(SRC)/lib_media/common/http_puller.cpp.o\
+
+#------------------------------------------------------------------------------
 TARGETS+=$(BIN)/FileSystemSink.smd
 $(BIN)/FileSystemSink.smd: \
   $(BIN)/$(SRC)/lib_media/out/filesystem.cpp.o\
