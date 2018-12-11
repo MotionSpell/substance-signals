@@ -46,7 +46,7 @@ struct HttpSource : Modules::In::IFilePuller {
 
 		auto res = curl_easy_perform(curl);
 		if(res == CURLE_HTTP_RETURNED_ERROR)
-			return std::vector<uint8_t>();
+			return {};
 		if(res != CURLE_OK)
 			throw std::runtime_error(std::string("curl_easy_perform() failed: ") + curl_easy_strerror(res));
 
