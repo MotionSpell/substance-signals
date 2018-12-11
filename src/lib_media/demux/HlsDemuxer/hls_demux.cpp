@@ -2,15 +2,14 @@
 #include "lib_utils/log_sink.hpp"
 #include "lib_modules/utils/factory.hpp"
 #include "hls_demux.hpp"
-#include "lib_media/in/mpeg_dash_input.hpp"
-#include "lib_media/out/null.hpp"
-#include "lib_media/transform/restamp.hpp"
+#include "lib_modules/utils/helper.hpp" // ActiveModule
 #include <sstream>
+#include <memory>
+#include <string.h> // memcpy
 
 using namespace std;
 using namespace Modules;
 using namespace In;
-using namespace Transform;
 
 unique_ptr<Modules::In::IFilePuller> createHttpSource();
 
