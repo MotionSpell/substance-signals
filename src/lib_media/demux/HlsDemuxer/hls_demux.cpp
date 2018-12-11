@@ -34,6 +34,7 @@ class HlsDemuxer : public ActiveModule {
 			}
 
 			m_dirName = dirName(cfg->url);
+			m_output = addOutput<OutputDefault>();
 		}
 
 		virtual bool work() override {
@@ -53,8 +54,12 @@ class HlsDemuxer : public ActiveModule {
 			if(m_chunks.empty())
 				return false;
 
-			m_puller->get((m_dirName + m_chunks[0]).c_str());
+			auto chunk = m_puller->get((m_dirName + m_chunks[0]).c_str());
 			m_chunks.erase(m_chunks.begin());
+
+			auto data = m_output->getBuffer(chunk.size());
+			memcpy(data->data().ptr, chunk.data(), chunk.size());
+			m_output->emit(data);
 
 			return true;
 		}
@@ -76,6 +81,7 @@ class HlsDemuxer : public ActiveModule {
 		KHost* const m_host;
 		string const m_playlistUrl;
 		IFilePuller* m_puller;
+		OutputDefault* m_output = nullptr;
 		bool m_hasPlaylist = false;
 		string m_dirName;
 		vector<string> m_chunks;
