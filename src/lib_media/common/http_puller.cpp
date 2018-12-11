@@ -1,5 +1,7 @@
 #include "file_puller.hpp"
 
+#include "lib_modules/core/buffer.hpp" // SpanC
+
 #include <stdexcept>
 #include <memory>
 
@@ -25,13 +27,13 @@ struct HttpSource : Modules::In::IFilePuller {
 			static size_t callback(void *stream, size_t size, size_t nmemb, void *ptr) {
 				auto pThis = (HttpContext*)ptr;
 				auto const bytes = size * nmemb;
-				pThis->onReceiveBuffer(bytes, (uint8_t*)stream);
+				pThis->onReceiveBuffer({(uint8_t*)stream, bytes});
 				return bytes;
 			}
 
-			void onReceiveBuffer(size_t size, uint8_t *stream) {
-				for(size_t i=0; i < size; ++i)
-					data.push_back(stream[i]);
+			void onReceiveBuffer(SpanC buffer) {
+				for(auto b : buffer)
+					data.push_back(b);
 			}
 		};
 
