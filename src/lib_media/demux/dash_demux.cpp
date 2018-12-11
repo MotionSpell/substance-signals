@@ -35,7 +35,7 @@ class DashDemuxer : public ActiveModule {
 			pipeline = make_unique<Pipelines::Pipeline>();
 			auto downloader = pipeline->addModule<MPEG_DASH_Input>(filePuller.get(), cfg->url);
 
-			for (int i = 0; i < (int)downloader->getNumOutputs(); ++i)
+			for (int i = 0; i < downloader->getNumOutputs(); ++i)
 				addStream(downloader, i);
 		}
 
@@ -48,7 +48,7 @@ class DashDemuxer : public ActiveModule {
 	private:
 		KHost* const m_host;
 		std::unique_ptr<Pipelines::Pipeline> pipeline;
-		std::unique_ptr<Modules::In::IFilePuller> filePuller;
+		std::unique_ptr<IFilePuller> filePuller;
 
 		void addStream(Pipelines::IFilter* downloadOutput, int outputPort) {
 			// create our own output
