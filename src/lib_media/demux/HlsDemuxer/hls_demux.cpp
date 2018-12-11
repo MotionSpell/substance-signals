@@ -29,34 +29,31 @@ class HlsDemuxer : public ActiveModule {
 		}
 
 		virtual bool work() override {
-			auto main = m_puller->get(m_playlistUrl.c_str());
-			string line;
-			string subUrl;
-
-			{
-				stringstream ss(string(main.begin(), main.end()));
-				while(getline(ss, line)) {
-					if(line.empty() || line[0] == '#')
-						continue;
-					subUrl = line;
-					break;
-				}
+			auto main = downloadPlaylist(m_playlistUrl);
+			if(main.empty()) {
+				m_host->log(Error, "No main playlist");
+				return false;
 			}
 
-			auto sub = m_puller->get(subUrl.c_str());
+			string subUrl = main[0];
 
-			{
-				stringstream ss(string(sub.begin(), sub.end()));
-				while(getline(ss, line)) {
-					if(line.empty() || line[0] == '#')
-						continue;
-					auto chunkUrl = line;
-					m_puller->get(chunkUrl.c_str());
-				}
-			}
+			for(auto chunkUrl : downloadPlaylist(subUrl))
+				m_puller->get(chunkUrl.c_str());
 
-			m_host->log(Error, "Not implemented");
 			return false;
+		}
+
+		vector<string> downloadPlaylist(string url) {
+			auto contents = m_puller->get(url.c_str());
+			vector<string> r;
+			string line;
+			stringstream ss(string(contents.begin(), contents.end()));
+			while(getline(ss, line)) {
+				if(line.empty() || line[0] == '#')
+					continue;
+				r.push_back(line);
+			}
+			return r;
 		}
 
 	private:
