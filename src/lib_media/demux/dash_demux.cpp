@@ -27,56 +27,46 @@ struct OutStub : ModuleS {
 
 class DashDemuxer : public ActiveModule {
 	public:
-		DashDemuxer(KHost* host, DashDemuxConfig* cfg);
-		~DashDemuxer();
+		DashDemuxer(KHost* host, DashDemuxConfig* cfg)
+			: m_host(host) {
+			(void)m_host;
 
-		virtual bool work() override;
+			filePuller = createHttpSource();
+			pipeline = make_unique<Pipelines::Pipeline>();
+			auto downloader = pipeline->addModule<MPEG_DASH_Input>(filePuller.get(), cfg->url);
+
+			for (int i = 0; i < (int)downloader->getNumOutputs(); ++i)
+				addStream(downloader, i);
+		}
+
+		virtual bool work() override {
+			pipeline->start();
+			pipeline->waitForEndOfStream();
+			return true;
+		}
 
 	private:
-		void addStream(Pipelines::IFilter* downloadOutput, int outputPort);
-
 		KHost* const m_host;
 		std::unique_ptr<Pipelines::Pipeline> pipeline;
 		std::unique_ptr<Modules::In::IFilePuller> filePuller;
+
+		void addStream(Pipelines::IFilter* downloadOutput, int outputPort) {
+			// create our own output
+			auto output = addOutput<OutputDefault>();
+			output->setMetadata(downloadOutput->getOutputMetadata(outputPort));
+
+			// add MP4 demuxer
+			auto decap = pipeline->add("GPACDemuxMP4Full", nullptr);
+			pipeline->connect(GetOutputPin(downloadOutput, outputPort), decap);
+
+			// add restamper (so the timestamps start at zero)
+			auto restamp = pipeline->addModule<Restamp>(Transform::Restamp::Reset);
+			pipeline->connect(decap, restamp);
+
+			auto stub = pipeline->addModule<OutStub>(output);
+			pipeline->connect(restamp, stub);
+		}
 };
-
-DashDemuxer::DashDemuxer(KHost* host, DashDemuxConfig* cfg)
-	: m_host(host) {
-	(void)m_host;
-
-	filePuller = createHttpSource();
-	pipeline = make_unique<Pipelines::Pipeline>();
-	auto downloader = pipeline->addModule<MPEG_DASH_Input>(filePuller.get(), cfg->url);
-
-	for (int i = 0; i < (int)downloader->getNumOutputs(); ++i)
-		addStream(downloader, i);
-}
-
-DashDemuxer::~DashDemuxer() {
-}
-
-void DashDemuxer::addStream(Pipelines::IFilter* downloadOutput, int outputPort) {
-	// create our own output
-	auto output = addOutput<OutputDefault>();
-	output->setMetadata(downloadOutput->getOutputMetadata(outputPort));
-
-	// add MP4 demuxer
-	auto decap = pipeline->add("GPACDemuxMP4Full", nullptr);
-	pipeline->connect(GetOutputPin(downloadOutput, outputPort), decap);
-
-	// add restamper (so the timestamps start at zero)
-	auto restamp = pipeline->addModule<Restamp>(Transform::Restamp::Reset);
-	pipeline->connect(decap, restamp);
-
-	auto stub = pipeline->addModule<OutStub>(output);
-	pipeline->connect(restamp, stub);
-}
-
-bool DashDemuxer::work() {
-	pipeline->start();
-	pipeline->waitForEndOfStream();
-	return true;
-}
 
 Modules::IModule* createObject(KHost* host, void* va) {
 	auto config = (DashDemuxConfig*)va;
