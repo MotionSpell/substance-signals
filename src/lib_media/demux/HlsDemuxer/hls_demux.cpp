@@ -36,9 +36,7 @@ class HlsDemuxer : public ActiveModule {
 			{
 				stringstream ss(string(main.begin(), main.end()));
 				while(getline(ss, line)) {
-					if(line.empty())
-						continue;
-					if(line[0] == '#')
+					if(line.empty() || line[0] == '#')
 						continue;
 					subUrl = line;
 					break;
@@ -50,9 +48,7 @@ class HlsDemuxer : public ActiveModule {
 			{
 				stringstream ss(string(sub.begin(), sub.end()));
 				while(getline(ss, line)) {
-					if(line.empty())
-						continue;
-					if(line[0] == '#')
+					if(line.empty() || line[0] == '#')
 						continue;
 					auto chunkUrl = line;
 					m_puller->get(chunkUrl.c_str());
