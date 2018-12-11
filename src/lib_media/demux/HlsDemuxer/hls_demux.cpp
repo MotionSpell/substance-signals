@@ -30,15 +30,35 @@ class HlsDemuxer : public ActiveModule {
 
 		virtual bool work() override {
 			auto main = m_puller->get(m_playlistUrl.c_str());
-			stringstream ss(std::string(main.begin(), main.end()));
 			string line;
-			while(getline(ss, line)) {
-				if(line.empty())
-					continue;
-				if(line[0] == '#')
-					continue;
-				m_puller->get(line.c_str());
+			string subUrl;
+
+			{
+				stringstream ss(string(main.begin(), main.end()));
+				while(getline(ss, line)) {
+					if(line.empty())
+						continue;
+					if(line[0] == '#')
+						continue;
+					subUrl = line;
+					break;
+				}
 			}
+
+			auto sub = m_puller->get(subUrl.c_str());
+
+			{
+				stringstream ss(string(sub.begin(), sub.end()));
+				while(getline(ss, line)) {
+					if(line.empty())
+						continue;
+					if(line[0] == '#')
+						continue;
+					auto chunkUrl = line;
+					m_puller->get(chunkUrl.c_str());
+				}
+			}
+
 			m_host->log(Error, "Not implemented");
 			return false;
 		}

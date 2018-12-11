@@ -33,6 +33,12 @@ unittest("hls demux: download main playlist") {
 sub.m3u8
 )";
 
+	fs.resources["sub.m3u8"] = R"(
+#EXTM3U
+chunk-01.ts
+chunk-next.ts
+)";
+
 	HlsDemuxConfig cfg {};
 	cfg.url = "playlist.m3u8";
 	cfg.filePuller = &fs;
@@ -42,6 +48,8 @@ sub.m3u8
 	vector<string>({
 		"playlist.m3u8",
 		"sub.m3u8",
+		"chunk-01.ts",
+		"chunk-next.ts",
 	}),
 	fs.requests);
 }
