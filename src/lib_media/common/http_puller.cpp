@@ -18,7 +18,7 @@ struct HttpSource : Modules::In::IFilePuller {
 		curl_easy_cleanup(curl);
 	}
 
-	std::vector<uint8_t> get(std::string url) override {
+	std::vector<uint8_t> get(const char* url) override {
 		struct HttpContext {
 			std::vector<uint8_t> data;
 
@@ -39,7 +39,7 @@ struct HttpSource : Modules::In::IFilePuller {
 
 		// some servers require a user-agent field
 		curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
-		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+		curl_easy_setopt(curl, CURLOPT_URL, url);
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &HttpContext::callback);
 		curl_easy_setopt(curl, CURLOPT_WRITEDATA, &ctx);
 		curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);

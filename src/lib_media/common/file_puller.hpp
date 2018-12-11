@@ -1,6 +1,5 @@
 #pragma once
 
-#include <string>
 #include <vector>
 #include <stdint.h>
 
@@ -9,7 +8,7 @@ namespace In {
 
 struct IFilePuller {
 	virtual ~IFilePuller() = default;
-	virtual std::vector<uint8_t> get(std::string url) = 0;
+	virtual std::vector<uint8_t> get(const char* url) = 0;
 };
 
 }

@@ -66,7 +66,7 @@ static shared_ptr<IMetadata> createMetadata(AdaptationSet const& set) {
 MPEG_DASH_Input::MPEG_DASH_Input(KHost* host, std::unique_ptr<IFilePuller> source, std::string const& url)
 	:  m_host(host), m_source(move(source)) {
 	//GET MPD FROM HTTP
-	auto mpdAsText = m_source->get(url);
+	auto mpdAsText = m_source->get(url.c_str());
 	if(mpdAsText.empty())
 		throw std::runtime_error("can't get mpd");
 	m_mpdDirname = dirName(url);
@@ -135,7 +135,7 @@ bool MPEG_DASH_Input::work() {
 
 		m_host->log(Debug, format("wget: '%s'", url).c_str());
 
-		auto chunk = m_source->get(url);
+		auto chunk = m_source->get(url.c_str());
 		if(chunk.empty()) {
 			if(mpd->dynamic) {
 				stream->currNumber--; // too early, retry
