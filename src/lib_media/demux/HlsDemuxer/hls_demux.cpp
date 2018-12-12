@@ -51,10 +51,14 @@ class HlsDemuxer : public ActiveModule {
 				m_hasPlaylist = true;
 			}
 
-			if(m_chunks.empty())
+			if(m_chunks.empty()) {
+				m_host->log(Debug, "Stopping");
 				return false;
+			}
 
-			auto chunk = m_puller->get((m_dirName + m_chunks[0]).c_str());
+			auto chunkUrl = m_dirName + m_chunks[0];
+			m_host->log(Debug, ("Download chunk: '" + chunkUrl + "'").c_str());
+			auto chunk = m_puller->get(chunkUrl.c_str());
 			m_chunks.erase(m_chunks.begin());
 
 			auto data = m_output->getBuffer(chunk.size());
