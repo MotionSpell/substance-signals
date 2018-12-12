@@ -80,7 +80,7 @@ void declarePipeline(Config cfg, Pipeline &pipeline, const char *url) {
 	if(demuxer->getNumOutputs() == 0)
 		throw std::runtime_error("No streams found");
 
-	for (int k = 0; k < (int)demuxer->getNumOutputs(); ++k) {
+	for (int k = 0; k < demuxer->getNumOutputs(); ++k) {
 		auto metadata = demuxer->getOutputMetadata(k);
 		if(!metadata) {
 			g_Log->log(Debug, format("Ignoring stream #%s (no metadata)", k).c_str());

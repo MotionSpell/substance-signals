@@ -69,7 +69,7 @@ unittest("pipeline: pipeline with split (no join)") {
 	Pipeline p;
 	auto src = p.addModule<Split>();
 	ASSERT(src->getNumOutputs() >= 2);
-	for (int i = 0; i < (int)src->getNumOutputs(); ++i) {
+	for (int i = 0; i < src->getNumOutputs(); ++i) {
 		auto passthru = p.addModule<Passthru>();
 		p.connect(GetOutputPin(src, i), passthru);
 		auto sink = p.addModule<FakeSink>();
@@ -85,7 +85,7 @@ unittest("pipeline: pipeline with split (join)") {
 	auto src = p.addModule<Split>();
 	ASSERT(src->getNumOutputs() >= 2);
 	auto sink = p.addModule<FakeSink>();
-	for (int i = 0; i < (int)src->getNumOutputs(); ++i) {
+	for (int i = 0; i < src->getNumOutputs(); ++i) {
 		auto passthru = p.addModule<Passthru>();
 		p.connect(GetOutputPin(src, i), passthru);
 		p.connect(passthru, sink, true);
