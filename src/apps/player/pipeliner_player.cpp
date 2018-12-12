@@ -5,6 +5,7 @@
 // modules
 #include "lib_media/demux/dash_demux.hpp"
 #include "lib_media/demux/libav_demux.hpp"
+#include "lib_media/demux/HlsDemuxer/hls_demux.hpp"
 #include "lib_media/demux/TsDemuxer/ts_demuxer.hpp"
 #include "lib_media/in/mpeg_dash_input.hpp"
 #include "lib_media/in/video_generator.hpp"
@@ -18,6 +19,10 @@ namespace {
 
 bool startsWith(std::string s, std::string prefix) {
 	return s.substr(0, prefix.size()) == prefix;
+}
+
+bool endsWith(std::string s, std::string suffix) {
+	return s.substr(s.size() - suffix.size(), suffix.size()) == suffix;
 }
 
 IFilter* createRenderer(Pipeline& pipeline, Config cfg, int codecType) {
@@ -46,6 +51,15 @@ IFilter* createDemuxer(Pipeline& pipeline, std::string url) {
 	}
 	if(startsWith(url, "videogen://")) {
 		return pipeline.addModule<In::VideoGenerator>();
+	}
+	if(startsWith(url, "http://") && endsWith(url, ".m3u8")) {
+		HlsDemuxConfig hlsCfg;
+		hlsCfg.url = url;
+		auto recv = pipeline.add("HlsDemuxer", &hlsCfg);
+		TsDemuxerConfig tsCfg {};
+		auto demux = pipeline.add("TsDemuxer", &tsCfg);
+		pipeline.connect(recv, demux);
+		return demux;
 	}
 	if(startsWith(url, "http://")) {
 		DashDemuxConfig cfg;
