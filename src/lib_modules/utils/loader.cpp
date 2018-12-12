@@ -12,8 +12,8 @@ namespace Modules {
 static string locatePlugin(const char* name) {
 
 	vector<string> candidatePath = {
-		name,
-		thisExeDir() + name,
+		string("./") + name, // search in the current directory
+		thisExeDir() + name, // search in the exe's directory
 	};
 
 	for(auto path : candidatePath) {
