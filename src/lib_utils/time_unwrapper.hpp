@@ -9,8 +9,23 @@ struct TimeUnwrapper {
 			m_when = time;
 		}
 
-		while(time < m_when - WRAP_PERIOD/2)
-			time += WRAP_PERIOD;
+		const int64_t candidates[] = {
+			(m_when/WRAP_PERIOD) * WRAP_PERIOD + time - WRAP_PERIOD,
+			(m_when/WRAP_PERIOD) * WRAP_PERIOD + time,
+			(m_when/WRAP_PERIOD) * WRAP_PERIOD + time + WRAP_PERIOD,
+		};
+
+		int64_t best;
+		int64_t bestDist = INT64_MAX;
+		for(auto cand : candidates) {
+			auto dist = abs(cand - m_when);
+			if(dist < bestDist) {
+				bestDist = dist;
+				best = cand;
+			}
+		}
+
+		time = best;
 
 		if(time > m_when)
 			m_when = time;
