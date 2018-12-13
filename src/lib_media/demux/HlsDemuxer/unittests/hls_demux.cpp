@@ -12,7 +12,7 @@ using namespace Modules;
 using namespace In;
 
 namespace {
-struct LocalFileSystem : IFilePuller {
+struct MemoryFileSystem : IFilePuller {
 	vector<uint8_t> get(const char* szUrl) override {
 		auto url = string(szUrl);
 		requests.push_back(url);
@@ -28,7 +28,7 @@ struct LocalFileSystem : IFilePuller {
 }
 
 unittest("hls demux: download main playlist") {
-	LocalFileSystem fs;
+	MemoryFileSystem fs;
 	fs.resources["http://test.com/playlist.m3u8"] = R"(
 #EXTM3U
 sub.m3u8
