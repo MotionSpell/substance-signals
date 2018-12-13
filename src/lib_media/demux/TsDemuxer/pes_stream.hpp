@@ -21,6 +21,8 @@ Metadata createMetadata(int mpegStreamType) {
 	case 0x02: return make(VIDEO_PKT, "mpeg2video");
 	case 0x03: return make(AUDIO_PKT, "mp1");
 	case 0x04: return make(AUDIO_PKT, "mp2");
+	case 0x0f: return make(AUDIO_PKT, "aac");
+	case 0x11: return make(AUDIO_PKT, "aac_latm");
 	case 0x1b: return make(VIDEO_PKT, "h264");
 	case 0x24: return make(VIDEO_PKT, "hevc");
 	default: return nullptr; // unknown stream type
