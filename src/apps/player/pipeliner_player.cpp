@@ -1,6 +1,7 @@
 #include "pipeliner_player.hpp"
 #include "lib_pipeline/pipeline.hpp"
 #include "lib_modules/utils/loader.hpp"
+#include <fstream>
 
 // modules
 #include "lib_media/demux/dash_demux.hpp"
@@ -16,6 +17,23 @@ using namespace Modules;
 using namespace Pipelines;
 
 namespace {
+
+struct LocalFileSystem : In::IFilePuller {
+	std::vector<uint8_t> get(const char* szUrl) override {
+		printf("LocalFileSystem: get('%s')\n", szUrl);
+		std::ifstream fp(szUrl, std::ios::binary);
+		if(!fp.is_open())
+			return {};
+
+		fp.seekg(0, std::ios::end);
+		auto const size = fp.tellg();
+		fp.seekg(0, std::ios::beg);
+
+		std::vector<uint8_t> buf(size);
+		fp.read((char*)buf.data(), buf.size());
+		return buf;
+	}
+};
 
 bool startsWith(std::string s, std::string prefix) {
 	return s.substr(0, prefix.size()) == prefix;
@@ -52,8 +70,12 @@ IFilter* createDemuxer(Pipeline& pipeline, std::string url) {
 	if(startsWith(url, "videogen://")) {
 		return pipeline.addModule<In::VideoGenerator>();
 	}
-	if(startsWith(url, "http://") && endsWith(url, ".m3u8")) {
+	if(endsWith(url, ".m3u8")) {
 		HlsDemuxConfig hlsCfg;
+		if(!startsWith(url, "http://")) {
+			static LocalFileSystem fs;
+			hlsCfg.filePuller = &fs;
+		}
 		hlsCfg.url = url;
 		auto recv = pipeline.add("HlsDemuxer", &hlsCfg);
 		TsDemuxerConfig tsCfg {};
