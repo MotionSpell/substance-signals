@@ -34,11 +34,6 @@ struct KHost {
 	virtual void log(int level, char const* msg) = 0;
 };
 
-struct NullHostType : KHost {
-	void log(int, char const*) override;
-};
-
-static NullHostType NullHost;
 }
 
 // This is how the framework sees custom module implementations.

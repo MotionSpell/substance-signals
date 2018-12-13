@@ -1,6 +1,7 @@
 #include "lib_media/demux/HlsDemuxer/hls_demux.hpp"
 #include "tests/tests.hpp"
 #include "lib_modules/utils/loader.hpp"
+#include "lib_modules/utils/helper.hpp" // NullHost
 #include <vector>
 #include <map>
 #include <string>

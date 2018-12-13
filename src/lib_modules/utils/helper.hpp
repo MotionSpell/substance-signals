@@ -149,4 +149,9 @@ void ConnectOutput(IModule* sender, Lambda f) {
 	Connect(sender->getOutput(0)->getSignal(), f);
 }
 
+struct NullHostType : KHost {
+	void log(int, char const*) override;
+};
+
+static NullHostType NullHost;
 }
