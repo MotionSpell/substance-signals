@@ -9,6 +9,7 @@
 #include "lib_media/common/metadata.hpp"
 #include "lib_utils/log_sink.hpp" // Error
 #include "lib_utils/format.hpp"
+#include "lib_utils/time_unwrapper.hpp"
 #include <vector>
 using namespace std;
 
@@ -20,6 +21,7 @@ using namespace Modules;
 
 namespace {
 
+auto const PTS_PERIOD = 1LL << 33;
 auto const TS_PACKET_LEN = 188;
 auto const PID_PAT = 0;
 
@@ -28,6 +30,7 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::Restamper {
 			: m_host(host) {
 
 			addInput(this);
+			m_unwrapper.WRAP_PERIOD = PTS_PERIOD;
 
 			m_streams.push_back(make_unique<PsiStream>(PID_PAT, m_host, this));
 
@@ -82,14 +85,7 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::Restamper {
 		// PesStream::Restamper implementation
 		void restamp(int64_t& pts) override {
 
-			// unroll PTS: ensure it's not too far from the last unrolled PTS
-			{
-				auto const PTS_PERIOD = 1LL << 33;
-				while(pts < (m_lastUnrolledPts-PTS_PERIOD/2))
-					pts += PTS_PERIOD;
-
-				m_lastUnrolledPts = pts;
-			}
+			pts = m_unwrapper.unwrap(pts);
 
 			// make the timestamp start from zero
 			{
@@ -188,7 +184,7 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::Restamper {
 		KHost* const m_host;
 		vector<unique_ptr<Stream>> m_streams;
 		int64_t m_ptsOrigin = INT64_MAX;
-		int64_t m_lastUnrolledPts = 0;
+		TimeUnwrapper m_unwrapper;
 };
 
 Modules::IModule* createObject(KHost* host, void* va) {
