@@ -19,6 +19,12 @@ static vector<int64_t> unwrapSequence(vector<int64_t> seq) {
 	return r;
 }
 
+unittest("time_unwrapper: 64-bit wrap period") {
+	TimeUnwrapper unwrapper;
+	unwrapper.WRAP_PERIOD = 1LL << 50;
+	ASSERT_EQUALS(0, unwrapper.unwrap(0));
+}
+
 unittest("time_unwrapper: monotonic passthrough") {
 	auto expected = vector<int64_t>({0, 1, 2, 3, 4});
 	ASSERT_EQUALS(expected, unwrapSequence({0, 1, 2, 3, 4}));

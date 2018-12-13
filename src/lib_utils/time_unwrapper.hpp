@@ -15,10 +15,10 @@ struct TimeUnwrapper {
 			(m_when/WRAP_PERIOD) * WRAP_PERIOD + time + WRAP_PERIOD,
 		};
 
-		int64_t best;
+		int64_t best = INT64_MAX;
 		int64_t bestDist = INT64_MAX;
 		for(auto cand : candidates) {
-			auto dist = abs(cand - m_when);
+			auto dist = std::abs(cand - m_when);
 			if(dist < bestDist) {
 				bestDist = dist;
 				best = cand;
