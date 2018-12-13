@@ -43,7 +43,7 @@ class OutputDataDefault : public IOutput, public MetadataCap {
 			allocator->unblock();
 		}
 
-		void emit(Data data) override {
+		void post(Data data) override {
 			updateMetadata(data);
 			signal.emit(data);
 		}

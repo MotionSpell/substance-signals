@@ -156,7 +156,7 @@ struct PesStream : Stream {
 			}
 			buf->set(CueFlags{});
 			memcpy(buf->data().ptr, pesBuffer.data()+r.byteOffset(),pesPayloadSize);
-			m_output->emit(buf);
+			m_output->post(buf);
 		}
 
 		bool setType(int mpegStreamType) {

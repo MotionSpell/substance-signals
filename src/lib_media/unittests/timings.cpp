@@ -93,7 +93,7 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 		}
 		void process(Data data) override {
 			if ((i++ % 5) && (data->getMediaTime() < maxDurIn180k)) {
-				output->emit(data);
+				output->post(data);
 			}
 		}
 		uint64_t i = 0;

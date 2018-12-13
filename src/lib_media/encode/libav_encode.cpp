@@ -244,7 +244,7 @@ struct LibavEncode : ModuleS {
 
 				out->setMediaTime(out->getPacket()->pts);
 				out->set(DecodingTime { out->getPacket()->dts });
-				output->emit(out);
+				output->post(out);
 			}
 		}
 

@@ -55,7 +55,7 @@ class GPACDemuxMP4Simple : public ActiveModule {
 				auto out = output->getBuffer(ISOSample->dataLength);
 				memcpy(out->data().ptr, ISOSample->data, ISOSample->dataLength);
 				out->setMediaTime(ISOSample->DTS + DTSOffset + ISOSample->CTS_Offset, reader->movie->getMediaTimescale(reader->trackNumber));
-				output->emit(out);
+				output->post(out);
 			} catch (gpacpp::Error const& err) {
 				if (err.error_ == GF_ISOM_INCOMPLETE_FILE) {
 					u64 missingBytes = reader->movie->getMissingBytes(reader->trackNumber);

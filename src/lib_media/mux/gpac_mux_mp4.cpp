@@ -929,7 +929,7 @@ void GPACMuxMP4::sendSegmentToOutput(bool EOS) {
 	//FIXME: this mediaTime is already shifted by the absolute start time (also shifted according the edit lists)
 	auto const curSegmentStartInTs = m_DTS - curSegmentDurInTs;
 	out->setMediaTime(rescale(firstDataAbsTimeInMs, 1000, timeScale) + curSegmentStartInTs, timeScale);
-	output->emit(out);
+	output->post(out);
 
 	if (segmentPolicy == IndependentSegment) {
 		gf_isom_delete(isoCur);

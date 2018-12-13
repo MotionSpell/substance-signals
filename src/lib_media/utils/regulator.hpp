@@ -21,7 +21,7 @@ class Regulator : public ModuleS {
 			} else if (delayInMs + REGULATION_TOLERANCE_IN_MS < 0) {
 				m_host->log(dataTime > 0 ? Warning : Debug, format("received data for time %ss is late from %sms", dataTime / (double)IClock::Rate, -delayInMs).c_str());
 			}
-			getOutput(0)->emit(data);
+			getOutput(0)->post(data);
 		}
 
 		std::shared_ptr<IClock> const clock;

@@ -15,7 +15,7 @@ class FakeOutput : public Module {
 		}
 		void process() {
 			auto data = output->getBuffer(0);
-			output->emit(data);
+			output->post(data);
 		}
 		void setMetadata(std::shared_ptr<const IMetadata> metadata) {
 			output->setMetadata(metadata);

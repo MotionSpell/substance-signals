@@ -202,7 +202,7 @@ void HTTP::flush() {
 	m_sender->send(nullptr);
 
 	auto out = outputFinished->getBuffer(0);
-	outputFinished->emit(out);
+	outputFinished->post(out);
 }
 
 void HTTP::process(Data data) {

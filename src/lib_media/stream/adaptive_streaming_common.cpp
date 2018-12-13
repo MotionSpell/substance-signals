@@ -83,7 +83,7 @@ void AdaptiveStreamingCommon::processInitSegment(Quality const * const quality, 
 
 		out->setMetadata(metaFn);
 		out->setMediaTime(totalDurationInMs, 1000);
-		outputSegments->emit(out);
+		outputSegments->post(out);
 		break;
 	}
 	default: break;
@@ -217,7 +217,7 @@ void AdaptiveStreamingCommon::threadProc() {
 
 			out->setMetadata(metaFn);
 			out->setMediaTime(totalDurationInMs + timescaleToClock(curSegDurIn180k[i], 1000));
-			outputSegments->emit(out);
+			outputSegments->post(out);
 		}
 	};
 	auto segmentReady = [&]()->bool {

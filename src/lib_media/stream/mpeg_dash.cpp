@@ -203,7 +203,7 @@ class MPEG_DASH : public AdaptiveStreamingCommon, public gpacpp::Init {
 			out->setMetadata(metadata);
 			out->setMediaTime(totalDurationInMs, 1000);
 			memcpy(out->data().ptr, contents.data(), contents.size());
-			outputManifest->emit(out);
+			outputManifest->post(out);
 		}
 
 		std::string getPrefixedSegmentName(DASHQuality const * const quality, size_t index, u64 segmentNum) const {
@@ -271,7 +271,7 @@ class MPEG_DASH : public AdaptiveStreamingCommon, public gpacpp::Init {
 						throw error("Unexpected null pointer detected which getting data.");
 					out->setMetadata(metaFn);
 					out->setMediaTime(totalDurationInMs, 1000);
-					outputSegments->emit(out);
+					outputSegments->post(out);
 
 					if (!fnNext.empty()) {
 						auto out = getPresignalledData(0, quality->lastData, false);
@@ -281,7 +281,7 @@ class MPEG_DASH : public AdaptiveStreamingCommon, public gpacpp::Init {
 							meta->EOS = false;
 							out->setMetadata(meta);
 							out->setMediaTime(totalDurationInMs, 1000);
-							outputSegments->emit(out);
+							outputSegments->post(out);
 						}
 					}
 				}

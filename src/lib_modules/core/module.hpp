@@ -26,7 +26,7 @@ struct KInput {
 
 struct KOutput {
 	virtual ~KOutput() = default;
-	virtual void emit(Data data) = 0;
+	virtual void post(Data data) = 0;
 };
 
 struct KHost {

@@ -39,7 +39,7 @@ void Repeater::threadProc() {
 		auto const now = high_resolution_clock::now();
 		auto const waitTimeInMs = (duration_cast<milliseconds>(now - lastNow)).count();
 		if (waitTimeInMs > periodInMs) {
-			if (lastData) outputs[0]->emit(lastData);
+			if (lastData) outputs[0]->post(lastData);
 			lastNow = high_resolution_clock::now();
 		}
 	}
@@ -47,7 +47,7 @@ void Repeater::threadProc() {
 
 void Repeater::process(Data data) {
 	lastData = data;
-	outputs[0]->emit(lastData);
+	outputs[0]->post(lastData);
 	lastNow = high_resolution_clock::now();
 }
 

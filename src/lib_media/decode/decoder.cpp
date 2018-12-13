@@ -197,7 +197,7 @@ struct Decoder : ModuleS, PictureAllocator {
 
 				auto data = getDecompressedData();
 				setMediaTime(data.get());
-				outputs[0]->emit(data);
+				outputs[0]->post(data);
 			}
 		}
 

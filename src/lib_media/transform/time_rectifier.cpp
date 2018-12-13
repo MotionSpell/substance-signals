@@ -143,7 +143,7 @@ size_t TimeRectifier::getMasterStreamId() const {
 	return 0;
 }
 
-// emit one "media period" on every output
+// post one "media period" on every output
 void TimeRectifier::emitOnePeriod(Fraction time) {
 	std::unique_lock<std::mutex> lock(inputMutex);
 	discardOutdatedData(fractionToClock(time) - analyzeWindowIn180k);
@@ -171,7 +171,7 @@ void TimeRectifier::emitOnePeriod(Fraction time) {
 		auto data = make_shared<DataBaseRef>(refData);
 		data->setMediaTime(fractionToClock(Fraction(master.numTicks++ * frameRate.den, frameRate.num)));
 		m_host->log(TR_DEBUG, format("Video: send[%s:%s] t=%s (data=%s) (ref %s)", i, master.data.size(), data->getMediaTime(), data->getMediaTime(), refData->getMediaTime()).c_str());
-		outputs[i]->emit(data);
+		outputs[i]->post(data);
 		discardStreamOutdatedData(i, data->getMediaTime());
 	}
 
@@ -198,7 +198,7 @@ void TimeRectifier::emitOnePeriod(Fraction time) {
 				auto data = make_shared<DataBaseRef>(selectedData);
 				data->setMediaTime(fractionToClock(Fraction(streams[i].numTicks++ * audioData->getPlaneSize(0) / audioData->getFormat().getBytesPerSample(), audioData->getFormat().sampleRate)));
 				m_host->log(TR_DEBUG, format("Other: send[%s:%s] t=%s (data=%s) (ref=%s)", i, streams[i].data.size(), data->getMediaTime(), data->getMediaTime(), masterTime).c_str());
-				outputs[i]->emit(data);
+				outputs[i]->post(data);
 				discardStreamOutdatedData(i, data->getMediaTime());
 			}
 			break;

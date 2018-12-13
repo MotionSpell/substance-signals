@@ -151,7 +151,7 @@ void Filter::endOfStream() {
 		delegate->flush();
 
 		for (int i = 0; i < delegate->getNumOutputs(); ++i) {
-			delegate->getOutput(i)->emit(nullptr);
+			delegate->getOutput(i)->post(nullptr);
 		}
 
 		if (connections) {

@@ -62,7 +62,7 @@ class VideoConvert : public ModuleS {
 			sws_scale(m_SwContext, srcSlice, srcStride, 0, srcFormat.res.height, pDst, dstStride);
 
 			pic->setMediaTime(data->getMediaTime());
-			output->emit(pic);
+			output->post(pic);
 		}
 
 	private:

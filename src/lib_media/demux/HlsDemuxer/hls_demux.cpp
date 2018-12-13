@@ -64,7 +64,7 @@ class HlsDemuxer : public ActiveModule {
 			auto data = m_output->getBuffer(chunk.size());
 			if(chunk.size())
 				memcpy(data->data().ptr, chunk.data(), chunk.size());
-			m_output->emit(data);
+			m_output->post(data);
 
 			return true;
 		}

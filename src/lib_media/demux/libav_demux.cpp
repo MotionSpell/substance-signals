@@ -404,7 +404,7 @@ struct LibavDemux : ActiveModule {
 		out->set(flags);
 
 		setTimestamp(out);
-		output->emit(out);
+		output->post(out);
 		sparseStreamsHeartbeat(outPkt);
 	}
 
@@ -430,7 +430,7 @@ struct LibavDemux : ActiveModule {
 				if (st->codecpar->codec_type == AVMEDIA_TYPE_SUBTITLE) {
 					auto sparse = m_streams[i].output->getBuffer(0);
 					sparse->setMediaTime(curTimeIn180k);
-					m_streams[i].output->emit(sparse);
+					m_streams[i].output->post(sparse);
 				}
 			}
 		}

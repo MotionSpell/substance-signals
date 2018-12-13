@@ -109,7 +109,7 @@ void LibavFilter::process(Data data) {
 		auto pic = DataPicture::create(output, Resolution(avFrameIn->get()->width, avFrameIn->get()->height), libavPixFmt2PixelFormat((AVPixelFormat)avFrameIn->get()->format));
 		copyToPicture(avFrameOut->get(), pic.get());
 		pic->setMediaTime(av_rescale_q(avFrameOut->get()->pts, buffersink_ctx->inputs[0]->time_base, buffersrc_ctx->outputs[0]->time_base));
-		outputs[0]->emit(pic);
+		outputs[0]->post(pic);
 		av_frame_unref(avFrameOut->get());
 	}
 	av_frame_unref(avFrameIn->get());

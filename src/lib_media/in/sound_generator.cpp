@@ -48,7 +48,7 @@ bool SoundGenerator::work() {
 		p[i*bytesPerSample+3] = (val >> 8) & 0xFF;
 	}
 
-	output->emit(out);
+	output->post(out);
 	return false;
 }
 

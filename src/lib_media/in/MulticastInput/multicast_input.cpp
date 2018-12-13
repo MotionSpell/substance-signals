@@ -26,7 +26,7 @@ struct MulticastInput : ActiveModule {
 		auto size = m_socket->receive(buf->data().ptr, buf->data().len);
 		if(size > 0) {
 			buf->resize(size);
-			m_output->emit(buf);
+			m_output->post(buf);
 		}
 
 		return true;

@@ -143,7 +143,7 @@ struct AudioConvert : ModuleS {
 				out->setMediaTime(accumulatedTimeIn180k);
 				accumulatedTimeInDstSR += dstNumSamples;
 
-				output->emit(out);
+				output->post(out);
 				out = nullptr;
 				if (m_Swr->getDelay(dstPcmFormat.sampleRate) >= dstNumSamples) { //accumulated more than one output buffer: flush.
 					process(nullptr);

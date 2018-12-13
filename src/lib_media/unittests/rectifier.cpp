@@ -101,7 +101,7 @@ struct DataGenerator : public ModuleS, public virtual IOutputCap {
 			dataPcm->setPlane(0, nullptr, 1024 * dataPcm->getFormat().getBytesPerSample());
 		}
 		data->setMediaTime(dataIn->getMediaTime());
-		output->emit(data);
+		output->post(data);
 	}
 	PORT *output;
 };

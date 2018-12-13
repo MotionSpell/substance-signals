@@ -36,7 +36,7 @@ bool File::work() {
 		return false;
 	}
 	out->resize(read);
-	output->emit(out);
+	output->post(out);
 	return true;
 }
 

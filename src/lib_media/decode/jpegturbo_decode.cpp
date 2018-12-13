@@ -66,7 +66,7 @@ void JPEGTurboDecode::process(Data data_) {
 	}
 	ensureMetadata(w, h, pixelFmt);
 	out->setMediaTime(data->getMediaTime());
-	output->emit(out);
+	output->post(out);
 }
 
 IModule* createObject(KHost* host, void* va) {

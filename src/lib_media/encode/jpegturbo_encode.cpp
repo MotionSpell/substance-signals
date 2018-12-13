@@ -86,7 +86,7 @@ void JPEGTurboEncode::process(Data data_) {
 
 	out->resize(jpegSize);
 	out->setMediaTime(data_->getMediaTime());
-	output->emit(out);
+	output->post(out);
 }
 
 IModule* createObject(KHost* host, void* va) {

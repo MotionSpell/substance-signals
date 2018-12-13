@@ -41,7 +41,7 @@ void AudioGapFiller::process(Data data) {
 
 	auto dataOut = make_shared<DataBaseRef>(data);
 	dataOut->setMediaTime(accumulatedTimeInSR, sampleRate);
-	output->emit(dataOut);
+	output->post(dataOut);
 
 	accumulatedTimeInSR += srcNumSamples;
 }

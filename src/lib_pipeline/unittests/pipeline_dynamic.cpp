@@ -14,7 +14,7 @@ struct Source : Modules::ActiveModule {
 		out = addOutput<Modules::OutputDefault>();
 	}
 	bool work() {
-		out->emit(out->getBuffer(0));
+		out->post(out->getBuffer(0));
 		return !sent;
 	}
 	bool &sent;

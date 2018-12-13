@@ -81,7 +81,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 						}
 						out->setMetadata(metadata);
 
-						outputSegment->emit(out);
+						outputSegment->post(out);
 					}
 
 					{
@@ -91,7 +91,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 						metadata->filename = hlsDir + segBasename + ".m3u8";
 
 						out->setMetadata(metadata);
-						outputManifest->emit(out);
+						outputManifest->post(out);
 					}
 
 					segIdx++;

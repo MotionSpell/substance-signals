@@ -72,7 +72,7 @@ void AVCC2AnnexBConverter::process(Data in) {
 
 	out->setMetadata(in->getMetadata());
 	out->setMediaTime(in->getMediaTime());
-	output->emit(out);
+	output->post(out);
 }
 
 }

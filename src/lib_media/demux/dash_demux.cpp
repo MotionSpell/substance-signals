@@ -18,7 +18,7 @@ struct OutStub : ModuleS {
 			addInput(this);
 		}
 		void process(Data data) override {
-			output->emit(data);
+			output->post(data);
 		}
 
 	private:

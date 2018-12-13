@@ -22,7 +22,7 @@ struct InfiniteSource : Modules::ActiveModule {
 		out = addOutput<Modules::OutputDefault>();
 	}
 	bool work() {
-		out->emit(out->getBuffer(0));
+		out->post(out->getBuffer(0));
 		return true;
 	}
 	Modules::OutputDefault* out;
@@ -33,7 +33,7 @@ struct FakeSource : Modules::ActiveModule {
 		out = addOutput<Modules::OutputDefault>();
 	}
 	bool work() {
-		out->emit(out->getBuffer(0));
+		out->post(out->getBuffer(0));
 		return --numRepetition > 0;
 	}
 	int numRepetition;
@@ -60,7 +60,7 @@ class DualInput : public Modules::Module {
 			if (!done) {
 				input0->pop();
 				input1->pop();
-				out->emit(out->getBuffer(0));
+				out->post(out->getBuffer(0));
 			}
 
 			done = true;

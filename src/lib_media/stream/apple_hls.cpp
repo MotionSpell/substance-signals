@@ -126,7 +126,7 @@ void Apple_HLS::generateManifestMaster() {
 
 			out->setMetadata(metadata);
 			out->setMediaTime(totalDurationInMs, 1000);
-			outputManifest->emit(out);
+			outputManifest->post(out);
 		}
 	}
 }
@@ -171,7 +171,7 @@ void Apple_HLS::updateManifestVariants() {
 				out->setMetadata(file);
 			}
 			out->setMediaTime(totalDurationInMs, 1000);
-			outputSegments->emit(out);
+			outputSegments->post(out);
 
 			if (flags & PresignalNextSegment) {
 				if (quality->segments.empty()) {
@@ -259,7 +259,7 @@ void Apple_HLS::generateManifestVariantFull(bool isLast) {
 			}
 
 			out->setMediaTime(totalDurationInMs, 1000);
-			outputManifest->emit(out);
+			outputManifest->post(out);
 		}
 	}
 }

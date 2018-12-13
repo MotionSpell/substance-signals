@@ -134,7 +134,7 @@ bool VideoGenerator::work() {
 	static_assert(IClock::Rate % FRAMERATE == 0, "Framerate must be a divisor of IClock::Rate");
 	pic->setMediaTime(m_numFrames * framePeriodIn180k);
 
-	output->emit(pic);
+	output->post(pic);
 
 	++m_numFrames;
 	return true;
