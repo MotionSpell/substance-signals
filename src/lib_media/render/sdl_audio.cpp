@@ -93,7 +93,7 @@ struct SDLAudio : ModuleS {
 
 		m_outputFormat = toPcmFormat(realSpec);
 
-		auto cfg = AudioConvertConfig { {}, m_outputFormat, -1 };
+		auto cfg = AudioConvertConfig { {0}, m_outputFormat, -1 };
 		m_converter = loadModule("AudioConvert", m_host, &cfg);
 		m_LatencyIn180k = timescaleToClock((uint64_t)realSpec.samples, realSpec.freq);
 		m_host->log(Info, format("%s Hz %s ms", realSpec.freq, m_LatencyIn180k * 1000.0f / IClock::Rate).c_str());
