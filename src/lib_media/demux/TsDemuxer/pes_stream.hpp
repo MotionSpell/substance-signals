@@ -122,6 +122,7 @@ struct PesStream : Stream {
 			int64_t dts = pts;
 
 			if(PTS_DTS_indicator & 0b01) {
+				dts = 0;
 				/*auto const reservedBits =*/ r.u(4); // 0b0010
 				dts |= r.u(3); // PTS [32..30]
 				/*auto marker_bit0 =*/ r.u(1);
