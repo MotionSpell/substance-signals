@@ -116,7 +116,7 @@ struct PictureNV12 : DataPicture {
 };
 
 struct PictureNV12P010LE : DataPicture {
-	PictureNV12P010LE(const Resolution &res) : DataPicture(res, PixelFormat::NV12P010LE) {
+	PictureNV12P010LE(Resolution res) : DataPicture(res, PixelFormat::NV12P010LE) {
 		setInternalResolution(res);
 		setVisibleResolution(res);
 	}
