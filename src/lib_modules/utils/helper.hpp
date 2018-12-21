@@ -91,12 +91,6 @@ class Module : public IModule, public ErrorCap {
 			outputs.push_back(uptr(p));
 			return p;
 		}
-		template <typename InstanceType, typename ...Args>
-		InstanceType* addOutputDynAlloc(size_t allocatorMaxSize, Args&&... args) {
-			auto p = new InstanceType(allocatorMaxSize, std::forward<Args>(args)...);
-			outputs.push_back(uptr(p));
-			return p;
-		}
 		int getNumOutputs() const override {
 			return (int)outputs.size();
 		}

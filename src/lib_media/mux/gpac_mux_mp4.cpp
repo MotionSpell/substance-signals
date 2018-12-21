@@ -427,11 +427,13 @@ GPACMuxMP4::GPACMuxMP4(KHost* host, Mp4MuxConfig const& cfg)
 		throw error(format("Cannot make iso file %s interleaved", baseName));
 
 	addInput(this);
+
 	if (compatFlags & FlushFragMemory) {
-		output = addOutputDynAlloc<OutputDataDefault<DataRaw>>(100 * ALLOC_NUM_BLOCKS_DEFAULT); //TODO: retrieve framerate, and multiply the allocator size
-	} else {
-		output = addOutput<OutputDataDefault<DataRaw>>();
+		//TODO: retrieve framerate, and multiply the allocator size
+		this->allocatorSize = 100 * ALLOC_NUM_BLOCKS_DEFAULT;
 	}
+
+	output = addOutput<OutputDataDefault<DataRaw>>();
 }
 
 GPACMuxMP4::~GPACMuxMP4() {
