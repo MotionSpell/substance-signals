@@ -17,6 +17,7 @@ namespace Modules {
 
 class DataBase;
 typedef std::shared_ptr<const DataBase> Data;
+typedef std::shared_ptr<const IMetadata> Metadata;
 
 // This is how user modules see the outside world.
 // 'K' interfaces are called by the user module implementations.
@@ -24,13 +25,13 @@ struct KInput {
 	virtual ~KInput() = default;
 	virtual Data pop() = 0;
 	virtual bool tryPop(Data &value) = 0;
-	virtual void setMetadata(std::shared_ptr<const IMetadata> metadata) = 0;
+	virtual void setMetadata(Metadata metadata) = 0;
 };
 
 struct KOutput {
 	virtual ~KOutput() = default;
 	virtual void post(Data data) = 0;
-	virtual void setMetadata(std::shared_ptr<const IMetadata> metadata) = 0;
+	virtual void setMetadata(Metadata metadata) = 0;
 };
 
 struct KHost {
