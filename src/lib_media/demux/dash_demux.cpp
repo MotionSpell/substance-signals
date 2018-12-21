@@ -14,7 +14,7 @@ using namespace Transform;
 namespace {
 
 struct OutStub : ModuleS {
-		OutStub(KHost*, OutputDefault *output) : output(output) {
+		OutStub(KHost*, KOutput *output) : output(output) {
 			addInput(this);
 		}
 		void process(Data data) override {
@@ -22,7 +22,7 @@ struct OutStub : ModuleS {
 		}
 
 	private:
-		OutputDefault *output;
+		KOutput *output;
 };
 
 class DashDemuxer : public ActiveModule {

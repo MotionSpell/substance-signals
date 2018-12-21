@@ -14,7 +14,7 @@ class AudioGapFiller : public ModuleS {
 	private:
 		KHost* const m_host;
 		uint64_t toleranceInFrames, accumulatedTimeInSR = std::numeric_limits<uint64_t>::max();
-		OutputPcm *output;
+		KOutput *output;
 };
 
 }
