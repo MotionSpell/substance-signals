@@ -11,7 +11,7 @@ namespace Transform {
 Restamp::Restamp(KHost* host, Mode mode, int64_t offsetIn180k)
 	: m_host(host), offset(offsetIn180k), mode(mode) {
 	addInput(this);
-	addOutput<OutputDefault>();
+	output = addOutput<OutputDefault>();
 }
 
 Restamp::~Restamp() {
@@ -59,7 +59,7 @@ void Restamp::process(Data data) {
 	m_host->log(((time != 0) && (time + offset < 0)) ? Info : Debug, format("%s -> %ss (time=%s, offset=%s)", (double)time / IClock::Rate, (double)(restampedTime) / IClock::Rate, time, offset).c_str());
 	auto dataOut = make_shared<DataBaseRef>(data);
 	dataOut->setMediaTime(restampedTime);
-	getOutput(0)->post(dataOut);
+	output->post(dataOut);
 }
 
 }

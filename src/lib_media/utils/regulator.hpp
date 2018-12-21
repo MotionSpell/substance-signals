@@ -9,7 +9,7 @@ class Regulator : public ModuleS {
 		Regulator(KHost* host, std::shared_ptr<IClock> clock_)
 			: clock(clock_), m_host(host) {
 			addInput(this);
-			addOutput<OutputDefault>();
+			m_output = addOutput<OutputDefault>();
 		}
 
 		void process(Data data) override {
@@ -21,7 +21,7 @@ class Regulator : public ModuleS {
 			} else if (delayInMs + REGULATION_TOLERANCE_IN_MS < 0) {
 				m_host->log(dataTime > 0 ? Warning : Debug, format("received data for time %ss is late from %sms", dataTime / (double)IClock::Rate, -delayInMs).c_str());
 			}
-			getOutput(0)->post(data);
+			m_output->post(data);
 		}
 
 		std::shared_ptr<IClock> const clock;
@@ -30,6 +30,7 @@ class Regulator : public ModuleS {
 
 	private:
 		KHost* const m_host;
+		KOutput* m_output;
 };
 }
 

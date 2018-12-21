@@ -22,6 +22,7 @@ class Restamp : public ModuleS {
 
 	private:
 		KHost* const m_host;
+		KOutput* output;
 		int64_t offset;
 		Mode mode;
 		bool isInitTime = false;
