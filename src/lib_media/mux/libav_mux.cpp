@@ -56,6 +56,13 @@ class LibavMux : public ModuleDynI {
 		~LibavMux() {
 			assert(m_formatCtx);
 
+			{
+				// HACK: we don't want to flush here, but it's the only way
+				// to free the memory allocated by avformat_write_header.
+				if (!m_flushed && m_headerWritten)
+					av_write_trailer(m_formatCtx);
+			}
+
 			if (!(m_formatCtx->oformat->flags & AVFMT_NOFILE)) {
 				if (!(m_formatCtx->flags & AVFMT_FLAG_CUSTOM_IO)) {
 					avio_close(m_formatCtx->pb); //close output file
