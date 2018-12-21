@@ -10,8 +10,8 @@ class MemberFunctor {
 		}
 
 		template<typename... Args>
-		auto operator()(Args... args) {
-			return (object->*function)(args...);
+		void operator()(Args... args) {
+			(object->*function)(args...);
 		}
 
 	private:
@@ -19,10 +19,10 @@ class MemberFunctor {
 		MemberFunction function;
 };
 
-template<typename Result, typename Class, typename... Args>
-MemberFunctor<Class, Result (Class::*)(Args...)>
-BindMember(Class* objectPtr, Result (Class::*memberFunction) (Args...)) {
-	return MemberFunctor<Class, Result (Class::*)(Args...)>(objectPtr, memberFunction);
+template<typename Class, typename... Args>
+MemberFunctor<Class, void (Class::*)(Args...)>
+BindMember(Class* objectPtr, void (Class::*memberFunction) (Args...)) {
+	return MemberFunctor<Class, void (Class::*)(Args...)>(objectPtr, memberFunction);
 }
 
 template<typename SignalType, typename LambdaType>

@@ -4,6 +4,7 @@
 #include "filter_input.hpp"
 
 using namespace Modules;
+using Signals::IExecutor;
 
 namespace Pipelines {
 

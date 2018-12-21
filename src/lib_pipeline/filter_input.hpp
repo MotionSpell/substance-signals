@@ -13,7 +13,7 @@ namespace Pipelines {
    Data is nullptr at completion. */
 class FilterInput : public IInput {
 	public:
-		FilterInput(IInput *input, const std::string &moduleName, IExecutor* executor, StatsEntry *statsEntry, IPipelineNotifier * const notify)
+		FilterInput(IInput *input, const std::string &moduleName, Signals::IExecutor* executor, StatsEntry *statsEntry, IPipelineNotifier * const notify)
 			: delegate(input), delegateName(moduleName), notify(notify), executor(executor), statsEntry(statsEntry) {
 			strncpy(statsEntry->name, delegateName.c_str(), sizeof(statsEntry->name)-1);
 			statsEntry->name[sizeof(statsEntry->name)-1] = 0;
@@ -72,7 +72,7 @@ class FilterInput : public IInput {
 		IInput *delegate;
 		std::string delegateName;
 		IPipelineNotifier * const notify;
-		IExecutor * const executor;
+		Signals::IExecutor * const executor;
 		decltype(StatsEntry::value) samplingCounter = 0;
 		StatsEntry * const statsEntry;
 		MetadataCap m_metadataCap;

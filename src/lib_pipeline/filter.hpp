@@ -53,7 +53,7 @@ class Filter :
 		LogSink* const m_log;
 		std::string const m_name;
 		std::shared_ptr<IModule> delegate;
-		std::unique_ptr<IExecutor> const executor;
+		std::unique_ptr<Signals::IExecutor> const executor;
 
 		bool started = false;
 		bool stopped = false;

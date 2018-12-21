@@ -2,11 +2,8 @@
 
 #include "module.hpp"
 #include "lib_signals/helper.hpp" // Signals::MemberFunctor
-#include "lib_signals/executor.hpp" // ExecutorSync
 
 namespace Modules {
-
-using Signals::IExecutor;
 
 template<typename Class, typename Function>
 Signals::MemberFunctor<Class, void(Class::*)()>
