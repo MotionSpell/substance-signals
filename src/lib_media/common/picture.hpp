@@ -81,9 +81,9 @@ class DataPicture : public DataRaw {
 			format.res = res;
 		}
 
+	protected:
 		virtual void setPlanesAndStrides(Resolution res) = 0;
 
-	protected:
 		DataPicture(Resolution res, PixelFormat format)
 			: DataRaw(PictureFormat::getSize(res, format)), format(res, format)  {
 		}
