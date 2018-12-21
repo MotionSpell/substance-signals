@@ -65,10 +65,17 @@ class DataPicture : public DataRaw {
 		size_t getSize() const {
 			return format.getSize();
 		}
+		uint8_t* getPlane(int planeIdx) {
+			return m_planes[planeIdx];
+		}
+		const uint8_t* getPlane(int planeIdx) const {
+			return m_planes[planeIdx];
+		}
+		size_t getStride(int planeIdx) const {
+			return m_stride[planeIdx];
+		}
+
 		virtual int getNumPlanes() const = 0;
-		virtual const uint8_t* getPlane(int planeIdx) const = 0;
-		virtual uint8_t* getPlane(int planeIdx) = 0;
-		virtual size_t getStride(int planeIdx) const = 0;
 		virtual void setInternalResolution(Resolution res) = 0;
 		virtual void setVisibleResolution(Resolution res) = 0;
 
@@ -79,6 +86,9 @@ class DataPicture : public DataRaw {
 
 		PictureFormat format;
 		PictureFormat internalFormat /*we might need to store the picture within a wider memory space*/;
+
+		size_t m_stride[4];
+		uint8_t* m_planes[4];
 };
 }
 
