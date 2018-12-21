@@ -28,7 +28,7 @@ bool SoundGenerator::work() {
 
 	auto out = output->getBuffer(0);
 	out->setFormat(pcmFormat);
-	for (uint8_t i = 0; i < pcmFormat.numPlanes; ++i)
+	for (int i = 0; i < pcmFormat.numPlanes; ++i)
 		out->setPlane(i, nullptr, bufferSize / pcmFormat.numPlanes);
 	out->setMediaTime(m_numSamples, pcmFormat.sampleRate);
 

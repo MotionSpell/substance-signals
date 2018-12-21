@@ -105,7 +105,7 @@ struct AudioConvert : ModuleS {
 				auto const dstBufferSize = dstNumSamples * dstPcmFormat.getBytesPerSample();
 				out = output->getBuffer(0);
 				out->setFormat(dstPcmFormat);
-				for (uint8_t i = 0; i < dstPcmFormat.numPlanes; ++i) {
+				for (int i = 0; i < dstPcmFormat.numPlanes; ++i) {
 					out->setPlane(i, nullptr, (size_t)dstBufferSize / dstPcmFormat.numPlanes);
 				}
 			}
@@ -136,7 +136,7 @@ struct AudioConvert : ModuleS {
 				targetNumSamples = dstNumSamples;
 
 				auto const outPlaneSize = dstNumSamples * dstPcmFormat.getBytesPerSample() / dstPcmFormat.numPlanes;
-				for (uint8_t i = 0; i < dstPcmFormat.numPlanes; ++i)
+				for (int i = 0; i < dstPcmFormat.numPlanes; ++i)
 					out->setPlane(i, out->getPlane(i), (size_t)outPlaneSize);
 
 				auto const accumulatedTimeIn180k = timescaleToClock(accumulatedTimeInDstSR, dstPcmFormat.sampleRate);

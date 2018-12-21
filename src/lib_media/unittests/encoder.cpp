@@ -55,7 +55,7 @@ shared_ptr<DataBase> createPcm(int samples) {
 	pcm->setFormat(fmt);
 	std::vector<uint8_t> input(inFrameSizeInBytes);
 	auto inputRaw = input.data();
-	for (uint8_t i = 0; i < fmt.numPlanes; ++i)
+	for (int i = 0; i < fmt.numPlanes; ++i)
 		pcm->setPlane(i, inputRaw, inFrameSizeInBytes);
 	return pcm;
 }

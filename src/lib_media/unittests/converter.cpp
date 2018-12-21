@@ -146,7 +146,7 @@ void framingTest(const size_t inFrameFrames, const size_t outFrameFrames) {
 	for (size_t i = 0; i < inFrameSizeInBytes; ++i) {
 		inputRaw[i] = (uint8_t)(i % modulo);
 	}
-	for (uint8_t i = 0; i < format.numPlanes; ++i) {
+	for (int i = 0; i < format.numPlanes; ++i) {
 		data->setPlane(i, inputRaw, inFrameSizeInBytes);
 	}
 
@@ -207,7 +207,7 @@ unittest("audio gap filler") {
 	auto const numSamples = 1024;
 	const size_t inFrameSizeInBytes = numSamples * format.getBytesPerSample() / format.numPlanes;
 	std::vector<uint8_t> input(inFrameSizeInBytes);
-	for (uint8_t i = 0; i < format.numPlanes; ++i) {
+	for (int i = 0; i < format.numPlanes; ++i) {
 		data->setPlane(i, input.data(), inFrameSizeInBytes);
 	}
 
