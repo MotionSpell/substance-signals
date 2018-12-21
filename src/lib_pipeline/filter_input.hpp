@@ -39,12 +39,12 @@ class FilterInput : public IInput {
 			// receiving 'nullptr' means 'end of stream'
 			if (!data) {
 				g_Log->log(Debug, format("Module %s: notify end-of-stream.", delegateName).c_str());
-				executor->call(Bind(&IPipelineNotifier::endOfStream, notify));
+				executor->call(Signals::Bind(&IPipelineNotifier::endOfStream, notify));
 				return;
 			}
 
 			delegate->push(data);
-			executor->call(Bind(&IProcessor::process, delegate));
+			executor->call(Signals::Bind(&IProcessor::process, delegate));
 		}
 
 		int isConnected() const override {

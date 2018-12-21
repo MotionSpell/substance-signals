@@ -25,4 +25,10 @@ BindMember(Class* objectPtr, void (Class::*memberFunction) (Args...)) {
 	return MemberFunctor<Class, void (Class::*)(Args...)>(objectPtr, memberFunction);
 }
 
+template<typename Class, typename Function>
+MemberFunctor<Class, void(Class::*)()>
+Bind(Function func, Class* objectPtr) {
+	return MemberFunctor<Class, void(Class::*)()>(objectPtr, func);
+}
+
 }
