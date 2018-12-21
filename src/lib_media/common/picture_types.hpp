@@ -5,10 +5,10 @@ namespace Modules {
 struct PictureYUV420P : DataPicture {
 	PictureYUV420P(Resolution res) : DataPicture(res, PixelFormat::I420) {
 		m_planeCount = 3;
-		setInternalResolution(res);
+		setPlanesAndStrides(res);
 		setVisibleResolution(res);
 	}
-	void setInternalResolution(Resolution res) override {
+	void setPlanesAndStrides(Resolution res) override {
 		auto const numPixels = res.width * res.height;
 		m_planes[0] = data().ptr;
 		m_planes[1] = data().ptr + numPixels;
@@ -21,10 +21,10 @@ struct PictureYUV420P : DataPicture {
 
 struct PictureY8 : DataPicture {
 	PictureY8(Resolution res) : DataPicture(res, PixelFormat::Y8) {
-		setInternalResolution(res);
+		setPlanesAndStrides(res);
 		setVisibleResolution(res);
 	}
-	void setInternalResolution(Resolution res) override {
+	void setPlanesAndStrides(Resolution res) override {
 		m_planes[0] = data().ptr;
 		m_stride[0] = res.width;
 		m_planeCount = 1;
@@ -33,10 +33,10 @@ struct PictureY8 : DataPicture {
 
 struct PictureYUV420P10LE : DataPicture {
 	PictureYUV420P10LE(Resolution res) : DataPicture(res, PixelFormat::YUV420P10LE) {
-		setInternalResolution(res);
+		setPlanesAndStrides(res);
 		setVisibleResolution(res);
 	}
-	void setInternalResolution(Resolution res) override {
+	void setPlanesAndStrides(Resolution res) override {
 		auto const numPlaneBytes = res.width * divUp(10, 8) * res.height;
 		m_planes[0] = data().ptr;
 		m_planes[1] = data().ptr + numPlaneBytes;
@@ -50,10 +50,10 @@ struct PictureYUV420P10LE : DataPicture {
 
 struct PictureYUV422P : DataPicture {
 	PictureYUV422P(Resolution res) : DataPicture(res, PixelFormat::YUV422P) {
-		setInternalResolution(res);
+		setPlanesAndStrides(res);
 		setVisibleResolution(res);
 	}
-	void setInternalResolution(Resolution res) override {
+	void setPlanesAndStrides(Resolution res) override {
 		auto const numPixels = res.width * res.height;
 		m_planes[0] = data().ptr;
 		m_planes[1] = data().ptr + numPixels;
@@ -67,10 +67,10 @@ struct PictureYUV422P : DataPicture {
 
 struct PictureYUV422P10LE : DataPicture {
 	PictureYUV422P10LE(Resolution res) : DataPicture(res, PixelFormat::YUV422P10LE) {
-		setInternalResolution(res);
+		setPlanesAndStrides(res);
 		setVisibleResolution(res);
 	}
-	void setInternalResolution(Resolution res) override {
+	void setPlanesAndStrides(Resolution res) override {
 		auto const numPixels = res.width * res.height;
 		m_planes[0] = data().ptr;
 		m_planes[1] = data().ptr + numPixels;
@@ -84,10 +84,10 @@ struct PictureYUV422P10LE : DataPicture {
 
 struct PictureYUYV422 : DataPicture {
 	PictureYUYV422(Resolution res) : DataPicture(res, PixelFormat::YUYV422) {
-		setInternalResolution(res);
+		setPlanesAndStrides(res);
 		setVisibleResolution(res);
 	}
-	void setInternalResolution(Resolution res) override {
+	void setPlanesAndStrides(Resolution res) override {
 		m_planes[0] = data().ptr;
 		m_stride[0] = res.width * 2;
 		m_planeCount = 1;
@@ -96,10 +96,10 @@ struct PictureYUYV422 : DataPicture {
 
 struct PictureNV12 : DataPicture {
 	PictureNV12(Resolution res) : DataPicture(res, PixelFormat::NV12) {
-		setInternalResolution(res);
+		setPlanesAndStrides(res);
 		setVisibleResolution(res);
 	}
-	void setInternalResolution(Resolution res) override {
+	void setPlanesAndStrides(Resolution res) override {
 		auto const numPixels = res.width * res.height;
 		m_planes[0] = data().ptr;
 		m_planes[1] = data().ptr + numPixels;
@@ -110,10 +110,10 @@ struct PictureNV12 : DataPicture {
 
 struct PictureNV12P010LE : DataPicture {
 	PictureNV12P010LE(Resolution res) : DataPicture(res, PixelFormat::NV12P010LE) {
-		setInternalResolution(res);
+		setPlanesAndStrides(res);
 		setVisibleResolution(res);
 	}
-	void setInternalResolution(Resolution res) override {
+	void setPlanesAndStrides(Resolution res) override {
 		auto const numPixels = res.width * res.height;
 		m_planes[0] = data().ptr;
 		m_planes[1] = data().ptr + numPixels * 2;
@@ -124,10 +124,10 @@ struct PictureNV12P010LE : DataPicture {
 
 struct PictureRGB24 : DataPicture {
 	PictureRGB24(Resolution res) : DataPicture(res, PixelFormat::RGB24) {
-		setInternalResolution(res);
+		setPlanesAndStrides(res);
 		setVisibleResolution(res);
 	}
-	void setInternalResolution(Resolution res) override {
+	void setPlanesAndStrides(Resolution res) override {
 		m_planes[0] = data().ptr;
 		m_stride[0] = res.width * 3;
 		m_planeCount = 1;
@@ -136,10 +136,10 @@ struct PictureRGB24 : DataPicture {
 
 struct PictureRGBA32 : DataPicture {
 	PictureRGBA32(Resolution res) : DataPicture(res, PixelFormat::RGBA32) {
-		setInternalResolution(res);
+		setPlanesAndStrides(res);
 		setVisibleResolution(res);
 	}
-	void setInternalResolution(Resolution res) override {
+	void setPlanesAndStrides(Resolution res) override {
 		m_planes[0] = data().ptr;
 		m_stride[0] = res.width * 4;
 		m_planeCount = 1;

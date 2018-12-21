@@ -23,7 +23,7 @@ std::shared_ptr<DataPicture> DataPicture::create(OutputPicture *out, Resolution 
 
 	// 16 bytes of padding, as required by most SIMD processing (e.g swscale)
 	r->resize(PictureFormat::getSize(resInternal, format) + 16);
-	r->setInternalResolution(resInternal);
+	r->setPlanesAndStrides(resInternal);
 	r->setVisibleResolution(res);
 	return r;
 }

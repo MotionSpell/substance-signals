@@ -81,7 +81,7 @@ class DataPicture : public DataRaw {
 			format.res = res;
 		}
 
-		virtual void setInternalResolution(Resolution res) = 0;
+		virtual void setPlanesAndStrides(Resolution res) = 0;
 
 	protected:
 		DataPicture(Resolution res, PixelFormat format)
