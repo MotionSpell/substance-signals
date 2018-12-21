@@ -44,22 +44,3 @@ struct IMetadata {
 };
 }
 
-
-// FIXME: remove this
-#include <memory>
-
-namespace Modules {
-class DataBase;
-typedef std::shared_ptr<const DataBase> Data;
-
-struct IMetadataCap {
-	virtual ~IMetadataCap() {}
-	virtual std::shared_ptr<const IMetadata> getMetadata() const = 0;
-	virtual void setMetadata(std::shared_ptr<const IMetadata> metadata) = 0;
-	virtual bool updateMetadata(Data&) {
-		return false;
-	};
-};
-
-
-}

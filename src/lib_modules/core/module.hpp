@@ -10,10 +10,13 @@
 #include "buffer.hpp"
 #include "metadata.hpp"
 
-// FIXME: remove this, only needed for metadata
+// FIXME: remove this
 #include <memory>
 
 namespace Modules {
+
+class DataBase;
+typedef std::shared_ptr<const DataBase> Data;
 
 // This is how user modules see the outside world.
 // 'K' interfaces are called by the user module implementations.
@@ -27,6 +30,7 @@ struct KInput {
 struct KOutput {
 	virtual ~KOutput() = default;
 	virtual void post(Data data) = 0;
+	virtual void setMetadata(std::shared_ptr<const IMetadata> metadata) = 0;
 };
 
 struct KHost {
@@ -67,9 +71,13 @@ struct IInput : IProcessor, KInput {
 	virtual bool updateMetadata(Data&) = 0;
 };
 
-struct IOutput : virtual IMetadataCap, KOutput {
+struct IOutput : KOutput {
 	virtual ~IOutput() = default;
 	virtual Signals::ISignal<Data>& getSignal() = 0;
+	virtual std::shared_ptr<const IMetadata> getMetadata() const = 0;
+	virtual bool updateMetadata(Data&) {
+		return false;
+	};
 };
 
 struct IOutputCap {

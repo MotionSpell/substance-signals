@@ -14,16 +14,15 @@
 
 namespace Modules {
 
-class MetadataCap : public virtual IMetadataCap {
+class MetadataCap {
 	public:
 		MetadataCap(Metadata metadata = nullptr);
-		virtual ~MetadataCap() {}
 
-		Metadata getMetadata() const override {
+		Metadata getMetadata() const {
 			return m_metadata;
 		}
-		void setMetadata(Metadata metadata) override;
-		bool updateMetadata(Data &data) override;
+		void setMetadata(Metadata metadata);
+		bool updateMetadata(Data &data);
 
 	private:
 		bool setMetadataInternal(Metadata metadata);
@@ -34,17 +33,17 @@ class MetadataCap : public virtual IMetadataCap {
 static Signals::ExecutorSync g_executorOutputSync;
 
 template<typename DataType>
-class OutputDataDefault : public IOutput, public MetadataCap {
+class OutputDataDefault : public IOutput {
 	public:
 		OutputDataDefault(size_t allocatorMaxSize, Metadata metadata = nullptr)
-			: MetadataCap(metadata), signal(g_executorOutputSync), allocator(new PacketAllocator(allocatorMaxSize)) {
+			: m_metadataCap(metadata), signal(g_executorOutputSync), allocator(new PacketAllocator(allocatorMaxSize)) {
 		}
 		virtual ~OutputDataDefault() {
 			allocator->unblock();
 		}
 
 		void post(Data data) override {
-			updateMetadata(data);
+			m_metadataCap.updateMetadata(data);
 			signal.emit(data);
 		}
 
@@ -60,7 +59,16 @@ class OutputDataDefault : public IOutput, public MetadataCap {
 			allocator = make_shared<PacketAllocator>(allocatorSize);
 		}
 
+		Metadata getMetadata() const override {
+			return m_metadataCap.getMetadata();
+		}
+
+		void setMetadata(Metadata metadata) override {
+			m_metadataCap.setMetadata(metadata);
+		}
+
 	private:
+		MetadataCap m_metadataCap;
 		Signals::Signal<Data> signal;
 		std::shared_ptr<PacketAllocator> allocator;
 };
