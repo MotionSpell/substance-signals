@@ -3,7 +3,6 @@
 #include "lib_modules/utils/loader.hpp"
 #include "lib_media/in/sound_generator.hpp"
 #include "lib_media/in/video_generator.hpp"
-#include "lib_media/common/picture_types.hpp"
 #include "lib_utils/tools.hpp"
 #include "lib_utils/sysclock.hpp"
 
@@ -59,15 +58,21 @@ secondclasstest("render: A/V sync, one thread") {
 	}
 }
 
+auto createYuvPic(Resolution res) {
+	auto r = make_shared<DataPicture>(0);
+	DataPicture::setup(r.get(), res, res, PixelFormat::I420);
+	return r;
+}
+
 secondclasstest("render: dynamic resolution") {
 	auto videoRender = Modules::loadModule("SDLVideo", &NullHost, nullptr);
 
-	auto pic1 = make_shared<PictureYUV420P>(Resolution(128, 64));
+	auto pic1 = createYuvPic(Resolution(128, 64));
 	pic1->setMediaTime(1000);
 	videoRender->getInput(0)->push(pic1);
 	videoRender->process();
 
-	auto pic2 = make_shared<PictureYUV420P>(Resolution(64, 256));
+	auto pic2 = createYuvPic(Resolution(64, 256));
 	pic2->setMediaTime(2000);
 	videoRender->getInput(0)->push(pic2);
 	videoRender->process();

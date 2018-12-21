@@ -4,7 +4,6 @@
 #include "lib_media/common/metadata_file.hpp"
 #include "lib_media/common/attributes.hpp"
 #include "lib_media/common/picture.hpp"
-#include "lib_media/common/picture_types.hpp"
 #include "lib_media/common/pcm.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/encode/libav_encode.hpp"
@@ -19,8 +18,15 @@ using namespace std;
 
 auto const VIDEO_RESOLUTION = Resolution(320, 180);
 
+static
+auto createYuvPic(Resolution res) {
+	auto r = make_shared<DataPicture>(0);
+	DataPicture::setup(r.get(), res, res, PixelFormat::I420);
+	return r;
+}
+
 unittest("encoder: video simple") {
-	auto picture = make_shared<PictureYUV420P>(VIDEO_RESOLUTION);
+	auto picture = createYuvPic(VIDEO_RESOLUTION);
 
 	int numEncodedFrames = 0;
 	auto onFrame = [&](Data /*data*/) {
@@ -92,7 +98,7 @@ unittest("encoder: video timestamp passthrough") {
 	auto encode = loadModule("Encoder", &NullHost, &cfg);
 	ConnectOutput(encode.get(), onFrame);
 	for(auto time : inputTimes) {
-		auto picture = make_shared<PictureYUV420P>(VIDEO_RESOLUTION);
+		auto picture = createYuvPic(VIDEO_RESOLUTION);
 		picture->setMediaTime(time);
 		encode->getInput(0)->push(picture);
 		encode->process();
@@ -107,7 +113,7 @@ void RAPTest(const Fraction fps, const vector<uint64_t> &times, const vector<boo
 	EncoderConfig p { EncoderConfig::Video };
 	p.frameRate = fps;
 	p.GOPSize = fps;
-	auto picture = make_shared<PictureYUV420P>(VIDEO_RESOLUTION);
+	auto picture = createYuvPic(VIDEO_RESOLUTION);
 	auto encode = loadModule("Encoder", &NullHost, &p);
 	size_t i = 0;
 	auto onFrame = [&](Data data) {

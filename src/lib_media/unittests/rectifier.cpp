@@ -5,7 +5,6 @@
 #include "lib_media/utils/recorder.hpp"
 #include "lib_media/common/pcm.hpp"
 #include "lib_media/common/picture.hpp"
-#include "lib_media/common/picture_types.hpp"
 #include "lib_media/common/metadata.hpp"
 
 #include <algorithm> // sort
@@ -127,7 +126,7 @@ struct DataRecorder : ModuleS {
 	shared_ptr<IClock> clock;
 };
 
-typedef DataGenerator<MetadataRawVideo, OutputDataDefault<PictureYUV420P>> VideoGenerator;
+typedef DataGenerator<MetadataRawVideo, OutputDataDefault<DataPicture>> VideoGenerator;
 typedef DataGenerator<MetadataRawAudio, OutputPcm> AudioGenerator;
 
 vector<Event> runRectifier(

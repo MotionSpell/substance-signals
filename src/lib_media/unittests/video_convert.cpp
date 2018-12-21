@@ -2,11 +2,24 @@
 #include "lib_modules/modules.hpp"
 #include "lib_modules/utils/loader.hpp"
 #include "lib_media/common/picture.hpp"
-#include "lib_media/common/picture_types.hpp"
 
 using namespace Tests;
 using namespace Modules;
 using namespace std;
+
+static
+auto createYuvPic(Resolution res) {
+	auto r = make_shared<DataPicture>(0);
+	DataPicture::setup(r.get(), res, res, PixelFormat::I420);
+	return r;
+}
+
+static
+auto createNv12Pic(Resolution res) {
+	auto r = make_shared<DataPicture>(0);
+	DataPicture::setup(r.get(), res, res, PixelFormat::NV12);
+	return r;
+}
 
 unittest("video converter: pass-through") {
 	auto const res = Resolution(16, 32);
@@ -23,7 +36,7 @@ unittest("video converter: pass-through") {
 		auto convert = loadModule("VideoConvert", &NullHost, &format);
 		ConnectOutput(convert.get(), onFrame);
 
-		auto pic = make_shared<PictureYUV420P>(res);
+		auto pic = createYuvPic(res);
 		convert->getInput(0)->push(pic);
 		convert->process();
 	}
@@ -47,7 +60,7 @@ unittest("video converter: different sizes") {
 		auto convert = loadModule("VideoConvert", &NullHost, &format);
 		ConnectOutput(convert.get(), onFrame);
 
-		auto pic = make_shared<PictureYUV420P>(srcRes);
+		auto pic = createYuvPic(srcRes);
 		convert->getInput(0)->push(pic);
 		convert->process();
 	}
@@ -70,7 +83,7 @@ unittest("video converter: format conversion (NV12 to I420)") {
 		auto convert = loadModule("VideoConvert", &NullHost, &format);
 		ConnectOutput(convert.get(), onFrame);
 
-		auto pic = make_shared<PictureNV12>(res);
+		auto pic = createNv12Pic(res);
 		convert->getInput(0)->push(pic);
 		convert->process();
 	}

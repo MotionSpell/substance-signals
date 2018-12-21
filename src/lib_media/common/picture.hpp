@@ -58,6 +58,7 @@ class DataPicture : public DataRaw {
 		DataPicture(size_t /*unused*/) : DataRaw(0) {}
 		static std::shared_ptr<DataPicture> create(OutputPicture *out, Resolution res, PixelFormat format);
 		static std::shared_ptr<DataPicture> create(OutputPicture *out, Resolution res, Resolution resInternal, PixelFormat format);
+		static void setup(DataPicture* pic, Resolution res, Resolution resInternal, PixelFormat format);
 
 		PictureFormat getFormat() const {
 			return format;
@@ -82,8 +83,6 @@ class DataPicture : public DataRaw {
 		}
 
 	protected:
-		virtual void setPlanesAndStrides(Resolution res) = 0;
-
 		DataPicture(Resolution res, PixelFormat format)
 			: DataRaw(PictureFormat::getSize(res, format)), format(res, format)  {
 		}
