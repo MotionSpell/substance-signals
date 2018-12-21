@@ -13,27 +13,40 @@ namespace Pipelines {
 class FilterInput : public IInput {
 	public:
 		FilterInput(IInput *input, const std::string &moduleName, Signals::IExecutor* executor, IStatsRegistry* statsRegistry, IPipelineNotifier * const notify)
-			: delegate(input), delegateName(moduleName), notify(notify), executor(executor), statsEntry(statsRegistry->getNewEntry()) {
-			strncpy(statsEntry->name, delegateName.c_str(), sizeof(statsEntry->name)-1);
-			statsEntry->name[sizeof(statsEntry->name)-1] = 0;
+			: delegate(input), delegateName(moduleName), notify(notify), executor(executor),
+			  statsCumulated(statsRegistry->getNewEntry()),
+			  statsPending(statsRegistry->getNewEntry()) {
+
+			strncpy(statsCumulated->name, (delegateName + ".cumulated").c_str(), sizeof(statsCumulated->name)-1);
+			statsCumulated->name[sizeof(statsCumulated->name)-1] = 0;
+
+			strncpy(statsPending->name, (delegateName + ".pending").c_str(), sizeof(statsPending->name)-1);
+			statsPending->name[sizeof(statsPending->name)-1] = 0;
 		}
 		virtual ~FilterInput() {}
 
 		void push(Data data) override {
 			queue.push(data);
+			statsPending->value ++;
 		}
 
 		Data pop() override {
-			return queue.pop();
+			auto r = queue.pop();
+			statsPending->value --;
+			return r;
 		}
 
 		bool tryPop(Data& data) override {
-			return queue.tryPop(data);
+			if(!queue.tryPop(data))
+				return false;
+
+			statsPending->value --;
+			return true;
 		}
 
 		void process() override {
 			auto data = pop();
-			statsEntry->value = samplingCounter++;
+			statsCumulated->value = samplingCounter++;
 
 			// receiving 'nullptr' means 'end of stream'
 			if (!data) {
@@ -73,7 +86,9 @@ class FilterInput : public IInput {
 		IPipelineNotifier * const notify;
 		Signals::IExecutor * const executor;
 		decltype(StatsEntry::value) samplingCounter = 0;
-		StatsEntry * const statsEntry;
+		decltype(StatsEntry::value) pendingCounter = 0;
+		StatsEntry * const statsCumulated;
+		StatsEntry * const statsPending;
 		MetadataCap m_metadataCap;
 };
 
