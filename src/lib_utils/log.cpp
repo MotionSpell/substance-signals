@@ -103,7 +103,15 @@ struct ConsoleLogger : LogSink {
 	}
 };
 
-#ifndef _WIN32
+static ConsoleLogger consoleLogger;
+
+#ifdef _WIN32
+void setGlobalSyslog(bool enable) {
+	if(enable)
+		throw std::runtime_error("Syslog is not supported on this platform");
+}
+#else
+
 #include <syslog.h>
 struct SyslogLogger : LogSink {
 	SyslogLogger() {
@@ -117,6 +125,15 @@ struct SyslogLogger : LogSink {
 		::syslog(levelToSysLog[level], "%s", msg);
 	}
 };
+
+void setGlobalSyslog(bool enable) {
+	static SyslogLogger syslogLogger;
+	if(enable)
+		g_Log = &syslogLogger;
+	else
+		g_Log = &consoleLogger;
+}
+
 #endif
 
 struct CsvLogger : LogSink {
@@ -133,8 +150,6 @@ struct CsvLogger : LogSink {
 	FILE* const m_fp;
 };
 
-static ConsoleLogger consoleLogger;
-
 static
 LogSink* getDefaultLogger() {
 	if(auto path = std::getenv("SIGNALS_LOGPATH")) {
@@ -145,19 +160,6 @@ LogSink* getDefaultLogger() {
 }
 
 LogSink* g_Log = getDefaultLogger();
-
-void setGlobalSyslog(bool enable) {
-#ifndef _WIN32
-	static SyslogLogger syslogLogger;
-	if(enable)
-		g_Log = &syslogLogger;
-	else
-		g_Log = &consoleLogger;
-#else
-	if(enable)
-		throw std::runtime_error("Syslog is not supported on this platform");
-#endif
-}
 
 void setGlobalLogLevel(Level level) {
 	consoleLogger.setLevel(level);
