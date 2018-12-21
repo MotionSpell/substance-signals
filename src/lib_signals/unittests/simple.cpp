@@ -56,7 +56,7 @@ unittest("signals_simple (void return value)") {
 unittest("connect to lambda") {
 	int result = 0;
 	Signal<int> sig;
-	Connect(sig, [&](int val) {
+	sig.connect([&](int val) {
 		result = val * val;
 	});
 	sig.emit(8);

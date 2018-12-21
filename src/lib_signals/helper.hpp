@@ -25,9 +25,4 @@ BindMember(Class* objectPtr, void (Class::*memberFunction) (Args...)) {
 	return MemberFunctor<Class, void (Class::*)(Args...)>(objectPtr, memberFunction);
 }
 
-template<typename SignalType, typename LambdaType>
-size_t Connect(SignalType& sig, LambdaType lambda) {
-	return sig.connect(lambda);
-}
-
 }

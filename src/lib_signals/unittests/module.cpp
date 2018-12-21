@@ -27,11 +27,11 @@ unittest("basic module connection tests") {
 	Slot receiver;
 	Slot &receiverRef = receiver;
 	Slot *receiverPtr = &receiver;
-	Connect(sender.signal, BindMember(&receiver, &Slot::slot));
-	Connect(sender.signal, BindMember(&receiver, &Slot::slot));
-	Connect(sender.signal, BindMember(&receiver, &Slot::slot));
-	Connect(sender.signal, BindMember(&receiverRef, &Slot::slot));
-	Connect(sender.signal, BindMember(receiverPtr, &Slot::slot));
+	sender.signal.connect(BindMember(&receiver, &Slot::slot));
+	sender.signal.connect(BindMember(&receiver, &Slot::slot));
+	sender.signal.connect(BindMember(&receiver, &Slot::slot));
+	sender.signal.connect(BindMember(&receiverRef, &Slot::slot));
+	sender.signal.connect(BindMember(receiverPtr, &Slot::slot));
 
 	sender.signal.emit(100);
 	ASSERT_EQUALS(makeVector({101, 101, 101, 101, 101}), receiver.vals);

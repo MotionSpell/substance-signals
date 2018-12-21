@@ -147,7 +147,7 @@ class ActiveModule : public Module {
 
 template<typename Lambda>
 void ConnectOutput(IModule* sender, Lambda f) {
-	Connect(sender->getOutput(0)->getSignal(), f);
+	sender->getOutput(0)->getSignal().connect(f);
 }
 
 struct NullHostType : KHost {
