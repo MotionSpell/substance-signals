@@ -83,11 +83,10 @@ class DataPicture : public DataRaw {
 
 	protected:
 		DataPicture(Resolution res, PixelFormat format)
-			: DataRaw(PictureFormat::getSize(res, format)), format(res, format), internalFormat(res, format) {
+			: DataRaw(PictureFormat::getSize(res, format)), format(res, format)  {
 		}
 
 		PictureFormat format;
-		PictureFormat internalFormat /*we might need to store the picture within a wider memory space*/;
 
 		int m_planeCount = 0;
 		size_t m_stride[4];

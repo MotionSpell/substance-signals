@@ -6,7 +6,7 @@ class PictureYUV420P : public DataPicture {
 	public:
 		PictureYUV420P(size_t /*unused*/) : DataPicture(0) {
 			m_planeCount = 3;
-			internalFormat.format = format.format = PixelFormat::I420;
+			format.format = PixelFormat::I420;
 		}
 		PictureYUV420P(Resolution res) : DataPicture(res, PixelFormat::I420) {
 			m_planeCount = 3;
@@ -14,8 +14,7 @@ class PictureYUV420P : public DataPicture {
 			setVisibleResolution(res);
 		}
 		void setInternalResolution(Resolution res) override {
-			internalFormat.res = res;
-			resize(internalFormat.getSize());
+			resize(PictureFormat::getSize(res, format.format));
 			auto const numPixels = res.width * res.height;
 			m_planes[0] = data().ptr;
 			m_planes[1] = data().ptr + numPixels;
@@ -32,15 +31,14 @@ class PictureYUV420P : public DataPicture {
 class PictureY8 : public DataPicture {
 	public:
 		PictureY8(size_t /*unused*/) : DataPicture(0) {
-			internalFormat.format = format.format = PixelFormat::Y8;
+			format.format = PixelFormat::Y8;
 		}
 		PictureY8(Resolution res) : DataPicture(res, PixelFormat::Y8) {
 			setInternalResolution(res);
 			setVisibleResolution(res);
 		}
 		void setInternalResolution(Resolution res) override {
-			internalFormat.res = res;
-			resize(internalFormat.getSize());
+			resize(PictureFormat::getSize(res, format.format));
 			m_planes[0] = data().ptr;
 			m_stride[0] = res.width;
 			m_planeCount = 1;
@@ -53,15 +51,14 @@ class PictureY8 : public DataPicture {
 class PictureYUV420P10LE : public DataPicture {
 	public:
 		PictureYUV420P10LE(size_t /*unused*/) : DataPicture(0) {
-			internalFormat.format = format.format = PixelFormat::YUV420P10LE;
+			format.format = PixelFormat::YUV420P10LE;
 		}
 		PictureYUV420P10LE(Resolution res) : DataPicture(res, PixelFormat::YUV420P10LE) {
 			setInternalResolution(res);
 			setVisibleResolution(res);
 		}
 		void setInternalResolution(Resolution res) override {
-			internalFormat.res = res;
-			resize(internalFormat.getSize());
+			resize(PictureFormat::getSize(res, format.format));
 			auto const numPlaneBytes = res.width * divUp(10, 8) * res.height;
 			m_planes[0] = data().ptr;
 			m_planes[1] = data().ptr + numPlaneBytes;
@@ -79,15 +76,14 @@ class PictureYUV420P10LE : public DataPicture {
 class PictureYUV422P : public DataPicture {
 	public:
 		PictureYUV422P(size_t /*unused*/) : DataPicture(0) {
-			internalFormat.format = format.format = PixelFormat::YUV422P;
+			format.format = PixelFormat::YUV422P;
 		}
 		PictureYUV422P(Resolution res) : DataPicture(res, PixelFormat::YUV422P) {
 			setInternalResolution(res);
 			setVisibleResolution(res);
 		}
 		void setInternalResolution(Resolution res) override {
-			internalFormat.res = res;
-			resize(internalFormat.getSize());
+			resize(PictureFormat::getSize(res, format.format));
 			auto const numPixels = res.width * res.height;
 			m_planes[0] = data().ptr;
 			m_planes[1] = data().ptr + numPixels;
@@ -105,15 +101,14 @@ class PictureYUV422P : public DataPicture {
 class PictureYUV422P10LE : public DataPicture {
 	public:
 		PictureYUV422P10LE(size_t /*unused*/) : DataPicture(0) {
-			internalFormat.format = format.format = PixelFormat::YUV422P10LE;
+			format.format = PixelFormat::YUV422P10LE;
 		}
 		PictureYUV422P10LE(Resolution res) : DataPicture(res, PixelFormat::YUV422P10LE) {
 			setInternalResolution(res);
 			setVisibleResolution(res);
 		}
 		void setInternalResolution(Resolution res) override {
-			internalFormat.res = res;
-			resize(internalFormat.getSize());
+			resize(PictureFormat::getSize(res, format.format));
 			auto const numPixels = res.width * res.height;
 			m_planes[0] = data().ptr;
 			m_planes[1] = data().ptr + numPixels;
@@ -131,17 +126,16 @@ class PictureYUV422P10LE : public DataPicture {
 class PictureYUYV422 : public DataPicture {
 	public:
 		PictureYUYV422(size_t /*unused*/) : DataPicture(0) {
-			internalFormat.format = format.format = PixelFormat::YUYV422;
+			format.format = PixelFormat::YUYV422;
 		}
 		PictureYUYV422(Resolution res) : DataPicture(res, PixelFormat::YUYV422) {
 			setInternalResolution(res);
 			setVisibleResolution(res);
 		}
 		void setInternalResolution(Resolution res) override {
-			internalFormat.res = res;
-			resize(internalFormat.getSize());
+			resize(PictureFormat::getSize(res, format.format));
 			m_planes[0] = data().ptr;
-			m_stride[0] = internalFormat.res.width * 2;
+			m_stride[0] = res.width * 2;
 			m_planeCount = 1;
 		}
 		void setVisibleResolution(Resolution res) override {
@@ -152,15 +146,14 @@ class PictureYUYV422 : public DataPicture {
 class PictureNV12 : public DataPicture {
 	public:
 		PictureNV12(size_t /*unused*/) : DataPicture(0) {
-			internalFormat.format = format.format = PixelFormat::NV12;
+			format.format = PixelFormat::NV12;
 		}
 		PictureNV12(Resolution res) : DataPicture(res, PixelFormat::NV12) {
 			setInternalResolution(res);
 			setVisibleResolution(res);
 		}
 		void setInternalResolution(Resolution res) override {
-			internalFormat.res = res;
-			resize(internalFormat.getSize());
+			resize(PictureFormat::getSize(res, format.format));
 			auto const numPixels = res.width * res.height;
 			m_planes[0] = data().ptr;
 			m_planes[1] = data().ptr + numPixels;
@@ -175,15 +168,14 @@ class PictureNV12 : public DataPicture {
 class PictureNV12P010LE : public DataPicture {
 	public:
 		PictureNV12P010LE(size_t /*unused*/) : DataPicture(0) {
-			internalFormat.format = format.format = PixelFormat::NV12P010LE;
+			format.format = PixelFormat::NV12P010LE;
 		}
 		PictureNV12P010LE(const Resolution &res) : DataPicture(res, PixelFormat::NV12P010LE) {
 			setInternalResolution(res);
 			setVisibleResolution(res);
 		}
 		void setInternalResolution(Resolution res) override {
-			internalFormat.res = res;
-			resize(internalFormat.getSize());
+			resize(PictureFormat::getSize(res, format.format));
 			auto const numPixels = res.width * res.height;
 			m_planes[0] = data().ptr;
 			m_planes[1] = data().ptr + numPixels * 2;
@@ -198,18 +190,17 @@ class PictureNV12P010LE : public DataPicture {
 class PictureRGB24 : public DataPicture {
 	public:
 		PictureRGB24(size_t /*unused*/) : DataPicture(0) {
-			internalFormat.format = format.format = PixelFormat::RGB24;
+			format.format = PixelFormat::RGB24;
 		}
 		PictureRGB24(Resolution res) : DataPicture(res, PixelFormat::RGB24) {
 			setInternalResolution(res);
 			setVisibleResolution(res);
 		}
 		void setInternalResolution(Resolution res) override {
-			internalFormat.res = res;
 			// 16 bytes of padding, as required by most SIMD processing (e.g swscale)
-			resize(internalFormat.getSize() + 16);
+			resize(PictureFormat::getSize(res, format.format) + 16);
 			m_planes[0] = data().ptr;
-			m_stride[0] = internalFormat.res.width * 3;
+			m_stride[0] = res.width * 3;
 			m_planeCount = 1;
 		}
 		void setVisibleResolution(Resolution res) override {
@@ -220,7 +211,7 @@ class PictureRGB24 : public DataPicture {
 class PictureRGBA32 : public DataPicture {
 	public:
 		PictureRGBA32(size_t /*unused*/) : DataPicture(0) {
-			internalFormat.format = format.format = PixelFormat::RGBA32;
+			format.format = PixelFormat::RGBA32;
 			m_planeCount = 1;
 		}
 		PictureRGBA32(Resolution res) : DataPicture(res, PixelFormat::RGBA32) {
@@ -228,10 +219,9 @@ class PictureRGBA32 : public DataPicture {
 			setVisibleResolution(res);
 		}
 		void setInternalResolution(Resolution res) override {
-			internalFormat.res = res;
-			resize(internalFormat.getSize());
+			resize(PictureFormat::getSize(res, format.format));
 			m_planes[0] = data().ptr;
-			m_stride[0] = internalFormat.res.width * 4;
+			m_stride[0] = res.width * 4;
 			m_planeCount = 1;
 		}
 		void setVisibleResolution(Resolution res) override {
