@@ -9,7 +9,6 @@ struct PictureYUV420P : DataPicture {
 		setVisibleResolution(res);
 	}
 	void setInternalResolution(Resolution res) override {
-		resize(PictureFormat::getSize(res, format.format));
 		auto const numPixels = res.width * res.height;
 		m_planes[0] = data().ptr;
 		m_planes[1] = data().ptr + numPixels;
@@ -26,7 +25,6 @@ struct PictureY8 : DataPicture {
 		setVisibleResolution(res);
 	}
 	void setInternalResolution(Resolution res) override {
-		resize(PictureFormat::getSize(res, format.format));
 		m_planes[0] = data().ptr;
 		m_stride[0] = res.width;
 		m_planeCount = 1;
@@ -39,7 +37,6 @@ struct PictureYUV420P10LE : DataPicture {
 		setVisibleResolution(res);
 	}
 	void setInternalResolution(Resolution res) override {
-		resize(PictureFormat::getSize(res, format.format));
 		auto const numPlaneBytes = res.width * divUp(10, 8) * res.height;
 		m_planes[0] = data().ptr;
 		m_planes[1] = data().ptr + numPlaneBytes;
@@ -57,7 +54,6 @@ struct PictureYUV422P : DataPicture {
 		setVisibleResolution(res);
 	}
 	void setInternalResolution(Resolution res) override {
-		resize(PictureFormat::getSize(res, format.format));
 		auto const numPixels = res.width * res.height;
 		m_planes[0] = data().ptr;
 		m_planes[1] = data().ptr + numPixels;
@@ -75,7 +71,6 @@ struct PictureYUV422P10LE : DataPicture {
 		setVisibleResolution(res);
 	}
 	void setInternalResolution(Resolution res) override {
-		resize(PictureFormat::getSize(res, format.format));
 		auto const numPixels = res.width * res.height;
 		m_planes[0] = data().ptr;
 		m_planes[1] = data().ptr + numPixels;
@@ -93,7 +88,6 @@ struct PictureYUYV422 : DataPicture {
 		setVisibleResolution(res);
 	}
 	void setInternalResolution(Resolution res) override {
-		resize(PictureFormat::getSize(res, format.format));
 		m_planes[0] = data().ptr;
 		m_stride[0] = res.width * 2;
 		m_planeCount = 1;
@@ -106,7 +100,6 @@ struct PictureNV12 : DataPicture {
 		setVisibleResolution(res);
 	}
 	void setInternalResolution(Resolution res) override {
-		resize(PictureFormat::getSize(res, format.format));
 		auto const numPixels = res.width * res.height;
 		m_planes[0] = data().ptr;
 		m_planes[1] = data().ptr + numPixels;
@@ -121,7 +114,6 @@ struct PictureNV12P010LE : DataPicture {
 		setVisibleResolution(res);
 	}
 	void setInternalResolution(Resolution res) override {
-		resize(PictureFormat::getSize(res, format.format));
 		auto const numPixels = res.width * res.height;
 		m_planes[0] = data().ptr;
 		m_planes[1] = data().ptr + numPixels * 2;
@@ -136,8 +128,6 @@ struct PictureRGB24 : DataPicture {
 		setVisibleResolution(res);
 	}
 	void setInternalResolution(Resolution res) override {
-		// 16 bytes of padding, as required by most SIMD processing (e.g swscale)
-		resize(PictureFormat::getSize(res, format.format) + 16);
 		m_planes[0] = data().ptr;
 		m_stride[0] = res.width * 3;
 		m_planeCount = 1;
@@ -150,7 +140,6 @@ struct PictureRGBA32 : DataPicture {
 		setVisibleResolution(res);
 	}
 	void setInternalResolution(Resolution res) override {
-		resize(PictureFormat::getSize(res, format.format));
 		m_planes[0] = data().ptr;
 		m_stride[0] = res.width * 4;
 		m_planeCount = 1;
