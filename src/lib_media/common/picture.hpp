@@ -77,9 +77,11 @@ class DataPicture : public DataRaw {
 		int getNumPlanes() const {
 			return m_planeCount;
 		}
+		void setVisibleResolution(Resolution res) {
+			format.res = res;
+		}
 
 		virtual void setInternalResolution(Resolution res) = 0;
-		virtual void setVisibleResolution(Resolution res) = 0;
 
 	protected:
 		DataPicture(Resolution res, PixelFormat format)

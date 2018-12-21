@@ -19,9 +19,6 @@ class PictureYUV420P : public DataPicture {
 			m_stride[1] = res.width / 2;
 			m_stride[2] = res.width / 2;
 		}
-		void setVisibleResolution(Resolution res) override {
-			format.res = res;
-		}
 };
 
 class PictureY8 : public DataPicture {
@@ -35,9 +32,6 @@ class PictureY8 : public DataPicture {
 			m_planes[0] = data().ptr;
 			m_stride[0] = res.width;
 			m_planeCount = 1;
-		}
-		void setVisibleResolution(Resolution res) override {
-			format.res = res;
 		}
 };
 
@@ -58,9 +52,6 @@ class PictureYUV420P10LE : public DataPicture {
 			m_stride[2] = res.width * divUp(10, 8) / 2;
 			m_planeCount = 3;
 		}
-		void setVisibleResolution(Resolution res) override {
-			format.res = res;
-		}
 };
 
 class PictureYUV422P : public DataPicture {
@@ -79,9 +70,6 @@ class PictureYUV422P : public DataPicture {
 			m_stride[1] = res.width / 2;
 			m_stride[2] = res.width / 2;
 			m_planeCount = 3;
-		}
-		void setVisibleResolution(Resolution res) override {
-			format.res = res;
 		}
 };
 
@@ -102,9 +90,6 @@ class PictureYUV422P10LE : public DataPicture {
 			m_stride[2] = res.width * divUp(10, 8) / 2;
 			m_planeCount = 3;
 		}
-		void setVisibleResolution(Resolution res) override {
-			format.res = res;
-		}
 };
 
 class PictureYUYV422 : public DataPicture {
@@ -118,9 +103,6 @@ class PictureYUYV422 : public DataPicture {
 			m_planes[0] = data().ptr;
 			m_stride[0] = res.width * 2;
 			m_planeCount = 1;
-		}
-		void setVisibleResolution(Resolution res) override {
-			format.res = res;
 		}
 };
 
@@ -138,9 +120,6 @@ class PictureNV12 : public DataPicture {
 			m_stride[0] = m_stride[1] = res.width;
 			m_planeCount = 2;
 		}
-		void setVisibleResolution(Resolution res) override {
-			format.res = res;
-		}
 };
 
 class PictureNV12P010LE : public DataPicture {
@@ -157,9 +136,6 @@ class PictureNV12P010LE : public DataPicture {
 			m_stride[0] = m_stride[1] = res.width * 2;
 			m_planeCount = 2;
 		}
-		void setVisibleResolution(Resolution res) override {
-			format.res = res;
-		}
 };
 
 class PictureRGB24 : public DataPicture {
@@ -175,9 +151,6 @@ class PictureRGB24 : public DataPicture {
 			m_stride[0] = res.width * 3;
 			m_planeCount = 1;
 		}
-		void setVisibleResolution(Resolution res) override {
-			format.res = res;
-		}
 };
 
 class PictureRGBA32 : public DataPicture {
@@ -191,9 +164,6 @@ class PictureRGBA32 : public DataPicture {
 			m_planes[0] = data().ptr;
 			m_stride[0] = res.width * 4;
 			m_planeCount = 1;
-		}
-		void setVisibleResolution(Resolution res) override {
-			format.res = res;
 		}
 };
 
