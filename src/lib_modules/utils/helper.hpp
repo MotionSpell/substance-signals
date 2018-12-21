@@ -48,9 +48,8 @@ class OutputDataDefault : public IOutput, public MetadataCap {
 			signal.emit(data);
 		}
 
-		template<typename T = DataType>
-		std::shared_ptr<T> getBuffer(size_t size) {
-			return allocator->alloc<T>(size, allocator);
+		std::shared_ptr<DataType> getBuffer(size_t size) {
+			return allocator->alloc<DataType>(size, allocator);
 		}
 
 		Signals::ISignal<Data>& getSignal() override {
