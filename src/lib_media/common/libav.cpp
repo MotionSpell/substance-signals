@@ -273,7 +273,7 @@ void DataAVPacket::resize(size_t size) {
 }
 
 void copyToPicture(AVFrame const* avFrame, DataPicture* pic) {
-	for (size_t comp = 0; comp<pic->getNumPlanes(); ++comp) {
+	for (int comp = 0; comp<pic->getNumPlanes(); ++comp) {
 		auto const subsampling = comp == 0 ? 1 : 2;
 		auto const bytePerPixel = pic->getFormat().format == PixelFormat::YUYV422 ? 2 : 1;
 		auto const w = avFrame->width * bytePerPixel / subsampling;

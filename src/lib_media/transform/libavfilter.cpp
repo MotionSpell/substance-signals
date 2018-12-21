@@ -86,7 +86,7 @@ void LibavFilter::process(Data data) {
 	const auto pic = safe_cast<const DataPicture>(data);
 	avFrameIn->get()->pict_type = AV_PICTURE_TYPE_NONE;
 	avFrameIn->get()->format = (int)pixelFormat2libavPixFmt(pic->getFormat().format);
-	for (size_t i = 0; i < pic->getNumPlanes(); ++i) {
+	for (int i = 0; i < pic->getNumPlanes(); ++i) {
 		avFrameIn->get()->width = pic->getFormat().res.width;
 		avFrameIn->get()->height = pic->getFormat().res.height;
 		avFrameIn->get()->data[i] = (uint8_t*)pic->getPlane(i);

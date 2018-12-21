@@ -11,16 +11,16 @@ class PictureYUV420P : public DataPicture {
 			setInternalResolution(res);
 			setVisibleResolution(res);
 		}
-		size_t getNumPlanes() const override {
+		int getNumPlanes() const override {
 			return 3;
 		}
-		const uint8_t* getPlane(size_t planeIdx) const override {
+		const uint8_t* getPlane(int planeIdx) const override {
 			return m_planes[planeIdx];
 		}
-		uint8_t* getPlane(size_t planeIdx) override {
+		uint8_t* getPlane(int planeIdx) override {
 			return m_planes[planeIdx];
 		}
-		size_t getStride(size_t planeIdx) const override {
+		size_t getStride(int planeIdx) const override {
 			return m_stride[planeIdx];
 		}
 		void setInternalResolution(Resolution res) override {
@@ -52,16 +52,16 @@ class PictureY8 : public DataPicture {
 			setInternalResolution(res);
 			setVisibleResolution(res);
 		}
-		size_t getNumPlanes() const override {
+		int getNumPlanes() const override {
 			return 1;
 		}
-		const uint8_t* getPlane(size_t planeIdx) const override {
+		const uint8_t* getPlane(int planeIdx) const override {
 			return m_planes[planeIdx];
 		}
-		uint8_t* getPlane(size_t planeIdx) override {
+		uint8_t* getPlane(int planeIdx) override {
 			return m_planes[planeIdx];
 		}
-		size_t getStride(size_t planeIdx) const override {
+		size_t getStride(int planeIdx) const override {
 			return m_stride[planeIdx];
 		}
 		void setInternalResolution(Resolution res) override {
@@ -88,16 +88,16 @@ class PictureYUV420P10LE : public DataPicture {
 			setInternalResolution(res);
 			setVisibleResolution(res);
 		}
-		size_t getNumPlanes() const override {
+		int getNumPlanes() const override {
 			return 3;
 		}
-		const uint8_t* getPlane(size_t planeIdx) const override {
+		const uint8_t* getPlane(int planeIdx) const override {
 			return m_planes[planeIdx];
 		}
-		uint8_t* getPlane(size_t planeIdx) override {
+		uint8_t* getPlane(int planeIdx) override {
 			return m_planes[planeIdx];
 		}
-		size_t getStride(size_t planeIdx) const override {
+		size_t getStride(int planeIdx) const override {
 			return m_stride[planeIdx];
 		}
 		void setInternalResolution(Resolution res) override {
@@ -129,16 +129,16 @@ class PictureYUV422P : public DataPicture {
 			setInternalResolution(res);
 			setVisibleResolution(res);
 		}
-		size_t getNumPlanes() const override {
+		int getNumPlanes() const override {
 			return 3;
 		}
-		const uint8_t* getPlane(size_t planeIdx) const override {
+		const uint8_t* getPlane(int planeIdx) const override {
 			return m_planes[planeIdx];
 		}
-		uint8_t* getPlane(size_t planeIdx) override {
+		uint8_t* getPlane(int planeIdx) override {
 			return m_planes[planeIdx];
 		}
-		size_t getStride(size_t planeIdx) const override {
+		size_t getStride(int planeIdx) const override {
 			return m_stride[planeIdx];
 		}
 		void setInternalResolution(Resolution res) override {
@@ -170,16 +170,16 @@ class PictureYUV422P10LE : public DataPicture {
 			setInternalResolution(res);
 			setVisibleResolution(res);
 		}
-		size_t getNumPlanes() const override {
+		int getNumPlanes() const override {
 			return 3;
 		}
-		const uint8_t* getPlane(size_t planeIdx) const override {
+		const uint8_t* getPlane(int planeIdx) const override {
 			return m_planes[planeIdx];
 		}
-		uint8_t* getPlane(size_t planeIdx) override {
+		uint8_t* getPlane(int planeIdx) override {
 			return m_planes[planeIdx];
 		}
-		size_t getStride(size_t planeIdx) const override {
+		size_t getStride(int planeIdx) const override {
 			return m_stride[planeIdx];
 		}
 		void setInternalResolution(Resolution res) override {
@@ -211,16 +211,16 @@ class PictureYUYV422 : public DataPicture {
 			setInternalResolution(res);
 			setVisibleResolution(res);
 		}
-		size_t getNumPlanes() const override {
+		int getNumPlanes() const override {
 			return 1;
 		}
-		const uint8_t* getPlane(size_t /*planeIdx*/) const override {
+		const uint8_t* getPlane(int /*planeIdx*/) const override {
 			return data().ptr;
 		}
-		uint8_t* getPlane(size_t /*planeIdx*/) override {
+		uint8_t* getPlane(int /*planeIdx*/) override {
 			return data().ptr;
 		}
-		size_t getStride(size_t /*planeIdx*/) const override {
+		size_t getStride(int /*planeIdx*/) const override {
 			return internalFormat.res.width * 2;
 		}
 		void setInternalResolution(Resolution res) override {
@@ -241,16 +241,16 @@ class PictureNV12 : public DataPicture {
 			setInternalResolution(res);
 			setVisibleResolution(res);
 		}
-		size_t getNumPlanes() const override {
+		int getNumPlanes() const override {
 			return 2;
 		}
-		const uint8_t* getPlane(size_t planeIdx) const override {
+		const uint8_t* getPlane(int planeIdx) const override {
 			return m_planes[planeIdx];
 		}
-		uint8_t* getPlane(size_t planeIdx) override {
+		uint8_t* getPlane(int planeIdx) override {
 			return m_planes[planeIdx];
 		}
-		size_t getStride(size_t planeIdx) const override {
+		size_t getStride(int planeIdx) const override {
 			return m_stride[planeIdx];
 		}
 		void setInternalResolution(Resolution res) override {
@@ -279,16 +279,16 @@ class PictureNV12P010LE : public DataPicture {
 			setInternalResolution(res);
 			setVisibleResolution(res);
 		}
-		size_t getNumPlanes() const override {
+		int getNumPlanes() const override {
 			return 2;
 		}
-		const uint8_t* getPlane(size_t planeIdx) const override {
+		const uint8_t* getPlane(int planeIdx) const override {
 			return m_planes[planeIdx];
 		}
-		uint8_t* getPlane(size_t planeIdx) override {
+		uint8_t* getPlane(int planeIdx) override {
 			return m_planes[planeIdx];
 		}
-		size_t getStride(size_t planeIdx) const override {
+		size_t getStride(int planeIdx) const override {
 			return m_stride[planeIdx];
 		}
 		void setInternalResolution(Resolution res) override {
@@ -317,16 +317,16 @@ class PictureRGB24 : public DataPicture {
 			setInternalResolution(res);
 			setVisibleResolution(res);
 		}
-		size_t getNumPlanes() const override {
+		int getNumPlanes() const override {
 			return 1;
 		}
-		const uint8_t* getPlane(size_t /*planeIdx*/) const override {
+		const uint8_t* getPlane(int /*planeIdx*/) const override {
 			return data().ptr;
 		}
-		uint8_t* getPlane(size_t /*planeIdx*/) override {
+		uint8_t* getPlane(int /*planeIdx*/) override {
 			return data().ptr;
 		}
-		size_t getStride(size_t /*planeIdx*/) const override {
+		size_t getStride(int /*planeIdx*/) const override {
 			return internalFormat.res.width * 3;
 		}
 		void setInternalResolution(Resolution res) override {
@@ -348,16 +348,16 @@ class PictureRGBA32 : public DataPicture {
 			setInternalResolution(res);
 			setVisibleResolution(res);
 		}
-		size_t getNumPlanes() const override {
+		int getNumPlanes() const override {
 			return 1;
 		}
-		const uint8_t* getPlane(size_t /*planeIdx*/) const override {
+		const uint8_t* getPlane(int /*planeIdx*/) const override {
 			return data().ptr;
 		}
-		uint8_t* getPlane(size_t /*planeIdx*/) override {
+		uint8_t* getPlane(int /*planeIdx*/) override {
 			return data().ptr;
 		}
-		size_t getStride(size_t /*planeIdx*/) const override {
+		size_t getStride(int /*planeIdx*/) const override {
 			return internalFormat.res.width * 4;
 		}
 		void setInternalResolution(Resolution res) override {

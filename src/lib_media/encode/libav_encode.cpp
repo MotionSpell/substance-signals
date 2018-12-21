@@ -165,7 +165,7 @@ struct LibavEncode : ModuleS {
 			const auto pic = safe_cast<const DataPicture>(data);
 			AVFrame *f = avFrame->get();
 			f->format = (int)pixelFormat2libavPixFmt(pic->getFormat().format);
-			for (size_t i = 0; i < pic->getNumPlanes(); ++i) {
+			for (int i = 0; i < pic->getNumPlanes(); ++i) {
 				f->width = pic->getFormat().res.width;
 				f->height = pic->getFormat().res.height;
 				f->data[i] = (uint8_t*)pic->getPlane(i);

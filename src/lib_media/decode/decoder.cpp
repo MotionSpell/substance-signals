@@ -42,7 +42,7 @@ int avGetBuffer2(struct AVCodecContext *ctx, AVFrame *frame, int /*flags*/) {
 			frame->linesize[i] = 0;
 			frame->buf[i] = NULL;
 		}
-		for (size_t i = 0; i < pic->getNumPlanes(); ++i) {
+		for (int i = 0; i < pic->getNumPlanes(); ++i) {
 			frame->data[i] = pic->getPlane(i);
 			frame->linesize[i] = (int)pic->getStride(i);
 			assert(!(pic->getStride(i) % linesize_align[i]));

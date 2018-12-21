@@ -59,7 +59,7 @@ void JPEGTurboEncode::process(Data data_) {
 	case PixelFormat::NV12: {
 		uint8_t const* srcSlice[8] {};
 		int srcStride[8] {};
-		for (size_t i = 0; i<videoData->getNumPlanes(); ++i) {
+		for (int i = 0; i<videoData->getNumPlanes(); ++i) {
 			srcSlice[i] = videoData->getPlane(i);
 			srcStride[i] = (int)videoData->getStride(i);
 		}

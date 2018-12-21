@@ -65,10 +65,10 @@ class DataPicture : public DataRaw {
 		size_t getSize() const {
 			return format.getSize();
 		}
-		virtual size_t getNumPlanes() const = 0;
-		virtual const uint8_t* getPlane(size_t planeIdx) const = 0;
-		virtual uint8_t* getPlane(size_t planeIdx) = 0;
-		virtual size_t getStride(size_t planeIdx) const = 0;
+		virtual int getNumPlanes() const = 0;
+		virtual const uint8_t* getPlane(int planeIdx) const = 0;
+		virtual uint8_t* getPlane(int planeIdx) = 0;
+		virtual size_t getStride(int planeIdx) const = 0;
 		virtual void setInternalResolution(Resolution res) = 0;
 		virtual void setVisibleResolution(Resolution res) = 0;
 

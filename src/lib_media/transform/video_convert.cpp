@@ -41,7 +41,7 @@ class VideoConvert : public ModuleS {
 
 			uint8_t const* srcSlice[8] {};
 			int srcStride[8] {};
-			for (size_t i=0; i<videoData->getNumPlanes(); ++i) {
+			for (int i=0; i<videoData->getNumPlanes(); ++i) {
 				srcSlice[i] = videoData->getPlane(i);
 				srcStride[i] = (int)videoData->getStride(i);
 			}
@@ -53,7 +53,7 @@ class VideoConvert : public ModuleS {
 
 			auto resInternal = Resolution(ALIGN_PAD(dstFormat.res.width, 16 * 2), ALIGN_PAD(dstFormat.res.height, 8));
 			auto pic = DataPicture::create(output, dstFormat.res, resInternal, dstFormat.format);
-			for (size_t i=0; i<pic->getNumPlanes(); ++i) {
+			for (int i=0; i<pic->getNumPlanes(); ++i) {
 				pDst[i] = pic->getPlane(i);
 				dstStride[i] = (int)pic->getStride(i);
 				assert(dstStride[i]%16 == 0); // otherwise, sws_scale will crash
