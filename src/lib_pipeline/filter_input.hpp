@@ -12,8 +12,8 @@ namespace Pipelines {
    Data is nullptr at completion. */
 class FilterInput : public IInput {
 	public:
-		FilterInput(IInput *input, const std::string &moduleName, Signals::IExecutor* executor, StatsEntry *statsEntry, IPipelineNotifier * const notify)
-			: delegate(input), delegateName(moduleName), notify(notify), executor(executor), statsEntry(statsEntry) {
+		FilterInput(IInput *input, const std::string &moduleName, Signals::IExecutor* executor, IStatsRegistry* statsRegistry, IPipelineNotifier * const notify)
+			: delegate(input), delegateName(moduleName), notify(notify), executor(executor), statsEntry(statsRegistry->getNewEntry()) {
 			strncpy(statsEntry->name, delegateName.c_str(), sizeof(statsEntry->name)-1);
 			statsEntry->name[sizeof(statsEntry->name)-1] = 0;
 		}
