@@ -138,13 +138,6 @@ class ModuleS : public Module {
 		}
 };
 
-//module with no input (=source module)
-class ActiveModule : public Module {
-	public:
-		void process() override;
-		virtual bool work() = 0; // return false to stop processing (e.g eos)
-};
-
 template<typename Lambda>
 void ConnectOutput(IModule* sender, Lambda f) {
 	sender->getOutput(0)->getSignal().connect(f);
@@ -152,6 +145,7 @@ void ConnectOutput(IModule* sender, Lambda f) {
 
 struct NullHostType : KHost {
 	void log(int, char const*) override;
+	void activate(bool) override {};
 };
 
 static NullHostType NullHost;

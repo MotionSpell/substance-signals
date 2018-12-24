@@ -36,7 +36,12 @@ struct KOutput {
 
 struct KHost {
 	virtual ~KHost() = default;
+
+	// Send a text message to our host.
 	virtual void log(int level, char const* msg) = 0;
+
+	// if 'enable' is true, will cause 'process' to be called repeatedly.
+	virtual void activate(bool enable) = 0;
 };
 
 }

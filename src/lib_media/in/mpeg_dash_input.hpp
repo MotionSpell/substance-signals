@@ -9,11 +9,11 @@ struct DashMpd;
 namespace Modules {
 namespace In {
 
-class MPEG_DASH_Input : public ActiveModule {
+class MPEG_DASH_Input : public Module {
 	public:
 		MPEG_DASH_Input(KHost* host, IFilePuller* filePuller, std::string const &url);
 		~MPEG_DASH_Input();
-		bool work() override;
+		void process() override;
 
 	private:
 		KHost* const m_host;

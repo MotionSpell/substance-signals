@@ -5,11 +5,11 @@
 namespace Modules {
 namespace In {
 
-class File : public ActiveModule {
+class File : public Module {
 	public:
 		File(KHost* host, std::string const& fn);
 		~File();
-		bool work() override;
+		void process() override;
 
 	private:
 		KHost* const m_host;

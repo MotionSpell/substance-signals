@@ -6,10 +6,10 @@
 namespace Modules {
 namespace In {
 
-class SoundGenerator : public ActiveModule {
+class SoundGenerator : public Module {
 	public:
 		SoundGenerator(KHost* host);
-		bool work() override;
+		void process() override;
 
 	private:
 		KHost* const m_host;

@@ -52,6 +52,7 @@ class Filter :
 
 		// KHost implementation
 		void log(int level, char const* msg) override;
+		void activate(bool enable);
 
 		// IPipelineNotifier implementation
 		void endOfStream() override;
@@ -64,6 +65,9 @@ class Filter :
 
 		bool started = false;
 		bool stopped = false;
+
+		// should we repeatedly call 'process' on the delegate?
+		bool active = false;
 
 		IPipelineNotifier * const m_notify;
 		int connections = 0;

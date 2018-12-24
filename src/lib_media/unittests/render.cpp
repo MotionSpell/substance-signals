@@ -18,7 +18,7 @@ secondclasstest("render: sound generator") {
 	ConnectOutputToInput(soundGen->getOutput(0), render->getInput(0));
 
 	for(int i=0; i < 50; ++i) {
-		soundGen->work();
+		soundGen->process();
 	}
 	soundGen->flush();
 	render->flush();
@@ -53,8 +53,8 @@ secondclasstest("render: A/V sync, one thread") {
 	ConnectOutputToInput(soundGen->getOutput(0), soundRender->getInput(0));
 
 	for(int i=0; i < 25*5; ++i) {
-		videoGen->work();
-		soundGen->work();
+		videoGen->process();
+		soundGen->process();
 	}
 }
 

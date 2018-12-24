@@ -9,15 +9,18 @@ using namespace Pipelines;
 
 namespace {
 
-struct Source : Modules::ActiveModule {
-	Source(KHost*, bool &sent) : sent(sent) {
+struct Source : Modules::Module {
+	Source(KHost* host, bool &sent) : sent(sent), host(host) {
 		out = addOutput<Modules::OutputDefault>();
+		host->activate(true);
 	}
-	bool work() {
+	void process() override {
 		out->post(out->getBuffer(0));
-		return !sent;
+		if(sent)
+			host->activate(false);
 	}
 	bool &sent;
+	Modules::KHost* host;
 	Modules::OutputDefault* out;
 };
 struct Receiver : Module {

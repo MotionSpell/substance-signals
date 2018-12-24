@@ -18,7 +18,7 @@ unittest("video generator") {
 	ConnectOutput(videoGen.get(), onFrame);
 
 	for (int i = 0; i < 4; ++i) {
-		videoGen->work();
+		videoGen->process();
 	}
 
 	ASSERT_EQUALS(makeVector({

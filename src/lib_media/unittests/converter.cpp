@@ -120,9 +120,8 @@ unittest("audio converter: dynamic formats") {
 	ConnectOutputToInput(soundGen->getOutput(0), converter->getInput(0));
 	ConnectOutputToInput(converter->getOutput(0), recorder->getInput(0));
 
-	soundGen->work();
-
-	soundGen->work();
+	soundGen->process();
+	soundGen->process();
 
 	converter->flush();
 	recorder->process(nullptr);

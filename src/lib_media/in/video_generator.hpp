@@ -6,10 +6,10 @@
 namespace Modules {
 namespace In {
 
-class VideoGenerator : public ActiveModule {
+class VideoGenerator : public Module {
 	public:
 		VideoGenerator(KHost* host, int maxFrames = 0);
-		bool work() override;
+		void process() override;
 
 	private:
 		KHost* const m_host;

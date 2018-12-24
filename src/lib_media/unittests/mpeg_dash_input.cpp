@@ -97,7 +97,8 @@ unittest("mpeg_dash_input: get chunks") {
 	};
 	ConnectOutput(dash.get(), receive);
 
-	dash->process();
+	for(int i=0; i < 100; ++i)
+		dash->process();
 
 	ASSERT_EQUALS(
 	std::vector<std::string>( {

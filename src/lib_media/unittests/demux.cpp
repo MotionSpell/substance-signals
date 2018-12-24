@@ -42,7 +42,8 @@ unittest("LibavDemux: simple: 75 frames") {
 	auto rec = create<MyOutput>();
 	ConnectOutputToInput(demux->getOutput(0), rec->getInput(0));
 
-	demux->process();
+	for(int i=0; i < 100; ++i)
+		demux->process();
 	demux->flush();
 
 	ASSERT_EQUALS(75, rec->frameCount);
@@ -67,7 +68,8 @@ unittest("LibavDemux: rollover") {
 	auto rec = create<MyOutput>();
 	ConnectOutputToInput(demux->getOutput(0), rec->getInput(0));
 
-	demux->process();
+	for(int i=0; i < 100; ++i)
+		demux->process();
 	demux->flush();
 
 	vector<int64_t> expected(74, 7200);
@@ -87,7 +89,8 @@ secondclasstest("demux one track: Demux::GPACDemuxMP4Simple -> Out::Print") {
 
 	ConnectOutputToInput(mp4Demux->getOutput(0), p->getInput(0));
 
-	mp4Demux->process();
+	for(int i=0; i < 100; ++i)
+		mp4Demux->process();
 }
 
 unittest("GPACDemuxMP4Full: simple demux one track") {
@@ -102,7 +105,8 @@ unittest("GPACDemuxMP4Full: simple demux one track") {
 	ConnectOutputToInput(f->getOutput(0), mp4Demux->getInput(0));
 	ConnectOutput(mp4Demux.get(), onSample);
 
-	f->process();
+	for(int i=0; i < 100; ++i)
+		f->process();
 
 	ASSERT_EQUALS(215, sampleCount);
 }

@@ -106,14 +106,15 @@ MPEG_DASH_Input::MPEG_DASH_Input(KHost* host, IFilePuller* source, std::string c
 MPEG_DASH_Input::~MPEG_DASH_Input() {
 }
 
-bool MPEG_DASH_Input::work() {
+void MPEG_DASH_Input::process() {
 	for(auto& stream : m_streams) {
 		auto& set = *stream->set;
 
 		if(mpd->periodDuration) {
 			if(stream->segmentDuration * (stream->currNumber - set.startNumber) >= mpd->periodDuration) {
 				m_host->log(Info, "End of period");
-				return false;
+				m_host->activate(false);
+				return;
 			}
 		}
 
@@ -142,7 +143,7 @@ bool MPEG_DASH_Input::work() {
 				continue;
 			}
 			m_host->log(Error, format("can't download file: '%s'", url).c_str());
-			return false;
+			m_host->activate(false);
 		}
 
 		auto data = make_shared<DataRaw>(chunk.size());
@@ -151,7 +152,6 @@ bool MPEG_DASH_Input::work() {
 	}
 
 	m_initializationChunkSent = true;
-	return true;
 }
 
 }

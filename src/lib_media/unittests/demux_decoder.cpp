@@ -26,7 +26,9 @@ unittest("LibavDemux => Decoder: output media times must increase") {
 	ConnectOutputToInput(demux->getOutput(0), decoder->getInput(0));
 	ConnectOutput(decoder.get(), onPic);
 
-	demux->process();
+	for(int i=0; i < 100; ++i)
+		demux->process();
+
 	demux->flush();
 	decoder->flush();
 

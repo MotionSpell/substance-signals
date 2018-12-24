@@ -121,7 +121,8 @@ std::vector<Meta> runMux(std::shared_ptr<IModule> m) {
 	auto listener = create<Listener>();
 	ConnectModules(m.get(), 0, listener.get(), 0);
 
-	demux->process();
+	for(int i=0; i < 1000; ++i)
+		demux->process();
 	m->flush();
 
 	return listener->results;

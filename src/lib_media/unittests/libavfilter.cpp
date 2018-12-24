@@ -26,7 +26,7 @@ unittest("avfilter: deinterlace") {
 	ConnectOutput(filter.get(), onFrame);
 
 	for (int i = 0; i < 4; ++i) {
-		videoGen->work();
+		videoGen->process();
 	}
 	filter->flush();
 
@@ -49,7 +49,7 @@ unittest("avfilter: fps convert (drop/repeat)") {
 	ConnectOutput(filter.get(), onFrame);
 
 	for (int i = 0; i < 4; ++i) {
-		videoGen->work();
+		videoGen->process();
 	}
 	filter->flush();
 

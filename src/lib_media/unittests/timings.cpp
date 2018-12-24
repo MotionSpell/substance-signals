@@ -26,7 +26,8 @@ std::vector<int64_t> runDemux(std::string basename, CreateDemuxFunc createDemux)
 
 	auto demux = createDemux((basename + ".mp4").c_str());
 	ConnectOutput(demux.get(), onFrame);
-	demux->process();
+	for(int i=0; i < 100; ++i)
+		demux->process();
 	return actualTimes;
 }
 
@@ -161,7 +162,9 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 		modules.push_back(std::move(encoder));
 	}
 
-	demux->process();
+	for(int i=0; i < 1000; ++i)
+		demux->process();
+
 	for (auto &m : modules) {
 		m->flush();
 	}

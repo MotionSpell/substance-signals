@@ -112,10 +112,12 @@ VideoGenerator::VideoGenerator(KHost* host, int maxFrames_)
 	output->setMetadata(make_shared<MetadataRawVideo>());
 }
 
-bool VideoGenerator::work() {
+void VideoGenerator::process() {
 
-	if(maxFrames && m_numFrames >= (uint64_t)maxFrames)
-		return false;
+	if(maxFrames && m_numFrames >= (uint64_t)maxFrames) {
+		m_host->activate(false);
+		return;
+	}
 
 	auto const dim = Resolution(320, 180);
 	auto pic = DataPicture::create(output, dim, PixelFormat::I420);
@@ -137,7 +139,6 @@ bool VideoGenerator::work() {
 	output->post(pic);
 
 	++m_numFrames;
-	return true;
 }
 
 }

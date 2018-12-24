@@ -17,26 +17,29 @@ struct Passthru : public Modules::ModuleS {
 	}
 };
 
-struct InfiniteSource : Modules::ActiveModule {
-	InfiniteSource(Modules::KHost*) {
+struct InfiniteSource : Modules::Module {
+	InfiniteSource(Modules::KHost* host) {
 		out = addOutput<Modules::OutputDefault>();
+		host->activate(true);
 	}
-	bool work() {
+	void process() override {
 		out->post(out->getBuffer(0));
-		return true;
 	}
 	Modules::OutputDefault* out;
 };
 
-struct FakeSource : Modules::ActiveModule {
-	FakeSource(Modules::KHost*, int maxNumRepetition = 50) : numRepetition(maxNumRepetition) {
+struct FakeSource : Modules::Module {
+	FakeSource(Modules::KHost* host, int maxNumRepetition = 50) : numRepetition(maxNumRepetition), host(host) {
 		out = addOutput<Modules::OutputDefault>();
+		host->activate(true);
 	}
-	bool work() {
+	void process() override {
 		out->post(out->getBuffer(0));
-		return --numRepetition > 0;
+		if(--numRepetition <= 0)
+			host->activate(false);
 	}
 	int numRepetition;
+	Modules::KHost* host;
 	Modules::OutputDefault* out;
 };
 

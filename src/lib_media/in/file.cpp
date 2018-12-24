@@ -29,15 +29,15 @@ File::~File() {
 	fclose(file);
 }
 
-bool File::work() {
+void File::process() {
 	auto out = output->getBuffer(IOSIZE);
 	size_t read = fread(out->data().ptr, 1, IOSIZE, file);
 	if (read == 0) {
-		return false;
+		m_host->activate(false);
+		return;
 	}
 	out->resize(read);
 	output->post(out);
-	return true;
 }
 
 }

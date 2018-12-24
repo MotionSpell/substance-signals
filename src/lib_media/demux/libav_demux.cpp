@@ -47,12 +47,15 @@ bool startsWith(std::string s, std::string prefix) {
 	return s.compare(0, prefix.size(), prefix) == 0;
 }
 
-struct LibavDemux : ActiveModule {
+struct LibavDemux : Module {
 	LibavDemux(KHost* host, DemuxConfig const& config)
 		: m_host(host),
 		  loop(config.loop), done(false), packetQueue(PKT_QUEUE_SIZE), m_read(config.func) {
 		if (!(m_formatCtx = avformat_alloc_context()))
 			throw error("Can't allocate format context");
+
+		// declare ourselves as a source
+		m_host->activate(true);
 
 		avformat_network_init();
 
@@ -159,7 +162,7 @@ struct LibavDemux : ActiveModule {
 		clean();
 	}
 
-	bool work() override {
+	void process() override {
 		if(!workingThread.joinable())
 			workingThread = std::thread(&LibavDemux::inputThread, this);
 
@@ -167,24 +170,24 @@ struct LibavDemux : ActiveModule {
 		if (!packetQueue.read(pkt)) {
 			if (done) {
 				m_host->log(Info, "All data consumed: exit process().");
-				return false;
+				m_host->activate(false); // stop source
+				return ;
 			}
 			std::this_thread::sleep_for(10ms);
-			return true;
+			return ;
 		}
 
 		if (!rectifyTimestamps(pkt)) {
 			av_packet_unref(&pkt);
-			return true;
+			return ;
 		}
 
 		if (!dispatchable(&pkt)) {
 			av_packet_unref(&pkt);
-			return true;
+			return ;
 		}
 
 		dispatch(&pkt);
-		return true;
 	}
 
 	int readFrame(AVPacket* pkt) {

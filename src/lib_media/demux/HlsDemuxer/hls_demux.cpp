@@ -22,11 +22,14 @@ string dirName(string path) {
 	return path + "/";
 }
 
-class HlsDemuxer : public ActiveModule {
+class HlsDemuxer : public Module {
 	public:
 		HlsDemuxer(KHost* host, HlsDemuxConfig* cfg)
 			: m_host(host),
 			  m_playlistUrl(cfg->url) {
+
+			m_host->activate(true);
+
 			m_puller = cfg->filePuller;
 			if(!m_puller) {
 				m_internalPuller = createHttpSource();
@@ -37,7 +40,12 @@ class HlsDemuxer : public ActiveModule {
 			m_output = addOutput<OutputDefault>();
 		}
 
-		virtual bool work() override {
+		void process() override {
+			if(!doProcess())
+				m_host->activate(false);
+		}
+
+		bool doProcess() {
 			if(!m_hasPlaylist) {
 				auto main = downloadPlaylist(m_playlistUrl);
 				if(main.empty()) {

@@ -35,6 +35,10 @@ void Filter::log(int level, char const* msg) {
 	m_log->log((Level)level, format("[%s] %s", m_name.c_str(), msg).c_str());
 }
 
+void Filter::activate(bool enable) {
+	active = enable;
+}
+
 void Filter::setDelegate(std::shared_ptr<IModule> module) {
 	delegate = module;
 }
@@ -59,7 +63,7 @@ Metadata Filter::getOutputMetadata(int i) {
 
 /* source modules are stopped manually - then the message propagates to other connected modules */
 bool Filter::isSource() {
-	return dynamic_cast<ActiveModule*>(delegate.get());
+	return active;
 }
 
 void Filter::connect(IOutput *output, int inputIdx, bool inputAcceptMultipleConnections) {
@@ -104,12 +108,13 @@ IInput* Filter::getInput(int i) {
 }
 
 void Filter::processSource() {
-	auto source = safe_cast<ActiveModule>(delegate.get());
 
-	if(stopped || !source->work()) {
+	if(stopped || !active) {
 		endOfStream();
 		return; // don't reschedule
 	}
+
+	delegate->process();
 
 	// reschedule
 	executor->call(std::bind(&Filter::processSource, this));

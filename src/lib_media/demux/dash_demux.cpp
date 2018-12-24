@@ -25,11 +25,12 @@ struct OutStub : ModuleS {
 		KOutput *output;
 };
 
-class DashDemuxer : public ActiveModule {
+class DashDemuxer : public Module {
 	public:
 		DashDemuxer(KHost* host, DashDemuxConfig* cfg)
 			: m_host(host) {
-			(void)m_host;
+
+			m_host->activate(true);
 
 			filePuller = createHttpSource();
 			pipeline = make_unique<Pipelines::Pipeline>();
@@ -39,10 +40,9 @@ class DashDemuxer : public ActiveModule {
 				addStream(downloader, i);
 		}
 
-		virtual bool work() override {
+		void process() override {
 			pipeline->start();
 			pipeline->waitForEndOfStream();
-			return true;
 		}
 
 	private:

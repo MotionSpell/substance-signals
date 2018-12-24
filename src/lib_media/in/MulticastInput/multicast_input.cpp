@@ -7,9 +7,12 @@ using namespace Modules;
 
 namespace {
 
-struct MulticastInput : ActiveModule {
+struct MulticastInput : Module {
 	MulticastInput(KHost* host, MulticastInputConfig const& config)
 		: m_host(host) {
+
+		m_host->activate(true);
+
 		m_socket = createSocket();
 
 		char buffer[256];
@@ -20,7 +23,7 @@ struct MulticastInput : ActiveModule {
 	}
 
 	// must be able to receive at least 35Mbps
-	bool work() override {
+	void process() override {
 		auto buf = m_output->getBuffer(4096);
 
 		auto size = m_socket->receive(buf->data().ptr, buf->data().len);
@@ -28,8 +31,6 @@ struct MulticastInput : ActiveModule {
 			buf->resize(size);
 			m_output->post(buf);
 		}
-
-		return true;
 	}
 
 	KHost* const m_host;

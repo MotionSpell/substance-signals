@@ -26,11 +26,14 @@ class ISOFileReader {
 };
 
 
-class GPACDemuxMP4Simple : public ActiveModule {
+class GPACDemuxMP4Simple : public Module {
 	public:
 		GPACDemuxMP4Simple(KHost* host, Mp4DemuxConfig const* cfg)
 			: m_host(host),
 			  reader(new ISOFileReader) {
+
+			m_host->activate(true);
+
 			GF_ISOFile *movie;
 			u64 missingBytes;
 			GF_Err e = gf_isom_open_progressive(cfg->path.c_str(), 0, 0, &movie, &missingBytes);
@@ -41,7 +44,7 @@ class GPACDemuxMP4Simple : public ActiveModule {
 			output = addOutput<OutputDefault>();
 		}
 
-		bool work() override {
+		void process() override {
 			auto const DTSOffset = reader->movie->getDTSOffset(reader->trackNumber);
 			try {
 				int sampleDescriptionIndex;
@@ -61,10 +64,10 @@ class GPACDemuxMP4Simple : public ActiveModule {
 					u64 missingBytes = reader->movie->getMissingBytes(reader->trackNumber);
 					m_host->log(Error, format("Missing %s bytes on input file", missingBytes).c_str());
 				} else {
-					return false;
+					// no more input data
+					m_host->activate(false);
 				}
 			}
-			return true;
 		}
 
 	private:
