@@ -10,7 +10,15 @@ namespace Pipelines {
 
 struct IStatsRegistry;
 
-/* wrapper around the module */
+// Wrapper around a user-module instance.
+// Every event sent or received by the user-module instance passes
+// through this class first.
+//
+// This wrapper handles:
+// - Threading
+// - EOS propagation
+// - Statistics gathering
+// - Log forwarding
 class Filter :
 	public IFilter,
 	public KHost,
@@ -33,7 +41,6 @@ class Filter :
 		IOutput* getOutput(int i);
 		Metadata getOutputMetadata(int i) override;
 
-		/* source modules are stopped manually - then the message propagates to other connected modules */
 		bool isSource();
 
 		void startSource();
