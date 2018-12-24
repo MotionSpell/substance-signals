@@ -61,10 +61,12 @@ struct Decoder : ModuleS, PictureAllocator {
 			addInput(this);
 
 			if(type == VIDEO_PKT) {
-				videoOutput = addOutput<OutputPicture>(make_shared<MetadataRawVideo>());
+				videoOutput = addOutput<OutputPicture>();
+				videoOutput->setMetadata(make_shared<MetadataRawVideo>());
 				getDecompressedData = std::bind(&Decoder::processVideo, this);
 			} else if(type == AUDIO_PKT) {
-				audioOutput = addOutput<OutputPcm>(make_shared<MetadataRawAudio>());
+				audioOutput = addOutput<OutputPcm>();
+				audioOutput->setMetadata(make_shared<MetadataRawAudio>());
 				getDecompressedData = std::bind(&Decoder::processAudio, this);
 			} else
 				throw error("Can only decode audio or video.");

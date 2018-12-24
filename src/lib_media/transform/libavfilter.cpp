@@ -75,7 +75,8 @@ LibavFilter::LibavFilter(KHost* host, const AvFilterConfig& cfg)
 
 	auto input = addInput(this);
 	input->setMetadata(make_shared<MetadataRawVideo>());
-	addOutput<OutputPicture>(make_shared<MetadataRawVideo>());
+	auto output = addOutput<OutputPicture>();
+	output->setMetadata(make_shared<MetadataRawVideo>());
 }
 
 LibavFilter::~LibavFilter() {

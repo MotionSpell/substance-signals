@@ -31,7 +31,9 @@ JPEGTurboDecode::JPEGTurboDecode(KHost* host_)
 	  jtHandle(tjInitDecompress()) {
 	auto input = addInput(this);
 	input->setMetadata(make_shared<MetadataPkt>(VIDEO_PKT));
-	output = addOutput<OutputPicture>(make_shared<MetadataRawVideo>());
+
+	output = addOutput<OutputPicture>();
+	output->setMetadata(make_shared<MetadataRawVideo>());
 }
 
 JPEGTurboDecode::~JPEGTurboDecode() {

@@ -92,9 +92,9 @@ class Module : public IModule, public ErrorCap {
 			return inputs[i].get();
 		}
 
-		template <typename InstanceType, typename ...Args>
-		InstanceType* addOutput(Args&&... args) {
-			auto p = new InstanceType(allocatorSize, std::forward<Args>(args)...);
+		template <typename InstanceType>
+		InstanceType* addOutput() {
+			auto p = new InstanceType(allocatorSize);
 			outputs.push_back(uptr(p));
 			return p;
 		}
