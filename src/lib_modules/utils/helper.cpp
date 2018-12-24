@@ -7,7 +7,7 @@
 namespace Modules {
 
 KInput* Module::addInput(IProcessor* p) {
-	inputs.push_back(std::make_unique<Input>(p));
+	inputs.push_back(make_unique<Input>(p));
 	return inputs.back().get();
 }
 
