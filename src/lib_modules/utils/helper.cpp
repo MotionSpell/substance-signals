@@ -11,11 +11,6 @@ KInput* Module::addInput(IProcessor* p) {
 	return inputs.back().get();
 }
 
-KInput* ModuleDynI::addInput(IProcessor* p) {
-	inputs.push_back(make_unique<Input>(p));
-	return inputs.back().get();
-}
-
 MetadataCap::MetadataCap(Metadata metadata) : m_metadata(metadata) {
 }
 

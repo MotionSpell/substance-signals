@@ -10,8 +10,6 @@ class ModuleDynI : public Module {
 		ModuleDynI() = default;
 		virtual ~ModuleDynI() {}
 
-		KInput* addInput(IProcessor* p);
-
 		int getNumInputs() const override {
 			if (inputs.size() == 0)
 				return 1;
