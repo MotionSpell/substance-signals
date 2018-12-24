@@ -2,7 +2,6 @@
 
 #include "queue.hpp"
 #include <functional>
-#include <stdexcept>
 #include <thread>
 #include <cassert>
 
@@ -27,9 +26,6 @@ class ThreadPool {
 		}
 
 		void submit(std::function<void()> f)	{
-			if (eptr)
-				std::rethrow_exception(eptr);
-
 			assert(f);
 
 			workQueue.push(f);
@@ -43,9 +39,7 @@ class ThreadPool {
 				try {
 					task();
 				} catch (...) {
-					eptr = std::current_exception(); //will be caught by next submit()
-					// FIXME: shouldn't 'eptr' be protected from concurrent read/write?
-					// FIXME: what if there's no next submit? is the exception lost?
+					// should not occur
 				}
 			}
 		}
@@ -53,5 +47,4 @@ class ThreadPool {
 		Queue<std::function<void(void)>> workQueue;
 		std::vector<std::thread> threads;
 		std::string name;
-		std::exception_ptr eptr;
 };
