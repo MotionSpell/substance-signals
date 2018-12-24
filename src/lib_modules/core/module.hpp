@@ -21,26 +21,38 @@ typedef std::shared_ptr<const IMetadata> Metadata;
 
 // This is how user modules see the outside world.
 // 'K' interfaces are called by the user module implementations.
+
+// This is how a user module sees each one of its inputs.
 struct KInput {
 	virtual ~KInput() = default;
+
+	// dequeue input data
 	virtual Data pop() = 0;
 	virtual bool tryPop(Data &value) = 0;
+
+	// publish metadata for this input
 	virtual void setMetadata(Metadata metadata) = 0;
 };
 
+// This is how a user module sees each one of its outputs.
 struct KOutput {
 	virtual ~KOutput() = default;
+
+	// send 'data' downstream
 	virtual void post(Data data) = 0;
+
+	// publish metadata for this output
 	virtual void setMetadata(Metadata metadata) = 0;
 };
 
+// This is how a user module sees its host.
 struct KHost {
 	virtual ~KHost() = default;
 
-	// Send a text message to our host.
+	// send a text message to the host
 	virtual void log(int level, char const* msg) = 0;
 
-	// if 'enable' is true, will cause 'process' to be called repeatedly.
+	// if 'enable' is true, will cause 'process' to be called repeatedly
 	virtual void activate(bool enable) = 0;
 };
 
