@@ -59,7 +59,7 @@ unittest("remux test: libav mp4 mux") {
 
 		if (demux->getOutput(i)->getMetadata()->isVideo()) {
 			assert(!avcc2annexB);
-			avcc2annexB = create<Transform::AVCC2AnnexBConverter>(&NullHost);
+			avcc2annexB = createModule<Transform::AVCC2AnnexBConverter>(&NullHost);
 			ConnectModules(demux.get(), i, avcc2annexB.get(), 0);
 			ConnectModules(avcc2annexB.get(), 0, mux.get(), i);
 		} else {
@@ -118,7 +118,7 @@ std::vector<Meta> runMux(std::shared_ptr<IModule> m) {
 	assert(audioPin);
 
 	ConnectOutputToInput(audioPin, m->getInput(0));
-	auto listener = create<Listener>();
+	auto listener = createModule<Listener>();
 	ConnectModules(m.get(), 0, listener.get(), 0);
 
 	for(int i=0; i < 1000; ++i)
@@ -283,7 +283,7 @@ unittest("remux test: canonical to H.264 Annex B bitstream converter") {
 		actual.assign(pkt->data().ptr, pkt->data().ptr + pkt->data().len);
 	};
 
-	auto avcc2annexB = create<Transform::AVCC2AnnexBConverter>(&NullHost);
+	auto avcc2annexB = createModule<Transform::AVCC2AnnexBConverter>(&NullHost);
 	ConnectOutput(avcc2annexB.get(), onSample);
 	avcc2annexB->process(pkt);
 	ASSERT(received);
@@ -306,7 +306,7 @@ unittest("GPAC mp4 mux: don't create empty fragments") {
 
 	auto cfg = Mp4MuxConfig{"", 1000, FragmentedSegment, OneFragmentPerRAP, Browsers | SegmentAtAny};
 	auto mux = loadModule("GPACMuxMP4", &NullHost, &cfg);
-	auto recorder = create<Recorder>();
+	auto recorder = createModule<Recorder>();
 	ConnectOutputToInput(mux->getOutput(0), recorder->getInput(0));
 
 	auto createH264AccessUnit = []() {

@@ -216,7 +216,7 @@ namespace {
 IModule* createObject(KHost* host, void* va) {
 	auto cfg = (HttpOutputConfig*)va;
 	enforce(host, "HTTP: host can't be NULL");
-	return create<Out::HTTP>(host, *cfg).release();
+	return createModule<Out::HTTP>(host, *cfg).release();
 }
 
 auto const registered = Factory::registerModule("HTTP", &createObject);

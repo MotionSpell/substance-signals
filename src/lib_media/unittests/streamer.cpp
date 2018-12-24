@@ -643,11 +643,11 @@ unittest("[DISABLED] adaptive streaming combination coverage") {
 	auto muxTSSeg = loadModule("LibavMuxHLSTS", &NullHost, &muxCfgLibav);
 
 	auto muxCfg = HlsMuxConfig { "", "hls_ts.m3u8", Stream::AdaptiveStreamingCommon::Live, segmentDurationInMs, 0, false, Stream::AdaptiveStreamingCommon::SegmentsNotOwned | Stream::AdaptiveStreamingCommon::PresignalNextSegment | Stream::AdaptiveStreamingCommon::ForceRealDurations };
-	auto hls_ts = create<Stream::Apple_HLS>(&NullHost, &muxCfg);
+	auto hls_ts = createModule<Stream::Apple_HLS>(&NullHost, &muxCfg);
 	std::vector<std::shared_ptr<IModule>> hls_mp4, dash, dashTimeline;
 	for (auto i = 0; i < 3; ++i) {
 		auto muxCfgMp4 = HlsMuxConfig {"", "hls_mp4.m3u8", Stream::AdaptiveStreamingCommon::Live, segmentDurationInMs, 0, true, Stream::AdaptiveStreamingCommon::SegmentsNotOwned | Stream::AdaptiveStreamingCommon::PresignalNextSegment | Stream::AdaptiveStreamingCommon::ForceRealDurations };
-		hls_mp4.push_back(create<Stream::Apple_HLS>(&NullHost, &muxCfgMp4));
+		hls_mp4.push_back(createModule<Stream::Apple_HLS>(&NullHost, &muxCfgMp4));
 
 		Modules::DasherConfig dashCfg {};
 		dashCfg.mpdName = "dash.mpd";
@@ -718,22 +718,22 @@ unittest("[DISABLED] adaptive streaming combination coverage") {
 
 		if (i == 0) {
 			ConnectModules(muxTSSeg.get(), 0, hls_ts.get(), 0);
-			listeners.push_back(create<Listener>());
+			listeners.push_back(createModule<Listener>());
 			ConnectModules(muxTSSeg.get(), 0, listeners.back().get(), 0);
 			ConnectModules(muxTSSeg.get(), 1, listeners.back().get(), 0);
 			ConnectModules(hls_ts.get(), 0, listeners.back().get(), 0);
 			ConnectModules(hls_ts.get(), 1, listeners.back().get(), 0);
 
 			for (auto idx = 0; idx < 3; ++idx) {
-				listeners.push_back(create<Listener>());
+				listeners.push_back(createModule<Listener>());
 				ConnectModules(hls_mp4[idx].get(), 0, listeners.back().get(), 0);
 				ConnectModules(hls_mp4[idx].get(), 1, listeners.back().get(), 0);
 
-				listeners.push_back(create<Listener>());
+				listeners.push_back(createModule<Listener>());
 				ConnectModules(dash[idx].get(), 0, listeners.back().get(), 0);
 				ConnectModules(dash[idx].get(), 1, listeners.back().get(), 0);
 
-				listeners.push_back(create<Listener>());
+				listeners.push_back(createModule<Listener>());
 				ConnectModules(dashTimeline[idx].get(), 0, listeners.back().get(), 0);
 				ConnectModules(dashTimeline[idx].get(), 1, listeners.back().get(), 0);
 			}

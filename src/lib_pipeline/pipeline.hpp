@@ -22,7 +22,7 @@ class Pipeline : public IPipelineNotifier {
 		IFilter * addModule(Args&&... args) {
 
 			auto createModule = [&](Modules::KHost* host) {
-				return Modules::createModule<InstanceType>(
+				return Modules::createModuleWithSize<InstanceType>(
 				        getNumBlocks(NumBlocks),
 				        host,
 				        std::forward<Args>(args)...);

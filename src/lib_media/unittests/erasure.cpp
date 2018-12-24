@@ -22,7 +22,7 @@ secondclasstest("packet type erasure + multi-output: libav Demux -> {libav Decod
 		auto metadata = demux->getOutput(i)->getMetadata();
 		auto decode = loadModule("Decoder", &NullHost, (void*)(uintptr_t)metadata->type);
 
-		auto p = create<Out::Print>(&NullHost, std::cout);
+		auto p = createModule<Out::Print>(&NullHost, std::cout);
 
 		ConnectOutputToInput(demux->getOutput(i), decode->getInput(0));
 		ConnectOutputToInput(decode->getOutput(0), p->getInput(0));

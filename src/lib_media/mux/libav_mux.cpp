@@ -248,7 +248,7 @@ Modules::IModule* createObject(KHost* host, void* va) {
 
 	avformat_network_init();
 
-	return Modules::create<LibavMux>(host, *config).release();
+	return Modules::createModule<LibavMux>(host, *config).release();
 }
 
 auto const registered = Factory::registerModule("LibavMux", &createObject);

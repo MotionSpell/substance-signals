@@ -154,7 +154,7 @@ unittest("TsDemuxer: PES demux") {
 	cfg.pids[0] = { 120, 1 };
 
 	auto demux = loadModule("TsDemuxer", &NullHost, &cfg);
-	auto rec = create<FrameCounter>();
+	auto rec = createModule<FrameCounter>();
 	ConnectOutputToInput(demux->getOutput(0), rec->getInput(0));
 
 	auto frame = getTestTs();
@@ -209,7 +209,7 @@ unittest("TsDemuxer: PES demux should not wait for next AU") {
 	cfg.pids[0] = { 222, 1 };
 
 	auto demux = loadModule("TsDemuxer", &NullHost, &cfg);
-	auto rec = create<FrameCounter>();
+	auto rec = createModule<FrameCounter>();
 	ConnectOutputToInput(demux->getOutput(0), rec->getInput(0));
 
 	auto frame = createPacket(tsPackets);
@@ -227,8 +227,8 @@ unittest("TsDemuxer: two pins, one PID") {
 	cfg.pids[1] = { 120, 1 };
 
 	auto demux = loadModule("TsDemuxer", &NullHost, &cfg);
-	auto rec130 = create<FrameCounter>();
-	auto rec120 = create<FrameCounter>();
+	auto rec130 = createModule<FrameCounter>();
+	auto rec120 = createModule<FrameCounter>();
 	ConnectOutputToInput(demux->getOutput(0), rec130->getInput(0));
 	ConnectOutputToInput(demux->getOutput(1), rec120->getInput(0));
 
@@ -282,8 +282,8 @@ unittest("TsDemuxer: two pins, two PIDs") {
 	auto demux = loadModule("TsDemuxer", &NullHost, &cfg);
 	ASSERT_EQUALS(2, demux->getNumOutputs());
 
-	auto pid0 = create<FrameCounter>();
-	auto pid1 = create<FrameCounter>();
+	auto pid0 = createModule<FrameCounter>();
+	auto pid1 = createModule<FrameCounter>();
 	ConnectOutputToInput(demux->getOutput(0), pid0->getInput(0));
 	ConnectOutputToInput(demux->getOutput(1), pid1->getInput(0));
 

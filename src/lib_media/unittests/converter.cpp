@@ -62,7 +62,7 @@ unittest("audio converter: interleaved to planar") {
 	auto cfg = AudioConvertConfig { in->getFormat(), planar, -1 };
 	auto converter = loadModule("AudioConvert", &NullHost, &cfg);
 
-	auto rec = create<Recorder>();
+	auto rec = createModule<Recorder>();
 	ConnectOutputToInput(converter->getOutput(0), rec->getInput(0));
 	converter->getInput(0)->push(in);
 	converter->process();
@@ -81,7 +81,7 @@ unittest("audio converter: 44100 to 48000") {
 	auto cfg = AudioConvertConfig { in->getFormat(), dstFormat, -1 };
 	auto converter = loadModule("AudioConvert", &NullHost, &cfg);
 
-	auto rec = create<Recorder>();
+	auto rec = createModule<Recorder>();
 	ConnectOutputToInput(converter->getOutput(0), rec->getInput(0));
 	for(int i=0; i < 3; ++i) {
 		converter->getInput(0)->push(in);
@@ -110,8 +110,8 @@ unittest("audio converter: 44100 to 48000") {
 #include "lib_media/in/sound_generator.hpp"
 
 unittest("audio converter: dynamic formats") {
-	auto soundGen = create<In::SoundGenerator>(&NullHost);
-	auto recorder = create<Utils::Recorder>(&NullHost);
+	auto soundGen = createModule<In::SoundGenerator>(&NullHost);
+	auto recorder = createModule<Utils::Recorder>(&NullHost);
 
 	PcmFormat format;
 	auto cfg = AudioConvertConfig { {0}, format, -1 };
@@ -149,7 +149,7 @@ void framingTest(const size_t inFrameFrames, const size_t outFrameFrames) {
 		data->setPlane(i, inputRaw, inFrameSizeInBytes);
 	}
 
-	auto recorder = create<Utils::Recorder>(&NullHost);
+	auto recorder = createModule<Utils::Recorder>(&NullHost);
 	auto cfg = AudioConvertConfig { format, format, (int64_t)outFrameFrames};
 	auto converter = loadModule("AudioConvert", &NullHost, &cfg);
 	ConnectOutputToInput(converter->getOutput(0), recorder->getInput(0));
@@ -212,8 +212,8 @@ unittest("audio gap filler") {
 
 	const std::vector<int64_t> in =  { 1, 2, 3,    5, 6, 7, 8, 7, 8, 9, 1000, 1001, 1002, 3, 4, 5 };
 	const std::vector<int64_t> out = { 1, 2, 3, 4, 5, 6, 7, 8,       9, 1000, 1001, 1002, 3, 4, 5 };
-	auto recorder = create<Utils::Recorder>(&NullHost);
-	auto gapFiller = create<Transform::AudioGapFiller>(&NullHost, out.size());
+	auto recorder = createModule<Utils::Recorder>(&NullHost);
+	auto gapFiller = createModule<Transform::AudioGapFiller>(&NullHost, out.size());
 	ConnectOutputToInput(gapFiller->getOutput(0), recorder->getInput(0));
 	for (auto &val : in) {
 		data->setMediaTime(val * numSamples, format.sampleRate);

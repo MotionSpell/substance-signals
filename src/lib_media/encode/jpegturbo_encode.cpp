@@ -92,7 +92,7 @@ void JPEGTurboEncode::process(Data data_) {
 IModule* createObject(KHost* host, void* va) {
 	(void)va;
 	enforce(host, "JPEGTurboEncode: host can't be NULL");
-	return create<JPEGTurboEncode>(host).release();
+	return createModule<JPEGTurboEncode>(host).release();
 }
 
 auto const registered = Factory::registerModule("JPEGTurboEncode", &createObject);

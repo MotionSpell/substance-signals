@@ -370,11 +370,11 @@ namespace {
 
 using namespace Modules;
 
-Modules::IModule* createObject(KHost* host, void* va) {
+IModule* createObject(KHost* host, void* va) {
 	auto config = (DasherConfig*)va;
 	enforce(host, "MPEG_DASH: host can't be NULL");
 	enforce(config, "MPEG_DASH: config can't be NULL");
-	return Modules::create<Stream::MPEG_DASH>(host, config).release();
+	return createModule<Stream::MPEG_DASH>(host, config).release();
 }
 
 auto const registered = Factory::registerModule("MPEG_DASH", &createObject);

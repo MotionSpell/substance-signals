@@ -68,11 +68,11 @@ class DashDemuxer : public Module {
 		}
 };
 
-Modules::IModule* createObject(KHost* host, void* va) {
+IModule* createObject(KHost* host, void* va) {
 	auto config = (DashDemuxConfig*)va;
 	enforce(host, "DashDemuxer: host can't be NULL");
 	enforce(config, "DashDemuxer: config can't be NULL");
-	return Modules::create<DashDemuxer>(host, config).release();
+	return createModule<DashDemuxer>(host, config).release();
 }
 
 auto const registered = Factory::registerModule("DashDemuxer", &createObject);

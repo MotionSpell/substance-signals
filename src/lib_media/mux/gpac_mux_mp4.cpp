@@ -1147,11 +1147,11 @@ namespace {
 
 using namespace Modules;
 
-Modules::IModule* createObject(KHost* host, void* va) {
+IModule* createObject(KHost* host, void* va) {
 	auto config = (Mp4MuxConfig*)va;
 	enforce(host, "GPACMuxMP4: host can't be NULL");
 	enforce(config, "GPACMuxMP4: config can't be NULL");
-	return Modules::create<Mux::GPACMuxMP4>(host, *config).release();
+	return createModule<Mux::GPACMuxMP4>(host, *config).release();
 }
 
 auto const registered = Factory::registerModule("GPACMuxMP4", &createObject);

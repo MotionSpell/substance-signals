@@ -77,11 +77,11 @@ class GPACDemuxMP4Simple : public Module {
 };
 
 
-Modules::IModule* createObject(KHost* host, void* va) {
+IModule* createObject(KHost* host, void* va) {
 	auto config = (Mp4DemuxConfig*)va;
 	enforce(host, "GPACDemuxMP4Simple: host can't be NULL");
 	enforce(config, "GPACDemuxMP4Simple: config can't be NULL");
-	return Modules::create<GPACDemuxMP4Simple>(host, config).release();
+	return createModule<GPACDemuxMP4Simple>(host, config).release();
 }
 
 auto const registered = Factory::registerModule("GPACDemuxMP4Simple", &createObject);

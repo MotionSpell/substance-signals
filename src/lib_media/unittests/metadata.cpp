@@ -45,8 +45,8 @@ class FakeInput : public Module {
 }
 
 unittest("metadata: backwarded by connection") {
-	auto output = create<FakeOutput>();
-	auto input  = create<FakeInput>();
+	auto output = createModule<FakeOutput>();
+	auto input  = createModule<FakeInput>();
 	input->setMetadata(make_shared<MetadataRawAudio>());
 	auto o = output->getOutput(0);
 	auto i = input->getInput(0);
@@ -55,8 +55,8 @@ unittest("metadata: backwarded by connection") {
 }
 
 unittest("metadata: not forwarded by connection") {
-	auto output = create<FakeOutput>();
-	auto input = create<FakeInput>();
+	auto output = createModule<FakeOutput>();
+	auto input = createModule<FakeInput>();
 	output->setMetadata(make_shared<MetadataRawAudio>());
 	auto o = output->getOutput(0);
 	auto i = input->getInput(0);
@@ -65,8 +65,8 @@ unittest("metadata: not forwarded by connection") {
 }
 
 unittest("metadata: same back and fwd by connection") {
-	auto output = create<FakeOutput>();
-	auto input = create<FakeInput>();
+	auto output = createModule<FakeOutput>();
+	auto input = createModule<FakeInput>();
 	auto meta = make_shared<MetadataRawAudio>();
 	input->setMetadata(meta);
 	output->setMetadata(meta);
@@ -77,8 +77,8 @@ unittest("metadata: same back and fwd by connection") {
 }
 
 unittest("metadata: forwarded by data") {
-	auto output = create<FakeOutput>();
-	auto input = create<FakeInput>();
+	auto output = createModule<FakeOutput>();
+	auto input = createModule<FakeInput>();
 	auto o = output->getOutput(0);
 	auto i = input->getInput(0);
 	ConnectOutputToInput(o, i);
@@ -88,8 +88,8 @@ unittest("metadata: forwarded by data") {
 }
 
 unittest("metadata: incompatible by data") {
-	auto output = create<FakeOutput>();
-	auto input = create<FakeInput>();
+	auto output = createModule<FakeOutput>();
+	auto input = createModule<FakeInput>();
 	input->setMetadata(make_shared<MetadataRawAudio>());
 	auto o = output->getOutput(0);
 	auto i = input->getInput(0);
@@ -98,8 +98,8 @@ unittest("metadata: incompatible by data") {
 }
 
 unittest("metadata: incompatible back and fwd") {
-	auto output = create<FakeOutput>();
-	auto input = create<FakeInput>();
+	auto output = createModule<FakeOutput>();
+	auto input = createModule<FakeInput>();
 	input->setMetadata(make_shared<MetadataRawAudio>());
 	output->setMetadata(make_shared<MetadataRawVideo>());
 	auto o = output->getOutput(0);
@@ -108,8 +108,8 @@ unittest("metadata: incompatible back and fwd") {
 }
 
 unittest("metadata: updated twice by data") {
-	auto output = create<FakeOutput>();
-	auto input = create<FakeInput>();
+	auto output = createModule<FakeOutput>();
+	auto input = createModule<FakeInput>();
 	auto o = output->getOutput(0);
 	auto i = input->getInput(0);
 	ConnectOutputToInput(o, i);

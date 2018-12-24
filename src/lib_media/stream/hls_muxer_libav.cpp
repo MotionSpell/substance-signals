@@ -121,11 +121,11 @@ class LibavMuxHLSTS : public ModuleDynI {
 		std::string hlsDir, segBasename;
 };
 
-Modules::IModule* createObject(KHost* host, void* va) {
+IModule* createObject(KHost* host, void* va) {
 	auto config = (HlsMuxConfigLibav*)va;
 	enforce(host, "LibavMuxHLSTS: host can't be NULL");
 	enforce(config, "LibavMuxHLSTS: config can't be NULL");
-	return Modules::create<LibavMuxHLSTS>(host, config).release();
+	return createModule<LibavMuxHLSTS>(host, config).release();
 }
 
 auto const registered = Factory::registerModule("LibavMuxHLSTS", &createObject);

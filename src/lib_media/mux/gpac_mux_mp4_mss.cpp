@@ -137,11 +137,11 @@ std::string GPACMuxMP4MSS::writeISMLManifest(std::string codec4CC, std::string c
 
 namespace {
 
-Modules::IModule* createObject(KHost* host, void* va) {
+IModule* createObject(KHost* host, void* va) {
 	auto config = (Mp4MuxConfigMss*)va;
 	enforce(host, "GPACMuxMP4MSS: host can't be NULL");
 	enforce(config, "GPACMuxMP4MSS: config can't be NULL");
-	return Modules::create<GPACMuxMP4MSS>(host, *config).release();
+	return createModule<GPACMuxMP4MSS>(host, *config).release();
 }
 
 auto const registered = Factory::registerModule("GPACMuxMP4MSS", &createObject);

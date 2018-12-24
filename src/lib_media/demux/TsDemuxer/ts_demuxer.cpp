@@ -187,11 +187,11 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::Restamper {
 		TimeUnwrapper m_unwrapper;
 };
 
-Modules::IModule* createObject(KHost* host, void* va) {
+IModule* createObject(KHost* host, void* va) {
 	auto config = (TsDemuxerConfig*)va;
 	enforce(host, "TsDemuxer: host can't be NULL");
 	enforce(config, "TsDemuxer: config can't be NULL");
-	return Modules::create<TsDemuxer>(host, *config).release();
+	return createModule<TsDemuxer>(host, *config).release();
 }
 }
 

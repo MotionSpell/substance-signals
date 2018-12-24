@@ -72,7 +72,7 @@ struct LibavDemux : Module {
 
 			m_streams.resize(m_formatCtx->nb_streams);
 			for (unsigned i = 0; i < m_formatCtx->nb_streams; i++) {
-				m_streams[i].restamper = create<Transform::Restamp>(&NullHost, Transform::Restamp::ClockSystem); /*some webcams timestamps don't start at 0 (based on UTC)*/
+				m_streams[i].restamper = createModule<Transform::Restamp>(&NullHost, Transform::Restamp::ClockSystem); /*some webcams timestamps don't start at 0 (based on UTC)*/
 			}
 		} else {
 			ffpp::Dict dict(typeid(*this).name(), "-buffer_size 1M -fifo_size 1M -probesize 10M -analyzeduration 10M -overrun_nonfatal 1 -protocol_whitelist file,udp,rtp,http,https,tcp,tls,rtmp -rtsp_flags prefer_tcp -correct_ts_overflow 1 " + config.avformatCustom);
@@ -245,9 +245,9 @@ struct LibavDemux : Module {
 			const std::string url = m_formatCtx->url;
 			if (format == "rtsp" || url == "rtp" || format == "sdp" || startsWith(url, "rtp:") || startsWith(url, "udp:")) {
 				highPriority = true;
-				m_streams[i].restamper = create<Transform::Restamp>(&NullHost, Transform::Restamp::IgnoreFirstAndReset);
+				m_streams[i].restamper = createModule<Transform::Restamp>(&NullHost, Transform::Restamp::IgnoreFirstAndReset);
 			} else {
-				m_streams[i].restamper = create<Transform::Restamp>(&NullHost, Transform::Restamp::Reset);
+				m_streams[i].restamper = createModule<Transform::Restamp>(&NullHost, Transform::Restamp::Reset);
 			}
 
 			if (format == "rtsp" || format == "rtp" || format == "mpegts" || format == "rtmp" || format == "flv") { //TODO: evaluate why this is not the default behaviour
@@ -471,7 +471,7 @@ Modules::IModule* createObject(KHost* host, void* va) {
 	auto config = (DemuxConfig*)va;
 	enforce(host, "LibavDemux: host can't be NULL");
 	enforce(config, "LibavDemux: config can't be NULL");
-	return Modules::create<LibavDemux>(host, *config).release();
+	return Modules::createModule<LibavDemux>(host, *config).release();
 }
 
 auto const registered = Factory::registerModule("LibavDemux", &createObject);

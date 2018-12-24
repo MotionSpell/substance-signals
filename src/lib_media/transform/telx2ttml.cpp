@@ -264,11 +264,11 @@ void TeletextToTTML::process(Data data) {
 	dispatch();
 }
 
-Modules::IModule* createObject(KHost* host, void* va) {
+IModule* createObject(KHost* host, void* va) {
 	auto config = (TeletextToTtmlConfig*)va;
 	enforce(host, "TeletextToTTML: host can't be NULL");
 	enforce(config, "TeletextToTTML: config can't be NULL");
-	return Modules::create<TeletextToTTML>(host, config).release();
+	return createModule<TeletextToTTML>(host, config).release();
 }
 
 auto const registered = Factory::registerModule("TeletextToTTML", &createObject);

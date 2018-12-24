@@ -122,11 +122,11 @@ namespace {
 
 using namespace Modules;
 
-Modules::IModule* createObject(KHost* host, void* va) {
+IModule* createObject(KHost* host, void* va) {
 	auto config = (AvFilterConfig*)va;
 	enforce(host, "LibavFilter: host can't be NULL");
 	enforce(config, "LibavFilter: config can't be NULL");
-	return Modules::create<LibavFilter>(host, *config).release();
+	return createModule<LibavFilter>(host, *config).release();
 }
 
 auto const registered = Factory::registerModule("LibavFilter", &createObject);

@@ -41,11 +41,11 @@ class FileSystemSink : public ModuleS {
 		std::map<std::string, std::ofstream> m_files;
 };
 
-Modules::IModule* createObject(KHost* host, void* va) {
+IModule* createObject(KHost* host, void* va) {
 	auto config = (FileSystemSinkConfig*)va;
 	enforce(host, "FileSystemSink: host can't be NULL");
 	enforce(config, "FileSystemSink: config can't be NULL");
-	return Modules::create<FileSystemSink>(host, *config).release();
+	return createModule<FileSystemSink>(host, *config).release();
 }
 
 auto const registered = Factory::registerModule("FileSystemSink", &createObject);

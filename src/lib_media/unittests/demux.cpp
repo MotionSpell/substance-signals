@@ -39,7 +39,7 @@ unittest("LibavDemux: simple: 75 frames") {
 	DemuxConfig cfg;
 	cfg.url = "data/simple.ts";
 	auto demux = loadModule("LibavDemux", &NullHost, &cfg);
-	auto rec = create<MyOutput>();
+	auto rec = createModule<MyOutput>();
 	ConnectOutputToInput(demux->getOutput(0), rec->getInput(0));
 
 	for(int i=0; i < 100; ++i)
@@ -65,7 +65,7 @@ unittest("LibavDemux: rollover") {
 	DemuxConfig cfg;
 	cfg.url = "data/rollover.ts";
 	auto demux = loadModule("LibavDemux", &NullHost, &cfg);
-	auto rec = create<MyOutput>();
+	auto rec = createModule<MyOutput>();
 	ConnectOutputToInput(demux->getOutput(0), rec->getInput(0));
 
 	for(int i=0; i < 100; ++i)
@@ -85,7 +85,7 @@ unittest("empty param test: Demux") {
 secondclasstest("demux one track: Demux::GPACDemuxMP4Simple -> Out::Print") {
 	Mp4DemuxConfig cfg { "data/beepbop.mp4"};
 	auto mp4Demux = loadModule("GPACDemuxMP4Simple", &NullHost, &cfg);
-	auto p = create<Out::Print>(&NullHost, std::cout);
+	auto p = createModule<Out::Print>(&NullHost, std::cout);
 
 	ConnectOutputToInput(mp4Demux->getOutput(0), p->getInput(0));
 
@@ -94,7 +94,7 @@ secondclasstest("demux one track: Demux::GPACDemuxMP4Simple -> Out::Print") {
 }
 
 unittest("GPACDemuxMP4Full: simple demux one track") {
-	auto f = create<In::File>(&NullHost, "data/beepbop.mp4");
+	auto f = createModule<In::File>(&NullHost, "data/beepbop.mp4");
 	auto mp4Demux = loadModule("GPACDemuxMP4Full", &NullHost, nullptr);
 
 	int sampleCount = 0;
@@ -112,7 +112,7 @@ unittest("GPACDemuxMP4Full: simple demux one track") {
 }
 
 unittest("GPACDemuxMP4Full: simple demux one empty track") {
-	auto f = create<In::File>(&NullHost, "data/emptytrack.mp4");
+	auto f = createModule<In::File>(&NullHost, "data/emptytrack.mp4");
 	auto mp4Demux = loadModule("GPACDemuxMP4Full", &NullHost, nullptr);
 
 	int sampleCount = 0;
@@ -133,7 +133,7 @@ unittest("GPACDemuxMP4Full: simple demux one empty track") {
 }
 
 unittest("GPACDemuxMP4Full: demux fragments") {
-	auto f = create<In::File>(&NullHost, "data/fragments.mp4");
+	auto f = createModule<In::File>(&NullHost, "data/fragments.mp4");
 	auto mp4Demux = loadModule("GPACDemuxMP4Full", &NullHost, nullptr);
 
 	int sampleCount = 0;

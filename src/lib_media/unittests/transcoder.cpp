@@ -21,7 +21,7 @@ void libav_mux(std::string format) {
 	DemuxConfig cfg;
 	cfg.url = "data/beepbop.mp4";
 	auto demux = loadModule("LibavDemux", &NullHost, &cfg);
-	auto null = create<Out::Null>(&NullHost);
+	auto null = createModule<Out::Null>(&NullHost);
 
 	//find video signal from demux
 	int videoIndex = -1;
@@ -65,7 +65,7 @@ unittest("transcoder: video simple (gpac mux MP4)") {
 	auto demux = loadModule("LibavDemux", &NullHost, &cfg);
 
 	//create stub output (for unused demuxer's outputs)
-	auto null = create<Out::Null>(&NullHost);
+	auto null = createModule<Out::Null>(&NullHost);
 
 	//find video signal from demux
 	int videoIndex = -1;
@@ -97,14 +97,14 @@ unittest("transcoder: jpg to jpg") {
 	const std::string filename("data/sample.jpg");
 	auto decode = loadModule("JPEGTurboDecode", &NullHost, nullptr);
 	{
-		auto preReader = create<In::File>(&NullHost, filename);
+		auto preReader = createModule<In::File>(&NullHost, filename);
 		ConnectOutputToInput(preReader->getOutput(0), decode->getInput(0));
 		preReader->process();
 	}
 
-	auto reader = create<In::File>(&NullHost, filename);
+	auto reader = createModule<In::File>(&NullHost, filename);
 	auto encoder = loadModule("JPEGTurboEncode", &NullHost, nullptr);
-	auto writer = create<Out::File>(&NullHost, "out/test2.jpg");
+	auto writer = createModule<Out::File>(&NullHost, "out/test2.jpg");
 
 	ConnectOutputToInput(reader->getOutput(0), decode->getInput(0));
 	ConnectOutputToInput(decode->getOutput(0), encoder->getInput(0));
@@ -117,16 +117,16 @@ void resizeJPGTest(PixelFormat pf) {
 	const std::string filename("data/sample.jpg");
 	auto decode = loadModule("JPEGTurboDecode", &NullHost, nullptr);
 	{
-		auto preReader = create<In::File>(&NullHost, filename);
+		auto preReader = createModule<In::File>(&NullHost, filename);
 		ConnectOutputToInput(preReader->getOutput(0), decode->getInput(0));
 		preReader->process();
 	}
-	auto reader = create<In::File>(&NullHost, filename);
+	auto reader = createModule<In::File>(&NullHost, filename);
 
 	auto const dstFormat = PictureFormat(Resolution(320, 180) / 2, pf);
 	auto converter = loadModule("VideoConvert", &NullHost, &dstFormat);
 	auto encoder = loadModule("JPEGTurboEncode", &NullHost, nullptr);
-	auto writer = create<Out::File>(&NullHost, "out/test1.jpg");
+	auto writer = createModule<Out::File>(&NullHost, "out/test1.jpg");
 
 	ConnectOutputToInput(reader->getOutput(0), decode->getInput(0));
 	ConnectOutputToInput(decode->getOutput(0), converter->getInput(0));
@@ -153,7 +153,7 @@ unittest("transcoder: h264/mp4 to jpg") {
 	auto decode = loadModule("Decoder", &NullHost, (void*)(uintptr_t)VIDEO_PKT);
 
 	auto encoder = loadModule("JPEGTurboEncode", &NullHost, nullptr);
-	auto writer = create<Out::File>(&NullHost, "out/test3.jpg");
+	auto writer = createModule<Out::File>(&NullHost, "out/test3.jpg");
 
 	auto const dstRes = metadata->resolution;
 	ASSERT(metadata->pixelFormat == PixelFormat::I420);
@@ -172,11 +172,11 @@ unittest("transcoder: jpg to h264/mp4 (gpac)") {
 	const std::string filename("data/sample.jpg");
 	auto decode = loadModule("JPEGTurboDecode", &NullHost, nullptr);
 	{
-		auto preReader = create<In::File>(&NullHost, filename);
+		auto preReader = createModule<In::File>(&NullHost, filename);
 		ConnectOutputToInput(preReader->getOutput(0), decode->getInput(0));
 		preReader->process();
 	}
-	auto reader = create<In::File>(&NullHost, filename);
+	auto reader = createModule<In::File>(&NullHost, filename);
 
 	auto const dstFormat = PictureFormat(Resolution(320, 180), PixelFormat::I420);
 	auto converter = loadModule("VideoConvert", &NullHost, &dstFormat);

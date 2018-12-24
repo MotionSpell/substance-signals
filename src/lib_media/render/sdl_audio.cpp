@@ -216,7 +216,7 @@ struct SDLAudio : ModuleS {
 Modules::IModule* createObject(KHost* host, void* va) {
 	auto clock = (IClock*)va;
 	enforce(host, "SDLAudio: host can't be NULL");
-	return create<SDLAudio>(host, clock).release();
+	return createModule<SDLAudio>(host, clock).release();
 }
 
 auto const registered = Factory::registerModule("SDLAudio", &createObject);

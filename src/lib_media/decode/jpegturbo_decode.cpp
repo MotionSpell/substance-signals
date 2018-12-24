@@ -74,7 +74,7 @@ void JPEGTurboDecode::process(Data data_) {
 IModule* createObject(KHost* host, void* va) {
 	(void)va;
 	enforce(host, "JPEGTurboDecode: host can't be NULL");
-	return create<JPEGTurboDecode>(host).release();
+	return createModule<JPEGTurboDecode>(host).release();
 }
 
 auto const registered = Factory::registerModule("JPEGTurboDecode", &createObject);

@@ -16,7 +16,7 @@ unittest("avfilter: deinterlace") {
 		times.push_back(data->getMediaTime());
 	};
 
-	auto videoGen = create<In::VideoGenerator>(&NullHost);
+	auto videoGen = createModule<In::VideoGenerator>(&NullHost);
 	PictureFormat fmt(Resolution(320, 180), PixelFormat::I420);
 
 	auto cfg = AvFilterConfig { fmt, "yadif=0:-1:0" };
@@ -39,7 +39,7 @@ unittest("avfilter: fps convert (drop/repeat)") {
 		times.push_back(data->getMediaTime());
 	};
 
-	auto videoGen = create<In::VideoGenerator>(&NullHost);
+	auto videoGen = createModule<In::VideoGenerator>(&NullHost);
 	PictureFormat fmt(Resolution(320, 180), PixelFormat::I420);
 
 	auto cfg = AvFilterConfig { fmt, "fps=30000/1001:0.0" };

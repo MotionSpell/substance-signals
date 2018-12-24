@@ -12,7 +12,7 @@ using namespace Modules;
 namespace {
 
 secondclasstest("render: sound generator") {
-	auto soundGen = create<In::SoundGenerator>(&NullHost);
+	auto soundGen = createModule<In::SoundGenerator>(&NullHost);
 	auto render = Modules::loadModule("SDLAudio", &NullHost, nullptr);
 
 	ConnectOutputToInput(soundGen->getOutput(0), render->getInput(0));
@@ -44,11 +44,11 @@ secondclasstest("render: sound generator, evil samples") {
 }
 
 secondclasstest("render: A/V sync, one thread") {
-	auto videoGen = create<In::VideoGenerator>(&NullHost);
+	auto videoGen = createModule<In::VideoGenerator>(&NullHost);
 	auto videoRender = Modules::loadModule("SDLVideo", &NullHost, nullptr);
 	ConnectOutputToInput(videoGen->getOutput(0), videoRender->getInput(0));
 
-	auto soundGen = create<In::SoundGenerator>(&NullHost);
+	auto soundGen = createModule<In::SoundGenerator>(&NullHost);
 	auto soundRender = Modules::loadModule("SDLAudio", &NullHost, nullptr);
 	ConnectOutputToInput(soundGen->getOutput(0), soundRender->getInput(0));
 

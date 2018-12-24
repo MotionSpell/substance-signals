@@ -38,11 +38,11 @@ struct MulticastInput : Module {
 	OutputDefault* m_output;
 };
 
-Modules::IModule* createObject(KHost* host, void* va) {
+IModule* createObject(KHost* host, void* va) {
 	auto config = (MulticastInputConfig*)va;
 	enforce(host, "MulticastInput: host can't be NULL");
 	enforce(config, "MulticastInput: config can't be NULL");
-	return Modules::create<MulticastInput>(host, *config).release();
+	return createModule<MulticastInput>(host, *config).release();
 }
 
 }

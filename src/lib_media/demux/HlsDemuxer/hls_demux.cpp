@@ -101,11 +101,11 @@ class HlsDemuxer : public Module {
 		unique_ptr<IFilePuller> m_internalPuller;
 };
 
-Modules::IModule* createObject(KHost* host, void* va) {
+IModule* createObject(KHost* host, void* va) {
 	auto config = (HlsDemuxConfig*)va;
 	enforce(host, "HlsDemuxer: host can't be NULL");
 	enforce(config, "HlsDemuxer: config can't be NULL");
-	return Modules::create<HlsDemuxer>(host, config).release();
+	return createModule<HlsDemuxer>(host, config).release();
 }
 
 auto const registered = Factory::registerModule("HlsDemuxer", &createObject);

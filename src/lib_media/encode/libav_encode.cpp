@@ -318,7 +318,7 @@ struct LibavEncode : ModuleS {
 Modules::IModule* createObject(KHost* host, void* va) {
 	auto config = (EncoderConfig*)va;
 	enforce(host, "Encoder: host can't be NULL");
-	return Modules::createModule<LibavEncode>(config->bufferSize, host, config).release();
+	return Modules::createModuleWithSize<LibavEncode>(config->bufferSize, host, config).release();
 }
 
 auto const registered = Factory::registerModule("Encoder", &createObject);

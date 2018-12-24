@@ -93,7 +93,7 @@ class VideoConvert : public ModuleS {
 Modules::IModule* createObject(KHost* host, void* va) {
 	auto fmt = (PictureFormat*)va;
 	enforce(host, "VideoConvert: host can't be NULL");
-	return Modules::create<VideoConvert>(host, *fmt).release();
+	return Modules::createModule<VideoConvert>(host, *fmt).release();
 }
 
 auto const registered = Factory::registerModule("VideoConvert", &createObject);

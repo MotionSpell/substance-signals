@@ -141,7 +141,7 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 		if (!metadataDemux->isVideo())
 			continue;
 
-		auto gapper = create<Gapper>();
+		auto gapper = createModule<Gapper>();
 		ConnectOutputToInput(demux->getOutput(i), gapper->getInput(0));
 		auto decoder = loadModule("Decoder", &NullHost, (void*)(uintptr_t)metadataDemux->type);
 		ConnectOutputToInput(gapper->getOutput(0), decoder->getInput(0));
@@ -153,7 +153,7 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 		ConnectOutputToInput(decoder->getOutput(0), converter->getInput(0));
 		ConnectOutputToInput(converter->getOutput(0), encoder->getInput(0));
 
-		auto recorder = create<Utils::Recorder>(&NullHost);
+		auto recorder = createModule<Utils::Recorder>(&NullHost);
 		ConnectOutputToInput(encoder->getOutput(0), recorder->getInput(0));
 		recorders.push_back(std::move(recorder));
 		modules.push_back(std::move(gapper));
@@ -189,17 +189,17 @@ unittest("restamp: passthru with offsets") {
 	auto data = make_shared<DataRaw>(0);
 
 	data->setMediaTime(time);
-	auto restamp = create<Transform::Restamp>(&NullHost, Transform::Restamp::Reset);
+	auto restamp = createModule<Transform::Restamp>(&NullHost, Transform::Restamp::Reset);
 	ConnectOutput(restamp.get(), onFrame);
 	restamp->process(data);
 
 	data->setMediaTime(time);
-	restamp = create<Transform::Restamp>(&NullHost, Transform::Restamp::Reset, 0);
+	restamp = createModule<Transform::Restamp>(&NullHost, Transform::Restamp::Reset, 0);
 	ConnectOutput(restamp.get(), onFrame);
 	restamp->process(data);
 
 	data->setMediaTime(time);
-	restamp = create<Transform::Restamp>(&NullHost, Transform::Restamp::Reset, time);
+	restamp = createModule<Transform::Restamp>(&NullHost, Transform::Restamp::Reset, time);
 	expected = time;
 	ConnectOutput(restamp.get(), onFrame);
 	restamp->process(data);
@@ -215,23 +215,23 @@ unittest("restamp: reset with offsets") {
 	auto data = make_shared<DataRaw>(0);
 
 	data->setMediaTime(time);
-	auto restamp = create<Transform::Restamp>(&NullHost, Transform::Restamp::Passthru);
+	auto restamp = createModule<Transform::Restamp>(&NullHost, Transform::Restamp::Passthru);
 	ConnectOutput(restamp.get(), onFrame);
 	restamp->process(data);
 
 	data->setMediaTime(time);
-	restamp = create<Transform::Restamp>(&NullHost, Transform::Restamp::Passthru, 0);
+	restamp = createModule<Transform::Restamp>(&NullHost, Transform::Restamp::Passthru, 0);
 	ConnectOutput(restamp.get(), onFrame);
 	restamp->process(data);
 
 	data->setMediaTime(time);
-	restamp = create<Transform::Restamp>(&NullHost, Transform::Restamp::Passthru, offset);
+	restamp = createModule<Transform::Restamp>(&NullHost, Transform::Restamp::Passthru, offset);
 	expected = time + offset;
 	ConnectOutput(restamp.get(), onFrame);
 	restamp->process(data);
 
 	data->setMediaTime(time);
-	restamp = create<Transform::Restamp>(&NullHost, Transform::Restamp::Passthru, time);
+	restamp = createModule<Transform::Restamp>(&NullHost, Transform::Restamp::Passthru, time);
 	expected = time + time;
 	ConnectOutput(restamp.get(), onFrame);
 	restamp->process(data);

@@ -73,7 +73,7 @@ unittest("decoder: audio simple") {
 	};
 
 	auto decode = loadModule("Decoder", &NullHost, (void*)(uintptr_t)AUDIO_PKT);
-	auto rec = create<FrameCounter>();
+	auto rec = createModule<FrameCounter>();
 	ConnectOutputToInput(decode->getOutput(0), rec->getInput(0));
 
 	for(int i=0; i < 3; ++i) {
@@ -98,7 +98,7 @@ unittest("decoder: timestamp propagation") {
 	};
 
 	auto decode = loadModule("Decoder", &NullHost, (void*)(uintptr_t)AUDIO_PKT);
-	auto rec = create<FrameCounter>();
+	auto rec = createModule<FrameCounter>();
 	ConnectOutputToInput(decode->getOutput(0), rec->getInput(0));
 
 	for(int i=0; i < 5; ++i) {
