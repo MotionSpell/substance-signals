@@ -48,15 +48,21 @@ class FilterInput : public IInput {
 			auto data = pop();
 			statsCumulated->value = samplingCounter++;
 
-			// receiving 'nullptr' means 'end of stream'
-			if (!data) {
-				g_Log->log(Debug, format("Module %s: notify end-of-stream.", delegateName).c_str());
-				executor->call(Signals::Bind(&IPipelineNotifier::endOfStream, notify));
-				return;
-			}
+			auto doProcess = [this, data]() {
+				// receiving 'nullptr' means 'end of stream'
+				if (!data) {
+					g_Log->log(Debug, format("Module %s: notify end-of-stream.", delegateName).c_str());
+					notify->endOfStream();
+					return;
+				}
 
-			delegate->push(data);
-			executor->call(Signals::Bind(&IProcessor::process, delegate));
+				delegate->process();
+			};
+
+			if (data)
+				delegate->push(data);
+
+			executor->call(doProcess);
 		}
 
 		int isConnected() const override {
