@@ -20,16 +20,15 @@ void MetadataCap::setMetadata(Metadata metadata) {
 }
 
 bool MetadataCap::updateMetadata(Data &data) {
-	if (!data) {
+	if (!data)
 		return false;
+
+	auto const &metadata = data->getMetadata();
+	if (!metadata) {
+		const_cast<DataBase*>(data.get())->setMetadata(m_metadata);
+		return true;
 	} else {
-		auto const &metadata = data->getMetadata();
-		if (!metadata) {
-			const_cast<DataBase*>(data.get())->setMetadata(m_metadata);
-			return true;
-		} else {
-			return setMetadataInternal(metadata);
-		}
+		return setMetadataInternal(metadata);
 	}
 }
 
