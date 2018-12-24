@@ -18,14 +18,14 @@ class FilterInput : public IInput {
 		    IPipelineNotifier * const notify,
 		    KHost* host
 		)
-			: delegate(input), delegateName(moduleName), notify(notify), m_host(host), executor(executor),
+			: delegate(input), notify(notify), m_host(host), executor(executor),
 			  statsCumulated(statsRegistry->getNewEntry()),
 			  statsPending(statsRegistry->getNewEntry()) {
 
-			strncpy(statsCumulated->name, (delegateName + ".cumulated").c_str(), sizeof(statsCumulated->name)-1);
+			strncpy(statsCumulated->name, (moduleName + ".cumulated").c_str(), sizeof(statsCumulated->name)-1);
 			statsCumulated->name[sizeof(statsCumulated->name)-1] = 0;
 
-			strncpy(statsPending->name, (delegateName + ".pending").c_str(), sizeof(statsPending->name)-1);
+			strncpy(statsPending->name, (moduleName + ".pending").c_str(), sizeof(statsPending->name)-1);
 			statsPending->name[sizeof(statsPending->name)-1] = 0;
 		}
 		virtual ~FilterInput() {}
@@ -57,7 +57,7 @@ class FilterInput : public IInput {
 				try {
 					// receiving 'nullptr' means 'end of stream'
 					if (!data) {
-						m_host->log(Debug, format("Module %s: notify end-of-stream.", delegateName).c_str());
+						m_host->log(Debug, "notify end-of-stream.");
 						notify->endOfStream();
 						return;
 					}
@@ -98,7 +98,6 @@ class FilterInput : public IInput {
 	private:
 		Queue<Data> queue;
 		IInput *delegate;
-		std::string delegateName;
 		IPipelineNotifier * const notify;
 		KHost * const m_host;
 		Signals::IExecutor * const executor;
