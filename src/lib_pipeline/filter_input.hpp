@@ -49,14 +49,19 @@ class FilterInput : public IInput {
 			statsCumulated->value = samplingCounter++;
 
 			auto doProcess = [this, data]() {
-				// receiving 'nullptr' means 'end of stream'
-				if (!data) {
-					g_Log->log(Debug, format("Module %s: notify end-of-stream.", delegateName).c_str());
-					notify->endOfStream();
-					return;
-				}
+				try {
+					// receiving 'nullptr' means 'end of stream'
+					if (!data) {
+						g_Log->log(Debug, format("Module %s: notify end-of-stream.", delegateName).c_str());
+						notify->endOfStream();
+						return;
+					}
 
-				delegate->process();
+					delegate->process();
+				} catch(std::exception const& e) {
+					g_Log->log(Error, format("Can't process data: %s", e.what()).c_str());
+					throw;
+				}
 			};
 
 			if (data)

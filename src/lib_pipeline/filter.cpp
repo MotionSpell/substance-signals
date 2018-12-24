@@ -70,13 +70,8 @@ void Filter::connect(IOutput *output, int inputIdx, bool inputAcceptMultipleConn
 	CheckMetadataCompatibility(output, input);
 
 	auto process = [=](Data data) {
-		try {
-			input->push(data);
-			input->process();
-		} catch(std::exception const& e) {
-			log(Error, format("Can't process data: %s", e.what()).c_str());
-			throw;
-		}
+		input->push(data);
+		input->process();
 	};
 
 	output->getSignal().connect(process);
