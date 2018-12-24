@@ -19,12 +19,17 @@ struct StatsRegistry : IStatsRegistry {
 		memset(shmem->data(), 0, size);
 	}
 
-	StatsEntry* getNewEntry() override {
+	StatsEntry* getNewEntry(const char* name) override {
 		entryIdx++;
 		if (entryIdx >= maxNumEntry)
 			throw std::runtime_error(format("SharedMemory: accessing too far (%s with max=%s).", entryIdx - 1, maxNumEntry - 1));
 
-		return (StatsEntry*)shmem->data() + entryIdx - 1;
+		auto entry = (StatsEntry*)shmem->data() + entryIdx - 1;
+
+		strncpy(entry->name, name, sizeof(entry->name)-1);
+		entry->name[sizeof(entry->name)-1] = 0;
+
+		return entry;
 	}
 
 	std::unique_ptr<SharedMemory> shmem;

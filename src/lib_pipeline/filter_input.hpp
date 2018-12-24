@@ -1,7 +1,6 @@
 #pragma once
 
 #include "lib_modules/core/module.hpp"
-#include <cstring>
 
 namespace Pipelines {
 
@@ -18,14 +17,8 @@ class FilterInput : public IInput {
 		    KHost* host
 		)
 			: delegate(input), notify(notify), m_host(host), executor(executor),
-			  statsCumulated(statsRegistry->getNewEntry()),
-			  statsPending(statsRegistry->getNewEntry()) {
-
-			strncpy(statsCumulated->name, (moduleName + ".cumulated").c_str(), sizeof(statsCumulated->name)-1);
-			statsCumulated->name[sizeof(statsCumulated->name)-1] = 0;
-
-			strncpy(statsPending->name, (moduleName + ".pending").c_str(), sizeof(statsPending->name)-1);
-			statsPending->name[sizeof(statsPending->name)-1] = 0;
+			  statsCumulated(statsRegistry->getNewEntry((moduleName + ".cumulated").c_str())),
+			  statsPending(statsRegistry->getNewEntry((moduleName + ".pending").c_str())) {
 		}
 		virtual ~FilterInput() {}
 

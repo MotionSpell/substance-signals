@@ -13,7 +13,7 @@ static_assert(sizeof(StatsEntry) == 256, "StatsEntry size must be 256");
 
 struct IStatsRegistry {
 	virtual ~IStatsRegistry() {}
-	virtual StatsEntry* getNewEntry() = 0; /*owned by the StatsRegistry object*/
+	virtual StatsEntry* getNewEntry(const char* name) = 0; /*owned by the StatsRegistry object*/
 };
 
 }
