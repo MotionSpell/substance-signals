@@ -1,6 +1,5 @@
 #include "scheduler.hpp"
 #include "lib_utils/format.hpp"
-#include "log.hpp"
 
 auto const NEVER = Fraction(-1, 1);
 
@@ -42,12 +41,6 @@ void Scheduler::wakeUp() {
 
 	// run expired tasks: must be done asynchronously
 	for(auto& t : expiredTasks) {
-		auto const delayInMs = 1000 * (double)(t.time - now);
-
-		if (delayInMs < 0) {
-			g_Log->log(Warning, format("Late from %s ms.", -delayInMs).c_str());
-		}
-
 		t.task(t.time);
 	}
 
