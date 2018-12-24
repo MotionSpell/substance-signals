@@ -82,7 +82,7 @@ class OutputCap : public virtual IOutputCap {
 		}
 };
 
-class Module : public IModule, public ErrorCap {
+class Module : public IModule {
 	public:
 		KInput* addInput(IProcessor* p);
 		int getNumInputs() const override {
