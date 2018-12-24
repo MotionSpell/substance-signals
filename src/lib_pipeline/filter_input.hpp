@@ -1,7 +1,6 @@
 #pragma once
 
 #include "lib_modules/core/module.hpp"
-#include "lib_utils/log.hpp"
 #include "lib_utils/format.hpp"
 #include <cstring>
 
@@ -12,8 +11,14 @@ namespace Pipelines {
    Data is nullptr at completion. */
 class FilterInput : public IInput {
 	public:
-		FilterInput(IInput *input, const std::string &moduleName, Signals::IExecutor* executor, IStatsRegistry* statsRegistry, IPipelineNotifier * const notify)
-			: delegate(input), delegateName(moduleName), notify(notify), executor(executor),
+		FilterInput(IInput *input,
+		    const std::string &moduleName,
+		    Signals::IExecutor* executor,
+		    IStatsRegistry* statsRegistry,
+		    IPipelineNotifier * const notify,
+		    KHost* host
+		)
+			: delegate(input), delegateName(moduleName), notify(notify), m_host(host), executor(executor),
 			  statsCumulated(statsRegistry->getNewEntry()),
 			  statsPending(statsRegistry->getNewEntry()) {
 
@@ -52,14 +57,14 @@ class FilterInput : public IInput {
 				try {
 					// receiving 'nullptr' means 'end of stream'
 					if (!data) {
-						g_Log->log(Debug, format("Module %s: notify end-of-stream.", delegateName).c_str());
+						m_host->log(Debug, format("Module %s: notify end-of-stream.", delegateName).c_str());
 						notify->endOfStream();
 						return;
 					}
 
 					delegate->process();
 				} catch(std::exception const& e) {
-					g_Log->log(Error, format("Can't process data: %s", e.what()).c_str());
+					m_host->log(Error, format("Can't process data: %s", e.what()).c_str());
 					throw;
 				}
 			};
@@ -95,6 +100,7 @@ class FilterInput : public IInput {
 		IInput *delegate;
 		std::string delegateName;
 		IPipelineNotifier * const notify;
+		KHost * const m_host;
 		Signals::IExecutor * const executor;
 		decltype(StatsEntry::value) samplingCounter = 0;
 		decltype(StatsEntry::value) pendingCounter = 0;

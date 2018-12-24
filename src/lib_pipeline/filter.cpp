@@ -1,4 +1,5 @@
 #include "filter.hpp"
+#include "lib_utils/log.hpp"
 #include "lib_signals/executor_threadpool.hpp"
 #include "stats.hpp"
 #include "filter_input.hpp"
@@ -90,7 +91,7 @@ void Filter::mimicInputs() {
 		auto idx = (int)inputs.size();
 		auto dgInput = delegate->getInput(idx);
 		auto name = format("%s, input (#%s)", m_name, idx);
-		inputs.push_back(uptr(new FilterInput(dgInput, name, executor.get(), statsRegistry, this)));
+		inputs.push_back(uptr(new FilterInput(dgInput, name, executor.get(), statsRegistry, this, this)));
 	}
 }
 
