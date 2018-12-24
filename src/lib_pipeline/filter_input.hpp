@@ -1,7 +1,6 @@
 #pragma once
 
 #include "lib_modules/core/module.hpp"
-#include "lib_utils/format.hpp"
 #include <cstring>
 
 namespace Pipelines {
@@ -64,7 +63,7 @@ class FilterInput : public IInput {
 
 					delegate->process();
 				} catch(std::exception const& e) {
-					m_host->log(Error, format("Can't process data: %s", e.what()).c_str());
+					m_host->log(Error, (std::string("Can't process data: ") + e.what()).c_str());
 					throw;
 				}
 			};
