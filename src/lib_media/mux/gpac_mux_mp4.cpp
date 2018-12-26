@@ -1103,7 +1103,7 @@ void GPACMuxMP4::process(Data data) {
 	if (inputs[0]->updateMetadata(data)) {
 		updateFormat(data);
 
-		if(isEvent(data))
+		if(isDeclaration(data))
 			return;
 	}
 

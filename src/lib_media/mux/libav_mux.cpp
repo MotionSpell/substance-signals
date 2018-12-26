@@ -99,7 +99,7 @@ class LibavMux : public ModuleDynI {
 			}
 
 			// if stream is declared statically, there's no data to process.
-			if (isEvent(data))
+			if (isDeclaration(data))
 				return;
 
 			ensureHeader();
