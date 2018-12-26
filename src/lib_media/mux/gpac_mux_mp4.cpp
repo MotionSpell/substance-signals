@@ -1098,13 +1098,16 @@ void GPACMuxMP4::updateFormat(Data data) {
 }
 
 void GPACMuxMP4::process(Data data) {
-	if (inputs[0]->updateMetadata(data)) {
-		declareStream(data->getMetadata().get());
-		updateFormat(data);
+	auto const updated = inputs[0]->updateMetadata(data);
 
-		if(isDeclaration(data))
-			return;
-	}
+	if(updated)
+		declareStream(data->getMetadata().get());
+
+	if(isDeclaration(data))
+		return;
+
+	if(updated)
+		updateFormat(data);
 
 	auto const srcTimeScale = safe_cast<const MetadataPkt>(data->getMetadata())->timeScale;
 	auto const dataDTS = timescaleToClock(safe_cast<const DataAVPacket>(data)->getPacket()->dts * srcTimeScale.den, srcTimeScale.num);
