@@ -1130,7 +1130,7 @@ void GPACMuxMP4::process(Data data) {
 				lastDataDurationInTs = defaultSampleIncInTs;
 				m_host->log(Warning, format("Received time 0: inferring duration of %s", lastDataDurationInTs).c_str());
 			}
-			if (lastDataDurationInTs - defaultSampleIncInTs != 0) {
+			if (lastDataDurationInTs != defaultSampleIncInTs) {
 				if (lastDataDurationInTs <= 0) {
 					lastDataDurationInTs = 1;
 				}
