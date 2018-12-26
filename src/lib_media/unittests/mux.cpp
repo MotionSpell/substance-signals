@@ -100,22 +100,23 @@ unittest("mux GPAC mp4 failure tests") {
 }
 
 static
-std::vector<Meta> runMux(std::shared_ptr<IModule> m) {
-	IOutput* audioPin = nullptr;
+IOutput* getFirstAudioPin(IModule* demux) {
+	for (int i = 0; i < demux->getNumOutputs(); ++i) {
+		auto pin = demux->getOutput(i);
+		auto metadata = pin->getMetadata();
+		if (metadata->isAudio())
+			return pin;
+	}
+	assert(0);
+}
 
+static
+std::vector<Meta> runMux(std::shared_ptr<IModule> m) {
 	DemuxConfig cfg;
 	cfg.url = "data/beepbop.mp4";
 	auto demux = loadModule("LibavDemux", &NullHost, &cfg);
 
-	for (int i = 0; i < demux->getNumOutputs(); ++i) {
-		auto pin = demux->getOutput(i);
-		auto metadata = pin->getMetadata();
-		if (metadata->isAudio()) {
-			audioPin = pin;
-		}
-	}
-
-	assert(audioPin);
+	auto const audioPin = getFirstAudioPin(demux.get());
 
 	ConnectOutputToInput(audioPin, m->getInput(0));
 	auto listener = createModule<Listener>();
