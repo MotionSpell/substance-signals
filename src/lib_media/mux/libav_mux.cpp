@@ -193,11 +193,6 @@ class LibavMux : public ModuleDynI {
 			inputIdx2AvStream[inputIdx] = m_formatCtx->nb_streams - 1;
 		}
 
-		bool isEvent(Data data) {
-			auto refData = std::dynamic_pointer_cast<const DataBaseRef>(data);
-			return refData && !refData->getData();
-		}
-
 		void ensureHeader() {
 			if (!m_headerWritten) {
 				if (avformat_write_header(m_formatCtx, &optionsDict) != 0)

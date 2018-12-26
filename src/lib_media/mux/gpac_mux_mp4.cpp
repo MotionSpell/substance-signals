@@ -1103,8 +1103,7 @@ void GPACMuxMP4::process(Data data) {
 	if (inputs[0]->updateMetadata(data)) {
 		updateFormat(data);
 
-		auto refData = std::dynamic_pointer_cast<const DataBaseRef>(data);
-		if(refData && !refData->getData())
+		if(isEvent(data))
 			return;
 	}
 

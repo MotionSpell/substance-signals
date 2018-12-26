@@ -74,6 +74,11 @@ class DataRaw : public DataBase {
 typedef std::shared_ptr<const DataBase> Data;
 typedef std::shared_ptr<const IMetadata> Metadata;
 
+inline bool isEvent(Data data) {
+	auto refData = std::dynamic_pointer_cast<const DataBaseRef>(data);
+	return refData && !refData->getData();
+}
+
 }
 
 template<class T>
