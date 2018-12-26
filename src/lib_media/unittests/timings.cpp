@@ -48,7 +48,7 @@ unittest("timestamps start at random values (LibavDemux)") {
 }
 
 unittest("timestamps start at random values (GPACDemuxMP4Simple)") {
-	const int64_t interval = (int64_t)IClock::Rate;
+	const auto interval = IClock::Rate;
 	const std::vector<int64_t> timesIn = { interval, 2 * interval, 3 * interval };
 
 	ASSERT_EQUALS(timesIn, runDemux("data/start_at_random_value", createGpacDemux));
@@ -61,21 +61,21 @@ unittest("timestamps start at a negative value (LibavDemux)") {
 }
 
 unittest("timestamps start at a negative value (GPACDemuxMP4Simple)") {
-	const int64_t interval = (int64_t)IClock::Rate;
+	const auto interval = IClock::Rate;
 	const std::vector<int64_t> timesIn = { -interval, 0, interval };
 
 	ASSERT_EQUALS(timesIn, runDemux("data/start_at_negative_value", &createGpacDemux));
 }
 
 unittest("timestamps start at zero with B-Frames (GPACDemuxMP4Simple)") {
-	const int64_t interval = (int64_t)IClock::Rate;
+	const auto interval = IClock::Rate;
 	const std::vector<int64_t> timesOut = { 0, 2 * interval, interval };
 
 	ASSERT_EQUALS(timesOut, runDemux("data/start_at_zero_with_b_frames", &createGpacDemux));
 }
 
 unittest("timestamps start at a negative value with B-Frames (GPACDemuxMP4Simple)") {
-	const int64_t interval = (int64_t)IClock::Rate;
+	const auto interval = IClock::Rate;
 	const std::vector<int64_t> timesOut = { -interval, interval, 0 };
 
 	ASSERT_EQUALS(timesOut, runDemux("data/start_at_negative_value_with_b_frames", &createGpacDemux));
