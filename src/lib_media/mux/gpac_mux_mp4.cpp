@@ -1131,9 +1131,7 @@ void GPACMuxMP4::process(Data data) {
 				m_host->log(Warning, format("Received time 0: inferring duration of %s", lastDataDurationInTs).c_str());
 			}
 			if (lastDataDurationInTs != defaultSampleIncInTs) {
-				if (lastDataDurationInTs <= 0) {
-					lastDataDurationInTs = 1;
-				}
+				lastDataDurationInTs = std::max<int64_t>(lastDataDurationInTs, 1);
 				m_host->log(Debug, format("VFR: adding sample with duration %ss", lastDataDurationInTs / (double)timeScale).c_str());
 			}
 		}
