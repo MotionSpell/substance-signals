@@ -21,6 +21,8 @@ typedef std::shared_ptr<IModule> (*CreateDemuxFunc)(const char* path);
 std::vector<int64_t> runDemux(std::string basename, CreateDemuxFunc createDemux) {
 	std::vector<int64_t> actualTimes;
 	auto onFrame = [&](Data data) {
+		if(isDeclaration(data))
+			return;
 		actualTimes.push_back(data->getMediaTime());
 	};
 
@@ -93,7 +95,7 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 			output = addOutput<OutputDefault>();
 		}
 		void process(Data data) override {
-			if ((i++ % 5) && (data->getMediaTime() < maxDurIn180k)) {
+			if (!isDeclaration(data) && (i++ % 5) && (data->getMediaTime() < maxDurIn180k)) {
 				output->post(data);
 			}
 		}
@@ -173,6 +175,8 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 		recorders[g]->process(nullptr);
 		int64_t lastMediaTime = 0;
 		while (auto data = recorders[g]->pop()) {
+			if(isDeclaration(data))
+				continue;
 			g_Log->log(Debug, format("recv[%s] %s", g, data->getMediaTime()).c_str());
 			lastMediaTime = data->getMediaTime();
 		}

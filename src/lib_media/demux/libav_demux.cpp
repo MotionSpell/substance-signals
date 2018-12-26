@@ -166,6 +166,11 @@ struct LibavDemux : Module {
 		if(!workingThread.joinable())
 			workingThread = std::thread(&LibavDemux::inputThread, this);
 
+		if(!declarationSent) {
+			declareStreams();
+			declarationSent = true;
+		}
+
 		AVPacket pkt;
 		if (!packetQueue.read(pkt)) {
 			if (done) {
@@ -188,6 +193,15 @@ struct LibavDemux : Module {
 		}
 
 		dispatch(&pkt);
+	}
+
+	void declareStreams() {
+		for(auto& stream : m_streams) {
+			auto output = stream.output;
+			auto data = make_shared<DataBaseRef>(nullptr);
+			data->setMetadata(output->getMetadata());
+			output->post(data);
+		}
 	}
 
 	int readFrame(AVPacket* pkt) {
@@ -453,6 +467,7 @@ struct LibavDemux : Module {
 
 	const bool loop;
 	bool highPriority = false;
+	bool declarationSent = false;
 	std::thread workingThread;
 	std::atomic_bool done;
 	QueueLockFree<AVPacket> packetQueue;

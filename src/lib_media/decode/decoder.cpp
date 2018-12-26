@@ -87,6 +87,9 @@ struct Decoder : ModuleS, PictureAllocator {
 				openDecoder(safe_cast<const MetadataPkt>(meta.get()));
 			}
 
+			if(isDeclaration(data))
+				return;
+
 			assert(codecCtx);
 
 			auto flags = data->get<CueFlags>();

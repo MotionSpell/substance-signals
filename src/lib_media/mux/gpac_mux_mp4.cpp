@@ -448,6 +448,7 @@ void GPACMuxMP4::flush() {
 	closeSegment(true);
 
 	if (segmentPolicy == IndependentSegment) {
+		assert(isoInit);
 		gf_isom_delete(isoInit);
 		isoInit = nullptr;
 		if (!initName.empty())
@@ -1098,13 +1099,13 @@ void GPACMuxMP4::updateFormat(Data data) {
 }
 
 void GPACMuxMP4::process(Data data) {
+	if(isDeclaration(data))
+		return;
+
 	auto const updated = inputs[0]->updateMetadata(data);
 
 	if(updated)
 		declareStream(data->getMetadata().get());
-
-	if(isDeclaration(data))
-		return;
 
 	if(updated)
 		updateFormat(data);

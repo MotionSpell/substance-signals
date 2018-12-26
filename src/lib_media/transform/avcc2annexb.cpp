@@ -44,6 +44,9 @@ AVCC2AnnexBConverter::AVCC2AnnexBConverter(KHost* host)
 }
 
 void AVCC2AnnexBConverter::process(Data in) {
+	if(isDeclaration(in))
+		return;
+
 	auto out = output->getBuffer(in->data().len);
 	av_packet_copy_props(out->getPacket(), safe_cast<const DataAVPacket>(in)->getPacket());
 
