@@ -161,8 +161,7 @@ void framingTest(int inSamplesPerFrame, int outSamplesPerFrame) {
 	recorder->process(nullptr);
 
 	int idx = 0;
-	while (auto dataRec = recorder->pop()) {
-		auto data = safe_cast<const DataPcm>(dataRec);
+	while (auto data = safe_cast<const DataPcm>(recorder->pop())) {
 		int val = 0;
 		for (int p = 0; p < data->getFormat().numPlanes; ++p) {
 			auto const plane = data->getPlane(p);
