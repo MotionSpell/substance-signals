@@ -68,7 +68,16 @@ struct AudioConvert : ModuleS {
 			output = addOutput<OutputPcm>();
 		}
 
-		void process(Data data) {
+		void process(Data data) override {
+			processBuffer(data);
+		}
+
+		void flush() override {
+			if (m_Swr)
+				processBuffer(nullptr);
+		}
+
+		void processBuffer(Data data) {
 			uint64_t srcNumSamples = 0;
 			uint8_t * const * pSrc = nullptr;
 			auto audioData = safe_cast<const DataPcm>(data);
@@ -146,18 +155,13 @@ struct AudioConvert : ModuleS {
 				output->post(out);
 				out = nullptr;
 				if (m_Swr->getDelay(dstPcmFormat.sampleRate) >= dstNumSamples) { //accumulated more than one output buffer: flush.
-					process(nullptr);
+					processBuffer(nullptr);
 				}
 			} else if (outNumSamples < targetNumSamples) {
 				curDstNumSamples += outNumSamples;
 				curOut = out;
 			} else
 				throw error(format("Unexpected case: output %s samples when %s was requested (frame size = %s)", outNumSamples, targetNumSamples, dstNumSamples));
-		}
-
-		void flush() {
-			if (m_Swr)
-				process(nullptr);
 		}
 
 		void reconfigure(const PcmFormat &srcFormat) {
