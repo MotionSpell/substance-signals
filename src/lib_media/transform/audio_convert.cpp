@@ -85,7 +85,7 @@ struct AudioConvert : ModuleS {
 				dstNumSamples = divUp(srcNumSamples * dstPcmFormat.sampleRate, (uint64_t)srcPcmFormat.sampleRate);
 			}
 			auto const pSrc = audioData->getPlanes();
-			auto const targetNumSamples = dstNumSamples - curDstNumSamples;
+			auto const targetNumSamples = dstNumSamples - m_outSize;
 			doConvert(targetNumSamples, pSrc, srcNumSamples);
 		}
 
@@ -98,14 +98,14 @@ struct AudioConvert : ModuleS {
 
 		void flushBuffers() {
 			auto const delay = m_resampler->getDelay(dstPcmFormat.sampleRate);
-			if (delay == 0 && curDstNumSamples == 0)
+			if (delay == 0 && m_outSize == 0)
 				return;
 
 			// we are flushing, these are the last samples
 			dstNumSamples = std::min(dstNumSamples, delay);
 
 			auto const targetNumSamples = dstNumSamples;
-			dstNumSamples += curDstNumSamples;
+			dstNumSamples += m_outSize;
 
 			doConvert(targetNumSamples, nullptr, 0);
 		}
@@ -122,11 +122,11 @@ struct AudioConvert : ModuleS {
 
 			uint8_t* dstPlanes[AUDIO_PCM_PLANES_MAX];
 			for (int i=0; i<dstPcmFormat.numPlanes; ++i) {
-				dstPlanes[i] = m_out->getPlanes()[i] + curDstNumSamples * dstPcmFormat.getBytesPerSample() / dstPcmFormat.numPlanes;
+				dstPlanes[i] = m_out->getPlanes()[i] + m_outSize * dstPcmFormat.getBytesPerSample() / dstPcmFormat.numPlanes;
 			}
 
 			const int64_t maxTargetNumSamples = m_out->getPlaneSize(0) * dstPcmFormat.numPlanes / dstPcmFormat.getBytesPerSample();
-			if (targetNumSamples + curDstNumSamples > maxTargetNumSamples) {
+			if (targetNumSamples + m_outSize > maxTargetNumSamples) {
 				m_host->log(Warning, "Truncating last samples.");
 				targetNumSamples = maxTargetNumSamples;
 			}
@@ -135,7 +135,7 @@ struct AudioConvert : ModuleS {
 			auto const outNumSamples = m_resampler->convert(dstPlanes, targetNumSamples, (const uint8_t**)pSrc, (int)srcNumSamples);
 
 			if (outNumSamples == targetNumSamples) {
-				curDstNumSamples = 0;
+				m_outSize = 0;
 				targetNumSamples = dstNumSamples;
 
 				auto const outPlaneSize = dstNumSamples * dstPcmFormat.getBytesPerSample() / dstPcmFormat.numPlanes;
@@ -153,7 +153,7 @@ struct AudioConvert : ModuleS {
 					flushBuffers();
 				}
 			} else if (outNumSamples < targetNumSamples) {
-				curDstNumSamples += outNumSamples;
+				m_outSize += outNumSamples;
 			} else
 				throw error(format("Unexpected case: output %s samples when %s was requested (frame size = %s)", outNumSamples, targetNumSamples, dstNumSamples));
 		}
@@ -189,7 +189,7 @@ struct AudioConvert : ModuleS {
 		PcmFormat srcPcmFormat;
 		PcmFormat const dstPcmFormat;
 		int64_t dstNumSamples = 0;
-		int64_t curDstNumSamples = 0;
+		int64_t m_outSize = 0; // number of output samples already in 'm_out'
 		std::shared_ptr<DataPcm> m_out;
 		std::unique_ptr<Resampler> m_resampler;
 		int64_t accumulatedTimeInDstSR = 0;
