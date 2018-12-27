@@ -50,7 +50,7 @@ struct Resampler {
 
 struct AudioConvert : ModuleS {
 		/*dstFrameSize is the number of output sample - '-1' is same as input*/
-		AudioConvert(KHost* host, const PcmFormat &dstFormat, int64_t dstNumSamples)
+		AudioConvert(KHost* host, PcmFormat dstFormat, int64_t dstNumSamples)
 			: m_host(host),
 			  dstPcmFormat(dstFormat), m_dstNumSamples(dstNumSamples), autoConfigure(true) {
 			srcPcmFormat = { 0 };
@@ -59,7 +59,7 @@ struct AudioConvert : ModuleS {
 			output = addOutput<OutputPcm>();
 		}
 
-		AudioConvert(KHost* host, const PcmFormat &srcFormat, const PcmFormat &dstFormat, int64_t dstNumSamples)
+		AudioConvert(KHost* host, PcmFormat srcFormat, PcmFormat dstFormat, int64_t dstNumSamples)
 			:m_host(host),
 			 srcPcmFormat(srcFormat), dstPcmFormat(dstFormat), m_dstNumSamples(dstNumSamples), m_resampler(new Resampler), autoConfigure(false) {
 			configure(srcPcmFormat);
