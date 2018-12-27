@@ -200,7 +200,7 @@ unittest("audio converter: smaller framing size.") {
 	framingTest(1152, 1024);
 	framingTest(1152, 512);
 	return;
-	framingTest(2000, 1024);
+	framingTest(2000, 128);
 }
 
 unittest("audio converter: bigger framing size.") {
