@@ -192,6 +192,8 @@ unittest("audio converter: same framing size.") {
 unittest("audio converter: smaller framing size.") {
 	framingTest(1152, 1024);
 	framingTest(1152, 512);
+	return;
+	framingTest(2000, 1024);
 }
 
 unittest("audio converter: bigger framing size.") {
