@@ -119,7 +119,7 @@ struct AudioConvert : ModuleS {
 				out = output->getBuffer(0);
 				out->setFormat(dstPcmFormat);
 				for (int i = 0; i < dstPcmFormat.numPlanes; ++i) {
-					out->setPlane(i, nullptr, (size_t)dstBufferSize / dstPcmFormat.numPlanes);
+					out->setPlane(i, nullptr, dstBufferSize / dstPcmFormat.numPlanes);
 				}
 			}
 
@@ -135,7 +135,7 @@ struct AudioConvert : ModuleS {
 			}
 			assert(targetNumSamples >= 0);
 
-			auto const outNumSamples = m_resampler->convert(dstPlanes, (int)targetNumSamples, (const uint8_t**)pSrc, (int)srcNumSamples);
+			auto const outNumSamples = m_resampler->convert(dstPlanes, targetNumSamples, (const uint8_t**)pSrc, (int)srcNumSamples);
 
 			if (outNumSamples == targetNumSamples) {
 				curDstNumSamples = 0;
