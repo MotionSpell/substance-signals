@@ -133,7 +133,8 @@ unittest("audio converter: dynamic formats") {
 
 namespace {
 void framingTest(int inSamplesPerFrame, int outSamplesPerFrame) {
-	PcmFormat format;
+	auto format = PcmFormat(44100, 2, Stereo, S16, Planar);
+
 	const auto inFrameSize = inSamplesPerFrame * format.getBytesPerSample() / format.numPlanes;
 	auto data = make_shared<DataPcm>(0);
 	data->setFormat(format);
