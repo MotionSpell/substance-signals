@@ -148,21 +148,10 @@ void framingTest(int inSamplesPerFrame, int outSamplesPerFrame) {
 		data->setPlane(i, input.data(), inFrameSize);
 	}
 
-	auto recorder = createModule<Utils::Recorder>(&NullHost);
-	auto cfg = AudioConvertConfig { format, format, (int64_t)outSamplesPerFrame};
-	auto converter = loadModule("AudioConvert", &NullHost, &cfg);
-	ConnectOutputToInput(converter->getOutput(0), recorder->getInput(0));
-
-	auto const numIter = 3;
-	for (int i = 0; i < numIter; ++i) {
-		converter->getInput(0)->push(data);
-		converter->process();
-	}
-	converter->flush();
-	recorder->process(nullptr);
-
 	int outTotalSize = 0;
-	while (auto data = safe_cast<const DataPcm>(recorder->pop())) {
+
+	auto onFrame = [&](Data dataRec) {
+		auto data = safe_cast<const DataPcm>(dataRec);
 		int val = 0;
 		for (int p = 0; p < data->getFormat().numPlanes; ++p) {
 			auto const plane = data->getPlane(p);
@@ -175,7 +164,18 @@ void framingTest(int inSamplesPerFrame, int outSamplesPerFrame) {
 			}
 			outTotalSize += planeSize;
 		}
+	};
+
+	auto cfg = AudioConvertConfig { format, format, (int64_t)outSamplesPerFrame};
+	auto converter = loadModule("AudioConvert", &NullHost, &cfg);
+	ConnectOutput(converter.get(), onFrame);
+
+	auto const numIter = 3;
+	for (int i = 0; i < numIter; ++i) {
+		converter->getInput(0)->push(data);
+		converter->process();
 	}
+	converter->flush();
 
 	const int inTotalSize = inFrameSize * numIter * format.numPlanes;
 	ASSERT_EQUALS(inTotalSize, outTotalSize);
