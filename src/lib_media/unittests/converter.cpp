@@ -162,11 +162,11 @@ void framingTest(int inSamplesPerFrame, int outSamplesPerFrame) {
 
 	int idx = 0;
 	while (auto dataRec = recorder->pop()) {
-		auto audioData = safe_cast<const DataPcm>(dataRec);
+		auto data = safe_cast<const DataPcm>(dataRec);
 		int val = 0;
-		for (int p = 0; p < audioData->getFormat().numPlanes; ++p) {
-			auto const plane = audioData->getPlane(p);
-			auto const planeSize = (int)audioData->getPlaneSize(p);
+		for (int p = 0; p < data->getFormat().numPlanes; ++p) {
+			auto const plane = data->getPlane(p);
+			auto const planeSize = (int)data->getPlaneSize(p);
 			ASSERT(planeSize <= outSamplesPerFrame * format.getBytesPerSample() / format.numPlanes);
 			for (int s = 0; s < planeSize; ++s) {
 				ASSERT_EQUALS((val % inFrameSize) % modulo, plane[s]);
