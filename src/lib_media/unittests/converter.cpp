@@ -166,7 +166,8 @@ void framingTest(int inSamplesPerFrame, int outSamplesPerFrame) {
 		for (int p = 0; p < data->getFormat().numPlanes; ++p) {
 			auto const plane = data->getPlane(p);
 			auto const planeSize = (int)data->getPlaneSize(p);
-			ASSERT(planeSize <= outSamplesPerFrame * format.getBytesPerSample() / format.numPlanes);
+			auto const maxAllowedSize = outSamplesPerFrame * format.getBytesPerSample() / format.numPlanes;
+			ASSERT_EQUALS(maxAllowedSize, max(planeSize, maxAllowedSize));
 			for (int s = 0; s < planeSize; ++s) {
 				ASSERT_EQUALS((val % inFrameSize) % modulo, plane[s]);
 				++idx;
