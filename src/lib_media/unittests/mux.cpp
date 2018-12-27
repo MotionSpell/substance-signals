@@ -108,6 +108,7 @@ IOutput* getFirstAudioPin(IModule* demux) {
 			return pin;
 	}
 	assert(0);
+	return nullptr;
 }
 
 static
