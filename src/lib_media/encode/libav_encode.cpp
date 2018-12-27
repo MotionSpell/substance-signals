@@ -287,13 +287,8 @@ struct LibavEncode : ModuleS {
 			}
 			case EncoderConfig::Audio: {
 				const auto fmt = safe_cast<const DataPcm>(data)->getFormat();
-				AudioLayout layout;
-				switch (fmt.numChannels) {
-				case 1: layout = Modules::Mono; break;
-				case 2: layout = Modules::Stereo; break;
-				default: throw error("Unknown libav audio layout");
-				}
-				pcmFormat = make_unique<PcmFormat>(fmt.sampleRate, fmt.numChannels, layout);
+				pcmFormat = make_unique<PcmFormat>();
+				*pcmFormat = fmt;
 				libavAudioCtxConvert(pcmFormat.get(), codecCtx.get());
 				codecOptions += format(" -ar %s -ac %s", fmt.sampleRate, fmt.numChannels);
 
