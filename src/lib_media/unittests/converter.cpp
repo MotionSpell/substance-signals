@@ -160,7 +160,7 @@ void framingTest(int inSamplesPerFrame, int outSamplesPerFrame) {
 	converter->flush();
 	recorder->process(nullptr);
 
-	int idx = 0;
+	int outTotalSize = 0;
 	while (auto data = safe_cast<const DataPcm>(recorder->pop())) {
 		int val = 0;
 		for (int p = 0; p < data->getFormat().numPlanes; ++p) {
@@ -170,12 +170,14 @@ void framingTest(int inSamplesPerFrame, int outSamplesPerFrame) {
 			ASSERT_EQUALS(maxAllowedSize, max(planeSize, maxAllowedSize));
 			for (int s = 0; s < planeSize; ++s) {
 				ASSERT_EQUALS((val % inFrameSize) % modulo, plane[s]);
-				++idx;
 				++val;
 			}
+			outTotalSize += planeSize;
 		}
 	}
-	ASSERT_EQUALS(inFrameSize * numIter * format.numPlanes, idx);
+
+	const int inTotalSize = inFrameSize * numIter * format.numPlanes;
+	ASSERT_EQUALS(inTotalSize, outTotalSize);
 }
 }
 
