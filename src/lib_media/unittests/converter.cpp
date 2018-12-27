@@ -139,13 +139,12 @@ void framingTest(int inSamplesPerFrame, int outSamplesPerFrame) {
 	data->setFormat(format);
 
 	std::vector<uint8_t> input(inFrameSizeInBytes);
-	auto inputRaw = input.data();
 	const int modulo = std::min(inFrameSizeInBytes, 256);
 	for (int i = 0; i < inFrameSizeInBytes; ++i) {
-		inputRaw[i] = (uint8_t)(i % modulo);
+		input[i] = (uint8_t)(i % modulo);
 	}
 	for (int i = 0; i < format.numPlanes; ++i) {
-		data->setPlane(i, inputRaw, inFrameSizeInBytes);
+		data->setPlane(i, input.data(), inFrameSizeInBytes);
 	}
 
 	auto recorder = createModule<Utils::Recorder>(&NullHost);
