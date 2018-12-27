@@ -169,13 +169,13 @@ void framingTest(int inSamplesPerFrame, int outSamplesPerFrame) {
 			auto const planeSize = (int)audioData->getPlaneSize(p);
 			ASSERT(planeSize <= outSamplesPerFrame * format.getBytesPerSample() / format.numPlanes);
 			for (int s = 0; s < planeSize; ++s) {
-				ASSERT_EQUALS(plane[s], ((val % inFrameSize) % modulo));
+				ASSERT_EQUALS((val % inFrameSize) % modulo, plane[s]);
 				++idx;
 				++val;
 			}
 		}
 	}
-	ASSERT_EQUALS(idx, inFrameSize * numIter * format.numPlanes);
+	ASSERT_EQUALS(inFrameSize * numIter * format.numPlanes, idx);
 }
 }
 
