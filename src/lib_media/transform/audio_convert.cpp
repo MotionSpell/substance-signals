@@ -56,6 +56,16 @@ static const char* sampleFormatToString(AudioSampleFormat fmt) {
 	return "Unknown";
 }
 
+static std::string PcmFormatToString(PcmFormat fmt) {
+	if(fmt.sampleRate == 0)
+		return "[anything]";
+
+	return format("[%s channels, %s kHz, %s]",
+	        fmt.numChannels,
+	        fmt.sampleRate/1000.0,
+	        sampleFormatToString(fmt.sampleFormat));
+}
+
 
 struct AudioConvert : ModuleS {
 		/*dstFrameSize is the number of output sample - '-1' is same as input*/
@@ -190,11 +200,9 @@ struct AudioConvert : ModuleS {
 
 			m_resampler->init();
 
-			m_host->log(Info, format("Converter configured to: %s %s Hz -> %s %s Hz",
-			        sampleFormatToString(srcPcmFormat.sampleFormat),
-			        srcPcmFormat.sampleRate,
-			        sampleFormatToString(dstPcmFormat.sampleFormat),
-			        dstPcmFormat.sampleRate
+			m_host->log(Info, format("Converter configured to: %s -> %s",
+			        PcmFormatToString(srcFormat),
+			        PcmFormatToString(dstPcmFormat)
 			    ).c_str());
 		}
 
