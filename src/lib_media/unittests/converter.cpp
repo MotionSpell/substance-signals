@@ -158,10 +158,17 @@ void framingTest(int inSamplesPerFrame, int outSamplesPerFrame) {
 			auto const planeSize = (int)data->getPlaneSize(p);
 			auto const maxAllowedSize = outSamplesPerFrame * format.getBytesPerSample() / format.numPlanes;
 			ASSERT_EQUALS(maxAllowedSize, max(planeSize, maxAllowedSize));
+
+			std::vector<int> expected, actual;
 			for (int s = 0; s < planeSize; ++s) {
-				ASSERT_EQUALS((val % inFrameSize) % modulo, plane[s]);
+				expected.push_back((val % inFrameSize) % modulo);
 				++val;
 			}
+			for (int s = 0; s < planeSize; ++s)
+				actual.push_back(plane[s]);
+
+			ASSERT_EQUALS(expected, actual);
+
 			outTotalSize += planeSize;
 		}
 	};
