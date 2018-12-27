@@ -111,17 +111,16 @@ struct AudioConvert : ModuleS {
 		}
 
 		void doConvert(int targetNumSamples, const void* pSrc, int srcNumSamples) {
-			std::shared_ptr<DataPcm> out;
-			if (curDstNumSamples) {
-				out = curOut;
-			} else {
+			if (!curDstNumSamples) {
 				auto const dstBufferSize = dstNumSamples * dstPcmFormat.getBytesPerSample();
-				out = output->getBuffer(0);
-				out->setFormat(dstPcmFormat);
+				curOut = output->getBuffer(0);
+				curOut->setFormat(dstPcmFormat);
 				for (int i = 0; i < dstPcmFormat.numPlanes; ++i) {
-					out->setPlane(i, nullptr, dstBufferSize / dstPcmFormat.numPlanes);
+					curOut->setPlane(i, nullptr, dstBufferSize / dstPcmFormat.numPlanes);
 				}
 			}
+
+			std::shared_ptr<DataPcm> out = curOut;
 
 			uint8_t* dstPlanes[AUDIO_PCM_PLANES_MAX];
 			for (int i=0; i<dstPcmFormat.numPlanes; ++i) {
