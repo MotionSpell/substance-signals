@@ -132,16 +132,16 @@ unittest("audio converter: dynamic formats") {
 }
 
 namespace {
-void framingTest(size_t inSamplesPerFrame, size_t outSamplesPerFrame) {
+void framingTest(int inSamplesPerFrame, int outSamplesPerFrame) {
 	PcmFormat format;
-	const size_t inFrameSizeInBytes = inSamplesPerFrame * format.getBytesPerSample() / format.numPlanes;
+	const auto inFrameSizeInBytes = inSamplesPerFrame * format.getBytesPerSample() / format.numPlanes;
 	auto data = make_shared<DataPcm>(0);
 	data->setFormat(format);
 
 	std::vector<uint8_t> input(inFrameSizeInBytes);
 	auto inputRaw = input.data();
-	const size_t modulo = std::min<size_t>(inFrameSizeInBytes, 256);
-	for (size_t i = 0; i < inFrameSizeInBytes; ++i) {
+	const int modulo = std::min(inFrameSizeInBytes, 256);
+	for (int i = 0; i < inFrameSizeInBytes; ++i) {
 		inputRaw[i] = (uint8_t)(i % modulo);
 	}
 	for (int i = 0; i < format.numPlanes; ++i) {
@@ -154,22 +154,22 @@ void framingTest(size_t inSamplesPerFrame, size_t outSamplesPerFrame) {
 	ConnectOutputToInput(converter->getOutput(0), recorder->getInput(0));
 
 	auto const numIter = 3;
-	for (size_t i = 0; i < numIter; ++i) {
+	for (int i = 0; i < numIter; ++i) {
 		converter->getInput(0)->push(data);
 		converter->process();
 	}
 	converter->flush();
 	recorder->process(nullptr);
 
-	size_t idx = 0;
+	int idx = 0;
 	while (auto dataRec = recorder->pop()) {
 		auto audioData = safe_cast<const DataPcm>(dataRec);
-		size_t val = 0;
+		int val = 0;
 		for (int p = 0; p < audioData->getFormat().numPlanes; ++p) {
 			auto const plane = audioData->getPlane(p);
-			auto const planeSizeInBytes = audioData->getPlaneSize(p);
+			auto const planeSizeInBytes = (int)audioData->getPlaneSize(p);
 			ASSERT(planeSizeInBytes <= outSamplesPerFrame * format.getBytesPerSample() / format.numPlanes);
-			for (size_t s = 0; s < planeSizeInBytes; ++s) {
+			for (int s = 0; s < planeSizeInBytes; ++s) {
 				ASSERT_EQUALS(plane[s], ((val % inFrameSizeInBytes) % modulo));
 				++idx;
 				++val;
