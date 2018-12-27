@@ -16,38 +16,41 @@
 Coding consideration
 ====================
 
-You need a C++11 compiler (MSVC2013+, gcc 4.9+, clang 3.1+).
+You need a C++14 compiler (MSVC2015+, gcc 6.2+, clang 3.1+).
 
-```ccache``` on unix can accelerate rebuilds: consider aliasing your CXX (e.g. ```CXX="ccache g++"```).
+```ccache``` on unix will considerably accelerate rebuilds: consider aliasing your CXX (e.g. ```CXX="ccache g++"```).
 
-Before committing please execute tests (check.sh will reformat, build, and make tests for you). Test execution should be fast (less than 30s).
+Before committing please execute tests (check.sh will reformat, build, and run the tests). Test execution should be fast (less than 30s).
 
 Design
 ======
 
 Signals is layered (from bottom to top):
-- utils: some light C++ helpers (strings, containers, log, profiling, clocks, etc.) and wrappers (including for FFmpeg and GPAC).
-- signals: an agnostic signal/slot mechanism using C++11. May convey any type of data with any type of messaging.
-- modules: an agnostic modules system. Uses signals to connect the modules.  Modules are: inputs/outputs, a clock, an allocator, a data/metadata system. Everything can be configured thru templates.
-- pipeline: a pipeline of modules builder. Doesn't know anything about multimedia.
-- mm (currently in media/common): multimedia consideration. Defines types for audio and video, and a lot of
-- media: module implementations based on libmodules and mm (encode/decode, mux/demux, transform, stream, render, etc.).
+- src/lib_utils: some lightweight C++ helpers (strings, containers, log, profiling, clocks, etc.)
+- src/lib_signals: an agnostic signal/slot mechanism using C++11. May convey any type of data with any type of messaging.
+- src/lib_modules: an agnostic modules system. Uses signals to connect the modules.  Modules are: inputs/outputs, a clock, an allocator, a data/metadata system. Everything can be configured thru templates.
+- src/lib_pipeline: a pipeline of modules builder. Doesn't know anything about multimedia.
+- src/lib_media/common: multimedia consideration. Defines types for audio and video, and a lot of
+- src/lib_media: module implementations based on lib_modules and multimedia (encode/decode, mux/demux, transform, stream, render, etc.), and wrappers (FFmpeg and GPAC).
 
 Write an application
 ====================
 
-You can connect the modules manually or use the Pipeline helper. You can find some examples in the tests.
+You can connect the modules manually or use the Pipeline helper.
 
 Pipeline helper (recommended):
 ```
 	Pipeline p;
 	
 	//add modules to the pipeline
-	auto demux = p.addModule<Demux::LibavDemux>("data/beepbop.mp4");
+	DemuxConfig cfg;
+	cfg.url = "data/beepbop.mp4";
+	auto demux = p.add("LibavDemux", &cfg);
 	auto print = p.addModule<Out::Print>();
-	for (int i = 0; i < (int)demux->getNumOutputs(); ++i) {
+
+  //connect all the demux outputs to the printer
+	for (int i = 0; i < demux->getNumOutputs(); ++i)
 		p.connect(print, i, demux, i);
-	}
 	
 	p.start();
 	p.waitForCompletion();
@@ -55,15 +58,17 @@ Pipeline helper (recommended):
 
 Manual connections:
 ```
-	auto demux = uptr(create<Demux::LibavDemux>("data/beepbop.mp4"));
-	auto print = uptr(create<Out::Print>(std::cout));
-	for (int i = 0; i < (int)demux->getNumOutputs(); ++i) {	
+	auto demux = createModule<Demux::LibavDemux>("data/beepbop.mp4");
+	auto print = createModule<Out::Print>(std::cout);
+	for (int i = 0; i < demux->getNumOutputs(); ++i)
 		ConnectOutputToInput(demux->getOutput(0), print);
-	}
-	demux->process(nullptr);
+	for(int i=0;i < 100;++i)
+		demux->process();
 	demux->flush();
 	print->flush();
 ```
+
+You can find more examples in the tests.
 
 Internals
 =========
@@ -74,11 +79,12 @@ It means that:
  - Input errors tend to propagate. They may appear in some later modules of your graph or pipeline.
    Be careful to test each of your modules. You may want to write modules to rectify the signal.
  - A lack of input may stop all outputs and logs.
- - There is no such thing as real-time in the modules.
-   There is a clock abstraction, and the application or Pipeline level may provide a clock.
+ - There is no such thing as wall-clock time in the modules: the input data comes with a timestamp.
+   For the rare modules that might need a wall-clock (e.g renderers), a clock abstraction "IClock" is provided,
+   whose implementation is provided by the application.
 
 ```
-class Module : public IModule, public ErrorCap, public LogCap, public InputCap {
+class Module : public IModule {
 	public:
 		Module() = default;
 		virtual ~Module() noexcept(false) {}
