@@ -155,7 +155,6 @@ void framingTest(size_t inSamplesPerFrame, size_t outSamplesPerFrame) {
 
 	auto const numIter = 3;
 	for (size_t i = 0; i < numIter; ++i) {
-		data->setMediaTime(inSamplesPerFrame * i, format.sampleRate);
 		converter->getInput(0)->push(data);
 		converter->process();
 	}
