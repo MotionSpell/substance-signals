@@ -107,7 +107,7 @@ struct AudioConvert : ModuleS {
 			auto const targetNumSamples = m_dstNumSamples - m_outSize;
 			bool moreToProcess = doConvert(targetNumSamples, pSrc, srcNumSamples);
 			while (moreToProcess) {
-				moreToProcess = doConvert(targetNumSamples, nullptr, 0);
+				moreToProcess = doConvert(m_dstNumSamples, nullptr, 0);
 			}
 		}
 
@@ -119,14 +119,9 @@ struct AudioConvert : ModuleS {
 			if (delay == 0 && m_outSize == 0)
 				return;
 
-			// we are flushing, these are the last samples
-			// TODO: complete with zeroes until the next m_dstNumSamples boundary
-			m_dstNumSamples = std::min(m_dstNumSamples, delay);
-
-			auto const targetNumSamples = m_dstNumSamples;
-			m_dstNumSamples += m_outSize;
-
-			while (doConvert(targetNumSamples, nullptr, 0)) {}
+			/*push zeroes to post data until the next m_dstNumSamples boundary*/
+			while (doConvert(m_dstNumSamples - m_outSize, nullptr, 0)) {}
+			doConvert(0, nullptr, 0);
 		}
 
 		/*returns true when more data is available with @targetNumSamples current value*/
@@ -160,8 +155,13 @@ struct AudioConvert : ModuleS {
 
 			if (outNumSamples == targetNumSamples) {
 				auto const outPlaneSize = m_dstNumSamples * dstPcmFormat.getBytesPerSample() / dstPcmFormat.numPlanes;
-				for (int i = 0; i < dstPcmFormat.numPlanes; ++i)
+				for (int i = 0; i < dstPcmFormat.numPlanes; ++i) {
 					m_out->setPlane(i, m_out->getPlane(i), outPlaneSize);
+
+					/*pad with zeroes on last uncopied framing bytes*/
+					auto const outSizeInBytes = m_outSize * dstPcmFormat.getBytesPerSample() / dstPcmFormat.numPlanes;
+					memset(m_out->getPlane(i) + outSizeInBytes, 0, outPlaneSize - outSizeInBytes);
+				}
 
 				auto const mediaTime = timescaleToClock(accumulatedTimeInDstSR, dstPcmFormat.sampleRate);
 				m_out->setMediaTime(mediaTime);

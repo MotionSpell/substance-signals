@@ -65,6 +65,7 @@ unittest("audio converter: interleaved to planar") {
 	ConnectOutputToInput(converter->getOutput(0), rec->getInput(0));
 	converter->getInput(0)->push(in);
 	converter->process();
+	converter->flush();
 
 	auto out = safe_cast<const DataPcm>(rec->out);
 	ASSERT_EQUALS(2, (int)out->getFormat().numPlanes);
@@ -84,7 +85,7 @@ unittest("audio converter: multiple flushes while upsampling") {
 	int outputSize = 0;
 
 	auto onFrame = [&](Data data) {
-		//ASSERT_EQUALS(dstSamples * dstFormat.getBytesPerSample(), data->data().len);
+		ASSERT_EQUALS(dstSamples * dstFormat.getBytesPerSample(), (int)data->data().len);
 		outputSize += data->data().len;
 	};
 
@@ -140,14 +141,16 @@ unittest("audio converter: 44100 to 48000") {
 		39, 79,
 		42, 82,
 		42, 82,
-		43, 83,
 		44, 84,
-		45, 85,
-		45, 85,
-		48, 88,
-		43, 83,
+		 0,  0,
+		 0,  0,
+		 0,  0,
+		 0,  0,
+		 0,  0,
 	};
-	ASSERT_EQUALS(vector<short>(expected, expected+18), getPlane(out.get(), 0));
+	auto const expectedNumEntries = sizeof(expected) / sizeof(short);
+	ASSERT_EQUALS(expectedNumEntries, out->getPlaneSize(0) * dstFormat.numChannels / dstFormat.getBytesPerSample());
+	ASSERT_EQUALS(vector<short>(expected, expected + expectedNumEntries), getPlane(out.get(), 0));
 }
 
 #include "lib_media/in/sound_generator.hpp"
@@ -195,14 +198,19 @@ void framingTest(int inSamplesPerFrame, int outSamplesPerFrame) {
 	int outTotalSize = 0;
 
 	int val = 0;
+	auto const numIter = 3;
 	auto onFrame = [&](Data dataRec) {
 		auto data = safe_cast<const DataPcm>(dataRec);
 
 		std::vector<int> expected;
 		auto const planeSize = (int)data->getPlaneSize(0);
 		for (int i = 0; i < planeSize; ++i) {
-			expected.push_back((val % inFrameSize) % modulo);
-			++val;
+			if (val < numIter * inFrameSize) {
+				expected.push_back((val % inFrameSize) % modulo);
+				++val;
+			} else {
+				expected.push_back(0);
+			}
 		}
 
 		for (int p = 0; p < data->getFormat().numPlanes; ++p) {
@@ -210,7 +218,6 @@ void framingTest(int inSamplesPerFrame, int outSamplesPerFrame) {
 			ASSERT_EQUALS(data->getPlaneSize(0), data->getPlaneSize(p));
 			auto const maxAllowedSize = outSamplesPerFrame * format.getBytesPerSample() / format.numPlanes;
 			ASSERT_EQUALS(maxAllowedSize, max(planeSize, maxAllowedSize));
-
 
 			std::vector<int> actual;
 			for (int s = 0; s < planeSize; ++s)
@@ -226,15 +233,14 @@ void framingTest(int inSamplesPerFrame, int outSamplesPerFrame) {
 	auto converter = loadModule("AudioConvert", &NullHost, &cfg);
 	ConnectOutput(converter.get(), onFrame);
 
-	auto const numIter = 3;
 	for (int i = 0; i < numIter; ++i) {
 		converter->getInput(0)->push(data);
 		converter->process();
 	}
 	converter->flush();
 
-	const int inTotalSize = inFrameSize * numIter * format.numPlanes;
-	ASSERT_EQUALS(inTotalSize, outTotalSize);
+	const int expectedTotalSize = divUp(inSamplesPerFrame * numIter, outSamplesPerFrame) * outSamplesPerFrame * format.getBytesPerSample();
+	ASSERT_EQUALS(expectedTotalSize, outTotalSize);
 }
 }
 
