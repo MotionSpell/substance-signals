@@ -192,20 +192,25 @@ void framingTest(int inSamplesPerFrame, int outSamplesPerFrame) {
 
 	int outTotalSize = 0;
 
+	int val = 0;
 	auto onFrame = [&](Data dataRec) {
 		auto data = safe_cast<const DataPcm>(dataRec);
-		int val = 0;
+
+		std::vector<int> expected;
+		auto const planeSize = (int)data->getPlaneSize(0);
+		for (int i = 0; i < planeSize; ++i) {
+			expected.push_back((val % inFrameSize) % modulo);
+			++val;
+		}
+
 		for (int p = 0; p < data->getFormat().numPlanes; ++p) {
 			auto const plane = data->getPlane(p);
-			auto const planeSize = (int)data->getPlaneSize(p);
+			ASSERT_EQUALS(data->getPlaneSize(0), data->getPlaneSize(p));
 			auto const maxAllowedSize = outSamplesPerFrame * format.getBytesPerSample() / format.numPlanes;
 			ASSERT_EQUALS(maxAllowedSize, max(planeSize, maxAllowedSize));
 
-			std::vector<int> expected, actual;
-			for (int s = 0; s < planeSize; ++s) {
-				expected.push_back((val % inFrameSize) % modulo);
-				++val;
-			}
+
+			std::vector<int> actual;
 			for (int s = 0; s < planeSize; ++s)
 				actual.push_back(plane[s]);
 
@@ -241,8 +246,7 @@ unittest("audio converter: same framing size.") {
 unittest("audio converter: smaller framing size.") {
 	framingTest(1152, 1024);
 	framingTest(1152, 512);
-	return;
-	framingTest(2000, 128);
+	framingTest(2, 1);
 }
 
 unittest("audio converter: bigger framing size.") {
