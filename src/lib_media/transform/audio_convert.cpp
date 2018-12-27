@@ -100,22 +100,16 @@ struct AudioConvert : ModuleS {
 		}
 
 		void flushBuffers() {
-			int64_t targetNumSamples;
-			uint64_t srcNumSamples = 0;
-			uint8_t * const * pSrc = nullptr;
-
 			auto const delay = m_resampler->getDelay(dstPcmFormat.sampleRate);
 			if (delay == 0 && curDstNumSamples == 0)
 				return;
 			if (delay < dstNumSamples) {
 				dstNumSamples = delay; //we are flushing, these are the last samples
 			}
-			pSrc = nullptr;
-			srcNumSamples = 0;
-			targetNumSamples = dstNumSamples;
+			auto const targetNumSamples = dstNumSamples;
 			dstNumSamples += curDstNumSamples;
 
-			doConvert(targetNumSamples, pSrc, srcNumSamples);
+			doConvert(targetNumSamples, nullptr, 0);
 		}
 
 		void doConvert(int targetNumSamples, const void* pSrc, int srcNumSamples) {
