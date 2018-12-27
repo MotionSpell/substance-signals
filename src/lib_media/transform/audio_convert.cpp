@@ -143,8 +143,8 @@ struct AudioConvert : ModuleS {
 				for (int i = 0; i < dstPcmFormat.numPlanes; ++i)
 					m_out->setPlane(i, m_out->getPlane(i), outPlaneSize);
 
-				auto const accumulatedTimeIn180k = timescaleToClock(accumulatedTimeInDstSR, dstPcmFormat.sampleRate);
-				m_out->setMediaTime(accumulatedTimeIn180k);
+				auto const mediaTime = timescaleToClock(accumulatedTimeInDstSR, dstPcmFormat.sampleRate);
+				m_out->setMediaTime(mediaTime);
 				accumulatedTimeInDstSR += dstNumSamples;
 
 				output->post(m_out);
