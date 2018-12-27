@@ -51,17 +51,6 @@ class PcmFormat {
 			return !(*this == other);
 		}
 
-		PcmFormat& operator=(const PcmFormat& other) {
-			if (this != &other) {
-				sampleRate = other.sampleRate;
-				numChannels = other.numChannels;
-				layout = other.layout;
-				sampleFormat = other.sampleFormat;
-				numPlanes = other.numPlanes;
-			}
-			return *this;
-		}
-
 		bool operator==(const PcmFormat& other) const {
 			if (other.sampleRate != sampleRate)
 				return false;
