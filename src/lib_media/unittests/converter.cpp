@@ -72,6 +72,48 @@ unittest("audio converter: interleaved to planar") {
 	ASSERT_EQUALS(vector<short>({80, 81, 82, 83, 84, 85, 86, 87 }), getPlane(out.get(), 1));
 }
 
+unittest("[DISABLED] audio converter: multiple flushes while upsampling") {
+	auto const srcFormat = PcmFormat(32000, 1, Mono, S16, Interleaved);
+	auto const dstFormat = PcmFormat(48000, 1, Mono, S16, Interleaved);
+
+	AudioConvertConfig cfg {srcFormat, dstFormat, 1152};
+
+	auto converter = loadModule("AudioConvert", &NullHost, &cfg);
+
+	int outputSize = 0;
+
+	auto onFrame = [&](Data data) {
+		outputSize += data->data().len;
+	};
+
+	ConnectOutput(converter.get(), onFrame);
+
+	int inputSize = 0;
+	std::vector<uint8_t> buf(3110400);
+
+	auto data = make_shared<DataPcm>(0);
+	data->setFormat(srcFormat);
+	data->setPlane(0, buf.data(), buf.size());
+
+	inputSize += buf.size();
+	converter->getInput(0)->push(data);
+	converter->process();
+
+	inputSize += buf.size();
+	converter->getInput(0)->push(data);
+	converter->process();
+
+	converter->flush();
+
+	inputSize += buf.size();
+	converter->getInput(0)->push(data);
+	converter->process();
+
+	converter->flush();
+
+	ASSERT_EQUALS(divUp(inputSize, srcFormat.sampleRate), divUp(outputSize, dstFormat.sampleRate));
+}
+
 unittest("audio converter: 44100 to 48000") {
 
 	auto in = getInterleavedPcmData();
