@@ -92,11 +92,8 @@ class PcmFormat {
 class DataPcm : public DataBase {
 	public:
 		DataPcm(size_t size) {
-			if (size > 0) {
+			if (size > 0)
 				throw std::runtime_error("Forbidden operation. Requested size must be 0. Then call setFormat().");
-				format.numPlanes = 1;
-				setPlane(0, nullptr, size);
-			}
 		}
 		~DataPcm() {
 			freePlanes();
