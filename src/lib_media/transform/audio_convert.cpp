@@ -73,8 +73,14 @@ struct AudioConvert : ModuleS {
 		}
 
 		void flush() override {
-			if (m_resampler)
-				processBuffer(nullptr);
+			if (!m_resampler)
+				return;
+
+			flushBuffers();
+		}
+
+		void flushBuffers() {
+			processBuffer(nullptr);
 		}
 
 		void processBuffer(Data data) {
@@ -155,7 +161,7 @@ struct AudioConvert : ModuleS {
 				output->post(out);
 				out = nullptr;
 				if (m_resampler->getDelay(dstPcmFormat.sampleRate) >= dstNumSamples) { //accumulated more than one output buffer: flush.
-					processBuffer(nullptr);
+					flushBuffers();
 				}
 			} else if (outNumSamples < targetNumSamples) {
 				curDstNumSamples += outNumSamples;
