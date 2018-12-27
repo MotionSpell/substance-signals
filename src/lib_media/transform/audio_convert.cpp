@@ -70,9 +70,6 @@ struct AudioConvert : ModuleS {
 
 		void process(Data data) override {
 			auto audioData = safe_cast<const DataPcm>(data);
-			int64_t targetNumSamples;
-			uint64_t srcNumSamples = 0;
-			uint8_t * const * pSrc = nullptr;
 
 			if (audioData->getFormat() != srcPcmFormat) {
 				if (!autoConfigure)
@@ -83,12 +80,12 @@ struct AudioConvert : ModuleS {
 				accumulatedTimeInDstSR = clockToTimescale(data->getMediaTime(), srcPcmFormat.sampleRate);
 			}
 
-			srcNumSamples = audioData->size() / audioData->getFormat().getBytesPerSample();
+			auto const srcNumSamples = audioData->size() / audioData->getFormat().getBytesPerSample();
 			if (dstNumSamples == -1) {
 				dstNumSamples = divUp(srcNumSamples * dstPcmFormat.sampleRate, (uint64_t)srcPcmFormat.sampleRate);
 			}
-			pSrc = audioData->getPlanes();
-			targetNumSamples = dstNumSamples - curDstNumSamples;
+			auto const pSrc = audioData->getPlanes();
+			auto const targetNumSamples = dstNumSamples - curDstNumSamples;
 			doConvert(targetNumSamples, pSrc, srcNumSamples);
 		}
 
