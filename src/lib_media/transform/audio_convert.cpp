@@ -69,7 +69,27 @@ struct AudioConvert : ModuleS {
 		}
 
 		void process(Data data) override {
-			processBuffer(data);
+			auto audioData = safe_cast<const DataPcm>(data);
+			int64_t targetNumSamples;
+			uint64_t srcNumSamples = 0;
+			uint8_t * const * pSrc = nullptr;
+
+			if (audioData->getFormat() != srcPcmFormat) {
+				if (!autoConfigure)
+					throw error("Incompatible input audio data.");
+
+				m_host->log(Info, "Incompatible input audio data. Reconfiguring.");
+				reconfigure(audioData->getFormat());
+				accumulatedTimeInDstSR = clockToTimescale(data->getMediaTime(), srcPcmFormat.sampleRate);
+			}
+
+			srcNumSamples = audioData->size() / audioData->getFormat().getBytesPerSample();
+			if (dstNumSamples == -1) {
+				dstNumSamples = divUp(srcNumSamples * dstPcmFormat.sampleRate, (uint64_t)srcPcmFormat.sampleRate);
+			}
+			pSrc = audioData->getPlanes();
+			targetNumSamples = dstNumSamples - curDstNumSamples;
+			doConvert(targetNumSamples, pSrc, srcNumSamples);
 		}
 
 		void flush() override {
@@ -80,42 +100,20 @@ struct AudioConvert : ModuleS {
 		}
 
 		void flushBuffers() {
-			processBuffer(nullptr);
-		}
-
-		void processBuffer(Data data) {
 			int64_t targetNumSamples;
 			uint64_t srcNumSamples = 0;
 			uint8_t * const * pSrc = nullptr;
 
-			if (auto audioData = safe_cast<const DataPcm>(data)) {
-				if (audioData->getFormat() != srcPcmFormat) {
-					if (!autoConfigure)
-						throw error("Incompatible input audio data.");
-
-					m_host->log(Info, "Incompatible input audio data. Reconfiguring.");
-					reconfigure(audioData->getFormat());
-					accumulatedTimeInDstSR = clockToTimescale(data->getMediaTime(), srcPcmFormat.sampleRate);
-				}
-
-				srcNumSamples = audioData->size() / audioData->getFormat().getBytesPerSample();
-				if (dstNumSamples == -1) {
-					dstNumSamples = divUp(srcNumSamples * dstPcmFormat.sampleRate, (uint64_t)srcPcmFormat.sampleRate);
-				}
-				pSrc = audioData->getPlanes();
-				targetNumSamples = dstNumSamples - curDstNumSamples;
-			} else {
-				auto const delay = m_resampler->getDelay(dstPcmFormat.sampleRate);
-				if (delay == 0 && curDstNumSamples == 0)
-					return;
-				if (delay < dstNumSamples) {
-					dstNumSamples = delay; //we are flushing, these are the last samples
-				}
-				pSrc = nullptr;
-				srcNumSamples = 0;
-				targetNumSamples = dstNumSamples;
-				dstNumSamples += curDstNumSamples;
+			auto const delay = m_resampler->getDelay(dstPcmFormat.sampleRate);
+			if (delay == 0 && curDstNumSamples == 0)
+				return;
+			if (delay < dstNumSamples) {
+				dstNumSamples = delay; //we are flushing, these are the last samples
 			}
+			pSrc = nullptr;
+			srcNumSamples = 0;
+			targetNumSamples = dstNumSamples;
+			dstNumSamples += curDstNumSamples;
 
 			doConvert(targetNumSamples, pSrc, srcNumSamples);
 		}
