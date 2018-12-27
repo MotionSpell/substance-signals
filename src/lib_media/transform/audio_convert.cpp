@@ -48,6 +48,15 @@ struct Resampler {
 	SwrContext* m_SwrContext;
 };
 
+static const char* sampleFormatToString(AudioSampleFormat fmt) {
+	switch(fmt) {
+	case S16: return "S16";
+	case F32: return "F32";
+	}
+	return "Unknown";
+}
+
+
 struct AudioConvert : ModuleS {
 		/*dstFrameSize is the number of output sample - '-1' is same as input*/
 		AudioConvert(KHost* host, PcmFormat dstFormat, int64_t dstNumSamples)
@@ -75,7 +84,6 @@ struct AudioConvert : ModuleS {
 				if (!autoConfigure)
 					throw error("Incompatible input audio data.");
 
-				m_host->log(Info, "Incompatible input audio data. Reconfiguring.");
 				reconfigure(audioData->getFormat());
 				accumulatedTimeInDstSR = clockToTimescale(data->getMediaTime(), srcPcmFormat.sampleRate);
 			}
@@ -181,6 +189,13 @@ struct AudioConvert : ModuleS {
 			    0, nullptr);
 
 			m_resampler->init();
+
+			m_host->log(Info, format("Converter configured to: %s %s Hz -> %s %s Hz",
+			        sampleFormatToString(srcPcmFormat.sampleFormat),
+			        srcPcmFormat.sampleRate,
+			        sampleFormatToString(dstPcmFormat.sampleFormat),
+			        dstPcmFormat.sampleRate
+			    ).c_str());
 		}
 
 	private:
