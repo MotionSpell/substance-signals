@@ -135,7 +135,6 @@ struct AudioConvert : ModuleS {
 			auto const outNumSamples = m_resampler->convert(dstPlanes, targetNumSamples, (const uint8_t**)pSrc, (int)srcNumSamples);
 
 			if (outNumSamples == targetNumSamples) {
-				m_outSize = 0;
 				targetNumSamples = dstNumSamples;
 
 				auto const outPlaneSize = dstNumSamples * dstPcmFormat.getBytesPerSample() / dstPcmFormat.numPlanes;
@@ -148,6 +147,7 @@ struct AudioConvert : ModuleS {
 
 				output->post(m_out);
 				m_out = nullptr;
+				m_outSize = 0;
 
 				if (m_resampler->getDelay(dstPcmFormat.sampleRate) >= dstNumSamples) { //accumulated more than one output buffer: flush.
 					flushBuffers();
