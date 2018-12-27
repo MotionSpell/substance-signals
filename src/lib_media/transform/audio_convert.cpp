@@ -102,33 +102,35 @@ struct AudioConvert : ModuleS {
 			if (m_dstNumSamples == -1) {
 				m_dstNumSamples = divUp((int64_t)srcNumSamples * dstPcmFormat.sampleRate, (int64_t)srcPcmFormat.sampleRate);
 			}
+
 			auto const pSrc = audioData->getPlanes();
 			auto const targetNumSamples = m_dstNumSamples - m_outSize;
-			doConvert(targetNumSamples, pSrc, srcNumSamples);
+			bool moreToProcess = doConvert(targetNumSamples, pSrc, srcNumSamples);
+			while (moreToProcess) {
+				moreToProcess = doConvert(targetNumSamples, nullptr, 0);
+			}
 		}
 
 		void flush() override {
 			if (!m_resampler)
 				return;
 
-			flushBuffers();
-		}
-
-		void flushBuffers() {
 			auto const delay = m_resampler->getDelay(dstPcmFormat.sampleRate);
 			if (delay == 0 && m_outSize == 0)
 				return;
 
 			// we are flushing, these are the last samples
+			// TODO: complete with zeroes until the next m_dstNumSamples boundary
 			m_dstNumSamples = std::min(m_dstNumSamples, delay);
 
 			auto const targetNumSamples = m_dstNumSamples;
 			m_dstNumSamples += m_outSize;
 
-			doConvert(targetNumSamples, nullptr, 0);
+			while (doConvert(targetNumSamples, nullptr, 0)) {}
 		}
 
-		void doConvert(int targetNumSamples, const void* pSrc, int srcNumSamples) {
+		/*returns true when more data is available with @targetNumSamples current value*/
+		bool doConvert(int targetNumSamples, const void* pSrc, int srcNumSamples) {
 			if (!m_out) {
 				auto const dstBufferSize = m_dstNumSamples * dstPcmFormat.getBytesPerSample();
 				m_out = output->getBuffer(0);
@@ -170,9 +172,11 @@ struct AudioConvert : ModuleS {
 				m_outSize = 0;
 
 				if (m_resampler->getDelay(dstPcmFormat.sampleRate) >= m_dstNumSamples) { //accumulated more than one output buffer: flush.
-					flushBuffers();
+					return true;
 				}
 			}
+
+			return false;
 		}
 
 		void reconfigure(const PcmFormat &srcFormat) {

@@ -72,7 +72,7 @@ unittest("audio converter: interleaved to planar") {
 	ASSERT_EQUALS(vector<short>({80, 81, 82, 83, 84, 85, 86, 87 }), getPlane(out.get(), 1));
 }
 
-unittest("[DISABLED] audio converter: multiple flushes while upsampling") {
+unittest("audio converter: multiple flushes while upsampling") {
 	auto const srcFormat = PcmFormat(32000, 1, Mono, S16, Interleaved);
 	auto const dstFormat = PcmFormat(48000, 1, Mono, S16, Interleaved);
 	auto const dstSamples = 1152;
