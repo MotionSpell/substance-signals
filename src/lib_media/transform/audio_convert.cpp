@@ -106,9 +106,9 @@ struct AudioConvert : ModuleS {
 				targetNumSamples = dstNumSamples - curDstNumSamples;
 			} else {
 				auto const delay = m_resampler->getDelay(dstPcmFormat.sampleRate);
-				if (delay == 0 && curDstNumSamples == 0) {
+				if (delay == 0 && curDstNumSamples == 0)
 					return;
-				} else if (delay < dstNumSamples) {
+				if (delay < dstNumSamples) {
 					dstNumSamples = delay; //we are flushing, these are the last samples
 				}
 				pSrc = nullptr;
