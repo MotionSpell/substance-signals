@@ -111,7 +111,7 @@ struct AudioConvert : ModuleS {
 		}
 
 		void doConvert(int targetNumSamples, const void* pSrc, int srcNumSamples) {
-			if (!curDstNumSamples) {
+			if (!m_out) {
 				auto const dstBufferSize = dstNumSamples * dstPcmFormat.getBytesPerSample();
 				m_out = output->getBuffer(0);
 				m_out->setFormat(dstPcmFormat);
