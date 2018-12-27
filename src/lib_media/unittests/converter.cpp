@@ -118,26 +118,45 @@ unittest("audio converter: multiple flushes while upsampling") {
 }
 
 unittest("audio converter: 44100 to 48000") {
-
 	auto in = getInterleavedPcmData();
 	auto dstFormat = PcmFormat(48000, 2, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Interleaved);
 
 	auto cfg = AudioConvertConfig { in->getFormat(), dstFormat, -1 };
 	auto converter = loadModule("AudioConvert", &NullHost, &cfg);
 
-	auto rec = createModule<Recorder>();
-	ConnectOutputToInput(converter->getOutput(0), rec->getInput(0));
+	vector<short> output;
+	auto onFrame = [&](Data data) {
+		auto const v = getPlane(safe_cast<const DataPcm>(data).get(), 0);
+		output.insert(output.end(), v.begin(), v.end());
+	};
+
+	ConnectOutput(converter.get(), onFrame);
 	for(int i=0; i < 3; ++i) {
 		converter->getInput(0)->push(in);
 		converter->process();
 	}
 	converter->flush();
 
-	assert(rec->out);
-	auto out = safe_cast<const DataPcm>(rec->out);
-	ASSERT_EQUALS(1, (int)out->getFormat().numPlanes);
 	short expected[] = {
 		// L, R
+		40, 80,
+		41, 81,
+		42, 82,
+		43, 83,
+		43, 83,
+		45, 85,
+		45, 85,
+		47, 87,
+		45, 85,
+		39, 79,
+		42, 82,
+		42, 82,
+		43, 83,
+		44, 84,
+		45, 85,
+		45, 85,
+		48, 88,
+		43, 83,
 		39, 79,
 		42, 82,
 		42, 82,
@@ -149,8 +168,7 @@ unittest("audio converter: 44100 to 48000") {
 		 0,  0,
 	};
 	auto const expectedNumEntries = sizeof(expected) / sizeof(short);
-	ASSERT_EQUALS(expectedNumEntries, out->getPlaneSize(0) * dstFormat.numChannels / dstFormat.getBytesPerSample());
-	ASSERT_EQUALS(vector<short>(expected, expected + expectedNumEntries), getPlane(out.get(), 0));
+	ASSERT_EQUALS(vector<short>(expected, expected + expectedNumEntries), output);
 }
 
 #include "lib_media/in/sound_generator.hpp"
