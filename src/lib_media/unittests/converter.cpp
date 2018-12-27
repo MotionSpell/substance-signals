@@ -75,14 +75,16 @@ unittest("audio converter: interleaved to planar") {
 unittest("[DISABLED] audio converter: multiple flushes while upsampling") {
 	auto const srcFormat = PcmFormat(32000, 1, Mono, S16, Interleaved);
 	auto const dstFormat = PcmFormat(48000, 1, Mono, S16, Interleaved);
+	auto const dstSamples = 1152;
 
-	AudioConvertConfig cfg {srcFormat, dstFormat, 1152};
+	AudioConvertConfig cfg { srcFormat, dstFormat, dstSamples };
 
 	auto converter = loadModule("AudioConvert", &NullHost, &cfg);
 
 	int outputSize = 0;
 
 	auto onFrame = [&](Data data) {
+		//ASSERT_EQUALS(dstSamples * dstFormat.getBytesPerSample(), data->data().len);
 		outputSize += data->data().len;
 	};
 
