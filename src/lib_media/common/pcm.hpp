@@ -153,11 +153,11 @@ class DataPcm : public DataRaw {
 			    (plane != planes[planeIdx]) ||
 			    ((plane == planes[planeIdx]) && (size > planeSize[planeIdx]))) {
 				freePlane(planeIdx);
-				planes[planeIdx] = new uint8_t[(size_t)size];
+				planes[planeIdx] = new uint8_t[size];
 			}
 			planeSize[planeIdx] = size;
 			if (plane && (plane != planes[planeIdx])) {
-				memcpy(planes[planeIdx], plane, (size_t)size);
+				memcpy(planes[planeIdx], plane, size);
 			}
 		}
 
