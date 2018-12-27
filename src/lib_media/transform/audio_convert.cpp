@@ -133,6 +133,10 @@ struct AudioConvert : ModuleS {
 			assert(targetNumSamples >= 0);
 
 			auto const outNumSamples = m_resampler->convert(dstPlanes, targetNumSamples, (const uint8_t**)pSrc, srcNumSamples);
+			if (outNumSamples > targetNumSamples)
+				throw error(format("Unexpected case: output %s samples when %s was requested (frame size = %s)", outNumSamples, targetNumSamples, dstNumSamples));
+
+			m_outSize += outNumSamples;
 
 			if (outNumSamples == targetNumSamples) {
 				targetNumSamples = dstNumSamples;
@@ -152,10 +156,7 @@ struct AudioConvert : ModuleS {
 				if (m_resampler->getDelay(dstPcmFormat.sampleRate) >= dstNumSamples) { //accumulated more than one output buffer: flush.
 					flushBuffers();
 				}
-			} else if (outNumSamples < targetNumSamples) {
-				m_outSize += outNumSamples;
-			} else
-				throw error(format("Unexpected case: output %s samples when %s was requested (frame size = %s)", outNumSamples, targetNumSamples, dstNumSamples));
+			}
 		}
 
 		void reconfigure(const PcmFormat &srcFormat) {
