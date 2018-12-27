@@ -103,9 +103,10 @@ struct AudioConvert : ModuleS {
 			auto const delay = m_resampler->getDelay(dstPcmFormat.sampleRate);
 			if (delay == 0 && curDstNumSamples == 0)
 				return;
-			if (delay < dstNumSamples) {
-				dstNumSamples = delay; //we are flushing, these are the last samples
-			}
+
+			// we are flushing, these are the last samples
+			dstNumSamples = std::min(dstNumSamples, delay);
+
 			auto const targetNumSamples = dstNumSamples;
 			dstNumSamples += curDstNumSamples;
 
