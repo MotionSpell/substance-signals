@@ -113,19 +113,19 @@ struct AudioConvert : ModuleS {
 		void doConvert(int targetNumSamples, const void* pSrc, int srcNumSamples) {
 			if (!curDstNumSamples) {
 				auto const dstBufferSize = dstNumSamples * dstPcmFormat.getBytesPerSample();
-				curOut = output->getBuffer(0);
-				curOut->setFormat(dstPcmFormat);
+				m_out = output->getBuffer(0);
+				m_out->setFormat(dstPcmFormat);
 				for (int i = 0; i < dstPcmFormat.numPlanes; ++i) {
-					curOut->setPlane(i, nullptr, dstBufferSize / dstPcmFormat.numPlanes);
+					m_out->setPlane(i, nullptr, dstBufferSize / dstPcmFormat.numPlanes);
 				}
 			}
 
 			uint8_t* dstPlanes[AUDIO_PCM_PLANES_MAX];
 			for (int i=0; i<dstPcmFormat.numPlanes; ++i) {
-				dstPlanes[i] = curOut->getPlanes()[i] + curDstNumSamples * dstPcmFormat.getBytesPerSample() / dstPcmFormat.numPlanes;
+				dstPlanes[i] = m_out->getPlanes()[i] + curDstNumSamples * dstPcmFormat.getBytesPerSample() / dstPcmFormat.numPlanes;
 			}
 
-			const int64_t maxTargetNumSamples = curOut->getPlaneSize(0) * dstPcmFormat.numPlanes / dstPcmFormat.getBytesPerSample();
+			const int64_t maxTargetNumSamples = m_out->getPlaneSize(0) * dstPcmFormat.numPlanes / dstPcmFormat.getBytesPerSample();
 			if (targetNumSamples + curDstNumSamples > maxTargetNumSamples) {
 				m_host->log(Warning, "Truncating last samples.");
 				targetNumSamples = maxTargetNumSamples;
@@ -140,14 +140,15 @@ struct AudioConvert : ModuleS {
 
 				auto const outPlaneSize = dstNumSamples * dstPcmFormat.getBytesPerSample() / dstPcmFormat.numPlanes;
 				for (int i = 0; i < dstPcmFormat.numPlanes; ++i)
-					curOut->setPlane(i, curOut->getPlane(i), (size_t)outPlaneSize);
+					m_out->setPlane(i, m_out->getPlane(i), (size_t)outPlaneSize);
 
 				auto const accumulatedTimeIn180k = timescaleToClock(accumulatedTimeInDstSR, dstPcmFormat.sampleRate);
-				curOut->setMediaTime(accumulatedTimeIn180k);
+				m_out->setMediaTime(accumulatedTimeIn180k);
 				accumulatedTimeInDstSR += dstNumSamples;
 
-				output->post(curOut);
-				curOut = nullptr;
+				output->post(m_out);
+				m_out = nullptr;
+
 				if (m_resampler->getDelay(dstPcmFormat.sampleRate) >= dstNumSamples) { //accumulated more than one output buffer: flush.
 					flushBuffers();
 				}
@@ -189,7 +190,7 @@ struct AudioConvert : ModuleS {
 		PcmFormat const dstPcmFormat;
 		int64_t dstNumSamples = 0;
 		int64_t curDstNumSamples = 0;
-		std::shared_ptr<DataPcm> curOut;
+		std::shared_ptr<DataPcm> m_out;
 		std::unique_ptr<Resampler> m_resampler;
 		int64_t accumulatedTimeInDstSR = 0;
 		OutputPcm *output;
