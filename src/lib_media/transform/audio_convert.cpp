@@ -74,12 +74,12 @@ struct AudioConvert : ModuleS {
 			auto audioData = safe_cast<const DataPcm>(data);
 			if (audioData) {
 				if (audioData->getFormat() != srcPcmFormat) {
-					if (autoConfigure) {
-						m_host->log(Info, "Incompatible input audio data. Reconfiguring.");
-						reconfigure(audioData->getFormat());
-						accumulatedTimeInDstSR = clockToTimescale(data->getMediaTime(), srcPcmFormat.sampleRate);
-					} else
+					if (!autoConfigure)
 						throw error("Incompatible input audio data.");
+
+					m_host->log(Info, "Incompatible input audio data. Reconfiguring.");
+					reconfigure(audioData->getFormat());
+					accumulatedTimeInDstSR = clockToTimescale(data->getMediaTime(), srcPcmFormat.sampleRate);
 				}
 
 				srcNumSamples = audioData->size() / audioData->getFormat().getBytesPerSample();
