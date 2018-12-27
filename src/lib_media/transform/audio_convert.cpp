@@ -82,7 +82,7 @@ struct AudioConvert : ModuleS {
 
 			auto const srcNumSamples = audioData->size() / audioData->getFormat().getBytesPerSample();
 			if (dstNumSamples == -1) {
-				dstNumSamples = divUp(srcNumSamples * dstPcmFormat.sampleRate, (uint64_t)srcPcmFormat.sampleRate);
+				dstNumSamples = divUp((int64_t)srcNumSamples * dstPcmFormat.sampleRate, (int64_t)srcPcmFormat.sampleRate);
 			}
 			auto const pSrc = audioData->getPlanes();
 			auto const targetNumSamples = dstNumSamples - m_outSize;
@@ -132,14 +132,14 @@ struct AudioConvert : ModuleS {
 			}
 			assert(targetNumSamples >= 0);
 
-			auto const outNumSamples = m_resampler->convert(dstPlanes, targetNumSamples, (const uint8_t**)pSrc, (int)srcNumSamples);
+			auto const outNumSamples = m_resampler->convert(dstPlanes, targetNumSamples, (const uint8_t**)pSrc, srcNumSamples);
 
 			if (outNumSamples == targetNumSamples) {
 				targetNumSamples = dstNumSamples;
 
 				auto const outPlaneSize = dstNumSamples * dstPcmFormat.getBytesPerSample() / dstPcmFormat.numPlanes;
 				for (int i = 0; i < dstPcmFormat.numPlanes; ++i)
-					m_out->setPlane(i, m_out->getPlane(i), (size_t)outPlaneSize);
+					m_out->setPlane(i, m_out->getPlane(i), outPlaneSize);
 
 				auto const accumulatedTimeIn180k = timescaleToClock(accumulatedTimeInDstSR, dstPcmFormat.sampleRate);
 				m_out->setMediaTime(accumulatedTimeIn180k);
