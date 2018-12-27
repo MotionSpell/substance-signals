@@ -89,9 +89,9 @@ class PcmFormat {
 		int numPlanes;
 };
 
-class DataPcm : public DataRaw {
+class DataPcm : public DataBase {
 	public:
-		DataPcm(size_t size) : DataRaw(0) {
+		DataPcm(size_t size) {
 			if (size > 0) {
 				throw std::runtime_error("Forbidden operation. Requested size must be 0. Then call setFormat().");
 				format.numPlanes = 1;
