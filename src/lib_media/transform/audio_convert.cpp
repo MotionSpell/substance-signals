@@ -117,6 +117,10 @@ struct AudioConvert : ModuleS {
 				dstNumSamples += curDstNumSamples;
 			}
 
+			doConvert(targetNumSamples, pSrc, srcNumSamples);
+		}
+
+		void doConvert(int targetNumSamples, const void* pSrc, int srcNumSamples) {
 			std::shared_ptr<DataPcm> out;
 			if (curDstNumSamples) {
 				out = curOut;
@@ -198,7 +202,8 @@ struct AudioConvert : ModuleS {
 		KHost* const m_host;
 		PcmFormat srcPcmFormat;
 		PcmFormat const dstPcmFormat;
-		int64_t dstNumSamples, curDstNumSamples = 0;
+		int64_t dstNumSamples = 0;
+		int64_t curDstNumSamples = 0;
 		std::shared_ptr<DataPcm> curOut;
 		std::unique_ptr<Resampler> m_resampler;
 		int64_t accumulatedTimeInDstSR = 0;
