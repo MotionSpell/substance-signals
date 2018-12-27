@@ -87,8 +87,8 @@ struct AudioConvert : ModuleS {
 			int64_t targetNumSamples;
 			uint64_t srcNumSamples = 0;
 			uint8_t * const * pSrc = nullptr;
-			auto audioData = safe_cast<const DataPcm>(data);
-			if (audioData) {
+
+			if (auto audioData = safe_cast<const DataPcm>(data)) {
 				if (audioData->getFormat() != srcPcmFormat) {
 					if (!autoConfigure)
 						throw error("Incompatible input audio data.");
