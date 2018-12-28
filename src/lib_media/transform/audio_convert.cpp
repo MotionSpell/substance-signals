@@ -66,7 +66,6 @@ static std::string PcmFormatToString(PcmFormat fmt) {
 	        sampleFormatToString(fmt.sampleFormat));
 }
 
-
 struct AudioConvert : ModuleS {
 		/*dstFrameSize is the number of output sample - '-1' is same as input*/
 		AudioConvert(KHost* host, PcmFormat dstFormat, int64_t dstLen)
@@ -221,7 +220,6 @@ struct AudioConvert : ModuleS {
 		int64_t accumulatedTimeInDstSR = 0;
 		OutputPcm *output;
 		const bool autoConfigure;
-
 };
 
 IModule* createObject(KHost* host, void* va) {
