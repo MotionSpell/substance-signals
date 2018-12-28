@@ -69,18 +69,18 @@ static std::string PcmFormatToString(PcmFormat fmt) {
 
 struct AudioConvert : ModuleS {
 		/*dstFrameSize is the number of output sample - '-1' is same as input*/
-		AudioConvert(KHost* host, PcmFormat dstFormat, int64_t dstNumSamples)
+		AudioConvert(KHost* host, PcmFormat dstFormat, int64_t dstLen)
 			: m_host(host),
-			  dstPcmFormat(dstFormat), m_dstNumSamples(dstNumSamples), autoConfigure(true) {
+			  dstPcmFormat(dstFormat), m_dstLen(dstLen), autoConfigure(true) {
 			srcPcmFormat = { 0 };
 			auto input = addInput(this);
 			input->setMetadata(make_shared<MetadataRawAudio>());
 			output = addOutput<OutputPcm>();
 		}
 
-		AudioConvert(KHost* host, PcmFormat srcFormat, PcmFormat dstFormat, int64_t dstNumSamples)
+		AudioConvert(KHost* host, PcmFormat srcFormat, PcmFormat dstFormat, int64_t dstLen)
 			:m_host(host),
-			 srcPcmFormat(srcFormat), dstPcmFormat(dstFormat), m_dstNumSamples(dstNumSamples), m_resampler(new Resampler), autoConfigure(false) {
+			 srcPcmFormat(srcFormat), dstPcmFormat(dstFormat), m_dstLen(dstLen), m_resampler(new Resampler), autoConfigure(false) {
 			configure(srcPcmFormat);
 			auto input = addInput(this);
 			input->setMetadata(make_shared<MetadataRawAudio>());
@@ -99,15 +99,15 @@ struct AudioConvert : ModuleS {
 			}
 
 			auto const srcNumSamples = audioData->size() / audioData->getFormat().getBytesPerSample();
-			if (m_dstNumSamples == -1) {
-				m_dstNumSamples = divUp((int64_t)srcNumSamples * dstPcmFormat.sampleRate, (int64_t)srcPcmFormat.sampleRate);
+			if (m_dstLen == -1) {
+				m_dstLen = divUp((int64_t)srcNumSamples * dstPcmFormat.sampleRate, (int64_t)srcPcmFormat.sampleRate);
 			}
 
 			auto const pSrc = audioData->getPlanes();
-			auto const targetNumSamples = m_dstNumSamples - m_outNumSamples;
+			auto const targetNumSamples = m_dstLen - m_outLen;
 			bool moreToProcess = doConvert(targetNumSamples, pSrc, srcNumSamples);
 			while (moreToProcess) {
-				moreToProcess = doConvert(m_dstNumSamples, nullptr, 0);
+				moreToProcess = doConvert(m_dstLen, nullptr, 0);
 			}
 		}
 
@@ -116,18 +116,18 @@ struct AudioConvert : ModuleS {
 				return;
 
 			auto const delay = m_resampler->getDelay(dstPcmFormat.sampleRate);
-			if (delay == 0 && m_outNumSamples == 0)
+			if (delay == 0 && m_outLen == 0)
 				return;
 
-			/*push zeroes to post data until the next m_dstNumSamples boundary*/
-			while (doConvert(m_dstNumSamples - m_outNumSamples, nullptr, 0)) {}
+			/*push zeroes to post data until the next m_dstLen boundary*/
+			while (doConvert(m_dstLen - m_outLen, nullptr, 0)) {}
 			doConvert(0, nullptr, 0);
 		}
 
 		/*returns true when more data is available with @targetNumSamples current value*/
 		bool doConvert(int targetNumSamples, const void* pSrc, int srcNumSamples) {
 			if (!m_out) {
-				auto const dstBufferSize = m_dstNumSamples * dstPcmFormat.getBytesPerSample();
+				auto const dstBufferSize = m_dstLen * dstPcmFormat.getBytesPerSample();
 				m_out = output->getBuffer(0);
 				m_out->setFormat(dstPcmFormat);
 				for (int i = 0; i < dstPcmFormat.numPlanes; ++i) {
@@ -137,11 +137,11 @@ struct AudioConvert : ModuleS {
 
 			uint8_t* dstPlanes[AUDIO_PCM_PLANES_MAX];
 			for (int i=0; i<dstPcmFormat.numPlanes; ++i) {
-				dstPlanes[i] = m_out->getPlanes()[i] + m_outNumSamples * dstPcmFormat.getBytesPerSample() / dstPcmFormat.numPlanes;
+				dstPlanes[i] = m_out->getPlanes()[i] + m_outLen * dstPcmFormat.getBytesPerSample() / dstPcmFormat.numPlanes;
 			}
 
 			const int64_t maxTargetNumSamples = m_out->getPlaneSize(0) * dstPcmFormat.numPlanes / dstPcmFormat.getBytesPerSample();
-			if (targetNumSamples + m_outNumSamples > maxTargetNumSamples) {
+			if (targetNumSamples + m_outLen > maxTargetNumSamples) {
 				m_host->log(Warning, "Truncating last samples.");
 				targetNumSamples = maxTargetNumSamples;
 			}
@@ -149,29 +149,29 @@ struct AudioConvert : ModuleS {
 
 			auto const outNumSamples = m_resampler->convert(dstPlanes, targetNumSamples, (const uint8_t**)pSrc, srcNumSamples);
 			if (outNumSamples > targetNumSamples)
-				throw error(format("Unexpected case: output %s samples when %s was requested (frame size = %s)", outNumSamples, targetNumSamples, m_dstNumSamples));
+				throw error(format("Unexpected case: output %s samples when %s was requested (frame size = %s)", outNumSamples, targetNumSamples, m_dstLen));
 
-			m_outNumSamples += outNumSamples;
+			m_outLen += outNumSamples;
 
 			if (outNumSamples == targetNumSamples) {
-				auto const outPlaneSize = m_dstNumSamples * dstPcmFormat.getBytesPerSample() / dstPcmFormat.numPlanes;
+				auto const outPlaneSize = m_dstLen * dstPcmFormat.getBytesPerSample() / dstPcmFormat.numPlanes;
 				for (int i = 0; i < dstPcmFormat.numPlanes; ++i) {
 					m_out->setPlane(i, m_out->getPlane(i), outPlaneSize);
 
 					/*pad with zeroes on last uncopied framing bytes*/
-					auto const outSizeInBytes = m_outNumSamples * dstPcmFormat.getBytesPerSample() / dstPcmFormat.numPlanes;
+					auto const outSizeInBytes = m_outLen * dstPcmFormat.getBytesPerSample() / dstPcmFormat.numPlanes;
 					memset(m_out->getPlane(i) + outSizeInBytes, 0, outPlaneSize - outSizeInBytes);
 				}
 
 				auto const mediaTime = timescaleToClock(accumulatedTimeInDstSR, dstPcmFormat.sampleRate);
 				m_out->setMediaTime(mediaTime);
-				accumulatedTimeInDstSR += m_dstNumSamples;
+				accumulatedTimeInDstSR += m_dstLen;
 
 				output->post(m_out);
 				m_out = nullptr;
-				m_outNumSamples = 0;
+				m_outLen = 0;
 
-				if (m_resampler->getDelay(dstPcmFormat.sampleRate) >= m_dstNumSamples) { //accumulated more than one output buffer: flush.
+				if (m_resampler->getDelay(dstPcmFormat.sampleRate) >= m_dstLen) { //accumulated more than one output buffer: flush.
 					return true;
 				}
 			}
@@ -214,8 +214,8 @@ struct AudioConvert : ModuleS {
 		KHost* const m_host;
 		PcmFormat srcPcmFormat;
 		PcmFormat const dstPcmFormat;
-		int64_t m_dstNumSamples = 0;
-		int64_t m_outNumSamples = 0; // number of output samples already in 'm_out'
+		int64_t m_dstLen = 0;
+		int64_t m_outLen = 0; // number of output samples already in 'm_out'
 		std::shared_ptr<DataPcm> m_out;
 		std::unique_ptr<Resampler> m_resampler;
 		int64_t accumulatedTimeInDstSR = 0;
