@@ -161,11 +161,11 @@ unittest("audio converter: 44100 to 48000") {
 		42, 82,
 		42, 82,
 		44, 84,
-		 0,  0,
-		 0,  0,
-		 0,  0,
-		 0,  0,
-		 0,  0,
+		0,  0,
+		0,  0,
+		0,  0,
+		0,  0,
+		0,  0,
 	};
 	auto const expectedNumEntries = sizeof(expected) / sizeof(short);
 	ASSERT_EQUALS(vector<short>(expected, expected + expectedNumEntries), output);
