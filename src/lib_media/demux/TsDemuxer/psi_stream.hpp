@@ -44,7 +44,10 @@ struct PsiStream : Stream {
 
 			auto const table_id = r.u(8);
 			/*auto const section_syntax_indicator =*/ r.u(1);
-			/*auto const private_bit =*/ r.u(1);
+			auto const zero_bit = r.u(1);
+			if (zero_bit != 0)
+				throw runtime_error("Zero-bit in PSI header is not zero");
+
 			/*auto const reserved1 =*/ r.u(2);
 			auto const section_length = r.u(12);
 
