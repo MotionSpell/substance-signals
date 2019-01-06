@@ -22,6 +22,8 @@ File::File(KHost* host, std::string const& fn)
 	if (size > IOSIZE)
 		m_host->log(Info, format("File %s size is %s, will be sent by %s bytes chunks. Check the downstream modules are able to aggregate data frames.", fn, size, IOSIZE).c_str());
 
+	m_host->activate(true);
+
 	output = addOutput<OutputDefault>();
 }
 
