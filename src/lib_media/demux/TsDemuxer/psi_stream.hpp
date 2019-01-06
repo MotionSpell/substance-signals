@@ -64,18 +64,23 @@ struct PsiStream : Stream {
 
 			assert(PSI_HEADER_SIZE == r.byteOffset());
 
+			auto const crcSize = 4;
+
 			switch(table_id) {
 			case TABLE_ID_PAT: {
-				auto const program_number = r.u(16);
-				/*auto const reserved3 =*/ r.u(3);
-				if (program_number == 0) {
-					/*auto const network_pid = */r.u(13);
-				} else {
-					auto const program_map_pid = r.u(13);
+				while (r.byteOffset() < sectionStart + section_length - crcSize) {
+					auto const program_number = r.u(16);
+					/*auto const reserved3 =*/ r.u(3);
+					if (program_number == 0) {
+						/*auto const network_pid = */r.u(13);
+					} else {
+						auto const program_map_pid = r.u(13);
 
-					int pids[] = { program_map_pid };
-					listener->onPat(pids);
+						int pids[] = { program_map_pid };
+						listener->onPat(pids);
+					}
 				}
+
 				break;
 			}
 			case TABLE_ID_PMT: {
@@ -88,7 +93,6 @@ struct PsiStream : Stream {
 
 				vector<EsInfo> info;
 
-				auto const crcSize = 4;
 				while(r.byteOffset() < sectionStart + section_length - crcSize) {
 					// Elementary stream info
 					auto const stream_type = r.u(8);
@@ -106,6 +110,8 @@ struct PsiStream : Stream {
 			}
 			break;
 			}
+
+			/*auto const crc32 = r.u(crcSize * 8);*/
 		}
 
 		void flush() override {
