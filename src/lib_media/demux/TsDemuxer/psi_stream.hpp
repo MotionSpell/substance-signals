@@ -63,12 +63,16 @@ struct PsiStream : Stream {
 
 			switch(table_id) {
 			case TABLE_ID_PAT: {
-				/*auto const program_number =*/ r.u(16);
+				auto const program_number = r.u(16);
 				/*auto const reserved3 =*/ r.u(3);
-				auto const program_map_pid = r.u(13);
+				if (program_number == 0) {
+					/*auto const network_pid = */r.u(13);
+				} else {
+					auto const program_map_pid = r.u(13);
 
-				int pids[] = { program_map_pid };
-				listener->onPat(pids);
+					int pids[] = { program_map_pid };
+					listener->onPat(pids);
+				}
 				break;
 			}
 			case TABLE_ID_PMT: {
