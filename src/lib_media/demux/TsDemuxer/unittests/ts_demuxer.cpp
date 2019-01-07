@@ -321,7 +321,7 @@ unittest("TsDemuxer: get codec from PMT") {
 		w.u(1, 0x1); // section syntax indicator
 		w.u(1, 0x0); // private bit
 		w.u(2, 0x3); // reserved bits
-		w.u(12, 0xd); // section length
+		w.u(12, 0x11); // section length
 
 		w.u(16, 0x01); // transport_stream_id (Table ID extension)
 		w.u(2, 0x3); // reserved
@@ -331,6 +331,9 @@ unittest("TsDemuxer: get codec from PMT") {
 		w.u(8, 0x00); // last_section_number
 
 		// actual PAT data
+		w.u(16, 0x0000); // program_number (NIT)
+		w.u(3, 0x7); // reserved bits
+		w.u(13, 80); // network PID
 		w.u(16, 0x0001); // program_number
 		w.u(3, 0x7); // reserved bits
 		w.u(13, 50); // program map PID
