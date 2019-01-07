@@ -25,7 +25,7 @@ struct PsiStream : Stream {
 			virtual void onPmt(span<EsInfo> esInfo) = 0;
 		};
 
-		PsiStream(int pid_, KHost* host, Listener* listener_) : Stream(pid_, host), listener(listener_) {
+		PsiStream(int pid_, KHost* host, Listener* listener_) : Stream(pid_, host), m_host(host), listener(listener_) {
 		}
 
 		void push(SpanC data, bool pusi) override {
@@ -46,7 +46,7 @@ struct PsiStream : Stream {
 			/*auto const section_syntax_indicator =*/ r.u(1);
 			auto const zero_bit = r.u(1);
 			if (zero_bit != 0)
-				throw runtime_error("Zero-bit in PSI header is not zero");
+				m_host->log(Warning, "Zero-bit in PSI header is not zero");
 
 			/*auto const reserved1 =*/ r.u(2);
 			auto const section_length = r.u(12);
@@ -118,6 +118,7 @@ struct PsiStream : Stream {
 		}
 
 	private:
+		KHost* const m_host;
 		Listener* const listener;
 };
 
