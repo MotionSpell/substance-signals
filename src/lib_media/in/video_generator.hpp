@@ -8,7 +8,7 @@ namespace In {
 
 class VideoGenerator : public Module {
 	public:
-		VideoGenerator(KHost* host, int maxFrames = 0);
+		VideoGenerator(KHost* host, int maxFrames = 0, int frameRate = 25);
 		void process() override;
 
 	private:
@@ -16,6 +16,7 @@ class VideoGenerator : public Module {
 		uint64_t m_numFrames = 0;
 		const int maxFrames;
 		OutputPicture *output;
+		const int m_frameRate;
 };
 
 }

@@ -5,8 +5,6 @@
 
 namespace {
 
-auto const FRAMERATE = 25;
-
 const char* const font[] = {
 	".XXX."
 	"X...X"
@@ -105,8 +103,8 @@ void renderNumber(uint8_t* dst, size_t stride, int value) {
 namespace Modules {
 namespace In {
 
-VideoGenerator::VideoGenerator(KHost* host, int maxFrames_)
-	:  m_host(host), maxFrames(maxFrames_) {
+VideoGenerator::VideoGenerator(KHost* host, int maxFrames_, int frameRate)
+	:  m_host(host), maxFrames(maxFrames_), m_frameRate(frameRate) {
 	output = addOutput<OutputPicture>();
 	output->setMetadata(make_shared<MetadataRawVideo>());
 	m_host->activate(true);
@@ -124,16 +122,15 @@ void VideoGenerator::process() {
 
 	// generate video
 	auto const p = pic->data().ptr;
-	auto const FLASH_PERIOD = FRAMERATE;
-	auto const flash = (m_numFrames % FLASH_PERIOD) == 0;
+	auto const flash = (m_numFrames % m_frameRate) == 0;
 	auto const val = flash ? 0xCC : 0x80;
 	memset(p, val, pic->getSize());
 
 	if(dim.width > 32 && dim.height > 32)
 		renderNumber(pic->getPlane(0), pic->getStride(0), m_numFrames);
 
-	auto const framePeriodIn180k = IClock::Rate / FRAMERATE;
-	static_assert(IClock::Rate % FRAMERATE == 0, "Framerate must be a divisor of IClock::Rate");
+	auto const framePeriodIn180k = IClock::Rate / m_frameRate;
+	assert(IClock::Rate % m_frameRate == 0);
 	pic->setMediaTime(m_numFrames * framePeriodIn180k);
 
 	output->post(pic);
