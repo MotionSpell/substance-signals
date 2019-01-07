@@ -94,9 +94,16 @@ class LibavMux : public ModuleDynI {
 			}
 
 			if ((int)m_formatCtx->nb_streams < getNumInputs() - 1) {
-				m_host->log(Warning, "Some inputs didn't declare their streams yet, dropping input data");
+				if(!m_dropping)
+					m_host->log(Warning, "Some inputs didn't declare their streams yet, dropping input data");
+				m_dropping = true;
 				return;
 			}
+
+			if(m_dropping)
+				m_host->log(Warning, "All streams declared: starting to mux");
+
+			m_dropping = false;
 
 			// if stream is declared statically, there's no data to process.
 			if (isDeclaration(data))
@@ -142,6 +149,7 @@ class LibavMux : public ModuleDynI {
 		bool m_headerWritten = false;
 		bool m_flushed = false;
 		bool m_inbandMetadata = false;
+		bool m_dropping = false; // used for log message limitation
 
 		Data popAny(int& inputIdx) {
 			Data data;
