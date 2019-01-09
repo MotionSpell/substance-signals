@@ -280,6 +280,50 @@ unittest("audio converter: bigger framing size.") {
 	framingTest(1024, 4096);
 }
 
+unittest("[DISABLED] audio converter: timestamp gap") {
+	const auto inSamplesPerFrame = 2000;
+	const auto outSamplesPerFrame = 1024;
+	auto format = PcmFormat(44100, 1, Mono, S16, Planar);
+
+	auto createSample = [&](int64_t mediaTime) {
+		const auto inFrameSize = inSamplesPerFrame * format.getBytesPerSample();
+
+		auto data = make_shared<DataPcm>(0);
+		data->setMediaTime(mediaTime);
+		data->setFormat(format);
+		data->setPlane(0, nullptr, inFrameSize);
+		return data;
+	};
+
+	int64_t lastMediaTime = 0;
+
+	auto onFrame = [&](Data dataRec) {
+		lastMediaTime = dataRec->getMediaTime();
+	};
+
+	auto cfg = AudioConvertConfig { format, format, (int64_t)outSamplesPerFrame};
+	auto converter = loadModule("AudioConvert", &NullHost, &cfg);
+	ConnectOutput(converter.get(), onFrame);
+
+	int64_t const timeAfterGap = 1000 * 1000;
+
+	{
+		auto data = createSample(0);
+		converter->getInput(0)->push(data);
+		converter->process();
+	}
+
+	{
+		auto data = createSample(timeAfterGap);
+		converter->getInput(0)->push(data);
+		converter->process();
+	}
+
+	ASSERT_EQUALS(timeAfterGap, std::min(lastMediaTime, timeAfterGap));
+
+	converter->flush();
+}
+
 unittest("audio gap filler") {
 	PcmFormat format;
 	auto data = make_shared<DataPcm>(0);
