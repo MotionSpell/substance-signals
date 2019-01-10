@@ -108,7 +108,7 @@ struct AudioConvert : ModuleS {
 			{
 				auto const expectedInputTime = inputMediaTime + timescaleToClock(inputSampleCount, m_dstFormat.sampleRate);
 				auto const actualInputTime = data->getMediaTime();
-				if(actualInputTime && expectedInputTime != actualInputTime)
+				if(actualInputTime && std::abs(actualInputTime - expectedInputTime) > 3)
 					resyncNeeded = true;
 			}
 
