@@ -343,9 +343,9 @@ unittest("audio converter: timestamp gap") {
 		converter->process();
 	}
 
-	ASSERT_EQUALS(timeAfterGap, std::min(lastMediaTime, timeAfterGap));
-
 	converter->flush();
+
+	ASSERT_EQUALS(timeAfterGap, std::min(lastMediaTime, timeAfterGap));
 }
 
 unittest("audio gap filler") {
