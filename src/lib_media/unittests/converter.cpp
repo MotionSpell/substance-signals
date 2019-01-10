@@ -280,6 +280,30 @@ unittest("audio converter: bigger framing size.") {
 	framingTest(1024, 4096);
 }
 
+unittest("[DISABLED] audio converter: timestamp passthrough") {
+	auto format = PcmFormat(44100, 1, Mono, S16, Planar);
+
+	int64_t lastMediaTime = 0;
+
+	auto onFrame = [&](Data dataRec) {
+		lastMediaTime = dataRec->getMediaTime();
+	};
+
+	auto cfg = AudioConvertConfig { format, format, (int64_t)1024};
+	auto converter = loadModule("AudioConvert", &NullHost, &cfg);
+	ConnectOutput(converter.get(), onFrame);
+
+	auto data = make_shared<DataPcm>(0);
+	data->setMediaTime(777777);
+	data->setFormat(format);
+	data->setPlane(0, nullptr, 1024);
+	converter->getInput(0)->push(data);
+	converter->process();
+	converter->flush();
+
+	ASSERT_EQUALS(777777, lastMediaTime);
+}
+
 unittest("[DISABLED] audio converter: timestamp gap") {
 	const auto inSamplesPerFrame = 2000;
 	const auto outSamplesPerFrame = 1024;
