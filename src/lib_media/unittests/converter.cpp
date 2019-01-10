@@ -301,8 +301,7 @@ unittest("audio converter: timestamp passthrough") {
 	converter->process();
 	converter->flush();
 
-	// FIXME: remove '-3', which works around a bug
-	ASSERT_EQUALS(777777, lastMediaTime - 3);
+	ASSERT_EQUALS(777777, lastMediaTime);
 }
 
 unittest("[DISABLED] audio converter: timestamp gap") {

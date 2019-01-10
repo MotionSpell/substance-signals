@@ -103,7 +103,8 @@ struct AudioConvert : ModuleS {
 
 			if(resyncNeeded) {
 				reconfigure(audioData->getFormat());
-				accumulatedTimeInDstSR = clockToTimescale(data->getMediaTime(), m_srcFormat.sampleRate);
+				inputMediaTime = data->getMediaTime();
+				accumulatedTimeInDstSR = 0;
 				resyncNeeded = false;
 			}
 
@@ -172,7 +173,7 @@ struct AudioConvert : ModuleS {
 					memset(m_out->getPlane(i) + outSizeInBytes, 0, outPlaneSize - outSizeInBytes);
 				}
 
-				auto const mediaTime = timescaleToClock(accumulatedTimeInDstSR, m_dstFormat.sampleRate);
+				auto const mediaTime = inputMediaTime + timescaleToClock(accumulatedTimeInDstSR, m_dstFormat.sampleRate);
 				m_out->setMediaTime(mediaTime);
 				accumulatedTimeInDstSR += m_dstLen;
 
@@ -227,6 +228,7 @@ struct AudioConvert : ModuleS {
 		int64_t m_outLen = 0; // number of output samples already in 'm_out'
 		std::shared_ptr<DataPcm> m_out;
 		std::unique_ptr<Resampler> m_resampler;
+		int64_t inputMediaTime = 0;
 		int64_t accumulatedTimeInDstSR = -1; // '-1' means 'not in sync'
 		OutputPcm *output;
 		const bool autoConfigure;
