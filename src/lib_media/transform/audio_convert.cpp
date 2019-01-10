@@ -89,12 +89,22 @@ struct AudioConvert : ModuleS {
 		void process(Data data) override {
 			auto audioData = safe_cast<const DataPcm>(data);
 
+			bool resyncNeeded = false;
+
+			if (accumulatedTimeInDstSR == -1)
+				resyncNeeded = true;
+
 			if (audioData->getFormat() != m_srcFormat) {
 				if (!autoConfigure)
 					throw error("Incompatible input audio data.");
 
+				resyncNeeded = true;
+			}
+
+			if(resyncNeeded) {
 				reconfigure(audioData->getFormat());
 				accumulatedTimeInDstSR = clockToTimescale(data->getMediaTime(), m_srcFormat.sampleRate);
+				resyncNeeded = false;
 			}
 
 			auto const srcNumSamples = audioData->size() / audioData->getFormat().getBytesPerSample();
@@ -217,7 +227,7 @@ struct AudioConvert : ModuleS {
 		int64_t m_outLen = 0; // number of output samples already in 'm_out'
 		std::shared_ptr<DataPcm> m_out;
 		std::unique_ptr<Resampler> m_resampler;
-		int64_t accumulatedTimeInDstSR = 0;
+		int64_t accumulatedTimeInDstSR = -1; // '-1' means 'not in sync'
 		OutputPcm *output;
 		const bool autoConfigure;
 };
