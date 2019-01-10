@@ -106,7 +106,7 @@ struct AudioConvert : ModuleS {
 
 			// detect gaps in input
 			{
-				auto const expectedInputTime = inputMediaTime + timescaleToClock(inputSampleCount, m_dstFormat.sampleRate);
+				auto const expectedInputTime = inputMediaTime + timescaleToClock(inputSampleCount, audioData->getFormat().sampleRate);
 				auto const actualInputTime = data->getMediaTime();
 				if(actualInputTime && std::abs(actualInputTime - expectedInputTime) > 3)
 					resyncNeeded = true;
