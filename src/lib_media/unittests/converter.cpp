@@ -304,7 +304,7 @@ unittest("audio converter: timestamp passthrough") {
 	ASSERT_EQUALS(777777, lastMediaTime);
 }
 
-unittest("[DISABLED] audio converter: timestamp gap") {
+unittest("audio converter: timestamp gap") {
 	const auto inSamplesPerFrame = 2000;
 	const auto outSamplesPerFrame = 1024;
 	auto format = PcmFormat(44100, 1, Mono, S16, Planar);
