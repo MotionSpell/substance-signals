@@ -281,8 +281,6 @@ struct LibavEncode : ModuleS {
 
 				// for encoding level checks (MB rate) and rate control
 				codecCtx->ticks_per_frame = int(framePeriod * IClock::Rate);
-
-				output->setMetadata(createMetadataPktLibavVideo(codecCtx.get()));
 				break;
 			}
 			case EncoderConfig::Audio: {
@@ -291,8 +289,6 @@ struct LibavEncode : ModuleS {
 				*pcmFormat = fmt;
 				libavAudioCtxConvert(pcmFormat.get(), codecCtx.get());
 				codecOptions += format(" -ar %s -ac %s", fmt.sampleRate, fmt.numChannels);
-
-				output->setMetadata(createMetadataPktLibavAudio(codecCtx.get()));
 				break;
 			}
 			default:
@@ -306,6 +302,11 @@ struct LibavEncode : ModuleS {
 			if (avcodec_open2(codecCtx.get(), m_codec, &codecDict) < 0)
 				throw error(format("Could not open codec %s, disable output.", codecName));
 			codecDict.ensureAllOptionsConsumed();
+
+			if(codecCtx->codec_type == AVMEDIA_TYPE_VIDEO)
+				output->setMetadata(createMetadataPktLibavVideo(codecCtx.get()));
+			else if(codecCtx->codec_type == AVMEDIA_TYPE_AUDIO)
+				output->setMetadata(createMetadataPktLibavAudio(codecCtx.get()));
 		}
 
 };
