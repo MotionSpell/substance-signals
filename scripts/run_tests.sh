@@ -20,6 +20,7 @@ function main
 {
   run_test unittests
   run_test dashcast_crashtest
+  run_test dashcast_no_transcode
   run_test player_crashtest
 
   # blind-run the apps so they appear in coverage reports
@@ -48,6 +49,23 @@ function dashcast_crashtest
     return 1
   fi
   if ! test -s $tmpDir/dashcastx/dash/dashcastx.mpd ; then
+    echo "Manifest is empty" >&2
+    return 1
+  fi
+}
+
+function dashcast_no_transcode
+{
+  # dashcastx simple crash test
+  $BIN/dashcastx.exe \
+    -w $tmpDir/dashcastx2 \
+    $PWD/data/beepbop.mp4 1>/dev/null
+
+  if ! test -f $tmpDir/dashcastx2/dash/dashcastx.mpd ; then
+    echo "Manifest was not created" >&2
+    return 1
+  fi
+  if ! test -s $tmpDir/dashcastx2/dash/dashcastx.mpd ; then
     echo "Manifest is empty" >&2
     return 1
   fi

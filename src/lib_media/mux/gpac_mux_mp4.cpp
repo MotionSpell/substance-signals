@@ -617,14 +617,15 @@ void GPACMuxMP4::setupFragments() {
 	}
 }
 
+static auto deleteEsd = [](GF_ESD* p) {
+	gf_odf_desc_del((GF_Descriptor*)p);
+};
+
 void GPACMuxMP4::declareStreamAudio(const MetadataPktAudio* metadata) {
 	GF_Err e;
 	u32 di=0;
 	GF_M4ADecSpecInfo acfg {};
 
-	auto deleteEsd = [](GF_ESD* p) {
-		gf_odf_desc_del((GF_Descriptor*)p);
-	};
 	auto esd = std::shared_ptr<GF_ESD>(gf_odf_desc_esd_new(2), deleteEsd);
 	if (!esd)
 		throw error("Cannot create GF_ESD for audio");
@@ -794,7 +795,7 @@ void GPACMuxMP4::declareStreamVideo(const MetadataPktVideo* metadata) {
 				throw error(format("Cannot create HEVC config: %s", gf_error_to_string(e)));
 		}
 	} else {
-		m_host->log(Warning, "Unknown codec: using generic packaging.");
+		m_host->log(Warning, format("Unknown codec '%s': using generic packaging.", metadata->codec).c_str());
 		e = GF_NON_COMPLIANT_BITSTREAM;
 	}
 
@@ -803,7 +804,8 @@ void GPACMuxMP4::declareStreamVideo(const MetadataPktVideo* metadata) {
 			m_host->log(Debug, "Non Annex B: assume this is MP4 already");
 			isAnnexB = false;
 
-			GF_ESD esd {};
+			auto esdPtr = std::shared_ptr<GF_ESD>(gf_odf_desc_esd_new(0), deleteEsd);
+			auto& esd = *esdPtr;
 			esd.ESID = 1; /*FIXME: only one track: set trackID?*/
 			esd.decoderConfig->streamType = GF_STREAM_VISUAL;
 			esd.decoderConfig->objectTypeIndication = metadata->codec == "h264" ? GPAC_OTI_VIDEO_AVC : GPAC_OTI_VIDEO_HEVC;
