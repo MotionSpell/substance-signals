@@ -30,11 +30,7 @@ void ConnectOutputToInput(IOutput *prev, IInput *next) {
 	CheckMetadataCompatibility(prev, next);
 
 	next->connect();
-
-	prev->getSignal().connect([=](Data data) {
-		next->push(data);
-		next->process();
-	});
+	prev->connect(next);
 }
 
 void ConnectModules(IModule *prev, int outputIdx, IModule *next, int inputIdx) {

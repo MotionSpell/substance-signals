@@ -55,6 +55,13 @@ class OutputDataDefault : public IOutput {
 			return signal;
 		}
 
+		void connect(IInput* next) {
+			signal.connect([=](Data data) {
+				next->push(data);
+				next->process();
+			});
+		}
+
 		void disconnect() override {
 			signal.disconnectAll();
 		}

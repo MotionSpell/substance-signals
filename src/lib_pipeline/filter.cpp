@@ -75,12 +75,7 @@ void Filter::connect(IOutput *output, int inputIdx, bool inputAcceptMultipleConn
 
 	CheckMetadataCompatibility(output, input);
 
-	auto process = [=](Data data) {
-		input->push(data);
-		input->process();
-	};
-
-	output->getSignal().connect(process);
+	output->connect(input);
 
 	connections++;
 }
