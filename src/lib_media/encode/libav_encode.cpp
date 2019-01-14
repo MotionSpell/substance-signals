@@ -288,7 +288,8 @@ struct LibavEncode : ModuleS {
 				pcmFormat = make_unique<PcmFormat>();
 				*pcmFormat = fmt;
 				libavAudioCtxConvert(pcmFormat.get(), codecCtx.get());
-				codecOptions += format(" -ar %s -ac %s", fmt.sampleRate, fmt.numChannels);
+				codecCtx->sample_rate = fmt.sampleRate;
+				codecCtx->channels = fmt.numChannels;
 				break;
 			}
 			default:
