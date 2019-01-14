@@ -265,7 +265,6 @@ struct LibavEncode : ModuleS {
 		bool m_isOpen = false;
 
 		void openEncoder(Data data) {
-			auto codecOptions = this->codecOptions;
 			if(!data)
 				throw error("Can't open encoder: no data");
 
