@@ -41,7 +41,7 @@ function dashcast_crashtest
   # dashcastx simple crash test
   $BIN/dashcastx.exe \
     -w $tmpDir/dashcastx \
-    -v 320x240 -v 160x120 \
+    -v 320x-1 -v 160x120 \
     $PWD/data/beepbop.mp4 1>/dev/null
 
   if ! test -f $tmpDir/dashcastx/dash/dashcastx.mpd ; then
