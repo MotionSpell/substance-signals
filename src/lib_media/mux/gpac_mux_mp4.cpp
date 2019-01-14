@@ -613,7 +613,6 @@ static auto deleteEsd = [](GF_ESD* p) {
 };
 
 void GPACMuxMP4::declareStreamAudio(const MetadataPktAudio* metadata) {
-	GF_Err e;
 	u32 di=0;
 	GF_M4ADecSpecInfo acfg {};
 
@@ -644,9 +643,7 @@ void GPACMuxMP4::declareStreamAudio(const MetadataPktAudio* metadata) {
 		acfg.sbr_object_type = 0;
 		acfg.audioPL = gf_m4a_get_profile(&acfg);
 
-		e = gf_m4a_write_config(&acfg, &esd->decoderConfig->decoderSpecificInfo->data, &esd->decoderConfig->decoderSpecificInfo->dataLength);
-		assert(e == GF_OK);
-
+		SAFE(gf_m4a_write_config(&acfg, &esd->decoderConfig->decoderSpecificInfo->data, &esd->decoderConfig->decoderSpecificInfo->dataLength));
 		SAFE(gf_isom_new_mpeg4_description(isoCur, trackNum, esd.get(), nullptr, nullptr, &di));
 
 	} else if (metadata->codec == "mp2")	{
@@ -661,9 +658,7 @@ void GPACMuxMP4::declareStreamAudio(const MetadataPktAudio* metadata) {
 		acfg.sbr_object_type = 0;
 		acfg.audioPL = gf_m4a_get_profile(&acfg);
 
-		e = gf_m4a_write_config(&acfg, &esd->decoderConfig->decoderSpecificInfo->data, &esd->decoderConfig->decoderSpecificInfo->dataLength);
-		assert(e == GF_OK);
-
+		SAFE(gf_m4a_write_config(&acfg, &esd->decoderConfig->decoderSpecificInfo->data, &esd->decoderConfig->decoderSpecificInfo->dataLength));
 		SAFE(gf_isom_new_mpeg4_description(isoCur, trackNum, esd.get(), nullptr, nullptr, &di));
 
 	} else if (metadata->codec == "ac3" || metadata->codec == "eac3") {
@@ -692,8 +687,7 @@ void GPACMuxMP4::declareStreamAudio(const MetadataPktAudio* metadata) {
 		cfg.streams[0].fscod = hdr.fscod;
 		cfg.streams[0].lfon = hdr.lfon;
 
-		e = gf_isom_ac3_config_new(isoCur, trackNum, &cfg, nullptr, nullptr, &di);
-		assert(e == GF_OK);
+		SAFE(gf_isom_ac3_config_new(isoCur, trackNum, &cfg, nullptr, nullptr, &di));
 	} else
 		throw error(format("Unsupported audio codec \"%s\"", metadata->codec));
 
