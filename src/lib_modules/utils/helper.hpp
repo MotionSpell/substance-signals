@@ -88,7 +88,6 @@ class OutputCap : public virtual IOutputCap {
 
 class Module : public IModule {
 	public:
-		KInput* addInput(IProcessor* p);
 		int getNumInputs() const override {
 			return (int)inputs.size();
 		}
@@ -96,12 +95,6 @@ class Module : public IModule {
 			return inputs[i].get();
 		}
 
-		template <typename InstanceType>
-		InstanceType* addOutput() {
-			auto p = new InstanceType(allocatorSize);
-			outputs.push_back(uptr(p));
-			return p;
-		}
 		int getNumOutputs() const override {
 			return (int)outputs.size();
 		}
@@ -110,6 +103,15 @@ class Module : public IModule {
 		}
 
 	protected:
+		KInput* addInput(IProcessor* p);
+
+		template <typename InstanceType>
+		InstanceType* addOutput() {
+			auto p = new InstanceType(allocatorSize);
+			outputs.push_back(uptr(p));
+			return p;
+		}
+
 		std::vector<std::unique_ptr<IInput>> inputs;
 		std::vector<std::unique_ptr<IOutput>> outputs;
 };
