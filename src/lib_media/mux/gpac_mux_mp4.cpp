@@ -837,9 +837,7 @@ void GPACMuxMP4::handleInitialTimeOffset() {
 void GPACMuxMP4::sendSegmentToOutput(bool EOS) {
 	if (segmentPolicy == IndependentSegment) {
 		nextFragmentNum = gf_isom_get_next_moof_number(isoCur);
-		GF_Err e = gf_isom_write(isoCur);
-		if (e)
-			throw error(format("gf_isom_write: %s", gf_error_to_string(e)));
+		SAFE(gf_isom_write(isoCur));
 	}
 
 	auto out = output->getBuffer(0);
@@ -940,22 +938,14 @@ void GPACMuxMP4::addData(gpacpp::IsoSample const * const sample, int64_t lastDat
 			startFragment(sample->DTS, sample->DTS + sample->CTS_Offset);
 		}
 
-		GF_Err e = gf_isom_fragment_add_sample(isoCur, trackId, sample, 1, (u32)lastDataDurationInTs, 0, 0, GF_FALSE);
-		if (e != GF_OK) {
-			m_host->log(Error, format("gf_isom_fragment_add_sample: %s", gf_error_to_string(e)).c_str());
-			return;
-		}
+		SAFE(gf_isom_fragment_add_sample(isoCur, trackId, sample, 1, (u32)lastDataDurationInTs, 0, 0, GF_FALSE));
 		curFragmentDurInTs += lastDataDurationInTs;
 
 		if (fragmentPolicy == OneFragmentPerFrame) {
 			closeFragment();
 		}
 	} else {
-		GF_Err e = gf_isom_add_sample(isoCur, trackId, 1, sample);
-		if (e != GF_OK) {
-			m_host->log(Error, format("gf_isom_add_sample: %s", gf_error_to_string(e)).c_str());
-			return;
-		}
+		SAFE(gf_isom_add_sample(isoCur, trackId, 1, sample));
 	}
 
 	m_DTS += lastDataDurationInTs;
