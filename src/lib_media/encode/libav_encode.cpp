@@ -155,7 +155,7 @@ struct LibavEncode : ModuleS {
 		AVFrame* prepareAudioFrame(Data data) {
 			AVFrame *f = avFrame->get();
 			const auto pcmData = safe_cast<const DataPcm>(data);
-			if (pcmData->getFormat() != pcmFormat)
+			if (pcmData->getFormat() != m_pcmFormat)
 				throw error("Incompatible audio data (1)");
 			libavFrameDataConvert(pcmData.get(), f);
 			return f;
@@ -252,7 +252,7 @@ struct LibavEncode : ModuleS {
 		KHost* const m_host;
 		EncoderConfig const params;
 		std::shared_ptr<AVCodecContext> codecCtx;
-		PcmFormat pcmFormat;
+		PcmFormat m_pcmFormat;
 		std::unique_ptr<ffpp::Frame> const avFrame;
 		OutputDataDefault<DataAVPacket>* output {};
 		int64_t firstMediaTime = 0;
@@ -284,10 +284,11 @@ struct LibavEncode : ModuleS {
 			}
 			case EncoderConfig::Audio: {
 				const auto fmt = safe_cast<const DataPcm>(data)->getFormat();
-				pcmFormat = fmt;
-				libavAudioCtxConvert(&pcmFormat, codecCtx.get());
+				libavAudioCtxConvert(&fmt, codecCtx.get());
 				codecCtx->sample_rate = fmt.sampleRate;
 				codecCtx->channels = fmt.numChannels;
+
+				m_pcmFormat = fmt;
 				break;
 			}
 			default:
