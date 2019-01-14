@@ -20,6 +20,12 @@ auto const TIMESCALE_MUL = 100; // offers a tolerance on VFR or faulty streams
 
 namespace Modules {
 
+#define SAFE(call) \
+  do { \
+	auto error = call; \
+	if (error) \
+		throw std::runtime_error(format("[%s:%d] %s: %s", __FILE__, __LINE__, #call, gf_error_to_string(error))); \
+  } while(0)
 
 namespace {
 
@@ -36,9 +42,8 @@ uint64_t fileSize(const std::string &fn) {
 
 Span getBsContent(GF_ISOFile *iso, bool newBs) {
 	GF_BitStream *bs = NULL;
-	GF_Err e = gf_isom_get_bs(iso, &bs);
-	if (e)
-		throw std::runtime_error(format("gf_isom_get_bs: %s", gf_error_to_string(e)));
+	SAFE(gf_isom_get_bs(iso, &bs));
+
 	char* output;
 	u32 size;
 	gf_bs_get_content(bs, &output, &size);
@@ -490,9 +495,7 @@ void GPACMuxMP4::startSegment() {
 		break;
 	case FragmentedSegment:
 		updateSegmentName();
-		GF_Err e = gf_isom_start_segment(isoCur, segmentName.empty() ? nullptr : segmentName.c_str(), GF_TRUE);
-		if (e != GF_OK)
-			throw error(format("Impossible to start segment %s (%s): %s", segmentNum, segmentName, gf_error_to_string(e)));
+		SAFE(gf_isom_start_segment(isoCur, segmentName.empty() ? nullptr : segmentName.c_str(), GF_TRUE));
 		break;
 	}
 }
@@ -533,20 +536,14 @@ void GPACMuxMP4::startFragment(uint64_t DTS, uint64_t PTS) {
 
 		if (segmentPolicy >= IndependentSegment) {
 			if (compatFlags & SmoothStreaming) {
-				e = gf_isom_set_fragment_option(isoCur, trackId, GF_ISOM_TFHD_FORCE_MOOF_BASE_OFFSET, 1);
-				if (e != GF_OK)
-					throw error(format("Cannot force the use of moof base offsets: %s", gf_error_to_string(e)));
+				SAFE(gf_isom_set_fragment_option(isoCur, trackId, GF_ISOM_TFHD_FORCE_MOOF_BASE_OFFSET, 1));
 			} else {
-				e = gf_isom_set_traf_base_media_decode_time(isoCur, trackId, DTS);
-				if (e != GF_OK)
-					throw error(format("Impossible to create TFDT %s: %s", DTS, gf_error_to_string(e)));
+				SAFE(gf_isom_set_traf_base_media_decode_time(isoCur, trackId, DTS));
 			}
 
 			if (!(compatFlags & Browsers)) {
 				auto utcPts = firstDataAbsTimeInMs + rescale(PTS, timeScale, 1000);
-				e = gf_isom_set_fragment_reference_time(isoCur, trackId, UTC2NTP(utcPts), PTS);
-				if (e != GF_OK)
-					throw error(format("Impossible to create UTC marquer: %s", gf_error_to_string(e)));
+				SAFE(gf_isom_set_fragment_reference_time(isoCur, trackId, UTC2NTP(utcPts), PTS));
 			}
 		}
 	}
@@ -574,9 +571,7 @@ void GPACMuxMP4::closeFragment() {
 			        getDay(), getTimeFromUTC(), curFragmentDurInTs, timeScale, absTimeInTs, deltaRealTimeInMs).c_str());
 		}
 
-		GF_Err e = gf_isom_set_traf_mss_timeext(isoCur, trackId, absTimeInTs, curFragmentDurInTs);
-		if (e != GF_OK)
-			throw error(format("Impossible to create UTC marker: %s", gf_error_to_string(e)));
+		SAFE(gf_isom_set_traf_mss_timeext(isoCur, trackId, absTimeInTs, curFragmentDurInTs));
 	}
 
 	if ((segmentPolicy == FragmentedSegment) || (segmentPolicy == SingleSegment)) {
@@ -594,9 +589,7 @@ void GPACMuxMP4::closeFragment() {
 
 void GPACMuxMP4::setupFragments() {
 	if (fragmentPolicy > NoFragment) {
-		GF_Err e = gf_isom_setup_track_fragment(isoCur, trackId, 1, compatFlags & SmoothStreaming ? 0 : (u32)defaultSampleIncInTs, 0, 0, 0, 0);
-		if (e != GF_OK)
-			throw error(format("Cannot setup track as fragmented: %s", gf_error_to_string(e)));
+		SAFE(gf_isom_setup_track_fragment(isoCur, trackId, 1, compatFlags & SmoothStreaming ? 0 : (u32)defaultSampleIncInTs, 0, 0, 0, 0));
 
 		int mode;
 
@@ -607,9 +600,7 @@ void GPACMuxMP4::setupFragments() {
 		else
 			mode = 1;
 
-		e = gf_isom_finalize_for_fragment(isoCur, mode); //writes moov
-		if (e != GF_OK)
-			throw error(format("Cannot prepare track for movie fragmentation: %s", gf_error_to_string(e)));
+		SAFE(gf_isom_finalize_for_fragment(isoCur, mode)); //writes moov
 
 		if (segmentPolicy == FragmentedSegment) {
 			sendSegmentToOutput(true); //init
@@ -656,9 +647,7 @@ void GPACMuxMP4::declareStreamAudio(const MetadataPktAudio* metadata) {
 		e = gf_m4a_write_config(&acfg, &esd->decoderConfig->decoderSpecificInfo->data, &esd->decoderConfig->decoderSpecificInfo->dataLength);
 		assert(e == GF_OK);
 
-		e = gf_isom_new_mpeg4_description(isoCur, trackNum, esd.get(), nullptr, nullptr, &di);
-		if (e != GF_OK)
-			throw error(format("gf_isom_new_mpeg4_description: %s", gf_error_to_string(e)));
+		SAFE(gf_isom_new_mpeg4_description(isoCur, trackNum, esd.get(), nullptr, nullptr, &di));
 
 	} else if (metadata->codec == "mp2")	{
 		esd->decoderConfig->objectTypeIndication = GPAC_OTI_AUDIO_MPEG1;
@@ -675,9 +664,7 @@ void GPACMuxMP4::declareStreamAudio(const MetadataPktAudio* metadata) {
 		e = gf_m4a_write_config(&acfg, &esd->decoderConfig->decoderSpecificInfo->data, &esd->decoderConfig->decoderSpecificInfo->dataLength);
 		assert(e == GF_OK);
 
-		e = gf_isom_new_mpeg4_description(isoCur, trackNum, esd.get(), nullptr, nullptr, &di);
-		if (e != GF_OK)
-			throw error(format("gf_isom_new_mpeg4_description: %s", gf_error_to_string(e)));
+		SAFE(gf_isom_new_mpeg4_description(isoCur, trackNum, esd.get(), nullptr, nullptr, &di));
 
 	} else if (metadata->codec == "ac3" || metadata->codec == "eac3") {
 		bool is_EAC3 = metadata->codec == "eac3";
@@ -710,18 +697,11 @@ void GPACMuxMP4::declareStreamAudio(const MetadataPktAudio* metadata) {
 	} else
 		throw error(format("Unsupported audio codec \"%s\"", metadata->codec));
 
-	e = gf_isom_set_track_enabled(isoCur, trackNum, GF_TRUE);
-	if (e != GF_OK)
-		throw error(format("gf_isom_set_track_enabled: %s", gf_error_to_string(e)));
-
 	auto const bitsPerSample = std::min(16, (int)metadata->bitsPerSample);
-	e = gf_isom_set_audio_info(isoCur, trackNum, di, sampleRate, metadata->numChannels, bitsPerSample);
-	if (e != GF_OK)
-		throw error(format("gf_isom_set_audio_info: %s", gf_error_to_string(e)));
 
-	e = gf_isom_set_pl_indication(isoCur, GF_ISOM_PL_AUDIO, acfg.audioPL);
-	if (e != GF_OK)
-		throw error(format("Container format import failed: %s", gf_error_to_string(e)));
+	SAFE(gf_isom_set_track_enabled(isoCur, trackNum, GF_TRUE));
+	SAFE(gf_isom_set_audio_info(isoCur, trackNum, di, sampleRate, metadata->numChannels, bitsPerSample));
+	SAFE(gf_isom_set_pl_indication(isoCur, GF_ISOM_PL_AUDIO, acfg.audioPL));
 
 	if (!(compatFlags & SegmentAtAny)) {
 		m_host->log(Info, "Audio detected: assuming all segments are RAPs.");
@@ -737,14 +717,10 @@ void GPACMuxMP4::declareStreamSubtitle(const MetadataPktSubtitle* /*metadata*/) 
 		throw error("Cannot create new track");
 	trackId = gf_isom_get_track_id(isoCur, trackNum);
 
-	GF_Err e = gf_isom_set_track_enabled(isoCur, trackNum, GF_TRUE);
-	if (e != GF_OK)
-		throw error(format("gf_isom_set_track_enabled: %s", gf_error_to_string(e)));
+	SAFE(gf_isom_set_track_enabled(isoCur, trackNum, GF_TRUE));
 
 	u32 di;
-	e = gf_isom_new_xml_subtitle_description(isoCur, trackNum, "http://www.w3.org/ns/ttml", NULL, NULL, &di);
-	if (e != GF_OK)
-		throw error(format("gf_isom_new_xml_subtitle_description: %s", gf_error_to_string(e)));
+	SAFE(gf_isom_new_xml_subtitle_description(isoCur, trackNum, "http://www.w3.org/ns/ttml", NULL, NULL, &di));
 
 	codec4CC = "TTML";
 	if (!(compatFlags & SegmentAtAny)) {
@@ -778,9 +754,7 @@ void GPACMuxMP4::declareStreamVideo(const MetadataPktVideo* metadata) {
 
 		e = import_extradata_avc(extradata, avccfg.get());
 		if (e == GF_OK) {
-			e = gf_isom_avc_config_new(isoCur, trackNum, avccfg.get(), nullptr, nullptr, &di);
-			if (e != GF_OK)
-				throw error(format("Cannot create AVC config: %s", gf_error_to_string(e)));
+			SAFE(gf_isom_avc_config_new(isoCur, trackNum, avccfg.get(), nullptr, nullptr, &di));
 		}
 	} else if (metadata->codec == "h265") {
 		codec4CC = "H265";
@@ -790,9 +764,7 @@ void GPACMuxMP4::declareStreamVideo(const MetadataPktVideo* metadata) {
 
 		e = import_extradata_hevc(extradata, hevccfg.get());
 		if (e == GF_OK) {
-			e = gf_isom_hevc_config_new(isoCur, trackNum, hevccfg.get(), nullptr, nullptr, &di);
-			if (e != GF_OK)
-				throw error(format("Cannot create HEVC config: %s", gf_error_to_string(e)));
+			SAFE(gf_isom_hevc_config_new(isoCur, trackNum, hevccfg.get(), nullptr, nullptr, &di));
 		}
 	} else {
 		m_host->log(Warning, format("Unknown codec '%s': using generic packaging.", metadata->codec).c_str());
@@ -814,9 +786,7 @@ void GPACMuxMP4::declareStreamVideo(const MetadataPktVideo* metadata) {
 			memcpy(esd.decoderConfig->decoderSpecificInfo->data, extradata.ptr, extradata.len);
 			esd.slConfig->predefined = SLPredef_MP4;
 
-			e = gf_isom_new_mpeg4_description(isoCur, trackNum, &esd, nullptr, nullptr, &di);
-			if (e != GF_OK)
-				throw error(format("Cannot create MPEG-4 config: %s", gf_error_to_string(e)));
+			SAFE(gf_isom_new_mpeg4_description(isoCur, trackNum, &esd, nullptr, nullptr, &di));
 		} else
 			throw error("Container format import failed");
 	}
@@ -828,9 +798,7 @@ void GPACMuxMP4::declareStreamVideo(const MetadataPktVideo* metadata) {
 	if(AVC_INBAND_CONFIG) {
 		//inband SPS/PPS
 		if (segmentPolicy != NoSegment) {
-			e = gf_isom_avc_set_inband_config(isoCur, trackNum, di);
-			if (e != GF_OK)
-				throw error(format("Cannot set inband PPS/SPS for AVC track: %s", gf_error_to_string(e)));
+			SAFE(gf_isom_avc_set_inband_config(isoCur, trackNum, di));
 		}
 	}
 }
