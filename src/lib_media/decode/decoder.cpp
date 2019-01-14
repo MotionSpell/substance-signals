@@ -81,9 +81,6 @@ struct Decoder : ModuleS, PictureAllocator {
 			if(!codecCtx) {
 				auto meta = data->getMetadata();
 				if(!meta)
-					meta = inputs[0]->getMetadata();
-
-				if(!meta)
 					throw error("Can't instantiate decoder: no metadata for input data");
 
 				openDecoder(safe_cast<const MetadataPkt>(meta.get()));
