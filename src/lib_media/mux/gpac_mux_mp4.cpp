@@ -732,12 +732,12 @@ void GPACMuxMP4::declareStreamVideo(const MetadataPktVideo* metadata) {
 	defaultSampleIncInTs = metadata->timeScale.den * TIMESCALE_MUL;
 	resolution = metadata->resolution;
 
-	GF_Err e = gf_isom_set_track_enabled(isoCur, trackNum, GF_TRUE);
-	if (e != GF_OK)
-		throw error(format("Cannot enable track: %s", gf_error_to_string(e)));
+	SAFE(gf_isom_set_track_enabled(isoCur, trackNum, GF_TRUE));
 
 	isAnnexB = true;
 	auto extradata = metadata->getExtradata();
+
+	GF_Err e;
 
 	u32 di = 0;
 	if (metadata->codec == "h264") {
