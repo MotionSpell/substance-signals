@@ -55,6 +55,10 @@ class OutputDataDefault : public IOutput {
 			return signal;
 		}
 
+		void disconnect() override {
+			signal.disconnectAll();
+		}
+
 		void resetAllocator(size_t allocatorSize) {
 			allocator = make_shared<PacketAllocator>(allocatorSize);
 		}

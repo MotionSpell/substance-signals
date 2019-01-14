@@ -87,7 +87,7 @@ void Filter::connect(IOutput *output, int inputIdx, bool inputAcceptMultipleConn
 
 void Filter::disconnect(int inputIdx, IOutput* output) {
 	getInput(inputIdx)->disconnect();
-	output->getSignal().disconnectAll();
+	output->disconnect();
 	connections--;
 }
 

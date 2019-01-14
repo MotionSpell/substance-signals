@@ -92,6 +92,7 @@ struct IInput : IProcessor, KInput {
 struct IOutput : KOutput {
 	virtual ~IOutput() = default;
 	virtual Signals::ISignal<Data>& getSignal() = 0;
+	virtual void disconnect() = 0;
 	virtual std::shared_ptr<const IMetadata> getMetadata() const = 0;
 	virtual bool updateMetadata(Data&) {
 		return false;
