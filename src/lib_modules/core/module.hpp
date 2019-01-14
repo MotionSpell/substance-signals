@@ -16,8 +16,8 @@
 namespace Modules {
 
 class DataBase;
-typedef std::shared_ptr<const DataBase> Data;
-typedef std::shared_ptr<const IMetadata> Metadata;
+using Data = std::shared_ptr<const DataBase>;
+using Metadata = std::shared_ptr<const IMetadata>;
 
 // This is how user modules see the outside world.
 // 'K' interfaces are called by the user module implementations.
@@ -81,7 +81,7 @@ struct IInput : IProcessor, KInput {
 
 	virtual void push(Data) = 0;
 
-	virtual std::shared_ptr<const IMetadata> getMetadata() const = 0;
+	virtual Metadata getMetadata() const = 0;
 	virtual bool updateMetadata(Data&) = 0;
 };
 
@@ -89,7 +89,7 @@ struct IOutput : KOutput {
 	virtual ~IOutput() = default;
 	virtual void connect(IInput* next) = 0;
 	virtual void disconnect() = 0;
-	virtual std::shared_ptr<const IMetadata> getMetadata() const = 0;
+	virtual Metadata getMetadata() const = 0;
 	virtual bool updateMetadata(Data&) {
 		return false;
 	};
