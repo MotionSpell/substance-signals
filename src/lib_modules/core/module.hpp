@@ -65,10 +65,6 @@ struct KHost {
 // (stuff like connection lists and pin lists should be kept in the framework).
 //
 
-namespace Signals {
-template<typename T> struct ISignal;
-}
-
 namespace Modules {
 
 struct IProcessor {
@@ -91,7 +87,6 @@ struct IInput : IProcessor, KInput {
 
 struct IOutput : KOutput {
 	virtual ~IOutput() = default;
-	virtual Signals::ISignal<Data>& getSignal() = 0;
 	virtual void connect(IInput* next) = 0;
 	virtual void disconnect() = 0;
 	virtual std::shared_ptr<const IMetadata> getMetadata() const = 0;

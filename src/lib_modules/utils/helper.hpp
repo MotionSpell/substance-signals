@@ -32,11 +32,18 @@ class MetadataCap {
 
 static Signals::ExecutorSync g_executorOutputSync;
 
+struct OutputWithSignal : public IOutput {
+	OutputWithSignal() : signal(g_executorOutputSync) {
+	}
+
+	Signals::Signal<Data> signal;
+};
+
 template<typename DataType>
-class OutputDataDefault : public IOutput {
+class OutputDataDefault : public OutputWithSignal {
 	public:
 		OutputDataDefault(size_t allocatorMaxSize, Metadata metadata = nullptr)
-			: m_metadataCap(metadata), signal(g_executorOutputSync), allocator(new PacketAllocator(allocatorMaxSize)) {
+			: m_metadataCap(metadata), allocator(new PacketAllocator(allocatorMaxSize)) {
 		}
 		virtual ~OutputDataDefault() {
 			allocator->unblock();
@@ -49,10 +56,6 @@ class OutputDataDefault : public IOutput {
 
 		std::shared_ptr<DataType> getBuffer(size_t size) {
 			return allocator->alloc<DataType>(size, allocator);
-		}
-
-		Signals::ISignal<Data>& getSignal() override {
-			return signal;
 		}
 
 		void connect(IInput* next) {
@@ -80,7 +83,6 @@ class OutputDataDefault : public IOutput {
 
 	private:
 		MetadataCap m_metadataCap;
-		Signals::Signal<Data> signal;
 		std::shared_ptr<PacketAllocator> allocator;
 };
 
@@ -153,7 +155,8 @@ class ModuleS : public Module {
 
 template<typename Lambda>
 void ConnectOutput(IModule* sender, Lambda f) {
-	sender->getOutput(0)->getSignal().connect(f);
+	auto output = safe_cast<OutputWithSignal>(sender->getOutput(0));
+	output->signal.connect(f);
 }
 
 struct NullHostType : KHost {
