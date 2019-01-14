@@ -217,7 +217,9 @@ class LibavMux : public ModuleDynI {
 			auto meta = data->getMetadata().get();
 
 			auto key = data->get<CueFlags>().keyframe;
-			auto videoMetadata = dynamic_cast<const MetadataPkt*>(meta);
+
+			// only insert headers for video, not for audio (e.g would break AAC)
+			auto videoMetadata = dynamic_cast<const MetadataPktVideo*>(meta);
 			bool insertHeaders = m_inbandMetadata && videoMetadata && key;
 
 			auto const& headers = insertHeaders ? videoMetadata->codecSpecificInfo : std::vector<uint8_t>();
