@@ -212,7 +212,6 @@ class LibavMux : public ModuleDynI {
 		}
 
 		void fillAvPacket(Data data, AVPacket* newPkt) {
-			av_init_packet(newPkt);
 
 			// only insert headers for video, not for audio (e.g would break AAC)
 			auto const videoMetadata = dynamic_cast<const MetadataPktVideo*>(data->getMetadata().get());
@@ -221,6 +220,8 @@ class LibavMux : public ModuleDynI {
 
 			auto const& headers = insertHeaders ? videoMetadata->codecSpecificInfo : std::vector<uint8_t>();
 			auto const outSize = data->data().len + headers.size();
+
+			av_init_packet(newPkt);
 			av_new_packet(newPkt, (int)outSize);
 
 			if(key)
