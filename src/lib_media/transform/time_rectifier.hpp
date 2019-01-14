@@ -40,11 +40,11 @@ class TimeRectifier : public ModuleDynI {
 		void process() override;
 
 		int getNumOutputs() const override {
-			return (int)outputs.size();
+			return ModuleDynI::getNumOutputs();
 		}
 		IOutput* getOutput(int i) override {
 			mimicOutputs();
-			return outputs[i].get();
+			return ModuleDynI::getOutput(i);
 		}
 
 	private:

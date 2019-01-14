@@ -27,6 +27,7 @@ class LibavFilter : public ModuleS {
 
 	private:
 		KHost* const m_host;
+		OutputPicture* output = nullptr;
 		AVFilterGraph *graph;
 		AVFilterContext *buffersrc_ctx, *buffersink_ctx;
 		std::unique_ptr<ffpp::Frame> const avFrameIn, avFrameOut;
@@ -75,7 +76,7 @@ LibavFilter::LibavFilter(KHost* host, const AvFilterConfig& cfg)
 
 	auto input = addInput(this);
 	input->setMetadata(make_shared<MetadataRawVideo>());
-	auto output = addOutput<OutputPicture>();
+	output = addOutput<OutputPicture>();
 	output->setMetadata(make_shared<MetadataRawVideo>());
 }
 
@@ -106,11 +107,10 @@ void LibavFilter::process(Data data) {
 		if (ret < 0) {
 			m_host->log(Error, "Corrupted filter video frame.");
 		}
-		auto output = safe_cast<OutputPicture>(outputs[0].get());
 		auto pic = DataPicture::create(output, Resolution(avFrameIn->get()->width, avFrameIn->get()->height), libavPixFmt2PixelFormat((AVPixelFormat)avFrameIn->get()->format));
 		copyToPicture(avFrameOut->get(), pic.get());
 		pic->setMediaTime(av_rescale_q(avFrameOut->get()->pts, buffersink_ctx->inputs[0]->time_base, buffersrc_ctx->outputs[0]->time_base));
-		outputs[0]->post(pic);
+		output->post(pic);
 		av_frame_unref(avFrameOut->get());
 	}
 	av_frame_unref(avFrameIn->get());
