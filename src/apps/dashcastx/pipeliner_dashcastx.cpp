@@ -138,7 +138,6 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 			throw std::runtime_error("cannot autorotate when transcoding is disabled");
 	}
 
-	int numDashInputs = 0;
 	bool isVertical = false;
 
 	auto decode = [&](OutputPin source, Metadata metadata) -> OutputPin {
@@ -173,6 +172,8 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 		pipeline->connect(compressed, muxer);
 		return muxer;
 	};
+
+	int numDashInputs = 0;
 
 	auto processElementaryStream = [&](int streamIndex) {
 		auto const metadata = demux->getOutputMetadata(streamIndex);
