@@ -126,13 +126,13 @@ struct PesStream : Stream {
 			if(PTS_DTS_indicator & 0b01) {
 				dts = 0;
 				/*auto const reservedBits =*/ r.u(4); // 0b0010
-				dts |= r.u(3); // PTS [32..30]
+				dts |= r.u(3); // DTS [32..30]
 				/*auto marker_bit0 =*/ r.u(1);
 				dts <<= 15;
-				dts |= r.u(15); // PTS [29..15]
+				dts |= r.u(15); // DTS [29..15]
 				/*auto marker_bit1 =*/ r.u(1);
 				dts <<= 15;
-				dts |= r.u(15); // PTS [14..0]
+				dts |= r.u(15); // DTS [14..0]
 				/*auto marker_bit2 =*/ r.u(1);
 			}
 
