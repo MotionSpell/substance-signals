@@ -8,6 +8,7 @@
 
 typedef void NodeStartFunc(std::string, std::map<std::string, std::string>&);
 
+static
 void saxParse(span<const char> input, std::function<NodeStartFunc> onNodeStart) {
 	using namespace std;
 
@@ -45,7 +46,7 @@ void saxParse(span<const char> input, std::function<NodeStartFunc> onNodeStart) 
 	auto parseIdentifier = [&]() {
 		string r;
 		skipSpaces();
-		while(isalnum(front()) || front() == '_' || front() == '-') {
+		while(isalnum(front()) || front() == ':' || front() == '_' || front() == '-') {
 			r += front();
 			input += 1;
 		}
