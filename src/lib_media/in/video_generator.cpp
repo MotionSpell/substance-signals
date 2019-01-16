@@ -5,71 +5,12 @@
 
 namespace {
 
-const char* const font[] = {
-	".XXX."
-	"X...X"
-	"X...X"
-	"X...X"
-	".XXX.",
-
-	"....X"
-	"...XX"
-	"..X.X"
-	"....X"
-	"....X",
-
-	".XXX."
-	"X...X"
-	"..XX."
-	".X..."
-	"XXXXX",
-
-	".XXX."
-	"X...X"
-	"..XX."
-	"X...X"
-	".XXX.",
-
-	"X...X"
-	"X...X"
-	".XXXX"
-	"....X"
-	"....X",
-
-	"XXXXX"
-	"X...."
-	"XXXX."
-	"....X"
-	"XXXX.",
-
-	".XXX."
-	"X...."
-	"XXXX."
-	"X...X"
-	".XXX.",
-
-	"XXXXX"
-	"....X"
-	"....X"
-	"....X"
-	"....X",
-
-	".XXX."
-	"X...X"
-	".XXX."
-	"X...X"
-	".XXX.",
-
-	".XXX."
-	"X...X"
-	".XXXX"
-	"....X"
-	".XXX.",
-};
+span<const char*> getFont();
 
 void renderDigit(uint8_t* dst, size_t stride, int digitValue) {
 	assert(digitValue >=0 && digitValue <= 9);
 
+	auto font = getFont();
 	auto src = font[digitValue];
 
 	for(int y=0; y < 5; ++y) {
@@ -138,5 +79,73 @@ void VideoGenerator::process() {
 	++m_numFrames;
 }
 
+}
+}
+
+namespace {
+span<const char*> getFont() {
+	static const char* font[] = {
+		".XXX."
+		"X...X"
+		"X...X"
+		"X...X"
+		".XXX.",
+
+		"....X"
+		"...XX"
+		"..X.X"
+		"....X"
+		"....X",
+
+		".XXX."
+		"X...X"
+		"..XX."
+		".X..."
+		"XXXXX",
+
+		".XXX."
+		"X...X"
+		"..XX."
+		"X...X"
+		".XXX.",
+
+		"X...X"
+		"X...X"
+		".XXXX"
+		"....X"
+		"....X",
+
+		"XXXXX"
+		"X...."
+		"XXXX."
+		"....X"
+		"XXXX.",
+
+		".XXX."
+		"X...."
+		"XXXX."
+		"X...X"
+		".XXX.",
+
+		"XXXXX"
+		"....X"
+		"....X"
+		"....X"
+		"....X",
+
+		".XXX."
+		"X...X"
+		".XXX."
+		"X...X"
+		".XXX.",
+
+		".XXX."
+		"X...X"
+		".XXXX"
+		"....X"
+		".XXX.",
+	};
+
+	return font;
 }
 }
