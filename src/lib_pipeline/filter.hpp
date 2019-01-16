@@ -49,6 +49,7 @@ class Filter :
 	private:
 		void mimicInputs();
 		void processSource();
+		void reschedule();
 
 		// KHost implementation
 		void log(int level, char const* msg) override;

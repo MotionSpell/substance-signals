@@ -111,8 +111,7 @@ void Filter::processSource() {
 
 	delegate->process();
 
-	// reschedule
-	executor->call(std::bind(&Filter::processSource, this));
+	reschedule();
 }
 
 void Filter::startSource() {
@@ -125,9 +124,13 @@ void Filter::startSource() {
 
 	connections = 1;
 
-	executor->call(std::bind(&Filter::processSource, this));
+	reschedule();
 
 	started = true;
+}
+
+void Filter::reschedule() {
+	executor->call(std::bind(&Filter::processSource, this));
 }
 
 void Filter::stopSource() {
