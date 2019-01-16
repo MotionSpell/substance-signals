@@ -7,7 +7,7 @@ using namespace Pipelines;
 int safeMain(int argc, char const* argv[]) {
 	auto opt = parseCommandLine(argc, argv);
 
-	Pipeline pipeline(g_Log);
+	Pipeline pipeline;
 	declarePipeline(pipeline, opt);
 
 	pipeline.start();

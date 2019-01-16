@@ -1,6 +1,7 @@
 #include "pipeliner_player.hpp"
 #include "config.hpp"
 #include "lib_appcommon/options.hpp"
+#include "lib_utils/log.hpp" // setGlobalLogLevel
 #include <chrono>
 #include <thread>
 

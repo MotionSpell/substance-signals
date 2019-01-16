@@ -1,6 +1,8 @@
 #include "lib_appcommon/options.hpp"
 #include "lib_utils/profiler.hpp"
 #include "lib_utils/tools.hpp"
+#include "lib_utils/log.hpp" // setGlobalLogLevel
+#include "lib_utils/format.hpp"
 #include "lib_pipeline/pipeline.hpp"
 #include "config.hpp"
 #include <cstdio> // sscanf

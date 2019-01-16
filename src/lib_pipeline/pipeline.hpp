@@ -1,8 +1,7 @@
 #pragma once
 
 #include "i_filter.hpp"
-#include "lib_utils/log.hpp"
-#include "lib_utils/format.hpp"
+#include "lib_utils/log_sink.hpp"
 #include "lib_modules/modules.hpp"
 #include <vector>
 #include <memory>
@@ -28,7 +27,7 @@ class Pipeline : public IEventSink {
 				        std::forward<Args>(args)...);
 			};
 
-			auto name = format("%s", modules.size());
+			auto name = std::to_string(modules.size());
 			return addModuleInternal(name, createModule);
 		}
 

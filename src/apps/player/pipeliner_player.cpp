@@ -1,6 +1,8 @@
 #include "pipeliner_player.hpp"
 #include "lib_pipeline/pipeline.hpp"
 #include "lib_modules/utils/loader.hpp"
+#include "lib_utils/log.hpp" // g_Log
+#include "lib_utils/format.hpp"
 #include <fstream>
 
 // modules

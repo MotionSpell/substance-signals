@@ -61,7 +61,7 @@ int safeMain(int argc, char const* argv[]) {
 	if(cfg.help)
 		return 0;
 
-	Pipeline pipeline(g_Log, true);
+	Pipeline pipeline(nullptr, true);
 	declarePipeline(cfg, pipeline);
 	pipeline.start();
 	pipeline.waitForEndOfStream();
