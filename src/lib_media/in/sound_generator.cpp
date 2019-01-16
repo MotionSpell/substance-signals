@@ -1,4 +1,5 @@
 #include "lib_utils/tools.hpp"
+#include "../common/metadata.hpp"
 #include "sound_generator.hpp"
 #include <cmath>
 #include <cassert>
@@ -18,6 +19,7 @@ SoundGenerator::SoundGenerator(KHost* host)
 	pcmFormat.sampleRate = 44100;
 	pcmFormat.numPlanes = 1;
 	output = addOutput<OutputPcm>();
+	output->setMetadata(make_shared<MetadataRawAudio>());
 	m_host->activate(true);
 }
 
