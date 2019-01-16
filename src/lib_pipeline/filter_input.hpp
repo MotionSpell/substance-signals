@@ -13,10 +13,10 @@ class FilterInput : public IInput {
 		    const std::string &moduleName,
 		    Signals::IExecutor* executor,
 		    IStatsRegistry* statsRegistry,
-		    IPipelineNotifier * const notify,
+		    IEventSink * const eventSink,
 		    KHost* host
 		)
-			: delegate(input), notify(notify), m_host(host), executor(executor),
+			: delegate(input), eventSink(eventSink), m_host(host), executor(executor),
 			  statsCumulated(statsRegistry->getNewEntry((moduleName + ".cumulated").c_str())),
 			  statsPending(statsRegistry->getNewEntry((moduleName + ".pending").c_str())) {
 		}
@@ -50,7 +50,7 @@ class FilterInput : public IInput {
 					// receiving 'nullptr' means 'end of stream'
 					if (!data) {
 						m_host->log(Debug, "notify end-of-stream.");
-						notify->endOfStream();
+						eventSink->endOfStream();
 						return;
 					}
 
@@ -90,7 +90,7 @@ class FilterInput : public IInput {
 	private:
 		Queue<Data> queue;
 		IInput *delegate;
-		IPipelineNotifier * const notify;
+		IEventSink * const eventSink;
 		KHost * const m_host;
 		Signals::IExecutor * const executor;
 		decltype(StatsEntry::value) samplingCounter = 0;

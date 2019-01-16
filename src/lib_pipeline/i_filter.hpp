@@ -39,7 +39,7 @@ inline OutputPin GetOutputPin(IFilter* mod, int index=0) {
 	return OutputPin { mod, index };
 }
 
-struct IPipelineNotifier {
+struct IEventSink {
 	virtual void endOfStream() = 0;
 	virtual void exception(std::exception_ptr eptr) = 0;
 };

@@ -19,13 +19,13 @@ std::unique_ptr<IExecutor> createExecutor(Pipelines::Threading threading, const 
 
 Filter::Filter(const char* name,
     LogSink* pLog,
-    IPipelineNotifier *notify,
+    IEventSink *eventSink,
     Pipelines::Threading threading,
     IStatsRegistry *statsRegistry)
 	: m_log(pLog),
 	  m_name(name),
 	  executor(createExecutor(threading, name)),
-	  m_notify(notify),
+	  m_eventSink(eventSink),
 	  eosCount(0),
 	  statsRegistry(statsRegistry) {
 }
@@ -144,7 +144,7 @@ void Filter::stopSource() {
 	stopped = true;
 }
 
-// IPipelineNotifier implementation
+// IEventSink implementation
 
 void Filter::endOfStream() {
 	++eosCount;
@@ -162,13 +162,13 @@ void Filter::endOfStream() {
 		}
 
 		if (connections) {
-			m_notify->endOfStream();
+			m_eventSink->endOfStream();
 		}
 	}
 }
 
 void Filter::exception(std::exception_ptr eptr) {
-	m_notify->exception(eptr);
+	m_eventSink->exception(eptr);
 }
 
 }

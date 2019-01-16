@@ -22,11 +22,11 @@ struct IStatsRegistry;
 class Filter :
 	public IFilter,
 	public KHost,
-	private IPipelineNotifier {
+	private IEventSink {
 	public:
 		Filter(const char* name,
 		    LogSink* pLog,
-		    IPipelineNotifier *notify,
+		    IEventSink *eventSink,
 		    Pipelines::Threading threading,
 		    IStatsRegistry *statsRegistry);
 
@@ -55,7 +55,7 @@ class Filter :
 		void log(int level, char const* msg) override;
 		void activate(bool enable);
 
-		// IPipelineNotifier implementation
+		// IEventSink implementation
 		void endOfStream() override;
 		void exception(std::exception_ptr eptr) override;
 
@@ -70,7 +70,7 @@ class Filter :
 		// should we repeatedly call 'process' on the delegate?
 		bool active = false;
 
-		IPipelineNotifier * const m_notify;
+		IEventSink * const m_eventSink;
 		int connections = 0;
 		std::atomic<int> eosCount;
 

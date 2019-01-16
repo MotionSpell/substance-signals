@@ -16,7 +16,7 @@ struct Graph;
 using CreationFunc = std::function<std::shared_ptr<Modules::IModule>(Modules::KHost*)>;
 
 // A set of interconnected processing filters.
-class Pipeline : public IPipelineNotifier {
+class Pipeline : public IEventSink {
 	public:
 		template <typename InstanceType, int NumBlocks = 0, typename ...Args>
 		IFilter * addModule(Args&&... args) {
