@@ -1,7 +1,6 @@
 #include "tests/tests.hpp"
 #include "lib_signals/signals.hpp"
 #include "lib_utils/tools.hpp" // makeVector
-#include "lib_utils/queue_inspect.hpp"
 
 using namespace Tests;
 using namespace Signals;

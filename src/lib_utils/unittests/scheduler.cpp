@@ -1,6 +1,5 @@
 #include "tests/tests.hpp"
 #include "lib_utils/queue.hpp"
-#include "lib_utils/queue_inspect.hpp"
 #include "lib_utils/fraction.hpp"
 #include "lib_utils/scheduler.hpp"
 #include "lib_utils/sysclock.hpp"
@@ -14,6 +13,15 @@ static std::ostream& operator<<(std::ostream& o, Fraction f) {
 }
 
 namespace {
+
+template<typename T>
+std::vector<T> transferToVector(Queue<T>& q) {
+	std::vector<T> r;
+	T val;
+	while(q.tryPop(val))
+		r.push_back(val);
+	return r;
+}
 
 auto const f0  = Fraction( 0, 1000);
 auto const f1  = Fraction( 1, 1000);
