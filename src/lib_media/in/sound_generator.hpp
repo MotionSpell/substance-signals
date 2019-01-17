@@ -15,7 +15,6 @@ class SoundGenerator : public Module {
 		KHost* const m_host;
 		double nextSample();
 		uint64_t m_numSamples;
-		PcmFormat pcmFormat;
 		OutputPcm* output;
 };
 

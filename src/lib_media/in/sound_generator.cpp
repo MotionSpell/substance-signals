@@ -12,12 +12,10 @@ namespace Modules {
 namespace In {
 
 auto const SINE_FREQ = 880.0;
+static const auto pcmFormat = PcmFormat(44100, 2, Stereo, S16, Interleaved);
 
 SoundGenerator::SoundGenerator(KHost* host)
 	:  m_host(host), m_numSamples(20000) {
-	pcmFormat.sampleFormat = S16;
-	pcmFormat.sampleRate = 44100;
-	pcmFormat.numPlanes = 1;
 	output = addOutput<OutputPcm>();
 	output->setMetadata(make_shared<MetadataRawAudio>());
 	m_host->activate(true);
