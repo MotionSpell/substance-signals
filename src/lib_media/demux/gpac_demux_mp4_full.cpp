@@ -5,6 +5,7 @@
 #include <string>
 #include "../common/gpacpp.hpp"
 #include "../common/metadata.hpp"
+#include "../common/attributes.hpp"
 
 using namespace Modules;
 
@@ -150,6 +151,11 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 		out->resize(sample->dataLength); // workaround allocator bug
 		memcpy(out->data().ptr, sample->data, sample->dataLength);
 		out->setMediaTime(sample->DTS + DTSOffset + sample->CTS_Offset, reader->movie->getMediaTimescale(FIRST_TRACK));
+
+		CueFlags flags {};
+		flags.keyframe = true;
+		out->set(flags);
+
 		output->post(out);
 	}
 
