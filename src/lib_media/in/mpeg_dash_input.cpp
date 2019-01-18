@@ -65,6 +65,8 @@ static shared_ptr<IMetadata> createMetadata(AdaptationSet const& set) {
 
 MPEG_DASH_Input::MPEG_DASH_Input(KHost* host, IFilePuller* source, std::string const& url)
 	:  m_host(host), m_source(source) {
+	m_host->activate(true);
+
 	//GET MPD FROM HTTP
 	auto mpdAsText = m_source->get(url.c_str());
 	if(mpdAsText.empty())
