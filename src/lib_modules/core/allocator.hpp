@@ -62,8 +62,11 @@ class PacketAllocator {
 
 		const size_t maxBlocks;
 		std::atomic_size_t curNumBlocks;
-		std::atomic<int> allocatedBlockCount; // number of blocks 'in the wild'
 		Queue<Event> eventQueue;
+
+		// Count of blocks 'in the wild'.
+		// Only used for sanity-checking at destruction time.
+		std::atomic<int> allocatedBlockCount;
 };
 
 }
