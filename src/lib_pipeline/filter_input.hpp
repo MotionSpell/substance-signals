@@ -93,7 +93,6 @@ class FilterInput : public IInput {
 		KHost * const m_host;
 		Signals::IExecutor * const executor;
 		decltype(StatsEntry::value) samplingCounter = 0;
-		decltype(StatsEntry::value) pendingCounter = 0;
 		StatsEntry * const statsCumulated;
 		StatsEntry * const statsPending;
 		MetadataCap m_metadataCap;

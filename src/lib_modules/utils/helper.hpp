@@ -58,7 +58,7 @@ class OutputDataDefault : public OutputWithSignal {
 			return allocator->alloc<DataType>(size, allocator);
 		}
 
-		void connect(IInput* next) {
+		void connect(IInput* next) override {
 			signal.connect([=](Data data) {
 				next->push(data);
 				next->process();

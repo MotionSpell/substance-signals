@@ -53,7 +53,7 @@ class Filter :
 
 		// KHost implementation
 		void log(int level, char const* msg) override;
-		void activate(bool enable);
+		void activate(bool enable) override;
 
 		// IEventSink implementation
 		void endOfStream() override;
