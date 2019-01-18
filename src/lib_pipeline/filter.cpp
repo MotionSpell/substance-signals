@@ -1,5 +1,5 @@
 #include "filter.hpp"
-#include "lib_utils/log.hpp"
+#include "lib_utils/log_sink.hpp"
 #include "lib_utils/format.hpp"
 #include "lib_signals/executor_threadpool.hpp"
 #include "stats.hpp"
@@ -118,7 +118,7 @@ void Filter::startSource() {
 	assert(isSource());
 
 	if (started) {
-		g_Log->log(Info, "Pipeline: source already started . Doing nothing.");
+		log(Info, "Pipeline: source already started . Doing nothing.");
 		return;
 	}
 
@@ -137,7 +137,7 @@ void Filter::stopSource() {
 	assert(isSource());
 
 	if (!started) {
-		g_Log->log(Warning, "Pipeline: cannot stop unstarted source. Ignoring.");
+		log(Warning, "Pipeline: cannot stop unstarted source. Ignoring.");
 		return;
 	}
 
