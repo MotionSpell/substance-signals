@@ -28,6 +28,7 @@ endif
 
 SIGNALS_HAS_X11?=1
 SIGNALS_HAS_APPS?=1
+SIGNALS_HAS_TESTS?=1
 
 CFLAGS+=-I$(SRC)
 
@@ -66,8 +67,11 @@ LIB_APPCOMMON_SRCS:=\
 
 include $(SRC)/lib_media/project.mk
 
-ifeq ($(SIGNALS_HAS_APPS), 1)
+ifeq ($(SIGNALS_HAS_TESTS), 1)
   include $(SRC)/tests/project.mk
+endif
+
+ifeq ($(SIGNALS_HAS_APPS), 1)
   include $(SRC)/apps/dashcastx/project.mk
   include $(SRC)/apps/player/project.mk
   include $(SRC)/apps/mp42tsx/project.mk
