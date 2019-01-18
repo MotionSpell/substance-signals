@@ -40,10 +40,84 @@ void renderNumber(uint8_t* dst, size_t stride, int value) {
 	renderString(dst, stride, buffer);
 }
 
+struct UnifiedResourceLocator {
+	std::string protocol;
+	std::map<std::string, std::string> bindings;
+};
+
+// parse a url of the form 'proto://name1=value1&name2=value2'
+UnifiedResourceLocator parseUrl(const char* url) {
+	std::map<std::string, std::string> bindings;
+
+	auto s = url;
+
+	auto parseWord = [&]() -> std::string {
+		std::string w;
+		while(*s && *s != '&' && *s != '=' && *s != ':')
+			w += *s++;
+		return w;
+	};
+
+	auto expect = [&](char c) {
+		if(*s != c)
+			throw std::runtime_error("VideoGenerator: invalid url '" + std::string(url) + "'");
+		++s;
+	};
+
+	UnifiedResourceLocator r;
+
+	r.protocol = parseWord();
+
+	expect(':');
+	expect('/');
+	expect('/');
+
+	bool first = true;
+	while(*s) {
+		if(!first)
+			expect('&');
+		first = false;
+
+		auto name = parseWord();
+		expect('=');
+		auto value = parseWord();
+
+		r.bindings[name] = value;
+	}
+
+	return r;
+}
+
+Modules::In::VideoGenerator::Config parseConfig(const char* url) {
+	auto values = parseUrl(url);
+
+	if(values.protocol != "videogen")
+		throw std::runtime_error("VideoGenerator: invalid protocol '" + values.protocol + "'");
+
+	Modules::In::VideoGenerator::Config config {};
+
+	auto getValue = [&](const char* name, int defaultValue) {
+		auto i_value = values.bindings.find(name);
+		if(i_value == values.bindings.end())
+			return defaultValue;
+		return atoi(i_value->second.c_str());
+	};
+
+	config.maxFrames = getValue("framecount", 0);
+	config.frameRate = getValue("framerate", 25);
+
+	return config;
+}
 }
 
 namespace Modules {
 namespace In {
+
+VideoGenerator::VideoGenerator(KHost* host, const char* url) : m_host(host), config(parseConfig(url)) {
+	output = addOutput<OutputPicture>();
+	output->setMetadata(make_shared<MetadataRawVideo>());
+	m_host->activate(true);
+}
 
 VideoGenerator::VideoGenerator(KHost* host, int maxFrames, int frameRate)
 	:  m_host(host), config{maxFrames, frameRate} {

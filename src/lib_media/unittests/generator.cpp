@@ -29,3 +29,18 @@ unittest("video generator") {
 	}), times);
 }
 
+unittest("video generator: from url") {
+	auto videoGen = createModule<In::VideoGenerator>(&NullHost, "videogen://framecount=7&framerate=30");
+
+	int count = 0;
+	auto onFrame = [&](Data) {
+		++count;
+	};
+	ConnectOutput(videoGen.get(), onFrame);
+
+	for (int i = 0; i < 100; ++i)
+		videoGen->process();
+
+	ASSERT_EQUALS(7, count);
+}
+
