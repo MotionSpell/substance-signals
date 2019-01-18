@@ -45,8 +45,8 @@ void renderNumber(uint8_t* dst, size_t stride, int value) {
 namespace Modules {
 namespace In {
 
-VideoGenerator::VideoGenerator(KHost* host, int maxFrames_, int frameRate)
-	:  m_host(host), maxFrames(maxFrames_), m_frameRate(frameRate) {
+VideoGenerator::VideoGenerator(KHost* host, int maxFrames, int frameRate)
+	:  m_host(host), config{maxFrames, frameRate} {
 	output = addOutput<OutputPicture>();
 	output->setMetadata(make_shared<MetadataRawVideo>());
 	m_host->activate(true);
@@ -54,7 +54,7 @@ VideoGenerator::VideoGenerator(KHost* host, int maxFrames_, int frameRate)
 
 void VideoGenerator::process() {
 
-	if(maxFrames && m_numFrames >= (uint64_t)maxFrames) {
+	if(config.maxFrames && m_numFrames >= (uint64_t)config.maxFrames) {
 		m_host->activate(false);
 		return;
 	}
@@ -64,7 +64,7 @@ void VideoGenerator::process() {
 
 	// generate video
 	auto const p = pic->data().ptr;
-	auto const flash = (m_numFrames % m_frameRate) == 0;
+	auto const flash = (m_numFrames % config.frameRate) == 0;
 	auto const val = flash ? 0xCC : 0x80;
 	memset(p, val, pic->getSize());
 
@@ -91,8 +91,8 @@ void VideoGenerator::process() {
 		renderString(dst, stride, "SIGNALS");
 	}
 
-	auto const framePeriodIn180k = IClock::Rate / m_frameRate;
-	assert(IClock::Rate % m_frameRate == 0);
+	auto const framePeriodIn180k = IClock::Rate / config.frameRate;
+	assert(IClock::Rate % config.frameRate == 0);
 	pic->setMediaTime(m_numFrames * framePeriodIn180k);
 
 	output->post(pic);
