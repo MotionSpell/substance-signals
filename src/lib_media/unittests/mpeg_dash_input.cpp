@@ -95,7 +95,7 @@ unittest("mpeg_dash_input: get chunks") {
 		ASSERT(chunkCount < 10);
 		(void)data;
 	};
-	ConnectOutput(dash.get(), receive);
+	ConnectOutput(dash->getOutput(0), receive);
 
 	for(int i=0; i < 100; ++i)
 		dash->process();

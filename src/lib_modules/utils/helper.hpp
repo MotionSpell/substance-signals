@@ -154,8 +154,8 @@ class ModuleS : public Module {
 };
 
 template<typename Lambda>
-void ConnectOutput(IModule* sender, Lambda f) {
-	auto output = safe_cast<OutputWithSignal>(sender->getOutput(0));
+void ConnectOutput(IOutput* o, Lambda f) {
+	auto output = safe_cast<OutputWithSignal>(o);
 	output->signal.connect(f);
 }
 

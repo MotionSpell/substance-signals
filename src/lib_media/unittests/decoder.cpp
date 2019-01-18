@@ -162,7 +162,7 @@ unittest("decoder: video simple") {
 		"'16x16 1 80 80'",
 	});
 
-	ConnectOutput(decode.get(), onPic);
+	ConnectOutput(decode->getOutput(0), onPic);
 	decode->getInput(0)->push(data);
 	decode->process();
 	decode->getInput(0)->push(data);
@@ -179,7 +179,7 @@ unittest("decoder: destroy without flushing") {
 		++picCount;
 	};
 
-	ConnectOutput(decode.get(), onPic);
+	ConnectOutput(decode->getOutput(0), onPic);
 	decode->getInput(0)->push(getTestH264Frame());
 	decode->process();
 	ASSERT_EQUALS(0, picCount);
@@ -193,7 +193,7 @@ unittest("decoder: flush without feeding") {
 		++picCount;
 	};
 
-	ConnectOutput(decode.get(), onPic);
+	ConnectOutput(decode->getOutput(0), onPic);
 	decode->flush();
 	ASSERT_EQUALS(0, picCount);
 }

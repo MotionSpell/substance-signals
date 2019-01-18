@@ -34,7 +34,7 @@ unittest("video converter: pass-through") {
 
 	{
 		auto convert = loadModule("VideoConvert", &NullHost, &format);
-		ConnectOutput(convert.get(), onFrame);
+		ConnectOutput(convert->getOutput(0), onFrame);
 
 		auto pic = createYuvPic(res);
 		convert->getInput(0)->push(pic);
@@ -58,7 +58,7 @@ unittest("video converter: different sizes") {
 
 	{
 		auto convert = loadModule("VideoConvert", &NullHost, &format);
-		ConnectOutput(convert.get(), onFrame);
+		ConnectOutput(convert->getOutput(0), onFrame);
 
 		auto pic = createYuvPic(srcRes);
 		convert->getInput(0)->push(pic);
@@ -81,7 +81,7 @@ unittest("video converter: format conversion (NV12 to I420)") {
 
 	{
 		auto convert = loadModule("VideoConvert", &NullHost, &format);
-		ConnectOutput(convert.get(), onFrame);
+		ConnectOutput(convert->getOutput(0), onFrame);
 
 		auto pic = createNv12Pic(res);
 		convert->getInput(0)->push(pic);

@@ -27,7 +27,7 @@ std::vector<int64_t> runDemux(std::string basename, CreateDemuxFunc createDemux)
 	};
 
 	auto demux = createDemux((basename + ".mp4").c_str());
-	ConnectOutput(demux.get(), onFrame);
+	ConnectOutput(demux->getOutput(0), onFrame);
 	for(int i=0; i < 100; ++i)
 		demux->process();
 	return actualTimes;
@@ -194,18 +194,18 @@ unittest("restamp: passthru with offsets") {
 
 	data->setMediaTime(time);
 	auto restamp = createModule<Transform::Restamp>(&NullHost, Transform::Restamp::Reset);
-	ConnectOutput(restamp.get(), onFrame);
+	ConnectOutput(restamp->getOutput(0), onFrame);
 	restamp->process(data);
 
 	data->setMediaTime(time);
 	restamp = createModule<Transform::Restamp>(&NullHost, Transform::Restamp::Reset, 0);
-	ConnectOutput(restamp.get(), onFrame);
+	ConnectOutput(restamp->getOutput(0), onFrame);
 	restamp->process(data);
 
 	data->setMediaTime(time);
 	restamp = createModule<Transform::Restamp>(&NullHost, Transform::Restamp::Reset, time);
 	expected = time;
-	ConnectOutput(restamp.get(), onFrame);
+	ConnectOutput(restamp->getOutput(0), onFrame);
 	restamp->process(data);
 }
 
@@ -220,23 +220,23 @@ unittest("restamp: reset with offsets") {
 
 	data->setMediaTime(time);
 	auto restamp = createModule<Transform::Restamp>(&NullHost, Transform::Restamp::Passthru);
-	ConnectOutput(restamp.get(), onFrame);
+	ConnectOutput(restamp->getOutput(0), onFrame);
 	restamp->process(data);
 
 	data->setMediaTime(time);
 	restamp = createModule<Transform::Restamp>(&NullHost, Transform::Restamp::Passthru, 0);
-	ConnectOutput(restamp.get(), onFrame);
+	ConnectOutput(restamp->getOutput(0), onFrame);
 	restamp->process(data);
 
 	data->setMediaTime(time);
 	restamp = createModule<Transform::Restamp>(&NullHost, Transform::Restamp::Passthru, offset);
 	expected = time + offset;
-	ConnectOutput(restamp.get(), onFrame);
+	ConnectOutput(restamp->getOutput(0), onFrame);
 	restamp->process(data);
 
 	data->setMediaTime(time);
 	restamp = createModule<Transform::Restamp>(&NullHost, Transform::Restamp::Passthru, time);
 	expected = time + time;
-	ConnectOutput(restamp.get(), onFrame);
+	ConnectOutput(restamp->getOutput(0), onFrame);
 	restamp->process(data);
 }

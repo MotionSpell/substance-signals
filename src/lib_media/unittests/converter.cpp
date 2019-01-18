@@ -89,7 +89,7 @@ unittest("audio converter: multiple flushes while upsampling") {
 		outputSize += data->data().len;
 	};
 
-	ConnectOutput(converter.get(), onFrame);
+	ConnectOutput(converter->getOutput(0), onFrame);
 
 	int inputSize = 0;
 	std::vector<uint8_t> buf(3110400);
@@ -130,7 +130,7 @@ unittest("audio converter: 44100 to 48000") {
 		output.insert(output.end(), v.begin(), v.end());
 	};
 
-	ConnectOutput(converter.get(), onFrame);
+	ConnectOutput(converter->getOutput(0), onFrame);
 	for(int i=0; i < 3; ++i) {
 		converter->getInput(0)->push(in);
 		converter->process();
@@ -249,7 +249,7 @@ void framingTest(int inSamplesPerFrame, int outSamplesPerFrame) {
 
 	auto cfg = AudioConvertConfig { format, format, (int64_t)outSamplesPerFrame};
 	auto converter = loadModule("AudioConvert", &NullHost, &cfg);
-	ConnectOutput(converter.get(), onFrame);
+	ConnectOutput(converter->getOutput(0), onFrame);
 
 	for (int i = 0; i < numIter; ++i) {
 		converter->getInput(0)->push(data);
@@ -291,7 +291,7 @@ unittest("audio converter: timestamp passthrough") {
 
 	auto cfg = AudioConvertConfig { format, format, (int64_t)1024};
 	auto converter = loadModule("AudioConvert", &NullHost, &cfg);
-	ConnectOutput(converter.get(), onFrame);
+	ConnectOutput(converter->getOutput(0), onFrame);
 
 	auto data = make_shared<DataPcm>(0);
 	data->setMediaTime(777777);
@@ -327,7 +327,7 @@ unittest("audio converter: timestamp gap") {
 
 	auto cfg = AudioConvertConfig { format, format, (int64_t)outSamplesPerFrame};
 	auto converter = loadModule("AudioConvert", &NullHost, &cfg);
-	ConnectOutput(converter.get(), onFrame);
+	ConnectOutput(converter->getOutput(0), onFrame);
 
 	int64_t const timeAfterGap = 1000 * 1000;
 

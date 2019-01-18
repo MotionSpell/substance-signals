@@ -286,7 +286,7 @@ unittest("remux test: canonical to H.264 Annex B bitstream converter") {
 	};
 
 	auto avcc2annexB = createModule<Transform::AVCC2AnnexBConverter>(&NullHost);
-	ConnectOutput(avcc2annexB.get(), onSample);
+	ConnectOutput(avcc2annexB->getOutput(0), onSample);
 	avcc2annexB->process(pkt);
 	ASSERT(received);
 

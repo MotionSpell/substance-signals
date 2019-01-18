@@ -65,7 +65,7 @@ struct SDLAudio : ModuleS {
 		auto input = addInput(this);
 		input->setMetadata(make_shared<MetadataRawAudio>());
 		auto pushAudio = Signals::BindMember(this, &SDLAudio::push);
-		ConnectOutput(m_converter.get(), pushAudio);
+		ConnectOutput(m_converter->getOutput(0), pushAudio);
 	}
 
 	~SDLAudio() {

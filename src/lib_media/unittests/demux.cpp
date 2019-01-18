@@ -107,7 +107,7 @@ unittest("GPACDemuxMP4Full: simple demux one track") {
 	};
 
 	ConnectOutputToInput(f->getOutput(0), mp4Demux->getInput(0));
-	ConnectOutput(mp4Demux.get(), onSample);
+	ConnectOutput(mp4Demux->getOutput(0), onSample);
 
 	for(int i=0; i < 100; ++i)
 		f->process();
@@ -125,7 +125,7 @@ unittest("GPACDemuxMP4Full: simple demux one empty track") {
 	};
 
 	ConnectOutputToInput(f->getOutput(0), mp4Demux->getInput(0));
-	ConnectOutput(mp4Demux.get(), onSample);
+	ConnectOutput(mp4Demux->getOutput(0), onSample);
 
 	f->process();
 
@@ -146,7 +146,7 @@ unittest("GPACDemuxMP4Full: demux fragments") {
 	};
 
 	ConnectOutputToInput(f->getOutput(0), mp4Demux->getInput(0));
-	ConnectOutput(mp4Demux.get(), onSample);
+	ConnectOutput(mp4Demux->getOutput(0), onSample);
 
 	f->process();
 

@@ -23,7 +23,7 @@ unittest("avfilter: deinterlace") {
 	auto filter = loadModule("LibavFilter", &NullHost, &cfg);
 
 	ConnectOutputToInput(videoGen->getOutput(0), filter->getInput(0));
-	ConnectOutput(filter.get(), onFrame);
+	ConnectOutput(filter->getOutput(0), onFrame);
 
 	for (int i = 0; i < 4; ++i) {
 		videoGen->process();
@@ -46,7 +46,7 @@ unittest("avfilter: fps convert (drop/repeat)") {
 	auto filter = loadModule("LibavFilter", &NullHost, &cfg);
 
 	ConnectOutputToInput(videoGen->getOutput(0), filter->getInput(0));
-	ConnectOutput(filter.get(), onFrame);
+	ConnectOutput(filter->getOutput(0), onFrame);
 
 	for (int i = 0; i < 4; ++i) {
 		videoGen->process();
