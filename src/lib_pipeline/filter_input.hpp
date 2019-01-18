@@ -20,7 +20,6 @@ class FilterInput : public IInput {
 			  statsCumulated(statsRegistry->getNewEntry((moduleName + ".cumulated").c_str())),
 			  statsPending(statsRegistry->getNewEntry((moduleName + ".pending").c_str())) {
 		}
-		virtual ~FilterInput() {}
 
 		void push(Data data) override {
 			queue.push(data);
