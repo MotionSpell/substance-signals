@@ -70,7 +70,7 @@ IFilter* createDemuxer(Pipeline& pipeline, std::string url) {
 		return demux;
 	}
 	if(startsWith(url, "videogen://")) {
-		return pipeline.addModule<In::VideoGenerator>();
+		return pipeline.addModule<In::VideoGenerator>(url.c_str());
 	}
 	if(endsWith(url, ".m3u8")) {
 		HlsDemuxConfig hlsCfg;
