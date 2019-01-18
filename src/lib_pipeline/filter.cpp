@@ -87,11 +87,12 @@ void Filter::disconnect(int inputIdx, IOutput* output) {
 }
 
 void Filter::mimicInputs() {
+	IEventSink* const pinEventSink = this;
 	while ((int)inputs.size()< delegate->getNumInputs()) {
 		auto idx = (int)inputs.size();
 		auto dgInput = delegate->getInput(idx);
 		auto name = format("%s, input (#%s)", m_name, idx);
-		inputs.push_back(uptr(new FilterInput(dgInput, name, executor.get(), statsRegistry, this, this)));
+		inputs.push_back(make_unique<FilterInput>(dgInput, name, executor.get(), statsRegistry, pinEventSink, this));
 	}
 }
 
