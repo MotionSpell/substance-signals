@@ -109,7 +109,12 @@ void Filter::processSource() {
 		return; // don't reschedule
 	}
 
-	delegate->process();
+	try {
+		delegate->process();
+	} catch(std::exception const& e) {
+		log(Error, (std::string("Source error: ") + e.what()).c_str());
+		throw; // don't reschedule
+	}
 
 	reschedule();
 }
