@@ -67,12 +67,12 @@ LIB_APPCOMMON_SRCS:=\
 include $(SRC)/lib_media/project.mk
 
 ifeq ($(SIGNALS_HAS_APPS), 1)
-  include $(SRC)/tests/project.mk
   include $(SRC)/apps/dashcastx/project.mk
   include $(SRC)/apps/player/project.mk
   include $(SRC)/apps/mp42tsx/project.mk
   include $(SRC)/apps/monitor/project.mk
   include $(SRC)/apps/mcastdump/project.mk
+  include $(SRC)/tests/project.mk
 endif
 
 #------------------------------------------------------------------------------

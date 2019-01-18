@@ -5,7 +5,7 @@ OUTDIR:=$(BIN)/$(call get-my-dir)
 # unittests.exe : all the unit tests gathered from
 # the in-tree 'unittests' directories.
 #---------------------------------------------------------------
-EXE_OTHER_SRCS:=\
+EXE_OTHER_SRCS+=\
   $(MYDIR)/tests.cpp\
   $(MYDIR)/../lib_appcommon/options.cpp\
   $(LIB_MEDIA_SRCS)\
