@@ -25,10 +25,14 @@ void SystemTimer::timerThreadProc() {
 	while(1) {
 		{
 			std::unique_lock<std::mutex> lock(mutex);
+			if (stopThread)
+				break;
+
 			if(timerDelayInMs == -1)
 				wakeupTimer.wait(lock);
 			else
 				wakeupTimer.wait_for(lock, std::chrono::milliseconds(timerDelayInMs));
+
 			if(stopThread)
 				break;
 			timerDelayInMs = -1;
@@ -38,6 +42,9 @@ void SystemTimer::timerThreadProc() {
 
 		{
 			std::unique_lock<std::mutex> lock(mutex);
+			if (stopThread)
+				break;
+
 			task = std::move(callback);
 		}
 
