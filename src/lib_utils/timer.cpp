@@ -22,6 +22,7 @@ void SystemTimer::scheduleIn(std::function<void()>&& task, Fraction delay) {
 }
 
 void SystemTimer::timerThreadProc() {
+	std::function<void()> task;
 	while(1) {
 		{
 			std::unique_lock<std::mutex> lock(mutex);
@@ -36,15 +37,6 @@ void SystemTimer::timerThreadProc() {
 			if(stopThread)
 				break;
 			timerDelayInMs = -1;
-		}
-
-		std::function<void()> task;
-
-		{
-			std::unique_lock<std::mutex> lock(mutex);
-			if (stopThread)
-				break;
-
 			task = std::move(callback);
 		}
 
