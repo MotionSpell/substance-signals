@@ -54,8 +54,8 @@ unittest("pipeline: empty") {
 
 unittest("pipeline: connecting an input to and output throws an error") {
 	auto p = std::make_unique<Pipeline>();
-	auto src = p->addModule<InfiniteSource>();
-	auto sink = p->addModule<FakeSink>();
+	auto src = p->addNamedModule<InfiniteSource>("Source");
+	auto sink = p->addNamedModule<FakeSink>("Sink");
 	ASSERT_THROWN(p->connect(sink, src));
 }
 

@@ -19,6 +19,12 @@ class Pipeline : public IEventSink {
 	public:
 		template <typename InstanceType, int NumBlocks = 0, typename ...Args>
 		IFilter * addModule(Args&&... args) {
+			auto name = std::to_string(modules.size());
+			return addNamedModule<InstanceType, NumBlocks>(name.c_str(), std::forward<Args>(args)...);
+		}
+
+		template <typename InstanceType, int NumBlocks = 0, typename ...Args>
+		IFilter * addNamedModule(const char* instanceName, Args&&... args) {
 
 			auto createModule = [&](Modules::KHost* host) {
 				return Modules::createModuleWithSize<InstanceType>(
@@ -27,11 +33,10 @@ class Pipeline : public IEventSink {
 				        std::forward<Args>(args)...);
 			};
 
-			auto name = std::to_string(modules.size());
-			return addModuleInternal(name, createModule);
+			return addModuleInternal(instanceName, createModule);
 		}
 
-		IFilter * add(char const* name, const void* va);
+		IFilter * add(char const* typeName, const void* va);
 
 		/* @isLowLatency Controls the default number of buffers.
 			@threading    Controls the threading. */

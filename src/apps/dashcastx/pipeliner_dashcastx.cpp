@@ -154,7 +154,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 	};
 
 	auto regulate = [&](OutputPin source) -> OutputPin {
-		auto regulator = pipeline->addModule<Regulator>(g_SystemClock);
+		auto regulator = pipeline->addNamedModule<Regulator>("Regulator", g_SystemClock);
 		pipeline->connect(source, regulator);
 		return GetOutputPin(regulator);
 	};
