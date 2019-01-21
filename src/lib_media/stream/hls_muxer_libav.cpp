@@ -33,7 +33,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 			  m_utcStartTime(cfg->utcStartTime),
 			  segDuration(timescaleToClock(cfg->segDurationInMs, 1000)), hlsDir(cfg->baseDir), segBasename(cfg->baseName) {
 			{
-				MuxConfig muxCfg = {format("%s%s", hlsDir, cfg->baseName), "hls", cfg->options};
+				MuxConfig muxCfg = {format("%s%s.m3u8", hlsDir, cfg->baseName), "hls", cfg->options};
 				delegate = loadModule("LibavMux", m_host, &muxCfg);
 			}
 			addInput(this);
