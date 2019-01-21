@@ -6,6 +6,8 @@
 #include "lib_utils/tools.hpp"
 #include "lib_utils/sysclock.hpp"
 
+#include <thread> // std::this_thread
+
 using namespace Tests;
 using namespace Modules;
 
@@ -40,7 +42,8 @@ secondclasstest("render: sound generator, evil samples") {
 	render->getInput(0)->push(sample);
 	render->process();
 
-	clock->sleep(1); // wait for crash
+	// wait for crash
+	std::this_thread::sleep_for(std::chrono::milliseconds(1));
 }
 
 secondclasstest("render: A/V sync, one thread") {

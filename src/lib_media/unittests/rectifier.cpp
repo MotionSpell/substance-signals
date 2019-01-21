@@ -64,10 +64,6 @@ class ClockMock : public IClock, public IScheduler {
 			std::sort(m_tasks.begin(), m_tasks.end());
 		}
 
-		void sleep(Fraction) const override {
-			assert(0);
-		}
-
 		void scheduleIn(TaskFunc &&, Fraction) override {
 			assert(0);
 		}

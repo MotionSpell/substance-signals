@@ -15,10 +15,8 @@ Fraction SystemClock::now() const {
 	return Fraction(timeNowInMs.count(), 1000);
 }
 
-void SystemClock::sleep(Fraction time) const {
-	if (speed > 0.0) {
-		std::this_thread::sleep_for(milliseconds(time.num * 1000 / time.den));
-	}
+void sleep(Fraction time) {
+	std::this_thread::sleep_for(milliseconds(time.num * 1000 / time.den));
 }
 
 extern const std::shared_ptr<IClock> g_SystemClock(new SystemClock(1.0));

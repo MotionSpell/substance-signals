@@ -287,7 +287,7 @@ void AdaptiveStreamingCommon::threadProc() {
 				break;
 			} else {
 				assert((type == LiveNonBlocking) && ((int)qualities.size() < numInputs));
-				g_SystemClock->sleep(Fraction(1, 1000));
+				std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 				continue;
 			}
 		}
