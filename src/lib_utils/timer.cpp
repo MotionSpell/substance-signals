@@ -26,7 +26,7 @@ void SystemTimer::timerThreadProc() {
 		std::function<void()> task;
 		{
 			std::unique_lock<std::mutex> lock(mutex);
-			if (stopThread)
+			if(stopThread)
 				break;
 
 			if(timerDelayInMs == -1)
