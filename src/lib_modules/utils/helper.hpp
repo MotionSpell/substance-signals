@@ -149,7 +149,9 @@ class ModuleS : public Module {
 	public:
 		virtual void process(Data data) = 0;
 		void process() override {
-			process(getInput(0)->pop());
+			Data data;
+			if(getInput(0)->tryPop(data))
+				process(data);
 		}
 };
 

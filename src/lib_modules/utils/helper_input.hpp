@@ -20,6 +20,7 @@ class Input : public IInput {
 
 		void push(Data data) override {
 			queue.push(data);
+			processor->process();
 		}
 
 		Data pop() override {
@@ -45,7 +46,6 @@ class Input : public IInput {
 		}
 
 		void process() override {
-			processor->process();
 		}
 
 	private:

@@ -64,7 +64,6 @@ unittest("audio converter: interleaved to planar") {
 	auto rec = createModule<Recorder>();
 	ConnectOutputToInput(converter->getOutput(0), rec->getInput(0));
 	converter->getInput(0)->push(in);
-	converter->process();
 	converter->flush();
 
 	auto out = safe_cast<const DataPcm>(rec->out);
@@ -100,17 +99,14 @@ unittest("audio converter: multiple flushes while upsampling") {
 
 	inputSize += buf.size();
 	converter->getInput(0)->push(data);
-	converter->process();
 
 	inputSize += buf.size();
 	converter->getInput(0)->push(data);
-	converter->process();
 
 	converter->flush();
 
 	inputSize += buf.size();
 	converter->getInput(0)->push(data);
-	converter->process();
 
 	converter->flush();
 
@@ -133,7 +129,6 @@ unittest("audio converter: 44100 to 48000") {
 	ConnectOutput(converter->getOutput(0), onFrame);
 	for(int i=0; i < 3; ++i) {
 		converter->getInput(0)->push(in);
-		converter->process();
 	}
 	converter->flush();
 
@@ -192,7 +187,6 @@ unittest("audio converter: dynamic formats") {
 
 	while (auto data = recorder->pop()) {
 		converter->getInput(0)->push(data);
-		converter->process();
 	}
 }
 
@@ -253,7 +247,6 @@ void framingTest(int inSamplesPerFrame, int outSamplesPerFrame) {
 
 	for (int i = 0; i < numIter; ++i) {
 		converter->getInput(0)->push(data);
-		converter->process();
 	}
 	converter->flush();
 
@@ -298,7 +291,6 @@ unittest("audio converter: timestamp passthrough") {
 	data->setFormat(format);
 	data->setPlane(0, nullptr, 1024);
 	converter->getInput(0)->push(data);
-	converter->process();
 	converter->flush();
 
 	ASSERT_EQUALS(777777, lastMediaTime);

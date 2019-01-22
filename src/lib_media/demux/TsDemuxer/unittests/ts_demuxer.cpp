@@ -159,7 +159,6 @@ unittest("TsDemuxer: PES demux") {
 
 	auto frame = getTestTs();
 	demux->getInput(0)->push(frame);
-	demux->process();
 	demux->flush();
 
 	ASSERT_EQUALS(2, rec->frameCount);
@@ -214,7 +213,6 @@ unittest("TsDemuxer: PES demux should not wait for next AU") {
 
 	auto frame = createPacket(tsPackets);
 	demux->getInput(0)->push(frame);
-	demux->process();
 	// don't flush
 
 	ASSERT_EQUALS(1, rec->frameCount);
@@ -234,7 +232,6 @@ unittest("TsDemuxer: two pins, one PID") {
 
 	auto frame = getTestTs();
 	demux->getInput(0)->push(frame);
-	demux->process();
 
 	// don't flush
 
@@ -288,7 +285,6 @@ unittest("TsDemuxer: two pins, two PIDs") {
 	ConnectOutputToInput(demux->getOutput(1), pid1->getInput(0));
 
 	demux->getInput(0)->push(createPacket(tsPackets));
-	demux->process();
 
 	demux->flush();
 
@@ -407,7 +403,6 @@ unittest("TsDemuxer: get codec from PMT") {
 	auto demux = loadModule("TsDemuxer", &NullHost, &cfg);
 
 	demux->getInput(0)->push(createPacket(tsPackets));
-	demux->process();
 	demux->flush();
 
 	auto meta0 = safe_cast<const MetadataPkt>(demux->getOutput(0)->getMetadata());
@@ -430,7 +425,6 @@ fuzztest("TsDemuxer") {
 	auto demux = loadModule("TsDemuxer", &NullHost, &cfg);
 
 	demux->getInput(0)->push(createPacket(testdata));
-	demux->process();
 	demux->flush();
 }
 

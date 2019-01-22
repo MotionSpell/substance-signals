@@ -55,7 +55,6 @@ unittest("remux test: libav mp4 mux") {
 		auto data = make_shared<DataBaseRef>(nullptr);
 		data->setMetadata(demux->getOutput(i)->getMetadata());
 		mux->getInput(i)->push(data);
-		mux->getInput(i)->process();
 
 		if (demux->getOutput(i)->getMetadata()->isVideo()) {
 			assert(!avcc2annexB);
