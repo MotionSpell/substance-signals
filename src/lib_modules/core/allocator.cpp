@@ -22,8 +22,28 @@ PacketAllocator::~PacketAllocator() {
 	assert(allocatedBlockCount == 0);
 }
 
-void PacketAllocator::recycle(IBuffer *p) {
-	delete p;
+void* PacketAllocator::alloc(size_t size) {
+	Event block;
+	if (!eventQueue.tryPop(block)) {
+		if (curNumBlocks < maxBlocks) {
+			eventQueue.push(Event{OneBufferIsFree});
+			curNumBlocks++;
+		}
+		block = eventQueue.pop();
+	}
+	switch (block.type) {
+	case OneBufferIsFree: {
+		allocatedBlockCount ++;
+		return new uint8_t[size];
+	}
+	case Exit:
+		return nullptr;
+	}
+	return nullptr;
+}
+
+void PacketAllocator::recycle(void* p) {
+	delete [] (uint8_t*)p;
 	allocatedBlockCount --;
 	eventQueue.push(Event{OneBufferIsFree});
 }

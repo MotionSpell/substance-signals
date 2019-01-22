@@ -1,9 +1,7 @@
 #pragma once
 
-#include "buffer.hpp"
 #include "lib_utils/queue.hpp"
 #include <atomic>
-#include <memory>
 
 namespace Modules {
 
@@ -16,41 +14,14 @@ class PacketAllocator {
 		PacketAllocator(size_t maxBlocks);
 		~PacketAllocator();
 
-		struct Deleter {
-			void operator()(IBuffer *p) const {
-				allocator->recycle(p);
-			}
-			std::shared_ptr<PacketAllocator> const allocator;
-		};
-
-		template<typename T>
-		std::shared_ptr<T> alloc(size_t size, std::shared_ptr<PacketAllocator> allocator) {
-			Event block;
-			if (!eventQueue.tryPop(block)) {
-				if (curNumBlocks < maxBlocks) {
-					eventQueue.push(Event{OneBufferIsFree});
-					curNumBlocks++;
-				}
-				block = eventQueue.pop();
-			}
-			switch (block.type) {
-			case OneBufferIsFree: {
-				allocatedBlockCount ++;
-				auto data = new T(size);
-				return std::shared_ptr<T>(data, Deleter{allocator});
-			}
-			case Exit:
-				return nullptr;
-			}
-			return nullptr;
-		}
+		void* alloc(size_t size);
+		void recycle(void* p);
 
 		void unblock() {
 			eventQueue.push(Event{Exit});
 		}
 
 	private:
-		void recycle(IBuffer *p);
 
 		enum EventType {
 			OneBufferIsFree,
@@ -68,5 +39,21 @@ class PacketAllocator {
 		// Only used for sanity-checking at destruction time.
 		std::atomic<int> allocatedBlockCount;
 };
+}
+
+#include <memory>
+
+namespace Modules {
+template<typename T>
+std::shared_ptr<T> alloc(std::shared_ptr<PacketAllocator> allocator, size_t size) {
+	auto p = allocator->alloc(sizeof(T));
+
+	auto deleter = [allocator](T* p) {
+		p->~T();
+		allocator->recycle(p);
+	};
+
+	return std::shared_ptr<T>(new(p) T(size), deleter);
+}
 
 }

@@ -55,7 +55,7 @@ class OutputDataDefault : public OutputWithSignal {
 		}
 
 		std::shared_ptr<DataType> getBuffer(size_t size) {
-			return allocator->alloc<DataType>(size, allocator);
+			return alloc<DataType>(allocator, size);
 		}
 
 		void connect(IInput* next) override {
