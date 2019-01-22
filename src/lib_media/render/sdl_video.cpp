@@ -10,9 +10,6 @@
 #include "render_common.hpp"
 #include <thread>
 #include <csignal>
-#ifdef _MSC_VER
-#include <Windows.h>
-#endif
 #include <csignal>
 
 using namespace Modules;
@@ -120,11 +117,7 @@ struct SDLVideo : ModuleS {
 			}
 			break;
 		case SDL_QUIT:
-#ifdef _MSC_VER
-			GenerateConsoleCtrlEvent(CTRL_C_EVENT, 0);
-#else
 			std::raise(SIGINT);
-#endif
 			break;
 		}
 
