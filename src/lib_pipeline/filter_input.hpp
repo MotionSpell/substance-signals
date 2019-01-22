@@ -27,25 +27,22 @@ class FilterInput : public IInput {
 		}
 
 		Data pop() override {
-			auto r = queue.pop();
-			statsPending->value --;
-			return r;
+			assert(false);
+			return {};
 		}
 
-		bool tryPop(Data& data) override {
-			if(!queue.tryPop(data))
-				return false;
-
-			statsPending->value --;
-			return true;
+		bool tryPop(Data&) override {
+			assert(false);
+			return {};
 		}
 
 		void process() override {
-			auto data = pop();
-			statsCumulated->value = samplingCounter++;
-
-			auto doProcess = [this, data]() {
+			auto doProcess = [this]() {
 				try {
+					auto data = queue.pop();
+					statsPending->value --;
+					statsCumulated->value = samplingCounter++;
+
 					// receiving 'nullptr' means 'end of stream'
 					if (!data) {
 						m_host->log(Debug, "notify end-of-stream.");
