@@ -60,20 +60,26 @@ class DualInput : public Modules::Module {
 		}
 
 		void process() {
-			if (!done) {
-				input0->pop();
-				input1->pop();
-				out->post(out->getBuffer(0));
+			if (!got0 || !got1) {
+				if(!got0) {
+					Modules::Data data;
+					got0 = input0->tryPop(data);
+				}
+				if(!got1) {
+					Modules::Data data;
+					got1 = input1->tryPop(data);
+				}
+				if(got0 && got1)
+					out->post(out->getBuffer(0));
 			}
-
-			done = true;
 
 			input0->clear();
 			input1->clear();
 		}
 
 	private:
-		bool done = false;
+		bool got0 = false;
+		bool got1 = false;
 		Modules::Input* input0;
 		Modules::Input* input1;
 		Modules::OutputDefault* out;
