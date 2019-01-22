@@ -204,7 +204,7 @@ namespace {
 IModule* createObject(KHost* host, void* va) {
 	(void)va;
 	enforce(host, "GPACDemuxMP4Full: host can't be NULL");
-	return createModule<GPACDemuxMP4Full>(host).release();
+	return new ModuleDefault<GPACDemuxMP4Full>(256, host);
 }
 
 auto const registered = Factory::registerModule("GPACDemuxMP4Full", &createObject);
