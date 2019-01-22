@@ -53,15 +53,12 @@ class FilterInput : public IInput {
 						return;
 					}
 
-					delegate->process();
+					delegate->push(data);
 				} catch(std::exception const& e) {
 					m_host->log(Error, (std::string("Can't process data: ") + e.what()).c_str());
 					throw;
 				}
 			};
-
-			if (data)
-				delegate->push(data);
 
 			executor->call(doProcess);
 		}
