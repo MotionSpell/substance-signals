@@ -148,7 +148,6 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 		reader->sampleIndex++;
 
 		auto out = output->getBuffer(sample->dataLength);
-		out->resize(sample->dataLength); // workaround allocator bug
 		memcpy(out->data().ptr, sample->data, sample->dataLength);
 		out->setMediaTime(sample->DTS + DTSOffset + sample->CTS_Offset, reader->movie->getMediaTimescale(FIRST_TRACK));
 
