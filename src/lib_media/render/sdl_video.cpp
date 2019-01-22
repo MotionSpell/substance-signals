@@ -42,6 +42,8 @@ struct SDLVideo : ModuleS {
 		  workingThread(&SDLVideo::doRender, this) {
 		auto input = addInput(this);
 		input->setMetadata(make_shared<MetadataRawVideo>());
+
+		// wait for the working thread to create the window
 		m_dataQueue.pop();
 	}
 
