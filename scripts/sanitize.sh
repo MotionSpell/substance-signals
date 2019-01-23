@@ -24,7 +24,7 @@ LDFLAGS="$LDFLAGS -g"
 
 export BIN CFLAGS LDFLAGS
 
-make -j$((`nproc`/2))
+make -j`nproc`
 
 export TSAN_OPTIONS=halt_on_error=1
 export ASAN_OPTIONS=halt_on_error=1
