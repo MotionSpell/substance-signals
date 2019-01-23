@@ -43,7 +43,7 @@ template<typename DataType>
 class OutputDataDefault : public OutputWithSignal {
 	public:
 		OutputDataDefault(size_t allocatorMaxSize, Metadata metadata = nullptr)
-			: m_metadataCap(metadata), allocator(new PacketAllocator(allocatorMaxSize)) {
+			: m_metadataCap(metadata), allocator(createMemoryAllocator(allocatorMaxSize)) {
 		}
 		virtual ~OutputDataDefault() {
 			allocator->unblock();
@@ -70,7 +70,7 @@ class OutputDataDefault : public OutputWithSignal {
 		}
 
 		void resetAllocator(size_t allocatorSize) {
-			allocator = make_shared<PacketAllocator>(allocatorSize);
+			allocator = createMemoryAllocator(allocatorSize);
 		}
 
 		Metadata getMetadata() const override {
@@ -83,7 +83,7 @@ class OutputDataDefault : public OutputWithSignal {
 
 	private:
 		MetadataCap m_metadataCap;
-		std::shared_ptr<PacketAllocator> allocator;
+		std::shared_ptr<IAllocator> allocator;
 };
 
 typedef OutputDataDefault<DataRaw> OutputDefault;

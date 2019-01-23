@@ -1,13 +1,45 @@
 #include "allocator.hpp"
 #include "lib_utils/log.hpp"
 #include "lib_utils/format.hpp"
+#include "lib_utils/queue.hpp"
 
 #include <stdexcept>
 #include <cassert>
+#include <atomic>
 
 namespace Modules {
 
-PacketAllocator::PacketAllocator(size_t maxBlocks) :
+struct MemoryAllocator : IAllocator {
+		MemoryAllocator(size_t maxBlocks);
+		~MemoryAllocator();
+
+		void* alloc(size_t size) override;
+		void free(void* p) override;
+
+		void unblock() override {
+			eventQueue.push(Event{Exit});
+		}
+
+	private:
+
+		enum EventType {
+			OneBufferIsFree,
+			Exit,
+		};
+		struct Event {
+			EventType type {};
+		};
+
+		const size_t maxBlocks;
+		std::atomic_size_t curNumBlocks;
+		Queue<Event> eventQueue;
+
+		// Count of blocks 'in the wild'.
+		// Only used for sanity-checking at destruction time.
+		std::atomic<int> allocatedBlockCount;
+};
+
+MemoryAllocator::MemoryAllocator(size_t maxBlocks) :
 	maxBlocks(maxBlocks),
 	curNumBlocks(maxBlocks) {
 	if (maxBlocks == 0)
@@ -18,11 +50,11 @@ PacketAllocator::PacketAllocator(size_t maxBlocks) :
 	}
 }
 
-PacketAllocator::~PacketAllocator() {
+MemoryAllocator::~MemoryAllocator() {
 	assert(allocatedBlockCount == 0);
 }
 
-void* PacketAllocator::alloc(size_t size) {
+void* MemoryAllocator::alloc(size_t size) {
 	Event block;
 	if (!eventQueue.tryPop(block)) {
 		if (curNumBlocks < maxBlocks) {
@@ -42,9 +74,14 @@ void* PacketAllocator::alloc(size_t size) {
 	return nullptr;
 }
 
-void PacketAllocator::recycle(void* p) {
+void MemoryAllocator::free(void* p) {
 	delete [] (uint8_t*)p;
 	allocatedBlockCount --;
 	eventQueue.push(Event{OneBufferIsFree});
 }
+
+std::unique_ptr<IAllocator> createMemoryAllocator(size_t maxBlocks) {
+	return std::make_unique<MemoryAllocator>(maxBlocks);
 }
+}
+
