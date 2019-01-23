@@ -41,17 +41,19 @@ struct FakeTransformer : public Modules::ModuleS {
 };
 
 unittest("[DISABLED] pipeline: destroy while running: long chain of modules") {
-	auto p = std::make_unique<Pipeline>();
-	auto src = p->addModule<InfiniteSource>();
-	auto trans1 = p->addModule<FakeTransformer>();
-	auto trans2 = p->addModule<FakeTransformer>();
-	auto trans3 = p->addModule<FakeTransformer>();
-	auto sink = p->addModule<FakeSink>();
-	p->connect(src, trans1);
-	p->connect(trans1, trans2);
-	p->connect(trans2, trans3);
-	p->connect(trans3, sink);
-	p->start();
-	std::this_thread::sleep_for(std::chrono::milliseconds(1));
+	for(int i=0; i< 10; ++i) {
+		auto p = std::make_unique<Pipeline>();
+		auto src = p->addModule<InfiniteSource>();
+		auto trans1 = p->addModule<FakeTransformer>();
+		auto trans2 = p->addModule<FakeTransformer>();
+		auto trans3 = p->addModule<FakeTransformer>();
+		auto sink = p->addModule<FakeSink>();
+		p->connect(src, trans1);
+		p->connect(trans1, trans2);
+		p->connect(trans2, trans3);
+		p->connect(trans3, sink);
+		p->start();
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
+	}
 }
 
