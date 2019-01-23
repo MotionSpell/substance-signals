@@ -125,6 +125,11 @@ unittest("pipeline: dynamic module disconnection (multiple ref decrease)") {
 }
 
 unittest("pipeline: dynamic module disconnection (remove module dynamically)") {
+	// |           /=> .-----------.
+	// |           |   |           |
+	// | [Source] =|   | DualInput | => [Receiver]
+	// |           |   |           |
+	// |           \=> .-----------.
 	Pipeline p;
 	bool trigger = false;
 	auto src = p.addModule<Source>(trigger);
@@ -138,10 +143,13 @@ unittest("pipeline: dynamic module disconnection (remove module dynamically)") {
 	while (!received) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
+
+	// Remove the middle filter
 	p.disconnect(src, 0, dualInput, 0);
 	p.disconnect(src, 0, dualInput, 1);
 	p.disconnect(dualInput, 0, receiver, 0);
 	p.removeModule(dualInput);
+
 	trigger = true;
 	p.waitForEndOfStream();
 }
