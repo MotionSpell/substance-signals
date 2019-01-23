@@ -4,6 +4,7 @@
 #include "lib_modules/utils/helper.hpp"
 #include "lib_utils/log_sink.hpp" // Warning
 #include "lib_utils/time.hpp" // timeInMsToStr
+#include <algorithm> //std::max
 #include <vector>
 #include <sstream>
 

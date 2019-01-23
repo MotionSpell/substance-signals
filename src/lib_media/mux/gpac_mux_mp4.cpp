@@ -7,6 +7,7 @@
 #include "../common/attributes.hpp"
 #include "../common/metadata_file.hpp"
 #include "lib_modules/utils/factory.hpp"
+#include <algorithm> //std::max
 
 extern "C" {
 #include <gpac/base_coding.h>
