@@ -1026,7 +1026,7 @@ void GPACMuxMP4::fillSample(Data data, gpacpp::IsoSample* sample, bool isRap) {
 }
 
 void GPACMuxMP4::updateFormat(Data data) {
-	auto srcTimeScale = safe_cast<const MetadataPkt>(data->getMetadata().get())->timeScale;
+	auto srcTimeScale = safe_cast<const MetadataPkt>(data->getMetadata())->timeScale;
 
 	auto pkt = safe_cast<const DataAVPacket>(data)->getPacket();
 

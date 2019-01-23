@@ -271,7 +271,7 @@ struct LibavEncode : ModuleS {
 			// input format configuration
 			switch (params.type) {
 			case EncoderConfig::Video: {
-				const auto fmt = safe_cast<const DataPicture>(data.get())->getFormat();
+				const auto fmt = safe_cast<const DataPicture>(data)->getFormat();
 				codecCtx->width = fmt.res.width;
 				codecCtx->height = fmt.res.height;
 
