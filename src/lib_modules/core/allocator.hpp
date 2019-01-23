@@ -6,7 +6,6 @@ namespace Modules {
 
 /*user recommended values*/
 static const size_t ALLOC_NUM_BLOCKS_DEFAULT = 10;
-static const size_t ALLOC_NUM_BLOCKS_LOW_LATENCY = 2;
 
 struct IAllocator {
 	virtual ~IAllocator() = default;

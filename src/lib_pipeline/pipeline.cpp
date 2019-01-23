@@ -14,6 +14,8 @@
 
 #define COMPLETION_GRANULARITY_IN_MS 200
 
+static const size_t ALLOC_NUM_BLOCKS_LOW_LATENCY = 2;
+
 namespace Pipelines {
 
 struct StatsRegistry : IStatsRegistry {
@@ -44,7 +46,7 @@ struct StatsRegistry : IStatsRegistry {
 Pipeline::Pipeline(LogSink* log, bool isLowLatency, Threading threading)
 	: statsMem(new StatsRegistry), graph(new Graph),
 	  m_log(log ? log : g_Log),
-	  allocatorNumBlocks(isLowLatency ? Modules::ALLOC_NUM_BLOCKS_LOW_LATENCY : Modules::ALLOC_NUM_BLOCKS_DEFAULT),
+	  allocatorNumBlocks(isLowLatency ? ALLOC_NUM_BLOCKS_LOW_LATENCY : Modules::ALLOC_NUM_BLOCKS_DEFAULT),
 	  threading(threading) {
 }
 
