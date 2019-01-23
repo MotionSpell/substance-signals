@@ -23,11 +23,13 @@ namespace Modules {
 std::unique_ptr<IAllocator> createMemoryAllocator(size_t maxBlocks);
 
 template<typename T>
-struct AlignmentOf {
-	char a;
-	T data;
-	static const size_t value = sizeof(AlignmentOf<T>)-sizeof(T);
-};
+inline constexpr size_t getAlignmentOf() {
+	struct AlignmentOf {
+		char a;
+		T data;
+	};
+	return sizeof(AlignmentOf)-sizeof(T);
+}
 
 void ensureAligned(void* p, size_t alignment);
 
@@ -36,7 +38,7 @@ std::shared_ptr<T> alloc(std::shared_ptr<IAllocator> allocator, size_t size) {
 
 	auto p = allocator->alloc(sizeof(T));
 
-	ensureAligned(p, AlignmentOf<T>::value);
+	ensureAligned(p, getAlignmentOf<T>());
 
 	auto deleter = [allocator](T* p) {
 		p->~T();
