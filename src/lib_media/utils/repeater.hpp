@@ -3,6 +3,7 @@
 #include "lib_modules/utils/helper.hpp"
 #include <chrono>
 #include <thread>
+#include <atomic>
 
 namespace Modules {
 namespace Utils {

@@ -2,6 +2,7 @@
 #include "lib_modules/utils/factory.hpp" // registerModule
 #include "lib_utils/log_sink.hpp" // Warning
 #include "lib_utils/format.hpp"
+#include "lib_utils/queue.hpp"
 #include <string.h> // memcpy
 #include <thread>
 
