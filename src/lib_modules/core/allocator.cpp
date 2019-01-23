@@ -10,11 +10,47 @@
 namespace Modules {
 
 struct MemoryAllocator : IAllocator {
-		MemoryAllocator(size_t maxBlocks);
-		~MemoryAllocator();
+		MemoryAllocator(size_t maxBlocks) :
+			maxBlocks(maxBlocks),
+			curNumBlocks(maxBlocks) {
+			if (maxBlocks == 0)
+				throw std::runtime_error("Cannot create an allocator with 0 block.");
+			allocatedBlockCount = 0;
+			for (size_t i=0; i<maxBlocks; ++i) {
+				eventQueue.push(Event{OneBufferIsFree});
+			}
+		}
 
-		void* alloc(size_t size) override;
-		void free(void* p) override;
+		~MemoryAllocator() {
+			assert(allocatedBlockCount == 0);
+		}
+
+
+		void* alloc(size_t size) override {
+			Event block;
+			if (!eventQueue.tryPop(block)) {
+				if (curNumBlocks < maxBlocks) {
+					eventQueue.push(Event{OneBufferIsFree});
+					curNumBlocks++;
+				}
+				block = eventQueue.pop();
+			}
+			switch (block.type) {
+			case OneBufferIsFree: {
+				allocatedBlockCount ++;
+				return new uint8_t[size];
+			}
+			case Exit:
+				return nullptr;
+			}
+			return nullptr;
+		}
+
+		void free(void* p) override {
+			delete [] (uint8_t*)p;
+			allocatedBlockCount --;
+			eventQueue.push(Event{OneBufferIsFree});
+		}
 
 		void unblock() override {
 			eventQueue.push(Event{Exit});
@@ -38,47 +74,6 @@ struct MemoryAllocator : IAllocator {
 		// Only used for sanity-checking at destruction time.
 		std::atomic<int> allocatedBlockCount;
 };
-
-MemoryAllocator::MemoryAllocator(size_t maxBlocks) :
-	maxBlocks(maxBlocks),
-	curNumBlocks(maxBlocks) {
-	if (maxBlocks == 0)
-		throw std::runtime_error("Cannot create an allocator with 0 block.");
-	allocatedBlockCount = 0;
-	for (size_t i=0; i<maxBlocks; ++i) {
-		eventQueue.push(Event{OneBufferIsFree});
-	}
-}
-
-MemoryAllocator::~MemoryAllocator() {
-	assert(allocatedBlockCount == 0);
-}
-
-void* MemoryAllocator::alloc(size_t size) {
-	Event block;
-	if (!eventQueue.tryPop(block)) {
-		if (curNumBlocks < maxBlocks) {
-			eventQueue.push(Event{OneBufferIsFree});
-			curNumBlocks++;
-		}
-		block = eventQueue.pop();
-	}
-	switch (block.type) {
-	case OneBufferIsFree: {
-		allocatedBlockCount ++;
-		return new uint8_t[size];
-	}
-	case Exit:
-		return nullptr;
-	}
-	return nullptr;
-}
-
-void MemoryAllocator::free(void* p) {
-	delete [] (uint8_t*)p;
-	allocatedBlockCount --;
-	eventQueue.push(Event{OneBufferIsFree});
-}
 
 std::unique_ptr<IAllocator> createMemoryAllocator(size_t maxBlocks) {
 	return std::make_unique<MemoryAllocator>(maxBlocks);
