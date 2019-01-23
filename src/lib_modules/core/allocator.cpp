@@ -25,7 +25,6 @@ struct MemoryAllocator : IAllocator {
 			assert(allocatedBlockCount == 0);
 		}
 
-
 		void* alloc(size_t size) override {
 			Event block;
 			if (!eventQueue.tryPop(block)) {
