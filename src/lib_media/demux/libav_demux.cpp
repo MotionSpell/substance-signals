@@ -9,6 +9,7 @@
 #include "../common/ffpp.hpp"
 #include "../common/libav.hpp"
 #include "../common/attributes.hpp"
+#include <algorithm> //std::max
 #include <atomic>
 #include <thread>
 #include <vector>

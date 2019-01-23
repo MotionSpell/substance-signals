@@ -4,6 +4,7 @@
 #include "lib_utils/format.hpp"
 
 #include <cassert>
+#include <algorithm> //std::max
 
 namespace Modules {
 namespace Transform {
