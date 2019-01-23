@@ -9,6 +9,11 @@
 
 namespace Modules {
 
+void ensureAligned(void* p, size_t alignment) {
+	if((uintptr_t(p) % alignment))
+		throw std::logic_error("Invalid memory buffer alignment");
+}
+
 struct MemoryAllocator : IAllocator {
 		MemoryAllocator(size_t maxBlocks) :
 			maxBlocks(maxBlocks),
