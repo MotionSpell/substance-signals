@@ -61,7 +61,6 @@ class OutputDataDefault : public OutputWithSignal {
 		void connect(IInput* next) override {
 			signal.connect([=](Data data) {
 				next->push(data);
-				next->process();
 			});
 		}
 

@@ -45,9 +45,6 @@ class Input : public IInput {
 			return queue.clear();
 		}
 
-		void process() override {
-		}
-
 	private:
 		bool setMetadataInternal(Metadata metadata);
 

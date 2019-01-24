@@ -24,19 +24,7 @@ class FilterInput : public IInput {
 		void push(Data data) override {
 			queue.push(data);
 			statsPending->value ++;
-		}
 
-		Data pop() override {
-			assert(false);
-			return {};
-		}
-
-		bool tryPop(Data&) override {
-			assert(false);
-			return {};
-		}
-
-		void process() override {
 			auto doProcess = [this]() {
 				try {
 					auto data = queue.pop();
@@ -58,6 +46,16 @@ class FilterInput : public IInput {
 			};
 
 			executor->call(doProcess);
+		}
+
+		Data pop() override {
+			assert(false);
+			return {};
+		}
+
+		bool tryPop(Data&) override {
+			assert(false);
+			return {};
 		}
 
 		int isConnected() const override {

@@ -72,7 +72,7 @@ struct IProcessor {
 	virtual void process() = 0;
 };
 
-struct IInput : IProcessor, KInput {
+struct IInput : KInput {
 	virtual ~IInput() = default;
 
 	virtual int isConnected() const = 0;
