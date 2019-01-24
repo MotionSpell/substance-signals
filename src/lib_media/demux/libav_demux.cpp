@@ -309,9 +309,27 @@ struct LibavDemux : Module {
 			}
 		}
 
-		if (pkt.pts != AV_NOPTS_VALUE && pkt.dts != AV_NOPTS_VALUE && pkt.pts < pkt.dts) {
-			m_host->log(Error, format("Stream %s: pts < dts (%s < %s)", pkt.stream_index, pkt.pts, pkt.dts).c_str());
-			return false;
+		/*dts repetition*/
+		if (pkt.dts == m_streams[pkt.stream_index].lastDTS) {
+			m_streams[pkt.stream_index].lastDTS = pkt.dts = m_streams[pkt.stream_index].lastDTS + 1;
+		}
+
+		/*pts is mandatory since output as the media time*/
+		if (pkt.pts != AV_NOPTS_VALUE) {
+			if (pkt.dts != AV_NOPTS_VALUE) {
+				if (pkt.pts < pkt.dts) {
+					m_host->log(Error, format("Stream %s: pts < dts (%s < %s)", pkt.stream_index, pkt.pts, pkt.dts).c_str());
+					return false;
+				}
+			}
+		} else {
+			if (pkt.dts == AV_NOPTS_VALUE) {
+				m_streams[pkt.stream_index].lastDTS = pkt.dts = m_streams[pkt.stream_index].lastDTS + 1;
+				m_host->log(Error, format("Missing pts and dts, inferring to dts+1=%s.", pkt.dts).c_str());
+			} else {
+				m_host->log(Error, format("Missing pts, inferring to dts (%s).", pkt.dts).c_str());
+			}
+			pkt.pts = pkt.dts;
 		}
 
 		return true;
@@ -458,7 +476,7 @@ struct LibavDemux : Module {
 	struct Stream {
 		OutputDataDefault<DataAVPacket>* output = nullptr;
 		uint64_t offsetIn180k = 0;
-		int64_t lastDTS = 0;
+		int64_t lastDTS = std::numeric_limits<int64_t>::min();
 		std::unique_ptr<Transform::Restamp> restamper;
 	};
 
