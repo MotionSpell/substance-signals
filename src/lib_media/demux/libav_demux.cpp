@@ -487,7 +487,7 @@ Modules::IModule* createObject(KHost* host, void* va) {
 	auto config = (DemuxConfig*)va;
 	enforce(host, "LibavDemux: host can't be NULL");
 	enforce(config, "LibavDemux: config can't be NULL");
-	return Modules::createModule<LibavDemux>(host, *config).release();
+	return createModuleWithSize<LibavDemux>(384, host, *config).release();
 }
 
 auto const registered = Factory::registerModule("LibavDemux", &createObject);
