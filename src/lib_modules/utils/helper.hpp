@@ -111,7 +111,7 @@ class Module : public IModule {
 		}
 
 	protected:
-		KInput* addInput(IProcessor* p);
+		KInput* addInput();
 
 		template <typename InstanceType>
 		InstanceType* addOutput() {
@@ -146,7 +146,7 @@ std::unique_ptr<InstanceType> createModule(Args&&... args) {
 //single input specialized module
 class ModuleS : public Module {
 	public:
-		ModuleS() : input(Module::addInput(this)) {
+		ModuleS() : input(Module::addInput()) {
 		}
 		virtual void process(Data data) = 0;
 		void process() override {
@@ -156,7 +156,7 @@ class ModuleS : public Module {
 		}
 
 		// prevent derivatives from trying to add inputs
-		void addInput(IProcessor*) {}
+		void addInput() {}
 	protected:
 		KInput* const input;
 };

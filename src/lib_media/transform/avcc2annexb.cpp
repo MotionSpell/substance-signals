@@ -39,7 +39,7 @@ struct ByteReader {
 
 AVCC2AnnexBConverter::AVCC2AnnexBConverter(KHost* host)
 	: m_host(host) {
-	addInput(this);
+	addInput();
 	output = addOutput<OutputDataDefault<DataAVPacket>>();
 }
 

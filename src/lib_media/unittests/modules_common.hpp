@@ -24,7 +24,7 @@ struct Meta {
 
 struct Listener : public Modules::ModuleS {
 	Listener() {
-		addInput(this);
+		addInput();
 	}
 	void process(Modules::Data data) override {
 		auto const &m = safe_cast<const Modules::MetadataFile>(data->getMetadata());

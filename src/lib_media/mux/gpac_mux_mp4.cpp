@@ -432,7 +432,7 @@ GPACMuxMP4::GPACMuxMP4(KHost* host, Mp4MuxConfig const& cfg)
 	if (e != GF_OK)
 		throw error(format("Cannot make iso file %s interleaved", baseName));
 
-	addInput(this);
+	addInput();
 
 	if (compatFlags & FlushFragMemory) {
 		//TODO: retrieve framerate, and multiply the allocator size

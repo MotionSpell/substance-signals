@@ -91,7 +91,7 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 
 	struct Gapper : public ModuleS {
 		Gapper() {
-			addInput(this);
+			addInput();
 			output = addOutput<OutputDefault>();
 		}
 		void process(Data data) override {

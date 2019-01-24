@@ -25,7 +25,7 @@ struct Source : Modules::Module {
 };
 struct Receiver : Module {
 	Receiver(KHost*, bool &sent) : sent(sent) {
-		addInput(this);
+		addInput();
 	}
 	void process() {
 		sent = true;

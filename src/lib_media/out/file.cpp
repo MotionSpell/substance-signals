@@ -12,7 +12,7 @@ File::File(KHost* host, std::string const& path)
 	if (!file)
 		throw error(format("Can't open file for writing: %s", path));
 
-	addInput(this);
+	addInput();
 }
 
 File::~File() {

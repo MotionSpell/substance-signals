@@ -28,7 +28,7 @@ unittest("LibavDemux: simple: 75 frames") {
 
 	struct MyOutput : ModuleS {
 		MyOutput() {
-			addInput(this);
+			addInput();
 		}
 		void process(Data data) override {
 			if(isDeclaration(data))
@@ -55,7 +55,7 @@ unittest("LibavDemux: rollover") {
 
 	struct MyOutput : ModuleS {
 		MyOutput() {
-			addInput(this);
+			addInput();
 		}
 		vector<int64_t> times, decodingTimes;
 		void process(Data data) override {

@@ -6,8 +6,8 @@
 
 namespace Modules {
 
-KInput* Module::addInput(IProcessor* p) {
-	inputs.push_back(make_unique<Input>(p));
+KInput* Module::addInput() {
+	inputs.push_back(make_unique<Input>(this));
 	return inputs.back().get();
 }
 

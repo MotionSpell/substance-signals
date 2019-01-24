@@ -16,7 +16,7 @@ class FileSystemSink : public ModuleS {
 		FileSystemSink(KHost* /*host*/, FileSystemSinkConfig cfg)
 			: /*m_host(host),*/
 			  m_config(cfg) {
-			addInput(this);
+			addInput();
 		}
 
 		void process(Data data) override {

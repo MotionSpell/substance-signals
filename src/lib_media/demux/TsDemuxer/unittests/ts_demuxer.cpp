@@ -120,7 +120,7 @@ std::shared_ptr<DataBase> getTestTs() {
 
 struct FrameCounter : ModuleS {
 	FrameCounter() {
-		addInput(this);
+		addInput();
 	}
 	void process(Data data) override {
 		++frameCount;

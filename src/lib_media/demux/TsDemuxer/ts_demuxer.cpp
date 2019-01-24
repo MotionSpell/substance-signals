@@ -29,7 +29,7 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::Restamper {
 		TsDemuxer(KHost* host, TsDemuxerConfig const& config)
 			: m_host(host) {
 
-			addInput(this);
+			addInput();
 			m_unwrapper.WRAP_PERIOD = PTS_PERIOD;
 
 			m_streams.push_back(make_unique<PsiStream>(PID_PAT, m_host, this));

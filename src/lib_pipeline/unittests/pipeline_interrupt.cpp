@@ -31,7 +31,7 @@ unittest("pipeline: destroy while running: easy") {
 
 struct FakeTransformer : public Modules::ModuleS {
 	FakeTransformer(Modules::KHost*) {
-		addInput(this);
+		addInput();
 		out = addOutput<Modules::OutputDefault>();
 	}
 	void process(Modules::Data) override {

@@ -296,7 +296,7 @@ unittest("remux test: canonical to H.264 Annex B bitstream converter") {
 unittest("GPAC mp4 mux: don't create empty fragments") {
 	struct Recorder : ModuleS {
 		Recorder() {
-			addInput(this);
+			addInput();
 		}
 		void process(Data data) {
 			auto meta = safe_cast<const MetadataFile>(data->getMetadata());

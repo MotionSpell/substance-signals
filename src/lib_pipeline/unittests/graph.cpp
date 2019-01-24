@@ -10,7 +10,7 @@ namespace {
 
 struct Dummy : public Module {
 	Dummy(KHost*) {
-		addInput(this);
+		addInput();
 		output = addOutput<OutputDefault>();
 	}
 	void process() {

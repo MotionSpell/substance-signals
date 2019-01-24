@@ -28,7 +28,7 @@ class FakeOutput : public Module {
 class FakeInput : public Module {
 	public:
 		FakeInput() {
-			input = addInput(this);
+			input = addInput();
 		}
 		void process() {
 			auto data = inputs[0]->pop();
