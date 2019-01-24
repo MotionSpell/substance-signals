@@ -50,7 +50,6 @@ class LibavMuxHLSTS : public ModuleDynI {
 				inputIdx++;
 			}
 			delegate->getInput(inputIdx)->push(data);
-			delegate->process();
 
 			if (data->getMetadata()->type == VIDEO_PKT) {
 				const int64_t DTS = data->getMediaTime();
