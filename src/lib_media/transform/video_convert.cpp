@@ -24,7 +24,6 @@ class VideoConvert : public ModuleS {
 		VideoConvert(KHost* host, const PictureFormat &dstFormat)
 			: m_host(host),
 			  m_SwContext(nullptr), dstFormat(dstFormat) {
-			auto input = addInput(this);
 			input->setMetadata(make_shared<MetadataRawVideo>());
 			output = addOutput<OutputPicture>();
 		}

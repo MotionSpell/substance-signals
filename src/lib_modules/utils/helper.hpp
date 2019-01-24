@@ -146,12 +146,19 @@ std::unique_ptr<InstanceType> createModule(Args&&... args) {
 //single input specialized module
 class ModuleS : public Module {
 	public:
+		ModuleS() : input(Module::addInput(this)) {
+		}
 		virtual void process(Data data) = 0;
 		void process() override {
 			Data data;
 			if(getInput(0)->tryPop(data))
 				process(data);
 		}
+
+		// prevent derivatives from trying to add inputs
+		void addInput(IProcessor*) {}
+	protected:
+		KInput* const input;
 };
 
 template<typename Lambda>

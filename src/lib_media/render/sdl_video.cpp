@@ -41,7 +41,6 @@ struct SDLVideo : ModuleS {
 		: m_host(host),
 		  m_clock(clock ? clock : g_SystemClock.get()),
 		  workingThread(&SDLVideo::doRender, this) {
-		auto input = addInput(this);
 		input->setMetadata(make_shared<MetadataRawVideo>());
 
 		// wait for the working thread to create the window

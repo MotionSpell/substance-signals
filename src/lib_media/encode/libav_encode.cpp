@@ -106,7 +106,6 @@ struct LibavEncode : ModuleS {
 			if (!codecCtx)
 				throw error(format("Could not allocate the m_codec context (\"%s\").", codecName));
 
-			auto input = addInput(this);
 			output = addOutput<OutputDataDefault<DataAVPacket>>();
 
 			// Make ffmpeg use the same time scale as the framework:

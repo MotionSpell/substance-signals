@@ -29,7 +29,6 @@ class JPEGTurboDecode : public ModuleS {
 JPEGTurboDecode::JPEGTurboDecode(KHost* host_)
 	: m_host(host_),
 	  jtHandle(tjInitDecompress()) {
-	auto input = addInput(this);
 	input->setMetadata(make_shared<MetadataPkt>(VIDEO_PKT));
 
 	output = addOutput<OutputPicture>();
