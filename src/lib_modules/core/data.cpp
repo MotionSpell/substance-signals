@@ -51,6 +51,7 @@ DataBaseRef::DataBaseRef(std::shared_ptr<const DataBase> data) {
 	if (data) {
 		setMediaTime(data->getMediaTime());
 		setMetadata(data->getMetadata());
+		copyAttributes(*data);
 		auto ref = std::dynamic_pointer_cast<const DataBaseRef>(data);
 		if (ref) {
 			dataRef = ref->getData();
