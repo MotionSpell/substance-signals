@@ -326,9 +326,7 @@ void AdaptiveStreamingCommon::process() {
 }
 
 void AdaptiveStreamingCommon::flush() {
-	if (type != Static) {
-		endOfStream();
-	}
+	endOfStream();
 }
 
 }
