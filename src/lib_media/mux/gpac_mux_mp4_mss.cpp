@@ -24,6 +24,7 @@ class GPACMuxMP4MSS : public GPACMuxMP4 {
 		std::string writeISMLManifest(std::string codec4CC, std::string codecPrivate, int64_t bitrate, int width, int height, uint32_t sampleRate, uint32_t channels, uint16_t bitsPerSample);
 		std::string ISMLManifest;
 		const std::string audioLang, audioName;
+		std::string type;
 };
 
 GPACMuxMP4MSS::GPACMuxMP4MSS(KHost* host, Mp4MuxConfigMss& cfg)
@@ -49,6 +50,7 @@ void GPACMuxMP4MSS::declareStreamAudio(const MetadataPktAudio* metadata) {
 	ISMLManifest = writeISMLManifest(codec4CC, string2hex(extradata.ptr, extradata.len), metadata->bitrate, 0, 0, metadata->sampleRate, metadata->numChannels, bitsPerSample);
 	for(int k=0; k < 4; ++k)
 		ISMLManifest[k] = 0;
+	type = "audio";
 }
 
 void GPACMuxMP4MSS::declareStreamSubtitle(const MetadataPktSubtitle* metadata) {
@@ -56,6 +58,7 @@ void GPACMuxMP4MSS::declareStreamSubtitle(const MetadataPktSubtitle* metadata) {
 	ISMLManifest = writeISMLManifest(codec4CC, "", metadata->bitrate, 0, 0, 0, 0, 0);
 	for(int k=0; k < 4; ++k)
 		ISMLManifest[k] = 0;
+	type = "textstream";
 }
 
 void GPACMuxMP4MSS::declareStreamVideo(const MetadataPktVideo* metadata) {
@@ -66,6 +69,7 @@ void GPACMuxMP4MSS::declareStreamVideo(const MetadataPktVideo* metadata) {
 	ISMLManifest = writeISMLManifest(codec4CC, string2hex(extradata.ptr, extradata.len), metadata->bitrate, res.width, res.height, 0, 0, 0);
 	for(int k=0; k < 4; ++k)
 		ISMLManifest[k] = 0;
+	type = "video";
 }
 
 void GPACMuxMP4MSS::startSegmentPostAction() {
@@ -90,11 +94,8 @@ std::string GPACMuxMP4MSS::writeISMLManifest(std::string codec4CC, std::string c
 	ss << "    <switch>\n";
 	//TODO: multiple tracks for (i=0; i<nbTracks; ++i)
 	{
-		std::string type;
-		if (inputs[0]->getMetadata()->isAudio()) type = "audio";
-		else if (inputs[0]->getMetadata()->isVideo()) type = "video";
-		else if (inputs[0]->getMetadata()->isSubtitle()) type = "textstream";
-		else throw error("Only audio, video and subtitle are supported (2)");
+		if(type == "")
+			throw error("Only audio, video and subtitle are supported (2)");
 
 		ss << "      <" << type << " src=\"Stream\" systemBitrate=\"" << bitrate << "\">\n";
 		ss << "        <param name=\"trackID\" value=\"" << trackId << "\" valuetype=\"data\"/>\n";
