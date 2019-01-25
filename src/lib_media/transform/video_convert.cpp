@@ -32,7 +32,7 @@ class VideoConvert : public ModuleS {
 			sws_freeContext(m_SwContext);
 		}
 
-		void process(Data data) override {
+		void processOne(Data data) override {
 			auto videoData = safe_cast<const DataPicture>(data);
 			if (videoData->getFormat() != srcFormat) {
 				reconfigure(videoData->getFormat());

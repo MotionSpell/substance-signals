@@ -38,7 +38,7 @@ class HTTP : public ModuleS {
 
 		void setPrefix(span<const uint8_t> prefix);
 
-		void process(Data data) final;
+		void processOne(Data data) final;
 		void flush() final;
 
 	private:

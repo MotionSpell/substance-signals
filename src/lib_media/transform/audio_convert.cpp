@@ -84,7 +84,7 @@ struct AudioConvert : ModuleS {
 			output = addOutput<OutputPcm>();
 		}
 
-		void process(Data data) override {
+		void processOne(Data data) override {
 			auto audioData = safe_cast<const DataPcm>(data);
 
 			bool resyncNeeded = false;

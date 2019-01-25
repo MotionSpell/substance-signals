@@ -17,7 +17,7 @@ class GPACMuxMP4 : public ModuleS {
 	public:
 		GPACMuxMP4(KHost* host, Mp4MuxConfig const& config);
 		virtual ~GPACMuxMP4();
-		void process(Data data) override;
+		void processOne(Data data) override;
 		void flush() override;
 
 	protected:

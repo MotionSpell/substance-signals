@@ -9,7 +9,7 @@ Null::Null(KHost* host)
 	addInput();
 }
 
-void Null::process(Data) {
+void Null::processOne(Data) {
 }
 
 }

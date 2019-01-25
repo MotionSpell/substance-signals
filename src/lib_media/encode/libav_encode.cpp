@@ -174,7 +174,7 @@ struct LibavEncode : ModuleS {
 			return f;
 		}
 
-		void process(Data data) {
+		void processOne(Data data) {
 			if(!m_isOpen) {
 				openEncoder(data);
 				m_isOpen = true;

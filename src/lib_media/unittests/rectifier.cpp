@@ -88,7 +88,7 @@ struct DataGenerator : public ModuleS, public virtual IOutputCap {
 		output = addOutput<PORT>();
 		output->setMetadata(make_shared<METADATA>());
 	}
-	void process(Data dataIn) override {
+	void processOne(Data dataIn) override {
 		auto data = output->getBuffer(0);
 		auto dataPcm = dynamic_pointer_cast<DataPcm>(data);
 		if (dataPcm) {
@@ -105,7 +105,7 @@ struct DataRecorder : ModuleS {
 		addInput();
 	}
 
-	void process(Data data) {
+	void processOne(Data data) {
 		if(!data)
 			return;
 		auto now = fractionToClock(clock->now());
@@ -145,7 +145,7 @@ vector<Event> runRectifier(
 			clock->setTime(Fraction(event.clockTime, IClock::Rate));
 		shared_ptr<DataRaw> data(new DataRaw(0));
 		data->setMediaTime(event.mediaTime);
-		generators[event.index]->process(data);
+		generators[event.index]->processOne(data);
 	}
 
 	for(int i=0; i < 100; ++i)
@@ -154,7 +154,7 @@ vector<Event> runRectifier(
 	vector<Event> actualTimes;
 
 	for(int i=0; i < N; ++i) {
-		recorders[i]->process(nullptr);
+		recorders[i]->processOne(nullptr);
 		for (auto& rec : recorders[i]->record) {
 			actualTimes.push_back(Event{i, rec.when, rec.data->getMediaTime()});
 		}

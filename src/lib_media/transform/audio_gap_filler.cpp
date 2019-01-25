@@ -12,7 +12,7 @@ AudioGapFiller::AudioGapFiller(KHost* host, uint64_t toleranceInFrames)
 	output = addOutput<OutputPcm>();
 }
 
-void AudioGapFiller::process(Data data) {
+void AudioGapFiller::processOne(Data data) {
 	auto audioData = safe_cast<const DataPcm>(data);
 	auto const sampleRate = audioData->getFormat().sampleRate;
 	auto const timeInSR = clockToTimescale(data->getMediaTime(), sampleRate);
@@ -28,7 +28,7 @@ void AudioGapFiller::process(Data data) {
 				m_host->log(Warning, format("Fixing gap of %s samples (input=%s, accumulation=%s)", diff, timeInSR, accumulatedTimeInSR).c_str());
 				auto dataInThePast = make_shared<DataBaseRef>(data);
 				dataInThePast->setMediaTime(data->getMediaTime() - timescaleToClock((uint64_t)srcNumSamples, sampleRate));
-				process(dataInThePast);
+				processOne(dataInThePast);
 			} else {
 				return; /*small overlap: thrash current sample*/
 			}

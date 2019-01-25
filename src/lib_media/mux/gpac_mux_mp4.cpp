@@ -448,7 +448,7 @@ GPACMuxMP4::~GPACMuxMP4() {
 
 void GPACMuxMP4::flush() {
 	if (compatFlags & ExactInputDur) {
-		process(lastData);
+		processOne(lastData);
 		lastData = nullptr;
 	}
 	closeSegment(true);
@@ -1053,7 +1053,7 @@ void GPACMuxMP4::updateFormat(Data data) {
 	startSegment();
 }
 
-void GPACMuxMP4::process(Data data) {
+void GPACMuxMP4::processOne(Data data) {
 	if(isDeclaration(data))
 		return;
 

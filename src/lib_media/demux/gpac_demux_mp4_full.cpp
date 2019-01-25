@@ -42,7 +42,7 @@ class GPACDemuxMP4Full : public ModuleS {
 	public:
 		GPACDemuxMP4Full(KHost* host);
 		~GPACDemuxMP4Full();
-		void process(Data data) override;
+		void processOne(Data data) override;
 
 	private:
 		bool openData();
@@ -183,7 +183,7 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 	return !reader->data.empty();
 }
 
-void GPACDemuxMP4Full::process(Data data) {
+void GPACDemuxMP4Full::processOne(Data data) {
 	reader->pushData(data->data().ptr, data->data().len);
 
 	if (!reader->movie) {

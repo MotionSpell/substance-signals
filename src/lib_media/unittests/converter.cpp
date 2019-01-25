@@ -44,7 +44,7 @@ vector<short> getPlane(DataPcm const* data, int idx) {
 }
 
 struct Recorder : ModuleS {
-	void process(Data frame_) override {
+	void processOne(Data frame_) override {
 		out = frame_;
 	}
 	Data out;
@@ -180,7 +180,7 @@ unittest("audio converter: dynamic formats") {
 	soundGen->process();
 
 	converter->flush();
-	recorder->process(nullptr);
+	recorder->processOne(nullptr);
 
 	while (auto data = recorder->pop()) {
 		converter->getInput(0)->push(data);
@@ -355,9 +355,9 @@ unittest("audio gap filler") {
 	ConnectOutputToInput(gapFiller->getOutput(0), recorder->getInput(0));
 	for (auto &val : in) {
 		data->setMediaTime(val * numSamples, format.sampleRate);
-		gapFiller->process(data);
+		gapFiller->processOne(data);
 	}
-	recorder->process(nullptr);
+	recorder->processOne(nullptr);
 
 	size_t idx = 0;
 	while (auto dataRec = recorder->pop()) {

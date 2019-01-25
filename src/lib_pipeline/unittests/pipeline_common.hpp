@@ -13,7 +13,7 @@ struct Passthru : public Modules::ModuleS {
 		addInput();
 		addOutput<Modules::OutputDefault>();
 	}
-	void process(Modules::Data) override {
+	void processOne(Modules::Data) override {
 	}
 };
 
@@ -47,7 +47,7 @@ struct FakeSink : public Modules::ModuleS {
 	FakeSink(Modules::KHost*) {
 		addInput();
 	}
-	void process(Modules::Data) override {
+	void processOne(Modules::Data) override {
 	}
 };
 

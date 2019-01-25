@@ -30,7 +30,7 @@ unittest("LibavDemux: simple: 75 frames") {
 		MyOutput() {
 			addInput();
 		}
-		void process(Data data) override {
+		void processOne(Data data) override {
 			if(isDeclaration(data))
 				return;
 			++frameCount;
@@ -58,7 +58,7 @@ unittest("LibavDemux: rollover") {
 			addInput();
 		}
 		vector<int64_t> times, decodingTimes;
-		void process(Data data) override {
+		void processOne(Data data) override {
 			if(isDeclaration(data))
 				return;
 			times.push_back(data->getMediaTime());

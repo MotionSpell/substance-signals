@@ -206,7 +206,7 @@ void HTTP::flush() {
 	outputFinished->post(out);
 }
 
-void HTTP::process(Data data) {
+void HTTP::processOne(Data data) {
 	m_sender->send(data);
 }
 

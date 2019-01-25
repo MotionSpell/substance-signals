@@ -53,7 +53,7 @@ int64_t Restamp::restamp(int64_t time) {
 	return std::max<int64_t>(0, time + offset);
 }
 
-void Restamp::process(Data data) {
+void Restamp::processOne(Data data) {
 	auto const time = data->getMediaTime();
 	auto const restampedTime = restamp(time);
 	m_host->log(((time != 0) && (time + offset < 0)) ? Info : Debug, format("%s -> %ss (time=%s, offset=%s)", (double)time / IClock::Rate, (double)(restampedTime) / IClock::Rate, time, offset).c_str());

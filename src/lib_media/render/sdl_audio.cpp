@@ -101,7 +101,7 @@ struct SDLAudio : ModuleS {
 		return true;
 	}
 
-	void process(Data data) override {
+	void processOne(Data data) override {
 		m_converter->getInput(0)->push(data);
 		m_converter->process();
 	}

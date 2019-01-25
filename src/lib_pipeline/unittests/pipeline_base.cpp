@@ -14,7 +14,7 @@ struct CustomDataTypeSink : public Modules::ModuleS {
 	CustomDataTypeSink(Modules::KHost*) {
 		addInput();
 	}
-	void process(Modules::Data data) override {
+	void processOne(Modules::Data data) override {
 		safe_cast<const DataCustom>(data);
 	}
 };

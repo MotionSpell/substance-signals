@@ -15,7 +15,7 @@ void Recorder::flush() {
 	record.clear();
 }
 
-void Recorder::process(Data data) {
+void Recorder::processOne(Data data) {
 	if (data) {
 		m_host->log(Debug, format("Data[%s] recorded at media time %s", data, data->getMediaTime()).c_str());
 	}

@@ -171,7 +171,7 @@ struct SDLVideo : ModuleS {
 		SDL_SetWindowSize(window, displaySize.width, displaySize.height);
 	}
 
-	void process(Data data) override {
+	void processOne(Data data) override {
 		m_dataQueue.push(data);
 
 		auto const now = fractionToClock(m_clock->now());

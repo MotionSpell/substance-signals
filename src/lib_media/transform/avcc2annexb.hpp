@@ -11,7 +11,7 @@ namespace Transform {
 
 struct AVCC2AnnexBConverter : public ModuleS {
 		AVCC2AnnexBConverter(KHost* host);
-		void process(Data data) override;
+		void processOne(Data data) override;
 
 	private:
 		KHost* const m_host;

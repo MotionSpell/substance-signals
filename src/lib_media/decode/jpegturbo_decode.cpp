@@ -17,7 +17,7 @@ class JPEGTurboDecode : public ModuleS {
 	public:
 		JPEGTurboDecode(KHost* host);
 		~JPEGTurboDecode();
-		void process(Data data) override;
+		void processOne(Data data) override;
 
 	private:
 		KHost* const m_host;
@@ -50,7 +50,7 @@ void JPEGTurboDecode::ensureMetadata(int /*width*/, int /*height*/, int /*pixelF
 	}
 }
 
-void JPEGTurboDecode::process(Data data_) {
+void JPEGTurboDecode::processOne(Data data_) {
 	auto data = safe_cast<const DataBase>(data_);
 	const int pixelFmt = TJPF_RGB;
 	int w=0, h=0, jpegSubsamp=0;

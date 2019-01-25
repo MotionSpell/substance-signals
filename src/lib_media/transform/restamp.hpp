@@ -18,7 +18,7 @@ class Restamp : public ModuleS {
 		Restamp(KHost* host, Mode mode, int64_t offsetIn180k = 0);
 		~Restamp();
 		int64_t restamp(int64_t time);
-		void process(Data data) override;
+		void processOne(Data data) override;
 
 	private:
 		KHost* const m_host;

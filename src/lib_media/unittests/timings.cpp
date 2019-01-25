@@ -94,7 +94,7 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 			addInput();
 			output = addOutput<OutputDefault>();
 		}
-		void process(Data data) override {
+		void processOne(Data data) override {
 			if (!isDeclaration(data) && (i++ % 5) && (data->getMediaTime() < maxDurIn180k)) {
 				output->post(data);
 			}
@@ -172,7 +172,7 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 	}
 
 	for (size_t g = 0; g < recorders.size(); ++g) {
-		recorders[g]->process(nullptr);
+		recorders[g]->processOne(nullptr);
 		int64_t lastMediaTime = 0;
 		while (auto data = recorders[g]->pop()) {
 			if(isDeclaration(data))
@@ -195,18 +195,18 @@ unittest("restamp: passthru with offsets") {
 	data->setMediaTime(time);
 	auto restamp = createModule<Transform::Restamp>(&NullHost, Transform::Restamp::Reset);
 	ConnectOutput(restamp->getOutput(0), onFrame);
-	restamp->process(data);
+	restamp->processOne(data);
 
 	data->setMediaTime(time);
 	restamp = createModule<Transform::Restamp>(&NullHost, Transform::Restamp::Reset, 0);
 	ConnectOutput(restamp->getOutput(0), onFrame);
-	restamp->process(data);
+	restamp->processOne(data);
 
 	data->setMediaTime(time);
 	restamp = createModule<Transform::Restamp>(&NullHost, Transform::Restamp::Reset, time);
 	expected = time;
 	ConnectOutput(restamp->getOutput(0), onFrame);
-	restamp->process(data);
+	restamp->processOne(data);
 }
 
 unittest("restamp: reset with offsets") {
@@ -221,22 +221,22 @@ unittest("restamp: reset with offsets") {
 	data->setMediaTime(time);
 	auto restamp = createModule<Transform::Restamp>(&NullHost, Transform::Restamp::Passthru);
 	ConnectOutput(restamp->getOutput(0), onFrame);
-	restamp->process(data);
+	restamp->processOne(data);
 
 	data->setMediaTime(time);
 	restamp = createModule<Transform::Restamp>(&NullHost, Transform::Restamp::Passthru, 0);
 	ConnectOutput(restamp->getOutput(0), onFrame);
-	restamp->process(data);
+	restamp->processOne(data);
 
 	data->setMediaTime(time);
 	restamp = createModule<Transform::Restamp>(&NullHost, Transform::Restamp::Passthru, offset);
 	expected = time + offset;
 	ConnectOutput(restamp->getOutput(0), onFrame);
-	restamp->process(data);
+	restamp->processOne(data);
 
 	data->setMediaTime(time);
 	restamp = createModule<Transform::Restamp>(&NullHost, Transform::Restamp::Passthru, time);
 	expected = time + time;
 	ConnectOutput(restamp->getOutput(0), onFrame);
-	restamp->process(data);
+	restamp->processOne(data);
 }

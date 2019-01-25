@@ -10,7 +10,7 @@ class MS_HSS : public ModuleS {
 	public:
 		MS_HSS(KHost* host, const std::string &url);
 
-		void process(Data data) override;
+		void processOne(Data data) override;
 		void flush() override;
 
 	private:

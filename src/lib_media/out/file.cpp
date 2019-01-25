@@ -19,7 +19,7 @@ File::~File() {
 	fclose(file);
 }
 
-void File::process(Data data_) {
+void File::processOne(Data data_) {
 	auto data = safe_cast<const DataBase>(data_);
 	fwrite(data->data().ptr, 1, data->data().len, file);
 }

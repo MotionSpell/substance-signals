@@ -19,7 +19,7 @@ class JPEGTurboEncode : public ModuleS {
 	public:
 		JPEGTurboEncode(KHost* host, int quality = JPEG_DEFAULT_QUALITY);
 		~JPEGTurboEncode();
-		void process(Data data) override;
+		void processOne(Data data) override;
 
 	private:
 		KHost* const m_host;
@@ -39,7 +39,7 @@ JPEGTurboEncode::~JPEGTurboEncode() {
 	tjDestroy(jtHandle);
 }
 
-void JPEGTurboEncode::process(Data data_) {
+void JPEGTurboEncode::processOne(Data data_) {
 	auto videoData = safe_cast<const DataPicture>(data_);
 	auto const w = videoData->getFormat().res.width, h = videoData->getFormat().res.height;
 	auto const dataSize = tjBufSize(w, h, TJSAMP_420);

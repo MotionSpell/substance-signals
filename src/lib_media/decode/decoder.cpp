@@ -75,7 +75,7 @@ struct Decoder : ModuleS, PictureAllocator {
 		}
 
 		// IModule implementation
-		void process(Data data) {
+		void processOne(Data data) {
 			inputs[0]->updateMetadata(data);
 
 			if(!codecCtx) {

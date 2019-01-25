@@ -9,7 +9,7 @@ class File : public ModuleS {
 	public:
 		File(KHost* host, std::string const& path);
 		~File();
-		void process(Data data) override;
+		void processOne(Data data) override;
 
 	private:
 		KHost* const m_host;

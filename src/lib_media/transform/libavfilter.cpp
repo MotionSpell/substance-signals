@@ -23,7 +23,7 @@ class LibavFilter : public ModuleS {
 	public:
 		LibavFilter(KHost* host, const AvFilterConfig& cfg);
 		~LibavFilter();
-		void process(Data data) override;
+		void processOne(Data data) override;
 
 	private:
 		KHost* const m_host;
@@ -83,7 +83,7 @@ LibavFilter::~LibavFilter() {
 	avfilter_graph_free(&graph);
 }
 
-void LibavFilter::process(Data data) {
+void LibavFilter::processOne(Data data) {
 	const auto pic = safe_cast<const DataPicture>(data);
 	avFrameIn->get()->pict_type = AV_PICTURE_TYPE_NONE;
 	avFrameIn->get()->format = (int)pixelFormat2libavPixFmt(pic->getFormat().format);

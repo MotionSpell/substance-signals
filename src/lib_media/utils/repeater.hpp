@@ -13,7 +13,7 @@ class Repeater : public ModuleS {
 	public:
 		Repeater(KHost* host, int64_t ms);
 		virtual ~Repeater();
-		void process(Data data) override;
+		void processOne(Data data) override;
 		void flush() override;
 
 	private:

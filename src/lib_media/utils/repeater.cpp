@@ -46,7 +46,7 @@ void Repeater::threadProc() {
 	}
 }
 
-void Repeater::process(Data data) {
+void Repeater::processOne(Data data) {
 	lastData = data;
 	outputs[0]->post(lastData);
 	lastNow = high_resolution_clock::now();

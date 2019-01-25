@@ -16,7 +16,7 @@ class Regulator : public ModuleS {
 			m_output = addOutput<OutputDefault>();
 		}
 
-		void process(Data data) override {
+		void processOne(Data data) override {
 			auto const dataTime = data->getMediaTime();
 			auto const delayInMs = clockToTimescale(dataTime - fractionToClock(clock->now()), 1000);
 			if (delayInMs > 0) {

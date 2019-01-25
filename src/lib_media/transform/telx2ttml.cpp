@@ -96,7 +96,7 @@ class TeletextToTTML : public ModuleS {
 		};
 
 		TeletextToTTML(KHost* host, TeletextToTtmlConfig* cfg);
-		void process(Data data) override;
+		void processOne(Data data) override;
 
 	private:
 		std::string toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs);
@@ -252,7 +252,7 @@ void TeletextToTTML::processTelx(Data sub) {
 	}
 }
 
-void TeletextToTTML::process(Data data) {
+void TeletextToTTML::processOne(Data data) {
 	if (inputs[0]->updateMetadata(data))
 		output->setMetadata(data->getMetadata());
 	extClock = data->getMediaTime();

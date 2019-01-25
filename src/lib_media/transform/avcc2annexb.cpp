@@ -43,7 +43,7 @@ AVCC2AnnexBConverter::AVCC2AnnexBConverter(KHost* host)
 	output = addOutput<OutputDataDefault<DataAVPacket>>();
 }
 
-void AVCC2AnnexBConverter::process(Data in) {
+void AVCC2AnnexBConverter::processOne(Data in) {
 	if(isDeclaration(in))
 		return;
 

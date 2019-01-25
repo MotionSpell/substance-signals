@@ -39,7 +39,7 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::Restamper {
 					m_streams.push_back(make_unique<PesStream>(pid.pid, pid.type, this, m_host, addOutput<OutputDefault>()));
 		}
 
-		void process(Data data) override {
+		void processOne(Data data) override {
 			auto buf = data->data();
 
 			while(buf.len > 0) {

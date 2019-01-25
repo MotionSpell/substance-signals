@@ -39,7 +39,7 @@ MS_HSS::MS_HSS(KHost* host, const std::string &url)
 	m_http = createModule<Out::HTTP>(m_host, cfg);
 }
 
-void MS_HSS::process(Data data) {
+void MS_HSS::processOne(Data data) {
 
 	// split 'data' into 'prefix' (ftyp/moov/etc.) and 'bs' (mdat)
 	auto bs = data->data();
@@ -55,7 +55,7 @@ void MS_HSS::process(Data data) {
 		m_http->setPrefix(prefix);
 	}
 
-	m_http->process(createData(bs));
+	m_http->processOne(createData(bs));
 }
 
 void MS_HSS::flush() {

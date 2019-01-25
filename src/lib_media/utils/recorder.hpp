@@ -9,7 +9,7 @@ namespace Utils {
 class Recorder : public ModuleS {
 	public:
 		Recorder(KHost* host);
-		void process(Data data) override;
+		void processOne(Data data) override;
 		void flush() override;
 
 		Data pop();

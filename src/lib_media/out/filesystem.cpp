@@ -19,7 +19,7 @@ class FileSystemSink : public ModuleS {
 			addInput();
 		}
 
-		void process(Data data) override {
+		void processOne(Data data) override {
 			auto meta = safe_cast<const MetadataFile>(data->getMetadata());
 
 			auto const path = m_config.directory + "/" + meta->filename;

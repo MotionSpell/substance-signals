@@ -148,11 +148,11 @@ class ModuleS : public Module {
 	public:
 		ModuleS() : input(Module::addInput()) {
 		}
-		virtual void process(Data data) = 0;
+		virtual void processOne(Data data) = 0;
 		void process() override {
 			Data data;
 			if(input->tryPop(data))
-				process(data);
+				processOne(data);
 		}
 
 		// prevent derivatives from trying to add inputs

@@ -122,7 +122,7 @@ struct FrameCounter : ModuleS {
 	FrameCounter() {
 		addInput();
 	}
-	void process(Data data) override {
+	void processOne(Data data) override {
 		++frameCount;
 		totalLength += (int)data->data().len;
 	}
