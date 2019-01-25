@@ -15,8 +15,7 @@ MetadataCap::MetadataCap(Metadata metadata) : m_metadata(metadata) {
 }
 
 void MetadataCap::setMetadata(Metadata metadata) {
-	if (!setMetadataInternal(metadata))
-		throw std::runtime_error("Metadata could not be set.");
+	setMetadataInternal(metadata);
 }
 
 bool MetadataCap::updateMetadata(Data &data) {
