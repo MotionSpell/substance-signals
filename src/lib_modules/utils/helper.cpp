@@ -27,13 +27,17 @@ bool MetadataCap::updateMetadata(Data &data) {
 		const_cast<DataBase*>(data.get())->setMetadata(m_metadata);
 		return true;
 	} else {
-		return setMetadataInternal(metadata);
+		if (metadata == m_metadata)
+			return false;
+
+		setMetadataInternal(metadata);
+		return true;
 	}
 }
 
-bool MetadataCap::setMetadataInternal(Metadata metadata) {
+void MetadataCap::setMetadataInternal(Metadata metadata) {
 	if (metadata == m_metadata)
-		return false;
+		return;
 	if (m_metadata) {
 		if (metadata->type != m_metadata->type) {
 			throw std::runtime_error(format("Metadata update: incompatible types %s for data and %s for attached", metadata->type, m_metadata->type));
@@ -44,11 +48,10 @@ bool MetadataCap::setMetadataInternal(Metadata metadata) {
 		} else {
 			g_Log->log(Info, "Metadata update from data not supported yet: output port and data won't carry the same metadata.");
 		}
-		return true;
+		return;
 	}
 	g_Log->log(Debug, "Output: metadata transported by data changed. Updating.");
 	m_metadata = metadata;
-	return true;
 }
 
 void NullHostType::log(int level, char const* msg) {

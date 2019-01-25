@@ -25,7 +25,7 @@ class MetadataCap {
 		bool updateMetadata(Data &data);
 
 	private:
-		bool setMetadataInternal(Metadata metadata);
+		void setMetadataInternal(Metadata metadata);
 
 		Metadata m_metadata;
 };
