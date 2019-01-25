@@ -24,10 +24,10 @@ Filter::Filter(const char* name,
     IStatsRegistry *statsRegistry)
 	: m_log(pLog),
 	  m_name(name),
-	  executor(createExecutor(threading, name)),
 	  m_eventSink(eventSink),
 	  eosCount(0),
-	  statsRegistry(statsRegistry) {
+	  statsRegistry(statsRegistry),
+	  executor(createExecutor(threading, name)) {
 }
 
 // KHost implementation

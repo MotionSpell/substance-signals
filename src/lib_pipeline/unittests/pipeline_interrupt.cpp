@@ -41,7 +41,7 @@ struct FakeTransformer : public Modules::ModuleS {
 };
 
 unittest("pipeline: destroy while running: long chain of modules") {
-	for(int i=0; i< 10; ++i) {
+	for(int i=0; i< 100; ++i) {
 		auto p = std::make_unique<Pipeline>();
 		auto src = p->addModule<InfiniteSource>();
 		auto trans1 = p->addModule<FakeTransformer>();

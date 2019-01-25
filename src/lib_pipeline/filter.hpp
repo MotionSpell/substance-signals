@@ -67,7 +67,6 @@ class Filter :
 		LogSink* const m_log;
 		std::string const m_name;
 		std::shared_ptr<IModule> delegate;
-		std::unique_ptr<Signals::IExecutor> const executor;
 
 		bool started = false;
 		bool stopped = false;
@@ -82,6 +81,7 @@ class Filter :
 		IStatsRegistry * const statsRegistry;
 
 		std::vector<std::unique_ptr<IInput>> inputs;
+		std::unique_ptr<Signals::IExecutor> const executor;
 };
 
 }
