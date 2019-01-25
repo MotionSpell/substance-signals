@@ -79,7 +79,6 @@ unittest("decoder: audio simple") {
 	for(int i=0; i < 3; ++i) {
 		auto frame = getTestMp3Frame();
 		decode->getInput(0)->push(frame);
-		decode->process();
 	}
 	decode->flush();
 
@@ -105,7 +104,6 @@ unittest("decoder: timestamp propagation") {
 		auto frame = getTestMp3Frame();
 		frame->setMediaTime(i);
 		decode->getInput(0)->push(frame);
-		decode->process();
 	}
 	decode->flush();
 
@@ -164,9 +162,7 @@ unittest("decoder: video simple") {
 
 	ConnectOutput(decode->getOutput(0), onPic);
 	decode->getInput(0)->push(data);
-	decode->process();
 	decode->getInput(0)->push(data);
-	decode->process();
 	decode->flush();
 	ASSERT_EQUALS(expectedFrames, actualFrames);
 }
@@ -181,7 +177,6 @@ unittest("decoder: destroy without flushing") {
 
 	ConnectOutput(decode->getOutput(0), onPic);
 	decode->getInput(0)->push(getTestH264Frame());
-	decode->process();
 	ASSERT_EQUALS(0, picCount);
 }
 
