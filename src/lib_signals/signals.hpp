@@ -46,9 +46,6 @@ class Signal : public ISignal<Arg> {
 		Signal() : defaultExecutor(new ExecutorSync()), executor(*defaultExecutor.get()) {
 		}
 
-		Signal(IExecutor &executor) : executor(executor) {
-		}
-
 	private:
 		Signal(const Signal&) = delete;
 		Signal& operator= (const Signal&) = delete;

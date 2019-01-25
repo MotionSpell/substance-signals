@@ -28,12 +28,7 @@ class MetadataCap {
 		Metadata m_metadata;
 };
 
-static Signals::ExecutorSync g_executorOutputSync;
-
 struct OutputWithSignal : public IOutput {
-	OutputWithSignal() : signal(g_executorOutputSync) {
-	}
-
 	Signals::Signal<Data> signal;
 };
 
