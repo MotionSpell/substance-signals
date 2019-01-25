@@ -1,6 +1,5 @@
 #include "lib_utils/tools.hpp"
 #include "repeater.hpp"
-#include <algorithm> //std::max
 
 namespace Modules {
 namespace Utils {
