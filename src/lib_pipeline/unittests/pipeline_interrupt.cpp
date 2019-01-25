@@ -40,7 +40,7 @@ struct FakeTransformer : public Modules::ModuleS {
 	Modules::OutputDefault* out;
 };
 
-unittest("[DISABLED] pipeline: destroy while running: long chain of modules") {
+unittest("pipeline: destroy while running: long chain of modules") {
 	for(int i=0; i< 10; ++i) {
 		auto p = std::make_unique<Pipeline>();
 		auto src = p->addModule<InfiniteSource>();

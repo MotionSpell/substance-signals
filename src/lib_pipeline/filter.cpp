@@ -150,6 +150,13 @@ void Filter::stopSource() {
 	stopped = true;
 }
 
+void Filter::destroyOutputs() {
+	for(int i=0; i < delegate->getNumOutputs(); ++i) {
+		auto o = delegate->getOutput(i);
+		o->disconnect();
+	}
+}
+
 // IEventSink implementation
 
 void Filter::endOfStream() {

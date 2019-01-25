@@ -12,6 +12,7 @@ namespace Pipelines {
 
 struct IStatsRegistry;
 struct Graph;
+struct Filter;
 
 using CreationFunc = std::function<std::shared_ptr<Modules::IModule>(Modules::KHost*)>;
 
@@ -69,7 +70,7 @@ class Pipeline : public IEventSink {
 		}
 
 		std::unique_ptr<IStatsRegistry> statsMem;
-		std::vector<std::unique_ptr<IFilter>> modules;
+		std::vector<std::unique_ptr<Filter>> modules;
 		std::unique_ptr<Graph> graph;
 		LogSink* const m_log;
 		const int allocatorNumBlocks;

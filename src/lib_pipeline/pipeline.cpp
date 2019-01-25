@@ -51,6 +51,11 @@ Pipeline::Pipeline(LogSink* log, bool isLowLatency, Threading threading)
 }
 
 Pipeline::~Pipeline() {
+	// Prevent modules from communicating.
+	// this allows to destroy them safely,
+	// without having to topological-sort them.
+	for(auto& m : modules)
+		m->destroyOutputs();
 }
 
 IFilter* Pipeline::addModuleInternal(std::string name, CreationFunc createModule) {
@@ -80,7 +85,7 @@ void Pipeline::removeModule(IFilter *module) {
 	if (i_conn != graph->connections.end())
 		throw std::runtime_error("Could not remove module: connections found");
 
-	auto removeIt = [module](std::unique_ptr<IFilter> const& m) {
+	auto removeIt = [module](std::unique_ptr<Filter> const& m) {
 		return m.get() == module;
 	};
 	auto i_mod = std::find_if(modules.begin(), modules.end(), removeIt);

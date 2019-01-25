@@ -48,6 +48,9 @@ class Filter :
 		void startSource();
 		void stopSource();
 
+		// prevent from sending anymore data downstream
+		void destroyOutputs();
+
 	private:
 		void mimicInputs();
 		void processSource();
