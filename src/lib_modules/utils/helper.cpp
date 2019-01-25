@@ -15,27 +15,6 @@ MetadataCap::MetadataCap(Metadata metadata) : m_metadata(metadata) {
 }
 
 void MetadataCap::setMetadata(Metadata metadata) {
-	setMetadataInternal(metadata);
-}
-
-bool MetadataCap::updateMetadata(Data &data) {
-	if (!data)
-		return false;
-
-	auto const &metadata = data->getMetadata();
-	if (!metadata) {
-		const_cast<DataBase*>(data.get())->setMetadata(m_metadata);
-		return true;
-	}
-
-	if (metadata == m_metadata)
-		return false;
-
-	setMetadataInternal(metadata);
-	return true;
-}
-
-void MetadataCap::setMetadataInternal(Metadata metadata) {
 	if (metadata == m_metadata)
 		return;
 
@@ -54,6 +33,23 @@ void MetadataCap::setMetadataInternal(Metadata metadata) {
 	} else {
 		g_Log->log(Info, "Metadata update from data not supported yet: output port and data won't carry the same metadata.");
 	}
+}
+
+bool MetadataCap::updateMetadata(Data &data) {
+	if (!data)
+		return false;
+
+	auto const &metadata = data->getMetadata();
+	if (!metadata) {
+		const_cast<DataBase*>(data.get())->setMetadata(m_metadata);
+		return true;
+	}
+
+	if (metadata == m_metadata)
+		return false;
+
+	setMetadata(metadata);
+	return true;
 }
 
 void NullHostType::log(int level, char const* msg) {
