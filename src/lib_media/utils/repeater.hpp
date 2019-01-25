@@ -20,6 +20,7 @@ class Repeater : public ModuleS {
 		void threadProc();
 
 		KHost* const m_host;
+		KOutput* m_output;
 		std::thread workingThread;
 		std::atomic_bool done;
 		int64_t periodInMs;

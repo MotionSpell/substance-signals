@@ -13,7 +13,7 @@ Repeater::Repeater(KHost* host, int64_t ms)
 	: m_host(host), periodInMs(ms) {
 	(void)m_host;
 	done = false;
-	addOutput<OutputDefault>();
+	m_output = addOutput<OutputDefault>();
 	lastNow = high_resolution_clock::now();
 	workingThread = std::thread(&Repeater::threadProc, this);
 }
@@ -39,7 +39,7 @@ void Repeater::threadProc() {
 		auto const now = high_resolution_clock::now();
 		auto const waitTimeInMs = (duration_cast<milliseconds>(now - lastNow)).count();
 		if (waitTimeInMs > periodInMs) {
-			if (lastData) outputs[0]->post(lastData);
+			if (lastData) m_output->post(lastData);
 			lastNow = high_resolution_clock::now();
 		}
 	}
@@ -47,7 +47,7 @@ void Repeater::threadProc() {
 
 void Repeater::processOne(Data data) {
 	lastData = data;
-	outputs[0]->post(lastData);
+	m_output->post(lastData);
 	lastNow = high_resolution_clock::now();
 }
 
