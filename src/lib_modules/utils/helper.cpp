@@ -38,20 +38,22 @@ bool MetadataCap::updateMetadata(Data &data) {
 void MetadataCap::setMetadataInternal(Metadata metadata) {
 	if (metadata == m_metadata)
 		return;
-	if (m_metadata) {
-		if (metadata->type != m_metadata->type) {
-			throw std::runtime_error(format("Metadata update: incompatible types %s for data and %s for attached", metadata->type, m_metadata->type));
-		}
-		if (*m_metadata == *metadata) {
-			g_Log->log(Debug, "Output: metadata not equal but comparable by value. Updating.");
-			m_metadata = metadata;
-		} else {
-			g_Log->log(Info, "Metadata update from data not supported yet: output port and data won't carry the same metadata.");
-		}
+
+	if (!m_metadata) {
+		g_Log->log(Debug, "Output: metadata transported by data changed. Updating.");
+		m_metadata = metadata;
 		return;
 	}
-	g_Log->log(Debug, "Output: metadata transported by data changed. Updating.");
-	m_metadata = metadata;
+
+	if (metadata->type != m_metadata->type)
+		throw std::runtime_error(format("Metadata update: incompatible types %s for data and %s for attached", metadata->type, m_metadata->type));
+
+	if (*m_metadata == *metadata) {
+		g_Log->log(Debug, "Output: metadata not equal but comparable by value. Updating.");
+		m_metadata = metadata;
+	} else {
+		g_Log->log(Info, "Metadata update from data not supported yet: output port and data won't carry the same metadata.");
+	}
 }
 
 void NullHostType::log(int level, char const* msg) {
