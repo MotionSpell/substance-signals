@@ -90,9 +90,6 @@ struct IOutput : KOutput {
 	virtual void connect(IInput* next) = 0;
 	virtual void disconnect() = 0;
 	virtual Metadata getMetadata() const = 0;
-	virtual bool updateMetadata(Data&) {
-		return false;
-	};
 };
 
 struct IOutputCap {
