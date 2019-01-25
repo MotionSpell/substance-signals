@@ -9,6 +9,8 @@
 #include "../common/libav.hpp"
 #include "../common/attributes.hpp"
 
+#include <limits> // numeric_limits
+
 extern "C" {
 #include <libavutil/pixdesc.h>
 #include <libavcodec/avcodec.h> // avcodec_open2

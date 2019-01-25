@@ -5,6 +5,7 @@
 #include "lib_utils/i_scheduler.hpp"
 #include <memory>
 #include <vector>
+#include <mutex>
 
 namespace Modules {
 

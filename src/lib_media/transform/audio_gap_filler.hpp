@@ -3,6 +3,8 @@
 #include "lib_modules/utils/helper.hpp"
 #include "../common/pcm.hpp"
 
+#include <limits> // numeric_limits
+
 namespace Modules {
 namespace Transform {
 
