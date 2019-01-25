@@ -22,9 +22,7 @@ void Repeater::flush() {
 	done = true;
 	lastData = nullptr;
 	if (workingThread.joinable()) {
-		for (size_t i = 0; i < inputs.size(); ++i) {
-			inputs[i]->push(nullptr);
-		}
+		safe_cast<IInput>(input)->push(nullptr);
 		workingThread.join();
 	}
 }
