@@ -26,13 +26,13 @@ bool MetadataCap::updateMetadata(Data &data) {
 	if (!metadata) {
 		const_cast<DataBase*>(data.get())->setMetadata(m_metadata);
 		return true;
-	} else {
-		if (metadata == m_metadata)
-			return false;
-
-		setMetadataInternal(metadata);
-		return true;
 	}
+
+	if (metadata == m_metadata)
+		return false;
+
+	setMetadataInternal(metadata);
+	return true;
 }
 
 void MetadataCap::setMetadataInternal(Metadata metadata) {
