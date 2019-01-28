@@ -1,5 +1,6 @@
 #include "lib_utils/tools.hpp"
 #include "repeater.hpp"
+#include <algorithm> //std::min
 
 namespace Modules {
 namespace Utils {
