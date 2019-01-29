@@ -8,8 +8,11 @@
 #include "../common/libav.hpp"
 #include "../common/metadata_file.hpp"
 #include "lib_utils/format.hpp"
-
 #include <cassert>
+
+extern "C" {
+#include <libavcodec/avcodec.h> // AVPacket
+}
 
 using namespace Modules;
 
@@ -55,6 +58,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 				const int64_t DTS = data->getMediaTime();
 				if (firstDTS == -1) {
 					firstDTS = DTS;
+					startsWithRAP = safe_cast<const DataAVPacket>(data)->getPacket()->flags & AV_PKT_FLAG_KEY;
 				}
 				if (DTS >= (segIdx + 1) * segDuration + firstDTS) {
 					auto const fn = format("%s%s.ts", segBasename, segIdx);
@@ -67,6 +71,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 						metadata->durationIn180k = segDuration;
 						metadata->filename = hlsDir + fn;
 						metadata->filesize = fileSize(hlsDir + fn);
+						metadata->startsWithRAP = startsWithRAP;
 
 						switch (data->getMetadata()->type) {
 						case AUDIO_PKT:
@@ -93,6 +98,8 @@ class LibavMuxHLSTS : public ModuleDynI {
 						outputManifest->post(out);
 					}
 
+					/*next segment*/
+					startsWithRAP = safe_cast<const DataAVPacket>(data)->getPacket()->flags & AV_PKT_FLAG_KEY;;
 					segIdx++;
 				}
 			}
@@ -118,6 +125,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 		OutputDataDefault<DataRaw> *outputSegment, *outputManifest;
 		int64_t firstDTS = -1, segDuration, segIdx = 0;
 		std::string hlsDir, segBasename;
+		bool startsWithRAP = false;
 };
 
 IModule* createObject(KHost* host, void* va) {
