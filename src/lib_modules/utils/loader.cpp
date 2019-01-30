@@ -27,20 +27,19 @@ static string locatePlugin(const char* name) {
 shared_ptr<IModule> vLoadModule(const char* name, KHost* host, const void* va) {
 	string libName = name + string(".smd");
 	auto const libPath = locatePlugin(libName.c_str());
-	if(libPath.empty()) {
-		// create plugin from our own static (internal) factory
+
+	// create plugin from our own static (internal) factory
+	if(libPath.empty())
 		return shared_ptr<IModule>(Factory::instantiateModule(name, host, const_cast<void*>(va)));
-	} else {
-		// create plugin from the shared library's factory
-		auto lib = shared_ptr<DynLib>(loadLibrary(libPath.c_str()));
-		auto func = (decltype(instantiate)*)lib->getSymbol("instantiate");
 
-		auto deleter = [lib](IModule* mod) {
-			delete mod;
-		};
+	// create plugin from the shared library's factory
+	auto lib = shared_ptr<DynLib>(loadLibrary(libPath.c_str()));
+	auto func = (decltype(instantiate)*)lib->getSymbol("instantiate");
 
-		return shared_ptr<IModule>(func(name, host, const_cast<void*>(va)), deleter);
-	}
+	auto deleter = [lib](IModule* mod) {
+		delete mod;
+	};
+	return shared_ptr<IModule>(func(name, host, const_cast<void*>(va)), deleter);
 }
 
 shared_ptr<IModule> loadModule(const char* name, KHost* host, const void* va) {
