@@ -16,6 +16,9 @@ static string locatePlugin(const char* name) {
 		thisExeDir() + name, // search in the exe's directory
 	};
 
+	if(auto smdPath = std::getenv("SIGNALS_SMD_PATH"))
+		candidatePath.push_back(string(smdPath) + "/" + name);
+
 	for(auto path : candidatePath) {
 		if(ifstream(path).is_open())
 			return path;
