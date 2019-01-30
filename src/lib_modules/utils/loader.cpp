@@ -24,25 +24,15 @@ static string locatePlugin(const char* name) {
 	return ""; // not found
 }
 
-static unique_ptr<DynLib> loadPlugin(const char* name) {
-
-	auto path = locatePlugin(name);
-
-	if(path.empty())
-		throw runtime_error("Module shared object '" + string(name) + "' not found");
-
-	return loadLibrary(path.c_str());
-}
-
 shared_ptr<IModule> vLoadModule(const char* name, KHost* host, const void* va) {
 	string libName = name + string(".smd");
-
-	if(locatePlugin(libName.c_str()) == "") {
+	auto const libPath = locatePlugin(libName.c_str());
+	if(libPath.empty()) {
 		// create plugin from our own static (internal) factory
 		return shared_ptr<IModule>(Factory::instantiateModule(name, host, const_cast<void*>(va)));
 	} else {
 		// create plugin from the shared library's factory
-		auto lib = shared_ptr<DynLib>(loadPlugin(libName.c_str()));
+		auto lib = shared_ptr<DynLib>(loadLibrary(libPath.c_str()));
 		auto func = (decltype(instantiate)*)lib->getSymbol("instantiate");
 
 		auto deleter = [lib](IModule* mod) {
