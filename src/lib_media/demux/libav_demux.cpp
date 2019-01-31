@@ -325,9 +325,9 @@ struct LibavDemux : Module {
 		} else {
 			if (pkt.dts == AV_NOPTS_VALUE) {
 				m_streams[pkt.stream_index].lastDTS = pkt.dts = m_streams[pkt.stream_index].lastDTS + 1;
-				m_host->log(Error, format("Missing pts and dts, inferring to dts+1=%s.", pkt.dts).c_str());
+				m_host->log(Debug, format("Missing pts and dts, inferring to dts+1=%s.", pkt.dts).c_str());
 			} else {
-				m_host->log(Error, format("Missing pts, inferring to dts (%s).", pkt.dts).c_str());
+				m_host->log(Debug, format("Missing pts, inferring to dts (%s).", pkt.dts).c_str());
 			}
 			pkt.pts = pkt.dts;
 		}
