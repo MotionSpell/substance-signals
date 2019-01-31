@@ -64,7 +64,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 					auto const fn = format("%s%s.ts", segBasename, segIdx);
 
 					{
-						auto out = outputSegment->getBuffer(0);
+						auto out = outputSegment->getBuffer<DataRaw>(0);
 						out->setMediaTime(m_utcStartTime->query() + data->getMediaTime());
 
 						auto metadata = make_shared<MetadataFile>(SEGMENT);
@@ -89,7 +89,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 					}
 
 					{
-						auto out = outputManifest->getBuffer(0);
+						auto out = outputManifest->getBuffer<DataRaw>(0);
 
 						auto metadata = make_shared<MetadataFile>(PLAYLIST);
 						metadata->filename = hlsDir + segBasename + ".m3u8";

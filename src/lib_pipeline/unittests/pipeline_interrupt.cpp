@@ -35,7 +35,7 @@ struct FakeTransformer : public Modules::ModuleS {
 		out = addOutput<Modules::OutputDefault>();
 	}
 	void processOne(Modules::Data) override {
-		out->post(out->getBuffer(0));
+		out->post(out->getBuffer<DataRaw>(0));
 	}
 	Modules::OutputDefault* out;
 };

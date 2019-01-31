@@ -55,8 +55,10 @@ class OutputWithAllocator : public Output {
 			allocator->unblock();
 		}
 
-		std::shared_ptr<DataType> getBuffer(size_t size) {
-			return alloc<DataType>(allocator, size);
+		template<typename OtherDataType>
+		std::shared_ptr<OtherDataType> getBuffer(size_t size) {
+			static_assert(std::is_same<OtherDataType, DataType>(), "types must match");
+			return alloc<OtherDataType>(allocator, size);
 		}
 
 		void resetAllocator(size_t allocatorSize) {

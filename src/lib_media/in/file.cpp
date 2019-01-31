@@ -32,7 +32,7 @@ File::~File() {
 }
 
 void File::process() {
-	auto out = output->getBuffer(IOSIZE);
+	auto out = output->getBuffer<DataRaw>(IOSIZE);
 	size_t read = fread(out->data().ptr, 1, IOSIZE, file);
 	if (read == 0) {
 		m_host->activate(false);

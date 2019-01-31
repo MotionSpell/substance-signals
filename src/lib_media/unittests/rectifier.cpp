@@ -82,14 +82,14 @@ class ClockMock : public IClock, public IScheduler {
 		vector<Task> m_tasks; // keep this sorted
 };
 
-template<typename METADATA, typename PORT>
+template<typename METADATA, typename TYPE>
 struct DataGenerator : public ModuleS, public virtual IOutputCap {
 	DataGenerator() {
-		output = addOutput<PORT>();
+		output = addOutput<OutputWithAllocator<TYPE>>();
 		output->setMetadata(make_shared<METADATA>());
 	}
 	void processOne(Data dataIn) override {
-		auto data = output->getBuffer(0);
+		auto data = output->template getBuffer<TYPE>(0);
 		auto dataPcm = dynamic_pointer_cast<DataPcm>(data);
 		if (dataPcm) {
 			dataPcm->setPlane(0, nullptr, 1024 * dataPcm->getFormat().getBytesPerSample());
@@ -97,7 +97,7 @@ struct DataGenerator : public ModuleS, public virtual IOutputCap {
 		data->setMediaTime(dataIn->getMediaTime());
 		output->post(data);
 	}
-	PORT *output;
+	OutputWithAllocator<TYPE> *output;
 };
 
 struct DataRecorder : ModuleS {
@@ -121,8 +121,8 @@ struct DataRecorder : ModuleS {
 	shared_ptr<IClock> clock;
 };
 
-typedef DataGenerator<MetadataRawVideo, OutputWithAllocator<DataPicture>> VideoGenerator;
-typedef DataGenerator<MetadataRawAudio, OutputPcm> AudioGenerator;
+typedef DataGenerator<MetadataRawVideo, DataPicture> VideoGenerator;
+typedef DataGenerator<MetadataRawAudio, DataPcm> AudioGenerator;
 
 vector<Event> runRectifier(
     Fraction fps,

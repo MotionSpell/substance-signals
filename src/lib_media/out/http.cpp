@@ -202,7 +202,7 @@ void HTTP::setPrefix(span<const uint8_t> prefix) {
 void HTTP::flush() {
 	m_sender->send(nullptr);
 
-	auto out = outputFinished->getBuffer(0);
+	auto out = outputFinished->getBuffer<DataRaw>(0);
 	outputFinished->post(out);
 }
 

@@ -146,7 +146,7 @@ struct Decoder : ModuleS, PictureAllocator {
 		}
 
 		std::shared_ptr<DataBase> processAudio() {
-			auto out = audioOutput->getBuffer(0);
+			auto out = audioOutput->getBuffer<DataPcm>(0);
 			PcmFormat pcmFormat;
 			libavFrame2pcmConvert(avFrame->get(), &pcmFormat);
 			out->setFormat(pcmFormat);

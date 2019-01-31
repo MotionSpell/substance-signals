@@ -15,7 +15,7 @@ struct Source : Modules::Module {
 		host->activate(true);
 	}
 	void process() override {
-		out->post(out->getBuffer(0));
+		out->post(out->getBuffer<DataRaw>(0));
 		if(sent)
 			host->activate(false);
 	}

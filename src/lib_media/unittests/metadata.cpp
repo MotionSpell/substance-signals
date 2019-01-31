@@ -14,7 +14,7 @@ class FakeOutput : public Module {
 			output = addOutput<OutputPcm>();
 		}
 		void process() {
-			auto data = output->getBuffer(0);
+			auto data = output->getBuffer<DataPcm>(0);
 			output->post(data);
 		}
 		void setMetadata(std::shared_ptr<const IMetadata> metadata) {

@@ -233,7 +233,7 @@ struct LibavEncode : ModuleS {
 			}
 
 			while(1) {
-				auto out = output->getBuffer(0);
+				auto out = output->getBuffer<DataAVPacket>(0);
 				ret = avcodec_receive_packet(codecCtx.get(), out->getPacket());
 				if(ret != 0)
 					break;

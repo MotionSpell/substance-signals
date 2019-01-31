@@ -188,7 +188,7 @@ TeletextToTTML::TeletextToTTML(KHost* host, TeletextToTtmlConfig* cfg)
 }
 
 void TeletextToTTML::sendSample(const std::string &sample) {
-	auto out = output->getBuffer(0);
+	auto out = output->getBuffer<DataRaw>(0);
 	out->setMediaTime(intClock);
 	out->resize(sample.size());
 

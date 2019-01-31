@@ -429,7 +429,7 @@ struct LibavDemux : Module {
 
 	void dispatch(AVPacket *pkt) {
 		auto output = m_streams[pkt->stream_index].output;
-		auto out = output->getBuffer(0);
+		auto out = output->getBuffer<DataAVPacket>(0);
 		auto outPkt = out->getPacket();
 		av_packet_move_ref(outPkt, pkt);
 
@@ -465,7 +465,7 @@ struct LibavDemux : Module {
 				}
 				auto const st = m_formatCtx->streams[i];
 				if (st->codecpar->codec_type == AVMEDIA_TYPE_SUBTITLE) {
-					auto sparse = m_streams[i].output->getBuffer(0);
+					auto sparse = m_streams[i].output->getBuffer<DataAVPacket>(0);
 					sparse->setMediaTime(curTimeIn180k);
 					m_streams[i].output->post(sparse);
 				}

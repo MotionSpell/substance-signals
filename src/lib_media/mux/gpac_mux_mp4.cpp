@@ -835,7 +835,7 @@ void GPACMuxMP4::sendSegmentToOutput(bool EOS) {
 		SAFE(gf_isom_write(isoCur));
 	}
 
-	auto out = output->getBuffer(0);
+	auto out = output->getBuffer<DataRaw>(0);
 	if (gf_isom_get_filename(isoCur)) {
 		lastSegmentSize = fileSize(segmentName);
 	} else {

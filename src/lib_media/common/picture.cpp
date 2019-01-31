@@ -5,7 +5,7 @@ namespace Modules {
 std::shared_ptr<DataPicture> DataPicture::create(OutputPicture *out, Resolution res, Resolution resInternal, PixelFormat format) {
 	if (!out) return nullptr;
 
-	auto r = out->getBuffer(0);
+	auto r = out->getBuffer<DataPicture>(0);
 
 	DataPicture::setup(r.get(), res, resInternal, format);
 

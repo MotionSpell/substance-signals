@@ -43,7 +43,7 @@ void JPEGTurboEncode::processOne(Data data_) {
 	auto videoData = safe_cast<const DataPicture>(data_);
 	auto const w = videoData->getFormat().res.width, h = videoData->getFormat().res.height;
 	auto const dataSize = tjBufSize(w, h, TJSAMP_420);
-	auto out = output->getBuffer(dataSize);
+	auto out = output->getBuffer<DataRaw>(dataSize);
 	unsigned char *buf = (unsigned char*)out->data().ptr;
 	auto jpegBuf = videoData->data().ptr;
 	unsigned long jpegSize;
