@@ -29,31 +29,36 @@ class MetadataCap {
 };
 
 struct Output : public IOutput {
-	void post(Data data) override {
-		m_metadataCap.updateMetadata(data);
-		signal.emit(data);
-	}
+		void post(Data data) override {
+			m_metadataCap.updateMetadata(data);
+			signal.emit(data);
+		}
 
-	void connect(IInput* next) override {
-		signal.connect([=](Data data) {
-			next->push(data);
-		});
-	}
+		void connect(IInput* next) override {
+			signal.connect([=](Data data) {
+				next->push(data);
+			});
+		}
 
-	void disconnect() override {
-		signal.disconnectAll();
-	}
+		void disconnect() override {
+			signal.disconnectAll();
+		}
 
-	Metadata getMetadata() const override {
-		return m_metadataCap.getMetadata();
-	}
+		Metadata getMetadata() const override {
+			return m_metadataCap.getMetadata();
+		}
 
-	void setMetadata(Metadata metadata) override {
-		m_metadataCap.setMetadata(metadata);
-	}
+		void setMetadata(Metadata metadata) override {
+			m_metadataCap.setMetadata(metadata);
+		}
 
-	Signals::Signal<Data> signal;
-	MetadataCap m_metadataCap;
+		void connectFunction(std::function<void(Data)> f) {
+			signal.connect(f);
+		}
+
+	private:
+		Signals::Signal<Data> signal;
+		MetadataCap m_metadataCap;
 };
 
 // used by unit tests
@@ -64,7 +69,7 @@ class OutputWithAllocator : public Output {
 	public:
 		OutputWithAllocator(size_t allocatorMaxSize, Metadata metadata = nullptr)
 			: allocator(createMemoryAllocator(allocatorMaxSize)) {
-			m_metadataCap.setMetadata(metadata);
+			setMetadata(metadata);
 		}
 		virtual ~OutputWithAllocator() {
 			allocator->unblock();
