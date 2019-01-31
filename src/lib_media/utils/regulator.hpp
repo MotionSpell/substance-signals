@@ -12,7 +12,6 @@ class Regulator : public ModuleS {
 	public:
 		Regulator(KHost* host, std::shared_ptr<IClock> clock_)
 			: clock(clock_), m_host(host) {
-			addInput();
 			m_output = addOutput<OutputDefault>();
 		}
 

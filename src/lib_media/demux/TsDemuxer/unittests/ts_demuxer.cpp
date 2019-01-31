@@ -119,9 +119,6 @@ std::shared_ptr<DataBase> getTestTs() {
 }
 
 struct FrameCounter : ModuleS {
-	FrameCounter() {
-		addInput();
-	}
 	void processOne(Data data) override {
 		++frameCount;
 		totalLength += (int)data->data().len;

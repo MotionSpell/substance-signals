@@ -11,7 +11,6 @@ void Print::processOne(Data data_)  {
 Print::Print(KHost* host, std::ostream &os)
 	: m_host(host), os(os) {
 	(void)m_host;
-	addInput();
 }
 
 }

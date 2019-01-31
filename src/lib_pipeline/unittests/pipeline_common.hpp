@@ -10,7 +10,6 @@ namespace {
 
 struct Passthru : public Modules::ModuleS {
 	Passthru(Modules::KHost*) {
-		addInput();
 		addOutput<Modules::OutputDefault>();
 	}
 	void processOne(Modules::Data) override {
@@ -45,7 +44,6 @@ struct FakeSource : Modules::Module {
 
 struct FakeSink : public Modules::ModuleS {
 	FakeSink(Modules::KHost*) {
-		addInput();
 	}
 	void processOne(Modules::Data) override {
 	}

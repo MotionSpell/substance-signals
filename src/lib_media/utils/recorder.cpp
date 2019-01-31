@@ -8,7 +8,6 @@ namespace Utils {
 
 Recorder::Recorder(KHost* host)
 	: m_host(host) {
-	addInput();
 }
 
 void Recorder::flush() {

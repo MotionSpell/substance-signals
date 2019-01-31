@@ -27,9 +27,6 @@ vector<int64_t> deltas(vector<int64_t> times) {
 unittest("LibavDemux: simple: 75 frames") {
 
 	struct MyOutput : ModuleS {
-		MyOutput() {
-			addInput();
-		}
 		void processOne(Data data) override {
 			if(isDeclaration(data))
 				return;
@@ -54,9 +51,6 @@ unittest("LibavDemux: simple: 75 frames") {
 unittest("LibavDemux: rollover") {
 
 	struct MyOutput : ModuleS {
-		MyOutput() {
-			addInput();
-		}
 		vector<int64_t> times, decodingTimes;
 		void processOne(Data data) override {
 			if(isDeclaration(data))

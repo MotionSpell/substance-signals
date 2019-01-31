@@ -140,7 +140,7 @@ class ModuleS : public Module {
 		}
 
 		// prevent derivatives from trying to add inputs
-		void addInput() {}
+		void addInput(int) {}
 	protected:
 		KInput* const input;
 };

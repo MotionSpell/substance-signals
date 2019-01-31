@@ -23,9 +23,6 @@ struct Meta {
 };
 
 struct Listener : public Modules::ModuleS {
-	Listener() {
-		addInput();
-	}
 	void processOne(Modules::Data data) override {
 		auto const &m = safe_cast<const Modules::MetadataFile>(data->getMetadata());
 		results.push_back({ m->filename, m->mimeType, m->codecName,

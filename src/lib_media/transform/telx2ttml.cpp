@@ -183,7 +183,6 @@ TeletextToTTML::TeletextToTTML(KHost* host, TeletextToTtmlConfig* cfg)
 	  pageNum(cfg->pageNum), lang(cfg->lang), timingPolicy(cfg->timingPolicy), maxPageDurIn180k(timescaleToClock(cfg->maxDelayBeforeEmptyInMs, 1000)), splitDurationIn180k(timescaleToClock(cfg->splitDurationInMs, 1000)) {
 	enforce(cfg->utcStartTime != nullptr, "TeletextToTTML: utcStartTime can't be NULL");
 	config = make_unique<Config>();
-	addInput();
 	output = addOutput<OutputWithAllocator<DataRaw>>();
 }
 

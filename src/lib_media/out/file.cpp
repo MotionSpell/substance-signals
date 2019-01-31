@@ -11,8 +11,6 @@ File::File(KHost* host, std::string const& path)
 	file = fopen(path.c_str(), "wb");
 	if (!file)
 		throw error(format("Can't open file for writing: %s", path));
-
-	addInput();
 }
 
 File::~File() {
