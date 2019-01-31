@@ -45,7 +45,7 @@ class HTTP : public ModuleS {
 		KHost* const m_host;
 		std::unique_ptr<HttpSender> m_sender;
 		Data m_suffixData;
-		OutputDataDefault<DataRaw>* outputFinished;
+		OutputWithAllocator<DataRaw>* outputFinished;
 };
 
 }

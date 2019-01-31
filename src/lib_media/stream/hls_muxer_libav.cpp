@@ -40,8 +40,8 @@ class LibavMuxHLSTS : public ModuleDynI {
 				delegate = loadModule("LibavMux", m_host, &muxCfg);
 			}
 			addInput();
-			outputSegment  = addOutput<OutputDataDefault<DataRaw>>();
-			outputManifest = addOutput<OutputDataDefault<DataRaw>>();
+			outputSegment  = addOutput<OutputWithAllocator<DataRaw>>();
+			outputManifest = addOutput<OutputWithAllocator<DataRaw>>();
 		}
 
 		void process() override {
@@ -122,7 +122,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 		KHost* const m_host;
 		IUtcStartTimeQuery* const m_utcStartTime;
 		std::shared_ptr<IModule> delegate;
-		OutputDataDefault<DataRaw> *outputSegment, *outputManifest;
+		OutputWithAllocator<DataRaw> *outputSegment, *outputManifest;
 		int64_t firstDTS = -1, segDuration, segIdx = 0;
 		std::string hlsDir, segBasename;
 		bool startsWithRAP = false;

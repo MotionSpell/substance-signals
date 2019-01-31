@@ -179,6 +179,6 @@ class DataPcm : public DataBase {
 
 namespace Modules {
 template<typename DataType>
-class OutputDataDefault;
-typedef OutputDataDefault<DataPcm> OutputPcm;
+class OutputWithAllocator;
+typedef OutputWithAllocator<DataPcm> OutputPcm;
 }

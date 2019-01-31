@@ -15,7 +15,7 @@ struct AVCC2AnnexBConverter : public ModuleS {
 
 	private:
 		KHost* const m_host;
-		OutputDataDefault<DataAVPacket> *output;
+		OutputWithAllocator<DataAVPacket> *output;
 };
 
 }

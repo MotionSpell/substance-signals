@@ -28,57 +28,58 @@ class MetadataCap {
 		Metadata m_metadata;
 };
 
-struct OutputWithSignal : public IOutput {
+struct Output : public IOutput {
+	void post(Data data) override {
+		m_metadataCap.updateMetadata(data);
+		signal.emit(data);
+	}
+
+	void connect(IInput* next) override {
+		signal.connect([=](Data data) {
+			next->push(data);
+		});
+	}
+
+	void disconnect() override {
+		signal.disconnectAll();
+	}
+
+	Metadata getMetadata() const override {
+		return m_metadataCap.getMetadata();
+	}
+
+	void setMetadata(Metadata metadata) override {
+		m_metadataCap.setMetadata(metadata);
+	}
+
 	Signals::Signal<Data> signal;
+	MetadataCap m_metadataCap;
 };
 
 template<typename DataType>
-class OutputDataDefault : public OutputWithSignal {
+class OutputWithAllocator : public Output {
 	public:
-		OutputDataDefault(size_t allocatorMaxSize, Metadata metadata = nullptr)
-			: m_metadataCap(metadata), allocator(createMemoryAllocator(allocatorMaxSize)) {
+		OutputWithAllocator(size_t allocatorMaxSize, Metadata metadata = nullptr)
+			: allocator(createMemoryAllocator(allocatorMaxSize)) {
+			m_metadataCap.setMetadata(metadata);
 		}
-		virtual ~OutputDataDefault() {
+		virtual ~OutputWithAllocator() {
 			allocator->unblock();
-		}
-
-		void post(Data data) override {
-			m_metadataCap.updateMetadata(data);
-			signal.emit(data);
 		}
 
 		std::shared_ptr<DataType> getBuffer(size_t size) {
 			return alloc<DataType>(allocator, size);
 		}
 
-		void connect(IInput* next) override {
-			signal.connect([=](Data data) {
-				next->push(data);
-			});
-		}
-
-		void disconnect() override {
-			signal.disconnectAll();
-		}
-
 		void resetAllocator(size_t allocatorSize) {
 			allocator = createMemoryAllocator(allocatorSize);
 		}
 
-		Metadata getMetadata() const override {
-			return m_metadataCap.getMetadata();
-		}
-
-		void setMetadata(Metadata metadata) override {
-			m_metadataCap.setMetadata(metadata);
-		}
-
 	private:
-		MetadataCap m_metadataCap;
 		std::shared_ptr<IAllocator> allocator;
 };
 
-typedef OutputDataDefault<DataRaw> OutputDefault;
+typedef OutputWithAllocator<DataRaw> OutputDefault;
 
 class OutputCap : public virtual IOutputCap {
 	public:
@@ -154,11 +155,8 @@ class ModuleS : public Module {
 		KInput* const input;
 };
 
-template<typename Lambda>
-void ConnectOutput(IOutput* o, Lambda f) {
-	auto output = safe_cast<OutputWithSignal>(o);
-	output->signal.connect(f);
-}
+// used by unit tests
+void ConnectOutput(IOutput* o, std::function<void(Data)> f);
 
 struct NullHostType : KHost {
 	void log(int, char const*) override;

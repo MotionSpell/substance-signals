@@ -106,7 +106,7 @@ class TeletextToTTML : public ModuleS {
 
 		KHost* const m_host;
 		IUtcStartTimeQuery* const m_utcStartTime;
-		OutputDataDefault<DataRaw> *output;
+		OutputWithAllocator<DataRaw> *output;
 		const unsigned pageNum;
 		const std::string lang;
 		const TeletextToTtmlConfig::TimingPolicy timingPolicy;
@@ -184,7 +184,7 @@ TeletextToTTML::TeletextToTTML(KHost* host, TeletextToTtmlConfig* cfg)
 	enforce(cfg->utcStartTime != nullptr, "TeletextToTTML: utcStartTime can't be NULL");
 	config = make_unique<Config>();
 	addInput();
-	output = addOutput<OutputDataDefault<DataRaw>>();
+	output = addOutput<OutputWithAllocator<DataRaw>>();
 }
 
 void TeletextToTTML::sendSample(const std::string &sample) {

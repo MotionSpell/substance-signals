@@ -121,7 +121,7 @@ struct DataRecorder : ModuleS {
 	shared_ptr<IClock> clock;
 };
 
-typedef DataGenerator<MetadataRawVideo, OutputDataDefault<DataPicture>> VideoGenerator;
+typedef DataGenerator<MetadataRawVideo, OutputWithAllocator<DataPicture>> VideoGenerator;
 typedef DataGenerator<MetadataRawAudio, OutputPcm> AudioGenerator;
 
 vector<Event> runRectifier(

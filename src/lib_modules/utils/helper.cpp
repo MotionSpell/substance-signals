@@ -57,4 +57,10 @@ void NullHostType::log(int level, char const* msg) {
 		printf("[%d] %s\n", level, msg);
 }
 
+// used by unit tests
+void ConnectOutput(IOutput* o, std::function<void(Data)> f) {
+	auto output = safe_cast<Output>(o);
+	output->signal.connect(f);
+}
+
 }

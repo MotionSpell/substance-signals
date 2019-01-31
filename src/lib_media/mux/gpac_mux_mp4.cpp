@@ -439,7 +439,7 @@ GPACMuxMP4::GPACMuxMP4(KHost* host, Mp4MuxConfig const& cfg)
 		this->allocatorSize = 100 * ALLOC_NUM_BLOCKS_DEFAULT;
 	}
 
-	output = addOutput<OutputDataDefault<DataRaw>>();
+	output = addOutput<OutputWithAllocator<DataRaw>>();
 }
 
 GPACMuxMP4::~GPACMuxMP4() {

@@ -79,7 +79,7 @@ class AdaptiveStreamingCommon : public ModuleDynI {
 		const std::string manifestDir;
 		const AdaptiveStreamingCommonFlags flags;
 		std::vector<std::unique_ptr<Quality>> qualities;
-		OutputDataDefault<DataRaw> *outputSegments, *outputManifest;
+		OutputWithAllocator<DataRaw> *outputSegments, *outputManifest;
 
 	private:
 		void ensurePrefix(size_t index);
