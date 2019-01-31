@@ -11,25 +11,47 @@ namespace Modules {
 
 static string locatePlugin(const char* name) {
 
+	auto const libName = name + string(".smd");
+
 	vector<string> candidatePath = {
-		currentDir() + name, // search in the current directory
-		thisExeDir() + name, // search in the exe's directory
+		currentDir() + libName, // search in the current directory
+		thisExeDir() + libName, // search in the exe's directory
 	};
 
 	if(auto smdPath = std::getenv("SIGNALS_SMD_PATH"))
-		candidatePath.push_back(string(smdPath) + "/" + name);
+		candidatePath.push_back(string(smdPath) + "/" + libName);
 
 	for(auto path : candidatePath) {
 		if(ifstream(path).is_open())
 			return path;
 	}
 
-	return ""; // not found
+	if(Factory::hasModule(name))
+		return ""; // load from internal factory
+
+	// not found
+	string msg = "Can't create module '";
+	msg += name;
+	msg += "'. ";
+
+	bool first = true;
+	msg += "(Tried:";
+	for(auto path : candidatePath) {
+		if(!first)
+			msg += ',';
+		first = false;
+		msg += ' ';
+		msg += '"';
+		msg += path;
+		msg += '"';
+	}
+	msg += ')';
+
+	throw runtime_error(msg);
 }
 
 shared_ptr<IModule> vLoadModule(const char* name, KHost* host, const void* va) {
-	string libName = name + string(".smd");
-	auto const libPath = locatePlugin(libName.c_str());
+	auto const libPath = locatePlugin(name);
 
 	// create plugin from our own static (internal) factory
 	if(libPath.empty())

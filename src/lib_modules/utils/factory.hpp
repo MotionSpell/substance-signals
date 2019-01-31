@@ -7,6 +7,7 @@ namespace Factory {
 using CreationFunc = IModule* (KHost*, void*);
 IModule* instantiateModule(const char* name, KHost* host, void*);
 int registerModule(const char* name, CreationFunc* func);
+bool hasModule(const char* name);
 }
 
 }

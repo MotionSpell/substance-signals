@@ -51,6 +51,11 @@ IModule* instantiateModule(const char* name, KHost* host, void* va) {
 
 	return entry->func(host, va);
 }
+
+bool hasModule(const char* name) {
+	return findEntry(name);
+}
+
 }
 
 }
