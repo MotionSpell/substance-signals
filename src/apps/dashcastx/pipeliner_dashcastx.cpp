@@ -134,7 +134,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 
 	const bool transcode = cfg.v.size() > 0;
 	if (!transcode) {
-		g_Log->log(Warning, format("[%s] No transcode. Make passthru.", g_appName).c_str());
+		g_Log->log(Info, format("[%s] No transcode. Make passthru.", g_appName).c_str());
 		if (cfg.autoRotate)
 			throw std::runtime_error("cannot autorotate when transcoding is disabled");
 	}
