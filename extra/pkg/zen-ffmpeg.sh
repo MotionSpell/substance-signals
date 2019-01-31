@@ -6,6 +6,11 @@ function ffmpeg_build {
   lazy_extract "ffmpeg.tar.gz"
   mkgit "ffmpeg"
 
+  (
+    cd ffmpeg
+    ffmpeg_patches
+  )
+
   local ARCH=$(get_arch $host)
   local OS=$(get_os $host)
 
@@ -59,3 +64,24 @@ function ffmpeg_get_deps {
   echo zlib
 }
 
+
+function ffmpeg_patches {
+  local patchFile=$scriptDir/patches/ffmpeg_01_hlsenc_lower_verbosity.diff
+  cat << 'EOF' > $patchFile
+diff --git a/libavformat/hlsenc.c b/libavformat/hlsenc.c
+index c27a66e..6bfb175 100644
+--- a/libavformat/hlsenc.c
++++ b/libavformat/hlsenc.c
+@@ -2206,7 +2206,7 @@ static int hls_write_packet(AVFormatContext *s, AVPacket *pkt)
+             if (pkt->duration) {
+                 vs->duration += (double)(pkt->duration) * st->time_base.num / st->time_base.den;
+             } else {
+-                av_log(s, AV_LOG_WARNING, "pkt->duration = 0, maybe the hls segment duration will not precise\n");
++                av_log(s, AV_LOG_VERBOSE, "pkt->duration = 0, maybe the hls segment duration will not precise\n");
+                 vs->duration = (double)(pkt->pts - vs->end_pts) * st->time_base.num / st->time_base.den;
+             }
+         }
+EOF
+
+  applyPatch $patchFile
+}
