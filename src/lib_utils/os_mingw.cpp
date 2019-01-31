@@ -42,6 +42,13 @@ void changeDir(string path) {
 		throw runtime_error("can't change to dir '" + path + "'");
 }
 
+std::string currentDir() {
+	char buffer[4096] {};
+	if(!GetCurrentDirectory(sizeof buffer, buffer))
+		throw runtime_error("couldn't get the current directory");
+	return buffer + string("\\");
+}
+
 string thisExeDir() {
 	char buffer[4096] {};
 

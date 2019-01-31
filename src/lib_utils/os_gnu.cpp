@@ -44,6 +44,13 @@ void changeDir(string path) {
 		throw runtime_error("can't change to dir '" + path + "'");
 }
 
+string currentDir() {
+	shared_ptr<char> path(get_current_dir_name(), &free);
+	if(!path)
+		throw runtime_error("couldn't get the current directory");
+	return path.get() + string("/");
+}
+
 string thisExeDir() {
 	char buffer[4096] {};
 	auto r = readlink("/proc/self/exe", buffer, sizeof buffer);
