@@ -56,6 +56,9 @@ struct Output : public IOutput {
 	MetadataCap m_metadataCap;
 };
 
+// used by unit tests
+void ConnectOutput(IOutput* o, std::function<void(Data)> f);
+
 template<typename DataType>
 class OutputWithAllocator : public Output {
 	public:
@@ -154,9 +157,6 @@ class ModuleS : public Module {
 	protected:
 		KInput* const input;
 };
-
-// used by unit tests
-void ConnectOutput(IOutput* o, std::function<void(Data)> f);
 
 struct NullHostType : KHost {
 	void log(int, char const*) override;
