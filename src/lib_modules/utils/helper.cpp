@@ -57,6 +57,34 @@ void NullHostType::log(int level, char const* msg) {
 		printf("[%d] %s\n", level, msg);
 }
 
+void Output::post(Data data) {
+	m_metadataCap.updateMetadata(data);
+	signal.emit(data);
+}
+
+void Output::connect(IInput* next) {
+	signal.connect([=](Data data) {
+		next->push(data);
+	});
+}
+
+void Output::disconnect() {
+	signal.disconnectAll();
+}
+
+Metadata Output::getMetadata() const {
+	return m_metadataCap.getMetadata();
+}
+
+void Output::setMetadata(Metadata metadata) {
+	m_metadataCap.setMetadata(metadata);
+}
+
+void Output::connectFunction(std::function<void(Data)> f) {
+	signal.connect(f);
+}
+
+
 // used by unit tests
 void ConnectOutput(IOutput* o, std::function<void(Data)> f) {
 	auto output = safe_cast<Output>(o);

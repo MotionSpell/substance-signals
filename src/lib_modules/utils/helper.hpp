@@ -29,32 +29,12 @@ class MetadataCap {
 };
 
 struct Output : public IOutput {
-		void post(Data data) override {
-			m_metadataCap.updateMetadata(data);
-			signal.emit(data);
-		}
-
-		void connect(IInput* next) override {
-			signal.connect([=](Data data) {
-				next->push(data);
-			});
-		}
-
-		void disconnect() override {
-			signal.disconnectAll();
-		}
-
-		Metadata getMetadata() const override {
-			return m_metadataCap.getMetadata();
-		}
-
-		void setMetadata(Metadata metadata) override {
-			m_metadataCap.setMetadata(metadata);
-		}
-
-		void connectFunction(std::function<void(Data)> f) {
-			signal.connect(f);
-		}
+		void post(Data data) override;
+		void connect(IInput* next) override;
+		void disconnect() override;
+		Metadata getMetadata() const override;
+		void setMetadata(Metadata metadata) override;
+		void connectFunction(std::function<void(Data)> f);
 
 	private:
 		Signals::Signal<Data> signal;
