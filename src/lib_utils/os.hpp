@@ -5,6 +5,7 @@
 // process
 int getPid();
 bool setHighThreadPriority();
+std::string getEnvironmentVariable(std::string name);
 
 // filesystem
 bool dirExists(std::string path);

@@ -24,6 +24,13 @@ bool setHighThreadPriority() {
 	return true;
 }
 
+std::string getEnvironmentVariable(string name) {
+	const char* value = std::getenv(name.c_str());
+	if(!value)
+		value = "";
+	return value;
+}
+
 bool dirExists(string path) {
 	struct stat sb;
 	return stat(path.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode);

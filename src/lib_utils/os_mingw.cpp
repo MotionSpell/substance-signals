@@ -15,6 +15,13 @@ bool setHighThreadPriority() {
 	return SetThreadPriority(NULL, THREAD_PRIORITY_TIME_CRITICAL);
 }
 
+std::string getEnvironmentVariable(string name) {
+	char buffer[4096] {};
+	if(!GetEnvironmentVariable(name.c_str(), buffer, sizeof buffer))
+		return "";
+	return buffer;
+}
+
 bool dirExists(string path) {
 	DWORD attributes = GetFileAttributesA(path.c_str());
 	if (attributes == INVALID_FILE_ATTRIBUTES)
