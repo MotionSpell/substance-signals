@@ -110,8 +110,19 @@ void ensureDir(std::string path) {
 		mkdir(path);
 }
 
+namespace {
+struct Logger : LogSink {
+	void log(Level level, const char* msg) override {
+		g_Log->log(level, format("[%s] %s", g_appName, msg).c_str());
+	}
+};
+
+Logger g_PrefixedLogger;
+}
+
 std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
-	auto pipeline = make_unique<Pipeline>(g_Log, cfg.ultraLowLatency, cfg.ultraLowLatency ? Pipelines::Threading::Mono : Pipelines::Threading::OnePerModule);
+	auto log = &g_PrefixedLogger;
+	auto pipeline = make_unique<Pipeline>(log, cfg.ultraLowLatency, cfg.ultraLowLatency ? Pipelines::Threading::Mono : Pipelines::Threading::OnePerModule);
 
 	ensureDir(cfg.workingDir);
 	changeDir(cfg.workingDir);
@@ -134,7 +145,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 
 	const bool transcode = cfg.v.size() > 0;
 	if (!transcode) {
-		g_Log->log(Info, format("[%s] No transcode. Make passthru.", g_appName).c_str());
+		log->log(Info, "No transcode. Make passthru.");
 		if (cfg.autoRotate)
 			throw std::runtime_error("cannot autorotate when transcoding is disabled");
 	}
@@ -179,7 +190,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 	auto processElementaryStream = [&](int streamIndex) {
 		auto const metadata = demux->getOutputMetadata(streamIndex);
 		if (!metadata) {
-			g_Log->log(Warning, format("[%s] Unknown metadata for stream %s. Ignoring.", g_appName, streamIndex).c_str());
+			log->log(Warning, format("Unknown metadata for stream %s. Ignoring.", streamIndex).c_str());
 			return;
 		}
 
