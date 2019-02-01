@@ -73,8 +73,22 @@ string thisExeDir() {
 	return path;
 }
 
+static HMODULE loadDll(const char* name) {
+	HMODULE r;
+
+	r = LoadLibraryA(name);
+	if(r)
+		return r;
+
+	r = LoadLibraryExA(name, NULL, LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
+	if(r)
+		return r;
+
+	return NULL;
+}
+
 struct DynLibWin : DynLib {
-	DynLibWin(const char* name) : hmodule(LoadLibraryA(name)) {
+	DynLibWin(const char* name) : hmodule(loadDll(name)) {
 		if(!hmodule) {
 			string msg = "can't load '";
 			msg += name;
