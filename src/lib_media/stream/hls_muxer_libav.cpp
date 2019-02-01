@@ -8,7 +8,9 @@
 #include "../common/libav.hpp"
 #include "../common/metadata_file.hpp"
 #include "lib_utils/format.hpp"
+#include "lib_utils/log_sink.hpp"
 #include <cassert>
+#include <list>
 
 extern "C" {
 #include <libavcodec/avcodec.h> // AVPacket
@@ -18,6 +20,14 @@ using namespace Modules;
 
 namespace {
 
+bool fileExists(std::string path) {
+	auto f = fopen(path.c_str(), "r");
+	if (f) {
+		fclose(f);
+		return true;
+	}
+	return false;
+}
 
 uint64_t fileSize(std::string path) {
 	auto file = fopen(path.c_str(), "rt");
@@ -44,6 +54,10 @@ class LibavMuxHLSTS : public ModuleDynI {
 			outputManifest = addOutput<OutputWithAllocator<DataRaw>>();
 		}
 
+		void flush() override {
+			while (post()) {}
+		}
+
 		void process() override {
 			ensureDelegateInputs();
 
@@ -60,49 +74,33 @@ class LibavMuxHLSTS : public ModuleDynI {
 					firstDTS = DTS;
 					startsWithRAP = safe_cast<const DataAVPacket>(data)->getPacket()->flags & AV_PKT_FLAG_KEY;
 				}
+
 				if (DTS >= (segIdx + 1) * segDuration + firstDTS) {
-					auto const fn = format("%s%s.ts", segBasename, segIdx);
+					auto meta = make_shared<MetadataFile>(SEGMENT);
+					meta->durationIn180k = segDuration;
+					meta->filename = format("%s%s%s.ts", hlsDir, segBasename, segIdx);
+					meta->startsWithRAP = startsWithRAP;
 
-					{
-						auto out = outputSegment->getBuffer<DataRaw>(0);
-						out->setMediaTime(m_utcStartTime->query() + data->getMediaTime());
-
-						auto metadata = make_shared<MetadataFile>(SEGMENT);
-						metadata->durationIn180k = segDuration;
-						metadata->filename = hlsDir + fn;
-						metadata->filesize = fileSize(hlsDir + fn);
-						metadata->startsWithRAP = startsWithRAP;
-
-						switch (data->getMetadata()->type) {
-						case AUDIO_PKT:
-							metadata->sampleRate = safe_cast<const MetadataPktAudio>(data->getMetadata())->sampleRate; break;
-						case VIDEO_PKT: {
-							auto const res = safe_cast<const MetadataPktVideo>(data->getMetadata())->resolution;
-							metadata->resolution = res;
-							break;
-						}
-						default: assert(0);
-						}
-						out->setMetadata(metadata);
-
-						outputSegment->post(out);
+					switch (data->getMetadata()->type) {
+					case AUDIO_PKT:
+						meta->sampleRate = safe_cast<const MetadataPktAudio>(data->getMetadata())->sampleRate; break;
+					case VIDEO_PKT: {
+						auto const res = safe_cast<const MetadataPktVideo>(data->getMetadata())->resolution;
+						meta->resolution = res;
+						break;
+					}
+					default: assert(0);
 					}
 
-					{
-						auto out = outputManifest->getBuffer<DataRaw>(0);
-
-						auto metadata = make_shared<MetadataFile>(PLAYLIST);
-						metadata->filename = hlsDir + segBasename + ".m3u8";
-
-						out->setMetadata(metadata);
-						outputManifest->post(out);
-					}
+					schedule({ (int64_t)m_utcStartTime->query() + data->getMediaTime(), meta, segIdx });
 
 					/*next segment*/
 					startsWithRAP = safe_cast<const DataAVPacket>(data)->getPacket()->flags & AV_PKT_FLAG_KEY;;
 					segIdx++;
 				}
 			}
+
+			postIfPossible();
 		}
 
 		IInput* getInput(int i) override {
@@ -119,10 +117,65 @@ class LibavMuxHLSTS : public ModuleDynI {
 			}
 		}
 
+		struct PostableSegment {
+			int64_t pts;
+			std::shared_ptr<MetadataFile> meta;
+			int64_t segIdx;
+		};
+
+		void schedule(PostableSegment s) {
+			segmentsToPost.push_back(s);
+		}
+
+		bool post() {
+			if (segmentsToPost.empty())
+				return false;
+
+			auto s = segmentsToPost.front();
+			if (fileExists(s.meta->filename)) {
+				s.meta->filesize = fileSize(s.meta->filename);
+			} else {
+				m_host->log(Warning, format("Cannot post filename \"%s\": file does not exist.", s.meta->filename).c_str());
+				return false;
+			}
+
+			auto data = outputSegment->getBuffer<DataRaw>(0);
+			data->setMediaTime(s.pts);
+			data->setMetadata(s.meta);
+			outputSegment->post(data);
+			segmentsToPost.pop_front();
+
+			/*update playlist*/
+			{
+				auto out = outputManifest->getBuffer<DataRaw>(0);
+
+				auto metadata = make_shared<MetadataFile>(PLAYLIST);
+				metadata->filename = hlsDir + segBasename + ".m3u8";
+
+				out->setMetadata(metadata);
+				outputManifest->post(out);
+			}
+
+			return true;
+		}
+
+		void postIfPossible() {
+			if (segmentsToPost.empty())
+				return;
+
+			/*segment is complete when next segment exists*/
+			auto s = segmentsToPost.front();
+			if (!fileExists(format("%s%s%s.ts", hlsDir, segBasename, s.segIdx + 1)))
+				return;
+
+			post();
+		}
+
 		KHost* const m_host;
 		IUtcStartTimeQuery* const m_utcStartTime;
 		std::shared_ptr<IModule> delegate;
 		OutputWithAllocator<DataRaw> *outputSegment, *outputManifest;
+		std::list<PostableSegment> segmentsToPost;
 		int64_t firstDTS = -1, segDuration, segIdx = 0;
 		std::string hlsDir, segBasename;
 		bool startsWithRAP = false;
@@ -137,4 +190,3 @@ IModule* createObject(KHost* host, void* va) {
 
 auto const registered = Factory::registerModule("LibavMuxHLSTS", &createObject);
 }
-
