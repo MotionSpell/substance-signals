@@ -1,7 +1,10 @@
 #include "lib_appcommon/options.hpp"
+#include "lib_utils/system_clock.hpp"
 #include "lib_pipeline/pipeline.hpp"
 #include "lib_media/out/UdpOutput/udp_output.hpp"
 #include "lib_media/in/file.hpp"
+#include "lib_media/transform/restamp.hpp" // BitrateRestamp
+#include "lib_media/utils/regulator.hpp"
 
 using namespace std;
 using namespace Modules;
@@ -11,16 +14,15 @@ struct Config {
 	UdpOutputConfig udpConfig;
 	string path;
 	bool help = false;
+	int bitrate = 50 * 1000 * 1000;
 };
 
 Config parseCommandLine(int argc, char const* argv[]) {
 	Config cfg;
 
-	int bitrate = 50 * 1000 * 1000;
-
 	CmdLineOptions opt;
 	opt.addFlag("h", "help", &cfg.help, "Print usage and exit.");
-	opt.add("b", "bitrate", &bitrate, "Set sending bitrate (default: 50Mbps)");
+	opt.add("b", "bitrate", &cfg.bitrate, "Set sending bitrate (default: 50Mbps)");
 
 	auto files = opt.parse(argc, argv);
 
@@ -43,8 +45,6 @@ Config parseCommandLine(int argc, char const* argv[]) {
 	        &cfg.udpConfig.port) != 5)
 		throw runtime_error("invalid destination address format");
 
-	cfg.udpConfig.bitrate = bitrate;
-
 	return cfg;
 }
 
@@ -55,7 +55,19 @@ int safeMain(int argc, char const* argv[]) {
 
 	Pipeline pipeline;
 
-	auto file = pipeline.addModule<In::File>(cfg.path, 7 * 188);
+	auto restamp = [&](OutputPin source) -> OutputPin {
+		auto r = pipeline.addNamedModule<Transform::BitrateRestamp>("Restamper", cfg.bitrate);
+		pipeline.connect(source, r);
+		return GetOutputPin(r);
+	};
+
+	auto regulate = [&](OutputPin source) -> OutputPin {
+		auto r = pipeline.addNamedModule<Regulator>("Regulator", g_SystemClock);
+		pipeline.connect(source, r);
+		return GetOutputPin(r);
+	};
+
+	auto file = regulate(restamp(pipeline.addModule<In::File>(cfg.path, 7 * 188)));
 	auto sender = pipeline.add("UdpOutput", &cfg.udpConfig);
 	pipeline.connect(file, sender);
 	pipeline.start();

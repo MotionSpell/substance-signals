@@ -63,5 +63,20 @@ void Restamp::processOne(Data data) {
 	output->post(dataOut);
 }
 
+BitrateRestamp::BitrateRestamp(KHost* host,  int64_t bitrateInBps)
+	: m_host(host), m_bitrateInBps(bitrateInBps) {
+	enforce(bitrateInBps > 0, "Invalid bitrate");
+	output = addOutput<OutputDefault>();
+}
+
+void BitrateRestamp::processOne(Data data) {
+	auto const timestamp = (m_totalBits * IClock::Rate) / m_bitrateInBps;
+
+	auto dataOut = make_shared<DataBaseRef>(data);
+	dataOut->setMediaTime(timestamp);
+	dataOut->copyAttributes(*data);
+	output->post(dataOut);
+	m_totalBits += 8 * data->data().len;
+}
 }
 }

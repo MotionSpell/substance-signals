@@ -28,5 +28,17 @@ class Restamp : public ModuleS {
 		bool isInitTime = false;
 };
 
+// output mediaTime = cumulatedBits / bitrate
+// (input mediaTime, if any, is discarded)
+struct BitrateRestamp : ModuleS {
+		BitrateRestamp(KHost* host, int64_t bitrateInBps);
+		void processOne(Data data) override;
+	private:
+		KHost* const m_host;
+		KOutput* output;
+		int64_t m_totalBits = 0;
+		const int64_t m_bitrateInBps;
+};
+
 }
 }
