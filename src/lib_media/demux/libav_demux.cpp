@@ -83,7 +83,7 @@ struct LibavDemux : Module {
 				if (!m_avioCtx)
 					throw std::runtime_error("AvIO allocation failed");
 				m_formatCtx->pb = m_avioCtx;
-				m_formatCtx->flags = AVFMT_FLAG_CUSTOM_IO;
+				m_formatCtx->flags |= AVFMT_FLAG_CUSTOM_IO;
 			}
 
 			AVInputFormat* avInputFormat = nullptr;
