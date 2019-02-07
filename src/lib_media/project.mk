@@ -183,6 +183,7 @@ $(BIN)/FileSystemSink.smd: \
 
 #------------------------------------------------------------------------------
 include $(SRC)/lib_media/in/MulticastInput/project.mk
+include $(SRC)/lib_media/out/UdpOutput/project.mk
 include $(SRC)/lib_media/demux/TsDemuxer/project.mk
 
 #------------------------------------------------------------------------------

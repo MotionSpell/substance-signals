@@ -68,6 +68,7 @@ include $(SRC)/lib_media/project.mk
 
 ifeq ($(SIGNALS_HAS_APPS), 1)
   include $(SRC)/apps/dashcastx/project.mk
+  include $(SRC)/apps/ts2ip/project.mk
   include $(SRC)/apps/player/project.mk
   include $(SRC)/apps/mp42tsx/project.mk
   include $(SRC)/apps/monitor/project.mk
