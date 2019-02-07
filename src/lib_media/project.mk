@@ -113,6 +113,14 @@ $(BIN)/LibavMux.smd: \
   $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
 
 #------------------------------------------------------------------------------
+TARGETS+=$(BIN)/TsMuxer.smd
+$(BIN)/TsMuxer.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
+$(BIN)/TsMuxer.smd: CFLAGS+=$(MEDIA_CFLAGS)
+$(BIN)/TsMuxer.smd: \
+  $(BIN)/$(SRC)/lib_media/mux/TsMuxer/mpegts_muxer.cpp.o\
+  $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
+
+#------------------------------------------------------------------------------
 TARGETS+=$(BIN)/LibavFilter.smd
 $(BIN)/LibavFilter.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
 $(BIN)/LibavFilter.smd: CFLAGS+=$(MEDIA_CFLAGS)
