@@ -99,9 +99,7 @@ struct LibavDemux : Module {
 			int err = avformat_open_input(&m_formatCtx, url.c_str(), avInputFormat, &dict);
 			if (err) {
 				clean();
-				char buffer[256];
-				av_strerror(err, buffer, sizeof buffer);
-				throw error(format("Error when opening input '%s': %s", url, buffer));
+				throw error(format("Error when opening input '%s': %s", url, avStrError(err)));
 			}
 
 			if(!avInputFormat) {
