@@ -44,13 +44,13 @@ struct Output : public IOutput {
 // used by unit tests
 void ConnectOutput(IOutput* o, std::function<void(Data)> f);
 
-class OutputWithAllocator : public Output {
+class OutputDefault : public Output {
 	public:
-		OutputWithAllocator(size_t allocatorMaxSize, Metadata metadata = nullptr)
+		OutputDefault(size_t allocatorMaxSize, Metadata metadata = nullptr)
 			: allocator(createMemoryAllocator(allocatorMaxSize)) {
 			setMetadata(metadata);
 		}
-		virtual ~OutputWithAllocator() {
+		virtual ~OutputDefault() {
 			allocator->unblock();
 		}
 
@@ -66,8 +66,6 @@ class OutputWithAllocator : public Output {
 	private:
 		std::shared_ptr<IAllocator> allocator;
 };
-
-typedef OutputWithAllocator OutputDefault;
 
 class OutputCap : public virtual IOutputCap {
 	public:

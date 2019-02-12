@@ -108,7 +108,7 @@ struct LibavEncode : ModuleS {
 			if (!codecCtx)
 				throw error(format("Could not allocate the m_codec context (\"%s\").", codecName));
 
-			output = addOutput<OutputWithAllocator>();
+			output = addOutput<OutputDefault>();
 
 			// Make ffmpeg use the same time scale as the framework:
 			// thus, no timestamp conversion is needed.
@@ -255,7 +255,7 @@ struct LibavEncode : ModuleS {
 		std::shared_ptr<AVCodecContext> codecCtx;
 		PcmFormat m_pcmFormat;
 		std::unique_ptr<ffpp::Frame> const avFrame;
-		OutputWithAllocator* output {};
+		OutputDefault* output {};
 		int64_t firstMediaTime = 0;
 		int64_t prevMediaTime = 0;
 		Fraction GOPSize {};

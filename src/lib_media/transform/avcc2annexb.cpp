@@ -39,7 +39,7 @@ struct ByteReader {
 
 AVCC2AnnexBConverter::AVCC2AnnexBConverter(KHost* host)
 	: m_host(host) {
-	output = addOutput<OutputWithAllocator>();
+	output = addOutput<OutputDefault>();
 }
 
 void AVCC2AnnexBConverter::processOne(Data in) {

@@ -151,7 +151,7 @@ struct LibavDemux : Module {
 			case AVMEDIA_TYPE_SUBTITLE: m = createMetadataPktLibavSubtitle(codecCtx.get()); break;
 			default: break;
 			}
-			m_streams[i].output = addOutput<OutputWithAllocator>();
+			m_streams[i].output = addOutput<OutputDefault>();
 			m_streams[i].output->setMetadata(m);
 			av_dump_format(m_formatCtx, i, url.c_str(), 0);
 		}
@@ -472,7 +472,7 @@ struct LibavDemux : Module {
 	}
 
 	struct Stream {
-		OutputWithAllocator* output = nullptr;
+		OutputDefault* output = nullptr;
 		uint64_t offsetIn180k = 0;
 		int64_t lastDTS = std::numeric_limits<int64_t>::min();
 		std::unique_ptr<Transform::Restamp> restamper;
