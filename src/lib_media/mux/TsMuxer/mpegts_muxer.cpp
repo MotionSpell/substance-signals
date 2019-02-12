@@ -216,7 +216,17 @@ class TsMuxer : public ModuleDynI {
 			newPkt->size = (int)outSize;
 			newPkt->pts = data->getMediaTime();
 			newPkt->dts = data->get<DecodingTime>().time;
+
+			// av_interleaved_write_frame will block if PTS/DTS don't start near zero
+			if(m_mediaTimeOrigin == INT64_MIN)
+				m_mediaTimeOrigin = -data->getMediaTime();
+
+			newPkt->pts += m_mediaTimeOrigin;
+			newPkt->dts += m_mediaTimeOrigin;
 		}
+
+		// workaround av_interleaved_write_frame blocking
+		int64_t m_mediaTimeOrigin = INT64_MIN;
 
 		// output handling: called by libavformat
 		static int staticOnWrite(void* opaque, uint8_t* buf, int len) {
