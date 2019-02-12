@@ -185,7 +185,7 @@ class TsMuxer : public ModuleDynI {
 				return;
 			AVDictionary* dict = nullptr;
 			av_dict_set_int(&dict, "muxrate", m_cfg.muxRate, 0);
-			av_dict_set_int(&dict, "max_delay", 5000, 0); // Avoids "dts < pcr, TS is invalid" messages
+			av_dict_set_int(&dict, "max_delay", 5000 * 1000, 0); // Avoids "dts < pcr, TS is invalid" messages
 			int ret = avformat_write_header(m_formatCtx, &dict);
 			assert(!dict);
 			if (ret != 0)
