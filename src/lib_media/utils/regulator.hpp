@@ -21,9 +21,14 @@ class Regulator : public ModuleS {
 			if (delayInMs > 0) {
 				m_host->log(delayInMs < REGULATION_TOLERANCE_IN_MS ? Debug : Warning, format("received data for time %ss (will sleep for %s ms)", dataTime / (double)IClock::Rate, delayInMs).c_str());
 				std::this_thread::sleep_for(std::chrono::milliseconds(delayInMs));
-			} else if (delayInMs + REGULATION_TOLERANCE_IN_MS < 0) {
-				m_host->log(dataTime > 0 ? Warning : Debug, format("received data for time %ss is late from %sms", dataTime / (double)IClock::Rate, -delayInMs).c_str());
+			} else if (delayInMs < -REGULATION_TOLERANCE_IN_MS) {
+				if(abs(delayInMs) > abs(m_lastDelayInMs)) {
+					char msg[256];
+					sprintf(msg, "late data (%.2fs)",  -delayInMs*1000.0/IClock::Rate);
+					m_host->log(Warning, msg);
+				}
 			}
+			m_lastDelayInMs = delayInMs;
 			m_output->post(data);
 		}
 
@@ -34,6 +39,7 @@ class Regulator : public ModuleS {
 	private:
 		KHost* const m_host;
 		KOutput* m_output;
+		int64_t m_lastDelayInMs = 0;
 };
 }
 
