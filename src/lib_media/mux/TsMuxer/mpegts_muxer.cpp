@@ -15,6 +15,8 @@ extern "C" {
 #include <libavformat/avio.h> // avio_alloc_context
 }
 
+static auto const TS_PACKET_SIZE = 188;
+
 using namespace Modules;
 using namespace std;
 
@@ -34,7 +36,7 @@ class TsMuxer : public ModuleDynI {
 			enforce(m_formatCtx->oformat, "The 'mpegts' format must exist. Please check your ffmpeg build");
 			enforce(!(m_formatCtx->oformat->flags & AVFMT_NOFILE), "Invalid mpegts format flags");
 
-			m_formatCtx->pb = avio_alloc_context(m_outputBuffer, (int(sizeof m_outputBuffer)/188)*188, 1, this, nullptr, &staticOnWrite, nullptr);
+			m_formatCtx->pb = avio_alloc_context(m_outputBuffer, (int(sizeof m_outputBuffer)/TS_PACKET_SIZE)*TS_PACKET_SIZE, 1, this, nullptr, &staticOnWrite, nullptr);
 			enforce(m_formatCtx->pb, "avio_alloc_context failed");
 		}
 
@@ -223,12 +225,15 @@ class TsMuxer : public ModuleDynI {
 		}
 
 		int onWrite(SpanC packet) {
-			assert(packet.len % 188 == 0);
+			assert(packet.len % TS_PACKET_SIZE == 0);
 
 			if(!m_dropAllOutput) {
-				auto buf = m_output->getBuffer<DataRaw>(packet.len);
-				memcpy(buf->data().ptr, packet.ptr, packet.len);
-				m_output->post(buf);
+				while(packet.len > 0) {
+					auto buf = m_output->getBuffer<DataRaw>(TS_PACKET_SIZE);
+					memcpy(buf->data().ptr, packet.ptr, TS_PACKET_SIZE);
+					m_output->post(buf);
+					packet += TS_PACKET_SIZE;
+				}
 			}
 
 			return packet.len;
@@ -241,7 +246,7 @@ Modules::IModule* createObject(KHost* host, void* arg) {
 	enforce(config, "TsMuxer: config can't be NULL");
 
 	auto const BUFFER_SIZE = 2 * 1024 * 1024; // 2 Mb total
-	return new ModuleDefault<TsMuxer>(BUFFER_SIZE/188, host, *config);
+	return new ModuleDefault<TsMuxer>(BUFFER_SIZE/TS_PACKET_SIZE, host, *config);
 }
 
 auto const registered = Factory::registerModule("TsMuxer", &createObject);
