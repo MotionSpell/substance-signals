@@ -178,7 +178,6 @@ class DataPcm : public DataBase {
 }
 
 namespace Modules {
-template<typename DataType>
 class OutputWithAllocator;
-typedef OutputWithAllocator<DataPcm> OutputPcm;
+typedef OutputWithAllocator OutputPcm;
 }

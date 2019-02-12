@@ -44,7 +44,6 @@ struct Output : public IOutput {
 // used by unit tests
 void ConnectOutput(IOutput* o, std::function<void(Data)> f);
 
-template<typename DataType>
 class OutputWithAllocator : public Output {
 	public:
 		OutputWithAllocator(size_t allocatorMaxSize, Metadata metadata = nullptr)
@@ -57,7 +56,6 @@ class OutputWithAllocator : public Output {
 
 		template<typename OtherDataType>
 		std::shared_ptr<OtherDataType> getBuffer(size_t size) {
-			static_assert(std::is_same<OtherDataType, DataType>(), "types must match");
 			return alloc<OtherDataType>(allocator, size);
 		}
 
@@ -69,7 +67,7 @@ class OutputWithAllocator : public Output {
 		std::shared_ptr<IAllocator> allocator;
 };
 
-typedef OutputWithAllocator<DataRaw> OutputDefault;
+typedef OutputWithAllocator OutputDefault;
 
 class OutputCap : public virtual IOutputCap {
 	public:

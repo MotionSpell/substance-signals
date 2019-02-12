@@ -85,7 +85,7 @@ class ClockMock : public IClock, public IScheduler {
 template<typename METADATA, typename TYPE>
 struct DataGenerator : public ModuleS, public virtual IOutputCap {
 	DataGenerator() {
-		output = addOutput<OutputWithAllocator<TYPE>>();
+		output = addOutput<OutputWithAllocator>();
 		output->setMetadata(make_shared<METADATA>());
 	}
 	void processOne(Data dataIn) override {
@@ -97,7 +97,7 @@ struct DataGenerator : public ModuleS, public virtual IOutputCap {
 		data->setMediaTime(dataIn->getMediaTime());
 		output->post(data);
 	}
-	OutputWithAllocator<TYPE> *output;
+	OutputWithAllocator *output;
 };
 
 struct DataRecorder : ModuleS {

@@ -71,7 +71,7 @@ class GPACMuxMP4 : public ModuleS {
 		std::string initName;
 		std::string baseName;
 
-		OutputWithAllocator<DataRaw>* output;
+		OutputWithAllocator* output;
 		Resolution resolution;
 		int sampleRate;
 };

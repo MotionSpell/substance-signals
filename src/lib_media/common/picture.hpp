@@ -50,7 +50,7 @@ class PictureFormat {
 };
 
 class DataPicture;
-typedef OutputWithAllocator<DataPicture> OutputPicture;
+typedef OutputWithAllocator OutputPicture;
 
 //TODO: we should probably separate planar vs non-planar data, avoid resize on the data, etc.
 class DataPicture : public DataRaw {
