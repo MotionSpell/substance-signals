@@ -6,7 +6,7 @@
 #include "lib_media/common/pcm.hpp"
 #include "lib_media/common/metadata.hpp" // MetadataPkt
 #include "lib_media/transform/audio_convert.hpp"
-#include "lib_media/encode/libav_encode.hpp"
+#include "lib_media/mux/TsMuxer/mpegts_muxer.hpp"
 #include "lib_media/in/file.hpp"
 #include "lib_media/out/null.hpp"
 #include "lib_utils/tools.hpp"
@@ -97,14 +97,17 @@ unittest("TsMuxer: audio simple") {
 		int totalBytes = 0;
 	};
 
-	auto mux = loadModule("TsMuxer", &NullHost, nullptr);
+	TsMuxerConfig cfg;
+	cfg.muxRate = 1000 * 1000;
+	auto mux = loadModule("TsMuxer", &NullHost, &cfg);
 	auto rec = createModule<FrameCounter>();
 	ConnectOutputToInput(mux->getOutput(0), rec->getInput(0));
 
 	for(int i=0; i < 30; ++i) {
 		auto frame = getTestMp3Frame();
-		frame->setMediaTime(i*100);
-		frame->set<DecodingTime>({i*100});
+		int64_t pts = i*(IClock::Rate/20);
+		frame->setMediaTime(pts);
+		frame->set<DecodingTime>({pts});
 		mux->getInput(0)->push(frame);
 	}
 	mux->flush();
@@ -133,7 +136,9 @@ unittest("[DISABLED] TsMuxer: destroy without flushing") {
 }
 
 unittest("TsMuxer: flush without feeding") {
-	auto mux = loadModule("TsMuxer", &NullHost, nullptr);
+	TsMuxerConfig cfg;
+	cfg.muxRate = 1000 * 1000;
+	auto mux = loadModule("TsMuxer", &NullHost, &cfg);
 
 	int picCount = 0;
 	auto onPic = [&](Data) {

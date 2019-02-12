@@ -1,3 +1,4 @@
+#include "mpegts_muxer.hpp"
 #include "lib_modules/utils/helper.hpp"
 #include "lib_modules/utils/helper_dyn.hpp"
 #include "lib_modules/utils/factory.hpp"
@@ -22,8 +23,8 @@ namespace {
 class TsMuxer : public ModuleDynI {
 	public:
 
-		TsMuxer(KHost* host)
-			: m_host(host), m_formatCtx(avformat_alloc_context())  {
+		TsMuxer(KHost* host, TsMuxerConfig cfg)
+			: m_host(host), m_cfg(cfg), m_formatCtx(avformat_alloc_context())  {
 			if (!m_formatCtx)
 				throw error("Format context couldn't be allocated.");
 
@@ -33,7 +34,7 @@ class TsMuxer : public ModuleDynI {
 			enforce(m_formatCtx->oformat, "The 'mpegts' format must exist. Please check your ffmpeg build");
 			enforce(!(m_formatCtx->oformat->flags & AVFMT_NOFILE), "Invalid mpegts format flags");
 
-			m_formatCtx->pb = avio_alloc_context(m_outputBuffer, int(sizeof m_outputBuffer), 1, this, nullptr, &staticOnWrite, nullptr);
+			m_formatCtx->pb = avio_alloc_context(m_outputBuffer, (int(sizeof m_outputBuffer)/188)*188, 1, this, nullptr, &staticOnWrite, nullptr);
 			enforce(m_formatCtx->pb, "avio_alloc_context failed");
 		}
 
@@ -116,6 +117,7 @@ class TsMuxer : public ModuleDynI {
 
 	private:
 		KHost* const m_host;
+		TsMuxerConfig const m_cfg;
 		AVFormatContext* const m_formatCtx;
 		std::map<size_t, size_t> inputIdx2AvStream;
 		bool m_headerWritten = false;
@@ -179,7 +181,10 @@ class TsMuxer : public ModuleDynI {
 		void ensureHeader() {
 			if (m_headerWritten)
 				return;
-			int ret = avformat_write_header(m_formatCtx, nullptr);
+			AVDictionary* dict = nullptr;
+			av_dict_set_int(&dict, "muxrate", m_cfg.muxRate, 0);
+			int ret = avformat_write_header(m_formatCtx, &dict);
+			assert(!dict);
 			if (ret != 0)
 				throw error(format("can't write the container header: %s", avStrError(ret)));
 
@@ -208,6 +213,11 @@ class TsMuxer : public ModuleDynI {
 			newPkt->size = (int)outSize;
 			newPkt->pts = data->getMediaTime();
 			newPkt->dts = data->get<DecodingTime>().time;
+
+			// delay sending, to allow PCR to catch up
+			// (this avoids the following message: "dts < pcr, TS is invalid")
+			newPkt->pts += IClock::Rate * 20;
+			newPkt->dts += IClock::Rate * 20;
 		}
 
 		// output handling: called by libavformat
@@ -229,12 +239,13 @@ class TsMuxer : public ModuleDynI {
 		}
 };
 
-Modules::IModule* createObject(KHost* host, void* config) {
+Modules::IModule* createObject(KHost* host, void* arg) {
+	auto config = reinterpret_cast<TsMuxerConfig*>(arg);
 	enforce(host, "TsMuxer: host can't be NULL");
-	enforce(!config, "TsMuxer: config must be NULL");
+	enforce(config, "TsMuxer: config can't be NULL");
 
 	auto const BUFFER_SIZE = 2 * 1024 * 1024; // 2 Mb total
-	return new ModuleDefault<TsMuxer>(BUFFER_SIZE/188, host);
+	return new ModuleDefault<TsMuxer>(BUFFER_SIZE/188, host, *config);
 }
 
 auto const registered = Factory::registerModule("TsMuxer", &createObject);
