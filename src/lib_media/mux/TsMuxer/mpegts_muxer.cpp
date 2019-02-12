@@ -183,6 +183,7 @@ class TsMuxer : public ModuleDynI {
 				return;
 			AVDictionary* dict = nullptr;
 			av_dict_set_int(&dict, "muxrate", m_cfg.muxRate, 0);
+			av_dict_set_int(&dict, "max_delay", 5000, 0); // Avoids "dts < pcr, TS is invalid" messages
 			int ret = avformat_write_header(m_formatCtx, &dict);
 			assert(!dict);
 			if (ret != 0)
@@ -213,11 +214,6 @@ class TsMuxer : public ModuleDynI {
 			newPkt->size = (int)outSize;
 			newPkt->pts = data->getMediaTime();
 			newPkt->dts = data->get<DecodingTime>().time;
-
-			// delay sending, to allow PCR to catch up
-			// (this avoids the following message: "dts < pcr, TS is invalid")
-			newPkt->pts += IClock::Rate * 20;
-			newPkt->dts += IClock::Rate * 20;
 		}
 
 		// output handling: called by libavformat
