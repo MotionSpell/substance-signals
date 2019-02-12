@@ -7,6 +7,8 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <errno.h>
+#include <string.h> // strerror
 
 using namespace std;
 
@@ -28,8 +30,11 @@ struct Socket : IOutputSocket {
 	}
 
 	void send(const uint8_t* buffer, size_t len) override {
-		if(::sendto(m_socket, buffer, len, 0, (sockaddr*)&m_dstAddr, sizeof(m_dstAddr)) < 0)
-			throw runtime_error("UDP send failed");
+		if(::sendto(m_socket, buffer, len, 0, (sockaddr*)&m_dstAddr, sizeof(m_dstAddr)) < 0) {
+			char msg[256];
+			sprintf(msg, "UDP send %d bytes failed: %s", (int)len, strerror(errno));
+			throw runtime_error(msg);
+		}
 	}
 
 	int m_socket = -1;
