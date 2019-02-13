@@ -10,9 +10,6 @@ namespace {
 struct UdpOutput : ModuleS {
 	UdpOutput(KHost* host, UdpOutputConfig const& config)
 		: m_host(host) {
-
-		m_host->activate(true);
-
 		char buffer[256];
 		sprintf(buffer, "%d.%d.%d.%d", config.ipAddr[0], config.ipAddr[1], config.ipAddr[2], config.ipAddr[3]);
 		m_socket = createOutputSocket(buffer, config.port);
