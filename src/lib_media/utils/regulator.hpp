@@ -16,10 +16,12 @@ class Regulator : public ModuleS {
 		}
 
 		void processOne(Data data) override {
-			auto const dataTime = data->getMediaTime();
-			auto const delayInMs = clockToTimescale(dataTime - fractionToClock(clock->now()), 1000);
+			auto const timeTarget = data->getMediaTime();
+			auto const timeNow = fractionToClock(clock->now());
+			auto const delayInMs = clockToTimescale(timeTarget - timeNow, 1000);
 			if (delayInMs > 0) {
-				m_host->log(delayInMs < REGULATION_TOLERANCE_IN_MS ? Debug : Warning, format("received data for time %ss (will sleep for %s ms)", dataTime / (double)IClock::Rate, delayInMs).c_str());
+				if(delayInMs > REGULATION_TOLERANCE_IN_MS)
+					m_host->log(Warning, format("will sleep for %s ms", delayInMs).c_str());
 				std::this_thread::sleep_for(std::chrono::milliseconds(delayInMs));
 			} else if (delayInMs < -REGULATION_TOLERANCE_IN_MS) {
 				if(abs(delayInMs) > abs(m_lastDelayInMs)) {
