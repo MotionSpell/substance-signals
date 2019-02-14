@@ -185,7 +185,12 @@ class TsMuxer : public ModuleDynI {
 				return;
 			AVDictionary* dict = nullptr;
 			av_dict_set_int(&dict, "muxrate", m_cfg.muxRate, 0);
-			av_dict_set_int(&dict, "max_delay", 5000 * 1000, 0); // Avoids "dts < pcr, TS is invalid" messages
+
+			// Set the max_delay:
+			// * don't set it to zero: this would cause "dts < pcr, TS is invalid" messages during muxing.
+			// * don't go above 3500 * 1000: this would cause audio timestamp conversion errors during VLC playback.
+			av_dict_set_int(&dict, "max_delay", 1000 * 1000, 0);
+
 			int ret = avformat_write_header(m_formatCtx, &dict);
 			assert(!dict);
 			if (ret != 0)
