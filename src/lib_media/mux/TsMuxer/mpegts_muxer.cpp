@@ -241,12 +241,13 @@ class TsMuxer : public ModuleDynI {
 
 			if(!m_dropAllOutput) {
 				while(packet.len > 0) {
-					auto buf = m_output->getBuffer<DataRaw>(TS_PACKET_SIZE);
-					memcpy(buf->data().ptr, packet.ptr, TS_PACKET_SIZE);
+					auto len = min<int>(packet.len, TS_PACKET_SIZE*7);
+					auto buf = m_output->getBuffer<DataRaw>(len);
+					memcpy(buf->data().ptr, packet.ptr, len);
 					buf->setMediaTime((m_sentBits * IClock::Rate) / m_cfg.muxRate);
 					m_output->post(buf);
-					packet += TS_PACKET_SIZE;
-					m_sentBits += TS_PACKET_SIZE * 8;
+					packet += len;
+					m_sentBits += len * 8;
 				}
 			}
 
