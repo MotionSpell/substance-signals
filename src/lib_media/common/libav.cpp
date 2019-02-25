@@ -272,11 +272,22 @@ void DataAVPacket::resize(size_t size) {
 		throw std::runtime_error(format("Cannot resize DataAVPacket to size %s (cur=%s)", size, pkt->size));
 }
 
+static int getBytePerPixel(PixelFormat format) {
+	switch (format) {
+	case PixelFormat::YUV420P10LE:
+	case PixelFormat::YUV422P10LE:
+	case PixelFormat::YUYV422:
+	case PixelFormat::NV12P010LE:
+		return 2;
+	default:
+		return 1;
+	}
+}
+
 void copyToPicture(AVFrame const* avFrame, DataPicture* pic) {
 	for (int comp = 0; comp<pic->getNumPlanes(); ++comp) {
 		auto const subsampling = comp == 0 ? 1 : 2;
-		auto const bytePerPixel = pic->getFormat().format == PixelFormat::YUYV422 ? 2 : 1;
-		auto const w = avFrame->width * bytePerPixel / subsampling;
+		auto const w = avFrame->width * getBytePerPixel(pic->getFormat().format) / subsampling;
 		auto const h = avFrame->height / subsampling;
 		auto src = avFrame->data[comp];
 		auto const srcPitch = avFrame->linesize[comp];
