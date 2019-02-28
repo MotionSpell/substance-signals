@@ -124,7 +124,6 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 	auto log = &g_PrefixedLogger;
 	auto pipeline = make_unique<Pipeline>(log, cfg.ultraLowLatency, cfg.ultraLowLatency ? Pipelines::Threading::Mono : Pipelines::Threading::OnePerModule);
 
-	ensureDir(cfg.workingDir);
 	DemuxConfig demuxCfg;
 	demuxCfg.url = cfg.input;
 	demuxCfg.loop = cfg.loop;
@@ -169,10 +168,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 		return GetOutputPin(regulator);
 	};
 
-	auto mux = [&](OutputPin compressed, std::string prefix) -> OutputPin {
-		auto const subdir = DASH_SUBDIR + prefix + "/";
-		ensureDir(subdir);
-
+	auto mux = [&](OutputPin compressed) -> OutputPin {
 		Mp4MuxConfig mp4config;
 		mp4config.segmentDurationInMs =  cfg.segmentDurationInMs;
 		mp4config.segmentPolicy = FragmentedSegment;
@@ -238,7 +234,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 				prefix = Stream::AdaptiveStreamingCommon::getCommonPrefixAudio(numDashInputs);
 			}
 
-			auto muxer = mux(compressed, prefix);
+			auto muxer = mux(compressed);
 
 			pipeline->connect(muxer, GetInputPin(dasher, numDashInputs));
 			++numDashInputs;
