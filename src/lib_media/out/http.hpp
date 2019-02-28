@@ -24,11 +24,14 @@ struct HttpOutputConfig {
 namespace Modules {
 namespace Out {
 
+// Single long running POST/PUT connection
 struct HttpSender {
 	virtual ~HttpSender() = default;
-	virtual void send(Data data) = 0;
-	virtual void setPrefix(Data data) = 0;
+	virtual void send(span<const uint8_t> data) = 0;
+	virtual void setPrefix(span<const uint8_t> prefix) = 0;
 };
+
+std::unique_ptr<HttpSender> createHttpSender(std::string url, std::string userAgent, bool usePUT, std::vector<std::string> extraHeaders, KHost* log);
 
 class HTTP : public ModuleS {
 	public:
@@ -36,15 +39,13 @@ class HTTP : public ModuleS {
 		HTTP(KHost* host, HttpOutputConfig const& cfg);
 		virtual ~HTTP();
 
-		void setPrefix(span<const uint8_t> prefix);
-
 		void processOne(Data data) final;
 		void flush() final;
 
 	private:
 		KHost* const m_host;
 		std::unique_ptr<HttpSender> m_sender;
-		Data m_suffixData;
+		std::vector<uint8_t> m_suffixData;
 		OutputDefault* outputFinished;
 };
 

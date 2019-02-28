@@ -95,12 +95,13 @@ struct CurlHttpSender : HttpSender {
 			curl_global_cleanup();
 		}
 
-		void send(Data data) override {
+		void send(span<const uint8_t> prefix) override {
+			auto data = createData({prefix.ptr, prefix.ptr+prefix.len});
 			m_fifo.push(data);
 		}
 
-		void setPrefix(Data data) override {
-			m_prefixData = data;
+		void setPrefix(span<const uint8_t>  prefix) override {
+			m_prefixData = createData({prefix.ptr, prefix.ptr+prefix.len});
 		}
 
 	private:
@@ -175,8 +176,12 @@ struct CurlHttpSender : HttpSender {
 		}
 };
 
+std::unique_ptr<HttpSender> createHttpSender(std::string url, std::string userAgent, bool usePUT, std::vector<std::string> extraHeaders, KHost* log) {
+	return std::make_unique<CurlHttpSender>(url, userAgent, usePUT, extraHeaders, log);
+}
+
 HTTP::HTTP(KHost* host, HttpOutputConfig const& cfg)
-	: m_host(host), m_suffixData(createData(cfg.endOfSessionSuffix)) {
+	: m_host(host), m_suffixData(cfg.endOfSessionSuffix) {
 	if (!startsWith(cfg.url, "http://") && !startsWith(cfg.url, "https://"))
 		throw error(format("can only handle URLs starting with 'http://' or 'https://', not '%s'.", cfg.url));
 
@@ -191,22 +196,18 @@ HTTP::HTTP(KHost* host, HttpOutputConfig const& cfg)
 }
 
 HTTP::~HTTP() {
-	m_sender->send(m_suffixData);
-}
-
-void HTTP::setPrefix(span<const uint8_t> prefix) {
-	m_sender->setPrefix(createData({prefix.ptr, prefix.ptr+prefix.len}));
+	m_sender->send({m_suffixData.data(), m_suffixData.size()});
 }
 
 void HTTP::flush() {
-	m_sender->send(nullptr);
+	m_sender->send({});
 
 	auto out = outputFinished->getBuffer<DataRaw>(0);
 	outputFinished->post(out);
 }
 
 void HTTP::processOne(Data data) {
-	m_sender->send(data);
+	m_sender->send(data->data());
 }
 
 }

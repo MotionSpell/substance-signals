@@ -25,19 +25,17 @@ void skipBox(span<const uint8_t>& bs, uint32_t boxName) {
 	bs += size - 8;
 }
 
-static
-Data createData(span<const uint8_t> contents) {
-	auto r = make_shared<DataRaw>(contents.len);
-	memcpy(r->data().ptr, contents.ptr, contents.len);
-	return r;
-}
-
 MS_HSS::MS_HSS(KHost* host, const std::string &url)
 	: m_host(host) {
-	auto cfg = HttpOutputConfig{url};
-	cfg.endOfSessionSuffix = { 0, 0, 0, 8, 'm', 'f', 'r', 'a' };
-	m_http = createModule<Out::HTTP>(m_host, cfg);
+	m_httpSender = Out::createHttpSender(url, "MS-HSS", false, {}, m_host);
 }
+
+MS_HSS::~MS_HSS() {
+	// tell the remote application to close the session
+	std::vector<uint8_t> endOfSessionSuffix = { 0, 0, 0, 8, 'm', 'f', 'r', 'a' };
+	m_httpSender->send({endOfSessionSuffix.data(), endOfSessionSuffix.size()});
+}
+
 
 void MS_HSS::processOne(Data data) {
 
@@ -52,14 +50,14 @@ void MS_HSS::processOne(Data data) {
 	{
 		auto prefix = data->data();
 		prefix.len = bs.ptr - prefix.ptr;
-		m_http->setPrefix(prefix);
+		m_httpSender->setPrefix(prefix);
 	}
 
-	m_http->processOne(createData(bs));
+	m_httpSender->send(bs);
 }
 
 void MS_HSS::flush() {
-	m_http->flush();
+	m_httpSender->send({});
 }
 
 }

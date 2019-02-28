@@ -9,12 +9,13 @@ namespace Stream {
 class MS_HSS : public ModuleS {
 	public:
 		MS_HSS(KHost* host, const std::string &url);
+		virtual ~MS_HSS();
 
 		void processOne(Data data) override;
 		void flush() override;
 
 	private:
-		std::unique_ptr<Out::HTTP> m_http;
+		std::unique_ptr<Out::HttpSender> m_httpSender;
 		KHost* const m_host;
 };
 
