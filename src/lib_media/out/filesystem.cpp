@@ -2,6 +2,7 @@
 #include "lib_media/common/metadata_file.hpp"
 #include "lib_modules/utils/helper.hpp"
 #include "lib_modules/utils/factory.hpp"
+#include "lib_utils/log_sink.hpp"
 
 #include <map>
 #include <fstream>
@@ -10,11 +11,18 @@ using namespace Modules;
 
 namespace {
 
+std::ofstream openOutput(std::string path) {
+	auto fp = std::ofstream(path, std::ios::binary);
+	if(!fp.is_open())
+		throw std::runtime_error("can't open for writing: '" + path + "'");
+	return fp;
+}
+
 class FileSystemSink : public ModuleS {
 	public:
 
-		FileSystemSink(KHost* /*host*/, FileSystemSinkConfig cfg)
-			: /*m_host(host),*/
+		FileSystemSink(KHost* host, FileSystemSinkConfig cfg)
+			: m_host(host),
 			  m_config(cfg) {
 		}
 
@@ -23,19 +31,22 @@ class FileSystemSink : public ModuleS {
 
 			auto const path = m_config.directory + "/" + meta->filename;
 
-			if(m_files.find(path) == m_files.end())
-				m_files[path] = std::ofstream(path, std::ios::binary);
+			if(m_files.find(path) == m_files.end()) {
+				m_files.insert({path, openOutput(path)});
+			}
 
 			auto& fp = m_files[path];
 			auto contents = data->data();
 			fp.write((char*)contents.ptr, contents.len);
+			if(!fp)
+				m_host->log(Error, "write failure");
 
 			if(meta->EOS)
 				m_files.erase(path);
 		}
 
 	private:
-		/*KHost* const m_host;*/
+		KHost* const m_host;
 		FileSystemSinkConfig const m_config;
 		std::map<std::string, std::ofstream> m_files;
 };
