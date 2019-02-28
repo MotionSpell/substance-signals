@@ -27,7 +27,7 @@ void skipBox(span<const uint8_t>& bs, uint32_t boxName) {
 
 MS_HSS::MS_HSS(KHost* host, const std::string &url)
 	: m_host(host) {
-	m_httpSender = Out::createHttpSender(url, "MS-HSS", false, {}, m_host);
+	m_httpSender = createHttpSender(url, "MS-HSS", false, {}, m_host);
 }
 
 MS_HSS::~MS_HSS() {

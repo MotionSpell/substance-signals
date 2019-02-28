@@ -15,7 +15,7 @@ class MS_HSS : public ModuleS {
 		void flush() override;
 
 	private:
-		std::unique_ptr<Out::HttpSender> m_httpSender;
+		std::unique_ptr<HttpSender> m_httpSender;
 		KHost* const m_host;
 };
 

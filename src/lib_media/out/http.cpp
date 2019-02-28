@@ -12,9 +12,6 @@ extern "C" {
 
 using namespace Modules;
 
-namespace Modules {
-namespace Out {
-
 namespace {
 size_t writeVoid(void*, size_t size, size_t nmemb, void*) {
 	return size * nmemb;
@@ -71,7 +68,7 @@ Data createData(std::vector<uint8_t> const& contents) {
 
 struct CurlHttpSender : HttpSender {
 
-		CurlHttpSender(std::string url, std::string userAgent, bool usePUT, std::vector<std::string> extraHeaders, KHost* log) {
+		CurlHttpSender(std::string url, std::string userAgent, bool usePUT, std::vector<std::string> extraHeaders, Modules::KHost* log) {
 			m_log = log;
 			curl_global_init(CURL_GLOBAL_ALL);
 			curl = createCurl(url, usePUT);
@@ -159,7 +156,7 @@ struct CurlHttpSender : HttpSender {
 		Data m_currData;
 		span<const uint8_t> m_currBs {}; // points to the contents of m_currData/m_prefixData
 
-		KHost* m_log {};
+		Modules::KHost* m_log {};
 		curl_slist* headers {};
 		CURL *curl;
 		std::thread workingThread;
@@ -180,6 +177,9 @@ std::unique_ptr<HttpSender> createHttpSender(std::string url, std::string userAg
 	return std::make_unique<CurlHttpSender>(url, userAgent, usePUT, extraHeaders, log);
 }
 
+namespace Modules {
+namespace Out {
+
 HTTP::HTTP(KHost* host, HttpOutputConfig const& cfg)
 	: m_host(host), m_suffixData(cfg.endOfSessionSuffix) {
 	if (!startsWith(cfg.url, "http://") && !startsWith(cfg.url, "https://"))
@@ -192,7 +192,7 @@ HTTP::HTTP(KHost* host, HttpOutputConfig const& cfg)
 	// create pins
 	outputFinished = addOutput<OutputDefault>();
 
-	m_sender = make_unique<CurlHttpSender>(cfg.url, cfg.userAgent, cfg.flags.UsePUT, cfg.headers, m_host);
+	m_sender = createHttpSender(cfg.url, cfg.userAgent, cfg.flags.UsePUT, cfg.headers, m_host);
 }
 
 HTTP::~HTTP() {

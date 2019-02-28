@@ -1,5 +1,19 @@
 #pragma once
 
+#include "lib_modules/core/module.hpp" // KHost
+#include "lib_modules/utils/helper.hpp" // span
+
+// Single long running POST/PUT connection
+struct HttpSender {
+	virtual ~HttpSender() = default;
+	virtual void send(span<const uint8_t> data) = 0;
+	virtual void setPrefix(span<const uint8_t> prefix) = 0;
+};
+
+std::unique_ptr<HttpSender> createHttpSender(std::string url, std::string userAgent, bool usePUT, std::vector<std::string> extraHeaders, Modules::KHost* log);
+
+///////////////////////////////////////////////////////////////////////////////
+
 #include <string>
 #include <vector>
 
@@ -19,19 +33,8 @@ struct HttpOutputConfig {
 	Flags flags {};
 };
 
-#include "lib_modules/utils/helper.hpp"
-
 namespace Modules {
 namespace Out {
-
-// Single long running POST/PUT connection
-struct HttpSender {
-	virtual ~HttpSender() = default;
-	virtual void send(span<const uint8_t> data) = 0;
-	virtual void setPrefix(span<const uint8_t> prefix) = 0;
-};
-
-std::unique_ptr<HttpSender> createHttpSender(std::string url, std::string userAgent, bool usePUT, std::vector<std::string> extraHeaders, KHost* log);
 
 class HTTP : public ModuleS {
 	public:
