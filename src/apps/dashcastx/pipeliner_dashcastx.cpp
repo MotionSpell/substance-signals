@@ -132,11 +132,10 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 	auto dasherCfg = Modules::DasherConfig { DASH_SUBDIR, format("%s.mpd", g_appName), live, (uint64_t)cfg.segmentDurationInMs, (uint64_t)cfg.segmentDurationInMs * cfg.timeshiftInSegNum};
 	auto dasher = pipeline->add("MPEG_DASH", &dasherCfg);
 	auto fsCfg = FileSystemSinkConfig { cfg.workingDir };
-	auto filesystemPlaylist = pipeline->add("FileSystemSink", &fsCfg);
-	auto filesystemChunks = pipeline->add("FileSystemSink", &fsCfg);
+	auto filesystemSink = pipeline->add("FileSystemSink", &fsCfg);
 
-	pipeline->connect(GetOutputPin(dasher, 0), filesystemPlaylist);
-	pipeline->connect(GetOutputPin(dasher, 1), filesystemChunks);
+	pipeline->connect(GetOutputPin(dasher, 0), filesystemSink);
+	pipeline->connect(GetOutputPin(dasher, 1), filesystemSink, true);
 
 	ensureDir(DASH_SUBDIR);
 
