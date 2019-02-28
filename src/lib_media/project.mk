@@ -6,6 +6,7 @@ LIB_MEDIA_SRCS:=\
   $(MYDIR)/common/picture.cpp\
   $(MYDIR)/common/iso8601.cpp\
   $(MYDIR)/common/http_puller.cpp\
+  $(MYDIR)/common/http_sender.cpp\
   $(MYDIR)/demux/dash_demux.cpp\
   $(MYDIR)/in/file.cpp\
   $(MYDIR)/in/mpeg_dash_input.cpp\
