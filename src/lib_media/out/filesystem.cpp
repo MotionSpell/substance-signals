@@ -3,6 +3,7 @@
 #include "lib_modules/utils/helper.hpp"
 #include "lib_modules/utils/factory.hpp"
 #include "lib_utils/log_sink.hpp"
+#include "lib_utils/os.hpp"
 
 #include <map>
 #include <fstream>
@@ -16,6 +17,24 @@ std::ofstream openOutput(std::string path) {
 	if(!fp.is_open())
 		throw std::runtime_error("can't open for writing: '" + path + "'");
 	return fp;
+}
+
+std::string dirName(std::string path) {
+	auto i = path.rfind('/');
+	return path.substr(0, i);
+}
+
+void ensureDirRecurse(std::string path) {
+	if(path == "")
+		return;
+
+	if(!dirExists(path)) {
+		auto parent = dirName(path);
+		if(!dirExists(parent))
+			ensureDirRecurse(parent);
+
+		mkdir(path);
+	}
 }
 
 class FileSystemSink : public ModuleS {
@@ -32,6 +51,7 @@ class FileSystemSink : public ModuleS {
 			auto const path = m_config.directory + "/" + meta->filename;
 
 			if(m_files.find(path) == m_files.end()) {
+				ensureDirRecurse(dirName(path));
 				m_files.insert({path, openOutput(path)});
 			}
 

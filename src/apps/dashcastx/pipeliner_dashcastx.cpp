@@ -125,8 +125,6 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 	auto pipeline = make_unique<Pipeline>(log, cfg.ultraLowLatency, cfg.ultraLowLatency ? Pipelines::Threading::Mono : Pipelines::Threading::OnePerModule);
 
 	ensureDir(cfg.workingDir);
-	changeDir(cfg.workingDir);
-
 	DemuxConfig demuxCfg;
 	demuxCfg.url = cfg.input;
 	demuxCfg.loop = cfg.loop;
@@ -134,7 +132,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 	auto const live = cfg.isLive || cfg.ultraLowLatency;
 	auto dasherCfg = Modules::DasherConfig { DASH_SUBDIR, format("%s.mpd", g_appName), live, (uint64_t)cfg.segmentDurationInMs, (uint64_t)cfg.segmentDurationInMs * cfg.timeshiftInSegNum};
 	auto dasher = pipeline->add("MPEG_DASH", &dasherCfg);
-	auto fsCfg = FileSystemSinkConfig { "." };
+	auto fsCfg = FileSystemSinkConfig { cfg.workingDir };
 	auto filesystemPlaylist = pipeline->add("FileSystemSink", &fsCfg);
 	auto filesystemChunks = pipeline->add("FileSystemSink", &fsCfg);
 

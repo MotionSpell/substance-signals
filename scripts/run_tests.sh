@@ -40,9 +40,9 @@ function dashcast_crashtest
 {
   # dashcastx simple crash test
   $BIN/dashcastx.exe \
-    -w $tmpDir/dashcastx \
+    -o $tmpDir/dashcastx \
     -v 320x-1 -v 160x120 \
-    $PWD/data/beepbop.mp4 1>/dev/null
+    data/beepbop.mp4 1>/dev/null
 
   if ! test -f $tmpDir/dashcastx/dash/dashcastx.mpd ; then
     echo "Manifest was not created" >&2
@@ -52,14 +52,18 @@ function dashcast_crashtest
     echo "Manifest is empty" >&2
     return 1
   fi
+  if ! test -f $tmpDir/dashcastx/dash/a_0/a_0-init.mp4 ; then
+    echo "Audio init chunk was not created" >&2
+    return 1
+  fi
 }
 
 function dashcast_no_transcode
 {
   # dashcastx simple crash test
   $BIN/dashcastx.exe \
-    -w $tmpDir/dashcastx2 \
-    $PWD/data/beepbop.mp4 1>/dev/null
+    -o $tmpDir/dashcastx2 \
+    data/beepbop.mp4 1>/dev/null
 
   if ! test -f $tmpDir/dashcastx2/dash/dashcastx.mpd ; then
     echo "Manifest was not created" >&2

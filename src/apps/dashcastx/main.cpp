@@ -27,7 +27,7 @@ Config parseCommandLine(int argc, char const* argv[]) {
 	int logLevel = -1;
 
 	CmdLineOptions opt;
-	opt.add("w", "working-dir", &cfg.workingDir, "Set a working directory.");
+	opt.add("o", "output-dir", &cfg.workingDir, "Set the destination directory.");
 	opt.add("s", "seg-dur", &cfg.segmentDurationInMs, "Set the segment duration (in ms) (default value: 2000).");
 	opt.add("t", "dvr", &cfg.timeshiftInSegNum, "Set the timeshift buffer depth in segment number (default value: infinite(0)).");
 	opt.add("v", "video", &cfg.v, "Set a video resolution and optionally bitrate (wxh[:b[:t]]) (enables resize and/or transcoding) and encoder type (supported 0 (software (default)), 1 (QuickSync), 2 (NVEnc).");
