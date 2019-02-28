@@ -16,6 +16,7 @@
 #include "lib_media/utils/regulator.hpp"
 #include "lib_media/stream/adaptive_streaming_common.hpp" // AdaptiveStreamingCommon::getCommonPrefixAudio
 #include "lib_media/out/filesystem.hpp"
+#include "lib_media/out/http_sink.hpp"
 #include "lib_media/transform/audio_convert.hpp"
 
 using namespace Modules;
@@ -131,11 +132,19 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 	auto const live = cfg.isLive || cfg.ultraLowLatency;
 	auto dasherCfg = Modules::DasherConfig { DASH_SUBDIR, format("%s.mpd", g_appName), live, (uint64_t)cfg.segmentDurationInMs, (uint64_t)cfg.segmentDurationInMs * cfg.timeshiftInSegNum};
 	auto dasher = pipeline->add("MPEG_DASH", &dasherCfg);
-	auto fsCfg = FileSystemSinkConfig { cfg.workingDir };
-	auto filesystemSink = pipeline->add("FileSystemSink", &fsCfg);
 
-	pipeline->connect(GetOutputPin(dasher, 0), filesystemSink);
-	pipeline->connect(GetOutputPin(dasher, 1), filesystemSink, true);
+	IFilter* sink {};
+
+	if(cfg.publishUrl.empty()) {
+		auto sinkCfg = FileSystemSinkConfig { cfg.workingDir };
+		sink = pipeline->add("FileSystemSink", &sinkCfg);
+	} else {
+		auto sinkCfg = HttpSinkConfig { cfg.publishUrl, "dashcastx", {} };
+		sink = pipeline->add("HttpSink", &sinkCfg);
+	}
+
+	pipeline->connect(GetOutputPin(dasher, 0), sink);
+	pipeline->connect(GetOutputPin(dasher, 1), sink, true);
 
 	ensureDir(DASH_SUBDIR);
 

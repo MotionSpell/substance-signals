@@ -14,6 +14,7 @@ LIB_MEDIA_SRCS:=\
   $(MYDIR)/in/video_generator.cpp\
   $(MYDIR)/out/file.cpp\
   $(MYDIR)/out/http.cpp\
+  $(MYDIR)/out/http_sink.cpp\
   $(MYDIR)/out/null.cpp\
   $(MYDIR)/out/print.cpp\
   $(MYDIR)/stream/apple_hls.cpp\

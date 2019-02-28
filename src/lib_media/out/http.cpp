@@ -41,7 +41,8 @@ void HTTP::flush() {
 }
 
 void HTTP::processOne(Data data) {
-	m_sender->send(data->data());
+	if(data)
+		m_sender->send(data->data());
 }
 
 }
