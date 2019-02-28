@@ -1,7 +1,9 @@
 #pragma once
 
 #include "lib_modules/core/module.hpp"
-#include "../out/http.hpp"
+#include "lib_modules/utils/helper.hpp"
+
+struct HttpSender;
 
 namespace Modules {
 namespace Stream {

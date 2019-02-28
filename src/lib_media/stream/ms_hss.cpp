@@ -1,5 +1,6 @@
 #include "ms_hss.hpp"
 #include <string.h> // memcpy
+#include "../common/http_sender.hpp"
 
 inline uint32_t readU32BE(span<const uint8_t>& p) {
 	auto val = (p[0] << 24) | (p[1] << 16) | (p[2] << 8) | (p[3] << 0);
