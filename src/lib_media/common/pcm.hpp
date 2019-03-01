@@ -13,7 +13,8 @@ enum AudioSampleFormat {
 
 enum AudioLayout {
 	Mono,
-	Stereo
+	Stereo,
+	FivePointOne,
 };
 
 enum AudioStruct {
@@ -29,6 +30,7 @@ uint8_t getNumChannelsFromLayout(Modules::AudioLayout layout) {
 	switch (layout) {
 	case Modules::Mono: return 1;
 	case Modules::Stereo: return 2;
+	case Modules::FivePointOne: return 6;
 	default: throw std::runtime_error("Unknown audio layout");
 	}
 }

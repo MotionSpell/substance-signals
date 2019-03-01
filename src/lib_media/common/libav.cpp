@@ -94,12 +94,14 @@ AudioSampleFormat getFormat(const AVCodecContext* codecCtx) {
 static
 AudioLayout getLayout(const AVCodecContext* codecCtx) {
 	switch (codecCtx->channel_layout) {
-	case AV_CH_LAYOUT_MONO:   return Mono; break;
-	case AV_CH_LAYOUT_STEREO: return Stereo; break;
+	case AV_CH_LAYOUT_MONO:   return Mono;
+	case AV_CH_LAYOUT_STEREO: return Stereo;
+	case AV_CH_LAYOUT_5POINT1: return FivePointOne;
 	default:
 		switch (codecCtx->channels) {
-		case 1: return Mono; break;
-		case 2: return Stereo; break;
+		case 1: return Mono;
+		case 2: return Stereo;
+		case 6: return FivePointOne;
 		default: throw std::runtime_error("Unknown libav audio layout");
 		}
 	}
@@ -131,6 +133,7 @@ void libavAudioCtxConvertLibav(const Modules::PcmFormat *cfg, int &sampleRate, A
 	switch (cfg->layout) {
 	case Modules::Mono: layout = AV_CH_LAYOUT_MONO; break;
 	case Modules::Stereo: layout = AV_CH_LAYOUT_STEREO; break;
+	case Modules::FivePointOne: layout = AV_CH_LAYOUT_5POINT1; break;
 	default: throw std::runtime_error("Unknown libav audio layout");
 	}
 	numChannels = av_get_channel_layout_nb_channels(layout);
@@ -173,10 +176,12 @@ void libavFrame2pcmConvert(const AVFrame *frame, PcmFormat *cfg) {
 	switch (frame->channel_layout) {
 	case AV_CH_LAYOUT_MONO:   cfg->layout = Modules::Mono; break;
 	case AV_CH_LAYOUT_STEREO: cfg->layout = Modules::Stereo; break;
+	case AV_CH_LAYOUT_5POINT1: cfg->layout = Modules::FivePointOne; break;
 	default:
 		switch (cfg->numChannels) {
 		case 1: cfg->layout = Modules::Mono; break;
 		case 2: cfg->layout = Modules::Stereo; break;
+		case 6: cfg->layout = Modules::FivePointOne; break;
 		default: throw std::runtime_error("Unknown libav audio layout");
 		}
 	}
