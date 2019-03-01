@@ -58,13 +58,14 @@ Data createData(std::vector<uint8_t> const& contents) {
 
 struct CurlHttpSender : HttpSender {
 
-		CurlHttpSender(std::string url, std::string userAgent, bool usePUT, std::vector<std::string> extraHeaders, Modules::KHost* log) {
+		HttpSenderConfig const m_cfg;
+		CurlHttpSender(HttpSenderConfig const& cfg, Modules::KHost* log) : m_cfg(cfg) {
 			m_log = log;
-			curl = createCurl(url, usePUT);
+			curl = createCurl(m_cfg.url, m_cfg.usePUT);
 
-			curl_easy_setopt(curl.get(), CURLOPT_USERAGENT, userAgent.c_str());
+			curl_easy_setopt(curl.get(), CURLOPT_USERAGENT, m_cfg.userAgent.c_str());
 
-			for (auto &h : extraHeaders) {
+			for (auto &h : m_cfg.extraHeaders) {
 				headers = curl_slist_append(headers, h.c_str());
 				curl_easy_setopt(curl.get(), CURLOPT_HTTPHEADER, headers);
 			}
@@ -166,8 +167,8 @@ struct CurlHttpSender : HttpSender {
 		}
 };
 
-std::unique_ptr<HttpSender> createHttpSender(std::string url, std::string userAgent, bool usePUT, std::vector<std::string> extraHeaders, KHost* log) {
-	return std::make_unique<CurlHttpSender>(url, userAgent, usePUT, extraHeaders, log);
+std::unique_ptr<HttpSender> createHttpSender(HttpSenderConfig const& config, Modules::KHost* log) {
+	return std::make_unique<CurlHttpSender>(config, log);
 }
 
 void enforceConnection(std::string url, bool usePUT) {

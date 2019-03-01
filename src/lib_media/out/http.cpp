@@ -26,7 +26,7 @@ HTTP::HTTP(KHost* host, HttpOutputConfig const& cfg)
 	// create pins
 	outputFinished = addOutput<OutputDefault>();
 
-	m_sender = createHttpSender(cfg.url, cfg.userAgent, cfg.flags.UsePUT, cfg.headers, m_host);
+	m_sender = createHttpSender({cfg.url, cfg.userAgent, cfg.flags.UsePUT, cfg.headers}, m_host);
 }
 
 HTTP::~HTTP() {

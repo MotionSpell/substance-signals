@@ -16,5 +16,12 @@ struct HttpSender {
 // make an empty POST (used to check the end point exists)
 void enforceConnection(std::string url, bool usePUT);
 
-std::unique_ptr<HttpSender> createHttpSender(std::string url, std::string userAgent, bool usePUT, std::vector<std::string> extraHeaders, Modules::KHost* log);
+struct HttpSenderConfig {
+	std::string url;
+	std::string userAgent;
+	bool usePUT;
+	std::vector<std::string> extraHeaders;
+};
+
+std::unique_ptr<HttpSender> createHttpSender(HttpSenderConfig const& config, Modules::KHost* log);
 
