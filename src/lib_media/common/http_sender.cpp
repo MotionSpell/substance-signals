@@ -15,26 +15,35 @@ size_t writeVoid(void*, size_t size, size_t nmemb, void*) {
 	return size * nmemb;
 }
 
-CURL* createCurl(std::string url, bool usePUT) {
-	auto curl = curl_easy_init();
+struct CurlScope {
+	CurlScope() {
+		curl_global_init(CURL_GLOBAL_ALL);
+	}
+	~CurlScope() {
+		curl_global_cleanup();
+	}
+};
+
+std::shared_ptr<CURL> createCurl(std::string url, bool usePUT) {
+	auto curl = std::shared_ptr<CURL>(curl_easy_init(), &curl_easy_cleanup);
 	if (!curl)
 		throw std::runtime_error("Couldn't init the HTTP stack.");
 
 	// setup HTTP request
-	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+	curl_easy_setopt(curl.get(), CURLOPT_URL, url.c_str());
 	if (usePUT)
-		curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
+		curl_easy_setopt(curl.get(), CURLOPT_UPLOAD, 1L);
 	else
-		curl_easy_setopt(curl, CURLOPT_POST, 1L);
+		curl_easy_setopt(curl.get(), CURLOPT_POST, 1L);
 
 	// don't check certifcates
-	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+	curl_easy_setopt(curl.get(), CURLOPT_SSL_VERIFYPEER, 0L);
+	curl_easy_setopt(curl.get(), CURLOPT_SSL_VERIFYHOST, 0L);
 
 	// keep execution silent
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeVoid);
-	curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
-	curl_easy_setopt(curl, CURLOPT_VERBOSE, 0L);
+	curl_easy_setopt(curl.get(), CURLOPT_WRITEFUNCTION, writeVoid);
+	curl_easy_setopt(curl.get(), CURLOPT_NOSIGNAL, 1);
+	curl_easy_setopt(curl.get(), CURLOPT_VERBOSE, 0L);
 
 	return curl;
 }
@@ -51,14 +60,13 @@ struct CurlHttpSender : HttpSender {
 
 		CurlHttpSender(std::string url, std::string userAgent, bool usePUT, std::vector<std::string> extraHeaders, Modules::KHost* log) {
 			m_log = log;
-			curl_global_init(CURL_GLOBAL_ALL);
 			curl = createCurl(url, usePUT);
 
-			curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent.c_str());
+			curl_easy_setopt(curl.get(), CURLOPT_USERAGENT, userAgent.c_str());
 
 			for (auto &h : extraHeaders) {
 				headers = curl_slist_append(headers, h.c_str());
-				curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+				curl_easy_setopt(curl.get(), CURLOPT_HTTPHEADER, headers);
 			}
 
 			workingThread = std::thread(&CurlHttpSender::threadProc, this);
@@ -69,8 +77,6 @@ struct CurlHttpSender : HttpSender {
 			workingThread.join();
 
 			curl_slist_free_all(headers);
-			curl_easy_cleanup(curl);
-			curl_global_cleanup();
 		}
 
 		void send(span<const uint8_t> prefix) override {
@@ -85,10 +91,10 @@ struct CurlHttpSender : HttpSender {
 	private:
 		void threadProc() {
 			headers = curl_slist_append(headers, "Transfer-Encoding: chunked");
-			curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+			curl_easy_setopt(curl.get(), CURLOPT_HTTPHEADER, headers);
 
-			curl_easy_setopt(curl, CURLOPT_READFUNCTION, &CurlHttpSender::staticCurlCallback);
-			curl_easy_setopt(curl, CURLOPT_READDATA, this);
+			curl_easy_setopt(curl.get(), CURLOPT_READFUNCTION, &CurlHttpSender::staticCurlCallback);
+			curl_easy_setopt(curl.get(), CURLOPT_READDATA, this);
 
 			do {
 				finished = false;
@@ -98,12 +104,12 @@ struct CurlHttpSender : HttpSender {
 				if(m_prefixData)
 					m_currBs = m_prefixData->data();
 
-				auto res = curl_easy_perform(curl);
+				auto res = curl_easy_perform(curl.get());
 				if (res != CURLE_OK)
 					m_log->log(Warning, (std::string("Transfer failed: ") + curl_easy_strerror(res)).c_str());
 
 				long http_code = 0;
-				curl_easy_getinfo (curl, CURLINFO_RESPONSE_CODE, &http_code);
+				curl_easy_getinfo (curl.get(), CURLINFO_RESPONSE_CODE, &http_code);
 				if(http_code >= 400)
 					m_log->log(Warning, ("HTTP error: " + std::to_string(http_code)).c_str());
 			} while(!finished);
@@ -136,6 +142,7 @@ struct CurlHttpSender : HttpSender {
 			return writer.ptr - buffer.ptr;
 		}
 
+		CurlScope m_curlScope;
 		bool finished;
 
 		Data m_prefixData;
@@ -144,7 +151,7 @@ struct CurlHttpSender : HttpSender {
 
 		Modules::KHost* m_log {};
 		curl_slist* headers {};
-		CURL *curl;
+		std::shared_ptr<CURL> curl;
 		std::thread workingThread;
 
 		// data to upload
@@ -164,7 +171,9 @@ std::unique_ptr<HttpSender> createHttpSender(std::string url, std::string userAg
 }
 
 void enforceConnection(std::string url, bool usePUT) {
-	std::shared_ptr<void> curl(createCurl(url, usePUT), &curl_easy_cleanup);
+	CurlScope curlScope;
+
+	auto curl = createCurl(url, usePUT);
 
 	if (usePUT)
 		curl_easy_setopt(curl.get(), CURLOPT_INFILESIZE_LARGE, 0);
