@@ -117,7 +117,7 @@ struct CurlHttpSender : HttpSender {
 				long http_code = 0;
 				curl_easy_getinfo (curl.get(), CURLINFO_RESPONSE_CODE, &http_code);
 				if(http_code >= 400)
-					m_log->log(Warning, ("HTTP error: " + std::to_string(http_code)).c_str());
+					m_log->log(Warning, ("HTTP error: " + std::to_string(http_code) + " (" + m_cfg.url + ")").c_str());
 			}
 
 			curl_slist_free_all(headers);
