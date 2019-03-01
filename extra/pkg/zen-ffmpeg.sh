@@ -66,8 +66,23 @@ function ffmpeg_get_deps {
 
 
 function ffmpeg_patches {
-  local patchFile=$scriptDir/patches/ffmpeg_01_hlsenc_lower_verbosity.diff
-  cat << 'EOF' > $patchFile
+  local patchFile1=$scriptDir/patches/ffmpeg_01_hlsenc_lower_verbosity.diff
+  cat << 'EOF' > $patchFile1
+diff --git a/libavformat/aviobuf.c b/libavformat/aviobuf.c
+index e752d0e..3344738 100644
+--- a/libavformat/aviobuf.c
++++ b/libavformat/aviobuf.c
+@@ -578,8 +578,8 @@ static void fill_buffer(AVIOContext *s)
+
+             s->checksum_ptr = dst = s->buffer;
+         }
+-        av_assert0(len >= s->orig_buffer_size);
+-        len = s->orig_buffer_size;
++        if (len >= s->orig_buffer_size);
++            len = s->orig_buffer_size;
+     }
+
+     len = read_packet_wrapper(s, dst, len);
 diff --git a/libavformat/hlsenc.c b/libavformat/hlsenc.c
 index c27a66e..6bfb175 100644
 --- a/libavformat/hlsenc.c
@@ -83,5 +98,29 @@ index c27a66e..6bfb175 100644
          }
 EOF
 
-  applyPatch $patchFile
+  applyPatch $patchFile1
+
+  #with MPEG-TS input libavformat would assert:
+  #[libav-log::panic] Assertion len >= s->orig_buffer_size failed at src/libavformat/aviobuf.c:581
+  #see https://www.mail-archive.com/ffmpeg-devel@ffmpeg.org/msg36880.html
+  local patchFile2=$scriptDir/patches/ffmpeg_02_avio_mpegts_demux_assert.diff
+  cat << 'EOF' > $patchFile2
+diff --git a/libavformat/aviobuf.c b/libavformat/aviobuf.c
+index e752d0e..3344738 100644
+--- a/libavformat/aviobuf.c
++++ b/libavformat/aviobuf.c
+@@ -578,8 +578,8 @@ static void fill_buffer(AVIOContext *s)
+
+             s->checksum_ptr = dst = s->buffer;
+         }
+-        av_assert0(len >= s->orig_buffer_size);
+-        len = s->orig_buffer_size;
++        if (len >= s->orig_buffer_size);
++            len = s->orig_buffer_size;
+     }
+
+     len = read_packet_wrapper(s, dst, len);
+EOF
+
+  applyPatch $patchFile2
 }
