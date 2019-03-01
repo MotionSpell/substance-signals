@@ -96,8 +96,7 @@ struct CurlHttpSender : HttpSender {
 			curl_easy_setopt(curl.get(), CURLOPT_READFUNCTION, &CurlHttpSender::staticCurlCallback);
 			curl_easy_setopt(curl.get(), CURLOPT_READDATA, this);
 
-			do {
-				finished = false;
+			while(!finished) {
 				m_currBs = {};
 
 				// load prefix, if any
@@ -112,7 +111,7 @@ struct CurlHttpSender : HttpSender {
 				curl_easy_getinfo (curl.get(), CURLINFO_RESPONSE_CODE, &http_code);
 				if(http_code >= 400)
 					m_log->log(Warning, ("HTTP error: " + std::to_string(http_code)).c_str());
-			} while(!finished);
+			}
 
 			curl_slist_free_all(headers);
 		}
@@ -145,7 +144,7 @@ struct CurlHttpSender : HttpSender {
 		}
 
 		CurlScope m_curlScope;
-		bool finished;
+		bool finished = false; // set to 'true' when the curl callback pops the 'null' sample (pushed by the destructor)
 
 		Data m_prefixData;
 		Data m_currData;
