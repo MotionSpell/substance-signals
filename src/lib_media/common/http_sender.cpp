@@ -65,6 +65,13 @@ struct CurlHttpSender : HttpSender {
 		}
 
 		~CurlHttpSender() {
+
+			// Allows the working thread to exit, in case curl_easy_perform
+			// does not call our callback. This occurs when the webserver returns
+			// a "403 Forbidden" error.
+			finished = true;
+
+			m_fifo.clear();
 			m_fifo.push(nullptr);
 			workingThread.join();
 		}
