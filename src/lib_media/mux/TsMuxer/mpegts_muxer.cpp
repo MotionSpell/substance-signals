@@ -7,6 +7,7 @@
 #include "../../common/libav.hpp" // avStrError
 #include "../../common/metadata.hpp"
 #include "../../common/attributes.hpp"
+#include <algorithm> //std::min
 #include <cassert>
 #include <string>
 
@@ -246,7 +247,7 @@ class TsMuxer : public ModuleDynI {
 
 			if(!m_dropAllOutput) {
 				while(packet.len > 0) {
-					auto len = min<int>(packet.len, TS_PACKET_SIZE*7);
+					auto len = std::min<int>(packet.len, TS_PACKET_SIZE*7);
 					auto buf = m_output->getBuffer<DataRaw>(len);
 					memcpy(buf->data().ptr, packet.ptr, len);
 					buf->setMediaTime((m_sentBits * IClock::Rate) / m_cfg.muxRate);

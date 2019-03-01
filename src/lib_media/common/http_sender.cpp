@@ -1,4 +1,5 @@
 #include "http_sender.hpp"
+#include <algorithm> // std::min
 #include <string.h> // memcpy
 #include <thread>
 #include <mutex>
