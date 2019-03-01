@@ -95,12 +95,24 @@ struct PsiStream : Stream {
 
 				while(r.byteOffset() < sectionStart + section_length - crcSize) {
 					// Elementary stream info
-					auto const stream_type = r.u(8);
+					auto stream_type = r.u(8);
 					/*auto const reserved5 =*/ r.u(3);
 					auto const pid = r.u(13);
 					/*auto const reserved6 =*/ r.u(4);
 					auto const es_info_length = r.u(12);
-					skip(r, es_info_length, "es_info_length in PSI header");
+					auto const finalPos = r.m_pos + es_info_length * 8;
+
+					while (r.m_pos < finalPos) {
+						auto descriptor_tag = r.u(8);
+						auto descriptor_length = r.u(8);
+						if (descriptor_tag == 0x6A/*AC-3*/ || descriptor_tag == 0x7A/*EAC-3*/) {
+							stream_type |= (descriptor_tag << 8);
+						}
+						skip(r, descriptor_length, "descriptor in PSI header");
+					}
+
+					assert(finalPos >= r.m_pos);
+					r.u(finalPos - r.m_pos);
 
 					info.push_back({ pid, stream_type });
 				}

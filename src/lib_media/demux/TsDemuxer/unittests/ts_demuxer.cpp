@@ -352,7 +352,7 @@ unittest("TsDemuxer: get codec from PMT") {
 		w.u(1, 0x1); // section syntax indicator
 		w.u(1, 0x0); // private bit
 		w.u(2, 0x3); // reserved
-		w.u(12, 0x1D); // section_length
+		w.u(12, 0x24); // section_length
 
 		w.u(16, 0x01); // program_number (Table ID extension)
 		w.u(2, 0x3); // reserved
@@ -379,8 +379,9 @@ unittest("TsDemuxer: get codec from PMT") {
 		w.u(4, 0xf); // reserved
 		w.u(12, 0x3); // ES info length
 
-		w.u(8, 0x77); // garbage byte (ES info)
-		w.u(8, 0x77); // garbage byte (ES info)
+		// ES info
+		w.u(8, 0x0); // ES info: descriptor_tag
+		w.u(8, 0x1); // ES info: descriptor_length
 		w.u(8, 0x77); // garbage byte (ES info)
 
 		// Elementary stream info
@@ -390,12 +391,24 @@ unittest("TsDemuxer: get codec from PMT") {
 		w.u(4, 0xf); // reserved
 		w.u(12, 0x0); // ES info length
 
+#if 1 //Romain
+		// Elementary stream info
+		w.u(8, 0x6); // stream type: private
+		w.u(3, 0x7); // reserved
+		w.u(13, 555); // PID
+		w.u(4, 0xf); // reserved
+		w.u(12, 0x2); // ES info length
+		w.u(8, 0x6a); // ES info: descriptor_tag for AC-3
+		w.u(8, 0x0); //  ES info: descriptor_length
+#endif
+
 		w.u(32, 0x896249fe); // CRC32
 	}
 
 	TsDemuxerConfig cfg;
 	cfg.pids[0] = TsDemuxerConfig::ANY_VIDEO();
 	cfg.pids[1] = TsDemuxerConfig::ANY_AUDIO();
+	cfg.pids[2] = TsDemuxerConfig::ANY_AUDIO();
 
 	auto demux = loadModule("TsDemuxer", &NullHost, &cfg);
 
@@ -409,6 +422,10 @@ unittest("TsDemuxer: get codec from PMT") {
 	auto meta1 = safe_cast<const MetadataPkt>(demux->getOutput(1)->getMetadata());
 	ASSERT(meta1 != nullptr);
 	ASSERT_EQUALS("mp2", meta1->codec);
+
+	auto meta2 = safe_cast<const MetadataPkt>(demux->getOutput(2)->getMetadata());
+	ASSERT(meta2 != nullptr);
+	ASSERT_EQUALS("ac3", meta2->codec);
 }
 
 fuzztest("TsDemuxer") {

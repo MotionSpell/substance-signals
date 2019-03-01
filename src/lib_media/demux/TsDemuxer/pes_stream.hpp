@@ -16,7 +16,7 @@ Metadata createMetadata(int mpegStreamType) {
 	};
 
 	// remap MPEG-2 stream_type to internal codec names
-	switch(mpegStreamType) {
+	switch(mpegStreamType & 0xff) {
 	case 0x01: return make(VIDEO_PKT, "mpeg2video");
 	case 0x02: return make(VIDEO_PKT, "mpeg2video");
 	case 0x03: return make(AUDIO_PKT, "mp1");
@@ -25,6 +25,14 @@ Metadata createMetadata(int mpegStreamType) {
 	case 0x11: return make(AUDIO_PKT, "aac_latm");
 	case 0x1b: return make(VIDEO_PKT, "h264");
 	case 0x24: return make(VIDEO_PKT, "hevc");
+	case 0x06: { /*private*/
+		auto const descriptor_tag = mpegStreamType >> 8;
+		switch (descriptor_tag) {
+		case 0x6A: return make(AUDIO_PKT, "ac3");
+		case 0x7A: return make(AUDIO_PKT, "eac3");
+		default: return nullptr; // unknown stream type
+		}
+	}
 	default: return nullptr; // unknown stream type
 	}
 }
