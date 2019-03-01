@@ -139,7 +139,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 		auto sinkCfg = FileSystemSinkConfig { cfg.workingDir };
 		sink = pipeline->add("FileSystemSink", &sinkCfg);
 	} else {
-		auto sinkCfg = HttpSinkConfig { cfg.publishUrl, "dashcastx", {} };
+		auto sinkCfg = HttpSinkConfig { cfg.publishUrl, "Elemental", {} };
 		sink = pipeline->add("HttpSink", &sinkCfg);
 	}
 

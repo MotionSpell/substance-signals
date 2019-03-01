@@ -6,7 +6,7 @@
 // Single long running POST/PUT connection
 struct HttpSender {
 	virtual ~HttpSender() = default;
-	virtual void send(span<const uint8_t> data) = 0;
+	virtual void send(span<const uint8_t> data) = 0; // (send an empty span to flush)
 	virtual void setPrefix(span<const uint8_t> prefix) = 0;
 };
 

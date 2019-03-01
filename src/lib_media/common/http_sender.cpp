@@ -1,8 +1,9 @@
 #include "http_sender.hpp"
 #include <string.h> // memcpy
 #include <thread>
+#include <mutex>
+#include <condition_variable>
 #include "lib_utils/log_sink.hpp" // Warning
-#include "lib_utils/queue.hpp"
 
 extern "C" {
 #include <curl/curl.h>
@@ -48,12 +49,11 @@ std::shared_ptr<CURL> createCurl(std::string url, bool usePUT) {
 	return curl;
 }
 
-Data createData(SpanC contents) {
-	auto r = make_shared<DataRaw>(contents.len);
-	if(contents.len)
-		memcpy(r->data().ptr, contents.ptr, contents.len);
-	return r;
-}
+void append(std::vector<uint8_t>& dst, SpanC data) {
+	auto offset = dst.size();
+	dst.resize(offset + data.len);
+	if(data.len)
+		memcpy(&dst[offset], data.ptr, data.len);
 }
 
 struct CurlHttpSender : HttpSender {
@@ -61,28 +61,36 @@ struct CurlHttpSender : HttpSender {
 		HttpSenderConfig const m_cfg;
 		CurlHttpSender(HttpSenderConfig const& cfg, Modules::KHost* log) : m_cfg(cfg) {
 			m_log = log;
-			workingThread = std::thread(&CurlHttpSender::threadProc, this);
+			curlThread = std::thread(&CurlHttpSender::threadProc, this);
 		}
 
 		~CurlHttpSender() {
-
-			// Allows the working thread to exit, in case curl_easy_perform
-			// does not call our callback. This occurs when the webserver returns
-			// a "403 Forbidden" error.
-			finished = true;
-
-			m_fifo.clear();
-			m_fifo.push(nullptr);
-			workingThread.join();
+			destroying = true;
+			curlThread.join();
 		}
 
-		void send(span<const uint8_t> prefix) override {
-			auto data = createData(prefix);
-			m_fifo.push(data);
+		void send(span<const uint8_t> data) override {
+			{
+				std::unique_lock<std::mutex> lock(m_mutex);
+				if(data.len) {
+					append(m_fifo, data);
+				} else {
+					endOfDataFlag = true;
+				}
+				m_dataReady.notify_one();
+			}
+
+			if(!data.len) {
+				// wait for flush finished, before returning
+				std::unique_lock<std::mutex> lock(m_mutex);
+				while(!allDataSent)
+					m_allDataSent.wait(lock);
+			}
 		}
 
 		void setPrefix(span<const uint8_t>  prefix) override {
-			m_prefixData = createData(prefix);
+			m_prefixData.clear();
+			append(m_prefixData, prefix);
 		}
 
 	private:
@@ -103,12 +111,10 @@ struct CurlHttpSender : HttpSender {
 			curl_easy_setopt(curl.get(), CURLOPT_READFUNCTION, &CurlHttpSender::staticCurlCallback);
 			curl_easy_setopt(curl.get(), CURLOPT_READDATA, this);
 
-			while(!finished) {
-				m_currBs = {};
-
+			while(!destroying && !allDataSent) {
 				// load prefix, if any
-				if(m_prefixData)
-					m_currBs = m_prefixData->data();
+				if(m_prefixData.size())
+					append(m_fifo, {m_prefixData.data(), m_prefixData.size()});
 
 				auto res = curl_easy_perform(curl.get());
 				if (res != CURLE_OK)
@@ -130,48 +136,52 @@ struct CurlHttpSender : HttpSender {
 
 		size_t fillBuffer(span<uint8_t> buffer) {
 			// curl stops calling us when we return 0.
-			if(finished)
+
+			std::unique_lock<std::mutex> lock(m_mutex);
+
+			// if we're destroying, early-finish the transfer
+			if(destroying)
 				return 0;
 
-			auto writer = buffer;
-			while(writer.len > 0) {
-				if (m_currBs.len == 0) {
-					m_currData = m_fifo.pop();
-					if(!m_currData) {
-						finished = true;
-						break;
-					}
-					m_currBs = m_currData->data();
-				}
+			// wait for new data
+			while(m_fifo.empty() && !endOfDataFlag)
+				m_dataReady.wait(lock);
 
-				writer += read(m_currBs, writer.ptr, writer.len);
+			auto const N = std::min<int>(buffer.len, m_fifo.size());
+			if(N > 0) {
+				memcpy(buffer.ptr, m_fifo.data(), N);
+				memmove(m_fifo.data(), m_fifo.data()+N, m_fifo.size()-N);
+				m_fifo.resize(m_fifo.size()-N);
 			}
 
-			return writer.ptr - buffer.ptr;
+			if(m_fifo.empty() && endOfDataFlag) {
+				allDataSent = true;
+				m_allDataSent.notify_one();
+			}
+
+			return N;
 		}
 
 		CurlScope m_curlScope;
-		bool finished = false; // set to 'true' when the curl callback pops the 'null' sample (pushed by the destructor)
+		bool destroying = false;
 
-		Data m_prefixData;
-		Data m_currData;
-		span<const uint8_t> m_currBs {}; // points to the contents of m_currData/m_prefixData
+		std::condition_variable m_allDataSent;
+		bool allDataSent = false;
+
+		// data to send first at the beginning of each connection
+		std::vector<uint8_t> m_prefixData;
 
 		Modules::KHost* m_log {};
 		curl_slist* headers {};
-		std::thread workingThread;
+		std::thread curlThread;
 
 		// data to upload
-		Queue<Data> m_fifo;
-
-		static size_t read(span<const uint8_t>& stream, uint8_t* dst, size_t dstLen) {
-			auto readCount = std::min(stream.len, dstLen);
-			if(readCount > 0)
-				memcpy(dst, stream.ptr, readCount);
-			stream += readCount;
-			return readCount;
-		}
+		std::mutex m_mutex;
+		std::condition_variable m_dataReady;
+		bool endOfDataFlag = false; // 'true' means 'm_fifo will not grow anymore'
+		std::vector<uint8_t> m_fifo;
 };
+}
 
 std::unique_ptr<HttpSender> createHttpSender(HttpSenderConfig const& config, Modules::KHost* log) {
 	return std::make_unique<CurlHttpSender>(config, log);

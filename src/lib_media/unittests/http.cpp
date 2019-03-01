@@ -55,3 +55,39 @@ secondclasstest("HTTP: post data to real server, suffix but no flush") {
 	mod->process();
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
+#include "lib_media/common/http_sender.hpp"
+
+secondclasstest("HttpSender: post data to real server") {
+	HttpSenderConfig cfg {};
+	cfg.url = "http://127.0.0.1:9000";
+
+	auto sender = createHttpSender(cfg, &NullHost);
+
+	{
+		const uint8_t msg[] = "GutenTag";
+		sender->send(msg);
+	}
+
+	{
+		const uint8_t msg[] = "AufWiederSehen";
+		sender->send(msg);
+	}
+
+	//flush
+	sender->send({});
+}
+
+secondclasstest("HttpSender: post data to real server, no flush") {
+	HttpSenderConfig cfg {};
+	cfg.url = "http://127.0.0.1:9000";
+
+	auto sender = createHttpSender(cfg, &NullHost);
+
+	{
+		const uint8_t msg[] = "GutenTag";
+		sender->send(msg);
+	}
+}
+
