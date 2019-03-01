@@ -48,10 +48,10 @@ std::shared_ptr<CURL> createCurl(std::string url, bool usePUT) {
 	return curl;
 }
 
-Data createData(std::vector<uint8_t> const& contents) {
-	auto r = make_shared<DataRaw>(contents.size());
-	if(contents.size())
-		memcpy(r->data().ptr, contents.data(), contents.size());
+Data createData(SpanC contents) {
+	auto r = make_shared<DataRaw>(contents.len);
+	if(contents.len)
+		memcpy(r->data().ptr, contents.ptr, contents.len);
 	return r;
 }
 }
@@ -77,12 +77,12 @@ struct CurlHttpSender : HttpSender {
 		}
 
 		void send(span<const uint8_t> prefix) override {
-			auto data = createData({prefix.ptr, prefix.ptr+prefix.len});
+			auto data = createData(prefix);
 			m_fifo.push(data);
 		}
 
 		void setPrefix(span<const uint8_t>  prefix) override {
-			m_prefixData = createData({prefix.ptr, prefix.ptr+prefix.len});
+			m_prefixData = createData(prefix);
 		}
 
 	private:
