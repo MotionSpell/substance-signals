@@ -190,7 +190,7 @@ IModule* createObject(KHost* host, void* va) {
 	auto config = (TsDemuxerConfig*)va;
 	enforce(host, "TsDemuxer: host can't be NULL");
 	enforce(config, "TsDemuxer: config can't be NULL");
-	return createModule<TsDemuxer>(host, *config).release();
+	return createModuleWithSize<TsDemuxer>(384, host, *config).release();
 }
 }
 
