@@ -61,23 +61,12 @@ struct CurlHttpSender : HttpSender {
 		HttpSenderConfig const m_cfg;
 		CurlHttpSender(HttpSenderConfig const& cfg, Modules::KHost* log) : m_cfg(cfg) {
 			m_log = log;
-			curl = createCurl(m_cfg.url, m_cfg.usePUT);
-
-			curl_easy_setopt(curl.get(), CURLOPT_USERAGENT, m_cfg.userAgent.c_str());
-
-			for (auto &h : m_cfg.extraHeaders) {
-				headers = curl_slist_append(headers, h.c_str());
-				curl_easy_setopt(curl.get(), CURLOPT_HTTPHEADER, headers);
-			}
-
 			workingThread = std::thread(&CurlHttpSender::threadProc, this);
 		}
 
 		~CurlHttpSender() {
 			m_fifo.push(nullptr);
 			workingThread.join();
-
-			curl_slist_free_all(headers);
 		}
 
 		void send(span<const uint8_t> prefix) override {
@@ -91,6 +80,16 @@ struct CurlHttpSender : HttpSender {
 
 	private:
 		void threadProc() {
+
+			auto curl = createCurl(m_cfg.url, m_cfg.usePUT);
+
+			curl_easy_setopt(curl.get(), CURLOPT_USERAGENT, m_cfg.userAgent.c_str());
+
+			for (auto &h : m_cfg.extraHeaders) {
+				headers = curl_slist_append(headers, h.c_str());
+				curl_easy_setopt(curl.get(), CURLOPT_HTTPHEADER, headers);
+			}
+
 			headers = curl_slist_append(headers, "Transfer-Encoding: chunked");
 			curl_easy_setopt(curl.get(), CURLOPT_HTTPHEADER, headers);
 
@@ -114,6 +113,8 @@ struct CurlHttpSender : HttpSender {
 				if(http_code >= 400)
 					m_log->log(Warning, ("HTTP error: " + std::to_string(http_code)).c_str());
 			} while(!finished);
+
+			curl_slist_free_all(headers);
 		}
 
 		static size_t staticCurlCallback(void *buffer, size_t size, size_t nmemb, void *userp) {
@@ -152,7 +153,6 @@ struct CurlHttpSender : HttpSender {
 
 		Modules::KHost* m_log {};
 		curl_slist* headers {};
-		std::shared_ptr<CURL> curl;
 		std::thread workingThread;
 
 		// data to upload
