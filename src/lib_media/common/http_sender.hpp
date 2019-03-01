@@ -4,6 +4,16 @@
 #include "lib_modules/utils/helper.hpp" // span
 
 // Single long running POST/PUT connection
+//|This interface is meant to be used the following way:
+//|
+//|  {
+//|    auto s = createHttpSender(...);
+//|    s->send(data1);
+//|    s->send(data2);
+//|    s->send({}); // flush (this line is optional, but guarantees that all data will be transfered)
+//|    // 'send' cannot be called anymore after flushing.
+//|  } // here the connection gets destroyed (whether all data was transfered or not)
+//|
 struct HttpSender {
 	virtual ~HttpSender() = default;
 	virtual void send(span<const uint8_t> data) = 0; // (send an empty span to flush)
