@@ -1,6 +1,7 @@
 #pragma once
 
 #include "buffer.hpp"
+#include <cstring> //memcpy
 #include <memory>
 #include <vector>
 #include <map>
