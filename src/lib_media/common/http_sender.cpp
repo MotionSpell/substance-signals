@@ -101,6 +101,11 @@ struct CurlHttpSender : HttpSender {
 				auto res = curl_easy_perform(curl);
 				if (res != CURLE_OK)
 					m_log->log(Warning, (std::string("Transfer failed: ") + curl_easy_strerror(res)).c_str());
+
+				long http_code = 0;
+				curl_easy_getinfo (curl, CURLINFO_RESPONSE_CODE, &http_code);
+				if(http_code >= 400)
+					m_log->log(Warning, ("HTTP error: " + std::to_string(http_code)).c_str());
 			} while(!finished);
 		}
 
