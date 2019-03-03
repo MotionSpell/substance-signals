@@ -37,7 +37,6 @@ function ffmpeg_build {
       --disable-doc \
       --disable-static \
       --enable-shared \
-      --enable-librtmp \
       --enable-gpl \
       --enable-libx264 \
       --enable-zlib \
@@ -58,7 +57,6 @@ function ffmpeg_build {
 }
 
 function ffmpeg_get_deps {
-  echo librtmp
   echo libpthread
   echo x264
   echo zlib
