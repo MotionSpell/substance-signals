@@ -43,7 +43,7 @@ struct MPEG_DASH_Input::Stream {
 	OutputDefault* out = nullptr;
 	AdaptationSet* set = nullptr;
 	int currNumber = 0;
-	Fraction segmentDuration;
+	Fraction segmentDuration {};
 };
 
 static string dirName(string path) {
@@ -98,6 +98,9 @@ MPEG_DASH_Input::MPEG_DASH_Input(KHost* host, IFilePuller* source, std::string c
 		stream->currNumber  = stream->set->startNumber;
 		if(mpd->dynamic) {
 			auto now = (int64_t)getUTC();
+			if(stream->segmentDuration.num == 0)
+				throw runtime_error("No duration for stream");
+
 			stream->currNumber += int(stream->segmentDuration.inverse() * (now - mpd->availabilityStartTime));
 			// HACK: add one segment latency
 			stream->currNumber -= 2;
@@ -184,7 +187,8 @@ DashMpd parseMpd(span<const char> text) {
 			set.initialization = attr["initialization"];
 			set.media = attr["media"];
 			set.startNumber = atoi(attr["startNumber"].c_str());
-			set.duration = atoi(attr["duration"].c_str());
+			if(attr.find("duration") != attr.end())
+				set.duration = atoi(attr["duration"].c_str());
 			if(!attr["timescale"].empty())
 				set.timescale = atoi(attr["timescale"].c_str());
 		} else if(name == "Representation") {
