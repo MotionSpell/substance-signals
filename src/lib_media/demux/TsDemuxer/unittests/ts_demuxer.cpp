@@ -391,8 +391,7 @@ unittest("TsDemuxer: get codec from PMT") {
 		w.u(4, 0xf); // reserved
 		w.u(12, 0x0); // ES info length
 
-#if 1 //Romain
-		// Elementary stream info
+		// Elementary stream info: AC-3 (private_data + AC-3 descriptor)
 		w.u(8, 0x6); // stream type: private
 		w.u(3, 0x7); // reserved
 		w.u(13, 555); // PID
@@ -400,7 +399,6 @@ unittest("TsDemuxer: get codec from PMT") {
 		w.u(12, 0x2); // ES info length
 		w.u(8, 0x6a); // ES info: descriptor_tag for AC-3
 		w.u(8, 0x0); //  ES info: descriptor_length
-#endif
 
 		w.u(32, 0x896249fe); // CRC32
 	}
