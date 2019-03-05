@@ -92,7 +92,10 @@ void AdaptiveStreamingCommon::processInitSegment(Quality const * const quality, 
 
 std::string AdaptiveStreamingCommon::getInitName(Quality const * const quality, size_t index) const {
 	switch (quality->getMeta()->type) {
-	case AUDIO_PKT: case VIDEO_PKT: case SUBTITLE_PKT: return format("%s-init.mp4", getPrefix(quality, index));
+	case AUDIO_PKT:
+	case VIDEO_PKT:
+	case SUBTITLE_PKT:
+		return format("%s-init.mp4", getPrefix(quality, index));
 	default: return "";
 	}
 }
