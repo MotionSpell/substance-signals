@@ -166,6 +166,31 @@ void MPEG_DASH_Input::process() {
 // nothing above this line should depend upon gpac
 
 #include "../common/sax_xml_parser.hpp"
+#include <time.h>
+
+// "2019-03-04T15:32:17"
+int64_t parseDate(string s) {
+	int year, month, day, hour, minute, second;
+	int ret = sscanf(s.c_str(), "%04d-%02d-%02dT%02d:%02d:%02d",
+	        &year,
+	        &month,
+	        &day,
+	        &hour,
+	        &minute,
+	        &second);
+	if(ret != 6)
+		throw runtime_error("Invalid date '" + s + "'");
+
+	tm date {};
+	date.tm_year = year - 1900;
+	date.tm_mon = month - 1;
+	date.tm_mday = day;
+	date.tm_hour = hour;
+	date.tm_min = minute;
+	date.tm_sec = second;
+
+	return timegm(&date);
+}
 
 DashMpd parseMpd(span<const char> text) {
 
@@ -182,6 +207,8 @@ DashMpd parseMpd(span<const char> text) {
 				mpd->periodDuration = parseIso8601Period(attr["duration"]);
 		} else if(name == "MPD") {
 			mpd->dynamic = attr["type"] == "dynamic";
+			if(!attr["availabilityStartTime"].empty())
+				mpd->availabilityStartTime = parseDate(attr["availabilityStartTime"]);
 		} else if(name == "SegmentTemplate") {
 			auto& set = mpd->sets.back();
 			set.initialization = attr["initialization"];
