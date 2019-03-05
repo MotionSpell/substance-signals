@@ -133,9 +133,8 @@ void AdaptiveStreamingCommon::ensurePrefix(size_t i) {
 
 void AdaptiveStreamingCommon::endOfStream() {
 	if (workingThread.joinable()) {
-		for (size_t i = 0; i < inputs.size(); ++i) {
-			inputs[i]->push(nullptr);
-		}
+		for(auto& in : inputs)
+			in->push(nullptr);
 		workingThread.join();
 	}
 }
