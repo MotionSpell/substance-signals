@@ -108,7 +108,10 @@ std::string AdaptiveStreamingCommon::getPrefix(Quality const * const quality, si
 
 std::string AdaptiveStreamingCommon::getSegmentName(Quality const * const quality, size_t index, const std::string &segmentNumSymbol) const {
 	switch (quality->getMeta()->type) {
-	case AUDIO_PKT: case VIDEO_PKT: case SUBTITLE_PKT: return format("%s-%s.m4s", getPrefix(quality, index), segmentNumSymbol);
+	case AUDIO_PKT:
+	case VIDEO_PKT:
+	case SUBTITLE_PKT:
+		return format("%s-%s.m4s", getPrefix(quality, index), segmentNumSymbol);
 	default: return "";
 	}
 }
