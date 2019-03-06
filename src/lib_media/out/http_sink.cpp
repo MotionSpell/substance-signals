@@ -41,6 +41,7 @@ struct HttpSink : Modules::ModuleS {
 			auto const url = baseURL + meta->filename;
 
 			HttpOutputConfig httpConfig {};
+			httpConfig.flags.InitialEmptyPost = false;
 			httpConfig.flags.UsePUT = false;
 			httpConfig.url = url;
 			httpConfig.userAgent = userAgent;
