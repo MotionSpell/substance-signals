@@ -1,6 +1,6 @@
 $(BIN)/render-config.mk: $(SRC)/../scripts/configure
 	@mkdir -p $(BIN)
-	$(SRC)/../scripts/configure --scope RENDER_ sdl2 > "$@"
+	$(SRC)/../scripts/configure --scope RENDER_ libavcodec sdl2 > "$@"
 
 ifneq ($(MAKECMDGOALS),clean)
 include $(BIN)/render-config.mk

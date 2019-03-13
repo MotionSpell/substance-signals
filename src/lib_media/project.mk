@@ -18,7 +18,6 @@ LIB_MEDIA_SRCS:=\
   $(MYDIR)/out/null.cpp\
   $(MYDIR)/out/print.cpp\
   $(MYDIR)/stream/apple_hls.cpp\
-  $(MYDIR)/stream/hls_muxer_libav.cpp\
   $(MYDIR)/stream/ms_hss.cpp\
   $(MYDIR)/stream/adaptive_streaming_common.cpp\
   $(MYDIR)/transform/avcc2annexb.cpp\
@@ -40,11 +39,19 @@ endif
 
 $(BIN)/media-config.mk: $(SRC)/../scripts/configure
 	@mkdir -p $(BIN)
-	$(SRC)/../scripts/configure --scope MEDIA_ gpac libswresample libavdevice libavformat libavfilter libswscale libturbojpeg > "$@"
+	$(SRC)/../scripts/configure --scope MEDIA_ gpac libswresample libavcodec libavdevice libavformat libavfilter libswscale libturbojpeg > "$@"
 
 ifneq ($(MAKECMDGOALS),clean)
 include $(BIN)/media-config.mk
 endif
+
+#------------------------------------------------------------------------------
+TARGETS+=$(BIN)/LibavMuxHLSTS.smd
+$(BIN)/LibavMuxHLSTS.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
+$(BIN)/LibavMuxHLSTS.smd: CFLAGS+=$(MEDIA_CFLAGS)
+$(BIN)/LibavMuxHLSTS.smd: \
+  $(BIN)/$(SRC)/lib_media/stream/hls_muxer_libav.cpp.o\
+  $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
 
 #------------------------------------------------------------------------------
 TARGETS+=$(BIN)/VideoConvert.smd
