@@ -1,11 +1,16 @@
 #include "lib_modules/modules.hpp"
 #include "lib_modules/utils/helper.hpp"
+#include "lib_media/common/libav.hpp" // DataAVPacket
+#include "../common/ffpp.hpp"
+#include "../common/attributes.hpp"
+
+extern "C" {
+#include <libavformat/avformat.h> // av_packet_copy_props
+}
 
 using namespace Modules;
 
 namespace Modules {
-
-class DataAVPacket;
 
 namespace Transform {
 
@@ -17,19 +22,6 @@ struct AVCC2AnnexBConverter : public ModuleS {
 		KHost* const m_host;
 		OutputDefault* output;
 };
-
-}
-}
-#include "lib_media/common/libav.hpp"
-#include "../common/ffpp.hpp"
-#include "../common/attributes.hpp"
-
-extern "C" {
-#include <libavformat/avformat.h> // av_packet_copy_props
-}
-
-namespace Modules {
-namespace Transform {
 
 struct ByteReader {
 	SpanC data;
