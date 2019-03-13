@@ -1,4 +1,25 @@
-#include "avcc2annexb.hpp"
+#include "lib_modules/modules.hpp"
+#include "lib_modules/utils/helper.hpp"
+
+using namespace Modules;
+
+namespace Modules {
+
+class DataAVPacket;
+
+namespace Transform {
+
+struct AVCC2AnnexBConverter : public ModuleS {
+		AVCC2AnnexBConverter(KHost* host);
+		void processOne(Data data) override;
+
+	private:
+		KHost* const m_host;
+		OutputDefault* output;
+};
+
+}
+}
 #include "lib_media/common/libav.hpp"
 #include "../common/ffpp.hpp"
 #include "../common/attributes.hpp"
@@ -78,4 +99,14 @@ void AVCC2AnnexBConverter::processOne(Data in) {
 }
 
 }
+}
+
+namespace {
+IModule* createObject(KHost* host, void* va) {
+	(void)va;
+	enforce(host, "AVCC2AnnexBConverter: host can't be NULL");
+	return new ModuleDefault<Modules::Transform::AVCC2AnnexBConverter>(1, host);
+}
+
+auto const registered = Factory::registerModule("AVCC2AnnexBConverter", &createObject);
 }

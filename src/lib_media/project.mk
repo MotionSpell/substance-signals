@@ -1,8 +1,6 @@
 MYDIR=$(call get-my-dir)
 
 LIB_MEDIA_SRCS:=\
-  $(MYDIR)/common/libav.cpp\
-  $(MYDIR)/common/libav_init.cpp\
   $(MYDIR)/common/picture.cpp\
   $(MYDIR)/common/iso8601.cpp\
   $(MYDIR)/common/http_puller.cpp\
@@ -20,7 +18,6 @@ LIB_MEDIA_SRCS:=\
   $(MYDIR)/stream/apple_hls.cpp\
   $(MYDIR)/stream/ms_hss.cpp\
   $(MYDIR)/stream/adaptive_streaming_common.cpp\
-  $(MYDIR)/transform/avcc2annexb.cpp\
   $(MYDIR)/transform/audio_gap_filler.cpp\
   $(MYDIR)/transform/restamp.cpp\
   $(MYDIR)/transform/telx2ttml.cpp\
@@ -29,7 +26,6 @@ LIB_MEDIA_SRCS:=\
   $(MYDIR)/utils/repeater.cpp
 
 PKGS+=\
-  libavcodec\
   libavutil\
   libcurl\
 
@@ -44,6 +40,14 @@ $(BIN)/media-config.mk: $(SRC)/../scripts/configure
 ifneq ($(MAKECMDGOALS),clean)
 include $(BIN)/media-config.mk
 endif
+
+#------------------------------------------------------------------------------
+TARGETS+=$(BIN)/AVCC2AnnexBConverter.smd
+$(BIN)/AVCC2AnnexBConverter.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
+$(BIN)/AVCC2AnnexBConverter.smd: CFLAGS+=$(MEDIA_CFLAGS)
+$(BIN)/AVCC2AnnexBConverter.smd: \
+  $(BIN)/$(SRC)/lib_media/transform/avcc2annexb.cpp.o\
+  $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
 
 #------------------------------------------------------------------------------
 TARGETS+=$(BIN)/LibavMuxHLSTS.smd
@@ -92,6 +96,7 @@ $(BIN)/Encoder.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
 $(BIN)/Encoder.smd: CFLAGS+=$(MEDIA_CFLAGS)
 $(BIN)/Encoder.smd: \
   $(BIN)/$(SRC)/lib_media/encode/libav_encode.cpp.o\
+  $(BIN)/$(SRC)/lib_media/common/libav_init.cpp.o\
   $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
   $(BIN)/$(SRC)/lib_media/common/picture.cpp.o\
 
@@ -109,6 +114,7 @@ TARGETS+=$(BIN)/LibavDemux.smd
 $(BIN)/LibavDemux.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
 $(BIN)/LibavDemux.smd: CFLAGS+=$(MEDIA_CFLAGS)
 $(BIN)/LibavDemux.smd: \
+  $(BIN)/$(SRC)/lib_media/common/libav_init.cpp.o\
   $(BIN)/$(SRC)/lib_media/demux/libav_demux.cpp.o\
   $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
   $(BIN)/$(SRC)/lib_media/transform/restamp.cpp.o\
@@ -119,6 +125,7 @@ $(BIN)/LibavMux.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
 $(BIN)/LibavMux.smd: CFLAGS+=$(MEDIA_CFLAGS)
 $(BIN)/LibavMux.smd: \
   $(BIN)/$(SRC)/lib_media/mux/libav_mux.cpp.o\
+  $(BIN)/$(SRC)/lib_media/common/libav_init.cpp.o\
   $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
 
 #------------------------------------------------------------------------------
