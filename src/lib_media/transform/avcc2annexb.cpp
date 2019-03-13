@@ -10,18 +10,7 @@ extern "C" {
 
 using namespace Modules;
 
-namespace Modules {
-
-namespace Transform {
-
-struct AVCC2AnnexBConverter : public ModuleS {
-		AVCC2AnnexBConverter(KHost* host);
-		void processOne(Data data) override;
-
-	private:
-		KHost* const m_host;
-		OutputDefault* output;
-};
+namespace {
 
 struct ByteReader {
 	SpanC data;
@@ -50,54 +39,55 @@ struct ByteReader {
 	}
 };
 
-AVCC2AnnexBConverter::AVCC2AnnexBConverter(KHost* host)
-	: m_host(host) {
-	output = addOutput<OutputDefault>();
-}
-
-void AVCC2AnnexBConverter::processOne(Data in) {
-	if(isDeclaration(in))
-		return;
-
-	auto out = output->getBuffer<DataAVPacket>(in->data().len);
-	av_packet_copy_props(out->getPacket(), safe_cast<const DataAVPacket>(in)->getPacket());
-
-	out->copyAttributes(*in);
-	out->setMediaTime(in->getMediaTime());
-
-	auto bs = ByteReader { in->data() };
-	while ( auto availableBytes = bs.available() ) {
-		if (availableBytes < 4) {
-			m_host->log(Error, format("Need to read 4 byte start-code, only %s available. Exit current conversion.", availableBytes).c_str());
-			break;
+struct AVCC2AnnexBConverter : public ModuleS {
+		AVCC2AnnexBConverter(KHost* host)
+			: m_host(host) {
+			output = addOutput<OutputDefault>();
 		}
-		auto const size = bs.u32();
-		if (size + 4 > availableBytes) {
-			m_host->log(Error, format("Too much data read: %s (available: %s - 4) (total %s). Exit current conversion.", size, availableBytes, in->data().len).c_str());
-			break;
+
+		void processOne(Data in) override {
+			if(isDeclaration(in))
+				return;
+
+			auto out = output->getBuffer<DataAVPacket>(in->data().len);
+			av_packet_copy_props(out->getPacket(), safe_cast<const DataAVPacket>(in)->getPacket());
+
+			out->copyAttributes(*in);
+			out->setMediaTime(in->getMediaTime());
+
+			auto bs = ByteReader { in->data() };
+			while ( auto availableBytes = bs.available() ) {
+				if (availableBytes < 4) {
+					m_host->log(Error, format("Need to read 4 byte start-code, only %s available. Exit current conversion.", availableBytes).c_str());
+					break;
+				}
+				auto const size = bs.u32();
+				if (size + 4 > availableBytes) {
+					m_host->log(Error, format("Too much data read: %s (available: %s - 4) (total %s). Exit current conversion.", size, availableBytes, in->data().len).c_str());
+					break;
+				}
+				// write start code
+				auto bytes = out->data().ptr + bs.pos - 4;
+				*bytes++ = 0x00;
+				*bytes++ = 0x00;
+				*bytes++ = 0x00;
+				*bytes++ = 0x01;
+				bs.read({out->data().ptr + bs.pos, size});
+			}
+
+			out->setMetadata(in->getMetadata());
+			out->setMediaTime(in->getMediaTime());
+			output->post(out);
 		}
-		// write start code
-		auto bytes = out->data().ptr + bs.pos - 4;
-		*bytes++ = 0x00;
-		*bytes++ = 0x00;
-		*bytes++ = 0x00;
-		*bytes++ = 0x01;
-		bs.read({out->data().ptr + bs.pos, size});
-	}
+	private:
+		KHost* const m_host;
+		OutputDefault* output;
+};
 
-	out->setMetadata(in->getMetadata());
-	out->setMediaTime(in->getMediaTime());
-	output->post(out);
-}
-
-}
-}
-
-namespace {
 IModule* createObject(KHost* host, void* va) {
 	(void)va;
 	enforce(host, "AVCC2AnnexBConverter: host can't be NULL");
-	return new ModuleDefault<Modules::Transform::AVCC2AnnexBConverter>(1, host);
+	return new ModuleDefault<AVCC2AnnexBConverter>(1, host);
 }
 
 auto const registered = Factory::registerModule("AVCC2AnnexBConverter", &createObject);
