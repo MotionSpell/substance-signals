@@ -58,15 +58,14 @@ struct Decoder : ModuleS, PictureAllocator {
 
 		Decoder(KHost* host, StreamType type)
 			: m_host(host), avFrame(new ffpp::Frame) {
+			mediaOutput = addOutput<OutputDefault>();
+			output = mediaOutput;
+
 			if(type == VIDEO_PKT) {
-				videoOutput = addOutput<OutputDefault>();
-				videoOutput->setMetadata(make_shared<MetadataRawVideo>());
-				output = videoOutput;
+				mediaOutput->setMetadata(make_shared<MetadataRawVideo>());
 				getDecompressedData = std::bind(&Decoder::processVideo, this);
 			} else if(type == AUDIO_PKT) {
-				audioOutput = addOutput<OutputDefault>();
-				audioOutput->setMetadata(make_shared<MetadataRawAudio>());
-				output = audioOutput;
+				mediaOutput->setMetadata(make_shared<MetadataRawAudio>());
 				getDecompressedData = std::bind(&Decoder::processAudio, this);
 			} else
 				throw error("Can only decode audio or video.");
@@ -138,13 +137,13 @@ struct Decoder : ModuleS, PictureAllocator {
 					// use a large number: some H.264 streams require up to 14 simultaneous buffers.
 					// this memory is lazily allocated anyway.
 					allocatorSize = 64;
-					videoOutput->resetAllocator(allocatorSize);
+					mediaOutput->resetAllocator(allocatorSize);
 				}
 			}
 		}
 
 		std::shared_ptr<DataBase> processAudio() {
-			auto out = audioOutput->getBuffer<DataPcm>(0);
+			auto out = mediaOutput->getBuffer<DataPcm>(0);
 			PcmFormat pcmFormat;
 			libavFrame2pcmConvert(avFrame->get(), &pcmFormat);
 			out->setFormat(pcmFormat);
@@ -162,7 +161,7 @@ struct Decoder : ModuleS, PictureAllocator {
 				pic = ctx->pic;
 				ctx->pic->setVisibleResolution(Resolution(codecCtx->width, codecCtx->height));
 			} else {
-				pic = DataPicture::create(videoOutput, Resolution(avFrame->get()->width, avFrame->get()->height), libavPixFmt2PixelFormat((AVPixelFormat)avFrame->get()->format));
+				pic = DataPicture::create(mediaOutput, Resolution(avFrame->get()->width, avFrame->get()->height), libavPixFmt2PixelFormat((AVPixelFormat)avFrame->get()->format));
 				copyToPicture(avFrame->get(), pic.get());
 			}
 
@@ -175,7 +174,7 @@ struct Decoder : ModuleS, PictureAllocator {
 
 		PictureAllocator::PictureContext* getPicture(Resolution res, Resolution resInternal, PixelFormat format) {
 			auto ctx = new PictureAllocator::PictureContext;
-			ctx->pic = DataPicture::create(videoOutput, res, resInternal, format);
+			ctx->pic = DataPicture::create(mediaOutput, res, resInternal, format);
 			return ctx;
 		}
 
@@ -206,8 +205,7 @@ struct Decoder : ModuleS, PictureAllocator {
 		KHost* const m_host;
 		std::shared_ptr<AVCodecContext> codecCtx;
 		std::unique_ptr<ffpp::Frame> const avFrame;
-		OutputDefault *videoOutput = nullptr;
-		OutputDefault *audioOutput = nullptr;
+		OutputDefault* mediaOutput = nullptr;
 		KOutput* output = nullptr;
 		std::function<std::shared_ptr<DataBase>(void)> getDecompressedData;
 };
