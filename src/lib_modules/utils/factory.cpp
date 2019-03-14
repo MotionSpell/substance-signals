@@ -1,5 +1,4 @@
 #include "factory.hpp"
-#include <cstring> // strcmp
 #include <string>
 #include <stdexcept>
 
@@ -16,7 +15,7 @@ static Entry registry[1024];
 
 Entry* findEntry(const char* name) {
 	for(auto& entry : registry)
-		if(entry.name && strcmp(entry.name, name) == 0)
+		if(entry.name && string(entry.name) == name)
 			return &entry;
 	return nullptr;
 }
