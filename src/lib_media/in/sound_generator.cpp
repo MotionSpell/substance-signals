@@ -16,7 +16,7 @@ static const auto pcmFormat = PcmFormat(44100, 2, Stereo, S16, Interleaved);
 
 SoundGenerator::SoundGenerator(KHost* host)
 	:  m_host(host), m_numSamples(20000) {
-	output = addOutput<OutputPcm>();
+	output = addOutput<OutputDefault>();
 	output->setMetadata(make_shared<MetadataRawAudio>());
 	m_host->activate(true);
 }

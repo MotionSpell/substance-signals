@@ -27,7 +27,7 @@ class LibavFilter : public ModuleS {
 
 	private:
 		KHost* const m_host;
-		OutputPicture* output = nullptr;
+		OutputDefault* output = nullptr;
 		AVFilterGraph *graph;
 		AVFilterContext *buffersrc_ctx, *buffersink_ctx;
 		std::unique_ptr<ffpp::Frame> const avFrameIn, avFrameOut;
@@ -75,7 +75,7 @@ LibavFilter::LibavFilter(KHost* host, const AvFilterConfig& cfg)
 		throw error("Cannot config filter graph");
 
 	input->setMetadata(make_shared<MetadataRawVideo>());
-	output = addOutput<OutputPicture>();
+	output = addOutput<OutputDefault>();
 	output->setMetadata(make_shared<MetadataRawVideo>());
 }
 

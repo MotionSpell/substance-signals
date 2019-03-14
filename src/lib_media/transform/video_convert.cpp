@@ -25,7 +25,7 @@ class VideoConvert : public ModuleS {
 			: m_host(host),
 			  m_SwContext(nullptr), dstFormat(dstFormat) {
 			input->setMetadata(make_shared<MetadataRawVideo>());
-			output = addOutput<OutputPicture>();
+			output = addOutput<OutputDefault>();
 		}
 
 		~VideoConvert() {
@@ -85,7 +85,7 @@ class VideoConvert : public ModuleS {
 		KHost* const m_host;
 		SwsContext *m_SwContext;
 		PictureFormat srcFormat, dstFormat;
-		OutputPicture* output;
+		OutputDefault* output;
 };
 
 

@@ -49,15 +49,12 @@ class PictureFormat {
 		PixelFormat format;
 };
 
-class DataPicture;
-typedef OutputDefault OutputPicture;
-
 //TODO: we should probably separate planar vs non-planar data, avoid resize on the data, etc.
 class DataPicture : public DataRaw {
 	public:
 		DataPicture(size_t /*unused*/) : DataRaw(0) {}
-		static std::shared_ptr<DataPicture> create(OutputPicture *out, Resolution res, PixelFormat format);
-		static std::shared_ptr<DataPicture> create(OutputPicture *out, Resolution res, Resolution resInternal, PixelFormat format);
+		static std::shared_ptr<DataPicture> create(OutputDefault *out, Resolution res, PixelFormat format);
+		static std::shared_ptr<DataPicture> create(OutputDefault *out, Resolution res, Resolution resInternal, PixelFormat format);
 		static void setup(DataPicture* pic, Resolution res, Resolution resInternal, PixelFormat format);
 
 		PictureFormat getFormat() const {

@@ -59,12 +59,12 @@ struct Decoder : ModuleS, PictureAllocator {
 		Decoder(KHost* host, StreamType type)
 			: m_host(host), avFrame(new ffpp::Frame) {
 			if(type == VIDEO_PKT) {
-				videoOutput = addOutput<OutputPicture>();
+				videoOutput = addOutput<OutputDefault>();
 				videoOutput->setMetadata(make_shared<MetadataRawVideo>());
 				output = videoOutput;
 				getDecompressedData = std::bind(&Decoder::processVideo, this);
 			} else if(type == AUDIO_PKT) {
-				audioOutput = addOutput<OutputPcm>();
+				audioOutput = addOutput<OutputDefault>();
 				audioOutput->setMetadata(make_shared<MetadataRawAudio>());
 				output = audioOutput;
 				getDecompressedData = std::bind(&Decoder::processAudio, this);
@@ -206,8 +206,8 @@ struct Decoder : ModuleS, PictureAllocator {
 		KHost* const m_host;
 		std::shared_ptr<AVCodecContext> codecCtx;
 		std::unique_ptr<ffpp::Frame> const avFrame;
-		OutputPicture *videoOutput = nullptr;
-		OutputPcm *audioOutput = nullptr;
+		OutputDefault *videoOutput = nullptr;
+		OutputDefault *audioOutput = nullptr;
 		KOutput* output = nullptr;
 		std::function<std::shared_ptr<DataBase>(void)> getDecompressedData;
 };

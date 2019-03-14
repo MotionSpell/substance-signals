@@ -21,7 +21,7 @@ class JPEGTurboDecode : public ModuleS {
 
 	private:
 		KHost* const m_host;
-		OutputPicture* output;
+		OutputDefault* output;
 		void ensureMetadata(int width, int height, int pixelFmt);
 		tjhandle jtHandle;
 };
@@ -31,7 +31,7 @@ JPEGTurboDecode::JPEGTurboDecode(KHost* host_)
 	  jtHandle(tjInitDecompress()) {
 	input->setMetadata(make_shared<MetadataPkt>(VIDEO_PKT));
 
-	output = addOutput<OutputPicture>();
+	output = addOutput<OutputDefault>();
 	output->setMetadata(make_shared<MetadataRawVideo>());
 }
 

@@ -9,7 +9,7 @@ namespace Transform {
 AudioGapFiller::AudioGapFiller(KHost* host, uint64_t toleranceInFrames)
 	: m_host(host), toleranceInFrames(toleranceInFrames) {
 	input->setMetadata(make_shared<MetadataRawAudio>());
-	output = addOutput<OutputPcm>();
+	output = addOutput<OutputDefault>();
 }
 
 void AudioGapFiller::processOne(Data data) {

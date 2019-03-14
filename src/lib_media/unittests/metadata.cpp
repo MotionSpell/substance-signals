@@ -11,7 +11,7 @@ namespace {
 class FakeOutput : public Module {
 	public:
 		FakeOutput() {
-			output = addOutput<OutputPcm>();
+			output = addOutput<OutputDefault>();
 		}
 		void process() {
 			auto data = output->getBuffer<DataPcm>(0);
@@ -22,7 +22,7 @@ class FakeOutput : public Module {
 		}
 
 	private:
-		OutputPcm *output;
+		OutputDefault *output;
 };
 
 class FakeInput : public Module {

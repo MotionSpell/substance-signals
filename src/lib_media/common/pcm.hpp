@@ -179,7 +179,3 @@ class DataPcm : public DataBase {
 
 }
 
-namespace Modules {
-class OutputDefault;
-typedef OutputDefault OutputPcm;
-}

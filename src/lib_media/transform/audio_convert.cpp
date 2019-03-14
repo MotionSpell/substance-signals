@@ -73,7 +73,7 @@ struct AudioConvert : ModuleS {
 			  m_dstFormat(dstFormat), m_dstLen(dstLen), autoConfigure(true) {
 			m_srcFormat = { 0 };
 			input->setMetadata(make_shared<MetadataRawAudio>());
-			output = addOutput<OutputPcm>();
+			output = addOutput<OutputDefault>();
 		}
 
 		AudioConvert(KHost* host, PcmFormat srcFormat, PcmFormat dstFormat, int64_t dstLen)
@@ -81,7 +81,7 @@ struct AudioConvert : ModuleS {
 			 m_srcFormat(srcFormat), m_dstFormat(dstFormat), m_dstLen(dstLen), m_resampler(new Resampler), autoConfigure(false) {
 			configure(m_srcFormat);
 			input->setMetadata(make_shared<MetadataRawAudio>());
-			output = addOutput<OutputPcm>();
+			output = addOutput<OutputDefault>();
 		}
 
 		void processOne(Data data) override {
@@ -242,7 +242,7 @@ struct AudioConvert : ModuleS {
 		int64_t inputMediaTime = 0;
 		int64_t inputSampleCount = 0;
 		int64_t accumulatedTimeInDstSR = -1; // '-1' means 'not in sync'
-		OutputPcm *output;
+		OutputDefault *output;
 		const bool autoConfigure;
 };
 

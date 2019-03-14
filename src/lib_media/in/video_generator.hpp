@@ -27,7 +27,7 @@ class VideoGenerator : public Module {
 		KHost* const m_host;
 		Config const config;
 		uint64_t m_numFrames = 0;
-		OutputPicture *output;
+		OutputDefault *output;
 };
 
 }

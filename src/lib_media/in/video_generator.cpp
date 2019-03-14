@@ -114,14 +114,14 @@ namespace Modules {
 namespace In {
 
 VideoGenerator::VideoGenerator(KHost* host, const char* url) : m_host(host), config(parseConfig(url)) {
-	output = addOutput<OutputPicture>();
+	output = addOutput<OutputDefault>();
 	output->setMetadata(make_shared<MetadataRawVideo>());
 	m_host->activate(true);
 }
 
 VideoGenerator::VideoGenerator(KHost* host, int maxFrames, int frameRate)
 	:  m_host(host), config{maxFrames, frameRate} {
-	output = addOutput<OutputPicture>();
+	output = addOutput<OutputDefault>();
 	output->setMetadata(make_shared<MetadataRawVideo>());
 	m_host->activate(true);
 }

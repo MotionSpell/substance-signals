@@ -2,7 +2,7 @@
 
 namespace Modules {
 
-std::shared_ptr<DataPicture> DataPicture::create(OutputPicture *out, Resolution res, Resolution resInternal, PixelFormat format) {
+std::shared_ptr<DataPicture> DataPicture::create(OutputDefault *out, Resolution res, Resolution resInternal, PixelFormat format) {
 	if (!out) return nullptr;
 
 	auto r = out->getBuffer<DataPicture>(0);
@@ -111,7 +111,7 @@ void DataPicture::setup(DataPicture* r, Resolution res, Resolution resInternal, 
 	}
 }
 
-std::shared_ptr<DataPicture> DataPicture::create(OutputPicture *out, Resolution res, PixelFormat format) {
+std::shared_ptr<DataPicture> DataPicture::create(OutputDefault *out, Resolution res, PixelFormat format) {
 	return create(out, res, res, format);
 }
 }
