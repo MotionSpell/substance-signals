@@ -35,8 +35,8 @@ struct span {
 	}
 };
 
-typedef span<uint8_t> Span;
-typedef span<const uint8_t> SpanC;
+using Span = span<uint8_t>;
+using SpanC = span<const uint8_t>;
 
 namespace Modules {
 

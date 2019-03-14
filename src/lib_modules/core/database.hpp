@@ -72,8 +72,8 @@ class DataRaw : public DataBase {
 		std::vector<uint8_t> buffer;
 };
 
-typedef std::shared_ptr<const DataBase> Data;
-typedef std::shared_ptr<const IMetadata> Metadata;
+using Data = std::shared_ptr<const DataBase>;
+using Metadata = std::shared_ptr<const IMetadata>;
 
 inline bool isDeclaration(Data data) {
 	auto refData = std::dynamic_pointer_cast<const DataBaseRef>(data);

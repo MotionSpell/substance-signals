@@ -7,7 +7,7 @@
 #include "tests.hpp"
 
 namespace {
-typedef void (*TestFunction)();
+using TestFunction = void (*)();
 
 struct UnitTest {
 	void (*fn)();
