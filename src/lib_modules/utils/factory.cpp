@@ -13,9 +13,9 @@ struct Entry {
 
 static Entry registry[1024];
 
-Entry* findEntry(const char* name) {
+Entry* findEntry(string name) {
 	for(auto& entry : registry)
-		if(entry.name && string(entry.name) == name)
+		if(entry.name && entry.name == name)
 			return &entry;
 	return nullptr;
 }
