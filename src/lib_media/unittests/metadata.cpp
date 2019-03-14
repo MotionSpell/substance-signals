@@ -2,7 +2,7 @@
 #include "lib_modules/modules.hpp"
 #include "lib_media/common/pcm.hpp"
 #include "lib_media/common/metadata.hpp"
-#include "lib_utils/resolution.hpp"
+#include "lib_media/common/resolution.hpp"
 
 using namespace Tests;
 using namespace Modules;

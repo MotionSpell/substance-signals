@@ -2,7 +2,7 @@
 
 #include <string>
 #include <vector>
-#include "lib_utils/resolution.hpp"
+#include "lib_media/common/resolution.hpp"
 
 struct Video { //FIXME: this can be factorized with other params
 	Resolution res;

@@ -2,7 +2,7 @@
 
 #include <string>
 #include <vector>
-#include "lib_utils/resolution.hpp"
+#include "lib_media/common/resolution.hpp"
 #include "lib_utils/fraction.hpp"
 #include "lib_modules/core/metadata.hpp"
 #include "lib_modules/core/buffer.hpp" // SpanC
