@@ -62,10 +62,10 @@ struct Decoder : ModuleS, PictureAllocator {
 			output = mediaOutput;
 
 			if(type == VIDEO_PKT) {
-				mediaOutput->setMetadata(make_shared<MetadataRawVideo>());
+				output->setMetadata(make_shared<MetadataRawVideo>());
 				getDecompressedData = std::bind(&Decoder::processVideo, this);
 			} else if(type == AUDIO_PKT) {
-				mediaOutput->setMetadata(make_shared<MetadataRawAudio>());
+				output->setMetadata(make_shared<MetadataRawAudio>());
 				getDecompressedData = std::bind(&Decoder::processAudio, this);
 			} else
 				throw error("Can only decode audio or video.");
@@ -205,7 +205,7 @@ struct Decoder : ModuleS, PictureAllocator {
 		KHost* const m_host;
 		std::shared_ptr<AVCodecContext> codecCtx;
 		std::unique_ptr<ffpp::Frame> const avFrame;
-		OutputDefault* mediaOutput = nullptr;
+		OutputDefault* mediaOutput = nullptr; // used for allocation
 		KOutput* output = nullptr;
 		std::function<std::shared_ptr<DataBase>(void)> getDecompressedData;
 };
