@@ -129,7 +129,7 @@ struct Decoder : ModuleS, PictureAllocator {
 			if (avcodec_open2(codecCtx.get(), codec, &dict) < 0)
 				throw error("Couldn't open stream.");
 
-			if (videoOutput) {
+			if (codecCtx->codec->type == AVMEDIA_TYPE_VIDEO) {
 				if (codecCtx->codec->capabilities & AV_CODEC_CAP_DR1) {
 					codecCtx->thread_safe_callbacks = 0;
 					codecCtx->opaque = static_cast<PictureAllocator*>(this);
