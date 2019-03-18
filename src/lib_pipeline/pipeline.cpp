@@ -157,7 +157,6 @@ std::string Pipeline::dump() const {
 }
 
 void Pipeline::start() {
-	m_log->log(Info, "Pipeline: starting");
 	computeTopology();
 	for (auto &module : modules) {
 		auto m = safe_cast<Filter>(module.get());
