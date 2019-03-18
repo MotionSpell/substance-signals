@@ -72,7 +72,7 @@ unittest("divUp") {
 
 unittest("shmem") {
 	auto const val = 12345678;
-	auto writer = createSharedMemory(256, "test_signals");
+	auto writer = createSharedMemory(256, "test_signals", true);
 	auto data1 = (int*)writer->data();
 	*data1 = val;
 	auto reader = createSharedMemory(256, "test_signals");

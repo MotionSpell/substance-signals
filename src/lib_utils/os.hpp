@@ -34,4 +34,4 @@ struct SharedMemory {
 	virtual void* data() = 0;
 };
 
-std::unique_ptr<SharedMemory> createSharedMemory(int size, const char* name);
+std::unique_ptr<SharedMemory> createSharedMemory(int size, const char* name, bool owner=false);

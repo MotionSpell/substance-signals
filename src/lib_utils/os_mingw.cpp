@@ -155,6 +155,7 @@ struct SharedMemRWCWin : SharedMemory {
 	void *ptr;
 };
 
-unique_ptr<SharedMemory> createSharedMemory(int size, const char* name) {
+unique_ptr<SharedMemory> createSharedMemory(int size, const char* name, bool owner) {
+	(void)owner;
 	return make_unique<SharedMemRWCWin>(size, name);
 }

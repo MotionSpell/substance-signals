@@ -19,7 +19,7 @@ static const size_t ALLOC_NUM_BLOCKS_LOW_LATENCY = 2;
 namespace Pipelines {
 
 struct StatsRegistry : IStatsRegistry {
-	StatsRegistry() : shmem(createSharedMemory(size, std::to_string(getPid()).c_str())), entryIdx(0) {
+	StatsRegistry() : shmem(createSharedMemory(size, std::to_string(getPid()).c_str(), true)), entryIdx(0) {
 		memset(shmem->data(), 0, size);
 	}
 
