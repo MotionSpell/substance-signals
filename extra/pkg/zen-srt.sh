@@ -16,6 +16,16 @@ function srt_build {
   $MAKE
   $MAKE install
   popDir
+
+  # Workaround: for some reason, 'libsrt.so.1.3.2' that gets installed by
+  # 'make install' differs from the one from the build directory,
+  # and is unable to find its dependencies (libcrypto, libssl), making the
+  # ffmpeg 'configure' fail.
+  if ! diff -q "srt/bin/$host/libsrt.so.1.3.2" "$PREFIX/lib/libsrt.so.1.3.2" ; then
+    echo "WTF!"
+  fi
+
+  cp "srt/bin/$host/libsrt.so.1.3.2" $PREFIX/lib
 }
 
 function srt_get_deps {
