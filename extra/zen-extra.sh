@@ -24,6 +24,8 @@ function get_root_packages
 {
   local host=$1
 
+  echo srt
+
   if [ "$host" == "x86_64-linux-gnu" ]; then
     echo aws
   fi
