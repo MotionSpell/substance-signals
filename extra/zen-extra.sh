@@ -235,11 +235,8 @@ function buildPackage {
   done
 
   initCflags
-  installErrorHandler
 
   build ${hostPlatform} ${packageName}
-
-  uninstallErrorHandler
 }
 
 function initSymlinks {
@@ -347,15 +344,13 @@ function lazy_build {
 
   # launch the builder in a separate process
   # so it cannot modify our environment.
-  ${name}_build $host &
-  pid=$!
+  (
+  installErrorHandler
+  ${name}_build $host
+  uninstallErrorHandler
+  )
 
   popDir
-
-  if ! wait $pid ; then
-    echo "Build failure"
-    exit 1
-  fi
 
   printMsg "$name: build OK"
   mark_as_built $host $name
