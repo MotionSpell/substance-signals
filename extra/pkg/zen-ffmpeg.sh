@@ -68,21 +68,6 @@ function ffmpeg_get_deps {
 function ffmpeg_patches {
   local patchFile1=$scriptDir/patches/ffmpeg_01_hlsenc_lower_verbosity.diff
   cat << 'EOF' > $patchFile1
-diff --git a/libavformat/aviobuf.c b/libavformat/aviobuf.c
-index e752d0e..3344738 100644
---- a/libavformat/aviobuf.c
-+++ b/libavformat/aviobuf.c
-@@ -578,8 +578,8 @@ static void fill_buffer(AVIOContext *s)
-
-             s->checksum_ptr = dst = s->buffer;
-         }
--        av_assert0(len >= s->orig_buffer_size);
--        len = s->orig_buffer_size;
-+        if (len >= s->orig_buffer_size);
-+            len = s->orig_buffer_size;
-     }
-
-     len = read_packet_wrapper(s, dst, len);
 diff --git a/libavformat/hlsenc.c b/libavformat/hlsenc.c
 index c27a66e..6bfb175 100644
 --- a/libavformat/hlsenc.c
