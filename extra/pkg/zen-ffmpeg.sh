@@ -39,6 +39,7 @@ function ffmpeg_build {
       --enable-shared \
       --enable-gpl \
       --enable-libx264 \
+      --enable-libsrt \
       --enable-zlib \
       --disable-programs \
       --disable-gnutls \
@@ -60,6 +61,7 @@ function ffmpeg_get_deps {
   echo libpthread
   echo x264
   echo zlib
+  echo srt
 }
 
 
