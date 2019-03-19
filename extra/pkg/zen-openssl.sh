@@ -7,7 +7,9 @@ function openssl_build {
   # We don't use them, it's slow on all platforms, and it fails under MSYS2.
   sed 's/^SUBDIRS = \(.*\) man/SUBDIRS = \1/' -i libressl/Makefile.in
 
-  autoconf_build $host "libressl"
+  autoconf_build $host "libressl" \
+    "--enable-shared" \
+    "--disable-static"
 }
 
 function openssl_get_deps {
