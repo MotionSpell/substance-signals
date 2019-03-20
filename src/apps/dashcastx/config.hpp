@@ -15,6 +15,7 @@ struct Config {
 	std::string workingDir = ".";
 	std::string publishUrl = "";
 	std::vector<Video> v;
+	std::string logoPath;
 	int segmentDurationInMs = 2000;
 	int timeshiftInSegNum = 0;
 	bool isLive = false;

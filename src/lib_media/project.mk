@@ -198,6 +198,11 @@ $(BIN)/FileSystemSink.smd: \
   $(BIN)/$(SRC)/lib_media/out/filesystem.cpp.o\
 
 #------------------------------------------------------------------------------
+TARGETS+=$(BIN)/LogoOverlay.smd
+$(BIN)/LogoOverlay.smd: \
+  $(BIN)/$(SRC)/lib_media/transform/logo_overlay.cpp.o\
+
+#------------------------------------------------------------------------------
 include $(SRC)/lib_media/in/MulticastInput/project.mk
 include $(SRC)/lib_media/out/UdpOutput/project.mk
 include $(SRC)/lib_media/demux/TsDemuxer/project.mk

@@ -33,6 +33,7 @@ Config parseCommandLine(int argc, char const* argv[]) {
 	opt.add("t", "dvr", &cfg.timeshiftInSegNum, "Set the timeshift buffer depth in segment number (default value: infinite(0)).");
 	opt.add("v", "video", &cfg.v, "Set a video resolution and optionally bitrate (wxh[:b[:t]]) (enables resize and/or transcoding) and encoder type (supported 0 (software (default)), 1 (QuickSync), 2 (NVEnc).");
 	opt.add("g", "loglevel", &logLevel, "Log level");
+	opt.add("y", "logo", &cfg.logoPath, "Path to a logo file that will be overlayed on the picture.");
 	opt.addFlag("u", "ultra-low-latency", &cfg.ultraLowLatency, "Lower the latency as much as possible (quality may be degraded).");
 	opt.addFlag("r", "autorotate", &cfg.autoRotate, "Auto-rotate if the input height is bigger than the width.");
 	opt.addFlag("h", "help", &cfg.help, "Print usage and exit.");

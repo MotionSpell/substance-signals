@@ -18,6 +18,7 @@
 #include "lib_media/out/filesystem.hpp"
 #include "lib_media/out/http_sink.hpp"
 #include "lib_media/transform/audio_convert.hpp"
+#include "lib_media/transform/logo_overlay.hpp"
 
 using namespace Modules;
 using namespace Pipelines;
@@ -119,6 +120,26 @@ struct Logger : LogSink {
 };
 
 Logger g_PrefixedLogger;
+
+OutputPin insertLogo(Pipeline* pipeline, OutputPin main, std::string path) {
+	DemuxConfig demuxCfg {};
+	demuxCfg.url = path;
+	auto demux = pipeline->add("LibavDemux", &demuxCfg);
+	auto decoder = pipeline->add("Decoder", (void*)(uintptr_t)VIDEO_PKT);
+	pipeline->connect(demux, decoder);
+
+	LogoOverlayConfig logoCfg {};
+	logoCfg.x = 10;
+	logoCfg.y = 10;
+	logoCfg.dim.width = 32;
+	logoCfg.dim.height = 32;
+	auto overlay = pipeline->add("LogoOverlay", &logoCfg);
+	pipeline->connect(main, GetInputPin(overlay, 0));
+	pipeline->connect(decoder, GetInputPin(overlay, 1));
+
+	return overlay;
+};
+
 }
 
 std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
@@ -210,6 +231,9 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 
 				if(!decoded.mod)
 					decoded = decode(source, metadata);
+
+				if(cfg.logoPath != "")
+					decoded = insertLogo(pipeline.get(), decoded, cfg.logoPath);
 
 				auto inputRes = metadata->isVideo() ? safe_cast<const MetadataPktVideo>(metadata)->resolution : Resolution();
 				auto const outputRes = autoRotate(autoFit(inputRes, cfg.v[r].res), isVertical);
