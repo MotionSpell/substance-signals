@@ -21,6 +21,8 @@ std::ofstream openOutput(std::string path) {
 
 std::string dirName(std::string path) {
 	auto i = path.rfind('/');
+	if(i == std::string::npos)
+		return ".";
 	return path.substr(0, i);
 }
 
