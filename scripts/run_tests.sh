@@ -42,6 +42,7 @@ function dashcast_crashtest
   $BIN/dashcastx.exe \
     -o $tmpDir/dashcastx \
     -v 320x-1 -v 160x120 \
+    -y data/logo.png \
     data/beepbop.mp4 1>/dev/null
 
   if ! test -f $tmpDir/dashcastx/dash/dashcastx.mpd ; then
