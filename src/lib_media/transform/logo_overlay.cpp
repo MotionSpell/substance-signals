@@ -35,8 +35,8 @@ static void compose(const DataPicture* pic,
 		auto const blitHeight = std::min(logoResHDiv, picResHDiv - yAdj);
 		auto const blitWidth = width * multiplicator / divisor;
 		if (mask) {
-			auto const rgbaStride = divisor / multiplicator * 4;
-			auto const maskPitch = divisor / multiplicator * mask->getStride(0);
+			auto const rgbaStride = (divisor * 4) / multiplicator;
+			auto const maskPitch = (divisor * mask->getStride(0)) / multiplicator;
 			auto const logoAlphaP0 = mask->getPlane(0);
 			for (int h = 0; h < blitHeight; ++h) {
 				auto const maskLine = logoAlphaP0 + h * maskPitch;
