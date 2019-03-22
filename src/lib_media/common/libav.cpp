@@ -59,9 +59,15 @@ Metadata createMetadataPktLibavVideo(AVCodecContext* codecCtx) {
 	auto const &sar = codecCtx->sample_aspect_ratio;
 	meta->sampleAspectRatio =	Fraction(sar.num, sar.den);
 	meta->resolution = Resolution(codecCtx->width, codecCtx->height);
-	if (!codecCtx->framerate.num || !codecCtx->framerate.den)
-		throw std::runtime_error(format("Unsupported video frame rate %s/%s.", codecCtx->framerate.den, codecCtx->framerate.num));
-	meta->framerate = Fraction(codecCtx->framerate.num, codecCtx->framerate.den);
+
+	// in FFmpeg, pictures are considered to have a 0/0 framerate
+	if(codecCtx->framerate.num == 0 && codecCtx->framerate.den == 0) {
+		meta->framerate = Fraction(0, 1);
+	} else {
+		if (!codecCtx->framerate.num || !codecCtx->framerate.den)
+			throw std::runtime_error(format("Unsupported video frame rate %s/%s.", codecCtx->framerate.den, codecCtx->framerate.num));
+		meta->framerate = Fraction(codecCtx->framerate.num, codecCtx->framerate.den);
+	}
 	return meta;
 }
 
