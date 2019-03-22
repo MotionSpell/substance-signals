@@ -9,7 +9,7 @@ using namespace Modules;
 
 namespace {
 
-static uint8_t blend(uint8_t a, uint8_t b, uint8_t alpha) {
+static uint8_t blend(uint8_t a, uint8_t b, int alpha) {
 	return (alpha  * b + (256 - alpha) * a) >> 8;
 }
 
