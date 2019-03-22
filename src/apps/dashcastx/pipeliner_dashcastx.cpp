@@ -229,11 +229,12 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 			auto compressed = source;
 			if (transcode) {
 
-				if(!decoded.mod)
+				if(!decoded.mod) {
 					decoded = decode(source, metadata);
 
-				if(cfg.logoPath != "")
-					decoded = insertLogo(pipeline.get(), decoded, cfg.logoPath);
+					if(metadata->isVideo() && cfg.logoPath != "")
+						decoded = insertLogo(pipeline.get(), decoded, cfg.logoPath);
+				}
 
 				auto inputRes = metadata->isVideo() ? safe_cast<const MetadataPktVideo>(metadata)->resolution : Resolution();
 				auto const outputRes = autoRotate(autoFit(inputRes, cfg.v[r].res), isVertical);
