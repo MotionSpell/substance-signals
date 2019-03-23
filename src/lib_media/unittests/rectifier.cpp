@@ -70,8 +70,13 @@ class ClockMock : public IClock, public IScheduler {
 			return -1;
 		}
 
-		void cancel(Id) override {
-			assert(0);
+		void cancel(Id id) override {
+			(void)id;
+			m_tasks.pop_back();
+		}
+
+		int getPendingTaskCount() const {
+			return (int)m_tasks.size();
 		}
 
 	private:
@@ -193,6 +198,7 @@ unittest("rectifier: simple offset") {
 	generators.push_back(createModuleWithSize<VideoGenerator>(inTimes.size()));
 
 	ASSERT_EQUALS(expectedTimes, runRectifier(fps, clock, generators, inTimes));
+	ASSERT_EQUALS(0, clock->getPendingTaskCount());
 }
 
 unittest("rectifier: missing frame") {

@@ -19,6 +19,12 @@ TimeRectifier::TimeRectifier(KHost* host, std::shared_ptr<IClock> clock_, ISched
 	  scheduler(scheduler_) {
 }
 
+TimeRectifier::~TimeRectifier() {
+	std::unique_lock<std::mutex> lock(inputMutex);
+	if(m_pendingTaskId)
+		scheduler->cancel(m_pendingTaskId);
+}
+
 void TimeRectifier::sanityChecks() {
 	if (!hasVideo)
 		throw error("requires to have one video stream connected");
@@ -39,6 +45,18 @@ void TimeRectifier::mimicOutputs() {
 	}
 }
 
+void TimeRectifier::reschedule(Fraction when) {
+	m_pendingTaskId = scheduler->scheduleAt(std::bind(&TimeRectifier::onPeriod, this, std::placeholders::_1), when);
+}
+
+void TimeRectifier::onPeriod(Fraction timeNow) {
+	emitOnePeriod(timeNow);
+	{
+		std::unique_lock<std::mutex> lock(inputMutex);
+		reschedule(timeNow + frameRate.inverse());
+	}
+}
+
 void TimeRectifier::declareScheduler(std::unique_ptr<IInput> &input, std::unique_ptr<IOutput> &output) {
 	auto const oMeta = output->getMetadata();
 	if (!oMeta) {
@@ -50,7 +68,7 @@ void TimeRectifier::declareScheduler(std::unique_ptr<IInput> &input, std::unique
 		if (hasVideo)
 			throw error("Only one video stream is allowed");
 		hasVideo = true;
-		scheduleEvery(scheduler, std::bind(&TimeRectifier::emitOnePeriod, this, std::placeholders::_1), frameRate.inverse(), clock->now());
+		reschedule(clock->now());
 	}
 }
 

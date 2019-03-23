@@ -37,6 +37,7 @@ Remarks:
 class TimeRectifier : public ModuleDynI {
 	public:
 		TimeRectifier(KHost* host, std::shared_ptr<IClock> clock_, IScheduler* scheduler, Fraction frameRate);
+		~TimeRectifier();
 
 		void process() override;
 
@@ -65,6 +66,8 @@ class TimeRectifier : public ModuleDynI {
 		void discardStreamOutdatedData(size_t inputIdx, int64_t removalClockTime);
 		void discardOutdatedData(int64_t removalClockTime);
 		void declareScheduler(std::unique_ptr<IInput> &input, std::unique_ptr<IOutput> &output);
+		void reschedule(Fraction when);
+		void onPeriod(Fraction time);
 		void emitOnePeriod(Fraction time);
 		Data findNearestData(Stream& stream, Fraction time);
 		void findNearestDataAudio(size_t i, Fraction time, Data& selectedData, int64_t masterTime);
@@ -78,6 +81,7 @@ class TimeRectifier : public ModuleDynI {
 		std::mutex inputMutex;
 		std::shared_ptr<IClock> clock;
 		IScheduler* const scheduler;
+		IScheduler::Id m_pendingTaskId {};
 		bool hasVideo = false;
 };
 
