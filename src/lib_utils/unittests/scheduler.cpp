@@ -191,4 +191,27 @@ unittest("scheduler: can still schedule and trigger 'near' tasks while waiting f
 	ASSERT_EQUALS(1u, v.size());
 }
 
+unittest("scheduler: task cancellation") {
+	bool task1done = false;
+	bool task2done = false;
+
+	auto task1 = [&](Fraction) {
+		task1done = true;
+	};
+	auto task2 = [&](Fraction) {
+		task2done = true;
+	};
+
+	auto clock = make_shared<TestClock>();
+	Scheduler s(clock, clock);
+	auto const now = clock->now();
+	auto h1 = s.scheduleAt(task1, now + f1);
+	s.scheduleAt(task2, now + f10);
+	s.cancel(h1);
+	clock->sleep(f50);
+
+	ASSERT(!task1done);
+	ASSERT(task2done);
+}
+
 }

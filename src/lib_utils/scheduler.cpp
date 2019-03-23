@@ -7,12 +7,28 @@ Scheduler::Scheduler(std::shared_ptr<IClock> clock, std::shared_ptr<ITimer> time
 	nextWakeUpTime = NEVER;
 }
 
-void Scheduler::scheduleAt(TaskFunc &&task, Fraction time) {
+IScheduler::Id Scheduler::scheduleAt(TaskFunc &&task, Fraction time) {
+	Id id;
 	{
 		std::unique_lock<std::mutex> lock(mutex);
-		queue.push(Task(std::move(task), time));
+		id = m_nextId++;
+		queue.push(Task(id, std::move(task), time));
 	}
 	reschedule();
+	return id;
+}
+
+void Scheduler::cancel(Id id) {
+	{
+		std::unique_lock<std::mutex> lock(mutex);
+		auto oldQueue = std::move(queue);
+
+		while(!oldQueue.empty()) {
+			if(oldQueue.top().id != id)
+				queue.push(std::move(oldQueue.top()));
+			oldQueue.pop();
+		}
+	}
 }
 
 namespace {

@@ -56,15 +56,21 @@ class ClockMock : public IClock, public IScheduler {
 			return m_time;
 		}
 
-		void scheduleAt(TaskFunc &&task, Fraction time) override {
+		Id scheduleAt(TaskFunc &&task, Fraction time) override {
 			if(time < m_time)
 				throw runtime_error("The rectifier is scheduling events in the past");
 
 			m_tasks.push_back({time, task});
 			std::sort(m_tasks.begin(), m_tasks.end());
+			return -1;
 		}
 
-		void scheduleIn(TaskFunc &&, Fraction) override {
+		Id scheduleIn(TaskFunc &&, Fraction) override {
+			assert(0);
+			return -1;
+		}
+
+		void cancel(Id) override {
 			assert(0);
 		}
 
