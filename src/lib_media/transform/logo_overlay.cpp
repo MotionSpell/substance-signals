@@ -3,6 +3,7 @@
 #include <lib_modules/modules.hpp>
 #include <lib_media/common/picture.hpp>
 #include <lib_modules/utils/loader.hpp>
+#include <algorithm> //std::min
 #include <cstring> // memcpy
 
 using namespace Modules;
