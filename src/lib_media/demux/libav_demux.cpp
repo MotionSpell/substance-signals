@@ -81,7 +81,7 @@ struct LibavDemux : Module {
 			if (m_read) {
 				m_avioCtx = avio_alloc_context((unsigned char*)av_malloc(avioCtxBufferSize), avioCtxBufferSize, 0, this, &LibavDemux::read, nullptr, nullptr);
 				if (!m_avioCtx)
-					throw std::runtime_error("AvIO allocation failed");
+					throw error("AvIO allocation failed");
 				m_formatCtx->pb = m_avioCtx;
 				m_formatCtx->flags |= AVFMT_FLAG_CUSTOM_IO;
 			}
