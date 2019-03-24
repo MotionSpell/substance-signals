@@ -24,7 +24,7 @@ SoundGenerator::SoundGenerator(KHost* host)
 void SoundGenerator::process() {
 	auto const bytesPerSample = pcmFormat.getBytesPerSample();
 	auto const sampleDurationInMs = 40;
-	auto const bufferSize = bytesPerSample * sampleDurationInMs * pcmFormat.sampleRate / 1000;
+	auto const bufferSize = bytesPerSample * (sampleDurationInMs * pcmFormat.sampleRate / 1000);
 
 	auto out = output->getBuffer<DataPcm>(0);
 	out->setFormat(pcmFormat);
