@@ -10,7 +10,7 @@ using namespace Stream;
 namespace {
 
 std::shared_ptr<DataBase> createPacket(span<uint8_t> contents) {
-	auto meta = make_shared<MetadataFile>( VIDEO_PKT);
+	auto meta = make_shared<MetadataFile>(VIDEO_PKT);
 	meta->filename = "filename";
 	meta->mimeType = "mimetype";
 	meta->codecName = "codecName";
