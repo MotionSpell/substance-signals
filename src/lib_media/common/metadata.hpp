@@ -55,6 +55,7 @@ struct MetadataPktAudio : MetadataPkt {
 };
 
 struct MetadataPktSubtitle : MetadataPkt {
+	MetadataPktSubtitle() : MetadataPkt(SUBTITLE_PKT) {}
 };
 
 inline PcmFormat toPcmFormat(std::shared_ptr<const MetadataPktAudio> meta) {
