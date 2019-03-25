@@ -131,25 +131,19 @@ Data TimeRectifier::findNearestData(Stream& stream, Fraction time) {
 	return refData;
 }
 
-void TimeRectifier::findNearestDataAudio(size_t i, Fraction time, Data& selectedData, int64_t masterTime) {
-	int currDataIdx = -1, idx = -1;
-	for (auto &currData : streams[i].data) {
-		idx++;
-		if (selectedData && !idx) { /*first data cannot be selected*/
-			selectedData = nullptr;
-			continue;
-		}
-		auto const currDistMedia = masterTime - currData.data->getMediaTime();
-		m_host->log(Debug, format("Other: considering data (%s/%s) at time %s (ref=%s, currDist=%s)", currData.data->getMediaTime(), currData.creationTime, fractionToClock(time), masterTime, currDistMedia).c_str());
-		if ((currDistMedia >= 0) && (currDistMedia < threshold)) {
-			selectedData = currData.data;
-			currDataIdx = idx;
-			break;
-		}
+void TimeRectifier::findNearestDataAudio(size_t i, int64_t minTime, int64_t maxTime, Data& selectedData) {
+	auto& streamData = streams[i].data;
+
+	while(!streamData.empty() && streamData.front().data->getMediaTime() <= minTime)
+		streamData.erase(streamData.begin());
+
+	if(streamData.empty() || streamData.front().data->getMediaTime() > maxTime) {
+		selectedData = nullptr;
+		return;
 	}
-	if ((streams[i].numTicks > 0) && (streams[i].data.size() >= 2) && (currDataIdx != 1)) {
-		m_host->log(Warning, format("[%s] Selected data is not contiguous to the last one (index=%s). Expect discontinuity in the signal.", i, currDataIdx).c_str());
-	}
+
+	selectedData = streamData.front().data;
+	streamData.erase(streamData.begin());
 }
 
 size_t TimeRectifier::getMasterStreamId() const {
@@ -166,8 +160,11 @@ void TimeRectifier::emitOnePeriod(Fraction time) {
 	std::unique_lock<std::mutex> lock(inputMutex);
 	discardOutdatedData(fractionToClock(time) - analyzeWindowIn180k);
 
-	// media time corresponding to the start of the "media period"
+	// input media time corresponding to the start of the "media period"
 	int64_t inMasterTime = 0;
+
+	// output media time corresponding to the start of the "media period"
+	int64_t outMasterTime;
 
 	{
 		auto const i = getMasterStreamId();
@@ -186,8 +183,9 @@ void TimeRectifier::emitOnePeriod(Fraction time) {
 			m_host->log(Info, format("First available reference clock time: %s", fractionToClock(time)).c_str());
 		}
 
+		outMasterTime = fractionToClock(Fraction(master.numTicks++ * frameRate.den, frameRate.num));
 		auto data = make_shared<DataBaseRef>(refData);
-		data->setMediaTime(fractionToClock(Fraction(master.numTicks++ * frameRate.den, frameRate.num)));
+		data->setMediaTime(outMasterTime);
 		m_host->log(TR_DEBUG, format("Video: send[%s:%s] t=%s (data=%s) (ref %s)", i, master.data.size(), data->getMediaTime(), data->getMediaTime(), refData->getMediaTime()).c_str());
 		outputs[i]->post(data);
 		discardStreamOutdatedData(i, data->getMediaTime());
@@ -205,16 +203,19 @@ void TimeRectifier::emitOnePeriod(Fraction time) {
 		case AUDIO_RAW: {
 			Data selectedData;
 
+			auto minTime = inMasterTime - threshold;
+			auto maxTime = inMasterTime;
+
 			while (1) {
 
-				findNearestDataAudio(i, time, selectedData, inMasterTime);
+				findNearestDataAudio(i, minTime, maxTime, selectedData);
 				if (!selectedData) {
 					break;
 				}
 
 				auto const audioData = safe_cast<const DataPcm>(selectedData);
 				auto data = make_shared<DataBaseRef>(selectedData);
-				data->setMediaTime(fractionToClock(Fraction(streams[i].numTicks++ * audioData->getPlaneSize(0) / audioData->getFormat().getBytesPerSample(), audioData->getFormat().sampleRate)));
+				data->setMediaTime(outMasterTime + (selectedData->getMediaTime() - inMasterTime));
 				m_host->log(TR_DEBUG, format("Other: send[%s:%s] t=%s (data=%s) (ref=%s)", i, streams[i].data.size(), data->getMediaTime(), data->getMediaTime(), inMasterTime).c_str());
 				outputs[i]->post(data);
 				discardStreamOutdatedData(i, data->getMediaTime());
