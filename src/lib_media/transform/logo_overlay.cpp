@@ -31,11 +31,11 @@ static void compose(DataPicture* pic,
 	auto const logoRes = overlay->getFormat().res;
 	auto const width = std::min<int>(logoRes.width, picRes.width - x);
 	for (int p = 0; p < pic->getNumPlanes(); ++p) {
+		auto const picPitch = (int)pic->getStride(p);
 		auto const subsampling = getSubsampling(pic, p);
-		auto const multiplicator = (int)pic->getStride(p) > picRes.width ? int(pic->getStride(p)/picRes.width) : 1;
+		auto const multiplicator = picPitch > picRes.width ? picPitch/picRes.width : 1;
 		auto planePic = pic->getPlane(p);
 		auto planeLogo = overlay->getPlane(p);
-		auto const picPitch = pic->getStride(p);
 		auto const logoPitch = overlay->getStride(p);
 		auto const yAdj = (y >> subsampling);
 		auto const logoResHDiv = logoRes.height >> subsampling;
