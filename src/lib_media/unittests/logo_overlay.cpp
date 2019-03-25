@@ -64,20 +64,25 @@ std::shared_ptr<TestPic> createTestPic(Resolution logoDim, Lambda pixelFormula) 
 
 	return logo;
 }
+
+struct FrameRecorder : ModuleS {
+	void processOne(Data d) override {
+		data = d;
+	}
+	Data data;
+};
+
 }
 
+static auto const COLOR_BLANK = 0x11; // picture uniform color
+static auto const COLOR_BORDER = 0xBB; // logo border
+static auto const COLOR_INSIDE = 0xAA; // inside the logo
+
+static auto blankPicFormula = [](int, int) {
+	return COLOR_BLANK;
+};
+
 unittest("LogoOverlay: simple") {
-	struct FrameRecorder : ModuleS {
-		void processOne(Data d) override {
-			data = d;
-		}
-		Data data;
-	};
-
-	static auto const COLOR_BLANK = 0x11; // picture uniform color
-	static auto const COLOR_BORDER = 0xBB; // logo border
-	static auto const COLOR_INSIDE = 0xAA; // inside the logo
-
 	auto const logoDim = Resolution(7, 8);
 	LogoOverlayConfig cfg {};
 	cfg.dim = logoDim;
@@ -98,10 +103,6 @@ unittest("LogoOverlay: simple") {
 
 	overlay->getInput(1)->push(logo);
 
-	auto blankPicFormula = [](int, int) {
-		return COLOR_BLANK;
-	};
-
 	auto pic = createTestPic(Resolution(29, 32), blankPicFormula);
 	overlay->getInput(0)->push(pic);
 
@@ -117,6 +118,46 @@ unittest("LogoOverlay: simple") {
 		return COLOR_INSIDE;
 	};
 	auto expected = createTestPic(Resolution(29, 32), expectedPixelFormula);
+	auto actual = (TestPic*)safe_cast<const DataPicture>(rec->data).get();
+	ASSERT_EQUALS(*expected, *actual);
+}
+
+unittest("LogoOverlay: logo partially outside the picture") {
+	auto const logoDim = Resolution(15, 19);
+	LogoOverlayConfig cfg {};
+	cfg.dim = logoDim;
+	cfg.x = 20;
+	cfg.y = 18;
+
+	auto grayBorderFormula = [&](int x, int y) {
+		return x == 0 || x == logoDim.width-1 || y == 0 || y == logoDim.height-1 ? COLOR_BORDER : COLOR_INSIDE;
+	};
+
+	auto logo = createTestPic(logoDim, grayBorderFormula);
+
+	auto overlay = loadModule("LogoOverlay", &NullHost, &cfg);
+	auto rec = createModule<FrameRecorder>();
+	ConnectOutputToInput(overlay->getOutput(0), rec->getInput(0));
+
+	// run the overlay
+
+	overlay->getInput(1)->push(logo);
+
+	auto pic = createTestPic(Resolution(31, 27), blankPicFormula);
+	overlay->getInput(0)->push(pic);
+
+	overlay->flush();
+
+	// check resulting composed picture
+
+	auto expectedPixelFormula = [](int x, int y) {
+		if(x < 20 || y < 18)
+			return COLOR_BLANK;
+		if(x == 20 || y == 18)
+			return COLOR_BORDER;
+		return COLOR_INSIDE;
+	};
+	auto expected = createTestPic(Resolution(31, 27), expectedPixelFormula);
 	auto actual = (TestPic*)safe_cast<const DataPicture>(rec->data).get();
 	ASSERT_EQUALS(*expected, *actual);
 }
