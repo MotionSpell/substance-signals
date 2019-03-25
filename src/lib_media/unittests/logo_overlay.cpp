@@ -121,3 +121,31 @@ unittest("LogoOverlay: simple") {
 	ASSERT_EQUALS(*expected, *actual);
 }
 
+secondclasstest("LogoOverlay: perf test") {
+	auto const logoDim = Resolution(128, 128);
+	LogoOverlayConfig cfg {};
+	cfg.dim = logoDim;
+	cfg.x = 10;
+	cfg.y = 20;
+
+	auto logoFormula = [](int, int) {
+		return 0x80;
+	};
+	auto blankPicFormula = [](int, int) {
+		return 0x00;
+	};
+
+	auto logo = createTestPic(logoDim, logoFormula);
+
+	auto overlay = loadModule("LogoOverlay", &NullHost, &cfg);
+
+	overlay->getInput(1)->push(logo);
+
+	auto pic = createTestPic(Resolution(3840, 2160), blankPicFormula);
+	for(int i=0; i < 4 * 1000 * 1000; ++i) {
+		overlay->getInput(0)->push(pic);
+	}
+
+	overlay->flush();
+}
+
