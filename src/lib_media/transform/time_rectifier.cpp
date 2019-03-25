@@ -131,9 +131,9 @@ Data TimeRectifier::findNearestData(Stream& stream, Fraction time) {
 	return refData;
 }
 
-Data TimeRectifier::findNearestDataAudio(size_t i, int64_t minTime, int64_t maxTime) {
+Data TimeRectifier::findNearestDataAudio(Stream& stream, int64_t minTime, int64_t maxTime) {
 
-	auto& streamData = streams[i].data;
+	auto& streamData = stream.data;
 
 	while(!streamData.empty() && streamData.front().data->getMediaTime() <= minTime)
 		streamData.erase(streamData.begin());
@@ -205,7 +205,7 @@ void TimeRectifier::emitOnePeriod(Fraction time) {
 			auto minTime = inMasterTime - threshold;
 			auto maxTime = inMasterTime;
 
-			while (auto selectedData = findNearestDataAudio(i, minTime, maxTime)) {
+			while (auto selectedData = findNearestDataAudio(streams[i], minTime, maxTime)) {
 				auto const audioData = safe_cast<const DataPcm>(selectedData);
 				auto data = make_shared<DataBaseRef>(selectedData);
 				data->setMediaTime(outMasterTime + (selectedData->getMediaTime() - inMasterTime));
