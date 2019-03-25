@@ -37,7 +37,7 @@ static void compose(DataPicture* pic,
 
 		auto const subsampling = getSubsampling(pic, p);
 		auto const multiplicator = dstStride > picRes.width ? dstStride/picRes.width : 1;
-		auto const xAdj = x * (multiplicator >> subsampling);
+		auto const xAdj = (x * multiplicator) >> subsampling;
 		auto const yAdj = (y >> subsampling);
 		auto const logoResHDiv = logoRes.height >> subsampling;
 		auto const picResHDiv = picRes.height >> subsampling;
