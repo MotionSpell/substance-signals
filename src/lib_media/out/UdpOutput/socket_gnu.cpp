@@ -12,6 +12,9 @@
 
 using namespace std;
 
+// increasing this value increases throughput
+static auto const SEND_BUFFER_SIZE = 2 * 1024 * 1024;
+
 namespace {
 struct Socket : IOutputSocket {
 	Socket(const char* address, int port) {
@@ -23,6 +26,14 @@ struct Socket : IOutputSocket {
 		m_dstAddr.sin_family = AF_INET;
 		m_dstAddr.sin_addr.s_addr = inet_addr(address);
 		m_dstAddr.sin_port = htons(port);
+
+		unsigned int size = SEND_BUFFER_SIZE;
+		int err = setsockopt(m_socket, SOL_SOCKET, SO_SNDBUF,  &size, sizeof(int));
+		if (err != 0)
+			throw runtime_error("setsockopt failed");
+
+		if(size < SEND_BUFFER_SIZE)
+			throw runtime_error("Send buffer size is too small");
 	}
 
 	~Socket() {
