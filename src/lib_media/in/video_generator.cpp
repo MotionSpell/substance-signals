@@ -40,6 +40,14 @@ void renderNumber(uint8_t* dst, size_t stride, int value) {
 	renderString(dst, stride, buffer);
 }
 
+void drawBox(uint8_t* dst, int stride, int x, int y, int cx, int cy) {
+	dst += y * stride + x;
+	while(cy-- >= 0) {
+		memset(dst, 0xF0, cx);
+		dst += stride;
+	}
+}
+
 struct UnifiedResourceLocator {
 	std::string protocol;
 	std::map<std::string, std::string> bindings;
@@ -141,6 +149,20 @@ void VideoGenerator::process() {
 	auto const flash = (m_numFrames % config.frameRate) == 0;
 	auto const val = flash ? 0xCC : 0x80;
 	memset(p, val, pic->getSize());
+
+	{
+		auto period = 80;
+		auto phase = int(m_numFrames % period);
+		auto pos = 10 + (phase < period/2 ? phase : (period - phase))* 2;
+		drawBox(p, dim.width, 20, pos, 40, 40);
+	}
+
+	{
+		auto period = 80;
+		auto phase = int((m_numFrames + period/3) % period);
+		auto pos = 10 + (phase < period/2 ? phase : (period - phase))* 3;
+		drawBox(p, dim.width, 80, pos, 40, 40);
+	}
 
 	if(dim.width > 32 && dim.height > 32) {
 
