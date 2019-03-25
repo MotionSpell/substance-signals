@@ -167,7 +167,7 @@ void TimeRectifier::emitOnePeriod(Fraction time) {
 	discardOutdatedData(fractionToClock(time) - analyzeWindowIn180k);
 
 	// media time corresponding to the start of the "media period"
-	int64_t masterTime = 0;
+	int64_t inMasterTime = 0;
 
 	{
 		auto const i = getMasterStreamId();
@@ -180,7 +180,7 @@ void TimeRectifier::emitOnePeriod(Fraction time) {
 			return;
 		}
 
-		masterTime = refData->getMediaTime();
+		inMasterTime = refData->getMediaTime();
 
 		if (master.numTicks == 0) {
 			m_host->log(Info, format("First available reference clock time: %s", fractionToClock(time)).c_str());
@@ -207,7 +207,7 @@ void TimeRectifier::emitOnePeriod(Fraction time) {
 
 			while (1) {
 
-				findNearestDataAudio(i, time, selectedData, masterTime);
+				findNearestDataAudio(i, time, selectedData, inMasterTime);
 				if (!selectedData) {
 					break;
 				}
@@ -215,7 +215,7 @@ void TimeRectifier::emitOnePeriod(Fraction time) {
 				auto const audioData = safe_cast<const DataPcm>(selectedData);
 				auto data = make_shared<DataBaseRef>(selectedData);
 				data->setMediaTime(fractionToClock(Fraction(streams[i].numTicks++ * audioData->getPlaneSize(0) / audioData->getFormat().getBytesPerSample(), audioData->getFormat().sampleRate)));
-				m_host->log(TR_DEBUG, format("Other: send[%s:%s] t=%s (data=%s) (ref=%s)", i, streams[i].data.size(), data->getMediaTime(), data->getMediaTime(), masterTime).c_str());
+				m_host->log(TR_DEBUG, format("Other: send[%s:%s] t=%s (data=%s) (ref=%s)", i, streams[i].data.size(), data->getMediaTime(), data->getMediaTime(), inMasterTime).c_str());
 				outputs[i]->post(data);
 				discardStreamOutdatedData(i, data->getMediaTime());
 			}
