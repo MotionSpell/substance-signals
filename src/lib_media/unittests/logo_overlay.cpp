@@ -84,11 +84,11 @@ unittest("LogoOverlay: simple") {
 	cfg.x = 10;
 	cfg.y = 20;
 
-	auto grayBorders = [&](int x, int y) {
+	auto grayBorderFormula = [&](int x, int y) {
 		return x == 0 || x == logoDim.width-1 || y == 0 || y == logoDim.height-1 ? COLOR_BORDER : COLOR_INSIDE;
 	};
 
-	auto logo = createTestPic(logoDim, grayBorders);
+	auto logo = createTestPic(logoDim, grayBorderFormula);
 
 	auto overlay = loadModule("LogoOverlay", &NullHost, &cfg);
 	auto rec = createModule<FrameRecorder>();
@@ -98,9 +98,11 @@ unittest("LogoOverlay: simple") {
 
 	overlay->getInput(1)->push(logo);
 
-	auto pic = createTestPic(Resolution(29, 32), [](int, int) {
+	auto blankPicFormula = [](int, int) {
 		return COLOR_BLANK;
-	});
+	};
+
+	auto pic = createTestPic(Resolution(29, 32), blankPicFormula);
 	overlay->getInput(0)->push(pic);
 
 	overlay->flush();
