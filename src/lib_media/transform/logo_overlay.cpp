@@ -21,7 +21,7 @@ static void compose(DataPicture* pic,
 	auto const picRes = pic->getFormat().res;
 	auto const logoRes = overlay->getFormat().res;
 	auto const width = std::min<int>(logoRes.width, picRes.width - x);
-	for (int p = 0; p < (int)pic->getNumPlanes(); ++p) {
+	for (int p = 0; p < pic->getNumPlanes(); ++p) {
 		auto const divisor = int(pic->getStride(0) / pic->getStride(p));
 		auto const multiplicator = (int)pic->getStride(p) > picRes.width ? int(pic->getStride(p)/picRes.width) : 1;
 		auto planePic = pic->getPlane(p);
