@@ -14,6 +14,15 @@ static uint8_t blend(uint8_t a, uint8_t b, int alpha) {
 	return (alpha  * b + (256 - alpha) * a) >> 8;
 }
 
+static int getSubsampling(const DataPicture* pic, int p) {
+	if(pic->getStride(0) == pic->getStride(p))
+		return 0;
+	else if(pic->getStride(0)/2 == pic->getStride(p))
+		return 1;
+
+	throw std::runtime_error("Unhandled subsampling");
+}
+
 static void compose(DataPicture* pic,
     int x, int y,
     const DataPicture* overlay,
@@ -22,22 +31,22 @@ static void compose(DataPicture* pic,
 	auto const logoRes = overlay->getFormat().res;
 	auto const width = std::min<int>(logoRes.width, picRes.width - x);
 	for (int p = 0; p < pic->getNumPlanes(); ++p) {
-		auto const divisor = int(pic->getStride(0) / pic->getStride(p));
+		auto const subsampling = getSubsampling(pic, p);
 		auto const multiplicator = (int)pic->getStride(p) > picRes.width ? int(pic->getStride(p)/picRes.width) : 1;
 		auto planePic = pic->getPlane(p);
 		auto planeLogo = overlay->getPlane(p);
 		auto const picPitch = pic->getStride(p);
 		auto const logoPitch = overlay->getStride(p);
-		auto const yAdj = (y / divisor);
-		auto const logoResHDiv = logoRes.height / divisor;
-		auto const picResHDiv = picRes.height / divisor;
-		auto const xAdj = x * multiplicator / divisor;
+		auto const yAdj = (y >> subsampling);
+		auto const logoResHDiv = logoRes.height >> subsampling;
+		auto const picResHDiv = picRes.height >> subsampling;
+		auto const xAdj = x * (multiplicator >> subsampling);
 		auto dst = planePic + yAdj * picPitch + xAdj;
 		auto const blitHeight = std::min(logoResHDiv, picResHDiv - yAdj);
-		auto const blitWidth = width * multiplicator / divisor;
+		auto const blitWidth = (width * multiplicator) >> subsampling;
 		if (mask) {
-			auto const rgbaStride = (divisor * 4) / multiplicator;
-			auto const maskPitch = (divisor * mask->getStride(0)) / multiplicator;
+			auto const rgbaStride = ((1<<subsampling) * 4) / multiplicator;
+			auto const maskPitch = ((1<<subsampling) * mask->getStride(0)) / multiplicator;
 			auto const logoAlphaP0 = mask->getPlane(0);
 			for (int h = 0; h < blitHeight; ++h) {
 				auto const maskLine = logoAlphaP0 + h * maskPitch;
