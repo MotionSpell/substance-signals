@@ -42,6 +42,10 @@ class TimeRectifier : public ModuleDynI {
 		void process() override;
 
 		int getNumOutputs() const override {
+			{
+				auto pThis = const_cast<TimeRectifier*>(this);
+				pThis->mimicOutputs();
+			}
 			return ModuleDynI::getNumOutputs();
 		}
 		IOutput* getOutput(int i) override {
