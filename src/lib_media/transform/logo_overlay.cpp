@@ -31,18 +31,21 @@ static void compose(DataPicture* pic,
 	auto const logoRes = overlay->getFormat().res;
 	auto const width = std::min<int>(logoRes.width, picRes.width - x);
 	for (int p = 0; p < pic->getNumPlanes(); ++p) {
-		auto const picPitch = (int)pic->getStride(p);
+		auto const srcStride = overlay->getStride(p);
+		auto const dstStride = (int)pic->getStride(p);
+
 		auto const subsampling = getSubsampling(pic, p);
-		auto const multiplicator = picPitch > picRes.width ? picPitch/picRes.width : 1;
-		auto logoPixels = overlay->getPlane(p);
-		auto const logoPitch = overlay->getStride(p);
+		auto const multiplicator = dstStride > picRes.width ? dstStride/picRes.width : 1;
 		auto const xAdj = x * (multiplicator >> subsampling);
 		auto const yAdj = (y >> subsampling);
 		auto const logoResHDiv = logoRes.height >> subsampling;
 		auto const picResHDiv = picRes.height >> subsampling;
-		auto dst = pic->getPlane(p) + yAdj * picPitch + xAdj;
 		auto const blitHeight = std::min(logoResHDiv, picResHDiv - yAdj);
 		auto const blitWidth = (width * multiplicator) >> subsampling;
+
+		auto srcPels = overlay->getPlane(p);
+		auto dstPels = pic->getPlane(p) + yAdj * dstStride + xAdj;
+
 		if (mask) {
 			auto const rgbaStride = ((1<<subsampling) * 4) / multiplicator;
 			auto const maskPitch = ((1<<subsampling) * mask->getStride(0)) / multiplicator;
@@ -51,16 +54,16 @@ static void compose(DataPicture* pic,
 				auto const maskLine = logoAlphaP0 + h * maskPitch;
 				for (int w = 0; w < blitWidth; ++w) {
 					const auto alpha = maskLine[w * rgbaStride + 3] + 1;
-					dst[w] = blend(dst[w], logoPixels[w], alpha);
+					dstPels[w] = blend(dstPels[w], srcPels[w], alpha);
 				}
-				logoPixels += logoPitch;
-				dst += picPitch;
+				srcPels += srcStride;
+				dstPels += dstStride;
 			}
 		} else {
 			for (int h = 0; h < blitHeight; ++h) {
-				memcpy(dst, logoPixels, blitWidth);
-				logoPixels += logoPitch;
-				dst += picPitch;
+				memcpy(dstPels, srcPels, blitWidth);
+				srcPels += srcStride;
+				dstPels += dstStride;
 			}
 		}
 	}
