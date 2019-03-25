@@ -30,6 +30,7 @@ static void compose(DataPicture* pic,
 	auto const picRes = pic->getFormat().res;
 	auto const logoRes = overlay->getFormat().res;
 	auto const width = std::min<int>(logoRes.width, picRes.width - x);
+
 	for (int p = 0; p < pic->getNumPlanes(); ++p) {
 		auto const srcStride = overlay->getStride(p);
 		auto const dstStride = (int)pic->getStride(p);
