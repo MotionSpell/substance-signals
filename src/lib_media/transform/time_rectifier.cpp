@@ -131,19 +131,19 @@ Data TimeRectifier::findNearestData(Stream& stream, Fraction time) {
 	return refData;
 }
 
-void TimeRectifier::findNearestDataAudio(size_t i, int64_t minTime, int64_t maxTime, Data& selectedData) {
+Data TimeRectifier::findNearestDataAudio(size_t i, int64_t minTime, int64_t maxTime) {
+
 	auto& streamData = streams[i].data;
 
 	while(!streamData.empty() && streamData.front().data->getMediaTime() <= minTime)
 		streamData.erase(streamData.begin());
 
-	if(streamData.empty() || streamData.front().data->getMediaTime() > maxTime) {
-		selectedData = nullptr;
-		return;
-	}
+	if(streamData.empty() || streamData.front().data->getMediaTime() > maxTime)
+		return nullptr;
 
-	selectedData = streamData.front().data;
+	auto selectedData = streamData.front().data;
 	streamData.erase(streamData.begin());
+	return selectedData;
 }
 
 size_t TimeRectifier::getMasterStreamId() const {
@@ -201,18 +201,11 @@ void TimeRectifier::emitOnePeriod(Fraction time) {
 			continue;
 		switch (inputs[i]->getMetadata()->type) {
 		case AUDIO_RAW: {
-			Data selectedData;
 
 			auto minTime = inMasterTime - threshold;
 			auto maxTime = inMasterTime;
 
-			while (1) {
-
-				findNearestDataAudio(i, minTime, maxTime, selectedData);
-				if (!selectedData) {
-					break;
-				}
-
+			while (auto selectedData = findNearestDataAudio(i, minTime, maxTime)) {
 				auto const audioData = safe_cast<const DataPcm>(selectedData);
 				auto data = make_shared<DataBaseRef>(selectedData);
 				data->setMediaTime(outMasterTime + (selectedData->getMediaTime() - inMasterTime));
