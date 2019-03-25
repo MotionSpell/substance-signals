@@ -34,14 +34,13 @@ static void compose(DataPicture* pic,
 		auto const picPitch = (int)pic->getStride(p);
 		auto const subsampling = getSubsampling(pic, p);
 		auto const multiplicator = picPitch > picRes.width ? picPitch/picRes.width : 1;
-		auto planePic = pic->getPlane(p);
-		auto planeLogo = overlay->getPlane(p);
+		auto logoPixels = overlay->getPlane(p);
 		auto const logoPitch = overlay->getStride(p);
+		auto const xAdj = x * (multiplicator >> subsampling);
 		auto const yAdj = (y >> subsampling);
 		auto const logoResHDiv = logoRes.height >> subsampling;
 		auto const picResHDiv = picRes.height >> subsampling;
-		auto const xAdj = x * (multiplicator >> subsampling);
-		auto dst = planePic + yAdj * picPitch + xAdj;
+		auto dst = pic->getPlane(p) + yAdj * picPitch + xAdj;
 		auto const blitHeight = std::min(logoResHDiv, picResHDiv - yAdj);
 		auto const blitWidth = (width * multiplicator) >> subsampling;
 		if (mask) {
@@ -50,17 +49,17 @@ static void compose(DataPicture* pic,
 			auto const logoAlphaP0 = mask->getPlane(0);
 			for (int h = 0; h < blitHeight; ++h) {
 				auto const maskLine = logoAlphaP0 + h * maskPitch;
-				auto const logoLine = planeLogo + h * logoPitch;
 				for (int w = 0; w < blitWidth; ++w) {
 					const auto alpha = maskLine[w * rgbaStride + 3] + 1;
-					dst[w] = blend(dst[w], logoLine[w], alpha);
+					dst[w] = blend(dst[w], logoPixels[w], alpha);
 				}
+				logoPixels += logoPitch;
 				dst += picPitch;
 			}
 		} else {
 			for (int h = 0; h < blitHeight; ++h) {
-				memcpy(dst, planeLogo, blitWidth);
-				planeLogo += logoPitch;
+				memcpy(dst, logoPixels, blitWidth);
+				logoPixels += logoPitch;
 				dst += picPitch;
 			}
 		}
