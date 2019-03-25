@@ -14,7 +14,7 @@ static uint8_t blend(uint8_t a, uint8_t b, int alpha) {
 	return (alpha  * b + (256 - alpha) * a) >> 8;
 }
 
-static void compose(const DataPicture* pic,
+static void compose(DataPicture* pic,
     int x, int y,
     const DataPicture* overlay,
     const DataPicture* mask) {
@@ -24,7 +24,7 @@ static void compose(const DataPicture* pic,
 	for (int p = 0; p < (int)pic->getNumPlanes(); ++p) {
 		auto const divisor = int(pic->getStride(0) / pic->getStride(p));
 		auto const multiplicator = (int)pic->getStride(p) > picRes.width ? int(pic->getStride(p)/picRes.width) : 1;
-		auto planePic = const_cast<DataPicture*>(pic)->getPlane(p); //TODO: have modules able to write in-place
+		auto planePic = pic->getPlane(p);
 		auto planeLogo = overlay->getPlane(p);
 		auto const picPitch = pic->getStride(p);
 		auto const logoPitch = overlay->getStride(p);
@@ -96,8 +96,10 @@ class LogoOverlay : public Module {
 				m_overlay = nullptr;
 			}
 
-			if (m_convertedOverlay)
-				compose(pic.get(), m_cfg.x, m_cfg.y, m_convertedOverlay.get(), m_overlayMask.get());
+			if (m_convertedOverlay) {
+				auto nonConstPic = const_cast<DataPicture*>(pic.get());
+				compose(nonConstPic, m_cfg.x, m_cfg.y, m_convertedOverlay.get(), m_overlayMask.get());
+			}
 
 			m_output->post(pic);
 		}
