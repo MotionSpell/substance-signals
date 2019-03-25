@@ -35,8 +35,11 @@ static std::string getTime() {
 	char szOut[255];
 	const std::time_t t = std::time(nullptr);
 	const std::tm tm = *std::gmtime(&t);
-	auto const size = strftime(szOut, 255, "%Y/%m/%d %H:%M:%S", &tm);
-	return format("[%s][%s]", std::string(szOut, size), (double)g_SystemClock->now());
+	auto const size = strftime(szOut, sizeof szOut, "%Y/%m/%d %H:%M:%S", &tm);
+	auto timeString = std::string(szOut, size);
+	auto const now = (double)g_SystemClock->now();
+	snprintf(szOut, sizeof szOut, "[%s][%.1f]", timeString.c_str(), now);
+	return szOut;
 }
 
 struct ConsoleLogger : LogSink {
