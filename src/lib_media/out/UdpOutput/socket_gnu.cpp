@@ -28,12 +28,20 @@ struct Socket : IOutputSocket {
 		m_dstAddr.sin_port = htons(port);
 
 		unsigned int size = SEND_BUFFER_SIZE;
-		int err = setsockopt(m_socket, SOL_SOCKET, SO_SNDBUF,  &size, sizeof(int));
+		int err = setsockopt(m_socket, SOL_SOCKET, SO_SNDBUF,  &size, sizeof(size));
 		if (err != 0)
 			throw runtime_error("setsockopt failed");
 
-		if(size < SEND_BUFFER_SIZE)
-			throw runtime_error("Send buffer size is too small");
+		socklen_t optlen = sizeof(size);
+		err = getsockopt(m_socket, SOL_SOCKET, SO_SNDBUF, &size, &optlen);
+		if (err != 0)
+			throw runtime_error("getsockopt failed");
+
+		if(size < SEND_BUFFER_SIZE) {
+			char msg[256];
+			sprintf(msg, "UDP send buffer is too small: %.2f kbytes", size/1024.0);
+			throw runtime_error(msg);
+		}
 	}
 
 	~Socket() {
