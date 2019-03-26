@@ -13,7 +13,7 @@
 using namespace std;
 
 // increasing this value increases throughput
-static auto const SEND_BUFFER_SIZE = 2 * 1024 * 1024;
+static auto const SEND_BUFFER_SIZE = 32 * 1024 * 1024;
 
 namespace {
 struct Socket : IOutputSocket {
