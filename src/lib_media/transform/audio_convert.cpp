@@ -103,7 +103,7 @@ struct AudioConvert : ModuleS {
 			inputSampleCount += srcNumSamples;
 
 			// detect gaps in input
-			{
+			if(inputMediaTime != -1) {
 				auto const expectedInputTime = inputMediaTime + timescaleToClock(inputSampleCount, audioData->getFormat().sampleRate);
 				auto const actualInputTime = data->getMediaTime();
 				if(actualInputTime && std::abs(actualInputTime - expectedInputTime) > 3) {
@@ -111,6 +111,9 @@ struct AudioConvert : ModuleS {
 					resyncNeeded = true;
 				}
 			}
+
+			if(inputMediaTime == -1)
+				resyncNeeded = true;
 
 			if(resyncNeeded) {
 				reconfigure(audioData->getFormat());
@@ -239,7 +242,7 @@ struct AudioConvert : ModuleS {
 		int64_t m_outLen = 0; // number of output samples already in 'm_out'
 		std::shared_ptr<DataPcm> m_out;
 		std::unique_ptr<Resampler> m_resampler;
-		int64_t inputMediaTime = 0;
+		int64_t inputMediaTime = -1;
 		int64_t inputSampleCount = 0;
 		int64_t accumulatedTimeInDstSR = -1; // '-1' means 'not in sync'
 		OutputDefault *output;
