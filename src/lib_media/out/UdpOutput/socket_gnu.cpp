@@ -13,7 +13,9 @@
 using namespace std;
 
 // increasing this value increases throughput
-static auto const SEND_BUFFER_SIZE = 32 * 1024 * 1024;
+// For a single 20Mbps output, 1Mb is too low.
+// 2Mb: can handle 4 redundant 20Mbps outputs.
+static auto const SEND_BUFFER_SIZE = 2 * 1024 * 1024;
 
 namespace {
 struct Socket : IOutputSocket {
