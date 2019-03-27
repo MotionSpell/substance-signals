@@ -150,6 +150,10 @@ void VideoGenerator::process() {
 	auto const val = flash ? 0xCC : 0x80;
 	memset(p, val, pic->getSize());
 
+	// add white noise (make the content harder to encode, to mimic real content)
+	for(int i=0; i < (int)pic->getSize(); ++i)
+		p[i] += rand()%10 - 5;
+
 	{
 		auto period = 80;
 		auto phase = int(m_numFrames % period);
