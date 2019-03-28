@@ -37,7 +37,11 @@ class TsMuxer : public ModuleDynI {
 			enforce(m_formatCtx->oformat, "The 'mpegts' format must exist. Please check your ffmpeg build");
 			enforce(!(m_formatCtx->oformat->flags & AVFMT_NOFILE), "Invalid mpegts format flags");
 
-			m_formatCtx->pb = avio_alloc_context(m_outputBuffer, (int(sizeof m_outputBuffer)/TS_PACKET_SIZE)*TS_PACKET_SIZE, 1, this, nullptr, &staticOnWrite, nullptr);
+			auto const bufSize = ((1024 * 1024)/TS_PACKET_SIZE)*TS_PACKET_SIZE;
+			m_outputBuffer = (uint8_t*)av_malloc(bufSize);
+			enforce(m_outputBuffer, "av_malloc failed");
+
+			m_formatCtx->pb = avio_alloc_context(m_outputBuffer, bufSize, 1, this, nullptr, &staticOnWrite, nullptr);
 			enforce(m_formatCtx->pb, "avio_alloc_context failed");
 		}
 
@@ -52,6 +56,8 @@ class TsMuxer : public ModuleDynI {
 
 			av_free(m_formatCtx->pb);
 			avformat_free_context(m_formatCtx);
+
+			av_free(m_outputBuffer);
 		}
 
 		void process() override {
@@ -127,7 +133,7 @@ class TsMuxer : public ModuleDynI {
 		bool m_flushed = false;
 		bool m_dropping = false; // used for log message limitation
 		bool m_dropAllOutput = false; // block all calls to getBuffer/post
-		uint8_t m_outputBuffer[1024 * 1024];
+		uint8_t* m_outputBuffer {};
 		OutputDefault* m_output {};
 
 		Data popAny(int& inputIdx) {
