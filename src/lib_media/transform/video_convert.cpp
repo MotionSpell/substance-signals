@@ -34,6 +34,13 @@ class VideoConvert : public ModuleS {
 
 		void processOne(Data data) override {
 			auto videoData = safe_cast<const DataPicture>(data);
+
+			// pass-through case
+			if(videoData->getFormat() == dstFormat) {
+				output->post(videoData);
+				return;
+			}
+
 			if (videoData->getFormat() != srcFormat) {
 				reconfigure(videoData->getFormat());
 			}
