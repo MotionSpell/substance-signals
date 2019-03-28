@@ -237,12 +237,13 @@ class TsMuxer : public ModuleDynI {
 		// output handling: called by libavformat
 		static int staticOnWrite(void* opaque, uint8_t* buf, int len) {
 			auto pThis = (TsMuxer*)opaque;
-			return pThis->onWrite({buf, (size_t)len});
+			pThis->onWrite({buf, (size_t)len});
+			return 0;
 		}
 
 		int64_t m_sentBits = 0;
 
-		int onWrite(SpanC packet) {
+		void onWrite(SpanC packet) {
 			assert(packet.len % TS_PACKET_SIZE == 0);
 
 			if(!m_dropAllOutput) {
@@ -256,8 +257,6 @@ class TsMuxer : public ModuleDynI {
 					m_sentBits += len * 8;
 				}
 			}
-
-			return packet.len;
 		}
 };
 
