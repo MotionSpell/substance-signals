@@ -131,8 +131,6 @@ OutputPin insertLogo(Pipeline* pipeline, OutputPin main, std::string path) {
 	LogoOverlayConfig logoCfg {};
 	logoCfg.x = 10;
 	logoCfg.y = 10;
-	logoCfg.dim.width = 32;
-	logoCfg.dim.height = 32;
 	auto overlay = pipeline->add("LogoOverlay", &logoCfg);
 	pipeline->connect(main, GetInputPin(overlay, 0));
 	pipeline->connect(decoder, GetInputPin(overlay, 1));

@@ -123,8 +123,11 @@ class LogoOverlay : public Module {
 					fn(data);
 				}
 			};
-
-			auto res = m_cfg.dim;
+			auto res = m_overlay->getFormat().res;
+			if(m_cfg.dim.width)
+				res.width = m_cfg.dim.width;
+			if(m_cfg.dim.height)
+				res.height = m_cfg.dim.height;
 			{
 				const PictureFormat pfo(res, pixelFormat);
 				OutStub stub;

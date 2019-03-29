@@ -4,6 +4,6 @@
 
 struct LogoOverlayConfig {
 	int x, y;
-	Resolution dim;
+	Resolution dim {};
 };
 
