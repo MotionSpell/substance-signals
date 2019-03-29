@@ -60,6 +60,7 @@ class TimeRectifier : public ModuleDynI {
 				Data data;
 			};
 
+			IOutput* output;
 			std::vector<Rec> data;
 		};
 

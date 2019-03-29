@@ -40,8 +40,8 @@ void TimeRectifier::process() {
 void TimeRectifier::mimicOutputs() {
 	while(streams.size() < getInputs().size()) {
 		std::unique_lock<std::mutex> lock(inputMutex);
-		addOutput<OutputDefault>();
-		streams.push_back(Stream());
+		auto output = addOutput<OutputDefault>();
+		streams.push_back(Stream{output, {}});
 	}
 }
 
@@ -81,7 +81,7 @@ void TimeRectifier::fillInputQueuesUnsafe() {
 		while (currInput->tryPop(data)) {
 			streams[i].data.push_back({now, data});
 			if (currInput->updateMetadata(data)) {
-				declareScheduler(currInput.get(), outputs[i].get());
+				declareScheduler(currInput.get(), streams[i].output);
 			}
 		}
 	}
@@ -187,7 +187,7 @@ void TimeRectifier::emitOnePeriod(Fraction time) {
 		auto data = make_shared<DataBaseRef>(refData);
 		data->setMediaTime(outMasterTime);
 		m_host->log(TR_DEBUG, format("Video: send[%s:%s] t=%s (data=%s) (ref %s)", i, master.data.size(), data->getMediaTime(), data->getMediaTime(), refData->getMediaTime()).c_str());
-		outputs[i]->post(data);
+		master.output->post(data);
 		discardStreamOutdatedData(i, data->getMediaTime());
 	}
 
@@ -210,7 +210,7 @@ void TimeRectifier::emitOnePeriod(Fraction time) {
 				auto data = make_shared<DataBaseRef>(selectedData);
 				data->setMediaTime(outMasterTime + (selectedData->getMediaTime() - inMasterTime));
 				m_host->log(TR_DEBUG, format("Other: send[%s:%s] t=%s (data=%s) (ref=%s)", i, streams[i].data.size(), data->getMediaTime(), data->getMediaTime(), inMasterTime).c_str());
-				outputs[i]->post(data);
+				streams[i].output->post(data);
 				discardStreamOutdatedData(i, data->getMediaTime());
 			}
 			break;
