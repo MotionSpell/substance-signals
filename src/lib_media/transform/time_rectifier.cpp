@@ -197,20 +197,24 @@ void TimeRectifier::emitOnePeriod(Fraction time) {
 	//AUDIO: BE ABLE TO ASK FOR A LARGER BUFFER ALLOCATOR? => BACK TO THE APP + DYN ALLOCATOR SIZE?
 	//VIDEO: HAVE ONLY A FEW DECODED FRAMES: THEY ARRIVE IN ADVANCE ANYWAY
 	for (auto i : getInputs()) {
-		if(!inputs[i]->getMetadata())
+		auto& input = inputs[i];
+		auto& stream = streams[i];
+
+		if(!input->getMetadata())
 			continue;
-		switch (inputs[i]->getMetadata()->type) {
+
+		switch (input->getMetadata()->type) {
 		case AUDIO_RAW: {
 
 			auto minTime = inMasterTime - threshold;
 			auto maxTime = inMasterTime;
 
-			while (auto selectedData = findNearestDataAudio(streams[i], minTime, maxTime)) {
+			while (auto selectedData = findNearestDataAudio(stream, minTime, maxTime)) {
 				auto const audioData = safe_cast<const DataPcm>(selectedData);
 				auto data = make_shared<DataBaseRef>(selectedData);
 				data->setMediaTime(outMasterTime + (selectedData->getMediaTime() - inMasterTime));
-				m_host->log(TR_DEBUG, format("Other: send[%s:%s] t=%s (data=%s) (ref=%s)", i, streams[i].data.size(), data->getMediaTime(), data->getMediaTime(), inMasterTime).c_str());
-				streams[i].output->post(data);
+				m_host->log(TR_DEBUG, format("Other: send[%s:%s] t=%s (data=%s) (ref=%s)", i, stream.data.size(), data->getMediaTime(), data->getMediaTime(), inMasterTime).c_str());
+				stream.output->post(data);
 				discardStreamOutdatedData(i, data->getMediaTime());
 			}
 			break;
