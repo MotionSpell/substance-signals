@@ -68,7 +68,7 @@ class TimeRectifier : public ModuleDynI {
 		void fillInputQueuesUnsafe();
 		void discardStreamOutdatedData(size_t inputIdx, int64_t removalClockTime);
 		void discardOutdatedData(int64_t removalClockTime);
-		void declareScheduler(std::unique_ptr<IInput> &input, std::unique_ptr<IOutput> &output);
+		void declareScheduler(IInput* input, IOutput* output);
 		void reschedule(Fraction when);
 		void onPeriod(Fraction time);
 		void emitOnePeriod(Fraction time);

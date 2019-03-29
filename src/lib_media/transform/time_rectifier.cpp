@@ -57,7 +57,7 @@ void TimeRectifier::onPeriod(Fraction timeNow) {
 	}
 }
 
-void TimeRectifier::declareScheduler(std::unique_ptr<IInput> &input, std::unique_ptr<IOutput> &output) {
+void TimeRectifier::declareScheduler(IInput* input, IOutput* output) {
 	auto const oMeta = output->getMetadata();
 	if (!oMeta) {
 		m_host->log(Debug, "Output isn't connected or doesn't expose a metadata: impossible to check.");
@@ -81,7 +81,7 @@ void TimeRectifier::fillInputQueuesUnsafe() {
 		while (currInput->tryPop(data)) {
 			streams[i].data.push_back({now, data});
 			if (currInput->updateMetadata(data)) {
-				declareScheduler(currInput, outputs[i]);
+				declareScheduler(currInput.get(), outputs[i].get());
 			}
 		}
 	}
