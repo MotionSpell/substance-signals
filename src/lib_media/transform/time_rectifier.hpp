@@ -61,7 +61,6 @@ class TimeRectifier : public ModuleDynI {
 			};
 
 			std::vector<Rec> data;
-			int64_t numTicks = 0;
 		};
 
 		void sanityChecks();
@@ -80,6 +79,7 @@ class TimeRectifier : public ModuleDynI {
 		KHost* const m_host;
 
 		Fraction const frameRate;
+		int64_t numTicks = 0;
 		int64_t const threshold;
 		std::vector<Stream> streams;
 		std::mutex inputMutex;

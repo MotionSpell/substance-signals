@@ -124,7 +124,7 @@ Data TimeRectifier::findNearestData(Stream& stream, Fraction time) {
 			}
 		}
 	}
-	if ((stream.numTicks > 0) && (stream.data.size() >= 2) && (currDataIdx != 1)) {
+	if ((numTicks > 0) && (stream.data.size() >= 2) && (currDataIdx != 1)) {
 		m_host->log(Debug, format("Selected reference data is not contiguous to the last one (index=%s).", currDataIdx).c_str());
 		//TODO: pass in error mode: flush all the data where the clock time removeOutdatedAllUnsafe(refData->getCreationTime());
 	}
@@ -171,7 +171,7 @@ void TimeRectifier::emitOnePeriod(Fraction time) {
 		auto& master = streams[i];
 		auto refData = findNearestData(master, time);
 		if (!refData) {
-			assert(master.numTicks == 0);
+			assert(numTicks == 0);
 
 			m_host->log(Warning, format("No available reference data for clock time %s", fractionToClock(time)).c_str());
 			return;
@@ -179,11 +179,11 @@ void TimeRectifier::emitOnePeriod(Fraction time) {
 
 		inMasterTime = refData->getMediaTime();
 
-		if (master.numTicks == 0) {
+		if (numTicks == 0) {
 			m_host->log(Info, format("First available reference clock time: %s", fractionToClock(time)).c_str());
 		}
 
-		outMasterTime = fractionToClock(Fraction(master.numTicks++ * frameRate.den, frameRate.num));
+		outMasterTime = fractionToClock(Fraction(numTicks++ * frameRate.den, frameRate.num));
 		auto data = make_shared<DataBaseRef>(refData);
 		data->setMediaTime(outMasterTime);
 		m_host->log(TR_DEBUG, format("Video: send[%s:%s] t=%s (data=%s) (ref %s)", i, master.data.size(), data->getMediaTime(), data->getMediaTime(), refData->getMediaTime()).c_str());
