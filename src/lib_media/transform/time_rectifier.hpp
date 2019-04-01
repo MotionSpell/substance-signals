@@ -73,6 +73,7 @@ class TimeRectifier : public ModuleDynI {
 		void reschedule(Fraction when);
 		void onPeriod(Fraction time);
 		void emitOnePeriod(Fraction time);
+		void emitOnePeriod_RawAudio(int i, int64_t inMasterTime, int64_t outMasterTime);
 		Data findNearestData(Stream& stream, Fraction time);
 		Data findNearestDataAudio(Stream& stream, int64_t minTime, int64_t maxTime);
 		size_t getMasterStreamId() const;
