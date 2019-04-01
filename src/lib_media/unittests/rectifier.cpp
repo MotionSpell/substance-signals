@@ -109,42 +109,61 @@ struct DataGenerator : public ModuleS, public virtual IOutputCap {
 typedef DataGenerator<MetadataRawVideo, DataPicture> VideoGenerator;
 typedef DataGenerator<MetadataRawAudio, DataPcm> AudioGenerator;
 
-vector<Event> runRectifier(
-    Fraction fps,
-    const vector<unique_ptr<ModuleS>> &generators,
-    vector<Event> events) {
-
-	auto clock = make_shared<ClockMock>();
-
-	const int N = (int)generators.size();
-
-	auto rectifier = createModuleWithSize<TimeRectifier>(1, &NullHost, clock, clock.get(), fps);
-
+struct Fixture {
+	std::shared_ptr<ClockMock> clock = make_shared<ClockMock>();
+	vector<unique_ptr<ModuleS>> generators;
+	std::unique_ptr<IModule> rectifier;
 	vector<Event> actualTimes;
 
-	auto onSample = [&](int i, Data data) {
-		actualTimes.push_back(Event{i, fractionToClock(clock->now()), data->getMediaTime()});
-	};
+	Fixture(Fraction fps) {
+		rectifier = createModuleWithSize<TimeRectifier>(1, &NullHost, clock, clock.get(), fps);
+	}
 
-	for (int i = 0; i < N; ++i) {
+	void setTime(int64_t time) {
+		clock->setTime(Fraction(time, IClock::Rate));
+	}
+
+	void addStream(int i, std::unique_ptr<ModuleS>&& generator) {
+		generators.push_back(move(generator));
+
 		ConnectModules(generators[i].get(), 0, rectifier.get(), i);
-		ConnectOutput(rectifier->getOutput(i), [=](Data data) {
-			onSample(i, data);
+		ConnectOutput(rectifier->getOutput(i), [i, this](Data data) {
+			this->onOutputSample(i, data);
 		});
+	}
+
+	void push(int index, int64_t mediaTime) {
+		auto data = make_shared<DataRaw>(0);
+		data->setMediaTime(mediaTime);
+		generators[index]->processOne(data);
+	}
+
+	void onOutputSample(int i, Data data) {
+		actualTimes.push_back(Event{i, fractionToClock(clock->now()), data->getMediaTime()});
+	}
+};
+
+vector<Event> runRectifier(
+    Fraction fps,
+    vector<unique_ptr<ModuleS>> &gen,
+    vector<Event> events) {
+
+	Fixture fix(fps);
+
+	for (int i = 0; i < (int)gen.size(); ++i) {
+		fix.addStream(i, std::move(gen[i]));
 	}
 
 	for (auto event : events) {
 		if(event.clockTime > 0)
-			clock->setTime(Fraction(event.clockTime, IClock::Rate));
-		shared_ptr<DataRaw> data(new DataRaw(0));
-		data->setMediaTime(event.mediaTime);
-		generators[event.index]->processOne(data);
+			fix.setTime(event.clockTime);
+		fix.push(event.index, event.mediaTime);
 	}
 
 	for(int i=0; i < 100; ++i)
-		clock->setTime(clock->now());
+		fix.clock->setTime(fix.clock->now());
 
-	return actualTimes;
+	return fix.actualTimes;
 }
 
 unittest("rectifier: simple offset") {
