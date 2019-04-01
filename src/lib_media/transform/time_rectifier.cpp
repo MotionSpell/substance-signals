@@ -183,7 +183,7 @@ void TimeRectifier::emitOnePeriod(Fraction time) {
 			m_host->log(Info, format("First available reference clock time: %s", fractionToClock(time)).c_str());
 		}
 
-		outMasterTime = fractionToClock(Fraction(numTicks++ * frameRate.den, frameRate.num));
+		outMasterTime = fractionToClock(Fraction(numTicks * frameRate.den, frameRate.num));
 		auto data = make_shared<DataBaseRef>(refData);
 		data->setMediaTime(outMasterTime);
 		m_host->log(TR_DEBUG, format("Video: send[%s:%s] t=%s (data=%s) (ref %s)", i, master.data.size(), data->getMediaTime(), data->getMediaTime(), refData->getMediaTime()).c_str());
@@ -211,6 +211,8 @@ void TimeRectifier::emitOnePeriod(Fraction time) {
 		default: throw error("unhandled media type (awakeOnFPS)");
 		}
 	}
+
+	++numTicks;
 }
 
 void TimeRectifier::emitOnePeriod_RawAudio(int i, int64_t inMasterTime, int64_t outMasterTime) {
