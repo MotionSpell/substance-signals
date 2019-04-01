@@ -290,11 +290,11 @@ TimePair generateValuesDefault(uint64_t step, Fraction fps) {
 };
 
 vector<Event> generateData(Fraction fps, function<TimePair(uint64_t, Fraction)> generateValue = generateValuesDefault) {
-	auto const numItems = (size_t)(Fraction(15) * fps / Fraction(25, 1));
-	vector<Event> times(numItems);
-	for (size_t i = 0; i < numItems; ++i) {
+	auto const numItems = (int)(Fraction(15) * fps / Fraction(25, 1));
+	vector<Event> times;
+	for (int i = 0; i < numItems; ++i) {
 		auto tp = generateValue(i, fps);
-		times[i] = Event{0, tp.clockTime, tp.mediaTime};
+		times.push_back({0, tp.clockTime, tp.mediaTime});
 	}
 	return times;
 }
