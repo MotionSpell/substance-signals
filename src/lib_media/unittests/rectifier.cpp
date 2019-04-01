@@ -107,26 +107,6 @@ struct DataGenerator : public ModuleS, public virtual IOutputCap {
 	OutputDefault *output;
 };
 
-struct DataRecorder : ModuleS {
-	DataRecorder(shared_ptr<IClock> clock_) : clock(clock_) {
-	}
-
-	void processOne(Data data) {
-		if(!data)
-			return;
-		auto now = fractionToClock(clock->now());
-		record.push_back({now, data});
-	}
-
-	struct Rec {
-		int64_t when;
-		Data data;
-	};
-
-	vector<Rec> record;
-	shared_ptr<IClock> clock;
-};
-
 typedef DataGenerator<MetadataRawVideo, DataPicture> VideoGenerator;
 typedef DataGenerator<MetadataRawAudio, DataPcm> AudioGenerator;
 
@@ -140,11 +120,18 @@ vector<Event> runRectifier(
 	const int N = (int)generators.size();
 
 	auto rectifier = createModuleWithSize<TimeRectifier>(1, &NullHost, clock, clock.get(), fps);
-	vector<unique_ptr<DataRecorder>> recorders;
+
+	vector<Event> actualTimes;
+
+	auto onSample = [&](int i, Data data) {
+		actualTimes.push_back(Event{i, fractionToClock(clock->now()), data->getMediaTime()});
+	};
+
 	for (int i = 0; i < N; ++i) {
 		ConnectModules(generators[i].get(), 0, rectifier.get(), i);
-		recorders.push_back(createModule<DataRecorder>(clock));
-		ConnectModules(rectifier.get(), i, recorders[i].get(), 0);
+		ConnectOutput(rectifier->getOutput(i), [=](Data data) {
+			onSample(i, data);
+		});
 	}
 
 	for (auto event : events) {
@@ -157,16 +144,6 @@ vector<Event> runRectifier(
 
 	for(int i=0; i < 100; ++i)
 		clock->setTime(clock->now());
-
-	vector<Event> actualTimes;
-
-	for(int i=0; i < N; ++i) {
-		recorders[i]->processOne(nullptr);
-		for (auto& rec : recorders[i]->record) {
-			actualTimes.push_back(Event{i, rec.when, rec.data->getMediaTime()});
-		}
-	}
-	sort(actualTimes.begin(), actualTimes.end());
 
 	return actualTimes;
 }
