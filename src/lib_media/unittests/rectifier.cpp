@@ -1,7 +1,6 @@
 #include "tests/tests.hpp"
 #include "lib_utils/i_scheduler.hpp"
 #include "lib_media/transform/time_rectifier.hpp"
-#include "lib_media/utils/recorder.hpp"
 #include "lib_media/common/pcm.hpp"
 #include "lib_media/common/picture.hpp"
 #include "lib_media/common/metadata.hpp"
