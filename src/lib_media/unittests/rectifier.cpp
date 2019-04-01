@@ -75,10 +75,6 @@ class ClockMock : public IClock, public IScheduler {
 			m_tasks.pop_back();
 		}
 
-		int getPendingTaskCount() const {
-			return (int)m_tasks.size();
-		}
-
 	private:
 		Fraction m_time = 0;
 
@@ -136,9 +132,10 @@ typedef DataGenerator<MetadataRawAudio, DataPcm> AudioGenerator;
 
 vector<Event> runRectifier(
     Fraction fps,
-    shared_ptr<ClockMock> clock,
     const vector<unique_ptr<ModuleS>> &generators,
     vector<Event> events) {
+
+	auto clock = make_shared<ClockMock>();
 
 	const int N = (int)generators.size();
 
@@ -194,11 +191,9 @@ unittest("rectifier: simple offset") {
 	});
 
 	vector<unique_ptr<ModuleS>> generators;
-	auto clock = make_shared<ClockMock>();
 	generators.push_back(createModuleWithSize<VideoGenerator>(inTimes.size()));
 
-	ASSERT_EQUALS(expectedTimes, runRectifier(fps, clock, generators, inTimes));
-	ASSERT_EQUALS(0, clock->getPendingTaskCount());
+	ASSERT_EQUALS(expectedTimes, runRectifier(fps, generators, inTimes));
 }
 
 unittest("rectifier: missing frame") {
@@ -223,10 +218,9 @@ unittest("rectifier: missing frame") {
 	});
 
 	vector<unique_ptr<ModuleS>> generators;
-	auto clock = make_shared<ClockMock>();
 	generators.push_back(createModuleWithSize<VideoGenerator>(inTimes.size()));
 
-	ASSERT_EQUALS(expectedTimes, runRectifier(fps, clock, generators, inTimes));
+	ASSERT_EQUALS(expectedTimes, runRectifier(fps, generators, inTimes));
 }
 
 unittest("rectifier: noisy timestamps") {
@@ -251,10 +245,9 @@ unittest("rectifier: noisy timestamps") {
 	});
 
 	vector<unique_ptr<ModuleS>> generators;
-	auto clock = make_shared<ClockMock>();
 	generators.push_back(createModuleWithSize<VideoGenerator>(inTimes.size()));
 
-	ASSERT_EQUALS(expectedTimes, runRectifier(fps, clock, generators, inTimes));
+	ASSERT_EQUALS(expectedTimes, runRectifier(fps, generators, inTimes));
 }
 
 static void fixupTimes(vector<Event>& expectedTimes, vector<Event>& actualTimes) {
@@ -269,10 +262,9 @@ static void fixupTimes(vector<Event>& expectedTimes, vector<Event>& actualTimes)
 template<typename GeneratorType>
 void testRectifierSinglePort(Fraction fps, vector<Event> inTimes, vector<Event> expectedTimes) {
 	vector<unique_ptr<ModuleS>> generators;
-	auto clock = make_shared<ClockMock>();
 	generators.push_back(createModuleWithSize<GeneratorType>(inTimes.size()));
 
-	auto actualTimes = runRectifier(fps, clock, generators, inTimes);
+	auto actualTimes = runRectifier(fps, generators, inTimes);
 
 	fixupTimes(expectedTimes, actualTimes);
 
@@ -405,11 +397,10 @@ unittest("rectifier: multiple media types simple") {
 	sort(times.begin(), times.end());
 
 	vector<unique_ptr<ModuleS>> generators;
-	auto clock = make_shared<ClockMock>();
 	generators.push_back(createModuleWithSize<VideoGenerator>(times.size()));
 	generators.push_back(createModuleWithSize<AudioGenerator>(times.size()));
 
-	auto actualTimes = runRectifier(videoRate, clock, generators, times);
+	auto actualTimes = runRectifier(videoRate, generators, times);
 
 	// Quantize output delivery times to the internal media period
 	// of the rectifier. We don't expect it to wake up more often than that.
@@ -427,19 +418,17 @@ unittest("rectifier: two streams, only the first receives data") {
 	const auto videoRate = Fraction(25, 1);
 	auto times = generateData(videoRate);
 	vector<unique_ptr<ModuleS>> generators;
-	auto clock = make_shared<ClockMock>();
 	generators.push_back(createModuleWithSize<VideoGenerator>(100));
 	generators.push_back(createModuleWithSize<AudioGenerator>(100));
 
-	auto actualTimes = runRectifier(videoRate, clock, generators, times);
+	auto actualTimes = runRectifier(videoRate, generators, times);
 
 	ASSERT_EQUALS(times, actualTimes);
 }
 
 unittest("rectifier: fail when no video") {
 	vector<unique_ptr<ModuleS>> generators;
-	auto clock = make_shared<ClockMock>();
 	generators.push_back(createModuleWithSize<AudioGenerator>(1));
 
-	ASSERT_THROWN(runRectifier(Fraction(25, 1), clock, generators, {Event()}));
+	ASSERT_THROWN(runRectifier(Fraction(25, 1), generators, {Event()}));
 }
