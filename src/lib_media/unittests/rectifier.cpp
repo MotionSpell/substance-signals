@@ -43,9 +43,11 @@ class ClockMock : public IClock, public IScheduler {
 
 			// beware: running tasks might modify m_tasks by pushing new tasks
 			while(!m_tasks.empty() && m_tasks[0].time <= m_time) {
-				m_time = m_tasks[0].time;
-				m_tasks[0].func(m_time);
+				auto tsk = std::move(m_tasks[0]);
 				m_tasks.erase(m_tasks.begin());
+
+				m_time = tsk.time;
+				tsk.func(m_time);
 			}
 
 			m_time = t;
