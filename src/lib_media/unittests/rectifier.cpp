@@ -231,16 +231,28 @@ unittest("rectifier: missing frame") {
 
 unittest("rectifier: noisy timestamps") {
 	// use '100' as a human-readable frame period
-	auto fps = Fraction(IClock::Rate, 100);
+	auto fix = Fixture(Fraction(IClock::Rate, 100));
+	fix.addStream(0, createModuleWithSize<VideoGenerator>(100));
 
-	auto const inTimes = vector<Event>({
-		Event{0,   0 - 4, 1000 + 2},
-		Event{0, 100 + 5, 1100 - 3},
-		Event{0, 200 - 1, 1200 - 1},
-		Event{0, 300 + 2, 1300 + 7},
-		Event{0, 400 - 2, 1400 - 9},
-		Event{0, 500 + 1, 1500 + 15},
-	});
+	fix.setTime(  0);
+	fix.push(0, 1000 + 2);
+	fix.setTime(100);
+	fix.setTime(100 + 5);
+	fix.push(0, 1100 - 3);
+	fix.setTime(200 - 1);
+	fix.push(0, 1200 - 1);
+	fix.setTime(200);
+	fix.setTime(300);
+	fix.setTime(300 + 2);
+	fix.push(0, 1300 + 7);
+	fix.setTime(400 - 2);
+	fix.setTime(400);
+	fix.push(0, 1400 - 9);
+	fix.setTime(500);
+	fix.setTime(500 + 1);
+	fix.push(0, 1500 + 15);
+	fix.setTime(600);
+
 	auto const expectedTimes = vector<Event>({
 		Event{0,   0,   0},
 		Event{0, 100, 100},
@@ -248,12 +260,10 @@ unittest("rectifier: noisy timestamps") {
 		Event{0, 300, 300},
 		Event{0, 400, 400},
 		Event{0, 500, 500},
+		Event{0, 600, 600},
 	});
 
-	vector<unique_ptr<ModuleS>> generators;
-	generators.push_back(createModuleWithSize<VideoGenerator>(inTimes.size()));
-
-	ASSERT_EQUALS(expectedTimes, runRectifier(fps, generators, inTimes));
+	ASSERT_EQUALS(expectedTimes, fix.actualTimes);
 }
 
 static void fixupTimes(vector<Event>& expectedTimes, vector<Event>& actualTimes) {
