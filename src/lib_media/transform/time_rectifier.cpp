@@ -212,11 +212,12 @@ static void resizePcm(DataPcm* pcm, int sampleCount) {
 void TimeRectifier::emitOnePeriod_RawAudio(int i, Interval inMasterTime, Interval outMasterTime) {
 	auto& stream = streams[i];
 
-	if(stream.fmt.sampleRate == 0) {
-		if(stream.data.empty())
-			return;
+	if(!stream.data.empty())
 		stream.fmt = safe_cast<const DataPcm>(stream.data.front().data)->getFormat();
-	}
+
+	// can't process data if we don't know the format
+	if(stream.fmt.sampleRate == 0)
+		return;
 
 	auto const BPS = stream.fmt.getBytesPerSample();
 
