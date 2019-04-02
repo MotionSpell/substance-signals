@@ -42,7 +42,7 @@ class ClockMock : public IClock, public IScheduler {
 			assert(t >= m_time);
 
 			// beware: running tasks might modify m_tasks by pushing new tasks
-			while(!m_tasks.empty() && m_tasks[0].time <= m_time) {
+			while(!m_tasks.empty() && m_tasks[0].time <= t) {
 				auto tsk = std::move(m_tasks[0]);
 				m_tasks.erase(m_tasks.begin());
 
@@ -192,6 +192,7 @@ unittest("rectifier: simple offset") {
 		Event{0, 8803000, 2000},
 		Event{0, 8804000, 3000},
 		Event{0, 8805000, 4000},
+		Event{0, 8806000, 5000},
 	});
 
 	ASSERT_EQUALS(expectedTimes, fix.actualTimes);
@@ -222,6 +223,7 @@ unittest("rectifier: missing frame") {
 		Event{0, 300, 300},
 		Event{0, 400, 400},
 		Event{0, 500, 500},
+		Event{0, 600, 600},
 	});
 
 	ASSERT_EQUALS(expectedTimes, fix.actualTimes);
@@ -399,7 +401,6 @@ unittest("rectifier: multiple media types simple") {
 	fix.push(0, 40); fix.push(1, 40);
 	fix.setTime(40);
 	fix.push(0, 50); fix.push(1, 50);
-	fix.setTime(50);
 	fix.setTime(50);
 
 	auto const expectedTimes = vector<Event>({
