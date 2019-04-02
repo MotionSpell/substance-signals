@@ -255,7 +255,6 @@ unittest("rectifier: loss of input") {
 	ASSERT_EQUALS(expectedTimes, fix.actualTimes);
 }
 
-
 unittest("rectifier: noisy timestamps") {
 	// use '100' as a human-readable frame period
 	auto fix = Fixture(Fraction(IClock::Rate, 100));
