@@ -28,7 +28,10 @@ struct Event {
 
 // allows ASSERT_EQUALS on Event
 static std::ostream& operator<<(std::ostream& o, Event t) {
-	o << "{ #" << t.index << " " << t.mediaTime << "-" << t.clockTime << "}";
+	o << "{ #" << t.index;
+	o << " clk=" << t.clockTime;
+	o << " mt=" << t.mediaTime;
+	o << "}";
 	return o;
 }
 
