@@ -146,7 +146,7 @@ Data TimeRectifier::findNearestDataAudio(Stream& stream, int64_t minTime, int64_
 	return selectedData;
 }
 
-size_t TimeRectifier::getMasterStreamId() const {
+int TimeRectifier::getMasterStreamId() const {
 	for(auto i : getInputs()) {
 		if (inputs[i]->getMetadata()->type == VIDEO_RAW) {
 			return i;
