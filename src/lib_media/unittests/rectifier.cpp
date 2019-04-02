@@ -421,31 +421,26 @@ unittest("rectifier: deal with backward discontinuity (single port)") {
 }
 
 unittest("rectifier: multiple media types simple") {
-
-	auto fix = Fixture(Fraction(IClock::Rate, 10));
+	// real timescale is required here, because we're dealing with audio
+	auto fix = Fixture({25, 1});
 	fix.addStream(0, createModuleWithSize<VideoGenerator>(100));
 	fix.addStream(1, createModuleWithSize<AudioGenerator>(100));
 
-	fix.push(0,  0); fix.push(1,  0);
-	fix.setTime( 0);
-	fix.push(0, 10); fix.push(1, 10);
-	fix.setTime(10);
-	fix.push(0, 20); fix.push(1, 20);
-	fix.setTime(20);
-	fix.push(0, 30); fix.push(1, 30);
-	fix.setTime(30);
-	fix.push(0, 40); fix.push(1, 40);
-	fix.setTime(40);
-	fix.push(0, 50); fix.push(1, 50);
-	fix.setTime(50);
+	fix.setTime( 1000 + 7200 * 0);
+	fix.push(0, 7200 * 0); fix.push(1, 7200 * 0);
+	fix.setTime( 1000 + 7200 * 0);
+	fix.push(0, 7200 * 1); fix.push(1, 7200 * 1);
+	fix.setTime( 1000 + 7200 * 1);
+	fix.push(0, 7200 * 2); fix.push(1, 7200 * 2);
+	fix.setTime( 1000 + 7200 * 2);
+	fix.push(0, 7200 * 3); fix.push(1, 7200 * 3);
+	fix.setTime( 1000 + 7200 * 3);
 
 	auto const expectedTimes = vector<Event>({
-		Event{0,  0,  0}, Event{1,  0,  0},
-		Event{0, 10, 10}, Event{1, 10, 10},
-		Event{0, 20, 20}, Event{1, 20, 20},
-		Event{0, 30, 30}, Event{1, 30, 30},
-		Event{0, 40, 40}, Event{1, 40, 40},
-		Event{0, 50, 50}, Event{1, 50, 50},
+		Event{0, 1000 + 7200 * 0, 7200 * 0}, Event{1, 1000 + 7200 * 0, 7200 * 0},
+		Event{0, 1000 + 7200 * 1, 7200 * 1}, Event{1, 1000 + 7200 * 1, 7200 * 1},
+		Event{0, 1000 + 7200 * 2, 7200 * 2}, Event{1, 1000 + 7200 * 2, 7200 * 2},
+		Event{0, 1000 + 7200 * 3, 7200 * 3}, Event{1, 1000 + 7200 * 3, 7200 * 3},
 	});
 
 	ASSERT_EQUALS(expectedTimes, fix.actualTimes);
