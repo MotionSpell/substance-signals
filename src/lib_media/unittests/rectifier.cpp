@@ -104,7 +104,10 @@ struct DataGenerator : public ModuleS, public virtual IOutputCap {
 		auto data = output->template getBuffer<TYPE>(0);
 		auto dataPcm = dynamic_pointer_cast<DataPcm>(data);
 		if (dataPcm) {
-			dataPcm->setPlane(0, nullptr, 1024 * dataPcm->getFormat().getBytesPerSample());
+			PcmFormat fmt(48000);
+			dataPcm->setFormat(fmt);
+			for(int i=0; i < dataPcm->getFormat().numPlanes; ++i)
+				dataPcm->setPlane(i, nullptr, 1024 * dataPcm->getFormat().getBytesPerSample());
 		}
 		data->setMediaTime(dataIn->getMediaTime());
 		output->post(data);
@@ -122,7 +125,7 @@ struct Fixture {
 	vector<Event> actualTimes;
 
 	Fixture(Fraction fps) {
-		rectifier = createModuleWithSize<TimeRectifier>(1, &NullHost, clock, clock.get(), fps);
+		rectifier = createModuleWithSize<TimeRectifier>(100, &NullHost, clock, clock.get(), fps);
 	}
 
 	void setTime(int64_t time) {
@@ -426,14 +429,16 @@ unittest("rectifier: multiple media types simple") {
 	fix.addStream(0, createModuleWithSize<VideoGenerator>(100));
 	fix.addStream(1, createModuleWithSize<AudioGenerator>(100));
 
+	// 3840 = (1024 * IClock::Rate) / 48kHz;
+
 	fix.setTime( 1000 + 7200 * 0);
-	fix.push(0, 7200 * 0); fix.push(1, 7200 * 0);
+	fix.push(0, 7200 * 0); fix.push(1, 3840 * 0);
+	fix.push(0, 7200 * 1); fix.push(1, 3840 * 1);
 	fix.setTime( 1000 + 7200 * 0);
-	fix.push(0, 7200 * 1); fix.push(1, 7200 * 1);
+	fix.push(0, 7200 * 2); fix.push(1, 3840 * 2);
 	fix.setTime( 1000 + 7200 * 1);
-	fix.push(0, 7200 * 2); fix.push(1, 7200 * 2);
+	fix.push(0, 7200 * 3); fix.push(1, 3840 * 3);
 	fix.setTime( 1000 + 7200 * 2);
-	fix.push(0, 7200 * 3); fix.push(1, 7200 * 3);
 	fix.setTime( 1000 + 7200 * 3);
 
 	auto const expectedTimes = vector<Event>({

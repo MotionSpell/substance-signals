@@ -3,6 +3,7 @@
 #include "lib_modules/modules.hpp"
 #include "lib_modules/utils/helper_dyn.hpp"
 #include "lib_utils/i_scheduler.hpp"
+#include "../common/pcm.hpp" // PcmFormat
 #include <memory>
 #include <vector>
 #include <mutex>
@@ -60,9 +61,15 @@ class TimeRectifier : public ModuleDynI {
 				Data data;
 			};
 
-			IOutput* output;
+			OutputDefault* output;
 			std::vector<Rec> data;
 			Data blank {}; // when we have no data from the input, send this instead.
+			PcmFormat fmt {};
+		};
+
+		// a time range, in clock units or audio sample units.
+		struct Interval {
+			int64_t start, stop;
 		};
 
 		void sanityChecks();
@@ -74,9 +81,8 @@ class TimeRectifier : public ModuleDynI {
 		void reschedule(Fraction when);
 		void onPeriod(Fraction time);
 		void emitOnePeriod(Fraction time);
-		void emitOnePeriod_RawAudio(int i, int64_t inMasterTime, int64_t outMasterTime);
+		void emitOnePeriod_RawAudio(int i, Interval inMasterTime, Interval outMasterTime);
 		Data chooseNextMasterFrame(Stream& stream);
-		Data findNearestDataAudio(Stream& stream, int64_t minTime, int64_t maxTime);
 		int getMasterStreamId() const;
 
 		KHost* const m_host;

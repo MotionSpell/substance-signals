@@ -118,21 +118,6 @@ Data TimeRectifier::chooseNextMasterFrame(Stream& stream) {
 	return r;
 }
 
-Data TimeRectifier::findNearestDataAudio(Stream& stream, int64_t minTime, int64_t maxTime) {
-
-	auto& streamData = stream.data;
-
-	while(!streamData.empty() && streamData.front().data->getMediaTime() <= minTime)
-		streamData.erase(streamData.begin());
-
-	if(streamData.empty() || streamData.front().data->getMediaTime() > maxTime)
-		return nullptr;
-
-	auto selectedData = streamData.front().data;
-	streamData.erase(streamData.begin());
-	return selectedData;
-}
-
 int TimeRectifier::getMasterStreamId() const {
 	for(auto i : getInputs()) {
 		if (inputs[i]->getMetadata() && inputs[i]->getMetadata()->type == VIDEO_RAW) {
@@ -159,11 +144,14 @@ void TimeRectifier::emitOnePeriod(Fraction now) {
 	sanityChecks();
 	discardOutdatedData(fractionToClock(now) - analyzeWindowIn180k);
 
-	// output media time corresponding to the start of the "media period"
-	auto const outMasterTime = fractionToClock(Fraction(numTicks * framePeriod.num, framePeriod.den));
+	// output media times corresponding to the "media period"
+	auto const outMasterTime = Interval {
+		fractionToClock(Fraction((numTicks+0) * framePeriod.num, framePeriod.den)),
+		fractionToClock(Fraction((numTicks+1) * framePeriod.num, framePeriod.den))
+	};
 
-	// input media time corresponding to the start of the "media period"
-	int64_t inMasterTime {};
+	// input media times corresponding to the "media period"
+	Interval inMasterTime {};
 
 	{
 		auto const i = getMasterStreamId();
@@ -178,14 +166,15 @@ void TimeRectifier::emitOnePeriod(Fraction now) {
 			return;
 		}
 
-		inMasterTime = masterFrame->getMediaTime();
+		inMasterTime.start = masterFrame->getMediaTime();
+		inMasterTime.stop = inMasterTime.start + (outMasterTime.stop - outMasterTime.start);
 
 		if (numTicks == 0) {
 			m_host->log(Info, format("First available reference clock time: %s", fractionToClock(now)).c_str());
 		}
 
 		auto data = make_shared<DataBaseRef>(masterFrame);
-		data->setMediaTime(outMasterTime);
+		data->setMediaTime(outMasterTime.start);
 		m_host->log(TR_DEBUG, format("Video: send[%s:%s] t=%s (data=%s) (ref %s)", i, master.data.size(), data->getMediaTime(), data->getMediaTime(), masterFrame->getMediaTime()).c_str());
 		master.output->post(data);
 		discardStreamOutdatedData(i, data->getMediaTime());
@@ -215,20 +204,85 @@ void TimeRectifier::emitOnePeriod(Fraction now) {
 	++numTicks;
 }
 
-void TimeRectifier::emitOnePeriod_RawAudio(int i, int64_t inMasterTime, int64_t outMasterTime) {
+static void resizePcm(DataPcm* pcm, int sampleCount) {
+	for(int i=0; i < pcm->getFormat().numPlanes; ++i)
+		pcm->setPlane(i, nullptr, sampleCount * pcm->getFormat().getBytesPerSample());
+}
+
+void TimeRectifier::emitOnePeriod_RawAudio(int i, Interval inMasterTime, Interval outMasterTime) {
 	auto& stream = streams[i];
 
-	auto minTime = inMasterTime - threshold;
-	auto maxTime = inMasterTime;
-
-	while (auto selectedData = findNearestDataAudio(stream, minTime, maxTime)) {
-		auto const audioData = safe_cast<const DataPcm>(selectedData);
-		auto data = make_shared<DataBaseRef>(selectedData);
-		data->setMediaTime(outMasterTime + (selectedData->getMediaTime() - inMasterTime));
-		m_host->log(TR_DEBUG, format("Other: send[%s:%s] t=%s (data=%s) (ref=%s)", i, stream.data.size(), data->getMediaTime(), data->getMediaTime(), inMasterTime).c_str());
-		stream.output->post(data);
-		discardStreamOutdatedData(i, data->getMediaTime());
+	if(stream.fmt.sampleRate == 0) {
+		if(stream.data.empty())
+			return;
+		stream.fmt = safe_cast<const DataPcm>(stream.data.front().data)->getFormat();
 	}
+
+	auto const BPS = stream.fmt.getBytesPerSample();
+
+	// convert a timestamp to an absolute sample count
+	auto toSamples = [&](int64_t time) -> int64_t {
+		return (time * stream.fmt.sampleRate) / IClock::Rate;
+	};
+
+	auto toSamplesP = [&](Interval p) -> Interval {
+		return { toSamples(p.start), toSamples(p.stop) };
+	};
+
+	auto getSampleInterval = [&](const DataPcm* pcm) -> Interval {
+		auto const start = toSamples(pcm->getMediaTime());
+		return Interval {
+			start,
+			start + int64_t(pcm->getPlaneSize(0) / BPS)
+		};
+	};
+
+	// convert all times to absolute sample counts.
+	// This way we handle early all precision issues.
+	auto const outMasterSamples = toSamplesP(outMasterTime);
+	auto const inMasterSamples = toSamplesP(inMasterTime);
+
+	// Create an output sample. We want it to start at 'outMasterTime.start',
+	// and to cover the full 'outMasterTime' interval.
+	auto pcm = stream.output->getBuffer<DataPcm>(0);
+	pcm->setMediaTime(outMasterTime.start);
+	pcm->setFormat(stream.fmt);
+	resizePcm(pcm.get(), outMasterSamples.stop - outMasterSamples.start);
+
+	// remove obsolete samples
+	while(!stream.data.empty()) {
+		auto const inputData = safe_cast<const DataPcm>(stream.data.front().data);
+		auto const inSamples = getSampleInterval(inputData.get());
+		if(inSamples.stop >= inMasterSamples.start)
+			break;
+		stream.data.erase(stream.data.begin());
+	}
+
+	// fill the period "outMasterSamples" with portions of input audio samples
+	// that intersect with the "media period".
+	for(auto& data : stream.data) {
+		auto const inputData = safe_cast<const DataPcm>(data.data);
+
+		auto const inSamples = getSampleInterval(inputData.get());
+
+		// intersect period of this data with the "media period"
+		auto const left = std::max(inSamples.start, inMasterSamples.start);
+		auto const right = std::min(inSamples.stop, inMasterSamples.stop);
+
+		// intersection is empty
+		if(left >= right)
+			continue;
+
+		for(int i=0; i < stream.fmt.numPlanes; ++i) {
+			auto src = inputData->getPlane(i) + (left - inSamples.start) * BPS;
+			auto dst = pcm->getPlane(i) + (left - inMasterSamples.start) * BPS;
+			memcpy(dst, src, (right - left) * BPS);
+		}
+	}
+
+	stream.output->post(pcm);
+
+	m_host->log(TR_DEBUG, format("Other: send[%s:%s] t=%s (data=%s) (ref=%s)", i, stream.data.size(), pcm->getMediaTime(), pcm->getMediaTime(), inMasterTime.start).c_str());
 }
 
 }
