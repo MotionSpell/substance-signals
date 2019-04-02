@@ -159,11 +159,11 @@ void TimeRectifier::emitOnePeriod(Fraction now) {
 	sanityChecks();
 	discardOutdatedData(fractionToClock(now) - analyzeWindowIn180k);
 
-	// input media time corresponding to the start of the "media period"
-	int64_t inMasterTime = 0;
-
 	// output media time corresponding to the start of the "media period"
-	int64_t outMasterTime;
+	auto const outMasterTime = fractionToClock(Fraction(numTicks * framePeriod.num, framePeriod.den));
+
+	// input media time corresponding to the start of the "media period"
+	int64_t inMasterTime {};
 
 	{
 		auto const i = getMasterStreamId();
@@ -184,7 +184,6 @@ void TimeRectifier::emitOnePeriod(Fraction now) {
 			m_host->log(Info, format("First available reference clock time: %s", fractionToClock(now)).c_str());
 		}
 
-		outMasterTime = fractionToClock(Fraction(numTicks * framePeriod.num, framePeriod.den));
 		auto data = make_shared<DataBaseRef>(masterFrame);
 		data->setMediaTime(outMasterTime);
 		m_host->log(TR_DEBUG, format("Video: send[%s:%s] t=%s (data=%s) (ref %s)", i, master.data.size(), data->getMediaTime(), data->getMediaTime(), masterFrame->getMediaTime()).c_str());
