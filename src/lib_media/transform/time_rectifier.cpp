@@ -13,8 +13,8 @@ namespace Modules {
 
 TimeRectifier::TimeRectifier(KHost* host, std::shared_ptr<IClock> clock_, IScheduler* scheduler_, Fraction frameRate)
 	: m_host(host),
-	  frameRate(frameRate),
-	  threshold(fractionToClock(frameRate.inverse())),
+	  framePeriod(frameRate.inverse()),
+	  threshold(fractionToClock(framePeriod)),
 	  clock(clock_),
 	  scheduler(scheduler_) {
 }
@@ -53,7 +53,7 @@ void TimeRectifier::onPeriod(Fraction timeNow) {
 	emitOnePeriod(timeNow);
 	{
 		std::unique_lock<std::mutex> lock(inputMutex);
-		reschedule(timeNow + frameRate.inverse());
+		reschedule(timeNow + framePeriod);
 	}
 }
 
@@ -183,7 +183,7 @@ void TimeRectifier::emitOnePeriod(Fraction time) {
 			m_host->log(Info, format("First available reference clock time: %s", fractionToClock(time)).c_str());
 		}
 
-		outMasterTime = fractionToClock(Fraction(numTicks * frameRate.den, frameRate.num));
+		outMasterTime = fractionToClock(Fraction(numTicks * framePeriod.num, framePeriod.den));
 		auto data = make_shared<DataBaseRef>(refData);
 		data->setMediaTime(outMasterTime);
 		m_host->log(TR_DEBUG, format("Video: send[%s:%s] t=%s (data=%s) (ref %s)", i, master.data.size(), data->getMediaTime(), data->getMediaTime(), refData->getMediaTime()).c_str());

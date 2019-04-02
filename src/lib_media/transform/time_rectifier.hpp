@@ -80,7 +80,7 @@ class TimeRectifier : public ModuleDynI {
 
 		KHost* const m_host;
 
-		Fraction const frameRate;
+		Fraction const framePeriod;
 		int64_t numTicks = 0;
 		int64_t const threshold;
 		std::vector<Stream> streams;
