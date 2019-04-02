@@ -381,38 +381,34 @@ unittest("rectifier: deal with backward discontinuity (single port)") {
 
 unittest("rectifier: multiple media types simple") {
 
-	vector<Event> times;
+	auto fix = Fixture(Fraction(25, 1));
+	fix.addStream(0, createModuleWithSize<VideoGenerator>(100));
+	fix.addStream(1, createModuleWithSize<AudioGenerator>(100));
 
-	const auto videoRate = Fraction(25, 1);
-	for(auto ev : generateData(videoRate)) {
-		ev.index = 0;
-		times.push_back(ev);
-	}
+	fix.push(0, 0 * 7200); fix.push(1, 0 * 7200);
+	fix.setTime(0 * 7200);
+	fix.push(0, 1 * 7200); fix.push(1, 1 * 7200);
+	fix.setTime(1 * 7200);
+	fix.push(0, 2 * 7200); fix.push(1, 2 * 7200);
+	fix.setTime(2 * 7200);
+	fix.push(0, 3 * 7200); fix.push(1, 3 * 7200);
+	fix.setTime(3 * 7200);
+	fix.push(0, 4 * 7200); fix.push(1, 4 * 7200);
+	fix.setTime(4 * 7200);
+	fix.push(0, 5 * 7200); fix.push(1, 5 * 7200);
+	fix.setTime(5 * 7200);
+	fix.setTime(5 * 7200);
 
-	const auto audioRate = Fraction(44100, 1024);
-	for(auto ev : generateData(audioRate)) {
-		ev.index = 1;
-		times.push_back(ev);
-	}
+	auto const expectedTimes = vector<Event>({
+		Event{0, 0 * 7200, 0 * 7200}, Event{1, 0 * 7200, 0 * 7200},
+		Event{0, 1 * 7200, 1 * 7200}, Event{1, 1 * 7200, 1 * 7200},
+		Event{0, 2 * 7200, 2 * 7200}, Event{1, 2 * 7200, 2 * 7200},
+		Event{0, 3 * 7200, 3 * 7200}, Event{1, 3 * 7200, 3 * 7200},
+		Event{0, 4 * 7200, 4 * 7200}, Event{1, 4 * 7200, 4 * 7200},
+		Event{0, 5 * 7200, 5 * 7200},
+	});
 
-	sort(times.begin(), times.end());
-
-	vector<unique_ptr<ModuleS>> generators;
-	generators.push_back(createModuleWithSize<VideoGenerator>(times.size()));
-	generators.push_back(createModuleWithSize<AudioGenerator>(times.size()));
-
-	auto actualTimes = runRectifier(videoRate, generators, times);
-
-	// Quantize output delivery times to the internal media period
-	// of the rectifier. We don't expect it to wake up more often than that.
-	{
-		auto const outputPeriod = fractionToClock(videoRate.inverse());
-		for(auto& event : times)
-			event.clockTime = int64_t((event.clockTime + outputPeriod - 1) / outputPeriod) * outputPeriod;
-		sort(times.begin(), times.end());
-	}
-
-	ASSERT_EQUALS(times, actualTimes);
+	ASSERT_EQUALS(expectedTimes, fix.actualTimes);
 }
 
 unittest("rectifier: two streams, only the first receives data") {
