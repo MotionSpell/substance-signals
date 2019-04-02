@@ -205,9 +205,7 @@ unittest("rectifier: missing frame") {
 	fix.setTime(0);
 	fix.push(0, 30107);
 	fix.setTime(100);
-	// missing Event{0, 2000, 30207}
-	fix.setTime(200);
-	fix.setTime(300);
+	// missing fix.push(0, 30207}
 	fix.push(0, 30307);
 	fix.setTime(400);
 	fix.push(0, 30407);
