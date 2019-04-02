@@ -18,8 +18,8 @@ A clean signal has the following properties:
 1) its timings are continuous (no gaps, overlaps, or discontinuities - but may not start at zero),
 2) the different media are synchronized.
 
-The module needs to be sample accurate (TODO ; ATM we still rely on reframers and act at an AU level). It
-operates on raw data. Raw data requires a lot of memory ; however:
+The module needs to be sample accurate (TODO ; ATM we still rely on reframers and act at an AU level).
+It operates on raw data. Raw data requires a lot of memory, however:
 1) we store a short duration (typically 500ms) and the framework works by default with pre-allocated pools,
 2) RAM is cheap ;)
 
