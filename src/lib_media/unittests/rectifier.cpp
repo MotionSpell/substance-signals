@@ -163,8 +163,7 @@ vector<Event> runRectifier(
 		fix.push(event.index, event.mediaTime);
 	}
 
-	for(int i=0; i < 100; ++i)
-		fix.clock->setTime(fix.clock->now());
+	fix.clock->setTime(fix.clock->now());
 
 	return fix.actualTimes;
 }
