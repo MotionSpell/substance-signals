@@ -408,7 +408,7 @@ unittest("rectifier: multiple media types simple") {
 		Event{0, 20, 20}, Event{1, 20, 20},
 		Event{0, 30, 30}, Event{1, 30, 30},
 		Event{0, 40, 40}, Event{1, 40, 40},
-		Event{0, 50, 50},
+		Event{0, 50, 50}, Event{1, 50, 50},
 	});
 
 	ASSERT_EQUALS(expectedTimes, fix.actualTimes);

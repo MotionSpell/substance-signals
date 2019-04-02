@@ -107,27 +107,14 @@ void TimeRectifier::discardStreamOutdatedData(size_t inputIdx, int64_t removalCl
 	}
 }
 
-Data TimeRectifier::chooseNextMasterFrame(Stream& stream, Fraction time) {
-	Data r;
-	auto distClock = std::numeric_limits<int64_t>::max();
-	int currDataIdx = -1, idx = -1;
-	for (auto &currData : stream.data) {
-		idx++;
-		auto const currDistClock = currData.creationTime - fractionToClock(time);
-		m_host->log(Debug, format("Video: considering data (%s/%s) at time %s (currDist=%s, dist=%s, threshold=%s)", currData.data->getMediaTime(), currData.creationTime, fractionToClock(time), currDistClock, distClock, threshold).c_str());
-		if (std::abs(currDistClock) < distClock) {
-			/*timings are monotonic so check for a previous data with distance less than one frame*/
-			if (currDistClock <= 0 || (currDistClock > 0 && distClock > threshold)) {
-				distClock = std::abs(currDistClock);
-				r = currData.data;
-				currDataIdx = idx;
-			}
-		}
-	}
-	if ((numTicks > 0) && (stream.data.size() >= 2) && (currDataIdx != 1)) {
-		m_host->log(Debug, format("Selected reference data is not contiguous to the last one (index=%s).", currDataIdx).c_str());
-		//TODO: pass in error mode: flush all the data where the clock time removeOutdatedAllUnsafe(r->getCreationTime());
-	}
+Data TimeRectifier::chooseNextMasterFrame(Stream& stream) {
+	if(stream.data.empty())
+		return stream.blank;
+
+	auto r = stream.data.front().data;
+	stream.data.erase(stream.data.begin());
+
+	stream.blank = r;
 	return r;
 }
 
@@ -156,11 +143,11 @@ int TimeRectifier::getMasterStreamId() const {
 }
 
 // post one "media period" on every output
-void TimeRectifier::emitOnePeriod(Fraction time) {
+void TimeRectifier::emitOnePeriod(Fraction now) {
 	std::unique_lock<std::mutex> lock(inputMutex);
 	fillInputQueuesUnsafe();
 	sanityChecks();
-	discardOutdatedData(fractionToClock(time) - analyzeWindowIn180k);
+	discardOutdatedData(fractionToClock(now) - analyzeWindowIn180k);
 
 	// input media time corresponding to the start of the "media period"
 	int64_t inMasterTime = 0;
@@ -173,18 +160,18 @@ void TimeRectifier::emitOnePeriod(Fraction time) {
 		if(i == -1)
 			return; // no master stream yet
 		auto& master = streams[i];
-		auto masterFrame = chooseNextMasterFrame(master, time);
+		auto masterFrame = chooseNextMasterFrame(master);
 		if (!masterFrame) {
 			assert(numTicks == 0);
 
-			m_host->log(Warning, format("No available reference data for clock time %s", fractionToClock(time)).c_str());
+			m_host->log(Warning, format("No available reference data for clock time %s", fractionToClock(now)).c_str());
 			return;
 		}
 
 		inMasterTime = masterFrame->getMediaTime();
 
 		if (numTicks == 0) {
-			m_host->log(Info, format("First available reference clock time: %s", fractionToClock(time)).c_str());
+			m_host->log(Info, format("First available reference clock time: %s", fractionToClock(now)).c_str());
 		}
 
 		outMasterTime = fractionToClock(Fraction(numTicks * framePeriod.num, framePeriod.den));
