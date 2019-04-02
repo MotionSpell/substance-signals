@@ -89,6 +89,7 @@ class TimeRectifier : public ModuleDynI {
 		IScheduler* const scheduler;
 		IScheduler::Id m_pendingTaskId {};
 		bool hasVideo = false;
+		bool m_started = false;
 };
 
 template <>

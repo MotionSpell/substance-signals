@@ -73,6 +73,7 @@ class ClockMock : public IClock, public IScheduler {
 
 		void cancel(Id id) override {
 			(void)id;
+			assert(!m_tasks.empty());
 			m_tasks.pop_back();
 		}
 

@@ -31,10 +31,10 @@ void TimeRectifier::sanityChecks() {
 }
 
 void TimeRectifier::process() {
-	std::unique_lock<std::mutex> lock(inputMutex);
-	fillInputQueuesUnsafe();
-	sanityChecks();
-	discardOutdatedData((fractionToClock(clock->now()) - analyzeWindowIn180k));
+	if(!m_started) {
+		reschedule(clock->now());
+		m_started = true;
+	}
 }
 
 void TimeRectifier::mimicOutputs() {
@@ -50,6 +50,7 @@ void TimeRectifier::reschedule(Fraction when) {
 }
 
 void TimeRectifier::onPeriod(Fraction timeNow) {
+	m_pendingTaskId = {};
 	emitOnePeriod(timeNow);
 	{
 		std::unique_lock<std::mutex> lock(inputMutex);
@@ -68,7 +69,6 @@ void TimeRectifier::declareScheduler(IInput* input, IOutput* output) {
 		if (hasVideo)
 			throw error("Only one video stream is allowed");
 		hasVideo = true;
-		reschedule(clock->now());
 	}
 }
 
@@ -148,16 +148,18 @@ Data TimeRectifier::findNearestDataAudio(Stream& stream, int64_t minTime, int64_
 
 int TimeRectifier::getMasterStreamId() const {
 	for(auto i : getInputs()) {
-		if (inputs[i]->getMetadata()->type == VIDEO_RAW) {
+		if (inputs[i]->getMetadata() && inputs[i]->getMetadata()->type == VIDEO_RAW) {
 			return i;
 		}
 	}
-	return 0;
+	return -1;
 }
 
 // post one "media period" on every output
 void TimeRectifier::emitOnePeriod(Fraction time) {
 	std::unique_lock<std::mutex> lock(inputMutex);
+	fillInputQueuesUnsafe();
+	sanityChecks();
 	discardOutdatedData(fractionToClock(time) - analyzeWindowIn180k);
 
 	// input media time corresponding to the start of the "media period"
@@ -168,6 +170,8 @@ void TimeRectifier::emitOnePeriod(Fraction time) {
 
 	{
 		auto const i = getMasterStreamId();
+		if(i == -1)
+			return; // no master stream yet
 		auto& master = streams[i];
 		auto refData = findNearestData(master, time);
 		if (!refData) {
