@@ -229,6 +229,33 @@ unittest("rectifier: missing frame") {
 	ASSERT_EQUALS(expectedTimes, fix.actualTimes);
 }
 
+unittest("rectifier: loss of input") {
+	auto fix = Fixture(Fraction(IClock::Rate, 100));
+	fix.addStream(0, createModuleWithSize<VideoGenerator>(100));
+
+	// send one frame, and then nothing, but keep the clock ticking
+	fix.setTime(1000);
+	fix.push(0, 0);
+	fix.setTime(1000);
+	fix.setTime(1100);
+	fix.setTime(1200);
+	fix.setTime(1300);
+	fix.setTime(1400);
+	fix.setTime(1500);
+
+	auto const expectedTimes = vector<Event>({
+		Event{0, 1000,   0},
+		Event{0, 1100, 100},
+		Event{0, 1200, 200},
+		Event{0, 1300, 300},
+		Event{0, 1400, 400},
+		Event{0, 1500, 500},
+	});
+
+	ASSERT_EQUALS(expectedTimes, fix.actualTimes);
+}
+
+
 unittest("rectifier: noisy timestamps") {
 	// use '100' as a human-readable frame period
 	auto fix = Fixture(Fraction(IClock::Rate, 100));
