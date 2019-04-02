@@ -142,7 +142,17 @@ int TimeRectifier::getMasterStreamId() const {
 	return -1;
 }
 
-// post one "media period" on every output
+// post one "media period" on all outputs.
+//
+// In this function we distinguish between "in" media times, and "out" media times.
+//
+// - "in" media times are the media times of the input samples.
+// They might contain gaps, offsets, etc.
+// Thus, they should only be used for synchronisation between input streams.
+//
+// - "out" media times are the media times of the output samples.
+// They must be perfectly continuous, increasing, and must not depend in any way
+// of the input framing.
 void TimeRectifier::emitOnePeriod(Fraction now) {
 	std::unique_lock<std::mutex> lock(inputMutex);
 	fillInputQueuesUnsafe();
