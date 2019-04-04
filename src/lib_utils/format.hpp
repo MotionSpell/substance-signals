@@ -13,7 +13,7 @@ struct Local {
 		for (size_t i = 0; i < val.size(); ++i) {
 			if (i > 0)
 				ss += ", ";
-			ss += Local::to_string(val[i]);
+			ss += to_string(val[i]);
 		}
 		ss += "]";
 		return ss;
