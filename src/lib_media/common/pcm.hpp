@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstring> // memcpy
+#include <vector>
 #include "lib_modules/core/buffer.hpp"
 #include "lib_modules/core/database.hpp"
 
@@ -97,9 +98,6 @@ class DataPcm : public DataBase, private IBuffer {
 			if (size > 0)
 				throw std::runtime_error("Forbidden operation. Requested size must be 0. Then call setFormat().");
 		}
-		~DataPcm() {
-			freePlanes();
-		}
 
 		const PcmFormat& getFormat() const {
 			return format;
@@ -120,18 +118,17 @@ class DataPcm : public DataBase, private IBuffer {
 
 		// IBuffer
 		Span data() override {
-			return Span { planes[0], size() };
+			return Span { planes[0].data(), size() };
 		}
 
 		SpanC data() const override {
-			return SpanC { planes[0], size() };
+			return SpanC { planes[0].data(), size() };
 		}
 
 		size_t size() const {
 			size_t size = 0;
-			for (int i = 0; i < format.numPlanes; ++i) {
-				size += planeSize[i];
-			}
+			for (int i = 0; i < format.numPlanes; ++i)
+				size += planes[i].size();
 			return size;
 		}
 
@@ -142,49 +139,27 @@ class DataPcm : public DataBase, private IBuffer {
 		uint8_t* getPlane(int planeIdx) const {
 			if (planeIdx > format.numPlanes)
 				throw std::runtime_error("Pcm plane doesn't exist.");
-			return planes[planeIdx];
+			return const_cast<uint8_t*>(planes[planeIdx].data());
 		}
 
 		uint64_t getPlaneSize(int planeIdx) const {
 			if (planeIdx > format.numPlanes)
 				throw std::runtime_error("Pcm plane doesn't exist.");
-			return planeSize[planeIdx];
-		}
-
-		uint8_t * const * getPlanes() const {
-			return planes;
+			return (uint64_t)planes[planeIdx].size();
 		}
 
 		void setPlane(int planeIdx, uint8_t *plane, size_t size) {
 			if (planeIdx > format.numPlanes)
 				throw std::runtime_error("Pcm plane doesn't exist.");
-			if ((planes[planeIdx] == nullptr) ||
-			    (plane != planes[planeIdx]) ||
-			    ((plane == planes[planeIdx]) && (size > planeSize[planeIdx]))) {
-				freePlane(planeIdx);
-				planes[planeIdx] = new uint8_t[size];
-			}
-			planeSize[planeIdx] = size;
-			if (plane && (plane != planes[planeIdx])) {
-				memcpy(planes[planeIdx], plane, size);
-			}
+
+			planes[planeIdx].resize(size);
+			if (plane && (plane != planes[planeIdx].data()))
+				memcpy(planes[planeIdx].data(), plane, size);
 		}
 
 	private:
-		void freePlane(int planeIdx) {
-			delete [] planes[planeIdx];
-			planes[planeIdx] = nullptr;
-			planeSize[planeIdx] = 0;
-		}
-		void freePlanes() {
-			for (int i = 0; i < format.numPlanes; ++i) {
-				freePlane(i);
-			}
-		}
-
 		PcmFormat format;
-		uint8_t* planes[AUDIO_PCM_PLANES_MAX] {}; //TODO: use std::vector
-		size_t planeSize[AUDIO_PCM_PLANES_MAX] {};
+		std::vector<uint8_t> planes[AUDIO_PCM_PLANES_MAX];
 };
 
 }

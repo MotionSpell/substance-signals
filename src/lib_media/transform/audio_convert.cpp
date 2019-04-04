@@ -127,7 +127,9 @@ struct AudioConvert : ModuleS {
 				m_dstLen = divUp((int64_t)srcNumSamples * m_dstFormat.sampleRate, (int64_t)m_srcFormat.sampleRate);
 			}
 
-			auto const pSrc = audioData->getPlanes();
+			uint8_t* pSrc[AUDIO_PCM_PLANES_MAX];
+			for(int i=0; i < audioData->getFormat().numPlanes; ++i)
+				pSrc[i] = audioData->getPlane(i);
 			auto const targetNumSamples = m_dstLen - m_outLen;
 			bool moreToProcess = doConvert(targetNumSamples, pSrc, srcNumSamples);
 			while (moreToProcess) {
@@ -161,7 +163,7 @@ struct AudioConvert : ModuleS {
 
 			uint8_t* dstPlanes[AUDIO_PCM_PLANES_MAX];
 			for (int i=0; i<m_dstFormat.numPlanes; ++i) {
-				dstPlanes[i] = m_out->getPlanes()[i] + m_outLen * m_dstFormat.getBytesPerSample() / m_dstFormat.numPlanes;
+				dstPlanes[i] = m_out->getPlane(i) + m_outLen * m_dstFormat.getBytesPerSample() / m_dstFormat.numPlanes;
 			}
 
 			const int64_t maxTargetNumSamples = m_out->getPlaneSize(0) * m_dstFormat.numPlanes / m_dstFormat.getBytesPerSample();
