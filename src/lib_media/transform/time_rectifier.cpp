@@ -1,5 +1,5 @@
 /*
-This module is responsible for feeding the next modules with a "clean" signal.
+Feeds downstream modules with a "clean" signal.
 
 A "clean" signal has the following properties:
 1) its timings are continuous (no gaps, overlaps, or discontinuities - but may not start at zero),
@@ -14,11 +14,6 @@ The module works this way:
  - At each tick it pulls some data (like a mux would).
  - We rely on Clock times. Media times are considered non-reliable and only used to achieve sync.
  - The different media types are processed differently (video = lead, audio = pulled, subtitles = sparse).
-
-Remarks:
- - This module acts as a transframerater for video (by skipping or repeating frames).
- - This module deprecates the AudioConvert class when used as a reframer (i.e. no sample rate conversion).
- - This module feeds compositors or mux with some clean data.
 */
 #include "time_rectifier.hpp"
 
