@@ -156,26 +156,6 @@ struct TimeRectifier : ModuleDynI {
 			}
 		}
 
-		void discardOutdatedData(int64_t removalClockTime) {
-			for (auto i : getInputs()) {
-				discardStreamOutdatedData(i, removalClockTime);
-			}
-		}
-
-		void discardStreamOutdatedData(size_t inputIdx, int64_t removalClockTime) {
-			auto minQueueSize = 1;
-			auto& stream = streams[inputIdx];
-			auto data = stream.data.begin();
-			while ((int)stream.data.size() > minQueueSize && data != stream.data.end()) {
-				if ((*data).creationTime < removalClockTime) {
-					m_host->log(TR_DEBUG, format("Remove last streams[%s] data time media=%s clock=%s (removalClockTime=%s)", inputIdx, (*data).data->getMediaTime(), (*data).creationTime, removalClockTime).c_str());
-					data = stream.data.erase(data);
-				} else {
-					data++;
-				}
-			}
-		}
-
 		Data chooseNextMasterFrame(Stream& stream, int64_t now) {
 			if(stream.data.empty())
 				return stream.blank;
@@ -364,6 +344,26 @@ struct TimeRectifier : ModuleDynI {
 
 			m_host->log(TR_DEBUG, format("Other: send[%s:%s] t=%s (data=%s) (ref=%s)", i, stream.data.size(), pcm->getMediaTime(), pcm->getMediaTime(), inMasterTime.start).c_str());
 		}
+
+		void discardOutdatedData(int64_t removalClockTime) {
+			for (auto i : getInputs())
+				discardStreamOutdatedData(i, removalClockTime);
+		}
+
+		void discardStreamOutdatedData(size_t inputIdx, int64_t removalClockTime) {
+			auto minQueueSize = 1;
+			auto& stream = streams[inputIdx];
+			auto data = stream.data.begin();
+			while ((int)stream.data.size() > minQueueSize && data != stream.data.end()) {
+				if ((*data).creationTime < removalClockTime) {
+					m_host->log(TR_DEBUG, format("Remove last streams[%s] data time media=%s clock=%s (removalClockTime=%s)", inputIdx, (*data).data->getMediaTime(), (*data).creationTime, removalClockTime).c_str());
+					data = stream.data.erase(data);
+				} else {
+					data++;
+				}
+			}
+		}
+
 };
 
 IModule* createObject(KHost* host, void* va) {
