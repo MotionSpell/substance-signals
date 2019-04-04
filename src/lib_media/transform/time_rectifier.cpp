@@ -2,11 +2,17 @@
 
 #include "lib_modules/modules.hpp"
 #include "lib_modules/utils/helper_dyn.hpp"
+#include "lib_utils/format.hpp"
 #include "lib_utils/i_scheduler.hpp"
-#include "../common/pcm.hpp" // PcmFormat
+#include "lib_utils/log_sink.hpp"
+#include "lib_utils/scheduler.hpp"
+
+#include "../common/pcm.hpp"
+
+#include <cassert>
 #include <memory>
-#include <vector>
 #include <mutex>
+#include <vector>
 
 namespace Modules {
 
@@ -108,11 +114,6 @@ struct ModuleDefault<TimeRectifier> : public TimeRectifier {
 };
 
 }
-#include "lib_utils/scheduler.hpp"
-#include "lib_utils/log_sink.hpp"
-#include "lib_utils/format.hpp"
-#include "../common/pcm.hpp"
-#include <cassert>
 
 static auto const analyzeWindowIn180k = IClock::Rate / 2; // 500 ms
 
