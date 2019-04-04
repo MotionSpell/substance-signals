@@ -1,6 +1,5 @@
 #pragma once
 
-#include "helper.hpp"
 #include "signal.hpp"
 #include "executor.hpp" // ExecutorSync
 

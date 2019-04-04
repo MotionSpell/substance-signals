@@ -63,7 +63,9 @@ struct SDLAudio : ModuleS {
 			throw error("Audio output creation failed");
 
 		input->setMetadata(make_shared<MetadataRawAudio>());
-		auto pushAudio = Signals::BindMember(this, &SDLAudio::push);
+		auto pushAudio = [this](Data d) {
+			push(d);
+		};
 		ConnectOutput(m_converter->getOutput(0), pushAudio);
 	}
 
