@@ -269,12 +269,9 @@ secondclasstest("mux GPAC mp4 combination coverage: ugly 2") {
 	);
 }
 
-#if 0
-#include "lib_media/common/libav.hpp" // DataAVPacket
-
 unittest("remux test: canonical to H.264 Annex B bitstream converter") {
 	const uint8_t input[] = {0, 0, 0, 4, 44, 55, 66, 77 };
-	auto pkt = make_shared<Modules::DataAVPacket>(sizeof input);
+	auto pkt = make_shared<Modules::DataRaw>(sizeof input);
 	memcpy(pkt->data().ptr, input, sizeof input);
 
 	std::vector<uint8_t> actual;
@@ -294,7 +291,7 @@ unittest("remux test: canonical to H.264 Annex B bitstream converter") {
 	ASSERT_EQUALS(expected, actual);
 }
 
-unittest("GPAC mp4 mux: don't create empty fragments") {
+unittest("[DISABLED] GPAC mp4 mux: don't create empty fragments") {
 	struct Recorder : ModuleS {
 		void processOne(Data data) {
 			auto meta = safe_cast<const MetadataFile>(data->getMetadata());
@@ -323,7 +320,7 @@ unittest("GPAC mp4 mux: don't create empty fragments") {
 		meta->timeScale = {1, 1};
 		meta->framerate = {1, 1};
 		meta->codec = "h264";
-		auto accessUnit = make_shared<DataAVPacket>(sizeof h264_gray_frame);
+		auto accessUnit = make_shared<DataRaw>(sizeof h264_gray_frame);
 		accessUnit->setMetadata(meta);
 		accessUnit->set(CueFlags{});
 		memcpy(accessUnit->data().ptr, h264_gray_frame, sizeof h264_gray_frame);
@@ -356,5 +353,3 @@ unittest("GPAC mp4 mux: don't create empty fragments") {
 	});
 	ASSERT_EQUALS(expected, recorder->durations);
 }
-#endif
-

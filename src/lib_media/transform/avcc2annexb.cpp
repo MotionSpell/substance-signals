@@ -1,6 +1,5 @@
 #include "lib_modules/modules.hpp"
 #include "lib_modules/utils/helper.hpp"
-#include "lib_media/common/libav.hpp" // DataAVPacket
 #include "../common/ffpp.hpp"
 #include "../common/attributes.hpp"
 
@@ -49,8 +48,7 @@ struct AVCC2AnnexBConverter : public ModuleS {
 			if(isDeclaration(in))
 				return;
 
-			auto out = output->allocData<DataAVPacket>(in->data().len);
-			av_packet_copy_props(out->getPacket(), safe_cast<const DataAVPacket>(in)->getPacket());
+			auto out = output->allocData<DataRaw>(in->data().len);
 
 			out->copyAttributes(*in);
 			out->setMediaTime(in->getMediaTime());
