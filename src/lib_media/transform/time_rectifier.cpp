@@ -1,23 +1,3 @@
-#include "time_rectifier.hpp"
-
-#include "lib_modules/modules.hpp"
-#include "lib_modules/utils/helper_dyn.hpp"
-#include "lib_utils/format.hpp"
-#include "lib_utils/i_scheduler.hpp"
-#include "lib_utils/log_sink.hpp"
-#include "lib_utils/scheduler.hpp"
-
-#include "../common/pcm.hpp"
-
-#include <cassert>
-#include <memory>
-#include <mutex>
-#include <vector>
-
-namespace Modules {
-
-static uint64_t const ANALYZE_WINDOW_IN_180K = (5 * IClock::Rate);
-
 /*
 This module is responsible for feeding the next modules with a "clean" signal.
 
@@ -40,6 +20,30 @@ Remarks:
  - This module deprecates the AudioConvert class when used as a reframer (i.e. no sample rate conversion).
  - This module feeds compositors or mux with some clean data.
 */
+#include "time_rectifier.hpp"
+
+#include "lib_modules/modules.hpp"
+#include "lib_modules/utils/helper_dyn.hpp"
+#include "lib_utils/format.hpp"
+#include "lib_utils/i_scheduler.hpp"
+#include "lib_utils/log_sink.hpp"
+#include "lib_utils/scheduler.hpp"
+
+#include "../common/pcm.hpp"
+
+#include <cassert>
+#include <memory>
+#include <mutex>
+#include <vector>
+
+#define TR_DEBUG Debug
+
+using namespace Modules;
+
+namespace {
+
+static uint64_t const ANALYZE_WINDOW_IN_180K = (5 * IClock::Rate);
+
 class TimeRectifier : public ModuleDynI {
 	public:
 		TimeRectifier(KHost* host, std::shared_ptr<IClock> clock_, IScheduler* scheduler, Fraction frameRate);
@@ -104,22 +108,7 @@ class TimeRectifier : public ModuleDynI {
 		bool m_started = false;
 };
 
-template <>
-struct ModuleDefault<TimeRectifier> : public TimeRectifier {
-	template <typename ...Args>
-	ModuleDefault(size_t allocatorSize, Args&&... args)
-		: TimeRectifier(std::forward<Args>(args)...) {
-		this->allocatorSize = allocatorSize;
-	}
-};
-
-}
-
 static auto const analyzeWindowIn180k = IClock::Rate / 2; // 500 ms
-
-namespace Modules {
-
-#define TR_DEBUG Debug
 
 TimeRectifier::TimeRectifier(KHost* host, std::shared_ptr<IClock> clock_, IScheduler* scheduler_, Fraction frameRate)
 	: m_host(host),
@@ -403,12 +392,6 @@ void TimeRectifier::emitOnePeriod_RawAudio(int i, Interval inMasterTime, Interva
 
 	m_host->log(TR_DEBUG, format("Other: send[%s:%s] t=%s (data=%s) (ref=%s)", i, stream.data.size(), pcm->getMediaTime(), pcm->getMediaTime(), inMasterTime.start).c_str());
 }
-
-}
-
-namespace {
-
-using namespace Modules;
 
 IModule* createObject(KHost* host, void* va) {
 	auto config = (TimeRectifierConfig*)va;
