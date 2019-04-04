@@ -15,7 +15,7 @@ The module works this way:
  - We rely on Clock times. Media times are considered non-reliable and only used to achieve sync.
  - The different media types are processed differently (video = lead, audio = pulled, subtitles = sparse).
 */
-#include "time_rectifier.hpp"
+#include "rectifier.hpp"
 
 #include "lib_modules/modules.hpp"
 #include "lib_modules/utils/helper_dyn.hpp"

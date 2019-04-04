@@ -2,7 +2,7 @@
 #include "lib_utils/i_scheduler.hpp"
 #include "lib_modules/utils/loader.hpp"
 #include "lib_modules/core/connection.hpp" // ConnectModules
-#include "lib_media/transform/time_rectifier.hpp"
+#include "lib_media/transform/rectifier.hpp"
 #include "lib_media/common/pcm.hpp"
 #include "lib_media/common/picture.hpp"
 #include "lib_media/common/metadata.hpp"

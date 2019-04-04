@@ -21,7 +21,7 @@ LIB_MEDIA_SRCS:=\
   $(MYDIR)/transform/audio_gap_filler.cpp\
   $(MYDIR)/transform/restamp.cpp\
   $(MYDIR)/transform/telx2ttml.cpp\
-  $(MYDIR)/transform/time_rectifier.cpp\
+  $(MYDIR)/transform/rectifier.cpp\
   $(MYDIR)/utils/recorder.cpp\
   $(MYDIR)/utils/repeater.cpp
 
