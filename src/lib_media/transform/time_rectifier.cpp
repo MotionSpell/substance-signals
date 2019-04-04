@@ -351,10 +351,9 @@ struct TimeRectifier : ModuleDynI {
 		}
 
 		void discardStreamOutdatedData(size_t inputIdx, int64_t removalClockTime) {
-			auto minQueueSize = 1;
 			auto& stream = streams[inputIdx];
 			auto data = stream.data.begin();
-			while ((int)stream.data.size() > minQueueSize && data != stream.data.end()) {
+			while (data != stream.data.end()) {
 				if ((*data).creationTime < removalClockTime) {
 					m_host->log(TR_DEBUG, format("Remove last streams[%s] data time media=%s clock=%s (removalClockTime=%s)", inputIdx, (*data).data->getMediaTime(), (*data).creationTime, removalClockTime).c_str());
 					data = stream.data.erase(data);
