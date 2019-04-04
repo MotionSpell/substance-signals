@@ -8,6 +8,7 @@
 #include "../common/metadata.hpp"
 #include "../common/attributes.hpp"
 #include <cassert>
+#include <map>
 #include <string>
 
 extern "C" {

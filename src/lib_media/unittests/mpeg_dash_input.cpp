@@ -1,6 +1,7 @@
 #include "tests/tests.hpp"
 #include "lib_modules/modules.hpp"
 #include "lib_media/in/mpeg_dash_input.hpp"
+#include <map>
 
 using namespace Tests;
 using namespace Modules;

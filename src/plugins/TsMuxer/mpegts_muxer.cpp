@@ -10,6 +10,7 @@
 #include <algorithm> //std::min
 #include <cassert>
 #include <string>
+#include <map>
 
 extern "C" {
 #include <libavformat/avformat.h> // AVOutputFormat

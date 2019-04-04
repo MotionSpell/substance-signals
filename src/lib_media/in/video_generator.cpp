@@ -2,6 +2,7 @@
 #include "../common/metadata.hpp"
 #include <string.h> // memset
 #include <cassert>
+#include <map>
 
 namespace {
 
