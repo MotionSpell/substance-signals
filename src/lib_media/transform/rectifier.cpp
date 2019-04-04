@@ -100,12 +100,6 @@ struct Rectifier : ModuleDynI {
 		std::shared_ptr<IClock> clock;
 		IScheduler* const scheduler;
 		IScheduler::Id m_pendingTaskId {};
-		bool hasVideo = false;
-
-		void sanityChecks() {
-			if (!hasVideo)
-				throw error("requires to have one video stream connected");
-		}
 
 		void mimicOutputs() {
 			while(streams.size() < getInputs().size()) {
@@ -134,12 +128,6 @@ struct Rectifier : ModuleDynI {
 				m_host->log(Debug, "Output isn't connected or doesn't expose a metadata: impossible to check.");
 			} else if (input->getMetadata()->type != oMeta->type)
 				throw error("Metadata I/O inconsistency");
-
-			if (input->getMetadata()->type == VIDEO_RAW) {
-				if (hasVideo)
-					throw error("Only one video stream is allowed");
-				hasVideo = true;
-			}
 		}
 
 		void fillInputQueuesUnsafe() {
@@ -199,7 +187,6 @@ struct Rectifier : ModuleDynI {
 		void emitOnePeriod(Fraction now) {
 			std::unique_lock<std::mutex> lock(inputMutex);
 			fillInputQueuesUnsafe();
-			sanityChecks();
 			discardOutdatedData(fractionToClock(now) - analyzeWindowIn180k);
 
 			// output media times corresponding to the "media period"
@@ -214,7 +201,7 @@ struct Rectifier : ModuleDynI {
 			{
 				auto const i = getMasterStreamId();
 				if(i == -1)
-					return; // no master stream yet
+					throw error("No master stream: requires to have one video stream connected");
 				auto& master = streams[i];
 				auto masterFrame = chooseNextMasterFrame(master, fractionToClock(now));
 				if (!masterFrame) {
