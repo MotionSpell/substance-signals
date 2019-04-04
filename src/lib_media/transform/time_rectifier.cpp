@@ -322,6 +322,8 @@ struct TimeRectifier : ModuleDynI {
 
 			// convert all times to absolute sample counts.
 			// This way we handle early all precision issues.
+			// Doing computations in sample counts (instead of clock rate)
+			// allows us to ensure sample accuracy.
 			auto const outMasterSamples = toSamplesP(outMasterTime);
 			auto const inMasterSamples = toSamplesP(inMasterTime);
 
