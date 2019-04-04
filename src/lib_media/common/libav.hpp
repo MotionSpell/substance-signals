@@ -26,10 +26,21 @@ struct AVPacketDeleter {
 	void operator()(AVPacket *p);
 };
 
-class DataAVPacket : public DataBase {
+class DataAVPacket : public DataBase, private IBuffer {
 	public:
 		DataAVPacket(size_t size = 0);
 		~DataAVPacket();
+
+		// DataBase
+		const IBuffer* getBuffer() const override {
+			return this;
+		}
+
+		IBuffer* getBuffer() override {
+			return this;
+		}
+
+		// IBuffer
 		Span data() override;
 		SpanC data() const override;
 		void resize(size_t size) override;

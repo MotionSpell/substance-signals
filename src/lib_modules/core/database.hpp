@@ -13,7 +13,7 @@ namespace Modules {
 struct IMetadata;
 
 //A generic timed data container with metadata.
-class DataBase : public IBuffer {
+class DataBase {
 	public:
 		virtual ~DataBase() = default;
 
@@ -41,6 +41,17 @@ class DataBase : public IBuffer {
 		void setMediaTime(int64_t timeIn180k, uint64_t timescale = IClock::Rate);
 		int64_t getMediaTime() const;
 
+		virtual const IBuffer* getBuffer() const = 0;
+		virtual IBuffer* getBuffer() = 0;
+
+		SpanC data() const {
+			return getBuffer()->data();
+		}
+
+		Span data() {
+			return getBuffer()->data();
+		}
+
 	private:
 		int64_t mediaTimeIn180k = 0;
 		std::shared_ptr<const IMetadata> metadata;
@@ -53,17 +64,33 @@ class DataBaseRef : public DataBase {
 		DataBaseRef(std::shared_ptr<const DataBase> data);
 		std::shared_ptr<const DataBase> getData() const;
 
-		Span data() override;
-		SpanC data() const override;
-		void resize(size_t size) override;
+		// DataBase
+		const IBuffer* getBuffer() const override {
+			return dataRef->getBuffer();
+		}
+
+		IBuffer* getBuffer() override {
+			return (IBuffer*)dataRef->getBuffer();
+		}
 
 	private:
 		std::shared_ptr<const DataBase> dataRef;
 };
 
-class DataRaw : public DataBase {
+class DataRaw : public DataBase, private IBuffer {
 	public:
 		DataRaw(size_t size);
+
+		// DataBase
+		const IBuffer* getBuffer() const override {
+			return this;
+		}
+
+		IBuffer* getBuffer() override {
+			return this;
+		}
+
+		// IBuffer
 		Span data() override;
 		SpanC data() const override;
 		void resize(size_t size) override;

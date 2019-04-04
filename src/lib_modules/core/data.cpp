@@ -64,18 +64,6 @@ std::shared_ptr<const DataBase> DataBaseRef::getData() const {
 	return dataRef;
 }
 
-Span DataBaseRef::data() {
-	throw std::runtime_error("DataBaseRef::data(): non-const operations not allowed. Aborting.");
-}
-
-SpanC DataBaseRef::data() const {
-	return dataRef->data();
-}
-
-void DataBaseRef::resize(size_t /*size*/) {
-	throw std::runtime_error("DataBaseRef::resize(): non-const operations not allowed. Aborting.");
-}
-
 DataRaw::DataRaw(size_t size) : buffer(size) {
 }
 

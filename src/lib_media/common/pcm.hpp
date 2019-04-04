@@ -91,7 +91,7 @@ class PcmFormat {
 		int numPlanes;
 };
 
-class DataPcm : public DataBase {
+class DataPcm : public DataBase, private IBuffer {
 	public:
 		DataPcm(size_t size) {
 			if (size > 0)
@@ -109,6 +109,16 @@ class DataPcm : public DataBase {
 			this->format = format;
 		}
 
+		// DataBase
+		virtual const IBuffer* getBuffer() const override {
+			return this;
+		}
+
+		virtual IBuffer* getBuffer() override {
+			return this;
+		}
+
+		// IBuffer
 		Span data() override {
 			return Span { planes[0], size() };
 		}
