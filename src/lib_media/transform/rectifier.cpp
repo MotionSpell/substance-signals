@@ -32,8 +32,6 @@ The module works this way:
 #include <vector>
 #include <algorithm> // remove_if
 
-#define TR_DEBUG Debug
-
 using namespace Modules;
 
 namespace {
@@ -220,7 +218,6 @@ struct Rectifier : ModuleDynI {
 
 				auto data = make_shared<DataBaseRef>(masterFrame);
 				data->setMediaTime(outMasterTime.start);
-				m_host->log(TR_DEBUG, format("Video: send[%s:%s] t=%s (data=%s) (ref %s)", i, master.data.size(), data->getMediaTime(), data->getMediaTime(), masterFrame->getMediaTime()).c_str());
 				master.output->post(data);
 				discardStreamOutdatedData(i, data->getMediaTime());
 			}
@@ -330,8 +327,6 @@ struct Rectifier : ModuleDynI {
 			}
 
 			stream.output->post(pcm);
-
-			m_host->log(TR_DEBUG, format("Other: send[%s:%s] t=%s (data=%s) (ref=%s)", i, stream.data.size(), pcm->getMediaTime(), pcm->getMediaTime(), inMasterTime.start).c_str());
 		}
 
 		void discardOutdatedData(int64_t removalClockTime) {
