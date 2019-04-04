@@ -42,7 +42,7 @@ using namespace Modules;
 
 namespace {
 
-static uint64_t const ANALYZE_WINDOW_IN_180K = (5 * IClock::Rate);
+static auto const analyzeWindowIn180k = IClock::Rate * 500 / 1000; // 500 ms
 
 class TimeRectifier : public ModuleDynI {
 	public:
@@ -107,8 +107,6 @@ class TimeRectifier : public ModuleDynI {
 		bool hasVideo = false;
 		bool m_started = false;
 };
-
-static auto const analyzeWindowIn180k = IClock::Rate / 2; // 500 ms
 
 TimeRectifier::TimeRectifier(KHost* host, std::shared_ptr<IClock> clock_, IScheduler* scheduler_, Fraction frameRate)
 	: m_host(host),
