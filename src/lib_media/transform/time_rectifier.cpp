@@ -1,4 +1,113 @@
 #include "time_rectifier.hpp"
+
+#include "lib_modules/modules.hpp"
+#include "lib_modules/utils/helper_dyn.hpp"
+#include "lib_utils/i_scheduler.hpp"
+#include "../common/pcm.hpp" // PcmFormat
+#include <memory>
+#include <vector>
+#include <mutex>
+
+namespace Modules {
+
+static uint64_t const ANALYZE_WINDOW_IN_180K = (5 * IClock::Rate);
+
+/*
+This module is responsible for feeding the next modules with a "clean" signal.
+
+A "clean" signal has the following properties:
+1) its timings are continuous (no gaps, overlaps, or discontinuities - but may not start at zero),
+2) the different media are synchronized.
+
+The module needs to be sample accurate.
+It operates on raw data. Raw data requires a lot of memory, however:
+1) we store a short duration (typically 500ms) and the framework works by default with pre-allocated pools,
+2) RAM is cheap ;)
+
+The module works this way:
+ - At each tick it pulls some data (like a mux would).
+ - We rely on Clock times. Media times are considered non-reliable and only used to achieve sync.
+ - The different media types are processed differently (video = lead, audio = pulled, subtitles = sparse).
+
+Remarks:
+ - This module acts as a transframerater for video (by skipping or repeating frames).
+ - This module deprecates the AudioConvert class when used as a reframer (i.e. no sample rate conversion).
+ - This module feeds compositors or mux with some clean data.
+*/
+class TimeRectifier : public ModuleDynI {
+	public:
+		TimeRectifier(KHost* host, std::shared_ptr<IClock> clock_, IScheduler* scheduler, Fraction frameRate);
+		~TimeRectifier();
+
+		void process() override;
+
+		int getNumOutputs() const override {
+			{
+				auto pThis = const_cast<TimeRectifier*>(this);
+				pThis->mimicOutputs();
+			}
+			return ModuleDynI::getNumOutputs();
+		}
+		IOutput* getOutput(int i) override {
+			mimicOutputs();
+			return ModuleDynI::getOutput(i);
+		}
+
+	private:
+		struct Stream {
+			struct Rec {
+				int64_t creationTime;
+				Data data;
+			};
+
+			OutputDefault* output;
+			std::vector<Rec> data;
+			Data blank {}; // when we have no data from the input, send this instead.
+			PcmFormat fmt {};
+		};
+
+		// a time range, in clock units or audio sample units.
+		struct Interval {
+			int64_t start, stop;
+		};
+
+		void sanityChecks();
+		void mimicOutputs();
+		void fillInputQueuesUnsafe();
+		void discardStreamOutdatedData(size_t inputIdx, int64_t removalClockTime);
+		void discardOutdatedData(int64_t removalClockTime);
+		void declareScheduler(IInput* input, IOutput* output);
+		void reschedule(Fraction when);
+		void onPeriod(Fraction time);
+		void emitOnePeriod(Fraction time);
+		void emitOnePeriod_RawAudio(int i, Interval inMasterTime, Interval outMasterTime);
+		Data chooseNextMasterFrame(Stream& stream, int64_t now);
+		int getMasterStreamId() const;
+
+		KHost* const m_host;
+
+		Fraction const framePeriod;
+		int64_t numTicks = 0;
+		int64_t const threshold;
+		std::vector<Stream> streams;
+		std::mutex inputMutex;
+		std::shared_ptr<IClock> clock;
+		IScheduler* const scheduler;
+		IScheduler::Id m_pendingTaskId {};
+		bool hasVideo = false;
+		bool m_started = false;
+};
+
+template <>
+struct ModuleDefault<TimeRectifier> : public TimeRectifier {
+	template <typename ...Args>
+	ModuleDefault(size_t allocatorSize, Args&&... args)
+		: TimeRectifier(std::forward<Args>(args)...) {
+		this->allocatorSize = allocatorSize;
+	}
+};
+
+}
 #include "lib_utils/scheduler.hpp"
 #include "lib_utils/log_sink.hpp"
 #include "lib_utils/format.hpp"
@@ -294,4 +403,18 @@ void TimeRectifier::emitOnePeriod_RawAudio(int i, Interval inMasterTime, Interva
 	m_host->log(TR_DEBUG, format("Other: send[%s:%s] t=%s (data=%s) (ref=%s)", i, stream.data.size(), pcm->getMediaTime(), pcm->getMediaTime(), inMasterTime.start).c_str());
 }
 
+}
+
+namespace {
+
+using namespace Modules;
+
+IModule* createObject(KHost* host, void* va) {
+	auto config = (TimeRectifierConfig*)va;
+	enforce(host, "TimeRectifier: host can't be NULL");
+	enforce(config, "TimeRectifier: config can't be NULL");
+	return createModuleWithSize<TimeRectifier>(100, host, config->clock, config->scheduler, config->frameRate).release();
+}
+
+auto const registered = Factory::registerModule("TimeRectifier", &createObject);
 }

@@ -1,5 +1,7 @@
 #include "tests/tests.hpp"
 #include "lib_utils/i_scheduler.hpp"
+#include "lib_modules/utils/loader.hpp"
+#include "lib_modules/core/connection.hpp" // ConnectModules
 #include "lib_media/transform/time_rectifier.hpp"
 #include "lib_media/common/pcm.hpp"
 #include "lib_media/common/picture.hpp"
@@ -121,11 +123,12 @@ typedef DataGenerator<MetadataRawAudio, DataPcm> AudioGenerator;
 struct Fixture {
 	std::shared_ptr<ClockMock> clock = make_shared<ClockMock>();
 	vector<unique_ptr<ModuleS>> generators;
-	std::unique_ptr<IModule> rectifier;
+	std::shared_ptr<IModule> rectifier;
 	vector<Event> actualTimes;
 
 	Fixture(Fraction fps) {
-		rectifier = createModuleWithSize<TimeRectifier>(100, &NullHost, clock, clock.get(), fps);
+		auto cfg = TimeRectifierConfig { clock, clock.get(), fps };
+		rectifier = loadModule("TimeRectifier", &NullHost, &cfg);
 	}
 
 	void setTime(int64_t time) {
