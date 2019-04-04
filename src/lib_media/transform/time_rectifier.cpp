@@ -107,14 +107,22 @@ void TimeRectifier::discardStreamOutdatedData(size_t inputIdx, int64_t removalCl
 	}
 }
 
-Data TimeRectifier::chooseNextMasterFrame(Stream& stream) {
+Data TimeRectifier::chooseNextMasterFrame(Stream& stream, int64_t now) {
 	if(stream.data.empty())
+		return stream.blank;
+
+	stream.blank = stream.data.front().data;
+
+	// Introduce some latency.
+	// if the frame is available, but since very little time, use it, but don't remove it.
+	// Thus, it will be used again next time.
+	// This protects us from frame phase changes (e.g on SDI cable replacement).
+	if(abs(stream.data[0].creationTime - now) < threshold)
 		return stream.blank;
 
 	auto r = stream.data.front().data;
 	stream.data.erase(stream.data.begin());
 
-	stream.blank = r;
 	return r;
 }
 
@@ -158,7 +166,7 @@ void TimeRectifier::emitOnePeriod(Fraction now) {
 		if(i == -1)
 			return; // no master stream yet
 		auto& master = streams[i];
-		auto masterFrame = chooseNextMasterFrame(master);
+		auto masterFrame = chooseNextMasterFrame(master, fractionToClock(now));
 		if (!masterFrame) {
 			assert(numTicks == 0);
 

@@ -82,7 +82,7 @@ class TimeRectifier : public ModuleDynI {
 		void onPeriod(Fraction time);
 		void emitOnePeriod(Fraction time);
 		void emitOnePeriod_RawAudio(int i, Interval inMasterTime, Interval outMasterTime);
-		Data chooseNextMasterFrame(Stream& stream);
+		Data chooseNextMasterFrame(Stream& stream, int64_t now);
 		int getMasterStreamId() const;
 
 		KHost* const m_host;
