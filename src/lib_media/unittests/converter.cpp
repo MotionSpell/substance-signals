@@ -6,7 +6,6 @@
 #include "lib_media/transform/audio_convert.hpp"
 #include "lib_media/utils/recorder.hpp"
 #include "lib_utils/tools.hpp"
-#include "lib_utils/log.hpp"
 #include <cassert>
 
 using namespace Tests;

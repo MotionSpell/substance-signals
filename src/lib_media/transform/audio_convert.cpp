@@ -1,7 +1,7 @@
 #include "audio_convert.hpp"
 
 #include "lib_utils/tools.hpp"
-#include "lib_utils/log.hpp"
+#include "lib_utils/log_sink.hpp"
 #include "lib_utils/format.hpp"
 #include "lib_utils/clock.hpp" // clockToTimescale
 #include "lib_modules/utils/helper.hpp"

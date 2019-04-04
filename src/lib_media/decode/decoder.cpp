@@ -1,4 +1,4 @@
-#include "lib_utils/log.hpp"
+#include "lib_utils/log_sink.hpp"
 #include "lib_modules/utils/factory.hpp" // registerModule
 #include "../common/metadata.hpp"
 #include "../common/attributes.hpp"

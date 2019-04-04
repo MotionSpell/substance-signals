@@ -6,7 +6,7 @@
 #include <sstream>
 #include "telx_tables.hpp"
 #include "telx_structs.hpp"
-#include "lib_utils/log.hpp"
+#include "lib_utils/log.hpp" // g_Log
 #include "telx2ttml.hpp"
 
 template<typename T, size_t N>
