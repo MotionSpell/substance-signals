@@ -83,7 +83,7 @@ void JPEGTurboEncode::processOne(Data data_) {
 		throw error(format("Unsupported colorspace %s", (int)videoData->getFormat().format));
 	}
 
-	out->resize(jpegSize);
+	out->getBuffer()->resize(jpegSize);
 	out->setMediaTime(data_->getMediaTime());
 	output->post(out);
 }

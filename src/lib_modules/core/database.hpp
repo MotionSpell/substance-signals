@@ -77,26 +77,21 @@ class DataBaseRef : public DataBase {
 		std::shared_ptr<const DataBase> dataRef;
 };
 
-class DataRaw : public DataBase, private IBuffer {
+class DataRaw : public DataBase {
 	public:
 		DataRaw(size_t size);
 
 		// DataBase
 		const IBuffer* getBuffer() const override {
-			return this;
+			return buffer.get();
 		}
 
 		IBuffer* getBuffer() override {
-			return this;
+			return buffer.get();
 		}
 
-		// IBuffer
-		Span data() override;
-		SpanC data() const override;
-		void resize(size_t size) override;
-
 	private:
-		std::vector<uint8_t> buffer;
+		std::shared_ptr<IBuffer> buffer;
 };
 
 using Data = std::shared_ptr<const DataBase>;

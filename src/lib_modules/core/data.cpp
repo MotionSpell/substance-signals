@@ -64,19 +64,26 @@ std::shared_ptr<const DataBase> DataBaseRef::getData() const {
 	return dataRef;
 }
 
-DataRaw::DataRaw(size_t size) : buffer(size) {
+namespace {
+struct RawBuffer : IBuffer {
+	RawBuffer(size_t size) : memoryBlock(size) {}
+	std::vector<uint8_t> memoryBlock;
+
+	Span data() {
+		return Span { memoryBlock.data(), memoryBlock.size() };
+	}
+
+	SpanC data() const {
+		return SpanC { memoryBlock.data(), memoryBlock.size() };
+	}
+
+	void resize(size_t size) {
+		memoryBlock.resize(size);
+	}
+};
 }
 
-Span DataRaw::data() {
-	return Span { buffer.data(), buffer.size() };
-}
-
-SpanC DataRaw::data() const {
-	return SpanC { buffer.data(), buffer.size() };
-}
-
-void DataRaw::resize(size_t size) {
-	buffer.resize(size);
+DataRaw::DataRaw(size_t size) : buffer(std::make_shared<RawBuffer>(size)) {
 }
 
 }

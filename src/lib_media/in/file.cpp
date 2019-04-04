@@ -39,7 +39,7 @@ void File::process() {
 		m_host->activate(false);
 		return;
 	}
-	out->resize(read);
+	out->getBuffer()->resize(read);
 	output->post(out);
 }
 

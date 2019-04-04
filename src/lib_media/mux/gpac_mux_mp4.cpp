@@ -844,7 +844,7 @@ void GPACMuxMP4::sendSegmentToOutput(bool EOS) {
 			m_host->log(Debug, "Empty segment. Ignore.");
 			return;
 		}
-		out->resize(contents.len);
+		out->getBuffer()->resize(contents.len);
 		if(contents.len)
 			memcpy(out->data().ptr, contents.ptr, contents.len);
 		gf_free(contents.ptr);
