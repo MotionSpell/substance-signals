@@ -195,7 +195,7 @@ void TeletextToTTML::sendSample(const std::string &sample) {
 	flags.keyframe = true;
 	out->set(flags);
 
-	memcpy(out->data().ptr, (uint8_t*)sample.c_str(), sample.size());
+	memcpy(out->getBuffer()->data().ptr, (uint8_t*)sample.c_str(), sample.size());
 	output->post(out);
 }
 

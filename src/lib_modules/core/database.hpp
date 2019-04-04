@@ -41,13 +41,8 @@ class DataBase {
 		int64_t getMediaTime() const;
 
 		virtual const IBuffer* getBuffer() const = 0;
-		virtual IBuffer* getBuffer() = 0;
 
 		SpanC data() const {
-			return getBuffer()->data();
-		}
-
-		Span data() {
 			return getBuffer()->data();
 		}
 
@@ -68,10 +63,6 @@ class DataBaseRef : public DataBase {
 			return dataRef->getBuffer();
 		}
 
-		IBuffer* getBuffer() override {
-			return (IBuffer*)dataRef->getBuffer();
-		}
-
 	private:
 		std::shared_ptr<const DataBase> dataRef;
 };
@@ -80,12 +71,12 @@ class DataRaw : public DataBase {
 	public:
 		DataRaw(size_t size);
 
-		// DataBase
-		const IBuffer* getBuffer() const override {
+		IBuffer* getBuffer() {
 			return buffer.get();
 		}
 
-		IBuffer* getBuffer() override {
+		// DataBase
+		const IBuffer* getBuffer() const override {
 			return buffer.get();
 		}
 

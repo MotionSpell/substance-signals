@@ -25,8 +25,9 @@ struct MulticastInput : Module {
 	// must be able to receive at least 35Mbps
 	void process() override {
 		auto buf = m_output->allocData<DataRaw>(4096);
+		auto dst = buf->getBuffer()->data();
 
-		auto size = m_socket->receive(buf->data().ptr, buf->data().len);
+		auto size = m_socket->receive(dst.ptr, dst.len);
 		if(size > 0) {
 			buf->getBuffer()->resize(size);
 			m_output->post(buf);

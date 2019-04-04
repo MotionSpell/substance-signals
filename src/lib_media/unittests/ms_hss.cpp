@@ -22,7 +22,7 @@ std::shared_ptr<DataBase> createPacket(span<uint8_t> contents) {
 
 	auto r = make_shared<DataRaw>(contents.len);
 	r->setMetadata(meta);
-	memcpy(r->data().ptr, contents.ptr, contents.len);
+	memcpy(r->getBuffer()->data().ptr, contents.ptr, contents.len);
 	return r;
 }
 

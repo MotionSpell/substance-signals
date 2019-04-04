@@ -114,7 +114,7 @@ class DataPcm : public DataBase, private IBuffer {
 			return this;
 		}
 
-		virtual IBuffer* getBuffer() override {
+		virtual IBuffer* getBuffer() {
 			return this;
 		}
 

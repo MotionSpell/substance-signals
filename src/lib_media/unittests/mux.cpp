@@ -272,7 +272,7 @@ secondclasstest("mux GPAC mp4 combination coverage: ugly 2") {
 unittest("remux test: canonical to H.264 Annex B bitstream converter") {
 	const uint8_t input[] = {0, 0, 0, 4, 44, 55, 66, 77 };
 	auto pkt = make_shared<Modules::DataRaw>(sizeof input);
-	memcpy(pkt->data().ptr, input, sizeof input);
+	memcpy(pkt->getBuffer()->data().ptr, input, sizeof input);
 
 	std::vector<uint8_t> actual;
 	bool received = false;
@@ -323,7 +323,7 @@ unittest("[DISABLED] GPAC mp4 mux: don't create empty fragments") {
 		auto accessUnit = make_shared<DataRaw>(sizeof h264_gray_frame);
 		accessUnit->setMetadata(meta);
 		accessUnit->set(CueFlags{});
-		memcpy(accessUnit->data().ptr, h264_gray_frame, sizeof h264_gray_frame);
+		memcpy(accessUnit->getBuffer()->data().ptr, h264_gray_frame, sizeof h264_gray_frame);
 		return accessUnit;
 	};
 

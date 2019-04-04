@@ -11,7 +11,7 @@ using namespace Modules;
 std::shared_ptr<DataBase> createPacket(SpanC span) {
 	auto N = span.len;
 	auto pkt = make_shared<DataRaw>(N);
-	memcpy(pkt->data().ptr, span.ptr, N);
+	memcpy(pkt->getBuffer()->data().ptr, span.ptr, N);
 	return pkt;
 }
 

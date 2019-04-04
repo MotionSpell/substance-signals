@@ -147,7 +147,7 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 		reader->sampleIndex++;
 
 		auto out = output->allocData<DataRaw>(sample->dataLength);
-		memcpy(out->data().ptr, sample->data, sample->dataLength);
+		memcpy(out->getBuffer()->data().ptr, sample->data, sample->dataLength);
 		out->setMediaTime(sample->DTS + DTSOffset + sample->CTS_Offset, reader->movie->getMediaTimescale(FIRST_TRACK));
 
 		CueFlags flags {};

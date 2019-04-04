@@ -54,14 +54,14 @@ void JPEGTurboDecode::processOne(Data data_) {
 	auto data = safe_cast<const DataBase>(data_);
 	const int pixelFmt = TJPF_RGB;
 	int w=0, h=0, jpegSubsamp=0;
-	auto buf = (unsigned char*)data->data().ptr;
+	auto buf = (const unsigned char*)data->data().ptr;
 	auto size = (unsigned long)data->data().len;
-	if (tjDecompressHeader2(jtHandle, buf, size, &w, &h, &jpegSubsamp) < 0) {
+	if (tjDecompressHeader2(jtHandle, (unsigned char*)buf, size, &w, &h, &jpegSubsamp) < 0) {
 		m_host->log(Warning, "error encountered while decompressing header.");
 		return;
 	}
 	auto out = DataPicture::create(output, Resolution(w, h), PixelFormat::RGB24);
-	if (tjDecompress2(jtHandle, buf, size, out->data().ptr, w, 0/*pitch*/, h, pixelFmt, TJFLAG_FASTDCT) < 0) {
+	if (tjDecompress2(jtHandle, buf, size, out->getBuffer()->data().ptr, w, 0/*pitch*/, h, pixelFmt, TJFLAG_FASTDCT) < 0) {
 		m_host->log(Warning, "error encountered while decompressing frame.");
 		return;
 	}

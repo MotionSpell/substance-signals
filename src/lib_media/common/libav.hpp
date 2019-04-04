@@ -36,10 +36,6 @@ class DataAVPacket : public DataBase, private IBuffer {
 			return this;
 		}
 
-		IBuffer* getBuffer() override {
-			return this;
-		}
-
 		// IBuffer
 		Span data() override;
 		SpanC data() const override;

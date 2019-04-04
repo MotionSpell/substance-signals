@@ -162,7 +162,7 @@ struct PesStream : Stream {
 				buf->set(DecodingTime {decodingTime});
 			}
 			buf->set(CueFlags{});
-			memcpy(buf->data().ptr, pesBuffer.data()+r.byteOffset(),pesPayloadSize);
+			memcpy(buf->getBuffer()->data().ptr, pesBuffer.data()+r.byteOffset(),pesPayloadSize);
 			m_output->post(buf);
 		}
 

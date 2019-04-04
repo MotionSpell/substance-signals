@@ -20,9 +20,11 @@ void DataPicture::setup(DataPicture* r, Resolution res, Resolution resInternal, 
 	r->format.res = res;
 	r->setVisibleResolution(res);
 
+	auto ptr = r->getBuffer()->data().ptr;
+
 	switch (format) {
 	case PixelFormat::Y8: {
-		r->m_planes[0] = r->data().ptr;
+		r->m_planes[0] = ptr;
 		r->m_stride[0] = resInternal.width;
 		r->m_planeCount = 1;
 		break;
@@ -30,9 +32,9 @@ void DataPicture::setup(DataPicture* r, Resolution res, Resolution resInternal, 
 	case PixelFormat::I420: {
 		auto const numPixels = resInternal.width * resInternal.height;
 		r->m_planeCount = 3;
-		r->m_planes[0] = r->data().ptr;
-		r->m_planes[1] = r->data().ptr + numPixels;
-		r->m_planes[2] = r->data().ptr + numPixels + numPixels / 4;
+		r->m_planes[0] = ptr;
+		r->m_planes[1] = ptr + numPixels;
+		r->m_planes[2] = ptr + numPixels + numPixels / 4;
 		r->m_stride[0] = resInternal.width;
 		r->m_stride[1] = resInternal.width / 2;
 		r->m_stride[2] = resInternal.width / 2;
@@ -40,9 +42,9 @@ void DataPicture::setup(DataPicture* r, Resolution res, Resolution resInternal, 
 	}
 	case PixelFormat::YUV420P10LE: {
 		auto const numPlaneBytes = resInternal.width * divUp(10, 8) * resInternal.height;
-		r->m_planes[0] = r->data().ptr;
-		r->m_planes[1] = r->data().ptr + numPlaneBytes;
-		r->m_planes[2] = r->data().ptr + numPlaneBytes + numPlaneBytes / 4;
+		r->m_planes[0] = ptr;
+		r->m_planes[1] = ptr + numPlaneBytes;
+		r->m_planes[2] = ptr + numPlaneBytes + numPlaneBytes / 4;
 		r->m_stride[0] = resInternal.width * divUp(10, 8);
 		r->m_stride[1] = resInternal.width * divUp(10, 8) / 2;
 		r->m_stride[2] = resInternal.width * divUp(10, 8) / 2;
@@ -51,9 +53,9 @@ void DataPicture::setup(DataPicture* r, Resolution res, Resolution resInternal, 
 	}
 	case PixelFormat::YUV422P: {
 		auto const numPixels = resInternal.width * resInternal.height;
-		r->m_planes[0] = r->data().ptr;
-		r->m_planes[1] = r->data().ptr + numPixels;
-		r->m_planes[2] = r->data().ptr + numPixels + numPixels / 2;
+		r->m_planes[0] = ptr;
+		r->m_planes[1] = ptr + numPixels;
+		r->m_planes[2] = ptr + numPixels + numPixels / 2;
 		r->m_stride[0] = resInternal.width;
 		r->m_stride[1] = resInternal.width / 2;
 		r->m_stride[2] = resInternal.width / 2;
@@ -62,9 +64,9 @@ void DataPicture::setup(DataPicture* r, Resolution res, Resolution resInternal, 
 	}
 	case PixelFormat::YUV422P10LE: {
 		auto const numPixels = resInternal.width * resInternal.height;
-		r->m_planes[0] = r->data().ptr;
-		r->m_planes[1] = r->data().ptr + numPixels;
-		r->m_planes[2] = r->data().ptr + numPixels + numPixels / 2;
+		r->m_planes[0] = ptr;
+		r->m_planes[1] = ptr + numPixels;
+		r->m_planes[2] = ptr + numPixels + numPixels / 2;
 		r->m_stride[0] = resInternal.width * divUp(10, 8);
 		r->m_stride[1] = resInternal.width * divUp(10, 8) / 2;
 		r->m_stride[2] = resInternal.width * divUp(10, 8) / 2;
@@ -72,15 +74,15 @@ void DataPicture::setup(DataPicture* r, Resolution res, Resolution resInternal, 
 		break;
 	}
 	case PixelFormat::YUYV422: {
-		r->m_planes[0] = r->data().ptr;
+		r->m_planes[0] = ptr;
 		r->m_stride[0] = resInternal.width * 2;
 		r->m_planeCount = 1;
 		break;
 	}
 	case PixelFormat::NV12:        {
 		auto const numPixels = resInternal.width * resInternal.height;
-		r->m_planes[0] = r->data().ptr;
-		r->m_planes[1] = r->data().ptr + numPixels;
+		r->m_planes[0] = ptr;
+		r->m_planes[1] = ptr + numPixels;
 		r->m_stride[0] = resInternal.width;
 		r->m_stride[1] = resInternal.width;
 		r->m_planeCount = 2;
@@ -88,21 +90,21 @@ void DataPicture::setup(DataPicture* r, Resolution res, Resolution resInternal, 
 	}
 	case PixelFormat::NV12P010LE:  {
 		auto const numPixels = resInternal.width * resInternal.height;
-		r->m_planes[0] = r->data().ptr;
-		r->m_planes[1] = r->data().ptr + numPixels * 2;
+		r->m_planes[0] = ptr;
+		r->m_planes[1] = ptr + numPixels * 2;
 		r->m_stride[0] = resInternal.width * 2;
 		r->m_stride[1] = resInternal.width * 2;
 		r->m_planeCount = 2;
 		break;
 	}
 	case PixelFormat::RGB24:       {
-		r->m_planes[0] = r->data().ptr;
+		r->m_planes[0] = ptr;
 		r->m_stride[0] = resInternal.width * 3;
 		r->m_planeCount = 1;
 		break;
 	}
 	case PixelFormat::RGBA32:      {
-		r->m_planes[0] = r->data().ptr;
+		r->m_planes[0] = ptr;
 		r->m_stride[0] = resInternal.width * 4;
 		r->m_planeCount = 1;
 		break;
