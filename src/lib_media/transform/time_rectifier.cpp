@@ -356,8 +356,7 @@ struct TimeRectifier : ModuleDynI {
 				return rec.creationTime < removalClockTime;
 			};
 
-			auto& stream = streams[inputIdx];
-			auto& data = stream.data;
+			auto& data = streams[inputIdx].data;
 			data.erase(std::remove_if(data.begin(), data.end(), isOutdated), data.end());
 		}
 };
