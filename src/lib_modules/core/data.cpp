@@ -87,3 +87,8 @@ DataRaw::DataRaw(size_t size) : buffer(std::make_shared<RawBuffer>(size)) {
 }
 
 }
+
+void throw_dynamic_cast_error(const char* typeName) {
+	throw std::runtime_error("dynamic cast error: could not convert from Modules::Data to " + std::string(typeName));
+}
+
