@@ -11,7 +11,6 @@
 #include "lib_utils/log_sink.hpp"
 #include "lib_utils/tools.hpp" // safe_cast
 #include <cassert>
-#include <list>
 
 extern "C" {
 #include <libavcodec/avcodec.h> // AVPacket
@@ -144,7 +143,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 			data->setMediaTime(s.pts);
 			data->setMetadata(s.meta);
 			outputSegment->post(data);
-			segmentsToPost.pop_front();
+			segmentsToPost.erase(segmentsToPost.begin());
 
 			/*update playlist*/
 			{
@@ -176,7 +175,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 		IUtcStartTimeQuery* const m_utcStartTime;
 		std::shared_ptr<IModule> delegate;
 		OutputDefault *outputSegment, *outputManifest;
-		std::list<PostableSegment> segmentsToPost;
+		std::vector<PostableSegment> segmentsToPost;
 		int64_t firstDTS = -1, segDuration, segIdx = 0;
 		std::string hlsDir, segBasename;
 		bool startsWithRAP = false;
