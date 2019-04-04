@@ -115,6 +115,46 @@ unittest("TsMuxer: audio simple") {
 	ASSERT_EQUALS(100, std::min(100, rec->totalBytes));
 }
 
+unittest("TsMuxer: audio + video") {
+
+	struct FrameCounter : ModuleS {
+		void processOne(Data pkt) override {
+			totalBytes += pkt->data().len;
+		}
+		int totalBytes = 0;
+	};
+
+	TsMuxerConfig cfg;
+	cfg.muxRate = 1000 * 1000;
+	auto mux = loadModule("TsMuxer", &NullHost, &cfg);
+	auto rec = createModule<FrameCounter>();
+	ConnectOutputToInput(mux->getOutput(0), rec->getInput(0));
+
+	mux->getInput(0)->connect();
+	mux->getInput(1)->connect();
+
+	for(int i=0; i < 30; ++i) {
+		int64_t pts = i*(IClock::Rate/20);
+
+		{
+			auto frame = getTestH264Frame();
+			frame->setMediaTime(pts);
+			frame->set<DecodingTime>({pts});
+			mux->getInput(0)->push(frame);
+		}
+
+		{
+			auto frame = getTestMp3Frame();
+			frame->setMediaTime(pts);
+			frame->set<DecodingTime>({pts});
+			mux->getInput(1)->push(frame);
+		}
+	}
+	mux->flush();
+
+	ASSERT_EQUALS(100, std::min(100, rec->totalBytes));
+}
+
 unittest("[DISABLED] TsMuxer: destroy without flushing") {
 	auto mux = loadModule("TsMuxer", &NullHost, nullptr);
 
