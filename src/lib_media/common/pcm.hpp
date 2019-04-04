@@ -157,6 +157,11 @@ class DataPcm : public DataBase, private IBuffer {
 				memcpy(planes[planeIdx].data(), plane, size);
 		}
 
+		void setSampleCount(int sampleCount) {
+			for(int i=0; i < format.numPlanes; ++i)
+				planes[i].resize(sampleCount * format.getBytesPerSample());
+		}
+
 	private:
 		PcmFormat format;
 		std::vector<uint8_t> planes[AUDIO_PCM_PLANES_MAX];

@@ -252,11 +252,6 @@ struct Rectifier : ModuleDynI {
 			++numTicks;
 		}
 
-		static void resizePcm(DataPcm* pcm, int sampleCount) {
-			for(int i=0; i < pcm->getFormat().numPlanes; ++i)
-				pcm->setPlane(i, nullptr, sampleCount * pcm->getFormat().getBytesPerSample());
-		}
-
 		void emitOnePeriod_RawAudio(int i, Interval inMasterTime, Interval outMasterTime) {
 			auto& stream = streams[i];
 
@@ -298,7 +293,7 @@ struct Rectifier : ModuleDynI {
 			auto pcm = stream.output->allocData<DataPcm>(0);
 			pcm->setMediaTime(outMasterTime.start);
 			pcm->setFormat(stream.fmt);
-			resizePcm(pcm.get(), outMasterSamples.stop - outMasterSamples.start);
+			pcm->setSampleCount(outMasterSamples.stop - outMasterSamples.start);
 
 			// remove obsolete samples
 			auto isObsolete = [&](Stream::Rec const& rec) {

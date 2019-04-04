@@ -24,12 +24,11 @@ SoundGenerator::SoundGenerator(KHost* host)
 void SoundGenerator::process() {
 	auto const bytesPerSample = pcmFormat.getBytesPerSample();
 	auto const sampleDurationInMs = 40;
-	auto const bufferSize = bytesPerSample * (sampleDurationInMs * pcmFormat.sampleRate / 1000);
+	auto const bufferSamples = (sampleDurationInMs * pcmFormat.sampleRate / 1000);
 
 	auto out = output->allocData<DataPcm>(0);
 	out->setFormat(pcmFormat);
-	for (int i = 0; i < pcmFormat.numPlanes; ++i)
-		out->setPlane(i, nullptr, bufferSize / pcmFormat.numPlanes);
+	out->setSampleCount(bufferSamples);
 	out->setMediaTime(m_numSamples, pcmFormat.sampleRate);
 
 	// generate sound
