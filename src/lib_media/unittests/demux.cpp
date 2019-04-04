@@ -8,6 +8,7 @@
 #include "lib_media/in/file.hpp"
 #include "lib_media/out/print.hpp"
 #include "lib_utils/tools.hpp"
+#include "lib_utils/string_tools.hpp"
 #include <iostream> // std::cout
 
 using namespace Tests;

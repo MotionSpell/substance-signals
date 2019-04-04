@@ -2,7 +2,7 @@
 #include "lib_modules/modules.hpp"
 #include "lib_media/in/sound_generator.hpp"
 #include "lib_media/in/video_generator.hpp"
-#include "lib_utils/tools.hpp"
+#include "lib_utils/string_tools.hpp" // makeVector
 
 using namespace Tests;
 using namespace Modules;

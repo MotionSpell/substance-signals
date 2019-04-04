@@ -1,6 +1,7 @@
 #include "gpac_mux_mp4.hpp"
 #include "lib_modules/utils/factory.hpp"
-#include "lib_utils/tools.hpp" // string2hex
+#include "lib_utils/tools.hpp" // operator|
+#include "lib_utils/string_tools.hpp" // string2hex
 #include <sstream>
 
 extern "C" {

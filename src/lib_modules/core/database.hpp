@@ -95,6 +95,7 @@ inline bool isDeclaration(Data data) {
 }
 
 [[noreturn]] void throw_dynamic_cast_error(const char* typeName);
+
 template<class T>
 std::shared_ptr<T> safe_cast(std::shared_ptr<const Modules::DataBase> p) {
 	if (!p)

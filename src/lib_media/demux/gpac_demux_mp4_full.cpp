@@ -1,6 +1,7 @@
 #include "lib_utils/log_sink.hpp"
 #include "lib_utils/format.hpp"
-#include "lib_utils/tools.hpp" // string2hex
+#include "lib_utils/tools.hpp" // enforce
+#include "lib_utils/string_tools.hpp" // string2hex
 #include "lib_modules/utils/helper.hpp"
 #include "lib_modules/utils/factory.hpp"
 #include <string>
