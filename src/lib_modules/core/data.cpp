@@ -23,7 +23,7 @@ SpanC DataBase::getAttribute(int typeId) const {
 	auto first = attributeOffset.find(typeId);
 	if(first == attributeOffset.end())
 		throw std::runtime_error("Attribute not found");
-	return {attributes.data() + first->second, 0};
+	return {attributes.data() + *first, 0};
 }
 
 void DataBase::setAttribute(int typeId, SpanC data) {

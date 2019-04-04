@@ -4,7 +4,7 @@
 #include <cstring> //memcpy
 #include <memory>
 #include <vector>
-#include <map>
+#include "lib_utils/small_map.hpp"
 #include "lib_utils/clock.hpp"
 
 namespace Modules {
@@ -50,7 +50,7 @@ class DataBase {
 		int64_t mediaTimeIn180k = 0;
 		std::shared_ptr<const IMetadata> metadata;
 		std::vector<uint8_t> attributes;
-		std::map<int, int> attributeOffset;
+		SmallMap<int, int> attributeOffset;
 };
 
 class DataBaseRef : public DataBase {

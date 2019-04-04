@@ -3,7 +3,7 @@
 #include "signal.hpp"
 #include "executor.hpp" // ExecutorSync
 
-#include <map>
+#include "lib_utils/small_map.hpp"
 #include <memory>
 #include <mutex>
 
@@ -27,7 +27,7 @@ class Signal : public ISignal<Arg> {
 			std::lock_guard<std::mutex> lg(callbacksMutex);
 			auto conn = callbacks.find(connectionId);
 			if (conn != callbacks.end())
-				callbacks.erase(connectionId);
+				callbacks.erase(conn);
 		}
 
 		void disconnectAll() {
@@ -38,7 +38,7 @@ class Signal : public ISignal<Arg> {
 		void emit(Arg arg) {
 			std::lock_guard<std::mutex> lg(callbacksMutex);
 			for (auto &cb : callbacks) {
-				cb.second.executor->call(std::bind(cb.second.callback, arg));
+				cb.executor->call(std::bind(cb.callback, arg));
 			}
 		}
 
@@ -55,7 +55,7 @@ class Signal : public ISignal<Arg> {
 		};
 
 		mutable std::mutex callbacksMutex;
-		std::map<int, ConnectionType> callbacks;  //protected by callbacksMutex
+		SmallMap<int, ConnectionType> callbacks;  //protected by callbacksMutex
 		int uid = 0;                              //protected by callbacksMutex
 
 		std::unique_ptr<IExecutor> const defaultExecutor;
