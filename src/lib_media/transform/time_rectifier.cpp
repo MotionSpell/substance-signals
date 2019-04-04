@@ -77,10 +77,8 @@ struct TimeRectifier : ModuleDynI {
 		}
 
 		void process() override {
-			if(!m_started) {
+			if(m_pendingTaskId == IScheduler::Id())
 				reschedule(clock->now());
-				m_started = true;
-			}
 		}
 
 		int getNumOutputs() const override {
@@ -109,7 +107,6 @@ struct TimeRectifier : ModuleDynI {
 		IScheduler* const scheduler;
 		IScheduler::Id m_pendingTaskId {};
 		bool hasVideo = false;
-		bool m_started = false;
 
 		void sanityChecks() {
 			if (!hasVideo)
