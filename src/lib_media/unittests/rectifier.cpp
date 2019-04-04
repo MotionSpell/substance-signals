@@ -127,8 +127,8 @@ struct Fixture {
 	vector<Event> actualTimes;
 
 	Fixture(Fraction fps) {
-		auto cfg = TimeRectifierConfig { clock, clock.get(), fps };
-		rectifier = loadModule("TimeRectifier", &NullHost, &cfg);
+		auto cfg = RectifierConfig { clock, clock.get(), fps };
+		rectifier = loadModule("Rectifier", &NullHost, &cfg);
 	}
 
 	void setTime(int64_t time) {

@@ -57,15 +57,15 @@ struct Interval {
 	int64_t start, stop;
 };
 
-struct TimeRectifier : ModuleDynI {
-		TimeRectifier(KHost* host, std::shared_ptr<IClock> clock_, IScheduler* scheduler_, Fraction frameRate)
+struct Rectifier : ModuleDynI {
+		Rectifier(KHost* host, std::shared_ptr<IClock> clock_, IScheduler* scheduler_, Fraction frameRate)
 			: m_host(host),
 			  framePeriod(frameRate.inverse()),
 			  clock(clock_),
 			  scheduler(scheduler_) {
 		}
 
-		~TimeRectifier() {
+		~Rectifier() {
 			std::unique_lock<std::mutex> lock(inputMutex);
 			if(m_pendingTaskId)
 				scheduler->cancel(m_pendingTaskId);
@@ -78,7 +78,7 @@ struct TimeRectifier : ModuleDynI {
 
 		int getNumOutputs() const override {
 			{
-				auto pThis = const_cast<TimeRectifier*>(this);
+				auto pThis = const_cast<Rectifier*>(this);
 				pThis->mimicOutputs();
 			}
 			return ModuleDynI::getNumOutputs();
@@ -116,7 +116,7 @@ struct TimeRectifier : ModuleDynI {
 		}
 
 		void reschedule(Fraction when) {
-			m_pendingTaskId = scheduler->scheduleAt(std::bind(&TimeRectifier::onPeriod, this, std::placeholders::_1), when);
+			m_pendingTaskId = scheduler->scheduleAt(std::bind(&Rectifier::onPeriod, this, std::placeholders::_1), when);
 		}
 
 		void onPeriod(Fraction timeNow) {
@@ -363,11 +363,11 @@ struct TimeRectifier : ModuleDynI {
 };
 
 IModule* createObject(KHost* host, void* va) {
-	auto config = (TimeRectifierConfig*)va;
-	enforce(host, "TimeRectifier: host can't be NULL");
-	enforce(config, "TimeRectifier: config can't be NULL");
-	return createModuleWithSize<TimeRectifier>(100, host, config->clock, config->scheduler, config->frameRate).release();
+	auto config = (RectifierConfig*)va;
+	enforce(host, "Rectifier: host can't be NULL");
+	enforce(config, "Rectifier: config can't be NULL");
+	return createModuleWithSize<Rectifier>(100, host, config->clock, config->scheduler, config->frameRate).release();
 }
 
-auto const registered = Factory::registerModule("TimeRectifier", &createObject);
+auto const registered = Factory::registerModule("Rectifier", &createObject);
 }
