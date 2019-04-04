@@ -196,11 +196,12 @@ struct Rectifier : ModuleDynI {
 			// input media times corresponding to the "media period"
 			Interval inMasterTime {};
 
+			auto const masterStreamId = getMasterStreamId();
+
 			{
-				auto const i = getMasterStreamId();
-				if(i == -1)
+				if(masterStreamId == -1)
 					throw error("No master stream: requires to have one video stream connected");
-				auto& master = streams[i];
+				auto& master = streams[masterStreamId];
 				auto masterFrame = chooseNextMasterFrame(master, fractionToClock(now));
 				if (!masterFrame) {
 					assert(numTicks == 0);
@@ -219,7 +220,7 @@ struct Rectifier : ModuleDynI {
 				auto data = make_shared<DataBaseRef>(masterFrame);
 				data->setMediaTime(outMasterTime.start);
 				master.output->post(data);
-				discardStreamOutdatedData(i, data->getMediaTime());
+				discardStreamOutdatedData(masterStreamId, data->getMediaTime());
 			}
 
 			//TODO: Notes:
@@ -228,6 +229,9 @@ struct Rectifier : ModuleDynI {
 			//AUDIO: BE ABLE TO ASK FOR A LARGER BUFFER ALLOCATOR? => BACK TO THE APP + DYN ALLOCATOR SIZE?
 			//VIDEO: HAVE ONLY A FEW DECODED FRAMES: THEY ARRIVE IN ADVANCE ANYWAY
 			for (auto i : getInputs()) {
+				if(i == masterStreamId)
+					continue;
+
 				auto& input = inputs[i];
 
 				if(!input->getMetadata())
@@ -238,6 +242,7 @@ struct Rectifier : ModuleDynI {
 					emitOnePeriod_RawAudio(i, inMasterTime, outMasterTime);
 					break;
 				case VIDEO_RAW:
+					throw error("only one video stream is supported");
 					break;
 				default: throw error("unhandled media type (awakeOnFPS)");
 				}
