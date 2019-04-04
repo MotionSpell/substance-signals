@@ -3,8 +3,7 @@
 namespace Modules {
 namespace Out {
 
-void Print::processOne(Data data_)  {
-	auto data = safe_cast<const DataBase>(data_);
+void Print::processOne(Data data)  {
 	os << "Print: Received data of size: " << data->data().len << std::endl;
 }
 

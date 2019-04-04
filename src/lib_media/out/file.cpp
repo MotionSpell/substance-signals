@@ -17,8 +17,7 @@ File::~File() {
 	fclose(file);
 }
 
-void File::processOne(Data data_) {
-	auto data = safe_cast<const DataBase>(data_);
+void File::processOne(Data data) {
 	fwrite(data->data().ptr, 1, data->data().len, file);
 }
 

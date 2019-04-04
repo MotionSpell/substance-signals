@@ -50,8 +50,7 @@ void JPEGTurboDecode::ensureMetadata(int /*width*/, int /*height*/, int /*pixelF
 	}
 }
 
-void JPEGTurboDecode::processOne(Data data_) {
-	auto data = safe_cast<const DataBase>(data_);
+void JPEGTurboDecode::processOne(Data data) {
 	const int pixelFmt = TJPF_RGB;
 	int w=0, h=0, jpegSubsamp=0;
 	auto buf = (const unsigned char*)data->data().ptr;
