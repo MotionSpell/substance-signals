@@ -55,7 +55,7 @@ class OutputDefault : public Output {
 		}
 
 		template<typename OtherDataType>
-		std::shared_ptr<OtherDataType> getBuffer(size_t size) {
+		std::shared_ptr<OtherDataType> allocData(size_t size) {
 			return alloc<OtherDataType>(allocator, size);
 		}
 

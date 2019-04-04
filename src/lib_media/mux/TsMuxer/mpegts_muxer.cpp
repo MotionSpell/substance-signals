@@ -49,7 +49,7 @@ class TsMuxer : public ModuleDynI {
 			{
 				// HACK: we don't want to flush here, but it's the only way
 				// to free the memory allocated by avformat_write_header.
-				m_dropAllOutput = true; // prevent all output (calls to getBuffer/post)
+				m_dropAllOutput = true; // prevent all output (calls to allocData/post)
 				if (!m_flushed && m_headerWritten)
 					av_write_trailer(m_formatCtx);
 			}
@@ -132,7 +132,7 @@ class TsMuxer : public ModuleDynI {
 		bool m_headerWritten = false;
 		bool m_flushed = false;
 		bool m_dropping = false; // used for log message limitation
-		bool m_dropAllOutput = false; // block all calls to getBuffer/post
+		bool m_dropAllOutput = false; // block all calls to allocData/post
 		uint8_t* m_outputBuffer {};
 		OutputDefault* m_output {};
 
@@ -255,7 +255,7 @@ class TsMuxer : public ModuleDynI {
 			if(!m_dropAllOutput) {
 				while(packet.len > 0) {
 					auto len = std::min<int>(packet.len, TS_PACKET_SIZE*7);
-					auto buf = m_output->getBuffer<DataRaw>(len);
+					auto buf = m_output->allocData<DataRaw>(len);
 					memcpy(buf->data().ptr, packet.ptr, len);
 					buf->setMediaTime((m_sentBits * IClock::Rate) / m_cfg.muxRate);
 					m_output->post(buf);

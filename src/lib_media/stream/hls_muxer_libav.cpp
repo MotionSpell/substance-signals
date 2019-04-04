@@ -139,7 +139,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 				return false;
 			}
 
-			auto data = outputSegment->getBuffer<DataRaw>(0);
+			auto data = outputSegment->allocData<DataRaw>(0);
 			data->setMediaTime(s.pts);
 			data->setMetadata(s.meta);
 			outputSegment->post(data);
@@ -147,7 +147,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 
 			/*update playlist*/
 			{
-				auto out = outputManifest->getBuffer<DataRaw>(0);
+				auto out = outputManifest->allocData<DataRaw>(0);
 
 				auto metadata = make_shared<MetadataFile>(PLAYLIST);
 				metadata->filename = hlsDir + segBasename + ".m3u8";

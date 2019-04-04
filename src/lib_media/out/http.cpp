@@ -36,7 +36,7 @@ HTTP::~HTTP() {
 void HTTP::flush() {
 	m_sender->send({});
 
-	auto out = outputFinished->getBuffer<DataRaw>(0);
+	auto out = outputFinished->allocData<DataRaw>(0);
 	outputFinished->post(out);
 }
 

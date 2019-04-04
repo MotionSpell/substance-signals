@@ -294,7 +294,7 @@ struct Rectifier : ModuleDynI {
 
 			// Create an output sample. We want it to start at 'outMasterTime.start',
 			// and to cover the full 'outMasterTime' interval.
-			auto pcm = stream.output->getBuffer<DataPcm>(0);
+			auto pcm = stream.output->allocData<DataPcm>(0);
 			pcm->setMediaTime(outMasterTime.start);
 			pcm->setFormat(stream.fmt);
 			resizePcm(pcm.get(), outMasterSamples.stop - outMasterSamples.start);

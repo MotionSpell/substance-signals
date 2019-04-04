@@ -49,7 +49,7 @@ struct AVCC2AnnexBConverter : public ModuleS {
 			if(isDeclaration(in))
 				return;
 
-			auto out = output->getBuffer<DataAVPacket>(in->data().len);
+			auto out = output->allocData<DataAVPacket>(in->data().len);
 			av_packet_copy_props(out->getPacket(), safe_cast<const DataAVPacket>(in)->getPacket());
 
 			out->copyAttributes(*in);

@@ -149,7 +149,7 @@ struct PesStream : Stream {
 				r.u(8);
 
 			auto pesPayloadSize = pesBuffer.size() - r.byteOffset();
-			auto buf = m_output->getBuffer<DataRaw>(pesPayloadSize);
+			auto buf = m_output->allocData<DataRaw>(pesPayloadSize);
 			buf->resize(pesPayloadSize);
 
 			if(PTS_DTS_indicator & 0b10) {

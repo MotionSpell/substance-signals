@@ -55,7 +55,7 @@ class GPACDemuxMP4Simple : public Module {
 				        ISOSample->IsRAP, ISOSample->DTS + DTSOffset, ISOSample->DTS + DTSOffset + ISOSample->CTS_Offset).c_str());
 				reader->sampleIndex++;
 
-				auto out = output->getBuffer<DataRaw>(ISOSample->dataLength);
+				auto out = output->allocData<DataRaw>(ISOSample->dataLength);
 				memcpy(out->data().ptr, ISOSample->data, ISOSample->dataLength);
 				out->setMediaTime(ISOSample->DTS + DTSOffset + ISOSample->CTS_Offset, reader->movie->getMediaTimescale(reader->trackNumber));
 				output->post(out);

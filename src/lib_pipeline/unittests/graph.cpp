@@ -14,7 +14,7 @@ struct Dummy : public Module {
 		output = addOutput<OutputDefault>();
 	}
 	void process() {
-		output->post(output->getBuffer<DataRaw>(1));
+		output->post(output->allocData<DataRaw>(1));
 	}
 	OutputDefault* output;
 };

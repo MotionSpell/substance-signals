@@ -118,7 +118,7 @@ void Apple_HLS::generateManifestMaster() {
 		masterManifestIsWritten = true;
 
 		if (type != Static) {
-			auto out = outputManifest->getBuffer<DataRaw>(0);
+			auto out = outputManifest->allocData<DataRaw>(0);
 
 			auto metadata = make_shared<MetadataFile>(PLAYLIST);
 			metadata->filename = playlistMasterPath;
@@ -249,7 +249,7 @@ void Apple_HLS::generateManifestVariantFull(bool isLast) {
 			vpl << quality->playlistVariant.str();
 			vpl.close();
 
-			auto out = outputManifest->getBuffer<DataRaw>(0);
+			auto out = outputManifest->allocData<DataRaw>(0);
 
 			{
 				auto meta = make_shared<MetadataFile>(PLAYLIST);

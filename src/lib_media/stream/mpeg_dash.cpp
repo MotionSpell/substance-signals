@@ -197,7 +197,7 @@ class MPEG_DASH : public AdaptiveStreamingCommon, public gpacpp::Init {
 		void writeManifest() {
 			auto contents = mpd->serialize();
 
-			auto out = outputManifest->getBuffer<DataRaw>(contents.size());
+			auto out = outputManifest->allocData<DataRaw>(contents.size());
 			auto metadata = make_shared<MetadataFile>(PLAYLIST);
 			metadata->filename = manifestDir + mpdFn;
 			metadata->durationIn180k = timescaleToClock(segDurationInMs, 1000);

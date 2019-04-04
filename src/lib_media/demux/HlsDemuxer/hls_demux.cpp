@@ -69,7 +69,7 @@ class HlsDemuxer : public Module {
 			auto chunk = m_puller->get(chunkUrl.c_str());
 			m_chunks.erase(m_chunks.begin());
 
-			auto data = m_output->getBuffer<DataRaw>(chunk.size());
+			auto data = m_output->allocData<DataRaw>(chunk.size());
 			if(chunk.size())
 				memcpy(data->data().ptr, chunk.data(), chunk.size());
 			m_output->post(data);
