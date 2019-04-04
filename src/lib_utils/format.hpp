@@ -2,32 +2,71 @@
 
 #include <string>
 #include <cstdint>
-#include <sstream>
+#include <vector>
 #include <stdexcept>
 
-template<typename T>
-std::string toString(T const& val) {
-	std::stringstream ss;
-	ss << val;
-	return ss.str();
-}
-
-inline std::string toString(uint8_t val) {
-	return std::to_string((int)val);
-}
-
-template<typename T, typename MustBeIterable = decltype(T::begin())>
-std::string toString(T const& val) {
-	std::string ss;
-	ss += "[";
-	for (size_t i = 0; i < val.size(); ++i) {
-		if (i > 0)
-			ss += ", ";
-		ss += toString(val[i]);
+struct Local {
+	template<typename T>
+	static std::string to_string(const std::vector<T>& val) {
+		std::string ss;
+		ss += "[";
+		for (size_t i = 0; i < val.size(); ++i) {
+			if (i > 0)
+				ss += ", ";
+			ss += Local::to_string(val[i]);
+		}
+		ss += "]";
+		return ss;
 	}
-	ss += "]";
-	return ss;
-}
+	static std::string to_string(const char& c) {
+		std::string s;
+		return s + c;
+	}
+	static std::string to_string(const char* v) {
+		return v;
+	}
+	static std::string to_string(char* v) {
+		return v;
+	}
+	static std::string to_string(const std::string& v) {
+		return v;
+	}
+	static std::string to_string(const void* v) {
+		char buffer[128];
+		sprintf(buffer, "%p", v);
+		return buffer;
+	}
+	static std::string to_string(double v) {
+		char buffer[128];
+		sprintf(buffer, "%f", v);
+		return buffer;
+	}
+	static std::string to_string(long unsigned v) {
+		char buffer[128];
+		sprintf(buffer, "%lu", v);
+		return buffer;
+	}
+	static std::string to_string(long v) {
+		char buffer[128];
+		sprintf(buffer, "%ld", v);
+		return buffer;
+	}
+	static std::string to_string(unsigned int v) {
+		char buffer[128];
+		sprintf(buffer, "%u", v);
+		return buffer;
+	}
+	static std::string to_string(int v) {
+		char buffer[128];
+		sprintf(buffer, "%d", v);
+		return buffer;
+	}
+	static std::string to_string(long long v) {
+		char buffer[128];
+		sprintf(buffer, "%lld", v);
+		return buffer;
+	}
+};
 
 inline std::string format(const std::string& format) {
 	return format;
@@ -46,7 +85,7 @@ std::string format(const std::string& fmt, const T& firstArg, Arguments... args)
 			if (fmt[i] == '%')
 				r += '%';
 			else if (fmt[i] == 's') {
-				r += toString(firstArg);
+				r += Local::to_string(firstArg);
 				return r + format(fmt.substr(i + 1), args...);
 			}
 		} else {
