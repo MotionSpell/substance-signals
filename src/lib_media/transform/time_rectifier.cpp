@@ -30,6 +30,7 @@ The module works this way:
 #include <memory>
 #include <mutex>
 #include <vector>
+#include <algorithm> // remove_if
 
 #define TR_DEBUG Debug
 
@@ -351,18 +352,14 @@ struct TimeRectifier : ModuleDynI {
 		}
 
 		void discardStreamOutdatedData(size_t inputIdx, int64_t removalClockTime) {
-			auto& stream = streams[inputIdx];
-			auto data = stream.data.begin();
-			while (data != stream.data.end()) {
-				if ((*data).creationTime < removalClockTime) {
-					m_host->log(TR_DEBUG, format("Remove last streams[%s] data time media=%s clock=%s (removalClockTime=%s)", inputIdx, (*data).data->getMediaTime(), (*data).creationTime, removalClockTime).c_str());
-					data = stream.data.erase(data);
-				} else {
-					data++;
-				}
-			}
-		}
+			auto isOutdated = [&](Stream::Rec const& rec) {
+				return rec.creationTime < removalClockTime;
+			};
 
+			auto& stream = streams[inputIdx];
+			auto& data = stream.data;
+			data.erase(std::remove_if(data.begin(), data.end(), isOutdated), data.end());
+		}
 };
 
 IModule* createObject(KHost* host, void* va) {
