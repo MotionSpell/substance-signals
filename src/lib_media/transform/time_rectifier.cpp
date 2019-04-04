@@ -65,7 +65,6 @@ struct TimeRectifier : ModuleDynI {
 		TimeRectifier(KHost* host, std::shared_ptr<IClock> clock_, IScheduler* scheduler_, Fraction frameRate)
 			: m_host(host),
 			  framePeriod(frameRate.inverse()),
-			  threshold(fractionToClock(framePeriod)),
 			  clock(clock_),
 			  scheduler(scheduler_) {
 		}
@@ -100,7 +99,6 @@ struct TimeRectifier : ModuleDynI {
 
 		Fraction const framePeriod;
 		int64_t numTicks = 0;
-		int64_t const threshold;
 		std::vector<Stream> streams;
 		std::mutex inputMutex;
 		std::shared_ptr<IClock> clock;
@@ -193,7 +191,7 @@ struct TimeRectifier : ModuleDynI {
 			// if the frame is available, but since very little time, use it, but don't remove it.
 			// Thus, it will be used again next time.
 			// This protects us from frame phase changes (e.g on SDI cable replacement).
-			if(abs(stream.data[0].creationTime - now) < threshold)
+			if(abs(stream.data[0].creationTime - now) < fractionToClock(framePeriod))
 				return stream.blank;
 
 			auto r = stream.data.front().data;
