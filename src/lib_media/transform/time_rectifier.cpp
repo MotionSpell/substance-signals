@@ -311,13 +311,14 @@ struct TimeRectifier : ModuleDynI {
 			resizePcm(pcm.get(), outMasterSamples.stop - outMasterSamples.start);
 
 			// remove obsolete samples
-			while(!stream.data.empty()) {
-				auto const inputData = safe_cast<const DataPcm>(stream.data.front().data);
+			auto isObsolete = [&](Stream::Rec const& rec) {
+				auto const inputData = safe_cast<const DataPcm>(rec.data);
 				auto const inSamples = getSampleInterval(inputData.get());
-				if(inSamples.stop >= inMasterSamples.start)
-					break;
+				return inSamples.stop < inMasterSamples.start;
+			};
+
+			while(!stream.data.empty() && isObsolete(stream.data.front()))
 				stream.data.erase(stream.data.begin());
-			}
 
 			// fill the period "outMasterSamples" with portions of input audio samples
 			// that intersect with the "media period".
