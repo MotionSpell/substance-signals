@@ -13,7 +13,7 @@ namespace {
 
 template<size_t numBytes>
 std::shared_ptr<DataBase> createPacket(uint8_t const (&bytes)[numBytes]) {
-	auto pkt = make_shared<DataRaw>(numBytes);
+	auto pkt = std::make_shared<DataRaw>(numBytes);
 	memcpy(pkt->getBuffer()->data().ptr, bytes, numBytes);
 	return pkt;
 }
@@ -42,7 +42,7 @@ std::shared_ptr<DataBase> getTestMp3Frame() {
 		0x00, 0x00, 0x00, 0x00
 	};
 
-	auto meta = make_shared<MetadataPktAudio>();
+	auto meta = std::make_shared<MetadataPktAudio>();
 	meta->numChannels = 1;
 	meta->sampleRate = 44100;
 	meta->bitsPerSample = 16;

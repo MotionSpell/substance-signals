@@ -12,7 +12,7 @@ using namespace Modules;
 namespace {
 
 std::shared_ptr<DataBase> createPacket(span<const char> contents) {
-	auto r = make_shared<DataRaw>(contents.len);
+	auto r = std::make_shared<DataRaw>(contents.len);
 	memcpy(r->getBuffer()->data().ptr, contents.ptr, contents.len);
 	return r;
 }

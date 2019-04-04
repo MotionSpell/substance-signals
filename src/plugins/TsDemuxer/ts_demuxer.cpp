@@ -10,6 +10,7 @@
 #include "lib_utils/log_sink.hpp" // Error
 #include "lib_utils/format.hpp"
 #include "lib_utils/time_unwrapper.hpp"
+#include "lib_utils/tools.hpp" // enforce
 #include <vector>
 using namespace std;
 

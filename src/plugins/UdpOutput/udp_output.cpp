@@ -1,6 +1,7 @@
 #include "udp_output.hpp"
 #include "lib_modules/utils/factory.hpp" // registerModule
 #include "lib_modules/utils/helper.hpp"
+#include "lib_utils/tools.hpp" // enforce
 #include "socket.hpp"
 
 using namespace Modules;

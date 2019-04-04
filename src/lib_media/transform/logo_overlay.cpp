@@ -2,6 +2,7 @@
 
 #include <lib_modules/modules.hpp>
 #include <lib_media/common/picture.hpp>
+#include "lib_utils/tools.hpp" // safe_cast
 #include <lib_modules/utils/loader.hpp>
 #include <algorithm> //std::min
 #include <cstring> // memcpy

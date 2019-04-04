@@ -4,6 +4,7 @@
 #include "lib_media/common/metadata.hpp"
 #include "lib_media/common/resolution.hpp"
 
+using namespace std;
 using namespace Tests;
 using namespace Modules;
 

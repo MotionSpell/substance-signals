@@ -7,6 +7,7 @@
 #include "lib_utils/log.hpp" // g_Log
 #include <string.h>
 
+using std::make_shared;
 using namespace Tests;
 using namespace Modules;
 

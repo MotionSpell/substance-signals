@@ -7,6 +7,7 @@
 #include "lib_utils/log.hpp" // g_Log
 #include "lib_utils/os.hpp"
 #include "lib_utils/format.hpp"
+#include "lib_utils/tools.hpp" // safe_cast
 #include <algorithm>
 #include <cstring>
 #include <sstream>

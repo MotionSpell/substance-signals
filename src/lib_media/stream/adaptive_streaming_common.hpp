@@ -6,6 +6,7 @@
 #include "lib_modules/utils/helper_dyn.hpp"
 #include "lib_utils/format.hpp"
 #include "lib_utils/log.hpp"
+#include "lib_utils/tools.hpp" // safe_cast
 #include <memory>
 #include <string>
 #include <thread>

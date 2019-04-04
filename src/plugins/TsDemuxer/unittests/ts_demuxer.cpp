@@ -2,6 +2,7 @@
 #include "lib_media/common/metadata.hpp"
 #include "lib_modules/modules.hpp"
 #include "lib_modules/utils/loader.hpp"
+#include "lib_utils/tools.hpp" // safe_cast
 #include "../ts_demuxer.hpp"
 #include "string.h" // memcpy
 

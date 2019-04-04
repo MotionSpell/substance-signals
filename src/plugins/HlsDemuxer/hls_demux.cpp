@@ -3,6 +3,7 @@
 #include "lib_modules/utils/factory.hpp"
 #include "hls_demux.hpp"
 #include "lib_modules/utils/helper.hpp" // ActiveModule
+#include "lib_utils/tools.hpp" // enforce
 #include <sstream>
 #include <memory>
 #include <string.h> // memcpy

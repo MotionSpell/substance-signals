@@ -4,6 +4,7 @@
 #include "lib_modules/utils/factory.hpp"
 #include "lib_utils/log_sink.hpp"
 #include "lib_utils/os.hpp"
+#include "lib_utils/tools.hpp" // enforce
 
 #include <map>
 #include <fstream>

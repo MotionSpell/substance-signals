@@ -3,6 +3,7 @@
 #include "helper_input.hpp"
 #include "lib_utils/log.hpp"
 #include "lib_utils/format.hpp"
+#include "lib_utils/tools.hpp" // safe_cast
 
 namespace Modules {
 

@@ -8,7 +8,6 @@
 #include "../core/error.hpp"
 #include "../core/database.hpp" // Data, Metadata
 #include "lib_signals/signals.hpp" // Signals::Signal
-#include "lib_utils/tools.hpp" // uptr
 #include <memory>
 
 namespace Modules {
@@ -95,7 +94,7 @@ class Module : public IModule {
 		template <typename InstanceType>
 		InstanceType* addOutput() {
 			auto p = new InstanceType(allocatorSize);
-			outputs.push_back(uptr(p));
+			outputs.push_back(std::unique_ptr<InstanceType>(p));
 			return p;
 		}
 
@@ -114,12 +113,12 @@ struct ModuleDefault : public OutputCap, public InstanceType {
 
 template <typename InstanceType, typename ...Args>
 std::unique_ptr<InstanceType> createModuleWithSize(size_t allocatorSize, Args&&... args) {
-	return make_unique<ModuleDefault<InstanceType>>(allocatorSize, std::forward<Args>(args)...);
+	return std::make_unique<ModuleDefault<InstanceType>>(allocatorSize, std::forward<Args>(args)...);
 }
 
 template <typename InstanceType, typename ...Args>
 std::unique_ptr<InstanceType> createModule(Args&&... args) {
-	return make_unique<ModuleDefault<InstanceType>>(ALLOC_NUM_BLOCKS_DEFAULT, std::forward<Args>(args)...);
+	return std::make_unique<ModuleDefault<InstanceType>>(ALLOC_NUM_BLOCKS_DEFAULT, std::forward<Args>(args)...);
 }
 
 //single input specialized module

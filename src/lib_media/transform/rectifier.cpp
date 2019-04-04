@@ -23,6 +23,7 @@ The module works this way:
 #include "lib_utils/i_scheduler.hpp"
 #include "lib_utils/log_sink.hpp"
 #include "lib_utils/scheduler.hpp"
+#include "lib_utils/tools.hpp" // enforce, safe_cast
 
 #include "../common/pcm.hpp"
 

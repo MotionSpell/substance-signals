@@ -6,6 +6,8 @@
 namespace Modules {
 namespace Transform {
 
+using namespace std;
+
 AudioGapFiller::AudioGapFiller(KHost* host, uint64_t toleranceInFrames)
 	: m_host(host), toleranceInFrames(toleranceInFrames) {
 	input->setMetadata(make_shared<MetadataRawAudio>());

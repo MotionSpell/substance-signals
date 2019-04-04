@@ -11,6 +11,7 @@
 #include "lib_modules/utils/loader.hpp"
 #include "lib_utils/log.hpp"
 #include "lib_utils/format.hpp"
+#include "lib_utils/tools.hpp" // safe_cast
 #include <cmath>
 
 using namespace Tests;

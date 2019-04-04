@@ -1,6 +1,7 @@
 #include "http.hpp"
 #include "lib_modules/utils/factory.hpp" // registerModule
 #include "lib_utils/format.hpp"
+#include "lib_utils/tools.hpp" // enforce
 #include "../common/http_sender.hpp"
 
 using namespace Modules;

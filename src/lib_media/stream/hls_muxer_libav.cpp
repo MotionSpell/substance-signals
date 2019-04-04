@@ -9,6 +9,7 @@
 #include "../common/metadata_file.hpp"
 #include "lib_utils/format.hpp"
 #include "lib_utils/log_sink.hpp"
+#include "lib_utils/tools.hpp" // safe_cast
 #include <cassert>
 #include <list>
 

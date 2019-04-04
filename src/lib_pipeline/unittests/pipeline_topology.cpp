@@ -2,6 +2,7 @@
 #include "lib_pipeline/pipeline.hpp"
 #include "pipeline_common.hpp"
 
+using namespace std;
 using namespace Tests;
 using namespace Modules;
 using namespace Pipelines;

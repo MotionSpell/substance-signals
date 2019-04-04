@@ -6,6 +6,7 @@
 #include "lib_modules/core/connection.hpp"
 #include "lib_modules/utils/loader.hpp"
 #include "lib_modules/utils/factory.hpp"
+#include "lib_utils/tools.hpp" // enforce
 
 std::unique_ptr<Modules::In::IFilePuller> createHttpSource();
 
