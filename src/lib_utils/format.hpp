@@ -80,7 +80,7 @@ std::string format(const std::string& fmt, const T& firstArg, Arguments... args)
 		if (fmt[i] == '%') {
 			++i;
 			if (i >= fmt.size())
-				throw std::runtime_error("Invalid fmt specifier");
+				throw std::runtime_error("Invalid format specifier");
 
 			if (fmt[i] == '%')
 				r += '%';
