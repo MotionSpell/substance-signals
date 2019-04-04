@@ -29,10 +29,6 @@ PKGS+=\
   libavutil\
   libcurl\
 
-ifeq ($(SIGNALS_HAS_X11), 1)
-include $(MYDIR)/render/render.mk
-endif
-
 $(BIN)/media-config.mk: $(SRC)/../scripts/configure
 	@mkdir -p $(BIN)
 	$(SRC)/../scripts/configure --scope MEDIA_ gpac libswresample libavcodec libavdevice libavformat libavfilter libswscale libturbojpeg > "$@"
@@ -129,14 +125,6 @@ $(BIN)/LibavMux.smd: \
   $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
 
 #------------------------------------------------------------------------------
-TARGETS+=$(BIN)/TsMuxer.smd
-$(BIN)/TsMuxer.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
-$(BIN)/TsMuxer.smd: CFLAGS+=$(MEDIA_CFLAGS)
-$(BIN)/TsMuxer.smd: \
-  $(BIN)/$(SRC)/lib_media/mux/TsMuxer/mpegts_muxer.cpp.o\
-  $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
-
-#------------------------------------------------------------------------------
 TARGETS+=$(BIN)/LibavFilter.smd
 $(BIN)/LibavFilter.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
 $(BIN)/LibavFilter.smd: CFLAGS+=$(MEDIA_CFLAGS)
@@ -185,14 +173,6 @@ $(BIN)/GPACDemuxMP4Full.smd: \
   $(BIN)/$(SRC)/lib_media/demux/gpac_demux_mp4_full.cpp.o\
 
 #------------------------------------------------------------------------------
-TARGETS+=$(BIN)/HlsDemuxer.smd
-$(BIN)/HlsDemuxer.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
-$(BIN)/HlsDemuxer.smd: CFLAGS+=$(MEDIA_CFLAGS)
-$(BIN)/HlsDemuxer.smd: \
-  $(BIN)/$(SRC)/lib_media/demux/HlsDemuxer/hls_demux.cpp.o\
-  $(BIN)/$(SRC)/lib_media/common/http_puller.cpp.o\
-
-#------------------------------------------------------------------------------
 TARGETS+=$(BIN)/FileSystemSink.smd
 $(BIN)/FileSystemSink.smd: \
   $(BIN)/$(SRC)/lib_media/out/filesystem.cpp.o\
@@ -201,11 +181,6 @@ $(BIN)/FileSystemSink.smd: \
 TARGETS+=$(BIN)/LogoOverlay.smd
 $(BIN)/LogoOverlay.smd: \
   $(BIN)/$(SRC)/lib_media/transform/logo_overlay.cpp.o\
-
-#------------------------------------------------------------------------------
-include $(SRC)/lib_media/in/MulticastInput/project.mk
-include $(SRC)/lib_media/out/UdpOutput/project.mk
-include $(SRC)/lib_media/demux/TsDemuxer/project.mk
 
 #------------------------------------------------------------------------------
 # Warning derogations. TODO: make this list empty

@@ -6,10 +6,11 @@
 #include "lib_media/common/pcm.hpp"
 #include "lib_media/common/metadata.hpp" // MetadataPkt
 #include "lib_media/transform/audio_convert.hpp"
-#include "lib_media/mux/TsMuxer/mpegts_muxer.hpp"
 #include "lib_media/in/file.hpp"
 #include "lib_media/out/null.hpp"
 #include "lib_utils/tools.hpp"
+
+#include "plugins/TsMuxer/mpegts_muxer.hpp"
 
 using namespace Tests;
 using namespace Modules;

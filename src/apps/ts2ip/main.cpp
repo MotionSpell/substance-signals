@@ -1,7 +1,7 @@
 #include "lib_appcommon/options.hpp"
 #include "lib_utils/system_clock.hpp"
 #include "lib_pipeline/pipeline.hpp"
-#include "lib_media/out/UdpOutput/udp_output.hpp"
+#include "plugins/UdpOutput/udp_output.hpp"
 #include "lib_media/in/file.hpp"
 #include "lib_media/transform/restamp.hpp" // BitrateRestamp
 #include "lib_media/utils/regulator.hpp"

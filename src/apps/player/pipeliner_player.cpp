@@ -8,12 +8,12 @@
 // modules
 #include "lib_media/demux/dash_demux.hpp"
 #include "lib_media/demux/libav_demux.hpp"
-#include "lib_media/demux/HlsDemuxer/hls_demux.hpp"
-#include "lib_media/demux/TsDemuxer/ts_demuxer.hpp"
 #include "lib_media/in/mpeg_dash_input.hpp"
 #include "lib_media/in/video_generator.hpp"
 #include "lib_media/in/file.hpp"
 #include "lib_media/out/null.hpp"
+#include "plugins/HlsDemuxer/hls_demux.hpp"
+#include "plugins/TsDemuxer/ts_demuxer.hpp"
 
 using namespace Modules;
 using namespace Pipelines;

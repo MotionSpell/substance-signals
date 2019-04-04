@@ -3,10 +3,10 @@
 #include "lib_modules/utils/helper_dyn.hpp"
 #include "lib_modules/utils/factory.hpp"
 #include "lib_utils/tools.hpp"
-#include "../../common/ffpp.hpp"
-#include "../../common/libav.hpp" // avStrError
-#include "../../common/metadata.hpp"
-#include "../../common/attributes.hpp"
+#include "lib_media/common/ffpp.hpp"
+#include "lib_media/common/libav.hpp" // avStrError
+#include "lib_media/common/metadata.hpp"
+#include "lib_media/common/attributes.hpp"
 #include <algorithm> //std::min
 #include <cassert>
 #include <string>

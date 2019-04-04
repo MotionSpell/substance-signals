@@ -65,6 +65,7 @@ LIB_APPCOMMON_SRCS:=\
   $(SRC)/lib_appcommon/options.cpp \
 
 include $(SRC)/lib_media/project.mk
+include $(SRC)/plugins/project.mk
 
 ifeq ($(SIGNALS_HAS_APPS), 1)
   include $(SRC)/apps/dashcastx/project.mk

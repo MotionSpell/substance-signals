@@ -5,8 +5,8 @@
 #include "lib_utils/queue.hpp"
 #include "lib_modules/utils/helper.hpp"
 #include "lib_modules/utils/factory.hpp"
-#include "../common/picture.hpp"
-#include "../common/metadata.hpp"
+#include "lib_media/common/picture.hpp"
+#include "lib_media/common/metadata.hpp"
 #include "SDL2/SDL.h"
 #include "render_common.hpp"
 #include <thread>

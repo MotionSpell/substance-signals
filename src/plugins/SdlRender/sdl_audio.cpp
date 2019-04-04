@@ -13,9 +13,9 @@
 #include "lib_modules/utils/helper.hpp"
 #include "lib_modules/utils/factory.hpp"
 
-#include "../common/metadata.hpp"
-#include "../common/pcm.hpp"
-#include "../transform/audio_convert.hpp"
+#include "lib_media/common/metadata.hpp"
+#include "lib_media/common/pcm.hpp"
+#include "lib_media/transform/audio_convert.hpp"
 #include "lib_modules/utils/loader.hpp"
 
 #include "render_common.hpp"

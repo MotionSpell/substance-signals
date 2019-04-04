@@ -1,6 +1,6 @@
 #include "lib_appcommon/options.hpp"
 #include "lib_pipeline/pipeline.hpp"
-#include "lib_media/in/MulticastInput/multicast_input.hpp"
+#include "plugins/MulticastInput/multicast_input.hpp"
 #include "lib_media/out/file.hpp"
 #include "lib_media/out/null.hpp"
 
