@@ -130,12 +130,12 @@ class LibavMuxHLSTS : public ModuleDynI {
 				return false;
 
 			auto s = segmentsToPost.front();
-			if (fileExists(s.meta->filename)) {
-				s.meta->filesize = fileSize(s.meta->filename);
-			} else {
+			if (!fileExists(s.meta->filename)) {
 				m_host->log(Warning, format("Cannot post filename \"%s\": file does not exist.", s.meta->filename).c_str());
 				return false;
 			}
+
+			s.meta->filesize = fileSize(s.meta->filename);
 
 			auto data = outputSegment->allocData<DataRaw>(0);
 			data->setMediaTime(s.pts);
