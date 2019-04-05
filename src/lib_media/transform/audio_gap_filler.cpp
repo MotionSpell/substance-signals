@@ -22,10 +22,10 @@ void AudioGapFiller::processOne(Data data) {
 		accumulatedTimeInSR = timeInSR;
 	}
 
-	auto const srcNumSamples = audioData->data().len / audioData->format.getBytesPerSample();
+	auto const srcNumSamples = audioData->getSampleCount();
 	auto const diff = (int64_t)(timeInSR - accumulatedTimeInSR);
-	if ((uint64_t)std::abs(diff) >= srcNumSamples) {
-		if ((uint64_t)std::abs(diff) <= srcNumSamples * (1 + toleranceInFrames)) {
+	if (std::abs(diff) >= srcNumSamples) {
+		if (std::abs(diff) <= srcNumSamples * (1 + (int64_t)toleranceInFrames)) {
 			if (diff > 0) {
 				m_host->log(Warning, format("Fixing gap of %s samples (input=%s, accumulation=%s)", diff, timeInSR, accumulatedTimeInSR).c_str());
 				auto dataInThePast = clone(data);

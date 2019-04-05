@@ -117,6 +117,10 @@ class DataPcm : public DataBase {
 			m_sampleCount = sampleCount;
 		}
 
+		int getSampleCount() const {
+			return m_sampleCount;
+		}
+
 	private:
 		int m_sampleCount = 0;
 };
