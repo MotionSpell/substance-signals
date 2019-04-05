@@ -108,8 +108,7 @@ struct DataGenerator : public ModuleS, public virtual IOutputCap {
 		if (dataPcm) {
 			PcmFormat fmt(48000);
 			dataPcm->setFormat(fmt);
-			for(int i=0; i < dataPcm->getFormat().numPlanes; ++i)
-				dataPcm->setPlane(i, nullptr, 1024 * dataPcm->getFormat().getBytesPerSample());
+			dataPcm->setSampleCount(1024);
 		}
 		data->setMediaTime(dataIn->getMediaTime());
 		output->post(data);
