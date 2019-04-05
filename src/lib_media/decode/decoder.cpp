@@ -169,10 +169,6 @@ struct Decoder : ModuleS, PictureAllocator {
 			return pic;
 		}
 
-		void setMediaTime(DataBase* data) {
-			data->setMediaTime(avFrame->get()->pts);
-		}
-
 		PictureAllocator::PictureContext* getPicture(Resolution res, Resolution resInternal, PixelFormat format) {
 			auto ctx = new PictureAllocator::PictureContext;
 			ctx->pic = DataPicture::create(mediaOutput, res, resInternal, format);
@@ -198,7 +194,7 @@ struct Decoder : ModuleS, PictureAllocator {
 				}
 
 				auto data = getDecompressedData();
-				setMediaTime(data.get());
+				data->setMediaTime(avFrame->get()->pts);
 				output->post(data);
 			}
 		}
