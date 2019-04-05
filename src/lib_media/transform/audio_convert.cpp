@@ -99,7 +99,7 @@ struct AudioConvert : ModuleS {
 				resyncNeeded = true;
 			}
 
-			auto const srcNumSamples = audioData->size() / audioData->getFormat().getBytesPerSample();
+			auto const srcNumSamples = audioData->data().len / audioData->getFormat().getBytesPerSample();
 			inputSampleCount += srcNumSamples;
 
 			// detect gaps in input

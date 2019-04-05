@@ -92,11 +92,31 @@ class PcmFormat {
 		int numPlanes;
 };
 
-class DataPcm : public DataBase, private IBuffer {
+namespace {
+struct PcmBuffer : IBuffer {
+	PcmBuffer(size_t size) : memoryBlock(size) {}
+	std::vector<uint8_t> memoryBlock;
+
+	Span data() {
+		return Span { memoryBlock.data(), memoryBlock.size() };
+	}
+
+	SpanC data() const {
+		return SpanC { memoryBlock.data(), memoryBlock.size() };
+	}
+
+	void resize(size_t size) {
+		memoryBlock.resize(size);
+	}
+};
+}
+
+class DataPcm : public DataBase {
 	public:
 		DataPcm(size_t size) {
 			if (size > 0)
 				throw std::runtime_error("Forbidden operation. Requested size must be 0. Then call setFormat().");
+			buffer = std::make_shared<PcmBuffer>(size);
 		}
 
 		const PcmFormat& getFormat() const {
@@ -109,34 +129,17 @@ class DataPcm : public DataBase, private IBuffer {
 
 		// DataBase
 		virtual const IBuffer* getBuffer() const override {
-			return this;
+			return buffer.get();
 		}
 
 		virtual IBuffer* getBuffer() {
-			return this;
-		}
-
-		// IBuffer
-		Span data() override {
-			return Span { buffer.data(), buffer.size() };
-		}
-
-		SpanC data() const override {
-			return SpanC { buffer.data(), buffer.size() };
-		}
-
-		size_t size() const {
-			return buffer.size();
-		}
-
-		void resize(size_t /*size*/) override {
-			throw std::runtime_error("Forbidden operation. You cannot resize PCM data.");
+			return buffer.get();
 		}
 
 		uint8_t* getPlane(int planeIdx) const {
 			if (planeIdx > format.numPlanes)
 				throw std::runtime_error("Pcm plane doesn't exist.");
-			return const_cast<uint8_t*>(buffer.data() + getPlaneSize() * planeIdx);
+			return const_cast<uint8_t*>(buffer->data().ptr + getPlaneSize() * planeIdx);
 		}
 
 		uint64_t getPlaneSize() const {
@@ -144,14 +147,14 @@ class DataPcm : public DataBase, private IBuffer {
 		}
 
 		void setSampleCount(int sampleCount) {
-			buffer.resize(sampleCount * format.getBytesPerSample());
+			buffer->resize(sampleCount * format.getBytesPerSample());
 			m_sampleCount = sampleCount;
 		}
 
 	private:
 		PcmFormat format;
 		int m_sampleCount = 0;
-		std::vector<uint8_t> buffer;
+		std::shared_ptr<IBuffer> buffer;
 };
 
 }

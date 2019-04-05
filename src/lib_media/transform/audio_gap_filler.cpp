@@ -22,7 +22,7 @@ void AudioGapFiller::processOne(Data data) {
 		accumulatedTimeInSR = timeInSR;
 	}
 
-	auto const srcNumSamples = audioData->size() / audioData->getFormat().getBytesPerSample();
+	auto const srcNumSamples = audioData->data().len / audioData->getFormat().getBytesPerSample();
 	auto const diff = (int64_t)(timeInSR - accumulatedTimeInSR);
 	if ((uint64_t)std::abs(diff) >= srcNumSamples) {
 		if ((uint64_t)std::abs(diff) <= srcNumSamples * (1 + toleranceInFrames)) {

@@ -193,7 +193,7 @@ void libavFrameDataConvert(const DataPcm *pcmData, AVFrame *frame) {
 		else
 			frame->linesize[i] = 0;
 	}
-	frame->nb_samples = (int)(pcmData->size() / format.getBytesPerSample());
+	frame->nb_samples = (int)(pcmData->getBuffer()->data().len / format.getBytesPerSample());
 }
 
 AVPixelFormat pixelFormat2libavPixFmt(PixelFormat format) {
