@@ -338,15 +338,10 @@ unittest("audio converter: timestamp gap") {
 
 unittest("audio gap filler") {
 	PcmFormat format;
+	auto const numSamples = 1024;
 	auto data = make_shared<DataPcm>(0);
 	data->format = format;
-	auto const numSamples = 1024;
 	data->setSampleCount(numSamples);
-	const size_t inFrameSizeInBytes = numSamples * format.getBytesPerSample() / format.numPlanes;
-	std::vector<uint8_t> input(inFrameSizeInBytes);
-	for (int i = 0; i < format.numPlanes; ++i) {
-		memcpy(data->getPlane(i), input.data(), inFrameSizeInBytes);
-	}
 
 	const std::vector<int64_t> in =  { 1, 2, 3,    5, 6, 7, 8, 7, 8, 9, 1000, 1001, 1002, 3, 4, 5 };
 	const std::vector<int64_t> out = { 1, 2, 3, 4, 5, 6, 7, 8,       9, 1000, 1001, 1002, 3, 4, 5 };
