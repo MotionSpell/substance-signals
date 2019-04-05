@@ -285,7 +285,7 @@ unittest("audio converter: timestamp passthrough") {
 	auto data = make_shared<DataPcm>(0);
 	data->setMediaTime(777777);
 	data->setFormat(format);
-	data->setPlane(0, nullptr, 1024);
+	data->setSampleCount(1024);
 	converter->getInput(0)->push(data);
 	converter->flush();
 
@@ -298,12 +298,10 @@ unittest("audio converter: timestamp gap") {
 	auto format = PcmFormat(44100, 1, Mono, S16, Planar);
 
 	auto createSample = [&](int64_t mediaTime) {
-		const auto inFrameSize = inSamplesPerFrame * format.getBytesPerSample();
-
 		auto data = make_shared<DataPcm>(0);
 		data->setMediaTime(mediaTime);
 		data->setFormat(format);
-		data->setPlane(0, nullptr, inFrameSize);
+		data->setSampleCount(inSamplesPerFrame);
 		return data;
 	};
 
