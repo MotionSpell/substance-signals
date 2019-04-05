@@ -58,6 +58,8 @@ class DataBase {
 		int64_t getMediaTime() const;
 };
 
+std::shared_ptr<DataBase> clone(std::shared_ptr<const DataBase> data);
+
 class DataBaseRef : public DataBase {
 	public:
 		DataBaseRef(std::shared_ptr<const DataBase> data);

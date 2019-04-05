@@ -28,7 +28,7 @@ void AudioGapFiller::processOne(Data data) {
 		if ((uint64_t)std::abs(diff) <= srcNumSamples * (1 + toleranceInFrames)) {
 			if (diff > 0) {
 				m_host->log(Warning, format("Fixing gap of %s samples (input=%s, accumulation=%s)", diff, timeInSR, accumulatedTimeInSR).c_str());
-				auto dataInThePast = make_shared<DataBaseRef>(data);
+				auto dataInThePast = clone(data);
 				dataInThePast->setMediaTime(data->getMediaTime() - timescaleToClock((uint64_t)srcNumSamples, sampleRate));
 				processOne(dataInThePast);
 			} else {
@@ -40,7 +40,7 @@ void AudioGapFiller::processOne(Data data) {
 		}
 	}
 
-	auto dataOut = make_shared<DataBaseRef>(data);
+	auto dataOut = clone(data);
 	dataOut->setMediaTime(accumulatedTimeInSR, sampleRate);
 	output->post(dataOut);
 

@@ -125,7 +125,7 @@ unittest("duplicating data") {
 	const Resolution res(80, 60);
 	auto data = make_shared<DataPcm>(0);
 
-	Data dataCopy = make_shared<DataBaseRef>(data);
+	Data dataCopy = clone(data);
 	data = nullptr;
 
 	auto dataCopyPcm = safe_cast<const DataPcm>(dataCopy);

@@ -47,6 +47,10 @@ void DataBase::copyAttributes(DataBase const& from) {
 	attributes = from.attributes;
 }
 
+std::shared_ptr<DataBase> clone(std::shared_ptr<const DataBase> data) {
+	return std::make_shared<DataBaseRef>(data);
+}
+
 DataBaseRef::DataBaseRef(std::shared_ptr<const DataBase> data) {
 	if (data) {
 		copyAttributes(*data);

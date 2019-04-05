@@ -156,7 +156,7 @@ void Apple_HLS::updateManifestVariants() {
 			std::istringstream buffer(firstSegNumStr);
 			buffer >> firstSegNums[i];
 
-			auto out = make_shared<DataBaseRef>(quality->lastData);
+			auto out = clone(quality->lastData);
 			{
 				auto file = make_shared<MetadataFile>(SEGMENT);
 

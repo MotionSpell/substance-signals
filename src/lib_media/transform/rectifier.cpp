@@ -218,7 +218,7 @@ struct Rectifier : ModuleDynI {
 					m_host->log(Info, format("First available reference clock time: %s", fractionToClock(now)).c_str());
 				}
 
-				auto data = make_shared<DataBaseRef>(masterFrame);
+				auto data = clone(masterFrame);
 				data->setMediaTime(outMasterTime.start);
 				master.output->post(data);
 				discardStreamOutdatedData(masterStreamId, data->getMediaTime());
