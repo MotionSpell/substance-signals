@@ -30,15 +30,6 @@ void AVCodecContextDeleter(AVCodecContext *p) {
 	avcodec_free_context(&p);
 }
 
-StreamType getType(AVCodecContext* codecCtx) {
-	switch (codecCtx->codec_type) {
-	case AVMEDIA_TYPE_VIDEO: return VIDEO_PKT;
-	case AVMEDIA_TYPE_AUDIO: return AUDIO_PKT;
-	case AVMEDIA_TYPE_SUBTITLE: return SUBTITLE_PKT;
-	default: throw std::runtime_error("Unknown stream type. Only audio, video and subtitle handled.");
-	}
-}
-
 static
 void initMetadatPkt(MetadataPkt* meta, AVCodecContext* codecCtx) {
 	enforce(codecCtx != nullptr, "MetadataPkt 'codecCtx' can't be null.");
