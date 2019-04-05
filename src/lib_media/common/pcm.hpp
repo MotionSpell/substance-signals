@@ -159,7 +159,7 @@ class DataPcm : public DataBase, private IBuffer {
 
 		void setSampleCount(int sampleCount) {
 			for(int i=0; i < format.numPlanes; ++i)
-				planes[i].resize(sampleCount * format.getBytesPerSample());
+				planes[i].resize(sampleCount * format.getBytesPerSample() / format.numPlanes);
 		}
 
 	private:

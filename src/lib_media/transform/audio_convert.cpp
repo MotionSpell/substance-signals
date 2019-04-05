@@ -178,9 +178,8 @@ struct AudioConvert : ModuleS {
 
 			if (outNumSamples == targetNumSamples) {
 				auto const outPlaneSize = m_dstLen * m_dstFormat.getBytesPerSample() / m_dstFormat.numPlanes;
+				m_out->setSampleCount(m_dstLen);
 				for (int i = 0; i < m_dstFormat.numPlanes; ++i) {
-					m_out->setPlane(i, m_out->getPlane(i), outPlaneSize);
-
 					/*pad with zeroes on last uncopied framing bytes*/
 					auto const outSizeInBytes = m_outLen * m_dstFormat.getBytesPerSample() / m_dstFormat.numPlanes;
 					memset(m_out->getPlane(i) + outSizeInBytes, 0, outPlaneSize - outSizeInBytes);

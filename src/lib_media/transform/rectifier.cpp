@@ -262,7 +262,7 @@ struct Rectifier : ModuleDynI {
 			if(stream.fmt.sampleRate == 0)
 				return;
 
-			auto const BPS = stream.fmt.getBytesPerSample();
+			auto const BPS = stream.fmt.getBytesPerSample() / stream.fmt.numPlanes;
 
 			// convert a timestamp to an absolute sample count
 			auto toSamples = [&](int64_t time) -> int64_t {
