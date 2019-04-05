@@ -30,8 +30,8 @@ class JPEGTurboEncode : public ModuleS {
 
 		void processOne(Data data_) override {
 			auto videoData = safe_cast<const DataPicture>(data_);
-			auto const w = videoData->getFormat().res.width, h = videoData->getFormat().res.height;
-			auto const dataSize = tjBufSize(w, h, TJSAMP_420);
+			auto const dim = videoData->getFormat().res;
+			auto const dataSize = tjBufSize(dim.width, dim.height, TJSAMP_420);
 			auto out = output->allocData<DataRaw>(dataSize);
 			unsigned char *buf = (unsigned char*)out->data().ptr;
 			auto jpegBuf = videoData->data().ptr;
@@ -62,7 +62,7 @@ class JPEGTurboEncode : public ModuleS {
 			}
 			case PixelFormat::RGB24:
 			case PixelFormat::RGBA32: {
-				if (tjCompress2(jtHandle, (unsigned char*)jpegBuf, w, 0/*pitch*/, h, TJPF_RGB, &buf, &jpegSize, TJSAMP_420, quality, TJFLAG_NOREALLOC | TJFLAG_FASTDCT) < 0) {
+				if (tjCompress2(jtHandle, (unsigned char*)jpegBuf, dim.width, 0/*pitch*/, dim.height, TJPF_RGB, &buf, &jpegSize, TJSAMP_420, quality, TJFLAG_NOREALLOC | TJFLAG_FASTDCT) < 0) {
 					m_host->log(Warning, "error encountered while compressing (RGB).");
 					return;
 				}
