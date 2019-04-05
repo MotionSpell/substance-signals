@@ -7,14 +7,11 @@
 #include "../mux/libav_mux.hpp"
 #include "../common/libav.hpp"
 #include "../common/metadata_file.hpp"
+#include "../common/attributes.hpp"
 #include "lib_utils/format.hpp"
 #include "lib_utils/log_sink.hpp"
 #include "lib_utils/tools.hpp" // safe_cast
 #include <cassert>
-
-extern "C" {
-#include <libavcodec/avcodec.h> // AVPacket
-}
 
 using namespace Modules;
 
@@ -69,10 +66,11 @@ class LibavMuxHLSTS : public ModuleDynI {
 			delegate->getInput(inputIdx)->push(data);
 
 			if (data->getMetadata()->type == VIDEO_PKT) {
+				auto flags = data->get<CueFlags>();
 				const int64_t DTS = data->getMediaTime();
 				if (firstDTS == -1) {
 					firstDTS = DTS;
-					startsWithRAP = safe_cast<const DataAVPacket>(data)->getPacket()->flags & AV_PKT_FLAG_KEY;
+					startsWithRAP = flags.keyframe;
 				}
 
 				if (DTS >= (segIdx + 1) * segDuration + firstDTS) {
@@ -95,7 +93,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 					schedule({ (int64_t)m_utcStartTime->query() + data->getMediaTime(), meta, segIdx });
 
 					/*next segment*/
-					startsWithRAP = safe_cast<const DataAVPacket>(data)->getPacket()->flags & AV_PKT_FLAG_KEY;;
+					startsWithRAP = flags.keyframe;
 					segIdx++;
 				}
 			}
