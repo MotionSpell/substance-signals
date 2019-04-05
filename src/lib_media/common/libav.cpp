@@ -228,41 +228,59 @@ PixelFormat libavPixFmt2PixelFormat(AVPixelFormat avPixfmt) {
 	}
 }
 
-//DataAVPacket
-DataAVPacket::DataAVPacket(size_t size) {
+struct DataAVBuffer : IBuffer {
+	DataAVBuffer(size_t size);
+	~DataAVBuffer();
+
+	Span data() override;
+	SpanC data() const override;
+
+	void resize(size_t size) override;
+
+	AVPacket pkt;
+};
+
+DataAVBuffer::DataAVBuffer(size_t size) {
 	av_init_packet(&pkt);
 	av_packet_unref(&pkt);
 	if (size)
 		av_new_packet(&pkt, (int)size);
 }
 
-DataAVPacket::~DataAVPacket() {
+DataAVBuffer::~DataAVBuffer() {
 	av_packet_unref(&pkt);
 }
 
-Span DataAVPacket::data() {
+Span DataAVBuffer::data() {
 	return Span { pkt.data, (size_t)pkt.size };
 }
 
-SpanC DataAVPacket::data() const {
+SpanC DataAVBuffer::data() const {
 	return SpanC { pkt.data, (size_t)pkt.size };
 }
 
+void DataAVBuffer::resize(size_t size) {
+	if (av_grow_packet(&pkt, size))
+		throw std::runtime_error(format("Cannot resize DataAVPacket to size %s (cur=%s)", size, pkt.size));
+}
+
+//DataAVPacket
+DataAVPacket::DataAVPacket(size_t size) {
+	m_buffer = std::make_shared<DataAVBuffer>(size);
+}
+
 AVPacket* DataAVPacket::getPacket() const {
-	return const_cast<AVPacket*>(&pkt);
+	auto avBuffer = safe_cast<DataAVBuffer>(m_buffer.get());
+	return const_cast<AVPacket*>(&avBuffer->pkt);
 }
 
 void DataAVPacket::restamp(int64_t offsetIn180k, uint64_t pktTimescale) {
 	auto const offset = clockToTimescale(offsetIn180k, pktTimescale);
+	auto& pkt = *getPacket();
 	pkt.dts += offset;
 	if (pkt.pts != AV_NOPTS_VALUE) {
 		pkt.pts += offset;
 	}
-}
-
-void DataAVPacket::resize(size_t size) {
-	if (av_grow_packet(&pkt, size))
-		throw std::runtime_error(format("Cannot resize DataAVPacket to size %s (cur=%s)", size, pkt.size));
 }
 
 static int getBytePerPixel(PixelFormat format) {
