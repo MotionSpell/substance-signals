@@ -49,7 +49,7 @@ void DataBase::copyAttributes(DataBase const& from) {
 
 DataBaseRef::DataBaseRef(std::shared_ptr<const DataBase> data) {
 	if (data) {
-		setMediaTime(data->getMediaTime());
+		copyAttributes(*data);
 		setMetadata(data->getMetadata());
 		auto ref = std::dynamic_pointer_cast<const DataBaseRef>(data);
 		if (ref) {
