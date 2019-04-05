@@ -8,45 +8,43 @@
 
 namespace Modules {
 
-class PictureFormat {
-	public:
-		PictureFormat() : format(PixelFormat::UNKNOWN) {
-		}
-		PictureFormat(Resolution res, PixelFormat format)
-			: res(res), format(format) {
-		}
-		bool operator==(PictureFormat const& other) const {
-			return res == other.res && format == other.format;
-		}
-		bool operator!=(PictureFormat const& other) const {
-			return !(*this == other);
-		}
+struct PictureFormat {
+	PictureFormat() = default;
+	PictureFormat(Resolution res, PixelFormat format)
+		: res(res), format(format) {
+	}
+	bool operator==(PictureFormat const& other) const {
+		return res == other.res && format == other.format;
+	}
+	bool operator!=(PictureFormat const& other) const {
+		return !(*this == other);
+	}
 
-		size_t getSize() const {
-			return getSize(res, format);
+	size_t getSize() const {
+		return getSize(res, format);
+	}
+	static size_t getSize(Resolution res, PixelFormat format) {
+		switch (format) {
+		case PixelFormat::Y8: return res.width * res.height;
+		case PixelFormat::I420: return res.width * res.height * 3 / 2;
+		case PixelFormat::YUV420P10LE: return res.width * divUp(10, 8) * res.height * 3 / 2;
+		case PixelFormat::YUV422P: return res.width * res.height * 2;
+		case PixelFormat::YUV422P10LE: return res.width * divUp(10, 8) * res.height * 2;
+		case PixelFormat::YUYV422: return res.width * res.height * 2;
+		case PixelFormat::NV12: return res.width * res.height * 3 / 2;
+		case PixelFormat::NV12P010LE: return res.width * res.height * 3;
+		case PixelFormat::RGB24: return res.width * res.height * 3;
+		case PixelFormat::RGBA32: return res.width * res.height * 4;
+		default: throw std::runtime_error("Unknown pixel format. Please contact your vendor.");
 		}
-		static size_t getSize(Resolution res, PixelFormat format) {
-			switch (format) {
-			case PixelFormat::Y8: return res.width * res.height;
-			case PixelFormat::I420: return res.width * res.height * 3 / 2;
-			case PixelFormat::YUV420P10LE: return res.width * divUp(10, 8) * res.height * 3 / 2;
-			case PixelFormat::YUV422P: return res.width * res.height * 2;
-			case PixelFormat::YUV422P10LE: return res.width * divUp(10, 8) * res.height * 2;
-			case PixelFormat::YUYV422: return res.width * res.height * 2;
-			case PixelFormat::NV12: return res.width * res.height * 3 / 2;
-			case PixelFormat::NV12P010LE: return res.width * res.height * 3;
-			case PixelFormat::RGB24: return res.width * res.height * 3;
-			case PixelFormat::RGBA32: return res.width * res.height * 4;
-			default: throw std::runtime_error("Unknown pixel format. Please contact your vendor.");
-			}
-		}
+	}
 
-		bool hasTransparency() const {
-			return format == PixelFormat::RGBA32;
-		}
+	bool hasTransparency() const {
+		return format == PixelFormat::RGBA32;
+	}
 
-		Resolution res;
-		PixelFormat format;
+	Resolution res;
+	PixelFormat format = PixelFormat::UNKNOWN;
 };
 
 //TODO: we should probably separate planar vs non-planar data, avoid resize on the data, etc.
