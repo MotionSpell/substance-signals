@@ -197,7 +197,7 @@ struct LibavDemux : Module {
 	void declareStreams() {
 		for(auto& stream : m_streams) {
 			auto output = stream.output;
-			auto data = make_shared<DataBaseRef>(nullptr);
+			auto data = make_shared<DataBase>();
 			data->setMetadata(output->getMetadata());
 			output->post(data);
 		}

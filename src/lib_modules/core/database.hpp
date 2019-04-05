@@ -94,7 +94,10 @@ using Metadata = std::shared_ptr<const IMetadata>;
 
 inline bool isDeclaration(Data data) {
 	auto refData = std::dynamic_pointer_cast<const DataBaseRef>(data);
-	return refData && !refData->getData();
+	if(refData && !refData->getData())
+		return true;
+
+	return data->buffer == nullptr;
 }
 
 }
