@@ -3,6 +3,7 @@
 #include "lib_utils/log_sink.hpp" // Info
 #include "lib_utils/format.hpp"
 #include "lib_utils/tools.hpp" // enforce
+#include "../common/attributes.hpp" // PresentationTime
 
 #include <cassert>
 #include <algorithm> //std::max
@@ -55,12 +56,12 @@ int64_t Restamp::restamp(int64_t time) {
 }
 
 void Restamp::processOne(Data data) {
-	auto const time = data->getMediaTime();
+	auto const time = data->get<PresentationTime>().time;
 	auto const restampedTime = restamp(time);
 	m_host->log(((time != 0) && (time + offset < 0)) ? Info : Debug, format("%s -> %ss (time=%s, offset=%s)", (double)time / IClock::Rate, (double)(restampedTime) / IClock::Rate, time, offset).c_str());
 	auto dataOut = make_shared<DataBaseRef>(data);
 	dataOut->copyAttributes(*data);
-	dataOut->setMediaTime(restampedTime);
+	dataOut->set(PresentationTime{restampedTime});
 	output->post(dataOut);
 }
 
@@ -74,7 +75,7 @@ void BitrateRestamp::processOne(Data data) {
 	auto const timestamp = (m_totalBits * IClock::Rate) / m_bitrateInBps;
 
 	auto dataOut = make_shared<DataBaseRef>(data);
-	dataOut->setMediaTime(timestamp);
+	dataOut->set(PresentationTime{timestamp});
 	dataOut->copyAttributes(*data);
 	output->post(dataOut);
 	m_totalBits += 8 * data->data().len;

@@ -39,6 +39,7 @@ class DataBase {
 		}
 
 		// TODO: remove this
+		// Deprecated: use 'set(PresentationTime{xxx})' instead.
 		void setMediaTime(int64_t timeIn180k, uint64_t timescale = IClock::Rate);
 		int64_t getMediaTime() const;
 

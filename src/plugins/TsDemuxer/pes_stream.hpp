@@ -153,8 +153,8 @@ struct PesStream : Stream {
 
 			if(PTS_DTS_indicator & 0b10) {
 				m_restamper->restamp(pts);
-				int64_t mediaTime = timescaleToClock(pts, 90000); // PTS are in 90kHz units
-				buf->setMediaTime(mediaTime);
+				int64_t presentationTime = timescaleToClock(pts, 90000); // PTS are in 90kHz units
+				buf->set(PresentationTime {presentationTime});
 			}
 			{
 				m_restamper->restamp(dts);

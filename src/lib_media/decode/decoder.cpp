@@ -94,7 +94,7 @@ struct Decoder : ModuleS, PictureAllocator {
 			}
 
 			AVPacket pkt {};
-			pkt.pts = data->getMediaTime();
+			pkt.pts = data->get<PresentationTime>().time;
 			pkt.data = (uint8_t*)data->data().ptr;
 			pkt.size = (int)data->data().len;
 			processPacket(&pkt);
@@ -194,7 +194,7 @@ struct Decoder : ModuleS, PictureAllocator {
 				}
 
 				auto data = getDecompressedData();
-				data->setMediaTime(avFrame->get()->pts);
+				data->set(PresentationTime{avFrame->get()->pts});
 				output->post(data);
 			}
 		}
