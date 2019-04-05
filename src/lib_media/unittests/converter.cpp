@@ -339,9 +339,6 @@ unittest("audio converter: timestamp gap") {
 unittest("audio gap filler") {
 	PcmFormat format;
 	auto const numSamples = 1024;
-	auto data = make_shared<DataPcm>(0);
-	data->format = format;
-	data->setSampleCount(numSamples);
 
 	const std::vector<int64_t> in =  { 1, 2, 3,    5, 6, 7, 8, 7, 8, 9, 1000, 1001, 1002, 3, 4, 5 };
 	const std::vector<int64_t> out = { 1, 2, 3, 4, 5, 6, 7, 8,       9, 1000, 1001, 1002, 3, 4, 5 };
@@ -349,6 +346,9 @@ unittest("audio gap filler") {
 	auto gapFiller = createModule<Transform::AudioGapFiller>(&NullHost, out.size());
 	ConnectOutputToInput(gapFiller->getOutput(0), recorder->getInput(0));
 	for (auto &val : in) {
+		auto data = make_shared<DataPcm>(0);
+		data->format = format;
+		data->setSampleCount(numSamples);
 		data->setMediaTime(val * numSamples, format.sampleRate);
 		gapFiller->processOne(data);
 	}
