@@ -277,7 +277,7 @@ struct Rectifier : ModuleDynI {
 				auto const start = toSamples(pcm->getMediaTime());
 				return Interval {
 					start,
-					start + int64_t(pcm->getPlaneSize(0) / BPS)
+					start + int64_t(pcm->getPlaneSize() / BPS)
 				};
 			};
 

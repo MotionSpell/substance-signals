@@ -163,7 +163,7 @@ struct AudioConvert : ModuleS {
 				dstPlanes[i] = m_out->getPlane(i) + m_outLen * m_dstFormat.getBytesPerSample() / m_dstFormat.numPlanes;
 			}
 
-			const int64_t maxTargetNumSamples = m_out->getPlaneSize(0) * m_dstFormat.numPlanes / m_dstFormat.getBytesPerSample();
+			const int64_t maxTargetNumSamples = m_out->getPlaneSize() * m_dstFormat.numPlanes / m_dstFormat.getBytesPerSample();
 			if (targetNumSamples + m_outLen > maxTargetNumSamples) {
 				m_host->log(Warning, "Truncating last samples.");
 				targetNumSamples = maxTargetNumSamples;

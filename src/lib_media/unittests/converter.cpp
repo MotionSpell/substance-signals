@@ -39,7 +39,7 @@ shared_ptr<DataPcm> getInterleavedPcmData() {
 
 vector<short> getPlane(DataPcm const* data, int idx) {
 	auto ptr = (short*)data->getPlane(idx);
-	auto len = (size_t)(data->getPlaneSize(idx) / sizeof(short));
+	auto len = (size_t)(data->getPlaneSize() / sizeof(short));
 	return vector<short>(ptr, ptr + len);
 }
 
@@ -214,7 +214,7 @@ void framingTest(int inSamplesPerFrame, int outSamplesPerFrame) {
 		auto data = safe_cast<const DataPcm>(dataRec);
 
 		std::vector<int> expected;
-		auto const planeSize = (int)data->getPlaneSize(0);
+		auto const planeSize = (int)data->getPlaneSize();
 		for (int i = 0; i < planeSize; ++i) {
 			if (val < numIter * inFrameSize) {
 				expected.push_back((val % inFrameSize) % modulo);
@@ -226,7 +226,6 @@ void framingTest(int inSamplesPerFrame, int outSamplesPerFrame) {
 
 		for (int p = 0; p < data->getFormat().numPlanes; ++p) {
 			auto const plane = data->getPlane(p);
-			ASSERT_EQUALS(data->getPlaneSize(0), data->getPlaneSize(p));
 			auto const maxAllowedSize = outSamplesPerFrame * format.getBytesPerSample() / format.numPlanes;
 			ASSERT_EQUALS(maxAllowedSize, max(planeSize, maxAllowedSize));
 

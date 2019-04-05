@@ -189,7 +189,7 @@ void libavFrameDataConvert(const DataPcm *pcmData, AVFrame *frame) {
 	for (int i = 0; i < format.numPlanes; ++i) {
 		frame->data[i] = pcmData->getPlane(i);
 		if (i == 0)
-			frame->linesize[i] = (int)pcmData->getPlaneSize(i) / format.numChannels;
+			frame->linesize[i] = (int)pcmData->getPlaneSize() / format.numChannels;
 		else
 			frame->linesize[i] = 0;
 	}

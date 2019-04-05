@@ -127,7 +127,7 @@ struct SDLAudio : ModuleS {
 			m_fifoTime = pcmData->getMediaTime() + PREROLL_DELAY;
 		}
 		for (int i = 0; i < pcmData->getFormat().numPlanes; ++i) {
-			m_fifo.write(pcmData->getPlane(i), (size_t)pcmData->getPlaneSize(i));
+			m_fifo.write(pcmData->getPlane(i), (size_t)pcmData->getPlaneSize());
 		}
 	}
 

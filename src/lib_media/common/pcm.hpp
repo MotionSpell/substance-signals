@@ -118,18 +118,15 @@ class DataPcm : public DataBase, private IBuffer {
 
 		// IBuffer
 		Span data() override {
-			return Span { planes[0].data(), size() };
+			return Span { buffer.data(), buffer.size() };
 		}
 
 		SpanC data() const override {
-			return SpanC { planes[0].data(), size() };
+			return SpanC { buffer.data(), buffer.size() };
 		}
 
 		size_t size() const {
-			size_t size = 0;
-			for (int i = 0; i < format.numPlanes; ++i)
-				size += planes[i].size();
-			return size;
+			return buffer.size();
 		}
 
 		void resize(size_t /*size*/) override {
@@ -139,23 +136,22 @@ class DataPcm : public DataBase, private IBuffer {
 		uint8_t* getPlane(int planeIdx) const {
 			if (planeIdx > format.numPlanes)
 				throw std::runtime_error("Pcm plane doesn't exist.");
-			return const_cast<uint8_t*>(planes[planeIdx].data());
+			return const_cast<uint8_t*>(buffer.data() + getPlaneSize() * planeIdx);
 		}
 
-		uint64_t getPlaneSize(int planeIdx) const {
-			if (planeIdx > format.numPlanes)
-				throw std::runtime_error("Pcm plane doesn't exist.");
-			return (uint64_t)planes[planeIdx].size();
+		uint64_t getPlaneSize() const {
+			return m_sampleCount * format.getBytesPerSample() / format.numPlanes;
 		}
 
 		void setSampleCount(int sampleCount) {
-			for(int i=0; i < format.numPlanes; ++i)
-				planes[i].resize(sampleCount * format.getBytesPerSample() / format.numPlanes);
+			buffer.resize(sampleCount * format.getBytesPerSample());
+			m_sampleCount = sampleCount;
 		}
 
 	private:
 		PcmFormat format;
-		std::vector<uint8_t> planes[AUDIO_PCM_PLANES_MAX];
+		int m_sampleCount = 0;
+		std::vector<uint8_t> buffer;
 };
 
 }
