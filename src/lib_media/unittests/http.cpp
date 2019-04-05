@@ -13,7 +13,7 @@ namespace {
 
 std::shared_ptr<DataBase> createPacket(span<const char> contents) {
 	auto r = std::make_shared<DataRaw>(contents.len);
-	memcpy(r->getBuffer()->data().ptr, contents.ptr, contents.len);
+	memcpy(r->buffer->data().ptr, contents.ptr, contents.len);
 	return r;
 }
 

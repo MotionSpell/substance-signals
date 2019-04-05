@@ -34,12 +34,12 @@ File::~File() {
 
 void File::process() {
 	auto out = output->allocData<DataRaw>(m_blockSize);
-	size_t read = fread(out->getBuffer()->data().ptr, 1, m_blockSize, file);
+	size_t read = fread(out->buffer->data().ptr, 1, m_blockSize, file);
 	if (read == 0) {
 		m_host->activate(false);
 		return;
 	}
-	out->getBuffer()->resize(read);
+	out->buffer->resize(read);
 	output->post(out);
 }
 

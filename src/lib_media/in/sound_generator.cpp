@@ -32,9 +32,9 @@ void SoundGenerator::process() {
 	out->setMediaTime(m_numSamples, pcmFormat.sampleRate);
 
 	// generate sound
-	auto const p = out->getBuffer()->data().ptr;
+	auto const p = out->buffer->data().ptr;
 	assert(pcmFormat.numPlanes == 1);
-	for(int i=0; i < (int)out->getBuffer()->data().len/bytesPerSample; ++i) {
+	for(int i=0; i < (int)out->buffer->data().len/bytesPerSample; ++i) {
 		auto const fVal = nextSample();
 		auto const val = int(fVal * 32767.0f);
 

@@ -66,12 +66,12 @@ struct AVCC2AnnexBConverter : public ModuleS {
 					break;
 				}
 				// write start code
-				auto bytes = out->getBuffer()->data().ptr + bs.pos - 4;
+				auto bytes = out->buffer->data().ptr + bs.pos - 4;
 				*bytes++ = 0x00;
 				*bytes++ = 0x00;
 				*bytes++ = 0x00;
 				*bytes++ = 0x01;
-				bs.read({out->getBuffer()->data().ptr + bs.pos, size});
+				bs.read({out->buffer->data().ptr + bs.pos, size});
 			}
 
 			out->setMetadata(in->getMetadata());

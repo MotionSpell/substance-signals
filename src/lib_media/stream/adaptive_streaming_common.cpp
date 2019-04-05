@@ -158,14 +158,14 @@ std::shared_ptr<DataBase> AdaptiveStreamingCommon::getPresignalledData(uint64_t 
 	auto constexpr headerSize = sizeof(mp4StaticHeader);
 	if (size == 0 && !EOS) {
 		auto out = outputSegments->allocData<DataRaw>(0);
-		out->getBuffer()->resize(headerSize);
-		memcpy(out->getBuffer()->data().ptr, mp4StaticHeader, headerSize);
+		out->buffer->resize(headerSize);
+		memcpy(out->buffer->data().ptr, mp4StaticHeader, headerSize);
 		return out;
 	} else if (data->data().len >= headerSize && !memcmp(data->data().ptr, mp4StaticHeader, headerSize)) {
 		auto out = outputSegments->allocData<DataRaw>(0);
 		auto const size = (size_t)(data->data().len - headerSize);
-		out->getBuffer()->resize(size);
-		memcpy(out->getBuffer()->data().ptr, data->data().ptr + headerSize, size);
+		out->buffer->resize(size);
+		memcpy(out->buffer->data().ptr, data->data().ptr + headerSize, size);
 		return out;
 	} else {
 		assert(data->data().len < 8 || *(uint32_t*)(data->data().ptr + 4) != (uint32_t)0x70797473);

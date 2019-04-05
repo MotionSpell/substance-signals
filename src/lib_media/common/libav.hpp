@@ -26,16 +26,8 @@ class DataAVPacket : public DataBase {
 	public:
 		DataAVPacket(size_t size = 0);
 
-		// DataBase
-		const IBuffer* getBuffer() const override {
-			return m_buffer.get();
-		}
-
 		AVPacket* getPacket() const;
 		void restamp(int64_t offsetIn180k, uint64_t pktTimescale);
-
-	private:
-		std::shared_ptr<IBuffer> m_buffer;
 };
 
 class PcmFormat;

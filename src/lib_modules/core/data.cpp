@@ -64,7 +64,8 @@ std::shared_ptr<const DataBase> DataBaseRef::getData() const {
 	return dataRef;
 }
 
-DataRaw::DataRaw(size_t size) : buffer(std::make_shared<RawBuffer>(size)) {
+DataRaw::DataRaw(size_t size) {
+	buffer = std::make_shared<RawBuffer>(size);
 }
 
 }

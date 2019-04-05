@@ -257,7 +257,7 @@ class TsMuxer : public ModuleDynI {
 				while(packet.len > 0) {
 					auto len = std::min<int>(packet.len, TS_PACKET_SIZE*7);
 					auto buf = m_output->allocData<DataRaw>(len);
-					memcpy(buf->getBuffer()->data().ptr, packet.ptr, len);
+					memcpy(buf->buffer->data().ptr, packet.ptr, len);
 					buf->set(PresentationTime{(m_sentBits * IClock::Rate) / m_cfg.muxRate});
 					m_output->post(buf);
 					packet += len;

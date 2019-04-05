@@ -193,7 +193,7 @@ void libavFrameDataConvert(const DataPcm *pcmData, AVFrame *frame) {
 		else
 			frame->linesize[i] = 0;
 	}
-	frame->nb_samples = (int)(pcmData->getBuffer()->data().len / format.getBytesPerSample());
+	frame->nb_samples = (int)(pcmData->buffer->data().len / format.getBytesPerSample());
 }
 
 AVPixelFormat pixelFormat2libavPixFmt(PixelFormat format) {
@@ -266,11 +266,11 @@ void DataAVBuffer::resize(size_t size) {
 
 //DataAVPacket
 DataAVPacket::DataAVPacket(size_t size) {
-	m_buffer = std::make_shared<DataAVBuffer>(size);
+	buffer = std::make_shared<DataAVBuffer>(size);
 }
 
 AVPacket* DataAVPacket::getPacket() const {
-	auto avBuffer = safe_cast<DataAVBuffer>(m_buffer.get());
+	auto avBuffer = safe_cast<DataAVBuffer>(buffer.get());
 	return const_cast<AVPacket*>(&avBuffer->pkt);
 }
 

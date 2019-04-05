@@ -146,7 +146,7 @@ void VideoGenerator::process() {
 	auto pic = DataPicture::create(output, dim, PixelFormat::I420);
 
 	// generate video
-	auto const p = pic->getBuffer()->data().ptr;
+	auto const p = pic->buffer->data().ptr;
 	auto const flash = (m_numFrames % config.frameRate) == 0;
 	auto const val = flash ? 0xCC : 0x80;
 	memset(p, val, pic->getSize());

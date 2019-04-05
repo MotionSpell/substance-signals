@@ -38,32 +38,30 @@ class DataBase {
 			setAttribute(Type::TypeId, {(const uint8_t*)&attribute, sizeof attribute});
 		}
 
-		// TODO: remove this
-		// Deprecated: use 'set(PresentationTime{xxx})' instead.
-		void setMediaTime(int64_t timeIn180k, uint64_t timescale = IClock::Rate);
-		int64_t getMediaTime() const;
-
-		virtual const IBuffer* getBuffer() const = 0;
+		std::shared_ptr<IBuffer> buffer;
 
 		SpanC data() const {
-			return getBuffer()->data();
+			if(!buffer)
+				return {};
+			return ((const IBuffer*)buffer.get())->data();
 		}
 
 	private:
 		std::shared_ptr<const IMetadata> metadata;
 		std::vector<uint8_t> attributes;
 		SmallMap<int, int> attributeOffset;
+
+		// TODO: remove this
+	public:
+		// Deprecated: use 'set(PresentationTime{xxx})' instead.
+		void setMediaTime(int64_t timeIn180k, uint64_t timescale = IClock::Rate);
+		int64_t getMediaTime() const;
 };
 
 class DataBaseRef : public DataBase {
 	public:
 		DataBaseRef(std::shared_ptr<const DataBase> data);
 		std::shared_ptr<const DataBase> getData() const;
-
-		// DataBase
-		const IBuffer* getBuffer() const override {
-			return dataRef->getBuffer();
-		}
 
 	private:
 		std::shared_ptr<const DataBase> dataRef;
@@ -89,18 +87,6 @@ struct RawBuffer : IBuffer {
 class DataRaw : public DataBase {
 	public:
 		DataRaw(size_t size);
-
-		IBuffer* getBuffer() {
-			return buffer.get();
-		}
-
-		// DataBase
-		const IBuffer* getBuffer() const override {
-			return buffer.get();
-		}
-
-	private:
-		std::shared_ptr<IBuffer> buffer;
 };
 
 using Data = std::shared_ptr<const DataBase>;

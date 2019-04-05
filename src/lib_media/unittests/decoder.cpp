@@ -19,7 +19,7 @@ namespace {
 template<size_t numBytes>
 std::shared_ptr<DataBase> createPacket(uint8_t const (&bytes)[numBytes]) {
 	auto pkt = make_shared<DataRaw>(numBytes);
-	memcpy(pkt->getBuffer()->data().ptr, bytes, numBytes);
+	memcpy(pkt->buffer->data().ptr, bytes, numBytes);
 	return pkt;
 }
 

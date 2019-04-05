@@ -60,7 +60,7 @@ void JPEGTurboDecode::processOne(Data data) {
 		return;
 	}
 	auto out = DataPicture::create(output, Resolution(w, h), PixelFormat::RGB24);
-	if (tjDecompress2(jtHandle, buf, size, out->getBuffer()->data().ptr, w, 0/*pitch*/, h, pixelFmt, TJFLAG_FASTDCT) < 0) {
+	if (tjDecompress2(jtHandle, buf, size, out->buffer->data().ptr, w, 0/*pitch*/, h, pixelFmt, TJFLAG_FASTDCT) < 0) {
 		m_host->log(Warning, "error encountered while decompressing frame.");
 		return;
 	}

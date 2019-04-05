@@ -14,13 +14,13 @@ std::shared_ptr<DataPicture> DataPicture::create(OutputDefault *out, Resolution 
 
 void DataPicture::setup(DataPicture* r, Resolution res, Resolution resInternal, PixelFormat format) {
 	// 16 bytes of padding, as required by most SIMD processing (e.g swscale)
-	r->getBuffer()->resize(PictureFormat::getSize(resInternal, format) + 16);
+	r->buffer->resize(PictureFormat::getSize(resInternal, format) + 16);
 
 	r->format.format = format;
 	r->format.res = res;
 	r->setVisibleResolution(res);
 
-	auto ptr = r->getBuffer()->data().ptr;
+	auto ptr = r->buffer->data().ptr;
 
 	switch (format) {
 	case PixelFormat::Y8: {

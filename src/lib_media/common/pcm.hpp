@@ -102,15 +102,6 @@ class DataPcm : public DataBase {
 
 		PcmFormat format;
 
-		// DataBase
-		virtual const IBuffer* getBuffer() const override {
-			return buffer.get();
-		}
-
-		virtual IBuffer* getBuffer() {
-			return buffer.get();
-		}
-
 		uint8_t* getPlane(int planeIdx) const {
 			if (planeIdx > format.numPlanes)
 				throw std::runtime_error("Pcm plane doesn't exist.");
@@ -128,7 +119,6 @@ class DataPcm : public DataBase {
 
 	private:
 		int m_sampleCount = 0;
-		std::shared_ptr<IBuffer> buffer;
 };
 
 }

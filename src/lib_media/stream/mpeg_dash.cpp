@@ -203,7 +203,7 @@ class MPEG_DASH : public AdaptiveStreamingCommon, public gpacpp::Init {
 			metadata->durationIn180k = timescaleToClock(segDurationInMs, 1000);
 			out->setMetadata(metadata);
 			out->setMediaTime(totalDurationInMs, 1000);
-			memcpy(out->getBuffer()->data().ptr, contents.data(), contents.size());
+			memcpy(out->buffer->data().ptr, contents.data(), contents.size());
 			outputManifest->post(out);
 		}
 
