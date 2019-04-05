@@ -11,14 +11,6 @@ void DataBase::setMetadata(std::shared_ptr<const IMetadata> metadata) {
 	this->metadata = metadata;
 }
 
-void DataBase::setMediaTime(int64_t time, uint64_t timescale) {
-	mediaTimeIn180k = timescaleToClock(time, timescale);
-}
-
-int64_t DataBase::getMediaTime() const {
-	return mediaTimeIn180k;
-}
-
 SpanC DataBase::getAttribute(int typeId) const {
 	auto first = attributeOffset.find(typeId);
 	if(first == attributeOffset.end())
@@ -32,8 +24,16 @@ void DataBase::setAttribute(int typeId, SpanC data) {
 
 	{
 		auto first = attributeOffset.find(typeId);
-		if(first != attributeOffset.end())
+		if(first != attributeOffset.end()) {
+
+			// HACK for PresentationTime. Remove this when the client code is fixed.
+			if(typeId == 0x35A12022) {
+				memcpy(attributes.data() + *first, data.ptr, data.len);
+				return;
+			}
+
 			throw std::runtime_error("Attribute is already set");
+		}
 	}
 
 	auto offset = attributes.size();
@@ -69,3 +69,20 @@ DataRaw::DataRaw(size_t size) : buffer(std::make_shared<RawBuffer>(size)) {
 
 }
 
+// TODO: remove this
+#include "lib_media/common/attributes.hpp"
+
+namespace Modules {
+DataBase::DataBase() {
+	set(PresentationTime{});
+}
+
+void DataBase::setMediaTime(int64_t time, uint64_t timescale) {
+	set(PresentationTime{timescaleToClock(time, timescale)});
+}
+
+int64_t DataBase::getMediaTime() const {
+	return get<PresentationTime>().time;
+}
+
+}

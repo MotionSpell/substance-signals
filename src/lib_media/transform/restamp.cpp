@@ -59,8 +59,8 @@ void Restamp::processOne(Data data) {
 	auto const restampedTime = restamp(time);
 	m_host->log(((time != 0) && (time + offset < 0)) ? Info : Debug, format("%s -> %ss (time=%s, offset=%s)", (double)time / IClock::Rate, (double)(restampedTime) / IClock::Rate, time, offset).c_str());
 	auto dataOut = make_shared<DataBaseRef>(data);
-	dataOut->setMediaTime(restampedTime);
 	dataOut->copyAttributes(*data);
+	dataOut->setMediaTime(restampedTime);
 	output->post(dataOut);
 }
 

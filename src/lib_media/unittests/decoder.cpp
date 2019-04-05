@@ -96,7 +96,7 @@ unittest("decoder: timestamp propagation") {
 
 	for(int i=0; i < 5; ++i) {
 		auto frame = getTestMp3Frame();
-		frame->setMediaTime(i);
+		frame->set(PresentationTime {i});
 		decode->getInput(0)->push(frame);
 	}
 	decode->flush();
