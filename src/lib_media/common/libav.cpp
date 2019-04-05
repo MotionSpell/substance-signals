@@ -1,12 +1,9 @@
 #include "libav.hpp"
 #include "pcm.hpp"
 #include "picture_allocator.hpp"
-#include "lib_utils/clock.hpp"
-#include "lib_utils/log.hpp" // g_Log
 #include "lib_utils/tools.hpp"
 #include "lib_utils/format.hpp"
 #include <cassert>
-#include <cstdio>
 #include <cstring>
 
 extern "C" {
