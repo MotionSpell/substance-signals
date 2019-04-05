@@ -148,15 +148,6 @@ class DataPcm : public DataBase, private IBuffer {
 			return (uint64_t)planes[planeIdx].size();
 		}
 
-		void setPlane(int planeIdx, uint8_t *plane, size_t size) {
-			if (planeIdx > format.numPlanes)
-				throw std::runtime_error("Pcm plane doesn't exist.");
-
-			planes[planeIdx].resize(size);
-			if (plane && (plane != planes[planeIdx].data()))
-				memcpy(planes[planeIdx].data(), plane, size);
-		}
-
 		void setSampleCount(int sampleCount) {
 			for(int i=0; i < format.numPlanes; ++i)
 				planes[i].resize(sampleCount * format.getBytesPerSample() / format.numPlanes);

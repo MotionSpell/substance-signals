@@ -55,8 +55,9 @@ shared_ptr<DataBase> createPcm(int samples) {
 	pcm->setFormat(fmt);
 	std::vector<uint8_t> input(inFrameSizeInBytes);
 	auto inputRaw = input.data();
+	pcm->setSampleCount(samples);
 	for (int i = 0; i < fmt.numPlanes; ++i)
-		pcm->setPlane(i, inputRaw, inFrameSizeInBytes);
+		memcpy(pcm->getPlane(i), inputRaw, inFrameSizeInBytes);
 	return pcm;
 }
 

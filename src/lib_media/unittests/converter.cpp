@@ -31,7 +31,8 @@ shared_ptr<DataPcm> getInterleavedPcmData() {
 
 	auto r = make_shared<DataPcm>(0);
 	r->setFormat(fmt);
-	r->setPlane(0, (uint8_t*)data, sizeof data);
+	r->setSampleCount(8);
+	memcpy(r->getPlane(0), (uint8_t*)data, sizeof data);
 	r->setMetadata(make_shared<MetadataRawAudio>());
 	return r;
 }
@@ -91,7 +92,8 @@ unittest("audio converter: multiple flushes while upsampling") {
 
 	auto data = make_shared<DataPcm>(0);
 	data->setFormat(srcFormat);
-	data->setPlane(0, buf.data(), buf.size());
+	data->setSampleCount(buf.size()/srcFormat.getBytesPerSample());
+	memcpy(data->getPlane(0), buf.data(), buf.size());
 
 	inputSize += buf.size();
 	converter->getInput(0)->push(data);
@@ -193,6 +195,7 @@ void framingTest(int inSamplesPerFrame, int outSamplesPerFrame) {
 	const auto inFrameSize = inSamplesPerFrame * format.getBytesPerSample() / format.numPlanes;
 	auto data = make_shared<DataPcm>(0);
 	data->setFormat(format);
+	data->setSampleCount(inSamplesPerFrame);
 
 	std::vector<uint8_t> input(inFrameSize);
 	const int modulo = std::min(inFrameSize, 256);
@@ -200,7 +203,7 @@ void framingTest(int inSamplesPerFrame, int outSamplesPerFrame) {
 		input[i] = (uint8_t)(i % modulo);
 	}
 	for (int i = 0; i < format.numPlanes; ++i) {
-		data->setPlane(i, input.data(), inFrameSize);
+		memcpy(data->getPlane(i), input.data(), inFrameSize);
 	}
 
 	int outTotalSize = 0;
@@ -339,10 +342,11 @@ unittest("audio gap filler") {
 	auto data = make_shared<DataPcm>(0);
 	data->setFormat(format);
 	auto const numSamples = 1024;
+	data->setSampleCount(numSamples);
 	const size_t inFrameSizeInBytes = numSamples * format.getBytesPerSample() / format.numPlanes;
 	std::vector<uint8_t> input(inFrameSizeInBytes);
 	for (int i = 0; i < format.numPlanes; ++i) {
-		data->setPlane(i, input.data(), inFrameSizeInBytes);
+		memcpy(data->getPlane(i), input.data(), inFrameSizeInBytes);
 	}
 
 	const std::vector<int64_t> in =  { 1, 2, 3,    5, 6, 7, 8, 7, 8, 9, 1000, 1001, 1002, 3, 4, 5 };
