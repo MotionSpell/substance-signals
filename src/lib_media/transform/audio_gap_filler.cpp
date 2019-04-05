@@ -16,13 +16,13 @@ AudioGapFiller::AudioGapFiller(KHost* host, uint64_t toleranceInFrames)
 
 void AudioGapFiller::processOne(Data data) {
 	auto audioData = safe_cast<const DataPcm>(data);
-	auto const sampleRate = audioData->getFormat().sampleRate;
+	auto const sampleRate = audioData->format.sampleRate;
 	auto const timeInSR = clockToTimescale(data->getMediaTime(), sampleRate);
 	if (accumulatedTimeInSR == std::numeric_limits<uint64_t>::max()) {
 		accumulatedTimeInSR = timeInSR;
 	}
 
-	auto const srcNumSamples = audioData->data().len / audioData->getFormat().getBytesPerSample();
+	auto const srcNumSamples = audioData->data().len / audioData->format.getBytesPerSample();
 	auto const diff = (int64_t)(timeInSR - accumulatedTimeInSR);
 	if ((uint64_t)std::abs(diff) >= srcNumSamples) {
 		if ((uint64_t)std::abs(diff) <= srcNumSamples * (1 + toleranceInFrames)) {

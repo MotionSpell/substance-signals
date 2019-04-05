@@ -107,7 +107,7 @@ struct DataGenerator : public ModuleS, public virtual IOutputCap {
 		auto dataPcm = dynamic_pointer_cast<DataPcm>(data);
 		if (dataPcm) {
 			PcmFormat fmt(48000);
-			dataPcm->setFormat(fmt);
+			dataPcm->format = fmt;
 			dataPcm->setSampleCount(1024);
 		}
 		data->setMediaTime(dataIn->getMediaTime());

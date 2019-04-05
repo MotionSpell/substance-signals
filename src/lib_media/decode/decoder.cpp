@@ -146,7 +146,7 @@ struct Decoder : ModuleS, PictureAllocator {
 			auto out = mediaOutput->allocData<DataPcm>(0);
 			PcmFormat pcmFormat;
 			libavFrame2pcmConvert(avFrame->get(), &pcmFormat);
-			out->setFormat(pcmFormat);
+			out->format = pcmFormat;
 			out->setSampleCount(avFrame->get()->nb_samples);
 			for (int i = 0; i < pcmFormat.numPlanes; ++i) {
 				memcpy(out->getPlane(i), avFrame->get()->data[i], avFrame->get()->nb_samples * pcmFormat.getBytesPerSample() / pcmFormat.numPlanes);

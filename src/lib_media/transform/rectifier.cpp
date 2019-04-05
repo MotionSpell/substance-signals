@@ -256,7 +256,7 @@ struct Rectifier : ModuleDynI {
 			auto& stream = streams[i];
 
 			if(!stream.data.empty())
-				stream.fmt = safe_cast<const DataPcm>(stream.data.front().data)->getFormat();
+				stream.fmt = safe_cast<const DataPcm>(stream.data.front().data)->format;
 
 			// can't process data if we don't know the format
 			if(stream.fmt.sampleRate == 0)
@@ -292,7 +292,7 @@ struct Rectifier : ModuleDynI {
 			// and to cover the full 'outMasterTime' interval.
 			auto pcm = stream.output->allocData<DataPcm>(0);
 			pcm->setMediaTime(outMasterTime.start);
-			pcm->setFormat(stream.fmt);
+			pcm->format = stream.fmt;
 			pcm->setSampleCount(outMasterSamples.stop - outMasterSamples.start);
 
 			// remove obsolete samples

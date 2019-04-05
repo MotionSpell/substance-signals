@@ -92,19 +92,19 @@ struct AudioConvert : ModuleS {
 			if (accumulatedTimeInDstSR == -1)
 				resyncNeeded = true;
 
-			if (audioData->getFormat() != m_srcFormat) {
+			if (audioData->format != m_srcFormat) {
 				if (!autoConfigure)
 					throw error("Incompatible input audio data.");
 
 				resyncNeeded = true;
 			}
 
-			auto const srcNumSamples = audioData->data().len / audioData->getFormat().getBytesPerSample();
+			auto const srcNumSamples = audioData->data().len / audioData->format.getBytesPerSample();
 			inputSampleCount += srcNumSamples;
 
 			// detect gaps in input
 			if(inputMediaTime != -1) {
-				auto const expectedInputTime = inputMediaTime + timescaleToClock(inputSampleCount, audioData->getFormat().sampleRate);
+				auto const expectedInputTime = inputMediaTime + timescaleToClock(inputSampleCount, audioData->format.sampleRate);
 				auto const actualInputTime = data->getMediaTime();
 				if(actualInputTime && std::abs(actualInputTime - expectedInputTime) > 3) {
 					m_host->log(Warning, format("input gap: %sms", (actualInputTime - expectedInputTime)*1000.0/IClock::Rate).c_str());
@@ -116,7 +116,7 @@ struct AudioConvert : ModuleS {
 				resyncNeeded = true;
 
 			if(resyncNeeded) {
-				reconfigure(audioData->getFormat());
+				reconfigure(audioData->format);
 				inputMediaTime = data->getMediaTime();
 				inputSampleCount = 0;
 				accumulatedTimeInDstSR = 0;
@@ -128,7 +128,7 @@ struct AudioConvert : ModuleS {
 			}
 
 			uint8_t* pSrc[AUDIO_PCM_PLANES_MAX];
-			for(int i=0; i < audioData->getFormat().numPlanes; ++i)
+			for(int i=0; i < audioData->format.numPlanes; ++i)
 				pSrc[i] = audioData->getPlane(i);
 			auto const targetNumSamples = m_dstLen - m_outLen;
 			bool moreToProcess = doConvert(targetNumSamples, pSrc, srcNumSamples);
@@ -154,7 +154,7 @@ struct AudioConvert : ModuleS {
 		bool doConvert(int targetNumSamples, const void* pSrc, int srcNumSamples) {
 			if (!m_out) {
 				m_out = output->allocData<DataPcm>(0);
-				m_out->setFormat(m_dstFormat);
+				m_out->format = m_dstFormat;
 				m_out->setSampleCount(m_dstLen);
 			}
 

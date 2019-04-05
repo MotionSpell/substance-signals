@@ -119,13 +119,7 @@ class DataPcm : public DataBase {
 			buffer = std::make_shared<PcmBuffer>(size);
 		}
 
-		const PcmFormat& getFormat() const {
-			return format;
-		}
-
-		void setFormat(PcmFormat const& format) {
-			this->format = format;
-		}
+		PcmFormat format;
 
 		// DataBase
 		virtual const IBuffer* getBuffer() const override {
@@ -152,7 +146,6 @@ class DataPcm : public DataBase {
 		}
 
 	private:
-		PcmFormat format;
 		int m_sampleCount = 0;
 		std::shared_ptr<IBuffer> buffer;
 };

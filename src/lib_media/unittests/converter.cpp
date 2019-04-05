@@ -30,7 +30,7 @@ shared_ptr<DataPcm> getInterleavedPcmData() {
 	};
 
 	auto r = make_shared<DataPcm>(0);
-	r->setFormat(fmt);
+	r->format = fmt;
 	r->setSampleCount(8);
 	memcpy(r->getPlane(0), (uint8_t*)data, sizeof data);
 	r->setMetadata(make_shared<MetadataRawAudio>());
@@ -55,7 +55,7 @@ unittest("audio converter: interleaved to planar") {
 	auto in = getInterleavedPcmData();
 	auto planar = PcmFormat(44100, 2, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Planar);
 
-	auto cfg = AudioConvertConfig { in->getFormat(), planar, -1 };
+	auto cfg = AudioConvertConfig { in->format, planar, -1 };
 	auto converter = loadModule("AudioConvert", &NullHost, &cfg);
 
 	auto rec = createModule<Recorder>();
@@ -64,7 +64,7 @@ unittest("audio converter: interleaved to planar") {
 	converter->flush();
 
 	auto out = safe_cast<const DataPcm>(rec->out);
-	ASSERT_EQUALS(2, (int)out->getFormat().numPlanes);
+	ASSERT_EQUALS(2, (int)out->format.numPlanes);
 	ASSERT_EQUALS(vector<short>({40, 41, 42, 43, 44, 45, 46, 47 }), getPlane(out.get(), 0));
 	ASSERT_EQUALS(vector<short>({80, 81, 82, 83, 84, 85, 86, 87 }), getPlane(out.get(), 1));
 }
@@ -91,7 +91,7 @@ unittest("audio converter: multiple flushes while upsampling") {
 	std::vector<uint8_t> buf(3110400);
 
 	auto data = make_shared<DataPcm>(0);
-	data->setFormat(srcFormat);
+	data->format = srcFormat;
 	data->setSampleCount(buf.size()/srcFormat.getBytesPerSample());
 	memcpy(data->getPlane(0), buf.data(), buf.size());
 
@@ -115,7 +115,7 @@ unittest("audio converter: 44100 to 48000") {
 	auto in = getInterleavedPcmData();
 	auto dstFormat = PcmFormat(48000, 2, AudioLayout::Stereo, AudioSampleFormat::S16, AudioStruct::Interleaved);
 
-	auto cfg = AudioConvertConfig { in->getFormat(), dstFormat, -1 };
+	auto cfg = AudioConvertConfig { in->format, dstFormat, -1 };
 	auto converter = loadModule("AudioConvert", &NullHost, &cfg);
 
 	vector<short> output;
@@ -194,7 +194,7 @@ void framingTest(int inSamplesPerFrame, int outSamplesPerFrame) {
 
 	const auto inFrameSize = inSamplesPerFrame * format.getBytesPerSample() / format.numPlanes;
 	auto data = make_shared<DataPcm>(0);
-	data->setFormat(format);
+	data->format = format;
 	data->setSampleCount(inSamplesPerFrame);
 
 	std::vector<uint8_t> input(inFrameSize);
@@ -224,7 +224,7 @@ void framingTest(int inSamplesPerFrame, int outSamplesPerFrame) {
 			}
 		}
 
-		for (int p = 0; p < data->getFormat().numPlanes; ++p) {
+		for (int p = 0; p < data->format.numPlanes; ++p) {
 			auto const plane = data->getPlane(p);
 			auto const maxAllowedSize = outSamplesPerFrame * format.getBytesPerSample() / format.numPlanes;
 			ASSERT_EQUALS(maxAllowedSize, max(planeSize, maxAllowedSize));
@@ -286,7 +286,7 @@ unittest("audio converter: timestamp passthrough") {
 
 	auto data = make_shared<DataPcm>(0);
 	data->setMediaTime(777777);
-	data->setFormat(format);
+	data->format = format;
 	data->setSampleCount(1024);
 	converter->getInput(0)->push(data);
 	converter->flush();
@@ -302,7 +302,7 @@ unittest("audio converter: timestamp gap") {
 	auto createSample = [&](int64_t mediaTime) {
 		auto data = make_shared<DataPcm>(0);
 		data->setMediaTime(mediaTime);
-		data->setFormat(format);
+		data->format = format;
 		data->setSampleCount(inSamplesPerFrame);
 		return data;
 	};
@@ -339,7 +339,7 @@ unittest("audio converter: timestamp gap") {
 unittest("audio gap filler") {
 	PcmFormat format;
 	auto data = make_shared<DataPcm>(0);
-	data->setFormat(format);
+	data->format = format;
 	auto const numSamples = 1024;
 	data->setSampleCount(numSamples);
 	const size_t inFrameSizeInBytes = numSamples * format.getBytesPerSample() / format.numPlanes;

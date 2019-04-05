@@ -52,7 +52,7 @@ shared_ptr<DataBase> createPcm(int samples) {
 	fmt.sampleRate = 44100;
 	const auto inFrameSizeInBytes = (size_t)(samples * fmt.getBytesPerSample() / fmt.numPlanes);
 	auto pcm = make_shared<DataPcm>(0);
-	pcm->setFormat(fmt);
+	pcm->format = fmt;
 	std::vector<uint8_t> input(inFrameSizeInBytes);
 	auto inputRaw = input.data();
 	pcm->setSampleCount(samples);

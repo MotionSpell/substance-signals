@@ -37,7 +37,7 @@ secondclasstest("render: sound generator, evil samples") {
 
 	auto sample = make_shared<DataPcm>(0);
 	sample->setMediaTime(299454611464360LL);
-	sample->setFormat(fmt);
+	sample->format = fmt;
 	sample->setSampleCount(100);
 	render->getInput(0)->push(sample);
 	render->process();

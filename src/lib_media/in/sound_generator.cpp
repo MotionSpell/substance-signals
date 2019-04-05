@@ -27,7 +27,7 @@ void SoundGenerator::process() {
 	auto const bufferSamples = (sampleDurationInMs * pcmFormat.sampleRate / 1000);
 
 	auto out = output->allocData<DataPcm>(0);
-	out->setFormat(pcmFormat);
+	out->format = pcmFormat;
 	out->setSampleCount(bufferSamples);
 	out->setMediaTime(m_numSamples, pcmFormat.sampleRate);
 
