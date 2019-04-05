@@ -153,12 +153,9 @@ struct AudioConvert : ModuleS {
 		/*returns true when more data is available with @targetNumSamples current value*/
 		bool doConvert(int targetNumSamples, const void* pSrc, int srcNumSamples) {
 			if (!m_out) {
-				auto const dstBufferSize = m_dstLen * m_dstFormat.getBytesPerSample();
 				m_out = output->allocData<DataPcm>(0);
 				m_out->setFormat(m_dstFormat);
-				for (int i = 0; i < m_dstFormat.numPlanes; ++i) {
-					m_out->setPlane(i, nullptr, dstBufferSize / m_dstFormat.numPlanes);
-				}
+				m_out->setSampleCount(m_dstLen);
 			}
 
 			uint8_t* dstPlanes[AUDIO_PCM_PLANES_MAX];
