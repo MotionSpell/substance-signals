@@ -92,31 +92,12 @@ class PcmFormat {
 		int numPlanes;
 };
 
-namespace {
-struct PcmBuffer : IBuffer {
-	PcmBuffer(size_t size) : memoryBlock(size) {}
-	std::vector<uint8_t> memoryBlock;
-
-	Span data() {
-		return Span { memoryBlock.data(), memoryBlock.size() };
-	}
-
-	SpanC data() const {
-		return SpanC { memoryBlock.data(), memoryBlock.size() };
-	}
-
-	void resize(size_t size) {
-		memoryBlock.resize(size);
-	}
-};
-}
-
 class DataPcm : public DataBase {
 	public:
 		DataPcm(size_t size) {
 			if (size > 0)
 				throw std::runtime_error("Forbidden operation. Requested size must be 0. Then call setFormat().");
-			buffer = std::make_shared<PcmBuffer>(size);
+			buffer = std::make_shared<RawBuffer>(size);
 		}
 
 		PcmFormat format;
