@@ -241,46 +241,40 @@ PixelFormat libavPixFmt2PixelFormat(AVPixelFormat avPixfmt) {
 }
 
 //DataAVPacket
-void AVPacketDeleter::operator()(AVPacket *p) {
-	av_packet_unref(p);
-	delete(p);
-}
-
-DataAVPacket::DataAVPacket(size_t size)
-	: pkt(std::unique_ptr<AVPacket, AVPacketDeleter>(new AVPacket)) {
-	av_init_packet(pkt.get());
-	av_packet_unref(pkt.get());
+DataAVPacket::DataAVPacket(size_t size) {
+	av_init_packet(&pkt);
+	av_packet_unref(&pkt);
 	if (size)
-		av_new_packet(pkt.get(), (int)size);
+		av_new_packet(&pkt, (int)size);
 }
 
 DataAVPacket::~DataAVPacket() {
-	g_Log->log(Debug, format("Freeing %s, pts=%s", this, pkt->pts).c_str());
+	av_packet_unref(&pkt);
 }
 
 Span DataAVPacket::data() {
-	return Span { pkt->data, (size_t)pkt->size };
+	return Span { pkt.data, (size_t)pkt.size };
 }
 
 SpanC DataAVPacket::data() const {
-	return SpanC { pkt->data, (size_t)pkt->size };
+	return SpanC { pkt.data, (size_t)pkt.size };
 }
 
 AVPacket* DataAVPacket::getPacket() const {
-	return pkt.get();
+	return const_cast<AVPacket*>(&pkt);
 }
 
-void DataAVPacket::restamp(int64_t offsetIn180k, uint64_t pktTimescale) const {
+void DataAVPacket::restamp(int64_t offsetIn180k, uint64_t pktTimescale) {
 	auto const offset = clockToTimescale(offsetIn180k, pktTimescale);
-	pkt->dts += offset;
-	if (pkt->pts != AV_NOPTS_VALUE) {
-		pkt->pts += offset;
+	pkt.dts += offset;
+	if (pkt.pts != AV_NOPTS_VALUE) {
+		pkt.pts += offset;
 	}
 }
 
 void DataAVPacket::resize(size_t size) {
-	if (av_grow_packet(pkt.get(), size))
-		throw std::runtime_error(format("Cannot resize DataAVPacket to size %s (cur=%s)", size, pkt->size));
+	if (av_grow_packet(&pkt, size))
+		throw std::runtime_error(format("Cannot resize DataAVPacket to size %s (cur=%s)", size, pkt.size));
 }
 
 static int getBytePerPixel(PixelFormat format) {

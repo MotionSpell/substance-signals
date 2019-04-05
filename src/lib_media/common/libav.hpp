@@ -5,11 +5,9 @@
 #include "metadata.hpp"
 #include <memory>
 
-struct AVCodecContext;
-struct AVFrame;
-struct AVPacket;
-
 extern "C" {
+#include <libavcodec/avcodec.h> // AVPacket, AVCodecContext
+#include <libavutil/frame.h> // AVFrame
 #include <libavutil/pixfmt.h>
 #include <libavutil/samplefmt.h>
 }
@@ -21,10 +19,6 @@ namespace Modules {
 Metadata createMetadataPktLibavVideo(AVCodecContext* codecCtx);
 Metadata createMetadataPktLibavAudio(AVCodecContext* codecCtx);
 Metadata createMetadataPktLibavSubtitle(AVCodecContext* codecCtx);
-
-struct AVPacketDeleter {
-	void operator()(AVPacket *p);
-};
 
 class DataAVPacket : public DataBase, private IBuffer {
 	public:
@@ -42,10 +36,10 @@ class DataAVPacket : public DataBase, private IBuffer {
 		void resize(size_t size) override;
 
 		AVPacket* getPacket() const;
-		void restamp(int64_t offsetIn180k, uint64_t pktTimescale) const;
+		void restamp(int64_t offsetIn180k, uint64_t pktTimescale);
 
 	private:
-		std::unique_ptr<AVPacket, AVPacketDeleter> const pkt;
+		AVPacket pkt;
 };
 
 class PcmFormat;
