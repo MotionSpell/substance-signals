@@ -6,7 +6,6 @@
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/mux/libav_mux.hpp"
 #include "lib_media/mux/mux_mp4_config.hpp"
-#include "lib_media/transform/avcc2annexb.hpp"
 #include "lib_utils/tools.hpp"
 #include "modules_common.hpp"
 #include <cassert>
