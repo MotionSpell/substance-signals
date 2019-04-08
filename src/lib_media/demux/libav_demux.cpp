@@ -151,7 +151,7 @@ struct LibavDemux : Module {
 			case AVMEDIA_TYPE_SUBTITLE: m = createMetadataPktLibavSubtitle(codecCtx.get()); break;
 			default: break;
 			}
-			m_streams[i].output = addOutput<OutputDefault>();
+			m_streams[i].output = addOutput();
 			m_streams[i].output->setMetadata(m);
 			av_dump_format(m_formatCtx, i, url.c_str(), 0);
 		}

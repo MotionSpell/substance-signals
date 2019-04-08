@@ -10,7 +10,7 @@ namespace {
 
 struct Passthru : public Modules::ModuleS {
 	Passthru(Modules::KHost*) {
-		addOutput<Modules::OutputDefault>();
+		addOutput();
 	}
 	void processOne(Modules::Data) override {
 	}
@@ -18,7 +18,7 @@ struct Passthru : public Modules::ModuleS {
 
 struct InfiniteSource : Modules::Module {
 	InfiniteSource(Modules::KHost* host) {
-		out = addOutput<Modules::OutputDefault>();
+		out = addOutput();
 		host->activate(true);
 	}
 	void process() override {
@@ -29,7 +29,7 @@ struct InfiniteSource : Modules::Module {
 
 struct FakeSource : Modules::Module {
 	FakeSource(Modules::KHost* host, int maxNumRepetition = 50) : numRepetition(maxNumRepetition), host(host) {
-		out = addOutput<Modules::OutputDefault>();
+		out = addOutput();
 		host->activate(true);
 	}
 	void process() override {
@@ -54,7 +54,7 @@ class DualInput : public Modules::Module {
 		DualInput(Modules::KHost*) {
 			input0 = (Modules::Input*)addInput();
 			input1 = (Modules::Input*)addInput();
-			out = addOutput<Modules::OutputDefault>();
+			out = addOutput();
 		}
 
 		void process() {
@@ -90,7 +90,7 @@ class ThreadedDualInput : public Modules::Module {
 		ThreadedDualInput(Modules::KHost*) {
 			input0 = (Modules::Input*)addInput();
 			input1 = (Modules::Input*)addInput();
-			addOutput<Modules::OutputDefault>();
+			addOutput();
 			numCalls = 0;
 			workingThread = std::thread(&ThreadedDualInput::threadProc, this);
 		}

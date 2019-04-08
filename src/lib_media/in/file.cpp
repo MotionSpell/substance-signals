@@ -25,7 +25,7 @@ File::File(KHost* host, std::string const& fn, int blockSize)
 
 	m_host->activate(true);
 
-	output = addOutput<OutputDefault>();
+	output = addOutput();
 }
 
 File::~File() {

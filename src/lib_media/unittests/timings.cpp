@@ -92,7 +92,7 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 
 	struct Gapper : public ModuleS {
 		Gapper() {
-			output = addOutput<OutputDefault>();
+			output = addOutput();
 		}
 		void processOne(Data data) override {
 			if (!isDeclaration(data) && (i++ % 5) && (data->getMediaTime() < maxDurIn180k)) {

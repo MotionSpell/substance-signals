@@ -75,7 +75,7 @@ LibavFilter::LibavFilter(KHost* host, const AvFilterConfig& cfg)
 		throw error("Cannot config filter graph");
 
 	input->setMetadata(make_shared<MetadataRawVideo>());
-	output = addOutput<OutputDefault>();
+	output = addOutput();
 	output->setMetadata(make_shared<MetadataRawVideo>());
 }
 

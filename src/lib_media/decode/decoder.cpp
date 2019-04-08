@@ -58,7 +58,7 @@ struct Decoder : ModuleS, PictureAllocator {
 
 		Decoder(KHost* host, StreamType type)
 			: m_host(host), avFrame(new ffpp::Frame) {
-			mediaOutput = addOutput<OutputDefault>();
+			mediaOutput = addOutput();
 			output = mediaOutput;
 
 			if(type == VIDEO_PKT) {

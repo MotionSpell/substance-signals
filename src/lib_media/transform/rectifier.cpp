@@ -103,7 +103,7 @@ struct Rectifier : ModuleDynI {
 		void mimicOutputs() {
 			while(streams.size() < getInputs().size()) {
 				std::unique_lock<std::mutex> lock(inputMutex);
-				auto output = addOutput<OutputDefault>();
+				auto output = addOutput();
 				streams.push_back(Stream{output, {}});
 			}
 		}

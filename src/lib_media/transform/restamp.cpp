@@ -13,7 +13,7 @@ namespace Transform {
 
 Restamp::Restamp(KHost* host, Mode mode, int64_t offsetIn180k)
 	: m_host(host), offset(offsetIn180k), mode(mode) {
-	output = addOutput<OutputDefault>();
+	output = addOutput();
 }
 
 Restamp::~Restamp() {
@@ -68,7 +68,7 @@ void Restamp::processOne(Data data) {
 BitrateRestamp::BitrateRestamp(KHost* host,  int64_t bitrateInBps)
 	: m_host(host), m_bitrateInBps(bitrateInBps) {
 	enforce(bitrateInBps > 0, "Invalid bitrate");
-	output = addOutput<OutputDefault>();
+	output = addOutput();
 }
 
 void BitrateRestamp::processOne(Data data) {

@@ -91,10 +91,9 @@ class Module : public IModule {
 	protected:
 		KInput* addInput();
 
-		template <typename InstanceType>
-		InstanceType* addOutput() {
-			auto p = new InstanceType(allocatorSize);
-			outputs.push_back(std::unique_ptr<InstanceType>(p));
+		OutputDefault* addOutput() {
+			auto p = new OutputDefault(allocatorSize);
+			outputs.push_back(std::unique_ptr<OutputDefault>(p));
 			return p;
 		}
 

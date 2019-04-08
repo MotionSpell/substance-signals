@@ -25,7 +25,7 @@ class VideoConvert : public ModuleS {
 			: m_host(host),
 			  m_SwContext(nullptr), dstFormat(dstFormat) {
 			input->setMetadata(make_shared<MetadataRawVideo>());
-			output = addOutput<OutputDefault>();
+			output = addOutput();
 		}
 
 		~VideoConvert() {

@@ -48,7 +48,7 @@ class DashDemuxer : public Module {
 			ConnectOutputToInput(decap->getOutput(0), restamp->getInput(0));
 
 			// create our own output
-			auto output = addOutput<OutputDefault>();
+			auto output = addOutput();
 			output->setMetadata(downloader->getMetadata());
 
 			auto deliver = [output](Data data) {

@@ -61,7 +61,7 @@ class GPACDemuxMP4Full : public ModuleS {
 GPACDemuxMP4Full::GPACDemuxMP4Full(KHost* host)
 	: m_host(host), reader(new ISOProgressiveReader) {
 	gf_sys_init(GF_MemTrackerNone);
-	output = addOutput<OutputDefault>();
+	output = addOutput();
 }
 
 GPACDemuxMP4Full::~GPACDemuxMP4Full() {

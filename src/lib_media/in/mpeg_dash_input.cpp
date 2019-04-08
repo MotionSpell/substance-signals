@@ -86,7 +86,7 @@ MPEG_DASH_Input::MPEG_DASH_Input(KHost* host, IFilePuller* source, std::string c
 		}
 
 		auto stream = make_unique<Stream>();
-		stream->out = addOutput<OutputDefault>();
+		stream->out = addOutput();
 		stream->out->setMetadata(meta);
 		stream->set = &set;
 		stream->segmentDuration = Fraction(set.duration, set.timescale);

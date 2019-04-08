@@ -108,7 +108,7 @@ struct LibavEncode : ModuleS {
 			if (!codecCtx)
 				throw error(format("Could not allocate the m_codec context (\"%s\").", codecName));
 
-			output = addOutput<OutputDefault>();
+			output = addOutput();
 
 			// Make ffmpeg use the same time scale as the framework:
 			// thus, no timestamp conversion is needed.

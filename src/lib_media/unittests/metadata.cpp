@@ -12,7 +12,7 @@ namespace {
 class FakeOutput : public Module {
 	public:
 		FakeOutput() {
-			output = addOutput<OutputDefault>();
+			output = addOutput();
 		}
 		void process() {
 			auto data = output->allocData<DataPcm>(0);

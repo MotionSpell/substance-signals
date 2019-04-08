@@ -11,7 +11,7 @@ namespace {
 
 struct Source : Modules::Module {
 	Source(KHost* host, bool &sent) : sent(sent), host(host) {
-		out = addOutput<Modules::OutputDefault>();
+		out = addOutput();
 		host->activate(true);
 	}
 	void process() override {

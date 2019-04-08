@@ -20,7 +20,7 @@ struct MulticastInput : Module {
 		sprintf(buffer, "%d.%d.%d.%d", config.ipAddr[0], config.ipAddr[1], config.ipAddr[2], config.ipAddr[3]);
 		m_socket->joinMulticastGroup(buffer, config.port);
 
-		m_output = addOutput<OutputDefault>();
+		m_output = addOutput();
 	}
 
 	// must be able to receive at least 35Mbps

@@ -99,7 +99,7 @@ class ClockMock : public IClock, public IScheduler {
 template<typename METADATA, typename TYPE>
 struct DataGenerator : public ModuleS, public virtual IOutputCap {
 	DataGenerator() {
-		output = addOutput<OutputDefault>();
+		output = addOutput();
 		output->setMetadata(make_shared<METADATA>());
 	}
 	void processOne(Data dataIn) override {

@@ -47,8 +47,8 @@ class LibavMuxHLSTS : public ModuleDynI {
 				delegate = loadModule("LibavMux", m_host, &muxCfg);
 			}
 			addInput();
-			outputSegment  = addOutput<OutputDefault>();
-			outputManifest = addOutput<OutputDefault>();
+			outputSegment  = addOutput();
+			outputManifest = addOutput();
 		}
 
 		void flush() override {

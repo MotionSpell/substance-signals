@@ -25,8 +25,8 @@ AdaptiveStreamingCommon::AdaptiveStreamingCommon(KHost* host, Type type, uint64_
 	if (!manifestDir.empty() && (flags & SegmentsNotOwned))
 		throw error(format("Inconsistent parameters: manifestDir (%s) should be empty when segments are not owned.", manifestDir));
 	addInput();
-	outputSegments = addOutput<OutputDefault>();
-	outputManifest = addOutput<OutputDefault>();
+	outputSegments = addOutput();
+	outputManifest = addOutput();
 }
 
 bool AdaptiveStreamingCommon::moveFile(const std::string &src, const std::string &dst) const {

@@ -20,8 +20,8 @@ struct CustomDataTypeSink : public Modules::ModuleS {
 
 struct Split : public Modules::Module {
 	Split(Modules::KHost* host) : host(host) {
-		addOutput<Modules::OutputDefault>();
-		addOutput<Modules::OutputDefault>();
+		addOutput();
+		addOutput();
 		host->activate(true);
 	}
 	void process() override {

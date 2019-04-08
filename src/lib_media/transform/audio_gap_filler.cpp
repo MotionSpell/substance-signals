@@ -11,7 +11,7 @@ using namespace std;
 AudioGapFiller::AudioGapFiller(KHost* host, uint64_t toleranceInFrames)
 	: m_host(host), toleranceInFrames(toleranceInFrames) {
 	input->setMetadata(make_shared<MetadataRawAudio>());
-	output = addOutput<OutputDefault>();
+	output = addOutput();
 }
 
 void AudioGapFiller::processOne(Data data) {

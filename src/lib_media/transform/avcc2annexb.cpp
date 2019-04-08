@@ -42,7 +42,7 @@ struct ByteReader {
 struct AVCC2AnnexBConverter : public ModuleS {
 		AVCC2AnnexBConverter(KHost* host)
 			: m_host(host) {
-			output = addOutput<OutputDefault>();
+			output = addOutput();
 		}
 
 		void processOne(Data in) override {

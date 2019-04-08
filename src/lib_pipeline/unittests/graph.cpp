@@ -11,7 +11,7 @@ namespace {
 struct Dummy : public Module {
 	Dummy(KHost*) {
 		addInput();
-		output = addOutput<OutputDefault>();
+		output = addOutput();
 	}
 	void process() {
 		output->post(output->allocData<DataRaw>(1));

@@ -25,7 +25,7 @@ HTTP::HTTP(KHost* host, HttpOutputConfig const& cfg)
 		enforceConnection(cfg.url, cfg.flags.UsePUT);
 
 	// create pins
-	outputFinished = addOutput<OutputDefault>();
+	outputFinished = addOutput();
 
 	m_sender = createHttpSender({cfg.url, cfg.userAgent, cfg.flags.UsePUT, cfg.headers}, m_host);
 }

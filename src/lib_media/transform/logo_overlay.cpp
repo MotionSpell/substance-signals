@@ -77,7 +77,7 @@ class LogoOverlay : public Module {
 			: m_cfg(*cfg) {
 			m_mainInput = addInput();
 			m_overlayInput = addInput();
-			m_output = addOutput<OutputDefault>();
+			m_output = addOutput();
 		}
 		void process() {
 			Data data;

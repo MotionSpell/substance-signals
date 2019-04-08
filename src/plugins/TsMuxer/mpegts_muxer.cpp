@@ -32,7 +32,7 @@ class TsMuxer : public ModuleDynI {
 			if (!m_formatCtx)
 				throw error("Format context couldn't be allocated.");
 
-			m_output = addOutput<OutputDefault>();
+			m_output = addOutput();
 
 			m_formatCtx->oformat = av_guess_format("mpegts", nullptr, nullptr);
 			enforce(m_formatCtx->oformat, "The 'mpegts' format must exist. Please check your ffmpeg build");

@@ -38,7 +38,7 @@ class HlsDemuxer : public Module {
 			}
 
 			m_dirName = dirName(cfg->url);
-			m_output = addOutput<OutputDefault>();
+			m_output = addOutput();
 		}
 
 		void process() override {

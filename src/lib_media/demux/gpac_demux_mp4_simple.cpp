@@ -41,7 +41,7 @@ class GPACDemuxMP4Simple : public Module {
 				throw error(format("Could not open file %s for reading (%s).", cfg->path, gf_error_to_string(e)));
 			}
 			reader->init(movie);
-			output = addOutput<OutputDefault>();
+			output = addOutput();
 		}
 
 		void process() override {

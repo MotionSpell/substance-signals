@@ -13,7 +13,7 @@ Repeater::Repeater(KHost* host, int64_t ms)
 	: m_host(host), periodInMs(ms) {
 	(void)m_host;
 	done = false;
-	m_output = addOutput<OutputDefault>();
+	m_output = addOutput();
 	lastNow = high_resolution_clock::now();
 	workingThread = std::thread(&Repeater::threadProc, this);
 }
