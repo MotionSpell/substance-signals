@@ -7,9 +7,6 @@ namespace Modules {
 //dynamic input number specialized module
 class ModuleDynI : public Module {
 	public:
-		ModuleDynI() = default;
-		virtual ~ModuleDynI() {}
-
 		int getNumInputs() const override {
 			if (inputs.size() == 0)
 				return 1;
@@ -32,7 +29,6 @@ class ModuleDynI : public Module {
 				r.push_back(i);
 			return r;
 		}
-
 };
 
 }
