@@ -1,141 +1,97 @@
 #include "mpegts_muxer.hpp"
+#include "bit_writer.hpp"
+#include "pes.hpp"
 #include "lib_modules/utils/helper.hpp"
 #include "lib_modules/utils/helper_dyn.hpp"
 #include "lib_modules/utils/factory.hpp"
 #include "lib_utils/tools.hpp"
-#include "lib_media/common/ffpp.hpp"
-#include "lib_media/common/libav.hpp" // avStrError
+#include "lib_utils/log_sink.hpp"
 #include "lib_media/common/metadata.hpp"
 #include "lib_media/common/attributes.hpp"
-#include <algorithm> //std::min
 #include <cassert>
 #include <string>
-#include <map>
-
-extern "C" {
-#include <libavformat/avformat.h> // AVOutputFormat
-#include <libavformat/avio.h> // avio_alloc_context
-}
-
 static auto const TS_PACKET_SIZE = 188;
 
 using namespace Modules;
 using namespace std;
 
+uint32_t Crc32(SpanC data);
+
 namespace {
+static auto const PAT_INTERVAL_MS = 100;
+static auto const PMT_INTERVAL_MS = 100;
+
+static auto const PAT_PID = 0; // normative
+static auto const PMT_PID = 4096; // implementation specific
+static auto const BASE_PID = 256; // implementation specific
+static auto const PCR_PID = BASE_PID; // implementation specific
+
+// ISO/IEC 13818-1 Table 2-29
+int codecToMpegStreamType(string codec) {
+	if(codec == "h264")
+		return 0x1b;
+	else if(codec == "mpeg2video")
+		return 0x02;
+	else if(codec == "hevc")
+		return 0x24;
+	else if(codec == "mp3")
+		return 0x03;
+	else if(codec == "aac")
+		return 0x0f;
+	else
+		throw runtime_error("unsupported codec: '" + codec + "'");
+}
+
+struct Stream {
+	int streamType {}; // MPEG-2 specified
+	vector<Data> fifo;
+};
 
 class TsMuxer : public ModuleDynI {
 	public:
 
 		TsMuxer(KHost* host, TsMuxerConfig cfg)
-			: m_host(host), m_cfg(cfg), m_formatCtx(avformat_alloc_context())  {
-			if (!m_formatCtx)
-				throw error("Format context couldn't be allocated.");
-
+			: m_host(host), m_cfg(cfg) {
 			m_output = addOutput();
-
-			m_formatCtx->oformat = av_guess_format("mpegts", nullptr, nullptr);
-			enforce(m_formatCtx->oformat, "The 'mpegts' format must exist. Please check your ffmpeg build");
-			enforce(!(m_formatCtx->oformat->flags & AVFMT_NOFILE), "Invalid mpegts format flags");
-
-			auto const bufSize = ((1024 * 1024)/TS_PACKET_SIZE)*TS_PACKET_SIZE;
-			m_outputBuffer = (uint8_t*)av_malloc(bufSize);
-			enforce(m_outputBuffer, "av_malloc failed");
-
-			m_formatCtx->pb = avio_alloc_context(m_outputBuffer, bufSize, 1, this, nullptr, &staticOnWrite, nullptr);
-			enforce(m_formatCtx->pb, "avio_alloc_context failed");
-		}
-
-		~TsMuxer() {
-			{
-				// HACK: we don't want to flush here, but it's the only way
-				// to free the memory allocated by avformat_write_header.
-				m_dropAllOutput = true; // prevent all output (calls to allocData/post)
-				if (!m_flushed && m_headerWritten)
-					av_write_trailer(m_formatCtx);
-			}
-
-			av_free(m_formatCtx->pb);
-			avformat_free_context(m_formatCtx);
-
-			av_free(m_outputBuffer);
 		}
 
 		void process() override {
+			m_streams.resize(getNumInputs() - 1);
 
-			// HACK: av_interleaved_write_frame will segfault if already flushed
-			if(m_flushed) {
-				m_host->log(Warning, "Ignoring input data after flush");
-				return;
-			}
+			int id;
+			auto data = popAny(id);
 
-			int inputIdx;
-			auto data = popAny(inputIdx);
-			auto prevInputMeta = inputs[inputIdx]->getMetadata();
-			if (inputs[inputIdx]->updateMetadata(data)) {
-				if (prevInputMeta) {
-					if(!(*prevInputMeta == *inputs[inputIdx]->getMetadata()))
-						m_host->log(Error, format("input #%s: updating existing metadata. Not supported but continuing execution.", inputIdx).c_str());
-				} else {
-					assert(!m_headerWritten);
-					declareStream(data, inputIdx);
-				}
-			}
+			assert(id < (int)m_streams.size());
+			inputs[id]->updateMetadata(data);
 
-			if ((int)m_formatCtx->nb_streams < getNumInputs() - 1) {
-				if(!m_dropping)
-					m_host->log(Warning, "Some inputs didn't declare their streams yet, dropping input data");
-				m_dropping = true;
-				return;
-			}
-
-			if(m_dropping)
-				m_host->log(Warning, "All streams declared: starting to mux");
-
-			m_dropping = false;
+			if(m_streams[id].streamType == 0)
+				declareStream(m_streams[id], data);
 
 			// if 'data' is a stream declaration, there's no actual data to process.
-			if (isDeclaration(data))
-				return;
+			if(!isDeclaration(data)) {
+				m_streams[id].fifo.push_back(data);
+			}
 
-			ensureHeader();
-
-			AVPacket pkt;
-			fillAvPacket(data, &pkt);
-			const AVRational inputTimebase = { (int)1, (int)IClock::Rate };
-			auto const avStream = m_formatCtx->streams[inputIdx2AvStream[inputIdx]];
-			pkt.dts = av_rescale_q(pkt.dts, inputTimebase, avStream->time_base);
-			pkt.pts = av_rescale_q(pkt.pts, inputTimebase, avStream->time_base);
-			pkt.stream_index = avStream->index;
-
-			int ret = av_interleaved_write_frame(m_formatCtx, &pkt);
-			if (ret) {
-				m_host->log(Warning, format("can't write frame: %s", avStrError(ret)).c_str());
-				return;
+			while(mux()) {
 			}
 		}
 
 		void flush() override {
-			//write the trailer if any
-			if (m_headerWritten)
-				av_write_trailer(m_formatCtx);
-
-			avio_flush(m_formatCtx->pb);
-
-			m_flushed = true;
 		}
 
 	private:
 		KHost* const m_host;
 		TsMuxerConfig const m_cfg;
-		AVFormatContext* const m_formatCtx;
-		std::map<size_t, size_t> inputIdx2AvStream;
-		bool m_headerWritten = false;
-		bool m_flushed = false;
-		bool m_dropping = false; // used for log message limitation
-		bool m_dropAllOutput = false; // block all calls to allocData/post
-		uint8_t* m_outputBuffer {};
 		OutputDefault* m_output {};
+
+		vector<Stream> m_streams;
+		int m_patTimer = 0;
+		int m_pmtTimer = 0;
+		int64_t m_pcrOffset = 0;
+		uint8_t m_cc[8192] {};
+
+		// total packet count. Used to compute PCR.
+		int64_t m_packetCount = 0;
 
 		Data popAny(int& inputIdx) {
 			Data data;
@@ -146,7 +102,7 @@ class TsMuxer : public ModuleDynI {
 			return data;
 		}
 
-		void declareStream(Data data, size_t inputIdx) {
+		void declareStream(Stream& s, Data data) {
 			if(!data->getMetadata())
 				throw error("Can't declare stream without metadata");
 
@@ -154,116 +110,274 @@ class TsMuxer : public ModuleDynI {
 
 			enforce(metadata->bitrate >= 0, "bitrate must be specified for each ES");
 
-			auto const codec = avcodec_find_decoder_by_name(metadata->codec.c_str());
-			if (!codec)
-				throw error(format("Codec not found: '%s'.", metadata->codec));
+			s.streamType = codecToMpegStreamType(metadata->codec);
+		}
 
-			auto stream = avformat_new_stream(m_formatCtx, codec);
-			if (!stream)
-				throw error("Stream creation failed.");
-
-			auto codecpar = stream->codecpar;
-
-			codecpar->codec_id = codec->id;
-
-			if(auto info = dynamic_cast<const MetadataPktVideo*>(metadata)) {
-				codecpar->codec_type = AVMEDIA_TYPE_VIDEO;
-				codecpar->width  = info->resolution.width;
-				codecpar->height = info->resolution.height;
-			} else if(auto info = dynamic_cast<const MetadataPktAudio*>(metadata)) {
-				codecpar->codec_type = AVMEDIA_TYPE_AUDIO;
-				codecpar->sample_rate = info->sampleRate;
-				codecpar->channels = info->numChannels;
-				codecpar->frame_size = info->frameSize;
-			} else {
-				// anything to do for subtitles?
+		// packet scheduling occurs here
+		bool mux() {
+			if(m_patTimer <= 0) {
+				sendPat();
+				m_patTimer = timeToPackets(PAT_INTERVAL_MS);
+				return true;
 			}
 
-			auto& extradata = metadata->codecSpecificInfo;
-			codecpar->extradata_size = extradata.size();
-			codecpar->extradata = (uint8_t*)av_malloc(extradata.size());
-			if(extradata.size())
-				memcpy(codecpar->extradata, extradata.data(), extradata.size());
+			// can't mux any further if we don't know the stream types
+			for(auto& s : m_streams)
+				if(s.streamType == 0)
+					return false;
 
-			inputIdx2AvStream[inputIdx] = m_formatCtx->nb_streams - 1;
+			if(m_pmtTimer <= 0) {
+				sendPmt();
+				m_pmtTimer = timeToPackets(PMT_INTERVAL_MS);
+				return true;
+			}
+
+			// if one stream has no data, we can't compute the lowest DTS.
+			for(auto& s : m_streams)
+				if(s.fifo.empty())
+					return false;
+
+			int64_t bestDts = INT64_MAX;
+			int bestIdx = -1;
+
+			int idx = 0;
+			for(auto& s : m_streams) {
+				if(!s.fifo.empty()) {
+					auto dts = s.fifo.front()->get<DecodingTime>().time;
+					if(dts < bestDts && (dts - pcr()) < IClock::Rate * 3) {
+						bestDts = dts;
+						bestIdx = idx;
+					}
+				}
+				++idx;
+			}
+
+			if(bestIdx >= 0) {
+				sendPes(m_streams[bestIdx], BASE_PID + bestIdx);
+				return true;
+			}
+
+			// nothing to send: send one NUL packet
+			SpanC sp {};
+			sendTsPacket(0x1FFF, sp, 0);
+			return true;
 		}
 
-		void ensureHeader() {
-			if (m_headerWritten)
-				return;
-			AVDictionary* dict = nullptr;
-			av_dict_set_int(&dict, "muxrate", m_cfg.muxRate, 0);
+		void sendPat() {
+			uint8_t payload[64] {};
+			auto w = BitWriter { payload };
 
-			// Set the max_delay:
-			// * don't set it to zero: this would cause "dts < pcr, TS is invalid" messages during muxing.
-			// * don't go above 3500 * 1000: this would cause audio timestamp conversion errors during VLC playback.
-			av_dict_set_int(&dict, "max_delay", 1000 * 1000, 0);
+			// ISO/IEC 13818-1 Table 2-24
+			w.u(8, 0); // pointer field
 
-			int ret = avformat_write_header(m_formatCtx, &dict);
-			assert(!dict);
-			if (ret != 0)
-				throw error(format("can't write the container header: %s", avStrError(ret)));
+			// ISO/IEC 13818-1 Table 2-25
+			w.u(8, 0x0); // table id: PAT
+			w.u(1, 0x1); // section syntax indicator
+			w.u(1, 0x0); // zero bit
+			w.u(2, 0x3); // reserved bits
 
-			m_headerWritten = true;
+			auto ws = w;
+			w.u(12, 0); // section_length: unknown for the moment
+			auto const sectionStart = w.offset();
+
+			w.u(16, 0x01); // transport_stream_id (Table ID extension)
+			w.u(2, 0x3); // reserved
+			w.u(5, 0x0); // version_number
+			w.u(1, 0x1); // current_next_indicator
+			w.u(8, 0x00); // section_number
+			w.u(8, 0x00); // last_section_number
+
+			w.u(16, 0x0001); // program_number
+			w.u(3, 0x7); // reserved bits
+			w.u(13, PMT_PID); // program map PID
+
+			// now we know section_length: write it back
+			ws.u(12, w.offset() - sectionStart + 4);
+
+			// compute and write the CRC (skip pointer_field)
+			w.u(32, Crc32({ payload + 1, (size_t)w.offset() - 1 }));
+
+			auto sp = SpanC { payload, (size_t)(w.offset()) };
+			sendTsPacket(PAT_PID, sp, 1);
 		}
 
-		void fillAvPacket(Data data, AVPacket* newPkt) {
+		void sendPmt() {
+			uint8_t payload[128] {};
+			auto w = BitWriter { payload };
 
-			// only insert headers for video, not for audio (e.g would break AAC)
-			auto const videoMetadata = dynamic_cast<const MetadataPktVideo*>(data->getMetadata().get());
-			auto const key = data->get<CueFlags>().keyframe;
-			auto const insertHeaders = videoMetadata && key;
+			// ISO/IEC 13818-1 Table 2-24
+			w.u(8, 0x00); // pointer field
 
-			auto const& headers = insertHeaders ? videoMetadata->codecSpecificInfo : std::vector<uint8_t>();
-			auto const outSize = data->data().len + headers.size();
+			// ISO/IEC 13818-1 Table 2-28
+			w.u(8, 0x02); // table id: PMT
+			w.u(1, 0x1); // section syntax indicator
+			w.u(1, 0x0); // private bit
+			w.u(2, 0x3); // reserved
 
-			av_init_packet(newPkt);
-			av_new_packet(newPkt, (int)outSize);
+			auto ws = w;
+			w.u(12, 0); // section_length: unknown for the moment
+			auto const sectionStart = w.offset();
 
-			if(key)
-				newPkt->flags |= AV_PKT_FLAG_KEY;
+			w.u(16, 0x01); // program_number (Table ID extension)
+			w.u(2, 0x3); // reserved
+			w.u(5, 0x0); // version_number
+			w.u(1, 0x1); // current_section_indicator
+			w.u(8, 0x00); // section_number
+			w.u(8, 0x00); // last_section_number
 
-			if(headers.size())
-				memcpy(newPkt->data, headers.data(), headers.size());
-			memcpy(newPkt->data + headers.size(), data->data().ptr, data->data().len);
-			newPkt->size = (int)outSize;
-			newPkt->pts = data->getMediaTime();
-			newPkt->dts = data->get<DecodingTime>().time;
+			w.u(3, 0x7); // reserved
+			w.u(13, PCR_PID); // PCR_PID
+			w.u(4, 0xf); // reserved
+			w.u(12, 0); // program_info_length
 
-			// av_interleaved_write_frame will block if PTS/DTS don't start near zero
-			if(m_mediaTimeOrigin == INT64_MIN)
-				m_mediaTimeOrigin = -data->getMediaTime();
+			for(int i = 0; i < (int)m_streams.size(); ++i) {
+				w.u(8, m_streams[i].streamType); // stream type
+				w.u(3, 0x7); // reserved
+				w.u(13, BASE_PID + i); // PID
+				w.u(4, 0xf); // reserved
+				w.u(12, 0); // ES info length
+			}
 
-			newPkt->pts += m_mediaTimeOrigin;
-			newPkt->dts += m_mediaTimeOrigin;
+			// now we know section_length: write it back
+			ws.u(12, (w.offset() - sectionStart + 4));
+
+			// compute and write the CRC (skip pointer_field)
+			w.u(32, Crc32({ payload + 1, (size_t)w.offset() - 1 }));
+
+			auto sp = SpanC { payload, (size_t)(w.offset()) };
+			sendTsPacket(PMT_PID, sp, 1);
 		}
 
-		// workaround av_interleaved_write_frame blocking
-		int64_t m_mediaTimeOrigin = INT64_MIN;
+		void sendPes(Stream& s, int pid) {
+			auto au = s.fifo.front();
+			s.fifo.erase(s.fifo.begin());
 
-		// output handling: called by libavformat
-		static int staticOnWrite(void* opaque, uint8_t* buf, int len) {
-			auto pThis = (TsMuxer*)opaque;
-			pThis->onWrite({buf, (size_t)len});
-			return 0;
+			auto streamId = s.streamType == 0x03 ? 0xC0 : 0xE0;
+			auto pesBuffer = createPesPacket(streamId, au);
+
+			auto pes = SpanC { pesBuffer.data(), pesBuffer.size() };
+
+			// send the whole access unit in one burst
+			sendTsPacket(pid, pes, true);
+
+			while(pes.len > 0)
+				sendTsPacket(pid, pes, false);
+
+			auto removalDelay = au->get<DecodingTime>().time - pcr();
+
+			if(removalDelay < 0) {
+				char msg[256];
+				sprintf(msg, "[%d] PES packet sent too late: %.3fs late", pid, -removalDelay/double(IClock::Rate));
+				m_host->log(Warning, msg);
+				if(pid == PCR_PID) {
+					m_pcrOffset += removalDelay * 2;
+					sprintf(msg, "[%d] Resetting PCR", pid);
+					m_host->log(Warning, msg);
+				}
+			} else if(removalDelay > IClock::Rate * 5) {
+				char msg[256];
+				sprintf(msg, "[%d] PES packet sent too early: %.3fs early", pid, removalDelay/double(IClock::Rate));
+				m_host->log(Warning, msg);
+			}
 		}
 
-		int64_t m_sentBits = 0;
+		// send bytes from 'unit' and update its span.
+		void sendTsPacket(int pid, SpanC& unit, int pusi) {
 
-		void onWrite(SpanC packet) {
-			assert(packet.len % TS_PACKET_SIZE == 0);
+			auto buf = m_output->allocData<DataRaw>(TS_PACKET_SIZE);
+			auto pkt = buf->buffer->data();
+			auto const adaptation_field_flag = 1;
+			auto const payload_flag = unit.len > 0;
 
-			if(!m_dropAllOutput) {
-				while(packet.len > 0) {
-					auto len = std::min<int>(packet.len, TS_PACKET_SIZE*7);
-					auto buf = m_output->allocData<DataRaw>(len);
-					memcpy(buf->buffer->data().ptr, packet.ptr, len);
-					buf->set(PresentationTime{(m_sentBits * IClock::Rate) / m_cfg.muxRate});
-					m_output->post(buf);
-					packet += len;
-					m_sentBits += len * 8;
+			// compose TS packet
+			{
+				auto w = BitWriter { pkt };
+
+				w.u(8, 0x47); // sync byte
+
+				w.u(1, 0); // TEI
+				w.u(1, pusi); // PUSI
+				w.u(1, 0); // priority
+				w.u(13, pid); // PID
+
+				w.u(2, 0); // scrambling control
+				w.u(1, adaptation_field_flag); // adaptation_field_control: bit #0
+				w.u(1, payload_flag); // adaptation_field_control: bit #1
+				w.u(4, m_cc[pid]); // continuity counter
+
+				if(adaptation_field_flag)
+					writeAdaptationField(w, pid == PCR_PID);
+
+				// write the actual TS payload
+				auto payloadStart = pkt.ptr + w.offset();
+
+				while(unit.len && w.offset() < TS_PACKET_SIZE) {
+					w.u(8, unit[0]);
+					unit += 1;
+				}
+
+				auto payloadEnd = pkt.ptr + w.offset();
+
+				// Insert stuffing bytes if needed.
+				// (use the stuffing bytes at the end of the adaptation field).
+				auto const stuffingByteCount = TS_PACKET_SIZE - w.offset();
+				assert(stuffingByteCount >= 0);
+
+				if(stuffingByteCount) {
+					assert(adaptation_field_flag);
+					pkt[4] += stuffingByteCount; // patch adaptation_field_length
+					// move the payload to the end of the TS packet.
+					memmove(payloadStart + stuffingByteCount, payloadStart, payloadEnd - payloadStart);
+					memset(payloadStart, 0xFF, stuffingByteCount);
 				}
 			}
+
+			// deliver it to the output
+			buf->set(PresentationTime { pcr() });
+			m_output->post(buf);
+
+			m_packetCount++;
+
+			if(payload_flag)
+				m_cc[pid] = (m_cc[pid] + 1) % 16;
+
+			// advance time
+			m_patTimer--;
+			m_pmtTimer--;
+		}
+
+		void writeAdaptationField(BitWriter& w, bool pcrFlag) {
+			auto wafl = w;
+			w.u(8, 0); // adaptation field length: unknown at the moment
+
+			auto adaptationFieldStart = w;
+			w.u(1, 0); // discontinuity indicator
+			w.u(1, 1); // random Access indicator
+			w.u(1, 0); // elementary stream priority indicator
+			w.u(1, pcrFlag); // PCR flag
+			w.u(1, 0); // OPCR flag
+			w.u(1, 0); // Splicing point flag
+			w.u(1, 0); // Transport private data flag
+			w.u(1, 0); // Adaptation field extension flag
+
+			if(pcrFlag) {
+				auto const pcrBase = (uint64_t)(pcr() * 90000 / IClock::Rate);
+				w.u(33, pcrBase & 0x1FFFFFFFF);
+				w.u(6, -1); // reserved
+				w.u(9, 0); // pcr 27Mhz (x300)
+			}
+
+			auto len = w.offset() - adaptationFieldStart.offset();
+			wafl.u(8, len);
+		}
+
+		int64_t pcr() const {
+			return m_pcrOffset + IClock::Rate * (m_packetCount * TS_PACKET_SIZE * 8) / m_cfg.muxRate;
+		}
+
+		int64_t timeToPackets(int64_t timeInMs) const {
+			auto const pktFreq = Fraction(m_cfg.muxRate, TS_PACKET_SIZE * 8);
+			return (int64_t)(pktFreq * timeInMs) / 1000;
 		}
 };
 

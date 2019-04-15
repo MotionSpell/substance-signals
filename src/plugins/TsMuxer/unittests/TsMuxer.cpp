@@ -104,6 +104,8 @@ unittest("TsMuxer: audio simple") {
 	auto rec = createModule<FrameCounter>();
 	ConnectOutputToInput(mux->getOutput(0), rec->getInput(0));
 
+	mux->getInput(0)->connect();
+
 	for(int i=0; i < 30; ++i) {
 		auto frame = getTestMp3Frame();
 		int64_t pts = i*(IClock::Rate/20);

@@ -1,0 +1,89 @@
+#include "pes.hpp"
+#include "bit_writer.hpp"
+#include "lib_media/common/attributes.hpp"
+
+using namespace Modules;
+using namespace std;
+
+namespace {
+// ISO/IEC 13818-1 Table 2-18 : Stream_id assignments
+bool isVideoStreamId(int streamId) {
+	return streamId >= 0xE0 && streamId <= 0xEF;
+}
+}
+
+vector<uint8_t> createPesPacket(int streamId, Data data) {
+	auto au = data->data();
+	vector<uint8_t> pesBuffer(au.len + 256);
+
+	auto const pts = data->get<PresentationTime>().time * 90000LL / IClock::Rate;
+	auto const dts = data->get<DecodingTime>().time * 90000LL / IClock::Rate;
+
+	auto w = BitWriter  {
+		{ pesBuffer.data(), pesBuffer.size() }
+	};
+
+	// PES packet
+	w.u(24, 0x000001); // start_code_prefix
+	w.u(8, streamId); // stream_id
+	auto pplW = w;
+	w.u(16, 0x0000); // PES_packet_length: don't know at the moment
+
+	auto pesPacketStart = w.offset();
+
+	w.u(2, 0x2); // marker_bits
+	w.u(2, 0x0); // scrambling control
+	w.u(1, 0x0); // priority
+	w.u(1, 0x0); // data_alignment_indicator
+	w.u(1, 0x0); // copyrighted
+	w.u(1, 0x0); // original
+
+	bool ptsFlag = true;
+	bool dtsFlag = isVideoStreamId(streamId);
+
+	// PTS_DTS_indicator
+	w.u(1, ptsFlag);
+	w.u(1, dtsFlag);
+
+	w.u(1, 0x0); // ESCR_flag
+	w.u(1, 0x0); // ES_rate_flag
+	w.u(1, 0x0); // DSM_trick_mode_flag
+	w.u(1, 0x0); // Additional_copy_info_flag
+	w.u(1, 0x0); // CRC_flag
+	w.u(1, 0x0); // extension_flag
+
+	w.u(8, (int(ptsFlag) + int(dtsFlag)) * 5); // PES_header_length
+
+	if(ptsFlag) {
+		w.u(4, 0b0010); // reserved
+		w.u(3, (pts >> 30) & 0b111); // PTS[32..30]
+		w.u(1, 1); // marker_bit
+		w.u(15, (pts >> 15) & 0b111111111111111); // PTS[29..15]
+		w.u(1, 1); // marker_bit
+		w.u(15, pts & 0b111111111111111); // PTS[14..0]
+		w.u(1, 1); // marker_bit
+	}
+
+	if(dtsFlag) {
+		w.u(4, 0b0010); // reserved
+		w.u(3, (dts >> 30) & 0b111); // DTS[32..30]
+		w.u(1, 1); // marker_bit
+		w.u(15, (dts >> 15) & 0b111111111111111); // DTS[29..15]
+		w.u(1, 1); // marker_bit
+		w.u(15, dts & 0b111111111111111); // DTS[14..0]
+		w.u(1, 1); // marker_bit
+	}
+
+	for(auto b : au)
+		w.u(8, b);
+
+	// now we know the PES_packet_length: write it
+	auto const PES_packet_length = w.offset() - pesPacketStart;
+
+	if(PES_packet_length < 0x10000 && !isVideoStreamId(streamId))
+		pplW.u(16, PES_packet_length);
+
+	pesBuffer.resize((size_t)w.offset());
+	return pesBuffer;
+}
+
