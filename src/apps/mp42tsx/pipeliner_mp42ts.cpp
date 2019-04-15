@@ -3,6 +3,7 @@
 
 // modules
 #include "lib_media/demux/libav_demux.hpp"
+#include "plugins/TsMuxer/mpegts_muxer.hpp"
 #include "lib_media/out/file.hpp"
 
 using namespace Modules;
@@ -13,7 +14,9 @@ void declarePipeline(Pipeline &pipeline, const mp42tsXOptions &opt) {
 	cfg.url = opt.url;
 	auto demux = pipeline.add("LibavDemux", &cfg);
 
-	auto mux = pipeline.add("TsMuxer", nullptr);
+	TsMuxerConfig muxCfg {};
+	muxCfg.muxRate = 5 * 1000 * 1000;
+	auto mux = pipeline.add("TsMuxer", &muxCfg);
 	for (int i = 0; i < demux->getNumOutputs(); ++i) {
 		auto flow = GetOutputPin(demux, i);
 		pipeline.connect(flow, GetInputPin(mux, i));
