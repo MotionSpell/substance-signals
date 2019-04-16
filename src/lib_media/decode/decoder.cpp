@@ -107,7 +107,8 @@ struct Decoder : ModuleS, PictureAllocator {
 
 	private:
 		void openDecoder(const MetadataPkt* metadata) {
-			auto const codec = avcodec_find_decoder_by_name(metadata->codec.c_str());
+			auto avcodecId = signalsIdToAvCodecId(metadata->codec.c_str());
+			auto const codec = avcodec_find_decoder((AVCodecID)avcodecId);
 			if (!codec)
 				throw error(format("Decoder not found for codec '%s'.", metadata->codec));
 

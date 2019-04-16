@@ -18,6 +18,9 @@ std::shared_ptr<AVCodecContext> shptr(AVCodecContext *p);
 
 namespace Modules {
 
+const char* avCodecIdToSignalsId(int avCodecId);
+int signalsIdToAvCodecId(const char* name);
+
 Metadata createMetadataPktLibavVideo(AVCodecContext* codecCtx);
 Metadata createMetadataPktLibavAudio(AVCodecContext* codecCtx);
 Metadata createMetadataPktLibavSubtitle(AVCodecContext* codecCtx);

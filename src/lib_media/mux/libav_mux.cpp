@@ -165,7 +165,8 @@ class LibavMux : public ModuleDynI {
 
 			auto const metadata = safe_cast<const MetadataPkt>(data->getMetadata().get());
 
-			auto const codec = avcodec_find_decoder_by_name(metadata->codec.c_str());
+			auto avcodecId = (AVCodecID)signalsIdToAvCodecId(metadata->codec.c_str());
+			auto const codec = avcodec_find_decoder(avcodecId);
 			if (!codec)
 				throw error(format("Codec not found: '%s'.", metadata->codec));
 

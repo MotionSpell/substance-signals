@@ -5,6 +5,7 @@
 #include "lib_utils/format.hpp"
 #include <cassert>
 #include <cstring>
+#include <map>
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -27,10 +28,57 @@ void AVCodecContextDeleter(AVCodecContext *p) {
 	avcodec_free_context(&p);
 }
 
+struct Mapping {
+	std::map<std::string, AVCodecID> name_to_id;
+	std::map<AVCodecID, std::string> id_to_name;
+	void add(AVCodecID id, const char* name) {
+		name_to_id[name] = id;
+		id_to_name[id] = name;
+	}
+};
+
+// map between libavcodec's AVCodecID and Signals' internal codec names
+static Mapping computeMapping() {
+	Mapping r;
+
+	r.add(AV_CODEC_ID_HEVC, "hevc");
+	r.add(AV_CODEC_ID_H264, "h264");
+	r.add(AV_CODEC_ID_MPEG2VIDEO, "mpeg2video");
+	r.add(AV_CODEC_ID_MP2, "mp2");
+	r.add(AV_CODEC_ID_MP3, "mp3");
+	r.add(AV_CODEC_ID_AAC, "aac_adts");
+	r.add(AV_CODEC_ID_AAC_LATM, "aac_latm");
+	r.add(AV_CODEC_ID_AC3, "ac3");
+	r.add(AV_CODEC_ID_PNG, "png");
+
+	return r;
+}
+
+static auto const g_mapping = computeMapping();
+
+const char* avCodecIdToSignalsId(int avCodecId) {
+	auto id = (AVCodecID)avCodecId;
+	auto i = g_mapping.id_to_name.find(id);
+	if(i == g_mapping.id_to_name.end()) {
+		auto msg = "Unknown avcodec id (" + std::string(avcodec_get_name(id)) + ")";
+		throw std::runtime_error(msg);
+	}
+	return i->second.c_str();
+}
+
+int signalsIdToAvCodecId(const char* name) {
+	auto i = g_mapping.name_to_id.find(name);
+	if(i == g_mapping.name_to_id.end()) {
+		auto msg = "Unknown signals codec name (" + std::string(name) + ")";
+		throw std::runtime_error(msg);
+	}
+	return i->second;
+}
+
 static
 void initMetadatPkt(MetadataPkt* meta, AVCodecContext* codecCtx) {
 	enforce(codecCtx != nullptr, "MetadataPkt 'codecCtx' can't be null.");
-	meta->codec = avcodec_get_name(codecCtx->codec_id);
+	meta->codec = avCodecIdToSignalsId(codecCtx->codec_id);
 	meta->codecSpecificInfo.assign(codecCtx->extradata, codecCtx->extradata + codecCtx->extradata_size);
 	meta->bitrate = codecCtx->bit_rate;
 
