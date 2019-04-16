@@ -91,7 +91,7 @@ std::shared_ptr<DataBase> getTestAacFrame() {
 
 	{
 		auto meta = make_shared<MetadataPktAudio>();
-		meta->codec = "aac";
+		meta->codec = "aac_adts";
 		meta->numChannels = 2;
 		meta->sampleRate = 48000;
 		meta->frameSize = 0;
