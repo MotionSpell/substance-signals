@@ -60,7 +60,7 @@ const char* avCodecIdToSignalsId(int avCodecId) {
 	auto id = (AVCodecID)avCodecId;
 	auto i = g_mapping.id_to_name.find(id);
 	if(i == g_mapping.id_to_name.end()) {
-		auto msg = "Unknown avcodec id (" + std::string(avcodec_get_name(id)) + ")";
+		auto msg = "Unknown avcodec id ('" + std::string(avcodec_get_name(id)) + "')";
 		throw std::runtime_error(msg);
 	}
 	return i->second.c_str();
@@ -69,7 +69,7 @@ const char* avCodecIdToSignalsId(int avCodecId) {
 int signalsIdToAvCodecId(const char* name) {
 	auto i = g_mapping.name_to_id.find(name);
 	if(i == g_mapping.name_to_id.end()) {
-		auto msg = "Unknown signals codec name (" + std::string(name) + ")";
+		auto msg = "Unknown signals codec name ('" + std::string(name) + "')";
 		throw std::runtime_error(msg);
 	}
 	return i->second;
