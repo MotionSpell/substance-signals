@@ -157,9 +157,9 @@ struct LibavDemux : Module {
 			if( std::string(m_formatCtx->iformat->name).substr(0, 3) == "mov") {
 				auto meta = safe_cast<MetadataPkt>(const_cast<IMetadata*>(m.get()));
 				if(meta->codec == "h264_annexb")
-					meta->codec == "h264_avcc";
+					meta->codec = "h264_avcc";
 				else if(meta->codec == "hevc_annexb")
-					meta->codec == "hevc_avcc";
+					meta->codec = "hevc_avcc";
 			}
 
 			m_streams[i].output = addOutput();

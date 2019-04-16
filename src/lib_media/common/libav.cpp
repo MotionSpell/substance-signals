@@ -66,10 +66,19 @@ const char* avCodecIdToSignalsId(int avCodecId) {
 	return i->second.c_str();
 }
 
-int signalsIdToAvCodecId(const char* name) {
+int signalsIdToAvCodecId(const char* origName) {
+
+	std::string name = origName;
+	// HACK: ffmpeg's codec IDs can't express the difference AVCC/AnnexB:
+	// project to 'AnnexB' so we get AV_CODEC_ID_{H264/HEVC}.
+	if(name == "h264_avcc")
+		name = "h264_annexb";
+	else if(name == "hevc_avcc")
+		name = "hevc_annexb";
+
 	auto i = g_mapping.name_to_id.find(name);
 	if(i == g_mapping.name_to_id.end()) {
-		auto msg = "Unknown signals codec name ('" + std::string(name) + "')";
+		auto msg = "Unknown signals codec name ('" + name + "')";
 		throw std::runtime_error(msg);
 	}
 	return i->second;
