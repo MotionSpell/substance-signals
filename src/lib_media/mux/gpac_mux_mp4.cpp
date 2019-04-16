@@ -739,7 +739,8 @@ void GPACMuxMP4::declareStreamVideo(const MetadataPktVideo* metadata) {
 	GF_Err e;
 
 	u32 di = 0;
-	if (metadata->codec == "h264") {
+	if (metadata->codec == "h264_annexb" || metadata->codec == "h264_avcc") {
+		isAnnexB = metadata->codec == "h264_annexb";
 		codec4CC = "H264";
 		std::shared_ptr<GF_AVCConfig> avccfg(gf_odf_avc_cfg_new(), &gf_odf_avc_cfg_del);
 		if (!avccfg)
@@ -749,7 +750,8 @@ void GPACMuxMP4::declareStreamVideo(const MetadataPktVideo* metadata) {
 		if (e == GF_OK) {
 			SAFE(gf_isom_avc_config_new(isoCur, trackNum, avccfg.get(), nullptr, nullptr, &di));
 		}
-	} else if (metadata->codec == "h265") {
+	} else if (metadata->codec == "hevc_annexb" || metadata->codec == "hevc_avcc") {
+		isAnnexB = metadata->codec == "hevc_annexb";
 		codec4CC = "H265";
 		std::shared_ptr<GF_HEVCConfig> hevccfg(gf_odf_hevc_cfg_new(), &gf_odf_hevc_cfg_del);
 		if (!hevccfg)
@@ -773,7 +775,7 @@ void GPACMuxMP4::declareStreamVideo(const MetadataPktVideo* metadata) {
 			auto& esd = *esdPtr;
 			esd.ESID = 1; /*FIXME: only one track: set trackID?*/
 			esd.decoderConfig->streamType = GF_STREAM_VISUAL;
-			esd.decoderConfig->objectTypeIndication = metadata->codec == "h264" ? GPAC_OTI_VIDEO_AVC : GPAC_OTI_VIDEO_HEVC;
+			esd.decoderConfig->objectTypeIndication = metadata->codec == "h264_annexb" || metadata->codec == "h264_avcc" ? GPAC_OTI_VIDEO_AVC : GPAC_OTI_VIDEO_HEVC;
 			esd.decoderConfig->decoderSpecificInfo->dataLength = (u32)extradata.len;
 			esd.decoderConfig->decoderSpecificInfo->data = (char*)gf_malloc(extradata.len);
 			memcpy(esd.decoderConfig->decoderSpecificInfo->data, extradata.ptr, extradata.len);

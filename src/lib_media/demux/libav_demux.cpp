@@ -151,6 +151,17 @@ struct LibavDemux : Module {
 			case AVMEDIA_TYPE_SUBTITLE: m = createMetadataPktLibavSubtitle(codecCtx.get()); break;
 			default: break;
 			}
+
+			// special case for mov/mp4/3gpp/etc:
+			// patch metadata to tell 'avcc' instead of 'annexb'.
+			if( std::string(m_formatCtx->iformat->name).substr(0, 3) == "mov") {
+				auto meta = safe_cast<MetadataPkt>(const_cast<IMetadata*>(m.get()));
+				if(meta->codec == "h264_annexb")
+					meta->codec == "h264_avcc";
+				else if(meta->codec == "hevc_annexb")
+					meta->codec == "hevc_avcc";
+			}
+
 			m_streams[i].output = addOutput();
 			m_streams[i].output->setMetadata(m);
 			av_dump_format(m_formatCtx, i, url.c_str(), 0);

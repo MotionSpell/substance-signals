@@ -117,7 +117,7 @@ std::shared_ptr<DataBase> getTestH264Frame() {
 
 	{
 		auto meta = make_shared<MetadataPktVideo>();
-		meta->codec = "h264";
+		meta->codec = "h264_annexb";
 		meta->resolution = { 128, 128 };
 		meta->bitrate = 300*1000;
 		r->setMetadata(meta);

@@ -318,7 +318,7 @@ unittest("[DISABLED] GPAC mp4 mux: don't create empty fragments") {
 		static const auto meta = make_shared<MetadataPktVideo>();
 		meta->timeScale = {1, 1};
 		meta->framerate = {1, 1};
-		meta->codec = "h264";
+		meta->codec = "h264_annexb";
 		auto accessUnit = make_shared<DataRaw>(sizeof h264_gray_frame);
 		accessUnit->setMetadata(meta);
 		accessUnit->set(CueFlags{});

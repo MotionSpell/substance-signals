@@ -28,11 +28,11 @@ static auto const PCR_PID = BASE_PID; // implementation specific
 
 // ISO/IEC 13818-1 Table 2-29
 int codecToMpegStreamType(string codec) {
-	if(codec == "h264")
+	if(codec == "h264_annexb")
 		return 0x1b;
 	else if(codec == "mpeg2video")
 		return 0x02;
-	else if(codec == "hevc")
+	else if(codec == "hevc_annexb")
 		return 0x24;
 	else if(codec == "mp3")
 		return 0x03;

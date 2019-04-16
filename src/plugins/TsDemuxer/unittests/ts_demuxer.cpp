@@ -416,7 +416,7 @@ unittest("TsDemuxer: get codec from PMT") {
 
 	auto meta0 = safe_cast<const MetadataPkt>(demux->getOutput(0)->getMetadata());
 	ASSERT(meta0 != nullptr);
-	ASSERT_EQUALS("h264", meta0->codec);
+	ASSERT_EQUALS("h264_annexb", meta0->codec);
 
 	auto meta1 = safe_cast<const MetadataPkt>(demux->getOutput(1)->getMetadata());
 	ASSERT(meta1 != nullptr);

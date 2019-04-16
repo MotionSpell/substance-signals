@@ -41,8 +41,8 @@ struct Mapping {
 static Mapping computeMapping() {
 	Mapping r;
 
-	r.add(AV_CODEC_ID_HEVC, "hevc");
-	r.add(AV_CODEC_ID_H264, "h264");
+	r.add(AV_CODEC_ID_HEVC, "hevc_annexb");
+	r.add(AV_CODEC_ID_H264, "h264_annexb");
 	r.add(AV_CODEC_ID_MPEG2VIDEO, "mpeg2video");
 	r.add(AV_CODEC_ID_MP2, "mp2");
 	r.add(AV_CODEC_ID_MP3, "mp3");

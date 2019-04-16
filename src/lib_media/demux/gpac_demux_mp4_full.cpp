@@ -109,10 +109,10 @@ bool GPACDemuxMP4Full::safeProcessSample() {
 		std::shared_ptr<MetadataPkt> meta;
 		if(desc->streamType == GF_STREAM_AUDIO) {
 			meta = make_shared<MetadataPkt>(AUDIO_PKT);
-			meta->codec = "aac";
+			meta->codec = "aac_latm";
 		} else if (desc->streamType == GF_STREAM_VISUAL) {
 			meta = make_shared<MetadataPkt>(VIDEO_PKT);
-			meta->codec = "h264";
+			meta->codec = "h264_avcc";
 		} else {
 			meta = make_shared<MetadataPkt>(UNKNOWN_ST);
 			meta->codec = "";
