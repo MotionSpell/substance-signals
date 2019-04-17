@@ -46,7 +46,7 @@ static Mapping computeMapping() {
 	r.add(AV_CODEC_ID_MPEG2VIDEO, "mpeg2video");
 	r.add(AV_CODEC_ID_MP2, "mp2");
 	r.add(AV_CODEC_ID_MP3, "mp3");
-	r.add(AV_CODEC_ID_AAC, "aac_adts");
+	r.add(AV_CODEC_ID_AAC, "aac_raw");
 	r.add(AV_CODEC_ID_AAC_LATM, "aac_latm");
 	r.add(AV_CODEC_ID_AC3, "ac3");
 	r.add(AV_CODEC_ID_PNG, "png");
@@ -69,12 +69,21 @@ const char* avCodecIdToSignalsId(int avCodecId) {
 int signalsIdToAvCodecId(const char* origName) {
 
 	std::string name = origName;
-	// HACK: ffmpeg's codec IDs can't express the difference AVCC/AnnexB:
-	// project to 'AnnexB' so we get AV_CODEC_ID_{H264/HEVC}.
+
+	// Workaround: FFmpeg only has one AV_CODEC_ID value
+	// for both "Annex-B H.264" and "AVCC H.264".
 	if(name == "h264_avcc")
-		name = "h264_annexb";
-	else if(name == "hevc_avcc")
-		name = "hevc_annexb";
+		return AV_CODEC_ID_H264;
+
+	// Workaround: FFmpeg only has one AV_CODEC_ID value
+	// for both "Annex-B HEVC" and "AVCC HEVC".
+	if(name == "hevc_avcc")
+		return AV_CODEC_ID_HEVC;
+
+	// Workaround: FFmpeg only has one AV_CODEC_ID value
+	// for both "raw AAC" and "ADTS AAC".
+	if(name == "aac_adts")
+		return AV_CODEC_ID_AAC;
 
 	auto i = g_mapping.name_to_id.find(name);
 	if(i == g_mapping.name_to_id.end()) {

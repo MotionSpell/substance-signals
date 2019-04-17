@@ -152,14 +152,29 @@ struct LibavDemux : Module {
 			default: break;
 			}
 
-			// special case for mov/mp4/3gpp/etc:
-			// patch metadata to tell 'avcc' instead of 'annexb'.
-			if( std::string(m_formatCtx->iformat->name).substr(0, 3) == "mov") {
+			// Workaround: the codec_id, alone, is insufficient
+			// to determine the actual bitstream format.
+			// For example, depending on the container, AV_CODEC_ID_AAC might refer
+			// to "AAC ADTS" (mpegts case) or "raw AAC" (mp4 case).
+			{
 				auto meta = safe_cast<MetadataPkt>(const_cast<IMetadata*>(m.get()));
-				if(meta->codec == "h264_annexb")
-					meta->codec = "h264_avcc";
-				else if(meta->codec == "hevc_annexb")
-					meta->codec = "hevc_avcc";
+				auto const container = std::string(m_formatCtx->iformat->name);
+				if(container.substr(0, 4) == "mov,") {
+					switch(codecCtx->codec_id) {
+					case AV_CODEC_ID_H264: meta->codec = "h264_avcc"; break;
+					case AV_CODEC_ID_HEVC: meta->codec = "hevc_avcc"; break;
+					case AV_CODEC_ID_AAC: meta->codec = "aac_raw"; break;
+					default: break;
+					}
+				} else if(container == "mpegts") {
+					switch(codecCtx->codec_id) {
+					case AV_CODEC_ID_H264: meta->codec = "h264_annexb"; break;
+					case AV_CODEC_ID_HEVC: meta->codec = "hevc_annexb"; break;
+					case AV_CODEC_ID_AAC: meta->codec = "aac_adts"; break;
+					case AV_CODEC_ID_AAC_LATM: meta->codec = "aac_latm"; break;
+					default: break;
+					}
+				}
 			}
 
 			m_streams[i].output = addOutput();

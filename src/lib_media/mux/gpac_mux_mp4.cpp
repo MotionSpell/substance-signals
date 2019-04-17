@@ -631,7 +631,7 @@ void GPACMuxMP4::declareStreamAudio(const MetadataPktAudio* metadata) {
 	trackId = gf_isom_get_track_id(isoCur, trackNum);
 
 	esd->ESID = 1;
-	if (metadata->codec == "aac_adts") {
+	if (metadata->codec == "aac_raw") {
 		codec4CC = "AACL";
 		esd->decoderConfig->objectTypeIndication = GPAC_OTI_AUDIO_AAC_MPEG4;
 		esd->slConfig->timestampResolution = sampleRate;
