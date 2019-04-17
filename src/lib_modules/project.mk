@@ -10,8 +10,8 @@ LIB_MODULES_SRCS:=\
 
 CFLAGS+=-fPIC
 
-$(BIN)/%.smd: CFLAGS+=`test -z "$(PKGS)" || scripts/pkg-config $(PKGS) --cflags`
-$(BIN)/%.smd: LDFLAGS+=`test -z "$(PKGS)" || scripts/pkg-config $(PKGS) --libs`
+$(BIN)/%.smd: CFLAGS+=$(shell test -z "$(PKGS)" || scripts/pkg-config $(PKGS) --cflags)
+$(BIN)/%.smd: LDFLAGS+=$(shell test -z "$(PKGS)" || scripts/pkg-config $(PKGS) --libs)
 
 $(BIN)/%.smd: $(LIB_MODULES_SRCS:%=$(BIN)/%.o) $(LIB_UTILS_SRCS:%=$(BIN)/%.o)
 	$(CXX) $(CFLAGS) -pthread -shared -Wl,--no-undefined -o "$@" $^ $(LDFLAGS)
