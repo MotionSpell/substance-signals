@@ -4,4 +4,7 @@ set -euo pipefail
 export EXTRA=${EXTRA-$PWD/sysroot}
 export PKG_CONFIG_PATH=$EXTRA/lib/pkgconfig:${PKG_CONFIG_PATH-}
 
-pkg-config "$@"
+if ! pkg-config "$@" ; then
+  echo "--abort-the-build-because-some-libs-were-not-found"
+  exit 1
+fi
