@@ -41,6 +41,7 @@ function gpac_build {
   options+=(--disable-pulseaudio)    # disable Pulse audio
 
   options+=(--use-png=no)
+  options+=(--use-jpeg=no)
 
   options+=(--disable-3d)            # disable 3D rendering
   options+=(--disable-atsc)          # disable ATSC3 support
