@@ -28,34 +28,23 @@ LIB_MEDIA_SRCS:=\
 PKGS+=\
   libcurl\
 
-$(BIN)/media-config.mk: $(SRC)/../scripts/configure
-	@mkdir -p $(BIN)
-	$(SRC)/../scripts/configure --scope MEDIA_ gpac libswresample libavutil libavcodec libavdevice libavformat libavfilter libswscale libturbojpeg > "$@"
-
-ifneq ($(MAKECMDGOALS),clean)
-include $(BIN)/media-config.mk
-endif
-
 #------------------------------------------------------------------------------
 TARGETS+=$(BIN)/AVCC2AnnexBConverter.smd
-$(BIN)/AVCC2AnnexBConverter.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
-$(BIN)/AVCC2AnnexBConverter.smd: CFLAGS+=$(MEDIA_CFLAGS)
+$(BIN)/AVCC2AnnexBConverter.smd: PKGS+=libavcodec libavutil
 $(BIN)/AVCC2AnnexBConverter.smd: \
   $(BIN)/$(SRC)/lib_media/transform/avcc2annexb.cpp.o\
   $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
 
 #------------------------------------------------------------------------------
 TARGETS+=$(BIN)/LibavMuxHLSTS.smd
-$(BIN)/LibavMuxHLSTS.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
-$(BIN)/LibavMuxHLSTS.smd: CFLAGS+=$(MEDIA_CFLAGS)
+$(BIN)/LibavMuxHLSTS.smd: PKGS+=libavutil libavcodec
 $(BIN)/LibavMuxHLSTS.smd: \
   $(BIN)/$(SRC)/lib_media/stream/hls_muxer_libav.cpp.o\
   $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
 
 #------------------------------------------------------------------------------
 TARGETS+=$(BIN)/VideoConvert.smd
-$(BIN)/VideoConvert.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
-$(BIN)/VideoConvert.smd: CFLAGS+=$(MEDIA_CFLAGS)
+$(BIN)/VideoConvert.smd: PKGS+=libavcodec libavutil libswscale
 $(BIN)/VideoConvert.smd: \
   $(BIN)/$(SRC)/lib_media/transform/video_convert.cpp.o\
   $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
@@ -63,32 +52,28 @@ $(BIN)/VideoConvert.smd: \
 
 #------------------------------------------------------------------------------
 TARGETS+=$(BIN)/AudioConvert.smd
-$(BIN)/AudioConvert.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
-$(BIN)/AudioConvert.smd: CFLAGS+=$(MEDIA_CFLAGS)
+$(BIN)/AudioConvert.smd: PKGS+=libavutil libavcodec libswresample
 $(BIN)/AudioConvert.smd: \
   $(BIN)/$(SRC)/lib_media/transform/audio_convert.cpp.o\
   $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
 
 #------------------------------------------------------------------------------
 TARGETS+=$(BIN)/JPEGTurboDecode.smd
-$(BIN)/JPEGTurboDecode.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
-$(BIN)/JPEGTurboDecode.smd: CFLAGS+=$(MEDIA_CFLAGS)
+$(BIN)/JPEGTurboDecode.smd: PKGS+=libturbojpeg
 $(BIN)/JPEGTurboDecode.smd: \
   $(BIN)/$(SRC)/lib_media/decode/jpegturbo_decode.cpp.o\
   $(BIN)/$(SRC)/lib_media/common/picture.cpp.o\
 
 #------------------------------------------------------------------------------
 TARGETS+=$(BIN)/JPEGTurboEncode.smd
-$(BIN)/JPEGTurboEncode.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
-$(BIN)/JPEGTurboEncode.smd: CFLAGS+=$(MEDIA_CFLAGS)
+$(BIN)/JPEGTurboEncode.smd: PKGS+=libturbojpeg
 $(BIN)/JPEGTurboEncode.smd: \
   $(BIN)/$(SRC)/lib_media/encode/jpegturbo_encode.cpp.o\
   $(BIN)/$(SRC)/lib_media/common/picture.cpp.o\
 
 #------------------------------------------------------------------------------
 TARGETS+=$(BIN)/Encoder.smd
-$(BIN)/Encoder.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
-$(BIN)/Encoder.smd: CFLAGS+=$(MEDIA_CFLAGS)
+$(BIN)/Encoder.smd: PKGS+=libavcodec libavutil
 $(BIN)/Encoder.smd: \
   $(BIN)/$(SRC)/lib_media/encode/libav_encode.cpp.o\
   $(BIN)/$(SRC)/lib_media/common/libav_init.cpp.o\
@@ -97,8 +82,7 @@ $(BIN)/Encoder.smd: \
 
 #------------------------------------------------------------------------------
 TARGETS+=$(BIN)/Decoder.smd
-$(BIN)/Decoder.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
-$(BIN)/Decoder.smd: CFLAGS+=$(MEDIA_CFLAGS)
+$(BIN)/Decoder.smd: PKGS+=libavcodec libavutil
 $(BIN)/Decoder.smd: \
   $(BIN)/$(SRC)/lib_media/decode/decoder.cpp.o\
   $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
@@ -106,8 +90,7 @@ $(BIN)/Decoder.smd: \
 
 #------------------------------------------------------------------------------
 TARGETS+=$(BIN)/LibavDemux.smd
-$(BIN)/LibavDemux.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
-$(BIN)/LibavDemux.smd: CFLAGS+=$(MEDIA_CFLAGS)
+$(BIN)/LibavDemux.smd: PKGS+=libavformat libavcodec libavutil libavdevice
 $(BIN)/LibavDemux.smd: \
   $(BIN)/$(SRC)/lib_media/common/libav_init.cpp.o\
   $(BIN)/$(SRC)/lib_media/demux/libav_demux.cpp.o\
@@ -116,8 +99,7 @@ $(BIN)/LibavDemux.smd: \
 
 #------------------------------------------------------------------------------
 TARGETS+=$(BIN)/LibavMux.smd
-$(BIN)/LibavMux.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
-$(BIN)/LibavMux.smd: CFLAGS+=$(MEDIA_CFLAGS)
+$(BIN)/LibavMux.smd: PKGS+=libavformat libavcodec libavutil
 $(BIN)/LibavMux.smd: \
   $(BIN)/$(SRC)/lib_media/mux/libav_mux.cpp.o\
   $(BIN)/$(SRC)/lib_media/common/libav_init.cpp.o\
@@ -125,8 +107,7 @@ $(BIN)/LibavMux.smd: \
 
 #------------------------------------------------------------------------------
 TARGETS+=$(BIN)/LibavFilter.smd
-$(BIN)/LibavFilter.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
-$(BIN)/LibavFilter.smd: CFLAGS+=$(MEDIA_CFLAGS)
+$(BIN)/LibavFilter.smd: PKGS+=libavfilter libavcodec libavutil
 $(BIN)/LibavFilter.smd: \
   $(BIN)/$(SRC)/lib_media/transform/libavfilter.cpp.o\
   $(BIN)/$(SRC)/lib_media/common/picture.cpp.o\
@@ -134,16 +115,14 @@ $(BIN)/LibavFilter.smd: \
 
 #------------------------------------------------------------------------------
 TARGETS+=$(BIN)/GPACMuxMP4.smd
-$(BIN)/GPACMuxMP4.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
-$(BIN)/GPACMuxMP4.smd: CFLAGS+=$(MEDIA_CFLAGS)
+$(BIN)/GPACMuxMP4.smd: PKGS+=gpac libavcodec libavutil
 $(BIN)/GPACMuxMP4.smd: \
   $(BIN)/$(SRC)/lib_media/mux/gpac_mux_mp4.cpp.o\
   $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
 
 #------------------------------------------------------------------------------
 TARGETS+=$(BIN)/GPACMuxMP4MSS.smd
-$(BIN)/GPACMuxMP4MSS.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
-$(BIN)/GPACMuxMP4MSS.smd: CFLAGS+=$(MEDIA_CFLAGS)
+$(BIN)/GPACMuxMP4MSS.smd: PKGS+=gpac libavutil libavcodec
 $(BIN)/GPACMuxMP4MSS.smd: \
   $(BIN)/$(SRC)/lib_media/mux/gpac_mux_mp4_mss.cpp.o\
   $(BIN)/$(SRC)/lib_media/mux/gpac_mux_mp4.cpp.o\
@@ -151,23 +130,20 @@ $(BIN)/GPACMuxMP4MSS.smd: \
 
 #------------------------------------------------------------------------------
 TARGETS+=$(BIN)/MPEG_DASH.smd
-$(BIN)/MPEG_DASH.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
-$(BIN)/MPEG_DASH.smd: CFLAGS+=$(MEDIA_CFLAGS)
+$(BIN)/MPEG_DASH.smd: PKGS+=gpac
 $(BIN)/MPEG_DASH.smd: \
   $(BIN)/$(SRC)/lib_media/stream/mpeg_dash.cpp.o\
   $(BIN)/$(SRC)/lib_media/stream/adaptive_streaming_common.cpp.o\
 
 #------------------------------------------------------------------------------
 TARGETS+=$(BIN)/GPACDemuxMP4Simple.smd
-$(BIN)/GPACDemuxMP4Simple.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
-$(BIN)/GPACDemuxMP4Simple.smd: CFLAGS+=$(MEDIA_CFLAGS)
+$(BIN)/GPACDemuxMP4Simple.smd: PKGS+=gpac
 $(BIN)/GPACDemuxMP4Simple.smd: \
   $(BIN)/$(SRC)/lib_media/demux/gpac_demux_mp4_simple.cpp.o\
 
 #------------------------------------------------------------------------------
 TARGETS+=$(BIN)/GPACDemuxMP4Full.smd
-$(BIN)/GPACDemuxMP4Full.smd: LDFLAGS+=$(MEDIA_LDFLAGS)
-$(BIN)/GPACDemuxMP4Full.smd: CFLAGS+=$(MEDIA_CFLAGS)
+$(BIN)/GPACDemuxMP4Full.smd: PKGS+=gpac
 $(BIN)/GPACDemuxMP4Full.smd: \
   $(BIN)/$(SRC)/lib_media/demux/gpac_demux_mp4_full.cpp.o\
 
