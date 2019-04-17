@@ -225,26 +225,6 @@ unittest("TsMuxer: audio + video") {
 	ASSERT_EQUALS(100, std::min(100, rec->totalBytes));
 }
 
-unittest("[DISABLED] TsMuxer: destroy without flushing") {
-	auto mux = loadModule("TsMuxer", &NullHost, nullptr);
-
-	int outputSampleCount = 0;
-	auto onPic = [&](Data) {
-		++outputSampleCount;
-	};
-
-	ConnectOutput(mux->getOutput(0), onPic);
-
-	{
-		auto frame = getTestH264Frame();
-		frame->setMediaTime(100);
-		frame->set<DecodingTime>({100});
-		mux->getInput(0)->push(frame);
-	}
-
-	ASSERT_EQUALS(0, outputSampleCount);
-}
-
 unittest("TsMuxer: flush without feeding") {
 	TsMuxerConfig cfg;
 	cfg.muxRate = 1000 * 1000;
