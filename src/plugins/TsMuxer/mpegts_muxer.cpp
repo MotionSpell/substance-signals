@@ -293,58 +293,12 @@ class TsMuxer : public ModuleDynI {
 
 		// send bytes from 'unit' and update its span.
 		void sendTsPacket(int pid, SpanC& unit, int pusi) {
-
-			auto buf = m_output->allocData<DataRaw>(TS_PACKET_SIZE);
-			auto pkt = buf->buffer->data();
-			auto const adaptation_field_flag = 1;
 			auto const payload_flag = unit.len > 0;
-
-			// compose TS packet
-			{
-				auto w = BitWriter { pkt };
-
-				w.u(8, 0x47); // sync byte
-
-				w.u(1, 0); // TEI
-				w.u(1, pusi); // PUSI
-				w.u(1, 0); // priority
-				w.u(13, pid); // PID
-
-				w.u(2, 0); // scrambling control
-				w.u(1, adaptation_field_flag); // adaptation_field_control: bit #0
-				w.u(1, payload_flag); // adaptation_field_control: bit #1
-				w.u(4, m_cc[pid]); // continuity counter
-
-				if(adaptation_field_flag)
-					writeAdaptationField(w, pid == PCR_PID);
-
-				// write the actual TS payload
-				auto payloadStart = pkt.ptr + w.offset();
-
-				while(unit.len && w.offset() < TS_PACKET_SIZE) {
-					w.u(8, unit[0]);
-					unit += 1;
-				}
-
-				auto payloadEnd = pkt.ptr + w.offset();
-
-				// Insert stuffing bytes if needed.
-				// (use the stuffing bytes at the end of the adaptation field).
-				auto const stuffingByteCount = TS_PACKET_SIZE - w.offset();
-				assert(stuffingByteCount >= 0);
-
-				if(stuffingByteCount) {
-					assert(adaptation_field_flag);
-					pkt[4] += stuffingByteCount; // patch adaptation_field_length
-					// move the payload to the end of the TS packet.
-					memmove(payloadStart + stuffingByteCount, payloadStart, payloadEnd - payloadStart);
-					memset(payloadStart, 0xFF, stuffingByteCount);
-				}
-			}
+			auto data = serializeTsPacket(pid, unit, pusi);
 
 			// deliver it to the output
-			buf->set(PresentationTime { pcr() });
-			m_output->post(buf);
+			data->set(PresentationTime { pcr() });
+			m_output->post(data);
 
 			m_packetCount++;
 
@@ -356,7 +310,56 @@ class TsMuxer : public ModuleDynI {
 			m_pmtTimer--;
 		}
 
-		void writeAdaptationField(BitWriter& w, bool pcrFlag) {
+		std::shared_ptr<DataRaw> serializeTsPacket(int pid, SpanC& unit, int pusi) const {
+			auto buf = m_output->allocData<DataRaw>(TS_PACKET_SIZE);
+
+			auto pkt = buf->buffer->data();
+			auto const adaptation_field_flag = 1;
+			auto w = BitWriter { pkt };
+
+			w.u(8, 0x47); // sync byte
+
+			w.u(1, 0); // TEI
+			w.u(1, pusi); // PUSI
+			w.u(1, 0); // priority
+			w.u(13, pid); // PID
+
+			w.u(2, 0); // scrambling control
+			w.u(1, adaptation_field_flag); // adaptation_field_control: bit #0
+			w.u(1, unit.len > 0 ? 1 : 0); // adaptation_field_control: bit #1
+			w.u(4, m_cc[pid]); // continuity counter
+
+			if(adaptation_field_flag)
+				writeAdaptationField(w, pid == PCR_PID);
+
+			// write the actual TS payload
+			auto payloadStart = pkt.ptr + w.offset();
+
+			while(unit.len && w.offset() < TS_PACKET_SIZE) {
+				w.u(8, unit[0]);
+				unit += 1;
+			}
+
+			auto payloadEnd = pkt.ptr + w.offset();
+
+			// Insert stuffing bytes if needed.
+			// (use the stuffing bytes at the end of the adaptation field).
+			auto const stuffingByteCount = TS_PACKET_SIZE - w.offset();
+			assert(stuffingByteCount >= 0);
+
+			if(stuffingByteCount) {
+				assert(adaptation_field_flag);
+				pkt[4] += stuffingByteCount; // patch adaptation_field_length
+				// move the payload to the end of the TS packet.
+				memmove(payloadStart + stuffingByteCount, payloadStart, payloadEnd - payloadStart);
+				memset(payloadStart, 0xFF, stuffingByteCount);
+			}
+
+			return buf;
+		}
+
+
+		void writeAdaptationField(BitWriter& w, bool pcrFlag) const {
 			auto wafl = w;
 			w.u(8, 0); // adaptation field length: unknown at the moment
 
