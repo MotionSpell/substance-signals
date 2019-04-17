@@ -36,7 +36,7 @@ int codecToMpegStreamType(string codec) {
 		return 0x24;
 	else if(codec == "mp3")
 		return 0x03;
-	else if(codec == "aac_adts")
+	else if(codec == "aac_adts" || codec == "aac_raw")
 		return 0x0f;
 	else
 		throw runtime_error("unsupported codec: '" + codec + "'");
