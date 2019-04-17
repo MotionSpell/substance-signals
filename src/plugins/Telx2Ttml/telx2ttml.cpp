@@ -74,10 +74,6 @@ struct Page {
 	std::stringstream *ss = nullptr;
 };
 
-struct ITelxConfig {
-	virtual ~ITelxConfig() {}
-};
-
 }
 }
 
@@ -128,7 +124,7 @@ class TeletextToTTML : public ModuleS {
 		int64_t intClock = 0, extClock = 0;
 		const uint64_t maxPageDurIn180k, splitDurationIn180k;
 		std::vector<std::unique_ptr<Page>> currentPages;
-		std::unique_ptr<ITelxConfig> config;
+		std::unique_ptr<Config> config;
 
 		std::string toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs) {
 			std::stringstream ttml;
@@ -218,7 +214,7 @@ class TeletextToTTML : public ModuleS {
 
 		void processTelx(Data sub) {
 			auto data = sub->data();
-			auto &cfg = *dynamic_cast<Config*>(config.get());
+			auto &cfg = *config.get();
 			cfg.page = pageNum;
 			int i = 1;
 			while (i <= int(data.len) - 6) {

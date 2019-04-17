@@ -22,7 +22,7 @@ constexpr size_t NELEMENTS(T const (&array)[N]) {
 
 namespace {
 
-struct Config : public Modules::Transform::ITelxConfig {
+struct Config {
 	uint16_t page = 0;
 	uint8_t colors = No;   // output <font...></font> tags
 	uint8_t seMode = No;
