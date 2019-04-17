@@ -26,12 +26,11 @@ LIB_MEDIA_SRCS:=\
   $(MYDIR)/utils/repeater.cpp
 
 PKGS+=\
-  libavutil\
   libcurl\
 
 $(BIN)/media-config.mk: $(SRC)/../scripts/configure
 	@mkdir -p $(BIN)
-	$(SRC)/../scripts/configure --scope MEDIA_ gpac libswresample libavcodec libavdevice libavformat libavfilter libswscale libturbojpeg > "$@"
+	$(SRC)/../scripts/configure --scope MEDIA_ gpac libswresample libavutil libavcodec libavdevice libavformat libavfilter libswscale libturbojpeg > "$@"
 
 ifneq ($(MAKECMDGOALS),clean)
 include $(BIN)/media-config.mk
