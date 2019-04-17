@@ -87,7 +87,7 @@ class TsMuxer : public ModuleDynI {
 		vector<Stream> m_streams;
 		int m_patTimer = 0;
 		int m_pmtTimer = 0;
-		int64_t m_pcrOffset = 0;
+		int64_t m_pcrOffset = INT64_MAX;
 		uint8_t m_cc[8192] {};
 
 		// total packet count. Used to compute PCR.
@@ -144,7 +144,7 @@ class TsMuxer : public ModuleDynI {
 			for(auto& s : m_streams) {
 				if(!s.fifo.empty()) {
 					auto dts = s.fifo.front()->get<DecodingTime>().time;
-					if(dts < bestDts && (dts - pcr()) < IClock::Rate * 3) {
+					if(dts < bestDts) {
 						bestDts = dts;
 						bestIdx = idx;
 					}
@@ -152,9 +152,19 @@ class TsMuxer : public ModuleDynI {
 				++idx;
 			}
 
+			// we have an AU with a DTS
 			if(bestIdx >= 0) {
-				sendPes(m_streams[bestIdx], BASE_PID + bestIdx);
-				return true;
+				// compute first pcr
+				if(m_pcrOffset == INT64_MAX) {
+					assert(bestDts != INT64_MAX);
+					m_pcrOffset = bestDts - IClock::Rate * 3;
+				}
+
+				// not too early?
+				if((bestDts - pcr()) < IClock::Rate * 3) {
+					sendPes(m_streams[bestIdx], BASE_PID + bestIdx);
+					return true;
+				}
 			}
 
 			// nothing to send: send one NUL packet
