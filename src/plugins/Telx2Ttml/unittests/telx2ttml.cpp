@@ -2,7 +2,7 @@
 #include "lib_modules/modules.hpp"
 #include "lib_modules/utils/loader.hpp"
 #include "lib_media/common/metadata.hpp"
-#include "lib_media/transform/telx2ttml.hpp"
+#include "../telx2ttml.hpp"
 #include "lib_utils/log_sink.hpp"
 #include "lib_utils/log.hpp" // g_Log
 #include <string.h>

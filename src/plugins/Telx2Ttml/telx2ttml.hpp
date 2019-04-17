@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include "../common/utc_start_time.hpp"
+#include "lib_media/common/utc_start_time.hpp"
 
 struct TeletextToTtmlConfig {
 	enum TimingPolicy {
