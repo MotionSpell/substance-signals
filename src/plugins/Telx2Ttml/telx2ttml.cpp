@@ -75,12 +75,6 @@ namespace {
 
 class TeletextToTTML : public ModuleS {
 	public:
-		enum TimingPolicy {
-			AbsoluteUTC,     //USP
-			RelativeToMedia, //14496-30
-			RelativeToSplit  //MSS
-		};
-
 		TeletextToTTML(KHost* host, TeletextToTtmlConfig* cfg)
 			: m_host(host),
 			  m_utcStartTime(cfg->utcStartTime),
