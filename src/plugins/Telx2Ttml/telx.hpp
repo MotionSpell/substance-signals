@@ -17,7 +17,6 @@ namespace {
 struct TeletextState {
 	Modules::KHost* host;
 	uint16_t page = 0;
-	uint8_t seMode = No;
 	PrimaryCharset primaryCharset = { 0x00, Undef, Undef };
 	State states = { No };
 	uint32_t framesProduced = 0;
@@ -116,7 +115,7 @@ static bool isEmpty(PageBuffer const& pageIn) {
 }
 
 static
-void process_row(TeletextState const& config, const uint16_t* srcRow, Page* pageOut) {
+void process_row(const uint16_t* srcRow, Page* pageOut) {
 	int colStart = COLS;
 	int colStop = COLS;
 
@@ -157,11 +156,7 @@ void process_row(TeletextState const& config, const uint16_t* srcRow, Page* page
 		}
 	}
 
-	if (config.seMode == Yes) {
-		pageOut->lines.back() += " ";
-	} else {
-		pageOut->lines.push_back({});
-	}
+	pageOut->lines.push_back({});
 }
 
 std::unique_ptr<Page> process_page(TeletextState &config) {
@@ -173,16 +168,11 @@ std::unique_ptr<Page> process_page(TeletextState &config) {
 
 	pageIn->hideTimestamp = std::max(pageIn->hideTimestamp, pageIn->showTimestamp);
 
-	if (config.seMode == Yes) {
-		++config.framesProduced;
-		pageOut->tsInMs = pageIn->showTimestamp;
-	} else {
-		pageOut->showTimestamp = pageIn->showTimestamp;
-		pageOut->hideTimestamp = pageIn->hideTimestamp;
-	}
+	pageOut->showTimestamp = pageIn->showTimestamp;
+	pageOut->hideTimestamp = pageIn->hideTimestamp;
 
 	for (int row = 1; row < ROWS; row++)
-		process_row(config, pageIn->text[row], pageOut.get());
+		process_row(pageIn->text[row], pageOut.get());
 
 	return pageOut;
 }
