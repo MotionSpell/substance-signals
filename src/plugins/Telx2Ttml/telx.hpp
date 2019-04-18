@@ -17,7 +17,6 @@ namespace {
 struct TeletextState {
 	Modules::KHost* host;
 	uint16_t page = 0;
-	uint8_t colors = No;   // output <font...></font> tags
 	uint8_t seMode = No;
 	PrimaryCharset primaryCharset = { 0x00, Undef, Undef };
 	State states = { No };
@@ -142,43 +141,12 @@ void process_row(TeletextState const& config, const uint16_t* srcRow, Page* page
 		return; //empty line
 
 	// section 12.2: Alpha White ("Set-After") - Start-of-row default condition.
-	uint8_t fgColor = 0x7; //white(7)
-	uint8_t fontTagOpened = No;
 	for (int col = 0; col <= colStop; col++) {
 		uint16_t val = srcRow[col];
-		if (col < colStart) {
-			if (val <= 0x7)
-				fgColor = (uint8_t)val;
-		}
-		if (col == colStart) {
-			if ((fgColor != 0x7) && (config.colors == Yes)) {
-				fontTagOpened = Yes;
-			}
-		}
 
 		if (col >= colStart) {
 			if (val <= 0x7) {
-				if (config.colors == Yes) {
-					if (fontTagOpened == Yes) {
-						fontTagOpened = No;
-					}
-					if ((val > 0x0) && (val < 0x7)) {
-						fontTagOpened = Yes;
-					}
-				} else {
-					val = 0x20;
-				}
-			}
-
-			if (val >= 0x20) {
-				if (config.colors == Yes) {
-					for(auto entity : "<>&") {
-						if (val == entity) {
-							val = 0; // v < 0x20 won't be printed in next block
-							break;
-						}
-					}
-				}
+				val = 0x20;
 			}
 
 			if (val >= 0x20) {
@@ -187,10 +155,6 @@ void process_row(TeletextState const& config, const uint16_t* srcRow, Page* page
 				pageOut->lines.back() += u;
 			}
 		}
-	}
-
-	if ((config.colors == Yes) && (fontTagOpened == Yes)) {
-		fontTagOpened = No;
 	}
 
 	if (config.seMode == Yes) {
