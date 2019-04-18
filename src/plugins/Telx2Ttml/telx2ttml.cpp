@@ -29,7 +29,7 @@ struct Page {
 		return r;
 	}
 
-	std::string toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs, uint64_t idx) const {
+	std::string toTTML(int64_t startTimeInMs, int64_t endTimeInMs, int64_t idx) const {
 		std::stringstream ttml;
 
 		if(!lines.empty() || DEBUG_DISPLAY_TIMESTAMPS) {
@@ -71,7 +71,7 @@ struct Page {
 		return ttml.str();
 	}
 
-	uint64_t tsInMs = 0, startTimeInMs = 0, endTimeInMs = 0, showTimestamp = 0, hideTimestamp = 0;
+	int64_t tsInMs = 0, startTimeInMs = 0, endTimeInMs = 0, showTimestamp = 0, hideTimestamp = 0;
 	std::vector<std::string> lines;
 };
 
@@ -115,7 +115,7 @@ class TeletextToTTML : public ModuleS {
 		std::vector<Page> currentPages;
 		TeletextState config;
 
-		std::string toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs) {
+		std::string toTTML(int64_t startTimeInMs, int64_t endTimeInMs) {
 			std::stringstream ttml;
 			ttml << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n";
 			ttml << "<tt xmlns=\"http://www.w3.org/ns/ttml\" xmlns:tt=\"http://www.w3.org/ns/ttml\" xmlns:ttm=\"http://www.w3.org/ns/ttml#metadata\" xmlns:tts=\"http://www.w3.org/ns/ttml#styling\" xmlns:ttp=\"http://www.w3.org/ns/ttml#parameter\" xmlns:ebutts=\"urn:ebu:tt:style\" xmlns:ebuttm=\"urn:ebu:tt:metadata\" xml:lang=\"" << lang << "\" ttp:timeBase=\"media\">\n";
@@ -156,8 +156,8 @@ class TeletextToTTML : public ModuleS {
 			} else {
 				for(auto& page : currentPages) {
 					if(page.endTimeInMs > startTimeInMs && page.startTimeInMs < endTimeInMs) {
-						auto localStartTimeInMs = std::max<uint64_t>(page.startTimeInMs, startTimeInMs);
-						auto localEndTimeInMs = std::min<uint64_t>(page.endTimeInMs, endTimeInMs);
+						auto localStartTimeInMs = std::max<int64_t>(page.startTimeInMs, startTimeInMs);
+						auto localEndTimeInMs = std::min<int64_t>(page.endTimeInMs, endTimeInMs);
 						m_host->log(Debug, format("[%s-%s]: %s - %s: %s", startTimeInMs, endTimeInMs, localStartTimeInMs, localEndTimeInMs, page.toString()).c_str());
 						ttml << page.toTTML(localStartTimeInMs + offsetInMs, localEndTimeInMs + offsetInMs, startTimeInMs / clockToTimescale(this->splitDurationIn180k, 1000));
 					}
