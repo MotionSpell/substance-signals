@@ -119,8 +119,8 @@ Entity const entities[] = {
 };
 
 static bool isEmpty(PageBuffer const& pageIn) {
-	for (int col = 0; col < 40; col++) {
-		for (int row = 1; row < 25; row++) {
+	for (int col = 0; col < COLS; col++) {
+		for (int row = 1; row < ROWS; row++) {
 			if (pageIn.text[row][col] == 0x0b)
 				return false;
 		}
@@ -130,27 +130,27 @@ static bool isEmpty(PageBuffer const& pageIn) {
 
 static
 void process_row(TeletextState const& config, const uint16_t* srcRow, Page* pageOut) {
-	int colStart = 40;
-	int colStop = 40;
+	int colStart = COLS;
+	int colStop = COLS;
 
-	for (int col = 39; col >= 0; col--) {
+	for (int col = COLS-1; col >= 0; col--) {
 		if (srcRow[col] == 0xb) {
 			colStart = col;
 			break;
 		}
 	}
-	if (colStart > 39)
+	if (colStart >= COLS)
 		return; //empty line
 
-	for (int col = colStart + 1; col <= 39; col++) {
+	for (int col = colStart + 1; col < COLS; col++) {
 		if (srcRow[col] > 0x20) {
-			if (colStop > 39) colStart = col;
+			if (colStop >= COLS) colStart = col;
 			colStop = col;
 		}
 		if (srcRow[col] == 0xa)
 			break;
 	}
-	if (colStop > 39)
+	if (colStop >= COLS)
 		return; //empty line
 
 	// section 12.2: Alpha White ("Set-After") - Start-of-row default condition.

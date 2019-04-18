@@ -89,10 +89,13 @@ typedef enum {
 	Serial = 1
 } TransmissionMode;
 
+static const int COLS = 40;
+static const int ROWS = 25;
+
 typedef struct {
 	uint64_t showTimestamp;
 	uint64_t hideTimestamp;
-	uint16_t text[25][40];
+	uint16_t text[ROWS][COLS];
 	uint8_t tainted; // 1 = text variable contains any data
 } PageBuffer;
 
