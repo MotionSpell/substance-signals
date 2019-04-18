@@ -147,7 +147,10 @@ std::unique_ptr<Modules::Transform::Page> process_page(TeletextState &config) {
 	}
 
 	for (int row = 1; row < 25; row++) {
-		int colStart = 40, colStop = 40;
+
+		int colStart = 40;
+		int colStop = 40;
+
 		for (int col = 39; col >= 0; col--) {
 			if (pageIn->text[row][col] == 0xb) {
 				colStart = col;
@@ -171,7 +174,7 @@ std::unique_ptr<Modules::Transform::Page> process_page(TeletextState &config) {
 		// section 12.2: Alpha White ("Set-After") - Start-of-row default condition.
 		uint8_t fgColor = 0x7; //white(7)
 		uint8_t fontTagOpened = No;
-		for (uint8_t col = 0; col <= colStop; col++) {
+		for (int col = 0; col <= colStop; col++) {
 			uint16_t val = pageIn->text[row][col];
 			if (col < colStart) {
 				if (val <= 0x7)
