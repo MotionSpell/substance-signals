@@ -213,7 +213,7 @@ std::unique_ptr<Modules::Transform::Page> process_page(TeletextState &config) {
 				}
 
 				if (val >= 0x20) {
-					char u[4] = { 0, 0, 0, 0 };
+					char u[4] {};
 					ucs2_to_utf8(u, val);
 					pageOut->lines.back() += u;
 				}
@@ -373,7 +373,7 @@ std::unique_ptr<Modules::Transform::Page> process_telx_packet(TeletextState &con
 					if (c < 0x20)
 						continue;
 
-					char u[4] = { 0, 0, 0, 0 };
+					char u[4] {};
 					ucs2_to_utf8(u, c);
 				}
 
