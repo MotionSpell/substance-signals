@@ -212,8 +212,7 @@ class TeletextToTTML : public ModuleS {
 
 		void processTelx(Data sub) {
 			auto data = sub->data();
-			auto& cfg = config;
-			cfg.page = pageNum;
+			config.page = pageNum;
 			int i = 1;
 
 			while(i <= int(data.len) - 6) {
@@ -236,7 +235,7 @@ class TeletextToTTML : public ModuleS {
 						entitiesData[j] = Reverse8[byte]; // reverse endianess
 					}
 
-					auto page = process_telx_packet(cfg, dataUnitId, (Payload*)entitiesData, sub->getMediaTime());
+					auto page = process_telx_packet(config, dataUnitId, (Payload*)entitiesData, sub->getMediaTime());
 
 					if(page) {
 						m_host->log(Debug,
