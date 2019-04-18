@@ -154,20 +154,24 @@ class TeletextToTTML : public ModuleS {
 				auto pageOut = make_unique<Page>();
 				ttml << pageOut->toTTML(offsetInMs + startTimeInMs, offsetInMs + endTimeInMs, startTimeInMs / clockToTimescale(this->splitDurationIn180k, 1000));
 			} else {
-				auto page = currentPages.begin();
-
-				while(page != currentPages.end()) {
-					if(page->endTimeInMs > startTimeInMs && page->startTimeInMs < endTimeInMs) {
-						auto localStartTimeInMs = std::max<uint64_t>(page->startTimeInMs, startTimeInMs);
-						auto localEndTimeInMs = std::min<uint64_t>(page->endTimeInMs, endTimeInMs);
-						m_host->log(Debug, format("[%s-%s]: %s - %s: %s", startTimeInMs, endTimeInMs, localStartTimeInMs, localEndTimeInMs, page->toString()).c_str());
-						ttml << page->toTTML(localStartTimeInMs + offsetInMs, localEndTimeInMs + offsetInMs, startTimeInMs / clockToTimescale(this->splitDurationIn180k, 1000));
+				for(auto& page : currentPages) {
+					if(page.endTimeInMs > startTimeInMs && page.startTimeInMs < endTimeInMs) {
+						auto localStartTimeInMs = std::max<uint64_t>(page.startTimeInMs, startTimeInMs);
+						auto localEndTimeInMs = std::min<uint64_t>(page.endTimeInMs, endTimeInMs);
+						m_host->log(Debug, format("[%s-%s]: %s - %s: %s", startTimeInMs, endTimeInMs, localStartTimeInMs, localEndTimeInMs, page.toString()).c_str());
+						ttml << page.toTTML(localStartTimeInMs + offsetInMs, localEndTimeInMs + offsetInMs, startTimeInMs / clockToTimescale(this->splitDurationIn180k, 1000));
 					}
+				}
 
-					if(page->endTimeInMs <= endTimeInMs) {
-						page = currentPages.erase(page);
-					} else {
-						++page;
+				// remove outdated pages
+				{
+					auto page = currentPages.begin();
+					while(page != currentPages.end()) {
+						if(page->endTimeInMs <= endTimeInMs) {
+							page = currentPages.erase(page);
+						} else {
+							++page;
+						}
 					}
 				}
 			}
