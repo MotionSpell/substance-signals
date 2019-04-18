@@ -86,6 +86,7 @@ class TeletextToTTML : public ModuleS {
 			: m_host(host),
 			  m_utcStartTime(cfg->utcStartTime),
 			  pageNum(cfg->pageNum), lang(cfg->lang), timingPolicy(cfg->timingPolicy), maxPageDurIn180k(timescaleToClock(cfg->maxDelayBeforeEmptyInMs, 1000)), splitDurationIn180k(timescaleToClock(cfg->splitDurationInMs, 1000)) {
+			config.host = host;
 			enforce(cfg->utcStartTime != nullptr, "TeletextToTTML: utcStartTime can't be NULL");
 			output = addOutput();
 		}

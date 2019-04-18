@@ -1,8 +1,6 @@
 #pragma once
 
 #include "telx_tables.hpp"
-#include "lib_utils/log.hpp"
-#include "lib_utils/format.hpp"
 
 namespace {
 
@@ -41,7 +39,7 @@ uint8_t unham_8_4(uint8_t a) {
 	uint8_t val = UnHam_8_4[a];
 	if (val == 0xff) {
 		val = 0;
-		g_Log->log(Warning, format("Teletext: unrecoverable data error (4): %s\n", a).c_str());
+		// g_Log->log(Warning, format("Teletext: unrecoverable data error (4): %s\n", a).c_str());
 	}
 	return (val & 0x0f);
 }

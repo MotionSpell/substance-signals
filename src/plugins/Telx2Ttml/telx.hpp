@@ -4,9 +4,9 @@
 #include <cstdio>
 #include <memory>
 #include <sstream>
+#include "lib_utils/format.hpp"
 #include "telx_tables.hpp"
 #include "telx_structs.hpp"
-#include "lib_utils/log.hpp" // g_Log
 #include "telx2ttml.hpp"
 
 //this code was written really fast to cover the teletext to ttml conversion
@@ -17,6 +17,7 @@
 namespace {
 
 struct TeletextState {
+	Modules::KHost* host;
 	uint16_t page = 0;
 	uint8_t colors = No;   // output <font...></font> tags
 	uint8_t seMode = No;
@@ -82,7 +83,7 @@ struct TeletextState {
 
 uint16_t telx_to_ucs2(uint8_t c, TeletextState const& config) {
 	if (Parity8[c] == 0) {
-		g_Log->log(Warning, format("Teletext: unrecoverable data error (5): %s", c).c_str());
+		config.host->log(Warning, format("Teletext: unrecoverable data error (5): %s", c).c_str());
 		return 0x20;
 	}
 
@@ -97,7 +98,7 @@ void remap_g0_charset(uint8_t c, TeletextState &config) {
 	if (c != config.primaryCharset.current) {
 		uint8_t m = G0_LatinNationalSubsetsMap[c];
 		if (m == 0xff) {
-			g_Log->log(Warning, format("Teletext: G0 subset %s.%s is not implemented", (c >> 3), (c & 0x7)).c_str());
+			config.host->log(Warning, format("Teletext: G0 subset %s.%s is not implemented", (c >> 3), (c & 0x7)).c_str());
 		} else {
 			for (uint8_t j = 0; j < 13; j++) {
 				config.G0[LATIN][G0_LatinNationalSubsetsPositions[j]] = G0_LatinNationalSubsets[m].characters[j];
@@ -310,7 +311,7 @@ std::unique_ptr<Page> process_telx_packet(TeletextState &config, DataUnit dataUn
 
 		for (uint8_t j = 0; j < 13; j++) {
 			if (triplets[j] == 0xffffffff) {
-				g_Log->log(Warning, format("Teletext: unrecoverable data error (1): %s", triplets[j]).c_str());
+				config.host->log(Warning, format("Teletext: unrecoverable data error (1): %s", triplets[j]).c_str());
 				continue;
 			}
 
@@ -347,7 +348,7 @@ std::unique_ptr<Page> process_telx_packet(TeletextState &config, DataUnit dataUn
 		if ((designationCode == 0) || (designationCode == 4)) {
 			uint32_t triplet0 = unham_24_18((packet->data[3] << 16) | (packet->data[2] << 8) | packet->data[1]);
 			if (triplet0 == 0xffffffff) {
-				g_Log->log(Warning, format("Teletext: unrecoverable data error (2): %s", triplet0).c_str());
+				config.host->log(Warning, format("Teletext: unrecoverable data error (2): %s", triplet0).c_str());
 			} else {
 				if ((triplet0 & 0x0f) == 0x00) {
 					config.primaryCharset.G0_X28 = (triplet0 & 0x3f80) >> 7;
@@ -360,7 +361,7 @@ std::unique_ptr<Page> process_telx_packet(TeletextState &config, DataUnit dataUn
 		if ((designationCode == 0) || (designationCode == 4)) {
 			uint32_t triplet0 = unham_24_18((packet->data[3] << 16) | (packet->data[2] << 8) | packet->data[1]);
 			if (triplet0 == 0xffffffff) {
-				g_Log->log(Warning, format("Teletext: unrecoverable data error (3): %s", triplet0).c_str());
+				config.host->log(Warning, format("Teletext: unrecoverable data error (3): %s", triplet0).c_str());
 			} else {
 				if ((triplet0 & 0xff) == 0x00) {
 					config.primaryCharset.G0_M29 = (triplet0 & 0x3f80) >> 7;

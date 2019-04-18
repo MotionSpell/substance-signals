@@ -5,7 +5,6 @@
 #include "lib_media/common/attributes.hpp"
 #include "../telx2ttml.hpp"
 #include "lib_utils/log_sink.hpp"
-#include "lib_utils/log.hpp" // g_Log
 #include <string.h>
 
 using std::make_shared;
