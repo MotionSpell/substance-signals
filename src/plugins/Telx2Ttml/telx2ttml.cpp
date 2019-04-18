@@ -90,9 +90,7 @@ class TeletextToTTML : public ModuleS {
 			//TODO
 			//14. add flush() for ondemand samples
 			//15. UTF8 to TTML formatting? accent
-			if (data->data().len) {
-				processTelx(data);
-			}
+			processTelx(data);
 			dispatch();
 		}
 
