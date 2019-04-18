@@ -115,7 +115,7 @@ static bool isEmpty(PageBuffer const& pageIn) {
 }
 
 static
-void process_row(const uint16_t* srcRow, Page* pageOut) {
+void process_row(const uint16_t* srcRow, Page& page) {
 	int colStart = COLS;
 	int colStop = COLS;
 
@@ -151,12 +151,12 @@ void process_row(const uint16_t* srcRow, Page* pageOut) {
 			if (val >= 0x20) {
 				char u[4] {};
 				ucs2_to_utf8(u, val);
-				pageOut->lines.back() += u;
+				page.lines.back() += u;
 			}
 		}
 	}
 
-	pageOut->lines.push_back({});
+	page.lines.push_back({});
 }
 
 std::unique_ptr<Page> process_page(TeletextState &config) {
@@ -172,7 +172,7 @@ std::unique_ptr<Page> process_page(TeletextState &config) {
 	pageOut->hideTimestamp = pageIn->hideTimestamp;
 
 	for (int row = 1; row < ROWS; row++)
-		process_row(pageIn->text[row], pageOut.get());
+		process_row(pageIn->text[row], *pageOut);
 
 	return pageOut;
 }
