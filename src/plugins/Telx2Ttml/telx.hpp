@@ -106,17 +106,6 @@ void remap_g0_charset(uint8_t c, TeletextState &config) {
 	}
 }
 
-// entities, used in color mode, to replace unsafe HTML tag chars
-struct Entity {
-	uint16_t character;
-};
-
-Entity const entities[] = {
-	{ '<'},
-	{ '>'},
-	{ '&'},
-};
-
 static bool isEmpty(PageBuffer const& pageIn) {
 	for (int col = 0; col < COLS; col++) {
 		for (int row = 1; row < ROWS; row++) {
@@ -183,8 +172,8 @@ void process_row(TeletextState const& config, const uint16_t* srcRow, Page* page
 
 			if (val >= 0x20) {
 				if (config.colors == Yes) {
-					for(auto entity : entities) {
-						if (val == entity.character) {
+					for(auto entity : "<>&") {
+						if (val == entity) {
 							val = 0; // v < 0x20 won't be printed in next block
 							break;
 						}
