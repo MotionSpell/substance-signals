@@ -16,7 +16,7 @@
 
 namespace {
 
-struct Config {
+struct TeletextState {
 	uint16_t page = 0;
 	uint8_t colors = No;   // output <font...></font> tags
 	uint8_t seMode = No;
@@ -80,7 +80,7 @@ struct Config {
 	};
 };
 
-uint16_t telx_to_ucs2(uint8_t c, Config const& config) {
+uint16_t telx_to_ucs2(uint8_t c, TeletextState const& config) {
 	if (Parity8[c] == 0) {
 		g_Log->log(Warning, format("Teletext: unrecoverable data error (5): %s", c).c_str());
 		return 0x20;
@@ -93,7 +93,7 @@ uint16_t telx_to_ucs2(uint8_t c, Config const& config) {
 	return val;
 }
 
-void remap_g0_charset(uint8_t c, Config &config) {
+void remap_g0_charset(uint8_t c, TeletextState &config) {
 	if (c != config.primaryCharset.current) {
 		uint8_t m = G0_LatinNationalSubsetsMap[c];
 		if (m == 0xff) {
@@ -119,7 +119,7 @@ Entity const entities[] = {
 	{ '&', "&amp;" }
 };
 
-std::unique_ptr<Modules::Transform::Page> process_page(Config &config) {
+std::unique_ptr<Modules::Transform::Page> process_page(TeletextState &config) {
 	PageBuffer *pageIn = &config.pageBuffer;
 	auto pageOut = make_unique<Modules::Transform::Page>();
 	bool emptyPage = true;
@@ -238,7 +238,7 @@ emptyPage:
 	return pageOut;
 }
 
-std::unique_ptr<Modules::Transform::Page> process_telx_packet(Config &config, DataUnit dataUnitId, Payload *packet, uint64_t timestamp) {
+std::unique_ptr<Modules::Transform::Page> process_telx_packet(TeletextState &config, DataUnit dataUnitId, Payload *packet, uint64_t timestamp) {
 	// section 7.1.2
 	uint8_t address = (unham_8_4(packet->address[1]) << 4) | unham_8_4(packet->address[0]);
 	uint8_t m = address & 0x7;

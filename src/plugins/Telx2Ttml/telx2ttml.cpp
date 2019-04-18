@@ -97,7 +97,7 @@ class TeletextToTTML : public ModuleS {
 			  m_utcStartTime(cfg->utcStartTime),
 			  pageNum(cfg->pageNum), lang(cfg->lang), timingPolicy(cfg->timingPolicy), maxPageDurIn180k(timescaleToClock(cfg->maxDelayBeforeEmptyInMs, 1000)), splitDurationIn180k(timescaleToClock(cfg->splitDurationInMs, 1000)) {
 			enforce(cfg->utcStartTime != nullptr, "TeletextToTTML: utcStartTime can't be NULL");
-			config = make_unique<Config>();
+			config = make_unique<TeletextState>();
 			output = addOutput();
 		}
 
@@ -124,7 +124,7 @@ class TeletextToTTML : public ModuleS {
 		int64_t intClock = 0, extClock = 0;
 		const uint64_t maxPageDurIn180k, splitDurationIn180k;
 		std::vector<std::unique_ptr<Page>> currentPages;
-		std::unique_ptr<Config> config;
+		std::unique_ptr<TeletextState> config;
 
 		std::string toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs) {
 			std::stringstream ttml;
