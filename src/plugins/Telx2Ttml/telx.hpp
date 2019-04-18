@@ -113,6 +113,18 @@ void remap_g0_charset(uint8_t c, Config &config) {
 	}
 }
 
+// entities, used in color mode, to replace unsafe HTML tag chars
+struct Entity {
+	uint16_t character;
+	const char *entity;
+};
+
+Entity const entities[] = {
+	{ '<', "&lt;" },
+	{ '>', "&gt;" },
+	{ '&', "&amp;" }
+};
+
 std::unique_ptr<Modules::Transform::Page> process_page(Config &config) {
 	PageBuffer *pageIn = &config.pageBuffer;
 	auto pageOut = make_unique<Modules::Transform::Page>();

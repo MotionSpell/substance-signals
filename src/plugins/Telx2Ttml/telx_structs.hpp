@@ -22,17 +22,6 @@ typedef struct {
 	Bool progInfoProcessed;
 } State;
 
-// entities, used in color mode, to replace unsafe HTML tag chars
-typedef struct {
-	uint16_t character;
-	const char *entity;
-} Entity;
-Entity const entities[] = {
-	{ '<', "&lt;" },
-	{ '>', "&gt;" },
-	{ '&', "&amp;" }
-};
-
 typedef enum {
 	NonSubtitle = 0x02,
 	Subtitle = 0x03,
