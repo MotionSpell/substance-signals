@@ -210,19 +210,21 @@ class TeletextToTTML : public ModuleS {
 			int i = 1;
 
 			while(i <= int(data.len) - 6) {
-				auto dataUnitId = (DataUnit)data[i++];
+				auto const dataUnitId = (DataUnit)data[i++];
 				auto const dataUnitSize = data[i++];
-				const uint8_t telxPayloadSize = 44;
 
-				if(((dataUnitId == NonSubtitle) || (dataUnitId == Subtitle)) && (dataUnitSize == telxPayloadSize)) {
-					uint8_t entitiesData[telxPayloadSize];
+				const uint8_t TELX_PAYLOAD_SIZE = 44;
 
-					if(i + dataUnitSize > (int)data.len) {
+				if(((dataUnitId == NonSubtitle) || (dataUnitId == Subtitle))
+				    && (dataUnitSize == TELX_PAYLOAD_SIZE)) {
+
+					if(i + TELX_PAYLOAD_SIZE > (int)data.len) {
 						m_host->log(Warning, "truncated data unit");
 						return;
 					}
 
-					for(uint8_t j = 0; j < dataUnitSize; j++) {
+					uint8_t entitiesData[TELX_PAYLOAD_SIZE];
+					for(int j = 0; j < TELX_PAYLOAD_SIZE; j++) {
 						auto byte = data[i + j];
 						entitiesData[j] = Reverse8[byte]; // reverse endianess
 					}
