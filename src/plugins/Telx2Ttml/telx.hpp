@@ -234,7 +234,7 @@ std::unique_ptr<Page> process_page(TeletextState &config) {
 		pageOut->hideTimestamp = pageIn->hideTimestamp;
 	}
 
-	for (int row = 1; row < 25; row++)
+	for (int row = 1; row < ROWS; row++)
 		process_row(config, pageIn->text[row], pageOut.get());
 
 	return pageOut;
