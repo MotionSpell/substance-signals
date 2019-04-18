@@ -163,7 +163,6 @@ void process_row(TeletextState const& config, const uint16_t* srcRow, Page* page
 		}
 		if (col == colStart) {
 			if ((fgColor != 0x7) && (config.colors == Yes)) {
-				//TODO: look for "//colors:": fprintf(fout, "<font color=\"%s\">", TELX_Colors[fgColor]);
 				fontTagOpened = Yes;
 			}
 		}
@@ -172,11 +171,9 @@ void process_row(TeletextState const& config, const uint16_t* srcRow, Page* page
 			if (val <= 0x7) {
 				if (config.colors == Yes) {
 					if (fontTagOpened == Yes) {
-						//colors: fprintf(fout, "</font> ");
 						fontTagOpened = No;
 					}
 					if ((val > 0x0) && (val < 0x7)) {
-						//colors: fprintf(fout, "<font color=\"%s\">", TELX_Colors[v]);
 						fontTagOpened = Yes;
 					}
 				} else {
@@ -187,8 +184,7 @@ void process_row(TeletextState const& config, const uint16_t* srcRow, Page* page
 			if (val >= 0x20) {
 				if (config.colors == Yes) {
 					for(auto entity : entities) {
-						if (val == entity.character) { // translate chars into entities when in color mode
-							//colors: fprintf(fout, "%s", entity.entity);
+						if (val == entity.character) {
 							val = 0; // v < 0x20 won't be printed in next block
 							break;
 						}
@@ -205,7 +201,6 @@ void process_row(TeletextState const& config, const uint16_t* srcRow, Page* page
 	}
 
 	if ((config.colors == Yes) && (fontTagOpened == Yes)) {
-		//colors: fprintf(fout, "</font>");
 		fontTagOpened = No;
 	}
 
