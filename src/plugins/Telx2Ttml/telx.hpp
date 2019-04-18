@@ -9,12 +9,6 @@
 #include "lib_utils/log.hpp" // g_Log
 #include "telx2ttml.hpp"
 
-template<typename T, size_t N>
-constexpr size_t NELEMENTS(T const (&array)[N]) {
-	(void)array;
-	return N;
-}
-
 //this code was written really fast to cover the teletext to ttml conversion
 //sticks to the spec
 //in this file we extract pages to convert them later
@@ -209,9 +203,9 @@ emptyPage:
 
 				if (val >= 0x20) {
 					if (config.colors == Yes) {
-						for (uint8_t i = 0; i < NELEMENTS(entities); i++) {
-							if (val == entities[i].character) { // translate chars into entities when in color mode
-								//colors: fprintf(fout, "%s", entities[i].entity);
+						for(auto entity : entities) {
+							if (val == entity.character) { // translate chars into entities when in color mode
+								//colors: fprintf(fout, "%s", entity.entity);
 								val = 0; // v < 0x20 won't be printed in next block
 								break;
 							}
