@@ -136,8 +136,7 @@ std::unique_ptr<Modules::Transform::Page> process_page(TeletextState &config) {
 	if (isEmpty(*pageIn))
 		return pageOut;
 
-	if (pageIn->showTimestamp > pageIn->hideTimestamp)
-		pageIn->hideTimestamp = pageIn->showTimestamp;
+	pageIn->hideTimestamp = std::max(pageIn->hideTimestamp, pageIn->showTimestamp);
 
 	if (config.seMode == Yes) {
 		++config.framesProduced;
