@@ -373,32 +373,6 @@ std::unique_ptr<Page> process_telx_packet(TeletextState &config, DataUnit dataUn
 		// Section 9.8
 		if (config.states.progInfoProcessed == No) {
 			if (unham_8_4(packet->data[0]) < 2) {
-				for (uint8_t i = 20; i < 40; i++) {
-					uint8_t c = (uint8_t)telx_to_ucs2(packet->data[i], config);
-					if (c < 0x20)
-						continue;
-
-					char u[4] {};
-					ucs2_to_utf8(u, c);
-				}
-
-				//time conversion here is insane
-				// BCD to Modified Julian Day
-				uint32_t t = 0;
-				t += (packet->data[10] & 0x0f) * 10000;
-				t += ((packet->data[11] & 0xf0) >> 4) * 1000;
-				t += (packet->data[11] & 0x0f) * 100;
-				t += ((packet->data[12] & 0xf0) >> 4) * 10;
-				t += (packet->data[12] & 0x0f);
-				t -= 11111;
-				// conversion Modified Julian Day to unix timestamp
-				t = (t - 40587) * 86400;
-				// add time
-				t += 3600 * (((packet->data[13] & 0xf0) >> 4) * 10 + (packet->data[13] & 0x0f));
-				t += 60 * (((packet->data[14] & 0xf0) >> 4) * 10 + (packet->data[14] & 0x0f));
-				t += (((packet->data[15] & 0xf0) >> 4) * 10 + (packet->data[15] & 0x0f));
-				t -= 40271;
-
 				config.states.progInfoProcessed = Yes;
 			}
 		}
