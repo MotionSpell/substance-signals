@@ -20,13 +20,13 @@ namespace Transform {
 
 struct Page {
 	Page() {
-		lines.push_back(make_unique<std::stringstream>());
+		lines.push_back(std::stringstream());
 	}
 
 	std::string toString() const {
 		std::stringstream str;
-		for (auto &ss : lines) {
-			str << ss->str() << std::endl;
+		for (auto& ss : lines) {
+			str << ss.str() << std::endl;
 		}
 		return str.str();
 	}
@@ -51,12 +51,12 @@ struct Page {
 
 				auto const numLines = lines.size();
 				if (numLines > 0) {
-					auto const numEffectiveLines = lines[numLines-1]->str().empty() ? numLines-1 : numLines;
+					auto const numEffectiveLines = lines[numLines-1].str().empty() ? numLines-1 : numLines;
 					if (numEffectiveLines > 0) {
 						for (size_t i = 0; i < numEffectiveLines - 1; ++i) {
-							ttml << lines[i]->str() << "<br/>\r\n";
+							ttml << lines[i].str() << "<br/>\r\n";
 						}
-						ttml << lines[numEffectiveLines - 1]->str();
+						ttml << lines[numEffectiveLines - 1].str();
 					}
 				}
 
@@ -69,7 +69,7 @@ struct Page {
 
 	uint64_t tsInMs=0, startTimeInMs=0, endTimeInMs=0, showTimestamp=0, hideTimestamp=0;
 	uint32_t framesProduced = 0;
-	std::vector<std::unique_ptr<std::stringstream>> lines;
+	std::vector<std::stringstream> lines;
 };
 
 }
