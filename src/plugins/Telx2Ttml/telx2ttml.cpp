@@ -8,6 +8,7 @@
 #include <algorithm> // std::max
 #include <vector>
 #include <sstream>
+#include <cassert>
 
 extern "C" {
 #include <libavcodec/avcodec.h> // AVCodecContext
@@ -38,36 +39,35 @@ struct Page {
 	}
 
 	std::string toTTML(int64_t startTimeInMs, int64_t endTimeInMs, int64_t idx) const {
+		assert(!lines.empty());
+
+		auto const timecodeShow = timecodeToString(startTimeInMs);
+		auto const timecodeHide = timecodeToString(endTimeInMs);
+
 		std::stringstream ttml;
+		ttml << "      <p region=\"Region\" style=\"textAlignment_0\" begin=\"" << timecodeShow << "\" end=\"" << timecodeHide << "\" xml:id=\"s" << idx << "\">\n";
 
-		if(!lines.empty() || DEBUG_DISPLAY_TIMESTAMPS) {
-			auto const timecodeShow = timecodeToString(startTimeInMs);
-			auto const timecodeHide = timecodeToString(endTimeInMs);
+		if(DEBUG_DISPLAY_TIMESTAMPS) {
+			ttml << "        <span style=\"Style0_0\">" << timecodeShow << " - " << timecodeHide << "</span>\n";
+		} else {
+			ttml << "        <span style=\"Style0_0\">";
 
-			ttml << "      <p region=\"Region\" style=\"textAlignment_0\" begin=\"" << timecodeShow << "\" end=\"" << timecodeHide << "\" xml:id=\"s" << idx << "\">\n";
+			bool first = true;
+			for(auto& line : lines) {
+				if(line.empty())
+					continue;
 
-			if(DEBUG_DISPLAY_TIMESTAMPS) {
-				ttml << "        <span style=\"Style0_0\">" << timecodeShow << " - " << timecodeHide << "</span>\n";
-			} else {
-				ttml << "        <span style=\"Style0_0\">";
+				if(!first)
+					ttml << "<br/>\r\n";
 
-				bool first = true;
-				for(auto& line : lines) {
-					if(line.empty())
-						continue;
-
-					if(!first)
-						ttml << "<br/>\r\n";
-
-					ttml << line;
-					first = false;
-				}
-
-				ttml << "</span>\n";
+				ttml << line;
+				first = false;
 			}
 
-			ttml << "      </p>\n";
+			ttml << "</span>\n";
 		}
+
+		ttml << "      </p>\n";
 
 		return ttml.str();
 	}
