@@ -130,7 +130,7 @@ static bool isEmpty(PageBuffer const& pageIn) {
 }
 
 static
-void process_row(TeletextState const& config, const uint16_t* srcRow, Modules::Transform::Page* pageOut) {
+void process_row(TeletextState const& config, const uint16_t* srcRow, Page* pageOut) {
 	int colStart = 40;
 	int colStop = 40;
 
@@ -218,9 +218,9 @@ void process_row(TeletextState const& config, const uint16_t* srcRow, Modules::T
 	}
 }
 
-std::unique_ptr<Modules::Transform::Page> process_page(TeletextState &config) {
+std::unique_ptr<Page> process_page(TeletextState &config) {
 	PageBuffer* pageIn = &config.pageBuffer;
-	auto pageOut = make_unique<Modules::Transform::Page>();
+	auto pageOut = make_unique<Page>();
 
 	if (isEmpty(*pageIn))
 		return pageOut;
@@ -241,7 +241,7 @@ std::unique_ptr<Modules::Transform::Page> process_page(TeletextState &config) {
 	return pageOut;
 }
 
-std::unique_ptr<Modules::Transform::Page> process_telx_packet(TeletextState &config, DataUnit dataUnitId, Payload *packet, uint64_t timestamp) {
+std::unique_ptr<Page> process_telx_packet(TeletextState &config, DataUnit dataUnitId, Payload *packet, uint64_t timestamp) {
 	// section 7.1.2
 	uint8_t address = (unham_8_4(packet->address[1]) << 4) | unham_8_4(packet->address[0]);
 	uint8_t m = address & 0x7;
@@ -249,7 +249,7 @@ std::unique_ptr<Modules::Transform::Page> process_telx_packet(TeletextState &con
 		m = 8;
 	uint8_t y = (address >> 3) & 0x1f;
 	uint8_t designationCode = (y > 25) ? unham_8_4(packet->data[0]) : 0x00;
-	std::unique_ptr<Modules::Transform::Page> pageOut;
+	std::unique_ptr<Page> pageOut;
 
 	if (y == 0) {
 		uint8_t i = (unham_8_4(packet->data[1]) << 4) | unham_8_4(packet->data[0]);

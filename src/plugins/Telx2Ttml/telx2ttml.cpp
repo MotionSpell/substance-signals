@@ -15,9 +15,6 @@ extern "C" {
 
 auto const DEBUG_DISPLAY_TIMESTAMPS = false;
 
-namespace Modules {
-namespace Transform {
-
 struct Page {
 	Page() {
 		lines.push_back({});
@@ -71,13 +68,9 @@ struct Page {
 	std::vector<std::string> lines;
 };
 
-}
-}
-
 #include "telx.hpp" // requires 'Page' definition
 
 using namespace Modules;
-using namespace Transform;
 
 namespace {
 
