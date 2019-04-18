@@ -148,11 +148,13 @@ std::unique_ptr<Modules::Transform::Page> process_page(TeletextState &config) {
 
 	for (int row = 1; row < 25; row++) {
 
+		auto srcRow = pageIn->text[row];
+
 		int colStart = 40;
 		int colStop = 40;
 
 		for (int col = 39; col >= 0; col--) {
-			if (pageIn->text[row][col] == 0xb) {
+			if (srcRow[col] == 0xb) {
 				colStart = col;
 				break;
 			}
@@ -161,11 +163,11 @@ std::unique_ptr<Modules::Transform::Page> process_page(TeletextState &config) {
 			continue; //empty line
 
 		for (int col = colStart + 1; col <= 39; col++) {
-			if (pageIn->text[row][col] > 0x20) {
+			if (srcRow[col] > 0x20) {
 				if (colStop > 39) colStart = col;
 				colStop = col;
 			}
-			if (pageIn->text[row][col] == 0xa)
+			if (srcRow[col] == 0xa)
 				break;
 		}
 		if (colStop > 39)
@@ -175,7 +177,7 @@ std::unique_ptr<Modules::Transform::Page> process_page(TeletextState &config) {
 		uint8_t fgColor = 0x7; //white(7)
 		uint8_t fontTagOpened = No;
 		for (int col = 0; col <= colStop; col++) {
-			uint16_t val = pageIn->text[row][col];
+			uint16_t val = srcRow[col];
 			if (col < colStart) {
 				if (val <= 0x7)
 					fgColor = (uint8_t)val;
