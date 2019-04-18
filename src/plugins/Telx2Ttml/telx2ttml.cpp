@@ -162,16 +162,16 @@ class TeletextToTTML : public ModuleS {
 						ttml << page.toTTML(localStartTimeInMs + offsetInMs, localEndTimeInMs + offsetInMs, startTimeInMs / clockToTimescale(this->splitDurationIn180k, 1000));
 					}
 				}
+			}
 
-				// remove outdated pages
-				{
-					auto page = currentPages.begin();
-					while(page != currentPages.end()) {
-						if(page->endTimeInMs <= endTimeInMs) {
-							page = currentPages.erase(page);
-						} else {
-							++page;
-						}
+			// remove outdated pages
+			{
+				auto page = currentPages.begin();
+				while(page != currentPages.end()) {
+					if(page->endTimeInMs <= endTimeInMs) {
+						page = currentPages.erase(page);
+					} else {
+						++page;
 					}
 				}
 			}
