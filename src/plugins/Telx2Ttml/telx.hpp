@@ -109,13 +109,12 @@ void remap_g0_charset(uint8_t c, TeletextState &config) {
 // entities, used in color mode, to replace unsafe HTML tag chars
 struct Entity {
 	uint16_t character;
-	const char *entity;
 };
 
 Entity const entities[] = {
-	{ '<', "&lt;" },
-	{ '>', "&gt;" },
-	{ '&', "&amp;" }
+	{ '<'},
+	{ '>'},
+	{ '&'},
 };
 
 static bool isEmpty(PageBuffer const& pageIn) {
