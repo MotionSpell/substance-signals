@@ -269,10 +269,10 @@ std::unique_ptr<Page> process_telx_packet(TeletextState &config, DataUnit dataUn
 
 			if ((mode >= 0x11) && (mode <= 0x1f) && (row_address_group == No)) {
 				X26Col = address;
-				if ((data >= 65) && (data <= 90)) { // A - Z
-					config.pageBuffer.text[X26Row][X26Col] = G2_Accents[mode - 0x11][data - 65];
-				} else if ((data >= 97) && (data <= 122)) { // a - z
-					config.pageBuffer.text[X26Row][X26Col] = G2_Accents[mode - 0x11][data - 71];
+				if ((data >= 'A') && (data <= 'Z')) {
+					config.pageBuffer.text[X26Row][X26Col] = G2_Accents[mode - 0x11][data - 'A'];
+				} else if ((data >= 'a') && (data <= 'z')) {
+					config.pageBuffer.text[X26Row][X26Col] = G2_Accents[mode - 0x11][data - 'a' + 26];
 				} else {
 					config.pageBuffer.text[X26Row][X26Col] = telx_to_ucs2(data, config);
 				}
