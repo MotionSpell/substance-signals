@@ -129,6 +129,95 @@ static bool isEmpty(PageBuffer const& pageIn) {
 	return true;
 }
 
+static
+void process_row(TeletextState const& config, const uint16_t* srcRow, Modules::Transform::Page* pageOut) {
+	int colStart = 40;
+	int colStop = 40;
+
+	for (int col = 39; col >= 0; col--) {
+		if (srcRow[col] == 0xb) {
+			colStart = col;
+			break;
+		}
+	}
+	if (colStart > 39)
+		return; //empty line
+
+	for (int col = colStart + 1; col <= 39; col++) {
+		if (srcRow[col] > 0x20) {
+			if (colStop > 39) colStart = col;
+			colStop = col;
+		}
+		if (srcRow[col] == 0xa)
+			break;
+	}
+	if (colStop > 39)
+		return; //empty line
+
+	// section 12.2: Alpha White ("Set-After") - Start-of-row default condition.
+	uint8_t fgColor = 0x7; //white(7)
+	uint8_t fontTagOpened = No;
+	for (int col = 0; col <= colStop; col++) {
+		uint16_t val = srcRow[col];
+		if (col < colStart) {
+			if (val <= 0x7)
+				fgColor = (uint8_t)val;
+		}
+		if (col == colStart) {
+			if ((fgColor != 0x7) && (config.colors == Yes)) {
+				//TODO: look for "//colors:": fprintf(fout, "<font color=\"%s\">", TELX_Colors[fgColor]);
+				fontTagOpened = Yes;
+			}
+		}
+
+		if (col >= colStart) {
+			if (val <= 0x7) {
+				if (config.colors == Yes) {
+					if (fontTagOpened == Yes) {
+						//colors: fprintf(fout, "</font> ");
+						fontTagOpened = No;
+					}
+					if ((val > 0x0) && (val < 0x7)) {
+						//colors: fprintf(fout, "<font color=\"%s\">", TELX_Colors[v]);
+						fontTagOpened = Yes;
+					}
+				} else {
+					val = 0x20;
+				}
+			}
+
+			if (val >= 0x20) {
+				if (config.colors == Yes) {
+					for(auto entity : entities) {
+						if (val == entity.character) { // translate chars into entities when in color mode
+							//colors: fprintf(fout, "%s", entity.entity);
+							val = 0; // v < 0x20 won't be printed in next block
+							break;
+						}
+					}
+				}
+			}
+
+			if (val >= 0x20) {
+				char u[4] {};
+				ucs2_to_utf8(u, val);
+				pageOut->lines.back() += u;
+			}
+		}
+	}
+
+	if ((config.colors == Yes) && (fontTagOpened == Yes)) {
+		//colors: fprintf(fout, "</font>");
+		fontTagOpened = No;
+	}
+
+	if (config.seMode == Yes) {
+		pageOut->lines.back() += " ";
+	} else {
+		pageOut->lines.push_back({});
+	}
+}
+
 std::unique_ptr<Modules::Transform::Page> process_page(TeletextState &config) {
 	PageBuffer* pageIn = &config.pageBuffer;
 	auto pageOut = make_unique<Modules::Transform::Page>();
@@ -146,96 +235,8 @@ std::unique_ptr<Modules::Transform::Page> process_page(TeletextState &config) {
 		pageOut->hideTimestamp = pageIn->hideTimestamp;
 	}
 
-	for (int row = 1; row < 25; row++) {
-
-		auto srcRow = pageIn->text[row];
-
-		int colStart = 40;
-		int colStop = 40;
-
-		for (int col = 39; col >= 0; col--) {
-			if (srcRow[col] == 0xb) {
-				colStart = col;
-				break;
-			}
-		}
-		if (colStart > 39)
-			continue; //empty line
-
-		for (int col = colStart + 1; col <= 39; col++) {
-			if (srcRow[col] > 0x20) {
-				if (colStop > 39) colStart = col;
-				colStop = col;
-			}
-			if (srcRow[col] == 0xa)
-				break;
-		}
-		if (colStop > 39)
-			continue; //empty line
-
-		// section 12.2: Alpha White ("Set-After") - Start-of-row default condition.
-		uint8_t fgColor = 0x7; //white(7)
-		uint8_t fontTagOpened = No;
-		for (int col = 0; col <= colStop; col++) {
-			uint16_t val = srcRow[col];
-			if (col < colStart) {
-				if (val <= 0x7)
-					fgColor = (uint8_t)val;
-			}
-			if (col == colStart) {
-				if ((fgColor != 0x7) && (config.colors == Yes)) {
-					//TODO: look for "//colors:": fprintf(fout, "<font color=\"%s\">", TELX_Colors[fgColor]);
-					fontTagOpened = Yes;
-				}
-			}
-
-			if (col >= colStart) {
-				if (val <= 0x7) {
-					if (config.colors == Yes) {
-						if (fontTagOpened == Yes) {
-							//colors: fprintf(fout, "</font> ");
-							fontTagOpened = No;
-						}
-						if ((val > 0x0) && (val < 0x7)) {
-							//colors: fprintf(fout, "<font color=\"%s\">", TELX_Colors[v]);
-							fontTagOpened = Yes;
-						}
-					} else {
-						val = 0x20;
-					}
-				}
-
-				if (val >= 0x20) {
-					if (config.colors == Yes) {
-						for(auto entity : entities) {
-							if (val == entity.character) { // translate chars into entities when in color mode
-								//colors: fprintf(fout, "%s", entity.entity);
-								val = 0; // v < 0x20 won't be printed in next block
-								break;
-							}
-						}
-					}
-				}
-
-				if (val >= 0x20) {
-					char u[4] {};
-					ucs2_to_utf8(u, val);
-					pageOut->lines.back() += u;
-				}
-			}
-		}
-
-		if ((config.colors == Yes) && (fontTagOpened == Yes)) {
-			//colors: fprintf(fout, "</font>");
-			fontTagOpened = No;
-		}
-
-		if (config.seMode == Yes) {
-			pageOut->lines.back() += " ";
-		} else {
-			pageOut->lines.push_back({});
-		}
-	}
+	for (int row = 1; row < 25; row++)
+		process_row(config, pageIn->text[row], pageOut.get());
 
 	return pageOut;
 }
