@@ -119,21 +119,21 @@ Entity const entities[] = {
 	{ '&', "&amp;" }
 };
 
-std::unique_ptr<Modules::Transform::Page> process_page(TeletextState &config) {
-	PageBuffer *pageIn = &config.pageBuffer;
-	auto pageOut = make_unique<Modules::Transform::Page>();
-	bool emptyPage = true;
+static bool isEmpty(PageBuffer const& pageIn) {
 	for (uint8_t col = 0; col < 40; col++) {
 		for (uint8_t row = 1; row < 25; row++) {
-			if (pageIn->text[row][col] == 0x0b) {
-				emptyPage = false;
-				goto emptyPage;
-			}
+			if (pageIn.text[row][col] == 0x0b)
+				return false;
 		}
 	}
+	return true;
+}
 
-emptyPage:
-	if (emptyPage)
+std::unique_ptr<Modules::Transform::Page> process_page(TeletextState &config) {
+	PageBuffer* pageIn = &config.pageBuffer;
+	auto pageOut = make_unique<Modules::Transform::Page>();
+
+	if (isEmpty(*pageIn))
 		return pageOut;
 
 	if (pageIn->showTimestamp > pageIn->hideTimestamp)
