@@ -122,18 +122,18 @@ Entity const entities[] = {
 std::unique_ptr<Modules::Transform::Page> process_page(Config &config) {
 	PageBuffer *pageIn = &config.pageBuffer;
 	auto pageOut = make_unique<Modules::Transform::Page>();
-	uint8_t emptyPage = Yes;
+	bool emptyPage = true;
 	for (uint8_t col = 0; col < 40; col++) {
 		for (uint8_t row = 1; row < 25; row++) {
 			if (pageIn->text[row][col] == 0x0b) {
-				emptyPage = No;
+				emptyPage = false;
 				goto emptyPage;
 			}
 		}
 	}
 
 emptyPage:
-	if (emptyPage == Yes)
+	if (emptyPage)
 		return pageOut;
 
 	if (pageIn->showTimestamp > pageIn->hideTimestamp)
