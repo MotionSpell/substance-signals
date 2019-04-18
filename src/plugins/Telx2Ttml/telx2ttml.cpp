@@ -110,7 +110,7 @@ class TeletextToTTML : public ModuleS {
 		const std::string lang;
 		const TeletextToTtmlConfig::TimingPolicy timingPolicy;
 		int64_t intClock = 0, extClock = 0;
-		const uint64_t maxPageDurIn180k, splitDurationIn180k;
+		const int64_t maxPageDurIn180k, splitDurationIn180k;
 		std::vector<std::unique_ptr<Page>> currentPages;
 		TeletextState config;
 
@@ -192,7 +192,7 @@ class TeletextToTTML : public ModuleS {
 		void dispatch() {
 			int64_t prevSplit = (intClock / splitDurationIn180k) * splitDurationIn180k;
 			int64_t nextSplit = prevSplit + splitDurationIn180k;
-			while ((int64_t)(extClock - maxPageDurIn180k) > nextSplit) {
+			while (extClock - maxPageDurIn180k > nextSplit) {
 				sendSample(toTTML(clockToTimescale(prevSplit, 1000), clockToTimescale(nextSplit, 1000)));
 				intClock = nextSplit;
 				prevSplit = (intClock / splitDurationIn180k) * splitDurationIn180k;
