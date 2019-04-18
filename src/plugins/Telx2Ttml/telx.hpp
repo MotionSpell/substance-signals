@@ -120,8 +120,8 @@ Entity const entities[] = {
 };
 
 static bool isEmpty(PageBuffer const& pageIn) {
-	for (uint8_t col = 0; col < 40; col++) {
-		for (uint8_t row = 1; row < 25; row++) {
+	for (int col = 0; col < 40; col++) {
+		for (int row = 1; row < 25; row++) {
 			if (pageIn.text[row][col] == 0x0b)
 				return false;
 		}
@@ -146,9 +146,9 @@ std::unique_ptr<Modules::Transform::Page> process_page(TeletextState &config) {
 		pageOut->hideTimestamp = pageIn->hideTimestamp;
 	}
 
-	for (uint8_t row = 1; row < 25; row++) {
-		uint8_t colStart = 40, colStop = 40;
-		for (int8_t col = 39; col >= 0; col--) {
+	for (int row = 1; row < 25; row++) {
+		int colStart = 40, colStop = 40;
+		for (int col = 39; col >= 0; col--) {
 			if (pageIn->text[row][col] == 0xb) {
 				colStart = col;
 				break;
@@ -157,7 +157,7 @@ std::unique_ptr<Modules::Transform::Page> process_page(TeletextState &config) {
 		if (colStart > 39)
 			continue; //empty line
 
-		for (uint8_t col = colStart + 1; col <= 39; col++) {
+		for (int col = colStart + 1; col <= 39; col++) {
 			if (pageIn->text[row][col] > 0x20) {
 				if (colStop > 39) colStart = col;
 				colStop = col;
