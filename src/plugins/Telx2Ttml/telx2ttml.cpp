@@ -64,7 +64,6 @@ struct Page {
 	}
 
 	uint64_t tsInMs=0, startTimeInMs=0, endTimeInMs=0, showTimestamp=0, hideTimestamp=0;
-	uint32_t framesProduced = 0;
 	std::vector<std::string> lines;
 };
 
@@ -226,8 +225,8 @@ class TeletextToTTML : public ModuleS {
 					auto page = process_telx_packet(cfg, dataUnitId, (Payload*)entitiesData, sub->getMediaTime());
 					if (page) {
 						m_host->log(Debug,
-						    format("framesProduced %s, show=%s:hide=%s, clocks:data=%s:int=%s,ext=%s, content=%s",
-						        page->framesProduced, clockToTimescale(page->showTimestamp, 1000), clockToTimescale(page->hideTimestamp, 1000),
+						    format("show=%s:hide=%s, clocks:data=%s:int=%s,ext=%s, content=%s",
+						        clockToTimescale(page->showTimestamp, 1000), clockToTimescale(page->hideTimestamp, 1000),
 						        clockToTimescale(sub->getMediaTime(), 1000), clockToTimescale(intClock, 1000), clockToTimescale(extClock, 1000), page->toString()).c_str());
 
 						auto const startTimeInMs = clockToTimescale(page->showTimestamp, 1000);
