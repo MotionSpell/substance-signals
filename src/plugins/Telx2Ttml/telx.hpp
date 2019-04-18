@@ -244,15 +244,15 @@ std::unique_ptr<Page> process_telx_packet(TeletextState &config, DataUnit dataUn
 			triplets[j] = unham_24_18((packet->data[i + 2] << 16) | (packet->data[i + 1] << 8) | packet->data[i]);
 		}
 
-		for (uint8_t j = 0; j < 13; j++) {
-			if (triplets[j] == 0xffffffff) {
-				config.host->log(Warning, format("Teletext: unrecoverable data error (1): %s", triplets[j]).c_str());
+		for (auto triplet : triplets) {
+			if (triplet == 0xffffffff) {
+				config.host->log(Warning, format("Teletext: unrecoverable data error (1): %s", triplet).c_str());
 				continue;
 			}
 
-			uint8_t data = (triplets[j] & 0x3f800) >> 11;
-			uint8_t mode = (triplets[j] & 0x7c0) >> 6;
-			uint8_t address = triplets[j] & 0x3f;
+			uint8_t data = (triplet & 0x3f800) >> 11;
+			uint8_t mode = (triplet & 0x7c0) >> 6;
+			uint8_t address = triplet & 0x3f;
 			uint8_t row_address_group = (address >= 40) && (address <= 63);
 			if ((mode == 0x04) && (row_address_group == Yes)) {
 				X26Row = address - 40;
