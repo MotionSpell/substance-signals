@@ -216,7 +216,7 @@ emptyPage:
 				if (val >= 0x20) {
 					char u[4] = { 0, 0, 0, 0 };
 					ucs2_to_utf8(u, val);
-					*pageOut->ss << u;
+					*pageOut->lines.back() << u;
 				}
 			}
 		}
@@ -227,14 +227,13 @@ emptyPage:
 		}
 
 		if (config.seMode == Yes) {
-			*pageOut->ss << " ";
+			*pageOut->lines.back() << " ";
 		} else {
 			pageOut->lines.push_back(make_unique<std::stringstream>());
-			pageOut->ss = pageOut->lines[pageOut->lines.size()-1].get();
 		}
 	}
 
-	pageOut->ss->flush();
+	pageOut->lines.back()->flush();
 	return pageOut;
 }
 

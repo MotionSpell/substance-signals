@@ -21,7 +21,6 @@ namespace Transform {
 struct Page {
 	Page() {
 		lines.push_back(make_unique<std::stringstream>());
-		ss = lines[0].get();
 	}
 
 	std::string toString() const {
@@ -71,7 +70,6 @@ struct Page {
 	uint64_t tsInMs=0, startTimeInMs=0, endTimeInMs=0, showTimestamp=0, hideTimestamp=0;
 	uint32_t framesProduced = 0;
 	std::vector<std::unique_ptr<std::stringstream>> lines;
-	std::stringstream *ss = nullptr;
 };
 
 }
