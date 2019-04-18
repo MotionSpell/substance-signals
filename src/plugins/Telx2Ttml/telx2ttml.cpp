@@ -89,7 +89,7 @@ class TeletextToTTML : public ModuleS {
 			: m_host(host),
 			  m_utcStartTime(cfg->utcStartTime),
 			  pageNum(cfg->pageNum), lang(cfg->lang), timingPolicy(cfg->timingPolicy), maxPageDurIn180k(timescaleToClock(cfg->maxDelayBeforeEmptyInMs, 1000)), splitDurationIn180k(timescaleToClock(cfg->splitDurationInMs, 1000)) {
-			config.host = host;
+			m_telxState.host = host;
 			enforce(cfg->utcStartTime != nullptr, "TeletextToTTML: utcStartTime can't be NULL");
 			output = addOutput();
 		}
@@ -116,7 +116,7 @@ class TeletextToTTML : public ModuleS {
 		int64_t intClock = 0, extClock = 0;
 		const int64_t maxPageDurIn180k, splitDurationIn180k;
 		std::vector<Page> currentPages;
-		TeletextState config;
+		TeletextState m_telxState;
 
 		std::string toTTML(int64_t startTimeInMs, int64_t endTimeInMs) {
 			std::stringstream ttml;
@@ -212,7 +212,7 @@ class TeletextToTTML : public ModuleS {
 
 		void processTelx(Data sub) {
 			auto data = sub->data();
-			config.page = pageNum;
+			m_telxState.page = pageNum;
 			int i = 1;
 
 			while(i <= int(data.len) - 6) {
@@ -235,7 +235,7 @@ class TeletextToTTML : public ModuleS {
 						entitiesData[j] = Reverse8[byte]; // reverse endianess
 					}
 
-					auto page = process_telx_packet(config, dataUnitId, (Payload*)entitiesData, sub->getMediaTime());
+					auto page = process_telx_packet(m_telxState, dataUnitId, (Payload*)entitiesData, sub->getMediaTime());
 
 					if(page) {
 						m_host->log(Debug,

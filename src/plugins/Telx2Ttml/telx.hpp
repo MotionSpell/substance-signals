@@ -159,8 +159,8 @@ void process_row(const uint16_t* srcRow, Page& page) {
 	page.lines.push_back({});
 }
 
-std::unique_ptr<Page> process_page(TeletextState &config) {
-	PageBuffer* pageIn = &config.pageBuffer;
+std::unique_ptr<Page> process_page(TeletextState& state) {
+	PageBuffer* pageIn = &state.pageBuffer;
 	auto pageOut = make_unique<Page>();
 
 	if (isEmpty(*pageIn))
