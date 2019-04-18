@@ -12,7 +12,6 @@ using namespace Tests;
 using namespace Modules;
 
 namespace {
-
 template<size_t numBytes>
 std::shared_ptr<DataBase> createPacket(uint8_t const (&bytes)[numBytes]) {
 	auto pkt = make_shared<DataRaw>(numBytes);
@@ -26,22 +25,23 @@ std::shared_ptr<DataBase> getTeletextTestFrame() {
 		0xde, 0x03, 0x2c, 0x03, 0xde, 0x07, 0x55, 0x00, 0x00,
 	};
 
-	auto r= createPacket(teletext);
+	auto r = createPacket(teletext);
 	r->setMetadata(make_shared<MetadataPkt>(SUBTITLE_PKT));
 	return r;
 }
 }
 unittest("telx2ttml: simple") {
-
 	struct ScopedNullLogger : private LogSink {
 			ScopedNullLogger() : oldLog(g_Log) {
-				g_Log= this;
+				g_Log = this;
 			}
+
 			~ScopedNullLogger() {
 				g_Log = oldLog;
 			}
 
-			void log(Level, const char* ) {}
+			void log(Level, const char*) {}
+
 		private:
 			LogSink* const oldLog;
 	};

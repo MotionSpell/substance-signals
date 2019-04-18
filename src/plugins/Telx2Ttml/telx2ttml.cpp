@@ -5,7 +5,7 @@
 #include "lib_utils/log_sink.hpp" // Warning
 #include "lib_utils/time.hpp" // timeInMsToStr
 #include "lib_utils/tools.hpp" // enforce
-#include <algorithm> //std::max
+#include <algorithm> // std::max
 #include <vector>
 #include <sstream>
 
@@ -22,48 +22,56 @@ struct Page {
 
 	std::string toString() const {
 		std::string r;
-		for (auto& ss : lines)
+
+		for(auto& ss : lines)
 			r += ss + "\n";
+
 		return r;
 	}
 
 	std::string toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs, uint64_t idx) const {
 		std::stringstream ttml;
 
-		if (!lines.empty() || DEBUG_DISPLAY_TIMESTAMPS) {
+		if(!lines.empty() || DEBUG_DISPLAY_TIMESTAMPS) {
 			const size_t timecodeSize = 24;
 			char timecodeShow[timecodeSize] = { 0 };
 			timeInMsToStr(startTimeInMs, timecodeShow, ".");
-			timecodeShow[timecodeSize-1] = 0;
+			timecodeShow[timecodeSize - 1] = 0;
 			char timecodeHide[timecodeSize] = { 0 };
 			timeInMsToStr(endTimeInMs, timecodeHide, ".");
-			timecodeHide[timecodeSize-1] = 0;
+			timecodeHide[timecodeSize - 1] = 0;
 
 			ttml << "      <p region=\"Region\" style=\"textAlignment_0\" begin=\"" << timecodeShow << "\" end=\"" << timecodeHide << "\" xml:id=\"s" << idx << "\">\n";
+
 			if(DEBUG_DISPLAY_TIMESTAMPS) {
 				ttml << "        <span style=\"Style0_0\">" << timecodeShow << " - " << timecodeHide << "</span>\n";
 			} else {
 				ttml << "        <span style=\"Style0_0\">";
 
 				auto const numLines = lines.size();
-				if (numLines > 0) {
-					auto const numEffectiveLines = lines[numLines-1].empty() ? numLines-1 : numLines;
-					if (numEffectiveLines > 0) {
-						for (size_t i = 0; i < numEffectiveLines - 1; ++i) {
+
+				if(numLines > 0) {
+					auto const numEffectiveLines = lines[numLines - 1].empty() ? numLines - 1 : numLines;
+
+					if(numEffectiveLines > 0) {
+						for(size_t i = 0; i < numEffectiveLines - 1; ++i) {
 							ttml << lines[i] << "<br/>\r\n";
 						}
+
 						ttml << lines[numEffectiveLines - 1];
 					}
 				}
 
 				ttml << "</span>\n";
 			}
+
 			ttml << "      </p>\n";
 		}
+
 		return ttml.str();
 	}
 
-	uint64_t tsInMs=0, startTimeInMs=0, endTimeInMs=0, showTimestamp=0, hideTimestamp=0;
+	uint64_t tsInMs = 0, startTimeInMs = 0, endTimeInMs = 0, showTimestamp = 0, hideTimestamp = 0;
 	std::vector<std::string> lines;
 };
 
@@ -72,7 +80,6 @@ struct Page {
 using namespace Modules;
 
 namespace {
-
 class TeletextToTTML : public ModuleS {
 	public:
 		TeletextToTTML(KHost* host, TeletextToTtmlConfig* cfg)
@@ -84,12 +91,13 @@ class TeletextToTTML : public ModuleS {
 		}
 
 		void processOne(Data data) override {
-			if (inputs[0]->updateMetadata(data))
+			if(inputs[0]->updateMetadata(data))
 				output->setMetadata(data->getMetadata());
+
 			extClock = data->getMediaTime();
-			//TODO
-			//14. add flush() for ondemand samples
-			//15. UTF8 to TTML formatting? accent
+			// TODO
+			// 14. add flush() for ondemand samples
+			// 15. UTF8 to TTML formatting? accent
 			processTelx(data);
 			dispatch();
 		}
@@ -97,7 +105,7 @@ class TeletextToTTML : public ModuleS {
 	private:
 		KHost* const m_host;
 		IUtcStartTimeQuery* const m_utcStartTime;
-		OutputDefault *output;
+		OutputDefault* output;
 		const unsigned pageNum;
 		const std::string lang;
 		const TeletextToTtmlConfig::TimingPolicy timingPolicy;
@@ -128,7 +136,7 @@ class TeletextToTTML : public ModuleS {
 			ttml << "    <div>\n";
 
 			int64_t offsetInMs;
-			switch (timingPolicy) {
+			switch(timingPolicy) {
 			case TeletextToTtmlConfig::AbsoluteUTC:
 				offsetInMs = clockToTimescale(m_utcStartTime->query(), 1000);
 				break;
@@ -146,14 +154,16 @@ class TeletextToTTML : public ModuleS {
 				ttml << pageOut->toTTML(offsetInMs + startTimeInMs, offsetInMs + endTimeInMs, startTimeInMs / clockToTimescale(this->splitDurationIn180k, 1000));
 			} else {
 				auto page = currentPages.begin();
-				while (page != currentPages.end()) {
-					if ((*page)->endTimeInMs > startTimeInMs && (*page)->startTimeInMs < endTimeInMs) {
+
+				while(page != currentPages.end()) {
+					if((*page)->endTimeInMs > startTimeInMs && (*page)->startTimeInMs < endTimeInMs) {
 						auto localStartTimeInMs = std::max<uint64_t>((*page)->startTimeInMs, startTimeInMs);
 						auto localEndTimeInMs = std::min<uint64_t>((*page)->endTimeInMs, endTimeInMs);
 						m_host->log(Debug, format("[%s-%s]: %s - %s: %s", startTimeInMs, endTimeInMs, localStartTimeInMs, localEndTimeInMs, (*page)->toString()).c_str());
 						ttml << (*page)->toTTML(localStartTimeInMs + offsetInMs, localEndTimeInMs + offsetInMs, startTimeInMs / clockToTimescale(this->splitDurationIn180k, 1000));
 					}
-					if ((*page)->endTimeInMs <= endTimeInMs) {
+
+					if((*page)->endTimeInMs <= endTimeInMs) {
 						page = currentPages.erase(page);
 					} else {
 						++page;
@@ -167,8 +177,7 @@ class TeletextToTTML : public ModuleS {
 			return ttml.str();
 		}
 
-
-		void sendSample(const std::string &sample) {
+		void sendSample(const std::string& sample) {
 			auto out = output->allocData<DataRaw>(0);
 			out->setMediaTime(intClock);
 			out->buffer->resize(sample.size());
@@ -184,7 +193,8 @@ class TeletextToTTML : public ModuleS {
 		void dispatch() {
 			int64_t prevSplit = (intClock / splitDurationIn180k) * splitDurationIn180k;
 			int64_t nextSplit = prevSplit + splitDurationIn180k;
-			while (extClock - maxPageDurIn180k > nextSplit) {
+
+			while(extClock - maxPageDurIn180k > nextSplit) {
 				sendSample(toTTML(clockToTimescale(prevSplit, 1000), clockToTimescale(nextSplit, 1000)));
 				intClock = nextSplit;
 				prevSplit = (intClock / splitDurationIn180k) * splitDurationIn180k;
@@ -194,28 +204,31 @@ class TeletextToTTML : public ModuleS {
 
 		void processTelx(Data sub) {
 			auto data = sub->data();
-			auto &cfg = config;
+			auto& cfg = config;
 			cfg.page = pageNum;
 			int i = 1;
-			while (i <= int(data.len) - 6) {
+
+			while(i <= int(data.len) - 6) {
 				auto dataUnitId = (DataUnit)data[i++];
 				auto const dataUnitSize = data[i++];
 				const uint8_t telxPayloadSize = 44;
-				if ( ((dataUnitId == NonSubtitle) || (dataUnitId == Subtitle)) && (dataUnitSize == telxPayloadSize) ) {
+
+				if(((dataUnitId == NonSubtitle) || (dataUnitId == Subtitle)) && (dataUnitSize == telxPayloadSize)) {
 					uint8_t entitiesData[telxPayloadSize];
 
-					if(i+dataUnitSize > (int)data.len) {
+					if(i + dataUnitSize > (int)data.len) {
 						m_host->log(Warning, "truncated data unit");
 						return;
 					}
 
-					for (uint8_t j = 0; j < dataUnitSize; j++) {
+					for(uint8_t j = 0; j < dataUnitSize; j++) {
 						auto byte = data[i + j];
-						entitiesData[j] = Reverse8[byte]; //reverse endianess
+						entitiesData[j] = Reverse8[byte]; // reverse endianess
 					}
 
 					auto page = process_telx_packet(cfg, dataUnitId, (Payload*)entitiesData, sub->getMediaTime());
-					if (page) {
+
+					if(page) {
 						m_host->log(Debug,
 						    format("show=%s:hide=%s, clocks:data=%s:int=%s,ext=%s, content=%s",
 						        clockToTimescale(page->showTimestamp, 1000), clockToTimescale(page->hideTimestamp, 1000),
@@ -243,3 +256,4 @@ IModule* createObject(KHost* host, void* va) {
 
 auto const registered = Factory::registerModule("TeletextToTTML", &createObject);
 }
+
