@@ -7,7 +7,6 @@
 #include "lib_utils/tools.hpp" // enforce
 #include <algorithm> // std::max
 #include <vector>
-#include <sstream>
 #include <cassert>
 
 extern "C" {
@@ -15,14 +14,6 @@ extern "C" {
 }
 
 auto const DEBUG_DISPLAY_TIMESTAMPS = false;
-
-static std::string timecodeToString(int64_t timeInMs) {
-	const size_t timecodeSize = 24;
-	char timecode[timecodeSize] = { 0 };
-	timeInMsToStr(timeInMs, timecode, ".");
-	timecode[timecodeSize - 1] = 0;
-	return timecode;
-}
 
 struct Page {
 	Page() {
@@ -38,49 +29,60 @@ struct Page {
 		return r;
 	}
 
-	std::string toTTML(int64_t startTimeInMs, int64_t endTimeInMs, int64_t idx) const {
-		assert(!lines.empty());
-
-		auto const timecodeShow = timecodeToString(startTimeInMs);
-		auto const timecodeHide = timecodeToString(endTimeInMs);
-
-		std::stringstream ttml;
-		ttml << "      <p region=\"Region\" style=\"textAlignment_0\" begin=\"" << timecodeShow << "\" end=\"" << timecodeHide << "\" xml:id=\"s" << idx << "\">\n";
-
-		if(DEBUG_DISPLAY_TIMESTAMPS) {
-			ttml << "        <span style=\"Style0_0\">" << timecodeShow << " - " << timecodeHide << "</span>\n";
-		} else {
-			ttml << "        <span style=\"Style0_0\">";
-
-			bool first = true;
-			for(auto& line : lines) {
-				if(line.empty())
-					continue;
-
-				if(!first)
-					ttml << "<br/>\r\n";
-
-				ttml << line;
-				first = false;
-			}
-
-			ttml << "</span>\n";
-		}
-
-		ttml << "      </p>\n";
-
-		return ttml.str();
-	}
-
 	int64_t tsInMs = 0, startTimeInMs = 0, endTimeInMs = 0, showTimestamp = 0, hideTimestamp = 0;
 	std::vector<std::string> lines;
 };
 
+
 #include "telx.hpp" // requires 'Page' definition
+#include <sstream>
 
 using namespace Modules;
 
 namespace {
+
+std::string timecodeToString(int64_t timeInMs) {
+	const size_t timecodeSize = 24;
+	char timecode[timecodeSize] = { 0 };
+	timeInMsToStr(timeInMs, timecode, ".");
+	timecode[timecodeSize - 1] = 0;
+	return timecode;
+}
+
+std::string serializePageToTtml(Page const& page, int64_t startTimeInMs, int64_t endTimeInMs, int64_t idx) {
+	assert(!page.lines.empty());
+
+	auto const timecodeShow = timecodeToString(startTimeInMs);
+	auto const timecodeHide = timecodeToString(endTimeInMs);
+
+	std::stringstream ttml;
+	ttml << "      <p region=\"Region\" style=\"textAlignment_0\" begin=\"" << timecodeShow << "\" end=\"" << timecodeHide << "\" xml:id=\"s" << idx << "\">\n";
+
+	if(DEBUG_DISPLAY_TIMESTAMPS) {
+		ttml << "        <span style=\"Style0_0\">" << timecodeShow << " - " << timecodeHide << "</span>\n";
+	} else {
+		ttml << "        <span style=\"Style0_0\">";
+
+		bool first = true;
+		for(auto& line : page.lines) {
+			if(line.empty())
+				continue;
+
+			if(!first)
+				ttml << "<br/>\r\n";
+
+			ttml << line;
+			first = false;
+		}
+
+		ttml << "</span>\n";
+	}
+
+	ttml << "      </p>\n";
+
+	return ttml.str();
+}
+
 class TeletextToTTML : public ModuleS {
 	public:
 		TeletextToTTML(KHost* host, TeletextToTtmlConfig* cfg)
@@ -153,14 +155,14 @@ class TeletextToTTML : public ModuleS {
 
 			if(DEBUG_DISPLAY_TIMESTAMPS) {
 				auto pageOut = make_unique<Page>();
-				ttml << pageOut->toTTML(offsetInMs + startTimeInMs, offsetInMs + endTimeInMs, startTimeInMs / clockToTimescale(this->splitDurationIn180k, 1000));
+				ttml << serializePageToTtml(*pageOut, offsetInMs + startTimeInMs, offsetInMs + endTimeInMs, startTimeInMs / clockToTimescale(this->splitDurationIn180k, 1000));
 			} else {
 				for(auto& page : currentPages) {
 					if(page.endTimeInMs > startTimeInMs && page.startTimeInMs < endTimeInMs) {
 						auto localStartTimeInMs = std::max<int64_t>(page.startTimeInMs, startTimeInMs);
 						auto localEndTimeInMs = std::min<int64_t>(page.endTimeInMs, endTimeInMs);
 						m_host->log(Debug, format("[%s-%s]: %s - %s: %s", startTimeInMs, endTimeInMs, localStartTimeInMs, localEndTimeInMs, page.toString()).c_str());
-						ttml << page.toTTML(localStartTimeInMs + offsetInMs, localEndTimeInMs + offsetInMs, startTimeInMs / clockToTimescale(this->splitDurationIn180k, 1000));
+						ttml << serializePageToTtml(page, localStartTimeInMs + offsetInMs, localEndTimeInMs + offsetInMs, startTimeInMs / clockToTimescale(this->splitDurationIn180k, 1000));
 					}
 				}
 			}
