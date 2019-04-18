@@ -112,7 +112,7 @@ class TeletextToTTML : public ModuleS {
 		const TeletextToTtmlConfig::TimingPolicy timingPolicy;
 		int64_t intClock = 0, extClock = 0;
 		const int64_t maxPageDurIn180k, splitDurationIn180k;
-		std::vector<std::unique_ptr<Page>> currentPages;
+		std::vector<Page> currentPages;
 		TeletextState config;
 
 		std::string toTTML(uint64_t startTimeInMs, uint64_t endTimeInMs) {
@@ -157,14 +157,14 @@ class TeletextToTTML : public ModuleS {
 				auto page = currentPages.begin();
 
 				while(page != currentPages.end()) {
-					if((*page)->endTimeInMs > startTimeInMs && (*page)->startTimeInMs < endTimeInMs) {
-						auto localStartTimeInMs = std::max<uint64_t>((*page)->startTimeInMs, startTimeInMs);
-						auto localEndTimeInMs = std::min<uint64_t>((*page)->endTimeInMs, endTimeInMs);
-						m_host->log(Debug, format("[%s-%s]: %s - %s: %s", startTimeInMs, endTimeInMs, localStartTimeInMs, localEndTimeInMs, (*page)->toString()).c_str());
-						ttml << (*page)->toTTML(localStartTimeInMs + offsetInMs, localEndTimeInMs + offsetInMs, startTimeInMs / clockToTimescale(this->splitDurationIn180k, 1000));
+					if(page->endTimeInMs > startTimeInMs && page->startTimeInMs < endTimeInMs) {
+						auto localStartTimeInMs = std::max<uint64_t>(page->startTimeInMs, startTimeInMs);
+						auto localEndTimeInMs = std::min<uint64_t>(page->endTimeInMs, endTimeInMs);
+						m_host->log(Debug, format("[%s-%s]: %s - %s: %s", startTimeInMs, endTimeInMs, localStartTimeInMs, localEndTimeInMs, page->toString()).c_str());
+						ttml << page->toTTML(localStartTimeInMs + offsetInMs, localEndTimeInMs + offsetInMs, startTimeInMs / clockToTimescale(this->splitDurationIn180k, 1000));
 					}
 
-					if((*page)->endTimeInMs <= endTimeInMs) {
+					if(page->endTimeInMs <= endTimeInMs) {
 						page = currentPages.erase(page);
 					} else {
 						++page;
@@ -241,7 +241,7 @@ class TeletextToTTML : public ModuleS {
 						auto const durationInMs = clockToTimescale((page->hideTimestamp - page->showTimestamp), 1000);
 						page->startTimeInMs = startTimeInMs;
 						page->endTimeInMs = startTimeInMs + durationInMs;
-						currentPages.push_back(std::move(page));
+						currentPages.push_back(*page);
 					}
 				}
 
