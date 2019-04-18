@@ -51,18 +51,16 @@ struct Page {
 			} else {
 				ttml << "        <span style=\"Style0_0\">";
 
-				auto const numLines = lines.size();
+				bool first = true;
+				for(auto& line : lines) {
+					if(line.empty())
+						continue;
 
-				if(numLines > 0) {
-					auto const numEffectiveLines = lines[numLines - 1].empty() ? numLines - 1 : numLines;
+					if(!first)
+						ttml << "<br/>\r\n";
 
-					if(numEffectiveLines > 0) {
-						for(size_t i = 0; i < numEffectiveLines - 1; ++i) {
-							ttml << lines[i] << "<br/>\r\n";
-						}
-
-						ttml << lines[numEffectiveLines - 1];
-					}
+					ttml << line;
+					first = false;
 				}
 
 				ttml << "</span>\n";
