@@ -15,6 +15,14 @@ extern "C" {
 
 auto const DEBUG_DISPLAY_TIMESTAMPS = false;
 
+static std::string timecodeToString(int64_t timeInMs) {
+	const size_t timecodeSize = 24;
+	char timecode[timecodeSize] = { 0 };
+	timeInMsToStr(timeInMs, timecode, ".");
+	timecode[timecodeSize - 1] = 0;
+	return timecode;
+}
+
 struct Page {
 	Page() {
 		lines.push_back({});
@@ -33,13 +41,8 @@ struct Page {
 		std::stringstream ttml;
 
 		if(!lines.empty() || DEBUG_DISPLAY_TIMESTAMPS) {
-			const size_t timecodeSize = 24;
-			char timecodeShow[timecodeSize] = { 0 };
-			timeInMsToStr(startTimeInMs, timecodeShow, ".");
-			timecodeShow[timecodeSize - 1] = 0;
-			char timecodeHide[timecodeSize] = { 0 };
-			timeInMsToStr(endTimeInMs, timecodeHide, ".");
-			timecodeHide[timecodeSize - 1] = 0;
+			auto const timecodeShow = timecodeToString(startTimeInMs);
+			auto const timecodeHide = timecodeToString(endTimeInMs);
 
 			ttml << "      <p region=\"Region\" style=\"textAlignment_0\" begin=\"" << timecodeShow << "\" end=\"" << timecodeHide << "\" xml:id=\"s" << idx << "\">\n";
 
