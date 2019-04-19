@@ -1,3 +1,4 @@
+// Parse raw teletext data, and produce 'Page' objects
 #pragma once
 
 #include "lib_modules/core/module.hpp" // KHost

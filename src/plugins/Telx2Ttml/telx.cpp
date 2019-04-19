@@ -1,11 +1,10 @@
+// Parse raw teletext data, and produce 'Page' objects
 #include <cstdint>
 #include <cstring> // memset
 #include <memory>
 #include "telx.hpp"
 #include "lib_utils/format.hpp"
 #include "lib_utils/log_sink.hpp" // Warning
-
-//in this file we extract pages to convert them later
 
 namespace {
 
