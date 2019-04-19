@@ -148,22 +148,23 @@ class TeletextToTTML : public ModuleS {
 				}
 			}
 
-			// remove outdated pages
-			{
-				auto page = currentPages.begin();
-				while(page != currentPages.end()) {
-					if(page->endTimeInMs <= endTimeInMs) {
-						page = currentPages.erase(page);
-					} else {
-						++page;
-					}
-				}
-			}
+			removeOutdatedPages(endTimeInMs);
 
 			ttml << "    </div>\n";
 			ttml << "  </body>\n";
 			ttml << "</tt>\n\n";
 			return ttml.str();
+		}
+
+		void removeOutdatedPages(int64_t endTimeInMs) {
+			auto page = currentPages.begin();
+			while(page != currentPages.end()) {
+				if(page->endTimeInMs <= endTimeInMs) {
+					page = currentPages.erase(page);
+				} else {
+					++page;
+				}
+			}
 		}
 
 		void sendSample(const std::string& sample) {
