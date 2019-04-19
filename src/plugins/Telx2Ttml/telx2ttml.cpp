@@ -13,33 +13,15 @@ extern "C" {
 #include <libavcodec/avcodec.h> // AVCodecContext
 }
 
-auto const DEBUG_DISPLAY_TIMESTAMPS = false;
-
-struct Page {
-	Page() {
-		lines.push_back({});
-	}
-
-	std::string toString() const {
-		std::string r;
-
-		for(auto& ss : lines)
-			r += ss + "\n";
-
-		return r;
-	}
-
-	int64_t tsInMs = 0, startTimeInMs = 0, endTimeInMs = 0, showTimestamp = 0, hideTimestamp = 0;
-	std::vector<std::string> lines;
-};
-
-
-#include "telx.hpp" // requires 'Page' definition
+#include "page.hpp"
+#include "telx.hpp"
 #include <sstream>
 
 using namespace Modules;
 
 namespace {
+
+auto const DEBUG_DISPLAY_TIMESTAMPS = false;
 
 std::string timecodeToString(int64_t timeInMs) {
 	const size_t timecodeSize = 24;
