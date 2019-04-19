@@ -326,8 +326,12 @@ SpanC DataAVBuffer::data() const {
 }
 
 void DataAVBuffer::resize(size_t size) {
-	if (av_grow_packet(&pkt, size))
-		throw std::runtime_error(format("Cannot resize DataAVPacket to size %s (cur=%s)", size, pkt.size));
+	if ((int)size > pkt.size) {
+		if (av_grow_packet(&pkt, (int)size - pkt.size))
+			throw std::runtime_error(format("Cannot grow DataAVPacket to size %s (cur=%s)", size, pkt.size));
+	} else {
+		av_shrink_packet(&pkt, (int)size);
+	}
 }
 
 //DataAVPacket
