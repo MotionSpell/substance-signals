@@ -10,10 +10,10 @@ struct TeletextToTtmlConfig {
 		RelativeToSplit  //MSS
 	};
 
-	unsigned pageNum = 0;
+	int pageNum = 0;
 	std::string lang = "en";
-	uint64_t splitDurationInMs = 1000;
-	uint64_t maxDelayBeforeEmptyInMs = 2000;
+	int splitDurationInMs = 1000;
+	int maxDelayBeforeEmptyInMs = 2000;
 	TimingPolicy timingPolicy = TimingPolicy::RelativeToSplit;
 	IUtcStartTimeQuery* utcStartTime = &g_NullStartTime;
 };
