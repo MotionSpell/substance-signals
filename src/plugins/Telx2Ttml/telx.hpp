@@ -461,6 +461,10 @@ std::unique_ptr<Page> process_page(TeletextState& state) {
 	return pageOut;
 }
 
+void telx_set_page_num(TeletextState& config, int pageNum) {
+	config.pageNum = pageNum;
+}
+
 std::unique_ptr<Page> process_telx_packet(TeletextState &config, DataUnit dataUnitId, void* data, uint64_t timestamp) {
 	auto packet = (const Payload*)data;
 	// section 7.1.2
