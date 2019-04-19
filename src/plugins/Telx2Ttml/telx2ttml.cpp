@@ -99,7 +99,7 @@ class TeletextToTTML : public ModuleS {
 		std::vector<Page> currentPages;
 		std::unique_ptr<ITeletextParser> m_telxState;
 
-		std::string toTTML(int64_t startTimeInMs, int64_t endTimeInMs) {
+		std::string toTTML(int64_t startTimeInMs, int64_t endTimeInMs) const {
 			std::stringstream ttml;
 			ttml << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n";
 			ttml << "<tt xmlns=\"http://www.w3.org/ns/ttml\" xmlns:tt=\"http://www.w3.org/ns/ttml\" xmlns:ttm=\"http://www.w3.org/ns/ttml#metadata\" xmlns:tts=\"http://www.w3.org/ns/ttml#styling\" xmlns:ttp=\"http://www.w3.org/ns/ttml#parameter\" xmlns:ebutts=\"urn:ebu:tt:style\" xmlns:ebuttm=\"urn:ebu:tt:metadata\" xml:lang=\"" << lang << "\" ttp:timeBase=\"media\">\n";
@@ -148,8 +148,6 @@ class TeletextToTTML : public ModuleS {
 				}
 			}
 
-			removeOutdatedPages(endTimeInMs);
-
 			ttml << "    </div>\n";
 			ttml << "  </body>\n";
 			ttml << "</tt>\n\n";
@@ -185,7 +183,11 @@ class TeletextToTTML : public ModuleS {
 			int64_t nextSplit = prevSplit + splitDurationIn180k;
 
 			while(extClock - maxPageDurIn180k > nextSplit) {
-				sendSample(toTTML(clockToTimescale(prevSplit, 1000), clockToTimescale(nextSplit, 1000)));
+				auto const start = clockToTimescale(prevSplit, 1000);
+				auto const end = clockToTimescale(nextSplit, 1000);
+				sendSample(toTTML(start, end));
+				removeOutdatedPages(end);
+
 				intClock = nextSplit;
 				prevSplit = (intClock / splitDurationIn180k) * splitDurationIn180k;
 				nextSplit = prevSplit + splitDurationIn180k;
