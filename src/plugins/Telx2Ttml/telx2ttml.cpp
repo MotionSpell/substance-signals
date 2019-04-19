@@ -217,7 +217,7 @@ class TeletextToTTML : public ModuleS {
 						entitiesData[j] = Reverse8[byte]; // reverse endianess
 					}
 
-					auto page = process_telx_packet(m_telxState, dataUnitId, (Payload*)entitiesData, sub->getMediaTime());
+					auto page = process_telx_packet(m_telxState, dataUnitId, entitiesData, sub->getMediaTime());
 
 					if(page) {
 						m_host->log(Debug,

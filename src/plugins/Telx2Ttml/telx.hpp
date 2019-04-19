@@ -461,7 +461,8 @@ std::unique_ptr<Page> process_page(TeletextState& state) {
 	return pageOut;
 }
 
-std::unique_ptr<Page> process_telx_packet(TeletextState &config, DataUnit dataUnitId, Payload *packet, uint64_t timestamp) {
+std::unique_ptr<Page> process_telx_packet(TeletextState &config, DataUnit dataUnitId, void* data, uint64_t timestamp) {
+	auto packet = (const Payload*)data;
 	// section 7.1.2
 	uint8_t address = (unham_8_4(packet->address[1]) << 4) | unham_8_4(packet->address[0]);
 	uint8_t m = address & 0x7;
