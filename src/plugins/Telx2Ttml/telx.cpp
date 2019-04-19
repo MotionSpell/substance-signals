@@ -608,9 +608,6 @@ std::unique_ptr<Page> process_telx_packet(TeletextState &config, DataUnit dataUn
 }
 
 std::vector<Page> TeletextState::parse(SpanC data, int64_t time) {
-
-	auto& state = *this;
-
 	int i = 1;
 
 	std::vector<Page> pages;
@@ -625,7 +622,7 @@ std::vector<Page> TeletextState::parse(SpanC data, int64_t time) {
 		    && (dataUnitSize == TELX_PAYLOAD_SIZE)) {
 
 			if(i + TELX_PAYLOAD_SIZE > (int)data.len) {
-				state.host->log(Warning, "truncated data unit");
+				host->log(Warning, "truncated data unit");
 				break;
 			}
 
@@ -635,7 +632,7 @@ std::vector<Page> TeletextState::parse(SpanC data, int64_t time) {
 				entitiesData[j] = Reverse8[byte]; // reverse endianess
 			}
 
-			auto page = process_telx_packet(state, dataUnitId, entitiesData, time);
+			auto page = process_telx_packet(*this, dataUnitId, entitiesData, time);
 
 			if(page)
 				pages.push_back(*page);
