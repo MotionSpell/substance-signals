@@ -194,7 +194,7 @@ class TeletextToTTML : public ModuleS {
 
 		void processTelx(Data sub) {
 			auto data = sub->data();
-			m_telxState.page = pageNum;
+			m_telxState.pageNum = pageNum;
 			int i = 1;
 
 			while(i <= int(data.len) - 6) {

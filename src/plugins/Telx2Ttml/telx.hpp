@@ -16,7 +16,7 @@ namespace {
 
 struct TeletextState {
 	Modules::KHost* host;
-	uint16_t page = 0;
+	int pageNum = 0;
 	PrimaryCharset primaryCharset = { 0x00, Undef, Undef };
 	State states = { No };
 	uint32_t framesProduced = 0;
@@ -192,8 +192,8 @@ std::unique_ptr<Page> process_telx_packet(TeletextState &config, DataUnit dataUn
 		uint8_t subtitleFlag = (unham_8_4(packet->data[5]) & 0x08) >> 3;
 		config.cc_map[i] |= subtitleFlag << (m - 1);
 
-		if ((config.page == 0) && (subtitleFlag == Yes) && (i < 0xff)) {
-			config.page = (m << 8) | (unham_8_4(packet->data[1]) << 4) | unham_8_4(packet->data[0]);
+		if ((config.pageNum == 0) && (subtitleFlag == Yes) && (i < 0xff)) {
+			config.pageNum = (m << 8) | (unham_8_4(packet->data[1]) << 4) | unham_8_4(packet->data[0]);
 		}
 
 		uint16_t pageNum = (m << 8) | (unham_8_4(packet->data[1]) << 4) | unham_8_4(packet->data[0]);
@@ -205,14 +205,14 @@ std::unique_ptr<Page> process_telx_packet(TeletextState &config, DataUnit dataUn
 			return nullptr;
 
 		if ((config.receivingData == Yes) && (
-		        ((config.transmissionMode == Serial) && (PAGE(pageNum) != PAGE(config.page))) ||
-		        ((config.transmissionMode == Parallel) && (PAGE(pageNum) != PAGE(config.page)) && (m == MAGAZINE(config.page)))
+		        ((config.transmissionMode == Serial) && (PAGE(pageNum) != PAGE(config.pageNum))) ||
+		        ((config.transmissionMode == Parallel) && (PAGE(pageNum) != PAGE(config.pageNum)) && (m == MAGAZINE(config.pageNum)))
 		    )) {
 			config.receivingData = No;
 			return nullptr;
 		}
 
-		if (pageNum != config.page)
+		if (pageNum != config.pageNum)
 			return nullptr; //page transmission is terminated, however now we are waiting for our new page
 
 		if (config.pageBuffer.tainted == Yes) { //begining of page transmission
@@ -229,14 +229,14 @@ std::unique_ptr<Page> process_telx_packet(TeletextState &config, DataUnit dataUn
 
 		uint8_t c = (config.primaryCharset.G0_M29 != Undef) ? config.primaryCharset.G0_M29 : charset;
 		remap_g0_charset(c, config);
-	} else if ((m == MAGAZINE(config.page)) && (y >= 1) && (y <= 23) && (config.receivingData == Yes)) {
+	} else if ((m == MAGAZINE(config.pageNum)) && (y >= 1) && (y <= 23) && (config.receivingData == Yes)) {
 		// Section 9.4.1
 		for (uint8_t i = 0; i < 40; i++) {
 			if (config.pageBuffer.text[y][i] == 0x00)
 				config.pageBuffer.text[y][i] = telx_to_ucs2(packet->data[i], config);
 		}
 		config.pageBuffer.tainted = Yes;
-	} else if ((m == MAGAZINE(config.page)) && (y == 26) && (config.receivingData == Yes)) {
+	} else if ((m == MAGAZINE(config.pageNum)) && (y == 26) && (config.receivingData == Yes)) {
 		// Section 12.3.2
 		uint8_t X26Row = 0, X26Col = 0;
 		uint32_t triplets[13] = { 0 };
@@ -278,7 +278,7 @@ std::unique_ptr<Page> process_telx_packet(TeletextState &config, DataUnit dataUn
 				}
 			}
 		}
-	} else if ((m == MAGAZINE(config.page)) && (y == 28) && (config.receivingData == Yes)) {
+	} else if ((m == MAGAZINE(config.pageNum)) && (y == 28) && (config.receivingData == Yes)) {
 		// Section 9.4.7
 		if ((designationCode == 0) || (designationCode == 4)) {
 			uint32_t triplet0 = unham_24_18((packet->data[3] << 16) | (packet->data[2] << 8) | packet->data[1]);
@@ -291,7 +291,7 @@ std::unique_ptr<Page> process_telx_packet(TeletextState &config, DataUnit dataUn
 				}
 			}
 		}
-	} else if ((m == MAGAZINE(config.page)) && (y == 29)) {
+	} else if ((m == MAGAZINE(config.pageNum)) && (y == 29)) {
 		// Section 9.5.1
 		if ((designationCode == 0) || (designationCode == 4)) {
 			uint32_t triplet0 = unham_24_18((packet->data[3] << 16) | (packet->data[2] << 8) | packet->data[1]);
