@@ -81,12 +81,11 @@ class TeletextToTTML : public ModuleS {
 			if(inputs[0]->updateMetadata(data))
 				output->setMetadata(data->getMetadata());
 
-			extClock = data->getMediaTime();
 			// TODO
 			// 14. add flush() for ondemand samples
 			// 15. UTF8 to TTML formatting? accent
 			processTelx(data);
-			dispatch();
+			dispatch(data->getMediaTime());
 		}
 
 	private:
@@ -180,7 +179,7 @@ class TeletextToTTML : public ModuleS {
 			output->post(out);
 		}
 
-		void dispatch() {
+		void dispatch(int64_t extClock) {
 			int64_t prevSplit = (intClock / splitDurationIn180k) * splitDurationIn180k;
 			int64_t nextSplit = prevSplit + splitDurationIn180k;
 
@@ -195,9 +194,9 @@ class TeletextToTTML : public ModuleS {
 		void processTelx(Data sub) {
 			for(auto& page : m_telxState->parse(sub->data(), sub->getMediaTime())) {
 				m_host->log(Debug,
-				    format("show=%s:hide=%s, clocks:data=%s:int=%s,ext=%s, content=%s",
+				    format("show=%s:hide=%s, clocks:data=%s:int=%s, content=%s",
 				        clockToTimescale(page.showTimestamp, 1000), clockToTimescale(page.hideTimestamp, 1000),
-				        clockToTimescale(sub->getMediaTime(), 1000), clockToTimescale(intClock, 1000), clockToTimescale(extClock, 1000), page.toString()).c_str());
+				        clockToTimescale(sub->getMediaTime(), 1000), clockToTimescale(intClock, 1000), page.toString()).c_str());
 
 				auto const startTimeInMs = clockToTimescale(page.showTimestamp, 1000);
 				auto const durationInMs = clockToTimescale((page.hideTimestamp - page.showTimestamp), 1000);
