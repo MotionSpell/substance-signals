@@ -5,12 +5,8 @@
 #include "lib_utils/format.hpp"
 #include "telx_tables.hpp"
 #include "telx_structs.hpp"
-#include "telx2ttml.hpp"
 
-//this code was written really fast to cover the teletext to ttml conversion
-//sticks to the spec
 //in this file we extract pages to convert them later
-//should be moved in an external lib
 
 namespace {
 
