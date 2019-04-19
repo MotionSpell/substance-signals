@@ -193,10 +193,26 @@ class TeletextToTTML : public ModuleS {
 		}
 
 		void processTelx(Data sub) {
-			auto data = sub->data();
 			telx_set_page_num(m_telxState, pageNum);
 
+			for(auto& page : parsePages(sub->data(), sub->getMediaTime())) {
+				m_host->log(Debug,
+				    format("show=%s:hide=%s, clocks:data=%s:int=%s,ext=%s, content=%s",
+				        clockToTimescale(page.showTimestamp, 1000), clockToTimescale(page.hideTimestamp, 1000),
+				        clockToTimescale(sub->getMediaTime(), 1000), clockToTimescale(intClock, 1000), clockToTimescale(extClock, 1000), page.toString()).c_str());
+
+				auto const startTimeInMs = clockToTimescale(page.showTimestamp, 1000);
+				auto const durationInMs = clockToTimescale((page.hideTimestamp - page.showTimestamp), 1000);
+				page.startTimeInMs = startTimeInMs;
+				page.endTimeInMs = startTimeInMs + durationInMs;
+				currentPages.push_back(page);
+			}
+		}
+
+		std::vector<Page> parsePages(SpanC data, int64_t time) {
 			int i = 1;
+
+			std::vector<Page> pages;
 
 			while(i <= int(data.len) - 6) {
 				auto const dataUnitId = (DataUnit)data[i++];
@@ -209,7 +225,7 @@ class TeletextToTTML : public ModuleS {
 
 					if(i + TELX_PAYLOAD_SIZE > (int)data.len) {
 						m_host->log(Warning, "truncated data unit");
-						return;
+						break;
 					}
 
 					uint8_t entitiesData[TELX_PAYLOAD_SIZE];
@@ -218,25 +234,18 @@ class TeletextToTTML : public ModuleS {
 						entitiesData[j] = Reverse8[byte]; // reverse endianess
 					}
 
-					auto page = process_telx_packet(m_telxState, dataUnitId, entitiesData, sub->getMediaTime());
+					auto page = process_telx_packet(m_telxState, dataUnitId, entitiesData, time);
 
-					if(page) {
-						m_host->log(Debug,
-						    format("show=%s:hide=%s, clocks:data=%s:int=%s,ext=%s, content=%s",
-						        clockToTimescale(page->showTimestamp, 1000), clockToTimescale(page->hideTimestamp, 1000),
-						        clockToTimescale(sub->getMediaTime(), 1000), clockToTimescale(intClock, 1000), clockToTimescale(extClock, 1000), page->toString()).c_str());
-
-						auto const startTimeInMs = clockToTimescale(page->showTimestamp, 1000);
-						auto const durationInMs = clockToTimescale((page->hideTimestamp - page->showTimestamp), 1000);
-						page->startTimeInMs = startTimeInMs;
-						page->endTimeInMs = startTimeInMs + durationInMs;
-						currentPages.push_back(*page);
-					}
+					if(page)
+						pages.push_back(*page);
 				}
 
 				i += dataUnitSize;
 			}
+
+			return pages;
 		}
+
 };
 
 IModule* createObject(KHost* host, void* va) {
