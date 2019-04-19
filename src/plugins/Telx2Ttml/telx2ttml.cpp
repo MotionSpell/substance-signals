@@ -2,9 +2,10 @@
 #include "lib_media/common/attributes.hpp"
 #include "lib_modules/utils/factory.hpp"
 #include "lib_modules/utils/helper.hpp"
-#include "lib_utils/log_sink.hpp" // Warning
+#include "lib_utils/log_sink.hpp" // Debug
 #include "lib_utils/time.hpp" // timeInMsToStr
 #include "lib_utils/tools.hpp" // enforce
+#include "lib_utils/format.hpp"
 #include <algorithm> // std::max
 #include <vector>
 #include <cassert>
@@ -70,8 +71,8 @@ class TeletextToTTML : public ModuleS {
 		TeletextToTTML(KHost* host, TeletextToTtmlConfig* cfg)
 			: m_host(host),
 			  m_utcStartTime(cfg->utcStartTime),
-			  pageNum(cfg->pageNum), lang(cfg->lang), timingPolicy(cfg->timingPolicy), maxPageDurIn180k(timescaleToClock(cfg->maxDelayBeforeEmptyInMs, 1000)), splitDurationIn180k(timescaleToClock(cfg->splitDurationInMs, 1000)) {
-			m_telxState.host = host;
+			  lang(cfg->lang), timingPolicy(cfg->timingPolicy), maxPageDurIn180k(timescaleToClock(cfg->maxDelayBeforeEmptyInMs, 1000)), splitDurationIn180k(timescaleToClock(cfg->splitDurationInMs, 1000)) {
+			m_telxState.reset(createTeletextParser(host, cfg->pageNum));
 			enforce(cfg->utcStartTime != nullptr, "TeletextToTTML: utcStartTime can't be NULL");
 			output = addOutput();
 		}
@@ -92,13 +93,12 @@ class TeletextToTTML : public ModuleS {
 		KHost* const m_host;
 		IUtcStartTimeQuery* const m_utcStartTime;
 		OutputDefault* output;
-		const unsigned pageNum;
 		const std::string lang;
 		const TeletextToTtmlConfig::TimingPolicy timingPolicy;
 		int64_t intClock = 0, extClock = 0;
 		const int64_t maxPageDurIn180k, splitDurationIn180k;
 		std::vector<Page> currentPages;
-		TeletextState m_telxState;
+		std::unique_ptr<ITeletextParser> m_telxState;
 
 		std::string toTTML(int64_t startTimeInMs, int64_t endTimeInMs) {
 			std::stringstream ttml;
@@ -193,9 +193,7 @@ class TeletextToTTML : public ModuleS {
 		}
 
 		void processTelx(Data sub) {
-			telx_set_page_num(m_telxState, pageNum);
-
-			for(auto& page : telx_parse_pages(m_telxState, sub->data(), sub->getMediaTime())) {
+			for(auto& page : m_telxState->parse(sub->data(), sub->getMediaTime())) {
 				m_host->log(Debug,
 				    format("show=%s:hide=%s, clocks:data=%s:int=%s,ext=%s, content=%s",
 				        clockToTimescale(page.showTimestamp, 1000), clockToTimescale(page.hideTimestamp, 1000),
