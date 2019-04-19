@@ -96,7 +96,7 @@ typedef struct {
 	uint64_t showTimestamp;
 	uint64_t hideTimestamp;
 	uint16_t text[ROWS][COLS];
-	uint8_t tainted; // 1 = text variable contains any data
+	bool tainted; // 1 = text variable contains any data
 } PageBuffer;
 
 }

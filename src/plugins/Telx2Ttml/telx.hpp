@@ -215,7 +215,7 @@ std::unique_ptr<Page> process_telx_packet(TeletextState &config, DataUnit dataUn
 		if (pageNum != config.pageNum)
 			return nullptr; //page transmission is terminated, however now we are waiting for our new page
 
-		if (config.pageBuffer.tainted == Yes) { //begining of page transmission
+		if (config.pageBuffer.tainted) { //begining of page transmission
 			config.pageBuffer.hideTimestamp = timestamp - 40;
 			pageOut = process_page(config);
 		}
@@ -223,7 +223,7 @@ std::unique_ptr<Page> process_telx_packet(TeletextState &config, DataUnit dataUn
 		config.pageBuffer.showTimestamp = timestamp;
 		config.pageBuffer.hideTimestamp = 0;
 		memset(config.pageBuffer.text, 0x00, sizeof(config.pageBuffer.text));
-		config.pageBuffer.tainted = No;
+		config.pageBuffer.tainted = false;
 		config.receivingData = Yes;
 		config.primaryCharset.G0_X28 = Undef;
 
@@ -235,7 +235,7 @@ std::unique_ptr<Page> process_telx_packet(TeletextState &config, DataUnit dataUn
 			if (config.pageBuffer.text[y][i] == 0x00)
 				config.pageBuffer.text[y][i] = telx_to_ucs2(packet->data[i], config);
 		}
-		config.pageBuffer.tainted = Yes;
+		config.pageBuffer.tainted = true;
 	} else if ((m == MAGAZINE(config.pageNum)) && (y == 26) && (config.receivingData == Yes)) {
 		// Section 12.3.2
 		uint8_t X26Row = 0, X26Col = 0;
