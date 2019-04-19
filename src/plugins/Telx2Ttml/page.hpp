@@ -4,15 +4,6 @@
 #include <string>
 
 struct Page {
-	std::string toString() const {
-		std::string r;
-
-		for(auto& ss : lines)
-			r += ss + "\n";
-
-		return r;
-	}
-
 	int64_t startTimeInMs = 0;
 	int64_t endTimeInMs = 0;
 	int64_t showTimestamp = 0;

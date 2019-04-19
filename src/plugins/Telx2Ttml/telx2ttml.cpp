@@ -66,6 +66,15 @@ std::string serializePageToTtml(Page const& page, int64_t startTimeInMs, int64_t
 	return ttml.str();
 }
 
+std::string pageToString(Page const& page) {
+	std::string r;
+
+	for(auto& ss : page.lines)
+		r += ss + "\n";
+
+	return r;
+}
+
 class TeletextToTTML : public ModuleS {
 	public:
 		TeletextToTTML(KHost* host, TeletextToTtmlConfig* cfg)
@@ -142,7 +151,7 @@ class TeletextToTTML : public ModuleS {
 					if(page.endTimeInMs > startTimeInMs && page.startTimeInMs < endTimeInMs) {
 						auto localStartTimeInMs = std::max<int64_t>(page.startTimeInMs, startTimeInMs);
 						auto localEndTimeInMs = std::min<int64_t>(page.endTimeInMs, endTimeInMs);
-						m_host->log(Debug, format("[%s-%s]: %s - %s: %s", startTimeInMs, endTimeInMs, localStartTimeInMs, localEndTimeInMs, page.toString()).c_str());
+						m_host->log(Debug, format("[%s-%s]: %s - %s: %s", startTimeInMs, endTimeInMs, localStartTimeInMs, localEndTimeInMs, pageToString(page)).c_str());
 						ttml << serializePageToTtml(page, localStartTimeInMs + offsetInMs, localEndTimeInMs + offsetInMs, startTimeInMs / clockToTimescale(this->splitDurationIn180k, 1000));
 					}
 				}
@@ -199,7 +208,7 @@ class TeletextToTTML : public ModuleS {
 				m_host->log(Debug,
 				    format("show=%s:hide=%s, clocks:data=%s:int=%s, content=%s",
 				        clockToTimescale(page.showTimestamp, 1000), clockToTimescale(page.hideTimestamp, 1000),
-				        clockToTimescale(sub->getMediaTime(), 1000), clockToTimescale(intClock, 1000), page.toString()).c_str());
+				        clockToTimescale(sub->getMediaTime(), 1000), clockToTimescale(intClock, 1000), pageToString(page)).c_str());
 
 				auto const startTimeInMs = clockToTimescale(page.showTimestamp, 1000);
 				auto const durationInMs = clockToTimescale((page.hideTimestamp - page.showTimestamp), 1000);
