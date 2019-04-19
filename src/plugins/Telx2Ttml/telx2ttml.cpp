@@ -195,7 +195,7 @@ class TeletextToTTML : public ModuleS {
 		void processTelx(Data sub) {
 			telx_set_page_num(m_telxState, pageNum);
 
-			for(auto& page : parsePages(m_telxState, sub->data(), sub->getMediaTime())) {
+			for(auto& page : telx_parse_pages(m_telxState, sub->data(), sub->getMediaTime())) {
 				m_host->log(Debug,
 				    format("show=%s:hide=%s, clocks:data=%s:int=%s,ext=%s, content=%s",
 				        clockToTimescale(page.showTimestamp, 1000), clockToTimescale(page.hideTimestamp, 1000),
@@ -208,44 +208,6 @@ class TeletextToTTML : public ModuleS {
 				currentPages.push_back(page);
 			}
 		}
-
-		static std::vector<Page> parsePages(TeletextState& state, SpanC data, int64_t time) {
-			int i = 1;
-
-			std::vector<Page> pages;
-
-			while(i <= int(data.len) - 6) {
-				auto const dataUnitId = (DataUnit)data[i++];
-				auto const dataUnitSize = data[i++];
-
-				const uint8_t TELX_PAYLOAD_SIZE = 44;
-
-				if(((dataUnitId == NonSubtitle) || (dataUnitId == Subtitle))
-				    && (dataUnitSize == TELX_PAYLOAD_SIZE)) {
-
-					if(i + TELX_PAYLOAD_SIZE > (int)data.len) {
-						state.host->log(Warning, "truncated data unit");
-						break;
-					}
-
-					uint8_t entitiesData[TELX_PAYLOAD_SIZE];
-					for(int j = 0; j < TELX_PAYLOAD_SIZE; j++) {
-						auto byte = data[i + j];
-						entitiesData[j] = Reverse8[byte]; // reverse endianess
-					}
-
-					auto page = process_telx_packet(state, dataUnitId, entitiesData, time);
-
-					if(page)
-						pages.push_back(*page);
-				}
-
-				i += dataUnitSize;
-			}
-
-			return pages;
-		}
-
 };
 
 IModule* createObject(KHost* host, void* va) {

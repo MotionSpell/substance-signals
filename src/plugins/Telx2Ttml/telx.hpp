@@ -607,4 +607,41 @@ std::unique_ptr<Page> process_telx_packet(TeletextState &config, DataUnit dataUn
 	return pageOut;
 }
 
+std::vector<Page> telx_parse_pages(TeletextState& state, SpanC data, int64_t time) {
+	int i = 1;
+
+	std::vector<Page> pages;
+
+	while(i <= int(data.len) - 6) {
+		auto const dataUnitId = (DataUnit)data[i++];
+		auto const dataUnitSize = data[i++];
+
+		const uint8_t TELX_PAYLOAD_SIZE = 44;
+
+		if(((dataUnitId == NonSubtitle) || (dataUnitId == Subtitle))
+		    && (dataUnitSize == TELX_PAYLOAD_SIZE)) {
+
+			if(i + TELX_PAYLOAD_SIZE > (int)data.len) {
+				state.host->log(Warning, "truncated data unit");
+				break;
+			}
+
+			uint8_t entitiesData[TELX_PAYLOAD_SIZE];
+			for(int j = 0; j < TELX_PAYLOAD_SIZE; j++) {
+				auto byte = data[i + j];
+				entitiesData[j] = Reverse8[byte]; // reverse endianess
+			}
+
+			auto page = process_telx_packet(state, dataUnitId, entitiesData, time);
+
+			if(page)
+				pages.push_back(*page);
+		}
+
+		i += dataUnitSize;
+	}
+
+	return pages;
+}
+
 }
