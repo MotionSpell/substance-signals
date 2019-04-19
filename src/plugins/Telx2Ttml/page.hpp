@@ -17,7 +17,11 @@ struct Page {
 		return r;
 	}
 
-	int64_t tsInMs = 0, startTimeInMs = 0, endTimeInMs = 0, showTimestamp = 0, hideTimestamp = 0;
+	int64_t tsInMs = 0;
+	int64_t startTimeInMs = 0;
+	int64_t endTimeInMs = 0;
+	int64_t showTimestamp = 0;
+	int64_t hideTimestamp = 0;
 	std::vector<std::string> lines;
 };
 
