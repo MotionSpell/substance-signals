@@ -4,10 +4,6 @@
 #include <string>
 
 struct Page {
-	Page() {
-		lines.push_back({});
-	}
-
 	std::string toString() const {
 		std::string r;
 
