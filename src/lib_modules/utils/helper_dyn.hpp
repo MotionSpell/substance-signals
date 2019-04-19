@@ -1,6 +1,7 @@
 #pragma once
 
 #include "helper.hpp"
+#include <string>
 
 namespace Modules {
 

@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <typeinfo>
+#include <stdexcept> //runtime_error
 
 using std::make_unique;
 using std::make_shared;

@@ -9,6 +9,7 @@
 #include "lib_media/in/file.hpp"
 #include "lib_media/out/null.hpp"
 #include "lib_utils/tools.hpp"
+#include <algorithm> //std::min
 
 #include "plugins/TsMuxer/mpegts_muxer.hpp"
 
