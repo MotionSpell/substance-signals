@@ -4,36 +4,36 @@
 
 namespace {
 
-typedef enum { //awkward type required by the spec states
+enum Bool { //awkward type required by the spec states
 	Undef = 255,
 	No = 0,
 	Yes = 1,
-} Bool;
+};
 
-typedef struct {
+struct PrimaryCharset {
 	uint8_t current;
 	uint8_t G0_M29;
 	uint8_t G0_X28;
-} PrimaryCharset;
+};
 
-typedef struct {
+struct State {
 	Bool progInfoProcessed;
-} State;
+};
 
-typedef enum {
+enum DataUnit {
 	NonSubtitle = 0x02,
 	Subtitle = 0x03,
 	Inverted = 0x0c,
 	DataUnitVPS = 0xc3,
 	DataUnitClosedCaptions = 0xc5
-} DataUnit;
+};
 
-typedef struct {
+struct Payload {
 	uint8_t unused_clock_in;
 	uint8_t unused_framing_code;
 	uint8_t address[2];
 	uint8_t data[40];
-} Payload;
+};
 
 uint8_t unham_8_4(uint8_t a) {
 	uint8_t val = UnHam_8_4[a];
@@ -84,19 +84,19 @@ void ucs2_to_utf8(char *out, uint16_t in) {
 	}
 }
 
-typedef enum {
+enum TransmissionMode {
 	Parallel = 0,
 	Serial = 1
-} TransmissionMode;
+};
 
 static const int COLS = 40;
 static const int ROWS = 25;
 
-typedef struct {
+struct PageBuffer {
 	uint64_t showTimestamp;
 	uint64_t hideTimestamp;
 	uint16_t text[ROWS][COLS];
 	bool tainted; // 1 = text variable contains any data
-} PageBuffer;
+};
 
 }
