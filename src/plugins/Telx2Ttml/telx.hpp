@@ -192,12 +192,12 @@ std::unique_ptr<Page> process_telx_packet(TeletextState &config, DataUnit dataUn
 		uint8_t subtitleFlag = (unham_8_4(packet->data[5]) & 0x08) >> 3;
 		config.cc_map[i] |= subtitleFlag << (m - 1);
 
-		if ((config.pageNum == 0) && (subtitleFlag == Yes) && (i < 0xff)) {
-			config.pageNum = (m << 8) | (unham_8_4(packet->data[1]) << 4) | unham_8_4(packet->data[0]);
-		}
-
 		const uint16_t pageNum = (m << 8) | (unham_8_4(packet->data[1]) << 4) | unham_8_4(packet->data[0]);
 		const uint8_t charset = ((unham_8_4(packet->data[7]) & 0x08) | (unham_8_4(packet->data[7]) & 0x04) | (unham_8_4(packet->data[7]) & 0x02)) >> 1;
+
+		if ((config.pageNum == 0) && (subtitleFlag == Yes) && (i < 0xff)) {
+			config.pageNum = pageNum;
+		}
 
 		// Section 9.3.1.3
 		config.transmissionMode = (TransmissionMode)(unham_8_4(packet->data[7]) & 0x01);
