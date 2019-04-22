@@ -12,7 +12,7 @@ namespace Pipelines {
 
 struct IStatsRegistry;
 struct Graph;
-struct Filter;
+class Filter;
 
 using CreationFunc = std::function<std::shared_ptr<Modules::IModule>(Modules::KHost*)>;
 

@@ -67,6 +67,7 @@ void Restamp::processOne(Data data) {
 
 BitrateRestamp::BitrateRestamp(KHost* host,  int64_t bitrateInBps)
 	: m_host(host), m_bitrateInBps(bitrateInBps) {
+	(void)m_host;
 	enforce(bitrateInBps > 0, "Invalid bitrate");
 	output = addOutput();
 }

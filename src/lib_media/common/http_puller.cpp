@@ -4,6 +4,7 @@
 
 #include <stdexcept>
 #include <memory>
+#include <string>
 
 extern "C" {
 #include <curl/curl.h>
