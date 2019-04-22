@@ -25,6 +25,13 @@ bool setHighThreadPriority() {
 	return true;
 }
 
+std::string getEnvironmentVariable(string name) {
+	const char* value = std::getenv(name.c_str());
+	if(!value)
+		value = "";
+	return value;
+}
+
 bool dirExists(string path) {
 	struct stat sb;
 	return stat(path.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode);
@@ -46,7 +53,7 @@ void changeDir(string path) {
 }
 
 std::string currentDir() {
-	shared_ptr<char> path(get_current_dir_name(), &free);
+	shared_ptr<char> path(getwd(nullptr), &free);
 	if(!path)
 		throw runtime_error("couldn't get the current directory");
 	return path.get() + string("/");
@@ -99,7 +106,7 @@ unique_ptr<DynLib> loadLibrary(const char* name) {
 }
 
 struct SharedMemRWCGnu : SharedMemory {
-	SharedMemRWCGnu(int size, const char* name, bool owner_) : filename(name), size(size): owner(owner_) {
+	SharedMemRWCGnu(int size, const char* name, bool owner_) : filename(name), size(size), owner(owner_) {
 		unsigned int flags = O_RDWR;
 		if(owner)
 			flags |= O_CREAT;
