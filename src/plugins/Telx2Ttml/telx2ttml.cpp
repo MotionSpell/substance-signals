@@ -103,7 +103,7 @@ class TeletextToTTML : public ModuleS {
 		OutputDefault* output;
 		const std::string lang;
 		const TeletextToTtmlConfig::TimingPolicy timingPolicy;
-		int64_t intClock = 0, extClock = 0;
+		int64_t intClock = 0;
 		const int64_t maxPageDurIn180k, splitDurationIn180k;
 		std::vector<Page> currentPages;
 		std::unique_ptr<ITeletextParser> m_telxState;
