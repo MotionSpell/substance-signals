@@ -152,6 +152,9 @@ void Filter::stopSource() {
 }
 
 void Filter::destroyOutputs() {
+	// tell the executor to stop executing anything,
+	// and to drop all tasks that might be submitted afterwards.
+	executor->kill();
 	for(int i=0; i < delegate->getNumOutputs(); ++i) {
 		auto o = delegate->getOutput(i);
 		o->disconnect();
