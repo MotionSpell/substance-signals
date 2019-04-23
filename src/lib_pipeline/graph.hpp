@@ -25,7 +25,11 @@ struct Graph {
 		auto i_node = std::find_if(nodes.begin(), nodes.end(), [id](Pipelines::Graph::Node const& n) {
 			return n.id == id;
 		});
-		assert(i_node != nodes.end());
+		if (i_node == nodes.end()) {
+			nodes.push_back({ id, "Unknown" });
+			return nodes.back();
+		}
+
 		return *i_node;
 	}
 
