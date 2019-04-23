@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <queue>
+#include <stdexcept>
 
 typedef std::queue<std::string> ArgQueue;
 

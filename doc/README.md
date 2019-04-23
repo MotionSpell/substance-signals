@@ -202,7 +202,7 @@ In the pipeline, input modules will be called two times on void ::process(Data d
 ```
 void module::process(Data data) {
 	while (getInput(0)->tryPop(data)) {
-		auto out = outputs[0]->getBuffer(0);
+		auto out = outputs[0]->allocData(0);
 		[do my stuff here]
 		out->setTime(time);
 		output->emit(out);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstring> // memcpy
+#include <stdexcept>
 #include <vector>
 #include "lib_modules/core/buffer.hpp"
 #include "lib_modules/core/database.hpp"

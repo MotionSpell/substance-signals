@@ -1,6 +1,7 @@
 // Parse raw teletext data, and produce 'Page' objects
 #include <cstdint>
 #include <cstring> // memset
+#include <algorithm> //std::max
 #include <memory>
 #include "telx.hpp"
 #include "lib_utils/format.hpp"
