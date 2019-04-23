@@ -57,6 +57,9 @@ Pipeline::~Pipeline() {
 	// without having to topological-sort them.
 	for(auto& m : modules)
 		m->destroyOutputs();
+
+	// force destruction of filters (+their executors) first.
+	modules.clear();
 }
 
 IFilter* Pipeline::addModuleInternal(std::string name, CreationFunc createModule) {
