@@ -11,6 +11,9 @@ for p in "$@" ; do
     -static-libstdc++)
       # avoid warning from clang, which ignores this option
       ;;
+    -Wl,--version-script=*)
+      # BSD ld doesn't support version scripts, export everything
+      ;;
     *)
       params+=("$p")
       ;;
