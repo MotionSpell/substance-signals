@@ -8,6 +8,9 @@ for p in "$@" ; do
         params+=("-undefined")
         params+=("error")
       ;;
+    -static-libstdc++)
+      # avoid warning from clang, which ignores this option
+      ;;
     *)
       params+=("$p")
       ;;
