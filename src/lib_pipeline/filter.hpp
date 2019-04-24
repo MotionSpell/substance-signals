@@ -70,7 +70,7 @@ class Filter :
 		std::shared_ptr<IModule> delegate;
 
 		bool started = false;
-		bool stopped = false;
+		std::atomic<bool> stopped;
 
 		// should we repeatedly call 'process' on the delegate?
 		bool active = false;

@@ -29,6 +29,7 @@ Filter::Filter(const char* name,
 	  eosCount(0),
 	  statsRegistry(statsRegistry),
 	  executor(createExecutor(threading, name)) {
+	stopped = false;
 }
 
 // KHost implementation
