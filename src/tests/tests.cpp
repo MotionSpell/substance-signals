@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <csignal>
 #include <climits>
+#include <algorithm> // sort
 #include "tests.hpp"
 
 namespace {
@@ -85,6 +86,13 @@ void RunAll(Filter filter) {
 		}
 	}
 }
+
+void SortTests() {
+	auto byName = [](UnitTest const& a, UnitTest const& b) -> bool {
+		return std::string(a.name) < std::string(b.name);
+	};
+	std::sort(g_AllTests, g_AllTests + g_NumTests, byName);
+}
 }
 
 namespace Tests {
@@ -115,6 +123,8 @@ int main(int argc, const char* argv[]) {
 			throw std::runtime_error("unexpected end of command line");
 		return argv[i++];
 	};
+
+	SortTests();
 
 	Filter filter;
 
