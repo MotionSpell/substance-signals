@@ -32,6 +32,7 @@ class Filter :
 		    IEventSink *eventSink,
 		    Pipelines::Threading threading,
 		    IStatsRegistry *statsRegistry);
+		~Filter();
 
 		void setDelegate(std::shared_ptr<IModule> module);
 

@@ -32,6 +32,10 @@ Filter::Filter(const char* name,
 	stopped = false;
 }
 
+Filter::~Filter() {
+	executor->kill();
+}
+
 // KHost implementation
 void Filter::log(int level, char const* msg) {
 	m_log->log((Level)level, format("[%s] %s", m_name.c_str(), msg).c_str());
