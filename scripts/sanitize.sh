@@ -26,7 +26,7 @@ export BIN CFLAGS LDFLAGS
 
 make -j`nproc`
 
-export TSAN_OPTIONS=halt_on_error=1
+export TSAN_OPTIONS=halt_on_error=1:suppressions=$scriptDir/tsan_suppressions.txt
 export ASAN_OPTIONS=halt_on_error=1
 export UBSAN_OPTIONS=halt_on_error=1
 $scriptDir/run_tests.sh

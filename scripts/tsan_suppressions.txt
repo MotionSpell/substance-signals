@@ -1,0 +1,2 @@
+# ffmpeg uses atomics and tsan doesn't like it
+race:av_buffer_unref
