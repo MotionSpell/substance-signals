@@ -11,6 +11,7 @@ using namespace Modules;
 
 namespace Pipelines {
 
+class FilterInput;
 struct IStatsRegistry;
 
 // Wrapper around a user-module instance.
@@ -52,6 +53,7 @@ class Filter :
 
 		// prevent from sending anymore data downstream
 		void destroyOutputs();
+		void clearInputQueues();
 
 	private:
 		void mimicInputs();
@@ -82,7 +84,7 @@ class Filter :
 
 		IStatsRegistry * const statsRegistry;
 
-		std::vector<std::unique_ptr<IInput>> inputs;
+		std::vector<std::unique_ptr<FilterInput>> inputs;
 		std::unique_ptr<Signals::IExecutor> const executor;
 };
 

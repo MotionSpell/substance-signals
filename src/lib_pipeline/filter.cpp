@@ -166,6 +166,11 @@ void Filter::destroyOutputs() {
 	}
 }
 
+void Filter::clearInputQueues() {
+	for(auto& input : inputs)
+		input->clear();
+}
+
 // IEventSink implementation
 
 void Filter::endOfStream() {
