@@ -8,10 +8,7 @@ struct IExecutor {
 	virtual ~IExecutor() {}
 	virtual void call(const std::function<void()> &fn) = 0;
 
-	// tells the executor to stop executing anything.
-	// This call should be synchronous, i.e on return, nothing should be
-	// running anymore in this executor, and all subsequents calls to 'call'
-	// will be ignored.
+	// make the executor stop accepting new tasks
 	virtual void kill() {};
 };
 
