@@ -62,6 +62,7 @@ DataBaseRef::DataBaseRef(std::shared_ptr<const DataBase> data) {
 		} else {
 			dataRef = data;
 		}
+		buffer = dataRef->buffer;
 	}
 }
 
