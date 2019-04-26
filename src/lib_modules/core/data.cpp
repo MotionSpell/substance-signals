@@ -1,5 +1,6 @@
 #include "database.hpp"
 #include <cstring> // memcpy
+#include <stdexcept> //runtime_error
 
 namespace Modules {
 
