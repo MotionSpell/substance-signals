@@ -77,6 +77,10 @@ bool GPACDemuxMP4Full::openData() {
 		m_host->log(Warning, format("Error opening fragmented mp4 in progressive mode: %s (missing %s bytes)", gf_error_to_string(e), missingBytes).c_str());
 		return false;
 	}
+	if (!movie) {
+		reader->movie = nullptr;
+		return false;
+	}
 	reader->movie.reset(new gpacpp::IsoFile(movie));
 	reader->movie->setSingleMoofMode(true);
 	return true;
