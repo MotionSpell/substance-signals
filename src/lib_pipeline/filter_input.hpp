@@ -27,7 +27,9 @@ class FilterInput : public IInput {
 
 			auto doProcess = [this]() {
 				try {
-					auto data = queue.pop();
+					Data data;
+					if(!queue.tryPop(data))
+						return; // spurious process: can occur at destruction
 					statsPending->value --;
 					statsCumulated->value = samplingCounter++;
 

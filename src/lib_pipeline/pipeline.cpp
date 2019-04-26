@@ -65,6 +65,9 @@ Pipeline::~Pipeline() {
 		m->clearInputQueues();
 
 	// Now we know the executors can't be neither reached, nor blocked: destroy them
+	for(auto& m : modules)
+		m->kill();
+
 	modules.clear();
 }
 

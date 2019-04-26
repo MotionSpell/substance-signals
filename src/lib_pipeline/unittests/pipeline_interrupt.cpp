@@ -39,7 +39,7 @@ struct FakeTransformer : public Modules::ModuleS {
 	Modules::OutputDefault* out;
 };
 
-unittest("[DISABLED] pipeline: destroy while running: fast producer, slow consumer") {
+unittest("pipeline: destroy while running: fast producer, slow consumer") {
 	struct SlowSink : public Modules::ModuleS {
 		SlowSink(Modules::KHost*) {
 		}
