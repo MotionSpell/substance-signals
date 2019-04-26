@@ -39,6 +39,26 @@ struct FakeTransformer : public Modules::ModuleS {
 	Modules::OutputDefault* out;
 };
 
+unittest("[DISABLED] pipeline: destroy while running: fast producer, slow consumer") {
+	struct SlowSink : public Modules::ModuleS {
+		SlowSink(Modules::KHost*) {
+		}
+		void processOne(Modules::Data) override {
+			std::this_thread::sleep_for(std::chrono::milliseconds(20));
+		}
+	};
+
+	auto p = std::make_unique<Pipeline>();
+	// the instantiation order matters here!
+	auto sink = p->addModule<SlowSink>();
+	auto src = p->addModule<InfiniteSource, 1>();
+	p->connect(src, sink);
+	p->start();
+
+	// let InfiniteSource fill SlowSink's input queue
+	std::this_thread::sleep_for(std::chrono::milliseconds(80));
+}
+
 unittest("pipeline: destroy while running: long chain of modules") {
 	for(int i=0; i< 100; ++i) {
 		auto p = std::make_unique<Pipeline>();
