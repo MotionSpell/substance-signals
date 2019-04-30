@@ -285,7 +285,7 @@ struct TeletextState : ITeletextParser {
 	uint8_t cc_map[256] = { 0 };
 	TransmissionMode transmissionMode = Serial;
 	uint8_t receivingData = No; // flag indicating if incoming data should be processed or ignored
-	PageBuffer pageBuffer;
+	PageBuffer pageBuffer {};
 	uint16_t G0[5][96] = { //G0 charsets in UCS-2
 		{
 			// Latin G0 Primary Set

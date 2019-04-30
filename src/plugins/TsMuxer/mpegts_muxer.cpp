@@ -300,7 +300,7 @@ class TsMuxer : public ModuleDynI {
 			auto data = serializeTsPacket(pid, unit, pusi);
 
 			// deliver it to the output
-			data->set(PresentationTime { pcr() });
+			data->set(PresentationTime { time() });
 			m_output->post(data);
 
 			m_packetCount++;
@@ -361,7 +361,6 @@ class TsMuxer : public ModuleDynI {
 			return buf;
 		}
 
-
 		void writeAdaptationField(BitWriter& w, bool pcrFlag) const {
 			auto wafl = w;
 			w.u(8, 0); // adaptation field length: unknown at the moment
@@ -388,7 +387,11 @@ class TsMuxer : public ModuleDynI {
 		}
 
 		int64_t pcr() const {
-			return m_pcrOffset + IClock::Rate * (m_packetCount * TS_PACKET_SIZE * 8) / m_cfg.muxRate;
+			return m_pcrOffset + time();
+		}
+
+		int64_t time() const {
+			return IClock::Rate * (m_packetCount * TS_PACKET_SIZE * 8) / m_cfg.muxRate;
 		}
 
 		int64_t timeToPackets(int64_t timeInMs) const {
