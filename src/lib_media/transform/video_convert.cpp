@@ -4,6 +4,7 @@
 #include "lib_utils/tools.hpp"
 #include "../common/ffpp.hpp"
 #include "../common/libav.hpp"
+#include "../common/attributes.hpp"
 
 #include <cassert>
 
@@ -67,7 +68,7 @@ class VideoConvert : public ModuleS {
 
 			sws_scale(m_SwContext, srcSlice, srcStride, 0, srcFormat.res.height, pDst, dstStride);
 
-			pic->setMediaTime(data->getMediaTime());
+			pic->set(data->get<PresentationTime>());
 			output->post(pic);
 		}
 

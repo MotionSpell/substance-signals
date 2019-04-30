@@ -2,6 +2,7 @@
 #include "lib_modules/modules.hpp"
 #include "lib_media/in/sound_generator.hpp"
 #include "lib_media/in/video_generator.hpp"
+#include "lib_media/common/attributes.hpp"
 #include "lib_utils/string_tools.hpp" // makeVector
 
 using namespace Tests;
@@ -13,7 +14,7 @@ unittest("video generator") {
 	std::vector<int> times;
 	auto onFrame = [&](Data data) {
 		auto rawData = safe_cast<const DataPicture>(data);
-		times.push_back((int)rawData->getMediaTime());
+		times.push_back((int)rawData->get<PresentationTime>().time);
 	};
 	ConnectOutput(videoGen->getOutput(0), onFrame);
 

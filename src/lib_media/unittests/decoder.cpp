@@ -85,7 +85,7 @@ unittest("decoder: audio simple") {
 unittest("decoder: timestamp propagation") {
 	struct FrameCounter : ModuleS {
 		void processOne(Data data) override {
-			mediaTimes.push_back(data->getMediaTime());
+			mediaTimes.push_back(data->get<PresentationTime>().time);
 		}
 		std::vector<int64_t> mediaTimes;
 	};

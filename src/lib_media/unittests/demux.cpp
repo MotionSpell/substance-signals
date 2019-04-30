@@ -56,7 +56,7 @@ unittest("LibavDemux: rollover") {
 		void processOne(Data data) override {
 			if(isDeclaration(data))
 				return;
-			times.push_back(data->getMediaTime());
+			times.push_back(data->get<PresentationTime>().time);
 			decodingTimes.push_back(data->get<DecodingTime>().time);
 		}
 	};

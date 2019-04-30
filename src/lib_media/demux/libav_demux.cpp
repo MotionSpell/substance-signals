@@ -425,8 +425,8 @@ struct LibavDemux : Module {
 		if (startPTSIn180k) {
 			offset = -startPTSIn180k; //a global offset is applied to all streams (since it is a PTS we may have negative DTSs)
 		} else {
-			data->setMediaTime(m_streams[pkt->stream_index].restamper->restamp(data->getMediaTime())); //restamp by pid only when no start time
-			offset = data->getMediaTime() - time;
+			data->setMediaTime(m_streams[pkt->stream_index].restamper->restamp(data->get<PresentationTime>().time)); //restamp by pid only when no start time
+			offset = data->get<PresentationTime>().time - time;
 		}
 		if (offset != 0) {
 			data->restamp(offset * base.num, base.den); //propagate to AVPacket

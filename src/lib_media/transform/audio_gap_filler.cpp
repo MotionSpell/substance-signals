@@ -1,5 +1,6 @@
 #include "audio_gap_filler.hpp"
 #include "../common/metadata.hpp"
+#include "../common/attributes.hpp"
 #include "lib_utils/format.hpp"
 #include "lib_utils/log_sink.hpp"
 
@@ -17,7 +18,7 @@ AudioGapFiller::AudioGapFiller(KHost* host, uint64_t toleranceInFrames)
 void AudioGapFiller::processOne(Data data) {
 	auto audioData = safe_cast<const DataPcm>(data);
 	auto const sampleRate = audioData->format.sampleRate;
-	auto const timeInSR = clockToTimescale(data->getMediaTime(), sampleRate);
+	auto const timeInSR = clockToTimescale(data->get<PresentationTime>().time, sampleRate);
 	if (accumulatedTimeInSR == std::numeric_limits<uint64_t>::max()) {
 		accumulatedTimeInSR = timeInSR;
 	}
@@ -29,13 +30,13 @@ void AudioGapFiller::processOne(Data data) {
 			if (diff > 0) {
 				m_host->log(Warning, format("Fixing gap of %s samples (input=%s, accumulation=%s)", diff, timeInSR, accumulatedTimeInSR).c_str());
 				auto dataInThePast = clone(data);
-				dataInThePast->setMediaTime(data->getMediaTime() - timescaleToClock((uint64_t)srcNumSamples, sampleRate));
+				dataInThePast->setMediaTime(data->get<PresentationTime>().time - timescaleToClock((uint64_t)srcNumSamples, sampleRate));
 				processOne(dataInThePast);
 			} else {
 				return; /*small overlap: thrash current sample*/
 			}
 		} else {
-			m_host->log(Warning, format("Discontinuity detected. Reset at time %s (previous: %s).", data->getMediaTime(), timescaleToClock(accumulatedTimeInSR, sampleRate)).c_str());
+			m_host->log(Warning, format("Discontinuity detected. Reset at time %s (previous: %s).", data->get<PresentationTime>().time, timescaleToClock(accumulatedTimeInSR, sampleRate)).c_str());
 			accumulatedTimeInSR = timeInSR;
 		}
 	}

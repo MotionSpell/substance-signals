@@ -6,6 +6,7 @@
 #include "lib_media/common/pcm.hpp"
 #include "lib_media/common/picture.hpp"
 #include "lib_media/common/metadata.hpp"
+#include "lib_media/common/attributes.hpp"
 
 #include <algorithm> // sort
 #include <cassert>
@@ -110,7 +111,7 @@ struct DataGenerator : public ModuleS, public virtual IOutputCap {
 			dataPcm->format = fmt;
 			dataPcm->setSampleCount(1024);
 		}
-		data->setMediaTime(dataIn->getMediaTime());
+		data->set(dataIn->get<PresentationTime>());
 		output->post(data);
 	}
 	OutputDefault *output;
@@ -150,7 +151,7 @@ struct Fixture {
 	}
 
 	void onOutputSample(int i, Data data) {
-		actualTimes.push_back(Event{i, fractionToClock(clock->now()), data->getMediaTime()});
+		actualTimes.push_back(Event{i, fractionToClock(clock->now()), data->get<PresentationTime>().time});
 	}
 };
 

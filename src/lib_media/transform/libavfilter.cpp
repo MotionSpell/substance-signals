@@ -2,6 +2,7 @@
 #include "lib_modules/utils/factory.hpp"
 #include "lib_utils/tools.hpp"
 #include "../common/libav.hpp"
+#include "../common/attributes.hpp"
 
 extern "C" {
 #include <libavfilter/buffersink.h>
@@ -93,7 +94,7 @@ void LibavFilter::processOne(Data data) {
 		avFrameIn->get()->data[i] = (uint8_t*)pic->getPlane(i);
 		avFrameIn->get()->linesize[i] = (int)pic->getStride(i);
 	}
-	avFrameIn->get()->pts = data->getMediaTime();
+	avFrameIn->get()->pts = data->get<PresentationTime>().time;
 
 	if (av_buffersrc_add_frame_flags(buffersrc_ctx, avFrameIn->get(), AV_BUFFERSRC_FLAG_KEEP_REF) < 0)
 		throw error("Error while feeding the filtergraph");

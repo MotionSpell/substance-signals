@@ -3,6 +3,7 @@
 #include "lib_modules/utils/loader.hpp"
 #include "lib_media/in/video_generator.hpp"
 #include "lib_media/transform/libavfilter.hpp"
+#include "lib_media/common/attributes.hpp"
 #include <vector>
 
 using namespace Tests;
@@ -13,7 +14,7 @@ using namespace std;
 unittest("avfilter: deinterlace") {
 	vector<int64_t> times;
 	auto onFrame = [&](Data data) {
-		times.push_back(data->getMediaTime());
+		times.push_back(data->get<PresentationTime>().time);
 	};
 
 	auto videoGen = createModule<In::VideoGenerator>(&NullHost);
@@ -36,7 +37,7 @@ unittest("avfilter: deinterlace") {
 unittest("avfilter: fps convert (drop/repeat)") {
 	vector<int64_t> times;
 	auto onFrame = [&](Data data) {
-		times.push_back(data->getMediaTime());
+		times.push_back(data->get<PresentationTime>().time);
 	};
 
 	auto videoGen = createModule<In::VideoGenerator>(&NullHost);

@@ -1,6 +1,7 @@
 #include "lib_utils/tools.hpp"
 #include "lib_utils/log_sink.hpp" // Warning
 #include "lib_utils/format.hpp"
+#include "../common/attributes.hpp"
 #include "recorder.hpp"
 
 namespace Modules {
@@ -16,7 +17,7 @@ void Recorder::flush() {
 
 void Recorder::processOne(Data data) {
 	if (data) {
-		m_host->log(Debug, format("Data[%s] recorded at media time %s", data.get(), data->getMediaTime()).c_str());
+		m_host->log(Debug, format("Data[%s] recorded at media time %s", data.get(), data->get<PresentationTime>().time).c_str());
 	}
 	record.push(data);
 }

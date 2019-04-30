@@ -26,6 +26,7 @@ The module works this way:
 #include "lib_utils/tools.hpp" // enforce, safe_cast
 
 #include "../common/pcm.hpp"
+#include "../common/attributes.hpp" // PresentationTime
 
 #include <cassert>
 #include <memory>
@@ -211,7 +212,7 @@ struct Rectifier : ModuleDynI {
 					return;
 				}
 
-				inMasterTime.start = masterFrame->getMediaTime();
+				inMasterTime.start = masterFrame->get<PresentationTime>().time;
 				inMasterTime.stop = inMasterTime.start + (outMasterTime.stop - outMasterTime.start);
 
 				if (numTicks == 0) {
@@ -221,7 +222,7 @@ struct Rectifier : ModuleDynI {
 				auto data = clone(masterFrame);
 				data->setMediaTime(outMasterTime.start);
 				master.output->post(data);
-				discardStreamOutdatedData(masterStreamId, data->getMediaTime());
+				discardStreamOutdatedData(masterStreamId, data->get<PresentationTime>().time);
 			}
 
 			//TODO: Notes:
@@ -274,7 +275,7 @@ struct Rectifier : ModuleDynI {
 			};
 
 			auto getSampleInterval = [&](const DataPcm* pcm) -> Interval {
-				auto const start = toSamples(pcm->getMediaTime());
+				auto const start = toSamples(pcm->get<PresentationTime>().time);
 				return Interval {
 					start,
 					start + int64_t(pcm->getPlaneSize() / BPS)

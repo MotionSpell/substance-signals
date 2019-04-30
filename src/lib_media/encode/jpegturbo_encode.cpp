@@ -3,6 +3,7 @@
 #include "lib_utils/tools.hpp"
 #include "lib_utils/log_sink.hpp"
 #include "lib_utils/format.hpp"
+#include "../common/attributes.hpp"
 #include "../common/metadata.hpp"
 #include "../common/picture.hpp"
 extern "C" {
@@ -73,7 +74,7 @@ class JPEGTurboEncode : public ModuleS {
 			}
 
 			out->buffer->resize(jpegSize);
-			out->setMediaTime(data_->getMediaTime());
+			out->set(data_->get<PresentationTime>());
 			output->post(out);
 		}
 

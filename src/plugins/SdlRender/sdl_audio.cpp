@@ -13,6 +13,7 @@
 #include "lib_modules/utils/helper.hpp"
 #include "lib_modules/utils/factory.hpp"
 
+#include "lib_media/common/attributes.hpp"
 #include "lib_media/common/metadata.hpp"
 #include "lib_media/common/pcm.hpp"
 #include "lib_media/transform/audio_convert.hpp"
@@ -124,7 +125,7 @@ struct SDLAudio : ModuleS {
 		auto pcmData = safe_cast<const DataPcm>(data);
 		std::lock_guard<std::mutex> lg(m_protectFifo);
 		if (m_fifo.bytesToRead() == 0) {
-			m_fifoTime = pcmData->getMediaTime() + PREROLL_DELAY;
+			m_fifoTime = pcmData->get<PresentationTime>().time + PREROLL_DELAY;
 		}
 		for (int i = 0; i < pcmData->format.numPlanes; ++i) {
 			m_fifo.write(pcmData->getPlane(i), (size_t)pcmData->getPlaneSize());

@@ -65,7 +65,7 @@ unittest("encoder: audio timestamp passthrough (modulo priming)") {
 
 	vector<int64_t> times;
 	auto onFrame = [&](Data data) {
-		times.push_back(data->getMediaTime());
+		times.push_back(data->get<PresentationTime>().time);
 	};
 
 	vector<int64_t> inputTimes = { 10000, 20000, 30000, 777000 };
@@ -90,7 +90,7 @@ unittest("encoder: audio timestamp passthrough (modulo priming)") {
 unittest("encoder: video timestamp passthrough") {
 	vector<int64_t> times;
 	auto onFrame = [&](Data data) {
-		times.push_back(data->getMediaTime());
+		times.push_back(data->get<PresentationTime>().time);
 	};
 
 	vector<int64_t> inputTimes = {0, 1, 2, 3, 4, 20, 21, 22, 10, 11, 12};

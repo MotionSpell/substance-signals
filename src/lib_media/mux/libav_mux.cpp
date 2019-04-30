@@ -231,7 +231,7 @@ class LibavMux : public ModuleDynI {
 				memcpy(newPkt->data, headers.data(), headers.size());
 			memcpy(newPkt->data + headers.size(), data->data().ptr, data->data().len);
 			newPkt->size = (int)outSize;
-			newPkt->pts = data->getMediaTime();
+			newPkt->pts = data->get<PresentationTime>().time;
 			newPkt->dts = data->get<DecodingTime>().time;
 		}
 

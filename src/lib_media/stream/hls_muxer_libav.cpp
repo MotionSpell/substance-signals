@@ -67,7 +67,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 
 			if (data->getMetadata()->type == VIDEO_PKT) {
 				auto flags = data->get<CueFlags>();
-				const int64_t DTS = data->getMediaTime();
+				const int64_t DTS = data->get<PresentationTime>().time;
 				if (firstDTS == -1) {
 					firstDTS = DTS;
 					startsWithRAP = flags.keyframe;
@@ -90,7 +90,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 					default: assert(0);
 					}
 
-					schedule({ (int64_t)m_utcStartTime->query() + data->getMediaTime(), meta, segIdx });
+					schedule({ (int64_t)m_utcStartTime->query() + data->get<PresentationTime>().time, meta, segIdx });
 
 					/*next segment*/
 					startsWithRAP = flags.keyframe;

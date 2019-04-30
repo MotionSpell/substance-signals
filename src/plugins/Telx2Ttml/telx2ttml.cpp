@@ -94,7 +94,7 @@ class TeletextToTTML : public ModuleS {
 			// 14. add flush() for ondemand samples
 			// 15. UTF8 to TTML formatting? accent
 			processTelx(data);
-			dispatch(data->getMediaTime());
+			dispatch(data->get<PresentationTime>().time);
 		}
 
 	private:
@@ -204,11 +204,11 @@ class TeletextToTTML : public ModuleS {
 		}
 
 		void processTelx(Data sub) {
-			for(auto& page : m_telxState->parse(sub->data(), sub->getMediaTime())) {
+			for(auto& page : m_telxState->parse(sub->data(), sub->get<PresentationTime>().time)) {
 				m_host->log(Debug,
 				    format("show=%s:hide=%s, clocks:data=%s:int=%s, content=%s",
 				        clockToTimescale(page.showTimestamp, 1000), clockToTimescale(page.hideTimestamp, 1000),
-				        clockToTimescale(sub->getMediaTime(), 1000), clockToTimescale(intClock, 1000), pageToString(page)).c_str());
+				        clockToTimescale(sub->get<PresentationTime>().time, 1000), clockToTimescale(intClock, 1000), pageToString(page)).c_str());
 
 				auto const startTimeInMs = clockToTimescale(page.showTimestamp, 1000);
 				auto const durationInMs = clockToTimescale((page.hideTimestamp - page.showTimestamp), 1000);

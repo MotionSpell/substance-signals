@@ -7,6 +7,7 @@
 #include "lib_modules/utils/factory.hpp"
 #include "lib_media/common/picture.hpp"
 #include "lib_media/common/metadata.hpp"
+#include "lib_media/common/attributes.hpp"
 #include "SDL2/SDL.h"
 #include "render_common.hpp"
 #include <thread>
@@ -175,7 +176,7 @@ struct SDLVideo : ModuleS {
 		m_dataQueue.push(data);
 
 		auto const now = fractionToClock(m_clock->now());
-		auto const timestamp = data->getMediaTime() + PREROLL_DELAY; // assume timestamps start at zero
+		auto const timestamp = data->get<PresentationTime>().time + PREROLL_DELAY; // assume timestamps start at zero
 		auto const delay = respectTimestamps ? std::max<int64_t>(0, timestamp - now) : 0;
 		auto const delayInMs = clockToTimescale(delay, 1000);
 

@@ -172,7 +172,7 @@ struct LibavEncode : ModuleS {
 				f->data[i] = (uint8_t*)pic->getPlane(i);
 				f->linesize[i] = (int)pic->getStride(i);
 			}
-			computeFrameAttributes(f, data->getMediaTime());
+			computeFrameAttributes(f, data->get<PresentationTime>().time);
 			return f;
 		}
 
@@ -183,7 +183,7 @@ struct LibavEncode : ModuleS {
 			}
 
 			auto f = prepareFrame(data);
-			f->pts = data->getMediaTime();
+			f->pts = data->get<PresentationTime>().time;
 			encodeFrame(f);
 		}
 

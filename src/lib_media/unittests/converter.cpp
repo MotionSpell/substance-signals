@@ -2,6 +2,7 @@
 #include "lib_modules/modules.hpp"
 #include "lib_modules/utils/loader.hpp"
 #include "lib_media/common/metadata.hpp"
+#include "lib_media/common/attributes.hpp"
 #include "lib_media/transform/audio_gap_filler.hpp"
 #include "lib_media/transform/audio_convert.hpp"
 #include "lib_media/utils/recorder.hpp"
@@ -277,7 +278,7 @@ unittest("audio converter: timestamp passthrough") {
 	int64_t lastMediaTime = 0;
 
 	auto onFrame = [&](Data dataRec) {
-		lastMediaTime = dataRec->getMediaTime();
+		lastMediaTime = dataRec->get<PresentationTime>().time;
 	};
 
 	auto cfg = AudioConvertConfig { format, format, (int64_t)1024};
@@ -310,7 +311,7 @@ unittest("audio converter: timestamp gap") {
 	int64_t lastMediaTime = 0;
 
 	auto onFrame = [&](Data dataRec) {
-		lastMediaTime = dataRec->getMediaTime();
+		lastMediaTime = dataRec->get<PresentationTime>().time;
 	};
 
 	auto cfg = AudioConvertConfig { format, format, (int64_t)outSamplesPerFrame};
@@ -356,7 +357,7 @@ unittest("audio gap filler") {
 
 	size_t idx = 0;
 	while (auto dataRec = recorder->pop()) {
-		ASSERT(std::abs(dataRec->getMediaTime() - timescaleToClock(out[idx] * numSamples, format.sampleRate)) < 6);
+		ASSERT(std::abs(dataRec->get<PresentationTime>().time - timescaleToClock(out[idx] * numSamples, format.sampleRate)) < 6);
 		idx++;
 	}
 	ASSERT(idx == out.size());

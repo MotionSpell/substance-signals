@@ -1,5 +1,6 @@
 #include "lib_modules/utils/factory.hpp"
 #include "lib_modules/utils/helper.hpp"
+#include "lib_media/common/attributes.hpp"
 #include "lib_utils/tools.hpp"
 #include "lib_utils/log_sink.hpp"
 #include "../common/metadata.hpp"
@@ -65,7 +66,7 @@ void JPEGTurboDecode::processOne(Data data) {
 		return;
 	}
 	ensureMetadata(w, h, pixelFmt);
-	out->setMediaTime(data->getMediaTime());
+	out->set(data->get<PresentationTime>());
 	output->post(out);
 }
 

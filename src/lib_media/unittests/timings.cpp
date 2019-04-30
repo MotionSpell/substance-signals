@@ -1,6 +1,7 @@
 #include "tests/tests.hpp"
 #include "lib_media/common/picture.hpp"
 #include "lib_media/common/metadata.hpp"
+#include "lib_media/common/attributes.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/demux/gpac_demux_mp4_simple.hpp"
 #include "lib_media/transform/audio_gap_filler.hpp"
@@ -24,7 +25,7 @@ std::vector<int64_t> runDemux(std::string basename, CreateDemuxFunc createDemux)
 	auto onFrame = [&](Data data) {
 		if(isDeclaration(data))
 			return;
-		actualTimes.push_back(data->getMediaTime());
+		actualTimes.push_back(data->get<PresentationTime>().time);
 	};
 
 	auto demux = createDemux((basename + ".mp4").c_str());
@@ -95,7 +96,7 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 			output = addOutput();
 		}
 		void processOne(Data data) override {
-			if (!isDeclaration(data) && (i++ % 5) && (data->getMediaTime() < maxDurIn180k)) {
+			if (!isDeclaration(data) && (i++ % 5) && (data->get<PresentationTime>().time < maxDurIn180k)) {
 				output->post(data);
 			}
 		}
@@ -177,8 +178,8 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 		while (auto data = recorders[g]->pop()) {
 			if(isDeclaration(data))
 				continue;
-			g_Log->log(Debug, format("recv[%s] %s", g, data->getMediaTime()).c_str());
-			lastMediaTime = data->getMediaTime();
+			g_Log->log(Debug, format("recv[%s] %s", g, data->get<PresentationTime>().time).c_str());
+			lastMediaTime = data->get<PresentationTime>().time;
 		}
 		ASSERT(llabs(maxDurIn180k - lastMediaTime) < maxDurIn180k / 30);
 	}
@@ -188,7 +189,7 @@ unittest("restamp: passthru with offsets") {
 	auto const time = 10001LL;
 	int64_t expected = 0;
 	auto onFrame = [&](Data data) {
-		ASSERT_EQUALS(expected, data->getMediaTime());
+		ASSERT_EQUALS(expected, data->get<PresentationTime>().time);
 	};
 	auto data = make_shared<DataRaw>(0);
 
@@ -214,7 +215,7 @@ unittest("restamp: reset with offsets") {
 	int64_t offset = -100;
 	int64_t expected = time;
 	auto onFrame = [&](Data data) {
-		ASSERT_EQUALS(expected, data->getMediaTime());
+		ASSERT_EQUALS(expected, data->get<PresentationTime>().time);
 	};
 	auto data = make_shared<DataRaw>(0);
 

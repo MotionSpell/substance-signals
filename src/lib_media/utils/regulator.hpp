@@ -3,6 +3,7 @@
 #include "lib_utils/log_sink.hpp" // Warning, Debug
 #include "lib_utils/format.hpp"
 #include "lib_modules/utils/helper.hpp"
+#include "../common/attributes.hpp"
 #include <thread>
 #include <chrono>
 
@@ -16,7 +17,7 @@ class Regulator : public ModuleS {
 		}
 
 		void processOne(Data data) override {
-			auto const timeTarget = data->getMediaTime();
+			auto const timeTarget = data->get<PresentationTime>().time;
 			auto const timeNow = fractionToClock(clock->now());
 			auto const delayInMs = clockToTimescale(timeTarget - timeNow, 1000);
 			if (delayInMs > 0) {

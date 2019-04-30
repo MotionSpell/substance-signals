@@ -6,6 +6,7 @@
 #include "lib_modules/core/database.hpp"
 #include "lib_modules/core/connection.hpp"
 #include "lib_media/common/metadata.hpp"
+#include "lib_media/common/attributes.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 
 using namespace Tests;
@@ -16,7 +17,7 @@ unittest("LibavDemux => Decoder: output media times must increase") {
 
 	vector<int64_t> mediaTimes;
 	auto onPic = [&](Data data) {
-		mediaTimes.push_back(data->getMediaTime());
+		mediaTimes.push_back(data->get<PresentationTime>().time);
 	};
 
 	DemuxConfig cfg;

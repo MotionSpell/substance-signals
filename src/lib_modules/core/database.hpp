@@ -55,7 +55,6 @@ class DataBase {
 	public:
 		// Deprecated: use 'set(PresentationTime{xxx})' instead.
 		void setMediaTime(int64_t timeIn180k, uint64_t timescale = IClock::Rate);
-		int64_t getMediaTime() const;
 };
 
 std::shared_ptr<DataBase> clone(std::shared_ptr<const DataBase> data);

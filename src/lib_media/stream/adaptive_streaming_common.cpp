@@ -1,4 +1,5 @@
 #include "adaptive_streaming_common.hpp"
+#include "../common/attributes.hpp"
 #include "lib_utils/time.hpp"
 #include "lib_utils/os.hpp"
 #include "lib_utils/system_clock.hpp"
@@ -196,7 +197,7 @@ void AdaptiveStreamingCommon::threadProc() {
 		return (minIncompletSegDur == std::numeric_limits<uint64_t>::max()) || (curSegDurIn180k[i] > minIncompletSegDur);
 	};
 	auto ensureStartTime = [&]() {
-		if (startTimeInMs == (uint64_t)-2) startTimeInMs = clockToTimescale(data->getMediaTime(), 1000);
+		if (startTimeInMs == (uint64_t)-2) startTimeInMs = clockToTimescale(data->get<PresentationTime>().time, 1000);
 	};
 	auto ensureCurDur = [&]() {
 		for (i = 0; i < numInputs; ++i) {
@@ -296,7 +297,7 @@ void AdaptiveStreamingCommon::threadProc() {
 				continue;
 			}
 		}
-		const int64_t curMediaTimeInMs = clockToTimescale(data->getMediaTime(), 1000);
+		const int64_t curMediaTimeInMs = clockToTimescale(data->get<PresentationTime>().time, 1000);
 		ensureStartTime();
 		data = nullptr;
 

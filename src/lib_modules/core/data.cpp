@@ -88,8 +88,4 @@ void DataBase::setMediaTime(int64_t time, uint64_t timescale) {
 	set(PresentationTime{timescaleToClock(time, timescale)});
 }
 
-int64_t DataBase::getMediaTime() const {
-	return get<PresentationTime>().time;
-}
-
 }
