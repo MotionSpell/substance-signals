@@ -52,7 +52,6 @@ struct AVCC2AnnexBConverter : public ModuleS {
 			auto out = output->allocData<DataRaw>(in->data().len);
 
 			out->copyAttributes(*in);
-			out->setMediaTime(in->getMediaTime());
 
 			auto bs = ByteReader { in->data() };
 			while ( auto availableBytes = bs.available() ) {
@@ -75,7 +74,6 @@ struct AVCC2AnnexBConverter : public ModuleS {
 			}
 
 			out->setMetadata(in->getMetadata());
-			out->setMediaTime(in->getMediaTime());
 			output->post(out);
 		}
 	private:
