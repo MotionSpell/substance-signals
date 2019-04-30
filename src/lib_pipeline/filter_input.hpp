@@ -25,29 +25,9 @@ class FilterInput : public IInput {
 			queue.push(data);
 			statsPending->value ++;
 
-			auto doProcess = [this]() {
-				try {
-					Data data;
-					if(!queue.tryPop(data))
-						return; // spurious process: can occur at destruction
-					statsPending->value --;
-					statsCumulated->value = samplingCounter++;
-
-					// receiving 'nullptr' means 'end of stream'
-					if (!data) {
-						m_host->log(Debug, "notify end-of-stream.");
-						eventSink->endOfStream();
-						return;
-					}
-
-					delegate->push(data);
-				} catch(std::exception const& e) {
-					m_host->log(Error, (std::string("Can't process data: ") + e.what()).c_str());
-					throw;
-				}
-			};
-
-			executor->call(doProcess);
+			executor->call([this]() {
+				doProcess();
+			});
 		}
 
 		Data pop() override {
@@ -83,6 +63,29 @@ class FilterInput : public IInput {
 		}
 
 	private:
+
+		void doProcess() {
+			try {
+				Data data;
+				if(!queue.tryPop(data))
+					return; // spurious process: can occur at destruction
+				statsPending->value --;
+				statsCumulated->value = samplingCounter++;
+
+				// receiving 'nullptr' means 'end of stream'
+				if (!data) {
+					m_host->log(Debug, "notify end-of-stream.");
+					eventSink->endOfStream();
+					return;
+				}
+
+				delegate->push(data);
+			} catch(std::exception const& e) {
+				m_host->log(Error, (std::string("Can't process data: ") + e.what()).c_str());
+				throw;
+			}
+		}
+
 		Queue<Data> queue;
 		IInput *delegate;
 		IEventSink * const eventSink;
