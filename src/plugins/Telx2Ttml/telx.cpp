@@ -353,6 +353,10 @@ uint16_t telx_to_ucs2(uint8_t c, TeletextState const& config) {
 }
 
 void remap_g0_charset(uint8_t c, TeletextState &config) {
+	if(c >= sizeof(G0_LatinNationalSubsetsMap)) {
+		config.host->log(Warning, "Data error");
+		return;
+	}
 	if (c != config.primaryCharset.current) {
 		uint8_t m = G0_LatinNationalSubsetsMap[c];
 		if (m == 0xff) {
