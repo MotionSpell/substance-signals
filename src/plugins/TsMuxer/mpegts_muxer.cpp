@@ -273,6 +273,9 @@ class TsMuxer : public ModuleDynI {
 			while(pes.len > 0)
 				sendTsPacket(pid, pes, false);
 
+			// can only check the timings if we actually have a PCR
+			assert(m_pcrOffset != INT64_MAX);
+
 			auto removalDelay = au->get<DecodingTime>().time - pcr();
 
 			if(removalDelay < 0) {
