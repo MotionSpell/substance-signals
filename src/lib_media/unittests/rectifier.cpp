@@ -104,7 +104,7 @@ struct DataGenerator : public ModuleS, public virtual IOutputCap {
 		output->setMetadata(make_shared<METADATA>());
 	}
 	void processOne(Data dataIn) override {
-		auto data = output->template allocData<TYPE>(0);
+		auto data = output->allocData<TYPE>(0);
 		auto dataPcm = dynamic_pointer_cast<DataPcm>(data);
 		if (dataPcm) {
 			PcmFormat fmt(48000);
