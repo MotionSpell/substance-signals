@@ -30,16 +30,20 @@ class FilterInput : public IInput {
 			});
 		}
 
+		// KInput: TODO: remove this
 		Data pop() override {
 			assert(false);
 			return {};
 		}
-
 		bool tryPop(Data&) override {
 			assert(false);
 			return {};
 		}
+		void setMetadata(Metadata) override {
+			assert(false);
+		}
 
+		// IInput
 		int isConnected() const override {
 			return delegate->isConnected();
 		}
@@ -54,9 +58,6 @@ class FilterInput : public IInput {
 		}
 		Metadata getMetadata() const override {
 			return m_metadataCap.getMetadata();
-		}
-		void setMetadata(Metadata metadata) override {
-			m_metadataCap.setMetadata(metadata);
 		}
 		bool updateMetadata(Data &data) override {
 			return m_metadataCap.updateMetadata(data);
