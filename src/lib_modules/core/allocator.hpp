@@ -11,7 +11,6 @@ struct IAllocator {
 	virtual ~IAllocator() = default;
 	virtual void* alloc(size_t size) = 0;
 	virtual void free(void*) = 0;
-	virtual void unblock() = 0;
 };
 
 }

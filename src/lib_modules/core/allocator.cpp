@@ -42,8 +42,6 @@ struct MemoryAllocator : IAllocator {
 				allocatedBlockCount ++;
 				return new uint8_t[size];
 			}
-			case Exit:
-				return nullptr;
 			}
 			return nullptr;
 		}
@@ -54,15 +52,10 @@ struct MemoryAllocator : IAllocator {
 			eventQueue.push(Event{OneBufferIsFree});
 		}
 
-		void unblock() override {
-			eventQueue.push(Event{Exit});
-		}
-
 	private:
 
 		enum EventType {
 			OneBufferIsFree,
-			Exit,
 		};
 		struct Event {
 			EventType type {};

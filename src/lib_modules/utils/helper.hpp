@@ -48,10 +48,6 @@ class OutputDefault : public Output {
 			: allocator(createMemoryAllocator(allocatorMaxSize)) {
 			setMetadata(metadata);
 		}
-		virtual ~OutputDefault() {
-			allocator->unblock();
-		}
-
 		template<typename OtherDataType>
 		std::shared_ptr<OtherDataType> allocData(size_t size) {
 			return alloc<OtherDataType>(allocator, size);
