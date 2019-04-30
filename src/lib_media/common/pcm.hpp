@@ -5,6 +5,7 @@
 #include <vector>
 #include "lib_modules/core/buffer.hpp"
 #include "lib_modules/core/database.hpp"
+#include "lib_modules/core/raw_buffer.hpp"
 
 namespace Modules {
 

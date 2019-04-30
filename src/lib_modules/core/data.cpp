@@ -1,4 +1,5 @@
 #include "database.hpp"
+#include "raw_buffer.hpp"
 #include <cstring> // memcpy
 #include <stdexcept> //runtime_error
 
