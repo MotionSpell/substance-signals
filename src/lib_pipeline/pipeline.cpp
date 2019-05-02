@@ -58,16 +58,6 @@ Pipeline::~Pipeline() {
 	for(auto& m : modules)
 		m->destroyOutputs();
 
-	// at this point, all data produced by modules is immediately dropped
-	// however, there might be queued data in the input queues.
-	// Clear them: this might unblock some pending allocations in executor threads.
-	for(auto& m : modules)
-		m->clearInputQueues();
-
-	// Now we know the executors can't be neither reached, nor blocked: destroy them
-	for(auto& m : modules)
-		m->kill();
-
 	modules.clear();
 }
 

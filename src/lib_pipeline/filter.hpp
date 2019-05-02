@@ -53,9 +53,6 @@ class Filter :
 
 		// prevent from sending anymore data downstream
 		void destroyOutputs();
-		// prevent anything from being executed in this module
-		void kill();
-		void clearInputQueues();
 
 	private:
 		void mimicInputs();

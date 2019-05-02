@@ -33,7 +33,6 @@ Filter::Filter(const char* name,
 }
 
 Filter::~Filter() {
-	executor->kill();
 }
 
 // KHost implementation
@@ -161,17 +160,6 @@ void Filter::destroyOutputs() {
 		auto o = delegate->getOutput(i);
 		o->disconnect();
 	}
-}
-
-void Filter::kill() {
-	// tell the executor to stop executing anything,
-	// and to drop all tasks that might be submitted afterwards.
-	executor->kill();
-}
-
-void Filter::clearInputQueues() {
-	for(auto& input : inputs)
-		input->clear();
 }
 
 // IEventSink implementation

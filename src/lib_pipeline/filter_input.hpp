@@ -53,9 +53,6 @@ class FilterInput : public IInput {
 		void disconnect() override {
 			delegate->disconnect();
 		}
-		void clear() {
-			queue.clear();
-		}
 		Metadata getMetadata() const override {
 			return m_metadataCap.getMetadata();
 		}
@@ -67,9 +64,8 @@ class FilterInput : public IInput {
 
 		void doProcess() {
 			try {
-				Data data;
-				if(!queue.tryPop(data))
-					return; // spurious process: can occur at destruction
+				auto data = queue.pop();
+
 				statsPending->value --;
 				statsCumulated->value = samplingCounter++;
 
