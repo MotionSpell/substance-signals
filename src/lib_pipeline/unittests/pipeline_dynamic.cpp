@@ -2,15 +2,18 @@
 #include "pipeline_common.hpp"
 #include "lib_pipeline/pipeline.hpp"
 #include "pipeline_common.hpp"
+#include <atomic>
 
 using namespace Tests;
 using namespace Modules;
 using namespace Pipelines;
 
+using Bool = std::atomic<bool>;
+
 namespace {
 
 struct Source : Modules::Module {
-	Source(KHost* host, bool &sent) : sent(sent), host(host) {
+	Source(KHost* host, Bool &sent) : sent(sent), host(host) {
 		out = addOutput();
 		host->activate(true);
 	}
@@ -19,18 +22,18 @@ struct Source : Modules::Module {
 		if(sent)
 			host->activate(false);
 	}
-	bool &sent;
+	Bool &sent;
 	Modules::KHost* host;
 	Modules::OutputDefault* out;
 };
 struct Receiver : Module {
-	Receiver(KHost*, bool &sent) : sent(sent) {
+	Receiver(KHost*, Bool &sent) : sent(sent) {
 		addInput();
 	}
 	void process() {
 		sent = true;
 	}
-	bool &sent;
+	Bool &sent;
 };
 
 }
@@ -64,7 +67,7 @@ unittest("pipeline: dynamic module connection of a new source module") {
 	auto src = p.addModule<InfiniteSource>();
 	auto dualInput = p.addModule<DualInput>();
 	p.connect(src, dualInput);
-	bool received = false;
+	Bool received { false };
 	auto receiver = p.addModule<Receiver>(received);
 	p.connect(dualInput, receiver);
 	p.start();
@@ -131,12 +134,12 @@ unittest("pipeline: dynamic module disconnection (remove module dynamically)") {
 	// |           |   |           |
 	// |           \=> .-----------.
 	Pipeline p;
-	bool trigger = false;
+	Bool trigger { false };
 	auto src = p.addModule<Source>(trigger);
 	auto dualInput = p.addModule<DualInput>();
 	p.connect(src, GetInputPin(dualInput, 0));
 	p.connect(src, GetInputPin(dualInput, 1));
-	bool received = false;
+	Bool received { false };
 	auto receiver = p.addModule<Receiver>(received);
 	p.connect(dualInput, receiver);
 	p.start();
