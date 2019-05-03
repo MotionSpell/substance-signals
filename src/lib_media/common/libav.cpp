@@ -307,11 +307,11 @@ struct DataAVBuffer : IBuffer {
 	}
 
 	Span data() override {
-		return Span { pkt.data, (size_t)pkt.size };
+		return { pkt.data, (size_t)pkt.size };
 	}
 
 	SpanC data() const override {
-		return SpanC { pkt.data, (size_t)pkt.size };
+		return { pkt.data, (size_t)pkt.size };
 	}
 
 	void resize(size_t size) override {
