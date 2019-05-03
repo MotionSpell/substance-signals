@@ -1025,16 +1025,9 @@ void GPACMuxMP4::fillSample(Data data, gpacpp::IsoSample* sample, bool isRap) {
 void GPACMuxMP4::updateFormat(Data data) {
 	auto srcTimeScale = safe_cast<const MetadataPkt>(data->getMetadata())->timeScale;
 
-	auto pkt = safe_cast<const DataAVPacket>(data)->getPacket();
-
 	if (!defaultSampleIncInTs) {
-		if (pkt->duration) {
-			defaultSampleIncInTs = rescale(pkt->duration, srcTimeScale.num, srcTimeScale.den * timeScale);
-			m_host->log(Warning, format("Codec defaultSampleIncInTs=0 but first data contains a duration (%s/%s).", defaultSampleIncInTs, timeScale).c_str());
-		} else {
-			m_host->log(Warning, "Computed defaultSampleIncInTs=0, forcing the ExactInputDur flag.");
-			compatFlags = compatFlags | ExactInputDur;
-		}
+		m_host->log(Warning, "Computed defaultSampleIncInTs=0, forcing the ExactInputDur flag.");
+		compatFlags = compatFlags | ExactInputDur;
 	}
 
 	if (!firstDataAbsTimeInMs) {
