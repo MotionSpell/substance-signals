@@ -341,7 +341,7 @@ DataAVPacket::DataAVPacket(size_t size) {
 
 AVPacket* DataAVPacket::getPacket() const {
 	auto avBuffer = safe_cast<DataAVBuffer>(buffer.get());
-	return const_cast<AVPacket*>(&avBuffer->pkt);
+	return &avBuffer->pkt;
 }
 
 void DataAVPacket::restamp(int64_t offsetIn180k, uint64_t pktTimescale) {
