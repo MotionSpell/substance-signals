@@ -67,6 +67,7 @@ PesPacket createPesPacket(int streamId, Data data) {
 	PesPacket pkt;
 	pkt.data.resize(au.len + 256);
 	pkt.dts = dts;
+	pkt.tts = dts - IClock::Rate * 3;
 
 	auto w = BitWriter  {
 		{ pkt.data.data(), pkt.data.size() }

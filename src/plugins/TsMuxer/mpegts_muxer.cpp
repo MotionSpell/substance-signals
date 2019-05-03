@@ -138,15 +138,15 @@ class TsMuxer : public ModuleDynI {
 				if(s.fifo.empty())
 					return false;
 
-			int64_t bestDts = INT64_MAX;
+			int64_t bestTts = INT64_MAX;
 			int bestIdx = -1;
 
 			int idx = 0;
 			for(auto& s : m_streams) {
 				if(!s.fifo.empty()) {
-					auto dts = s.fifo.front().dts;
-					if(dts < bestDts) {
-						bestDts = dts;
+					auto tts = s.fifo.front().tts;
+					if(tts < bestTts) {
+						bestTts = tts;
 						bestIdx = idx;
 					}
 				}
@@ -157,12 +157,12 @@ class TsMuxer : public ModuleDynI {
 			if(bestIdx >= 0) {
 				// compute first pcr
 				if(m_pcrOffset == INT64_MAX) {
-					assert(bestDts != INT64_MAX);
-					m_pcrOffset = bestDts - IClock::Rate * 3;
+					assert(bestTts != INT64_MAX);
+					m_pcrOffset = bestTts;
 				}
 
-				// not too early?
-				if((bestDts - pcr()) < IClock::Rate * 3) {
+				// time to send?
+				if(bestTts < pcr()) {
 					auto& stream = m_streams[bestIdx];
 					auto pkt = stream.fifo.front();
 					stream.fifo.erase(stream.fifo.begin());
