@@ -1,9 +1,10 @@
 #include "gpac_mux_mp4.hpp"
 #include "lib_utils/tools.hpp"
 #include "lib_utils/time.hpp"
+#include "lib_utils/log_sink.hpp"
+#include "lib_utils/format.hpp"
+#include "lib_utils/log.hpp" // g_Log
 #include "../common/gpacpp.hpp"
-#include "../common/ffpp.hpp"
-#include "../common/libav.hpp"
 #include "../common/attributes.hpp"
 #include "../common/metadata_file.hpp"
 #include "lib_modules/utils/factory.hpp"
