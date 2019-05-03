@@ -233,19 +233,24 @@ struct LibavEncode : ModuleS {
 			}
 
 			while(1) {
-				auto out = output->allocData<DataAVPacket>(0);
-				ret = avcodec_receive_packet(codecCtx.get(), out->getPacket());
+				AVPacket pkt;
+				av_init_packet(&pkt);
+				ret = avcodec_receive_packet(codecCtx.get(), &pkt);
 				if(ret != 0)
 					break;
 
+				auto out = output->allocData<DataRaw>(pkt.size);
+				memcpy(out->buffer->data().ptr, pkt.data, pkt.size);
+
 				CueFlags flags {};
-				if(out->getPacket()->flags & AV_PKT_FLAG_KEY)
+				if(pkt.flags & AV_PKT_FLAG_KEY)
 					flags.keyframe = true;
 				out->set(flags);
 
-				out->setMediaTime(out->getPacket()->pts);
-				out->set(DecodingTime { out->getPacket()->dts });
+				out->set(PresentationTime { pkt.pts });
+				out->set(DecodingTime { pkt.dts });
 				output->post(out);
+				av_packet_unref(&pkt);
 			}
 		}
 
