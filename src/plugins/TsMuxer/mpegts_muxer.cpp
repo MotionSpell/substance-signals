@@ -133,34 +133,38 @@ class TsMuxer : public ModuleDynI {
 				return true;
 			}
 
-			int64_t bestTts = INT64_MAX;
 			int bestIdx = -1;
 
-			int idx = 0;
-			for(auto& s : m_streams) {
-				// if one stream has no data, we can't compute the lowest TTS.
-				if(s.fifo.empty())
-					return false;
+			{
+				int idx = 0;
+				int64_t bestTts = INT64_MAX;
+				for(auto& s : m_streams) {
+					// if one stream has no data, we can't compute the lowest TTS.
+					if(s.fifo.empty())
+						return false;
 
-				auto tts = s.fifo.front().tts;
-				if(tts < bestTts) {
-					bestTts = tts;
-					bestIdx = idx;
+					auto tts = s.fifo.front().tts;
+					if(tts < bestTts) {
+						bestTts = tts;
+						bestIdx = idx;
+					}
+
+					++idx;
 				}
-
-				++idx;
 			}
 
 			// we have an AU with a DTS
 			if(bestIdx >= 0) {
+				auto tts = m_streams[bestIdx].fifo.front().tts;
+
 				// compute first pcr
 				if(m_pcrOffset == INT64_MAX) {
-					assert(bestTts != INT64_MAX);
-					m_pcrOffset = bestTts;
+					assert(tts != INT64_MAX);
+					m_pcrOffset = tts;
 				}
 
 				// time to send?
-				if(bestTts < pcr()) {
+				if(tts < pcr()) {
 					auto& stream = m_streams[bestIdx];
 					auto pkt = stream.fifo.front();
 					stream.fifo.erase(stream.fifo.begin());
