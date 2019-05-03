@@ -133,23 +133,21 @@ class TsMuxer : public ModuleDynI {
 				return true;
 			}
 
-			// if one stream has no data, we can't compute the lowest DTS.
-			for(auto& s : m_streams)
-				if(s.fifo.empty())
-					return false;
-
 			int64_t bestTts = INT64_MAX;
 			int bestIdx = -1;
 
 			int idx = 0;
 			for(auto& s : m_streams) {
-				if(!s.fifo.empty()) {
-					auto tts = s.fifo.front().tts;
-					if(tts < bestTts) {
-						bestTts = tts;
-						bestIdx = idx;
-					}
+				// if one stream has no data, we can't compute the lowest TTS.
+				if(s.fifo.empty())
+					return false;
+
+				auto tts = s.fifo.front().tts;
+				if(tts < bestTts) {
+					bestTts = tts;
+					bestIdx = idx;
 				}
+
 				++idx;
 			}
 
