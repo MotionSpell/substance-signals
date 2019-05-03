@@ -8,15 +8,6 @@ using namespace Pipelines;
 
 namespace {
 
-struct CustomDataTypeSink : public Modules::ModuleS {
-	CustomDataTypeSink(Modules::KHost*) {
-	}
-	void processOne(Modules::Data data) override {
-		struct DataCustom : DataRaw {};
-		safe_cast<const DataCustom>(data);
-	}
-};
-
 struct Split : public Modules::Module {
 	Split(Modules::KHost* host) : host(host) {
 		addOutput();
@@ -58,6 +49,14 @@ unittest("pipeline: connecting an input to and output throws an error") {
 }
 
 unittest("pipeline: connecting incompatible i/o throws an error") {
+	struct CustomDataTypeSink : public Modules::ModuleS {
+		CustomDataTypeSink(Modules::KHost*) {}
+		void processOne(Modules::Data data) override {
+			struct DataCustom : DataRaw {};
+			safe_cast<const DataCustom>(data);
+		}
+	};
+
 	Pipeline p(nullptr, false, Pipelines::Threading::Mono);
 	auto src = p.addModule<InfiniteSource>();
 	auto aconv = p.addModule<CustomDataTypeSink>();
