@@ -94,33 +94,32 @@ class PcmFormat {
 		int numPlanes;
 };
 
-class DataPcm : public DataBase {
-	public:
-		DataPcm(size_t size) {
-			if (size > 0)
-				throw std::runtime_error("Forbidden operation. Requested size must be 0. Then call setFormat().");
-			buffer = std::make_shared<RawBuffer>(size);
-		}
+struct DataPcm : DataBase {
+	DataPcm(size_t size) {
+		if (size > 0)
+			throw std::runtime_error("Forbidden operation. Requested size must be 0. Then call setFormat().");
+		buffer = std::make_shared<RawBuffer>(size);
+	}
 
-		PcmFormat format;
+	uint8_t* getPlane(int planeIdx) const {
+		if (planeIdx > format.numPlanes)
+			throw std::runtime_error("Pcm plane doesn't exist.");
+		return const_cast<uint8_t*>(buffer->data().ptr + getPlaneSize() * planeIdx);
+	}
 
-		uint8_t* getPlane(int planeIdx) const {
-			if (planeIdx > format.numPlanes)
-				throw std::runtime_error("Pcm plane doesn't exist.");
-			return const_cast<uint8_t*>(buffer->data().ptr + getPlaneSize() * planeIdx);
-		}
+	uint64_t getPlaneSize() const {
+		return getSampleCount() * format.getBytesPerSample() / format.numPlanes;
+	}
 
-		uint64_t getPlaneSize() const {
-			return getSampleCount() * format.getBytesPerSample() / format.numPlanes;
-		}
+	void setSampleCount(int sampleCount) {
+		buffer->resize(sampleCount * format.getBytesPerSample());
+	}
 
-		void setSampleCount(int sampleCount) {
-			buffer->resize(sampleCount * format.getBytesPerSample());
-		}
+	int getSampleCount() const {
+		return buffer->data().len / format.getBytesPerSample();
+	}
 
-		int getSampleCount() const {
-			return buffer->data().len / format.getBytesPerSample();
-		}
+	PcmFormat format;
 };
 
 }
