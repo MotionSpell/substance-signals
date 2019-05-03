@@ -14,7 +14,6 @@ extern "C" {
 #include <gpac/base_coding.h>
 #include <gpac/constants.h>
 #include <gpac/internal/media_dev.h>
-#include <libavcodec/avcodec.h> // AVPacket
 }
 
 auto const AVC_INBAND_CONFIG = 0;
@@ -1011,7 +1010,7 @@ void GPACMuxMP4::fillSample(Data data, gpacpp::IsoSample* sample, bool isRap) {
 
 	auto srcTimeScale = safe_cast<const MetadataPkt>(data->getMetadata())->timeScale;
 
-	if (data->get<PresentationTime>().time != AV_NOPTS_VALUE) {
+	if (data->get<PresentationTime>().time != INT64_MAX) {
 		auto const ctsOffset = data->get<PresentationTime>().time - data->get<DecodingTime>().time;
 		sample->CTS_Offset = clockToTimescale(ctsOffset, timeScale);
 	} else {
