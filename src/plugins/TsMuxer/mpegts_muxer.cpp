@@ -44,7 +44,7 @@ int codecToMpegStreamType(string codec) {
 
 struct Stream {
 	int streamType {}; // MPEG-2 specified
-	vector<Data> fifo;
+	vector<PesPacket> fifo;
 };
 
 class TsMuxer : public ModuleDynI {
@@ -69,7 +69,8 @@ class TsMuxer : public ModuleDynI {
 
 			// if 'data' is a stream declaration, there's no actual data to process.
 			if(!isDeclaration(data)) {
-				m_streams[id].fifo.push_back(data);
+				auto streamId = m_streams[id].streamType == 0x03 ? 0xC0 : 0xE0;
+				m_streams[id].fifo.push_back(createPesPacket(streamId, data));
 			}
 
 			while(mux()) {
@@ -143,7 +144,7 @@ class TsMuxer : public ModuleDynI {
 			int idx = 0;
 			for(auto& s : m_streams) {
 				if(!s.fifo.empty()) {
-					auto dts = s.fifo.front()->get<DecodingTime>().time;
+					auto dts = s.fifo.front().dts;
 					if(dts < bestDts) {
 						bestDts = dts;
 						bestIdx = idx;
@@ -163,8 +164,7 @@ class TsMuxer : public ModuleDynI {
 				// not too early?
 				if((bestDts - pcr()) < IClock::Rate * 3) {
 					auto& stream = m_streams[bestIdx];
-					auto streamId = stream.streamType == 0x03 ? 0xC0 : 0xE0;
-					auto pkt = createPesPacket(streamId, stream.fifo.front());
+					auto pkt = stream.fifo.front();
 					stream.fifo.erase(stream.fifo.begin());
 					sendPes(pkt, BASE_PID + bestIdx);
 					return true;
