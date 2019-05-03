@@ -1010,16 +1010,13 @@ void GPACMuxMP4::fillSample(Data data, gpacpp::IsoSample* sample, bool isRap) {
 
 	auto srcTimeScale = safe_cast<const MetadataPkt>(data->getMetadata())->timeScale;
 
-	{
-		auto pkt = safe_cast<const DataAVPacket>(data)->getPacket();
-		if (pkt->pts != AV_NOPTS_VALUE) {
-			auto const ctsOffset = pkt->pts - pkt->dts;
-			sample->CTS_Offset = (s32)rescale(ctsOffset, srcTimeScale.num, srcTimeScale.den * timeScale);
-		} else {
-			m_host->log(Error, format("Missing PTS (input DTS=%s, ts=%s/%s): output MP4 may be incorrect.", pkt->dts, srcTimeScale.num, srcTimeScale.den).c_str());
-		}
-		sample->IsRAP = isRap ? RAP : RAP_NO;
+	if (data->get<PresentationTime>().time != AV_NOPTS_VALUE) {
+		auto const ctsOffset = data->get<PresentationTime>().time - data->get<DecodingTime>().time;
+		sample->CTS_Offset = clockToTimescale(ctsOffset, timeScale);
+	} else {
+		m_host->log(Error, format("Missing PTS (input DTS=%s, ts=%s/%s): output MP4 may be incorrect.", data->get<DecodingTime>().time, srcTimeScale.num, srcTimeScale.den).c_str());
 	}
+	sample->IsRAP = isRap ? RAP : RAP_NO;
 
 	if(sample->CTS_Offset < 0)
 		throw error("Negative CTS offset is not supported");
