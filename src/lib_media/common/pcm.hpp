@@ -111,20 +111,16 @@ class DataPcm : public DataBase {
 		}
 
 		uint64_t getPlaneSize() const {
-			return m_sampleCount * format.getBytesPerSample() / format.numPlanes;
+			return getSampleCount() * format.getBytesPerSample() / format.numPlanes;
 		}
 
 		void setSampleCount(int sampleCount) {
 			buffer->resize(sampleCount * format.getBytesPerSample());
-			m_sampleCount = sampleCount;
 		}
 
 		int getSampleCount() const {
-			return m_sampleCount;
+			return buffer->data().len / format.getBytesPerSample();
 		}
-
-	private:
-		int m_sampleCount = 0;
 };
 
 }
