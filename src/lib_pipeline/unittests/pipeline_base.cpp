@@ -8,12 +8,11 @@ using namespace Pipelines;
 
 namespace {
 
-class DataCustom : public DataRaw {};
-
 struct CustomDataTypeSink : public Modules::ModuleS {
 	CustomDataTypeSink(Modules::KHost*) {
 	}
 	void processOne(Modules::Data data) override {
+		struct DataCustom : DataRaw {};
 		safe_cast<const DataCustom>(data);
 	}
 };
