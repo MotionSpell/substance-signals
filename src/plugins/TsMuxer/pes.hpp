@@ -4,4 +4,9 @@
 #include "lib_modules/core/buffer.hpp" // SpanC
 #include <vector>
 
-std::vector<uint8_t> createPesPacket(int streamId, Modules::Data data);
+struct PesPacket {
+	int64_t dts;
+	std::vector<uint8_t> data;
+};
+
+PesPacket createPesPacket(int streamId, Modules::Data data);

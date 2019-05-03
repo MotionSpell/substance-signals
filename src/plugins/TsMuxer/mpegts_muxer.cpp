@@ -162,7 +162,11 @@ class TsMuxer : public ModuleDynI {
 
 				// not too early?
 				if((bestDts - pcr()) < IClock::Rate * 3) {
-					sendPes(m_streams[bestIdx], BASE_PID + bestIdx);
+					auto& stream = m_streams[bestIdx];
+					auto streamId = stream.streamType == 0x03 ? 0xC0 : 0xE0;
+					auto pkt = createPesPacket(streamId, stream.fifo.front());
+					stream.fifo.erase(stream.fifo.begin());
+					sendPes(pkt, BASE_PID + bestIdx);
 					return true;
 				}
 			}
@@ -258,14 +262,8 @@ class TsMuxer : public ModuleDynI {
 			sendTsPacket(PMT_PID, sp, 1);
 		}
 
-		void sendPes(Stream& s, int pid) {
-			auto au = s.fifo.front();
-			s.fifo.erase(s.fifo.begin());
-
-			auto streamId = s.streamType == 0x03 ? 0xC0 : 0xE0;
-			auto pesBuffer = createPesPacket(streamId, au);
-
-			auto pes = SpanC { pesBuffer.data(), pesBuffer.size() };
+		void sendPes(PesPacket const& pkt, int pid) {
+			auto pes = SpanC { pkt.data.data(), pkt.data.size() };
 
 			// send the whole access unit in one burst
 			sendTsPacket(pid, pes, true);
@@ -276,7 +274,7 @@ class TsMuxer : public ModuleDynI {
 			// can only check the timings if we actually have a PCR
 			assert(m_pcrOffset != INT64_MAX);
 
-			auto removalDelay = au->get<DecodingTime>().time - pcr();
+			auto removalDelay = pkt.dts - pcr();
 
 			if(removalDelay < 0) {
 				char msg[256];

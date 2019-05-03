@@ -58,15 +58,18 @@ void insertAdtsHeadersIfNeeded(BitWriter& w, Data data) {
 }
 }
 
-vector<uint8_t> createPesPacket(int streamId, Data data) {
+PesPacket createPesPacket(int streamId, Data data) {
 	auto au = data->data();
-	vector<uint8_t> pesBuffer(au.len + 256);
 
 	auto const pts = data->get<PresentationTime>().time * 90000LL / IClock::Rate;
 	auto const dts = data->get<DecodingTime>().time * 90000LL / IClock::Rate;
 
+	PesPacket pkt;
+	pkt.data.resize(au.len + 256);
+	pkt.dts = dts;
+
 	auto w = BitWriter  {
-		{ pesBuffer.data(), pesBuffer.size() }
+		{ pkt.data.data(), pkt.data.size() }
 	};
 
 	// PES packet
@@ -131,7 +134,7 @@ vector<uint8_t> createPesPacket(int streamId, Data data) {
 	if(PES_packet_length < 0x10000 && !isVideoStreamId(streamId))
 		pplW.u(16, PES_packet_length);
 
-	pesBuffer.resize((size_t)w.offset());
-	return pesBuffer;
+	pkt.data.resize((size_t)w.offset());
+	return pkt;
 }
 
