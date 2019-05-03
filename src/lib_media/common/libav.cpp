@@ -295,44 +295,36 @@ PixelFormat libavPixFmt2PixelFormat(AVPixelFormat avPixfmt) {
 }
 
 struct DataAVBuffer : IBuffer {
-	DataAVBuffer(size_t size);
-	~DataAVBuffer();
+	DataAVBuffer(size_t size) {
+		av_init_packet(&pkt);
+		av_packet_unref(&pkt);
+		if (size)
+			av_new_packet(&pkt, (int)size);
+	}
 
-	Span data() override;
-	SpanC data() const override;
+	~DataAVBuffer() {
+		av_packet_unref(&pkt);
+	}
 
-	void resize(size_t size) override;
+	Span data() override {
+		return Span { pkt.data, (size_t)pkt.size };
+	}
+
+	SpanC data() const override {
+		return SpanC { pkt.data, (size_t)pkt.size };
+	}
+
+	void resize(size_t size) override {
+		if ((int)size > pkt.size) {
+			if (av_grow_packet(&pkt, (int)size - pkt.size))
+				throw std::runtime_error(format("Cannot grow DataAVPacket to size %s (cur=%s)", size, pkt.size));
+		} else {
+			av_shrink_packet(&pkt, (int)size);
+		}
+	}
 
 	AVPacket pkt;
 };
-
-DataAVBuffer::DataAVBuffer(size_t size) {
-	av_init_packet(&pkt);
-	av_packet_unref(&pkt);
-	if (size)
-		av_new_packet(&pkt, (int)size);
-}
-
-DataAVBuffer::~DataAVBuffer() {
-	av_packet_unref(&pkt);
-}
-
-Span DataAVBuffer::data() {
-	return Span { pkt.data, (size_t)pkt.size };
-}
-
-SpanC DataAVBuffer::data() const {
-	return SpanC { pkt.data, (size_t)pkt.size };
-}
-
-void DataAVBuffer::resize(size_t size) {
-	if ((int)size > pkt.size) {
-		if (av_grow_packet(&pkt, (int)size - pkt.size))
-			throw std::runtime_error(format("Cannot grow DataAVPacket to size %s (cur=%s)", size, pkt.size));
-	} else {
-		av_shrink_packet(&pkt, (int)size);
-	}
-}
 
 //DataAVPacket
 DataAVPacket::DataAVPacket(size_t size) {
