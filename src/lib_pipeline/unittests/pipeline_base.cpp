@@ -48,12 +48,11 @@ unittest("pipeline: connecting an input to and output throws an error") {
 	ASSERT_THROWN(p->connect(sink, src));
 }
 
-unittest("pipeline: connecting incompatible i/o throws an error") {
+unittest("pipeline: exceptions are propagated") {
 	struct CustomDataTypeSink : public Modules::ModuleS {
 		CustomDataTypeSink(Modules::KHost*) {}
-		void processOne(Modules::Data data) override {
-			struct DataCustom : DataRaw {};
-			safe_cast<const DataCustom>(data);
+		void processOne(Modules::Data) override {
+			throw std::runtime_error("dummy exception");
 		}
 	};
 
