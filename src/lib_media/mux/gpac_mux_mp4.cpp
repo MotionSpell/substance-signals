@@ -1042,7 +1042,7 @@ void GPACMuxMP4::updateFormat(Data data) {
 
 	if (!firstDataAbsTimeInMs) {
 		firstDataAbsTimeInMs = clockToTimescale(m_utcStartTime->query(), 1000);
-		initDTSIn180k = timescaleToClock(pkt->dts * srcTimeScale.den, srcTimeScale.num);
+		initDTSIn180k = data->get<DecodingTime>().time;
 		handleInitialTimeOffset();
 	}
 
@@ -1066,7 +1066,7 @@ void GPACMuxMP4::processOne(Data data) {
 		updateFormat(data);
 
 	auto const srcTimeScale = safe_cast<const MetadataPkt>(data->getMetadata())->timeScale;
-	auto const dataDTS = timescaleToClock(safe_cast<const DataAVPacket>(data)->getPacket()->dts * srcTimeScale.den, srcTimeScale.num);
+	auto const dataDTS = data->get<DecodingTime>().time;
 	auto dataDurationInTs = clockToTimescale(dataDTS - initDTSIn180k, timeScale) - m_DTS;
 
 	if (compatFlags & ExactInputDur) {
