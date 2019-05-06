@@ -410,8 +410,7 @@ struct LibavDemux : Module {
 		}
 	}
 
-	void setTimestamp(std::shared_ptr<DataAVPacket> data) {
-		auto pkt = data->getPacket();
+	void setTimestamp(AVPacket* pkt, std::shared_ptr<DataRaw> data) {
 		if (!pkt->duration) {
 			pkt->duration = pkt->dts - m_streams[pkt->stream_index].lastDTS;
 		}
@@ -421,15 +420,8 @@ struct LibavDemux : Module {
 		data->setMediaTime(time - startPTSIn180k);
 		auto const decodingTime = timescaleToClock(pkt->dts * base.num, base.den);
 		data->set(DecodingTime { decodingTime - startPTSIn180k });
-		int64_t offset;
-		if (startPTSIn180k) {
-			offset = -startPTSIn180k; //a global offset is applied to all streams (since it is a PTS we may have negative DTSs)
-		} else {
+		if (!startPTSIn180k) {
 			data->setMediaTime(m_streams[pkt->stream_index].restamper->restamp(data->get<PresentationTime>().time)); //restamp by pid only when no start time
-			offset = data->get<PresentationTime>().time - time;
-		}
-		if (offset != 0) {
-			data->restamp(offset * base.num, base.den); //propagate to AVPacket
 		}
 	}
 
@@ -453,20 +445,19 @@ struct LibavDemux : Module {
 
 	void dispatch(AVPacket *pkt) {
 		auto output = m_streams[pkt->stream_index].output;
-		auto out = output->allocData<DataAVPacket>(0);
-		auto outPkt = out->getPacket();
-		av_packet_move_ref(outPkt, pkt);
+		auto out = output->allocData<DataRaw>(pkt->size);
+		memcpy(out->buffer->data().ptr, pkt->data, pkt->size);
 
 		CueFlags flags {};
-		if(outPkt->flags & AV_PKT_FLAG_RESET_DECODER)
+		if(pkt->flags & AV_PKT_FLAG_RESET_DECODER)
 			flags.discontinuity = true;
-		if(outPkt->flags & AV_PKT_FLAG_KEY)
+		if(pkt->flags & AV_PKT_FLAG_KEY)
 			flags.keyframe = true;
 		out->set(flags);
 
-		setTimestamp(out);
+		setTimestamp(pkt, out);
 		output->post(out);
-		sparseStreamsHeartbeat(outPkt);
+		sparseStreamsHeartbeat(pkt);
 	}
 
 	void sparseStreamsHeartbeat(AVPacket const * const pkt) {
@@ -489,7 +480,7 @@ struct LibavDemux : Module {
 				}
 				auto const st = m_formatCtx->streams[i];
 				if (st->codecpar->codec_type == AVMEDIA_TYPE_SUBTITLE) {
-					auto sparse = m_streams[i].output->allocData<DataAVPacket>(0);
+					auto sparse = m_streams[i].output->allocData<DataRaw>(0);
 					sparse->setMediaTime(curTimeIn180k);
 					m_streams[i].output->post(sparse);
 				}
