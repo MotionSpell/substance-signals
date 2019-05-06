@@ -1023,8 +1023,6 @@ void GPACMuxMP4::fillSample(Data data, gpacpp::IsoSample* sample, bool isRap) {
 }
 
 void GPACMuxMP4::updateFormat(Data data) {
-	auto srcTimeScale = safe_cast<const MetadataPkt>(data->getMetadata())->timeScale;
-
 	if (!defaultSampleIncInTs) {
 		m_host->log(Warning, "Computed defaultSampleIncInTs=0, forcing the ExactInputDur flag.");
 		compatFlags = compatFlags | ExactInputDur;
@@ -1055,7 +1053,6 @@ void GPACMuxMP4::processOne(Data data) {
 	if(updated)
 		updateFormat(data);
 
-	auto const srcTimeScale = safe_cast<const MetadataPkt>(data->getMetadata())->timeScale;
 	auto const dataDTS = data->get<DecodingTime>().time;
 	auto dataDurationInTs = clockToTimescale(dataDTS - initDTSIn180k, timeScale) - m_DTS;
 
