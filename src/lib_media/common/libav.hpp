@@ -25,14 +25,6 @@ Metadata createMetadataPktLibavVideo(AVCodecContext* codecCtx);
 Metadata createMetadataPktLibavAudio(AVCodecContext* codecCtx);
 Metadata createMetadataPktLibavSubtitle(AVCodecContext* codecCtx);
 
-class DataAVPacket : public DataBase {
-	public:
-		DataAVPacket(size_t size = 0);
-
-		AVPacket* getPacket() const;
-		void restamp(int64_t offsetIn180k, uint64_t pktTimescale);
-};
-
 class PcmFormat;
 class DataPcm;
 void libavAudioCtxConvertLibav(const PcmFormat *cfg, int &sampleRate, enum AVSampleFormat &format, int &numChannels, uint64_t &layout);

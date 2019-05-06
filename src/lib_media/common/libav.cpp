@@ -294,57 +294,6 @@ PixelFormat libavPixFmt2PixelFormat(AVPixelFormat avPixfmt) {
 	}
 }
 
-struct DataAVBuffer : IBuffer {
-	DataAVBuffer(size_t size) {
-		av_init_packet(&pkt);
-		av_packet_unref(&pkt);
-		if (size)
-			av_new_packet(&pkt, (int)size);
-	}
-
-	~DataAVBuffer() {
-		av_packet_unref(&pkt);
-	}
-
-	Span data() override {
-		return { pkt.data, (size_t)pkt.size };
-	}
-
-	SpanC data() const override {
-		return { pkt.data, (size_t)pkt.size };
-	}
-
-	void resize(size_t size) override {
-		if ((int)size > pkt.size) {
-			if (av_grow_packet(&pkt, (int)size - pkt.size))
-				throw std::runtime_error(format("Cannot grow DataAVPacket to size %s (cur=%s)", size, pkt.size));
-		} else {
-			av_shrink_packet(&pkt, (int)size);
-		}
-	}
-
-	AVPacket pkt;
-};
-
-//DataAVPacket
-DataAVPacket::DataAVPacket(size_t size) {
-	buffer = std::make_shared<DataAVBuffer>(size);
-}
-
-AVPacket* DataAVPacket::getPacket() const {
-	auto avBuffer = safe_cast<DataAVBuffer>(buffer.get());
-	return &avBuffer->pkt;
-}
-
-void DataAVPacket::restamp(int64_t offsetIn180k, uint64_t pktTimescale) {
-	auto const offset = clockToTimescale(offsetIn180k, pktTimescale);
-	auto& pkt = *getPacket();
-	pkt.dts += offset;
-	if (pkt.pts != AV_NOPTS_VALUE) {
-		pkt.pts += offset;
-	}
-}
-
 static int getBytePerPixel(PixelFormat format) {
 	switch (format) {
 	case PixelFormat::YUV420P10LE:
