@@ -199,7 +199,7 @@ struct LibavDemux : Module {
 		AVPacket pkt;
 		if (!packetQueue.read(pkt)) {
 			if (done) {
-				m_host->log(Info, "All data consumed: exit process().");
+				m_host->log(Info, "End of stream.");
 				m_host->activate(false); // stop source
 				return ;
 			}
