@@ -218,6 +218,7 @@ struct LibavDemux : Module {
 		}
 
 		dispatch(&pkt);
+		av_packet_unref(&pkt);
 	}
 
 	void declareStreams() {
