@@ -17,7 +17,13 @@ if [ -z "$MAKE" ]; then
 	export MAKE="make -j$CORES"
 fi
 
-export PREFIX=${PREFIX-"/opt/msprod/sysroot"}
+export PREFIX=${PREFIX-}
+
+if [ -z "$PREFIX" ] ; then
+  echo "No installation prefix given, please specify the 'PREFIX' environment variable" >&2
+  exit 1
+fi
+
 echo "Installation prefix: $PREFIX"
 
 if [ -z "$CPREFIX" ]; then
