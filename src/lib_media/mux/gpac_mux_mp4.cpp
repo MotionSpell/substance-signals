@@ -191,7 +191,6 @@ static GF_Err import_extradata_hevc(SpanC extradata, GF_HEVCConfig *dstCfg) {
 	hevc->sps_active_idx = -1;
 
 	while (gf_bs_available(bs)) {
-		GF_AVCConfigSlot *slc = nullptr;
 		u64 NALStart = 0;
 		u32 NALSize = 0;
 		const u32 startCode = gf_bs_read_u24(bs);
@@ -248,7 +247,7 @@ static GF_Err import_extradata_hevc(SpanC extradata, GF_HEVCConfig *dstCfg) {
 					vpss->type = GF_HEVC_NALU_VID_PARAM;
 				}
 
-				slc = (GF_AVCConfigSlot*)gf_malloc(sizeof(GF_AVCConfigSlot));
+				auto slc = (GF_AVCConfigSlot*)gf_malloc(sizeof(GF_AVCConfigSlot));
 				slc->size = NALSize;
 				slc->id = idx;
 				slc->data = (char*)gf_malloc(sizeof(char)*slc->size);
@@ -297,7 +296,7 @@ static GF_Err import_extradata_hevc(SpanC extradata, GF_HEVCConfig *dstCfg) {
 				spss->type = GF_HEVC_NALU_SEQ_PARAM;
 			}
 
-			slc = (GF_AVCConfigSlot*)gf_malloc(sizeof(GF_AVCConfigSlot));
+			auto slc = (GF_AVCConfigSlot*)gf_malloc(sizeof(GF_AVCConfigSlot));
 			slc->size = NALSize;
 			slc->id = idx;
 			slc->data = (char*)gf_malloc(sizeof(char)*slc->size);
@@ -326,7 +325,7 @@ static GF_Err import_extradata_hevc(SpanC extradata, GF_HEVCConfig *dstCfg) {
 					ppss->type = GF_HEVC_NALU_PIC_PARAM;
 				}
 
-				slc = (GF_AVCConfigSlot*)gf_malloc(sizeof(GF_AVCConfigSlot));
+				auto slc = (GF_AVCConfigSlot*)gf_malloc(sizeof(GF_AVCConfigSlot));
 				slc->size = NALSize;
 				slc->id = idx;
 				slc->data = (char*)gf_malloc(sizeof(char)*slc->size);
