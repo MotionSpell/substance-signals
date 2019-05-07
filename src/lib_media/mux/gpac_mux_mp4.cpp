@@ -297,8 +297,8 @@ static GF_Err import_extradata_hevc(SpanC extradata, GF_HEVCConfig *dstCfg) {
 			auto slc = (GF_AVCConfigSlot*)gf_malloc(sizeof(GF_AVCConfigSlot));
 			slc->size = NALSize;
 			slc->id = idx;
-			slc->data = (char*)gf_malloc(slc->size);
-			memcpy(slc->data, buffer.data(), slc->size);
+			slc->data = (char*)gf_malloc(NALSize);
+			memcpy(slc->data, buffer.data(), NALSize);
 			gf_list_add(spss->nalus, slc);
 			break;
 		}
@@ -325,8 +325,8 @@ static GF_Err import_extradata_hevc(SpanC extradata, GF_HEVCConfig *dstCfg) {
 				auto slc = (GF_AVCConfigSlot*)gf_malloc(sizeof(GF_AVCConfigSlot));
 				slc->size = NALSize;
 				slc->id = idx;
-				slc->data = (char*)gf_malloc(slc->size);
-				memcpy(slc->data, buffer.data(), slc->size);
+				slc->data = (char*)gf_malloc(NALSize);
+				memcpy(slc->data, buffer.data(), NALSize);
 
 				gf_list_add(ppss->nalus, slc);
 			}
