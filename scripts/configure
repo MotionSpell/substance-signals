@@ -46,6 +46,3 @@ fi
 
 echo "${SCOPE}LDFLAGS+= -lpthread"
 
-# For convenience: allows running binaries without specifying LD_LIBRARY_PATH
-echo "${SCOPE}LDFLAGS+=-Wl,-rpath,$EXTRA/lib"
-
