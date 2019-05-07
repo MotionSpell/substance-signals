@@ -89,12 +89,11 @@ static GF_Err import_extradata_avc(SpanC extradata, GF_AVCConfig *dstcfg) {
 
 	//SPS
 	u64 nalStart = gf_bs_get_position(bs);
-	u8 nalSize = 0;
 	{
 		s32 idx = 0;
 		char *buffer = nullptr;
 parse_sps:
-		nalSize = gf_media_nalu_next_start_code_bs(bs);
+		auto const nalSize = gf_media_nalu_next_start_code_bs(bs);
 		if (nalStart + nalSize > extradata.len) {
 			return GF_BAD_PARAM;
 		}
@@ -128,25 +127,23 @@ parse_sps:
 		dstcfg->chroma_bit_depth = 8 + avc->sps[idx].chroma_bit_depth_m8;
 
 		{
-			GF_AVCConfigSlot *slc = (GF_AVCConfigSlot*)gf_malloc(sizeof(GF_AVCConfigSlot));
+			auto slc = (GF_AVCConfigSlot*)gf_malloc(sizeof(GF_AVCConfigSlot));
 			slc->size = nalSize;
 			slc->id = idx;
 			slc->data = buffer;
 			gf_list_add(dstcfg->sequenceParameterSets, slc);
 		}
+		nalStart += 4 + nalSize;
 	}
 
 	//PPS
 	{
-		s32 idx = 0;
-		char *buffer = nullptr;
-		nalStart += 4 + nalSize;
 		gf_bs_seek(bs, nalStart);
-		nalSize = gf_media_nalu_next_start_code_bs(bs);
+		auto const nalSize = gf_media_nalu_next_start_code_bs(bs);
 		if (nalStart + nalSize > extradata.len) {
 			return GF_BAD_PARAM;
 		}
-		buffer = (char*)gf_malloc(nalSize);
+		char* buffer = (char*)gf_malloc(nalSize);
 		gf_bs_read_data(bs, buffer, nalSize);
 		gf_bs_seek(bs, nalStart);
 		if ((gf_bs_read_u8(bs) & 0x1F) != GF_AVC_NALU_PIC_PARAM) {
@@ -154,14 +151,14 @@ parse_sps:
 			return GF_BAD_PARAM;
 		}
 
-		idx = gf_media_avc_read_pps(buffer, nalSize, avc.get());
+		auto const idx = gf_media_avc_read_pps(buffer, nalSize, avc.get());
 		if (idx < 0) {
 			gf_free(buffer);
 			return GF_BAD_PARAM;
 		}
 
 		{
-			GF_AVCConfigSlot *slc = (GF_AVCConfigSlot*)gf_malloc(sizeof(GF_AVCConfigSlot));
+			auto slc = (GF_AVCConfigSlot*)gf_malloc(sizeof(GF_AVCConfigSlot));
 			slc->size = nalSize;
 			slc->id = idx;
 			slc->data = buffer;
