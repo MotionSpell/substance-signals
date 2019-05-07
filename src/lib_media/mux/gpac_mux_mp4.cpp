@@ -64,6 +64,7 @@ static GF_Err import_extradata_avc(SpanC extradata, GF_AVCConfig *dstcfg) {
 		g_Log->log(Warning, "No initial SPS/PPS provided.");
 		return GF_OK;
 	}
+
 	auto bs2 = std::shared_ptr<GF_BitStream>(gf_bs_new((const char*)extradata.ptr, extradata.len, GF_BITSTREAM_READ), &gf_bs_del);
 	auto bs = bs2.get();
 	if (!bs) {
@@ -75,9 +76,11 @@ static GF_Err import_extradata_avc(SpanC extradata, GF_AVCConfig *dstcfg) {
 
 	//Find start code
 	{
-		u8 a = gf_bs_read_u8(bs), b = gf_bs_read_u8(bs), c = gf_bs_read_u8(bs);
+		auto a = gf_bs_read_u8(bs);
+		auto b = gf_bs_read_u8(bs);
+		auto c = gf_bs_read_u8(bs);
 		if ((a << 16) + (b << 8) + c != 0x000001) {
-			u8 d = gf_bs_read_u8(bs);
+			auto d = gf_bs_read_u8(bs);
 			if ((a << 24) + (b << 16) + (c << 8) + d != 0x00000001) {
 				return GF_NON_COMPLIANT_BITSTREAM;
 			}
