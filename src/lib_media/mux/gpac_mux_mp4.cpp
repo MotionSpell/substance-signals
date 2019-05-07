@@ -178,9 +178,6 @@ parse_sps:
 static GF_Err import_extradata_hevc(SpanC extradata, GF_HEVCConfig *dstCfg) {
 	GF_HEVCParamArray *vpss = nullptr, *spss = nullptr, *ppss = nullptr;
 
-	std::vector<char> buffer;
-
-	u32 bufferSize = 0;
 	if (!extradata.ptr || (extradata.len < sizeof(u32)))
 		return GF_BAD_PARAM;
 	auto bs = gf_bs_new((const char*)extradata.ptr, extradata.len, GF_BITSTREAM_READ);
@@ -206,10 +203,8 @@ static GF_Err import_extradata_hevc(SpanC extradata, GF_HEVCConfig *dstCfg) {
 			return GF_BAD_PARAM;
 		}
 
-		if (NALSize > bufferSize) {
-			buffer.resize(NALSize);
-			bufferSize = NALSize;
-		}
+		std::vector<char> buffer(NALSize);
+
 		gf_bs_read_data(bs, buffer.data(), NALSize);
 		gf_bs_seek(bs, NALStart);
 
