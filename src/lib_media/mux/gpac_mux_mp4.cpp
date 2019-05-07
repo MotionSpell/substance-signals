@@ -178,7 +178,8 @@ parse_sps:
 static GF_Err import_extradata_hevc(SpanC extradata, GF_HEVCConfig *dstCfg) {
 	GF_HEVCParamArray *vpss = nullptr, *spss = nullptr, *ppss = nullptr;
 
-	char *buffer = nullptr;
+	std::vector<char> buffer;
+
 	u32 bufferSize = 0;
 	if (!extradata.ptr || (extradata.len < sizeof(u32)))
 		return GF_BAD_PARAM;
@@ -206,33 +207,31 @@ static GF_Err import_extradata_hevc(SpanC extradata, GF_HEVCConfig *dstCfg) {
 		}
 
 		if (NALSize > bufferSize) {
-			buffer = (char*)gf_realloc(buffer, NALSize);
+			buffer.resize(NALSize);
 			bufferSize = NALSize;
 		}
-		gf_bs_read_data(bs, buffer, NALSize);
+		gf_bs_read_data(bs, buffer.data(), NALSize);
 		gf_bs_seek(bs, NALStart);
 
 		u8 NALUnitType, temporalId, layerId;
-		gf_media_hevc_parse_nalu(buffer, NALSize, hevc.get(), &NALUnitType, &temporalId, &layerId);
+		gf_media_hevc_parse_nalu(buffer.data(), NALSize, hevc.get(), &NALUnitType, &temporalId, &layerId);
 		if (layerId) {
 			gf_bs_del(bs);
-			gf_free(buffer);
 			return GF_BAD_PARAM;
 		}
 
 		switch (NALUnitType) {
 		case GF_HEVC_NALU_VID_PARAM: {
-			auto const idx = gf_media_hevc_read_vps(buffer, NALSize, hevc.get());
+			auto const idx = gf_media_hevc_read_vps(buffer.data(), NALSize, hevc.get());
 			if (idx < 0) {
 				gf_bs_del(bs);
-				gf_free(buffer);
 				return GF_BAD_PARAM;
 			}
 
 			assert(hevc->vps[idx].state == 1); //we don't expect multiple VPS
 			if (hevc->vps[idx].state == 1) {
 				hevc->vps[idx].state = 2;
-				hevc->vps[idx].crc = gf_crc_32(buffer, NALSize);
+				hevc->vps[idx].crc = gf_crc_32(buffer.data(), NALSize);
 
 				dstCfg->avgFrameRate = hevc->vps[idx].rates[0].avg_pic_rate;
 				dstCfg->constantFrameRate = hevc->vps[idx].rates[0].constand_pic_rate_idc;
@@ -251,24 +250,23 @@ static GF_Err import_extradata_hevc(SpanC extradata, GF_HEVCConfig *dstCfg) {
 				slc->size = NALSize;
 				slc->id = idx;
 				slc->data = (char*)gf_malloc(sizeof(char)*slc->size);
-				memcpy(slc->data, buffer, sizeof(char)*slc->size);
+				memcpy(slc->data, buffer.data(), sizeof(char)*slc->size);
 
 				gf_list_add(vpss->nalus, slc);
 			}
 			break;
 		}
 		case GF_HEVC_NALU_SEQ_PARAM: {
-			auto const idx = gf_media_hevc_read_sps(buffer, NALSize, hevc.get());
+			auto const idx = gf_media_hevc_read_sps(buffer.data(), NALSize, hevc.get());
 			if (idx < 0) {
 				gf_bs_del(bs);
-				gf_free(buffer);
 				return GF_BAD_PARAM;
 			}
 
 			assert(!(hevc->sps[idx].state & AVC_SPS_DECLARED)); //we don't expect multiple SPS
 			if ((hevc->sps[idx].state & AVC_SPS_PARSED) && !(hevc->sps[idx].state & AVC_SPS_DECLARED)) {
 				hevc->sps[idx].state |= AVC_SPS_DECLARED;
-				hevc->sps[idx].crc = gf_crc_32(buffer, NALSize);
+				hevc->sps[idx].crc = gf_crc_32(buffer.data(), NALSize);
 			}
 
 			dstCfg->configurationVersion = 1;
@@ -300,22 +298,21 @@ static GF_Err import_extradata_hevc(SpanC extradata, GF_HEVCConfig *dstCfg) {
 			slc->size = NALSize;
 			slc->id = idx;
 			slc->data = (char*)gf_malloc(sizeof(char)*slc->size);
-			memcpy(slc->data, buffer, sizeof(char)*slc->size);
+			memcpy(slc->data, buffer.data(), sizeof(char)*slc->size);
 			gf_list_add(spss->nalus, slc);
 			break;
 		}
 		case GF_HEVC_NALU_PIC_PARAM: {
-			auto const idx = gf_media_hevc_read_pps(buffer, NALSize, hevc.get());
+			auto const idx = gf_media_hevc_read_pps(buffer.data(), NALSize, hevc.get());
 			if (idx < 0) {
 				gf_bs_del(bs);
-				gf_free(buffer);
 				return GF_BAD_PARAM;
 			}
 
 			assert(hevc->pps[idx].state == 1); //we don't expect multiple PPS
 			if (hevc->pps[idx].state == 1) {
 				hevc->pps[idx].state = 2;
-				hevc->pps[idx].crc = gf_crc_32(buffer, NALSize);
+				hevc->pps[idx].crc = gf_crc_32(buffer.data(), NALSize);
 
 				if (!ppss) {
 					GF_SAFEALLOC(ppss, GF_HEVCParamArray);
@@ -329,7 +326,7 @@ static GF_Err import_extradata_hevc(SpanC extradata, GF_HEVCConfig *dstCfg) {
 				slc->size = NALSize;
 				slc->id = idx;
 				slc->data = (char*)gf_malloc(sizeof(char)*slc->size);
-				memcpy(slc->data, buffer, sizeof(char)*slc->size);
+				memcpy(slc->data, buffer.data(), sizeof(char)*slc->size);
 
 				gf_list_add(ppss->nalus, slc);
 			}
@@ -346,7 +343,6 @@ static GF_Err import_extradata_hevc(SpanC extradata, GF_HEVCConfig *dstCfg) {
 	}
 
 	gf_bs_del(bs);
-	gf_free(buffer);
 
 	return GF_OK;
 }
