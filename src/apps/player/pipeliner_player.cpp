@@ -1,5 +1,6 @@
 #include "pipeliner_player.hpp"
 #include "lib_pipeline/pipeline.hpp"
+#include "lib_media/common/attributes.hpp"
 #include "lib_modules/utils/loader.hpp"
 #include "lib_utils/log.hpp" // g_Log
 #include "lib_utils/format.hpp"
@@ -19,6 +20,45 @@ using namespace Modules;
 using namespace Pipelines;
 
 namespace {
+
+struct ZeroRestamper : Module {
+		ZeroRestamper(KHost*, int count) {
+			for(int i=0; i < count; ++i) {
+				addInput();
+				addOutput();
+			}
+		}
+
+		void process() override {
+			int idx;
+			auto dataIn = popAny(idx);
+
+			auto dataTime = dataIn->get<PresentationTime>().time;
+
+			if(startTime == INT64_MIN)
+				startTime = dataTime;
+
+			auto restampedTime = dataTime - startTime;
+
+			auto dataOut = clone(dataIn);
+			dataOut->copyAttributes(*dataIn);
+			dataOut->set(PresentationTime{restampedTime});
+
+			outputs[idx]->post(dataOut);
+		}
+
+	private:
+		int64_t startTime = INT64_MIN;
+
+		Data popAny(int& inputIdx) {
+			Data data;
+			inputIdx = 0;
+			while (!inputs[inputIdx]->tryPop(data))
+				inputIdx++;
+			return data;
+		}
+
+};
 
 struct LocalFileSystem : In::IFilePuller {
 	std::vector<uint8_t> get(const char* szUrl) override {
@@ -104,6 +144,8 @@ void declarePipeline(Config cfg, Pipeline &pipeline, const char *url) {
 	if(demuxer->getNumOutputs() == 0)
 		throw std::runtime_error("No streams found");
 
+	auto restamper = pipeline.addModule<ZeroRestamper>(demuxer->getNumOutputs());
+
 	for (int k = 0; k < demuxer->getNumOutputs(); ++k) {
 		auto metadata = demuxer->getOutputMetadata(k);
 		if(!metadata) {
@@ -126,6 +168,7 @@ void declarePipeline(Config cfg, Pipeline &pipeline, const char *url) {
 		metadata = source.mod->getOutputMetadata(source.index);
 
 		auto render = createRenderer(pipeline, cfg, metadata->type);
-		pipeline.connect(source, GetInputPin(render));
+		pipeline.connect(source, GetInputPin(restamper, k));
+		pipeline.connect(GetOutputPin(restamper, k), GetInputPin(render));
 	}
 }

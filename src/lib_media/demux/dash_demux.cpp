@@ -1,8 +1,7 @@
-// holds the chain: [dash downloader] => ( [mp4demuxer] => [restamper] )*
+// holds the chain: [dash downloader] => ( [mp4demuxer] )*
 #include "lib_media/demux/dash_demux.hpp"
 #include "lib_media/in/mpeg_dash_input.hpp"
 #include "lib_media/out/null.hpp"
-#include "lib_media/transform/restamp.hpp"
 #include "lib_modules/core/connection.hpp"
 #include "lib_modules/utils/loader.hpp"
 #include "lib_modules/utils/factory.hpp"
@@ -12,7 +11,6 @@ std::unique_ptr<Modules::In::IFilePuller> createHttpSource();
 
 using namespace Modules;
 using namespace In;
-using namespace Transform;
 
 namespace {
 
@@ -42,11 +40,6 @@ class DashDemuxer : public Module {
 			modules.push_back(decap);
 			ConnectOutputToInput(downloader, decap->getInput(0));
 
-			// add restamper (so the timestamps start at zero)
-			std::shared_ptr<IModule> restamp = createModule<Restamp>(m_host, Transform::Restamp::Reset);
-			modules.push_back(restamp);
-			ConnectOutputToInput(decap->getOutput(0), restamp->getInput(0));
-
 			// create our own output
 			auto output = addOutput();
 			output->setMetadata(downloader->getMetadata());
@@ -55,7 +48,7 @@ class DashDemuxer : public Module {
 				output->post(data);
 			};
 
-			ConnectOutput(restamp->getOutput(0), deliver);
+			ConnectOutput(decap->getOutput(0), deliver);
 		}
 
 		std::vector<std::shared_ptr<IModule>> modules;
