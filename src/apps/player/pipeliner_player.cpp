@@ -114,7 +114,7 @@ IFilter* createDemuxer(Pipeline& pipeline, std::string url) {
 	}
 	if(endsWith(url, ".m3u8")) {
 		HlsDemuxConfig hlsCfg;
-		if(!startsWith(url, "http://")) {
+		if(!startsWith(url, "http://") && !startsWith(url, "https://") ) {
 			static LocalFileSystem fs;
 			hlsCfg.filePuller = &fs;
 		}
@@ -125,7 +125,7 @@ IFilter* createDemuxer(Pipeline& pipeline, std::string url) {
 		pipeline.connect(recv, demux);
 		return demux;
 	}
-	if(startsWith(url, "http://")) {
+	if(startsWith(url, "http://") || startsWith(url, "https://")) {
 		DashDemuxConfig cfg;
 		cfg.url = url;
 		return pipeline.add("DashDemuxer", &cfg);
