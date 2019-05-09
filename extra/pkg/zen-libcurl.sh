@@ -13,7 +13,7 @@ function libcurl_build {
   # options+=(--without-zlib)              # disable use of zlib
   # options+=(--disable-http)              # Disable HTTP support
   # options+=(--disable-ipv6)              # Disable IPv6 support
-  # options+=(--without-ssl)               # disable OpenSSL
+  options+=(--with-ssl=$PREFIX)            # enable OpenSSL
 
   options+=(--disable-threaded-resolver) # Disable threaded resolver
   options+=(--disable-debug)             # Disable debug build options
