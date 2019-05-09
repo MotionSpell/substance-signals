@@ -42,6 +42,11 @@ struct HttpSource : Modules::In::IFilePuller {
 
 		// some servers require a user-agent field
 		curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+
+		// don't check certifcates
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+
 		curl_easy_setopt(curl, CURLOPT_URL, url);
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &HttpContext::callback);
 		curl_easy_setopt(curl, CURLOPT_WRITEDATA, &ctx);
