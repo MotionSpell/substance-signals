@@ -17,6 +17,9 @@ function srt_build {
     *linux*)
       systemName="Linux"
       ;;
+    *darwin*)
+      systemName="Darwin"
+      ;;
   esac
 
   # ENABLE_CXX11=OFF: disable building of test apps, whose linking is broken
