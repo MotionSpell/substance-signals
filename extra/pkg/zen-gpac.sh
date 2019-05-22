@@ -120,7 +120,6 @@ function gpac_get_deps {
   echo ffmpeg
   echo freetype2
   echo libogg
-  echo libsdl2
   echo libogg
   echo zlib
 }
