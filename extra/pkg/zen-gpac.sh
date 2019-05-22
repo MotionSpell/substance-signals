@@ -108,6 +108,13 @@ function gpac_build {
     --prefix=$PREFIX \
     ${options[@]}
 
+  case $OS in
+    darwin*)
+      echo "LIBTOOL=$host-libtool" >> config.mak
+      echo "STRIP:=$host-\$(STRIP)" >> config.mak
+      ;;
+  esac
+
   $MAKE lib
   $MAKE install # this is what causes gpac.pc to be copied to lib/pkg-config
   $MAKE install-lib
