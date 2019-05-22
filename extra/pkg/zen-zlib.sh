@@ -14,6 +14,10 @@ function zlib_build {
     *mingw*)
       options+=(-DCMAKE_SYSTEM_NAME=Windows)
       ;;
+    *darwin*)
+      options+=(-DCMAKE_SYSTEM_NAME=Darwin)
+      options+=(-DAPPLE=1)
+      ;;
   esac
 
   rm -rf zlib/bin/$host
