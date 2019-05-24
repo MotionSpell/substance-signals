@@ -7,7 +7,7 @@ function libepoxy_build {
   mkgit "libepoxy"
 
   # hack for native build, otherwise egl.pc isn't found
-  PKG_CONFIG_PATH=/usr/lib/$host/pkgconfig:/usr/share/pkgconfig \
+  PKG_CONFIG_PATH=/usr/lib/$host/pkgconfig:/usr/share/pkgconfig:/usr/lib/pkgconfig \
   autoconf_build $host "libepoxy" \
     --enable-shared \
     --disable-static
