@@ -163,7 +163,6 @@ void MPEG_DASH_Input::process() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// nothing above this line should depend upon gpac
 
 #include "../common/sax_xml_parser.hpp"
 #include <time.h>
