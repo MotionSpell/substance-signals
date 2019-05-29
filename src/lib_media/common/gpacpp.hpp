@@ -49,24 +49,6 @@ class Error : public std::exception {
 		std::string msg_;
 };
 
-//------------------------------------------------
-// wrapper for GPAC init
-//------------------------------------------------
-struct Init {
-	Init() {
-#ifdef GPAC_MEM_TRACKER
-		gf_sys_init(GF_MemTrackerBackTrace);
-#else
-		gf_sys_init(GF_MemTrackerNone);
-#endif
-		gf_log_set_tool_level(GF_LOG_ALL, GF_LOG_WARNING);
-	}
-
-	~Init() {
-		gf_sys_close();
-	}
-};
-
 #ifndef GPAC_DISABLE_ISOM
 
 //------------------------------------------------
@@ -105,7 +87,7 @@ class IsoSample : public GF_ISOSample {
 //------------------------------------------------
 // wrapper for GF_ISOFile
 //------------------------------------------------
-class IsoFile : public Init {
+class IsoFile {
 	public:
 		IsoFile(std::string const& url) {
 			u64 missingBytes;

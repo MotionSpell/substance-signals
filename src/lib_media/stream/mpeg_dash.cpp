@@ -64,7 +64,7 @@ AdaptiveStreamingCommon::AdaptiveStreamingCommonFlags getFlags(DasherConfig* cfg
 	return AdaptiveStreamingCommon::AdaptiveStreamingCommonFlags(r);
 }
 
-class MPEG_DASH : public AdaptiveStreamingCommon, public gpacpp::Init {
+class MPEG_DASH : public AdaptiveStreamingCommon {
 	public:
 		MPEG_DASH(KHost* host, DasherConfig* cfg)
 			: AdaptiveStreamingCommon(host, getType(cfg), cfg->segDurationInMs, cfg->mpdDir, getFlags(cfg)),
