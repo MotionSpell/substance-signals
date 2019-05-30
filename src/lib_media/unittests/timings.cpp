@@ -119,16 +119,14 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 		} else
 			throw std::runtime_error("[Converter] Found unknown stream");
 	};
-	auto createConverter = [&](Metadata metadataDemux, Metadata metadataEncoder, const PictureFormat &dstFmt)->std::shared_ptr<IModule> {
+	auto createConverter = [&](Metadata metadataDemux, const PictureFormat &dstFmt)->std::shared_ptr<IModule> {
 		auto const codecType = metadataDemux->type;
 		if (codecType == VIDEO_PKT) {
 			return loadModule("VideoConvert", &NullHost, &dstFmt);
 		} else if (codecType == AUDIO_PKT) {
 			auto const demuxFmt = toPcmFormat(safe_cast<const MetadataPktAudio>(metadataDemux));
-			auto const metaEnc = safe_cast<const MetadataPktAudio>(metadataEncoder);
-			auto const encFmt = toPcmFormat(metaEnc);
-			auto const format = PcmFormat(demuxFmt.sampleRate, demuxFmt.numChannels, demuxFmt.layout, encFmt.sampleFormat, (encFmt.numPlanes == 1) ? Interleaved : Planar);
-			auto cfg = AudioConvertConfig  { {0}, format, metaEnc->frameSize} ;
+			auto const format = PcmFormat(demuxFmt.sampleRate, demuxFmt.numChannels, demuxFmt.layout, demuxFmt.sampleFormat, (demuxFmt.numPlanes == 1) ? Interleaved : Planar);
+			auto cfg = AudioConvertConfig  { {0}, format, 1024} ;
 			return loadModule("AudioConvert", &NullHost, &cfg);
 		} else
 			throw std::runtime_error("[Converter] Found unknown stream");
@@ -152,7 +150,7 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 		auto inputRes = safe_cast<const MetadataPktVideo>(demux->getOutput(i)->getMetadata())->resolution;
 		PictureFormat encoderInputPicFmt(inputRes, PixelFormat::UNKNOWN);
 		auto encoder = createEncoder(metadataDemux, encoderInputPicFmt);
-		auto converter = createConverter(metadataDemux, encoder->getOutput(0)->getMetadata(), encoderInputPicFmt);
+		auto converter = createConverter(metadataDemux, encoderInputPicFmt);
 		ConnectOutputToInput(decoder->getOutput(0), converter->getInput(0));
 		ConnectOutputToInput(converter->getOutput(0), encoder->getInput(0));
 
