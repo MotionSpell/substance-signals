@@ -106,7 +106,7 @@ struct AudioConvert : ModuleS {
 			if(inputMediaTime != -1) {
 				auto const expectedInputTime = inputMediaTime + timescaleToClock(inputSampleCount, audioData->format.sampleRate);
 				auto const actualInputTime = data->get<PresentationTime>().time;
-				if(actualInputTime && std::abs(actualInputTime - expectedInputTime) > 3) {
+				if(actualInputTime && clockToTimescale(std::abs(actualInputTime - expectedInputTime), 1000) > 1) {
 					m_host->log(Warning, format("input gap: %sms", (actualInputTime - expectedInputTime)*1000.0/IClock::Rate).c_str());
 					resyncNeeded = true;
 				}
