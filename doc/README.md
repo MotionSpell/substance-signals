@@ -189,7 +189,6 @@ The type of the input (here DataBase) can be:
  - PictureYUYV422: picture specialization for YUYV422 colorspace.
  - PictureNV12: picture specialization for NV12 colorspace.
  - PictureRGB24: picture specialization for RGB24 colorspace.
- - DataAVPacket: libav packet wrapper.
  
 Constructor: use hard types.
 flush() = EOS
