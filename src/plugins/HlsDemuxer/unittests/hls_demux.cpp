@@ -13,7 +13,7 @@ using namespace In;
 
 namespace {
 struct MemoryFileSystem : IFilePuller {
-	vector<uint8_t> get(const char* szUrl) override {
+	vector<uint8_t> wget(const char* szUrl) override {
 		auto url = string(szUrl);
 		requests.push_back(url);
 		if(resources.find(url) == resources.end())

@@ -67,7 +67,7 @@ class HlsDemuxer : public Module {
 
 			auto chunkUrl = m_dirName + m_chunks[0];
 			m_host->log(Debug, ("Download chunk: '" + chunkUrl + "'").c_str());
-			auto chunk = m_puller->get(chunkUrl.c_str());
+			auto chunk = download(m_puller, chunkUrl.c_str());
 			m_chunks.erase(m_chunks.begin());
 
 			auto data = m_output->allocData<DataRaw>(chunk.size());
@@ -79,7 +79,7 @@ class HlsDemuxer : public Module {
 		}
 
 		vector<string> downloadPlaylist(string url) {
-			auto contents = m_puller->get(url.c_str());
+			auto contents = download(m_puller, url.c_str());
 			vector<string> r;
 			string line;
 			stringstream ss(string(contents.begin(), contents.end()));

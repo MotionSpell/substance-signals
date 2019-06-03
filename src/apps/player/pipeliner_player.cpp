@@ -61,8 +61,8 @@ struct ZeroRestamper : Module {
 };
 
 struct LocalFileSystem : In::IFilePuller {
-	std::vector<uint8_t> get(const char* szUrl) override {
-		printf("LocalFileSystem: get('%s')\n", szUrl);
+	std::vector<uint8_t> wget(const char* szUrl) override {
+		printf("LocalFileSystem: wget('%s')\n", szUrl);
 		std::ifstream fp(szUrl, std::ios::binary);
 		if(!fp.is_open())
 			return {};

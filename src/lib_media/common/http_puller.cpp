@@ -21,7 +21,7 @@ struct HttpSource : Modules::In::IFilePuller {
 		curl_easy_cleanup(curl);
 	}
 
-	std::vector<uint8_t> get(const char* url) override {
+	std::vector<uint8_t> wget(const char* url) override {
 		struct HttpContext {
 			std::vector<uint8_t> data;
 

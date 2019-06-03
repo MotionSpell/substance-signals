@@ -8,7 +8,7 @@ using namespace Modules;
 using namespace In;
 
 struct LocalFilesystem : IFilePuller {
-	std::vector<uint8_t> get(const char* szUrl) override {
+	std::vector<uint8_t> wget(const char* szUrl) override {
 		auto url = std::string(szUrl);
 		requests.push_back(url);
 		if(resources.find(url) == resources.end()) {

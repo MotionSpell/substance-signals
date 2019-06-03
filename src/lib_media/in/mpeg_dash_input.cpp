@@ -68,7 +68,7 @@ MPEG_DASH_Input::MPEG_DASH_Input(KHost* host, IFilePuller* source, std::string c
 	m_host->activate(true);
 
 	//GET MPD FROM HTTP
-	auto mpdAsText = m_source->get(url.c_str());
+	auto mpdAsText = download(m_source, url.c_str());
 	if(mpdAsText.empty())
 		throw std::runtime_error("can't get mpd");
 	m_mpdDirname = dirName(url);
@@ -141,7 +141,7 @@ void MPEG_DASH_Input::process() {
 
 		m_host->log(Debug, format("wget: '%s'", url).c_str());
 
-		auto chunk = m_source->get(url.c_str());
+		auto chunk = download(m_source, url.c_str());
 		if(chunk.empty()) {
 			if(mpd->dynamic) {
 				stream->currNumber--; // too early, retry
