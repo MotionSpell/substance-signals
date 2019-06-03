@@ -13,12 +13,12 @@ using namespace In;
 
 namespace {
 struct MemoryFileSystem : IFilePuller {
-	vector<uint8_t> wget(const char* szUrl) override {
+	void wget(const char* szUrl, std::function<void(SpanC)> callback) override {
 		auto url = string(szUrl);
 		requests.push_back(url);
 		if(resources.find(url) == resources.end())
-			return {};
-		return {resources[url].begin(), resources[url].end()};
+			return;
+		callback({(const uint8_t*)resources[url].data(), resources[url].size()});
 	}
 
 	map<string, string> resources;

@@ -21,24 +21,21 @@ struct HttpSource : Modules::In::IFilePuller {
 		curl_easy_cleanup(curl);
 	}
 
-	std::vector<uint8_t> wget(const char* url) override {
-		struct HttpContext {
-			std::vector<uint8_t> data;
 
-			static size_t callback(void *stream, size_t size, size_t nmemb, void *ptr) {
+	void wget(const char* url, std::function<void(SpanC)> callback) override {
+		struct HttpContext {
+			std::function<void(SpanC)> userCallback;
+
+			static size_t curlCallback(void *stream, size_t size, size_t nmemb, void *ptr) {
 				auto pThis = (HttpContext*)ptr;
 				auto const bytes = size * nmemb;
-				pThis->onReceiveBuffer({(uint8_t*)stream, bytes});
+				pThis->userCallback({(uint8_t*)stream, bytes});
 				return bytes;
-			}
-
-			void onReceiveBuffer(SpanC buffer) {
-				for(auto b : buffer)
-					data.push_back(b);
 			}
 		};
 
 		HttpContext ctx;
+		ctx.userCallback = callback;
 
 		// some servers require a user-agent field
 		curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
@@ -48,17 +45,15 @@ struct HttpSource : Modules::In::IFilePuller {
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 
 		curl_easy_setopt(curl, CURLOPT_URL, url);
-		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &HttpContext::callback);
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &HttpContext::curlCallback);
 		curl_easy_setopt(curl, CURLOPT_WRITEDATA, &ctx);
 		curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
 
 		auto res = curl_easy_perform(curl);
 		if(res == CURLE_HTTP_RETURNED_ERROR)
-			return {};
+			return;
 		if(res != CURLE_OK)
 			throw std::runtime_error(std::string("HTTP download failed: ") + curl_easy_strerror(res));
-
-		return ctx.data;
 	}
 
 	CURL* const curl;
