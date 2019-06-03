@@ -141,8 +141,18 @@ void MPEG_DASH_Input::process() {
 
 		m_host->log(Debug, format("wget: '%s'", url).c_str());
 
-		auto chunk = download(m_source, url.c_str());
-		if(chunk.empty()) {
+		bool empty = true;
+
+		auto onBuffer = [&](SpanC chunk) {
+			empty = false;
+
+			auto data = make_shared<DataRaw>(chunk.len);
+			memcpy(data->buffer->data().ptr, chunk.ptr, chunk.len);
+			stream->out->post(data);
+		};
+
+		m_source->wget(url.c_str(), onBuffer);
+		if(empty) {
 			if(mpd->dynamic) {
 				stream->currNumber--; // too early, retry
 				continue;
@@ -150,10 +160,6 @@ void MPEG_DASH_Input::process() {
 			m_host->log(Error, format("can't download file: '%s'", url).c_str());
 			m_host->activate(false);
 		}
-
-		auto data = make_shared<DataRaw>(chunk.size());
-		memcpy(data->buffer->data().ptr, chunk.data(), chunk.size());
-		stream->out->post(data);
 	}
 
 	m_initializationChunkSent = true;
