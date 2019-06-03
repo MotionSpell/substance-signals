@@ -527,7 +527,8 @@ void GPACMuxMP4::startFragment(uint64_t DTS, uint64_t PTS) {
 			if (compatFlags & SmoothStreaming) {
 				SAFE(gf_isom_set_fragment_option(isoCur, trackId, GF_ISOM_TFHD_FORCE_MOOF_BASE_OFFSET, 1));
 			} else {
-				SAFE(gf_isom_set_traf_base_media_decode_time(isoCur, trackId, DTS));
+				auto const baseMediaDecodeTime = DTS + rescale(firstDataAbsTimeInMs, 1000, timeScale);
+				SAFE(gf_isom_set_traf_base_media_decode_time(isoCur, trackId, baseMediaDecodeTime));
 			}
 
 			if (!(compatFlags & Browsers)) {
