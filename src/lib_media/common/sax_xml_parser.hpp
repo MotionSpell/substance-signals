@@ -75,9 +75,16 @@ void saxParse(span<const char> input, std::function<NodeStartFunc> onNodeStart) 
 
 				while(front() != '>' && front() != '/' && front() != -1) {
 					auto name = parseIdentifier();
+					if(name.empty()) {
+						string msg = "expected an XML attribute, got '";
+						msg += front();
+						msg += "'";
+						throw runtime_error(msg);
+					}
 					skipSpaces();
 					if(accept('='))
 						attr[name] = parseString();
+					skipSpaces();
 				}
 
 				onNodeStart(id, attr);

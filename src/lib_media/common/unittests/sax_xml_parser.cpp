@@ -56,4 +56,19 @@ unittest("SAX XML parser: normal") {
   ASSERT_EQUALS(expected, tags);
 }
 
+static const char invalidXmlTestData[] = R"(
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This is a comment -->
+<Hello>
+  <World #>
+  </World>
+</Hello>
+)";
+
+unittest("SAX XML parser: invalid") {
+  std::vector<std::string> tags;
+	auto onNode = [&](std::string, std::map<std::string, std::string>&) { };
+
+	ASSERT_THROWN(saxParse(invalidXmlTestData, onNode));
+}
 
