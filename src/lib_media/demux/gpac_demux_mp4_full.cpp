@@ -76,7 +76,7 @@ class GPACDemuxMP4Full : public ModuleS {
 			u64 missingBytes;
 			GF_ISOFile *movie;
 			GF_Err e = gf_isom_open_progressive(reader.dataUrl().c_str(), 0, 0, &movie, &missingBytes);
-			if ((e != GF_OK && e != GF_ISOM_INCOMPLETE_FILE) || reader.movie) {
+			if ((e != GF_OK && e != GF_ISOM_INCOMPLETE_FILE)) {
 				m_host->log(Warning, format("Error opening fragmented mp4 in progressive mode: %s (missing %s bytes)", gf_error_to_string(e), missingBytes).c_str());
 				return false;
 			}
