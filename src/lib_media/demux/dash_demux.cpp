@@ -35,10 +35,15 @@ class DashDemuxer : public Module {
 		std::unique_ptr<IFilePuller> filePuller;
 
 		void addStream(IOutput* downloader) {
+			// add MP4 box-splitter
+			std::shared_ptr<IModule> splitter = loadModule("Fmp4Splitter", m_host, nullptr);
+			modules.push_back(splitter);
+			ConnectOutputToInput(downloader, splitter->getInput(0));
+
 			// add MP4 demuxer
 			std::shared_ptr<IModule> decap = loadModule("GPACDemuxMP4Full", m_host, nullptr);
 			modules.push_back(decap);
-			ConnectOutputToInput(downloader, decap->getInput(0));
+			ConnectOutputToInput(splitter->getOutput(0), decap->getInput(0));
 
 			// create our own output
 			auto output = addOutput();
