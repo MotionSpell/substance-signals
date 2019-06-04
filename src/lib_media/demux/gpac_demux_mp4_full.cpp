@@ -25,16 +25,19 @@ struct ISOProgressiveReader {
 		memcpy(data.data() + currSize, buffer, len);
 	}
 
-	// data buffer to be read by the parser
-	std::vector<u8> data;
 	// URL used to pass a buffer to the parser
 	std::string dataUrl() const {
 		char buffer[256];
 		sprintf(buffer, "gmem://%lld@%p", (long long)data.size(), data.data());
 		return buffer;
 	}
+
+	// data buffer to be read by the parser
+	std::vector<u8> data;
+
 	// The ISO file structure created for the parsing of data
 	std::unique_ptr<gpacpp::IsoFile> movie;
+
 	// Boolean state to indicate if the needs to be parsed
 	u32 sampleIndex = 1; // samples are numbered starting from 1
 	u32 sampleCount = 0;
