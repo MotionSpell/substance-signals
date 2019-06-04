@@ -84,7 +84,7 @@ class GPACDemuxMP4Full : public ModuleS {
 				reader.movie = nullptr;
 				return false;
 			}
-			reader.movie.reset(new gpacpp::IsoFile(movie));
+			reader.movie = make_unique<gpacpp::IsoFile>(movie);
 			reader.movie->setSingleMoofMode(true);
 			return true;
 		}
