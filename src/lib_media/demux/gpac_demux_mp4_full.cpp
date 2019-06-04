@@ -57,9 +57,9 @@ class GPACDemuxMP4Full : public ModuleS {
 				if (!openData()) {
 					return;
 				}
-			} else {
-				updateData();
 			}
+
+			updateData();
 
 			while (processSample()) {
 			}
@@ -165,8 +165,6 @@ class GPACDemuxMP4Full : public ModuleS {
 					memmove(reader.data.data(), reader.data.data() + offset, newSize);
 					reader.data.resize(newSize);
 				}
-
-				updateData();
 			}
 
 			return !reader.data.empty();
