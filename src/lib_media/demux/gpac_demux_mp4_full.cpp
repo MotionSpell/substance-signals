@@ -17,12 +17,12 @@ const int FIRST_TRACK = 1;
 
 struct ISOProgressiveReader {
 
-	void pushData(const uint8_t* buffer, size_t len) {
+	void pushData(SpanC buf) {
 		//TODO: zero copy mode, or at least improve the current system
 		//with allocator packet duplication
 		const size_t currSize = data.size();
-		data.resize(data.size() + len);
-		memcpy(data.data() + currSize, buffer, len);
+		data.resize(data.size() + buf.len);
+		memcpy(data.data() + currSize, buf.ptr, buf.len);
 	}
 
 	// URL used to pass a buffer to the parser
@@ -51,7 +51,7 @@ class GPACDemuxMP4Full : public ModuleS {
 		}
 
 		void processOne(Data data) override {
-			reader.pushData(data->data().ptr, data->data().len);
+			reader.pushData(data->data());
 
 			if (!reader.movie) {
 				if (!openData()) {
