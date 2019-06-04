@@ -58,7 +58,6 @@ unittest("SAX XML parser: normal") {
 
 static const char invalidXmlTestData[] = R"(
 <?xml version="1.0" encoding="utf-8"?>
-<!-- This is a comment -->
 <Hello>
   <World #>
   </World>
