@@ -61,6 +61,8 @@ void saxParse(span<const char> input, std::function<NodeStartFunc> onNodeStart) 
 		if(accept('<')) {
 			if(accept('?')) {
 				// XML stuff
+			} else if(accept('!')) {
+				// comment
 			} else if(accept('/')) {
 				// closing tag
 				parseIdentifier();

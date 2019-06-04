@@ -4,6 +4,7 @@
 
 static const char xmlTestData[] = R"(
 <?xml version="1.0" encoding="utf-8"?>
+<!-- This is a comment -->
 <MPD availabilityStartTime="1970-01-01T00:00:00Z" id="Config part of url maybe?" maxSegmentDuration="PT2S" minBufferTime="PT2S" minimumUpdatePeriod="P100Y" profiles="urn:mpeg:dash:profile:isoff-live:2011,http://dashif.org/guidelines/dash-if-simple" publishTime="2019-01-15T15:09:07Z" timeShiftBufferDepth="PT5M" type="dynamic" ns1:schemaLocation="urn:mpeg:dash:schema:mpd:2011 DASH-MPD.xsd" xmlns="urn:mpeg:dash:schema:mpd:2011" xmlns:ns1="http://www.w3.org/2001/XMLSchema-instance">
    <ProgramInformation>
       <Title>Media Presentation Description from DASHI-IF live simulator</Title>
