@@ -47,9 +47,6 @@ class GPACDemuxMP4Full : public ModuleS {
 			output = addOutput();
 		}
 
-		~GPACDemuxMP4Full() {
-		}
-
 		void processOne(Data data) override {
 			reader->pushData(data->data().ptr, data->data().len);
 
