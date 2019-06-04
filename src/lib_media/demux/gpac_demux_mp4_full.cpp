@@ -107,26 +107,7 @@ class GPACDemuxMP4Full : public ModuleS {
 		}
 
 		bool safeProcessSample() {
-			if(auto desc = reader.movie->getDecoderConfig(FIRST_TRACK, 1)) {
-				auto dsi = desc->decoderSpecificInfo;
-				{
-					auto infoString = string2hex((uint8_t*)dsi->data, dsi->dataLength);
-					m_host->log(Debug, format("Found decoder specific info: \"%s\"", infoString).c_str());
-				}
-				std::shared_ptr<MetadataPkt> meta;
-				if(desc->streamType == GF_STREAM_AUDIO) {
-					meta = make_shared<MetadataPkt>(AUDIO_PKT);
-					meta->codec = "aac_adts";
-				} else if (desc->streamType == GF_STREAM_VISUAL) {
-					meta = make_shared<MetadataPkt>(VIDEO_PKT);
-					meta->codec = "h264_avcc";
-				} else {
-					meta = make_shared<MetadataPkt>(UNKNOWN_ST);
-					meta->codec = "";
-				}
-				meta->codecSpecificInfo.assign(dsi->data, dsi->data+dsi->dataLength);
-				output->setMetadata(meta);
-			}
+			updateMetadata();
 
 			// let's see how many samples we have since the last parsed
 			auto newSampleCount = reader.movie->getSampleCount(FIRST_TRACK);
@@ -191,6 +172,28 @@ class GPACDemuxMP4Full : public ModuleS {
 			return !reader.data.empty();
 		}
 
+		void updateMetadata() {
+			if(auto desc = reader.movie->getDecoderConfig(FIRST_TRACK, 1)) {
+				auto dsi = desc->decoderSpecificInfo;
+				{
+					auto infoString = string2hex((uint8_t*)dsi->data, dsi->dataLength);
+					m_host->log(Debug, format("Found decoder specific info: \"%s\"", infoString).c_str());
+				}
+				std::shared_ptr<MetadataPkt> meta;
+				if(desc->streamType == GF_STREAM_AUDIO) {
+					meta = make_shared<MetadataPkt>(AUDIO_PKT);
+					meta->codec = "aac_adts";
+				} else if (desc->streamType == GF_STREAM_VISUAL) {
+					meta = make_shared<MetadataPkt>(VIDEO_PKT);
+					meta->codec = "h264_avcc";
+				} else {
+					meta = make_shared<MetadataPkt>(UNKNOWN_ST);
+					meta->codec = "";
+				}
+				meta->codecSpecificInfo.assign(dsi->data, dsi->data+dsi->dataLength);
+				output->setMetadata(meta);
+			}
+		}
 };
 
 }
