@@ -500,7 +500,7 @@ void GPACMuxMP4::closeSegment(bool isLastSeg) {
 	}
 
 	if (segmentPolicy == FragmentedSegment) {
-		GF_Err e = gf_isom_close_segment(isoCur, 0, 0, 0, 0, 0, GF_FALSE, (Bool)isLastSeg, (Bool)(!initName.empty()),
+		GF_Err e = gf_isom_close_segment(isoCur, 0, 0, 0, 0, 0, GF_FALSE, GF_FALSE, (Bool)isLastSeg, (Bool)(!initName.empty()),
 		        (compatFlags & Browsers) ? 0 : GF_4CC('e', 'o', 'd', 's'), nullptr, nullptr, &lastSegmentSize);
 		if (e != GF_OK) {
 			if (m_DTS == 0)
@@ -683,7 +683,7 @@ void GPACMuxMP4::declareStreamAudio(const MetadataPktAudio* metadata) {
 	auto const bitsPerSample = std::min(16, (int)metadata->bitsPerSample);
 
 	SAFE(gf_isom_set_track_enabled(isoCur, trackNum, GF_TRUE));
-	SAFE(gf_isom_set_audio_info(isoCur, trackNum, di, sampleRate, metadata->numChannels, bitsPerSample));
+	SAFE(gf_isom_set_audio_info(isoCur, trackNum, di, sampleRate, metadata->numChannels, bitsPerSample, GF_IMPORT_AUDIO_SAMPLE_ENTRY_NOT_SET));
 	SAFE(gf_isom_set_pl_indication(isoCur, GF_ISOM_PL_AUDIO, acfg.audioPL));
 
 	if (!(compatFlags & SegmentAtAny)) {
