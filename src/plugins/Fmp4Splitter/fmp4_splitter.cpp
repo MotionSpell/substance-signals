@@ -8,6 +8,12 @@ using namespace Modules;
 
 namespace Modules {
 
+template<size_t N>
+constexpr uint32_t FOURCC(const char (&a)[N]) {
+	static_assert(N == 5, "FOURCC must be composed of 4 characters");
+	return (a[0]<<24) | (a[1]<<16) | (a[2]<<8) | a[3];
+}
+
 // reconstruct framing of top-level MP4 boxes
 class Fmp4Splitter : public ModuleS {
 	public:
@@ -24,15 +30,18 @@ class Fmp4Splitter : public ModuleS {
 	private:
 		KHost* const m_host;
 		OutputDefault* output;
-		std::vector<uint8_t> currBox;
+		std::vector<uint8_t> currData; // box buffer. Can contain multiple concatenated boxes.
 
 		void pushByte(uint8_t byte) {
-			currBox.push_back(byte);
+			currData.push_back(byte);
 
 			if(insideHeader) {
 				if(headerBytes < 4) {
 					boxBytes <<= 8;
 					boxBytes |= byte;
+				} else {
+					lastFourcc <<= 8;
+					lastFourcc |= byte;
 				}
 				// reading header
 				headerBytes ++;
@@ -51,11 +60,14 @@ class Fmp4Splitter : public ModuleS {
 
 				// is the current box complete?
 				if(boxBytes == 0) {
-					// flush current box
-					auto out = output->allocData<DataRaw>(currBox.size());
-					memcpy(out->buffer->data().ptr, currBox.data(), currBox.size());
-					output->post(out);
-					currBox.clear();
+
+					if(lastFourcc == FOURCC("mdat")) {
+						// flush current box
+						auto out = output->allocData<DataRaw>(currData.size());
+						memcpy(out->buffer->data().ptr, currData.data(), currData.size());
+						output->post(out);
+						currData.clear();
+					}
 
 					// go back to 'header' state
 					boxBytes = 0;
@@ -64,6 +76,7 @@ class Fmp4Splitter : public ModuleS {
 			}
 		}
 
+		uint32_t lastFourcc = 0;
 		int insideHeader = true;
 		int headerBytes = 0;
 		int64_t boxBytes = 0;
