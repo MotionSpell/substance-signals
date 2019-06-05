@@ -201,6 +201,7 @@ class MPEG_DASH : public AdaptiveStreamingCommon {
 			auto metadata = make_shared<MetadataFile>(PLAYLIST);
 			metadata->filename = manifestDir + mpdFn;
 			metadata->durationIn180k = timescaleToClock(segDurationInMs, 1000);
+			metadata->filesize = contents.size();
 			out->setMetadata(metadata);
 			out->setMediaTime(totalDurationInMs, 1000);
 			memcpy(out->buffer->data().ptr, contents.data(), contents.size());
