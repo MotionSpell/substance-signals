@@ -2,10 +2,10 @@
 #include <stdexcept>
 #include <string> //to_string
 
-using namespace std;
-
 #include <windows.h>
 #include <direct.h> //chdir
+
+using namespace std;
 
 int getPid() {
 	return (int)GetCurrentProcessId();
