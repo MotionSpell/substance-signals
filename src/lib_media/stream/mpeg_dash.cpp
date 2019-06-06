@@ -346,16 +346,6 @@ struct AdaptiveStreamer : ModuleDynI {
 					auto utcInMs = int64_t(getUTC() * 1000);
 					m_host->log(Info, format("Processes segment (total processed: %ss, UTC: %sms (deltaAST=%s, deltaInput=%s).",
 					        (double)totalDurationInMs / 1000, utcInMs, utcInMs - startTimeInMs, (int64_t)(utcInMs - curMediaTimeInMs)).c_str());
-
-					if (type != Static) {
-						const int64_t durInMs = startTimeInMs + totalDurationInMs - utcInMs;
-						if (durInMs > 0) {
-							m_host->log(Debug, format("Going to sleep for %s ms.", durInMs).c_str());
-							std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-						} else {
-							m_host->log(Warning, format("Late from %s ms.", -durInMs).c_str());
-						}
-					}
 				}
 			}
 
