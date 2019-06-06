@@ -16,6 +16,8 @@
 
 using namespace std;
 
+namespace {
+
 template<typename T, typename V>
 bool exists(T const& container, V const& val) {
 	return container.find(val) != container.end();
@@ -89,7 +91,6 @@ struct HttpSink : Modules::ModuleS {
 			}
 		}
 
-
 	private:
 
 		void asyncRemoteDelete(string url2) {
@@ -110,8 +111,6 @@ struct HttpSink : Modules::ModuleS {
 		const string baseURL, userAgent;
 		const vector<string> headers;
 };
-
-namespace {
 
 using namespace Modules;
 
