@@ -10,7 +10,6 @@
 #include "lib_utils/log_sink.hpp"
 #include "lib_utils/format.hpp"
 #include <algorithm> //std::max
-#include <thread>
 
 #define DASH_TIMESCALE 1000 // /!\ there are some ms already hardcoded from the GPAC calls
 #define MIN_UPDATE_PERIOD_FACTOR 1 //should be 0, but dash.js doesn't support MPDs with no refresh time
@@ -76,13 +75,13 @@ struct AdaptiveStreamer : ModuleDynI {
 		}
 
 		void process() override {
-			if (!workingThread.joinable() && (startTimeInMs==(uint64_t)-1)) {
+			if (!wasInit && (startTimeInMs==(uint64_t)-1)) {
 				startTimeInMs = (uint64_t)-2;
 
 				for (int i = 0; i < numInputs(); ++i)
 					qualities.push_back(createQuality());
 
-				workingThread = std::thread([]() {});
+				wasInit = true;
 			}
 
 			while(schedule()) { }
@@ -114,7 +113,7 @@ struct AdaptiveStreamer : ModuleDynI {
 		std::vector<std::unique_ptr<Quality>> qualities;
 		OutputDefault *outputSegments, *outputManifest;
 
-		std::thread workingThread;
+		bool wasInit = false;
 
 		void processInitSegment(Quality const * const quality, size_t index) {
 			auto const &meta = quality->getMeta();
@@ -187,10 +186,10 @@ struct AdaptiveStreamer : ModuleDynI {
 		}
 
 		void endOfStream() {
-			if (workingThread.joinable()) {
+			if (wasInit) {
 				for(auto& in : inputs)
 					in->push(nullptr);
-				workingThread.join();
+				wasInit = false;
 			}
 
 			/*final rewrite of MPD in static mode*/
