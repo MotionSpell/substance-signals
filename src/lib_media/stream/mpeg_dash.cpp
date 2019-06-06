@@ -293,19 +293,16 @@ struct AdaptiveStreamer : ModuleDynI {
 		}
 
 		bool scheduleRepresentation() {
-			if (isComplete()) {
+			if (isComplete())
 				return true;
-			}
 
 			if ((type == LiveNonBlocking) && (!qualities[repIdx]->getMeta())) {
-				if (inputs[repIdx]->tryPop(currData) && !currData) {
+				if (inputs[repIdx]->tryPop(currData) && !currData)
 					return false;
-				}
 			} else {
 				currData = inputs[repIdx]->pop();
-				if (!currData) {
+				if (!currData)
 					return false;
-				}
 			}
 
 			if (currData) {
@@ -318,9 +315,8 @@ struct AdaptiveStreamer : ModuleDynI {
 				auto const curDurIn180k = meta->durationIn180k;
 				if (curDurIn180k == 0 && curSegDurIn180k[repIdx] == 0) {
 					processInitSegment(qualities[repIdx].get(), repIdx);
-					if (flags & PresignalNextSegment) {
+					if (flags & PresignalNextSegment)
 						sendLocalData(0, false);
-					}
 					--repIdx;
 					currData = nullptr;
 					return true;
@@ -335,9 +331,8 @@ struct AdaptiveStreamer : ModuleDynI {
 				} else {
 					curSegDurIn180k[repIdx] = segDurationInMs ? timescaleToClock(segDurationInMs, 1000) : meta->durationIn180k;
 				}
-				if (curSegDurIn180k[repIdx] < timescaleToClock(segDurationInMs, 1000) || !meta->EOS) {
+				if (curSegDurIn180k[repIdx] < timescaleToClock(segDurationInMs, 1000) || !meta->EOS)
 					sendLocalData(meta->filesize, meta->EOS);
-				}
 			}
 
 			return true;
@@ -350,13 +345,12 @@ struct AdaptiveStreamer : ModuleDynI {
 			}
 
 			if (!currData) {
-				if (repIdx != numInputs()) {
+				if (repIdx != numInputs())
 					return false; // exit thread
-				} else {
-					assert((type == LiveNonBlocking) && ((int)qualities.size() < numInputs()));
-					std::this_thread::sleep_for(std::chrono::milliseconds(10));
-					return true;
-				}
+
+				assert((type == LiveNonBlocking) && ((int)qualities.size() < numInputs()));
+				std::this_thread::sleep_for(std::chrono::milliseconds(10));
+				return true;
 			}
 
 			const int64_t curMediaTimeInMs = clockToTimescale(currData->get<PresentationTime>().time, 1000);
