@@ -292,54 +292,61 @@ struct AdaptiveStreamer : ModuleDynI {
 			return true;
 		}
 
+		bool scheduleRepresentation() {
+			if (isComplete()) {
+				return true;
+			}
+
+			if ((type == LiveNonBlocking) && (!qualities[repIdx]->getMeta())) {
+				if (inputs[repIdx]->tryPop(currData) && !currData) {
+					return false;
+				}
+			} else {
+				currData = inputs[repIdx]->pop();
+				if (!currData) {
+					return false;
+				}
+			}
+
+			if (currData) {
+				qualities[repIdx]->lastData = currData;
+				auto const &meta = qualities[repIdx]->getMeta();
+				if (!meta)
+					throw error(format("Unknown data received on input %s", repIdx));
+				ensurePrefix(repIdx);
+
+				auto const curDurIn180k = meta->durationIn180k;
+				if (curDurIn180k == 0 && curSegDurIn180k[repIdx] == 0) {
+					processInitSegment(qualities[repIdx].get(), repIdx);
+					if (flags & PresignalNextSegment) {
+						sendLocalData(0, false);
+					}
+					--repIdx;
+					currData = nullptr;
+					return true;
+				}
+
+				if (segDurationInMs && curDurIn180k) {
+					auto const numSeg = totalDurationInMs / segDurationInMs;
+					qualities[repIdx]->avg_bitrate_in_bps = ((meta->filesize * 8 * IClock::Rate) / meta->durationIn180k + qualities[repIdx]->avg_bitrate_in_bps * numSeg) / (numSeg + 1);
+				}
+				if (flags & ForceRealDurations) {
+					curSegDurIn180k[repIdx] += meta->durationIn180k;
+				} else {
+					curSegDurIn180k[repIdx] = segDurationInMs ? timescaleToClock(segDurationInMs, 1000) : meta->durationIn180k;
+				}
+				if (curSegDurIn180k[repIdx] < timescaleToClock(segDurationInMs, 1000) || !meta->EOS) {
+					sendLocalData(meta->filesize, meta->EOS);
+				}
+			}
+
+			return true;
+		}
+
 		bool schedule() {
 			for (repIdx = 0; repIdx < numInputs(); ++repIdx) {
-				if (isComplete()) {
-					continue;
-				}
-
-				if ((type == LiveNonBlocking) && (!qualities[repIdx]->getMeta())) {
-					if (inputs[repIdx]->tryPop(currData) && !currData) {
-						break;
-					}
-				} else {
-					currData = inputs[repIdx]->pop();
-					if (!currData) {
-						break;
-					}
-				}
-
-				if (currData) {
-					qualities[repIdx]->lastData = currData;
-					auto const &meta = qualities[repIdx]->getMeta();
-					if (!meta)
-						throw error(format("Unknown data received on input %s", repIdx));
-					ensurePrefix(repIdx);
-
-					auto const curDurIn180k = meta->durationIn180k;
-					if (curDurIn180k == 0 && curSegDurIn180k[repIdx] == 0) {
-						processInitSegment(qualities[repIdx].get(), repIdx);
-						if (flags & PresignalNextSegment) {
-							sendLocalData(0, false);
-						}
-						--repIdx;
-						currData = nullptr;
-						continue;
-					}
-
-					if (segDurationInMs && curDurIn180k) {
-						auto const numSeg = totalDurationInMs / segDurationInMs;
-						qualities[repIdx]->avg_bitrate_in_bps = ((meta->filesize * 8 * IClock::Rate) / meta->durationIn180k + qualities[repIdx]->avg_bitrate_in_bps * numSeg) / (numSeg + 1);
-					}
-					if (flags & ForceRealDurations) {
-						curSegDurIn180k[repIdx] += meta->durationIn180k;
-					} else {
-						curSegDurIn180k[repIdx] = segDurationInMs ? timescaleToClock(segDurationInMs, 1000) : meta->durationIn180k;
-					}
-					if (curSegDurIn180k[repIdx] < timescaleToClock(segDurationInMs, 1000) || !meta->EOS) {
-						sendLocalData(meta->filesize, meta->EOS);
-					}
-				}
+				if(!scheduleRepresentation())
+					break;
 			}
 
 			if (!currData) {
