@@ -179,12 +179,6 @@ struct AdaptiveStreamer : ModuleDynI {
 			return (startTimeInMs + totalDurationInMs) / segDurationInMs;
 		}
 
-		void ensurePrefix(size_t i) {
-			if (qualities[i]->prefix.empty()) {
-				qualities[i]->prefix = format("%s/", getPrefix(qualities[i].get(), i));
-			}
-		}
-
 		void endOfStream() {
 			if (wasInit) {
 				for(auto& in : inputs)
@@ -308,7 +302,9 @@ struct AdaptiveStreamer : ModuleDynI {
 			auto const &meta = qualities[repIdx]->getMeta();
 			if (!meta)
 				throw error(format("Unknown data received on input %s", repIdx));
-			ensurePrefix(repIdx);
+
+			if (qualities[repIdx]->prefix.empty())
+				qualities[repIdx]->prefix = format("%s/", getPrefix(qualities[repIdx].get(), repIdx));
 
 			auto const curDurIn180k = meta->durationIn180k;
 			if (curDurIn180k == 0 && curSegDurIn180k[repIdx] == 0) {
