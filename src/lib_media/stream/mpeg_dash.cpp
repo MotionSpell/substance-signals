@@ -292,79 +292,85 @@ struct AdaptiveStreamer : ModuleDynI {
 			return true;
 		}
 
+		bool schedule() {
+			for (repIdx = 0; repIdx < numInputs(); ++repIdx) {
+				if (isComplete()) {
+					continue;
+				}
+
+				if ((type == LiveNonBlocking) && (!qualities[repIdx]->getMeta())) {
+					if (inputs[repIdx]->tryPop(currData) && !currData) {
+						break;
+					}
+				} else {
+					currData = inputs[repIdx]->pop();
+					if (!currData) {
+						break;
+					}
+				}
+
+				if (currData) {
+					qualities[repIdx]->lastData = currData;
+					auto const &meta = qualities[repIdx]->getMeta();
+					if (!meta)
+						throw error(format("Unknown data received on input %s", repIdx));
+					ensurePrefix(repIdx);
+
+					auto const curDurIn180k = meta->durationIn180k;
+					if (curDurIn180k == 0 && curSegDurIn180k[repIdx] == 0) {
+						processInitSegment(qualities[repIdx].get(), repIdx);
+						if (flags & PresignalNextSegment) {
+							sendLocalData(0, false);
+						}
+						--repIdx;
+						currData = nullptr;
+						continue;
+					}
+
+					if (segDurationInMs && curDurIn180k) {
+						auto const numSeg = totalDurationInMs / segDurationInMs;
+						qualities[repIdx]->avg_bitrate_in_bps = ((meta->filesize * 8 * IClock::Rate) / meta->durationIn180k + qualities[repIdx]->avg_bitrate_in_bps * numSeg) / (numSeg + 1);
+					}
+					if (flags & ForceRealDurations) {
+						curSegDurIn180k[repIdx] += meta->durationIn180k;
+					} else {
+						curSegDurIn180k[repIdx] = segDurationInMs ? timescaleToClock(segDurationInMs, 1000) : meta->durationIn180k;
+					}
+					if (curSegDurIn180k[repIdx] < timescaleToClock(segDurationInMs, 1000) || !meta->EOS) {
+						sendLocalData(meta->filesize, meta->EOS);
+					}
+				}
+			}
+
+			if (!currData) {
+				if (repIdx != numInputs()) {
+					return false; // exit thread
+				} else {
+					assert((type == LiveNonBlocking) && ((int)qualities.size() < numInputs()));
+					std::this_thread::sleep_for(std::chrono::milliseconds(10));
+					return true;
+				}
+			}
+
+			const int64_t curMediaTimeInMs = clockToTimescale(currData->get<PresentationTime>().time, 1000);
+			ensureStartTime();
+			currData = nullptr;
+
+			if (segmentReady()) {
+				generateManifest();
+				totalDurationInMs += segDurationInMs;
+				auto utcInMs = int64_t(getUTC() * 1000);
+				m_host->log(Info, format("Processes segment (total processed: %ss, UTC: %sms (deltaAST=%s, deltaInput=%s).",
+				        (double)totalDurationInMs / 1000, utcInMs, utcInMs - startTimeInMs, (int64_t)(utcInMs - curMediaTimeInMs)).c_str());
+			}
+
+			return true;
+		}
+
 		void threadProc() {
 			curSegDurIn180k.resize(numInputs());
 
-			for (;;) {
-				for (repIdx = 0; repIdx < numInputs(); ++repIdx) {
-					if (isComplete()) {
-						continue;
-					}
-
-					if ((type == LiveNonBlocking) && (!qualities[repIdx]->getMeta())) {
-						if (inputs[repIdx]->tryPop(currData) && !currData) {
-							break;
-						}
-					} else {
-						currData = inputs[repIdx]->pop();
-						if (!currData) {
-							break;
-						}
-					}
-
-					if (currData) {
-						qualities[repIdx]->lastData = currData;
-						auto const &meta = qualities[repIdx]->getMeta();
-						if (!meta)
-							throw error(format("Unknown data received on input %s", repIdx));
-						ensurePrefix(repIdx);
-
-						auto const curDurIn180k = meta->durationIn180k;
-						if (curDurIn180k == 0 && curSegDurIn180k[repIdx] == 0) {
-							processInitSegment(qualities[repIdx].get(), repIdx);
-							if (flags & PresignalNextSegment) {
-								sendLocalData(0, false);
-							}
-							--repIdx;
-							currData = nullptr;
-							continue;
-						}
-
-						if (segDurationInMs && curDurIn180k) {
-							auto const numSeg = totalDurationInMs / segDurationInMs;
-							qualities[repIdx]->avg_bitrate_in_bps = ((meta->filesize * 8 * IClock::Rate) / meta->durationIn180k + qualities[repIdx]->avg_bitrate_in_bps * numSeg) / (numSeg + 1);
-						}
-						if (flags & ForceRealDurations) {
-							curSegDurIn180k[repIdx] += meta->durationIn180k;
-						} else {
-							curSegDurIn180k[repIdx] = segDurationInMs ? timescaleToClock(segDurationInMs, 1000) : meta->durationIn180k;
-						}
-						if (curSegDurIn180k[repIdx] < timescaleToClock(segDurationInMs, 1000) || !meta->EOS) {
-							sendLocalData(meta->filesize, meta->EOS);
-						}
-					}
-				}
-				if (!currData) {
-					if (repIdx != numInputs()) {
-						break;
-					} else {
-						assert((type == LiveNonBlocking) && ((int)qualities.size() < numInputs()));
-						std::this_thread::sleep_for(std::chrono::milliseconds(10));
-						continue;
-					}
-				}
-				const int64_t curMediaTimeInMs = clockToTimescale(currData->get<PresentationTime>().time, 1000);
-				ensureStartTime();
-				currData = nullptr;
-
-				if (segmentReady()) {
-					generateManifest();
-					totalDurationInMs += segDurationInMs;
-					auto utcInMs = int64_t(getUTC() * 1000);
-					m_host->log(Info, format("Processes segment (total processed: %ss, UTC: %sms (deltaAST=%s, deltaInput=%s).",
-					        (double)totalDurationInMs / 1000, utcInMs, utcInMs - startTimeInMs, (int64_t)(utcInMs - curMediaTimeInMs)).c_str());
-				}
-			}
+			while(schedule()) { }
 
 			/*final rewrite of MPD in static mode*/
 			finalizeManifest();
