@@ -315,7 +315,9 @@ struct AdaptiveStreamer : ModuleDynI {
 							if (flags & PresignalNextSegment) {
 								sendLocalData(0, false);
 							}
-							--repIdx; currData = nullptr; continue;
+							--repIdx;
+							currData = nullptr;
+							continue;
 						}
 
 						if (segDurationInMs && curDurIn180k) {
@@ -337,7 +339,7 @@ struct AdaptiveStreamer : ModuleDynI {
 						break;
 					} else {
 						assert((type == LiveNonBlocking) && ((int)qualities.size() < numInputs));
-						std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+						std::this_thread::sleep_for(std::chrono::milliseconds(10));
 						continue;
 					}
 				}
