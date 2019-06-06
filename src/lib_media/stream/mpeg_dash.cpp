@@ -218,15 +218,19 @@ struct AdaptiveStreamer : ModuleDynI {
 			}
 		}
 
+    int numInputs()
+    {
+      return getNumInputs() - 1;
+    }
+
 		void threadProc() {
 
-			auto const numInputs = getNumInputs() - 1;
-			for (int i = 0; i < numInputs; ++i) {
+			for (int i = 0; i < numInputs(); ++i) {
 				qualities.push_back(createQuality());
 			}
 
 			Data currData;
-			std::vector<uint64_t> curSegDurIn180k(numInputs);
+			std::vector<uint64_t> curSegDurIn180k(numInputs());
 			int repIdx;
 
 			auto isComplete = [&]()->bool {
@@ -244,7 +248,7 @@ struct AdaptiveStreamer : ModuleDynI {
 				if (startTimeInMs == (uint64_t)-2) startTimeInMs = clockToTimescale(currData->get<PresentationTime>().time, 1000);
 			};
 			auto ensureCurDur = [&]() {
-				for (int i = 0; i < numInputs; ++i) {
+				for (int i = 0; i < numInputs(); ++i) {
 					if (!curSegDurIn180k[0])
 						curSegDurIn180k[0] = segDurationInMs;
 				}
@@ -272,7 +276,7 @@ struct AdaptiveStreamer : ModuleDynI {
 			};
 			auto segmentReady = [&]()->bool {
 				ensureCurDur();
-				for (int i = 0; i < numInputs; ++i) {
+				for (int i = 0; i < numInputs(); ++i) {
 					if (curSegDurIn180k[i] < timescaleToClock(segDurationInMs, 1000)) {
 						return false;
 					}
@@ -286,7 +290,7 @@ struct AdaptiveStreamer : ModuleDynI {
 				return true;
 			};
 			for (;;) {
-				for (repIdx = 0; repIdx < numInputs; ++repIdx) {
+				for (repIdx = 0; repIdx < numInputs(); ++repIdx) {
 					if (isComplete()) {
 						continue;
 					}
@@ -335,10 +339,10 @@ struct AdaptiveStreamer : ModuleDynI {
 					}
 				}
 				if (!currData) {
-					if (repIdx != numInputs) {
+					if (repIdx != numInputs()) {
 						break;
 					} else {
-						assert((type == LiveNonBlocking) && ((int)qualities.size() < numInputs));
+						assert((type == LiveNonBlocking) && ((int)qualities.size() < numInputs()));
 						std::this_thread::sleep_for(std::chrono::milliseconds(10));
 						continue;
 					}
