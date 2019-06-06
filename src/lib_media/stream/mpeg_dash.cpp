@@ -437,7 +437,6 @@ class Dasher : public AdaptiveStreamer {
 			struct SegmentToDelete {
 				SegmentToDelete(std::shared_ptr<const MetadataFile> file) : file(file) {}
 				std::shared_ptr<const MetadataFile> file;
-				int retry = 5;
 			};
 			std::vector<SegmentToDelete> timeshiftSegments;
 		};
@@ -646,12 +645,7 @@ class Dasher : public AdaptiveStreamer {
 						timeShiftSegmentsInMs += clockToTimescale((*seg).file->durationIn180k, 1000);
 						if (timeShiftSegmentsInMs > timeShiftBufferDepthInMs) {
 							m_host->log(Debug, format( "Delete segment \"%s\".", (*seg).file->filename).c_str());
-							if (gf_delete_file(seg->file->filename.c_str()) == GF_OK || seg->retry == 0) {
-								seg = quality->timeshiftSegments.erase(seg);
-							} else {
-								m_host->log(Warning, format("Couldn't delete old segment \"%s\" (retry=%s).", (*seg).file->filename, (*seg).retry).c_str());
-								seg->retry--;
-							}
+							seg = quality->timeshiftSegments.erase(seg);
 						} else {
 							++seg;
 						}
@@ -685,24 +679,6 @@ class Dasher : public AdaptiveStreamer {
 			if (mpd->mpd->time_shift_buffer_depth) {
 				if (!(flags & SegmentsNotOwned)) {
 					m_host->log(Info, "Manifest was not rewritten for on-demand and all file are being deleted.");
-					auto const mpdPath = format("%s%s", manifestDir, mpdFn);
-					if (gf_delete_file(mpdPath.c_str()) != GF_OK) {
-						m_host->log(Error, format("Couldn't delete MPD: \"%s\".", mpdPath).c_str());
-					}
-
-					for(auto i : getInputs()) {
-						auto quality = safe_cast<DASHQuality>(qualities[i].get());
-						std::string fn = manifestDir + getInitName(quality, i);
-						if (gf_delete_file(fn.c_str()) != GF_OK) {
-							m_host->log(Error, format("Couldn't delete initialization segment \"%s\".", fn).c_str());
-						}
-
-						for (auto const &seg : quality->timeshiftSegments) {
-							if (gf_delete_file(seg.file->filename.c_str()) != GF_OK) {
-								m_host->log(Error, format("Couldn't delete media segment \"%s\".", seg.file->filename).c_str());
-							}
-						}
-					}
 				}
 			} else {
 				m_host->log(Info, "Manifest rewritten for on-demand. Media files untouched.");
