@@ -348,16 +348,13 @@ struct AdaptiveStreamer : ModuleDynI {
 			if (!currData)
 				return false; // nothing was done
 
-			const int64_t curMediaTimeInMs = clockToTimescale(currData->get<PresentationTime>().time, 1000);
 			ensureStartTime();
 			currData = nullptr;
 
 			if (segmentReady()) {
 				generateManifest();
 				totalDurationInMs += segDurationInMs;
-				auto utcInMs = int64_t(getUTC() * 1000);
-				m_host->log(Info, format("Processes segment (total processed: %ss, UTC: %sms (deltaAST=%s, deltaInput=%s).",
-				        (double)totalDurationInMs / 1000, utcInMs, utcInMs - startTimeInMs, (int64_t)(utcInMs - curMediaTimeInMs)).c_str());
+				m_host->log(Info, format("Processes segment (total processed: %ss,", (double)totalDurationInMs / 1000).c_str());
 			}
 
 			return true;
