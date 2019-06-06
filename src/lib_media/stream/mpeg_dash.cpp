@@ -222,7 +222,7 @@ struct AdaptiveStreamer : ModuleDynI {
 
 			Data currData;
 			std::vector<uint64_t> curSegDurIn180k(numInputs);
-			int i;
+			int repIdx;
 
 			auto isComplete = [&]()->bool {
 				uint64_t minIncompletSegDur = std::numeric_limits<uint64_t>::max();
@@ -233,7 +233,7 @@ struct AdaptiveStreamer : ModuleDynI {
 						minIncompletSegDur = segDur;
 					}
 				}
-				return (minIncompletSegDur == std::numeric_limits<uint64_t>::max()) || (curSegDurIn180k[i] > minIncompletSegDur);
+				return (minIncompletSegDur == std::numeric_limits<uint64_t>::max()) || (curSegDurIn180k[repIdx] > minIncompletSegDur);
 			};
 			auto ensureStartTime = [&]() {
 				if (startTimeInMs == (uint64_t)-2) startTimeInMs = clockToTimescale(currData->get<PresentationTime>().time, 1000);
@@ -248,10 +248,10 @@ struct AdaptiveStreamer : ModuleDynI {
 				ensureStartTime();
 				auto out = getPresignalledData(size, currData, EOS);
 				if (out) {
-					auto const &meta = qualities[i]->getMeta();
+					auto const &meta = qualities[repIdx]->getMeta();
 
 					auto metaFn = make_shared<MetadataFile>(SEGMENT);
-					metaFn->filename = getSegmentName(qualities[i].get(), i, std::to_string(getCurSegNum()));
+					metaFn->filename = getSegmentName(qualities[repIdx].get(), repIdx, std::to_string(getCurSegNum()));
 					metaFn->mimeType = meta->mimeType;
 					metaFn->codecName = meta->codecName;
 					metaFn->durationIn180k = meta->durationIn180k;
@@ -261,7 +261,7 @@ struct AdaptiveStreamer : ModuleDynI {
 					metaFn->EOS = EOS;
 
 					out->setMetadata(metaFn);
-					out->setMediaTime(totalDurationInMs + timescaleToClock(curSegDurIn180k[i], 1000));
+					out->setMediaTime(totalDurationInMs + timescaleToClock(curSegDurIn180k[repIdx], 1000));
 					outputSegments->post(out);
 				}
 			};
@@ -281,54 +281,54 @@ struct AdaptiveStreamer : ModuleDynI {
 				return true;
 			};
 			for (;;) {
-				for (i = 0; i < numInputs; ++i) {
+				for (repIdx = 0; repIdx < numInputs; ++repIdx) {
 					if (isComplete()) {
 						continue;
 					}
 
-					if ((type == LiveNonBlocking) && (!qualities[i]->getMeta())) {
-						if (inputs[i]->tryPop(currData) && !currData) {
+					if ((type == LiveNonBlocking) && (!qualities[repIdx]->getMeta())) {
+						if (inputs[repIdx]->tryPop(currData) && !currData) {
 							break;
 						}
 					} else {
-						currData = inputs[i]->pop();
+						currData = inputs[repIdx]->pop();
 						if (!currData) {
 							break;
 						}
 					}
 
 					if (currData) {
-						qualities[i]->lastData = currData;
-						auto const &meta = qualities[i]->getMeta();
+						qualities[repIdx]->lastData = currData;
+						auto const &meta = qualities[repIdx]->getMeta();
 						if (!meta)
-							throw error(format("Unknown data received on input %s", i));
-						ensurePrefix(i);
+							throw error(format("Unknown data received on input %s", repIdx));
+						ensurePrefix(repIdx);
 
 						auto const curDurIn180k = meta->durationIn180k;
-						if (curDurIn180k == 0 && curSegDurIn180k[i] == 0) {
-							processInitSegment(qualities[i].get(), i);
+						if (curDurIn180k == 0 && curSegDurIn180k[repIdx] == 0) {
+							processInitSegment(qualities[repIdx].get(), repIdx);
 							if (flags & PresignalNextSegment) {
 								sendLocalData(0, false);
 							}
-							--i; currData = nullptr; continue;
+							--repIdx; currData = nullptr; continue;
 						}
 
 						if (segDurationInMs && curDurIn180k) {
 							auto const numSeg = totalDurationInMs / segDurationInMs;
-							qualities[i]->avg_bitrate_in_bps = ((meta->filesize * 8 * IClock::Rate) / meta->durationIn180k + qualities[i]->avg_bitrate_in_bps * numSeg) / (numSeg + 1);
+							qualities[repIdx]->avg_bitrate_in_bps = ((meta->filesize * 8 * IClock::Rate) / meta->durationIn180k + qualities[repIdx]->avg_bitrate_in_bps * numSeg) / (numSeg + 1);
 						}
 						if (flags & ForceRealDurations) {
-							curSegDurIn180k[i] += meta->durationIn180k;
+							curSegDurIn180k[repIdx] += meta->durationIn180k;
 						} else {
-							curSegDurIn180k[i] = segDurationInMs ? timescaleToClock(segDurationInMs, 1000) : meta->durationIn180k;
+							curSegDurIn180k[repIdx] = segDurationInMs ? timescaleToClock(segDurationInMs, 1000) : meta->durationIn180k;
 						}
-						if (curSegDurIn180k[i] < timescaleToClock(segDurationInMs, 1000) || !meta->EOS) {
+						if (curSegDurIn180k[repIdx] < timescaleToClock(segDurationInMs, 1000) || !meta->EOS) {
 							sendLocalData(meta->filesize, meta->EOS);
 						}
 					}
 				}
 				if (!currData) {
-					if (i != numInputs) {
+					if (repIdx != numInputs) {
 						break;
 					} else {
 						assert((type == LiveNonBlocking) && ((int)qualities.size() < numInputs));
@@ -474,9 +474,9 @@ class Dasher : public AdaptiveStreamer {
 				auto period = mpd->addPeriod();
 				period->ID = gf_strdup(PERIOD_NAME);
 				GF_MPD_AdaptationSet *audioAS = nullptr, *videoAS = nullptr;
-				for(auto i : getInputs()) {
+				for(auto repIdx : getInputs()) {
 					GF_MPD_AdaptationSet *as = nullptr;
-					auto quality = safe_cast<DASHQuality>(qualities[i].get());
+					auto quality = safe_cast<DASHQuality>(qualities[repIdx].get());
 					auto const &meta = quality->getMeta();
 					if (!meta) {
 						continue;
@@ -488,7 +488,7 @@ class Dasher : public AdaptiveStreamer {
 					default: assert(0);
 					}
 
-					auto const repId = format("%s", i);
+					auto const repId = format("%s", repIdx);
 					auto rep = mpd->addRepresentation(as, repId.c_str(), (u32)quality->avg_bitrate_in_bps);
 					quality->rep = rep;
 					GF_SAFEALLOC(rep->segment_template, GF_MPD_SegmentTemplate);
@@ -525,8 +525,8 @@ class Dasher : public AdaptiveStreamer {
 
 					switch (meta->type) {
 					case AUDIO_PKT: case VIDEO_PKT: case SUBTITLE_PKT:
-						rep->segment_template->initialization = gf_strdup(getInitName(quality, i).c_str());
-						rep->segment_template->media = gf_strdup(getSegmentName(quality, i, templateName).c_str());
+						rep->segment_template->initialization = gf_strdup(getInitName(quality, repIdx).c_str());
+						rep->segment_template->media = gf_strdup(getSegmentName(quality, repIdx, templateName).c_str());
 						break;
 					default: assert(0);
 					}
