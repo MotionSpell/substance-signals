@@ -132,7 +132,6 @@ TARGETS+=$(BIN)/MPEG_DASH.smd
 $(BIN)/MPEG_DASH.smd: PKGS+=gpac
 $(BIN)/MPEG_DASH.smd: \
   $(BIN)/$(SRC)/lib_media/stream/mpeg_dash.cpp.o\
-  $(BIN)/$(SRC)/lib_media/stream/adaptive_streaming_common.cpp.o\
 
 #------------------------------------------------------------------------------
 TARGETS+=$(BIN)/GPACDemuxMP4Simple.smd
