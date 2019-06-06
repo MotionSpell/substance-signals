@@ -66,7 +66,7 @@ struct HttpSink : Modules::ModuleS {
 				ConnectOutput(http->getOutput(0), onFinished);
 
 				http->getInput(0)->push(data);
-				processModule(http.get());
+				http->process();
 				zeroSizeConnections[url] = move(http);
 			} else {
 				if (exists(zeroSizeConnections, url)) {
@@ -77,14 +77,14 @@ struct HttpSink : Modules::ModuleS {
 					if (meta->EOS) {
 						zeroSizeConnections[url]->getInput(0)->push(nullptr);
 					}
-					processModule(zeroSizeConnections[url].get());
+					zeroSizeConnections[url]->process();
 				} else {
 					m_host->log(Debug, format("Pushing (%s bytes) to new URL: \"%s\"", meta->filesize, url).c_str());
 					http = Modules::createModule<Modules::Out::HTTP>(m_host, httpConfig);
 					http->getInput(0)->push(data);
 					auto th = thread([](unique_ptr<Modules::Out::HTTP> http) {
 						http->getInput(0)->push(nullptr);
-						processModule(http.get());
+						http->process();
 					}, move(http));
 					th.detach();
 				}
@@ -102,11 +102,6 @@ struct HttpSink : Modules::ModuleS {
 			};
 			auto th = thread(remoteDelete);
 			th.detach();
-		}
-
-		// workaround the fact that 'ModuleS' hides the 'process(Data)' function
-		static void processModule(IModule* mod) {
-			mod->process();
 		}
 
 		Modules::KHost* const m_host;
