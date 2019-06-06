@@ -220,7 +220,7 @@ struct AdaptiveStreamer : ModuleDynI {
 				qualities.push_back(createQuality());
 			}
 
-			Data data;
+			Data currData;
 			std::vector<uint64_t> curSegDurIn180k(numInputs);
 			int i;
 
@@ -236,7 +236,7 @@ struct AdaptiveStreamer : ModuleDynI {
 				return (minIncompletSegDur == std::numeric_limits<uint64_t>::max()) || (curSegDurIn180k[i] > minIncompletSegDur);
 			};
 			auto ensureStartTime = [&]() {
-				if (startTimeInMs == (uint64_t)-2) startTimeInMs = clockToTimescale(data->get<PresentationTime>().time, 1000);
+				if (startTimeInMs == (uint64_t)-2) startTimeInMs = clockToTimescale(currData->get<PresentationTime>().time, 1000);
 			};
 			auto ensureCurDur = [&]() {
 				for (i = 0; i < numInputs; ++i) {
@@ -246,7 +246,7 @@ struct AdaptiveStreamer : ModuleDynI {
 			};
 			auto sendLocalData = [&](uint64_t size, bool EOS) {
 				ensureStartTime();
-				auto out = getPresignalledData(size, data, EOS);
+				auto out = getPresignalledData(size, currData, EOS);
 				if (out) {
 					auto const &meta = qualities[i]->getMeta();
 
@@ -287,18 +287,18 @@ struct AdaptiveStreamer : ModuleDynI {
 					}
 
 					if ((type == LiveNonBlocking) && (!qualities[i]->getMeta())) {
-						if (inputs[i]->tryPop(data) && !data) {
+						if (inputs[i]->tryPop(currData) && !currData) {
 							break;
 						}
 					} else {
-						data = inputs[i]->pop();
-						if (!data) {
+						currData = inputs[i]->pop();
+						if (!currData) {
 							break;
 						}
 					}
 
-					if (data) {
-						qualities[i]->lastData = data;
+					if (currData) {
+						qualities[i]->lastData = currData;
 						auto const &meta = qualities[i]->getMeta();
 						if (!meta)
 							throw error(format("Unknown data received on input %s", i));
@@ -310,7 +310,7 @@ struct AdaptiveStreamer : ModuleDynI {
 							if (flags & PresignalNextSegment) {
 								sendLocalData(0, false);
 							}
-							--i; data = nullptr; continue;
+							--i; currData = nullptr; continue;
 						}
 
 						if (segDurationInMs && curDurIn180k) {
@@ -327,7 +327,7 @@ struct AdaptiveStreamer : ModuleDynI {
 						}
 					}
 				}
-				if (!data) {
+				if (!currData) {
 					if (i != numInputs) {
 						break;
 					} else {
@@ -336,9 +336,9 @@ struct AdaptiveStreamer : ModuleDynI {
 						continue;
 					}
 				}
-				const int64_t curMediaTimeInMs = clockToTimescale(data->get<PresentationTime>().time, 1000);
+				const int64_t curMediaTimeInMs = clockToTimescale(currData->get<PresentationTime>().time, 1000);
 				ensureStartTime();
-				data = nullptr;
+				currData = nullptr;
 
 				if (segmentReady()) {
 					generateManifest();
