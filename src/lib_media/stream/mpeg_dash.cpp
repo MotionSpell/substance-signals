@@ -227,7 +227,6 @@ struct AdaptiveStreamer : ModuleDynI {
 
 		Data currData;
 		std::vector<uint64_t> curSegDurIn180k;
-		int repIdx;
 
 		bool isComplete(int repIdx) const {
 			uint64_t minIncompletSegDur = std::numeric_limits<uint64_t>::max();
@@ -253,7 +252,7 @@ struct AdaptiveStreamer : ModuleDynI {
 			}
 		}
 
-		void sendLocalData(uint64_t size, bool EOS) {
+		void sendLocalData(int repIdx, uint64_t size, bool EOS) {
 			ensureStartTime();
 			auto out = getPresignalledData(size, currData, EOS);
 			if (out) {
@@ -291,6 +290,8 @@ struct AdaptiveStreamer : ModuleDynI {
 			return true;
 		}
 
+		int repIdx;
+
 		bool scheduleRepresentation() {
 			if (isComplete(repIdx))
 				return true;
@@ -310,7 +311,7 @@ struct AdaptiveStreamer : ModuleDynI {
 			if (curDurIn180k == 0 && curSegDurIn180k[repIdx] == 0) {
 				processInitSegment(qualities[repIdx].get(), repIdx);
 				if (flags & PresignalNextSegment)
-					sendLocalData(0, false);
+					sendLocalData(repIdx, 0, false);
 				--repIdx;
 				currData = nullptr;
 				return true;
@@ -326,7 +327,7 @@ struct AdaptiveStreamer : ModuleDynI {
 				curSegDurIn180k[repIdx] = segDurationInMs ? timescaleToClock(segDurationInMs, 1000) : meta->durationIn180k;
 			}
 			if (curSegDurIn180k[repIdx] < timescaleToClock(segDurationInMs, 1000) || !meta->EOS)
-				sendLocalData(meta->filesize, meta->EOS);
+				sendLocalData(repIdx, meta->filesize, meta->EOS);
 
 			return true;
 		}
