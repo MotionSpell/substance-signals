@@ -82,11 +82,14 @@ struct AdaptiveStreamer : ModuleDynI {
 				for (int i = 0; i < numInputs(); ++i)
 					qualities.push_back(createQuality());
 
-				workingThread = std::thread(&AdaptiveStreamer::threadProc, this);
+				workingThread = std::thread([]() {});
 			}
+
+			while(schedule()) { }
 		}
 
 		void flush() override {
+			while(schedule()) { }
 			endOfStream();
 		}
 
@@ -299,14 +302,8 @@ struct AdaptiveStreamer : ModuleDynI {
 			if (isComplete())
 				return true;
 
-			if ((type == LiveNonBlocking) && (!qualities[repIdx]->getMeta())) {
-				if (inputs[repIdx]->tryPop(currData) && !currData)
-					return false;
-			} else {
-				currData = inputs[repIdx]->pop();
-				if (!currData)
-					return false;
-			}
+			if (!inputs[repIdx]->tryPop(currData) || !currData)
+				return false;
 
 			if (currData) {
 				qualities[repIdx]->lastData = currData;
@@ -349,14 +346,8 @@ struct AdaptiveStreamer : ModuleDynI {
 					break;
 			}
 
-			if (!currData) {
-				if (repIdx != numInputs())
-					return false; // exit thread
-
-				assert((type == LiveNonBlocking) && ((int)qualities.size() < numInputs()));
-				std::this_thread::sleep_for(std::chrono::milliseconds(10));
-				return true;
-			}
+			if (!currData)
+				return false; // nothing was done
 
 			const int64_t curMediaTimeInMs = clockToTimescale(currData->get<PresentationTime>().time, 1000);
 			ensureStartTime();
@@ -372,11 +363,6 @@ struct AdaptiveStreamer : ModuleDynI {
 
 			return true;
 		}
-
-		void threadProc() {
-			while(schedule()) { }
-		}
-
 };
 }
 
