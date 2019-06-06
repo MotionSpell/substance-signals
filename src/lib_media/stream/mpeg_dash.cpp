@@ -78,6 +78,10 @@ struct AdaptiveStreamer : ModuleDynI {
 		void process() override {
 			if (!workingThread.joinable() && (startTimeInMs==(uint64_t)-1)) {
 				startTimeInMs = (uint64_t)-2;
+
+				for (int i = 0; i < numInputs(); ++i)
+					qualities.push_back(createQuality());
+
 				workingThread = std::thread(&AdaptiveStreamer::threadProc, this);
 			}
 		}
@@ -218,77 +222,79 @@ struct AdaptiveStreamer : ModuleDynI {
 			}
 		}
 
-    int numInputs()
-    {
-      return getNumInputs() - 1;
-    }
+		int numInputs() {
+			return getNumInputs() - 1;
+		}
+
+		Data currData;
+		std::vector<uint64_t> curSegDurIn180k;
+		int repIdx;
+
+		bool isComplete() {
+			uint64_t minIncompletSegDur = std::numeric_limits<uint64_t>::max();
+			for (size_t idx = 0; idx < curSegDurIn180k.size(); ++idx) {
+				auto const &segDur = curSegDurIn180k[idx];
+				if ( (segDur < minIncompletSegDur) &&
+				    ((segDur < timescaleToClock(segDurationInMs, 1000)) || (!qualities[idx]->getMeta() || !qualities[idx]->getMeta()->EOS))) {
+					minIncompletSegDur = segDur;
+				}
+			}
+			return (minIncompletSegDur == std::numeric_limits<uint64_t>::max()) || (curSegDurIn180k[repIdx] > minIncompletSegDur);
+		}
+
+		void ensureStartTime() {
+			if (startTimeInMs == (uint64_t)-2)
+				startTimeInMs = clockToTimescale(currData->get<PresentationTime>().time, 1000);
+		}
+
+		void ensureCurDur() {
+			for (int i = 0; i < numInputs(); ++i) {
+				if (!curSegDurIn180k[0])
+					curSegDurIn180k[0] = segDurationInMs;
+			}
+		}
+
+		void sendLocalData(uint64_t size, bool EOS) {
+			ensureStartTime();
+			auto out = getPresignalledData(size, currData, EOS);
+			if (out) {
+				auto const &meta = qualities[repIdx]->getMeta();
+
+				auto metaFn = make_shared<MetadataFile>(SEGMENT);
+				metaFn->filename = getSegmentName(qualities[repIdx].get(), repIdx, std::to_string(getCurSegNum()));
+				metaFn->mimeType = meta->mimeType;
+				metaFn->codecName = meta->codecName;
+				metaFn->durationIn180k = meta->durationIn180k;
+				metaFn->filesize = size;
+				metaFn->latencyIn180k = meta->latencyIn180k;
+				metaFn->startsWithRAP = meta->startsWithRAP;
+				metaFn->EOS = EOS;
+
+				out->setMetadata(metaFn);
+				out->setMediaTime(totalDurationInMs + timescaleToClock(curSegDurIn180k[repIdx], 1000));
+				outputSegments->post(out);
+			}
+		}
+
+		bool segmentReady() {
+			ensureCurDur();
+			for (int i = 0; i < numInputs(); ++i) {
+				if (curSegDurIn180k[i] < timescaleToClock(segDurationInMs, 1000)) {
+					return false;
+				}
+				if (!qualities[i]->getMeta()->EOS) {
+					return false;
+				}
+			}
+			for (auto &d : curSegDurIn180k) {
+				d -= timescaleToClock(segDurationInMs, 1000);
+			}
+			return true;
+		}
 
 		void threadProc() {
+			curSegDurIn180k.resize(numInputs());
 
-			for (int i = 0; i < numInputs(); ++i) {
-				qualities.push_back(createQuality());
-			}
-
-			Data currData;
-			std::vector<uint64_t> curSegDurIn180k(numInputs());
-			int repIdx;
-
-			auto isComplete = [&]()->bool {
-				uint64_t minIncompletSegDur = std::numeric_limits<uint64_t>::max();
-				for (size_t idx = 0; idx < curSegDurIn180k.size(); ++idx) {
-					auto const &segDur = curSegDurIn180k[idx];
-					if ( (segDur < minIncompletSegDur) &&
-					    ((segDur < timescaleToClock(segDurationInMs, 1000)) || (!qualities[idx]->getMeta() || !qualities[idx]->getMeta()->EOS))) {
-						minIncompletSegDur = segDur;
-					}
-				}
-				return (minIncompletSegDur == std::numeric_limits<uint64_t>::max()) || (curSegDurIn180k[repIdx] > minIncompletSegDur);
-			};
-			auto ensureStartTime = [&]() {
-				if (startTimeInMs == (uint64_t)-2) startTimeInMs = clockToTimescale(currData->get<PresentationTime>().time, 1000);
-			};
-			auto ensureCurDur = [&]() {
-				for (int i = 0; i < numInputs(); ++i) {
-					if (!curSegDurIn180k[0])
-						curSegDurIn180k[0] = segDurationInMs;
-				}
-			};
-			auto sendLocalData = [&](uint64_t size, bool EOS) {
-				ensureStartTime();
-				auto out = getPresignalledData(size, currData, EOS);
-				if (out) {
-					auto const &meta = qualities[repIdx]->getMeta();
-
-					auto metaFn = make_shared<MetadataFile>(SEGMENT);
-					metaFn->filename = getSegmentName(qualities[repIdx].get(), repIdx, std::to_string(getCurSegNum()));
-					metaFn->mimeType = meta->mimeType;
-					metaFn->codecName = meta->codecName;
-					metaFn->durationIn180k = meta->durationIn180k;
-					metaFn->filesize = size;
-					metaFn->latencyIn180k = meta->latencyIn180k;
-					metaFn->startsWithRAP = meta->startsWithRAP;
-					metaFn->EOS = EOS;
-
-					out->setMetadata(metaFn);
-					out->setMediaTime(totalDurationInMs + timescaleToClock(curSegDurIn180k[repIdx], 1000));
-					outputSegments->post(out);
-				}
-			};
-			auto segmentReady = [&]()->bool {
-				ensureCurDur();
-				for (int i = 0; i < numInputs(); ++i) {
-					if (curSegDurIn180k[i] < timescaleToClock(segDurationInMs, 1000)) {
-						return false;
-					}
-					if (!qualities[i]->getMeta()->EOS) {
-						return false;
-					}
-				}
-				for (auto &d : curSegDurIn180k) {
-					d -= timescaleToClock(segDurationInMs, 1000);
-				}
-				return true;
-			};
 			for (;;) {
 				for (repIdx = 0; repIdx < numInputs(); ++repIdx) {
 					if (isComplete()) {
