@@ -239,7 +239,7 @@ struct AdaptiveStreamer : ModuleDynI {
 				if (startTimeInMs == (uint64_t)-2) startTimeInMs = clockToTimescale(currData->get<PresentationTime>().time, 1000);
 			};
 			auto ensureCurDur = [&]() {
-				for (i = 0; i < numInputs; ++i) {
+				for (int i = 0; i < numInputs; ++i) {
 					if (!curSegDurIn180k[0])
 						curSegDurIn180k[0] = segDurationInMs;
 				}
@@ -267,7 +267,7 @@ struct AdaptiveStreamer : ModuleDynI {
 			};
 			auto segmentReady = [&]()->bool {
 				ensureCurDur();
-				for (i = 0; i < numInputs; ++i) {
+				for (int i = 0; i < numInputs; ++i) {
 					if (curSegDurIn180k[i] < timescaleToClock(segDurationInMs, 1000)) {
 						return false;
 					}
