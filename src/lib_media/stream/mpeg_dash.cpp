@@ -27,8 +27,6 @@ using namespace Modules;
 namespace {
 
 struct Quality {
-	virtual ~Quality() {}
-
 	std::shared_ptr<const MetadataFile> getMeta() const {
 		return lastData ? safe_cast<const MetadataFile>(lastData->getMetadata()) : nullptr;
 	};
@@ -36,6 +34,13 @@ struct Quality {
 	Data lastData;
 	uint64_t avg_bitrate_in_bps = 0;
 	std::string prefix; //typically a subdir, ending with a folder separator '/'
+
+	GF_MPD_Representation *rep = nullptr;
+	struct SegmentToDelete {
+		SegmentToDelete(std::shared_ptr<const MetadataFile> file) : file(file) {}
+		std::shared_ptr<const MetadataFile> file;
+	};
+	std::vector<SegmentToDelete> timeshiftSegments;
 };
 
 struct AdaptiveStreamer : ModuleDynI {
@@ -422,14 +427,6 @@ class Dasher : public AdaptiveStreamer {
 		}
 
 	protected:
-		struct DASHQuality : public Quality {
-			GF_MPD_Representation *rep = nullptr;
-			struct SegmentToDelete {
-				SegmentToDelete(std::shared_ptr<const MetadataFile> file) : file(file) {}
-				std::shared_ptr<const MetadataFile> file;
-			};
-			std::vector<SegmentToDelete> timeshiftSegments;
-		};
 
 		KHost* const m_host;
 		std::unique_ptr<gpacpp::MPD> mpd;
@@ -440,7 +437,7 @@ class Dasher : public AdaptiveStreamer {
 		const bool useSegmentTimeline = false;
 
 		std::unique_ptr<Quality> createQuality() const {
-			return make_unique<DASHQuality>();
+			return make_unique<Quality>();
 		}
 
 		void ensureManifest() {
@@ -476,7 +473,7 @@ class Dasher : public AdaptiveStreamer {
 				GF_MPD_AdaptationSet *audioAS = nullptr, *videoAS = nullptr;
 				for(auto repIdx : getInputs()) {
 					GF_MPD_AdaptationSet *as = nullptr;
-					auto quality = safe_cast<DASHQuality>(qualities[repIdx].get());
+					auto quality = safe_cast<Quality>(qualities[repIdx].get());
 					auto const &meta = quality->getMeta();
 					if (!meta) {
 						continue;
@@ -548,7 +545,7 @@ class Dasher : public AdaptiveStreamer {
 			outputManifest->post(out);
 		}
 
-		std::string getPrefixedSegmentName(DASHQuality const * const quality, size_t index, u64 segmentNum) const {
+		std::string getPrefixedSegmentName(Quality const * const quality, size_t index, u64 segmentNum) const {
 			return manifestDir + getSegmentName(quality, index, std::to_string(segmentNum));
 		}
 
@@ -556,7 +553,7 @@ class Dasher : public AdaptiveStreamer {
 			ensureManifest();
 
 			for(auto i : getInputs()) {
-				auto quality = safe_cast<DASHQuality>(qualities[i].get());
+				auto quality = safe_cast<Quality>(qualities[i].get());
 				auto const &meta = quality->getMeta();
 				if (!meta) {
 					continue;
@@ -656,7 +653,7 @@ class Dasher : public AdaptiveStreamer {
 						}
 					}
 
-					quality->timeshiftSegments.emplace(quality->timeshiftSegments.begin(), DASHQuality::SegmentToDelete(metaFn));
+					quality->timeshiftSegments.emplace(quality->timeshiftSegments.begin(), Quality::SegmentToDelete(metaFn));
 				}
 			}
 
