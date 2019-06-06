@@ -5,7 +5,6 @@
 #include "lib_modules/utils/helper.hpp"
 #include "lib_modules/utils/helper_dyn.hpp"
 #include "lib_modules/utils/factory.hpp"
-#include "lib_utils/os.hpp"
 #include "lib_utils/time.hpp"
 #include "lib_utils/tools.hpp" // safe_cast, enforce
 #include "lib_utils/log_sink.hpp"
@@ -27,11 +26,6 @@ using namespace Modules;
 
 namespace {
 
-void ensureDir(std::string path) {
-	if(!dirExists(path))
-		mkdir(path);
-}
-
 struct Quality {
 	virtual ~Quality() {}
 
@@ -44,7 +38,7 @@ struct Quality {
 	std::string prefix; //typically a subdir, ending with a folder separator '/'
 };
 
-struct AdaptiveStreamingCommon : ModuleDynI {
+struct AdaptiveStreamer : ModuleDynI {
 		/*created each quality private data*/
 		virtual std::unique_ptr<Quality> createQuality() const = 0;
 		/*called each time segments are ready*/
@@ -64,7 +58,7 @@ struct AdaptiveStreamingCommon : ModuleDynI {
 			ForceRealDurations   = 1 << 2
 		};
 
-		AdaptiveStreamingCommon(KHost* host, Type type, uint64_t segDurationInMs, const std::string &manifestDir, AdaptiveStreamingCommonFlags flags)
+		AdaptiveStreamer(KHost* host, Type type, uint64_t segDurationInMs, const std::string &manifestDir, AdaptiveStreamingCommonFlags flags)
 			: m_host(host),
 			  type(type), segDurationInMs(segDurationInMs), manifestDir(manifestDir), flags(flags) {
 			if ((flags & ForceRealDurations) && !segDurationInMs)
@@ -79,7 +73,7 @@ struct AdaptiveStreamingCommon : ModuleDynI {
 		void process() override {
 			if (!workingThread.joinable() && (startTimeInMs==(uint64_t)-1)) {
 				startTimeInMs = (uint64_t)-2;
-				workingThread = std::thread(&AdaptiveStreamingCommon::threadProc, this);
+				workingThread = std::thread(&AdaptiveStreamer::threadProc, this);
 			}
 		}
 
@@ -110,35 +104,6 @@ struct AdaptiveStreamingCommon : ModuleDynI {
 
 		std::thread workingThread;
 
-		bool moveFile(const std::string &src, const std::string &dst) const {
-			if (src.empty())
-				return true;
-
-			if(src == dst)
-				return false; // nothing to do
-
-			if (flags & SegmentsNotOwned)
-				throw error(format("Segments not owned require similar filenames (%s != %s)", src, dst));
-
-			auto subdir = dst.substr(0, dst.find_last_of("/") + 1);
-			ensureDir(subdir);
-
-			int retry = MOVE_FILE_NUM_RETRY + 1;
-			while (--retry) {
-				try {
-					::moveFile(src, dst);
-					break;
-				} catch(...) {
-				}
-
-				std::this_thread::sleep_for(std::chrono::milliseconds(10));
-			}
-			if (!retry) {
-				return false;
-			}
-			return true;
-		}
-
 		void processInitSegment(Quality const * const quality, size_t index) {
 			auto const &meta = quality->getMeta();
 			switch (meta->type) {
@@ -149,7 +114,6 @@ struct AdaptiveStreamingCommon : ModuleDynI {
 					initFn = format("%s%s", manifestDir, getInitName(quality, index));
 				} else if (!(flags & SegmentsNotOwned)) {
 					auto const dst = format("%s%s", manifestDir, getInitName(quality, index));
-					moveFile(initFn, dst);
 					initFn = dst;
 				}
 
@@ -207,11 +171,6 @@ struct AdaptiveStreamingCommon : ModuleDynI {
 		void ensurePrefix(size_t i) {
 			if (qualities[i]->prefix.empty()) {
 				qualities[i]->prefix = format("%s/", getPrefix(qualities[i].get(), i));
-				//if (!(flags & SegmentsNotOwned)) //FIXME: HLS manifests still requires the subdir presence
-				{
-					auto const dir = format("%s%s", manifestDir, qualities[i]->prefix);
-					ensureDir(dir);
-				}
 			}
 		}
 
@@ -434,32 +393,32 @@ std::unique_ptr<gpacpp::MPD> createMPD(bool live, uint32_t minBufferTimeInMs, co
 
 namespace Stream {
 
-AdaptiveStreamingCommon::Type getType(DasherConfig* cfg) {
+AdaptiveStreamer::Type getType(DasherConfig* cfg) {
 	if(!cfg->live)
-		return AdaptiveStreamingCommon::Static;
+		return AdaptiveStreamer::Static;
 	else if(cfg->blocking)
-		return AdaptiveStreamingCommon::Live;
+		return AdaptiveStreamer::Live;
 	else
-		return AdaptiveStreamingCommon::LiveNonBlocking;
+		return AdaptiveStreamer::LiveNonBlocking;
 }
 
-AdaptiveStreamingCommon::AdaptiveStreamingCommonFlags getFlags(DasherConfig* cfg) {
+AdaptiveStreamer::AdaptiveStreamingCommonFlags getFlags(DasherConfig* cfg) {
 	uint32_t r = 0;
 
 	if(cfg->segmentsNotOwned)
-		r |= AdaptiveStreamingCommon::SegmentsNotOwned;
+		r |= AdaptiveStreamer::SegmentsNotOwned;
 	if(cfg->presignalNextSegment)
-		r |= AdaptiveStreamingCommon::PresignalNextSegment;
+		r |= AdaptiveStreamer::PresignalNextSegment;
 	if(cfg->forceRealDurations)
-		r |= AdaptiveStreamingCommon::ForceRealDurations;
+		r |= AdaptiveStreamer::ForceRealDurations;
 
-	return AdaptiveStreamingCommon::AdaptiveStreamingCommonFlags(r);
+	return AdaptiveStreamer::AdaptiveStreamingCommonFlags(r);
 }
 
-class MPEG_DASH : public AdaptiveStreamingCommon {
+class Dasher : public AdaptiveStreamer {
 	public:
-		MPEG_DASH(KHost* host, DasherConfig* cfg)
-			: AdaptiveStreamingCommon(host, getType(cfg), cfg->segDurationInMs, cfg->mpdDir, getFlags(cfg)),
+		Dasher(KHost* host, DasherConfig* cfg)
+			: AdaptiveStreamer(host, getType(cfg), cfg->segDurationInMs, cfg->mpdDir, getFlags(cfg)),
 			  m_host(host),
 			  mpd(createMPD(cfg->live, cfg->minBufferTimeInMs, cfg->id)), mpdFn(cfg->mpdName), baseURLs(cfg->baseURLs),
 			  minUpdatePeriodInMs(cfg->minUpdatePeriodInMs ? cfg->minUpdatePeriodInMs : (segDurationInMs ? cfg->segDurationInMs : 1000)),
@@ -468,7 +427,7 @@ class MPEG_DASH : public AdaptiveStreamingCommon {
 				throw error("Next segment pre-signalling or segments not owned cannot be used with segment timeline.");
 		}
 
-		virtual ~MPEG_DASH() {
+		virtual ~Dasher() {
 			endOfStream();
 		}
 
@@ -766,7 +725,7 @@ IModule* createObject(KHost* host, void* va) {
 	auto config = (DasherConfig*)va;
 	enforce(host, "MPEG_DASH: host can't be NULL");
 	enforce(config, "MPEG_DASH: config can't be NULL");
-	return createModule<Stream::MPEG_DASH>(host, config).release();
+	return createModule<Stream::Dasher>(host, config).release();
 }
 
 auto const registered = Factory::registerModule("MPEG_DASH", &createObject);
