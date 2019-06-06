@@ -290,9 +290,7 @@ struct AdaptiveStreamer : ModuleDynI {
 			return true;
 		}
 
-		int repIdx;
-
-		bool scheduleRepresentation() {
+		bool scheduleRepresentation(int repIdx) {
 			if (isComplete(repIdx))
 				return true;
 
@@ -335,8 +333,8 @@ struct AdaptiveStreamer : ModuleDynI {
 		bool schedule() {
 			curSegDurIn180k.resize(numInputs());
 
-			for (repIdx = 0; repIdx < numInputs(); ++repIdx) {
-				if(!scheduleRepresentation())
+			for (int repIdx = 0; repIdx < numInputs(); ++repIdx) {
+				if(!scheduleRepresentation(repIdx))
 					break;
 			}
 
