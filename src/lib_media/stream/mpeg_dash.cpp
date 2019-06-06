@@ -189,6 +189,9 @@ struct AdaptiveStreamer : ModuleDynI {
 					in->push(nullptr);
 				workingThread.join();
 			}
+
+			/*final rewrite of MPD in static mode*/
+			finalizeManifest();
 		}
 
 		std::shared_ptr<DataBase> getPresignalledData(uint64_t size, Data &data, bool EOS) {
@@ -339,6 +342,8 @@ struct AdaptiveStreamer : ModuleDynI {
 		}
 
 		bool schedule() {
+			curSegDurIn180k.resize(numInputs());
+
 			for (repIdx = 0; repIdx < numInputs(); ++repIdx) {
 				if(!scheduleRepresentation())
 					break;
@@ -369,12 +374,7 @@ struct AdaptiveStreamer : ModuleDynI {
 		}
 
 		void threadProc() {
-			curSegDurIn180k.resize(numInputs());
-
 			while(schedule()) { }
-
-			/*final rewrite of MPD in static mode*/
-			finalizeManifest();
 		}
 
 };
