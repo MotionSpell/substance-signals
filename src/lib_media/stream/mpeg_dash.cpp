@@ -229,7 +229,7 @@ struct AdaptiveStreamer : ModuleDynI {
 		std::vector<uint64_t> curSegDurIn180k;
 		int repIdx;
 
-		bool isComplete() {
+		bool isComplete(int repIdx) const {
 			uint64_t minIncompletSegDur = std::numeric_limits<uint64_t>::max();
 			for (size_t idx = 0; idx < curSegDurIn180k.size(); ++idx) {
 				auto const &segDur = curSegDurIn180k[idx];
@@ -292,7 +292,7 @@ struct AdaptiveStreamer : ModuleDynI {
 		}
 
 		bool scheduleRepresentation() {
-			if (isComplete())
+			if (isComplete(repIdx))
 				return true;
 
 			if (!inputs[repIdx]->tryPop(currData) || !currData)
