@@ -12,6 +12,7 @@
 #include <map>
 #include <thread>
 #include <atomic>
+#include <vector>
 
 using namespace std;
 
