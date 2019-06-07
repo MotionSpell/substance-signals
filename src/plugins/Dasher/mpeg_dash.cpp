@@ -522,7 +522,7 @@ class Dasher : public AdaptiveStreamer {
 			}
 		}
 
-		void writeManifest() {
+		void postManifest() {
 			auto contents = mpd->serialize();
 
 			auto out = outputManifest->allocData<DataRaw>(contents.size());
@@ -652,7 +652,7 @@ class Dasher : public AdaptiveStreamer {
 			}
 
 			if (type != Static) {
-				writeManifest();
+				postManifest();
 			}
 		}
 
@@ -668,7 +668,7 @@ class Dasher : public AdaptiveStreamer {
 				mpd->mpd->media_presentation_duration = totalDurationInMs;
 				totalDurationInMs -= segDurationInMs;
 				generateManifest();
-				writeManifest();
+				postManifest();
 			}
 		}
 
