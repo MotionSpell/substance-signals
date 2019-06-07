@@ -275,7 +275,7 @@ struct AdaptiveStreamer : ModuleDynI {
 		bool segmentReady() {
 			for (int i = 0; i < numInputs(); ++i) {
 				if (!curSegDurIn180k[0])
-					curSegDurIn180k[0] = segDurationInMs;
+					curSegDurIn180k[0] = segDurationIn180k;
 			}
 			for (int i = 0; i < numInputs(); ++i) {
 				if (curSegDurIn180k[i] < segDurationIn180k) {
