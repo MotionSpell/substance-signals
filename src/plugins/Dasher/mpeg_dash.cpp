@@ -361,9 +361,8 @@ struct AdaptiveStreamer : ModuleDynI {
 };
 }
 
-namespace Modules {
-
 namespace {
+
 GF_MPD_AdaptationSet *createAS(uint64_t segDurationInMs, GF_MPD_Period *period, gpacpp::MPD *mpd) {
 	auto as = mpd->addAdaptationSet(period);
 	GF_SAFEALLOC(as->segment_template, GF_MPD_SegmentTemplate);
@@ -383,10 +382,6 @@ std::unique_ptr<gpacpp::MPD> createMPD(bool live, uint32_t minBufferTimeInMs, co
 	    make_unique<gpacpp::MPD>(GF_MPD_TYPE_DYNAMIC, id, g_profiles, minBufferTimeInMs ? minBufferTimeInMs : MIN_BUFFER_TIME_IN_MS_LIVE) :
 	    make_unique<gpacpp::MPD>(GF_MPD_TYPE_STATIC, id, g_profiles, minBufferTimeInMs ? minBufferTimeInMs : MIN_BUFFER_TIME_IN_MS_VOD );
 }
-}
-
-
-namespace Stream {
 
 AdaptiveStreamer::Type getType(DasherConfig* cfg) {
 	if(!cfg->live)
@@ -676,16 +671,12 @@ class Dasher : public AdaptiveStreamer {
 		}
 
 };
-}
-}
-
-namespace {
 
 IModule* createObject(KHost* host, void* va) {
 	auto config = (DasherConfig*)va;
 	enforce(host, "MPEG_DASH: host can't be NULL");
 	enforce(config, "MPEG_DASH: config can't be NULL");
-	return createModule<Stream::Dasher>(host, config).release();
+	return createModule<Dasher>(host, config).release();
 }
 
 auto const registered = Factory::registerModule("MPEG_DASH", &createObject);
