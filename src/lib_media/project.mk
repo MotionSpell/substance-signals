@@ -128,12 +128,6 @@ $(BIN)/GPACMuxMP4MSS.smd: \
   $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
 
 #------------------------------------------------------------------------------
-TARGETS+=$(BIN)/MPEG_DASH.smd
-$(BIN)/MPEG_DASH.smd: PKGS+=gpac
-$(BIN)/MPEG_DASH.smd: \
-  $(BIN)/$(SRC)/lib_media/stream/mpeg_dash.cpp.o\
-
-#------------------------------------------------------------------------------
 TARGETS+=$(BIN)/GPACDemuxMP4Simple.smd
 $(BIN)/GPACDemuxMP4Simple.smd: PKGS+=gpac
 $(BIN)/GPACDemuxMP4Simple.smd: \

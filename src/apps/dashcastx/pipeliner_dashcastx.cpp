@@ -12,13 +12,13 @@
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/encode/libav_encode.hpp"
 #include "lib_media/mux/mux_mp4_config.hpp"
-#include "lib_media/stream/mpeg_dash.hpp"
 #include "lib_media/utils/regulator.hpp"
 #include "lib_media/stream/adaptive_streaming_common.hpp" // AdaptiveStreamingCommon::getCommonPrefixAudio
 #include "lib_media/out/filesystem.hpp"
 #include "lib_media/out/http_sink.hpp"
 #include "lib_media/transform/audio_convert.hpp"
 #include "lib_media/transform/logo_overlay.hpp"
+#include "plugins/Dasher/mpeg_dash.hpp"
 
 using namespace Modules;
 using namespace Pipelines;

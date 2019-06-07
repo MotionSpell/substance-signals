@@ -3,7 +3,7 @@
 #include "lib_modules/utils/loader.hpp"
 #include "lib_media/common/attributes.hpp"
 #include "lib_media/common/metadata.hpp"
-#include "lib_media/stream/mpeg_dash.hpp" // DasherConfig
+#include "plugins/Dasher/mpeg_dash.hpp" // DasherConfig
 
 using namespace Tests;
 using namespace Modules;
