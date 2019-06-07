@@ -70,24 +70,22 @@ struct HttpSink : Modules::ModuleS {
 				http->getInput(0)->push(data);
 				http->process();
 				zeroSizeConnections[url] = move(http);
-			} else if (exists(zeroSizeConnections, url)) {
+			} else {
+
+				if (!exists(zeroSizeConnections, url)) {
+					m_host->log(Debug, format("Starting transfer to URL: \"%s\"", url).c_str());
+					zeroSizeConnections[url] = Modules::createModule<Modules::Out::HTTP>(m_host, httpConfig);
+				}
+
 				m_host->log(Debug, format("Continue transfer (%s bytes) for URL: \"%s\"", meta->filesize, url).c_str());
 				if (meta->filesize) {
 					zeroSizeConnections[url]->getInput(0)->push(data);
 				}
 				if (meta->EOS) {
 					zeroSizeConnections[url]->getInput(0)->push(nullptr);
+					zeroSizeConnections[url]->flush();
+					zeroSizeConnections.erase(url);
 				}
-				zeroSizeConnections[url]->process();
-			} else {
-				m_host->log(Debug, format("Pushing (%s bytes) to new URL: \"%s\"", meta->filesize, url).c_str());
-				auto http = Modules::createModule<Modules::Out::HTTP>(m_host, httpConfig);
-				http->getInput(0)->push(data);
-				auto th = thread([](unique_ptr<Modules::Out::HTTP> http) {
-					http->getInput(0)->push(nullptr);
-					http->process();
-				}, move(http));
-				th.detach();
 			}
 		}
 
