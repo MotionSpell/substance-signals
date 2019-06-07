@@ -43,8 +43,6 @@ struct Quality {
 };
 
 struct AdaptiveStreamer : ModuleDynI {
-		/*created each quality private data*/
-		virtual std::unique_ptr<Quality> createQuality() const = 0;
 		/*called each time segments are ready*/
 		virtual void generateManifest() = 0;
 		/*last manifest to be written: usually the VoD one*/
@@ -79,7 +77,7 @@ struct AdaptiveStreamer : ModuleDynI {
 				startTimeInMs = (uint64_t)-2;
 
 				for (int i = 0; i < numInputs(); ++i)
-					qualities.push_back(createQuality());
+					qualities.push_back(make_unique<Quality>());
 
 				wasInit = true;
 			}
@@ -430,10 +428,6 @@ class Dasher : public AdaptiveStreamer {
 		const uint64_t minUpdatePeriodInMs, timeShiftBufferDepthInMs;
 		const int64_t initialOffsetInMs;
 		const bool useSegmentTimeline = false;
-
-		std::unique_ptr<Quality> createQuality() const {
-			return make_unique<Quality>();
-		}
 
 		void ensureManifest() {
 			if (!mpd->mpd->availabilityStartTime) {
