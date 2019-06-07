@@ -314,15 +314,19 @@ struct AdaptiveStreamer : ModuleDynI {
 				return true;
 			}
 
+			// update average bitrate
 			if (segDurationInMs && curDurIn180k) {
 				auto const numSeg = totalDurationInMs / segDurationInMs;
 				qualities[repIdx]->avg_bitrate_in_bps = ((meta->filesize * 8 * IClock::Rate) / meta->durationIn180k + qualities[repIdx]->avg_bitrate_in_bps * numSeg) / (numSeg + 1);
 			}
+
+			// update current segment duration
 			if (flags & ForceRealDurations) {
 				curSegDurIn180k[repIdx] += meta->durationIn180k;
 			} else {
 				curSegDurIn180k[repIdx] = segDurationInMs ? timescaleToClock(segDurationInMs, 1000) : meta->durationIn180k;
 			}
+
 			if (curSegDurIn180k[repIdx] < timescaleToClock(segDurationInMs, 1000) || !meta->EOS)
 				sendLocalData(repIdx, meta->filesize, meta->EOS);
 
