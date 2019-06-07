@@ -620,20 +620,22 @@ class Dasher : public AdaptiveStreamer {
 				}
 
 				if (timeShiftBufferDepthInMs) {
-					uint64_t timeShiftSegmentsInMs = 0;
-					auto seg = quality->timeshiftSegments.begin();
-					while (seg != quality->timeshiftSegments.end()) {
-						timeShiftSegmentsInMs += clockToTimescale((*seg).file->durationIn180k, 1000);
-						if (timeShiftSegmentsInMs > timeShiftBufferDepthInMs) {
-							m_host->log(Debug, format( "Delete segment \"%s\".", (*seg).file->filename).c_str());
-							seg = quality->timeshiftSegments.erase(seg);
-						} else {
-							++seg;
+					{
+						uint64_t timeShiftSegmentsInMs = 0;
+						auto seg = quality->timeshiftSegments.begin();
+						while (seg != quality->timeshiftSegments.end()) {
+							timeShiftSegmentsInMs += clockToTimescale((*seg).file->durationIn180k, 1000);
+							if (timeShiftSegmentsInMs > timeShiftBufferDepthInMs) {
+								m_host->log(Debug, format( "Delete segment \"%s\".", (*seg).file->filename).c_str());
+								seg = quality->timeshiftSegments.erase(seg);
+							} else {
+								++seg;
+							}
 						}
 					}
 
 					if (useSegmentTimeline) {
-						timeShiftSegmentsInMs = 0;
+						uint64_t timeShiftSegmentsInMs = 0;
 						auto entries = quality->rep->segment_template->segment_timeline->entries;
 						auto idx = gf_list_count(entries);
 						while (idx--) {
