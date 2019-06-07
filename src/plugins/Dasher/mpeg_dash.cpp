@@ -245,13 +245,6 @@ struct AdaptiveStreamer : ModuleDynI {
 				startTimeInMs = clockToTimescale(currData->get<PresentationTime>().time, 1000);
 		}
 
-		void ensureCurDur() {
-			for (int i = 0; i < numInputs(); ++i) {
-				if (!curSegDurIn180k[0])
-					curSegDurIn180k[0] = segDurationInMs;
-			}
-		}
-
 		void sendLocalData(int repIdx, uint64_t size, bool EOS) {
 			ensureStartTime();
 			auto out = getPresignalledData(size, currData, EOS);
@@ -275,7 +268,10 @@ struct AdaptiveStreamer : ModuleDynI {
 		}
 
 		bool segmentReady() {
-			ensureCurDur();
+			for (int i = 0; i < numInputs(); ++i) {
+				if (!curSegDurIn180k[0])
+					curSegDurIn180k[0] = segDurationInMs;
+			}
 			for (int i = 0; i < numInputs(); ++i) {
 				if (curSegDurIn180k[i] < timescaleToClock(segDurationInMs, 1000)) {
 					return false;
