@@ -285,9 +285,6 @@ struct AdaptiveStreamer : ModuleDynI {
 					return false;
 				}
 			}
-			for (auto &d : curSegDurIn180k) {
-				d -= segDurationIn180k;
-			}
 			return true;
 		}
 
@@ -350,6 +347,9 @@ struct AdaptiveStreamer : ModuleDynI {
 			currData = nullptr;
 
 			if (segmentReady()) {
+				for (auto &d : curSegDurIn180k)
+					d -= segDurationIn180k;
+
 				generateManifest();
 				totalDurationInMs += segDurationInMs;
 				m_host->log(Info, format("Processes segment (total processed: %ss,", (double)totalDurationInMs / 1000).c_str());
