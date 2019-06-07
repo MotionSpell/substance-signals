@@ -50,6 +50,8 @@ class Fmp4Splitter : public ModuleS {
 					if(boxBytes > 8) {
 						boxBytes -= 8;
 						insideHeader = false;
+					} else {
+						boxBytes = 0;
 					}
 
 					headerBytes = 0;
