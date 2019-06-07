@@ -25,6 +25,13 @@ using namespace Modules;
 
 namespace {
 
+enum AdaptiveStreamingCommonFlags {
+	None = 0,
+	SegmentsNotOwned     = 1 << 0, //don't touch files
+	PresignalNextSegment = 1 << 1, //speculative, allows prefetching on player side
+	ForceRealDurations   = 1 << 2
+};
+
 struct Quality {
 	std::shared_ptr<const MetadataFile> getMeta() const {
 		return lastData ? safe_cast<const MetadataFile>(lastData->getMetadata()) : nullptr;
@@ -52,12 +59,6 @@ struct AdaptiveStreamer : ModuleDynI {
 			Static,
 			Live,
 			LiveNonBlocking,
-		};
-		enum AdaptiveStreamingCommonFlags {
-			None = 0,
-			SegmentsNotOwned     = 1 << 0, //don't touch files
-			PresignalNextSegment = 1 << 1, //speculative, allows prefetching on player side
-			ForceRealDurations   = 1 << 2
 		};
 
 		AdaptiveStreamer(KHost* host, Type type, uint64_t segDurationInMs, const std::string &manifestDir, AdaptiveStreamingCommonFlags flags)
@@ -392,17 +393,17 @@ AdaptiveStreamer::Type getType(DasherConfig* cfg) {
 		return AdaptiveStreamer::LiveNonBlocking;
 }
 
-AdaptiveStreamer::AdaptiveStreamingCommonFlags getFlags(DasherConfig* cfg) {
+AdaptiveStreamingCommonFlags getFlags(DasherConfig* cfg) {
 	uint32_t r = 0;
 
 	if(cfg->segmentsNotOwned)
-		r |= AdaptiveStreamer::SegmentsNotOwned;
+		r |= SegmentsNotOwned;
 	if(cfg->presignalNextSegment)
-		r |= AdaptiveStreamer::PresignalNextSegment;
+		r |= PresignalNextSegment;
 	if(cfg->forceRealDurations)
-		r |= AdaptiveStreamer::ForceRealDurations;
+		r |= ForceRealDurations;
 
-	return AdaptiveStreamer::AdaptiveStreamingCommonFlags(r);
+	return AdaptiveStreamingCommonFlags(r);
 }
 
 class Dasher : public AdaptiveStreamer {
