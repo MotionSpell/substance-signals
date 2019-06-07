@@ -35,11 +35,11 @@ struct Quality {
 	std::string prefix; //typically a subdir, ending with a folder separator '/'
 
 	GF_MPD_Representation *rep = nullptr;
-	struct SegmentToDelete {
-		SegmentToDelete(std::shared_ptr<const MetadataFile> file) : file(file) {}
-		std::shared_ptr<const MetadataFile> file;
+	struct PendingSegment {
+		uint64_t durationIn180k;
+		std::string filename;
 	};
-	std::vector<SegmentToDelete> timeshiftSegments;
+	std::vector<PendingSegment> timeshiftSegments;
 };
 
 struct AdaptiveStreamer : ModuleDynI {
@@ -623,9 +623,9 @@ class Dasher : public AdaptiveStreamer {
 						int64_t totalDuration = 0;
 						auto seg = quality->timeshiftSegments.begin();
 						while (seg != quality->timeshiftSegments.end()) {
-							totalDuration += clockToTimescale((*seg).file->durationIn180k, 1000);
+							totalDuration += clockToTimescale(seg->durationIn180k, 1000);
 							if (totalDuration > timeShiftBufferDepthInMs) {
-								m_host->log(Debug, format( "Delete segment \"%s\".", (*seg).file->filename).c_str());
+								m_host->log(Debug, format( "Delete segment \"%s\".", seg->filename).c_str());
 								seg = quality->timeshiftSegments.erase(seg);
 							} else {
 								++seg;
@@ -648,7 +648,8 @@ class Dasher : public AdaptiveStreamer {
 						}
 					}
 
-					quality->timeshiftSegments.emplace(quality->timeshiftSegments.begin(), Quality::SegmentToDelete(metaFn));
+					auto s = Quality::PendingSegment{metaFn->durationIn180k, metaFn->filename};
+					quality->timeshiftSegments.emplace(quality->timeshiftSegments.begin(), s);
 				}
 			}
 
