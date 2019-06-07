@@ -430,7 +430,8 @@ class Dasher : public AdaptiveStreamer {
 		std::unique_ptr<gpacpp::MPD> mpd;
 		const std::string mpdFn;
 		const std::vector<std::string> baseURLs;
-		const uint64_t minUpdatePeriodInMs, timeShiftBufferDepthInMs;
+		const uint64_t minUpdatePeriodInMs;
+		const int64_t timeShiftBufferDepthInMs;
 		const int64_t initialOffsetInMs;
 		const bool useSegmentTimeline = false;
 
@@ -621,11 +622,11 @@ class Dasher : public AdaptiveStreamer {
 
 				if (timeShiftBufferDepthInMs) {
 					{
-						uint64_t timeShiftSegmentsInMs = 0;
+						int64_t totalDuration = 0;
 						auto seg = quality->timeshiftSegments.begin();
 						while (seg != quality->timeshiftSegments.end()) {
-							timeShiftSegmentsInMs += clockToTimescale((*seg).file->durationIn180k, 1000);
-							if (timeShiftSegmentsInMs > timeShiftBufferDepthInMs) {
+							totalDuration += clockToTimescale((*seg).file->durationIn180k, 1000);
+							if (totalDuration > timeShiftBufferDepthInMs) {
 								m_host->log(Debug, format( "Delete segment \"%s\".", (*seg).file->filename).c_str());
 								seg = quality->timeshiftSegments.erase(seg);
 							} else {
@@ -635,17 +636,17 @@ class Dasher : public AdaptiveStreamer {
 					}
 
 					if (useSegmentTimeline) {
-						uint64_t timeShiftSegmentsInMs = 0;
+						int64_t totalDuration = 0;
 						auto entries = quality->rep->segment_template->segment_timeline->entries;
 						auto idx = gf_list_count(entries);
 						while (idx--) {
 							auto ent = (GF_MPD_SegmentTimelineEntry*)gf_list_get(quality->rep->segment_template->segment_timeline->entries, idx);
 							auto const dur = ent->duration * (ent->repeat_count + 1);
-							if (timeShiftSegmentsInMs > timeShiftBufferDepthInMs) {
+							if (totalDuration > timeShiftBufferDepthInMs) {
 								gf_list_rem(entries, idx);
 								gf_free(ent);
 							}
-							timeShiftSegmentsInMs += dur;
+							totalDuration += dur;
 						}
 					}
 
