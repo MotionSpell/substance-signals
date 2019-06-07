@@ -658,7 +658,7 @@ class Dasher : public AdaptiveStreamer {
 		}
 
 		void finalizeManifest() {
-			if (mpd->mpd->time_shift_buffer_depth) {
+			if (timeShiftBufferDepthInMs) {
 				if (!(flags & SegmentsNotOwned)) {
 					m_host->log(Info, "Manifest was not rewritten for on-demand and all file are being deleted.");
 				}
