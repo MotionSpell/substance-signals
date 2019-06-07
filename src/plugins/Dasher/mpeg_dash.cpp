@@ -89,7 +89,8 @@ struct AdaptiveStreamer : ModuleDynI {
 
 		void flush() override {
 			while(schedule()) { }
-			endOfStream();
+			finalizeManifest();
+
 		}
 
 		static std::string getCommonPrefixAudio(size_t index) {
@@ -179,18 +180,6 @@ struct AdaptiveStreamer : ModuleDynI {
 
 		uint64_t getCurSegNum() const {
 			return (startTimeInMs + totalDurationInMs) / segDurationInMs;
-		}
-
-		void endOfStream() {
-			if (wasInit) {
-				for(auto& in : inputs)
-					in->push(nullptr);
-
-				/*final rewrite of MPD in static mode*/
-				finalizeManifest();
-
-				wasInit = false;
-			}
 		}
 
 		std::shared_ptr<DataBase> getPresignalledData(uint64_t size, Data &data, bool EOS) {
