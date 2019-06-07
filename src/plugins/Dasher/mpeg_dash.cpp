@@ -17,7 +17,6 @@
 #define MIN_BUFFER_TIME_IN_MS_LIVE 2000
 #define AVAILABILITY_TIMEOFFSET_IN_S 0.0
 #define PERIOD_NAME "1"
-#define MOVE_FILE_NUM_RETRY 3
 
 static auto const g_profiles = "urn:mpeg:dash:profile:isoff-live:2011, http://dashif.org/guidelines/dash264";
 
