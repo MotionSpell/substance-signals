@@ -182,11 +182,12 @@ struct AdaptiveStreamer : ModuleDynI {
 			if (wasInit) {
 				for(auto& in : inputs)
 					in->push(nullptr);
+
+				/*final rewrite of MPD in static mode*/
+				finalizeManifest();
+
 				wasInit = false;
 			}
-
-			/*final rewrite of MPD in static mode*/
-			finalizeManifest();
 		}
 
 		std::shared_ptr<DataBase> getPresignalledData(uint64_t size, Data &data, bool EOS) {
