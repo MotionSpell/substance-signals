@@ -111,7 +111,8 @@ struct AdaptiveStreamer : ModuleDynI {
 		const std::string manifestDir;
 		const AdaptiveStreamingCommonFlags flags;
 		std::vector<std::unique_ptr<Quality>> qualities;
-		OutputDefault *outputSegments, *outputManifest;
+		OutputDefault* outputSegments;
+		OutputDefault* outputManifest;
 
 		bool wasInit = false;
 
