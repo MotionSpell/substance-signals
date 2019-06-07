@@ -537,7 +537,7 @@ class Dasher : public AdaptiveStreamer {
 			outputManifest->post(out);
 		}
 
-		std::string getPrefixedSegmentName(Quality const * const quality, size_t index, u64 segmentNum) const {
+		std::string getPrefixedSegmentName(Quality const * quality, size_t index, u64 segmentNum) const {
 			return manifestDir + getSegmentName(quality, index, std::to_string(segmentNum));
 		}
 
