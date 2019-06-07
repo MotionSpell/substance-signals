@@ -36,6 +36,7 @@ struct Quality {
 		return lastData ? safe_cast<const MetadataFile>(lastData->getMetadata()) : nullptr;
 	};
 
+	uint64_t curSegDurIn180k = 0;
 	Data lastData;
 	uint64_t avg_bitrate_in_bps = 0;
 	std::string prefix; //typically a subdir, ending with a folder separator '/'
@@ -228,18 +229,17 @@ struct AdaptiveStreamer : ModuleDynI {
 		}
 
 		Data currData;
-		std::vector<uint64_t> curSegDurIn180k;
 
 		bool isComplete(int repIdx) const {
 			uint64_t minIncompletSegDur = std::numeric_limits<uint64_t>::max();
-			for (size_t idx = 0; idx < curSegDurIn180k.size(); ++idx) {
-				auto const &segDur = curSegDurIn180k[idx];
+			for (auto& quality : qualities) {
+				auto const &segDur = quality.curSegDurIn180k;
 				if ( (segDur < minIncompletSegDur) &&
-				    ((segDur < segDurationIn180k) || (!qualities[idx].getMeta() || !qualities[idx].getMeta()->EOS))) {
+				    ((segDur < segDurationIn180k) || (!quality.getMeta() || !quality.getMeta()->EOS))) {
 					minIncompletSegDur = segDur;
 				}
 			}
-			return (minIncompletSegDur == std::numeric_limits<uint64_t>::max()) || (curSegDurIn180k[repIdx] > minIncompletSegDur);
+			return (minIncompletSegDur == std::numeric_limits<uint64_t>::max()) || (qualities[repIdx].curSegDurIn180k > minIncompletSegDur);
 		}
 
 		void ensureStartTime() {
@@ -264,18 +264,18 @@ struct AdaptiveStreamer : ModuleDynI {
 				metaFn->EOS = EOS;
 
 				out->setMetadata(metaFn);
-				out->setMediaTime(totalDurationInMs + timescaleToClock(curSegDurIn180k[repIdx], 1000));
+				out->setMediaTime(totalDurationInMs + timescaleToClock(qualities[repIdx].curSegDurIn180k, 1000));
 				outputSegments->post(out);
 			}
 		}
 
 		bool segmentReady() {
 			for (int i = 0; i < numInputs(); ++i) {
-				if (!curSegDurIn180k[0])
-					curSegDurIn180k[0] = segDurationIn180k;
+				if (!qualities[0].curSegDurIn180k)
+					qualities[0].curSegDurIn180k = segDurationIn180k;
 			}
 			for (int i = 0; i < numInputs(); ++i) {
-				if (curSegDurIn180k[i] < segDurationIn180k) {
+				if (qualities[i].curSegDurIn180k < segDurationIn180k) {
 					return false;
 				}
 				if (!qualities[i].getMeta()->EOS) {
@@ -301,7 +301,7 @@ struct AdaptiveStreamer : ModuleDynI {
 				qualities[repIdx].prefix = format("%s/", getPrefix(qualities[repIdx], repIdx));
 
 			auto const curDurIn180k = meta->durationIn180k;
-			if (curDurIn180k == 0 && curSegDurIn180k[repIdx] == 0) {
+			if (curDurIn180k == 0 && qualities[repIdx].curSegDurIn180k == 0) {
 				processInitSegment(qualities[repIdx], repIdx);
 				if (flags & PresignalNextSegment)
 					sendLocalData(repIdx, 0, false);
@@ -318,19 +318,18 @@ struct AdaptiveStreamer : ModuleDynI {
 
 			// update current segment duration
 			if (flags & ForceRealDurations) {
-				curSegDurIn180k[repIdx] += meta->durationIn180k;
+				qualities[repIdx].curSegDurIn180k += meta->durationIn180k;
 			} else {
-				curSegDurIn180k[repIdx] = segDurationIn180k ? segDurationIn180k : meta->durationIn180k;
+				qualities[repIdx].curSegDurIn180k = segDurationIn180k ? segDurationIn180k : meta->durationIn180k;
 			}
 
-			if (curSegDurIn180k[repIdx] < segDurationIn180k || !meta->EOS)
+			if (qualities[repIdx].curSegDurIn180k < segDurationIn180k || !meta->EOS)
 				sendLocalData(repIdx, meta->filesize, meta->EOS);
 
 			return true;
 		}
 
 		bool schedule() {
-			curSegDurIn180k.resize(numInputs());
 
 			for (int repIdx = 0; repIdx < numInputs(); ++repIdx) {
 				if(!scheduleRepresentation(repIdx))
@@ -345,8 +344,8 @@ struct AdaptiveStreamer : ModuleDynI {
 			currData = nullptr;
 
 			if (segmentReady()) {
-				for (auto &d : curSegDurIn180k)
-					d -= segDurationIn180k;
+				for (auto& quality : qualities)
+					quality.curSegDurIn180k -= segDurationIn180k;
 
 				generateManifest();
 				totalDurationInMs += segDurationInMs;
