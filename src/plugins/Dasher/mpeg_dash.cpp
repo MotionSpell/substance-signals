@@ -292,17 +292,19 @@ struct AdaptiveStreamer : ModuleDynI {
 			if (!inputs[repIdx]->tryPop(currData) || !currData)
 				return false;
 
-			qualities[repIdx].lastData = currData;
-			auto const &meta = qualities[repIdx].getMeta();
+			auto& quality = qualities[repIdx];
+
+			quality.lastData = currData;
+			auto const &meta = quality.getMeta();
 			if (!meta)
 				throw error(format("Unknown data received on input %s", repIdx));
 
-			if (qualities[repIdx].prefix.empty())
-				qualities[repIdx].prefix = format("%s/", getPrefix(qualities[repIdx], repIdx));
+			if (quality.prefix.empty())
+				quality.prefix = format("%s/", getPrefix(quality, repIdx));
 
 			auto const curDurIn180k = meta->durationIn180k;
-			if (curDurIn180k == 0 && qualities[repIdx].curSegDurIn180k == 0) {
-				processInitSegment(qualities[repIdx], repIdx);
+			if (curDurIn180k == 0 && quality.curSegDurIn180k == 0) {
+				processInitSegment(quality, repIdx);
 				if (flags & PresignalNextSegment)
 					sendLocalData(repIdx, 0, false);
 				currData = nullptr;
@@ -312,17 +314,17 @@ struct AdaptiveStreamer : ModuleDynI {
 			// update average bitrate
 			if (segDurationInMs && curDurIn180k) {
 				auto const numSeg = totalDurationInMs / segDurationInMs;
-				qualities[repIdx].avg_bitrate_in_bps = ((meta->filesize * 8 * IClock::Rate) / meta->durationIn180k + qualities[repIdx].avg_bitrate_in_bps * numSeg) / (numSeg + 1);
+				quality.avg_bitrate_in_bps = ((meta->filesize * 8 * IClock::Rate) / meta->durationIn180k + quality.avg_bitrate_in_bps * numSeg) / (numSeg + 1);
 			}
 
 			// update current segment duration
 			if (flags & ForceRealDurations) {
-				qualities[repIdx].curSegDurIn180k += meta->durationIn180k;
+				quality.curSegDurIn180k += meta->durationIn180k;
 			} else {
-				qualities[repIdx].curSegDurIn180k = segDurationIn180k ? segDurationIn180k : meta->durationIn180k;
+				quality.curSegDurIn180k = segDurationIn180k ? segDurationIn180k : meta->durationIn180k;
 			}
 
-			if (qualities[repIdx].curSegDurIn180k < segDurationIn180k || !meta->EOS)
+			if (quality.curSegDurIn180k < segDurationIn180k || !meta->EOS)
 				sendLocalData(repIdx, meta->filesize, meta->EOS);
 
 			return true;
