@@ -420,10 +420,6 @@ class Dasher : public AdaptiveStreamer {
 				throw error("Next segment pre-signalling or segments not owned cannot be used with segment timeline.");
 		}
 
-		virtual ~Dasher() {
-			endOfStream();
-		}
-
 	protected:
 
 		KHost* const m_host;
@@ -583,6 +579,7 @@ class Dasher : public AdaptiveStreamer {
 						fnNext = getPrefixedSegmentName(quality, i, n + 1);
 					}
 				}
+
 				auto metaFn = make_shared<MetadataFile>(SEGMENT);
 				metaFn->filename = fn;
 				metaFn->mimeType = meta->mimeType;
