@@ -541,8 +541,9 @@ class Dasher : public AdaptiveStreamer {
 					auto const currDur = clockToTimescale(meta->durationIn180k, 1000);
 					uint64_t segTime = 0;
 					if (!prevEnt || prevEnt->duration != currDur) {
+						segTime = prevEnt ? prevEnt->start_time + prevEnt->duration*(prevEnt->repeat_count+1) : startTimeInMs;
 						auto ent = (GF_MPD_SegmentTimelineEntry*)gf_malloc(sizeof(GF_MPD_SegmentTimelineEntry));
-						segTime = ent->start_time = prevEnt ? prevEnt->start_time + prevEnt->duration*(prevEnt->repeat_count+1) : startTimeInMs;
+						ent->start_time = segTime;
 						ent->duration = (u32)currDur;
 						ent->repeat_count = 0;
 						gf_list_add(entries, ent);
