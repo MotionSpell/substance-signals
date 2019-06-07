@@ -28,16 +28,17 @@ std::shared_ptr<DataBase> getTestSegment() {
 
 	return r;
 }
+
+struct MyOutput : ModuleS {
+	void processOne(Data) override {
+		++frameCount;
+	}
+	int frameCount = 0;
+};
+
 }
 
 unittest("dasher: simple live") {
-
-	struct MyOutput : ModuleS {
-		void processOne(Data) override {
-			++frameCount;
-		}
-		int frameCount = 0;
-	};
 
 	DasherConfig cfg {};
 	cfg.segDurationInMs = 3000;
@@ -70,4 +71,32 @@ unittest("dasher: simple live") {
 	ASSERT_EQUALS(50 + 1, recSeg->frameCount);
 }
 
+unittest("dasher: two live streams") {
+
+	DasherConfig cfg {};
+	cfg.segDurationInMs = 2000;
+	cfg.live = true;
+	auto dasher = loadModule("MPEG_DASH", &NullHost, &cfg);
+
+	auto recSeg = createModule<MyOutput>();
+	ConnectOutputToInput(dasher->getOutput(0), recSeg->getInput(0));
+
+	auto recMpd = createModule<MyOutput>();
+	ConnectOutputToInput(dasher->getOutput(1), recMpd->getInput(0));
+
+	dasher->getInput(0)->connect();
+	dasher->getInput(1)->connect();
+
+	for(int i=0; i < 50; ++i) {
+		auto s = getTestSegment();
+		dasher->getInput(i%2)->push(s);
+		dasher->process();
+	}
+
+	// We're live: the manifest must have been received before flushing
+	ASSERT_EQUALS(25, recMpd->frameCount);
+
+	// All the segments must have been received
+	ASSERT_EQUALS(50, recSeg->frameCount);
+}
 
