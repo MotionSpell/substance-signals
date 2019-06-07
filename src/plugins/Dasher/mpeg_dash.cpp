@@ -80,10 +80,7 @@ struct AdaptiveStreamer : ModuleDynI {
 		void process() override {
 			if (!wasInit && (startTimeInMs==(uint64_t)-1)) {
 				startTimeInMs = (uint64_t)-2;
-
-				for (int i = 0; i < numInputs(); ++i)
-					qualities.push_back(make_unique<Quality>());
-
+				qualities.resize(numInputs());
 				wasInit = true;
 			}
 
@@ -114,18 +111,18 @@ struct AdaptiveStreamer : ModuleDynI {
 		const uint64_t segDurationIn180k;
 		const std::string manifestDir;
 		const AdaptiveStreamingCommonFlags flags;
-		std::vector<std::unique_ptr<Quality>> qualities;
+		std::vector<Quality> qualities;
 		OutputDefault* outputSegments;
 		OutputDefault* outputManifest;
 
 		bool wasInit = false;
 
-		void processInitSegment(Quality const * const quality, size_t index) {
-			auto const &meta = quality->getMeta();
+		void processInitSegment(Quality const& quality, size_t index) {
+			auto const &meta = quality.getMeta();
 			switch (meta->type) {
 			case AUDIO_PKT: case VIDEO_PKT: case SUBTITLE_PKT: {
-				auto out = clone(quality->lastData);
-				std::string initFn = safe_cast<const MetadataFile>(quality->lastData->getMetadata())->filename;
+				auto out = clone(quality.lastData);
+				std::string initFn = safe_cast<const MetadataFile>(quality.lastData->getMetadata())->filename;
 				if (initFn.empty()) {
 					initFn = format("%s%s", manifestDir, getInitName(quality, index));
 				} else if (!(flags & SegmentsNotOwned)) {
@@ -151,8 +148,8 @@ struct AdaptiveStreamer : ModuleDynI {
 			}
 		}
 
-		std::string getInitName(Quality const * const quality, size_t index) const {
-			switch (quality->getMeta()->type) {
+		std::string getInitName(Quality const& quality, size_t index) const {
+			switch (quality.getMeta()->type) {
 			case AUDIO_PKT:
 			case VIDEO_PKT:
 			case SUBTITLE_PKT:
@@ -161,17 +158,17 @@ struct AdaptiveStreamer : ModuleDynI {
 			}
 		}
 
-		std::string getPrefix(Quality const * const quality, size_t index) const {
-			switch (quality->getMeta()->type) {
-			case AUDIO_PKT:    return format("%s%s", quality->prefix, getCommonPrefixAudio(index));
-			case VIDEO_PKT:    return format("%s%s", quality->prefix, getCommonPrefixVideo(index, quality->getMeta()->resolution));
-			case SUBTITLE_PKT: return format("%s%s", quality->prefix, getCommonPrefixSubtitle(index));
+		std::string getPrefix(Quality const& quality, size_t index) const {
+			switch (quality.getMeta()->type) {
+			case AUDIO_PKT:    return format("%s%s", quality.prefix, getCommonPrefixAudio(index));
+			case VIDEO_PKT:    return format("%s%s", quality.prefix, getCommonPrefixVideo(index, quality.getMeta()->resolution));
+			case SUBTITLE_PKT: return format("%s%s", quality.prefix, getCommonPrefixSubtitle(index));
 			default: return "";
 			}
 		}
 
-		std::string getSegmentName(Quality const * const quality, size_t index, const std::string &segmentNumSymbol) const {
-			switch (quality->getMeta()->type) {
+		std::string getSegmentName(Quality const& quality, size_t index, const std::string &segmentNumSymbol) const {
+			switch (quality.getMeta()->type) {
 			case AUDIO_PKT:
 			case VIDEO_PKT:
 			case SUBTITLE_PKT:
@@ -239,7 +236,7 @@ struct AdaptiveStreamer : ModuleDynI {
 			for (size_t idx = 0; idx < curSegDurIn180k.size(); ++idx) {
 				auto const &segDur = curSegDurIn180k[idx];
 				if ( (segDur < minIncompletSegDur) &&
-				    ((segDur < segDurationIn180k) || (!qualities[idx]->getMeta() || !qualities[idx]->getMeta()->EOS))) {
+				    ((segDur < segDurationIn180k) || (!qualities[idx].getMeta() || !qualities[idx].getMeta()->EOS))) {
 					minIncompletSegDur = segDur;
 				}
 			}
@@ -255,10 +252,10 @@ struct AdaptiveStreamer : ModuleDynI {
 			ensureStartTime();
 			auto out = getPresignalledData(size, currData, EOS);
 			if (out) {
-				auto const &meta = qualities[repIdx]->getMeta();
+				auto const &meta = qualities[repIdx].getMeta();
 
 				auto metaFn = make_shared<MetadataFile>(SEGMENT);
-				metaFn->filename = getSegmentName(qualities[repIdx].get(), repIdx, std::to_string(getCurSegNum()));
+				metaFn->filename = getSegmentName(qualities[repIdx], repIdx, std::to_string(getCurSegNum()));
 				metaFn->mimeType = meta->mimeType;
 				metaFn->codecName = meta->codecName;
 				metaFn->durationIn180k = meta->durationIn180k;
@@ -282,7 +279,7 @@ struct AdaptiveStreamer : ModuleDynI {
 				if (curSegDurIn180k[i] < segDurationIn180k) {
 					return false;
 				}
-				if (!qualities[i]->getMeta()->EOS) {
+				if (!qualities[i].getMeta()->EOS) {
 					return false;
 				}
 			}
@@ -296,17 +293,17 @@ struct AdaptiveStreamer : ModuleDynI {
 			if (!inputs[repIdx]->tryPop(currData) || !currData)
 				return false;
 
-			qualities[repIdx]->lastData = currData;
-			auto const &meta = qualities[repIdx]->getMeta();
+			qualities[repIdx].lastData = currData;
+			auto const &meta = qualities[repIdx].getMeta();
 			if (!meta)
 				throw error(format("Unknown data received on input %s", repIdx));
 
-			if (qualities[repIdx]->prefix.empty())
-				qualities[repIdx]->prefix = format("%s/", getPrefix(qualities[repIdx].get(), repIdx));
+			if (qualities[repIdx].prefix.empty())
+				qualities[repIdx].prefix = format("%s/", getPrefix(qualities[repIdx], repIdx));
 
 			auto const curDurIn180k = meta->durationIn180k;
 			if (curDurIn180k == 0 && curSegDurIn180k[repIdx] == 0) {
-				processInitSegment(qualities[repIdx].get(), repIdx);
+				processInitSegment(qualities[repIdx], repIdx);
 				if (flags & PresignalNextSegment)
 					sendLocalData(repIdx, 0, false);
 				--repIdx;
@@ -317,7 +314,7 @@ struct AdaptiveStreamer : ModuleDynI {
 			// update average bitrate
 			if (segDurationInMs && curDurIn180k) {
 				auto const numSeg = totalDurationInMs / segDurationInMs;
-				qualities[repIdx]->avg_bitrate_in_bps = ((meta->filesize * 8 * IClock::Rate) / meta->durationIn180k + qualities[repIdx]->avg_bitrate_in_bps * numSeg) / (numSeg + 1);
+				qualities[repIdx].avg_bitrate_in_bps = ((meta->filesize * 8 * IClock::Rate) / meta->durationIn180k + qualities[repIdx].avg_bitrate_in_bps * numSeg) / (numSeg + 1);
 			}
 
 			// update current segment duration
@@ -459,8 +456,8 @@ class Dasher : public AdaptiveStreamer {
 				GF_MPD_AdaptationSet *audioAS = nullptr, *videoAS = nullptr;
 				for(auto repIdx : getInputs()) {
 					GF_MPD_AdaptationSet *as = nullptr;
-					auto quality = safe_cast<Quality>(qualities[repIdx].get());
-					auto const &meta = quality->getMeta();
+					auto& quality = qualities[repIdx];
+					auto const &meta = quality.getMeta();
 					if (!meta) {
 						continue;
 					}
@@ -472,8 +469,8 @@ class Dasher : public AdaptiveStreamer {
 					}
 
 					auto const repId = format("%s", repIdx);
-					auto rep = mpd->addRepresentation(as, repId.c_str(), (u32)quality->avg_bitrate_in_bps);
-					quality->rep = rep;
+					auto rep = mpd->addRepresentation(as, repId.c_str(), (u32)quality.avg_bitrate_in_bps);
+					quality.rep = rep;
 					GF_SAFEALLOC(rep->segment_template, GF_MPD_SegmentTemplate);
 					std::string templateName;
 					if (useSegmentTimeline) {
@@ -531,7 +528,7 @@ class Dasher : public AdaptiveStreamer {
 			outputManifest->post(out);
 		}
 
-		std::string getPrefixedSegmentName(Quality const * quality, size_t index, u64 segmentNum) const {
+		std::string getPrefixedSegmentName(Quality const& quality, size_t index, u64 segmentNum) const {
 			return manifestDir + getSegmentName(quality, index, std::to_string(segmentNum));
 		}
 
@@ -539,18 +536,18 @@ class Dasher : public AdaptiveStreamer {
 			ensureManifest();
 
 			for(auto i : getInputs()) {
-				auto quality = safe_cast<Quality>(qualities[i].get());
-				auto const &meta = quality->getMeta();
+				auto& quality = qualities[i];
+				auto const &meta = quality.getMeta();
 				if (!meta) {
 					continue;
 				}
-				if (quality->rep->width) { /*video only*/
-					quality->rep->starts_with_sap = (quality->rep->starts_with_sap == GF_TRUE && meta->startsWithRAP) ? GF_TRUE : GF_FALSE;
+				if (quality.rep->width) { /*video only*/
+					quality.rep->starts_with_sap = (quality.rep->starts_with_sap == GF_TRUE && meta->startsWithRAP) ? GF_TRUE : GF_FALSE;
 				}
 
 				std::string fn, fnNext;
 				if (useSegmentTimeline) {
-					auto entries = quality->rep->segment_template->segment_timeline->entries;
+					auto entries = quality.rep->segment_template->segment_timeline->entries;
 					auto const prevEntIdx = gf_list_count(entries);
 					GF_MPD_SegmentTimelineEntry *prevEnt = prevEntIdx == 0 ? nullptr : (GF_MPD_SegmentTimelineEntry*)gf_list_get(entries, prevEntIdx-1);
 					auto const currDur = clockToTimescale(meta->durationIn180k, 1000);
@@ -592,7 +589,7 @@ class Dasher : public AdaptiveStreamer {
 				}
 
 				if (!fn.empty()) {
-					auto out = getPresignalledData(meta->filesize, quality->lastData, true);
+					auto out = getPresignalledData(meta->filesize, quality.lastData, true);
 					if (!out)
 						throw error("Unexpected null pointer detected which getting data.");
 					out->setMetadata(metaFn);
@@ -600,7 +597,7 @@ class Dasher : public AdaptiveStreamer {
 					outputSegments->post(out);
 
 					if (!fnNext.empty()) {
-						auto out = getPresignalledData(0, quality->lastData, false);
+						auto out = getPresignalledData(0, quality.lastData, false);
 						if (out) {
 							auto meta = make_shared<MetadataFile>(*metaFn);
 							meta->filename = fnNext;
@@ -615,12 +612,12 @@ class Dasher : public AdaptiveStreamer {
 				if (timeShiftBufferDepthInMs) {
 					{
 						int64_t totalDuration = 0;
-						auto seg = quality->timeshiftSegments.begin();
-						while (seg != quality->timeshiftSegments.end()) {
+						auto seg = quality.timeshiftSegments.begin();
+						while (seg != quality.timeshiftSegments.end()) {
 							totalDuration += clockToTimescale(seg->durationIn180k, 1000);
 							if (totalDuration > timeShiftBufferDepthInMs) {
 								m_host->log(Debug, format( "Delete segment \"%s\".", seg->filename).c_str());
-								seg = quality->timeshiftSegments.erase(seg);
+								seg = quality.timeshiftSegments.erase(seg);
 							} else {
 								++seg;
 							}
@@ -629,10 +626,10 @@ class Dasher : public AdaptiveStreamer {
 
 					if (useSegmentTimeline) {
 						int64_t totalDuration = 0;
-						auto entries = quality->rep->segment_template->segment_timeline->entries;
+						auto entries = quality.rep->segment_template->segment_timeline->entries;
 						auto idx = gf_list_count(entries);
 						while (idx--) {
-							auto ent = (GF_MPD_SegmentTimelineEntry*)gf_list_get(quality->rep->segment_template->segment_timeline->entries, idx);
+							auto ent = (GF_MPD_SegmentTimelineEntry*)gf_list_get(quality.rep->segment_template->segment_timeline->entries, idx);
 							auto const dur = ent->duration * (ent->repeat_count + 1);
 							if (totalDuration > timeShiftBufferDepthInMs) {
 								gf_list_rem(entries, idx);
@@ -643,7 +640,7 @@ class Dasher : public AdaptiveStreamer {
 					}
 
 					auto s = Quality::PendingSegment{metaFn->durationIn180k, metaFn->filename};
-					quality->timeshiftSegments.emplace(quality->timeshiftSegments.begin(), s);
+					quality.timeshiftSegments.emplace(quality.timeshiftSegments.begin(), s);
 				}
 			}
 
