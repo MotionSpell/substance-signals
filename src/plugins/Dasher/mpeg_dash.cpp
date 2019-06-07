@@ -340,8 +340,9 @@ struct AdaptiveStreamer : ModuleDynI {
 					break;
 			}
 
-			if (!currData)
+			if (!currData) {
 				return false; // nothing was done
+			}
 
 			ensureStartTime();
 			currData = nullptr;

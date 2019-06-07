@@ -23,13 +23,14 @@ std::shared_ptr<DataBase> getTestSegment() {
 	auto r = createPacket(markerData);
 
 	auto meta = make_shared<MetadataFile>(VIDEO_PKT);
+	meta->durationIn180k = IClock::Rate * 3;
 	r->setMetadata(meta);
 
 	return r;
 }
 }
 
-unittest("dasher: simple") {
+unittest("dasher: simple live") {
 
 	struct MyOutput : ModuleS {
 		void processOne(Data) override {
@@ -40,6 +41,7 @@ unittest("dasher: simple") {
 
 	DasherConfig cfg {};
 	cfg.segDurationInMs = 3000;
+	cfg.live = true;
 	auto dasher = loadModule("MPEG_DASH", &NullHost, &cfg);
 
 	auto recSeg = createModule<MyOutput>();
@@ -56,12 +58,13 @@ unittest("dasher: simple") {
 		dasher->process();
 	}
 
+	// We're live: the manifest must have been received before flushing
+	ASSERT_EQUALS(50, recMpd->frameCount);
+
+	// All the segments must have been received
 	ASSERT_EQUALS(50, recSeg->frameCount);
 
 	dasher->flush();
-
-	// The manifest must have been received
-	ASSERT_EQUALS(1, recMpd->frameCount);
 
 	// FIXME: the last segment gets uploaded twice
 	ASSERT_EQUALS(50 + 1, recSeg->frameCount);
