@@ -56,10 +56,15 @@ unittest("dasher: simple") {
 		dasher->process();
 	}
 
+	ASSERT_EQUALS(50, recSeg->frameCount);
+
 	dasher->flush();
 
-	ASSERT_EQUALS(51, recSeg->frameCount);
+	// The manifest must have been received
 	ASSERT_EQUALS(1, recMpd->frameCount);
+
+	// FIXME: the last segment gets uploaded twice
+	ASSERT_EQUALS(50 + 1, recSeg->frameCount);
 }
 
 
