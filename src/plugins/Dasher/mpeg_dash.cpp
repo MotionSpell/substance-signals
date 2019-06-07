@@ -360,9 +360,6 @@ struct AdaptiveStreamer : ModuleDynI {
 			return true;
 		}
 };
-}
-
-namespace {
 
 GF_MPD_AdaptationSet *createAS(uint64_t segDurationInMs, GF_MPD_Period *period, gpacpp::MPD *mpd) {
 	auto as = mpd->addAdaptationSet(period);
