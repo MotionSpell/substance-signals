@@ -305,7 +305,6 @@ struct AdaptiveStreamer : ModuleDynI {
 				processInitSegment(qualities[repIdx], repIdx);
 				if (flags & PresignalNextSegment)
 					sendLocalData(repIdx, 0, false);
-				--repIdx;
 				currData = nullptr;
 				return true;
 			}
