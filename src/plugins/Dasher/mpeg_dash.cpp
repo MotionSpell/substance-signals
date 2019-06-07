@@ -62,7 +62,11 @@ struct AdaptiveStreamer : ModuleDynI {
 
 		AdaptiveStreamer(KHost* host, Type type, uint64_t segDurationInMs, const std::string &manifestDir, AdaptiveStreamingCommonFlags flags)
 			: m_host(host),
-			  type(type), segDurationInMs(segDurationInMs), manifestDir(manifestDir), flags(flags) {
+			  type(type),
+			  segDurationInMs(segDurationInMs),
+			  segDurationIn180k(timescaleToClock(segDurationInMs, 1000)),
+			  manifestDir(manifestDir),
+			  flags(flags) {
 			if ((flags & ForceRealDurations) && !segDurationInMs)
 				throw error("Inconsistent parameters: ForceRealDurations flag requires a non-null segment duration.");
 			if (!manifestDir.empty() && (flags & SegmentsNotOwned))
@@ -106,6 +110,7 @@ struct AdaptiveStreamer : ModuleDynI {
 		const Type type;
 		uint64_t startTimeInMs = -1, totalDurationInMs = 0;
 		const uint64_t segDurationInMs;
+		const uint64_t segDurationIn180k;
 		const std::string manifestDir;
 		const AdaptiveStreamingCommonFlags flags;
 		std::vector<std::unique_ptr<Quality>> qualities;
@@ -233,7 +238,7 @@ struct AdaptiveStreamer : ModuleDynI {
 			for (size_t idx = 0; idx < curSegDurIn180k.size(); ++idx) {
 				auto const &segDur = curSegDurIn180k[idx];
 				if ( (segDur < minIncompletSegDur) &&
-				    ((segDur < timescaleToClock(segDurationInMs, 1000)) || (!qualities[idx]->getMeta() || !qualities[idx]->getMeta()->EOS))) {
+				    ((segDur < segDurationIn180k) || (!qualities[idx]->getMeta() || !qualities[idx]->getMeta()->EOS))) {
 					minIncompletSegDur = segDur;
 				}
 			}
@@ -273,7 +278,7 @@ struct AdaptiveStreamer : ModuleDynI {
 					curSegDurIn180k[0] = segDurationInMs;
 			}
 			for (int i = 0; i < numInputs(); ++i) {
-				if (curSegDurIn180k[i] < timescaleToClock(segDurationInMs, 1000)) {
+				if (curSegDurIn180k[i] < segDurationIn180k) {
 					return false;
 				}
 				if (!qualities[i]->getMeta()->EOS) {
@@ -281,7 +286,7 @@ struct AdaptiveStreamer : ModuleDynI {
 				}
 			}
 			for (auto &d : curSegDurIn180k) {
-				d -= timescaleToClock(segDurationInMs, 1000);
+				d -= segDurationIn180k;
 			}
 			return true;
 		}
@@ -321,10 +326,10 @@ struct AdaptiveStreamer : ModuleDynI {
 			if (flags & ForceRealDurations) {
 				curSegDurIn180k[repIdx] += meta->durationIn180k;
 			} else {
-				curSegDurIn180k[repIdx] = segDurationInMs ? timescaleToClock(segDurationInMs, 1000) : meta->durationIn180k;
+				curSegDurIn180k[repIdx] = segDurationIn180k ? segDurationIn180k : meta->durationIn180k;
 			}
 
-			if (curSegDurIn180k[repIdx] < timescaleToClock(segDurationInMs, 1000) || !meta->EOS)
+			if (curSegDurIn180k[repIdx] < segDurationIn180k || !meta->EOS)
 				sendLocalData(repIdx, meta->filesize, meta->EOS);
 
 			return true;
@@ -524,7 +529,7 @@ class Dasher : public AdaptiveStreamer {
 			auto out = outputManifest->allocData<DataRaw>(contents.size());
 			auto metadata = make_shared<MetadataFile>(PLAYLIST);
 			metadata->filename = manifestDir + mpdFn;
-			metadata->durationIn180k = timescaleToClock(segDurationInMs, 1000);
+			metadata->durationIn180k = segDurationIn180k;
 			metadata->filesize = contents.size();
 			out->setMetadata(metadata);
 			out->setMediaTime(totalDurationInMs, 1000);
