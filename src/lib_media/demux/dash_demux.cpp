@@ -40,11 +40,6 @@ class DashDemuxer : public Module {
 			modules.push_back(splitter);
 			ConnectOutputToInput(downloader, splitter->getInput(0));
 
-			// add MP4 demuxer
-			std::shared_ptr<IModule> decap = loadModule("GPACDemuxMP4Full", m_host, nullptr);
-			modules.push_back(decap);
-			ConnectOutputToInput(splitter->getOutput(0), decap->getInput(0));
-
 			// create our own output
 			auto output = addOutput();
 			output->setMetadata(downloader->getMetadata());
@@ -53,7 +48,7 @@ class DashDemuxer : public Module {
 				output->post(data);
 			};
 
-			ConnectOutput(decap->getOutput(0), deliver);
+			ConnectOutput(splitter->getOutput(0), deliver);
 		}
 
 		std::vector<std::shared_ptr<IModule>> modules;

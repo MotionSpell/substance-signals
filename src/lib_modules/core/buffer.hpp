@@ -26,6 +26,10 @@ struct span {
 		return ptr[i];
 	}
 
+	T const& operator [] (int i) const {
+		return ptr[i];
+	}
+
 	T* begin() {
 		return ptr;
 	}
