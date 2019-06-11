@@ -140,23 +140,11 @@ struct AdaptiveStreamer : ModuleDynI {
 		}
 
 		std::string getInitName(Quality const& quality, size_t index) const {
-			switch (quality.getMeta()->type) {
-			case AUDIO_PKT:
-			case VIDEO_PKT:
-			case SUBTITLE_PKT:
-				return format("%s-init.mp4", getPrefix(quality, index));
-			default: return "";
-			}
+			return format("%s-init.mp4", getPrefix(quality, index));
 		}
 
 		std::string getSegmentName(Quality const& quality, size_t index, const std::string &segmentNumSymbol) const {
-			switch (quality.getMeta()->type) {
-			case AUDIO_PKT:
-			case VIDEO_PKT:
-			case SUBTITLE_PKT:
-				return format("%s-%s.m4s", getPrefix(quality, index), segmentNumSymbol);
-			default: return "";
-			}
+			return format("%s-%s.m4s", getPrefix(quality, index), segmentNumSymbol);
 		}
 
 		std::string getPrefix(Quality const& quality, size_t index) const {
