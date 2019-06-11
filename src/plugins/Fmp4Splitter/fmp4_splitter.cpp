@@ -30,7 +30,7 @@ class Fmp4Splitter : public ModuleS {
 	private:
 		KHost* const m_host;
 		OutputDefault* output;
-		std::vector<uint8_t> currData; // box buffer. Can contain multiple concatenated boxes.
+		std::vector<uint8_t> currData; // box buffer.
 
 		void pushByte(uint8_t byte) {
 			currData.push_back(byte);
@@ -40,8 +40,8 @@ class Fmp4Splitter : public ModuleS {
 					boxBytes <<= 8;
 					boxBytes |= byte;
 				} else {
-					lastFourcc <<= 8;
-					lastFourcc |= byte;
+					boxFourcc <<= 8;
+					boxFourcc |= byte;
 				}
 				// reading header
 				headerBytes ++;
@@ -63,7 +63,7 @@ class Fmp4Splitter : public ModuleS {
 				// is the current box complete?
 				if(boxBytes == 0) {
 
-					if(lastFourcc == FOURCC("mdat")) {
+					{
 						// flush current box
 						auto out = output->allocData<DataRaw>(currData.size());
 						memcpy(out->buffer->data().ptr, currData.data(), currData.size());
@@ -78,7 +78,7 @@ class Fmp4Splitter : public ModuleS {
 			}
 		}
 
-		uint32_t lastFourcc = 0;
+		uint32_t boxFourcc = 0;
 		int insideHeader = true;
 		int headerBytes = 0;
 		int64_t boxBytes = 0;
