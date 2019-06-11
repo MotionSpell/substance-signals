@@ -93,16 +93,6 @@ struct AdaptiveStreamer : ModuleDynI {
 
 		}
 
-		static std::string getCommonPrefixAudio(size_t index) {
-			return format("a_%s", index);
-		}
-		static std::string getCommonPrefixVideo(size_t index, Resolution res) {
-			return format("v_%s_%sx%s", index, res.width, res.height);
-		}
-		static std::string getCommonPrefixSubtitle(size_t index) {
-			return format("s_%s", index);
-		}
-
 	protected:
 		KHost* const m_host;
 
@@ -161,9 +151,9 @@ struct AdaptiveStreamer : ModuleDynI {
 
 		std::string getPrefix(Quality const& quality, size_t index) const {
 			switch (quality.getMeta()->type) {
-			case AUDIO_PKT:    return format("%s%s", quality.prefix, getCommonPrefixAudio(index));
-			case VIDEO_PKT:    return format("%s%s", quality.prefix, getCommonPrefixVideo(index, quality.getMeta()->resolution));
-			case SUBTITLE_PKT: return format("%s%s", quality.prefix, getCommonPrefixSubtitle(index));
+			case AUDIO_PKT:    return quality.prefix + format("a_%s", index);
+			case VIDEO_PKT:    return quality.prefix + format("v_%s_%sx%s", index, quality.getMeta()->resolution.width, quality.getMeta()->resolution.height);
+			case SUBTITLE_PKT: return quality.prefix + format("s_%s", index);
 			default: return "";
 			}
 		}
