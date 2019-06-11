@@ -584,6 +584,17 @@ class Dasher : public AdaptiveStreamer {
 							totalDuration += clockToTimescale(seg->durationIn180k, 1000);
 							if (totalDuration > timeShiftBufferDepthInMs) {
 								m_host->log(Debug, format( "Delete segment \"%s\".", seg->filename).c_str());
+
+								// send 'DELETE' command
+								{
+									auto out = outputSegments->allocData<DataRaw>(0);
+									auto meta = make_shared<MetadataFile>(SEGMENT);
+									meta->filesize = INT64_MAX; // "DELETE"
+									meta->filename = seg->filename;
+									out->setMetadata(meta);
+									outputSegments->post(out);
+								}
+
 								seg = quality.timeshiftSegments.erase(seg);
 							} else {
 								++seg;

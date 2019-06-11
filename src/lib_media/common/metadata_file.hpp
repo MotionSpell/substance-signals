@@ -32,7 +32,7 @@ struct MetadataFile : IMetadata {
 	std::string mimeType {};
 	std::string codecName {}; /*as per RFC6381*/
 	uint64_t durationIn180k = 0;
-	uint64_t filesize = 0;
+	uint64_t filesize = 0; // set to INT64_MAX to mean "delete"
 	uint64_t latencyIn180k = 1;
 	bool startsWithRAP = false;
 	bool EOS = true;

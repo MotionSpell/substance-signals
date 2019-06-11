@@ -51,22 +51,17 @@ struct HttpSink : Modules::ModuleS {
 			httpConfig.userAgent = userAgent;
 			httpConfig.headers = headers;
 
-			if (meta->filesize == 0 && !meta->EOS) {
+			if (meta->filesize == INT64_MAX) {
+				auto cmd = format("curl -X DELETE %s", url);
+				int exitCode = system(cmd.c_str());
+				if(exitCode != 0)
+					m_host->log(Warning, format("command '%s' failed: %s", cmd, exitCode).c_str());
+			} else if (meta->filesize == 0 && !meta->EOS) {
 				if (exists(zeroSizeConnections, url))
 					throw std::runtime_error(format("Received zero-sized metadata but transfer is already initialized for URL: \"%s\"", url));
 
 				m_host->log(Info, format("Initialize transfer for URL: \"%s\"", url).c_str());
 				auto http = Modules::createModule<Modules::Out::HTTP>(m_host, httpConfig);
-				auto onFinished = [&](Modules::Data data2) {
-					auto const url2 = baseURL + safe_cast<const Modules::MetadataFile>(data2->getMetadata())->filename;
-					m_host->log(Debug, format("Finished transfer for url: \"%s\" (done=%s)", url2, (bool)done).c_str());
-					if (!done) {
-						toErase.push_back(url2);
-						asyncRemoteDelete(url2);
-					}
-				};
-				ConnectOutput(http->getOutput(0), onFinished);
-
 				http->getInput(0)->push(data);
 				http->process();
 				zeroSizeConnections[url] = move(http);
@@ -90,17 +85,6 @@ struct HttpSink : Modules::ModuleS {
 		}
 
 	private:
-
-		void asyncRemoteDelete(string url2) {
-			auto remoteDelete = [url2,this]() {
-				auto cmd = format("curl -X DELETE %s", url2);
-				if(system(cmd.c_str()) != 0) {
-					m_host->log(Warning, format("command %s failed", cmd).c_str());
-				}
-			};
-			auto th = thread(remoteDelete);
-			th.detach();
-		}
 
 		Modules::KHost* const m_host;
 		atomic_bool done;

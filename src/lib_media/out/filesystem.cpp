@@ -53,6 +53,11 @@ class FileSystemSink : public ModuleS {
 
 			auto const path = m_config.directory + "/" + meta->filename;
 
+			if(meta->filesize == INT64_MAX) {
+				remove(path.c_str());
+				return;
+			}
+
 			if(m_files.find(path) == m_files.end()) {
 				ensureDirRecurse(dirName(path));
 				m_files.insert({path, openOutput(path)});
