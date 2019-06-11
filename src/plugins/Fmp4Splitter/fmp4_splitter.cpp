@@ -6,7 +6,7 @@
 
 using namespace Modules;
 
-namespace Modules {
+namespace {
 
 template<size_t N>
 constexpr uint32_t FOURCC(const char (&a)[N]) {
@@ -84,9 +84,6 @@ class Fmp4Splitter : public ModuleS {
 		int64_t boxBytes = 0;
 };
 
-}
-
-namespace {
 IModule* createObject(KHost* host, void* va) {
 	(void)va;
 	enforce(host, "Fmp4Splitter: host can't be NULL");
