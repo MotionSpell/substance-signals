@@ -149,21 +149,21 @@ struct AdaptiveStreamer : ModuleDynI {
 			}
 		}
 
-		std::string getPrefix(Quality const& quality, size_t index) const {
-			switch (quality.getMeta()->type) {
-			case AUDIO_PKT:    return quality.prefix + format("a_%s", index);
-			case VIDEO_PKT:    return quality.prefix + format("v_%s_%sx%s", index, quality.getMeta()->resolution.width, quality.getMeta()->resolution.height);
-			case SUBTITLE_PKT: return quality.prefix + format("s_%s", index);
-			default: return "";
-			}
-		}
-
 		std::string getSegmentName(Quality const& quality, size_t index, const std::string &segmentNumSymbol) const {
 			switch (quality.getMeta()->type) {
 			case AUDIO_PKT:
 			case VIDEO_PKT:
 			case SUBTITLE_PKT:
 				return format("%s-%s.m4s", getPrefix(quality, index), segmentNumSymbol);
+			default: return "";
+			}
+		}
+
+		std::string getPrefix(Quality const& quality, size_t index) const {
+			switch (quality.getMeta()->type) {
+			case AUDIO_PKT:    return quality.prefix + format("a_%s", index);
+			case VIDEO_PKT:    return quality.prefix + format("v_%s_%sx%s", index, quality.getMeta()->resolution.width, quality.getMeta()->resolution.height);
+			case SUBTITLE_PKT: return quality.prefix + format("s_%s", index);
 			default: return "";
 			}
 		}
