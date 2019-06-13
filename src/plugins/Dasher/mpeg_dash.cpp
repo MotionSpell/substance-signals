@@ -109,31 +109,25 @@ struct AdaptiveStreamer : ModuleDynI {
 		bool wasInit = false;
 
 		void processInitSegment(Quality const& quality, size_t index) {
-			auto const &meta = quality.getMeta();
-			switch (meta->type) {
-			case AUDIO_PKT: case VIDEO_PKT: case SUBTITLE_PKT: {
-				auto out = clone(quality.lastData);
-				std::string initFn = safe_cast<const MetadataFile>(quality.lastData->getMetadata())->filename;
+			auto const meta = quality.getMeta();
+			auto out = clone(quality.lastData);
+			std::string initFn = safe_cast<const MetadataFile>(quality.lastData->getMetadata())->filename;
 
-				if (initFn.empty() || (!(flags & SegmentsNotOwned)))
-					initFn = manifestDir + getInitName(quality, index);
+			if (initFn.empty() || (!(flags & SegmentsNotOwned)))
+				initFn = manifestDir + getInitName(quality, index);
 
-				auto metaFn = make_shared<MetadataFile>(SEGMENT);
-				metaFn->filename = initFn;
-				metaFn->mimeType = meta->mimeType;
-				metaFn->codecName = meta->codecName;
-				metaFn->durationIn180k = meta->durationIn180k;
-				metaFn->filesize = meta->filesize;
-				metaFn->latencyIn180k = meta->latencyIn180k;
-				metaFn->startsWithRAP = meta->startsWithRAP;
+			auto metaFn = make_shared<MetadataFile>(SEGMENT);
+			metaFn->filename = initFn;
+			metaFn->mimeType = meta->mimeType;
+			metaFn->codecName = meta->codecName;
+			metaFn->durationIn180k = meta->durationIn180k;
+			metaFn->filesize = meta->filesize;
+			metaFn->latencyIn180k = meta->latencyIn180k;
+			metaFn->startsWithRAP = meta->startsWithRAP;
 
-				out->setMetadata(metaFn);
-				out->setMediaTime(totalDurationInMs, 1000);
-				outputSegments->post(out);
-				break;
-			}
-			default: break;
-			}
+			out->setMetadata(metaFn);
+			out->setMediaTime(totalDurationInMs, 1000);
+			outputSegments->post(out);
 		}
 
 		std::string getInitName(Quality const& quality, size_t index) const {
@@ -453,13 +447,8 @@ class Dasher : public AdaptiveStreamer {
 					default: break;
 					}
 
-					switch (meta->type) {
-					case AUDIO_PKT: case VIDEO_PKT: case SUBTITLE_PKT:
-						rep->segment_template->initialization = gf_strdup(getInitName(quality, repIdx).c_str());
-						rep->segment_template->media = gf_strdup(getSegmentName(quality, repIdx, templateName).c_str());
-						break;
-					default: assert(0);
-					}
+					rep->segment_template->initialization = gf_strdup(getInitName(quality, repIdx).c_str());
+					rep->segment_template->media = gf_strdup(getSegmentName(quality, repIdx, templateName).c_str());
 				}
 			}
 		}
