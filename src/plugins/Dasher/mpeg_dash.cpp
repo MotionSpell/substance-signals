@@ -338,10 +338,10 @@ GF_MPD_AdaptationSet *createAS(uint64_t segDurationInMs, GF_MPD_Period *period, 
 	return as;
 }
 
-std::unique_ptr<gpacpp::MPD> createMPD(bool live, uint32_t minBufferTimeInMs, const std::string &id) {
+gpacpp::MPD createMPD(bool live, uint32_t minBufferTimeInMs, const std::string &id) {
 	return live ?
-	    make_unique<gpacpp::MPD>(GF_MPD_TYPE_DYNAMIC, id, g_profiles, minBufferTimeInMs ? minBufferTimeInMs : MIN_BUFFER_TIME_IN_MS_LIVE) :
-	    make_unique<gpacpp::MPD>(GF_MPD_TYPE_STATIC, id, g_profiles, minBufferTimeInMs ? minBufferTimeInMs : MIN_BUFFER_TIME_IN_MS_VOD );
+	    gpacpp::MPD(GF_MPD_TYPE_DYNAMIC, id, g_profiles, minBufferTimeInMs ? minBufferTimeInMs : MIN_BUFFER_TIME_IN_MS_LIVE) :
+	    gpacpp::MPD(GF_MPD_TYPE_STATIC, id, g_profiles, minBufferTimeInMs ? minBufferTimeInMs : MIN_BUFFER_TIME_IN_MS_VOD );
 }
 
 AdaptiveStreamer::Type getType(DasherConfig* cfg) {
@@ -381,7 +381,7 @@ class Dasher : public AdaptiveStreamer {
 	protected:
 
 		KHost* const m_host;
-		std::unique_ptr<gpacpp::MPD> mpd;
+		gpacpp::MPD mpd;
 		const std::string mpdFn;
 		const std::vector<std::string> baseURLs;
 		const uint64_t minUpdatePeriodInMs;
@@ -390,17 +390,17 @@ class Dasher : public AdaptiveStreamer {
 		const bool useSegmentTimeline = false;
 
 		void ensureManifest() {
-			if (!mpd->mpd->availabilityStartTime) {
-				mpd->mpd->availabilityStartTime = startTimeInMs + initialOffsetInMs;
-				mpd->mpd->time_shift_buffer_depth = (u32)timeShiftBufferDepthInMs;
+			if (!mpd.mpd->availabilityStartTime) {
+				mpd.mpd->availabilityStartTime = startTimeInMs + initialOffsetInMs;
+				mpd.mpd->time_shift_buffer_depth = (u32)timeShiftBufferDepthInMs;
 			}
-			mpd->mpd->publishTime = int64_t(getUTC() * 1000);
+			mpd.mpd->publishTime = int64_t(getUTC() * 1000);
 
-			if ((type == LiveNonBlocking) && (mpd->mpd->media_presentation_duration == 0)) {
+			if ((type == LiveNonBlocking) && (mpd.mpd->media_presentation_duration == 0)) {
 				auto mpdOld = std::move(mpd);
-				mpd = createMPD(type, mpdOld->mpd->min_buffer_time, mpdOld->mpd->ID);
-				mpd->mpd->availabilityStartTime = mpdOld->mpd->availabilityStartTime;
-				mpd->mpd->time_shift_buffer_depth = mpdOld->mpd->time_shift_buffer_depth;
+				mpd = createMPD(type, mpdOld.mpd->min_buffer_time, mpdOld.mpd->ID);
+				mpd.mpd->availabilityStartTime = mpdOld.mpd->availabilityStartTime;
+				mpd.mpd->time_shift_buffer_depth = mpdOld.mpd->time_shift_buffer_depth;
 			}
 
 			if (!baseURLs.empty()) {
@@ -413,11 +413,11 @@ class Dasher : public AdaptiveStreamer {
 					url->URL = gf_strdup(baseURL.c_str());
 					gf_list_add(mpdBaseURL, url);
 				}
-				mpd->mpd->base_URLs = mpdBaseURL;
+				mpd.mpd->base_URLs = mpdBaseURL;
 			}
 
-			if (!gf_list_count(mpd->mpd->periods)) {
-				auto period = mpd->addPeriod();
+			if (!gf_list_count(mpd.mpd->periods)) {
+				auto period = mpd.addPeriod();
 				period->ID = gf_strdup(PERIOD_NAME);
 				GF_MPD_AdaptationSet *audioAS = nullptr, *videoAS = nullptr;
 				for(auto repIdx : getInputs()) {
@@ -428,14 +428,14 @@ class Dasher : public AdaptiveStreamer {
 						continue;
 					}
 					switch (meta->type) {
-					case AUDIO_PKT: as = audioAS ? audioAS : audioAS = createAS(segDurationInMs, period, mpd.get()); break;
-					case VIDEO_PKT: as = videoAS ? videoAS : videoAS = createAS(segDurationInMs, period, mpd.get()); break;
-					case SUBTITLE_PKT: as = createAS(segDurationInMs, period, mpd.get()); break;
+					case AUDIO_PKT: as = audioAS ? audioAS : audioAS = createAS(segDurationInMs, period, &mpd); break;
+					case VIDEO_PKT: as = videoAS ? videoAS : videoAS = createAS(segDurationInMs, period, &mpd); break;
+					case SUBTITLE_PKT: as = createAS(segDurationInMs, period, &mpd); break;
 					default: assert(0);
 					}
 
 					auto const repId = format("%s", repIdx);
-					auto rep = mpd->addRepresentation(as, repId.c_str(), (u32)quality.avg_bitrate_in_bps);
+					auto rep = mpd.addRepresentation(as, repId.c_str(), (u32)quality.avg_bitrate_in_bps);
 					quality.rep = rep;
 					GF_SAFEALLOC(rep->segment_template, GF_MPD_SegmentTemplate);
 					std::string templateName;
@@ -443,20 +443,20 @@ class Dasher : public AdaptiveStreamer {
 						GF_SAFEALLOC(rep->segment_template->segment_timeline, GF_MPD_SegmentTimeline);
 						rep->segment_template->segment_timeline->entries = gf_list_new();
 						templateName = "$Time$";
-						if (mpd->mpd->type == GF_MPD_TYPE_DYNAMIC) {
-							mpd->mpd->minimum_update_period = (u32)minUpdatePeriodInMs;
+						if (mpd.mpd->type == GF_MPD_TYPE_DYNAMIC) {
+							mpd.mpd->minimum_update_period = (u32)minUpdatePeriodInMs;
 						}
 					} else {
 						templateName = "$Number$";
-						mpd->mpd->minimum_update_period = (u32)minUpdatePeriodInMs * MIN_UPDATE_PERIOD_FACTOR;
+						mpd.mpd->minimum_update_period = (u32)minUpdatePeriodInMs * MIN_UPDATE_PERIOD_FACTOR;
 						rep->segment_template->start_number = (u32)(startTimeInMs / segDurationInMs);
 					}
 					rep->mime_type = gf_strdup(meta->mimeType.c_str());
 					rep->codecs = gf_strdup(meta->codecName.c_str());
 					rep->starts_with_sap = GF_TRUE;
-					if (mpd->mpd->type == GF_MPD_TYPE_DYNAMIC && meta->latencyIn180k) {
+					if (mpd.mpd->type == GF_MPD_TYPE_DYNAMIC && meta->latencyIn180k) {
 						rep->segment_template->availability_time_offset = std::max<double>(0.0,  (double)(segDurationInMs - clockToTimescale(meta->latencyIn180k, 1000)) / 1000);
-						mpd->mpd->min_buffer_time = (u32)clockToTimescale(meta->latencyIn180k, 1000);
+						mpd.mpd->min_buffer_time = (u32)clockToTimescale(meta->latencyIn180k, 1000);
 					}
 					switch (meta->type) {
 					case AUDIO_PKT:
@@ -481,7 +481,7 @@ class Dasher : public AdaptiveStreamer {
 		}
 
 		void postManifest() {
-			auto contents = mpd->serialize();
+			auto contents = mpd.serialize();
 
 			auto out = outputManifest->allocData<DataRaw>(contents.size());
 			auto metadata = make_shared<MetadataFile>(PLAYLIST);
@@ -634,9 +634,9 @@ class Dasher : public AdaptiveStreamer {
 				}
 			} else {
 				m_host->log(Info, "Manifest rewritten for on-demand. Media files untouched.");
-				mpd->mpd->type = GF_MPD_TYPE_STATIC;
-				mpd->mpd->minimum_update_period = 0;
-				mpd->mpd->media_presentation_duration = totalDurationInMs;
+				mpd.mpd->type = GF_MPD_TYPE_STATIC;
+				mpd.mpd->minimum_update_period = 0;
+				mpd.mpd->media_presentation_duration = totalDurationInMs;
 				totalDurationInMs -= segDurationInMs;
 				generateManifest();
 				postManifest();

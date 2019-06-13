@@ -234,8 +234,19 @@ class MPD {
 			gf_mpd_del(mpd);
 		}
 
-    MPD(MPD const&) = delete;
-    void operator=(MPD const&) = delete;
+		MPD(MPD const&) = delete;
+		void operator=(MPD const&) = delete;
+
+		MPD(MPD&& other) {
+			mpd = other.mpd;
+			other.mpd = nullptr;
+		}
+
+		void operator=(MPD&& other) {
+			gf_mpd_del(mpd);
+			mpd = other.mpd;
+			other.mpd = nullptr;
+		}
 
 		std::string serialize() const {
 			auto fp = std::shared_ptr<FILE>(gf_temp_file_new(nullptr), &gf_fclose);
