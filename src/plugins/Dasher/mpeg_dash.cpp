@@ -348,7 +348,7 @@ class Dasher : public AdaptiveStreamer {
 			  mpd(createMPD(cfg->live, cfg->minBufferTimeInMs, cfg->id)),
 			  minUpdatePeriodInMs(cfg->minUpdatePeriodInMs ? cfg->minUpdatePeriodInMs : (segDurationInMs ? cfg->segDurationInMs : 1000)),
 			  useSegmentTimeline(cfg->segDurationInMs == 0) {
-			if (useSegmentTimeline && ((flags & PresignalNextSegment) || (flags & SegmentsNotOwned)))
+			if (useSegmentTimeline && (m_cfg.presignalNextSegment || m_cfg.segmentsNotOwned))
 				throw error("Next segment pre-signalling or segments not owned cannot be used with segment timeline.");
 		}
 
@@ -576,9 +576,8 @@ class Dasher : public AdaptiveStreamer {
 
 		void onEndOfStream() {
 			if (m_cfg.timeShiftBufferDepthInMs) {
-				if (!(flags & SegmentsNotOwned)) {
+				if (!m_cfg.segmentsNotOwned)
 					m_host->log(Info, "Manifest was not rewritten for on-demand and all file are being deleted.");
-				}
 			} else {
 				m_host->log(Info, "Manifest rewritten for on-demand. Media files untouched.");
 				mpd->type = GF_MPD_TYPE_STATIC;
