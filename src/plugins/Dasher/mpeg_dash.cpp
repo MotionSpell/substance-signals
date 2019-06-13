@@ -383,8 +383,6 @@ class Dasher : public AdaptiveStreamer {
 			if ((type == LiveNonBlocking) && (mpd->media_presentation_duration == 0)) {
 				auto mpdOld = std::move(mpd);
 				mpd = createMPD(type, mpdOld->min_buffer_time, mpdOld->ID);
-				mpd->availabilityStartTime = mpdOld->availabilityStartTime;
-				mpd->time_shift_buffer_depth = mpdOld->time_shift_buffer_depth;
 			}
 
 			mpd->availabilityStartTime = startTimeInMs + m_cfg.initialOffsetInMs;
