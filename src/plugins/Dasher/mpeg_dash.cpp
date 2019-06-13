@@ -488,7 +488,7 @@ class Dasher : public AdaptiveStreamer {
 				} else {
 					auto n = getCurSegNum();
 					fn = getPrefixedSegmentName(quality, i, n);
-					if (flags & PresignalNextSegment)
+					if (m_cfg.presignalNextSegment)
 						fnNext = getPrefixedSegmentName(quality, i, n + 1);
 				}
 
