@@ -131,7 +131,9 @@ unittest("dasher: timeshift buffer") {
 		dasher->getInput(0)->push(s);
 		dasher->process();
 	}
+
+	// we expect to have 3 live segments ( timeShiftBufferDepthInMs / segDurationInMs )
 	ASSERT_EQUALS(40, server->added);
-	ASSERT_EQUALS(36, server->deleted);
+	ASSERT_EQUALS(37, server->deleted);
 }
 
