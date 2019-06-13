@@ -309,9 +309,9 @@ class MPD {
 			return period;
 		}
 
+	private:
 		GF_MPD *mpd;
 
-	private:
 		bool minimalCheck() const {
 			if (!mpd->min_buffer_time)
 				return false;
