@@ -405,18 +405,8 @@ class Dasher : public AdaptiveStreamer {
 				mpd->time_shift_buffer_depth = mpdOld->time_shift_buffer_depth;
 			}
 
-			if (!baseURLs.empty()) {
-				auto mpdBaseURL = gf_list_new();
-				if (!mpdBaseURL)
-					throw error("Can't allocate mpdBaseURL with gf_list_new()");
-				for (auto const &baseURL : baseURLs) {
-					GF_MPD_BaseURL *url;
-					GF_SAFEALLOC(url, GF_MPD_BaseURL);
-					url->URL = gf_strdup(baseURL.c_str());
-					gf_list_add(mpdBaseURL, url);
-				}
-				mpd->base_URLs = mpdBaseURL;
-			}
+			for (auto& url : baseURLs)
+				mpd.addBaseUrl(url.c_str());
 
 			if (!gf_list_count(mpd->periods)) {
 				auto period = mpd.addPeriod();

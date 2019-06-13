@@ -349,6 +349,18 @@ class MPD {
 			return as;
 		}
 
+		void addBaseUrl(const char* baseURL) {
+			if(!mpd->base_URLs) {
+				mpd->base_URLs = gf_list_new();
+				if (!mpd->base_URLs)
+					throw std::runtime_error("Can't allocate mpdBaseURL with gf_list_new()");
+			}
+			GF_MPD_BaseURL *url;
+			GF_SAFEALLOC(url, GF_MPD_BaseURL);
+			url->URL = gf_strdup(baseURL);
+			gf_list_add(mpd->base_URLs, url);
+		}
+
 		GF_MPD_Period* addPeriod() {
 			GF_MPD_Period *period;
 			GF_SAFEALLOC(period, GF_MPD_Period);
