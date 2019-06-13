@@ -90,7 +90,6 @@ struct AdaptiveStreamer : ModuleDynI {
 		void flush() override {
 			while(schedule()) { }
 			finalizeManifest();
-
 		}
 
 	protected:
@@ -399,12 +398,12 @@ class Dasher : public AdaptiveStreamer {
 				auto period = mpd.addPeriod(PERIOD_NAME);
 				GF_MPD_AdaptationSet *audioAS = nullptr, *videoAS = nullptr;
 				for(auto repIdx : getInputs()) {
-					GF_MPD_AdaptationSet *as = nullptr;
 					auto& quality = qualities[repIdx];
 					auto const &meta = quality.getMeta();
-					if (!meta) {
+					if (!meta)
 						continue;
-					}
+
+					GF_MPD_AdaptationSet *as = nullptr;
 					switch (meta->type) {
 					case AUDIO_PKT: as = audioAS ? audioAS : audioAS = createAS(segDurationInMs, period, &mpd); break;
 					case VIDEO_PKT: as = videoAS ? videoAS : videoAS = createAS(segDurationInMs, period, &mpd); break;
@@ -421,9 +420,8 @@ class Dasher : public AdaptiveStreamer {
 						GF_SAFEALLOC(rep->segment_template->segment_timeline, GF_MPD_SegmentTimeline);
 						rep->segment_template->segment_timeline->entries = gf_list_new();
 						templateName = "$Time$";
-						if (mpd->type == GF_MPD_TYPE_DYNAMIC) {
+						if (mpd->type == GF_MPD_TYPE_DYNAMIC)
 							mpd->minimum_update_period = (u32)minUpdatePeriodInMs;
-						}
 					} else {
 						templateName = "$Number$";
 						mpd->minimum_update_period = (u32)minUpdatePeriodInMs * MIN_UPDATE_PERIOD_FACTOR;
@@ -477,9 +475,9 @@ class Dasher : public AdaptiveStreamer {
 			for(auto i : getInputs()) {
 				auto& quality = qualities[i];
 				auto const &meta = quality.getMeta();
-				if (!meta) {
+				if (!meta)
 					continue;
-				}
+
 				if (quality.rep->width) { /*video only*/
 					quality.rep->starts_with_sap = (quality.rep->starts_with_sap == GF_TRUE && meta->startsWithRAP) ? GF_TRUE : GF_FALSE;
 				}
@@ -507,9 +505,8 @@ class Dasher : public AdaptiveStreamer {
 				} else {
 					auto n = getCurSegNum();
 					fn = getPrefixedSegmentName(quality, i, n);
-					if (flags & PresignalNextSegment) {
+					if (flags & PresignalNextSegment)
 						fnNext = getPrefixedSegmentName(quality, i, n + 1);
-					}
 				}
 
 				auto metaFn = make_shared<MetadataFile>(SEGMENT);
@@ -595,9 +592,8 @@ class Dasher : public AdaptiveStreamer {
 				}
 			}
 
-			if (type != Static) {
+			if (type != Static)
 				postManifest();
-			}
 		}
 
 		void finalizeManifest() {
@@ -615,7 +611,6 @@ class Dasher : public AdaptiveStreamer {
 				postManifest();
 			}
 		}
-
 };
 
 IModule* createObject(KHost* host, void* va) {
