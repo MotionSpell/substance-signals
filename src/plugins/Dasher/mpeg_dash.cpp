@@ -117,8 +117,7 @@ struct AdaptiveStreamer : ModuleDynI {
 				if (initFn.empty()) {
 					initFn = format("%s%s", manifestDir, getInitName(quality, index));
 				} else if (!(flags & SegmentsNotOwned)) {
-					auto const dst = format("%s%s", manifestDir, getInitName(quality, index));
-					initFn = dst;
+					initFn = format("%s%s", manifestDir, getInitName(quality, index));
 				}
 
 				auto metaFn = make_shared<MetadataFile>(SEGMENT);
