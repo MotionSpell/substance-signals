@@ -73,6 +73,30 @@ string thisExeDir() {
 	return path;
 }
 
+static string GetLastErrorMsg() {
+	auto const errorCode = GetLastError();
+	if (!errorCode)
+		return "";
+
+	const char* msg;
+	auto const len = FormatMessage(
+	        FORMAT_MESSAGE_ALLOCATE_BUFFER
+	        | FORMAT_MESSAGE_FROM_SYSTEM
+	        | FORMAT_MESSAGE_IGNORE_INSERTS,
+	        NULL,
+	        errorCode,
+	        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+	        (LPTSTR)&msg,
+	        0, NULL);
+	if (!len)
+		return "";
+
+	auto r = string(msg, msg+len);
+	LocalFree((HLOCAL)msg);
+
+	return r;
+}
+
 static HMODULE loadDll(const char* name) {
 	HMODULE r;
 
@@ -84,17 +108,16 @@ static HMODULE loadDll(const char* name) {
 	if(r)
 		return r;
 
-	return NULL;
+	string msg = "can't load '";
+	msg += name;
+	msg += "'";
+
+	msg += " (" + GetLastErrorMsg() + ")";
+	throw runtime_error(msg);
 }
 
 struct DynLibWin : DynLib {
 	DynLibWin(const char* name) : hmodule(loadDll(name)) {
-		if(!hmodule) {
-			string msg = "can't load '";
-			msg += name;
-			msg += "'";
-			throw runtime_error(msg);
-		}
 	}
 
 	~DynLibWin() {
