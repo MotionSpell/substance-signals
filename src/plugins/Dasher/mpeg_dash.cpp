@@ -102,8 +102,8 @@ struct AdaptiveStreamer : ModuleDynI {
 		std::vector<Quality> qualities;
 		OutputDefault* outputSegments;
 		OutputDefault* outputManifest;
-
 		bool wasInit = false;
+		Data currData;
 
 		void processInitSegment(Quality const& quality, size_t index) {
 			auto const meta = quality.getMeta();
@@ -182,8 +182,6 @@ struct AdaptiveStreamer : ModuleDynI {
 		int numInputs() {
 			return getNumInputs() - 1;
 		}
-
-		Data currData;
 
 		bool isComplete(int repIdx) const {
 			uint64_t minIncompletSegDur = std::numeric_limits<uint64_t>::max();
