@@ -26,6 +26,7 @@ function srt_build {
   # CMAKE_SYSTEM_NAME: without it, cmake doesn't realize we're cross-compiling,
   # and tries to use native-specific compiler options (e.g -rdynamic).
   cmake \
+    -G "Unix Makefiles" \
     -DCMAKE_SYSTEM_NAME=$systemName \
     -DCMAKE_C_COMPILER=$host-gcc      \
     -DCMAKE_CXX_COMPILER=$host-g++    \
