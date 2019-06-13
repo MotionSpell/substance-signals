@@ -361,11 +361,12 @@ class MPD {
 			gf_list_add(mpd->base_URLs, url);
 		}
 
-		GF_MPD_Period* addPeriod() {
+		GF_MPD_Period* addPeriod(const char* name) {
+
 			GF_MPD_Period *period;
 			GF_SAFEALLOC(period, GF_MPD_Period);
 
-			//char *ID;
+			period->ID = gf_strdup(name);
 			period->start = 0;
 			//u32 duration; /* expressed in ms*/
 			//Bool bitstream_switching;

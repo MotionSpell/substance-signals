@@ -409,8 +409,7 @@ class Dasher : public AdaptiveStreamer {
 				mpd.addBaseUrl(url.c_str());
 
 			if (!gf_list_count(mpd->periods)) {
-				auto period = mpd.addPeriod();
-				period->ID = gf_strdup(PERIOD_NAME);
+				auto period = mpd.addPeriod(PERIOD_NAME);
 				GF_MPD_AdaptationSet *audioAS = nullptr, *videoAS = nullptr;
 				for(auto repIdx : getInputs()) {
 					GF_MPD_AdaptationSet *as = nullptr;
