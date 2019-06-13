@@ -114,11 +114,9 @@ struct AdaptiveStreamer : ModuleDynI {
 			case AUDIO_PKT: case VIDEO_PKT: case SUBTITLE_PKT: {
 				auto out = clone(quality.lastData);
 				std::string initFn = safe_cast<const MetadataFile>(quality.lastData->getMetadata())->filename;
-				if (initFn.empty()) {
+
+				if (initFn.empty() || (!(flags & SegmentsNotOwned)))
 					initFn = format("%s%s", manifestDir, getInitName(quality, index));
-				} else if (!(flags & SegmentsNotOwned)) {
-					initFn = format("%s%s", manifestDir, getInitName(quality, index));
-				}
 
 				auto metaFn = make_shared<MetadataFile>(SEGMENT);
 				metaFn->filename = initFn;
