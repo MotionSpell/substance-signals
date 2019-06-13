@@ -50,10 +50,8 @@ struct Quality {
 };
 
 struct AdaptiveStreamer : ModuleDynI {
-		/*called each time segments are ready*/
-		virtual void generateManifest() = 0;
-		/*last manifest to be written: usually the VoD one*/
-		virtual void finalizeManifest() = 0;
+		virtual void onNewSegment() = 0;
+		virtual void onEndOfStream() = 0;
 
 		enum Type {
 			Static,
@@ -89,7 +87,7 @@ struct AdaptiveStreamer : ModuleDynI {
 
 		void flush() override {
 			while(schedule()) { }
-			finalizeManifest();
+			onEndOfStream();
 		}
 
 	protected:
@@ -305,7 +303,7 @@ struct AdaptiveStreamer : ModuleDynI {
 				for (auto& quality : qualities)
 					quality.curSegDurIn180k -= segDurationIn180k;
 
-				generateManifest();
+				onNewSegment();
 				totalDurationInMs += segDurationInMs;
 				m_host->log(Info, format("Processes segment (total processed: %ss,", (double)totalDurationInMs / 1000).c_str());
 			}
@@ -467,7 +465,11 @@ class Dasher : public AdaptiveStreamer {
 			return manifestDir + getSegmentName(quality, index, std::to_string(segmentNum));
 		}
 
-		void generateManifest() {
+		void onNewSegment() {
+			updateManifest();
+		}
+
+		void updateManifest() {
 			ensureManifest();
 
 			for(auto i : getInputs()) {
@@ -589,7 +591,7 @@ class Dasher : public AdaptiveStreamer {
 				postManifest();
 		}
 
-		void finalizeManifest() {
+		void onEndOfStream() {
 			if (m_cfg.timeShiftBufferDepthInMs) {
 				if (!(flags & SegmentsNotOwned)) {
 					m_host->log(Info, "Manifest was not rewritten for on-demand and all file are being deleted.");
@@ -600,7 +602,7 @@ class Dasher : public AdaptiveStreamer {
 				mpd->minimum_update_period = 0;
 				mpd->media_presentation_duration = totalDurationInMs;
 				totalDurationInMs -= segDurationInMs;
-				generateManifest();
+				updateManifest();
 				postManifest();
 			}
 		}
