@@ -515,13 +515,8 @@ class Dasher : public AdaptiveStreamer {
 				metaFn->filesize= meta->filesize;
 				metaFn->latencyIn180k= meta->latencyIn180k;
 				metaFn->startsWithRAP= meta->startsWithRAP;
-
-				switch (meta->type) {
-				case AUDIO_PKT: metaFn->sampleRate = meta->sampleRate; break;
-				case VIDEO_PKT: metaFn->resolution = meta->resolution; break;
-				case SUBTITLE_PKT: break;
-				default: assert(0);
-				}
+				metaFn->sampleRate = meta->sampleRate;
+				metaFn->resolution = meta->resolution;
 
 				if (!fn.empty()) {
 					auto out = getPresignalledData(meta->filesize, quality.lastData, true);
