@@ -149,7 +149,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 	demuxCfg.loop = cfg.loop;
 	auto demux = pipeline->add("LibavDemux", &demuxCfg);
 	auto const live = cfg.isLive || cfg.ultraLowLatency;
-	auto dasherCfg = Modules::DasherConfig { DASH_SUBDIR, format("%s.mpd", g_appName), live, (uint64_t)cfg.segmentDurationInMs, (uint64_t)cfg.segmentDurationInMs * cfg.timeshiftInSegNum};
+	auto dasherCfg = Modules::DasherConfig { DASH_SUBDIR, format("%s.mpd", g_appName), live, (uint64_t)cfg.segmentDurationInMs, cfg.segmentDurationInMs * cfg.timeshiftInSegNum};
 	auto dasher = pipeline->add("MPEG_DASH", &dasherCfg);
 
 	IFilter* sink {};

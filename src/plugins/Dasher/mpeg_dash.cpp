@@ -372,9 +372,10 @@ class Dasher : public AdaptiveStreamer {
 		Dasher(KHost* host, DasherConfig* cfg)
 			: AdaptiveStreamer(host, getType(cfg), cfg->segDurationInMs, cfg->mpdDir, getFlags(cfg)),
 			  m_host(host),
-			  mpd(createMPD(cfg->live, cfg->minBufferTimeInMs, cfg->id)), mpdFn(cfg->mpdName), baseURLs(cfg->baseURLs),
+			  m_cfg(*cfg),
+			  mpd(createMPD(cfg->live, cfg->minBufferTimeInMs, cfg->id)),
 			  minUpdatePeriodInMs(cfg->minUpdatePeriodInMs ? cfg->minUpdatePeriodInMs : (segDurationInMs ? cfg->segDurationInMs : 1000)),
-			  timeShiftBufferDepthInMs(cfg->timeShiftBufferDepthInMs), initialOffsetInMs(cfg->initialOffsetInMs), useSegmentTimeline(cfg->segDurationInMs == 0) {
+			  useSegmentTimeline(cfg->segDurationInMs == 0) {
 			if (useSegmentTimeline && ((flags & PresignalNextSegment) || (flags & SegmentsNotOwned)))
 				throw error("Next segment pre-signalling or segments not owned cannot be used with segment timeline.");
 		}
@@ -382,18 +383,15 @@ class Dasher : public AdaptiveStreamer {
 	protected:
 
 		KHost* const m_host;
+		DasherConfig const m_cfg;
 		MediaPresentationDescription mpd;
-		const std::string mpdFn;
-		const std::vector<std::string> baseURLs;
 		const uint64_t minUpdatePeriodInMs;
-		const int64_t timeShiftBufferDepthInMs;
-		const int64_t initialOffsetInMs;
 		const bool useSegmentTimeline = false;
 
 		void ensureManifest() {
 			if (!mpd->availabilityStartTime) {
-				mpd->availabilityStartTime = startTimeInMs + initialOffsetInMs;
-				mpd->time_shift_buffer_depth = (u32)timeShiftBufferDepthInMs;
+				mpd->availabilityStartTime = startTimeInMs + m_cfg.initialOffsetInMs;
+				mpd->time_shift_buffer_depth = (u32)m_cfg.timeShiftBufferDepthInMs;
 			}
 			mpd->publishTime = int64_t(getUTC() * 1000);
 
@@ -405,7 +403,7 @@ class Dasher : public AdaptiveStreamer {
 			}
 
 			if (!gf_list_count(mpd->periods)) {
-				for (auto& url : baseURLs)
+				for (auto& url : m_cfg.baseURLs)
 					mpd.addBaseUrl(url.c_str());
 
 				auto period = mpd.addPeriod(PERIOD_NAME);
@@ -475,7 +473,7 @@ class Dasher : public AdaptiveStreamer {
 
 			auto out = outputManifest->allocData<DataRaw>(contents.size());
 			auto metadata = make_shared<MetadataFile>(PLAYLIST);
-			metadata->filename = manifestDir + mpdFn;
+			metadata->filename = manifestDir + m_cfg.mpdName;
 			metadata->durationIn180k = segDurationIn180k;
 			metadata->filesize = contents.size();
 			out->setMetadata(metadata);
@@ -566,13 +564,13 @@ class Dasher : public AdaptiveStreamer {
 					}
 				}
 
-				if (timeShiftBufferDepthInMs) {
+				if (m_cfg.timeShiftBufferDepthInMs) {
 					{
 						int64_t totalDuration = 0;
 						auto seg = quality.timeshiftSegments.begin();
 						while (seg != quality.timeshiftSegments.end()) {
 							totalDuration += clockToTimescale(seg->durationIn180k, 1000);
-							if (totalDuration >= timeShiftBufferDepthInMs) {
+							if (totalDuration >= m_cfg.timeShiftBufferDepthInMs) {
 								m_host->log(Debug, format( "Delete segment \"%s\".", seg->filename).c_str());
 
 								// send 'DELETE' command
@@ -599,7 +597,7 @@ class Dasher : public AdaptiveStreamer {
 						while (idx--) {
 							auto ent = (GF_MPD_SegmentTimelineEntry*)gf_list_get(quality.rep->segment_template->segment_timeline->entries, idx);
 							auto const dur = ent->duration * (ent->repeat_count + 1);
-							if (totalDuration > timeShiftBufferDepthInMs) {
+							if (totalDuration > m_cfg.timeShiftBufferDepthInMs) {
 								gf_list_rem(entries, idx);
 								gf_free(ent);
 							}
@@ -618,7 +616,7 @@ class Dasher : public AdaptiveStreamer {
 		}
 
 		void finalizeManifest() {
-			if (timeShiftBufferDepthInMs) {
+			if (m_cfg.timeShiftBufferDepthInMs) {
 				if (!(flags & SegmentsNotOwned)) {
 					m_host->log(Info, "Manifest was not rewritten for on-demand and all file are being deleted.");
 				}
