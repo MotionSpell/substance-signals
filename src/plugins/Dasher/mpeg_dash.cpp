@@ -53,14 +53,9 @@ struct AdaptiveStreamer : ModuleDynI {
 		virtual void onNewSegment() = 0;
 		virtual void onEndOfStream() = 0;
 
-		enum Type {
-			Static,
-			Live,
-		};
-
-		AdaptiveStreamer(KHost* host, Type type, uint64_t segDurationInMs, const std::string &manifestDir, AdaptiveStreamingCommonFlags flags)
+		AdaptiveStreamer(KHost* host, bool live, uint64_t segDurationInMs, const std::string &manifestDir, AdaptiveStreamingCommonFlags flags)
 			: m_host(host),
-			  type(type),
+			  live(live),
 			  segDurationInMs(segDurationInMs),
 			  segDurationIn180k(timescaleToClock(segDurationInMs, 1000)),
 			  manifestDir(manifestDir),
@@ -92,7 +87,7 @@ struct AdaptiveStreamer : ModuleDynI {
 	protected:
 		KHost* const m_host;
 
-		const Type type;
+		const bool live;
 		uint64_t startTimeInMs = -1, totalDurationInMs = 0;
 		const uint64_t segDurationInMs;
 		const uint64_t segDurationIn180k;
@@ -331,13 +326,6 @@ MediaPresentationDescription createMPD(bool live, uint32_t minBufferTimeInMs, co
 	    MediaPresentationDescription(GF_MPD_TYPE_STATIC, id, g_profiles, minBufferTimeInMs ? minBufferTimeInMs : MIN_BUFFER_TIME_IN_MS_VOD );
 }
 
-AdaptiveStreamer::Type getType(DasherConfig* cfg) {
-	if(!cfg->live)
-		return AdaptiveStreamer::Static;
-	else
-		return AdaptiveStreamer::Live;
-}
-
 AdaptiveStreamingCommonFlags getFlags(DasherConfig* cfg) {
 	uint32_t r = 0;
 
@@ -354,7 +342,7 @@ AdaptiveStreamingCommonFlags getFlags(DasherConfig* cfg) {
 class Dasher : public AdaptiveStreamer {
 	public:
 		Dasher(KHost* host, DasherConfig* cfg)
-			: AdaptiveStreamer(host, getType(cfg), cfg->segDurationInMs, cfg->mpdDir, getFlags(cfg)),
+			: AdaptiveStreamer(host, cfg->live, cfg->segDurationInMs, cfg->mpdDir, getFlags(cfg)),
 			  m_host(host),
 			  m_cfg(*cfg),
 			  mpd(createMPD(cfg->live, cfg->minBufferTimeInMs, cfg->id)),
@@ -373,9 +361,9 @@ class Dasher : public AdaptiveStreamer {
 		const bool useSegmentTimeline = false;
 
 		void ensureManifest() {
-			if ((type == Live) && (mpd->media_presentation_duration == 0)) {
+			if (live && (mpd->media_presentation_duration == 0)) {
 				auto mpdOld = std::move(mpd);
-				mpd = createMPD(type, mpdOld->min_buffer_time, mpdOld->ID);
+				mpd = createMPD(m_cfg.live, mpdOld->min_buffer_time, mpdOld->ID);
 			}
 
 			mpd->availabilityStartTime = startTimeInMs + m_cfg.initialOffsetInMs;
@@ -582,7 +570,7 @@ class Dasher : public AdaptiveStreamer {
 				}
 			}
 
-			if (type != Static)
+			if (live)
 				postManifest();
 		}
 
