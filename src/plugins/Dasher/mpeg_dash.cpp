@@ -324,7 +324,9 @@ struct AdaptiveStreamer : ModuleDynI {
 		}
 };
 
-GF_MPD_AdaptationSet *createAS(uint64_t segDurationInMs, GF_MPD_Period *period, gpacpp::MPD *mpd) {
+using MediaPresentationDescription = gpacpp::MPD;
+
+GF_MPD_AdaptationSet *createAS(uint64_t segDurationInMs, GF_MPD_Period *period, MediaPresentationDescription *mpd) {
 	auto as = mpd->addAdaptationSet(period);
 	GF_SAFEALLOC(as->segment_template, GF_MPD_SegmentTemplate);
 	as->segment_template->duration = segDurationInMs;
@@ -338,10 +340,10 @@ GF_MPD_AdaptationSet *createAS(uint64_t segDurationInMs, GF_MPD_Period *period, 
 	return as;
 }
 
-gpacpp::MPD createMPD(bool live, uint32_t minBufferTimeInMs, const std::string &id) {
+MediaPresentationDescription createMPD(bool live, uint32_t minBufferTimeInMs, const std::string &id) {
 	return live ?
-	    gpacpp::MPD(GF_MPD_TYPE_DYNAMIC, id, g_profiles, minBufferTimeInMs ? minBufferTimeInMs : MIN_BUFFER_TIME_IN_MS_LIVE) :
-	    gpacpp::MPD(GF_MPD_TYPE_STATIC, id, g_profiles, minBufferTimeInMs ? minBufferTimeInMs : MIN_BUFFER_TIME_IN_MS_VOD );
+	    MediaPresentationDescription(GF_MPD_TYPE_DYNAMIC, id, g_profiles, minBufferTimeInMs ? minBufferTimeInMs : MIN_BUFFER_TIME_IN_MS_LIVE) :
+	    MediaPresentationDescription(GF_MPD_TYPE_STATIC, id, g_profiles, minBufferTimeInMs ? minBufferTimeInMs : MIN_BUFFER_TIME_IN_MS_VOD );
 }
 
 AdaptiveStreamer::Type getType(DasherConfig* cfg) {
@@ -381,7 +383,7 @@ class Dasher : public AdaptiveStreamer {
 	protected:
 
 		KHost* const m_host;
-		gpacpp::MPD mpd;
+		MediaPresentationDescription mpd;
 		const std::string mpdFn;
 		const std::vector<std::string> baseURLs;
 		const uint64_t minUpdatePeriodInMs;
