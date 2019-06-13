@@ -360,7 +360,29 @@ class Dasher : public AdaptiveStreamer {
 		const uint64_t minUpdatePeriodInMs;
 		const bool useSegmentTimeline = false;
 
-		void ensureManifest() {
+		void postManifest() {
+			auto contents = mpd.serialize();
+
+			auto out = outputManifest->allocData<DataRaw>(contents.size());
+			auto metadata = make_shared<MetadataFile>(PLAYLIST);
+			metadata->filename = manifestDir + m_cfg.mpdName;
+			metadata->durationIn180k = segDurationIn180k;
+			metadata->filesize = contents.size();
+			out->setMetadata(metadata);
+			out->setMediaTime(totalDurationInMs, 1000);
+			memcpy(out->buffer->data().ptr, contents.data(), contents.size());
+			outputManifest->post(out);
+		}
+
+		std::string getPrefixedSegmentName(Quality const& quality, size_t index, u64 segmentNum) const {
+			return manifestDir + getSegmentName(quality, index, std::to_string(segmentNum));
+		}
+
+		void onNewSegment() {
+			updateManifest();
+		}
+
+		void updateManifest() {
 			if (live && (mpd->media_presentation_duration == 0)) {
 				auto mpdOld = std::move(mpd);
 				mpd = createMPD(m_cfg.live, mpdOld->min_buffer_time, mpdOld->ID);
@@ -428,32 +450,6 @@ class Dasher : public AdaptiveStreamer {
 					rep->segment_template->media = gf_strdup(getSegmentName(quality, repIdx, templateName).c_str());
 				}
 			}
-		}
-
-		void postManifest() {
-			auto contents = mpd.serialize();
-
-			auto out = outputManifest->allocData<DataRaw>(contents.size());
-			auto metadata = make_shared<MetadataFile>(PLAYLIST);
-			metadata->filename = manifestDir + m_cfg.mpdName;
-			metadata->durationIn180k = segDurationIn180k;
-			metadata->filesize = contents.size();
-			out->setMetadata(metadata);
-			out->setMediaTime(totalDurationInMs, 1000);
-			memcpy(out->buffer->data().ptr, contents.data(), contents.size());
-			outputManifest->post(out);
-		}
-
-		std::string getPrefixedSegmentName(Quality const& quality, size_t index, u64 segmentNum) const {
-			return manifestDir + getSegmentName(quality, index, std::to_string(segmentNum));
-		}
-
-		void onNewSegment() {
-			updateManifest();
-		}
-
-		void updateManifest() {
-			ensureManifest();
 
 			for(auto i : getInputs()) {
 				auto& quality = qualities[i];
