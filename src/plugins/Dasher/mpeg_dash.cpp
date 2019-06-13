@@ -405,10 +405,10 @@ class Dasher : public AdaptiveStreamer {
 				mpd->time_shift_buffer_depth = mpdOld->time_shift_buffer_depth;
 			}
 
-			for (auto& url : baseURLs)
-				mpd.addBaseUrl(url.c_str());
-
 			if (!gf_list_count(mpd->periods)) {
+				for (auto& url : baseURLs)
+					mpd.addBaseUrl(url.c_str());
+
 				auto period = mpd.addPeriod(PERIOD_NAME);
 				GF_MPD_AdaptationSet *audioAS = nullptr, *videoAS = nullptr;
 				for(auto repIdx : getInputs()) {
