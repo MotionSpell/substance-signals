@@ -248,6 +248,10 @@ class MPD {
 			other.mpd = nullptr;
 		}
 
+		auto operator->() {
+			return mpd;
+		}
+
 		std::string serialize() const {
 			auto fp = std::shared_ptr<FILE>(gf_temp_file_new(nullptr), &gf_fclose);
 			if(!fp)

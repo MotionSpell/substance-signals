@@ -390,17 +390,17 @@ class Dasher : public AdaptiveStreamer {
 		const bool useSegmentTimeline = false;
 
 		void ensureManifest() {
-			if (!mpd.mpd->availabilityStartTime) {
-				mpd.mpd->availabilityStartTime = startTimeInMs + initialOffsetInMs;
-				mpd.mpd->time_shift_buffer_depth = (u32)timeShiftBufferDepthInMs;
+			if (!mpd->availabilityStartTime) {
+				mpd->availabilityStartTime = startTimeInMs + initialOffsetInMs;
+				mpd->time_shift_buffer_depth = (u32)timeShiftBufferDepthInMs;
 			}
-			mpd.mpd->publishTime = int64_t(getUTC() * 1000);
+			mpd->publishTime = int64_t(getUTC() * 1000);
 
-			if ((type == LiveNonBlocking) && (mpd.mpd->media_presentation_duration == 0)) {
+			if ((type == LiveNonBlocking) && (mpd->media_presentation_duration == 0)) {
 				auto mpdOld = std::move(mpd);
-				mpd = createMPD(type, mpdOld.mpd->min_buffer_time, mpdOld.mpd->ID);
-				mpd.mpd->availabilityStartTime = mpdOld.mpd->availabilityStartTime;
-				mpd.mpd->time_shift_buffer_depth = mpdOld.mpd->time_shift_buffer_depth;
+				mpd = createMPD(type, mpdOld->min_buffer_time, mpdOld->ID);
+				mpd->availabilityStartTime = mpdOld->availabilityStartTime;
+				mpd->time_shift_buffer_depth = mpdOld->time_shift_buffer_depth;
 			}
 
 			if (!baseURLs.empty()) {
@@ -413,10 +413,10 @@ class Dasher : public AdaptiveStreamer {
 					url->URL = gf_strdup(baseURL.c_str());
 					gf_list_add(mpdBaseURL, url);
 				}
-				mpd.mpd->base_URLs = mpdBaseURL;
+				mpd->base_URLs = mpdBaseURL;
 			}
 
-			if (!gf_list_count(mpd.mpd->periods)) {
+			if (!gf_list_count(mpd->periods)) {
 				auto period = mpd.addPeriod();
 				period->ID = gf_strdup(PERIOD_NAME);
 				GF_MPD_AdaptationSet *audioAS = nullptr, *videoAS = nullptr;
@@ -443,20 +443,20 @@ class Dasher : public AdaptiveStreamer {
 						GF_SAFEALLOC(rep->segment_template->segment_timeline, GF_MPD_SegmentTimeline);
 						rep->segment_template->segment_timeline->entries = gf_list_new();
 						templateName = "$Time$";
-						if (mpd.mpd->type == GF_MPD_TYPE_DYNAMIC) {
-							mpd.mpd->minimum_update_period = (u32)minUpdatePeriodInMs;
+						if (mpd->type == GF_MPD_TYPE_DYNAMIC) {
+							mpd->minimum_update_period = (u32)minUpdatePeriodInMs;
 						}
 					} else {
 						templateName = "$Number$";
-						mpd.mpd->minimum_update_period = (u32)minUpdatePeriodInMs * MIN_UPDATE_PERIOD_FACTOR;
+						mpd->minimum_update_period = (u32)minUpdatePeriodInMs * MIN_UPDATE_PERIOD_FACTOR;
 						rep->segment_template->start_number = (u32)(startTimeInMs / segDurationInMs);
 					}
 					rep->mime_type = gf_strdup(meta->mimeType.c_str());
 					rep->codecs = gf_strdup(meta->codecName.c_str());
 					rep->starts_with_sap = GF_TRUE;
-					if (mpd.mpd->type == GF_MPD_TYPE_DYNAMIC && meta->latencyIn180k) {
+					if (mpd->type == GF_MPD_TYPE_DYNAMIC && meta->latencyIn180k) {
 						rep->segment_template->availability_time_offset = std::max<double>(0.0,  (double)(segDurationInMs - clockToTimescale(meta->latencyIn180k, 1000)) / 1000);
-						mpd.mpd->min_buffer_time = (u32)clockToTimescale(meta->latencyIn180k, 1000);
+						mpd->min_buffer_time = (u32)clockToTimescale(meta->latencyIn180k, 1000);
 					}
 					switch (meta->type) {
 					case AUDIO_PKT:
@@ -634,9 +634,9 @@ class Dasher : public AdaptiveStreamer {
 				}
 			} else {
 				m_host->log(Info, "Manifest rewritten for on-demand. Media files untouched.");
-				mpd.mpd->type = GF_MPD_TYPE_STATIC;
-				mpd.mpd->minimum_update_period = 0;
-				mpd.mpd->media_presentation_duration = totalDurationInMs;
+				mpd->type = GF_MPD_TYPE_STATIC;
+				mpd->minimum_update_period = 0;
+				mpd->media_presentation_duration = totalDurationInMs;
 				totalDurationInMs -= segDurationInMs;
 				generateManifest();
 				postManifest();
