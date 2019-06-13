@@ -116,7 +116,7 @@ struct AdaptiveStreamer : ModuleDynI {
 				std::string initFn = safe_cast<const MetadataFile>(quality.lastData->getMetadata())->filename;
 
 				if (initFn.empty() || (!(flags & SegmentsNotOwned)))
-					initFn = format("%s%s", manifestDir, getInitName(quality, index));
+					initFn = manifestDir + getInitName(quality, index);
 
 				auto metaFn = make_shared<MetadataFile>(SEGMENT);
 				metaFn->filename = initFn;
@@ -137,11 +137,11 @@ struct AdaptiveStreamer : ModuleDynI {
 		}
 
 		std::string getInitName(Quality const& quality, size_t index) const {
-			return format("%s-init.mp4", getPrefix(quality, index));
+			return getPrefix(quality, index) + "-init.mp4";
 		}
 
 		std::string getSegmentName(Quality const& quality, size_t index, const std::string &segmentNumSymbol) const {
-			return format("%s-%s.m4s", getPrefix(quality, index), segmentNumSymbol);
+			return getPrefix(quality, index) + "-" + segmentNumSymbol + ".m4s";
 		}
 
 		std::string getPrefix(Quality const& quality, size_t index) const {
