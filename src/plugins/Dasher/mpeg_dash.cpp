@@ -56,7 +56,6 @@ struct AdaptiveStreamer : ModuleDynI {
 		enum Type {
 			Static,
 			Live,
-			LiveNonBlocking,
 		};
 
 		AdaptiveStreamer(KHost* host, Type type, uint64_t segDurationInMs, const std::string &manifestDir, AdaptiveStreamingCommonFlags flags)
@@ -335,10 +334,8 @@ MediaPresentationDescription createMPD(bool live, uint32_t minBufferTimeInMs, co
 AdaptiveStreamer::Type getType(DasherConfig* cfg) {
 	if(!cfg->live)
 		return AdaptiveStreamer::Static;
-	else if(cfg->blocking)
-		return AdaptiveStreamer::Live;
 	else
-		return AdaptiveStreamer::LiveNonBlocking;
+		return AdaptiveStreamer::Live;
 }
 
 AdaptiveStreamingCommonFlags getFlags(DasherConfig* cfg) {
@@ -376,7 +373,7 @@ class Dasher : public AdaptiveStreamer {
 		const bool useSegmentTimeline = false;
 
 		void ensureManifest() {
-			if ((type == LiveNonBlocking) && (mpd->media_presentation_duration == 0)) {
+			if ((type == Live) && (mpd->media_presentation_duration == 0)) {
 				auto mpdOld = std::move(mpd);
 				mpd = createMPD(type, mpdOld->min_buffer_time, mpdOld->ID);
 			}

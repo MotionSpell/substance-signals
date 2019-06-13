@@ -19,8 +19,6 @@ struct DasherConfig {
 	std::string id = "id";
 	int64_t initialOffsetInMs = 0;
 
-	bool blocking = true;
-
 	bool segmentsNotOwned = false;
 	bool presignalNextSegment = false;
 	bool forceRealDurations = false;
