@@ -350,7 +350,6 @@ class Dasher : public AdaptiveStreamer {
 			: AdaptiveStreamer(host, cfg->live, cfg->segDurationInMs, cfg->mpdDir, getFlags(cfg)),
 			  m_host(host),
 			  m_cfg(complementConfig(*cfg)),
-			  mpd(m_cfg.live, m_cfg.id, g_profiles, m_cfg.minBufferTimeInMs),
 			  useSegmentTimeline(m_cfg.segDurationInMs == 0) {
 			if (useSegmentTimeline && (m_cfg.presignalNextSegment || m_cfg.segmentsNotOwned))
 				throw error("Next segment pre-signalling or segments not owned cannot be used with segment timeline.");
@@ -360,7 +359,6 @@ class Dasher : public AdaptiveStreamer {
 
 		KHost* const m_host;
 		DasherConfig const m_cfg;
-		MediaPresentationDescription mpd;
 		const bool useSegmentTimeline = false;
 
 		void postManifest(std::string contents) {
@@ -380,17 +378,16 @@ class Dasher : public AdaptiveStreamer {
 		}
 
 		void onNewSegment() {
-			auto xml = updateManifest();
+			auto xml = updateManifest(m_cfg);
 
 			if (live)
 				postManifest(xml);
 		}
 
-		std::string updateManifest() {
-			if (live && (mpd->media_presentation_duration == 0)) {
-				mpd = MediaPresentationDescription(m_cfg.live, m_cfg.id, g_profiles, m_cfg.minBufferTimeInMs);
-			}
+		std::string updateManifest(DasherConfig m_cfg) {
+			auto mpd = MediaPresentationDescription(m_cfg.live, m_cfg.id, g_profiles, m_cfg.minBufferTimeInMs);
 
+			mpd->media_presentation_duration = totalDurationInMs + segDurationInMs;
 			mpd->availabilityStartTime = startTimeInMs + m_cfg.initialOffsetInMs;
 			mpd->time_shift_buffer_depth = (u32)m_cfg.timeShiftBufferDepthInMs;
 			mpd->publishTime = int64_t(getUTC() * 1000);
@@ -577,11 +574,12 @@ class Dasher : public AdaptiveStreamer {
 					m_host->log(Info, "Manifest was not rewritten for on-demand and all file are being deleted.");
 			} else {
 				m_host->log(Info, "Manifest rewritten for on-demand. Media files untouched.");
-				mpd->type = GF_MPD_TYPE_STATIC;
-				mpd->minimum_update_period = 0;
-				mpd->media_presentation_duration = totalDurationInMs;
+
+				auto cfg = m_cfg;
+				cfg.live = false;
+				cfg.minUpdatePeriodInMs = 0;
 				totalDurationInMs -= segDurationInMs;
-				auto xml = updateManifest();
+				auto xml = updateManifest(cfg);
 				postManifest(xml);
 			}
 		}
