@@ -322,9 +322,7 @@ GF_MPD_AdaptationSet *createAS(uint64_t segDurationInMs, GF_MPD_Period *period, 
 }
 
 MediaPresentationDescription createMPD(bool live, uint32_t minBufferTimeInMs, const std::string &id) {
-	return live ?
-	    MediaPresentationDescription(GF_MPD_TYPE_DYNAMIC, id, g_profiles, minBufferTimeInMs ? minBufferTimeInMs : MIN_BUFFER_TIME_IN_MS_LIVE) :
-	    MediaPresentationDescription(GF_MPD_TYPE_STATIC, id, g_profiles, minBufferTimeInMs ? minBufferTimeInMs : MIN_BUFFER_TIME_IN_MS_VOD );
+	return MediaPresentationDescription(live ? GF_MPD_TYPE_DYNAMIC : GF_MPD_TYPE_STATIC, id, g_profiles, minBufferTimeInMs);
 }
 
 AdaptiveStreamingCommonFlags getFlags(DasherConfig* cfg) {
@@ -340,15 +338,25 @@ AdaptiveStreamingCommonFlags getFlags(DasherConfig* cfg) {
 	return AdaptiveStreamingCommonFlags(r);
 }
 
+DasherConfig complementConfig(DasherConfig cfg) {
+	if(cfg.minBufferTimeInMs == 0)
+		cfg.minBufferTimeInMs = cfg.live ? MIN_BUFFER_TIME_IN_MS_LIVE : MIN_BUFFER_TIME_IN_MS_VOD;
+
+	if(cfg.minUpdatePeriodInMs == 0)
+		cfg.minUpdatePeriodInMs = cfg.segDurationInMs ? cfg.segDurationInMs : 1000;
+
+	return cfg;
+}
+
 class Dasher : public AdaptiveStreamer {
 	public:
 		Dasher(KHost* host, DasherConfig* cfg)
 			: AdaptiveStreamer(host, cfg->live, cfg->segDurationInMs, cfg->mpdDir, getFlags(cfg)),
 			  m_host(host),
-			  m_cfg(*cfg),
-			  mpd(createMPD(cfg->live, cfg->minBufferTimeInMs, cfg->id)),
-			  minUpdatePeriodInMs(cfg->minUpdatePeriodInMs ? cfg->minUpdatePeriodInMs : (segDurationInMs ? cfg->segDurationInMs : 1000)),
-			  useSegmentTimeline(cfg->segDurationInMs == 0) {
+			  m_cfg(complementConfig(*cfg)),
+			  mpd(createMPD(m_cfg.live, m_cfg.minBufferTimeInMs, m_cfg.id)),
+			  minUpdatePeriodInMs(m_cfg.minUpdatePeriodInMs),
+			  useSegmentTimeline(m_cfg.segDurationInMs == 0) {
 			if (useSegmentTimeline && (m_cfg.presignalNextSegment || m_cfg.segmentsNotOwned))
 				throw error("Next segment pre-signalling or segments not owned cannot be used with segment timeline.");
 		}
