@@ -481,30 +481,7 @@ class Dasher : public AdaptiveStreamer {
 				postSegment(quality, segFilename, nextSegFilename);
 
 				if (m_cfg.timeShiftBufferDepthInMs) {
-					{
-						int64_t totalDuration = 0;
-						auto seg = quality.timeshiftSegments.begin();
-						while (seg != quality.timeshiftSegments.end()) {
-							totalDuration += clockToTimescale(seg->durationIn180k, 1000);
-							if (totalDuration > m_cfg.timeShiftBufferDepthInMs) {
-								m_host->log(Debug, format( "Delete segment \"%s\".", seg->filename).c_str());
-
-								// send 'DELETE' command
-								{
-									auto out = outputSegments->allocData<DataRaw>(0);
-									auto meta = make_shared<MetadataFile>(SEGMENT);
-									meta->filesize = INT64_MAX; // "DELETE"
-									meta->filename = seg->filename;
-									out->setMetadata(meta);
-									outputSegments->post(out);
-								}
-
-								seg = quality.timeshiftSegments.erase(seg);
-							} else {
-								++seg;
-							}
-						}
-					}
+					deleteOldSegments(quality);
 
 					if (useSegmentTimeline) {
 						int64_t totalDuration = 0;
@@ -524,6 +501,31 @@ class Dasher : public AdaptiveStreamer {
 			}
 
 			return mpd.serialize();
+		}
+
+		void deleteOldSegments(Quality& quality) {
+			int64_t totalDuration = 0;
+			auto seg = quality.timeshiftSegments.begin();
+			while (seg != quality.timeshiftSegments.end()) {
+				totalDuration += clockToTimescale(seg->durationIn180k, 1000);
+				if (totalDuration > m_cfg.timeShiftBufferDepthInMs) {
+					m_host->log(Debug, format( "Delete segment \"%s\".", seg->filename).c_str());
+
+					// send 'DELETE' command
+					{
+						auto out = outputSegments->allocData<DataRaw>(0);
+						auto meta = make_shared<MetadataFile>(SEGMENT);
+						meta->filesize = INT64_MAX; // "DELETE"
+						meta->filename = seg->filename;
+						out->setMetadata(meta);
+						outputSegments->post(out);
+					}
+
+					seg = quality.timeshiftSegments.erase(seg);
+				} else {
+					++seg;
+				}
+			}
 		}
 
 		void postSegment(Quality& quality, std::string segFilename, std::string nextSegFilename) {
