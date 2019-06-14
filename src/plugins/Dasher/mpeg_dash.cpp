@@ -378,13 +378,13 @@ class Dasher : public AdaptiveStreamer {
 		}
 
 		void onNewSegment() {
-			auto xml = updateManifest(m_cfg);
+			auto xml = createManifest(m_cfg);
 
 			if (live)
 				postManifest(xml);
 		}
 
-		std::string updateManifest(DasherConfig m_cfg) {
+		std::string createManifest(DasherConfig m_cfg) {
 			auto mpd = MediaPresentationDescription(m_cfg.live, m_cfg.id, g_profiles, m_cfg.minBufferTimeInMs);
 
 			mpd->media_presentation_duration = totalDurationInMs + segDurationInMs;
@@ -582,7 +582,7 @@ class Dasher : public AdaptiveStreamer {
 				cfg.live = false;
 				cfg.minUpdatePeriodInMs = 0;
 				totalDurationInMs -= segDurationInMs;
-				auto xml = updateManifest(cfg);
+				auto xml = createManifest(cfg);
 				postManifest(xml);
 			}
 		}
