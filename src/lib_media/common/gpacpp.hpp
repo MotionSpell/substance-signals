@@ -311,34 +311,6 @@ class MPD {
 
 	private:
 		GF_MPD *mpd;
-
-		bool minimalCheck() const {
-			if (!mpd->min_buffer_time)
-				return false;
-
-			if (mpd->type == GF_MPD_TYPE_STATIC) {
-				if (!mpd->media_presentation_duration)
-					return false;
-			} else if (mpd->type == GF_MPD_TYPE_DYNAMIC) {
-				if (!mpd->availabilityStartTime)
-					return false;
-			} else {
-				//unknown mpd type
-				return false;
-			}
-
-			//check we have at least one AS with one representation
-			if (!gf_list_count(mpd->periods))
-				return false;
-			GF_MPD_Period *period = (GF_MPD_Period*)gf_list_get(mpd->periods, 0);
-			if (!gf_list_count(period->adaptation_sets))
-				return false;
-			GF_MPD_AdaptationSet *as = (GF_MPD_AdaptationSet*)gf_list_get(period->adaptation_sets, 0);
-			if (!gf_list_count(as->representations))
-				return false;
-
-			return true;
-		}
 };
 
 #endif /*GPAC_DISABLE_CORE_TOOLS*/
