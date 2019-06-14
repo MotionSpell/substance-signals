@@ -70,8 +70,8 @@ struct AdaptiveStreamer : ModuleDynI {
 		}
 
 		void process() override {
-			if (!wasInit && (startTimeInMs == (uint64_t)-1)) {
-				startTimeInMs = (uint64_t)-2;
+			if (!wasInit && (startTimeInMs == -1)) {
+				startTimeInMs = -2;
 				qualities.resize(numInputs());
 				wasInit = true;
 			}
@@ -88,7 +88,8 @@ struct AdaptiveStreamer : ModuleDynI {
 		KHost* const m_host;
 
 		const bool live;
-		uint64_t startTimeInMs = -1, totalDurationInMs = 0;
+		int64_t startTimeInMs = -1;
+		int64_t totalDurationInMs = 0;
 		const uint64_t segDurationInMs;
 		const uint64_t segDurationIn180k;
 		const std::string manifestDir;
@@ -189,7 +190,7 @@ struct AdaptiveStreamer : ModuleDynI {
 		}
 
 		void ensureStartTime(Data currData) {
-			if (startTimeInMs == (uint64_t)-2)
+			if (startTimeInMs == -2)
 				startTimeInMs = clockToTimescale(currData->get<PresentationTime>().time, DASH_TIMESCALE);
 		}
 
