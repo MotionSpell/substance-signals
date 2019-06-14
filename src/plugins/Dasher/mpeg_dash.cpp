@@ -97,7 +97,6 @@ struct AdaptiveStreamer : ModuleDynI {
 		OutputDefault* outputSegments;
 		OutputDefault* outputManifest;
 		bool wasInit = false;
-		Data currData;
 
 		void processInitSegment(Quality const& quality, size_t index) {
 			auto const meta = quality.getMeta();
@@ -189,13 +188,13 @@ struct AdaptiveStreamer : ModuleDynI {
 			return (minIncompletSegDur == std::numeric_limits<uint64_t>::max()) || (qualities[repIdx].curSegDurIn180k > minIncompletSegDur);
 		}
 
-		void ensureStartTime() {
+		void ensureStartTime(Data currData) {
 			if (startTimeInMs == (uint64_t)-2)
 				startTimeInMs = clockToTimescale(currData->get<PresentationTime>().time, 1000);
 		}
 
-		void sendLocalData(int repIdx, uint64_t size, bool EOS) {
-			ensureStartTime();
+		void sendLocalData(Data currData, int repIdx, uint64_t size, bool EOS) {
+			ensureStartTime(currData);
 			auto out = getPresignalledData(size, currData, EOS);
 			if (out) {
 				auto const &meta = qualities[repIdx].getMeta();
@@ -232,6 +231,8 @@ struct AdaptiveStreamer : ModuleDynI {
 			return true;
 		}
 
+		Data currData; // TODO: completely remove this member
+
 		bool scheduleRepresentation(int repIdx) {
 			if (isComplete(repIdx))
 				return true;
@@ -253,7 +254,7 @@ struct AdaptiveStreamer : ModuleDynI {
 			if (curDurIn180k == 0 && quality.curSegDurIn180k == 0) {
 				processInitSegment(quality, repIdx);
 				if (flags & PresignalNextSegment)
-					sendLocalData(repIdx, 0, false);
+					sendLocalData(currData, repIdx, 0, false);
 				currData = nullptr;
 				return true;
 			}
@@ -272,7 +273,7 @@ struct AdaptiveStreamer : ModuleDynI {
 			}
 
 			if (quality.curSegDurIn180k < segDurationIn180k || !meta->EOS)
-				sendLocalData(repIdx, meta->filesize, meta->EOS);
+				sendLocalData(currData, repIdx, meta->filesize, meta->EOS);
 
 			return true;
 		}
@@ -288,7 +289,7 @@ struct AdaptiveStreamer : ModuleDynI {
 				return false; // nothing was done
 			}
 
-			ensureStartTime();
+			ensureStartTime(currData);
 			currData = nullptr;
 
 			if (segmentReady()) {
