@@ -351,7 +351,6 @@ class Dasher : public AdaptiveStreamer {
 			  m_host(host),
 			  m_cfg(complementConfig(*cfg)),
 			  mpd(m_cfg.live, m_cfg.id, g_profiles, m_cfg.minBufferTimeInMs),
-			  minUpdatePeriodInMs(m_cfg.minUpdatePeriodInMs),
 			  useSegmentTimeline(m_cfg.segDurationInMs == 0) {
 			if (useSegmentTimeline && (m_cfg.presignalNextSegment || m_cfg.segmentsNotOwned))
 				throw error("Next segment pre-signalling or segments not owned cannot be used with segment timeline.");
@@ -362,7 +361,6 @@ class Dasher : public AdaptiveStreamer {
 		KHost* const m_host;
 		DasherConfig const m_cfg;
 		MediaPresentationDescription mpd;
-		const uint64_t minUpdatePeriodInMs;
 		const bool useSegmentTimeline = false;
 
 		void postManifest(std::string contents) {
@@ -427,10 +425,10 @@ class Dasher : public AdaptiveStreamer {
 						rep->segment_template->segment_timeline->entries = gf_list_new();
 						templateName = "$Time$";
 						if (mpd->type == GF_MPD_TYPE_DYNAMIC)
-							mpd->minimum_update_period = (u32)minUpdatePeriodInMs;
+							mpd->minimum_update_period = (u32)m_cfg.minUpdatePeriodInMs;
 					} else {
 						templateName = "$Number$";
-						mpd->minimum_update_period = (u32)minUpdatePeriodInMs * MIN_UPDATE_PERIOD_FACTOR;
+						mpd->minimum_update_period = (u32)m_cfg.minUpdatePeriodInMs * MIN_UPDATE_PERIOD_FACTOR;
 						rep->segment_template->start_number = (u32)(startTimeInMs / segDurationInMs);
 					}
 					rep->mime_type = gf_strdup(meta->mimeType.c_str());
