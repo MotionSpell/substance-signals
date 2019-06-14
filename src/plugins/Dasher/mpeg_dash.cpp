@@ -321,10 +321,6 @@ GF_MPD_AdaptationSet *createAS(uint64_t segDurationInMs, GF_MPD_Period *period, 
 	return as;
 }
 
-MediaPresentationDescription createMPD(bool live, uint32_t minBufferTimeInMs, const std::string &id) {
-	return MediaPresentationDescription(live, id, g_profiles, minBufferTimeInMs);
-}
-
 AdaptiveStreamingCommonFlags getFlags(DasherConfig* cfg) {
 	uint32_t r = 0;
 
@@ -354,7 +350,7 @@ class Dasher : public AdaptiveStreamer {
 			: AdaptiveStreamer(host, cfg->live, cfg->segDurationInMs, cfg->mpdDir, getFlags(cfg)),
 			  m_host(host),
 			  m_cfg(complementConfig(*cfg)),
-			  mpd(createMPD(m_cfg.live, m_cfg.minBufferTimeInMs, m_cfg.id)),
+			  mpd(m_cfg.live, m_cfg.id, g_profiles, m_cfg.minBufferTimeInMs),
 			  minUpdatePeriodInMs(m_cfg.minUpdatePeriodInMs),
 			  useSegmentTimeline(m_cfg.segDurationInMs == 0) {
 			if (useSegmentTimeline && (m_cfg.presignalNextSegment || m_cfg.segmentsNotOwned))
@@ -394,7 +390,7 @@ class Dasher : public AdaptiveStreamer {
 
 		std::string updateManifest() {
 			if (live && (mpd->media_presentation_duration == 0)) {
-				mpd = createMPD(m_cfg.live, m_cfg.minBufferTimeInMs, m_cfg.id);
+				mpd = MediaPresentationDescription(m_cfg.live, g_profiles, m_cfg.id, m_cfg.minBufferTimeInMs);
 			}
 
 			mpd->availabilityStartTime = startTimeInMs + m_cfg.initialOffsetInMs;
