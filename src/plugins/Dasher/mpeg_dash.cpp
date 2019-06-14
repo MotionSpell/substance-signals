@@ -451,7 +451,7 @@ class Dasher : public AdaptiveStreamer {
 				if (quality.rep->width && !meta->startsWithRAP) /*video only*/
 					quality.rep->starts_with_sap = GF_FALSE;
 
-				std::string fn, fnNext;
+				std::string segFilename, nextSegFilename;
 				if (useSegmentTimeline) {
 					auto entries = quality.rep->segment_template->segment_timeline->entries;
 					auto const entryCount = gf_list_count(entries);
@@ -470,15 +470,15 @@ class Dasher : public AdaptiveStreamer {
 						segTime = prevEnt->start_time + prevEnt->duration*(prevEnt->repeat_count);
 					}
 
-					fn = getPrefixedSegmentName(quality, repIdx, segTime);
+					segFilename = getPrefixedSegmentName(quality, repIdx, segTime);
 				} else {
 					auto n = getCurSegNum();
-					fn = getPrefixedSegmentName(quality, repIdx, n);
+					segFilename = getPrefixedSegmentName(quality, repIdx, n);
 					if (m_cfg.presignalNextSegment)
-						fnNext = getPrefixedSegmentName(quality, repIdx, n + 1);
+						nextSegFilename = getPrefixedSegmentName(quality, repIdx, n + 1);
 				}
 
-				postSegment(quality, fn, fnNext);
+				postSegment(quality, segFilename, nextSegFilename);
 
 				if (m_cfg.timeShiftBufferDepthInMs) {
 					{
@@ -526,10 +526,10 @@ class Dasher : public AdaptiveStreamer {
 			return mpd.serialize();
 		}
 
-		void postSegment(Quality& quality, std::string fn, std::string fnNext) {
+		void postSegment(Quality& quality, std::string segFilename, std::string nextSegFilename) {
 			auto const &meta = quality.getMeta();
 			auto metaFn = make_shared<MetadataFile>(SEGMENT);
-			metaFn->filename = fn;
+			metaFn->filename = segFilename;
 			metaFn->mimeType = meta->mimeType;
 			metaFn->codecName = meta->codecName;
 			metaFn->durationIn180k = meta->durationIn180k;
@@ -539,7 +539,7 @@ class Dasher : public AdaptiveStreamer {
 			metaFn->sampleRate = meta->sampleRate;
 			metaFn->resolution = meta->resolution;
 
-			if (!fn.empty()) {
+			if (!segFilename.empty()) {
 				auto out = getPresignalledData(meta->filesize, quality.lastData, true);
 				if (!out)
 					throw error("Unexpected null pointer detected which getting data.");
@@ -547,11 +547,11 @@ class Dasher : public AdaptiveStreamer {
 				out->setMediaTime(totalDurationInMs, 1000);
 				outputSegments->post(out);
 
-				if (!fnNext.empty()) {
+				if (!nextSegFilename.empty()) {
 					auto out = getPresignalledData(0, quality.lastData, false);
 					if (out) {
 						auto meta = make_shared<MetadataFile>(*metaFn);
-						meta->filename = fnNext;
+						meta->filename = nextSegFilename;
 						meta->EOS = false;
 						out->setMetadata(meta);
 						out->setMediaTime(totalDurationInMs, 1000);
