@@ -449,8 +449,8 @@ class Dasher : public AdaptiveStreamer {
 				rep->segment_template->media = gf_strdup(getSegmentName(quality, repIdx, templateName).c_str());
 			}
 
-			for(auto i : getInputs()) {
-				auto& quality = qualities[i];
+			for(auto repIdx : getInputs()) {
+				auto& quality = qualities[repIdx];
 				auto const &meta = quality.getMeta();
 				if (!meta)
 					continue;
@@ -477,12 +477,12 @@ class Dasher : public AdaptiveStreamer {
 						segTime = prevEnt->start_time + prevEnt->duration*(prevEnt->repeat_count);
 					}
 
-					fn = getPrefixedSegmentName(quality, i, segTime);
+					fn = getPrefixedSegmentName(quality, repIdx, segTime);
 				} else {
 					auto n = getCurSegNum();
-					fn = getPrefixedSegmentName(quality, i, n);
+					fn = getPrefixedSegmentName(quality, repIdx, n);
 					if (m_cfg.presignalNextSegment)
-						fnNext = getPrefixedSegmentName(quality, i, n + 1);
+						fnNext = getPrefixedSegmentName(quality, repIdx, n + 1);
 				}
 
 				postSegment(quality, fn, fnNext);
