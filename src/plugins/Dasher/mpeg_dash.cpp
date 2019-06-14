@@ -26,8 +26,8 @@ namespace {
 
 enum AdaptiveStreamingCommonFlags {
 	None = 0,
-	SegmentsNotOwned     = 1 << 0, //don't touch files
-	PresignalNextSegment = 1 << 1, //speculative, allows prefetching on player side
+	SegmentsNotOwned     = 1 << 0, // don't touch files
+	PresignalNextSegment = 1 << 1, // speculative, allows prefetching on player side
 	ForceRealDurations   = 1 << 2
 };
 
@@ -39,7 +39,7 @@ struct Quality {
 	uint64_t curSegDurIn180k = 0;
 	Data lastData;
 	uint64_t avg_bitrate_in_bps = 0;
-	std::string prefix; //typically a subdir, ending with a folder separator '/'
+	std::string prefix; // typically a subdir, ending with a dir separator '/'
 
 	GF_MPD_Representation *rep = nullptr;
 	struct PendingSegment {
@@ -353,7 +353,7 @@ class Dasher : public AdaptiveStreamer {
 			  m_cfg(complementConfig(*cfg)),
 			  useSegmentTimeline(m_cfg.segDurationInMs == 0) {
 			if (useSegmentTimeline && (m_cfg.presignalNextSegment || m_cfg.segmentsNotOwned))
-				throw error("Next segment pre-signalling or segments not owned cannot be used with segment timeline.");
+				throw error("'Next segment pre-signalling' or 'segments not owned' cannot be used with a segment timeline.");
 		}
 
 	protected:
@@ -545,7 +545,7 @@ class Dasher : public AdaptiveStreamer {
 			if (!segFilename.empty()) {
 				auto out = getPresignalledData(meta->filesize, quality.lastData, true);
 				if (!out)
-					throw error("Unexpected null pointer detected which getting data.");
+					throw error("Unexpected null pointer detected while getting data.");
 				out->setMetadata(metaFn);
 				out->setMediaTime(totalDurationInMs, 1000);
 				outputSegments->post(out);
@@ -570,7 +570,7 @@ class Dasher : public AdaptiveStreamer {
 		void onEndOfStream() {
 			if (m_cfg.timeShiftBufferDepthInMs) {
 				if (!m_cfg.segmentsNotOwned)
-					m_host->log(Info, "Manifest was not rewritten for on-demand and all file are being deleted.");
+					m_host->log(Info, "Manifest was not rewritten for on-demand and all files are being deleted.");
 			} else {
 				m_host->log(Info, "Manifest rewritten for on-demand. Media files untouched.");
 
