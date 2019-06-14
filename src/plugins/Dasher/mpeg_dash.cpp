@@ -420,7 +420,7 @@ class Dasher : public AdaptiveStreamer {
 					GF_SAFEALLOC(rep->segment_template->segment_timeline, GF_MPD_SegmentTimeline);
 					rep->segment_template->segment_timeline->entries = gf_list_new();
 					templateName = "$Time$";
-					if (mpd->type == GF_MPD_TYPE_DYNAMIC)
+					if (live)
 						mpd->minimum_update_period = (u32)m_cfg.minUpdatePeriodInMs;
 				} else {
 					templateName = "$Number$";
@@ -430,7 +430,7 @@ class Dasher : public AdaptiveStreamer {
 				rep->mime_type = gf_strdup(meta->mimeType.c_str());
 				rep->codecs = gf_strdup(meta->codecName.c_str());
 				rep->starts_with_sap = GF_TRUE;
-				if (mpd->type == GF_MPD_TYPE_DYNAMIC && meta->latencyIn180k) {
+				if (live && meta->latencyIn180k) {
 					rep->segment_template->availability_time_offset = std::max<double>(0.0,  (double)(segDurationInMs - clockToTimescale(meta->latencyIn180k, 1000)) / 1000);
 					mpd->min_buffer_time = (u32)clockToTimescale(meta->latencyIn180k, 1000);
 				}
