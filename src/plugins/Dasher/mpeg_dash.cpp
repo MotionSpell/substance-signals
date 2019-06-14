@@ -394,8 +394,7 @@ class Dasher : public AdaptiveStreamer {
 
 		std::string updateManifest() {
 			if (live && (mpd->media_presentation_duration == 0)) {
-				auto mpdOld = std::move(mpd);
-				mpd = createMPD(m_cfg.live, mpdOld->min_buffer_time, m_cfg.id);
+				mpd = createMPD(m_cfg.live, m_cfg.minBufferTimeInMs, m_cfg.id);
 			}
 
 			mpd->availabilityStartTime = startTimeInMs + m_cfg.initialOffsetInMs;
