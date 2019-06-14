@@ -298,7 +298,7 @@ struct AdaptiveStreamer : ModuleDynI {
 
 				onNewSegment();
 				totalDurationInMs += segDurationInMs;
-				m_host->log(Info, format("Processes segment (total processed: %ss,", (double)totalDurationInMs / 1000).c_str());
+				m_host->log(Info, format("Processes segment (total processed: %ss,", totalDurationInMs / 1000.0).c_str());
 			}
 
 			return true;
@@ -431,7 +431,7 @@ class Dasher : public AdaptiveStreamer {
 				rep->codecs = gf_strdup(meta->codecName.c_str());
 				rep->starts_with_sap = GF_TRUE;
 				if (live && meta->latencyIn180k) {
-					rep->segment_template->availability_time_offset = std::max<double>(0.0,  (double)(segDurationInMs - clockToTimescale(meta->latencyIn180k, DASH_TIMESCALE)) / 1000);
+					rep->segment_template->availability_time_offset = std::max(0.0, (segDurationInMs - clockToTimescale(meta->latencyIn180k, DASH_TIMESCALE)) / 1000.0);
 					mpd->min_buffer_time = (u32)clockToTimescale(meta->latencyIn180k, DASH_TIMESCALE);
 				}
 				switch (meta->type) {
