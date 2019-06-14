@@ -447,13 +447,6 @@ class Dasher : public AdaptiveStreamer {
 
 				rep->segment_template->initialization = gf_strdup(getInitName(quality, repIdx).c_str());
 				rep->segment_template->media = gf_strdup(getSegmentName(quality, repIdx, templateName).c_str());
-			}
-
-			for(auto repIdx : getInputs()) {
-				auto& quality = qualities[repIdx];
-				auto const &meta = quality.getMeta();
-				if (!meta)
-					continue;
 
 				if (quality.rep->width && !meta->startsWithRAP) /*video only*/
 					quality.rep->starts_with_sap = GF_FALSE;
