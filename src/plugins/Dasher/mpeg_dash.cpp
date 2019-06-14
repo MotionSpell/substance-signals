@@ -44,7 +44,6 @@ struct Quality {
 	uint64_t avg_bitrate_in_bps = 0;
 	std::string prefix; // typically a subdir, ending with a dir separator '/'
 
-	void *rep = nullptr;
 	struct PendingSegment {
 		uint64_t durationIn180k;
 		std::string filename;
