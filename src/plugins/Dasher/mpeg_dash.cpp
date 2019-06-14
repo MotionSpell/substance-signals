@@ -70,7 +70,7 @@ struct AdaptiveStreamer : ModuleDynI {
 		}
 
 		void process() override {
-			if (!wasInit && (startTimeInMs==(uint64_t)-1)) {
+			if (!wasInit && (startTimeInMs == (uint64_t)-1)) {
 				startTimeInMs = (uint64_t)-2;
 				qualities.resize(numInputs());
 				wasInit = true;
@@ -491,10 +491,10 @@ class Dasher : public AdaptiveStreamer {
 				auto metaFn = make_shared<MetadataFile>(SEGMENT);
 				metaFn->filename = fn;
 				metaFn->mimeType = meta->mimeType;
-				metaFn->codecName= meta->codecName;
-				metaFn->durationIn180k= meta->durationIn180k;
-				metaFn->filesize= meta->filesize;
-				metaFn->latencyIn180k= meta->latencyIn180k;
+				metaFn->codecName = meta->codecName;
+				metaFn->durationIn180k = meta->durationIn180k;
+				metaFn->filesize = meta->filesize;
+				metaFn->latencyIn180k = meta->latencyIn180k;
 				metaFn->startsWithRAP= meta->startsWithRAP;
 				metaFn->sampleRate = meta->sampleRate;
 				metaFn->resolution = meta->resolution;
