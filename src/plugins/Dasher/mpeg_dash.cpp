@@ -392,63 +392,61 @@ class Dasher : public AdaptiveStreamer {
 			mpd->time_shift_buffer_depth = (u32)m_cfg.timeShiftBufferDepthInMs;
 			mpd->publishTime = int64_t(getUTC() * 1000);
 
-			if (!gf_list_count(mpd->periods)) {
-				for (auto& url : m_cfg.baseURLs)
-					mpd.addBaseUrl(url.c_str());
+			for (auto& url : m_cfg.baseURLs)
+				mpd.addBaseUrl(url.c_str());
 
-				auto period = mpd.addPeriod(PERIOD_NAME);
-				GF_MPD_AdaptationSet *audioAS = nullptr, *videoAS = nullptr;
-				for(auto repIdx : getInputs()) {
-					auto& quality = qualities[repIdx];
-					auto const &meta = quality.getMeta();
-					if (!meta)
-						continue;
+			auto period = mpd.addPeriod(PERIOD_NAME);
+			GF_MPD_AdaptationSet *audioAS = nullptr, *videoAS = nullptr;
+			for(auto repIdx : getInputs()) {
+				auto& quality = qualities[repIdx];
+				auto const &meta = quality.getMeta();
+				if (!meta)
+					continue;
 
-					GF_MPD_AdaptationSet *as = nullptr;
-					switch (meta->type) {
-					case AUDIO_PKT: as = audioAS ? audioAS : audioAS = createAS(segDurationInMs, period, &mpd); break;
-					case VIDEO_PKT: as = videoAS ? videoAS : videoAS = createAS(segDurationInMs, period, &mpd); break;
-					case SUBTITLE_PKT: as = createAS(segDurationInMs, period, &mpd); break;
-					default: assert(0);
-					}
-
-					auto const repId = format("%s", repIdx);
-					auto rep = mpd.addRepresentation(as, repId.c_str(), (u32)quality.avg_bitrate_in_bps);
-					quality.rep = rep;
-					GF_SAFEALLOC(rep->segment_template, GF_MPD_SegmentTemplate);
-					std::string templateName;
-					if (useSegmentTimeline) {
-						GF_SAFEALLOC(rep->segment_template->segment_timeline, GF_MPD_SegmentTimeline);
-						rep->segment_template->segment_timeline->entries = gf_list_new();
-						templateName = "$Time$";
-						if (mpd->type == GF_MPD_TYPE_DYNAMIC)
-							mpd->minimum_update_period = (u32)m_cfg.minUpdatePeriodInMs;
-					} else {
-						templateName = "$Number$";
-						mpd->minimum_update_period = (u32)m_cfg.minUpdatePeriodInMs * MIN_UPDATE_PERIOD_FACTOR;
-						rep->segment_template->start_number = (u32)(startTimeInMs / segDurationInMs);
-					}
-					rep->mime_type = gf_strdup(meta->mimeType.c_str());
-					rep->codecs = gf_strdup(meta->codecName.c_str());
-					rep->starts_with_sap = GF_TRUE;
-					if (mpd->type == GF_MPD_TYPE_DYNAMIC && meta->latencyIn180k) {
-						rep->segment_template->availability_time_offset = std::max<double>(0.0,  (double)(segDurationInMs - clockToTimescale(meta->latencyIn180k, 1000)) / 1000);
-						mpd->min_buffer_time = (u32)clockToTimescale(meta->latencyIn180k, 1000);
-					}
-					switch (meta->type) {
-					case AUDIO_PKT:
-						rep->samplerate = meta->sampleRate;
-						break;
-					case VIDEO_PKT:
-						rep->width = meta->resolution.width;
-						rep->height = meta->resolution.height;
-						break;
-					default: break;
-					}
-
-					rep->segment_template->initialization = gf_strdup(getInitName(quality, repIdx).c_str());
-					rep->segment_template->media = gf_strdup(getSegmentName(quality, repIdx, templateName).c_str());
+				GF_MPD_AdaptationSet *as = nullptr;
+				switch (meta->type) {
+				case AUDIO_PKT: as = audioAS ? audioAS : audioAS = createAS(segDurationInMs, period, &mpd); break;
+				case VIDEO_PKT: as = videoAS ? videoAS : videoAS = createAS(segDurationInMs, period, &mpd); break;
+				case SUBTITLE_PKT: as = createAS(segDurationInMs, period, &mpd); break;
+				default: assert(0);
 				}
+
+				auto const repId = format("%s", repIdx);
+				auto rep = mpd.addRepresentation(as, repId.c_str(), (u32)quality.avg_bitrate_in_bps);
+				quality.rep = rep;
+				GF_SAFEALLOC(rep->segment_template, GF_MPD_SegmentTemplate);
+				std::string templateName;
+				if (useSegmentTimeline) {
+					GF_SAFEALLOC(rep->segment_template->segment_timeline, GF_MPD_SegmentTimeline);
+					rep->segment_template->segment_timeline->entries = gf_list_new();
+					templateName = "$Time$";
+					if (mpd->type == GF_MPD_TYPE_DYNAMIC)
+						mpd->minimum_update_period = (u32)m_cfg.minUpdatePeriodInMs;
+				} else {
+					templateName = "$Number$";
+					mpd->minimum_update_period = (u32)m_cfg.minUpdatePeriodInMs * MIN_UPDATE_PERIOD_FACTOR;
+					rep->segment_template->start_number = (u32)(startTimeInMs / segDurationInMs);
+				}
+				rep->mime_type = gf_strdup(meta->mimeType.c_str());
+				rep->codecs = gf_strdup(meta->codecName.c_str());
+				rep->starts_with_sap = GF_TRUE;
+				if (mpd->type == GF_MPD_TYPE_DYNAMIC && meta->latencyIn180k) {
+					rep->segment_template->availability_time_offset = std::max<double>(0.0,  (double)(segDurationInMs - clockToTimescale(meta->latencyIn180k, 1000)) / 1000);
+					mpd->min_buffer_time = (u32)clockToTimescale(meta->latencyIn180k, 1000);
+				}
+				switch (meta->type) {
+				case AUDIO_PKT:
+					rep->samplerate = meta->sampleRate;
+					break;
+				case VIDEO_PKT:
+					rep->width = meta->resolution.width;
+					rep->height = meta->resolution.height;
+					break;
+				default: break;
+				}
+
+				rep->segment_template->initialization = gf_strdup(getInitName(quality, repIdx).c_str());
+				rep->segment_template->media = gf_strdup(getSegmentName(quality, repIdx, templateName).c_str());
 			}
 
 			for(auto i : getInputs()) {
