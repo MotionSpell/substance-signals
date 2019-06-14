@@ -567,10 +567,8 @@ class Dasher : public AdaptiveStreamer {
 				}
 			}
 
-			if (m_cfg.timeShiftBufferDepthInMs) {
-				auto s = Quality::PendingSegment{metaFn->durationIn180k, metaFn->filename};
-				quality.timeshiftSegments.emplace(quality.timeshiftSegments.begin(), s);
-			}
+			auto s = Quality::PendingSegment{metaFn->durationIn180k, metaFn->filename};
+			quality.timeshiftSegments.emplace(quality.timeshiftSegments.begin(), s);
 		}
 
 		void onEndOfStream() {
