@@ -485,37 +485,7 @@ class Dasher : public AdaptiveStreamer {
 						fnNext = getPrefixedSegmentName(quality, i, n + 1);
 				}
 
-				auto metaFn = make_shared<MetadataFile>(SEGMENT);
-				metaFn->filename = fn;
-				metaFn->mimeType = meta->mimeType;
-				metaFn->codecName = meta->codecName;
-				metaFn->durationIn180k = meta->durationIn180k;
-				metaFn->filesize = meta->filesize;
-				metaFn->latencyIn180k = meta->latencyIn180k;
-				metaFn->startsWithRAP= meta->startsWithRAP;
-				metaFn->sampleRate = meta->sampleRate;
-				metaFn->resolution = meta->resolution;
-
-				if (!fn.empty()) {
-					auto out = getPresignalledData(meta->filesize, quality.lastData, true);
-					if (!out)
-						throw error("Unexpected null pointer detected which getting data.");
-					out->setMetadata(metaFn);
-					out->setMediaTime(totalDurationInMs, 1000);
-					outputSegments->post(out);
-
-					if (!fnNext.empty()) {
-						auto out = getPresignalledData(0, quality.lastData, false);
-						if (out) {
-							auto meta = make_shared<MetadataFile>(*metaFn);
-							meta->filename = fnNext;
-							meta->EOS = false;
-							out->setMetadata(meta);
-							out->setMediaTime(totalDurationInMs, 1000);
-							outputSegments->post(out);
-						}
-					}
-				}
+				postSegment(quality, fn, fnNext);
 
 				if (m_cfg.timeShiftBufferDepthInMs) {
 					{
@@ -523,7 +493,7 @@ class Dasher : public AdaptiveStreamer {
 						auto seg = quality.timeshiftSegments.begin();
 						while (seg != quality.timeshiftSegments.end()) {
 							totalDuration += clockToTimescale(seg->durationIn180k, 1000);
-							if (totalDuration >= m_cfg.timeShiftBufferDepthInMs) {
+							if (totalDuration > m_cfg.timeShiftBufferDepthInMs) {
 								m_host->log(Debug, format( "Delete segment \"%s\".", seg->filename).c_str());
 
 								// send 'DELETE' command
@@ -557,13 +527,50 @@ class Dasher : public AdaptiveStreamer {
 							totalDuration += dur;
 						}
 					}
-
-					auto s = Quality::PendingSegment{metaFn->durationIn180k, metaFn->filename};
-					quality.timeshiftSegments.emplace(quality.timeshiftSegments.begin(), s);
 				}
 			}
 
 			return mpd.serialize();
+		}
+
+		void postSegment(Quality& quality, std::string fn, std::string fnNext) {
+			auto const &meta = quality.getMeta();
+			auto metaFn = make_shared<MetadataFile>(SEGMENT);
+			metaFn->filename = fn;
+			metaFn->mimeType = meta->mimeType;
+			metaFn->codecName = meta->codecName;
+			metaFn->durationIn180k = meta->durationIn180k;
+			metaFn->filesize = meta->filesize;
+			metaFn->latencyIn180k = meta->latencyIn180k;
+			metaFn->startsWithRAP= meta->startsWithRAP;
+			metaFn->sampleRate = meta->sampleRate;
+			metaFn->resolution = meta->resolution;
+
+			if (!fn.empty()) {
+				auto out = getPresignalledData(meta->filesize, quality.lastData, true);
+				if (!out)
+					throw error("Unexpected null pointer detected which getting data.");
+				out->setMetadata(metaFn);
+				out->setMediaTime(totalDurationInMs, 1000);
+				outputSegments->post(out);
+
+				if (!fnNext.empty()) {
+					auto out = getPresignalledData(0, quality.lastData, false);
+					if (out) {
+						auto meta = make_shared<MetadataFile>(*metaFn);
+						meta->filename = fnNext;
+						meta->EOS = false;
+						out->setMetadata(meta);
+						out->setMediaTime(totalDurationInMs, 1000);
+						outputSegments->post(out);
+					}
+				}
+			}
+
+			if (m_cfg.timeShiftBufferDepthInMs) {
+				auto s = Quality::PendingSegment{metaFn->durationIn180k, metaFn->filename};
+				quality.timeshiftSegments.emplace(quality.timeshiftSegments.begin(), s);
+			}
 		}
 
 		void onEndOfStream() {
