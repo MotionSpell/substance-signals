@@ -190,7 +190,7 @@ struct AdaptiveStreamer : ModuleDynI {
 
 		void ensureStartTime(Data currData) {
 			if (startTimeInMs == (uint64_t)-2)
-				startTimeInMs = clockToTimescale(currData->get<PresentationTime>().time, 1000);
+				startTimeInMs = clockToTimescale(currData->get<PresentationTime>().time, DASH_TIMESCALE);
 		}
 
 		void sendLocalData(Data currData, int repIdx, uint64_t size, bool EOS) {
@@ -431,8 +431,8 @@ class Dasher : public AdaptiveStreamer {
 				rep->codecs = gf_strdup(meta->codecName.c_str());
 				rep->starts_with_sap = GF_TRUE;
 				if (live && meta->latencyIn180k) {
-					rep->segment_template->availability_time_offset = std::max<double>(0.0,  (double)(segDurationInMs - clockToTimescale(meta->latencyIn180k, 1000)) / 1000);
-					mpd->min_buffer_time = (u32)clockToTimescale(meta->latencyIn180k, 1000);
+					rep->segment_template->availability_time_offset = std::max<double>(0.0,  (double)(segDurationInMs - clockToTimescale(meta->latencyIn180k, DASH_TIMESCALE)) / 1000);
+					mpd->min_buffer_time = (u32)clockToTimescale(meta->latencyIn180k, DASH_TIMESCALE);
 				}
 				switch (meta->type) {
 				case AUDIO_PKT:
@@ -456,7 +456,7 @@ class Dasher : public AdaptiveStreamer {
 					auto entries = quality.rep->segment_template->segment_timeline->entries;
 					auto const entryCount = gf_list_count(entries);
 					auto prevEnt = entryCount ? (GF_MPD_SegmentTimelineEntry*)gf_list_get(entries, entryCount-1) : nullptr;
-					auto const currDur = clockToTimescale(meta->durationIn180k, 1000);
+					auto const currDur = clockToTimescale(meta->durationIn180k, DASH_TIMESCALE);
 					uint64_t segTime = 0;
 					if (!prevEnt || prevEnt->duration != currDur) {
 						segTime = prevEnt ? prevEnt->start_time + prevEnt->duration*(prevEnt->repeat_count+1) : startTimeInMs;
@@ -507,7 +507,7 @@ class Dasher : public AdaptiveStreamer {
 			int64_t totalDuration = 0;
 			auto seg = quality.timeshiftSegments.begin();
 			while (seg != quality.timeshiftSegments.end()) {
-				totalDuration += clockToTimescale(seg->durationIn180k, 1000);
+				totalDuration += clockToTimescale(seg->durationIn180k, DASH_TIMESCALE);
 				if (totalDuration > m_cfg.timeShiftBufferDepthInMs) {
 					m_host->log(Debug, format( "Delete segment \"%s\".", seg->filename).c_str());
 
