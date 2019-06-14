@@ -361,9 +361,7 @@ class Dasher : public AdaptiveStreamer {
 		const uint64_t minUpdatePeriodInMs;
 		const bool useSegmentTimeline = false;
 
-		void postManifest() {
-			auto contents = mpd.serialize();
-
+		void postManifest(std::string contents) {
 			auto out = outputManifest->allocData<DataRaw>(contents.size());
 			auto metadata = make_shared<MetadataFile>(PLAYLIST);
 			metadata->filename = manifestDir + m_cfg.mpdName;
@@ -380,10 +378,13 @@ class Dasher : public AdaptiveStreamer {
 		}
 
 		void onNewSegment() {
-			updateManifest();
+			auto xml = updateManifest();
+
+			if (live)
+				postManifest(xml);
 		}
 
-		void updateManifest() {
+		std::string updateManifest() {
 			if (live && (mpd->media_presentation_duration == 0)) {
 				auto mpdOld = std::move(mpd);
 				mpd = createMPD(m_cfg.live, mpdOld->min_buffer_time, mpdOld->ID);
@@ -566,8 +567,7 @@ class Dasher : public AdaptiveStreamer {
 				}
 			}
 
-			if (live)
-				postManifest();
+			return mpd.serialize();
 		}
 
 		void onEndOfStream() {
@@ -580,8 +580,8 @@ class Dasher : public AdaptiveStreamer {
 				mpd->minimum_update_period = 0;
 				mpd->media_presentation_duration = totalDurationInMs;
 				totalDurationInMs -= segDurationInMs;
-				updateManifest();
-				postManifest();
+				auto xml = updateManifest();
+				postManifest(xml);
 			}
 		}
 };
