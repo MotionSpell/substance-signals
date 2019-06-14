@@ -461,8 +461,8 @@ class Dasher : public AdaptiveStreamer {
 				std::string fn, fnNext;
 				if (useSegmentTimeline) {
 					auto entries = quality.rep->segment_template->segment_timeline->entries;
-					auto const prevEntIdx = gf_list_count(entries);
-					GF_MPD_SegmentTimelineEntry *prevEnt = prevEntIdx == 0 ? nullptr : (GF_MPD_SegmentTimelineEntry*)gf_list_get(entries, prevEntIdx-1);
+					auto const entryCount = gf_list_count(entries);
+					auto prevEnt = entryCount ? (GF_MPD_SegmentTimelineEntry*)gf_list_get(entries, entryCount-1) : nullptr;
 					auto const currDur = clockToTimescale(meta->durationIn180k, 1000);
 					uint64_t segTime = 0;
 					if (!prevEnt || prevEnt->duration != currDur) {
