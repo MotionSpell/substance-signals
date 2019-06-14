@@ -322,7 +322,7 @@ GF_MPD_AdaptationSet *createAS(uint64_t segDurationInMs, GF_MPD_Period *period, 
 }
 
 MediaPresentationDescription createMPD(bool live, uint32_t minBufferTimeInMs, const std::string &id) {
-	return MediaPresentationDescription(live ? GF_MPD_TYPE_DYNAMIC : GF_MPD_TYPE_STATIC, id, g_profiles, minBufferTimeInMs);
+	return MediaPresentationDescription(live, id, g_profiles, minBufferTimeInMs);
 }
 
 AdaptiveStreamingCommonFlags getFlags(DasherConfig* cfg) {
