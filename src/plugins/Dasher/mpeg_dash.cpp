@@ -142,7 +142,7 @@ struct AdaptiveStreamer : ModuleDynI {
 			return (startTimeInMs + totalDurationInMs) / segDurationInMs;
 		}
 
-		std::shared_ptr<DataBase> getPresignalledData(uint64_t size, Data &data, bool EOS) {
+		std::shared_ptr<DataBase> getPresignalledData(uint64_t size, Data data, bool EOS) {
 			if (!(flags & PresignalNextSegment)) {
 				return clone(data);
 			}
