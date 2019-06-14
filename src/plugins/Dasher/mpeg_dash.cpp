@@ -457,9 +457,8 @@ class Dasher : public AdaptiveStreamer {
 				if (!meta)
 					continue;
 
-				if (quality.rep->width) { /*video only*/
-					quality.rep->starts_with_sap = (quality.rep->starts_with_sap == GF_TRUE && meta->startsWithRAP) ? GF_TRUE : GF_FALSE;
-				}
+				if (quality.rep->width && !meta->startsWithRAP) /*video only*/
+					quality.rep->starts_with_sap = GF_FALSE;
 
 				std::string fn, fnNext;
 				if (useSegmentTimeline) {
