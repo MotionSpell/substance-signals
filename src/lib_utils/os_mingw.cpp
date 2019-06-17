@@ -1,6 +1,7 @@
 #include "os.hpp"
 #include <stdexcept>
 #include <string> //to_string
+#include <ctime>  //gmtime_s
 
 #include <windows.h>
 #include <direct.h> //chdir
@@ -71,6 +72,10 @@ string thisExeDir() {
 		path.pop_back();
 
 	return path;
+}
+
+void p_gmtime_r(const time_t *timep, struct tm *result) {
+	gmtime_s(result, timep);
 }
 
 static string GetLastErrorMsg() {

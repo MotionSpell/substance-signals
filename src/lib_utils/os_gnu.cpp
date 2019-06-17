@@ -10,6 +10,7 @@ using namespace std;
 #include <dlfcn.h>    // dlopen
 #include <libgen.h>   // dirname
 #include <sys/mman.h>
+#include <ctime>      // gmtime_s
 
 int getPid() {
 	return getpid();
@@ -67,6 +68,10 @@ string thisExeDir() {
 	buffer[r] = 0;
 
 	return dirname(buffer) + string("/");
+}
+
+void p_gmtime_r(const time_t *timep, struct tm *result) {
+	gmtime_r(timep, result);
 }
 
 struct DynLibGnu : DynLib {

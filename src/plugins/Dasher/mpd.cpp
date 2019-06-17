@@ -1,5 +1,6 @@
 #include "mpd.hpp"
 #include "xml.hpp"
+#include <lib_utils/os.hpp>
 
 extern const char *g_version;
 
@@ -17,7 +18,7 @@ std::string formatBool(bool val) {
 std::string formatDate(int64_t timestamp) {
 	tm date {};
 	auto t = (time_t)timestamp;
-	gmtime_r(&t, &date);
+	p_gmtime_r(&t, &date);
 
 	char buffer[256];
 	sprintf(buffer, "%04d-%02d-%02dT%02d:%02d:%02dZ",

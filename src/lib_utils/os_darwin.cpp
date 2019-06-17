@@ -10,7 +10,8 @@ using namespace std;
 #include <dlfcn.h>    // dlopen
 #include <libgen.h>   // dirname
 #include <sys/mman.h>
-#include <libproc.h> // PROC_PIDPATHINFO_MAXSIZE
+#include <libproc.h>  // PROC_PIDPATHINFO_MAXSIZE
+#include <ctime>      // gmtime_s
 
 int getPid() {
 	return getpid();
@@ -68,6 +69,10 @@ string thisExeDir() {
 		throw runtime_error("can't get current executable path");
 
 	return dirname(buffer) + string("/");
+}
+
+void p_gmtime_r(const time_t *timep, struct tm *result) {
+	gmtime_r(timep, result);
 }
 
 struct DynLibGnu : DynLib {
