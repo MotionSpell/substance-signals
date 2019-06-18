@@ -68,6 +68,18 @@ unittest("remux test: libav mp4 mux") {
 	demux->process();
 }
 
+unittest("mux test: GPAC mp4 with generic descriptor") {
+	DemuxConfig cfg;
+	cfg.url = "data/beepbop.mp4";
+	auto demux = loadModule("LibavDemux", &NullHost, &cfg);
+	Mp4MuxConfig muxCfg {};
+	muxCfg.MP4_4CC = ('t'<<24)|('o'<<16)|('t'<<8)|'o';
+	auto mux = loadModule("GPACMuxMP4", &NullHost, &muxCfg);
+
+	ConnectModules(demux.get(), 0, mux.get(), 0);
+	demux->process();
+}
+
 unittest("mux GPAC mp4 failure tests") {
 	const uint64_t segmentDurationInMs = 2000;
 

@@ -380,6 +380,7 @@ namespace Mux {
 GPACMuxMP4::GPACMuxMP4(KHost* host, Mp4MuxConfig const& cfg)
 	: m_host(host),
 	  m_utcStartTime(cfg.utcStartTime),
+	  MP4_4CC(cfg.MP4_4CC),
 	  compatFlags(cfg.compatFlags),
 	  fragmentPolicy(cfg.fragmentPolicy),
 	  segmentPolicy(cfg.segmentPolicy),
@@ -752,6 +753,21 @@ void GPACMuxMP4::declareStreamVideo(const MetadataPktVideo* metadata) {
 		if (e == GF_OK) {
 			SAFE(gf_isom_hevc_config_new(isoCur, trackNum, hevccfg.get(), nullptr, nullptr, &di));
 		}
+	} else if (MP4_4CC != 0) {
+		GF_GenericSampleDescription sdesc = {};
+		sdesc.codec_tag = MP4_4CC;
+		isAnnexB = false;
+		m_host->log(Warning, format("Using generic packaging for codec '%s%s%s%s'",
+			(char)((MP4_4CC>>24)&0xff), (char)((MP4_4CC>>16)&0xff), (char)((MP4_4CC>>8)&0xff), (char)(MP4_4CC&0xff)).c_str());
+
+		sdesc.extension_buf = (char*)gf_malloc(extradata.len);
+		memcpy(sdesc.extension_buf, extradata.ptr, extradata.len);
+		sdesc.extension_buf_size = (u32)extradata.len;
+		if (!sdesc.vendor_code) sdesc.vendor_code = GF_VENDOR_GPAC;
+
+		e = gf_isom_new_generic_sample_description(isoCur, trackNum, NULL, NULL, &sdesc, &di);
+		if (e != GF_OK)
+			throw error(format("Cannot create generic sample config: %s", gf_error_to_string(e)));
 	} else {
 		m_host->log(Warning, format("Unknown codec '%s': using generic packaging.", metadata->codec).c_str());
 		e = GF_NON_COMPLIANT_BITSTREAM;

@@ -38,6 +38,7 @@ struct Mp4MuxConfig {
 	FragmentPolicy fragmentPolicy = NoFragment;
 	CompatibilityFlag compatFlags = None;
 	IUtcStartTimeQuery* utcStartTime = &g_NullStartTime;
+	uint32_t MP4_4CC = 0; //when non-null forces a generic descriptor when codec is not recognized
 };
 
 struct Mp4MuxConfigMss {

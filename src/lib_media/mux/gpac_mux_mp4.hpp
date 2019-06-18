@@ -44,6 +44,7 @@ class GPACMuxMP4 : public ModuleS {
 		void processSample(Data data, int64_t lastDataDurationInTs);
 		void updateSegmentName();
 
+		uint32_t MP4_4CC;
 		CompatibilityFlag compatFlags;
 		Data lastData = nullptr; //used with ExactInputDur flag
 		int64_t m_DTS = 0, initDTSIn180k = 0, firstDataAbsTimeInMs = 0;
