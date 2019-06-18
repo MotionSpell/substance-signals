@@ -1,6 +1,7 @@
 #include "lib_pipeline/pipeline.hpp"
 #include "lib_utils/system_clock.hpp"
 #include "lib_utils/os.hpp"
+#include "lib_utils/time.hpp"
 #include "config.hpp"
 #include <algorithm> //std::max
 #include <cassert>
@@ -28,6 +29,13 @@ extern const char *g_appName;
 auto const DASH_SUBDIR = "dash/";
 auto const MP4_MONITOR = false;
 auto const MAX_GOP_DURATION_IN_MS = 2000;
+
+struct UtcStartTime : IUtcStartTimeQuery {
+	uint64_t query() override { return startTime; }
+	uint64_t startTime;
+};
+
+static UtcStartTime g_UtcStartTime;
 
 Resolution autoRotate(Resolution res, bool verticalize) {
 	if (verticalize && res.height < res.width) {
@@ -68,14 +76,13 @@ IFilter* createEncoder(Pipeline* pipeline, Metadata metadata, bool ultraLowLaten
 
 		auto const metaVideo = safe_cast<const MetadataPktVideo>(metadata);
 		p.frameRate = metaVideo->framerate;
-		auto const GOPDurationDivisor = 1 + (segmentDurationInMs / (MAX_GOP_DURATION_IN_MS+1));
-		p.GOPSize = ultraLowLatency ? 1 : (Fraction(segmentDurationInMs, 1000) * p.frameRate) / Fraction(GOPDurationDivisor, 1);
+		const int GOPDurationDivisor = 1 + (int)(segmentDurationInMs / (MAX_GOP_DURATION_IN_MS + 1));
+		p.GOPSize = (Fraction(segmentDurationInMs, 1000) * p.frameRate) / Fraction((GOPDurationDivisor), 1);
 		if ((segmentDurationInMs * p.frameRate.num) % (1000 * GOPDurationDivisor * p.frameRate.den)) {
 			g_Log->log(Warning, format("[%s] Couldn't align GOP size (%s/%s, divisor=%s) with segment duration (%sms). Segment duration may vary.", g_appName, p.GOPSize.num, p.GOPSize.den, GOPDurationDivisor, segmentDurationInMs).c_str());
-			if ((p.frameRate.den % 1001) || ((segmentDurationInMs * p.frameRate.num * 1001) % (1000 * GOPDurationDivisor * p.frameRate.den * 1000)))
-				throw std::runtime_error("GOP size checks failed. Please read previous log messages.");
 		}
-		if (GOPDurationDivisor > 1) g_Log->log(Info, format("[Encoder] Setting GOP duration to %sms (%s frames)", segmentDurationInMs / GOPDurationDivisor, (double)p.GOPSize).c_str());
+		if (GOPDurationDivisor > 1)
+			g_Log->log(Info, format("[Encoder] Setting GOP duration to %sms (%s frames)", segmentDurationInMs / GOPDurationDivisor, (double)p.GOPSize).c_str());
 
 		auto m = pipeline->add("Encoder", &p);
 		dstFmt.format = p.pixelFormat;
@@ -200,6 +207,8 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 		mp4config.segmentDurationInMs =  cfg.segmentDurationInMs;
 		mp4config.segmentPolicy = FragmentedSegment;
 		mp4config.fragmentPolicy = cfg.ultraLowLatency ? OneFragmentPerFrame : OneFragmentPerSegment;
+		mp4config.compatFlags = Browsers;
+		mp4config.utcStartTime = &g_UtcStartTime;
 
 		auto muxer = pipeline->add("GPACMuxMP4", &mp4config);
 		pipeline->connect(compressed, muxer);
@@ -281,6 +290,8 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 
 	for (int i = 0; i < demux->getNumOutputs(); ++i)
 		processElementaryStream(i);
+
+	g_UtcStartTime.startTime = fractionToClock(getUTC());
 
 	return pipeline;
 }
