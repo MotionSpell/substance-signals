@@ -8,6 +8,7 @@
 #include <map>
 #include <cstring> // memcpy
 #include <cassert>
+#include <algorithm> // min
 
 std::string expandVars(std::string input, std::map<std::string,std::string> const& values);
 int64_t parseIso8601Period(std::string input);
@@ -18,6 +19,7 @@ using namespace Modules::In;
 struct AdaptationSet {
 	string media;
 	int startNumber=0;
+	int minStartNumber=0;
 	int duration=0;
 	int timescale=1;
 	string representationId;
@@ -95,7 +97,7 @@ MPEG_DASH_Input::MPEG_DASH_Input(KHost* host, IFilePuller* source, std::string c
 	}
 
 	for(auto& stream : m_streams) {
-		stream->currNumber  = stream->set->startNumber;
+		stream->currNumber = stream->set->startNumber;
 		if(mpd->dynamic) {
 			auto now = (int64_t)getUTC();
 			if(stream->segmentDuration.num == 0)
@@ -103,7 +105,7 @@ MPEG_DASH_Input::MPEG_DASH_Input(KHost* host, IFilePuller* source, std::string c
 
 			stream->currNumber += int(stream->segmentDuration.inverse() * (now - mpd->availabilityStartTime));
 			// HACK: add one segment latency
-			stream->currNumber -= 2;
+			stream->currNumber = std::max<int>(stream->currNumber-2, stream->set->minStartNumber);
 		}
 	}
 }
@@ -249,6 +251,7 @@ DashMpd parseMpd(span<const char> text) {
 			set.initialization = attr["initialization"];
 			set.media = attr["media"];
 			set.startNumber = atoi(attr["startNumber"].c_str());
+			set.minStartNumber = std::min<int>(set.minStartNumber, set.startNumber);
 			if(attr.find("duration") != attr.end())
 				set.duration = atoi(attr["duration"].c_str());
 			if(!attr["timescale"].empty())
