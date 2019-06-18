@@ -71,10 +71,6 @@ string thisExeDir() {
 	return dirname(buffer) + string("/");
 }
 
-void p_gmtime_r(const time_t *timep, struct tm *result) {
-	gmtime_r(timep, result);
-}
-
 struct DynLibGnu : DynLib {
 	DynLibGnu(const char* name) : handle(dlopen(name, RTLD_NOW | RTLD_NODELETE)) {
 		if(!handle) {

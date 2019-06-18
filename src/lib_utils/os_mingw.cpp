@@ -74,10 +74,6 @@ string thisExeDir() {
 	return path;
 }
 
-void p_gmtime_r(const time_t *timep, struct tm *result) {
-	gmtime_s(result, timep);
-}
-
 static string GetLastErrorMsg() {
 	auto const errorCode = GetLastError();
 	if (!errorCode)

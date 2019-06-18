@@ -15,10 +15,6 @@ void changeDir(std::string path);
 std::string currentDir();
 std::string thisExeDir();
 
-// time
-struct tm;
-void p_gmtime_r(const time_t *timep, struct tm *result);
-
 // dynamic library
 
 #include <memory>
