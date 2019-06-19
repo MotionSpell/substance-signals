@@ -111,6 +111,57 @@ unittest("mpeg_dash_input: get chunks") {
 	source.requests);
 }
 
+unittest("mpeg_dash_input: only get available segments") {
+	static auto const MPD = R"|(
+<?xml version="1.0"?>
+<MPD>
+  <Period>
+    <AdaptationSet>
+      <SegmentTemplate
+        initialization="$RepresentationID$/init.mp4"
+        media="$RepresentationID$/$Number$.m4s"
+        duration="10"/>
+
+      <Representation id="medium" mimeType="audio/mp4">
+        <SegmentTemplate startNumber="3" />
+      </Representation>
+
+      <Representation id="high" mimeType="audio/mp4">
+        <SegmentTemplate startNumber="5" />
+      </Representation>
+
+      <Representation id="low" mimeType="audio/mp4">
+        <SegmentTemplate startNumber="4" />
+      </Representation>
+
+    </AdaptationSet>
+  </Period>
+</MPD>)|";
+	LocalFilesystem source;
+	source.resources["main/manifest.mpd"] = MPD;
+	source.resources["main/low/init.mp4"] = "a";
+	source.resources["main/low/5.m4s"] = "a";
+	source.resources["main/low/6.m4s"] = "a";
+	source.resources["main/low/7.m4s"] = "a";
+	auto dash = createModule<MPEG_DASH_Input>(&NullHost, &source, "main/manifest.mpd");
+	auto receive = [&](Data) {};
+	ConnectOutput(dash->getOutput(0), receive);
+
+	for(int i=0; i < 5; ++i)
+		dash->process();
+
+	ASSERT_EQUALS(
+	std::vector<std::string>( {
+		"main/manifest.mpd",
+		"main/low/init.mp4",
+		"main/low/5.m4s",
+		"main/low/6.m4s",
+		"main/low/7.m4s",
+		"main/low/8.m4s",
+	}),
+	source.requests);
+}
+
 std::unique_ptr<IFilePuller> createHttpSource();
 
 secondclasstest("mpeg_dash_input: get MPD from remote server") {

@@ -19,7 +19,6 @@ using namespace Modules::In;
 struct AdaptationSet {
 	string media;
 	int startNumber=0;
-	int minStartNumber=0;
 	int duration=0;
 	int timescale=1;
 	string representationId;
@@ -105,7 +104,7 @@ MPEG_DASH_Input::MPEG_DASH_Input(KHost* host, IFilePuller* source, std::string c
 
 			stream->currNumber += int(stream->segmentDuration.inverse() * (now - mpd->availabilityStartTime));
 			// HACK: add one segment latency
-			stream->currNumber = std::max<int>(stream->currNumber-2, stream->set->minStartNumber);
+			stream->currNumber = std::max<int>(stream->currNumber-2, stream->set->startNumber);
 		}
 	}
 }
@@ -248,10 +247,15 @@ DashMpd parseMpd(span<const char> text) {
 				mpd->availabilityStartTime = parseDate(attr["availabilityStartTime"]);
 		} else if(name == "SegmentTemplate") {
 			auto& set = mpd->sets.back();
-			set.initialization = attr["initialization"];
-			set.media = attr["media"];
-			set.startNumber = atoi(attr["startNumber"].c_str());
-			set.minStartNumber = std::min<int>(set.minStartNumber, set.startNumber);
+
+			if(attr.find("initialization") != attr.end())
+				set.initialization = attr["initialization"];
+
+			if(attr.find("media") != attr.end())
+				set.media = attr["media"];
+
+			int startNumber = atoi(attr["startNumber"].c_str());
+			set.startNumber = std::max<int>(set.startNumber, startNumber);
 			if(attr.find("duration") != attr.end())
 				set.duration = atoi(attr["duration"].c_str());
 			if(!attr["timescale"].empty())
