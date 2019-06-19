@@ -758,7 +758,7 @@ void GPACMuxMP4::declareStreamVideo(const MetadataPktVideo* metadata) {
 		sdesc.codec_tag = MP4_4CC;
 		isAnnexB = false;
 		m_host->log(Warning, format("Using generic packaging for codec '%s%s%s%s'",
-			(char)((MP4_4CC>>24)&0xff), (char)((MP4_4CC>>16)&0xff), (char)((MP4_4CC>>8)&0xff), (char)(MP4_4CC&0xff)).c_str());
+		        (char)((MP4_4CC>>24)&0xff), (char)((MP4_4CC>>16)&0xff), (char)((MP4_4CC>>8)&0xff), (char)(MP4_4CC&0xff)).c_str());
 
 		sdesc.extension_buf = (char*)gf_malloc(extradata.len);
 		memcpy(sdesc.extension_buf, extradata.ptr, extradata.len);
