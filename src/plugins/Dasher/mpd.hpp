@@ -37,6 +37,7 @@ struct MPD {
 	bool dynamic;
 	bool timeline;
 	int64_t mediaPresentationDuration;
+	int64_t sessionStartTime;
 	int64_t availabilityStartTime;
 	int64_t timeShiftBufferDepth;
 	int64_t minBufferTime;

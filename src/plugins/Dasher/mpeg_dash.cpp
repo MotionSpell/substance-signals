@@ -381,7 +381,8 @@ class Dasher : public AdaptiveStreamer {
 			mpd.profiles = g_profiles;
 			mpd.minBufferTime = m_cfg.minBufferTimeInMs;
 			mpd.mediaPresentationDuration = totalDurationInMs + segDurationInMs;
-			mpd.availabilityStartTime = startTimeInMs + m_cfg.initialOffsetInMs;
+			mpd.sessionStartTime = startTimeInMs;
+			mpd.availabilityStartTime = segDurationInMs/*time at which the first segment is available*/ + m_cfg.initialOffsetInMs;
 			mpd.timeShiftBufferDepth = m_cfg.timeShiftBufferDepthInMs;
 			mpd.publishTime = int64_t(getUTC() * 1000);
 			mpd.baseUrls = m_cfg.baseURLs;

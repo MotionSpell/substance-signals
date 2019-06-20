@@ -57,8 +57,9 @@ Tag mpdToTags(MPD const& mpd) {
 	tMPD["profiles"] = mpd.profiles;
 	tMPD["availabilityStartTime"] = formatDate(mpd.availabilityStartTime/1000);
 	tMPD["publishTime"] = formatDate(mpd.publishTime/1000);
-	tMPD["mediaPresentationDuration"] = formatPeriod(mpd.mediaPresentationDuration);
 	tMPD["minBufferTime"] = formatPeriod(mpd.minBufferTime);
+	if (!mpd.dynamic)
+		tMPD["mediaPresentationDuration"] = formatPeriod(mpd.mediaPresentationDuration);
 
 	{
 		auto tProgramInformation = Tag { "ProgramInformation" };
@@ -74,6 +75,8 @@ Tag mpdToTags(MPD const& mpd) {
 	for(auto& period : mpd.periods) {
 		auto tPeriod = Tag { "Period" };
 		tPeriod["id"] = period.id;
+		if (mpd.dynamic)
+			tPeriod["start"] = formatPeriod(0);
 
 		for(auto& adaptationSet : period.adaptationSets) {
 			auto tAdaptationSet = Tag { "AdaptationSet" };
@@ -85,7 +88,10 @@ Tag mpdToTags(MPD const& mpd) {
 				auto tSegmentTemplate = Tag { "SegmentTemplate" };
 				tSegmentTemplate["timescale"] = formatInt(adaptationSet.timescale);
 				tSegmentTemplate["duration"] = formatInt(adaptationSet.duration);
-				tSegmentTemplate["startNumber"] = formatInt(adaptationSet.startNumber);
+				if (mpd.dynamic)
+					tSegmentTemplate["startNumber"] = formatInt(0);
+				else
+					tSegmentTemplate["startNumber"] = formatInt(adaptationSet.startNumber);
 
 				tAdaptationSet.add(tSegmentTemplate);
 			}
@@ -108,7 +114,12 @@ Tag mpdToTags(MPD const& mpd) {
 					auto tSegmentTemplate = Tag { "SegmentTemplate" };
 					tSegmentTemplate["media"] = representation.media;
 					tSegmentTemplate["initialization"] = representation.initialization;
-					tSegmentTemplate["startNumber"] = formatInt(adaptationSet.startNumber);
+					if (mpd.dynamic) {
+						tSegmentTemplate["startNumber"] = formatInt(0);
+					} else {
+						tSegmentTemplate["startNumber"] = formatInt(adaptationSet.startNumber);
+						tSegmentTemplate["presentationTimeOffset"] = formatInt(mpd.sessionStartTime * adaptationSet.timescale / 1000);
+					}
 
 					if(adaptationSet.entries.size()) {
 						auto tSegmentTimeline = Tag { "SegmentTimeline" };
