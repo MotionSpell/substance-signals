@@ -31,7 +31,9 @@ auto const MP4_MONITOR = false;
 auto const MAX_GOP_DURATION_IN_MS = 2000;
 
 struct UtcStartTime : IUtcStartTimeQuery {
-	uint64_t query() override { return startTime; }
+	uint64_t query() override {
+		return startTime;
+	}
 	uint64_t startTime;
 };
 
