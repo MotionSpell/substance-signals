@@ -69,15 +69,27 @@ unittest("remux test: libav mp4 mux") {
 }
 
 unittest("mux test: GPAC mp4 with generic descriptor") {
-	DemuxConfig cfg;
-	cfg.url = "data/beepbop.mp4";
-	auto demux = loadModule("LibavDemux", &NullHost, &cfg);
-	Mp4MuxConfig muxCfg {};
-	muxCfg.MP4_4CC = ('t'<<24)|('o'<<16)|('t'<<8)|'o';
-	auto mux = loadModule("GPACMuxMP4", &NullHost, &muxCfg);
+	auto pkt = make_shared<Modules::DataRaw>(0);
+	pkt->setMetadata(make_shared<MetadataPktVideo>());
+	pkt->set(CueFlags{});
+	pkt->set(DecodingTime{});
 
-	ConnectModules(demux.get(), 0, mux.get(), 0);
-	demux->process();
+	const char * my4CC = "toto";
+	bool received = false;
+	auto onSample = [&](Data pkt) {
+		received = true;
+		ASSERT(std::string((char*)pkt->data().ptr, pkt->data().len).find(my4CC) != string::npos);
+	};
+
+	Mp4MuxConfig muxCfg {};
+	muxCfg.fragmentPolicy = OneFragmentPerFrame;
+	muxCfg.MP4_4CC = (my4CC[0]<<24)|(my4CC[1]<<16)|(my4CC[2]<<8)|my4CC[3];	
+	auto mux = loadModule("GPACMuxMP4", &NullHost, &muxCfg);
+	ConnectOutput(mux->getOutput(0), onSample);
+	
+	mux->getInput(0)->push(pkt);
+	mux->flush();
+	ASSERT(received);
 }
 
 unittest("mux GPAC mp4 failure tests") {
