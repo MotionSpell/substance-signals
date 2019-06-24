@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <lib_utils/time.hpp>
 
 namespace Modules {
 
@@ -22,6 +23,8 @@ struct DasherConfig {
 	bool segmentsNotOwned = false;
 	bool presignalNextSegment = false;
 	bool forceRealDurations = false;
+
+	IUtcClock *utcClock = g_UtcClock;
 };
 
 }

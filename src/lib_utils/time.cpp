@@ -77,3 +77,12 @@ std::string getTimeFromUTC() {
 	timeInMsToStr(((t / 3600000) % 24) * 3600000 + (t % 3600000), time);
 	return time;
 }
+
+struct UtcClock : IUtcClock {
+	Fraction getTime() override {
+		return getUTC();
+	}
+};
+
+static UtcClock utcClock;
+IUtcClock* g_UtcClock = &utcClock;
