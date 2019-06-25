@@ -83,10 +83,10 @@ unittest("mux test: GPAC mp4 with generic descriptor") {
 
 	Mp4MuxConfig muxCfg {};
 	muxCfg.fragmentPolicy = OneFragmentPerFrame;
-	muxCfg.MP4_4CC = (my4CC[0]<<24)|(my4CC[1]<<16)|(my4CC[2]<<8)|my4CC[3];	
+	muxCfg.MP4_4CC = (my4CC[0]<<24)|(my4CC[1]<<16)|(my4CC[2]<<8)|my4CC[3];
 	auto mux = loadModule("GPACMuxMP4", &NullHost, &muxCfg);
 	ConnectOutput(mux->getOutput(0), onSample);
-	
+
 	mux->getInput(0)->push(pkt);
 	mux->flush();
 	ASSERT(received);
