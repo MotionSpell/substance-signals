@@ -104,7 +104,7 @@ void Fail(char const* file, int line, const char* msg) {
 	std::raise(SIGABRT);
 }
 
-int RegisterTest(void (*fn)(), const char* testName, int type, int&) {
+int RegisterTest(void (*fn)(), const char* testName, int type) {
 	UnitTest test {};
 	test.fn = fn;
 	test.name = testName;
