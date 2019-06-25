@@ -12,7 +12,7 @@ using TestFunction = void (*)();
 
 struct UnitTest {
 	void (*fn)();
-	const char* name;
+	std::string name;
 
 	// To be "FIRST" class, a test must be:
 	//
@@ -35,8 +35,10 @@ struct UnitTest {
 	int type; // 0:first class, 1:second class, 2:fuzztest
 };
 
-UnitTest g_AllTests[65536];
-int g_NumTests;
+std::vector<UnitTest>& allTests() {
+	static std::vector<UnitTest> all;
+	return all;
+}
 
 struct Filter {
 	int minIdx = 0;
@@ -47,9 +49,9 @@ struct Filter {
 };
 
 void listAll() {
-	for (int i = 0; i < g_NumTests; ++i) {
-		std::cout << "Test #" << i << ": " << g_AllTests[i].name << std::endl;
-	}
+	int i=0;
+	for (auto& test : allTests())
+		std::cout << "Test #" << i++ << ": " << test.name << std::endl;
 }
 
 bool startsWith(std::string s, std::string prefix) {
@@ -61,11 +63,11 @@ bool matches(Filter filter, int idx) {
 		return false;
 	if(idx > filter.maxIdx)
 		return false;
-	if(g_AllTests[idx].type == 2)
+	if(allTests()[idx].type == 2)
 		return false;
-	if(filter.noSecondClass && g_AllTests[idx].type == 1)
+	if(filter.noSecondClass && allTests()[idx].type == 1)
 		return false;
-	if(startsWith(g_AllTests[idx].name, "[DISABLED]"))
+	if(startsWith(allTests()[idx].name, "[DISABLED]"))
 		return false;
 	return true;
 }
@@ -76,12 +78,12 @@ void RunAll(Filter filter) {
 	if(filter.fuzzIdx >= 0) {
 		std::ifstream fp(filter.fuzzPath);
 		fp.read((char*)fuzzBuffer, sizeof fuzzBuffer);
-		g_AllTests[filter.fuzzIdx].fn();
+		allTests()[filter.fuzzIdx].fn();
 	} else {
-		for(int i=0; i < g_NumTests; ++i) {
+		for(int i=0; i < (int)allTests().size(); ++i) {
 			if(matches(filter, i)) {
-				std::cout << "#" << i << ": " << g_AllTests[i].name << std::endl;
-				g_AllTests[i].fn();
+				std::cout << "#" << i << ": " << allTests()[i].name << std::endl;
+				allTests()[i].fn();
 			}
 		}
 	}
@@ -89,9 +91,9 @@ void RunAll(Filter filter) {
 
 void SortTests() {
 	auto byName = [](UnitTest const& a, UnitTest const& b) -> bool {
-		return std::string(a.name) < std::string(b.name);
+		return a.name < b.name;
 	};
-	std::sort(g_AllTests, g_AllTests + g_NumTests, byName);
+	std::sort(allTests().begin(), allTests().end(), byName);
 }
 }
 
@@ -103,10 +105,11 @@ void Fail(char const* file, int line, const char* msg) {
 }
 
 int RegisterTest(void (*fn)(), const char* testName, int type, int&) {
-	g_AllTests[g_NumTests].fn = fn;
-	g_AllTests[g_NumTests].name = testName;
-	g_AllTests[g_NumTests].type = type;
-	++g_NumTests;
+	UnitTest test {};
+	test.fn = fn;
+	test.name = testName;
+	test.type = type;
+	allTests().push_back(test);
 	return 0;
 }
 
