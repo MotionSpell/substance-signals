@@ -44,6 +44,7 @@ inline std::ostream& operator<<(std::ostream& o, std::vector<T> iterable) {
 namespace Tests {
 
 void Fail(char const* file, int line, const char* msg);
+void FailAssertEquals(char const* file, int line, std::string caption, std::string expected, std::string actual);
 void GetFuzzTestData(uint8_t const*& ptr, size_t& len);
 
 template<typename T>
@@ -75,17 +76,7 @@ inline void AssertEquals(char const* file, int line, const char* caption, T cons
 	if (expected != actual) {
 		auto sExpected = ToString(expected);
 		auto sActual = ToString(actual);
-		bool multiline = sExpected.size() > 40 || sActual.size() > 40;
-
-		std::string msg;
-		msg += "assertion failed for expression: '" + std::string(caption) + "'. ";
-		if(multiline)
-			msg += "\n";
-		msg += "expected '" + sExpected + "' ";
-		if(multiline)
-			msg += "\n     ";
-		msg += "got '" + sActual + "'";
-		::Tests::Fail(file, line, msg.c_str());
+		FailAssertEquals(file, line, caption, sExpected, sActual);
 	}
 }
 

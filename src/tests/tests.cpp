@@ -110,6 +110,21 @@ void Fail(char const* file, int line, const char* msg) {
 	std::raise(SIGABRT);
 }
 
+void FailAssertEquals(char const* file, int line, std::string caption, std::string expected, std::string actual) {
+
+	bool multiline = expected.size() > 40 || actual.size() > 40;
+
+	std::string msg;
+	msg += "assertion failed for expression: '" + caption + "'. ";
+	if(multiline)
+		msg += "\n";
+	msg += "expected '" + expected + "' ";
+	if(multiline)
+		msg += "\n     ";
+	msg += "got '" + actual + "'";
+	Fail(file, line, msg.c_str());
+}
+
 int RegisterTest(void (*fn)(), const char* testName, int type, const char* filename, int line) {
 	UnitTest test {};
 	test.fn = fn;
