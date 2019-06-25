@@ -6,7 +6,7 @@
 // generate a file-unique identifier, based on current line
 #define unittestSuffix(suffix, prettyName, type) \
 	static void testFunction##suffix(); \
-	static int g_isRegistered##suffix = Tests::RegisterTest(&testFunction##suffix, prettyName, type); \
+	static int g_isRegistered##suffix = Tests::RegisterTest(&testFunction##suffix, prettyName, type, __FILE__, __LINE__); \
 	static void testFunction##suffix()
 
 #define unittestLine(counter, prettyName, type) \
@@ -103,6 +103,6 @@ inline void AssertEquals(char const* file, int line, const char* caption, T cons
 	} catch (...) { \
 	} \
 
-int RegisterTest(void (*f)(), const char* testName, int type);
+int RegisterTest(void (*f)(), const char* testName, int type, const char* filename, int line);
 
 }

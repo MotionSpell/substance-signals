@@ -33,6 +33,10 @@ struct UnitTest {
 	//           from the point of view of the user of the API, not the implementer.
 	//
 	int type; // 0:first class, 1:second class, 2:fuzztest
+
+	// for sorting
+	std::string file;
+	int line;
 };
 
 std::vector<UnitTest>& allTests() {
@@ -91,7 +95,9 @@ void RunAll(Filter filter) {
 
 void SortTests() {
 	auto byName = [](UnitTest const& a, UnitTest const& b) -> bool {
-		return a.name < b.name;
+		if(a.file != b.file)
+			return a.file < b.file;
+		return a.line < b.line;
 	};
 	std::sort(allTests().begin(), allTests().end(), byName);
 }
@@ -104,11 +110,13 @@ void Fail(char const* file, int line, const char* msg) {
 	std::raise(SIGABRT);
 }
 
-int RegisterTest(void (*fn)(), const char* testName, int type) {
+int RegisterTest(void (*fn)(), const char* testName, int type, const char* filename, int line) {
 	UnitTest test {};
 	test.fn = fn;
 	test.name = testName;
 	test.type = type;
+	test.file = filename;
+	test.line = line;
 	allTests().push_back(test);
 	return 0;
 }
