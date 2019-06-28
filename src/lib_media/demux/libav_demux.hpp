@@ -11,4 +11,5 @@ struct DemuxConfig {
 	uint64_t seekTimeInMs = 0;
 	std::string formatName;
 	ReadFunc func = nullptr;
+	int64_t ioTimeoutInMs = 30000; /*0 is infinite*/
 };

@@ -76,7 +76,7 @@ struct LibavDemux : Module {
 				m_streams[i].restamper = createModule<Transform::Restamp>(&NullHost, Transform::Restamp::ClockSystem); /*some webcams timestamps don't start at 0 (based on UTC)*/
 			}
 		} else {
-			ffpp::Dict dict(typeid(*this).name(), "-buffer_size 1M -fifo_size 1M -probesize 10M -analyzeduration 10M -overrun_nonfatal 1 -protocol_whitelist file,udp,rtp,http,https,tcp,tls,rtmp -rtsp_flags prefer_tcp -correct_ts_overflow 1 " + config.avformatCustom);
+			ffpp::Dict dict(typeid(*this).name(), "-rw_timeout " + std::to_string(config.ioTimeoutInMs*1000) + " -buffer_size 1M -fifo_size 1M -probesize 10M -analyzeduration 10M -overrun_nonfatal 1 -protocol_whitelist file,udp,rtp,http,https,tcp,tls,rtmp -rtsp_flags prefer_tcp -correct_ts_overflow 1 " + config.avformatCustom);
 
 			if (m_read) {
 				m_avioCtx = avio_alloc_context((unsigned char*)av_malloc(avioCtxBufferSize), avioCtxBufferSize, 0, this, &LibavDemux::read, nullptr, nullptr);
