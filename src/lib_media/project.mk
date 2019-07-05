@@ -113,18 +113,16 @@ $(BIN)/LibavFilter.smd: \
 
 #------------------------------------------------------------------------------
 TARGETS+=$(BIN)/GPACMuxMP4.smd
-$(BIN)/GPACMuxMP4.smd: PKGS+=gpac libavcodec libavutil
+$(BIN)/GPACMuxMP4.smd: PKGS+=gpac
 $(BIN)/GPACMuxMP4.smd: \
   $(BIN)/$(SRC)/lib_media/mux/gpac_mux_mp4.cpp.o\
-  $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
 
 #------------------------------------------------------------------------------
 TARGETS+=$(BIN)/GPACMuxMP4MSS.smd
-$(BIN)/GPACMuxMP4MSS.smd: PKGS+=gpac libavutil libavcodec
+$(BIN)/GPACMuxMP4MSS.smd: PKGS+=gpac
 $(BIN)/GPACMuxMP4MSS.smd: \
   $(BIN)/$(SRC)/lib_media/mux/gpac_mux_mp4_mss.cpp.o\
   $(BIN)/$(SRC)/lib_media/mux/gpac_mux_mp4.cpp.o\
-  $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
 
 #------------------------------------------------------------------------------
 TARGETS+=$(BIN)/GPACDemuxMP4Simple.smd
