@@ -22,7 +22,6 @@ LIB_MEDIA_SRCS:=\
   $(MYDIR)/transform/restamp.cpp\
   $(MYDIR)/transform/rectifier.cpp\
   $(MYDIR)/utils/recorder.cpp\
-  $(MYDIR)/utils/repeater.cpp
 
 PKGS+=\
   libcurl\
