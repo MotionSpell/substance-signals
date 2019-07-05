@@ -28,10 +28,8 @@ PKGS+=\
 
 #------------------------------------------------------------------------------
 TARGETS+=$(BIN)/AVCC2AnnexBConverter.smd
-$(BIN)/AVCC2AnnexBConverter.smd: PKGS+=libavcodec libavutil
 $(BIN)/AVCC2AnnexBConverter.smd: \
   $(BIN)/$(SRC)/lib_media/transform/avcc2annexb.cpp.o\
-  $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
 
 #------------------------------------------------------------------------------
 TARGETS+=$(BIN)/LibavMuxHLSTS.smd
