@@ -43,7 +43,7 @@ namespace In {
 struct MPEG_DASH_Input::Stream {
 	OutputDefault* out = nullptr;
 	AdaptationSet* set = nullptr;
-	int currNumber = 0;
+	int64_t currNumber = 0;
 	Fraction segmentDuration {};
 };
 
@@ -102,9 +102,9 @@ MPEG_DASH_Input::MPEG_DASH_Input(KHost* host, IFilePuller* source, std::string c
 			if(stream->segmentDuration.num == 0)
 				throw runtime_error("No duration for stream");
 
-			stream->currNumber += int(stream->segmentDuration.inverse() * (now - mpd->availabilityStartTime));
+			stream->currNumber += int64_t(stream->segmentDuration.inverse() * (now - mpd->availabilityStartTime));
 			// HACK: add one segment latency
-			stream->currNumber = std::max<int>(stream->currNumber-2, stream->set->startNumber);
+			stream->currNumber = std::max<int64_t>(stream->currNumber-2, stream->set->startNumber);
 		}
 	}
 }
