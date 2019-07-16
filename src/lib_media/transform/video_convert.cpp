@@ -38,7 +38,7 @@ class VideoConvert : public ModuleS {
 
 			// pass-through case
 			if(videoData->getFormat() == dstFormat) {
-				output->post(videoData);
+				output->post(data);
 				return;
 			}
 
