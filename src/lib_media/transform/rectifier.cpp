@@ -72,8 +72,10 @@ struct Rectifier : ModuleDynI {
 		}
 
 		void process() override {
-			if(m_pendingTaskId == IScheduler::Id())
+			if(!m_started) {
 				reschedule(clock->now());
+				m_started = true;
+			}
 		}
 
 		int getNumOutputs() const override {
@@ -100,6 +102,7 @@ struct Rectifier : ModuleDynI {
 		std::shared_ptr<IClock> clock;
 		IScheduler* const scheduler;
 		IScheduler::Id m_pendingTaskId {};
+		bool m_started = false;
 
 		void mimicOutputs() {
 			while(streams.size() < getInputs().size()) {
