@@ -265,7 +265,10 @@ struct LibavDemux : Module {
 	void webcamList() {
 		m_host->log(Warning, "Webcam list:");
 		ffpp::Dict dict(typeid(*this).name(), "-list_devices true");
-		avformat_open_input(&m_formatCtx, "video=dummy:audio=dummy", av_find_input_format(webcamFormat()), &dict);
+		auto const level = getGlobalLogLevel();
+		setGlobalLogLevel(Info);
+		avformat_open_input(&m_formatCtx, "dummy", av_find_input_format(webcamFormat()), &dict);
+		setGlobalLogLevel(level);
 		m_host->log(Warning, "Webcam example: webcam:video=\"Integrated Webcam\":audio=\"Microphone (Realtek High Defini\"");
 	}
 

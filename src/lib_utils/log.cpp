@@ -164,6 +164,10 @@ LogSink* getDefaultLogger() {
 
 LogSink* g_Log = getDefaultLogger();
 
+Level getGlobalLogLevel() {
+	return consoleLogger.m_logLevel;
+}
+
 void setGlobalLogLevel(Level level) {
 	consoleLogger.setLevel(level);
 }
