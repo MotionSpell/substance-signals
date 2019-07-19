@@ -125,7 +125,22 @@ struct Decoder : ModuleS, PictureAllocator {
 					memcpy(codecCtx->extradata, extradata.data(), extradata.size());
 			}
 
+			if (metadata->codec == "raw_video") {
+				auto const m = safe_cast<const MetadataPktVideo>(metadata);
+				codecCtx->pix_fmt = pixelFormat2libavPixFmt(m->pixelFormat);
+				codecCtx->width = m->resolution.width;
+				codecCtx->height = m->resolution.height;
+			}
+
+			if (metadata->codec == "raw_audio") {
+				auto const m = safe_cast<const MetadataPktAudio>(metadata);
+				codecCtx->channels = m->numChannels;
+				codecCtx->sample_fmt = AV_SAMPLE_FMT_S16;
+				codecCtx->sample_rate = m->sampleRate;
+			}
+
 			ffpp::Dict dict(typeid(*this).name(), "-threads auto -err_detect 1 -flags output_corrupt -flags2 showall");
+
 			if (avcodec_open2(codecCtx.get(), codec, &dict) < 0)
 				throw error("Couldn't open stream.");
 

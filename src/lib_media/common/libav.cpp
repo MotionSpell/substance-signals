@@ -50,6 +50,8 @@ static Mapping computeMapping() {
 	r.add(AV_CODEC_ID_AAC_LATM, "aac_latm");
 	r.add(AV_CODEC_ID_AC3, "ac3");
 	r.add(AV_CODEC_ID_PNG, "png");
+	r.add(AV_CODEC_ID_RAWVIDEO, "raw_video");
+	r.add(AV_CODEC_ID_FIRST_AUDIO, "raw_audio");
 
 	return r;
 }
