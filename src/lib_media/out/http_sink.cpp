@@ -35,13 +35,6 @@ struct HttpSink : Modules::ModuleS {
 		}
 		void processOne(Modules::Data data) override {
 			auto const meta = safe_cast<const Modules::MetadataFile>(data->getMetadata());
-
-			for(auto url : toErase) {
-				m_host->log(Debug, format("Closing HTTP connection for url: \"%s\"", url).c_str());
-				zeroSizeConnections.erase(url);
-			}
-			toErase.clear();
-
 			auto const url = baseURL + meta->filename;
 
 			HttpOutputConfig httpConfig {};
@@ -89,7 +82,6 @@ struct HttpSink : Modules::ModuleS {
 		Modules::KHost* const m_host;
 		atomic_bool done;
 		map<string, shared_ptr<Modules::Out::HTTP>> zeroSizeConnections;
-		vector<string> toErase;
 		const string baseURL, userAgent;
 		const vector<string> headers;
 };
