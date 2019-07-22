@@ -491,7 +491,7 @@ class Dasher : public AdaptiveStreamer {
 			while (seg != quality.timeshiftSegments.end()) {
 				totalDuration += clockToTimescale(seg->durationIn180k, DASH_TIMESCALE);
 				if (totalDuration > m_cfg.timeShiftBufferDepthInMs) {
-					m_host->log(Debug, format( "Delete segment \"%s\".", seg->filename).c_str());
+					m_host->log(Debug, format("Delete segment \"%s\".", seg->filename).c_str());
 
 					// send 'DELETE' command
 					{
@@ -544,7 +544,8 @@ class Dasher : public AdaptiveStreamer {
 				}
 			}
 
-			auto s = Quality::PendingSegment{metaFn->durationIn180k, metaFn->filename};
+			auto consideredDurationIn180k = metaFn->durationIn180k ? metaFn->durationIn180k : timescaleToClock(segDurationInMs, 1000);
+			auto s = Quality::PendingSegment{ consideredDurationIn180k, metaFn->filename };
 			quality.timeshiftSegments.emplace(quality.timeshiftSegments.begin(), s);
 		}
 
