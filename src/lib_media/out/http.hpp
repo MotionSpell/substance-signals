@@ -4,13 +4,6 @@
 #include <vector>
 #include "../common/http_sender.hpp"
 
-enum SegmentPolicy {
-	NoSegment,
-	SingleSegment,
-	IndependentSegment, //starts with moov, no init segment, no 'styp', moof with contiguous seq_nb
-	FragmentedSegment,  //starts with moof, initialization segment
-};
-
 struct HttpOutputConfig {
 	struct Flags {
 		bool InitialEmptyPost = true;
