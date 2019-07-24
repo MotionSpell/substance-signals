@@ -26,17 +26,21 @@ struct CurlScope {
 	}
 };
 
-std::shared_ptr<CURL> createCurl(std::string url, bool usePUT) {
+std::shared_ptr<CURL> createCurl(std::string url, HttpRequest request) {
 	auto curl = std::shared_ptr<CURL>(curl_easy_init(), &curl_easy_cleanup);
 	if (!curl)
 		throw std::runtime_error("Couldn't init the HTTP stack.");
 
 	// setup HTTP request
 	curl_easy_setopt(curl.get(), CURLOPT_URL, url.c_str());
-	if (usePUT)
+	if (request == PUT)
 		curl_easy_setopt(curl.get(), CURLOPT_UPLOAD, 1L);
-	else
+	else if (request == POST)
 		curl_easy_setopt(curl.get(), CURLOPT_POST, 1L);
+	else if (request == DELETEX)
+		curl_easy_setopt(curl.get(), CURLOPT_CUSTOMREQUEST, "DELETE");
+	else
+		throw std::runtime_error("Unknown HTTP request.");
 
 	// don't check certifcates
 	curl_easy_setopt(curl.get(), CURLOPT_SSL_VERIFYPEER, 0L);
@@ -97,7 +101,7 @@ struct CurlHttpSender : HttpSender {
 	private:
 		void threadProc() {
 
-			auto curl = createCurl(m_cfg.url, m_cfg.usePUT);
+			auto curl = createCurl(m_cfg.url, m_cfg.request);
 
 			curl_easy_setopt(curl.get(), CURLOPT_USERAGENT, m_cfg.userAgent.c_str());
 
@@ -188,14 +192,14 @@ std::unique_ptr<HttpSender> createHttpSender(HttpSenderConfig const& config, Mod
 	return std::make_unique<CurlHttpSender>(config, log);
 }
 
-void enforceConnection(std::string url, bool usePUT) {
+void enforceConnection(std::string url, HttpRequest request) {
 	CurlScope curlScope;
 
-	auto curl = createCurl(url, usePUT);
+	auto curl = createCurl(url, request);
 
-	if (usePUT)
+	if (request == PUT)
 		curl_easy_setopt(curl.get(), CURLOPT_INFILESIZE_LARGE, 0);
-	else
+	else if (request == POST)
 		curl_easy_setopt(curl.get(), CURLOPT_POSTFIELDSIZE, 0);
 
 	auto const res = curl_easy_perform(curl.get());

@@ -24,7 +24,6 @@ bool exists(T const& container, V const& val) {
 }
 
 struct HttpSink : Modules::ModuleS {
-		//Romain: connect to the DASHer delete
 		HttpSink(Modules::KHost* host, string baseURL, string userAgent, const vector<string> &headers)
 			: m_host(host),
 			  baseURL(baseURL), userAgent(userAgent), headers(headers) {
@@ -39,16 +38,18 @@ struct HttpSink : Modules::ModuleS {
 
 			HttpOutputConfig httpConfig {};
 			httpConfig.flags.InitialEmptyPost = false;
-			httpConfig.flags.UsePUT = false;
+			httpConfig.flags.request = POST;
 			httpConfig.url = url;
 			httpConfig.userAgent = userAgent;
 			httpConfig.headers = headers;
 
 			if (meta->filesize == INT64_MAX) {
-				auto cmd = format("curl -X DELETE %s", url);
-				int exitCode = system(cmd.c_str());
-				if(exitCode != 0)
-					m_host->log(Warning, format("command '%s' failed: %s", cmd, exitCode).c_str());
+				m_host->log(Debug, format("Delete at URL: \"%s\"", url).c_str());
+				httpConfig.flags.request = DELETEX;
+				auto http = Modules::createModule<Modules::Out::HTTP>(m_host, httpConfig);
+				http->getInput(0)->push(data);
+				http->process();
+				//Romain: should we flush()?
 			} else if (meta->filesize == 0 && !meta->EOS) {
 				if (exists(zeroSizeConnections, url))
 					throw std::runtime_error(format("Received zero-sized metadata but transfer is already initialized for URL: \"%s\"", url));
@@ -59,7 +60,6 @@ struct HttpSink : Modules::ModuleS {
 				http->process();
 				zeroSizeConnections[url] = move(http);
 			} else {
-
 				if (!exists(zeroSizeConnections, url)) {
 					m_host->log(Debug, format("Starting transfer to URL: \"%s\"", url).c_str());
 					zeroSizeConnections[url] = Modules::createModule<Modules::Out::HTTP>(m_host, httpConfig);

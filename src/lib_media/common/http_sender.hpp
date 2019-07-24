@@ -23,13 +23,19 @@ struct HttpSender {
 #include <string>
 #include <vector>
 
+enum HttpRequest {
+	POST,
+	PUT,
+	DELETEX,
+};
+
 // make an empty POST (used to check the end point exists)
-void enforceConnection(std::string url, bool usePUT);
+void enforceConnection(std::string url, HttpRequest request);
 
 struct HttpSenderConfig {
 	std::string url;
 	std::string userAgent;
-	bool usePUT;
+	HttpRequest request = POST;
 	std::vector<std::string> extraHeaders;
 };
 

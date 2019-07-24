@@ -2,11 +2,19 @@
 
 #include <string>
 #include <vector>
+#include "../common/http_sender.hpp"
+
+enum SegmentPolicy {
+	NoSegment,
+	SingleSegment,
+	IndependentSegment, //starts with moov, no init segment, no 'styp', moof with contiguous seq_nb
+	FragmentedSegment,  //starts with moof, initialization segment
+};
 
 struct HttpOutputConfig {
 	struct Flags {
 		bool InitialEmptyPost = true;
-		bool UsePUT = false; //use PUT instead of POST
+		HttpRequest request = POST;
 	};
 
 	std::string url;
@@ -18,9 +26,6 @@ struct HttpOutputConfig {
 
 	Flags flags {};
 };
-
-#include "lib_modules/core/module.hpp"
-#include "lib_modules/utils/helper.hpp"
 
 struct HttpSender;
 

@@ -9,7 +9,7 @@ else
   CORES=$(nproc)
 fi
 
-./scripts/reformat.sh
+#./scripts/reformat.sh
 
 make -j$CORES
 

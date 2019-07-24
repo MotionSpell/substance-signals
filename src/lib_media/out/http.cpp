@@ -22,12 +22,12 @@ HTTP::HTTP(KHost* host, HttpOutputConfig const& cfg)
 
 	// before any other connection, make an empty POST to check the end point exists
 	if (cfg.flags.InitialEmptyPost)
-		enforceConnection(cfg.url, cfg.flags.UsePUT);
+		enforceConnection(cfg.url, cfg.flags.request);
 
 	// create pins
 	outputFinished = addOutput();
 
-	m_sender = createHttpSender({cfg.url, cfg.userAgent, cfg.flags.UsePUT, cfg.headers}, m_host);
+	m_sender = createHttpSender({cfg.url, cfg.userAgent, cfg.flags.request, cfg.headers}, m_host);
 }
 
 HTTP::~HTTP() {
