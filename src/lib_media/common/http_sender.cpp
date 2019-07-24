@@ -75,6 +75,10 @@ struct CurlHttpSender : HttpSender {
 		}
 
 		void send(span<const uint8_t> data) override {
+			if (m_cfg.request == DELETEX)
+				// don't try to send anything on DELETE
+				return;
+
 			{
 				std::unique_lock<std::mutex> lock(m_mutex);
 				if(data.len) {
@@ -99,8 +103,18 @@ struct CurlHttpSender : HttpSender {
 		}
 
 	private:
-		void threadProc() {
+		void perform(CURL *curl) {
+			auto res = curl_easy_perform(curl);
+			if (res != CURLE_OK)
+				m_log->log(Warning, (std::string("Transfer failed: ") + curl_easy_strerror(res)).c_str());
 
+			long http_code = 0;
+			curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+			if (http_code >= 400)
+				m_log->log(Warning, ("HTTP error: " + std::to_string(http_code) + " (" + m_cfg.url + ")").c_str());
+		}
+
+		void threadProc() {
 			auto curl = createCurl(m_cfg.url, m_cfg.request);
 
 			curl_easy_setopt(curl.get(), CURLOPT_USERAGENT, m_cfg.userAgent.c_str());
@@ -108,6 +122,11 @@ struct CurlHttpSender : HttpSender {
 			for (auto &h : m_cfg.extraHeaders) {
 				headers = curl_slist_append(headers, h.c_str());
 				curl_easy_setopt(curl.get(), CURLOPT_HTTPHEADER, headers);
+			}
+
+			if (m_cfg.request == DELETEX) {
+				perform(curl.get());
+				return;
 			}
 
 			headers = curl_slist_append(headers, "Transfer-Encoding: chunked");
@@ -121,14 +140,7 @@ struct CurlHttpSender : HttpSender {
 				if(m_prefixData.size())
 					append(m_fifo, {m_prefixData.data(), m_prefixData.size()});
 
-				auto res = curl_easy_perform(curl.get());
-				if (res != CURLE_OK)
-					m_log->log(Warning, (std::string("Transfer failed: ") + curl_easy_strerror(res)).c_str());
-
-				long http_code = 0;
-				curl_easy_getinfo (curl.get(), CURLINFO_RESPONSE_CODE, &http_code);
-				if(http_code >= 400)
-					m_log->log(Warning, ("HTTP error: " + std::to_string(http_code) + " (" + m_cfg.url + ")").c_str());
+				perform(curl.get());
 			}
 
 			curl_slist_free_all(headers);
