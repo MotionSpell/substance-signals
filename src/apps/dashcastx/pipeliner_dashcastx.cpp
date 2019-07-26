@@ -174,7 +174,9 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 	pipeline->connect(GetOutputPin(dasher, 0), sink);
 	pipeline->connect(GetOutputPin(dasher, 1), sink, true);
 
-	ensureDir(DASH_SUBDIR);
+	if(cfg.publishUrl.empty()) {
+		ensureDir(DASH_SUBDIR);
+	}
 
 	const bool transcode = cfg.v.size() > 0;
 	if (!transcode) {
