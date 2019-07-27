@@ -26,7 +26,7 @@ Metadata createMetadataPktLibavAudio(AVCodecContext* codecCtx);
 Metadata createMetadataPktLibavSubtitle(AVCodecContext* codecCtx);
 
 class PcmFormat;
-class DataPcm;
+struct DataPcm;
 void libavAudioCtxConvertLibav(const PcmFormat *cfg, int &sampleRate, enum AVSampleFormat &format, int &numChannels, uint64_t &layout);
 void libavAudioCtxConvert(const PcmFormat *cfg, AVCodecContext *codecCtx);
 void libavFrameDataConvert(const DataPcm *data, AVFrame *frame);
