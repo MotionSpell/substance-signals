@@ -141,7 +141,11 @@ void Filter::startSource() {
 }
 
 void Filter::reschedule() {
-	executor->call(std::bind(&Filter::processSource, this));
+	/* if we are being destructed from another thread the unique_ptr may return null
+	   if not we are safe because the executor destructor will join() before deletion occurs */
+	auto e = executor.get();
+	if (e)
+		e->call(std::bind(&Filter::processSource, this));
 }
 
 void Filter::stopSource() {
