@@ -109,8 +109,10 @@ unique_ptr<DynLib> loadLibrary(const char* name) {
 struct SharedMemRWCGnu : SharedMemory {
 	SharedMemRWCGnu(int size, const char* name, bool owner_) : filename(name), size(size), owner(owner_) {
 		unsigned int flags = O_RDWR;
-		if(owner)
+		if(owner) {
 			flags |= O_CREAT;
+			shm_unlink(filename.c_str());
+		}
 
 		fd = shm_open(name, flags, (S_IRUSR | S_IWUSR));
 		if (fd == -1) {
@@ -119,9 +121,14 @@ struct SharedMemRWCGnu : SharedMemory {
 			msg += "\"";
 			throw runtime_error(msg);
 		}
-		int rc = ftruncate(fd, size);
-		if(rc == -1)
-			throw runtime_error("SharedMemRWCGnu: shm_open can't set map size");
+
+		struct stat mapstat;
+		if (fstat(fd, &mapstat) != -1 && mapstat.st_size == 0) {
+			int rc = ftruncate(fd, size);
+			if(rc == -1)
+				throw runtime_error("SharedMemRWCGnu: shm_open can't set map size");
+		}
+
 		ptr = mmap(0, size, (PROT_READ | PROT_WRITE), MAP_SHARED, fd, 0);
 		if (ptr == MAP_FAILED) {
 			string msg = "SharedMemRWCGnu: mmap could not create for name \"";
