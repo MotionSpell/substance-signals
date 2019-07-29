@@ -1,4 +1,5 @@
 #include "lib_appcommon/options.hpp"
+#include "lib_appcommon/timebomb.hpp"
 #include "lib_utils/profiler.hpp"
 #include "lib_utils/tools.hpp"
 #include "lib_utils/log.hpp" // setGlobalLogLevel
@@ -81,6 +82,12 @@ extern std::unique_ptr<Pipelines::Pipeline> buildPipeline(const Config &config);
 static Pipelines::Pipeline *g_Pipeline = nullptr;
 
 void safeMain(int argc, const char* argv[]) {
+#ifdef ENABLE_BOMB
+	if(checkTimebomb(BOMB_TIME_IN_DAYS)) {
+		throw std::runtime_error("Your trial period expired");
+		return;
+	}
+#endif
 	auto config = parseCommandLine(argc, argv);
 	if(config.help)
 		return;

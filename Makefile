@@ -1,4 +1,5 @@
 .DELETE_ON_ERROR:
+BOMB_TIME_IN_DAYS?=75.0
 
 CFLAGS:=$(CFLAGS)
 CFLAGS+=-std=c++14
@@ -63,6 +64,7 @@ include $(SRC)/lib_modules/project.mk
 
 LIB_APPCOMMON_SRCS:=\
   $(SRC)/lib_appcommon/options.cpp \
+  $(SRC)/lib_appcommon/timebomb.cpp 
 
 include $(SRC)/lib_media/project.mk
 include $(SRC)/plugins/project.mk
@@ -75,6 +77,10 @@ ifeq ($(SIGNALS_HAS_APPS), 1)
   include $(SRC)/apps/monitor/project.mk
   include $(SRC)/apps/mcastdump/project.mk
   include $(SRC)/tests/project.mk
+endif
+
+ifeq ($(ENABLED_BOMB), 1)
+  CFLAGS+=-DENABLE_BOMB -DBOMB_TIME_IN_DAYS=$(BOMB_TIME_IN_DAYS)
 endif
 
 #------------------------------------------------------------------------------
