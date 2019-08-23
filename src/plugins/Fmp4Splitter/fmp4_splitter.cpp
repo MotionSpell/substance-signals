@@ -197,7 +197,12 @@ struct Fmp4Splitter : ModuleS {
 			    (m_codecFourcc>>0)&0xff);
 			m_host->log(Warning, msg);
 			meta = make_shared<MetadataPkt>(VIDEO_PKT);
-			meta->codec = "";
+			snprintf(msg, sizeof msg, "%c%c%c%c",
+			    (m_codecFourcc>>24)&0xff,
+			    (m_codecFourcc>>16)&0xff,
+			    (m_codecFourcc>>8)&0xff,
+			    (m_codecFourcc>>0)&0xff);
+			meta->codec = msg;
 		}
 		}
 

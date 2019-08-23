@@ -56,9 +56,13 @@ static string dirName(string path) {
 
 static shared_ptr<IMetadata> createMetadata(AdaptationSet const& set) {
 	if(set.mimeType == "audio/mp4" || set.contentType == "audio") {
-		return make_shared<MetadataPkt>(AUDIO_PKT);
+		auto meta = make_shared<MetadataPkt>(AUDIO_PKT);
+		meta->codec = set.codecs;
+		return meta;
 	} else if(set.mimeType == "video/mp4" || set.contentType == "video") {
-		return make_shared<MetadataPkt>(VIDEO_PKT);
+		auto meta = make_shared<MetadataPkt>(VIDEO_PKT);
+		meta->codec = set.codecs;
+		return meta;
 	} else {
 		return nullptr;
 	}
