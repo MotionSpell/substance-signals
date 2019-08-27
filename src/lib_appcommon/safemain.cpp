@@ -43,6 +43,12 @@ int main(int argc, char const* argv[]) {
 		Tools::Profiler profilerGlobal(g_appName);
 		std::cout << "BUILD:     " << g_appName << "-" << g_version << std::endl;
 
+#ifdef ENABLE_BOMB
+		if (checkTimebomb(BOMB_TIME_IN_DAYS)) {
+			throw std::runtime_error("Your trial period expired");
+		}
+#endif
+
 		installSignalHandler();
 		safeMain(argc, argv);
 
