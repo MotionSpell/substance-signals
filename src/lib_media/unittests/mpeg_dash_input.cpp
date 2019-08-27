@@ -1,6 +1,7 @@
 #include "tests/tests.hpp"
 #include "lib_modules/modules.hpp"
 #include "lib_media/in/mpeg_dash_input.hpp"
+#include "lib_media/common/metadata.hpp" //MetadataPkt
 #include <map>
 
 using namespace Tests;
@@ -50,6 +51,28 @@ unittest("mpeg_dash_input: get MPD") {
 }
 
 unittest("mpeg_dash_input: get MPD, one input") {
+	static auto const MPD = R"|(
+<?xml version="1.0"?>
+<MPD>
+  <Period>
+    <AdaptationSet>
+      <ContentComponent id="1"/>
+      <SegmentTemplate initialization="audio-init.mp4" media="audio-$Number$.m4s" startNumber="10" />
+      <Representation id="audio" mimeType="audio/mp4" codecs="codec_name_test"/>
+    </AdaptationSet>
+  </Period>
+</MPD>)|";
+	LocalFilesystem source;
+	source.resources["http://single.mpd"] = MPD;
+	auto dash = createModule<MPEG_DASH_Input>(&NullHost, &source, "http://single.mpd");
+
+	auto meta = std::dynamic_pointer_cast<const MetadataPkt>(dash->getOutput(0)->getMetadata());
+	ASSERT(meta);
+
+	ASSERT_EQUALS("codec_name_test", meta->codec);
+}
+
+unittest("mpeg_dash_input: retrieve codec name") {
 	static auto const MPD = R"|(
 <?xml version="1.0"?>
 <MPD>
