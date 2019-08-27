@@ -3,12 +3,45 @@
 #include "lib_utils/tools.hpp" // enforce
 #include "lib_modules/utils/helper.hpp"
 #include "lib_modules/utils/factory.hpp"
+#include "lib_modules/utils/loader.hpp"
 #include "lib_media/common/metadata.hpp"
 #include "lib_media/common/attributes.hpp"
 
 using namespace Modules;
 
 namespace {
+
+struct rawAac2Adts : ModuleS {
+		rawAac2Adts() {
+			output = addOutput();
+		}
+		void processOne(Data in) override {
+			if (isDeclaration(in))
+				return;
+
+			auto out = output->allocData<DataRaw>(7 + in->data().len);
+
+			out->copyAttributes(*in);
+
+			// write ADTS header
+			auto bytes = out->buffer->data().ptr;
+			*bytes++ = 0xff;
+			*bytes++ = 0xf1;
+			*bytes++ = 0x50;
+			*bytes++ = 0x40;
+			*bytes++ = 0x2c;
+			*bytes++ = 0x1f;
+			*bytes++ = 0xfc;
+
+			memcpy(out->buffer->data().ptr + 7, in->data().ptr, in->data().len);
+
+			out->setMetadata(in->getMetadata());
+			output->post(out);
+		}
+
+	private:
+		OutputDefault* output;
+};
 
 template<size_t N>
 constexpr uint32_t FOURCC(const char (&a)[N]) {
@@ -151,6 +184,7 @@ struct Fmp4Splitter : ModuleS {
 
 			for(auto sample : m_samples) {
 				enforce((int)contents.len >= sample.size, "Each sample must fit into the 'mdat' box");
+
 				auto out = output->allocData<DataRaw>(sample.size);
 				memcpy(out->buffer->data().ptr, contents.ptr, sample.size);
 				out->setMediaTime(m_decodeTime + sample.cts, m_timescale);
@@ -160,7 +194,13 @@ struct Fmp4Splitter : ModuleS {
 				out->set(flags);
 
 				out->setMetadata(createMetadata());
-				output->post(out);
+
+				ensureConverter();
+
+				if (converter)
+					converter->getInput(0)->push(out);
+				else
+					output->post(out);
 
 				m_decodeTime += sample.duration;
 				contents += sample.size;
@@ -172,6 +212,35 @@ struct Fmp4Splitter : ModuleS {
 
 		// update 'dataOffset' so it will be relative to the next box
 		m_dataOffset -= data.len;
+	}
+
+	void ensureConverter() {
+		if (converter)
+			return;
+
+		switch (m_codecFourcc) {
+		case FOURCC("mp4a"): {
+			// add ADTS header
+			converter = createModule<rawAac2Adts>();
+			auto deliver = [this](Data data) {
+				output->post(data);
+			};
+			ConnectOutput(converter->getOutput(0), deliver);
+			break;
+		}
+		case FOURCC("avc1"): {
+			// convert to Annex B
+			converter = loadModule("AVCC2AnnexBConverter", m_host, nullptr);
+
+			auto deliver = [this](Data data) {
+				output->post(data);
+			};
+			ConnectOutput(converter->getOutput(0), deliver);
+			break;
+		}
+		default: {
+		}
+		}
 	}
 
 	std::shared_ptr<MetadataPkt> createMetadata() {
@@ -444,6 +513,8 @@ struct Fmp4Splitter : ModuleS {
 	std::vector<Sample> m_samples;
 	int64_t m_timescale = 1;
 	int64_t m_decodeTime = 0;
+
+	std::shared_ptr<IModule> converter;
 };
 
 IModule* createObject(KHost* host, void*) {

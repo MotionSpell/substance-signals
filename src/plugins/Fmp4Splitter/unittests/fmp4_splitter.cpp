@@ -2,7 +2,9 @@
 #include "lib_modules/modules.hpp"
 #include "lib_modules/utils/loader.hpp"
 #include "lib_media/common/attributes.hpp"
+#include "lib_media/common/metadata.hpp" //MetadataPkt
 #include "lib_utils/log_sink.hpp"
+#include "lib_utils/tools.hpp" //safe_cast
 #include <string.h> // memcpy
 #include <vector>
 
@@ -55,7 +57,7 @@ unittest("Fmp4Splitter: easy") {
 	ASSERT_EQUALS(expected, rec->frames);
 };
 
-unittest("Fmp4Splitter: multiple frames per fragment") {
+unittest("Fmp4Splitter: multiple frames per fragment (with Annex B conversion)") {
 	auto demux = loadModule("Fmp4Splitter", &NullHost, nullptr);
 	auto rec = createModule<FrameCounter>();
 	ConnectOutputToInput(demux->getOutput(0), rec->getInput(0));
@@ -79,23 +81,26 @@ unittest("Fmp4Splitter: multiple frames per fragment") {
 		0x03, 0x00, 0x01, 0x00, 0x00,
 
 		0x00, 0x00, 0x00, 0x1a, 'm', 'd', 'a', 't',
-		0xaa, 0x88, 0x88, 0xff, /* sample 1 */
-		0xbb, 0x88, 0x88, 0x88, 0xff, /* sample 2 */
-		0xcc, 0x88, 0x88, 0x88, 0x88, 0xff, /* sample 3 */
-		0xdd, 0x88, 0xff /* sample 4 */
+		0x00, 0x00, 0x00, 0x00, /* sample 1 */
+		0x00, 0x00, 0x00, 0x01, 0xff, /* sample 2 */
+		0x00, 0x00, 0x00, 0x02, 0xaa, 0xbb, /* sample 3 */
+		0x00, 0x00, 0x00 /* sample 4 */
 	});
 
 	demux->flush();
+
+	auto meta = safe_cast<const MetadataPkt>(demux->getOutput(0)->getMetadata());
+	ASSERT_EQUALS(42, (int)meta->codecSpecificInfo.size());
 
 	ASSERT_EQUALS(
 	    vector<int64_t>({ 0, 7200, 14400, 21600 }),
 	    rec->times);
 
 	vector<vector<uint8_t>> expected;
-	expected.push_back({0xaa, 0x88, 0x88, 0xff });
-	expected.push_back({0xbb, 0x88, 0x88, 0x88, 0xff });
-	expected.push_back({0xcc, 0x88, 0x88, 0x88, 0x88, 0xff });
-	expected.push_back({0xdd, 0x88, 0xff });
+	expected.push_back({0x00, 0x00, 0x00, 0x01 });
+	expected.push_back({0x00, 0x00, 0x00, 0x01, 0xff });
+	expected.push_back({0x00, 0x00, 0x00, 0x01, 0xaa, 0xbb });
+	expected.push_back({0x00, 0x00, 0x00 });
 
 	ASSERT_EQUALS(expected, rec->frames);
 }
