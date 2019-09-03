@@ -31,6 +31,7 @@ struct AdaptationSet {
 struct DashMpd {
 	bool dynamic = false;
 	int64_t availabilityStartTime = 0; // in ms
+	int64_t publishTime = 0; // in ms
 	int64_t periodDuration = 0; // in seconds
 	vector<AdaptationSet> sets;
 };
@@ -102,8 +103,11 @@ MPEG_DASH_Input::MPEG_DASH_Input(KHost* host, IFilePuller* source, std::string c
 	for(auto& stream : m_streams) {
 		stream->currNumber = stream->set->startNumber;
 		if(mpd->dynamic) {
-			auto now = (int64_t)getUTC();
-			if(stream->segmentDuration.num == 0)
+			auto now = mpd->publishTime;
+			if(!mpd->publishTime)
+				now = (int64_t)getUTC();
+
+			if (stream->segmentDuration.num == 0)
 				throw runtime_error("No duration for stream");
 
 			stream->currNumber += int64_t(stream->segmentDuration.inverse() * (now - mpd->availabilityStartTime));
@@ -159,7 +163,7 @@ void MPEG_DASH_Input::process() {
 		m_source->wget(url.c_str(), onBuffer);
 		if(empty) {
 			if(mpd->dynamic) {
-				stream->currNumber--; // too early, retry
+				stream->currNumber = std::max<int64_t>(stream->currNumber - 1, stream->set->startNumber); // too early, retry
 				continue;
 			}
 			m_host->log(Error, format("can't download file: '%s'", url).c_str());
@@ -247,8 +251,12 @@ DashMpd parseMpd(span<const char> text) {
 				mpd->periodDuration = parseIso8601Period(attr["duration"]);
 		} else if(name == "MPD") {
 			mpd->dynamic = attr["type"] == "dynamic";
+
 			if(!attr["availabilityStartTime"].empty())
 				mpd->availabilityStartTime = parseDate(attr["availabilityStartTime"]);
+
+			if(!attr["publishTime"].empty())
+				mpd->publishTime = parseDate(attr["publishTime"]);
 		} else if(name == "SegmentTemplate") {
 			auto& set = mpd->sets.back();
 
