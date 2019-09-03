@@ -37,7 +37,16 @@ struct UtcStartTime : IUtcStartTimeQuery {
 	uint64_t startTime;
 };
 
-static UtcStartTime g_UtcStartTime;
+static UtcStartTime utcStartTime;
+
+struct OffsetUtcClock : IUtcClock {
+	Fraction getTime() {
+		return g_UtcClock->getTime() - offset;
+	}
+	Fraction offset;
+};
+
+static OffsetUtcClock utcClock;
 
 Resolution autoRotate(Resolution res, bool verticalize) {
 	if (verticalize && res.height < res.width) {
@@ -159,6 +168,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 	auto demux = pipeline->add("LibavDemux", &demuxCfg);
 	auto const live = cfg.isLive || cfg.ultraLowLatency;
 	auto dasherCfg = Modules::DasherConfig { DASH_SUBDIR, format("%s.mpd", g_appName), live, (uint64_t)cfg.segmentDurationInMs, cfg.segmentDurationInMs * cfg.timeshiftInSegNum};
+	dasherCfg.utcClock = &utcClock;
 	auto dasher = pipeline->add("MPEG_DASH", &dasherCfg);
 
 	IFilter* sink {};
@@ -212,7 +222,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 		mp4config.segmentPolicy = FragmentedSegment;
 		mp4config.fragmentPolicy = cfg.ultraLowLatency ? OneFragmentPerFrame : OneFragmentPerSegment;
 		mp4config.compatFlags = Browsers;
-		mp4config.utcStartTime = &g_UtcStartTime;
+		mp4config.utcStartTime = &utcStartTime;
 
 		auto muxer = pipeline->add("GPACMuxMP4", &mp4config);
 		pipeline->connect(compressed, muxer);
@@ -295,7 +305,9 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 	for (int i = 0; i < demux->getNumOutputs(); ++i)
 		processElementaryStream(i);
 
-	g_UtcStartTime.startTime = fractionToClock(getUTC());
+	auto const offset = 0; //use this to simulate a clock issue from the DASH server
+	utcStartTime.startTime = fractionToClock(getUTC() - offset);
+	utcClock.offset = offset;
 
 	return pipeline;
 }
