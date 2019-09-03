@@ -51,7 +51,7 @@ struct HttpSink : Modules::ModuleS {
 				if (exists(zeroSizeConnections, url))
 					throw std::runtime_error(format("Received zero-sized metadata but transfer is already initialized for URL: \"%s\"", url));
 
-				m_host->log(Info, format("Initialize transfer for URL: \"%s\"", url).c_str());
+				m_host->log(Debug, format("Initialize transfer for URL: \"%s\"", url).c_str());
 				auto http = Modules::createModule<Modules::Out::HTTP>(m_host, httpConfig);
 				http->getInput(0)->push(data);
 				http->process();
@@ -67,6 +67,7 @@ struct HttpSink : Modules::ModuleS {
 					zeroSizeConnections[url]->getInput(0)->push(data);
 				}
 				if (meta->EOS) {
+					m_host->log(Debug, format("Ending transfer for URL: \"%s\"", url).c_str());
 					zeroSizeConnections[url]->getInput(0)->push(nullptr);
 					zeroSizeConnections[url]->flush();
 					zeroSizeConnections.erase(url);
