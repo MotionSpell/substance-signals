@@ -553,7 +553,7 @@ class Dasher : public AdaptiveStreamer {
 			if (m_cfg.timeShiftBufferDepthInMs) {
 				if (!m_cfg.segmentsNotOwned)
 					m_host->log(Info, "Manifest was not rewritten for on-demand and all files are being deleted.");
-			} else {
+			} else if (totalDurationInMs > 0) {
 				m_host->log(Info, "Manifest rewritten for on-demand. Media files untouched.");
 
 				auto cfg = m_cfg;

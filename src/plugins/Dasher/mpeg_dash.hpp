@@ -12,7 +12,7 @@ struct DasherConfig {
 
 	bool live = false;
 
-	uint64_t segDurationInMs;
+	uint64_t segDurationInMs = 0;
 	int64_t timeShiftBufferDepthInMs = 0;
 	uint64_t minUpdatePeriodInMs = 0;
 	uint32_t minBufferTimeInMs = 0;
