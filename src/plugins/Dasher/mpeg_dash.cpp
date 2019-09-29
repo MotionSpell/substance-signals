@@ -14,12 +14,12 @@
 
 #include "mpd.hpp"
 
-#define DASH_TIMESCALE 1000 // /!\ there are some ms already hardcoded from the GPAC calls
-#define MIN_UPDATE_PERIOD_FACTOR 1 //should be 0, but dash.js doesn't support MPDs with no refresh time
-#define MIN_BUFFER_TIME_IN_MS_VOD  3000
-#define MIN_BUFFER_TIME_IN_MS_LIVE 2000
-#define AVAILABILITY_TIMEOFFSET_IN_S 0.0
-#define PERIOD_NAME "1"
+auto const DASH_TIMESCALE = 1000;
+auto const MIN_UPDATE_PERIOD_FACTOR = 1; //should be 0, but dash.js doesn't support MPDs with no refresh time
+auto const MIN_BUFFER_TIME_IN_MS_VOD = 3000;
+auto const MIN_BUFFER_TIME_IN_MS_LIVE = 2000;
+auto const AVAILABILITY_TIMEOFFSET_IN_S = 0.0;
+auto const PERIOD_NAME = "1";
 
 static auto const g_profiles = "urn:mpeg:dash:profile:isoff-live:2011, http://dashif.org/guidelines/dash264";
 
