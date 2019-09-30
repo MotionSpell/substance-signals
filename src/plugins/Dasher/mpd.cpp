@@ -1,6 +1,7 @@
 #include "mpd.hpp"
 #include "xml.hpp"
 #include <lib_utils/os.hpp>
+#include <cassert>
 #include <ctime>
 
 extern const char *g_version;
@@ -45,7 +46,7 @@ std::string formatPeriod(int64_t t) {
 
 	auto const hours = int(t);
 
-	snprintf(buffer, sizeof buffer, "PT%02dH%02dM%d.%02dS", hours, mins, secs, msecs);
+	snprintf(buffer, sizeof buffer, "PT%02dH%02dM%d.%03dS", hours, mins, secs, msecs);
 	return buffer;
 }
 
@@ -75,8 +76,21 @@ Tag mpdToTags(MPD const& mpd) {
 	for(auto& period : mpd.periods) {
 		auto tPeriod = Tag { "Period" };
 		tPeriod["id"] = period.id;
-		if (mpd.dynamic)
-			tPeriod["start"] = formatPeriod(0);
+		tPeriod["start"] = formatPeriod(period.startTime);
+
+		if (!mpd.dynamic && period.duration)
+			tPeriod["duration"] = formatPeriod(period.duration);
+
+		//Base URLs
+		assert(!mpd.baseUrlPrefixes.empty());
+		for (auto& baseUrl : mpd.baseUrlPrefixes) {
+			auto tBaseUrl = Tag{ "BaseURL" };
+
+			if (!baseUrl.empty()) {
+				tBaseUrl["serviceLocation"] = baseUrl;
+				tPeriod.add(tBaseUrl);
+			}
+		}
 
 		for(auto& adaptationSet : period.adaptationSets) {
 			auto tAdaptationSet = Tag { "AdaptationSet" };
@@ -118,7 +132,7 @@ Tag mpdToTags(MPD const& mpd) {
 						tSegmentTemplate["startNumber"] = formatInt(0);
 					} else {
 						tSegmentTemplate["startNumber"] = formatInt(adaptationSet.startNumber);
-						tSegmentTemplate["presentationTimeOffset"] = formatInt(mpd.sessionStartTime * adaptationSet.timescale / 1000);
+						tSegmentTemplate["presentationTimeOffset"] = formatInt((mpd.sessionStartTime + period.startTime) * adaptationSet.timescale / 1000);
 					}
 
 					if(adaptationSet.entries.size()) {

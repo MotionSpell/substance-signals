@@ -31,6 +31,8 @@ struct MPD {
 
 	struct Period {
 		std::string id;
+		int64_t startTime;
+		int64_t duration;
 		std::vector<AdaptationSet> adaptationSets;
 	};
 
@@ -45,7 +47,7 @@ struct MPD {
 	int64_t minimum_update_period;
 	std::string profiles;
 	std::string id;
-	std::vector<std::string> baseUrls;
+	std::vector<std::string> baseUrlPrefixes;
 	std::vector<Period> periods;
 };
 

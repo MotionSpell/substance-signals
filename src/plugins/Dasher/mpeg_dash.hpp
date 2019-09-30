@@ -16,7 +16,8 @@ struct DasherConfig {
 	int64_t timeShiftBufferDepthInMs = 0;
 	uint64_t minUpdatePeriodInMs = 0;
 	uint32_t minBufferTimeInMs = 0;
-	std::vector<std::string> baseURLs {};
+	uint64_t multiPeriodFoldersInMs = 0;
+	std::vector<std::string> baseUrlPrefixes {};
 	std::string id = "id";
 	int64_t initialOffsetInMs = 0;
 
