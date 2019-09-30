@@ -22,7 +22,7 @@ struct Graph {
 	};
 
 	Node& nodeFromId(Node::NodeId id) {
-		auto i_node = std::find_if(nodes.begin(), nodes.end(), [id](Pipelines::Graph::Node const& n) {
+		auto i_node = std::find_if(nodes.begin(), nodes.end(), [id](Node const& n) {
 			return n.id == id;
 		});
 		if (i_node == nodes.end()) {
