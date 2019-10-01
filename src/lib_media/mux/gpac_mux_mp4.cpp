@@ -902,8 +902,11 @@ void GPACMuxMP4::sendSegmentToOutput(bool EOS) {
 	out->setMetadata(metadata);
 	//FIXME: this mediaTime should be a PTS (is currently a DTS)
 	//FIXME: this mediaTime is already shifted by the absolute start time (also shifted according the edit lists)
-	auto const curSegmentStartInTs = m_DTS - curSegmentDurInTs;
-	out->setMediaTime(rescale(firstDataAbsTimeInMs, 1000, timeScale) + curSegmentStartInTs, timeScale);
+	auto curSegmentStartInTs = m_DTS - curSegmentDurInTs;
+	if (!(compatFlags & SegNumStartsAtZero)) {
+		curSegmentStartInTs += rescale(firstDataAbsTimeInMs, 1000, timeScale);
+	}
+	out->setMediaTime(curSegmentStartInTs, timeScale);
 	output->post(out);
 
 	if (segmentPolicy == IndependentSegment) {
