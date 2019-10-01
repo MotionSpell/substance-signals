@@ -59,7 +59,9 @@ Tag mpdToTags(MPD const& mpd) {
 	tMPD["availabilityStartTime"] = formatDate(mpd.availabilityStartTime/1000);
 	tMPD["publishTime"] = formatDate(mpd.publishTime/1000);
 	tMPD["minBufferTime"] = formatPeriod(mpd.minBufferTime);
-	if (!mpd.dynamic)
+	if (mpd.dynamic)
+		tMPD["minimumUpdatePeriod"] = formatPeriod(mpd.minimum_update_period);
+	else
 		tMPD["mediaPresentationDuration"] = formatPeriod(mpd.mediaPresentationDuration);
 
 	{
