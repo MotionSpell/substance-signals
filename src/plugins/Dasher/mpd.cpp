@@ -171,6 +171,6 @@ Tag mpdToTags(MPD const& mpd) {
 }
 
 std::string serializeMpd(MPD const& mpd) {
-	return "<?xml version=\"1.0\"?>\n" + serializeXml(mpdToTags(mpd));
+	return "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" + serializeXml(mpdToTags(mpd));
 }
 

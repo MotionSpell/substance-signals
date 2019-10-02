@@ -110,7 +110,7 @@ class TeletextToTTML : public ModuleS {
 
 		std::string toTTML(int64_t startTimeInMs, int64_t endTimeInMs) const {
 			std::stringstream ttml;
-			ttml << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n";
+			ttml << "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
 			ttml << "<tt xmlns=\"http://www.w3.org/ns/ttml\" xmlns:tt=\"http://www.w3.org/ns/ttml\" xmlns:ttm=\"http://www.w3.org/ns/ttml#metadata\" xmlns:tts=\"http://www.w3.org/ns/ttml#styling\" xmlns:ttp=\"http://www.w3.org/ns/ttml#parameter\" xmlns:ebutts=\"urn:ebu:tt:style\" xmlns:ebuttm=\"urn:ebu:tt:metadata\" xml:lang=\"" << lang << "\" ttp:timeBase=\"media\">\n";
 			ttml << "  <head>\n";
 			ttml << "    <metadata>\n";
