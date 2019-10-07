@@ -278,22 +278,22 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 				compressed = GetOutputPin(encoder);
 			}
 
-			std::string prefix;
-			if (metadata->isVideo()) {
-				auto reso = safe_cast<const MetadataPktVideo>(demux->getOutputMetadata(streamIndex))->resolution;
-				if (transcode)
-					reso = autoFit(reso, cfg.v[r].res);
-				prefix = Stream::AdaptiveStreamingCommon::getCommonPrefixVideo(numDashInputs, reso);
-			} else {
-				prefix = Stream::AdaptiveStreamingCommon::getCommonPrefixAudio(numDashInputs);
-			}
-
 			auto muxer = mux(compressed);
 
 			pipeline->connect(muxer, GetInputPin(dasher, numDashInputs));
 			++numDashInputs;
 
 			if(MP4_MONITOR) {
+				std::string prefix;
+				if (metadata->isVideo()) {
+					auto reso = safe_cast<const MetadataPktVideo>(demux->getOutputMetadata(streamIndex))->resolution;
+					if (transcode)
+						reso = autoFit(reso, cfg.v[r].res);
+					prefix = Stream::AdaptiveStreamingCommon::getCommonPrefixVideo(numDashInputs, reso);
+				} else {
+					prefix = Stream::AdaptiveStreamingCommon::getCommonPrefixAudio(numDashInputs);
+				}
+
 				Mp4MuxConfig cfg;
 				cfg.baseName = "monitor_" + prefix;
 				auto muxer = pipeline->add("GPACMuxMP4", &cfg);

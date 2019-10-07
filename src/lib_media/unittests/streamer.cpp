@@ -658,7 +658,7 @@ unittest("[DISABLED] adaptive streaming combination coverage") {
 		dashCfg.presignalNextSegment = true;
 		dashCfg.forceRealDurations= true;
 		dash.push_back(loadModule("MPEG_DASH", &NullHost, &dashCfg));
-		auto dashTimelineCfg = Modules::DasherConfig {"", "dash.mpd", true, 0, 0, segmentDurationInMs, 0, std::vector<std::string>(), "id", 0};
+		auto dashTimelineCfg = Modules::DasherConfig {"", "dash.mpd", true, 0, 0, segmentDurationInMs, 0, 0, std::vector<std::string>(), "id", 0};
 		dashTimeline.push_back(loadModule("MPEG_DASH", &NullHost, &dashTimelineCfg));
 	}
 
