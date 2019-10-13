@@ -14,6 +14,7 @@ std::shared_ptr<DataBase> createPacket(span<uint8_t> contents) {
 	meta->filename = "filename";
 	meta->mimeType = "mimetype";
 	meta->codecName = "codecName";
+	meta->lang = "lang";
 	meta->durationIn180k = 100;
 	meta->filesize = 0;
 	meta->latencyIn180k = 0;

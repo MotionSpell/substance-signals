@@ -20,6 +20,7 @@ std::ostream& operator<<(std::ostream& o, Meta const& meta) {
 	o << "filename='" << meta.filename << "'" << std::endl;
 	o << "mimeType='" << meta.mimeType << "'" << std::endl;
 	o << "codecName='" << meta.codecName << "'" << std::endl;
+	o << "lang='" << meta.lang << "'" << std::endl;
 	o << "durationIn180k=" << meta.durationIn180k << std::endl;
 	o << "filesize=" << meta.filesize << std::endl;
 	o << "latencyIn180k=" << meta.latencyIn180k << std::endl;
@@ -153,28 +154,28 @@ std::vector<Meta> runMux(std::shared_ptr<IModule> m) {
 }
 
 unittest("mux GPAC mp4: no segment, no fragment") {
-	std::vector<Meta> ref = { { "", "audio/mp4", "mp4a.40.2", 0, 10437, 0, 1, 1 } };
+	std::vector<Meta> ref = { { "", "audio/mp4", "mp4a.40.2", "", 0, 10437, 0, 1, 1 } };
 	auto cfg = Mp4MuxConfig{"", 0, NoSegment, NoFragment};
 	ASSERT_EQUALS(ref, runMux(loadModule("GPACMuxMP4", &NullHost, &cfg)));
 }
 
 unittest("mux GPAC mp4: no segment, one fragment per RAP") {
-	std::vector<Meta> ref = { { "", "audio/mp4", "mp4a.40.2", 0, 29869, 0, 1, 1 } };
+	std::vector<Meta> ref = { { "", "audio/mp4", "mp4a.40.2", "", 0, 29869, 0, 1, 1 } };
 	auto cfg = Mp4MuxConfig{"", 0, NoSegment, OneFragmentPerRAP};
 	ASSERT_EQUALS(ref, runMux(loadModule("GPACMuxMP4", &NullHost, &cfg)));
 }
 
 unittest("mux GPAC mp4: no segment, one fragment per frame") {
-	std::vector<Meta> ref = { { "", "audio/mp4", "mp4a.40.2", 0, 29869, 4180, 1, 1 } };
+	std::vector<Meta> ref = { { "", "audio/mp4", "mp4a.40.2", "", 0, 29869, 4180, 1, 1 } };
 	auto cfg = Mp4MuxConfig{"", 0, NoSegment, OneFragmentPerFrame};
 	ASSERT_EQUALS(ref, runMux(loadModule("GPACMuxMP4", &NullHost, &cfg)));
 }
 
 unittest("mux GPAC mp4: independent segment, no fragments") {
 	std::vector<Meta> ref = {
-		{ "", "audio/mp4", "mp4a.40.2", 363629, 5226, 360000, 1, 1 },
-		{ "", "audio/mp4", "mp4a.40.2", 359445, 5336, 359445, 1, 1 },
-		{ "", "audio/mp4", "mp4a.40.2", 175543, 3022, 175543, 1, 1 },
+		{ "", "audio/mp4", "mp4a.40.2", "", 363629, 5226, 360000, 1, 1 },
+		{ "", "audio/mp4", "mp4a.40.2", "", 359445, 5336, 359445, 1, 1 },
+		{ "", "audio/mp4", "mp4a.40.2", "", 175543, 3022, 175543, 1, 1 },
 	};
 
 	const uint64_t segmentDurationInMs = 2000;
@@ -184,10 +185,10 @@ unittest("mux GPAC mp4: independent segment, no fragments") {
 
 unittest("mux GPAC mp4: fragmented segments, one fragment per segment") {
 	std::vector<Meta> ref = {
-		{ "", "audio/mp4", "mp4a.40.2", 0, 0, 0, 1, 1 },
-		{ "", "audio/mp4", "mp4a.40.2", 363629, 4957, 360000, 1, 1 },
-		{ "", "audio/mp4", "mp4a.40.2", 359445, 5047, 359445, 1, 1 },
-		{ "", "audio/mp4", "mp4a.40.2", 175543, 2597, 175543, 1, 1 },
+		{ "", "audio/mp4", "mp4a.40.2", "", 0, 0, 0, 1, 1 },
+		{ "", "audio/mp4", "mp4a.40.2", "", 363629, 4957, 360000, 1, 1 },
+		{ "", "audio/mp4", "mp4a.40.2", "", 359445, 5047, 359445, 1, 1 },
+		{ "", "audio/mp4", "mp4a.40.2", "", 175543, 2597, 175543, 1, 1 },
 	};
 
 	const uint64_t segmentDurationInMs = 2000;
@@ -197,10 +198,10 @@ unittest("mux GPAC mp4: fragmented segments, one fragment per segment") {
 
 unittest("mux GPAC mp4: fragmented segments, one fragment per RAP") {
 	std::vector<Meta> ref = {
-		{ "", "audio/mp4", "mp4a.40.2", 0, 0, 0, 1, 1 },
-		{ "", "audio/mp4", "mp4a.40.2", 363629, 15629, 360000, 1, 1 },
-		{ "", "audio/mp4", "mp4a.40.2", 359445, 15599, 359445, 1, 1 },
-		{ "", "audio/mp4", "mp4a.40.2", 175543, 7685, 175543, 1, 1 },
+		{ "", "audio/mp4", "mp4a.40.2", "", 0, 0, 0, 1, 1 },
+		{ "", "audio/mp4", "mp4a.40.2", "", 363629, 15629, 360000, 1, 1 },
+		{ "", "audio/mp4", "mp4a.40.2", "", 359445, 15599, 359445, 1, 1 },
+		{ "", "audio/mp4", "mp4a.40.2", "", 175543, 7685, 175543, 1, 1 },
 	};
 
 	const uint64_t segmentDurationInMs = 2000;
@@ -210,10 +211,10 @@ unittest("mux GPAC mp4: fragmented segments, one fragment per RAP") {
 
 unittest("mux GPAC mp4: fragmented segments, one fragment per frame") {
 	std::vector<Meta> ref = {
-		{ "", "audio/mp4", "mp4a.40.2", 0, 0, 4180, 1, 1 },
-		{ "", "audio/mp4", "mp4a.40.2", 363629, 15629, 4180, 1, 1 },
-		{ "", "audio/mp4", "mp4a.40.2", 359445, 15599, 4180, 1, 1 },
-		{ "", "audio/mp4", "mp4a.40.2", 175543, 7685, 4180, 1, 1 },
+		{ "", "audio/mp4", "mp4a.40.2", "", 0, 0, 4180, 1, 1 },
+		{ "", "audio/mp4", "mp4a.40.2", "", 363629, 15629, 4180, 1, 1 },
+		{ "", "audio/mp4", "mp4a.40.2", "", 359445, 15599, 4180, 1, 1 },
+		{ "", "audio/mp4", "mp4a.40.2", "", 175543, 7685, 4180, 1, 1 },
 	};
 
 	const uint64_t segmentDurationInMs = 2000;
@@ -234,16 +235,16 @@ std::vector<Meta> operator+(std::vector<Meta> const& a, std::vector<Meta> const&
 // causes valgrind errors and GPAC warnings
 secondclasstest("mux GPAC mp4 combination coverage: ugly") {
 	std::vector<Meta> ref = {
-		{ "", "audio/mp4", "mp4a.40.2", 0, 10437, 0, 1, 1 },
-		{ "output_video_gpac_12-0.mp4", "audio/mp4", "mp4a.40.2", 363629, 4838, 360000, 1, 1 },
-		{ "output_video_gpac_12-1.mp4", "audio/mp4", "mp4a.40.2", 359445, 4936, 359445, 1, 1 },
-		{ "output_video_gpac_12-2.mp4", "audio/mp4", "mp4a.40.2", 175543, 2838, 175543, 1, 1 },
-		{ "output_video_gpac_13-0.mp4", "audio/mp4", "mp4a.40.2", 363629, 19298, 360000, 1, 1 },
-		{ "output_video_gpac_13-1.mp4", "audio/mp4", "mp4a.40.2", 359445, 19232, 359445, 1, 1 },
-		{ "output_video_gpac_13-2.mp4", "audio/mp4", "mp4a.40.2", 175543, 9734, 175543, 1, 1 },
-		{ "output_video_gpac_14-0.mp4", "audio/mp4", "mp4a.40.2", 363629, 19298, 4180, 1, 1 },
-		{ "output_video_gpac_14-1.mp4", "audio/mp4", "mp4a.40.2", 359445, 19232, 4180, 1, 1 },
-		{ "output_video_gpac_14-2.mp4", "audio/mp4", "mp4a.40.2", 175543, 9734, 4180, 1, 1 },
+		{ "", "audio/mp4", "mp4a.40.2", "", 0, 10437, 0, 1, 1 },
+		{ "output_video_gpac_12-0.mp4", "audio/mp4", "mp4a.40.2", "", 363629, 4838, 360000, 1, 1 },
+		{ "output_video_gpac_12-1.mp4", "audio/mp4", "mp4a.40.2", "", 359445, 4936, 359445, 1, 1 },
+		{ "output_video_gpac_12-2.mp4", "audio/mp4", "mp4a.40.2", "", 175543, 2838, 175543, 1, 1 },
+		{ "output_video_gpac_13-0.mp4", "audio/mp4", "mp4a.40.2", "", 363629, 19298, 360000, 1, 1 },
+		{ "output_video_gpac_13-1.mp4", "audio/mp4", "mp4a.40.2", "", 359445, 19232, 359445, 1, 1 },
+		{ "output_video_gpac_13-2.mp4", "audio/mp4", "mp4a.40.2", "", 175543, 9734, 175543, 1, 1 },
+		{ "output_video_gpac_14-0.mp4", "audio/mp4", "mp4a.40.2", "", 363629, 19298, 4180, 1, 1 },
+		{ "output_video_gpac_14-1.mp4", "audio/mp4", "mp4a.40.2", "", 359445, 19232, 4180, 1, 1 },
+		{ "output_video_gpac_14-2.mp4", "audio/mp4", "mp4a.40.2", "", 175543, 9734, 4180, 1, 1 },
 	};
 
 	const uint64_t segmentDurationInMs = 2000;
@@ -253,30 +254,29 @@ secondclasstest("mux GPAC mp4 combination coverage: ugly") {
 	auto cfg3 = Mp4MuxConfig{"output_video_gpac_13", segmentDurationInMs, IndependentSegment, OneFragmentPerRAP, SegNumStartsAtZero};
 	auto cfg4 = Mp4MuxConfig{"output_video_gpac_14", segmentDurationInMs, IndependentSegment, OneFragmentPerFrame, SegNumStartsAtZero};
 
-	ASSERT_EQUALS(ref,
-	    runMux(loadModule("GPACMuxMP4", &NullHost, &cfg1)) // causes gpac warning: "[BS] Attempt to write on unassigned bitstream"
-	    + runMux(loadModule("GPACMuxMP4", &NullHost, &cfg2)) // valgrind reports writes of uninitialized bytes
-	    + runMux(loadModule("GPACMuxMP4", &NullHost, &cfg3)) // valgrind reports writes of uninitialized bytes
-	    + runMux(loadModule("GPACMuxMP4", &NullHost, &cfg4)) // valgrind reports writes of uninitialized bytes
-	);
+	auto res1 = runMux(loadModule("GPACMuxMP4", &NullHost, &cfg1)); // causes gpac warning: "[BS] Attempt to write on unassigned bitstream"
+	auto res2 = runMux(loadModule("GPACMuxMP4", &NullHost, &cfg2)); // valgrind reports writes of uninitialized bytes
+	auto res3 = runMux(loadModule("GPACMuxMP4", &NullHost, &cfg3)); // valgrind reports writes of uninitialized bytes
+	auto res4 = runMux(loadModule("GPACMuxMP4", &NullHost, &cfg4)); // valgrind reports writes of uninitialized bytes
+	ASSERT_EQUALS(ref, res1 + res2 + res3 + res4);
 }
 
 secondclasstest("mux GPAC mp4 combination coverage: ugly 2") {
 	std::vector<Meta> ref = {
-		{ "", "audio/mp4", "mp4a.40.2", 363629, 5226, 360000, 1, 1 },
-		{ "", "audio/mp4", "mp4a.40.2", 359445, 5336, 359445, 1, 1 },
-		{ "", "audio/mp4", "mp4a.40.2", 175543, 3022, 175543, 1, 1 },
-		{  "", "audio/mp4", "mp4a.40.2", 0, 729, 0, 1, 1 },
-		{  "", "audio/mp4", "mp4a.40.2", 363629, 4957, 360000, 1, 1 },
-		{  "", "audio/mp4", "mp4a.40.2", 359445, 5047, 359445, 1, 1 },
-		{  "", "audio/mp4", "mp4a.40.2", 175543, 2597, 175543, 1, 1 },
-		{  "", "audio/mp4", "mp4a.40.2", 0, 729, 0, 1, 1 },
-		{  "", "audio/mp4", "mp4a.40.2", 363629, 4949, 360000, 1, 0 },
-		{  "", "audio/mp4", "mp4a.40.2", 0, 8, 0, 1, 1 },
-		{  "", "audio/mp4", "mp4a.40.2", 359445, 5039, 359445, 1, 0 },
-		{  "", "audio/mp4", "mp4a.40.2", 0, 8, 0, 1, 1 },
-		{  "", "audio/mp4", "mp4a.40.2", 175543, 2589, 175543, 1, 0 },
-		{  "", "audio/mp4", "mp4a.40.2", 0, 8, 0, 1, 1 },
+		{ "", "audio/mp4", "mp4a.40.2", "", 363629, 5226, 360000, 1, 1 },
+		{ "", "audio/mp4", "mp4a.40.2", "", 359445, 5336, 359445, 1, 1 },
+		{ "", "audio/mp4", "mp4a.40.2", "", 175543, 3022, 175543, 1, 1 },
+		{  "", "audio/mp4", "mp4a.40.2", "", 0, 729, 0, 1, 1 },
+		{  "", "audio/mp4", "mp4a.40.2", "", 363629, 4957, 360000, 1, 1 },
+		{  "", "audio/mp4", "mp4a.40.2", "", 359445, 5047, 359445, 1, 1 },
+		{  "", "audio/mp4", "mp4a.40.2", "", 175543, 2597, 175543, 1, 1 },
+		{  "", "audio/mp4", "mp4a.40.2", "", 0, 729, 0, 1, 1 },
+		{  "", "audio/mp4", "mp4a.40.2", "", 363629, 4949, 360000, 1, 0 },
+		{  "", "audio/mp4", "mp4a.40.2", "", 0, 8, 0, 1, 1 },
+		{  "", "audio/mp4", "mp4a.40.2", "", 359445, 5039, 359445, 1, 0 },
+		{  "", "audio/mp4", "mp4a.40.2", "", 0, 8, 0, 1, 1 },
+		{  "", "audio/mp4", "mp4a.40.2", "", 175543, 2589, 175543, 1, 0 },
+		{  "", "audio/mp4", "mp4a.40.2", "", 0, 8, 0, 1, 1 },
 	};
 
 	const uint64_t segmentDurationInMs = 2000;
@@ -360,6 +360,7 @@ unittest("[DISABLED] GPAC mp4 mux: don't create empty fragments") {
 	for(auto time : times) {
 		auto picture = createH264AccessUnit();
 		picture->setMediaTime(time);
+		picture->set(DecodingTime{ time });
 		mux->getInput(0)->push(picture);
 		mux->process();
 	}

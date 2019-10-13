@@ -70,7 +70,6 @@ secondclasstest("LibavMux: audio simple") {
 	for(int i=0; i < 30; ++i) {
 		auto frame = getTestMp3Frame();
 		muxer->getInput(0)->push(frame);
-		muxer->process();
 	}
 	muxer->flush();
 }

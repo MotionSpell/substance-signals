@@ -27,6 +27,7 @@ struct MPD {
 		int64_t availabilityTimeOffset;
 		bool segmentAlignment;
 		bool bitstreamSwitching;
+		std::string lang;
 	};
 
 	struct Period {

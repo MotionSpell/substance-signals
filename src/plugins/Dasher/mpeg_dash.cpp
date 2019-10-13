@@ -130,6 +130,7 @@ struct AdaptiveStreamer : ModuleDynI {
 			metaFn->filename = initFn;
 			metaFn->mimeType = meta->mimeType;
 			metaFn->codecName = meta->codecName;
+			metaFn->lang = meta->lang;
 			metaFn->durationIn180k = meta->durationIn180k;
 			metaFn->filesize = meta->filesize;
 			metaFn->latencyIn180k = meta->latencyIn180k;
@@ -227,6 +228,7 @@ struct AdaptiveStreamer : ModuleDynI {
 				metaFn->filename = getSegmentName(qualities[repIdx], repIdx, getCurSegNum() * segDurationInMs, std::to_string(getCurSegNum()));
 				metaFn->mimeType = meta->mimeType;
 				metaFn->codecName = meta->codecName;
+				metaFn->lang = meta->lang;
 				metaFn->durationIn180k = meta->durationIn180k;
 				metaFn->filesize = size;
 				metaFn->latencyIn180k = meta->latencyIn180k;
@@ -427,7 +429,17 @@ class Dasher : public AdaptiveStreamer {
 				if (period.duration == 0)
 					continue;
 
-				std::map<int, MPD::AdaptationSet> adaptationSets;
+				struct AdaptationSetParams {
+					int type;
+					std::string lang;
+					bool operator()(const AdaptationSetParams x, const AdaptationSetParams y) const {
+						if (x.type != y.type)
+							return x.type < y.type;
+						else
+							return x.lang.compare(y.lang) < 0;
+					}
+				};
+				std::map<AdaptationSetParams, MPD::AdaptationSet, AdaptationSetParams> adaptationSets;
 
 				for(auto repIdx : getInputs()) {
 					auto& quality = qualities[repIdx];
@@ -435,10 +447,11 @@ class Dasher : public AdaptiveStreamer {
 					if (!meta)
 						continue;
 
-					auto& as = adaptationSets[meta->type];
+					auto& as = adaptationSets[ { meta->type, meta->lang }];
 					as.duration = segDurationInMs;
 					as.timescale = DASH_TIMESCALE;
 					as.availabilityTimeOffset = AVAILABILITY_TIMEOFFSET_IN_S;
+					as.lang = meta->lang;
 
 					//FIXME: arbitrary: should be set by the app, or computed
 					as.segmentAlignment = true;
@@ -555,6 +568,7 @@ class Dasher : public AdaptiveStreamer {
 			metaFn->filename = segFilename;
 			metaFn->mimeType = meta->mimeType;
 			metaFn->codecName = meta->codecName;
+			metaFn->lang = meta->lang;
 			metaFn->durationIn180k = meta->durationIn180k;
 			metaFn->filesize = meta->filesize;
 			metaFn->latencyIn180k = meta->latencyIn180k;

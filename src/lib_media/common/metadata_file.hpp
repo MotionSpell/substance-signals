@@ -18,6 +18,7 @@ struct MetadataFile : IMetadata {
 		filename       = other.filename;
 		mimeType       = other.mimeType;
 		codecName      = other.codecName;
+		lang           = other.lang;
 		durationIn180k = other.durationIn180k;
 		filesize       = other.filesize;
 		latencyIn180k  = other.latencyIn180k;
@@ -31,6 +32,7 @@ struct MetadataFile : IMetadata {
 	std::string filename {};
 	std::string mimeType {};
 	std::string codecName {}; /*as per RFC6381*/
+	std::string lang {};
 	uint64_t durationIn180k = 0;
 	uint64_t filesize = 0; // set to INT64_MAX to mean "delete"
 	uint64_t latencyIn180k = 1;

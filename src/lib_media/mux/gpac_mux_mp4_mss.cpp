@@ -32,12 +32,12 @@ class GPACMuxMP4MSS : public GPACMuxMP4 {
 GPACMuxMP4MSS::GPACMuxMP4MSS(KHost* host, Mp4MuxConfigMss& cfg)
 	: GPACMuxMP4(host,
 	      Mp4MuxConfig{
-	cfg.baseName,
+	.baseName = cfg.baseName,
 	cfg.segmentDurationInMs,
 	IndependentSegment,
 	OneFragmentPerSegment,
 	SmoothStreaming | Browsers | NoEditLists | (!cfg.audioName.empty() ? SegConstantDur : None) | ((!cfg.audioLang.empty() || cfg.audioName.empty()) ? ExactInputDur : None),
-	cfg.utcStartTime
+	cfg.utcStartTime,
 }),
 audioLang(cfg.audioLang),
 audioName(cfg.audioName) {
@@ -106,7 +106,7 @@ std::string GPACMuxMP4MSS::writeISMLManifest(std::string codec4CC, std::string c
 			ss << "        <param name=\"FourCC\" value=\"" << codec4CC << "\" valuetype=\"data\"/>\n";
 			ss << "        <param name=\"CodecPrivateData\" value=\"" << codecPrivate << "\" valuetype=\"data\"/>\n";
 			if (!audioName.empty()) ss << "        <param name=\"trackName\" value=\"" << audioName << "\" valuetype=\"data\" />\n";
-			if (!audioLang.empty()) ss << "        <param name=\"systemLanguage\" value=\"" << audioLang << "\" valuetype=\"data\" />\n";
+			if (!lang.empty()) ss << "        <param name=\"systemLanguage\" value=\"" << lang << "\" valuetype=\"data\" />\n";
 			ss << "        <param name=\"AudioTag\"      value=\"" << 255 << "\" valuetype=\"data\"/>\n";
 			ss << "        <param name=\"Channels\"      value=\"" << channels << "\" valuetype=\"data\"/>\n";
 			ss << "        <param name=\"SamplingRate\"  value=\"" << sampleRate << "\" valuetype=\"data\"/>\n";

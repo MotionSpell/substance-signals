@@ -378,7 +378,8 @@ void annexbToAvcc(SpanC buf, GF_ISOSample &sample) {
 namespace Mux {
 
 GPACMuxMP4::GPACMuxMP4(KHost* host, Mp4MuxConfig const& cfg)
-	: m_host(host),
+	: lang(cfg.lang),
+	  m_host(host),
 	  m_utcStartTime(cfg.utcStartTime),
 	  MP4_4CC(cfg.MP4_4CC),
 	  compatFlags(cfg.compatFlags),
@@ -686,6 +687,9 @@ void GPACMuxMP4::declareStreamAudio(const MetadataPktAudio* metadata) {
 
 	auto const bitsPerSample = std::min(16, (int)metadata->bitsPerSample);
 
+	if (!lang.empty())
+		SAFE(gf_isom_set_media_language(isoCur, trackNum, (char*)lang.c_str()));
+
 	SAFE(gf_isom_set_track_enabled(isoCur, trackNum, GF_TRUE));
 	SAFE(gf_isom_set_audio_info(isoCur, trackNum, di, sampleRate, metadata->numChannels, bitsPerSample, GF_IMPORT_AUDIO_SAMPLE_ENTRY_NOT_SET));
 	SAFE(gf_isom_set_pl_indication(isoCur, GF_ISOM_PL_AUDIO, acfg.audioPL));
@@ -886,6 +890,7 @@ void GPACMuxMP4::sendSegmentToOutput(bool EOS) {
 	metadata->filename = segmentName;
 	metadata->mimeType = mimeType;
 	metadata->codecName = codecName;
+	metadata->lang = lang;
 	metadata->durationIn180k = consideredDurationIn180k;
 	metadata->filesize = lastSegmentSize;
 	metadata->latencyIn180k = containerLatency;

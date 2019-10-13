@@ -39,6 +39,7 @@ struct Mp4MuxConfig {
 	CompatibilityFlag compatFlags = None;
 	IUtcStartTimeQuery* utcStartTime = &g_NullStartTime;
 	uint32_t MP4_4CC = 0; //when non-null forces a generic descriptor when codec is not recognized
+	std::string lang = "";
 };
 
 struct Mp4MuxConfigMss {

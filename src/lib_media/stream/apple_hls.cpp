@@ -163,6 +163,7 @@ void Apple_HLS::updateManifestVariants() {
 				file->filename = manifestDir + fn;
 				file->mimeType = meta->mimeType;
 				file->codecName = meta->codecName;
+				file->lang = meta->lang;
 				file->durationIn180k = meta->durationIn180k;
 				file->filesize = meta->filesize;
 				file->latencyIn180k = meta->latencyIn180k;

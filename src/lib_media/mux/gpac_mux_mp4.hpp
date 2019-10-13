@@ -27,6 +27,7 @@ class GPACMuxMP4 : public ModuleS {
 		virtual void startSegmentPostAction() {}
 		uint32_t trackId = 0;
 		std::string codec4CC;
+		std::string lang;
 		GF_ISOFile *isoInit, *isoCur;
 
 	private:

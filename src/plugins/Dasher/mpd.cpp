@@ -99,6 +99,9 @@ Tag mpdToTags(MPD const& mpd) {
 			tAdaptationSet["segmentAlignment"] = formatBool(adaptationSet.segmentAlignment);
 			tAdaptationSet["bitstreamSwitching"] = formatBool(adaptationSet.bitstreamSwitching);
 
+			if (!adaptationSet.lang.empty())
+				tAdaptationSet["lang"] = adaptationSet.lang;
+
 			// segment template common to all adaptation sets
 			{
 				auto tSegmentTemplate = Tag { "SegmentTemplate" };

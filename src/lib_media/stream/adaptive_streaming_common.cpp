@@ -77,6 +77,7 @@ void AdaptiveStreamingCommon::processInitSegment(Quality const * const quality, 
 		metaFn->filename = initFn;
 		metaFn->mimeType = meta->mimeType;
 		metaFn->codecName = meta->codecName;
+		metaFn->lang = meta->lang;
 		metaFn->durationIn180k = meta->durationIn180k;
 		metaFn->filesize = meta->filesize;
 		metaFn->latencyIn180k = meta->latencyIn180k;
@@ -215,6 +216,7 @@ void AdaptiveStreamingCommon::threadProc() {
 			metaFn->filename = getSegmentName(qualities[i].get(), i, std::to_string(getCurSegNum()));
 			metaFn->mimeType = meta->mimeType;
 			metaFn->codecName = meta->codecName;
+			metaFn->lang = meta->lang;
 			metaFn->durationIn180k = meta->durationIn180k;
 			metaFn->filesize = size;
 			metaFn->latencyIn180k = meta->latencyIn180k;
