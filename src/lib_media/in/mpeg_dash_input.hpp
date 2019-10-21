@@ -22,6 +22,7 @@ class MPEG_DASH_Input : public Module {
 
 		struct Stream;
 		std::vector<std::unique_ptr<Stream>> m_streams;
+		void processStream(Stream* stream);
 
 		std::unique_ptr<DashMpd> mpd;
 		std::string m_mpdDirname;

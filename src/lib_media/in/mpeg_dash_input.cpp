@@ -120,56 +120,60 @@ MPEG_DASH_Input::MPEG_DASH_Input(KHost* host, IFilePuller* source, std::string c
 MPEG_DASH_Input::~MPEG_DASH_Input() {
 }
 
-void MPEG_DASH_Input::process() {
-	for(auto& stream : m_streams) {
-		auto& set = *stream->set;
+void MPEG_DASH_Input::processStream(Stream* stream) {
+	auto& set = *stream->set;
 
-		if(mpd->periodDuration) {
-			if(stream->segmentDuration * (stream->currNumber - set.startNumber) >= mpd->periodDuration) {
-				m_host->log(Info, "End of period");
-				m_host->activate(false);
-				return;
-			}
-		}
-
-		string url;
-
-		{
-			map<string, string> vars;
-
-			vars["RepresentationID"] = set.representationId;
-
-			if(m_initializationChunkSent) {
-				vars["Number"] = format("%s", stream->currNumber);
-				stream->currNumber++;
-				url = m_mpdDirname + "/" + expandVars(set.media, vars);
-			} else {
-				url = m_mpdDirname + "/" + expandVars(set.initialization, vars);
-			}
-		}
-
-		m_host->log(Debug, format("wget: '%s'", url).c_str());
-
-		bool empty = true;
-
-		auto onBuffer = [&](SpanC chunk) {
-			empty = false;
-
-			auto data = make_shared<DataRaw>(chunk.len);
-			memcpy(data->buffer->data().ptr, chunk.ptr, chunk.len);
-			stream->out->post(data);
-		};
-
-		m_source->wget(url.c_str(), onBuffer);
-		if(empty) {
-			if(mpd->dynamic) {
-				stream->currNumber = std::max<int64_t>(stream->currNumber - 1, stream->set->startNumber); // too early, retry
-				continue;
-			}
-			m_host->log(Error, format("can't download file: '%s'", url).c_str());
+	if (mpd->periodDuration) {
+		if (stream->segmentDuration * (stream->currNumber - set.startNumber) >= mpd->periodDuration) {
+			m_host->log(Info, "End of period");
 			m_host->activate(false);
+			return;
 		}
 	}
+
+	string url;
+
+	{
+		map<string, string> vars;
+
+		vars["RepresentationID"] = set.representationId;
+
+		if (m_initializationChunkSent) {
+			vars["Number"] = format("%s", stream->currNumber);
+			stream->currNumber++;
+			url = m_mpdDirname + "/" + expandVars(set.media, vars);
+		}
+		else {
+			url = m_mpdDirname + "/" + expandVars(set.initialization, vars);
+		}
+	}
+
+	m_host->log(Debug, format("wget: '%s'", url).c_str());
+
+	bool empty = true;
+
+	auto onBuffer = [&](SpanC chunk) {
+		empty = false;
+
+		auto data = make_shared<DataRaw>(chunk.len);
+		memcpy(data->buffer->data().ptr, chunk.ptr, chunk.len);
+		stream->out->post(data);
+	};
+
+	m_source->wget(url.c_str(), onBuffer);
+	if (empty) {
+		if (mpd->dynamic) {
+			stream->currNumber = std::max<int64_t>(stream->currNumber - 1, stream->set->startNumber); // too early, retry
+			return;
+		}
+		m_host->log(Error, format("can't download file: '%s'", url).c_str());
+		m_host->activate(false);
+	}
+}
+
+void MPEG_DASH_Input::process() {
+	for(auto& stream : m_streams)
+		auto &processStream(stream);
 
 	m_initializationChunkSent = true;
 }
