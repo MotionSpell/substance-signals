@@ -10,11 +10,11 @@
 #include <cassert>
 #include <algorithm> // min
 
-std::string expandVars(std::string input, std::map<std::string,std::string> const& values);
-int64_t parseIso8601Period(std::string input);
-
 using namespace std;
 using namespace Modules::In;
+
+string expandVars(string input, map<string,string> const& values);
+int64_t parseIso8601Period(string input);
 
 struct AdaptationSet {
 	string media;
@@ -69,14 +69,14 @@ static shared_ptr<IMetadata> createMetadata(AdaptationSet const& set) {
 	}
 }
 
-MPEG_DASH_Input::MPEG_DASH_Input(KHost* host, IFilePuller* source, std::string const& url)
+MPEG_DASH_Input::MPEG_DASH_Input(KHost* host, IFilePuller* source, string const& url)
 	:  m_host(host), m_source(source) {
 	m_host->activate(true);
 
 	//GET MPD FROM HTTP
 	auto mpdAsText = download(m_source, url.c_str());
 	if(mpdAsText.empty())
-		throw std::runtime_error("can't get mpd");
+		throw runtime_error("can't get mpd");
 	m_mpdDirname = dirName(url);
 
 	//PARSE MPD
@@ -245,7 +245,7 @@ DashMpd parseMpd(span<const char> text) {
 	DashMpd r {};
 	DashMpd* mpd = &r;
 
-	auto onNodeStart = [mpd](std::string name, map<string, string>& attr) {
+	auto onNodeStart = [mpd](string name, map<string, string>& attr) {
 		if(name == "AdaptationSet") {
 			AdaptationSet set;
 			set.contentType = attr["contentType"];
