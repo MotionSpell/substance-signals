@@ -19,7 +19,6 @@ class MPEG_DASH_Input : public Module {
 		KHost* const m_host;
 
 		IFilePuller* const m_source;
-		bool wakeUp();
 
 		struct Stream;
 		std::vector<std::unique_ptr<Stream>> m_streams;
