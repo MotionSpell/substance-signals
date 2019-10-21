@@ -11,17 +11,6 @@ extern "C" {
 }
 
 struct HttpSource : Modules::In::IFilePuller {
-
-	HttpSource() : curl(curl_easy_init()) {
-		if(!curl)
-			throw std::runtime_error("can't init curl");
-	}
-
-	~HttpSource() {
-		curl_easy_cleanup(curl);
-	}
-
-
 	void wget(const char* url, std::function<void(SpanC)> callback) override {
 		struct HttpContext {
 			std::function<void(SpanC)> userCallback;
@@ -37,6 +26,10 @@ struct HttpSource : Modules::In::IFilePuller {
 		HttpContext ctx;
 		ctx.userCallback = callback;
 
+		auto curl = curl_easy_init();
+		if(!curl)
+			throw std::runtime_error("can't init curl");
+
 		// some servers require a user-agent field
 		curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
 
@@ -50,13 +43,11 @@ struct HttpSource : Modules::In::IFilePuller {
 		curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
 
 		auto res = curl_easy_perform(curl);
-		if(res == CURLE_HTTP_RETURNED_ERROR)
-			return;
-		if(res != CURLE_OK)
+		if(res != CURLE_OK && res != CURLE_HTTP_RETURNED_ERROR)
 			throw std::runtime_error(std::string("HTTP download failed: ") + curl_easy_strerror(res));
-	}
 
-	CURL* const curl;
+		curl_easy_cleanup(curl);
+	}
 };
 
 std::unique_ptr<Modules::In::IFilePuller> createHttpSource() {

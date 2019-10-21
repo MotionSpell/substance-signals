@@ -9,6 +9,8 @@ namespace In {
 
 struct IFilePuller {
 	virtual ~IFilePuller() = default;
+
+	/*concurrent wget() calls shall be supported*/
 	virtual void wget(const char* url, std::function<void(SpanC)> callback) = 0;
 };
 
