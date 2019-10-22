@@ -4,6 +4,7 @@
 #include "lib_modules/utils/helper.hpp" // NullHost
 #include <vector>
 #include <map>
+#include <mutex>
 #include <string>
 
 using namespace std;
@@ -14,6 +15,7 @@ using namespace In;
 namespace {
 struct MemoryFileSystem : IFilePuller {
 	void wget(const char* szUrl, std::function<void(SpanC)> callback) override {
+		std::unique_lock<std::mutex> lock(mutex);
 		auto url = string(szUrl);
 		requests.push_back(url);
 		if(resources.find(url) == resources.end())
@@ -23,6 +25,7 @@ struct MemoryFileSystem : IFilePuller {
 
 	map<string, string> resources;
 	vector<string> requests;
+	std::mutex mutex;
 };
 
 }

@@ -3,6 +3,7 @@
 #include "lib_media/in/mpeg_dash_input.hpp"
 #include "lib_media/common/metadata.hpp" //MetadataPkt
 #include <map>
+#include <mutex>
 
 using namespace Tests;
 using namespace Modules;
@@ -10,6 +11,7 @@ using namespace In;
 
 struct LocalFilesystem : IFilePuller {
 	void wget(const char* szUrl, std::function<void(SpanC)> callback) override {
+		std::unique_lock<std::mutex> lock(mutex);
 		auto url = std::string(szUrl);
 		requests.push_back(url);
 		if(resources.find(url) == resources.end())
@@ -19,6 +21,7 @@ struct LocalFilesystem : IFilePuller {
 
 	std::map<std::string, std::string> resources;
 	std::vector<std::string> requests;
+	std::mutex mutex;
 };
 
 unittest("mpeg_dash_input: fail to get MPD") {
@@ -172,6 +175,8 @@ unittest("mpeg_dash_input: only get available segments") {
 
 	for(int i=0; i < 5; ++i)
 		dash->process();
+
+	dash = nullptr;
 
 	ASSERT_EQUALS(
 	std::vector<std::string>( {
