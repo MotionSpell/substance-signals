@@ -20,13 +20,12 @@ class MPEG_DASH_Input : public Module {
 
 		IFilePuller* const m_source;
 
+		std::unique_ptr<DashMpd> mpd;
+		std::string m_mpdDirname;
+
 		struct Stream;
 		std::vector<std::unique_ptr<Stream>> m_streams;
 		void processStream(Stream* stream);
-
-		std::unique_ptr<DashMpd> mpd;
-		std::string m_mpdDirname;
-		bool m_initializationChunkSent = false;
 };
 
 }

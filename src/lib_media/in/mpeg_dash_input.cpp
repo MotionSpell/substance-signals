@@ -2,6 +2,7 @@
 #include "lib_utils/time.hpp" // getUTC
 #include "lib_utils/log_sink.hpp"
 #include "lib_utils/format.hpp"
+#include "lib_utils/queue.hpp"
 #include "../common/metadata.hpp" // MetadataPkt
 #include "mpeg_dash_input.hpp"
 #include <vector>
@@ -9,6 +10,7 @@
 #include <cstring> // memcpy
 #include <cassert>
 #include <algorithm> // min
+#include <thread>
 
 using namespace std;
 using namespace Modules::In;
@@ -41,11 +43,56 @@ static DashMpd parseMpd(span<const char> text);
 namespace Modules {
 namespace In {
 
+/*binary semaphore blocking post() with a thread executor*/
+struct BinaryBlockingExecutor {
+		BinaryBlockingExecutor()
+			: th(&BinaryBlockingExecutor::threadProc, this) {
+		}
+
+		~BinaryBlockingExecutor() {
+			q.push(nullptr);
+			qEmpty.notify_all();
+			th.join();
+		}
+
+		void post(function<void()> fct) {
+			{
+				unique_lock<mutex> lock(m);
+				while (count == 0)
+					qEmpty.wait(lock);
+				count--;
+			}
+
+			q.push(fct);
+		}
+
+	private:
+		void threadProc() {
+			while (auto f = q.pop()) {
+				{
+					unique_lock<mutex> lock(m);
+					count++;
+					qEmpty.notify_one();
+				}
+
+				f();
+			}
+		}
+
+		thread th;
+		mutex m;
+		Queue<function<void()>> q;
+		int count = 1;
+		condition_variable qEmpty;
+};
+
 struct MPEG_DASH_Input::Stream {
 	OutputDefault* out = nullptr;
 	AdaptationSet* set = nullptr;
+	bool initializationChunkSent = false;
 	int64_t currNumber = 0;
 	Fraction segmentDuration {};
+	BinaryBlockingExecutor executor;
 };
 
 static string dirName(string path) {
@@ -138,12 +185,11 @@ void MPEG_DASH_Input::processStream(Stream* stream) {
 
 		vars["RepresentationID"] = set.representationId;
 
-		if (m_initializationChunkSent) {
+		if (stream->initializationChunkSent) {
 			vars["Number"] = format("%s", stream->currNumber);
 			stream->currNumber++;
 			url = m_mpdDirname + "/" + expandVars(set.media, vars);
-		}
-		else {
+		} else {
 			url = m_mpdDirname + "/" + expandVars(set.initialization, vars);
 		}
 	}
@@ -169,13 +215,14 @@ void MPEG_DASH_Input::processStream(Stream* stream) {
 		m_host->log(Error, format("can't download file: '%s'", url).c_str());
 		m_host->activate(false);
 	}
+
+	stream->initializationChunkSent = true;
 }
 
 void MPEG_DASH_Input::process() {
 	for(auto& stream : m_streams)
-		auto &processStream(stream);
-
-	m_initializationChunkSent = true;
+		//processStream(stream.get());
+		stream->executor.post(std::bind(&MPEG_DASH_Input::processStream, this, stream.get()));
 }
 
 }

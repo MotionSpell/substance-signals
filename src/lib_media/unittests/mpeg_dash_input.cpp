@@ -2,8 +2,11 @@
 #include "lib_modules/modules.hpp"
 #include "lib_media/in/mpeg_dash_input.hpp"
 #include "lib_media/common/metadata.hpp" //MetadataPkt
+#include <atomic>
+#include <chrono>
 #include <map>
 #include <mutex>
+#include <thread>
 
 using namespace Tests;
 using namespace Modules;
@@ -16,6 +19,7 @@ struct LocalFilesystem : IFilePuller {
 		requests.push_back(url);
 		if(resources.find(url) == resources.end())
 			return;
+
 		callback({(uint8_t*)resources[url].data(), resources[url].size()});
 	}
 
@@ -126,6 +130,8 @@ unittest("mpeg_dash_input: get chunks") {
 	for(int i=0; i < 100; ++i)
 		dash->process();
 
+	dash = nullptr;
+
 	ASSERT_EQUALS(
 	std::vector<std::string>( {
 		"main/live.mpd",
@@ -188,6 +194,77 @@ unittest("mpeg_dash_input: only get available segments") {
 		"main/low/8.m4s",
 	}),
 	source.requests);
+}
+
+unittest("mpeg_dash_input: get concurrent chunks") {
+	struct BlockingSource : IFilePuller {
+		BlockingSource() : counter(0) {}
+		void wget(const char* szUrl, std::function<void(SpanC)> callback) override {
+			if (counter == 0) {
+				callback({(uint8_t*)MPD.data(), MPD.size()});
+				counter++;
+				return;
+			}
+
+			counter++;
+
+			while (counter > 4)
+				std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
+			{
+				std::unique_lock<std::mutex> lock(mutex);
+				auto url = std::string(szUrl);
+				requests.push_back(url);
+			}
+		}
+		void unblock() {
+			counter = 1;
+		}
+
+		std::atomic<int> counter;
+		std::mutex mutex;
+		std::vector<std::string> requests;
+		const std::string MPD = R"|(
+<?xml version="1.0"?>
+<MPD>
+  <Period duration="PT10S">
+    <AdaptationSet>
+      <SegmentTemplate initialization="init-$RepresentationID$.mp4" media="sub/x$Number$y$RepresentationID$z" startNumber="3" duration="0"/>
+      <Representation id="77" mimeType="audio/mp4"/>
+    </AdaptationSet>
+    <AdaptationSet>
+      <SegmentTemplate initialization="init-$RepresentationID$.mp4" media="sub/x$Number$y$RepresentationID$z" startNumber="3" duration="0"/>
+	  <Representation id="88" mimeType="video/mp4"/>
+    </AdaptationSet>
+  </Period>
+</MPD>)|";
+	};
+
+	BlockingSource source;
+	auto dash = createModule<MPEG_DASH_Input>(&NullHost, &source, "main/live.mpd");
+
+	dash->process(); //init
+	dash->process(); //first segment
+	source.unblock();
+	dash = nullptr;
+
+	//reorder
+	std::vector<std::string> a77, v88;
+	for (auto &url : source.requests) {
+		if (url == "main/init-77.mp4" || url == "main/sub/x3y77z") a77.push_back(url);
+		if (url == "main/init-88.mp4" || url == "main/sub/x3y88z") v88.push_back(url);
+	}
+
+	ASSERT_EQUALS(
+	std::vector<std::string>( {
+		"main/init-77.mp4",
+		"main/sub/x3y77z"
+	}), a77);
+	ASSERT_EQUALS(
+	std::vector<std::string>( {
+		"main/init-88.mp4",
+		"main/sub/x3y88z"
+	}), v88);
 }
 
 std::unique_ptr<IFilePuller> createHttpSource();
