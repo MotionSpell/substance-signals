@@ -92,6 +92,7 @@ struct MPEG_DASH_Input::Stream {
 	bool initializationChunkSent = false;
 	int64_t currNumber = 0;
 	Fraction segmentDuration {};
+	unique_ptr<IFilePuller> source;
 	BinaryBlockingExecutor executor;
 };
 
@@ -116,12 +117,12 @@ static shared_ptr<IMetadata> createMetadata(AdaptationSet const& set) {
 	}
 }
 
-MPEG_DASH_Input::MPEG_DASH_Input(KHost* host, IFilePuller* source, string const& url)
-	:  m_host(host), m_source(source) {
+MPEG_DASH_Input::MPEG_DASH_Input(KHost* host, IFilePullerFactory *filePullerFactory, string const& url)
+	:  m_host(host) {
 	m_host->activate(true);
 
 	//GET MPD FROM HTTP
-	auto mpdAsText = download(m_source, url.c_str());
+	auto mpdAsText = download(filePullerFactory->create().get(), url.c_str());
 	if(mpdAsText.empty())
 		throw runtime_error("can't get mpd");
 	m_mpdDirname = dirName(url);
@@ -143,6 +144,7 @@ MPEG_DASH_Input::MPEG_DASH_Input(KHost* host, IFilePuller* source, string const&
 		stream->out->setMetadata(meta);
 		stream->set = &set;
 		stream->segmentDuration = Fraction(set.duration, set.timescale);
+		stream->source = filePullerFactory->create();
 
 		m_streams.push_back(move(stream));
 	}
@@ -206,7 +208,7 @@ void MPEG_DASH_Input::processStream(Stream* stream) {
 		stream->out->post(data);
 	};
 
-	m_source->wget(url.c_str(), onBuffer);
+	stream->source->wget(url.c_str(), onBuffer);
 	if (empty) {
 		if (mpd->dynamic) {
 			stream->currNumber = std::max<int64_t>(stream->currNumber - 1, stream->set->startNumber); // too early, retry

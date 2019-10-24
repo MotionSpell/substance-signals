@@ -18,9 +18,7 @@ class DashDemuxer : public Module {
 	public:
 		DashDemuxer(KHost* host, DashDemuxConfig* cfg)
 			: m_host(host) {
-
-			filePuller = createHttpSource();
-			m_downloader = createModule<MPEG_DASH_Input>(m_host, filePuller.get(), cfg->url);
+			m_downloader = createModule<MPEG_DASH_Input>(m_host, &filePullerFactory, cfg->url);
 
 			for (int i = 0; i < m_downloader->getNumOutputs(); ++i)
 				addStream(m_downloader->getOutput(i));
@@ -31,8 +29,14 @@ class DashDemuxer : public Module {
 		}
 
 	private:
+		struct FilePullerFactory : IFilePullerFactory {
+			std::unique_ptr<IFilePuller> create() override {
+				return createHttpSource();
+			}
+		};
+
 		KHost* const m_host;
-		std::unique_ptr<IFilePuller> filePuller;
+		FilePullerFactory filePullerFactory;
 
 		void addStream(IOutput* downloader) {
 			// add MP4 box-splitter

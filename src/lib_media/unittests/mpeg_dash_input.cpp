@@ -12,7 +12,15 @@ using namespace Tests;
 using namespace Modules;
 using namespace In;
 
-struct LocalFilesystem : IFilePuller {
+struct NotOwningFilePuller : IFilePuller {
+	NotOwningFilePuller(IFilePuller *source) : source(source) {}
+	void wget(const char* szUrl, std::function<void(SpanC)> callback) override {
+		source->wget(szUrl, callback);
+	}
+	IFilePuller *source;
+};
+
+struct LocalFilesystem : IFilePuller, IFilePullerFactory {
 	void wget(const char* szUrl, std::function<void(SpanC)> callback) override {
 		std::unique_lock<std::mutex> lock(mutex);
 		auto url = std::string(szUrl);
@@ -21,6 +29,10 @@ struct LocalFilesystem : IFilePuller {
 			return;
 
 		callback({(uint8_t*)resources[url].data(), resources[url].size()});
+	}
+
+	std::unique_ptr<IFilePuller> create() override {
+		return std::make_unique<NotOwningFilePuller>(this);
 	}
 
 	std::map<std::string, std::string> resources;
@@ -240,17 +252,23 @@ unittest("mpeg_dash_input: get concurrent chunks") {
 </MPD>)|";
 	};
 
-	BlockingSource source;
-	auto dash = createModule<MPEG_DASH_Input>(&NullHost, &source, "main/live.mpd");
+	struct FilePullerFactory : IFilePullerFactory {
+		std::unique_ptr<IFilePuller> create() override {
+			return std::make_unique<NotOwningFilePuller>(&source);
+		}
+		BlockingSource source;
+	};
+	FilePullerFactory sourceFactory;
+	auto dash = createModule<MPEG_DASH_Input>(&NullHost, &sourceFactory, "main/live.mpd");
 
 	dash->process(); //init
 	dash->process(); //first segment
-	source.unblock();
+	sourceFactory.source.unblock();
 	dash = nullptr;
 
 	//reorder
 	std::vector<std::string> a77, v88;
-	for (auto &url : source.requests) {
+	for (auto &url : sourceFactory.source.requests) {
 		if (url == "main/init-77.mp4" || url == "main/sub/x3y77z") a77.push_back(url);
 		if (url == "main/init-88.mp4" || url == "main/sub/x3y88z") v88.push_back(url);
 	}
@@ -270,15 +288,27 @@ unittest("mpeg_dash_input: get concurrent chunks") {
 std::unique_ptr<IFilePuller> createHttpSource();
 
 secondclasstest("mpeg_dash_input: get MPD from remote server") {
+	struct FilePullerFactory : IFilePullerFactory {
+		std::unique_ptr<IFilePuller> create() override {
+			return createHttpSource();
+		}
+	};
+
+	FilePullerFactory sourceFactory;
 	auto url = "http://download.tsi.telecom-paristech.fr/gpac/DASH_CONFORMANCE/TelecomParisTech/mp4-live/mp4-live-mpd-AV-NBS.mpd";
-	auto source = createHttpSource();
-	auto dash = createModule<MPEG_DASH_Input>(&NullHost, source.get(), url);
+	auto dash = createModule<MPEG_DASH_Input>(&NullHost, &sourceFactory, url);
 	ASSERT_EQUALS(2, dash->getNumOutputs());
 }
 
 secondclasstest("mpeg_dash_input: non-existing MPD") {
+	struct FilePullerFactory : IFilePullerFactory {
+		std::unique_ptr<IFilePuller> create() override {
+			return createHttpSource();
+		}
+	};
+
+	FilePullerFactory sourceFactory;
 	auto url = "http://example.com/this_url_doesnt_exist_121324315235";
-	auto source = createHttpSource();
-	ASSERT_THROWN(createModule<MPEG_DASH_Input>(&NullHost, source.get(), url));
+	ASSERT_THROWN(createModule<MPEG_DASH_Input>(&NullHost, &sourceFactory, url));
 }
 
