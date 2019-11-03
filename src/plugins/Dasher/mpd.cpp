@@ -102,6 +102,13 @@ Tag mpdToTags(MPD const& mpd) {
 			if (!adaptationSet.lang.empty())
 				tAdaptationSet["lang"] = adaptationSet.lang;
 
+			if (!adaptationSet.supplementalProperty.empty()) {
+				auto tSupplementalProperty = Tag { "SupplementalProperty" };
+				tSupplementalProperty["schemeIdUri"] = "urn:mpeg:dash:srd:2014";
+				tSupplementalProperty["value"] = adaptationSet.supplementalProperty;
+				tAdaptationSet.add(tSupplementalProperty);
+			}
+
 			// segment template common to all adaptation sets
 			{
 				auto tSegmentTemplate = Tag { "SegmentTemplate" };

@@ -28,6 +28,7 @@ struct MPD {
 		bool segmentAlignment;
 		bool bitstreamSwitching;
 		std::string lang;
+		std::string supplementalProperty;
 	};
 
 	struct Period {

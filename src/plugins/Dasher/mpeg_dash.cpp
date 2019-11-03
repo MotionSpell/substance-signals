@@ -305,7 +305,6 @@ struct AdaptiveStreamer : ModuleDynI {
 		}
 
 		bool schedule() {
-
 			for (int repIdx = 0; repIdx < numInputs(); ++repIdx) {
 				if(!scheduleRepresentation(repIdx))
 					break;
@@ -368,7 +367,6 @@ class Dasher : public AdaptiveStreamer {
 		}
 
 	protected:
-
 		KHost* const m_host;
 		DasherConfig const m_cfg;
 		const bool useSegmentTimeline = false;
@@ -390,8 +388,15 @@ class Dasher : public AdaptiveStreamer {
 		}
 
 		void onNewSegment() {
+			// check configuration consistency
+			if (!m_cfg.tileInfo.empty())
+				if (m_cfg.tileInfo.size() != getInputs().size())
+					throw error("Tile info size different from the number of inputs.");
+
+			// create manifest
 			auto xml = createManifest(m_cfg);
 
+			// post manifest
 			if (live)
 				postManifest(xml);
 		}
@@ -432,11 +437,15 @@ class Dasher : public AdaptiveStreamer {
 				struct AdaptationSetParams {
 					int type;
 					std::string lang;
+					std::string supplementalProperty; //contains generic info e.g. tiling
+
 					bool operator()(const AdaptationSetParams x, const AdaptationSetParams y) const {
 						if (x.type != y.type)
 							return x.type < y.type;
-						else
+						else if (x.lang != y.lang)
 							return x.lang.compare(y.lang) < 0;
+						else
+							return x.supplementalProperty.compare(y.supplementalProperty) < 0;
 					}
 				};
 				std::map<AdaptationSetParams, MPD::AdaptationSet, AdaptationSetParams> adaptationSets;
@@ -447,11 +456,18 @@ class Dasher : public AdaptiveStreamer {
 					if (!meta)
 						continue;
 
-					auto& as = adaptationSets[ { meta->type, meta->lang }];
+					std::string supplementalProperty;
+					if (!m_cfg.tileInfo.empty()) {
+						auto &ti = m_cfg.tileInfo[repIdx];
+						supplementalProperty = format("%s,%s,%s,%s,%s", ti.group, ti.posX, ti.posY, ti.width, ti.height);
+					}
+
+					auto& as = adaptationSets[ { meta->type, meta->lang, supplementalProperty }];
 					as.duration = segDurationInMs;
 					as.timescale = DASH_TIMESCALE;
 					as.availabilityTimeOffset = AVAILABILITY_TIMEOFFSET_IN_S;
 					as.lang = meta->lang;
+					as.supplementalProperty = supplementalProperty;
 
 					//FIXME: arbitrary: should be set by the app, or computed
 					as.segmentAlignment = true;

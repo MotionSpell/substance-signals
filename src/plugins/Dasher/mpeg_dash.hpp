@@ -25,6 +25,11 @@ struct DasherConfig {
 	bool presignalNextSegment = false;
 	bool forceRealDurations = false;
 
+	struct TileInfo {
+		int group, posX, posY, width, height;
+	};
+	std::vector<TileInfo> tileInfo = {}; // AdaptationSet SupplementalProperty - follows input pin order when present
+
 	IUtcClock *utcClock = g_UtcClock;
 };
 
