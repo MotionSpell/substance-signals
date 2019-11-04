@@ -96,7 +96,6 @@ struct BinaryBlockingExecutor {
 struct MPEG_DASH_Input::Stream {
 	OutputDefault* out = nullptr;
 	Representation const * rep = nullptr;
-	bool enabled = false;
 	bool initializationChunkSent = false;
 	int64_t currNumber = 0;
 	Fraction segmentDuration {};
@@ -141,8 +140,8 @@ MPEG_DASH_Input::MPEG_DASH_Input(KHost* host, IFilePullerFactory *filePullerFact
 
 	//DECLARE OUTPUT PORTS
 	for(auto& set : mpd->sets) {
-		bool firstRepInSet = true;
-		for (auto& rep : set->representations) {
+		if (!set->representations.empty()) {
+			auto &rep = set->representations.front();
 			auto meta = createMetadata(rep);
 			if(!meta) {
 				m_host->log(Warning, format("Ignoring Representation with unrecognized mime type: '%s'", rep.mimeType).c_str());
@@ -152,12 +151,7 @@ MPEG_DASH_Input::MPEG_DASH_Input(KHost* host, IFilePullerFactory *filePullerFact
 			auto stream = make_unique<Stream>();
 			stream->out = addOutput();
 			stream->out->setMetadata(meta);
-
 			stream->rep = &rep;
-			if (firstRepInSet)
-				stream->enabled = true;
-			firstRepInSet = false;
-
 			stream->segmentDuration = Fraction(set->duration, set->timescale);
 			stream->source = filePullerFactory->create();
 
@@ -239,8 +233,7 @@ void MPEG_DASH_Input::processStream(Stream* stream) {
 
 void MPEG_DASH_Input::process() {
 	for(auto& stream : m_streams)
-		if (stream->enabled)
-			stream->executor.post(std::bind(&MPEG_DASH_Input::processStream, this, stream.get()));
+		stream->executor.post(std::bind(&MPEG_DASH_Input::processStream, this, stream.get()));
 }
 
 }

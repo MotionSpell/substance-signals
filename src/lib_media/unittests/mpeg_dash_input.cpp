@@ -285,6 +285,26 @@ unittest("mpeg_dash_input: get concurrent chunks") {
 	}), v88);
 }
 
+unittest("mpeg_dash_input: number of outputs is the number of adaptation sets with at least one representation") {
+	static auto const MPD = R"|(
+<?xml version="1.0"?>
+<MPD>
+  <Period>
+    <AdaptationSet/>
+    <AdaptationSet>
+      <Representation mimeType="video/mp4"/>
+      <Representation mimeType="video/mp4"/>
+    </AdaptationSet>
+    <AdaptationSet/>
+  </Period>
+</MPD>)|";
+	LocalFilesystem source;
+	source.resources["main/manifest.mpd"] = MPD;
+	auto dash = createModule<MPEG_DASH_Input>(&NullHost, &source, "main/manifest.mpd");
+
+	ASSERT_EQUALS(dash->getNumOutputs(), 1);
+}
+
 std::unique_ptr<IFilePuller> createHttpSource();
 
 secondclasstest("mpeg_dash_input: get MPD from remote server") {
