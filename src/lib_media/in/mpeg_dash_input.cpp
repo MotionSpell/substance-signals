@@ -18,16 +18,23 @@ using namespace Modules::In;
 string expandVars(string input, map<string,string> const& values);
 int64_t parseIso8601Period(string input);
 
+struct AdaptationSet;
+
+struct Representation {
+	AdaptationSet const * set = nullptr;
+	string id;
+	string codecs;
+	string mimeType;
+};
+
 struct AdaptationSet {
 	string media;
 	int startNumber=0;
 	int duration=0;
 	int timescale=1;
-	string representationId;
-	string codecs;
 	string initialization;
-	string mimeType;
 	string contentType;
+	vector<Representation> representations;
 };
 
 struct DashMpd {
@@ -35,7 +42,7 @@ struct DashMpd {
 	int64_t availabilityStartTime = 0; // in ms
 	int64_t publishTime = 0; // in ms
 	int64_t periodDuration = 0; // in seconds
-	vector<AdaptationSet> sets;
+	vector<unique_ptr<AdaptationSet>> sets;
 };
 
 static DashMpd parseMpd(span<const char> text);
@@ -88,7 +95,8 @@ struct BinaryBlockingExecutor {
 
 struct MPEG_DASH_Input::Stream {
 	OutputDefault* out = nullptr;
-	AdaptationSet* set = nullptr;
+	Representation const * rep = nullptr;
+	bool enabled = false;
 	bool initializationChunkSent = false;
 	int64_t currNumber = 0;
 	Fraction segmentDuration {};
@@ -103,14 +111,14 @@ static string dirName(string path) {
 	return path;
 }
 
-static shared_ptr<IMetadata> createMetadata(AdaptationSet const& set) {
-	if(set.mimeType == "audio/mp4" || set.contentType == "audio") {
+static shared_ptr<IMetadata> createMetadata(Representation const& rep) {
+	if(rep.mimeType == "audio/mp4" || rep.set->contentType == "audio") {
 		auto meta = make_shared<MetadataPkt>(AUDIO_PKT);
-		meta->codec = set.codecs;
+		meta->codec = rep.codecs;
 		return meta;
-	} else if(set.mimeType == "video/mp4" || set.contentType == "video") {
+	} else if(rep.mimeType == "video/mp4" || rep.set->contentType == "video") {
 		auto meta = make_shared<MetadataPkt>(VIDEO_PKT);
-		meta->codec = set.codecs;
+		meta->codec = rep.codecs;
 		return meta;
 	} else {
 		return nullptr;
@@ -133,24 +141,32 @@ MPEG_DASH_Input::MPEG_DASH_Input(KHost* host, IFilePullerFactory *filePullerFact
 
 	//DECLARE OUTPUT PORTS
 	for(auto& set : mpd->sets) {
-		auto meta = createMetadata(set);
-		if(!meta) {
-			m_host->log(Warning, format("Ignoring adaptation set with unrecognized mime type: '%s'", set.mimeType).c_str());
-			continue;
+		bool firstRepInSet = true;
+		for (auto& rep : set->representations) {
+			auto meta = createMetadata(rep);
+			if(!meta) {
+				m_host->log(Warning, format("Ignoring Representation with unrecognized mime type: '%s'", rep.mimeType).c_str());
+				continue;
+			}
+
+			auto stream = make_unique<Stream>();
+			stream->out = addOutput();
+			stream->out->setMetadata(meta);
+
+			stream->rep = &rep;
+			if (firstRepInSet)
+				stream->enabled = true;
+			firstRepInSet = false;
+
+			stream->segmentDuration = Fraction(set->duration, set->timescale);
+			stream->source = filePullerFactory->create();
+
+			m_streams.push_back(move(stream));
 		}
-
-		auto stream = make_unique<Stream>();
-		stream->out = addOutput();
-		stream->out->setMetadata(meta);
-		stream->set = &set;
-		stream->segmentDuration = Fraction(set.duration, set.timescale);
-		stream->source = filePullerFactory->create();
-
-		m_streams.push_back(move(stream));
 	}
 
 	for(auto& stream : m_streams) {
-		stream->currNumber = stream->set->startNumber;
+		stream->currNumber = stream->rep->set->startNumber;
 		if(mpd->dynamic) {
 			auto now = mpd->publishTime;
 			if(!mpd->publishTime)
@@ -161,7 +177,7 @@ MPEG_DASH_Input::MPEG_DASH_Input(KHost* host, IFilePullerFactory *filePullerFact
 
 			stream->currNumber += int64_t(stream->segmentDuration.inverse() * (now - mpd->availabilityStartTime));
 			// HACK: add one segment latency
-			stream->currNumber = std::max<int64_t>(stream->currNumber-2, stream->set->startNumber);
+			stream->currNumber = std::max<int64_t>(stream->currNumber-2, stream->rep->set->startNumber);
 		}
 	}
 }
@@ -170,10 +186,10 @@ MPEG_DASH_Input::~MPEG_DASH_Input() {
 }
 
 void MPEG_DASH_Input::processStream(Stream* stream) {
-	auto& set = *stream->set;
+	auto& rep = *stream->rep;
 
 	if (mpd->periodDuration) {
-		if (stream->segmentDuration * (stream->currNumber - set.startNumber) >= mpd->periodDuration) {
+		if (stream->segmentDuration * (stream->currNumber - rep.set->startNumber) >= mpd->periodDuration) {
 			m_host->log(Info, "End of period");
 			m_host->activate(false);
 			return;
@@ -185,14 +201,14 @@ void MPEG_DASH_Input::processStream(Stream* stream) {
 	{
 		map<string, string> vars;
 
-		vars["RepresentationID"] = set.representationId;
+		vars["RepresentationID"] = rep.id;
 
 		if (stream->initializationChunkSent) {
 			vars["Number"] = format("%s", stream->currNumber);
 			stream->currNumber++;
-			url = m_mpdDirname + "/" + expandVars(set.media, vars);
+			url = m_mpdDirname + "/" + expandVars(rep.set->media, vars);
 		} else {
-			url = m_mpdDirname + "/" + expandVars(set.initialization, vars);
+			url = m_mpdDirname + "/" + expandVars(rep.set->initialization, vars);
 		}
 	}
 
@@ -211,7 +227,7 @@ void MPEG_DASH_Input::processStream(Stream* stream) {
 	stream->source->wget(url.c_str(), onBuffer);
 	if (empty) {
 		if (mpd->dynamic) {
-			stream->currNumber = std::max<int64_t>(stream->currNumber - 1, stream->set->startNumber); // too early, retry
+			stream->currNumber = std::max<int64_t>(stream->currNumber - 1, stream->rep->set->startNumber); // too early, retry
 			return;
 		}
 		m_host->log(Error, format("can't download file: '%s'", url).c_str());
@@ -223,8 +239,8 @@ void MPEG_DASH_Input::processStream(Stream* stream) {
 
 void MPEG_DASH_Input::process() {
 	for(auto& stream : m_streams)
-		//processStream(stream.get());
-		stream->executor.post(std::bind(&MPEG_DASH_Input::processStream, this, stream.get()));
+		if (stream->enabled)
+			stream->executor.post(std::bind(&MPEG_DASH_Input::processStream, this, stream.get()));
 }
 
 }
@@ -290,15 +306,14 @@ int64_t parseDate(string s) {
 }
 
 DashMpd parseMpd(span<const char> text) {
-
 	DashMpd r {};
 	DashMpd* mpd = &r;
 
 	auto onNodeStart = [mpd](string name, map<string, string>& attr) {
 		if(name == "AdaptationSet") {
-			AdaptationSet set;
-			set.contentType = attr["contentType"];
-			mpd->sets.push_back(set);
+			auto set = make_unique<AdaptationSet>();
+			set->contentType = attr["contentType"];
+			mpd->sets.push_back(move(set));
 		} else if(name == "Period") {
 			if(!attr["duration"].empty())
 				mpd->periodDuration = parseIso8601Period(attr["duration"]);
@@ -314,28 +329,32 @@ DashMpd parseMpd(span<const char> text) {
 			auto& set = mpd->sets.back();
 
 			if(attr.find("initialization") != attr.end())
-				set.initialization = attr["initialization"];
+				set->initialization = attr["initialization"];
 
 			if(attr.find("media") != attr.end())
-				set.media = attr["media"];
+				set->media = attr["media"];
 
 			int startNumber = atoi(attr["startNumber"].c_str());
-			set.startNumber = std::max<int>(set.startNumber, startNumber);
+			set->startNumber = std::max<int>(set->startNumber, startNumber);
 			if(attr.find("duration") != attr.end())
-				set.duration = atoi(attr["duration"].c_str());
+				set->duration = atoi(attr["duration"].c_str());
 			if(!attr["timescale"].empty())
-				set.timescale = atoi(attr["timescale"].c_str());
+				set->timescale = atoi(attr["timescale"].c_str());
 		} else if(name == "Representation") {
-			auto& set = mpd->sets.back();
-			set.representationId = attr["id"];
-			set.codecs = attr["codecs"];
-			set.mimeType = attr["mimeType"];
+			Representation rep;
+			rep.id = attr["id"];
+			rep.codecs = attr["codecs"];
+			rep.mimeType = attr["mimeType"];
+
+			auto set = mpd->sets.back().get();
+			rep.set = set;
+			set->representations.push_back(rep);
 		}
 	};
 
 	saxParse(text, onNodeStart);
 
-	return  r;
+	return r;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -346,7 +365,6 @@ DashMpd parseMpd(span<const char> text) {
 // vars["Name"] = "john";
 // assert("hello john" == expandVars("hello $Name$", vars));
 string expandVars(string input, map<string,string> const& values) {
-
 	int i=0;
 	auto front = [&]() {
 		return input[i];
