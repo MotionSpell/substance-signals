@@ -180,10 +180,19 @@ MPEG_DASH_Input::~MPEG_DASH_Input() {
 }
 
 void MPEG_DASH_Input::processStream(Stream* stream) {
-	auto& rep = *stream->rep;
+	//evaluate once at start as it may be modified from another thread
+	auto rep = stream->rep;
+
+	if (!rep) {
+		// this adaptation set is disabled: move to the next step
+		if (stream->initializationChunkSent)
+			stream->currNumber++;
+
+		return;
+	}
 
 	if (mpd->periodDuration) {
-		if (stream->segmentDuration * (stream->currNumber - rep.set->startNumber) >= mpd->periodDuration) {
+		if (stream->segmentDuration * (stream->currNumber - rep->set->startNumber) >= mpd->periodDuration) {
 			m_host->log(Info, "End of period");
 			m_host->activate(false);
 			return;
@@ -195,14 +204,14 @@ void MPEG_DASH_Input::processStream(Stream* stream) {
 	{
 		map<string, string> vars;
 
-		vars["RepresentationID"] = rep.id;
+		vars["RepresentationID"] = rep->id;
 
 		if (stream->initializationChunkSent) {
 			vars["Number"] = format("%s", stream->currNumber);
 			stream->currNumber++;
-			url = m_mpdDirname + "/" + expandVars(rep.set->media, vars);
+			url = m_mpdDirname + "/" + expandVars(rep->set->media, vars);
 		} else {
-			url = m_mpdDirname + "/" + expandVars(rep.set->initialization, vars);
+			url = m_mpdDirname + "/" + expandVars(rep->set->initialization, vars);
 		}
 	}
 
@@ -221,7 +230,7 @@ void MPEG_DASH_Input::processStream(Stream* stream) {
 	stream->source->wget(url.c_str(), onBuffer);
 	if (empty) {
 		if (mpd->dynamic) {
-			stream->currNumber = std::max<int64_t>(stream->currNumber - 1, stream->rep->set->startNumber); // too early, retry
+			stream->currNumber = std::max<int64_t>(stream->currNumber - 1, rep->set->startNumber); // too early, retry
 			return;
 		}
 		m_host->log(Error, format("can't download file: '%s'", url).c_str());
@@ -232,8 +241,51 @@ void MPEG_DASH_Input::processStream(Stream* stream) {
 }
 
 void MPEG_DASH_Input::process() {
+	bool allDisabled = true;
+	for (auto &s : m_streams)
+		if (s->rep)
+			allDisabled = false;
+
+	if (allDisabled) {
+		// all streams disabled, stop session
+		m_host->activate(false);
+		return;
+	}
+
 	for(auto& stream : m_streams)
 		stream->executor.post(std::bind(&MPEG_DASH_Input::processStream, this, stream.get()));
+}
+
+int MPEG_DASH_Input::getNumAdaptationSets() const {
+	return getNumOutputs();
+}
+
+int MPEG_DASH_Input::getNumRepresentationsInAdaptationSet(int adaptationSetIdx) const {
+	if (adaptationSetIdx < 0 || adaptationSetIdx >= (int)m_streams.size())
+		throw error("getNumRepresentationsInAdaptationSet(): wrong index");
+
+	return m_streams[adaptationSetIdx]->rep->set->representations.size();
+}
+
+void MPEG_DASH_Input::enableStream(int asIdx, int repIdx) {
+	if (asIdx < 0 || asIdx >=(int)m_streams.size())
+		throw error("enableStream(): wrong adaptation set index");
+
+	if (repIdx < 0 || repIdx >= (int)m_streams[asIdx]->rep->set->representations.size())
+		throw error("enableStream(): wrong representation index");
+
+	m_streams[asIdx]->executor.post([this, asIdx, repIdx]() {
+		m_streams[asIdx]->rep = &m_streams[asIdx]->rep->set->representations[repIdx];
+	});
+}
+
+void MPEG_DASH_Input::disableStream(int asIdx) {
+	if (asIdx < 0 || asIdx >= (int)m_streams.size())
+		throw error("disableStream(): wrong adaptation set index");
+
+	m_streams[asIdx]->executor.post([this, asIdx]() {
+		m_streams[asIdx]->rep = nullptr;
+	});
 }
 
 }

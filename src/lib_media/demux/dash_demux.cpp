@@ -22,6 +22,9 @@ class DashDemuxer : public Module {
 
 			for (int i = 0; i < m_downloader->getNumOutputs(); ++i)
 				addStream(m_downloader->getOutput(i));
+
+			if (cfg->adaptationControlCbk)
+				cfg->adaptationControlCbk(m_downloader.get());
 		}
 
 		void process() override {
@@ -56,7 +59,7 @@ class DashDemuxer : public Module {
 		}
 
 		std::vector<std::shared_ptr<IModule>> modules;
-		std::shared_ptr<IModule> m_downloader;
+		std::unique_ptr<MPEG_DASH_Input> m_downloader;
 };
 
 IModule* createObject(KHost* host, void* va) {

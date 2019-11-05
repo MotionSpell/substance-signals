@@ -188,8 +188,6 @@ unittest("mpeg_dash_input: only get available segments") {
 	source.resources["main/medium/6.m4s"] = "a";
 	source.resources["main/medium/7.m4s"] = "a";
 	auto dash = createModule<MPEG_DASH_Input>(&NullHost, &source, "main/manifest.mpd");
-	auto receive = [&](Data) {};
-	ConnectOutput(dash->getOutput(0), receive);
 
 	for(int i=0; i < 5; ++i)
 		dash->process();
@@ -303,6 +301,56 @@ unittest("mpeg_dash_input: number of outputs is the number of adaptation sets wi
 	auto dash = createModule<MPEG_DASH_Input>(&NullHost, &source, "main/manifest.mpd");
 
 	ASSERT_EQUALS(dash->getNumOutputs(), 1);
+}
+
+unittest("mpeg_dash_input: switch representations in adaption set") {
+	//TODO: set different start numbers for each representation
+	static auto const MPD = R"|(
+<?xml version="1.0"?>
+<MPD>
+  <Period>
+    <AdaptationSet>
+      <SegmentTemplate
+        initialization="$RepresentationID$/init.mp4"
+        media="$RepresentationID$/$Number$.m4s"
+        duration="10"/>
+      <Representation id="low" mimeType="audio/mp4">
+        <SegmentTemplate startNumber="5" />
+      </Representation>
+      <Representation id="high" mimeType="audio/mp4">
+        <SegmentTemplate startNumber="5" />
+      </Representation>
+    </AdaptationSet>
+  </Period>
+</MPD>)|";
+	LocalFilesystem source;
+	source.resources["main/manifest.mpd"] = MPD;
+	source.resources["main/low/init.mp4"] = "a";
+	source.resources["main/high/init.mp4"] = "a";
+
+	auto dash = createModule<MPEG_DASH_Input>(&NullHost, &source, "main/manifest.mpd"); //main/manifest.mpd
+	ASSERT_EQUALS(dash->getNumAdaptationSets(), 1);
+	ASSERT_EQUALS(dash->getNumRepresentationsInAdaptationSet(0), 2);
+
+	dash->process();          //main/low/init.mp4
+	dash->process();          //main/low/5.m4s
+	dash->enableStream(0, 1); //TODO: main/high/init.mp4
+	dash->process();          //main/high/6.m4s
+	dash->enableStream(0, 0); //nothing
+	dash->process();          //main/low/7.m4s
+
+	dash = nullptr;
+
+	ASSERT_EQUALS(
+	std::vector<std::string>( {
+		"main/manifest.mpd",
+		"main/low/init.mp4",
+		"main/low/5.m4s",
+		//"main/high/init.mp4", //TODO
+		"main/high/6.m4s",
+		"main/low/7.m4s",
+	}),
+	source.requests);
 }
 
 std::unique_ptr<IFilePuller> createHttpSource();
