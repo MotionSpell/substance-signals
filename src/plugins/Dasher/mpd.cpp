@@ -144,7 +144,10 @@ Tag mpdToTags(MPD const& mpd) {
 						tSegmentTemplate["startNumber"] = formatInt(0);
 					} else {
 						tSegmentTemplate["startNumber"] = formatInt(adaptationSet.startNumber);
-						tSegmentTemplate["presentationTimeOffset"] = formatInt((mpd.sessionStartTime + period.startTime) * adaptationSet.timescale / 1000);
+
+						auto const pto = (mpd.sessionStartTime + period.startTime) * adaptationSet.timescale / 1000;
+						if (pto)
+							tSegmentTemplate["presentationTimeOffset"] = formatInt(pto);
 					}
 
 					if(adaptationSet.entries.size()) {
