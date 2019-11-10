@@ -300,7 +300,7 @@ unittest("dasher: multi-period folders") {
 	        "    <AdaptationSet segmentAlignment=\"true\" bitstreamSwitching=\"true\">\n"
 	        "      <SegmentTemplate timescale=\"1000\" duration=\"3000\" startNumber=\"0\"/>\n"
 	        "      <Representation id=\"0\" bandwidth=\"0\" mimeType=\"\" codecs=\"\" startWithSAP=\"1\">\n"
-	        "        <SegmentTemplate media=\"1970_01_01_00_00_00/v_0_0x0/v_0_0x0-$Number$.m4s\" initialization=\"v_0_0x0/v_0_0x0-init.mp4\" startNumber=\"0\" presentationTimeOffset=\"0\"/>\n"
+	        "        <SegmentTemplate media=\"1970_01_01_00_00_00/v_0_0x0/v_0_0x0-$Number$.m4s\" initialization=\"v_0_0x0/v_0_0x0-init.mp4\" startNumber=\"0\"/>\n"
 	        "      </Representation>\n"
 	        "    </AdaptationSet>\n"
 	        "  </Period>\n"
