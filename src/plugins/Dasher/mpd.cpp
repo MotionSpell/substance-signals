@@ -56,7 +56,8 @@ Tag mpdToTags(MPD const& mpd) {
 	tMPD["type"] = mpd.dynamic ? "dynamic" : "static";
 	tMPD["id"] = mpd.id;
 	tMPD["profiles"] = mpd.profiles;
-	tMPD["availabilityStartTime"] = formatDate(mpd.availabilityStartTime/1000);
+	if (mpd.dynamic)
+		tMPD["availabilityStartTime"] = formatDate(mpd.availabilityStartTime/1000);
 	tMPD["publishTime"] = formatDate(mpd.publishTime/1000);
 	tMPD["minBufferTime"] = formatPeriod(mpd.minBufferTime);
 	if (mpd.dynamic)
