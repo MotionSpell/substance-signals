@@ -160,7 +160,7 @@ OutputPin insertLogo(Pipeline* pipeline, OutputPin main, std::string path) {
 
 std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 	auto log = &g_PrefixedLogger;
-	auto pipeline = make_unique<Pipeline>(log, cfg.ultraLowLatency, cfg.ultraLowLatency ? Pipelines::Threading::Mono : Pipelines::Threading::OnePerModule);
+	auto pipeline = make_unique<Pipeline>(log, cfg.ultraLowLatency, Pipelines::Threading::OnePerModule);
 
 	DemuxConfig demuxCfg;
 	demuxCfg.url = cfg.input;
