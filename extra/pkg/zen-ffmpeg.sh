@@ -27,6 +27,11 @@ function ffmpeg_build {
   mkdir -p ffmpeg/build/$host
   pushDir ffmpeg/build/$host
 
+  local X264=""
+  
+  # comment to disable GPL FFmpeg using x264
+  X264="--enable-gpl --enable-libx264"
+  
   CFLAGS="-I$PREFIX/include" \
   LDFLAGS="-L$PREFIX/lib" \
   ../../configure \
@@ -37,8 +42,8 @@ function ffmpeg_build {
       --disable-doc \
       --disable-static \
       --enable-shared \
-      --enable-gpl \
-      --enable-libx264 \
+      $X264 \
+      --enable-libopenh264 \
       --enable-zlib \
       --disable-programs \
       --disable-gnutls \
@@ -60,6 +65,7 @@ function ffmpeg_get_deps {
   echo libpthread
   echo x264
   echo zlib
+  echo openh264
 }
 
 
