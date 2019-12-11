@@ -12,7 +12,6 @@
 #include "render_common.hpp"
 #include <thread>
 #include <csignal>
-#include <csignal>
 
 using namespace Modules;
 using namespace Modules::Render;
