@@ -1,7 +1,7 @@
 #include "tests/tests.hpp"
 
 #include <map>
-std::string expandVars(std::string input, std::map<std::string,std::string> const& values);
+std::string expandVars(std::string input, std::map<std::string, std::string> const& values);
 
 using namespace std;
 

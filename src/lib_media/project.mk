@@ -1,6 +1,7 @@
 MYDIR=$(call get-my-dir)
 
 LIB_MEDIA_SRCS:=\
+  $(MYDIR)/common/expand_vars.cpp\
   $(MYDIR)/common/picture.cpp\
   $(MYDIR)/common/iso8601.cpp\
   $(MYDIR)/common/http_puller.cpp\
