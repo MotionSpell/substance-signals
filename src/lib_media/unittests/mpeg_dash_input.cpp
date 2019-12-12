@@ -380,3 +380,10 @@ secondclasstest("mpeg_dash_input: non-existing MPD") {
 	ASSERT_THROWN(createModule<MPEG_DASH_Input>(&NullHost, &sourceFactory, url));
 }
 
+#include "lib_media/common/mpeg_dash_parser.hpp"
+
+unittest("DashMpd: is copyable") {
+	auto mpd = parseMpd({"", 0});
+	auto copy = *mpd;
+	(void)copy;
+}

@@ -15,6 +15,7 @@ struct IAdaptationControl {
 };
 
 struct DashMpd;
+struct Representation;
 
 namespace Modules {
 namespace In {
@@ -33,6 +34,8 @@ class MPEG_DASH_Input : public Module, public IAdaptationControl {
 		void disableStream(int asIdx) override;
 
 	private:
+		std::shared_ptr<IMetadata> createMetadata(Representation const& rep);
+
 		KHost* const m_host;
 
 		std::vector<std::unique_ptr<IFilePuller>> m_sources;

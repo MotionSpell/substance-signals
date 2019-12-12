@@ -5,7 +5,7 @@
 #include <cassert>
 
 namespace {
-static std::string escapeXmlEntities(std::string const& s) {
+std::string escapeXmlEntities(std::string const& s) {
 	std::string r;
 
 	for(auto c : s) {

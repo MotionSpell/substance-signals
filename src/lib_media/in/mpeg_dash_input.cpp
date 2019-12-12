@@ -79,12 +79,12 @@ static string dirName(string path) {
 	return path;
 }
 
-static shared_ptr<IMetadata> createMetadata(Representation const& rep) {
-	if(rep.mimeType == "audio/mp4" || rep.set->contentType == "audio") {
+shared_ptr<IMetadata> MPEG_DASH_Input::createMetadata(Representation const& rep) {
+	if(rep.mimeType == "audio/mp4" || rep.set(mpd.get()).contentType == "audio") {
 		auto meta = make_shared<MetadataPkt>(AUDIO_PKT);
 		meta->codec = rep.codecs;
 		return meta;
-	} else if(rep.mimeType == "video/mp4" || rep.set->contentType == "video") {
+	} else if(rep.mimeType == "video/mp4" || rep.set(mpd.get()).contentType == "video") {
 		auto meta = make_shared<MetadataPkt>(VIDEO_PKT);
 		meta->codec = rep.codecs;
 		return meta;
@@ -104,13 +104,12 @@ MPEG_DASH_Input::MPEG_DASH_Input(KHost* host, IFilePullerFactory *filePullerFact
 	m_mpdDirname = dirName(url);
 
 	//PARSE MPD
-	mpd = make_unique<DashMpd>();
-	*mpd = parseMpd({(const char*)mpdAsText.data(), mpdAsText.size()});
+	mpd = parseMpd({(const char*)mpdAsText.data(), mpdAsText.size()});
 
 	//DECLARE OUTPUT PORTS
 	for(auto& set : mpd->sets) {
-		if (!set->representations.empty()) {
-			auto &rep = set->representations.front();
+		if (!set.representations.empty()) {
+			auto &rep = set.representations.front();
 			auto meta = createMetadata(rep);
 			if(!meta) {
 				m_host->log(Warning, format("Ignoring Representation with unrecognized mime type: '%s'", rep.mimeType).c_str());
@@ -121,7 +120,7 @@ MPEG_DASH_Input::MPEG_DASH_Input(KHost* host, IFilePullerFactory *filePullerFact
 			stream->out = addOutput();
 			stream->out->setMetadata(meta);
 			stream->rep = &rep;
-			stream->segmentDuration = Fraction(set->duration, set->timescale);
+			stream->segmentDuration = Fraction(set.duration, set.timescale);
 			stream->source = filePullerFactory->create();
 
 			m_streams.push_back(move(stream));
@@ -129,7 +128,7 @@ MPEG_DASH_Input::MPEG_DASH_Input(KHost* host, IFilePullerFactory *filePullerFact
 	}
 
 	for(auto& stream : m_streams) {
-		stream->currNumber = stream->rep->set->startNumber;
+		stream->currNumber = stream->rep->set(mpd.get()).startNumber;
 		if(mpd->dynamic) {
 			auto now = mpd->publishTime;
 			if(!mpd->publishTime)
@@ -140,7 +139,7 @@ MPEG_DASH_Input::MPEG_DASH_Input(KHost* host, IFilePullerFactory *filePullerFact
 
 			stream->currNumber += int64_t(stream->segmentDuration.inverse() * (now - mpd->availabilityStartTime));
 			// HACK: add one segment latency
-			stream->currNumber = std::max<int64_t>(stream->currNumber-2, stream->rep->set->startNumber);
+			stream->currNumber = std::max<int64_t>(stream->currNumber-2, stream->rep->set(mpd.get()).startNumber);
 		}
 	}
 }
@@ -161,7 +160,7 @@ void MPEG_DASH_Input::processStream(Stream* stream) {
 	}
 
 	if (mpd->periodDuration) {
-		if (stream->segmentDuration * (stream->currNumber - rep->set->startNumber) >= mpd->periodDuration) {
+		if (stream->segmentDuration * (stream->currNumber - rep->set(mpd.get()).startNumber) >= mpd->periodDuration) {
 			m_host->log(Info, "End of period");
 			m_host->activate(false);
 			return;
@@ -178,9 +177,9 @@ void MPEG_DASH_Input::processStream(Stream* stream) {
 		if (stream->initializationChunkSent) {
 			vars["Number"] = format("%s", stream->currNumber);
 			stream->currNumber++;
-			url = m_mpdDirname + "/" + expandVars(rep->set->media, vars);
+			url = m_mpdDirname + "/" + expandVars(rep->set(mpd.get()).media, vars);
 		} else {
-			url = m_mpdDirname + "/" + expandVars(rep->set->initialization, vars);
+			url = m_mpdDirname + "/" + expandVars(rep->set(mpd.get()).initialization, vars);
 		}
 	}
 
@@ -199,7 +198,7 @@ void MPEG_DASH_Input::processStream(Stream* stream) {
 	stream->source->wget(url.c_str(), onBuffer);
 	if (empty) {
 		if (mpd->dynamic) {
-			stream->currNumber = std::max<int64_t>(stream->currNumber - 1, rep->set->startNumber); // too early, retry
+			stream->currNumber = std::max<int64_t>(stream->currNumber - 1, rep->set(mpd.get()).startNumber); // too early, retry
 			return;
 		}
 		m_host->log(Error, format("can't download file: '%s'", url).c_str());
@@ -233,18 +232,18 @@ int MPEG_DASH_Input::getNumRepresentationsInAdaptationSet(int adaptationSetIdx) 
 	if (adaptationSetIdx < 0 || adaptationSetIdx >= (int)m_streams.size())
 		throw error("getNumRepresentationsInAdaptationSet(): wrong index");
 
-	return m_streams[adaptationSetIdx]->rep->set->representations.size();
+	return m_streams[adaptationSetIdx]->rep->set(mpd.get()).representations.size();
 }
 
 void MPEG_DASH_Input::enableStream(int asIdx, int repIdx) {
 	if (asIdx < 0 || asIdx >=(int)m_streams.size())
 		throw error("enableStream(): wrong adaptation set index");
 
-	if (repIdx < 0 || repIdx >= (int)m_streams[asIdx]->rep->set->representations.size())
+	if (repIdx < 0 || repIdx >= (int)m_streams[asIdx]->rep->set(mpd.get()).representations.size())
 		throw error("enableStream(): wrong representation index");
 
 	m_streams[asIdx]->executor.post([this, asIdx, repIdx]() {
-		m_streams[asIdx]->rep = &m_streams[asIdx]->rep->set->representations[repIdx];
+		m_streams[asIdx]->rep = &m_streams[asIdx]->rep->set(mpd.get()).representations[repIdx];
 	});
 }
 

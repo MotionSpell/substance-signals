@@ -7,6 +7,10 @@ using namespace std;
 
 int64_t parseIso8601Period(string input);
 
+const AdaptationSet& Representation::set(DashMpd const * const mpd) const {
+	return mpd->sets[setIdx];
+}
+
 namespace {
 
 // 'timegm' is GNU/Linux only, use a portable one.
@@ -39,7 +43,7 @@ time_t my_timegm(struct tm * t) {
 }
 
 // "2019-03-04T15:32:17"
-static int64_t parseDate(string s) {
+int64_t parseDate(string s) {
 	int year, month, day, hour, minute, second;
 	int ret = sscanf(s.c_str(), "%04d-%02d-%02dT%02d:%02d:%02d",
 	        &year,
@@ -64,15 +68,14 @@ static int64_t parseDate(string s) {
 
 } //anonymous namespace
 
-DashMpd parseMpd(span<const char> text) {
-	DashMpd r {};
-	DashMpd* mpd = &r;
+unique_ptr<DashMpd> parseMpd(span<const char> text) {
+	auto mpd = make_unique< DashMpd>();
 
-	auto onNodeStart = [mpd](string name, map<string, string>& attr) {
+	auto onNodeStart = [&mpd](string name, map<string, string>& attr) {
 		if(name == "AdaptationSet") {
-			auto set = make_unique<AdaptationSet>();
-			set->contentType = attr["contentType"];
-			mpd->sets.push_back(move(set));
+			AdaptationSet set;
+			set.contentType = attr["contentType"];
+			mpd->sets.push_back(set);
 		} else if(name == "Period") {
 			if(!attr["duration"].empty())
 				mpd->periodDuration = parseIso8601Period(attr["duration"]);
@@ -91,31 +94,31 @@ DashMpd parseMpd(span<const char> text) {
 			auto& set = mpd->sets.back();
 
 			if(attr.find("initialization") != attr.end())
-				set->initialization = attr["initialization"];
+				set.initialization = attr["initialization"];
 
 			if(attr.find("media") != attr.end())
-				set->media = attr["media"];
+				set.media = attr["media"];
 
 			int startNumber = atoi(attr["startNumber"].c_str());
-			set->startNumber = std::max<int>(set->startNumber, startNumber);
+			set.startNumber = std::max<int>(set.startNumber, startNumber);
 			if(attr.find("duration") != attr.end())
-				set->duration = atoi(attr["duration"].c_str());
+				set.duration = atoi(attr["duration"].c_str());
 			if(!attr["timescale"].empty())
-				set->timescale = atoi(attr["timescale"].c_str());
+				set.timescale = atoi(attr["timescale"].c_str());
 		} else if(name == "Representation") {
 			Representation rep;
 			rep.id = attr["id"];
 			rep.codecs = attr["codecs"];
 			rep.mimeType = attr["mimeType"];
+			rep.setIdx = mpd->sets.size() - 1;
 
-			auto set = mpd->sets.back().get();
-			rep.set = set;
-			set->representations.push_back(rep);
+			auto &set = mpd->sets.back();
+			set.representations.push_back(rep);
 		}
 	};
 
 	saxParse(text, onNodeStart);
 
-	return r;
+	return mpd;
 }
 
