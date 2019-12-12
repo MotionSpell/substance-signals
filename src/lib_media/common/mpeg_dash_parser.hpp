@@ -16,9 +16,9 @@ struct Representation {
 
 struct AdaptationSet {
 	std::string media;
-	int startNumber=0;
-	int duration=0;
-	int timescale=1;
+	int startNumber = 0;
+	int duration = 0;
+	int timescale = 1;
 	std::string initialization;
 	std::string contentType;
 	std::vector<Representation> representations;
@@ -29,6 +29,7 @@ struct DashMpd {
 	int64_t availabilityStartTime = 0; // in ms
 	int64_t publishTime = 0; // in ms
 	int64_t periodDuration = 0; // in seconds
+	int64_t minUpdatePeriod = 0;
 	std::vector<std::unique_ptr<AdaptationSet>> sets;
 };
 

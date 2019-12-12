@@ -84,6 +84,9 @@ DashMpd parseMpd(span<const char> text) {
 
 			if(!attr["publishTime"].empty())
 				mpd->publishTime = parseDate(attr["publishTime"]);
+
+			if(!attr["minimumUpdatePeriod"].empty())
+				mpd->minUpdatePeriod = parseIso8601Period(attr["minimumUpdatePeriod"]);
 		} else if(name == "SegmentTemplate") {
 			auto& set = mpd->sets.back();
 
