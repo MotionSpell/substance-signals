@@ -5,11 +5,13 @@
 #include <map>
 #include <string>
 #include <stdexcept>
+#include <cassert>
 
 typedef void NodeStartFunc(std::string, std::map<std::string, std::string>&);
+typedef void NodeEndFunc(std::string);
 
 static
-void saxParse(span<const char> input, std::function<NodeStartFunc> onNodeStart) {
+void saxParse(span<const char> input, std::function<NodeStartFunc> onNodeStart, std::function<NodeEndFunc> onNodeEnd) {
 	using namespace std;
 
 	auto front = [&]() -> int {
@@ -54,7 +56,7 @@ void saxParse(span<const char> input, std::function<NodeStartFunc> onNodeStart) 
 	};
 
 	auto parseNextTag = [&]() {
-		while(input.len && front() != '<')
+		while(input.len && front() != '<' && front() != '/')
 			input += 1;
 		if(input.len == 0)
 			return;
@@ -65,7 +67,8 @@ void saxParse(span<const char> input, std::function<NodeStartFunc> onNodeStart) 
 				// comment
 			} else if(accept('/')) {
 				// closing tag
-				parseIdentifier();
+				auto id = parseIdentifier();
+				onNodeEnd(id);
 			} else {
 				// opening tag
 				auto id = parseIdentifier();
@@ -89,7 +92,14 @@ void saxParse(span<const char> input, std::function<NodeStartFunc> onNodeStart) 
 
 				onNodeStart(id, attr);
 			}
-		}
+		} else if(accept('/')) {
+			if(accept('>')) {
+				// closing tag
+				auto id = parseIdentifier();
+				onNodeEnd(id);
+			}
+		} else
+			assert(0); //char is dispatched but not processed: this is likely a programming error
 	};
 
 	while(input.len)
