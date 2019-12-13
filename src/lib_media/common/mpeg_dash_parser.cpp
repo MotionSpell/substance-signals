@@ -1,7 +1,7 @@
 #include "mpeg_dash_parser.hpp"
 #include "sax_xml_parser.hpp"
+#include <lib_utils/time.hpp>
 #include <algorithm> // max
-#include <time.h>
 #include <stdexcept>
 
 using namespace std;
@@ -11,63 +11,6 @@ int64_t parseIso8601Period(string input);
 const AdaptationSet& Representation::set(DashMpd const * const mpd) const {
 	return mpd->sets[setIdx];
 }
-
-namespace {
-
-// 'timegm' is GNU/Linux only, use a portable one.
-time_t my_timegm(struct tm * t) {
-	auto const MONTHSPERYEAR = 12;
-	static const int cumulatedDays[MONTHSPERYEAR] =
-	{ 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334 };
-
-	long year = 1900 + t->tm_year + t->tm_mon / MONTHSPERYEAR;
-	time_t r = (year - 1970) * 365 + cumulatedDays[t->tm_mon % MONTHSPERYEAR];
-	r += (year - 1968) / 4;
-	r -= (year - 1900) / 100;
-	r += (year - 1600) / 400;
-	if ((year % 4) == 0
-	    && ((year % 100) != 0 || (year % 400) == 0)
-	    && (t->tm_mon % MONTHSPERYEAR) < 2)
-		r--;
-	r += t->tm_mday - 1;
-	r *= 24;
-	r += t->tm_hour;
-	r *= 60;
-	r += t->tm_min;
-	r *= 60;
-	r += t->tm_sec;
-
-	if (t->tm_isdst == 1)
-		r -= 3600;
-
-	return r;
-}
-
-// "2019-03-04T15:32:17"
-int64_t parseDate(string s) {
-	int year, month, day, hour, minute, second;
-	int ret = sscanf(s.c_str(), "%04d-%02d-%02dT%02d:%02d:%02d",
-	        &year,
-	        &month,
-	        &day,
-	        &hour,
-	        &minute,
-	        &second);
-	if(ret != 6)
-		throw std::runtime_error("Invalid date '" + s + "'");
-
-	tm date {};
-	date.tm_year = year - 1900;
-	date.tm_mon = month - 1;
-	date.tm_mday = day;
-	date.tm_hour = hour;
-	date.tm_min = minute;
-	date.tm_sec = second;
-
-	return my_timegm(&date);
-}
-
-} //anonymous namespace
 
 unique_ptr<DashMpd> parseMpd(span<const char> text) {
 	auto mpd = make_unique< DashMpd>();

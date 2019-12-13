@@ -4,15 +4,12 @@
 #include <string>
 #include "lib_utils/fraction.hpp"
 
-#ifdef _WIN32
-int gettimeofday(struct timeval *tp, void *tz);
-#endif
-
 Fraction getUTC();
 uint64_t UTC2NTP(uint64_t absTimeUTCInMs);
 void timeInMsToStr(uint64_t timestamp, char buffer[24], const char *msSeparator = ",");
 std::string getDay();
 std::string getTimeFromUTC();
+int64_t parseDate(std::string s); // "2019-03-04T15:32:17"
 
 struct IUtcClock {
 	virtual Fraction getTime() = 0;
