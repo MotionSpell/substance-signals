@@ -7,6 +7,7 @@ LIB_MEDIA_SRCS:=\
   $(MYDIR)/common/http_puller.cpp\
   $(MYDIR)/common/http_sender.cpp\
   $(MYDIR)/common/mpeg_dash_parser.cpp\
+  $(MYDIR)/common/sax_xml_parser.cpp\
   $(MYDIR)/demux/dash_demux.cpp\
   $(MYDIR)/in/file.cpp\
   $(MYDIR)/in/mpeg_dash_input.cpp\
