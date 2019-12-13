@@ -1,5 +1,5 @@
 #include "mpd.hpp"
-#include "xml.hpp"
+#include <lib_media/common/xml.hpp>
 #include <lib_utils/os.hpp>
 #include <cassert>
 #include <ctime>
