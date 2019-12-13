@@ -37,7 +37,7 @@ struct Mp4MuxConfig {
 	SegmentPolicy segmentPolicy = NoSegment;
 	FragmentPolicy fragmentPolicy = NoFragment;
 	CompatibilityFlag compatFlags = None;
-	IUtcStartTimeQuery* utcStartTime = &g_NullStartTime;
+	IUtcStartTimeQuery const * utcStartTime = &g_NullStartTime;
 	uint32_t MP4_4CC = 0; //when non-null forces a generic descriptor when codec is not recognized
 	std::string lang = "";
 };
@@ -47,6 +47,6 @@ struct Mp4MuxConfigMss {
 	uint64_t segmentDurationInMs = 1000;
 	std::string audioLang {};
 	std::string audioName {};
-	IUtcStartTimeQuery* utcStartTime = &g_NullStartTime;
+	IUtcStartTimeQuery const * utcStartTime = &g_NullStartTime;
 };
 }

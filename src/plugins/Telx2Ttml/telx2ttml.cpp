@@ -99,7 +99,7 @@ class TeletextToTTML : public ModuleS {
 
 	private:
 		KHost* const m_host;
-		IUtcStartTimeQuery* const m_utcStartTime;
+		IUtcStartTimeQuery const * const m_utcStartTime;
 		OutputDefault* output;
 		const std::string lang;
 		const TeletextToTtmlConfig::TimingPolicy timingPolicy;

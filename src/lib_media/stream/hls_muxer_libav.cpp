@@ -170,7 +170,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 		}
 
 		KHost* const m_host;
-		IUtcStartTimeQuery* const m_utcStartTime;
+		IUtcStartTimeQuery const * const m_utcStartTime;
 		std::shared_ptr<IModule> delegate;
 		OutputDefault *outputSegment, *outputManifest;
 		std::vector<PostableSegment> segmentsToPost;

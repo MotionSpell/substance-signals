@@ -32,7 +32,7 @@ class GPACMuxMP4 : public ModuleS {
 
 	private:
 		KHost * const m_host;
-		IUtcStartTimeQuery* const m_utcStartTime;
+		IUtcStartTimeQuery const * const m_utcStartTime;
 
 		void updateFormat(Data data);
 		void declareStream(const IMetadata* metadata);

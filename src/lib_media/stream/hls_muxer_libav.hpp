@@ -9,6 +9,6 @@ struct HlsMuxConfigLibav {
 	std::string baseDir;
 	std::string baseName;
 	std::string options = "";
-	IUtcStartTimeQuery* utcStartTime = &g_NullStartTime;
+	IUtcStartTimeQuery const * utcStartTime = &g_NullStartTime;
 };
 

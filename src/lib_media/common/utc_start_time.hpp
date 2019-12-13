@@ -3,11 +3,11 @@
 #include <stdint.h>
 
 struct IUtcStartTimeQuery {
-	virtual uint64_t query() = 0;
+	virtual uint64_t query() const = 0;
 };
 
 struct NullStartTime : IUtcStartTimeQuery {
-	uint64_t query() override {
+	uint64_t query() const override {
 		return 0;
 	}
 };

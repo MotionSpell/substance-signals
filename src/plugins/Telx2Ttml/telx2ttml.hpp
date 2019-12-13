@@ -15,6 +15,6 @@ struct TeletextToTtmlConfig {
 	int splitDurationInMs = 1000;
 	int maxDelayBeforeEmptyInMs = 2000;
 	TimingPolicy timingPolicy = TimingPolicy::RelativeToSplit;
-	IUtcStartTimeQuery* utcStartTime = &g_NullStartTime;
+	IUtcStartTimeQuery const * utcStartTime = &g_NullStartTime;
 };
 
