@@ -2,6 +2,7 @@
 #include "sax_xml_parser.hpp"
 #include <algorithm> // max
 #include <time.h>
+#include <stdexcept>
 
 using namespace std;
 
@@ -53,7 +54,7 @@ int64_t parseDate(string s) {
 	        &minute,
 	        &second);
 	if(ret != 6)
-		throw runtime_error("Invalid date '" + s + "'");
+		throw std::runtime_error("Invalid date '" + s + "'");
 
 	tm date {};
 	date.tm_year = year - 1900;
