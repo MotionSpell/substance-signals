@@ -9,6 +9,9 @@ function openh264_build {
     *mingw*)
       OS=mingw_nt
       ;;
+    *gnu*)
+      OS=linux
+      ;;
   esac
 
   lazy_download "openh264.tar.gz" "https://github.com/cisco/openh264/archive/v2.0.0.tar.gz"
