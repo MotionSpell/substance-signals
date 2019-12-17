@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -eu
 
 params=()
@@ -20,4 +20,4 @@ for p in "$@" ; do
   esac
 done
 
-ccache "/usr/bin/g++" "${params[@]}"
+ccache "`which g++`" "${params[@]}"

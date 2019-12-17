@@ -12,6 +12,9 @@ function openh264_build {
     *gnu*)
       OS=linux
       ;;
+   *darwin*)
+      OS=darwin
+      ;;
   esac
 
   lazy_download "openh264.tar.gz" "https://github.com/cisco/openh264/archive/v2.0.0.tar.gz"
