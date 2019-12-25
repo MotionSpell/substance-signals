@@ -2,7 +2,7 @@
 function freetype2_build {
   host=$1
 
-  lazy_download "freetype2.tar.bz2" "http://download.savannah.gnu.org/releases/freetype/freetype-2.7.1.tar.bz2"
+  lazy_download "freetype2.tar.bz2" "http://download.savannah.gnu.org/releases/freetype/freetype-2.10.1.tar.gz"
   lazy_extract "freetype2.tar.bz2"
   mkgit "freetype2"
 

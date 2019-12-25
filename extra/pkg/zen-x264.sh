@@ -3,7 +3,7 @@ function x264_build {
   local host=$1
   local crossPrefix=$(get_cross_prefix $BUILD $host)
 
-  lazy_git_clone "git://git.videolan.org/x264.git" x264 40bb56814e56ed342040bdbf30258aab39ee9e89
+  lazy_git_clone "https://github.com/mirror/x264.git" x264 1771b556ee45207f8711744ccbd5d42a3949b14c
 
   (
     cd x264

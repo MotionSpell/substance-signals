@@ -2,7 +2,7 @@
 function ffmpeg_build {
   host=$1
 
-  lazy_download "ffmpeg.tar.gz" "http://ffmpeg.org/releases/ffmpeg-4.0.tar.bz2"
+  lazy_download "ffmpeg.tar.gz" "http://ffmpeg.org/releases/ffmpeg-4.2.1.tar.bz2"
   lazy_extract "ffmpeg.tar.gz"
   mkgit "ffmpeg"
 
@@ -89,27 +89,27 @@ EOF
 
   applyPatch $patchFile1
 
-  #with MPEG-TS input libavformat would assert:
-  #[libav-log::panic] Assertion len >= s->orig_buffer_size failed at src/libavformat/aviobuf.c:581
-  #see https://www.mail-archive.com/ffmpeg-devel@ffmpeg.org/msg36880.html
-  local patchFile2=$scriptDir/patches/ffmpeg_02_avio_mpegts_demux_assert.diff
-  cat << 'EOF' > $patchFile2
-diff --git a/libavformat/aviobuf.c b/libavformat/aviobuf.c
-index e752d0e..3344738 100644
---- a/libavformat/aviobuf.c
-+++ b/libavformat/aviobuf.c
-@@ -578,8 +578,8 @@ static void fill_buffer(AVIOContext *s)
+#   #with MPEG-TS input libavformat would assert:
+#   #[libav-log::panic] Assertion len >= s->orig_buffer_size failed at src/libavformat/aviobuf.c:581
+#   #see https://www.mail-archive.com/ffmpeg-devel@ffmpeg.org/msg36880.html
+#   local patchFile2=$scriptDir/patches/ffmpeg_02_avio_mpegts_demux_assert.diff
+#   cat << 'EOF' > $patchFile2
+# diff --git a/libavformat/aviobuf.c b/libavformat/aviobuf.c
+# index e752d0e..3344738 100644
+# --- a/libavformat/aviobuf.c
+# +++ b/libavformat/aviobuf.c
+# @@ -578,8 +578,8 @@ static void fill_buffer(AVIOContext *s)
 
-             s->checksum_ptr = dst = s->buffer;
-         }
--        av_assert0(len >= s->orig_buffer_size);
--        len = s->orig_buffer_size;
-+        if (len >= s->orig_buffer_size);
-+            len = s->orig_buffer_size;
-     }
+#              s->checksum_ptr = dst = s->buffer;
+#          }
+# -        av_assert0(len >= s->orig_buffer_size);
+# -        len = s->orig_buffer_size;
+# +        if (len >= s->orig_buffer_size);
+# +            len = s->orig_buffer_size;
+#      }
 
-     len = read_packet_wrapper(s, dst, len);
-EOF
+#      len = read_packet_wrapper(s, dst, len);
+# EOF
 
-  applyPatch $patchFile2
+#   applyPatch $patchFile2
 }

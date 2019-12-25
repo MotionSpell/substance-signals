@@ -2,7 +2,7 @@
 function libsdl2_build {
   local host=$1
 
-  lazy_download "libsdl2.tar.gz" "https://www.libsdl.org/release/SDL2-2.0.9.tar.gz"
+  lazy_download "libsdl2.tar.gz" "https://www.libsdl.org/release/SDL2-2.0.10.tar.gz"
   lazy_extract "libsdl2.tar.gz"
   mkgit "libsdl2"
 

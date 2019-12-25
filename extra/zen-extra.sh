@@ -619,6 +619,13 @@ function checkForCommonBuildTools {
     error="1"
   fi
 
+  if isMissing "nasm"; then
+    echo "nasm not installed.  Please install with:"
+    echo "apt-get install nasm"
+    echo ""
+    error="1"
+  fi
+
   if isMissing "wget"; then
     echo "wget not installed.  Please install with:"
     echo "pacman -S msys/wget"

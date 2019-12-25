@@ -1,8 +1,8 @@
 function postgres_build {
-  lazy_download "postgres.tar.bz2" "https://ftp.postgresql.org/pub/source/v10.4/postgresql-10.4.tar.bz2"
+  lazy_download "postgres.tar.bz2" "https://ftp.postgresql.org/pub/source/v10.11/postgresql-10.11.tar.bz2"
   lazy_extract "postgres.tar.bz2"
 
-  # Workaround: out-of-tree mingw builds are broken (postgreSQL 10.4)
+  # Workaround: out-of-tree mingw builds are broken (postgreSQL 10.11)
   # (it can't find libpqdll.def and other .def files).
   # Let the build system regenerate those files, where it can find them aftewards.
   find postgres -name "*.def" -delete
