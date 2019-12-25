@@ -1,7 +1,7 @@
 
 function asio_build {
 
-	lazy_download "asio.tar.gz" https://github.com/chriskohlhoff/asio/archive/asio-1-12-0.tar.gz
+	lazy_download "asio.tar.gz" https://github.com/chriskohlhoff/asio/archive/asio-1-12-2.tar.gz
 	lazy_extract "asio.tar.gz"
 	mkgit asio
 
