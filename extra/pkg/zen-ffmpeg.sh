@@ -31,9 +31,9 @@ function ffmpeg_build {
   
   # comment to disable GPL FFmpeg using x264
   X264="--enable-gpl --enable-libx264"
-  
-  CFLAGS="-I$PREFIX/include" \
-  LDFLAGS="-L$PREFIX/lib" \
+  # --extra-cflags='-I/opt/cuda/include' --extra-ldflags="-L/opt/cuda/lib64" --enable-cuda-nvcc --enable-cuvid --enable-nonfree --enable-ffnvcodec
+  CFLAGS="-I$PREFIX/include -I/opt/cuda/include" \
+  LDFLAGS="-L$PREFIX/lib -L/opt/cuda/lib64"  PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$PREFIX/lib/pkgconfig\
   ../../configure \
       --prefix=$PREFIX \
       --enable-pthreads \
@@ -43,6 +43,7 @@ function ffmpeg_build {
       --disable-static \
       --enable-shared \
       $X264 \
+      --enable-cuda-nvcc --enable-cuvid --enable-nonfree --enable-ffnvcodec \
       --enable-libopenh264 \
       --enable-zlib \
       --disable-programs \
@@ -62,6 +63,9 @@ function ffmpeg_build {
 }
 
 function ffmpeg_get_deps {
+  if [ $ENABLE_NVIDIA == "1" ]; then
+    echo ffnvenc
+  fi 
   echo libpthread
   echo x264
   echo zlib

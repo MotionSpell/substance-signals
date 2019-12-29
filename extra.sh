@@ -6,9 +6,42 @@
 set -e
 unset EXTRA # security: 'EXTRA' is a signals-specific var, don't use it in zenbuild
 export CFLAGS=-w
+unset ENABLE_NVIDIA
+unset ENABLE_AWS
+unset CORES
+
+#TODO add aws
+for i in "$@"
+do
+	case $i in
+	--enable-nvidia*)
+		echo "enabling nvidia for FFmpeg..."
+		export ENABLE_NVIDIA=1
+	;;
+	--enable-aws*)
+		echo "enabling support for AWS SDK"
+		export ENABLE_AWS=1
+	;;
+	--cores=*)
+    CORES="${i#*=}"
+    shift # past argument=value
+	;;
+	--help*)
+		echo "Zenbuild build tool:"
+		echo -e " \t --help prints this message"
+		echo -e " \t --enable-nvidia to enable the use of nvidia supported features \
+in FFmpeg, please refer to this page: \
+https://trac.ffmpeg.org/wiki/HWAccelIntro"
+	;;
+	*)
+	;;
+	esac
+done
 
 if [ -z "$MAKE" ]; then
-	if [ $(uname -s) == "Darwin" ]; then
+	if [[ -n "$CORES" ]]; then
+		echo "Number of cores are user defined, overriding system's default"
+	elif [ $(uname -s) == "Darwin" ]; then
 		CORES=$(sysctl -n hw.logicalcpu)
 	else
 		CORES=$(nproc)

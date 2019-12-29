@@ -24,24 +24,24 @@ function get_root_packages
 {
   local host=$1
 
-  echo srt
+  # echo srt
 
-  if [ "$host" == "x86_64-pc-linux-gnu" ] || [ "$host" = "x86_64-linux-gnu" ]; then
-    echo aws
-  fi
+  # if ([ "$host" == "x86_64-pc-linux-gnu" ] || [ "$host" = "x86_64-linux-gnu" ]) && [ -n $ENABLE_AWS ]; then
+  #   echo aws
+  # fi
 
-  echo libepoxy
-  echo openssl
-  echo sqlite3
-  echo postgres
-  echo asio
+  # echo libepoxy
+  # echo openssl
+  # echo sqlite3
+  # echo postgres
+  # echo asio
   echo ffmpeg
-  echo freetype2
-  echo gpac
-  echo libcurl
-  echo libjpeg-turbo
-  echo libsdl2
-  echo rapidjson
+  # echo freetype2
+  # echo gpac
+  # echo libcurl
+  # echo libjpeg-turbo
+  # echo libsdl2
+  # echo rapidjson
 }
 
 #####################################
@@ -507,6 +507,21 @@ function checkForCommonBuildTools {
     echo "pacman -S pkgconfig"
     echo "or"
     echo "apt-get install pkg-config"
+    echo ""
+    error="1"
+  fi
+
+  # Check CUDA's availability
+  if [ $ENABLE_NVIDIA == "1" ] && isMissing "nvcc"; then
+    echo "nvcc not found, Please install nVidia Cuda Toolkit, and make sure nvcc is available in the PATH"
+    echo "Please check nvidia's website"
+    echo ""
+    error="1"
+  fi
+  
+  if [ $ENABLE_NVIDIA == "1" ] && ( [ -z ${NVIDIA_CODEC_SDK+x} ] || ( ! test -f "$NVIDIA_CODEC_SDK" ) ); then
+    echo "nvcc not found, Please download NVIDIA_CODEC_SDK and provide its path with NVIDIA_CODEC_SDK=/path/to/Video_Codec_SDK_9.1.23.zip"
+    echo "Please check nvidia's website https://developer.nvidia.com/nvidia-video-codec-sdk"
     echo ""
     error="1"
   fi
