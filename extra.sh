@@ -8,6 +8,7 @@ unset EXTRA # security: 'EXTRA' is a signals-specific var, don't use it in zenbu
 export CFLAGS=-w
 unset ENABLE_NVIDIA
 unset ENABLE_AWS
+unset ENABLE_X264
 unset CORES
 
 #TODO add aws
@@ -21,6 +22,10 @@ do
 	--enable-aws*)
 		echo "enabling support for AWS SDK"
 		export ENABLE_AWS=1
+	;;
+	--enable-x264*)
+		echo "enabling support for x264"
+		export ENABLE_X264=1
 	;;
 	--cores=*)
     CORES="${i#*=}"

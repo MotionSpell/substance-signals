@@ -28,8 +28,10 @@ function ffmpeg_build {
   pushDir ffmpeg/build/$host
 
   local X264=""
-  # comment to disable GPL FFmpeg using x264
-  X264="--enable-gpl --enable-libx264"
+  if [ $ENABLE_X264 == "1" ]; then
+    X264="--enable-gpl --enable-libx264"
+  fi 
+  
 
   # crosscompilation + nvidia aren't friends
   local XCOMPILE="--target-os=$os --arch=$ARCH --cross-prefix=$host-"
@@ -73,7 +75,9 @@ function ffmpeg_get_deps {
     echo ffnvenc
   fi 
   echo libpthread
-  echo x264
+  if [ $ENABLE_X264 == "1" ]; then
+    echo x264
+  fi 
   echo zlib
   echo openh264
 }
