@@ -40,8 +40,7 @@ function ffmpeg_build {
     XCOMPILE=""
     NVIDIA=""
   fi
-
-  # --extra-cflags='-I/opt/cuda/include' --extra-ldflags="-L/opt/cuda/lib64" --enable-cuda-nvcc --enable-cuvid --enable-nonfree --enable-ffnvcodec
+  
   CFLAGS="-I$PREFIX/include -I/opt/cuda/include" \
   LDFLAGS="-L$PREFIX/lib -L/opt/cuda/lib64" \
   ../../configure \
