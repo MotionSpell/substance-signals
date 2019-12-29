@@ -28,12 +28,20 @@ function ffmpeg_build {
   pushDir ffmpeg/build/$host
 
   local X264=""
-  
   # comment to disable GPL FFmpeg using x264
   X264="--enable-gpl --enable-libx264"
+
+  # crosscompilation + nvidia aren't friends
+  local XCOMPILE="--target-os=$os --arch=$ARCH --cross-prefix=$host-"
+  local NVIDIA="--enable-cuda-nvcc --enable-cuvid --enable-nonfree --enable-ffnvcodec"
+  if [ $ENABLE_NVIDIA == 1 ]; then
+    XCOMPILE=""
+    NVIDIA=""
+  fi
+
   # --extra-cflags='-I/opt/cuda/include' --extra-ldflags="-L/opt/cuda/lib64" --enable-cuda-nvcc --enable-cuvid --enable-nonfree --enable-ffnvcodec
   CFLAGS="-I$PREFIX/include -I/opt/cuda/include" \
-  LDFLAGS="-L$PREFIX/lib -L/opt/cuda/lib64"  PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$PREFIX/lib/pkgconfig\
+  LDFLAGS="-L$PREFIX/lib -L/opt/cuda/lib64" \
   ../../configure \
       --prefix=$PREFIX \
       --enable-pthreads \
@@ -43,7 +51,7 @@ function ffmpeg_build {
       --disable-static \
       --enable-shared \
       $X264 \
-      --enable-cuda-nvcc --enable-cuvid --enable-nonfree --enable-ffnvcodec \
+      $NVIDIA \
       --enable-libopenh264 \
       --enable-zlib \
       --disable-programs \
@@ -54,9 +62,7 @@ function ffmpeg_build {
       --enable-avresample \
       --disable-decoder=mp3float \
       --pkg-config=pkg-config \
-      --target-os=$os \
-      --arch=$ARCH \
-      --cross-prefix=$host-
+      $XCOMPILE
   $MAKE
   $MAKE install
   popDir
