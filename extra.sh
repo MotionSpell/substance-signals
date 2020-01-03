@@ -6,9 +6,9 @@
 set -e
 unset EXTRA # security: 'EXTRA' is a signals-specific var, don't use it in zenbuild
 export CFLAGS=-w
-unset ENABLE_NVIDIA
-unset ENABLE_AWS
-unset ENABLE_X264
+export ENABLE_NVIDIA=0
+export ENABLE_AWS=0
+export ENABLE_X264=0
 unset CORES
 
 #TODO add aws

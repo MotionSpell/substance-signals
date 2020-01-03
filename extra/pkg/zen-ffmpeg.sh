@@ -35,7 +35,7 @@ function ffmpeg_build {
 
   # crosscompilation + nvidia aren't friends
   local XCOMPILE="--target-os=$os --arch=$ARCH --cross-prefix=$host-"
-  local NVIDIA="--enable-cuda-nvcc --enable-cuvid --enable-nonfree --enable-ffnvcodec"
+  local NVIDIA="--enable-cuda-nvcc --enable-cuvid --enable-nonfree --enable-ffnvcodec  --enable-vdpau "
   if [ $ENABLE_NVIDIA == 1 ]; then
     XCOMPILE=""
     NVIDIA=""
