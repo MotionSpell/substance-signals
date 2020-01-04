@@ -24,7 +24,7 @@ function get_root_packages
 {
   local host=$1
 
-  # echo srt
+  echo srt
 
   if ([ "$host" == "x86_64-pc-linux-gnu" ] || [ "$host" = "x86_64-linux-gnu" ]) && [ -n $ENABLE_AWS ]; then
     echo aws
@@ -42,6 +42,7 @@ function get_root_packages
   echo libjpeg-turbo
   echo libsdl2
   echo rapidjson
+  echo cppredis
 }
 
 #####################################
