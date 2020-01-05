@@ -9,7 +9,7 @@ namespace Transform {
 
 using namespace std;
 
-AudioGapFiller::AudioGapFiller(KHost* host, uint64_t toleranceInFrames)
+AudioGapFiller::AudioGapFiller(KHost* host, int64_t toleranceInFrames)
 	: m_host(host), toleranceInFrames(toleranceInFrames) {
 	input->setMetadata(make_shared<MetadataRawAudio>());
 	output = addOutput();
@@ -26,9 +26,9 @@ void AudioGapFiller::processOne(Data data) {
 	auto const srcNumSamples = audioData->getSampleCount();
 	auto const diff = (int64_t)(timeInSR - accumulatedTimeInSR);
 	if (std::abs(diff) >= srcNumSamples) {
-		if (std::abs(diff) <= srcNumSamples * (1 + (int64_t)toleranceInFrames)) {
+		if (toleranceInFrames == -1 || std::abs(diff) <= srcNumSamples * (1 + (int64_t)toleranceInFrames)) {
 			if (diff > 0) {
-				m_host->log(Warning, format("Fixing gap of %s samples (input=%s, accumulation=%s)", diff, timeInSR, accumulatedTimeInSR).c_str());
+				m_host->log(abs(diff) > srcNumSamples ? Warning : Debug, format("Fixing gap of %s samples (input=%s, accumulation=%s)", diff, timeInSR, accumulatedTimeInSR).c_str());
 				auto dataInThePast = clone(data);
 				dataInThePast->setMediaTime(data->get<PresentationTime>().time - timescaleToClock((uint64_t)srcNumSamples, sampleRate));
 				processOne(dataInThePast);
