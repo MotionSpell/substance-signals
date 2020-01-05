@@ -126,7 +126,7 @@ EOF
 #   applyPatch $patchFile2
 
 
-  local patchFile3=$scriptDir/patches/ffmpeg_01_aacdec_log_debug.diff
+  local patchFile3=$scriptDir/patches/ffmpeg_03_aacdec_log_debug.diff
   cat << 'EOF' > $patchFile3
 diff --git a/libavcodec/aacdec.c b/libavcodec/aacdec.c
 index d17852d8ba..9597b7d6f1 100644
@@ -143,4 +143,44 @@ index d17852d8ba..9597b7d6f1 100644
          }
 EOF
   applyPatch $patchFile3
+
+
+  local patchFile4=$scriptDir/patches/ffmpeg_04_aacdec_log_debug.diff
+  cat << 'EOF' > $patchFile4
+diff --git a/libavformat/movenc.c b/libavformat/movenc.c
+index e422bdd071..e765cf0253 100644
+--- a/libavformat/movenc.c
++++ b/libavformat/movenc.c
+@@ -100,6 +100,7 @@ static const AVOption options[] = {
+     { "encryption_kid", "The media encryption key identifier (hex)", offsetof(MOVMuxContext, encryption_kid), AV_OPT_TYPE_BINARY, .flags = AV_OPT_FLAG_ENCODING_PARAM },
+     { "use_stream_ids_as_track_ids", "use stream ids as track ids", offsetof(MOVMuxContext, use_stream_ids_as_track_ids), AV_OPT_TYPE_BOOL, {.i64 = 0}, 0, 1, AV_OPT_FLAG_ENCODING_PARAM},
+     { "write_tmcd", "force or disable writing tmcd", offsetof(MOVMuxContext, write_tmcd), AV_OPT_TYPE_BOOL, {.i64 = -1}, -1, 1, AV_OPT_FLAG_ENCODING_PARAM},
++    { "ism_offset", "Offset to the ISM fragment start times", offsetof(MOVMuxContext, ism_offset), AV_OPT_TYPE_INT64, {.i64 = 0}, 0, INT_MAX, AV_OPT_FLAG_ENCODING_PARAM},
+     { "write_prft", "Write producer reference time box with specified time source", offsetof(MOVMuxContext, write_prft), AV_OPT_TYPE_INT, {.i64 = MOV_PRFT_NONE}, 0, MOV_PRFT_NB-1, AV_OPT_FLAG_ENCODING_PARAM, "prft"},
+     { "wallclock", NULL, 0, AV_OPT_TYPE_CONST, {.i64 = MOV_PRFT_SRC_WALLCLOCK}, 0, 0, AV_OPT_FLAG_ENCODING_PARAM, "prft"},
+     { "pts", NULL, 0, AV_OPT_TYPE_CONST, {.i64 = MOV_PRFT_SRC_PTS}, 0, 0, AV_OPT_FLAG_ENCODING_PARAM, "prft"},
+@@ -6316,6 +6317,7 @@ static int mov_init(AVFormatContext *s)
+          * this is updated. */
+         track->hint_track = -1;
+         track->start_dts  = AV_NOPTS_VALUE;
++        track->frag_start += mov->ism_offset;
+         track->start_cts  = AV_NOPTS_VALUE;
+         track->end_pts    = AV_NOPTS_VALUE;
+         track->dts_shift  = AV_NOPTS_VALUE;
+diff --git a/libavformat/movenc.h b/libavformat/movenc.h
+index 68d6f23a5a..28766bcaf2 100644
+--- a/libavformat/movenc.h
++++ b/libavformat/movenc.h
+@@ -234,6 +234,8 @@ typedef struct MOVMuxContext {
+     int write_tmcd;
+     MOVPrftBox write_prft;
+     int empty_hdlr_name;
++
++    int64_t ism_offset;
+ } MOVMuxContext;
+ 
+ #define FF_MOV_FLAG_RTP_HINT              (1 <<  0)
+EOF
+  applyPatch $patchFile4
+
 }
