@@ -185,4 +185,23 @@ index 68d6f23a5a..28766bcaf2 100644
 EOF
   applyPatch $patchFile4
 
+
+
+  local patchFile5=$scriptDir/patches/ffmpeg_05_multiple_frames_in_packet_warning.diff
+  cat << 'EOF' > $patchFile5
+diff --git a/libavcodec/decode.c b/libavcodec/decode.c
+index cd275bacc4..b27d746c12 100644
+--- a/libavcodec/decode.c
++++ b/libavcodec/decode.c
+@@ -564,7 +564,7 @@ FF_ENABLE_DEPRECATION_WARNINGS
+         !avci->showed_multi_packet_warning &&
+         ret >= 0 && ret != pkt->size && !(avctx->codec->capabilities & AV_CODEC_CAP_SUBFRAMES)) {
+         av_log(avctx, AV_LOG_WARNING, "Multiple frames in a packet.\n");
+-        avci->showed_multi_packet_warning = 1;
++        //avci->showed_multi_packet_warning = 1;
+     }
+ 
+     if (!got_frame)
+EOF
+  applyPatch $patchFile5
 }
