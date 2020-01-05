@@ -61,6 +61,7 @@ function ffmpeg_build {
       --disable-bzlib \
       --enable-avresample \
       --disable-decoder=mp3float \
+      --enable-libfreetype \
       --pkg-config=pkg-config \
       $XCOMPILE
   $MAKE
@@ -78,6 +79,7 @@ function ffmpeg_get_deps {
   fi 
   echo zlib
   echo openh264
+  echo freetype2
 }
 
 
