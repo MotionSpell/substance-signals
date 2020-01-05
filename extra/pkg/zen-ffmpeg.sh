@@ -31,14 +31,13 @@ function ffmpeg_build {
   if [ $ENABLE_X264 == "1" ]; then
     X264="--enable-gpl --enable-libx264"
   fi 
-  
 
   # crosscompilation + nvidia aren't friends
   local XCOMPILE="--target-os=$os --arch=$ARCH --cross-prefix=$host-"
-  local NVIDIA="--enable-cuda-nvcc --enable-cuvid --enable-nonfree --enable-ffnvcodec  --enable-vdpau "
+  local NVIDIA=""
   if [ $ENABLE_NVIDIA == 1 ]; then
+    NVIDIA="--enable-cuda-nvcc --enable-cuvid --enable-nonfree --enable-ffnvcodec  --enable-vdpau"
     XCOMPILE=""
-    NVIDIA=""
   fi
   
   CFLAGS="-I$PREFIX/include -I/opt/cuda/include" \
