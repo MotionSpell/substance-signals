@@ -26,7 +26,7 @@ void AudioGapFiller::processOne(Data data) {
 	auto const srcNumSamples = audioData->getSampleCount();
 	auto const diff = (int64_t)(timeInSR - accumulatedTimeInSR);
 	if (std::abs(diff) >= srcNumSamples) {
-		if (toleranceInFrames == -1 || std::abs(diff) <= srcNumSamples * (1 + (int64_t)toleranceInFrames)) {
+		if (toleranceInFrames == -1 || (toleranceInFrames > 0 && std::abs(diff) <= srcNumSamples * (1 + (int64_t)toleranceInFrames))) {
 			if (diff > 0) {
 				m_host->log(abs(diff) > srcNumSamples ? Warning : Debug, format("Fixing gap of %s samples (input=%s, accumulation=%s)", diff, timeInSR, accumulatedTimeInSR).c_str());
 				auto dataInThePast = clone(data);
