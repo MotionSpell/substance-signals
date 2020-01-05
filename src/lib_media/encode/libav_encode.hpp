@@ -30,5 +30,6 @@ struct EncoderConfig {
 
 	// OUTPUT: set by the encoder
 	Modules::PixelFormat pixelFormat = Modules::PixelFormat::UNKNOWN;
+	std::string legend_pixel_color = "";
 };
 
