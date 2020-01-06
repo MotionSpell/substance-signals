@@ -9,6 +9,7 @@ export CFLAGS=-w
 export ENABLE_NVIDIA=0
 export ENABLE_AWS=0
 export ENABLE_X264=0
+export ENABLE_FREETYPE2=0
 unset CORES
 
 #TODO add aws
@@ -24,8 +25,12 @@ do
 		export ENABLE_AWS=1
 	;;
 	--enable-x264*)
-		echo "enabling support for x264"
+		echo "enabling support for x264, please, check the license compatibility"
 		export ENABLE_X264=1
+	;;
+	--enable-freetype2*)
+		echo "enabling support for freetype, please, check the license compatibility"
+		export ENABLE_FREETYPE2=1
 	;;
 	--cores=*)
     CORES="${i#*=}"
@@ -34,6 +39,9 @@ do
 	--help*)
 		echo "Zenbuild build tool:"
 		echo -e " \t --help prints this message"
+		echo -e " \t --enable-aws to enable aws sdk support"
+		echo -e " \t --enable-x264 to enable x264 support"
+		echo -e " \t --enable-freetype2 to enable freetype2 support"
 		echo -e " \t --enable-nvidia to enable the use of nvidia supported features \
 in FFmpeg, please refer to this page: \
 https://trac.ffmpeg.org/wiki/HWAccelIntro"

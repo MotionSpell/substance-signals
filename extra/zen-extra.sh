@@ -36,7 +36,6 @@ function get_root_packages
   echo postgres
   echo asio
   echo ffmpeg
-  echo freetype2
   echo gpac
   echo libcurl
   echo libjpeg-turbo

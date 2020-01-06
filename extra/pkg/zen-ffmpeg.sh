@@ -79,7 +79,9 @@ function ffmpeg_get_deps {
   fi 
   echo zlib
   echo openh264
-  echo freetype2
+  if [ $ENABLE_FREETYPE2 == "1" ]; then
+    echo freetype2
+  fi 
 }
 
 
