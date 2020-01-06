@@ -62,6 +62,7 @@ class IsoSample : public GF_ISOSample {
 			DTS = 0;
 			CTS_Offset = 0;
 			IsRAP = RAP_NO;
+			nb_pack = 0;
 		}
 		IsoSample(GF_ISOSample* pOther) {
 			*((GF_ISOSample*)this) = *pOther;
