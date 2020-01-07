@@ -1,8 +1,9 @@
 function cppredis_build {
   host=$1
 
-  readonly hash=bbe38a7f83de943ffcc90271092d689ae02b3489 #v4.3.1
-  lazy_git_clone https://github.com/Cylix/cpp_redis.git cppredis "$hash"
+  lazy_git_clone https://github.com/cpp-redis/cpp_redis cppredis "d1fc9c7cc61111958a30a9e366a7d6acea1306c4"
+  sed -i "s/WINSOCK_API_LINKAGE/\/\/WINSOCK_API_LINKAGE/" cppredis/tacopie/sources/network/common/tcp_socket.cpp
+  sed -i "s/WINSOCK_API_LINKAGE/\/\/WINSOCK_API_LINKAGE/" cppredis/tacopie/sources/network/windows/windows_tcp_socket.cpp
 
   rm -rf cppredis/bin/$host
   mkdir -p cppredis/bin/$host
