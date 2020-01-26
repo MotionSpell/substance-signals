@@ -61,7 +61,7 @@ unique_ptr<DashMpd> parseMpd(span<const char> text) {
 		}
 	};
 
-	saxParse(text, onNodeStart, [](string) {});
+	saxParse(text, onNodeStart, [](string, string) {});
 
 	return mpd;
 }

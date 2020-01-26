@@ -5,6 +5,8 @@
 void saxParse(span<const char> input, std::function<NodeStartFunc> onNodeStart, std::function<NodeEndFunc> onNodeEnd) {
 	using namespace std;
 
+	std::string content;
+
 	auto front = [&]() -> int {
 		if(input.len == 0)
 			throw runtime_error("Unexpected end of file");
@@ -47,10 +49,12 @@ void saxParse(span<const char> input, std::function<NodeStartFunc> onNodeStart, 
 	};
 
 	auto parseNextTag = [&]() {
-		while(input.len && front() != '<' && front() != '/')
+		while(input.len && front() != '<' && front() != '>' && front() != '/')
 			input += 1;
+
 		if(input.len == 0)
 			return;
+
 		if(accept('<')) {
 			if(accept('?')) {
 				// XML stuff
@@ -59,9 +63,10 @@ void saxParse(span<const char> input, std::function<NodeStartFunc> onNodeStart, 
 			} else if(accept('/')) {
 				// closing tag
 				auto id = parseIdentifier();
-				onNodeEnd(id);
+				onNodeEnd(id, content);
 			} else {
 				// opening tag
+				content = "";
 				auto id = parseIdentifier();
 				skipSpaces();
 
@@ -83,11 +88,18 @@ void saxParse(span<const char> input, std::function<NodeStartFunc> onNodeStart, 
 
 				onNodeStart(id, attr);
 			}
+		} else if(accept('>')) {
+			// content
+			while(input.len && front() != '<') {
+				content += front();
+				input += 1;
+			}
 		} else if(accept('/')) {
 			if(accept('>')) {
 				// closing tag
+				assert(content == "");
 				auto id = parseIdentifier();
-				onNodeEnd(id);
+				onNodeEnd(id, content);
 			}
 		} else
 			assert(0); //char is dispatched but not processed: this is likely a programming error

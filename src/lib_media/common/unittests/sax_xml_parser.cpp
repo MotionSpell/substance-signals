@@ -34,7 +34,7 @@ unittest("SAX XML parser: normal")
       (void)attributes;
       tagsS.push_back(name);
    };
-   auto onNodeEnd = [&](std::string name) {
+   auto onNodeEnd = [&](std::string name, std::string /*content*/) {
       tagsE.push_back(name);
    };
 
@@ -78,6 +78,26 @@ unittest("SAX XML parser: normal")
    ASSERT_EQUALS(expectedE, tagsE);
 }
 
+
+static const char xmlTestDataContent[] = R"(
+<?xml version="1.0" encoding="utf-8"?>
+<A>a</A>
+<B>
+<C>c</C>
+<!-- This is a comment -->
+<D>d</D>
+<B>
+)";
+
+unittest("SAX XML parser: get element contents") {
+   std::vector<std::string> contents;
+	auto onNodeStart = [&](std::string, std::map<std::string, std::string>&) {};
+	auto onNodeEnd = [&](std::string, std::string content) { contents.push_back(content); };
+
+	saxParse(xmlTestDataContent, onNodeStart, onNodeEnd);
+   ASSERT_EQUALS( std::vector<std::string>({"a", "c", "d"}), contents);
+}
+
 static const char invalidXmlTestData[] = R"(
 <?xml version="1.0" encoding="utf-8"?>
 <Hello>
@@ -88,7 +108,7 @@ static const char invalidXmlTestData[] = R"(
 
 unittest("SAX XML parser: invalid") {
 	auto onNodeStart = [&](std::string, std::map<std::string, std::string>&) {};
-	auto onNodeEnd = [&](std::string) {};
+	auto onNodeEnd = [&](std::string, std::string) {};
 
 	ASSERT_THROWN(saxParse(invalidXmlTestData, onNodeStart, onNodeEnd));
 }
