@@ -172,9 +172,9 @@ struct LibavEncode : ModuleS {
 				f->data[i] = (uint8_t*)pic->getPlane(i);
 				f->linesize[i] = (int)pic->getStride(i);
 				if (sizeof(legend_pixel_colors) >= (unsigned int)(i+1) && legend_pixel_colors[i] > -1) {
-                	for (size_t j = 0; j < (unsigned)(long)(f->linesize[i]/3); j++) {
-                    	f->data[i][j] = legend_pixel_colors[i];
-                	}
+					for (size_t j = 0; j < (unsigned)(long)(f->linesize[i]/3); j++) {
+						f->data[i][j] = legend_pixel_colors[i];
+					}
 				}
 			}
 			computeFrameAttributes(f, data->get<PresentationTime>().time);
@@ -182,39 +182,39 @@ struct LibavEncode : ModuleS {
 		}
 
 		void setLegendPixelColors(EncoderConfig &params) {
-    		if (params.legend_pixel_color == "green") {
-    		   legend_pixel_colors[0] = 149;
-    		   legend_pixel_colors[1] = 43;
-    		   legend_pixel_colors[2] = 21;
-    		} else if (params.legend_pixel_color == "blue") {
-    		   legend_pixel_colors[0] = 29;
-    		   legend_pixel_colors[1] = 255;
-    		   legend_pixel_colors[2] = 107;
-    		} else if (params.legend_pixel_color == "red") {
-    		   legend_pixel_colors[0] = 76;
-    		   legend_pixel_colors[1] = 84;
-    		   legend_pixel_colors[2] = 255;
-    		} else if (params.legend_pixel_color == "pink") {
-    		    legend_pixel_colors[0] = 105;
-    		    legend_pixel_colors[1] = 212;
-    		    legend_pixel_colors[2] = 234;
-    		} else if (params.legend_pixel_color == "yellow") {
-    		   legend_pixel_colors[0] = 225;
-    		   legend_pixel_colors[1] = 0;
-    		   legend_pixel_colors[2] = 148;
-    		} else if (params.legend_pixel_color == "cyan") {
-    		    legend_pixel_colors[0] = 178;
-    		    legend_pixel_colors[1] = 171;
-    		    legend_pixel_colors[2] = 0;
-    		} else if (params.legend_pixel_color == "orange") {
-    		    legend_pixel_colors[0] = 173;
-    		    legend_pixel_colors[1] = 30;
-    		    legend_pixel_colors[2] = 186;
-    		} else if (params.legend_pixel_color == "purple") {
-    		    legend_pixel_colors[0] = 52;
-    		    legend_pixel_colors[1] = 170;
-    		    legend_pixel_colors[2] = 181;
-    		}
+			if (params.legend_pixel_color == "green") {
+				legend_pixel_colors[0] = 149;
+				legend_pixel_colors[1] = 43;
+				legend_pixel_colors[2] = 21;
+			} else if (params.legend_pixel_color == "blue") {
+				legend_pixel_colors[0] = 29;
+				legend_pixel_colors[1] = 255;
+				legend_pixel_colors[2] = 107;
+			} else if (params.legend_pixel_color == "red") {
+				legend_pixel_colors[0] = 76;
+				legend_pixel_colors[1] = 84;
+				legend_pixel_colors[2] = 255;
+			} else if (params.legend_pixel_color == "pink") {
+				legend_pixel_colors[0] = 105;
+				legend_pixel_colors[1] = 212;
+				legend_pixel_colors[2] = 234;
+			} else if (params.legend_pixel_color == "yellow") {
+				legend_pixel_colors[0] = 225;
+				legend_pixel_colors[1] = 0;
+				legend_pixel_colors[2] = 148;
+			} else if (params.legend_pixel_color == "cyan") {
+				legend_pixel_colors[0] = 178;
+				legend_pixel_colors[1] = 171;
+				legend_pixel_colors[2] = 0;
+			} else if (params.legend_pixel_color == "orange") {
+				legend_pixel_colors[0] = 173;
+				legend_pixel_colors[1] = 30;
+				legend_pixel_colors[2] = 186;
+			} else if (params.legend_pixel_color == "purple") {
+				legend_pixel_colors[0] = 52;
+				legend_pixel_colors[1] = 170;
+				legend_pixel_colors[2] = 181;
+			}
 		}
 
 		void processOne(Data data) {
