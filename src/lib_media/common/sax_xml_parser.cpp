@@ -6,6 +6,7 @@ void saxParse(span<const char> input, std::function<NodeStartFunc> onNodeStart, 
 	using namespace std;
 
 	std::string content;
+	bool voidContent = false;
 
 	auto front = [&]() -> int {
 		if(input.len == 0)
@@ -64,9 +65,12 @@ void saxParse(span<const char> input, std::function<NodeStartFunc> onNodeStart, 
 				// closing tag
 				auto id = parseIdentifier();
 				onNodeEnd(id, content);
+				content.clear();
+				voidContent = true;
 			} else {
 				// opening tag
-				content = "";
+				content.clear();
+				voidContent = false;
 				auto id = parseIdentifier();
 				skipSpaces();
 
@@ -91,14 +95,16 @@ void saxParse(span<const char> input, std::function<NodeStartFunc> onNodeStart, 
 		} else if(accept('>')) {
 			// content
 			while(input.len && front() != '<') {
-				content += front();
+				if (!voidContent)
+					content += front();
+
 				input += 1;
 			}
 		} else if(accept('/')) {
 			if(accept('>')) {
-				// closing tag
-				assert(content == "");
+				// self closing tag
 				auto id = parseIdentifier();
+				assert(content == "");
 				onNodeEnd(id, content);
 			}
 		} else

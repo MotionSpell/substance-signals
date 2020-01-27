@@ -81,12 +81,14 @@ unittest("SAX XML parser: normal")
 
 static const char xmlTestDataContent[] = R"(
 <?xml version="1.0" encoding="utf-8"?>
-<A>a</A>
-<B>
-<C>c</C>
-<!-- This is a comment -->
-<D>d</D>
-<B>
+ <A>a</A>
+ <B>
+  <C>c</C>
+  <!-- This is a comment -->
+
+  <D>d</D>
+
+ </B>
 )";
 
 unittest("SAX XML parser: get element contents") {
@@ -95,7 +97,7 @@ unittest("SAX XML parser: get element contents") {
 	auto onNodeEnd = [&](std::string, std::string content) { contents.push_back(content); };
 
 	saxParse(xmlTestDataContent, onNodeStart, onNodeEnd);
-   ASSERT_EQUALS( std::vector<std::string>({"a", "c", "d"}), contents);
+   ASSERT_EQUALS( std::vector<std::string>({"a", "c", "d", ""}), contents);
 }
 
 static const char invalidXmlTestData[] = R"(
