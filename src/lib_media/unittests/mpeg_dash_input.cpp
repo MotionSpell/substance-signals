@@ -99,7 +99,7 @@ unittest("mpeg_dash_input: retrieve codec name") {
     <AdaptationSet>
       <ContentComponent id="1"/>
       <SegmentTemplate initialization="audio-init.mp4" media="audio-$Number$.m4s" startNumber="10" />
-      <Representation id="audio" mimeType="audio/mp4"/>
+      <Representation id="audio" mimeType="audio/mp4" codecs="toto"/>
     </AdaptationSet>
   </Period>
 </MPD>)|";
@@ -107,6 +107,7 @@ unittest("mpeg_dash_input: retrieve codec name") {
 	source.resources["http://single.mpd"] = MPD;
 	auto dash = createModule<MPEG_DASH_Input>(&NullHost, &source, "http://single.mpd");
 	ASSERT_EQUALS(1, dash->getNumOutputs());
+	ASSERT_EQUALS("toto", std::dynamic_pointer_cast<const MetadataPkt>(dash->getOutput(0)->getMetadata())->codec);
 }
 
 unittest("mpeg_dash_input: get chunks") {
