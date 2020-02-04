@@ -10,6 +10,7 @@ export ENABLE_NVIDIA=0
 export ENABLE_AWS=0
 export ENABLE_X264=0
 export ENABLE_FREETYPE2=0
+export ENABLE_FFMPEG_PROGRAMS=0
 unset CORES
 
 #TODO add aws
@@ -32,6 +33,10 @@ do
 		echo "enabling support for freetype, please, check the license compatibility"
 		export ENABLE_FREETYPE2=1
 	;;
+	--enable-ffmpeg-programs*)
+		echo "enabling support for ffmpeg programs"
+		export ENABLE_FFMPEG_PROGRAMS=1
+	;;
 	--cores=*)
     CORES="${i#*=}"
     shift # past argument=value
@@ -42,6 +47,7 @@ do
 		echo -e " \t --enable-aws to enable aws sdk support"
 		echo -e " \t --enable-x264 to enable x264 support"
 		echo -e " \t --enable-freetype2 to enable freetype2 support"
+		echo -e " \t --enable-ffmpeg-programs to enable ffmpeg programs"
 		echo -e " \t --enable-nvidia to enable the use of nvidia supported features \
 in FFmpeg, please refer to this page: \
 https://trac.ffmpeg.org/wiki/HWAccelIntro"

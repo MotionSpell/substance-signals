@@ -39,7 +39,12 @@ function ffmpeg_build {
     NVIDIA="--enable-cuda-nvcc --enable-cuvid --enable-nonfree --enable-ffnvcodec  --enable-vdpau"
     XCOMPILE=""
   fi
-  
+  local PROGRAMS="--disable-programs"
+  if [ $ENABLE_FFMPEG_PROGRAMS == 1 ]; then
+    PROGRAMS=""
+    XCOMPILE=""
+  fi
+
   CFLAGS="-I$PREFIX/include -I/opt/cuda/include" \
   LDFLAGS="-L$PREFIX/lib -L/opt/cuda/lib64" \
   ../../configure \
@@ -54,7 +59,7 @@ function ffmpeg_build {
       $NVIDIA \
       --enable-libopenh264 \
       --enable-zlib \
-      --disable-programs \
+      $PROGRAMS \
       --disable-gnutls \
       --disable-openssl \
       --disable-iconv \
