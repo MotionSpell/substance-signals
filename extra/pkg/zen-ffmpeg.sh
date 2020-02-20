@@ -39,6 +39,10 @@ function ffmpeg_build {
     NVIDIA="--enable-cuda-nvcc --enable-cuvid --enable-nonfree --enable-ffnvcodec  --enable-vdpau"
     XCOMPILE=""
   fi
+  local FREETYPE2=""
+  if [ $ENABLE_FREETYPE2 == "1" ]; then
+    FREETYPE2="--enable-libfreetype"
+  fi
   local PROGRAMS="--disable-programs"
   if [ $ENABLE_FFMPEG_PROGRAMS == 1 ]; then
     PROGRAMS=""
@@ -66,7 +70,7 @@ function ffmpeg_build {
       --disable-bzlib \
       --enable-avresample \
       --disable-decoder=mp3float \
-      --enable-libfreetype \
+      $FREETYPE2 \
       --pkg-config=pkg-config \
       $XCOMPILE
   $MAKE
