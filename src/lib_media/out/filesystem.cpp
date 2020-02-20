@@ -60,7 +60,7 @@ class FileSystemSink : public ModuleS {
 
 			if(m_files.find(path) == m_files.end()) {
 				ensureDirRecurse(dirName(path));
-				m_files.insert({path, openOutput(path)});
+				m_files.insert(std::pair<std::string, std::ofstream> {path, openOutput(path)});
 			}
 
 			auto& fp = m_files[path];
