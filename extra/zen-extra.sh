@@ -724,6 +724,15 @@ function checkForCommonBuildTools {
     error="1"
   fi
 
+  if isMissing "meson" ; then
+    echo "meson not installed.  Please install with:"
+    echo "pacman -S msys/meson"
+    echo "or"
+    echo "apt-get install meson"
+    echo ""
+    error="1"
+  fi
+
   if isMissing "svn" ; then
     echo "svn not installed.  Please install with:"
     echo "pacman -S msys/subversion"
