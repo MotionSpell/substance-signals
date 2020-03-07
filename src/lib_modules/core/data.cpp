@@ -50,12 +50,14 @@ void DataBase::copyAttributes(DataBase const& from) {
 }
 
 std::shared_ptr<DataBase> clone(std::shared_ptr<const DataBase> data) {
-	return std::make_shared<DataBaseRef>(data);
+	auto clone = std::make_shared<DataBaseRef>(data);
+	clone->copyAttributes(*data);
+	return clone;
 }
 
 DataBaseRef::DataBaseRef(std::shared_ptr<const DataBase> data) {
 	if (data) {
-		copyAttributes(*data);
+		// don't copy attributes as they can't be overwritten
 		setMetadata(data->getMetadata());
 		auto ref = std::dynamic_pointer_cast<const DataBaseRef>(data);
 		if (ref) {

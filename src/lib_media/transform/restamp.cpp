@@ -60,7 +60,6 @@ void Restamp::processOne(Data data) {
 	auto const restampedTime = restamp(time);
 	m_host->log(((time != 0) && (time + offset < 0)) ? Info : Debug, format("%s -> %ss (time=%s, offset=%s)", (double)time / IClock::Rate, (double)(restampedTime) / IClock::Rate, time, offset).c_str());
 	auto dataOut = clone(data);
-	dataOut->copyAttributes(*data);
 	dataOut->set(PresentationTime{restampedTime});
 	output->post(dataOut);
 }
@@ -77,7 +76,6 @@ void BitrateRestamp::processOne(Data data) {
 
 	auto dataOut = clone(data);
 	dataOut->set(PresentationTime{timestamp});
-	dataOut->copyAttributes(*data);
 	output->post(dataOut);
 	m_totalBits += 8 * data->data().len;
 }

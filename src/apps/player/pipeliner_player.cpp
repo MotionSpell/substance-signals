@@ -41,7 +41,6 @@ struct ZeroRestamper : Module {
 			auto restampedTime = dataTime - startTime;
 
 			auto dataOut = clone(dataIn);
-			dataOut->copyAttributes(*dataIn);
 			dataOut->set(PresentationTime{restampedTime});
 
 			outputs[idx]->post(dataOut);
