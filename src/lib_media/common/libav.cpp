@@ -52,6 +52,7 @@ static Mapping computeMapping() {
 	r.add(AV_CODEC_ID_PNG, "png");
 	r.add(AV_CODEC_ID_RAWVIDEO, "raw_video");
 	r.add(AV_CODEC_ID_FIRST_AUDIO, "raw_audio");
+	r.add(AV_CODEC_ID_DVB_TELETEXT, "dvb_teletext");
 
 	return r;
 }
