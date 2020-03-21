@@ -26,7 +26,7 @@ struct DasherConfig {
 	bool forceRealDurations = false;
 
 	struct TileInfo {
-		int group, posX, posY, width, height;
+		int sourceId, objectX, objectY, objectWidth, objectHeight, totalWidth, totalHeight;
 	};
 	std::vector<TileInfo> tileInfo = {}; // AdaptationSet SupplementalProperty - follows input pin order when present
 

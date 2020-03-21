@@ -260,11 +260,13 @@ struct AdaptiveStreamer : ModuleDynI {
 		Data currData; // TODO: completely remove this member
 
 		bool scheduleRepresentation(int repIdx) {
-			if (isComplete(repIdx))
+			if (isComplete(repIdx)) {
 				return true;
+			}
 
-			if (!inputs[repIdx]->tryPop(currData) || !currData)
+			if (!inputs[repIdx]->tryPop(currData) || !currData) {
 				return false;
+			}
 
 			auto& quality = qualities[repIdx];
 
@@ -459,7 +461,8 @@ class Dasher : public AdaptiveStreamer {
 					std::string supplementalProperty;
 					if (!m_cfg.tileInfo.empty()) {
 						auto &ti = m_cfg.tileInfo[repIdx];
-						supplementalProperty = format("%s,%s,%s,%s,%s", ti.group, ti.posX, ti.posY, ti.width, ti.height);
+						supplementalProperty = format("%s,%s,%s,%s,%s", ti.sourceId,
+							ti.objectX, ti.objectY, ti.objectWidth, ti.objectHeight, ti.totalWidth, ti.totalHeight);
 					}
 
 					auto& as = adaptationSets[ { meta->type, meta->lang, supplementalProperty }];

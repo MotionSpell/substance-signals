@@ -21,13 +21,16 @@ std::shared_ptr<DataBase> createPacket(SpanC raw) {
 	return pkt;
 }
 
+auto const segmentDuration = IClock::Rate * 3;
+auto const segmentDurationInMs = clockToTimescale(segmentDuration, 1000);
+
 std::shared_ptr<DataBase> getTestSegment(std::string lang = "") {
 	static const uint8_t markerData[] = { 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F };
 
 	auto r = createPacket(markerData);
 
 	auto meta = make_shared<MetadataFile>(VIDEO_PKT);
-	meta->durationIn180k = IClock::Rate * 3;
+	meta->durationIn180k = segmentDuration;
 	meta->lang = lang;
 	r->setMetadata(meta);
 
@@ -45,7 +48,7 @@ struct MyOutput : ModuleS {
 
 unittest("dasher: simple live") {
 	DasherConfig cfg {};
-	cfg.segDurationInMs = 3000;
+	cfg.segDurationInMs = segmentDurationInMs;
 	cfg.live = true;
 	auto dasher = loadModule("MPEG_DASH", &NullHost, &cfg);
 
@@ -76,7 +79,7 @@ unittest("dasher: simple live") {
 
 unittest("dasher: two live streams") {
 	DasherConfig cfg {};
-	cfg.segDurationInMs = 2000;
+	cfg.segDurationInMs = segmentDurationInMs;
 	cfg.live = true;
 	auto dasher = loadModule("MPEG_DASH", &NullHost, &cfg);
 
@@ -115,8 +118,8 @@ unittest("dasher: timeshift buffer") {
 	};
 
 	DasherConfig cfg {};
-	cfg.segDurationInMs = 3000;
-	cfg.timeShiftBufferDepthInMs = 9000;
+	cfg.segDurationInMs = segmentDurationInMs;
+	cfg.timeShiftBufferDepthInMs = 3 * segmentDurationInMs;
 	cfg.live = true;
 	auto dasher = loadModule("MPEG_DASH", &NullHost, &cfg);
 
@@ -137,7 +140,7 @@ unittest("dasher: timeshift buffer") {
 
 unittest("dasher: timing computation") {
 	DasherConfig cfg {};
-	cfg.segDurationInMs = 3000;
+	cfg.segDurationInMs = segmentDurationInMs;
 	cfg.live = true;
 	struct MyUtcClock : IUtcClock {
 		Fraction getTime() {
@@ -173,21 +176,21 @@ unittest("dasher: timing computation") {
 	        "  </ProgramInformation>\n"
 	        "  <Period id=\"1\" start=\"PT00H00M0.000S\">\n"
 	        "    <AdaptationSet segmentAlignment=\"true\" bitstreamSwitching=\"true\">\n"
-	        "      <SegmentTemplate timescale=\"1000\" duration=\"3000\" startNumber=\"0\"/>\n"
+	        "      <SegmentTemplate timescale=\"1000\" duration=\"%s\" startNumber=\"0\"/>\n"
 	        "      <Representation id=\"0\" bandwidth=\"0\" mimeType=\"\" codecs=\"\" startWithSAP=\"1\">\n"
 	        "        <SegmentTemplate media=\"v_0_0x0/v_0_0x0-$Number$.m4s\" initialization=\"v_0_0x0/v_0_0x0-init.mp4\" startNumber=\"0\"/>\n"
 	        "      </Representation>\n"
 	        "    </AdaptationSet>\n"
 	        "  </Period>\n"
 	        "</MPD>\n",
-	        g_version);
+	        g_version, segmentDurationInMs);
 
 	ASSERT_EQUALS(expectedMpd, mpdAnalyzer->mpd);
 }
 
 unittest("dasher: multiple languages") {
 	DasherConfig cfg {};
-	cfg.segDurationInMs = 3000;
+	cfg.segDurationInMs = segmentDurationInMs;
 	cfg.live = true;
 	struct MyUtcClock : IUtcClock {
 		Fraction getTime() {
@@ -227,27 +230,27 @@ unittest("dasher: multiple languages") {
 	        "  </ProgramInformation>\n"
 	        "  <Period id=\"1\" start=\"PT00H00M0.000S\">\n"
 	        "    <AdaptationSet segmentAlignment=\"true\" bitstreamSwitching=\"true\" lang=\"eng\">\n"
-	        "      <SegmentTemplate timescale=\"1000\" duration=\"3000\" startNumber=\"0\"/>\n"
+	        "      <SegmentTemplate timescale=\"1000\" duration=\"%s\" startNumber=\"0\"/>\n"
 	        "      <Representation id=\"0\" bandwidth=\"0\" mimeType=\"\" codecs=\"\" startWithSAP=\"1\">\n"
 	        "        <SegmentTemplate media=\"v_0_0x0/v_0_0x0-$Number$.m4s\" initialization=\"v_0_0x0/v_0_0x0-init.mp4\" startNumber=\"0\"/>\n"
 	        "      </Representation>\n"
 	        "    </AdaptationSet>\n"
 	        "    <AdaptationSet segmentAlignment=\"true\" bitstreamSwitching=\"true\" lang=\"fra\">\n"
-	        "      <SegmentTemplate timescale=\"1000\" duration=\"3000\" startNumber=\"0\"/>\n"
+	        "      <SegmentTemplate timescale=\"1000\" duration=\"%s\" startNumber=\"0\"/>\n"
 	        "      <Representation id=\"1\" bandwidth=\"0\" mimeType=\"\" codecs=\"\" startWithSAP=\"1\">\n"
 	        "        <SegmentTemplate media=\"v_1_0x0/v_1_0x0-$Number$.m4s\" initialization=\"v_1_0x0/v_1_0x0-init.mp4\" startNumber=\"0\"/>\n"
 	        "      </Representation>\n"
 	        "    </AdaptationSet>\n"
 	        "  </Period>\n"
 	        "</MPD>\n",
-	        g_version);
+	        g_version, segmentDurationInMs, segmentDurationInMs);
 
 	ASSERT_EQUALS(expectedMpd, mpdAnalyzer->mpd);
 }
 
 unittest("dasher: multi-period folders") {
 	DasherConfig cfg {};
-	cfg.segDurationInMs = 3000;
+	cfg.segDurationInMs = segmentDurationInMs;
 	cfg.live = true;
 	cfg.multiPeriodFoldersInMs = cfg.segDurationInMs;
 	cfg.baseUrlPrefixes = { "a/", "b/" };
@@ -298,7 +301,7 @@ unittest("dasher: multi-period folders") {
 	        "    <BaseURL serviceLocation=\"a/\"/>\n"
 	        "    <BaseURL serviceLocation=\"b/\"/>\n"
 	        "    <AdaptationSet segmentAlignment=\"true\" bitstreamSwitching=\"true\">\n"
-	        "      <SegmentTemplate timescale=\"1000\" duration=\"3000\" startNumber=\"0\"/>\n"
+	        "      <SegmentTemplate timescale=\"1000\" duration=\"%s\" startNumber=\"0\"/>\n"
 	        "      <Representation id=\"0\" bandwidth=\"0\" mimeType=\"\" codecs=\"\" startWithSAP=\"1\">\n"
 	        "        <SegmentTemplate media=\"1970_01_01_00_00_00/v_0_0x0/v_0_0x0-$Number$.m4s\" initialization=\"v_0_0x0/v_0_0x0-init.mp4\" startNumber=\"0\"/>\n"
 	        "      </Representation>\n"
@@ -308,14 +311,14 @@ unittest("dasher: multi-period folders") {
 	        "    <BaseURL serviceLocation=\"a/\"/>\n"
 	        "    <BaseURL serviceLocation=\"b/\"/>\n"
 	        "    <AdaptationSet segmentAlignment=\"true\" bitstreamSwitching=\"true\">\n"
-	        "      <SegmentTemplate timescale=\"1000\" duration=\"3000\" startNumber=\"1\"/>\n"
+	        "      <SegmentTemplate timescale=\"1000\" duration=\"%s\" startNumber=\"1\"/>\n"
 	        "      <Representation id=\"0\" bandwidth=\"0\" mimeType=\"\" codecs=\"\" startWithSAP=\"1\">\n"
 	        "        <SegmentTemplate media=\"1970_01_01_00_00_03/v_0_0x0/v_0_0x0-$Number$.m4s\" initialization=\"v_0_0x0/v_0_0x0-init.mp4\" startNumber=\"1\" presentationTimeOffset=\"3000\"/>\n"
 	        "      </Representation>\n"
 	        "    </AdaptationSet>\n"
 	        "  </Period>\n"
 	        "</MPD>\n",
-	        g_version);
+	        g_version, segmentDurationInMs, segmentDurationInMs);
 
 	//FIXME: there are too much output calls with filenames
 	std::vector<std::string> expectedFilenames { "1970_01_01_00_00_00/v_0_0x0/v_0_0x0-0.m4s", "1970_01_01_00_00_03/v_0_0x0/v_0_0x0-1.m4s", "1970_01_01_00_00_03/v_0_0x0/v_0_0x0-1.m4s", "1970_01_01_00_00_03/v_0_0x0/v_0_0x0-1.m4s", "1970_01_01_00_00_03/v_0_0x0/v_0_0x0-1.m4s"};
@@ -326,12 +329,11 @@ unittest("dasher: multi-period folders") {
 
 unittest("dasher: tiles") {
 	DasherConfig cfg {};
-	cfg.segDurationInMs = 3000;
+	cfg.segDurationInMs = segmentDurationInMs;
 	cfg.live = true;
-	cfg.tileInfo.push_back({ 1, 0, 0, 42, 0 });
-	cfg.tileInfo.push_back({ 1, 0, 0, 42, 0 });
-	cfg.tileInfo.push_back({ 1, 0, 0, 51, 0 });
-	cfg.tileInfo.push_back({ 1, 0, 0, 51, 0 });
+	cfg.tileInfo.push_back({ 1, 0, 0, 1, 1, 2, 1 });
+	cfg.tileInfo.push_back({ 1, 0, 0, 1, 1, 2, 1 });
+	cfg.tileInfo.push_back({ 1, 1, 0, 1, 1, 2, 1 });
 	struct MyUtcClock : IUtcClock {
 		Fraction getTime() {
 			return Fraction(1789, 1);
@@ -355,13 +357,11 @@ unittest("dasher: tiles") {
 	dasher->getInput(0)->connect();
 	dasher->getInput(1)->connect();
 	dasher->getInput(2)->connect();
-	dasher->getInput(3)->connect();
 
 	auto s = getTestSegment();
 	dasher->getInput(0)->push(s);
 	dasher->getInput(1)->push(s);
 	dasher->getInput(2)->push(s);
-	dasher->getInput(3)->push(s);
 
 	dasher->flush();
 
@@ -372,8 +372,8 @@ unittest("dasher: tiles") {
 	        "  </ProgramInformation>\n"
 	        "  <Period id=\"1\" start=\"PT00H00M0.000S\">\n"
 	        "    <AdaptationSet segmentAlignment=\"true\" bitstreamSwitching=\"true\">\n"
-	        "      <SupplementalProperty schemeIdUri=\"urn:mpeg:dash:srd:2014\" value=\"1,0,0,42,0\"/>\n"
-	        "      <SegmentTemplate timescale=\"1000\" duration=\"3000\" startNumber=\"0\"/>\n"
+	        "      <SupplementalProperty schemeIdUri=\"urn:mpeg:dash:srd:2014\" value=\"1,0,0,1,1,2,1\"/>\n"
+	        "      <SegmentTemplate timescale=\"1000\" duration=\"%s\" startNumber=\"0\"/>\n"
 	        "      <Representation id=\"0\" bandwidth=\"0\" mimeType=\"\" codecs=\"\" startWithSAP=\"1\">\n"
 	        "        <SegmentTemplate media=\"v_0_0x0/v_0_0x0-$Number$.m4s\" initialization=\"v_0_0x0/v_0_0x0-init.mp4\" startNumber=\"0\"/>\n"
 	        "      </Representation>\n"
@@ -382,18 +382,15 @@ unittest("dasher: tiles") {
 	        "      </Representation>\n"
 	        "    </AdaptationSet>\n"
 	        "    <AdaptationSet segmentAlignment=\"true\" bitstreamSwitching=\"true\">\n"
-	        "      <SupplementalProperty schemeIdUri=\"urn:mpeg:dash:srd:2014\" value=\"1,0,0,51,0\"/>\n"
-	        "      <SegmentTemplate timescale=\"1000\" duration=\"3000\" startNumber=\"0\"/>\n"
+	        "      <SupplementalProperty schemeIdUri=\"urn:mpeg:dash:srd:2014\" value=\"1,1,0,1,1,2,1\"/>\n"
+	        "      <SegmentTemplate timescale=\"1000\" duration=\"%s\" startNumber=\"0\"/>\n"
 	        "      <Representation id=\"2\" bandwidth=\"0\" mimeType=\"\" codecs=\"\" startWithSAP=\"1\">\n"
 	        "        <SegmentTemplate media=\"v_2_0x0/v_2_0x0-$Number$.m4s\" initialization=\"v_2_0x0/v_2_0x0-init.mp4\" startNumber=\"0\"/>\n"
-	        "      </Representation>\n"
-	        "      <Representation id=\"3\" bandwidth=\"0\" mimeType=\"\" codecs=\"\" startWithSAP=\"1\">\n"
-	        "        <SegmentTemplate media=\"v_3_0x0/v_3_0x0-$Number$.m4s\" initialization=\"v_3_0x0/v_3_0x0-init.mp4\" startNumber=\"0\"/>\n"
 	        "      </Representation>\n"
 	        "    </AdaptationSet>\n"
 	        "  </Period>\n"
 	        "</MPD>\n",
-	        g_version);
+	        g_version, segmentDurationInMs, segmentDurationInMs);
 
 	ASSERT_EQUALS(expectedMpd, mpdAnalyzer->mpd);
 }
