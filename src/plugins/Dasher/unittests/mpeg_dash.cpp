@@ -73,7 +73,7 @@ unittest("dasher: simple live") {
 
 	dasher->flush();
 
-	// FIXME: the last segment gets uploaded twice
+	// FIXME: the last segment gets uploaded a second time on EOS
 	ASSERT_EQUALS(50 + 1, recSeg->frameCount);
 }
 
@@ -102,6 +102,75 @@ unittest("dasher: two live streams") {
 
 	// All the segments must have been received
 	ASSERT_EQUALS(50, recSeg->frameCount);
+}
+
+unittest("dasher: two live streams unevenly interleaved") {
+	auto const numStreams = 2;
+
+	auto init = [](std::function<void(std::shared_ptr<IModule>, MyOutput*, MyOutput*)> f) {
+		DasherConfig cfg{};
+		cfg.segDurationInMs = segmentDurationInMs;
+		cfg.live = true;
+		cfg.forceRealDurations = true;
+		auto dasher = loadModule("MPEG_DASH", &NullHost, &cfg);
+
+		auto recSeg = createModule<MyOutput>();
+		ConnectOutputToInput(dasher->getOutput(0), recSeg->getInput(0));
+
+		auto recMpd = createModule<MyOutput>();
+		ConnectOutputToInput(dasher->getOutput(1), recMpd->getInput(0));
+
+		/*simulate a possible behaviour from a muxer*/
+		for (int i = 0; i < numStreams; ++i)
+			dasher->getInput(i)->connect();
+
+		f(dasher, recMpd.get(), recSeg.get());
+	};
+
+	auto getSeg = [&](uint64_t dur, bool EOS) {
+		static const uint8_t markerData[] = { 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F };
+		auto r = createPacket(markerData);
+		auto meta = make_shared<MetadataFile>(VIDEO_PKT);
+		meta->durationIn180k = dur;
+		meta->EOS = EOS;
+		r->setMetadata(meta);
+		return r;
+	};
+
+	/*initial offset -> first shorter segment:
+	  at the moment the dasher aggregates it with the next one*/
+	init([&](std::shared_ptr<IModule> dasher, MyOutput* recMpd, MyOutput* recSeg) {
+		for (int i = 0; i < numStreams; ++i)
+			dasher->getInput(i)->push(getSeg(segmentDuration / 2, true));
+		ASSERT_EQUALS(1, recMpd->frameCount);
+		ASSERT_EQUALS(numStreams, recSeg->frameCount);
+		recSeg->frameCount = 0;
+	});
+
+	/*ideal segment*/
+	init([&](std::shared_ptr<IModule> dasher, MyOutput* recMpd, MyOutput* recSeg) {
+		for (int i = 0; i < numStreams; ++i)
+			dasher->getInput(i)->push(getSeg(segmentDuration, true));
+		ASSERT_EQUALS(1, recMpd->frameCount);
+		ASSERT_EQUALS(numStreams, recSeg->frameCount);
+		recMpd->frameCount = 0;
+		recSeg->frameCount = 0;
+	});
+
+	/*ideal segment with separate EOS*/
+	init([&](std::shared_ptr<IModule> dasher, MyOutput *recMpd, MyOutput *recSeg) {
+		auto const numSegs = 2;
+		for (int j = 0; j < numSegs; ++j) {
+			for (int i = 0; i < numStreams; ++i) {
+				dasher->getInput(i)->push(getSeg(segmentDuration, false));
+				dasher->getInput(i)->push(getSeg(0, true));
+			}
+		}
+		ASSERT_EQUALS(numSegs, recMpd->frameCount);
+		ASSERT_EQUALS(numSegs * numStreams * 2, recSeg->frameCount);
+		recMpd->frameCount = 0;
+		recSeg->frameCount = 0;
+	});
 }
 
 unittest("dasher: timeshift buffer") {

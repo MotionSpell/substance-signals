@@ -202,6 +202,12 @@ struct AdaptiveStreamer : ModuleDynI {
 		}
 
 		bool isComplete(int repIdx) const {
+			if (qualities[repIdx].curSegDurIn180k == 0)
+				return false;
+
+			if (qualities[repIdx].getMeta() && qualities[repIdx].getMeta()->EOS)
+				return true;
+
 			uint64_t minIncompletSegDur = std::numeric_limits<uint64_t>::max();
 			for (auto& quality : qualities) {
 				auto const &segDur = quality.curSegDurIn180k;
@@ -210,16 +216,16 @@ struct AdaptiveStreamer : ModuleDynI {
 					minIncompletSegDur = segDur;
 				}
 			}
-			return (minIncompletSegDur == std::numeric_limits<uint64_t>::max()) || (qualities[repIdx].curSegDurIn180k > minIncompletSegDur);
+			return (minIncompletSegDur == std::numeric_limits<uint64_t>::max()) || (qualities[repIdx].curSegDurIn180k > minIncompletSegDur && (qualities[repIdx].getMeta() && qualities[repIdx].getMeta()->EOS));
 		}
 
-		void ensureStartTime(Data currData) {
+		void ensureStartTime() {
 			if (startTimeInMs == -2)
-				startTimeInMs = clockToTimescale(currData->get<PresentationTime>().time, DASH_TIMESCALE);
+				startTimeInMs = clockToTimescale(qualities[0].lastData->get<PresentationTime>().time, DASH_TIMESCALE);
 		}
 
 		void sendLocalData(Data currData, int repIdx, uint64_t size, bool EOS) {
-			ensureStartTime(currData);
+			ensureStartTime();
 			auto out = getPresignalledData(size, currData, EOS);
 			if (out) {
 				auto const &meta = qualities[repIdx].getMeta();
@@ -243,30 +249,19 @@ struct AdaptiveStreamer : ModuleDynI {
 
 		bool segmentReady() {
 			for (int i = 0; i < numInputs(); ++i) {
-				if (!qualities[0].curSegDurIn180k)
-					qualities[0].curSegDurIn180k = segDurationIn180k;
-			}
-			for (int i = 0; i < numInputs(); ++i) {
-				if (qualities[i].curSegDurIn180k < segDurationIn180k) {
+				if (qualities[i].curSegDurIn180k < segDurationIn180k)
 					return false;
-				}
-				if (!qualities[i].getMeta()->EOS) {
+
+				if (!qualities[i].getMeta()->EOS)
 					return false;
-				}
 			}
 			return true;
 		}
 
-		Data currData; // TODO: completely remove this member
-
 		bool scheduleRepresentation(int repIdx) {
-			if (isComplete(repIdx)) {
-				return true;
-			}
-
-			if (!inputs[repIdx]->tryPop(currData) || !currData) {
+			Data currData;
+			if (!inputs[repIdx]->tryPop(currData) || !currData)
 				return false;
-			}
 
 			auto& quality = qualities[repIdx];
 
@@ -283,7 +278,6 @@ struct AdaptiveStreamer : ModuleDynI {
 				processInitSegment(quality, repIdx);
 				if (flags & PresignalNextSegment)
 					sendLocalData(currData, repIdx, 0, false);
-				currData = nullptr;
 				return true;
 			}
 
@@ -300,35 +294,39 @@ struct AdaptiveStreamer : ModuleDynI {
 				quality.curSegDurIn180k = segDurationIn180k ? segDurationIn180k : meta->durationIn180k;
 			}
 
-			if (quality.curSegDurIn180k < segDurationIn180k || !meta->EOS)
+			if (!meta->EOS)
 				sendLocalData(currData, repIdx, meta->filesize, meta->EOS);
 
 			return true;
 		}
 
 		bool schedule() {
+			bool reschedule = false;
+			bool complete = true;
 			for (int repIdx = 0; repIdx < numInputs(); ++repIdx) {
-				if(!scheduleRepresentation(repIdx))
-					break;
+				if (!isComplete(repIdx)) {
+					complete = false;
+					if (scheduleRepresentation(repIdx))
+						reschedule = true;
+				}
 			}
 
-			if (!currData) {
-				return false; // nothing was done
-			}
-
-			ensureStartTime(currData);
-			currData = nullptr;
-
-			if (segmentReady()) {
+			if (complete) {
 				for (auto& quality : qualities)
 					quality.curSegDurIn180k -= segDurationIn180k;
 
+				ensureStartTime();
 				onNewSegment();
 				totalDurationInMs += segDurationInMs;
 				m_host->log(Info, format("Processes segment (total processed: %ss,", totalDurationInMs / 1000.0).c_str());
+
+				for (auto& quality : qualities)
+					quality.curSegDurIn180k = 0;
+
+				return true;
 			}
 
-			return true;
+			return reschedule;
 		}
 };
 
@@ -461,7 +459,7 @@ class Dasher : public AdaptiveStreamer {
 					std::string supplementalProperty;
 					if (!m_cfg.tileInfo.empty()) {
 						auto &ti = m_cfg.tileInfo[repIdx];
-						supplementalProperty = format("%s,%s,%s,%s,%s", ti.sourceId,
+						supplementalProperty = format("%s,%s,%s,%s,%s,%s,%s", ti.sourceId,
 							ti.objectX, ti.objectY, ti.objectWidth, ti.objectHeight, ti.totalWidth, ti.totalHeight);
 					}
 
