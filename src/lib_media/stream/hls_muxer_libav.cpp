@@ -90,7 +90,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 					default: assert(0);
 					}
 
-					schedule({ (int64_t)m_utcStartTime->query() + data->get<PresentationTime>().time, meta, segIdx });
+					schedule({ (int64_t)m_utcStartTime->query() + data->get<PresentationTime>().time - segDuration, meta, segIdx });
 
 					/*next segment*/
 					startsWithRAP = flags.keyframe;

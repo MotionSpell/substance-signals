@@ -460,7 +460,7 @@ class Dasher : public AdaptiveStreamer {
 					if (!m_cfg.tileInfo.empty()) {
 						auto &ti = m_cfg.tileInfo[repIdx];
 						supplementalProperty = format("%s,%s,%s,%s,%s,%s,%s", ti.sourceId,
-							ti.objectX, ti.objectY, ti.objectWidth, ti.objectHeight, ti.totalWidth, ti.totalHeight);
+						        ti.objectX, ti.objectY, ti.objectWidth, ti.objectHeight, ti.totalWidth, ti.totalHeight);
 					}
 
 					auto& as = adaptationSets[ { meta->type, meta->lang, supplementalProperty }];
