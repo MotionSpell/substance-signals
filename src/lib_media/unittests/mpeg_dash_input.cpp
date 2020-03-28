@@ -301,7 +301,7 @@ unittest("mpeg_dash_input: number of outputs is the number of adaptation sets wi
 	source.resources["main/manifest.mpd"] = MPD;
 	auto dash = createModule<MPEG_DASH_Input>(&NullHost, &source, "main/manifest.mpd");
 
-	ASSERT_EQUALS(dash->getNumOutputs(), 1);
+	ASSERT_EQUALS(1, dash->getNumOutputs());
 }
 
 unittest("mpeg_dash_input: switch representations in adaption set") {
@@ -330,8 +330,8 @@ unittest("mpeg_dash_input: switch representations in adaption set") {
 	source.resources["main/high/init.mp4"] = "a";
 
 	auto dash = createModule<MPEG_DASH_Input>(&NullHost, &source, "main/manifest.mpd"); //main/manifest.mpd
-	ASSERT_EQUALS(dash->getNumAdaptationSets(), 1);
-	ASSERT_EQUALS(dash->getNumRepresentationsInAdaptationSet(0), 2);
+	ASSERT_EQUALS(1, dash->getNumAdaptationSets());
+	ASSERT_EQUALS(2, dash->getNumRepresentationsInAdaptationSet(0));
 
 	dash->process();          //main/low/init.mp4
 	dash->process();          //main/low/5.m4s
@@ -352,6 +352,25 @@ unittest("mpeg_dash_input: switch representations in adaption set") {
 		"main/low/7.m4s",
 	}),
 	source.requests);
+}
+
+unittest("mpeg_dash_input: get adaptation set SRD descriptor") {
+	static auto const MPD = R"|(
+<?xml version="1.0"?>
+<MPD>
+  <Period>
+    <AdaptationSet>
+	  <SupplementalProperty schemeIdUri="urn:mpeg:dash:srd:2014" value="1,2,3,4,5,6,7"/>
+	  <Representation mimeType="audio/mp4"/>
+	</AdaptationSet>
+  </Period>
+</MPD>)|";
+
+	LocalFilesystem source;
+	source.resources["manifest.mpd"] = MPD;
+	auto dash = createModule<MPEG_DASH_Input>(&NullHost, &source, "manifest.mpd");
+	ASSERT_EQUALS(1, dash->getNumAdaptationSets());
+	ASSERT_EQUALS("1,2,3,4,5,6,7", dash->getSRD(0));
 }
 
 std::unique_ptr<IFilePuller> createHttpSource();

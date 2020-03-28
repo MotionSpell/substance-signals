@@ -58,6 +58,15 @@ unique_ptr<DashMpd> parseMpd(span<const char> text) {
 
 			auto &set = mpd->sets.back();
 			set.representations.push_back(rep);
+		} else if(name == "SupplementalProperty") {
+			if(attr.find("schemeIdUri") != attr.end()) {
+				if(attr["schemeIdUri"] == "urn:mpeg:dash:srd:2014") {
+					if(attr.find("value") != attr.end()) {
+						auto &set = mpd->sets.back();
+						set.srd = attr["value"];
+					}
+				}
+			}
 		}
 	};
 

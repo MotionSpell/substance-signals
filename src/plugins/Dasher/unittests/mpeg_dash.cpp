@@ -400,9 +400,9 @@ unittest("dasher: tiles") {
 	DasherConfig cfg {};
 	cfg.segDurationInMs = segmentDurationInMs;
 	cfg.live = true;
-	cfg.tileInfo.push_back({ 1, 0, 0, 1, 1, 2, 1 });
-	cfg.tileInfo.push_back({ 1, 0, 0, 1, 1, 2, 1 });
-	cfg.tileInfo.push_back({ 1, 1, 0, 1, 1, 2, 1 });
+	cfg.tileInfo.push_back({ 1, 2, 3, 4, 5, 6, 7 });
+	cfg.tileInfo.push_back({ 1, 2, 3, 4, 5, 6, 7 });
+	cfg.tileInfo.push_back({ 3, 4, 5, 6, 7, 8, 9 });
 	struct MyUtcClock : IUtcClock {
 		Fraction getTime() {
 			return Fraction(1789, 1);
@@ -441,7 +441,7 @@ unittest("dasher: tiles") {
 	        "  </ProgramInformation>\n"
 	        "  <Period id=\"1\" start=\"PT00H00M0.000S\">\n"
 	        "    <AdaptationSet segmentAlignment=\"true\" bitstreamSwitching=\"true\">\n"
-	        "      <SupplementalProperty schemeIdUri=\"urn:mpeg:dash:srd:2014\" value=\"1,0,0,1,1,2,1\"/>\n"
+	        "      <SupplementalProperty schemeIdUri=\"urn:mpeg:dash:srd:2014\" value=\"1,2,3,4,5,6,7\"/>\n"
 	        "      <SegmentTemplate timescale=\"1000\" duration=\"%s\" startNumber=\"0\"/>\n"
 	        "      <Representation id=\"0\" bandwidth=\"0\" mimeType=\"\" codecs=\"\" startWithSAP=\"1\">\n"
 	        "        <SegmentTemplate media=\"v_0_0x0/v_0_0x0-$Number$.m4s\" initialization=\"v_0_0x0/v_0_0x0-init.mp4\" startNumber=\"0\"/>\n"
@@ -451,7 +451,7 @@ unittest("dasher: tiles") {
 	        "      </Representation>\n"
 	        "    </AdaptationSet>\n"
 	        "    <AdaptationSet segmentAlignment=\"true\" bitstreamSwitching=\"true\">\n"
-	        "      <SupplementalProperty schemeIdUri=\"urn:mpeg:dash:srd:2014\" value=\"1,1,0,1,1,2,1\"/>\n"
+	        "      <SupplementalProperty schemeIdUri=\"urn:mpeg:dash:srd:2014\" value=\"3,4,5,6,7,8,9\"/>\n"
 	        "      <SegmentTemplate timescale=\"1000\" duration=\"%s\" startNumber=\"0\"/>\n"
 	        "      <Representation id=\"2\" bandwidth=\"0\" mimeType=\"\" codecs=\"\" startWithSAP=\"1\">\n"
 	        "        <SegmentTemplate media=\"v_2_0x0/v_2_0x0-$Number$.m4s\" initialization=\"v_2_0x0/v_2_0x0-init.mp4\" startNumber=\"0\"/>\n"

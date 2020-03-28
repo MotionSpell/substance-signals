@@ -235,6 +235,13 @@ int MPEG_DASH_Input::getNumRepresentationsInAdaptationSet(int adaptationSetIdx) 
 	return m_streams[adaptationSetIdx]->rep->set(mpd.get()).representations.size();
 }
 
+std::string MPEG_DASH_Input::getSRD(int adaptationSetIdx) const {
+	if (adaptationSetIdx < 0 || adaptationSetIdx >= (int)m_streams.size())
+		throw error("getSRD(): wrong AdaptationSet index");
+
+	return m_streams[adaptationSetIdx]->rep->set(mpd.get()).srd;
+}
+
 void MPEG_DASH_Input::enableStream(int asIdx, int repIdx) {
 	if (asIdx < 0 || asIdx >=(int)m_streams.size())
 		throw error("enableStream(): wrong adaptation set index");

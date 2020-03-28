@@ -7,6 +7,7 @@
 struct IAdaptationControl {
 	virtual int getNumAdaptationSets() const = 0;
 	virtual int getNumRepresentationsInAdaptationSet(int adaptationSetIdx) const = 0;
+	virtual std::string getSRD(int adaptationSetIdx) const = 0;
 
 	// no more that one stream per adaptation set can be enabled
 	// be aware that these calls will block until the command is effectively enqueued
@@ -30,6 +31,7 @@ class MPEG_DASH_Input : public Module, public IAdaptationControl {
 		// disabling all streams will stop the session
 		int getNumAdaptationSets() const override;
 		int getNumRepresentationsInAdaptationSet(int adaptationSetIdx) const override;
+		std::string getSRD(int adaptationSetIdx) const override;
 		void enableStream(int asIdx, int repIdx) override;
 		void disableStream(int asIdx) override;
 

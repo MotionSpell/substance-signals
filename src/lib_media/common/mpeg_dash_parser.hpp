@@ -23,6 +23,7 @@ struct AdaptationSet {
 	int timescale = 1;
 	std::string initialization;
 	std::string contentType;
+	std::string srd;
 	std::vector<Representation> representations;
 };
 
