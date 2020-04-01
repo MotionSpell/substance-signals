@@ -8,8 +8,8 @@
 #include "lib_utils/tools.hpp" // safe_cast, enforce
 #include "lib_utils/log_sink.hpp"
 #include "lib_utils/format.hpp"
+#include "lib_utils/small_map.hpp"
 #include <algorithm> //std::max
-#include <map>
 #include <cassert>
 #include <ctime>
 
@@ -439,16 +439,12 @@ class Dasher : public AdaptiveStreamer {
 					std::string lang;
 					std::string supplementalProperty; //contains generic info e.g. tiling
 
-					bool operator()(const AdaptationSetParams x, const AdaptationSetParams y) const {
-						if (x.type != y.type)
-							return x.type < y.type;
-						else if (x.lang != y.lang)
-							return x.lang.compare(y.lang) < 0;
-						else
-							return x.supplementalProperty.compare(y.supplementalProperty) < 0;
+					bool operator==(const AdaptationSetParams &other) const {
+						return this->type == other.type && this->lang == other.lang
+						    && this->supplementalProperty == other.supplementalProperty;
 					}
 				};
-				std::map<AdaptationSetParams, MPD::AdaptationSet, AdaptationSetParams> adaptationSets;
+				SmallMap<AdaptationSetParams, MPD::AdaptationSet> adaptationSets;
 
 				for(auto repIdx : getInputs()) {
 					auto& quality = qualities[repIdx];
@@ -544,8 +540,8 @@ class Dasher : public AdaptiveStreamer {
 					as.representations.push_back(rep);
 				}
 
-				for(auto as : adaptationSets)
-					period.adaptationSets.push_back(as.second);
+				for(auto &as : adaptationSets)
+					period.adaptationSets.push_back(as);
 
 				mpd.periods.push_back(period);
 				periodIdx++;
