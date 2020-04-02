@@ -11,6 +11,7 @@
 
 extern "C" {
 #include <libavcodec/avcodec.h> // avcodec_open2
+#include <libavutil/imgutils.h> // av_image_fill_linesizes
 }
 
 using namespace Modules;
@@ -23,20 +24,25 @@ void lavc_ReleaseFrame(void *opaque, uint8_t * /*data*/) {
 
 int avGetBuffer2(struct AVCodecContext *ctx, AVFrame *frame, int /*flags*/) {
 	try {
+		int w = frame->width, wAlign = frame->width, hAlign = frame->height, unaligned = 0, linesize[4] = {}, linesize_align[4] = {};
+		avcodec_align_dimensions2(ctx, &w, &hAlign, linesize_align);
+		do {
+			auto ret = av_image_fill_linesizes(linesize, ctx->pix_fmt, w);
+			if (ret < 0)
+				return ret;
+			wAlign = w;
+			// increase alignment of w for next try (rhs gives the lowest bit set in w)
+			w += w & ~(w - 1);
+			unaligned = 0;
+			for (int i = 0; i < 4; i++)
+				unaligned |= linesize[i] % linesize_align[i];
+		} while (unaligned);
 		auto dr = static_cast<PictureAllocator*>(ctx->opaque);
-		auto dim = Resolution(frame->width, frame->height);
-		auto size = dim; // size in memory
-		int linesize_align[AV_NUM_DATA_POINTERS];
-		avcodec_align_dimensions2(ctx, &size.width, &size.height, linesize_align);
-		if (auto extra = size.width % (2 * linesize_align[0])) {
-			size.width += 2 * linesize_align[0] - extra;
-		}
-		auto picCtx = dr->getPicture(dim, size, libavPixFmt2PixelFormat((AVPixelFormat)frame->format));
+		auto picCtx = dr->getPicture(Resolution(frame->width, frame->height), Resolution(wAlign, hAlign), libavPixFmt2PixelFormat((AVPixelFormat)frame->format));
 		if (!picCtx->pic)
 			return -1;
 		frame->opaque = picCtx;
 		auto pic = picCtx->pic.get();
-
 		for (size_t i = 0; i < AV_NUM_DATA_POINTERS; ++i) {
 			frame->data[i] = NULL;
 			frame->linesize[i] = 0;
