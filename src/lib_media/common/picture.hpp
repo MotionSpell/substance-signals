@@ -62,13 +62,22 @@ class DataPicture : public DataRaw {
 			return format.getSize();
 		}
 		uint8_t* getPlane(int planeIdx) {
-			return m_planes[planeIdx];
+			if (planeIdx < m_planeCount)
+				return m_planes[planeIdx];
+			else
+				return 0;
 		}
 		const uint8_t* getPlane(int planeIdx) const {
-			return m_planes[planeIdx];
+			if (planeIdx < m_planeCount)
+				return m_planes[planeIdx];
+			else
+				return 0;
 		}
 		size_t getStride(int planeIdx) const {
-			return m_stride[planeIdx];
+			if (planeIdx < m_planeCount)
+				return m_stride[planeIdx];
+			else
+				return 0;
 		}
 		int getNumPlanes() const {
 			return m_planeCount;
