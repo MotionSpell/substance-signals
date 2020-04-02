@@ -5,6 +5,7 @@
 #include "lib_modules/utils/helper.hpp"
 #include "lib_media/common/resolution.hpp"
 #include "lib_utils/fraction.hpp" // divUp
+#include <stdexcept>
 
 namespace Modules {
 
@@ -65,19 +66,19 @@ class DataPicture : public DataRaw {
 			if (planeIdx < m_planeCount)
 				return m_planes[planeIdx];
 			else
-				return 0;
+				throw std::runtime_error("DataPicture::getPlane() const: wrong index");
 		}
 		const uint8_t* getPlane(int planeIdx) const {
 			if (planeIdx < m_planeCount)
 				return m_planes[planeIdx];
 			else
-				return 0;
+				throw std::runtime_error("DataPicture::getPlane(): wrong index");
 		}
 		size_t getStride(int planeIdx) const {
 			if (planeIdx < m_planeCount)
 				return m_stride[planeIdx];
 			else
-				return 0;
+				throw std::runtime_error("DataPicture::getStride(): wrong index");
 		}
 		int getNumPlanes() const {
 			return m_planeCount;
