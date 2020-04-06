@@ -216,13 +216,13 @@ struct AudioConvert : ModuleS {
 			libavAudioCtxConvertLibav(&m_dstFormat, avDstSampleRate, avDstFmt, avDstNumChannels, avDstChannelLayout);
 
 			m_resampler->m_SwrContext = swr_alloc_set_opts(m_resampler->m_SwrContext,
-			    avDstChannelLayout,
-			    avDstFmt,
-			    avDstSampleRate,
-			    avSrcChannelLayout,
-			    avSrcFmt,
-			    avSrcSampleRate,
-			    0, nullptr);
+			        avDstChannelLayout,
+			        avDstFmt,
+			        avDstSampleRate,
+			        avSrcChannelLayout,
+			        avSrcFmt,
+			        avSrcSampleRate,
+			        0, nullptr);
 			if (!m_resampler->m_SwrContext)
 				throw error("Impossible to set options to the audio resampler while configuring.");
 
