@@ -45,6 +45,7 @@ audioName(cfg.audioName) {
 
 void GPACMuxMP4MSS::declareStreamAudio(const MetadataPktAudio* metadata) {
 	GPACMuxMP4::declareStreamAudio(metadata);
+	type = "audio";
 
 	auto extradata = metadata->getExtradata();
 
@@ -52,26 +53,25 @@ void GPACMuxMP4MSS::declareStreamAudio(const MetadataPktAudio* metadata) {
 	ISMLManifest = writeISMLManifest(codec4CC, string2hex(extradata.ptr, extradata.len), metadata->bitrate, 0, 0, metadata->sampleRate, metadata->numChannels, bitsPerSample);
 	for(int k=0; k < 4; ++k)
 		ISMLManifest[k] = 0;
-	type = "audio";
 }
 
 void GPACMuxMP4MSS::declareStreamSubtitle(const MetadataPktSubtitle* metadata) {
 	GPACMuxMP4::declareStreamSubtitle(metadata);
+	type = "textstream";
 	ISMLManifest = writeISMLManifest(codec4CC, "", metadata->bitrate, 0, 0, 0, 0, 0);
 	for(int k=0; k < 4; ++k)
 		ISMLManifest[k] = 0;
-	type = "textstream";
 }
 
 void GPACMuxMP4MSS::declareStreamVideo(const MetadataPktVideo* metadata) {
 	GPACMuxMP4::declareStreamVideo(metadata);
+	type = "video";
 
 	auto extradata = metadata->getExtradata();
 	auto const res = metadata->resolution;
 	ISMLManifest = writeISMLManifest(codec4CC, string2hex(extradata.ptr, extradata.len), metadata->bitrate, res.width, res.height, 0, 0, 0);
 	for(int k=0; k < 4; ++k)
 		ISMLManifest[k] = 0;
-	type = "video";
 }
 
 void GPACMuxMP4MSS::startSegmentPostAction() {
