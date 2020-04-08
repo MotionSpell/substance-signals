@@ -8,19 +8,53 @@ namespace {
 std::string escapeXmlEntities(std::string const& s) {
 	std::string r;
 
-	for(auto c : s) {
-		switch(c) {
-		case '"': r += "&quot;";
+	for(auto cIt = s.cbegin(); cIt != s.cend(); cIt++) {
+		auto peek = [&](std::string str)->bool {
+			for (auto it = cIt+1, strIt = str.cbegin(); strIt != str.cend(); ++it, ++strIt) {
+				if (it == s.cend())
+					/*remaning is shorter than str*/
+					return false;
+
+				if (*it != *strIt)
+					return false;
+			}
+
+			return true;
+		};
+
+		switch(*cIt) {
+		case '"':
+			r += "&quot;";
 			break;
-		case '&': r += "&amp;";
+		case '\'':
+			r += "&apos;";
 			break;
-		case '\'': r += "&apos;";
+		case '<':
+			r += "&lt;";
 			break;
-		case '<': r += "&lt;";
+		case '>':
+			r += "&gt;";
 			break;
-		case '>': r += "&gt;";
+		case '&':
+			if (peek("quot;")) {
+				r += "&quot;";
+				cIt += 5;
+			} else if (peek("apos;")) {
+				r += "&apos;";
+				cIt += 5;
+			} else if (peek("lt;")) {
+				r += "&lt;";
+				cIt += 3;
+			} else if (peek("gt;")) {
+				r += "&gt;";
+				cIt += 3;
+			} else if (peek("amp;")) {
+				r += "&amp;";
+				cIt += 4;
+			} else
+				r += "&amp;";
 			break;
-		default: r += c;
+		default: r += *cIt;
 			break;
 		}
 	}

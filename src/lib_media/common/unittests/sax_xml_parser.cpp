@@ -114,4 +114,3 @@ unittest("SAX XML parser: invalid") {
 
 	ASSERT_THROWN(saxParse(invalidXmlTestData, onNodeStart, onNodeEnd));
 }
-
