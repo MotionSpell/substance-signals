@@ -597,6 +597,9 @@ void GPACMuxMP4::setupFragments() {
 		SAFE(gf_isom_finalize_for_fragment(isoCur, mode)); //writes moov
 
 		if (segmentPolicy == FragmentedSegment) {
+			if (gf_isom_get_filename(isoCur)) {
+				SAFE(gf_isom_flush_fragments(isoCur, GF_FALSE)); //writes init to disk
+			}
 			sendSegmentToOutput(true); //init
 		}
 	}
