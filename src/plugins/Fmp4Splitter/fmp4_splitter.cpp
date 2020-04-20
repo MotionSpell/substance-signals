@@ -6,6 +6,7 @@
 #include "lib_modules/utils/loader.hpp"
 #include "lib_media/common/metadata.hpp"
 #include "lib_media/common/attributes.hpp"
+#include <algorithm> // std::find
 
 using namespace Modules;
 
@@ -264,7 +265,11 @@ struct Fmp4Splitter : ModuleS {
 			    (m_codecFourcc>>16)&0xff,
 			    (m_codecFourcc>>8)&0xff,
 			    (m_codecFourcc>>0)&0xff);
-			m_host->log(Warning, msg);
+			if (std::find(unknown4CCs.begin(), unknown4CCs.end(), m_codecFourcc) == unknown4CCs.end())
+			{
+				m_host->log(Warning, msg);
+				unknown4CCs.push_back(m_codecFourcc);
+			}
 			meta = make_shared<MetadataPkt>(VIDEO_PKT);
 			snprintf(msg, sizeof msg, "%c%c%c%c",
 			    (m_codecFourcc>>24)&0xff,
@@ -506,6 +511,7 @@ struct Fmp4Splitter : ModuleS {
 
 	std::vector<uint8_t> m_codecSpecificInfo;
 	uint32_t m_codecFourcc = 0;
+	std::vector<uint32_t> unknown4CCs;
 
 	int m_dataOffset = 0;
 	int m_defaultSampleSize = 0;

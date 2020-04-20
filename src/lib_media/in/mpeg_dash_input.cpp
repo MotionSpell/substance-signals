@@ -74,7 +74,7 @@ struct BinaryBlockingExecutor {
 
 struct MPEG_DASH_Input::Stream {
 	Stream(OutputDefault* out, Representation const * rep, Fraction segmentDuration, unique_ptr<IFilePuller> source, exception_ptr eptr)
-	: out(out), rep(rep), segmentDuration(segmentDuration), source(std::move(source)), executor(new BinaryBlockingExecutor(eptr)) {
+		: out(out), rep(rep), segmentDuration(segmentDuration), source(std::move(source)), executor(new BinaryBlockingExecutor(eptr)) {
 	}
 
 	OutputDefault* out;
