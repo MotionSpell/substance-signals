@@ -265,8 +265,7 @@ struct Fmp4Splitter : ModuleS {
 			    (m_codecFourcc>>16)&0xff,
 			    (m_codecFourcc>>8)&0xff,
 			    (m_codecFourcc>>0)&0xff);
-			if (std::find(unknown4CCs.begin(), unknown4CCs.end(), m_codecFourcc) == unknown4CCs.end())
-			{
+			if (std::find(unknown4CCs.begin(), unknown4CCs.end(), m_codecFourcc) == unknown4CCs.end()) {
 				m_host->log(Warning, msg);
 				unknown4CCs.push_back(m_codecFourcc);
 			}

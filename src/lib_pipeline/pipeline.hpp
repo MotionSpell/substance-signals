@@ -4,6 +4,7 @@
 #include "lib_utils/log_sink.hpp"
 #include "lib_modules/modules.hpp"
 #include <condition_variable>
+#include <functional>
 #include <vector>
 #include <memory>
 #include <string>
@@ -27,7 +28,6 @@ class Pipeline : public IEventSink {
 
 		template <typename InstanceType, int NumBlocks = 0, typename ...Args>
 		IFilter * addNamedModule(const char* instanceName, Args&&... args) {
-
 			auto createModule = [&](Modules::KHost* host) {
 				return Modules::createModuleWithSize<InstanceType>(
 				        getNumBlocks(NumBlocks),
@@ -41,7 +41,7 @@ class Pipeline : public IEventSink {
 		IFilter * add(char const* typeName, const void* va);
 
 		/* @isLowLatency Controls the default number of buffers.
-			@threading    Controls the threading. */
+		   @threading    Controls the threading. */
 		Pipeline(LogSink* log = nullptr, bool isLowLatency = false, Threading threading = Threading::OnePerModule);
 		virtual ~Pipeline();
 
@@ -49,7 +49,7 @@ class Pipeline : public IEventSink {
 		// This is only possible when the module is disconnected and flush()ed
 		// (which is the caller responsibility - FIXME)
 		void removeModule(IFilter * module);
-		void connect   (OutputPin out, InputPin in, bool inputAcceptMultipleConnections = false);
+		void connect(OutputPin out, InputPin in, bool inputAcceptMultipleConnections = false);
 		void disconnect(IFilter * prev, int outputIdx, IFilter * next, int inputIdx);
 
 		std::string dump() const; // dump pipeline using DOT Language
@@ -57,6 +57,8 @@ class Pipeline : public IEventSink {
 		void start();
 		void waitForEndOfStream();
 		void exitSync(); /*ask for all sources to finish*/
+
+		void registerErrorCallback(std::function<void(const char*)>);
 
 	private:
 		IFilter * addModuleInternal(std::string name, CreationFunc createModule);
@@ -80,6 +82,7 @@ class Pipeline : public IEventSink {
 		std::condition_variable condition;
 		size_t notifications = 0, remainingNotifications = 0;
 		std::exception_ptr eptr;
+		std::function<void(const char*)> errorCbk;
 };
 
 }

@@ -41,7 +41,7 @@ unittest("pipeline: empty") {
 	}
 }
 
-unittest("pipeline: connecting an input to and output throws an error") {
+unittest("pipeline: connecting an input to an output throws an error") {
 	auto p = std::make_unique<Pipeline>();
 	auto src = p->addNamedModule<InfiniteSource>("Source");
 	auto sink = p->addNamedModule<FakeSink>("Sink");
@@ -49,18 +49,25 @@ unittest("pipeline: connecting an input to and output throws an error") {
 }
 
 unittest("pipeline: exceptions are propagated") {
-	struct CustomDataTypeSink : public Modules::ModuleS {
-		CustomDataTypeSink(Modules::KHost*) {}
-		void processOne(Modules::Data) override {
-			throw std::runtime_error("dummy exception");
+	static const std::string expected("dummy exception");
+	struct ModuleException : public Modules::Module {
+		ModuleException(Modules::KHost* host) : m_host(host) {
+			m_host->activate(true);
 		}
+		void process() override {
+			m_host->activate(false);
+			throw std::runtime_error(expected.c_str());
+		}
+		Modules::KHost * const m_host;
 	};
 
-	Pipeline p(nullptr, false, Pipelines::Threading::Mono);
-	auto src = p.addModule<InfiniteSource>();
-	auto aconv = p.addModule<CustomDataTypeSink>();
-	p.connect(src, aconv);
-	ASSERT_THROWN(p.start());
+	Pipeline p;
+	std::string error;
+	p.registerErrorCallback([&](const char *str) { error = str; });
+	p.addModule<ModuleException>();
+	p.start();
+	p.waitForEndOfStream();
+	ASSERT_EQUALS(expected, error);
 }
 
 unittest("pipeline: pipeline with split (no join)") {

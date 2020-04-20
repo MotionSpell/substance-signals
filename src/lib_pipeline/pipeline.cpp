@@ -176,13 +176,6 @@ void Pipeline::waitForEndOfStream() {
 	while (remainingNotifications > 0) {
 		m_log->log(Debug, format("Pipeline: condition (remaining: %s) (%s modules in the pipeline)", remainingNotifications, modules.size()).c_str());
 		condition.wait_for(lock, std::chrono::milliseconds(COMPLETION_GRANULARITY_IN_MS));
-		try {
-			if (eptr)
-				std::rethrow_exception(eptr);
-		} catch (const std::exception &e) {
-			m_log->log(Error, format("Pipeline: exception caught: %s. Exiting.", e.what()).c_str());
-			std::rethrow_exception(eptr); //FIXME: at this point the exception forward in submit() already lost some data
-		}
 	}
 	m_log->log(Info, "Pipeline: completed");
 }
@@ -227,9 +220,18 @@ void Pipeline::endOfStream() {
 	condition.notify_one();
 }
 
-void Pipeline::exception(std::exception_ptr e) {
-	eptr = e;
-	condition.notify_one();
+void Pipeline::registerErrorCallback(std::function<void(const char*)> cbk) {
+	errorCbk = cbk;
+}
+
+void Pipeline::exception(std::exception_ptr eptr) {
+	try {
+		std::rethrow_exception(eptr);
+	} catch (const std::exception &e) {
+		m_log->log(Error, format("Pipeline: exception caught: %s", e.what()).c_str());
+		if (errorCbk)
+			errorCbk(e.what());
+	}
 }
 
 }

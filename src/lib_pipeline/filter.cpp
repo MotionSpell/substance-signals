@@ -109,7 +109,6 @@ IInput* Filter::getInput(int i) {
 }
 
 void Filter::processSource() {
-
 	if(stopped || !active) {
 		endOfStream();
 		return; // don't reschedule
@@ -120,7 +119,8 @@ void Filter::processSource() {
 	} catch(std::exception const& e) {
 		log(Error, (std::string("Source error: ") + e.what()).c_str());
 		exception(std::current_exception());
-		throw; // don't reschedule
+		if (active)
+			stopSource();
 	}
 
 	reschedule();
