@@ -1,5 +1,6 @@
 #pragma once
 
+#include <exception>
 #include <vector>
 #include "lib_modules/utils/helper.hpp"
 #include "lib_media/common/file_puller.hpp"
@@ -47,6 +48,7 @@ class MPEG_DASH_Input : public Module, public IAdaptationControl {
 
 		struct Stream;
 		std::vector<std::unique_ptr<Stream>> m_streams;
+		std::exception_ptr eptr;
 		void processStream(Stream* stream);
 };
 

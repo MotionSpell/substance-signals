@@ -6,9 +6,10 @@
 #include "../common/metadata.hpp" // MetadataPkt
 #include "../common/mpeg_dash_parser.hpp"
 #include "mpeg_dash_input.hpp"
-#include <map>
-#include <cstring> // memcpy
 #include <algorithm> // max
+#include <chrono>
+#include <cstring> // memcpy
+#include <map>
 #include <thread>
 
 using namespace std;
@@ -21,8 +22,8 @@ namespace In {
 
 /*binary semaphore blocking post() with a thread executor*/
 struct BinaryBlockingExecutor {
-		BinaryBlockingExecutor()
-			: th(&BinaryBlockingExecutor::threadProc, this) {
+		BinaryBlockingExecutor(exception_ptr eptr)
+			: eptr(eptr), th(&BinaryBlockingExecutor::threadProc, this) {
 		}
 
 		~BinaryBlockingExecutor() {
@@ -34,8 +35,12 @@ struct BinaryBlockingExecutor {
 		void post(function<void()> fct) {
 			{
 				unique_lock<mutex> lock(m);
-				while (count == 0)
-					qEmpty.wait(lock);
+				while (count == 0) {
+					if (eptr)
+						rethrow_exception(eptr);
+
+					qEmpty.wait_for(lock, chrono::milliseconds(100));
+				}
 				count--;
 			}
 
@@ -44,17 +49,22 @@ struct BinaryBlockingExecutor {
 
 	private:
 		void threadProc() {
-			while (auto f = q.pop()) {
-				{
-					unique_lock<mutex> lock(m);
-					count++;
-					qEmpty.notify_one();
-				}
+			try {
+				while (auto f = q.pop()) {
+					{
+						unique_lock<mutex> lock(m);
+						count++;
+						qEmpty.notify_one();
+					}
 
-				f();
+					f();
+				}
+			} catch(...) {
+				eptr = current_exception();
 			}
 		}
 
+		exception_ptr eptr;
 		thread th;
 		mutex m;
 		Queue<function<void()>> q;
@@ -63,13 +73,17 @@ struct BinaryBlockingExecutor {
 };
 
 struct MPEG_DASH_Input::Stream {
-	OutputDefault* out = nullptr;
-	Representation const * rep = nullptr;
+	Stream(OutputDefault* out, Representation const * rep, Fraction segmentDuration, unique_ptr<IFilePuller> source, exception_ptr eptr)
+	: out(out), rep(rep), segmentDuration(segmentDuration), source(std::move(source)), executor(new BinaryBlockingExecutor(eptr)) {
+	}
+
+	OutputDefault* out;
+	Representation const * rep;
 	bool initializationChunkSent = false;
 	int64_t currNumber = 0;
-	Fraction segmentDuration {};
+	Fraction segmentDuration;
 	unique_ptr<IFilePuller> source;
-	BinaryBlockingExecutor executor;
+	unique_ptr<BinaryBlockingExecutor> executor;
 };
 
 static string dirName(string path) {
@@ -116,13 +130,9 @@ MPEG_DASH_Input::MPEG_DASH_Input(KHost* host, IFilePullerFactory *filePullerFact
 				continue;
 			}
 
-			auto stream = make_unique<Stream>();
-			stream->out = addOutput();
-			stream->out->setMetadata(meta);
-			stream->rep = &rep;
-			stream->segmentDuration = Fraction(set.duration, set.timescale);
-			stream->source = filePullerFactory->create();
-
+			auto out = addOutput();
+			out->setMetadata(meta);
+			auto stream = make_unique<Stream>(out, &rep, Fraction(set.duration, set.timescale), filePullerFactory->create(), eptr);
 			m_streams.push_back(move(stream));
 		}
 	}
@@ -221,7 +231,7 @@ void MPEG_DASH_Input::process() {
 	}
 
 	for(auto& stream : m_streams)
-		stream->executor.post(std::bind(&MPEG_DASH_Input::processStream, this, stream.get()));
+		stream->executor->post(std::bind(&MPEG_DASH_Input::processStream, this, stream.get()));
 }
 
 int MPEG_DASH_Input::getNumAdaptationSets() const {
@@ -249,7 +259,7 @@ void MPEG_DASH_Input::enableStream(int asIdx, int repIdx) {
 	if (repIdx < 0 || repIdx >= (int)m_streams[asIdx]->rep->set(mpd.get()).representations.size())
 		throw error("enableStream(): wrong representation index");
 
-	m_streams[asIdx]->executor.post([this, asIdx, repIdx]() {
+	m_streams[asIdx]->executor->post([this, asIdx, repIdx]() {
 		m_streams[asIdx]->rep = &m_streams[asIdx]->rep->set(mpd.get()).representations[repIdx];
 	});
 }
@@ -258,7 +268,7 @@ void MPEG_DASH_Input::disableStream(int asIdx) {
 	if (asIdx < 0 || asIdx >= (int)m_streams.size())
 		throw error("disableStream(): wrong adaptation set index");
 
-	m_streams[asIdx]->executor.post([this, asIdx]() {
+	m_streams[asIdx]->executor->post([this, asIdx]() {
 		m_streams[asIdx]->rep = nullptr;
 	});
 }
