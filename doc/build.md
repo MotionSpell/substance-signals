@@ -9,7 +9,7 @@
 
 # Build
 
- Use GNU Make (tested under gcc >= 4.9) (all other platforms, possible on Windows using msys2)
+Use GNU Make (tested under gcc >= 7) (all other platforms, possible on Windows using msys2)
 
 ## Make
 If you want to use the Make build system, the dependencies for Signals need to be downloaded and built first.
