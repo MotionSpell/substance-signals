@@ -1,6 +1,6 @@
 PLUG_DIR:=$(call get-my-dir)
 
--include $(PLUG_DIR)/$(shell $(CXX) -dumpmachine | sed "s/.*-\([a-zA-Z]*\)[0-9.]*/\1/").mk
+-include $(PLUG_DIR)/$(shell $(CXX) -dumpmachine | sed "s/.*-\([a-zA-Z]*\)[0-9.]*/\1/" | sed "s/linux/gnu/").mk
 
 TARGETS+=$(BIN)/UdpOutput.smd
 $(BIN)/UdpOutput.smd: \
