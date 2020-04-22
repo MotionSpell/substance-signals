@@ -65,6 +65,9 @@ class LibavMuxHLSTS : public ModuleDynI {
 			}
 			delegate->getInput(inputIdx)->push(data);
 
+			if (isDeclaration(data))
+				return; // contains metadata but not data
+
 			if (data->getMetadata()->type == VIDEO_PKT) {
 				auto flags = data->get<CueFlags>();
 				const int64_t DTS = data->get<PresentationTime>().time;

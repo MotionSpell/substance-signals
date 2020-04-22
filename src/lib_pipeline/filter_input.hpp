@@ -61,7 +61,6 @@ class FilterInput : public IInput {
 		}
 
 	private:
-
 		void doProcess() {
 			try {
 				auto data = queue.pop();
