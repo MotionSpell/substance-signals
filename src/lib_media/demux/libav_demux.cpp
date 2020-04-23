@@ -23,7 +23,7 @@ extern "C" {
 
 #define AV_PKT_FLAG_RESET_DECODER (1 << 30)
 
-static const int avioCtxBufferSize = 1024 * 1024;
+static const int avioCtxBufferSize = 10 * 1024 * 1024;
 
 using namespace Modules;
 using namespace std::chrono;
