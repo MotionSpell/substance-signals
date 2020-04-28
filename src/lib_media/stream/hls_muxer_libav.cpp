@@ -95,7 +95,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 					default: assert(0);
 					}
 
-					schedule({ (int64_t)m_utcStartTime->query() + data->get<PresentationTime>().time - segDuration, meta, segIdx });
+					schedule({ (int64_t)m_utcStartTime->query() + lastSegDTS, meta, segIdx });
 
 					/*next segment*/
 					lastSegDTS = DTS;
