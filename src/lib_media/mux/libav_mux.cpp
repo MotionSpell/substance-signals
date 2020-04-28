@@ -23,7 +23,6 @@ namespace {
 
 class LibavMux : public ModuleDynI {
 	public:
-
 		LibavMux(KHost* host, MuxConfig cfg)
 			: m_host(host), m_formatCtx(avformat_alloc_context()), optionsDict(typeid(*this).name(), cfg.options) {
 			if (!m_formatCtx)
@@ -74,7 +73,6 @@ class LibavMux : public ModuleDynI {
 		}
 
 		void process() override {
-
 			// av_interleaved_write_frame will segfault if already flushed
 			if(m_flushed) {
 				m_host->log(Warning, "Ignoring input data after flush");
@@ -212,7 +210,6 @@ class LibavMux : public ModuleDynI {
 		}
 
 		void fillAvPacket(Data data, AVPacket* newPkt) {
-
 			// only insert headers for video, not for audio (e.g would break AAC)
 			auto const videoMetadata = dynamic_cast<const MetadataPktVideo*>(data->getMetadata().get());
 			auto const key = data->get<CueFlags>().keyframe;

@@ -71,16 +71,18 @@ class LibavMuxHLSTS : public ModuleDynI {
 			if (data->getMetadata()->type == VIDEO_PKT) {
 				auto flags = data->get<CueFlags>();
 				const int64_t DTS = data->get<PresentationTime>().time;
-				if (firstDTS == -1) {
-					firstDTS = DTS;
-					startsWithRAP = flags.keyframe;
+
+				if (lastSegDTS == INT64_MIN) {
+					lastSegDTS = DTS;
+					if (!flags.keyframe)
+						throw error("First segment doesn't start with a RAP. Aborting.");
 				}
 
-				if (DTS >= (segIdx + 1) * segDuration + firstDTS) {
+				if (DTS >= lastSegDTS + segDuration && flags.keyframe /*always start with a keyframe*/) {
 					auto meta = make_shared<MetadataFile>(SEGMENT);
-					meta->durationIn180k = segDuration;
+					meta->durationIn180k = DTS - lastSegDTS;
 					meta->filename = format("%s%s%s.ts", hlsDir, segBasename, segIdx);
-					meta->startsWithRAP = startsWithRAP;
+					meta->startsWithRAP = true;
 
 					switch (data->getMetadata()->type) {
 					case AUDIO_PKT:
@@ -96,9 +98,12 @@ class LibavMuxHLSTS : public ModuleDynI {
 					schedule({ (int64_t)m_utcStartTime->query() + data->get<PresentationTime>().time - segDuration, meta, segIdx });
 
 					/*next segment*/
-					startsWithRAP = flags.keyframe;
+					lastSegDTS = DTS;
 					segIdx++;
 				}
+
+				if (DTS - lastSegDTS > 2 * segDuration)
+					m_host->log(Error, format("DTS(%s) - lastSegDTS(%s) > 2 * segDuration(%s): please check your encoding (GOP) parameters.", DTS, lastSegDTS, segDuration).c_str());
 			}
 
 			postIfPossible();
@@ -177,9 +182,8 @@ class LibavMuxHLSTS : public ModuleDynI {
 		std::shared_ptr<IModule> delegate;
 		OutputDefault *outputSegment, *outputManifest;
 		std::vector<PostableSegment> segmentsToPost;
-		int64_t firstDTS = -1, segDuration, segIdx = 0;
+		int64_t lastSegDTS = INT64_MIN, segDuration, segIdx = 0;
 		std::string hlsDir, segBasename;
-		bool startsWithRAP = false;
 };
 
 IModule* createObject(KHost* host, void* va) {

@@ -56,7 +56,6 @@ struct ZeroRestamper : Module {
 				inputIdx++;
 			return data;
 		}
-
 };
 
 struct LocalFileSystem : In::IFilePuller {
