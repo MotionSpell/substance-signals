@@ -36,7 +36,7 @@ function ffmpeg_build {
   local XCOMPILE="--target-os=$os --arch=$ARCH --cross-prefix=$host-"
   local NVIDIA=""
   if [ $ENABLE_NVIDIA == 1 ]; then
-    NVIDIA="--enable-cuda-nvcc --enable-cuvid --enable-nonfree --enable-ffnvcodec  --enable-vdpau"
+    NVIDIA="--enable-cuda-nvcc --enable-cuvid --enable-libnpp --enable-nonfree --enable-ffnvcodec  --enable-vdpau"
     XCOMPILE=""
   fi
   local FREETYPE2=""
