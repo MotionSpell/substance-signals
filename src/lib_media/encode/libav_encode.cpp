@@ -24,6 +24,8 @@ AVRational toAVRational(Fraction f) {
 	return {(int)f.num, (int)f.den};
 }
 
+const int TICKS_PER_VIDEO_FRAME = 100;
+
 struct LibavEncode : ModuleS {
 		LibavEncode(KHost* host, EncoderConfig *pparams)
 			: m_host(host),
@@ -110,11 +112,6 @@ struct LibavEncode : ModuleS {
 
 			output = addOutput();
 
-			// Make ffmpeg use the same time scale as the framework:
-			// thus, no timestamp conversion is needed.
-			codecCtx->time_base.num = 1;
-			codecCtx->time_base.den = IClock::Rate;
-
 			// encoder configuration
 			switch (type) {
 			case EncoderConfig::Video: {
@@ -134,6 +131,14 @@ struct LibavEncode : ModuleS {
 				// output
 				pparams->pixelFormat = libavPixFmt2PixelFormat(codecCtx->pix_fmt);
 
+
+				// Using the same time scale as the framework { 1, IClock::Rate }
+				// is not possible as some codecs in FFmpeg mixes framerate and time_base.
+				auto const tbNum = params.frameRate.inverse() * IClock::Rate;
+				if (tbNum.den != 1)
+					throw error(format("Unsupported frame rate %s/s", params.frameRate.num, params.frameRate.den).c_str());
+				codecCtx->time_base.num = int(tbNum);
+				codecCtx->time_base.den = IClock::Rate * TICKS_PER_VIDEO_FRAME;
 				framePeriod = params.frameRate.inverse();
 
 				prepareFrame = std::bind(&LibavEncode::prepareVideoFrame, this, std::placeholders::_1);
@@ -141,6 +146,8 @@ struct LibavEncode : ModuleS {
 				break;
 			}
 			case EncoderConfig::Audio:
+				codecCtx->time_base.num = 1;
+				codecCtx->time_base.den = IClock::Rate;
 
 				prepareFrame = std::bind(&LibavEncode::prepareAudioFrame, this, std::placeholders::_1);
 				input->setMetadata(make_shared<MetadataRawAudio>());
@@ -224,7 +231,7 @@ struct LibavEncode : ModuleS {
 			}
 
 			auto f = prepareFrame(data);
-			f->pts = data->get<PresentationTime>().time;
+			f->pts = data->get<PresentationTime>().time * codecCtx->ticks_per_frame / codecCtx->time_base.num;
 			encodeFrame(f);
 		}
 
@@ -288,8 +295,8 @@ struct LibavEncode : ModuleS {
 					flags.keyframe = true;
 				out->set(flags);
 
-				out->set(PresentationTime { pkt.pts });
-				out->set(DecodingTime { pkt.dts });
+				out->set(PresentationTime { pkt.pts * codecCtx->time_base.num / codecCtx->ticks_per_frame });
+				out->set(DecodingTime     { pkt.dts * codecCtx->time_base.num / codecCtx->ticks_per_frame });
 				output->post(out);
 				av_packet_unref(&pkt);
 			}
@@ -327,7 +334,7 @@ struct LibavEncode : ModuleS {
 				codecCtx->framerate = toAVRational(framePeriod.inverse());
 
 				// for encoding level checks (MB rate) and rate control
-				codecCtx->ticks_per_frame = int(framePeriod * IClock::Rate);
+				codecCtx->ticks_per_frame = TICKS_PER_VIDEO_FRAME;
 				break;
 			}
 			case EncoderConfig::Audio: {
