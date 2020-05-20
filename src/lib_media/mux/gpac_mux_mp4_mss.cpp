@@ -106,7 +106,7 @@ std::string GPACMuxMP4MSS::writeISMLManifest(std::string codec4CC, std::string c
 			ss << "        <param name=\"FourCC\" value=\"" << codec4CC << "\" valuetype=\"data\"/>\n";
 			ss << "        <param name=\"CodecPrivateData\" value=\"" << codecPrivate << "\" valuetype=\"data\"/>\n";
 			if (!audioName.empty()) ss << "        <param name=\"trackName\" value=\"" << audioName << "\" valuetype=\"data\" />\n";
-			if (!lang.empty()) ss << "        <param name=\"systemLanguage\" value=\"" << lang << "\" valuetype=\"data\" />\n";
+			if (!audioLang.empty()) ss << "        <param name=\"systemLanguage\" value=\"" << audioLang << "\" valuetype=\"data\" />\n";
 			ss << "        <param name=\"AudioTag\"      value=\"" << 255 << "\" valuetype=\"data\"/>\n";
 			ss << "        <param name=\"Channels\"      value=\"" << channels << "\" valuetype=\"data\"/>\n";
 			ss << "        <param name=\"SamplingRate\"  value=\"" << sampleRate << "\" valuetype=\"data\"/>\n";
