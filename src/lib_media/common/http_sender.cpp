@@ -61,23 +61,35 @@ void append(std::vector<uint8_t>& dst, SpanC data) {
 		memcpy(&dst[offset], data.ptr, data.len);
 }
 
+void prepend(std::vector<uint8_t>& dst, SpanC data) {
+	auto offset = dst.size();
+	dst.resize(offset + data.len);
+	if (data.len) {
+		memmove(&dst[data.len], &dst[0], offset);
+		memcpy(&dst[0], data.ptr, data.len);
+	}
+}
+
 struct CurlHttpSender : HttpSender {
 
 		HttpSenderConfig const m_cfg;
 		CurlHttpSender(HttpSenderConfig const& cfg, Modules::KHost* log) : m_cfg(cfg) {
 			m_log = log;
-			curlThread = std::thread(&CurlHttpSender::threadProc, this);
 		}
 
 		~CurlHttpSender() {
 			destroying = true;
-			curlThread.join();
+			if (curlThread.joinable())
+				curlThread.join();
 		}
 
 		void send(span<const uint8_t> data) override {
 			if (m_cfg.request == DELETEX)
 				// don't try to send anything on DELETE
 				return;
+
+			if (!curlThread.joinable())
+				curlThread = std::thread(&CurlHttpSender::threadProc, this);
 
 			{
 				std::unique_lock<std::mutex> lock(m_mutex);
@@ -137,8 +149,10 @@ struct CurlHttpSender : HttpSender {
 
 			while(!destroying && !allDataSent) {
 				// load prefix, if any
-				if(m_prefixData.size())
-					append(m_fifo, {m_prefixData.data(), m_prefixData.size()});
+				if(m_prefixData.size()) {
+					std::unique_lock<std::mutex> lock(m_mutex);
+					prepend(m_fifo, {m_prefixData.data(), m_prefixData.size()});
+				}
 
 				perform(curl.get());
 			}
@@ -218,4 +232,5 @@ void enforceConnection(std::string url, HttpRequest request) {
 	if (res != CURLE_OK)
 		throw std::runtime_error("Can't connect to '" + url + "'");
 }
+
 
