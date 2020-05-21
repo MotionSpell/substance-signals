@@ -34,6 +34,8 @@ struct LibavEncode : ModuleS {
 
 			auto const type = params.type;
 			std::string generalOptions;
+
+			// encoder configuration
 			switch (type) {
 			case EncoderConfig::Video: {
 				GOPSize = params.GOPSize;
@@ -112,6 +114,9 @@ struct LibavEncode : ModuleS {
 
 			output = addOutput();
 
+			// Using the same time scale as the framework { 1, IClock::Rate }
+			// is not possible as some codecs in FFmpeg mixes framerate and time_base.
+
 			// encoder configuration
 			switch (type) {
 			case EncoderConfig::Video: {
@@ -130,7 +135,6 @@ struct LibavEncode : ModuleS {
 
 				// output
 				pparams->pixelFormat = libavPixFmt2PixelFormat(codecCtx->pix_fmt);
-
 
 				// Using the same time scale as the framework { 1, IClock::Rate }
 				// is not possible as some codecs in FFmpeg mixes framerate and time_base.
@@ -178,50 +182,9 @@ struct LibavEncode : ModuleS {
 				f->height = pic->getFormat().res.height;
 				f->data[i] = (uint8_t*)pic->getPlane(i);
 				f->linesize[i] = (int)pic->getStride(i);
-				if (sizeof(legend_pixel_colors) >= (unsigned int)(i+1) && legend_pixel_colors[i] > -1) {
-					for (size_t j = 0; j < (unsigned)(long)(f->linesize[i]/3); j++) {
-						f->data[i][j] = legend_pixel_colors[i];
-					}
-				}
 			}
 			computeFrameAttributes(f, data->get<PresentationTime>().time);
 			return f;
-		}
-
-		void setLegendPixelColors(EncoderConfig &params) {
-			if (params.legend_pixel_color == "green") {
-				legend_pixel_colors[0] = 149;
-				legend_pixel_colors[1] = 43;
-				legend_pixel_colors[2] = 21;
-			} else if (params.legend_pixel_color == "blue") {
-				legend_pixel_colors[0] = 29;
-				legend_pixel_colors[1] = 255;
-				legend_pixel_colors[2] = 107;
-			} else if (params.legend_pixel_color == "red") {
-				legend_pixel_colors[0] = 76;
-				legend_pixel_colors[1] = 84;
-				legend_pixel_colors[2] = 255;
-			} else if (params.legend_pixel_color == "pink") {
-				legend_pixel_colors[0] = 105;
-				legend_pixel_colors[1] = 212;
-				legend_pixel_colors[2] = 234;
-			} else if (params.legend_pixel_color == "yellow") {
-				legend_pixel_colors[0] = 225;
-				legend_pixel_colors[1] = 0;
-				legend_pixel_colors[2] = 148;
-			} else if (params.legend_pixel_color == "cyan") {
-				legend_pixel_colors[0] = 178;
-				legend_pixel_colors[1] = 171;
-				legend_pixel_colors[2] = 0;
-			} else if (params.legend_pixel_color == "orange") {
-				legend_pixel_colors[0] = 173;
-				legend_pixel_colors[1] = 30;
-				legend_pixel_colors[2] = 186;
-			} else if (params.legend_pixel_color == "purple") {
-				legend_pixel_colors[0] = 52;
-				legend_pixel_colors[1] = 170;
-				legend_pixel_colors[2] = 181;
-			}
 		}
 
 		void processOne(Data data) {
@@ -312,7 +275,6 @@ struct LibavEncode : ModuleS {
 		int64_t firstMediaTime = 0;
 		int64_t prevMediaTime = 0;
 		Fraction GOPSize {};
-		int legend_pixel_colors[3] = {-1, -1, -1};
 		Fraction framePeriod {};
 		std::function<AVFrame*(Data)> prepareFrame;
 		std::string codecOptions, codecName;
