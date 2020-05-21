@@ -76,8 +76,9 @@ ifeq ($(SIGNALS_HAS_APPS), 1)
   include $(SRC)/apps/mp42tsx/project.mk
   include $(SRC)/apps/monitor/project.mk
   include $(SRC)/apps/mcastdump/project.mk
-  include $(SRC)/tests/project.mk
 endif
+
+include $(SRC)/tests/project.mk
 
 ifeq ($(ENABLED_BOMB), 1)
   CFLAGS+=-DENABLE_BOMB -DBOMB_TIME_IN_DAYS=$(BOMB_TIME_IN_DAYS)
