@@ -232,5 +232,3 @@ void enforceConnection(std::string url, HttpRequest request) {
 	if (res != CURLE_OK)
 		throw std::runtime_error("Can't connect to '" + url + "'");
 }
-
-
