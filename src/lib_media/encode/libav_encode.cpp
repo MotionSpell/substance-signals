@@ -114,9 +114,6 @@ struct LibavEncode : ModuleS {
 
 			output = addOutput();
 
-			// Using the same time scale as the framework { 1, IClock::Rate }
-			// is not possible as some codecs in FFmpeg mixes framerate and time_base.
-
 			// encoder configuration
 			switch (type) {
 			case EncoderConfig::Video: {
