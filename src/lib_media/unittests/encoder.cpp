@@ -95,7 +95,9 @@ unittest("encoder: video timestamp passthrough") {
 
 	vector<int64_t> inputTimes = {0, 1, 2, 3, 4, 20, 21, 22, 10, 11, 12};
 
-	EncoderConfig cfg { EncoderConfig::Video };
+	EncoderConfig cfg;
+	cfg.type = EncoderConfig::Video;
+	cfg.frameRate = Fraction(IClock::Rate);
 	auto encode = loadModule("Encoder", &NullHost, &cfg);
 	ConnectOutput(encode->getOutput(0), onFrame);
 	for(auto time : inputTimes) {
