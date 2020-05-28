@@ -158,7 +158,7 @@ struct Rectifier : ModuleDynI {
 			// if the frame is available, but since very little time, use it, but don't remove it.
 			// Thus, it will be used again next time.
 			// This protects us from frame phase changes (e.g on SDI cable replacement).
-			if(abs(stream.data[0].creationTime - now) < fractionToClock(framePeriod))
+			if(std::abs(stream.data[0].creationTime - now) < fractionToClock(framePeriod))
 				return stream.blank;
 
 			auto r = stream.data.front().data;

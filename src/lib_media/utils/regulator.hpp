@@ -25,7 +25,7 @@ class Regulator : public ModuleS {
 					m_host->log(Warning, format("will sleep for %s ms", delayInMs).c_str());
 				std::this_thread::sleep_for(std::chrono::milliseconds(delayInMs));
 			} else if (delayInMs < -REGULATION_TOLERANCE_IN_MS) {
-				if(abs(delayInMs) > abs(m_lastDelayInMs)) {
+				if(std::abs(delayInMs) > std::abs(m_lastDelayInMs)) {
 					char msg[256];
 					sprintf(msg, "late data (%.2fs)",  -delayInMs*1000.0/IClock::Rate);
 					m_host->log(Warning, msg);
