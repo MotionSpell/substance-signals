@@ -32,7 +32,7 @@ class GPACMuxMP4MSS : public GPACMuxMP4 {
 GPACMuxMP4MSS::GPACMuxMP4MSS(KHost* host, Mp4MuxConfigMss& cfg)
 	: GPACMuxMP4(host,
 	      Mp4MuxConfig{
-	.baseName = cfg.baseName,
+	cfg.baseName,
 	cfg.segmentDurationInMs,
 	IndependentSegment,
 	OneFragmentPerSegment,
