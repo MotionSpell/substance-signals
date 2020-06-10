@@ -50,8 +50,8 @@ bool startsWith(std::string s, std::string prefix) {
 
 struct LibavDemux : Module {
 	LibavDemux(KHost* host, DemuxConfig const& config)
-		: m_host(host),
-		  loop(config.loop), done(false), packetQueue(PKT_QUEUE_SIZE), m_read(config.func) {
+		: m_host(host), loop(config.loop), done(false), packetQueue(PKT_QUEUE_SIZE), m_read(config.func),
+		  startPTSIn180k(config.preserveInitialData ? std::numeric_limits<int64_t>::max() : std::numeric_limits<int64_t>::min()) {
 		if (!(m_formatCtx = avformat_alloc_context()))
 			throw error("Can't allocate format context");
 
@@ -124,7 +124,7 @@ struct LibavDemux : Module {
 			}
 			m_streams.resize(m_formatCtx->nb_streams);
 
-			initRestamp();
+			initRestamp(config.preserveInitialData);
 
 			av_dict_free(&dict);
 		}
@@ -282,7 +282,7 @@ struct LibavDemux : Module {
 		return true;
 	}
 
-	void initRestamp() {
+	void initRestamp(bool keepAllPackets) {
 		for (unsigned i = 0; i < m_formatCtx->nb_streams; i++) {
 			const std::string format(m_formatCtx->iformat->name);
 			const std::string url = m_formatCtx->url;
@@ -292,10 +292,14 @@ struct LibavDemux : Module {
 			} else {
 				m_streams[i].restamper = createModule<Transform::Restamp>(&NullHost, Transform::Restamp::Reset);
 			}
-
+				
 			if (format == "rtsp" || format == "rtp" || format == "mpegts" || format == "rtmp" || format == "flv") { //TODO: evaluate why this is not the default behaviour
 				auto stream = m_formatCtx->streams[i];
-				startPTSIn180k = std::max<int64_t>(startPTSIn180k, timescaleToClock(stream->start_time*stream->time_base.num, stream->time_base.den));
+				if (keepAllPackets) {
+					startPTSIn180k = std::min<int64_t>(startPTSIn180k, timescaleToClock(stream->start_time * stream->time_base.num, stream->time_base.den));
+				} else {
+					startPTSIn180k = std::max<int64_t>(startPTSIn180k, timescaleToClock(stream->start_time * stream->time_base.num, stream->time_base.den));
+				}
 			} else {
 				startPTSIn180k = 0;
 			}
@@ -512,7 +516,7 @@ struct LibavDemux : Module {
 	AVFormatContext* m_formatCtx;
 	AVIOContext* m_avioCtx = nullptr;
 	const DemuxConfig::ReadFunc m_read;
-	int64_t curTimeIn180k = 0, startPTSIn180k = std::numeric_limits<int64_t>::min();
+	int64_t curTimeIn180k = 0, startPTSIn180k;
 
 	static int read(void* user, uint8_t* data, int size) {
 		auto pThis = (LibavDemux*)user;
