@@ -319,7 +319,7 @@ struct LibavDemux : Module {
 
 		if (pkt.dts != AV_NOPTS_VALUE) {
 			pkt.dts += clockToTimescale(demuxStream.offsetIn180k * stream->time_base.num, stream->time_base.den);
-			if (demuxStream.lastDTS && pkt.dts < demuxStream.lastDTS
+			if (demuxStream.lastDTS != AV_NOPTS_VALUE && pkt.dts < demuxStream.lastDTS
 			    && (1LL << stream->pts_wrap_bits) - demuxStream.lastDTS < thresholdInBase && pkt.dts + (1LL << stream->pts_wrap_bits) > demuxStream.lastDTS) {
 				demuxStream.offsetIn180k += timescaleToClock((1LL << stream->pts_wrap_bits) * stream->time_base.num, stream->time_base.den);
 				m_host->log(Warning, format("Stream %s: overflow detecting on DTS (%s, last=%s, timescale=%s/%s, offset=%s).",
@@ -338,7 +338,7 @@ struct LibavDemux : Module {
 		}
 
 		/*dts repetition*/
-		if (pkt.dts == m_streams[pkt.stream_index].lastDTS) {
+		if (pkt.dts != AV_NOPTS_VALUE && pkt.dts == m_streams[pkt.stream_index].lastDTS) {
 			m_streams[pkt.stream_index].lastDTS = pkt.dts = m_streams[pkt.stream_index].lastDTS + 1;
 		}
 
@@ -437,7 +437,7 @@ struct LibavDemux : Module {
 			pkt->dts = m_streams[pkt->stream_index].lastDTS;
 			m_host->log(Debug, format("No DTS: setting last value %s.", pkt->dts).c_str());
 		}
-		if (!m_streams[pkt->stream_index].lastDTS) {
+		if (m_streams[pkt->stream_index].lastDTS == AV_NOPTS_VALUE) {
 			auto stream = m_formatCtx->streams[pkt->stream_index];
 			auto minPts = clockToTimescale(startPTSIn180k*stream->time_base.num, stream->time_base.den);
 			if(pkt->pts < minPts) {
@@ -495,7 +495,7 @@ struct LibavDemux : Module {
 	struct Stream {
 		OutputDefault* output = nullptr;
 		uint64_t offsetIn180k = 0;
-		int64_t lastDTS = std::numeric_limits<int64_t>::min();
+		int64_t lastDTS = AV_NOPTS_VALUE;
 		std::unique_ptr<Transform::Restamp> restamper;
 	};
 
