@@ -52,6 +52,14 @@ class LibavMuxHLSTS : public ModuleDynI {
 		}
 
 		void flush() override {
+			if (DTS != lastSegDTS) {
+				auto meta = make_shared<MetadataFile>(SEGMENT);
+				meta->durationIn180k = DTS - lastSegDTS;
+				meta->filename = format("%s%s%s.ts", hlsDir, segBasename, segIdx);
+				meta->startsWithRAP = true;
+				schedule({ (int64_t)m_utcStartTime->query() + lastSegDTS, meta, segIdx });
+			}
+
 			while (post()) {}
 		}
 
@@ -70,7 +78,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 
 			if (data->getMetadata()->type == VIDEO_PKT) {
 				auto flags = data->get<CueFlags>();
-				const int64_t DTS = data->get<PresentationTime>().time;
+				DTS = data->get<PresentationTime>().time;
 
 				if (lastSegDTS == INT64_MIN) {
 					lastSegDTS = DTS;
@@ -182,7 +190,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 		std::shared_ptr<IModule> delegate;
 		OutputDefault *outputSegment, *outputManifest;
 		std::vector<PostableSegment> segmentsToPost;
-		int64_t lastSegDTS = INT64_MIN, segDuration, segIdx = 0;
+		int64_t DTS, lastSegDTS = INT64_MIN, segDuration, segIdx = 0;
 		std::string hlsDir, segBasename;
 };
 
