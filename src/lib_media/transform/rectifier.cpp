@@ -58,7 +58,7 @@ struct Interval {
 };
 
 struct Rectifier : ModuleDynI {
-		Rectifier(KHost* host, std::shared_ptr<IClock> clock_, IScheduler* scheduler_, Fraction frameRate)
+		Rectifier(KHost* host, std::shared_ptr<IClock> clock_, std::shared_ptr<IScheduler> scheduler_, Fraction frameRate)
 			: m_host(host),
 			  framePeriod(frameRate.inverse()),
 			  clock(clock_),
@@ -92,7 +92,6 @@ struct Rectifier : ModuleDynI {
 		}
 
 	private:
-
 		KHost* const m_host;
 
 		Fraction const framePeriod;
@@ -100,7 +99,7 @@ struct Rectifier : ModuleDynI {
 		std::vector<Stream> streams;
 		std::mutex inputMutex;
 		std::shared_ptr<IClock> clock;
-		IScheduler* const scheduler;
+		std::shared_ptr<IScheduler> const scheduler;
 		IScheduler::Id m_pendingTaskId {};
 		bool m_started = false;
 
@@ -285,7 +284,7 @@ struct Rectifier : ModuleDynI {
 				};
 			};
 
-			// convert all times to absolute sample counts.
+			// Convert all times to absolute sample counts.
 			// This way we handle early all precision issues.
 			// Doing computations in sample counts (instead of clock rate)
 			// allows us to ensure sample accuracy.
