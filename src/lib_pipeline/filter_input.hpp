@@ -54,10 +54,10 @@ class FilterInput : public IInput {
 			delegate->disconnect();
 		}
 		Metadata getMetadata() const override {
-			return m_metadataCap.getMetadata();
+			return delegate->getMetadata();
 		}
 		bool updateMetadata(Data &data) override {
-			return m_metadataCap.updateMetadata(data);
+			return delegate->updateMetadata(data);
 		}
 
 	private:
@@ -90,7 +90,6 @@ class FilterInput : public IInput {
 		decltype(StatsEntry::value) samplingCounter = 0;
 		StatsEntry * const statsCumulated;
 		StatsEntry * const statsPending;
-		MetadataCap m_metadataCap;
 };
 
 }
