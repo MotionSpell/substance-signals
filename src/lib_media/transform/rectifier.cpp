@@ -168,7 +168,8 @@ struct Rectifier : ModuleDynI {
 
 		int getMasterStreamId() const {
 			for(auto i : getInputs()) {
-				if (inputs[i]->getMetadata() && inputs[i]->getMetadata()->type == VIDEO_RAW) {
+				auto meta = inputs[i]->getMetadata() ? inputs[i]->getMetadata() : outputs[i]->getMetadata() ? outputs[i]->getMetadata() : nullptr;
+				if (meta && meta->type == VIDEO_RAW) {
 					return i;
 				}
 			}
