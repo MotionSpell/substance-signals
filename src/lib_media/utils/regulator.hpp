@@ -19,7 +19,12 @@ class Regulator : public ModuleS {
 		void processOne(Data data) override {
 			auto const timeTarget = data->get<PresentationTime>().time;
 			auto const timeNow = fractionToClock(clock->now());
-			auto const delayInMs = clockToTimescale(timeTarget - timeNow, 1000);
+			auto const delayInMs = clockToTimescale(timeTarget - timeNow, 1000) - m_offsetInMs;
+			if (std::abs(delayInMs) > DISCONTINUITY_TOLERANCE_IN_MS) {
+				m_host->log(Warning, format("discontinuity detected (%s ms)", delayInMs).c_str());
+				m_offsetInMs += delayInMs;
+				return processOne(data);
+			}
 			if (delayInMs > 0) {
 				if(delayInMs > REGULATION_TOLERANCE_IN_MS)
 					m_host->log(Warning, format("will sleep for %s ms", delayInMs).c_str());
@@ -38,11 +43,12 @@ class Regulator : public ModuleS {
 		std::shared_ptr<IClock> const clock;
 
 		static auto const REGULATION_TOLERANCE_IN_MS = 300;
+		static auto const DISCONTINUITY_TOLERANCE_IN_MS = 20000;
 
 	private:
 		KHost* const m_host;
 		KOutput* m_output;
-		int64_t m_lastDelayInMs = 0;
+		int64_t m_lastDelayInMs = 0, m_offsetInMs = 0;
 };
 }
 
