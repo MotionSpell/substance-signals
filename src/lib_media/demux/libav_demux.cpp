@@ -292,7 +292,7 @@ struct LibavDemux : Module {
 			} else {
 				m_streams[i].restamper = createModule<Transform::Restamp>(&NullHost, Transform::Restamp::Reset);
 			}
-				
+
 			if (format == "rtsp" || format == "rtp" || format == "mpegts" || format == "rtmp" || format == "flv") { //TODO: evaluate why this is not the default behaviour
 				auto stream = m_formatCtx->streams[i];
 				if (keepAllPackets) {
