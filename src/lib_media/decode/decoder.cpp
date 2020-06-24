@@ -61,7 +61,6 @@ int avGetBuffer2(struct AVCodecContext *ctx, AVFrame *frame, int /*flags*/) {
 }
 
 struct Decoder : ModuleS, PictureAllocator {
-
 		Decoder(KHost* host, StreamType type)
 			: m_host(host), avFrame(new ffpp::Frame) {
 			mediaOutput = addOutput();
@@ -78,7 +77,7 @@ struct Decoder : ModuleS, PictureAllocator {
 		}
 
 		// IModule implementation
-		void processOne(Data data) {
+		void processOne(Data data) override {
 			inputs[0]->updateMetadata(data);
 
 			if(!codecCtx) {
@@ -178,7 +177,6 @@ struct Decoder : ModuleS, PictureAllocator {
 		}
 
 		std::shared_ptr<DataBase> processVideo() {
-
 			std::shared_ptr<DataPicture> pic;
 			if (auto ctx = static_cast<PictureContext*>(avFrame->get()->opaque)) {
 				pic = ctx->pic;
