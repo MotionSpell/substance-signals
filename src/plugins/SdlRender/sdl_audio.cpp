@@ -146,7 +146,8 @@ struct SDLAudio : ModuleS {
 		auto const relativeSamplePosition = relativeTimePositionIn180k * m_outputFormat.sampleRate / int64_t(IClock::Rate);
 
 		if (relativeTimePositionIn180k < -TOLERANCE) {
-			auto const numSamplesToDrop = std::min<int64_t>(fifoSamplesToRead(), -relativeSamplePosition);
+			auto const fifoSamplesToRemove = std::max<int64_t>(0, fifoSamplesToRead() - numSamplesToProduce);
+			auto const numSamplesToDrop = std::min<int64_t>(fifoSamplesToRemove, -relativeSamplePosition);
 			m_host->log(Warning, format("must drop fifo data (%s ms)", numSamplesToDrop * 1000.0f / m_outputFormat.sampleRate).c_str());
 			fifoConsumeSamples((size_t)numSamplesToDrop);
 		} else if (relativeTimePositionIn180k > TOLERANCE) {
