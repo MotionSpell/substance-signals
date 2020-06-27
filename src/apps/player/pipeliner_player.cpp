@@ -4,6 +4,8 @@
 #include "lib_modules/utils/loader.hpp"
 #include "lib_utils/log.hpp" // g_Log
 #include "lib_utils/format.hpp"
+#include "lib_utils/scheduler.hpp"
+#include "lib_utils/system_clock.hpp"
 #include <fstream>
 
 // modules
@@ -13,13 +15,20 @@
 #include "lib_media/in/video_generator.hpp"
 #include "lib_media/in/file.hpp"
 #include "lib_media/out/null.hpp"
+#include "lib_media/utils/regulator.hpp"
+#include "lib_media/transform/rectifier.hpp"
+#include "lib_media/utils/regulator.hpp"
 #include "plugins/HlsDemuxer/hls_demux.hpp"
+#include "plugins/MulticastInput/multicast_input.hpp"
 #include "plugins/TsDemuxer/ts_demuxer.hpp"
 
 using namespace Modules;
 using namespace Pipelines;
 
 namespace {
+
+const bool regulate = true;
+const bool rectify = false;
 
 struct ZeroRestamper : Module {
 		ZeroRestamper(KHost*, int count) {
@@ -84,6 +93,8 @@ bool endsWith(std::string s, std::string suffix) {
 	return s.substr(s.size() - suffix.size(), suffix.size()) == suffix;
 }
 
+static bool hasAudio = false, hasVideo = false;
+
 IFilter* createRenderer(Pipeline& pipeline, Config cfg, int codecType) {
 	if(!cfg.noRenderer) {
 		if (codecType == VIDEO_RAW) {
@@ -102,10 +113,20 @@ IFilter* createRenderer(Pipeline& pipeline, Config cfg, int codecType) {
 IFilter* createDemuxer(Pipeline& pipeline, std::string url) {
 	if(startsWith(url, "mpegts://")) {
 		url = url.substr(9);
-		auto file = pipeline.addModule<In::File>(url);
+		IFilter *in = nullptr;
+		MulticastInputConfig mcast;
+		if (sscanf("224.0.0.1:1234", "%d.%d.%d.%d:%d",
+			&mcast.ipAddr[0],
+			&mcast.ipAddr[1],
+			&mcast.ipAddr[2],
+			&mcast.ipAddr[3],
+			&mcast.port) == 5) {
+			in = pipeline.add("MulticastInput", &mcast);
+		} else
+			in = pipeline.addModule<In::File>(url);
 		TsDemuxerConfig cfg {};
 		auto demux = pipeline.add("TsDemuxer", &cfg);
-		pipeline.connect(file, demux);
+		pipeline.connect(in, demux);
 		return demux;
 	}
 	if(startsWith(url, "videogen://")) {
@@ -143,7 +164,17 @@ void declarePipeline(Config cfg, Pipeline &pipeline, const char *url) {
 	if(demuxer->getNumOutputs() == 0)
 		throw std::runtime_error("No streams found");
 
-	auto restamper = pipeline.addModule<ZeroRestamper>(demuxer->getNumOutputs());
+	IFilter *restamper = nullptr;
+	if (rectify) {
+		RectifierConfig rCfg;
+		rCfg.clock = g_SystemClock;
+		rCfg.scheduler = std::make_shared<Scheduler>(rCfg.clock);
+		rCfg.frameRate = Fraction(25, 1); //always play at this rate
+		g_Log->log(Debug, format("Rectify at frequency %s/%s (%s)", rCfg.frameRate.num, rCfg.frameRate.den, (double)rCfg.frameRate).c_str());
+		restamper = pipeline.add("Rectifier", &rCfg);
+	} else {
+		restamper = pipeline.addModule<ZeroRestamper>(demuxer->getNumOutputs());
+	}
 
 	for (int k = 0; k < demuxer->getNumOutputs(); ++k) {
 		auto metadata = demuxer->getOutputMetadata(k);
@@ -155,8 +186,28 @@ void declarePipeline(Config cfg, Pipeline &pipeline, const char *url) {
 			g_Log->log(Debug, format("Ignoring stream #%s", k).c_str());
 			continue;
 		}
+		if (metadata->type == VIDEO_PKT) {
+			if (hasVideo) {
+				g_Log->log(Debug, format("Ignoring stream #%s because we only process the first video", k).c_str());
+				continue;
+			}
+			hasVideo = true;
+		}
+		if (metadata->type == AUDIO_PKT) {
+			if (hasAudio) {
+				g_Log->log(Debug, format("Ignoring stream #%s because we only process the first audio", k).c_str());
+				continue;
+			}
+			hasAudio = true;
+		}
 
 		auto source = GetOutputPin(demuxer, k);
+
+		if (regulate) {
+			auto regulator = pipeline.addNamedModule<Regulator>("Regulator", g_SystemClock);
+			pipeline.connect(source, regulator);
+			source = GetOutputPin(regulator);
+		}
 
 		if(metadata->type != VIDEO_RAW) {
 			auto decode = pipeline.add("Decoder", (void*)(uintptr_t)metadata->type);
