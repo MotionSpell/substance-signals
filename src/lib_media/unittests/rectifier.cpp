@@ -30,7 +30,7 @@ struct Event {
 };
 
 // allows ASSERT_EQUALS on Event
-static std::ostream& operator<<(std::ostream& o, Event t) {
+static ostream& operator<<(ostream& o, Event t) {
 	o << "{ #" << t.index;
 	o << " clk=" << t.clockTime;
 	o << " mt=" << t.mediaTime;
@@ -49,7 +49,7 @@ class ClockMock : public IClock, public IScheduler {
 
 			// beware: running tasks might modify m_tasks by pushing new tasks
 			while(!m_tasks.empty() && m_tasks[0].time <= t) {
-				auto tsk = std::move(m_tasks[0]);
+				auto tsk = move(m_tasks[0]);
 				m_tasks.erase(m_tasks.begin());
 
 				m_time = tsk.time;
@@ -68,7 +68,7 @@ class ClockMock : public IClock, public IScheduler {
 				throw runtime_error("The rectifier is scheduling events in the past");
 
 			m_tasks.push_back({time, task});
-			std::sort(m_tasks.begin(), m_tasks.end());
+			sort(m_tasks.begin(), m_tasks.end());
 			return -1;
 		}
 
@@ -111,19 +111,20 @@ struct DataGenerator : public ModuleS, public virtual IOutputCap {
 			dataPcm->format = fmt;
 			dataPcm->setSampleCount(1024);
 		}
-		data->set(dataIn->get<PresentationTime>());
+		data->set(PresentationTime{dataIn->get<PresentationTime>().time + offset});
 		output->post(data);
 	}
 	OutputDefault *output;
+	int offset = 0;
 };
 
 typedef DataGenerator<MetadataRawVideo, DataPicture> VideoGenerator;
 typedef DataGenerator<MetadataRawAudio, DataPcm> AudioGenerator;
 
 struct Fixture {
-	std::shared_ptr<ClockMock> clock = make_shared<ClockMock>();
+	shared_ptr<ClockMock> clock = make_shared<ClockMock>();
 	vector<unique_ptr<ModuleS>> generators;
-	std::shared_ptr<IModule> rectifier;
+	shared_ptr<IModule> rectifier;
 	vector<Event> actualTimes;
 
 	Fixture(Fraction fps) {
@@ -135,7 +136,7 @@ struct Fixture {
 		clock->setTime(Fraction(time, IClock::Rate));
 	}
 
-	void addStream(int i, std::unique_ptr<ModuleS>&& generator) {
+	void addStream(int i, unique_ptr<ModuleS>&& generator) {
 		generators.push_back(move(generator));
 
 		ConnectModules(generators[i].get(), 0, rectifier.get(), i);
@@ -163,7 +164,7 @@ vector<Event> runRectifier(
 	Fixture fix(fps);
 
 	for (int i = 0; i < (int)gen.size(); ++i) {
-		fix.addStream(i, std::move(gen[i]));
+		fix.addStream(i, move(gen[i]));
 	}
 
 	for (auto event : events) {
@@ -324,13 +325,21 @@ struct TimePair {
 	int64_t clockTime;
 };
 
-TimePair generateValuesDefault(uint64_t step, Fraction fps) {
-	auto const t = (int64_t)fractionToClock(fps.inverse() * step);
-	return TimePair{t, t};
+static auto const numEvents = 15;
+
+TimePair generateTimePair(uint64_t step, Fraction fps, int64_t clockTimeOffset, int64_t mediaTimeOffset) {
+	auto const mediaTime = (int64_t)(IClock::Rate * (step + mediaTimeOffset) * fps.den) / fps.num;
+	auto const clockTime = (int64_t)(IClock::Rate * (step + clockTimeOffset) * fps.den) / fps.num;
+	return TimePair{ mediaTime, clockTime };
 };
 
-vector<Event> generateData(Fraction fps, function<TimePair(uint64_t, Fraction)> generateValue = generateValuesDefault) {
-	auto const numItems = (int)(Fraction(15) * fps / Fraction(25, 1));
+TimePair generateTimePairDefault(uint64_t step, Fraction fps) {
+	auto gen = bind(generateTimePair, placeholders::_1, placeholders::_2, 0, 0);
+	return gen(step, fps);
+}
+
+vector<Event> generateEvents(Fraction fps, function<TimePair(uint64_t, Fraction)> generateValue = generateTimePairDefault) {
+	auto const numItems = (int)(Fraction(numEvents) * fps / Fraction(25, 1));
 	vector<Event> times;
 	for (int i = 0; i < numItems; ++i) {
 		auto tp = generateValue(i, fps);
@@ -340,13 +349,8 @@ vector<Event> generateData(Fraction fps, function<TimePair(uint64_t, Fraction)> 
 }
 
 void testFPSFactor(Fraction fps, Fraction factor) {
-	auto const genVal = [](uint64_t step, Fraction fps) {
-		auto const tIn = timescaleToClock(step * fps.den, fps.num);
-		return TimePair{(int64_t)tIn, (int64_t)tIn};
-	};
-
-	auto const outTimes = generateData(fps * factor, genVal);
-	auto const inTimes = generateData(fps);
+	auto const outTimes = generateEvents(fps * factor);
+	auto const inTimes = generateEvents(fps);
 	testRectifierSinglePort<VideoGenerator>(fps * factor, inTimes, outTimes);
 }
 
@@ -376,17 +380,13 @@ unittest("rectifier: FPS factor (single port) 29.97 fps, x1/2") {
 
 unittest("rectifier: initial offset (single port)") {
 	auto const fps = Fraction(25, 1);
-	auto const inGenVal = [](uint64_t step, Fraction fps, int shift) {
-		auto const t = (int64_t)(IClock::Rate * (step + shift) * fps.den) / fps.num;
-		return TimePair{t, int64_t((IClock::Rate * step * fps.den) / fps.num)};
-	};
 
-	auto const outTimes = generateData(fps, bind(inGenVal, placeholders::_1, placeholders::_2, 0));
-	auto const inTimes1 = generateData(fps, bind(inGenVal, placeholders::_1, placeholders::_2, 5));
+	auto const outTimes = generateEvents(fps, bind(generateTimePair, placeholders::_1, placeholders::_2, 0, 0));
+	auto const inTimes1 = generateEvents(fps, bind(generateTimePair, placeholders::_1, placeholders::_2, 0, 5));
 	testRectifierSinglePort<VideoGenerator>(fps, inTimes1, outTimes);
 
-	auto const inTimes2 = generateData(fps, bind(inGenVal, placeholders::_1, placeholders::_2, -5));
-	testRectifierSinglePort<VideoGenerator>(fps, inTimes1, outTimes);
+	auto const inTimes2 = generateEvents(fps, bind(generateTimePair, placeholders::_1, placeholders::_2, 0, -5));
+	testRectifierSinglePort<VideoGenerator>(fps, inTimes2, outTimes);
 }
 
 unittest("rectifier: deal with missing frames (single port)") {
@@ -399,28 +399,18 @@ unittest("rectifier: deal with missing frames (single port)") {
 		auto const t = int64_t((IClock::Rate * (step+i) * fps.den) / fps.num);
 		return TimePair{t, t};
 	};
-	auto const inTimes = generateData(fps, inGenVal);
-
-	auto const outGenVal = [](uint64_t step, Fraction fps) {
-		auto const t = int64_t((IClock::Rate * step * fps.den) / fps.num);
-		return TimePair{t, t};
-	};
-	auto const outTimes = generateData(fps, outGenVal);
+	auto const inTimes = generateEvents(fps, inGenVal);
+	auto const outTimes = generateEvents(fps);
 
 	testRectifierSinglePort<VideoGenerator>(fps, inTimes, outTimes);
 }
 
 unittest("rectifier: deal with backward discontinuity (single port)") {
 	auto const fps = Fraction(25, 1);
-	auto const outGenVal = [](uint64_t step, Fraction fps, int64_t clockTimeOffset, int64_t mediaTimeOffset) {
-		auto const mediaTime = (int64_t)(IClock::Rate * (step + mediaTimeOffset) * fps.den) / fps.num;
-		auto const clockTime = (int64_t)(IClock::Rate * (step + clockTimeOffset) * fps.den) / fps.num;
-		return TimePair{mediaTime, clockTime};
-	};
-	auto inTimes1 = generateData(fps);
-	auto inTimes2 = generateData(fps, bind(outGenVal, placeholders::_1, placeholders::_2, inTimes1.size(), 0));
-	auto outTimes1 = generateData(fps);
-	auto outTimes2 = generateData(fps, bind(outGenVal, placeholders::_1, placeholders::_2, inTimes1.size(), inTimes1.size()));
+	auto inTimes1 = generateEvents(fps);
+	auto inTimes2 = generateEvents(fps, bind(generateTimePair, placeholders::_1, placeholders::_2, inTimes1.size(), 0));
+	auto outTimes1 = generateEvents(fps);
+	auto outTimes2 = generateEvents(fps, bind(generateTimePair, placeholders::_1, placeholders::_2, inTimes1.size(), inTimes1.size()));
 	inTimes1.insert(inTimes1.end(), inTimes2.begin(), inTimes2.end());
 	outTimes1.insert(outTimes1.end(), outTimes2.begin(), outTimes2.end());
 	testRectifierSinglePort<VideoGenerator>(fps, inTimes1, outTimes1);
@@ -454,9 +444,16 @@ unittest("rectifier: multiple media types simple") {
 	ASSERT_EQUALS(expectedTimes, fix.actualTimes);
 }
 
+unittest("rectifier: fail when no video") {
+	vector<unique_ptr<ModuleS>> generators;
+	generators.push_back(createModuleWithSize<AudioGenerator>(1));
+
+	ASSERT_THROWN(runRectifier(Fraction(25, 1), generators, {Event()}));
+}
+
 unittest("rectifier: two streams, only the first receives data") {
 	const auto videoRate = Fraction(25, 1);
-	auto times = generateData(videoRate);
+	auto times = generateEvents(videoRate); //generate video events only
 	vector<unique_ptr<ModuleS>> generators;
 	generators.push_back(createModuleWithSize<VideoGenerator>(100));
 	generators.push_back(createModuleWithSize<AudioGenerator>(100));
@@ -464,11 +461,4 @@ unittest("rectifier: two streams, only the first receives data") {
 	auto actualTimes = runRectifier(videoRate, generators, times);
 
 	ASSERT_EQUALS(times, actualTimes);
-}
-
-unittest("rectifier: fail when no video") {
-	vector<unique_ptr<ModuleS>> generators;
-	generators.push_back(createModuleWithSize<AudioGenerator>(1));
-
-	ASSERT_THROWN(runRectifier(Fraction(25, 1), generators, {Event()}));
 }
