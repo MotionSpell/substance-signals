@@ -187,6 +187,11 @@ struct Rectifier : ModuleDynI {
 		// - "out" media times are the media times of the output samples.
 		// They must be perfectly continuous, increasing, and must not depend in any way
 		// of the input framing.
+		//
+		// Current remarkable behaviours:
+		// - If the master stream is not decidable at startup then an exception is raised.
+		// - The scheduler starts at time zero, leading to discard master data with negative timestamps.
+		// - The master stream and the slave streams are sent only when metadata is associated (otherwise silently not sent).
 		void emitOnePeriod(Fraction now) {
 			std::unique_lock<std::mutex> lock(inputMutex);
 			fillInputQueuesUnsafe();
@@ -210,7 +215,6 @@ struct Rectifier : ModuleDynI {
 				auto masterFrame = chooseNextMasterFrame(master, fractionToClock(now));
 				if (!masterFrame) {
 					assert(numTicks == 0);
-
 					m_host->log(Warning, format("No available reference data for clock time %s", fractionToClock(now)).c_str());
 					return;
 				}
@@ -228,11 +232,6 @@ struct Rectifier : ModuleDynI {
 				discardStreamOutdatedData(masterStreamId, data->get<PresentationTime>().time);
 			}
 
-			//TODO: Notes:
-			//DO WE NEED TO KNOW IF WE ARE ON ERROR STATE? => LOG IT
-			//23MS OF DESYNC IS OK => KEEP TRACK OF CURRENT DESYNC
-			//AUDIO: BE ABLE TO ASK FOR A LARGER BUFFER ALLOCATOR? => BACK TO THE APP + DYN ALLOCATOR SIZE?
-			//VIDEO: HAVE ONLY A FEW DECODED FRAMES: THEY ARRIVE IN ADVANCE ANYWAY
 			for (auto i : getInputs()) {
 				if(i == masterStreamId)
 					continue;
@@ -309,6 +308,8 @@ struct Rectifier : ModuleDynI {
 			while(!stream.data.empty() && isObsolete(stream.data.front()))
 				stream.data.erase(stream.data.begin());
 
+			int writtenSamples = 0;
+
 			// fill the period "outMasterSamples" with portions of input audio samples
 			// that intersect with the "media period".
 			for(auto& data : stream.data) {
@@ -329,6 +330,12 @@ struct Rectifier : ModuleDynI {
 					auto dst = pcm->getPlane(i) + (left - inMasterSamples.start) * BPS;
 					memcpy(dst, src, (right - left) * BPS);
 				}
+
+				writtenSamples += (right - left);
+			}
+
+			if (writtenSamples != (inMasterSamples.stop - inMasterSamples.start)) {
+				m_host->log(Warning, format("Incomplete audio period (%s samples instead of %s). Expect glitches.", writtenSamples, inMasterSamples.stop - inMasterSamples.start).c_str());
 			}
 
 			stream.output->post(pcm);

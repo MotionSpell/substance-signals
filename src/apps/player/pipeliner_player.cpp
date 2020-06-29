@@ -116,11 +116,11 @@ IFilter* createDemuxer(Pipeline& pipeline, std::string url) {
 		IFilter *in = nullptr;
 		MulticastInputConfig mcast;
 		if (sscanf("224.0.0.1:1234", "%d.%d.%d.%d:%d",
-			&mcast.ipAddr[0],
-			&mcast.ipAddr[1],
-			&mcast.ipAddr[2],
-			&mcast.ipAddr[3],
-			&mcast.port) == 5) {
+		        &mcast.ipAddr[0],
+		        &mcast.ipAddr[1],
+		        &mcast.ipAddr[2],
+		        &mcast.ipAddr[3],
+		        &mcast.port) == 5) {
 			in = pipeline.add("MulticastInput", &mcast);
 		} else
 			in = pipeline.addModule<In::File>(url);

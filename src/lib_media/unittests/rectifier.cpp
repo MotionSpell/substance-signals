@@ -98,7 +98,7 @@ class ClockMock : public IClock, public IScheduler {
 };
 
 template<typename METADATA, typename TYPE>
-struct DataGenerator : public ModuleS, public virtual IOutputCap {
+struct DataGenerator : ModuleS, virtual IOutputCap {
 	DataGenerator() {
 		output = addOutput();
 		output->setMetadata(make_shared<METADATA>());
@@ -110,12 +110,17 @@ struct DataGenerator : public ModuleS, public virtual IOutputCap {
 			PcmFormat fmt(48000);
 			dataPcm->format = fmt;
 			dataPcm->setSampleCount(1024);
+
+			// fill first plane with a counter
+			auto const dataSize = dataPcm->getSampleCount() * dataPcm->format.getBytesPerSample();
+			ASSERT_EQUALS(0, dataSize % 256); // ensures continuity across Datas
+			for (int i=0; i<dataSize; ++i)
+				*(dataPcm->getPlane(0)+i) = i % 256;
 		}
-		data->set(PresentationTime{dataIn->get<PresentationTime>().time + offset});
+		data->set(PresentationTime{dataIn->get<PresentationTime>().time});
 		output->post(data);
 	}
 	OutputDefault *output;
-	int offset = 0;
 };
 
 typedef DataGenerator<MetadataRawVideo, DataPicture> VideoGenerator;
@@ -152,6 +157,16 @@ struct Fixture {
 	}
 
 	void onOutputSample(int i, Data data) {
+		auto dataPcm = dynamic_pointer_cast<const DataPcm>(data);
+		if (dataPcm) {
+			int rem = *dataPcm->getPlane(0);
+			for (int i = 0; i < dataPcm->getSampleCount() * dataPcm->format.getBytesPerSample(); ++i) {
+				auto const val = *(dataPcm->getPlane(0) + i);
+				auto const expectedAudioVal = (i + rem) % 256;
+				ASSERT_EQUALS(expectedAudioVal, val);
+			}
+		}
+
 		actualTimes.push_back(Event{i, fractionToClock(clock->now()), data->get<PresentationTime>().time});
 	}
 };
@@ -338,12 +353,12 @@ TimePair generateTimePairDefault(uint64_t step, Fraction fps) {
 	return gen(step, fps);
 }
 
-vector<Event> generateEvents(Fraction fps, function<TimePair(uint64_t, Fraction)> generateValue = generateTimePairDefault) {
+vector<Event> generateEvents(Fraction fps, int index = 0, function<TimePair(uint64_t, Fraction)> generateValue = generateTimePairDefault) {
 	auto const numItems = (int)(Fraction(numEvents) * fps / Fraction(25, 1));
 	vector<Event> times;
 	for (int i = 0; i < numItems; ++i) {
 		auto tp = generateValue(i, fps);
-		times.push_back({0, tp.clockTime, tp.mediaTime});
+		times.push_back({index, tp.clockTime, tp.mediaTime});
 	}
 	return times;
 }
@@ -381,11 +396,11 @@ unittest("rectifier: FPS factor (single port) 29.97 fps, x1/2") {
 unittest("rectifier: initial offset (single port)") {
 	auto const fps = Fraction(25, 1);
 
-	auto const outTimes = generateEvents(fps, bind(generateTimePair, placeholders::_1, placeholders::_2, 0, 0));
-	auto const inTimes1 = generateEvents(fps, bind(generateTimePair, placeholders::_1, placeholders::_2, 0, 5));
+	auto const outTimes = generateEvents(fps, 0, bind(generateTimePair, placeholders::_1, placeholders::_2, 0, 0));
+	auto const inTimes1 = generateEvents(fps, 0, bind(generateTimePair, placeholders::_1, placeholders::_2, 0, 5));
 	testRectifierSinglePort<VideoGenerator>(fps, inTimes1, outTimes);
 
-	auto const inTimes2 = generateEvents(fps, bind(generateTimePair, placeholders::_1, placeholders::_2, 0, -5));
+	auto const inTimes2 = generateEvents(fps, 0, bind(generateTimePair, placeholders::_1, placeholders::_2, 0, -5));
 	testRectifierSinglePort<VideoGenerator>(fps, inTimes2, outTimes);
 }
 
@@ -399,7 +414,7 @@ unittest("rectifier: deal with missing frames (single port)") {
 		auto const t = int64_t((IClock::Rate * (step+i) * fps.den) / fps.num);
 		return TimePair{t, t};
 	};
-	auto const inTimes = generateEvents(fps, inGenVal);
+	auto const inTimes = generateEvents(fps, 0, inGenVal);
 	auto const outTimes = generateEvents(fps);
 
 	testRectifierSinglePort<VideoGenerator>(fps, inTimes, outTimes);
@@ -408,9 +423,9 @@ unittest("rectifier: deal with missing frames (single port)") {
 unittest("rectifier: deal with backward discontinuity (single port)") {
 	auto const fps = Fraction(25, 1);
 	auto inTimes1 = generateEvents(fps);
-	auto inTimes2 = generateEvents(fps, bind(generateTimePair, placeholders::_1, placeholders::_2, inTimes1.size(), 0));
+	auto inTimes2 = generateEvents(fps, 0, bind(generateTimePair, placeholders::_1, placeholders::_2, inTimes1.size(), 0));
 	auto outTimes1 = generateEvents(fps);
-	auto outTimes2 = generateEvents(fps, bind(generateTimePair, placeholders::_1, placeholders::_2, inTimes1.size(), inTimes1.size()));
+	auto outTimes2 = generateEvents(fps, 0, bind(generateTimePair, placeholders::_1, placeholders::_2, inTimes1.size(), inTimes1.size()));
 	inTimes1.insert(inTimes1.end(), inTimes2.begin(), inTimes2.end());
 	outTimes1.insert(outTimes1.end(), outTimes2.begin(), outTimes2.end());
 	testRectifierSinglePort<VideoGenerator>(fps, inTimes1, outTimes1);
@@ -425,12 +440,12 @@ unittest("rectifier: multiple media types simple") {
 	// 3840 = (1024 * IClock::Rate) / 48kHz;
 
 	fix.setTime( 1000 + 7200 * 0);
-	fix.push(0, 7200 * 0); fix.push(1, 3840 * 0);
-	fix.push(0, 7200 * 1); fix.push(1, 3840 * 1);
+	fix.push(0, 7200 * 0); fix.push(1, 3840 * 0); fix.push(1, 3840 * 1);
+	fix.push(0, 7200 * 1); fix.push(1, 3840 * 2); fix.push(1, 3840 * 3);
 	fix.setTime( 1000 + 7200 * 0);
-	fix.push(0, 7200 * 2); fix.push(1, 3840 * 2);
+	fix.push(0, 7200 * 2); fix.push(1, 3840 * 4); fix.push(1, 3840 * 5);
 	fix.setTime( 1000 + 7200 * 1);
-	fix.push(0, 7200 * 3); fix.push(1, 3840 * 3);
+	fix.push(0, 7200 * 3); fix.push(1, 3840 * 6); fix.push(1, 3840 * 7);
 	fix.setTime( 1000 + 7200 * 2);
 	fix.setTime( 1000 + 7200 * 3);
 
