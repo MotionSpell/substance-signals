@@ -38,8 +38,6 @@ using namespace Modules;
 
 namespace {
 
-static auto const analyzeWindowIn180k = IClock::Rate * 500 / 1000; // 500 ms
-
 struct Stream {
 	struct Rec {
 		int64_t creationTime;
@@ -96,6 +94,7 @@ struct Rectifier : ModuleDynI {
 
 		Fraction const framePeriod;
 		int64_t numTicks = 0;
+		int64_t analyzeWindow = IClock::Rate / 2;
 		std::vector<Stream> streams;
 		std::mutex inputMutex;
 		std::shared_ptr<IClock> clock;
@@ -154,14 +153,17 @@ struct Rectifier : ModuleDynI {
 			stream.blank = stream.data.front().data;
 
 			// Introduce some latency.
-			// if the frame is available, but since very little time, use it, but don't remove it.
+			// If the frame is available, but since very little time, use it, but don't remove it.
 			// Thus, it will be used again next time.
 			// This protects us from frame phase changes (e.g on SDI cable replacement).
 			if(std::abs(stream.data[0].creationTime - now) < fractionToClock(framePeriod))
 				return stream.blank;
 
 			auto r = stream.data.front().data;
-			stream.data.erase(stream.data.begin());
+
+			// Keep frame when catching up from the past
+			if (stream.data[0].creationTime < now)
+				stream.data.erase(stream.data.begin());
 
 			return r;
 		}
@@ -195,7 +197,7 @@ struct Rectifier : ModuleDynI {
 		void emitOnePeriod(Fraction now) {
 			std::unique_lock<std::mutex> lock(inputMutex);
 			fillInputQueuesUnsafe();
-			discardOutdatedData(fractionToClock(now) - analyzeWindowIn180k);
+			discardOutdatedData(fractionToClock(now) - analyzeWindow);
 
 			// output media times corresponding to the "media period"
 			auto const outMasterTime = Interval {
@@ -212,7 +214,7 @@ struct Rectifier : ModuleDynI {
 				if(masterStreamId == -1)
 					throw error("No master stream: requires to have one video stream connected");
 				auto& master = streams[masterStreamId];
-				auto masterFrame = chooseNextMasterFrame(master, fractionToClock(now));
+				auto masterFrame = chooseNextMasterFrame(master, fractionToClock(now) - analyzeWindow);
 				if (!masterFrame) {
 					assert(numTicks == 0);
 					m_host->log(Warning, format("No available reference data for clock time %s", fractionToClock(now)).c_str());
@@ -265,7 +267,7 @@ struct Rectifier : ModuleDynI {
 			if(stream.fmt.sampleRate == 0)
 				return;
 
-			auto const BPS = stream.fmt.getBytesPerSample() / stream.fmt.numPlanes;
+			auto const BPS = stream.fmt.getBytesPerSample() / getNumChannelsFromLayout(stream.fmt);
 
 			// convert a timestamp to an absolute sample count
 			auto toSamples = [&](int64_t time) -> int64_t {
@@ -336,6 +338,8 @@ struct Rectifier : ModuleDynI {
 
 			if (writtenSamples != (inMasterSamples.stop - inMasterSamples.start)) {
 				m_host->log(Warning, format("Incomplete audio period (%s samples instead of %s). Expect glitches.", writtenSamples, inMasterSamples.stop - inMasterSamples.start).c_str());
+				m_host->log(Debug,   format("Adjusting masterToSlaveTimeOffset to %s (%ss). ", masterToSlaveTimeOffset, (double)masterToSlaveTimeOffset/IClock::Rate).c_str());
+				analyzeWindow += 0;
 			}
 
 			stream.output->post(pcm);

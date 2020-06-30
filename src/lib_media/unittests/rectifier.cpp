@@ -109,7 +109,7 @@ struct DataGenerator : ModuleS, virtual IOutputCap {
 		if (dataPcm) {
 			PcmFormat fmt(48000);
 			dataPcm->format = fmt;
-			dataPcm->setSampleCount(1024);
+			dataPcm->setSampleCount(1920);
 
 			// fill first plane with a counter
 			auto const dataSize = dataPcm->getSampleCount() * dataPcm->format.getBytesPerSample();
@@ -160,10 +160,14 @@ struct Fixture {
 		auto dataPcm = dynamic_pointer_cast<const DataPcm>(data);
 		if (dataPcm) {
 			int rem = *dataPcm->getPlane(0);
+			bool initialPadding = true;
 			for (int i = 0; i < dataPcm->getSampleCount() * dataPcm->format.getBytesPerSample(); ++i) {
 				auto const val = *(dataPcm->getPlane(0) + i);
 				auto const expectedAudioVal = (i + rem) % 256;
-				ASSERT_EQUALS(expectedAudioVal, val);
+				if (!initialPadding || val != 0) { // initial unmatched samples contain zeroes instead of the counter: exclude them
+					ASSERT_EQUALS(expectedAudioVal, val);
+					initialPadding = false;
+				}
 			}
 		}
 
@@ -182,10 +186,22 @@ vector<Event> runRectifier(
 		fix.addStream(i, move(gen[i]));
 	}
 
-	for (auto event : events) {
-		if(event.clockTime > 0)
-			fix.setTime(event.clockTime);
+	const int first = 0, last = (int)events.size();
+	for (int i = first; i < last; ++i) {
+		auto& event = events[i];
+
 		fix.push(event.index, event.mediaTime);
+
+		if (event.clockTime > 0) {
+			bool update = true;
+			if (i+1 != last) {
+				ASSERT(events[i+1].clockTime >= event.clockTime); //assume increasing order
+				if (events[i+1].clockTime == event.clockTime)
+					update = false;
+			}
+			if (update)
+				fix.setTime(event.clockTime);
+		}
 	}
 
 	fix.clock->setTime(fix.clock->now());
@@ -476,4 +492,53 @@ unittest("rectifier: two streams, only the first receives data") {
 	auto actualTimes = runRectifier(videoRate, generators, times);
 
 	ASSERT_EQUALS(times, actualTimes);
+}
+
+unittest("rectifier: master stream arrives in advance of slave streams") {
+	auto const generateInterleavedEvents = [](Fraction fps, int clockOffset) {
+		auto times = generateEvents(fps); //video
+		auto tVideo = generateEvents(fps, 1, bind(generateTimePair, placeholders::_1, placeholders::_2, clockOffset, 0)); //audio
+		times.insert(times.end(), tVideo.begin(), tVideo.end());
+		sort(times.begin(), times.end());
+		return times;
+	};
+
+	const auto videoRate = Fraction(25, 1);
+	const auto offset = 3;
+	auto times = generateInterleavedEvents(videoRate, offset);
+	vector<unique_ptr<ModuleS>> generators;
+	generators.push_back(createModuleWithSize<VideoGenerator>(100));
+	generators.push_back(createModuleWithSize<AudioGenerator>(100));
+
+	auto actualTimes = runRectifier(videoRate, generators, times);
+
+	auto expected = generateInterleavedEvents(videoRate, offset);
+	for (auto& e : expected) if (e.index == 1) e.mediaTime = e.clockTime;
+	expected.resize(expected.size() - offset);
+	fixupTimes(expected, actualTimes);
+
+	ASSERT_EQUALS(expected, actualTimes);
+}
+
+unittest("rectifier: slave stream arrives in advance of master streams") {
+	auto const generateInterleavedEvents = [](Fraction fps, int clockOffset) {
+		auto times = generateEvents(fps); //audio
+		auto tVideo = generateEvents(fps, 1, bind(generateTimePair, placeholders::_1, placeholders::_2, clockOffset, 0)); //video
+		times.insert(times.end(), tVideo.begin(), tVideo.end());
+		sort(times.begin(), times.end());
+		return times;
+	};
+
+	const auto videoRate = Fraction(25, 1);
+	const auto offset = 3;
+	auto times = generateInterleavedEvents(videoRate, offset);
+	vector<unique_ptr<ModuleS>> generators;
+	generators.push_back(createModuleWithSize<AudioGenerator>(100));
+	generators.push_back(createModuleWithSize<VideoGenerator>(100));
+
+	ASSERT_THROWN({
+		auto actualTimes = runRectifier(videoRate, generators, times); //currently throws
+		auto expected = generateInterleavedEvents(videoRate, 0);
+		ASSERT_EQUALS(expected, actualTimes);
+	});
 }
