@@ -94,7 +94,7 @@ struct Rectifier : ModuleDynI {
 
 		Fraction const framePeriod;
 		int64_t numTicks = 0;
-		int64_t analyzeWindow = IClock::Rate / 2;
+		const int64_t analyzeWindow = 2 * IClock::Rate; // a positive value means that the master stream arrives in advance of slave streams
 		std::vector<Stream> streams;
 		std::mutex inputMutex;
 		std::shared_ptr<IClock> clock;
@@ -231,7 +231,7 @@ struct Rectifier : ModuleDynI {
 				auto data = clone(masterFrame);
 				data->setMediaTime(outMasterTime.start);
 				master.output->post(data);
-				discardStreamOutdatedData(masterStreamId, data->get<PresentationTime>().time);
+				discardStreamOutdatedData(masterStreamId, data->get<PresentationTime>().time - analyzeWindow);
 			}
 
 			for (auto i : getInputs()) {
@@ -242,6 +242,9 @@ struct Rectifier : ModuleDynI {
 
 				if(!input->getMetadata())
 					continue;
+
+				if (!outputs[i]->getMetadata())
+					outputs[i]->setMetadata(input->getMetadata());
 
 				switch (input->getMetadata()->type) {
 				case AUDIO_RAW:
@@ -267,7 +270,7 @@ struct Rectifier : ModuleDynI {
 			if(stream.fmt.sampleRate == 0)
 				return;
 
-			auto const BPS = stream.fmt.getBytesPerSample() / getNumChannelsFromLayout(stream.fmt);
+			auto const BPS = stream.fmt.getBytesPerSample() / getNumChannelsFromLayout(stream.fmt.layout);
 
 			// convert a timestamp to an absolute sample count
 			auto toSamples = [&](int64_t time) -> int64_t {
@@ -336,11 +339,8 @@ struct Rectifier : ModuleDynI {
 				writtenSamples += (right - left);
 			}
 
-			if (writtenSamples != (inMasterSamples.stop - inMasterSamples.start)) {
+			if (writtenSamples != (inMasterSamples.stop - inMasterSamples.start))
 				m_host->log(Warning, format("Incomplete audio period (%s samples instead of %s). Expect glitches.", writtenSamples, inMasterSamples.stop - inMasterSamples.start).c_str());
-				m_host->log(Debug,   format("Adjusting masterToSlaveTimeOffset to %s (%ss). ", masterToSlaveTimeOffset, (double)masterToSlaveTimeOffset/IClock::Rate).c_str());
-				analyzeWindow += 0;
-			}
 
 			stream.output->post(pcm);
 		}

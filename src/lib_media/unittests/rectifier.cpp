@@ -112,15 +112,16 @@ struct DataGenerator : ModuleS, virtual IOutputCap {
 			dataPcm->setSampleCount(1920);
 
 			// fill first plane with a counter
+			ASSERT(dataPcm->format.getBytesPerSample() % sizeof(uint32_t) == 0);
 			auto const dataSize = dataPcm->getSampleCount() * dataPcm->format.getBytesPerSample();
-			ASSERT_EQUALS(0, dataSize % 256); // ensures continuity across Datas
-			for (int i=0; i<dataSize; ++i)
-				*(dataPcm->getPlane(0)+i) = i % 256;
+			for (int i = 0; i < dataSize / (int)sizeof(uint32_t); ++i)
+				*((uint32_t*)dataPcm->getPlane(0) + i) = counter++;
 		}
 		data->set(PresentationTime{dataIn->get<PresentationTime>().time});
 		output->post(data);
 	}
 	OutputDefault *output;
+	uint32_t counter = 0;
 };
 
 typedef DataGenerator<MetadataRawVideo, DataPicture> VideoGenerator;
@@ -131,10 +132,21 @@ struct Fixture {
 	vector<unique_ptr<ModuleS>> generators;
 	shared_ptr<IModule> rectifier;
 	vector<Event> actualTimes;
+	bool initialPadding = true;
 
 	Fixture(Fraction fps) {
 		auto cfg = RectifierConfig { clock, clock, fps };
 		rectifier = loadModule("Rectifier", &NullHost, &cfg);
+	}
+
+	~Fixture() {
+		for (int i=0; i<rectifier->getNumOutputs(); ++i) {
+			auto meta = rectifier->getOutput(i)->getMetadata();
+			if (meta && meta->isAudio()) {
+				ASSERT_EQUALS(false, initialPadding);
+				break;
+			}
+		}
 	}
 
 	void setTime(int64_t time) {
@@ -160,10 +172,9 @@ struct Fixture {
 		auto dataPcm = dynamic_pointer_cast<const DataPcm>(data);
 		if (dataPcm) {
 			int rem = *dataPcm->getPlane(0);
-			bool initialPadding = true;
-			for (int i = 0; i < dataPcm->getSampleCount() * dataPcm->format.getBytesPerSample(); ++i) {
-				auto const val = *(dataPcm->getPlane(0) + i);
-				auto const expectedAudioVal = (i + rem) % 256;
+			for (int i = 0; i < dataPcm->getSampleCount() * dataPcm->format.getBytesPerSample() / (int)sizeof(uint32_t); ++i) {
+				const int64_t val = *((uint32_t*)dataPcm->getPlane(0) + i);
+				const int64_t expectedAudioVal = i + rem;
 				if (!initialPadding || val != 0) { // initial unmatched samples contain zeroes instead of the counter: exclude them
 					ASSERT_EQUALS(expectedAudioVal, val);
 					initialPadding = false;
@@ -211,7 +222,7 @@ vector<Event> runRectifier(
 
 unittest("rectifier: simple offset") {
 	// use '1000' as a human-readable frame period
-	auto fix = Fixture(Fraction(IClock::Rate, 1000));
+	Fixture fix(Fraction(IClock::Rate, 1000));
 	fix.addStream(0, createModuleWithSize<VideoGenerator>(100));
 
 	fix.setTime(8801000);
@@ -240,7 +251,7 @@ unittest("rectifier: simple offset") {
 
 unittest("rectifier: missing frame") {
 	// use '100' as a human-readable frame period
-	auto fix = Fixture(Fraction(IClock::Rate, 100));
+	Fixture fix(Fraction(IClock::Rate, 100));
 	fix.addStream(0, createModuleWithSize<VideoGenerator>(100));
 
 	fix.setTime(0);
@@ -268,7 +279,7 @@ unittest("rectifier: missing frame") {
 }
 
 unittest("rectifier: loss of input") {
-	auto fix = Fixture(Fraction(IClock::Rate, 100));
+	Fixture fix(Fraction(IClock::Rate, 100));
 	fix.addStream(0, createModuleWithSize<VideoGenerator>(100));
 
 	// send one frame, and then nothing, but keep the clock ticking
@@ -295,7 +306,7 @@ unittest("rectifier: loss of input") {
 
 unittest("rectifier: noisy timestamps") {
 	// use '100' as a human-readable frame period
-	auto fix = Fixture(Fraction(IClock::Rate, 100));
+	Fixture fix(Fraction(IClock::Rate, 100));
 	fix.addStream(0, createModuleWithSize<VideoGenerator>(100));
 
 	fix.setTime(  0);
@@ -449,19 +460,19 @@ unittest("rectifier: deal with backward discontinuity (single port)") {
 
 unittest("rectifier: multiple media types simple") {
 	// real timescale is required here, because we're dealing with audio
-	auto fix = Fixture({25, 1});
+	Fixture fix({25, 1});
 	fix.addStream(0, createModuleWithSize<VideoGenerator>(100));
 	fix.addStream(1, createModuleWithSize<AudioGenerator>(100));
 
-	// 3840 = (1024 * IClock::Rate) / 48kHz;
+	// 7200 = (1920 * IClock::Rate) / 48kHz;
 
 	fix.setTime( 1000 + 7200 * 0);
-	fix.push(0, 7200 * 0); fix.push(1, 3840 * 0); fix.push(1, 3840 * 1);
-	fix.push(0, 7200 * 1); fix.push(1, 3840 * 2); fix.push(1, 3840 * 3);
+	fix.push(0, 7200 * 0); fix.push(1, 7200 * 0);
+	fix.push(0, 7200 * 1); fix.push(1, 7200 * 1);
 	fix.setTime( 1000 + 7200 * 0);
-	fix.push(0, 7200 * 2); fix.push(1, 3840 * 4); fix.push(1, 3840 * 5);
+	fix.push(0, 7200 * 2); fix.push(1, 7200 * 2);
 	fix.setTime( 1000 + 7200 * 1);
-	fix.push(0, 7200 * 3); fix.push(1, 3840 * 6); fix.push(1, 3840 * 7);
+	fix.push(0, 7200 * 3); fix.push(1, 7200 * 3);
 	fix.setTime( 1000 + 7200 * 2);
 	fix.setTime( 1000 + 7200 * 3);
 
