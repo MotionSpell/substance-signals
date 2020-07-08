@@ -112,10 +112,10 @@ unittest("encoder: video timestamp passthrough") {
 	ASSERT_EQUALS(expected, times);
 }
 
-void RAPTest(const Fraction fps, const vector<uint64_t> &times, const vector<bool> &RAPs) {
+void RAPTest(const Fraction fps, const Fraction gopSize, const vector<uint64_t> &times, const vector<bool> &RAPs) {
 	EncoderConfig p { EncoderConfig::Video };
 	p.frameRate = fps;
-	p.GOPSize = fps;
+	p.GOPSize = gopSize;
 	auto picture = createYuvPic(VIDEO_RESOLUTION);
 	auto encode = loadModule("Encoder", &NullHost, &p);
 	size_t i = 0;
@@ -139,25 +139,44 @@ void RAPTest(const Fraction fps, const vector<uint64_t> &times, const vector<boo
 unittest("encoder: RAP placement (25/1 fps)") {
 	const vector<uint64_t> times = { 0, IClock::Rate / 2, IClock::Rate, IClock::Rate * 3 / 2, IClock::Rate * 2 };
 	const vector<bool> RAPs = { true, false, true, false, true };
-	RAPTest(Fraction(25, 1), times, RAPs);
+	auto const fps = Fraction(25, 1);
+	RAPTest(fps, fps, times, RAPs);
 }
 
 unittest("encoder: RAP placement (30000/1001 fps)") {
 	const vector<uint64_t> times = { 0, IClock::Rate/2, IClock::Rate, IClock::Rate*3/2, IClock::Rate*2 };
 	const vector<bool> RAPs = { true, false, true, false, true };
-	RAPTest(Fraction(30000, 1001), times, RAPs);
+	auto const fps = Fraction(30000, 1001);
+	RAPTest(fps, fps, times, RAPs);
+}
+
+unittest("encoder: RAP placement (25/1 fps, 3.84s GOP)") {
+	auto const fps = Fraction(25, 1);
+	auto const gop = Fraction(3840, 1000) * fps;
+	vector<uint64_t> times;
+	vector<bool> RAPs;
+	Fraction t(0);
+	while (t <= gop/fps) {
+		times.push_back(fractionToClock(t));
+		if (t == 0 || t == gop/fps) RAPs.push_back(true);
+		else RAPs.push_back(false);
+		t = t + fps.inverse();
+	}
+	RAPTest(fps, gop, times, RAPs);
 }
 
 unittest("encoder: RAP placement (noisy)") {
 	const auto &ms = std::bind(timescaleToClock<uint64_t>, std::placeholders::_1, 1000);
 	const vector<uint64_t> times = { 0, ms(330), ms(660), ms(990), ms(1330), ms(1660) };
 	const vector<bool> RAPs = { true, false, false, true, false, false };
-	RAPTest(Fraction(3, 1), times, RAPs);
+	auto const fps = Fraction(3, 1);
+	RAPTest(fps, fps, times, RAPs);
 }
 
 unittest("encoder: RAP placement (incorrect timings)") {
 	const vector<uint64_t> times = { 0, 0, IClock::Rate };
 	const vector<bool> RAPs = { true, false, true };
-	RAPTest(Fraction(25, 1), times, RAPs);
+	auto const fps = Fraction(25, 1);
+	RAPTest(fps, fps, times, RAPs);
 }
 

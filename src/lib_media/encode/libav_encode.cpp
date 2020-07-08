@@ -204,7 +204,7 @@ struct LibavEncode : ModuleS {
 		int64_t computeNearestGOPNum(int64_t timeDiff) const {
 			auto const num = timeDiff * GOPSize.den * framePeriod.den;
 			auto const den = GOPSize.num * framePeriod.num * (int64_t)IClock::Rate;
-			auto const halfStep = (den * framePeriod.num) / (framePeriod.den * 2);
+			auto const halfStep = (den * GOPSize.den) / (GOPSize.num * 2);
 			return (num + halfStep - 1) / den;
 		}
 
