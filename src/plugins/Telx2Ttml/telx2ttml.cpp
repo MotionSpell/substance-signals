@@ -33,7 +33,8 @@ std::string timecodeToString(int64_t timeInMs) {
 }
 
 std::string serializePageToTtml(Page const& page, int64_t startTimeInMs, int64_t endTimeInMs, int64_t idx) {
-	assert(!page.lines.empty());
+	if (!DEBUG_DISPLAY_TIMESTAMPS)
+		assert(!page.lines.empty());
 
 	auto const timecodeShow = timecodeToString(startTimeInMs);
 	auto const timecodeHide = timecodeToString(endTimeInMs);
@@ -176,6 +177,7 @@ class TeletextToTTML : public ModuleS {
 
 		void sendSample(const std::string& sample) {
 			auto out = output->allocData<DataRaw>(0);
+			out->set(DecodingTime{ intClock });
 			out->setMediaTime(intClock);
 			out->buffer->resize(sample.size());
 

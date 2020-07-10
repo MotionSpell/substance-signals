@@ -191,7 +191,7 @@ Metadata createMetadataPktLibavAudio(AVCodecContext* codecCtx) {
 }
 
 Metadata createMetadataPktLibavSubtitle(AVCodecContext* codecCtx) {
-	auto meta = make_shared<MetadataPktAudio>();
+	auto meta = make_shared<MetadataPktSubtitle>();
 	initMetadatPkt(meta.get(), codecCtx);
 	return meta;
 }
