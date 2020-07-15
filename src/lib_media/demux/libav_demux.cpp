@@ -475,7 +475,7 @@ struct LibavDemux : Module {
 		// (should be the PCR but libavformat doesn't give access to it)
 		if (m_formatCtx->streams[pkt->stream_index]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
 			auto const base = m_formatCtx->streams[pkt->stream_index]->time_base;
-			auto const time = timescaleToClock(pkt->dts * base.num, base.den);
+			auto const time = timescaleToClock(pkt->dts * base.num, base.den) - startPTSIn180k;
 			if (time > curDTS) {
 				curDTS = time;
 			}
