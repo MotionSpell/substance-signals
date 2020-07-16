@@ -171,7 +171,7 @@ struct Fixture {
 	void onOutputSample(int i, Data data) {
 		auto dataPcm = dynamic_pointer_cast<const DataPcm>(data);
 		if (dataPcm) {
-			int rem = *dataPcm->getPlane(0);
+			uint32_t rem = *((uint32_t*)dataPcm->getPlane(0));
 			for (int i = 0; i < dataPcm->getSampleCount() * dataPcm->format.getBytesPerSample() / (int)sizeof(uint32_t); ++i) {
 				const int64_t val = *((uint32_t*)dataPcm->getPlane(0) + i);
 				const int64_t expectedAudioVal = i + rem;

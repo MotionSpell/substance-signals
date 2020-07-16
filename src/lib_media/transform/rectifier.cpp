@@ -160,11 +160,7 @@ struct Rectifier : ModuleDynI {
 				return stream.blank;
 
 			auto r = stream.data.front().data;
-
-			// Keep frame when catching up from the past
-			if (stream.data[0].creationTime < now)
-				stream.data.erase(stream.data.begin());
-
+			stream.data.erase(stream.data.begin());
 			return r;
 		}
 
@@ -178,7 +174,7 @@ struct Rectifier : ModuleDynI {
 			return -1;
 		}
 
-		// post one "media period" on all outputs.
+		// Post one "media period" on all outputs.
 		//
 		// In this function we distinguish between "in" media times, and "out" media times.
 		//
@@ -253,7 +249,8 @@ struct Rectifier : ModuleDynI {
 				case VIDEO_RAW:
 					throw error("only one video stream is supported");
 					break;
-				default: throw error("unhandled media type (awakeOnFPS)");
+				default:
+					throw error("unhandled media type");
 				}
 			}
 
