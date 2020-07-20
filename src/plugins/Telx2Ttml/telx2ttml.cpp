@@ -10,19 +10,18 @@
 #include <vector>
 #include <cassert>
 
-extern "C" {
-#include <libavcodec/avcodec.h> // AVCodecContext
-}
-
 #include "page.hpp"
 #include "telx.hpp"
 #include <sstream>
 
 using namespace Modules;
 
+extern const int ROWS;
+
 namespace {
 
 auto const DEBUG_DISPLAY_TIMESTAMPS = false;
+const std::string defaultColor = "0xffffffff";
 
 std::string timecodeToString(int64_t timeInMs) {
 	const size_t timecodeSize = 24;
@@ -32,46 +31,11 @@ std::string timecodeToString(int64_t timeInMs) {
 	return timecode;
 }
 
-std::string serializePageToTtml(Page const& page, int64_t startTimeInMs, int64_t endTimeInMs, int64_t idx) {
-	if (!DEBUG_DISPLAY_TIMESTAMPS)
-		assert(!page.lines.empty());
-
-	auto const timecodeShow = timecodeToString(startTimeInMs);
-	auto const timecodeHide = timecodeToString(endTimeInMs);
-
-	std::stringstream ttml;
-	ttml << "      <p region=\"Region\" style=\"textAlignment_0\" begin=\"" << timecodeShow << "\" end=\"" << timecodeHide << "\" xml:id=\"s" << idx << "\">\n";
-
-	if(DEBUG_DISPLAY_TIMESTAMPS) {
-		ttml << "        <span style=\"Style0_0\">" << timecodeShow << " - " << timecodeHide << "</span>\n";
-	} else {
-		ttml << "        <span style=\"Style0_0\">";
-
-		bool first = true;
-		for(auto& line : page.lines) {
-			if(line.empty())
-				continue;
-
-			if(!first)
-				ttml << "<br/>\r\n";
-
-			ttml << line;
-			first = false;
-		}
-
-		ttml << "</span>\n";
-	}
-
-	ttml << "      </p>\n";
-
-	return ttml.str();
-}
-
 std::string pageToString(Page const& page) {
 	std::string r;
 
 	for(auto& ss : page.lines)
-		r += ss + "\n";
+		r += ss.text + "\n";
 
 	return r;
 }
@@ -109,6 +73,28 @@ class TeletextToTTML : public ModuleS {
 		std::vector<Page> currentPages;
 		std::unique_ptr<ITeletextParser> m_telxState;
 
+		std::string serializePageToTtml(Page const& page, int64_t startTimeInMs, int64_t endTimeInMs, int64_t idx) const {
+			auto const timecodeShow = timecodeToString(startTimeInMs);
+			auto const timecodeHide = timecodeToString(endTimeInMs);
+
+			assert(!page.lines.empty());
+
+			std::stringstream ttml;
+
+			for (auto& line : page.lines) {
+				if (line.text.empty())
+					continue;
+
+				ttml << "      <p region=\"Region-" << line.row << "\" style=\"textAlignment_0\" begin=\"" << timecodeShow << "\" end=\"" << timecodeHide << "\" xml:id=\"s" << idx << "\">\n";
+				ttml << "        <span style=\"Style0_0\" tts:color=\"" << line.color << "\" tts:backgroundColor=\"#000000\">" << line.text << "</span>\n";
+				ttml << "        <span style=\"Style0_0\" tts:color=\"" << line.color << "\" tts:backgroundColor=\"#000000\">" << "</span>\n";
+				if (line.doubleHeight)
+					ttml << "      </p>\n";
+			}
+
+			return ttml.str();
+		}
+
 		std::string toTTML(int64_t startTimeInMs, int64_t endTimeInMs) const {
 			std::stringstream ttml;
 			ttml << "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
@@ -120,11 +106,45 @@ class TeletextToTTML : public ModuleS {
 			ttml << "      </ebuttm:documentMetadata>\n";
 			ttml << "    </metadata>\n";
 			ttml << "    <styling>\n";
-			ttml << "      <style xml:id=\"Style0_0\" tts:fontFamily=\"proportionalSansSerif\" tts:backgroundColor=\"#00000099\" tts:color=\"#FFFFFF\" tts:fontSize=\"100%\" tts:lineHeight=\"normal\" ebutts:linePadding=\"0.5c\" />\n";
+			ttml << "      <style xml:id=\"Style0_0\" tts:fontFamily=\"monospaceSansSerif\"  tts:fontSize=\"18px\" tts:backgroundColor=\"#00000099\" tts:color=\"" << defaultColor << " tts:fontSize=\"60%\" tts:lineHeight=\"normal\" ebutts:linePadding=\"0.5c\" />\n";
 			ttml << "      <style xml:id=\"textAlignment_0\" tts:textAlign=\"center\" />\n";
 			ttml << "    </styling>\n";
 			ttml << "    <layout>\n";
-			ttml << "      <region xml:id=\"Region\" tts:origin=\"10% 10%\" tts:extent=\"80% 80%\" tts:displayAlign=\"after\" />\n";
+
+			// Single or double height
+			bool doubleHeight = false;
+			for (auto& page : currentPages) {
+				for (auto& line : page.lines) {
+					if (line.text.empty())
+						continue;
+
+					if (line.doubleHeight) {
+						doubleHeight = true;
+					} else if (doubleHeight) {
+						m_host->log(Warning, "Mixing single and double height is not handled. Contact your vendor.");
+					}
+				}
+			}
+
+			// We currently assign one Region per page with positioning aligned on Teletext input
+			int minDisplayedRow = ROWS;
+			for (int row = 0; row < ROWS; ++row) {
+				auto const numLines = 24;
+				auto const height = 100.0 / numLines;
+				auto const spacingFactor = 1.1;
+				auto const verticalOrigin = (100 - spacingFactor * height * ROWS) + spacingFactor * height * row;
+				if (verticalOrigin >= 0 && verticalOrigin + spacingFactor * height * (1 + (int)doubleHeight) <= 100) { // Percentage. Promote the last rows for text display.
+					ttml << "      <region xml:id=\"Region-" << row << "\" tts:origin=\"10% " << verticalOrigin << "%\" tts:extent=\"80% " << height * (1 + (int)doubleHeight) << "%\" />\n";
+					minDisplayedRow = std::min<int>(row, minDisplayedRow);
+				}
+			}
+
+			// Warning for out-of-screen content
+			for (auto& page : currentPages)
+				for (auto& line : page.lines)
+					if (line.row < minDisplayedRow)
+						m_host->log(Warning, format("[%s-%s]: teletext content at row %s won't be displayed (minDisplayedRow=%s)", startTimeInMs, endTimeInMs, line.row, minDisplayedRow).c_str());
+
 			ttml << "    </layout>\n";
 			ttml << "  </head>\n";
 			ttml << "  <body>\n";
@@ -144,17 +164,12 @@ class TeletextToTTML : public ModuleS {
 			default: throw error("Unknown timing policy (1)");
 			}
 
-			if(DEBUG_DISPLAY_TIMESTAMPS) {
-				auto pageOut = make_unique<Page>();
-				ttml << serializePageToTtml(*pageOut, offsetInMs + startTimeInMs, offsetInMs + endTimeInMs, startTimeInMs / clockToTimescale(this->splitDurationIn180k, 1000));
-			} else {
-				for(auto& page : currentPages) {
-					if(page.endTimeInMs > startTimeInMs && page.startTimeInMs < endTimeInMs) {
-						auto localStartTimeInMs = std::max<int64_t>(page.startTimeInMs, startTimeInMs);
-						auto localEndTimeInMs = std::min<int64_t>(page.endTimeInMs, endTimeInMs);
-						m_host->log(Debug, format("[%s-%s]: %s - %s: %s", startTimeInMs, endTimeInMs, localStartTimeInMs, localEndTimeInMs, pageToString(page)).c_str());
-						ttml << serializePageToTtml(page, localStartTimeInMs + offsetInMs, localEndTimeInMs + offsetInMs, startTimeInMs / clockToTimescale(this->splitDurationIn180k, 1000));
-					}
+			for(auto& page : currentPages) {
+				if (page.endTimeInMs > startTimeInMs && page.startTimeInMs < endTimeInMs) {
+					auto localStartTimeInMs = std::max<int64_t>(page.startTimeInMs, startTimeInMs);
+					auto localEndTimeInMs = std::min<int64_t>(page.endTimeInMs, endTimeInMs);
+					m_host->log(Debug, format("[%s-%s]: %s - %s: %s", startTimeInMs, endTimeInMs, localStartTimeInMs, localEndTimeInMs, pageToString(page)).c_str());
+					ttml << serializePageToTtml(page, localStartTimeInMs + offsetInMs, localEndTimeInMs + offsetInMs, startTimeInMs / clockToTimescale(this->splitDurationIn180k, 1000));
 				}
 			}
 
@@ -196,6 +211,16 @@ class TeletextToTTML : public ModuleS {
 			while(extClock - maxPageDurIn180k > nextSplit) {
 				auto const start = clockToTimescale(prevSplit, 1000);
 				auto const end = clockToTimescale(nextSplit, 1000);
+
+				if (DEBUG_DISPLAY_TIMESTAMPS) {
+					Page pageOut;
+					pageOut.startTimeInMs = start;
+					pageOut.endTimeInMs = end;
+					pageOut.lines.push_back({ timecodeToString(start) + " - " + timecodeToString(end), defaultColor, false, ROWS - 1, 0 });
+					currentPages.clear();
+					currentPages.push_back(pageOut);
+				}
+
 				sendSample(toTTML(start, end));
 				removeOutdatedPages(end);
 

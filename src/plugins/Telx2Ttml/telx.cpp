@@ -1,11 +1,15 @@
 // Parse raw teletext data, and produce 'Page' objects
+#include "telx.hpp"
+#include "lib_utils/format.hpp"
+#include "lib_utils/log_sink.hpp" // Warning
+#include <cassert>
 #include <cstdint>
 #include <cstring> // memset
 #include <algorithm> //std::max
 #include <memory>
-#include "telx.hpp"
-#include "lib_utils/format.hpp"
-#include "lib_utils/log_sink.hpp" // Warning
+
+extern const int COLS = 40;
+extern const int ROWS = 25;
 
 namespace {
 
@@ -113,9 +117,6 @@ enum TransmissionMode {
 	Serial = 1
 };
 
-static const int COLS = 40;
-static const int ROWS = 25;
-
 struct PageBuffer {
 	uint64_t showTimestamp;
 	uint64_t hideTimestamp;
@@ -123,11 +124,12 @@ struct PageBuffer {
 	bool tainted; // 1 = text variable contains any data
 };
 
-}
-namespace {
-
 //most of these tables are taken from the spec or copied from other telx programs (mostly forks of telxcc)
 //please note that most tables are still incomplete for a worldwide distribution (but teletext might not be deployed there)
+
+const char *Colors[8] = {
+	"#000000", "#ff0000", "#00ff00", "#ffff00", "#0000ff", "#ff00ff", "#00ffff", "#ffffff"
+};
 
 const uint8_t Parity8[256] = {
 	0x00, 0x01, 0x01, 0x00, 0x01, 0x00, 0x00, 0x01, 0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x01, 0x00,
@@ -370,7 +372,7 @@ void remap_g0_charset(uint8_t c, TeletextState &config) {
 	}
 }
 
-static bool isEmpty(PageBuffer const& pageIn) {
+bool isEmpty(PageBuffer const& pageIn) {
 	for (int col = 0; col < COLS; col++) {
 		for (int row = 1; row < ROWS; row++) {
 			if (pageIn.text[row][col] == 0x0b)
@@ -380,7 +382,6 @@ static bool isEmpty(PageBuffer const& pageIn) {
 	return true;
 }
 
-static
 void process_row(const uint16_t* srcRow, Page& page) {
 	int colStart = COLS;
 	int colStop = COLS;
@@ -409,15 +410,18 @@ void process_row(const uint16_t* srcRow, Page& page) {
 	for (int col = 0; col <= colStop; col++) {
 		uint16_t val = srcRow[col];
 
-		if (col >= colStart) {
-			if (val <= 0x7) {
-				val = 0x20;
-			}
+		if (val <= 0x07)
+			page.lines.back().color = Colors[val];
+		else if (val == 0x0d)
+			page.lines.back().doubleHeight = true;
+		else if (val == 0x0b)
+			page.lines.back().col = col;
 
+		if (col >= colStart) {
 			if (val >= 0x20) {
 				char u[4] {};
 				ucs2_to_utf8(u, val);
-				page.lines.back() += u;
+				page.lines.back().text += u;
 			}
 		}
 	}
@@ -438,8 +442,10 @@ std::unique_ptr<Page> process_page(TeletextState& state) {
 	pageOut->showTimestamp = pageIn->showTimestamp;
 	pageOut->hideTimestamp = pageIn->hideTimestamp;
 
-	for (int row = 1; row < ROWS; row++)
-		process_row(pageIn->text[row], *pageOut);
+	for (int row = 1; row < ROWS; row++) {
+		pageOut->lines.back().row = row;
+		process_row(pageIn->text[row], *pageOut); //Romain: we don't need to send pageOut but only a line
+	}
 
 	return pageOut;
 }
