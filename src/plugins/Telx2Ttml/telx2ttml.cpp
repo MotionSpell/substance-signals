@@ -17,6 +17,7 @@
 using namespace Modules;
 
 extern const int ROWS;
+extern const int COLS;
 
 namespace {
 
@@ -73,7 +74,7 @@ class TeletextToTTML : public ModuleS {
 		std::vector<Page> currentPages;
 		std::unique_ptr<ITeletextParser> m_telxState;
 
-		std::string serializePageToTtml(Page const& page, int64_t startTimeInMs, int64_t endTimeInMs, int64_t idx) const {
+		std::string serializePageToTtml(Page const& page, int64_t startTimeInMs, int64_t endTimeInMs) const {
 			auto const timecodeShow = timecodeToString(startTimeInMs);
 			auto const timecodeHide = timecodeToString(endTimeInMs);
 
@@ -85,73 +86,17 @@ class TeletextToTTML : public ModuleS {
 				if (line.text.empty())
 					continue;
 
-				ttml << "      <p region=\"Region-" << line.row << "\" style=\"textAlignment_0\" begin=\"" << timecodeShow << "\" end=\"" << timecodeHide << "\" xml:id=\"s" << idx << "\">\n";
-				ttml << "        <span style=\"Style0_0\" tts:color=\"" << line.color << "\" tts:backgroundColor=\"#000000\">" << line.text << "</span>\n";
-				ttml << "        <span style=\"Style0_0\" tts:color=\"" << line.color << "\" tts:backgroundColor=\"#000000\">" << "</span>\n";
-				if (line.doubleHeight)
-					ttml << "      </p>\n";
+				ttml << "      <p region=\"Region-" << &page << "-" << line.row << "\" style=\"Style0_0\" begin=\"" << timecodeShow << "\" end=\"" << timecodeHide << "\">\n";
+				ttml << "        <span tts:color=\"" << line.color << "\" tts:backgroundColor=\"#000000\">" << line.text << "</span>\n";
+				ttml << "      </p>\n";
 			}
 
 			return ttml.str();
 		}
 
 		std::string toTTML(int64_t startTimeInMs, int64_t endTimeInMs) const {
-			std::stringstream ttml;
-			ttml << "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
-			ttml << "<tt xmlns=\"http://www.w3.org/ns/ttml\" xmlns:tt=\"http://www.w3.org/ns/ttml\" xmlns:ttm=\"http://www.w3.org/ns/ttml#metadata\" xmlns:tts=\"http://www.w3.org/ns/ttml#styling\" xmlns:ttp=\"http://www.w3.org/ns/ttml#parameter\" xmlns:ebutts=\"urn:ebu:tt:style\" xmlns:ebuttm=\"urn:ebu:tt:metadata\" xml:lang=\"" << lang << "\" ttp:timeBase=\"media\">\n";
-			ttml << "  <head>\n";
-			ttml << "    <metadata>\n";
-			ttml << "      <ebuttm:documentMetadata>\n";
-			ttml << "        <ebuttm:conformsToStandard>urn:ebu:tt:distribution:2014-01</ebuttm:conformsToStandard>\n";
-			ttml << "      </ebuttm:documentMetadata>\n";
-			ttml << "    </metadata>\n";
-			ttml << "    <styling>\n";
-			ttml << "      <style xml:id=\"Style0_0\" tts:fontFamily=\"monospaceSansSerif\"  tts:fontSize=\"18px\" tts:backgroundColor=\"#00000099\" tts:color=\"" << defaultColor << " tts:fontSize=\"60%\" tts:lineHeight=\"normal\" ebutts:linePadding=\"0.5c\" />\n";
-			ttml << "      <style xml:id=\"textAlignment_0\" tts:textAlign=\"center\" />\n";
-			ttml << "    </styling>\n";
-			ttml << "    <layout>\n";
-
-			// Single or double height
-			bool doubleHeight = false;
-			for (auto& page : currentPages) {
-				for (auto& line : page.lines) {
-					if (line.text.empty())
-						continue;
-
-					if (line.doubleHeight) {
-						doubleHeight = true;
-					} else if (doubleHeight) {
-						m_host->log(Warning, "Mixing single and double height is not handled. Contact your vendor.");
-					}
-				}
-			}
-
-			// We currently assign one Region per page with positioning aligned on Teletext input
-			int minDisplayedRow = ROWS;
-			for (int row = 0; row < ROWS; ++row) {
-				auto const numLines = 24;
-				auto const height = 100.0 / numLines;
-				auto const spacingFactor = 1.1;
-				auto const verticalOrigin = (100 - spacingFactor * height * ROWS) + spacingFactor * height * row;
-				if (verticalOrigin >= 0 && verticalOrigin + spacingFactor * height * (1 + (int)doubleHeight) <= 100) { // Percentage. Promote the last rows for text display.
-					ttml << "      <region xml:id=\"Region-" << row << "\" tts:origin=\"10% " << verticalOrigin << "%\" tts:extent=\"80% " << height * (1 + (int)doubleHeight) << "%\" />\n";
-					minDisplayedRow = std::min<int>(row, minDisplayedRow);
-				}
-			}
-
-			// Warning for out-of-screen content
-			for (auto& page : currentPages)
-				for (auto& line : page.lines)
-					if (line.row < minDisplayedRow)
-						m_host->log(Warning, format("[%s-%s]: teletext content at row %s won't be displayed (minDisplayedRow=%s)", startTimeInMs, endTimeInMs, line.row, minDisplayedRow).c_str());
-
-			ttml << "    </layout>\n";
-			ttml << "  </head>\n";
-			ttml << "  <body>\n";
-			ttml << "    <div>\n";
-
 			int64_t offsetInMs;
-			switch(timingPolicy) {
+			switch (timingPolicy) {
 			case TeletextToTtmlConfig::AbsoluteUTC:
 				offsetInMs = clockToTimescale(m_utcStartTime->query(), 1000);
 				break;
@@ -164,12 +109,62 @@ class TeletextToTTML : public ModuleS {
 			default: throw error("Unknown timing policy (1)");
 			}
 
+			std::stringstream ttml;
+			ttml << "<?xml version=\"1.0\" encoding=\"utf-8\"?>";
+			ttml << "<tt xmlns=\"http://www.w3.org/ns/ttml\" xmlns:tt=\"http://www.w3.org/ns/ttml\" xmlns:ttm=\"http://www.w3.org/ns/ttml#metadata\" xmlns:tts=\"http://www.w3.org/ns/ttml#styling\" xmlns:ttp=\"http://www.w3.org/ns/ttml#parameter\" xml:lang=\"" << lang << "\" >\n";
+			ttml << "  <head>\n";
+			ttml << "    <styling>\n";
+			ttml << "      <style xml:id=\"Style0_0\" tts:fontSize=\"80%\" tts:fontFamily=\"monospaceSansSerif\" />\n";
+			ttml << "    </styling>\n";
+			ttml << "    <layout>\n";
+
+			auto display = [=](const Page& page) {
+				return page.endTimeInMs > startTimeInMs && page.startTimeInMs < endTimeInMs;
+			};
+
+			// We currently assign one Region per line per page with positioning aligned on Teletext input
+			// Single or double height
+			bool doubleHeight = false;
+			for (auto& page : currentPages) {
+				if (!display(page))
+					continue;
+
+				for (auto& line : page.lines) {
+					if (line.text.empty())
+						continue;
+
+					if (line.doubleHeight) {
+						doubleHeight = true;
+					} else if (doubleHeight) {
+						m_host->log(Warning, "Mixing single and double height is not handled. Contact your vendor.");
+					}
+
+					auto const numLines = 24;
+					auto const height = 100.0 / numLines;
+					auto const spacingFactor = 1.0;
+					auto const verticalOrigin = (100 - spacingFactor * height * ROWS) + spacingFactor * height * line.row; // Percentage. Promote the last rows for text display.
+					if (verticalOrigin >= 0 && verticalOrigin + spacingFactor * height * (1 + (int)doubleHeight) <= 100) {
+						auto const factorH = 1 + (int)doubleHeight;
+						auto const margin = 10.0; //percentage
+						auto const origin = (margin + (100 - 2 * margin) * line.col / (double)COLS) / factorH;
+						auto const width = 100 - origin - margin;
+						ttml << "      <region xml:id=\"Region-" << &page << "-" << line.row << "\" tts:origin=\"" << origin << "% " << verticalOrigin << "%\" tts:extent=\"" << width << "% " << height * factorH << "%\" ";
+						ttml << "tts:displayAlign=\"center\" tts:textAlign=\"center\" />\n";
+					}
+				}
+			}
+
+			ttml << "    </layout>\n";
+			ttml << "  </head>\n";
+			ttml << "  <body>\n";
+			ttml << "    <div>\n";
+
 			for(auto& page : currentPages) {
-				if (page.endTimeInMs > startTimeInMs && page.startTimeInMs < endTimeInMs) {
+				if (display(page)) {
 					auto localStartTimeInMs = std::max<int64_t>(page.startTimeInMs, startTimeInMs);
 					auto localEndTimeInMs = std::min<int64_t>(page.endTimeInMs, endTimeInMs);
 					m_host->log(Debug, format("[%s-%s]: %s - %s: %s", startTimeInMs, endTimeInMs, localStartTimeInMs, localEndTimeInMs, pageToString(page)).c_str());
-					ttml << serializePageToTtml(page, localStartTimeInMs + offsetInMs, localEndTimeInMs + offsetInMs, startTimeInMs / clockToTimescale(this->splitDurationIn180k, 1000));
+					ttml << serializePageToTtml(page, localStartTimeInMs + offsetInMs, localEndTimeInMs + offsetInMs);
 				}
 			}
 

@@ -444,7 +444,7 @@ std::unique_ptr<Page> process_page(TeletextState& state) {
 
 	for (int row = 1; row < ROWS; row++) {
 		pageOut->lines.back().row = row;
-		process_row(pageIn->text[row], *pageOut); //Romain: we don't need to send pageOut but only a line
+		process_row(pageIn->text[row], *pageOut);
 	}
 
 	return pageOut;
