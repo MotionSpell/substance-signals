@@ -20,7 +20,6 @@ The module works this way:
 #include "lib_modules/modules.hpp"
 #include "lib_modules/utils/helper_dyn.hpp"
 #include "lib_utils/format.hpp"
-#include "lib_utils/i_scheduler.hpp"
 #include "lib_utils/log_sink.hpp"
 #include "lib_utils/scheduler.hpp"
 #include "lib_utils/tools.hpp" // enforce, safe_cast
@@ -64,7 +63,7 @@ struct Rectifier : ModuleDynI {
 		}
 
 		~Rectifier() {
-			std::unique_lock<std::mutex> lock(inputMutex);
+			std::unique_lock<std::mutex> lock(streamMutex);
 			if(m_pendingTaskId)
 				scheduler->cancel(m_pendingTaskId);
 		}
@@ -95,16 +94,17 @@ struct Rectifier : ModuleDynI {
 		Fraction const framePeriod;
 		int64_t numTicks = 0;
 		const int64_t analyzeWindow = 2 * IClock::Rate; // a positive value means that the master stream arrives in advance of slave streams
-		std::vector<Stream> streams;
-		std::mutex inputMutex;
-		std::shared_ptr<IClock> clock;
+		std::shared_ptr<IClock> const clock;
 		std::shared_ptr<IScheduler> const scheduler;
-		IScheduler::Id m_pendingTaskId {};
+		IScheduler::Id m_pendingTaskId{};
 		bool m_started = false;
+
+		std::mutex streamMutex; // protects from stream declarations (outputs, inputs, streams)
+		std::vector<Stream> streams;
 
 		void mimicOutputs() {
 			while(streams.size() < getInputs().size()) {
-				std::unique_lock<std::mutex> lock(inputMutex);
+				std::unique_lock<std::mutex> lock(streamMutex);
 				auto output = addOutput();
 				streams.push_back(Stream{output, {}});
 			}
@@ -118,7 +118,7 @@ struct Rectifier : ModuleDynI {
 			m_pendingTaskId = {};
 			emitOnePeriod(timeNow);
 			{
-				std::unique_lock<std::mutex> lock(inputMutex);
+				std::unique_lock<std::mutex> lock(streamMutex);
 				reschedule(timeNow + framePeriod);
 			}
 		}
@@ -131,17 +131,19 @@ struct Rectifier : ModuleDynI {
 				throw error("Metadata I/O inconsistency");
 		}
 
-		void fillInputQueuesUnsafe() {
+		// streamMutex must be owned
+		void fillInputQueues() {
 			auto now = fractionToClock(clock->now());
 
 			for (auto i : getInputs()) {
 				auto &currInput = inputs[i];
+
 				Data data;
 				while (currInput->tryPop(data)) {
 					streams[i].data.push_back({now, data});
-					if (currInput->updateMetadata(data)) {
+
+					if (currInput->updateMetadata(data))
 						declareScheduler(currInput.get(), streams[i].output);
-					}
 				}
 			}
 		}
@@ -167,9 +169,8 @@ struct Rectifier : ModuleDynI {
 		int getMasterStreamId() const {
 			for(auto i : getInputs()) {
 				auto meta = inputs[i]->getMetadata() ? inputs[i]->getMetadata() : outputs[i]->getMetadata() ? outputs[i]->getMetadata() : nullptr;
-				if (meta && meta->type == VIDEO_RAW) {
+				if (meta && meta->type == VIDEO_RAW)
 					return i;
-				}
 			}
 			return -1;
 		}
@@ -191,8 +192,8 @@ struct Rectifier : ModuleDynI {
 		// - The scheduler starts at time zero, leading to discard master data with negative timestamps.
 		// - The master stream and the slave streams are sent only when metadata is associated (otherwise silently not sent).
 		void emitOnePeriod(Fraction now) {
-			std::unique_lock<std::mutex> lock(inputMutex);
-			fillInputQueuesUnsafe();
+			std::unique_lock<std::mutex> lock(streamMutex);
+			fillInputQueues();
 			discardOutdatedData(fractionToClock(now) - analyzeWindow);
 
 			// output media times corresponding to the "media period"
@@ -220,9 +221,8 @@ struct Rectifier : ModuleDynI {
 				inMasterTime.start = masterFrame->get<PresentationTime>().time;
 				inMasterTime.stop = inMasterTime.start + (outMasterTime.stop - outMasterTime.start);
 
-				if (numTicks == 0) {
+				if (numTicks == 0)
 					m_host->log(Info, format("First available reference clock time: %s", fractionToClock(now)).c_str());
-				}
 
 				auto data = clone(masterFrame);
 				data->setMediaTime(outMasterTime.start);
