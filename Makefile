@@ -9,12 +9,6 @@ CFLAGS+=-fvisibility=hidden -fvisibility-inlines-hidden
 BIN?=bin
 SRC?=src
 
-# always optimize
-#CFLAGS+=-O3
-
-# default to: no debug info, full warnings
-DEBUG?=2
-
 ifeq ($(DEBUG), 1)
   CFLAGS+=-g3
   LDFLAGS+=-g
@@ -25,6 +19,7 @@ ifeq ($(DEBUG), 0)
   # the code must always build, especially old versions with recent compilers
   CFLAGS+=-w -DNDEBUG
   LDFLAGS+=-Xlinker -s
+  CFLAGS+=-O3
 endif
 
 SIGNALS_HAS_X11?=1
