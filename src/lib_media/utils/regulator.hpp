@@ -12,7 +12,7 @@ namespace Modules {
 class Regulator : public ModuleS {
 	public:
 		Regulator(KHost* host, std::shared_ptr<IClock> clock_)
-			: clock(clock_), m_host(host) {
+			: m_host(host), clock(clock_) {
 			m_output = addOutput();
 		}
 
@@ -20,19 +20,26 @@ class Regulator : public ModuleS {
 			auto const timeTarget = data->get<PresentationTime>().time;
 			auto const timeNow = fractionToClock(clock->now());
 			auto const delayInMs = clockToTimescale(timeTarget - timeNow, 1000) - m_offsetInMs;
-			if (std::abs(delayInMs) > DISCONTINUITY_TOLERANCE_IN_MS) {
-				m_host->log(Warning, format("discontinuity detected (%s ms)", delayInMs).c_str());
-				m_offsetInMs += delayInMs;
-				return processOne(data);
-			}
 			if (delayInMs > 0) {
-				if(delayInMs > REGULATION_TOLERANCE_IN_MS)
+				if (delayInMs > FWD_TOLERANCE_IN_MS) {
+					m_host->log(Warning, format("forward discontinuity detected (%s ms)", delayInMs).c_str());
+					m_offsetInMs += delayInMs;
+					return processOne(data);
+				}
+
+				if (delayInMs > REGULATION_TOLERANCE_IN_MS)
 					m_host->log(Warning, format("will sleep for %s ms", delayInMs).c_str());
 				std::this_thread::sleep_for(std::chrono::milliseconds(delayInMs));
 			} else if (delayInMs < -REGULATION_TOLERANCE_IN_MS) {
-				if(std::abs(delayInMs) > std::abs(m_lastDelayInMs)) {
+				if (delayInMs < -BWD_TOLERANCE_IN_MS) {
+					m_host->log(Warning, format("backward discontinuity detected (%s ms)", -delayInMs).c_str());
+					m_offsetInMs += delayInMs;
+					return processOne(data);
+				}
+
+				if (-delayInMs > std::abs(m_lastDelayInMs)) {
 					char msg[256];
-					sprintf(msg, "late data (%.2fs)",  -delayInMs*1000.0/IClock::Rate);
+					sprintf(msg, "late data (%.2fs)", -delayInMs/1000.0);
 					m_host->log(Warning, msg);
 				}
 			}
@@ -40,15 +47,16 @@ class Regulator : public ModuleS {
 			m_output->post(data);
 		}
 
-		std::shared_ptr<IClock> const clock;
-
-		static auto const REGULATION_TOLERANCE_IN_MS = 300;
-		static auto const DISCONTINUITY_TOLERANCE_IN_MS = 20000;
-
 	private:
 		KHost* const m_host;
 		KOutput* m_output;
 		int64_t m_lastDelayInMs = 0, m_offsetInMs = 0;
+
+		std::shared_ptr<IClock> const clock;
+
+		static auto const REGULATION_TOLERANCE_IN_MS = 300;
+		static auto const FWD_TOLERANCE_IN_MS = 20000;
+		static auto const BWD_TOLERANCE_IN_MS = 6000;
 };
 }
 
