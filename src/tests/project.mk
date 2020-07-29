@@ -13,7 +13,7 @@ EXE_OTHER_SRCS+=\
   $(LIB_PIPELINE_SRCS)\
   $(LIB_UTILS_SRCS)
 
-EXE_OTHER_SRCS+=$(shell find src signals/src -path "*/unittests/*.cpp" | sort)
+EXE_OTHER_SRCS+=$(shell find src $(SRC) -path "*/unittests/*.cpp" | sort)
 TARGETS+=$(BIN)/unittests.exe
 $(BIN)/unittests.exe: $(EXE_OTHER_SRCS:%=$(BIN)/%.o)
 TESTS_DIR+=$(CURDIR)/$(SRC)/tests
