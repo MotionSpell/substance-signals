@@ -9,9 +9,9 @@
 
 namespace Modules {
 
-class Regulator : public ModuleS {
+class RegulatorMono : public ModuleS {
 	public:
-		Regulator(KHost* host, std::shared_ptr<IClock> clock_)
+		RegulatorMono(KHost* host, std::shared_ptr<IClock> clock_)
 			: m_host(host), clock(clock_) {
 			m_output = addOutput();
 		}
