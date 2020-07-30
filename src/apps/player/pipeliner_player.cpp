@@ -16,10 +16,10 @@
 #include "lib_media/in/file.hpp"
 #include "lib_media/out/null.hpp"
 #include "lib_media/utils/regulator_mono.hpp"
-#include "lib_media/utils/regulator_multi.hpp"
 #include "lib_media/transform/rectifier.hpp"
 #include "plugins/HlsDemuxer/hls_demux.hpp"
 #include "plugins/MulticastInput/multicast_input.hpp"
+#include "plugins/RegulatorMulti/regulator_multi.hpp"
 #include "plugins/TsDemuxer/ts_demuxer.hpp"
 
 using namespace Modules;
@@ -170,8 +170,9 @@ void declarePipeline(Config cfg, Pipeline &pipeline, const char *url) {
 
 	IFilter* regulatorMulti = nullptr;
 	if (regulateMulti) {
-		auto const maxClockTimeDelayInMs = maxMediaTimeDelayInMs;
-		regulatorMulti = pipeline.addModule<RegulatorMulti>(maxMediaTimeDelayInMs, maxClockTimeDelayInMs);
+		RegulatorMultiConfig rmCfg;
+		rmCfg.maxClockTimeDelayInMs = rmCfg.maxMediaTimeDelayInMs = maxMediaTimeDelayInMs;
+		regulatorMulti = pipeline.add("RegulatorMulti", &rmCfg);
 	}
 
 	IFilter *rectifier = nullptr;

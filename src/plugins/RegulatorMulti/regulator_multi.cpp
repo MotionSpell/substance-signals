@@ -1,5 +1,3 @@
-#pragma once
-
 /*
 Feeds downstream modules with comparable media times.
 
@@ -16,9 +14,12 @@ The module works this way:
  - We still rely on Clock times to handle drifts and discontinuities.
  - The different media types are processed differently (video&audio = continuous, subtitles = sparse).
 */
+#include "regulator_multi.hpp"
+#include "lib_modules/utils/factory.hpp" // registerModule
 #include "lib_modules/utils/helper_dyn.hpp"
+#include "lib_media/common/attributes.hpp"
 #include "lib_utils/clock.hpp" // timescaleToClock
-#include "lib_utils/system_clock.hpp"
+#include "lib_utils/tools.hpp" // enforce
 #include <algorithm> // max, remove_if
 #include <cassert>
 #include <functional>
@@ -29,10 +30,11 @@ The module works this way:
 namespace Modules {
 
 struct RegulatorMulti : public ModuleDynI {
-		RegulatorMulti(KHost* host, int maxMediaTimeDelayInMs, int maxClockTimeDelayInMs)
+		RegulatorMulti(KHost* host, RegulatorMultiConfig &rmCfg)
 			: m_host(host),
-			  maxMediaTimeDelay(timescaleToClock(maxMediaTimeDelayInMs, 1000)),
-			  maxClockTimeDelay(timescaleToClock(maxClockTimeDelayInMs, 1000)) {
+			  maxMediaTimeDelay(timescaleToClock(rmCfg.maxMediaTimeDelayInMs, 1000)),
+			  maxClockTimeDelay(timescaleToClock(rmCfg.maxClockTimeDelayInMs, 1000)),
+			  clock(rmCfg.clock) {
 		}
 
 		void flush() override {
@@ -53,19 +55,22 @@ struct RegulatorMulti : public ModuleDynI {
 				return;
 			}
 
-			auto const now = fractionToClock(g_SystemClock->now());
+			auto const now = fractionToClock(clock->now());
 			streams[id].push_back({now, data});
 
-			for (int i = 0; i < (int)streams.size(); ++i)
-				if (data->getMetadata())
-					if (data->getMetadata()->isAudio() || data->getMetadata()->isVideo())
-						mediaDispatchTime = std::max<int64_t>(mediaDispatchTime, data->get<PresentationTime>().time - maxMediaTimeDelay);
-			
+			if (data->getMetadata())
+				if (data->getMetadata()->isAudio() || data->getMetadata()->isVideo())
+					mediaDispatchTime = std::max<int64_t>(mediaDispatchTime, data->get<DecodingTime>().time - maxMediaTimeDelay);
+
 			// Normal case
-			dispatch([&](Rec const& rec) { return rec.data->get<DecodingTime>().time < mediaDispatchTime; });
+			dispatch([&](Rec const& rec) {
+				return rec.data->get<DecodingTime>().time < mediaDispatchTime;
+			});
 
 			// Too old according to clock time: dispatch anyway
-			dispatch([&](Rec const& rec) { return rec.creationTime < now - maxClockTimeDelay; });
+			dispatch([&](Rec const& rec) {
+				return rec.creationTime < now - maxClockTimeDelay;
+			});
 		}
 
 		int getNumOutputs() const override {
@@ -122,7 +127,17 @@ struct RegulatorMulti : public ModuleDynI {
 
 		std::vector<Stream> streams;
 		const int64_t maxMediaTimeDelay, maxClockTimeDelay;
+		std::shared_ptr<IClock> clock;
 		int64_t mediaDispatchTime = std::numeric_limits<int64_t>::min();
 };
 
+IModule* createObject(KHost* host, void* va) {
+	auto config = (RegulatorMultiConfig*)va;
+	enforce(host, "RegulatorMulti: host can't be NULL");
+	enforce(config, "RegulatorMulti: config can't be NULL");
+	return createModule<RegulatorMulti>(host, *config).release();
 }
+
+auto const registered = Factory::registerModule("RegulatorMulti", &createObject);
+}
+
