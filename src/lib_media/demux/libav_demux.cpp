@@ -489,6 +489,7 @@ struct LibavDemux : Module {
 				auto const st = m_formatCtx->streams[i];
 				if (st->codecpar->codec_type == AVMEDIA_TYPE_SUBTITLE) {
 					auto sparse = m_streams[i].output->allocData<DataRaw>(0);
+					sparse->set(DecodingTime{ curTimeIn180k });
 					sparse->setMediaTime(curTimeIn180k);
 					m_streams[i].output->post(sparse);
 				}

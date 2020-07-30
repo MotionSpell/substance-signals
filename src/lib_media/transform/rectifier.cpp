@@ -93,7 +93,7 @@ struct Rectifier : ModuleDynI {
 
 		Fraction const framePeriod;
 		int64_t numTicks = 0;
-		const int64_t analyzeWindow = 2 * IClock::Rate; // a positive value means that the master stream arrives in advance of slave streams
+		const int64_t analyzeWindow = IClock::Rate / 2; // a positive value means that the master stream arrives in advance of slave streams
 		std::shared_ptr<IClock> const clock;
 		std::shared_ptr<IScheduler> const scheduler;
 		IScheduler::Id m_pendingTaskId{};
@@ -208,8 +208,9 @@ struct Rectifier : ModuleDynI {
 			auto const masterStreamId = getMasterStreamId();
 
 			{
-				if(masterStreamId == -1)
+				if (masterStreamId == -1)
 					throw error("No master stream: requires to have one video stream connected");
+
 				auto& master = streams[masterStreamId];
 				auto masterFrame = chooseNextMasterFrame(master, fractionToClock(now) - analyzeWindow);
 				if (!masterFrame) {

@@ -16,6 +16,7 @@
 #include "lib_media/in/file.hpp"
 #include "lib_media/out/null.hpp"
 #include "lib_media/utils/regulator_mono.hpp"
+#include "lib_media/utils/regulator_multi.hpp"
 #include "lib_media/transform/rectifier.hpp"
 #include "plugins/HlsDemuxer/hls_demux.hpp"
 #include "plugins/MulticastInput/multicast_input.hpp"
@@ -26,11 +27,12 @@ using namespace Pipelines;
 
 namespace {
 
-const bool regulate = true;
-const bool rectify = false;
+const bool regulateMono = true;
+const bool regulateMulti = true;
+const bool rectify = true;
 
-struct ZeroRestamper : Module {
-		ZeroRestamper(KHost*, int count) {
+struct Restamper : Module {
+		Restamper(KHost*, int count, int shift) : shift(shift) {
 			for(int i=0; i < count; ++i) {
 				addInput();
 				addOutput();
@@ -46,7 +48,7 @@ struct ZeroRestamper : Module {
 			if(startTime == INT64_MIN)
 				startTime = dataTime;
 
-			auto restampedTime = dataTime - startTime;
+			auto restampedTime = dataTime - startTime + shift;
 
 			auto dataOut = clone(dataIn);
 			dataOut->set(PresentationTime{restampedTime});
@@ -55,7 +57,7 @@ struct ZeroRestamper : Module {
 		}
 
 	private:
-		int64_t startTime = INT64_MIN;
+		int64_t startTime = INT64_MIN, shift;
 
 		Data popAny(int& inputIdx) {
 			Data data;
@@ -163,19 +165,33 @@ void declarePipeline(Config cfg, Pipeline &pipeline, const char *url) {
 	if(demuxer->getNumOutputs() == 0)
 		throw std::runtime_error("No streams found");
 
-	IFilter *restamper = nullptr;
+	auto const maxMediaTimeDelayInMs = 3000;
+	auto restamper = pipeline.addModule<Restamper>(demuxer->getNumOutputs(), timescaleToClock(maxMediaTimeDelayInMs-100, 1000));
+
+	IFilter* regulatorMulti = nullptr;
+	if (regulateMulti) {
+		auto const maxClockTimeDelayInMs = maxMediaTimeDelayInMs;
+		regulatorMulti = pipeline.addModule<RegulatorMulti>(maxMediaTimeDelayInMs, maxClockTimeDelayInMs);
+	}
+
+	IFilter *rectifier = nullptr;
 	if (rectify) {
 		RectifierConfig rCfg;
 		rCfg.clock = g_SystemClock;
 		rCfg.scheduler = std::make_shared<Scheduler>(rCfg.clock);
 		rCfg.frameRate = Fraction(25, 1); //always play at this rate
 		g_Log->log(Debug, format("Rectify at frequency %s/%s (%s)", rCfg.frameRate.num, rCfg.frameRate.den, (double)rCfg.frameRate).c_str());
-		restamper = pipeline.add("Rectifier", &rCfg);
-	} else {
-		restamper = pipeline.addModule<ZeroRestamper>(demuxer->getNumOutputs());
+		rectifier = pipeline.add("Rectifier", &rCfg);
 	}
 
 	for (int k = 0; k < demuxer->getNumOutputs(); ++k) {
+		auto source = GetOutputPin(demuxer, k);
+
+		if (regulateMulti) {
+			pipeline.connect(GetOutputPin(demuxer, k), GetInputPin(regulatorMulti, k));
+			source = GetOutputPin(regulatorMulti, k);
+		}
+
 		auto metadata = demuxer->getOutputMetadata(k);
 		if(!metadata) {
 			g_Log->log(Debug, format("Ignoring stream #%s (no metadata)", k).c_str());
@@ -200,9 +216,10 @@ void declarePipeline(Config cfg, Pipeline &pipeline, const char *url) {
 			hasAudio = true;
 		}
 
-		auto source = GetOutputPin(demuxer, k);
+		pipeline.connect(source, GetInputPin(restamper, k));
+		source = GetOutputPin(restamper, k);
 
-		if (regulate) {
+		if (regulateMono) {
 			auto regulator = pipeline.addNamedModule<RegulatorMono>("RegulatorMono", g_SystemClock);
 			pipeline.connect(source, regulator);
 			source = GetOutputPin(regulator);
@@ -216,8 +233,13 @@ void declarePipeline(Config cfg, Pipeline &pipeline, const char *url) {
 
 		metadata = source.mod->getOutputMetadata(source.index);
 
+		if (rectify) {
+			int pin = rectifier->getNumInputs() - 1;
+			pipeline.connect(source, GetInputPin(rectifier, pin));
+			source = GetOutputPin(rectifier, pin);
+		}
+
 		auto render = createRenderer(pipeline, cfg, metadata->type);
-		pipeline.connect(source, GetInputPin(restamper, k));
-		pipeline.connect(GetOutputPin(restamper, k), GetInputPin(render));
+		pipeline.connect(source, GetInputPin(render));
 	}
 }
