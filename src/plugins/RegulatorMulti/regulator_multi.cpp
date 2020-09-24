@@ -2,8 +2,8 @@
 Feeds downstream modules with comparable media times.
 
 This module delays dispatch until all data corresponding up to a media time is
-available. Data won't be modified (e.g. added or removed). Ensure that backward
-modules have sufficiently sized allocators.
+available. Data won't be modified (e.g. added or removed). Make sure that
+backward modules have sufficiently sized allocators.
 
 Delaying compressed data takes way less memory than raw data. Thus this module
 is complementary to rectifiers operating on raw data (e.g. in a downward module).

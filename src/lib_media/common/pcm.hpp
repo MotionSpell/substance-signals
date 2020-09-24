@@ -26,7 +26,6 @@ enum AudioStruct {
 };
 
 static const int AUDIO_PCM_PLANES_MAX = 8;
-}
 
 namespace {
 uint8_t getNumChannelsFromLayout(Modules::AudioLayout layout) {
@@ -38,8 +37,6 @@ uint8_t getNumChannelsFromLayout(Modules::AudioLayout layout) {
 	}
 }
 }
-
-namespace Modules {
 
 class PcmFormat {
 	public:
@@ -97,7 +94,7 @@ class PcmFormat {
 struct DataPcm : DataBase {
 	DataPcm(size_t size) {
 		if (size > 0)
-			throw std::runtime_error("Forbidden operation. Requested size must be 0. Then call setFormat().");
+			throw std::runtime_error("Forbidden operation. DataPcm requested size must be 0. Then call setFormat().");
 		buffer = std::make_shared<RawBuffer>(size);
 	}
 

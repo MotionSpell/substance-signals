@@ -3,11 +3,7 @@
 #include "lib_modules/utils/loader.hpp"
 #include "lib_media/common/attributes.hpp"
 #include "lib_media/common/metadata.hpp" //MetadataPkt
-//#include "lib_utils/log_sink.hpp"
-//#include "lib_utils/tools.hpp" //safe_cast
-//#include <string.h> // memcpy
 #include "lib_utils/clock.hpp"
-//#include "lib_utils/fraction.hpp"
 #include <plugins/RegulatorMulti/regulator_multi.hpp>
 #include <vector>
 
