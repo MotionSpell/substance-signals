@@ -5,7 +5,8 @@ include $(SRC)/plugins/MulticastInput/project.mk
 include $(SRC)/plugins/UdpOutput/project.mk
 include $(SRC)/plugins/TsMuxer/project.mk
 include $(SRC)/plugins/TsDemuxer/project.mk
-include $(SRC)/plugins/Telx2Ttml/project.mk
+include $(SRC)/plugins/TelxDecoder/project.mk
+include $(SRC)/plugins/TtmlEncoder/project.mk
 include $(SRC)/plugins/Fmp4Splitter/project.mk
 include $(SRC)/plugins/Dasher/project.mk
 include $(SRC)/plugins/RegulatorMulti/project.mk

@@ -1,5 +1,6 @@
-#include "telx2ttml.hpp"
+#include "ttml_encoder.hpp"
 #include "lib_media/common/attributes.hpp"
+#include "lib_media/common/subtitle.hpp"
 #include "lib_modules/utils/factory.hpp"
 #include "lib_modules/utils/helper.hpp"
 #include "lib_utils/log_sink.hpp" // Debug
@@ -7,17 +8,10 @@
 #include "lib_utils/tools.hpp" // enforce
 #include "lib_utils/format.hpp"
 #include <algorithm> // std::max
-#include <vector>
 #include <cassert>
-
-#include "page.hpp"
-#include "telx.hpp"
 #include <sstream>
 
 using namespace Modules;
-
-extern const int ROWS;
-extern const int COLS;
 
 namespace {
 
@@ -32,23 +26,13 @@ std::string timecodeToString(int64_t timeInMs) {
 	return timecode;
 }
 
-std::string pageToString(Page const& page) {
-	std::string r;
-
-	for(auto& ss : page.lines)
-		r += ss.text + "\n";
-
-	return r;
-}
-
-class TeletextToTTML : public ModuleS {
+class TTMLEncoder : public ModuleS {
 	public:
-		TeletextToTTML(KHost* host, TeletextToTtmlConfig* cfg)
+		TTMLEncoder(KHost* host, TtmlEncoderConfig* cfg)
 			: m_host(host),
 			  m_utcStartTime(cfg->utcStartTime),
 			  lang(cfg->lang), timingPolicy(cfg->timingPolicy), maxPageDurIn180k(timescaleToClock(cfg->maxDelayBeforeEmptyInMs, 1000)), splitDurationIn180k(timescaleToClock(cfg->splitDurationInMs, 1000)) {
-			m_telxState.reset(createTeletextParser(host, cfg->pageNum));
-			enforce(cfg->utcStartTime != nullptr, "TeletextToTTML: utcStartTime can't be NULL");
+			enforce(cfg->utcStartTime != nullptr, "TTMLEncoder: utcStartTime can't be NULL");
 			output = addOutput();
 		}
 
@@ -59,7 +43,6 @@ class TeletextToTTML : public ModuleS {
 			// TODO
 			// 14. add flush() for ondemand samples
 			// 15. UTF8 to TTML formatting? accent
-			processTelx(data);
 			dispatch(data->get<PresentationTime>().time);
 		}
 
@@ -68,11 +51,11 @@ class TeletextToTTML : public ModuleS {
 		IUtcStartTimeQuery const * const m_utcStartTime;
 		OutputDefault* output;
 		const std::string lang;
-		const TeletextToTtmlConfig::TimingPolicy timingPolicy;
+		const TtmlEncoderConfig::TimingPolicy timingPolicy;
 		int64_t intClock = 0;
 		const int64_t maxPageDurIn180k, splitDurationIn180k;
 		std::vector<Page> currentPages;
-		std::unique_ptr<ITeletextParser> m_telxState;
+		const int ROWS = 25, COLS = 40;
 
 		std::string serializePageToTtml(Page const& page, int64_t startTimeInMs, int64_t endTimeInMs) const {
 			auto const timecodeShow = timecodeToString(startTimeInMs);
@@ -97,13 +80,13 @@ class TeletextToTTML : public ModuleS {
 		std::string toTTML(int64_t startTimeInMs, int64_t endTimeInMs) const {
 			int64_t offsetInMs;
 			switch (timingPolicy) {
-			case TeletextToTtmlConfig::AbsoluteUTC:
+			case TtmlEncoderConfig::AbsoluteUTC:
 				offsetInMs = clockToTimescale(m_utcStartTime->query(), 1000);
 				break;
-			case TeletextToTtmlConfig::RelativeToMedia:
+			case TtmlEncoderConfig::RelativeToMedia:
 				offsetInMs = 0;
 				break;
-			case TeletextToTtmlConfig::RelativeToSplit:
+			case TtmlEncoderConfig::RelativeToSplit:
 				offsetInMs = -1 * startTimeInMs;
 				break;
 			default: throw error("Unknown timing policy (1)");
@@ -119,10 +102,10 @@ class TeletextToTTML : public ModuleS {
 			ttml << "    <layout>\n";
 
 			auto display = [=](const Page& page) {
-				return page.endTimeInMs > startTimeInMs && page.startTimeInMs < endTimeInMs;
+				return clockToTimescale(page.hideTimestamp, 1000) > startTimeInMs && clockToTimescale(page.showTimestamp, 1000) < endTimeInMs;
 			};
 
-			// We currently assign one Region per line per page with positioning aligned on Teletext input
+			// We currently assign one Region per line per page with positioning aligned on a 40x25 grid
 			// Single or double height
 			bool doubleHeight = false;
 			for (auto& page : currentPages) {
@@ -161,9 +144,9 @@ class TeletextToTTML : public ModuleS {
 
 			for(auto& page : currentPages) {
 				if (display(page)) {
-					auto localStartTimeInMs = std::max<int64_t>(page.startTimeInMs, startTimeInMs);
-					auto localEndTimeInMs = std::min<int64_t>(page.endTimeInMs, endTimeInMs);
-					m_host->log(Debug, format("[%s-%s]: %s - %s: %s", startTimeInMs, endTimeInMs, localStartTimeInMs, localEndTimeInMs, pageToString(page)).c_str());
+					auto localStartTimeInMs = std::max<int64_t>(clockToTimescale(page.showTimestamp, 1000), startTimeInMs);
+					auto localEndTimeInMs = std::min<int64_t>(clockToTimescale(page.hideTimestamp, 1000), endTimeInMs);
+					m_host->log(Debug, format("[%s-%s]: %s - %s: %s", startTimeInMs, endTimeInMs, localStartTimeInMs, localEndTimeInMs, page.toString()).c_str());
 					ttml << serializePageToTtml(page, localStartTimeInMs + offsetInMs, localEndTimeInMs + offsetInMs);
 				}
 			}
@@ -177,7 +160,7 @@ class TeletextToTTML : public ModuleS {
 		void removeOutdatedPages(int64_t endTimeInMs) {
 			auto page = currentPages.begin();
 			while(page != currentPages.end()) {
-				if(page->endTimeInMs <= endTimeInMs) {
+				if(clockToTimescale(page->hideTimestamp, 1000) <= endTimeInMs) {
 					page = currentPages.erase(page);
 				} else {
 					++page;
@@ -204,50 +187,34 @@ class TeletextToTTML : public ModuleS {
 			int64_t nextSplit = prevSplit + splitDurationIn180k;
 
 			while(extClock - maxPageDurIn180k > nextSplit) {
-				auto const start = clockToTimescale(prevSplit, 1000);
-				auto const end = clockToTimescale(nextSplit, 1000);
+				auto const startInMs = clockToTimescale(prevSplit, 1000);
+				auto const endInMs = clockToTimescale(nextSplit, 1000);
 
 				if (DEBUG_DISPLAY_TIMESTAMPS) {
 					Page pageOut;
-					pageOut.startTimeInMs = start;
-					pageOut.endTimeInMs = end;
-					pageOut.lines.push_back({ timecodeToString(start) + " - " + timecodeToString(end), defaultColor, false, ROWS - 1, 0 });
+					pageOut.showTimestamp = prevSplit;
+					pageOut.hideTimestamp = nextSplit;
+					pageOut.lines.push_back({ timecodeToString(startInMs) + " - " + timecodeToString(endInMs), defaultColor, false, ROWS - 1, 0 });
 					currentPages.clear();
 					currentPages.push_back(pageOut);
 				}
 
-				sendSample(toTTML(start, end));
-				removeOutdatedPages(end);
+				sendSample(toTTML(startInMs, endInMs));
+				removeOutdatedPages(endInMs);
 
 				intClock = nextSplit;
 				prevSplit = (intClock / splitDurationIn180k) * splitDurationIn180k;
 				nextSplit = prevSplit + splitDurationIn180k;
 			}
 		}
-
-		void processTelx(Data sub) {
-			for(auto& page : m_telxState->parse(sub->data(), sub->get<PresentationTime>().time)) {
-				m_host->log(Debug,
-				    format("show=%s:hide=%s, clocks:data=%s:int=%s, content=%s",
-				        clockToTimescale(page.showTimestamp, 1000), clockToTimescale(page.hideTimestamp, 1000),
-				        clockToTimescale(sub->get<PresentationTime>().time, 1000), clockToTimescale(intClock, 1000), pageToString(page)).c_str());
-
-				auto const startTimeInMs = clockToTimescale(page.showTimestamp, 1000);
-				auto const durationInMs = clockToTimescale((page.hideTimestamp - page.showTimestamp), 1000);
-				page.startTimeInMs = startTimeInMs;
-				page.endTimeInMs = startTimeInMs + durationInMs;
-				currentPages.push_back(page);
-			}
-		}
 };
 
 IModule* createObject(KHost* host, void* va) {
-	auto config = (TeletextToTtmlConfig*)va;
-	enforce(host, "TeletextToTTML: host can't be NULL");
-	enforce(config, "TeletextToTTML: config can't be NULL");
-	return createModule<TeletextToTTML>(host, config).release();
+	auto config = (TtmlEncoderConfig*)va;
+	enforce(host, "TTMLEncoder: host can't be NULL");
+	enforce(config, "TTMLEncoder: config can't be NULL");
+	return createModule<TTMLEncoder>(host, config).release();
 }
 
-auto const registered = Factory::registerModule("TeletextToTTML", &createObject);
+auto const registered = Factory::registerModule("TTMLEncoder", &createObject);
 }
-

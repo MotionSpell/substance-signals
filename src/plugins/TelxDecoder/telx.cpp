@@ -1,5 +1,6 @@
 // Parse raw teletext data, and produce 'Page' objects
 #include "telx.hpp"
+#include "lib_modules/modules.hpp"
 #include "lib_utils/format.hpp"
 #include "lib_utils/log_sink.hpp" // Warning
 #include <cassert>
@@ -277,7 +278,7 @@ const uint16_t G2_Accents[15][52] = {
 
 struct TeletextState : ITeletextParser {
 
-	std::vector<Page> parse(SpanC data, int64_t time) override;
+	std::vector<Modules::Page> parse(SpanC data, int64_t time) override;
 
 	Modules::KHost* host;
 	int pageNum = 0;
@@ -382,7 +383,7 @@ bool isEmpty(PageBuffer const& pageIn) {
 	return true;
 }
 
-void process_row(const uint16_t* srcRow, Page& page) {
+void process_row(const uint16_t* srcRow, Modules::Page& page) {
 	int colStart = COLS;
 	int colStop = COLS;
 
@@ -429,9 +430,9 @@ void process_row(const uint16_t* srcRow, Page& page) {
 	page.lines.push_back({});
 }
 
-std::unique_ptr<Page> process_page(TeletextState& state) {
+std::unique_ptr<Modules::Page> process_page(TeletextState& state) {
 	PageBuffer* pageIn = &state.pageBuffer;
-	auto pageOut = std::make_unique<Page>();
+	auto pageOut = std::make_unique<Modules::Page>();
 	pageOut->lines.push_back({});
 
 	if (isEmpty(*pageIn))
@@ -450,7 +451,7 @@ std::unique_ptr<Page> process_page(TeletextState& state) {
 	return pageOut;
 }
 
-std::unique_ptr<Page> process_telx_packet(TeletextState &config, DataUnit dataUnitId, void* data, uint64_t timestamp) {
+std::unique_ptr<Modules::Page> process_telx_packet(TeletextState &config, DataUnit dataUnitId, void* data, uint64_t timestamp) {
 	auto packet = (const Payload*)data;
 	// section 7.1.2
 	uint8_t address = (unham_8_4(packet->address[1]) << 4) | unham_8_4(packet->address[0]);
@@ -459,7 +460,7 @@ std::unique_ptr<Page> process_telx_packet(TeletextState &config, DataUnit dataUn
 		m = 8;
 	uint8_t y = (address >> 3) & 0x1f;
 	uint8_t designationCode = (y > 25) ? unham_8_4(packet->data[0]) : 0x00;
-	std::unique_ptr<Page> pageOut;
+	std::unique_ptr<Modules::Page> pageOut;
 
 	if (y == 0) {
 		uint8_t i = (unham_8_4(packet->data[1]) << 4) | unham_8_4(packet->data[0]);
@@ -592,10 +593,10 @@ std::unique_ptr<Page> process_telx_packet(TeletextState &config, DataUnit dataUn
 	return pageOut;
 }
 
-std::vector<Page> TeletextState::parse(SpanC data, int64_t time) {
+std::vector<Modules::Page> TeletextState::parse(SpanC data, int64_t time) {
 	int i = 1;
 
-	std::vector<Page> pages;
+	std::vector<Modules::Page> pages;
 
 	while(i <= int(data.len) - 6) {
 		auto const dataUnitId = (DataUnit)data[i++];
