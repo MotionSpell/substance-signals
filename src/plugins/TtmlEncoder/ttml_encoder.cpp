@@ -7,6 +7,7 @@
 #include "lib_utils/time.hpp" // timeInMsToStr
 #include "lib_utils/tools.hpp" // enforce
 #include "lib_utils/format.hpp"
+#include "lib_utils/small_map.hpp"
 #include <algorithm> // std::max
 #include <cassert>
 #include <sstream>
@@ -40,6 +41,8 @@ class TTMLEncoder : public ModuleS {
 			if(inputs[0]->updateMetadata(data))
 				output->setMetadata(data->getMetadata());
 
+			currentPages.push_back(safe_cast<const DataSubtitle>(data)->page);
+
 			// TODO
 			// 14. add flush() for ondemand samples
 			// 15. UTF8 to TTML formatting? accent
@@ -57,7 +60,7 @@ class TTMLEncoder : public ModuleS {
 		std::vector<Page> currentPages;
 		const int ROWS = 25, COLS = 40;
 
-		std::string serializePageToTtml(Page const& page, int64_t startTimeInMs, int64_t endTimeInMs) const {
+		std::string serializePageToTtml(Page const& page, int regionId, int64_t startTimeInMs, int64_t endTimeInMs) const {
 			auto const timecodeShow = timecodeToString(startTimeInMs);
 			auto const timecodeHide = timecodeToString(endTimeInMs);
 
@@ -69,7 +72,7 @@ class TTMLEncoder : public ModuleS {
 				if (line.text.empty())
 					continue;
 
-				ttml << "      <p region=\"Region-" << &page << "-" << line.row << "\" style=\"Style0_0\" begin=\"" << timecodeShow << "\" end=\"" << timecodeHide << "\">\n";
+				ttml << "      <p region=\"Region-" << regionId << "-" << line.row << "\" style=\"Style0_0\" begin=\"" << timecodeShow << "\" end=\"" << timecodeHide << "\">\n";
 				ttml << "        <span tts:color=\"" << line.color << "\" tts:backgroundColor=\"#000000\">" << line.text << "</span>\n";
 				ttml << "      </p>\n";
 			}
@@ -108,9 +111,12 @@ class TTMLEncoder : public ModuleS {
 			// We currently assign one Region per line per page with positioning aligned on a 40x25 grid
 			// Single or double height
 			bool doubleHeight = false;
+			SmallMap<const Page*, int> pageToRegionId;
 			for (auto& page : currentPages) {
 				if (!display(page))
 					continue;
+
+				pageToRegionId[&page] = pageToRegionId.size();
 
 				for (auto& line : page.lines) {
 					if (line.text.empty())
@@ -147,7 +153,7 @@ class TTMLEncoder : public ModuleS {
 					auto localStartTimeInMs = std::max<int64_t>(clockToTimescale(page.showTimestamp, 1000), startTimeInMs);
 					auto localEndTimeInMs = std::min<int64_t>(clockToTimescale(page.hideTimestamp, 1000), endTimeInMs);
 					m_host->log(Debug, format("[%s-%s]: %s - %s: %s", startTimeInMs, endTimeInMs, localStartTimeInMs, localEndTimeInMs, page.toString()).c_str());
-					ttml << serializePageToTtml(page, localStartTimeInMs + offsetInMs, localEndTimeInMs + offsetInMs);
+					ttml << serializePageToTtml(page, pageToRegionId[&page], localStartTimeInMs + offsetInMs, localEndTimeInMs + offsetInMs);
 				}
 			}
 
@@ -186,7 +192,7 @@ class TTMLEncoder : public ModuleS {
 			int64_t prevSplit = (intClock / splitDurationIn180k) * splitDurationIn180k;
 			int64_t nextSplit = prevSplit + splitDurationIn180k;
 
-			while(extClock - maxPageDurIn180k > nextSplit) {
+			while(extClock - maxPageDurIn180k >= nextSplit) {
 				auto const startInMs = clockToTimescale(prevSplit, 1000);
 				auto const endInMs = clockToTimescale(nextSplit, 1000);
 

@@ -76,5 +76,9 @@ struct SmallMap {
 		pairs.clear();
 	}
 
+	size_t size() const {
+		return pairs.size();
+	}
+
 };
 
