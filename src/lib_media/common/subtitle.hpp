@@ -32,7 +32,7 @@ struct Page {
 struct DataSubtitle : DataBase {
 	DataSubtitle(size_t size) {
 		if (size > 0)
-			throw std::runtime_error("Forbidden operation. DataSubtitle requested size must be 0..");
+			throw std::runtime_error("Forbidden operation. DataSubtitle requested size must be 0.");
 	}
 	Page page;
 };

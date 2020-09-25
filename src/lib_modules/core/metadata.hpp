@@ -8,6 +8,7 @@ enum StreamType {
 	UNKNOWN_ST = -1,
 	AUDIO_RAW,    //uncompressed audio
 	VIDEO_RAW,    //uncompressed video
+	SUBTITLE_RAW, //subtitles in canonical format
 	AUDIO_PKT,    //compressed audio
 	VIDEO_PKT,    //compressed video
 	SUBTITLE_PKT, //subtitles and captions

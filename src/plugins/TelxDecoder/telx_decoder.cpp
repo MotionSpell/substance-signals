@@ -2,6 +2,7 @@
 #include "lib_modules/utils/factory.hpp"
 #include "lib_modules/utils/helper.hpp"
 #include "lib_media/common/attributes.hpp"
+#include "lib_media/common/metadata.hpp"
 #include "lib_media/common/subtitle.hpp"
 #include "lib_utils/format.hpp"
 #include "lib_utils/log_sink.hpp" // Debug
@@ -18,12 +19,10 @@ class TeletextDecoder : public ModuleS {
 			: m_host(host) {
 			m_telxState.reset(createTeletextParser(host, cfg->pageNum));
 			output = addOutput();
+			output->setMetadata(make_shared<MetadataRawSubtitle>());
 		}
 
 		void processOne(Data data) override {
-			if(inputs[0]->updateMetadata(data))
-				output->setMetadata(data->getMetadata());
-
 			// TODO
 			// 14. add flush() for ondemand samples
 			// 15. UTF8 to TTML formatting? accent

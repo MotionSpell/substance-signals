@@ -1,5 +1,6 @@
 #include "ttml_encoder.hpp"
 #include "lib_media/common/attributes.hpp"
+#include "lib_media/common/metadata.hpp"
 #include "lib_media/common/subtitle.hpp"
 #include "lib_modules/utils/factory.hpp"
 #include "lib_modules/utils/helper.hpp"
@@ -35,12 +36,10 @@ class TTMLEncoder : public ModuleS {
 			  lang(cfg->lang), timingPolicy(cfg->timingPolicy), maxPageDurIn180k(timescaleToClock(cfg->maxDelayBeforeEmptyInMs, 1000)), splitDurationIn180k(timescaleToClock(cfg->splitDurationInMs, 1000)) {
 			enforce(cfg->utcStartTime != nullptr, "TTMLEncoder: utcStartTime can't be NULL");
 			output = addOutput();
+			output->setMetadata(make_shared<MetadataPktSubtitle>());
 		}
 
 		void processOne(Data data) override {
-			if(inputs[0]->updateMetadata(data))
-				output->setMetadata(data->getMetadata());
-
 			currentPages.push_back(safe_cast<const DataSubtitle>(data)->page);
 
 			// TODO
