@@ -51,10 +51,10 @@ unittest("ttml_encoder") {
   </head>
   <body>
     <div>
-      <p region="Region-0-0" style="Style0_0" begin="00:00:00.000" end="00:00:01.000">
+      <p region="Region0_0" style="Style0_0" begin="00:00:00.000" end="00:00:01.000">
         <span tts:color="#ffffff" tts:backgroundColor="#000000">toto</span>
       </p>
-      <p region="Region-0-0" style="Style0_0" begin="00:00:00.000" end="00:00:01.000">
+      <p region="Region0_0" style="Style0_0" begin="00:00:00.000" end="00:00:01.000">
         <span tts:color="#ff0000" tts:backgroundColor="#000000">titi</span>
       </p>
     </div>
@@ -71,10 +71,10 @@ unittest("ttml_encoder") {
   </head>
   <body>
     <div>
-      <p region="Region-0-0" style="Style0_0" begin="00:00:01.000" end="00:00:02.000">
+      <p region="Region0_0" style="Style0_0" begin="00:00:01.000" end="00:00:02.000">
         <span tts:color="#ffffff" tts:backgroundColor="#000000">toto</span>
       </p>
-      <p region="Region-0-0" style="Style0_0" begin="00:00:01.000" end="00:00:02.000">
+      <p region="Region0_0" style="Style0_0" begin="00:00:01.000" end="00:00:02.000">
         <span tts:color="#ff0000" tts:backgroundColor="#000000">titi</span>
       </p>
     </div>

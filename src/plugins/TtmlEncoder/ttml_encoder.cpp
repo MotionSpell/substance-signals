@@ -71,7 +71,7 @@ class TTMLEncoder : public ModuleS {
 				if (line.text.empty())
 					continue;
 
-				ttml << "      <p region=\"Region-" << regionId << "-" << line.row << "\" style=\"Style0_0\" begin=\"" << timecodeShow << "\" end=\"" << timecodeHide << "\">\n";
+				ttml << "      <p region=\"Region" << regionId << "_" << line.row << "\" style=\"Style0_0\" begin=\"" << timecodeShow << "\" end=\"" << timecodeHide << "\">\n";
 				ttml << "        <span tts:color=\"" << line.color << "\" tts:backgroundColor=\"#000000\">" << line.text << "</span>\n";
 				ttml << "      </p>\n";
 			}
@@ -136,7 +136,8 @@ class TTMLEncoder : public ModuleS {
 						auto const margin = 10.0; //percentage
 						auto const origin = (margin + (100 - 2 * margin) * line.col / (double)COLS) / factorH;
 						auto const width = 100 - origin - margin;
-						ttml << "      <region xml:id=\"Region-" << &page << "-" << line.row << "\" tts:origin=\"" << origin << "% " << verticalOrigin << "%\" tts:extent=\"" << width << "% " << height * factorH << "%\" ";
+						ttml << "      <region xml:id=\"Region" << pageToRegionId[&page] << "_" << line.row << "\" ";
+						ttml << "tts:origin=\"" << origin << "% " << verticalOrigin << "%\" tts:extent=\"" << width << "% " << height * factorH << "%\" ";
 						ttml << "tts:displayAlign=\"center\" tts:textAlign=\"center\" />\n";
 					}
 				}
