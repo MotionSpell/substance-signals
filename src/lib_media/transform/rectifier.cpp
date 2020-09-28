@@ -23,9 +23,9 @@ The module works this way:
 #include "lib_utils/log_sink.hpp"
 #include "lib_utils/scheduler.hpp"
 #include "lib_utils/tools.hpp" // enforce, safe_cast
-
-#include "../common/pcm.hpp"
-#include "../common/attributes.hpp" // PresentationTime
+#include "lib_media/common/attributes.hpp" // PresentationTime
+#include "lib_media/common/pcm.hpp"
+#include "lib_media/common/subtitle.hpp"
 
 #include <cassert>
 #include <memory>
@@ -247,6 +247,9 @@ struct Rectifier : ModuleDynI {
 				case AUDIO_RAW:
 					emitOnePeriod_RawAudio(i, inMasterTime, outMasterTime);
 					break;
+				case SUBTITLE_RAW:
+					emitOnePeriod_RawSubtitle(i, inMasterTime, outMasterTime);
+					break;
 				case VIDEO_RAW:
 					throw error("only one video stream is supported");
 					break;
@@ -341,6 +344,38 @@ struct Rectifier : ModuleDynI {
 				m_host->log(Warning, format("Incomplete audio period (%s samples instead of %s). Expect glitches.", writtenSamples, inMasterSamples.stop - inMasterSamples.start).c_str());
 
 			stream.output->post(pcm);
+		}
+
+		// Sparse stream data is dispatched immediately:
+		// - it may last longer than one rectifier period;
+		// - it may arrive way in advance and be discarded unduely.
+		void emitOnePeriod_RawSubtitle(int i, Interval inMasterTime, Interval outMasterTime) {
+			auto& stream = streams[i];
+
+			auto data = stream.data.begin();
+			while (data != stream.data.end()) {
+				auto const sub = safe_cast<const DataSubtitle>(data->data);
+				if (sub->page.hideTimestamp >= inMasterTime.start) {
+					auto dataOut = stream.output->allocData<DataSubtitle>(0);
+					*dataOut = *sub; // clone
+
+					auto const delta = inMasterTime.start - outMasterTime.start;
+					dataOut->setMediaTime(outMasterTime.start);
+					dataOut->page.showTimestamp += delta;
+					dataOut->page.hideTimestamp += delta;
+					stream.output->post(dataOut);
+
+					data = stream.data.erase(data);
+				} else {
+					// Don't assume data arrives in order: continue processing.
+					++data;
+				}
+			}
+
+			// send heartbeat
+			auto heartbeat = stream.output->allocData<DataSubtitle>(0);
+			heartbeat->set(PresentationTime{outMasterTime.start});
+			stream.output->post(heartbeat);
 		}
 
 		void discardOutdatedData(int64_t removalClockTime) {

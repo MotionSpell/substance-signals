@@ -5,6 +5,7 @@
 #include "lib_media/transform/rectifier.hpp"
 #include "lib_media/common/pcm.hpp"
 #include "lib_media/common/picture.hpp"
+#include "lib_media/common/subtitle.hpp"
 #include "lib_media/common/metadata.hpp"
 #include "lib_media/common/attributes.hpp"
 
@@ -126,6 +127,7 @@ struct DataGenerator : ModuleS, virtual IOutputCap {
 
 typedef DataGenerator<MetadataRawVideo, DataPicture> VideoGenerator;
 typedef DataGenerator<MetadataRawAudio, DataPcm> AudioGenerator;
+typedef DataGenerator<MetadataRawSubtitle, DataSubtitle> SubtitleGenerator;
 
 struct Fixture {
 	shared_ptr<ClockMock> clock = make_shared<ClockMock>();
@@ -552,4 +554,30 @@ unittest("rectifier: slave stream arrives in advance of master streams") {
 		auto expected = generateInterleavedEvents(videoRate, 0);
 		ASSERT_EQUALS(expected, actualTimes);
 	});
+}
+
+unittest("rectifier: subtitles (sparse)") {
+	const Fraction fps(25, 1);
+	Fixture fix(fps);
+	fix.addStream(0, createModuleWithSize<VideoGenerator>(100));
+	fix.addStream(1, createModuleWithSize<SubtitleGenerator>(100));
+
+	auto const delta = (int)(fps.inverse() * IClock::Rate);
+	fix.setTime(1000 + delta * 0);
+	fix.push(0, 7200 * 0); /*no subtitle*/
+	fix.push(0, 7200 * 1); fix.push(1, 7200 * 1);
+	fix.setTime(1000 + 7200 * 1);
+	fix.push(0, 7200 * 3); fix.push(1, 7200 * 3);
+	fix.setTime(1000 + 7200 * 2);
+	fix.setTime(1000 + 7200 * 3);
+
+	auto const expectedTimes = vector<Event>({
+		Event{0, 1000 + 7200 * 0, 7200 * 0}, Event{1, 1000 + 7200 * 0, 7200 * 0},
+		Event{1, 1000 + 7200 * 0, 7200 * 0}, /*only subtitle signals, the other ones are heartbeats*/
+		Event{0, 1000 + 7200 * 1, 7200 * 1}, Event{1, 1000 + 7200 * 1, 7200 * 1},
+		Event{0, 1000 + 7200 * 2, 7200 * 2}, Event{1, 1000 + 7200 * 2, 7200 * 2},
+		Event{0, 1000 + 7200 * 3, 7200 * 3}, Event{1, 1000 + 7200 * 3, 7200 * 3},
+	});
+
+	ASSERT_EQUALS(expectedTimes, fix.actualTimes);
 }

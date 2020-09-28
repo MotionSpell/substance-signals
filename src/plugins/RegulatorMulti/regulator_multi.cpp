@@ -9,10 +9,9 @@ Delaying compressed data takes way less memory than raw data. Thus this module
 is complementary to rectifiers operating on raw data (e.g. in a downward module).
 
 The module works this way:
- - At each data reception, evaluate if some data is dispatchable.
- - Non-dispatchable data is queued in a fifo.
+ - At each data reception, evaluate if some data is dispatchable. Non-dispatchable data is queued in a fifo.
  - We still rely on Clock times to handle drifts and discontinuities.
- - The different media types are processed differently (video&audio = continuous, subtitles = sparse).
+ - Different media types are processed differently (video&audio = continuous, subtitles = sparse).
 */
 #include "regulator_multi.hpp"
 #include "lib_modules/utils/factory.hpp" // registerModule

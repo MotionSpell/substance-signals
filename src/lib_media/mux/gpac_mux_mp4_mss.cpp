@@ -1,5 +1,6 @@
 #include "gpac_mux_mp4.hpp"
 #include "lib_modules/utils/factory.hpp"
+#include "lib_utils/log_sink.hpp"
 #include "lib_utils/tools.hpp" // operator|
 #include "lib_utils/string_tools.hpp" // string2hex
 #include <sstream>
@@ -98,6 +99,12 @@ std::string GPACMuxMP4MSS::writeISMLManifest(std::string codec4CC, std::string c
 	{
 		if(type == "")
 			throw error("Only audio, video and subtitle are supported (2)");
+
+		if (bitrate < 0) {
+			const std::string msg = "negative bitrate " + std::to_string(bitrate) + " for stream type \"" + type + "\" (4CC=" + codec4CC + ")";
+			m_host->log(Warning, msg.c_str());
+			bitrate = 8000;
+		}
 
 		ss << "      <" << type << " src=\"Stream\" systemBitrate=\"" << bitrate << "\">\n";
 		ss << "        <param name=\"trackID\" value=\"" << trackId << "\" valuetype=\"data\"/>\n";

@@ -29,9 +29,9 @@ class GPACMuxMP4 : public ModuleS {
 		std::string codec4CC;
 		std::string lang;
 		GF_ISOFile *isoInit, *isoCur;
+		KHost * const m_host;
 
 	private:
-		KHost * const m_host;
 		IUtcStartTimeQuery const * const m_utcStartTime;
 
 		void updateFormat(Data data);
