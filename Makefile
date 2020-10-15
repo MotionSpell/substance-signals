@@ -53,6 +53,7 @@ include $(SRC)/lib_utils/project.mk
 
 LIB_PIPELINE_SRCS:=\
   $(SRC)/lib_pipeline/filter.cpp\
+  $(SRC)/lib_pipeline/graph_builder.cpp\
   $(SRC)/lib_pipeline/pipeline.cpp
 
 include $(SRC)/lib_modules/project.mk
