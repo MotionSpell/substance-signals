@@ -87,7 +87,7 @@ void safeMain(int argc, const char* argv[]) {
 		return;
 	auto pipeline = buildPipeline(config);
 	if(config.dumpGraph)
-		printf("%s\n", pipeline->dump().c_str());
+		printf("%s\n", pipeline->dumpDOT().c_str());
 
 	g_Pipeline = pipeline.get();
 

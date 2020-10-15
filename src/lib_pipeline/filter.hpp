@@ -47,7 +47,6 @@ class Filter :
 		Metadata getOutputMetadata(int i) override;
 
 		bool isSource();
-
 		void startSource();
 		void stopSource();
 
