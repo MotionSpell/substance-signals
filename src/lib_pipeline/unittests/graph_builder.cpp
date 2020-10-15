@@ -3,27 +3,36 @@
 #include "lib_pipeline/graph_builder.hpp"
 #include "lib_modules/utils/helper.hpp"
 #include "lib_modules/utils/factory.hpp"
+#include <cstdlib>
 
 using namespace std;
 using namespace Pipelines;
 
-
 namespace Modules {
-
 struct Dummy : public Module {
 	Dummy(KHost*) {
 		addInput();
 		addOutput();
 	}
+	Dummy(KHost*, bool oneMoreOutput) {
+		addInput();
+		addOutput();
+		if (oneMoreOutput)
+			addOutput();
+	}
 	void process() override {
+	}
+
+	static IModule* create(KHost* host, void* va) {
+		auto type = (StreamType)(uintptr_t)va;
+		if (type)
+			return createModule<Dummy>(host, type).release();
+		else
+			return createModule<Dummy>(host).release();
 	}
 };
 
-IModule* createObject(KHost* host, void* /*va*/) {
-	return createModule<Dummy>(host).release();
-}
-
-auto const registered = Factory::registerModule("Dummy", &createObject);
+auto const registered = Factory::registerModule("Dummy", &Dummy::create);
 }
 
 unittest("graph builder: dummy") {
@@ -33,16 +42,19 @@ unittest("graph builder: dummy") {
     "modules" : {
         "dummy0" : {
             "type" : "Dummy",
-            "config" : []
+            "config" : [
+                {
+                    "oneMoreOutput": "1"
+                }
+            ]
         },
         "dummy1" : {
-            "type" : "Dummy",
-            "config" : []
+            "type" : "Dummy"
         }
     },
     "connections" : [
         {
-            "dummy0": 0,
+            "dummy0": 1,
             "dummy1": 0
         }
     ]
@@ -57,6 +69,101 @@ string expected = R"|(digraph {
 }
 )|";
 
-auto p = createPipelineFromJSON(json);
+auto p = createPipelineFromJSON(json, [](string type, SmallMap<string, string> &params) {
+    ASSERT_EQUALS("Dummy", type);
+    static bool param = false;
+    if (params.find("oneMoreOutput") != params.end())
+        param = atoi(params["oneMoreOutput"].c_str());
+    return (void*)&param; });
 ASSERT_EQUALS(expected, p->dumpDOT());
 }
+
+unittest("graph builder: wrong connections") {
+	string json =
+	    R"|({
+    "version" : 1,
+    "modules" : {
+        "dummy0" : {
+            "type" : "Dummy"
+        },
+        "dummy1" : {
+            "type" : "Dummy"
+        }
+    },
+    "connections" : [
+        {
+            "dummy0": 1,
+            "dummy1": 1
+        }
+    ]
+}
+)|";
+
+string expected = R"|(digraph {
+	rankdir = "LR";
+	"Dummy (#0)";
+	"Dummy (#1)";
+	"Dummy (#0)" -> "Dummy (#1)";
+}
+)|";
+
+ASSERT_THROWN(createPipelineFromJSON(json, [](string, SmallMap<string, string>&) { return nullptr; }));
+}
+
+unittest("graph builder: one output to multiple inputs") {
+	string json =
+	    R"|({
+    "version" : 1,
+    "modules" : {
+        "dummy0" : {
+            "type" : "Dummy"
+        },
+        "dummy1" : {
+            "type" : "Dummy"
+        },
+        "dummy2" : {
+            "type" : "Dummy"
+        }
+    },
+    "connections" : [
+        {
+            "dummy0": 0,
+            "dummy1": 0,
+            "dummy2": 0
+        }
+    ]
+}
+)|";
+
+string expected = R"|(digraph {
+	rankdir = "LR";
+	"Dummy (#0)";
+	"Dummy (#1)";
+	"Dummy (#2)";
+	"Dummy (#0)" -> "Dummy (#1)";
+	"Dummy (#0)" -> "Dummy (#2)";
+}
+)|";
+
+auto p = createPipelineFromJSON(json, [](string, SmallMap<string, string>&) {
+    static bool param = false;
+    return (void*)&param; });
+ASSERT_EQUALS(expected, p->dumpDOT());
+}
+
+unittest("graph builder: using wrong names for connection") {
+	string json =
+	    R"|({
+    "version" : 1,
+    "connections" : [
+        {
+            "wrong_name0": 0,
+            "wrong_name1": 0,
+        }
+    ]
+}
+)|";
+
+ASSERT_THROWN(createPipelineFromJSON(json, [](string, SmallMap<string, string>&) { return nullptr; }));
+}
+
