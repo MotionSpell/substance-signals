@@ -8,8 +8,10 @@ function openssl_build {
   sed 's/^SUBDIRS = \(.*\) man/SUBDIRS = \1/' -i libressl/Makefile.in
 
   # static lib needed for the TLS handshake table
+  CC=$host-gcc \
   autoconf_build $host "libressl" \
-    "--enable-shared" 
+    "--enable-shared" \
+    # "--disable-hardening" #uncomment if you build fails
 }
 
 function openssl_get_deps {
