@@ -8,7 +8,6 @@
 #include "lib_media/mux/mux_mp4_config.hpp"
 #include "lib_media/stream/apple_hls.hpp"
 #include "lib_media/stream/hls_muxer_libav.hpp"
-#include "lib_media/stream/ms_hss.hpp"
 #include "modules_common.hpp"
 #include "lib_utils/sysclock.hpp"
 #include "lib_utils/os.hpp"

@@ -8,7 +8,9 @@
 #include <thread>
 #include <chrono>
 
-namespace Modules {
+using namespace Modules;
+
+namespace {
 
 class RegulatorMono : public ModuleS {
 	public:
@@ -69,5 +71,4 @@ IModule* createObject(KHost* host, void* va) {
 
 auto const registered = Factory::registerModule("RegulatorMono", &createObject);
 }
-
 

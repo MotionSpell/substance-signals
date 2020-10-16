@@ -227,10 +227,10 @@ struct Decoder : ModuleS, PictureAllocator {
 		std::function<std::shared_ptr<DataBase>(void)> getDecompressedData;
 };
 
-Modules::IModule* createObject(KHost* host, void* va) {
+IModule* createObject(KHost* host, void* va) {
 	auto type = (StreamType)(uintptr_t)va;
 	enforce(host, "Decoder: host can't be NULL");
-	return Modules::createModule<Decoder>(host, type).release();
+	return createModule<Decoder>(host, type).release();
 }
 
 auto const registered = Factory::registerModule("Decoder", &createObject);

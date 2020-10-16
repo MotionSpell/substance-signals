@@ -4,7 +4,6 @@
 #include "lib_media/common/attributes.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/demux/gpac_demux_mp4_simple.hpp"
-#include "lib_media/transform/audio_gap_filler.hpp"
 #include "lib_media/transform/restamp.hpp"
 #include "lib_media/transform/audio_convert.hpp"
 #include "lib_media/utils/recorder.hpp"

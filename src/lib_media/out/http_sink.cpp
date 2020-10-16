@@ -15,6 +15,7 @@
 #include <vector>
 
 using namespace std;
+using namespace Modules;
 
 namespace {
 
@@ -23,8 +24,8 @@ bool exists(T const& container, V const& val) {
 	return container.find(val) != container.end();
 }
 
-struct HttpSink : Modules::ModuleS {
-		HttpSink(Modules::KHost* host, string baseURL, string userAgent, const vector<string> &headers)
+struct HttpSink : ModuleS {
+		HttpSink(KHost* host, string baseURL, string userAgent, const vector<string> &headers)
 			: m_host(host),
 			  baseURL(baseURL), userAgent(userAgent), headers(headers) {
 			done = false;
@@ -32,8 +33,8 @@ struct HttpSink : Modules::ModuleS {
 		~HttpSink() {
 			done = true;
 		}
-		void processOne(Modules::Data data) override {
-			auto const meta = safe_cast<const Modules::MetadataFile>(data->getMetadata());
+		void processOne(Data data) override {
+			auto const meta = safe_cast<const MetadataFile>(data->getMetadata());
 			auto const url = baseURL + meta->filename;
 
 			HttpOutputConfig httpConfig {};
@@ -46,20 +47,20 @@ struct HttpSink : Modules::ModuleS {
 			if (meta->filesize == INT64_MAX) {
 				m_host->log(Debug, format("Delete at URL: \"%s\"", url).c_str());
 				httpConfig.flags.request = DELETEX;
-				auto http = Modules::createModule<Modules::Out::HTTP>(m_host, httpConfig);
+				auto http = createModule<Out::HTTP>(m_host, httpConfig);
 			} else if (meta->filesize == 0 && !meta->EOS) {
 				if (exists(zeroSizeConnections, url))
-					throw Modules::error(format("Received zero-sized metadata but transfer is already initialized for URL: \"%s\"", url));
+					throw error(format("Received zero-sized metadata but transfer is already initialized for URL: \"%s\"", url));
 
 				m_host->log(Debug, format("Initialize transfer for URL: \"%s\"", url).c_str());
-				auto http = Modules::createModule<Modules::Out::HTTP>(m_host, httpConfig);
+				auto http = createModule<Out::HTTP>(m_host, httpConfig);
 				http->getInput(0)->push(data);
 				http->process();
 				zeroSizeConnections[url] = move(http);
 			} else {
 				if (!exists(zeroSizeConnections, url)) {
 					m_host->log(Debug, format("Starting transfer to URL: \"%s\"", url).c_str());
-					zeroSizeConnections[url] = Modules::createModule<Modules::Out::HTTP>(m_host, httpConfig);
+					zeroSizeConnections[url] = createModule<Out::HTTP>(m_host, httpConfig);
 				}
 
 				m_host->log(Debug, format("Continue transfer (%s bytes) for URL: \"%s\"", meta->filesize, url).c_str());
@@ -77,20 +78,18 @@ struct HttpSink : Modules::ModuleS {
 
 	private:
 
-		Modules::KHost* const m_host;
+		KHost* const m_host;
 		atomic_bool done;
-		map<string, shared_ptr<Modules::Out::HTTP>> zeroSizeConnections;
+		map<string, shared_ptr<Out::HTTP>> zeroSizeConnections;
 		const string baseURL, userAgent;
 		const vector<string> headers;
 };
 
-using namespace Modules;
-
-Modules::IModule* createObject(KHost* host, void* va) {
+IModule* createObject(KHost* host, void* va) {
 	auto config = (HttpSinkConfig*)va;
 	enforce(host, "HttpSink: host can't be NULL");
 	enforce(config, "HttpSink: config can't be NULL");
-	return Modules::createModule<HttpSink>(host, config->baseURL, config->userAgent, config->headers).release();
+	return createModule<HttpSink>(host, config->baseURL, config->userAgent, config->headers).release();
 }
 
 auto const registered = Factory::registerModule("HttpSink", &createObject);

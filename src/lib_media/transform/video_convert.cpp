@@ -12,13 +12,13 @@ extern "C" {
 #include <libswscale/swscale.h>
 }
 
-static size_t ALIGN_PAD(size_t n, size_t align) {
-	return ((n + align - 1)/align) * align;
-}
-
 using namespace Modules;
 
 namespace {
+
+static size_t ALIGN_PAD(size_t n, size_t align) {
+	return ((n + align - 1)/align) * align;
+}
 
 class VideoConvert : public ModuleS {
 	public:
@@ -97,10 +97,10 @@ class VideoConvert : public ModuleS {
 };
 
 
-Modules::IModule* createObject(KHost* host, void* va) {
+IModule* createObject(KHost* host, void* va) {
 	auto fmt = (PictureFormat*)va;
 	enforce(host, "VideoConvert: host can't be NULL");
-	return Modules::createModule<VideoConvert>(host, *fmt).release();
+	return createModule<VideoConvert>(host, *fmt).release();
 }
 
 auto const registered = Factory::registerModule("VideoConvert", &createObject);

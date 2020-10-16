@@ -3,7 +3,6 @@
 #include "lib_modules/utils/loader.hpp"
 #include "lib_media/common/metadata.hpp"
 #include "lib_media/common/attributes.hpp"
-#include "lib_media/transform/audio_gap_filler.hpp"
 #include "lib_media/transform/audio_convert.hpp"
 #include "lib_media/utils/recorder.hpp"
 #include "lib_utils/tools.hpp"
@@ -344,14 +343,15 @@ unittest("audio gap filler") {
 	const std::vector<int64_t> in =  { 1, 2, 3,    5, 6, 7, 8, 7, 8, 9, 1000, 1001, 1002, 3, 4, 5 };
 	const std::vector<int64_t> out = { 1, 2, 3, 4, 5, 6, 7, 8,       9, 1000, 1001, 1002, 3, 4, 5 };
 	auto recorder = createModule<Utils::Recorder>(&NullHost);
-	auto gapFiller = createModule<Transform::AudioGapFiller>(&NullHost, out.size());
+	auto toleranceInFrames = (int64_t)out.size();
+	auto gapFiller = loadModule("AudioGapFiller", &NullHost, &toleranceInFrames);
 	ConnectOutputToInput(gapFiller->getOutput(0), recorder->getInput(0));
 	for (auto &val : in) {
 		auto data = make_shared<DataPcm>(0);
 		data->format = format;
 		data->setSampleCount(numSamples);
 		data->setMediaTime(val * numSamples, format.sampleRate);
-		gapFiller->processOne(data);
+		gapFiller->getInput(0)->push(data);
 	}
 	recorder->processOne(nullptr);
 

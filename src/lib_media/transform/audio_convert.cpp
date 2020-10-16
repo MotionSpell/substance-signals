@@ -260,9 +260,9 @@ IModule* createObject(KHost* host, void* va) {
 
 	enforce(samples == -1 || (samples >= 0 && samples < 1024 * 1024), format("AudioConvert: sample count (%s) must be valid", samples).c_str());
 	if(src.sampleRate == 0)
-		return Modules::createModule<AudioConvert>(host, dst, samples).release();
+		return createModule<AudioConvert>(host, dst, samples).release();
 	else
-		return Modules::createModule<AudioConvert>(host, src, dst, samples).release();
+		return createModule<AudioConvert>(host, src, dst, samples).release();
 }
 
 auto const registered = Factory::registerModule("AudioConvert", &createObject);

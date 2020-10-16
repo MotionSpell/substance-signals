@@ -12,8 +12,8 @@
 #include "lib_utils/time_unwrapper.hpp"
 #include "lib_utils/tools.hpp" // enforce
 #include <vector>
-using namespace std;
 
+using namespace std;
 using namespace Modules;
 
 #include "stream.hpp"
@@ -193,7 +193,7 @@ IModule* createObject(KHost* host, void* va) {
 	enforce(config, "TsDemuxer: config can't be NULL");
 	return createModuleWithSize<TsDemuxer>(384, host, *config).release();
 }
-}
 
 auto const registered = Factory::registerModule("TsDemuxer", &createObject);
+}
 

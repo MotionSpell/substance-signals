@@ -143,10 +143,6 @@ std::string GPACMuxMP4MSS::writeISMLManifest(std::string codec4CC, std::string c
 	return ss.str();
 }
 
-}
-
-namespace {
-
 IModule* createObject(KHost* host, void* va) {
 	auto config = (Mp4MuxConfigMss*)va;
 	enforce(host, "GPACMuxMP4MSS: host can't be NULL");

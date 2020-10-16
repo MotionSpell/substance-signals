@@ -241,14 +241,14 @@ class LibavMux : public ModuleDynI {
 
 };
 
-Modules::IModule* createObject(KHost* host, void* va) {
+IModule* createObject(KHost* host, void* va) {
 	auto config = (MuxConfig*)va;
 	enforce(host, "LibavMux: host can't be NULL");
 	enforce(config, "LibavMux: config can't be NULL");
 
 	avformat_network_init();
 
-	return Modules::createModule<LibavMux>(host, *config).release();
+	return createModule<LibavMux>(host, *config).release();
 }
 
 auto const registered = Factory::registerModule("LibavMux", &createObject);

@@ -13,12 +13,13 @@ extern "C" {
 #include "../common/ffpp.hpp"
 #include <string>
 
+using namespace Modules;
+
 struct AVFilter;
 struct AVFilterGraph;
 struct AVFilterContext;
 
-namespace Modules {
-namespace Transform {
+namespace {
 
 class LibavFilter : public ModuleS {
 	public:
@@ -33,13 +34,6 @@ class LibavFilter : public ModuleS {
 		AVFilterContext *buffersrc_ctx, *buffersink_ctx;
 		std::unique_ptr<ffpp::Frame> const avFrameIn, avFrameOut;
 };
-
-}
-}
-
-namespace Modules {
-
-using namespace Transform;
 
 LibavFilter::LibavFilter(KHost* host, const AvFilterConfig& cfg)
 	: m_host(host), graph(avfilter_graph_alloc()), avFrameIn(new ffpp::Frame), avFrameOut(new ffpp::Frame) {
@@ -115,12 +109,6 @@ void LibavFilter::processOne(Data data) {
 	}
 	av_frame_unref(avFrameIn->get());
 }
-
-}
-
-namespace {
-
-using namespace Modules;
 
 IModule* createObject(KHost* host, void* va) {
 	auto config = (AvFilterConfig*)va;

@@ -47,7 +47,7 @@ IModule* createObject(KHost* host, void* va) {
 	return createModule<MulticastInput>(host, *config).release();
 }
 
-}
-
 auto const registered = Factory::registerModule("MulticastInput", &createObject);
+
+}
 
