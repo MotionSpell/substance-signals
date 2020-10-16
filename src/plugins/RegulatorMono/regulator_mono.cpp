@@ -1,5 +1,6 @@
 #pragma once
 
+#include "regulator_mono.hpp"
 #include "lib_utils/log_sink.hpp" // Warning, Debug
 #include "lib_utils/format.hpp"
 #include "lib_modules/utils/helper.hpp"
@@ -11,8 +12,8 @@ namespace Modules {
 
 class RegulatorMono : public ModuleS {
 	public:
-		RegulatorMono(KHost* host, std::shared_ptr<IClock> clock_)
-			: m_host(host), clock(clock_) {
+		RegulatorMono(KHost* host, RegulatorMonoConfig &cfg)
+			: m_host(host), clock(cfg.clock) {
 			m_output = addOutput();
 		}
 
@@ -58,5 +59,15 @@ class RegulatorMono : public ModuleS {
 		static auto const FWD_TOLERANCE_IN_MS = 20000;
 		static auto const BWD_TOLERANCE_IN_MS = 6000;
 };
+
+IModule* createObject(KHost* host, void* va) {
+	auto config = (RegulatorMonoConfig*)va;
+	enforce(host, "RegulatorMono: host can't be NULL");
+	enforce(config, "RegulatorMono: config can't be NULL");
+	return createModule<RegulatorMono>(host, *config).release();
 }
+
+auto const registered = Factory::registerModule("RegulatorMono", &createObject);
+}
+
 

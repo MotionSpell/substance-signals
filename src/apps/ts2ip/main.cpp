@@ -4,7 +4,7 @@
 #include "plugins/UdpOutput/udp_output.hpp"
 #include "lib_media/in/file.hpp"
 #include "lib_media/transform/restamp.hpp" // BitrateRestamp
-#include "lib_media/utils/regulator_mono.hpp"
+#include "plugins/RegulatorMono/regulator_mono.hpp"
 
 using namespace std;
 using namespace Modules;
@@ -62,7 +62,8 @@ int safeMain(int argc, char const* argv[]) {
 	};
 
 	auto regulate = [&](OutputPin source) -> OutputPin {
-		auto r = pipeline.addNamedModule<RegulatorMono>("RegulatorMono", g_SystemClock);
+		RegulatorMonoConfig rmCfg;
+		auto r = pipeline.add("RegulatorMono", &rmCfg);
 		pipeline.connect(source, r);
 		return GetOutputPin(r);
 	};

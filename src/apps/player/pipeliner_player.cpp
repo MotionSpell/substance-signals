@@ -15,10 +15,10 @@
 #include "lib_media/in/video_generator.hpp"
 #include "lib_media/in/file.hpp"
 #include "lib_media/out/null.hpp"
-#include "lib_media/utils/regulator_mono.hpp"
 #include "lib_media/transform/rectifier.hpp"
 #include "plugins/HlsDemuxer/hls_demux.hpp"
 #include "plugins/MulticastInput/multicast_input.hpp"
+#include "plugins/RegulatorMono/regulator_mono.hpp"
 #include "plugins/RegulatorMulti/regulator_multi.hpp"
 #include "plugins/TsDemuxer/ts_demuxer.hpp"
 
@@ -221,7 +221,8 @@ void declarePipeline(Config cfg, Pipeline &pipeline, const char *url) {
 		source = GetOutputPin(restamper, k);
 
 		if (regulateMono) {
-			auto regulator = pipeline.addNamedModule<RegulatorMono>("RegulatorMono", g_SystemClock);
+			RegulatorMonoConfig rmCfg;
+			auto regulator = pipeline.add("RegulatorMono", &rmCfg);
 			pipeline.connect(source, regulator);
 			source = GetOutputPin(regulator);
 		}

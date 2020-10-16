@@ -13,12 +13,12 @@
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/encode/libav_encode.hpp"
 #include "lib_media/mux/mux_mp4_config.hpp"
-#include "lib_media/utils/regulator_mono.hpp"
 #include "lib_media/stream/adaptive_streaming_common.hpp" // AdaptiveStreamingCommon::getCommonPrefixAudio
 #include "lib_media/out/filesystem.hpp"
 #include "lib_media/out/http_sink.hpp"
 #include "lib_media/transform/audio_convert.hpp"
 #include "lib_media/transform/logo_overlay.hpp"
+#include "plugins/RegulatorMono/regulator_mono.hpp"
 #include "plugins/Dasher/mpeg_dash.hpp"
 
 using namespace Modules;
@@ -211,7 +211,8 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 	};
 
 	auto regulate = [&](OutputPin source) -> OutputPin {
-		auto regulator = pipeline->addNamedModule<RegulatorMono>("RegulatorMono", g_SystemClock);
+		RegulatorMonoConfig rmCfg;
+		auto regulator = pipeline->add("RegulatorMono", &rmCfg);
 		pipeline->connect(source, regulator);
 		return GetOutputPin(regulator);
 	};
