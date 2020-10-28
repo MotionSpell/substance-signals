@@ -44,6 +44,10 @@ struct SmallMap {
 		return pairs[pairs.size()-1].value;
 	}
 
+	const Value& operator[](Key key) const {
+		return this->operator[](key);
+	}
+
 	Iterator find(Key key) {
 		for(int i=0; i < (int)pairs.size(); ++i)
 			if(key == pairs[i].key)

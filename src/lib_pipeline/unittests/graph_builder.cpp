@@ -69,7 +69,7 @@ string expected = R"|(digraph {
 }
 )|";
 
-auto p = createPipelineFromJSON(json, [](string type, SmallMap<string, string> &params) {
+auto p = createPipelineFromJSON(json, [](const string type, const SmallMap<string, string> &params) {
     ASSERT_EQUALS("Dummy", type);
     static bool param = false;
     if (params.find("oneMoreOutput") != params.end())
@@ -107,7 +107,7 @@ string expected = R"|(digraph {
 }
 )|";
 
-ASSERT_THROWN(createPipelineFromJSON(json, [](string, SmallMap<string, string>&) { return nullptr; }));
+ASSERT_THROWN(createPipelineFromJSON(json, [](const string, const SmallMap<string, string>&) { return nullptr; }));
 }
 
 unittest("graph builder: one output to multiple inputs") {
@@ -145,7 +145,7 @@ string expected = R"|(digraph {
 }
 )|";
 
-auto p = createPipelineFromJSON(json, [](string, SmallMap<string, string>&) {
+auto p = createPipelineFromJSON(json, [](const string, const SmallMap<string, string>&) {
     static bool param = false;
     return (void*)&param; });
 ASSERT_EQUALS(expected, p->dumpDOT());
@@ -164,6 +164,6 @@ unittest("graph builder: using wrong names for connection") {
 }
 )|";
 
-ASSERT_THROWN(createPipelineFromJSON(json, [](string, SmallMap<string, string>&) { return nullptr; }));
+ASSERT_THROWN(createPipelineFromJSON(json, [](const string, const SmallMap<string, string>&) { return nullptr; }));
 }
 
