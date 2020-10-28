@@ -49,7 +49,7 @@ std::unique_ptr<Pipeline> createPipelineFromJSON(std::string json, std::function
 			}
 
 			auto va = parseModuleConfig(moduleType, moduleParams);
-			modulesDesc[moduleCaption] = pipeline->add(moduleType.c_str(), va);
+			modulesDesc[moduleCaption] = pipeline->add(moduleType.c_str(), va.get());
 		}
 	}
 

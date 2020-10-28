@@ -45,7 +45,7 @@ struct SmallMap {
 	}
 
 	const Value& operator[](Key key) const {
-		return this->operator[](key);
+		return const_cast<SmallMap<Key, Value>*>(this)->operator[](key);
 	}
 
 	Iterator find(Key key) {

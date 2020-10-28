@@ -71,10 +71,10 @@ string expected = R"|(digraph {
 
 auto p = createPipelineFromJSON(json, [](const string type, const SmallMap<string, string> &params) {
     ASSERT_EQUALS("Dummy", type);
-    static bool param = false;
+    bool param = false;
     if (params.find("oneMoreOutput") != params.end())
         param = atoi(params["oneMoreOutput"].c_str());
-    return (void*)&param; });
+    return shared_ptr<ConfigType>((ConfigType*)new bool(param)); });
 ASSERT_EQUALS(expected, p->dumpDOT());
 }
 
@@ -146,8 +146,7 @@ string expected = R"|(digraph {
 )|";
 
 auto p = createPipelineFromJSON(json, [](const string, const SmallMap<string, string>&) {
-    static bool param = false;
-    return (void*)&param; });
+    return shared_ptr<ConfigType>((ConfigType*)new bool(false)); });
 ASSERT_EQUALS(expected, p->dumpDOT());
 }
 
