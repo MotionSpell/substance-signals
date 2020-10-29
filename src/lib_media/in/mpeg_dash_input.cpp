@@ -35,7 +35,7 @@ struct BinaryBlockingExecutor {
 		void post(function<void()> fct) {
 			{
 				unique_lock<mutex> lock(m);
-				while (count == 0) {
+				while (count <= 0) {
 					if (eptr)
 						rethrow_exception(eptr);
 
@@ -206,6 +206,7 @@ void MPEG_DASH_Input::processStream(Stream* stream) {
 	};
 
 	stream->source->wget(url.c_str(), onBuffer);
+
 	if (empty) {
 		if (mpd->dynamic) {
 			stream->currNumber = std::max<int64_t>(stream->currNumber - 1, rep->set(mpd.get()).startNumber); // too early, retry
