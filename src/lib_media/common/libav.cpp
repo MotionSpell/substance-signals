@@ -1,4 +1,5 @@
 #include "libav.hpp"
+#include "libav_hw.hpp"
 #include "pcm.hpp"
 #include "picture_allocator.hpp"
 #include "lib_utils/tools.hpp"
@@ -10,6 +11,7 @@
 extern "C" {
 #include <libavformat/avformat.h>
 #include <libavutil/pixdesc.h> // av_get_pix_fmt_name
+#include <libavutil/hwcontext.h> // av_hwdevice_ctx_create
 }
 
 namespace Modules {
@@ -22,6 +24,15 @@ std::shared_ptr<AVCodecContext> shptr(AVCodecContext *p) {
 
 
 namespace Modules {
+
+HardwareContextCuda::HardwareContextCuda() {
+	if (av_hwdevice_ctx_create((AVBufferRef**)&device, AV_HWDEVICE_TYPE_CUDA, NULL, NULL, 0) < 0)
+		throw std::runtime_error("Failed to create specified hardware device (CUDA)");
+}
+
+HardwareContextCuda::~HardwareContextCuda() {
+	av_buffer_unref((AVBufferRef**)&device);
+}
 
 void AVCodecContextDeleter(AVCodecContext *p) {
 	avcodec_close(p);
@@ -284,23 +295,25 @@ AVPixelFormat pixelFormat2libavPixFmt(PixelFormat format) {
 	case PixelFormat::NV12P010LE: return AV_PIX_FMT_P010LE;
 	case PixelFormat::RGB24: return AV_PIX_FMT_RGB24;
 	case PixelFormat::RGBA32: return AV_PIX_FMT_RGBA;
+	case PixelFormat::CUDA: return AV_PIX_FMT_CUDA;
 	default: throw std::runtime_error("Unknown pixel format to convert (1). Please contact your vendor.");
 	}
 }
 
 PixelFormat libavPixFmt2PixelFormat(AVPixelFormat avPixfmt) {
 	switch (avPixfmt) {
-	case AV_PIX_FMT_GRAY8: return PixelFormat::Y8;
+	case AV_PIX_FMT_GRAY8:                             return PixelFormat::Y8;
 	case AV_PIX_FMT_YUV420P: case AV_PIX_FMT_YUVJ420P: return PixelFormat::I420;
-	case AV_PIX_FMT_YUV420P10LE: return PixelFormat::YUV420P10LE;
-	case AV_PIX_FMT_YUV422P: return PixelFormat::YUV422P;
-	case AV_PIX_FMT_YUV422P10LE: return PixelFormat::YUV422P10LE;
-	case AV_PIX_FMT_YUYV422: return PixelFormat::YUYV422;
-	case AV_PIX_FMT_NV12: return PixelFormat::NV12;
-	case AV_PIX_FMT_P010LE: return PixelFormat::NV12P010LE;
-	case AV_PIX_FMT_RGB24: return PixelFormat::RGB24;
-	case AV_PIX_FMT_RGBA: return PixelFormat::RGBA32;
-	case AV_PIX_FMT_NONE:  throw std::runtime_error("Unsupported pixel format AV_PIX_FMT_NONE. Please contact your vendor.");
+	case AV_PIX_FMT_YUV420P10LE:                       return PixelFormat::YUV420P10LE;
+	case AV_PIX_FMT_YUV422P:                           return PixelFormat::YUV422P;
+	case AV_PIX_FMT_YUV422P10LE:                       return PixelFormat::YUV422P10LE;
+	case AV_PIX_FMT_YUYV422:                           return PixelFormat::YUYV422;
+	case AV_PIX_FMT_NV12:                              return PixelFormat::NV12;
+	case AV_PIX_FMT_P010LE:                            return PixelFormat::NV12P010LE;
+	case AV_PIX_FMT_RGB24:                             return PixelFormat::RGB24;
+	case AV_PIX_FMT_RGBA:                              return PixelFormat::RGBA32;
+	case AV_PIX_FMT_CUDA:                              return PixelFormat::CUDA;
+	case AV_PIX_FMT_NONE: throw std::runtime_error("Unsupported pixel format AV_PIX_FMT_NONE. Please contact your vendor.");
 	default: throw std::runtime_error("Unsupported pixel format '" + std::string(av_get_pix_fmt_name(avPixfmt)) + "'. Please contact your vendor.");
 	}
 }
@@ -318,6 +331,20 @@ static int getBytePerPixel(PixelFormat format) {
 }
 
 void copyToPicture(AVFrame const* avFrame, DataPicture* pic) {
+	if (pic->getFormat().format == PixelFormat::CUDA) {
+		// Don't memcpy hardware pointers, just forward them: this means someone
+		// should handle their lifetime
+		auto *ptr = (uintptr_t*)pic->buffer->data().ptr;
+		for (int comp = 0; comp<pic->getNumPlanes(); ++comp) {
+			*ptr = (uintptr_t)avFrame->data[comp];
+			ptr++;
+			*ptr = (uintptr_t)avFrame->linesize[comp];
+			ptr++;
+		}
+		DataPicture::setup(pic, pic->getFormat().res, pic->getFormat().res, pic->getFormat().format);
+		return;
+	}
+
 	for (int comp = 0; comp<pic->getNumPlanes(); ++comp) {
 		auto const subsampling = comp == 0 ? 1 : 2;
 		auto const w = avFrame->width * getBytePerPixel(pic->getFormat().format) / subsampling;

@@ -10,6 +10,7 @@
 #include "lib_media/common/metadata.hpp"
 #include "lib_media/common/pcm.hpp"
 #include "lib_media/common/picture.hpp"
+#include "lib_media/decode/decoder.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/encode/libav_encode.hpp"
 #include "lib_media/mux/mux_mp4_config.hpp"
@@ -143,7 +144,9 @@ OutputPin insertLogo(Pipeline* pipeline, OutputPin main, std::string path) {
 	DemuxConfig demuxCfg {};
 	demuxCfg.url = path;
 	auto demux = pipeline->add("LibavDemux", &demuxCfg);
-	auto decoder = pipeline->add("Decoder", (void*)(uintptr_t)VIDEO_PKT);
+	DecoderConfig decCfg;
+	decCfg.type = VIDEO_PKT;
+	auto decoder = pipeline->add("Decoder", &decCfg);
 	pipeline->connect(demux, decoder);
 
 	LogoOverlayConfig logoCfg {};
@@ -198,7 +201,9 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 	bool isVertical = false;
 
 	auto decode = [&](OutputPin source, Metadata metadata) -> OutputPin {
-		auto decoder = pipeline->add("Decoder", (void*)(uintptr_t)metadata->type);
+		DecoderConfig decCfg;
+		decCfg.type = metadata->type;
+		auto decoder = pipeline->add("Decoder", &decCfg);
 		pipeline->connect(source, decoder);
 
 		if (metadata->isVideo() && cfg.autoRotate) {

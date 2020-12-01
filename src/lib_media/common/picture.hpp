@@ -36,6 +36,7 @@ struct PictureFormat {
 		case PixelFormat::NV12P010LE: return res.width * res.height * 3;
 		case PixelFormat::RGB24: return res.width * res.height * 3;
 		case PixelFormat::RGBA32: return res.width * res.height * 4;
+		case PixelFormat::CUDA: return sizeof(void**) * 4 * 2; // store 4 pairs of {ptr,stride}
 		default: throw std::runtime_error("Unknown pixel format. Please contact your vendor.");
 		}
 	}

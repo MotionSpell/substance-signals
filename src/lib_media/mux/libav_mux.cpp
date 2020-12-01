@@ -112,7 +112,7 @@ class LibavMux : public ModuleDynI {
 
 			AVPacket pkt;
 			fillAvPacket(data, &pkt);
-			const AVRational inputTimebase = { (int)1, (int)IClock::Rate };
+			const AVRational inputTimebase = { 1, (int)IClock::Rate };
 			auto const avStream = m_formatCtx->streams[inputIdx2AvStream[inputIdx]];
 			pkt.dts = av_rescale_q(pkt.dts, inputTimebase, avStream->time_base);
 			pkt.pts = av_rescale_q(pkt.pts, inputTimebase, avStream->time_base);

@@ -6,5 +6,6 @@
 struct AvFilterConfig {
 	Modules::PictureFormat format;
 	std::string filterArgs;
+	bool isHardwareFilter = false;
 };
 

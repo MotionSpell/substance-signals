@@ -162,17 +162,18 @@ struct LibavEncode : ModuleS {
 		}
 
 		AVFrame* prepareAudioFrame(Data data) {
-			AVFrame *f = avFrame->get();
+			auto f = avFrame->get();
 			const auto pcmData = safe_cast<const DataPcm>(data);
 			if (pcmData->format != m_pcmFormat)
 				throw error("Incompatible audio data (1)");
 			libavFrameDataConvert(pcmData.get(), f);
+			f->pts = data->get<PresentationTime>().time * codecCtx->ticks_per_frame / codecCtx->time_base.num;
 			return f;
 		}
 
 		AVFrame* prepareVideoFrame(Data data) {
 			const auto pic = safe_cast<const DataPicture>(data);
-			AVFrame *f = avFrame->get();
+			auto f = avFrame->get();
 			f->format = (int)pixelFormat2libavPixFmt(pic->getFormat().format);
 			for (int i = 0; i < pic->getNumPlanes(); ++i) {
 				f->width = pic->getFormat().res.width;
@@ -180,7 +181,18 @@ struct LibavEncode : ModuleS {
 				f->data[i] = (uint8_t*)pic->getPlane(i);
 				f->linesize[i] = (int)pic->getStride(i);
 			}
+
+			auto hw = dynamic_cast<const MetadataRawVideoHw*>(data->getMetadata().get());
+			if (hw) {
+				for (int i=0; i<AV_NUM_DATA_POINTERS && hw->dataRef[i]; ++i) {
+					f->buf[i] = av_buffer_ref(hw->dataRef[i]);
+				}
+				f->hw_frames_ctx = av_buffer_ref(hw->framesCtx);
+			}
+
+			f->pts = data->get<PresentationTime>().time * codecCtx->ticks_per_frame / codecCtx->time_base.num;
 			computeFrameAttributes(f, data->get<PresentationTime>().time);
+
 			return f;
 		}
 
@@ -191,8 +203,8 @@ struct LibavEncode : ModuleS {
 			}
 
 			auto f = prepareFrame(data);
-			f->pts = data->get<PresentationTime>().time * codecCtx->ticks_per_frame / codecCtx->time_base.num;
 			encodeFrame(f);
+			av_frame_unref(f);
 		}
 
 		void flush() {
@@ -231,9 +243,7 @@ struct LibavEncode : ModuleS {
 		}
 
 		void encodeFrame(AVFrame* f) {
-			int ret;
-
-			ret = avcodec_send_frame(codecCtx.get(), f);
+			int ret = avcodec_send_frame(codecCtx.get(), f);
 			if (ret != 0) {
 				auto desc = f ? format("pts=%s", f->pts) : format("flush");
 				m_host->log(Warning, format("error encountered while encoding frame (%s) : %s", desc, avStrError(ret)).c_str());
@@ -294,6 +304,14 @@ struct LibavEncode : ModuleS {
 
 				// for encoding level checks (MB rate) and rate control
 				codecCtx->ticks_per_frame = TICKS_PER_VIDEO_FRAME;
+
+				auto hw = dynamic_cast<const MetadataRawVideoHw*>(data->getMetadata().get());
+				if (hw) {
+					avFrame->get()->hw_frames_ctx = av_buffer_ref(hw->framesCtx);
+					codecCtx->hw_frames_ctx = av_buffer_ref(hw->framesCtx);
+					codecCtx->pix_fmt = AV_PIX_FMT_CUDA;
+				}
+
 				break;
 			}
 			case EncoderConfig::Audio: {

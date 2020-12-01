@@ -3,6 +3,7 @@
 #include "lib_media/common/picture.hpp" // PictureFormat
 #include "lib_modules/utils/loader.hpp"
 #include "lib_media/common/metadata.hpp"
+#include "lib_media/decode/decoder.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/encode/libav_encode.hpp"
 #include "lib_media/in/file.hpp"
@@ -37,7 +38,9 @@ void libav_mux(std::string format) {
 
 	//create the video decode
 	auto metadata = safe_cast<const MetadataPkt>(demux->getOutput(videoIndex)->getMetadata());
-	auto decode = loadModule("Decoder", &NullHost, (void*)(uintptr_t)VIDEO_PKT);
+	DecoderConfig decCfg;
+	decCfg.type = VIDEO_PKT;
+	auto decode = loadModule("Decoder", &NullHost, &decCfg);
 	EncoderConfig encCfg { EncoderConfig::Video };
 	auto encode = loadModule("Encoder", &NullHost, &encCfg);
 	MuxConfig muxConfig = {"out/output_video_libav", format, ""};
@@ -79,7 +82,9 @@ unittest("transcoder: video simple (gpac mux MP4)") {
 	ASSERT(videoIndex != -1);
 
 	//create the video decode
-	auto decode = loadModule("Decoder", &NullHost, (void*)(uintptr_t)VIDEO_PKT);
+	DecoderConfig decCfg;
+	decCfg.type = VIDEO_PKT;
+	auto decode = loadModule("Decoder", &NullHost, &decCfg);
 	EncoderConfig encCfg { EncoderConfig::Video };
 	auto encode = loadModule("Encoder", &NullHost, &encCfg);
 
@@ -150,7 +155,9 @@ unittest("transcoder: h264/mp4 to jpg") {
 	auto demux = loadModule("LibavDemux", &NullHost, &cfg);
 
 	auto metadata = safe_cast<const MetadataPktVideo>(demux->getOutput(1)->getMetadata());
-	auto decode = loadModule("Decoder", &NullHost, (void*)(uintptr_t)VIDEO_PKT);
+	DecoderConfig decCfg;
+	decCfg.type = VIDEO_PKT;
+	auto decode = loadModule("Decoder", &NullHost, &decCfg);
 
 	auto encoder = loadModule("JPEGTurboEncode", &NullHost, nullptr);
 	auto writer = createModule<Out::File>(&NullHost, "out/test3.jpg");

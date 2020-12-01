@@ -37,14 +37,15 @@ $(BIN)/AVCC2AnnexBConverter.smd: \
 
 #------------------------------------------------------------------------------
 TARGETS+=$(BIN)/LibavMuxHLSTS.smd
-$(BIN)/LibavMuxHLSTS.smd: PKGS+=libavutil libavcodec
+$(BIN)/LibavMuxHLSTS.smd: PKGS+=libavutil libavcodec libavdevice
 $(BIN)/LibavMuxHLSTS.smd: \
   $(BIN)/$(SRC)/lib_media/stream/hls_muxer_libav.cpp.o\
   $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
+  $(BIN)/$(SRC)/lib_media/common/picture.cpp.o\
 
 #------------------------------------------------------------------------------
 TARGETS+=$(BIN)/VideoConvert.smd
-$(BIN)/VideoConvert.smd: PKGS+=libavcodec libavutil libswscale
+$(BIN)/VideoConvert.smd: PKGS+=libavcodec libavutil libswscale libavdevice
 $(BIN)/VideoConvert.smd: \
   $(BIN)/$(SRC)/lib_media/transform/video_convert.cpp.o\
   $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
@@ -52,10 +53,11 @@ $(BIN)/VideoConvert.smd: \
 
 #------------------------------------------------------------------------------
 TARGETS+=$(BIN)/AudioConvert.smd
-$(BIN)/AudioConvert.smd: PKGS+=libavutil libavcodec libswresample
+$(BIN)/AudioConvert.smd: PKGS+=libavutil libavcodec libswresample libavdevice
 $(BIN)/AudioConvert.smd: \
   $(BIN)/$(SRC)/lib_media/transform/audio_convert.cpp.o\
   $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
+  $(BIN)/$(SRC)/lib_media/common/picture.cpp.o\
 
 #------------------------------------------------------------------------------
 TARGETS+=$(BIN)/JPEGTurboDecode.smd
@@ -73,7 +75,7 @@ $(BIN)/JPEGTurboEncode.smd: \
 
 #------------------------------------------------------------------------------
 TARGETS+=$(BIN)/Encoder.smd
-$(BIN)/Encoder.smd: PKGS+=libavcodec libavutil
+$(BIN)/Encoder.smd: PKGS+=libavcodec libavutil libavdevice
 $(BIN)/Encoder.smd: \
   $(BIN)/$(SRC)/lib_media/encode/libav_encode.cpp.o\
   $(BIN)/$(SRC)/lib_media/common/libav_init.cpp.o\
@@ -82,7 +84,7 @@ $(BIN)/Encoder.smd: \
 
 #------------------------------------------------------------------------------
 TARGETS+=$(BIN)/Decoder.smd
-$(BIN)/Decoder.smd: PKGS+=libavcodec libavutil
+$(BIN)/Decoder.smd: PKGS+=libavcodec libavutil libavdevice
 $(BIN)/Decoder.smd: \
   $(BIN)/$(SRC)/lib_media/decode/decoder.cpp.o\
   $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
@@ -95,19 +97,21 @@ $(BIN)/LibavDemux.smd: \
   $(BIN)/$(SRC)/lib_media/common/libav_init.cpp.o\
   $(BIN)/$(SRC)/lib_media/demux/libav_demux.cpp.o\
   $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
+  $(BIN)/$(SRC)/lib_media/common/picture.cpp.o\
   $(BIN)/$(SRC)/lib_media/transform/restamp.cpp.o\
 
 #------------------------------------------------------------------------------
 TARGETS+=$(BIN)/LibavMux.smd
-$(BIN)/LibavMux.smd: PKGS+=libavformat libavcodec libavutil
+$(BIN)/LibavMux.smd: PKGS+=libavformat libavcodec libavutil libavdevice
 $(BIN)/LibavMux.smd: \
   $(BIN)/$(SRC)/lib_media/mux/libav_mux.cpp.o\
   $(BIN)/$(SRC)/lib_media/common/libav_init.cpp.o\
   $(BIN)/$(SRC)/lib_media/common/libav.cpp.o\
+  $(BIN)/$(SRC)/lib_media/common/picture.cpp.o\
 
 #------------------------------------------------------------------------------
 TARGETS+=$(BIN)/LibavFilter.smd
-$(BIN)/LibavFilter.smd: PKGS+=libavfilter libavcodec libavutil
+$(BIN)/LibavFilter.smd: PKGS+=libavfilter libavcodec libavutil libavdevice
 $(BIN)/LibavFilter.smd: \
   $(BIN)/$(SRC)/lib_media/transform/libavfilter.cpp.o\
   $(BIN)/$(SRC)/lib_media/common/picture.cpp.o\

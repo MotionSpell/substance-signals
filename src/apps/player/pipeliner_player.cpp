@@ -9,6 +9,7 @@
 #include <fstream>
 
 // modules
+#include "lib_media/decode/decoder.hpp"
 #include "lib_media/demux/dash_demux.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/in/mpeg_dash_input.hpp"
@@ -228,7 +229,9 @@ void declarePipeline(Config cfg, Pipeline &pipeline, const char *url) {
 		}
 
 		if(metadata->type != VIDEO_RAW) {
-			auto decode = pipeline.add("Decoder", (void*)(uintptr_t)metadata->type);
+			DecoderConfig decCfg;
+			decCfg.type = metadata->type;
+			auto decode = pipeline.add("Decoder", &decCfg);
 			pipeline.connect(source, decode);
 			source = GetOutputPin(decode);
 		}

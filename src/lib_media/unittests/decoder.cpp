@@ -5,6 +5,7 @@
 #include "lib_media/common/picture.hpp" // DataPicture
 #include "lib_media/common/pcm.hpp"
 #include "lib_media/common/metadata.hpp" // MetadataPkt
+#include "lib_media/decode/decoder.hpp"
 #include "lib_media/transform/audio_convert.hpp"
 #include "lib_media/encode/libav_encode.hpp"
 #include "lib_media/in/file.hpp"
@@ -69,7 +70,9 @@ unittest("decoder: audio simple") {
 		int frameCount = 0;
 	};
 
-	auto decode = loadModule("Decoder", &NullHost, (void*)(uintptr_t)AUDIO_PKT);
+	DecoderConfig decCfg;
+	decCfg.type = AUDIO_PKT;
+	auto decode = loadModule("Decoder", &NullHost, &decCfg);
 	auto rec = createModule<FrameCounter>();
 	ConnectOutputToInput(decode->getOutput(0), rec->getInput(0));
 
@@ -90,7 +93,9 @@ unittest("decoder: timestamp propagation") {
 		std::vector<int64_t> mediaTimes;
 	};
 
-	auto decode = loadModule("Decoder", &NullHost, (void*)(uintptr_t)AUDIO_PKT);
+	DecoderConfig decCfg;
+	decCfg.type = AUDIO_PKT;
+	auto decode = loadModule("Decoder", &NullHost, &decCfg);
 	auto rec = createModule<FrameCounter>();
 	ConnectOutputToInput(decode->getOutput(0), rec->getInput(0));
 
@@ -133,7 +138,9 @@ std::shared_ptr<DataBase> getTestH264Frame() {
 }
 
 unittest("decoder: video simple") {
-	auto decode = loadModule("Decoder", &NullHost, (void*)(uintptr_t)VIDEO_PKT);
+	DecoderConfig decCfg;
+	decCfg.type = VIDEO_PKT;
+	auto decode = loadModule("Decoder", &NullHost, &decCfg);
 	auto data = getTestH264Frame();
 
 	std::vector<std::string> actualFrames;
@@ -162,7 +169,9 @@ unittest("decoder: video simple") {
 }
 
 unittest("decoder: destroy without flushing") {
-	auto decode = loadModule("Decoder", &NullHost, (void*)(uintptr_t)VIDEO_PKT);
+	DecoderConfig decCfg;
+	decCfg.type = VIDEO_PKT;
+	auto decode = loadModule("Decoder", &NullHost, &decCfg);
 
 	int picCount = 0;
 	auto onPic = [&](Data) {
@@ -175,7 +184,9 @@ unittest("decoder: destroy without flushing") {
 }
 
 unittest("decoder: flush without feeding") {
-	auto decode = loadModule("Decoder", &NullHost, (void*)(uintptr_t)VIDEO_PKT);
+	DecoderConfig decCfg;
+	decCfg.type = VIDEO_PKT;
+	auto decode = loadModule("Decoder", &NullHost, &decCfg);
 
 	int picCount = 0;
 	auto onPic = [&](Data) {
@@ -190,7 +201,9 @@ unittest("decoder: flush without feeding") {
 unittest("decoder: audio mp3 manual frame to AAC") {
 	EncoderConfig cfg { EncoderConfig::Audio };
 
-	auto decode = loadModule("Decoder", &NullHost, (void*)(uintptr_t)AUDIO_PKT);
+	DecoderConfig decCfg;
+	decCfg.type = AUDIO_PKT;
+	auto decode = loadModule("Decoder", &NullHost, &decCfg);
 	auto encoder = loadModule("Encoder", &NullHost, &cfg);
 
 	ConnectOutputToInput(decode->getOutput(0), encoder->getInput(0));
@@ -203,7 +216,9 @@ unittest("decoder: audio mp3 manual frame to AAC") {
 unittest("decoder: audio mp3 to converter to AAC") {
 	EncoderConfig cfg { EncoderConfig::Audio };
 
-	auto decoder = loadModule("Decoder", &NullHost, (void*)(uintptr_t)AUDIO_PKT);
+	DecoderConfig decCfg;
+	decCfg.type = AUDIO_PKT;
+	auto decoder = loadModule("Decoder", &NullHost, &decCfg);
 	auto encoder = loadModule("Encoder", &NullHost, &cfg);
 
 	auto const dstFormat = PcmFormat(44100, 2, AudioLayout::Stereo, AudioSampleFormat::F32, AudioStruct::Planar);

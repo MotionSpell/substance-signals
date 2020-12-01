@@ -2,6 +2,7 @@
 #include "lib_media/common/picture.hpp"
 #include "lib_media/common/metadata.hpp"
 #include "lib_media/common/attributes.hpp"
+#include "lib_media/decode/decoder.hpp"
 #include "lib_media/demux/libav_demux.hpp"
 #include "lib_media/demux/gpac_demux_mp4_simple.hpp"
 #include "lib_media/transform/restamp.hpp"
@@ -143,7 +144,9 @@ unittest("transcoder with reframers: test a/v sync recovery") {
 
 		auto gapper = createModule<Gapper>();
 		ConnectOutputToInput(demux->getOutput(i), gapper->getInput(0));
-		auto decoder = loadModule("Decoder", &NullHost, (void*)(uintptr_t)metadataDemux->type);
+		DecoderConfig decCfg;
+		decCfg.type = metadataDemux->type;
+		auto decoder = loadModule("Decoder", &NullHost, &decCfg);
 		ConnectOutputToInput(gapper->getOutput(0), decoder->getInput(0));
 
 		auto inputRes = safe_cast<const MetadataPktVideo>(demux->getOutput(i)->getMetadata())->resolution;

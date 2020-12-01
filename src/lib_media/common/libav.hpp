@@ -18,6 +18,24 @@ std::shared_ptr<AVCodecContext> shptr(AVCodecContext *p);
 
 namespace Modules {
 
+struct MetadataHwContext {
+	~MetadataHwContext() {
+		for (int i=0; i<AV_NUM_DATA_POINTERS; ++i)
+			av_buffer_unref(&dataRef[i]);
+		av_buffer_unref(&deviceCtx);
+		av_buffer_unref(&framesCtx);
+	}
+	AVBufferRef *deviceCtx = nullptr, *framesCtx = nullptr, *dataRef[AV_NUM_DATA_POINTERS] = {};
+};
+
+struct MetadataRawVideoHw : MetadataRawVideo, MetadataHwContext {
+	MetadataRawVideoHw() {}
+};
+
+struct MetadataPktVideoHw : MetadataPktVideo, MetadataHwContext {
+	MetadataPktVideoHw() {}
+};
+
 const char* avCodecIdToSignalsId(int avCodecId);
 int signalsIdToAvCodecId(const char* name);
 

@@ -11,20 +11,17 @@
 
 namespace Modules {
 
-//TODO: should be picture and Pcm and return the same fields as MetadataPkt
+//TODO: Raw should be picture and Pcm and return the same fields as MetadataPkt
 struct MetadataRawVideo : IMetadata {
-	MetadataRawVideo() : IMetadata(VIDEO_RAW) {
-	}
+	MetadataRawVideo() : IMetadata(VIDEO_RAW) {}
 };
 
 struct MetadataRawAudio : IMetadata {
-	MetadataRawAudio() : IMetadata(AUDIO_RAW) {
-	}
+	MetadataRawAudio() : IMetadata(AUDIO_RAW) {}
 };
 
 struct MetadataRawSubtitle : IMetadata {
-	MetadataRawSubtitle() : IMetadata(SUBTITLE_RAW) {
-	}
+	MetadataRawSubtitle() : IMetadata(SUBTITLE_RAW) {}
 };
 
 struct MetadataPkt : public IMetadata {

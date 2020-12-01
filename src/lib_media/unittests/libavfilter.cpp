@@ -10,7 +10,6 @@ using namespace Tests;
 using namespace Modules;
 using namespace std;
 
-
 unittest("avfilter: deinterlace") {
 	vector<int64_t> times;
 	auto onFrame = [&](Data data) {
@@ -22,7 +21,6 @@ unittest("avfilter: deinterlace") {
 
 	auto cfg = AvFilterConfig { fmt, "yadif=0:-1:0" };
 	auto filter = loadModule("LibavFilter", &NullHost, &cfg);
-
 	ConnectOutputToInput(videoGen->getOutput(0), filter->getInput(0));
 	ConnectOutput(filter->getOutput(0), onFrame);
 

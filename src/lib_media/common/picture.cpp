@@ -113,6 +113,17 @@ void DataPicture::setup(DataPicture* r, Resolution res, Resolution resInternal, 
 		r->m_planeCount = 1;
 		break;
 	}
+	case PixelFormat::CUDA:    {
+		auto *ptr2 = (uintptr_t*)r->buffer->data().ptr;
+		r->m_planeCount = 4;
+		for (int i=0; i<r->m_planeCount; ++i) {
+			r->m_planes[i] = (uint8_t*)*ptr2;
+			ptr2++;
+			r->m_stride[i] = (size_t)*ptr2;
+			ptr2++;
+		}
+		break;
+	}
 	default: throw std::runtime_error("Unknown pixel format for DataPicture. Please contact your vendor");
 	}
 }

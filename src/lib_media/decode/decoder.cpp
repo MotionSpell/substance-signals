@@ -1,10 +1,12 @@
+#include "decoder.hpp"
 #include "lib_utils/log_sink.hpp"
 #include "lib_modules/utils/factory.hpp" // registerModule
 #include "../common/metadata.hpp"
 #include "../common/attributes.hpp"
+#include "../common/libav.hpp"
+#include "../common/libav_hw.hpp"
 #include "../common/picture_allocator.hpp"
 #include "../common/pcm.hpp"
-#include "../common/libav.hpp"
 #include "../common/ffpp.hpp"
 #include "lib_utils/tools.hpp"
 #include <cassert>
@@ -15,6 +17,7 @@ extern "C" {
 }
 
 using namespace Modules;
+auto const USE_CUVID_DEINTERLACE = false;
 
 namespace {
 
@@ -61,19 +64,23 @@ int avGetBuffer2(struct AVCodecContext *ctx, AVFrame *frame, int /*flags*/) {
 }
 
 struct Decoder : ModuleS, PictureAllocator {
-		Decoder(KHost* host, StreamType type)
-			: m_host(host), avFrame(new ffpp::Frame) {
+		Decoder(KHost* host, DecoderConfig *cfg)
+			: m_host(host), avFrame(new ffpp::Frame), hw(cfg->hw) {
 			mediaOutput = addOutput();
 			output = mediaOutput;
 
-			if(type == VIDEO_PKT) {
-				output->setMetadata(make_shared<MetadataRawVideo>());
+			if(cfg->type == VIDEO_PKT) {
+				output->setMetadata(cfg->hw ? safe_cast<MetadataRawVideo>(make_shared<MetadataRawVideoHw>()) : make_shared<MetadataRawVideo>());
 				getDecompressedData = std::bind(&Decoder::processVideo, this);
-			} else if(type == AUDIO_PKT) {
+			} else if(cfg->type == AUDIO_PKT) {
 				output->setMetadata(make_shared<MetadataRawAudio>());
 				getDecompressedData = std::bind(&Decoder::processAudio, this);
 			} else
 				throw error("Can only decode audio or video.");
+		}
+
+		~Decoder() {
+			av_buffer_unref((AVBufferRef**)&hw->device);
 		}
 
 		// IModule implementation
@@ -113,11 +120,22 @@ struct Decoder : ModuleS, PictureAllocator {
 	private:
 		void openDecoder(const MetadataPkt* metadata) {
 			auto avcodecId = signalsIdToAvCodecId(metadata->codec.c_str());
-			auto const codec = avcodec_find_decoder((AVCodecID)avcodecId);
+			AVCodec *codec = nullptr;
+			if (!hw) {
+				codec = avcodec_find_decoder((AVCodecID)avcodecId);
+			} else if (hw) {
+				if (avcodecId == AV_CODEC_ID_H264) {
+					codec = avcodec_find_decoder_by_name("h264_cuvid");
+				} else if (avcodecId == AV_CODEC_ID_HEVC) {
+					codec = avcodec_find_decoder_by_name("hevc_cuvid");
+				}
+			}
 			if (!codec)
-				throw error(format("Decoder not found for codec '%s'.", metadata->codec));
+				throw error(format("Decoder not found for codec '%s' (hardware=%s).", metadata->codec, hw != nullptr));
 
 			codecCtx = shptr(avcodec_alloc_context3(codec));
+			codecCtx->pkt_timebase.num = IClock::Rate;
+			codecCtx->pkt_timebase.den = 1;
 
 			// copy extradata: this allows decoding headerless bitstreams
 			// (i.e AVCC / H264-in-mp4).
@@ -144,7 +162,16 @@ struct Decoder : ModuleS, PictureAllocator {
 				codecCtx->sample_rate = m->sampleRate;
 			}
 
-			ffpp::Dict dict(typeid(*this).name(), "-threads auto -err_detect 1 -flags output_corrupt -flags2 showall");
+			if (hw) {
+				codecCtx->hw_device_ctx = av_buffer_ref((AVBufferRef*)hw->device);
+			}
+
+			std::string options = "-threads auto -err_detect 1 -flags output_corrupt -flags2 showall ";
+			if (USE_CUVID_DEINTERLACE) {
+				assert(hw);
+				options += "-deint adaptive ";
+			}
+			ffpp::Dict dict(typeid(*this).name(), options);
 
 			if (avcodec_open2(codecCtx.get(), codec, &dict) < 0)
 				throw error("Couldn't open stream.");
@@ -186,6 +213,16 @@ struct Decoder : ModuleS, PictureAllocator {
 				copyToPicture(avFrame->get(), pic.get());
 			}
 
+			if (hw) {
+				auto metadataOut = make_shared<MetadataRawVideoHw>();
+				for (int i=0; i<AV_NUM_DATA_POINTERS && avFrame->get()->buf[i]; ++i) {
+					metadataOut->dataRef[i] = av_buffer_ref(avFrame->get()->buf[i]);
+				}
+				metadataOut->framesCtx = av_buffer_ref(avFrame->get()->hw_frames_ctx);
+				metadataOut->deviceCtx = av_buffer_ref(codecCtx->hw_device_ctx);
+				output->setMetadata(metadataOut);
+			}
+
 			return pic;
 		}
 
@@ -196,9 +233,7 @@ struct Decoder : ModuleS, PictureAllocator {
 		}
 
 		void processPacket(AVPacket const * pkt) {
-			int ret;
-
-			ret = avcodec_send_packet(codecCtx.get(), pkt);
+			int ret = avcodec_send_packet(codecCtx.get(), pkt);
 			if (ret < 0) {
 				m_host->log(Warning, format("Decoding error: %s", avStrError(ret)).c_str());
 				return;
@@ -222,15 +257,16 @@ struct Decoder : ModuleS, PictureAllocator {
 		KHost* const m_host;
 		std::shared_ptr<AVCodecContext> codecCtx;
 		std::unique_ptr<ffpp::Frame> const avFrame;
+		std::shared_ptr<HardwareContextCuda> hw;
 		OutputDefault* mediaOutput = nullptr; // used for allocation
 		KOutput* output = nullptr;
 		std::function<std::shared_ptr<DataBase>(void)> getDecompressedData;
 };
 
 IModule* createObject(KHost* host, void* va) {
-	auto type = (StreamType)(uintptr_t)va;
+	auto cfg = (DecoderConfig*)va;
 	enforce(host, "Decoder: host can't be NULL");
-	return createModule<Decoder>(host, type).release();
+	return createModule<Decoder>(host, cfg).release();
 }
 
 auto const registered = Factory::registerModule("Decoder", &createObject);
