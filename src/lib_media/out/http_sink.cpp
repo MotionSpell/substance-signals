@@ -77,7 +77,6 @@ struct HttpSink : ModuleS {
 		}
 
 	private:
-
 		KHost* const m_host;
 		atomic_bool done;
 		map<string, shared_ptr<Out::HTTP>> zeroSizeConnections;

@@ -112,7 +112,7 @@ struct Decoder : ModuleS, PictureAllocator {
 			processPacket(&pkt);
 		}
 
-		void flush() {
+		void flush() override {
 			if (codecCtx.get())
 				processPacket(nullptr);
 		}
@@ -226,7 +226,7 @@ struct Decoder : ModuleS, PictureAllocator {
 			return pic;
 		}
 
-		PictureAllocator::PictureContext* getPicture(Resolution res, Resolution resInternal, PixelFormat format) {
+		PictureAllocator::PictureContext* getPicture(Resolution res, Resolution resInternal, PixelFormat format) override {
 			auto ctx = new PictureAllocator::PictureContext;
 			ctx->pic = DataPicture::create(mediaOutput, res, resInternal, format);
 			return ctx;

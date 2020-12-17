@@ -29,9 +29,8 @@ The module works this way:
 namespace Modules {
 
 struct RegulatorMulti : public ModuleDynI {
-		RegulatorMulti(KHost* host, RegulatorMultiConfig &rmCfg)
-			: m_host(host),
-			  maxMediaTimeDelay(timescaleToClock(rmCfg.maxMediaTimeDelayInMs, 1000)),
+		RegulatorMulti(KHost* /*host*/, RegulatorMultiConfig &rmCfg)
+			: maxMediaTimeDelay(timescaleToClock(rmCfg.maxMediaTimeDelayInMs, 1000)),
 			  maxClockTimeDelay(timescaleToClock(rmCfg.maxClockTimeDelayInMs, 1000)),
 			  clock(rmCfg.clock) {
 		}
@@ -121,8 +120,6 @@ struct RegulatorMulti : public ModuleDynI {
 				streams[i].erase(std::remove_if(streams[i].begin(), streams[i].end(), predicate), streams[i].end());
 			}
 		}
-
-		KHost* const m_host;
 
 		std::vector<Stream> streams;
 		const int64_t maxMediaTimeDelay, maxClockTimeDelay;
