@@ -1,10 +1,10 @@
-#pragma once
-
 #include "regulator_mono.hpp"
 #include "lib_utils/log_sink.hpp" // Warning, Debug
 #include "lib_utils/format.hpp"
+#include "lib_utils/tools.hpp" // enforce
+#include "lib_modules/utils/factory.hpp"
 #include "lib_modules/utils/helper.hpp"
-#include "../common/attributes.hpp"
+#include "lib_media/common/attributes.hpp"
 #include <thread>
 #include <chrono>
 

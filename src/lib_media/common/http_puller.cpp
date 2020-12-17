@@ -51,7 +51,7 @@ struct HttpSource : Modules::In::IFilePuller {
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &HttpContext::curlCallback);
 		curl_easy_setopt(curl, CURLOPT_WRITEDATA, &ctx);
 		curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
-		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+		curl_easy_setopt(curl, CURLOPT_VERBOSE, 0L);
 
 		auto res = curl_easy_perform(curl);
 		if(res == CURLE_HTTP_RETURNED_ERROR)
