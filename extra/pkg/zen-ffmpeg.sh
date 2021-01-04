@@ -215,4 +215,9 @@ index cd275bacc4..b27d746c12 100644
      if (!got_frame)
 EOF
   applyPatch $patchFile5
+
+
+  #nvenc
+  sed -i 's/compute_30/compute_35/' configure
+  sed -i 's/sm_30/sm_35/' configure
 }
