@@ -11,7 +11,7 @@ function openssl_build {
   CC=$host-gcc \
   autoconf_build $host "libressl" \
     "--enable-shared" \
-    # "--disable-hardening" #uncomment if you build fails
+    # "--disable-hardening" #uncomment if your build fails
 }
 
 function openssl_get_deps {
