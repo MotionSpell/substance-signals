@@ -17,6 +17,6 @@ ConfigType is there to erase the variety of configuration types.
 typedef int* ConfigType;
 typedef std::shared_ptr<ConfigType> ParseModuleConfig(std::string const &ModuleType, SmallMap<std::string /*name*/, std::string /*value*/> const &ModuleParams);
 
-std::unique_ptr<Pipeline> createPipelineFromJSON(std::string json, std::function<ParseModuleConfig> parseModuleConfig);
+std::unique_ptr<Pipeline> createPipelineFromJSON(const std::string &json, std::function<ParseModuleConfig> parseModuleConfig);
 
 }
