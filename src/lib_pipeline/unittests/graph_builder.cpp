@@ -150,7 +150,7 @@ auto p = createPipelineFromJSON(json, [](const string, const SmallMap<string, st
 ASSERT_EQUALS(expected, p->dumpDOT());
 }
 
-unittest("graph builder: using wrong names for connection") {
+unittest("graph builder: using non-existing names for connection") {
 	string json =
 	    R"|({
     "version" : 1,

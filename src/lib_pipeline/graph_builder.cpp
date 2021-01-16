@@ -14,7 +14,7 @@ auto const JSON_VERSION = 1;
 
 namespace Pipelines {
 
-std::unique_ptr<Pipeline> createPipelineFromJSON(std::string json, std::function<ParseModuleConfig> parseModuleConfig) {
+std::unique_ptr<Pipeline> createPipelineFromJSON(const std::string &json, std::function<ParseModuleConfig> parseModuleConfig) {
 	auto pipeline = uptr(new Pipeline);
 
 	Document d;
