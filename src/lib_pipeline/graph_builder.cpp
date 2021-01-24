@@ -24,6 +24,9 @@ std::unique_ptr<Pipeline> createPipelineFromJSON(const std::string &json, std::f
 		throw std::runtime_error(std::string("Invalid JSON:\n") + json);
 	}
 
+	if (!d.HasMember("version"))
+		return nullptr;
+
 	auto const &version = d["version"];
 	if (version.GetUint() != JSON_VERSION) {
 		auto const err = std::string("Config version is") + std::to_string(version.GetUint()) + ", expected " + std::to_string(JSON_VERSION);
@@ -31,6 +34,9 @@ std::unique_ptr<Pipeline> createPipelineFromJSON(const std::string &json, std::f
 	}
 
 	SmallMap<std::string /*caption*/, IFilter*> modulesDesc;
+
+	if (!d.HasMember("modules"))
+		return nullptr;
 
 	{
 		auto &modules = d["modules"];
@@ -53,6 +59,7 @@ std::unique_ptr<Pipeline> createPipelineFromJSON(const std::string &json, std::f
 		}
 	}
 
+	if (d.HasMember("connections"))
 	{
 		auto &connections = d["connections"];
 		for (auto const &conn : connections.GetArray()) {
