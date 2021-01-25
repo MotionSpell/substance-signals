@@ -28,8 +28,8 @@ struct SmallMap {
 			idx++;
 		}
 
-		Value& operator*() {
-			return parent->pairs[idx].value;
+		Pair& operator*() {
+			return parent->pairs[idx];
 		}
 	};
 
@@ -38,7 +38,7 @@ struct SmallMap {
 	Value& operator[](Key key) {
 		auto i = find(key);
 		if(i != end())
-			return *i;
+			return (*i).value;
 
 		pairs.push_back({key, {}});
 		return pairs[pairs.size()-1].value;

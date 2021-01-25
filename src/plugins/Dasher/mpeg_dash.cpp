@@ -541,7 +541,7 @@ class Dasher : public AdaptiveStreamer {
 				}
 
 				for(auto &as : adaptationSets)
-					period.adaptationSets.push_back(as);
+					period.adaptationSets.push_back(as.value);
 
 				mpd.periods.push_back(period);
 				periodIdx++;
