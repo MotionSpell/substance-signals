@@ -16,6 +16,6 @@ struct TsDemuxerConfig {
 		return { ANY, AUDIO };
 	};
 
-	Pid pids[8] = { ANY_VIDEO(), ANY_AUDIO() };
+	Pid pids[32] = { ANY_VIDEO(), ANY_AUDIO() };
 };
 
