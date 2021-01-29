@@ -7,8 +7,6 @@ LIB_MEDIA_SRCS:=\
   $(MYDIR)/common/iso8601.cpp\
   $(MYDIR)/common/mpeg_dash_parser.cpp\
   $(MYDIR)/common/picture.cpp\
-  $(MYDIR)/common/sax_xml_parser.cpp\
-  $(MYDIR)/common/xml.cpp\
   $(MYDIR)/demux/dash_demux.cpp\
   $(MYDIR)/in/file.cpp\
   $(MYDIR)/in/mpeg_dash_input.cpp\

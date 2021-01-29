@@ -1,6 +1,6 @@
 #include "tests/tests.hpp"
 
-#include "lib_media/common/sax_xml_parser.hpp"
+#include "lib_utils/sax_xml_parser.hpp"
 
 static const char xmlTestData[] = R"(
 <?xml version="1.0" encoding="utf-8"?>

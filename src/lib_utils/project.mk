@@ -4,6 +4,8 @@ LIB_UTILS_SRCS:=\
   $(MYDIR)/version.cpp\
   $(MYDIR)/sysclock.cpp\
   $(MYDIR)/json.cpp\
+  $(MYDIR)/sax_xml_parser.cpp\
+  $(MYDIR)/xml.cpp\
   $(MYDIR)/log.cpp\
   $(MYDIR)/profiler.cpp\
   $(MYDIR)/scheduler.cpp\

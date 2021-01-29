@@ -49,7 +49,7 @@ unittest("Json parser: booleans") {
 }
 
 unittest("Json parser: non-zero terminated") {
-	json::parse("{ \"isCool\" : true } _invalid_json_token_");
+	ASSERT(!jsonOk("{ \"isCool\" : true } _invalid_json_token_"));
 }
 
 unittest("Json parser: arrays") {

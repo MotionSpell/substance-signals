@@ -1,7 +1,7 @@
 
 #include "tests/tests.hpp"
 
-#include "lib_media/common/xml.hpp"
+#include "lib_utils/xml.hpp"
 
 unittest("XML serialization: escaped characters") {
 	Tag tag { "T" };
