@@ -42,11 +42,9 @@ unittest("graph builder: dummy") {
     "modules" : {
         "dummy0" : {
             "type" : "Dummy",
-            "config" : [
-                {
-                    "oneMoreOutput": "1"
-                }
-            ]
+            "config" : {
+                "oneMoreOutput": "1"
+            }
         },
         "dummy1" : {
             "type" : "Dummy"
@@ -69,11 +67,11 @@ string expected = R"|(digraph {
 }
 )|";
 
-auto p = createPipelineFromJSON(json, [](const string type, const SmallMap<string, string> &params) {
+auto p = createPipelineFromJSON(json, [](const string type, const SmallMap<std::string, json::Value> &params) {
     ASSERT_EQUALS("Dummy", type);
     bool param = false;
     if (params.find("oneMoreOutput") != params.end())
-        param = atoi(params["oneMoreOutput"].c_str());
+        param = params["oneMoreOutput"].intValue;
     return shared_ptr<ConfigType>((ConfigType*)new bool(param)); });
 ASSERT_EQUALS(expected, p->dumpDOT());
 }
@@ -107,7 +105,7 @@ string expected = R"|(digraph {
 }
 )|";
 
-ASSERT_THROWN(createPipelineFromJSON(json, [](const string, const SmallMap<string, string>&) { return nullptr; }));
+ASSERT_THROWN(createPipelineFromJSON(json, [](const string, const SmallMap<std::string, json::Value>&) { return nullptr; }));
 }
 
 unittest("graph builder: one output to multiple inputs") {
@@ -145,7 +143,7 @@ string expected = R"|(digraph {
 }
 )|";
 
-auto p = createPipelineFromJSON(json, [](const string, const SmallMap<string, string>&) {
+auto p = createPipelineFromJSON(json, [](const string, const SmallMap<std::string, json::Value>&) {
     return shared_ptr<ConfigType>((ConfigType*)new bool(false)); });
 ASSERT_EQUALS(expected, p->dumpDOT());
 }
@@ -163,6 +161,5 @@ unittest("graph builder: using non-existing names for connection") {
 }
 )|";
 
-ASSERT_THROWN(createPipelineFromJSON(json, [](const string, const SmallMap<string, string>&) { return nullptr; }));
+ASSERT_THROWN(createPipelineFromJSON(json, [](const string, const SmallMap<std::string, json::Value>&) { return nullptr; }));
 }
-

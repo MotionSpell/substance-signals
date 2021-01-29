@@ -1,12 +1,10 @@
 #include "graph_builder.hpp"
+#include "lib_utils/json.hpp"
 #include "lib_utils/log.hpp" // g_Log
+#include "lib_utils/small_map.hpp"
 #include "lib_utils/tools.hpp" // uptr
-#include "rapidjson/error/en.h"
-#include <rapidjson/document.h>
 #include <iostream>
 #include <stdexcept>
-
-using namespace rapidjson;
 
 namespace {
 auto const JSON_VERSION = 1;
@@ -14,69 +12,67 @@ auto const JSON_VERSION = 1;
 
 namespace Pipelines {
 
-std::unique_ptr<Pipeline> createPipelineFromJSON(const std::string &json, std::function<ParseModuleConfig> parseModuleConfig) {
+std::unique_ptr<Pipeline> createPipelineFromJSON(const std::string &jsonText, std::function<ParseModuleConfig> parseModuleConfig) {
 	auto pipeline = uptr(new Pipeline);
 
-	Document d;
-	d.Parse(json.c_str());
-	if (d.HasParseError()) {
-		std::cerr << "Error (offset " << static_cast<unsigned>(d.GetErrorOffset()) << "): " << GetParseError_En(d.GetParseError()) << "%s" << std::endl;
-		throw std::runtime_error(std::string("Invalid JSON:\n") + json);
-	}
+	auto json = json::parse(jsonText);
 
-	if (!d.HasMember("version"))
+	if (json.objectValue.find("version") == json.objectValue.end())
 		return nullptr;
 
-	auto const &version = d["version"];
-	if (version.GetUint() != JSON_VERSION) {
-		auto const err = std::string("Config version is") + std::to_string(version.GetUint()) + ", expected " + std::to_string(JSON_VERSION);
+	auto const &version = json.objectValue["version"].intValue;
+	if (version != JSON_VERSION) {
+		auto const err = std::string("Config version is") + std::to_string(version) + ", expected " + std::to_string(JSON_VERSION);
 		throw std::runtime_error(err.c_str());
 	}
 
 	SmallMap<std::string /*caption*/, IFilter*> modulesDesc;
 
-	if (!d.HasMember("modules"))
+	if (json.objectValue.find("modules") == json.objectValue.end())
 		return nullptr;
 
 	{
-		auto &modules = d["modules"];
-		for (auto const &module : modules.GetObject()) {
-			std::string moduleType, moduleCaption = module.name.GetString();
-			SmallMap<std::string, std::string> moduleParams;
+		auto &modules = json["modules"];
+		for (auto const &module : modules.objectValue) {
+			std::string moduleType, moduleCaption = module.key;
+			SmallMap<std::string, json::Value> moduleConfig;
 
-			for (auto const &prop : module.value.GetObject()) {
-				if (prop.name.GetString() == std::string("type")) {
-					moduleType = prop.value.GetString();
-				} else if (prop.name.GetString() == std::string("config")) {
-					for (auto const &params : prop.value.GetArray())
-						for (auto const &param : params.GetObject())
-							moduleParams[param.name.GetString()] = param.value.GetString();
+			for (auto const &prop : module.value.objectValue) {
+				if (prop.key == "type") {
+					moduleType = prop.value.stringValue;
+				} else if (prop.key == "config") {
+					moduleConfig = prop.value.objectValue;
+				} else {
+					auto const err = std::string("\"modules\" unknown member:") + prop.key;
+					throw std::runtime_error(err.c_str());
 				}
 			}
 
-			auto va = parseModuleConfig(moduleType, moduleParams);
+			auto va = parseModuleConfig(moduleType, moduleConfig);
 			modulesDesc[moduleCaption] = pipeline->add(moduleType.c_str(), va.get());
 		}
 	}
 
-	if (d.HasMember("connections"))
-	{
-		auto &connections = d["connections"];
-		for (auto const &conn : connections.GetArray()) {
+	if (json.objectValue.find("connections") != json.objectValue.end()) {
+		auto &connections = json["connections"];
+		for (auto const &conn : connections.arrayValue) {
 			InputPin i(nullptr);
 			OutputPin o(nullptr);
 			bool first = true;
-			for (auto const &prop : conn.GetObject()) {
+			for (auto const &prop : conn.objectValue) {
 				if (first) {
-					o.mod = modulesDesc[prop.name.GetString()];
-					o.index = prop.value.GetUint();
+					o.mod = modulesDesc[prop.key];
+					o.index = prop.value.intValue;
 					first = false;
 				} else {
-					i.mod = modulesDesc[prop.name.GetString()];
-					i.index = prop.value.GetUint();
+					i.mod = modulesDesc[prop.key];
+					i.index = prop.value.intValue;
 					pipeline->connect(o, i);
 				}
-			}
+			}/*Romain: else {
+					auto const err = std::string("\"connections\" unknown member:") + prop.conn; -> TEST
+					throw std::runtime_error(err.c_str());
+				}*/
 		}
 	}
 
