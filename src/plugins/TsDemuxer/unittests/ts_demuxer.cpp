@@ -132,8 +132,8 @@ struct FrameCounter : ModuleS {
 
 unittest("TsDemuxer: pins with proper metadata are created based on config, not input data") {
 	TsDemuxerConfig cfg;
-	cfg.pids[0] = { TsDemuxerConfig::ANY, TsDemuxerConfig::AUDIO };
-	cfg.pids[1] = { TsDemuxerConfig::ANY, TsDemuxerConfig::VIDEO };
+	cfg.pids.push_back(TsDemuxerConfig::ANY_AUDIO());
+	cfg.pids.push_back(TsDemuxerConfig::ANY_VIDEO());
 
 	auto demux = loadModule("TsDemuxer", &NullHost, &cfg);
 	ASSERT_EQUALS(2, demux->getNumOutputs());
@@ -149,7 +149,7 @@ unittest("TsDemuxer: pins with proper metadata are created based on config, not 
 
 unittest("TsDemuxer: PES demux") {
 	TsDemuxerConfig cfg;
-	cfg.pids[0] = { 120, 1 };
+	cfg.pids.push_back({ 120, 1 });
 
 	auto demux = loadModule("TsDemuxer", &NullHost, &cfg);
 	auto rec = createModule<FrameCounter>();
@@ -203,7 +203,7 @@ unittest("TsDemuxer: PES demux should not wait for next AU") {
 	}
 
 	TsDemuxerConfig cfg;
-	cfg.pids[0] = { 222, 1 };
+	cfg.pids.push_back({ 222, 1 });
 
 	auto demux = loadModule("TsDemuxer", &NullHost, &cfg);
 	auto rec = createModule<FrameCounter>();
@@ -219,8 +219,8 @@ unittest("TsDemuxer: PES demux should not wait for next AU") {
 
 unittest("TsDemuxer: two pins, one PID") {
 	TsDemuxerConfig cfg;
-	cfg.pids[0] = { 130, 1 };
-	cfg.pids[1] = { 120, 1 };
+	cfg.pids.push_back({ 130, 1 });
+	cfg.pids.push_back({ 120, 1 });
 
 	auto demux = loadModule("TsDemuxer", &NullHost, &cfg);
 	auto rec130 = createModule<FrameCounter>();
@@ -271,8 +271,8 @@ unittest("TsDemuxer: two pins, two PIDs") {
 	}
 
 	TsDemuxerConfig cfg;
-	cfg.pids[0] = { 666, 1 };
-	cfg.pids[1] = { 777, 1 };
+	cfg.pids.push_back({ 666, 1 });
+	cfg.pids.push_back({ 777, 1 });
 
 	auto demux = loadModule("TsDemuxer", &NullHost, &cfg);
 	ASSERT_EQUALS(2, demux->getNumOutputs());
@@ -405,9 +405,9 @@ unittest("TsDemuxer: get codec from PMT") {
 	}
 
 	TsDemuxerConfig cfg;
-	cfg.pids[0] = TsDemuxerConfig::ANY_VIDEO();
-	cfg.pids[1] = TsDemuxerConfig::ANY_AUDIO();
-	cfg.pids[2] = TsDemuxerConfig::ANY_AUDIO();
+	cfg.pids.push_back(TsDemuxerConfig::ANY_VIDEO());
+	cfg.pids.push_back(TsDemuxerConfig::ANY_AUDIO());
+	cfg.pids.push_back(TsDemuxerConfig::ANY_AUDIO());
 
 	auto demux = loadModule("TsDemuxer", &NullHost, &cfg);
 
@@ -432,8 +432,8 @@ fuzztest("TsDemuxer") {
 	GetFuzzTestData(testdata.ptr, testdata.len);
 
 	TsDemuxerConfig cfg;
-	cfg.pids[0] = TsDemuxerConfig::ANY_VIDEO();
-	cfg.pids[1] = TsDemuxerConfig::ANY_AUDIO();
+	cfg.pids.push_back(TsDemuxerConfig::ANY_VIDEO());
+	cfg.pids.push_back(TsDemuxerConfig::ANY_AUDIO());
 
 	auto demux = loadModule("TsDemuxer", &NullHost, &cfg);
 
