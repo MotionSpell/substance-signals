@@ -58,7 +58,7 @@ std::unique_ptr<Pipeline> createPipelineFromJSON(const std::string &jsonText, st
 		for (auto const &conn : connections.arrayValue) {
 			InputPin i(nullptr);
 			OutputPin o(nullptr);
-			bool first = true;
+			auto first = true;
 			for (auto const &prop : conn.objectValue) {
 				if (first) {
 					o.mod = modulesDesc[prop.key];
@@ -69,10 +69,7 @@ std::unique_ptr<Pipeline> createPipelineFromJSON(const std::string &jsonText, st
 					i.index = prop.value.intValue;
 					pipeline->connect(o, i);
 				}
-			}/*Romain: else {
-					auto const err = std::string("\"connections\" unknown member:") + prop.conn; -> TEST
-					throw std::runtime_error(err.c_str());
-				}*/
+			}
 		}
 	}
 
