@@ -47,7 +47,7 @@ struct MemoryAllocator : IAllocator {
 		}
 
 		void free(void* p) override {
-			delete [] (uint8_t*)p;
+			delete[] (uint8_t*)p;
 			allocatedBlockCount --;
 			eventQueue.push(Event{OneBufferIsFree});
 		}
