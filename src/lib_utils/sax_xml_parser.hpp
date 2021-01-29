@@ -1,7 +1,7 @@
 #pragma once
 
 #include "lib_modules/core/buffer.hpp" // span
-#include <lib_utils/small_map.hpp>
+#include "lib_utils/small_map.hpp"
 #include <functional>
 #include <string>
 

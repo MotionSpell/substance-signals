@@ -1,6 +1,6 @@
 #include "mpd.hpp"
-#include <lib_utils/os.hpp>
-#include <lib_utils/xml.hpp>
+#include "lib_utils/os.hpp"
+#include "lib_utils/xml.hpp"
 #include <cassert>
 #include <ctime>
 
