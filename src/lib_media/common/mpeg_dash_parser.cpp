@@ -15,7 +15,7 @@ const AdaptationSet& Representation::set(DashMpd const * const mpd) const {
 unique_ptr<DashMpd> parseMpd(span<const char> text) {
 	auto mpd = make_unique< DashMpd>();
 
-	auto onNodeStart = [&mpd](string name, map<string, string>& attr) {
+	auto onNodeStart = [&mpd](string name, SmallMap<string, string>& attr) {
 		if(name == "AdaptationSet") {
 			AdaptationSet set;
 			set.contentType = attr["contentType"];

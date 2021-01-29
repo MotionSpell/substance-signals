@@ -74,7 +74,7 @@ void saxParse(span<const char> input, std::function<NodeStartFunc> onNodeStart, 
 				auto id = parseIdentifier();
 				skipSpaces();
 
-				map<string, string> attr;
+				SmallMap<string, string> attr;
 
 				while(front() != '>' && front() != '/' && front() != -1) {
 					auto name = parseIdentifier();
