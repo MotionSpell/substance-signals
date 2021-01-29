@@ -17,7 +17,7 @@ struct Tag {
 	std::vector<Tag> children {};
 	std::string content {};
 
-	std::string & operator [] (const char* attributeName) {
+	std::string& operator[] (const char* attributeName) {
 		for(auto& a : attr) {
 			if(attributeName == a.name)
 				return a.value;

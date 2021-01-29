@@ -317,7 +317,7 @@ struct LibavDemux : Module {
 
 	bool rectifyTimestamps(AVPacket &pkt) {
 		auto const stream = m_formatCtx->streams[pkt.stream_index];
-		auto & demuxStream = m_streams[pkt.stream_index];
+		auto &demuxStream = m_streams[pkt.stream_index];
 		auto const maxDelayInSec = 5;
 		auto const thresholdInBase = (maxDelayInSec * stream->time_base.den) / stream->time_base.num;
 

@@ -22,11 +22,11 @@ struct span {
 		len -= n;
 	}
 
-	T& operator [] (int i) {
+	T& operator[] (int i) {
 		return ptr[i];
 	}
 
-	T const& operator [] (int i) const {
+	T const& operator[] (int i) const {
 		return ptr[i];
 	}
 
