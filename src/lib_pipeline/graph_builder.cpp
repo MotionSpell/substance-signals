@@ -1,7 +1,6 @@
 #include "graph_builder.hpp"
 #include "lib_utils/json.hpp"
 #include "lib_utils/log.hpp" // g_Log
-#include "lib_utils/small_map.hpp"
 #include "lib_utils/tools.hpp" // uptr
 #include <iostream>
 #include <stdexcept>
@@ -43,7 +42,7 @@ std::unique_ptr<Pipeline> createPipelineFromJSON(const std::string &jsonText, st
 				} else if (prop.key == "config") {
 					moduleConfig = prop.value.objectValue;
 				} else {
-					auto const err = std::string("\"modules\" unknown member:") + prop.key;
+					auto const err = std::string("\"modules\" unknown member: ") + prop.key;
 					throw std::runtime_error(err.c_str());
 				}
 			}
@@ -56,18 +55,28 @@ std::unique_ptr<Pipeline> createPipelineFromJSON(const std::string &jsonText, st
 	if (json.objectValue.find("connections") != json.objectValue.end()) {
 		auto &connections = json["connections"];
 		for (auto const &conn : connections.arrayValue) {
-			InputPin i(nullptr);
-			OutputPin o(nullptr);
+			OutputPin src(nullptr);
+			InputPin dst(nullptr);
 			auto first = true;
 			for (auto const &prop : conn.objectValue) {
 				if (first) {
-					o.mod = modulesDesc[prop.key];
-					o.index = prop.value.intValue;
+					src.mod = modulesDesc[prop.key];
+					if(!src.mod) {
+						auto const err = std::string("Connection: source module \"" + prop.key + "\" unknown");
+						throw std::runtime_error(err.c_str());
+					}
+
+					src.index = prop.value.intValue;
 					first = false;
 				} else {
-					i.mod = modulesDesc[prop.key];
-					i.index = prop.value.intValue;
-					pipeline->connect(o, i);
+					dst.mod = modulesDesc[prop.key];
+					if (!dst.mod) {
+						auto const err = std::string("Connection: destination module \"" + prop.key + "\" unknown");
+						throw std::runtime_error(err.c_str());
+					}
+
+					dst.index = prop.value.intValue;
+					pipeline->connect(src, dst);
 				}
 			}
 		}
