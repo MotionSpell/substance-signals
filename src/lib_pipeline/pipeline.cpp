@@ -74,7 +74,7 @@ IFilter * Pipeline::add(char const* type, const void* va) {
 	auto name = format("%s (#%s)", type, (int)modules.size());
 
 	auto createModule = [&](Modules::KHost* host) {
-		return vLoadModule(type, host, va);
+		return loadModule(type, host, va);
 	};
 
 	return addModuleInternal(name, createModule);
