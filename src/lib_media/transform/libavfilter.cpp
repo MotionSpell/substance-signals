@@ -55,8 +55,9 @@ void LibavFilter::flush() {
 void LibavFilter::processOne(Data data) {
 	if(!buffersrc_ctx) {
 		char args[512];
-		AVPixelFormat pf = pixelFormat2libavPixFmt(cfg.format.format);
-		snprintf(args, sizeof(args), "video_size=%dx%d:pix_fmt=%d:time_base=%d/%d:pixel_aspect=%d/%d", cfg.format.res.width, cfg.format.res.height, pf, 1, (int)IClock::Rate, cfg.format.res.width, cfg.format.res.height);
+		const auto format = safe_cast<const DataPicture>(data)->getFormat();
+		AVPixelFormat pf = pixelFormat2libavPixFmt(format.format);
+		snprintf(args, sizeof(args), "video_size=%dx%d:pix_fmt=%d:time_base=%d/%d:pixel_aspect=%d/%d", format.res.width, format.res.height, pf, 1, (int)IClock::Rate, format.res.width, format.res.height);
 		auto ret = avfilter_graph_create_filter(&buffersrc_ctx, avfilter_get_by_name("buffer"), "in", args, nullptr, graph);
 		if (ret < 0)
 			throw error("Cannot create filter source");
@@ -70,17 +71,17 @@ void LibavFilter::processOne(Data data) {
 			throw error("Cannot create filter source param");
 		memset(srcParams, 0, sizeof(*srcParams));
 
-		srcParams->format = pixelFormat2libavPixFmt(cfg.format.format);
+		srcParams->format = pixelFormat2libavPixFmt(format.format);
 		if (cfg.isHardwareFilter) {
 			buffersrc_ctx->hw_device_ctx = av_buffer_ref(safe_cast<const MetadataRawVideoHw>(data->getMetadata())->deviceCtx);
 			srcParams->hw_frames_ctx = av_buffer_ref(safe_cast<const MetadataRawVideoHw>(data->getMetadata())->framesCtx);
 		}
-		srcParams->width = cfg.format.res.width;
-		srcParams->height = cfg.format.res.height;
+		srcParams->width = format.res.width;
+		srcParams->height = format.res.height;
 		srcParams->time_base.num = 1;
 		srcParams->time_base.den = (int)IClock::Rate;
-		srcParams->sample_aspect_ratio.num = cfg.format.res.width;
-		srcParams->sample_aspect_ratio.den = cfg.format.res.height;
+		srcParams->sample_aspect_ratio.num = format.res.width;
+		srcParams->sample_aspect_ratio.den = format.res.height;
 		ret = av_buffersrc_parameters_set(buffersrc_ctx, srcParams);
 		if (ret < 0)
 			throw error("Cannot add filter source hardware param");

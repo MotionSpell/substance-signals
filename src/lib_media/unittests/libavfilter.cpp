@@ -17,9 +17,8 @@ unittest("avfilter: deinterlace") {
 	};
 
 	auto videoGen = createModule<In::VideoGenerator>(&NullHost);
-	PictureFormat fmt(Resolution(320, 180), PixelFormat::I420);
 
-	auto cfg = AvFilterConfig { fmt, "yadif=0:-1:0" };
+	auto cfg = AvFilterConfig { "yadif=0:-1:0" };
 	auto filter = loadModule("LibavFilter", &NullHost, &cfg);
 	ConnectOutputToInput(videoGen->getOutput(0), filter->getInput(0));
 	ConnectOutput(filter->getOutput(0), onFrame);
@@ -39,9 +38,8 @@ unittest("avfilter: fps convert (drop/repeat)") {
 	};
 
 	auto videoGen = createModule<In::VideoGenerator>(&NullHost);
-	PictureFormat fmt(Resolution(320, 180), PixelFormat::I420);
 
-	auto cfg = AvFilterConfig { fmt, "fps=30000/1001:0.0" };
+	auto cfg = AvFilterConfig { "fps=30000/1001:0.0" };
 	auto filter = loadModule("LibavFilter", &NullHost, &cfg);
 
 	ConnectOutputToInput(videoGen->getOutput(0), filter->getInput(0));
