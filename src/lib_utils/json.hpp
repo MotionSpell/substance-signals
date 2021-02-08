@@ -32,6 +32,12 @@ struct Value {
 
 		Value const& operator[] (const char* name) const;
 
+		bool has(const char* name) const {
+			enforceType(Type::Object);
+			return objectValue.find(name) != objectValue.end();
+		}
+
+
 		////////////////////////////////////////
 		// type == Type::Array
 		std::vector<Value> arrayValue;
@@ -47,9 +53,14 @@ struct Value {
 
 		////////////////////////////////////////
 		// type == Type::Integer
-		int intValue {};
+		int64_t intValue {};
 
 		operator int() const {
+			enforceType(Type::Integer);
+			return (int)intValue;
+		}
+
+		operator int64_t() const {
 			enforceType(Type::Integer);
 			return intValue;
 		}

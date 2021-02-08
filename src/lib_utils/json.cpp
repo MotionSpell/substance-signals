@@ -153,7 +153,7 @@ class Tokenizer {
 		}
 
 		static bool whitespace(char c) {
-			return c == ' ' || c == '\n';
+			return c == ' ' || c == '\n' || c == '\r' || c == '\t';
 		}
 
 		const char* text;
