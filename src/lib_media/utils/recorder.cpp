@@ -26,5 +26,9 @@ Data Recorder::pop() {
 	return record.pop();
 }
 
+bool Recorder::tryPop(Data &data) {
+	return record.tryPop(data);
+}
+
 }
 }
