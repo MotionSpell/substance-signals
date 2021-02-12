@@ -100,7 +100,11 @@ unittest("SAX XML parser: get element contents") {
    ASSERT_EQUALS( std::vector<std::string>({"a", "c", "d", ""}), contents);
 }
 
-static const char invalidXmlTestData[] = R"(
+unittest("SAX XML parser: invalid cases ") {
+	auto onNodeStart = [&](std::string, SmallMap<std::string, std::string>&) {};
+	auto onNodeEnd = [&](std::string, std::string) {};
+
+   const char invalidXmlTestData[] = R"(
 <?xml version="1.0" encoding="utf-8"?>
 <Hello>
   <World #>
@@ -108,9 +112,20 @@ static const char invalidXmlTestData[] = R"(
 </Hello>
 )";
 
-unittest("SAX XML parser: invalid") {
+	ASSERT_THROWN(saxParse(invalidXmlTestData, onNodeStart, onNodeEnd));
+}
+
+unittest("SAX XML parser: invalid (premature end of file") {
 	auto onNodeStart = [&](std::string, SmallMap<std::string, std::string>&) {};
 	auto onNodeEnd = [&](std::string, std::string) {};
 
-	ASSERT_THROWN(saxParse(invalidXmlTestData, onNodeStart, onNodeEnd));
+   char invalidXmlTestData1[] = R"(<Hello)";
+   ASSERT_THROWN(saxParse(invalidXmlTestData1, onNodeStart, onNodeEnd));
+
+   char invalidXmlTestData2[] = R"(<Hello/)";
+   //ASSERT_THROWN  //FIXME: should raise an exception
+   saxParse(invalidXmlTestData2, onNodeStart, onNodeEnd);
+
+   char invalidXmlTestData3[] = R"(<Hello/>)"; // corner case of the parser
+   saxParse(invalidXmlTestData3, onNodeStart, onNodeEnd);
 }

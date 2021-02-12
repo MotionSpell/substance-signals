@@ -24,7 +24,7 @@ void saxParse(span<const char> input, std::function<NodeStartFunc> onNodeStart, 
 	};
 
 	auto skipSpaces = [&]() {
-		while(isspace(front()))
+		while(input.len && isspace(front()))
 			input += 1;
 	};
 
@@ -42,7 +42,8 @@ void saxParse(span<const char> input, std::function<NodeStartFunc> onNodeStart, 
 	auto parseIdentifier = [&]() {
 		string r;
 		skipSpaces();
-		while(isalnum(front()) || front() == ':' || front() == '_' || front() == '-') {
+		while(input.len &&
+		    (isalnum(front()) || front() == ':' || front() == '_' || front() == '-')) {
 			r += front();
 			input += 1;
 		}
