@@ -16,7 +16,7 @@ std::unique_ptr<Pipeline> createPipelineFromJSON(const std::string &jsonText, st
 
 	auto json = json::parse(jsonText);
 
-	if (json.objectValue.find("version") == json.objectValue.end())
+	if (!json.has("version"))
 		return nullptr;
 
 	auto const &version = json.objectValue["version"].intValue;
@@ -27,7 +27,7 @@ std::unique_ptr<Pipeline> createPipelineFromJSON(const std::string &jsonText, st
 
 	SmallMap<std::string /*caption*/, IFilter*> modulesDesc;
 
-	if (json.objectValue.find("modules") == json.objectValue.end())
+	if (!json.has("modules"))
 		return nullptr;
 
 	{
@@ -52,7 +52,7 @@ std::unique_ptr<Pipeline> createPipelineFromJSON(const std::string &jsonText, st
 		}
 	}
 
-	if (json.objectValue.find("connections") != json.objectValue.end()) {
+	if (json.has("connections")) {
 		auto &connections = json["connections"];
 		for (auto const &conn : connections.arrayValue) {
 			OutputPin src(nullptr);
