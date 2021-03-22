@@ -518,13 +518,6 @@ function checkForCommonBuildTools {
     echo ""
     error="1"
   fi
-  
-  if [ $ENABLE_NVIDIA == "1" ] && ( [ -z ${NVIDIA_CODEC_SDK+x} ] || ( ! test -f "$NVIDIA_CODEC_SDK" ) ); then
-    echo "nvcc not found, Please download NVIDIA_CODEC_SDK and provide its path with NVIDIA_CODEC_SDK=/path/to/Video_Codec_SDK_9.1.23.zip"
-    echo "Please check nvidia's website https://developer.nvidia.com/nvidia-video-codec-sdk"
-    echo ""
-    error="1"
-  fi
 
   if isMissing "patch"; then
     echo "patch not installed.  Please install with:"

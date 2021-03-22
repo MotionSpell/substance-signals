@@ -4,7 +4,6 @@
 #include <ctime>
 #include <iostream>
 #include "lib_utils/system_clock.hpp"
-#include "lib_utils/format.hpp"
 
 #ifdef _WIN32
 #include <windows.h>
