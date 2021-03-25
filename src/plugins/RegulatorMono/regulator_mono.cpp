@@ -31,7 +31,7 @@ class RegulatorMono : public ModuleS {
 				}
 
 				if (delayInMs > REGULATION_TOLERANCE_IN_MS)
-					m_host->log(Warning, format("will sleep for %s ms", delayInMs).c_str());
+					m_host->log(Debug, format("will sleep for %s ms", delayInMs).c_str());
 				std::this_thread::sleep_for(std::chrono::milliseconds(delayInMs));
 			} else if (delayInMs < -REGULATION_TOLERANCE_IN_MS) {
 				if (delayInMs < -BWD_TOLERANCE_IN_MS) {
