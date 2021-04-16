@@ -40,7 +40,7 @@ static void installSignalHandler() {
 
 int main(int argc, char const* argv[]) {
 	try {
-		Tools::Profiler profilerGlobal(g_appName);
+		Tools::Profiler profilerGlobal(std::string(g_appName) + " execution time");
 		std::cout << "BUILD:     " << g_appName << "-" << g_version << std::endl;
 
 #ifdef ENABLE_BOMB
