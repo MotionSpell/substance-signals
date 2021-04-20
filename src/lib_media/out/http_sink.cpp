@@ -45,21 +45,21 @@ struct HttpSink : ModuleS {
 			httpConfig.headers = headers;
 
 			if (meta->filesize == INT64_MAX) {
-				m_host->log(Debug, format("Delete at URL: \"%s\"", url).c_str());
+				m_host->log(Info, format("Delete at URL: \"%s\"", url).c_str());
 				httpConfig.flags.request = DELETEX;
 				auto http = createModule<Out::HTTP>(m_host, httpConfig);
 			} else if (meta->filesize == 0 && !meta->EOS) {
 				if (exists(zeroSizeConnections, url))
 					throw error(format("Received zero-sized metadata but transfer is already initialized for URL: \"%s\"", url));
 
-				m_host->log(Debug, format("Initialize transfer for URL: \"%s\"", url).c_str());
+				m_host->log(Info, format("Initialize transfer for URL: \"%s\"", url).c_str());
 				auto http = createModule<Out::HTTP>(m_host, httpConfig);
 				http->getInput(0)->push(data);
 				http->process();
 				zeroSizeConnections[url] = move(http);
 			} else {
 				if (!exists(zeroSizeConnections, url)) {
-					m_host->log(Debug, format("Starting transfer to URL: \"%s\"", url).c_str());
+					m_host->log(Info, format("Starting transfer to URL: \"%s\"", url).c_str());
 					zeroSizeConnections[url] = createModule<Out::HTTP>(m_host, httpConfig);
 				}
 
@@ -68,7 +68,7 @@ struct HttpSink : ModuleS {
 					zeroSizeConnections[url]->getInput(0)->push(data);
 				}
 				if (meta->EOS) {
-					m_host->log(Debug, format("Ending transfer for URL: \"%s\"", url).c_str());
+					m_host->log(Info, format("Ending transfer for URL: \"%s\"", url).c_str());
 					zeroSizeConnections[url]->getInput(0)->push(nullptr);
 					zeroSizeConnections[url]->flush();
 					zeroSizeConnections.erase(url);
