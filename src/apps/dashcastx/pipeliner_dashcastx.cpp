@@ -133,7 +133,7 @@ void ensureDir(std::string path) {
 
 namespace {
 struct Logger : LogSink {
-	void log(Level level, const char* msg) override {
+	void send(Level level, const char* msg) override {
 		g_Log->log(level, format("[%s] %s", g_appName, msg).c_str());
 	}
 };

@@ -120,12 +120,12 @@ unittest("SAX XML parser: invalid (premature end of file") {
 	auto onNodeEnd = [&](std::string, std::string) {};
 
    char invalidXmlTestData1[] = R"(<Hello)";
-   ASSERT_THROWN(saxParse(invalidXmlTestData1, onNodeStart, onNodeEnd));
+ASSERT_THROWN(saxParse(invalidXmlTestData1, onNodeStart, onNodeEnd));
 
-   char invalidXmlTestData2[] = R"(<Hello/)";
-   //ASSERT_THROWN  //FIXME: should raise an exception
-   saxParse(invalidXmlTestData2, onNodeStart, onNodeEnd);
+char invalidXmlTestData2[] = R"(<Hello/)";
+//ASSERT_THROWN  //FIXME: should raise an exception
+saxParse(invalidXmlTestData2, onNodeStart, onNodeEnd);
 
-   char invalidXmlTestData3[] = R"(<Hello/>)"; // corner case of the parser
-   saxParse(invalidXmlTestData3, onNodeStart, onNodeEnd);
+char invalidXmlTestData3[] = R"(<Hello/>)"; // corner case of the parser
+saxParse(invalidXmlTestData3, onNodeStart, onNodeEnd);
 }

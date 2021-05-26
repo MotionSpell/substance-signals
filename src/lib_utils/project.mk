@@ -9,6 +9,7 @@ LIB_UTILS_SRCS:=\
   $(MYDIR)/log.cpp\
   $(MYDIR)/profiler.cpp\
   $(MYDIR)/scheduler.cpp\
+  $(MYDIR)/syslog.cpp\
   $(MYDIR)/time.cpp\
   $(MYDIR)/timer.cpp\
 

@@ -350,7 +350,7 @@ struct LibavDemux : Module {
 		if (pkt.pts != AV_NOPTS_VALUE) {
 			if (pkt.dts != AV_NOPTS_VALUE) {
 				if (pkt.pts < pkt.dts) {
-					m_host->log(Error, format("Stream %s: pts < dts (%s < %s)", pkt.stream_index, pkt.pts, pkt.dts).c_str());
+					m_host->log(Warning, format("Stream %s: pts < dts (%s < %s)", pkt.stream_index, pkt.pts, pkt.dts).c_str());
 					return false;
 				}
 			}

@@ -245,7 +245,7 @@ struct Decoder : ModuleS, PictureAllocator {
 					break; // no more frames
 
 				if (avFrame->get()->decode_error_flags || (avFrame->get()->flags & AV_FRAME_FLAG_CORRUPT)) {
-					m_host->log(Error, "Corrupted frame decoded");
+					m_host->log(Warning, "Corrupted frame decoded");
 				}
 
 				auto data = getDecompressedData();

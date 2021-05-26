@@ -52,8 +52,8 @@ unittest("graph builder: dummy") {
     },
     "connections" : [
         {
-            "dummy0": 1,
-            "dummy1": 0
+            "source": {"dummy0": 1},
+            "destinations": [ {"dummy1": 0} ]
         }
     ]
 }
@@ -90,8 +90,8 @@ unittest("graph builder: wrong connections") {
     },
     "connections" : [
         {
-            "dummy0": 1,
-            "dummy1": 1
+            "source": {"dummy0": 1},
+            "destinations" : [ {"dummy1": 1} ]
         }
     ]
 }
@@ -125,9 +125,11 @@ unittest("graph builder: one output to multiple inputs") {
     },
     "connections" : [
         {
-            "dummy0": 0,
-            "dummy1": 0,
-            "dummy2": 0
+            "source": {"dummy0": 0},
+            "destinations": [
+                {"dummy1": 0},
+                {"dummy2": 0}
+            ]
         }
     ]
 }
@@ -154,8 +156,8 @@ unittest("graph builder: using non-existing names for connection") {
     "version" : 1,
     "connections" : [
         {
-            "wrong_name0": 0,
-            "wrong_name1": 0,
+            "source": {"wrong_name0": 0},
+            "destinations": [ {"wrong_name1": 0} ],
         }
     ]
 }
