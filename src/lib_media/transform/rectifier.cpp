@@ -16,7 +16,6 @@ The module works this way:
  - The different media types are processed differently (video = lead, audio = pulled, subtitles = sparse).
 */
 #include "rectifier.hpp"
-
 #include "lib_modules/modules.hpp"
 #include "lib_modules/utils/helper_dyn.hpp"
 #include "lib_utils/format.hpp"
@@ -93,7 +92,8 @@ struct Rectifier : ModuleDynI {
 
 		Fraction const framePeriod;
 		int64_t numTicks = 0;
-		const int64_t analyzeWindow = IClock::Rate / 2; // a positive value means that the master stream arrives in advance of slave streams
+		const int64_t analyzeWindow = IClock::Rate / 2;   // a positive value means that the master stream arrives in advance of slave streams
+		const int64_t maxDataDuration = IClock::Rate * 5; // whatever happens data will be deleted after analyzeWindow + maxDataDuration (clock time)
 		std::shared_ptr<IClock> const clock;
 		std::shared_ptr<IScheduler> const scheduler;
 		IScheduler::Id m_pendingTaskId{};
@@ -158,7 +158,7 @@ struct Rectifier : ModuleDynI {
 			// If the frame is available, but since very little time, use it, but don't remove it.
 			// Thus, it will be used again next time.
 			// This protects us from frame phase changes (e.g on SDI cable replacement).
-			if(std::abs(stream.data[0].creationTime - now) < fractionToClock(framePeriod))
+			if(std::abs(stream.data[0].creationTime - std::max(now, 0LL)) < fractionToClock(framePeriod))
 				return stream.blank;
 
 			auto r = stream.data.front().data;
@@ -194,7 +194,7 @@ struct Rectifier : ModuleDynI {
 		void emitOnePeriod(Fraction now) {
 			std::unique_lock<std::mutex> lock(streamMutex);
 			fillInputQueues();
-			discardOutdatedData(fractionToClock(now) - analyzeWindow);
+			discardOutdatedData(fractionToClock(now) - analyzeWindow - maxDataDuration);
 
 			// output media times corresponding to the "media period"
 			auto const outMasterTime = Interval {
@@ -275,7 +275,10 @@ struct Rectifier : ModuleDynI {
 
 			// convert a timestamp to an absolute sample count
 			auto toSamples = [&](int64_t time) -> int64_t {
-				return (time * stream.fmt.sampleRate) / IClock::Rate;
+				// compensate worst-case timescale (IClock::Rate <-> SampleRate) conversion roundings
+				// this introduces a tiny inaccuracy (typically 4 samples)
+				auto const accuracy = 1; //Romain: divUp((int)IClock::Rate, stream.fmt.sampleRate);
+				return divUp(time * stream.fmt.sampleRate, IClock::Rate * accuracy) * accuracy;
 			};
 
 			auto toSamplesP = [&](Interval p) -> Interval {
@@ -342,7 +345,6 @@ struct Rectifier : ModuleDynI {
 
 			if (writtenSamples != (inMasterSamples.stop - inMasterSamples.start))
 				m_host->log(Warning, format("Incomplete audio period (%s samples instead of %s). Expect glitches.", writtenSamples, inMasterSamples.stop - inMasterSamples.start).c_str());
-
 			stream.output->post(pcm);
 		}
 

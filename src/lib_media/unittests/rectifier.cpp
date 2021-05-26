@@ -98,9 +98,9 @@ class ClockMock : public IClock, public IScheduler {
 		vector<Task> m_tasks; // keep this sorted
 };
 
-template<typename METADATA, typename TYPE>
+template<typename METADATA, typename TYPE, int sampleRate>
 struct DataGenerator : ModuleS, virtual IOutputCap {
-	DataGenerator() {
+	DataGenerator(Fraction fps) : fps(fps) {
 		output = addOutput();
 		output->setMetadata(make_shared<METADATA>());
 	}
@@ -108,26 +108,32 @@ struct DataGenerator : ModuleS, virtual IOutputCap {
 		auto data = output->allocData<TYPE>(0);
 		auto dataPcm = dynamic_pointer_cast<DataPcm>(data);
 		if (dataPcm) {
-			PcmFormat fmt(48000);
+			PcmFormat fmt(sampleRate, 1, Mono);
 			dataPcm->format = fmt;
-			dataPcm->setSampleCount(1920);
+			auto samplesN = (int)(double)(fps.inverse() * pktCounter * sampleRate);
+			pktCounter++;
+			auto const samplesNplus1 = (int)(double)(fps.inverse() * pktCounter * sampleRate);
+			dataPcm->setSampleCount(samplesNplus1 - samplesN);
 
-			// fill first plane with a counter
+			// fill with a counter
 			ASSERT(dataPcm->format.getBytesPerSample() % sizeof(uint32_t) == 0);
 			auto const dataSize = dataPcm->getSampleCount() * dataPcm->format.getBytesPerSample();
 			for (int i = 0; i < dataSize / (int)sizeof(uint32_t); ++i)
-				*((uint32_t*)dataPcm->getPlane(0) + i) = counter++;
+				*((uint32_t*)dataPcm->getPlane(0) + i) = audioSampleCounter++;
 		}
-		data->set(PresentationTime{dataIn->get<PresentationTime>().time});
+		data->set(PresentationTime{ dataIn->get<PresentationTime>().time });
 		output->post(data);
 	}
 	OutputDefault *output;
-	uint32_t counter = 0;
+	Fraction fps;
+	uint32_t audioSampleCounter = 0;
+	int64_t pktCounter = 0;
 };
 
-typedef DataGenerator<MetadataRawVideo, DataPicture> VideoGenerator;
-typedef DataGenerator<MetadataRawAudio, DataPcm> AudioGenerator;
-typedef DataGenerator<MetadataRawSubtitle, DataSubtitle> SubtitleGenerator;
+typedef DataGenerator<MetadataRawVideo, DataPicture, 0> VideoGenerator;
+typedef DataGenerator<MetadataRawAudio, DataPcm, 48000> AudioGenerator48000;
+typedef DataGenerator<MetadataRawAudio, DataPcm, 44100> AudioGenerator44100;
+typedef DataGenerator<MetadataRawSubtitle, DataSubtitle, 0> SubtitleGenerator;
 
 struct Fixture {
 	shared_ptr<ClockMock> clock = make_shared<ClockMock>();
@@ -224,8 +230,9 @@ vector<Event> runRectifier(
 
 unittest("rectifier: simple offset") {
 	// use '1000' as a human-readable frame period
-	Fixture fix(Fraction(IClock::Rate, 1000));
-	fix.addStream(0, createModuleWithSize<VideoGenerator>(100));
+	auto const fps = Fraction(IClock::Rate, 1000);
+	Fixture fix(fps);
+	fix.addStream(0, createModuleWithSize<VideoGenerator>(100, fps));
 
 	fix.setTime(8801000);
 	fix.push(0, 301007);
@@ -253,8 +260,9 @@ unittest("rectifier: simple offset") {
 
 unittest("rectifier: missing frame") {
 	// use '100' as a human-readable frame period
-	Fixture fix(Fraction(IClock::Rate, 100));
-	fix.addStream(0, createModuleWithSize<VideoGenerator>(100));
+	auto const fps = Fraction(IClock::Rate, 100);
+	Fixture fix(fps);
+	fix.addStream(0, createModuleWithSize<VideoGenerator>(100, fps));
 
 	fix.setTime(0);
 	fix.push(0, 30107);
@@ -281,8 +289,9 @@ unittest("rectifier: missing frame") {
 }
 
 unittest("rectifier: loss of input") {
-	Fixture fix(Fraction(IClock::Rate, 100));
-	fix.addStream(0, createModuleWithSize<VideoGenerator>(100));
+	auto const fps = Fraction(IClock::Rate, 100);
+	Fixture fix(fps);
+	fix.addStream(0, createModuleWithSize<VideoGenerator>(100, fps));
 
 	// send one frame, and then nothing, but keep the clock ticking
 	fix.setTime(1000);
@@ -308,8 +317,9 @@ unittest("rectifier: loss of input") {
 
 unittest("rectifier: noisy timestamps") {
 	// use '100' as a human-readable frame period
-	Fixture fix(Fraction(IClock::Rate, 100));
-	fix.addStream(0, createModuleWithSize<VideoGenerator>(100));
+	auto const fps = Fraction(IClock::Rate, 100);
+	Fixture fix(fps);
+	fix.addStream(0, createModuleWithSize<VideoGenerator>(100, fps));
 
 	fix.setTime(  0);
 	fix.push(0, 1000 + 2);
@@ -355,7 +365,7 @@ static void fixupTimes(vector<Event>& expectedTimes, vector<Event>& actualTimes)
 template<typename GeneratorType>
 void testRectifierSinglePort(Fraction fps, vector<Event> inTimes, vector<Event> expectedTimes) {
 	vector<unique_ptr<ModuleS>> generators;
-	generators.push_back(createModuleWithSize<GeneratorType>(inTimes.size()));
+	generators.push_back(createModuleWithSize<GeneratorType>(inTimes.size(), fps));
 
 	auto actualTimes = runRectifier(fps, generators, inTimes);
 
@@ -391,6 +401,15 @@ vector<Event> generateEvents(Fraction fps, int index = 0, function<TimePair(uint
 	}
 	return times;
 }
+
+vector<Event> generateInterleavedEvents(Fraction frameDurAudio, Fraction frameDurVideo, int clockOffsetVideo = 0) {
+	auto times = generateEvents(frameDurAudio.inverse()); //audio
+	auto times2 = generateEvents(frameDurVideo.inverse(), 1,
+		bind(generateTimePair, placeholders::_1, placeholders::_2, clockOffsetVideo, 0)); //video
+	times.insert(times.end(), times2.begin(), times2.end());
+	sort(times.begin(), times.end());
+	return times;
+};
 
 void testFPSFactor(Fraction fps, Fraction factor) {
 	auto const outTimes = generateEvents(fps * factor);
@@ -462,9 +481,10 @@ unittest("rectifier: deal with backward discontinuity (single port)") {
 
 unittest("rectifier: multiple media types simple") {
 	// real timescale is required here, because we're dealing with audio
-	Fixture fix({25, 1});
-	fix.addStream(0, createModuleWithSize<VideoGenerator>(100));
-	fix.addStream(1, createModuleWithSize<AudioGenerator>(100));
+	auto const fps = Fraction(25, 1);
+	Fixture fix(fps);
+	fix.addStream(0, createModuleWithSize<VideoGenerator>(100, fps));
+	fix.addStream(1, createModuleWithSize<AudioGenerator48000>(100, fps));
 
 	// 7200 = (1920 * IClock::Rate) / 48kHz;
 
@@ -489,18 +509,18 @@ unittest("rectifier: multiple media types simple") {
 }
 
 unittest("rectifier: fail when no video") {
+	auto const fps = Fraction(25, 1);
 	vector<unique_ptr<ModuleS>> generators;
-	generators.push_back(createModuleWithSize<AudioGenerator>(1));
-
-	ASSERT_THROWN(runRectifier(Fraction(25, 1), generators, {Event()}));
+	generators.push_back(createModuleWithSize<AudioGenerator48000>(1, fps));
+	ASSERT_THROWN(runRectifier(fps, generators, {Event()}));
 }
 
 unittest("rectifier: two streams, only the first receives data") {
 	const auto videoRate = Fraction(25, 1);
 	auto times = generateEvents(videoRate); //generate video events only
 	vector<unique_ptr<ModuleS>> generators;
-	generators.push_back(createModuleWithSize<VideoGenerator>(100));
-	generators.push_back(createModuleWithSize<AudioGenerator>(100));
+	generators.push_back(createModuleWithSize<VideoGenerator>(100, videoRate));
+	generators.push_back(createModuleWithSize<AudioGenerator48000>(100, videoRate /*same as audio is ok*/));
 
 	auto actualTimes = runRectifier(videoRate, generators, times);
 
@@ -508,24 +528,16 @@ unittest("rectifier: two streams, only the first receives data") {
 }
 
 unittest("rectifier: master stream arrives in advance of slave streams") {
-	auto const generateInterleavedEvents = [](Fraction fps, int clockOffset) {
-		auto times = generateEvents(fps); //video
-		auto tVideo = generateEvents(fps, 1, bind(generateTimePair, placeholders::_1, placeholders::_2, clockOffset, 0)); //audio
-		times.insert(times.end(), tVideo.begin(), tVideo.end());
-		sort(times.begin(), times.end());
-		return times;
-	};
-
 	const auto videoRate = Fraction(25, 1);
 	const auto offset = 3;
-	auto times = generateInterleavedEvents(videoRate, offset);
+	auto times = generateInterleavedEvents(videoRate.inverse(), videoRate.inverse(), offset);
 	vector<unique_ptr<ModuleS>> generators;
-	generators.push_back(createModuleWithSize<VideoGenerator>(100));
-	generators.push_back(createModuleWithSize<AudioGenerator>(100));
+	generators.push_back(createModuleWithSize<VideoGenerator>(100, videoRate));
+	generators.push_back(createModuleWithSize<AudioGenerator48000>(100, videoRate /*same as audio is ok*/));
 
 	auto actualTimes = runRectifier(videoRate, generators, times);
 
-	auto expected = generateInterleavedEvents(videoRate, offset);
+	auto expected = generateInterleavedEvents(videoRate.inverse(), videoRate.inverse(), offset);
 	for (auto& e : expected) if (e.index == 1) e.mediaTime = e.clockTime;
 	expected.resize(expected.size() - offset);
 	fixupTimes(expected, actualTimes);
@@ -534,24 +546,16 @@ unittest("rectifier: master stream arrives in advance of slave streams") {
 }
 
 unittest("rectifier: slave stream arrives in advance of master streams") {
-	auto const generateInterleavedEvents = [](Fraction fps, int clockOffset) {
-		auto times = generateEvents(fps); //audio
-		auto tVideo = generateEvents(fps, 1, bind(generateTimePair, placeholders::_1, placeholders::_2, clockOffset, 0)); //video
-		times.insert(times.end(), tVideo.begin(), tVideo.end());
-		sort(times.begin(), times.end());
-		return times;
-	};
-
 	const auto videoRate = Fraction(25, 1);
 	const auto offset = 3;
-	auto times = generateInterleavedEvents(videoRate, offset);
+	auto times = generateInterleavedEvents(videoRate.inverse(), videoRate.inverse(), offset);
 	vector<unique_ptr<ModuleS>> generators;
-	generators.push_back(createModuleWithSize<AudioGenerator>(100));
-	generators.push_back(createModuleWithSize<VideoGenerator>(100));
+	generators.push_back(createModuleWithSize<AudioGenerator48000>(100, videoRate));
+	generators.push_back(createModuleWithSize<VideoGenerator>(100, videoRate /*same as audio is ok*/));
 
 	ASSERT_THROWN({
 		auto actualTimes = runRectifier(videoRate, generators, times); //currently throws
-		auto expected = generateInterleavedEvents(videoRate, 0);
+		auto expected = generateInterleavedEvents(videoRate.inverse(), videoRate.inverse(), 0);
 		ASSERT_EQUALS(expected, actualTimes);
 	});
 }
@@ -559,8 +563,8 @@ unittest("rectifier: slave stream arrives in advance of master streams") {
 unittest("rectifier: subtitles (sparse)") {
 	const Fraction fps(25, 1);
 	Fixture fix(fps);
-	fix.addStream(0, createModuleWithSize<VideoGenerator>(100));
-	fix.addStream(1, createModuleWithSize<SubtitleGenerator>(100));
+	fix.addStream(0, createModuleWithSize<VideoGenerator>(100, fps));
+	fix.addStream(1, createModuleWithSize<SubtitleGenerator>(100, fps));
 
 	auto const delta = (int)(fps.inverse() * IClock::Rate);
 	fix.setTime(1000 + delta * 0);
@@ -575,9 +579,37 @@ unittest("rectifier: subtitles (sparse)") {
 		Event{0, 1000 + 7200 * 0, 7200 * 0}, Event{1, 1000 + 7200 * 0, 7200 * 0},
 		Event{1, 1000 + 7200 * 0, 7200 * 0}, /*only subtitle signals, the other ones are heartbeats*/
 		Event{0, 1000 + 7200 * 1, 7200 * 1}, Event{1, 1000 + 7200 * 1, 7200 * 1},
-		Event{0, 1000 + 7200 * 2, 7200 * 2}, Event{1, 1000 + 7200 * 2, 7200 * 2},
-		Event{0, 1000 + 7200 * 3, 7200 * 3}, Event{1, 1000 + 7200 * 3, 7200 * 3},
+		Event{0, 1000 + 7200 * 2, 7200 * 2}, Event{1, 1000 + 7200 * 2, 7200 * 2}, Event{1, 1000 + 7200 * 2, 7200 * 2},
+		Event{0, 1000 + 7200 * 3, 7200 * 3}, Event{1, 1000 + 7200 * 3, 7200 * 3}
 	});
 
 	ASSERT_EQUALS(expectedTimes, fix.actualTimes);
+}
+
+unittest("rectifier: audio timescale rounding compensation") {
+	const auto videoRate = Fraction(25, 1);
+	const auto audioFrameDur = Fraction(1024, 44100);
+	auto times = generateInterleavedEvents(audioFrameDur, videoRate.inverse());
+	vector<unique_ptr<ModuleS>> generators;
+	generators.push_back(createModuleWithSize<AudioGenerator44100>(100, audioFrameDur.inverse()));
+	generators.push_back(createModuleWithSize<VideoGenerator>(100, videoRate));
+	auto actualTimes = runRectifier(videoRate, generators, times);
+	auto expected = vector<Event>({
+		Event{1, 0, 0}, Event{0, 0, 0},
+		Event{1, 7200, 7200}, Event{0, 7200, 7200},
+		Event{1, 14400, 14400}, Event{0, 14400, 14400},
+		Event{1, 21600, 21600}, Event{0, 21600, 21600},
+		Event{1, 28800, 28800}, Event{0, 28800, 28800},
+		Event{1, 36000, 36000}, Event{0, 36000, 36000},
+		Event{1, 43200, 43200}, Event{0, 43200, 43200},
+		Event{1, 50400, 50400}, Event{0, 50400, 50400},
+		Event{1, 57600, 57600}, Event{0, 57600, 57600},
+		Event{1, 64800, 64800}, Event{0, 64800, 64800},
+		Event{1, 72000, 72000}, Event{0, 72000, 72000},
+		Event{1, 79200, 79200}, Event{0, 79200, 79200},
+		Event{1, 86400, 86400}, Event{0, 86400, 86400},
+		Event{1, 93600, 93600}, Event{0, 93600, 93600},
+		Event{1, 100800, 100800}, Event{0, 100800, 100800},
+	});
+	ASSERT_EQUALS(expected, actualTimes);
 }
