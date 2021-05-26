@@ -277,7 +277,7 @@ struct Rectifier : ModuleDynI {
 			auto toSamples = [&](int64_t time) -> int64_t {
 				// compensate worst-case timescale (IClock::Rate <-> SampleRate) conversion roundings
 				// this introduces a tiny inaccuracy (typically 4 samples)
-				auto const accuracy = 1; //Romain: divUp((int)IClock::Rate, stream.fmt.sampleRate);
+				auto const accuracy = 4; // divUp((int)IClock::Rate, stream.fmt.sampleRate);
 				return divUp(time * stream.fmt.sampleRate, IClock::Rate * accuracy) * accuracy;
 			};
 
