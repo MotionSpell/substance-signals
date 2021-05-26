@@ -53,7 +53,7 @@ Pipeline::Pipeline(LogSink* log, bool isLowLatency, Threading threading)
 
 Pipeline::~Pipeline() {
 	// Prevent modules from communicating.
-	// this allows to destroy them safely,
+	// This allows to destroy them safely,
 	// without having to topological-sort them.
 	for(auto& m : modules)
 		m->destroyOutputs();
