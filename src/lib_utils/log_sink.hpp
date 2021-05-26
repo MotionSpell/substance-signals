@@ -9,9 +9,7 @@ enum Level {
 };
 
 struct LogSink {
-	virtual void send(Level level, const char* msg) = 0;
-
-	virtual void log(Level level, const char* msg) {
+	void log(Level level, const char* msg) {
 		if ((level != Quiet) && (level <= m_logLevel))
 			send(level, msg);
 	}
@@ -19,6 +17,9 @@ struct LogSink {
 	void setLevel(Level level) {
 		m_logLevel = level;
 	}
-
+	
 	Level m_logLevel = Warning;
+
+private:
+	virtual void send(Level level, const char* msg) = 0;
 };

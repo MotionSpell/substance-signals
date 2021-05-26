@@ -6,7 +6,7 @@
 #include <stdexcept>
 
 #ifdef _WIN32
-void setGlobalLogSyslog(const char */*ident*/, const std::string &/*channel_name*/) {
+void setGlobalLogSyslog(const char */*ident*/, const char* /*channel_name*/) {
 	throw std::runtime_error("Syslog is not supported on this platform");
 }
 #else
@@ -14,7 +14,7 @@ void setGlobalLogSyslog(const char */*ident*/, const std::string &/*channel_name
 #include <syslog.h>
 
 struct SyslogLogger : LogSink {
-	SyslogLogger(const char *ident, const std::string &channel_name) : channel_name(channel_name) {
+	SyslogLogger(const char *ident, const char *channel_name) : channel_name(channel_name) {
 		openlog(ident, LOG_PID, LOG_USER|LOG_SYSLOG);
 	}
 	~SyslogLogger() {
@@ -37,7 +37,7 @@ struct SyslogLogger : LogSink {
 	const std::string channel_name;
 };
 
-void setGlobalLogSyslog(const char *ident, const std::string &channel_name) {
+void setGlobalLogSyslog(const char *ident, const char *channel_name) {
 	static SyslogLogger syslogLogger(ident, channel_name);
 	g_Log = &syslogLogger;
 }

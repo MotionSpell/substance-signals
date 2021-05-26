@@ -41,7 +41,7 @@ static void setLogSyslog(SmallMap<std::string, json::Value> const& params) {
 		}
 	}
 
-	setGlobalLogSyslog(ident, channel_name);
+	setGlobalLogSyslog(ident, channel_name.c_str());
 }
 
 static void setLogCSV(SmallMap<std::string, json::Value> const& params) {
