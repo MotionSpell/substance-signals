@@ -267,30 +267,30 @@ struct Rectifier : ModuleDynI {
 			if(!stream.data.empty())
 				stream.fmt = safe_cast<const DataPcm>(stream.data.front().data)->format;
 
-			// can't process data if we don't know the format
+			// We can't process data if we don't know the format.
 			if(stream.fmt.sampleRate == 0)
 				return;
 
 			auto const BPS = stream.fmt.getBytesPerSample() / getNumChannelsFromLayout(stream.fmt.layout);
 
-			// convert a timestamp to an absolute sample count
+			// Convert a timestamp to an absolute sample count.
 			auto toSamples = [&](int64_t time) -> int64_t {
-				// compensate worst-case timescale (IClock::Rate <-> SampleRate) conversion roundings
-				// this introduces a tiny inaccuracy (typically 4 samples)
-				auto const accuracy = 4; // divUp((int)IClock::Rate, stream.fmt.sampleRate);
-				return divUp(time * stream.fmt.sampleRate, IClock::Rate * accuracy) * accuracy;
+				return time * stream.fmt.sampleRate / IClock::Rate;
 			};
 
 			auto toSamplesP = [&](Interval p) -> Interval {
 				return { toSamples(p.start), toSamples(p.stop) };
 			};
 
-			auto getSampleInterval = [&](const DataPcm* pcm) -> Interval {
-				auto const start = toSamples(pcm->get<PresentationTime>().time);
-				return Interval {
-					start,
-					start + int64_t(pcm->getPlaneSize() / BPS)
-				};
+			// Be careful: apply denoise to input data only.
+			auto getDenoisedSampleInterval = [&](const DataPcm* pcm) -> Interval {
+				// Input media times may be noisy due to previous timescale conversions.
+				// The issue is that we can't know on which side of the inaccuracy we start.
+				// So we compensate for the the worst-case scenario, empirically introducing
+				// a maximum inaccuracy of 4 samples (~0.1ms).
+				auto const accuracy = 4;
+				auto const start = divUp(pcm->get<PresentationTime>().time * stream.fmt.sampleRate, IClock::Rate * accuracy) * accuracy;
+				return { start, start + int64_t(pcm->getPlaneSize() / BPS) };
 			};
 
 			// Convert all times to absolute sample counts.
@@ -307,10 +307,10 @@ struct Rectifier : ModuleDynI {
 			pcm->format = stream.fmt;
 			pcm->setSampleCount(outMasterSamples.stop - outMasterSamples.start);
 
-			// remove obsolete samples
+			// Remove obsolete samples.
 			auto isObsolete = [&](Stream::Rec const& rec) {
 				auto const inputData = safe_cast<const DataPcm>(rec.data);
-				auto const inSamples = getSampleInterval(inputData.get());
+				auto const inSamples = getDenoisedSampleInterval(inputData.get());
 				return inSamples.stop < inMasterSamples.start;
 			};
 
@@ -319,24 +319,26 @@ struct Rectifier : ModuleDynI {
 
 			int writtenSamples = 0;
 
-			// fill the period "outMasterSamples" with portions of input audio samples
+			// Fill the period "outMasterSamples" with portions of input audio samples
 			// that intersect with the "media period".
 			for(auto& data : stream.data) {
 				auto const inputData = safe_cast<const DataPcm>(data.data);
+				auto const inSamples = getDenoisedSampleInterval(inputData.get());
+				assert(inSamples.stop - inSamples.start == inputData->getSampleCount());
 
-				auto const inSamples = getSampleInterval(inputData.get());
-
-				// intersect period of this data with the "media period"
+				// Intersect period of this data with the "media period".
 				auto const left = std::max(inSamples.start, inMasterSamples.start);
 				auto const right = std::min(inSamples.stop, inMasterSamples.stop);
 
-				// intersection is empty
+				// Intersection is empty.
 				if(left >= right)
 					continue;
 
 				for(int i=0; i < stream.fmt.numPlanes; ++i) {
 					auto src = inputData->getPlane(i) + (left - inSamples.start) * BPS;
+					assert((right - inSamples.start) * BPS <= (int64_t)inputData->getPlaneSize());
 					auto dst = pcm->getPlane(i) + (left - inMasterSamples.start) * BPS;
+					assert((right - inMasterSamples.start) * BPS <= (int64_t)pcm->getPlaneSize());
 					memcpy(dst, src, (right - left) * BPS);
 				}
 
@@ -344,7 +346,9 @@ struct Rectifier : ModuleDynI {
 			}
 
 			if (writtenSamples != (inMasterSamples.stop - inMasterSamples.start))
-				m_host->log(Warning, format("Incomplete audio period (%s samples instead of %s). Expect glitches.", writtenSamples, inMasterSamples.stop - inMasterSamples.start).c_str());
+				m_host->log(Warning, format("Incomplete audio period (%s samples instead of %s). Expect glitches.",
+							writtenSamples, inMasterSamples.stop - inMasterSamples.start).c_str());
+
 			stream.output->post(pcm);
 		}
 
@@ -374,7 +378,7 @@ struct Rectifier : ModuleDynI {
 				}
 			}
 
-			// send heartbeat
+			// Send heartbeat.
 			auto heartbeat = stream.output->allocData<DataSubtitle>(0);
 			heartbeat->set(PresentationTime{outMasterTime.start});
 			stream.output->post(heartbeat);
