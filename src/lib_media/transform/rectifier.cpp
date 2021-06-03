@@ -158,7 +158,7 @@ struct Rectifier : ModuleDynI {
 			// If the frame is available, but since very little time, use it, but don't remove it.
 			// Thus, it will be used again next time.
 			// This protects us from frame phase changes (e.g on SDI cable replacement).
-			if(std::abs(stream.data[0].creationTime - std::max(now, 0LL)) < fractionToClock(framePeriod))
+			if(std::abs(stream.data[0].creationTime - std::max(now, (decltype(now))0)) < fractionToClock(framePeriod))
 				return stream.blank;
 
 			auto r = stream.data.front().data;
@@ -289,7 +289,7 @@ struct Rectifier : ModuleDynI {
 				// So we compensate for the the worst-case scenario, empirically introducing
 				// a maximum inaccuracy of 4 samples (~0.1ms).
 				auto const accuracy = 4;
-				auto const start = divUp(pcm->get<PresentationTime>().time * stream.fmt.sampleRate, IClock::Rate * accuracy) * accuracy;
+				auto const start = divUp(pcm->get<PresentationTime>().time * stream.fmt.sampleRate, (int64_t)(IClock::Rate * accuracy)) * accuracy;
 				return { start, start + int64_t(pcm->getPlaneSize() / BPS) };
 			};
 
