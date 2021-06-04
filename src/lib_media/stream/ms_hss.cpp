@@ -30,13 +30,14 @@ void skipBox(span<const uint8_t>& bs, uint32_t boxName) {
 struct MS_HSS : public ModuleS {
 		MS_HSS(KHost* host, const std::string &url)
 			: m_host(host) {
-			m_httpSender = createHttpSender({url, "MS-HSS", POST, {}}, m_host);
+			(void)url;//Romain:
+			//m_httpSender = createHttpSender({url, "MS-HSS", POST, {}}, m_host);
 		}
 
 		~MS_HSS() {
 			// tell the remote application to close the session
 			std::vector<uint8_t> endOfSessionSuffix = { 0, 0, 0, 8, 'm', 'f', 'r', 'a' };
-			m_httpSender->send({endOfSessionSuffix.data(), endOfSessionSuffix.size()});
+			if (m_httpSender) m_httpSender->send({endOfSessionSuffix.data(), endOfSessionSuffix.size()});
 		}
 
 
@@ -53,14 +54,14 @@ struct MS_HSS : public ModuleS {
 			{
 				auto prefix = data->data();
 				prefix.len = bs.ptr - prefix.ptr;
-				m_httpSender->setPrefix(prefix);
+				if (m_httpSender) m_httpSender->setPrefix(prefix);
 			}
 
-			m_httpSender->send(bs);
+			if (m_httpSender) m_httpSender->send(bs);
 		}
 
 		void flush() override {
-			m_httpSender->send({});
+			if (m_httpSender) m_httpSender->send({});
 		}
 
 	private:

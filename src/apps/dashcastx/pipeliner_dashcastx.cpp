@@ -227,7 +227,7 @@ std::unique_ptr<Pipeline> buildPipeline(const Config &cfg) {
 		mp4config.segmentDurationInMs =  cfg.segmentDurationInMs;
 		mp4config.segmentPolicy = FragmentedSegment;
 		mp4config.fragmentPolicy = cfg.ultraLowLatency ? OneFragmentPerFrame : OneFragmentPerSegment;
-		mp4config.compatFlags = Browsers;
+		mp4config.compatFlags = FlushFragMemory | ExactInputDur | Browsers;
 		mp4config.utcStartTime = &utcStartTime;
 
 		auto muxer = pipeline->add("GPACMuxMP4", &mp4config);

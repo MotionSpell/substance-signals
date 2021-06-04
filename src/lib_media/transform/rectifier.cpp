@@ -131,6 +131,34 @@ struct Rectifier : ModuleDynI {
 				throw error("Metadata I/O inconsistency");
 		}
 
+		// Audio media times may be noisy whereas actual data don't need rectification.
+		// The issue is that we can't know on which side of the inaccuracy we start.
+		Data rectifyAudioMediaTimes(Data data, int i) {
+			if (streams[i].data.empty())
+				return data;
+
+			if (auto const pcm = std::dynamic_pointer_cast<const DataPcm>(data)) {
+				auto const accuracy = divUp(1 * IClock::Rate, 90000LL); // 1 sample at 90kHz
+				
+				// FIXME: in case of clone: data.data->get<PresentationTime>().time != inputData->get<PresentationTime>().time
+				auto const dataPrev = streams[i].data.back().data;
+				auto const pcmPrev = safe_cast<const DataPcm>(dataPrev);
+
+				// Operate on samples.
+				auto const dataPrevSampleEnd = dataPrev->get<PresentationTime>().time * streams[i].fmt.sampleRate / IClock::Rate + pcmPrev->getSampleCount();
+				auto const dataSampleStart = data->get<PresentationTime>().time * streams[i].fmt.sampleRate / IClock::Rate;
+				
+				// Within accuracy range align start time with previous end time. This can't drift.
+				if (dataPrevSampleEnd != dataSampleStart && std::abs(dataPrevSampleEnd - dataSampleStart) <= accuracy) {
+					auto data2 = clone(data);
+					data2->setMediaTime(dataPrevSampleEnd, streams[i].fmt.sampleRate);
+					return data2;
+				}
+			}
+
+			return data;
+		}
+
 		// streamMutex must be owned
 		void fillInputQueues() {
 			auto now = fractionToClock(clock->now());
@@ -140,8 +168,10 @@ struct Rectifier : ModuleDynI {
 
 				Data data;
 				while (currInput->tryPop(data)) {
-					streams[i].data.push_back({now, data});
+					data = rectifyAudioMediaTimes(data, i);
 
+					streams[i].data.push_back({now, data});
+					
 					if (currInput->updateMetadata(data))
 						declareScheduler(currInput.get(), streams[i].output);
 				}
@@ -282,15 +312,9 @@ struct Rectifier : ModuleDynI {
 				return { toSamples(p.start), toSamples(p.stop) };
 			};
 
-			// Be careful: apply denoise to input data only.
-			auto getDenoisedSampleInterval = [&](const DataPcm* pcm) -> Interval {
-				// Input media times may be noisy due to previous timescale conversions.
-				// The issue is that we can't know on which side of the inaccuracy we start.
-				// So we compensate for the the worst-case scenario, empirically introducing
-				// a maximum inaccuracy of 4 samples (~0.1ms).
-				auto const accuracy = 4;
-				auto const start = divUp(pcm->get<PresentationTime>().time * stream.fmt.sampleRate, (int64_t)(IClock::Rate * accuracy)) * accuracy;
-				return { start, start + int64_t(pcm->getPlaneSize() / BPS) };
+			auto getSampleInterval = [&](int64_t pts, uint64_t planeSize) -> Interval {
+				auto const start = pts * stream.fmt.sampleRate / IClock::Rate;
+				return { start, start + int64_t(planeSize / BPS) };
 			};
 
 			// Convert all times to absolute sample counts.
@@ -310,7 +334,7 @@ struct Rectifier : ModuleDynI {
 			// Remove obsolete samples.
 			auto isObsolete = [&](Stream::Rec const& rec) {
 				auto const inputData = safe_cast<const DataPcm>(rec.data);
-				auto const inSamples = getDenoisedSampleInterval(inputData.get());
+				auto const inSamples = getSampleInterval(rec.data->get<PresentationTime>().time, inputData->getPlaneSize());
 				return inSamples.stop < inMasterSamples.start;
 			};
 
@@ -323,7 +347,7 @@ struct Rectifier : ModuleDynI {
 			// that intersect with the "media period".
 			for(auto& data : stream.data) {
 				auto const inputData = safe_cast<const DataPcm>(data.data);
-				auto const inSamples = getDenoisedSampleInterval(inputData.get());
+				auto const inSamples = getSampleInterval(data.data->get<PresentationTime>().time, inputData->getPlaneSize());
 				assert(inSamples.stop - inSamples.start == inputData->getSampleCount());
 
 				// Intersect period of this data with the "media period".

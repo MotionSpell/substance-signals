@@ -83,7 +83,7 @@ struct SDLAudio : ModuleS {
 
 		SDL_AudioSpec realSpec;
 		SDL_AudioSpec audioSpec = toSdlAudioSpec(inputFormat);
-		audioSpec.samples = 1024;  /* Good low-latency value for callback */
+		audioSpec.samples = 3072; // 1024; /* Good low-latency value for callback */
 		audioSpec.callback = &SDLAudio::staticFillAudio;
 		audioSpec.userdata = this;
 
@@ -144,6 +144,8 @@ struct SDLAudio : ModuleS {
 		int64_t numSamplesToProduce = buffer.len / m_outputFormat.getBytesPerSample();
 		auto const relativeTimePositionIn180k = std::min<int64_t>(m_fifoTime - bufferTimeIn180k, IClock::Rate * 10); // clamp to 10s to avoid integer overflows below
 		auto const relativeSamplePosition = relativeTimePositionIn180k * m_outputFormat.sampleRate / int64_t(IClock::Rate);
+
+		//printf("Romain: %d\n", (int)fifoSamplesToRead()); fflush(stdout);
 
 		if (relativeTimePositionIn180k < -TOLERANCE) {
 			auto const fifoSamplesToRemove = std::max<int64_t>(0, fifoSamplesToRead() - numSamplesToProduce);

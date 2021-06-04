@@ -620,10 +620,10 @@ unittest("rectifier: audio timescale rounding compensation") {
 	const auto videoRate = Fraction(25, 1);
 	const auto audioFrameDur = Fraction(1024, 44100);
 	auto times = generateInterleavedEvents(audioFrameDur, 0, 0, videoRate.inverse(), 0, 0);
-	int noise = 0;
 	for (auto& t : times)
 		if (t.index == 0)
-			t.mediaTime -= ((2 * noise++) % 4); // insert index
+			if (t.mediaTime != 0) // this test assumes we start at 0
+				t.mediaTime += 1 + (t.mediaTime % 2); // insert offset and rounding
 	vector<unique_ptr<ModuleS>> generators;
 	generators.push_back(createModuleWithSize<AudioGenerator44100>(100, audioFrameDur.inverse()));
 	generators.push_back(createModuleWithSize<VideoGenerator>(100, videoRate));

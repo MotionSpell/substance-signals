@@ -11,10 +11,10 @@ struct TsDemuxerConfig {
 		int type = NONE;
 	};
 
-	static constexpr Pid ANY_VIDEO() {
+	static const Pid ANY_VIDEO() {
 		return { ANY, VIDEO };
 	};
-	static constexpr Pid ANY_AUDIO() {
+	static const Pid ANY_AUDIO() {
 		return { ANY, AUDIO };
 	};
 
