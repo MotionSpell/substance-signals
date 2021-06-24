@@ -129,3 +129,11 @@ saxParse(invalidXmlTestData2, onNodeStart, onNodeEnd);
 char invalidXmlTestData3[] = R"(<Hello/>)"; // corner case of the parser
 saxParse(invalidXmlTestData3, onNodeStart, onNodeEnd);
 }
+
+unittest("XML serialization: invalid </br> in middle of text") {
+	auto onNodeStart = [&](std::string, SmallMap<std::string, std::string>&) {};
+	auto onNodeEnd = [&](std::string, std::string) {};
+	char invalidXmlTestData[] = R"(<T>tt<br/>uu</T>)"; // corner case of the parser
+	//ASSERT_THROWN  //FIXME: should raise an exception
+	saxParse(invalidXmlTestData, onNodeStart, onNodeEnd);
+}

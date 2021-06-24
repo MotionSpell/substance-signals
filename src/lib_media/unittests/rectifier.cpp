@@ -403,11 +403,11 @@ vector<Event> generateEvents(Fraction fps, int index = 0, function<TimePair(uint
 }
 
 vector<Event> generateInterleavedEvents(Fraction frameDurAudio, int clockOffsetAudio, int mediaOffsetAudio,
-	Fraction frameDurVideo, int clockOffsetVideo, int mediaOffsetVideo) {
+    Fraction frameDurVideo, int clockOffsetVideo, int mediaOffsetVideo) {
 	auto times = generateEvents(frameDurAudio.inverse(), 0,
-		bind(generateTimePair, placeholders::_1, placeholders::_2, clockOffsetAudio, mediaOffsetAudio)); //audio
+	        bind(generateTimePair, placeholders::_1, placeholders::_2, clockOffsetAudio, mediaOffsetAudio)); //audio
 	auto times2 = generateEvents(frameDurVideo.inverse(), 1,
-		bind(generateTimePair, placeholders::_1, placeholders::_2, clockOffsetVideo, mediaOffsetVideo)); //video
+	        bind(generateTimePair, placeholders::_1, placeholders::_2, clockOffsetVideo, mediaOffsetVideo)); //video
 	times.insert(times.end(), times2.begin(), times2.end());
 	sort(times.begin(), times.end());
 	return times;
@@ -644,6 +644,6 @@ unittest("rectifier: audio timescale rounding compensation") {
 		Event{1, 86400, 86400}, Event{0, 86400, 86400},
 		Event{1, 93600, 93600}, Event{0, 93600, 93600},
 		Event{1, 100800, 100800}, Event{0, 100800, 100800},
-		});
+	});
 	ASSERT_EQUALS(expected, actualTimes);
 }

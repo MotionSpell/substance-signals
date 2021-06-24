@@ -139,7 +139,7 @@ struct Rectifier : ModuleDynI {
 
 			if (auto const pcm = std::dynamic_pointer_cast<const DataPcm>(data)) {
 				auto const accuracy = divUp(1 * IClock::Rate, 90000LL); // 1 sample at 90kHz
-				
+
 				// FIXME: in case of clone: data.data->get<PresentationTime>().time != inputData->get<PresentationTime>().time
 				auto const dataPrev = streams[i].data.back().data;
 				auto const pcmPrev = safe_cast<const DataPcm>(dataPrev);
@@ -147,7 +147,7 @@ struct Rectifier : ModuleDynI {
 				// Operate on samples.
 				auto const dataPrevSampleEnd = dataPrev->get<PresentationTime>().time * streams[i].fmt.sampleRate / IClock::Rate + pcmPrev->getSampleCount();
 				auto const dataSampleStart = data->get<PresentationTime>().time * streams[i].fmt.sampleRate / IClock::Rate;
-				
+
 				// Within accuracy range align start time with previous end time. This can't drift.
 				if (dataPrevSampleEnd != dataSampleStart && std::abs(dataPrevSampleEnd - dataSampleStart) <= accuracy) {
 					auto data2 = clone(data);
@@ -171,7 +171,7 @@ struct Rectifier : ModuleDynI {
 					data = rectifyAudioMediaTimes(data, i);
 
 					streams[i].data.push_back({now, data});
-					
+
 					if (currInput->updateMetadata(data))
 						declareScheduler(currInput.get(), streams[i].output);
 				}
@@ -371,7 +371,7 @@ struct Rectifier : ModuleDynI {
 
 			if (writtenSamples != (inMasterSamples.stop - inMasterSamples.start))
 				m_host->log(Warning, format("Incomplete audio period (%s samples instead of %s). Expect glitches.",
-							writtenSamples, inMasterSamples.stop - inMasterSamples.start).c_str());
+				        writtenSamples, inMasterSamples.stop - inMasterSamples.start).c_str());
 
 			stream.output->post(pcm);
 		}
