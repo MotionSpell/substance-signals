@@ -184,11 +184,13 @@ unittest("mpeg_dash_input: only get available segments") {
 </MPD>)|";
 	LocalFilesystem source;
 	source.resources["main/manifest.mpd"] = MPD;
-	source.resources["main/medium/init.mp4"] = "a";
-	source.resources["main/medium/5.m4s"] = "a";
-	source.resources["main/medium/6.m4s"] = "a";
-	source.resources["main/medium/7.m4s"] = "a";
+	source.resources["main/high/init.mp4"] = "a";
+	source.resources["main/high/5.m4s"] = "a";
+	source.resources["main/high/6.m4s"] = "a";
+	source.resources["main/high/7.m4s"] = "a";
 	auto dash = createModule<MPEG_DASH_Input>(&NullHost, &source, "main/manifest.mpd");
+
+	dash->enableStream(0, 1); // high
 
 	for(int i=0; i < 5; ++i)
 		dash->process();
@@ -198,11 +200,11 @@ unittest("mpeg_dash_input: only get available segments") {
 	ASSERT_EQUALS(
 	std::vector<std::string>( {
 		"main/manifest.mpd",
-		"main/medium/init.mp4",
-		"main/medium/5.m4s",
-		"main/medium/6.m4s",
-		"main/medium/7.m4s",
-		"main/medium/8.m4s",
+		"main/high/init.mp4",
+		"main/high/5.m4s",
+		"main/high/6.m4s",
+		"main/high/7.m4s",
+		"main/high/8.m4s",
 	}),
 	source.requests);
 }
@@ -306,26 +308,8 @@ unittest("mpeg_dash_input: number of outputs is the number of adaptation sets wi
 	ASSERT_EQUALS(1, dash->getNumOutputs());
 }
 
-unittest("mpeg_dash_input: switch representations in adaption set") {
-	//TODO: set different start numbers for each representation
-	static auto const MPD = R"|(
-<?xml version="1.0"?>
-<MPD>
-  <Period>
-    <AdaptationSet>
-      <SegmentTemplate
-        initialization="$RepresentationID$/init.mp4"
-        media="$RepresentationID$/$Number$.m4s"
-        duration="10"/>
-      <Representation id="low" mimeType="audio/mp4">
-        <SegmentTemplate startNumber="5" />
-      </Representation>
-      <Representation id="high" mimeType="audio/mp4">
-        <SegmentTemplate startNumber="5" />
-      </Representation>
-    </AdaptationSet>
-  </Period>
-</MPD>)|";
+namespace {
+static void switchRep(const std::string &MPD) {
 	LocalFilesystem source;
 	source.resources["main/manifest.mpd"] = MPD;
 	source.resources["main/low/init.mp4"] = "a";
@@ -354,6 +338,56 @@ unittest("mpeg_dash_input: switch representations in adaption set") {
 		"main/low/7.m4s",
 	}),
 	source.requests);
+}
+}
+
+unittest("mpeg_dash_input: switch representations in adaption set") {
+	//TODO: set different start numbers for each representation
+	static auto const MPD = R"|(
+<?xml version="1.0"?>
+<MPD>
+  <Period>
+    <AdaptationSet>
+      <SegmentTemplate
+        initialization="$RepresentationID$/init.mp4"
+        media="$RepresentationID$/$Number$.m4s"
+        duration="10"/>
+      <Representation id="low" mimeType="audio/mp4">
+        <SegmentTemplate startNumber="5" />
+      </Representation>
+      <Representation id="high" mimeType="audio/mp4">
+        <SegmentTemplate startNumber="5" />
+      </Representation>
+    </AdaptationSet>
+  </Period>
+</MPD>)|";
+
+	switchRep(MPD);
+}
+
+unittest("mpeg_dash_input: ensure SegmentTemplate update when switching representations") {
+	//TODO: set different start numbers for each representation
+	static auto const MPD = R"|(
+<?xml version="1.0"?>
+<MPD>
+  <Period>
+    <AdaptationSet>
+      <SegmentTemplate duration="10"/>
+      <Representation id="low" mimeType="audio/mp4">
+        <SegmentTemplate startNumber="5"
+			initialization="low/init.mp4"
+			media="low/$Number$.m4s" />
+      </Representation>
+      <Representation id="high" mimeType="audio/mp4">
+        <SegmentTemplate startNumber="5"
+        initialization="high/init.mp4"
+        media="high/$Number$.m4s" />
+      </Representation>
+    </AdaptationSet>
+  </Period>
+</MPD>)|";
+
+	switchRep(MPD);
 }
 
 unittest("mpeg_dash_input: get adaptation set SRD descriptor") {
