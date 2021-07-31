@@ -147,11 +147,11 @@ IFilter* createDemuxer(Pipeline& pipeline, std::string url) {
 		pipeline.connect(recv, demux);
 		return demux;
 	}
-	/*if(startsWith(url, "http://") || startsWith(url, "https://")) {
+	if(startsWith(url, "http://") || startsWith(url, "https://")) {
 		DashDemuxConfig cfg;
 		cfg.url = url;
 		return pipeline.add("DashDemuxer", &cfg);
-	} else*/ {
+	} else {
 		DemuxConfig cfg;
 		cfg.url = url;
 		return pipeline.add("LibavDemux", &cfg);

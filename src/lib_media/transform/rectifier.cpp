@@ -148,7 +148,7 @@ struct Rectifier : ModuleDynI {
 				auto const dataPrevSampleEnd = dataPrev->get<PresentationTime>().time * streams[i].fmt.sampleRate / IClock::Rate + pcmPrev->getSampleCount();
 				auto const dataSampleStart = data->get<PresentationTime>().time * streams[i].fmt.sampleRate / IClock::Rate;
 
-				// Within accuracy range align start time with previous end time. This can't drift.
+				// Align start time with previous end time when within accuracy. Can't drift by design.
 				if (dataPrevSampleEnd != dataSampleStart && std::abs(dataPrevSampleEnd - dataSampleStart) <= accuracy) {
 					auto data2 = clone(data);
 					data2->setMediaTime(dataPrevSampleEnd, streams[i].fmt.sampleRate);

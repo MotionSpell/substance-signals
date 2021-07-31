@@ -30,8 +30,7 @@ void skipBox(span<const uint8_t>& bs, uint32_t boxName) {
 struct MS_HSS : public ModuleS {
 		MS_HSS(KHost* host, const std::string &url)
 			: m_host(host) {
-			(void)url;//Romain:
-			//m_httpSender = createHttpSender({url, "MS-HSS", POST, {}}, m_host);
+			m_httpSender = createHttpSender({url, "MS-HSS", POST, {}}, m_host);
 		}
 
 		~MS_HSS() {
