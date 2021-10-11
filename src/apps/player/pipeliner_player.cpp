@@ -117,7 +117,7 @@ IFilter* createDemuxer(Pipeline& pipeline, std::string url) {
 		url = url.substr(9);
 		IFilter *in = nullptr;
 		MulticastInputConfig mcast;
-		if (sscanf("224.0.0.1:1234", "%d.%d.%d.%d:%d",
+		if (sscanf(url.c_str(), "%d.%d.%d.%d:%d",
 		        &mcast.ipAddr[0],
 		        &mcast.ipAddr[1],
 		        &mcast.ipAddr[2],

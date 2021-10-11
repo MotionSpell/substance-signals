@@ -39,7 +39,6 @@ Metadata createMetadata(int mpegStreamType) {
 }
 
 struct PesStream : Stream {
-
 		struct Restamper {
 			virtual void restamp(int64_t& time) = 0;
 		};
@@ -163,7 +162,7 @@ struct PesStream : Stream {
 				buf->set(DecodingTime {decodingTime});
 			}
 			buf->set(CueFlags{});
-			memcpy(buf->buffer->data().ptr, pesBuffer.data()+r.byteOffset(),pesPayloadSize);
+			memcpy(buf->buffer->data().ptr, pesBuffer.data()+r.byteOffset(), pesPayloadSize);
 			m_output->post(buf);
 		}
 

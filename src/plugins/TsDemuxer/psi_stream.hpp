@@ -15,7 +15,6 @@ static void skip(BitReader& r, int byteCount, const char* what) {
 }
 
 struct PsiStream : Stream {
-
 		struct EsInfo {
 			int pid, mpegStreamType;
 		};
@@ -29,7 +28,6 @@ struct PsiStream : Stream {
 		}
 
 		void push(SpanC data, bool pusi) override {
-
 			BitReader r = {data};
 			if(pusi) {
 				int pointerField = r.u(8);
