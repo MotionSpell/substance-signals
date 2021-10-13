@@ -72,7 +72,9 @@ auto p = createPipelineFromJSON(json, [](const string type, const SmallMap<std::
     bool param = false;
     if (params.find("oneMoreOutput") != params.end())
         param = params["oneMoreOutput"].intValue;
-    return shared_ptr<ConfigType>((ConfigType*)new bool(param)); });
+    auto deleter = [](ConfigType *p) {delete (bool*)p;};
+    return shared_ptr<ConfigType>((ConfigType*)new bool(param), deleter);
+});
 ASSERT_EQUALS(expected, p->dumpDOT());
 }
 
@@ -146,7 +148,9 @@ string expected = R"|(digraph {
 )|";
 
 auto p = createPipelineFromJSON(json, [](const string, const SmallMap<std::string, json::Value>&) {
-    return shared_ptr<ConfigType>((ConfigType*)new bool(false)); });
+    auto deleter = [](ConfigType *p) {delete (bool*)p;};
+    return shared_ptr<ConfigType>((ConfigType*)new bool(false), deleter);
+});
 ASSERT_EQUALS(expected, p->dumpDOT());
 }
 
