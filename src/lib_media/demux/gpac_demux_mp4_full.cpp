@@ -16,7 +16,6 @@ namespace Modules {
 const int FIRST_TRACK = 1;
 
 struct ISOProgressiveReader {
-
 	void pushData(SpanC buf) {
 		//TODO: zero copy mode, or at least improve the current system
 		//with allocator packet duplication
@@ -26,14 +25,17 @@ struct ISOProgressiveReader {
 	}
 
 	// URL used to pass a buffer to the parser
-	std::string dataUrl() const {
+	std::string dataUrl() {
+		blob.data = data.data();
+		blob.size = data.size();
 		char buffer[256];
-		sprintf(buffer, "gmem://%lld@%p", (long long)data.size(), data.data());
+		sprintf(buffer, "gmem://%p", &blob);
 		return buffer;
 	}
 
 	// data buffer to be read by the parser
 	std::vector<u8> data;
+	GF_Blob blob {};
 
 	// The ISO file structure created for the parsing of data
 	std::unique_ptr<gpacpp::IsoFile> movie;
@@ -75,7 +77,7 @@ class GPACDemuxMP4Full : public ModuleS {
 			// if the file is not yet opened (no movie), open it in progressive mode (to update its data later on)
 			u64 missingBytes;
 			GF_ISOFile *movie;
-			GF_Err e = gf_isom_open_progressive(reader.dataUrl().c_str(), 0, 0, &movie, &missingBytes);
+			GF_Err e = gf_isom_open_progressive(reader.dataUrl().c_str(), 0, 0, GF_FALSE, &movie, &missingBytes);
 			if ((e != GF_OK && e != GF_ISOM_INCOMPLETE_FILE)) {
 				m_host->log(Warning, format("Error opening fragmented mp4 in progressive mode: %s (missing %s bytes)", gf_error_to_string(e), missingBytes).c_str());
 				return false;

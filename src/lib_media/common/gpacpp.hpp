@@ -21,7 +21,7 @@ extern "C" {
 #include <gpac/tools.h>
 #include <gpac/isomedia.h>
 #include <gpac/media_tools.h>
-#include <gpac/internal/mpd.h>
+#include <gpac/mpd.h>
 }
 
 //#define GPAC_MEM_TRACKER
@@ -92,7 +92,7 @@ class IsoFile {
 	public:
 		IsoFile(std::string const& url) {
 			u64 missingBytes;
-			GF_Err e = gf_isom_open_progressive(url.c_str(), 0, 0, &movie_, &missingBytes);
+			GF_Err e = gf_isom_open_progressive(url.c_str(), 0, 0, GF_FALSE, &movie_, &missingBytes);
 			if (e != GF_OK && e != GF_ISOM_INCOMPLETE_FILE)
 				throw Error("Can't open fragmented MP4 file", e);
 		}

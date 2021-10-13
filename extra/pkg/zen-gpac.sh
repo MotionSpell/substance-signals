@@ -5,9 +5,9 @@ function gpac_build {
   # do not use a truncated hash here, use the full hash!
   # (collisions DO occur with truncated hashes, in practice this would
   # have the effect of stopping the whole build)
-  readonly hash="c02c9a2fb0815bfd28b7c4c46630601ad7fe291d"
+  readonly hash="77f19d66501f88b64db40b6507809a4103f3ab2f"
 
-  lazy_git_clone https://github.com/gpac/gpac.git gpac "$hash"
+  lazy_git_clone github.com:rbouqueau/gpac.git gpac "$hash"
 
   local OS=$(get_os $host)
   local crossPrefix=$(get_cross_prefix $BUILD $host)
@@ -28,7 +28,7 @@ function gpac_build {
   pushDir gpac/build/$host
 
   local options=()
-
+if false; then
   options+=(--disable-player)
 
   # Can't use --disable-all, because it sets GPAC_DISABLE_CORE_TOOLS
@@ -98,6 +98,9 @@ function gpac_build {
 
   # We don't use 'isom-dump', however GPAC will generate an unlinkable libgpac.so otherwise
   options+=(--enable-isom-dump)     # enable ISOM dump
+else
+  options+=(--enable-debug)
+fi
 
   ../../configure \
     --target-os=$os \
