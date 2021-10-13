@@ -8,6 +8,7 @@ CFLAGS+=-fvisibility=hidden -fvisibility-inlines-hidden
 
 BIN?=bin
 SRC?=src
+STRIP?=strip
 
 ifeq ($(DEBUG), 1)
   CFLAGS+=-g3
@@ -92,6 +93,7 @@ targets: $(TARGETS)
 $(BIN)/%.exe:
 	@mkdir -p $(dir $@)
 	$(CXX) -o "$@" $^ $(LDFLAGS)
+	@$(STRIP) "$@"
 
 $(BIN)/%.cpp.o: %.cpp
 	@mkdir -p $(dir $@)
