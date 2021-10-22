@@ -14,6 +14,6 @@ typedef struct {
 
     // Signals parent object
     void *parent;
-    void (*pushData)(void *parent, const u8 *data, u32 data_size, u64 dts);
+    void (*pushData)(void *parent, const u8 *data, u32 data_size, u64 dts, u64 pts);
     void (*pushDsi)(void *parent, const u8 *data, u32 data_size);
 } MemOutCtx;

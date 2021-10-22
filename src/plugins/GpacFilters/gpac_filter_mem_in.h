@@ -11,6 +11,7 @@ typedef struct {
 
     // Signals parent object
     void *parent;
-    void (*getData)(void *parent, const u8 **data, u32 *data_size, u64 *dts);
+    void (*getData)(void *parent, const u8 **data, u32 *data_size, u64 *dts, u64 *pts);
     void (*freeData)(void *parent);
+    const char *signals_codec_name;
 } MemInCtx;

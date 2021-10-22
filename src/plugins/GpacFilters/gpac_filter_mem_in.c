@@ -1,7 +1,5 @@
 #include "gpac_filter_mem_in.h"
-
-//Romain: test to compile as C99, C11, C++, ...
-//https://stackoverflow.com/questions/855021/how-do-i-access-internal-members-of-a-union#855039
+#include <string.h>
 
 #define OFFS(_n)	#_n, offsetof(MemInCtx, _n)
 
@@ -18,13 +16,9 @@ static GF_Err mem_in_initialize(GF_Filter *filter) {
 	return GF_OK;
 }
 
-//Romain:
-//static void mem_in_finalize(GF_Filter */*filter*/) {
-//}
-
 static GF_FilterProbeScore mem_in_probe_url(const char *url, const char *mime_type) {
 	(void)(mime_type);
-	if (!strnicmp(url, "signals://", 10))
+	if (!strncmp(url, "signals://", 10))
 		return GF_FPROBE_SUPPORTED;
 	else
 		return GF_FPROBE_NOT_SUPPORTED;
@@ -55,32 +49,47 @@ static void mem_in_pck_destructor(GF_Filter *filter, GF_FilterPid *pid, GF_Filte
 	ctx->freeData(ctx->parent);
 }
 
+static GF_CodecID get_codec_id(const char *signals_codec_name) {
+	if (!strcmp(signals_codec_name, "mp1"))
+		return GF_CODECID_MPEG_AUDIO;
+	else if (!strcmp(signals_codec_name, "mp2"))
+		return GF_CODECID_MPEG2_PART3;
+	else if (!strcmp(signals_codec_name, "aac_adts") || !strcmp(signals_codec_name, "aac_latm"))
+		return GF_CODECID_AAC_MPEG4;
+	else if (!strcmp(signals_codec_name, "ac3"))
+		return GF_CODECID_AC3;
+	else if (!strcmp(signals_codec_name, "eac3"))
+		return GF_CODECID_EAC3;
+	else
+		return GF_CODECID_NONE;
+}
+
 static GF_Err mem_in_process(GF_Filter *filter) {
 	GF_Err e = GF_OK;
 	const u8 *data = NULL;
 	u32 data_size = 0;
-	u64 dts = 0;
+	u64 dts = 0, pts = 0;
 	MemInCtx* ctx = (MemInCtx*)gf_filter_get_udta(filter);
 
 	if (ctx->eos)
 		return GF_EOS;
 
-	ctx->getData(ctx->parent, &data, &data_size, &dts);
+	ctx->getData(ctx->parent, &data, &data_size, &dts, &pts);
 	if (data) {
 		if (!ctx->pid) {
-			//e = gf_filter_pid_raw_new(filter, ctx->src, NULL, "audio/aac"/*Romain*/, NULL, data, data_size, GF_TRUE, &ctx->pid);
 			ctx->pid = gf_filter_pid_new(filter);
-			if (!ctx->pid) goto exit; //OUT OF MEMORY
-			//if (e) goto exit;
+			if (!ctx->pid) {
+				e = GF_OUT_OF_MEM;
+				goto exit;
+			}
 
-			//Romain: setting the timescale creates a deadlock because there seems to be some buffering based on media times in gpac
 			e = gf_filter_pid_set_property(ctx->pid, GF_PROP_PID_TIMESCALE, &PROP_UINT(180000));
 			if (e) goto exit;
 
 			e = gf_filter_pid_set_property(ctx->pid, GF_PROP_PID_STREAM_TYPE, &PROP_UINT(GF_STREAM_AUDIO));
 			if (e) goto exit;
 
-			e = gf_filter_pid_set_property(ctx->pid, GF_PROP_PID_CODECID, &PROP_UINT(GF_CODECID_AAC_MPEG4));
+			e = gf_filter_pid_set_property(ctx->pid, GF_PROP_PID_CODECID, &PROP_UINT(get_codec_id(ctx->signals_codec_name)));
 			if (e) goto exit;
 
 			e = gf_filter_pid_set_property(ctx->pid, GF_PROP_PID_UNFRAMED, &PROP_BOOL(GF_TRUE));
@@ -108,14 +117,15 @@ exit:
 }
 
 const GF_FilterCapability MemInCaps[] = {
-	CAP_UINT(GF_CAPS_OUTPUT, GF_PROP_PID_STREAM_TYPE, GF_STREAM_AUDIO/*FILE*/),
+	CAP_UINT(GF_CAPS_OUTPUT, GF_PROP_PID_STREAM_TYPE, GF_STREAM_AUDIO),
 	CAP_BOOL(GF_CAPS_OUTPUT, GF_PROP_PID_UNFRAMED, GF_TRUE),
 	CAP_UINT(GF_CAPS_OUTPUT, GF_PROP_PID_CODECID, GF_CODECID_AAC_MPEG4),
-	/*CAP_UINT(GF_CAPS_OUTPUT, GF_PROP_PID_CODECID, GF_CODECID_AAC_MPEG2_LCP),
+	CAP_UINT(GF_CAPS_OUTPUT, GF_PROP_PID_CODECID, GF_CODECID_AAC_MPEG2_LCP),
 	CAP_UINT(GF_CAPS_OUTPUT, GF_PROP_PID_CODECID, GF_CODECID_AAC_MPEG2_SSRP),
 	CAP_UINT(GF_CAPS_OUTPUT, GF_PROP_PID_CODECID, GF_CODECID_MPEG2_PART3),
-	CAP_UINT(GF_CAPS_OUTPUT, GF_PROP_PID_CODECID, GF_CODECID_MPEG1),
-	CAP_UINT(GF_CAPS_OUTPUT, GF_PROP_PID_CODECID, GF_CODECID_MPEG_AUDIO),*/
+	CAP_UINT(GF_CAPS_OUTPUT, GF_PROP_PID_CODECID, GF_CODECID_MPEG_AUDIO),
+	CAP_UINT(GF_CAPS_OUTPUT, GF_PROP_PID_CODECID, GF_CODECID_AC3),
+	CAP_UINT(GF_CAPS_OUTPUT, GF_PROP_PID_CODECID, GF_CODECID_EAC3),
 };
 
 GF_FilterRegister memInRegister = {

@@ -1,4 +1,5 @@
 #include "gpac_filter_mem_out.h"
+#include <string.h>
 
 #define OFFS(_n)	#_n, offsetof(MemOutCtx, _n)
 
@@ -14,8 +15,9 @@ static const GF_FilterCapability MemOutCaps[] = {
 	CAP_UINT(GF_CAPS_INPUT, GF_PROP_PID_CODECID, GF_CODECID_AAC_MPEG2_LCP),
 	CAP_UINT(GF_CAPS_INPUT, GF_PROP_PID_CODECID, GF_CODECID_AAC_MPEG2_SSRP),
 	CAP_UINT(GF_CAPS_INPUT, GF_PROP_PID_CODECID, GF_CODECID_MPEG2_PART3),
-	CAP_UINT(GF_CAPS_INPUT, GF_PROP_PID_CODECID, GF_CODECID_MPEG1),
-	CAP_UINT(GF_CAPS_INPUT, GF_PROP_PID_CODECID, GF_CODECID_MPEG_AUDIO),	
+	CAP_UINT(GF_CAPS_INPUT, GF_PROP_PID_CODECID, GF_CODECID_MPEG_AUDIO),
+	CAP_UINT(GF_CAPS_INPUT, GF_PROP_PID_CODECID, GF_CODECID_AC3),
+	CAP_UINT(GF_CAPS_INPUT, GF_PROP_PID_CODECID, GF_CODECID_EAC3),
 };
 
 static GF_Err mem_out_initialize(GF_Filter *filter) {
@@ -28,7 +30,7 @@ static GF_Err mem_out_initialize(GF_Filter *filter) {
 
 static GF_FilterProbeScore mem_out_probe_url(const char *url, const char *mime_type) {
 	(void)(mime_type);
-	if (!strnicmp(url, "signals://", 10))
+	if (!strncmp(url, "signals://", 10))
 		return GF_FPROBE_SUPPORTED;
 	else
 		return GF_FPROBE_NOT_SUPPORTED;
@@ -70,8 +72,9 @@ static GF_Err mem_out_process(GF_Filter *filter) {
 		const u8 *data = NULL;
 		u32 data_size = 0;
 		u64 dts = gf_filter_pck_get_dts(pck);
+		u64 pts = gf_filter_pck_get_cts(pck);
 		data = gf_filter_pck_get_data(pck, &data_size);
-		ctx->pushData(ctx->parent, data, data_size, dts);
+		ctx->pushData(ctx->parent, data, data_size, dts, pts);
 
 		gf_filter_pid_drop_packet(ctx->pid);
 	}

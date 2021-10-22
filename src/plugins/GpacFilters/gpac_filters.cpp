@@ -39,6 +39,7 @@ struct GpacFilters : ModuleS {
 		}
 
 		void flush() override {
+			//TODO: better understand EOS mechanism in GPAC Filters
 			if (fs)
 				gf_fs_run_step(fs);
 		}
@@ -53,7 +54,7 @@ struct GpacFilters : ModuleS {
 		//memIn
 		Queue<Data> inputData;
 		Data inputLast;
-		static void inputGetData(void *parent, const u8 **data, u32 *data_size, u64 *dts) {
+		static void inputGetData(void *parent, const u8 **data, u32 *data_size, u64 *dts, u64 *pts) {
 			auto pThis = (GpacFilters*)parent;
 
 			if (pThis->inputLast)
@@ -65,6 +66,7 @@ struct GpacFilters : ModuleS {
 				*data = span.ptr;
 				*data_size = span.len;
 				*dts = pData->get<DecodingTime>().time;
+				*pts = *dts; //not sure it is present from mpeg2ts: pData->get<DecodingTime>().time;
 				pThis->inputLast = pData;
 			}
 		}
@@ -75,11 +77,11 @@ struct GpacFilters : ModuleS {
 
 		//memOut
 		std::string codecName;
-		static void outputPushData(void *parent, const u8 *data, u32 data_size, u64 dts) {
+		static void outputPushData(void *parent, const u8 *data, u32 data_size, u64 dts, u64 pts) {
 			auto pThis = (GpacFilters*)parent;
 			auto out = pThis->output->allocData<DataRaw>(data_size);
 			out->set(DecodingTime{ (int64_t)dts });
-			out->set(PresentationTime { (int64_t)dts });
+			out->set(PresentationTime { (int64_t)pts });
 			out->set(CueFlags{false, true});
 			memcpy(out->buffer->data().ptr, data, data_size);
 			pThis->output->post(out);
@@ -117,6 +119,7 @@ struct GpacFilters : ModuleS {
 					throw error(format("cannot load create GPAC Filters source: %s", gf_error_to_string(e)).c_str());
 				auto ctx = (MemInCtx*)gf_filter_get_udta(memIn);
 				ctx->parent = (void*)this;
+				ctx->signals_codec_name = codecName.c_str();
 				ctx->getData = &GpacFilters::inputGetData;
 				ctx->freeData = &GpacFilters::inputFreeData;
 			}
