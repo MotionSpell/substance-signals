@@ -141,9 +141,8 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::Restamper {
 			if(payloadUnitStartIndicator)
 				stream->flush();
 
-			if(adaptationFieldControl & 0b01) {
+			if(adaptationFieldControl & 0b01)
 				stream->push(r.payload(), payloadUnitStartIndicator);
-			}
 		}
 
 		PesStream* findMatchingStream(PsiStream::EsInfo es) {

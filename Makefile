@@ -2,9 +2,9 @@
 BOMB_TIME_IN_DAYS?=75.0
 
 CFLAGS:=$(CFLAGS)
-CFLAGS+=-std=c++14
+CXXFLAGS+=-std=c++14
 CFLAGS+=-Wall -Wextra -Werror
-CFLAGS+=-fvisibility=hidden -fvisibility-inlines-hidden
+CXXFLAGS+=-fvisibility=hidden -fvisibility-inlines-hidden
 
 BIN?=bin
 SRC?=src
@@ -93,13 +93,21 @@ targets: $(TARGETS)
 $(BIN)/%.exe:
 	@mkdir -p $(dir $@)
 	$(CXX) -o "$@" $^ $(LDFLAGS)
-	@$(STRIP) "$@"
+  ifeq ($(DEBUG), 0)
+	  @$(STRIP) "$@"
+  endif
 
 $(BIN)/%.cpp.o: %.cpp
 	@mkdir -p $(dir $@)
-	$(CXX)  -c $(CFLAGS) "$<" -o "$@"
-	@$(CXX) -c $(CFLAGS) "$<" -o "$@.deps" -MP -MM -MT "$@" # deps generation
-	@$(CXX) -c $(CFLAGS) "$<" -E | wc -l > "$@.lines" # keep track of line count
+	$(CXX)  -c $(CXXFLAGS) $(CFLAGS) "$<" -o "$@"
+	@$(CXX) -c $(CXXFLAGS) $(CFLAGS) "$<" -o "$@.deps" -MP -MM -MT "$@" # deps generation
+	@$(CXX) -c $(CXXFLAGS) $(CFLAGS) "$<" -E | wc -l > "$@.lines" # keep track of line count
+
+$(BIN)/%.c.o: %.c
+	@mkdir -p $(dir $@)
+	$(CC)  -c $(CFLAGS) "$<" -o "$@"
+	@$(CC) -c $(CFLAGS) "$<" -o "$@.deps" -MP -MM -MT "$@" # deps generation
+	@$(CC) -c $(CFLAGS) "$<" -E | wc -l > "$@.lines" # keep track of line count
 
 clean:
 	rm -rf $(BIN)

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 struct PresentationTime {
 	enum { TypeId = 0x35A12022 };
 	int64_t time;

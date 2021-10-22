@@ -41,7 +41,7 @@ function reformat_one_file
   fi
 }
 
-find -name "*.hpp" -or -name "*.cpp" | while read f ; do
+find -name "*.hpp" -or -name "*.cpp" -or -name "*.c" | while read f ; do
   reformat_one_file "$f" &
 done
 
