@@ -498,7 +498,7 @@ void GPACMuxMP4::startSegment() {
 void GPACMuxMP4::closeSegment(bool isLastSeg) {
 	if (curFragmentDurInTs) {
 		if(fragmentPolicy != NoFragment) {
-			m_host->log(Warning, "closeFragment()");
+			m_host->log(Debug, "closeFragment()");
 			closeFragment();
 		}
 	}

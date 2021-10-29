@@ -9,7 +9,7 @@ The implementation is incomplete for now. The goal is to port all the GPAC Signa
 */
 
 struct GpacFiltersConfig {
-    //implements audio reframing only at the moment, which takes no args
+	//implements audio reframing only at the moment, which takes no args
 };
 
 }
