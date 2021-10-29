@@ -124,8 +124,11 @@ IFilter* createDemuxer(Pipeline& pipeline, std::string url) {
 		        &mcast.ipAddr[3],
 		        &mcast.port) == 5) {
 			in = pipeline.add("MulticastInput", &mcast);
-		} else
-			in = pipeline.addModule<In::File>(url);
+		} else {
+			FileInputConfig fileInputConfig;
+			fileInputConfig.filename = url;
+			in = pipeline.add("InputFile", &fileInputConfig);
+		}
 		TsDemuxerConfig cfg {};
 		auto demux = pipeline.add("TsDemuxer", &cfg);
 		pipeline.connect(in, demux);

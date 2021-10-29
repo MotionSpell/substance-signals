@@ -68,7 +68,10 @@ int safeMain(int argc, char const* argv[]) {
 		return GetOutputPin(r);
 	};
 
-	auto file = regulate(restamp(pipeline.addModule<In::File>(cfg.path, 7 * 188)));
+	FileInputConfig fileInputConfig;
+	fileInputConfig.filename = cfg.path;
+	fileInputConfig.blockSize = 7 * 188;
+	auto file = regulate(restamp(pipeline.add("InputFile", &fileInputConfig)));
 	auto sender = pipeline.add("UdpOutput", &cfg.udpConfig);
 	pipeline.connect(file, sender);
 	pipeline.start();

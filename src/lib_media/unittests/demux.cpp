@@ -93,7 +93,9 @@ secondclasstest("demux one track: Demux::GPACDemuxMP4Simple -> Out::Print") {
 }
 
 unittest("GPACDemuxMP4Full: simple demux one track") {
-	auto f = createModule<In::File>(&NullHost, "data/beepbop.mp4");
+	FileInputConfig fileInputConfig;
+	fileInputConfig.filename = "data/beepbop.mp4";
+	auto f = loadModule("FileInput", &NullHost, &fileInputConfig);
 	auto mp4Demux = loadModule("GPACDemuxMP4Full", &NullHost, nullptr);
 
 	int sampleCount = 0;
@@ -111,7 +113,9 @@ unittest("GPACDemuxMP4Full: simple demux one track") {
 }
 
 unittest("GPACDemuxMP4Full: simple demux one empty track") {
-	auto f = createModule<In::File>(&NullHost, "data/emptytrack.mp4");
+	FileInputConfig fileInputConfig;
+	fileInputConfig.filename = "data/emptytrack.mp4";
+	auto f = loadModule("FileInput", &NullHost, &fileInputConfig);
 	auto mp4Demux = loadModule("GPACDemuxMP4Full", &NullHost, nullptr);
 
 	int sampleCount = 0;
@@ -132,7 +136,9 @@ unittest("GPACDemuxMP4Full: simple demux one empty track") {
 }
 
 unittest("GPACDemuxMP4Full: demux fragments") {
-	auto f = createModule<In::File>(&NullHost, "data/fragments.mp4");
+	FileInputConfig fileInputConfig;
+	fileInputConfig.filename = "data/fragments.mp4";
+	auto f = loadModule("FileInput", &NullHost, &fileInputConfig);
 	auto mp4Demux = loadModule("GPACDemuxMP4Full", &NullHost, nullptr);
 
 	int sampleCount = 0;

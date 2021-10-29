@@ -102,12 +102,16 @@ unittest("transcoder: jpg to jpg") {
 	const std::string filename("data/sample.jpg");
 	auto decode = loadModule("JPEGTurboDecode", &NullHost, nullptr);
 	{
-		auto preReader = createModule<In::File>(&NullHost, filename);
+		FileInputConfig fileInputConfig;
+		fileInputConfig.filename = filename;
+		auto preReader = loadModule("FileInput", &NullHost, &fileInputConfig);
 		ConnectOutputToInput(preReader->getOutput(0), decode->getInput(0));
 		preReader->process();
 	}
 
-	auto reader = createModule<In::File>(&NullHost, filename);
+	FileInputConfig fileInputConfig;
+	fileInputConfig.filename = filename;
+	auto reader = loadModule("FileInput", &NullHost, &fileInputConfig);
 	auto encoder = loadModule("JPEGTurboEncode", &NullHost, nullptr);
 	auto writer = createModule<Out::File>(&NullHost, "out/test2.jpg");
 
@@ -122,11 +126,15 @@ void resizeJPGTest(PixelFormat pf) {
 	const std::string filename("data/sample.jpg");
 	auto decode = loadModule("JPEGTurboDecode", &NullHost, nullptr);
 	{
-		auto preReader = createModule<In::File>(&NullHost, filename);
+		FileInputConfig fileInputConfig;
+		fileInputConfig.filename = filename;
+		auto preReader = loadModule("FileInput", &NullHost, &fileInputConfig);
 		ConnectOutputToInput(preReader->getOutput(0), decode->getInput(0));
 		preReader->process();
 	}
-	auto reader = createModule<In::File>(&NullHost, filename);
+	FileInputConfig fileInputConfig;
+	fileInputConfig.filename = filename;
+	auto reader = loadModule("FileInput", &NullHost, &fileInputConfig);
 
 	auto const dstFormat = PictureFormat(Resolution(320, 180) / 2, pf);
 	auto converter = loadModule("VideoConvert", &NullHost, &dstFormat);
@@ -179,11 +187,15 @@ unittest("transcoder: jpg to h264/mp4 (gpac)") {
 	const std::string filename("data/sample.jpg");
 	auto decode = loadModule("JPEGTurboDecode", &NullHost, nullptr);
 	{
-		auto preReader = createModule<In::File>(&NullHost, filename);
+		FileInputConfig fileInputConfig;
+		fileInputConfig.filename = filename;
+		auto preReader = loadModule("FileInput", &NullHost, &fileInputConfig);
 		ConnectOutputToInput(preReader->getOutput(0), decode->getInput(0));
 		preReader->process();
 	}
-	auto reader = createModule<In::File>(&NullHost, filename);
+	FileInputConfig fileInputConfig;
+	fileInputConfig.filename = filename;
+	auto reader = loadModule("FileInput", &NullHost, &fileInputConfig);
 
 	auto const dstFormat = PictureFormat(Resolution(320, 180), PixelFormat::I420);
 	auto converter = loadModule("VideoConvert", &NullHost, &dstFormat);
