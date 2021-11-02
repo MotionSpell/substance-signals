@@ -31,6 +31,7 @@ class FileInput : public Module {
 
 			output = addOutput();
 		}
+
 		~FileInput() {
 			fclose(file);
 		}

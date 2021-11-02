@@ -109,12 +109,9 @@ struct RegulatorMulti : public ModuleDynI {
 
 		void dispatch(std::function<bool(Rec const&)> predicate) {
 			for (int i = 0; i < (int)streams.size(); ++i) {
-				for (auto& rec : streams[i]) {
-					if (predicate(rec)) {
+				for (auto& rec : streams[i])
+					if (predicate(rec))
 						outputs[i]->post(rec.data);
-						continue;
-					}
-				}
 
 				//remove dispatched
 				streams[i].erase(std::remove_if(streams[i].begin(), streams[i].end(), predicate), streams[i].end());

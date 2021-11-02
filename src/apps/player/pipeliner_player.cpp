@@ -112,7 +112,7 @@ IFilter* createRenderer(Pipeline& pipeline, Config cfg, int codecType) {
 	return pipeline.addModule<Out::Null>();
 }
 
-IFilter* createDemuxer(Pipeline& pipeline, std::string url) {
+IFilter* createDemuxer(Pipeline& pipeline, std::string url, bool &needsReframing) {
 	if(startsWith(url, "mpegts://")) {
 		url = url.substr(9);
 		IFilter *in = nullptr;
@@ -127,11 +127,12 @@ IFilter* createDemuxer(Pipeline& pipeline, std::string url) {
 		} else {
 			FileInputConfig fileInputConfig;
 			fileInputConfig.filename = url;
-			in = pipeline.add("InputFile", &fileInputConfig);
+			in = pipeline.add("FileInput", &fileInputConfig);
 		}
 		TsDemuxerConfig cfg {};
 		auto demux = pipeline.add("TsDemuxer", &cfg);
 		pipeline.connect(in, demux);
+		needsReframing = true;
 		return demux;
 	}
 	if(startsWith(url, "videogen://")) {
@@ -164,7 +165,8 @@ IFilter* createDemuxer(Pipeline& pipeline, std::string url) {
 }
 
 void declarePipeline(Config cfg, Pipeline &pipeline, const char *url) {
-	auto demuxer = createDemuxer(pipeline, url);
+	auto needsReframing = false;
+	auto demuxer = createDemuxer(pipeline, url, needsReframing);
 
 	if(demuxer->getNumOutputs() == 0)
 		throw std::runtime_error("No streams found");
@@ -192,12 +194,17 @@ void declarePipeline(Config cfg, Pipeline &pipeline, const char *url) {
 	for (int k = 0; k < demuxer->getNumOutputs(); ++k) {
 		auto source = GetOutputPin(demuxer, k);
 
+		auto metadata = demuxer->getOutputMetadata(k);
+		if (metadata->isAudio() && needsReframing) { // FIXME: reframining limited to audio for now
+			pipeline.connect(GetOutputPin(demuxer, k), GetInputPin(reframer, 0));
+			source = GetOutputPin(reframer);
+		}
+
 		if (regulateMulti) {
-			pipeline.connect(GetOutputPin(demuxer, k), GetInputPin(regulatorMulti, k));
+			pipeline.connect(source, GetInputPin(regulatorMulti, k));
 			source = GetOutputPin(regulatorMulti, k);
 		}
 
-		auto metadata = demuxer->getOutputMetadata(k);
 		if(!metadata) {
 			g_Log->log(Debug, format("Ignoring stream #%s (no metadata)", k).c_str());
 			continue;

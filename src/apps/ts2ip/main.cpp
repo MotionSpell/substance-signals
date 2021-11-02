@@ -71,7 +71,7 @@ int safeMain(int argc, char const* argv[]) {
 	FileInputConfig fileInputConfig;
 	fileInputConfig.filename = cfg.path;
 	fileInputConfig.blockSize = 7 * 188;
-	auto file = regulate(restamp(pipeline.add("InputFile", &fileInputConfig)));
+	auto file = regulate(restamp(pipeline.add("FileInput", &fileInputConfig)));
 	auto sender = pipeline.add("UdpOutput", &cfg.udpConfig);
 	pipeline.connect(file, sender);
 	pipeline.start();

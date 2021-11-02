@@ -34,8 +34,8 @@ struct GpacFilters : ModuleS {
 
 			inputData.push(data);
 			gf_fs_run_step(fs);
-			gf_fs_print_connections(fs);
-			gf_fs_print_all_connections(fs, (char*)"mem_in", nullptr);
+			//gf_fs_print_connections(fs);
+			//gf_fs_print_all_connections(fs, (char*)"mem_in", nullptr);
 		}
 
 		void flush() override {
@@ -161,7 +161,7 @@ IModule* createObject(KHost* host, void* va) {
 	auto config = (GpacFiltersConfig*)va;
 	enforce(host, "GpacFilters: host can't be NULL");
 	//enforce(config, "GpacFilters: config can't be NULL");
-	return createModule<GpacFilters>(host, config).release();
+	return createModuleWithSize<GpacFilters>(384, host, config).release();
 }
 
 auto const registered = Factory::registerModule("GpacFilters", &createObject);

@@ -5,7 +5,7 @@ function gpac_build {
   # do not use a truncated hash here, use the full hash!
   # (collisions DO occur with truncated hashes, in practice this would
   # have the effect of stopping the whole build)
-  readonly hash="77f19d66501f88b64db40b6507809a4103f3ab2f"
+  readonly hash="e85e82f664acb9db4ee2a93edbe1bb1b5cec3370"
 
   lazy_git_clone github.com:rbouqueau/gpac.git gpac "$hash"
 
@@ -28,7 +28,6 @@ function gpac_build {
   pushDir gpac/build/$host
 
   local options=()
-if false; then
   options+=(--disable-player)
 
   # Can't use --disable-all, because it sets GPAC_DISABLE_CORE_TOOLS
@@ -98,9 +97,6 @@ if false; then
 
   # We don't use 'isom-dump', however GPAC will generate an unlinkable libgpac.so otherwise
   options+=(--enable-isom-dump)     # enable ISOM dump
-else
-  options+=(--enable-debug)
-fi
 
   ../../configure \
     --target-os=$os \
@@ -112,7 +108,6 @@ fi
     ${options[@]}
 
   $MAKE lib
-  $MAKE install # this is what causes gpac.pc to be copied to lib/pkg-config
   $MAKE install-lib
 
   popDir
