@@ -1,7 +1,7 @@
 #include "gpac_filter_mem_in.h"
 #include <string.h>
 
-#define OFFS(_n)	#_n, offsetof(MemInCtx, _n)
+#define OFFS(_n) #_n, offsetof(MemInCtx, _n)
 
 const GF_FilterArgs MemInArgs[] = {
 	{ OFFS(src), "source", GF_PROP_NAME, NULL, NULL, 0 },
@@ -60,6 +60,10 @@ static GF_CodecID get_codec_id(const char *signals_codec_name) {
 		return GF_CODECID_AC3;
 	else if (!strcmp(signals_codec_name, "eac3"))
 		return GF_CODECID_EAC3;
+	else if (!strcmp(signals_codec_name, "h264_annexb") || !strcmp(signals_codec_name, "h264_avcc"))
+		return GF_CODECID_AVC;
+	else if (!strcmp(signals_codec_name, "hevc_annexb") || !strcmp(signals_codec_name, "hevc_avcc"))
+		return GF_CODECID_HEVC;
 	else
 		return GF_CODECID_NONE;
 }
@@ -86,10 +90,10 @@ static GF_Err mem_in_process(GF_Filter *filter) {
 			e = gf_filter_pid_set_property(ctx->pid, GF_PROP_PID_TIMESCALE, &PROP_UINT(180000));
 			if (e) goto exit;
 
-			e = gf_filter_pid_set_property(ctx->pid, GF_PROP_PID_STREAM_TYPE, &PROP_UINT(GF_STREAM_AUDIO));
+			GF_CodecID codec_id = get_codec_id(ctx->signals_codec_name);
+			e = gf_filter_pid_set_property(ctx->pid, GF_PROP_PID_STREAM_TYPE, &PROP_UINT(gf_codecid_type(codec_id)));
 			if (e) goto exit;
-
-			e = gf_filter_pid_set_property(ctx->pid, GF_PROP_PID_CODECID, &PROP_UINT(get_codec_id(ctx->signals_codec_name)));
+			e = gf_filter_pid_set_property(ctx->pid, GF_PROP_PID_CODECID, &PROP_UINT(codec_id));
 			if (e) goto exit;
 
 			e = gf_filter_pid_set_property(ctx->pid, GF_PROP_PID_UNFRAMED, &PROP_BOOL(GF_TRUE));
@@ -105,7 +109,7 @@ static GF_Err mem_in_process(GF_Filter *filter) {
 		e = gf_filter_pck_set_dts(pck, dts);
 		if (e) goto exit;
 
-		e = gf_filter_pck_set_cts(pck, dts); //Romain: we should set the PTS
+		e = gf_filter_pck_set_cts(pck, dts); //TODO: we should set the PTS
 		if (e) goto exit;
 
 		e = gf_filter_pck_send(pck);
@@ -126,6 +130,13 @@ const GF_FilterCapability MemInCaps[] = {
 	CAP_UINT(GF_CAPS_OUTPUT, GF_PROP_PID_CODECID, GF_CODECID_MPEG_AUDIO),
 	CAP_UINT(GF_CAPS_OUTPUT, GF_PROP_PID_CODECID, GF_CODECID_AC3),
 	CAP_UINT(GF_CAPS_OUTPUT, GF_PROP_PID_CODECID, GF_CODECID_EAC3),
+	{0},
+	CAP_UINT(GF_CAPS_OUTPUT, GF_PROP_PID_CODECID, GF_CODECID_AVC),
+	CAP_UINT(GF_CAPS_OUTPUT, GF_PROP_PID_CODECID, GF_CODECID_HEVC),
+	CAP_UINT(GF_CAPS_OUTPUT, GF_PROP_PID_CODECID, GF_CODECID_AV1),
+	CAP_UINT(GF_CAPS_OUTPUT, GF_PROP_PID_CODECID, GF_CODECID_VP8),
+	CAP_UINT(GF_CAPS_OUTPUT, GF_PROP_PID_CODECID, GF_CODECID_VP9),
+	CAP_UINT(GF_CAPS_OUTPUT, GF_PROP_PID_CODECID, GF_CODECID_VP10),
 };
 
 GF_FilterRegister memInRegister = {

@@ -140,6 +140,7 @@ class GPACDemuxMP4Full : public ModuleS {
 
 				auto out = output->allocData<DataRaw>(sample->dataLength);
 				memcpy(out->buffer->data().ptr, sample->data, sample->dataLength);
+				out->set(DecodingTime { timescaleToClock((int64_t)sample->DTS, reader.movie->getMediaTimescale(FIRST_TRACK)) });
 				out->setMediaTime(sample->DTS + DTSOffset + sample->CTS_Offset, reader.movie->getMediaTimescale(FIRST_TRACK));
 
 				CueFlags flags {};

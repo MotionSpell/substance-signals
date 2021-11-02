@@ -17,6 +17,7 @@
 #include "lib_media/in/file.hpp"
 #include "lib_media/out/null.hpp"
 #include "lib_media/transform/rectifier.hpp"
+#include "plugins/GpacFilters/gpac_filters.hpp"
 #include "plugins/HlsDemuxer/hls_demux.hpp"
 #include "plugins/MulticastInput/multicast_input.hpp"
 #include "plugins/RegulatorMono/regulator_mono.hpp"
@@ -95,7 +96,7 @@ bool endsWith(std::string s, std::string suffix) {
 	return s.substr(s.size() - suffix.size(), suffix.size()) == suffix;
 }
 
-static bool hasAudio = false, hasVideo = false;
+bool hasAudio = false, hasVideo = false;
 
 IFilter* createRenderer(Pipeline& pipeline, Config cfg, int codecType) {
 	if(!cfg.noRenderer) {
@@ -112,7 +113,7 @@ IFilter* createRenderer(Pipeline& pipeline, Config cfg, int codecType) {
 	return pipeline.addModule<Out::Null>();
 }
 
-IFilter* createDemuxer(Pipeline& pipeline, std::string url, bool &needsReframing) {
+IFilter* createDemuxer(Pipeline& pipeline, std::string url, bool &demuxRequiresReframing) {
 	if(startsWith(url, "mpegts://")) {
 		url = url.substr(9);
 		IFilter *in = nullptr;
@@ -132,7 +133,7 @@ IFilter* createDemuxer(Pipeline& pipeline, std::string url, bool &needsReframing
 		TsDemuxerConfig cfg {};
 		auto demux = pipeline.add("TsDemuxer", &cfg);
 		pipeline.connect(in, demux);
-		needsReframing = true;
+		demuxRequiresReframing = true;
 		return demux;
 	}
 	if(startsWith(url, "videogen://")) {
@@ -149,6 +150,7 @@ IFilter* createDemuxer(Pipeline& pipeline, std::string url, bool &needsReframing
 		TsDemuxerConfig tsCfg {};
 		auto demux = pipeline.add("TsDemuxer", &tsCfg);
 		pipeline.connect(recv, demux);
+		demuxRequiresReframing = true;
 		return demux;
 	}
 	if(startsWith(url, "http://") || startsWith(url, "https://")) {
@@ -161,13 +163,11 @@ IFilter* createDemuxer(Pipeline& pipeline, std::string url, bool &needsReframing
 		return pipeline.add("LibavDemux", &cfg);
 	}
 }
-
-}
+} // anonymous namespace
 
 void declarePipeline(Config cfg, Pipeline &pipeline, const char *url) {
-	auto needsReframing = false;
-	auto demuxer = createDemuxer(pipeline, url, needsReframing);
-
+	auto demuxRequiresReframing = false;
+	auto demuxer = createDemuxer(pipeline, url, demuxRequiresReframing);
 	if(demuxer->getNumOutputs() == 0)
 		throw std::runtime_error("No streams found");
 
@@ -195,16 +195,6 @@ void declarePipeline(Config cfg, Pipeline &pipeline, const char *url) {
 		auto source = GetOutputPin(demuxer, k);
 
 		auto metadata = demuxer->getOutputMetadata(k);
-		if (metadata->isAudio() && needsReframing) { // FIXME: reframining limited to audio for now
-			pipeline.connect(GetOutputPin(demuxer, k), GetInputPin(reframer, 0));
-			source = GetOutputPin(reframer);
-		}
-
-		if (regulateMulti) {
-			pipeline.connect(source, GetInputPin(regulatorMulti, k));
-			source = GetOutputPin(regulatorMulti, k);
-		}
-
 		if(!metadata) {
 			g_Log->log(Debug, format("Ignoring stream #%s (no metadata)", k).c_str());
 			continue;
@@ -226,6 +216,19 @@ void declarePipeline(Config cfg, Pipeline &pipeline, const char *url) {
 				continue;
 			}
 			hasAudio = true;
+		}
+
+		if (demuxRequiresReframing) {
+			GpacFiltersConfig cfg;
+			cfg.filterName = "reframer";
+			auto reframer = pipeline.add("GpacFilters", &cfg);
+			pipeline.connect(GetOutputPin(demuxer, k), GetInputPin(reframer, 0));
+			source = GetOutputPin(reframer);
+		}
+
+		if (regulateMulti) {
+			pipeline.connect(source, GetInputPin(regulatorMulti, k));
+			source = GetOutputPin(regulatorMulti, k);
 		}
 
 		pipeline.connect(source, GetInputPin(restamper, k));

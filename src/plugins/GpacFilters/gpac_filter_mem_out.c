@@ -1,7 +1,7 @@
 #include "gpac_filter_mem_out.h"
 #include <string.h>
 
-#define OFFS(_n)	#_n, offsetof(MemOutCtx, _n)
+#define OFFS(_n) #_n, offsetof(MemOutCtx, _n)
 
 const GF_FilterArgs MemOutArgs[] = {
 	{ OFFS(dst), "destination", GF_PROP_NAME, NULL, NULL, 0 },
@@ -18,6 +18,13 @@ static const GF_FilterCapability MemOutCaps[] = {
 	CAP_UINT(GF_CAPS_INPUT, GF_PROP_PID_CODECID, GF_CODECID_MPEG_AUDIO),
 	CAP_UINT(GF_CAPS_INPUT, GF_PROP_PID_CODECID, GF_CODECID_AC3),
 	CAP_UINT(GF_CAPS_INPUT, GF_PROP_PID_CODECID, GF_CODECID_EAC3),
+	{0},
+	CAP_UINT(GF_CAPS_INPUT, GF_PROP_PID_CODECID, GF_CODECID_AVC),
+	CAP_UINT(GF_CAPS_INPUT, GF_PROP_PID_CODECID, GF_CODECID_HEVC),
+	CAP_UINT(GF_CAPS_INPUT, GF_PROP_PID_CODECID, GF_CODECID_AV1),
+	CAP_UINT(GF_CAPS_INPUT, GF_PROP_PID_CODECID, GF_CODECID_VP8),
+	CAP_UINT(GF_CAPS_INPUT, GF_PROP_PID_CODECID, GF_CODECID_VP9),
+	CAP_UINT(GF_CAPS_INPUT, GF_PROP_PID_CODECID, GF_CODECID_VP10),
 };
 
 static GF_Err mem_out_initialize(GF_Filter *filter) {

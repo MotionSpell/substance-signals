@@ -5,12 +5,12 @@
 const GF_FilterRegister *mem_out_register(GF_FilterSession*);
 
 typedef struct {
-	char *dst;
+    char *dst;
 
-	//only one output pid declared
-	GF_FilterPid *pid;
+    //only one output pid declared
+    GF_FilterPid *pid;
 
-	Bool eos;
+    Bool eos;
 
     // Signals parent object
     void *parent;

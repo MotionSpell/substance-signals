@@ -1,7 +1,7 @@
 #include "gpac_filters.hpp"
 #include "lib_media/common/attributes.hpp"
 #include "lib_modules/utils/factory.hpp"
-#include "lib_modules/utils/helper.hpp"
+#include "lib_modules/utils/helper_dyn.hpp"
 #include "lib_utils/tools.hpp" // safe_cast, enforce
 #include "lib_utils/format.hpp"
 #include "lib_media/common/metadata.hpp"
@@ -16,24 +16,31 @@ extern "C" {
 using namespace Modules;
 
 namespace {
-struct GpacFilters : ModuleS {
-		GpacFilters(KHost* host, GpacFiltersConfig */*cfg*/)
-			: m_host(host) {
-			output = addOutput();
-			output->setMetadata(make_shared<MetadataPkt>(AUDIO_PKT));
+struct GpacFilters : ModuleDynI {
+		GpacFilters(KHost* host, GpacFiltersConfig *cfg)
+			: m_host(host), filterName(cfg->filterName) {
 		}
 
-		void processOne(Data data) override {
+		void process() override {
+			int inputIdx = 0;
+			Data data;
+			while (!inputs[inputIdx]->tryPop(data)) {
+				inputIdx++;
+			}
+
 			if(!fs) {
 				auto meta = data->getMetadata();
 				if (!meta)
 					throw error("Can't instantiate reframer: no metadata for input data");
+
+				mimicOutputs();
 
 				openReframer(meta);
 			}
 
 			inputData.push(data);
 			gf_fs_run_step(fs);
+
 			//gf_fs_print_connections(fs);
 			//gf_fs_print_all_connections(fs, (char*)"mem_in", nullptr);
 		}
@@ -44,12 +51,22 @@ struct GpacFilters : ModuleS {
 				gf_fs_run_step(fs);
 		}
 
+		int getNumOutputs() const override {
+			auto pThis = const_cast<GpacFilters*>(this);
+			pThis->mimicOutputs();
+			return ModuleDynI::getNumOutputs();
+		}
+
+		IOutput* getOutput(int i) override {
+			mimicOutputs();
+			return ModuleDynI::getOutput(i);
+		}
+
 	private:
 		KHost* const m_host;
-		OutputDefault* output;
-
-		GF_FilterSession *fs;
-		GF_Filter *memIn, *memOut;
+		std::string filterName;
+		GF_FilterSession *fs = nullptr;
+		GF_Filter *memIn = nullptr, *memOut = nullptr;
 
 		//memIn
 		Queue<Data> inputData;
@@ -79,29 +96,27 @@ struct GpacFilters : ModuleS {
 		std::string codecName;
 		static void outputPushData(void *parent, const u8 *data, u32 data_size, u64 dts, u64 pts) {
 			auto pThis = (GpacFilters*)parent;
-			auto out = pThis->output->allocData<DataRaw>(data_size);
+			auto out = ((OutputDefault*)((GpacFilters*)pThis)->outputs[0].get())->allocData<DataRaw>(data_size); //TODO: to be extended to multple outputs
 			out->set(DecodingTime{ (int64_t)dts });
 			out->set(PresentationTime { (int64_t)pts });
 			out->set(CueFlags{false, true});
 			memcpy(out->buffer->data().ptr, data, data_size);
-			pThis->output->post(out);
+			pThis->outputs[0]->post(out); //TODO: to be extended to multple outputs
 		}
 		static void ensureMetadata(void *parent, const u8 *data, u32 data_size) {
 			auto pThis = (GpacFilters*)parent;
-			auto meta = safe_cast<const MetadataPkt>(pThis->output->getMetadata());
+			auto meta = safe_cast<const MetadataPkt>(pThis->outputs[0]->getMetadata());
 			if(!meta || meta->codecSpecificInfo.empty()) {
-				auto metaDsi = make_shared<MetadataPkt>(AUDIO_PKT);
+				auto metaDsi = make_shared<MetadataPkt>(meta->type);
 				metaDsi->codecSpecificInfo.assign(data, data + data_size);
 				metaDsi->codec = pThis->codecName;
-				pThis->output->setMetadata(metaDsi);
+				pThis->outputs[0]->setMetadata(metaDsi);
 			}
 		}
 
 		void openReframer(Metadata meta_) {
 			auto meta = safe_cast<const MetadataPkt>(meta_);
-			if (!meta->isAudio())
-				throw error("non-audio input: unsupported");
-			output->setMetadata(meta);
+			outputs[0]->setMetadata(meta); //TODO: to be extended to multiple outputs
 			codecName = meta->codec;
 
 			gf_sys_init(GF_MemTrackerNone, NULL);
@@ -126,7 +141,7 @@ struct GpacFilters : ModuleS {
 
 			{
 				GF_Err e = GF_OK;
-				memOut = gf_fs_load_destination(fs, "signals://memout/", "SID=REFRAMER", nullptr, &e);
+				memOut = gf_fs_load_destination(fs, "signals://memout/", "SID=PROCESSOR", nullptr, &e);
 				if (e)
 					throw error(format("cannot load create GPAC Filters sink: %s", gf_error_to_string(e)).c_str());
 				auto ctx = (MemOutCtx*)gf_filter_get_udta(memOut);
@@ -136,23 +151,18 @@ struct GpacFilters : ModuleS {
 			}
 
 			{
-				std::string reframer;
-				if (codecName == "mp1" || codecName == "mp2")
-					reframer = "rfmp3";
-				else if (codecName ==  "aac_adts")
-					reframer = "rfadts";
-				else if (codecName ==  "aac_latm")
-					reframer = "rflatm";
-				else if (codecName == "ac3" || codecName == "eac3")
-					reframer = "rfac3";
-				else
-					throw error(format("unsupported codec: %s", codecName).c_str());
-
 				GF_Err e = GF_OK;
-				auto name = reframer + ":SID=MEMIN:FID=REFRAMER";
+				auto name = filterName + ":SID=MEMIN:FID=PROCESSOR";
 				gf_fs_load_filter(fs, name.c_str(), &e);
 				if (e)
-					throw error(format("cannot load create GPAC Filters reframer: %s", gf_error_to_string(e)).c_str());
+					throw error(format("cannot load create GPAC Filters \"%s\": %s", filterName, gf_error_to_string(e)).c_str());
+			}
+		}
+
+		void mimicOutputs() {
+			while(ModuleDynI::getNumOutputs() < (int)getInputs().size()) {
+				auto output = addOutput();
+				output->setMetadata(getInput(ModuleDynI::getNumOutputs()-1)->getMetadata());
 			}
 		}
 };
@@ -160,7 +170,7 @@ struct GpacFilters : ModuleS {
 IModule* createObject(KHost* host, void* va) {
 	auto config = (GpacFiltersConfig*)va;
 	enforce(host, "GpacFilters: host can't be NULL");
-	//enforce(config, "GpacFilters: config can't be NULL");
+	enforce(config, "GpacFilters: config can't be NULL");
 	return createModuleWithSize<GpacFilters>(384, host, config).release();
 }
 
