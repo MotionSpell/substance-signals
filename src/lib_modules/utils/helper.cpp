@@ -1,4 +1,3 @@
-#include "helper.hpp"
 #include "helper_dyn.hpp"
 #include "helper_input.hpp"
 #include "lib_utils/log.hpp"

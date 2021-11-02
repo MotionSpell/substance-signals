@@ -1,7 +1,6 @@
 #include "mpeg_dash.hpp"
 #include "lib_media/common/metadata_file.hpp"
 #include "lib_media/common/attributes.hpp"
-#include "lib_modules/utils/helper.hpp"
 #include "lib_modules/utils/helper_dyn.hpp"
 #include "lib_modules/utils/factory.hpp"
 #include "lib_utils/time.hpp"

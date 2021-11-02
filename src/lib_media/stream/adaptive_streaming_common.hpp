@@ -2,7 +2,6 @@
 
 #include "../common/metadata_file.hpp"
 #include "lib_media/common/resolution.hpp"
-#include "lib_modules/utils/helper.hpp"
 #include "lib_modules/utils/helper_dyn.hpp"
 #include "lib_utils/format.hpp"
 #include "lib_utils/log.hpp"

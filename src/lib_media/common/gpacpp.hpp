@@ -156,9 +156,9 @@ class IsoFile {
 			return DTSOffset;
 		}
 
-		std::shared_ptr<GF_DecoderConfig> getDecoderConfig(int trackHandle, int descriptorIndex) const {
+		std::shared_ptr<GF_DecoderConfig> getDecoderConfig(int trackNumber, int descriptorIndex) const {
 			return std::shared_ptr<GF_DecoderConfig>(
-			        gf_isom_get_decoder_config(movie_, trackHandle, descriptorIndex),
+			        gf_isom_get_decoder_config(movie_, trackNumber, descriptorIndex),
 			        &freeDescriptor
 			    );
 		}
