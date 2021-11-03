@@ -12,6 +12,9 @@ typedef struct {
 
     Bool eos;
 
+    //error concealment
+    u64 last_dts, last_pts, last_inc;
+
     // Signals parent object
     void *parent;
     void (*pushData)(void *parent, const u8 *data, u32 data_size, u64 dts, u64 pts);

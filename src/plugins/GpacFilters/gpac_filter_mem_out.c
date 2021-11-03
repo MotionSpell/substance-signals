@@ -32,6 +32,8 @@ static GF_Err mem_out_initialize(GF_Filter *filter) {
 	if (!ctx)
 		return GF_BAD_PARAM;
 
+	ctx->last_dts = ctx->last_pts = ctx->last_inc = GF_FILTER_NO_TS;
+
 	return GF_OK;
 }
 
@@ -76,12 +78,36 @@ static GF_Err mem_out_process(GF_Filter *filter) {
 
 	pck = gf_filter_pid_get_packet(ctx->pid);
 	if (pck) {
-		const u8 *data = NULL;
 		u32 data_size = 0;
 		u64 dts = gf_filter_pck_get_dts(pck);
 		u64 pts = gf_filter_pck_get_cts(pck);
-		data = gf_filter_pck_get_data(pck, &data_size);
-		ctx->pushData(ctx->parent, data, data_size, dts, pts);
+		u64 last_inc = ctx->last_inc;
+		const u8 *data = gf_filter_pck_get_data(pck, &data_size);
+
+		// fix audio reframining inconsistencies
+		prop = gf_filter_pid_get_property(ctx->pid, GF_PROP_PID_CODECID);
+		if (prop && gf_codecid_type(prop->value.uint) == GF_STREAM_AUDIO) {
+			if (ctx->last_dts == GF_FILTER_NO_TS) {
+				ctx->last_dts = dts;
+			} else if (dts == ctx->last_dts + ctx->last_inc || ctx->last_inc == GF_FILTER_NO_TS) {
+				ctx->last_inc = dts - ctx->last_dts;
+				ctx->last_dts = dts;
+			} else {
+				ctx->last_dts = ctx->last_dts + ctx->last_inc;
+				ctx->last_inc = GF_FILTER_NO_TS;
+			}
+
+			if ((ctx->last_pts == GF_FILTER_NO_TS) || (pts == ctx->last_pts + ctx->last_inc)) {
+				ctx->last_pts = pts;
+			} else {
+				ctx->last_pts = ctx->last_pts + last_inc;
+			}
+		} else {
+			ctx->last_dts = dts;
+			ctx->last_pts = pts;
+		}
+
+		ctx->pushData(ctx->parent, data, data_size, ctx->last_dts, ctx->last_pts);
 
 		gf_filter_pid_drop_packet(ctx->pid);
 	}

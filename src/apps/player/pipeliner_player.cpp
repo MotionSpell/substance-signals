@@ -54,6 +54,9 @@ struct Restamper : Module {
 
 			auto dataOut = clone(dataIn);
 			dataOut->set(PresentationTime{restampedTime});
+			try {
+				dataOut->set(DecodingTime{dataIn->get<DecodingTime>().time - startTime + shift});
+			} catch(...) {}
 
 			outputs[idx]->post(dataOut);
 		}
@@ -222,7 +225,7 @@ void declarePipeline(Config cfg, Pipeline &pipeline, const char *url) {
 			GpacFiltersConfig cfg;
 			cfg.filterName = "reframer";
 			auto reframer = pipeline.add("GpacFilters", &cfg);
-			pipeline.connect(GetOutputPin(demuxer, k), GetInputPin(reframer, 0));
+			pipeline.connect(source, GetInputPin(reframer));
 			source = GetOutputPin(reframer);
 		}
 
@@ -236,6 +239,7 @@ void declarePipeline(Config cfg, Pipeline &pipeline, const char *url) {
 
 		if (regulateMono) {
 			RegulatorMonoConfig rmCfg;
+			rmCfg.resyncAllowed = false;
 			auto regulator = pipeline.add("RegulatorMono", &rmCfg);
 			pipeline.connect(source, regulator);
 			source = GetOutputPin(regulator);

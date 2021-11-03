@@ -116,6 +116,7 @@ struct Rectifier : ModuleDynI {
 
 		void onPeriod(Fraction timeNow) {
 			m_pendingTaskId = {};
+			mimicOutputs(); //needed if not connected and data not received
 			emitOnePeriod(timeNow);
 			{
 				std::unique_lock<std::mutex> lock(streamMutex);
@@ -169,7 +170,6 @@ struct Rectifier : ModuleDynI {
 				Data data;
 				while (currInput->tryPop(data)) {
 					data = rectifyAudioMediaTimes(data, i);
-
 					streams[i].data.push_back({now, data});
 
 					if (currInput->updateMetadata(data))
@@ -186,7 +186,7 @@ struct Rectifier : ModuleDynI {
 
 			// Introduce some latency.
 			// If the frame is available, but since very little time, use it, but don't remove it.
-			// Thus, it will be used again next time.
+			// Thus it will be used again next time.
 			// This protects us from frame phase changes (e.g on SDI cable replacement).
 			if(std::abs(stream.data[0].creationTime - std::max(now, (decltype(now))0)) < fractionToClock(framePeriod))
 				return stream.blank;

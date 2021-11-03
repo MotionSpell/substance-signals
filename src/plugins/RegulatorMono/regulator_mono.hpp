@@ -4,4 +4,5 @@
 
 struct RegulatorMonoConfig {
 	std::shared_ptr<IClock> clock = g_SystemClock;
+	bool resyncAllowed = true;
 };

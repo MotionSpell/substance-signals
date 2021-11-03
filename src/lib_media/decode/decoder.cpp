@@ -107,6 +107,11 @@ struct Decoder : ModuleS, PictureAllocator {
 
 			AVPacket pkt {};
 			pkt.pts = data->get<PresentationTime>().time;
+			try {
+				pkt.dts = data->get<DecodingTime>().time;
+			} catch(...) {
+				pkt.pts = data->get<PresentationTime>().time;
+			}
 			pkt.data = (uint8_t*)data->data().ptr;
 			pkt.size = (int)data->data().len;
 			processPacket(&pkt);

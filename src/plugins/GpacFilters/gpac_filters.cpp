@@ -2,6 +2,7 @@
 #include "lib_media/common/attributes.hpp"
 #include "lib_modules/utils/factory.hpp"
 #include "lib_modules/utils/helper_dyn.hpp"
+#include "lib_utils/log_sink.hpp"
 #include "lib_utils/tools.hpp" // safe_cast, enforce
 #include "lib_utils/format.hpp"
 #include "lib_media/common/metadata.hpp"
@@ -82,8 +83,12 @@ struct GpacFilters : ModuleDynI {
 				auto span = pData->data();
 				*data = span.ptr;
 				*data_size = span.len;
-				*dts = pData->get<DecodingTime>().time;
-				*pts = *dts; //not sure it is present from mpeg2ts: pData->get<DecodingTime>().time;
+				*pts = pData->get<PresentationTime>().time;
+				try {
+					*dts = pData->get<DecodingTime>().time;
+				} catch(...) {
+					*dts = *pts;
+				}
 				pThis->inputLast = pData;
 			}
 		}
@@ -96,12 +101,12 @@ struct GpacFilters : ModuleDynI {
 		std::string codecName;
 		static void outputPushData(void *parent, const u8 *data, u32 data_size, u64 dts, u64 pts) {
 			auto pThis = (GpacFilters*)parent;
-			auto out = ((OutputDefault*)((GpacFilters*)pThis)->outputs[0].get())->allocData<DataRaw>(data_size); //TODO: to be extended to multple outputs
+			auto out = ((OutputDefault*)((GpacFilters*)pThis)->outputs[0].get())->allocData<DataRaw>(data_size); //TODO: to be extended to multiple outputs
 			out->set(DecodingTime{ (int64_t)dts });
 			out->set(PresentationTime { (int64_t)pts });
 			out->set(CueFlags{false, true});
 			memcpy(out->buffer->data().ptr, data, data_size);
-			pThis->outputs[0]->post(out); //TODO: to be extended to multple outputs
+			pThis->outputs[0]->post(out); //TODO: to be extended to multiple outputs
 		}
 		static void ensureMetadata(void *parent, const u8 *data, u32 data_size) {
 			auto pThis = (GpacFilters*)parent;

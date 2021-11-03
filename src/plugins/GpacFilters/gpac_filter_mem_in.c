@@ -109,7 +109,7 @@ static GF_Err mem_in_process(GF_Filter *filter) {
 		e = gf_filter_pck_set_dts(pck, dts);
 		if (e) goto exit;
 
-		e = gf_filter_pck_set_cts(pck, dts); //TODO: we should set the PTS
+		e = gf_filter_pck_set_cts(pck, pts);
 		if (e) goto exit;
 
 		e = gf_filter_pck_send(pck);

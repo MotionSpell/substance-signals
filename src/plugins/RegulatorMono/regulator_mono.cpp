@@ -15,7 +15,7 @@ namespace {
 class RegulatorMono : public ModuleS {
 	public:
 		RegulatorMono(KHost* host, RegulatorMonoConfig &cfg)
-			: m_host(host), clock(cfg.clock) {
+			: m_host(host), clock(cfg.clock), resyncAllowed(cfg.resyncAllowed) {
 			m_output = addOutput();
 		}
 
@@ -24,7 +24,7 @@ class RegulatorMono : public ModuleS {
 			auto const timeNow = fractionToClock(clock->now());
 			auto const delayInMs = clockToTimescale(timeTarget - timeNow, 1000) - m_offsetInMs;
 			if (delayInMs > 0) {
-				if (delayInMs > FWD_TOLERANCE_IN_MS) {
+				if (resyncAllowed && delayInMs > FWD_TOLERANCE_IN_MS) {
 					m_host->log(Warning, format("forward discontinuity detected (%s ms)", delayInMs).c_str());
 					m_offsetInMs += delayInMs;
 					return processOne(data);
@@ -34,7 +34,7 @@ class RegulatorMono : public ModuleS {
 					m_host->log(Debug, format("will sleep for %s ms", delayInMs).c_str());
 				std::this_thread::sleep_for(std::chrono::milliseconds(delayInMs));
 			} else if (delayInMs < -REGULATION_TOLERANCE_IN_MS) {
-				if (delayInMs < -BWD_TOLERANCE_IN_MS) {
+				if (resyncAllowed && delayInMs < -BWD_TOLERANCE_IN_MS) {
 					m_host->log(Warning, format("backward discontinuity detected (%s ms)", -delayInMs).c_str());
 					m_offsetInMs += delayInMs;
 					return processOne(data);
@@ -58,8 +58,10 @@ class RegulatorMono : public ModuleS {
 		std::shared_ptr<IClock> const clock;
 
 		static auto const REGULATION_TOLERANCE_IN_MS = 300;
-		static auto const FWD_TOLERANCE_IN_MS = 20000;
-		static auto const BWD_TOLERANCE_IN_MS = 6000;
+
+		bool resyncAllowed;
+		static auto const FWD_TOLERANCE_IN_MS = 200000;
+		static auto const BWD_TOLERANCE_IN_MS = 60000;
 };
 
 IModule* createObject(KHost* host, void* va) {
