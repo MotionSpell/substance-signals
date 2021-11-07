@@ -788,7 +788,6 @@ void GPACMuxMP4::declareStreamVideo(const MetadataPktVideo* metadata) {
 
 	resolution = metadata->resolution;
 	gf_isom_set_visual_info(isoCur, gf_isom_get_track_by_id(isoCur, trackId), di, resolution.width, resolution.height);
-	//Romain: is it needed? gf_isom_set_sync_table(isoCur, trackNum);
 
 	if(AVC_INBAND_CONFIG) {
 		//inband SPS/PPS

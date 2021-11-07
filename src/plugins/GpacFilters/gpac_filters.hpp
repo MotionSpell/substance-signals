@@ -2,8 +2,6 @@
 
 #include <string>
 
-namespace Modules {
-
 /*
 Signals wrapper for GPAC Filters.
 
@@ -14,5 +12,3 @@ The goal is to port all the GPAC Signals modules to the Filters API.
 struct GpacFiltersConfig {
 	std::string filterName;
 };
-
-}

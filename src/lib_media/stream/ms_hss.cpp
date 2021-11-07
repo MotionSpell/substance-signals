@@ -5,6 +5,8 @@
 
 using namespace Modules;
 
+//#define ROMAIN
+
 namespace {
 
 inline uint32_t readU32BE(span<const uint8_t>& p) {
@@ -41,19 +43,32 @@ struct MS_HSS : public ModuleS {
 
 
 		void processOne(Data data) override {
-
-			// split 'data' into 'prefix' (ftyp/moov/etc.) and 'bs' (mdat)
+			// split 'data' into 'prefix' (ftyp/uuid/moov) and 'bs' (moof/mdat)
 			auto bs = data->data();
 
+			SpanC ftypBox {bs.ptr, 0};
 			skipBox(bs, FOURCC("ftyp"));
-			skipBox(bs, 0);
+			ftypBox.len = bs.ptr - ftypBox.ptr;
+
+			SpanC freeBox {bs.ptr, 0};
 			skipBox(bs, FOURCC("free"));
+			freeBox.len = bs.ptr - freeBox.ptr;
+
+			SpanC moovBox {bs.ptr, 0};
 			skipBox(bs, FOURCC("moov"));
+			moovBox.len = bs.ptr - moovBox.ptr;
+
+			SpanC uuidBox {bs.ptr, 0};
+			skipBox(bs, 0); //UUID: to be put before moov
+			uuidBox.len = bs.ptr - uuidBox.ptr;
 
 			{
 				auto prefix = data->data();
 				prefix.len = bs.ptr - prefix.ptr;
-				if (m_httpSender) m_httpSender->setPrefix(prefix);
+				if (m_httpSender) m_httpSender->appendPrefix(ftypBox);
+				if (m_httpSender) m_httpSender->appendPrefix(freeBox);
+				if (m_httpSender) m_httpSender->appendPrefix(uuidBox);
+				if (m_httpSender) m_httpSender->appendPrefix(moovBox);
 			}
 
 			if (m_httpSender) m_httpSender->send(bs);

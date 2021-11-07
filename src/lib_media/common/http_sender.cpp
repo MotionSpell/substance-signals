@@ -109,8 +109,7 @@ struct CurlHttpSender : HttpSender {
 			}
 		}
 
-		void setPrefix(span<const uint8_t>  prefix) override {
-			m_prefixData.clear();
+		void appendPrefix(span<const uint8_t> prefix) override {
 			append(m_prefixData, prefix);
 		}
 
