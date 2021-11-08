@@ -60,8 +60,8 @@ class RegulatorMono : public ModuleS {
 		static auto const REGULATION_TOLERANCE_IN_MS = 300;
 
 		bool resyncAllowed;
-		static auto const FWD_TOLERANCE_IN_MS = 200000;
-		static auto const BWD_TOLERANCE_IN_MS = 60000;
+		static auto const FWD_TOLERANCE_IN_MS = 20000;
+		static auto const BWD_TOLERANCE_IN_MS = 6000;
 };
 
 IModule* createObject(KHost* host, void* va) {
