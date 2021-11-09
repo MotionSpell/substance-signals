@@ -110,7 +110,7 @@ struct Decoder : ModuleS, PictureAllocator {
 			try {
 				pkt.dts = data->get<DecodingTime>().time;
 			} catch(...) {
-				pkt.pts = data->get<PresentationTime>().time;
+				pkt.dts = data->get<PresentationTime>().time;
 			}
 			pkt.data = (uint8_t*)data->data().ptr;
 			pkt.size = (int)data->data().len;
