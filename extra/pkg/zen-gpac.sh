@@ -80,6 +80,7 @@ function gpac_build {
   options+=(--disable-x11-shm)       # disable X11 shared memory support
   options+=(--disable-x11-xv)        # disable X11 Xvideo support
   options+=(--disable-x3d)           # disable X3D only
+  options+=(--disable-nvdec)         # disable nvidia nvdec (causes timeouts at startup)
 
   # Features that we actually use
   options+=(--enable-export)        # enable media exporters
