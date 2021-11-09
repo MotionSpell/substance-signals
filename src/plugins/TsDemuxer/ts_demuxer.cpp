@@ -29,9 +29,8 @@ auto const PID_PAT = 0;
 struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::Restamper {
 		TsDemuxer(KHost* host, TsDemuxerConfig const& config)
 			: m_host(host) {
-
 			m_unwrapper.WRAP_PERIOD = PTS_PERIOD;
-
+			m_remainder.reserve(TS_PACKET_LEN);
 			m_streams.push_back(make_unique<PsiStream>(PID_PAT, m_host, this));
 
 			for(auto& pid : config.pids)
@@ -41,14 +40,19 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::Restamper {
 
 		void processOne(Data data) override {
 			auto buf = data->data();
+			processRemainder(buf);
+			processSpan(buf);
+		}
 
+		void processSpan(SpanC &buf) {
 			bool syncing = true;
 			auto syncFound = [&]() {
-				if (*buf.ptr == SYNC_BYTE)
+				if (*buf.ptr == SYNC_BYTE) {
+					syncing = false;
 					return true;
-
+				}
 				if (!syncing) {
-					m_host->log(Warning, "Looking for sync byte 0x47");
+					m_host->log(Warning, "Looking for sync byte");
 					syncing = true;
 				}
 				buf += 1;
@@ -60,8 +64,10 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::Restamper {
 					continue;
 
 				if(buf.len < TS_PACKET_LEN) {
-					m_host->log(Error, "Truncated TS packet");
-					syncing = false;
+					m_host->log(Debug, "Truncated TS packet");
+					assert(m_remainder.empty());
+					for(auto c : buf)
+						m_remainder.push_back(c);
 					return;
 				}
 
@@ -75,7 +81,36 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::Restamper {
 			}
 		}
 
+		void processRemainder(SpanC &buf) {
+			while(!m_remainder.empty()) {
+				assert(m_remainder.size() < TS_PACKET_LEN);
+				assert(m_remainder[0] == SYNC_BYTE);
+
+				for(;;) {
+					m_remainder.push_back(*buf.ptr);
+					buf += 1;
+
+					if (m_remainder.size() == TS_PACKET_LEN)
+						break;
+
+					if(buf.len == 0)
+						return; // early exit if remainder + data < TS_PACKET_LEN
+				}
+
+				assert(m_remainder.size() == TS_PACKET_LEN);
+				SpanC remBuf { m_remainder.data(), m_remainder.size() };
+				processSpan(remBuf);
+				assert(remBuf.len == 0);
+				m_remainder = {};
+			}
+		}
+
 		void flush() override {
+			if (!m_remainder.empty()) {
+				m_host->log(Warning, format("Discarding %s remaining bytes", m_remainder.size()).c_str());
+				m_remainder = {};
+			}
+
 			for(auto& s : m_streams)
 				s->flush();
 		}
@@ -102,7 +137,6 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::Restamper {
 
 		// PesStream::Restamper implementation
 		void restamp(int64_t& pts) override {
-
 			pts = m_unwrapper.unwrap(pts);
 
 			// make the timestamp start from zero
@@ -198,6 +232,7 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::Restamper {
 		vector<unique_ptr<Stream>> m_streams;
 		int64_t m_ptsOrigin = INT64_MAX;
 		TimeUnwrapper m_unwrapper;
+		std::vector<uint8_t> m_remainder; // incomplete packet from previous data: size < TS_PACKET_LEN and starts with SYNC_BYTE
 
 		static auto const SYNC_BYTE = 0x47;
 };
