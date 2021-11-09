@@ -198,7 +198,7 @@ struct Rectifier : ModuleDynI {
 
 		int getMasterStreamId() const {
 			for(auto i : getInputs()) {
-				auto meta = inputs[i]->getMetadata() ? inputs[i]->getMetadata() : outputs[i]->getMetadata() ? outputs[i]->getMetadata() : nullptr;
+				auto meta = inputs[i]->getMetadata() ? inputs[i]->getMetadata() : outputs[i]->getMetadata();
 				if (meta && meta->type == VIDEO_RAW)
 					return i;
 			}
@@ -238,8 +238,10 @@ struct Rectifier : ModuleDynI {
 			auto const masterStreamId = getMasterStreamId();
 
 			{
-				if (masterStreamId == -1)
-					throw error("No master stream: requires to have one video stream connected");
+				if (masterStreamId == -1) {
+					m_host->log(Error, "No master stream: one video stream must be connected to start the session");
+					return;
+				}
 
 				auto& master = streams[masterStreamId];
 				auto masterFrame = chooseNextMasterFrame(master, fractionToClock(now) - analyzeWindow);
@@ -297,9 +299,8 @@ struct Rectifier : ModuleDynI {
 			if(!stream.data.empty())
 				stream.fmt = safe_cast<const DataPcm>(stream.data.front().data)->format;
 
-			// We can't process data if we don't know the format.
 			if(stream.fmt.sampleRate == 0)
-				return;
+				throw error("Unknown audio format");
 
 			auto const BPS = stream.fmt.getBytesPerSample() / getNumChannelsFromLayout(stream.fmt.layout);
 

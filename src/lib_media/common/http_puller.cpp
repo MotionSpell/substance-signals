@@ -11,7 +11,6 @@ extern "C" {
 }
 
 struct HttpSource : Modules::In::IFilePuller {
-
 	HttpSource() : curl(curl_easy_init()) {
 		if(!curl)
 			throw std::runtime_error("can't init curl");
@@ -20,7 +19,6 @@ struct HttpSource : Modules::In::IFilePuller {
 	~HttpSource() {
 		curl_easy_cleanup(curl);
 	}
-
 
 	void wget(const char* url, std::function<void(SpanC)> callback) override {
 		struct HttpContext {
