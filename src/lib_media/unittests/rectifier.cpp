@@ -201,9 +201,8 @@ vector<Event> runRectifier(
 
 	Fixture fix(fps);
 
-	for (int i = 0; i < (int)gen.size(); ++i) {
+	for (int i = 0; i < (int)gen.size(); ++i)
 		fix.addStream(i, move(gen[i]));
-	}
 
 	const int first = 0, last = (int)events.size();
 	for (int i = first; i < last; ++i) {
@@ -555,11 +554,10 @@ unittest("rectifier: slave stream arrives in advance of master streams") {
 	generators.push_back(createModuleWithSize<AudioGenerator48000>(100, videoRate));
 	generators.push_back(createModuleWithSize<VideoGenerator>(100, videoRate /*same as audio is ok*/));
 
-	ASSERT_THROWN({
-		auto actualTimes = runRectifier(videoRate, generators, times); //currently throws
-		auto expected = generateInterleavedEvents(videoRate.inverse(), 0, 0, videoRate.inverse(), 0, 0);
-		ASSERT_EQUALS(expected, actualTimes);
-	});
+	auto actualTimes = runRectifier(videoRate, generators, times);
+	auto expected = generateInterleavedEvents(videoRate.inverse(), offset, 0, videoRate.inverse(), offset, 0);
+	for (auto& e : expected) e.index = 1 - e.index;
+	ASSERT_EQUALS(expected, actualTimes);
 }
 
 unittest("rectifier: subtitles (sparse)") {

@@ -127,7 +127,7 @@ struct Rectifier : ModuleDynI {
 		void declareScheduler(IInput* input, IOutput* output) {
 			auto const oMeta = output->getMetadata();
 			if (!oMeta) {
-				m_host->log(Debug, "Output isn't connected or doesn't expose a metadata: impossible to check.");
+				m_host->log(Debug, "Output isn't connected or doesn't expose a metadata: impossible to check");
 			} else if (input->getMetadata()->type != oMeta->type)
 				throw error("Metadata I/O inconsistency");
 		}
@@ -197,12 +197,16 @@ struct Rectifier : ModuleDynI {
 		}
 
 		int getMasterStreamId() const {
+			bool inputsHaveMeta = true;
 			for(auto i : getInputs()) {
 				auto meta = inputs[i]->getMetadata() ? inputs[i]->getMetadata() : outputs[i]->getMetadata();
-				if (meta && meta->type == VIDEO_RAW)
+				if(!meta)
+					inputsHaveMeta = false;
+				else if(meta->type == VIDEO_RAW)
 					return i;
 			}
-			return -1;
+
+			return inputsHaveMeta ? -2 : -1;
 		}
 
 		// Post one "media period" on all outputs.
@@ -239,9 +243,10 @@ struct Rectifier : ModuleDynI {
 
 			{
 				if (masterStreamId == -1) {
-					m_host->log(Error, "No master stream: one video stream must be connected to start the session");
+					m_host->log(Error, "No master stream: waiting to receive one video stream metadata to start the session");
 					return;
-				}
+				} else if (masterStreamId == -2)
+					throw error("No master stream: requires to have one connected video stream");
 
 				auto& master = streams[masterStreamId];
 				auto masterFrame = chooseNextMasterFrame(master, fractionToClock(now) - analyzeWindow);
