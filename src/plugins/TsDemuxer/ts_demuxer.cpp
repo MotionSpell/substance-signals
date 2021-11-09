@@ -42,14 +42,32 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::Restamper {
 		void processOne(Data data) override {
 			auto buf = data->data();
 
+			bool syncing = true;
+			auto syncFound = [&]() {
+				if (*buf.ptr == SYNC_BYTE)
+					return true;
+
+				if (!syncing) {
+					m_host->log(Warning, "Looking for sync byte 0x47");
+					syncing = true;
+				}
+				buf += 1;
+				return false;
+			};
+
 			while(buf.len > 0) {
+				if (!syncFound())
+					continue;
+
 				if(buf.len < TS_PACKET_LEN) {
 					m_host->log(Error, "Truncated TS packet");
+					syncing = false;
 					return;
 				}
 
 				try {
 					processTsPacket({buf.ptr, TS_PACKET_LEN});
+					syncing = false;
 				} catch(exception const& e) {
 					m_host->log(Error, e.what());
 				}
@@ -100,6 +118,7 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::Restamper {
 		void processTsPacket(SpanC pkt) {
 			BitReader r = {pkt};
 			const int syncByte = r.u(8);
+			assert(syncByte == SYNC_BYTE);
 			const int transportErrorIndicator = r.u(1);
 			const int payloadUnitStartIndicator = r.u(1);
 			/*const int priority =*/ r.u(1);
@@ -107,11 +126,6 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::Restamper {
 			const int scrambling = r.u(2);
 			const int adaptationFieldControl = r.u(2);
 			const int continuityCounter = r.u(4);
-
-			if(syncByte != 0x47) {
-				m_host->log(Error, "TS sync byte not found");
-				return;
-			}
 
 			// skip adaptation field if any
 			if(adaptationFieldControl & 0b10) {
@@ -184,6 +198,8 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::Restamper {
 		vector<unique_ptr<Stream>> m_streams;
 		int64_t m_ptsOrigin = INT64_MAX;
 		TimeUnwrapper m_unwrapper;
+
+		static auto const SYNC_BYTE = 0x47;
 };
 
 IModule* createObject(KHost* host, void* va) {
