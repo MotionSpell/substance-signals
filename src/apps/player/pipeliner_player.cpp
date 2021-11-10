@@ -1,6 +1,7 @@
 #include "pipeliner_player.hpp"
 #include "lib_pipeline/pipeline.hpp"
 #include "lib_media/common/attributes.hpp"
+#include "lib_media/common/file_puller.hpp"
 #include "lib_modules/utils/loader.hpp"
 #include "lib_utils/log.hpp" // g_Log
 #include "lib_utils/format.hpp"
@@ -26,6 +27,8 @@
 
 using namespace Modules;
 using namespace Pipelines;
+
+std::unique_ptr<In::IFilePuller> createHttpSource();
 
 namespace {
 
@@ -91,6 +94,29 @@ struct LocalFileSystem : In::IFilePuller {
 	}
 };
 
+struct HttpInput : Module {
+		HttpInput(KHost *host, std::string url) : url(url) {
+			addOutput();
+			host->activate(true);
+		}
+		void process() override {
+			if (!source) {
+				auto onBuffer = [&](SpanC chunk) {
+					auto data = std::make_shared<DataRaw>(chunk.len);
+					memcpy(data->buffer->data().ptr, chunk.ptr, chunk.len);
+					outputs[0]->post(data);
+				};
+
+				source = createHttpSource();
+				source->wget(url.c_str(), onBuffer);
+			}
+		}
+
+	private:
+		std::string url;
+		std::unique_ptr<In::IFilePuller> source;
+};
+
 bool startsWith(std::string s, std::string prefix) {
 	return s.substr(0, prefix.size()) == prefix;
 }
@@ -121,7 +147,9 @@ IFilter* createDemuxer(Pipeline& pipeline, std::string url, bool &demuxRequiresR
 		url = url.substr(9);
 		IFilter *in = nullptr;
 		MulticastInputConfig mcast;
-		if (sscanf(url.c_str(), "%d.%d.%d.%d:%d",
+		if (startsWith(url, "http")) {
+			in = pipeline.addModule<HttpInput>(url);
+		} else if (sscanf(url.c_str(), "%d.%d.%d.%d:%d",
 		        &mcast.ipAddr[0],
 		        &mcast.ipAddr[1],
 		        &mcast.ipAddr[2],
@@ -221,7 +249,7 @@ void declarePipeline(Config cfg, Pipeline &pipeline, const char *url) {
 			hasAudio = true;
 		}
 
-		if (demuxRequiresReframing) {
+		if (metadata->isAudio() && demuxRequiresReframing) {
 			GpacFiltersConfig cfg;
 			cfg.filterName = "reframer";
 			auto reframer = pipeline.add("GpacFilters", &cfg);

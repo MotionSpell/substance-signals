@@ -5,8 +5,6 @@
 
 using namespace Modules;
 
-//#define ROMAIN
-
 namespace {
 
 inline uint32_t readU32BE(span<const uint8_t>& p) {
