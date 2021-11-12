@@ -1,20 +1,20 @@
-#include "multicast_input.hpp"
+#include "socket_input.hpp"
 #include "lib_modules/utils/factory.hpp" // registerModule
 #include "lib_modules/utils/helper.hpp"
 #include "lib_utils/tools.hpp" // enforce
-#include "socket.hpp"
+#include "lib_utils/socket.hpp"
 
 using namespace Modules;
 
 namespace {
 
-struct MulticastInput : Module {
-	MulticastInput(KHost* host, MulticastInputConfig const& config)
+struct SocketInput : Module {
+	SocketInput(KHost* host, SocketInputConfig const& config)
 		: m_host(host) {
 
 		m_host->activate(true);
 
-		m_socket = createSocket();
+		m_socket = createSocket(false);
 
 		char buffer[256];
 		sprintf(buffer, "%d.%d.%d.%d", config.ipAddr[0], config.ipAddr[1], config.ipAddr[2], config.ipAddr[3]);
@@ -41,13 +41,13 @@ struct MulticastInput : Module {
 };
 
 IModule* createObject(KHost* host, void* va) {
-	auto config = (MulticastInputConfig*)va;
-	enforce(host, "MulticastInput: host can't be NULL");
-	enforce(config, "MulticastInput: config can't be NULL");
-	return createModule<MulticastInput>(host, *config).release();
+	auto config = (SocketInputConfig*)va;
+	enforce(host, "SocketInput: host can't be NULL");
+	enforce(config, "SocketInput: config can't be NULL");
+	return createModule<SocketInput>(host, *config).release();
 }
 
-auto const registered = Factory::registerModule("MulticastInput", &createObject);
+auto const registered = Factory::registerModule("SocketInput", &createObject);
 
 }
 

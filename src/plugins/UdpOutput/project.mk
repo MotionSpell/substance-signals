@@ -5,4 +5,4 @@ PLUG_DIR:=$(call get-my-dir)
 TARGETS+=$(BIN)/UdpOutput.smd
 $(BIN)/UdpOutput.smd: \
   $(BIN)/$(PLUG_DIR)/udp_output.cpp.o\
-  $(MULTICASTINPUT_OS_SOCKET)\
+  $(SocketInput_OS_SOCKET)\

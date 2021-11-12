@@ -7,14 +7,14 @@
 using namespace std;
 
 struct Socket : ISocket {
-	Socket() {
+	Socket(bool isTcp) {
 		WSADATA wsaData;
 		auto res = WSAStartup(MAKEWORD(2, 2), &wsaData);
 
 		if(res)
 			throw runtime_error("WSAStartup failed");
 
-		m_socket = socket(AF_INET, SOCK_DGRAM, 0);
+		m_socket = socket(AF_INET, isTcp ? SOCK_STREAM : SOCK_DGRAM, 0);
 
 		if(m_socket == INVALID_SOCKET)
 			throw runtime_error("socket failed");
@@ -74,7 +74,7 @@ struct Socket : ISocket {
 	SOCKET m_socket = INVALID_SOCKET;
 };
 
-std::unique_ptr<ISocket> createSocket() {
-	return make_unique<Socket>();
+std::unique_ptr<ISocket> createSocket(bool isTcp) {
+	return make_unique<Socket>(isTcp);
 }
 

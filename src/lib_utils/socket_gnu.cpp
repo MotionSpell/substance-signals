@@ -11,8 +11,8 @@
 using namespace std;
 
 struct Socket : ISocket {
-	Socket() {
-		m_socket = socket(AF_INET, SOCK_DGRAM, 0);
+	Socket(bool isTcp) {
+		m_socket = socket(AF_INET, isTcp ? SOCK_STREAM : SOCK_DGRAM, 0);
 
 		if(m_socket < 0)
 			throw runtime_error("socket failed");
@@ -71,7 +71,7 @@ struct Socket : ISocket {
 	int m_socket = -1;
 };
 
-std::unique_ptr<ISocket> createSocket() {
-	return make_unique<Socket>();
+std::unique_ptr<ISocket> createSocket(bool isTcp) {
+	return make_unique<Socket>(isTcp);
 }
 

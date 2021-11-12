@@ -9,5 +9,5 @@ struct ISocket {
 	virtual size_t receive(uint8_t* dst, size_t len) = 0; // non-blocking
 };
 
-std::unique_ptr<ISocket> createSocket();
+std::unique_ptr<ISocket> createSocket(bool isTcp);
 

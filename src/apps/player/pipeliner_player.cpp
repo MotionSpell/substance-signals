@@ -20,7 +20,7 @@
 #include "lib_media/transform/rectifier.hpp"
 #include "plugins/GpacFilters/gpac_filters.hpp"
 #include "plugins/HlsDemuxer/hls_demux.hpp"
-#include "plugins/MulticastInput/multicast_input.hpp"
+#include "plugins/SocketInput/socket_input.hpp"
 #include "plugins/RegulatorMono/regulator_mono.hpp"
 #include "plugins/RegulatorMulti/regulator_multi.hpp"
 #include "plugins/TsDemuxer/ts_demuxer.hpp"
@@ -146,7 +146,9 @@ IFilter* createDemuxer(Pipeline& pipeline, std::string url, bool &demuxRequiresR
 	if(startsWith(url, "mpegts://")) {
 		url = url.substr(9);
 		IFilter *in = nullptr;
-		MulticastInputConfig mcast;
+		SocketInputConfig mcast;
+		mcast.isTcp = false;
+		mcast.isMulticast = true;
 		if (startsWith(url, "http")) {
 			in = pipeline.addModule<HttpInput>(url);
 		} else if (sscanf(url.c_str(), "%d.%d.%d.%d:%d",
@@ -155,7 +157,7 @@ IFilter* createDemuxer(Pipeline& pipeline, std::string url, bool &demuxRequiresR
 		        &mcast.ipAddr[2],
 		        &mcast.ipAddr[3],
 		        &mcast.port) == 5) {
-			in = pipeline.add("MulticastInput", &mcast);
+			in = pipeline.add("SocketInput", &mcast);
 		} else {
 			FileInputConfig fileInputConfig;
 			fileInputConfig.filename = url;
