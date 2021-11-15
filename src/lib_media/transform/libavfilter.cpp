@@ -54,6 +54,9 @@ void LibavFilter::flush() {
 
 void LibavFilter::processOne(Data data) {
 	if(!buffersrc_ctx) {
+		if (!data)
+			return; // likely flushing before any data arrived
+
 		char args[512];
 		const auto format = safe_cast<const DataPicture>(data)->getFormat();
 		AVPixelFormat pf = pixelFormat2libavPixFmt(format.format);

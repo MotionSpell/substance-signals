@@ -30,9 +30,9 @@ using namespace Pipelines;
 
 namespace {
 
-const bool regulateMono = false; //true;
-const bool regulateMulti = false; //true;
-const bool rectify = false; //true;
+const bool regulateMono = true;
+const bool regulateMulti = true;
+const bool rectify = true;
 
 struct Restamper : Module {
 		Restamper(KHost*, int count, int shift) : shift(shift) {
