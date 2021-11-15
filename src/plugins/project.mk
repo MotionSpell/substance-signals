@@ -4,6 +4,7 @@ include $(SRC)/plugins/Dasher/project.mk
 include $(SRC)/plugins/Fmp4Splitter/project.mk
 include $(SRC)/plugins/GpacFilters/project.mk
 include $(SRC)/plugins/HlsDemuxer/project.mk
+include $(SRC)/plugins/HttpInput/project.mk
 include $(SRC)/plugins/SocketInput/project.mk
 include $(SRC)/plugins/RegulatorMono/project.mk
 include $(SRC)/plugins/RegulatorMulti/project.mk

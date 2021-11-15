@@ -1,7 +1,6 @@
 #include "pipeliner_player.hpp"
 #include "lib_pipeline/pipeline.hpp"
 #include "lib_media/common/attributes.hpp"
-#include "lib_media/common/file_puller.hpp"
 #include "lib_modules/utils/loader.hpp"
 #include "lib_utils/log.hpp" // g_Log
 #include "lib_utils/format.hpp"
@@ -20,6 +19,7 @@
 #include "lib_media/transform/rectifier.hpp"
 #include "plugins/GpacFilters/gpac_filters.hpp"
 #include "plugins/HlsDemuxer/hls_demux.hpp"
+#include "plugins/HttpInput/http_input.hpp"
 #include "plugins/SocketInput/socket_input.hpp"
 #include "plugins/RegulatorMono/regulator_mono.hpp"
 #include "plugins/RegulatorMulti/regulator_multi.hpp"
@@ -28,13 +28,11 @@
 using namespace Modules;
 using namespace Pipelines;
 
-std::unique_ptr<In::IFilePuller> createHttpSource();
-
 namespace {
 
-const bool regulateMono = true;
-const bool regulateMulti = true;
-const bool rectify = true;
+const bool regulateMono = false; //true;
+const bool regulateMulti = false; //true;
+const bool rectify = false; //true;
 
 struct Restamper : Module {
 		Restamper(KHost*, int count, int shift) : shift(shift) {
@@ -94,29 +92,6 @@ struct LocalFileSystem : In::IFilePuller {
 	}
 };
 
-struct HttpInput : Module {
-		HttpInput(KHost *host, std::string url) : url(url) {
-			addOutput();
-			host->activate(true);
-		}
-		void process() override {
-			if (!source) {
-				auto onBuffer = [&](SpanC chunk) {
-					auto data = std::make_shared<DataRaw>(chunk.len);
-					memcpy(data->buffer->data().ptr, chunk.ptr, chunk.len);
-					outputs[0]->post(data);
-				};
-
-				source = createHttpSource();
-				source->wget(url.c_str(), onBuffer);
-			}
-		}
-
-	private:
-		std::string url;
-		std::unique_ptr<In::IFilePuller> source;
-};
-
 bool startsWith(std::string s, std::string prefix) {
 	return s.substr(0, prefix.size()) == prefix;
 }
@@ -150,7 +125,9 @@ IFilter* createDemuxer(Pipeline& pipeline, std::string url, bool &demuxRequiresR
 		mcast.isTcp = false;
 		mcast.isMulticast = true;
 		if (startsWith(url, "http")) {
-			in = pipeline.addModule<HttpInput>(url);
+			HttpInputConfig cfg;
+			cfg.url = url;
+			in = pipeline.add("HttpInput", &cfg);
 		} else if (sscanf(url.c_str(), "%d.%d.%d.%d:%d",
 		        &mcast.ipAddr[0],
 		        &mcast.ipAddr[1],

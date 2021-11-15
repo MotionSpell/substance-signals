@@ -50,4 +50,3 @@ IModule* createObject(KHost* host, void* va) {
 auto const registered = Factory::registerModule("SocketInput", &createObject);
 
 }
-
