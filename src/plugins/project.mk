@@ -11,6 +11,7 @@ include $(SRC)/plugins/RegulatorMulti/project.mk
 include $(SRC)/plugins/TsMuxer/project.mk
 include $(SRC)/plugins/TsDemuxer/project.mk
 include $(SRC)/plugins/TelxDecoder/project.mk
+include $(SRC)/plugins/TtmlDecoder/project.mk
 include $(SRC)/plugins/TtmlEncoder/project.mk
 include $(SRC)/plugins/UdpOutput/project.mk
 
