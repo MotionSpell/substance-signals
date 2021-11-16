@@ -16,6 +16,7 @@ extern "C" {
 #include <gpac/internal/media_dev.h>
 
 	extern GF_Err gf_isom_get_bs(GF_ISOFile *movie, GF_BitStream **out_bs);
+	extern GF_Err gf_isom_set_sync_table(GF_ISOFile *file, u32 track);
 }
 
 auto const AVC_INBAND_CONFIG = 0;
@@ -788,6 +789,7 @@ void GPACMuxMP4::declareStreamVideo(const MetadataPktVideo* metadata) {
 
 	resolution = metadata->resolution;
 	gf_isom_set_visual_info(isoCur, gf_isom_get_track_by_id(isoCur, trackId), di, resolution.width, resolution.height);
+	gf_isom_set_sync_table(isoCur, trackNum);
 
 	if(AVC_INBAND_CONFIG) {
 		//inband SPS/PPS
