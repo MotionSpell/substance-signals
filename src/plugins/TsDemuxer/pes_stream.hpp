@@ -177,8 +177,8 @@ struct PesStream : Stream {
 
 		int type;
 	private:
-		Restamper* const m_restamper;
-		OutputDefault* m_output = nullptr;
+		Restamper * const m_restamper;
+		OutputDefault * const m_output = nullptr;
 		vector<uint8_t> m_pesBuffer;
 };
 

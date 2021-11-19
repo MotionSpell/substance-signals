@@ -25,9 +25,8 @@ struct GpacFilters : ModuleDynI {
 		void process() override {
 			int inputIdx = 0;
 			Data data;
-			while (!inputs[inputIdx]->tryPop(data)) {
+			while (!inputs[inputIdx]->tryPop(data))
 				inputIdx++;
-			}
 
 			if(!fs) {
 				auto meta = data->getMetadata();
