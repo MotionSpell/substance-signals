@@ -20,6 +20,7 @@ namespace {
 struct GpacFilters : ModuleDynI {
 		GpacFilters(KHost* host, GpacFiltersConfig *cfg)
 			: m_host(host), filterName(cfg->filterName) {
+			gf_sys_init(GF_MemTrackerNone, NULL);
 		}
 
 		void process() override {
@@ -123,7 +124,6 @@ struct GpacFilters : ModuleDynI {
 			outputs[0]->setMetadata(meta); //TODO: to be extended to multiple outputs
 			codecName = meta->codec;
 
-			gf_sys_init(GF_MemTrackerNone, NULL);
 			fs = gf_fs_new(1, GF_FS_SCHEDULER_DIRECT, GF_FS_FLAG_NO_MAIN_THREAD, NULL);
 			if (!fs)
 				throw error("cannot create GPAC Filters session");
