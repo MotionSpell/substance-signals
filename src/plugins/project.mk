@@ -8,11 +8,11 @@ include $(SRC)/plugins/HttpInput/project.mk
 include $(SRC)/plugins/SocketInput/project.mk
 include $(SRC)/plugins/RegulatorMono/project.mk
 include $(SRC)/plugins/RegulatorMulti/project.mk
+include $(SRC)/plugins/SubtitleEncoder/project.mk
 include $(SRC)/plugins/TsMuxer/project.mk
 include $(SRC)/plugins/TsDemuxer/project.mk
 include $(SRC)/plugins/TelxDecoder/project.mk
 include $(SRC)/plugins/TtmlDecoder/project.mk
-include $(SRC)/plugins/TtmlEncoder/project.mk
 include $(SRC)/plugins/UdpOutput/project.mk
 
 ifeq ($(SIGNALS_HAS_X11), 1)

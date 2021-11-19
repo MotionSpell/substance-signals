@@ -2,7 +2,7 @@
 #include "lib_modules/modules.hpp"
 #include "lib_modules/utils/loader.hpp"
 #include "lib_media/common/subtitle.hpp"
-#include "plugins/TtmlEncoder/ttml_encoder.hpp"
+#include "plugins/SubtitleEncoder/subtitle_encoder.hpp"
 #include "../ttml_decoder.hpp"
 
 using namespace Modules;
@@ -34,11 +34,11 @@ static bool operator!=(const Page& lhs, const Page& rhs) {
 }
 
 unittest("ttml_decoder: ttml_encoder sample") {
-	TtmlEncoderConfig encCfg;
+	SubtitleEncoderConfig encCfg;
 	encCfg.splitDurationInMs = 1000;
 	encCfg.maxDelayBeforeEmptyInMs = 2000;
-	encCfg.timingPolicy = TtmlEncoderConfig::RelativeToMedia;
-	auto enc = loadModule("TTMLEncoder", &NullHost, &encCfg);
+	encCfg.timingPolicy = SubtitleEncoderConfig::RelativeToMedia;
+	auto enc = loadModule("SubtitleEncoder", &NullHost, &encCfg);
 
 	TtmlDecoderConfig decCfg;
 	auto dec = loadModule("TTMLDecoder", &NullHost, &decCfg);
@@ -66,7 +66,7 @@ unittest("ttml_decoder: ttml_encoder sample") {
 	ASSERT_EQUALS(pageNum, received);
 }
 
-unittest("ttml_encoder: ebu-tt-live") {
+unittest("ttml_decoder: ebu-tt-live") {
 	std::string ttml = R"|(<?xml version="1.0" encoding="UTF-8"?>
 <tt:tt xmlns:tt="http://www.w3.org/ns/ttml" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xmlns:tts="http://www.w3.org/ns/ttml#styling" xmlns:ebuttm="urn:ebu:tt:metadata" xmlns:ebuttp="urn:ebu:tt:parameters" xmlns:ebutts="urn:ebu:tt:style" xml:lang="de" ttp:cellResolution="50 30" ttp:timeBase="clock" ttp:clockMode="local" ebuttp:sequenceIdentifier="TestSequence1" ebuttp:sequenceNumber="1636064848635">
     <tt:head>

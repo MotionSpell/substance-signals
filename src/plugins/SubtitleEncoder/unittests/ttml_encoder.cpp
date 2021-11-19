@@ -5,7 +5,7 @@
 #include "lib_media/common/attributes.hpp"
 #include "lib_media/common/metadata.hpp"
 #include "lib_media/common/subtitle.hpp"
-#include "../ttml_encoder.hpp"
+#include "../subtitle_encoder.hpp"
 
 using namespace Tests;
 using namespace Modules;
@@ -22,10 +22,10 @@ struct OutStub : ModuleS {
 }
 
 unittest("ttml_encoder") {
-	TtmlEncoderConfig cfg;
+	SubtitleEncoderConfig cfg;
 	cfg.splitDurationInMs = 1000;
 	cfg.maxDelayBeforeEmptyInMs = 2000;
-	cfg.timingPolicy = TtmlEncoderConfig::RelativeToMedia;
+	cfg.timingPolicy = SubtitleEncoderConfig::RelativeToMedia;
 	auto m = loadModule("TTMLEncoder", &NullHost, &cfg);
 
 	Page page {0, IClock::Rate * 4, std::vector<Page::Line>({{"toto"}, {"titi", "#ff0000"}})};

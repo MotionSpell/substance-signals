@@ -1,4 +1,4 @@
-#include "ttml_encoder.hpp"
+#include "subtitle_encoder.hpp"
 #include "lib_media/common/attributes.hpp"
 #include "lib_media/common/metadata.hpp"
 #include "lib_media/common/subtitle.hpp"
@@ -28,13 +28,13 @@ std::string timecodeToString(int64_t timeInMs) {
 	return timecode;
 }
 
-class TTMLEncoder : public ModuleS {
+class SubtitleEncoder : public ModuleS {
 	public:
-		TTMLEncoder(KHost* host, TtmlEncoderConfig* cfg)
+		SubtitleEncoder(KHost* host, SubtitleEncoderConfig* cfg)
 			: m_host(host),
 			  m_utcStartTime(cfg->utcStartTime),
 			  lang(cfg->lang), timingPolicy(cfg->timingPolicy), maxPageDurIn180k(timescaleToClock(cfg->maxDelayBeforeEmptyInMs, 1000)), splitDurationIn180k(timescaleToClock(cfg->splitDurationInMs, 1000)) {
-			enforce(cfg->utcStartTime != nullptr, "TTMLEncoder: utcStartTime can't be NULL");
+			enforce(cfg->utcStartTime != nullptr, "SubtitleEncoder: utcStartTime can't be NULL");
 			output = addOutput();
 			output->setMetadata(make_shared<MetadataPktSubtitle>());
 		}
@@ -44,7 +44,7 @@ class TTMLEncoder : public ModuleS {
 
 			// TODO
 			// 14. add flush() for ondemand samples
-			// 15. UTF8 to TTML formatting? accent
+			// 15. UTF8 to TTML/WebVTT formatting? accent
 			dispatch(data->get<PresentationTime>().time);
 		}
 
@@ -53,7 +53,7 @@ class TTMLEncoder : public ModuleS {
 		IUtcStartTimeQuery const * const m_utcStartTime;
 		OutputDefault* output;
 		const std::string lang;
-		const TtmlEncoderConfig::TimingPolicy timingPolicy;
+		const SubtitleEncoderConfig::TimingPolicy timingPolicy;
 		int64_t intClock = 0;
 		const int64_t maxPageDurIn180k, splitDurationIn180k;
 		std::vector<Page> currentPages;
@@ -82,13 +82,13 @@ class TTMLEncoder : public ModuleS {
 		std::string toTTML(int64_t startTimeInMs, int64_t endTimeInMs) const {
 			int64_t offsetInMs;
 			switch (timingPolicy) {
-			case TtmlEncoderConfig::AbsoluteUTC:
+			case SubtitleEncoderConfig::AbsoluteUTC:
 				offsetInMs = clockToTimescale(m_utcStartTime->query(), 1000);
 				break;
-			case TtmlEncoderConfig::RelativeToMedia:
+			case SubtitleEncoderConfig::RelativeToMedia:
 				offsetInMs = 0;
 				break;
-			case TtmlEncoderConfig::RelativeToSplit:
+			case SubtitleEncoderConfig::RelativeToSplit:
 				offsetInMs = -1 * startTimeInMs;
 				break;
 			default: throw error("Unknown timing policy (1)");
@@ -216,11 +216,11 @@ class TTMLEncoder : public ModuleS {
 };
 
 IModule* createObject(KHost* host, void* va) {
-	auto config = (TtmlEncoderConfig*)va;
-	enforce(host, "TTMLEncoder: host can't be NULL");
-	enforce(config, "TTMLEncoder: config can't be NULL");
-	return createModule<TTMLEncoder>(host, config).release();
+	auto config = (SubtitleEncoderConfig*)va;
+	enforce(host, "SubtitleEncoder: host can't be NULL");
+	enforce(config, "SubtitleEncoder: config can't be NULL");
+	return createModule<SubtitleEncoder>(host, config).release();
 }
 
-auto const registered = Factory::registerModule("TTMLEncoder", &createObject);
+auto const registered = Factory::registerModule("SubtitleEncoder", &createObject);
 }

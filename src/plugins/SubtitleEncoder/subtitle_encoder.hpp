@@ -3,7 +3,7 @@
 #include <string>
 #include "lib_media/common/utc_start_time.hpp"
 
-struct TtmlEncoderConfig {
+struct SubtitleEncoderConfig {
 	enum TimingPolicy {
 		AbsoluteUTC,     //USP
 		RelativeToMedia, //14496-30
