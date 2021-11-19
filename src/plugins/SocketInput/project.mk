@@ -5,4 +5,4 @@ PLUG_DIR:=$(call get-my-dir)
 TARGETS+=$(BIN)/SocketInput.smd
 $(BIN)/SocketInput.smd: \
   $(BIN)/$(PLUG_DIR)/socket_input.cpp.o\
-  $(SocketInput_OS_SOCKET)\
+  $(SOCKETINPUT_OS_SOCKET)\

@@ -1,2 +1,2 @@
-  SocketInput_OS_SOCKET:=$(BIN)/$(PLUG_DIR)/socket_gnu.cpp.o
+  SOCKETOUTPUT_OS_SOCKET:=$(BIN)/$(PLUG_DIR)/socket_gnu.cpp.o
   
