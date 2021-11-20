@@ -26,7 +26,7 @@ unittest("ttml_encoder") {
 	cfg.splitDurationInMs = 1000;
 	cfg.maxDelayBeforeEmptyInMs = 2000;
 	cfg.timingPolicy = SubtitleEncoderConfig::RelativeToMedia;
-	auto m = loadModule("TTMLEncoder", &NullHost, &cfg);
+	auto m = loadModule("SubtitleEncoder", &NullHost, &cfg);
 
 	Page page {0, IClock::Rate * 4, std::vector<Page::Line>({{"toto"}, {"titi", "#ff0000"}})};
 	auto data = std::make_shared<DataSubtitle>(0);

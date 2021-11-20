@@ -10,6 +10,7 @@ struct SubtitleEncoderConfig {
 		RelativeToSplit  //MSS
 	};
 
+	bool isWebVTT = false;
 	std::string lang = "en";
 	int splitDurationInMs = 1000;
 	int maxDelayBeforeEmptyInMs = 2000;

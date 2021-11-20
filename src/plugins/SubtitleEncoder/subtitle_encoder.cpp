@@ -31,8 +31,7 @@ std::string timecodeToString(int64_t timeInMs) {
 class SubtitleEncoder : public ModuleS {
 	public:
 		SubtitleEncoder(KHost* host, SubtitleEncoderConfig* cfg)
-			: m_host(host),
-			  m_utcStartTime(cfg->utcStartTime),
+			: m_host(host), isWebVTT(cfg->isWebVTT), m_utcStartTime(cfg->utcStartTime),
 			  lang(cfg->lang), timingPolicy(cfg->timingPolicy), maxPageDurIn180k(timescaleToClock(cfg->maxDelayBeforeEmptyInMs, 1000)), splitDurationIn180k(timescaleToClock(cfg->splitDurationInMs, 1000)) {
 			enforce(cfg->utcStartTime != nullptr, "SubtitleEncoder: utcStartTime can't be NULL");
 			output = addOutput();
@@ -50,6 +49,7 @@ class SubtitleEncoder : public ModuleS {
 
 	private:
 		KHost* const m_host;
+		const bool isWebVTT;
 		IUtcStartTimeQuery const * const m_utcStartTime;
 		OutputDefault* output;
 		const std::string lang;
@@ -58,6 +58,10 @@ class SubtitleEncoder : public ModuleS {
 		const int64_t maxPageDurIn180k, splitDurationIn180k;
 		std::vector<Page> currentPages;
 		const int ROWS = 25, COLS = 40;
+
+		static bool isDisplayable(const Page& page, int64_t startTimeInMs, int64_t endTimeInMs) {
+			return clockToTimescale(page.hideTimestamp, 1000) > startTimeInMs && clockToTimescale(page.showTimestamp, 1000) < endTimeInMs;
+		};
 
 		std::string serializePageToTtml(Page const& page, int regionId, int64_t startTimeInMs, int64_t endTimeInMs) const {
 			auto const timecodeShow = timecodeToString(startTimeInMs);
@@ -103,16 +107,12 @@ class SubtitleEncoder : public ModuleS {
 			ttml << "    </styling>\n";
 			ttml << "    <layout>\n";
 
-			auto display = [=](const Page& page) {
-				return clockToTimescale(page.hideTimestamp, 1000) > startTimeInMs && clockToTimescale(page.showTimestamp, 1000) < endTimeInMs;
-			};
-
 			// We currently assign one Region per line per page with positioning aligned on a 40x25 grid
 			// Single or double height
 			bool doubleHeight = false;
 			SmallMap<const Page*, int> pageToRegionId;
 			for (auto& page : currentPages) {
-				if (!display(page))
+				if (!isDisplayable(page, startTimeInMs, endTimeInMs))
 					continue;
 
 				pageToRegionId[&page] = pageToRegionId.size();
@@ -149,10 +149,10 @@ class SubtitleEncoder : public ModuleS {
 			ttml << "    <div>\n";
 
 			for(auto& page : currentPages) {
-				if (display(page)) {
+				if (isDisplayable(page, startTimeInMs, endTimeInMs)) {
 					auto localStartTimeInMs = std::max<int64_t>(clockToTimescale(page.showTimestamp, 1000), startTimeInMs);
 					auto localEndTimeInMs = std::min<int64_t>(clockToTimescale(page.hideTimestamp, 1000), endTimeInMs);
-					m_host->log(Debug, format("[%s-%s]: %s - %s: %s", startTimeInMs, endTimeInMs, localStartTimeInMs, localEndTimeInMs, page.toString()).c_str());
+					m_host->log(Debug, format("[TTML][%s-%s]: %s - %s: %s", startTimeInMs, endTimeInMs, localStartTimeInMs, localEndTimeInMs, page.toString()).c_str());
 					ttml << serializePageToTtml(page, pageToRegionId[&page], localStartTimeInMs + offsetInMs, localEndTimeInMs + offsetInMs);
 				}
 			}
@@ -161,6 +161,36 @@ class SubtitleEncoder : public ModuleS {
 			ttml << "  </body>\n";
 			ttml << "</tt>\n\n";
 			return ttml.str();
+		}
+
+		std::string toWebVTT(int64_t startTimeInMs, int64_t endTimeInMs) const {
+			std::stringstream vtt;
+			vtt << "WEBVTT\n";
+			vtt << "X-TIMESTAMP-MAP=LOCAL:00:00:00.000,MPEGTS:0\n";
+			vtt << "\n";
+
+			for(auto& page : currentPages) {
+				if (isDisplayable(page, startTimeInMs, endTimeInMs)) {
+					auto localStartTimeInMs = std::max<int64_t>(clockToTimescale(page.showTimestamp, 1000), startTimeInMs);
+					auto localEndTimeInMs = std::min<int64_t>(clockToTimescale(page.hideTimestamp, 1000), endTimeInMs);
+					m_host->log(Debug, format("[WebVTT][%s-%s]: %s - %s: %s", startTimeInMs, endTimeInMs, localStartTimeInMs, localEndTimeInMs, page.toString()).c_str());
+
+					auto const timecodeShow = timecodeToString(startTimeInMs);
+					auto const timecodeHide = timecodeToString(endTimeInMs);
+					vtt << timecodeShow << " --> " << timecodeHide << "\n";
+
+					for (auto& line : page.lines) {
+						if (line.text.empty())
+							continue;
+
+						vtt << line.text << "\n";
+					}
+				}
+
+				vtt << "\n";
+			}
+
+			return vtt.str();
 		}
 
 		void removeOutdatedPages(int64_t endTimeInMs) {
@@ -205,7 +235,7 @@ class SubtitleEncoder : public ModuleS {
 					currentPages.push_back(pageOut);
 				}
 
-				sendSample(toTTML(startInMs, endInMs));
+				sendSample(isWebVTT ? toWebVTT(startInMs, endInMs) : toTTML(startInMs, endInMs));
 				removeOutdatedPages(endInMs);
 
 				intClock = nextSplit;
