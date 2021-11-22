@@ -19,5 +19,7 @@ struct TsDemuxerConfig {
 	};
 
 	std::vector<Pid> pids = { ANY_VIDEO(), ANY_AUDIO() };
+
+	bool timestampStartsAtZero = true;
 };
 

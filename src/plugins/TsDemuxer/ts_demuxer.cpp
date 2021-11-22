@@ -26,9 +26,9 @@ auto const PTS_PERIOD = 1LL << 33;
 auto const TS_PACKET_LEN = 188;
 auto const PID_PAT = 0;
 
-struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::Restamper {
+struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::IRestamper {
 		TsDemuxer(KHost* host, TsDemuxerConfig const& config)
-			: m_host(host) {
+			: m_host(host), m_needsRestamp(config.timestampStartsAtZero) {
 			m_unwrapper.WRAP_PERIOD = PTS_PERIOD;
 			m_remainder.reserve(TS_PACKET_LEN);
 			m_streams.push_back(make_unique<PsiStream>(PID_PAT, m_host, this));
@@ -135,12 +135,12 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::Restamper {
 			}
 		}
 
-		// PesStream::Restamper implementation
+		// PesStream::IRestamper implementation
 		void restamp(int64_t& pts) override {
 			pts = m_unwrapper.unwrap(pts);
 
 			// make the timestamp start from zero
-			{
+			if (m_needsRestamp) {
 				if(m_ptsOrigin == INT64_MAX)
 					m_ptsOrigin = pts;
 
@@ -232,6 +232,7 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::Restamper {
 		vector<unique_ptr<Stream>> m_streams;
 		int64_t m_ptsOrigin = INT64_MAX;
 		TimeUnwrapper m_unwrapper;
+		bool m_needsRestamp;
 		std::vector<uint8_t> m_remainder; // incomplete packet from previous data: size < TS_PACKET_LEN and starts with SYNC_BYTE
 
 		static auto const SYNC_BYTE = 0x47;

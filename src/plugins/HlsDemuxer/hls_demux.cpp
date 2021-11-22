@@ -1,4 +1,4 @@
-// holds the chain: [dash downloader] => ( [mp4demuxer] => [restamper] )*
+// holds the chain: [dash/hls downloader] => ( [mp4/ts demuxer] => [restamper] )*
 #include "lib_utils/log_sink.hpp"
 #include "lib_modules/utils/factory.hpp"
 #include "hls_demux.hpp"

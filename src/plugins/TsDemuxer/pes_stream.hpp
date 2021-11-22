@@ -39,11 +39,11 @@ Metadata createMetadata(int mpegStreamType) {
 }
 
 struct PesStream : Stream {
-		struct Restamper {
+		struct IRestamper {
 			virtual void restamp(int64_t& time) = 0;
 		};
 
-		PesStream(int pid_, int type_, Restamper* restamper_, KHost* host, OutputDefault* output_) :
+		PesStream(int pid_, int type_, IRestamper* restamper_, KHost* host, OutputDefault* output_) :
 			Stream(pid_, host),
 			type(type_),
 			m_restamper(restamper_),
@@ -177,7 +177,7 @@ struct PesStream : Stream {
 
 		int type;
 	private:
-		Restamper * const m_restamper;
+		IRestamper * const m_restamper;
 		OutputDefault * const m_output = nullptr;
 		vector<uint8_t> m_pesBuffer;
 };
