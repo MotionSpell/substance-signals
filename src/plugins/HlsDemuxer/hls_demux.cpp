@@ -58,6 +58,7 @@ class HlsDemuxer : public Module {
 				m_host->activate(false);
 		}
 
+	private:
 		bool doProcess() {
 			if(!m_hasPlaylist) {
 				auto main = downloadPlaylist(m_playlistUrl);
@@ -83,15 +84,17 @@ class HlsDemuxer : public Module {
 				return false;
 			}
 
-			auto chunkUrl = m_dirName + m_chunks[0];
-			m_host->log(Debug, ("Download chunk: '" + chunkUrl + "'").c_str());
-			auto chunk = download(m_puller, chunkUrl.c_str());
-			m_chunks.erase(m_chunks.begin());
+			while (!m_chunks.empty()) {
+				auto chunkUrl = m_dirName + m_chunks[0];
+				m_host->log(Debug, ("Download chunk: '" + chunkUrl + "'").c_str());
+				auto chunk = download(m_puller, chunkUrl.c_str());
+				m_chunks.erase(m_chunks.begin());
 
-			auto data = m_output->allocData<DataRaw>(chunk.size());
-			if(chunk.size())
-				memcpy(data->buffer->data().ptr, chunk.data(), chunk.size());
-			m_output->post(data);
+				auto data = m_output->allocData<DataRaw>(chunk.size());
+				if(chunk.size())
+					memcpy(data->buffer->data().ptr, chunk.data(), chunk.size());
+				m_output->post(data);
+			}
 
 			return true;
 		}
@@ -102,14 +105,17 @@ class HlsDemuxer : public Module {
 			string line;
 			stringstream ss(string(contents.begin(), contents.end()));
 			while(getline(ss, line)) {
-				if(line.empty() || line[0] == '#')
+				if(line.empty())
 					continue;
+
+				if(line[0] == '#')
+					continue;
+
 				r.push_back(line);
 			}
 			return r;
 		}
 
-	private:
 		KHost* const m_host;
 		string const m_playlistUrl;
 		IFilePuller* m_puller;
