@@ -16,11 +16,23 @@ unique_ptr<Modules::In::IFilePuller> createHttpSource();
 
 namespace {
 
+bool startsWith(std::string s, std::string prefix) {
+	return s.substr(0, prefix.size()) == prefix;
+}
+
 string dirName(string path) {
 	auto i = path.rfind('/');
 	if(i != path.npos)
 		path = path.substr(0, i);
 	return path + "/";
+}
+
+string serverName(string path) {
+	auto const prefixLen = startsWith(path, "https://") ? 8 : startsWith(path, "http://") ? 7 : 0 /*assume no prefix*/;
+	auto const i = path.substr(prefixLen).find('/');
+	if(i != path.npos)
+		path = path.substr(0, prefixLen + i);
+	return path;
 }
 
 class HlsDemuxer : public Module {
@@ -54,9 +66,15 @@ class HlsDemuxer : public Module {
 					return false;
 				}
 
-				string subUrl = main[0];
+				string subUrl;
+				if (startsWith(main[0], "http"))
+					subUrl = main[0];
+				else if (startsWith(main[0], "/"))
+					subUrl = serverName(m_playlistUrl) + main[0];
+				else
+					subUrl = m_dirName + main[0];
 
-				m_chunks = downloadPlaylist(m_dirName + subUrl);
+				m_chunks = downloadPlaylist(subUrl);
 				m_hasPlaylist = true;
 			}
 
