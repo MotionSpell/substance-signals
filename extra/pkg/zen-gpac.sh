@@ -7,7 +7,7 @@ function gpac_build {
   # have the effect of stopping the whole build)
   readonly hash="ed95178d6c513b6530574d4eabd362d7ec346634"
 
-  lazy_git_clone github.com:rbouqueau/gpac.git gpac "$hash"
+  lazy_git_clone git@github.com:rbouqueau/gpac.git gpac "$hash"
 
   local OS=$(get_os $host)
   local crossPrefix=$(get_cross_prefix $BUILD $host)
