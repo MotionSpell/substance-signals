@@ -89,6 +89,9 @@ class HlsDemuxer : public Module {
 				return false;
 			}
 
+			if (m_live)
+				m_chunks.erase(m_chunks.begin(), m_chunks.end() - 1);
+
 			while (!m_chunks.empty()) {
 				auto const chunkUrl = m_dirName + m_chunks[0].url;
 				m_host->log(Debug, ("Download chunk: '" + chunkUrl + "'").c_str());
@@ -110,6 +113,7 @@ class HlsDemuxer : public Module {
 			vector<Entry> r;
 			int64_t programDateTime = 0;
 			int durInSec = 0;
+			m_live = true;
 			string line;
 			stringstream ss(string(contents.begin(), contents.end()));
 			while(getline(ss, line)) {
@@ -123,6 +127,8 @@ class HlsDemuxer : public Module {
 						durInSec = stoi(line.substr(strlen("#EXT-X-TARGETDURATION:")));
 					else if (startsWith(line, "#EXTINF:"))
 						durInSec = stoi(line.substr(strlen("#EXTINF:")));
+					else if (startsWith(line, "#EXT-X-ENDLIST"))
+						m_live = false;
 
 					continue;
 				}
@@ -138,6 +144,7 @@ class HlsDemuxer : public Module {
 		IFilePuller* m_puller;
 		OutputDefault* m_output = nullptr;
 		bool m_hasPlaylist = false;
+		bool m_live = true;
 		string m_dirName;
 		vector<Entry> m_chunks;
 		unique_ptr<IFilePuller> m_internalPuller;
