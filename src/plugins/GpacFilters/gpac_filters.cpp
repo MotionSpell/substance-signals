@@ -21,6 +21,7 @@ struct GpacFilters : ModuleDynI {
 		GpacFilters(KHost* host, GpacFiltersConfig *cfg)
 			: m_host(host), filterName(cfg->filterName) {
 			gf_sys_init(GF_MemTrackerNone, NULL);
+			//gf_log_set_tools_levels("all@info", GF_TRUE);
 		}
 
 		void process() override {
@@ -36,7 +37,8 @@ struct GpacFilters : ModuleDynI {
 
 				mimicOutputs();
 
-				openReframer(meta);
+				if (!openReframer(meta))
+					return;
 			}
 
 			inputData.push(data);
@@ -119,10 +121,12 @@ struct GpacFilters : ModuleDynI {
 			}
 		}
 
-		void openReframer(Metadata meta_) {
+		bool openReframer(Metadata meta_) {
 			auto meta = safe_cast<const MetadataPkt>(meta_);
 			outputs[0]->setMetadata(meta); //TODO: to be extended to multiple outputs
 			codecName = meta->codec;
+			if (codecName.empty())
+				return false;
 
 			fs = gf_fs_new(1, GF_FS_SCHEDULER_DIRECT, GF_FS_FLAG_NO_MAIN_THREAD, NULL);
 			if (!fs)
@@ -161,6 +165,8 @@ struct GpacFilters : ModuleDynI {
 				if (e)
 					throw error(format("cannot load create GPAC Filters \"%s\": %s", filterName, gf_error_to_string(e)).c_str());
 			}
+
+			return true;
 		}
 
 		void mimicOutputs() {
