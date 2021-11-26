@@ -42,6 +42,7 @@ sub.m3u8
 chunk-01.ts
 chunk-next.ts
 chunk-last.ts
+#EXT-X-ENDLIST
 )";
 
 	HlsDemuxConfig cfg {};
@@ -50,6 +51,7 @@ chunk-last.ts
 	auto demux = loadModule("HlsDemuxer", &NullHost, &cfg);
   for(int i=0;i < 100;++i)
 	demux->process();
+
 	ASSERT_EQUALS(
 	vector<string>({
 		"http://test.com/playlist.m3u8",
