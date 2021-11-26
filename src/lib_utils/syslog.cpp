@@ -32,7 +32,7 @@ struct SyslogLogger : LogSink {
 		writer.String(channel_name.c_str());
 		writer.EndObject();
 
-		::syslog(levelToSysLog[level], s.GetString());
+		::syslog(levelToSysLog[level], "%s", s.GetString());
 	}
 	const std::string channel_name;
 };
