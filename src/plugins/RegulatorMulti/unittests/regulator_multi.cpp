@@ -52,16 +52,21 @@ unittest("RegulatorMulti: video is sent in advance + flush()") {
 	push(0, 0);
 	push(1, rmCfg.maxMediaTimeDelayInMs); // video
 	push(2, 0);
-	ASSERT_EQUALS(0, rec->frameCount);
-	clock->set(rmCfg.maxClockTimeDelayInMs+1);
+	ASSERT_EQUALS(3, rec->frameCount); // init: dispatched immediately
+
 	push(0, 0);
-	ASSERT_EQUALS(4, rec->frameCount);
-	clock->set(2*rmCfg.maxClockTimeDelayInMs+2);
-	push(0, 2*rmCfg.maxClockTimeDelayInMs+2);
-	ASSERT_EQUALS(4, rec->frameCount);
+	push(1, rmCfg.maxMediaTimeDelayInMs); // video
+	push(2, 0);
+	ASSERT_EQUALS(3, rec->frameCount);
+	clock->set(rmCfg.maxMediaTimeDelayInMs + rmCfg.maxClockTimeDelayInMs+1);
+	push(0, 0);
+	ASSERT_EQUALS(7, rec->frameCount);
+	clock->set(2 * (rmCfg.maxMediaTimeDelayInMs+rmCfg.maxClockTimeDelayInMs) + 2);
+	push(0, 2 * (rmCfg.maxMediaTimeDelayInMs + rmCfg.maxClockTimeDelayInMs) + 2);
+	ASSERT_EQUALS(7, rec->frameCount);
 	push(0, 0);
 	reg->flush();
-	ASSERT_EQUALS(6, rec->frameCount);
+	ASSERT_EQUALS(9, rec->frameCount);
 }
 
 unittest("RegulatorMulti: backward discontinuity") {
@@ -85,13 +90,15 @@ unittest("RegulatorMulti: backward discontinuity") {
 
 	push(0, 0);
 	push(1, rmCfg.maxMediaTimeDelayInMs); // video
-	ASSERT_EQUALS(0, rec->frameCount);
-	auto ct = rmCfg.maxClockTimeDelayInMs + 1;
+	ASSERT_EQUALS(2, rec->frameCount);
+
+	auto ct = rmCfg.maxMediaTimeDelayInMs + rmCfg.maxClockTimeDelayInMs + 1;
 	clock->set(ct);
-	push(0, 20*rmCfg.maxMediaTimeDelayInMs);
+	push(0, 20 * rmCfg.maxMediaTimeDelayInMs);
 	ASSERT_EQUALS(2, rec->frameCount);
 	push(0, 0); //backward media time
 	ASSERT_EQUALS(3, rec->frameCount);
+
 	ct *= 2;
 	clock->set(ct);
 	push(0, 0); //backward media time

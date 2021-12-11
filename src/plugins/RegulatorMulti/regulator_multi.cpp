@@ -10,6 +10,7 @@ is complementary to rectifiers operating on raw data (e.g. in a downward module)
 
 The module works this way:
  - At each data reception, evaluate if some data is dispatchable. Non-dispatchable data is queued in a fifo.
+   The first data is dispatched immediately to allow downward modules to initialize.
  - We rely on clock times to handle drifts and discontinuities: flush and reset on error.
  - Different media types are processed differently (video&audio = continuous, subtitles = sparse).
 */
@@ -33,7 +34,7 @@ struct RegulatorMulti : public ModuleDynI {
 		RegulatorMulti(KHost* host, RegulatorMultiConfig &rmCfg)
 			: m_host(host), clock(rmCfg.clock),
 			  maxMediaTimeDelay(timescaleToClock(rmCfg.maxMediaTimeDelayInMs, 1000)),
-			  maxClockTimeDelay(timescaleToClock(rmCfg.maxClockTimeDelayInMs, 1000)) {
+			  maxClockTimeDelay(timescaleToClock(rmCfg.maxMediaTimeDelayInMs + rmCfg.maxClockTimeDelayInMs, 1000)) {
 		}
 
 		void flush() override {
@@ -48,10 +49,16 @@ struct RegulatorMulti : public ModuleDynI {
 
 			int id;
 			auto data = popAny(id);
-			assert(id < (int)streams.size());
 
 			if (isDeclaration(data)) {
 				outputs[id]->post(data);
+				return;
+			}
+
+			// Initial case: dispatch immediately
+			if (!streams[id].init) {
+				outputs[id]->post(data);
+				streams[id].init = true;
 				return;
 			}
 
@@ -95,7 +102,9 @@ struct RegulatorMulti : public ModuleDynI {
 			int64_t creationTime;
 			Data data;
 		};
-		struct Stream : std::vector<Rec> {};
+		struct Stream : std::vector<Rec> {
+			bool init = false;
+		};
 
 		Data popAny(int& inputIdx) {
 			Data data;
@@ -131,6 +140,7 @@ struct RegulatorMulti : public ModuleDynI {
 
 		std::vector<Stream> streams;
 		int64_t mediaDispatchTime = std::numeric_limits<int64_t>::min();
+		int64_t mediaTimeDelay = 0, mediaTimeDelayDelta = IClock::Rate / 5;
 };
 
 IModule* createObject(KHost* host, void* va) {

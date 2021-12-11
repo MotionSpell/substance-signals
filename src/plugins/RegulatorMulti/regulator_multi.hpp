@@ -4,6 +4,6 @@
 
 struct RegulatorMultiConfig {
 	int maxMediaTimeDelayInMs = 3000;
-	int maxClockTimeDelayInMs = 3000;
+	int maxClockTimeDelayInMs = 1000; // this adds up to maxMediaTimeDelayInMs
 	std::shared_ptr<IClock> clock = g_SystemClock;
 };

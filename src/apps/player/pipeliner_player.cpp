@@ -187,7 +187,7 @@ void declarePipeline(Config cfg, Pipeline &pipeline, const char *url) {
 	IFilter* regulatorMulti = nullptr;
 	if (regulateMulti) {
 		RegulatorMultiConfig rmCfg;
-		rmCfg.maxClockTimeDelayInMs = rmCfg.maxMediaTimeDelayInMs = maxMediaTimeDelayInMs;
+		rmCfg.maxMediaTimeDelayInMs = maxMediaTimeDelayInMs;
 		regulatorMulti = pipeline.add("RegulatorMulti", &rmCfg);
 	}
 
