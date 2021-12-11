@@ -89,13 +89,15 @@ struct Rectifier : ModuleDynI {
 
 	private:
 		KHost* const m_host;
-
 		Fraction const framePeriod;
-		int64_t numTicks = 0;
-		const int64_t analyzeWindow = IClock::Rate / 2;   // a positive value means that the master stream arrives in advance of slave streams
-		const int64_t maxDataDuration = IClock::Rate * 5; // whatever happens data will be deleted after analyzeWindow + maxDataDuration (clock time)
 		std::shared_ptr<IClock> const clock;
 		std::shared_ptr<IScheduler> const scheduler;
+
+		// delays
+		const int64_t analyzeWindow = IClock::Rate / 2; // a positive value means that the master stream arrives in advance of slave streams
+		const int64_t maxLifetime = IClock::Rate * 1;   // data will be deleted after analyzeWindow + maxLifetime (clock times)
+
+		int64_t numTicks = 0;
 		IScheduler::Id m_pendingTaskId{};
 		bool m_started = false;
 
@@ -228,7 +230,7 @@ struct Rectifier : ModuleDynI {
 		void emitOnePeriod(Fraction now) {
 			std::unique_lock<std::mutex> lock(streamMutex);
 			fillInputQueues();
-			discardOutdatedData(fractionToClock(now) - analyzeWindow - maxDataDuration);
+			discardOutdatedData(fractionToClock(now) - analyzeWindow - maxLifetime);
 
 			// output media times corresponding to the "media period"
 			auto const outMasterTime = Interval {
@@ -264,8 +266,8 @@ struct Rectifier : ModuleDynI {
 
 				auto data = clone(masterFrame);
 				data->setMediaTime(outMasterTime.start);
+				//Romain: we could defer the posting to the point where we know all data are available. Is it needed for Molotov?
 				master.output->post(data);
-				discardStreamOutdatedData(masterStreamId, data->get<PresentationTime>().time - analyzeWindow);
 			}
 
 			for (auto i : getInputs()) {
@@ -376,8 +378,8 @@ struct Rectifier : ModuleDynI {
 			}
 
 			if (writtenSamples != (inMasterSamples.stop - inMasterSamples.start))
-				m_host->log(Warning, format("Incomplete audio period (%s samples instead of %s). Expect glitches.",
-				        writtenSamples, inMasterSamples.stop - inMasterSamples.start).c_str());
+				m_host->log(Warning, format("Incomplete audio period (%s samples instead of %s - queue size %s). Expect glitches.",
+				        writtenSamples, inMasterSamples.stop - inMasterSamples.start, stream.data.size()).c_str());
 
 			stream.output->post(pcm);
 		}
