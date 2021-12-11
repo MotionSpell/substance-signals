@@ -55,7 +55,7 @@ unittest("RegulatorMulti: video is sent in advance + flush()") {
 	ASSERT_EQUALS(0, rec->frameCount);
 	clock->set(rmCfg.maxClockTimeDelayInMs+1);
 	push(0, 0);
-	ASSERT_EQUALS(3, rec->frameCount);
+	ASSERT_EQUALS(4, rec->frameCount);
 	clock->set(2*rmCfg.maxClockTimeDelayInMs+2);
 	push(0, 2*rmCfg.maxClockTimeDelayInMs+2);
 	ASSERT_EQUALS(4, rec->frameCount);

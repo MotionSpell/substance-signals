@@ -10,7 +10,7 @@ is complementary to rectifiers operating on raw data (e.g. in a downward module)
 
 The module works this way:
  - At each data reception, evaluate if some data is dispatchable. Non-dispatchable data is queued in a fifo.
- - We still rely on Clock times to handle drifts and discontinuities.
+ - We rely on clock times to handle drifts and discontinuities: flush and reset on error.
  - Different media types are processed differently (video&audio = continuous, subtitles = sparse).
 */
 #include "regulator_multi.hpp"
@@ -18,6 +18,7 @@ The module works this way:
 #include "lib_modules/utils/helper_dyn.hpp"
 #include "lib_media/common/attributes.hpp"
 #include "lib_utils/clock.hpp" // timescaleToClock
+#include "lib_utils/log_sink.hpp"
 #include "lib_utils/tools.hpp" // enforce
 #include <algorithm> // max, remove_if
 #include <cassert>
@@ -29,16 +30,17 @@ The module works this way:
 namespace Modules {
 
 struct RegulatorMulti : public ModuleDynI {
-		RegulatorMulti(KHost* /*host*/, RegulatorMultiConfig &rmCfg)
-			: maxMediaTimeDelay(timescaleToClock(rmCfg.maxMediaTimeDelayInMs, 1000)),
-			  maxClockTimeDelay(timescaleToClock(rmCfg.maxClockTimeDelayInMs, 1000)),
-			  clock(rmCfg.clock) {
+		RegulatorMulti(KHost* host, RegulatorMultiConfig &rmCfg)
+			: m_host(host), clock(rmCfg.clock),
+			  maxMediaTimeDelay(timescaleToClock(rmCfg.maxMediaTimeDelayInMs, 1000)),
+			  maxClockTimeDelay(timescaleToClock(rmCfg.maxClockTimeDelayInMs, 1000)) {
 		}
 
 		void flush() override {
-			for (int i = 0; i < (int)streams.size(); ++i)
-				for (auto &rec : streams[i])
-					outputs[i]->post(rec.data);
+			dispatch([](Rec const&) {
+				return true;
+			});
+			mediaDispatchTime = std::numeric_limits<int64_t>::min();
 		}
 
 		void process() override {
@@ -65,10 +67,14 @@ struct RegulatorMulti : public ModuleDynI {
 				return rec.data->get<DecodingTime>().time < mediaDispatchTime;
 			});
 
-			// Too old according to clock time: dispatch anyway
-			dispatch([&](Rec const& rec) {
-				return rec.creationTime < now - maxClockTimeDelay;
-			});
+			// Too old according to clock time: flush and reset
+			for (int i = 0; i < (int)streams.size(); ++i)
+				for (auto& rec : streams[i])
+					if (rec.creationTime < now - maxClockTimeDelay) {
+						m_host->log(Warning, "Clock error detected. Dispatch all data and reset offset.");
+						flush();
+						return;
+					}
 		}
 
 		int getNumOutputs() const override {
@@ -118,9 +124,12 @@ struct RegulatorMulti : public ModuleDynI {
 			}
 		}
 
-		std::vector<Stream> streams;
+		KHost * const m_host;
+		std::shared_ptr<IClock const> clock;
 		const int64_t maxMediaTimeDelay, maxClockTimeDelay;
-		std::shared_ptr<IClock> clock;
+		static auto const DISCONTINUITY_TOLERANCE = 6 * IClock::Rate;
+
+		std::vector<Stream> streams;
 		int64_t mediaDispatchTime = std::numeric_limits<int64_t>::min();
 };
 
@@ -133,4 +142,3 @@ IModule* createObject(KHost* host, void* va) {
 
 auto const registered = Factory::registerModule("RegulatorMulti", &createObject);
 }
-
