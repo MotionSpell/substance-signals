@@ -41,7 +41,6 @@ struct RegulatorMulti : public ModuleDynI {
 			dispatch([](Rec const&) {
 				return true;
 			});
-			mediaDispatchTime = std::numeric_limits<int64_t>::min();
 		}
 
 		void process() override {
@@ -78,8 +77,11 @@ struct RegulatorMulti : public ModuleDynI {
 			for (int i = 0; i < (int)streams.size(); ++i)
 				for (auto& rec : streams[i])
 					if (rec.creationTime < now - maxClockTimeDelay) {
-						m_host->log(Warning, "Clock error detected. Dispatch all data and reset offset.");
-						flush();
+						m_host->log(Warning, "Clock error detected. Discard queued data and reset offset.");
+						for (auto &stream : streams) {
+							stream.clear();
+						}
+						reset();
 						return;
 					}
 		}
@@ -104,6 +106,7 @@ struct RegulatorMulti : public ModuleDynI {
 		};
 		struct Stream : std::vector<Rec> {
 			bool init = false;
+			int64_t numDispatchSinceReset = 0;
 		};
 
 		Data popAny(int& inputIdx) {
@@ -125,22 +128,28 @@ struct RegulatorMulti : public ModuleDynI {
 		void dispatch(std::function<bool(Rec const&)> predicate) {
 			for (int i = 0; i < (int)streams.size(); ++i) {
 				for (auto& rec : streams[i])
-					if (predicate(rec))
+					if (predicate(rec)) {
+						streams[i].numDispatchSinceReset++;
 						outputs[i]->post(rec.data);
+					}
 
 				//remove dispatched
 				streams[i].erase(std::remove_if(streams[i].begin(), streams[i].end(), predicate), streams[i].end());
 			}
 		}
 
+		void reset() {
+			mediaDispatchTime = std::numeric_limits<int64_t>::min();
+			for (auto &stream : streams)
+				stream.numDispatchSinceReset = 0;
+		}
+
 		KHost * const m_host;
 		std::shared_ptr<IClock const> clock;
 		const int64_t maxMediaTimeDelay, maxClockTimeDelay;
-		static auto const DISCONTINUITY_TOLERANCE = 6 * IClock::Rate;
 
 		std::vector<Stream> streams;
 		int64_t mediaDispatchTime = std::numeric_limits<int64_t>::min();
-		int64_t mediaTimeDelay = 0, mediaTimeDelayDelta = IClock::Rate / 5;
 };
 
 IModule* createObject(KHost* host, void* va) {

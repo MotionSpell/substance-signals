@@ -266,7 +266,6 @@ struct Rectifier : ModuleDynI {
 
 				auto data = clone(masterFrame);
 				data->setMediaTime(outMasterTime.start);
-				//Romain: we could defer the posting to the point where we know all data are available. Is it needed for Molotov?
 				master.output->post(data);
 			}
 
@@ -345,9 +344,7 @@ struct Rectifier : ModuleDynI {
 				auto const inSamples = getSampleInterval(rec.data->get<PresentationTime>().time, inputData->getPlaneSize());
 				return inSamples.stop < inMasterSamples.start;
 			};
-
-			while(!stream.data.empty() && isObsolete(stream.data.front()))
-				stream.data.erase(stream.data.begin());
+			stream.data.erase(std::remove_if(stream.data.begin(), stream.data.end(), isObsolete), stream.data.end());
 
 			int writtenSamples = 0;
 
@@ -378,8 +375,8 @@ struct Rectifier : ModuleDynI {
 			}
 
 			if (writtenSamples != (inMasterSamples.stop - inMasterSamples.start))
-				m_host->log(Warning, format("Incomplete audio period (%s samples instead of %s - queue size %s). Expect glitches.",
-				        writtenSamples, inMasterSamples.stop - inMasterSamples.start, stream.data.size()).c_str());
+				m_host->log(Warning, format("Incomplete audio period (%s samples instead of %s). Expect glitches.",
+				        writtenSamples, inMasterSamples.stop - inMasterSamples.start).c_str());
 
 			stream.output->post(pcm);
 		}
