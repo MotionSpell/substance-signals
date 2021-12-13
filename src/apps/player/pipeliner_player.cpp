@@ -182,7 +182,7 @@ void declarePipeline(Config cfg, Pipeline &pipeline, const char *url) {
 		throw std::runtime_error("No streams found");
 
 	auto const maxMediaTimeDelayInMs = 3000;
-	auto restamper = pipeline.addModule<Restamper>(demuxer->getNumOutputs(), timescaleToClock(maxMediaTimeDelayInMs-100, 1000));
+	auto restamper = pipeline.addNamedModule<Restamper>("restamper", demuxer->getNumOutputs(), timescaleToClock(maxMediaTimeDelayInMs-100, 1000));
 
 	IFilter* regulatorMulti = nullptr;
 	if (regulateMulti) {
