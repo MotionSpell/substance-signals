@@ -81,27 +81,27 @@ static GF_Err mem_out_process(GF_Filter *filter) {
 		u32 data_size = 0;
 		u64 dts = gf_filter_pck_get_dts(pck);
 		u64 pts = gf_filter_pck_get_cts(pck);
-		u64 last_inc = ctx->last_inc;
 		const u8 *data = gf_filter_pck_get_data(pck, &data_size);
 
-		// fix audio reframining inconsistencies
+		// fix audio reframing inconsistencies
 		prop = gf_filter_pid_get_property(ctx->pid, GF_PROP_PID_CODECID);
 		if (prop && gf_codecid_type(prop->value.uint) == GF_STREAM_AUDIO) {
-			if (ctx->last_dts == GF_FILTER_NO_TS) {
+			if (ctx->last_dts == GF_FILTER_NO_TS) { // init
 				ctx->last_dts = dts;
-			} else if (dts == ctx->last_dts + ctx->last_inc || ctx->last_inc == GF_FILTER_NO_TS) {
+			} else if (ctx->last_inc == GF_FILTER_NO_TS) { // compute last_inc
 				ctx->last_inc = dts - ctx->last_dts;
 				ctx->last_dts = dts;
-			} else {
+			} else if (dts == ctx->last_dts + ctx->last_inc) { // normal case
+				ctx->last_dts = dts;
+			} else if (ctx->last_dts == dts) { // repeated: infer
 				ctx->last_dts = ctx->last_dts + ctx->last_inc;
+				ctx->last_inc = GF_FILTER_NO_TS;
+			} else { // discontinuity
+				ctx->last_dts = dts;
 				ctx->last_inc = GF_FILTER_NO_TS;
 			}
 
-			if ((ctx->last_pts == GF_FILTER_NO_TS) || (pts == ctx->last_pts + ctx->last_inc)) {
-				ctx->last_pts = pts;
-			} else {
-				ctx->last_pts = ctx->last_pts + last_inc;
-			}
+			ctx->last_pts = pts;
 		} else {
 			ctx->last_dts = dts;
 			ctx->last_pts = pts;
