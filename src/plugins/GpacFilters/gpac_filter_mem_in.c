@@ -60,6 +60,8 @@ static GF_CodecID get_codec_id(const char *signals_codec_name) {
 		return GF_CODECID_AC3;
 	else if (!strcmp(signals_codec_name, "eac3"))
 		return GF_CODECID_EAC3;
+	else if (!strcmp(signals_codec_name, "mpeg2video"))
+		return GF_CODECID_MPEG2_MAIN;
 	else if (!strcmp(signals_codec_name, "h264_annexb") || !strcmp(signals_codec_name, "h264_avcc"))
 		return GF_CODECID_AVC;
 	else if (!strcmp(signals_codec_name, "hevc_annexb") || !strcmp(signals_codec_name, "hevc_avcc"))

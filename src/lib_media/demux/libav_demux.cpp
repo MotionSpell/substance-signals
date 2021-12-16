@@ -161,6 +161,7 @@ struct LibavDemux : Module {
 				auto const container = std::string(m_formatCtx->iformat->name);
 				if(container.substr(0, 4) == "mov,") {
 					switch(codecCtx->codec_id) {
+					case AV_CODEC_ID_MPEG2VIDEO: meta->codec = "mpeg2video"; break;
 					case AV_CODEC_ID_H264: meta->codec = "h264_avcc"; break;
 					case AV_CODEC_ID_HEVC: meta->codec = "hevc_avcc"; break;
 					case AV_CODEC_ID_AAC: meta->codec = "aac_raw"; break;
@@ -168,6 +169,7 @@ struct LibavDemux : Module {
 					}
 				} else if(container == "mpegts") {
 					switch(codecCtx->codec_id) {
+					case AV_CODEC_ID_MPEG2VIDEO: meta->codec = "mpeg2video"; break;
 					case AV_CODEC_ID_H264: meta->codec = "h264_annexb"; break;
 					case AV_CODEC_ID_HEVC: meta->codec = "hevc_annexb"; break;
 					case AV_CODEC_ID_AAC: meta->codec = "aac_adts"; break;

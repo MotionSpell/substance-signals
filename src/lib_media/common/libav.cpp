@@ -86,6 +86,9 @@ int signalsIdToAvCodecId(const char* origName) {
 
 	std::string name = origName;
 
+	if(name == "mpeg2video")
+		return AV_CODEC_ID_MPEG2VIDEO;
+
 	// Workaround: FFmpeg only has one AV_CODEC_ID value
 	// for both "Annex-B H.264" and "AVCC H.264".
 	if(name == "h264_avcc")
@@ -98,7 +101,7 @@ int signalsIdToAvCodecId(const char* origName) {
 
 	// Workaround: FFmpeg only has one AV_CODEC_ID value
 	// for both "raw AAC" and "ADTS AAC".
-	if(name == "aac_adts")
+	if(name == "aac_raw" || name == "aac_adts")
 		return AV_CODEC_ID_AAC;
 
 	// Workaround: FFmpeg only has one AV_CODEC_ID value

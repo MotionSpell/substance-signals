@@ -250,7 +250,7 @@ struct Fmp4Splitter : ModuleS {
 		switch(m_codecFourcc) {
 		case FOURCC("mp4a"): {
 			meta = make_shared<MetadataPkt>(AUDIO_PKT);
-			meta->codec = "aac_adts";
+			meta->codec = "aac_raw";
 			break;
 		}
 		case FOURCC("avc1"): {
