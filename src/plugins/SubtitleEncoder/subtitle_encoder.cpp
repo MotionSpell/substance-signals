@@ -32,14 +32,18 @@ class SubtitleEncoder : public ModuleS {
 	public:
 		SubtitleEncoder(KHost* host, SubtitleEncoderConfig* cfg)
 			: m_host(host), isWebVTT(cfg->isWebVTT), m_utcStartTime(cfg->utcStartTime),
-			  lang(cfg->lang), timingPolicy(cfg->timingPolicy), maxPageDurIn180k(timescaleToClock(cfg->maxDelayBeforeEmptyInMs, 1000)), splitDurationIn180k(timescaleToClock(cfg->splitDurationInMs, 1000)) {
+			  lang(cfg->lang), timingPolicy(cfg->timingPolicy),
+			  maxPageDurIn180k(std::max<int>(timescaleToClock(cfg->maxDelayBeforeEmptyInMs, 1000), timescaleToClock(cfg->splitDurationInMs, 1000))),
+			  splitDurationIn180k(timescaleToClock(cfg->splitDurationInMs, 1000)) {
 			enforce(cfg->utcStartTime != nullptr, "SubtitleEncoder: utcStartTime can't be NULL");
 			output = addOutput();
 			output->setMetadata(make_shared<MetadataPktSubtitle>());
 		}
 
 		void processOne(Data data) override {
-			currentPages.push_back(safe_cast<const DataSubtitle>(data)->page);
+			auto page = dynamic_cast<const DataSubtitle*>(data.get());
+			if (page)
+				currentPages.push_back(page->page);
 
 			// TODO
 			// 14. add flush() for ondemand samples
