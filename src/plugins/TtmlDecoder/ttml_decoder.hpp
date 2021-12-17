@@ -1,9 +1,9 @@
 #pragma once
 
 #include <string>
-#include "lib_media/common/utc_start_time.hpp"
+#include "lib_utils/system_clock.hpp"
 
 struct TtmlDecoderConfig {
-	IUtcStartTimeQuery const * utcStartTime = &g_NullStartTime;
+	std::shared_ptr<IClock> const clock = g_SystemClock;
 };
 

@@ -49,8 +49,8 @@ void explore(const Tag& tag, std::function<void(const Tag&)> processTag) {
 class TTMLDecoder : public ModuleS {
 	public:
 		TTMLDecoder(KHost* host, TtmlDecoderConfig* cfg)
-			: m_host(host), m_utcStartTime(cfg->utcStartTime) {
-			enforce(cfg->utcStartTime != nullptr, "TTMLDecoder: utcStartTime can't be NULL");
+			: m_host(host), m_clock(cfg->clock) {
+			enforce(cfg->clock != nullptr, "TTMLDecoder: clock can't be NULL");
 			output = addOutput();
 			output->setMetadata(make_shared<MetadataRawSubtitle>());
 		}
@@ -80,7 +80,7 @@ class TTMLDecoder : public ModuleS {
 							lineStyle.color = attr.value;
 						else if (attr.name == "tts:backgroundColor")
 							m_host->log(Debug, format("Ignored attribute %s", attr.name).c_str());
-						else if (attr.name == "tts:linePadding")
+						else if (attr.name == "ebutts:linePadding")
 							m_host->log(Debug, format("Ignored attribute %s", attr.name).c_str());
 						else if (attr.name == "tts:textAlign")
 							m_host->log(Debug, format("Ignored attribute %s", attr.name).c_str());
@@ -115,7 +115,7 @@ class TTMLDecoder : public ModuleS {
 
 		void sendSample(const Page& page) {
 			auto out = output->allocData<DataSubtitle>(0);
-			out->setMediaTime(page.showTimestamp);
+			out->setMediaTime(fractionToClock(m_clock->now()));
 			out->page = page;
 
 			CueFlags flags {};
@@ -127,7 +127,7 @@ class TTMLDecoder : public ModuleS {
 
 	private:
 		KHost* const m_host;
-		IUtcStartTimeQuery const * const m_utcStartTime;
+		std::shared_ptr<IClock> const m_clock;
 		OutputDefault* output;
 };
 
