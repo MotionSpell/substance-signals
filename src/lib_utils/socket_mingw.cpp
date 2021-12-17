@@ -7,74 +7,103 @@
 using namespace std;
 
 struct Socket : ISocket {
-	Socket(bool isTcp) {
-		WSADATA wsaData;
-		auto res = WSAStartup(MAKEWORD(2, 2), &wsaData);
+		Socket(const char* ipAddr, int port, ISocket::Type type) {
+			WSADATA wsaData;
+			auto res = WSAStartup(MAKEWORD(2, 2), &wsaData);
+			if(res)
+				throw runtime_error("WSAStartup failed");
 
-		if(res)
-			throw runtime_error("WSAStartup failed");
+			m_socket = socket(AF_INET, type == TCP ? SOCK_STREAM : SOCK_DGRAM, 0);
 
-		m_socket = socket(AF_INET, isTcp ? SOCK_STREAM : SOCK_DGRAM, 0);
+			if(m_socket == INVALID_SOCKET)
+				throw runtime_error("socket failed");
 
-		if(m_socket == INVALID_SOCKET)
-			throw runtime_error("socket failed");
+			if (type != TCP) {
+				// share port number
+				int one = 1;
 
-		// share port number
-		int one = 1;
+				if(setsockopt(m_socket, SOL_SOCKET, SO_REUSEADDR, (char*)&one, sizeof one) < 0)
+					throw runtime_error("setsockopt failed");
 
-		if(setsockopt(m_socket, SOL_SOCKET, SO_REUSEADDR, (char*)&one, sizeof one) < 0)
-			throw runtime_error("setsockopt failed");
+				// set non-blocking
+				unsigned long Yes = TRUE;
+				ioctlsocket(m_socket, FIONBIO, &Yes);
+			}
 
-		// set non-blocking
-		unsigned long Yes = TRUE;
-		ioctlsocket(m_socket, FIONBIO, &Yes);
-	}
+			sockaddr_in dstAddr {};
+			dstAddr.sin_family = AF_INET;
+			dstAddr.sin_addr.s_addr = INADDR_ANY;
+			dstAddr.sin_port = htons(port);
 
-	~Socket() {
-		closesocket(m_socket);
-		WSACleanup();
-	}
+			if(bind(m_socket, (sockaddr*)&dstAddr, sizeof(dstAddr)) == SOCKET_ERROR)
+				throw runtime_error("bind failed");
 
-	void joinMulticastGroup(const char* ipAddr, int port) {
-		sockaddr_in dstAddr {};
-		dstAddr.sin_family = AF_INET;
-		dstAddr.sin_addr.s_addr = INADDR_ANY;
-		dstAddr.sin_port = htons(port);
+			switch(type) {
+			case UDP_MULTICAST:
+				joinMulticastGroup(ipAddr);
+				break;
+			case TCP: {
+				if(listen(m_socket, 5) < 0)
+					throw runtime_error("client socket 'listen' failed");
 
-		if(bind(m_socket, (sockaddr*)&dstAddr, sizeof(dstAddr)) == SOCKET_ERROR)
-			throw runtime_error("bind failed");
+				sockaddr_in clientAddr {};
+				clientAddr.sin_family = AF_INET;
+				clientAddr.sin_addr.s_addr = inet_addr("0.0.0.0");
+				clientAddr.sin_port = htons(0);
+				auto const clientAddrLen = sizeof(clientAddr);
 
-		// send IGMP join request
-		ip_mreq mreq {};
-		mreq.imr_multiaddr.s_addr = inet_addr(ipAddr);
-		mreq.imr_interface.s_addr = htonl(INADDR_ANY);
+				m_socket_client = accept(m_socket, (sockaddr*)&clientAddr, (socklen_t*)&clientAddrLen);
 
-		if(setsockopt(m_socket, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*)&mreq, sizeof(mreq)) < 0)
-			throw runtime_error("can't join multicast address");
-	}
+				if(m_socket_client < 0)
+					throw runtime_error("client socket 'accept' failed");
 
-	size_t receive(uint8_t* buffer, size_t dstlen) {
-		sockaddr_in addr;
-		auto addrSize = (int)sizeof(addr);
+				break;
+			}
+			case UDP:
+			default:
+				break;
+			}
+		}
 
-		auto len = recvfrom(m_socket,
-		        (char*)buffer, dstlen,
-		        0,
-		        (sockaddr*)&addr, &addrSize);
+		~Socket() {
+			closesocket(m_socket);
+			WSACleanup();
+		}
 
-		if(len == SOCKET_ERROR && WSAGetLastError() == WSAEWOULDBLOCK)
-			return {}; // no data available yet
+		size_t receive(uint8_t* buffer, size_t dstlen) {
+			sockaddr_in addr;
+			auto addrSize = (int)sizeof(addr);
 
-		if(len < 0)
-			throw runtime_error("recvfrom failed");
+			auto len = recvfrom(m_socket,
+			        (char*)buffer, dstlen,
+			        0,
+			        (sockaddr*)&addr, &addrSize);
 
-		return len;
-	}
+			if(len == SOCKET_ERROR && WSAGetLastError() == WSAEWOULDBLOCK)
+				return {}; // no data available yet
 
-	SOCKET m_socket = INVALID_SOCKET;
+			if(len < 0)
+				throw runtime_error("recvfrom failed");
+
+			return len;
+		}
+
+	private:
+		void joinMulticastGroup(const char* ipAddr) {
+
+			// send IGMP join request
+			ip_mreq mreq {};
+			mreq.imr_multiaddr.s_addr = inet_addr(ipAddr);
+			mreq.imr_interface.s_addr = htonl(INADDR_ANY);
+
+			if(setsockopt(m_socket, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*)&mreq, sizeof(mreq)) < 0)
+				throw runtime_error("can't join multicast address");
+		}
+
+		SOCKET m_socket = INVALID_SOCKET;
 };
 
-std::unique_ptr<ISocket> createSocket(bool isTcp) {
-	return make_unique<Socket>(isTcp);
+std::unique_ptr<ISocket> createSocket(const char* ipAddr, int port, ISocket::Type type) {
+	return make_unique<Socket>(const char* ipAddr, int port, ISocket::Type type);
 }
 

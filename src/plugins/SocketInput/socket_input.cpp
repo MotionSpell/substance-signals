@@ -14,13 +14,11 @@ struct SocketInput : Module {
 
 		m_host->activate(true);
 
-		m_socket = createSocket(config.isTcp);
-
-		if (config.isMulticast) {
-			char buffer[256];
-			sprintf(buffer, "%d.%d.%d.%d", config.ipAddr[0], config.ipAddr[1], config.ipAddr[2], config.ipAddr[3]);
-			m_socket->joinMulticastGroup(buffer, config.port);
-		}
+		char buffer[256];
+		sprintf(buffer, "%d.%d.%d.%d", config.ipAddr[0], config.ipAddr[1], config.ipAddr[2], config.ipAddr[3]);
+		auto type = config.isTcp ? ISocket::TCP : ISocket::UDP;
+		type = config.isMulticast ? ISocket::UDP_MULTICAST : type;
+		m_socket = createSocket(buffer, config.port, type);
 
 		m_output = addOutput();
 	}
