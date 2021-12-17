@@ -66,7 +66,7 @@ unittest("ttml_decoder: ttml_encoder sample") {
 	ASSERT_EQUALS(pageNum, received);
 }
 
-unittest("ttml_decoder: ebu-tt-live") {
+unittest("ttml_decoder: ebu-tt-live (WDR sample)") {
 	std::string ttml = R"|(<?xml version="1.0" encoding="UTF-8"?>
 <tt:tt xmlns:tt="http://www.w3.org/ns/ttml" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xmlns:tts="http://www.w3.org/ns/ttml#styling" xmlns:ebuttm="urn:ebu:tt:metadata" xmlns:ebuttp="urn:ebu:tt:parameters" xmlns:ebutts="urn:ebu:tt:style" xml:lang="de" ttp:cellResolution="50 30" ttp:timeBase="clock" ttp:clockMode="local" ebuttp:sequenceIdentifier="TestSequence1" ebuttp:sequenceNumber="1636064848635">
     <tt:head>
@@ -98,6 +98,70 @@ unittest("ttml_decoder: ebu-tt-live") {
 	auto dec = loadModule("TTMLDecoder", &NullHost, &cfg);
 	int received = 0;
 	Page expected = { 0, 0, { { "Sample of a EBU-TT-LIVE document - line 1", "#FFFFFF" }, { "Sample of a EBU-TT-LIVE document - line 2", "#FFFFFF" } } };
+	ConnectOutput(dec->getOutput(0), [&](Data data) {
+		auto &pageReceived = safe_cast<const DataSubtitle>(data)->page;
+		ASSERT_EQUALS(expected, pageReceived);
+		received++;
+	});
+
+	auto pkt = std::make_shared<DataRaw>(ttml.size());
+	memcpy(pkt->buffer->data().ptr, ttml.data(), ttml.size());
+	pkt->setMediaTime(1789);
+	dec->getInput(0)->push(pkt);
+
+	ASSERT_EQUALS(1, received);
+}
+
+
+unittest("ttml_decoder: ebu-tt-live (EBU LIT User Input Producer sample)") {
+	// http://ebu.github.io/ebu-tt-live-toolkit/ui/user_input_producer/index.html
+	std::string ttml = R"|(<?xml version="1.0" ?>
+<tt:tt
+        ebuttp:sequenceIdentifier="mysocket"
+        ebuttp:sequenceNumber="26"
+        ttp:timeBase="clock"
+      
+        ttp:clockMode="local"
+      
+      
+      
+      
+        xml:lang="en-GB"
+        xmlns:ebuttm="urn:ebu:tt:metadata"
+        xmlns:ebuttp="urn:ebu:tt:parameters"
+        xmlns:ebutts="urn:ebu:tt:style"
+        xmlns:tt="http://www.w3.org/ns/ttml"
+        xmlns:tts="http://www.w3.org/ns/ttml#styling"
+        xmlns:ttp="http://www.w3.org/ns/ttml#parameter"
+        xmlns:xml="http://www.w3.org/XML/1998/namespace">
+  <tt:head>
+    <tt:metadata>
+      <ebuttm:documentMetadata/>
+    </tt:metadata>
+    <tt:styling>
+      <tt:style xml:id="styleP" tts:color="rgb(255, 255, 255)"  ebutts:linePadding="0.5c" tts:fontFamily="sansSerif" />
+      <tt:style xml:id="styleSpan" tts:backgroundColor="rgb(0, 0, 0)"/>
+    </tt:styling>
+    <tt:layout>
+      <tt:region xml:id="bottomRegion" tts:origin="14.375% 60%" tts:extent="71.25% 24%" tts:displayAlign="after" tts:writingMode="lrtb" tts:overflow="visible" />
+    </tt:layout>
+  </tt:head>
+  <tt:body
+  
+  
+  
+  >
+    <tt:div region="bottomRegion">
+      <tt:p xml:id="p1" style="styleP"><tt:span style="styleSpan">nils is yo</tt:span></tt:p>
+    </tt:div>
+  </tt:body>
+</tt:tt>
+)|";
+
+	TtmlDecoderConfig cfg;
+	auto dec = loadModule("TTMLDecoder", &NullHost, &cfg);
+	int received = 0;
+	Page expected = { 0, 0, { { "nils is yo", "#ffffff" } } };
 	ConnectOutput(dec->getOutput(0), [&](Data data) {
 		auto &pageReceived = safe_cast<const DataSubtitle>(data)->page;
 		ASSERT_EQUALS(expected, pageReceived);

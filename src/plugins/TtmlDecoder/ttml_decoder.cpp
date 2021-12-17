@@ -80,6 +80,8 @@ class TTMLDecoder : public ModuleS {
 							lineStyle.color = attr.value;
 						else if (attr.name == "tts:backgroundColor")
 							m_host->log(Debug, format("Ignored attribute %s", attr.name).c_str());
+						else if (attr.name == "tts:linePadding")
+							m_host->log(Debug, format("Ignored attribute %s", attr.name).c_str());
 						else if (attr.name == "tts:textAlign")
 							m_host->log(Debug, format("Ignored attribute %s", attr.name).c_str());
 						else
