@@ -24,11 +24,22 @@ struct GpacFilters : ModuleDynI {
 			//gf_log_set_tools_levels("all@info", GF_TRUE);
 		}
 
+		~GpacFilters() {
+			//TODO
+		}
+
 		void process() override {
 			int inputIdx = 0;
 			Data data;
 			while (!inputs[inputIdx]->tryPop(data))
 				inputIdx++;
+
+			ioDiff++;
+			if (ioDiff > maxIoDiff) {
+				m_host->log(Error, "reframer seems stuck - resetting");
+				ioDiff = 0;
+				fs = nullptr; //Romain: leaks
+			}
 
 			if(!fs) {
 				auto meta = data->getMetadata();
@@ -70,6 +81,8 @@ struct GpacFilters : ModuleDynI {
 		std::string filterName;
 		GF_FilterSession *fs = nullptr;
 		GF_Filter *memIn = nullptr, *memOut = nullptr;
+		int ioDiff = 0;
+		const int maxIoDiff = 20;
 
 		//memIn
 		Queue<Data> inputData;
@@ -103,10 +116,13 @@ struct GpacFilters : ModuleDynI {
 		std::string codecName;
 		static void outputPushData(void *parent, const u8 *data, u32 data_size, u64 dts, u64 pts) {
 			auto pThis = (GpacFilters*)parent;
+
+			pThis->ioDiff = 0;
+
 			auto out = ((OutputDefault*)((GpacFilters*)pThis)->outputs[0].get())->allocData<DataRaw>(data_size); //TODO: to be extended to multiple outputs
 			out->set(DecodingTime{ (int64_t)dts });
 			out->set(PresentationTime { (int64_t)pts });
-			out->set(CueFlags{false, true});
+			out->set(CueFlags{ false, true, false });
 			memcpy(out->buffer->data().ptr, data, data_size);
 			pThis->outputs[0]->post(out); //TODO: to be extended to multiple outputs
 		}
@@ -139,7 +155,7 @@ struct GpacFilters : ModuleDynI {
 				GF_Err e = GF_OK;
 				memIn = gf_fs_load_source(fs, "signals://memin/", "FID=MEMIN", nullptr, &e);
 				if (e)
-					throw error(format("cannot load create GPAC Filters source: %s", gf_error_to_string(e)).c_str());
+					throw error(format("cannot load create GPAC Filters source: %s", gf_error_to_string(e)));
 				auto ctx = (MemInCtx*)gf_filter_get_udta(memIn);
 				ctx->parent = (void*)this;
 				ctx->signals_codec_name = codecName.c_str();
@@ -151,7 +167,7 @@ struct GpacFilters : ModuleDynI {
 				GF_Err e = GF_OK;
 				memOut = gf_fs_load_destination(fs, "signals://memout/", "SID=PROCESSOR", nullptr, &e);
 				if (e)
-					throw error(format("cannot load create GPAC Filters sink: %s", gf_error_to_string(e)).c_str());
+					throw error(format("cannot load create GPAC Filters sink: %s", gf_error_to_string(e)));
 				auto ctx = (MemOutCtx*)gf_filter_get_udta(memOut);
 				ctx->parent = (void*)this;
 				ctx->pushData = &GpacFilters::outputPushData;
@@ -163,7 +179,7 @@ struct GpacFilters : ModuleDynI {
 				auto name = filterName + ":SID=MEMIN:FID=PROCESSOR";
 				gf_fs_load_filter(fs, name.c_str(), &e);
 				if (e)
-					throw error(format("cannot load create GPAC Filters \"%s\": %s", filterName, gf_error_to_string(e)).c_str());
+					throw error(format("cannot load create GPAC Filters \"%s\": %s", filterName, gf_error_to_string(e)));
 			}
 
 			return true;
