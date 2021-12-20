@@ -7,7 +7,7 @@
 using namespace std;
 
 struct Socket : ISocket {
-		Socket(const char* ipAddr, int port, ISocket::Type type) {
+		Socket(const char* ipAddr, int port, ISocket::Type type) : m_type(type) {
 			WSADATA wsaData;
 			auto res = WSAStartup(MAKEWORD(2, 2), &wsaData);
 			if(res)
@@ -24,11 +24,11 @@ struct Socket : ISocket {
 
 				if(setsockopt(m_socket, SOL_SOCKET, SO_REUSEADDR, (char*)&one, sizeof one) < 0)
 					throw runtime_error("setsockopt failed");
-
-				// set non-blocking
-				unsigned long Yes = TRUE;
-				ioctlsocket(m_socket, FIONBIO, &Yes);
 			}
+
+			// set non-blocking
+			unsigned long Yes = TRUE;
+			ioctlsocket(m_socket, FIONBIO, &Yes);
 
 			sockaddr_in dstAddr {};
 			dstAddr.sin_family = AF_INET;
@@ -46,17 +46,7 @@ struct Socket : ISocket {
 				if(listen(m_socket, 5) < 0)
 					throw runtime_error("client socket 'listen' failed");
 
-				sockaddr_in clientAddr {};
-				clientAddr.sin_family = AF_INET;
-				clientAddr.sin_addr.s_addr = inet_addr("0.0.0.0");
-				clientAddr.sin_port = htons(0);
-				auto const clientAddrLen = sizeof(clientAddr);
-
-				m_socket_client = accept(m_socket, (sockaddr*)&clientAddr, (socklen_t*)&clientAddrLen);
-
-				if(m_socket_client < 0)
-					throw runtime_error("client socket 'accept' failed");
-
+				ensureAccept();
 				break;
 			}
 			case UDP:
@@ -67,16 +57,20 @@ struct Socket : ISocket {
 
 		~Socket() {
 			closesocket(m_socket);
+			closesocket(m_socket_client);
 			WSACleanup();
 		}
 
 		size_t receive(uint8_t* buffer, size_t dstlen) {
+			if(!ensureAccept())
+				return {}; // when needed, connection not established
+
 			sockaddr_in addr;
 			auto addrSize = (int)sizeof(addr);
 
 			auto len = recvfrom(m_socket,
 			        (char*)buffer, dstlen,
-			        0,
+			        0, // TODO: MSG_DONTWAIT
 			        (sockaddr*)&addr, &addrSize);
 
 			if(len == SOCKET_ERROR && WSAGetLastError() == WSAEWOULDBLOCK)
@@ -90,7 +84,6 @@ struct Socket : ISocket {
 
 	private:
 		void joinMulticastGroup(const char* ipAddr) {
-
 			// send IGMP join request
 			ip_mreq mreq {};
 			mreq.imr_multiaddr.s_addr = inet_addr(ipAddr);
@@ -100,7 +93,30 @@ struct Socket : ISocket {
 				throw runtime_error("can't join multicast address");
 		}
 
+		bool ensureAccept() {
+			if (m_type != TCP)
+				return true;
+
+			if (!(m_socket_client < 0))
+				return true;
+
+			sockaddr_in clientAddr {};
+			clientAddr.sin_family = AF_INET;
+			clientAddr.sin_addr.s_addr = inet_addr("0.0.0.0");
+			clientAddr.sin_port = htons(0);
+			auto const clientAddrLen = sizeof(clientAddr);
+
+			m_socket_client = accept(m_socket, (sockaddr*)&clientAddr, (socklen_t*)&clientAddrLen);
+
+			if(m_socket_client < 0)
+				return false; // client socket 'accept' failed
+
+			return true;
+		}
+
 		SOCKET m_socket = INVALID_SOCKET;
+		SOCKET m_socket_client = INVALID_SOCKET;
+		ISocket::Type m_type;
 };
 
 std::unique_ptr<ISocket> createSocket(const char* ipAddr, int port, ISocket::Type type) {

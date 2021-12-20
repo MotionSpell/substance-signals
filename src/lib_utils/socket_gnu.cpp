@@ -11,7 +11,7 @@
 using namespace std;
 
 struct Socket : ISocket {
-		Socket(const char* ipAddr, int port, ISocket::Type type) {
+		Socket(const char* ipAddr, int port, ISocket::Type type) : m_type(type) {
 			m_socket = socket(AF_INET, type == TCP ? SOCK_STREAM : SOCK_DGRAM, 0);
 
 			if(m_socket < 0)
@@ -23,11 +23,11 @@ struct Socket : ISocket {
 
 				if(setsockopt(m_socket, SOL_SOCKET, SO_REUSEADDR, &one, sizeof one) < 0)
 					throw runtime_error("setsockopt failed");
-
-				// set non-blocking
-				int flags = fcntl(m_socket, F_GETFL);
-				fcntl(m_socket, F_SETFL, flags | O_NONBLOCK);
 			}
+
+			// set non-blocking
+			int flags = fcntl(m_socket, F_GETFL);
+			fcntl(m_socket, F_SETFL, flags | O_NONBLOCK);
 
 			sockaddr_in dstAddr {};
 			dstAddr.sin_family = AF_INET;
@@ -46,17 +46,7 @@ struct Socket : ISocket {
 				if(listen(m_socket, 5) < 0)
 					throw runtime_error("client socket 'listen' failed");
 
-				sockaddr_in clientAddr {};
-				clientAddr.sin_family = AF_INET;
-				clientAddr.sin_addr.s_addr = inet_addr("0.0.0.0");
-				clientAddr.sin_port = htons(0);
-				auto const clientAddrLen = sizeof(clientAddr);
-
-				m_socket_client = accept(m_socket, (sockaddr*)&clientAddr, (socklen_t*)&clientAddrLen);
-
-				if(m_socket_client < 0)
-					throw runtime_error("client socket 'accept' failed");
-
+				ensureAccept();
 				break;
 			}
 			case UDP:
@@ -67,15 +57,19 @@ struct Socket : ISocket {
 
 		~Socket() {
 			close(m_socket);
+			close(m_socket_client);
 		}
 
 		size_t receive(uint8_t* buffer, size_t dstlen) {
+			if(!ensureAccept())
+				return {}; // when needed, connection not established
+
 			sockaddr_in addr;
 			socklen_t addrSize = sizeof(addr);
 
 			auto len = recvfrom(m_socket_client != -1 ? m_socket_client : m_socket,
 			        (void*)buffer, dstlen,
-			        0,
+			        MSG_DONTWAIT,
 			        (sockaddr*)&addr, &addrSize);
 
 			if(len == -1)
@@ -98,8 +92,30 @@ struct Socket : ISocket {
 				throw runtime_error("can't join multicast address");
 		}
 
+		bool ensureAccept() {
+			if (m_type != TCP)
+				return true;
+
+			if (!(m_socket_client < 0))
+				return true;
+
+			sockaddr_in clientAddr {};
+			clientAddr.sin_family = AF_INET;
+			clientAddr.sin_addr.s_addr = inet_addr("0.0.0.0");
+			clientAddr.sin_port = htons(0);
+			auto const clientAddrLen = sizeof(clientAddr);
+
+			m_socket_client = accept(m_socket, (sockaddr*)&clientAddr, (socklen_t*)&clientAddrLen);
+
+			if(m_socket_client < 0)
+				return false; // client socket 'accept' failed
+
+			return true;
+		}
+
 		int m_socket = -1;
 		int m_socket_client = -1; // TCP
+		ISocket::Type m_type;
 };
 
 std::unique_ptr<ISocket> createSocket(const char* address, int port, ISocket::Type type) {

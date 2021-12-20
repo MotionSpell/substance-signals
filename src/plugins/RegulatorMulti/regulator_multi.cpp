@@ -73,7 +73,7 @@ struct RegulatorMulti : public ModuleDynI {
 				return rec.data->get<DecodingTime>().time < mediaDispatchTime;
 			});
 
-			// Too old according to clock time: flush and reset
+			// Too old according to clock time
 			for (int i = 0; i < (int)streams.size(); ++i)
 				for (auto& rec : streams[i])
 					if (rec.creationTime < now - maxClockTimeDelay) {

@@ -137,7 +137,7 @@ struct LibavEncode : ModuleS {
 				// is not possible as some codecs in FFmpeg mixes framerate and time_base.
 				auto const tbNum = params.frameRate.inverse() * IClock::Rate;
 				if (tbNum.den != 1)
-					throw error(format("Unsupported frame rate %s/s", params.frameRate.num, params.frameRate.den).c_str());
+					throw error(format("Unsupported frame rate %s/s", params.frameRate.num, params.frameRate.den));
 				codecCtx->time_base.num = int(tbNum);
 				codecCtx->time_base.den = IClock::Rate * TICKS_PER_VIDEO_FRAME;
 				framePeriod = params.frameRate.inverse();
