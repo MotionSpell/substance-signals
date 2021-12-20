@@ -331,12 +331,14 @@ struct Rectifier : ModuleDynI {
 			auto const outMasterSamples = toSamplesP(outMasterTime);
 			auto const inMasterSamples = toSamplesP(inMasterTime);
 
-			// Create an output sample. We want it to start at 'outMasterTime.start',
-			// and to cover the full 'outMasterTime' interval.
+			// Create an zeroed output sample.
+			// We want it to start at 'outMasterTime.start' and to cover the full 'outMasterTime' interval.
 			auto pcm = stream.output->allocData<DataPcm>(0);
 			pcm->setMediaTime(outMasterTime.start);
 			pcm->format = stream.fmt;
 			pcm->setSampleCount(outMasterSamples.stop - outMasterSamples.start);
+			for(int i=0; i < pcm->format.numPlanes; ++i)
+				memset(pcm->getPlane(i), 0, pcm->getPlaneSize());
 
 			// Remove obsolete samples.
 			auto isObsolete = [&](Stream::Rec const& rec) {
