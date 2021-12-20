@@ -24,10 +24,9 @@ static void onInterruption() {
 static void sigTermHandler(int sig) {
 	switch (sig) {
 	case SIGINT:
-	case SIGTERM: {
+	case SIGTERM:
 		onInterruption();
-	}
-	break;
+		break;
 	default:
 		break;
 	}
