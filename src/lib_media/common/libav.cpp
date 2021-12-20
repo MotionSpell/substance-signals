@@ -109,6 +109,12 @@ int signalsIdToAvCodecId(const char* origName) {
 	if(name == "mp1" || name == "mp2" || name == "mp3")
 		return AV_CODEC_ID_MP3;
 
+	if(name == "ac3")
+		return AV_CODEC_ID_AC3;
+
+	if(name == "eac3")
+		return AV_CODEC_ID_EAC3;
+
 	auto i = g_mapping.name_to_id.find(name);
 	if(i == g_mapping.name_to_id.end()) {
 		auto msg = "Unknown signals codec name ('" + name + "')";

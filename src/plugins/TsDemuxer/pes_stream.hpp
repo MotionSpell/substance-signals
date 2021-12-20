@@ -161,7 +161,7 @@ struct PesStream : Stream {
 				int64_t decodingTime = timescaleToClock(dts, 90000); // DTS are in 90kHz units
 				buf->set(DecodingTime {decodingTime});
 			}
-			buf->set(CueFlags{});
+			buf->set(CueFlags{ false, false, true });
 			memcpy(buf->buffer->data().ptr, pesBuffer.data()+r.byteOffset(), pesPayloadSize);
 			m_output->post(buf);
 		}

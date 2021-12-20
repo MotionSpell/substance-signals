@@ -16,5 +16,6 @@ struct CueFlags {
 	enum { TypeId = 0x172C1D4F };
 	bool discontinuity;
 	bool keyframe;
+	bool unframed; // needs reframing
 };
 

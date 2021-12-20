@@ -80,6 +80,7 @@ struct Decoder : ModuleS, PictureAllocator {
 		}
 
 		~Decoder() {
+			av_parser_close(parser);
 			av_buffer_unref((AVBufferRef**)&hw->device);
 		}
 
@@ -100,10 +101,13 @@ struct Decoder : ModuleS, PictureAllocator {
 			if(isDeclaration(data))
 				return;
 
+			assert (data && data->getMetadata());
+
 			auto flags = data->get<CueFlags>();
-			if (flags.discontinuity) {
+			if (flags.discontinuity)
 				avcodec_flush_buffers(codecCtx.get());
-			}
+			if (flags.unframed)
+				ensureParser(safe_cast<const MetadataPkt>(data->getMetadata()).get());
 
 			AVPacket pkt {};
 			pkt.pts = data->get<PresentationTime>().time;
@@ -195,6 +199,14 @@ struct Decoder : ModuleS, PictureAllocator {
 			}
 		}
 
+		void ensureParser(const MetadataPkt* metadata) {
+			if (!parser) {
+				parser = av_parser_init(codecCtx->codec_id);
+				if (!parser)
+					throw error(format("Parser not found for codec \"%s\". If reframining", metadata->codec));
+			}
+		}
+
 		std::shared_ptr<DataBase> processAudio() {
 			auto out = mediaOutput->allocData<DataPcm>(0);
 			PcmFormat pcmFormat;
@@ -237,21 +249,18 @@ struct Decoder : ModuleS, PictureAllocator {
 			return ctx;
 		}
 
-		void processPacket(AVPacket const * pkt) {
-			int ret = avcodec_send_packet(codecCtx.get(), pkt);
-			if (ret < 0) {
+		void decodePacket(AVPacket const * const packet) {
+			auto ret = avcodec_send_packet(codecCtx.get(), packet);
+			if (ret < 0)
 				m_host->log(Warning, format("Decoding error: %s", avStrError(ret)).c_str());
-				return;
-			}
 
 			while(1) {
-				ret = avcodec_receive_frame(codecCtx.get(), avFrame->get());
-				if(ret != 0)
+				auto ret = avcodec_receive_frame(codecCtx.get(), avFrame->get());
+				if (ret != 0)
 					break; // no more frames
 
-				if (avFrame->get()->decode_error_flags || (avFrame->get()->flags & AV_FRAME_FLAG_CORRUPT)) {
+				if (avFrame->get()->decode_error_flags || (avFrame->get()->flags & AV_FRAME_FLAG_CORRUPT))
 					m_host->log(Warning, "Corrupted frame decoded");
-				}
 
 				auto data = getDecompressedData();
 				data->set(PresentationTime{avFrame->get()->pts});
@@ -259,8 +268,90 @@ struct Decoder : ModuleS, PictureAllocator {
 			}
 		}
 
+		void reframeAndDecodePacket(AVPacket const * const pkt) {
+			uint8_t *data = nullptr;
+			int size = 0, side_data_elems = 0;
+			int64_t pts = AV_NOPTS_VALUE, dts = AV_NOPTS_VALUE, pos = 0;
+			AVPacket out_pkt {};
+			AVPacketSideData *side_data = nullptr;
+			auto const flush = !pkt;
+
+			if (pkt) {
+				data = pkt->data;
+				size = pkt->size;
+				pts = pkt->pts;
+				dts = pkt->dts;
+				pos = pkt->pos;
+				side_data = pkt->side_data;
+				side_data_elems = pkt->side_data_elems;
+			}
+
+			// extract frames from input packet
+			while (size > 0 || flush) {
+				auto len = av_parser_parse2(parser, codecCtx.get(), &out_pkt.data, &out_pkt.size, data, size, pts, dts, pos);
+				if (len < 0) {
+					// if we need to handle the case of incomplete frame, the code may need to be moved in a separate module
+					m_host->log(Error, "Error while parsing: if this error happens in a loop, contact your vendor");
+					break;
+				}
+
+				// resync on input media times when available
+				if (parser->pts != AV_NOPTS_VALUE)
+					out_pkt.pts = parser->pts;
+
+				// no data: save last pts
+				if (!out_pkt.size) {
+					parser->pts = out_pkt.pts;
+					break;
+				}
+
+				pos = 0;
+				data += len;
+				size -= len;
+				pts = dts = AV_NOPTS_VALUE;
+
+				if (side_data) {
+					out_pkt.side_data = side_data;
+					out_pkt.side_data_elems = side_data_elems;
+					side_data = NULL;
+					side_data_elems = 0;
+				}
+
+				if (parser->key_frame == 1 || (parser->key_frame == -1 && parser->pict_type == AV_PICTURE_TYPE_I)) {
+					out_pkt.flags |= AV_PKT_FLAG_KEY;
+				}
+				if (pkt) {
+					out_pkt.flags |= pkt->flags & (AV_PKT_FLAG_DISCARD | AV_PKT_FLAG_CORRUPT);
+					if (parser->key_frame == -1 && parser->pict_type == AV_PICTURE_TYPE_NONE && (pkt->flags & AV_PKT_FLAG_KEY))
+						out_pkt.flags |= AV_PKT_FLAG_KEY;
+				}
+
+				// some parsers (e.g. ac3) require to dispatch each frame
+				decodePacket(&out_pkt);
+
+				if (parser->duration > 0) {
+					auto const duration = outputs[0]->getMetadata()->isAudio()
+					    ? Fraction(parser->duration, codecCtx->sample_rate)
+					    : Fraction(parser->duration * codecCtx->time_base.den, codecCtx->time_base.num);
+					out_pkt.pts += fractionToClock(duration);
+				}
+			}
+
+			if (flush)
+				decodePacket(nullptr);
+		}
+
+		void processPacket(AVPacket const * const pkt) {
+			if (parser) {
+				reframeAndDecodePacket(pkt);
+			} else {
+				decodePacket(pkt);
+			}
+		}
+
 		KHost* const m_host;
 		std::shared_ptr<AVCodecContext> codecCtx;
+		AVCodecParserContext *parser = nullptr;
 		std::unique_ptr<ffpp::Frame> const avFrame;
 		std::shared_ptr<HardwareContextCuda> hw;
 		OutputDefault* mediaOutput = nullptr; // used for allocation

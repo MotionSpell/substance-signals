@@ -117,7 +117,7 @@ IFilter* createRenderer(Pipeline& pipeline, Config cfg, int codecType) {
 	return pipeline.addModule<Out::Null>();
 }
 
-IFilter* createDemuxer(Pipeline& pipeline, std::string url, bool &demuxRequiresReframing) {
+IFilter* createDemuxer(Pipeline& pipeline, std::string url) {
 	if(startsWith(url, "mpegts://")) {
 		url = url.substr(9);
 		IFilter *in = nullptr;
@@ -143,7 +143,6 @@ IFilter* createDemuxer(Pipeline& pipeline, std::string url, bool &demuxRequiresR
 		TsDemuxerConfig cfg {};
 		auto demux = pipeline.add("TsDemuxer", &cfg);
 		pipeline.connect(in, demux);
-		demuxRequiresReframing = true;
 		return demux;
 	}
 	if(startsWith(url, "videogen://")) {
@@ -160,7 +159,6 @@ IFilter* createDemuxer(Pipeline& pipeline, std::string url, bool &demuxRequiresR
 		TsDemuxerConfig tsCfg {};
 		auto demux = pipeline.add("TsDemuxer", &tsCfg);
 		pipeline.connect(recv, demux);
-		demuxRequiresReframing = true;
 		return demux;
 	}
 	if(startsWith(url, "http://") || startsWith(url, "https://")) {
@@ -176,8 +174,7 @@ IFilter* createDemuxer(Pipeline& pipeline, std::string url, bool &demuxRequiresR
 } // anonymous namespace
 
 void declarePipeline(Config cfg, Pipeline &pipeline, const char *url) {
-	auto demuxRequiresReframing = false;
-	auto demuxer = createDemuxer(pipeline, url, demuxRequiresReframing);
+	auto demuxer = createDemuxer(pipeline, url);
 	if(demuxer->getNumOutputs() == 0)
 		throw std::runtime_error("No streams found");
 
@@ -226,14 +223,6 @@ void declarePipeline(Config cfg, Pipeline &pipeline, const char *url) {
 				continue;
 			}
 			hasAudio = true;
-		}
-
-		if (metadata->isAudio() && demuxRequiresReframing) {
-			GpacFiltersConfig cfg;
-			cfg.filterName = "reframer";
-			auto reframer = pipeline.add("GpacFilters", &cfg);
-			pipeline.connect(source, GetInputPin(reframer));
-			source = GetOutputPin(reframer);
 		}
 
 		if (regulateMulti) {
