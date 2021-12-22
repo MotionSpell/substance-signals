@@ -9,7 +9,6 @@
 #include "lib_media/common/subtitle.hpp"
 #include "lib_utils/sax_xml_parser.hpp"
 #include "lib_utils/xml.hpp"
-#include <cassert>
 
 using namespace Modules;
 
@@ -35,7 +34,9 @@ Tag parseXml(span<const char> text) {
 
 	saxParse(text, onNodeStart, onNodeEnd);
 
-	assert(tagStack.front()->children.size() == 1);
+	if (tagStack.front()->children.size() != 1)
+		throw std::runtime_error("XML parsing error");
+
 	return tagStack.front()->children[0];
 }
 
