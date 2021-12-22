@@ -5,7 +5,7 @@
 namespace Pipelines {
 
 /* Wrapper around the module's inputs.
-   Data is queued in the calling thread, then always dispatched by the executor
+   Data is queued in the calling thread, then always dispatched by the executor.
    Data is nullptr at completion. */
 class FilterInput : public IInput {
 	public:

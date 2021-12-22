@@ -134,7 +134,7 @@ struct LibavEncode : ModuleS {
 				pparams->pixelFormat = libavPixFmt2PixelFormat(codecCtx->pix_fmt);
 
 				// Using the same time scale as the framework { 1, IClock::Rate }
-				// is not possible as some codecs in FFmpeg mixes framerate and time_base.
+				// is not possible as some codecs in FFmpeg mix framerate and time_base.
 				auto const tbNum = params.frameRate.inverse() * IClock::Rate;
 				if (tbNum.den != 1)
 					throw error(format("Unsupported frame rate %s/s", params.frameRate.num, params.frameRate.den));
