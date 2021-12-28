@@ -37,7 +37,7 @@ unittest("encoder: video simple") {
 	auto encode = loadModule("Encoder", &NullHost, &cfg);
 	ConnectOutput(encode->getOutput(0), onFrame);
 	for (int i = 0; i < 37; ++i) {
-		picture->setMediaTime(i); // avoid warning about non-monotonic pts
+		picture->setMediaTime(timescaleToClock(i, 25)); // avoid warning about non-monotonic pts
 		encode->getInput(0)->push(picture);
 		encode->process();
 	}
