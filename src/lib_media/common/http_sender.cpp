@@ -71,8 +71,6 @@ void prepend(std::vector<uint8_t>& dst, SpanC data) {
 }
 
 struct CurlHttpSender : HttpSender {
-
-		HttpSenderConfig const m_cfg;
 		CurlHttpSender(HttpSenderConfig const& cfg, Modules::KHost* log) : m_cfg(cfg) {
 			m_log = log;
 		}
@@ -191,6 +189,8 @@ struct CurlHttpSender : HttpSender {
 
 			return N;
 		}
+
+		HttpSenderConfig const m_cfg;
 
 		CurlScope m_curlScope;
 		bool destroying = false;

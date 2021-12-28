@@ -52,6 +52,8 @@ Pipeline::Pipeline(LogSink* log, bool isLowLatency, Threading threading)
 }
 
 Pipeline::~Pipeline() {
+	m_log->log(Info, "Pipeline: destroying.");
+
 	// Prevent modules from communicating.
 	// This allows to destroy them safely,
 	// without having to topological-sort them.
@@ -181,7 +183,7 @@ void Pipeline::waitForEndOfStream() {
 }
 
 void Pipeline::exitSync() {
-	m_log->log(Info, "Pipeline: asked to exit now.");
+	m_log->log(Info, "Pipeline: asked to flush and exit.");
 	for (auto &module : modules) {
 		auto m = safe_cast<Filter>(module.get());
 		if (m->isSource()) {

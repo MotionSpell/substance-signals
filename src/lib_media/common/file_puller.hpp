@@ -11,6 +11,7 @@ namespace In {
 struct IFilePuller {
 	virtual ~IFilePuller() = default;
 	virtual void wget(const char* url, std::function<void(SpanC)> callback) = 0;
+	virtual void askToExit() = 0;
 };
 
 struct IFilePullerFactory {

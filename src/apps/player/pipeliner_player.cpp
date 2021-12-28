@@ -75,7 +75,7 @@ struct Restamper : Module {
 };
 
 struct LocalFileSystem : In::IFilePuller {
-	void wget(const char* szUrl, std::function<void(SpanC)> callback) {
+	void wget(const char* szUrl, std::function<void(SpanC)> callback) override {
 		printf("LocalFileSystem: wget('%s')\n", szUrl);
 		std::ifstream fp(szUrl, std::ios::binary);
 		if(!fp.is_open())
@@ -90,6 +90,7 @@ struct LocalFileSystem : In::IFilePuller {
 
 		callback({buf.data(), buf.size()});
 	}
+	void askToExit() override {}
 };
 
 bool startsWith(std::string s, std::string prefix) {

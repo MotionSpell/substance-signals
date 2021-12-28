@@ -39,7 +39,6 @@ struct MS_HSS : public ModuleS {
 			if (m_httpSender) m_httpSender->send({endOfSessionSuffix.data(), endOfSessionSuffix.size()});
 		}
 
-
 		void processOne(Data data) override {
 			// split 'data' into 'prefix' (ftyp/uuid/moov) and 'bs' (moof/mdat)
 			auto bs = data->data();

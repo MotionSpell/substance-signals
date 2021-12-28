@@ -565,7 +565,7 @@ void GPACMuxMP4::closeFragment() {
 
 		{
 			auto const isSuspicious = deltaRealTimeInMs < 0 || deltaRealTimeInMs > curFragmentStartInTs || curFragmentDurInTs != fractionToTimescale(segmentDuration, timeScale);
-			m_host->log(isSuspicious ? Warning : Debug,
+			m_host->log(isSuspicious ? Warning : Info,
 			    format("[%s] Closing MSS fragment with absolute time %s %s UTC and duration %s (time=%s, deltaRT=%s)", codec4CC,
 			        getDay(), getTimeFromUTC(), curFragmentDurInTs, absTimeInTs/(double)timeScale, deltaRealTimeInMs).c_str());
 		}

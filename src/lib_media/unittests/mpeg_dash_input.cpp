@@ -17,6 +17,7 @@ struct NotOwningFilePuller : IFilePuller {
 	void wget(const char* szUrl, std::function<void(SpanC)> callback) override {
 		source->wget(szUrl, callback);
 	}
+	void askToExit() override {}
 	IFilePuller *source;
 };
 
@@ -30,6 +31,7 @@ struct LocalFilesystem : IFilePuller, IFilePullerFactory {
 
 		callback({(uint8_t*)resources[url].data(), resources[url].size()});
 	}
+	void askToExit() override {}
 
 	std::unique_ptr<IFilePuller> create() override {
 		return std::make_unique<NotOwningFilePuller>(this);
@@ -229,6 +231,8 @@ unittest("mpeg_dash_input: get concurrent chunks") {
 				auto url = std::string(szUrl);
 				requests.push_back(url);
 			}
+		}
+		void askToExit() override {
 		}
 		void unblock() {
 			while (counter < 4)

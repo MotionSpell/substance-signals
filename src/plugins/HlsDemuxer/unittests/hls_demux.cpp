@@ -22,6 +22,7 @@ struct MemoryFileSystem : IFilePuller {
 			return;
 		callback({(const uint8_t*)resources[url].data(), resources[url].size()});
 	}
+	void askToExit() override {}
 
 	map<string, string> resources;
 	vector<string> requests;

@@ -33,6 +33,7 @@ Filter::Filter(const char* name,
 }
 
 Filter::~Filter() {
+	log(Info, "Destroy");
 }
 
 // KHost implementation
@@ -178,6 +179,7 @@ void Filter::endOfStream() {
 	}
 
 	if (eosCount == connections) {
+		log(Info, "Flush");
 		delegate->flush();
 
 		for (int i = 0; i < delegate->getNumOutputs(); ++i) {
