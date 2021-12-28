@@ -67,6 +67,18 @@ struct Rectifier : ModuleDynI {
 				scheduler->cancel(m_pendingTaskId);
 		}
 
+		void flush() override {
+			std::unique_lock<std::mutex> lock(streamMutex);
+
+			// stop scheduler
+			if(m_pendingTaskId)
+				scheduler->cancel(m_pendingTaskId);
+
+			// flush input queues
+			discardOutdatedData(std::numeric_limits<int64_t>::max());
+			m_started = false;
+		}
+
 		void process() override {
 			if(!m_started) {
 				reschedule(clock->now());
@@ -77,13 +89,17 @@ struct Rectifier : ModuleDynI {
 		int getNumOutputs() const override {
 			{
 				auto pThis = const_cast<Rectifier*>(this);
+				std::unique_lock<std::mutex> lock(streamMutex);
 				pThis->mimicOutputs();
 			}
 			return ModuleDynI::getNumOutputs();
 		}
 
 		IOutput* getOutput(int i) override {
-			mimicOutputs();
+			{
+				std::unique_lock<std::mutex> lock(streamMutex);
+				mimicOutputs();
+			}
 			return ModuleDynI::getOutput(i);
 		}
 
@@ -101,12 +117,12 @@ struct Rectifier : ModuleDynI {
 		IScheduler::Id m_pendingTaskId{};
 		bool m_started = false;
 
-		std::mutex streamMutex; // protects from stream declarations (outputs, inputs, streams)
+		mutable std::mutex streamMutex; // protects from stream declarations (outputs, inputs, streams)
 		std::vector<Stream> streams;
 
+		// streamMutex must be owned
 		void mimicOutputs() {
 			while(streams.size() < getInputs().size()) {
-				std::unique_lock<std::mutex> lock(streamMutex);
 				auto output = addOutput();
 				streams.push_back(Stream{output, {}});
 			}
@@ -117,13 +133,11 @@ struct Rectifier : ModuleDynI {
 		}
 
 		void onPeriod(Fraction timeNow) {
-			m_pendingTaskId = {};
+			std::unique_lock<std::mutex> lock(streamMutex);
+			m_pendingTaskId = {}; // it cannot be of any help now
 			mimicOutputs(); //needed if not connected and data not received
 			emitOnePeriod(timeNow);
-			{
-				std::unique_lock<std::mutex> lock(streamMutex);
-				reschedule(timeNow + framePeriod);
-			}
+			reschedule(timeNow + framePeriod);
 		}
 
 		void declareScheduler(IInput* input, IOutput* output) {
@@ -227,8 +241,9 @@ struct Rectifier : ModuleDynI {
 		// - If the master stream is not decidable at startup then an exception is raised.
 		// - The scheduler starts at time zero, leading to discard master data with negative timestamps.
 		// - The master stream and the slave streams are sent only when metadata is associated (otherwise silently not sent).
+		//
+		// streamMutex must be owned
 		void emitOnePeriod(Fraction now) {
-			std::unique_lock<std::mutex> lock(streamMutex);
 			fillInputQueues();
 			discardOutdatedData(fractionToClock(now) - analyzeWindow - maxLifetime);
 
