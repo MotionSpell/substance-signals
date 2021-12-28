@@ -20,10 +20,8 @@ static void safeDelete() {
 }
 
 static void safeStop() {
-	if (g_Pipeline) {
+	if (g_Pipeline)
 		g_Pipeline->exitSync();
-		safeDelete();
-	}
 }
 
 //////////////////////////////////////

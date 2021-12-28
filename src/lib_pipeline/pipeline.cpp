@@ -52,7 +52,7 @@ Pipeline::Pipeline(LogSink* log, bool isLowLatency, Threading threading)
 }
 
 Pipeline::~Pipeline() {
-	m_log->log(Info, "Pipeline: destroying.");
+	m_log->log(Info, "Pipeline: destroy");
 
 	// Prevent modules from communicating.
 	// This allows to destroy them safely,
