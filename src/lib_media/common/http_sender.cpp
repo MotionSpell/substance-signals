@@ -77,6 +77,8 @@ struct CurlHttpSender : HttpSender {
 
 		~CurlHttpSender() {
 			destroying = true;
+			m_allDataSent.notify_one();
+			m_dataReady.notify_one();
 			if (curlThread.joinable())
 				curlThread.join();
 		}
@@ -102,8 +104,11 @@ struct CurlHttpSender : HttpSender {
 			if(!data.len) {
 				// wait for flush finished, before returning
 				std::unique_lock<std::mutex> lock(m_mutex);
-				while(!allDataSent)
-					m_allDataSent.wait(lock);
+				auto pred = [this]() {
+					return allDataSent || destroying;
+				};
+				while (!pred())
+					m_allDataSent.wait(lock, pred);
 			}
 		}
 
@@ -159,6 +164,10 @@ struct CurlHttpSender : HttpSender {
 
 		static size_t staticCurlCallback(void *buffer, size_t size, size_t nmemb, void *userp) {
 			auto pThis = (CurlHttpSender*)userp;
+
+			if (pThis->destroying)
+				return CURL_WRITEFUNC_PAUSE;
+
 			return pThis->fillBuffer(span<uint8_t>((uint8_t*)buffer, size * nmemb));
 		}
 
@@ -167,13 +176,12 @@ struct CurlHttpSender : HttpSender {
 
 			std::unique_lock<std::mutex> lock(m_mutex);
 
-			// if we're destroying, early-finish the transfer
-			if(destroying)
-				return 0;
-
 			// wait for new data
-			while(m_fifo.empty() && !endOfDataFlag)
-				m_dataReady.wait(lock);
+			auto pred = [this]() {
+				return !m_fifo.empty() || endOfDataFlag || destroying;
+			};
+			while (!pred())
+				m_dataReady.wait(lock, pred);
 
 			auto const N = std::min<int>(buffer.len, m_fifo.size());
 			if(N > 0) {

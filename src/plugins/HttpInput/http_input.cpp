@@ -5,6 +5,7 @@
 #include "lib_utils/log_sink.hpp"
 #include "lib_utils/tools.hpp" // enforce
 #include "lib_media/common/file_puller.hpp"
+#include <thread>
 
 using namespace Modules;
 
@@ -18,24 +19,34 @@ struct HttpInput : Module {
 			addOutput();
 			host->activate(true);
 		}
+		void flush() {
+			if (workingThread.joinable()) {
+				source->askToExit();
+				workingThread.join();
+			}
+		}
 		void process() override {
-			if (!source)
+			if (!source) {
 				source = createHttpSource();
 
-			auto onBuffer = [&](SpanC chunk) {
-				auto data = std::make_shared<DataRaw>(chunk.len);
-				memcpy(data->buffer->data().ptr, chunk.ptr, chunk.len);
-				outputs[0]->post(data);
-			};
-			m_host->log(Info, format("starting download of %s", url.c_str()).c_str());
-			source->wget(url.c_str(), onBuffer);
-			m_host->log(Info, format("download of %s completed", url.c_str()).c_str());
+				workingThread = std::thread([&]() {
+					auto onBuffer = [&](SpanC chunk) {
+						auto data = std::make_shared<DataRaw>(chunk.len);
+						memcpy(data->buffer->data().ptr, chunk.ptr, chunk.len);
+						outputs[0]->post(data);
+					};
+					m_host->log(Info, format("starting download of %s", url.c_str()).c_str());
+					source->wget(url.c_str(), onBuffer);
+					m_host->log(Info, format("download of %s completed", url.c_str()).c_str());
+				});
+			}
 		}
 
 	private:
 		KHost * const m_host;
-		std::string url;
+		const std::string url;
 		std::unique_ptr<In::IFilePuller> source;
+		std::thread workingThread;
 };
 
 IModule* createObject(KHost* host, void* va) {
