@@ -4,20 +4,42 @@
 
 // user-provided
 extern void safeMain(int argc, const char* argv[]);
-extern void safeStop();
 
 extern const char *g_appName;
 extern const char *g_version;
 
+//////////////////////////////////////
+
+#include "lib_pipeline/pipeline.hpp"
+
+std::shared_ptr<Pipelines::Pipeline> g_Pipeline;
+
+static void safeDelete() {
+	if (g_Pipeline)
+		g_Pipeline = nullptr;
+}
+
+static void safeStop() {
+	if (g_Pipeline) {
+		g_Pipeline->exitSync();
+		safeDelete();
+	}
+}
+
+//////////////////////////////////////
+
 static void onInterruption() {
 	static int numSig = 0;
 	numSig++;
-	if (numSig >= 3) {
+	if (numSig == 1) {
+		std::cerr << "Caught signal, asking to stop." << std::endl;
+		safeStop();
+	} else if (numSig == 2) {
+		std::cerr << "Caught signal, exiting now." << std::endl;
+		safeDelete();
+	} else if (numSig > 2) {
 		std::cerr << "Caught " << numSig << " signals, hard exit." << std::endl;
 		exit(3);
-	} else {
-		std::cerr << "Caught signal, exiting." << std::endl;
-		safeStop();
 	}
 }
 
@@ -57,4 +79,3 @@ int main(int argc, char const* argv[]) {
 		return 1;
 	}
 }
-
