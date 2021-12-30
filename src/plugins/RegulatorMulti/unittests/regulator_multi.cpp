@@ -5,7 +5,6 @@
 #include "lib_media/common/metadata.hpp" //MetadataPkt
 #include "lib_utils/clock.hpp"
 #include <plugins/RegulatorMulti/regulator_multi.hpp>
-#include <vector>
 
 using namespace std;
 using namespace Tests;

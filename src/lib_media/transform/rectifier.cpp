@@ -2,18 +2,22 @@
 Feeds downstream modules with a "clean" signal.
 
 A "clean" signal has the following properties:
-1) its timings are continuous (no gaps, overlaps, or discontinuities - but may not start at zero),
-2) the different media are synchronized.
+ 1) its timings are continuous (no gaps, overlaps, or discontinuities - but may not start at zero),
+ 2) the different media are synchronized.
 
 The module needs to be sample accurate.
 It operates on raw data. Raw data requires a lot of memory, however:
-1) we store a short duration (typically 500ms) and the framework works by default with pre-allocated pools,
-2) RAM is cheap ;)
+ 1) we store a short duration (typically 500ms - cf @analyzeWindow)
+    and the framework works by default with pre-allocated pools,
+ 2) RAM is cheap ;)
 
 The module works this way:
  - At each tick it pulls some data (like a mux would).
- - We rely on Clock times. Media times are considered non-reliable and only used to achieve sync.
+ - We rely on clock times. Media times are considered non-reliable and only used to achieve sync.
  - The different media types are processed differently (video = lead, audio = pulled, subtitles = sparse).
+
+The module explicitly assumes that all media data are available. The media time tolerance is @analyzeWindow,
+the clock tolerance is @analyzeWindow + @maxLifetime.
 */
 #include "rectifier.hpp"
 #include "lib_modules/modules.hpp"
@@ -44,7 +48,7 @@ struct Stream {
 
 	OutputDefault* output;
 	std::vector<Rec> data;
-	Data blank {}; // when we have no data from the input, send this instead.
+	Rec blank {}; // when we have no data from the input, send this instead.
 	PcmFormat fmt {};
 };
 
@@ -55,41 +59,38 @@ struct Interval {
 
 struct Rectifier : ModuleDynI {
 		Rectifier(KHost* host, std::shared_ptr<IClock> clock_, std::shared_ptr<IScheduler> scheduler_, Fraction frameRate)
-			: m_host(host),
-			  framePeriod(frameRate.inverse()),
-			  clock(clock_),
-			  scheduler(scheduler_) {
+			: m_host(host), framePeriod(frameRate.inverse()), clock(clock_), scheduler(scheduler_) {
 		}
 
 		~Rectifier() {
-			std::unique_lock<std::mutex> lock(streamMutex);
-			if(m_pendingTaskId)
-				scheduler->cancel(m_pendingTaskId);
+			std::unique_lock<std::mutex> lock(mutex);
+			if(pendingTaskId)
+				scheduler->cancel(pendingTaskId);
 		}
 
 		void flush() override {
-			std::unique_lock<std::mutex> lock(streamMutex);
+			std::unique_lock<std::mutex> lock(mutex);
 
 			// stop scheduler
-			if(m_pendingTaskId)
-				scheduler->cancel(m_pendingTaskId);
+			if(pendingTaskId)
+				scheduler->cancel(pendingTaskId);
 
 			// flush input queues
 			discardOutdatedData(std::numeric_limits<int64_t>::max());
-			m_started = false;
+			started = false;
 		}
 
 		void process() override {
-			if(!m_started) {
+			if(!started) {
 				reschedule(clock->now());
-				m_started = true;
+				started = true;
 			}
 		}
 
 		int getNumOutputs() const override {
 			{
 				auto pThis = const_cast<Rectifier*>(this);
-				std::unique_lock<std::mutex> lock(streamMutex);
+				std::unique_lock<std::mutex> lock(mutex);
 				pThis->mimicOutputs();
 			}
 			return ModuleDynI::getNumOutputs();
@@ -97,7 +98,7 @@ struct Rectifier : ModuleDynI {
 
 		IOutput* getOutput(int i) override {
 			{
-				std::unique_lock<std::mutex> lock(streamMutex);
+				std::unique_lock<std::mutex> lock(mutex);
 				mimicOutputs();
 			}
 			return ModuleDynI::getOutput(i);
@@ -111,16 +112,16 @@ struct Rectifier : ModuleDynI {
 
 		// delays
 		const int64_t analyzeWindow = IClock::Rate / 2; // a positive value means that the master stream arrives in advance of slave streams
-		const int64_t maxLifetime = IClock::Rate * 1;   // data will be deleted after analyzeWindow + maxLifetime (clock times)
+		const int64_t maxLifetime   = IClock::Rate * 1; // data will be deleted after analyzeWindow + maxLifetime (clock times)
 
 		int64_t numTicks = 0;
-		IScheduler::Id m_pendingTaskId{};
-		bool m_started = false;
+		bool started = false;
 
-		mutable std::mutex streamMutex; // protects from stream declarations (outputs, inputs, streams)
+		mutable std::mutex mutex; // protects from stream (outputs, inputs, streams) and task declarations
 		std::vector<Stream> streams;
+		IScheduler::Id pendingTaskId {};
 
-		// streamMutex must be owned
+		// mutex must be owned
 		void mimicOutputs() {
 			while(streams.size() < getInputs().size()) {
 				auto output = addOutput();
@@ -128,19 +129,19 @@ struct Rectifier : ModuleDynI {
 			}
 		}
 
+		// mutex must be owned
 		void reschedule(Fraction when) {
-			m_pendingTaskId = scheduler->scheduleAt(std::bind(&Rectifier::onPeriod, this, std::placeholders::_1), when);
+			pendingTaskId = scheduler->scheduleAt(std::bind(&Rectifier::onPeriod, this, std::placeholders::_1), when);
 		}
 
 		void onPeriod(Fraction timeNow) {
-			std::unique_lock<std::mutex> lock(streamMutex);
-			m_pendingTaskId = {}; // it cannot be of any help now
-			mimicOutputs(); //needed if not connected and data not received
+			std::unique_lock<std::mutex> lock(mutex);
+			pendingTaskId = {};
 			emitOnePeriod(timeNow);
 			reschedule(timeNow + framePeriod);
 		}
 
-		void declareScheduler(IInput* input, IOutput* output) {
+		void declareScheduler(IInput const * const input, IOutput const * const output) {
 			auto const oMeta = output->getMetadata();
 			if (!oMeta) {
 				m_host->log(Debug, "Output isn't connected or doesn't expose a metadata: impossible to check");
@@ -150,7 +151,7 @@ struct Rectifier : ModuleDynI {
 
 		// Audio media times may be noisy whereas actual data don't need rectification.
 		// The issue is that we can't know on which side of the inaccuracy we start.
-		Data rectifyAudioMediaTimes(Data data, int i) {
+		Data rectifyAudioMediaTimes(Data data, const int i) {
 			if (streams[i].data.empty())
 				return data;
 
@@ -176,7 +177,7 @@ struct Rectifier : ModuleDynI {
 			return data;
 		}
 
-		// streamMutex must be owned
+		// mutex must be owned
 		void fillInputQueues() {
 			auto now = fractionToClock(clock->now());
 
@@ -194,20 +195,20 @@ struct Rectifier : ModuleDynI {
 			}
 		}
 
-		Data chooseNextMasterFrame(Stream& stream, int64_t now) {
-			if(stream.data.empty())
+		Stream::Rec chooseNextMasterFrame(Stream& stream, int64_t now) {
+			if (stream.data.empty())
 				return stream.blank;
 
-			stream.blank = stream.data.front().data;
+			stream.blank = stream.data.front();
 
 			// Introduce some latency.
 			// If the frame is available, but since very little time, use it, but don't remove it.
 			// Thus it will be used again next time.
 			// This protects us from frame phase changes (e.g on SDI cable replacement).
-			if(std::abs(stream.data[0].creationTime - std::max(now, (decltype(now))0)) < fractionToClock(framePeriod))
-				return stream.blank;
+			if (std::abs(stream.data.front().creationTime - std::max(now, (decltype(now))0)) < fractionToClock(framePeriod))
+				return stream.data.front();
 
-			auto r = stream.data.front().data;
+			auto r = stream.data.front();
 			stream.data.erase(stream.data.begin());
 			return r;
 		}
@@ -242,8 +243,12 @@ struct Rectifier : ModuleDynI {
 		// - The scheduler starts at time zero, leading to discard master data with negative timestamps.
 		// - The master stream and the slave streams are sent only when metadata is associated (otherwise silently not sent).
 		//
-		// streamMutex must be owned
+		// mutex must be owned
 		void emitOnePeriod(Fraction now) {
+			// needed if not connected and no data received yet
+			mimicOutputs();
+
+			// input management
 			fillInputQueues();
 			discardOutdatedData(fractionToClock(now) - analyzeWindow - maxLifetime);
 
@@ -253,44 +258,25 @@ struct Rectifier : ModuleDynI {
 				fractionToClock(Fraction((numTicks+1) * framePeriod.num, framePeriod.den))
 			};
 
-			// input media times corresponding to the "media period"
-			Interval inMasterTime {};
 
 			auto const masterStreamId = getMasterStreamId();
+			if (masterStreamId == -1) {
+				m_host->log(Error, "No master stream: waiting to receive one video stream metadata to start the session");
+				return;
+			} else if (masterStreamId == -2)
+				throw error("No master stream: requires to have one connected video stream");
 
-			{
-				if (masterStreamId == -1) {
-					m_host->log(Error, "No master stream: waiting to receive one video stream metadata to start the session");
-					return;
-				} else if (masterStreamId == -2)
-					throw error("No master stream: requires to have one connected video stream");
+			// master data
+			auto inMasterTime = emitOnePeriod_Master(masterStreamId, now, outMasterTime);
 
-				auto& master = streams[masterStreamId];
-				auto masterFrame = chooseNextMasterFrame(master, fractionToClock(now) - analyzeWindow);
-				if (!masterFrame) {
-					assert(numTicks == 0);
-					m_host->log(Warning, format("No available reference data for clock time %s", fractionToClock(now)).c_str());
-					return;
-				}
-
-				inMasterTime.start = masterFrame->get<PresentationTime>().time;
-				inMasterTime.stop = inMasterTime.start + (outMasterTime.stop - outMasterTime.start);
-
-				if (numTicks == 0)
-					m_host->log(Info, format("First available reference clock time: %s", fractionToClock(now)).c_str());
-
-				auto data = clone(masterFrame);
-				data->setMediaTime(outMasterTime.start);
-				master.output->post(data);
-			}
-
+			// slave data
 			for (auto i : getInputs()) {
 				if(i == masterStreamId)
 					continue;
 
 				auto& input = inputs[i];
 
-				if(!input->getMetadata())
+				if(!input->getMetadata()) //Romain: huh
 					continue;
 
 				if (!outputs[i]->getMetadata())
@@ -314,7 +300,29 @@ struct Rectifier : ModuleDynI {
 			++numTicks;
 		}
 
-		void emitOnePeriod_RawAudio(int i, Interval inMasterTime, Interval outMasterTime) {
+		// returns input media times corresponding to the "media period"
+		Interval emitOnePeriod_Master(const int i, Fraction now, const Interval outMasterTime) {
+			auto& master = streams[i];
+			auto masterFrame = chooseNextMasterFrame(master, fractionToClock(now) - analyzeWindow);
+			if (!masterFrame.data) {
+				assert(numTicks == 0);
+				m_host->log(Warning, format("No available reference data for clock time %s", fractionToClock(now)).c_str());
+				return {};
+			} else if (numTicks == 0)
+				m_host->log(Info, format("First available reference clock time: %s", fractionToClock(now)).c_str());
+
+			master.blank = masterFrame;
+
+			discardStreamOutdatedData(i, masterFrame.creationTime);
+
+			auto data = clone(masterFrame.data);
+			data->setMediaTime(outMasterTime.start);
+			master.output->post(data);
+
+			return { masterFrame.data->get<PresentationTime>().time, masterFrame.data->get<PresentationTime>().time + (outMasterTime.stop - outMasterTime.start)};
+		}
+
+		void emitOnePeriod_RawAudio(const int i, const Interval inMasterTime, const Interval outMasterTime) {
 			auto& stream = streams[i];
 
 			if(!stream.data.empty())
@@ -401,7 +409,7 @@ struct Rectifier : ModuleDynI {
 		// Sparse stream data is dispatched immediately:
 		// - it may last longer than one rectifier period;
 		// - it may arrive way in advance and be discarded unduely.
-		void emitOnePeriod_RawSubtitle(int i, Interval inMasterTime, Interval outMasterTime) {
+		void emitOnePeriod_RawSubtitle(const int i, const Interval inMasterTime, const Interval outMasterTime) {
 			auto& stream = streams[i];
 
 			auto data = stream.data.begin();
@@ -430,12 +438,12 @@ struct Rectifier : ModuleDynI {
 			stream.output->post(heartbeat);
 		}
 
-		void discardOutdatedData(int64_t removalClockTime) {
+		void discardOutdatedData(const int64_t removalClockTime) {
 			for (auto i : getInputs())
 				discardStreamOutdatedData(i, removalClockTime);
 		}
 
-		void discardStreamOutdatedData(size_t inputIdx, int64_t removalClockTime) {
+		void discardStreamOutdatedData(const size_t inputIdx, const int64_t removalClockTime) {
 			auto isOutdated = [&](Stream::Rec const& rec) {
 				return rec.creationTime < removalClockTime;
 			};
