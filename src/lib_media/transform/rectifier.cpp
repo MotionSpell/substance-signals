@@ -2,22 +2,31 @@
 Feeds downstream modules with a "clean" signal.
 
 A "clean" signal has the following properties:
- 1) its timings are continuous (no gaps, overlaps, or discontinuities - but may not start at zero),
- 2) the different media are synchronized.
+ - its timings are continuous (no gaps, overlaps, or discontinuities - but may
+   not start at zero), and
+ - the different media are synchronized.
 
 The module needs to be sample accurate.
 It operates on raw data. Raw data requires a lot of memory, however:
- 1) we store a short duration (typically 500ms - cf @analyzeWindow)
-    and the framework works by default with pre-allocated pools,
- 2) RAM is cheap ;)
+ - we store a short duration (typically 500ms - cf @analyzeWindow)
+   and the framework works by default with pre-allocated pools, and
+ - RAM is cheap ;)
 
 The module works this way:
  - At each tick it pulls some data (like a mux would).
- - We rely on clock times. Media times are considered non-reliable and only used to achieve sync.
- - The different media types are processed differently (video = lead, audio = pulled, subtitles = sparse).
+ - We rely on clock times. Media times are considered non-reliable and only
+   used to achieve sync.
+ - The different media types are processed differently
+   (video = lead, audio = pulled, subtitles = sparse).
 
-The module explicitly assumes that all media data are available. The media time tolerance is @analyzeWindow,
-the clock tolerance is @analyzeWindow + @maxLifetime.
+The module explicitly assumes that:
+ - All media data are available. The media time tolerance is @analyzeWindow,
+   and the clock tolerance is @analyzeWindow + @maxLifetime.
+ - The input media frame rate is equal to the output framerate. This is not
+   checked in any way (Romain: TODO). The module doesn't make any record nor
+   any check on the input media timelines.
+
+The module shall not be used to transframerate as it will lead to suboptimal results.
 */
 #include "rectifier.hpp"
 #include "lib_modules/modules.hpp"
@@ -54,7 +63,7 @@ struct Stream {
 
 // a time range, in clock units or audio sample units.
 struct Interval {
-	int64_t start, stop;
+	int64_t start = -1, stop = -1;
 };
 
 struct Rectifier : ModuleDynI {
@@ -248,7 +257,7 @@ struct Rectifier : ModuleDynI {
 			// needed if not connected and no data received yet
 			mimicOutputs();
 
-			// input management
+			// input data management
 			fillInputQueues();
 			discardOutdatedData(fractionToClock(now) - analyzeWindow - maxLifetime);
 
@@ -267,7 +276,9 @@ struct Rectifier : ModuleDynI {
 				throw error("No master stream: requires to have one connected video stream");
 
 			// master data
-			auto inMasterTime = emitOnePeriod_Master(masterStreamId, now, outMasterTime);
+			auto const inMasterTime = emitOnePeriod_Master(masterStreamId, now, outMasterTime);
+			if (inMasterTime.start == inMasterTime.stop)
+				return;
 
 			// slave data
 			for (auto i : getInputs()) {
@@ -363,7 +374,7 @@ struct Rectifier : ModuleDynI {
 			for(int i=0; i < pcm->format.numPlanes; ++i)
 				memset(pcm->getPlane(i), 0, pcm->getPlaneSize());
 
-			// Remove obsolete samples.
+			// Remove obsolete samples wrt media time.
 			auto isObsolete = [&](Stream::Rec const& rec) {
 				auto const inputData = safe_cast<const DataPcm>(rec.data);
 				auto const inSamples = getSampleInterval(rec.data->get<PresentationTime>().time, inputData->getPlaneSize());
@@ -372,6 +383,7 @@ struct Rectifier : ModuleDynI {
 			stream.data.erase(std::remove_if(stream.data.begin(), stream.data.end(), isObsolete), stream.data.end());
 
 			int writtenSamples = 0;
+			int64_t obsolescenceCreationTime = -1;
 
 			// Fill the period "outMasterSamples" with portions of input audio samples
 			// that intersect with the "media period".
@@ -388,6 +400,10 @@ struct Rectifier : ModuleDynI {
 				if(left >= right)
 					continue;
 
+				// Store clock time of the oldest used data.
+				if(obsolescenceCreationTime == -1)
+					obsolescenceCreationTime = data.creationTime;
+
 				for(int i=0; i < stream.fmt.numPlanes; ++i) {
 					auto src = inputData->getPlane(i) + (left - inSamples.start) * BPS;
 					assert((right - inSamples.start) * BPS <= (int64_t)inputData->getPlaneSize());
@@ -402,6 +418,9 @@ struct Rectifier : ModuleDynI {
 			if (writtenSamples != (inMasterSamples.stop - inMasterSamples.start))
 				m_host->log(Warning, format("Incomplete audio period (%s samples instead of %s). Expect glitches.",
 				        writtenSamples, inMasterSamples.stop - inMasterSamples.start).c_str());
+
+			// Remove obsolete samples wrt clock time.
+			discardStreamOutdatedData(i, obsolescenceCreationTime);
 
 			stream.output->post(pcm);
 		}
