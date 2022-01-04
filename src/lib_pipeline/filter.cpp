@@ -33,7 +33,7 @@ Filter::Filter(const char* name,
 }
 
 Filter::~Filter() {
-	log(Info, "Destroy");
+	log(Info, "Pipeline: destroy");
 }
 
 // KHost implementation
@@ -78,11 +78,8 @@ void Filter::connect(IOutput *output, int inputIdx, bool inputAcceptMultipleConn
 		throw std::runtime_error(format("Filter %s: input %s is already connected.", m_name, inputIdx));
 
 	input->connect();
-
 	CheckMetadataCompatibility(output, input);
-
 	output->connect(input);
-
 	connections++;
 }
 
@@ -131,14 +128,12 @@ void Filter::startSource() {
 	assert(isSource());
 
 	if (started) {
-		log(Info, "Pipeline: source already started . Doing nothing.");
+		log(Info, "Pipeline: source already started. Doing nothing.");
 		return;
 	}
 
 	connections = 1;
-
 	reschedule();
-
 	started = true;
 }
 
@@ -179,7 +174,7 @@ void Filter::endOfStream() {
 	}
 
 	if (eosCount == connections) {
-		log(Info, "Flush");
+		log(Info, "Pipeline: flushing...");
 		delegate->flush();
 
 		for (int i = 0; i < delegate->getNumOutputs(); ++i) {
@@ -189,6 +184,8 @@ void Filter::endOfStream() {
 		if (connections) {
 			m_eventSink->endOfStream();
 		}
+
+		log(Info, "Pipeline: flushed");
 	}
 }
 
