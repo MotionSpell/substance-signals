@@ -19,7 +19,7 @@ struct HttpInput : Module {
 			addOutput();
 			host->activate(true);
 		}
-		void flush() {
+		void flush() override {
 			if (workingThread.joinable()) {
 				source->askToExit();
 				workingThread.join();

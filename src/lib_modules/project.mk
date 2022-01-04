@@ -16,6 +16,6 @@ $(BIN)/%.smd: LDFLAGS+=$(shell test -z "$(PKGS)" || $(SRC)/../scripts/pkg-config
 $(BIN)/%.smd: $(LIB_MODULES_SRCS:%=$(BIN)/%.o) $(LIB_UTILS_SRCS:%=$(BIN)/%.o)
 	$(CXX) $(CFLAGS) -pthread -shared -Wl,--no-undefined -o "$@" $^ $(LDFLAGS)
   ifeq ($(DEBUG), 0)
-    @$(STRIP) "$@"
+	  @$(STRIP) "$@"
   endif
 

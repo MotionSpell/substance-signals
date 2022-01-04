@@ -1,4 +1,3 @@
-#include "tests/tests.hpp"
 #include "lib_modules/modules.hpp"
 #include "lib_modules/utils/loader.hpp"
 #include "lib_media/common/subtitle.hpp"
@@ -32,6 +31,9 @@ static bool operator!=(const Page& lhs, const Page& rhs) {
 	return lhs.showTimestamp != rhs.showTimestamp
 	    || lhs.hideTimestamp != rhs.hideTimestamp;
 }
+
+// operator!= shall be declared before this include
+#include "tests/tests.hpp"
 
 unittest("ttml_decoder: ttml_encoder sample") {
 	SubtitleEncoderConfig encCfg;

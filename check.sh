@@ -1,7 +1,7 @@
 #!/bin/bash
 set -eu
 
-export BIN=bin
+export BIN=${BIN-"bin"}
 
 if [ $(uname -s) == "Darwin" ]; then
   CORES=$(sysctl -n hw.logicalcpu)
