@@ -37,7 +37,7 @@ static void onInterruption() {
 		safeDelete();
 	} else if (numSig > 2) {
 		std::cerr << "Caught " << numSig << " signals, hard exit." << std::endl;
-		exit(3);
+		_Exit(3);
 	}
 }
 
