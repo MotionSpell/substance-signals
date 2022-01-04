@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <cstddef> // size_t
 
 // A fast-compiling, low LOC, replacement for std::map.
 // Uses linear search for lookup, should be OK for small maps.

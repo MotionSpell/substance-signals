@@ -2,7 +2,7 @@
 #include "lib_media/out/http.hpp"
 #include "lib_modules/utils/loader.hpp"
 #include "lib_modules/modules.hpp"
-#include <string.h> // memcpy
+#include <cstring> // memcpy
 
 // To run the below tests, you must first launch the fake webserver:
 // $ ./scripts/http-post-server.sh

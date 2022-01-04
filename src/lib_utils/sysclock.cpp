@@ -1,5 +1,6 @@
 #include "clock.hpp"
 #include "sysclock.hpp"
+#include <memory>
 #include <thread>
 
 using namespace std::chrono;

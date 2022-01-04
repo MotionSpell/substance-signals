@@ -4,7 +4,7 @@
 #include "lib_modules/utils/loader.hpp"
 #include "lib_utils/tools.hpp" // safe_cast
 #include "../ts_demuxer.hpp"
-#include "string.h" // memcpy
+#include <cstring> // memcpy
 
 using namespace Tests;
 using namespace Modules;

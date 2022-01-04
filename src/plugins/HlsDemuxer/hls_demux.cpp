@@ -7,7 +7,7 @@
 #include "lib_utils/tools.hpp" // enforce
 #include <sstream>
 #include <memory>
-#include <string.h> // memcpy
+#include <cstring> // memcpy
 
 using namespace std;
 using namespace Modules;

@@ -1,6 +1,6 @@
 #include "http_sender.hpp"
 #include <algorithm> // std::min
-#include <string.h> // memcpy
+#include <cstring> // memcpy
 #include <thread>
 #include <mutex>
 #include <condition_variable>

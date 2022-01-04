@@ -2,7 +2,7 @@
 #include <sstream>
 #include <cctype>
 #include <stdexcept>
-#include <stdint.h>
+#include <cstdint>
 
 using namespace std;
 

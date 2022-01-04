@@ -2,7 +2,7 @@
 #include "lib_media/common/metadata_file.hpp"
 #include "lib_modules/modules.hpp"
 #include "lib_modules/utils/loader.hpp"
-#include <string.h> // memcpy
+#include <cstring> // memcpy
 
 using namespace Modules;
 

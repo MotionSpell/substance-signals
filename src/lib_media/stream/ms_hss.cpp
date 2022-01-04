@@ -1,7 +1,7 @@
 #include "lib_modules/utils/factory.hpp"
 #include "../common/http_sender.hpp"
 #include "lib_utils/tools.hpp" // enforce
-#include <string.h> // memcpy
+#include <cstring> // memcpy
 
 using namespace Modules;
 

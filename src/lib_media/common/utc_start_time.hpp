@@ -1,7 +1,5 @@
 #pragma once
 
-#include <stdint.h>
-
 struct IUtcStartTimeQuery {
 	virtual uint64_t query() const = 0;
 };

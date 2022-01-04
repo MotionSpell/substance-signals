@@ -3,7 +3,7 @@
 #include "lib_modules/core/buffer.hpp" // SpanC
 #include <functional>
 #include <memory>
-#include <stdint.h>
+#include <cstdint>
 
 namespace Modules {
 namespace In {

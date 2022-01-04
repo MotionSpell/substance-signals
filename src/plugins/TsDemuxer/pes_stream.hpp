@@ -6,7 +6,7 @@
 #include "lib_utils/format.hpp"
 #include "lib_media/common/attributes.hpp"
 #include <vector>
-#include <string.h> // memcpy
+#include <cstring> // memcpy
 
 Metadata createMetadata(int mpegStreamType) {
 	auto make = [](Modules::StreamType majorType, const char* codecName) {
