@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 struct IUtcStartTimeQuery {
 	virtual uint64_t query() const = 0;
 };
