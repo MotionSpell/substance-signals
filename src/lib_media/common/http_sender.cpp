@@ -166,7 +166,7 @@ struct CurlHttpSender : HttpSender {
 			auto pThis = (CurlHttpSender*)userp;
 
 			if (pThis->destroying)
-				return CURL_WRITEFUNC_PAUSE;
+				return 0;
 
 			return pThis->fillBuffer(span<uint8_t>((uint8_t*)buffer, size * nmemb));
 		}
