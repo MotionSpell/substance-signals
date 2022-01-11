@@ -84,7 +84,6 @@ struct Decoder : ModuleS, PictureAllocator {
 			av_buffer_unref((AVBufferRef**)&hw->device);
 		}
 
-		// IModule implementation
 		void processOne(Data data) override {
 			inputs[0]->updateMetadata(data);
 
@@ -204,6 +203,9 @@ struct Decoder : ModuleS, PictureAllocator {
 				parser = av_parser_init(codecCtx->codec_id);
 				if (!parser)
 					throw error(format("Parser not found for codec \"%s\". If reframining", metadata->codec));
+
+				if (codecCtx->codec_id == AV_CODEC_ID_AAC)
+					parser->duration = 1024; // ffmpeg's code excludes ADTS data: put a default
 			}
 		}
 
@@ -333,7 +335,8 @@ struct Decoder : ModuleS, PictureAllocator {
 					auto const duration = outputs[0]->getMetadata()->isAudio()
 					    ? Fraction(parser->duration, codecCtx->sample_rate)
 					    : Fraction(parser->duration * codecCtx->time_base.den, codecCtx->time_base.num);
-					out_pkt.pts += fractionToClock(duration);
+					if (duration.den)
+						out_pkt.pts += fractionToClock(duration);
 				}
 			}
 
