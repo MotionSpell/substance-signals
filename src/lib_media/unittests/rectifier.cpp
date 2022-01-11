@@ -645,3 +645,33 @@ unittest("rectifier: audio timescale rounding compensation") {
 	});
 	ASSERT_EQUALS(expected, actualTimes);
 }
+
+unittest("rectifier: audio 44100, video 29.97") {
+	const auto videoRate = Fraction(30000, 1001);
+	const auto audioFrameDur = Fraction(1024, 44100);
+	auto times = generateInterleavedEvents(audioFrameDur, 0, 0, videoRate.inverse(), 0, 0);
+	vector<unique_ptr<ModuleS>> generators;
+	generators.push_back(createModuleWithSize<AudioGenerator44100>(100, audioFrameDur.inverse()));
+	generators.push_back(createModuleWithSize<VideoGenerator>(100, videoRate));
+	auto actualTimes = runRectifier(videoRate, generators, times);
+	auto expected = vector<Event>({
+		Event{1, 0, 0}, Event{0, 0, 0},
+		Event{1, 6006, 6006}, Event{0, 6006, 6006},
+		Event{1, 12012, 12012}, Event{0, 12012, 12012},
+		Event{1, 18018, 18018}, Event{0, 18018, 18018},
+		Event{1, 24024, 24024}, Event{0, 24024, 24024},
+		Event{1, 30030, 30030}, Event{0, 30030, 30030},
+		Event{1, 36036, 36036}, Event{0, 36036, 36036},
+		Event{1, 42042, 42042}, Event{0, 42042, 42042},
+		Event{1, 48048, 48048}, Event{0, 48048, 48048},
+		Event{1, 54054, 54054}, Event{0, 54054, 54054},
+		Event{1, 60060, 60060}, Event{0, 60060, 60060},
+		Event{1, 66066, 66066}, Event{0, 66066, 66066},
+		Event{1, 72072, 72072}, Event{0, 72072, 72072},
+		Event{1, 78078, 78078}, Event{0, 78078, 78078},
+		Event{1, 84084, 84084}, Event{0, 84084, 84084},
+		Event{1, 90090, 90090}, Event{0, 90090, 90090},
+		Event{1, 96096, 96096}, Event{0, 96096, 96096},
+	});
+	ASSERT_EQUALS(expected, actualTimes);
+}

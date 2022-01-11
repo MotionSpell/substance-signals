@@ -349,21 +349,15 @@ struct Rectifier : ModuleDynI {
 				return time * stream.fmt.sampleRate / IClock::Rate;
 			};
 
-			auto toSamplesP = [&](Interval p) -> Interval {
-				return { toSamples(p.start), toSamples(p.stop) };
-			};
-
 			auto getSampleInterval = [&](int64_t pts, uint64_t planeSize) -> Interval {
 				auto const start = pts * stream.fmt.sampleRate / IClock::Rate;
 				return { start, start + int64_t(planeSize / BPS) };
 			};
 
-			// Convert all times to absolute sample counts.
-			// This way we handle early all precision issues.
-			// Doing computations in sample counts (instead of clock rate)
-			// allows us to ensure sample accuracy.
-			auto const outMasterSamples = toSamplesP(outMasterTime);
-			auto const inMasterSamples = toSamplesP(inMasterTime);
+			// Convert all times to absolute sample counts. This way we handle early all precision issues.
+			// Doing computations in sample counts (instead of clock rate) allows us to ensure sample accuracy.
+			const Interval inMasterSamples = { toSamples(inMasterTime.start), toSamples(inMasterTime.stop) };
+			const Interval outMasterSamples = { toSamples(outMasterTime.start), toSamples(outMasterTime.start) + (inMasterSamples.stop - inMasterSamples.start) };
 
 			// Create an zeroed output sample.
 			// We want it to start at 'outMasterTime.start' and to cover the full 'outMasterTime' interval.
