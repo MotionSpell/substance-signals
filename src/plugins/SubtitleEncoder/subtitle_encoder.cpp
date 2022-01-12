@@ -156,7 +156,7 @@ class SubtitleEncoder : public ModuleS {
 				if (isDisplayable(page, startTimeInMs, endTimeInMs)) {
 					auto localStartTimeInMs = std::max<int64_t>(clockToTimescale(page.showTimestamp, 1000), startTimeInMs);
 					auto localEndTimeInMs = std::min<int64_t>(clockToTimescale(page.hideTimestamp, 1000), endTimeInMs);
-					m_host->log(Debug, format("[TTML][%s-%s]: %s - %s: %s", startTimeInMs, endTimeInMs, localStartTimeInMs, localEndTimeInMs, page.toString()).c_str());
+					m_host->log(Info, format("[TTML][%s-%s]: %s - %s: %s", startTimeInMs, endTimeInMs, localStartTimeInMs, localEndTimeInMs, page.toString()).c_str());
 					ttml << serializePageToTtml(page, pageToRegionId[&page], localStartTimeInMs + offsetInMs, localEndTimeInMs + offsetInMs);
 				}
 			}
@@ -177,7 +177,7 @@ class SubtitleEncoder : public ModuleS {
 				if (isDisplayable(page, startTimeInMs, endTimeInMs)) {
 					auto localStartTimeInMs = std::max<int64_t>(clockToTimescale(page.showTimestamp, 1000), startTimeInMs);
 					auto localEndTimeInMs = std::min<int64_t>(clockToTimescale(page.hideTimestamp, 1000), endTimeInMs);
-					m_host->log(Debug, format("[WebVTT][%s-%s]: %s - %s: %s", startTimeInMs, endTimeInMs, localStartTimeInMs, localEndTimeInMs, page.toString()).c_str());
+					m_host->log(Info, format("[WebVTT][%s-%s]: %s - %s: %s", startTimeInMs, endTimeInMs, localStartTimeInMs, localEndTimeInMs, page.toString()).c_str());
 
 					auto const timecodeShow = timecodeToString(startTimeInMs);
 					auto const timecodeHide = timecodeToString(endTimeInMs);
