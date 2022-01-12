@@ -32,6 +32,12 @@ static bool operator!=(const Page& lhs, const Page& rhs) {
 	    || lhs.hideTimestamp != rhs.hideTimestamp;
 }
 
+struct ZeroClock : IClock {
+	Fraction now() const override {
+		return 0;
+	};
+};
+
 // operator!= shall be declared before this include
 #include "tests/tests.hpp"
 
@@ -43,6 +49,8 @@ unittest("ttml_decoder: ttml_encoder sample") {
 	auto enc = loadModule("SubtitleEncoder", &NullHost, &encCfg);
 
 	TtmlDecoderConfig decCfg;
+	auto zc = std::make_shared<ZeroClock>();
+	decCfg.clock = zc;
 	auto dec = loadModule("TTMLDecoder", &NullHost, &decCfg);
 
 	ConnectOutputToInput(enc->getOutput(0), dec->getInput(0));
@@ -59,7 +67,7 @@ unittest("ttml_decoder: ttml_encoder sample") {
 	ConnectOutput(dec->getOutput(0), [&](Data data) {
 		received++;
 		auto &pageReceived = safe_cast<const DataSubtitle>(data)->page;
-		pageSent.hideTimestamp = 0; // there is no way to deduce this value here
+		pageSent.hideTimestamp = 30 * IClock::Rate; // there is no way to deduce this value here
 		ASSERT_EQUALS(pageSent, pageReceived);
 	});
 
@@ -85,7 +93,7 @@ unittest("ttml_decoder: ebu-tt-live (WDR sample)") {
             <tt:region xml:id="bottom" tts:origin="10% 10%" tts:extent="80% 80%" tts:displayAlign="after"/>
         </tt:layout>
     </tt:head>
-    <tt:body dur="00:00:30.000">
+    <tt:body dur="00:00:60.000">
         <tt:div style="defaultStyle">
             <tt:p xml:id="sub1" style="textCenter" region="bottom">
                 <tt:span style="textWhite">Sample of a EBU-TT-LIVE document - line 1</tt:span>
@@ -97,9 +105,11 @@ unittest("ttml_decoder: ebu-tt-live (WDR sample)") {
 </tt:tt>)|";
 
 	TtmlDecoderConfig cfg;
+	auto zc = std::make_shared<ZeroClock>();
+	cfg.clock = zc;
 	auto dec = loadModule("TTMLDecoder", &NullHost, &cfg);
 	int received = 0;
-	Page expected = { 0, 0, { { "Sample of a EBU-TT-LIVE document - line 1", "#FFFFFF" }, { "Sample of a EBU-TT-LIVE document - line 2", "#FFFFFF" } } };
+	Page expected = { 0, 60 * IClock::Rate, { { "Sample of a EBU-TT-LIVE document - line 1", "#FFFFFF" }, { "Sample of a EBU-TT-LIVE document - line 2", "#FFFFFF" } } };
 	ConnectOutput(dec->getOutput(0), [&](Data data) {
 		auto &pageReceived = safe_cast<const DataSubtitle>(data)->page;
 		ASSERT_EQUALS(expected, pageReceived);
@@ -161,9 +171,11 @@ unittest("ttml_decoder: ebu-tt-live (EBU LIT User Input Producer sample)") {
 )|";
 
 	TtmlDecoderConfig cfg;
+	auto zc = std::make_shared<ZeroClock>();
+	cfg.clock = zc;
 	auto dec = loadModule("TTMLDecoder", &NullHost, &cfg);
 	int received = 0;
-	Page expected = { 0, 0, { { "nils is yo", "#ffffff" } } };
+	Page expected = { 0, 30 * IClock::Rate, { { "nils is yo", "#ffffff" } } };
 	ConnectOutput(dec->getOutput(0), [&](Data data) {
 		auto &pageReceived = safe_cast<const DataSubtitle>(data)->page;
 		ASSERT_EQUALS(expected, pageReceived);

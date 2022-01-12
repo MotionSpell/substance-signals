@@ -62,6 +62,7 @@ class TTMLDecoder : public ModuleS {
 				throw error("Not a TTML document");
 
 			SmallMap<std::string, Page::Line/*empty content*/> styles;
+			int64_t pageMaxDuration = 30 * IClock::Rate; //default: 30s
 
 			explore(document, [&](const Tag& tag) {
 				if (tag.name == "style" || tag.name == "tt:style") {
@@ -91,9 +92,19 @@ class TTMLDecoder : public ModuleS {
 
 					styles[id] = lineStyle;
 				}
+
+				if (tag.name == "body" || tag.name == "tt:body")
+					for (auto &attr : tag.attr)
+						if (attr.name == "dur") {
+							int hour = 0, min = 0, sec = 0, ms = 0;
+							sscanf(attr.value.c_str(), "%02d:%02d:%02d.%03d", &hour, &min, &sec, &ms);
+							pageMaxDuration = timescaleToClock(((hour + min * 60) * 60 + sec) * 1000 + ms, 1000);
+						}
 			});
 
 			Page page;
+			page.hideTimestamp = pageMaxDuration;
+
 			explore(document, [&](const Tag& tag) {
 				if (tag.name == "span" || tag.name == "tt:span") {
 					Page::Line line;
@@ -114,9 +125,13 @@ class TTMLDecoder : public ModuleS {
 				sendSample(page);
 		}
 
-		void sendSample(const Page& page) {
+		void sendSample(Page& page) {
+			auto const now = fractionToClock(m_clock->now());
+			page.showTimestamp = now;
+			page.hideTimestamp += now;
+
 			auto out = output->allocData<DataSubtitle>(0);
-			out->setMediaTime(fractionToClock(m_clock->now()));
+			out->setMediaTime(now);
 			out->page = page;
 
 			CueFlags flags {};
