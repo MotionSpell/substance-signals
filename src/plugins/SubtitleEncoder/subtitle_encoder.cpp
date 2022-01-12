@@ -42,8 +42,7 @@ class SubtitleEncoder : public ModuleS {
 
 		void processOne(Data data) override {
 			auto page = dynamic_cast<const DataSubtitle*>(data.get());
-			if (page)
-				currentPages.push_back(page->page);
+			enqueuePage(page);
 
 			// TODO
 			// 14. add flush() for ondemand samples
@@ -62,6 +61,22 @@ class SubtitleEncoder : public ModuleS {
 		const int64_t maxPageDurIn180k, splitDurationIn180k;
 		std::vector<Page> currentPages;
 		const int ROWS = 25, COLS = 40;
+
+		void enqueuePage(const DataSubtitle *page) {
+			if (!page)
+				return;
+
+			if (!currentPages.empty()) {
+				auto &lastPage = currentPages.back();
+				if (lastPage.hideTimestamp > page->page.showTimestamp) {
+					m_host->log(Info, format("Detected timing overlap. Shortening previous page by %sms (duration was %sms).",
+					        lastPage.hideTimestamp - page->page.showTimestamp, lastPage.hideTimestamp - lastPage.showTimestamp).c_str());
+					lastPage.hideTimestamp = page->page.showTimestamp;
+				}
+			}
+
+			currentPages.push_back(page->page);
+		}
 
 		static bool isDisplayable(const Page& page, int64_t startTimeInMs, int64_t endTimeInMs) {
 			return clockToTimescale(page.hideTimestamp, 1000) > startTimeInMs && clockToTimescale(page.showTimestamp, 1000) < endTimeInMs;
