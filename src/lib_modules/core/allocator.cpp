@@ -53,7 +53,6 @@ struct MemoryAllocator : IAllocator {
 		}
 
 	private:
-
 		enum EventType {
 			OneBufferIsFree,
 		};

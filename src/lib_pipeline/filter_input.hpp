@@ -23,7 +23,7 @@ class FilterInput : public IInput {
 
 		void push(Data data) override {
 			queue.push(data);
-			statsPending->value ++;
+			statsPending->value++;
 
 			executor->call([this]() {
 				doProcess();
@@ -65,7 +65,7 @@ class FilterInput : public IInput {
 			try {
 				auto data = queue.pop();
 
-				statsPending->value --;
+				statsPending->value--;
 				statsCumulated->value = samplingCounter++;
 
 				// receiving 'nullptr' means 'end of stream'

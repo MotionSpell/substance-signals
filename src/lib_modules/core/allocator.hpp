@@ -34,7 +34,6 @@ void ensureAligned(void* p, size_t alignment);
 
 template<typename T>
 std::shared_ptr<T> alloc(std::shared_ptr<IAllocator> allocator, size_t size) {
-
 	auto p = allocator->alloc(sizeof(T));
 
 	ensureAligned(p, getAlignmentOf<T>());
