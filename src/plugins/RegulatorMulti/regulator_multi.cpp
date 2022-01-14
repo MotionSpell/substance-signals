@@ -55,6 +55,7 @@ struct RegulatorMulti : public ModuleDynI {
 			}
 
 			auto const now = fractionToClock(clock->now());
+			auto const mediaTime = data->get<DecodingTime>().time;
 
 			if (!streams[id].init) {
 				// Initial case: dispatch immediately
@@ -67,6 +68,13 @@ struct RegulatorMulti : public ModuleDynI {
 			if (data->getMetadata())
 				if (data->getMetadata()->isAudio() || data->getMetadata()->isVideo())
 					mediaDispatchTime = std::max<int64_t>(mediaDispatchTime, data->get<DecodingTime>().time - maxMediaTimeDelay);
+
+			if (std::abs(mediaDispatchTime - mediaTime) > maxMediaTimeDelay + tolerance) {
+				m_host->log(Warning, "Media time error detected. Flush queued data and reset offset.");
+				flush();
+				reset();
+				return;
+			}
 
 			// Normal case
 			dispatch([&](Rec const& rec) {
@@ -145,6 +153,7 @@ struct RegulatorMulti : public ModuleDynI {
 
 		std::vector<Stream> streams;
 		int64_t mediaDispatchTime = std::numeric_limits<int64_t>::min();
+		static auto const tolerance = 6 * IClock::Rate;
 };
 
 IModule* createObject(KHost* host, void* va) {

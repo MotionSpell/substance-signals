@@ -97,14 +97,14 @@ unittest("RegulatorMulti: backward discontinuity") {
 	push(0, 20 * rmCfg.maxMediaTimeDelayInMs);
 	ASSERT_EQUALS(2, rec->frameCount);
 	push(0, 0); //backward media time
-	ASSERT_EQUALS(3, rec->frameCount);
+	ASSERT_EQUALS(4, rec->frameCount);
 
 	ct *= 2;
 	clock->set(ct);
-	push(0, 0); //backward media time
+	push(0, 0); //same media time as clock time
 	ASSERT_EQUALS(4, rec->frameCount);
 	reg->flush();
-	ASSERT_EQUALS(4, rec->frameCount);
+	ASSERT_EQUALS(5, rec->frameCount);
 }
 
 }
