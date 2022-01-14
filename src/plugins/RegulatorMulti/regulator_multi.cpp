@@ -54,15 +54,15 @@ struct RegulatorMulti : public ModuleDynI {
 				return;
 			}
 
-			// Initial case: dispatch immediately
+			auto const now = fractionToClock(clock->now());
+
 			if (!streams[id].init) {
+				// Initial case: dispatch immediately
 				outputs[id]->post(data);
 				streams[id].init = true;
-				return;
+			} else {
+				streams[id].push_back({now, data});
 			}
-
-			auto const now = fractionToClock(clock->now());
-			streams[id].push_back({now, data});
 
 			if (data->getMetadata())
 				if (data->getMetadata()->isAudio() || data->getMetadata()->isVideo())
@@ -106,7 +106,6 @@ struct RegulatorMulti : public ModuleDynI {
 		};
 		struct Stream : std::vector<Rec> {
 			bool init = false;
-			int64_t numDispatchSinceReset = 0;
 		};
 
 		Data popAny(int& inputIdx) {
@@ -128,10 +127,8 @@ struct RegulatorMulti : public ModuleDynI {
 		void dispatch(std::function<bool(Rec const&)> predicate) {
 			for (int i = 0; i < (int)streams.size(); ++i) {
 				for (auto& rec : streams[i])
-					if (predicate(rec)) {
-						streams[i].numDispatchSinceReset++;
+					if (predicate(rec))
 						outputs[i]->post(rec.data);
-					}
 
 				//remove dispatched
 				streams[i].erase(std::remove_if(streams[i].begin(), streams[i].end(), predicate), streams[i].end());
@@ -140,8 +137,6 @@ struct RegulatorMulti : public ModuleDynI {
 
 		void reset() {
 			mediaDispatchTime = std::numeric_limits<int64_t>::min();
-			for (auto &stream : streams)
-				stream.numDispatchSinceReset = 0;
 		}
 
 		KHost * const m_host;

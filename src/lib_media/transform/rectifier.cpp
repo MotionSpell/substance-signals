@@ -324,8 +324,6 @@ struct Rectifier : ModuleDynI {
 
 			master.blank = masterFrame;
 
-			discardStreamOutdatedData(i, masterFrame.creationTime);
-
 			auto data = clone(masterFrame.data);
 			data->setMediaTime(outMasterTime.start);
 			master.output->post(data);
