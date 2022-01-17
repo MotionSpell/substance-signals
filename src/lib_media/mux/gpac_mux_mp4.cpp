@@ -474,7 +474,6 @@ void GPACMuxMP4::updateSegmentName() {
 }
 
 void GPACMuxMP4::startSegment() {
-
 	switch(segmentPolicy) {
 	case NoSegment:
 	case SingleSegment:

@@ -175,7 +175,11 @@ void Filter::endOfStream() {
 
 	if (eosCount == connections) {
 		log(Info, "Pipeline: flushing...");
-		delegate->flush();
+		try {
+			delegate->flush();
+		} catch(std::exception const& e) {
+			log(Error, (std::string("Flush error: ") + e.what()).c_str());
+		}
 
 		for (int i = 0; i < delegate->getNumOutputs(); ++i) {
 			delegate->getOutput(i)->post(nullptr);

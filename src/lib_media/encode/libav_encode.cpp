@@ -247,7 +247,8 @@ struct LibavEncode : ModuleS {
 			if (ret != 0) {
 				auto desc = f ? format("pts=%s", f->pts) : format("flush");
 				m_host->log(Warning, format("error encountered while encoding frame (%s) : %s", desc, avStrError(ret)).c_str());
-				return;
+				if (f)
+					return; // don't return on flush
 			}
 
 			while(1) {
