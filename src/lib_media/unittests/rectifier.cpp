@@ -106,8 +106,8 @@ struct DataGenerator : ModuleS, virtual IOutputCap {
 	}
 	void processOne(Data dataIn) override {
 		auto data = output->allocData<TYPE>(0);
-		auto dataPcm = dynamic_pointer_cast<DataPcm>(data);
-		if (dataPcm) {
+
+		if (auto dataPcm = dynamic_pointer_cast<DataPcm>(data)) {
 			PcmFormat fmt(sampleRate, 1, Mono);
 			dataPcm->format = fmt;
 			auto samplesN = (int)(double)(fps.inverse() * pktCounter * sampleRate);
@@ -120,7 +120,11 @@ struct DataGenerator : ModuleS, virtual IOutputCap {
 			auto const dataSize = dataPcm->getSampleCount() * dataPcm->format.getBytesPerSample();
 			for (int i = 0; i < dataSize / (int)sizeof(uint32_t); ++i)
 				*((uint32_t*)dataPcm->getPlane(0) + i) = audioSampleCounter++;
+		} else if (auto dataSubtitle = dynamic_pointer_cast<DataSubtitle>(data)) {
+			dataSubtitle->page.showTimestamp = dataIn->get<PresentationTime>().time;
+			dataSubtitle->page.hideTimestamp = dataSubtitle->page.showTimestamp + fractionToClock(fps.inverse());
 		}
+
 		data->set(PresentationTime{ dataIn->get<PresentationTime>().time });
 		output->post(data);
 	}
@@ -566,21 +570,21 @@ unittest("rectifier: subtitles (sparse)") {
 	fix.addStream(0, createModuleWithSize<VideoGenerator>(100, fps));
 	fix.addStream(1, createModuleWithSize<SubtitleGenerator>(100, fps));
 
+	auto const offset = 0;//Romain: 1000... why?
 	auto const delta = (int)(fps.inverse() * IClock::Rate);
-	fix.setTime(1000 + delta * 0);
-	fix.push(0, 7200 * 0); /*no subtitle*/
-	fix.push(0, 7200 * 1); fix.push(1, 7200 * 1);
-	fix.setTime(1000 + 7200 * 1);
-	fix.push(0, 7200 * 3); fix.push(1, 7200 * 3);
-	fix.setTime(1000 + 7200 * 2);
-	fix.setTime(1000 + 7200 * 3);
+	fix.setTime(offset + delta * 0);
+	fix.push(0, delta * 0); /*no subtitle*/
+	fix.push(0, delta * 1); fix.push(1, delta * 1);
+	fix.setTime(offset + delta * 1);
+	fix.push(0, delta * 3); fix.push(1, delta * 3);
+	fix.setTime(offset + delta * 2);
+	fix.setTime(offset + delta * 3);
 
 	auto const expectedTimes = vector<Event>({
-		Event{0, 1000 + 7200 * 0, 7200 * 0}, Event{1, 1000 + 7200 * 0, 7200 * 0},
-		Event{1, 1000 + 7200 * 0, 7200 * 0}, /*only subtitle signals, the other ones are heartbeats*/
-		Event{0, 1000 + 7200 * 1, 7200 * 1}, Event{1, 1000 + 7200 * 1, 7200 * 1},
-		Event{0, 1000 + 7200 * 2, 7200 * 2}, Event{1, 1000 + 7200 * 2, 7200 * 2}, Event{1, 1000 + 7200 * 2, 7200 * 2},
-		Event{0, 1000 + 7200 * 3, 7200 * 3}, Event{1, 1000 + 7200 * 3, 7200 * 3}
+		Event{0, offset + delta * 0, delta * 0}, Event{1, offset + delta * 0, delta * 0} /*wrong subtitle*/, Event{1, offset + delta * 0, delta * 0} /*heartbeat*/,
+		Event{0, offset + delta * 1, delta * 1}, Event{1, offset + delta * 1, delta * 1} /*heartbeat*/,
+		Event{0, offset + delta * 2, delta * 2}, Event{1, offset + delta * 2, delta * 2} /*wrong subtitle*/, Event{1, offset + delta * 2, delta * 2} /*heartbeat*/,
+		Event{0, offset + delta * 3, delta * 3}, Event{1, offset + delta * 3, delta * 3} /*heartbeat*/,
 	});
 
 	ASSERT_EQUALS(expectedTimes, fix.actualTimes);
