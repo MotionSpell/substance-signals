@@ -70,6 +70,7 @@ int main(int argc, char const* argv[]) {
 
 		installSignalHandler();
 		safeMain(argc, argv);
+		g_Pipeline = nullptr; // ensure deletion before global variables it may rely on
 
 		return 0;
 	} catch (std::exception const& e) {
