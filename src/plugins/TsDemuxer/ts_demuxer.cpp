@@ -172,17 +172,23 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::IRestamper {
 				return; // we're not interested in this PID
 
 			if(transportErrorIndicator) {
-				m_host->log(Error, "Discarding TS packet with TEI=1");
+				m_host->log(Error, format("[%s] Discarding TS packet with TEI=1", packetId).c_str());
 				return;
 			}
 
 			if(scrambling) {
-				m_host->log(Error, "Discarding scrambled TS packet");
+				m_host->log(Error, format("[%s] Discarding scrambled TS packet", packetId).c_str());
 				return;
 			}
 
-			if(continuityCounter == stream->cc)
-				return; // discard duplicated packet
+			if(continuityCounter == stream->cc) {
+				m_host->log(Warning, format("[%s] Discarding duplicated packet", packetId).c_str());
+				return;
+			}
+
+			if(continuityCounter != (stream->cc + 1) % 16)
+				if (stream->reset())
+					m_host->log(Warning, format("[%s] Discontinuity detected. Flushing and discarding until next PUSI.", packetId).c_str());
 
 			stream->cc = continuityCounter;
 

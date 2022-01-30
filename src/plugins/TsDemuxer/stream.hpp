@@ -14,6 +14,10 @@ struct Stream {
 	// tell the stream when the payload unit is finished (e.g PUSI=1 or EOS)
 	virtual void flush() = 0;
 
+	// handle error cases by ignoring accumulated data
+	// returns when the operation is void
+	virtual bool reset() {};
+
 	int pid = TsDemuxerConfig::ANY;
 	KHost* const m_host; // for logs
 	int cc = -1; // continuity counter

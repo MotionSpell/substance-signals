@@ -166,6 +166,12 @@ struct PesStream : Stream {
 			m_output->post(buf);
 		}
 
+		bool reset() override {
+			auto const empty = m_pesBuffer.empty();
+			m_pesBuffer.clear();
+			return !empty;
+		}
+
 		bool setType(int mpegStreamType) {
 			auto meta = createMetadata(mpegStreamType);
 			if(!meta)
