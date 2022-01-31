@@ -66,8 +66,7 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::IRestamper {
 				if(buf.len < TS_PACKET_LEN) {
 					m_host->log(Debug, "Truncated TS packet");
 					assert(m_remainder.empty());
-					for(auto c : buf)
-						m_remainder.push_back(c);
+					m_remainder.insert(m_remainder.end(), buf.ptr, buf.ptr + buf.len);
 					return;
 				}
 

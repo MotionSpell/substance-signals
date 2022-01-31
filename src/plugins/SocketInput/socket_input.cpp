@@ -1,6 +1,8 @@
 #include "socket_input.hpp"
 #include "lib_modules/utils/factory.hpp" // registerModule
 #include "lib_modules/utils/helper.hpp"
+#include "lib_utils/log_sink.hpp"
+#include "lib_utils/os.hpp" // setHighThreadPriority
 #include "lib_utils/tools.hpp" // enforce
 #include "lib_utils/socket.hpp"
 
@@ -13,6 +15,7 @@ struct SocketInput : Module {
 		: m_host(host) {
 
 		m_host->activate(true);
+		m_highPriority = !config.isTcp;
 
 		char buffer[256];
 		sprintf(buffer, "%d.%d.%d.%d", config.ipAddr[0], config.ipAddr[1], config.ipAddr[2], config.ipAddr[3]);
@@ -25,7 +28,14 @@ struct SocketInput : Module {
 
 	// must be able to receive at least 35Mbps
 	void process() override {
-		auto buf = m_output->allocData<DataRaw>(4096);
+		if(m_highPriority == 1) {
+			if (!setHighThreadPriority())
+				m_host->log(Warning, "Couldn't change reception thread priority to realtime.");
+
+			m_highPriority = 2;
+		}
+
+		auto buf = m_output->allocData<DataRaw>(0x60000);
 		auto dst = buf->buffer->data();
 
 		auto size = m_socket->receive(dst.ptr, dst.len);
@@ -38,6 +48,7 @@ struct SocketInput : Module {
 	KHost* const m_host;
 	std::unique_ptr<ISocket> m_socket;
 	OutputDefault* m_output;
+	int m_highPriority = 0;
 };
 
 IModule* createObject(KHost* host, void* va) {

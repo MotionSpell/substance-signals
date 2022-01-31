@@ -30,8 +30,7 @@ namespace In {
 inline std::vector<uint8_t> download(Modules::In::IFilePuller* puller, const char* url) {
 	std::vector<uint8_t> r;
 	auto onBuffer = [&](SpanC buf) {
-		for(auto c : buf)
-			r.push_back(c);
+		r.insert(r.end(), buf.ptr, buf.ptr + buf.len);
 	};
 	puller->wget(url, onBuffer);
 	return r;

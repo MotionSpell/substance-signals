@@ -371,7 +371,7 @@ struct LibavDemux : Module {
 
 	void inputThread() {
 		if(highPriority && !setHighThreadPriority())
-			m_host->log(Warning, format("Couldn't change reception thread priority to realtime.").c_str());
+			m_host->log(Warning, "Couldn't change reception thread priority to realtime.");
 
 		bool nextPacketResetFlag = false;
 		while (!done) {

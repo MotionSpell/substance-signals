@@ -59,8 +59,7 @@ struct PesStream : Stream {
 			if(!pusi && m_pesBuffer.empty())
 				return; // ... discard the rest
 
-			for(auto b : data)
-				m_pesBuffer.push_back(b);
+			m_pesBuffer.insert(m_pesBuffer.end(), data.ptr, data.ptr + data.len);
 
 			// try to early-parse PES_packet_length
 			if(m_pesBuffer.size() >= 6) {
@@ -167,9 +166,11 @@ struct PesStream : Stream {
 		}
 
 		bool reset() override {
-			auto const empty = m_pesBuffer.empty();
+			if(m_pesBuffer.empty())
+				return false;
+
 			m_pesBuffer.clear();
-			return !empty;
+			return true;
 		}
 
 		bool setType(int mpegStreamType) {
