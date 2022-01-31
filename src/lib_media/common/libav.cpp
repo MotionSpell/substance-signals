@@ -132,16 +132,15 @@ void initMetadatPkt(MetadataPkt* meta, AVCodecContext* codecCtx) {
 
 	if (!codecCtx->time_base.num || !codecCtx->time_base.den)
 		throw std::runtime_error(format("Unsupported time scale %s/%s.", codecCtx->time_base.den, codecCtx->time_base.num));
-	meta->timeScale = Fraction(codecCtx->time_base.den, codecCtx->time_base.num);
+	meta->timeScale = Fraction(codecCtx->time_base.den, codecCtx->time_base.num * codecCtx->ticks_per_frame);
 }
 
 Metadata createMetadataPktLibavVideo(AVCodecContext* codecCtx) {
 	auto meta = make_shared<MetadataPktVideo>();
 	initMetadatPkt(meta.get(), codecCtx);
-	meta->timeScale = Fraction(codecCtx->time_base.den, codecCtx->time_base.num);
 	meta->pixelFormat = libavPixFmt2PixelFormat(codecCtx->pix_fmt);
 	auto const &sar = codecCtx->sample_aspect_ratio;
-	meta->sampleAspectRatio =	Fraction(sar.num, sar.den);
+	meta->sampleAspectRatio = Fraction(sar.num, sar.den);
 	meta->resolution = Resolution(codecCtx->width, codecCtx->height);
 
 	// in FFmpeg, pictures are considered to have a 0/0 framerate
