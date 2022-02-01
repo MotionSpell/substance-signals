@@ -43,7 +43,7 @@ secondclasstest("render: sound generator, evil samples") {
 	render->process();
 
 	// wait for crash
-	std::this_thread::sleep_for(std::chrono::milliseconds(1));
+	std::this_thread::sleep_for(1ms);
 }
 
 secondclasstest("render: A/V sync, one thread") {

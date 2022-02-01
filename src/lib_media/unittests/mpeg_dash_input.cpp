@@ -224,7 +224,7 @@ unittest("mpeg_dash_input: get concurrent chunks") {
 			counter++;
 
 			while (counter > 4)
-				std::this_thread::sleep_for(std::chrono::milliseconds(1));
+				std::this_thread::sleep_for(1ms);
 
 			{
 				std::unique_lock<std::mutex> lock(mutex);
@@ -236,7 +236,7 @@ unittest("mpeg_dash_input: get concurrent chunks") {
 		}
 		void unblock() {
 			while (counter < 4)
-				std::this_thread::sleep_for(std::chrono::milliseconds(1));
+				std::this_thread::sleep_for(1ms);
 			counter = 1;
 		}
 

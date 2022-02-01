@@ -51,7 +51,7 @@ bool AdaptiveStreamingCommon::moveFile(const std::string &src, const std::string
 		} catch(...) {
 		}
 
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		std::this_thread::sleep_for(10ms);
 	}
 	if (!retry) {
 		return false;
@@ -295,7 +295,7 @@ void AdaptiveStreamingCommon::threadProc() {
 				break;
 			} else {
 				assert((type == LiveNonBlocking) && ((int)qualities.size() < numInputs));
-				std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+				std::this_thread::sleep_for(1000ms);
 				continue;
 			}
 		}
@@ -314,7 +314,7 @@ void AdaptiveStreamingCommon::threadProc() {
 				const int64_t durInMs = startTimeInMs + totalDurationInMs - utcInMs;
 				if (durInMs > 0) {
 					m_host->log(Debug, format("Going to sleep for %s ms.", durInMs).c_str());
-					std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+					std::this_thread::sleep_for(1000ms);
 				} else {
 					m_host->log(Warning, format("Late from %s ms.", -durInMs).c_str());
 				}
