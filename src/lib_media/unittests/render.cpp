@@ -10,6 +10,7 @@
 
 using namespace Tests;
 using namespace Modules;
+using namespace std::chrono;
 
 namespace {
 

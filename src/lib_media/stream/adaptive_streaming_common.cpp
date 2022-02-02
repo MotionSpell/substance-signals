@@ -10,6 +10,8 @@
 
 #define MOVE_FILE_NUM_RETRY 3
 
+using namespace std::chrono;
+
 namespace Modules {
 namespace Stream {
 

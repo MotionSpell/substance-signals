@@ -6,6 +6,7 @@
 using namespace Tests;
 using namespace Modules;
 using namespace Pipelines;
+using namespace std::chrono;
 
 unittest("pipeline: EOS injection (exitSync)") {
 	Pipeline p;

@@ -11,6 +11,7 @@
 using namespace Tests;
 using namespace Modules;
 using namespace In;
+using namespace std::chrono;
 
 struct NotOwningFilePuller : IFilePuller {
 	NotOwningFilePuller(IFilePuller *source) : source(source) {}
