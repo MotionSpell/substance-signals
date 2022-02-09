@@ -22,8 +22,11 @@ struct Page {
 	std::string toString() const {
 		std::string r;
 
-		for(auto& ss : lines)
-			r += ss.text + "\n";
+		for(auto& ss : lines) {
+			r += ss.text;
+			if (&ss != &lines.back())
+				r += "\n";
+		}
 
 		return r;
 	}
