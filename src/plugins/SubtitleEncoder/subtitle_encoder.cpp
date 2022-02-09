@@ -32,7 +32,7 @@ class SubtitleEncoder : public ModuleS {
 	public:
 		SubtitleEncoder(KHost* host, SubtitleEncoderConfig* cfg)
 			: m_host(host), isWebVTT(cfg->isWebVTT), m_utcStartTime(cfg->utcStartTime),
-			  lang(cfg->lang), timingPolicy(cfg->timingPolicy),
+			  forceEmptyPage(cfg->forceEmptyPage), lang(cfg->lang), timingPolicy(cfg->timingPolicy),
 			  maxPageDurIn180k(std::max<int>(timescaleToClock(cfg->maxDelayBeforeEmptyInMs, 1000), timescaleToClock(cfg->splitDurationInMs, 1000))),
 			  splitDurationIn180k(timescaleToClock(cfg->splitDurationInMs, 1000)) {
 			enforce(cfg->utcStartTime != nullptr, "SubtitleEncoder: utcStartTime can't be NULL");
@@ -55,6 +55,7 @@ class SubtitleEncoder : public ModuleS {
 		const bool isWebVTT;
 		IUtcStartTimeQuery const * const m_utcStartTime;
 		OutputDefault* output;
+		const bool forceEmptyPage;
 		const std::string lang;
 		const SubtitleEncoderConfig::TimingPolicy timingPolicy;
 		int64_t intClock = 0;
@@ -70,7 +71,7 @@ class SubtitleEncoder : public ModuleS {
 				auto &lastPage = currentPages.back();
 				if (lastPage.hideTimestamp > page->page.showTimestamp) {
 					m_host->log(Info, format("Detected timing overlap. Shortening previous page by %sms (duration was %sms).",
-					        lastPage.hideTimestamp - page->page.showTimestamp, lastPage.hideTimestamp - lastPage.showTimestamp).c_str());
+					        clockToTimescale(lastPage.hideTimestamp - page->page.showTimestamp, 1000), clockToTimescale(lastPage.hideTimestamp - lastPage.showTimestamp, 1000)).c_str());
 					lastPage.hideTimestamp = page->page.showTimestamp;
 				}
 			}
@@ -91,7 +92,7 @@ class SubtitleEncoder : public ModuleS {
 			std::stringstream ttml;
 
 			for (auto& line : page.lines) {
-				if (line.text.empty())
+				if (line.text.empty() && !forceEmptyPage)
 					continue;
 
 				ttml << "      <p region=\"Region" << regionId << "_" << line.row << "\" style=\"Style0_0\" begin=\"" << timecodeShow << "\" end=\"" << timecodeHide << "\">\n";
@@ -171,7 +172,7 @@ class SubtitleEncoder : public ModuleS {
 				if (isDisplayable(page, startTimeInMs, endTimeInMs)) {
 					auto localStartTimeInMs = std::max<int64_t>(clockToTimescale(page.showTimestamp, 1000), startTimeInMs);
 					auto localEndTimeInMs = std::min<int64_t>(clockToTimescale(page.hideTimestamp, 1000), endTimeInMs);
-					m_host->log(Info, format("[TTML][%s-%s]: %s - %s: %s", startTimeInMs, endTimeInMs, localStartTimeInMs, localEndTimeInMs, page.toString()).c_str());
+					m_host->log(Info, format("[TTML][%s-%s]: %s - %s: \"%s\"", startTimeInMs, endTimeInMs, localStartTimeInMs, localEndTimeInMs, page.toString()).c_str());
 					ttml << serializePageToTtml(page, pageToRegionId[&page], localStartTimeInMs + offsetInMs, localEndTimeInMs + offsetInMs);
 				}
 			}
@@ -249,9 +250,17 @@ class SubtitleEncoder : public ModuleS {
 					Page pageOut;
 					pageOut.showTimestamp = prevSplit;
 					pageOut.hideTimestamp = nextSplit;
-					pageOut.lines.push_back({ timecodeToString(startInMs) + " - " + timecodeToString(endInMs), defaultColor, false, ROWS - 1, 0 });
+					pageOut.lines.push_back({ std::string("[ ") + timecodeToString(startInMs) + " - " + timecodeToString(endInMs) + " ]", defaultColor, false, ROWS - 1, 0 });
 					currentPages.clear();
 					currentPages.push_back(pageOut);
+				}
+
+				if (currentPages.empty() && forceEmptyPage) {
+					Page page;
+					page.showTimestamp = prevSplit;
+					page.hideTimestamp = nextSplit;
+					page.lines.push_back({});
+					currentPages.push_back(page);
 				}
 
 				sendSample(isWebVTT ? toWebVTT(startInMs, endInMs) : toTTML(startInMs, endInMs));

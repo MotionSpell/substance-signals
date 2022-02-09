@@ -11,6 +11,7 @@ struct SubtitleEncoderConfig {
 	};
 
 	bool isWebVTT = false;
+	bool forceEmptyPage = false; //use an empty page instead of no page
 	std::string lang = "en";
 	int splitDurationInMs = 1000;
 	int maxDelayBeforeEmptyInMs = 2000;
