@@ -1,6 +1,7 @@
 #include "socket.hpp"
 #include <stdexcept>
-
+#include "lib_utils/format.hpp"
+#include "lib_utils/log.hpp"
 #include <winsock2.h>
 #include <ws2tcpip.h>
 
@@ -91,6 +92,15 @@ struct Socket : ISocket {
 
 			if(setsockopt(m_socket, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*)&mreq, sizeof(mreq)) < 0)
 				throw runtime_error("can't join multicast address");
+
+			uint32_t socketBufferSize = { 0x60000 };
+			setsockopt(m_socket, SOL_SOCKET, SO_RCVBUF, (char *)&socketBufferSize, (socklen_t)sizeof(socketBufferSize));
+
+			uint32_t nsize=0, psize=(uint32_t)sizeof(socketBufferSize);
+			getsockopt(m_socket, SOL_SOCKET, SO_RCVBUF, (char*)&nsize, &psize);
+
+			if (nsize < socketBufferSize)
+				g_Log->log(Error, format("Asked for a %s bytes socket buffer size but was allocated only %s", socketBufferSize, nsize).c_str());
 		}
 
 		bool ensureAccept() {

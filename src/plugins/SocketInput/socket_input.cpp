@@ -5,25 +5,25 @@
 #include "lib_utils/os.hpp" // setHighThreadPriority
 #include "lib_utils/tools.hpp" // enforce
 #include "lib_utils/socket.hpp"
+#include <thread>
 
 using namespace Modules;
+using namespace std;
 
 namespace {
 
 struct SocketInput : Module {
 	SocketInput(KHost* host, SocketInputConfig const& config)
 		: m_host(host) {
-
-		m_host->activate(true);
-		m_highPriority = !config.isTcp;
-
 		char buffer[256];
 		sprintf(buffer, "%d.%d.%d.%d", config.ipAddr[0], config.ipAddr[1], config.ipAddr[2], config.ipAddr[3]);
 		auto type = config.isTcp ? ISocket::TCP : ISocket::UDP;
 		type = config.isMulticast ? ISocket::UDP_MULTICAST : type;
 		m_socket = createSocket(buffer, config.port, type);
 
+		m_highPriority = !config.isTcp;
 		m_output = addOutput();
+		m_host->activate(true);
 	}
 
 	// must be able to receive at least 35Mbps
@@ -35,14 +35,16 @@ struct SocketInput : Module {
 			m_highPriority = 2;
 		}
 
-		auto buf = m_output->allocData<DataRaw>(0x60000);
+		auto const bufSize = 0x60000 / 188 * 188;
+		auto buf = m_output->allocData<DataRaw>(bufSize);
 		auto dst = buf->buffer->data();
 
 		auto size = m_socket->receive(dst.ptr, dst.len);
 		if(size > 0) {
 			buf->buffer->resize(size);
 			m_output->post(buf);
-		}
+		} else
+			std::this_thread::sleep_for(1ms);
 	}
 
 	KHost* const m_host;
@@ -55,7 +57,7 @@ IModule* createObject(KHost* host, void* va) {
 	auto config = (SocketInputConfig*)va;
 	enforce(host, "SocketInput: host can't be NULL");
 	enforce(config, "SocketInput: config can't be NULL");
-	return createModule<SocketInput>(host, *config).release();
+	return createModuleWithSize<SocketInput>(10000, host, *config).release();
 }
 
 auto const registered = Factory::registerModule("SocketInput", &createObject);
