@@ -12,7 +12,9 @@ struct Page {
 		std::string text;
 		std::string color = "#ffffff";
 		bool doubleHeight = false;
-		int row = 0;
+
+		// default values inherited from teletext
+		int row = 24;
 		int col = 0;
 	};
 	int64_t showTimestamp = 0;
