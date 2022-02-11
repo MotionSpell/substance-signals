@@ -138,7 +138,7 @@ class SubtitleEncoder : public ModuleS {
 				pageToRegionId[&page] = pageToRegionId.size();
 
 				for (auto& line : page.lines) {
-					if (line.text.empty())
+					if (line.text.empty() && !forceEmptyPage)
 						continue;
 
 					if (line.doubleHeight) {
@@ -148,18 +148,19 @@ class SubtitleEncoder : public ModuleS {
 					}
 
 					auto const numLines = 24;
-					auto const height = 100.0 / numLines;
-					auto const spacingFactor = 1.0;
-					auto const verticalOrigin = (100 - spacingFactor * height * ROWS) + spacingFactor * height * line.row; // Percentage. Promote the last rows for text display.
-					if (verticalOrigin >= 0 && verticalOrigin + spacingFactor * height * (1 + (int)doubleHeight) <= 100) {
+					auto const height = Fraction(100.0, numLines);
+					auto const spacingFactor = Fraction(1);
+					auto const verticalOrigin = (double)((height * spacingFactor * ROWS * -1 + 100) + height * spacingFactor * line.row); // Percentage. Promote the last rows for text display.
+					if (verticalOrigin >= 0 &&  height * spacingFactor * (1 + (int)doubleHeight) + verticalOrigin <= 100) {
 						auto const factorH = 1 + (int)doubleHeight;
 						auto const margin = 10.0; //percentage
 						auto const origin = (margin + (100 - 2 * margin) * line.col / (double)COLS) / factorH;
 						auto const width = 100 - origin - margin;
 						ttml << "      <region xml:id=\"Region" << pageToRegionId[&page] << "_" << line.row << "\" ";
-						ttml << "tts:origin=\"" << origin << "% " << verticalOrigin << "%\" tts:extent=\"" << width << "% " << height * factorH << "%\" ";
+						ttml << "tts:origin=\"" << origin << "% " << verticalOrigin << "%\" tts:extent=\"" << width << "% " << (double)height * factorH << "%\" ";
 						ttml << "tts:displayAlign=\"center\" tts:textAlign=\"center\" />\n";
-					}
+					} else
+						m_host->log(Warning, format("Impossible to compute text position for \"%s\". Contact your vendor.", line.text).c_str());
 				}
 			}
 

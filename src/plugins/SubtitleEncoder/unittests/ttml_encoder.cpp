@@ -29,7 +29,7 @@ unittest("ttml_encoder") {
 	cfg.timingPolicy = SubtitleEncoderConfig::RelativeToMedia;
 	auto m = loadModule("SubtitleEncoder", &NullHost, &cfg);
 
-	Page page {0, IClock::Rate * 4, std::vector<Page::Line>({{"toto"}, {"titi", "#ff0000"}})};
+	Page page {0, IClock::Rate * 4, std::vector<Page::Line>({{"toto", "#ffffff"}, {"titi", "#ff0000"}})};
 	auto data = std::make_shared<DataSubtitle>(0);
 	auto const time = page.showTimestamp + IClock::Rate * 4;
 	data->set(DecodingTime{ time });
@@ -48,14 +48,16 @@ unittest("ttml_encoder") {
       <style xml:id="Style0_0" tts:fontSize="80%" tts:fontFamily="monospaceSansSerif" />
     </styling>
     <layout>
+      <region xml:id="Region0_24" tts:origin="10% 95.8333%" tts:extent="80% 4.16667%" tts:displayAlign="center" tts:textAlign="center" />
+      <region xml:id="Region0_24" tts:origin="10% 95.8333%" tts:extent="80% 4.16667%" tts:displayAlign="center" tts:textAlign="center" />
     </layout>
   </head>
   <body>
     <div>
-      <p region="Region0_0" style="Style0_0" begin="00:00:00.000" end="00:00:01.000">
+      <p region="Region0_24" style="Style0_0" begin="00:00:00.000" end="00:00:01.000">
         <span tts:color="#ffffff" tts:backgroundColor="#000000">toto</span>
       </p>
-      <p region="Region0_0" style="Style0_0" begin="00:00:00.000" end="00:00:01.000">
+      <p region="Region0_24" style="Style0_0" begin="00:00:00.000" end="00:00:01.000">
         <span tts:color="#ff0000" tts:backgroundColor="#000000">titi</span>
       </p>
     </div>
@@ -68,14 +70,16 @@ unittest("ttml_encoder") {
       <style xml:id="Style0_0" tts:fontSize="80%" tts:fontFamily="monospaceSansSerif" />
     </styling>
     <layout>
+      <region xml:id="Region0_24" tts:origin="10% 95.8333%" tts:extent="80% 4.16667%" tts:displayAlign="center" tts:textAlign="center" />
+      <region xml:id="Region0_24" tts:origin="10% 95.8333%" tts:extent="80% 4.16667%" tts:displayAlign="center" tts:textAlign="center" />
     </layout>
   </head>
   <body>
     <div>
-      <p region="Region0_0" style="Style0_0" begin="00:00:01.000" end="00:00:02.000">
+      <p region="Region0_24" style="Style0_0" begin="00:00:01.000" end="00:00:02.000">
         <span tts:color="#ffffff" tts:backgroundColor="#000000">toto</span>
       </p>
-      <p region="Region0_0" style="Style0_0" begin="00:00:01.000" end="00:00:02.000">
+      <p region="Region0_24" style="Style0_0" begin="00:00:01.000" end="00:00:02.000">
         <span tts:color="#ff0000" tts:backgroundColor="#000000">titi</span>
       </p>
     </div>
@@ -99,7 +103,7 @@ unittest("ttml_encoder: overlapping samples") {
 	ConnectOutputToInput(m->getOutput(0), ttmlAnalyzer->getInput(0));
 
   for (int i=0; i<2; ++i) {
-    Page page {0, IClock::Rate * (i+4), std::vector<Page::Line>({{ format("toto%s", i) }, {"titi", "#ff0000"}})};
+    Page page {0, IClock::Rate * (i+4), std::vector<Page::Line>({{ format("toto%s", i), "#ffffff"}, {"titi", "#ff0000"}})};
     auto const time = page.showTimestamp + IClock::Rate * (i+4);
 
     auto data = std::make_shared<DataSubtitle>(0);
@@ -116,14 +120,16 @@ unittest("ttml_encoder: overlapping samples") {
       <style xml:id="Style0_0" tts:fontSize="80%" tts:fontFamily="monospaceSansSerif" />
     </styling>
     <layout>
+      <region xml:id="Region0_24" tts:origin="10% 95.8333%" tts:extent="80% 4.16667%" tts:displayAlign="center" tts:textAlign="center" />
+      <region xml:id="Region0_24" tts:origin="10% 95.8333%" tts:extent="80% 4.16667%" tts:displayAlign="center" tts:textAlign="center" />
     </layout>
   </head>
   <body>
     <div>
-      <p region="Region0_0" style="Style0_0" begin="00:00:00.000" end="00:00:01.000">
+      <p region="Region0_24" style="Style0_0" begin="00:00:00.000" end="00:00:01.000">
         <span tts:color="#ffffff" tts:backgroundColor="#000000">toto0</span>
       </p>
-      <p region="Region0_0" style="Style0_0" begin="00:00:00.000" end="00:00:01.000">
+      <p region="Region0_24" style="Style0_0" begin="00:00:00.000" end="00:00:01.000">
         <span tts:color="#ff0000" tts:backgroundColor="#000000">titi</span>
       </p>
     </div>
@@ -136,14 +142,16 @@ unittest("ttml_encoder: overlapping samples") {
       <style xml:id="Style0_0" tts:fontSize="80%" tts:fontFamily="monospaceSansSerif" />
     </styling>
     <layout>
+      <region xml:id="Region0_24" tts:origin="10% 95.8333%" tts:extent="80% 4.16667%" tts:displayAlign="center" tts:textAlign="center" />
+      <region xml:id="Region0_24" tts:origin="10% 95.8333%" tts:extent="80% 4.16667%" tts:displayAlign="center" tts:textAlign="center" />
     </layout>
   </head>
   <body>
     <div>
-      <p region="Region0_0" style="Style0_0" begin="00:00:01.000" end="00:00:02.000">
+      <p region="Region0_24" style="Style0_0" begin="00:00:01.000" end="00:00:02.000">
         <span tts:color="#ffffff" tts:backgroundColor="#000000">toto0</span>
       </p>
-      <p region="Region0_0" style="Style0_0" begin="00:00:01.000" end="00:00:02.000">
+      <p region="Region0_24" style="Style0_0" begin="00:00:01.000" end="00:00:02.000">
         <span tts:color="#ff0000" tts:backgroundColor="#000000">titi</span>
       </p>
     </div>
@@ -156,14 +164,16 @@ unittest("ttml_encoder: overlapping samples") {
       <style xml:id="Style0_0" tts:fontSize="80%" tts:fontFamily="monospaceSansSerif" />
     </styling>
     <layout>
+      <region xml:id="Region0_24" tts:origin="10% 95.8333%" tts:extent="80% 4.16667%" tts:displayAlign="center" tts:textAlign="center" />
+      <region xml:id="Region0_24" tts:origin="10% 95.8333%" tts:extent="80% 4.16667%" tts:displayAlign="center" tts:textAlign="center" />
     </layout>
   </head>
   <body>
     <div>
-      <p region="Region0_0" style="Style0_0" begin="00:00:02.000" end="00:00:03.000">
+      <p region="Region0_24" style="Style0_0" begin="00:00:02.000" end="00:00:03.000">
         <span tts:color="#ffffff" tts:backgroundColor="#000000">toto1</span>
       </p>
-      <p region="Region0_0" style="Style0_0" begin="00:00:02.000" end="00:00:03.000">
+      <p region="Region0_24" style="Style0_0" begin="00:00:02.000" end="00:00:03.000">
         <span tts:color="#ff0000" tts:backgroundColor="#000000">titi</span>
       </p>
     </div>
