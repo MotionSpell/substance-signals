@@ -14,7 +14,7 @@ struct Page {
 		bool doubleHeight = false;
 
 		// default values inherited from teletext
-		int row = 24;
+		int row = 24; // last line
 		int col = 0;
 	};
 	int64_t showTimestamp = 0;

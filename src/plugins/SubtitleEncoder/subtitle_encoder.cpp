@@ -123,7 +123,7 @@ class SubtitleEncoder : public ModuleS {
 			ttml << "<tt xmlns=\"http://www.w3.org/ns/ttml\" xmlns:tt=\"http://www.w3.org/ns/ttml\" xmlns:ttm=\"http://www.w3.org/ns/ttml#metadata\" xmlns:tts=\"http://www.w3.org/ns/ttml#styling\" xmlns:ttp=\"http://www.w3.org/ns/ttml#parameter\" xml:lang=\"" << lang << "\" >\n";
 			ttml << "  <head>\n";
 			ttml << "    <styling>\n";
-			ttml << "      <style xml:id=\"Style0_0\" tts:fontSize=\"80%\" tts:fontFamily=\"monospaceSansSerif\" />\n";
+			ttml << "      <style xml:id=\"Style0_0\" tts:fontSize=\"60%\" tts:fontFamily=\"monospaceSansSerif\" />\n";
 			ttml << "    </styling>\n";
 			ttml << "    <layout>\n";
 
@@ -251,7 +251,15 @@ class SubtitleEncoder : public ModuleS {
 					Page pageOut;
 					pageOut.showTimestamp = prevSplit;
 					pageOut.hideTimestamp = nextSplit;
-					pageOut.lines.push_back({ std::string("[ ") + timecodeToString(startInMs) + " - " + timecodeToString(endInMs) + " ]", defaultColor, false, ROWS - 1, 0 });
+					for (int row = 0; row < ROWS; ++row) {
+						std::string line;
+						line += "Lp ";
+						line += std::to_string(row);
+						line += std::string("[ ") + timecodeToString(startInMs) + " - " + timecodeToString(endInMs) + " ] ";
+						for (int pos = line.length(); pos < COLS; ++pos)
+							line.push_back('X');
+						pageOut.lines.push_back({ line, defaultColor, false, row, 0 });
+					}
 					currentPages.clear();
 					currentPages.push_back(pageOut);
 				}

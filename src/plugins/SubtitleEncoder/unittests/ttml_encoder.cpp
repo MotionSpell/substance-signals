@@ -45,7 +45,7 @@ unittest("ttml_encoder") {
 	std::vector<std::string> expectedTtml = { R"|(<?xml version="1.0" encoding="utf-8"?><tt xmlns="http://www.w3.org/ns/ttml" xmlns:tt="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:tts="http://www.w3.org/ns/ttml#styling" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xml:lang="en" >
   <head>
     <styling>
-      <style xml:id="Style0_0" tts:fontSize="80%" tts:fontFamily="monospaceSansSerif" />
+      <style xml:id="Style0_0" tts:fontSize="60%" tts:fontFamily="monospaceSansSerif" />
     </styling>
     <layout>
       <region xml:id="Region0_24" tts:origin="10% 95.8333%" tts:extent="80% 4.16667%" tts:displayAlign="center" tts:textAlign="center" />
@@ -67,7 +67,7 @@ unittest("ttml_encoder") {
 )|", R"|(<?xml version="1.0" encoding="utf-8"?><tt xmlns="http://www.w3.org/ns/ttml" xmlns:tt="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:tts="http://www.w3.org/ns/ttml#styling" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xml:lang="en" >
   <head>
     <styling>
-      <style xml:id="Style0_0" tts:fontSize="80%" tts:fontFamily="monospaceSansSerif" />
+      <style xml:id="Style0_0" tts:fontSize="60%" tts:fontFamily="monospaceSansSerif" />
     </styling>
     <layout>
       <region xml:id="Region0_24" tts:origin="10% 95.8333%" tts:extent="80% 4.16667%" tts:displayAlign="center" tts:textAlign="center" />
@@ -117,7 +117,7 @@ unittest("ttml_encoder: overlapping samples") {
 	std::vector<std::string> expectedTtml = { R"|(<?xml version="1.0" encoding="utf-8"?><tt xmlns="http://www.w3.org/ns/ttml" xmlns:tt="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:tts="http://www.w3.org/ns/ttml#styling" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xml:lang="en" >
   <head>
     <styling>
-      <style xml:id="Style0_0" tts:fontSize="80%" tts:fontFamily="monospaceSansSerif" />
+      <style xml:id="Style0_0" tts:fontSize="60%" tts:fontFamily="monospaceSansSerif" />
     </styling>
     <layout>
       <region xml:id="Region0_24" tts:origin="10% 95.8333%" tts:extent="80% 4.16667%" tts:displayAlign="center" tts:textAlign="center" />
@@ -139,7 +139,7 @@ unittest("ttml_encoder: overlapping samples") {
 )|", R"|(<?xml version="1.0" encoding="utf-8"?><tt xmlns="http://www.w3.org/ns/ttml" xmlns:tt="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:tts="http://www.w3.org/ns/ttml#styling" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xml:lang="en" >
   <head>
     <styling>
-      <style xml:id="Style0_0" tts:fontSize="80%" tts:fontFamily="monospaceSansSerif" />
+      <style xml:id="Style0_0" tts:fontSize="60%" tts:fontFamily="monospaceSansSerif" />
     </styling>
     <layout>
       <region xml:id="Region0_24" tts:origin="10% 95.8333%" tts:extent="80% 4.16667%" tts:displayAlign="center" tts:textAlign="center" />
@@ -161,7 +161,7 @@ unittest("ttml_encoder: overlapping samples") {
 )|", R"|(<?xml version="1.0" encoding="utf-8"?><tt xmlns="http://www.w3.org/ns/ttml" xmlns:tt="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:tts="http://www.w3.org/ns/ttml#styling" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xml:lang="en" >
   <head>
     <styling>
-      <style xml:id="Style0_0" tts:fontSize="80%" tts:fontFamily="monospaceSansSerif" />
+      <style xml:id="Style0_0" tts:fontSize="60%" tts:fontFamily="monospaceSansSerif" />
     </styling>
     <layout>
       <region xml:id="Region0_24" tts:origin="10% 95.8333%" tts:extent="80% 4.16667%" tts:displayAlign="center" tts:textAlign="center" />
