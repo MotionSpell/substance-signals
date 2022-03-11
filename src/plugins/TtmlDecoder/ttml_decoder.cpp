@@ -57,6 +57,9 @@ class TTMLDecoder : public ModuleS {
 		}
 
 		void processOne(Data data) override {
+			if(0)
+				m_host->log(Warning, std::string((const char*)data->data().ptr, data->data().len).c_str());
+
 			auto document = parseXml({ (const char*)data->data().ptr, data->data().len });
 			if(document.name != "tt" && document.name != "tt:tt")
 				throw error("Not a TTML document");
@@ -97,7 +100,14 @@ class TTMLDecoder : public ModuleS {
 					for (auto &attr : tag.attr)
 						if (attr.name == "dur") {
 							int hour = 0, min = 0, sec = 0, ms = 0;
-							sscanf(attr.value.c_str(), "%02d:%02d:%02d.%03d", &hour, &min, &sec, &ms);
+							auto const parsed = sscanf(attr.value.c_str(), "%02d:%02d:%02d.%03d", &hour, &min, &sec, &ms);
+
+							// peculiar case with UIP when the duration is one number, expected to be seconds
+							if (parsed == 1) {
+								sec = hour;
+								hour = 0;
+							}
+
 							pageMaxDuration = timescaleToClock(((hour + min * 60) * 60 + sec) * 1000 + ms, 1000);
 						}
 			});

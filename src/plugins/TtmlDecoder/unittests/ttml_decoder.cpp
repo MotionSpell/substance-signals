@@ -162,7 +162,7 @@ unittest("ttml_decoder: ebu-tt-live (EBU LIT User Input Producer sample)") {
   
   
   
-  >
+  dur="10">
     <tt:div region="bottomRegion">
       <tt:p xml:id="p1" style="styleP"><tt:span style="styleSpan">nils is yo</tt:span></tt:p>
     </tt:div>
@@ -175,7 +175,7 @@ unittest("ttml_decoder: ebu-tt-live (EBU LIT User Input Producer sample)") {
 	cfg.clock = zc;
 	auto dec = loadModule("TTMLDecoder", &NullHost, &cfg);
 	int received = 0;
-	Page expected = { 0, 30 * IClock::Rate, { { "nils is yo", "#ffffff" } } };
+	Page expected = { 0, 10 * IClock::Rate, { { "nils is yo", "#ffffff" } } };
 	ConnectOutput(dec->getOutput(0), [&](Data data) {
 		auto &pageReceived = safe_cast<const DataSubtitle>(data)->page;
 		ASSERT_EQUALS(expected, pageReceived);
