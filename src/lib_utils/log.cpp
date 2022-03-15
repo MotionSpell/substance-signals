@@ -21,15 +21,6 @@ static WORD console_attr_ori = 0;
 #define RESET  "\x1b[0m"
 #endif /*_WIN32*/
 
-static std::ostream& get(Level level) {
-	switch (level) {
-	case Info:
-		return std::cout;
-	default:
-		return std::cerr;
-	}
-}
-
 static std::string getTime() {
 	char szOut[255];
 	const std::time_t t = std::time(nullptr);
@@ -84,7 +75,7 @@ struct ConsoleLogger : LogSink {
 	}
 
 	void send(Level level, const char* msg) override {
-		get(level) << getColorBegin(level) << getTime() << " " << msg << getColorEnd(level) << std::endl;
+		std::cerr << getColorBegin(level) << getTime() << " " << msg << getColorEnd(level) << std::endl;
 	}
 	bool m_color = true;
 };
