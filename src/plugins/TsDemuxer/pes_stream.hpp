@@ -26,6 +26,8 @@ Metadata createMetadata(int mpegStreamType) {
 	case 0x11: return make(AUDIO_PKT, "aac_latm");
 	case 0x1b: return make(VIDEO_PKT, "h264_annexb");
 	case 0x24: return make(VIDEO_PKT, "hevc_annexb");
+	case 0x81: return make(AUDIO_PKT, "ac3");
+	case 0x84: return make(AUDIO_PKT, "eac3");
 	case 0x06: { /*private*/
 		auto const descriptor_tag = mpegStreamType >> 8;
 		switch (descriptor_tag) {
