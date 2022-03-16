@@ -19,6 +19,7 @@ The module works this way:
 #include "lib_modules/utils/helper_dyn.hpp"
 #include "lib_media/common/attributes.hpp"
 #include "lib_utils/clock.hpp" // timescaleToClock
+#include "lib_utils/format.hpp"
 #include "lib_utils/log_sink.hpp"
 #include "lib_utils/tools.hpp" // enforce
 #include <algorithm> // max, remove_if
@@ -66,8 +67,11 @@ struct RegulatorMulti : public ModuleDynI {
 			}
 
 			if (data->getMetadata())
-				if (data->getMetadata()->isAudio() || data->getMetadata()->isVideo())
-					mediaDispatchTime = std::max<int64_t>(mediaDispatchTime, data->get<DecodingTime>().time - maxMediaTimeDelay);
+				if (data->getMetadata()->isAudio() || data->getMetadata()->isVideo()) {
+					auto const newMediaDispatchTime = std::max<int64_t>(mediaDispatchTime, data->get<DecodingTime>().time - maxMediaTimeDelay);
+					m_host->log(Info, format("Media dispatch time goes to %s", mediaDispatchTime).c_str());
+					mediaDispatchTime = newMediaDispatchTime;
+				}
 
 			if (std::abs(mediaDispatchTime - mediaTime) > maxMediaTimeDelay + tolerance) {
 				m_host->log(Warning, "Media time error detected. Flush queued data and reset offset.");
@@ -87,6 +91,7 @@ struct RegulatorMulti : public ModuleDynI {
 					if (rec.creationTime < now - maxClockTimeDelay) {
 						m_host->log(Warning, "Clock error detected. Discard queued data and reset offset.");
 						for (auto &stream : streams) {
+							m_host->log(Info, format("\tDelete %s data entries.", (int)stream.size()).c_str());
 							stream.clear();
 						}
 						reset();
