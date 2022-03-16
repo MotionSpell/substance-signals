@@ -8,8 +8,8 @@ A "clean" signal has the following properties:
 
 The module needs to be sample accurate.
 It operates on raw data. Raw data requires a lot of memory, however:
- - we store a short duration (typically 500ms - cf @analyzeWindow)
-   and the framework works by default with pre-allocated pools, and
+ - We store a short duration (typically hundred of milliseconds) as
+   the framework works by default with pre-allocated pools, and
  - RAM is cheap ;)
 
 The module works this way:
@@ -20,11 +20,12 @@ The module works this way:
    (video = lead, audio = pulled, subtitles = sparse).
 
 The module explicitly assumes that:
- - All media data are available. The media time tolerance is @analyzeWindow,
-   and the clock tolerance is @analyzeWindow + @maxLifetime.
+ - All media data are available. There are no expectations on buffering.
  - The input media frame rate is equal to the output framerate. This is not
-   checked in any way (Romain: TODO). The module doesn't make any record nor
-   any check on the input media timelines.
+   checked in any way. The module doesn't make any record nor any check on the
+   input media timelines.
+ - The input media pace is equal to the injected clock pace. If these clocks
+   drift then you may start to see output artifacts (and log messages).
 
 The module shall not be used to transframerate as it will lead to suboptimal results.
 */
@@ -118,13 +119,10 @@ struct Rectifier : ModuleDynI {
 		Fraction const framePeriod;
 		std::shared_ptr<IClock> const clock;
 		std::shared_ptr<IScheduler> const scheduler;
-
-		// delays
-		const int64_t analyzeWindow = IClock::Rate / 2; // a positive value means that the master stream arrives in advance of slave streams
-		const int64_t maxLifetime   = IClock::Rate * 1; // data will be deleted after analyzeWindow + maxLifetime (clock times)
-
 		int64_t numTicks = 0;
 		bool started = false;
+
+		const int64_t maxLifetime = IClock::Rate * 3; // data will be deleted after maxLifetime (clock times)
 
 		mutable std::mutex mutex; // protects from stream (outputs, inputs, streams) and task declarations
 		std::vector<Stream> streams;
@@ -259,14 +257,13 @@ struct Rectifier : ModuleDynI {
 
 			// input data management
 			fillInputQueues();
-			discardOutdatedData(fractionToClock(now) - analyzeWindow - maxLifetime);
+			discardOutdatedData(fractionToClock(now) - maxLifetime);
 
 			// output media times corresponding to the "media period"
 			auto const outMasterTime = Interval {
 				fractionToClock(Fraction((numTicks+0) * framePeriod.num, framePeriod.den)),
 				fractionToClock(Fraction((numTicks+1) * framePeriod.num, framePeriod.den))
 			};
-
 
 			auto const masterStreamId = getMasterStreamId();
 			if (masterStreamId == -1) {
@@ -295,7 +292,7 @@ struct Rectifier : ModuleDynI {
 
 				switch (input->getMetadata()->type) {
 				case AUDIO_RAW:
-					emitOnePeriod_RawAudio(i, inMasterTime, outMasterTime);
+					emitOnePeriod_RawAudio(i, inMasterTime, outMasterTime, now);
 					break;
 				case SUBTITLE_RAW:
 					emitOnePeriod_RawSubtitle(i, inMasterTime, outMasterTime);
@@ -314,7 +311,7 @@ struct Rectifier : ModuleDynI {
 		// returns input media times corresponding to the "media period"
 		Interval emitOnePeriod_Master(const int i, Fraction now, const Interval outMasterTime) {
 			auto& master = streams[i];
-			auto masterFrame = chooseNextMasterFrame(master, fractionToClock(now) - analyzeWindow);
+			auto masterFrame = chooseNextMasterFrame(master, fractionToClock(now));
 			if (!masterFrame.data) {
 				assert(numTicks == 0);
 				m_host->log(Warning, format("No available reference data for clock time %s", fractionToClock(now)).c_str());
@@ -331,7 +328,7 @@ struct Rectifier : ModuleDynI {
 			return { masterFrame.data->get<PresentationTime>().time, masterFrame.data->get<PresentationTime>().time + (outMasterTime.stop - outMasterTime.start)};
 		}
 
-		void emitOnePeriod_RawAudio(const int i, const Interval inMasterTime, const Interval outMasterTime) {
+		void emitOnePeriod_RawAudio(const int i, const Interval inMasterTime, const Interval outMasterTime, Fraction now) {
 			auto& stream = streams[i];
 
 			if(!stream.data.empty())
@@ -407,9 +404,34 @@ struct Rectifier : ModuleDynI {
 				writtenSamples += (right - left);
 			}
 
-			if (writtenSamples != (inMasterSamples.stop - inMasterSamples.start))
-				m_host->log(Warning, format("Incomplete audio period (%s samples instead of %s). Expect glitches.",
-				        writtenSamples, inMasterSamples.stop - inMasterSamples.start).c_str());
+			if (writtenSamples != (inMasterSamples.stop - inMasterSamples.start)) {
+				m_host->log(Warning, format("Incomplete audio period (%s samples instead of %s - queue size %s (v=%s)). Expect glitches.",
+				        writtenSamples, inMasterSamples.stop - inMasterSamples.start, stream.data.size(), streams[0].data.size()).c_str());
+
+				if (0) { // debug traces
+					printf("\t[%lf - %lf] now=%lf\n", inMasterTime.start / (double)IClock::Rate, inMasterTime.stop / (double)IClock::Rate, (double)now);
+
+					for (auto i : getInputs()) {
+						printf("\t[%d] queue size=%d", i, (int)streams[i].data.size());
+						if (!streams[i].data.empty())
+							printf(" - [media]=[%lf-%lf] (clock)=(%lf-%lf)",
+							    streams[i].data.front().data->get<PresentationTime>().time / (double)IClock::Rate,
+							    streams[i].data.back().data->get<PresentationTime>().time / (double)IClock::Rate,
+							    streams[i].data.front().creationTime / (double)IClock::Rate,
+							    streams[i].data.back().creationTime / (double)IClock::Rate);
+						printf("\n");
+					}
+
+					if (1)
+						for(auto& data : stream.data) {
+							auto const inputData = safe_cast<const DataPcm>(data.data);
+							auto const inSamples = getSampleInterval(data.data->get<PresentationTime>().time, inputData->getPlaneSize());
+							printf("\t\t %ld - %ld  (%ld) [%lf]\n", inSamples.start, inSamples.stop, inSamples.stop - inSamples.start, data.creationTime / (double)IClock::Rate);
+						}
+
+					fflush(stdout);
+				}
+			}
 
 			// Remove obsolete samples wrt clock time.
 			discardStreamOutdatedData(i, obsolescenceCreationTime);
