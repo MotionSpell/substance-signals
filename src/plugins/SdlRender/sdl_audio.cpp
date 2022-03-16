@@ -25,6 +25,7 @@ static const int64_t TOLERANCE = IClock::Rate / 20;
 
 using namespace Modules;
 using namespace Modules::Render;
+using namespace std::chrono;
 
 namespace {
 
@@ -117,7 +118,7 @@ struct SDLAudio : ModuleS {
 				if(m_fifo.bytesToRead() == 0)
 					break;
 			}
-			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+			std::this_thread::sleep_for(10ms);
 		}
 	}
 
@@ -148,11 +149,13 @@ struct SDLAudio : ModuleS {
 		if (relativeTimePositionIn180k < -TOLERANCE) {
 			auto const fifoSamplesToRemove = std::max<int64_t>(0, fifoSamplesToRead() - numSamplesToProduce);
 			auto const numSamplesToDrop = std::min<int64_t>(fifoSamplesToRemove, -relativeSamplePosition);
-			m_host->log(Warning, format("must drop fifo data (%s ms)", numSamplesToDrop * 1000.0f / m_outputFormat.sampleRate).c_str());
+			m_host->log(Warning, format("must drop fifo data (%sms) (delta=%ss)", numSamplesToDrop * 1000.0f / m_outputFormat.sampleRate,
+			        (double)relativeTimePositionIn180k / IClock::Rate).c_str());
 			fifoConsumeSamples((size_t)numSamplesToDrop);
 		} else if (relativeTimePositionIn180k > TOLERANCE) {
 			auto const numSilenceSamples = std::min<int64_t>(numSamplesToProduce, relativeSamplePosition);
-			m_host->log(Warning, format("insert silence (%s ms)", numSilenceSamples * 1000.0f / m_outputFormat.sampleRate).c_str());
+			m_host->log(Warning, format("insert silence (%sms) (delta=%ss)", numSilenceSamples * 1000.0f / m_outputFormat.sampleRate,
+			        (double)relativeTimePositionIn180k / IClock::Rate).c_str());
 			silenceSamples(buffer, (int)numSilenceSamples);
 			numSamplesToProduce -= numSilenceSamples;
 		}
