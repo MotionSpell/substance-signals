@@ -196,8 +196,8 @@ class SubtitleEncoder : public ModuleS {
 					auto localEndTimeInMs = std::min<int64_t>(clockToTimescale(page.hideTimestamp, 1000), endTimeInMs);
 					m_host->log(Info, format("[WebVTT][%s-%s]: %s - %s: %s", startTimeInMs, endTimeInMs, localStartTimeInMs, localEndTimeInMs, page.toString()).c_str());
 
-					auto const timecodeShow = timecodeToString(startTimeInMs);
-					auto const timecodeHide = timecodeToString(endTimeInMs);
+					auto const timecodeShow = timecodeToString(localStartTimeInMs);
+					auto const timecodeHide = timecodeToString(localEndTimeInMs);
 					vtt << timecodeShow << " --> " << timecodeHide << "\n";
 
 					for (auto& line : page.lines) {

@@ -61,3 +61,65 @@ titi
 	ASSERT_EQUALS(expectedTimes, webvttAnalyzer->times);
 	ASSERT_EQUALS(expectedWebVTT, webvttAnalyzer->webvtt);
 }
+
+unittest("webvtt_encoder: segmentation and empty page") {
+	SubtitleEncoderConfig cfg;
+	cfg.isWebVTT = true;
+	cfg.splitDurationInMs = 1000;
+	cfg.maxDelayBeforeEmptyInMs = 2000;
+	cfg.forceEmptyPage = true;
+	cfg.timingPolicy = SubtitleEncoderConfig::RelativeToMedia;
+	auto m = loadModule("SubtitleEncoder", &NullHost, &cfg);
+
+	Page page1 {IClock::Rate * 0 / 1, IClock::Rate * 1 / 2, std::vector<Page::Line>({{"toto1"}})};
+	Page page2 {IClock::Rate * 1 / 2, IClock::Rate * 3 / 4, std::vector<Page::Line>({{"toto2"}})};
+	Page page3 {IClock::Rate * 3 / 4, IClock::Rate * 5 / 4, std::vector<Page::Line>({{"toto3"}})};
+
+	auto makeData = [](Page &page, int64_t time) {
+		auto data = std::make_shared<DataSubtitle>(0);
+		data->set(DecodingTime{ time });
+		data->setMediaTime(time);
+		data->page = page;
+		return data;
+	};
+
+	auto data1 = makeData(page1, IClock::Rate * 1);
+	auto data2 = makeData(page2, IClock::Rate * 2);
+	auto data3 = makeData(page3, IClock::Rate * 5);
+
+	auto webvttAnalyzer = createModule<OutStub>();
+	ConnectOutputToInput(m->getOutput(0), webvttAnalyzer->getInput(0));
+
+	m->getInput(0)->push(data1);
+	m->getInput(0)->push(data2);
+	m->getInput(0)->push(data3);
+
+	std::vector<int64_t> expectedTimes = {0, timescaleToClock(cfg.splitDurationInMs, 1000), timescaleToClock(cfg.splitDurationInMs * 2, 1000)};
+	std::vector<std::string> expectedWebVTT = { R"|(WEBVTT
+X-TIMESTAMP-MAP=LOCAL:00:00:00.000,MPEGTS:0
+
+00:00:00.000 --> 00:00:00.500
+toto1
+
+00:00:00.500 --> 00:00:00.750
+toto2
+
+00:00:00.750 --> 00:00:01.000
+toto3
+
+)|", R"|(WEBVTT
+X-TIMESTAMP-MAP=LOCAL:00:00:00.000,MPEGTS:0
+
+00:00:01.000 --> 00:00:01.250
+toto3
+
+)|", R"|(WEBVTT
+X-TIMESTAMP-MAP=LOCAL:00:00:00.000,MPEGTS:0
+
+00:00:02.000 --> 00:00:03.000
+
+)|"};
+
+	ASSERT_EQUALS(expectedTimes, webvttAnalyzer->times);
+	ASSERT_EQUALS(expectedWebVTT, webvttAnalyzer->webvtt);
+}
