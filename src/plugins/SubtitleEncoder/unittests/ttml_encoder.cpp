@@ -185,3 +185,104 @@ unittest("ttml_encoder: overlapping samples") {
 	ASSERT_EQUALS(expectedTimes, ttmlAnalyzer->times);
 	ASSERT_EQUALS(expectedTtml, ttmlAnalyzer->ttml);
 }
+
+
+unittest("ttml_encoder: segmentation and empty page") {
+	SubtitleEncoderConfig cfg;
+	cfg.splitDurationInMs = 1000;
+	cfg.maxDelayBeforeEmptyInMs = 2000;
+	cfg.forceEmptyPage = true;
+	cfg.timingPolicy = SubtitleEncoderConfig::RelativeToMedia;
+	auto m = loadModule("SubtitleEncoder", &NullHost, &cfg);
+
+	Page page1 {IClock::Rate * 0 / 1, IClock::Rate * 1 / 2, std::vector<Page::Line>({{"toto1"}})};
+	Page page2 {IClock::Rate * 1 / 2, IClock::Rate * 3 / 4, std::vector<Page::Line>({{"toto2"}})};
+	Page page3 {IClock::Rate * 3 / 4, IClock::Rate * 5 / 4, std::vector<Page::Line>({{"toto3"}})};
+
+	auto makeData = [](Page &page, int64_t time) {
+		auto data = std::make_shared<DataSubtitle>(0);
+		data->set(DecodingTime{ time });
+		data->setMediaTime(time);
+		data->page = page;
+		return data;
+	};
+
+	auto data1 = makeData(page1, IClock::Rate * 1);
+	auto data2 = makeData(page2, IClock::Rate * 2);
+	auto data3 = makeData(page3, IClock::Rate * 5);
+
+	auto ttmlAnalyzer = createModule<OutStub>();
+	ConnectOutputToInput(m->getOutput(0), ttmlAnalyzer->getInput(0));
+
+	m->getInput(0)->push(data1);
+	m->getInput(0)->push(data2);
+	m->getInput(0)->push(data3);
+
+	std::vector<int64_t> expectedTimes = {0, timescaleToClock(cfg.splitDurationInMs, 1000), timescaleToClock(cfg.splitDurationInMs * 2, 1000)};
+	std::vector<std::string> expectedTtml = { R"|(<?xml version="1.0" encoding="utf-8"?><tt xmlns="http://www.w3.org/ns/ttml" xmlns:tt="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:tts="http://www.w3.org/ns/ttml#styling" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xml:lang="en" >
+  <head>
+    <styling>
+      <style xml:id="Style0_0" tts:fontSize="60%" tts:fontFamily="monospaceSansSerif" />
+    </styling>
+    <layout>
+      <region xml:id="Region0_24" tts:origin="10% 95.8333%" tts:extent="80% 4.16667%" tts:displayAlign="center" tts:textAlign="center" />
+      <region xml:id="Region1_24" tts:origin="10% 95.8333%" tts:extent="80% 4.16667%" tts:displayAlign="center" tts:textAlign="center" />
+      <region xml:id="Region2_24" tts:origin="10% 95.8333%" tts:extent="80% 4.16667%" tts:displayAlign="center" tts:textAlign="center" />
+    </layout>
+  </head>
+  <body>
+    <div>
+      <p region="Region0_24" style="Style0_0" begin="00:00:00.000" end="00:00:00.500">
+        <span tts:color="#ffffff" tts:backgroundColor="#000000">toto1</span>
+      </p>
+      <p region="Region1_24" style="Style0_0" begin="00:00:00.500" end="00:00:00.750">
+        <span tts:color="#ffffff" tts:backgroundColor="#000000">toto2</span>
+      </p>
+      <p region="Region2_24" style="Style0_0" begin="00:00:00.750" end="00:00:01.000">
+        <span tts:color="#ffffff" tts:backgroundColor="#000000">toto3</span>
+      </p>
+    </div>
+  </body>
+</tt>
+
+)|", R"|(<?xml version="1.0" encoding="utf-8"?><tt xmlns="http://www.w3.org/ns/ttml" xmlns:tt="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:tts="http://www.w3.org/ns/ttml#styling" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xml:lang="en" >
+  <head>
+    <styling>
+      <style xml:id="Style0_0" tts:fontSize="60%" tts:fontFamily="monospaceSansSerif" />
+    </styling>
+    <layout>
+      <region xml:id="Region0_24" tts:origin="10% 95.8333%" tts:extent="80% 4.16667%" tts:displayAlign="center" tts:textAlign="center" />
+    </layout>
+  </head>
+  <body>
+    <div>
+      <p region="Region0_24" style="Style0_0" begin="00:00:01.000" end="00:00:01.250">
+        <span tts:color="#ffffff" tts:backgroundColor="#000000">toto3</span>
+      </p>
+    </div>
+  </body>
+</tt>
+
+)|", R"|(<?xml version="1.0" encoding="utf-8"?><tt xmlns="http://www.w3.org/ns/ttml" xmlns:tt="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:tts="http://www.w3.org/ns/ttml#styling" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xml:lang="en" >
+  <head>
+    <styling>
+      <style xml:id="Style0_0" tts:fontSize="60%" tts:fontFamily="monospaceSansSerif" />
+    </styling>
+    <layout>
+      <region xml:id="Region0_24" tts:origin="10% 95.8333%" tts:extent="80% 4.16667%" tts:displayAlign="center" tts:textAlign="center" />
+    </layout>
+  </head>
+  <body>
+    <div>
+      <p region="Region0_24" style="Style0_0" begin="00:00:02.000" end="00:00:03.000">
+        <span tts:color="#ffffff" tts:backgroundColor="#000000"></span>
+      </p>
+    </div>
+  </body>
+</tt>
+
+)|"};
+
+	ASSERT_EQUALS(expectedTimes, ttmlAnalyzer->times);
+	ASSERT_EQUALS(expectedTtml, ttmlAnalyzer->ttml);
+}
