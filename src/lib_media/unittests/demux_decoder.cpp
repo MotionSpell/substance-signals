@@ -15,7 +15,6 @@ using namespace Modules;
 using namespace std;
 
 unittest("LibavDemux => Decoder: output media times must increase") {
-
 	vector<int64_t> mediaTimes;
 	auto onPic = [&](Data data) {
 		mediaTimes.push_back(data->get<PresentationTime>().time);
