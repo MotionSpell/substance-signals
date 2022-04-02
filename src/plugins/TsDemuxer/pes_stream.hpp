@@ -162,9 +162,10 @@ struct PesStream : Stream {
 				int64_t decodingTime = timescaleToClock(dts, 90000); // DTS are in 90kHz units
 				buf->set(DecodingTime {decodingTime});
 			}
-			buf->set(CueFlags{ false, false, true });
+			buf->set(CueFlags{ discontinuity, false, true });
 			memcpy(buf->buffer->data().ptr, pesBuffer.data()+r.byteOffset(), pesPayloadSize);
 			m_output->post(buf);
+			discontinuity = false;
 		}
 
 		bool reset() override {
@@ -172,6 +173,7 @@ struct PesStream : Stream {
 				return false;
 
 			m_pesBuffer.clear();
+			discontinuity = true;
 			return true;
 		}
 
@@ -189,5 +191,6 @@ struct PesStream : Stream {
 		IRestamper * const m_restamper;
 		OutputDefault * const m_output = nullptr;
 		vector<uint8_t> m_pesBuffer;
+		bool discontinuity = false;
 };
 

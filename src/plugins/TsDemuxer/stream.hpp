@@ -16,7 +16,9 @@ struct Stream {
 
 	// handle error cases by discarding pending data
 	// returns false when the operation is void
-	virtual bool reset() { return false; };
+	virtual bool reset() {
+		return false;
+	};
 
 	int pid = TsDemuxerConfig::ANY;
 	KHost* const m_host; // for logs

@@ -85,6 +85,22 @@ struct Decoder : ModuleS, PictureAllocator {
 		}
 
 		void processOne(Data data) override {
+			auto flags = data->get<CueFlags>();
+
+			if (flags.discontinuity) {
+				if (codecCtx) {
+					m_host->log(Warning, "Discontinuity: flushing reframer and decoder");
+					flush();
+					//if (codecCtx->codec->capabilities & AV_CODEC_CAP_ENCODER_FLUSH)
+						avcodec_flush_buffers(codecCtx.get());
+					av_parser_close(parser);
+					parser = nullptr;
+				}
+
+				if (!data->getMetadata())
+					return; // empty discontinuity data
+			}
+
 			inputs[0]->updateMetadata(data);
 
 			if(!codecCtx) {
@@ -102,9 +118,6 @@ struct Decoder : ModuleS, PictureAllocator {
 
 			assert (data && data->getMetadata());
 
-			auto flags = data->get<CueFlags>();
-			if (flags.discontinuity)
-				avcodec_flush_buffers(codecCtx.get());
 			if (flags.unframed)
 				ensureParser(safe_cast<const MetadataPkt>(data->getMetadata()).get());
 

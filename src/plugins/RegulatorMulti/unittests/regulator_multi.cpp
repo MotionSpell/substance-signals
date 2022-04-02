@@ -13,10 +13,15 @@ using namespace Modules;
 namespace {
 
 struct FrameCounter : ModuleS {
-	void processOne(Data) override {
-		++frameCount;
+	void processOne(Data data) override {
+		if (data->get<CueFlags>().discontinuity) {
+			++discontinuities;
+		} else {
+			++frameCount;
+		}
 	}
 	int frameCount = 0;
+	int discontinuities = 0;
 };
 
 struct ClockMock : IClock {
@@ -44,6 +49,7 @@ unittest("RegulatorMulti: video is sent in advance + flush()") {
 	auto push = [&](int index, int64_t timeInMs) {
 		auto pkt = make_shared<DataRaw>(0);
 		pkt->set(DecodingTime{ timescaleToClock(timeInMs, 1000) });
+		pkt->set(CueFlags{});
 		pkt->setMetadata(meta[index]);
 		reg->getInput(index)->push(pkt);
 	};
@@ -52,6 +58,7 @@ unittest("RegulatorMulti: video is sent in advance + flush()") {
 	push(1, rmCfg.maxMediaTimeDelayInMs); // video
 	push(2, 0);
 	ASSERT_EQUALS(3, rec->frameCount); // init: dispatched immediately
+	ASSERT_EQUALS(3, rec->discontinuities); // 3 init packets
 
 	push(0, 0);
 	push(1, rmCfg.maxMediaTimeDelayInMs); // video
@@ -64,9 +71,11 @@ unittest("RegulatorMulti: video is sent in advance + flush()") {
 	clock->set(2 * (rmCfg.maxMediaTimeDelayInMs + rmCfg.maxClockTimeDelayInMs) + 1);
 	push(0, rmCfg.maxMediaTimeDelayInMs + 1); // data is discarded
 	ASSERT_EQUALS(5, rec->frameCount);
+	ASSERT_EQUALS(3, rec->discontinuities); // one more for idx=0
 	push(0, 0);
 	reg->flush();
 	ASSERT_EQUALS(6, rec->frameCount);
+	ASSERT_EQUALS(4, rec->discontinuities); // one more for idx=0
 }
 
 unittest("RegulatorMulti: backward discontinuity") {
@@ -84,6 +93,7 @@ unittest("RegulatorMulti: backward discontinuity") {
 	auto push = [&](int index, int64_t timeInMs) {
 		auto pkt = make_shared<DataRaw>(0);
 		pkt->set(DecodingTime{ timescaleToClock(timeInMs, 1000) });
+		pkt->set(CueFlags{});
 		pkt->setMetadata(meta[index]);
 		reg->getInput(index)->push(pkt);
 	};
@@ -91,6 +101,7 @@ unittest("RegulatorMulti: backward discontinuity") {
 	push(0, 0);
 	push(1, rmCfg.maxMediaTimeDelayInMs); // video
 	ASSERT_EQUALS(2, rec->frameCount);
+	ASSERT_EQUALS(2, rec->discontinuities); // 2 init packets
 
 	auto ct = rmCfg.maxMediaTimeDelayInMs + rmCfg.maxClockTimeDelayInMs + 1;
 	clock->set(ct);
@@ -98,13 +109,16 @@ unittest("RegulatorMulti: backward discontinuity") {
 	ASSERT_EQUALS(2, rec->frameCount);
 	push(0, 0); //backward media time
 	ASSERT_EQUALS(4, rec->frameCount);
+	ASSERT_EQUALS(2, rec->discontinuities);
 
 	ct *= 2;
 	clock->set(ct);
-	push(0, 0); //same media time as clock time
+	push(0, 0); //follows a discontinuity: dispatched immediately
 	ASSERT_EQUALS(4, rec->frameCount);
+	push(1, 1); //same media time as clock time
 	reg->flush();
-	ASSERT_EQUALS(5, rec->frameCount);
+	ASSERT_EQUALS(6, rec->frameCount);
+	ASSERT_EQUALS(2, rec->discontinuities);
 }
 
 }

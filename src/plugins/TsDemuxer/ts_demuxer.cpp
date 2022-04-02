@@ -160,6 +160,9 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::IRestamper {
 			const int adaptationFieldControl = r.u(2);
 			const int continuityCounter = r.u(4);
 
+			if(packetId == 0x1FFF)
+				return; // null packet
+
 			// skip adaptation field if any
 			if(adaptationFieldControl & 0b10) {
 				auto length = r.u(8);
@@ -169,6 +172,9 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::IRestamper {
 			auto stream = findStreamForPid(packetId);
 			if(!stream)
 				return; // we're not interested in this PID
+
+			if(stream->cc == -1)
+				stream->cc = (continuityCounter + 15) % 16; // init
 
 			if(transportErrorIndicator) {
 				m_host->log(Error, format("[%s] Discarding TS packet with TEI=1", packetId).c_str());
@@ -180,14 +186,25 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::IRestamper {
 				return;
 			}
 
-			if(continuityCounter == stream->cc) {
-				m_host->log(Warning, format("[%s] Discarding duplicated packet", packetId).c_str());
-				return;
-			}
+			//AF: discontinuity_indicator:
+			//After a continuity counter discontinuity in a transport packet which is designated as containing elementary stream data,
+			//the first byte of elementary stream data in a transport stream packet of the same PID shall be the first byte of an elementary stream access point.
 
-			if(continuityCounter != (stream->cc + 1) % 16)
-				if (stream->reset())
-					m_host->log(Warning, format("[%s] Discontinuity detected. Flushing and discarding until next PUSI.", packetId).c_str());
+			if(adaptationFieldControl & 0b01) {
+				//TODO: In transport streams, duplicate packets may be sent as two, and only two, consecutive transport stream packets of the same PID.
+				if(continuityCounter == stream->cc) {
+					m_host->log(Debug, format("[%s] Discarding duplicated packet (cc=%s)", packetId, continuityCounter).c_str());
+					return;
+				}
+
+				if(continuityCounter != (stream->cc + 1) % 16)
+					if (stream->reset())
+						m_host->log(Warning, format("[%s] Discontinuity detected (curr_cc=%s, prev_cc=%s). Flushing and discarding until next PUSI.", packetId, continuityCounter, stream->cc).c_str());
+				//TODO: don't repeat until PUSI
+			} else if (continuityCounter != stream->cc) {
+				m_host->log(Warning, format("[%s] continuity_counter (curr=%s, prev=%s) shall not be incremented when the adaptation_field_control(%s) of the packet equals '00' or '10'.",
+				        packetId, continuityCounter, stream->cc, adaptationFieldControl).c_str());
+			}
 
 			stream->cc = continuityCounter;
 

@@ -59,6 +59,13 @@ struct RegulatorMulti : public ModuleDynI {
 			auto const mediaTime = data->get<DecodingTime>().time;
 
 			if (!streams[id].init) {
+				// Signal discontinuity
+				auto discontinuityData = std::make_shared<DataBase>();
+				CueFlags flags;
+				flags.discontinuity = true;
+				discontinuityData->set(flags);
+				outputs[id]->post(discontinuityData);
+
 				// Initial case: dispatch immediately
 				outputs[id]->post(data);
 				streams[id].init = true;
@@ -69,7 +76,7 @@ struct RegulatorMulti : public ModuleDynI {
 			if (data->getMetadata())
 				if (data->getMetadata()->isAudio() || data->getMetadata()->isVideo()) {
 					auto const newMediaDispatchTime = std::max<int64_t>(mediaDispatchTime, data->get<DecodingTime>().time - maxMediaTimeDelay);
-					m_host->log(Info, format("Media dispatch time goes to %s", mediaDispatchTime).c_str());
+					m_host->log(Debug, format("Media dispatch time goes to %s", mediaDispatchTime).c_str());
 					mediaDispatchTime = newMediaDispatchTime;
 				}
 
@@ -93,6 +100,7 @@ struct RegulatorMulti : public ModuleDynI {
 						for (auto &stream : streams) {
 							m_host->log(Info, format("\tDelete %s data entries.", (int)stream.size()).c_str());
 							stream.clear();
+							stream.init = false;
 						}
 						reset();
 						return;
