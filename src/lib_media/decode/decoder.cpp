@@ -92,7 +92,7 @@ struct Decoder : ModuleS, PictureAllocator {
 					m_host->log(Warning, "Discontinuity: flushing reframer and decoder");
 					flush();
 					//if (codecCtx->codec->capabilities & AV_CODEC_CAP_ENCODER_FLUSH)
-						avcodec_flush_buffers(codecCtx.get());
+					avcodec_flush_buffers(codecCtx.get());
 					av_parser_close(parser);
 					parser = nullptr;
 				}

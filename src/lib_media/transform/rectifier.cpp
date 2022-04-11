@@ -8,26 +8,26 @@ A "clean" signal has the following properties:
 
 The module needs to be sample accurate.
 It operates on raw data. Raw data requires a lot of memory, however:
- - We store a short duration (typically hundred of milliseconds) as
-   the framework works by default with pre-allocated pools, and
+ - We store a short duration (cf @analyzeWindowInFrames) as the framework works
+   by default with pre-allocated pools, and
  - RAM is cheap ;)
 
 The module works this way:
  - At each tick it pulls some data (like a mux would).
  - We rely on clock times. Media times are considered non-reliable and only
    used to achieve sync.
+ - Each time the master queue is empty we fill it up to @analyzeWindowInFrames.
  - The different media types are processed differently
    (video = lead, audio = pulled, subtitles = sparse).
 
 The module explicitly assumes that:
- - All media data are available. There are no expectations on buffering.
+ - All media data are available.
  - The input media frame rate is equal to the output framerate. This is not
    checked in any way. The module doesn't make any record nor any check on the
    input media timelines.
  - The input media pace is equal to the injected clock pace. If these clocks
    drift then you may start to see output artifacts (and log messages).
-
-The module shall not be used to transframerate as it will lead to suboptimal results.
+   Therefore the module shall not be used to transframerate.
 */
 #include "rectifier.hpp"
 #include "lib_modules/modules.hpp"
@@ -39,12 +39,12 @@ The module shall not be used to transframerate as it will lead to suboptimal res
 #include "lib_media/common/attributes.hpp" // PresentationTime
 #include "lib_media/common/pcm.hpp"
 #include "lib_media/common/subtitle.hpp"
-
 #include <cassert>
 #include <memory>
 #include <mutex>
 #include <vector>
 #include <algorithm> // remove_if
+#include <cmath> // fabs
 
 using namespace Modules;
 
@@ -120,8 +120,10 @@ struct Rectifier : ModuleDynI {
 		std::shared_ptr<IClock> const clock;
 		std::shared_ptr<IScheduler> const scheduler;
 		int64_t numTicks = 0;
+		Fraction refClockTime;
 		bool started = false;
 
+		const int analyzeWindowInFrames = 5; // target buffer level for the master input
 		const int64_t maxLifetime = IClock::Rate * 3; // data will be deleted after maxLifetime (clock times)
 
 		mutable std::mutex mutex; // protects from stream (outputs, inputs, streams) and task declarations
@@ -202,22 +204,40 @@ struct Rectifier : ModuleDynI {
 			}
 		}
 
-		Stream::Rec chooseNextMasterFrame(Stream& stream, int64_t now) {
-			if (stream.data.empty())
+		Stream::Rec chooseNextMasterFrame(Stream& stream, const Fraction now) {
+			if (stream.data.empty()) {
+				refClockTime = now;
+				if (stream.blank.data)
+					m_host->log(Warning, format("Empty master input (pts=%s). Resetting reference clock time to %ss.",
+					        stream.blank.data->get<PresentationTime>().time, (double)refClockTime).c_str());
 				return stream.blank;
+			}
 
-			stream.blank = stream.data.front();
+			auto last = stream.blank;
+			auto next = stream.blank = stream.data.front();
+
+			if (now <= refClockTime + framePeriod * analyzeWindowInFrames)
+				return stream.blank; // still (re)buffering from an empty master input queue
+
+			if (last.data) {
+				auto const delta = next.data->get<PresentationTime>().time - (last.data->get<PresentationTime>().time + fractionToClock(framePeriod));
+				if (fabs(delta) / IClock::Rate > (double)framePeriod) {
+					m_host->log(Warning, format("Media time discontinuity detected (pts=%ss, lastPts=%ss, delta=%ss) (master queue size=%s)",
+					        next.data->get<PresentationTime>().time / (double)IClock::Rate,
+					        last.data->get<PresentationTime>().time / (double)IClock::Rate,
+					        delta / (double)IClock::Rate, stream.data.size()).c_str());
+				}
+			}
 
 			// Introduce some latency.
 			// If the frame is available, but since very little time, use it, but don't remove it.
 			// Thus it will be used again next time.
 			// This protects us from frame phase changes (e.g on SDI cable replacement).
-			if (std::abs(stream.data.front().creationTime - std::max(now, (decltype(now))0)) < fractionToClock(framePeriod))
-				return stream.data.front();
+			if (fractionToClock(now) - next.creationTime < fractionToClock(framePeriod))
+				return next;
 
-			auto r = stream.data.front();
-			stream.data.erase(stream.data.begin());
-			return r;
+			stream.data.erase(stream.data.begin()); // don't reuse
+			return next;
 		}
 
 		int getMasterStreamId() const {
@@ -311,15 +331,13 @@ struct Rectifier : ModuleDynI {
 		// returns input media times corresponding to the "media period"
 		Interval emitOnePeriod_Master(const int i, Fraction now, const Interval outMasterTime) {
 			auto& master = streams[i];
-			auto masterFrame = chooseNextMasterFrame(master, fractionToClock(now));
+			auto masterFrame = chooseNextMasterFrame(master, now);
 			if (!masterFrame.data) {
 				assert(numTicks == 0);
 				m_host->log(Warning, format("No available reference data for clock time %s", fractionToClock(now)).c_str());
 				return {};
 			} else if (numTicks == 0)
 				m_host->log(Info, format("First available reference clock time: %s", fractionToClock(now)).c_str());
-
-			master.blank = masterFrame;
 
 			auto data = clone(masterFrame.data);
 			data->setMediaTime(outMasterTime.start);
