@@ -1,8 +1,6 @@
 #pragma once
 
 #include "i_scheduler.hpp"
-
-#include "clock.hpp"
 #include "lib_utils/system_clock.hpp"
 #include "time.hpp"
 #include "timer.hpp"

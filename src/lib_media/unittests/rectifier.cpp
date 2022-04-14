@@ -532,7 +532,7 @@ unittest("rectifier: two streams, only the first receives data") {
 	ASSERT_EQUALS(times, actualTimes);
 }
 
-unittest("rectifier: master stream arrives in advance of slave streams") {
+unittest("rectifier: master stream arrives in advance of slave streams (but within the analyze window)") {
 	const auto videoRate = Fraction(25, 1);
 	const auto offset = 3;
 	auto times = generateInterleavedEvents(videoRate.inverse(), 0, 0, videoRate.inverse(), offset, 0);
