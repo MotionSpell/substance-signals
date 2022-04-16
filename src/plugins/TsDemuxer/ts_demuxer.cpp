@@ -30,7 +30,6 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::IRestamper {
 		TsDemuxer(KHost* host, TsDemuxerConfig const& config)
 			: m_host(host), m_needsRestamp(config.timestampStartsAtZero) {
 			m_unwrapper.WRAP_PERIOD = PTS_PERIOD;
-			m_remainder.reserve(TS_PACKET_LEN);
 			m_streams.push_back(make_unique<PsiStream>(PID_PAT, m_host, this));
 
 			for(auto& pid : config.pids)
@@ -65,8 +64,9 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::IRestamper {
 
 				if(buf.len < TS_PACKET_LEN) {
 					m_host->log(Debug, "Truncated TS packet");
-					assert(m_remainder.empty());
-					m_remainder.insert(m_remainder.end(), buf.ptr, buf.ptr + buf.len);
+					assert(m_remainderSize == 0);
+					memcpy(m_remainder, buf.ptr, buf.len);
+					m_remainderSize += buf.len;
 					return;
 				}
 
@@ -81,33 +81,34 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::IRestamper {
 		}
 
 		void processRemainder(SpanC &buf) {
-			while(!m_remainder.empty()) {
-				assert(m_remainder.size() < TS_PACKET_LEN);
-				assert(m_remainder[0] == SYNC_BYTE);
+			if (!m_remainderSize)
+				return;
 
-				for(;;) {
-					m_remainder.push_back(*buf.ptr);
-					buf += 1;
+			assert(m_remainderSize < TS_PACKET_LEN);
+			assert(m_remainder[0] == SYNC_BYTE);
 
-					if (m_remainder.size() == TS_PACKET_LEN)
-						break;
+			for(;;) {
+				m_remainder[m_remainderSize] = *buf.ptr;
+				m_remainderSize++;
+				buf += 1;
 
-					if(buf.len == 0)
-						return; // early exit if remainder + data < TS_PACKET_LEN
-				}
+				if (m_remainderSize == TS_PACKET_LEN)
+					break;
 
-				assert(m_remainder.size() == TS_PACKET_LEN);
-				SpanC remBuf { m_remainder.data(), m_remainder.size() };
-				processSpan(remBuf);
-				assert(remBuf.len == 0);
-				m_remainder = {};
+				if(buf.len == 0)
+					return; // early exit if remainder + data < TS_PACKET_LEN
 			}
+
+			assert(m_remainderSize == TS_PACKET_LEN);
+			SpanC remBuf { m_remainder, m_remainderSize };
+			processSpan(remBuf);
+			m_remainderSize = 0;
 		}
 
 		void flush() override {
-			if (!m_remainder.empty()) {
-				m_host->log(Warning, format("Discarding %s remaining bytes", m_remainder.size()).c_str());
-				m_remainder = {};
+			if (m_remainderSize > 0) {
+				m_host->log(Warning, format("Discarding %s remaining bytes", m_remainderSize).c_str());
+				m_remainderSize = 0;
 			}
 
 			for(auto& s : m_streams)
@@ -148,7 +149,7 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::IRestamper {
 		}
 
 	private:
-		void processTsPacket(SpanC pkt) {
+		void processTsPacket(const SpanC pkt) {
 			BitReader r = {pkt};
 			const int syncByte = r.u(8);
 			assert(syncByte == SYNC_BYTE);
@@ -221,7 +222,6 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::IRestamper {
 					if(matches(stream, es))
 						return stream;
 			}
-
 			return nullptr;
 		}
 
@@ -255,7 +255,10 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::IRestamper {
 		int64_t m_ptsOrigin = INT64_MAX;
 		TimeUnwrapper m_unwrapper;
 		bool m_needsRestamp;
-		std::vector<uint8_t> m_remainder; // incomplete packet from previous data: size < TS_PACKET_LEN and starts with SYNC_BYTE
+
+		// incomplete packet from previous data: size < TS_PACKET_LEN and starts with SYNC_BYTE
+		uint8_t m_remainder[TS_PACKET_LEN] {};
+		unsigned m_remainderSize = 0;
 
 		static auto const SYNC_BYTE = 0x47;
 };
