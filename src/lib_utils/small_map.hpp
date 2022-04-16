@@ -84,6 +84,5 @@ struct SmallMap {
 	size_t size() const {
 		return pairs.size();
 	}
-
 };
 
