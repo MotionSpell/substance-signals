@@ -126,13 +126,19 @@ class TTMLDecoder : public ModuleS {
 						else if (attr.name == "tts:color")
 							line.color = attr.value;
 
+					// rectify layout to avoid overwrites
+					for (auto &line : page.lines)
+						line.row--;
+
 					line.text = tag.content;
 					page.lines.push_back(line);
 				}
 			});
 
-			if (!page.lines.empty())
-				sendSample(page);
+			if (page.lines.empty())
+				return;
+
+			sendSample(page);
 		}
 
 		void sendSample(Page& page) {
