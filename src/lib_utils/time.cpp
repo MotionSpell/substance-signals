@@ -108,16 +108,26 @@ static time_t pTimegm(struct tm * t) {
 }
 
 int64_t parseDate(std::string s) {
-	int year, month, day, hour, minute, second;
-	int ret = sscanf(s.c_str(), "%04d-%02d-%02dT%02d:%02d:%02d",
+	int year, month, day, hour, minute, timezonehour = 0, timezoneminute = 0;
+	float second;
+	int ret = sscanf(s.c_str(), "%04d-%02d-%02dT%02d:%02d:%f%03d:%02dZ",
 	        &year,
 	        &month,
 	        &day,
 	        &hour,
 	        &minute,
-	        &second);
-	if(ret != 6)
+	        &second,
+	        &timezonehour,
+	        &timezoneminute);
+	if(ret < 6 || ret == 7)
 		throw std::runtime_error("Invalid date '" + s + "'");
+	else if (ret > 6)
+		if (timezonehour < 0)
+			timezoneminute = -timezoneminute; // fix sign on minutes
+
+	// negative values won't affect the result of pTimegm()
+	minute -= timezoneminute;
+	hour -= timezonehour;
 
 	tm date {};
 	date.tm_year = year - 1900;
@@ -125,7 +135,7 @@ int64_t parseDate(std::string s) {
 	date.tm_mday = day;
 	date.tm_hour = hour;
 	date.tm_min = minute;
-	date.tm_sec = second;
+	date.tm_sec = (int)second;
 
 	return pTimegm(&date);
 }
