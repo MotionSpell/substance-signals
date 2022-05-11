@@ -84,7 +84,7 @@ struct PesStream : Stream {
 		};
 
 		PesStream(int pid_, int type_, IRestamper* restamper_, KHost* host, OutputDefault* output_) :
-			Stream(pid_, host), type(type_), m_restamper(restamper_), m_output(output_), m_pesBuffer(128*1024) {
+			Stream(pid_, host), type(type_), m_restamper(restamper_), m_output(output_), m_pesBuffer(256*1024) {
 			if(type == TsDemuxerConfig::VIDEO)
 				m_output->setMetadata(make_shared<MetadataPkt>(VIDEO_PKT));
 			else

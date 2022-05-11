@@ -25,16 +25,22 @@ namespace {
 auto const PTS_PERIOD = 1LL << 33;
 auto const TS_PACKET_LEN = 188;
 auto const PID_PAT = 0;
+auto const MAX_PID = 8192;
 
 struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::IRestamper {
 		TsDemuxer(KHost* host, TsDemuxerConfig const& config)
 			: m_host(host), m_needsRestamp(config.timestampStartsAtZero) {
 			m_unwrapper.WRAP_PERIOD = PTS_PERIOD;
-			m_streams.push_back(make_unique<PsiStream>(PID_PAT, m_host, this));
+			m_streams[PID_PAT] = make_unique<PsiStream>(PID_PAT, m_host, this);
 
 			for(auto& pid : config.pids)
-				if(pid.type != TsDemuxerConfig::NONE)
-					m_streams.push_back(make_unique<PesStream>(pid.pid, pid.type, this, m_host, addOutput()));
+				if(pid.type != TsDemuxerConfig::NONE) {
+					auto pess = make_unique<PesStream>(pid.pid, pid.type, this, m_host, addOutput());
+					if(pid.pid == TsDemuxerConfig::ANY)
+						m_streamsPending.push_back(move(pess));
+					else
+						m_streams[pid.pid] = move(pess);
+				}
 		}
 
 		void processOne(Data data) override {
@@ -111,15 +117,16 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::IRestamper {
 				m_remainderSize = 0;
 			}
 
-			for(auto& s : m_streams)
-				s->flush();
+			for(int i=0; i<MAX_PID; ++i)
+				if(m_streams[i])
+					m_streams[i]->flush();
 		}
 
 		// PsiStream::Listener implementation
 		void onPat(span<int> pmtPids) override {
 			m_host->log(Debug, format("Found PAT (%s programs)", pmtPids.len).c_str());
 			for(auto pid : pmtPids)
-				m_streams.push_back(make_unique<PsiStream>(pid, m_host, this));
+				m_streams[pid] = make_unique<PsiStream>(pid, m_host, this);
 		}
 
 		void onPmt(span<PsiStream::EsInfo> esInfo) override {
@@ -170,7 +177,7 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::IRestamper {
 				skip(r, length, "adaptation_field length in TS header");
 			}
 
-			auto stream = findStreamForPid(packetId);
+			auto stream = m_streams[packetId].get();
 			if(!stream)
 				return; // we're not interested in this PID
 
@@ -217,12 +224,17 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::IRestamper {
 		}
 
 		PesStream* findMatchingStream(PsiStream::EsInfo es) {
-			for(auto& s : m_streams) {
-				if(auto stream = dynamic_cast<PesStream*>(s.get()))
-					if(matches(stream, es))
-						return stream;
+			if(!m_streams[es.pid]) {
+				for(auto& s : m_streamsPending) {
+					if(auto stream = dynamic_cast<PesStream*>(s.get()))
+						if(matches(stream, es)) {
+							m_streams[es.pid] = move(s);
+							break;
+						}
+				}
 			}
-			return nullptr;
+
+			return dynamic_cast<PesStream*>(m_streams[es.pid].get());
 		}
 
 		static bool matches(PesStream* stream, PsiStream::EsInfo es) {
@@ -242,16 +254,9 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::IRestamper {
 			}
 		}
 
-		Stream* findStreamForPid(int packetId) {
-			for(auto& s : m_streams) {
-				if(s->pid == packetId)
-					return s.get();
-			}
-			return nullptr;
-		}
-
 		KHost* const m_host;
-		vector<unique_ptr<Stream>> m_streams;
+		unique_ptr<Stream> m_streams[MAX_PID];
+		vector<unique_ptr<Stream>> m_streamsPending; // User-provided yet-unmapped PIDs
 		int64_t m_ptsOrigin = INT64_MAX;
 		TimeUnwrapper m_unwrapper;
 		bool m_needsRestamp;

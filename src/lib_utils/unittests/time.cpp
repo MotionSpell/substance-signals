@@ -8,7 +8,7 @@ unittest("time: parseDate") {
 	ASSERT_EQUALS(parseDate("1970-01-01T00:00:00.0-02:00"), 2*3600);
 	ASSERT_EQUALS(parseDate("1970-01-01T02:00:00+02:00"), 0);
 
-    //check timezone wrap up
+	//check timezone wrap up
 	ASSERT_EQUALS(parseDate("1970-01-02T00:00:00+02:00"), 22*3600);
 
 	ASSERT_THROWN(parseDate(""));

@@ -6,6 +6,9 @@ CXXFLAGS+=-std=c++14
 CFLAGS+=-Wall -Wextra -Werror
 CXXFLAGS+=-fvisibility=hidden -fvisibility-inlines-hidden
 
+# for profiling
+#CFLAGS+=-fno-omit-frame-pointer -fno-default-inline -fkeep-inline-functions -fno-inline-small-functions
+
 BIN?=bin
 SRC?=src
 STRIP?=strip
