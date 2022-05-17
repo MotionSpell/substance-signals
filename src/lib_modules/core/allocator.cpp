@@ -39,7 +39,7 @@ struct MemoryAllocator : IAllocator {
 			}
 			switch (block.type) {
 			case OneBufferIsFree: {
-				allocatedBlockCount ++;
+				allocatedBlockCount++;
 				return new uint8_t[size];
 			}
 			}
@@ -48,7 +48,7 @@ struct MemoryAllocator : IAllocator {
 
 		void free(void* p) override {
 			delete[] (uint8_t*)p;
-			allocatedBlockCount --;
+			allocatedBlockCount--;
 			eventQueue.push(Event{OneBufferIsFree});
 		}
 

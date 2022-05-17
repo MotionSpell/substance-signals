@@ -82,7 +82,7 @@ struct TopLevelBoxSeparator {
 					boxFourcc |= byte;
 				}
 				// reading header
-				headerBytes ++;
+				headerBytes++;
 				assert(headerBytes <= 8);
 				if(headerBytes == 8) {
 					if(boxBytes > 8) {
@@ -96,7 +96,7 @@ struct TopLevelBoxSeparator {
 				}
 			} else {
 				assert(boxBytes > 0);
-				boxBytes --;
+				boxBytes--;
 
 				// is the current box complete?
 				if(boxBytes == 0) {

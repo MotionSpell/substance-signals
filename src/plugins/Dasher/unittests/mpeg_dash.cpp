@@ -178,9 +178,9 @@ unittest("dasher: timeshift buffer") {
 		void processOne(Data data) override {
 			auto meta = safe_cast<const MetadataFile>(data->getMetadata().get());
 			if(meta->filesize == INT64_MAX) // is it a "DELETE" ?
-				deleted ++;
+				deleted++;
 			else
-				added ++;
+				added++;
 		}
 		int added = 0;
 		int deleted = 0;
