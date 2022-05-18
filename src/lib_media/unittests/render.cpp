@@ -36,10 +36,8 @@ secondclasstest("render: sound generator, evil samples") {
 	fmt.sampleRate = 44100;
 	fmt.numPlanes = 1;
 
-	auto sample = make_shared<DataPcm>(0);
+	auto sample = make_shared<DataPcm>(100, fmt);
 	sample->setMediaTime(299454611464360LL);
-	sample->format = fmt;
-	sample->setSampleCount(100);
 	render->getInput(0)->push(sample);
 	render->process();
 
@@ -63,7 +61,7 @@ secondclasstest("render: A/V sync, one thread") {
 }
 
 auto createYuvPic(Resolution res) {
-	auto r = make_shared<DataPicture>(0);
+	auto r = make_shared<DataPicture>(res, PixelFormat::I420);
 	DataPicture::setup(r.get(), res, res, PixelFormat::I420);
 	return r;
 }

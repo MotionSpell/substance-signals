@@ -2,29 +2,21 @@
 
 namespace Modules {
 
-auto const ALIGN = 512 / 8; /*AVX-512*/
-
 std::shared_ptr<DataPicture> DataPicture::create(OutputDefault *out, Resolution res, Resolution resInternal, PixelFormat format) {
 	if (!out) return nullptr;
-
-	auto r = out->allocData<DataPicture>(0);
-
+	auto r = out->allocData<DataPicture>(resInternal, format);
 	DataPicture::setup(r.get(), res, resInternal, format);
-
 	return r;
 }
 
 void DataPicture::setup(DataPicture* r, Resolution res, Resolution resInternal, PixelFormat format) {
-	// 16 bytes of padding, as required by most SIMD processing (e.g swscale)
-	r->buffer->resize(PictureFormat::getSize(resInternal, format) + ALIGN + 512 / 8);
-
 	r->format.format = format;
 	r->format.res = res;
 	r->setVisibleResolution(res);
 
 	auto ptr = r->buffer->data().ptr;
-	if ((uintptr_t)ptr & (ALIGN - 1))
-		ptr += ALIGN - ((uintptr_t)ptr % ALIGN);
+	if ((uintptr_t)ptr & (PictureFormat::ALIGNMENT - 1))
+		ptr += PictureFormat::ALIGNMENT - ((uintptr_t)ptr % PictureFormat::ALIGNMENT);
 
 	switch (format) {
 	case PixelFormat::Y8: {

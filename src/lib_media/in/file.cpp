@@ -37,13 +37,13 @@ class FileInput : public Module {
 		}
 
 		void process() override {
-			auto out = output->allocData<DataRaw>(m_blockSize);
+			auto out = output->allocData<DataRawResizable>(m_blockSize);
 			size_t read = fread(out->buffer->data().ptr, 1, m_blockSize, file);
 			if (read == 0) {
 				m_host->activate(false);
 				return;
 			}
-			out->buffer->resize(read);
+			out->resize(read);
 			output->post(out);
 		}
 

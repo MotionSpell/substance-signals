@@ -76,6 +76,13 @@ DataRaw::DataRaw(size_t size) {
 	buffer = std::make_shared<RawBuffer>(size);
 }
 
+DataRawResizable::DataRawResizable(size_t size) : DataRaw(size) {
+}
+
+void DataRawResizable::resize(size_t size) {
+	std::dynamic_pointer_cast<RawBuffer>(buffer)->resize(size);
+}
+
 }
 
 // TODO: remove this

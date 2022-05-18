@@ -223,11 +223,9 @@ struct Decoder : ModuleS, PictureAllocator {
 		}
 
 		std::shared_ptr<DataBase> processAudio() {
-			auto out = mediaOutput->allocData<DataPcm>(0);
 			PcmFormat pcmFormat;
 			libavFrame2pcmConvert(avFrame->get(), &pcmFormat);
-			out->format = pcmFormat;
-			out->setSampleCount(avFrame->get()->nb_samples);
+			auto out = mediaOutput->allocData<DataPcm>(avFrame->get()->nb_samples, pcmFormat);
 			for (int i = 0; i < pcmFormat.numPlanes; ++i) {
 				memcpy(out->getPlane(i), avFrame->get()->data[i], avFrame->get()->nb_samples * pcmFormat.getBytesPerSample() / pcmFormat.numPlanes);
 			}

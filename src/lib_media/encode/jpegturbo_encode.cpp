@@ -33,7 +33,7 @@ class JPEGTurboEncode : public ModuleS {
 			auto videoData = safe_cast<const DataPicture>(data_);
 			auto const dim = videoData->getFormat().res;
 			auto const dataSize = tjBufSize(dim.width, dim.height, TJSAMP_420);
-			auto out = output->allocData<DataRaw>(dataSize);
+			auto out = output->allocData<DataRawResizable>(dataSize);
 			unsigned char *buf = (unsigned char*)out->data().ptr;
 			auto jpegBuf = videoData->data().ptr;
 			unsigned long jpegSize;
@@ -73,7 +73,7 @@ class JPEGTurboEncode : public ModuleS {
 				throw error(format("Unsupported colorspace %s", (int)videoData->getFormat().format));
 			}
 
-			out->buffer->resize(jpegSize);
+			out->resize(jpegSize);
 			out->set(data_->get<PresentationTime>());
 			output->post(out);
 		}

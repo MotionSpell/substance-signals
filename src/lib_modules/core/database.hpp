@@ -73,6 +73,12 @@ class DataRaw : public DataBase {
 		DataRaw(size_t size);
 };
 
+class DataRawResizable : public DataRaw {
+	public:
+		DataRawResizable(size_t size);
+		void resize(size_t size);
+};
+
 using Data = std::shared_ptr<const DataBase>;
 using Metadata = std::shared_ptr<const IMetadata>;
 

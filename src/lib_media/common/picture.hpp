@@ -47,12 +47,17 @@ struct PictureFormat {
 
 	Resolution res;
 	PixelFormat format = PixelFormat::UNKNOWN;
+	static auto const ALIGNMENT = 512 / 8; /*AVX-512*/
 };
 
-//TODO: we should probably separate planar vs non-planar data, avoid resize on the data, etc.
+//TODO: we should probably separate planar vs non-planar data
 class DataPicture : public DataRaw {
 	public:
-		DataPicture(size_t /*unused*/) : DataRaw(0) {}
+		// 16 bytes of padding, as required by most SIMD processing (e.g swscale)
+		DataPicture(Resolution res, PixelFormat format)
+			: DataRaw(PictureFormat::getSize(res, format) + PictureFormat::ALIGNMENT + 512 / 8), format(res, format)  {
+		}
+
 		static std::shared_ptr<DataPicture> create(OutputDefault *out, Resolution res, PixelFormat format);
 		static std::shared_ptr<DataPicture> create(OutputDefault *out, Resolution res, Resolution resInternal, PixelFormat format);
 		static void setup(DataPicture* pic, Resolution res, Resolution resInternal, PixelFormat format);
@@ -89,10 +94,6 @@ class DataPicture : public DataRaw {
 		}
 
 	protected:
-		DataPicture(Resolution res, PixelFormat format)
-			: DataRaw(PictureFormat::getSize(res, format)), format(res, format)  {
-		}
-
 		PictureFormat format;
 
 		int m_planeCount = 0;

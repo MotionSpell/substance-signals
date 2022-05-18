@@ -32,8 +32,8 @@ inline constexpr size_t getAlignmentOf() {
 
 void ensureAligned(void* p, size_t alignment);
 
-template<typename T>
-std::shared_ptr<T> alloc(std::shared_ptr<IAllocator> allocator, size_t size) {
+template<typename T, typename ...Args>
+std::shared_ptr<T> alloc(std::shared_ptr<IAllocator> allocator, Args&&... args) {
 	auto p = allocator->alloc(sizeof(T));
 
 	ensureAligned(p, getAlignmentOf<T>());
@@ -43,7 +43,7 @@ std::shared_ptr<T> alloc(std::shared_ptr<IAllocator> allocator, size_t size) {
 		allocator->free(p);
 	};
 
-	return std::shared_ptr<T>(new(p) T(size), deleter);
+	return std::shared_ptr<T>(new(p) T(std::forward<Args>(args)...), deleter);
 }
 
 }

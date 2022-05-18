@@ -47,9 +47,9 @@ class OutputDefault : public Output {
 		OutputDefault(size_t allocatorMaxSize)
 			: allocator(createMemoryAllocator(allocatorMaxSize)) {
 		}
-		template<typename OtherDataType>
-		std::shared_ptr<OtherDataType> allocData(size_t size) {
-			return alloc<OtherDataType>(allocator, size);
+		template<typename OtherDataType, typename ...Args>
+		std::shared_ptr<OtherDataType> allocData(Args&&... args) {
+			return alloc<OtherDataType>(allocator, std::forward<Args>(args)...);
 		}
 
 		void resetAllocator(size_t allocatorSize) {

@@ -7,16 +7,14 @@ using namespace Tests;
 using namespace Modules;
 using namespace std;
 
-static
-auto createYuvPic(Resolution res) {
-	auto r = make_shared<DataPicture>(0);
+static auto createYuvPic(Resolution res) {
+	auto r = make_shared<DataPicture>(res, PixelFormat::I420);
 	DataPicture::setup(r.get(), res, res, PixelFormat::I420);
 	return r;
 }
 
-static
-auto createNv12Pic(Resolution res) {
-	auto r = make_shared<DataPicture>(0);
+static auto createNv12Pic(Resolution res) {
+	auto r = make_shared<DataPicture>(res, PixelFormat::NV12);
 	DataPicture::setup(r.get(), res, res, PixelFormat::NV12);
 	return r;
 }

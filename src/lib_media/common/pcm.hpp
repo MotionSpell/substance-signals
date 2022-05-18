@@ -92,10 +92,8 @@ class PcmFormat {
 };
 
 struct DataPcm : DataBase {
-	DataPcm(size_t size) {
-		if (size > 0)
-			throw std::runtime_error("Forbidden operation. DataPcm requested size must be 0. Then call setFormat().");
-		buffer = std::make_shared<RawBuffer>(size);
+	DataPcm(size_t numSamples, const PcmFormat &format) : format(format) {
+		buffer = std::make_shared<RawBuffer>(numSamples * format.getBytesPerSample());
 	}
 
 	uint8_t* getPlane(int planeIdx) const {
@@ -108,15 +106,11 @@ struct DataPcm : DataBase {
 		return getSampleCount() * format.getBytesPerSample() / format.numPlanes;
 	}
 
-	void setSampleCount(int sampleCount) {
-		buffer->resize(sampleCount * format.getBytesPerSample());
-	}
-
 	int getSampleCount() const {
 		return buffer->data().len / format.getBytesPerSample();
 	}
 
-	PcmFormat format;
+	const PcmFormat format;
 };
 
 }

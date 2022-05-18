@@ -98,35 +98,42 @@ class ClockMock : public IClock, public IScheduler {
 		vector<Task> m_tasks; // keep this sorted
 };
 
-template<typename METADATA, typename TYPE, int sampleRate>
+template<typename METADATA, int SAMPLERATE>
 struct DataGenerator : ModuleS, virtual IOutputCap {
 	DataGenerator(Fraction fps) : fps(fps) {
 		output = addOutput();
 		output->setMetadata(make_shared<METADATA>());
 	}
-	void processOne(Data dataIn) override {
-		auto data = output->allocData<TYPE>(0);
 
-		if (auto dataPcm = dynamic_pointer_cast<DataPcm>(data)) {
-			PcmFormat fmt(sampleRate, 1, Mono);
-			dataPcm->format = fmt;
-			auto samplesN = (int)(double)(fps.inverse() * pktCounter * sampleRate);
+	void processOne(Data dataIn) override {
+		if (output->getMetadata()->isAudio()) {
+			auto const samplesN = (int)(fps.inverse() * pktCounter * SAMPLERATE);
 			pktCounter++;
-			auto const samplesNplus1 = (int)(double)(fps.inverse() * pktCounter * sampleRate);
-			dataPcm->setSampleCount(samplesNplus1 - samplesN);
+			auto const samplesNplus1 = (int)(fps.inverse() * pktCounter * SAMPLERATE);
+
+			PcmFormat fmt(SAMPLERATE, 1, Mono);
+			auto dataPcm = output->allocData<DataPcm>((samplesNplus1 - samplesN), fmt);
 
 			// fill with a counter
 			ASSERT(dataPcm->format.getBytesPerSample() % sizeof(uint32_t) == 0);
 			auto const dataSize = dataPcm->getSampleCount() * dataPcm->format.getBytesPerSample();
 			for (int i = 0; i < dataSize / (int)sizeof(uint32_t); ++i)
 				*((uint32_t*)dataPcm->getPlane(0) + i) = audioSampleCounter++;
-		} else if (auto dataSubtitle = dynamic_pointer_cast<DataSubtitle>(data)) {
+
+			dataPcm->set(PresentationTime{ dataIn->get<PresentationTime>().time });
+			output->post(dataPcm);
+		} else if (output->getMetadata()->isSubtitle()) {
+			auto dataSubtitle = output->allocData<DataSubtitle>(0);
 			dataSubtitle->page.showTimestamp = dataIn->get<PresentationTime>().time;
 			dataSubtitle->page.hideTimestamp = dataSubtitle->page.showTimestamp + fractionToClock(fps.inverse());
+			dataSubtitle->set(PresentationTime{ dataIn->get<PresentationTime>().time });
+			output->post(dataSubtitle);
+		} else {
+			ASSERT(output->getMetadata()->isVideo());
+			auto data = output->allocData<DataPicture>(0, PixelFormat::I420);
+			data->set(PresentationTime{ dataIn->get<PresentationTime>().time });
+			output->post(data);
 		}
-
-		data->set(PresentationTime{ dataIn->get<PresentationTime>().time });
-		output->post(data);
 	}
 	OutputDefault *output;
 	Fraction fps;
@@ -134,10 +141,10 @@ struct DataGenerator : ModuleS, virtual IOutputCap {
 	int64_t pktCounter = 0;
 };
 
-typedef DataGenerator<MetadataRawVideo, DataPicture, 0> VideoGenerator;
-typedef DataGenerator<MetadataRawAudio, DataPcm, 48000> AudioGenerator48000;
-typedef DataGenerator<MetadataRawAudio, DataPcm, 44100> AudioGenerator44100;
-typedef DataGenerator<MetadataRawSubtitle, DataSubtitle, 0> SubtitleGenerator;
+typedef DataGenerator<MetadataRawVideo, 0> VideoGenerator;
+typedef DataGenerator<MetadataRawAudio, 48000> AudioGenerator48000;
+typedef DataGenerator<MetadataRawAudio, 44100> AudioGenerator44100;
+typedef DataGenerator<MetadataRawSubtitle, 0> SubtitleGenerator;
 
 struct Fixture {
 	shared_ptr<ClockMock> clock = make_shared<ClockMock>();

@@ -15,7 +15,8 @@ class FakeOutput : public Module {
 			output = addOutput();
 		}
 		void process() {
-			auto data = output->allocData<DataPcm>(0);
+			PcmFormat fmt;
+			auto data = output->allocData<DataPcm>(0, fmt);
 			output->post(data);
 		}
 		void setMetadata(std::shared_ptr<const IMetadata> metadata) {
@@ -122,8 +123,8 @@ unittest("metadata: updated twice by data") {
 }
 
 unittest("duplicating data") {
-	const Resolution res(80, 60);
-	auto data = make_shared<DataPcm>(0);
+	PcmFormat fmt;
+	auto data = make_shared<DataPcm>(0, fmt);
 
 	Data dataCopy = clone(data);
 	data = nullptr;

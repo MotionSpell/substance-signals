@@ -226,10 +226,9 @@ class SubtitleEncoder : public ModuleS {
 		}
 
 		void sendSample(const std::string& sample) {
-			auto out = output->allocData<DataRaw>(0);
+			auto out = output->allocData<DataRaw>(sample.size());
 			out->set(DecodingTime{ intClock });
 			out->setMediaTime(intClock);
-			out->buffer->resize(sample.size());
 
 			CueFlags flags {};
 			flags.keyframe = true;

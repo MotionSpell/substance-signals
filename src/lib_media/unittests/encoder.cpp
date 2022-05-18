@@ -18,9 +18,8 @@ using namespace std;
 
 auto const VIDEO_RESOLUTION = Resolution(320, 180);
 
-static
-auto createYuvPic(Resolution res) {
-	auto r = make_shared<DataPicture>(0);
+static auto createYuvPic(Resolution res) {
+	auto r = make_shared<DataPicture>(res, PixelFormat::I420);
 	DataPicture::setup(r.get(), res, res, PixelFormat::I420);
 	return r;
 }
@@ -51,11 +50,9 @@ shared_ptr<DataBase> createPcm(int samples) {
 	PcmFormat fmt;
 	fmt.sampleRate = 44100;
 	const auto inFrameSizeInBytes = (size_t)(samples * fmt.getBytesPerSample() / fmt.numPlanes);
-	auto pcm = make_shared<DataPcm>(0);
-	pcm->format = fmt;
+	auto pcm = make_shared<DataPcm>(samples, fmt);
 	std::vector<uint8_t> input(inFrameSizeInBytes);
 	auto inputRaw = input.data();
-	pcm->setSampleCount(samples);
 	for (int i = 0; i < fmt.numPlanes; ++i)
 		memcpy(pcm->getPlane(i), inputRaw, inFrameSizeInBytes);
 	return pcm;

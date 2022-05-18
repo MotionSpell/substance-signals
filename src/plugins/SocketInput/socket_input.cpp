@@ -36,12 +36,12 @@ struct SocketInput : Module {
 		}
 
 		auto const bufSize = 0x60000 / 188 * 188;
-		auto buf = m_output->allocData<DataRaw>(bufSize);
+		auto buf = m_output->allocData<DataRawResizable>(bufSize);
 		auto dst = buf->buffer->data();
 
 		auto size = m_socket->receive(dst.ptr, dst.len);
 		if(size > 0) {
-			buf->buffer->resize(size);
+			buf->resize(size);
 			m_output->post(buf);
 		} else
 			std::this_thread::sleep_for(1ms);

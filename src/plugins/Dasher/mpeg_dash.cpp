@@ -180,14 +180,12 @@ struct AdaptiveStreamer : ModuleDynI {
 			};
 			auto constexpr headerSize = sizeof(mp4StaticHeader);
 			if (size == 0 && !EOS) {
-				auto out = outputSegments->allocData<DataRaw>(0);
-				out->buffer->resize(headerSize);
+				auto out = outputSegments->allocData<DataRaw>(headerSize);
 				memcpy(out->buffer->data().ptr, mp4StaticHeader, headerSize);
 				return out;
 			} else if (data->data().len >= headerSize && !memcmp(data->data().ptr, mp4StaticHeader, headerSize)) {
-				auto out = outputSegments->allocData<DataRaw>(0);
 				auto const size = (size_t)(data->data().len - headerSize);
-				out->buffer->resize(size);
+				auto out = outputSegments->allocData<DataRaw>(size);
 				memcpy(out->buffer->data().ptr, data->data().ptr + headerSize, size);
 				return out;
 			} else {

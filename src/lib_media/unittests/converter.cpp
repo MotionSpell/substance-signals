@@ -29,9 +29,7 @@ shared_ptr<DataPcm> getInterleavedPcmData() {
 		47, 87,
 	};
 
-	auto r = make_shared<DataPcm>(0);
-	r->format = fmt;
-	r->setSampleCount(8);
+	auto r = make_shared<DataPcm>(8, fmt);
 	memcpy(r->getPlane(0), (uint8_t*)data, sizeof data);
 	r->setMetadata(make_shared<MetadataRawAudio>());
 	return r;
@@ -90,9 +88,7 @@ unittest("audio converter: multiple flushes while upsampling") {
 	int inputSize = 0;
 	std::vector<uint8_t> buf(3110400);
 
-	auto data = make_shared<DataPcm>(0);
-	data->format = srcFormat;
-	data->setSampleCount(buf.size()/srcFormat.getBytesPerSample());
+	auto data = make_shared<DataPcm>(buf.size()/srcFormat.getBytesPerSample(), srcFormat);
 	memcpy(data->getPlane(0), buf.data(), buf.size());
 
 	inputSize += buf.size();
@@ -193,9 +189,7 @@ void framingTest(int inSamplesPerFrame, int outSamplesPerFrame) {
 	auto format = PcmFormat(44100, 2, Stereo, S16, Planar);
 
 	const auto inFrameSize = inSamplesPerFrame * format.getBytesPerSample() / format.numPlanes;
-	auto data = make_shared<DataPcm>(0);
-	data->format = format;
-	data->setSampleCount(inSamplesPerFrame);
+	auto data = make_shared<DataPcm>(inSamplesPerFrame, format);
 
 	std::vector<uint8_t> input(inFrameSize);
 	const int modulo = std::min(inFrameSize, 256);
@@ -284,10 +278,8 @@ unittest("audio converter: timestamp passthrough") {
 	auto converter = loadModule("AudioConvert", &NullHost, &cfg);
 	ConnectOutput(converter->getOutput(0), onFrame);
 
-	auto data = make_shared<DataPcm>(0);
+	auto data = make_shared<DataPcm>(1024, format);
 	data->setMediaTime(777777);
-	data->format = format;
-	data->setSampleCount(1024);
 	converter->getInput(0)->push(data);
 	converter->flush();
 
@@ -300,10 +292,8 @@ unittest("audio converter: timestamp gap") {
 	auto format = PcmFormat(44100, 1, Mono, S16, Planar);
 
 	auto createSample = [&](int64_t mediaTime) {
-		auto data = make_shared<DataPcm>(0);
+		auto data = make_shared<DataPcm>(inSamplesPerFrame, format);
 		data->setMediaTime(mediaTime);
-		data->format = format;
-		data->setSampleCount(inSamplesPerFrame);
 		return data;
 	};
 
@@ -347,9 +337,7 @@ unittest("audio gap filler") {
 	auto gapFiller = loadModule("AudioGapFiller", &NullHost, &toleranceInFrames);
 	ConnectOutputToInput(gapFiller->getOutput(0), recorder->getInput(0));
 	for (auto &val : in) {
-		auto data = make_shared<DataPcm>(0);
-		data->format = format;
-		data->setSampleCount(numSamples);
+		auto data = make_shared<DataPcm>(numSamples, format);
 		data->setMediaTime(val * numSamples, format.sampleRate);
 		gapFiller->getInput(0)->push(data);
 	}

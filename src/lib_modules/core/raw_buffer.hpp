@@ -7,6 +7,7 @@ namespace Modules {
 
 struct RawBuffer : IBuffer {
 		RawBuffer(size_t size) : memoryBlock(size) {}
+		virtual ~RawBuffer() {}
 
 		Span data() {
 			return Span { memoryBlock.data(), memoryBlock.size() };
@@ -16,7 +17,6 @@ struct RawBuffer : IBuffer {
 			return SpanC { memoryBlock.data(), memoryBlock.size() };
 		}
 
-		// don't resize when shrinking
 		void resize(size_t size) {
 			memoryBlock.resize(size);
 		}
