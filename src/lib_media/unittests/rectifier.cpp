@@ -577,7 +577,7 @@ unittest("rectifier: subtitles (sparse)") {
 	fix.addStream(0, createModuleWithSize<VideoGenerator>(100, fps));
 	fix.addStream(1, createModuleWithSize<SubtitleGenerator>(100, fps));
 
-	auto const offset = 0;//Romain: 1000... why?
+	auto const offset = 1000;
 	auto const delta = (int)(fps.inverse() * IClock::Rate);
 	fix.setTime(offset + delta * 0);
 	fix.push(0, delta * 0); /*no subtitle*/
