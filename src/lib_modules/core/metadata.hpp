@@ -37,7 +37,7 @@ struct IMetadata {
 	}
 	bool isSubtitle() const {
 		switch (type) {
-		case SUBTITLE_PKT: return true;
+		case SUBTITLE_PKT: case SUBTITLE_RAW: return true;
 		default: return false;
 		}
 	}
