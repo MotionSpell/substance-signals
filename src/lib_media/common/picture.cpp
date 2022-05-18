@@ -2,13 +2,6 @@
 
 namespace Modules {
 
-std::shared_ptr<DataPicture> DataPicture::create(OutputDefault *out, Resolution res, Resolution resInternal, PixelFormat format) {
-	if (!out) return nullptr;
-	auto r = out->allocData<DataPicture>(resInternal, format);
-	DataPicture::setup(r.get(), res, resInternal, format);
-	return r;
-}
-
 void DataPicture::setup(DataPicture* r, Resolution res, Resolution resInternal, PixelFormat format) {
 	r->format.format = format;
 	r->format.res = res;
@@ -118,9 +111,5 @@ void DataPicture::setup(DataPicture* r, Resolution res, Resolution resInternal, 
 	}
 	default: throw std::runtime_error("Unknown pixel format for DataPicture. Please contact your vendor");
 	}
-}
-
-std::shared_ptr<DataPicture> DataPicture::create(OutputDefault *out, Resolution res, PixelFormat format) {
-	return create(out, res, res, format);
 }
 }

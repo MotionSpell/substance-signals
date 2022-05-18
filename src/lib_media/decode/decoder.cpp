@@ -239,7 +239,7 @@ struct Decoder : ModuleS, PictureAllocator {
 				pic = ctx->pic;
 				ctx->pic->setVisibleResolution(Resolution(codecCtx->width, codecCtx->height));
 			} else {
-				pic = DataPicture::create(mediaOutput, Resolution(avFrame->get()->width, avFrame->get()->height), libavPixFmt2PixelFormat((AVPixelFormat)avFrame->get()->format));
+				pic = mediaOutput->allocData<DataPicture>(Resolution(avFrame->get()->width, avFrame->get()->height), libavPixFmt2PixelFormat((AVPixelFormat)avFrame->get()->format));
 				copyToPicture(avFrame->get(), pic.get());
 			}
 
@@ -258,7 +258,7 @@ struct Decoder : ModuleS, PictureAllocator {
 
 		PictureAllocator::PictureContext* getPicture(Resolution res, Resolution resInternal, PixelFormat format) override {
 			auto ctx = new PictureAllocator::PictureContext;
-			ctx->pic = DataPicture::create(mediaOutput, res, resInternal, format);
+			ctx->pic = mediaOutput->allocData<DataPicture>(res, resInternal, format);
 			return ctx;
 		}
 

@@ -19,9 +19,7 @@ using namespace std;
 auto const VIDEO_RESOLUTION = Resolution(320, 180);
 
 static auto createYuvPic(Resolution res) {
-	auto r = make_shared<DataPicture>(res, PixelFormat::I420);
-	DataPicture::setup(r.get(), res, res, PixelFormat::I420);
-	return r;
+	return make_shared<DataPicture>(res, PixelFormat::I420);
 }
 
 unittest("encoder: video simple") {

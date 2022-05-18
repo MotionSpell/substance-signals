@@ -144,7 +144,7 @@ void VideoGenerator::process() {
 	}
 
 	auto const dim = Resolution(320, 180);
-	auto pic = DataPicture::create(output, dim, PixelFormat::I420);
+	auto pic = output->allocData<DataPicture>(dim, PixelFormat::I420);
 
 	// generate video
 	auto const p = pic->buffer->data().ptr;

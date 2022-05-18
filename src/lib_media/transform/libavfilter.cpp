@@ -152,7 +152,7 @@ void LibavFilter::processOne(Data data) {
 		if (ret < 0) {
 			m_host->log(Error, "Corrupted filter video frame.");
 		}
-		auto pic = DataPicture::create(output, Resolution(av_buffersink_get_w(buffersink_ctx), av_buffersink_get_h(buffersink_ctx)), libavPixFmt2PixelFormat((AVPixelFormat)av_buffersink_get_format(buffersink_ctx)));
+		auto pic = output->allocData<DataPicture>(Resolution(av_buffersink_get_w(buffersink_ctx), av_buffersink_get_h(buffersink_ctx)), libavPixFmt2PixelFormat((AVPixelFormat)av_buffersink_get_format(buffersink_ctx)));
 		copyToPicture(avFrameOut->get(), pic.get());
 		pic->set(PresentationTime{av_rescale_q(avFrameOut->get()->pts, buffersink_ctx->inputs[0]->time_base, { 1, (int)IClock::Rate })});
 

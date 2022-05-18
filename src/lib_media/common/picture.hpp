@@ -53,13 +53,16 @@ struct PictureFormat {
 //TODO: we should probably separate planar vs non-planar data
 class DataPicture : public DataRaw {
 	public:
-		// 16 bytes of padding, as required by most SIMD processing (e.g swscale)
+		// padding as required by most SIMD processing (e.g swscale)
 		DataPicture(Resolution res, PixelFormat format)
 			: DataRaw(PictureFormat::getSize(res, format) + PictureFormat::ALIGNMENT + 512 / 8), format(res, format)  {
+			setup(this, res, res, format);
+		}
+		DataPicture(Resolution res, Resolution resInternal, PixelFormat format)
+			: DataRaw(PictureFormat::getSize(resInternal, format) + PictureFormat::ALIGNMENT + 512 / 8), format(res, format)  {
+			setup(this, res, resInternal, format);
 		}
 
-		static std::shared_ptr<DataPicture> create(OutputDefault *out, Resolution res, PixelFormat format);
-		static std::shared_ptr<DataPicture> create(OutputDefault *out, Resolution res, Resolution resInternal, PixelFormat format);
 		static void setup(DataPicture* pic, Resolution res, Resolution resInternal, PixelFormat format);
 
 		PictureFormat getFormat() const {
