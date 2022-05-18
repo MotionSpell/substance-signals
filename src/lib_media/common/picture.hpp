@@ -50,7 +50,6 @@ struct PictureFormat {
 	static auto const ALIGNMENT = 512 / 8; /*AVX-512*/
 };
 
-//TODO: we should probably separate planar vs non-planar data
 class DataPicture : public DataRaw {
 	public:
 		// padding as required by most SIMD processing (e.g swscale)
