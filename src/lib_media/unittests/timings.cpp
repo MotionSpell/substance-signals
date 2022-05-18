@@ -193,17 +193,17 @@ unittest("restamp: passthru with offsets") {
 	};
 	auto data = make_shared<DataRaw>(0);
 
-	data->setMediaTime(time);
+	data->set(PresentationTime{time});
 	auto restamp = createModule<Transform::Restamp>(&NullHost, Transform::Restamp::Reset);
 	ConnectOutput(restamp->getOutput(0), onFrame);
 	restamp->processOne(data);
 
-	data->setMediaTime(time);
+	data->set(PresentationTime{time});
 	restamp = createModule<Transform::Restamp>(&NullHost, Transform::Restamp::Reset, 0);
 	ConnectOutput(restamp->getOutput(0), onFrame);
 	restamp->processOne(data);
 
-	data->setMediaTime(time);
+	data->set(PresentationTime{time});
 	restamp = createModule<Transform::Restamp>(&NullHost, Transform::Restamp::Reset, time);
 	expected = time;
 	ConnectOutput(restamp->getOutput(0), onFrame);
@@ -219,23 +219,23 @@ unittest("restamp: reset with offsets") {
 	};
 	auto data = make_shared<DataRaw>(0);
 
-	data->setMediaTime(time);
+	data->set(PresentationTime{time});
 	auto restamp = createModule<Transform::Restamp>(&NullHost, Transform::Restamp::Passthru);
 	ConnectOutput(restamp->getOutput(0), onFrame);
 	restamp->processOne(data);
 
-	data->setMediaTime(time);
+	data->set(PresentationTime{time});
 	restamp = createModule<Transform::Restamp>(&NullHost, Transform::Restamp::Passthru, 0);
 	ConnectOutput(restamp->getOutput(0), onFrame);
 	restamp->processOne(data);
 
-	data->setMediaTime(time);
+	data->set(PresentationTime{time});
 	restamp = createModule<Transform::Restamp>(&NullHost, Transform::Restamp::Passthru, offset);
 	expected = time + offset;
 	ConnectOutput(restamp->getOutput(0), onFrame);
 	restamp->processOne(data);
 
-	data->setMediaTime(time);
+	data->set(PresentationTime{time});
 	restamp = createModule<Transform::Restamp>(&NullHost, Transform::Restamp::Passthru, time);
 	expected = time + time;
 	ConnectOutput(restamp->getOutput(0), onFrame);

@@ -98,7 +98,11 @@ struct GpacFilters : ModuleDynI {
 				auto span = pData->data();
 				*data = span.ptr;
 				*data_size = span.len;
-				*pts = pData->get<PresentationTime>().time;
+				try {
+					*pts = pData->get<PresentationTime>().time;
+				} catch(...) {
+					*pts = 0; // not set
+				}
 				try {
 					*dts = pData->get<DecodingTime>().time;
 				} catch(...) {

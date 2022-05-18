@@ -1,4 +1,5 @@
 #include "video_generator.hpp"
+#include "../common/attributes.hpp"
 #include "../common/metadata.hpp"
 #include <cstring> // memset
 #include <cassert>
@@ -194,7 +195,7 @@ void VideoGenerator::process() {
 
 	auto const framePeriodIn180k = IClock::Rate / config.frameRate;
 	assert(IClock::Rate % config.frameRate == 0);
-	pic->setMediaTime(m_numFrames * framePeriodIn180k);
+	pic->set(PresentationTime{(int64_t)m_numFrames * framePeriodIn180k});
 
 	output->post(pic);
 

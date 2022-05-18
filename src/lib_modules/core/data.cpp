@@ -84,17 +84,3 @@ void DataRawResizable::resize(size_t size) {
 }
 
 }
-
-// TODO: remove this
-#include "lib_media/common/attributes.hpp"
-
-namespace Modules {
-DataBase::DataBase() {
-	set(PresentationTime{});
-}
-
-void DataBase::setMediaTime(int64_t time, uint64_t timescale) {
-	set(PresentationTime{timescaleToClock(time, timescale)});
-}
-
-}

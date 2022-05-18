@@ -5,6 +5,7 @@
 #include "lib_modules/utils/helper.hpp" // ActiveModule
 #include "lib_utils/time.hpp" // parseDate
 #include "lib_utils/tools.hpp" // enforce
+#include "lib_media/common/attributes.hpp"
 #include <sstream>
 #include <memory>
 #include <cstring> // memcpy
@@ -101,7 +102,7 @@ class HlsDemuxer : public Module {
 					chunk = download(m_puller, chunkUrl.c_str());
 
 				auto data = m_output->allocData<DataRaw>(chunk.size());
-				data->setMediaTime(m_chunks[0].timestamp, 1/*in seconds*/);
+				data->set(PresentationTime { timescaleToClock(m_chunks[0].timestamp, 1/*in seconds*/) });
 				if(chunk.size())
 					memcpy(data->buffer->data().ptr, chunk.data(), chunk.size());
 				m_output->post(data);

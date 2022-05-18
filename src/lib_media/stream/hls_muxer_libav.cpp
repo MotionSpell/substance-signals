@@ -153,7 +153,7 @@ class LibavMuxHLSTS : public ModuleDynI {
 			s.meta->filesize = fileSize(s.meta->filename);
 
 			auto data = outputSegment->allocData<DataRaw>(0);
-			data->setMediaTime(s.pts);
+			data->set(PresentationTime{s.pts});
 			data->setMetadata(s.meta);
 			outputSegment->post(data);
 			segmentsToPost.erase(segmentsToPost.begin());

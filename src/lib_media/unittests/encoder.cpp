@@ -36,7 +36,7 @@ unittest("encoder: video simple") {
 	auto encode = loadModule("Encoder", &NullHost, &cfg);
 	ConnectOutput(encode->getOutput(0), onFrame);
 	for (int i = 0; i < 37; ++i) {
-		picture->setMediaTime(timescaleToClock(i, 25)); // avoid warning about non-monotonic pts
+		picture->set(PresentationTime{timescaleToClock(i, 25)}); // avoid warning about non-monotonic pts
 		encode->getInput(0)->push(picture);
 		encode->process();
 	}
@@ -73,7 +73,7 @@ unittest("encoder: audio timestamp passthrough (modulo priming)") {
 
 	for(auto time : inputTimes) {
 		auto pcm = createPcm(1024);
-		pcm->setMediaTime(time);
+		pcm->set(PresentationTime{time});
 		encode->getInput(0)->push(pcm);
 		encode->process();
 	}
@@ -99,7 +99,7 @@ unittest("encoder: video timestamp passthrough") {
 	ConnectOutput(encode->getOutput(0), onFrame);
 	for(auto time : inputTimes) {
 		auto picture = createYuvPic(VIDEO_RESOLUTION);
-		picture->setMediaTime(time);
+		picture->set(PresentationTime{time});
 		encode->getInput(0)->push(picture);
 		encode->process();
 	}
@@ -125,7 +125,7 @@ void RAPTest(const Fraction fps, const Fraction gopSize, const vector<uint64_t> 
 	};
 	ConnectOutput(encode->getOutput(0), onFrame);
 	for (size_t i = 0; i < times.size(); ++i) {
-		picture->setMediaTime(times[i]);
+		picture->set(PresentationTime{(int64_t)times[i]});
 		encode->getInput(0)->push(picture);
 		encode->process();
 	}

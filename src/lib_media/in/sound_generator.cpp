@@ -1,4 +1,5 @@
 #include "lib_utils/tools.hpp"
+#include "../common/attributes.hpp"
 #include "../common/metadata.hpp"
 #include "sound_generator.hpp"
 #include <cmath>
@@ -27,7 +28,7 @@ void SoundGenerator::process() {
 	auto const bufferSamples = (sampleDurationInMs * pcmFormat.sampleRate / 1000);
 
 	auto out = output->allocData<DataPcm>(bufferSamples, pcmFormat);
-	out->setMediaTime(m_numSamples, pcmFormat.sampleRate);
+	out->set(PresentationTime { timescaleToClock((int64_t)m_numSamples, pcmFormat.sampleRate) });
 
 	// generate sound
 	auto const p = out->buffer->data().ptr;

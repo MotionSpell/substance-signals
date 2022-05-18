@@ -182,7 +182,7 @@ struct AudioConvert : ModuleS {
 				}
 
 				auto const mediaTime = inputMediaTime + timescaleToClock(accumulatedTimeInDstSR, m_dstFormat.sampleRate);
-				m_out->setMediaTime(mediaTime);
+				m_out->set(PresentationTime{mediaTime});
 				accumulatedTimeInDstSR += m_dstLen;
 
 				output->post(m_out);

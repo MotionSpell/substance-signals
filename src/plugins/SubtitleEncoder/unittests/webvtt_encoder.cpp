@@ -33,7 +33,7 @@ unittest("webvtt_encoder") {
 	auto data = std::make_shared<DataSubtitle>(0);
 	auto const time = page.showTimestamp + IClock::Rate * 4;
 	data->set(DecodingTime{ time });
-	data->setMediaTime(time);
+	data->set(PresentationTime{time});
 	data->page = page;
 
 	auto webvttAnalyzer = createModule<OutStub>();
@@ -78,7 +78,7 @@ unittest("webvtt_encoder: segmentation and empty page") {
 	auto makeData = [](Page &page, int64_t time) {
 		auto data = std::make_shared<DataSubtitle>(0);
 		data->set(DecodingTime{ time });
-		data->setMediaTime(time);
+		data->set(PresentationTime{time});
 		data->page = page;
 		return data;
 	};

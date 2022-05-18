@@ -74,6 +74,7 @@ unittest("mux test: GPAC mp4 with generic descriptor") {
 	pkt->setMetadata(make_shared<MetadataPktVideo>());
 	pkt->set(CueFlags{});
 	pkt->set(DecodingTime{});
+	pkt->set(PresentationTime{});
 
 	const char * my4CC = "toto";
 	bool received = false;
@@ -359,7 +360,7 @@ unittest("[DISABLED] GPAC mp4 mux: don't create empty fragments") {
 	});
 	for(auto time : times) {
 		auto picture = createH264AccessUnit();
-		picture->setMediaTime(time);
+		picture->set(PresentationTime{time});
 		picture->set(DecodingTime{ time });
 		mux->getInput(0)->push(picture);
 		mux->process();

@@ -899,7 +899,7 @@ void GPACMuxMP4::sendSegmentToOutput(bool EOS) {
 	if (!(compatFlags & SegNumStartsAtZero)) {
 		curSegmentStartInTs += rescale(firstDataAbsTimeInMs, 1000, timeScale);
 	}
-	out->setMediaTime(curSegmentStartInTs, timeScale);
+	out->set(PresentationTime { timescaleToClock((int64_t)curSegmentStartInTs, timeScale) });
 	output->post(out);
 
 	if (segmentPolicy == IndependentSegment) {

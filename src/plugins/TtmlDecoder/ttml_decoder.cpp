@@ -147,7 +147,7 @@ class TTMLDecoder : public ModuleS {
 			page.hideTimestamp += now;
 
 			auto out = output->allocData<DataSubtitle>(0);
-			out->setMediaTime(now);
+			out->set(PresentationTime{now});
 			out->page = page;
 
 			CueFlags flags {};

@@ -183,7 +183,7 @@ struct Fixture {
 
 	void push(int index, int64_t mediaTime) {
 		auto data = make_shared<DataRaw>(0);
-		data->setMediaTime(mediaTime);
+		data->set(PresentationTime{mediaTime});
 		generators[index]->processOne(data);
 	}
 

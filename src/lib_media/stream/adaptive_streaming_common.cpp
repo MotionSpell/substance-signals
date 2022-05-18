@@ -86,7 +86,7 @@ void AdaptiveStreamingCommon::processInitSegment(Quality const * const quality, 
 		metaFn->startsWithRAP = meta->startsWithRAP;
 
 		out->setMetadata(metaFn);
-		out->setMediaTime(totalDurationInMs, 1000);
+		out->set(PresentationTime { timescaleToClock((int64_t)totalDurationInMs, 1000) });
 		outputSegments->post(out);
 		break;
 	}
@@ -224,7 +224,7 @@ void AdaptiveStreamingCommon::threadProc() {
 			metaFn->EOS = EOS;
 
 			out->setMetadata(metaFn);
-			out->setMediaTime(totalDurationInMs + timescaleToClock(curSegDurIn180k[i], 1000));
+			out->set(PresentationTime{ (int64_t)(totalDurationInMs + timescaleToClock(curSegDurIn180k[i], 1000)) });
 			outputSegments->post(out);
 		}
 	};

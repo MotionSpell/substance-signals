@@ -1,6 +1,7 @@
 #include "tests/tests.hpp"
 #include "lib_modules/modules.hpp"
 #include "lib_modules/utils/loader.hpp"
+#include "lib_media/common/attributes.hpp"
 #include "lib_media/common/picture.hpp"
 
 using namespace Tests;
@@ -10,12 +11,14 @@ using namespace std;
 static auto createYuvPic(Resolution res) {
 	auto r = make_shared<DataPicture>(res, PixelFormat::I420);
 	DataPicture::setup(r.get(), res, res, PixelFormat::I420);
+	r->set(PresentationTime{0});
 	return r;
 }
 
 static auto createNv12Pic(Resolution res) {
 	auto r = make_shared<DataPicture>(res, PixelFormat::NV12);
 	DataPicture::setup(r.get(), res, res, PixelFormat::NV12);
+	r->set(PresentationTime{0});
 	return r;
 }
 

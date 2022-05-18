@@ -1,5 +1,6 @@
 #include "lib_modules/modules.hpp"
 #include "lib_modules/utils/loader.hpp"
+#include "lib_media/common/attributes.hpp"
 #include "lib_media/common/subtitle.hpp"
 #include "plugins/SubtitleEncoder/subtitle_encoder.hpp"
 #include "../ttml_decoder.hpp"
@@ -60,7 +61,7 @@ unittest("ttml_decoder: ttml_encoder sample") {
 	Page pageSent {0, pageDurationIn180k, std::vector<Page::Line>({{"toto", "#ffffff", false, 23}, {"titi", "#ff0000", false, 24}})};
 	auto data = std::make_shared<DataSubtitle>(0);
 	auto const time = pageSent.showTimestamp + pageDurationIn180k;
-	data->setMediaTime(time);
+	data->set(PresentationTime{time});
 	data->page = pageSent;
 
 	int received = 0;
@@ -122,7 +123,7 @@ unittest("ttml_decoder: ebu-tt-live (WDR sample)") {
 
 	auto pkt = std::make_shared<DataRaw>(ttml.size());
 	memcpy(pkt->buffer->data().ptr, ttml.data(), ttml.size());
-	pkt->setMediaTime(1789);
+	pkt->set(PresentationTime{1789});
 	dec->getInput(0)->push(pkt);
 
 	ASSERT_EQUALS(1, received);
@@ -188,7 +189,7 @@ unittest("ttml_decoder: ebu-tt-live (EBU LIT User Input Producer sample)") {
 
 	auto pkt = std::make_shared<DataRaw>(ttml.size());
 	memcpy(pkt->buffer->data().ptr, ttml.data(), ttml.size());
-	pkt->setMediaTime(1789);
+	pkt->set(PresentationTime{1789});
 	dec->getInput(0)->push(pkt);
 
 	ASSERT_EQUALS(1, received);

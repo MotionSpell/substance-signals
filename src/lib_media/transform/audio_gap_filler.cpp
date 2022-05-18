@@ -36,7 +36,7 @@ struct AudioGapFiller : public ModuleS {
 					if (diff > 0) {
 						m_host->log(abs(diff) > srcNumSamples ? Warning : Debug, format("Fixing gap of %s samples (input=%s, accumulation=%s)", diff, timeInSR, accumulatedTimeInSR).c_str());
 						auto dataInThePast = clone(data);
-						dataInThePast->setMediaTime(data->get<PresentationTime>().time - timescaleToClock((uint64_t)srcNumSamples, sampleRate));
+						dataInThePast->set(PresentationTime { data->get<PresentationTime>().time - timescaleToClock(srcNumSamples, sampleRate) });
 						processOne(dataInThePast);
 					} else {
 						return; /*small overlap: thrash current sample*/
@@ -48,7 +48,7 @@ struct AudioGapFiller : public ModuleS {
 			}
 
 			auto dataOut = clone(data);
-			dataOut->setMediaTime(accumulatedTimeInSR, sampleRate);
+			dataOut->set(PresentationTime { timescaleToClock((int64_t)accumulatedTimeInSR, sampleRate) });
 			output->post(dataOut);
 
 			accumulatedTimeInSR += srcNumSamples;

@@ -14,7 +14,7 @@ struct IMetadata;
 //A generic timed data container with metadata.
 class DataBase {
 	public:
-		DataBase();
+		DataBase() {}
 		virtual ~DataBase() = default;
 
 		std::shared_ptr<const IMetadata> getMetadata() const;
@@ -50,11 +50,6 @@ class DataBase {
 		std::shared_ptr<const IMetadata> metadata;
 		std::vector<uint8_t> attributes;
 		SmallMap<int, int> attributeOffset;
-
-		// TODO: remove this
-	public:
-		// Deprecated: use 'set(PresentationTime{xxx})' instead.
-		void setMediaTime(int64_t timeIn180k, uint64_t timescale = IClock::Rate);
 };
 
 std::shared_ptr<DataBase> clone(std::shared_ptr<const DataBase> data);

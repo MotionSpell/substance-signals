@@ -428,11 +428,11 @@ struct LibavDemux : Module {
 		m_streams[pkt->stream_index].lastDTS = pkt->dts;
 		auto const base = m_formatCtx->streams[pkt->stream_index]->time_base;
 		auto const time = timescaleToClock(pkt->pts * base.num, base.den);
-		data->setMediaTime(time - startPTSIn180k);
+		data->set(PresentationTime{time - startPTSIn180k});
 		auto const decodingTime = timescaleToClock(pkt->dts * base.num, base.den);
 		data->set(DecodingTime { decodingTime - startPTSIn180k });
 		if (!startPTSIn180k) {
-			data->setMediaTime(m_streams[pkt->stream_index].restamper->restamp(data->get<PresentationTime>().time)); //restamp by pid only when no start time
+			data->set(PresentationTime{m_streams[pkt->stream_index].restamper->restamp(data->get<PresentationTime>().time)}); //restamp by pid only when no start time
 		}
 	}
 
@@ -493,7 +493,7 @@ struct LibavDemux : Module {
 				if (st->codecpar->codec_type == AVMEDIA_TYPE_SUBTITLE) {
 					auto sparse = m_streams[i].output->allocData<DataRaw>(0);
 					sparse->set(DecodingTime{ curTimeIn180k });
-					sparse->setMediaTime(curTimeIn180k);
+					sparse->set(PresentationTime{curTimeIn180k});
 					m_streams[i].output->post(sparse);
 				}
 			}

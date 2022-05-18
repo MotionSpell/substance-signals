@@ -33,7 +33,7 @@ unittest("ttml_encoder") {
 	auto data = std::make_shared<DataSubtitle>(0);
 	auto const time = page.showTimestamp + IClock::Rate * 4;
 	data->set(DecodingTime{ time });
-	data->setMediaTime(time);
+	data->set(PresentationTime{time});
 	data->page = page;
 
 	auto ttmlAnalyzer = createModule<OutStub>();
@@ -108,7 +108,7 @@ unittest("ttml_encoder: overlapping samples") {
 
     auto data = std::make_shared<DataSubtitle>(0);
     data->set(DecodingTime{ time });
-    data->setMediaTime(time);
+    data->set(PresentationTime{time});
     data->page = page;
     m->getInput(0)->push(data);
   }
@@ -202,7 +202,7 @@ unittest("ttml_encoder: segmentation and empty page") {
 	auto makeData = [](Page &page, int64_t time) {
 		auto data = std::make_shared<DataSubtitle>(0);
 		data->set(DecodingTime{ time });
-		data->setMediaTime(time);
+		data->set(PresentationTime{time});
 		data->page = page;
 		return data;
 	};

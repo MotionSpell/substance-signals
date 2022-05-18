@@ -1,6 +1,7 @@
 #include "tests/tests.hpp"
 #include "lib_modules/modules.hpp"
 #include "lib_modules/utils/loader.hpp"
+#include "lib_media/common/attributes.hpp"
 #include "lib_media/in/sound_generator.hpp"
 #include "lib_media/in/video_generator.hpp"
 #include "lib_utils/tools.hpp"
@@ -37,7 +38,7 @@ secondclasstest("render: sound generator, evil samples") {
 	fmt.numPlanes = 1;
 
 	auto sample = make_shared<DataPcm>(100, fmt);
-	sample->setMediaTime(299454611464360LL);
+	sample->set(PresentationTime{299454611464360LL});
 	render->getInput(0)->push(sample);
 	render->process();
 
@@ -70,12 +71,12 @@ secondclasstest("render: dynamic resolution") {
 	auto videoRender = Modules::loadModule("SDLVideo", &NullHost, nullptr);
 
 	auto pic1 = createYuvPic(Resolution(128, 64));
-	pic1->setMediaTime(1000);
+	pic1->set(PresentationTime{1000});
 	videoRender->getInput(0)->push(pic1);
 	videoRender->process();
 
 	auto pic2 = createYuvPic(Resolution(64, 256));
-	pic2->setMediaTime(2000);
+	pic2->set(PresentationTime{2000});
 	videoRender->getInput(0)->push(pic2);
 	videoRender->process();
 }

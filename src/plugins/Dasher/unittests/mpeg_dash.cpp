@@ -28,6 +28,7 @@ std::shared_ptr<DataBase> getTestSegment(std::string lang = "") {
 	static const uint8_t markerData[] = { 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F };
 
 	auto r = createPacket(markerData);
+	r->set(PresentationTime{0});
 
 	auto meta = make_shared<MetadataFile>(VIDEO_PKT);
 	meta->durationIn180k = segmentDuration;
@@ -130,6 +131,7 @@ unittest("dasher: two live streams unevenly interleaved") {
 	auto getSeg = [&](uint64_t dur, bool EOS) {
 		static const uint8_t markerData[] = { 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F };
 		auto r = createPacket(markerData);
+		r->set(PresentationTime{0});
 		auto meta = make_shared<MetadataFile>(VIDEO_PKT);
 		meta->durationIn180k = dur;
 		meta->EOS = EOS;

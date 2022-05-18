@@ -48,15 +48,11 @@ std::shared_ptr<DataBase> getTestMp3Frame() {
 	};
 
 	auto r = createPacket(mp3_sine_frame);
-
-	{
-		auto meta = make_shared<MetadataPkt>(AUDIO_PKT);
-		meta->codec = "mp3";
-		r->setMetadata(meta);
-	}
-
+	auto meta = make_shared<MetadataPkt>(AUDIO_PKT);
+	meta->codec = "mp3";
+	r->setMetadata(meta);
+	r->set(PresentationTime{0});
 	r->set(CueFlags {});
-
 	return r;
 }
 }
@@ -123,15 +119,11 @@ std::shared_ptr<DataBase> getTestH264Frame() {
 	};
 
 	auto r = createPacket(h264_gray_frame);
-
-	{
-		auto meta = make_shared<MetadataPkt>(VIDEO_PKT);
-		meta->codec = "h264_annexb";
-		r->setMetadata(meta);
-	}
-
+	auto meta = make_shared<MetadataPkt>(VIDEO_PKT);
+	meta->codec = "h264_annexb";
+	r->setMetadata(meta);
+	r->set(PresentationTime{0});
 	r->set(CueFlags {});
-
 	return r;
 }
 }

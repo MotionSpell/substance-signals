@@ -188,7 +188,7 @@ struct Fmp4Splitter : ModuleS {
 
 				auto out = output->allocData<DataRaw>(sample.size);
 				memcpy(out->buffer->data().ptr, contents.ptr, sample.size);
-				out->setMediaTime(m_decodeTime + sample.cts, m_timescale);
+				out->set(PresentationTime { timescaleToClock(m_decodeTime + sample.cts, m_timescale) });
 
 				CueFlags flags {};
 				flags.keyframe = true;

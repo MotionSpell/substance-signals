@@ -24,6 +24,7 @@ std::shared_ptr<DataBase> getTeletextTestFrame() {
 	};
 
 	auto r = createPacket(teletext);
+	r->set(PresentationTime{0});
 	r->setMetadata(make_shared<MetadataPkt>(SUBTITLE_PKT));
 	return r;
 }

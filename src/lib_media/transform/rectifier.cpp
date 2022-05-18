@@ -175,7 +175,7 @@ struct Rectifier : ModuleDynI {
 				// Align start time with previous end time when within accuracy. Can't drift by design.
 				if (dataPrevSampleEnd != dataSampleStart && std::abs(dataPrevSampleEnd - dataSampleStart) <= accuracy) {
 					auto dataClone = clone(data);
-					dataClone->setMediaTime(dataPrevSampleEnd, streams[i].fmt.sampleRate);
+					dataClone->set(PresentationTime { timescaleToClock(dataPrevSampleEnd, streams[i].fmt.sampleRate) });
 					return dataClone;
 				}
 			}
@@ -227,7 +227,7 @@ struct Rectifier : ModuleDynI {
 				if (stream.blank.data) {
 					stream.blank.creationTime = stream.blank.creationTime + duration;
 					auto nextBlankData = clone(stream.blank.data);
-					nextBlankData->setMediaTime(stream.blank.data->get<PresentationTime>().time + duration);
+					nextBlankData->set(PresentationTime { stream.blank.data->get<PresentationTime>().time + duration });
 					stream.blank.data = nextBlankData;
 					m_host->log(Warning, format("Empty master input (pts=%s). Resetting reference clock time to %ss.",
 					        stream.blank.data->get<PresentationTime>().time, (double)refClockTime).c_str());
@@ -351,7 +351,7 @@ struct Rectifier : ModuleDynI {
 				m_host->log(Info, format("First available reference clock time: %s", fractionToClock(now)).c_str());
 
 			auto data = clone(masterFrame.data);
-			data->setMediaTime(outMasterTime.start);
+			data->set(PresentationTime{outMasterTime.start});
 			master.output->post(data);
 
 			return { masterFrame.data->get<PresentationTime>().time, masterFrame.data->get<PresentationTime>().time + (outMasterTime.stop - outMasterTime.start)};
@@ -386,7 +386,7 @@ struct Rectifier : ModuleDynI {
 			// Create an zeroed output sample.
 			// We want it to start at 'outMasterTime.start' and to cover the full 'outMasterTime' interval.
 			auto pcm = stream.output->allocData<DataPcm>(outMasterSamples.stop - outMasterSamples.start, stream.fmt);
-			pcm->setMediaTime(outMasterTime.start);
+			pcm->set(PresentationTime{outMasterTime.start});
 			for(int i=0; i < pcm->format.numPlanes; ++i)
 				memset(pcm->getPlane(i), 0, pcm->getPlaneSize());
 
@@ -480,7 +480,7 @@ struct Rectifier : ModuleDynI {
 					*dataOut = *sub; // clone
 
 					auto const delta = inMasterTime.start - outMasterTime.start;
-					dataOut->setMediaTime(outMasterTime.start);
+					dataOut->set(PresentationTime{outMasterTime.start});
 					dataOut->page.showTimestamp += delta;
 					dataOut->page.hideTimestamp += delta;
 					stream.output->post(dataOut);

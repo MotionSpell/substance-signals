@@ -136,7 +136,7 @@ struct AdaptiveStreamer : ModuleDynI {
 			metaFn->startsWithRAP = meta->startsWithRAP;
 
 			out->setMetadata(metaFn);
-			out->setMediaTime(totalDurationInMs, 1000);
+			out->set(PresentationTime{timescaleToClock(totalDurationInMs, 1000)});
 			outputSegments->post(out);
 		}
 
@@ -239,7 +239,7 @@ struct AdaptiveStreamer : ModuleDynI {
 				metaFn->EOS = EOS;
 
 				out->setMetadata(metaFn);
-				out->setMediaTime(totalDurationInMs + timescaleToClock(qualities[repIdx].curSegDurIn180k, 1000));
+				out->set(PresentationTime{totalDurationInMs + timescaleToClock((int64_t)qualities[repIdx].curSegDurIn180k, 1000)});
 				outputSegments->post(out);
 			}
 		}
@@ -375,7 +375,7 @@ class Dasher : public AdaptiveStreamer {
 			metadata->durationIn180k = segDurationIn180k;
 			metadata->filesize = contents.size();
 			out->setMetadata(metadata);
-			out->setMediaTime(totalDurationInMs, 1000);
+			out->set(PresentationTime{timescaleToClock(totalDurationInMs, 1000)});
 			memcpy(out->buffer->data().ptr, contents.data(), contents.size());
 			outputManifest->post(out);
 		}
@@ -591,7 +591,7 @@ class Dasher : public AdaptiveStreamer {
 				if (!out)
 					throw error("Unexpected null pointer detected while getting data.");
 				out->setMetadata(metaFn);
-				out->setMediaTime(totalDurationInMs, 1000);
+				out->set(PresentationTime { timescaleToClock(totalDurationInMs, 1000) });
 				outputSegments->post(out);
 
 				if (!nextSegFilename.empty()) {
@@ -601,7 +601,7 @@ class Dasher : public AdaptiveStreamer {
 						meta->filename = nextSegFilename;
 						meta->EOS = false;
 						out->setMetadata(meta);
-						out->setMediaTime(totalDurationInMs, 1000);
+						out->set(PresentationTime { timescaleToClock(totalDurationInMs, 1000) });
 						outputSegments->post(out);
 					}
 				}

@@ -1,6 +1,7 @@
 #include "file.hpp"
 #include "lib_modules/utils/helper.hpp"
 #include "lib_modules/utils/factory.hpp" // registerModule
+#include "lib_media/common/attributes.hpp"
 #include "lib_utils/tools.hpp"
 #include "lib_utils/format.hpp"
 #include "lib_utils/log_sink.hpp" // Info
@@ -44,6 +45,7 @@ class FileInput : public Module {
 				return;
 			}
 			out->resize(read);
+			out->set(PresentationTime{0});
 			output->post(out);
 		}
 
