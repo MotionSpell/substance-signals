@@ -181,7 +181,6 @@ void MPEG_DASH_Input::processStream(Stream* stream) {
 		// this adaptation set is disabled: move to the next step
 		if (stream->initializationChunkSent)
 			stream->currNumber++;
-
 		return;
 	}
 
@@ -209,8 +208,7 @@ void MPEG_DASH_Input::processStream(Stream* stream) {
 		}
 	}
 
-	m_host->log(Debug, format("wget: '%s'", url).c_str());
-
+	
 	bool empty = true;
 
 	auto onBuffer = [&](SpanC chunk) {
@@ -220,8 +218,18 @@ void MPEG_DASH_Input::processStream(Stream* stream) {
 		memcpy(data->buffer->data().ptr, chunk.ptr, chunk.len);
 		stream->out->post(data);
 	};
-
-	stream->source->wget(url.c_str(), onBuffer);
+	int retryCount = 20;
+	while(retryCount > 0) {
+		m_host->log(Debug, format("wget: '%s'", url).c_str());
+		stream->source->wget(url.c_str(), onBuffer);
+		m_host->log(Debug, format("wget done, empty=%s: '%s'", (int)empty, url).c_str());
+		retryCount--;
+		if (!empty) retryCount = 0;
+		if (!stream->anySegmentDataReceived) retryCount = 0;
+		if (retryCount > 0) {
+			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		}
+	}
 	if (empty) {
 		if (mpd->dynamic) {
             int leeway = 1;
@@ -249,7 +257,6 @@ void MPEG_DASH_Input::process() {
 		m_host->activate(false);
 		return;
 	}
-
 	for(auto& stream : m_streams)
 		stream->executor->post(std::bind(&MPEG_DASH_Input::processStream, this, stream.get()));
 }
