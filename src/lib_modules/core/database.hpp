@@ -14,8 +14,13 @@ struct IMetadata;
 //A generic timed data container with metadata.
 class DataBase {
 	public:
-		DataBase() {}
 		virtual ~DataBase() = default;
+
+		static void clone(DataBase const * const src, DataBase * const dst) {
+			dst->buffer = src->buffer;
+			dst->setMetadata(src->getMetadata());
+			dst->copyAttributes(*src);
+		}
 
 		std::shared_ptr<const IMetadata> getMetadata() const;
 		void setMetadata(std::shared_ptr<const IMetadata> metadata);
@@ -46,26 +51,21 @@ class DataBase {
 			return ((const IBuffer*)buffer.get())->data();
 		}
 
+		virtual std::shared_ptr<DataBase> clone() const = 0;
+
+	protected:
+		DataBase() = default;
+
 	private:
 		std::shared_ptr<const IMetadata> metadata;
 		std::vector<uint8_t> attributes;
 		SmallMap<int, int> attributeOffset;
 };
 
-std::shared_ptr<DataBase> clone(std::shared_ptr<const DataBase> data);
-
-class DataBaseRef : public DataBase {
-	public:
-		DataBaseRef(std::shared_ptr<const DataBase> data);
-		std::shared_ptr<const DataBase> getData() const;
-
-	private:
-		std::shared_ptr<const DataBase> dataRef;
-};
-
 class DataRaw : public DataBase {
 	public:
 		DataRaw(size_t size);
+		std::shared_ptr<DataBase> clone() const override;
 };
 
 class DataRawResizable : public DataRaw {
@@ -78,10 +78,6 @@ using Data = std::shared_ptr<const DataBase>;
 using Metadata = std::shared_ptr<const IMetadata>;
 
 inline bool isDeclaration(Data data) {
-	auto refData = std::dynamic_pointer_cast<const DataBaseRef>(data);
-	if(refData && !refData->getData())
-		return true;
-
 	return data->buffer == nullptr;
 }
 
@@ -96,13 +92,5 @@ std::shared_ptr<T> safe_cast(std::shared_ptr<const Modules::DataBase> p) {
 	if (auto r = std::dynamic_pointer_cast<T>(p))
 		return r;
 
-	if (auto ref = std::dynamic_pointer_cast<const Modules::DataBaseRef>(p)) {
-		if (auto r = std::dynamic_pointer_cast<T>(ref->getData()))
-			return r;
-		if (auto r = std::dynamic_pointer_cast<const Modules::DataBase>(ref->getData()))
-			return safe_cast<T>(r);
-	}
-
 	throw_dynamic_cast_error(typeid(T).name());
 }
-

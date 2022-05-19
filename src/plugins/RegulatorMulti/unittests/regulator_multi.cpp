@@ -47,7 +47,7 @@ unittest("RegulatorMulti: video is sent in advance + flush()") {
 	}
 
 	auto push = [&](int index, int64_t timeInMs) {
-		auto pkt = make_shared<DataRaw>(0);
+		auto pkt = make_shared<DataRaw>(1);
 		pkt->set(DecodingTime{ timescaleToClock(timeInMs, 1000) });
 		pkt->set(CueFlags{});
 		pkt->setMetadata(meta[index]);
@@ -91,7 +91,7 @@ unittest("RegulatorMulti: backward discontinuity") {
 	}
 
 	auto push = [&](int index, int64_t timeInMs) {
-		auto pkt = make_shared<DataRaw>(0);
+		auto pkt = make_shared<DataRaw>(1);
 		pkt->set(DecodingTime{ timescaleToClock(timeInMs, 1000) });
 		pkt->set(CueFlags{});
 		pkt->setMetadata(meta[index]);

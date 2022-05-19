@@ -19,7 +19,7 @@ struct Source : Modules::Module {
 		host->activate(true);
 	}
 	void process() override {
-		out->post(out->allocData<DataRaw>(0));
+		out->post(out->allocData<DataRaw>(1));
 		if(sent)
 			host->activate(false);
 	}

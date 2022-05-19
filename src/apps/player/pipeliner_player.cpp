@@ -53,7 +53,7 @@ struct Restamper : Module {
 
 			auto restampedTime = dataTime - startTime + shift;
 
-			auto dataOut = clone(dataIn);
+			auto dataOut = dataIn->clone();
 			dataOut->set(PresentationTime{restampedTime});
 			try {
 				dataOut->set(DecodingTime{dataIn->get<DecodingTime>().time - startTime + shift});

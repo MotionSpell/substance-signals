@@ -65,7 +65,7 @@ void AdaptiveStreamingCommon::processInitSegment(Quality const * const quality, 
 	auto const &meta = quality->getMeta();
 	switch (meta->type) {
 	case AUDIO_PKT: case VIDEO_PKT: case SUBTITLE_PKT: {
-		auto out = clone(quality->lastData);
+		auto out = quality->lastData->clone();
 		std::string initFn = safe_cast<const MetadataFile>(quality->lastData->getMetadata())->filename;
 		if (initFn.empty()) {
 			initFn = format("%s%s", manifestDir, getInitName(quality, index));
@@ -148,7 +148,7 @@ void AdaptiveStreamingCommon::endOfStream() {
 
 std::shared_ptr<DataBase> AdaptiveStreamingCommon::getPresignalledData(uint64_t size, Data &data, bool EOS) {
 	if (!(flags & PresignalNextSegment)) {
-		return clone(data);
+		return data->clone();
 	}
 	if (!safe_cast<const MetadataFile>(data->getMetadata())->filename.empty() && !EOS) {
 		return nullptr;
@@ -171,7 +171,7 @@ std::shared_ptr<DataBase> AdaptiveStreamingCommon::getPresignalledData(uint64_t 
 		return out;
 	} else {
 		assert(data->data().len < 8 || *(uint32_t*)(data->data().ptr + 4) != (uint32_t)0x70797473);
-		return clone(data);
+		return data->clone();
 	}
 }
 

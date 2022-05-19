@@ -163,18 +163,15 @@ struct Rectifier : ModuleDynI {
 
 			if (auto const pcm = std::dynamic_pointer_cast<const DataPcm>(data)) {
 				auto const accuracy = divUp(1 * IClock::Rate, 90000LL); // 1 sample at 90kHz
-
-				// FIXME: in case of clone: data.data->get<PresentationTime>().time != inputData->get<PresentationTime>().time
-				auto const dataPrev = streams[i].data.back().data;
-				auto const pcmPrev = safe_cast<const DataPcm>(dataPrev);
+				auto const dataPrev = safe_cast<const DataPcm>(streams[i].data.back().data);
 
 				// Operate on samples.
-				auto const dataPrevSampleEnd = dataPrev->get<PresentationTime>().time * streams[i].fmt.sampleRate / IClock::Rate + pcmPrev->getSampleCount();
+				auto const dataPrevSampleEnd = dataPrev->get<PresentationTime>().time * streams[i].fmt.sampleRate / IClock::Rate + dataPrev->getSampleCount();
 				auto const dataSampleStart = data->get<PresentationTime>().time * streams[i].fmt.sampleRate / IClock::Rate;
 
 				// Align start time with previous end time when within accuracy. Can't drift by design.
 				if (dataPrevSampleEnd != dataSampleStart && std::abs(dataPrevSampleEnd - dataSampleStart) <= accuracy) {
-					auto dataClone = clone(data);
+					auto dataClone = data->clone();
 					dataClone->set(PresentationTime { timescaleToClock(dataPrevSampleEnd, streams[i].fmt.sampleRate) });
 					return dataClone;
 				}
@@ -226,7 +223,7 @@ struct Rectifier : ModuleDynI {
 				// This way, media from other streams can still be consumed without filling queues waiting for expiration.
 				if (stream.blank.data) {
 					stream.blank.creationTime = stream.blank.creationTime + duration;
-					auto nextBlankData = clone(stream.blank.data);
+					auto nextBlankData = stream.blank.data->clone();
 					nextBlankData->set(PresentationTime { stream.blank.data->get<PresentationTime>().time + duration });
 					stream.blank.data = nextBlankData;
 					m_host->log(Warning, format("Empty master input (pts=%s). Resetting reference clock time to %ss.",
@@ -350,7 +347,7 @@ struct Rectifier : ModuleDynI {
 			} else if (numTicks == 0)
 				m_host->log(Info, format("First available reference clock time: %s", fractionToClock(now)).c_str());
 
-			auto data = clone(masterFrame.data);
+			auto data = masterFrame.data->clone();
 			data->set(PresentationTime{outMasterTime.start});
 			master.output->post(data);
 

@@ -124,9 +124,9 @@ unittest("metadata: updated twice by data") {
 
 unittest("duplicating data") {
 	PcmFormat fmt;
-	auto data = make_shared<DataPcm>(0, fmt);
+	auto data = make_shared<const DataPcm>(0, fmt);
 
-	Data dataCopy = clone(data);
+	Data dataCopy = data->clone();
 	data = nullptr;
 
 	auto dataCopyPcm = safe_cast<const DataPcm>(dataCopy);

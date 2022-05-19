@@ -35,7 +35,7 @@ struct AudioGapFiller : public ModuleS {
 				if (toleranceInFrames == -1 || (toleranceInFrames > 0 && std::abs(diff) <= srcNumSamples * (1 + (int64_t)toleranceInFrames))) {
 					if (diff > 0) {
 						m_host->log(abs(diff) > srcNumSamples ? Warning : Debug, format("Fixing gap of %s samples (input=%s, accumulation=%s)", diff, timeInSR, accumulatedTimeInSR).c_str());
-						auto dataInThePast = clone(data);
+						auto dataInThePast = data->clone();
 						dataInThePast->set(PresentationTime { data->get<PresentationTime>().time - timescaleToClock(srcNumSamples, sampleRate) });
 						processOne(dataInThePast);
 					} else {
@@ -47,7 +47,7 @@ struct AudioGapFiller : public ModuleS {
 				}
 			}
 
-			auto dataOut = clone(data);
+			auto dataOut = data->clone();
 			dataOut->set(PresentationTime { timescaleToClock((int64_t)accumulatedTimeInSR, sampleRate) });
 			output->post(dataOut);
 

@@ -22,7 +22,7 @@ struct InfiniteSource : Modules::Module {
 		host->activate(true);
 	}
 	void process() override {
-		out->post(out->allocData<Modules::DataRaw>(0));
+		out->post(out->allocData<Modules::DataRaw>(1));
 	}
 	Modules::OutputDefault* out;
 };
@@ -33,7 +33,7 @@ struct FakeSource : Modules::Module {
 		host->activate(true);
 	}
 	void process() override {
-		out->post(out->allocData<Modules::DataRaw>(0));
+		out->post(out->allocData<Modules::DataRaw>(1));
 		if(--numRepetition <= 0)
 			host->activate(false);
 	}
@@ -68,7 +68,7 @@ class DualInput : public Modules::Module {
 					got1 = input1->tryPop(data);
 				}
 				if(got0 && got1)
-					out->post(out->allocData<Modules::DataRaw>(0));
+					out->post(out->allocData<Modules::DataRaw>(1));
 			}
 
 			input0->clear();

@@ -52,7 +52,7 @@ unittest("remux test: libav mp4 mux") {
 	ASSERT(demux->getNumOutputs() > 1);
 	for (int i = 0; i < demux->getNumOutputs(); ++i) {
 		//declare statically metadata to avoid missing data at start
-		auto data = make_shared<DataBase>();
+		auto data = make_shared<DataRaw>(0);
 		data->setMetadata(demux->getOutput(i)->getMetadata());
 		mux->getInput(i)->push(data);
 
@@ -70,7 +70,7 @@ unittest("remux test: libav mp4 mux") {
 }
 
 unittest("mux test: GPAC mp4 with generic descriptor") {
-	auto pkt = make_shared<Modules::DataRaw>(0);
+	auto pkt = make_shared<DataRaw>(1);
 	pkt->setMetadata(make_shared<MetadataPktVideo>());
 	pkt->set(CueFlags{});
 	pkt->set(DecodingTime{});
@@ -295,7 +295,7 @@ secondclasstest("mux GPAC mp4 combination coverage: ugly 2") {
 
 unittest("remux test: canonical to H.264 Annex B bitstream converter") {
 	const uint8_t input[] = {0, 0, 0, 4, 44, 55, 66, 77 };
-	auto pkt = make_shared<Modules::DataRaw>(sizeof input);
+	auto pkt = make_shared<DataRaw>(sizeof input);
 	memcpy(pkt->buffer->data().ptr, input, sizeof input);
 
 	std::vector<uint8_t> actual;

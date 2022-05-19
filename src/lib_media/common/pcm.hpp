@@ -96,6 +96,12 @@ struct DataPcm : DataBase {
 		buffer = std::make_shared<RawBuffer>(numSamples * format.getBytesPerSample());
 	}
 
+	std::shared_ptr<DataBase> clone() const override {
+		std::shared_ptr<DataBase> clone = std::make_shared<DataPcm>(0, format);
+		DataBase::clone(this, clone.get());
+		return clone;
+	}
+
 	uint8_t* getPlane(int planeIdx) const {
 		if (planeIdx > format.numPlanes)
 			throw std::runtime_error("Pcm plane doesn't exist.");

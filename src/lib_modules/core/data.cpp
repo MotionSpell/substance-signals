@@ -48,35 +48,19 @@ void DataBase::copyAttributes(DataBase const& from) {
 	attributes = from.attributes;
 }
 
-std::shared_ptr<DataBase> clone(std::shared_ptr<const DataBase> data) {
-	auto clone = std::make_shared<DataBaseRef>(data);
-	clone->copyAttributes(*data);
+DataRaw::DataRaw(size_t size) {
+	if (size > 0)
+		buffer = std::make_shared<RawBuffer>(size);
+}
+
+std::shared_ptr<DataBase> DataRaw::clone() const {
+	std::shared_ptr<DataBase> clone = std::make_shared<DataRaw>(0);
+	DataBase::clone(this, clone.get());
 	return clone;
 }
 
-DataBaseRef::DataBaseRef(std::shared_ptr<const DataBase> data) {
-	if (data) {
-		// don't copy attributes as they can't be overwritten
-		setMetadata(data->getMetadata());
-		auto ref = std::dynamic_pointer_cast<const DataBaseRef>(data);
-		if (ref) {
-			dataRef = ref->getData();
-		} else {
-			dataRef = data;
-		}
-		buffer = dataRef->buffer;
-	}
-}
-
-std::shared_ptr<const DataBase> DataBaseRef::getData() const {
-	return dataRef;
-}
-
-DataRaw::DataRaw(size_t size) {
+DataRawResizable::DataRawResizable(size_t size) : DataRaw(0) {
 	buffer = std::make_shared<RawBuffer>(size);
-}
-
-DataRawResizable::DataRawResizable(size_t size) : DataRaw(size) {
 }
 
 void DataRawResizable::resize(size_t size) {
