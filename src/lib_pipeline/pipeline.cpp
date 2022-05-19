@@ -115,7 +115,7 @@ void Pipeline::connect(OutputPin prev, InputPin next, bool inputAcceptMultipleCo
 	{
 		std::unique_lock<std::mutex> lock(remainingNotificationsMutex);
 		if (remainingNotifications != notifications)
-			throw std::runtime_error("Connection but the topology has changed. Not supported yet."); //TODO: to change that, we need to store a state of the Filter.
+			throw std::runtime_error("Connection but the topology has changed. Not supported yet.");
 	}
 
 	n->connect(p->getOutput(prev.index), next.index, inputAcceptMultipleConnections);

@@ -16,7 +16,7 @@ namespace {
 struct HttpInput : Module {
 		HttpInput(KHost *host, HttpInputConfig const& cfg)
 			: m_host(host), url(cfg.url) {
-			addOutput();
+			out = addOutput();
 			host->activate(true);
 		}
 		void flush() override {
@@ -31,7 +31,7 @@ struct HttpInput : Module {
 
 				workingThread = std::thread([&]() {
 					auto onBuffer = [&](SpanC chunk) {
-						auto data = std::make_shared<DataRaw>(chunk.len);
+						auto data = out->allocData<DataRaw>(chunk.len);
 						memcpy(data->buffer->data().ptr, chunk.ptr, chunk.len);
 						outputs[0]->post(data);
 					};
@@ -44,6 +44,7 @@ struct HttpInput : Module {
 
 	private:
 		KHost * const m_host;
+		OutputDefault *out;
 		const std::string url;
 		std::unique_ptr<In::IFilePuller> source;
 		std::thread workingThread;
