@@ -473,8 +473,7 @@ struct Rectifier : ModuleDynI {
 			while (data != stream.data.end()) {
 				auto const sub = safe_cast<const DataSubtitle>(data->data);
 				if (sub->page.hideTimestamp >= inMasterTime.start) {
-					auto dataOut = stream.output->allocData<DataSubtitle>(0);
-					*dataOut = *sub; // clone
+					auto dataOut = safe_cast<DataSubtitle>(sub->clone());
 
 					auto const delta = inMasterTime.start - outMasterTime.start;
 					dataOut->set(PresentationTime{outMasterTime.start});

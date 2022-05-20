@@ -40,8 +40,10 @@ struct DataSubtitle : DataBase {
 			throw std::runtime_error("Forbidden operation. DataSubtitle requested size must be 0.");
 	}
 	std::shared_ptr<DataBase> clone() const override {
-		std::shared_ptr<DataBase> clone = std::make_shared<DataSubtitle>(0);
+		auto dataSub = std::make_shared<DataSubtitle>(0);
+		std::shared_ptr<DataBase> clone = dataSub;
 		DataBase::clone(this, clone.get());
+		dataSub->page = page;
 		return clone;
 	}
 	Page page;

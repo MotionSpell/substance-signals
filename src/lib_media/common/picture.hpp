@@ -61,6 +61,17 @@ class DataPicture : public DataRaw {
 			: DataRaw(PictureFormat::getSize(resInternal, format) + PictureFormat::ALIGNMENT + 512 / 8), format(res, format)  {
 			setup(this, res, resInternal, format);
 		}
+		std::shared_ptr<DataBase> clone() const override {
+			auto dataPic = std::make_shared<DataPicture>(format.res, format.format);
+			std::shared_ptr<DataBase> clone = dataPic;
+			DataBase::clone(this, clone.get());
+			dataPic->m_planeCount = m_planeCount;
+			for (int i=0; i<4; ++i) {
+				dataPic->m_stride[i] = m_stride[i];
+				dataPic->m_planes[i] = m_planes[i];
+			}
+			return clone;
+		}
 
 		static void setup(DataPicture* pic, Resolution res, Resolution resInternal, PixelFormat format);
 

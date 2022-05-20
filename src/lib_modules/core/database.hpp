@@ -14,6 +14,8 @@ struct IMetadata;
 //A generic timed data container with metadata.
 class DataBase {
 	public:
+		DataBase (const DataBase&) = delete;
+		DataBase& operator= (const DataBase&) = delete;
 		virtual ~DataBase() = default;
 
 		static void clone(DataBase const * const src, DataBase * const dst) {
