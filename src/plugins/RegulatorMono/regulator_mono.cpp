@@ -20,7 +20,7 @@ class RegulatorMono : public ModuleS {
 		}
 
 		void processOne(Data data) override {
-			auto const timeTarget = data->get<PresentationTime>().time;
+			auto const timeTarget = data->get<DecodingTime>().time;
 			auto const timeNow = fractionToClock(clock->now());
 			auto const delayInMs = clockToTimescale(timeTarget - timeNow, 1000) - m_offsetInMs;
 			if (delayInMs > 0) {

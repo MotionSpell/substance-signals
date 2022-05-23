@@ -66,7 +66,7 @@ struct Interval {
 
 struct Rectifier : ModuleDynI {
 		Rectifier(KHost* host, std::shared_ptr<IClock> clock_, std::shared_ptr<IScheduler> scheduler_, Fraction frameRate)
-			: m_host(host), framePeriod(frameRate.inverse()), analyzeWindowInFrames(frameRate * inputLifetime / 2),
+			: m_host(host), framePeriod(frameRate.inverse()), analyzeWindowInFrames(frameRate * masterInputLifetime / 2),
 			  clock(clock_), scheduler(scheduler_) {
 		}
 
@@ -115,7 +115,8 @@ struct Rectifier : ModuleDynI {
 	private:
 		KHost* const m_host;
 		Fraction const framePeriod;
-		const Fraction inputLifetime = Fraction(500, 1000); // clock time after which data is discarded
+		const Fraction gInputLifetime = Fraction(5000, 1000); // clock time after which data is discarded
+		const Fraction masterInputLifetime = Fraction(500, 1000); // clock time after which master data is discarded - the master stream is the only raw video stream
 		const int analyzeWindowInFrames; // target buffer level for the master input
 		std::shared_ptr<IClock> const clock;
 		std::shared_ptr<IScheduler> const scheduler;
@@ -285,7 +286,7 @@ struct Rectifier : ModuleDynI {
 
 			// input data management
 			fillInputQueues();
-			discardOutdatedData(fractionToClock(now - inputLifetime));
+			discardOutdatedData(fractionToClock(now - gInputLifetime));
 
 			// output media times corresponding to the "media period"
 			auto const outMasterTime = Interval {
@@ -304,6 +305,8 @@ struct Rectifier : ModuleDynI {
 			auto const inMasterTime = emitOnePeriod_Master(masterStreamId, now, outMasterTime);
 			if (inMasterTime.start == inMasterTime.stop)
 				return;
+
+			discardStreamOutdatedData(masterStreamId, fractionToClock(now - masterInputLifetime));
 
 			// slave data
 			for (auto i : getInputs()) {
@@ -432,7 +435,7 @@ struct Rectifier : ModuleDynI {
 				m_host->log(Warning, format("Incomplete audio period (%s samples instead of %s - queue size %s (v=%s)). Expect glitches.",
 				        writtenSamples, inMasterSamples.stop - inMasterSamples.start, stream.data.size(), streams[0].data.size()).c_str());
 
-				if (1) { // debug traces
+				if (0) { // debug traces
 					printf("\t[%lf - %lf] now=%lf\n", inMasterTime.start / (double)IClock::Rate, inMasterTime.stop / (double)IClock::Rate, (double)now);
 
 					for (auto i : getInputs()) {
