@@ -46,8 +46,7 @@ struct Restamper : Module {
 			int idx;
 			auto dataIn = popAny(idx);
 
-			auto dataTime = dataIn->get<PresentationTime>().time;
-
+			auto const dataTime = dataIn->get<DecodingTime>().time;
 			if(startTime == INT64_MIN)
 				startTime = dataTime;
 

@@ -19,7 +19,7 @@ std::shared_ptr<DataBase> createPacket(span<const char> contents) {
 
 }
 
-unittest("HTTP: should fail if the server doesn't exist") {
+secondclasstest("HTTP: should fail if the server doesn't exist") {
 	HttpOutputConfig cfg {};
 	cfg.flags.InitialEmptyPost = true;
 	cfg.url = "http://unexisting_domain_name/nonexisting_page:1234";
