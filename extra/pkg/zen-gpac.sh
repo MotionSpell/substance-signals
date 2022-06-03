@@ -5,7 +5,7 @@ function gpac_build {
   # do not use a truncated hash here, use the full hash!
   # (collisions DO occur with truncated hashes, in practice this would
   # have the effect of stopping the whole build)
-  readonly hash="54a88bbb7d246655563f6428c3c5cfa28868da61"
+  readonly hash="dbf8bb5fec8e371661c432dd686b97f931bb6c18"
 
   lazy_git_clone https://github.com/rbouqueau/gpac.git gpac "$hash"
 
@@ -104,9 +104,12 @@ function gpac_build {
     --cross-prefix="$crossPrefix" \
     --extra-cflags="-I$PREFIX/include -w -fPIC" \
     --extra-ldflags="-L$PREFIX/lib" \
+    --enable-debug \
     --verbose \
     --prefix=$PREFIX \
     ${options[@]}
+
+sed -i s/LDFLAGS=-s\ -static-libstdc++/LDFLAGS=/ config.mak
 
   $MAKE lib
   $MAKE install-lib
