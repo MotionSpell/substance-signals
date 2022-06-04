@@ -5,7 +5,7 @@ function gpac_build {
   # do not use a truncated hash here, use the full hash!
   # (collisions DO occur with truncated hashes, in practice this would
   # have the effect of stopping the whole build)
-  readonly hash="dbf8bb5fec8e371661c432dd686b97f931bb6c18"
+  readonly hash="5cf0e5f90f7625164d99bb902520e24f2fae660b"
 
   lazy_git_clone https://github.com/rbouqueau/gpac.git gpac "$hash"
 

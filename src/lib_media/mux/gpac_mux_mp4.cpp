@@ -17,6 +17,7 @@ extern "C" {
 
 	extern GF_Err gf_isom_get_bs(GF_ISOFile *movie, GF_BitStream **out_bs);
 	extern GF_Err gf_isom_set_sync_table(GF_ISOFile *file, u32 track);
+	extern GF_Err gf_bs_reassign_buffer(GF_BitStream *bs, const u8 *buffer, u64 BufferSize);
 }
 
 auto const AVC_INBAND_CONFIG = 0;
@@ -52,12 +53,8 @@ Span getBsContent(GF_ISOFile *iso, bool newBs) {
 	u32 size;
 	gf_bs_get_content(bs, (u8**)&output, &size);
 
-	if (newBs) {
-		auto bsNew = gf_bs_new(nullptr, 0, GF_BITSTREAM_WRITE);
-		memcpy(bs, bsNew, 2*sizeof(void*)); //HACK: GPAC GF_BitStream.original needs to be non-NULL
-		memset(bsNew,  0, 2*sizeof(void*));
-		gf_bs_del(bsNew);
-	}
+	if (newBs)
+		SAFE(gf_bs_reassign_buffer(bs, nullptr, 0));
 
 	return {(uint8_t*)output, (size_t)size};
 }
@@ -389,6 +386,9 @@ GPACMuxMP4::GPACMuxMP4(KHost* host, Mp4MuxConfig const& cfg)
 	  fragmentPolicy(cfg.fragmentPolicy),
 	  segmentPolicy(cfg.segmentPolicy),
 	  segmentDuration(cfg.segmentDurationInMs, 1000) {
+	if (segmentPolicy == IndependentSegment && fragmentPolicy != NoFragment)
+		compatFlags = compatFlags | Browsers;
+
 	if ((cfg.segmentDurationInMs == 0) != (segmentPolicy == NoSegment || segmentPolicy == SingleSegment))
 		throw error(format("Inconsistent parameters: segment duration is %sms but no segment.", cfg.segmentDurationInMs));
 	if ((cfg.segmentDurationInMs == 0) && (fragmentPolicy == OneFragmentPerSegment))

@@ -28,7 +28,7 @@ struct ISOProgressiveReader {
 	std::string dataUrl() {
 		blob.data = data.data();
 		blob.size = data.size();
-		char buffer[256];
+		char buffer[32];
 		sprintf(buffer, "gmem://%p", &blob);
 		return buffer;
 	}

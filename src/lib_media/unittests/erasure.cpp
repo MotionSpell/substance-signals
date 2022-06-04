@@ -12,7 +12,7 @@ using namespace Modules;
 
 namespace {
 
-secondclasstest("packet type erasure + multi-output: libav Demux -> {libav Decoder -> Out::Print}*") {
+unittest("packet type erasure + multi-output: libav Demux -> {libav Decoder -> Out::Print}*") {
 	DemuxConfig cfg;
 	cfg.url = "data/beepbop.mp4";
 	auto demux = loadModule("LibavDemux", &NullHost, &cfg);

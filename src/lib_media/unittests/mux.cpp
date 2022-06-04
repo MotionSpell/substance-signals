@@ -233,8 +233,7 @@ std::vector<Meta> operator+(std::vector<Meta> const& a, std::vector<Meta> const&
 	return r;
 }
 
-// causes valgrind errors and GPAC warnings
-secondclasstest("mux GPAC mp4 combination coverage: ugly") {
+unittest("mux GPAC mp4 combination coverage 1") {
 	std::vector<Meta> ref = {
 		{ "", "audio/mp4", "mp4a.40.2", "", 0, 10437, 0, 1, 1 },
 		{ "output_video_gpac_12-0.mp4", "audio/mp4", "mp4a.40.2", "", 363629, 4838, 360000, 1, 1 },
@@ -251,18 +250,18 @@ secondclasstest("mux GPAC mp4 combination coverage: ugly") {
 	const uint64_t segmentDurationInMs = 2000;
 
 	auto cfg1 = Mp4MuxConfig{"", 0, NoSegment, NoFragment};
-	auto cfg2 = Mp4MuxConfig{"output_video_gpac_12", segmentDurationInMs, IndependentSegment, OneFragmentPerSegment, SegNumStartsAtZero};
-	auto cfg3 = Mp4MuxConfig{"output_video_gpac_13", segmentDurationInMs, IndependentSegment, OneFragmentPerRAP, SegNumStartsAtZero};
-	auto cfg4 = Mp4MuxConfig{"output_video_gpac_14", segmentDurationInMs, IndependentSegment, OneFragmentPerFrame, SegNumStartsAtZero};
+	auto cfg2 = Mp4MuxConfig{"output_video_gpac_12", segmentDurationInMs, IndependentSegment, OneFragmentPerSegment, SegNumStartsAtZero | Browsers};
+	auto cfg3 = Mp4MuxConfig{"output_video_gpac_13", segmentDurationInMs, IndependentSegment, OneFragmentPerRAP, SegNumStartsAtZero | Browsers};
+	auto cfg4 = Mp4MuxConfig{"output_video_gpac_14", segmentDurationInMs, IndependentSegment, OneFragmentPerFrame, SegNumStartsAtZero | Browsers};
 
-	auto res1 = runMux(loadModule("GPACMuxMP4", &NullHost, &cfg1)); // causes gpac warning: "[BS] Attempt to write on unassigned bitstream"
-	auto res2 = runMux(loadModule("GPACMuxMP4", &NullHost, &cfg2)); // valgrind reports writes of uninitialized bytes
-	auto res3 = runMux(loadModule("GPACMuxMP4", &NullHost, &cfg3)); // valgrind reports writes of uninitialized bytes
-	auto res4 = runMux(loadModule("GPACMuxMP4", &NullHost, &cfg4)); // valgrind reports writes of uninitialized bytes
+	auto res1 = runMux(loadModule("GPACMuxMP4", &NullHost, &cfg1));
+	auto res2 = runMux(loadModule("GPACMuxMP4", &NullHost, &cfg2));
+	auto res3 = runMux(loadModule("GPACMuxMP4", &NullHost, &cfg3));
+	auto res4 = runMux(loadModule("GPACMuxMP4", &NullHost, &cfg4));
 	ASSERT_EQUALS(ref, res1 + res2 + res3 + res4);
 }
 
-secondclasstest("mux GPAC mp4 combination coverage: ugly 2") {
+unittest("mux GPAC mp4 combination coverage 2") {
 	std::vector<Meta> ref = {
 		{ "", "audio/mp4", "mp4a.40.2", "", 363629, 5226, 360000, 1, 1 },
 		{ "", "audio/mp4", "mp4a.40.2", "", 359445, 5336, 359445, 1, 1 },
@@ -287,9 +286,9 @@ secondclasstest("mux GPAC mp4 combination coverage: ugly 2") {
 	auto cfg3 = Mp4MuxConfig{"", segmentDurationInMs, FragmentedSegment, OneFragmentPerSegment, SegNumStartsAtZero | FlushFragMemory};
 
 	ASSERT_EQUALS(ref,
-	    runMux(loadModule("GPACMuxMP4", &NullHost, &cfg1)) // causes gpac warning: "[BS] Attempt to write on unassigned bitstream"
-	    + runMux(loadModule("GPACMuxMP4", &NullHost, &cfg2))// causes gpac warning: "[BS] Attempt to write on unassigned bitstream"
-	    + runMux(loadModule("GPACMuxMP4", &NullHost, &cfg3))// causes gpac warning: "[BS] Attempt to write on unassigned bitstream"
+	    runMux(loadModule("GPACMuxMP4", &NullHost, &cfg1))
+	    + runMux(loadModule("GPACMuxMP4", &NullHost, &cfg2))
+	    + runMux(loadModule("GPACMuxMP4", &NullHost, &cfg3))
 	);
 }
 
@@ -315,7 +314,7 @@ unittest("remux test: canonical to H.264 Annex B bitstream converter") {
 	ASSERT_EQUALS(expected, actual);
 }
 
-unittest("[DISABLED] GPAC mp4 mux: don't create empty fragments") {
+unittest("GPAC mp4 mux: don't create empty fragments") {
 	struct Recorder : ModuleS {
 		void processOne(Data data) {
 			auto meta = safe_cast<const MetadataFile>(data->getMetadata());
@@ -361,7 +360,7 @@ unittest("[DISABLED] GPAC mp4 mux: don't create empty fragments") {
 	for(auto time : times) {
 		auto picture = createH264AccessUnit();
 		picture->set(PresentationTime{time});
-		picture->set(DecodingTime{ time });
+		picture->set(DecodingTime{time});
 		mux->getInput(0)->push(picture);
 		mux->process();
 	}
@@ -369,7 +368,6 @@ unittest("[DISABLED] GPAC mp4 mux: don't create empty fragments") {
 
 	auto const expected = vector<int64_t>({
 		(0 * IClock::Rate),
-		(1 * IClock::Rate),
 		(1 * IClock::Rate),
 		(1 * IClock::Rate),
 		(1 * IClock::Rate),

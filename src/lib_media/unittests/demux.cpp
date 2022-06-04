@@ -81,7 +81,7 @@ unittest("empty param test: Demux") {
 	ASSERT_THROWN(loadModule("GPACDemuxMP4Simple", &NullHost, &cfg));
 }
 
-secondclasstest("demux one track: Demux::GPACDemuxMP4Simple -> Out::Print") {
+unittest("demux one track: Demux::GPACDemuxMP4Simple -> Out::Print") {
 	Mp4DemuxConfig cfg { "data/beepbop.mp4"};
 	auto mp4Demux = loadModule("GPACDemuxMP4Simple", &NullHost, &cfg);
 	auto p = createModule<Out::Print>(&NullHost, std::cout);
@@ -154,7 +154,7 @@ unittest("GPACDemuxMP4Full: demux fragments") {
 	ASSERT_EQUALS(820, sampleCount);
 }
 
-unittest("[DISABLED] GPACDemuxMP4Full: fmp4 simple: one frame per fragment") {
+unittest("GPACDemuxMP4Full: fmp4 simple: one frame per fragment") {
 	struct FrameCounter : ModuleS {
 		void processOne(Data) override {
 			++frameCount;
