@@ -8,6 +8,9 @@
 namespace Modules {
 
 struct Page {
+	int64_t showTimestamp = 0;
+	int64_t hideTimestamp = 0;
+
 	struct Line {
 		std::string text;
 		std::string color = "#ffffff";
@@ -22,8 +25,6 @@ struct Page {
 		int row = 24; // last line
 		int col = 0;
 	};
-	int64_t showTimestamp = 0;
-	int64_t hideTimestamp = 0;
 	std::vector<Line> lines;
 
 	std::string toString() const {

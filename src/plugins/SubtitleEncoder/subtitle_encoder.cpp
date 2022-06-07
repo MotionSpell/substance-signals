@@ -133,8 +133,9 @@ class SubtitleEncoder : public ModuleS {
 			ttml << "<tt xmlns=\"http://www.w3.org/ns/ttml\" xmlns:tt=\"http://www.w3.org/ns/ttml\" xmlns:ttm=\"http://www.w3.org/ns/ttml#metadata\" xmlns:tts=\"http://www.w3.org/ns/ttml#styling\" xmlns:ttp=\"http://www.w3.org/ns/ttml#parameter\" xml:lang=\"" << lang << "\" >\n";
 			ttml << "  <head>\n";
 			ttml << "    <styling>\n";
-			ttml << "      <style xml:id=\"Style0_0\" tts:fontSize=\"60%\" tts:fontFamily=\"monospaceSansSerif\" />\n";
-			if (hasDoubleHeight())
+			if (!hasDoubleHeight())
+				ttml << "      <style xml:id=\"Style0_0\" tts:fontSize=\"60%\" tts:fontFamily=\"monospaceSansSerif\" />\n";
+			else
 				ttml << "      <style xml:id=\"Style0_0_double\" tts:fontSize=\"60%\" tts:fontFamily=\"monospaceSansSerif\" />\n";
 			ttml << "    </styling>\n";
 			ttml << "    <layout>\n";
@@ -161,7 +162,7 @@ class SubtitleEncoder : public ModuleS {
 
 					auto const numLines = 24;
 					auto const height = Fraction(100.0, numLines);
-					auto const spacingFactor = Fraction(1);
+					auto const spacingFactor = Fraction(1); //Romain: should come from the input TTML?
 					auto const verticalOrigin = (double)((height * spacingFactor * ROWS * -1 + 100) + height * spacingFactor * line.row); // Percentage. Promote the last rows for text display.
 					if (verticalOrigin >= 0 &&  height * spacingFactor * (1 + (int)doubleHeight) + verticalOrigin <= 100) {
 						auto const factorH = 1 + (int)doubleHeight;
