@@ -16,9 +16,6 @@ void Recorder::flush() {
 }
 
 void Recorder::processOne(Data data) {
-	if (data) {
-		m_host->log(Debug, format("Data[%s] recorded at media time %s", data.get(), data->get<PresentationTime>().time).c_str());
-	}
 	record.push(data);
 }
 
