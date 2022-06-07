@@ -94,7 +94,9 @@ class SubtitleEncoder : public ModuleS {
 				if (line.text.empty() && !forceEmptyPage)
 					continue;
 
-				ttml << "      <p region=\"Region" << regionId << "_" << line.row << "\" style=\"Style0_0\" begin=\"" << timecodeShow << "\" end=\"" << timecodeHide << "\">\n";
+				ttml << "      <p region=\"Region" << regionId << "_" << line.row << "\" style=\"Style0_0";
+				if (line.doubleHeight) ttml << "_double";
+				ttml << "\" begin=\"" << timecodeShow << "\" end=\"" << timecodeHide << "\">\n";
 				ttml << "        <span tts:color=\"" << line.color << "\" tts:backgroundColor=\"" << line.bgColor << "\">" << line.text << "</span>\n";
 				ttml << "      </p>\n";
 			}
@@ -117,12 +119,23 @@ class SubtitleEncoder : public ModuleS {
 			default: throw error("Unknown timing policy (1)");
 			}
 
+			auto hasDoubleHeight = [&]() {
+				for (auto& page : currentPages)
+					for (auto& line : page.lines)
+						if (line.doubleHeight)
+							return true;
+
+				return false;
+			};
+
 			std::stringstream ttml;
 			ttml << "<?xml version=\"1.0\" encoding=\"utf-8\"?>";
 			ttml << "<tt xmlns=\"http://www.w3.org/ns/ttml\" xmlns:tt=\"http://www.w3.org/ns/ttml\" xmlns:ttm=\"http://www.w3.org/ns/ttml#metadata\" xmlns:tts=\"http://www.w3.org/ns/ttml#styling\" xmlns:ttp=\"http://www.w3.org/ns/ttml#parameter\" xml:lang=\"" << lang << "\" >\n";
 			ttml << "  <head>\n";
 			ttml << "    <styling>\n";
 			ttml << "      <style xml:id=\"Style0_0\" tts:fontSize=\"60%\" tts:fontFamily=\"monospaceSansSerif\" />\n";
+			if (hasDoubleHeight())
+				ttml << "      <style xml:id=\"Style0_0_double\" tts:fontSize=\"60%\" tts:fontFamily=\"monospaceSansSerif\" />\n";
 			ttml << "    </styling>\n";
 			ttml << "    <layout>\n";
 
