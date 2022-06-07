@@ -18,7 +18,6 @@ using namespace Modules;
 namespace {
 
 auto const DEBUG_DISPLAY_TIMESTAMPS = false;
-const std::string defaultColor = "0xffffffff";
 
 std::string timecodeToString(int64_t timeInMs) {
 	const size_t timecodeSize = 24;
@@ -96,7 +95,7 @@ class SubtitleEncoder : public ModuleS {
 					continue;
 
 				ttml << "      <p region=\"Region" << regionId << "_" << line.row << "\" style=\"Style0_0\" begin=\"" << timecodeShow << "\" end=\"" << timecodeHide << "\">\n";
-				ttml << "        <span tts:color=\"" << line.color << "\" tts:backgroundColor=\"#000000\">" << line.text << "</span>\n";
+				ttml << "        <span tts:color=\"" << line.color << "\" tts:backgroundColor=\"" << line.bgColor << "\">" << line.text << "</span>\n";
 				ttml << "      </p>\n";
 			}
 
@@ -228,7 +227,7 @@ class SubtitleEncoder : public ModuleS {
 		void sendSample(const std::string& sample) {
 			auto out = output->allocData<DataRaw>(sample.size());
 			out->set(DecodingTime{ intClock });
-			out->set(PresentationTime{intClock});
+			out->set(PresentationTime{ intClock });
 
 			CueFlags flags {};
 			flags.keyframe = true;
@@ -257,7 +256,11 @@ class SubtitleEncoder : public ModuleS {
 						line += std::string("[ ") + timecodeToString(startInMs) + " - " + timecodeToString(endInMs) + " ] ";
 						for (int pos = line.length(); pos < COLS; ++pos)
 							line.push_back('X');
-						pageOut.lines.push_back({ line, defaultColor, false, row, 0 });
+
+						Page::Line pageline;
+						pageline.text = line;
+						pageline.row = 0;
+						pageOut.lines.push_back(pageline);
 					}
 					currentPages.clear();
 					currentPages.push_back(pageOut);

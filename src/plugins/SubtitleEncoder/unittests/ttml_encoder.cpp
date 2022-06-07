@@ -55,10 +55,10 @@ unittest("ttml_encoder") {
   <body>
     <div>
       <p region="Region0_24" style="Style0_0" begin="00:00:00.000" end="00:00:01.000">
-        <span tts:color="#ffffff" tts:backgroundColor="#000000">toto</span>
+        <span tts:color="#ffffff" tts:backgroundColor="#000000c2">toto</span>
       </p>
       <p region="Region0_24" style="Style0_0" begin="00:00:00.000" end="00:00:01.000">
-        <span tts:color="#ff0000" tts:backgroundColor="#000000">titi</span>
+        <span tts:color="#ff0000" tts:backgroundColor="#000000c2">titi</span>
       </p>
     </div>
   </body>
@@ -77,10 +77,10 @@ unittest("ttml_encoder") {
   <body>
     <div>
       <p region="Region0_24" style="Style0_0" begin="00:00:01.000" end="00:00:02.000">
-        <span tts:color="#ffffff" tts:backgroundColor="#000000">toto</span>
+        <span tts:color="#ffffff" tts:backgroundColor="#000000c2">toto</span>
       </p>
       <p region="Region0_24" style="Style0_0" begin="00:00:01.000" end="00:00:02.000">
-        <span tts:color="#ff0000" tts:backgroundColor="#000000">titi</span>
+        <span tts:color="#ff0000" tts:backgroundColor="#000000c2">titi</span>
       </p>
     </div>
   </body>
@@ -127,10 +127,10 @@ unittest("ttml_encoder: overlapping samples") {
   <body>
     <div>
       <p region="Region0_24" style="Style0_0" begin="00:00:00.000" end="00:00:01.000">
-        <span tts:color="#ffffff" tts:backgroundColor="#000000">toto0</span>
+        <span tts:color="#ffffff" tts:backgroundColor="#000000c2">toto0</span>
       </p>
       <p region="Region0_24" style="Style0_0" begin="00:00:00.000" end="00:00:01.000">
-        <span tts:color="#ff0000" tts:backgroundColor="#000000">titi</span>
+        <span tts:color="#ff0000" tts:backgroundColor="#000000c2">titi</span>
       </p>
     </div>
   </body>
@@ -149,10 +149,10 @@ unittest("ttml_encoder: overlapping samples") {
   <body>
     <div>
       <p region="Region0_24" style="Style0_0" begin="00:00:01.000" end="00:00:02.000">
-        <span tts:color="#ffffff" tts:backgroundColor="#000000">toto0</span>
+        <span tts:color="#ffffff" tts:backgroundColor="#000000c2">toto0</span>
       </p>
       <p region="Region0_24" style="Style0_0" begin="00:00:01.000" end="00:00:02.000">
-        <span tts:color="#ff0000" tts:backgroundColor="#000000">titi</span>
+        <span tts:color="#ff0000" tts:backgroundColor="#000000c2">titi</span>
       </p>
     </div>
   </body>
@@ -171,10 +171,10 @@ unittest("ttml_encoder: overlapping samples") {
   <body>
     <div>
       <p region="Region0_24" style="Style0_0" begin="00:00:02.000" end="00:00:03.000">
-        <span tts:color="#ffffff" tts:backgroundColor="#000000">toto1</span>
+        <span tts:color="#ffffff" tts:backgroundColor="#000000c2">toto1</span>
       </p>
       <p region="Region0_24" style="Style0_0" begin="00:00:02.000" end="00:00:03.000">
-        <span tts:color="#ff0000" tts:backgroundColor="#000000">titi</span>
+        <span tts:color="#ff0000" tts:backgroundColor="#000000c2">titi</span>
       </p>
     </div>
   </body>
@@ -233,13 +233,13 @@ unittest("ttml_encoder: segmentation and empty page") {
   <body>
     <div>
       <p region="Region0_24" style="Style0_0" begin="00:00:00.000" end="00:00:00.500">
-        <span tts:color="#ffffff" tts:backgroundColor="#000000">toto1</span>
+        <span tts:color="#ffffff" tts:backgroundColor="#000000c2">toto1</span>
       </p>
       <p region="Region1_24" style="Style0_0" begin="00:00:00.500" end="00:00:00.750">
-        <span tts:color="#ffffff" tts:backgroundColor="#000000">toto2</span>
+        <span tts:color="#ffffff" tts:backgroundColor="#000000c2">toto2</span>
       </p>
       <p region="Region2_24" style="Style0_0" begin="00:00:00.750" end="00:00:01.000">
-        <span tts:color="#ffffff" tts:backgroundColor="#000000">toto3</span>
+        <span tts:color="#ffffff" tts:backgroundColor="#000000c2">toto3</span>
       </p>
     </div>
   </body>
@@ -257,7 +257,7 @@ unittest("ttml_encoder: segmentation and empty page") {
   <body>
     <div>
       <p region="Region0_24" style="Style0_0" begin="00:00:01.000" end="00:00:01.250">
-        <span tts:color="#ffffff" tts:backgroundColor="#000000">toto3</span>
+        <span tts:color="#ffffff" tts:backgroundColor="#000000c2">toto3</span>
       </p>
     </div>
   </body>
@@ -275,7 +275,7 @@ unittest("ttml_encoder: segmentation and empty page") {
   <body>
     <div>
       <p region="Region0_24" style="Style0_0" begin="00:00:02.000" end="00:00:03.000">
-        <span tts:color="#ffffff" tts:backgroundColor="#000000"></span>
+        <span tts:color="#ffffff" tts:backgroundColor="#000000c2"></span>
       </p>
     </div>
   </body>

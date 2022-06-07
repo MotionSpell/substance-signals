@@ -11,6 +11,11 @@ struct Page {
 	struct Line {
 		std::string text;
 		std::string color = "#ffffff";
+		std::string bgColor = "#000000c2"; // TTML BasicDE: black with an opacity of 76% and a transparency of 24%
+
+		//BasicDE: To leave space between the text in adjacent
+		//rows, the font size for double height is not 200% but 160%. The value of 125% for
+		//tts:lineHeight defines a line-height that is 125% of the computed font-size
 		bool doubleHeight = false;
 
 		// default values inherited from teletext
