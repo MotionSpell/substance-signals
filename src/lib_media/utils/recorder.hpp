@@ -16,7 +16,6 @@ class Recorder : public ModuleS {
 		bool tryPop(Data &data);
 
 	private:
-		KHost* const m_host;
 		Queue<Data> record;
 };
 

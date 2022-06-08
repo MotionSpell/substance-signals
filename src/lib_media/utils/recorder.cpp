@@ -7,8 +7,7 @@
 namespace Modules {
 namespace Utils {
 
-Recorder::Recorder(KHost* host)
-	: m_host(host) {
+Recorder::Recorder(KHost* /*host*/) {
 }
 
 void Recorder::flush() {
