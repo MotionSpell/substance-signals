@@ -15,10 +15,10 @@ static std::ostream& operator<<(std::ostream& o, const Page& p) {
 
 static bool operator!=(const Page::Line& lhs, const Page::Line& rhs) {
 	return lhs.text != rhs.text
-	    || lhs.color != rhs.color
-	    || lhs.doubleHeight != rhs.doubleHeight
-	    || lhs.row != rhs.row
-	    || lhs.col != rhs.col;
+	    || lhs.style.color != rhs.style.color
+	    || lhs.style.doubleHeight != rhs.style.doubleHeight
+	    || lhs.region.row != rhs.region.row
+	    || lhs.region.col != rhs.region.col;
 }
 
 static bool operator!=(const Page& lhs, const Page& rhs) {
@@ -58,8 +58,9 @@ unittest("ttml_decoder: ttml_encoder sample") {
 
 	auto const pageNum = 2;
 	auto const pageDurationIn180k = timescaleToClock(pageNum * encCfg.splitDurationInMs + encCfg.maxDelayBeforeEmptyInMs, 1000);
-	Page pageSent {0, pageDurationIn180k,
-	std::vector<Page::Line>({{"toto", "#ffffff", "#000000c2", false, 23}, {"titi", "#ff0000", "#000000c2", false, 24}})};
+	Page pageSent {0, pageDurationIn180k, {}, {},
+	std::vector<Page::Line>({{"toto", {23}, {"#ffffff", "#000000c2", false}}, {"titi", {24}, {"#ff0000", "#000000c2", false}}})
+	};
 	auto data = std::make_shared<DataSubtitle>(0);
 	auto const time = pageSent.showTimestamp + pageDurationIn180k;
 	data->set(PresentationTime{time});
@@ -111,9 +112,9 @@ unittest("ttml_decoder: ebu-tt-live (WDR sample)") {
 	cfg.clock = zc;
 	auto dec = loadModule("TTMLDecoder", &NullHost, &cfg);
 	int received = 0;
-	Page expected = { 0, 60 * IClock::Rate, {
-			{ "Sample of a EBU-TT-LIVE document - line 1", "#FFFFFF", "#000000C2", false, 23, 0 },
-			{ "Sample of a EBU-TT-LIVE document - line 2", "#FFFFFF", "#000000C2", false, 24, 0 }
+	Page expected = { 0, 60 * IClock::Rate, {}, {}, {
+			{ "Sample of a EBU-TT-LIVE document - line 1", {23, 0}, {"#FFFFFF", "#000000C2", false} },
+			{ "Sample of a EBU-TT-LIVE document - line 2", {24, 0}, {"#FFFFFF", "#000000C2", false} }
 		}
 	};
 	ConnectOutput(dec->getOutput(0), [&](Data data) {
@@ -181,7 +182,7 @@ unittest("ttml_decoder: ebu-tt-live (EBU LIT User Input Producer sample)") {
 	cfg.clock = zc;
 	auto dec = loadModule("TTMLDecoder", &NullHost, &cfg);
 	int received = 0;
-	Page expected = { 0, 10 * IClock::Rate, { { "nils is yo", "#ffffff" } } };
+	Page expected = { 0, 10 * IClock::Rate, {}, {}, { { "nils is yo", {}, { "#ffffff" } } } };
 	ConnectOutput(dec->getOutput(0), [&](Data data) {
 		auto &pageReceived = safe_cast<const DataSubtitle>(data)->page;
 		ASSERT_EQUALS(expected, pageReceived);

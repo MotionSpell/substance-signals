@@ -60,7 +60,6 @@ class SubtitleEncoder : public ModuleS {
 		int64_t intClock = 0;
 		const int64_t maxPageDurIn180k, splitDurationIn180k;
 		std::vector<Page> currentPages;
-		const int ROWS = 25, COLS = 40;
 
 		void enqueuePage(const DataSubtitle *page) {
 			if (!page)
@@ -94,10 +93,10 @@ class SubtitleEncoder : public ModuleS {
 				if (line.text.empty() && !forceEmptyPage)
 					continue;
 
-				ttml << "      <p region=\"Region" << regionId << "_" << line.row << "\" style=\"Style0_0";
-				if (line.doubleHeight) ttml << "_double";
+				ttml << "      <p region=\"Region" << regionId << "_" << line.region.row << "\" style=\"Style0_0";
+				if (line.style.doubleHeight) ttml << "_double";
 				ttml << "\" begin=\"" << timecodeShow << "\" end=\"" << timecodeHide << "\">\n";
-				ttml << "        <span tts:color=\"" << line.color << "\" tts:backgroundColor=\"" << line.bgColor << "\">" << line.text << "</span>\n";
+				ttml << "        <span tts:color=\"" << line.style.color << "\" tts:backgroundColor=\"" << line.style.bgColor << "\">" << line.text << "</span>\n";
 				ttml << "      </p>\n";
 			}
 
@@ -122,7 +121,7 @@ class SubtitleEncoder : public ModuleS {
 			auto hasDoubleHeight = [&]() {
 				for (auto& page : currentPages)
 					for (auto& line : page.lines)
-						if (line.doubleHeight)
+						if (line.style.doubleHeight)
 							return true;
 
 				return false;
@@ -154,7 +153,7 @@ class SubtitleEncoder : public ModuleS {
 					if (line.text.empty() && !forceEmptyPage)
 						continue;
 
-					if (line.doubleHeight) {
+					if (line.style.doubleHeight) {
 						doubleHeight = true;
 					} else if (doubleHeight) {
 						m_host->log(Warning, "Mixing single and double height is not handled. Contact your vendor.");
@@ -163,13 +162,13 @@ class SubtitleEncoder : public ModuleS {
 					auto const numLines = 24;
 					auto const height = Fraction(100.0, numLines);
 					auto const spacingFactor = Fraction(1); //Romain: should come from the input TTML?
-					auto const verticalOrigin = (double)((height * spacingFactor * ROWS * -1 + 100) + height * spacingFactor * line.row); // Percentage. Promote the last rows for text display.
+					auto const verticalOrigin = (double)((height * spacingFactor * page.numRows * -1 + 100) + height * spacingFactor * line.region.row); // Percentage. Promote the last rows for text display.
 					if (verticalOrigin >= 0 &&  height * spacingFactor * (1 + (int)doubleHeight) + verticalOrigin <= 100) {
 						auto const factorH = 1 + (int)doubleHeight;
 						auto const margin = 10.0; //percentage
-						auto const origin = (margin + (100 - 2 * margin) * line.col / (double)COLS) / factorH;
+						auto const origin = (margin + (100 - 2 * margin) * line.region.col / (double)page.numCols) / factorH;
 						auto const width = 100 - origin - margin;
-						ttml << "      <region xml:id=\"Region" << pageToRegionId[&page] << "_" << line.row << "\" ";
+						ttml << "      <region xml:id=\"Region" << pageToRegionId[&page] << "_" << line.region.row << "\" ";
 						ttml << "tts:origin=\"" << origin << "% " << verticalOrigin << "%\" tts:extent=\"" << width << "% " << (double)height * factorH << "%\" ";
 						ttml << "tts:displayAlign=\"center\" tts:textAlign=\"center\" />\n";
 					} else
@@ -263,17 +262,17 @@ class SubtitleEncoder : public ModuleS {
 					Page pageOut;
 					pageOut.showTimestamp = prevSplit;
 					pageOut.hideTimestamp = nextSplit;
-					for (int row = 0; row < ROWS; ++row) {
+					for (int row = 0; row < pageOut.numRows; ++row) {
 						std::string line;
 						line += "Lp ";
 						line += std::to_string(row);
 						line += std::string("[ ") + timecodeToString(startInMs) + " - " + timecodeToString(endInMs) + " ] ";
-						for (int pos = line.length(); pos < COLS; ++pos)
+						for (int pos = line.length(); pos < pageOut.numCols; ++pos)
 							line.push_back('X');
 
 						Page::Line pageline;
 						pageline.text = line;
-						pageline.row = 0;
+						pageline.region.row = 0;
 						pageOut.lines.push_back(pageline);
 					}
 					currentPages.clear();

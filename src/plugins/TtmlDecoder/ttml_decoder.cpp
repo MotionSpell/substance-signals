@@ -82,7 +82,7 @@ class TTMLDecoder : public ModuleS {
 						else if (attr.name == "tts:lineHeight")
 							m_host->log(Debug, format("Ignored attribute %s", attr.name).c_str());
 						else if (attr.name == "tts:color")
-							lineStyle.color = attr.value;
+							lineStyle.style.color = attr.value;
 						else if (attr.name == "tts:backgroundColor")
 							m_host->log(Debug, format("Ignored attribute %s", attr.name).c_str());
 						else if (attr.name == "ebutts:linePadding")
@@ -124,11 +124,11 @@ class TTMLDecoder : public ModuleS {
 						if (attr.name == "style")
 							line = styles[attr.value];
 						else if (attr.name == "tts:color")
-							line.color = attr.value;
+							line.style.color = attr.value;
 
 					// rectify layout to avoid overwrites
 					for (auto &line : page.lines)
-						line.row--;
+						line.region.row--;
 
 					line.text = tag.content;
 					page.lines.push_back(line);

@@ -11,8 +11,7 @@ struct Page {
 	int64_t showTimestamp = 0;
 	int64_t hideTimestamp = 0;
 
-	struct Line {
-		std::string text;
+	struct Style {
 		std::string color = "#ffffff";
 		std::string bgColor = "#000000c2"; // TTML BasicDE: black with an opacity of 76% and a transparency of 24%
 
@@ -20,12 +19,24 @@ struct Page {
 		//rows, the font size for double height is not 200% but 160%. The value of 125% for
 		//tts:lineHeight defines a line-height that is 125% of the computed font-size
 		bool doubleHeight = false;
+	};
+	std::vector<Style> styles;
 
+	struct Region {
 		// default values inherited from teletext
 		int row = 24; // last line
 		int col = 0;
 	};
+	std::vector<Region> regions;
+
+	struct Line {
+		std::string text;
+		Region region {};
+		Style style {};
+	};
 	std::vector<Line> lines;
+
+	int numRows = 25, numCols = 40;
 
 	std::string toString() const {
 		std::string r;
