@@ -64,27 +64,37 @@ class TTMLDecoder : public ModuleS {
 			if(document.name != "tt" && document.name != "tt:tt")
 				throw error("Not a TTML document");
 
-			SmallMap<std::string, Page::Line/*empty content*/> styles;
 			int64_t pageMaxDuration = 30 * IClock::Rate; //default: 30s
+			int numCols = 32, numRows = 15; // default in TTML
+			SmallMap<std::string, Page::Style> styles;
 
 			explore(document, [&](const Tag& tag) {
+				if (tag.name == "tt" || tag.name == "tt:name")
+					for (auto &attr : tag.attr)
+						if (attr.name == "cellResolution") {
+							int ret = sscanf(attr.value.c_str(), "%d %d", &numCols, &numRows);
+							if (ret != 2)
+								m_host->log(Warning, format("Incorrect parsing of attribute %s=\"%s\" into \"%d %d\" (%d elements parsed)",
+								        attr.name, attr.value, numCols, numRows, ret).c_str());
+						}
+
 				if (tag.name == "style" || tag.name == "tt:style") {
 					std::string id;
-					Page::Line lineStyle;
+					Page::Style style;
 
 					for (auto &attr : tag.attr) {
 						if (attr.name == "xml:id")
 							id = attr.value;
 						else if (attr.name == "tts:fontFamily")
-							m_host->log(Debug, format("Ignored attribute %s", attr.name).c_str());
+							style.fontFamily = attr.value;
 						else if (attr.name == "tts:fontSize")
-							m_host->log(Debug, format("Ignored attribute %s", attr.name).c_str());
+							style.fontSize = attr.value;
 						else if (attr.name == "tts:lineHeight")
-							m_host->log(Debug, format("Ignored attribute %s", attr.name).c_str());
+							style.lineHeight = attr.value;
 						else if (attr.name == "tts:color")
-							lineStyle.style.color = attr.value;
+							style.color = attr.value;
 						else if (attr.name == "tts:backgroundColor")
-							m_host->log(Debug, format("Ignored attribute %s", attr.name).c_str());
+							style.bgColor = attr.value;
 						else if (attr.name == "ebutts:linePadding")
 							m_host->log(Debug, format("Ignored attribute %s", attr.name).c_str());
 						else if (attr.name == "tts:textAlign")
@@ -93,7 +103,7 @@ class TTMLDecoder : public ModuleS {
 							m_host->log(Warning, format("Unknown attribute %s: please report to your vendor", attr.name).c_str());
 					}
 
-					styles[id] = lineStyle;
+					styles[id] = style;
 				}
 
 				if (tag.name == "body" || tag.name == "tt:body")
@@ -116,22 +126,49 @@ class TTMLDecoder : public ModuleS {
 			page.hideTimestamp = pageMaxDuration;
 
 			explore(document, [&](const Tag& tag) {
-				if (tag.name == "span" || tag.name == "tt:span") {
-					Page::Line line;
-
+				if (tag.name == "div" || tag.name == "tt:div") {
+					Page::Style divStyle;
 					// find style
 					for (auto &attr : tag.attr)
 						if (attr.name == "style")
-							line = styles[attr.value];
-						else if (attr.name == "tts:color")
-							line.style.color = attr.value;
+							divStyle = styles[attr.value];
 
-					// rectify layout to avoid overwrites
-					for (auto &line : page.lines)
-						line.region.row--;
+					for (auto &tagDiv: tag.children) {
+						if (tagDiv.name == "p" || tagDiv.name == "tt:p") {
+							Page::Style pStyle = divStyle;
+							Page::Region pRegion;
+							for (auto &attr : tagDiv.attr) {
+								if (attr.name == "style")
+									pStyle.merge(styles[attr.value]);
+								//TODO: handle regions
+								//else if (attr.name == "region")
+								//	pStyle.color = regions[attr.value];
+							}
 
-					line.text = tag.content;
-					page.lines.push_back(line);
+							for (auto &tagP: tagDiv.children) {
+								if (tagP.name == "span" || tagP.name == "tt:span") {
+									Page::Style spanStyle = pStyle;
+									for (auto &attr : tagP.attr)
+										if (attr.name == "style")
+											spanStyle.merge(styles[attr.value]);
+										else if (attr.name == "tts:color")
+											spanStyle.color = attr.value;
+
+									Page::Line line;
+									line.region = pRegion;
+									line.style = spanStyle;
+
+									// rectify layout to avoid overwrites
+									for (auto &line : page.lines)
+										line.region.row--;
+
+									line.text = tagP.content;
+									page.lines.push_back(line);
+								}
+							}
+						}
+
+					}
 				}
 			});
 

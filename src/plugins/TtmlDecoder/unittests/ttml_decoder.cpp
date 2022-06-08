@@ -13,12 +13,24 @@ static std::ostream& operator<<(std::ostream& o, const Page& p) {
 	return o;
 }
 
+static bool operator!=(const Page::Region& lhs, const Page::Region& rhs) {
+	return lhs.col != rhs.col
+	    || lhs.row != rhs.row;
+}
+
+static bool operator!=(const Page::Style& lhs, const Page::Style& rhs) {
+	return lhs.bgColor != rhs.bgColor
+	    || lhs.color != rhs.color
+	    || lhs.doubleHeight != rhs.doubleHeight
+	    || lhs.fontFamily != rhs.fontFamily
+	    || lhs.fontSize != rhs.fontSize
+	    || lhs.lineHeight != rhs.lineHeight;
+}
+
 static bool operator!=(const Page::Line& lhs, const Page::Line& rhs) {
 	return lhs.text != rhs.text
-	    || lhs.style.color != rhs.style.color
-	    || lhs.style.doubleHeight != rhs.style.doubleHeight
-	    || lhs.region.row != rhs.region.row
-	    || lhs.region.col != rhs.region.col;
+	    || lhs.style != rhs.style
+	    || lhs.region != rhs.region;
 }
 
 static bool operator!=(const Page& lhs, const Page& rhs) {
@@ -58,7 +70,7 @@ unittest("ttml_decoder: ttml_encoder sample") {
 
 	auto const pageNum = 2;
 	auto const pageDurationIn180k = timescaleToClock(pageNum * encCfg.splitDurationInMs + encCfg.maxDelayBeforeEmptyInMs, 1000);
-	Page pageSent {0, pageDurationIn180k, {}, {},
+	Page pageSent {0, pageDurationIn180k,
 	std::vector<Page::Line>({{"toto", {23}, {"#ffffff", "#000000c2", false}}, {"titi", {24}, {"#ff0000", "#000000c2", false}}})
 	};
 	auto data = std::make_shared<DataSubtitle>(0);
@@ -90,7 +102,8 @@ unittest("ttml_decoder: ebu-tt-live (WDR sample)") {
         </tt:metadata>
         <tt:styling>
             <tt:style xml:id="defaultStyle" tts:fontFamily="Verdana,Arial,Tiresias" tts:fontSize="160%" tts:lineHeight="125%"/>
-            <tt:style xml:id="textWhite" tts:color="#FFFFFF" tts:backgroundColor="#000000c2"/><tt:style xml:id="textCenter" tts:textAlign="center"/>
+            <tt:style xml:id="textWhite" tts:color="#FFFFFF" tts:backgroundColor="#000000c2"/>
+			<tt:style xml:id="textCenter" tts:textAlign="center"/>
         </tt:styling>
         <tt:layout>
             <tt:region xml:id="bottom" tts:origin="10% 10%" tts:extent="80% 80%" tts:displayAlign="after"/>
@@ -112,9 +125,9 @@ unittest("ttml_decoder: ebu-tt-live (WDR sample)") {
 	cfg.clock = zc;
 	auto dec = loadModule("TTMLDecoder", &NullHost, &cfg);
 	int received = 0;
-	Page expected = { 0, 60 * IClock::Rate, {}, {}, {
-			{ "Sample of a EBU-TT-LIVE document - line 1", {23, 0}, {"#FFFFFF", "#000000C2", false} },
-			{ "Sample of a EBU-TT-LIVE document - line 2", {24, 0}, {"#FFFFFF", "#000000C2", false} }
+	Page expected = { 0, 60 * IClock::Rate, {
+			{ "Sample of a EBU-TT-LIVE document - line 1", {23, 0}, {"#FFFFFF", "#000000c2", false, "Verdana,Arial,Tiresias", "160%", "125%"} },
+			{ "Sample of a EBU-TT-LIVE document - line 2", {24, 0}, {"#FFFFFF", "#000000c2", false, "Verdana,Arial,Tiresias", "160%", "125%"} }
 		}
 	};
 	ConnectOutput(dec->getOutput(0), [&](Data data) {
@@ -130,7 +143,6 @@ unittest("ttml_decoder: ebu-tt-live (WDR sample)") {
 
 	ASSERT_EQUALS(1, received);
 }
-
 
 unittest("ttml_decoder: ebu-tt-live (EBU LIT User Input Producer sample)") {
 	// http://ebu.github.io/ebu-tt-live-toolkit/ui/user_input_producer/index.html
@@ -182,7 +194,126 @@ unittest("ttml_decoder: ebu-tt-live (EBU LIT User Input Producer sample)") {
 	cfg.clock = zc;
 	auto dec = loadModule("TTMLDecoder", &NullHost, &cfg);
 	int received = 0;
-	Page expected = { 0, 10 * IClock::Rate, {}, {}, { { "nils is yo", {}, { "#ffffff" } } } };
+	Page expected = { 0, 10 * IClock::Rate,  { { "nils is yo", {}, { "rgb(255, 255, 255)", "rgb(0, 0, 0)", false, "sansSerif" } } } };
+	ConnectOutput(dec->getOutput(0), [&](Data data) {
+		auto &pageReceived = safe_cast<const DataSubtitle>(data)->page;
+		ASSERT_EQUALS(expected, pageReceived);
+		received++;
+	});
+
+	auto pkt = std::make_shared<DataRaw>(ttml.size());
+	memcpy(pkt->buffer->data().ptr, ttml.data(), ttml.size());
+	pkt->set(PresentationTime{1789});
+	dec->getInput(0)->push(pkt);
+
+	ASSERT_EQUALS(1, received);
+}
+
+unittest("ttml_decoder: ebu-tt-live (BasicDE) styling") {
+	std::string ttml = R"|(<?xml version="1.0" ?>
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Profile: EBU-TT-D-Basic-DE -->
+<tt:tt xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xmlns:tts="http://www.w3.org/ns/ttml#styling"
+    xmlns:tt="http://www.w3.org/ns/ttml" xmlns:ebuttm="urn:ebu:tt:metadata" ttp:timeBase="media" xml:lang="de"
+    ttp:cellResolution="50 30">
+    <tt:head>
+        <tt:metadata>
+            <ebuttm:documentMetadata>
+                <ebuttm:documentEbuttVersion>v1.0</ebuttm:documentEbuttVersion>
+            </ebuttm:documentMetadata>
+        </tt:metadata>
+        <tt:styling>
+            <tt:style xml:id="defaultStyle" tts:fontFamily="Verdana, Arial, Tiresias" tts:fontSize="160%"
+                tts:lineHeight="125%" />
+            <tt:style xml:id="textWhite" tts:color="#ffffff" tts:backgroundColor="#000000c2" />
+            <tt:style xml:id="textRed" tts:color="#ff0000" tts:backgroundColor="#000000c2" />
+            <tt:style xml:id="textCenter" tts:textAlign="center" />
+        </tt:styling>
+        <tt:layout>
+            <tt:region xml:id="bottom" tts:origin="10% 10%" tts:extent="80% 80%" tts:displayAlign="after" />
+        </tt:layout>
+    </tt:head>
+    <tt:body>
+        <tt:div style="defaultStyle">
+            <tt:p xml:id="sub1" region="bottom" begin="00:00:00.000" end="00:00:02.120" style="textCenter">
+                <tt:span style="textWhite">A white sentence</tt:span>
+                <tt:br />
+                <tt:span style="textRed">in a two row subtitle</tt:span>
+            </tt:p>
+        </tt:div>
+    </tt:body>
+</tt:tt>
+
+)|";
+
+	TtmlDecoderConfig cfg;
+	auto zc = std::make_shared<ZeroClock>();
+	cfg.clock = zc;
+	auto dec = loadModule("TTMLDecoder", &NullHost, &cfg);
+	int received = 0;
+	Page expected = { 0, 30 * IClock::Rate, {
+		{ "A white sentence", {23}, { "#ffffff", "#000000c2", false, "Verdana, Arial, Tiresias", "160%", "125%" } },
+		{ "in a two row subtitle", {}, { "#ff0000", "#000000c2", false, "Verdana, Arial, Tiresias", "160%", "125%" } }
+	} };
+	ConnectOutput(dec->getOutput(0), [&](Data data) {
+		auto &pageReceived = safe_cast<const DataSubtitle>(data)->page;
+		ASSERT_EQUALS(expected, pageReceived);
+		received++;
+	});
+
+	auto pkt = std::make_shared<DataRaw>(ttml.size());
+	memcpy(pkt->buffer->data().ptr, ttml.data(), ttml.size());
+	pkt->set(PresentationTime{1789});
+	dec->getInput(0)->push(pkt);
+
+	ASSERT_EQUALS(1, received);
+}
+
+unittest("[DISABLED] ttml_decoder: ebu-tt-live (BasicDE) letter styling") {
+	std::string ttml = R"|(<?xml version="1.0" ?>
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Profile: EBU-TT-D-Basic-DE -->
+<tt:tt xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xmlns:tts="http://www.w3.org/ns/ttml#styling"
+    xmlns:tt="http://www.w3.org/ns/ttml" xmlns:ebuttm="urn:ebu:tt:metadata" ttp:timeBase="media" xml:lang="de"
+    ttp:cellResolution="50 30">
+    <tt:head>
+        <tt:metadata>
+            <ebuttm:documentMetadata>
+                <ebuttm:documentEbuttVersion>v1.0</ebuttm:documentEbuttVersion>
+            </ebuttm:documentMetadata>
+        </tt:metadata>
+        <tt:styling>
+            <tt:style xml:id="defaultStyle" tts:fontFamily="Verdana, Arial, Tiresias" tts:fontSize="160%"
+                tts:lineHeight="125%" />
+            <tt:style xml:id="textWhite" tts:color="#ffffff" tts:backgroundColor="#000000c2" />
+            <tt:style xml:id="textRed" tts:color="#ff0000" tts:backgroundColor="#000000c2" />
+            <tt:style xml:id="textCenter" tts:textAlign="center" />
+        </tt:styling>
+        <tt:layout>
+            <tt:region xml:id="bottom" tts:origin="10% 10%" tts:extent="80% 80%" tts:displayAlign="after" />
+        </tt:layout>
+    </tt:head>
+    <tt:body>
+        <tt:div style="defaultStyle">
+            <tt:p xml:id="sub1" region="bottom" begin="00:00:00.000" end="00:00:02.120" style="textCenter">
+                <tt:span style="textWhite">A </tt:span>
+                <tt:span style="textRed">red</tt:span>
+                <tt:span style="textWhite"> Word</tt:span>
+                <tt:br />
+                <tt:span style="textWhite">in a two row subtitle</tt:span>
+            </tt:p>
+        </tt:div>
+    </tt:body>
+</tt:tt>
+
+)|";
+
+	TtmlDecoderConfig cfg;
+	auto zc = std::make_shared<ZeroClock>();
+	cfg.clock = zc;
+	auto dec = loadModule("TTMLDecoder", &NullHost, &cfg);
+	int received = 0;
+	Page expected = { 0, 10 * IClock::Rate,  { { "nils is yo", {}, { "#ffffff" } } } };
 	ConnectOutput(dec->getOutput(0), [&](Data data) {
 		auto &pageReceived = safe_cast<const DataSubtitle>(data)->page;
 		ASSERT_EQUALS(expected, pageReceived);

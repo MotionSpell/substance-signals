@@ -129,13 +129,13 @@ class SubtitleEncoder : public ModuleS {
 
 			std::stringstream ttml;
 			ttml << "<?xml version=\"1.0\" encoding=\"utf-8\"?>";
-			ttml << "<tt xmlns=\"http://www.w3.org/ns/ttml\" xmlns:tt=\"http://www.w3.org/ns/ttml\" xmlns:ttm=\"http://www.w3.org/ns/ttml#metadata\" xmlns:tts=\"http://www.w3.org/ns/ttml#styling\" xmlns:ttp=\"http://www.w3.org/ns/ttml#parameter\" xml:lang=\"" << lang << "\" >\n";
+			ttml << "<tt xmlns=\"http://www.w3.org/ns/ttml\" xmlns:tt=\"http://www.w3.org/ns/ttml\" xmlns:ttm=\"http://www.w3.org/ns/ttml#metadata\" xmlns:tts=\"http://www.w3.org/ns/ttml#styling\" xmlns:ttp=\"http://www.w3.org/ns/ttml#parameter\" xml:lang=\"" << lang << "\" ttp:cellResolution=\"50 30\" >\n";
 			ttml << "  <head>\n";
 			ttml << "    <styling>\n";
 			if (!hasDoubleHeight())
-				ttml << "      <style xml:id=\"Style0_0\" tts:fontSize=\"60%\" tts:fontFamily=\"monospaceSansSerif\" />\n";
+				ttml << "      <style xml:id=\"Style0_0\" tts:fontSize=\"100%\" tts:fontFamily=\"monospaceSansSerif\" />\n";
 			else
-				ttml << "      <style xml:id=\"Style0_0_double\" tts:fontSize=\"60%\" tts:fontFamily=\"monospaceSansSerif\" />\n";
+				ttml << "      <style xml:id=\"Style0_0_double\" tts:fontSize=\"100%\" tts:fontFamily=\"monospaceSansSerif\" />\n";
 			ttml << "    </styling>\n";
 			ttml << "    <layout>\n";
 
@@ -159,9 +159,16 @@ class SubtitleEncoder : public ModuleS {
 						m_host->log(Warning, "Mixing single and double height is not handled. Contact your vendor.");
 					}
 
-					auto const numLines = 24;
-					auto const height = Fraction(100.0, numLines);
-					auto const spacingFactor = Fraction(1); //Romain: should come from the input TTML?
+					auto parsePercent = [this](const std::string &str) {
+						int percent = 0;
+						int ret = sscanf(str.c_str(), "%d", &percent);
+						if (ret != 1)
+							m_host->log(Warning, format("Could not parse percent in \"%s\".", str).c_str());
+						return Fraction(percent, 100);
+					};
+
+					auto const height = Fraction(100.0, page.numRows - 1);
+					auto const spacingFactor = parsePercent(line.style.lineHeight);
 					auto const verticalOrigin = (double)((height * spacingFactor * page.numRows * -1 + 100) + height * spacingFactor * line.region.row); // Percentage. Promote the last rows for text display.
 					if (verticalOrigin >= 0 &&  height * spacingFactor * (1 + (int)doubleHeight) + verticalOrigin <= 100) {
 						auto const factorH = 1 + (int)doubleHeight;

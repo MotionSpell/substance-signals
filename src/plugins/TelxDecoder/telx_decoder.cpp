@@ -44,7 +44,7 @@ class TeletextDecoder : public ModuleS {
 		void dispatch(Page &page) {
 			auto out = output->allocData<DataSubtitle>(0);
 			out->set(DecodingTime{ page.showTimestamp });
-			out->set(PresentationTime{page.showTimestamp});
+			out->set(PresentationTime{ page.showTimestamp });
 			out->page = page;
 
 			CueFlags flags {};

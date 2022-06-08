@@ -29,7 +29,7 @@ unittest("webvtt_encoder") {
 	cfg.timingPolicy = SubtitleEncoderConfig::RelativeToMedia;
 	auto m = loadModule("SubtitleEncoder", &NullHost, &cfg);
 
-	Page page {0, IClock::Rate * 4, {}, {}, std::vector<Page::Line>({{"toto"}, {"titi", {}, {"#ff0000"}}})};
+	Page page {0, IClock::Rate * 4,  std::vector<Page::Line>({{"toto"}, {"titi", {}, {"#ff0000"}}})};
 	auto data = std::make_shared<DataSubtitle>(0);
 	auto const time = page.showTimestamp + IClock::Rate * 4;
 	data->set(DecodingTime{ time });
@@ -71,9 +71,9 @@ unittest("webvtt_encoder: segmentation and empty page") {
 	cfg.timingPolicy = SubtitleEncoderConfig::RelativeToMedia;
 	auto m = loadModule("SubtitleEncoder", &NullHost, &cfg);
 
-	Page page1 {IClock::Rate * 0 / 1, IClock::Rate * 1 / 2, {}, {}, std::vector<Page::Line>({{"toto1"}})};
-	Page page2 {IClock::Rate * 1 / 2, IClock::Rate * 3 / 4, {}, {}, std::vector<Page::Line>({{"toto2"}})};
-	Page page3 {IClock::Rate * 3 / 4, IClock::Rate * 5 / 4, {}, {}, std::vector<Page::Line>({{"toto3"}})};
+	Page page1 {IClock::Rate * 0 / 1, IClock::Rate * 1 / 2,  std::vector<Page::Line>({{"toto1"}})};
+	Page page2 {IClock::Rate * 1 / 2, IClock::Rate * 3 / 4,  std::vector<Page::Line>({{"toto2"}})};
+	Page page3 {IClock::Rate * 3 / 4, IClock::Rate * 5 / 4,  std::vector<Page::Line>({{"toto3"}})};
 
 	auto makeData = [](Page &page, int64_t time) {
 		auto data = std::make_shared<DataSubtitle>(0);

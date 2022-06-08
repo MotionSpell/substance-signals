@@ -412,11 +412,11 @@ void process_row(const uint16_t* srcRow, Modules::Page& page) {
 		uint16_t val = srcRow[col];
 
 		if (val <= 0x07)
-			page.lines.back().color = Colors[val];
+			page.lines.back().style.color = Colors[val];
 		else if (val == 0x0d)
-			page.lines.back().doubleHeight = true;
+			page.lines.back().style.doubleHeight = true;
 		else if (val == 0x0b)
-			page.lines.back().col = col;
+			page.lines.back().region.col = col;
 
 		if (col >= colStart) {
 			if (val >= 0x20) {
@@ -440,11 +440,14 @@ std::unique_ptr<Modules::Page> process_page(TeletextState& state) {
 
 	pageIn->hideTimestamp = std::max(pageIn->hideTimestamp, pageIn->showTimestamp);
 
+	pageOut->numRows = ROWS;
+	pageOut->numCols = COLS;
+
 	pageOut->showTimestamp = pageIn->showTimestamp;
 	pageOut->hideTimestamp = pageIn->hideTimestamp;
 
 	for (int row = 1; row < ROWS; row++) {
-		pageOut->lines.back().row = row;
+		pageOut->lines.back().region.row = row;
 		process_row(pageIn->text[row], *pageOut);
 	}
 

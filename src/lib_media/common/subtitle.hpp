@@ -19,15 +19,33 @@ struct Page {
 		//rows, the font size for double height is not 200% but 160%. The value of 125% for
 		//tts:lineHeight defines a line-height that is 125% of the computed font-size
 		bool doubleHeight = false;
+
+		std::string fontFamily = "monospaceSansSerif"; // TTML BasicDE: "Verdana,Arial,Tiresias"
+		std::string fontSize = "100%"; // TTML BasicDE: 160%
+		std::string lineHeight = "100%"; // TTML BasicDE: 125%
+
+		void merge(const Style &style) {
+			Page::Style defaultStyle;
+			if (style.bgColor != defaultStyle.bgColor)
+				bgColor = style.bgColor;
+			if (style.color != defaultStyle.color)
+				color = style.color;
+			if (style.doubleHeight != defaultStyle.doubleHeight)
+				doubleHeight = style.doubleHeight;
+			if (style.fontFamily != defaultStyle.fontFamily)
+				fontFamily = style.fontFamily;
+			if (style.fontSize != defaultStyle.fontSize)
+				fontSize = style.fontSize;
+			if (style.lineHeight != defaultStyle.lineHeight)
+				lineHeight = style.lineHeight;
+		}
 	};
-	std::vector<Style> styles;
 
 	struct Region {
 		// default values inherited from teletext
 		int row = 24; // last line
 		int col = 0;
 	};
-	std::vector<Region> regions;
 
 	struct Line {
 		std::string text;
