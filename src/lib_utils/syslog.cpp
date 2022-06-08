@@ -14,8 +14,8 @@ void setGlobalLogSyslog(const char */*ident*/, const char* /*channel_name*/) {
 #include <syslog.h>
 
 struct SyslogLogger : LogSink {
-	SyslogLogger(const char *ident, const char *channel_name) : channel_name(channel_name) {
-		openlog(ident, LOG_PID, LOG_USER|LOG_SYSLOG);
+	SyslogLogger(const char *ident, const char *channel_name): identLog(ident), channel_name(channel_name) {
+		openlog(identLog.c_str(), LOG_PID, LOG_USER|LOG_SYSLOG);
 	}
 	~SyslogLogger() {
 		closelog();
@@ -34,6 +34,7 @@ struct SyslogLogger : LogSink {
 
 		::syslog(levelToSysLog[level], "%s", s.GetString());
 	}
+	const std::string identLog; // must exist throughtout the object lifetime
 	const std::string channel_name;
 };
 
