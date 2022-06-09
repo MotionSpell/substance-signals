@@ -95,9 +95,26 @@ void saxParse(span<const char> input, std::function<NodeStartFunc> onNodeStart, 
 			}
 		} else if(accept('>')) {
 			// content
-			while(input.len && front() != '<') {
+			while(input.len) {
+				if (front() == '<') {
+					auto inputClone = input;
+
+					inputClone += 1;
+
+					if (inputClone.len == 0)
+						break;
+
+					if (inputClone.ptr[0] == '/')
+						break; // assume self closing tag
+
+					if (content.empty())
+						break; // assume child
+				}
+
 				if (!voidContent)
-					content += front();
+					// strip empty first characters
+					if (!content.empty() || !isspace(front()))
+						content += front();
 
 				input += 1;
 			}

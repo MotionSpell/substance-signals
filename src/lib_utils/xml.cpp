@@ -63,7 +63,7 @@ std::string escapeXmlEntities(std::string const& s) {
 }
 
 template<typename EmitType>
-void serializeTag(Tag const& tag, bool prettify, int depth, EmitType emit) {
+void serializeTag(Tag const& tag, bool prettify, bool escape, int depth, EmitType emit) {
 	if(tag.name.empty())
 		throw std::runtime_error("tag name can't be empty");
 
@@ -83,13 +83,13 @@ void serializeTag(Tag const& tag, bool prettify, int depth, EmitType emit) {
 		emit(">");
 
 		if(tag.children.empty()) {
-			emit("%s", escapeXmlEntities(tag.content).c_str());
+			emit("%s", escape ? escapeXmlEntities(tag.content).c_str() : tag.content.c_str());
 		} else {
 			if(prettify)
 				emit("\n");
 
 			for(auto& child : tag.children)
-				serializeTag(child, prettify, depth + 1, emit);
+				serializeTag(child, prettify, escape, depth + 1, emit);
 
 			if(prettify)
 				emit("%*s", depth * 2, "");
@@ -104,7 +104,7 @@ void serializeTag(Tag const& tag, bool prettify, int depth, EmitType emit) {
 }
 }
 
-std::string serializeXml(Tag const& tag, bool prettify) {
+std::string serializeXml(Tag const& tag, bool prettify, bool escape) {
 	std::string r;
 
 	auto emit = [&] (const char* format, ...) {
@@ -118,7 +118,7 @@ std::string serializeXml(Tag const& tag, bool prettify) {
 		r += buffer;
 	};
 
-	serializeTag(tag, prettify, 0, emit);
+	serializeTag(tag, prettify, escape, 0, emit);
 
 	return r;
 }

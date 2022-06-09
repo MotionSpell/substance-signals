@@ -131,9 +131,12 @@ saxParse(invalidXmlTestData3, onNodeStart, onNodeEnd);
 }
 
 unittest("XML serialization: invalid </br> in middle of text") {
+	std::vector<std::string> contents;
 	auto onNodeStart = [&](std::string, SmallMap<std::string, std::string>&) {};
-	auto onNodeEnd = [&](std::string, std::string) {};
+	auto onNodeEnd = [&](std::string, std::string content) {
+		contents.push_back(content);
+	};
 	char invalidXmlTestData[] = R"(<T>tt<br/>uu</T>)"; // corner case of the parser
-	//ASSERT_THROWN  //FIXME: should raise an exception
 	saxParse(invalidXmlTestData, onNodeStart, onNodeEnd);
+	ASSERT_EQUALS(std::vector<std::string>({"tt<br/>uu"}), contents);
 }

@@ -35,5 +35,5 @@ struct Tag {
 ///////////////////////////////////////////////////////////////////////////////
 // XML tree serialization
 
-std::string serializeXml(Tag const& tag, bool prettify = true);
+std::string serializeXml(Tag const& tag, bool prettify = true, bool escape = true);
 
