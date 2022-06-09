@@ -54,7 +54,7 @@ struct Page {
 	};
 	std::vector<Line> lines;
 
-	int numRows = 25, numCols = 40;
+	int numCols = 40, numRows = 25;
 
 	std::string toString() const {
 		std::string r;

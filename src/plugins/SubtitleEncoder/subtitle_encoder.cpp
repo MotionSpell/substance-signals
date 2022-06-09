@@ -81,7 +81,7 @@ class SubtitleEncoder : public ModuleS {
 			return clockToTimescale(page.hideTimestamp, 1000) > startTimeInMs && clockToTimescale(page.showTimestamp, 1000) < endTimeInMs;
 		};
 
-		std::string serializePageToTtml(Page const& page, int regionId, int64_t startTimeInMs, int64_t endTimeInMs) const {
+		std::string serializePageToTtml(Page const& page, int regionId, int64_t startTimeInMs, int64_t endTimeInMs, bool useBr) const {
 			auto const timecodeShow = timecodeToString(startTimeInMs);
 			auto const timecodeHide = timecodeToString(endTimeInMs);
 
@@ -89,16 +89,29 @@ class SubtitleEncoder : public ModuleS {
 
 			std::stringstream ttml;
 
+			if (useBr)
+				ttml << "      <p region=\"Region" << regionId << "\" begin=\"" << timecodeShow << "\" end=\"" << timecodeHide << "\" style=\"textCenter\">\n";
+
+			int lineIdx = 0;
 			for (auto& line : page.lines) {
 				if (line.text.empty() && !forceEmptyPage)
 					continue;
 
-				ttml << "      <p region=\"Region" << regionId << "_" << line.region.row << "\" style=\"Style0_0";
-				if (line.style.doubleHeight) ttml << "_double";
-				ttml << "\" begin=\"" << timecodeShow << "\" end=\"" << timecodeHide << "\">\n";
-				ttml << "        <span tts:color=\"" << line.style.color << "\" tts:backgroundColor=\"" << line.style.bgColor << "\">" << line.text << "</span>\n";
-				ttml << "      </p>\n";
+				if (useBr) {
+					ttml << "        <span style=\"text_" << lineIdx++ << "\">" << line.text << "</span>\n";
+					if (&line != &page.lines.back())
+						ttml << "        <br />\n";
+				} else {
+					ttml << "      <p region=\"Region" << regionId << "_" << line.region.row << "\" style=\"Style0_0";
+					if (line.style.doubleHeight) ttml << "_double";
+					ttml << "\" begin=\"" << timecodeShow << "\" end=\"" << timecodeHide << "\">\n";
+					ttml << "        <span tts:color=\"" << line.style.color << "\" tts:backgroundColor=\"" << line.style.bgColor << "\">" << line.text << "</span>\n";
+					ttml << "      </p>\n";
+				}
 			}
+
+			if (useBr)
+				ttml << "      </p>\n";
 
 			return ttml.str();
 		}
@@ -118,6 +131,14 @@ class SubtitleEncoder : public ModuleS {
 			default: throw error("Unknown timing policy (1)");
 			}
 
+			//TODO: remove legacy mode
+			bool legacyElementalMode = true;
+			for (auto& page : currentPages)
+				if (page.numRows != 25 || page.numCols != 40) {
+					legacyElementalMode = false;
+					break;
+				}
+
 			auto hasDoubleHeight = [&]() {
 				for (auto& page : currentPages)
 					for (auto& line : page.lines)
@@ -127,79 +148,106 @@ class SubtitleEncoder : public ModuleS {
 				return false;
 			};
 
-			std::stringstream ttml;
-			ttml << "<?xml version=\"1.0\" encoding=\"utf-8\"?>";
-			ttml << "<tt xmlns=\"http://www.w3.org/ns/ttml\" xmlns:tt=\"http://www.w3.org/ns/ttml\" xmlns:ttm=\"http://www.w3.org/ns/ttml#metadata\" xmlns:tts=\"http://www.w3.org/ns/ttml#styling\" xmlns:ttp=\"http://www.w3.org/ns/ttml#parameter\" xml:lang=\"" << lang << "\" ttp:cellResolution=\"50 30\" >\n";
-			ttml << "  <head>\n";
-			ttml << "    <styling>\n";
-			if (!hasDoubleHeight())
-				ttml << "      <style xml:id=\"Style0_0\" tts:fontSize=\"100%\" tts:fontFamily=\"monospaceSansSerif\" />\n";
-			else
-				ttml << "      <style xml:id=\"Style0_0_double\" tts:fontSize=\"100%\" tts:fontFamily=\"monospaceSansSerif\" />\n";
-			ttml << "    </styling>\n";
-			ttml << "    <layout>\n";
-
-			// We currently assign one Region per line per page with positioning aligned on a 40x25 grid
-			// Single or double height
-			bool doubleHeight = false;
 			SmallMap<const Page*, int> pageToRegionId;
-			for (auto& page : currentPages) {
-				if (!isDisplayable(page, startTimeInMs, endTimeInMs))
-					continue;
 
-				pageToRegionId[&page] = pageToRegionId.size();
+			std::stringstream ttml;
+			ttml << "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
 
-				for (auto& line : page.lines) {
-					if (line.text.empty() && !forceEmptyPage)
+			if (legacyElementalMode) {
+				ttml << "<tt xmlns=\"http://www.w3.org/ns/ttml\" xmlns:tt=\"http://www.w3.org/ns/ttml\" xmlns:ttm=\"http://www.w3.org/ns/ttml#metadata\" xmlns:tts=\"http://www.w3.org/ns/ttml#styling\" xmlns:ttp=\"http://www.w3.org/ns/ttml#parameter\" xml:lang=\"" << lang << "\" ttp:cellResolution=\"50 30\" >\n";
+				ttml << "  <head>\n";
+				ttml << "    <styling>\n";
+				if (!hasDoubleHeight())
+					ttml << "      <style xml:id=\"Style0_0\" tts:fontSize=\"100%\" tts:fontFamily=\"monospaceSansSerif\" />\n";
+				else
+					ttml << "      <style xml:id=\"Style0_0_double\" tts:fontSize=\"100%\" tts:fontFamily=\"monospaceSansSerif\" />\n";
+				ttml << "    </styling>\n";
+				ttml << "    <layout>\n";
+
+				// We currently assign one Region per line per page with positioning aligned on a 40x25 grid
+				// Single or double height
+				bool doubleHeight = false;
+				for (auto& page : currentPages) {
+					if (!isDisplayable(page, startTimeInMs, endTimeInMs))
 						continue;
 
-					if (line.style.doubleHeight) {
-						doubleHeight = true;
-					} else if (doubleHeight) {
-						m_host->log(Warning, "Mixing single and double height is not handled. Contact your vendor.");
+					pageToRegionId[&page] = pageToRegionId.size();
+
+					for (auto& line : page.lines) {
+						if (line.text.empty() && !forceEmptyPage)
+							continue;
+
+						if (line.style.doubleHeight) {
+							doubleHeight = true;
+						} else if (doubleHeight) {
+							m_host->log(Warning, "Mixing single and double height is not handled. Contact your vendor.");
+						}
+
+						auto parsePercent = [this](const std::string &str) {
+							int percent = 0;
+							int ret = sscanf(str.c_str(), "%d", &percent);
+							if (ret != 1)
+								m_host->log(Warning, format("Could not parse percent in \"%s\".", str).c_str());
+							return Fraction(percent, 100);
+						};
+
+						auto const height = Fraction(100.0, page.numRows - 1);
+						auto const spacingFactor = parsePercent(line.style.lineHeight);
+						auto const verticalOrigin = (double)((height * spacingFactor * page.numRows * -1 + 100) + height * spacingFactor * line.region.row); // Percentage. Promote the last rows for text display.
+						if (verticalOrigin >= 0 &&  height * spacingFactor * (1 + (int)doubleHeight) + verticalOrigin <= 100) {
+							auto const factorH = 1 + (int)doubleHeight;
+							auto const margin = 10.0; //percentage
+							auto const origin = (margin + (100 - 2 * margin) * line.region.col / (double)page.numCols) / factorH;
+							auto const width = 100 - origin - margin;
+							ttml << "      <region xml:id=\"Region" << pageToRegionId[&page] << "_" << line.region.row << "\" ";
+							ttml << "tts:origin=\"" << origin << "% " << verticalOrigin << "%\" tts:extent=\"" << width << "% " << (double)height * factorH << "%\" ";
+							ttml << "tts:displayAlign=\"center\" tts:textAlign=\"center\" />\n";
+						} else
+							m_host->log(Warning, format("Impossible to compute text position for \"%s\". Contact your vendor.", line.text).c_str());
 					}
-
-					auto parsePercent = [this](const std::string &str) {
-						int percent = 0;
-						int ret = sscanf(str.c_str(), "%d", &percent);
-						if (ret != 1)
-							m_host->log(Warning, format("Could not parse percent in \"%s\".", str).c_str());
-						return Fraction(percent, 100);
-					};
-
-					auto const height = Fraction(100.0, page.numRows - 1);
-					auto const spacingFactor = parsePercent(line.style.lineHeight);
-					auto const verticalOrigin = (double)((height * spacingFactor * page.numRows * -1 + 100) + height * spacingFactor * line.region.row); // Percentage. Promote the last rows for text display.
-					if (verticalOrigin >= 0 &&  height * spacingFactor * (1 + (int)doubleHeight) + verticalOrigin <= 100) {
-						auto const factorH = 1 + (int)doubleHeight;
-						auto const margin = 10.0; //percentage
-						auto const origin = (margin + (100 - 2 * margin) * line.region.col / (double)page.numCols) / factorH;
-						auto const width = 100 - origin - margin;
-						ttml << "      <region xml:id=\"Region" << pageToRegionId[&page] << "_" << line.region.row << "\" ";
-						ttml << "tts:origin=\"" << origin << "% " << verticalOrigin << "%\" tts:extent=\"" << width << "% " << (double)height * factorH << "%\" ";
-						ttml << "tts:displayAlign=\"center\" tts:textAlign=\"center\" />\n";
-					} else
-						m_host->log(Warning, format("Impossible to compute text position for \"%s\". Contact your vendor.", line.text).c_str());
 				}
-			}
 
-			ttml << "    </layout>\n";
-			ttml << "  </head>\n";
-			ttml << "  <body>\n";
-			ttml << "    <div>\n";
+				ttml << "    </layout>\n";
+				ttml << "  </head>\n";
+				ttml << "  <body>\n";
+				ttml << "    <div>\n";
+			} else {
+				if (currentPages.empty())
+					ttml << "<tt xmlns=\"http://www.w3.org/ns/ttml\" xmlns:tt=\"http://www.w3.org/ns/ttml\" xmlns:ttm=\"http://www.w3.org/ns/ttml#metadata\" xmlns:tts=\"http://www.w3.org/ns/ttml#styling\" xmlns:ttp=\"http://www.w3.org/ns/ttml#parameter\" xml:lang=\"" << lang << "\" ttp:cellResolution=\"50 30\" >\n";
+				else
+					ttml << "<tt xmlns=\"http://www.w3.org/ns/ttml\" xmlns:tt=\"http://www.w3.org/ns/ttml\" xmlns:ttm=\"http://www.w3.org/ns/ttml#metadata\" xmlns:tts=\"http://www.w3.org/ns/ttml#styling\" xmlns:ttp=\"http://www.w3.org/ns/ttml#parameter\" xml:lang=\"" << lang << "\" ttp:cellResolution=\"" << currentPages.front().numCols << " " << currentPages.front().numRows << "\" >\n";
+				ttml << "  <head>\n";
+				ttml << "    <styling>\n";
+				ttml << "      <style xml:id=\"defaultStyle\" tts:fontFamily=\"Verdana, Arial, Tiresias\" tts:fontSize=\"160%\" tts:lineHeight=\"125%\" />\n";
+				for (auto& page : currentPages) {
+					pageToRegionId[&page] = 0;
+					int textIdx = 0;
+					for (auto& line : page.lines) {
+						ttml << "      <style xml:id=\"text_" << textIdx++ << "\" tts:color=\"" << line.style.color << "\" tts:backgroundColor=\"" << line.style.bgColor << "\" />\n";
+					}
+					ttml << "      <style xml:id=\"textCenter\" tts:textAlign=\"center\" />\n";
+				}
+				ttml << "    </styling>\n";
+				ttml << "    <layout>\n";
+				ttml << "      <region xml:id=\"Region0" << "\" tts:origin=\"10% 10%\" tts:extent=\"80% 80%\" tts:displayAlign=\"after\" />\n";
+				ttml << "    </layout>\n";
+				ttml << "  </head>\n";
+				ttml << "  <body>\n";
+				ttml << "    <div style=\"defaultStyle\">\n";
+			}
 
 			for(auto& page : currentPages) {
 				if (isDisplayable(page, startTimeInMs, endTimeInMs)) {
 					auto localStartTimeInMs = std::max<int64_t>(clockToTimescale(page.showTimestamp, 1000), startTimeInMs);
 					auto localEndTimeInMs = std::min<int64_t>(clockToTimescale(page.hideTimestamp, 1000), endTimeInMs);
 					m_host->log(Info, format("[TTML][%s-%s]: %s - %s: \"%s\"", startTimeInMs, endTimeInMs, localStartTimeInMs, localEndTimeInMs, page.toString()).c_str());
-					ttml << serializePageToTtml(page, pageToRegionId[&page], localStartTimeInMs + offsetInMs, localEndTimeInMs + offsetInMs);
+					ttml << serializePageToTtml(page, pageToRegionId[&page], localStartTimeInMs + offsetInMs, localEndTimeInMs + offsetInMs, !legacyElementalMode);
 				}
 			}
-
 			ttml << "    </div>\n";
 			ttml << "  </body>\n";
 			ttml << "</tt>\n\n";
+
 			return ttml.str();
 		}
 

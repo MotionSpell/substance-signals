@@ -41,7 +41,8 @@ unittest("ttml_encoder") {
 	m->getInput(0)->push(data);
 
 	std::vector<int64_t> expectedTimes = {0, timescaleToClock(cfg.splitDurationInMs, 1000)};
-	std::vector<std::string> expectedTtml = { R"|(<?xml version="1.0" encoding="utf-8"?><tt xmlns="http://www.w3.org/ns/ttml" xmlns:tt="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:tts="http://www.w3.org/ns/ttml#styling" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xml:lang="en" ttp:cellResolution="50 30" >
+	std::vector<std::string> expectedTtml = { R"|(<?xml version="1.0" encoding="utf-8"?>
+<tt xmlns="http://www.w3.org/ns/ttml" xmlns:tt="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:tts="http://www.w3.org/ns/ttml#styling" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xml:lang="en" ttp:cellResolution="50 30" >
   <head>
     <styling>
       <style xml:id="Style0_0" tts:fontSize="100%" tts:fontFamily="monospaceSansSerif" />
@@ -63,7 +64,8 @@ unittest("ttml_encoder") {
   </body>
 </tt>
 
-)|", R"|(<?xml version="1.0" encoding="utf-8"?><tt xmlns="http://www.w3.org/ns/ttml" xmlns:tt="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:tts="http://www.w3.org/ns/ttml#styling" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xml:lang="en" ttp:cellResolution="50 30" >
+)|", R"|(<?xml version="1.0" encoding="utf-8"?>
+<tt xmlns="http://www.w3.org/ns/ttml" xmlns:tt="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:tts="http://www.w3.org/ns/ttml#styling" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xml:lang="en" ttp:cellResolution="50 30" >
   <head>
     <styling>
       <style xml:id="Style0_0" tts:fontSize="100%" tts:fontFamily="monospaceSansSerif" />
@@ -111,7 +113,8 @@ unittest("[DISABLED] ttml_encoder: double height (teletext style)") {
 	m->getInput(0)->push(data);
 
 	std::vector<int64_t> expectedTimes = {0};
-	std::vector<std::string> expectedTtml = { R"|(<?xml version="1.0" encoding="utf-8"?><tt xmlns="http://www.w3.org/ns/ttml" xmlns:tt="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:tts="http://www.w3.org/ns/ttml#styling" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xml:lang="en" ttp:cellResolution="50 30" >
+	std::vector<std::string> expectedTtml = { R"|(<?xml version="1.0" encoding="utf-8"?>
+<tt xmlns="http://www.w3.org/ns/ttml" xmlns:tt="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:tts="http://www.w3.org/ns/ttml#styling" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xml:lang="en" ttp:cellResolution="50 30" >
   <head>
     <styling>
       <style xml:id="Style0_0_double" tts:fontSize="100%" tts:fontFamily="monospaceSansSerif" />
@@ -156,7 +159,8 @@ unittest("ttml_encoder: overlapping samples") {
   }
 
 	std::vector<int64_t> expectedTimes = {0, timescaleToClock(cfg.splitDurationInMs, 1000), timescaleToClock(cfg.splitDurationInMs * 2, 1000)};
-	std::vector<std::string> expectedTtml = { R"|(<?xml version="1.0" encoding="utf-8"?><tt xmlns="http://www.w3.org/ns/ttml" xmlns:tt="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:tts="http://www.w3.org/ns/ttml#styling" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xml:lang="en" ttp:cellResolution="50 30" >
+	std::vector<std::string> expectedTtml = { R"|(<?xml version="1.0" encoding="utf-8"?>
+<tt xmlns="http://www.w3.org/ns/ttml" xmlns:tt="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:tts="http://www.w3.org/ns/ttml#styling" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xml:lang="en" ttp:cellResolution="50 30" >
   <head>
     <styling>
       <style xml:id="Style0_0" tts:fontSize="100%" tts:fontFamily="monospaceSansSerif" />
@@ -178,7 +182,8 @@ unittest("ttml_encoder: overlapping samples") {
   </body>
 </tt>
 
-)|", R"|(<?xml version="1.0" encoding="utf-8"?><tt xmlns="http://www.w3.org/ns/ttml" xmlns:tt="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:tts="http://www.w3.org/ns/ttml#styling" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xml:lang="en" ttp:cellResolution="50 30" >
+)|", R"|(<?xml version="1.0" encoding="utf-8"?>
+<tt xmlns="http://www.w3.org/ns/ttml" xmlns:tt="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:tts="http://www.w3.org/ns/ttml#styling" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xml:lang="en" ttp:cellResolution="50 30" >
   <head>
     <styling>
       <style xml:id="Style0_0" tts:fontSize="100%" tts:fontFamily="monospaceSansSerif" />
@@ -200,7 +205,8 @@ unittest("ttml_encoder: overlapping samples") {
   </body>
 </tt>
 
-)|", R"|(<?xml version="1.0" encoding="utf-8"?><tt xmlns="http://www.w3.org/ns/ttml" xmlns:tt="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:tts="http://www.w3.org/ns/ttml#styling" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xml:lang="en" ttp:cellResolution="50 30" >
+)|", R"|(<?xml version="1.0" encoding="utf-8"?>
+<tt xmlns="http://www.w3.org/ns/ttml" xmlns:tt="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:tts="http://www.w3.org/ns/ttml#styling" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xml:lang="en" ttp:cellResolution="50 30" >
   <head>
     <styling>
       <style xml:id="Style0_0" tts:fontSize="100%" tts:fontFamily="monospaceSansSerif" />
@@ -260,7 +266,8 @@ unittest("ttml_encoder: segmentation and empty page") {
 	m->getInput(0)->push(data3);
 
 	std::vector<int64_t> expectedTimes = {0, timescaleToClock(cfg.splitDurationInMs, 1000), timescaleToClock(cfg.splitDurationInMs * 2, 1000)};
-	std::vector<std::string> expectedTtml = { R"|(<?xml version="1.0" encoding="utf-8"?><tt xmlns="http://www.w3.org/ns/ttml" xmlns:tt="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:tts="http://www.w3.org/ns/ttml#styling" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xml:lang="en" ttp:cellResolution="50 30" >
+	std::vector<std::string> expectedTtml = { R"|(<?xml version="1.0" encoding="utf-8"?>
+<tt xmlns="http://www.w3.org/ns/ttml" xmlns:tt="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:tts="http://www.w3.org/ns/ttml#styling" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xml:lang="en" ttp:cellResolution="50 30" >
   <head>
     <styling>
       <style xml:id="Style0_0" tts:fontSize="100%" tts:fontFamily="monospaceSansSerif" />
@@ -286,7 +293,8 @@ unittest("ttml_encoder: segmentation and empty page") {
   </body>
 </tt>
 
-)|", R"|(<?xml version="1.0" encoding="utf-8"?><tt xmlns="http://www.w3.org/ns/ttml" xmlns:tt="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:tts="http://www.w3.org/ns/ttml#styling" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xml:lang="en" ttp:cellResolution="50 30" >
+)|", R"|(<?xml version="1.0" encoding="utf-8"?>
+<tt xmlns="http://www.w3.org/ns/ttml" xmlns:tt="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:tts="http://www.w3.org/ns/ttml#styling" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xml:lang="en" ttp:cellResolution="50 30" >
   <head>
     <styling>
       <style xml:id="Style0_0" tts:fontSize="100%" tts:fontFamily="monospaceSansSerif" />
@@ -304,7 +312,8 @@ unittest("ttml_encoder: segmentation and empty page") {
   </body>
 </tt>
 
-)|", R"|(<?xml version="1.0" encoding="utf-8"?><tt xmlns="http://www.w3.org/ns/ttml" xmlns:tt="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:tts="http://www.w3.org/ns/ttml#styling" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xml:lang="en" ttp:cellResolution="50 30" >
+)|", R"|(<?xml version="1.0" encoding="utf-8"?>
+<tt xmlns="http://www.w3.org/ns/ttml" xmlns:tt="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:tts="http://www.w3.org/ns/ttml#styling" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xml:lang="en" ttp:cellResolution="50 30" >
   <head>
     <styling>
       <style xml:id="Style0_0" tts:fontSize="100%" tts:fontFamily="monospaceSansSerif" />
@@ -328,3 +337,61 @@ unittest("ttml_encoder: segmentation and empty page") {
 	ASSERT_EQUALS(expectedTtml, ttmlAnalyzer->ttml);
 }
 
+unittest("ttml_encoder: BasicDE styling") {
+	SubtitleEncoderConfig cfg;
+	cfg.splitDurationInMs = 1000;
+	cfg.maxDelayBeforeEmptyInMs = 2000;
+	cfg.forceEmptyPage = true;
+	cfg.timingPolicy = SubtitleEncoderConfig::RelativeToMedia;
+	auto m = loadModule("SubtitleEncoder", &NullHost, &cfg);
+
+	Page page = { 0, 30 * IClock::Rate, {
+		{ "A white sentence", {23}, { "#ffffff", "#000000c2", false, "Verdana, Arial, Tiresias", "160%", "125%" } },
+		{ "in a two row subtitle", {}, { "#ff0000", "#000000c2", false, "Verdana, Arial, Tiresias", "160%", "125%" } }
+	}, 50, 30 };
+
+	auto makeData = [](Page &page, int64_t time) {
+		auto data = std::make_shared<DataSubtitle>(0);
+		data->set(DecodingTime{ time });
+		data->set(PresentationTime{time});
+		data->page = page;
+		return data;
+	};
+
+	auto data = makeData(page, IClock::Rate * 3);
+
+	auto ttmlAnalyzer = createModule<OutStub>();
+	ConnectOutputToInput(m->getOutput(0), ttmlAnalyzer->getInput(0));
+
+	m->getInput(0)->push(data);
+
+	std::vector<int64_t> expectedTimes = {0};
+	std::vector<std::string> expectedTtml = { R"|(<?xml version="1.0" encoding="utf-8"?>
+<tt xmlns="http://www.w3.org/ns/ttml" xmlns:tt="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:tts="http://www.w3.org/ns/ttml#styling" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xml:lang="en" ttp:cellResolution="50 30" >
+  <head>
+    <styling>
+      <style xml:id="defaultStyle" tts:fontFamily="Verdana, Arial, Tiresias" tts:fontSize="160%" tts:lineHeight="125%" />
+      <style xml:id="text_0" tts:color="#ffffff" tts:backgroundColor="#000000c2" />
+      <style xml:id="text_1" tts:color="#ff0000" tts:backgroundColor="#000000c2" />
+      <style xml:id="textCenter" tts:textAlign="center" />
+    </styling>
+    <layout>
+      <region xml:id="Region0" tts:origin="10% 10%" tts:extent="80% 80%" tts:displayAlign="after" />
+    </layout>
+  </head>
+  <body>
+    <div style="defaultStyle">
+      <p region="Region0" begin="00:00:00.000" end="00:00:01.000" style="textCenter">
+        <span style="text_0">A white sentence</span>
+        <br />
+        <span style="text_1">in a two row subtitle</span>
+      </p>
+    </div>
+  </body>
+</tt>
+
+)|"};
+
+	ASSERT_EQUALS(expectedTimes, ttmlAnalyzer->times);
+	ASSERT_EQUALS(expectedTtml, ttmlAnalyzer->ttml);
+}
