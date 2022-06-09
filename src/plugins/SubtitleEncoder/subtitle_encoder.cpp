@@ -132,12 +132,19 @@ class SubtitleEncoder : public ModuleS {
 			}
 
 			//TODO: remove legacy mode
-			bool legacyElementalMode = true;
-			for (auto& page : currentPages)
-				if (page.numRows != 25 || page.numCols != 40) {
-					legacyElementalMode = false;
-					break;
+			auto isLegacy = [&]() {
+				for (auto& page : currentPages) {
+					if (page.numRows != 25 || page.numCols != 40)
+						return false;
+
+					for (auto& line : page.lines)
+						if (line.style.fontFamily != "monospaceSansSerif")
+							return false;
 				}
+
+				return true;
+			};
+			auto legacyElementalMode = isLegacy();
 
 			auto hasDoubleHeight = [&]() {
 				for (auto& page : currentPages)
@@ -247,6 +254,9 @@ class SubtitleEncoder : public ModuleS {
 			ttml << "    </div>\n";
 			ttml << "  </body>\n";
 			ttml << "</tt>\n\n";
+
+			if(0)
+				m_host->log(Warning, ttml.str().c_str());
 
 			return ttml.str();
 		}
