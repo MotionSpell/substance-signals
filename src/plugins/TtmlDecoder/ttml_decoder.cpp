@@ -69,9 +69,9 @@ class TTMLDecoder : public ModuleS {
 			SmallMap<std::string, Page::Style> styles;
 
 			explore(document, [&](const Tag& tag) {
-				if (tag.name == "tt" || tag.name == "tt:name")
+				if (tag.name == "tt" || tag.name == "tt:tt")
 					for (auto &attr : tag.attr)
-						if (attr.name == "cellResolution") {
+						if (attr.name == "cellResolution" || attr.name == "ttp:cellResolution") {
 							int ret = sscanf(attr.value.c_str(), "%d %d", &numCols, &numRows);
 							if (ret != 2)
 								m_host->log(Warning, format("Incorrect parsing of attribute %s=\"%s\" into \"%d %d\" (%d elements parsed)",
@@ -124,6 +124,8 @@ class TTMLDecoder : public ModuleS {
 
 			Page page;
 			page.hideTimestamp = pageMaxDuration;
+			page.numCols = numCols;
+			page.numRows = numRows;
 
 			explore(document, [&](const Tag& tag) {
 				if (tag.name == "div" || tag.name == "tt:div") {
