@@ -58,10 +58,10 @@ unique_ptr<DashMpd> parseMpd(span<const char> text) {
 			mpd->dynamic = attr["type"] == "dynamic";
 
 			if(!attr["availabilityStartTime"].empty())
-				mpd->availabilityStartTime = parseDate(attr["availabilityStartTime"]);
+				mpd->availabilityStartTime = (int64_t)(parseDate(attr["availabilityStartTime"]) *  1000);
 
 			if(!attr["publishTime"].empty())
-				mpd->publishTime = parseDate(attr["publishTime"]);
+				mpd->publishTime = (int64_t)(parseDate(attr["publishTime"])* 1000);
 
 			if(!attr["minimumUpdatePeriod"].empty())
 				mpd->minUpdatePeriod = parseIso8601Period(attr["minimumUpdatePeriod"]);

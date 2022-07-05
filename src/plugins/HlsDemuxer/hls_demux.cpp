@@ -100,7 +100,7 @@ class HlsDemuxer : public Module {
 					chunk = download(m_puller, chunkUrl.c_str());
 
 				auto data = m_output->allocData<DataRaw>(chunk.size());
-				data->set(PresentationTime { timescaleToClock(m_chunks[0].timestamp, 1/*in seconds*/) });
+				data->set(PresentationTime { m_chunks[0].timestamp });
 				if(chunk.size())
 					memcpy(data->buffer->data().ptr, chunk.data(), chunk.size());
 				m_output->post(data);
@@ -125,7 +125,7 @@ class HlsDemuxer : public Module {
 
 				if(line[0] == '#') {
 					if (startsWith(line, "#EXT-X-PROGRAM-DATE-TIME:"))
-						programDateTime = parseDate(line.substr(strlen("#EXT-X-PROGRAM-DATE-TIME:")));
+						programDateTime = fractionToClock(parseDate(line.substr(strlen("#EXT-X-PROGRAM-DATE-TIME:"))));
 					else if (startsWith(line, "#EXT-X-TARGETDURATION:"))
 						durInSec = stoi(line.substr(strlen("#EXT-X-TARGETDURATION:")));
 					else if (startsWith(line, "#EXTINF:"))

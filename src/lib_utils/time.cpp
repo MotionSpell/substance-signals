@@ -107,7 +107,7 @@ static time_t pTimegm(struct tm * t) {
 	return r;
 }
 
-int64_t parseDate(std::string s) {
+Fraction parseDate(std::string s) {
 	int year, month, day, hour, minute, timezonehour = 0, timezoneminute = 0;
 	float second;
 	int ret = sscanf(s.c_str(), "%04d-%02d-%02dT%02d:%02d:%f%03d:%02dZ",
@@ -137,7 +137,7 @@ int64_t parseDate(std::string s) {
 	date.tm_min = minute;
 	date.tm_sec = (int)second;
 
-	return pTimegm(&date);
+	return Fraction((pTimegm(&date) + (second - (int)second)) * 1000, 1000);
 }
 
 struct UtcClock : IUtcClock {
