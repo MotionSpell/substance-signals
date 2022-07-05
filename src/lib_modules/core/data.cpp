@@ -27,8 +27,8 @@ void DataBase::setAttribute(int typeId, SpanC data) {
 	{
 		auto first = attributeOffset.find(typeId);
 		if(first != attributeOffset.end()) {
-			// HACK for PresentationTime.
-			if(typeId == 0x35A12022) {
+			// HACK for DecodingTime and PresentationTime.
+			if(typeId == 0x35A12022 || typeId == 0x5DF434D0) {
 				memcpy(attributes.data() + (*first).value, data.ptr, data.len);
 				return;
 			}
