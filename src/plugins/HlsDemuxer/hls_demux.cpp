@@ -94,8 +94,6 @@ class HlsDemuxer : public Module {
 				auto const chunkUrl = m_dirName + m_chunks[0].url;
 				m_host->log(Debug, ("Process chunk: '" + chunkUrl + "'").c_str());
 
-				m_chunks.erase(m_chunks.begin());
-
 				// live mode: signal segments but only download the last one
 				std::vector<uint8_t> chunk;
 				if (!m_live || m_chunks.empty())
@@ -106,6 +104,8 @@ class HlsDemuxer : public Module {
 				if(chunk.size())
 					memcpy(data->buffer->data().ptr, chunk.data(), chunk.size());
 				m_output->post(data);
+
+				m_chunks.erase(m_chunks.begin());
 			}
 
 			return true;
