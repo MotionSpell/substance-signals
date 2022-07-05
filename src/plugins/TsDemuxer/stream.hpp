@@ -23,6 +23,7 @@ struct Stream {
 	int pid = TsDemuxerConfig::ANY;
 	KHost* const m_host; // for logs
 	int cc = -1; // continuity counter
+	bool rap = false;
 };
 
 // Helper class for stream implementations

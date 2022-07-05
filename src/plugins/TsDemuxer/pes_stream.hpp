@@ -196,12 +196,13 @@ struct PesStream : Stream {
 					int64_t decodingTime = timescaleToClock(dts, 90000); // DTS are in 90kHz units
 					buf->set(DecodingTime {decodingTime});
 				}
-				buf->set(CueFlags{ discontinuity, false, true });
+				buf->set(CueFlags{ discontinuity, rap, true });
 				memcpy(buf->buffer->data().ptr, m_pesBuffer.data()+r.byteOffset(), pesPayloadSize);
 				m_output->post(buf);
 
 				m_pesBuffer.clear();
 				discontinuity = false;
+				rap = false;
 			} catch (const std::runtime_error &e) {
 				m_pesBuffer.clear();
 				throw(e);

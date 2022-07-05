@@ -171,15 +171,20 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::IRestamper {
 			if(packetId == 0x1FFF)
 				return; // null packet
 
-			// skip adaptation field if any
-			if(adaptationFieldControl & 0b10) {
-				auto length = r.u(8);
-				skip(r, length, "adaptation_field length in TS header");
-			}
-
 			auto stream = m_streams[packetId].get();
 			if(!stream)
 				return; // we're not interested in this PID
+
+			// skip adaptation field if any
+			if(adaptationFieldControl & 0b10) {
+				auto length = r.u(8);
+				if (length > 0) {
+					/*const int discontinuity_indicator =*/ r.u(1);
+					stream->rap = r.u(1);
+					r.u(6);
+					skip(r, length - 1, "adaptation_field length in TS header");
+				}
+			}
 
 			if(stream->cc == -1)
 				stream->cc = (continuityCounter + 15) % 16; // init
