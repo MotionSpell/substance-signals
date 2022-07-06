@@ -180,7 +180,7 @@ struct TsDemuxer : ModuleS, PsiStream::Listener, PesStream::IRestamper {
 				auto length = r.u(8);
 				if (length > 0) {
 					/*const int discontinuity_indicator =*/ r.u(1);
-					stream->rap = r.u(1);
+					stream->rap |= r.u(1);
 					r.u(6);
 					skip(r, length - 1, "adaptation_field length in TS header");
 				}
