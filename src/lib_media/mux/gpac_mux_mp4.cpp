@@ -531,7 +531,7 @@ void GPACMuxMP4::startFragment(uint64_t DTS, uint64_t PTS) {
 		if (e != GF_OK)
 			throw error(format("Impossible to create the moof starting the fragment: %s", gf_error_to_string(e)));
 
-		if (segmentPolicy >= IndependentSegment) {
+		if (segmentPolicy != IndependentSegment) {
 			if (compatFlags & SmoothStreaming) {
 				SAFE(gf_isom_set_fragment_option(isoCur, trackId, GF_ISOM_TFHD_FORCE_MOOF_BASE_OFFSET, 1));
 			} else {
