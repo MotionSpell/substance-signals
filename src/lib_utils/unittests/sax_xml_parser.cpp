@@ -130,7 +130,7 @@ char invalidXmlTestData3[] = R"(<Hello/>)"; // corner case of the parser
 saxParse(invalidXmlTestData3, onNodeStart, onNodeEnd);
 }
 
-unittest("XML serialization: invalid </br> in middle of text") {
+unittest("SAX XML parser: invalid </br> in middle of text") {
 	std::vector<std::string> contents;
 	auto onNodeStart = [&](std::string, SmallMap<std::string, std::string>&) {};
 	auto onNodeEnd = [&](std::string, std::string content) {
@@ -139,4 +139,48 @@ unittest("XML serialization: invalid </br> in middle of text") {
 	char invalidXmlTestData[] = R"(<T>tt<br/>uu</T>)"; // corner case of the parser
 	saxParse(invalidXmlTestData, onNodeStart, onNodeEnd);
 	ASSERT_EQUALS(std::vector<std::string>({"tt<br/>uu"}), contents);
+}
+
+unittest("SAX XML parser: escape") {
+	std::vector<std::string> contents;
+	auto onNodeStart = [&](std::string, SmallMap<std::string, std::string>&) {};
+	auto onNodeEnd = [&](std::string, std::string content) {
+		contents.push_back(content);
+	};
+	char invalidXmlTestData[] = R"(<T>&amp;</T>)";
+	saxParse(invalidXmlTestData, onNodeStart, onNodeEnd);
+	ASSERT_EQUALS(std::vector<std::string>({"&"}), contents);
+}
+
+unittest("SAX XML parser: escape truncated") {
+	std::vector<std::string> contents;
+	auto onNodeStart = [&](std::string, SmallMap<std::string, std::string>&) {};
+	auto onNodeEnd = [&](std::string, std::string content) {
+		contents.push_back(content);
+	};
+	char invalidXmlTestData[] = R"(<T>&amp</T>)"; // corner case of the parser
+	saxParse(invalidXmlTestData, onNodeStart, onNodeEnd);
+	ASSERT_EQUALS(std::vector<std::string>({"&amp"}), contents);
+}
+
+unittest("SAX XML parser: escape truncated") {
+	std::vector<std::string> contents;
+	auto onNodeStart = [&](std::string, SmallMap<std::string, std::string>&) {};
+	auto onNodeEnd = [&](std::string, std::string content) {
+		contents.push_back(content);
+	};
+	char invalidXmlTestData[] = R"(<T>&&amp&amp;</T>)"; // corner case of the parser
+	saxParse(invalidXmlTestData, onNodeStart, onNodeEnd);
+	ASSERT_EQUALS(std::vector<std::string>({"&&amp&"}), contents);
+}
+
+unittest("SAX XML parser: escape coverage") {
+	std::vector<std::string> contents;
+	auto onNodeStart = [&](std::string, SmallMap<std::string, std::string>&) {};
+	auto onNodeEnd = [&](std::string, std::string content) {
+		contents.push_back(content);
+	};
+	char invalidXmlTestData[] = R"(<T>&amp;&lt;&gt;&apos;&quot;</T>)"; // corner case of the parser
+	saxParse(invalidXmlTestData, onNodeStart, onNodeEnd);
+	ASSERT_EQUALS(std::vector<std::string>({"&<>'\""}), contents);
 }

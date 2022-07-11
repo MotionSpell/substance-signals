@@ -111,6 +111,37 @@ void saxParse(span<const char> input, std::function<NodeStartFunc> onNodeStart, 
 						break; // assume child
 				}
 
+				if (front() == '&') {
+					// escape?
+					auto peek = [&](std::string str)->bool {
+						if (input.len < str.size())
+							return false;
+						return str == std::string(input.ptr, str.size());
+					};
+
+					if (peek("&quot;")) {
+						input += 6;
+						content += '"';
+						continue;
+					} else if (peek("&apos;")) {
+						input += 6;
+						content += '\'';
+						continue;
+					} else if (peek("&lt;")) {
+						input += 4;
+						content += '<';
+						continue;
+					} else if (peek("&gt;")) {
+						input += 4;
+						content += '>';
+						continue;
+					} else if (peek("&amp;")) {
+						input += 5;
+						content += '&';
+						continue;
+					}
+				}
+
 				if (!voidContent)
 					// strip empty first characters
 					if (!content.empty() || !isspace(front()))
