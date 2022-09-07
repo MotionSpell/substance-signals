@@ -18,6 +18,9 @@ struct Local {
 		ss += "]";
 		return ss;
 	}
+	static std::string to_string(const bool& v) {
+		return v == true ? "true" : "false";
+	}
 	static std::string to_string(const char& c) {
 		std::string s;
 		return s + c;
@@ -31,9 +34,19 @@ struct Local {
 	static std::string to_string(const std::string& v) {
 		return v;
 	}
+	static std::string to_string(void* v) {
+		char buffer[128];
+		sprintf(buffer, "%p", v);
+		return buffer;
+	}
 	static std::string to_string(const void* v) {
 		char buffer[128];
 		sprintf(buffer, "%p", v);
+		return buffer;
+	}
+	static std::string to_string(float v) {
+		char buffer[128];
+		sprintf(buffer, "%f", v);
 		return buffer;
 	}
 	static std::string to_string(double v) {
@@ -70,6 +83,15 @@ struct Local {
 		char buffer[128];
 		sprintf(buffer, "%llu", v);
 		return buffer;
+	}
+	static std::string to_string(const uint8_t v) {
+		char buffer[128];
+		sprintf(buffer, "%d", v);
+		return buffer;
+	}
+	template<typename T>
+	static std::string to_string(const T& val) {
+		return T::to_string(val);
 	}
 };
 

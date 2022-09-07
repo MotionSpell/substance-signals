@@ -25,7 +25,8 @@ void MetadataCap::setMetadata(Metadata metadata) {
 	}
 
 	if (metadata->type != m_metadata->type)
-		throw std::runtime_error(format("Metadata update: incompatible types %s for data and %s for attached", metadata->type, m_metadata->type));
+		throw std::runtime_error(format("Metadata update: incompatible types %s for data and %s for attached",
+		        (int)metadata->type, (int)m_metadata->type));
 
 	if (*m_metadata == *metadata) {
 		g_Log->log(Debug, "Output: metadata not equal but comparable by value. Updating.");

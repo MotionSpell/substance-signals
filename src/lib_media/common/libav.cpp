@@ -164,7 +164,7 @@ bool isPlanar(const AVCodecContext* codecCtx) {
 	case AV_SAMPLE_FMT_FLTP:
 		return true;
 	default:
-		throw std::runtime_error(format("Unknown libav audio format [%s] (2)", codecCtx->sample_fmt));
+		throw std::runtime_error(format("Unknown libav audio format [%s] (2)", (int)codecCtx->sample_fmt));
 	}
 }
 
@@ -176,7 +176,7 @@ AudioSampleFormat getFormat(const AVCodecContext* codecCtx) {
 	case AV_SAMPLE_FMT_FLT: return Modules::F32;
 	case AV_SAMPLE_FMT_FLTP: return Modules::F32;
 	default:
-		throw std::runtime_error(format("Unknown libav audio format [%s] (3)", codecCtx->sample_fmt));
+		throw std::runtime_error(format("Unknown libav audio format [%s] (3)", (int)codecCtx->sample_fmt));
 	}
 }
 

@@ -154,7 +154,7 @@ struct LibavEncode : ModuleS {
 				input->setMetadata(make_shared<MetadataRawAudio>());
 				break;
 			default:
-				throw error(format("Invalid codec type: %d", type));
+				throw error(format("Invalid codec type: %d", (int)type));
 			}
 
 			av_dict_free(&generalDict);
@@ -325,7 +325,7 @@ struct LibavEncode : ModuleS {
 				break;
 			}
 			default:
-				throw error(format("Invalid codec type: %d", params.type));
+				throw error(format("Invalid codec type: %d", (int)params.type));
 			}
 
 			/* open it */
