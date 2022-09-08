@@ -96,7 +96,7 @@ class HlsDemuxer : public Module {
 
 				// live mode: signal segments but only download the last one
 				std::vector<uint8_t> chunk;
-				if (!m_live || m_chunks.empty())
+				if (!m_live || m_chunks.size() == 1)
 					chunk = download(m_puller, chunkUrl.c_str());
 
 				auto data = m_output->allocData<DataRaw>(chunk.size());
@@ -115,7 +115,7 @@ class HlsDemuxer : public Module {
 			auto contents = download(m_puller, url.c_str());
 			vector<Entry> r;
 			int64_t programDateTime = 0;
-			int durInSec = 0;
+			int segDur = 0;
 			m_live = true;
 			string line;
 			stringstream ss(string(contents.begin(), contents.end()));
@@ -127,9 +127,9 @@ class HlsDemuxer : public Module {
 					if (startsWith(line, "#EXT-X-PROGRAM-DATE-TIME:"))
 						programDateTime = fractionToClock(parseDate(line.substr(strlen("#EXT-X-PROGRAM-DATE-TIME:"))));
 					else if (startsWith(line, "#EXT-X-TARGETDURATION:"))
-						durInSec = stoi(line.substr(strlen("#EXT-X-TARGETDURATION:")));
+						segDur = (int)(stof(line.substr(strlen("#EXT-X-TARGETDURATION:"))) * IClock::Rate);
 					else if (startsWith(line, "#EXTINF:"))
-						durInSec = stoi(line.substr(strlen("#EXTINF:")));
+						segDur = (int)(stof(line.substr(strlen("#EXTINF:"))) * IClock::Rate);
 					else if (startsWith(line, "#EXT-X-ENDLIST"))
 						m_live = false;
 
@@ -137,7 +137,7 @@ class HlsDemuxer : public Module {
 				}
 
 				r.push_back( { line, programDateTime } );
-				programDateTime += durInSec;
+				programDateTime += segDur;
 			}
 			return r;
 		}
