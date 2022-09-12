@@ -2,6 +2,7 @@
 
 #include "lib_modules/utils/helper.hpp" // ModuleS
 #include "lib_modules/utils/factory.hpp"
+#include "lib_modules/utils/loader.hpp"
 #include "lib_utils/format.hpp"
 #include "lib_utils/log_sink.hpp"
 #include "lib_utils/tools.hpp" // safe_cast
@@ -47,20 +48,20 @@ struct HttpSink : ModuleS {
 			if (meta->filesize == INT64_MAX) {
 				m_host->log(Info, format("Delete at URL: \"%s\"", url).c_str());
 				httpConfig.flags.request = DELETEX;
-				auto http = createModule<Out::HTTP>(m_host, httpConfig);
+				auto http = loadModule("HTTP", m_host, &httpConfig);
 			} else if (meta->filesize == 0 && !meta->EOS) {
 				if (exists(zeroSizeConnections, url))
 					throw error(format("Received zero-sized metadata but transfer is already initialized for URL: \"%s\"", url));
 
 				m_host->log(Info, format("Initialize transfer for URL: \"%s\"", url).c_str());
-				auto http = createModule<Out::HTTP>(m_host, httpConfig);
+				auto http = loadModule("HTTP", m_host, &httpConfig);
 				http->getInput(0)->push(data);
 				http->process();
 				zeroSizeConnections[url] = move(http);
 			} else {
 				if (!exists(zeroSizeConnections, url)) {
 					m_host->log(Info, format("Starting transfer to URL: \"%s\"", url).c_str());
-					zeroSizeConnections[url] = createModule<Out::HTTP>(m_host, httpConfig);
+					zeroSizeConnections[url] = loadModule("HTTP", m_host, &httpConfig);
 				}
 
 				m_host->log(Debug, format("Continue transfer (%s bytes) for URL: \"%s\"", meta->filesize, url).c_str());
@@ -79,7 +80,7 @@ struct HttpSink : ModuleS {
 	private:
 		KHost* const m_host;
 		atomic_bool done;
-		map<string, shared_ptr<Out::HTTP>> zeroSizeConnections;
+		map<string, shared_ptr<IModule>> zeroSizeConnections;
 		const string baseURL, userAgent;
 		const vector<string> headers;
 };
