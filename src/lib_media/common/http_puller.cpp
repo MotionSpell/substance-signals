@@ -48,7 +48,7 @@ struct HttpSource : Modules::In::IFilePuller {
 		//follow redirections
 		curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
 
-		// don't check certifcates
+		// don't check certificates
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 

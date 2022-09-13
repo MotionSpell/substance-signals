@@ -42,7 +42,7 @@ std::shared_ptr<CURL> createCurl(std::string url, HttpRequest request) {
 	else
 		throw std::runtime_error("Unknown HTTP request.");
 
-	// don't check certifcates
+	// don't check certificates
 	curl_easy_setopt(curl.get(), CURLOPT_SSL_VERIFYPEER, 0L);
 	curl_easy_setopt(curl.get(), CURLOPT_SSL_VERIFYHOST, 0L);
 
@@ -50,6 +50,9 @@ std::shared_ptr<CURL> createCurl(std::string url, HttpRequest request) {
 	curl_easy_setopt(curl.get(), CURLOPT_WRITEFUNCTION, writeVoid);
 	curl_easy_setopt(curl.get(), CURLOPT_NOSIGNAL, 1);
 	curl_easy_setopt(curl.get(), CURLOPT_VERBOSE, 0L);
+
+	// timeout after 2s (instead of the default 300s)
+	curl_easy_setopt(curl.get(), CURLOPT_CONNECTTIMEOUT_MS, 2000);
 
 	return curl;
 }

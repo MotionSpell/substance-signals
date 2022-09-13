@@ -8,12 +8,10 @@
 #include "lib_utils/tools.hpp" // safe_cast
 #include "../common/metadata_file.hpp"
 #include "http.hpp"
-#include <string>
 #include <memory>
 #include <map>
 #include <thread>
 #include <atomic>
-#include <vector>
 
 using namespace std;
 using namespace Modules;
@@ -27,8 +25,7 @@ bool exists(T const& container, V const& val) {
 
 struct HttpSink : ModuleS {
 		HttpSink(KHost* host, string baseURL, string userAgent, const vector<string> &headers)
-			: m_host(host),
-			  baseURL(baseURL), userAgent(userAgent), headers(headers) {
+			: m_host(host), baseURL(baseURL), userAgent(userAgent), headers(headers) {
 			done = false;
 		}
 		~HttpSink() {

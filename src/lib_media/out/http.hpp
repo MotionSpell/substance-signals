@@ -18,6 +18,4 @@ struct HttpOutputConfig {
 	std::vector<uint8_t> endOfSessionSuffix {};
 
 	Flags flags {};
-
-	int maxParallelConnections = 1; // default: sequential
 };
