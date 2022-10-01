@@ -30,7 +30,7 @@ std::string timecodeToString(int64_t timeInMs) {
 class SubtitleEncoder : public ModuleS {
 	public:
 		SubtitleEncoder(KHost* host, SubtitleEncoderConfig* cfg)
-			: m_host(host), isWebVTT(cfg->isWebVTT), m_utcStartTime(cfg->utcStartTime),
+			: m_host(host), isWebVTT(cfg->isWebVTT), forceTtmlLegacy(cfg->forceTtmlLegacy), m_utcStartTime(cfg->utcStartTime),
 			  forceEmptyPage(cfg->forceEmptyPage), lang(cfg->lang), timingPolicy(cfg->timingPolicy),
 			  maxPageDurIn180k(std::max<int>(timescaleToClock(cfg->maxDelayBeforeEmptyInMs, 1000), timescaleToClock(cfg->splitDurationInMs, 1000))),
 			  splitDurationIn180k(timescaleToClock(cfg->splitDurationInMs, 1000)) {
@@ -52,6 +52,7 @@ class SubtitleEncoder : public ModuleS {
 	private:
 		KHost* const m_host;
 		const bool isWebVTT;
+		const bool forceTtmlLegacy;
 		IUtcStartTimeQuery const * const m_utcStartTime;
 		OutputDefault* output;
 		const bool forceEmptyPage;
@@ -133,6 +134,9 @@ class SubtitleEncoder : public ModuleS {
 
 			//TODO: remove legacy mode
 			auto isLegacy = [&]() {
+				if (DEBUG_DISPLAY_TIMESTAMPS)
+					return false;
+
 				for (auto& page : currentPages) {
 					if (page.numRows != 25 || page.numCols != 40)
 						return false;
@@ -144,7 +148,7 @@ class SubtitleEncoder : public ModuleS {
 
 				return true;
 			};
-			auto legacyElementalMode = isLegacy();
+			auto legacyElementalMode = forceTtmlLegacy || isLegacy();
 
 			auto hasDoubleHeight = [&]() {
 				for (auto& page : currentPages)
@@ -327,7 +331,7 @@ class SubtitleEncoder : public ModuleS {
 					Page pageOut;
 					pageOut.showTimestamp = prevSplit;
 					pageOut.hideTimestamp = nextSplit;
-					for (int row = 0; row < pageOut.numRows; ++row) {
+					for (int row = 0; row < isWebVTT ? 1 : pageOut.numRows; ++row) {
 						std::string line;
 						line += "Lp ";
 						line += std::to_string(row);
