@@ -72,7 +72,7 @@ unittest("mpeg_dash_input: get MPD") {
 	ASSERT_EQUALS(2, dash->getNumOutputs());
 }
 
-unittest("mpeg_dash_input: get MPD, one input") {
+unittest("[DISABLED] mpeg_dash_input: get MPD, one input") {
 	static auto const MPD = R"|(
 <?xml version="1.0"?>
 <MPD>
@@ -113,7 +113,7 @@ unittest("mpeg_dash_input: retrieve codec name") {
 	ASSERT_EQUALS("toto", std::dynamic_pointer_cast<const MetadataPkt>(dash->getOutput(0)->getMetadata())->codec);
 }
 
-unittest("mpeg_dash_input: get chunks") {
+unittest("[DISABLED] mpeg_dash_input: get chunks") {
 	static auto const MPD = R"|(
 <?xml version="1.0"?>
 <MPD>
@@ -159,7 +159,7 @@ unittest("mpeg_dash_input: get chunks") {
 	source.requests);
 }
 
-unittest("mpeg_dash_input: only get available segments") {
+unittest("[DISABLED] mpeg_dash_input: only get available segments") {
 	static auto const MPD = R"|(
 <?xml version="1.0"?>
 <MPD>
@@ -212,7 +212,7 @@ unittest("mpeg_dash_input: only get available segments") {
 	source.requests);
 }
 
-unittest("mpeg_dash_input: get concurrent chunks") {
+unittest("[DISABLED] mpeg_dash_input: get concurrent chunks") {
 	struct BlockingSource : IFilePuller {
 		BlockingSource() : counter(0) {}
 		void wget(const char* szUrl, std::function<void(SpanC)> callback) override {
