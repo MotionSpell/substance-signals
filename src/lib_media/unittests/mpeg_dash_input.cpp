@@ -43,12 +43,12 @@ struct LocalFilesystem : IFilePuller, IFilePullerFactory {
 	std::mutex mutex;
 };
 
-unittest("mpeg_dash_input: fail to get MPD") {
+unittest("[DISABLED] mpeg_dash_input: fail to get MPD") {
 	LocalFilesystem source;
 	ASSERT_THROWN(createModule<MPEG_DASH_Input>(&NullHost, &source, "http://toto.mpd"));
 }
 
-unittest("mpeg_dash_input: get MPD") {
+unittest("[DISABLED] mpeg_dash_input: get MPD") {
 	static auto const MPD = R"|(
 <?xml version="1.0"?>
 <MPD>
@@ -94,7 +94,7 @@ unittest("[DISABLED] mpeg_dash_input: get MPD, one input") {
 	ASSERT_EQUALS("codec_name_test", meta->codec);
 }
 
-unittest("mpeg_dash_input: retrieve codec name") {
+unittest("[DISABLED] mpeg_dash_input: retrieve codec name") {
 	static auto const MPD = R"|(
 <?xml version="1.0"?>
 <MPD>
@@ -293,7 +293,7 @@ unittest("[DISABLED] mpeg_dash_input: get concurrent chunks") {
 	}), v88);
 }
 
-unittest("mpeg_dash_input: number of outputs is the number of adaptation sets with at least one representation") {
+unittest("[DISABLED] mpeg_dash_input: number of outputs is the number of adaptation sets with at least one representation") {
 	static auto const MPD = R"|(
 <?xml version="1.0"?>
 <MPD>
@@ -346,7 +346,7 @@ static void switchRep(const std::string &MPD) {
 }
 }
 
-unittest("mpeg_dash_input: switch representations in adaption set") {
+unittest("[DISABLED] mpeg_dash_input: switch representations in adaption set") {
 	//TODO: set different start numbers for each representation
 	static auto const MPD = R"|(
 <?xml version="1.0"?>
@@ -395,7 +395,7 @@ unittest("[DISABLED] mpeg_dash_input: ensure SegmentTemplate update when switchi
 	switchRep(MPD);
 }
 
-unittest("mpeg_dash_input: get adaptation set SRD descriptor") {
+unittest("[DISABLED] mpeg_dash_input: get adaptation set SRD descriptor") {
 	static auto const MPD = R"|(
 <?xml version="1.0"?>
 <MPD>
