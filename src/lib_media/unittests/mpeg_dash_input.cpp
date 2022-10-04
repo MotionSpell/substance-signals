@@ -370,7 +370,7 @@ unittest("mpeg_dash_input: switch representations in adaption set") {
 	switchRep(MPD);
 }
 
-unittest("mpeg_dash_input: ensure SegmentTemplate update when switching representations") {
+unittest("[DISABLED] mpeg_dash_input: ensure SegmentTemplate update when switching representations") {
 	//TODO: set different start numbers for each representation
 	static auto const MPD = R"|(
 <?xml version="1.0"?>
