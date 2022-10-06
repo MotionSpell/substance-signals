@@ -205,7 +205,7 @@ class SubtitleEncoder : public ModuleS {
 						auto const height = Fraction(100.0, page.numRows - 1);
 						auto const spacingFactor = parsePercent(line.style.lineHeight);
 						auto const verticalOrigin = (double)((height * spacingFactor * page.numRows * -1 + 100) + height * spacingFactor * line.region.row); // Percentage. Promote the last rows for text display.
-						if (verticalOrigin >= 0 &&  height * spacingFactor * (1 + (int)doubleHeight) + verticalOrigin <= 100) {
+						if (verticalOrigin >= 0 && height * spacingFactor * (1 + (int)doubleHeight) + verticalOrigin <= 100) {
 							auto const factorH = 1 + (int)doubleHeight;
 							auto const margin = 10.0; //percentage
 							auto const origin = (margin + (100 - 2 * margin) * line.region.col / (double)page.numCols) / factorH;
@@ -213,6 +213,8 @@ class SubtitleEncoder : public ModuleS {
 							ttml << "      <region xml:id=\"Region" << pageToRegionId[&page] << "_" << line.region.row << "\" ";
 							ttml << "tts:origin=\"" << origin << "% " << verticalOrigin << "%\" tts:extent=\"" << width << "% " << (double)height * factorH << "%\" ";
 							ttml << "tts:displayAlign=\"center\" tts:textAlign=\"center\" />\n";
+						} else if (forceTtmlLegacy) {
+							ttml << "      <region xml:id=\"Region0_0\" tts:origin=\"10% 95.8333%\" tts:extent=\"80% 4.16667%\" tts:displayAlign=\"center\" tts:textAlign=\"center\" />\n";
 						} else
 							m_host->log(Warning, format("Impossible to compute text position for \"%s\". Contact your vendor.", line.text).c_str());
 					}
@@ -331,7 +333,7 @@ class SubtitleEncoder : public ModuleS {
 					Page pageOut;
 					pageOut.showTimestamp = prevSplit;
 					pageOut.hideTimestamp = nextSplit;
-					for (int row = 0; row < isWebVTT ? 1 : pageOut.numRows; ++row) {
+					for (int row = 0; row < ((isWebVTT || forceTtmlLegacy) ? 1 : pageOut.numRows); ++row) {
 						std::string line;
 						line += "Lp ";
 						line += std::to_string(row);
@@ -341,7 +343,7 @@ class SubtitleEncoder : public ModuleS {
 
 						Page::Line pageline;
 						pageline.text = line;
-						pageline.region.row = 0;
+						pageline.region.row = row;
 						pageOut.lines.push_back(pageline);
 					}
 					currentPages.clear();
