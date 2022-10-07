@@ -214,7 +214,7 @@ class SubtitleEncoder : public ModuleS {
 							ttml << "tts:origin=\"" << origin << "% " << verticalOrigin << "%\" tts:extent=\"" << width << "% " << (double)height * factorH << "%\" ";
 							ttml << "tts:displayAlign=\"center\" tts:textAlign=\"center\" />\n";
 						} else if (forceTtmlLegacy) {
-							ttml << "      <region xml:id=\"Region0_0\" tts:origin=\"10% 95.8333%\" tts:extent=\"80% 4.16667%\" tts:displayAlign=\"center\" tts:textAlign=\"center\" />\n";
+							ttml << "      <region xml:id=\"Region" << pageToRegionId[&page] << "_" << line.region.row << "\" tts:origin=\"10% 95.8333%\" tts:extent=\"80% 4.16667%\" tts:displayAlign=\"center\" tts:textAlign=\"center\" />\n";
 						} else
 							m_host->log(Warning, format("Impossible to compute text position for \"%s\". Contact your vendor.", line.text).c_str());
 					}
@@ -333,7 +333,7 @@ class SubtitleEncoder : public ModuleS {
 					Page pageOut;
 					pageOut.showTimestamp = prevSplit;
 					pageOut.hideTimestamp = nextSplit;
-					for (int row = 0; row < ((isWebVTT || forceTtmlLegacy) ? 1 : pageOut.numRows); ++row) {
+					for (int row = ((isWebVTT || forceTtmlLegacy) ? pageOut.numRows - 1 : 0); row < pageOut.numRows; ++row) {
 						std::string line;
 						line += "Lp ";
 						line += std::to_string(row);
