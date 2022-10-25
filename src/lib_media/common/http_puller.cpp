@@ -64,7 +64,7 @@ struct HttpSource : Modules::In::IFilePuller {
 		if(res == CURLE_HTTP_RETURNED_ERROR)
 			return;
 		if(res != CURLE_OK)
-			throw std::runtime_error(std::string("HTTP download failed: ") + curl_easy_strerror(res));
+			throw std::runtime_error(std::string("HTTP download failed (url=\"") + url + "\"): " + curl_easy_strerror(res));
 	}
 
 	void askToExit() override {
