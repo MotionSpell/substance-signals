@@ -76,7 +76,6 @@ static GF_Err mem_out_process(GF_Filter *filter) {
 	if (prop && prop->value.data.ptr && prop->value.data.size) {
 		ctx->pushDsi(ctx->parent, prop->value.data.ptr, prop->value.data.size);
 	}
-
 	pck = gf_filter_pid_get_packet(ctx->pid);
 	if (pck) {
 		u32 data_size = 0;

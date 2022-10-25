@@ -31,10 +31,13 @@ unittest("GpacFilters: audio reframer (aac_adts)") {
 	};
 	ConnectOutput(reframer->getOutput(0), onSample);
 
-	for(int i=0; i < 100; ++i)
+	for(int i=0; i < 1000; ++i)
 		f->process();
 
-	ASSERT_EQUALS(214, sampleCount);
+	demux->flush();
+	reframer->flush();
+
+	ASSERT_EQUALS(215, sampleCount);
 }
 
 unittest("GpacFilters: video reframer (avc, ts)") {

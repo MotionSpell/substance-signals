@@ -7,12 +7,15 @@
 #include "lib_utils/format.hpp"
 #include "lib_media/common/metadata.hpp"
 #include "lib_utils/queue.hpp"
+#include "lib_utils/small_map.hpp"
 #include <cassert>
 
 extern "C" {
 #include "gpac_filter_mem_in.h"
 #include "gpac_filter_mem_out.h"
 }
+
+//#define GPAC_V2
 
 using namespace Modules;
 
@@ -21,7 +24,7 @@ struct GpacFilters : ModuleDynI {
 		GpacFilters(KHost* host, GpacFiltersConfig *cfg)
 			: m_host(host), filterName(cfg->filterName) {
 			gf_sys_init(GF_MemTrackerNone, NULL);
-			//gf_log_set_tools_levels("all@info", GF_TRUE);
+			//gf_log_set_tools_levels("all@info:media@debug", GF_TRUE);
 		}
 
 		~GpacFilters() {
@@ -53,16 +56,41 @@ struct GpacFilters : ModuleDynI {
 			}
 
 			inputData.push(data);
-			gf_fs_run_step(fs);
+#ifdef GPAC_V2
+			do {
+				for (int i=0; i<10; ++i)
+					gf_fs_run(fs);
+			} while (0);//Romain: !gf_fs_is_last_task(fs));
+#else
+			for (int i=0; i<10; ++i)
+				gf_fs_run_step(fs);
+#endif
 
 			//gf_fs_print_connections(fs);
 			//gf_fs_print_all_connections(fs, (char*)"mem_in", nullptr);
 		}
 
 		void flush() override {
-			//TODO: better understand EOS mechanism in GPAC Filters
+			auto e = gf_fs_abort(fs, GF_FS_FLUSH_ALL);
+			if (e != GF_OK)
+				m_host->log(Warning, format("Flush failed: some data may be missing (%s)", gf_error_to_string(e)).c_str());
+
 			if (fs)
-				gf_fs_run_step(fs);
+#ifdef GPAC_V2
+				do {
+					gf_fs_run(fs);
+				} while (!gf_fs_is_last_task(fs));
+#else
+				for (int i=0; i<100; ++i)
+					gf_fs_run_step(fs);
+#endif
+
+			int remaining = 0;
+			Data data;
+			while (inputData.tryPop(data))
+				remaining++;
+			if (remaining)
+				m_host->log(Warning, format("%s packets were unprocessed", remaining).c_str());
 		}
 
 		int getNumOutputs() const override {
@@ -86,13 +114,9 @@ struct GpacFilters : ModuleDynI {
 
 		//memIn
 		Queue<Data> inputData;
-		Data inputLast;
+		SmallMap<const u8*, Data> danglingData;
 		static void inputGetData(void *parent, const u8 **data, u32 *data_size, u64 *dts, u64 *pts) {
 			auto pThis = (GpacFilters*)parent;
-
-			if (pThis->inputLast)
-				return; /*pending packet: don't unqueue until the previous data is freed*/
-
 			Data pData = nullptr;
 			if (pThis->inputData.tryPop(pData)) {
 				auto span = pData->data();
@@ -108,19 +132,20 @@ struct GpacFilters : ModuleDynI {
 				} catch(...) {
 					*dts = *pts;
 				}
-				pThis->inputLast = pData;
+				pThis->danglingData[*data] = pData;
+			} else {
+				//pThis->m_host->log(Debug, "MemIn requests data but no data is available. Rescheduling.");
 			}
 		}
-		static void inputFreeData(void *parent) {
+		static void inputFreeData(void *parent, const u8 *data) {
 			auto pThis = (GpacFilters*)parent;
-			pThis->inputLast = nullptr;
+			pThis->danglingData.erase(pThis->danglingData.find(data));
 		}
 
 		//memOut
 		std::string codecName;
 		static void outputPushData(void *parent, const u8 *data, u32 data_size, u64 dts, u64 pts) {
 			auto pThis = (GpacFilters*)parent;
-
 			pThis->ioDiff = 0;
 
 			auto out = ((OutputDefault*)((GpacFilters*)pThis)->outputs[0].get())->allocData<DataRaw>(data_size); //TODO: to be extended to multiple outputs
@@ -151,6 +176,12 @@ struct GpacFilters : ModuleDynI {
 			fs = gf_fs_new(1, GF_FS_SCHEDULER_DIRECT, GF_FS_FLAG_NO_MAIN_THREAD, NULL);
 			if (!fs)
 				throw error("cannot create GPAC Filters session");
+
+#ifdef GPAC_V2
+			fs = gf_fs_new_defaults(GF_FS_FLAG_NO_BLOCKING/*Romain: GF_FS_FLAG_NON_BLOCKING*/);
+			if (!fs)
+				throw error("cannot set GPAC Filters session non-blocking flag");
+#endif
 
 			gf_fs_add_filter_register(fs, mem_in_register(fs));
 			gf_fs_add_filter_register(fs, mem_out_register(fs));

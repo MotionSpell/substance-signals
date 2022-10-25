@@ -46,7 +46,8 @@ static void mem_in_pck_destructor(GF_Filter *filter, GF_FilterPid *pid, GF_Filte
 	(void)(pid);
 	(void)(pck);
 	MemInCtx *ctx = (MemInCtx*)gf_filter_get_udta(filter);
-	ctx->freeData(ctx->parent);
+	u32 data_size = 0;
+	ctx->freeData(ctx->parent, gf_filter_pck_get_data(pck, &data_size));
 }
 
 static GF_CodecID get_codec_id(const char *signals_codec_name) {
@@ -78,72 +79,75 @@ static GF_Err mem_in_process(GF_Filter *filter) {
 	int romain_offset = 0;
 	MemInCtx* ctx = (MemInCtx*)gf_filter_get_udta(filter);
 
-	if (ctx->eos)
+	if (ctx->eos) //FIXME: unused?
 		return GF_EOS;
 
 	ctx->getData(ctx->parent, &data, &data_size, &dts, &pts);
-	if (data) {
+	if (!data) {
+		gf_filter_ask_rt_reschedule(filter, 1);
+		return GF_OK;
+	}
+
+	if (!ctx->pid) {
+		ctx->pid = gf_filter_pid_new(filter);
 		if (!ctx->pid) {
-			ctx->pid = gf_filter_pid_new(filter);
-			if (!ctx->pid) {
-				e = GF_OUT_OF_MEM;
-				goto exit;
-			}
-
-			e = gf_filter_pid_set_property(ctx->pid, GF_PROP_PID_TIMESCALE, &PROP_UINT(180000));
-			if (e) goto exit;
-
-			GF_CodecID codec_id = get_codec_id(ctx->signals_codec_name);
-			e = gf_filter_pid_set_property(ctx->pid, GF_PROP_PID_STREAM_TYPE, &PROP_UINT(gf_codecid_type(codec_id)));
-			if (e) goto exit;
-			e = gf_filter_pid_set_property(ctx->pid, GF_PROP_PID_CODECID, &PROP_UINT(codec_id));
-			if (e) goto exit;
-
-			e = gf_filter_pid_set_property(ctx->pid, GF_PROP_PID_UNFRAMED, &PROP_BOOL(GF_TRUE));
-			if (e) goto exit;
-
-			/*if (gf_codecid_type(codec_id) == GF_STREAM_VISUAL) {
-				e = gf_filter_pid_set_property(ctx->pid, GF_PROP_PID_UNFRAMED_FULL_AU, &PROP_BOOL(GF_TRUE));
-				if (e) goto exit;
-			}*/
-
-			if (gf_codecid_type(codec_id) == GF_STREAM_VISUAL)
-				romain_offset = 10;
+			e = GF_OUT_OF_MEM;
+			goto exit;
 		}
 
-		{
-			GF_FilterPacket *pck = gf_filter_pck_new_shared(ctx->pid, data, data_size-romain_offset, mem_in_pck_destructor);
-			if (!pck) {
-				e = GF_OUT_OF_MEM;
-				goto exit;
-			}
+		e = gf_filter_pid_set_property(ctx->pid, GF_PROP_PID_TIMESCALE, &PROP_UINT(180000));
+		if (e) goto exit;
 
-			e = gf_filter_pck_set_dts(pck, dts);
-			if (e) goto exit;
+		GF_CodecID codec_id = get_codec_id(ctx->signals_codec_name);
+		e = gf_filter_pid_set_property(ctx->pid, GF_PROP_PID_STREAM_TYPE, &PROP_UINT(gf_codecid_type(codec_id)));
+		if (e) goto exit;
+		e = gf_filter_pid_set_property(ctx->pid, GF_PROP_PID_CODECID, &PROP_UINT(codec_id));
+		if (e) goto exit;
 
-			e = gf_filter_pck_set_cts(pck, pts);
-			if (e) goto exit;
+		e = gf_filter_pid_set_property(ctx->pid, GF_PROP_PID_UNFRAMED, &PROP_BOOL(GF_TRUE));
+		if (e) goto exit;
 
-			e = gf_filter_pck_send(pck);
+		/*if (gf_codecid_type(codec_id) == GF_STREAM_VISUAL) {
+			e = gf_filter_pid_set_property(ctx->pid, GF_PROP_PID_UNFRAMED_FULL_AU, &PROP_BOOL(GF_TRUE));
 			if (e) goto exit;
+		}*/
+
+		if (gf_codecid_type(codec_id) == GF_STREAM_VISUAL)
+			romain_offset = 10;
+	}
+
+	{
+		GF_FilterPacket *pck = gf_filter_pck_new_shared(ctx->pid, data, data_size-romain_offset, mem_in_pck_destructor);
+		if (!pck) {
+			e = GF_OUT_OF_MEM;
+			goto exit;
 		}
 
-		if (romain_offset) {
-			GF_FilterPacket *pck = gf_filter_pck_new_shared(ctx->pid, data+data_size-romain_offset, romain_offset, mem_in_pck_destructor);
-			if (!pck) {
-				e = GF_OUT_OF_MEM;
-				goto exit;
-			}
+		e = gf_filter_pck_set_dts(pck, dts);
+		if (e) goto exit;
 
-			e = gf_filter_pck_set_dts(pck, dts);
-			if (e) goto exit;
+		e = gf_filter_pck_set_cts(pck, pts);
+		if (e) goto exit;
 
-			e = gf_filter_pck_set_cts(pck, pts);
-			if (e) goto exit;
+		e = gf_filter_pck_send(pck);
+		if (e) goto exit;
+	}
 
-			e = gf_filter_pck_send(pck);
-			if (e) goto exit;
+	if (romain_offset) {
+		GF_FilterPacket *pck = gf_filter_pck_new_shared(ctx->pid, data+data_size-romain_offset, romain_offset, mem_in_pck_destructor);
+		if (!pck) {
+			e = GF_OUT_OF_MEM;
+			goto exit;
 		}
+
+		e = gf_filter_pck_set_dts(pck, dts);
+		if (e) goto exit;
+
+		e = gf_filter_pck_set_cts(pck, pts);
+		if (e) goto exit;
+
+		e = gf_filter_pck_send(pck);
+		if (e) goto exit;
 	}
 
 exit:
