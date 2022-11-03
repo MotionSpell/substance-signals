@@ -384,3 +384,13 @@ unittest("ttml_decoder: ebu-tt-live (BasicDE) from WDR styling") {
 
 	ASSERT_EQUALS(1, received);
 }
+
+unittest("ttml_decoder: parsing error (empty)") {
+	TtmlDecoderConfig cfg;
+	auto dec = loadModule("TTMLDecoder", &NullHost, &cfg);
+	std::string ttml = R"|(<?xml version="1.0"?>")|";
+	auto pkt = std::make_shared<DataRaw>(ttml.size());
+	memcpy(pkt->buffer->data().ptr, ttml.data(), ttml.size());
+	pkt->set(PresentationTime{1789});
+	ASSERT_THROWN(dec->getInput(0)->push(pkt));
+}

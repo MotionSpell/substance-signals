@@ -35,7 +35,7 @@ Tag parseXml(span<const char> text) {
 	saxParse(text, onNodeStart, onNodeEnd);
 
 	if (tagStack.front()->children.size() != 1)
-		throw std::runtime_error("XML parsing error");
+		throw std::runtime_error(format("XML parsing error: \"%s\"", std::string(text.ptr, text.len)).c_str());
 
 	return tagStack.front()->children[0];
 }
