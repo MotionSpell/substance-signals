@@ -58,13 +58,13 @@ class Pipeline : public IEventSink {
 		void waitForEndOfStream();
 		void exitSync(); /*ask for all sources to finish*/
 
-		void registerErrorCallback(std::function<void(const char*)>);
+		void registerErrorCallback(std::function<bool(const char*)>);
 
 	private:
 		IFilter * addModuleInternal(std::string name, CreationFunc createModule);
 		void computeTopology();
 		void endOfStream();
-		void exception(std::exception_ptr eptr);
+		bool/*handled*/ exception(std::exception_ptr eptr);
 
 		/*FIXME: the block below won't be necessary once we inject correctly*/
 		int getNumBlocks(int numBlock) const {
@@ -82,7 +82,7 @@ class Pipeline : public IEventSink {
 		std::condition_variable condition;
 		size_t notifications = 0, remainingNotifications = 0;
 		std::exception_ptr eptr;
-		std::function<void(const char*)> errorCbk;
+		std::function<bool(const char*)> errorCbk;
 };
 
 }

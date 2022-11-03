@@ -116,8 +116,8 @@ void Filter::processSource() {
 		delegate->process();
 	} catch(std::exception const& e) {
 		log(Error, (std::string("Source error: ") + e.what()).c_str());
-		exception(std::current_exception());
-		if (active)
+		auto handled = exception(std::current_exception());
+		if (!handled && active)
 			stopSource();
 	}
 
@@ -193,8 +193,8 @@ void Filter::endOfStream() {
 	}
 }
 
-void Filter::exception(std::exception_ptr eptr) {
-	m_eventSink->exception(eptr);
+bool Filter::exception(std::exception_ptr eptr) {
+	return m_eventSink->exception(eptr);
 }
 
 }

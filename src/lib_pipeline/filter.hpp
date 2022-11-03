@@ -64,7 +64,7 @@ class Filter :
 
 		// IEventSink implementation
 		void endOfStream() override;
-		void exception(std::exception_ptr eptr) override;
+		bool exception(std::exception_ptr eptr) override;
 
 		LogSink* const m_log;
 		std::string const m_name;

@@ -222,18 +222,19 @@ void Pipeline::endOfStream() {
 	condition.notify_one();
 }
 
-void Pipeline::registerErrorCallback(std::function<void(const char*)> cbk) {
+void Pipeline::registerErrorCallback(std::function<bool(const char*)> cbk) {
 	errorCbk = cbk;
 }
 
-void Pipeline::exception(std::exception_ptr eptr) {
+bool Pipeline::exception(std::exception_ptr eptr) {
 	try {
 		std::rethrow_exception(eptr);
 	} catch (const std::exception &e) {
 		m_log->log(Error, format("Pipeline: exception caught: %s", e.what()).c_str());
 		if (errorCbk)
-			errorCbk(e.what());
+			return errorCbk(e.what());
 	}
+	return false; //not handled properly: subsequent actions may be taken
 }
 
 }
