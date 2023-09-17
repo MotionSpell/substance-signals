@@ -528,17 +528,6 @@ function checkForCommonBuildTools {
     error="1"
   fi
 
-  if isMissing "python2"; then
-    echo "python2 not installed.  Please install with:"
-    echo "pacman -S python2"
-    echo "or"
-    echo "apt-get install python2"
-    echo "or"
-    echo "port install python27 && ln -s /opt/local/bin/python2.7 /opt/local/bin/python2"
-    echo ""
-    error="1"
-  fi
-
   if isMissing "autoreconf"; then
     echo "autoreconf not installed. Please install with:"
     echo "pacman -S autoconf"
