@@ -39,7 +39,6 @@ function get_root_packages
   echo libjpeg-turbo
   echo libsdl2
   echo rapidjson
-  echo cppredis
 }
 
 #####################################
