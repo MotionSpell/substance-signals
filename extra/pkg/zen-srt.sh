@@ -1,6 +1,6 @@
 
 function srt_build {
-  lazy_download "srt.tar.gz" "https://github.com/Haivision/srt/archive/v1.4.1.tar.gz"
+  lazy_download "srt.tar.gz" "https://github.com/Haivision/srt/archive/v1.5.3.tar.gz"
   lazy_extract "srt.tar.gz"
   mkgit "srt"
 
@@ -47,11 +47,11 @@ function srt_build {
   # ffmpeg 'configure' fail.
   case $host in
     *linux*)
-      if ! diff -q "srt/bin/$host/libsrt.so.1.4.1" "$PREFIX/lib/libsrt.so.1.4.1" ; then
+      if ! diff -q "srt/bin/$host/libsrt.so.1.5.3" "$PREFIX/lib/libsrt.so.1.5.3" ; then
         echo "WTF!"
       fi
 
-      cp "srt/bin/$host/libsrt.so.1.4.1" $PREFIX/lib
+      cp "srt/bin/$host/libsrt.so.1.5.3" $PREFIX/lib
       ;;
   esac
 }
