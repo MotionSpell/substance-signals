@@ -20,7 +20,6 @@ class GenericFifo {
 		}
 
 		void consume(size_t numBytes) {
-			assert(numBytes >= 0);
 			assert(numBytes <= bytesToRead());
 			m_readPos += numBytes;
 

@@ -48,7 +48,7 @@ chunk-last.ts
 	cfg.url = "http://test.com/playlist.m3u8";
 	cfg.filePuller = &fs;
 	auto demux = loadModule("HlsDemuxer", &NullHost, &cfg);
-  for(int i=0;i < 100;++i)
+	for(int i=0;i < 100;++i)
 	demux->process();
 	ASSERT_EQUALS(
 	vector<string>({

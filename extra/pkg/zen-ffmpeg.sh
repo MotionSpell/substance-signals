@@ -222,27 +222,7 @@ diff --git a/libavcodec/x86/mathops.h b/libavcodec/x86/mathops.h
 index 6298f5ed1983b..ca7e2dffc1076 100644
 --- a/libavcodec/x86/mathops.h
 +++ b/libavcodec/x86/mathops.h
-@@ -35,12 +35,20 @@
- static av_always_inline av_const int MULL(int a, int b, unsigned shift)
- {
-     int rt, dummy;
-+    if (__builtin_constant_p(shift))
-     __asm__ (
-         "imull %3               \n\t"
-         "shrdl %4, %%edx, %%eax \n\t"
-         :"=a"(rt), "=d"(dummy)
--        :"a"(a), "rm"(b), "ci"((uint8_t)shift)
-+        :"a"(a), "rm"(b), "i"(shift & 0x1F)
-     );
-+    else
-+        __asm__ (
-+            "imull %3               \n\t"
-+            "shrdl %4, %%edx, %%eax \n\t"
-+            :"=a"(rt), "=d"(dummy)
-+            :"a"(a), "rm"(b), "c"((uint8_t)shift)
-+        );
-     return rt;
- }
+
  
 @@ -113,19 +121,31 @@ __asm__ volatile(\
  // avoid +32 for shift optimization (gcc should do that ...)
