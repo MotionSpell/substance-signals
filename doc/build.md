@@ -77,6 +77,7 @@ Note: when using a MinGW-w64 toolchains, you may have a failure when trying to b
 Please modify the bin/make/config.mk file accordingly:
 - add ```-D_WIN32_WINNT=0x0501 -DWIN32_LEAN_AND_MEAN```
 - Linux only: remove ```-mwindows``` and make you you selected posix threads with ```sudo update-alternatives --config x86_64-w64-mingw32-g++```
+- one line building command with mingw-w64 ```PKG_CONFIG_PATH=$PWD/extra/x86_64-w64-mingw32/lib/pkgconfig CXX=x86_64-w64-mingw32-g++ BIN=bin-win64 make -j ```
 
 #### MacOS
 

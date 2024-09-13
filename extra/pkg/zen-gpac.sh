@@ -118,7 +118,6 @@ function gpac_build {
 function gpac_get_deps {
   echo libpthread
   echo ffmpeg
-  echo freetype2
   echo libogg
   echo libogg
   echo zlib

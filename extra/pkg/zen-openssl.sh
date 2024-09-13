@@ -9,7 +9,8 @@ function openssl_build {
 
   # static lib needed for the TLS handshake table
   autoconf_build $host "libressl" \
-    "--enable-shared" 
+    "--enable-shared" \
+    "--disable-hardening"
 }
 
 function openssl_get_deps {
