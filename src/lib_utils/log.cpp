@@ -3,8 +3,8 @@
 #include <cassert>
 #include <ctime>
 #include <iostream>
-#include "lib_utils/system_clock.hpp"
-#include "lib_utils/format.hpp"
+#include "system_clock.hpp"
+#include "format.hpp"
 
 #ifdef _WIN32
 #include <windows.h>

@@ -1,0 +1,42 @@
+# List of source files for the utils library
+set(LIB_UTILS_SRCS
+    clock.hpp
+    fifo.hpp
+    log.cpp
+    log.hpp
+    os.hpp
+    profiler.cpp
+    profiler.hpp
+    scheduler.cpp
+    scheduler.hpp
+    time.cpp
+    time.hpp
+    version.cpp
+)
+# Ensure the root-generated version header is included
+include_directories(${BIN_DIR})
+list(APPEND LIB_UTILS_SRCS ${GENERATED_SIGNALS_VERSION_HEADER})
+
+add_library(utils STATIC ${LIB_UTILS_SRCS})
+
+# Platform-specific adjustments
+if(APPLE)
+    # On macOS, we need to include the os_darwin.cpp file
+    list(APPEND LIB_UTILS_SRCS os_darwin.cpp)
+    target_link_libraries(utils PRIVATE "-ldl")
+elseif(UNIX AND NOT APPLE)
+    # For Linux/Unix, include os_gnu.cpp and link against necessary libraries
+    list(APPEND LIB_UTILS_SRCS os_gnu.cpp)
+    target_link_libraries(utils PRIVATE "-ldl" "-lrt")
+elseif(WIN32)
+    # For Windows, include os_mingw.cpp (if needed for MinGW)
+    list(APPEND LIB_UTILS_SRCS os_mingw.cpp)
+endif()
+
+
+# Specify include directories for the utils target
+target_include_directories(utils PUBLIC 
+    ${CMAKE_CURRENT_SOURCE_DIR}  # Include the current directory where the header files are located
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib_utils  # Add lib_utils directory
+)
+message(STATUS "Include directories: ${CMAKE_INCLUDE_PATH}")
