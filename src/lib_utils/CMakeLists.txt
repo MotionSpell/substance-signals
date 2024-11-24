@@ -5,6 +5,7 @@ set(LIB_UTILS_SRCS
     log.cpp
     log.hpp
     os.hpp
+    os_gnu.cpp # workaround for linux to be removed 
     profiler.cpp
     profiler.hpp
     scheduler.cpp
@@ -12,6 +13,8 @@ set(LIB_UTILS_SRCS
     time.cpp
     time.hpp
     version.cpp
+    system_clock.hpp
+    sysclock.cpp
 )
 # Ensure the root-generated version header is included
 include_directories(${BIN_DIR})
@@ -33,10 +36,14 @@ elseif(WIN32)
     list(APPEND LIB_UTILS_SRCS os_mingw.cpp)
 endif()
 
+set(BIN_DIR ${CMAKE_BINARY_DIR}/bin)
 
 # Specify include directories for the utils target
 target_include_directories(utils PUBLIC 
-    ${CMAKE_CURRENT_SOURCE_DIR}  # Include the current directory where the header files are located
+    ${CMAKE_CURRENT_SOURCE_DIR}  
     ${CMAKE_CURRENT_SOURCE_DIR}/lib_utils  # Add lib_utils directory
+    ${BIN_DIR}  
 )
-message(STATUS "Include directories: ${CMAKE_INCLUDE_PATH}")
+
+# Add -fPIC (required for shared libraries)
+target_compile_options(utils PRIVATE -fPIC)

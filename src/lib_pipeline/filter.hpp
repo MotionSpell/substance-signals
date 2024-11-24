@@ -3,9 +3,9 @@
 #include <atomic>
 
 #include "i_filter.hpp"
-#include "lib_utils/log_sink.hpp"
-#include "lib_signals/executor.hpp" // IExecutor
-#include "lib_modules/core/module.hpp"
+#include "log_sink.hpp"
+#include "executor.hpp" // IExecutor
+#include "core/module.hpp"
 
 using namespace Modules;
 

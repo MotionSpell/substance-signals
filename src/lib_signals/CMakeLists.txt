@@ -8,6 +8,7 @@ target_include_directories(lib_signals
     INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_SOURCE_DIR}/lib_appcommon
+        ${CMAKE_SOURCE_DIR}/lib_utils
 )
 
 # Link dependencies for lib_signals

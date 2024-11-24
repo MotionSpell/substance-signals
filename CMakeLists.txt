@@ -27,19 +27,21 @@ add_subdirectory(src)
 set(SCRIPTS_DIR "${CMAKE_SOURCE_DIR}/scripts")
 set(SRC_DIR "${CMAKE_SOURCE_DIR}/src")
 set(BIN_DIR "${CMAKE_BINARY_DIR}/bin")
+file(MAKE_DIRECTORY ${BIN_DIR})
 
 # Generate signals_version.h using version.sh
 add_custom_command(
     OUTPUT ${BIN_DIR}/signals_version.h
+    COMMAND ${CMAKE_COMMAND} -E echo "Working directory: ${CMAKE_BINARY_DIR}"
+    COMMAND ${SCRIPTS_DIR}/version.sh
+    COMMAND ${CMAKE_COMMAND} -E echo "Version script executed"
     COMMAND ${SCRIPTS_DIR}/version.sh > ${BIN_DIR}/signals_version.h
     DEPENDS ${SCRIPTS_DIR}/version.sh
     COMMENT "Generating signals_version.h"
 )
-
 # Add a custom target to trigger the custom command
 add_custom_target(generate_signals_version_header ALL DEPENDS ${BIN_DIR}/signals_version.h)
 
-message(STATUS "Generated signals_version.h available at ${SIGNALS_VERSION_HEADER}")
 
 # Ensure the generated signals_version.h is available globally
 set(SIGNALS_VERSION_HEADER "${BIN_DIR}/signals_version.h")
@@ -50,6 +52,9 @@ include_directories(${BIN_DIR})
 # make the version header available as part of a global variable
 # to be  accessible in other sub-projects or libraries
 set(GENERATED_SIGNALS_VERSION_HEADER ${SIGNALS_VERSION_HEADER})
+
+message(STATUS "Generated signals_version.h available at ${SIGNALS_VERSION_HEADER}")
+
 
 # Add custom targets for easy builds
 add_custom_target(build_all

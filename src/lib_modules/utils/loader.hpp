@@ -1,5 +1,5 @@
 #pragma once
-#include "lib_modules/core/module.hpp"
+#include "core/module.hpp"
 
 #include <memory>
 

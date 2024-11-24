@@ -3,7 +3,7 @@
 // Filters are interconnected pipeline elements.
 // They're seen as such by the applications.
 
-#include "lib_modules/modules.hpp"
+#include "modules.hpp"
 
 namespace Pipelines {
 

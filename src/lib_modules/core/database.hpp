@@ -4,8 +4,8 @@
 #include <cstring> //memcpy
 #include <memory>
 #include <vector>
-#include "lib_utils/small_map.hpp"
-#include "lib_utils/clock.hpp"
+#include "small_map.hpp"
+#include "clock.hpp"
 
 namespace Modules {
 
