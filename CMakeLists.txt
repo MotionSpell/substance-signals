@@ -27,6 +27,7 @@ add_subdirectory(src)
 set(SCRIPTS_DIR "${CMAKE_SOURCE_DIR}/scripts")
 set(SRC_DIR "${CMAKE_SOURCE_DIR}/src")
 set(BIN_DIR "${CMAKE_BINARY_DIR}/bin")
+
 file(MAKE_DIRECTORY ${BIN_DIR})
 
 # Generate signals_version.h using version.sh
@@ -78,3 +79,16 @@ add_custom_target(build_all
 # Add custom install targets (if needed)
 install(TARGETS dashcastx ts2ip player mcastdump mp42tsx monitor
         RUNTIME DESTINATION bin)
+
+set(SYSROOT_PATH "/home/sohaib/motiospell/CWI/sysroot")
+
+include_directories(${SYSROOT_PATH}/include)
+
+link_directories(${SYSROOT_PATH}/lib)
+
+set(PKG_CONFIG_PATH ${SYSROOT_PATH}/lib/pkgconfig)
+
+
+find_package(PkgConfig REQUIRED)
+
+# Now you can use pkg-config or link libraries as needed

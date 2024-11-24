@@ -16,7 +16,6 @@ set(LIB_UTILS_SRCS
     system_clock.hpp
     sysclock.cpp
 )
-# Ensure the root-generated version header is included
 include_directories(${BIN_DIR})
 list(APPEND LIB_UTILS_SRCS ${GENERATED_SIGNALS_VERSION_HEADER})
 
@@ -41,7 +40,7 @@ set(BIN_DIR ${CMAKE_BINARY_DIR}/bin)
 # Specify include directories for the utils target
 target_include_directories(utils PUBLIC 
     ${CMAKE_CURRENT_SOURCE_DIR}  
-    ${CMAKE_CURRENT_SOURCE_DIR}/lib_utils  # Add lib_utils directory
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib_utils  
     ${BIN_DIR}  
 )
 
