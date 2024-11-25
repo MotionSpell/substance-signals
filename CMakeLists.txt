@@ -67,7 +67,7 @@ add_custom_target(build_all
         media
         plugins
         dashcastx
-        ts2ip
+        #ts2ip
         player
         mcastdump
         mp42tsx
@@ -77,8 +77,8 @@ add_custom_target(build_all
 )
 
 # Add custom install targets (if needed)
-install(TARGETS dashcastx ts2ip player mcastdump mp42tsx monitor
-        RUNTIME DESTINATION bin)
+#install(TARGETS dashcastx ts2ip player mcastdump mp42tsx monitor
+#        RUNTIME DESTINATION bin)
 
 set(SYSROOT_PATH "/home/sohaib/motiospell/CWI/sysroot")
 

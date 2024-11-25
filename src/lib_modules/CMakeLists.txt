@@ -9,23 +9,26 @@ add_library(modules SHARED
 )
 
 # Add include directories
-target_include_directories(modules PRIVATE
+target_include_directories(modules PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/src 
+    ${CMAKE_SOURCE_DIR}/src/lib_modules/utils 
+    ${CMAKE_SOURCE_DIR}/src/lib_modules/core
+
 )
 
 # Add compile flags
-target_compile_options(modules PRIVATE
+target_compile_options(modules PUBLIC
     -Wall -Wextra -Werror -fPIC
 )
 
 # Add linker flags
-target_link_options(modules PRIVATE
+target_link_options(modules PUBLIC
     -pthread -Wl,--no-undefined
 )
 
 # Link dependencies if any
-target_link_libraries(modules PRIVATE utils)
+target_link_libraries(modules PUBLIC utils)
 
 # Set output directory
 set_target_properties(modules PROPERTIES
