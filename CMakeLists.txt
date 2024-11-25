@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Global compiler options
-add_compile_options(-Wall -Wextra -Werror -fvisibility=hidden -fvisibility-inlines-hidden)
+add_compile_options(-Wall -Wextra -Werror -fvisibility=hidden -fvisibility-inlines-hidden -Wno-deprecated-declarations)
 
 # Debug-specific options
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -91,4 +91,4 @@ set(PKG_CONFIG_PATH ${SYSROOT_PATH}/lib/pkgconfig)
 
 find_package(PkgConfig REQUIRED)
 
-# Now you can use pkg-config or link libraries as needed
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)

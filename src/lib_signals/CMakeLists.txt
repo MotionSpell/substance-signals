@@ -1,45 +1,55 @@
-# CMakeLists for lib_signals
-
 # Add the library target
 add_library(lib_signals INTERFACE)
 
 # Specify include directories for the library
 target_include_directories(lib_signals
     INTERFACE
-        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/../
+        ${CMAKE_CURRENT_SOURCE_DIR}/../lib_utils
         ${CMAKE_SOURCE_DIR}/lib_appcommon
         ${CMAKE_SOURCE_DIR}/lib_utils
+        ${CMAKE_SOURCE_DIR}/src/tests
+
 )
 
 # Link dependencies for lib_signals
 target_link_libraries(lib_signals
     INTERFACE
-        lib_appcommon
-        lib_media
-        lib_modules
-        lib_pipeline
-        lib_utils
+        appcommon
+        media
+        modules
+        pipeline
+        utils
 )
+
+
 
 # Add unit tests
 if(BUILD_TESTING)
     file(GLOB UNIT_TEST_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/unittests/*.cpp
+        ${CMAKE_SOURCE_DIR}/src/tests/tests.cpp
     )
 
     add_executable(lib_signals_unittests
         ${UNIT_TEST_SOURCES}
         ${CMAKE_CURRENT_SOURCE_DIR}/../lib_appcommon/options.cpp
     )
+    target_include_directories(lib_signals_unittests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/lib_appcommon
+    ${CMAKE_SOURCE_DIR}/src/tests
+
+)
+
 
     target_link_libraries(lib_signals_unittests
         PRIVATE
             lib_signals
-            lib_appcommon
-            lib_media
-            lib_modules
-            lib_pipeline
-            lib_utils
+            appcommon
+            media
+            modules
+            pipeline
+            utils
     )
 
     # Add test to CTest
