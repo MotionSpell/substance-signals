@@ -8,5 +8,5 @@ target_link_libraries(FMP4SPLITTER ${CMAKE_THREAD_LIBS_INIT})
 
 # Include directories
 target_include_directories(FMP4SPLITTER PUBLIC
-    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/src
 )

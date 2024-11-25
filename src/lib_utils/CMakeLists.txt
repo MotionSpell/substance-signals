@@ -16,7 +16,9 @@ set(LIB_UTILS_SRCS
     system_clock.hpp
     sysclock.cpp
 )
-include_directories(${BIN_DIR})
+include_directories(${BIN_DIR}
+${CMAKE_SOURCE_DIR}/src 
+)
 list(APPEND LIB_UTILS_SRCS ${GENERATED_SIGNALS_VERSION_HEADER})
 
 add_library(utils STATIC ${LIB_UTILS_SRCS})

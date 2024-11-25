@@ -14,7 +14,7 @@ add_library(${PLUGIN_NAME} SHARED ${SOURCES})
 
 # Include directories
 target_include_directories(${PLUGIN_NAME} PRIVATE
-    ${CMAKE_SOURCE_DIR}/src/lib_media
+    ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 

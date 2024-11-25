@@ -2,8 +2,8 @@
 #include "stats.hpp"
 #include "graph.hpp"
 #include "filter.hpp"
-#include "utils/helper.hpp"
-#include "utils/loader.hpp"
+#include "lib_modules/utils/helper.hpp"
+#include "lib_modules/utils/loader.hpp"
 #include "log.hpp" // g_Log
 #include "os.hpp"
 #include "format.hpp"

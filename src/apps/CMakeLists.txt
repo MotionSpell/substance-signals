@@ -1,7 +1,7 @@
 file(GLOB_RECURSE APPS_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/**/*.cpp")
 
 add_executable(dashcastx dashcastx/main.cpp)
-target_link_libraries(dashcastx PRIVATE plugins media modules pipeline appcommon utils)
+target_link_libraries(dashcastx PRIVATE media modules pipeline appcommon utils)
 
 add_executable(ts2ip ts2ip/main.cpp)
 target_link_libraries(ts2ip PRIVATE plugins media modules pipeline appcommon utils)

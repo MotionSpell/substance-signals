@@ -4,8 +4,8 @@
 
 #include "i_filter.hpp"
 #include "log_sink.hpp"
-#include "executor.hpp" // IExecutor
-#include "core/module.hpp"
+#include "lib_signals/executor.hpp" // IExecutor
+#include "lib_modules/core/module.hpp"
 
 using namespace Modules;
 

@@ -5,7 +5,7 @@ add_library(TSDemuxer STATIC
 
 # Include directories if needed
 target_include_directories(TSDemuxer PUBLIC
-    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/src
 )
 
 # Link libraries if required

@@ -4,11 +4,8 @@ add_library(lib_signals INTERFACE)
 # Specify include directories for the library
 target_include_directories(lib_signals
     INTERFACE
-        ${CMAKE_CURRENT_SOURCE_DIR}/../
-        ${CMAKE_CURRENT_SOURCE_DIR}/../lib_utils
-        ${CMAKE_SOURCE_DIR}/lib_appcommon
-        ${CMAKE_SOURCE_DIR}/lib_utils
         ${CMAKE_SOURCE_DIR}/src/tests
+        ${CMAKE_SOURCE_DIR}/src
 
 )
 

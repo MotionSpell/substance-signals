@@ -80,7 +80,7 @@ DataRaw::DataRaw(size_t size) {
 }
 
 // TODO: remove this
-#include "common/attributes.hpp"
+#include "lib_media/common/attributes.hpp"
 
 namespace Modules {
 DataBase::DataBase() {

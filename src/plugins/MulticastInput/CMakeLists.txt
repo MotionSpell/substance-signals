@@ -4,7 +4,7 @@ add_library(MulticastInput STATIC
 )
 
 target_include_directories(MulticastInput PUBLIC
-    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/src
 )
 
 # Link other libraries if necessary

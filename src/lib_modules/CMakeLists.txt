@@ -11,9 +11,7 @@ add_library(modules SHARED
 # Add include directories
 target_include_directories(modules PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/src/lib_utils 
-    ${CMAKE_SOURCE_DIR}/src/lib_signals
-    ${CMAKE_SOURCE_DIR}/src/lib_media
+    ${CMAKE_SOURCE_DIR}/src 
 )
 
 # Add compile flags

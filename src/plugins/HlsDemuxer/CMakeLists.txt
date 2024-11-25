@@ -9,5 +9,5 @@ target_link_libraries(HlsDemuxer ${CMAKE_THREAD_LIBS_INIT})
 
 # Include directories
 target_include_directories(HlsDemuxer PUBLIC
-    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/src
 )
