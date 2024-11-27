@@ -14,7 +14,6 @@ set_target_properties(monitor PROPERTIES
 
 # Include directories for the executable
 target_include_directories(monitor PRIVATE
-#    ${CMAKE_SOURCE_DIR}/src/lib_modules
 )
 
 # Link necessary libraries (adjust as needed)
