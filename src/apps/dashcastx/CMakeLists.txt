@@ -5,10 +5,6 @@ set(DASHCASTX_SRCS
     ../../lib_appcommon/safemain.cpp
 )
 
-file(GLOB LIB_MEDIA_SRCS 
-    ${CMAKE_SOURCE_DIR}/src/lib_media/*.cpp
-)
-
 
 # Combine all source files into a single list
 list(APPEND DASHCASTX_SRCS 
