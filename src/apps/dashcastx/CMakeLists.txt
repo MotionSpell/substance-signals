@@ -5,14 +5,8 @@ set(DASHCASTX_SRCS
     ../../lib_appcommon/safemain.cpp
 )
 
-# Add other source files from libraries (you may need to define these sources separately)
 file(GLOB LIB_MEDIA_SRCS 
     ${CMAKE_SOURCE_DIR}/src/lib_media/*.cpp
-)
-
-file(GLOB LIB_MODULES_SRCS 
-    ${CMAKE_SOURCE_DIR}/src/lib_modules/utils/*.cpp
-    ${CMAKE_SOURCE_DIR}/src/lib_modules/core/*.cpp
 )
 
 
