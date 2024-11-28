@@ -86,9 +86,12 @@ add_custom_target(build_all
 # Check if SYSROOT_PATH is set via an environment variable
 if(DEFINED ENV{SYSROOT_PATH})
     set(SYSROOT_PATH $ENV{SYSROOT_PATH})
-elseif(EXISTS "${CMAKE_SOURCE_DIR}/sysroot")
+    elseif(EXISTS "${CMAKE_SOURCE_DIR}/sysroot")
     # If not set, use a default relative path or fail gracefully
     set(SYSROOT_PATH "${CMAKE_SOURCE_DIR}/sysroot")
+elseif(EXISTS "${CMAKE_SOURCE_DIR}/../sysroot")
+    # If not set, use a default relative path or fail gracefully
+    set(SYSROOT_PATH "${CMAKE_SOURCE_DIR}/../sysroot")
 endif()
 
 # Ensure SYSROOT_PATH is valid
@@ -99,24 +102,17 @@ endif()
 message(STATUS "Using SYSROOT_PATH: ${SYSROOT_PATH}")
 
 # Add the include and lib directories from SYSROOT_PATH
-include_directories(${SYSROOT_PATH}/include)
-link_directories(${SYSROOT_PATH}/lib)
-
-# Set pkg-config path
-set(PKG_CONFIG_PATH ${SYSROOT_PATH}/lib/pkgconfig)
-
-
-
 #include_directories(${SYSROOT_PATH}/include)
-
 #link_directories(${SYSROOT_PATH}/lib)
 
-#set(PKG_CONFIG_PATH ${SYSROOT_PATH}/lib/pkgconfig)
+# Set pkg-config path
+set(ENV{PKG_CONFIG_PATH} "${SYSROOT_PATH}/lib/pkgconfig")
+
 
 
 find_package(PkgConfig REQUIRED)
 find_package(SDL2 REQUIRED)
-find_package(FFmpeg COMPONENTS AVUTIL AVCODEC AVFORMAT AVDEVICE SWSCALE)
+find_package(FFmpeg REQUIRED COMPONENTS AVUTIL AVCODEC AVFORMAT AVDEVICE SWSCALE)
 
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
