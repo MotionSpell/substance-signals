@@ -1,46 +1,54 @@
-# Collect all test sources
-file(GLOB_RECURSE UNITTEST_SOURCES
-    "${CMAKE_SOURCE_DIR}/src/unittests/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/tests.cpp"
-    "${CMAKE_SOURCE_DIR}/lib_appcommon/options.cpp"
+# Set the directory for the unit test source files
+set(TESTSDIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(OUTDIR ${CMAKE_BINARY_DIR}/bin)  
+
+file(GLOB LIB_MODULES_SRCS 
+    ${CMAKE_SOURCE_DIR}/src/lib_modules/utils/*.cpp
+    ${CMAKE_SOURCE_DIR}/src/lib_modules/core/*.cpp
+)
+
+
+file(GLOB LIB_MEDIA_SRCS 
+    ${CMAKE_SOURCE_DIR}/src/lib_media/*.cpp
+)
+
+
+
+# Define the source files for the unit tests
+set(EXE_TESTS_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests.cpp
+    ${CMAKE_SOURCE_DIR}/src/lib_appcommon/options.cpp
     ${LIB_MEDIA_SRCS}
     ${LIB_MODULES_SRCS}
     ${LIB_PIPELINE_SRCS}
     ${LIB_UTILS_SRCS}
 )
 
-# Create the unit tests executable
-add_executable(unittests ${UNITTEST_SOURCES})
+# Add any additional source files from the 'unittests' directories
+file(GLOB_RECURSE UNITTEST_SOURCES "${CMAKE_SOURCE_DIR}/src/*/unittests/*.cpp")
+list(APPEND EXE_TESTS_SRCS ${UNITTEST_SOURCES})
 
-# Include directories for the unittests
-target_include_directories(unittests PRIVATE
-    ${CMAKE_SOURCE_DIR}/lib_appcommon
-    ${CMAKE_SOURCE_DIR}/lib_media
-    ${CMAKE_SOURCE_DIR}/lib_modules
-    ${CMAKE_SOURCE_DIR}/lib_pipeline
-    ${CMAKE_SOURCE_DIR}/lib_utils
-    ${CMAKE_SOURCE_DIR}/src/unittests
-)
+# Define the unit tests executable target
+add_executable(unittests ${EXE_TESTS_SRCS})
 
-# Link dependencies to the unit tests
-target_link_libraries(unittests PRIVATE
-    appcommon
+# Link dependencies to the unittests executable 
+target_link_libraries(unittests
+    appcommon  
     media
     modules
     pipeline
     utils
+    curl
+    avcodec
 )
 
-# Enable testing if requested
-if(BUILD_TESTING)
-    enable_testing()
-    add_test(NAME UnitTests COMMAND unittests)
-endif()
+# Include directories for unit tests 
+target_include_directories(unittests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
 
-# Set output directory for the test executable
+# Set the output directory for the unittests executable inside the 'bin' folder
 set_target_properties(unittests PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    SUFFIX ".exe"
 )
-
-# Installation (optional)
-install(TARGETS unittests DESTINATION bin)
