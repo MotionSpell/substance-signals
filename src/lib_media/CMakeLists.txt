@@ -72,6 +72,36 @@ set_target_properties(AVCC2AnnexBConverter PROPERTIES
 
 
 
+# Define source files for the LibavMuxHLSTS
+set(EXE_LIBAVMUXHLSTS_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/stream/hls_muxer_libav.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/common/libav.cpp
+)
+
+# Combine all source files into a single list 
+list(APPEND EXE_LIBAVMUXHLSTS_SRCS
+    ${LIB_MODULES_SRCS}
+)
+
+# Add the target (LibavMuxHLSTS.smd)
+add_library(LibavMuxHLSTS SHARED ${EXE_LIBAVMUXHLSTS_SRCS})
+
+# Include directories for the module
+target_include_directories(LibavMuxHLSTS PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/src/
+)
+
+# Link libraries to the target 
+target_link_libraries(LibavMuxHLSTS PRIVATE media modules pipeline appcommon utils avutil avcodec)
+
+# Set target properties
+set_target_properties(LibavMuxHLSTS PROPERTIES
+    OUTPUT_NAME "LibavMuxHLSTS"
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    SUFFIX ".smd"  # Set the custom file extension to .smd
+    PREFIX ""
+)
 
 
 # add_executable(LibavMuxHLSTS
