@@ -1,9 +1,4 @@
-# Optionally enable X11 support
-if(SIGNALS_HAS_X11)
-    add_subdirectory(SdlRender)
-endif()
-
-# Include other plugins
+add_subdirectory(SdlRender)
 add_subdirectory(HlsDemuxer)
 add_subdirectory(MulticastInput)
 add_subdirectory(UdpOutput)
