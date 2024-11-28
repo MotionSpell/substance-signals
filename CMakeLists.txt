@@ -81,11 +81,31 @@ add_custom_target(build_all
     COMMENT "Building all targets."
 )
 
-# Add custom install targets (if needed)
-#install(TARGETS dashcastx ts2ip player mcastdump mp42tsx monitor
-#        RUNTIME DESTINATION bin)
 
-#set(SYSROOT_PATH "/home/sohaib/motiospell/CWI/sysroot")
+
+# Check if SYSROOT_PATH is set via an environment variable
+if(DEFINED ENV{SYSROOT_PATH})
+    set(SYSROOT_PATH $ENV{SYSROOT_PATH})
+elseif(EXISTS "${CMAKE_SOURCE_DIR}/sysroot")
+    # If not set, use a default relative path or fail gracefully
+    set(SYSROOT_PATH "${CMAKE_SOURCE_DIR}/sysroot")
+endif()
+
+# Ensure SYSROOT_PATH is valid
+if(NOT EXISTS ${SYSROOT_PATH})
+    message(FATAL_ERROR "SYSROOT_PATH does not exist or is invalid: ${SYSROOT_PATH}")
+endif()
+
+message(STATUS "Using SYSROOT_PATH: ${SYSROOT_PATH}")
+
+# Add the include and lib directories from SYSROOT_PATH
+include_directories(${SYSROOT_PATH}/include)
+link_directories(${SYSROOT_PATH}/lib)
+
+# Set pkg-config path
+set(PKG_CONFIG_PATH ${SYSROOT_PATH}/lib/pkgconfig)
+
+
 
 #include_directories(${SYSROOT_PATH}/include)
 
