@@ -104,11 +104,42 @@ set_target_properties(LibavMuxHLSTS PROPERTIES
 )
 
 
-# add_executable(LibavMuxHLSTS
-#     "${CMAKE_CURRENT_SOURCE_DIR}/stream/hls_muxer_libav.cpp"
-#     "${CMAKE_CURRENT_SOURCE_DIR}/common/libav.cpp"
-# )
-# target_link_libraries(LibavMuxHLSTS PRIVATE media avutil avcodec)
+# Define source files for the VideoConvert target
+set(EXE_VIDEOCONVERTER_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/transform/video_convert.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/common/libav.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/common/picture.cpp
+)
+
+list(APPEND EXE_VIDEOCONVERTER_SRCS
+    ${LIB_MODULES_SRCS}
+)
+
+# Add the target (VideoConvert.smd)
+add_library(VideoConvert SHARED ${EXE_VIDEOCONVERTER_SRCS})
+
+# Include directories for the module
+target_include_directories(VideoConvert PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/src/
+)
+
+# Link the necessary libraries
+target_link_libraries(VideoConvert PRIVATE
+    media modules pipeline appcommon utils
+    avcodec avutil swscale
+)
+
+# Set properties for the target
+set_target_properties(VideoConvert PROPERTIES
+    OUTPUT_NAME "VideoConvert"  # Output name without extension
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    SUFFIX ".smd"  # Set the custom file extension to .smd
+    PREFIX ""  # 
+)
+
+
+
 
 # add_executable(VideoConvert
 #     "${CMAKE_CURRENT_SOURCE_DIR}/transform/video_convert.cpp"
