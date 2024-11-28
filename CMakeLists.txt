@@ -102,12 +102,6 @@ set(PKG_CONFIG_PATH ${SYSROOT_PATH}/lib/pkgconfig)
 
 
 
-include_directories(${SYSROOT_PATH}/include)
-
-link_directories(${SYSROOT_PATH}/lib)
-
-set(PKG_CONFIG_PATH ${SYSROOT_PATH}/lib/pkgconfig)
-
 
 find_package(PkgConfig REQUIRED)
 
