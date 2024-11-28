@@ -1,8 +1,13 @@
 cmake_minimum_required(VERSION 3.15)
 
 project(Signals VERSION 1.0)
+# Add extension directories (for things like Find<package>)
+set(CMAKE_MODULE_PATH
+	${CMAKE_CURRENT_LIST_DIR}/CMakeFiles
+	${CMAKE_MODULE_PATH}
+	)
 
-# Set the C++ standard
+    # Set the C++ standard
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -80,15 +85,18 @@ add_custom_target(build_all
 #install(TARGETS dashcastx ts2ip player mcastdump mp42tsx monitor
 #        RUNTIME DESTINATION bin)
 
-set(SYSROOT_PATH "/home/sohaib/motiospell/CWI/sysroot")
+#set(SYSROOT_PATH "/home/sohaib/motiospell/CWI/sysroot")
 
-include_directories(${SYSROOT_PATH}/include)
+#include_directories(${SYSROOT_PATH}/include)
 
-link_directories(${SYSROOT_PATH}/lib)
+#link_directories(${SYSROOT_PATH}/lib)
 
-set(PKG_CONFIG_PATH ${SYSROOT_PATH}/lib/pkgconfig)
+#set(PKG_CONFIG_PATH ${SYSROOT_PATH}/lib/pkgconfig)
 
 
 find_package(PkgConfig REQUIRED)
+find_package(SDL2 REQUIRED)
+find_package(FFmpeg COMPONENTS AVUTIL AVCODEC AVFORMAT AVDEVICE SWSCALE)
+
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
