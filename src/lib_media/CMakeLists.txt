@@ -139,87 +139,172 @@ set_target_properties(VideoConvert PROPERTIES
 )
 
 
+# AudioConvert target
+set(EXE_AUDIOCONVERTER_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/transform/audio_convert.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/common/libav.cpp
+)
+list(APPEND EXE_AUDIOCONVERTER_SRCS ${LIB_MODULES_SRCS})
+add_library(AudioConvert SHARED ${EXE_AUDIOCONVERTER_SRCS})
+target_include_directories(AudioConvert PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src/)
+target_link_libraries(AudioConvert PRIVATE media modules pipeline appcommon utils avcodec avutil swresample)
+set_target_properties(AudioConvert PROPERTIES OUTPUT_NAME "AudioConvert" LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin SUFFIX ".smd" PREFIX "")
 
 
-# add_executable(VideoConvert
-#     "${CMAKE_CURRENT_SOURCE_DIR}/transform/video_convert.cpp"
-#     "${CMAKE_CURRENT_SOURCE_DIR}/common/libav.cpp"
-#     "${CMAKE_CURRENT_SOURCE_DIR}/common/picture.cpp"
-# )
-# target_link_libraries(VideoConvert PRIVATE media avutil avcodec swscale)
+# JPEGTurboDecode target
+set(EXE_JPEGTURBODECODE_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/decode/jpegturbo_decode.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/common/picture.cpp
+)
+list(APPEND EXE_JPEGTURBODECODE_SRCS ${LIB_MODULES_SRCS})
+add_library(JPEGTurboDecode SHARED ${EXE_JPEGTURBODECODE_SRCS})
+target_include_directories(JPEGTurboDecode PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src/)
+target_link_libraries(JPEGTurboDecode PRIVATE media modules pipeline appcommon utils turbojpeg)
+set_target_properties(JPEGTurboDecode PROPERTIES OUTPUT_NAME "JPEGTurboDecode" LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin SUFFIX ".smd" PREFIX "")
 
-# add_executable(AudioConvert
-#     "${CMAKE_CURRENT_SOURCE_DIR}/transform/audio_convert.cpp"
-#     "${CMAKE_CURRENT_SOURCE_DIR}/common/libav.cpp"
-# )
-# target_link_libraries(AudioConvert PRIVATE media avutil avcodec swresample)
 
-# add_executable(JPEGTurboDecode
-#     "${CMAKE_CURRENT_SOURCE_DIR}/decode/jpegturbo_decode.cpp"
-#     "${CMAKE_CURRENT_SOURCE_DIR}/common/picture.cpp"
-# )
-# target_link_libraries(JPEGTurboDecode PRIVATE media turbojpeg)
 
-# add_executable(JPEGTurboEncode
-#     "${CMAKE_CURRENT_SOURCE_DIR}/encode/jpegturbo_encode.cpp"
-#     "${CMAKE_CURRENT_SOURCE_DIR}/common/picture.cpp"
-# )
-# target_link_libraries(JPEGTurboEncode PRIVATE media turbojpeg)
+# JPEGTurboEncode target
+set(EXE_JPEGTURBOENCODE_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/encode/jpegturbo_encode.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/common/picture.cpp
+)
+list(APPEND EXE_JPEGTURBOENCODE_SRCS ${LIB_MODULES_SRCS})
+add_library(JPEGTurboEncode SHARED ${EXE_JPEGTURBOENCODE_SRCS})
+target_include_directories(JPEGTurboEncode PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src/)
+target_link_libraries(JPEGTurboEncode PRIVATE media modules pipeline appcommon utils turbojpeg)
+set_target_properties(JPEGTurboEncode PROPERTIES OUTPUT_NAME "JPEGTurboEncode" LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin SUFFIX ".smd" PREFIX "")
 
-# add_executable(Encoder
-#     "${CMAKE_CURRENT_SOURCE_DIR}/encode/libav_encode.cpp"
-#     "${CMAKE_CURRENT_SOURCE_DIR}/common/libav_init.cpp"
-#     "${CMAKE_CURRENT_SOURCE_DIR}/common/libav.cpp"
-#     "${CMAKE_CURRENT_SOURCE_DIR}/common/picture.cpp"
-# )
-# target_link_libraries(Encoder PRIVATE media avcodec avutil)
 
-# add_executable(Decoder
-#     "${CMAKE_CURRENT_SOURCE_DIR}/decode/decoder.cpp"
-#     "${CMAKE_CURRENT_SOURCE_DIR}/common/libav.cpp"
-#     "${CMAKE_CURRENT_SOURCE_DIR}/common/picture.cpp"
-# )
-# target_link_libraries(Decoder PRIVATE media avcodec avutil)
 
-# add_executable(LibavDemux
-#     "${CMAKE_CURRENT_SOURCE_DIR}/common/libav_init.cpp"
-#     "${CMAKE_CURRENT_SOURCE_DIR}/demux/libav_demux.cpp"
-#     "${CMAKE_CURRENT_SOURCE_DIR}/common/libav.cpp"
-#     "${CMAKE_CURRENT_SOURCE_DIR}/transform/restamp.cpp"
-# )
-# target_link_libraries(LibavDemux PRIVATE media avformat avcodec avutil avdevice)
+# Encoder target
+set(EXE_ENCODER_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/encode/libav_encode.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/common/libav_init.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/common/libav.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/common/picture.cpp
+)
+list(APPEND EXE_ENCODER_SRCS ${LIB_MODULES_SRCS})
+add_library(Encoder SHARED ${EXE_ENCODER_SRCS})
+target_include_directories(Encoder PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src/)
+target_link_libraries(Encoder PRIVATE media modules pipeline appcommon utils avcodec avutil)
+set_target_properties(Encoder PROPERTIES OUTPUT_NAME "Encoder" LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin SUFFIX ".smd" PREFIX "")
 
-# add_executable(LibavMux
-#     "${CMAKE_CURRENT_SOURCE_DIR}/mux/libav_mux.cpp"
-#     "${CMAKE_CURRENT_SOURCE_DIR}/common/libav_init.cpp"
-#     "${CMAKE_CURRENT_SOURCE_DIR}/common/libav.cpp"
-# )
-# target_link_libraries(LibavMux PRIVATE media avformat avcodec avutil)
 
-# add_executable(LibavFilter
-#     "${CMAKE_CURRENT_SOURCE_DIR}/transform/libavfilter.cpp"
-#     "${CMAKE_CURRENT_SOURCE_DIR}/common/picture.cpp"
-#     "${CMAKE_CURRENT_SOURCE_DIR}/common/libav.cpp"
-# )
-# target_link_libraries(LibavFilter PRIVATE media avfilter avcodec avutil)
 
-# add_executable(GPACMuxMP4 "${CMAKE_CURRENT_SOURCE_DIR}/mux/gpac_mux_mp4.cpp")
-# target_link_libraries(GPACMuxMP4 PRIVATE media gpac)
+# Decoder target
+set(EXE_DECODER_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/decode/decoder.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/common/libav.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/common/picture.cpp
+)
+list(APPEND EXE_DECODER_SRCS ${LIB_MODULES_SRCS})
+add_library(Decoder SHARED ${EXE_DECODER_SRCS})
+target_include_directories(Decoder PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src/)
+target_link_libraries(Decoder PRIVATE media modules pipeline appcommon utils avcodec avutil)
+set_target_properties(Decoder PROPERTIES OUTPUT_NAME "Decoder" LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin SUFFIX ".smd" PREFIX "")
 
-# add_executable(GPACMuxMP4MSS
-#     "${CMAKE_CURRENT_SOURCE_DIR}/mux/gpac_mux_mp4_mss.cpp"
-#     "${CMAKE_CURRENT_SOURCE_DIR}/mux/gpac_mux_mp4.cpp"
-# )
-# target_link_libraries(GPACMuxMP4MSS PRIVATE media gpac)
 
-# add_executable(GPACDemuxMP4Simple "${CMAKE_CURRENT_SOURCE_DIR}/demux/gpac_demux_mp4_simple.cpp")
-# target_link_libraries(GPACDemuxMP4Simple PRIVATE media gpac)
+# LibavDemux target
+set(EXE_LIBAVDEMUX_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/common/libav_init.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/demux/libav_demux.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/common/libav.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/transform/restamp.cpp
+)
+list(APPEND EXE_LIBAVDEMUX_SRCS ${LIB_MODULES_SRCS})
+add_library(LibavDemux SHARED ${EXE_LIBAVDEMUX_SRCS})
+target_include_directories(LibavDemux PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src/)
+target_link_libraries(LibavDemux PRIVATE media modules pipeline appcommon utils avformat avcodec avutil avdevice)
+set_target_properties(LibavDemux PROPERTIES OUTPUT_NAME "LibavDemux" LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin SUFFIX ".smd" PREFIX "")
 
-# add_executable(GPACDemuxMP4Full "${CMAKE_CURRENT_SOURCE_DIR}/demux/gpac_demux_mp4_full.cpp")
-# target_link_libraries(GPACDemuxMP4Full PRIVATE media gpac)
 
-# add_executable(FileSystemSink "${CMAKE_CURRENT_SOURCE_DIR}/out/filesystem.cpp")
-# target_link_libraries(FileSystemSink PRIVATE media)
+# LibavMux target
+set(EXE_LIBAVMUX_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/mux/libav_mux.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/common/libav_init.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/common/libav.cpp
+)
+list(APPEND EXE_LIBAVMUX_SRCS ${LIB_MODULES_SRCS})
+add_library(LibavMux SHARED ${EXE_LIBAVMUX_SRCS})
+target_include_directories(LibavMux PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src/)
+target_link_libraries(LibavMux PRIVATE media modules pipeline appcommon utils avformat avcodec avutil)
+set_target_properties(LibavMux PROPERTIES OUTPUT_NAME "LibavMux" LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin SUFFIX ".smd" PREFIX "")
 
-# add_executable(LogoOverlay "${CMAKE_CURRENT_SOURCE_DIR}/transform/logo_overlay.cpp")
-# target_link_libraries(LogoOverlay PRIVATE media)
+# LibavFilter target
+set(EXE_LIBAVFILTER_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/transform/libavfilter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/common/picture.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/common/libav.cpp
+)
+list(APPEND EXE_LIBAVFILTER_SRCS ${LIB_MODULES_SRCS})
+add_library(LibavFilter SHARED ${EXE_LIBAVFILTER_SRCS})
+target_include_directories(LibavFilter PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src/)
+target_link_libraries(LibavFilter PRIVATE media modules pipeline appcommon utils avfilter avcodec avutil)
+set_target_properties(LibavFilter PROPERTIES OUTPUT_NAME "LibavFilter" LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin SUFFIX ".smd" PREFIX "")
+
+
+
+# GPACMuxMP4 target
+set(EXE_GPACMUXMP4_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/mux/gpac_mux_mp4.cpp
+)
+list(APPEND EXE_GPACMUXMP4_SRCS ${LIB_MODULES_SRCS})
+add_library(GPACMuxMP4 SHARED ${EXE_GPACMUXMP4_SRCS})
+target_include_directories(GPACMuxMP4 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src/)
+target_link_libraries(GPACMuxMP4 PRIVATE media modules pipeline appcommon utils gpac)
+set_target_properties(GPACMuxMP4 PROPERTIES OUTPUT_NAME "GPACMuxMP4" LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin SUFFIX ".smd" PREFIX "")
+
+
+# GPACMuxMP4MSS target
+set(EXE_GPACMUXMP4MSS_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/mux/gpac_mux_mp4_mss.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/mux/gpac_mux_mp4.cpp
+)
+list(APPEND EXE_GPACMUXMP4MSS_SRCS ${LIB_MODULES_SRCS})
+add_library(GPACMuxMP4MSS SHARED ${EXE_GPACMUXMP4MSS_SRCS})
+target_include_directories(GPACMuxMP4MSS PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src/)
+target_link_libraries(GPACMuxMP4MSS PRIVATE media modules pipeline appcommon utils gpac)
+set_target_properties(GPACMuxMP4MSS PROPERTIES OUTPUT_NAME "GPACMuxMP4MSS" LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin SUFFIX ".smd" PREFIX "")
+
+# GPACDemuxMP4Simple target
+set(EXE_GPACDEMUXMP4SIMPLE_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/demux/gpac_demux_mp4_simple.cpp
+)
+list(APPEND EXE_GPACDEMUXMP4SIMPLE_SRCS ${LIB_MODULES_SRCS})
+add_library(GPACDemuxMP4Simple SHARED ${EXE_GPACDEMUXMP4SIMPLE_SRCS})
+target_include_directories(GPACDemuxMP4Simple PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src/)
+target_link_libraries(GPACDemuxMP4Simple PRIVATE media modules pipeline appcommon utils gpac)
+set_target_properties(GPACDemuxMP4Simple PROPERTIES OUTPUT_NAME "GPACDemuxMP4Simple" LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin SUFFIX ".smd" PREFIX "")
+
+# GPACDemuxMP4Full target
+set(EXE_GPACDEMUXMP4FULL_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/demux/gpac_demux_mp4_full.cpp
+)
+list(APPEND EXE_GPACDEMUXMP4FULL_SRCS ${LIB_MODULES_SRCS})
+add_library(GPACDemuxMP4Full SHARED ${EXE_GPACDEMUXMP4FULL_SRCS})
+target_include_directories(GPACDemuxMP4Full PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src/)
+target_link_libraries(GPACDemuxMP4Full PRIVATE media modules pipeline appcommon utils gpac)
+set_target_properties(GPACDemuxMP4Full PROPERTIES OUTPUT_NAME "GPACDemuxMP4Full" LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin SUFFIX ".smd" PREFIX "")
+
+
+# FileSystemSink target
+set(EXE_FILESYSTEMSINK_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/out/filesystem.cpp
+)
+list(APPEND EXE_FILESYSTEMSINK_SRCS ${LIB_MODULES_SRCS})
+add_library(FileSystemSink SHARED ${EXE_FILESYSTEMSINK_SRCS})
+target_include_directories(FileSystemSink PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src/)
+target_link_libraries(FileSystemSink PRIVATE media modules pipeline appcommon utils)
+set_target_properties(FileSystemSink PROPERTIES OUTPUT_NAME "FileSystemSink" LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin SUFFIX ".smd" PREFIX "")
+
+# LogoOverlay target
+set(EXE_LOGOOVERLAY_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/transform/logo_overlay.cpp
+)
+list(APPEND EXE_LOGOOVERLAY_SRCS ${LIB_MODULES_SRCS})
+add_library(LogoOverlay SHARED ${EXE_LOGOOVERLAY_SRCS})
+target_include_directories(LogoOverlay PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src/)
+target_link_libraries(LogoOverlay PRIVATE media modules pipeline appcommon utils)
+set_target_properties(LogoOverlay PROPERTIES OUTPUT_NAME "LogoOverlay" LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin SUFFIX ".smd" PREFIX "")
+
