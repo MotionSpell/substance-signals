@@ -1,13 +1,20 @@
 # Define the plugin library
-add_library(TSDemuxer STATIC
+add_library(TsDemuxer SHARED
     ts_demuxer.cpp
-)
+    )
 
-# Include directories if needed
-target_include_directories(TSDemuxer PUBLIC
+# Link dependencies if any
+target_link_libraries(TsDemuxer ${CMAKE_THREAD_LIBS_INIT})
+
+# Include directories
+target_include_directories(TsDemuxer PUBLIC
     ${CMAKE_SOURCE_DIR}/src
 )
 
-# Link libraries if required
-# Example (if any external libraries are needed):
-# target_link_libraries(TSDemuxer some_dependency)
+# Set properties for the target
+set_target_properties(TsDemuxer PROPERTIES
+    OUTPUT_NAME "TsDemuxer"  # Output name without extension
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    SUFFIX ".smd"  # Set the custom file extension to .smd
+    PREFIX ""  # 
+)
