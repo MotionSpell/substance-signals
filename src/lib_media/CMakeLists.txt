@@ -61,7 +61,14 @@ target_include_directories(AVCC2AnnexBConverter PRIVATE
     ${CMAKE_SOURCE_DIR}/src/
 )
 
-target_link_libraries(AVCC2AnnexBConverter PRIVATE media modules pipeline appcommon utils)
+target_link_libraries(AVCC2AnnexBConverter 
+    PRIVATE 
+    media 
+    modules 
+    pipeline 
+    appcommon 
+    utils
+    )
 
 set_target_properties(AVCC2AnnexBConverter PROPERTIES
     OUTPUT_NAME "AVCC2AnnexBConverter"         
@@ -186,8 +193,22 @@ set(EXE_ENCODER_SRCS
 )
 list(APPEND EXE_ENCODER_SRCS ${LIB_MODULES_SRCS})
 add_library(Encoder SHARED ${EXE_ENCODER_SRCS})
-target_include_directories(Encoder PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src/)
-target_link_libraries(Encoder PRIVATE media modules pipeline appcommon utils avcodec avutil)
+target_include_directories(Encoder 
+    PRIVATE 
+    ${CMAKE_CURRENT_SOURCE_DIR} 
+    ${CMAKE_SOURCE_DIR}/src/
+    ${FFMPEG_INCLUDE_DIRS}
+)
+
+target_link_libraries(Encoder 
+    PRIVATE 
+    media 
+    modules 
+    pipeline 
+    appcommon 
+    utils 
+    ${FFMPEG_LIBRARIES}
+    )
 set_target_properties(Encoder PROPERTIES OUTPUT_NAME "Encoder" LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin SUFFIX ".smd" PREFIX "")
 
 
@@ -214,9 +235,28 @@ set(EXE_LIBAVDEMUX_SRCS
 )
 list(APPEND EXE_LIBAVDEMUX_SRCS ${LIB_MODULES_SRCS})
 add_library(LibavDemux SHARED ${EXE_LIBAVDEMUX_SRCS})
-target_include_directories(LibavDemux PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src/)
-target_link_libraries(LibavDemux PRIVATE media modules pipeline appcommon utils avformat avcodec avutil avdevice)
-set_target_properties(LibavDemux PROPERTIES OUTPUT_NAME "LibavDemux" LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin SUFFIX ".smd" PREFIX "")
+target_include_directories(LibavDemux 
+    PRIVATE 
+    ${CMAKE_CURRENT_SOURCE_DIR} 
+    ${CMAKE_SOURCE_DIR}/src/
+    ${FFMPEG_INCLUDE_DIRS}
+    )
+target_link_libraries(LibavDemux 
+    PRIVATE 
+    media 
+    modules 
+    pipeline 
+    appcommon 
+    utils 
+    ${FFMPEG_LIBRARIES}
+    )
+set_target_properties(LibavDemux 
+    PROPERTIES 
+    OUTPUT_NAME "LibavDemux" 
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin 
+    SUFFIX ".smd" 
+    PREFIX ""
+    )
 
 
 # LibavMux target
@@ -227,9 +267,27 @@ set(EXE_LIBAVMUX_SRCS
 )
 list(APPEND EXE_LIBAVMUX_SRCS ${LIB_MODULES_SRCS})
 add_library(LibavMux SHARED ${EXE_LIBAVMUX_SRCS})
-target_include_directories(LibavMux PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src/)
-target_link_libraries(LibavMux PRIVATE media modules pipeline appcommon utils avformat avcodec avutil)
-set_target_properties(LibavMux PROPERTIES OUTPUT_NAME "LibavMux" LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin SUFFIX ".smd" PREFIX "")
+target_include_directories(LibavMux 
+    PRIVATE 
+    ${CMAKE_CURRENT_SOURCE_DIR} 
+    ${CMAKE_SOURCE_DIR}/src/
+    ${FFMPEG_INCLUDE_DIRS}
+    )
+target_link_libraries(LibavMux 
+    PRIVATE 
+    media 
+    modules 
+    pipeline 
+    appcommon 
+    utils 
+    ${FFMPEG_LIBRARIES}
+    )
+set_target_properties(LibavMux PROPERTIES 
+    OUTPUT_NAME "LibavMux" 
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin 
+    SUFFIX ".smd" 
+    PREFIX ""
+    )
 
 # LibavFilter target
 set(EXE_LIBAVFILTER_SRCS
@@ -239,9 +297,27 @@ set(EXE_LIBAVFILTER_SRCS
 )
 list(APPEND EXE_LIBAVFILTER_SRCS ${LIB_MODULES_SRCS})
 add_library(LibavFilter SHARED ${EXE_LIBAVFILTER_SRCS})
-target_include_directories(LibavFilter PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src/)
-target_link_libraries(LibavFilter PRIVATE media modules pipeline appcommon utils avfilter avcodec avutil)
-set_target_properties(LibavFilter PROPERTIES OUTPUT_NAME "LibavFilter" LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin SUFFIX ".smd" PREFIX "")
+target_include_directories(LibavFilter 
+    PRIVATE 
+    ${CMAKE_CURRENT_SOURCE_DIR} 
+    ${CMAKE_SOURCE_DIR}/src/
+    ${FFMPEG_INCLUDE_DIRS}
+    )
+target_link_libraries(LibavFilter 
+    PRIVATE 
+    media 
+    modules 
+    pipeline 
+    appcommon 
+    utils 
+    ${FFMPEG_LIBRARIES}
+)
+set_target_properties(LibavFilter PROPERTIES 
+    OUTPUT_NAME "LibavFilter" 
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin 
+    SUFFIX ".smd" 
+    PREFIX ""
+    )
 
 
 
@@ -251,9 +327,26 @@ set(EXE_GPACMUXMP4_SRCS
 )
 list(APPEND EXE_GPACMUXMP4_SRCS ${LIB_MODULES_SRCS})
 add_library(GPACMuxMP4 SHARED ${EXE_GPACMUXMP4_SRCS})
-target_include_directories(GPACMuxMP4 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src/)
-target_link_libraries(GPACMuxMP4 PRIVATE media modules pipeline appcommon utils gpac)
-set_target_properties(GPACMuxMP4 PROPERTIES OUTPUT_NAME "GPACMuxMP4" LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin SUFFIX ".smd" PREFIX "")
+target_include_directories(GPACMuxMP4 
+    PRIVATE 
+    ${CMAKE_CURRENT_SOURCE_DIR} 
+    ${CMAKE_SOURCE_DIR}/src/
+    )
+target_link_libraries(GPACMuxMP4 
+    PRIVATE 
+    media 
+    modules 
+    pipeline 
+    appcommon 
+    utils 
+    gpac
+    )
+set_target_properties(GPACMuxMP4 PROPERTIES 
+    OUTPUT_NAME "GPACMuxMP4" 
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin 
+    SUFFIX ".smd" 
+    PREFIX ""
+    )
 
 
 # GPACMuxMP4MSS target
@@ -263,9 +356,26 @@ set(EXE_GPACMUXMP4MSS_SRCS
 )
 list(APPEND EXE_GPACMUXMP4MSS_SRCS ${LIB_MODULES_SRCS})
 add_library(GPACMuxMP4MSS SHARED ${EXE_GPACMUXMP4MSS_SRCS})
-target_include_directories(GPACMuxMP4MSS PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src/)
-target_link_libraries(GPACMuxMP4MSS PRIVATE media modules pipeline appcommon utils gpac)
-set_target_properties(GPACMuxMP4MSS PROPERTIES OUTPUT_NAME "GPACMuxMP4MSS" LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin SUFFIX ".smd" PREFIX "")
+target_include_directories(GPACMuxMP4MSS 
+    PRIVATE 
+    ${CMAKE_CURRENT_SOURCE_DIR} 
+    ${CMAKE_SOURCE_DIR}/src/
+    )
+target_link_libraries(GPACMuxMP4MSS 
+    PRIVATE 
+    media 
+    modules 
+    pipeline 
+    appcommon 
+    utils 
+    gpac
+    )
+set_target_properties(GPACMuxMP4MSS PROPERTIES 
+    OUTPUT_NAME "GPACMuxMP4MSS" 
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin 
+    SUFFIX ".smd" 
+    PREFIX ""
+    )
 
 # GPACDemuxMP4Simple target
 set(EXE_GPACDEMUXMP4SIMPLE_SRCS
@@ -273,9 +383,26 @@ set(EXE_GPACDEMUXMP4SIMPLE_SRCS
 )
 list(APPEND EXE_GPACDEMUXMP4SIMPLE_SRCS ${LIB_MODULES_SRCS})
 add_library(GPACDemuxMP4Simple SHARED ${EXE_GPACDEMUXMP4SIMPLE_SRCS})
-target_include_directories(GPACDemuxMP4Simple PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src/)
-target_link_libraries(GPACDemuxMP4Simple PRIVATE media modules pipeline appcommon utils gpac)
-set_target_properties(GPACDemuxMP4Simple PROPERTIES OUTPUT_NAME "GPACDemuxMP4Simple" LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin SUFFIX ".smd" PREFIX "")
+target_include_directories(GPACDemuxMP4Simple 
+    PRIVATE 
+    ${CMAKE_CURRENT_SOURCE_DIR} 
+    ${CMAKE_SOURCE_DIR}/src/
+    )
+target_link_libraries(GPACDemuxMP4Simple 
+    PRIVATE 
+    media 
+    modules 
+    pipeline 
+    appcommon 
+    utils 
+    gpac
+    )
+set_target_properties(GPACDemuxMP4Simple PROPERTIES 
+    OUTPUT_NAME "GPACDemuxMP4Simple" 
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin 
+    SUFFIX ".smd" 
+    PREFIX ""
+    )
 
 # GPACDemuxMP4Full target
 set(EXE_GPACDEMUXMP4FULL_SRCS
@@ -283,9 +410,26 @@ set(EXE_GPACDEMUXMP4FULL_SRCS
 )
 list(APPEND EXE_GPACDEMUXMP4FULL_SRCS ${LIB_MODULES_SRCS})
 add_library(GPACDemuxMP4Full SHARED ${EXE_GPACDEMUXMP4FULL_SRCS})
-target_include_directories(GPACDemuxMP4Full PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src/)
-target_link_libraries(GPACDemuxMP4Full PRIVATE media modules pipeline appcommon utils gpac)
-set_target_properties(GPACDemuxMP4Full PROPERTIES OUTPUT_NAME "GPACDemuxMP4Full" LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin SUFFIX ".smd" PREFIX "")
+target_include_directories(GPACDemuxMP4Full 
+    PRIVATE 
+    ${CMAKE_CURRENT_SOURCE_DIR} 
+    ${CMAKE_SOURCE_DIR}/src/
+    )
+target_link_libraries(GPACDemuxMP4Full 
+    PRIVATE 
+    media 
+    modules 
+    pipeline 
+    appcommon 
+    utils 
+    gpac
+    )
+set_target_properties(GPACDemuxMP4Full PROPERTIES 
+    OUTPUT_NAME "GPACDemuxMP4Full" 
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin 
+    SUFFIX ".smd" 
+    PREFIX ""
+    )
 
 
 # FileSystemSink target
@@ -294,9 +438,25 @@ set(EXE_FILESYSTEMSINK_SRCS
 )
 list(APPEND EXE_FILESYSTEMSINK_SRCS ${LIB_MODULES_SRCS})
 add_library(FileSystemSink SHARED ${EXE_FILESYSTEMSINK_SRCS})
-target_include_directories(FileSystemSink PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src/)
-target_link_libraries(FileSystemSink PRIVATE media modules pipeline appcommon utils)
-set_target_properties(FileSystemSink PROPERTIES OUTPUT_NAME "FileSystemSink" LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin SUFFIX ".smd" PREFIX "")
+target_include_directories(FileSystemSink 
+    PRIVATE 
+    ${CMAKE_CURRENT_SOURCE_DIR} 
+    ${CMAKE_SOURCE_DIR}/src/
+    )
+target_link_libraries(FileSystemSink 
+    PRIVATE 
+    media 
+    modules 
+    pipeline 
+    appcommon 
+    utils
+    )
+set_target_properties(FileSystemSink PROPERTIES 
+    OUTPUT_NAME "FileSystemSink" 
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin 
+    SUFFIX ".smd" 
+    PREFIX ""
+    )
 
 # LogoOverlay target
 set(EXE_LOGOOVERLAY_SRCS
@@ -304,7 +464,23 @@ set(EXE_LOGOOVERLAY_SRCS
 )
 list(APPEND EXE_LOGOOVERLAY_SRCS ${LIB_MODULES_SRCS})
 add_library(LogoOverlay SHARED ${EXE_LOGOOVERLAY_SRCS})
-target_include_directories(LogoOverlay PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src/)
-target_link_libraries(LogoOverlay PRIVATE media modules pipeline appcommon utils)
-set_target_properties(LogoOverlay PROPERTIES OUTPUT_NAME "LogoOverlay" LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin SUFFIX ".smd" PREFIX "")
+target_include_directories(LogoOverlay 
+    PRIVATE 
+    ${CMAKE_CURRENT_SOURCE_DIR} 
+    ${CMAKE_SOURCE_DIR}/src/
+    )
+target_link_libraries(LogoOverlay 
+    PRIVATE 
+    media 
+    modules 
+    pipeline 
+    appcommon 
+    utils
+    )
+set_target_properties(LogoOverlay PROPERTIES 
+    OUTPUT_NAME "LogoOverlay" 
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin 
+    SUFFIX ".smd" 
+    PREFIX ""
+    )
 
