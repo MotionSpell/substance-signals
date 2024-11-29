@@ -118,7 +118,7 @@ if (NOT GPAC_FOUND)
     pkg_check_modules(GPAC REQUIRED gpac)
     add_library(gpac::gpac SHARED IMPORTED)
     set_target_properties(gpac::gpac PROPERTIES
-        IMPORTED_LOCATION "${GPAC_LIBDIR}/libgpac.so"
+        IMPORTED_LOCATION "${GPAC_LIBDIR}/${CMAKE_SHARED_LIBRARY_PREFIX}gpac${CMAKE_SHARED_LIBRARY_SUFFIX}"
         INTERFACE_INCLUDE_DIRECTORIES "${GPAC_INCLUDEDIR}"
     )
 endif()
