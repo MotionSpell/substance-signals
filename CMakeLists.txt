@@ -88,6 +88,7 @@ set(ENV{PKG_CONFIG_PATH} "${SYSROOT_PATH}/lib/pkgconfig")
 
 find_package(PkgConfig REQUIRED)
 find_package(SDL2 REQUIRED)
+find_package(libjpeg-turbo REQUIRED)
 find_package(FFmpeg REQUIRED COMPONENTS AVUTIL AVFILTER AVCODEC AVFORMAT AVDEVICE SWSCALE SWRESAMPLE)
 find_package(GPAC)
 if (NOT GPAC_FOUND)

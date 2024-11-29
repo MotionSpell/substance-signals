@@ -205,7 +205,7 @@ target_link_libraries(JPEGTurboDecode
     pipeline 
     appcommon 
     utils 
-    turbojpeg
+    libjpeg-turbo::turbojpeg
     )
 set_target_properties(JPEGTurboDecode PROPERTIES 
     OUTPUT_NAME "JPEGTurboDecode" 
@@ -224,8 +224,21 @@ set(EXE_JPEGTURBOENCODE_SRCS
 list(APPEND EXE_JPEGTURBOENCODE_SRCS ${LIB_MODULES_SRCS})
 add_library(JPEGTurboEncode SHARED ${EXE_JPEGTURBOENCODE_SRCS})
 target_include_directories(JPEGTurboEncode PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src/)
-target_link_libraries(JPEGTurboEncode PRIVATE media modules pipeline appcommon utils turbojpeg)
-set_target_properties(JPEGTurboEncode PROPERTIES OUTPUT_NAME "JPEGTurboEncode" LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin SUFFIX ".smd" PREFIX "")
+target_link_libraries(JPEGTurboEncode 
+    PRIVATE 
+    media 
+    modules 
+    pipeline 
+    appcommon 
+    utils 
+    libjpeg-turbo::turbojpeg
+    )
+set_target_properties(JPEGTurboEncode PROPERTIES 
+    OUTPUT_NAME "JPEGTurboEncode" 
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin 
+    SUFFIX ".smd" 
+    PREFIX ""
+    )
 
 
 
