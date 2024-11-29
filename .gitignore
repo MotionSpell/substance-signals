@@ -160,6 +160,7 @@ tags
 /extra/config.guess
 extra_lib/
 doc/html/
+/extra/patches/
 
 # test output: directory is created when tests starts and removed when they pass
 /out
