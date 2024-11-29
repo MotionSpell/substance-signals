@@ -83,11 +83,13 @@ set_target_properties(AVCC2AnnexBConverter PROPERTIES
 set(EXE_LIBAVMUXHLSTS_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/stream/hls_muxer_libav.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/common/libav.cpp
+    ${FFMPEG_INCLUDE_DIRS}
 )
 
 # Combine all source files into a single list 
 list(APPEND EXE_LIBAVMUXHLSTS_SRCS
     ${LIB_MODULES_SRCS}
+    ${FFMPEG_LIBRARIES}
 )
 
 # Add the target (LibavMuxHLSTS.smd)
@@ -397,6 +399,8 @@ target_include_directories(GPACMuxMP4
     PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR} 
     ${CMAKE_SOURCE_DIR}/src/
+    ${FFMPEG_INCLUDE_DIRS}
+    ${GPAC_INCLUDE_DIRS}
     )
 target_link_libraries(GPACMuxMP4 
     PRIVATE 
@@ -405,7 +409,8 @@ target_link_libraries(GPACMuxMP4
     pipeline 
     appcommon 
     utils 
-    gpac
+    ${GPAC_LIBRARIES}
+    ${FFMPEG_LIBRARIES}
     )
 set_target_properties(GPACMuxMP4 PROPERTIES 
     OUTPUT_NAME "GPACMuxMP4" 
@@ -426,6 +431,7 @@ target_include_directories(GPACMuxMP4MSS
     PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR} 
     ${CMAKE_SOURCE_DIR}/src/
+    ${GPAC_INCLUDE_DIRS}
     )
 target_link_libraries(GPACMuxMP4MSS 
     PRIVATE 
@@ -434,7 +440,7 @@ target_link_libraries(GPACMuxMP4MSS
     pipeline 
     appcommon 
     utils 
-    gpac
+    ${GPAC_LIBRARIES}
     )
 set_target_properties(GPACMuxMP4MSS PROPERTIES 
     OUTPUT_NAME "GPACMuxMP4MSS" 
@@ -453,6 +459,7 @@ target_include_directories(GPACDemuxMP4Simple
     PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR} 
     ${CMAKE_SOURCE_DIR}/src/
+    ${GPAC_INCLUDE_DIRS}
     )
 target_link_libraries(GPACDemuxMP4Simple 
     PRIVATE 
@@ -461,7 +468,7 @@ target_link_libraries(GPACDemuxMP4Simple
     pipeline 
     appcommon 
     utils 
-    gpac
+    ${GPAC_LIBRARIES}
     )
 set_target_properties(GPACDemuxMP4Simple PROPERTIES 
     OUTPUT_NAME "GPACDemuxMP4Simple" 
@@ -480,6 +487,8 @@ target_include_directories(GPACDemuxMP4Full
     PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR} 
     ${CMAKE_SOURCE_DIR}/src/
+    ${GPAC_INCLUDE_DIRS}
+    ${FFMPEG_INCLUDE_DIRS}
     )
 target_link_libraries(GPACDemuxMP4Full 
     PRIVATE 
@@ -488,7 +497,8 @@ target_link_libraries(GPACDemuxMP4Full
     pipeline 
     appcommon 
     utils 
-    gpac
+    ${GPAC_LIBRARIES}
+    ${FFMPEG_LIBRARIES}
     )
 set_target_properties(GPACDemuxMP4Full PROPERTIES 
     OUTPUT_NAME "GPACDemuxMP4Full" 
