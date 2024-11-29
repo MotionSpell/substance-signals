@@ -27,9 +27,10 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     -pthread -Wl,--no-undefined
     )
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    target_link_options(modules PUBLIC
-    -undefined error
-    )
+    # xxxjack -undefined error is deprecated
+    #target_link_options(modules PUBLIC
+    #-undefined error
+    #)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     target_link_options(modules PUBLIC
     -pthread -Wl,--no-undefined
