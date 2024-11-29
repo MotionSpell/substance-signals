@@ -97,10 +97,18 @@ add_library(LibavMuxHLSTS SHARED ${EXE_LIBAVMUXHLSTS_SRCS})
 target_include_directories(LibavMuxHLSTS PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/src/
+    ${FFMPEG_INCLUDE_DIRS}
 )
 
 # Link libraries to the target 
-target_link_libraries(LibavMuxHLSTS PRIVATE media modules pipeline appcommon utils avutil avcodec)
+target_link_libraries(LibavMuxHLSTS 
+    PRIVATE 
+    media 
+    modules 
+    pipeline 
+    appcommon 
+    ${FFMPEG_LIBRARIES}
+    )
 
 # Set target properties
 set_target_properties(LibavMuxHLSTS PROPERTIES
@@ -129,12 +137,13 @@ add_library(VideoConvert SHARED ${EXE_VIDEOCONVERTER_SRCS})
 target_include_directories(VideoConvert PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/src/
+    ${FFMPEG_INCLUDE_DIRS}
 )
 
 # Link the necessary libraries
 target_link_libraries(VideoConvert PRIVATE
     media modules pipeline appcommon utils
-    avcodec avutil swscale
+    ${FFMPEG_LIBRARIES}
 )
 
 # Set properties for the target
@@ -153,9 +162,27 @@ set(EXE_AUDIOCONVERTER_SRCS
 )
 list(APPEND EXE_AUDIOCONVERTER_SRCS ${LIB_MODULES_SRCS})
 add_library(AudioConvert SHARED ${EXE_AUDIOCONVERTER_SRCS})
-target_include_directories(AudioConvert PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src/)
-target_link_libraries(AudioConvert PRIVATE media modules pipeline appcommon utils avcodec avutil swresample)
-set_target_properties(AudioConvert PROPERTIES OUTPUT_NAME "AudioConvert" LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin SUFFIX ".smd" PREFIX "")
+target_include_directories(AudioConvert 
+    PRIVATE 
+    ${CMAKE_CURRENT_SOURCE_DIR} 
+    ${CMAKE_SOURCE_DIR}/src/
+    ${FFMPEG_INCLUDE_DIRS}
+    )
+target_link_libraries(AudioConvert 
+    PRIVATE 
+    media 
+    modules 
+    pipeline 
+    appcommon 
+    utils 
+    ${FFMPEG_LIBRARIES}
+    )
+set_target_properties(AudioConvert PROPERTIES 
+    OUTPUT_NAME "AudioConvert" 
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin 
+    SUFFIX ".smd" 
+    PREFIX ""
+    )
 
 
 # JPEGTurboDecode target
@@ -165,9 +192,25 @@ set(EXE_JPEGTURBODECODE_SRCS
 )
 list(APPEND EXE_JPEGTURBODECODE_SRCS ${LIB_MODULES_SRCS})
 add_library(JPEGTurboDecode SHARED ${EXE_JPEGTURBODECODE_SRCS})
-target_include_directories(JPEGTurboDecode PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src/)
-target_link_libraries(JPEGTurboDecode PRIVATE media modules pipeline appcommon utils turbojpeg)
-set_target_properties(JPEGTurboDecode PROPERTIES OUTPUT_NAME "JPEGTurboDecode" LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin SUFFIX ".smd" PREFIX "")
+target_include_directories(JPEGTurboDecode 
+    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} 
+    ${CMAKE_SOURCE_DIR}/src/
+    )
+target_link_libraries(JPEGTurboDecode 
+    PRIVATE 
+    media 
+    modules 
+    pipeline 
+    appcommon 
+    utils 
+    turbojpeg
+    )
+set_target_properties(JPEGTurboDecode PROPERTIES 
+    OUTPUT_NAME "JPEGTurboDecode" 
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin 
+    SUFFIX ".smd" 
+    PREFIX ""
+    )
 
 
 
@@ -209,7 +252,12 @@ target_link_libraries(Encoder
     utils 
     ${FFMPEG_LIBRARIES}
     )
-set_target_properties(Encoder PROPERTIES OUTPUT_NAME "Encoder" LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin SUFFIX ".smd" PREFIX "")
+set_target_properties(Encoder PROPERTIES 
+    OUTPUT_NAME "Encoder" 
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin 
+    SUFFIX ".smd" 
+    PREFIX ""
+    )
 
 
 
@@ -221,9 +269,27 @@ set(EXE_DECODER_SRCS
 )
 list(APPEND EXE_DECODER_SRCS ${LIB_MODULES_SRCS})
 add_library(Decoder SHARED ${EXE_DECODER_SRCS})
-target_include_directories(Decoder PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src/)
-target_link_libraries(Decoder PRIVATE media modules pipeline appcommon utils avcodec avutil)
-set_target_properties(Decoder PROPERTIES OUTPUT_NAME "Decoder" LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin SUFFIX ".smd" PREFIX "")
+target_include_directories(Decoder 
+    PRIVATE 
+    ${CMAKE_CURRENT_SOURCE_DIR} 
+    ${CMAKE_SOURCE_DIR}/src/
+    ${FFMPEG_INCLUDE_DIRS}
+    )
+target_link_libraries(Decoder 
+    PRIVATE 
+    media 
+    modules 
+    pipeline 
+    appcommon 
+    utils 
+    ${FFMPEG_LIBRARIES}
+    )
+set_target_properties(Decoder PROPERTIES 
+    OUTPUT_NAME "Decoder" 
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin 
+    SUFFIX ".smd" 
+    PREFIX ""
+    )
 
 
 # LibavDemux target
