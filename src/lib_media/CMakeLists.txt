@@ -413,7 +413,6 @@ target_include_directories(GPACMuxMP4
     ${CMAKE_CURRENT_SOURCE_DIR} 
     ${CMAKE_SOURCE_DIR}/src/
     ${FFMPEG_INCLUDE_DIRS}
-    ${GPAC_INCLUDE_DIRS}
     )
 target_link_libraries(GPACMuxMP4 
     PRIVATE 
@@ -422,7 +421,7 @@ target_link_libraries(GPACMuxMP4
     pipeline 
     appcommon 
     utils 
-    ${GPAC_LIBRARIES}
+    gpac::gpac
     ${FFMPEG_LIBRARIES}
     )
 set_target_properties(GPACMuxMP4 PROPERTIES 
@@ -444,7 +443,6 @@ target_include_directories(GPACMuxMP4MSS
     PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR} 
     ${CMAKE_SOURCE_DIR}/src/
-    ${GPAC_INCLUDE_DIRS}
     )
 target_link_libraries(GPACMuxMP4MSS 
     PRIVATE 
@@ -453,7 +451,7 @@ target_link_libraries(GPACMuxMP4MSS
     pipeline 
     appcommon 
     utils 
-    ${GPAC_LIBRARIES}
+    gpac::gpac
     )
 set_target_properties(GPACMuxMP4MSS PROPERTIES 
     OUTPUT_NAME "GPACMuxMP4MSS" 
@@ -472,7 +470,6 @@ target_include_directories(GPACDemuxMP4Simple
     PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR} 
     ${CMAKE_SOURCE_DIR}/src/
-    ${GPAC_INCLUDE_DIRS}
     )
 target_link_libraries(GPACDemuxMP4Simple 
     PRIVATE 
@@ -481,7 +478,7 @@ target_link_libraries(GPACDemuxMP4Simple
     pipeline 
     appcommon 
     utils 
-    ${GPAC_LIBRARIES}
+    gpac::gpac
     )
 set_target_properties(GPACDemuxMP4Simple PROPERTIES 
     OUTPUT_NAME "GPACDemuxMP4Simple" 
@@ -500,7 +497,6 @@ target_include_directories(GPACDemuxMP4Full
     PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR} 
     ${CMAKE_SOURCE_DIR}/src/
-    ${GPAC_INCLUDE_DIRS}
     ${FFMPEG_INCLUDE_DIRS}
     )
 target_link_libraries(GPACDemuxMP4Full 
@@ -510,7 +506,7 @@ target_link_libraries(GPACDemuxMP4Full
     pipeline 
     appcommon 
     utils 
-    ${GPAC_LIBRARIES}
+    gpac::gpac
     ${FFMPEG_LIBRARIES}
     )
 set_target_properties(GPACDemuxMP4Full PROPERTIES 
