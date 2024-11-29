@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.22)
 
 project(Signals VERSION 1.0)
 # Add extension directories (for things like Find<package>)
@@ -97,7 +97,8 @@ message(STATUS "Generated signals_version.h available at ${SIGNALS_VERSION_HEADE
 
 
 # Ensure SYSROOT_PATH is valid
-if(NOT EXISTS ${SYSROOT_PATH})
+if(NOT SYSROOT_PATH)
+elseif(NOT EXISTS ${SYSROOT_PATH})
     message(STATUS "No SYSROOT_PATH pre-set, not using sysroot")
 else()
 
