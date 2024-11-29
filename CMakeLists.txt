@@ -25,9 +25,6 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
     add_link_options(-s)
 endif()
 
-# Add all the source subdirectories
-add_subdirectory(src)
-
 # Define paths for source and scripts
 set(SCRIPTS_DIR "${CMAKE_SOURCE_DIR}/scripts")
 set(SRC_DIR "${CMAKE_SOURCE_DIR}/src")
@@ -60,28 +57,6 @@ include_directories(${BIN_DIR})
 set(GENERATED_SIGNALS_VERSION_HEADER ${SIGNALS_VERSION_HEADER})
 
 message(STATUS "Generated signals_version.h available at ${SIGNALS_VERSION_HEADER}")
-
-
-# Add custom targets for easy builds
-add_custom_target(build_all
-    DEPENDS
-        utils
-        appcommon
-        pipeline
-        modules
-        media
-        plugins
-        dashcastx
-        #ts2ip
-        player
-        mcastdump
-        mp42tsx
-        monitor
-        unittests
-    COMMENT "Building all targets."
-)
-
-
 
 # Check if SYSROOT_PATH is set via an environment variable
 if(DEFINED ENV{SYSROOT_PATH})
@@ -122,3 +97,26 @@ endif()
 
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+
+# Add all the source subdirectories
+add_subdirectory(src)
+
+# Add custom targets for easy builds
+add_custom_target(build_all
+    DEPENDS
+        utils
+        appcommon
+        pipeline
+        modules
+        media
+        plugins
+        dashcastx
+        #ts2ip
+        player
+        mcastdump
+        mp42tsx
+        monitor
+        unittests
+    COMMENT "Building all targets."
+)
