@@ -39,7 +39,7 @@ target_link_libraries(unittests
     pipeline
     utils
     curl
-    avcodec
+    FFMPEG::AVCODEC
 )
 
 # Include directories for unit tests 
