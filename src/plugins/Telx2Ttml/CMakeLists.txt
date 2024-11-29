@@ -5,13 +5,12 @@ add_library(TeletextToTTML SHARED
     )
 
 # Link dependencies if any
-target_link_libraries(TeletextToTTML ${CMAKE_THREAD_LIBS_INIT} ${FFMPEG_LIBRARIES})
+target_link_libraries(TeletextToTTML ${CMAKE_THREAD_LIBS_INIT} FFMPEG::AVCODEC)
 
 # Include directories
 target_include_directories(TeletextToTTML 
     PUBLIC
     ${CMAKE_SOURCE_DIR}/src
-    ${FFMPEG_INCLUDE_DIRS}
 )
 
 # Set properties for the target
