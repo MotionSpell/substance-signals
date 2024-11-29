@@ -92,6 +92,12 @@ macro(find_component _component _pkgconfig _library _header)
     ${_component}_DEFINITIONS
     ${_component}_VERSION)
 
+  add_library(FFMPEG::${_component} SHARED IMPORTED)
+  set_target_properties(FFMPEG::${_component} PROPERTIES
+    IMPORTED_LOCATION "${PC_${_component}_LIBDIR}/lib${_library}.so"
+    INTERFACE_INCLUDE_DIRECTORIES "${${_component}_INCLUDE_DIRS}"
+  )
+  message("xxxjack created library ffmpeg::${_component}")
 endmacro()
 
 
