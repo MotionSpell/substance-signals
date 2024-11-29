@@ -94,15 +94,17 @@ macro(find_component _component _pkgconfig _library _header)
 
   add_library(FFMPEG::${_component} SHARED IMPORTED)
   set_target_properties(FFMPEG::${_component} PROPERTIES
-    IMPORTED_LOCATION "${PC_${_component}_LIBDIR}/lib${_library}.so"
+    IMPORTED_LOCATION "${PC_${_component}_LIBDIR}/${CMAKE_SHARED_LIBRARY_PREFIX}${_library}${CMAKE_SHARED_LIBRARY_SUFFIX}"
     INTERFACE_INCLUDE_DIRECTORIES "${${_component}_INCLUDE_DIRS}"
   )
-  message("xxxjack created library ffmpeg::${_component}")
+  message("Created import library FFMPEG::${_component}")
 endmacro()
 
 
 # Check for cached results. If there are skip the costly part.
-if (NOT FFMPEG_LIBRARIES)
+# xxxjack removed for now, because we need the import libraries
+# if (NOT FFMPEG_LIBRARIES)
+if(TRUE)
 
   # Check for all possible component.
   find_component(AVCODEC    libavcodec    avcodec  libavcodec/avcodec.h)
