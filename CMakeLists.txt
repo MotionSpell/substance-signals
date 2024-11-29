@@ -33,21 +33,26 @@ set(BIN_DIR "${CMAKE_BINARY_DIR}/bin")
 file(MAKE_DIRECTORY ${BIN_DIR})
 
 # Generate signals_version.h using version.sh
-add_custom_command(
-    OUTPUT ${BIN_DIR}/signals_version.h
-    COMMAND ${CMAKE_COMMAND} -E echo "Working directory: ${CMAKE_BINARY_DIR}"
-    COMMAND ${SCRIPTS_DIR}/version.sh
-    COMMAND ${CMAKE_COMMAND} -E echo "Version script executed"
-    COMMAND ${SCRIPTS_DIR}/version.sh > ${BIN_DIR}/signals_version.h
-    DEPENDS ${SCRIPTS_DIR}/version.sh
-    COMMENT "Generating signals_version.h"
+set(SIGNALS_VERSION_HEADER "${BIN_DIR}/signals_version.h")
+execute_process(
+    COMMAND "${SCRIPTS_DIR}/version.sh"
+    OUTPUT_FILE "${SIGNALS_VERSION_HEADER}"
 )
+#file(TOUCH ${SIGNALS_VERSION_HEADER})
+#add_custom_command(
+#    OUTPUT ${SIGNALS_VERSION_HEADER}
+#    COMMAND ${CMAKE_COMMAND} -E echo "Working directory: ${CMAKE_BINARY_DIR}"
+#    COMMAND ${SCRIPTS_DIR}/version.sh
+#    COMMAND ${CMAKE_COMMAND} -E echo "Version script executed"
+#    COMMAND ${SCRIPTS_DIR}/version.sh > ${SIGNALS_VERSION_HEADER}
+#    DEPENDS ${SCRIPTS_DIR}/version.sh
+#    COMMENT "Generating signals_version.h"
+#)
 # Add a custom target to trigger the custom command
-add_custom_target(generate_signals_version_header ALL DEPENDS ${BIN_DIR}/signals_version.h)
+#add_custom_target(generate_signals_version_header ALL DEPENDS ${SIGNALS_VERSION_HEADER})
 
 
 # Ensure the generated signals_version.h is available globally
-set(SIGNALS_VERSION_HEADER "${BIN_DIR}/signals_version.h")
 
 # Include directories for global availability
 include_directories(${BIN_DIR})
@@ -78,8 +83,7 @@ message(STATUS "Using SYSROOT_PATH: ${SYSROOT_PATH}")
 
 # Add the include and lib directories from SYSROOT_PATH
 #include_directories(${SYSROOT_PATH}/include)
-# xxxjack temporarily re-enabling this one:
-link_directories(${SYSROOT_PATH}/lib)
+#link_directories(${SYSROOT_PATH}/lib)
 
 # Set pkg-config path
 set(ENV{PKG_CONFIG_PATH} "${SYSROOT_PATH}/lib/pkgconfig")
@@ -94,6 +98,11 @@ find_package(GPAC)
 if (NOT GPAC_FOUND)
     # Find it using pkgconfig, for now
     pkg_check_modules(GPAC REQUIRED gpac)
+    add_library(gpac::gpac SHARED IMPORTED)
+    set_target_properties(gpac::gpac PROPERTIES
+        IMPORTED_LOCATION "${GPAC_LIBDIR}/libgpac.so"
+        INTERFACE_INCLUDE_DIRECTORIES "${GPAC_INCLUDEDIR}"
+    )
 endif()
 
 
