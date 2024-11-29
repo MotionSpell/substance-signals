@@ -103,7 +103,8 @@ message(STATUS "Using SYSROOT_PATH: ${SYSROOT_PATH}")
 
 # Add the include and lib directories from SYSROOT_PATH
 #include_directories(${SYSROOT_PATH}/include)
-#link_directories(${SYSROOT_PATH}/lib)
+# xxxjack temporarily re-enabling this one:
+link_directories(${SYSROOT_PATH}/lib)
 
 # Set pkg-config path
 set(ENV{PKG_CONFIG_PATH} "${SYSROOT_PATH}/lib/pkgconfig")
@@ -112,7 +113,12 @@ set(ENV{PKG_CONFIG_PATH} "${SYSROOT_PATH}/lib/pkgconfig")
 
 find_package(PkgConfig REQUIRED)
 find_package(SDL2 REQUIRED)
-find_package(FFmpeg REQUIRED COMPONENTS AVUTIL AVCODEC AVFORMAT AVDEVICE SWSCALE)
+find_package(FFmpeg REQUIRED COMPONENTS AVUTIL AVFILTER AVCODEC AVFORMAT AVDEVICE SWSCALE SWRESAMPLE)
+find_package(GPAC)
+if (NOT GPAC_FOUND)
+    # Find it using pkgconfig, for now
+    pkg_check_modules(GPAC REQUIRED gpac)
+endif()
 
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
