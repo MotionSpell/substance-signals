@@ -11,19 +11,51 @@ set(CMAKE_MODULE_PATH
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Global compiler options
-add_compile_options(-Wall -Wextra -Werror -fvisibility=hidden -fvisibility-inlines-hidden -Wno-deprecated-declarations)
+# Change some compiler options that are dependent on the target platform.
+# xxxjack some are actually dependent on the toolchain...
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+    add_compile_options(-Wall -Wextra -Werror -fvisibility=hidden -fvisibility-inlines-hidden -Wno-deprecated-declarations)
 
-# Debug-specific options
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    add_compile_options(-g3)
+    # Debug-specific options
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        add_compile_options(-g3)
+    endif()
+
+    # Release-specific options
+    if(CMAKE_BUILD_TYPE STREQUAL "Release")
+        add_compile_options(-w -DNDEBUG)
+        add_link_options(-s)
+    endif()
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+    add_compile_options(-Wall -Wextra -Werror -fvisibility=hidden -fvisibility-inlines-hidden -Wno-deprecated-declarations)
+
+    # Debug-specific options
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        add_compile_options(-g3)
+    endif()
+
+    # Release-specific options
+    if(CMAKE_BUILD_TYPE STREQUAL "Release")
+        add_compile_options(-w -DNDEBUG)
+        add_link_options(-s)
+    endif()
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+    add_compile_options(-Wall -Wextra -Werror -fvisibility=hidden -fvisibility-inlines-hidden -Wno-deprecated-declarations)
+
+    # Debug-specific options
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        add_compile_options(-g3)
+    endif()
+
+    # Release-specific options
+    if(CMAKE_BUILD_TYPE STREQUAL "Release")
+        add_compile_options(-w -DNDEBUG)
+        add_link_options(-s)
+    endif()
+else()
+    message(FATAL_ERROR " Unknown CMAKE_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}")
 endif()
 
-# Release-specific options
-if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    add_compile_options(-w -DNDEBUG)
-    add_link_options(-s)
-endif()
 
 # Define paths for source and scripts
 set(SCRIPTS_DIR "${CMAKE_SOURCE_DIR}/scripts")
@@ -63,32 +95,17 @@ set(GENERATED_SIGNALS_VERSION_HEADER ${SIGNALS_VERSION_HEADER})
 
 message(STATUS "Generated signals_version.h available at ${SIGNALS_VERSION_HEADER}")
 
-# Check if SYSROOT_PATH is set via an environment variable
-if(DEFINED ENV{SYSROOT_PATH})
-    set(SYSROOT_PATH $ENV{SYSROOT_PATH})
-    elseif(EXISTS "${CMAKE_SOURCE_DIR}/sysroot")
-    # If not set, use a default relative path or fail gracefully
-    set(SYSROOT_PATH "${CMAKE_SOURCE_DIR}/sysroot")
-elseif(EXISTS "${CMAKE_SOURCE_DIR}/../sysroot")
-    # If not set, use a default relative path or fail gracefully
-    set(SYSROOT_PATH "${CMAKE_SOURCE_DIR}/../sysroot")
-endif()
 
 # Ensure SYSROOT_PATH is valid
 if(NOT EXISTS ${SYSROOT_PATH})
-    message(FATAL_ERROR "SYSROOT_PATH does not exist or is invalid: ${SYSROOT_PATH}")
+    message(STATUS "No SYSROOT_PATH pre-set, not using sysroot")
+else()
+
+    message(STATUS "Using SYSROOT_PATH: ${SYSROOT_PATH}")
+
+    # Set pkg-config path
+    set(ENV{PKG_CONFIG_PATH} "${SYSROOT_PATH}/lib/pkgconfig")
 endif()
-
-message(STATUS "Using SYSROOT_PATH: ${SYSROOT_PATH}")
-
-# Add the include and lib directories from SYSROOT_PATH
-#include_directories(${SYSROOT_PATH}/include)
-#link_directories(${SYSROOT_PATH}/lib)
-
-# Set pkg-config path
-set(ENV{PKG_CONFIG_PATH} "${SYSROOT_PATH}/lib/pkgconfig")
-
-
 
 find_package(PkgConfig REQUIRED)
 find_package(SDL2 REQUIRED)

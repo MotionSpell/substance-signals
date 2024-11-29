@@ -5,7 +5,6 @@ set(LIB_UTILS_SRCS
     log.cpp
     log.hpp
     os.hpp
-    os_gnu.cpp # workaround for linux to be removed 
     profiler.cpp
     profiler.hpp
     scheduler.cpp
@@ -16,6 +15,16 @@ set(LIB_UTILS_SRCS
     system_clock.hpp
     sysclock.cpp
 )
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    list(APPEND LIB_UTILS_SRCS os_mingw.cpp)
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    list(APPEND LIB_UTILS_SRCS os_darwin.cpp)
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    list(APPEND LIB_UTILS_SRCS os_gnu.cpp)
+else()
+    message(ERROR "Unknown CMAKE_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}")
+endif()
+
 include_directories(${BIN_DIR}
 ${CMAKE_SOURCE_DIR}/src 
 )

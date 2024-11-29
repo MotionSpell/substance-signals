@@ -22,10 +22,22 @@ target_compile_options(modules PUBLIC
     -Wall -Wextra -Werror -fPIC
 )
 
-# Add linker flags
-target_link_options(modules PUBLIC
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    target_link_options(modules PUBLIC
     -pthread -Wl,--no-undefined
-)
+    )
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    target_link_options(modules PUBLIC
+    -undefined error
+    )
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    target_link_options(modules PUBLIC
+    -pthread -Wl,--no-undefined
+    )
+else()
+    message(ERROR "Unknown CMAKE_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}")
+endif()
+# Add linker flags
 
 # Link dependencies if any
 target_link_libraries(modules PUBLIC utils)
