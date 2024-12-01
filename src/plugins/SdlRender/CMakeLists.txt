@@ -12,12 +12,14 @@ add_library(SDLVideo SHARED ${SDLVideo_src})
 # Link dependencies
 target_link_libraries(SDLVideo
     ${CMAKE_THREAD_LIBS_INIT}  
+    modules
     SDL2::SDL2  
 )
 
 # Include directories
 target_include_directories(SDLVideo PUBLIC
     ${CMAKE_SOURCE_DIR}/src
+    ${SDL2_INCLUDE_DIRS}
 )
 
 # Set properties for the target
@@ -38,14 +40,16 @@ add_library(SDLAudio SHARED ${SDLAudio_src})
 
 # Link dependencies
 target_link_libraries(SDLAudio
-    ${CMAKE_THREAD_LIBS_INIT}  
+    ${CMAKE_THREAD_LIBS_INIT} 
+    modules 
     SDL2::SDL2  # Link SDL2
 )
 
 # Include directories for SDLAudio
 target_include_directories(SDLAudio PUBLIC
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/plugins/SdlRender  
+    ${CMAKE_CURRENT_SOURCE_DIR}/plugins/SdlRender
+    ${SDL2_INCLUDE_DIRS}
 )
 
 # Set properties for SDLAudio target
