@@ -108,11 +108,6 @@ else()
     set(ENV{PKG_CONFIG_PATH} "${SYSROOT_PATH}/lib/pkgconfig")
 endif()
 
-# xxxjack temporary hack
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
-    set(ENV{PKG_CONFIG_PATH} "/opt/homebrew/opt/ffmpeg@4/lib/pkgconfig")
-endif()
-
 find_package(PkgConfig REQUIRED)
 find_package(SDL2 REQUIRED)
 find_package(libjpeg-turbo REQUIRED)

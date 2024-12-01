@@ -62,7 +62,7 @@
   		"name" : "mac-production",
   		"description" : "Build for production on Mac",
   		"generator" : "Unix Makefiles",
-  		"inherits" : "no-vcpkg-no-sysroot",
+  		"inherits" : "sysroot",
   		"cacheVariables" : {
   			"CMAKE_BUILD_TYPE" : "Release"
   		},
@@ -76,7 +76,7 @@
   		"name" : "mac-develop",
   		"description" : "Build for development on Mac",
   		"generator" : "Unix Makefiles",
-  		"inherits" : "no-vcpkg-no-sysroot",
+  		"inherits" : "sysroot",
   		"cacheVariables" : {
   			"CMAKE_BUILD_TYPE" : "Debug"
   		},
