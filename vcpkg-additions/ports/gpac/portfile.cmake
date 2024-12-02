@@ -27,7 +27,6 @@ vcpkg_configure_make(
     OPTIONS
         ${OPTIONS}
         # --disable-player xxxjack this will disable the compositor, which will break the build.
-        --disable-evg # xxxjack added, because it needs svg, which is disabled. 
         --disable-ssl
         --disable-alsa
         --disable-jack
@@ -64,7 +63,7 @@ vcpkg_configure_make(
         --disable-seng
         --disable-sman
         --disable-streaming
-        --disable-svg
+        # --disable-svg xxxjack this will disable evg, which will disable the compositor, which will break the build.
         --disable-swf
         --disable-vobsub
         --disable-vrml
