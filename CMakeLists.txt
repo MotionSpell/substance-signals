@@ -14,7 +14,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Change some compiler options that are dependent on the target platform.
 # xxxjack some are actually dependent on the toolchain...
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-    add_compile_options(-Wall -Wextra -Werror -fvisibility=hidden -fvisibility-inlines-hidden -Wno-deprecated-declarations)
+    add_compile_options(-Wall -Wextra -Werror -fvisibility=default -fvisibility-inlines-hidden -Wno-deprecated-declarations)
 
     # Debug-specific options
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -26,8 +26,7 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
         add_compile_options(-w -DNDEBUG)
     endif()
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
-    add_compile_options(-Wall -Wextra -Werror -fvisibility=hidden -fvisibility-inlines-hidden -Wno-deprecated-declarations)
-
+    add_compile_options(-Wall -Wextra -Werror -fvisibility=default -fvisibility-inlines-hidden -Wno-deprecated-declarations)
     # Debug-specific options
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
         add_compile_options(-g3)
@@ -38,7 +37,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
         add_compile_options(-w -DNDEBUG)
     endif()
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-    add_compile_options(-Wall -Wextra -Werror -fvisibility=hidden -fvisibility-inlines-hidden -Wno-deprecated-declarations)
+    add_compile_options(-Wall -Wextra -Werror -fvisibility=default -fvisibility-inlines-hidden -Wno-deprecated-declarations)
 
     # Debug-specific options
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
