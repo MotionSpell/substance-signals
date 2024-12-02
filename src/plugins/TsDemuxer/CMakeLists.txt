@@ -4,7 +4,10 @@ add_library(TsDemuxer SHARED
     )
 
 # Link dependencies if any
-target_link_libraries(TsDemuxer ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(TsDemuxer 
+    ${CMAKE_THREAD_LIBS_INIT}
+    modules
+    )
 
 # Include directories
 target_include_directories(TsDemuxer PUBLIC

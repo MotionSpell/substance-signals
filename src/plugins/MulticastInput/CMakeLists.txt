@@ -25,7 +25,8 @@ add_library(MulticastInput SHARED ${MulticastInput_src})
 
 # Link dependencies
 target_link_libraries(MulticastInput
-    ${CMAKE_THREAD_LIBS_INIT}  
+    ${CMAKE_THREAD_LIBS_INIT}
+    modules  
 )
 
 # Include directories

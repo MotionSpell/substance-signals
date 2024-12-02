@@ -25,7 +25,8 @@ add_library(UdpOutput SHARED ${UdpOutput_src})
 
 # Link dependencies
 target_link_libraries(UdpOutput
-    ${CMAKE_THREAD_LIBS_INIT}  
+    ${CMAKE_THREAD_LIBS_INIT} 
+    modules 
 )
 
 # Include directories

@@ -6,7 +6,10 @@ add_library(TsMuxer SHARED
     )
 
 # Link dependencies if any
-target_link_libraries(TsMuxer ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(TsMuxer 
+    ${CMAKE_THREAD_LIBS_INIT}
+    modules
+    )
 
 # Include directories
 target_include_directories(TsMuxer PUBLIC

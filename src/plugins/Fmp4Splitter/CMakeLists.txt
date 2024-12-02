@@ -4,7 +4,10 @@ add_library(FMP4SPLITTER SHARED
 )
 
 # Link dependencies if any
-target_link_libraries(FMP4SPLITTER ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(FMP4SPLITTER 
+    ${CMAKE_THREAD_LIBS_INIT}
+    modules
+    )
 
 # Include directories
 target_include_directories(FMP4SPLITTER PUBLIC
