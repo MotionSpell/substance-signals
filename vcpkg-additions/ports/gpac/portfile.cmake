@@ -3,9 +3,9 @@ vcpkg_minimum_required(VERSION 2022-10-12) # for ${VERSION}
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO  gpac/gpac 
-    REF c02c9a2fb0815bfd28b7c4c46630601ad7fe291d
-    SHA512 e0ae99684e54f4862edf53238f3bd095f451cb689878c6f9fff0a2aff882fe2eed28a723ac7596a541ff509d96e64582431b9c145c278444e3e5f5caa1b4f612
-    HEAD_REF c02c9a2fb0815bfd28b7c4c46630601ad7fe291d
+    REF d0321826c09e3cd7b8c1ed4019626520d166b8f6
+    SHA512 b3421f51665a16de2b0d2c5b57754fde61a0190b6627f88b47d71e3bd6d4c4c3839ff35c167307924b54f9df0040085124c5503b1b58eaa676e4dd139d216ba1
+    HEAD_REF master
 )
 
 vcpkg_list(SET OPTIONS)
@@ -13,11 +13,11 @@ vcpkg_list(SET OPTIONS)
 if(VCPKG_TARGET_IS_OSX)
 
     
-    list(APPEND OPTIONS
-        --target-os=Darwin
-        --extra-cflags=-I${CURRENT_INSTALLED_DIR}/include
-		--extra-ldflags=-L${CURRENT_INSTALLED_DIR}/lib
-    )
+#    list(APPEND OPTIONS
+#        --target-os=Darwin
+#        --extra-cflags=-I${CURRENT_INSTALLED_DIR}/include
+#		--extra-ldflags=-L${CURRENT_INSTALLED_DIR}/lib
+#    )
 endif()
 
 vcpkg_configure_make(
@@ -26,7 +26,8 @@ vcpkg_configure_make(
     NO_ADDITIONAL_PATHS
     OPTIONS
         ${OPTIONS}
-        --disable-player
+        # --disable-player xxxjack this will disable the compositor, which will break the build.
+        --disable-evg # xxxjack added, because it needs svg, which is disabled. 
         --disable-ssl
         --disable-alsa
         --disable-jack
@@ -59,7 +60,7 @@ vcpkg_configure_make(
         --disable-scene-dump
         --disable-scene-encode
         --disable-scene-stats
-        --disable-scenegraph
+        # --disable-scenegraph  xxxjack this will disable the compositor, which will break the build.
         --disable-seng
         --disable-sman
         --disable-streaming

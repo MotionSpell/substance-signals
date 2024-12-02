@@ -1,8 +1,8 @@
 {
     "name": "gpac",
-    "version": "0.8.0",
+    "version": "2.4.0",
     "description": "multimedia framework oriented towards rich media",
-    "homepage": "https://microsoft.github.io/scenepic/",
+    "homepage": "https://gpac.io/",
     "license": "MIT",
     "dependencies": [
         
@@ -10,6 +10,8 @@
             "name": "vcpkg-cmake-config",
             "host": true
         },
-        "ffmpeg"
+        "ffmpeg",
+        "libtheora",
+        "libvorbis"
     ]
 }
