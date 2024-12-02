@@ -24,7 +24,6 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     # Release-specific options
     if(CMAKE_BUILD_TYPE STREQUAL "Release")
         add_compile_options(-w -DNDEBUG)
-        add_link_options(-s)
     endif()
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
     add_compile_options(-Wall -Wextra -Werror -fvisibility=hidden -fvisibility-inlines-hidden -Wno-deprecated-declarations)
