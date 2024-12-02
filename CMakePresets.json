@@ -58,20 +58,35 @@
 		"name" : "windows-develop",
 		"description" : "Build for development on Windows",
 		"inherits" : "windows"
-	},{
-  		"name" : "mac-production",
-  		"description" : "Build for production on Mac",
-  		"generator" : "Unix Makefiles",
-  		"inherits" : "sysroot",
-  		"cacheVariables" : {
-  			"CMAKE_BUILD_TYPE" : "Release"
-  		},
-		"condition": {
-			"type": "equals",
-			"lhs": "${hostSystemName}",
-			"rhs": "Darwin"
-		}
-  	},
+	},
+	{
+		"name" : "mac-production",
+		"description" : "Build for production on Mac",
+		"generator" : "Unix Makefiles",
+		"inherits" : "sysroot",
+		"cacheVariables" : {
+			"CMAKE_BUILD_TYPE" : "Release"
+		},
+	  "condition": {
+		  "type": "equals",
+		  "lhs": "${hostSystemName}",
+		  "rhs": "Darwin"
+	  }
+	},	
+	{
+		"name" : "mac-vcpkg-production",
+		"description" : "Build for production on Mac",
+		"generator" : "Unix Makefiles",
+		"inherits" : "vcpkg",
+		"cacheVariables" : {
+			"CMAKE_BUILD_TYPE" : "Release"
+		},
+	  "condition": {
+		  "type": "equals",
+		  "lhs": "${hostSystemName}",
+		  "rhs": "Darwin"
+	  }
+	},
   	{
   		"name" : "mac-develop",
   		"description" : "Build for development on Mac",
