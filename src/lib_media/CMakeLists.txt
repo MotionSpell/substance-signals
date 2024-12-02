@@ -97,6 +97,7 @@ add_library(LibavMuxHLSTS SHARED ${EXE_LIBAVMUXHLSTS_SRCS})
 target_include_directories(LibavMuxHLSTS PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/src/
+    ${FFMPEG_INCLUDE_DIRS}
 )
 
 # Link libraries to the target 
@@ -106,8 +107,7 @@ target_link_libraries(LibavMuxHLSTS
     modules 
     pipeline 
     appcommon 
-    FFMPEG::AVCODEC
-    FFMPEG::AVUTIL
+    ${FFMPEG_LIBRARIES}
     )
 
 # Set target properties
@@ -137,14 +137,13 @@ add_library(VideoConvert SHARED ${EXE_VIDEOCONVERTER_SRCS})
 target_include_directories(VideoConvert PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/src/
+    ${FFMPEG_INCLUDE_DIRS}
 )
 
 # Link the necessary libraries
 target_link_libraries(VideoConvert PRIVATE
     media modules pipeline appcommon utils
-    FFMPEG::AVUTIL
-    FFMPEG::AVCODEC
-    FFMPEG::SWSCALE
+    ${FFMPEG_LIBRARIES}
 )
 
 # Set properties for the target
@@ -167,6 +166,7 @@ target_include_directories(AudioConvert
     PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR} 
     ${CMAKE_SOURCE_DIR}/src/
+    ${FFMPEG_INCLUDE_DIRS}
     )
 target_link_libraries(AudioConvert 
     PRIVATE 
@@ -175,9 +175,7 @@ target_link_libraries(AudioConvert
     pipeline 
     appcommon 
     utils 
-    FFMPEG::AVUTIL
-    FFMPEG::AVCODEC
-    FFMPEG::SWRESAMPLE
+    ${FFMPEG_LIBRARIES}
     )
 set_target_properties(AudioConvert PROPERTIES 
     OUTPUT_NAME "AudioConvert" 
@@ -255,6 +253,7 @@ target_include_directories(Encoder
     PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR} 
     ${CMAKE_SOURCE_DIR}/src/
+    ${FFMPEG_INCLUDE_DIRS}
 )
 
 target_link_libraries(Encoder 
@@ -264,8 +263,7 @@ target_link_libraries(Encoder
     pipeline 
     appcommon 
     utils 
-    FFMPEG::AVUTIL
-    FFMPEG::AVCODEC
+    ${FFMPEG_LIBRARIES}
     )
 set_target_properties(Encoder PROPERTIES 
     OUTPUT_NAME "Encoder" 
@@ -288,6 +286,7 @@ target_include_directories(Decoder
     PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR} 
     ${CMAKE_SOURCE_DIR}/src/
+    ${FFMPEG_INCLUDE_DIRS}
     )
 target_link_libraries(Decoder 
     PRIVATE 
@@ -296,8 +295,7 @@ target_link_libraries(Decoder
     pipeline 
     appcommon 
     utils 
-    FFMPEG::AVUTIL
-    FFMPEG::AVCODEC
+    F${FFMPEG_LIBRARIES}
     )
 set_target_properties(Decoder PROPERTIES 
     OUTPUT_NAME "Decoder" 
@@ -320,6 +318,7 @@ target_include_directories(LibavDemux
     PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR} 
     ${CMAKE_SOURCE_DIR}/src/
+    ${FFMPEG_INCLUDE_DIRS}
     )
 target_link_libraries(LibavDemux 
     PRIVATE 
@@ -328,10 +327,7 @@ target_link_libraries(LibavDemux
     pipeline 
     appcommon 
     utils 
-    FFMPEG::AVUTIL
-    FFMPEG::AVFORMAT
-    FFMPEG::AVCODEC
-    FFMPEG::AVDEVICE
+    ${FFMPEG_LIBRARIES}
     )
 set_target_properties(LibavDemux 
     PROPERTIES 
@@ -354,6 +350,7 @@ target_include_directories(LibavMux
     PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR} 
     ${CMAKE_SOURCE_DIR}/src/
+    ${FFMPEG_INCLUDE_DIRS}
     )
 target_link_libraries(LibavMux 
     PRIVATE 
@@ -362,9 +359,7 @@ target_link_libraries(LibavMux
     pipeline 
     appcommon 
     utils 
-    FFMPEG::AVUTIL
-    FFMPEG::AVFORMAT
-    FFMPEG::AVCODEC
+    ${FFMPEG_LIBRARIES}
     )
 set_target_properties(LibavMux PROPERTIES 
     OUTPUT_NAME "LibavMux" 
@@ -385,6 +380,7 @@ target_include_directories(LibavFilter
     PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR} 
     ${CMAKE_SOURCE_DIR}/src/
+    ${FFMPEG_INCLUDE_DIRS}
     )
 target_link_libraries(LibavFilter 
     PRIVATE 
@@ -393,9 +389,7 @@ target_link_libraries(LibavFilter
     pipeline 
     appcommon 
     utils 
-    FFMPEG::AVUTIL
-    FFMPEG::AVCODEC
-    FFMPEG::AVFILTER
+    ${FFMPEG_LIBRARIES}
 )
 set_target_properties(LibavFilter PROPERTIES 
     OUTPUT_NAME "LibavFilter" 
@@ -416,6 +410,7 @@ target_include_directories(GPACMuxMP4
     PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR} 
     ${CMAKE_SOURCE_DIR}/src/
+    ${FFMPEG_INCLUDE_DIRS}
     )
 target_link_libraries(GPACMuxMP4 
     PRIVATE 
@@ -425,7 +420,7 @@ target_link_libraries(GPACMuxMP4
     appcommon 
     utils 
     gpac::gpac
-    FFMPEG::AVUTIL
+    ${FFMPEG_LIBRARIES}
     )
 set_target_properties(GPACMuxMP4 PROPERTIES 
     OUTPUT_NAME "GPACMuxMP4" 

@@ -39,12 +39,13 @@ target_link_libraries(unittests
     pipeline
     utils
     curl
-    FFMPEG::AVCODEC
+    ${FFMPEG_LIBRARIES}
 )
 
 # Include directories for unit tests 
 target_include_directories(unittests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
+    ${FFMPEG_INCLUDE_DIRS}
 )
 
 # Set the output directory for the unittests executable inside the 'bin' folder
