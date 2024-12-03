@@ -3,6 +3,8 @@
   "version": "0.1",
   "dependencies": [
     "ffmpeg",
-    "gpac"
+    "gpac",
+    "sdl2",
+    "libjpeg-turbo"
   ]
 }
