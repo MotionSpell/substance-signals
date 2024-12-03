@@ -9,7 +9,11 @@ vcpkg_from_github(
 )
 
 if (VCPKG_TARGET_IS_WINDOWS)
-    message(ERROR "Cannot build for ${TARGET_TRIPLET}")
+    vcpkg_install_msbuild(
+        SOURCE_PATH "${SOURCE_PATH}"
+        PROJECT_SUBPATH "build\\msvc14\\gpac.sln"
+
+    )
 else()
     vcpkg_list(SET OPTIONS)
 
