@@ -9,10 +9,22 @@ vcpkg_from_github(
 )
 
 if (VCPKG_TARGET_IS_WINDOWS)
+    vcpkg_list(SET EXTRA_INCLUDE_DIRS)
+    list(APPEND EXTRA_INCLUDE_DIRS "${CURRENT_INSTALLED_DIR}/include")
+    vcpkg_list(SET EXTRA_LIB_DIRS)
+    list(APPEND EXTRA_LIB_DIRS "${CURRENT_INSTALLED_DIR}/lib")
+    vcpkg_list(SET OPTIONS)
+    # Enable this line to get the msbuild configuration variable dump in the vcpkg output file
+    #list(APPEND OPTIONS /v:diag)
+    list(APPEND OPTIONS
+        /p:IncludePath=${EXTRA_INCLUDE_DIRS}
+        /p:AdditionalLibraryDirectories=${EXTRA_LIB_DIRS}
+    )
     vcpkg_install_msbuild(
         SOURCE_PATH "${SOURCE_PATH}"
-        PROJECT_SUBPATH "build\\msvc14\\gpac.sln"
-
+        PROJECT_SUBPATH "build/msvc14/gpac.sln"
+        OPTIONS
+            ${OPTIONS}
     )
 else()
     vcpkg_list(SET OPTIONS)
