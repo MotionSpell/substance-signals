@@ -5,6 +5,8 @@
     "ffmpeg",
     "gpac",
     "sdl2",
-    "libjpeg-turbo"
+    "libjpeg-turbo",
+    "freetype",
+    "nghttp2"
   ]
 }
