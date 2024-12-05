@@ -295,7 +295,7 @@ target_link_libraries(Decoder
     pipeline 
     appcommon 
     utils 
-    F${FFMPEG_LIBRARIES}
+    ${FFMPEG_LIBRARIES}
     )
 set_target_properties(Decoder PROPERTIES 
     OUTPUT_NAME "Decoder" 
