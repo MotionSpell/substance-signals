@@ -7,16 +7,16 @@
   },
   "configurePresets": [
 	{
-		"name" : "no-vcpkg-no-sysroot",
+		"name" : "preinstalled",
 		"displayName" : "Build without vcpkg and without MotionSpell sysroot",
-		"description" : "Build without vcpkg and without MotionSpell sysroot",
+		"description" : "Build with app required dependencies pre-installed",
 		"binaryDir": "${sourceDir}/build",
 		"hidden": true
 	},
 	{
 		"name" : "sysroot",
 		"displayName" : "Build with MotionSpell sysroot",
-		"description" : "Build with MotionSpell sysroot",
+		"description" : "Build with MotionSpell sysroot/zenbuild for required dependencies",
 		"binaryDir": "${sourceDir}/build",
 		"cacheVariables": {
 			"SYSROOT_PATH": "${sourceDir}/../sysroot"
@@ -26,18 +26,19 @@
   	{
   		"name" : "vcpkg",
   		"displayName" : "Build with vcpkg",
+		"description" : "Build with vcpkg to install required dependencies",
   		"binaryDir": "${sourceDir}/build",
       	"cacheVariables": {
         	"CMAKE_TOOLCHAIN_FILE": "${sourceDir}/../vcpkg/scripts/buildsystems/vcpkg.cmake"
       	},
   		"hidden": true
-  	},
-	
+  	},	
   	{
   		"name" : "windows",
-  		"description" : "Build for production on Windows",
+  		"description" : "Build for Windows",
   		"generator" : "Visual Studio 17 2022",
   		"inherits" : "vcpkg",
+		"hidden" : true,
 		"cacheVariables": {
         	"VCPKG_TARGET_TRIPLET": "x64-windows"
   		},
@@ -46,89 +47,114 @@
 			"type": "equals",
 			"lhs": "${hostSystemName}",
 			"rhs": "Windows"
-		},
-		"hidden" : true
+		}
   	},
+	  {
+		"name" : "mac",
+		"description" : "Build for MacOS",
+		"generator" : "Unix Makefiles",
+		"inherits" : "vcpkg",
+		"hidden" : true,
+		"cacheVariables": {
+        	"VCPKG_TARGET_TRIPLET": "arm64-osx-dynamic"
+  		},
+	  	"condition": {
+		  "type": "equals",
+		  "lhs": "${hostSystemName}",
+		  "rhs": "Darwin"
+	  	}
+	},
+	{
+		"name" : "linux",
+		"description" : "Build for Linux",
+		"generator" : "Unix Makefiles",
+		"inherits" : "vcpkg",
+		"hidden" : true,
+		"cacheVariables": {
+        	"VCPKG_TARGET_TRIPLET": "x64-linux-dynamic"
+  		},
+	  	"condition": {
+		  "type": "equals",
+		  "lhs": "${hostSystemName}",
+		  "rhs": "Linux"
+	  	}
+	},	
 	{
 		"name" : "windows-production",
 		"description" : "Build for production on Windows",
-		"inherits" : "windows"
+		"inherits" : "windows",
+		"cacheVariables" : {
+			"CMAKE_BUILD_TYPE" : "Release"
+		}
 	},
 	{
 		"name" : "windows-develop",
 		"description" : "Build for development on Windows",
-		"inherits" : "windows"
+		"inherits" : "windows",
+		"cacheVariables" : {
+			"CMAKE_BUILD_TYPE" : "RelWithDebInfo"
+		}
 	},
 	{
 		"name" : "mac-production",
 		"description" : "Build for production on Mac",
+		"inherits" : "mac",
+		"cacheVariables" : {
+			"CMAKE_BUILD_TYPE" : "Release"
+		}
+	},
+  	{
+  		"name" : "mac-develop",
+  		"description" : "Build for development on Mac",
+  		"inherits" : "mac",
+  		"cacheVariables" : {
+  			"CMAKE_BUILD_TYPE" : "RelWithDebInfo"
+  		}
+  	},
+  	{
+  		"name" : "linux-production",
+  		"description" : "Build for production on Linux",
+  		"inherits" : "linux",
+  		"cacheVariables" : {
+  			"CMAKE_BUILD_TYPE" : "Release"
+  		}
+  	},
+  	{
+  		"name" : "linux-develop",
+  		"description" : "Build for development on Linux",
+  		"inherits" : "linux",
+  		"cacheVariables" : {
+  			"CMAKE_BUILD_TYPE" : "RelWithDebInfo"
+  		}
+  	},
+	{
+		"name" : "linux-production-sysroot",
+		"description" : "Build for production on Linux using sysroot/zenbuild",
 		"generator" : "Unix Makefiles",
 		"inherits" : "sysroot",
 		"cacheVariables" : {
 			"CMAKE_BUILD_TYPE" : "Release"
 		},
-	  "condition": {
+		"condition": {
 		  "type": "equals",
 		  "lhs": "${hostSystemName}",
-		  "rhs": "Darwin"
-	  }
-	},	
-	{
-		"name" : "mac-vcpkg-production",
-		"description" : "Build for production on Mac",
-		"generator" : "Unix Makefiles",
-		"inherits" : "vcpkg",
-		"cacheVariables" : {
-			"CMAKE_BUILD_TYPE" : "Release"
-		},
-	  "condition": {
-		  "type": "equals",
-		  "lhs": "${hostSystemName}",
-		  "rhs": "Darwin"
-	  }
+		  "rhs": "Linux"
+		}
 	},
-  	{
-  		"name" : "mac-develop",
-  		"description" : "Build for development on Mac",
-  		"generator" : "Unix Makefiles",
-  		"inherits" : "sysroot",
-  		"cacheVariables" : {
-  			"CMAKE_BUILD_TYPE" : "Debug"
-  		},
+	{
+		"name" : "linux-develop-sysroot",
+		"description" : "Build for development on Linux using sysroot/zenbuild",
+		"generator" : "Unix Makefiles",
+		"inherits" : "sysroot",
+		"cacheVariables" : {
+			"CMAKE_BUILD_TYPE" : "RelWithDebInfo"
+		},
 		"condition": {
-			"type": "equals",
-			"lhs": "${hostSystemName}",
-			"rhs": "Darwin"
+		  "type": "equals",
+		  "lhs": "${hostSystemName}",
+		  "rhs": "Linux"
 		}
-  	},
-  	{
-  		"name" : "linux-production",
-  		"description" : "Build for production on Linux",
-  		"generator" : "Unix Makefiles",
-  		"inherits" : "sysroot",
-  		"cacheVariables" : {
-  			"CMAKE_BUILD_TYPE" : "Release"
-  		},
-		"condition": {
-			"type": "equals",
-			"lhs": "${hostSystemName}",
-			"rhs": "Linux"
-		}
-  	},
-  	{
-  		"name" : "linux-develop",
-  		"description" : "Build for development on Linux",
-  		"generator" : "Unix Makefiles",
-  		"inherits" : "sysroot",
-  		"cacheVariables" : {
-  			"CMAKE_BUILD_TYPE" : "RelWithDebInfo"
-  		},
-		"condition": {
-			"type": "equals",
-			"lhs": "${hostSystemName}",
-			"rhs": "Linux"
-		}
-  	}  	
+	}
   ],
   "buildPresets" : [
   	{
