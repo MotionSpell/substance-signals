@@ -12,6 +12,10 @@
         },
         "ffmpeg",
         "libtheora",
-        "libvorbis"
-    ]
+        "libvorbis",
+        "sdl2",
+        "libjpeg-turbo",
+        "freetype",
+        "nghttp2"
+        ]
 }

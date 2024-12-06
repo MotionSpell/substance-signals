@@ -8,7 +8,7 @@ vcpkg_from_github(
     HEAD_REF master
 )
 
-if (VCPKG_TARGET_IS_WINDOWS)
+if (VCPKG_TARGET_IS_WINDOWS AND NOT VCPKG_TARGET_IS_MINGW)
     vcpkg_list(SET EXTRA_INCLUDE_DIRS)
     list(APPEND EXTRA_INCLUDE_DIRS "${CURRENT_INSTALLED_DIR}/include")
     vcpkg_list(SET EXTRA_LIB_DIRS)
@@ -38,6 +38,7 @@ else()
     #		--extra-ldflags=-L${CURRENT_INSTALLED_DIR}/lib
     #    )
     elseif(VCPKG_TARGET_IS_LINUX)
+    elseif(VCPKG_TARGET_IS_MINGW)
     else()
         message(ERROR "Unknown target ${TARGET_TRIPLET}")
     endif()
