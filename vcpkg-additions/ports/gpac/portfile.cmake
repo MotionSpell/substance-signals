@@ -55,6 +55,7 @@ else()
             --disable-jack
             --disable-oss-audio
             --disable-pulseaudio
+            --use-ffmpeg=no
             --use-png=no
             --use-jpeg=no
             --disable-3d
