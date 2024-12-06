@@ -15,6 +15,8 @@ build/
 [Bb]in/
 [Oo]bj/
 tmp/
+# This directory shows up so often during testing that"ll just ignore it.
+vcpkg_installed/
 
 # Enable "build/" folder in the NuGet Packages folder since NuGet packages use it for MSBuild targets
 !packages/*/build/
