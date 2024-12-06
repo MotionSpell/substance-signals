@@ -48,8 +48,7 @@ else()
         DETERMINE_BUILD_TRIPLET
         NO_ADDITIONAL_PATHS
         OPTIONS
-            ${OPTIONS}
-            # --disable-player xxxjack this will disable the compositor, which will break the build.
+            --disable-player
             --disable-ssl
             --disable-alsa
             --disable-jack
@@ -83,11 +82,11 @@ else()
             --disable-scene-dump
             --disable-scene-encode
             --disable-scene-stats
-            # --disable-scenegraph  xxxjack this will disable the compositor, which will break the build.
+            --disable-scenegraph
             --disable-seng
             --disable-sman
             --disable-streaming
-            # --disable-svg xxxjack this will disable evg, which will disable the compositor, which will break the build.
+            --disable-svg
             --disable-swf
             --disable-vobsub
             --disable-vrml
