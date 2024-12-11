@@ -6,6 +6,8 @@ vcpkg_from_github(
     REF c02c9a2fb0815bfd28b7c4c46630601ad7fe291d
     SHA512 e0ae99684e54f4862edf53238f3bd095f451cb689878c6f9fff0a2aff882fe2eed28a723ac7596a541ff509d96e64582431b9c145c278444e3e5f5caa1b4f612
     HEAD_REF master
+    PATCHES
+        install-header-and-pc.patch
 )
 
 if (VCPKG_TARGET_IS_WINDOWS AND NOT VCPKG_TARGET_IS_MINGW)
@@ -42,6 +44,7 @@ else()
     else()
         message(ERROR "Unknown target ${TARGET_TRIPLET}")
     endif()
+
 
     vcpkg_configure_make(
         SOURCE_PATH "${SOURCE_PATH}"
