@@ -21,7 +21,7 @@ extern "C" {
 #include <gpac/tools.h>
 #include <gpac/isomedia.h>
 #include <gpac/media_tools.h>
-//#include <gpac/internal/mpd.h>
+#include <gpac/internal/mpd.h>
 }
 
 //#define GPAC_MEM_TRACKER
