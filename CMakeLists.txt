@@ -110,13 +110,22 @@ find_package(libjpeg-turbo REQUIRED)
 find_package(FFmpeg REQUIRED COMPONENTS AVUTIL AVFILTER AVCODEC AVFORMAT AVDEVICE SWSCALE SWRESAMPLE)
 find_package(GPAC)
 if (NOT GPAC_FOUND)
-    # Find it using pkgconfig, for now
+    # Find it using pkgconfig, for now.
+    # This is a huge hack, especially the way we get the windows IMPORTED_LOCATION
     pkg_check_modules(GPAC REQUIRED gpac)
     add_library(gpac::gpac SHARED IMPORTED)
-    set_target_properties(gpac::gpac PROPERTIES
-        IMPORTED_LOCATION "${GPAC_LIBDIR}/${CMAKE_SHARED_LIBRARY_PREFIX}gpac${CMAKE_SHARED_LIBRARY_SUFFIX}"
-        INTERFACE_INCLUDE_DIRECTORIES "${GPAC_INCLUDEDIR}"
-    )
+    if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+        set_target_properties(gpac::gpac PROPERTIES
+            IMPORTED_IMPLIB "${GPAC_LIBDIR}/libgpac.dll.a"
+            IMPORTED_LOCATION "${GPAC_LIBDIR}/../bin/gpac.dll"
+            INTERFACE_INCLUDE_DIRECTORIES "${GPAC_INCLUDEDIR}"
+        )
+    else()
+        set_target_properties(gpac::gpac PROPERTIES
+            IMPORTED_LOCATION "${GPAC_LIBDIR}/${CMAKE_SHARED_LIBRARY_PREFIX}gpac${CMAKE_SHARED_LIBRARY_SUFFIX}"
+            INTERFACE_INCLUDE_DIRECTORIES "${GPAC_INCLUDEDIR}"
+        )
+    endif()
 endif()
 
 
