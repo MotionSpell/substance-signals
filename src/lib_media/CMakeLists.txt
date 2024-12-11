@@ -34,7 +34,7 @@ target_include_directories(media PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/../  
 )
-target_link_libraries(media PRIVATE modules pipeline appcommon utils)
+target_link_libraries(media PRIVATE modules pipeline appcommon utils CURL::libcurl)
 
 
 file(GLOB LIB_MODULES_SRCS 

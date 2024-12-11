@@ -62,10 +62,14 @@ file(MAKE_DIRECTORY ${BIN_DIR})
 
 # Generate signals_version.h using version.sh
 set(SIGNALS_VERSION_HEADER "${BIN_DIR}/signals_version.h")
-execute_process(
-    COMMAND "${SCRIPTS_DIR}/version.sh"
-    OUTPUT_FILE "${SIGNALS_VERSION_HEADER}"
-)
+file(WRITE "${SIGNALS_VERSION_HEADER}" "\"unknown-unknown-unknown\"")
+if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+    execute_process(
+        COMMAND "${SCRIPTS_DIR}/version.sh"
+        OUTPUT_FILE "${SIGNALS_VERSION_HEADER}"
+    )
+endif()
+
 #file(TOUCH ${SIGNALS_VERSION_HEADER})
 #add_custom_command(
 #    OUTPUT ${SIGNALS_VERSION_HEADER}
@@ -107,6 +111,7 @@ endif()
 find_package(PkgConfig REQUIRED)
 find_package(SDL2 REQUIRED)
 find_package(libjpeg-turbo REQUIRED)
+find_package(CURL REQUIRED)
 find_package(FFmpeg REQUIRED COMPONENTS AVUTIL AVFILTER AVCODEC AVFORMAT AVDEVICE SWSCALE SWRESAMPLE)
 find_package(GPAC)
 if (NOT GPAC_FOUND)
