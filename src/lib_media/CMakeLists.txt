@@ -78,6 +78,11 @@ set_target_properties(AVCC2AnnexBConverter PROPERTIES
 )
 
 
+install(TARGETS AVCC2AnnexBConverter
+	EXPORT AVCC2AnnexBConverter
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
 
 # Define source files for the LibavMuxHLSTS
 set(EXE_LIBAVMUXHLSTS_SRCS
@@ -118,6 +123,10 @@ set_target_properties(LibavMuxHLSTS PROPERTIES
     PREFIX ""
 )
 
+install(TARGETS LibavMuxHLSTS
+	EXPORT LibavMuxHLSTS
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
 
 # Define source files for the VideoConvert target
 set(EXE_VIDEOCONVERTER_SRCS
@@ -154,6 +163,10 @@ set_target_properties(VideoConvert PROPERTIES
     PREFIX ""  # 
 )
 
+install(TARGETS VideoConvert
+	EXPORT VideoConvert
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
 
 # AudioConvert target
 set(EXE_AUDIOCONVERTER_SRCS
@@ -184,6 +197,10 @@ set_target_properties(AudioConvert PROPERTIES
     PREFIX ""
     )
 
+install(TARGETS AudioConvert
+	EXPORT AudioConvert
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
 
 # JPEGTurboDecode target
 set(EXE_JPEGTURBODECODE_SRCS
@@ -212,7 +229,10 @@ set_target_properties(JPEGTurboDecode PROPERTIES
     PREFIX ""
     )
 
-
+install(TARGETS JPEGTurboDecode
+	EXPORT JPEGTurboDecode
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
 
 # JPEGTurboEncode target
 set(EXE_JPEGTURBOENCODE_SRCS
@@ -237,6 +257,12 @@ set_target_properties(JPEGTurboEncode PROPERTIES
     SUFFIX ".smd" 
     PREFIX ""
     )
+
+
+install(TARGETS JPEGTurboEncode
+	EXPORT JPEGTurboEncode
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
 
 
 
@@ -272,7 +298,10 @@ set_target_properties(Encoder PROPERTIES
     PREFIX ""
     )
 
-
+install(TARGETS Encoder
+	EXPORT Encoder
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
 
 # Decoder target
 set(EXE_DECODER_SRCS
@@ -304,6 +333,10 @@ set_target_properties(Decoder PROPERTIES
     PREFIX ""
     )
 
+install(TARGETS Decoder
+	EXPORT Decoder
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
 
 # LibavDemux target
 set(EXE_LIBAVDEMUX_SRCS
@@ -337,6 +370,10 @@ set_target_properties(LibavDemux
     PREFIX ""
     )
 
+install(TARGETS LibavDemux
+	EXPORT LibavDemux
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
 
 # LibavMux target
 set(EXE_LIBAVMUX_SRCS
@@ -368,6 +405,12 @@ set_target_properties(LibavMux PROPERTIES
     PREFIX ""
     )
 
+
+install(TARGETS LibavMux
+	EXPORT LibavMux
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
 # LibavFilter target
 set(EXE_LIBAVFILTER_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/transform/libavfilter.cpp
@@ -398,7 +441,10 @@ set_target_properties(LibavFilter PROPERTIES
     PREFIX ""
     )
 
-
+install(TARGETS LibavFilter
+	EXPORT LibavFilter
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
 
 # GPACMuxMP4 target
 set(EXE_GPACMUXMP4_SRCS
@@ -429,6 +475,10 @@ set_target_properties(GPACMuxMP4 PROPERTIES
     PREFIX ""
     )
 
+install(TARGETS GPACMuxMP4
+	EXPORT GPACMuxMP4
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
 
 # GPACMuxMP4MSS target
 set(EXE_GPACMUXMP4MSS_SRCS
@@ -458,6 +508,12 @@ set_target_properties(GPACMuxMP4MSS PROPERTIES
     PREFIX ""
     )
 
+install(TARGETS GPACMuxMP4MSS
+	EXPORT GPACMuxMP4MSS
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+
 # GPACDemuxMP4Simple target
 set(EXE_GPACDEMUXMP4SIMPLE_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/demux/gpac_demux_mp4_simple.cpp
@@ -484,6 +540,12 @@ set_target_properties(GPACDemuxMP4Simple PROPERTIES
     SUFFIX ".smd" 
     PREFIX ""
     )
+
+
+install(TARGETS GPACDemuxMP4Simple
+	EXPORT GPACDemuxMP4Simple
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
 
 # GPACDemuxMP4Full target
 set(EXE_GPACDEMUXMP4FULL_SRCS
@@ -513,6 +575,11 @@ set_target_properties(GPACDemuxMP4Full PROPERTIES
     PREFIX ""
     )
 
+install(TARGETS GPACDemuxMP4Full
+	EXPORT GPACDemuxMP4Full
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
 
 # FileSystemSink target
 set(EXE_FILESYSTEMSINK_SRCS
@@ -540,6 +607,11 @@ set_target_properties(FileSystemSink PROPERTIES
     PREFIX ""
     )
 
+install(TARGETS FileSystemSink
+	EXPORT FileSystemSink
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
 # LogoOverlay target
 set(EXE_LOGOOVERLAY_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/transform/logo_overlay.cpp
@@ -559,6 +631,7 @@ target_link_libraries(LogoOverlay
     appcommon 
     utils
     )
+    
 set_target_properties(LogoOverlay PROPERTIES 
     OUTPUT_NAME "LogoOverlay" 
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin 
@@ -566,3 +639,8 @@ set_target_properties(LogoOverlay PROPERTIES
     PREFIX ""
     )
 
+
+install(TARGETS LogoOverlay
+	EXPORT LogoOverlay
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)

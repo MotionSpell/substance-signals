@@ -38,11 +38,11 @@
 		"description" : "Build for Windows",
 		"generator" : "Visual Studio 17 2022",
 		"inherits" : "vcpkg",
+		"installDir": "${sourceDir}/../installed",
 	  "hidden" : true,
 	  "cacheVariables": {
 		  "VCPKG_TARGET_TRIPLET": "x64-windows"
 		},
-		"installDir": "${sourceDir}/../installed",
 	  "condition": {
 		  "type": "equals",
 		  "lhs": "${hostSystemName}",
@@ -71,6 +71,7 @@
 		"generator" : "Unix Makefiles",
 		"inherits" : "vcpkg",
 		"hidden" : true,
+		"installDir": "${sourceDir}/../installed",
 		"cacheVariables": {
         	"VCPKG_TARGET_TRIPLET": "arm64-osx-dynamic"
   		},
@@ -86,6 +87,7 @@
 		"generator" : "Unix Makefiles",
 		"inherits" : "vcpkg",
 		"hidden" : true,
+		"installDir": "${sourceDir}/../installed",
 		"cacheVariables": {
         	"VCPKG_TARGET_TRIPLET": "x64-osx-dynamic"
   		},
@@ -101,6 +103,7 @@
 		"generator" : "Unix Makefiles",
 		"inherits" : "vcpkg",
 		"hidden" : true,
+		"installDir": "${sourceDir}/../installed",
 		"cacheVariables": {
         	"VCPKG_TARGET_TRIPLET": "x64-linux-dynamic"
   		},
