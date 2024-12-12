@@ -81,6 +81,21 @@
 	  	}
 	},
 	{
+		"name" : "intelmac",
+		"description" : "Build for MacOS",
+		"generator" : "Unix Makefiles",
+		"inherits" : "vcpkg",
+		"hidden" : true,
+		"cacheVariables": {
+        	"VCPKG_TARGET_TRIPLET": "x64-osx-dynamic"
+  		},
+	  	"condition": {
+		  "type": "equals",
+		  "lhs": "${hostSystemName}",
+		  "rhs": "Darwin"
+	  	}
+	},
+	{
 		"name" : "linux",
 		"description" : "Build for Linux",
 		"generator" : "Unix Makefiles",
@@ -139,6 +154,21 @@
   		"name" : "mac-develop",
   		"description" : "Build for development on Mac",
   		"inherits" : "mac",
+  		"cacheVariables" : {
+  			"CMAKE_BUILD_TYPE" : "RelWithDebInfo"
+  		}
+  	},{
+		"name" : "intelmac-production",
+		"description" : "Build for production on Mac",
+		"inherits" : "intelmac",
+		"cacheVariables" : {
+			"CMAKE_BUILD_TYPE" : "Release"
+		}
+	},
+  	{
+  		"name" : "intelmac-develop",
+  		"description" : "Build for development on Mac",
+  		"inherits" : "intelmac",
   		"cacheVariables" : {
   			"CMAKE_BUILD_TYPE" : "RelWithDebInfo"
   		}
