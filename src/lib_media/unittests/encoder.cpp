@@ -24,27 +24,26 @@ auto createYuvPic(Resolution res) {
 	DataPicture::setup(r.get(), res, res, PixelFormat::I420);
 	return r;
 }
-// sohaib: failing due to libx264 not found
-// unittest("encoder: video simple") {
-// 	auto picture = createYuvPic(VIDEO_RESOLUTION);
+unittest("encoder: video simple") {
+	auto picture = createYuvPic(VIDEO_RESOLUTION);
 
-// 	int numEncodedFrames = 0;
-// 	auto onFrame = [&](Data /*data*/) {
-// 		numEncodedFrames++;
-// 	};
+	int numEncodedFrames = 0;
+	auto onFrame = [&](Data /*data*/) {
+		numEncodedFrames++;
+	};
 
-// 	EncoderConfig cfg { EncoderConfig::Video };
-// 	auto encode = loadModule("Encoder", &NullHost, &cfg);
-// 	ConnectOutput(encode->getOutput(0), onFrame);
-// 	for (int i = 0; i < 37; ++i) {
-// 		picture->setMediaTime(i); // avoid warning about non-monotonic pts
-// 		encode->getInput(0)->push(picture);
-// 		encode->process();
-// 	}
-// 	encode->flush();
+	EncoderConfig cfg { EncoderConfig::Video };
+	auto encode = loadModule("Encoder", &NullHost, &cfg);
+	ConnectOutput(encode->getOutput(0), onFrame);
+	for (int i = 0; i < 37; ++i) {
+		picture->setMediaTime(i); // avoid warning about non-monotonic pts
+		encode->getInput(0)->push(picture);
+		encode->process();
+	}
+	encode->flush();
 
-// 	ASSERT_EQUALS(37, numEncodedFrames);
-// }
+	ASSERT_EQUALS(37, numEncodedFrames);
+}
 
 static
 shared_ptr<DataBase> createPcm(int samples) {
@@ -86,29 +85,28 @@ unittest("encoder: audio timestamp passthrough (modulo priming)") {
 	vector<int64_t> expected = { 10000 - primingDuration, 10000, 20000, 30000, 777000 };
 	ASSERT_EQUALS(expected, times);
 }
-// sohaib: failing due to libx264 not found
-// unittest("encoder: video timestamp passthrough") {
-// 	vector<int64_t> times;
-// 	auto onFrame = [&](Data data) {
-// 		times.push_back(data->get<PresentationTime>().time);
-// 	};
+unittest("encoder: video timestamp passthrough") {
+	vector<int64_t> times;
+	auto onFrame = [&](Data data) {
+		times.push_back(data->get<PresentationTime>().time);
+	};
 
-// 	vector<int64_t> inputTimes = {0, 1, 2, 3, 4, 20, 21, 22, 10, 11, 12};
+	vector<int64_t> inputTimes = {0, 1, 2, 3, 4, 20, 21, 22, 10, 11, 12};
 
-// 	EncoderConfig cfg { EncoderConfig::Video };
-// 	auto encode = loadModule("Encoder", &NullHost, &cfg);
-// 	ConnectOutput(encode->getOutput(0), onFrame);
-// 	for(auto time : inputTimes) {
-// 		auto picture = createYuvPic(VIDEO_RESOLUTION);
-// 		picture->setMediaTime(time);
-// 		encode->getInput(0)->push(picture);
-// 		encode->process();
-// 	}
-// 	encode->flush();
+	EncoderConfig cfg { EncoderConfig::Video };
+	auto encode = loadModule("Encoder", &NullHost, &cfg);
+	ConnectOutput(encode->getOutput(0), onFrame);
+	for(auto time : inputTimes) {
+		auto picture = createYuvPic(VIDEO_RESOLUTION);
+		picture->setMediaTime(time);
+		encode->getInput(0)->push(picture);
+		encode->process();
+	}
+	encode->flush();
 
-// 	vector<int64_t> expected = {0, 1, 2, 3, 4, 20, 21, 22, 10, 11, 12};
-// 	ASSERT_EQUALS(expected, times);
-// }
+	vector<int64_t> expected = {0, 1, 2, 3, 4, 20, 21, 22, 10, 11, 12};
+	ASSERT_EQUALS(expected, times);
+}
 
 void RAPTest(const Fraction fps, const vector<uint64_t> &times, const vector<bool> &RAPs) {
 	EncoderConfig p { EncoderConfig::Video };
@@ -133,29 +131,28 @@ void RAPTest(const Fraction fps, const vector<uint64_t> &times, const vector<boo
 	encode->flush();
 	ASSERT(i == RAPs.size());
 }
-// sohaib: failing due to libx264 not found
-// unittest("encoder: RAP placement (25/1 fps)") {
-// 	const vector<uint64_t> times = { 0, IClock::Rate / 2, IClock::Rate, IClock::Rate * 3 / 2, IClock::Rate * 2 };
-// 	const vector<bool> RAPs = { true, false, true, false, true };
-// 	RAPTest(Fraction(25, 1), times, RAPs);
-// }
+unittest("encoder: RAP placement (25/1 fps)") {
+	const vector<uint64_t> times = { 0, IClock::Rate / 2, IClock::Rate, IClock::Rate * 3 / 2, IClock::Rate * 2 };
+	const vector<bool> RAPs = { true, false, true, false, true };
+	RAPTest(Fraction(25, 1), times, RAPs);
+}
 
-// unittest("encoder: RAP placement (30000/1001 fps)") {
-// 	const vector<uint64_t> times = { 0, IClock::Rate/2, IClock::Rate, IClock::Rate*3/2, IClock::Rate*2 };
-// 	const vector<bool> RAPs = { true, false, true, false, true };
-// 	RAPTest(Fraction(30000, 1001), times, RAPs);
-// }
+unittest("encoder: RAP placement (30000/1001 fps)") {
+	const vector<uint64_t> times = { 0, IClock::Rate/2, IClock::Rate, IClock::Rate*3/2, IClock::Rate*2 };
+	const vector<bool> RAPs = { true, false, true, false, true };
+	RAPTest(Fraction(30000, 1001), times, RAPs);
+}
 
-// unittest("encoder: RAP placement (noisy)") {
-// 	const auto &ms = std::bind(timescaleToClock<uint64_t>, std::placeholders::_1, 1000);
-// 	const vector<uint64_t> times = { 0, ms(330), ms(660), ms(990), ms(1330), ms(1660) };
-// 	const vector<bool> RAPs = { true, false, false, true, false, false };
-// 	RAPTest(Fraction(3, 1), times, RAPs);
-// }
+unittest("encoder: RAP placement (noisy)") {
+	const auto &ms = std::bind(timescaleToClock<uint64_t>, std::placeholders::_1, 1000);
+	const vector<uint64_t> times = { 0, ms(330), ms(660), ms(990), ms(1330), ms(1660) };
+	const vector<bool> RAPs = { true, false, false, true, false, false };
+	RAPTest(Fraction(3, 1), times, RAPs);
+}
 
-// unittest("encoder: RAP placement (incorrect timings)") {
-// 	const vector<uint64_t> times = { 0, 0, IClock::Rate };
-// 	const vector<bool> RAPs = { true, false, true };
-// 	RAPTest(Fraction(25, 1), times, RAPs);
-// }
+unittest("encoder: RAP placement (incorrect timings)") {
+	const vector<uint64_t> times = { 0, 0, IClock::Rate };
+	const vector<bool> RAPs = { true, false, true };
+	RAPTest(Fraction(25, 1), times, RAPs);
+}
 
