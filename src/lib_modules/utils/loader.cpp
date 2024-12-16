@@ -1,10 +1,10 @@
 #include <memory>
 #include <vector>
 #include <fstream>
-#include "os.hpp"
-#include "tools.hpp"
-#include "core/module.hpp"
-#include "utils/factory.hpp"
+#include "lib_utils/os.hpp"
+#include "lib_utils/tools.hpp"
+#include "lib_modules/core/module.hpp"
+#include "lib_modules/utils/factory.hpp"
 
 using namespace std;
 
