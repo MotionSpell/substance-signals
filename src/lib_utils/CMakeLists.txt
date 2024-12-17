@@ -25,12 +25,18 @@ else()
     message(ERROR "Unknown CMAKE_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}")
 endif()
 
-include_directories(${BIN_DIR}
-${CMAKE_SOURCE_DIR}/src 
+include_directories(
+    ${BIN_DIR}
+    ${CMAKE_SOURCE_DIR}/src 
 )
 list(APPEND LIB_UTILS_SRCS ${GENERATED_SIGNALS_VERSION_HEADER})
 
 add_library(utils STATIC ${LIB_UTILS_SRCS})
+
+set_target_properties(utils PROPERTIES
+    OUTPUT_NAME signals_utils
+    POSITION_INDEPENDENT_CODE TRUE
+    )
 
 # Platform-specific adjustments
 if(APPLE)
@@ -55,5 +61,10 @@ target_include_directories(utils PUBLIC
     ${BIN_DIR}  
 )
 
-# Add -fPIC (required for shared libraries)
-target_compile_options(utils PRIVATE -fPIC)
+# Installation (optional) to be tested later
+install(TARGETS utils 
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    PUBLIC_HEADER DESTINATION include/signals
+)

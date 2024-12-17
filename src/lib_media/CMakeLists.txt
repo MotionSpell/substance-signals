@@ -30,13 +30,37 @@ set(LIB_MEDIA_SRCS
 
 # Define the media library
 add_library(media STATIC ${LIB_MEDIA_SRCS})
+
+set_target_properties(media PROPERTIES
+    OUTPUT_NAME signals_media
+    POSITION_INDEPENDENT_CODE TRUE
+    )
+
 target_include_directories(media PUBLIC 
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/../  
 )
-target_link_libraries(media PRIVATE modules pipeline appcommon utils CURL::libcurl)
 
 
+# Installation (optional) to be tested later
+install(TARGETS media 
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    PUBLIC_HEADER DESTINATION include/signals
+)
+
+# xxxjack Not sure this is correct...
+target_link_libraries(media 
+    PUBLIC 
+    modules 
+    pipeline 
+    appcommon 
+    utils 
+    CURL::libcurl
+    )
+
+# xxxjack I think this should go... Won't we link to some objects twice?
 file(GLOB LIB_MODULES_SRCS 
     ${CMAKE_SOURCE_DIR}/src/lib_modules/utils/*.cpp
     ${CMAKE_SOURCE_DIR}/src/lib_modules/core/*.cpp
