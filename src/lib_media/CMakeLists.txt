@@ -44,10 +44,22 @@ target_include_directories(media PUBLIC
 
 # Installation (optional) to be tested later
 install(TARGETS media 
+    EXPORT signals-media
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION include/signals
+)
+
+
+export(
+    EXPORT signals-media
+    NAMESPACE signals::
+)
+
+install(EXPORT signals-media
+    NAMESPACE signals::
+    DESTINATION lib/cmake/signals
 )
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}

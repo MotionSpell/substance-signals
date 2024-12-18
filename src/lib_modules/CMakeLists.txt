@@ -15,11 +15,11 @@ set_target_properties(modules PROPERTIES
 
 # Add include directories
 target_include_directories(modules PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/src 
-    ${CMAKE_SOURCE_DIR}/src/lib_modules/utils 
-    ${CMAKE_SOURCE_DIR}/src/lib_modules/core
-
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src/lib_modules/utils>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src/lib_modules/core>
+    $<INSTALL_INTERFACE:include/signals>
 )
 
 # xxxjack should use POSITION_INDEPENDENT_CODE? See https://cmake.org/cmake/help/latest/prop_tgt/POSITION_INDEPENDENT_CODE.html#prop_tgt:POSITION_INDEPENDENT_CODE
@@ -60,11 +60,23 @@ target_link_libraries(modules
 #)
 
 # Installation (optional) to be tested later
-install(TARGETS modules 
+install(TARGETS modules
+    EXPORT signals-modules
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION include/signals
+)
+
+
+export(
+    EXPORT signals-modules
+    NAMESPACE signals::
+)
+
+install(EXPORT signals-modules
+    NAMESPACE signals::
+    DESTINATION lib/cmake/signals
 )
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
