@@ -50,15 +50,15 @@ install(TARGETS media
     PUBLIC_HEADER DESTINATION include/signals
 )
 
-# xxxjack Not sure this is correct...
-target_link_libraries(media 
-    PUBLIC 
-    modules 
-    pipeline 
-    appcommon 
-    utils 
-    CURL::libcurl
-    )
+## xxxjack Not sure this is correct...
+#target_link_libraries(media 
+#    PUBLIC 
+#    modules 
+#    pipeline 
+#    appcommon 
+#    utils 
+#    CURL::libcurl
+#    )
 
 # xxxjack I think this should go... Won't we link to some objects twice?
 file(GLOB LIB_MODULES_SRCS 

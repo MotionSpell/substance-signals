@@ -18,9 +18,9 @@ target_include_directories(pipeline PUBLIC
     ${CMAKE_SOURCE_DIR}/src
 )
 
-# Link libraries
+## Link libraries
 target_link_libraries(pipeline 
-    PUBLIC 
+    PRIVATE 
     appcommon 
     utils
     )

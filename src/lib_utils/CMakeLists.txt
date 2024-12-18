@@ -1,18 +1,20 @@
 # List of source files for the utils library
-set(LIB_UTILS_SRCS
+set(LIB_UTILS_INCS
     clock.hpp
     fifo.hpp
-    log.cpp
     log.hpp
     os.hpp
-    profiler.cpp
     profiler.hpp
-    scheduler.cpp
     scheduler.hpp
-    time.cpp
     time.hpp
-    version.cpp
     system_clock.hpp
+)
+set(LIB_UTILS_SRCS
+    log.cpp
+    profiler.cpp
+    scheduler.cpp
+    time.cpp
+    version.cpp
     sysclock.cpp
 )
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -32,6 +34,7 @@ include_directories(
 list(APPEND LIB_UTILS_SRCS ${GENERATED_SIGNALS_VERSION_HEADER})
 
 add_library(utils STATIC ${LIB_UTILS_SRCS})
+target_sources(utils PUBLIC ${LIB_UTILS_INCS})
 
 set_target_properties(utils PROPERTIES
     OUTPUT_NAME signals_utils
