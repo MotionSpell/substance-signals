@@ -72,7 +72,8 @@ endif()
 
 message(STATUS "Generated signals_version.h available at ${SIGNALS_VERSION_HEADER}")
 
-
+# Install version header
+install(FILES ${SIGNALS_VERSION_HEADER} DESTINATION include/signals)
 # Ensure SYSROOT_PATH is valid
 if(NOT SYSROOT_PATH)
 elseif(NOT EXISTS ${SYSROOT_PATH})
