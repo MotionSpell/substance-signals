@@ -3,6 +3,7 @@
 #include <memory>
 #include <typeinfo>
 #include <stdexcept> //runtime_error
+#include <string>
 
 using std::make_unique;
 using std::make_shared;
