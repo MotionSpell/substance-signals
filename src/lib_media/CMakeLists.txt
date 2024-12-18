@@ -30,12 +30,28 @@ set(LIB_MEDIA_SRCS
 
 # Define the media library
 add_library(media STATIC ${LIB_MEDIA_SRCS})
-target_include_directories(media PUBLIC 
+target_include_directories(media PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/../  
 )
 target_link_libraries(media PRIVATE modules pipeline appcommon utils)
+#******* experiment
+# Add alias for installation
+add_library(Signals::media ALIAS media)
 
+# Install the library
+install(TARGETS media EXPORT SignalsTargets
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+    RUNTIME DESTINATION bin
+)
+
+# Install headers
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
+    DESTINATION include/Signals/media
+    FILES_MATCHING PATTERN "*.h"
+)
+#********* end of experiment. 
 
 file(GLOB LIB_MODULES_SRCS 
     ${CMAKE_SOURCE_DIR}/src/lib_modules/utils/*.cpp

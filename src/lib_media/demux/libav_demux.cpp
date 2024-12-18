@@ -1,11 +1,11 @@
-#include "lib_modules/utils/helper.hpp"
-#include "lib_modules/utils/factory.hpp" // registerModule
+#include "../../lib_modules/utils/helper.hpp"
+#include "../../lib_modules/utils/factory.hpp" // registerModule
 #include "libav_demux.hpp"
 #include "../transform/restamp.hpp"
-#include "lib_utils/tools.hpp"
-#include "lib_utils/os.hpp"
-#include "lib_utils/queue_lockfree.hpp"
-#include "lib_utils/clock.hpp" // rescale
+#include "../../lib_utils/tools.hpp"
+#include "../../lib_utils/os.hpp"
+#include "../../lib_utils/queue_lockfree.hpp"
+#include "../../lib_utils/clock.hpp" // rescale
 #include "../common/ffpp.hpp"
 #include "../common/libav.hpp"
 #include "../common/attributes.hpp"

@@ -1,16 +1,16 @@
 #include "hls_muxer_libav.hpp"
 
-#include "lib_modules/utils/helper.hpp"
-#include "lib_modules/utils/helper_dyn.hpp"
-#include "lib_modules/utils/factory.hpp"
-#include "lib_modules/utils/loader.hpp"
+#include "../../lib_modules/utils/helper.hpp"
+#include "../../lib_modules/utils/helper_dyn.hpp"
+#include "../../lib_modules/utils/factory.hpp"
+#include "../../lib_modules/utils/loader.hpp"
 #include "../mux/libav_mux.hpp"
 #include "../common/libav.hpp"
 #include "../common/metadata_file.hpp"
 #include "../common/attributes.hpp"
-#include "lib_utils/format.hpp"
-#include "lib_utils/log_sink.hpp"
-#include "lib_utils/tools.hpp" // safe_cast
+#include "../../lib_utils/format.hpp"
+#include "../../lib_utils/log_sink.hpp"
+#include "../../lib_utils/tools.hpp" // safe_cast
 #include <cassert>
 
 using namespace Modules;

@@ -17,8 +17,7 @@ add_executable(dashcastx ${DASHCASTX_SRCS})
 
 # Include directories for libraries (e.g., appcommon, media, etc.)
 target_include_directories(dashcastx PRIVATE 
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../lib_appcommon
+${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/lib_modules/
 )
 

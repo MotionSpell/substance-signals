@@ -15,8 +15,8 @@
 #pragma once
 
 #include <stdexcept>
-#include <lib_utils/log.hpp>
-#include "lib_utils/format.hpp"
+#include "../../lib_utils/log.hpp"
+#include "../../lib_utils/format.hpp"
 
 extern "C" {
 #include <libavutil/frame.h>

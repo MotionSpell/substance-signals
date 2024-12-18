@@ -1,9 +1,9 @@
 #include "gpac_demux_mp4_simple.hpp"
-#include "lib_utils/tools.hpp"
-#include "lib_utils/log_sink.hpp"
-#include "lib_utils/format.hpp"
-#include "lib_modules/utils/helper.hpp"
-#include "lib_modules/utils/factory.hpp"
+#include "../../lib_utils/tools.hpp"
+#include "../../lib_utils/log_sink.hpp"
+#include "../../lib_utils/format.hpp"
+#include "../../lib_modules/utils/helper.hpp"
+#include "../../lib_modules/utils/factory.hpp"
 #include "../common/gpacpp.hpp"
 
 using namespace Modules;

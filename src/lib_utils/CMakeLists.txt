@@ -49,11 +49,27 @@ endif()
 set(BIN_DIR ${CMAKE_BINARY_DIR}/bin)
 
 # Specify include directories for the utils target
-target_include_directories(utils PUBLIC 
+target_include_directories(utils PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}  
-    ${CMAKE_CURRENT_SOURCE_DIR}/lib_utils  
-    ${BIN_DIR}  
 )
 
 # Add -fPIC (required for shared libraries)
 target_compile_options(utils PRIVATE -fPIC)
+
+#******* experiment
+# Add alias for installation
+add_library(Signals::utils ALIAS utils)
+
+# Install the library
+install(TARGETS utils EXPORT SignalsTargets
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+    RUNTIME DESTINATION bin
+)
+
+# Install headers
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
+    DESTINATION include/Signals/media
+    FILES_MATCHING PATTERN "*.h"
+)
+#********* end of experiment. 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "lib_modules/core/module.hpp" // KHost
-#include "lib_modules/utils/helper.hpp" // span
+#include "../../lib_modules/core/module.hpp" // KHost
+#include "../../lib_modules/utils/helper.hpp" // span
 
 // Single long running POST/PUT connection
 //|This interface is meant to be used the following way:

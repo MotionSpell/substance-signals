@@ -2,8 +2,8 @@
 
 #include <stdint.h>
 #include <string>
-#include "lib_media/common/resolution.hpp"
-#include "lib_modules/core/metadata.hpp"
+#include "../../lib_media/common/resolution.hpp"
+#include "../../lib_modules/core/metadata.hpp"
 
 namespace Modules {
 

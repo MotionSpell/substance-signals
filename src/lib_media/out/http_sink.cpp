@@ -1,10 +1,10 @@
 #include "http_sink.hpp"
 
-#include "lib_modules/utils/helper.hpp" // ModuleS
-#include "lib_modules/utils/factory.hpp"
-#include "lib_utils/format.hpp"
-#include "lib_utils/log_sink.hpp"
-#include "lib_utils/tools.hpp" // safe_cast
+#include "../../lib_modules/utils/helper.hpp" // ModuleS
+#include "../../lib_modules/utils/factory.hpp"
+#include "../../lib_utils/format.hpp"
+#include "../../lib_utils/log_sink.hpp"
+#include "../../lib_utils/tools.hpp" // safe_cast
 #include "../common/metadata_file.hpp"
 #include "http.hpp"
 #include <string>

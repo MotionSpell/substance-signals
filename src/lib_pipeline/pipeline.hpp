@@ -1,8 +1,8 @@
 #pragma once
 
 #include "i_filter.hpp"
-#include "lib_utils/log_sink.hpp"
-#include "lib_modules/modules.hpp"
+#include "../lib_utils/log_sink.hpp"
+#include "../lib_modules/modules.hpp"
 #include <condition_variable>
 #include <functional>
 #include <vector>

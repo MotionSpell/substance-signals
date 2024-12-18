@@ -1,6 +1,6 @@
 #pragma once
 
-#include "lib_modules/core/buffer.hpp" // SpanC
+#include "../../lib_modules/core/buffer.hpp" // SpanC
 #include <functional>
 #include <memory>
 #include <stdint.h>

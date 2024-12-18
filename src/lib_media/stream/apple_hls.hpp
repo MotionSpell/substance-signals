@@ -2,7 +2,7 @@
 
 #include "adaptive_streaming_common.hpp"
 
-#include <lib_modules/utils/helper.hpp>
+#include <../lib_modules/utils/helper.hpp>
 
 struct HlsMuxConfig {
 	std::string m3u8Dir;

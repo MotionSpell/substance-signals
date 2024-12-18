@@ -2,10 +2,10 @@
 
 #include <string>
 #include <vector>
-#include "lib_media/common/resolution.hpp"
-#include "lib_utils/fraction.hpp"
-#include "lib_modules/core/metadata.hpp"
-#include "lib_modules/core/buffer.hpp" // SpanC
+#include "../../lib_media/common/resolution.hpp"
+#include "../../lib_utils/fraction.hpp"
+#include "../../lib_modules/core/metadata.hpp"
+#include "../../lib_modules/core/buffer.hpp" // SpanC
 #include "pcm.hpp" // AudioSampleFormat
 #include "pixel_format.hpp" // PixelFormat
 

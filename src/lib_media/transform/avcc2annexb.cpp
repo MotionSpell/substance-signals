@@ -1,8 +1,8 @@
-#include "lib_modules/modules.hpp"
-#include "lib_modules/utils/helper.hpp"
-#include "lib_utils/tools.hpp" // enforce
-#include "lib_utils/format.hpp"
-#include "lib_utils/log.hpp"
+#include "../../lib_modules/modules.hpp"
+#include "../../lib_modules/utils/helper.hpp"
+#include "../../lib_utils/tools.hpp" // enforce
+#include "../../lib_utils/format.hpp"
+#include "../../lib_utils/log.hpp"
 #include "../common/attributes.hpp"
 
 using namespace Modules;

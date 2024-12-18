@@ -1,7 +1,7 @@
-#include "lib_modules/utils/helper.hpp" // ModuleS
-#include "lib_modules/utils/factory.hpp" // registerModule
-#include "lib_media/common/picture.hpp" // PictureFormat
-#include "lib_utils/tools.hpp"
+#include "../../lib_modules/utils/helper.hpp" // ModuleS
+#include "../../lib_modules/utils/factory.hpp" // registerModule
+#include "../../lib_media/common/picture.hpp" // PictureFormat
+#include "../../lib_utils/tools.hpp"
 #include "../common/ffpp.hpp"
 #include "../common/libav.hpp"
 #include "../common/attributes.hpp"

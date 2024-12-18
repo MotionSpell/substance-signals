@@ -1,11 +1,11 @@
 // holds the chain: [dash downloader] => ( [mp4demuxer] )*
-#include "lib_media/demux/dash_demux.hpp"
-#include "lib_media/in/mpeg_dash_input.hpp"
-#include "lib_media/out/null.hpp"
-#include "lib_modules/core/connection.hpp"
-#include "lib_modules/utils/loader.hpp"
-#include "lib_modules/utils/factory.hpp"
-#include "lib_utils/tools.hpp" // enforce
+#include "../../lib_media/demux/dash_demux.hpp"
+#include "../../lib_media/in/mpeg_dash_input.hpp"
+#include "../../lib_media/out/null.hpp"
+#include "../../lib_modules/core/connection.hpp"
+#include "../../lib_modules/utils/loader.hpp"
+#include "../../lib_modules/utils/factory.hpp"
+#include "../../lib_utils/tools.hpp" // enforce
 
 std::unique_ptr<Modules::In::IFilePuller> createHttpSource();
 

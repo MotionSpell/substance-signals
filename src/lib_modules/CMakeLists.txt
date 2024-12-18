@@ -9,9 +9,8 @@ add_library(modules SHARED
 )
 
 # Add include directories
-target_include_directories(modules PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/src 
+target_include_directories(modules PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/ 
     ${CMAKE_SOURCE_DIR}/src/lib_modules/utils 
     ${CMAKE_SOURCE_DIR}/src/lib_modules/core
 
@@ -48,6 +47,22 @@ set_target_properties(modules PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
 )
 
-# Installation (optional) to be tested later
-install(TARGETS modules DESTINATION lib)
+#******* experiment
+# Add alias for installation
+add_library(Signals::modules ALIAS modules)
+
+# Install the library
+install(TARGETS modules EXPORT SignalsTargets
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+    RUNTIME DESTINATION bin
+)
+
+# Install headers
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
+    DESTINATION include/Signals/media
+    FILES_MATCHING PATTERN "*.h"
+)
+#********* end of experiment. 
+
     

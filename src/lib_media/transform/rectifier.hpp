@@ -1,7 +1,7 @@
 #pragma once
 
 #include <memory>
-#include "lib_utils/fraction.hpp"
+#include "../../lib_utils/fraction.hpp"
 
 struct IClock;
 struct IScheduler;

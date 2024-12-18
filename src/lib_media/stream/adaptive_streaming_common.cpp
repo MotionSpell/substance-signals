@@ -1,8 +1,8 @@
 #include "adaptive_streaming_common.hpp"
 #include "../common/attributes.hpp"
-#include "lib_utils/time.hpp"
-#include "lib_utils/os.hpp"
-#include "lib_utils/system_clock.hpp"
+#include "../../lib_utils/time.hpp"
+#include "../../lib_utils/os.hpp"
+#include "../../lib_utils/system_clock.hpp"
 #include <cstring> // memcpy
 #include <cassert>
 #include <thread>

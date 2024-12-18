@@ -4,7 +4,7 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
-#include "lib_utils/log_sink.hpp" // Warning
+#include "../../lib_utils/log_sink.hpp" // Warning
 
 extern "C" {
 #include <curl/curl.h>

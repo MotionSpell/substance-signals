@@ -1,12 +1,12 @@
-#include "lib_utils/log_sink.hpp"
-#include "lib_modules/utils/factory.hpp" // registerModule
+#include "../../lib_utils/log_sink.hpp"
+#include "../../lib_modules/utils/factory.hpp" // registerModule
 #include "../common/metadata.hpp"
 #include "../common/attributes.hpp"
 #include "../common/picture_allocator.hpp"
 #include "../common/pcm.hpp"
 #include "../common/libav.hpp"
 #include "../common/ffpp.hpp"
-#include "lib_utils/tools.hpp"
+#include "../../lib_utils/tools.hpp"
 #include <cassert>
 
 extern "C" {

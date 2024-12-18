@@ -2,12 +2,12 @@
 #include "stats.hpp"
 #include "graph.hpp"
 #include "filter.hpp"
-#include "lib_modules/utils/helper.hpp"
-#include "lib_modules/utils/loader.hpp"
-#include "lib_utils/log.hpp" // g_Log
-#include "lib_utils/os.hpp"
-#include "lib_utils/format.hpp"
-#include "lib_utils/tools.hpp" // safe_cast
+#include "../lib_modules/utils/helper.hpp"
+#include "../lib_modules/utils/loader.hpp"
+#include "../lib_utils/log.hpp" // g_Log
+#include "../lib_utils/os.hpp"
+#include "../lib_utils/format.hpp"
+#include "../lib_utils/tools.hpp" // safe_cast
 #include <algorithm>
 #include <cstring>
 #include <sstream>

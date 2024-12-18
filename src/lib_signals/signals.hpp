@@ -3,7 +3,7 @@
 #include "signal.hpp"
 #include "executor.hpp" // ExecutorSync
 
-#include "lib_utils/small_map.hpp"
+#include "../lib_utils/small_map.hpp"
 #include <memory>
 #include <mutex>
 

@@ -1,6 +1,6 @@
 #include "libavfilter.hpp"
-#include "lib_modules/utils/factory.hpp"
-#include "lib_utils/tools.hpp"
+#include "../../lib_modules/utils/factory.hpp"
+#include "../../lib_utils/tools.hpp"
 #include "../common/libav.hpp"
 #include "../common/attributes.hpp"
 
@@ -9,7 +9,7 @@ extern "C" {
 #include <libavfilter/buffersrc.h>
 }
 
-#include "lib_modules/utils/helper.hpp"
+#include "../../lib_modules/utils/helper.hpp"
 #include "../common/ffpp.hpp"
 #include <string>
 
