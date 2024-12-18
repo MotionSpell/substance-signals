@@ -70,29 +70,6 @@ if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     )
 endif()
 
-#file(TOUCH ${SIGNALS_VERSION_HEADER})
-#add_custom_command(
-#    OUTPUT ${SIGNALS_VERSION_HEADER}
-#    COMMAND ${CMAKE_COMMAND} -E echo "Working directory: ${CMAKE_BINARY_DIR}"
-#    COMMAND ${SCRIPTS_DIR}/version.sh
-#    COMMAND ${CMAKE_COMMAND} -E echo "Version script executed"
-#    COMMAND ${SCRIPTS_DIR}/version.sh > ${SIGNALS_VERSION_HEADER}
-#    DEPENDS ${SCRIPTS_DIR}/version.sh
-#    COMMENT "Generating signals_version.h"
-#)
-# Add a custom target to trigger the custom command
-#add_custom_target(generate_signals_version_header ALL DEPENDS ${SIGNALS_VERSION_HEADER})
-
-
-# Ensure the generated signals_version.h is available globally
-
-# Include directories for global availability
-# xxxjack include_directories(${SIGNALS_VERSION_HEADER_DIR})
-
-# make the version header available as part of a global variable
-# to be  accessible in other sub-projects or libraries
-set(GENERATED_SIGNALS_VERSION_HEADER ${SIGNALS_VERSION_HEADER})
-
 message(STATUS "Generated signals_version.h available at ${SIGNALS_VERSION_HEADER}")
 
 
