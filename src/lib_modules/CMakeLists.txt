@@ -48,7 +48,11 @@ endif()
 # Add linker flags
 
 # Link dependencies if any
-target_link_libraries(modules PUBLIC utils)
+target_link_libraries(modules 
+    PUBLIC 
+    "$<LINK_LIBRARY:WHOLE_ARCHIVE:utils>"
+    utils
+    )
 
 # Set output directory
 #set_target_properties(modules PROPERTIES
