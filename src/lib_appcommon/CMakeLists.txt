@@ -16,7 +16,8 @@ set_target_properties(appcommon PROPERTIES
     )
 
 target_include_directories(appcommon PUBLIC 
-    ${CMAKE_CURRENT_SOURCE_DIR}
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:include/signals>
     )
 
 target_link_libraries(appcommon PUBLIC utils)
@@ -27,10 +28,21 @@ target_compile_options(appcommon PRIVATE
 
 # Installation (optional) to be tested later
 install(TARGETS appcommon 
+    EXPORT signals-appcommon
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION include/signals
+)
+
+export(
+    EXPORT signals-appcommon
+    NAMESPACE signals::
+)
+
+install(EXPORT signals-appcommon
+    NAMESPACE signals::
+    DESTINATION lib/cmake/signals
 )
 
 install(FILES ${LIB_APPCOMMON_INCS}
