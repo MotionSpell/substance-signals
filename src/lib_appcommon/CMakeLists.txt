@@ -1,10 +1,12 @@
+set(LIB_APPCOMMON_INCS
+    options.hpp
+    timebomb.hpp
+)
 set(LIB_APPCOMMON_SRCS
     options.cpp
     safemain.cpp
     timebomb.cpp
 )
-
-
 
 add_library(appcommon STATIC ${LIB_APPCOMMON_SRCS})
 
@@ -16,12 +18,12 @@ set_target_properties(appcommon PROPERTIES
 target_include_directories(appcommon PUBLIC 
     ${CMAKE_CURRENT_SOURCE_DIR}
     )
+
 target_link_libraries(appcommon PUBLIC utils)
 
 target_compile_options(appcommon PRIVATE
     -Wall -Wextra -Werror
 )
-
 
 # Installation (optional) to be tested later
 install(TARGETS appcommon 
@@ -29,4 +31,8 @@ install(TARGETS appcommon
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION include/signals
+)
+
+install(FILES ${LIB_APPCOMMON_INCS}
+    DESTINATION include/signals/lib_appcommon
 )

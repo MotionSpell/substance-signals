@@ -1,3 +1,11 @@
+set(LIB_PIPELINE_INCS
+    filter_input.hpp
+    filter.hpp
+    pipeline.hpp
+    graph.hpp
+    stats.hpp
+)
+
 set(LIB_PIPELINE_SRCS
     filter.cpp
     filter.hpp
@@ -32,4 +40,9 @@ install(TARGETS pipeline
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION include/signals
+)
+
+
+install(FILES ${LIB_PIPELINE_INCS}
+    DESTINATION include/signals/lib_pipeline
 )

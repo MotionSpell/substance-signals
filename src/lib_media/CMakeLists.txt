@@ -50,6 +50,11 @@ install(TARGETS media
     PUBLIC_HEADER DESTINATION include/signals
 )
 
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    DESTINATION include/signals/
+    FILES_MATCHING
+    PATTERN "*.hpp"
+)
 ## xxxjack Not sure this is correct...
 #target_link_libraries(media 
 #    PUBLIC 

@@ -62,4 +62,9 @@ install(TARGETS modules
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION include/signals
 )
-    
+
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    DESTINATION include/signals/
+    FILES_MATCHING
+    PATTERN "*.hpp"
+)
