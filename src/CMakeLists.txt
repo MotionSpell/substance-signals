@@ -39,9 +39,9 @@ endforeach()
 group_target(unit_tests "Tests")
 
 
-# Export all library targets
-install(EXPORT SignalsTargets
-    FILE SignalsTargets.cmake
-    NAMESPACE Signals::
-    DESTINATION lib/cmake/Signals
-)
+## Export all library targets
+#install(EXPORT SignalsTargets
+#    FILE SignalsTargets.cmake
+#    NAMESPACE Signals::
+#    DESTINATION lib/cmake/Signals
+#)
