@@ -27,13 +27,6 @@ else()
     message(ERROR "Unknown CMAKE_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}")
 endif()
 
-# xxxjack
-#include_directories(
-#    ${SIGNALS_VERSION_HEADER_DIR}
-#    ${CMAKE_SOURCE_DIR}/src 
-#)
-list(APPEND LIB_UTILS_SRCS ${GENERATED_SIGNALS_VERSION_HEADER})
-
 add_library(utils STATIC ${LIB_UTILS_SRCS})
 target_sources(utils PUBLIC ${LIB_UTILS_INCS})
 
@@ -72,4 +65,8 @@ install(TARGETS utils
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION include/signals
+)
+
+install(FILES ${LIB_UTILS_INCS}
+    DESTINATION include/signals/lib_utils
 )
