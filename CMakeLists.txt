@@ -136,3 +136,32 @@ add_custom_target(build_all
         unittests
     COMMENT "Building all targets."
 )
+
+# Install CMake config files for find_package
+include(CMakePackageConfigHelpers)
+
+# Configure the package version
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/SignalsConfigVersion.cmake"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY AnyNewerVersion
+)
+
+# Install configuration
+install(EXPORT SignalsTargets
+    FILE SignalsTargets.cmake
+    NAMESPACE Signals::
+    DESTINATION lib/cmake/Signals
+)
+
+configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/SignalsConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/SignalsConfig.cmake"
+    INSTALL_DESTINATION lib/cmake/Signals
+)
+
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/SignalsConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/SignalsConfigVersion.cmake"
+    DESTINATION lib/cmake/Signals
+)

@@ -10,7 +10,10 @@
             "name": "vcpkg-cmake-config",
             "host": true
         },
-        "ffmpeg",
+        {
+            "name": "ffmpeg",
+            "features": ["x264"]
+        },
         "libtheora",
         "libvorbis",
         "sdl2",

@@ -34,13 +34,14 @@ foreach(plugin ${PLUGIN_TARGETS})
     group_target(${plugin} "Plugins")
 endforeach()
 
-# Group applications
-group_target(dashcastx "Applications")
-#group_target(ts2ip "Applications")
-#group_target(player "Applications")
-#group_target(mcastdump "Applications")
-#group_target(mp42tsx "Applications")
-#group_target(monitor "Applications")
 
 # Group tests
 group_target(unit_tests "Tests")
+
+
+# Export all library targets
+install(EXPORT SignalsTargets
+    FILE SignalsTargets.cmake
+    NAMESPACE Signals::
+    DESTINATION lib/cmake/Signals
+)
