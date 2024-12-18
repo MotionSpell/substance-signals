@@ -57,7 +57,7 @@ endif()
 set(SCRIPTS_DIR "${CMAKE_SOURCE_DIR}/scripts")
 set(SRC_DIR "${CMAKE_SOURCE_DIR}/src")
 set(BIN_DIR "${CMAKE_BINARY_DIR}/bin")
-set(SIGNALS_VERSION_HEADER_DIR "${BIN_DIR}") # xxxjack not very elegant...
+set(SIGNALS_VERSION_HEADER_DIR "${CMAKE_BINARY_DIR}/version") # xxxjack not very elegant...
 file(MAKE_DIRECTORY ${SIGNALS_VERSION_HEADER_DIR})
 
 # Generate signals_version.h using version.sh

@@ -27,10 +27,11 @@ else()
     message(ERROR "Unknown CMAKE_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}")
 endif()
 
-include_directories(
-    ${SIGNALS_VERSION_HEADER_DIR}
-    ${CMAKE_SOURCE_DIR}/src 
-)
+# xxxjack
+#include_directories(
+#    ${SIGNALS_VERSION_HEADER_DIR}
+#    ${CMAKE_SOURCE_DIR}/src 
+#)
 list(APPEND LIB_UTILS_SRCS ${GENERATED_SIGNALS_VERSION_HEADER})
 
 add_library(utils STATIC ${LIB_UTILS_SRCS})
