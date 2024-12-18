@@ -142,26 +142,26 @@ include(CMakePackageConfigHelpers)
 
 # Configure the package version
 write_basic_package_version_file(
-    "${CMAKE_CURRENT_BINARY_DIR}/SignalsConfigVersion.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/signals-config-version.cmake"
     VERSION ${PROJECT_VERSION}
     COMPATIBILITY AnyNewerVersion
 )
 
 # Install configuration
-install(EXPORT SignalsTargets
-    FILE SignalsTargets.cmake
-    NAMESPACE Signals::
-    DESTINATION lib/cmake/Signals
-)
+#install(EXPORT SignalsTargets
+#    FILE SignalsTargets.cmake
+#    NAMESPACE Signals::
+#    DESTINATION lib/cmake/Signals
+#)
 
 configure_package_config_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/SignalsConfig.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/SignalsConfig.cmake"
-    INSTALL_DESTINATION lib/cmake/Signals
+    "${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/signals-config.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/signals-config.cmake"
+    INSTALL_DESTINATION lib/cmake/signals
 )
 
 install(FILES
-    "${CMAKE_CURRENT_BINARY_DIR}/SignalsConfig.cmake"
-    "${CMAKE_CURRENT_BINARY_DIR}/SignalsConfigVersion.cmake"
-    DESTINATION lib/cmake/Signals
+    "${CMAKE_CURRENT_BINARY_DIR}/signals-config.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/signals-config-version.cmake"
+    DESTINATION lib/cmake/signals
 )
