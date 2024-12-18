@@ -57,11 +57,11 @@ endif()
 set(SCRIPTS_DIR "${CMAKE_SOURCE_DIR}/scripts")
 set(SRC_DIR "${CMAKE_SOURCE_DIR}/src")
 set(BIN_DIR "${CMAKE_BINARY_DIR}/bin")
-
-file(MAKE_DIRECTORY ${BIN_DIR})
+set(SIGNALS_VERSION_HEADER_DIR "${BIN_DIR}") # xxxjack not very elegant...
+file(MAKE_DIRECTORY ${SIGNALS_VERSION_HEADER_DIR})
 
 # Generate signals_version.h using version.sh
-set(SIGNALS_VERSION_HEADER "${BIN_DIR}/signals_version.h")
+set(SIGNALS_VERSION_HEADER "${SIGNALS_VERSION_HEADER_DIR}/signals_version.h")
 file(WRITE "${SIGNALS_VERSION_HEADER}" "\"unknown-unknown-unknown\"")
 if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     execute_process(
@@ -87,7 +87,7 @@ endif()
 # Ensure the generated signals_version.h is available globally
 
 # Include directories for global availability
-include_directories(${BIN_DIR})
+# xxxjack include_directories(${SIGNALS_VERSION_HEADER_DIR})
 
 # make the version header available as part of a global variable
 # to be  accessible in other sub-projects or libraries

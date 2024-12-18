@@ -28,7 +28,7 @@ else()
 endif()
 
 include_directories(
-    ${BIN_DIR}
+    ${SIGNALS_VERSION_HEADER_DIR}
     ${CMAKE_SOURCE_DIR}/src 
 )
 list(APPEND LIB_UTILS_SRCS ${GENERATED_SIGNALS_VERSION_HEADER})
@@ -59,9 +59,10 @@ set(BIN_DIR ${CMAKE_BINARY_DIR}/bin)
 
 # Specify include directories for the utils target
 target_include_directories(utils PUBLIC 
-    ${CMAKE_CURRENT_SOURCE_DIR}  
-    ${CMAKE_CURRENT_SOURCE_DIR}/lib_utils  
-    ${BIN_DIR}  
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib_utils>
+    $<BUILD_INTERFACE:${SIGNALS_VERSION_HEADER_DIR}>
+    $<INSTALL_INTERFACE:include/signals>
 )
 
 # Installation (optional) to be tested later

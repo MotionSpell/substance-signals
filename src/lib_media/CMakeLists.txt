@@ -36,11 +36,11 @@ set_target_properties(media PROPERTIES
     POSITION_INDEPENDENT_CODE TRUE
     )
 
-target_include_directories(media PUBLIC 
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/../  
+target_include_directories(media PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>
+    $<INSTALL_INTERFACE:include/signals>
 )
-
 
 # Installation (optional) to be tested later
 install(TARGETS media 
