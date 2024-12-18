@@ -72,7 +72,8 @@ target_link_libraries(media
     modules 
     pipeline 
     appcommon 
-    utils 
+    utils
+    gpac::gpac 
     CURL::libcurl
     )
 
