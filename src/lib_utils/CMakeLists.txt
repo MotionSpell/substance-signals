@@ -27,8 +27,15 @@ else()
     message(ERROR "Unknown CMAKE_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}")
 endif()
 
-add_library(utils STATIC ${LIB_UTILS_SRCS})
-target_sources(utils PUBLIC ${LIB_UTILS_INCS})
+add_library(utils STATIC)
+target_sources(utils PRIVATE 
+    ${LIB_UTILS_SRCS}
+    ${LIB_UTILS_INCS}
+    )
+target_sources(utils INTERFACE 
+    $<BUILD_INTERFACE:${LIB_UTIL_INCS}>
+    $<INSTALL_INTERFACE:$<LIST:TRANSFORM,${LIB_UTIL_INCS},PREPEND,include/signals/lib_utils/>>
+    )
 
 set_target_properties(utils PROPERTIES
     OUTPUT_NAME signals_utils
@@ -49,8 +56,6 @@ elseif(WIN32)
     list(APPEND LIB_UTILS_SRCS os_mingw.cpp)
 endif()
 
-set(BIN_DIR ${CMAKE_BINARY_DIR}/bin)
-
 # Specify include directories for the utils target
 target_include_directories(utils PUBLIC 
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
@@ -61,10 +66,21 @@ target_include_directories(utils PUBLIC
 
 # Installation (optional) to be tested later
 install(TARGETS utils 
+    EXPORT signals-utils
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION include/signals
+)
+
+export(
+    EXPORT signals-utils
+    NAMESPACE signals::
+)
+
+install(EXPORT signals-utils
+    NAMESPACE signals::
+    DESTINATION lib/cmake/signals
 )
 
 install(FILES ${LIB_UTILS_INCS}
