@@ -51,6 +51,12 @@ install(TARGETS media
     PUBLIC_HEADER DESTINATION include/signals
 )
 
+# Hmm. libmedia is a static library, so it can't be used for TARGET_RUNTIME_DLLs.
+# Let's hope the smd's below will pick up the needed dependencies.
+#add_custom_command(TARGET media POST_BUILD
+#  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:media> $<TARGET_RUNTIME_DLLS:media>
+#  COMMAND_EXPAND_LISTS
+#)
 
 export(
     EXPORT signals-media
@@ -124,6 +130,11 @@ install(TARGETS AVCC2AnnexBConverter
 	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
+add_custom_command(TARGET AVCC2AnnexBConverter POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:AVCC2AnnexBConverter> $<TARGET_RUNTIME_DLLS:AVCC2AnnexBConverter>
+  COMMAND_EXPAND_LISTS
+)
+
 
 # Define source files for the LibavMuxHLSTS
 set(EXE_LIBAVMUXHLSTS_SRCS
@@ -169,6 +180,11 @@ install(TARGETS LibavMuxHLSTS
 	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
+add_custom_command(TARGET LibavMuxHLSTS POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:LibavMuxHLSTS> $<TARGET_RUNTIME_DLLS:LibavMuxHLSTS>
+  COMMAND_EXPAND_LISTS
+)
+
 # Define source files for the VideoConvert target
 set(EXE_VIDEOCONVERTER_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/transform/video_convert.cpp
@@ -209,6 +225,11 @@ install(TARGETS VideoConvert
 	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
+add_custom_command(TARGET VideoConvert POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:VideoConvert> $<TARGET_RUNTIME_DLLS:VideoConvert>
+  COMMAND_EXPAND_LISTS
+)
+
 # AudioConvert target
 set(EXE_AUDIOCONVERTER_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/transform/audio_convert.cpp
@@ -243,6 +264,11 @@ install(TARGETS AudioConvert
 	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
+add_custom_command(TARGET AudioConvert POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:AudioConvert> $<TARGET_RUNTIME_DLLS:AudioConvert>
+  COMMAND_EXPAND_LISTS
+)
+
 # JPEGTurboDecode target
 set(EXE_JPEGTURBODECODE_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/decode/jpegturbo_decode.cpp
@@ -275,6 +301,11 @@ install(TARGETS JPEGTurboDecode
 	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
+add_custom_command(TARGET JPEGTurboDecode POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:JPEGTurboDecode> $<TARGET_RUNTIME_DLLS:JPEGTurboDecode>
+  COMMAND_EXPAND_LISTS
+)
+
 # JPEGTurboEncode target
 set(EXE_JPEGTURBOENCODE_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/encode/jpegturbo_encode.cpp
@@ -305,7 +336,10 @@ install(TARGETS JPEGTurboEncode
 	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
-
+add_custom_command(TARGET JPEGTurboEncode POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:JPEGTurboEncode> $<TARGET_RUNTIME_DLLS:JPEGTurboEncode>
+  COMMAND_EXPAND_LISTS
+)
 
 # Encoder target
 set(EXE_ENCODER_SRCS
@@ -344,6 +378,11 @@ install(TARGETS Encoder
 	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
+add_custom_command(TARGET Encoder POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:Encoder> $<TARGET_RUNTIME_DLLS:Encoder>
+  COMMAND_EXPAND_LISTS
+)
+
 # Decoder target
 set(EXE_DECODER_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/decode/decoder.cpp
@@ -377,6 +416,11 @@ set_target_properties(Decoder PROPERTIES
 install(TARGETS Decoder
 	EXPORT Decoder
 	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+add_custom_command(TARGET Decoder POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:Decoder> $<TARGET_RUNTIME_DLLS:Decoder>
+  COMMAND_EXPAND_LISTS
 )
 
 # LibavDemux target
@@ -416,6 +460,11 @@ install(TARGETS LibavDemux
 	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
+add_custom_command(TARGET LibavDemux POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:LibavDemux> $<TARGET_RUNTIME_DLLS:LibavDemux>
+  COMMAND_EXPAND_LISTS
+)
+
 # LibavMux target
 set(EXE_LIBAVMUX_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/mux/libav_mux.cpp
@@ -450,6 +499,11 @@ set_target_properties(LibavMux PROPERTIES
 install(TARGETS LibavMux
 	EXPORT LibavMux
 	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+add_custom_command(TARGET LibavMux POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:LibavMux> $<TARGET_RUNTIME_DLLS:LibavMux>
+  COMMAND_EXPAND_LISTS
 )
 
 # LibavFilter target
@@ -487,6 +541,11 @@ install(TARGETS LibavFilter
 	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
+add_custom_command(TARGET LibavFilter POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:LibavFilter> $<TARGET_RUNTIME_DLLS:LibavFilter>
+  COMMAND_EXPAND_LISTS
+)
+
 # GPACMuxMP4 target
 set(EXE_GPACMUXMP4_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/mux/gpac_mux_mp4.cpp
@@ -521,6 +580,11 @@ install(TARGETS GPACMuxMP4
 	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
+add_custom_command(TARGET GPACMuxMP4 POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:GPACMuxMP4> $<TARGET_RUNTIME_DLLS:GPACMuxMP4>
+  COMMAND_EXPAND_LISTS
+)
+
 # GPACMuxMP4MSS target
 set(EXE_GPACMUXMP4MSS_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/mux/gpac_mux_mp4_mss.cpp
@@ -552,6 +616,11 @@ set_target_properties(GPACMuxMP4MSS PROPERTIES
 install(TARGETS GPACMuxMP4MSS
 	EXPORT GPACMuxMP4MSS
 	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+add_custom_command(TARGET GPACMuxMP4MSS POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:GPACMuxMP4MSS> $<TARGET_RUNTIME_DLLS:GPACMuxMP4MSS>
+  COMMAND_EXPAND_LISTS
 )
 
 
@@ -588,6 +657,11 @@ install(TARGETS GPACDemuxMP4Simple
 	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
+add_custom_command(TARGET GPACDemuxMP4Simple POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:GPACDemuxMP4Simple> $<TARGET_RUNTIME_DLLS:GPACDemuxMP4Simple>
+  COMMAND_EXPAND_LISTS
+)
+
 # GPACDemuxMP4Full target
 set(EXE_GPACDEMUXMP4FULL_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/demux/gpac_demux_mp4_full.cpp
@@ -621,6 +695,10 @@ install(TARGETS GPACDemuxMP4Full
 	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
+add_custom_command(TARGET GPACDemuxMP4Full POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:GPACDemuxMP4Full> $<TARGET_RUNTIME_DLLS:GPACDemuxMP4Full>
+  COMMAND_EXPAND_LISTS
+)
 
 # FileSystemSink target
 set(EXE_FILESYSTEMSINK_SRCS
@@ -651,6 +729,11 @@ set_target_properties(FileSystemSink PROPERTIES
 install(TARGETS FileSystemSink
 	EXPORT FileSystemSink
 	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+add_custom_command(TARGET FileSystemSink POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:FileSystemSink> $<TARGET_RUNTIME_DLLS:FileSystemSink>
+  COMMAND_EXPAND_LISTS
 )
 
 # LogoOverlay target
@@ -684,4 +767,9 @@ set_target_properties(LogoOverlay PROPERTIES
 install(TARGETS LogoOverlay
 	EXPORT LogoOverlay
 	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+add_custom_command(TARGET LogoOverlay POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:LogoOverlay> $<TARGET_RUNTIME_DLLS:LogoOverlay>
+  COMMAND_EXPAND_LISTS
 )

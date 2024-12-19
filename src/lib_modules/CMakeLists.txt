@@ -68,6 +68,12 @@ install(TARGETS modules
     PUBLIC_HEADER DESTINATION include/signals
 )
 
+add_custom_command(TARGET modules POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:modules> $<TARGET_RUNTIME_DLLS:modules>
+  COMMAND_EXPAND_LISTS
+)
+
+
 
 export(
     EXPORT signals-modules
