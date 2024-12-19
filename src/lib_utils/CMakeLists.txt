@@ -2,11 +2,14 @@
 set(LIB_UTILS_INCS
     clock.hpp
     fifo.hpp
+    fraction.hpp
     log.hpp
     os.hpp
     profiler.hpp
     scheduler.hpp
     time.hpp
+    tools.hpp
+    small_map.hpp
     system_clock.hpp
 )
 set(LIB_UTILS_SRCS
