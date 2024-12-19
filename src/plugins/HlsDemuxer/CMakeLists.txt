@@ -34,3 +34,13 @@ set_target_properties(HlsDemuxer PROPERTIES
     SUFFIX ".smd"  # Set the custom file extension to .smd
     PREFIX ""  # 
 )
+
+install(TARGETS HlsDemuxer
+	EXPORT HlsDemuxer
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+add_custom_command(TARGET HlsDemuxer POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:HlsDemuxer> $<TARGET_RUNTIME_DLLS:HlsDemuxer>
+  COMMAND_EXPAND_LISTS
+)

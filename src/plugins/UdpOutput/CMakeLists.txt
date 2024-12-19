@@ -42,3 +42,13 @@ set_target_properties(UdpOutput PROPERTIES
     SUFFIX ".smd"  # Set the custom file extension to .smd
     PREFIX ""  # 
 )
+
+install(TARGETS UdpOutput
+	EXPORT UdpOutput
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+add_custom_command(TARGET UdpOutput POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:UdpOutput> $<TARGET_RUNTIME_DLLS:UdpOutput>
+  COMMAND_EXPAND_LISTS
+)

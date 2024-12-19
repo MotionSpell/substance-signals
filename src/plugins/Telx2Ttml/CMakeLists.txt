@@ -25,3 +25,13 @@ set_target_properties(TeletextToTTML PROPERTIES
     SUFFIX ".smd"  # Set the custom file extension to .smd
     PREFIX ""  # 
 )
+
+install(TARGETS TeletextToTTML
+	EXPORT TeletextToTTML
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+add_custom_command(TARGET TeletextToTTML POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:TeletextToTTML> $<TARGET_RUNTIME_DLLS:TeletextToTTML>
+  COMMAND_EXPAND_LISTS
+)

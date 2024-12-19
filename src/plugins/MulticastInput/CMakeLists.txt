@@ -42,3 +42,13 @@ set_target_properties(MulticastInput PROPERTIES
     SUFFIX ".smd"  # Set the custom file extension to .smd
     PREFIX ""  # 
 )
+
+install(TARGETS MulticastInput
+	EXPORT MulticastInput
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+add_custom_command(TARGET MulticastInput POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:MulticastInput> $<TARGET_RUNTIME_DLLS:MulticastInput>
+  COMMAND_EXPAND_LISTS
+)
