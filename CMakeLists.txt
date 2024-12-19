@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.28)
 
 project(Signals VERSION 1.0)
 # Add extension directories (for things like Find<package>)
