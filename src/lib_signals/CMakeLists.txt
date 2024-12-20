@@ -10,8 +10,8 @@ add_library(lib_signals INTERFACE)
 # Specify include directories for the library
 target_include_directories(lib_signals
     INTERFACE
-        ${CMAKE_SOURCE_DIR}/src/tests
-        ${CMAKE_SOURCE_DIR}/src
+        ${SIGNALS_TOP_SOURCE_DIR}/src/tests
+        ${SIGNALS_TOP_SOURCE_DIR}/src
 
 )
 
@@ -60,7 +60,7 @@ endif()
 if(BUILD_TESTING)
     file(GLOB UNIT_TEST_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/unittests/*.cpp
-        ${CMAKE_SOURCE_DIR}/src/tests/tests.cpp
+        ${SIGNALS_TOP_SOURCE_DIR}/src/tests/tests.cpp
     )
 
     add_executable(lib_signals_unittests
@@ -68,8 +68,8 @@ if(BUILD_TESTING)
         ${CMAKE_CURRENT_SOURCE_DIR}/../lib_appcommon/options.cpp
     )
     target_include_directories(lib_signals_unittests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src/lib_appcommon
-    ${CMAKE_SOURCE_DIR}/src/tests
+    ${SIGNALS_TOP_SOURCE_DIR}/src/lib_appcommon
+    ${SIGNALS_TOP_SOURCE_DIR}/src/tests
 
 )
 

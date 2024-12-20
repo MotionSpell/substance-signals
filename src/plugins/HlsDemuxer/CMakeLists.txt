@@ -1,11 +1,11 @@
 # Define source files for the HlsDemuxer target
 set(EXE_HlsDemuxer_SRCS
     hls_demux.cpp
-    ${CMAKE_SOURCE_DIR}/src/lib_media/common/http_puller.cpp
+    ${SIGNALS_TOP_SOURCE_DIR}/src/lib_media/common/http_puller.cpp
     )
 file(GLOB LIB_MODULES_SRCS 
-    ${CMAKE_SOURCE_DIR}/src/lib_modules/utils/*.cpp
-    ${CMAKE_SOURCE_DIR}/src/lib_modules/core/*.cpp
+    ${SIGNALS_TOP_SOURCE_DIR}/src/lib_modules/utils/*.cpp
+    ${SIGNALS_TOP_SOURCE_DIR}/src/lib_modules/core/*.cpp
 )
 
 
@@ -19,7 +19,7 @@ add_library(HlsDemuxer SHARED ${EXE_HlsDemuxer_SRCS})
 # Include directories for the module
 target_include_directories(HlsDemuxer PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/src/
+    ${SIGNALS_TOP_SOURCE_DIR}/src/
     )
 
 # Link the necessary libraries

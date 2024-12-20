@@ -18,7 +18,7 @@ target_link_libraries(SDLVideo
 
 # Include directories
 target_include_directories(SDLVideo PUBLIC
-    ${CMAKE_SOURCE_DIR}/src
+    ${SIGNALS_TOP_SOURCE_DIR}/src
     ${SDL2_INCLUDE_DIRS}
 )
 
@@ -57,7 +57,7 @@ target_link_libraries(SDLAudio
 
 # Include directories for SDLAudio
 target_include_directories(SDLAudio PUBLIC
-    ${CMAKE_SOURCE_DIR}/src
+    ${SIGNALS_TOP_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/plugins/SdlRender
     ${SDL2_INCLUDE_DIRS}
 )

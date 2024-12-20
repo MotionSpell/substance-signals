@@ -1,12 +1,12 @@
 # Define source files for the MPEG_DASH target
 set(EXE_MPEG_DASH_SRCS
-    ${CMAKE_SOURCE_DIR}/src/lib_media/common/xml.cpp
+    ${SIGNALS_TOP_SOURCE_DIR}/src/lib_media/common/xml.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/mpeg_dash.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/mpd.cpp
 )
 file(GLOB LIB_MODULES_SRCS 
-    ${CMAKE_SOURCE_DIR}/src/lib_modules/utils/*.cpp
-    ${CMAKE_SOURCE_DIR}/src/lib_modules/core/*.cpp
+    ${SIGNALS_TOP_SOURCE_DIR}/src/lib_modules/utils/*.cpp
+    ${SIGNALS_TOP_SOURCE_DIR}/src/lib_modules/core/*.cpp
 )
 
 
@@ -20,7 +20,7 @@ add_library(MPEG_DASH SHARED ${EXE_MPEG_DASH_SRCS})
 # Include directories for the module
 target_include_directories(MPEG_DASH PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/src/
+    ${SIGNALS_TOP_SOURCE_DIR}/src/
     )
 
 # Link the necessary libraries

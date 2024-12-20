@@ -11,7 +11,7 @@ target_link_libraries(FMP4SPLITTER
 
 # Include directories
 target_include_directories(FMP4SPLITTER PUBLIC
-    ${CMAKE_SOURCE_DIR}/src
+    ${SIGNALS_TOP_SOURCE_DIR}/src
 )
 
 # Set properties for the target

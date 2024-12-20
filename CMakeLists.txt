@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.28)
 
 project(Signals VERSION 1.0)
+# Set toplevel signals directory here, so the CMakefiles work both standalone and under the lldash umbrella
+set(SIGNALS_TOP_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+
 # Add extension directories (for things like Find<package>)
 set(CMAKE_MODULE_PATH
 	${CMAKE_CURRENT_LIST_DIR}/CMakeFiles
@@ -55,7 +58,7 @@ endif()
 
 # Define paths for source and scripts
 set(SCRIPTS_DIR "${CMAKE_SOURCE_DIR}/scripts")
-set(SRC_DIR "${CMAKE_SOURCE_DIR}/src")
+set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(BIN_DIR "${CMAKE_BINARY_DIR}/bin")
 set(SIGNALS_VERSION_HEADER_DIR "${CMAKE_BINARY_DIR}/version") # xxxjack not very elegant...
 file(MAKE_DIRECTORY ${SIGNALS_VERSION_HEADER_DIR})
@@ -91,27 +94,29 @@ find_package(SDL2 REQUIRED)
 find_package(libjpeg-turbo REQUIRED)
 find_package(CURL REQUIRED)
 find_package(FFmpeg REQUIRED COMPONENTS AVUTIL AVFILTER AVCODEC AVFORMAT AVDEVICE SWSCALE SWRESAMPLE)
-find_package(GPAC)
-if (NOT GPAC_FOUND)
-    # Find it using pkgconfig, for now.
-    # This is a huge hack, especially the way we get the windows IMPORTED_LOCATION
-    pkg_check_modules(GPAC REQUIRED gpac)
-    add_library(gpac::gpac SHARED IMPORTED)
-    if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-        # xxxjack this is valid for mingw.
-        set_target_properties(gpac::gpac PROPERTIES
-            IMPORTED_IMPLIB "${GPAC_LIBDIR}/libgpac.dll.a"
-            IMPORTED_LOCATION "${GPAC_LIBDIR}/../bin/libgpac.dll"
-            INTERFACE_INCLUDE_DIRECTORIES "${GPAC_INCLUDEDIR}"
-        )
-    else()
-        set_target_properties(gpac::gpac PROPERTIES
-            IMPORTED_LOCATION "${GPAC_LIBDIR}/${CMAKE_SHARED_LIBRARY_PREFIX}gpac${CMAKE_SHARED_LIBRARY_SUFFIX}"
-            INTERFACE_INCLUDE_DIRECTORIES "${GPAC_INCLUDEDIR}"
-        )
+if (NOT TARGET gpac::gpac)
+    find_package(GPAC QUIET)
+    if (NOT GPAC_FOUND)
+        # Find it using pkgconfig, for now.
+        # This is a huge hack, especially the way we get the windows IMPORTED_LOCATION
+        pkg_check_modules(GPAC REQUIRED gpac)
+        add_library(gpac::gpac SHARED IMPORTED)
+        if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+            # xxxjack this is valid for mingw.
+            set_target_properties(gpac::gpac PROPERTIES
+                IMPORTED_IMPLIB "${GPAC_LIBDIR}/libgpac.dll.a"
+                IMPORTED_LOCATION "${GPAC_LIBDIR}/../bin/libgpac.dll"
+                INTERFACE_INCLUDE_DIRECTORIES "${GPAC_INCLUDEDIR}"
+            )
+        else()
+            set_target_properties(gpac::gpac PROPERTIES
+                IMPORTED_LOCATION "${GPAC_LIBDIR}/${CMAKE_SHARED_LIBRARY_PREFIX}gpac${CMAKE_SHARED_LIBRARY_SUFFIX}"
+                INTERFACE_INCLUDE_DIRECTORIES "${GPAC_INCLUDEDIR}"
+            )
+        endif()
+        set(GPAC_FOUND TRUE)
     endif()
 endif()
-
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 

@@ -13,7 +13,7 @@ target_link_libraries(TsMuxer
 
 # Include directories
 target_include_directories(TsMuxer PUBLIC
-    ${CMAKE_SOURCE_DIR}/src
+    ${SIGNALS_TOP_SOURCE_DIR}/src
 )
 
 # Set properties for the target

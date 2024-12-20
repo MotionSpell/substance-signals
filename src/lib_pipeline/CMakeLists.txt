@@ -23,7 +23,7 @@ set_target_properties(pipeline PROPERTIES
 # Add include directories
 target_include_directories(pipeline PUBLIC 
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>               
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src>
+    $<BUILD_INTERFACE:${SIGNALS_TOP_SOURCE_DIR}/src>
     $<INSTALL_INTERFACE:include/signals>
 )
 

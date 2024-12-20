@@ -3,13 +3,13 @@ set(TESTSDIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(OUTDIR ${CMAKE_BINARY_DIR}/bin)  
 
 file(GLOB LIB_MODULES_SRCS 
-    ${CMAKE_SOURCE_DIR}/src/lib_modules/utils/*.cpp
-    ${CMAKE_SOURCE_DIR}/src/lib_modules/core/*.cpp
+    ${SIGNALS_TOP_SOURCE_DIR}/src/lib_modules/utils/*.cpp
+    ${SIGNALS_TOP_SOURCE_DIR}/src/lib_modules/core/*.cpp
 )
 
 
 file(GLOB LIB_MEDIA_SRCS 
-    ${CMAKE_SOURCE_DIR}/src/lib_media/*.cpp
+    ${SIGNALS_TOP_SOURCE_DIR}/src/lib_media/*.cpp
 )
 
 
@@ -17,7 +17,7 @@ file(GLOB LIB_MEDIA_SRCS
 # Define the source files for the unit tests
 set(EXE_TESTS_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/tests.cpp
-    ${CMAKE_SOURCE_DIR}/src/lib_appcommon/options.cpp
+    ${SIGNALS_TOP_SOURCE_DIR}/src/lib_appcommon/options.cpp
     ${LIB_MEDIA_SRCS}
     ${LIB_MODULES_SRCS}
     ${LIB_PIPELINE_SRCS}
@@ -25,7 +25,7 @@ set(EXE_TESTS_SRCS
 )
 
 # Add any additional source files from the 'unittests' directories
-file(GLOB_RECURSE UNITTEST_SOURCES "${CMAKE_SOURCE_DIR}/src/*/unittests/*.cpp")
+file(GLOB_RECURSE UNITTEST_SOURCES "${SIGNALS_TOP_SOURCE_DIR}/src/*/unittests/*.cpp")
 list(APPEND EXE_TESTS_SRCS ${UNITTEST_SOURCES})
 
 # Define the unit tests executable target
@@ -44,7 +44,7 @@ target_link_libraries(unittests
 
 # Include directories for unit tests 
 target_include_directories(unittests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
+    ${SIGNALS_TOP_SOURCE_DIR}/src
     ${FFMPEG_INCLUDE_DIRS}
 )
 

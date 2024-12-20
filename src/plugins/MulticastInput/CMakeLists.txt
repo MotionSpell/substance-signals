@@ -35,7 +35,7 @@ endif()
 
 # Include directories
 target_include_directories(MulticastInput PUBLIC
-    ${CMAKE_SOURCE_DIR}/src
+    ${SIGNALS_TOP_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}  
 )
 

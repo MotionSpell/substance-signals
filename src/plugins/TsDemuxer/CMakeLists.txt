@@ -11,7 +11,7 @@ target_link_libraries(TsDemuxer
 
 # Include directories
 target_include_directories(TsDemuxer PUBLIC
-    ${CMAKE_SOURCE_DIR}/src
+    ${SIGNALS_TOP_SOURCE_DIR}/src
 )
 
 # Set properties for the target

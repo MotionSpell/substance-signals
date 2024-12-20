@@ -14,7 +14,7 @@ target_link_libraries(TeletextToTTML
 # Include directories
 target_include_directories(TeletextToTTML 
     PUBLIC
-    ${CMAKE_SOURCE_DIR}/src
+    ${SIGNALS_TOP_SOURCE_DIR}/src
     ${FFMPEG_INCLUDE_DIRS}
 )
 

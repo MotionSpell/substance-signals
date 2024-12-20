@@ -16,9 +16,9 @@ set_target_properties(modules PROPERTIES
 # Add include directories
 target_include_directories(modules PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src>
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src/lib_modules/utils>
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src/lib_modules/core>
+    $<BUILD_INTERFACE:${SIGNALS_TOP_SOURCE_DIR}/src>
+    $<BUILD_INTERFACE:${SIGNALS_TOP_SOURCE_DIR}/src/lib_modules/utils>
+    $<BUILD_INTERFACE:${SIGNALS_TOP_SOURCE_DIR}/src/lib_modules/core>
     $<INSTALL_INTERFACE:include/signals>
 )
 
