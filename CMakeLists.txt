@@ -66,12 +66,12 @@ file(MAKE_DIRECTORY ${SIGNALS_VERSION_HEADER_DIR})
 # Generate signals_version.h using version.sh
 set(SIGNALS_VERSION_HEADER "${SIGNALS_VERSION_HEADER_DIR}/signals_version.h")
 file(WRITE "${SIGNALS_VERSION_HEADER}" "\"unknown-unknown-unknown\"")
-if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-    execute_process(
-        COMMAND "${SCRIPTS_DIR}/version.sh"
-        OUTPUT_FILE "${SIGNALS_VERSION_HEADER}"
-    )
-endif()
+#if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+#    execute_process(
+#        COMMAND "${SCRIPTS_DIR}/version.sh"
+#        OUTPUT_FILE "${SIGNALS_VERSION_HEADER}"
+#    )
+#endif()
 
 message(STATUS "Generated signals_version.h available at ${SIGNALS_VERSION_HEADER}")
 
