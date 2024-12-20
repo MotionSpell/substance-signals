@@ -30,7 +30,7 @@ else()
     message(ERROR "Unknown CMAKE_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}")
 endif()
 
-add_library(utils STATIC)
+add_library(utils SHARED)
 target_sources(utils PRIVATE 
     ${LIB_UTILS_SRCS}
     ${LIB_UTILS_INCS}
