@@ -24,7 +24,7 @@ target_include_directories(HlsDemuxer PRIVATE
 
 # Link the necessary libraries
 target_link_libraries(HlsDemuxer PRIVATE
-    media modules pipeline appcommon utils curl
+    media modules pipeline appcommon utils CURL::libcurl
 )
 
 # Set properties for the target
