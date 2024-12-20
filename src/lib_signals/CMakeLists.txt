@@ -6,6 +6,7 @@ set(LIB_SIGNALS_INCS
 )
 # Add the library target
 add_library(lib_signals INTERFACE)
+add_library(signals::lib_signals ALIAS lib_signals)
 
 # Specify include directories for the library
 target_include_directories(lib_signals

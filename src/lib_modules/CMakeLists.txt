@@ -7,6 +7,7 @@ add_library(modules SHARED
     ${CMAKE_CURRENT_SOURCE_DIR}/utils/factory.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utils/loader.cpp
 )
+add_library(signals::modules ALIAS modules)
 
 set_target_properties(modules PROPERTIES
     OUTPUT_NAME signals_modules

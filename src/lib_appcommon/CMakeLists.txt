@@ -9,6 +9,7 @@ set(LIB_APPCOMMON_SRCS
 )
 
 add_library(appcommon STATIC ${LIB_APPCOMMON_SRCS})
+add_library(signals::appcommon ALIAS appcommon)
 
 set_target_properties(appcommon PROPERTIES
     OUTPUT_NAME signals_appcommon

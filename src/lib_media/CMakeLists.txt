@@ -30,6 +30,7 @@ set(LIB_MEDIA_SRCS
 
 # Define the media library
 add_library(media STATIC ${LIB_MEDIA_SRCS})
+add_library(signals::media ALIAS media)
 
 set_target_properties(media PROPERTIES
     OUTPUT_NAME signals_media
@@ -742,6 +743,7 @@ set(EXE_LOGOOVERLAY_SRCS
 )
 list(APPEND EXE_LOGOOVERLAY_SRCS ${LIB_MODULES_SRCS})
 add_library(LogoOverlay SHARED ${EXE_LOGOOVERLAY_SRCS})
+
 target_include_directories(LogoOverlay 
     PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR} 

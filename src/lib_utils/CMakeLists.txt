@@ -31,6 +31,8 @@ else()
 endif()
 
 add_library(utils SHARED)
+add_library(signals::utils ALIAS utils)
+
 target_sources(utils PRIVATE 
     ${LIB_UTILS_SRCS}
     ${LIB_UTILS_INCS}

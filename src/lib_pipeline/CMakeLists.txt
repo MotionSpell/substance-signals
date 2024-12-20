@@ -14,6 +14,7 @@ set(LIB_PIPELINE_SRCS
 )
 
 add_library(pipeline STATIC ${LIB_PIPELINE_SRCS})
+add_library(signals::pipeline ALIAS pipeline)
 
 set_target_properties(pipeline PROPERTIES
     OUTPUT_NAME signals_pipeline
