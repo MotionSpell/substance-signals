@@ -29,6 +29,10 @@ target_link_libraries(MulticastInput
     modules  
 )
 
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+    target_link_libraries(MulticastInput ws2_32)
+endif()
+
 # Include directories
 target_include_directories(MulticastInput PUBLIC
     ${CMAKE_SOURCE_DIR}/src
