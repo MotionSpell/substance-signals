@@ -38,7 +38,7 @@ target_link_libraries(unittests
     modules
     pipeline
     utils
-    curl
+    CURL::libcurl
     ${FFMPEG_LIBRARIES}
 )
 
