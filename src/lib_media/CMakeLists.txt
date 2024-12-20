@@ -79,8 +79,8 @@ target_link_libraries(media
     pipeline 
     appcommon 
     utils
-    gpac::gpac 
-    CURL::libcurl
+    $<BUILD_INTERFACE:gpac::gpac>
+    $<BUILD_INTERFACE:CURL::libcurl>
     )
 
 # xxxjack I think this should go... Won't we link to some objects twice?
