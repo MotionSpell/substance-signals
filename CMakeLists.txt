@@ -98,9 +98,10 @@ if (NOT GPAC_FOUND)
     pkg_check_modules(GPAC REQUIRED gpac)
     add_library(gpac::gpac SHARED IMPORTED)
     if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+        # xxxjack this is valid for mingw.
         set_target_properties(gpac::gpac PROPERTIES
             IMPORTED_IMPLIB "${GPAC_LIBDIR}/libgpac.dll.a"
-            IMPORTED_LOCATION "${GPAC_LIBDIR}/../bin/gpac.dll"
+            IMPORTED_LOCATION "${GPAC_LIBDIR}/../bin/libgpac.dll"
             INTERFACE_INCLUDE_DIRECTORIES "${GPAC_INCLUDEDIR}"
         )
     else()
