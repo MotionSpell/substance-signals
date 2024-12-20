@@ -1,3 +1,9 @@
+set(LIB_SIGNALS_INCS
+    executor_threadpool.hpp
+    executor.hpp
+    signal.hpp
+    signals.hpp
+)
 # Add the library target
 add_library(lib_signals INTERFACE)
 
@@ -25,6 +31,11 @@ install(TARGETS lib_signals
 	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 	PUBLIC_HEADER DESTINATION include/signals
+)
+
+
+install(FILES ${LIB_SIGNALS_INCS}
+    DESTINATION include/signals/lib_signals
 )
 
 #install(DIRECTORY ${PROJECT_SOURCE_DIR}
