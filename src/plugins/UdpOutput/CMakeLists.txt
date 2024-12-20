@@ -29,6 +29,10 @@ target_link_libraries(UdpOutput
     modules 
 )
 
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+    target_link_libraries(UdpOutput ws2_32)
+endif()
+
 # Include directories
 target_include_directories(UdpOutput PUBLIC
     ${CMAKE_SOURCE_DIR}/src
