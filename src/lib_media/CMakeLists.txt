@@ -84,12 +84,6 @@ target_link_libraries(media
     $<BUILD_INTERFACE:CURL::libcurl>
     )
 
-# xxxjack I think this should go... Won't we link to some objects twice?
-file(GLOB LIB_MODULES_SRCS 
-    ${CMAKE_SOURCE_DIR}/src/lib_modules/utils/*.cpp
-    ${CMAKE_SOURCE_DIR}/src/lib_modules/core/*.cpp
-)
-
 # Define source files for the AVCC2AnnexBConverter
 set(EXE_AVCC2ANNEXBCONVERTER_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/transform/avcc2annexb.cpp
@@ -773,5 +767,41 @@ install(TARGETS LogoOverlay
 
 add_custom_command(TARGET LogoOverlay POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:LogoOverlay> $<TARGET_RUNTIME_DLLS:LogoOverlay>
+  COMMAND_EXPAND_LISTS
+)
+
+# HTTPSink target
+set(EXE_HTTPSINK_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/out/http_sink.cpp
+)
+list(APPEND EXE_FILESYSTEMSINK_SRCS ${LIB_MODULES_SRCS})
+add_library(HttpSink SHARED ${EXE_HTTPSINK_SRCS})
+target_include_directories(HttpSink 
+    PRIVATE 
+    ${CMAKE_CURRENT_SOURCE_DIR} 
+    ${CMAKE_SOURCE_DIR}/src/
+    )
+target_link_libraries(HttpSink 
+    PRIVATE 
+    media 
+    modules 
+    pipeline 
+    appcommon 
+    utils
+    )
+set_target_properties(HttpSink PROPERTIES 
+    OUTPUT_NAME "HttpSink" 
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin 
+    SUFFIX ".smd" 
+    PREFIX ""
+    )
+
+install(TARGETS HttpSink
+	EXPORT HttpSink
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+add_custom_command(TARGET HttpSink POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:HttpSink> $<TARGET_RUNTIME_DLLS:HttpSink>
   COMMAND_EXPAND_LISTS
 )
