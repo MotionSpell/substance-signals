@@ -32,6 +32,7 @@ target_include_directories(pipeline PUBLIC
 target_link_libraries(pipeline 
     PRIVATE 
     appcommon 
+    modules
     utils
     )
 
