@@ -52,6 +52,8 @@ install(TARGETS MulticastInput
 	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
+install(FILES $<TARGET_RUNTIME_DLLS:MulticastInput> TYPE BIN)
+
 add_custom_command(TARGET MulticastInput POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:MulticastInput> $<TARGET_RUNTIME_DLLS:MulticastInput>
   COMMAND_EXPAND_LISTS
