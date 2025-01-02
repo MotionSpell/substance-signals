@@ -112,26 +112,7 @@ target_link_libraries(AVCC2AnnexBConverter
     utils
     )
 
-set_target_properties(AVCC2AnnexBConverter PROPERTIES
-    OUTPUT_NAME "AVCC2AnnexBConverter"         
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin  
-    SUFFIX ".smd"  # Set the custom file extension to .smd
-    PREFIX ""  
-)
-
-
-install(TARGETS AVCC2AnnexBConverter
-	EXPORT AVCC2AnnexBConverter
-	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
-
-# install(FILES $<TARGET_RUNTIME_DLLS:AVCC2AnnexBConverter> TYPE BIN)
-
-#add_custom_command(TARGET AVCC2AnnexBConverter POST_BUILD
-#  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:AVCC2AnnexBConverter> $<TARGET_RUNTIME_DLLS:AVCC2AnnexBConverter>
-#  COMMAND_EXPAND_LISTS
-#)
-
+signals_install_plugin(AVCC2AnnexBConverter)
 
 # Define source files for the LibavMuxHLSTS
 set(EXE_LIBAVMUXHLSTS_SRCS
@@ -164,25 +145,7 @@ target_link_libraries(LibavMuxHLSTS
     ${FFMPEG_LIBRARIES}
     )
 
-# Set target properties
-set_target_properties(LibavMuxHLSTS PROPERTIES
-    OUTPUT_NAME "LibavMuxHLSTS"
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-    SUFFIX ".smd"  # Set the custom file extension to .smd
-    PREFIX ""
-)
-
-install(TARGETS LibavMuxHLSTS
-	EXPORT LibavMuxHLSTS
-	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
-
-# install(FILES $<TARGET_RUNTIME_DLLS:LibavMuxHLSTS> TYPE BIN)
-
-#add_custom_command(TARGET LibavMuxHLSTS POST_BUILD
-#  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:LibavMuxHLSTS> $<TARGET_RUNTIME_DLLS:LibavMuxHLSTS>
-#  COMMAND_EXPAND_LISTS
-#)
+signals_install_plugin(LibavMuxHLSTS)
 
 # Define source files for the VideoConvert target
 set(EXE_VIDEOCONVERTER_SRCS
@@ -211,25 +174,7 @@ target_link_libraries(VideoConvert PRIVATE
     ${FFMPEG_LIBRARIES}
 )
 
-# Set properties for the target
-set_target_properties(VideoConvert PROPERTIES
-    OUTPUT_NAME "VideoConvert"  # Output name without extension
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-    SUFFIX ".smd"  # Set the custom file extension to .smd
-    PREFIX ""  # 
-)
-
-install(TARGETS VideoConvert
-	EXPORT VideoConvert
-	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
-
-# install(FILES $<TARGET_RUNTIME_DLLS:VideoConvert> TYPE BIN)
-
-#add_custom_command(TARGET VideoConvert POST_BUILD
-#  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:VideoConvert> $<TARGET_RUNTIME_DLLS:VideoConvert>
-#  COMMAND_EXPAND_LISTS
-#)
+signals_install_plugin(VideoConvert)
 
 # AudioConvert target
 set(EXE_AUDIOCONVERTER_SRCS
@@ -253,24 +198,8 @@ target_link_libraries(AudioConvert
     utils 
     ${FFMPEG_LIBRARIES}
     )
-set_target_properties(AudioConvert PROPERTIES 
-    OUTPUT_NAME "AudioConvert" 
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin 
-    SUFFIX ".smd" 
-    PREFIX ""
-    )
 
-install(TARGETS AudioConvert
-	EXPORT AudioConvert
-	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
-
-# install(FILES $<TARGET_RUNTIME_DLLS:AudioConvert> TYPE BIN)
-
-#add_custom_command(TARGET AudioConvert POST_BUILD
-#  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:AudioConvert> $<TARGET_RUNTIME_DLLS:AudioConvert>
-#  COMMAND_EXPAND_LISTS
-#)
+signals_install_plugin(AudioConvert)
 
 # JPEGTurboDecode target
 set(EXE_JPEGTURBODECODE_SRCS
@@ -292,31 +221,8 @@ target_link_libraries(JPEGTurboDecode
     utils 
     libjpeg-turbo::turbojpeg
     )
-set_target_properties(JPEGTurboDecode PROPERTIES 
-    OUTPUT_NAME "JPEGTurboDecode" 
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin 
-    SUFFIX ".smd" 
-    PREFIX ""
-    )
-
-install(TARGETS JPEGTurboDecode
-    RUNTIME_DEPENDENCY_SET JPEGTurboDecode_Deps
-	EXPORT JPEGTurboDecode
-	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
-set(CMAKE_MINGW_SYSTEM_LIBRARY_PATH "C:/msys64/ucrt64/bin")
-install(RUNTIME_DEPENDENCY_SET JPEGTurboDecode_Deps
-    PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
-    POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
-    DIRECTORIES ${CMAKE_SYSTEM_LIBRARY_PATH} ${CMAKE_MINGW_SYSTEM_LIBRARY_PATH}
-)
-
-#install(FILES $<TARGET_RUNTIME_DLLS:JPEGTurboDecode> TYPE BIN)
-
-#add_custom_command(TARGET JPEGTurboDecode POST_BUILD
-#  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:JPEGTurboDecode> $<TARGET_RUNTIME_DLLS:JPEGTurboDecode>
-#  COMMAND_EXPAND_LISTS
-#)
+    
+signals_install_plugin(JPEGTurboDecode)
 
 # JPEGTurboEncode target
 set(EXE_JPEGTURBOENCODE_SRCS
@@ -335,25 +241,8 @@ target_link_libraries(JPEGTurboEncode
     utils 
     libjpeg-turbo::turbojpeg
     )
-set_target_properties(JPEGTurboEncode PROPERTIES 
-    OUTPUT_NAME "JPEGTurboEncode" 
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin 
-    SUFFIX ".smd" 
-    PREFIX ""
-    )
 
-
-install(TARGETS JPEGTurboEncode
-	EXPORT JPEGTurboEncode
-	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
-
-# install(FILES $<TARGET_RUNTIME_DLLS:JPEGTurboEncode> TYPE BIN)
-
-#add_custom_command(TARGET JPEGTurboEncode POST_BUILD
-#  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:JPEGTurboEncode> $<TARGET_RUNTIME_DLLS:JPEGTurboEncode>
-#  COMMAND_EXPAND_LISTS
-#)
+signals_install_plugin(JPEGTurboEncode)
 
 # Encoder target
 set(EXE_ENCODER_SRCS
@@ -380,24 +269,8 @@ target_link_libraries(Encoder
     utils 
     ${FFMPEG_LIBRARIES}
     )
-set_target_properties(Encoder PROPERTIES 
-    OUTPUT_NAME "Encoder" 
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin 
-    SUFFIX ".smd" 
-    PREFIX ""
-    )
 
-install(TARGETS Encoder
-	EXPORT Encoder
-	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
-
-# install(FILES $<TARGET_RUNTIME_DLLS:Encoder> TYPE BIN)
-
-#add_custom_command(TARGET Encoder POST_BUILD
-#  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:Encoder> $<TARGET_RUNTIME_DLLS:Encoder>
-#  COMMAND_EXPAND_LISTS
-#)
+signals_install_plugin(Encoder)
 
 # Decoder target
 set(EXE_DECODER_SRCS
@@ -422,24 +295,8 @@ target_link_libraries(Decoder
     utils 
     ${FFMPEG_LIBRARIES}
     )
-set_target_properties(Decoder PROPERTIES 
-    OUTPUT_NAME "Decoder" 
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin 
-    SUFFIX ".smd" 
-    PREFIX ""
-    )
 
-install(TARGETS Decoder
-	EXPORT Decoder
-	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
-
-# install(FILES $<TARGET_RUNTIME_DLLS:Decoder> TYPE BIN)
-
-#add_custom_command(TARGET Decoder POST_BUILD
-#  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:Decoder> $<TARGET_RUNTIME_DLLS:Decoder>
-#  COMMAND_EXPAND_LISTS
-#)
+signals_install_plugin(Decoder)
 
 # LibavDemux target
 set(EXE_LIBAVDEMUX_SRCS
@@ -465,25 +322,8 @@ target_link_libraries(LibavDemux
     utils 
     ${FFMPEG_LIBRARIES}
     )
-set_target_properties(LibavDemux 
-    PROPERTIES 
-    OUTPUT_NAME "LibavDemux" 
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin 
-    SUFFIX ".smd" 
-    PREFIX ""
-    )
 
-install(TARGETS LibavDemux
-	EXPORT LibavDemux
-	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
-
-# install(FILES $<TARGET_RUNTIME_DLLS:LibavDemux> TYPE BIN)
-
-#add_custom_command(TARGET LibavDemux POST_BUILD
-#  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:LibavDemux> $<TARGET_RUNTIME_DLLS:LibavDemux>
-#  COMMAND_EXPAND_LISTS
-#)
+signals_install_plugin(LibavDemux)
 
 # LibavMux target
 set(EXE_LIBAVMUX_SRCS
@@ -508,25 +348,8 @@ target_link_libraries(LibavMux
     utils 
     ${FFMPEG_LIBRARIES}
     )
-set_target_properties(LibavMux PROPERTIES 
-    OUTPUT_NAME "LibavMux" 
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin 
-    SUFFIX ".smd" 
-    PREFIX ""
-    )
 
-
-install(TARGETS LibavMux
-	EXPORT LibavMux
-	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
-
-# install(FILES $<TARGET_RUNTIME_DLLS:LibavMux> TYPE BIN)
-
-#add_custom_command(TARGET LibavMux POST_BUILD
-#  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:LibavMux> $<TARGET_RUNTIME_DLLS:LibavMux>
-#  COMMAND_EXPAND_LISTS
-#)
+signals_install_plugin(LibavMux)
 
 # LibavFilter target
 set(EXE_LIBAVFILTER_SRCS
@@ -551,24 +374,8 @@ target_link_libraries(LibavFilter
     utils 
     ${FFMPEG_LIBRARIES}
 )
-set_target_properties(LibavFilter PROPERTIES 
-    OUTPUT_NAME "LibavFilter" 
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin 
-    SUFFIX ".smd" 
-    PREFIX ""
-    )
 
-install(TARGETS LibavFilter
-	EXPORT LibavFilter
-	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
-
-# install(FILES $<TARGET_RUNTIME_DLLS:LibavFilter> TYPE BIN)
-
-#add_custom_command(TARGET LibavFilter POST_BUILD
-#  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:LibavFilter> $<TARGET_RUNTIME_DLLS:LibavFilter>
-#  COMMAND_EXPAND_LISTS
-#)
+signals_install_plugin(LibavFilter)
 
 # GPACMuxMP4 target
 set(EXE_GPACMUXMP4_SRCS
@@ -592,24 +399,8 @@ target_link_libraries(GPACMuxMP4
     gpac::gpac
     ${FFMPEG_LIBRARIES}
     )
-set_target_properties(GPACMuxMP4 PROPERTIES 
-    OUTPUT_NAME "GPACMuxMP4" 
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin 
-    SUFFIX ".smd" 
-    PREFIX ""
-    )
 
-install(TARGETS GPACMuxMP4
-	EXPORT GPACMuxMP4
-	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
-
-# install(FILES $<TARGET_RUNTIME_DLLS:GPACMuxMP4> TYPE BIN)
-
-#add_custom_command(TARGET GPACMuxMP4 POST_BUILD
-#  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:GPACMuxMP4> $<TARGET_RUNTIME_DLLS:GPACMuxMP4>
-#  COMMAND_EXPAND_LISTS
-#)
+signals_install_plugin(GPACMuxMP4)
 
 # GPACMuxMP4MSS target
 set(EXE_GPACMUXMP4MSS_SRCS
@@ -632,25 +423,8 @@ target_link_libraries(GPACMuxMP4MSS
     utils 
     gpac::gpac
     )
-set_target_properties(GPACMuxMP4MSS PROPERTIES 
-    OUTPUT_NAME "GPACMuxMP4MSS" 
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin 
-    SUFFIX ".smd" 
-    PREFIX ""
-    )
 
-install(TARGETS GPACMuxMP4MSS
-	EXPORT GPACMuxMP4MSS
-	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
-
-# install(FILES $<TARGET_RUNTIME_DLLS:GPACMuxMP4MSS> TYPE BIN)
-
-#add_custom_command(TARGET GPACMuxMP4MSS POST_BUILD
-#  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:GPACMuxMP4MSS> $<TARGET_RUNTIME_DLLS:GPACMuxMP4MSS>
-#  COMMAND_EXPAND_LISTS
-#)
-
+signals_install_plugin(GPACMuxMP4MSS)
 
 # GPACDemuxMP4Simple target
 set(EXE_GPACDEMUXMP4SIMPLE_SRCS
@@ -672,25 +446,8 @@ target_link_libraries(GPACDemuxMP4Simple
     utils 
     gpac::gpac
     )
-set_target_properties(GPACDemuxMP4Simple PROPERTIES 
-    OUTPUT_NAME "GPACDemuxMP4Simple" 
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin 
-    SUFFIX ".smd" 
-    PREFIX ""
-    )
 
-
-install(TARGETS GPACDemuxMP4Simple
-	EXPORT GPACDemuxMP4Simple
-	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
-
-# install(FILES $<TARGET_RUNTIME_DLLS:GPACDemuxMP4Simple> TYPE BIN)
-
-#add_custom_command(TARGET GPACDemuxMP4Simple POST_BUILD
-#  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:GPACDemuxMP4Simple> $<TARGET_RUNTIME_DLLS:GPACDemuxMP4Simple>
-#  COMMAND_EXPAND_LISTS
-#)
+signals_install_plugin(GPACDemuxMP4Simple)
 
 # GPACDemuxMP4Full target
 set(EXE_GPACDEMUXMP4FULL_SRCS
@@ -713,24 +470,8 @@ target_link_libraries(GPACDemuxMP4Full
     gpac::gpac
     ${FFMPEG_LIBRARIES}
     )
-set_target_properties(GPACDemuxMP4Full PROPERTIES 
-    OUTPUT_NAME "GPACDemuxMP4Full" 
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin 
-    SUFFIX ".smd" 
-    PREFIX ""
-    )
 
-install(TARGETS GPACDemuxMP4Full
-	EXPORT GPACDemuxMP4Full
-	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
-
-# install(FILES $<TARGET_RUNTIME_DLLS:GPACDemuxMP4Full> TYPE BIN)
-
-#add_custom_command(TARGET GPACDemuxMP4Full POST_BUILD
-#  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:GPACDemuxMP4Full> $<TARGET_RUNTIME_DLLS:GPACDemuxMP4Full>
-#  COMMAND_EXPAND_LISTS
-#)
+signals_install_plugin(GPACDemuxMP4Full)
 
 # FileSystemSink target
 set(EXE_FILESYSTEMSINK_SRCS
@@ -751,24 +492,8 @@ target_link_libraries(FileSystemSink
     appcommon 
     utils
     )
-set_target_properties(FileSystemSink PROPERTIES 
-    OUTPUT_NAME "FileSystemSink" 
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin 
-    SUFFIX ".smd" 
-    PREFIX ""
-    )
 
-install(TARGETS FileSystemSink
-	EXPORT FileSystemSink
-	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
-
-# install(FILES $<TARGET_RUNTIME_DLLS:FileSystemSink> TYPE BIN)
-
-#add_custom_command(TARGET FileSystemSink POST_BUILD
-#  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:FileSystemSink> $<TARGET_RUNTIME_DLLS:FileSystemSink>
-#  COMMAND_EXPAND_LISTS
-#)
+signals_install_plugin(FileSystemSink)
 
 # LogoOverlay target
 set(EXE_LOGOOVERLAY_SRCS
@@ -791,25 +516,7 @@ target_link_libraries(LogoOverlay
     utils
     )
     
-set_target_properties(LogoOverlay PROPERTIES 
-    OUTPUT_NAME "LogoOverlay" 
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin 
-    SUFFIX ".smd" 
-    PREFIX ""
-    )
-
-
-install(TARGETS LogoOverlay
-	EXPORT LogoOverlay
-	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
-
-# install(FILES $<TARGET_RUNTIME_DLLS:LogoOverlay> TYPE BIN)
-
-#add_custom_command(TARGET LogoOverlay POST_BUILD
-#  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:LogoOverlay> $<TARGET_RUNTIME_DLLS:LogoOverlay>
-#  COMMAND_EXPAND_LISTS
-#)
+signals_install_plugin(LogoOverlay)
 
 # HTTPSink target
 set(EXE_HTTPSINK_SRCS
@@ -830,21 +537,5 @@ target_link_libraries(HttpSink
     appcommon 
     utils
     )
-set_target_properties(HttpSink PROPERTIES 
-    OUTPUT_NAME "HttpSink" 
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin 
-    SUFFIX ".smd" 
-    PREFIX ""
-    )
 
-install(TARGETS HttpSink
-	EXPORT HttpSink
-	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
-
-# install(FILES $<TARGET_RUNTIME_DLLS:HttpSink> TYPE BIN)
-
-#add_custom_command(TARGET HttpSink POST_BUILD
-#  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:HttpSink> $<TARGET_RUNTIME_DLLS:HttpSink>
-#  COMMAND_EXPAND_LISTS
-#)
+signals_install_plugin(HttpSink)

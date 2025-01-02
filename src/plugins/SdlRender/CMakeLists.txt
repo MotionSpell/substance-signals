@@ -22,24 +22,7 @@ target_include_directories(SDLVideo PUBLIC
     ${SDL2_INCLUDE_DIRS}
 )
 
-# Set properties for the target
-set_target_properties(SDLVideo PROPERTIES
-    OUTPUT_NAME "SDLVideo"  # Output name without extension
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-    SUFFIX ".smd"  # Set the custom file extension to .smd
-    PREFIX ""  # 
-)
-
-install(TARGETS SDLVideo
-	EXPORT SDLVideo
-	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
-install(FILES $<TARGET_RUNTIME_DLLS:SDLVideo> TYPE BIN)
-
-add_custom_command(TARGET SDLVideo POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:SDLVideo> $<TARGET_RUNTIME_DLLS:SDLVideo>
-  COMMAND_EXPAND_LISTS
-)
+signals_install_plugin(SDLVideo)
 
 # Define the SDLAudio plugin
 set(SDLAudio_src
@@ -56,29 +39,4 @@ target_link_libraries(SDLAudio
     SDL2::SDL2  # Link SDL2
 )
 
-# Include directories for SDLAudio
-target_include_directories(SDLAudio PUBLIC
-    ${SIGNALS_TOP_SOURCE_DIR}/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/plugins/SdlRender
-    ${SDL2_INCLUDE_DIRS}
-)
-
-# Set properties for SDLAudio target
-set_target_properties(SDLAudio PROPERTIES
-    OUTPUT_NAME "SDLAudio"  # Output name without extension
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-    SUFFIX ".smd"  # Set the custom file extension to .smd
-    PREFIX ""  # 
-)
-
-install(TARGETS SDLAudio
-	EXPORT SDLAudio
-	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
-
-install(FILES $<TARGET_RUNTIME_DLLS:SDLAudio> TYPE BIN)
-
-add_custom_command(TARGET SDLAudio POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:SDLAudio> $<TARGET_RUNTIME_DLLS:SDLAudio>
-  COMMAND_EXPAND_LISTS
-)
+signals_install_plugin(SDLAudio)

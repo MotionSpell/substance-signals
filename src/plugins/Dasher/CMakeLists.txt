@@ -28,22 +28,5 @@ target_link_libraries(MPEG_DASH PRIVATE
     media modules pipeline appcommon utils
 )
 
-# Set properties for the target
-set_target_properties(MPEG_DASH PROPERTIES
-    OUTPUT_NAME "MPEG_DASH"  # Output name without extension
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-    SUFFIX ".smd"  # Set the custom file extension to .smd
-    PREFIX ""  # 
-)
+signals_install_plugin(MPEG_DASH)
 
-install(TARGETS MPEG_DASH
-	EXPORT MPEG_DASH
-	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
-
-install(FILES $<TARGET_RUNTIME_DLLS:MPEG_DASH> TYPE BIN)
-
-add_custom_command(TARGET MPEG_DASH POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:MPEG_DASH> $<TARGET_RUNTIME_DLLS:MPEG_DASH>
-  COMMAND_EXPAND_LISTS
-)

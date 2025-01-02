@@ -10,6 +10,8 @@ set(CMAKE_MODULE_PATH
 	${CMAKE_MODULE_PATH}
 	)
 
+include(SignalsMacros)
+
     # Set the C++ standard
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -18,7 +20,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # xxxjack some are actually dependent on the toolchain...
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     add_compile_options(-Wall -Wextra -Werror -fvisibility=default -fvisibility-inlines-hidden -Wno-deprecated-declarations)
-
+  
     # Debug-specific options
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
         add_compile_options(-g3)
@@ -54,7 +56,6 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 else()
     message(FATAL_ERROR " Unknown CMAKE_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}")
 endif()
-
 
 # Define paths for source and scripts
 set(SCRIPTS_DIR "${CMAKE_SOURCE_DIR}/scripts")

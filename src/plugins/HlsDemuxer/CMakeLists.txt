@@ -27,22 +27,4 @@ target_link_libraries(HlsDemuxer PRIVATE
     media modules pipeline appcommon utils CURL::libcurl
 )
 
-# Set properties for the target
-set_target_properties(HlsDemuxer PROPERTIES
-    OUTPUT_NAME "HlsDemuxer"  # Output name without extension
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-    SUFFIX ".smd"  # Set the custom file extension to .smd
-    PREFIX ""  # 
-)
-
-install(TARGETS HlsDemuxer
-	EXPORT HlsDemuxer
-	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
-
-install(FILES $<TARGET_RUNTIME_DLLS:HlsDemuxer> TYPE BIN)
-
-add_custom_command(TARGET HlsDemuxer POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:HlsDemuxer> $<TARGET_RUNTIME_DLLS:HlsDemuxer>
-  COMMAND_EXPAND_LISTS
-)
+signals_install_plugin(HlsDemuxer)

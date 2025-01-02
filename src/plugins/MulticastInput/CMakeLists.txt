@@ -39,22 +39,4 @@ target_include_directories(MulticastInput PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}  
 )
 
-# Set properties for the target
-set_target_properties(MulticastInput PROPERTIES
-    OUTPUT_NAME "MulticastInput"  
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-    SUFFIX ".smd"  # Set the custom file extension to .smd
-    PREFIX ""  # 
-)
-
-install(TARGETS MulticastInput
-	EXPORT MulticastInput
-	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
-
-install(FILES $<TARGET_RUNTIME_DLLS:MulticastInput> TYPE BIN)
-
-add_custom_command(TARGET MulticastInput POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:MulticastInput> $<TARGET_RUNTIME_DLLS:MulticastInput>
-  COMMAND_EXPAND_LISTS
-)
+signals_install_plugin(MulticastInput)

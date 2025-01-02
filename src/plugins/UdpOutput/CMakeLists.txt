@@ -39,22 +39,4 @@ target_include_directories(UdpOutput PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}  
 )
 
-# Set properties for the target
-set_target_properties(UdpOutput PROPERTIES
-    OUTPUT_NAME "UdpOutput"  
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-    SUFFIX ".smd"  # Set the custom file extension to .smd
-    PREFIX ""  # 
-)
-
-install(TARGETS UdpOutput
-	EXPORT UdpOutput
-	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
-
-install(FILES $<TARGET_RUNTIME_DLLS:UdpOutput> TYPE BIN)
-
-add_custom_command(TARGET UdpOutput POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:UdpOutput> $<TARGET_RUNTIME_DLLS:UdpOutput>
-  COMMAND_EXPAND_LISTS
-)
+signals_install_plugin(UdpOutput)
