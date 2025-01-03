@@ -1,27 +1,51 @@
 # List of source files for the utils library
-set(LIB_UTILS_SRCS
+set(LIB_UTILS_INCS
     clock.hpp
     fifo.hpp
-    log.cpp
+    fraction.hpp
     log.hpp
     os.hpp
-    os_gnu.cpp # workaround for linux to be removed 
-    profiler.cpp
     profiler.hpp
-    scheduler.cpp
     scheduler.hpp
-    time.cpp
     time.hpp
-    version.cpp
+    tools.hpp
+    small_map.hpp
     system_clock.hpp
+)
+set(LIB_UTILS_SRCS
+    log.cpp
+    profiler.cpp
+    scheduler.cpp
+    time.cpp
+    version.cpp
     sysclock.cpp
 )
-include_directories(${BIN_DIR}
-${CMAKE_SOURCE_DIR}/src 
-)
-list(APPEND LIB_UTILS_SRCS ${GENERATED_SIGNALS_VERSION_HEADER})
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    list(APPEND LIB_UTILS_SRCS os_mingw.cpp)
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    list(APPEND LIB_UTILS_SRCS os_darwin.cpp)
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    list(APPEND LIB_UTILS_SRCS os_gnu.cpp)
+else()
+    message(ERROR "Unknown CMAKE_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}")
+endif()
 
-add_library(utils STATIC ${LIB_UTILS_SRCS})
+add_library(utils SHARED)
+add_library(signals::utils ALIAS utils)
+
+target_sources(utils PRIVATE 
+    ${LIB_UTILS_SRCS}
+    ${LIB_UTILS_INCS}
+    )
+target_sources(utils INTERFACE 
+    $<BUILD_INTERFACE:${LIB_UTIL_INCS}>
+    $<INSTALL_INTERFACE:$<LIST:TRANSFORM,${LIB_UTIL_INCS},PREPEND,include/signals/lib_utils/>>
+    )
+
+set_target_properties(utils PROPERTIES
+    OUTPUT_NAME signals_utils
+    POSITION_INDEPENDENT_CODE TRUE
+    )
 
 # Platform-specific adjustments
 if(APPLE)
@@ -37,14 +61,33 @@ elseif(WIN32)
     list(APPEND LIB_UTILS_SRCS os_mingw.cpp)
 endif()
 
-set(BIN_DIR ${CMAKE_BINARY_DIR}/bin)
-
 # Specify include directories for the utils target
 target_include_directories(utils PUBLIC 
-    ${CMAKE_CURRENT_SOURCE_DIR}  
-    ${CMAKE_CURRENT_SOURCE_DIR}/lib_utils  
-    ${BIN_DIR}  
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib_utils>
+    $<BUILD_INTERFACE:${SIGNALS_VERSION_HEADER_DIR}>
+    $<INSTALL_INTERFACE:include/signals>
 )
 
-# Add -fPIC (required for shared libraries)
-target_compile_options(utils PRIVATE -fPIC)
+# Installation (optional) to be tested later
+install(TARGETS utils 
+    EXPORT signals-utils
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    PUBLIC_HEADER DESTINATION include/signals
+)
+
+export(
+    EXPORT signals-utils
+    NAMESPACE signals::
+)
+
+install(EXPORT signals-utils
+    NAMESPACE signals::
+    DESTINATION lib/cmake/signals
+)
+
+install(FILES ${LIB_UTILS_INCS}
+    DESTINATION include/signals/lib_utils
+)

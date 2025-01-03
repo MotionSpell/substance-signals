@@ -1,61 +1,129 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.28)
 
 project(Signals VERSION 1.0)
+# Set toplevel signals directory here, so the CMakefiles work both standalone and under the lldash umbrella
+set(SIGNALS_TOP_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 
-# Set the C++ standard
+# Add extension directories (for things like Find<package>)
+set(CMAKE_MODULE_PATH
+	${CMAKE_CURRENT_LIST_DIR}/CMakeFiles
+	${CMAKE_MODULE_PATH}
+	)
+
+include(SignalsMacros)
+
+    # Set the C++ standard
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Global compiler options
-add_compile_options(-Wall -Wextra -Werror -fvisibility=hidden -fvisibility-inlines-hidden -Wno-deprecated-declarations)
+# Change some compiler options that are dependent on the target platform.
+# xxxjack some are actually dependent on the toolchain...
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+    add_compile_options(-Wall -Wextra -Werror -fvisibility=default -fvisibility-inlines-hidden -Wno-deprecated-declarations)
+  
+    # Debug-specific options
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        add_compile_options(-g3)
+    endif()
 
-# Debug-specific options
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    add_compile_options(-g3)
+    # Release-specific options
+    if(CMAKE_BUILD_TYPE STREQUAL "Release")
+        add_compile_options(-w -DNDEBUG)
+    endif()
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+    add_compile_options(-Wall -Wextra -Werror -fvisibility=default -fvisibility-inlines-hidden -Wno-deprecated-declarations)
+    # Debug-specific options
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        add_compile_options(-g3)
+    endif()
+
+    # Release-specific options
+    if(CMAKE_BUILD_TYPE STREQUAL "Release")
+        add_compile_options(-w -DNDEBUG)
+    endif()
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+    add_compile_options(-Wall -Wextra -Werror -fvisibility=default -fvisibility-inlines-hidden -Wno-deprecated-declarations)
+
+    # Debug-specific options
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        add_compile_options(-g3)
+    endif()
+
+    # Release-specific options
+    if(CMAKE_BUILD_TYPE STREQUAL "Release")
+        add_compile_options(-w -DNDEBUG)
+    endif()
+else()
+    message(FATAL_ERROR " Unknown CMAKE_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}")
 endif()
-
-# Release-specific options
-if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    add_compile_options(-w -DNDEBUG)
-    add_link_options(-s)
-endif()
-
-# Add all the source subdirectories
-add_subdirectory(src)
 
 # Define paths for source and scripts
 set(SCRIPTS_DIR "${CMAKE_SOURCE_DIR}/scripts")
-set(SRC_DIR "${CMAKE_SOURCE_DIR}/src")
+set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(BIN_DIR "${CMAKE_BINARY_DIR}/bin")
-
-file(MAKE_DIRECTORY ${BIN_DIR})
+set(SIGNALS_VERSION_HEADER_DIR "${CMAKE_BINARY_DIR}/version") # xxxjack not very elegant...
+file(MAKE_DIRECTORY ${SIGNALS_VERSION_HEADER_DIR})
 
 # Generate signals_version.h using version.sh
-add_custom_command(
-    OUTPUT ${BIN_DIR}/signals_version.h
-    COMMAND ${CMAKE_COMMAND} -E echo "Working directory: ${CMAKE_BINARY_DIR}"
-    COMMAND ${SCRIPTS_DIR}/version.sh
-    COMMAND ${CMAKE_COMMAND} -E echo "Version script executed"
-    COMMAND ${SCRIPTS_DIR}/version.sh > ${BIN_DIR}/signals_version.h
-    DEPENDS ${SCRIPTS_DIR}/version.sh
-    COMMENT "Generating signals_version.h"
-)
-# Add a custom target to trigger the custom command
-add_custom_target(generate_signals_version_header ALL DEPENDS ${BIN_DIR}/signals_version.h)
-
-
-# Ensure the generated signals_version.h is available globally
-set(SIGNALS_VERSION_HEADER "${BIN_DIR}/signals_version.h")
-
-# Include directories for global availability
-include_directories(${BIN_DIR})
-
-# make the version header available as part of a global variable
-# to be  accessible in other sub-projects or libraries
-set(GENERATED_SIGNALS_VERSION_HEADER ${SIGNALS_VERSION_HEADER})
+set(SIGNALS_VERSION_HEADER "${SIGNALS_VERSION_HEADER_DIR}/signals_version.h")
+file(WRITE "${SIGNALS_VERSION_HEADER}" "\"unknown-unknown-unknown\"")
+#if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+#    execute_process(
+#        COMMAND "${SCRIPTS_DIR}/version.sh"
+#        OUTPUT_FILE "${SIGNALS_VERSION_HEADER}"
+#    )
+#endif()
 
 message(STATUS "Generated signals_version.h available at ${SIGNALS_VERSION_HEADER}")
 
+# Install version header
+install(FILES ${SIGNALS_VERSION_HEADER} DESTINATION include/signals)
+# Ensure SYSROOT_PATH is valid
+if(NOT SYSROOT_PATH)
+elseif(NOT EXISTS ${SYSROOT_PATH})
+    message(STATUS "No SYSROOT_PATH pre-set, not using sysroot")
+else()
+
+    message(STATUS "Using SYSROOT_PATH: ${SYSROOT_PATH}")
+
+    # Set pkg-config path
+    set(ENV{PKG_CONFIG_PATH} "${SYSROOT_PATH}/lib/pkgconfig")
+endif()
+
+find_package(PkgConfig REQUIRED)
+find_package(SDL2 REQUIRED)
+find_package(libjpeg-turbo REQUIRED)
+find_package(CURL REQUIRED)
+find_package(FFmpeg REQUIRED COMPONENTS AVUTIL AVFILTER AVCODEC AVFORMAT AVDEVICE SWSCALE SWRESAMPLE)
+if (NOT TARGET gpac::gpac)
+    find_package(GPAC QUIET)
+    if (NOT GPAC_FOUND)
+        # Find it using pkgconfig, for now.
+        # This is a huge hack, especially the way we get the windows IMPORTED_LOCATION
+        pkg_check_modules(GPAC REQUIRED gpac)
+        add_library(gpac::gpac SHARED IMPORTED)
+        if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+            # xxxjack this is valid for mingw.
+            set_target_properties(gpac::gpac PROPERTIES
+                IMPORTED_IMPLIB "${GPAC_LIBDIR}/libgpac.dll.a"
+                IMPORTED_LOCATION "${GPAC_LIBDIR}/../bin/libgpac.dll"
+                INTERFACE_INCLUDE_DIRECTORIES "${GPAC_INCLUDEDIR}"
+            )
+        else()
+            set_target_properties(gpac::gpac PROPERTIES
+                IMPORTED_LOCATION "${GPAC_LIBDIR}/${CMAKE_SHARED_LIBRARY_PREFIX}gpac${CMAKE_SHARED_LIBRARY_SUFFIX}"
+                INTERFACE_INCLUDE_DIRECTORIES "${GPAC_INCLUDEDIR}"
+            )
+        endif()
+        set(GPAC_FOUND TRUE)
+    endif()
+endif()
+
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+
+# Add all the source subdirectories
+add_subdirectory(src)
 
 # Add custom targets for easy builds
 add_custom_target(build_all
@@ -76,33 +144,31 @@ add_custom_target(build_all
     COMMENT "Building all targets."
 )
 
+# Install CMake config files for find_package
+include(CMakePackageConfigHelpers)
 
+# Configure the package version
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/signals-config-version.cmake"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY AnyNewerVersion
+)
 
-# Check if SYSROOT_PATH is set via an environment variable
-if(DEFINED ENV{SYSROOT_PATH})
-    set(SYSROOT_PATH $ENV{SYSROOT_PATH})
-elseif(EXISTS "${CMAKE_SOURCE_DIR}/sysroot")
-    # If not set, use a default relative path or fail gracefully
-    set(SYSROOT_PATH "${CMAKE_SOURCE_DIR}/sysroot")
-endif()
+# Install configuration
+#install(EXPORT SignalsTargets
+#    FILE SignalsTargets.cmake
+#    NAMESPACE Signals::
+#    DESTINATION lib/cmake/Signals
+#)
 
-# Ensure SYSROOT_PATH is valid
-if(NOT EXISTS ${SYSROOT_PATH})
-    message(FATAL_ERROR "SYSROOT_PATH does not exist or is invalid: ${SYSROOT_PATH}")
-endif()
+configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/signals-config.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/signals-config.cmake"
+    INSTALL_DESTINATION lib/cmake/signals
+)
 
-message(STATUS "Using SYSROOT_PATH: ${SYSROOT_PATH}")
-
-# Add the include and lib directories from SYSROOT_PATH
-include_directories(${SYSROOT_PATH}/include)
-link_directories(${SYSROOT_PATH}/lib)
-
-# Set pkg-config path
-set(PKG_CONFIG_PATH ${SYSROOT_PATH}/lib/pkgconfig)
-
-
-
-
-find_package(PkgConfig REQUIRED)
-
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/signals-config.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/signals-config-version.cmake"
+    DESTINATION lib/cmake/signals
+)

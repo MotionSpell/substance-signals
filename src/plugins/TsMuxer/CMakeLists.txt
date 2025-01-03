@@ -6,17 +6,14 @@ add_library(TsMuxer SHARED
     )
 
 # Link dependencies if any
-target_link_libraries(TsMuxer ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(TsMuxer 
+    ${CMAKE_THREAD_LIBS_INIT}
+    modules
+    )
 
 # Include directories
 target_include_directories(TsMuxer PUBLIC
-    ${CMAKE_SOURCE_DIR}/src
+    ${SIGNALS_TOP_SOURCE_DIR}/src
 )
 
-# Set properties for the target
-set_target_properties(TsMuxer PROPERTIES
-    OUTPUT_NAME "TsMuxer"  # Output name without extension
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-    SUFFIX ".smd"  # Set the custom file extension to .smd
-    PREFIX ""  # 
-)
+signals_install_plugin(TsMuxer)

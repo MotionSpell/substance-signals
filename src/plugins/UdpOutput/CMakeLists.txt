@@ -25,19 +25,18 @@ add_library(UdpOutput SHARED ${UdpOutput_src})
 
 # Link dependencies
 target_link_libraries(UdpOutput
-    ${CMAKE_THREAD_LIBS_INIT}  
+    ${CMAKE_THREAD_LIBS_INIT} 
+    modules 
 )
+
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+    target_link_libraries(UdpOutput ws2_32)
+endif()
 
 # Include directories
 target_include_directories(UdpOutput PUBLIC
-    ${CMAKE_SOURCE_DIR}/src
+    ${SIGNALS_TOP_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}  
 )
 
-# Set properties for the target
-set_target_properties(UdpOutput PROPERTIES
-    OUTPUT_NAME "UdpOutput"  
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-    SUFFIX ".smd"  # Set the custom file extension to .smd
-    PREFIX ""  # 
-)
+signals_install_plugin(UdpOutput)

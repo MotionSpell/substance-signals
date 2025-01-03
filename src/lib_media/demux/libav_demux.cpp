@@ -86,7 +86,7 @@ struct LibavDemux : Module {
 				m_formatCtx->flags |= AVFMT_FLAG_CUSTOM_IO;
 			}
 
-			AVInputFormat* avInputFormat = nullptr;
+			const AVInputFormat* avInputFormat = nullptr;
 
 			if(!config.formatName.empty()) {
 				avInputFormat = av_find_input_format(config.formatName.c_str());
@@ -105,8 +105,6 @@ struct LibavDemux : Module {
 			if(!avInputFormat) {
 				m_host->log(Info, format("Using input format '%s'", m_formatCtx->iformat->name).c_str());
 			}
-
-			m_formatCtx->flags |= AVFMT_FLAG_KEEP_SIDE_DATA; //deprecated >= 3.5 https://github.com/FFmpeg/FFmpeg/commit/ca2b779423
 
 			if (config.seekTimeInMs) {
 				if (avformat_seek_file(m_formatCtx, -1, INT64_MIN, rescale(config.seekTimeInMs, 1000, AV_TIME_BASE), INT64_MAX, 0) < 0) {
@@ -132,6 +130,8 @@ struct LibavDemux : Module {
 		for (unsigned i = 0; i<m_formatCtx->nb_streams; i++) {
 			auto const st = m_formatCtx->streams[i];
 			auto const parser = av_stream_get_parser(st);
+#ifdef xxxjack_removed
+			//xxxjack I don't know how to fix this code.
 			if (parser) {
 				st->codec->ticks_per_frame = parser->repeat_pict + 1;
 			} else {
@@ -180,6 +180,7 @@ struct LibavDemux : Module {
 			m_streams[i].output = addOutput();
 			m_streams[i].output->setMetadata(m);
 			av_dump_format(m_formatCtx, i, url.c_str(), 0);
+#endif // xxxjack
 		}
 	}
 

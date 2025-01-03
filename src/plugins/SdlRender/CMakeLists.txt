@@ -12,21 +12,17 @@ add_library(SDLVideo SHARED ${SDLVideo_src})
 # Link dependencies
 target_link_libraries(SDLVideo
     ${CMAKE_THREAD_LIBS_INIT}  
+    modules
     SDL2::SDL2  
 )
 
 # Include directories
 target_include_directories(SDLVideo PUBLIC
-    ${CMAKE_SOURCE_DIR}/src
+    ${SIGNALS_TOP_SOURCE_DIR}/src
+    ${SDL2_INCLUDE_DIRS}
 )
 
-# Set properties for the target
-set_target_properties(SDLVideo PROPERTIES
-    OUTPUT_NAME "SDLVideo"  # Output name without extension
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-    SUFFIX ".smd"  # Set the custom file extension to .smd
-    PREFIX ""  # 
-)
+signals_install_plugin(SDLVideo)
 
 # Define the SDLAudio plugin
 set(SDLAudio_src
@@ -38,20 +34,9 @@ add_library(SDLAudio SHARED ${SDLAudio_src})
 
 # Link dependencies
 target_link_libraries(SDLAudio
-    ${CMAKE_THREAD_LIBS_INIT}  
+    ${CMAKE_THREAD_LIBS_INIT} 
+    modules 
     SDL2::SDL2  # Link SDL2
 )
 
-# Include directories for SDLAudio
-target_include_directories(SDLAudio PUBLIC
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/plugins/SdlRender  
-)
-
-# Set properties for SDLAudio target
-set_target_properties(SDLAudio PROPERTIES
-    OUTPUT_NAME "SDLAudio"  # Output name without extension
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-    SUFFIX ".smd"  # Set the custom file extension to .smd
-    PREFIX ""  # 
-)
+signals_install_plugin(SDLAudio)

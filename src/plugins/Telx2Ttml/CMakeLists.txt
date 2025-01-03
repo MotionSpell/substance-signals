@@ -5,17 +5,17 @@ add_library(TeletextToTTML SHARED
     )
 
 # Link dependencies if any
-target_link_libraries(TeletextToTTML ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(TeletextToTTML 
+    ${CMAKE_THREAD_LIBS_INIT} 
+    modules
+    ${FFMPEG_LIBRARIES}
+    )
 
 # Include directories
-target_include_directories(TeletextToTTML PUBLIC
-    ${CMAKE_SOURCE_DIR}/src
+target_include_directories(TeletextToTTML 
+    PUBLIC
+    ${SIGNALS_TOP_SOURCE_DIR}/src
+    ${FFMPEG_INCLUDE_DIRS}
 )
 
-# Set properties for the target
-set_target_properties(TeletextToTTML PROPERTIES
-    OUTPUT_NAME "TeletextToTTML"  # Output name without extension
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-    SUFFIX ".smd"  # Set the custom file extension to .smd
-    PREFIX ""  # 
-)
+signals_install_plugin(TeletextToTTML)
