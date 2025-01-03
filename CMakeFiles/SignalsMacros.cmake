@@ -18,11 +18,12 @@ install(TARGETS ${_component}
     RUNTIME_DEPENDENCY_SET ${_component}_Deps
 	EXPORT ${_component}
 	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    FRAMEWORK DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
 install(RUNTIME_DEPENDENCY_SET ${_component}_Deps
     PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
-    POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
+    POST_EXCLUDE_REGEXES ".*system32/.*\\.dll" "Frameworks"
     DIRECTORIES ${CMAKE_SYSTEM_LIBRARY_PATH} ${CMAKE_MINGW_SYSTEM_LIBRARY_PATH}
 )
 #install(FILES $<TARGET_RUNTIME_DLLS:${_component}> TYPE BIN)
@@ -49,7 +50,7 @@ install(TARGETS ${_component}
 
 install(RUNTIME_DEPENDENCY_SET ${_component}_Deps
     PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
-    POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
+    POST_EXCLUDE_REGEXES ".*system32/.*\\.dll" "Frameworks"
     DIRECTORIES ${CMAKE_SYSTEM_LIBRARY_PATH} ${CMAKE_MINGW_SYSTEM_LIBRARY_PATH}
 )
 #install(FILES $<TARGET_RUNTIME_DLLS:${_component}> TYPE BIN)
