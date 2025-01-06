@@ -1,5 +1,5 @@
 # Define the library target
-add_library(modules SHARED
+add_library(modules STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/core/allocator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/connection.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/data.cpp
@@ -69,12 +69,12 @@ install(TARGETS modules
     PUBLIC_HEADER DESTINATION include/signals
 )
 
-install(FILES $<TARGET_RUNTIME_DLLS:modules> TYPE BIN)
-
-add_custom_command(TARGET modules POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:modules> $<TARGET_RUNTIME_DLLS:modules>
-  COMMAND_EXPAND_LISTS
-)
+#install(FILES $<TARGET_RUNTIME_DLLS:modules> TYPE BIN)
+#
+#add_custom_command(TARGET modules POST_BUILD
+#  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:modules> $<TARGET_RUNTIME_DLLS:modules>
+#  COMMAND_EXPAND_LISTS
+#)
 
 
 
