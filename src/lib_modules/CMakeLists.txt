@@ -9,10 +9,7 @@ add_library(modules STATIC
 )
 add_library(signals::modules ALIAS modules)
 
-set_target_properties(modules PROPERTIES
-    OUTPUT_NAME signals_modules
-    POSITION_INDEPENDENT_CODE TRUE
-    )
+signals_install_library(modules STATIC)
 
 # Add include directories
 target_include_directories(modules PUBLIC
@@ -54,39 +51,6 @@ target_link_libraries(modules
     "$<LINK_LIBRARY:WHOLE_ARCHIVE:utils>"
     utils
     )
-
-# Set output directory
-#set_target_properties(modules PROPERTIES
-#    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-#)
-
-# Installation (optional) to be tested later
-install(TARGETS modules
-    EXPORT signals-modules
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    PUBLIC_HEADER DESTINATION include/signals
-)
-
-#install(FILES $<TARGET_RUNTIME_DLLS:modules> TYPE BIN)
-#
-#add_custom_command(TARGET modules POST_BUILD
-#  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:modules> $<TARGET_RUNTIME_DLLS:modules>
-#  COMMAND_EXPAND_LISTS
-#)
-
-
-
-export(
-    EXPORT signals-modules
-    NAMESPACE signals::
-)
-
-install(EXPORT signals-modules
-    NAMESPACE signals::
-    DESTINATION lib/cmake/signals
-)
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     DESTINATION include/signals/

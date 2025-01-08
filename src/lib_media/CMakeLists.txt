@@ -32,10 +32,7 @@ set(LIB_MEDIA_SRCS
 add_library(media STATIC ${LIB_MEDIA_SRCS})
 add_library(signals::media ALIAS media)
 
-set_target_properties(media PROPERTIES
-    OUTPUT_NAME signals_media
-    POSITION_INDEPENDENT_CODE TRUE
-    )
+signals_install_library(media STATIC)
 
 target_include_directories(media PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
@@ -43,37 +40,12 @@ target_include_directories(media PUBLIC
     $<INSTALL_INTERFACE:include/signals>
 )
 
-# Installation (optional) to be tested later
-install(TARGETS media 
-    EXPORT signals-media
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    PUBLIC_HEADER DESTINATION include/signals
-)
-
-# Hmm. libmedia is a static library, so it can't be used for TARGET_RUNTIME_DLLs.
-# Let's hope the smd's below will pick up the needed dependencies.
-#add_custom_command(TARGET media POST_BUILD
-#  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:media> $<TARGET_RUNTIME_DLLS:media>
-#  COMMAND_EXPAND_LISTS
-#)
-
-export(
-    EXPORT signals-media
-    NAMESPACE signals::
-)
-
-install(EXPORT signals-media
-    NAMESPACE signals::
-    DESTINATION lib/cmake/signals
-)
-
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     DESTINATION include/signals/
     FILES_MATCHING
     PATTERN "*.hpp"
 )
+
 target_link_libraries(media 
     PUBLIC 
     modules 

@@ -33,19 +33,18 @@ endif()
 add_library(utils SHARED)
 add_library(signals::utils ALIAS utils)
 
+signals_install_library(utils SHARED)
+
 target_sources(utils PRIVATE 
     ${LIB_UTILS_SRCS}
     ${LIB_UTILS_INCS}
     )
+
 target_sources(utils INTERFACE 
     $<BUILD_INTERFACE:${LIB_UTIL_INCS}>
     $<INSTALL_INTERFACE:$<LIST:TRANSFORM,${LIB_UTIL_INCS},PREPEND,include/signals/lib_utils/>>
     )
 
-set_target_properties(utils PROPERTIES
-    OUTPUT_NAME signals_utils
-    POSITION_INDEPENDENT_CODE TRUE
-    )
 
 # Platform-specific adjustments
 if(APPLE)
@@ -67,25 +66,6 @@ target_include_directories(utils PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib_utils>
     $<BUILD_INTERFACE:${SIGNALS_VERSION_HEADER_DIR}>
     $<INSTALL_INTERFACE:include/signals>
-)
-
-# Installation (optional) to be tested later
-install(TARGETS utils 
-    EXPORT signals-utils
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    PUBLIC_HEADER DESTINATION include/signals
-)
-
-export(
-    EXPORT signals-utils
-    NAMESPACE signals::
-)
-
-install(EXPORT signals-utils
-    NAMESPACE signals::
-    DESTINATION lib/cmake/signals
 )
 
 install(FILES ${LIB_UTILS_INCS}

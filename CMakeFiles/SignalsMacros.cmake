@@ -5,59 +5,99 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     set(CMAKE_MINGW_SYSTEM_LIBRARY_PATH "C:/msys64/ucrt64/bin")
 endif()
 
-macro(signals_install_plugin _component)
+macro(signals_install_library _component _type)
 
-set_target_properties(${_component} PROPERTIES 
-    OUTPUT_NAME "${_component}" 
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin 
-    SUFFIX ".smd" 
-    PREFIX ""
+    set_target_properties(${_component} PROPERTIES 
+        OUTPUT_NAME "${_component}" 
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin 
+        ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
+        LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
+        )
+    if (${_type} STREQUAL "STATIC")
+        # No need to find runtime dependencies for static libraries
+        install(TARGETS ${_component}
+            EXPORT signals-${_component}
+            RUNTIME DESTINATION bin
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib
+            FRAMEWORK DESTINATION lib
+            PUBLIC_HEADER DESTINATION include/signals
+        )
+        set_target_properties(${_component} PROPERTIES
+            OUTPUT_NAME signals_${_component}
+            POSITION_INDEPENDENT_CODE TRUE
+        )
+    else()
+        install(TARGETS ${_component}
+            RUNTIME_DEPENDENCY_SET ${_component}_Deps
+            EXPORT signals-${_component}
+            RUNTIME DESTINATION bin
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib
+            FRAMEWORK DESTINATION lib
+        )
+
+        install(RUNTIME_DEPENDENCY_SET ${_component}_Deps
+            PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
+            POST_EXCLUDE_REGEXES ".*system32/.*\\.dll" "Frameworks"
+            DIRECTORIES ${CMAKE_SYSTEM_LIBRARY_PATH} ${CMAKE_MINGW_SYSTEM_LIBRARY_PATH}
+        )
+    endif()
+
+    export(
+        EXPORT signals-${_component}
+        NAMESPACE signals::
     )
 
-install(TARGETS ${_component}
-    RUNTIME_DEPENDENCY_SET ${_component}_Deps
-	EXPORT ${_component}
-	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    FRAMEWORK DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
+    install(EXPORT signals-${_component}
+        NAMESPACE signals::
+        DESTINATION lib/cmake/signals
+    )
+   
+endmacro()
 
-install(RUNTIME_DEPENDENCY_SET ${_component}_Deps
-    PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
-    POST_EXCLUDE_REGEXES ".*system32/.*\\.dll" "Frameworks"
-    DIRECTORIES ${CMAKE_SYSTEM_LIBRARY_PATH} ${CMAKE_MINGW_SYSTEM_LIBRARY_PATH}
-)
-#install(FILES $<TARGET_RUNTIME_DLLS:${_component}> TYPE BIN)
-#
-#add_custom_command(TARGET ${_component} POST_BUILD
-#  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:${_component}> $<TARGET_RUNTIME_DLLS:${_component}>
-#  COMMAND_EXPAND_LISTS
-#)
+macro(signals_install_plugin _component)
+
+    set_target_properties(${_component} PROPERTIES 
+        OUTPUT_NAME "${_component}" 
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin 
+        SUFFIX ".smd" 
+        PREFIX ""
+        )
+
+    install(TARGETS ${_component}
+        RUNTIME_DEPENDENCY_SET ${_component}_Deps
+        EXPORT ${_component}
+        LIBRARY DESTINATION lib
+        RUNTIME DESTINATION bin
+        FRAMEWORK DESTINATION lib
+    )
+
+    install(RUNTIME_DEPENDENCY_SET ${_component}_Deps
+        PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
+        POST_EXCLUDE_REGEXES ".*system32/.*\\.dll" "Frameworks"
+        DIRECTORIES ${CMAKE_SYSTEM_LIBRARY_PATH} ${CMAKE_MINGW_SYSTEM_LIBRARY_PATH}
+    )
 
 endmacro()
 
 macro(signals_install_app _component)
 
-set_target_properties(${_component} PROPERTIES 
-    OUTPUT_NAME "${_component}" 
-    SUFFIX ".exe" 
+    set_target_properties(${_component} PROPERTIES 
+        OUTPUT_NAME "${_component}" 
+        SUFFIX ".exe" 
+        )
+
+    install(TARGETS ${_component}
+        RUNTIME_DEPENDENCY_SET ${_component}_Deps
+        EXPORT ${_component}
+        RUNTIME DESTINATION bin
     )
 
-install(TARGETS ${_component}
-    RUNTIME_DEPENDENCY_SET ${_component}_Deps
-	EXPORT ${_component}
-	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
-
-install(RUNTIME_DEPENDENCY_SET ${_component}_Deps
-    PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
-    POST_EXCLUDE_REGEXES ".*system32/.*\\.dll" "Frameworks"
-    DIRECTORIES ${CMAKE_SYSTEM_LIBRARY_PATH} ${CMAKE_MINGW_SYSTEM_LIBRARY_PATH}
-)
-#install(FILES $<TARGET_RUNTIME_DLLS:${_component}> TYPE BIN)
-#
-#add_custom_command(TARGET ${_component} POST_BUILD
-#  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:${_component}> $<TARGET_RUNTIME_DLLS:${_component}>
-#  COMMAND_EXPAND_LISTS
-#)
+    install(RUNTIME_DEPENDENCY_SET ${_component}_Deps
+        PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
+        POST_EXCLUDE_REGEXES ".*system32/.*\\.dll" "Frameworks"
+        DIRECTORIES ${CMAKE_SYSTEM_LIBRARY_PATH} ${CMAKE_MINGW_SYSTEM_LIBRARY_PATH}
+    )
 
 endmacro()
