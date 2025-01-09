@@ -8,7 +8,7 @@ endif()
 macro(signals_install_library _component _type)
 
     set_target_properties(${_component} PROPERTIES 
-        OUTPUT_NAME "${_component}" 
+        OUTPUT_NAME "signals-${_component}" 
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin 
         ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
         LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
