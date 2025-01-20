@@ -39,7 +39,11 @@ macro(signals_install_library _component _type)
 
         install(RUNTIME_DEPENDENCY_SET ${_component}_Deps
             PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
-            POST_EXCLUDE_REGEXES ".*system32/.*\\.dll" "Frameworks"
+            POST_EXCLUDE_REGEXES 
+                ".*system32/.*\\.dll" 
+                "Frameworks"
+                "/lib/x86_64-linux-gnu"
+                "/lib64"
             DIRECTORIES ${CMAKE_SYSTEM_LIBRARY_PATH} ${CMAKE_MINGW_SYSTEM_LIBRARY_PATH}
         )
     endif()
@@ -75,7 +79,11 @@ macro(signals_install_plugin _component)
 
     install(RUNTIME_DEPENDENCY_SET ${_component}_Deps
         PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
-        POST_EXCLUDE_REGEXES ".*system32/.*\\.dll" "Frameworks"
+        POST_EXCLUDE_REGEXES 
+            ".*system32/.*\\.dll" 
+            "Frameworks"
+            "/lib/x86_64-linux-gnu"
+            "/lib64"
         DIRECTORIES ${CMAKE_SYSTEM_LIBRARY_PATH} ${CMAKE_MINGW_SYSTEM_LIBRARY_PATH}
     )
 
@@ -96,7 +104,11 @@ macro(signals_install_app _component)
 
     install(RUNTIME_DEPENDENCY_SET ${_component}_Deps
         PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
-        POST_EXCLUDE_REGEXES ".*system32/.*\\.dll" "Frameworks"
+        POST_EXCLUDE_REGEXES 
+            ".*system32/.*\\.dll" 
+            "Frameworks"
+            "/lib/x86_64-linux-gnu"
+            "/lib64"
         DIRECTORIES ${CMAKE_SYSTEM_LIBRARY_PATH} ${CMAKE_MINGW_SYSTEM_LIBRARY_PATH}
     )
 
