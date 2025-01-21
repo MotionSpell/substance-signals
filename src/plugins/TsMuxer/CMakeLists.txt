@@ -16,4 +16,4 @@ target_include_directories(TsMuxer PUBLIC
     ${SIGNALS_TOP_SOURCE_DIR}/src
 )
 
-signals_install_plugin(TsMuxer)
+signals_install_plugin(TsMuxer ".smd")

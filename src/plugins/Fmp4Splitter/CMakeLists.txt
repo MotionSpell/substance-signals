@@ -14,4 +14,4 @@ target_include_directories(Fmp4Splitter PUBLIC
     ${SIGNALS_TOP_SOURCE_DIR}/src
 )
 
-signals_install_plugin(Fmp4Splitter)
+signals_install_plugin(Fmp4Splitter ".smd")

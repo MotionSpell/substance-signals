@@ -18,4 +18,4 @@ target_include_directories(TeletextToTTML
     ${FFMPEG_INCLUDE_DIRS}
 )
 
-signals_install_plugin(TeletextToTTML)
+signals_install_plugin(TeletextToTTML ".smd")

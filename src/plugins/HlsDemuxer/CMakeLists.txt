@@ -27,4 +27,4 @@ target_link_libraries(HlsDemuxer PRIVATE
     media modules pipeline appcommon utils CURL::libcurl
 )
 
-signals_install_plugin(HlsDemuxer)
+signals_install_plugin(HlsDemuxer ".smd")

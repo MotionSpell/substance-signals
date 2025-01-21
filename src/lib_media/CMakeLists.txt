@@ -84,7 +84,7 @@ target_link_libraries(AVCC2AnnexBConverter
     utils
     )
 
-signals_install_plugin(AVCC2AnnexBConverter)
+signals_install_plugin(AVCC2AnnexBConverter ".smd")
 
 # Define source files for the LibavMuxHLSTS
 set(EXE_LIBAVMUXHLSTS_SRCS
@@ -117,7 +117,7 @@ target_link_libraries(LibavMuxHLSTS
     ${FFMPEG_LIBRARIES}
     )
 
-signals_install_plugin(LibavMuxHLSTS)
+signals_install_plugin(LibavMuxHLSTS ".smd")
 
 # Define source files for the VideoConvert target
 set(EXE_VIDEOCONVERTER_SRCS
@@ -146,7 +146,7 @@ target_link_libraries(VideoConvert PRIVATE
     ${FFMPEG_LIBRARIES}
 )
 
-signals_install_plugin(VideoConvert)
+signals_install_plugin(VideoConvert ".smd")
 
 # AudioConvert target
 set(EXE_AUDIOCONVERTER_SRCS
@@ -171,7 +171,7 @@ target_link_libraries(AudioConvert
     ${FFMPEG_LIBRARIES}
     )
 
-signals_install_plugin(AudioConvert)
+signals_install_plugin(AudioConvert ".smd")
 
 # JPEGTurboDecode target
 set(EXE_JPEGTURBODECODE_SRCS
@@ -194,7 +194,7 @@ target_link_libraries(JPEGTurboDecode
     libjpeg-turbo::turbojpeg
     )
     
-signals_install_plugin(JPEGTurboDecode)
+signals_install_plugin(JPEGTurboDecode ".smd")
 
 # JPEGTurboEncode target
 set(EXE_JPEGTURBOENCODE_SRCS
@@ -214,7 +214,7 @@ target_link_libraries(JPEGTurboEncode
     libjpeg-turbo::turbojpeg
     )
 
-signals_install_plugin(JPEGTurboEncode)
+signals_install_plugin(JPEGTurboEncode ".smd")
 
 # Encoder target
 set(EXE_ENCODER_SRCS
@@ -242,7 +242,7 @@ target_link_libraries(Encoder
     ${FFMPEG_LIBRARIES}
     )
 
-signals_install_plugin(Encoder)
+signals_install_plugin(Encoder ".smd")
 
 # Decoder target
 set(EXE_DECODER_SRCS
@@ -268,7 +268,7 @@ target_link_libraries(Decoder
     ${FFMPEG_LIBRARIES}
     )
 
-signals_install_plugin(Decoder)
+signals_install_plugin(Decoder ".smd")
 
 # LibavDemux target
 set(EXE_LIBAVDEMUX_SRCS
@@ -295,7 +295,7 @@ target_link_libraries(LibavDemux
     ${FFMPEG_LIBRARIES}
     )
 
-signals_install_plugin(LibavDemux)
+signals_install_plugin(LibavDemux ".smd")
 
 # LibavMux target
 set(EXE_LIBAVMUX_SRCS
@@ -321,7 +321,7 @@ target_link_libraries(LibavMux
     ${FFMPEG_LIBRARIES}
     )
 
-signals_install_plugin(LibavMux)
+signals_install_plugin(LibavMux ".smd")
 
 # LibavFilter target
 set(EXE_LIBAVFILTER_SRCS
@@ -347,7 +347,7 @@ target_link_libraries(LibavFilter
     ${FFMPEG_LIBRARIES}
 )
 
-signals_install_plugin(LibavFilter)
+signals_install_plugin(LibavFilter ".smd")
 
 # GPACMuxMP4 target
 set(EXE_GPACMUXMP4_SRCS
@@ -372,7 +372,7 @@ target_link_libraries(GPACMuxMP4
     ${FFMPEG_LIBRARIES}
     )
 
-signals_install_plugin(GPACMuxMP4)
+signals_install_plugin(GPACMuxMP4 ".smd")
 
 # GPACMuxMP4MSS target
 set(EXE_GPACMUXMP4MSS_SRCS
@@ -396,7 +396,7 @@ target_link_libraries(GPACMuxMP4MSS
     gpac::gpac
     )
 
-signals_install_plugin(GPACMuxMP4MSS)
+signals_install_plugin(GPACMuxMP4MSS ".smd")
 
 # GPACDemuxMP4Simple target
 set(EXE_GPACDEMUXMP4SIMPLE_SRCS
@@ -419,7 +419,7 @@ target_link_libraries(GPACDemuxMP4Simple
     gpac::gpac
     )
 
-signals_install_plugin(GPACDemuxMP4Simple)
+signals_install_plugin(GPACDemuxMP4Simple ".smd")
 
 # GPACDemuxMP4Full target
 set(EXE_GPACDEMUXMP4FULL_SRCS
@@ -443,7 +443,7 @@ target_link_libraries(GPACDemuxMP4Full
     ${FFMPEG_LIBRARIES}
     )
 
-signals_install_plugin(GPACDemuxMP4Full)
+signals_install_plugin(GPACDemuxMP4Full ".smd")
 
 # FileSystemSink target
 set(EXE_FILESYSTEMSINK_SRCS
@@ -465,7 +465,7 @@ target_link_libraries(FileSystemSink
     utils
     )
 
-signals_install_plugin(FileSystemSink)
+signals_install_plugin(FileSystemSink ".smd")
 
 # LogoOverlay target
 set(EXE_LOGOOVERLAY_SRCS
@@ -488,7 +488,7 @@ target_link_libraries(LogoOverlay
     utils
     )
     
-signals_install_plugin(LogoOverlay)
+signals_install_plugin(LogoOverlay ".smd")
 
 # HTTPSink target
 set(EXE_HTTPSINK_SRCS
@@ -510,4 +510,4 @@ target_link_libraries(HttpSink
     utils
     )
 
-signals_install_plugin(HttpSink)
+signals_install_plugin(HttpSink ".smd")

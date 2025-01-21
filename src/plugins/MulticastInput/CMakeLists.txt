@@ -39,4 +39,4 @@ target_include_directories(MulticastInput PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}  
 )
 
-signals_install_plugin(MulticastInput)
+signals_install_plugin(MulticastInput ".smd")

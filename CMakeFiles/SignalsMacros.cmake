@@ -60,12 +60,15 @@ macro(signals_install_library _component _type)
    
 endmacro()
 
-macro(signals_install_plugin _component)
-
+macro(signals_install_plugin _component _suffix)
+    if (${_suffix} STREQUAL "")
+        set(_suffix ".smd")
+    endif()
     set_target_properties(${_component} PROPERTIES 
         OUTPUT_NAME "${_component}" 
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin 
-        SUFFIX ".smd" 
+        LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
+        SUFFIX "${_suffix}" 
         PREFIX ""
         )
 
@@ -93,6 +96,7 @@ macro(signals_install_app _component)
 
     set_target_properties(${_component} PROPERTIES 
         OUTPUT_NAME "${_component}" 
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
         SUFFIX ".exe" 
         )
 

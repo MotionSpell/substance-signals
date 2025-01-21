@@ -39,4 +39,4 @@ target_include_directories(UdpOutput PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}  
 )
 
-signals_install_plugin(UdpOutput)
+signals_install_plugin(UdpOutput ".smd")

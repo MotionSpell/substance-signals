@@ -28,5 +28,5 @@ target_link_libraries(MPEG_DASH PRIVATE
     media modules pipeline appcommon utils
 )
 
-signals_install_plugin(MPEG_DASH)
+signals_install_plugin(MPEG_DASH ".smd")
 
