@@ -128,9 +128,9 @@ struct LibavDemux : Module {
 		}
 
 		for (unsigned i = 0; i<m_formatCtx->nb_streams; i++) {
+#ifdef xxxjack_removed
 			auto const st = m_formatCtx->streams[i];
 			auto const parser = av_stream_get_parser(st);
-#ifdef xxxjack_removed
 			//xxxjack I don't know how to fix this code.
 			if (parser) {
 				st->codec->ticks_per_frame = parser->repeat_pict + 1;

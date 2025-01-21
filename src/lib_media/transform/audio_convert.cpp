@@ -210,8 +210,7 @@ struct AudioConvert : ModuleS {
 
 		void configure(const PcmFormat &srcFormat) {
 			AVSampleFormat avSrcFmt, avDstFmt;
-			uint64_t avSrcChannelLayout, avDstChannelLayout;
-			int avSrcNumChannels, avDstNumChannels, avSrcSampleRate, avDstSampleRate;
+			int avSrcSampleRate, avDstSampleRate;
 			AVChannelLayout srcLayout;
 			AVChannelLayout dstLayout;
 			libavAudioCtxConvertLibav(&srcFormat, avSrcSampleRate, avSrcFmt, &srcLayout);
