@@ -24,6 +24,7 @@ function x264_build {
 }
 
 function x264_get_deps {
+  local a=0
 }
 
 function x264_do_build {
