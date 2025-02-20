@@ -82,7 +82,6 @@ function ffmpeg_get_deps {
   if [ $ENABLE_NVIDIA == "1" ]; then
     echo ffnvenc
   fi 
-  echo libpthread
   if [ $ENABLE_X264 == "1" ]; then
     echo x264
   fi 

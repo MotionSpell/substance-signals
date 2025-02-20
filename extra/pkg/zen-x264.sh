@@ -24,7 +24,6 @@ function x264_build {
 }
 
 function x264_get_deps {
-  echo "libpthread"
 }
 
 function x264_do_build {

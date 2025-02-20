@@ -118,7 +118,6 @@ sed -i s/LDFLAGS=-s\ -static-libstdc++/LDFLAGS=/ config.mak
 }
 
 function gpac_get_deps {
-  echo libpthread
   echo ffmpeg
   echo freetype2
   echo libogg
