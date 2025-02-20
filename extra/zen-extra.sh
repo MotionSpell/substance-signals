@@ -24,8 +24,6 @@ function get_root_packages
 {
   local host=$1
 
-  echo srt
-
   if ([ "$host" == "x86_64-pc-linux-gnu" ] || [ "$host" = "x86_64-linux-gnu" ]) && [ $ENABLE_AWS == "1" ]; then
     echo aws
   fi
