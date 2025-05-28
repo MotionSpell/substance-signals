@@ -13,6 +13,7 @@
 extern "C" {
 #include <libavformat/avformat.h> // AVOutputFormat
 #include <libavformat/avio.h> // avio_open2
+#include <libavutil/channel_layout.h>
 }
 
 using namespace Modules;
@@ -182,7 +183,8 @@ class LibavMux : public ModuleDynI {
 			} else if(auto info = dynamic_cast<const MetadataPktAudio*>(metadata)) {
 				codecpar->codec_type = AVMEDIA_TYPE_AUDIO;
 				codecpar->sample_rate = info->sampleRate;
-				codecpar->channels = info->numChannels;
+				//codecpar->channels = info->numChannels;
+				av_channel_layout_default(&codecpar->ch_layout, info->numChannels);
 				codecpar->frame_size = info->frameSize;
 			} else {
 				// anything to do for subtitles?

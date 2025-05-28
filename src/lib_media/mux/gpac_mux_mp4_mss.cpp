@@ -1,6 +1,5 @@
 #include "gpac_mux_mp4.hpp"
 #include "lib_modules/utils/factory.hpp"
-#include "lib_utils/log_sink.hpp"
 #include "lib_utils/tools.hpp" // operator|
 #include "lib_utils/string_tools.hpp" // string2hex
 #include <sstream>
@@ -33,7 +32,7 @@ class GPACMuxMP4MSS : public GPACMuxMP4 {
 GPACMuxMP4MSS::GPACMuxMP4MSS(KHost* host, Mp4MuxConfigMss& cfg)
 	: GPACMuxMP4(host,
 	      Mp4MuxConfig{
-	cfg.baseName,
+	.baseName = cfg.baseName,
 	cfg.segmentDurationInMs,
 	IndependentSegment,
 	OneFragmentPerSegment,
@@ -76,13 +75,13 @@ void GPACMuxMP4MSS::declareStreamVideo(const MetadataPktVideo* metadata) {
 }
 
 void GPACMuxMP4MSS::startSegmentPostAction() {
-	gf_isom_set_brand_info(isoCur, GF_4CC('i', 's', 'm', 'l'), GF_TRUE);
-	gf_isom_modify_alternate_brand(isoCur, GF_ISOM_BRAND_ISOM, GF_TRUE);
-	gf_isom_modify_alternate_brand(isoCur, GF_ISOM_BRAND_ISO2, GF_TRUE);
-	gf_isom_modify_alternate_brand(isoCur, GF_4CC('p', 'i', 'f', 'f'), GF_TRUE);
+	gf_isom_set_brand_info(isoCur, GF_4CC('i', 's', 'm', 'l'), 1);
+	gf_isom_modify_alternate_brand(isoCur, GF_ISOM_BRAND_ISOM, 1);
+	gf_isom_modify_alternate_brand(isoCur, GF_ISOM_BRAND_ISO2, 1);
+	gf_isom_modify_alternate_brand(isoCur, GF_4CC('p', 'i', 'f', 'f'), 1);
 
 	bin128 uuid = { 0xa5, 0xd4, 0x0b, 0x30, 0xe8, 0x14, 0x11, 0xdd, 0xba, 0x2f, 0x08, 0x00, 0x20, 0x0c, 0x9a, 0x66 };
-	gf_isom_add_uuid(isoCur, -1, uuid, (const u8*)ISMLManifest.c_str(), (u32)ISMLManifest.size());
+	gf_isom_add_uuid(isoCur, -1, uuid, (char*)ISMLManifest.c_str(), (u32)ISMLManifest.size());
 }
 
 std::string GPACMuxMP4MSS::writeISMLManifest(std::string codec4CC, std::string codecPrivate, int64_t bitrate, int width, int height, uint32_t sampleRate, uint32_t channels, uint16_t bitsPerSample) {
@@ -91,7 +90,7 @@ std::string GPACMuxMP4MSS::writeISMLManifest(std::string codec4CC, std::string c
 	ss << "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
 	ss << "<smil xmlns=\"http://www.w3.org/2001/SMIL20/Language\">\n";
 	ss << "  <head>\n";
-	ss << "    <meta name=\"creator\" content=\"" << "GPAC Licensing Signals, using GPAC " << gf_gpac_version() << "\" />\n";
+	ss << "    <meta name=\"creator\" content=\"" << "GPAC Licensing Signals, using GPAC " << GPAC_FULL_VERSION << "\" />\n";
 	ss << "  </head>\n";
 	ss << "  <body>\n";
 	ss << "    <switch>\n";
@@ -100,12 +99,6 @@ std::string GPACMuxMP4MSS::writeISMLManifest(std::string codec4CC, std::string c
 		if(type == "")
 			throw error("Only audio, video and subtitle are supported (2)");
 
-		if (bitrate < 0) {
-			const std::string msg = "negative bitrate " + std::to_string(bitrate) + " for stream type \"" + type + "\" (4CC=" + codec4CC + ")";
-			m_host->log(Warning, msg.c_str());
-			bitrate = 8000;
-		}
-
 		ss << "      <" << type << " src=\"Stream\" systemBitrate=\"" << bitrate << "\">\n";
 		ss << "        <param name=\"trackID\" value=\"" << trackId << "\" valuetype=\"data\"/>\n";
 
@@ -113,7 +106,7 @@ std::string GPACMuxMP4MSS::writeISMLManifest(std::string codec4CC, std::string c
 			ss << "        <param name=\"FourCC\" value=\"" << codec4CC << "\" valuetype=\"data\"/>\n";
 			ss << "        <param name=\"CodecPrivateData\" value=\"" << codecPrivate << "\" valuetype=\"data\"/>\n";
 			if (!audioName.empty()) ss << "        <param name=\"trackName\" value=\"" << audioName << "\" valuetype=\"data\" />\n";
-			if (!audioLang.empty()) ss << "        <param name=\"systemLanguage\" value=\"" << audioLang << "\" valuetype=\"data\" />\n";
+			if (!lang.empty()) ss << "        <param name=\"systemLanguage\" value=\"" << lang << "\" valuetype=\"data\" />\n";
 			ss << "        <param name=\"AudioTag\"      value=\"" << 255 << "\" valuetype=\"data\"/>\n";
 			ss << "        <param name=\"Channels\"      value=\"" << channels << "\" valuetype=\"data\"/>\n";
 			ss << "        <param name=\"SamplingRate\"  value=\"" << sampleRate << "\" valuetype=\"data\"/>\n";
@@ -142,6 +135,10 @@ std::string GPACMuxMP4MSS::writeISMLManifest(std::string codec4CC, std::string c
 
 	return ss.str();
 }
+
+}
+
+namespace {
 
 IModule* createObject(KHost* host, void* va) {
 	auto config = (Mp4MuxConfigMss*)va;

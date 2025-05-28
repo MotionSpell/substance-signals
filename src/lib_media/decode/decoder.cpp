@@ -141,12 +141,13 @@ struct Decoder : ModuleS, PictureAllocator {
 	private:
 		void openDecoder(const MetadataPkt* metadata) {
 			auto avcodecId = signalsIdToAvCodecId(metadata->codec.c_str());
-			AVCodec *codec = nullptr;
+			const AVCodec *codec = nullptr;
 			if (!hw) {
 				codec = avcodec_find_decoder((AVCodecID)avcodecId);
 			} else if (hw) {
 				if (avcodecId == AV_CODEC_ID_H264) {
 					codec = avcodec_find_decoder_by_name("h264_cuvid");
+
 				} else if (avcodecId == AV_CODEC_ID_HEVC) {
 					codec = avcodec_find_decoder_by_name("hevc_cuvid");
 				}
@@ -178,7 +179,7 @@ struct Decoder : ModuleS, PictureAllocator {
 
 			if (metadata->codec == "raw_audio") {
 				auto const m = safe_cast<const MetadataPktAudio>(metadata);
-				codecCtx->channels = m->numChannels;
+				av_channel_layout_default(&codecCtx->ch_layout, m->numChannels);
 				codecCtx->sample_fmt = AV_SAMPLE_FMT_S16;
 				codecCtx->sample_rate = m->sampleRate;
 			}
@@ -199,7 +200,6 @@ struct Decoder : ModuleS, PictureAllocator {
 
 			if (codecCtx->codec->type == AVMEDIA_TYPE_VIDEO) {
 				if (codecCtx->codec->capabilities & AV_CODEC_CAP_DR1) {
-					codecCtx->thread_safe_callbacks = 0;
 					codecCtx->opaque = static_cast<PictureAllocator*>(this);
 					codecCtx->get_buffer2 = avGetBuffer2;
 

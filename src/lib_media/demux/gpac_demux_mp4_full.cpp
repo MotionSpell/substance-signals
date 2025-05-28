@@ -16,6 +16,7 @@ namespace Modules {
 const int FIRST_TRACK = 1;
 
 struct ISOProgressiveReader {
+
 	void pushData(SpanC buf) {
 		//TODO: zero copy mode, or at least improve the current system
 		//with allocator packet duplication
@@ -25,17 +26,14 @@ struct ISOProgressiveReader {
 	}
 
 	// URL used to pass a buffer to the parser
-	std::string dataUrl() {
-		blob.data = data.data();
-		blob.size = data.size();
-		char buffer[32];
-		sprintf(buffer, "gmem://%p", &blob);
+	std::string dataUrl() const {
+		char buffer[256];
+		sprintf(buffer, "gmem://%lld@%p", (long long)data.size(), data.data());
 		return buffer;
 	}
 
 	// data buffer to be read by the parser
 	std::vector<u8> data;
-	GF_Blob blob {};
 
 	// The ISO file structure created for the parsing of data
 	std::unique_ptr<gpacpp::IsoFile> movie;
@@ -77,7 +75,7 @@ class GPACDemuxMP4Full : public ModuleS {
 			// if the file is not yet opened (no movie), open it in progressive mode (to update its data later on)
 			u64 missingBytes;
 			GF_ISOFile *movie;
-			GF_Err e = gf_isom_open_progressive(reader.dataUrl().c_str(), 0, 0, GF_FALSE, &movie, &missingBytes);
+			GF_Err e = gf_isom_open_progressive(reader.dataUrl().c_str(), 0, 0, &movie, &missingBytes);
 			if ((e != GF_OK && e != GF_ISOM_INCOMPLETE_FILE)) {
 				m_host->log(Warning, format("Error opening fragmented mp4 in progressive mode: %s (missing %s bytes)", gf_error_to_string(e), missingBytes).c_str());
 				return false;
@@ -134,14 +132,13 @@ class GPACDemuxMP4Full : public ModuleS {
 				auto const DTSOffset = reader.movie->getDTSOffset(FIRST_TRACK);
 				//here we dump some sample info: samp->data, samp->dataLength, samp->isRAP, samp->DTS, samp->CTS_Offset
 				m_host->log(Debug, format("Found sample #%s(#%s) of length %s , RAP: %s, DTS: %s, CTS: %s",
-				        reader.sampleIndex, sample->dataLength, (int)sample->IsRAP,
-				        sample->DTS + DTSOffset, sample->DTS + DTSOffset + sample->CTS_Offset).c_str());
+				        reader.sampleIndex, sample->dataLength,
+				        sample->IsRAP, sample->DTS + DTSOffset, sample->DTS + DTSOffset + sample->CTS_Offset).c_str());
 				reader.sampleIndex++;
 
 				auto out = output->allocData<DataRaw>(sample->dataLength);
 				memcpy(out->buffer->data().ptr, sample->data, sample->dataLength);
-				out->set(DecodingTime { timescaleToClock((int64_t)sample->DTS, reader.movie->getMediaTimescale(FIRST_TRACK)) });
-				out->set(PresentationTime { timescaleToClock((int64_t)sample->DTS + DTSOffset + sample->CTS_Offset, reader.movie->getMediaTimescale(FIRST_TRACK)) });
+				// should not comment it probably out->setMediaTime(sample->DTS + DTSOffset + sample->CTS_Offset, reader.movie->getMediaTimescale(FIRST_TRACK));
 
 				CueFlags flags {};
 				flags.keyframe = true;
@@ -183,7 +180,7 @@ class GPACDemuxMP4Full : public ModuleS {
 				std::shared_ptr<MetadataPkt> meta;
 				if(desc->streamType == GF_STREAM_AUDIO) {
 					meta = make_shared<MetadataPkt>(AUDIO_PKT);
-					meta->codec = "aac_raw";
+					meta->codec = "aac_adts";
 				} else if (desc->streamType == GF_STREAM_VISUAL) {
 					meta = make_shared<MetadataPkt>(VIDEO_PKT);
 					meta->codec = "h264_avcc";

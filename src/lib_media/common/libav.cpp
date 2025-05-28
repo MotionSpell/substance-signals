@@ -10,6 +10,7 @@
 
 extern "C" {
 #include <libavformat/avformat.h>
+#include <libavcodec/avcodec.h>
 #include <libavutil/pixdesc.h> // av_get_pix_fmt_name
 #include <libavutil/hwcontext.h> // av_hwdevice_ctx_create
 }
@@ -101,7 +102,7 @@ int signalsIdToAvCodecId(const char* origName) {
 
 	// Workaround: FFmpeg only has one AV_CODEC_ID value
 	// for both "raw AAC" and "ADTS AAC".
-	if(name == "aac_raw" || name == "aac_adts")
+	if(name == "aac_adts")
 		return AV_CODEC_ID_AAC;
 
 	// Workaround: FFmpeg only has one AV_CODEC_ID value
@@ -132,15 +133,16 @@ void initMetadatPkt(MetadataPkt* meta, AVCodecContext* codecCtx) {
 
 	if (!codecCtx->time_base.num || !codecCtx->time_base.den)
 		throw std::runtime_error(format("Unsupported time scale %s/%s.", codecCtx->time_base.den, codecCtx->time_base.num));
-	meta->timeScale = Fraction(codecCtx->time_base.den, codecCtx->time_base.num * codecCtx->ticks_per_frame);
+	meta->timeScale = Fraction(codecCtx->time_base.den, codecCtx->time_base.num);
 }
 
 Metadata createMetadataPktLibavVideo(AVCodecContext* codecCtx) {
 	auto meta = make_shared<MetadataPktVideo>();
 	initMetadatPkt(meta.get(), codecCtx);
+	meta->timeScale = Fraction(codecCtx->time_base.den, codecCtx->time_base.num);
 	meta->pixelFormat = libavPixFmt2PixelFormat(codecCtx->pix_fmt);
 	auto const &sar = codecCtx->sample_aspect_ratio;
-	meta->sampleAspectRatio = Fraction(sar.num, sar.den);
+	meta->sampleAspectRatio =	Fraction(sar.num, sar.den);
 	meta->resolution = Resolution(codecCtx->width, codecCtx->height);
 
 	// in FFmpeg, pictures are considered to have a 0/0 framerate
@@ -164,7 +166,7 @@ bool isPlanar(const AVCodecContext* codecCtx) {
 	case AV_SAMPLE_FMT_FLTP:
 		return true;
 	default:
-		throw std::runtime_error(format("Unknown libav audio format [%s] (2)", (int)codecCtx->sample_fmt));
+		throw std::runtime_error(format("Unknown libav audio format [%s] (2)", av_get_sample_fmt_name(codecCtx->sample_fmt)));
 	}
 }
 
@@ -176,12 +178,13 @@ AudioSampleFormat getFormat(const AVCodecContext* codecCtx) {
 	case AV_SAMPLE_FMT_FLT: return Modules::F32;
 	case AV_SAMPLE_FMT_FLTP: return Modules::F32;
 	default:
-		throw std::runtime_error(format("Unknown libav audio format [%s] (3)", (int)codecCtx->sample_fmt));
+		throw std::runtime_error(format("Unknown libav audio format [%s] (3)", av_get_sample_fmt_name(codecCtx->sample_fmt)));
 	}
 }
 
 static
 AudioLayout getLayout(const AVCodecContext* codecCtx) {
+#ifdef xxxjack_old_ffmpeg
 	switch (codecCtx->channel_layout) {
 	case AV_CH_LAYOUT_MONO:   return Mono;
 	case AV_CH_LAYOUT_STEREO: return Stereo;
@@ -194,12 +197,21 @@ AudioLayout getLayout(const AVCodecContext* codecCtx) {
 		default: throw std::runtime_error("Unknown libav audio layout");
 		}
 	}
+#else
+	// xxxjack Unsure whether this is correct.
+	switch(codecCtx->ch_layout.nb_channels) {
+	case 1: return Mono;
+	case 2: return Stereo;
+	case 6: return FivePointOne;
+	default: throw std::runtime_error("Unknown libav audio layout");
+	}
+#endif
 }
 
 Metadata createMetadataPktLibavAudio(AVCodecContext* codecCtx) {
 	auto meta = make_shared<MetadataPktAudio>();
 	initMetadatPkt(meta.get(), codecCtx);
-	meta->numChannels = codecCtx->channels;
+	meta->numChannels = codecCtx->ch_layout.nb_channels;
 	meta->planar = meta->numChannels > 1 ? isPlanar(codecCtx) : true;
 	meta->sampleRate = codecCtx->sample_rate;
 	meta->bitsPerSample = av_get_bytes_per_sample(codecCtx->sample_fmt) * 8;
@@ -210,22 +222,27 @@ Metadata createMetadataPktLibavAudio(AVCodecContext* codecCtx) {
 }
 
 Metadata createMetadataPktLibavSubtitle(AVCodecContext* codecCtx) {
-	auto meta = make_shared<MetadataPktSubtitle>();
+	auto meta = make_shared<MetadataPktAudio>();
 	initMetadatPkt(meta.get(), codecCtx);
 	return meta;
 }
 
 //conversions
-void libavAudioCtxConvertLibav(const Modules::PcmFormat *cfg, int &sampleRate, AVSampleFormat &format, int &numChannels, uint64_t &layout) {
+void libavAudioCtxConvertLibav(const Modules::PcmFormat *cfg, int &sampleRate, AVSampleFormat &format, AVChannelLayout *layout) {
 	sampleRate = cfg->sampleRate;
 
 	switch (cfg->layout) {
-	case Modules::Mono: layout = AV_CH_LAYOUT_MONO; break;
-	case Modules::Stereo: layout = AV_CH_LAYOUT_STEREO; break;
-	case Modules::FivePointOne: layout = AV_CH_LAYOUT_5POINT1; break;
+	case Modules::Mono:
+		av_channel_layout_default(layout, 1);
+		break;
+	case Modules::Stereo:
+		av_channel_layout_default(layout, 2);
+		break;
+	case Modules::FivePointOne:
+		av_channel_layout_default(layout, 6);
+		break;
 	default: throw std::runtime_error("Unknown libav audio layout");
 	}
-	numChannels = av_get_channel_layout_nb_channels(layout);
 	assert(numChannels == cfg->numChannels);
 
 	switch (cfg->sampleFormat) {
@@ -236,13 +253,13 @@ void libavAudioCtxConvertLibav(const Modules::PcmFormat *cfg, int &sampleRate, A
 }
 
 void libavAudioCtxConvert(const PcmFormat *cfg, AVCodecContext *codecCtx) {
-	libavAudioCtxConvertLibav(cfg, codecCtx->sample_rate, codecCtx->sample_fmt, codecCtx->channels, codecCtx->channel_layout);
+	libavAudioCtxConvertLibav(cfg, codecCtx->sample_rate, codecCtx->sample_fmt, &codecCtx->ch_layout);
 }
 
 void libavFrame2pcmConvert(const AVFrame *frame, PcmFormat *cfg) {
 	cfg->sampleRate = frame->sample_rate;
 
-	cfg->numChannels = cfg->numPlanes = frame->channels;
+	cfg->numChannels = cfg->numPlanes = frame->ch_layout.nb_channels;
 	switch (frame->format) {
 	case AV_SAMPLE_FMT_S16:
 		cfg->sampleFormat = Modules::S16;
@@ -262,24 +279,18 @@ void libavFrame2pcmConvert(const AVFrame *frame, PcmFormat *cfg) {
 		throw std::runtime_error("Unknown libav audio format (3)");
 	}
 
-	switch (frame->channel_layout) {
-	case AV_CH_LAYOUT_MONO:   cfg->layout = Modules::Mono; break;
-	case AV_CH_LAYOUT_STEREO: cfg->layout = Modules::Stereo; break;
-	case AV_CH_LAYOUT_5POINT1: cfg->layout = Modules::FivePointOne; break;
-	default:
-		switch (cfg->numChannels) {
-		case 1: cfg->layout = Modules::Mono; break;
-		case 2: cfg->layout = Modules::Stereo; break;
-		case 6: cfg->layout = Modules::FivePointOne; break;
-		default: throw std::runtime_error("Unknown libav audio layout");
-		}
+	switch (frame->ch_layout.nb_channels) {
+	case 1: cfg->layout = Modules::Mono; break;
+	case 2: cfg->layout = Modules::Stereo; break;
+	case 6: cfg->layout = Modules::FivePointOne; break;
+	default: throw std::runtime_error("Unknown libav audio layout");
 	}
 }
 
 void libavFrameDataConvert(const DataPcm *pcmData, AVFrame *frame) {
 	auto const& format = pcmData->format;
 	AVSampleFormat avsf;
-	libavAudioCtxConvertLibav(&format, frame->sample_rate, avsf, frame->channels, frame->channel_layout);
+	libavAudioCtxConvertLibav(&format, frame->sample_rate, avsf, &frame->ch_layout);
 	frame->format = (int)avsf;
 	for (int i = 0; i < format.numPlanes; ++i) {
 		frame->data[i] = pcmData->getPlane(i);
@@ -303,25 +314,22 @@ AVPixelFormat pixelFormat2libavPixFmt(PixelFormat format) {
 	case PixelFormat::NV12P010LE: return AV_PIX_FMT_P010LE;
 	case PixelFormat::RGB24: return AV_PIX_FMT_RGB24;
 	case PixelFormat::RGBA32: return AV_PIX_FMT_RGBA;
-	case PixelFormat::CUDA: return AV_PIX_FMT_CUDA;
 	default: throw std::runtime_error("Unknown pixel format to convert (1). Please contact your vendor.");
 	}
 }
 
 PixelFormat libavPixFmt2PixelFormat(AVPixelFormat avPixfmt) {
 	switch (avPixfmt) {
-	case AV_PIX_FMT_GRAY8:                             return PixelFormat::Y8;
+	case AV_PIX_FMT_GRAY8: return PixelFormat::Y8;
 	case AV_PIX_FMT_YUV420P: case AV_PIX_FMT_YUVJ420P: return PixelFormat::I420;
-	case AV_PIX_FMT_YUV420P10LE:                       return PixelFormat::YUV420P10LE;
-	case AV_PIX_FMT_YUV422P:                           return PixelFormat::YUV422P;
-	case AV_PIX_FMT_YUV422P10LE:                       return PixelFormat::YUV422P10LE;
-	case AV_PIX_FMT_YUYV422:                           return PixelFormat::YUYV422;
-	case AV_PIX_FMT_NV12:                              return PixelFormat::NV12;
-	case AV_PIX_FMT_P010LE:                            return PixelFormat::NV12P010LE;
-	case AV_PIX_FMT_RGB24:                             return PixelFormat::RGB24;
-	case AV_PIX_FMT_RGBA:                              return PixelFormat::RGBA32;
-	case AV_PIX_FMT_CUDA:                              return PixelFormat::CUDA;
-	case AV_PIX_FMT_NONE: throw std::runtime_error("Unsupported pixel format AV_PIX_FMT_NONE. Please contact your vendor.");
+	case AV_PIX_FMT_YUV420P10LE: return PixelFormat::YUV420P10LE;
+	case AV_PIX_FMT_YUV422P: return PixelFormat::YUV422P;
+	case AV_PIX_FMT_YUV422P10LE: return PixelFormat::YUV422P10LE;
+	case AV_PIX_FMT_YUYV422: return PixelFormat::YUYV422;
+	case AV_PIX_FMT_NV12: return PixelFormat::NV12;
+	case AV_PIX_FMT_P010LE: return PixelFormat::NV12P010LE;
+	case AV_PIX_FMT_RGB24: return PixelFormat::RGB24;
+	case AV_PIX_FMT_RGBA: return PixelFormat::RGBA32;
 	default: throw std::runtime_error("Unsupported pixel format '" + std::string(av_get_pix_fmt_name(avPixfmt)) + "'. Please contact your vendor.");
 	}
 }
@@ -339,20 +347,6 @@ static int getBytePerPixel(PixelFormat format) {
 }
 
 void copyToPicture(AVFrame const* avFrame, DataPicture* pic) {
-	if (pic->getFormat().format == PixelFormat::CUDA) {
-		// Don't memcpy hardware pointers, just forward them: this means someone
-		// should handle their lifetime
-		auto *ptr = (uintptr_t*)pic->buffer->data().ptr;
-		for (int comp = 0; comp<pic->getNumPlanes(); ++comp) {
-			*ptr = (uintptr_t)avFrame->data[comp];
-			ptr++;
-			*ptr = (uintptr_t)avFrame->linesize[comp];
-			ptr++;
-		}
-		DataPicture::setup(pic, pic->getFormat().res, pic->getFormat().res, pic->getFormat().format);
-		return;
-	}
-
 	for (int comp = 0; comp<pic->getNumPlanes(); ++comp) {
 		auto const subsampling = comp == 0 ? 1 : 2;
 		auto const w = avFrame->width * getBytePerPixel(pic->getFormat().format) / subsampling;

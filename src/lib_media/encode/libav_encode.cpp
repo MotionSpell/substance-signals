@@ -24,8 +24,6 @@ AVRational toAVRational(Fraction f) {
 	return {(int)f.num, (int)f.den};
 }
 
-const int TICKS_PER_VIDEO_FRAME = 100;
-
 struct LibavEncode : ModuleS {
 		LibavEncode(KHost* host, EncoderConfig *pparams)
 			: m_host(host),
@@ -34,8 +32,6 @@ struct LibavEncode : ModuleS {
 
 			auto const type = params.type;
 			std::string generalOptions;
-
-			// encoder configuration
 			switch (type) {
 			case EncoderConfig::Video: {
 				GOPSize = params.GOPSize;
@@ -114,6 +110,11 @@ struct LibavEncode : ModuleS {
 
 			output = addOutput();
 
+			// Make ffmpeg use the same time scale as the framework:
+			// thus, no timestamp conversion is needed.
+			codecCtx->time_base.num = 1;
+			codecCtx->time_base.den = IClock::Rate;
+
 			// encoder configuration
 			switch (type) {
 			case EncoderConfig::Video: {
@@ -133,13 +134,6 @@ struct LibavEncode : ModuleS {
 				// output
 				pparams->pixelFormat = libavPixFmt2PixelFormat(codecCtx->pix_fmt);
 
-				// Using the same time scale as the framework { 1, IClock::Rate }
-				// is not possible as some codecs in FFmpeg mix framerate and time_base.
-				auto const tbNum = params.frameRate.inverse() * IClock::Rate;
-				if (tbNum.den != 1)
-					throw error(format("Unsupported frame rate %s/s", params.frameRate.num, params.frameRate.den));
-				codecCtx->time_base.num = int(tbNum);
-				codecCtx->time_base.den = IClock::Rate * TICKS_PER_VIDEO_FRAME;
 				framePeriod = params.frameRate.inverse();
 
 				prepareFrame = std::bind(&LibavEncode::prepareVideoFrame, this, std::placeholders::_1);
@@ -147,14 +141,14 @@ struct LibavEncode : ModuleS {
 				break;
 			}
 			case EncoderConfig::Audio:
-				codecCtx->time_base.num = 1;
-				codecCtx->time_base.den = IClock::Rate;
 
 				prepareFrame = std::bind(&LibavEncode::prepareAudioFrame, this, std::placeholders::_1);
 				input->setMetadata(make_shared<MetadataRawAudio>());
 				break;
 			default:
-				throw error(format("Invalid codec type: %d", (int)type));
+				const char* typeStr = (type == EncoderConfig::Video) ? "Video" :
+				    (type == EncoderConfig::Audio) ? "Audio" : "Unknown";
+				throw error(format("Invalid codec type: %s", typeStr));
 			}
 
 			av_dict_free(&generalDict);
@@ -162,38 +156,67 @@ struct LibavEncode : ModuleS {
 		}
 
 		AVFrame* prepareAudioFrame(Data data) {
-			auto f = avFrame->get();
+			AVFrame *f = avFrame->get();
 			const auto pcmData = safe_cast<const DataPcm>(data);
 			if (pcmData->format != m_pcmFormat)
 				throw error("Incompatible audio data (1)");
 			libavFrameDataConvert(pcmData.get(), f);
-			f->pts = data->get<PresentationTime>().time * codecCtx->ticks_per_frame / codecCtx->time_base.num;
 			return f;
 		}
 
 		AVFrame* prepareVideoFrame(Data data) {
 			const auto pic = safe_cast<const DataPicture>(data);
-			auto f = avFrame->get();
+			AVFrame *f = avFrame->get();
 			f->format = (int)pixelFormat2libavPixFmt(pic->getFormat().format);
 			for (int i = 0; i < pic->getNumPlanes(); ++i) {
 				f->width = pic->getFormat().res.width;
 				f->height = pic->getFormat().res.height;
 				f->data[i] = (uint8_t*)pic->getPlane(i);
 				f->linesize[i] = (int)pic->getStride(i);
-			}
-
-			auto hw = dynamic_cast<const MetadataRawVideoHw*>(data->getMetadata().get());
-			if (hw) {
-				for (int i=0; i<AV_NUM_DATA_POINTERS && hw->dataRef[i]; ++i) {
-					f->buf[i] = av_buffer_ref(hw->dataRef[i]);
+				if (sizeof(legend_pixel_colors) >= (unsigned int)(i+1) && legend_pixel_colors[i] > -1) {
+					for (size_t j = 0; j < (unsigned)(long)(f->linesize[i]/3); j++) {
+						f->data[i][j] = legend_pixel_colors[i];
+					}
 				}
-				f->hw_frames_ctx = av_buffer_ref(hw->framesCtx);
 			}
-
-			f->pts = data->get<PresentationTime>().time * codecCtx->ticks_per_frame / codecCtx->time_base.num;
 			computeFrameAttributes(f, data->get<PresentationTime>().time);
-
 			return f;
+		}
+
+		void setLegendPixelColors(EncoderConfig &params) {
+			if (params.legend_pixel_color == "green") {
+				legend_pixel_colors[0] = 149;
+				legend_pixel_colors[1] = 43;
+				legend_pixel_colors[2] = 21;
+			} else if (params.legend_pixel_color == "blue") {
+				legend_pixel_colors[0] = 29;
+				legend_pixel_colors[1] = 255;
+				legend_pixel_colors[2] = 107;
+			} else if (params.legend_pixel_color == "red") {
+				legend_pixel_colors[0] = 76;
+				legend_pixel_colors[1] = 84;
+				legend_pixel_colors[2] = 255;
+			} else if (params.legend_pixel_color == "pink") {
+				legend_pixel_colors[0] = 105;
+				legend_pixel_colors[1] = 212;
+				legend_pixel_colors[2] = 234;
+			} else if (params.legend_pixel_color == "yellow") {
+				legend_pixel_colors[0] = 225;
+				legend_pixel_colors[1] = 0;
+				legend_pixel_colors[2] = 148;
+			} else if (params.legend_pixel_color == "cyan") {
+				legend_pixel_colors[0] = 178;
+				legend_pixel_colors[1] = 171;
+				legend_pixel_colors[2] = 0;
+			} else if (params.legend_pixel_color == "orange") {
+				legend_pixel_colors[0] = 173;
+				legend_pixel_colors[1] = 30;
+				legend_pixel_colors[2] = 186;
+			} else if (params.legend_pixel_color == "purple") {
+				legend_pixel_colors[0] = 52;
+				legend_pixel_colors[1] = 170;
+				legend_pixel_colors[2] = 181;
+			}
 		}
 
 		void processOne(Data data) {
@@ -203,8 +226,8 @@ struct LibavEncode : ModuleS {
 			}
 
 			auto f = prepareFrame(data);
+			f->pts = data->get<PresentationTime>().time;
 			encodeFrame(f);
-			av_frame_unref(f);
 		}
 
 		void flush() {
@@ -216,7 +239,7 @@ struct LibavEncode : ModuleS {
 		int64_t computeNearestGOPNum(int64_t timeDiff) const {
 			auto const num = timeDiff * GOPSize.den * framePeriod.den;
 			auto const den = GOPSize.num * framePeriod.num * (int64_t)IClock::Rate;
-			auto const halfStep = (den * GOPSize.den) / (GOPSize.num * 2);
+			auto const halfStep = (den * framePeriod.num) / (framePeriod.den * 2);
 			return (num + halfStep - 1) / den;
 		}
 
@@ -243,12 +266,13 @@ struct LibavEncode : ModuleS {
 		}
 
 		void encodeFrame(AVFrame* f) {
-			int ret = avcodec_send_frame(codecCtx.get(), f);
+			int ret;
+
+			ret = avcodec_send_frame(codecCtx.get(), f);
 			if (ret != 0) {
 				auto desc = f ? format("pts=%s", f->pts) : format("flush");
 				m_host->log(Warning, format("error encountered while encoding frame (%s) : %s", desc, avStrError(ret)).c_str());
-				if (f)
-					return; // don't return on flush
+				return;
 			}
 
 			while(1) {
@@ -266,8 +290,8 @@ struct LibavEncode : ModuleS {
 					flags.keyframe = true;
 				out->set(flags);
 
-				out->set(PresentationTime { pkt.pts * codecCtx->time_base.num / codecCtx->ticks_per_frame });
-				out->set(DecodingTime     { pkt.dts * codecCtx->time_base.num / codecCtx->ticks_per_frame });
+				out->set(PresentationTime { pkt.pts });
+				out->set(DecodingTime { pkt.dts });
 				output->post(out);
 				av_packet_unref(&pkt);
 			}
@@ -283,10 +307,11 @@ struct LibavEncode : ModuleS {
 		int64_t firstMediaTime = 0;
 		int64_t prevMediaTime = 0;
 		Fraction GOPSize {};
+		int legend_pixel_colors[3] = {-1, -1, -1};
 		Fraction framePeriod {};
 		std::function<AVFrame*(Data)> prepareFrame;
 		std::string codecOptions, codecName;
-		AVCodec* m_codec = nullptr;
+		const AVCodec* m_codec = nullptr;
 		bool m_isOpen = false;
 
 		void openEncoder(Data data) {
@@ -304,28 +329,22 @@ struct LibavEncode : ModuleS {
 				codecCtx->framerate = toAVRational(framePeriod.inverse());
 
 				// for encoding level checks (MB rate) and rate control
-				codecCtx->ticks_per_frame = TICKS_PER_VIDEO_FRAME;
-
-				auto hw = dynamic_cast<const MetadataRawVideoHw*>(data->getMetadata().get());
-				if (hw) {
-					avFrame->get()->hw_frames_ctx = av_buffer_ref(hw->framesCtx);
-					codecCtx->hw_frames_ctx = av_buffer_ref(hw->framesCtx);
-					codecCtx->pix_fmt = AV_PIX_FMT_CUDA;
-				}
-
+				codecCtx->ticks_per_frame = int(framePeriod * IClock::Rate);
 				break;
 			}
 			case EncoderConfig::Audio: {
 				const auto fmt = safe_cast<const DataPcm>(data)->format;
 				libavAudioCtxConvert(&fmt, codecCtx.get());
 				codecCtx->sample_rate = fmt.sampleRate;
-				codecCtx->channels = fmt.numChannels;
+				av_channel_layout_default(&codecCtx->ch_layout, fmt.numChannels);
 
 				m_pcmFormat = fmt;
 				break;
 			}
 			default:
-				throw error(format("Invalid codec type: %d", (int)params.type));
+				const char* typeStr = (params.type == EncoderConfig::Video) ? "Video" :
+				    (params.type == EncoderConfig::Audio) ? "Audio" : "Unknown";
+				throw error(format("Invalid codec type: %s", typeStr));
 			}
 
 			/* open it */

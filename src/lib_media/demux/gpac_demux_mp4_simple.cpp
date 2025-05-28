@@ -37,7 +37,7 @@ class GPACDemuxMP4Simple : public Module {
 
 			GF_ISOFile *movie;
 			u64 missingBytes;
-			GF_Err e = gf_isom_open_progressive(cfg->path.c_str(), 0, 0, GF_FALSE, &movie, &missingBytes);
+			GF_Err e = gf_isom_open_progressive(cfg->path.c_str(), 0, 0, &movie, &missingBytes);
 			if ((e != GF_OK && e != GF_ISOM_INCOMPLETE_FILE) || movie == nullptr) {
 				throw error(format("Could not open file %s for reading (%s).", cfg->path, gf_error_to_string(e)));
 			}

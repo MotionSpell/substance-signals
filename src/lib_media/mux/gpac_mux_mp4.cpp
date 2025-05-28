@@ -14,10 +14,6 @@ extern "C" {
 #include <gpac/base_coding.h>
 #include <gpac/constants.h>
 #include <gpac/internal/media_dev.h>
-
-	extern GF_Err gf_isom_get_bs(GF_ISOFile *movie, GF_BitStream **out_bs);
-	extern GF_Err gf_isom_set_sync_table(GF_ISOFile *file, u32 track);
-	extern GF_Err gf_bs_reassign_buffer(GF_BitStream *bs, const u8 *buffer, u64 BufferSize);
 }
 
 auto const AVC_INBAND_CONFIG = 0;
@@ -51,10 +47,14 @@ Span getBsContent(GF_ISOFile *iso, bool newBs) {
 
 	char* output;
 	u32 size;
-	gf_bs_get_content(bs, (u8**)&output, &size);
+	gf_bs_get_content(bs, &output, &size);
 
-	if (newBs)
-		SAFE(gf_bs_reassign_buffer(bs, nullptr, 0));
+	if (newBs) {
+		auto bsNew = gf_bs_new(nullptr, 0, GF_BITSTREAM_WRITE);
+		memcpy(bs, bsNew, 2*sizeof(void*)); //HACK: GPAC GF_BitStream.original needs to be non-NULL
+		memset(bsNew,  0, 2*sizeof(void*));
+		gf_bs_del(bsNew);
+	}
 
 	return {(uint8_t*)output, (size_t)size};
 }
@@ -65,7 +65,7 @@ static GF_Err import_extradata_avc(SpanC extradata, GF_AVCConfig *dstcfg) {
 		return GF_OK;
 	}
 
-	auto bs2 = std::shared_ptr<GF_BitStream>(gf_bs_new(extradata.ptr, extradata.len, GF_BITSTREAM_READ), &gf_bs_del);
+	auto bs2 = std::shared_ptr<GF_BitStream>(gf_bs_new((const char*)extradata.ptr, extradata.len, GF_BITSTREAM_READ), &gf_bs_del);
 	auto bs = bs2.get();
 	if (!bs) {
 		return GF_BAD_PARAM;
@@ -91,13 +91,13 @@ static GF_Err import_extradata_avc(SpanC extradata, GF_AVCConfig *dstcfg) {
 	u64 nalStart = gf_bs_get_position(bs);
 	{
 		s32 idx = 0;
-		u8 *buffer = nullptr;
+		char *buffer = nullptr;
 parse_sps:
 		auto const nalSize = gf_media_nalu_next_start_code_bs(bs);
 		if (nalStart + nalSize > extradata.len) {
 			return GF_BAD_PARAM;
 		}
-		buffer = (u8*)gf_malloc(nalSize);
+		buffer = (char*)gf_malloc(nalSize);
 		gf_bs_read_data(bs, buffer, nalSize);
 		gf_bs_seek(bs, nalStart);
 		auto const type = gf_bs_read_u8(bs) & 0x1F;
@@ -112,7 +112,7 @@ parse_sps:
 			return GF_BAD_PARAM;
 		}
 
-		idx = gf_avc_read_sps(buffer, nalSize, avc.get(), 0, nullptr);
+		idx = gf_media_avc_read_sps(buffer, nalSize, avc.get(), 0, nullptr);
 		if (idx < 0) {
 			gf_free(buffer);
 			return GF_BAD_PARAM;
@@ -143,7 +143,7 @@ parse_sps:
 		if (nalStart + nalSize > extradata.len) {
 			return GF_BAD_PARAM;
 		}
-		auto buffer = (u8*)gf_malloc(nalSize);
+		char* buffer = (char*)gf_malloc(nalSize);
 		gf_bs_read_data(bs, buffer, nalSize);
 		gf_bs_seek(bs, nalStart);
 		if ((gf_bs_read_u8(bs) & 0x1F) != GF_AVC_NALU_PIC_PARAM) {
@@ -151,7 +151,7 @@ parse_sps:
 			return GF_BAD_PARAM;
 		}
 
-		auto const idx = gf_avc_read_pps(buffer, nalSize, avc.get());
+		auto const idx = gf_media_avc_read_pps(buffer, nalSize, avc.get());
 		if (idx < 0) {
 			gf_free(buffer);
 			return GF_BAD_PARAM;
@@ -180,7 +180,7 @@ static GF_Err import_extradata_hevc(SpanC extradata, GF_HEVCConfig *dstCfg) {
 
 	if (!extradata.ptr || (extradata.len < sizeof(u32)))
 		return GF_BAD_PARAM;
-	auto bs = gf_bs_new(extradata.ptr, extradata.len, GF_BITSTREAM_READ);
+	auto bs = gf_bs_new((const char*)extradata.ptr, extradata.len, GF_BITSTREAM_READ);
 	if (!bs)
 		return GF_BAD_PARAM;
 
@@ -203,13 +203,13 @@ static GF_Err import_extradata_hevc(SpanC extradata, GF_HEVCConfig *dstCfg) {
 			return GF_BAD_PARAM;
 		}
 
-		std::vector<u8> buffer(NALSize);
+		std::vector<char> buffer(NALSize);
 
 		gf_bs_read_data(bs, buffer.data(), NALSize);
 		gf_bs_seek(bs, NALStart);
 
 		u8 NALUnitType, temporalId, layerId;
-		gf_hevc_parse_nalu(buffer.data(), NALSize, hevc.get(), &NALUnitType, &temporalId, &layerId);
+		gf_media_hevc_parse_nalu(buffer.data(), NALSize, hevc.get(), &NALUnitType, &temporalId, &layerId);
 		if (layerId) {
 			gf_bs_del(bs);
 			return GF_BAD_PARAM;
@@ -217,7 +217,7 @@ static GF_Err import_extradata_hevc(SpanC extradata, GF_HEVCConfig *dstCfg) {
 
 		switch (NALUnitType) {
 		case GF_HEVC_NALU_VID_PARAM: {
-			auto const idx = gf_hevc_read_vps(buffer.data(), NALSize, hevc.get());
+			auto const idx = gf_media_hevc_read_vps(buffer.data(), NALSize, hevc.get());
 			if (idx < 0) {
 				gf_bs_del(bs);
 				return GF_BAD_PARAM;
@@ -244,7 +244,7 @@ static GF_Err import_extradata_hevc(SpanC extradata, GF_HEVCConfig *dstCfg) {
 				auto slc = (GF_AVCConfigSlot*)gf_malloc(sizeof(GF_AVCConfigSlot));
 				slc->size = NALSize;
 				slc->id = idx;
-				slc->data = (u8*)gf_malloc(slc->size);
+				slc->data = (char*)gf_malloc(slc->size);
 				memcpy(slc->data, buffer.data(), slc->size);
 
 				gf_list_add(vpss->nalus, slc);
@@ -252,7 +252,7 @@ static GF_Err import_extradata_hevc(SpanC extradata, GF_HEVCConfig *dstCfg) {
 			break;
 		}
 		case GF_HEVC_NALU_SEQ_PARAM: {
-			auto const idx = gf_hevc_read_sps(buffer.data(), NALSize, hevc.get());
+			auto const idx = gf_media_hevc_read_sps(buffer.data(), NALSize, hevc.get());
 			if (idx < 0) {
 				gf_bs_del(bs);
 				return GF_BAD_PARAM;
@@ -292,13 +292,13 @@ static GF_Err import_extradata_hevc(SpanC extradata, GF_HEVCConfig *dstCfg) {
 			auto slc = (GF_AVCConfigSlot*)gf_malloc(sizeof(GF_AVCConfigSlot));
 			slc->size = NALSize;
 			slc->id = idx;
-			slc->data = (u8*)gf_malloc(NALSize);
+			slc->data = (char*)gf_malloc(NALSize);
 			memcpy(slc->data, buffer.data(), NALSize);
 			gf_list_add(spss->nalus, slc);
 			break;
 		}
 		case GF_HEVC_NALU_PIC_PARAM: {
-			auto const idx = gf_hevc_read_pps(buffer.data(), NALSize, hevc.get());
+			auto const idx = gf_media_hevc_read_pps(buffer.data(), NALSize, hevc.get());
 			if (idx < 0) {
 				gf_bs_del(bs);
 				return GF_BAD_PARAM;
@@ -320,7 +320,7 @@ static GF_Err import_extradata_hevc(SpanC extradata, GF_HEVCConfig *dstCfg) {
 				auto slc = (GF_AVCConfigSlot*)gf_malloc(sizeof(GF_AVCConfigSlot));
 				slc->size = NALSize;
 				slc->id = idx;
-				slc->data = (u8*)gf_malloc(NALSize);
+				slc->data = (char*)gf_malloc(NALSize);
 				memcpy(slc->data, buffer.data(), NALSize);
 
 				gf_list_add(ppss->nalus, slc);
@@ -349,7 +349,7 @@ void annexbToAvcc(SpanC buf, GF_ISOSample &sample) {
 	auto NALUSize = gf_media_nalu_next_start_code(buf.ptr, buf.len, &startCodeSize);
 	if (NALUSize != 0) {
 		gf_bs_write_u32(out_bs, NALUSize);
-		gf_bs_write_data(out_bs, buf.ptr, NALUSize);
+		gf_bs_write_data(out_bs, (const char*)buf.ptr, NALUSize);
 	}
 	if (startCodeSize) {
 		buf.ptr += (NALUSize + startCodeSize);
@@ -360,7 +360,7 @@ void annexbToAvcc(SpanC buf, GF_ISOSample &sample) {
 		NALUSize = gf_media_nalu_next_start_code(buf.ptr, buf.len, &startCodeSize);
 		if (NALUSize != 0) {
 			gf_bs_write_u32(out_bs, NALUSize);
-			gf_bs_write_data(out_bs, buf.ptr, NALUSize);
+			gf_bs_write_data(out_bs, (const char*)buf.ptr, NALUSize);
 		}
 
 		buf.ptr += NALUSize;
@@ -386,9 +386,6 @@ GPACMuxMP4::GPACMuxMP4(KHost* host, Mp4MuxConfig const& cfg)
 	  fragmentPolicy(cfg.fragmentPolicy),
 	  segmentPolicy(cfg.segmentPolicy),
 	  segmentDuration(cfg.segmentDurationInMs, 1000) {
-	if (segmentPolicy == IndependentSegment && fragmentPolicy != NoFragment)
-		compatFlags = compatFlags | Browsers;
-
 	if ((cfg.segmentDurationInMs == 0) != (segmentPolicy == NoSegment || segmentPolicy == SingleSegment))
 		throw error(format("Inconsistent parameters: segment duration is %sms but no segment.", cfg.segmentDurationInMs));
 	if ((cfg.segmentDurationInMs == 0) && (fragmentPolicy == OneFragmentPerSegment))
@@ -453,7 +450,7 @@ void GPACMuxMP4::flush() {
 		gf_isom_delete(isoInit);
 		isoInit = nullptr;
 		if (!initName.empty())
-			gf_file_delete(initName.c_str());
+			gf_delete_file(initName.c_str());
 	} else {
 		GF_Err e = gf_isom_close(isoCur);
 		if (e != GF_OK && e != GF_ISOM_INVALID_FILE)
@@ -474,6 +471,7 @@ void GPACMuxMP4::updateSegmentName() {
 }
 
 void GPACMuxMP4::startSegment() {
+
 	switch(segmentPolicy) {
 	case NoSegment:
 	case SingleSegment:
@@ -497,10 +495,8 @@ void GPACMuxMP4::startSegment() {
 
 void GPACMuxMP4::closeSegment(bool isLastSeg) {
 	if (curFragmentDurInTs) {
-		if(fragmentPolicy != NoFragment) {
-			m_host->log(Debug, "closeFragment()");
+		if(fragmentPolicy != NoFragment)
 			closeFragment();
-		}
 	}
 
 	if (!isLastSeg && segmentPolicy <= SingleSegment) {
@@ -527,11 +523,11 @@ void GPACMuxMP4::startFragment(uint64_t DTS, uint64_t PTS) {
 	if (fragmentPolicy > NoFragment) {
 		curFragmentDurInTs = 0;
 
-		GF_Err e = gf_isom_start_fragment(isoCur, GF_ISOM_FRAG_MOOF_FIRST);
+		GF_Err e = gf_isom_start_fragment(isoCur, GF_TRUE);
 		if (e != GF_OK)
 			throw error(format("Impossible to create the moof starting the fragment: %s", gf_error_to_string(e)));
 
-		if (segmentPolicy != IndependentSegment) {
+		if (segmentPolicy >= IndependentSegment) {
 			if (compatFlags & SmoothStreaming) {
 				SAFE(gf_isom_set_fragment_option(isoCur, trackId, GF_ISOM_TFHD_FORCE_MOOF_BASE_OFFSET, 1));
 			} else {
@@ -564,9 +560,9 @@ void GPACMuxMP4::closeFragment() {
 
 		{
 			auto const isSuspicious = deltaRealTimeInMs < 0 || deltaRealTimeInMs > curFragmentStartInTs || curFragmentDurInTs != fractionToTimescale(segmentDuration, timeScale);
-			m_host->log(isSuspicious ? Warning : Info,
-			    format("[%s] Closing MSS fragment with absolute time %s %s UTC and duration %s (time=%s, deltaRT=%s)", codec4CC,
-			        getDay(), getTimeFromUTC(), curFragmentDurInTs, absTimeInTs/(double)timeScale, deltaRealTimeInMs).c_str());
+			m_host->log(isSuspicious ? Warning : Debug,
+			    format("Closing MSS fragment with absolute time %s %s UTC and duration %s (timescale %s, time=%s, deltaRT=%s)",
+			        getDay(), getTimeFromUTC(), curFragmentDurInTs, timeScale, absTimeInTs, deltaRealTimeInMs).c_str());
 		}
 
 		SAFE(gf_isom_set_traf_mss_timeext(isoCur, trackId, absTimeInTs, curFragmentDurInTs));
@@ -587,7 +583,7 @@ void GPACMuxMP4::closeFragment() {
 
 void GPACMuxMP4::setupFragments() {
 	if (fragmentPolicy > NoFragment) {
-		SAFE(gf_isom_setup_track_fragment(isoCur, trackId, 1, compatFlags & SmoothStreaming ? 0 : (u32)defaultSampleIncInTs, 0, 0, 0, 0, GF_FALSE));
+		SAFE(gf_isom_setup_track_fragment(isoCur, trackId, 1, compatFlags & SmoothStreaming ? 0 : (u32)defaultSampleIncInTs, 0, 0, 0, 0, 0));
 
 		int mode;
 
@@ -598,7 +594,7 @@ void GPACMuxMP4::setupFragments() {
 		else
 			mode = 1;
 
-		SAFE(gf_isom_finalize_for_fragment(isoCur, mode, GF_FALSE)); //writes moov
+		SAFE(gf_isom_finalize_for_fragment(isoCur, mode)); //writes moov
 
 		if (segmentPolicy == FragmentedSegment) {
 			if (gf_isom_get_filename(isoCur)) {
@@ -635,7 +631,7 @@ void GPACMuxMP4::declareStreamAudio(const MetadataPktAudio* metadata) {
 	esd->ESID = 1;
 	if (metadata->codec == "aac_raw") {
 		codec4CC = "AACL";
-		esd->decoderConfig->objectTypeIndication = GF_CODECID_AAC_MPEG4;
+		esd->decoderConfig->objectTypeIndication = GPAC_OTI_AUDIO_AAC_MPEG4;
 		esd->slConfig->timestampResolution = sampleRate;
 
 		acfg.base_object_type = GF_M4A_AAC_LC;
@@ -646,8 +642,9 @@ void GPACMuxMP4::declareStreamAudio(const MetadataPktAudio* metadata) {
 
 		SAFE(gf_m4a_write_config(&acfg, &esd->decoderConfig->decoderSpecificInfo->data, &esd->decoderConfig->decoderSpecificInfo->dataLength));
 		SAFE(gf_isom_new_mpeg4_description(isoCur, trackNum, esd.get(), nullptr, nullptr, &di));
+
 	} else if (metadata->codec == "mp2")	{
-		esd->decoderConfig->objectTypeIndication = GF_CODECID_MPEG_AUDIO;
+		esd->decoderConfig->objectTypeIndication = GPAC_OTI_AUDIO_MPEG1;
 		esd->decoderConfig->bufferSizeDB = 20;
 		esd->slConfig->timestampResolution = sampleRate;
 		esd->decoderConfig->decoderSpecificInfo = (GF_DefaultDescriptor *)gf_odf_desc_new(GF_ODF_DSI_TAG);
@@ -663,11 +660,30 @@ void GPACMuxMP4::declareStreamAudio(const MetadataPktAudio* metadata) {
 
 	} else if (metadata->codec == "ac3" || metadata->codec == "eac3") {
 		bool is_EAC3 = metadata->codec == "eac3";
+
 		auto extradata = metadata->getExtradata();
-		GF_AC3Config cfg {};
-		if (extradata.len > 0) {
-			gf_odf_ac3_config_parse((u8*)extradata.ptr, extradata.len, is_EAC3 ? GF_TRUE : GF_FALSE, &cfg);
+		auto bs2 = std::shared_ptr<GF_BitStream>(gf_bs_new((const char*)extradata.ptr, extradata.len, GF_BITSTREAM_READ), &gf_bs_del);
+		auto bs = bs2.get();
+		if (!bs)
+			throw error(format("(E)AC-3: impossible to create extradata bitstream (\"%s\", size=%s)", metadata->codec, extradata.len));
+
+		GF_AC3Header hdr  {};
+		if (is_EAC3 || !gf_ac3_parser_bs(bs, &hdr, GF_TRUE)) {
+			if (!gf_eac3_parser_bs(bs, &hdr, GF_TRUE)) {
+				m_host->log(Error, format("Parsing: audio is neither AC3 or E-AC3 audio (\"%s\", size=%s)", metadata->codec, extradata.len).c_str());
+			}
 		}
+
+		GF_AC3Config cfg {};
+		cfg.is_ec3 = is_EAC3;
+		cfg.nb_streams = 1;
+		cfg.brcode = hdr.brcode;
+		cfg.streams[0].acmod = hdr.acmod;
+		cfg.streams[0].bsid = hdr.bsid;
+		cfg.streams[0].bsmod = hdr.bsmod;
+		cfg.streams[0].fscod = hdr.fscod;
+		cfg.streams[0].lfon = hdr.lfon;
+
 		SAFE(gf_isom_ac3_config_new(isoCur, trackNum, &cfg, nullptr, nullptr, &di));
 	} else
 		throw error(format("Unsupported audio codec \"%s\"", metadata->codec));
@@ -753,10 +769,10 @@ void GPACMuxMP4::declareStreamVideo(const MetadataPktVideo* metadata) {
 		m_host->log(Warning, format("Using generic packaging for codec '%s%s%s%s'",
 		        (char)((MP4_4CC>>24)&0xff), (char)((MP4_4CC>>16)&0xff), (char)((MP4_4CC>>8)&0xff), (char)(MP4_4CC&0xff)).c_str());
 
-		sdesc.extension_buf = (u8*)gf_malloc(extradata.len);
+		sdesc.extension_buf = (char*)gf_malloc(extradata.len);
 		memcpy(sdesc.extension_buf, extradata.ptr, extradata.len);
 		sdesc.extension_buf_size = (u32)extradata.len;
-		if (!sdesc.vendor_code) sdesc.vendor_code = GF_4CC('G','P','A','C');
+		if (!sdesc.vendor_code) sdesc.vendor_code = GF_VENDOR_GPAC;
 
 		e = gf_isom_new_generic_sample_description(isoCur, trackNum, NULL, NULL, &sdesc, &di);
 		if (e != GF_OK)
@@ -775,9 +791,9 @@ void GPACMuxMP4::declareStreamVideo(const MetadataPktVideo* metadata) {
 			auto& esd = *esdPtr;
 			esd.ESID = 1; /*FIXME: only one track: set trackID?*/
 			esd.decoderConfig->streamType = GF_STREAM_VISUAL;
-			esd.decoderConfig->objectTypeIndication = metadata->codec == "h264_annexb" || metadata->codec == "h264_avcc" ? GF_CODECID_AVC : GF_CODECID_HEVC;
+			esd.decoderConfig->objectTypeIndication = metadata->codec == "h264_annexb" || metadata->codec == "h264_avcc" ? GPAC_OTI_VIDEO_AVC : GPAC_OTI_VIDEO_HEVC;
 			esd.decoderConfig->decoderSpecificInfo->dataLength = (u32)extradata.len;
-			esd.decoderConfig->decoderSpecificInfo->data = (u8*)gf_malloc(extradata.len);
+			esd.decoderConfig->decoderSpecificInfo->data = (char*)gf_malloc(extradata.len);
 			memcpy(esd.decoderConfig->decoderSpecificInfo->data, extradata.ptr, extradata.len);
 			esd.slConfig->predefined = SLPredef_MP4;
 
@@ -793,7 +809,7 @@ void GPACMuxMP4::declareStreamVideo(const MetadataPktVideo* metadata) {
 	if(AVC_INBAND_CONFIG) {
 		//inband SPS/PPS
 		if (segmentPolicy != NoSegment) {
-			SAFE(gf_isom_avc_set_inband_config(isoCur, trackNum, di, GF_FALSE));
+			SAFE(gf_isom_avc_set_inband_config(isoCur, trackNum, di));
 		}
 	}
 }
@@ -819,11 +835,11 @@ void GPACMuxMP4::handleInitialTimeOffset() {
 			auto const edtsInMovieTs = clockToTimescale(initDTSIn180k, gf_isom_get_timescale(isoCur));
 			auto const edtsInMediaTs = clockToTimescale(initDTSIn180k, timeScale);
 			if (edtsInMovieTs > 0) {
-				gf_isom_append_edit(isoCur, gf_isom_get_track_by_id(isoCur, trackId), edtsInMovieTs, 0, GF_ISOM_EDIT_EMPTY);
-				gf_isom_append_edit(isoCur, gf_isom_get_track_by_id(isoCur, trackId), edtsInMovieTs, 0, GF_ISOM_EDIT_NORMAL);
+				gf_isom_append_edit_segment(isoCur, gf_isom_get_track_by_id(isoCur, trackId), edtsInMovieTs, 0, GF_ISOM_EDIT_EMPTY);
+				gf_isom_append_edit_segment(isoCur, gf_isom_get_track_by_id(isoCur, trackId), edtsInMovieTs, 0, GF_ISOM_EDIT_NORMAL);
 				curSegmentDeltaInTs = edtsInMediaTs;
 			} else {
-				gf_isom_append_edit(isoCur, gf_isom_get_track_by_id(isoCur, trackId), 0, -edtsInMediaTs, GF_ISOM_EDIT_NORMAL);
+				gf_isom_append_edit_segment(isoCur, gf_isom_get_track_by_id(isoCur, trackId), 0, -edtsInMediaTs, GF_ISOM_EDIT_NORMAL);
 			}
 		}
 	}
@@ -835,9 +851,8 @@ void GPACMuxMP4::sendSegmentToOutput(bool EOS) {
 		SAFE(gf_isom_write(isoCur));
 	}
 
-	std::shared_ptr<DataRaw> out;
+	auto out = output->allocData<DataRaw>(0);
 	if (gf_isom_get_filename(isoCur)) {
-		out = output->allocData<DataRaw>(0); // data conveyed in file
 		lastSegmentSize = fileSize(segmentName);
 	} else {
 		auto const newBsNeeded = EOS || ( (compatFlags & FlushFragMemory) && curFragmentDurInTs );
@@ -847,7 +862,8 @@ void GPACMuxMP4::sendSegmentToOutput(bool EOS) {
 			m_host->log(Debug, "Empty segment. Ignore.");
 			return;
 		}
-		out = output->allocData<DataRaw>(contents.len);
+		//out->buffer->resize(contents.len);
+		safe_cast<DataRawResizable>(out)->resize(contents.len);
 		if(contents.len)
 			memcpy(out->buffer->data().ptr, contents.ptr, contents.len);
 		gf_free(contents.ptr);
@@ -899,7 +915,7 @@ void GPACMuxMP4::sendSegmentToOutput(bool EOS) {
 	if (!(compatFlags & SegNumStartsAtZero)) {
 		curSegmentStartInTs += rescale(firstDataAbsTimeInMs, 1000, timeScale);
 	}
-	out->set(PresentationTime { timescaleToClock((int64_t)curSegmentStartInTs, timeScale) });
+	// out->setMediaTime(curSegmentStartInTs, timeScale);  commenting this don't exist
 	output->post(out);
 
 	if (segmentPolicy == IndependentSegment) {
@@ -1000,7 +1016,7 @@ void GPACMuxMP4::fillSample(Data data, gpacpp::IsoSample* sample, bool isRap) {
 		if (isAnnexB) {
 			annexbToAvcc(data->data(), *sample);
 		} else {
-			sample->data = (u8*)data->data().ptr;
+			sample->data = (char*)data->data().ptr;
 			sample->dataLength = (u32)data->data().len;
 			sample->setDataOwnership(false);
 		}
