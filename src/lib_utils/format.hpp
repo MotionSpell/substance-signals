@@ -18,9 +18,6 @@ struct Local {
 		ss += "]";
 		return ss;
 	}
-	static std::string to_string(const bool& v) {
-		return v == true ? "true" : "false";
-	}
 	static std::string to_string(const char& c) {
 		std::string s;
 		return s + c;
@@ -34,64 +31,45 @@ struct Local {
 	static std::string to_string(const std::string& v) {
 		return v;
 	}
-	static std::string to_string(void* v) {
-		char buffer[128];
-		sprintf(buffer, "%p", v);
-		return buffer;
-	}
 	static std::string to_string(const void* v) {
 		char buffer[128];
-		sprintf(buffer, "%p", v);
-		return buffer;
-	}
-	static std::string to_string(float v) {
-		char buffer[128];
-		sprintf(buffer, "%f", v);
+		snprintf(buffer, 128, "%p", v);
 		return buffer;
 	}
 	static std::string to_string(double v) {
 		char buffer[128];
-		sprintf(buffer, "%f", v);
+		snprintf(buffer, 128, "%f", v);
 		return buffer;
 	}
 	static std::string to_string(long unsigned v) {
 		char buffer[128];
-		sprintf(buffer, "%lu", v);
+		snprintf(buffer, 128, "%lu", v);
 		return buffer;
 	}
 	static std::string to_string(long v) {
 		char buffer[128];
-		sprintf(buffer, "%ld", v);
+		snprintf(buffer, 128, "%ld", v);
 		return buffer;
 	}
 	static std::string to_string(unsigned int v) {
 		char buffer[128];
-		sprintf(buffer, "%u", v);
+		snprintf(buffer, 128, "%u", v);
 		return buffer;
 	}
 	static std::string to_string(int v) {
 		char buffer[128];
-		sprintf(buffer, "%d", v);
+		snprintf(buffer, 128, "%d", v);
 		return buffer;
 	}
 	static std::string to_string(long long v) {
 		char buffer[128];
-		sprintf(buffer, "%lld", v);
+		snprintf(buffer, 128, "%lld", v);
 		return buffer;
 	}
 	static std::string to_string(long long unsigned v) {
 		char buffer[128];
-		sprintf(buffer, "%llu", v);
+		snprintf(buffer, 128, "%llu", v);
 		return buffer;
-	}
-	static std::string to_string(const uint8_t v) {
-		char buffer[128];
-		sprintf(buffer, "%d", v);
-		return buffer;
-	}
-	template<typename T>
-	static std::string to_string(const T& val) {
-		return T::to_string(val);
 	}
 };
 
