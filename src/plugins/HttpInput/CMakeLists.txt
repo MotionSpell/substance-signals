@@ -12,4 +12,4 @@ target_link_libraries(HttpInput
     curl
 )
 
-signals_install_plugin(HttpInput)
+signals_install_plugin(HttpInput ".smd")

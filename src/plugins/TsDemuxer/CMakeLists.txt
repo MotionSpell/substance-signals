@@ -14,4 +14,4 @@ target_include_directories(TsDemuxer PUBLIC
     ${SIGNALS_TOP_SOURCE_DIR}/src
 )
 
-signals_install_plugin(TsDemuxer)
+signals_install_plugin(TsDemuxer ".smd")

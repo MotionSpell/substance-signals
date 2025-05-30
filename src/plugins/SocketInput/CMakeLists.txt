@@ -26,4 +26,4 @@ target_link_libraries(SocketInput
     modules
 )
 
-signals_install_plugin(SocketInput)
+signals_install_plugin(SocketInput ".smd")

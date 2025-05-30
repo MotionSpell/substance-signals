@@ -10,4 +10,4 @@ target_link_libraries(SubtitleEncoder
     modules
 )
 
-signals_install_plugin(SubtitleEncoder)
+signals_install_plugin(SubtitleEncoder ".smd")

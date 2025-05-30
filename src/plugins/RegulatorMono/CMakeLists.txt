@@ -10,4 +10,4 @@ target_link_libraries(RegulatorMono
     modules
 )
 
-signals_install_plugin(RegulatorMono)
+signals_install_plugin(RegulatorMono ".smd")

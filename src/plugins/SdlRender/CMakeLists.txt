@@ -39,4 +39,4 @@ target_link_libraries(SDLAudio
     SDL2::SDL2  # Link SDL2
 )
 
-signals_install_plugin(SDLAudio)
+signals_install_plugin(SDLAudio ".smd")

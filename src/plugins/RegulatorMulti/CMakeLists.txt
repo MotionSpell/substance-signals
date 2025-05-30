@@ -10,4 +10,4 @@ target_link_libraries(RegulatorMulti
     modules
 )
 
-signals_install_plugin(RegulatorMulti)
+signals_install_plugin(RegulatorMulti ".smd")

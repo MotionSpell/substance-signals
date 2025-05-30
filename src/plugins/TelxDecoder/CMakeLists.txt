@@ -15,4 +15,4 @@ target_include_directories(TeletextDecoder PUBLIC
     ${SIGNALS_TOP_SOURCE_DIR}/src
 )
 
-signals_install_plugin(TeletextDecoder)
+signals_install_plugin(TeletextDecoder ".smd")

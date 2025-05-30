@@ -12,4 +12,4 @@ target_link_libraries(TtmlDecoder
     modules
 )
 
-signals_install_plugin(TtmlDecoder)
+signals_install_plugin(TtmlDecoder ".smd")
