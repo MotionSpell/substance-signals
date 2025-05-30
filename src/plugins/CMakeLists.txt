@@ -11,4 +11,5 @@ add_subdirectory(SocketInput)
 add_subdirectory(RegulatorMono)
 add_subdirectory(RegulatorMulti)
 add_subdirectory(SubtitleEncoder)
+add_subdirectory(TtmlDecoder)
 
