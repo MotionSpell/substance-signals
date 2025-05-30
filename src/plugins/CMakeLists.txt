@@ -7,4 +7,5 @@ add_subdirectory(TsMuxer)
 add_subdirectory(TsDemuxer)
 add_subdirectory(HttpInput)
 add_subdirectory(Fmp4Splitter)
+add_subdirectory(SocketInput)
 
