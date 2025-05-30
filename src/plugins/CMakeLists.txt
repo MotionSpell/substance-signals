@@ -8,4 +8,6 @@ add_subdirectory(TsDemuxer)
 add_subdirectory(HttpInput)
 add_subdirectory(Fmp4Splitter)
 add_subdirectory(SocketInput)
+add_subdirectory(RegulatorMono)
+add_subdirectory(RegulatorMulti)
 
