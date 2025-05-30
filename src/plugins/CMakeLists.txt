@@ -5,6 +5,6 @@ add_subdirectory(TelxDecoder)
 add_subdirectory(UdpOutput)
 add_subdirectory(TsMuxer)
 add_subdirectory(TsDemuxer)
-# add_subdirectory(Telx2Ttml)
+add_subdirectory(HttpInput)
 add_subdirectory(Fmp4Splitter)
 
