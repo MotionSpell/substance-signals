@@ -54,6 +54,7 @@ target_link_libraries(media
     utils
     $<BUILD_INTERFACE:gpac::gpac>
     $<BUILD_INTERFACE:CURL::libcurl>
+    CURL::libcurl
     )
 
 # Define source files for the AVCC2AnnexBConverter
