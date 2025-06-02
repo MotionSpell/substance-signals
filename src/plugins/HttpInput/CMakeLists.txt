@@ -9,7 +9,6 @@ target_include_directories(HttpInput PRIVATE
 
 target_link_libraries(HttpInput
     modules
-    curl
     CURL::libcurl
 )
 
